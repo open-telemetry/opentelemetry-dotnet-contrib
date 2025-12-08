@@ -88,7 +88,7 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
             var activity = this.GetContext(record)?.Activity;
             if (activity is not null && activity.IsAllDataRequested)
             {
-                KustoInstrumentation.Options.Enrich?.Invoke(activity, record);
+                KustoInstrumentation.TraceOptions.Enrich?.Invoke(activity, record);
             }
         }
         catch (Exception ex)
@@ -110,7 +110,7 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
         if (!result.ErrorType.IsEmpty)
         {
             activity?.SetTag(SemanticConventions.AttributeErrorType, result.ErrorType.ToString());
-            context.Value.Tags.Add(SemanticConventions.AttributeErrorType, result.ErrorType.ToString());
+            context.Value.MeterTags.Add(SemanticConventions.AttributeErrorType, result.ErrorType.ToString());
         }
 
         var description = result.ErrorMessage.IsEmpty ? null : result.ErrorMessage.ToString();
@@ -125,52 +125,74 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
         var operationName = record.Activity.ActivityType;
 
         var activity = KustoActivitySourceHelper.ActivitySource.StartActivity(operationName, ActivityKind.Client);
-        var tagList = default(TagList);
+        var meterTags = default(TagList);
 
         if (ShouldComputeTags(activity))
         {
             activity?.DisplayName = operationName;
             activity?.AddTag(KustoActivitySourceHelper.ClientRequestIdTagKey, record.Activity.ClientRequestId.ToString());
 
-            tagList.Add(SemanticConventions.AttributeDbSystemName, KustoActivitySourceHelper.DbSystem);
-            tagList.Add(SemanticConventions.AttributeDbOperationName, operationName);
+            activity?.AddTag(SemanticConventions.AttributeDbSystemName, KustoActivitySourceHelper.DbSystem);
+            activity?.AddTag(SemanticConventions.AttributeDbOperationName, operationName);
+            meterTags.Add(SemanticConventions.AttributeDbSystemName, KustoActivitySourceHelper.DbSystem);
+            meterTags.Add(SemanticConventions.AttributeDbOperationName, operationName);
 
             var result = TraceRecordParser.ParseRequestStart(record.Message.AsSpan());
 
             if (!string.IsNullOrEmpty(result.ServerAddress))
             {
-                tagList.Add(SemanticConventions.AttributeServerAddress, result.ServerAddress);
+                activity?.AddTag(SemanticConventions.AttributeServerAddress, result.ServerAddress);
+                meterTags.Add(SemanticConventions.AttributeServerAddress, result.ServerAddress);
             }
 
             if (result.ServerPort is not null)
             {
-                tagList.Add(SemanticConventions.AttributeServerPort, result.ServerPort.Value);
+                activity?.AddTag(SemanticConventions.AttributeServerPort, result.ServerPort.Value);
+                meterTags.Add(SemanticConventions.AttributeServerPort, result.ServerPort.Value);
             }
 
             if (!result.Database.IsEmpty)
             {
-                tagList.Add(SemanticConventions.AttributeDbNamespace, result.Database.ToString());
+                activity?.AddTag(SemanticConventions.AttributeDbNamespace, result.Database.ToString());
+                meterTags.Add(SemanticConventions.AttributeDbNamespace, result.Database.ToString());
             }
 
             if (!result.QueryText.IsEmpty)
             {
-                var info = KustoProcessor.Process(shouldSummarize: KustoInstrumentation.Options.RecordQuerySummary, shouldSanitize: KustoInstrumentation.Options.RecordQueryText, result.QueryText.ToString());
+                var shouldSummarize = KustoInstrumentation.TraceOptions.RecordQuerySummary || KustoInstrumentation.MeterOptions.RecordQuerySummary;
+                var shouldSanitize = KustoInstrumentation.TraceOptions.RecordQueryText || KustoInstrumentation.MeterOptions.RecordQueryText;
+                var info = KustoProcessor.Process(shouldSummarize, shouldSanitize, result.QueryText.ToString());
 
-                if (KustoInstrumentation.Options.RecordQueryText)
+                if (!string.IsNullOrEmpty(info.Sanitized))
                 {
-                    tagList.Add(SemanticConventions.AttributeDbQueryText, info.Sanitized);
+                    if (KustoInstrumentation.TraceOptions.RecordQueryText)
+                    {
+                        activity?.AddTag(SemanticConventions.AttributeDbQueryText, info.Sanitized);
+                    }
+
+                    if (KustoInstrumentation.MeterOptions.RecordQueryText)
+                    {
+                        meterTags.Add(SemanticConventions.AttributeDbQueryText, info.Sanitized);
+                    }
                 }
 
-                // Set query summary and use it as display name per spec
                 if (!string.IsNullOrEmpty(info.Summarized))
                 {
-                    tagList.Add(SemanticConventions.AttributeDbQuerySummary, info.Summarized);
-                    activity?.DisplayName = info.Summarized!;
+                    if (KustoInstrumentation.TraceOptions.RecordQuerySummary)
+                    {
+                        activity?.AddTag(SemanticConventions.AttributeDbQuerySummary, info.Summarized);
+                        activity?.DisplayName = info.Summarized!;
+                    }
+
+                    if (KustoInstrumentation.MeterOptions.RecordQuerySummary)
+                    {
+                        meterTags.Add(SemanticConventions.AttributeDbQuerySummary, info.Summarized);
+                    }
                 }
             }
         }
 
-        this.contexts[record.Activity.ActivityId] = new ContextData(beginTimestamp, tagList, activity!);
+        this.contexts[record.Activity.ActivityId] = new ContextData(beginTimestamp, meterTags, activity!);
 
         this.CallEnrichment(record);
     }
@@ -191,12 +213,11 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
             activity?.SetStatus(ActivityStatusCode.Ok);
         }
 
-        activity?.AddTags(context.Value.Tags);
         this.CallEnrichment(record);
         activity?.Stop();
 
         var duration = activity?.Duration.TotalSeconds ?? GetElapsedTime(context.Value.BeginTimestamp);
-        KustoActivitySourceHelper.OperationDurationHistogram.Record(duration, context.Value.Tags);
+        KustoActivitySourceHelper.OperationDurationHistogram.Record(duration, context.Value.MeterTags);
 
         this.contexts.TryRemove(record.Activity.ActivityId, out _);
     }
@@ -217,10 +238,10 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
     /// </summary>
     private readonly struct ContextData
     {
-        public ContextData(long beginTimestamp, TagList tags, Activity activity)
+        public ContextData(long beginTimestamp, TagList meterTags, Activity activity)
         {
             this.BeginTimestamp = beginTimestamp;
-            this.Tags = tags;
+            this.MeterTags = meterTags;
             this.Activity = activity;
         }
 
@@ -231,9 +252,9 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
         public long BeginTimestamp { get; }
 
         /// <summary>
-        /// Gets the collection of tags associated with the operation that should be shared between the span and metrics.
+        /// Gets the collection of tags associated with the operation that should be applies to metrics.
         /// </summary>
-        public TagList Tags { get; }
+        public TagList MeterTags { get; }
 
         /// <summary>
         /// Gets the current activity associated with the instance, if any.
