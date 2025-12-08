@@ -41,8 +41,8 @@ Intel Core Ultra 7 165H 3.80GHz, 1 CPU, 22 logical and 16 physical cores
 
 ### Summarization and sanitization processing
 
-Summarization and sanitization are the most expensive parts of instrumentation, so
-there are benchmarks to measure their specific cost.
+Summarization and sanitization are the most expensive parts of
+instrumentation, so there are benchmarks to measure their specific cost.
 
 ```plain
 
