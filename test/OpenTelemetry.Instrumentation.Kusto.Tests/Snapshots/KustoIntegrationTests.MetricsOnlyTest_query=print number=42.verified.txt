@@ -1,6 +1,7 @@
 ﻿{
   Metrics: [
     {
+      MeterName: OpenTelemetry.Instrumentation.Kusto,
       Name: db.client.operation.duration,
       Description: Duration of database client operations,
       Unit: s,

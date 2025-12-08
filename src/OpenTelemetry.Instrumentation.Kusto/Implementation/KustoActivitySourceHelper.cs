@@ -14,13 +14,16 @@ namespace OpenTelemetry.Instrumentation.Kusto.Implementation;
 internal static class KustoActivitySourceHelper
 {
     public const string DbSystem = "azure.kusto";
-    public const string ActivitySourceName = "Kusto.Client";
-    public const string MeterName = "Kusto.Client";
-    public const string ClientRequestIdTagKey = "kusto.client_request_id";
+    public const string ClientRequestIdTagKey = $"{DbSystem}.client_request_id";
 
     public static readonly Assembly Assembly = typeof(KustoActivitySourceHelper).Assembly;
+    public static readonly AssemblyName AssemblyName = Assembly.GetName();
     public static readonly string PackageVersion = Assembly.GetPackageVersion();
+
+    public static readonly string ActivitySourceName = AssemblyName.Name!;
     public static readonly ActivitySource ActivitySource = new(ActivitySourceName, PackageVersion);
+
+    public static readonly string MeterName = AssemblyName.Name!;
     public static readonly Meter Meter = new(MeterName, PackageVersion);
 
     public static readonly Histogram<double> OperationDurationHistogram = Meter.CreateHistogram(
