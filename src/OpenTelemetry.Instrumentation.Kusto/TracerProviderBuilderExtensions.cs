@@ -1,7 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using OpenTelemetry.Instrumentation.Kusto;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using OpenTelemetry.Instrumentation.Kusto.Implementation;
 using OpenTelemetry.Internal;
 
@@ -18,28 +19,31 @@ public static class TracerProviderBuilderExtensions
     /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddKustoInstrumentation(this TracerProviderBuilder builder) =>
-        AddKustoInstrumentation(builder, options => { });
+        AddKustoInstrumentation(builder, configureKustoTraceInstrumentationOptions: null);
 
     /// <summary>
     /// Enables Kusto instrumentation.
     /// </summary>
     /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
-    /// <param name="configureKustoInstrumentationOptions">Callback action for configuring <see cref="KustoInstrumentationOptions"/>.</param>
+    /// <param name="configureKustoTraceInstrumentationOptions">Callback action for configuring <see cref="KustoTraceInstrumentationOptions"/>.</param>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddKustoInstrumentation(
         this TracerProviderBuilder builder,
-        Action<KustoInstrumentationOptions> configureKustoInstrumentationOptions)
+        Action<KustoTraceInstrumentationOptions>? configureKustoTraceInstrumentationOptions)
     {
         Guard.ThrowIfNull(builder);
-        Guard.ThrowIfNull(configureKustoInstrumentationOptions);
 
-        configureKustoInstrumentationOptions(KustoInstrumentation.Options);
+        if (configureKustoTraceInstrumentationOptions != null)
+        {
+            builder.ConfigureServices(services => services.Configure(configureKustoTraceInstrumentationOptions));
+        }
 
         // Be sure to eagerly initialize the instrumentation, as we must set environment variables before any clients are created.
         KustoInstrumentation.Initialize();
 
         builder.AddInstrumentation(sp =>
         {
+            KustoInstrumentation.TraceOptions = sp.GetRequiredService<IOptionsMonitor<KustoTraceInstrumentationOptions>>().CurrentValue;
             return KustoInstrumentation.HandleManager.AddTracingHandle();
         });
 

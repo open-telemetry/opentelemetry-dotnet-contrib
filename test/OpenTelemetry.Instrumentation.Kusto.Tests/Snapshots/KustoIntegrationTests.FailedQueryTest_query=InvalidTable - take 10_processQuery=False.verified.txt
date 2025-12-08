@@ -10,9 +10,6 @@
           azure.kusto.client_request_id: SW52YWxpZFRhYmxlIHwgdGFrZSAxMA==
         },
         {
-          error.type: Kusto.Data.Exceptions.SemanticException
-        },
-        {
           db.system.name: azure.kusto
         },
         {
@@ -26,6 +23,9 @@
         },
         {
           db.namespace: NetDefaultDB
+        },
+        {
+          error.type: Kusto.Data.Exceptions.SemanticException
         }
       ],
       OperationName: KD.RestClient.ExecuteQuery,

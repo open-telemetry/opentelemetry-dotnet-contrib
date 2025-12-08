@@ -27,29 +27,20 @@ public class KustoTraceProviderBuilderTests
     }
 
     [Fact]
-    public void AddKustoInstrumentation_WithNullOptions_ThrowsArgumentNullException()
-    {
-        var builder = Sdk.CreateTracerProviderBuilder();
-        Action<KustoInstrumentationOptions> options = null!;
-
-        Assert.Throws<ArgumentNullException>(() => builder.AddKustoInstrumentation(options));
-    }
-
-    [Fact]
     public void AddKustoInstrumentation_WithOptions_DoesNotThrow()
     {
         var builder = Sdk.CreateTracerProviderBuilder();
 
-        var actual = builder.AddKustoInstrumentation(options => options.RecordQueryText = true);
+        var actual = builder.AddKustoInstrumentation(options => options.Enrich = (activity, record) => { });
 
         Assert.Same(builder, actual);
     }
 
     [Fact]
-    public void KustoInstrumentationOptions_DefaultRecordQueryTextIsFalse()
+    public void KustoTraceInstrumentationOptions_DefaultEnrichIsNull()
     {
-        var options = new KustoInstrumentationOptions();
+        var options = new KustoTraceInstrumentationOptions();
 
-        Assert.False(options.RecordQueryText);
+        Assert.Null(options.Enrich);
     }
 }
