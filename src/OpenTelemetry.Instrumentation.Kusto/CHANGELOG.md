@@ -2,4 +2,4 @@
 
 ## Unreleased
 
-* Initial implementation of Kusto instrumentation.
+* Initial implementation.

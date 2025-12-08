@@ -1,7 +1,7 @@
 # Kusto Instrumentation for OpenTelemetry
 
-| Status      |           |
-| ----------- | --------- |
+| Status      |                                |
+| ----------- | ------------------------------ |
 | Stability   | [Alpha](../../README.md#alpha) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Kusto)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Kusto)
@@ -81,12 +81,12 @@ The instrumentation is implemented based on [metrics semantic
 conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.36.0/docs/database/database-metrics.md).
 Currently, the instrumentation supports the following metric:
 
-| Name                           | Instrument Type | Unit | Description                             | Attributes |
-|--------------------------------|-----------------|------|-----------------------------------------|------------|
-| `db.client.operation.duration` | Histogram       | `s`  | Duration of database client operations. | `db.system`, `db.operation.name`, `db.namespace`, `db.query.summary`¹, `server.address`, `server.port`, `error.type`² |
+| Name                           | Instrument Type | Unit | Description                             | Attributes                                                                                                                 |
+|--------------------------------|-----------------|------|-----------------------------------------|----------------------------------------------------------------------------------------------------------------------------|
+| `db.client.operation.duration` | Histogram       | `s`  | Duration of database client operations. | `db.system`, `db.operation.name`, `db.namespace`, `db.query.summary` (1), `server.address`, `server.port`, `error.type`(2) |
 
-¹ `db.query.summary` is only included when `RecordQuerySummary` is enabled (default: `true`)
-² `error.type` is only included when an error occurs
+1 `db.query.summary` is only included when `RecordQuerySummary` is enabled
+2 `error.type` is only included when an error occurs
 
 ## Advanced configuration
 
@@ -142,8 +142,8 @@ using var tracerProvider = Sdk.CreateTracerProviderBuilder()
     .AddKustoInstrumentation(opt => opt.Enrich = (activity, record) =>
     {
         // Add custom tags based on the TraceRecord
-        activity.SetTag("kusto.activity_id", record.Activity.ActivityId);
-        activity.SetTag("kusto.activity_type", record.Activity.ActivityType);
+        activity.SetTag("azure.kusto.activity_id", record.Activity.ActivityId);
+        activity.SetTag("azure.kusto.activity_type", record.Activity.ActivityType);
     })
     .Build();
 ```
@@ -205,7 +205,8 @@ Users
 | take 100
 ```
 
-Would result in an activity with the summary and display name set to `"Get active users"`.
+Would result in an activity with the summary and display name
+set to `"Get active users"`.
 
 ## References
 
