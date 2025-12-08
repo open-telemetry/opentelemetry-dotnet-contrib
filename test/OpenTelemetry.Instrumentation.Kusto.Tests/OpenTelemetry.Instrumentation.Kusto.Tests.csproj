@@ -34,7 +34,7 @@
     <!--
       Verify adds an implicit using for the test framework, however because we use shared files, remove it to avoid
       an unnecessary using warning.
-     -->
+    -->
     <Using Remove="Xunit" />
   </ItemGroup>
 
