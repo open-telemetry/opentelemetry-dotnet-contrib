@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using Kusto.Cloud.Platform.Utils;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.Kusto.Implementation;
 
@@ -21,14 +23,22 @@ internal static class KustoInstrumentation
     });
 
     /// <summary>
-    /// Gets the post-configured options for Kusto instrumentation.
+    /// Gets or sets the post-configured trace options for Kusto instrumentation.
     /// </summary>
-    public static KustoInstrumentationOptions Options { get; } = new KustoInstrumentationOptions();
+    public static KustoTraceInstrumentationOptions TraceOptions { get; set; } = new KustoTraceInstrumentationOptions();
+
+    /// <summary>
+    /// Gets or sets the post-configured meter options for Kusto instrumentation.
+    /// </summary>
+    public static KustoMeterInstrumentationOptions MeterOptions { get; set; } = new KustoMeterInstrumentationOptions();
 
     /// <summary>
     /// Gets the <see cref="InstrumentationHandleManager"/> that tracks if there are any active listeners for <see cref="KustoTraceRecordListener"/>.
     /// </summary>
     public static InstrumentationHandleManager HandleManager { get; } = new InstrumentationHandleManager();
 
+    /// <summary>
+    /// Initializes the Kusto instrumentation by ensuring the listener is created and registered with the client library.
+    /// </summary>
     public static void Initialize() => _ = Listener.Value;
 }

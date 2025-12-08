@@ -10,9 +10,6 @@
           azure.kusto.client_request_id: SW52YWxpZFRhYmxlIHwgdGFrZSAxMA==
         },
         {
-          error.type: Kusto.Data.Exceptions.SemanticException
-        },
-        {
           db.system.name: azure.kusto
         },
         {
@@ -32,6 +29,9 @@
         },
         {
           db.query.summary: InvalidTable | take
+        },
+        {
+          error.type: Kusto.Data.Exceptions.SemanticException
         }
       ],
       OperationName: KD.RestClient.ExecuteQuery,
