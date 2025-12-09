@@ -446,3 +446,7 @@ test/**/BenchmarkResults/**
 !test/**/BenchmarkResults/results/
 # Do NOT ignore files ending with -report-github.md anywhere under BenchmarkResults
 !test/**/BenchmarkResults/results/*-report-github.md
+
+# Ignore Verify received files
+*.received.*
+*.received/

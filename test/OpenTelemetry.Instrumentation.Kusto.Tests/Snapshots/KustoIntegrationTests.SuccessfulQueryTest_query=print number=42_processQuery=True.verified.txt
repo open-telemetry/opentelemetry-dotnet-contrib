@@ -1,0 +1,46 @@
+{
+  Activities: [
+    {
+      ActivitySourceName: OpenTelemetry.Instrumentation.Kusto,
+      DisplayName: print,
+      Status: Ok,
+      TagObjects: [
+        {
+          azure.kusto.client_request_id: cHJpbnQgbnVtYmVyPTQy
+        },
+        {
+          db.system.name: azure.kusto
+        },
+        {
+          db.operation.name: KD.RestClient.ExecuteQuery
+        },
+        {
+          server.address: Scrubbed
+        },
+        {
+          server.port: Scrubbed
+        },
+        {
+          db.namespace: NetDefaultDB
+        },
+        {
+          db.query.text: print number=?
+        },
+        {
+          db.query.summary: print
+        }
+      ],
+      OperationName: KD.RestClient.ExecuteQuery,
+      IdFormat: W3C
+    }
+  ],
+  Metrics: [
+    {
+      MeterName: OpenTelemetry.Instrumentation.Kusto,
+      Name: db.client.operation.duration,
+      Description: Duration of database client operations,
+      Unit: s,
+      Temporality: Cumulative
+    }
+  ]
+}

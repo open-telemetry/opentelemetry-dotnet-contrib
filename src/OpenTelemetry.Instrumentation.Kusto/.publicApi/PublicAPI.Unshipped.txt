@@ -1,0 +1,21 @@
+#nullable enable
+OpenTelemetry.Metrics.KustoMeterInstrumentationOptions
+OpenTelemetry.Metrics.KustoMeterInstrumentationOptions.KustoMeterInstrumentationOptions() -> void
+OpenTelemetry.Metrics.KustoMeterInstrumentationOptions.RecordQuerySummary.get -> bool
+OpenTelemetry.Metrics.KustoMeterInstrumentationOptions.RecordQuerySummary.set -> void
+OpenTelemetry.Metrics.KustoMeterInstrumentationOptions.RecordQueryText.get -> bool
+OpenTelemetry.Metrics.KustoMeterInstrumentationOptions.RecordQueryText.set -> void
+OpenTelemetry.Metrics.MeterProviderBuilderExtensions
+OpenTelemetry.Trace.KustoTraceInstrumentationOptions
+OpenTelemetry.Trace.KustoTraceInstrumentationOptions.Enrich.get -> System.Action<System.Diagnostics.Activity!, Kusto.Cloud.Platform.Utils.TraceRecord!>?
+OpenTelemetry.Trace.KustoTraceInstrumentationOptions.Enrich.set -> void
+OpenTelemetry.Trace.KustoTraceInstrumentationOptions.KustoTraceInstrumentationOptions() -> void
+OpenTelemetry.Trace.KustoTraceInstrumentationOptions.RecordQuerySummary.get -> bool
+OpenTelemetry.Trace.KustoTraceInstrumentationOptions.RecordQuerySummary.set -> void
+OpenTelemetry.Trace.KustoTraceInstrumentationOptions.RecordQueryText.get -> bool
+OpenTelemetry.Trace.KustoTraceInstrumentationOptions.RecordQueryText.set -> void
+OpenTelemetry.Trace.TracerProviderBuilderExtensions
+static OpenTelemetry.Metrics.MeterProviderBuilderExtensions.AddKustoInstrumentation(this OpenTelemetry.Metrics.MeterProviderBuilder! builder) -> OpenTelemetry.Metrics.MeterProviderBuilder!
+static OpenTelemetry.Metrics.MeterProviderBuilderExtensions.AddKustoInstrumentation(this OpenTelemetry.Metrics.MeterProviderBuilder! builder, System.Action<OpenTelemetry.Metrics.KustoMeterInstrumentationOptions!>? configureKustoMeterInstrumentationOptions) -> OpenTelemetry.Metrics.MeterProviderBuilder!
+static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddKustoInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder! builder) -> OpenTelemetry.Trace.TracerProviderBuilder!
+static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddKustoInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder! builder, System.Action<OpenTelemetry.Trace.KustoTraceInstrumentationOptions!>? configureKustoTraceInstrumentationOptions) -> OpenTelemetry.Trace.TracerProviderBuilder!

@@ -135,6 +135,11 @@ flags:
     paths:
       - src/OpenTelemetry.Instrumentation.Http
 
+  unittests-Instrumentation.Kusto:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Instrumentation.Kusto
+
   unittests-Instrumentation.Owin:
     carryforward: true
     paths:
