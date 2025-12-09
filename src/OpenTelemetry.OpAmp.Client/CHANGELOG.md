@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Add setting to configure the factory used to create `HttpClient` instances
+  used for the OpAMP Plain HTTP transport.
+  ([#3589](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3589))
+
 ## 0.1.0-alpha.3
 
 Released 2025-Nov-13

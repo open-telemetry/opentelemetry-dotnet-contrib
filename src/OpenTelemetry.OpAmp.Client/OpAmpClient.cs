@@ -93,7 +93,7 @@ public sealed class OpAmpClient : IDisposable
         return settings.ConnectionType switch
         {
             ConnectionType.WebSocket => new WsTransport(settings.ServerUrl, processor),
-            ConnectionType.Http => new PlainHttpTransport(settings.ServerUrl, processor),
+            ConnectionType.Http => new PlainHttpTransport(settings, processor),
             _ => throw new NotSupportedException("Unsupported transport type"),
         };
     }
