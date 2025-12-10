@@ -116,7 +116,8 @@ On Windows the connection string has the format `EtwSession={ETW session}`.
 A list of fields which should be stored as individual table columns.
 
 * If null, all fields will be stored as individual columns.
-* If non-null, only those fields named in the list will be stored as individual columns.
+* If non-null, only those fields named in the list will be stored as individual
+  columns.
 
 #### `PrepopulatedFields` (optional)
 
