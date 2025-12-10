@@ -4,6 +4,7 @@
 using OpenTelemetry.Internal;
 using OpenTelemetry.OpAmp.Client.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Listeners;
+using OpenTelemetry.OpAmp.Client.Internal.Listeners.Messages;
 using OpenTelemetry.OpAmp.Client.Internal.Services;
 using OpenTelemetry.OpAmp.Client.Internal.Services.Heartbeat;
 using OpenTelemetry.OpAmp.Client.Internal.Transport;
@@ -112,6 +113,12 @@ public sealed class OpAmpClient : IDisposable
     public void Dispose()
     {
         this.dispatcher.Dispose();
+    }
+
+    // Used for testing purposes only.
+    internal Task SendHeartbeatAsync(HealthReport healthReport, CancellationToken cancellationToken = default)
+    {
+        return this.dispatcher.DispatchHeartbeatAsync(healthReport, cancellationToken);
     }
 
     private static IOpAmpTransport ConstructTransport(OpAmpClientSettings settings, FrameProcessor processor)

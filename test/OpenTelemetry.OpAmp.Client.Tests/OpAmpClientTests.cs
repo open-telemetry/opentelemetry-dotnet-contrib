@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using OpenTelemetry.OpAmp.Client.Internal.Services.Heartbeat;
 using OpenTelemetry.OpAmp.Client.Tests.Mocks;
 using OpenTelemetry.OpAmp.Client.Tests.Tools;
 using Xunit;
@@ -20,7 +21,7 @@ public class OpAmpClientTests
         using var client = new OpAmpClient(o =>
         {
             o.ServerUrl = opAmpEndpoint;
-            o.Heartbeat.Interval = TimeSpan.FromSeconds(1);
+            o.Heartbeat.IsEnabled = false;
         });
         client.Subscribe(mockListener);
 
@@ -29,19 +30,48 @@ public class OpAmpClientTests
         // We don't currently have a direct way to send a message from the client to the server to trigger a response, so
         // this depends on the heartbeat messages from the server to the client.
 
-        mockListener.WaitForMessages(TimeSpan.FromSeconds(2)); // Wait for the initial identification message response
-        mockListener.WaitForMessages(TimeSpan.FromSeconds(2)); // Wait for the heartbeat response
+        // Wait for the initial identification message response
+        mockListener.WaitForMessages(TimeSpan.FromSeconds(1));
+
+        Assert.Single(mockListener.Messages);
+
+        await client.SendHeartbeatAsync(new HealthReport
+        {
+            StartTime = GetCurrentTimeInNanoseconds(),
+            StatusTime = GetCurrentTimeInNanoseconds(),
+            IsHealthy = true,
+            Status = "OK",
+        });
+
+        // Wait for the heartbeat response
+        mockListener.WaitForMessages(TimeSpan.FromSeconds(1));
+
+        Assert.Equal(2, mockListener.Messages.Count);
 
         client.Unsubscribe(mockListener);
 
-        mockListener.WaitForMessages(TimeSpan.FromSeconds(3)); // Wait to verify no more messages arrive after unsubscribing.
+        await client.SendHeartbeatAsync(new HealthReport
+        {
+            StartTime = GetCurrentTimeInNanoseconds(),
+            StatusTime = GetCurrentTimeInNanoseconds(),
+            IsHealthy = true,
+            Status = "OK",
+        });
 
-        var clientReceivedFrames = mockListener.Messages;
-        Assert.Equal(2, clientReceivedFrames.Count); // Expect only two messages received
+        mockListener.WaitForMessages(TimeSpan.FromSeconds(1));
 
-        var receivedTextData = clientReceivedFrames.First().CustomMessage.Data.ToStringUtf8();
-        Assert.StartsWith("This is a mock server frame for testing purposes.", receivedTextData);
+        var serverFrames = opAmpServer.GetFrames();
+
+        // We should have received 3 frames on the server: identification, heartbeat 1, heartbeat 2
+        // The client should have received 2 messages before we unsubscribed.
+        Assert.Equal(2, mockListener.Messages.Count);
+        Assert.Equal(3, serverFrames.Count);
 
         await client.StopAsync();
+
+        static ulong GetCurrentTimeInNanoseconds()
+        {
+            return (ulong)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 1_000_000; // Convert to nanoseconds
+        }
     }
 }
