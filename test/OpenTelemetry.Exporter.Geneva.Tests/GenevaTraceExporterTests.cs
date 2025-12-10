@@ -57,6 +57,16 @@ public class GenevaTraceExporterTests : IDisposable
             });
         });
 
+        // reserved field in ResourceFieldNames
+        Assert.Throws<ArgumentException>(() =>
+        {
+            using var exporter = new GenevaTraceExporter(new GenevaExporterOptions
+            {
+                ConnectionString = "EtwSession=OpenTelemetry",
+                ResourceFieldNames = ["cloud.roleVer"],
+            });
+        });
+
         // unsupported types(char) for PrepopulatedFields
         Assert.Throws<ArgumentException>(() =>
         {
@@ -443,6 +453,73 @@ public class GenevaTraceExporterTests : IDisposable
         }
     }
 
+    [Fact]
+    public void GenevaTraceExporter_InvalidResourceAttrType_Throws()
+    {
+        var path = string.Empty;
+        Socket server = null;
+        try
+        {
+            var exporterOptions = new GenevaExporterOptions
+            {
+                ResourceFieldNames = ["badresource"],
+            };
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+            }
+            else
+            {
+                path = GetRandomFilePath();
+                exporterOptions.ConnectionString = "Endpoint=unix:" + path;
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                server.Bind(endpoint);
+                server.Listen(1);
+            }
+
+            Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
+            {
+                { "badresource", new int[1] }, // the exporter does not accept complex resource types like an array
+            };
+            var resource = new Resource(resourceAttributes);
+
+            using var exporter = new MsgPackTraceExporter(exporterOptions, () => resource);
+            var m_buffer = exporter.Buffer;
+
+            // Add an ActivityListener to serialize the activity and assert that it was valid on ActivityStopped event
+
+            // Set the ActivitySourceName to the unique value of the test method name to avoid interference with
+            // the ActivitySource used by other unit tests.
+            var sourceName = GetTestMethodName();
+
+            using var listener = new ActivityListener();
+            listener.ShouldListenTo = (activitySource) => activitySource.Name == sourceName;
+            listener.Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded;
+            listener.ActivityStopped = (activity) =>
+            {
+                Assert.Throws<ArgumentException>(() => exporter.SerializeActivity(activity));
+            };
+            ActivitySource.AddActivityListener(listener);
+
+            using var source = new ActivitySource(sourceName);
+            using (var activity = source.StartActivity("Activity"))
+            {
+            }
+        }
+        finally
+        {
+            server?.Dispose();
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
+            }
+        }
+    }
+
     /// <summary>
     /// The purpose of this test is to make sure that when ResourceFieldNames is not set,
     /// that no resource attributes make it to Geneva.
@@ -462,6 +539,93 @@ public class GenevaTraceExporterTests : IDisposable
                 },
 
                 // ResourceFieldNames not set
+            };
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+            }
+            else
+            {
+                path = GetRandomFilePath();
+                exporterOptions.ConnectionString = "Endpoint=unix:" + path;
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                server.Bind(endpoint);
+                server.Listen(1);
+            }
+
+            Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
+            {
+                { "resourceAttributes", "should not be present" },
+            };
+            var resource = new Resource(resourceAttributes);
+
+            using var exporter = new MsgPackTraceExporter(exporterOptions, () => resource);
+            var m_buffer = exporter.Buffer;
+
+            // Add an ActivityListener to serialize the activity and assert that it was valid on ActivityStopped event
+
+            // Set the ActivitySourceName to the unique value of the test method name to avoid interference with
+            // the ActivitySource used by other unit tests.
+            var sourceName = GetTestMethodName();
+
+            using var listener = new ActivityListener();
+            listener.ShouldListenTo = (activitySource) => activitySource.Name == sourceName;
+            listener.Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded;
+            listener.ActivityStopped = (activity) =>
+            {
+                _ = exporter.SerializeActivity(activity);
+                var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+                this.CheckSpanForActivity(exporterOptions, fluentdData, activity, exporter.DedicatedFields, resourceAttributes);
+            };
+            ActivitySource.AddActivityListener(listener);
+
+            using var source = new ActivitySource(sourceName);
+            using (var activity = source.StartActivity("Activity"))
+            {
+                this.ExpectSpanFromActivity(activity, (mapping) =>
+                {
+                    Assert.DoesNotContain("resourceAttributes", mapping);
+                    if (mapping.ContainsKey("env_properties"))
+                    {
+                        var env_properties = mapping["env_properties"] as Dictionary<object, object> ?? [];
+                        Assert.DoesNotContain("resourceAttributes", env_properties);
+                    }
+                });
+            }
+        }
+        finally
+        {
+            server?.Dispose();
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    /// <summary>
+    /// The purpose of this test is to make sure that when ResourceFieldNames is set to empty,
+    /// that no resource attributes make it to Geneva.
+    /// </summary>
+    [Fact]
+    public void GenevaTraceExporter_WithEmptyResourceAttributes()
+    {
+        var path = string.Empty;
+        Socket server = null;
+        try
+        {
+            var exporterOptions = new GenevaExporterOptions
+            {
+                PrepopulatedFields = new Dictionary<string, object>
+                {
+                    ["unaffected prepopulated"] = "should be present",
+                },
+
+                ResourceFieldNames = [], // ResourceFieldNames empty
             };
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
