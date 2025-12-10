@@ -5,7 +5,7 @@ using OpAmp.Proto.V1;
 
 namespace OpenTelemetry.OpAmp.Client.Internal.Listeners.Messages;
 
-internal class FlagsMessage : IOpAmpMessage
+internal class FlagsMessage : OpAmpMessage
 {
     public FlagsMessage(ServerToAgentFlags flags)
     {

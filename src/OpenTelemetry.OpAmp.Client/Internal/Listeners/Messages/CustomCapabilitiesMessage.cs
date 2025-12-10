@@ -5,7 +5,7 @@ using OpAmp.Proto.V1;
 
 namespace OpenTelemetry.OpAmp.Client.Internal.Listeners.Messages;
 
-internal class CustomCapabilitiesMessage : IOpAmpMessage
+internal class CustomCapabilitiesMessage : OpAmpMessage
 {
     public CustomCapabilitiesMessage(CustomCapabilities customCapabilities)
     {

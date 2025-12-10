@@ -13,10 +13,10 @@ namespace OpenTelemetry.OpAmp.Client.Internal;
 
 internal sealed class FrameProcessor
 {
-    private readonly ConcurrentDictionary<Type, IReadOnlyList<IOpAmpListener>> listeners = [];
+    private readonly ConcurrentDictionary<Type, IReadOnlyList<object>> listeners = [];
 
     public void Subscribe<T>(IOpAmpListener<T> listener)
-        where T : IOpAmpMessage
+        where T : OpAmpMessage
     {
         Guard.ThrowIfNull(listener, nameof(listener));
 
@@ -26,7 +26,7 @@ internal sealed class FrameProcessor
             _ => [listener],
             (_, list) =>
             {
-                var newList = new List<IOpAmpListener>(list.Count + 1);
+                var newList = new List<object>(list.Count + 1);
                 newList.AddRange(list);
                 newList.Add(listener);
                 return newList;
@@ -34,7 +34,7 @@ internal sealed class FrameProcessor
     }
 
     public void Unsubscribe<T>(IOpAmpListener<T> listener)
-        where T : IOpAmpMessage
+        where T : OpAmpMessage
     {
         Guard.ThrowIfNull(listener, nameof(listener));
 
@@ -43,12 +43,12 @@ internal sealed class FrameProcessor
             _ => [],
             (_, list) =>
             {
-                if (list.Count == 1 && list[0] == listener)
+                if (list.Count == 1 && list[0] is IOpAmpListener<T> typedListener && ReferenceEquals(typedListener, listener))
                 {
                     return [];
                 }
 
-                return list.Where(x => x != listener).ToList();
+                return list.Where(x => !ReferenceEquals(x, listener)).ToList();
             });
     }
 
@@ -137,7 +137,7 @@ internal sealed class FrameProcessor
     }
 
     private void Dispatch<T>(T message)
-        where T : IOpAmpMessage
+        where T : OpAmpMessage
     {
         if (this.listeners.TryGetValue(typeof(T), out var list))
         {

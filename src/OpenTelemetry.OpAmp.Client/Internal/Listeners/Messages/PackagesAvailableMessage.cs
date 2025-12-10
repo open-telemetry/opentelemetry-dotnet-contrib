@@ -5,7 +5,7 @@ using OpAmp.Proto.V1;
 
 namespace OpenTelemetry.OpAmp.Client.Internal.Listeners.Messages;
 
-internal class PackagesAvailableMessage : IOpAmpMessage
+internal class PackagesAvailableMessage : OpAmpMessage
 {
     public PackagesAvailableMessage(PackagesAvailable packageAvailable)
     {

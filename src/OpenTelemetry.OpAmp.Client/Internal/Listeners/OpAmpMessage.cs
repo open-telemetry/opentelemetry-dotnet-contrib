@@ -4,8 +4,6 @@
 namespace OpenTelemetry.OpAmp.Client.Internal.Listeners;
 
 /// <summary>
-/// Marker interface for OpAmp messages.
+/// Base type for OpAMP messages.
 /// </summary>
-public interface IOpAmpMessage
-{
-}
+public abstract class OpAmpMessage;

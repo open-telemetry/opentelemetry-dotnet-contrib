@@ -1,14 +1,14 @@
-OpenTelemetry.OpAmp.Client.Internal.Listeners.IOpAmpListener
 OpenTelemetry.OpAmp.Client.Internal.Listeners.IOpAmpListener<TMessage>
-OpenTelemetry.OpAmp.Client.Internal.Listeners.IOpAmpListener<TMessage>.HandleMessage(TMessage message) -> void
-OpenTelemetry.OpAmp.Client.Internal.Listeners.IOpAmpMessage
+OpenTelemetry.OpAmp.Client.Internal.Listeners.IOpAmpListener<TMessage>.HandleMessage(TMessage! message) -> void
+OpenTelemetry.OpAmp.Client.Internal.Listeners.OpAmpMessage
+OpenTelemetry.OpAmp.Client.Internal.Listeners.OpAmpMessage.OpAmpMessage() -> void
 OpenTelemetry.OpAmp.Client.OpAmpClient
 OpenTelemetry.OpAmp.Client.OpAmpClient.Dispose() -> void
 OpenTelemetry.OpAmp.Client.OpAmpClient.OpAmpClient(System.Action<OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings!>? configure = null) -> void
 OpenTelemetry.OpAmp.Client.OpAmpClient.StartAsync(System.Threading.CancellationToken token = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 OpenTelemetry.OpAmp.Client.OpAmpClient.StopAsync(System.Threading.CancellationToken token = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
-OpenTelemetry.OpAmp.Client.OpAmpClient.Subscribe<T>(OpenTelemetry.OpAmp.Client.Internal.Listeners.IOpAmpListener<T>! listener) -> void
-OpenTelemetry.OpAmp.Client.OpAmpClient.Unsubscribe<T>(OpenTelemetry.OpAmp.Client.Internal.Listeners.IOpAmpListener<T>! listener) -> void
+OpenTelemetry.OpAmp.Client.OpAmpClient.Subscribe<T>(OpenTelemetry.OpAmp.Client.Internal.Listeners.IOpAmpListener<T!>! listener) -> void
+OpenTelemetry.OpAmp.Client.OpAmpClient.Unsubscribe<T>(OpenTelemetry.OpAmp.Client.Internal.Listeners.IOpAmpListener<T!>! listener) -> void
 OpenTelemetry.OpAmp.Client.Settings.AnyValueUnion
 OpenTelemetry.OpAmp.Client.Settings.AnyValueUnion.AnyValueUnion() -> void
 OpenTelemetry.OpAmp.Client.Settings.AnyValueUnion.BoolValue.get -> bool?
