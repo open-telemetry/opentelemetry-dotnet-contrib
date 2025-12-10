@@ -182,8 +182,8 @@ using var tracerProvider = Sdk.CreateTracerProviderBuilder()
 
 This option allows one to enrich the activity with additional information from the
 raw `IProfiledCommand` object. The `Enrich` action is called only when
-`activity.IsAllDataRequested` is `true`. It contains the activity itself (which can
-be enriched), and the source profiled command object.
+`activity.IsAllDataRequested` is `true`. It contains the activity itself (which
+can be enriched), and the source profiled command object.
 
 The following code snippet shows how to add additional tags using `Enrich`.
 
