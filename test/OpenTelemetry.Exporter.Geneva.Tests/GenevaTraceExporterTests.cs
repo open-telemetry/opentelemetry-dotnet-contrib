@@ -43,13 +43,23 @@ public class GenevaTraceExporterTests : IDisposable
                 ConnectionString = null,
             });
         });
+        string connectionString;
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            connectionString = "EtwSession=OpenTelemetry";
+        }
+        else
+        {
+            var path = GetRandomFilePath();
+            connectionString = "Endpoint=unix:" + path;
+        }
 
         // null value in the PrepopulatedFields
         Assert.Throws<ArgumentNullException>(() =>
         {
             using var exporter = new GenevaTraceExporter(new GenevaExporterOptions
             {
-                ConnectionString = "EtwSession=OpenTelemetry",
+                ConnectionString = connectionString,
                 PrepopulatedFields = new Dictionary<string, object>
                 {
                     ["cloud.roleVer"] = null,
@@ -62,8 +72,8 @@ public class GenevaTraceExporterTests : IDisposable
         {
             using var exporter = new GenevaTraceExporter(new GenevaExporterOptions
             {
-                ConnectionString = "EtwSession=OpenTelemetry",
-                ResourceFieldNames = ["cloud.roleVer"],
+                ConnectionString = connectionString,
+                ResourceFieldNames = ["env_cloud_role"],
             });
         });
 
@@ -72,7 +82,7 @@ public class GenevaTraceExporterTests : IDisposable
         {
             using var exporter = new GenevaTraceExporter(new GenevaExporterOptions
             {
-                ConnectionString = "EtwSession=OpenTelemetry",
+                ConnectionString = connectionString,
                 PrepopulatedFields = new Dictionary<string, object>
                 {
                     ["cloud.roleVer"] = (char)106,
@@ -85,7 +95,7 @@ public class GenevaTraceExporterTests : IDisposable
         {
             _ = new GenevaExporterOptions
             {
-                ConnectionString = "EtwSession=OpenTelemetry",
+                ConnectionString = connectionString,
                 PrepopulatedFields = new Dictionary<string, object>
                 {
                     ["bool"] = true,
