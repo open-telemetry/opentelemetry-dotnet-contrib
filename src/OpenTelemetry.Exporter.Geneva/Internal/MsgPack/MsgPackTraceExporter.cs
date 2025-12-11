@@ -85,9 +85,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
     // this stores the prepopulated fields until CreateFraming can consume them into the prologue.
     // after CreateFraming is called, this dictionary is set to null, so don't use it after that.
-    private Dictionary<string, object>? prepopulatedFields;
-
-    private ushort prepopulatedFieldsCount;
+    private Dictionary<string, object> prepopulatedFields;
 
     private bool isDisposed;
 
@@ -330,15 +328,11 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, ushort.MaxValue); // Note: always use Map16 for perf consideration
         this.mapSizePatchIndex = cursor - 2;
 
-        this.prepopulatedFieldsCount = 0;
-
         // TODO: Do we support PartB as well?
         // Part A - core envelope
         cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Name, this.partAName);
-        this.prepopulatedFieldsCount++;
 
         cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Ver, "4.0");
-        this.prepopulatedFieldsCount++;
 
         var resourceAttributes = this.resourceProvider().Attributes;
 
@@ -414,8 +408,6 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             cursor = AddPartAField(buffer, cursor, entry.Key, entry.Value);
         }
 
-        this.prepopulatedFieldsCount += (ushort)this.prepopulatedFields.Count;
-
         this.bufferPrologue = new byte[cursor - 0];
         System.Buffer.BlockCopy(buffer, 0, this.bufferPrologue, 0, cursor - 0);
 
@@ -424,9 +416,6 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
         this.bufferEpilogue = new byte[cursor - 0];
         System.Buffer.BlockCopy(buffer, 0, this.bufferEpilogue, 0, cursor - 0);
-
-        // We can release the prepopulatedFields dictionary because we finished using it in the prologue
-        this.prepopulatedFields = null;
     }
 
     internal ArraySegment<byte> SerializeActivity(Activity activity)
@@ -446,7 +435,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
         var cursor = this.bufferPrologue.Length;
 
-        var cntFields = this.prepopulatedFieldsCount;
+        var cntFields = (ushort)(this.prepopulatedFields.Count + 2); // the two extra are for Name and Ver, set in CreateFraming
         var dtBegin = activity.StartTimeUtc;
         var tsBegin = dtBegin.Ticks;
         var tsEnd = tsBegin + activity.Duration.Ticks;
