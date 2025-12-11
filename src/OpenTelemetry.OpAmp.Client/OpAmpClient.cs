@@ -4,7 +4,6 @@
 using OpenTelemetry.Internal;
 using OpenTelemetry.OpAmp.Client.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Listeners;
-using OpenTelemetry.OpAmp.Client.Internal.Listeners.Messages;
 using OpenTelemetry.OpAmp.Client.Internal.Services;
 using OpenTelemetry.OpAmp.Client.Internal.Services.Heartbeat;
 using OpenTelemetry.OpAmp.Client.Internal.Transport;
