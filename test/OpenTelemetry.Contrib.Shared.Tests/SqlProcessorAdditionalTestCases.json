@@ -883,5 +883,31 @@
       ],
       "db.query.summary": "SELECT TableA TableB"
     }
+  },
+  {
+    "name": "bracketed_identifier",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "SELECT [a], [b] FROM [TableA], [TableB]"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT [a], [b] FROM [TableA], [TableB]"
+      ],
+      "db.query.summary": "SELECT TableA TableB"
+    }
+  },
+  {
+    "name": "bracketed_identifier_with_single_quote",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "SELECT [a], [b] FROM [Table'A], [TableB]"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT [a], [b] FROM [Table"
+      ],
+      "db.query.summary": "SELECT Table"
+    }
   }
 ]
