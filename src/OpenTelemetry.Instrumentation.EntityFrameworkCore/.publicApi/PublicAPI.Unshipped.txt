@@ -1,4 +1,6 @@
 OpenTelemetry.Instrumentation.EntityFrameworkCore.EntityFrameworkInstrumentationOptions
+OpenTelemetry.Instrumentation.EntityFrameworkCore.EntityFrameworkInstrumentationOptions.DbStatementSanitizerEnabled.get -> bool
+OpenTelemetry.Instrumentation.EntityFrameworkCore.EntityFrameworkInstrumentationOptions.DbStatementSanitizerEnabled.set -> void
 OpenTelemetry.Instrumentation.EntityFrameworkCore.EntityFrameworkInstrumentationOptions.EntityFrameworkInstrumentationOptions() -> void
 OpenTelemetry.Instrumentation.EntityFrameworkCore.EntityFrameworkInstrumentationOptions.Filter.get -> System.Func<string?, System.Data.IDbCommand!, bool>?
 OpenTelemetry.Instrumentation.EntityFrameworkCore.EntityFrameworkInstrumentationOptions.Filter.set -> void
