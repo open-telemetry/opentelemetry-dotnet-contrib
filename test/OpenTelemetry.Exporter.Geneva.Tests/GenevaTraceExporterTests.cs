@@ -170,6 +170,10 @@ public class GenevaTraceExporterTests : IDisposable
         var link = new ActivityLink(new ActivityContext(ActivityTraceId.CreateRandom(), ActivitySpanId.CreateRandom(), ActivityTraceFlags.Recorded));
         using (var activity = source.StartActivity("Foo", ActivityKind.Internal, null, null, [link]))
         {
+            activity?.AddEvent(new ActivityEvent("TestEvent", DateTimeOffset.UtcNow, new ActivityTagsCollection
+            {
+                { "eventKey", "eventValue" },
+            }));
         }
 
         using (var activity = source.StartActivity("Bar"))
@@ -305,6 +309,14 @@ public class GenevaTraceExporterTests : IDisposable
                 activity?.SetTag("clientRequestId", "58a37988-2c05-427a-891f-5e0e1266fcc5");
                 activity?.SetTag("foo", 1);
                 activity?.SetTag("bar", 2);
+
+                activity?.AddEvent(new ActivityEvent("TestEvent1", DateTimeOffset.UtcNow, new ActivityTagsCollection
+                {
+                    { "eventFoo", 1 },
+                    { "eventBar", "Hello, World!" },
+                }));
+                activity?.AddEvent(new ActivityEvent("TestEvent2"));
+
 #pragma warning disable CS0618 // Type or member is obsolete
                 activity?.SetStatus(Status.Error.WithDescription("Error description from OTel API"));
 #pragma warning restore CS0618 // Type or member is obsolete
@@ -340,7 +352,7 @@ public class GenevaTraceExporterTests : IDisposable
                             this.AssertMappingEntry(userFieldsLocation, "resourceAndPrepopulated", "comes from prepopulated");
                         }
 
-                        // Linked spans are checked in CheckSpanForActivity, so no need to do a custom check here
+                        // Linked spans and events are checked in CheckSpanForActivity, so no need to do a custom check here
                     });
             }
 
@@ -999,6 +1011,41 @@ public class GenevaTraceExporterTests : IDisposable
         else
         {
             Assert.DoesNotContain(mapping, m => (m.Key as string) == "links");
+        }
+        #endregion
+
+        #region Assert Activity Events
+        if (activity.Events.Any())
+        {
+            Assert.Contains(mapping, m => (m.Key as string) == "events");
+            var mappingEvents = mapping["events"] as IEnumerable<object>;
+            using var activityEventsEnumerator = activity.Events.GetEnumerator();
+            using var mappingEventsEnumerator = mappingEvents.GetEnumerator();
+            while (activityEventsEnumerator.MoveNext() && mappingEventsEnumerator.MoveNext())
+            {
+                var activityEvent = activityEventsEnumerator.Current;
+                var mappingEvent = mappingEventsEnumerator.Current as Dictionary<object, object>;
+
+                Assert.Equal(activityEvent.Name, mappingEvent["name"]);
+                Assert.Contains("time", mappingEvent.Keys);
+
+                if (activityEvent.Tags.Any())
+                {
+                    Assert.Contains("properties", mappingEvent.Keys);
+                    var mappingEventProperties = mappingEvent["properties"] as Dictionary<object, object>;
+                    Assert.NotNull(mappingEventProperties);
+                    foreach (var tag in activityEvent.Tags)
+                    {
+                        Assert.Contains(mappingEventProperties, kvp => (kvp.Key as string) == tag.Key);
+                    }
+                }
+            }
+
+            Assert.Equal(activityEventsEnumerator.MoveNext(), mappingEventsEnumerator.MoveNext());
+        }
+        else
+        {
+            Assert.DoesNotContain(mapping, m => (m.Key as string) == "events");
         }
         #endregion
 
