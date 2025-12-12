@@ -26,12 +26,6 @@
       "db.query.text": "select * from sys.databases",
       "db.stored_procedure.name": null,
       "spanName": "select sys.databases"
-    },
-    "expectedOldConventions": {
-      "db.mssql.instance_name": "MSSQLLocalDB",
-      "db.name": "master",
-      "db.statement": "select * from sys.databases",
-      "spanName": "master"
     }
   },
   {
@@ -61,12 +55,6 @@
       "db.query.text": "SP_GetOrders",
       "db.stored_procedure.name": null,
       "spanName": "MSSQLLocalDB.master"
-    },
-    "expectedOldConventions": {
-      "db.mssql.instance_name": "MSSQLLocalDB",
-      "db.name": "master",
-      "db.statement": "SP_GetOrders",
-      "spanName": "master"
     }
   },
   {
@@ -96,12 +84,6 @@
       "db.query.text": "select * from sys.databases",
       "db.stored_procedure.name": null,
       "spanName": "select sys.databases"
-    },
-    "expectedOldConventions": {
-      "db.mssql.instance_name": "MSSQLLocalDB",
-      "db.name": "master",
-      "db.statement": "select * from sys.databases",
-      "spanName": "master"
     }
   }
 ]

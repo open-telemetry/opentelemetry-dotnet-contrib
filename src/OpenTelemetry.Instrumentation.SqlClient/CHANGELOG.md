@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* Remove support for the `OTEL_SEMCONV_STABILITY_OPT_IN` configuration option.
+  Previously, the old conventions were emitted be default with the option to emit
+  the stable conventions. Now, only the stable conventions are supported.
+  ([#3592](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3592))
+
 ## 1.14.0-beta.1
 
 Released 2025-Nov-13

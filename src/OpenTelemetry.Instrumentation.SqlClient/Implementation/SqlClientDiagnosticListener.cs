@@ -87,7 +87,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     _ = this.databaseFetcher.TryFetch(connection, out var databaseName);
                     _ = this.dataSourceFetcher.TryFetch(connection, out var dataSource);
 
-                    var startTags = SqlActivitySourceHelper.GetTagListFromConnectionInfo(dataSource, databaseName, options, out var activityName);
+                    var startTags = SqlActivitySourceHelper.GetTagListFromConnectionInfo(dataSource, databaseName, out var activityName);
                     activity = SqlActivitySourceHelper.ActivitySource.StartActivity(
                         activityName,
                         ActivityKind.Client,
@@ -145,7 +145,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                             return;
                         }
 
-                        if (options.EmitNewAttributes && options.SetDbQueryParameters)
+                        if (options.SetDbQueryParameters)
                         {
                             SqlParameterProcessor.AddQueryParameters(activity, command);
                         }
@@ -159,16 +159,16 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                                     DatabaseSemanticConventionHelper.ApplyConventionsForStoredProcedure(
                                         activity,
                                         commandText,
-                                        options.EmitOldAttributes,
-                                        options.EmitNewAttributes);
+                                        emitOldAttributes: false,
+                                        emitNewAttributes: true);
                                     break;
 
                                 case CommandType.Text:
                                     DatabaseSemanticConventionHelper.ApplyConventionsForQueryText(
                                         activity,
                                         commandText,
-                                        options.EmitOldAttributes,
-                                        options.EmitNewAttributes);
+                                        emitOldAttributes: false,
+                                        emitNewAttributes: true);
                                     break;
 
                                 case CommandType.TableDirect:
@@ -322,7 +322,6 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                 var connectionTags = SqlActivitySourceHelper.GetTagListFromConnectionInfo(
                     dataSource,
                     databaseName,
-                    SqlClientInstrumentation.TracingOptions,
                     out _);
 
                 foreach (var tag in connectionTags)

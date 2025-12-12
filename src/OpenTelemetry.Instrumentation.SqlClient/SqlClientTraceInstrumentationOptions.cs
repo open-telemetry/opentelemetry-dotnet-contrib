@@ -8,7 +8,6 @@ using Microsoft.Extensions.Configuration;
 #if NET
 using OpenTelemetry.Instrumentation.SqlClient.Implementation;
 #endif
-using static OpenTelemetry.Internal.DatabaseSemanticConventionHelper;
 
 namespace OpenTelemetry.Instrumentation.SqlClient;
 
@@ -33,10 +32,6 @@ public class SqlClientTraceInstrumentationOptions
 
     internal SqlClientTraceInstrumentationOptions(IConfiguration configuration)
     {
-        var databaseSemanticConvention = GetSemanticConventionOptIn(configuration);
-        this.EmitOldAttributes = databaseSemanticConvention.HasFlag(DatabaseSemanticConvention.Old);
-        this.EmitNewAttributes = databaseSemanticConvention.HasFlag(DatabaseSemanticConvention.New);
-
 #if NET
         Debug.Assert(configuration != null, "configuration was null");
 
@@ -126,16 +121,6 @@ public class SqlClientTraceInstrumentationOptions
     /// </remarks>
     internal bool SetDbQueryParameters { get; set; }
 #endif
-
-    /// <summary>
-    /// Gets or sets a value indicating whether the old database attributes should be emitted.
-    /// </summary>
-    internal bool EmitOldAttributes { get; set; }
-
-    /// <summary>
-    /// Gets or sets a value indicating whether the new database attributes should be emitted.
-    /// </summary>
-    internal bool EmitNewAttributes { get; set; }
 
 #if NET
     /// <summary>

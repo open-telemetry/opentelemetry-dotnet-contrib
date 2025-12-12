@@ -140,7 +140,7 @@ internal sealed class SqlEventSourceListener : EventListener
 
         var dataSource = (string)eventData.Payload[1];
         var databaseName = (string)eventData.Payload[2];
-        var startTags = SqlActivitySourceHelper.GetTagListFromConnectionInfo(dataSource, databaseName, options, out var activityName);
+        var startTags = SqlActivitySourceHelper.GetTagListFromConnectionInfo(dataSource, databaseName, out var activityName);
         var activity = SqlActivitySourceHelper.ActivitySource.StartActivity(
             activityName,
             ActivityKind.Client,
@@ -160,19 +160,11 @@ internal sealed class SqlEventSourceListener : EventListener
             if (!string.IsNullOrEmpty(commandText))
             {
                 var sqlStatementInfo = SqlProcessor.GetSanitizedSql(commandText);
-                if (options.EmitOldAttributes)
+                activity.SetTag(SemanticConventions.AttributeDbQueryText, sqlStatementInfo.SanitizedSql);
+                if (!string.IsNullOrEmpty(sqlStatementInfo.DbQuerySummary))
                 {
-                    activity.SetTag(SemanticConventions.AttributeDbStatement, sqlStatementInfo.SanitizedSql);
-                }
-
-                if (options.EmitNewAttributes)
-                {
-                    activity.SetTag(SemanticConventions.AttributeDbQueryText, sqlStatementInfo.SanitizedSql);
-                    if (!string.IsNullOrEmpty(sqlStatementInfo.DbQuerySummary))
-                    {
-                        activity.SetTag(SemanticConventions.AttributeDbQuerySummary, sqlStatementInfo.DbQuerySummary);
-                        activity.DisplayName = sqlStatementInfo.DbQuerySummary;
-                    }
+                    activity.SetTag(SemanticConventions.AttributeDbQuerySummary, sqlStatementInfo.DbQuerySummary);
+                    activity.DisplayName = sqlStatementInfo.DbQuerySummary;
                 }
             }
         }
@@ -264,17 +256,7 @@ internal sealed class SqlEventSourceListener : EventListener
         }
         else
         {
-            var options = SqlClientInstrumentation.TracingOptions;
-
-            if (options.EmitOldAttributes)
-            {
-                tags.Add(SemanticConventions.AttributeDbSystem, SqlActivitySourceHelper.MicrosoftSqlServerDbSystem);
-            }
-
-            if (options.EmitNewAttributes)
-            {
-                tags.Add(SemanticConventions.AttributeDbSystemName, SqlActivitySourceHelper.MicrosoftSqlServerDbSystemName);
-            }
+            tags.Add(SemanticConventions.AttributeDbSystemName, SqlActivitySourceHelper.MicrosoftSqlServerDbSystemName);
 
             var (hasError, errorNumber, exceptionType) = ExtractErrorFromEvent(eventData);
 
