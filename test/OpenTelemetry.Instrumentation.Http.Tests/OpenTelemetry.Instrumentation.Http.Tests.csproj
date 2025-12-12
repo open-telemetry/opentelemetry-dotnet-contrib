@@ -33,9 +33,4 @@
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.Http\OpenTelemetry.Instrumentation.Http.csproj" />
   </ItemGroup>
 
-  <!-- See https://github.com/dotnet/docs/issues/42792 -->
-  <ItemGroup>
-    <RuntimeHostConfigurationOption Include="System.Net.Http.DisableUriRedaction" Value="true" />
-  </ItemGroup>
-
 </Project>
