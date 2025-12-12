@@ -374,9 +374,28 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
                             case string:
                                 break;
                             case null:
-                                throw new ArgumentNullException(key, "Resource attribute must not have a null value.");
+                                // This should be impossible because Resource attributes cannot have null values.
+                                // But just in case, turn it into something serializable to avoid crashing.
+                                value = "<NULL>";
+                                break;
                             default:
-                                throw new ArgumentException($"Type `{value.GetType()}` (resource attribute key = `{key}`) is not allowed. Only bool, byte, sbyte, short, ushort, int, uint, long, ulong, float, double, and string are supported.");
+                                // Try to construct a value that communicates that the type is not supported.
+                                try
+                                {
+                                    var stringValue = Convert.ToString(value, CultureInfo.InvariantCulture);
+                                    if (stringValue == null)
+                                    {
+                                        value = "<Unsupported type>";
+                                    }
+
+                                    value = $"<Unsupported type: {stringValue}>";
+                                }
+                                catch
+                                {
+                                    value = "<Unsupported type>";
+                                }
+
+                                break;
                         }
 
                         isWantedAttribute = true;

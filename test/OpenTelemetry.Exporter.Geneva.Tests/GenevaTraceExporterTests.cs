@@ -508,7 +508,14 @@ public class GenevaTraceExporterTests : IDisposable
             listener.Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded;
             listener.ActivityStopped = (activity) =>
             {
-                Assert.Throws<ArgumentException>(() => exporter.SerializeActivity(activity));
+                _ = exporter.SerializeActivity(activity);
+                var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+                var signal = (fluentdData as object[])[0] as string;
+                var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
+                var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;
+
+                Assert.Contains("badresource", mapping.Keys);
+                Assert.Equal("<Unsupported type: System.Int64[]>", mapping["badresource"]);
             };
             ActivitySource.AddActivityListener(listener);
 
