@@ -11,10 +11,7 @@ namespace OpenTelemetry.Exporter.Geneva;
 /// </summary>
 public class GenevaExporterOptions
 {
-    private IReadOnlyDictionary<string, object> fields = new Dictionary<string, object>(1)
-    {
-        [Schema.V40.PartA.Ver] = "4.0",
-    };
+    private IReadOnlyDictionary<string, object> prepopulatedFields = new Dictionary<string, object>();
 
     private IReadOnlyDictionary<string, string>? tableNameMappings;
 
@@ -32,6 +29,16 @@ public class GenevaExporterOptions
     /// If CustomFields is not provided, all user-defined fields will be made into dedicated fields.
     /// </summary>
     public IEnumerable<string>? CustomFields { get; set; }
+
+    /// <summary>
+    /// Gets or sets ResourceFieldNames.
+    ///
+    /// ResourceFieldNames specifies which resource attribute fields should be sent to Geneva.
+    ///
+    /// Any resource attributes not in ResourceFieldNames are ignored.
+    /// If ResourceFieldNames is not provided, no resource attributes will be sent to Geneva.
+    /// </summary>
+    public IEnumerable<string>? ResourceFieldNames { get; set; }
 
     /// <summary>
     /// Gets or sets the exception stack trace export mode.
@@ -103,21 +110,14 @@ public class GenevaExporterOptions
     /// </summary>
     public IReadOnlyDictionary<string, object> PrepopulatedFields
     {
-        get => this.fields;
+        get => this.prepopulatedFields;
         set
         {
             Guard.ThrowIfNull(value);
 
-            var schemaVersion = "4.0";
-
-            if (value.ContainsKey(Schema.V40.PartA.Ver))
+            if (value.ContainsKey(Schema.V40.PartA.Ver) && value[Schema.V40.PartA.Ver] as string is not "4.0")
             {
-                schemaVersion = value[Schema.V40.PartA.Ver] as string;
-            }
-
-            if (schemaVersion is not "2.1" and not "4.0")
-            {
-                throw new ArgumentException("Unsupported schema version, only 2.1 and 4.0 are supported.");
+                throw new ArgumentException("Unsupported schema version, only 4.0 is supported.");
             }
 
             if (value.ContainsKey(Schema.V40.PartA.Name))
@@ -130,7 +130,7 @@ public class GenevaExporterOptions
                 throw new ArgumentException("Event timestamp cannot be pre-populated.");
             }
 
-            var copy = new Dictionary<string, object>(value.Count + 1) { [Schema.V40.PartA.Ver] = schemaVersion };
+            var copy = new Dictionary<string, object>(value.Count + 1);
             foreach (var entry in value)
             {
                 var val = entry.Value;
@@ -155,10 +155,16 @@ public class GenevaExporterOptions
                         throw new ArgumentException($"Type `{entry.Value.GetType()}` (key = `{entry.Key}`) is not allowed. Only bool, byte, sbyte, short, ushort, int, uint, long, ulong, float, double, and string are supported.");
                 }
 
+                if (entry.Key == Schema.V40.PartA.Ver)
+                {
+                    // This key is now set by the exporters, and is only accepted for legacy reasons.
+                    continue;
+                }
+
                 copy[entry.Key] = val; // shallow copy
             }
 
-            this.fields = copy;
+            this.prepopulatedFields = copy;
         }
     }
 }
