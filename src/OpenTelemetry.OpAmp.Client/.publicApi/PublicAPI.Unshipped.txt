@@ -1,5 +1,11 @@
+OpenTelemetry.OpAmp.Client.Messages.RemoteConfigMessage
+OpenTelemetry.OpAmp.Client.Messages.RemoteConfigMessage.AgentConfigMap.get -> OpenTelemetry.OpAmp.Client.Messages.AgentConfigDictionary!
 OpenTelemetry.OpAmp.Client.Listeners.IOpAmpListener<TMessage>
 OpenTelemetry.OpAmp.Client.Listeners.IOpAmpListener<TMessage>.HandleMessage(TMessage! message) -> void
+OpenTelemetry.OpAmp.Client.Messages.AgentConfigDictionary
+OpenTelemetry.OpAmp.Client.Messages.AgentConfigFile
+OpenTelemetry.OpAmp.Client.Messages.AgentConfigFile.Body.get -> byte[]!
+OpenTelemetry.OpAmp.Client.Messages.AgentConfigFile.ContentType.get -> string?
 OpenTelemetry.OpAmp.Client.Messages.OpAmpMessage
 OpenTelemetry.OpAmp.Client.Messages.OpAmpMessage.OpAmpMessage() -> void
 OpenTelemetry.OpAmp.Client.OpAmpClient
