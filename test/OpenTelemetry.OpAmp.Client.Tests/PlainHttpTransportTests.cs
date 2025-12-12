@@ -14,7 +14,7 @@ using Xunit;
 
 namespace OpenTelemetry.OpAmp.Client.Tests;
 
-public class PlainHttpTransportTest
+public class PlainHttpTransportTests
 {
     [Theory]
     [InlineData(true)]

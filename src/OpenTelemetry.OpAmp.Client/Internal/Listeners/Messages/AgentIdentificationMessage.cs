@@ -5,7 +5,7 @@ using OpAmp.Proto.V1;
 
 namespace OpenTelemetry.OpAmp.Client.Internal.Listeners.Messages;
 
-internal class AgentIdentificationMessage : IOpAmpMessage
+internal class AgentIdentificationMessage : OpAmpMessage
 {
     public AgentIdentificationMessage(AgentIdentification agentIdentification)
     {

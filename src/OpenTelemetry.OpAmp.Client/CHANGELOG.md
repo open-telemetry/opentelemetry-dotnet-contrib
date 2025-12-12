@@ -5,6 +5,8 @@
 * Add setting to configure the factory used to create `HttpClient` instances
   used for the OpAMP Plain HTTP transport.
   ([#3589](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3589))
+* Add support for subscribing and unsubscribing to messages from the OpAMP server.
+  ([#3593](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3593))
 
 ## 0.1.0-alpha.3
 

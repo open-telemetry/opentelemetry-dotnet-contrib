@@ -3,12 +3,16 @@
 
 namespace OpenTelemetry.OpAmp.Client.Internal.Listeners;
 
-internal interface IOpAmpListener
+/// <summary>
+/// A listener capable of handling OpAMP messages of a specific type.
+/// </summary>
+/// <typeparam name="TMessage">The <see cref="OpAmpMessage"/> type this listener handles.</typeparam>
+public interface IOpAmpListener<TMessage>
+    where TMessage : OpAmpMessage
 {
-}
-
-internal interface IOpAmpListener<TMessage> : IOpAmpListener
-    where TMessage : IOpAmpMessage
-{
+    /// <summary>
+    /// Handles the specified OpAMP message.
+    /// </summary>
+    /// <param name="message">The OpAMP message to handle.</param>
     void HandleMessage(TMessage message);
 }
