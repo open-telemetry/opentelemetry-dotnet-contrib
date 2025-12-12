@@ -5,9 +5,10 @@ using System.Buffers;
 using System.Collections.Concurrent;
 using OpAmp.Proto.V1;
 using OpenTelemetry.Internal;
-using OpenTelemetry.OpAmp.Client.Internal.Listeners;
 using OpenTelemetry.OpAmp.Client.Internal.Listeners.Messages;
 using OpenTelemetry.OpAmp.Client.Internal.Utils;
+using OpenTelemetry.OpAmp.Client.Listeners;
+using OpenTelemetry.OpAmp.Client.Messages;
 
 namespace OpenTelemetry.OpAmp.Client.Internal;
 

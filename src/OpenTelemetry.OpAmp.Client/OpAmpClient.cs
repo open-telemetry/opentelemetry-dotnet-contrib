@@ -3,12 +3,13 @@
 
 using OpenTelemetry.Internal;
 using OpenTelemetry.OpAmp.Client.Internal;
-using OpenTelemetry.OpAmp.Client.Internal.Listeners;
 using OpenTelemetry.OpAmp.Client.Internal.Services;
 using OpenTelemetry.OpAmp.Client.Internal.Services.Heartbeat;
 using OpenTelemetry.OpAmp.Client.Internal.Transport;
 using OpenTelemetry.OpAmp.Client.Internal.Transport.Http;
 using OpenTelemetry.OpAmp.Client.Internal.Transport.WebSocket;
+using OpenTelemetry.OpAmp.Client.Listeners;
+using OpenTelemetry.OpAmp.Client.Messages;
 using OpenTelemetry.OpAmp.Client.Settings;
 
 namespace OpenTelemetry.OpAmp.Client;

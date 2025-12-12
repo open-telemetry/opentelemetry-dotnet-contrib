@@ -1,7 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-namespace OpenTelemetry.OpAmp.Client.Internal.Listeners;
+using OpenTelemetry.OpAmp.Client.Messages;
+
+namespace OpenTelemetry.OpAmp.Client.Listeners;
 
 /// <summary>
 /// A listener capable of handling OpAMP messages of a specific type.
