@@ -57,16 +57,14 @@ public class AgentConfigFile
             return true;
         }
 
-        try
-        {
-            this.body.Span.CopyTo(destination);
-            bytesWritten = this.body.Length;
-            return true;
-        }
-        catch (ArgumentException)
+        if (destination.Length < this.body.Length)
         {
             bytesWritten = 0;
             return false;
         }
+
+        this.body.Span.CopyTo(destination);
+        bytesWritten = this.body.Length;
+        return true;
     }
 }
