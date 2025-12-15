@@ -1,19 +1,14 @@
 OpenTelemetry.OpAmp.Client.Listeners.IOpAmpListener<TMessage>
 OpenTelemetry.OpAmp.Client.Listeners.IOpAmpListener<TMessage>.HandleMessage(TMessage! message) -> void
 OpenTelemetry.OpAmp.Client.Messages.AgentConfigFile
-OpenTelemetry.OpAmp.Client.Messages.AgentConfigFile.BodyLength.get -> int
+OpenTelemetry.OpAmp.Client.Messages.AgentConfigFile.Body.get -> System.ReadOnlySpan<byte>
 OpenTelemetry.OpAmp.Client.Messages.AgentConfigFile.ContentType.get -> string?
-OpenTelemetry.OpAmp.Client.Messages.AgentConfigFile.GetBodyBytes() -> byte[]!
 OpenTelemetry.OpAmp.Client.Messages.AgentConfigFile.Name.get -> string!
-OpenTelemetry.OpAmp.Client.Messages.AgentConfigFile.TryGetBody(System.Span<byte> destination, out int bytesWritten) -> bool
 OpenTelemetry.OpAmp.Client.Messages.OpAmpMessage
 OpenTelemetry.OpAmp.Client.Messages.OpAmpMessage.OpAmpMessage() -> void
 OpenTelemetry.OpAmp.Client.Messages.RemoteConfigMessage
 OpenTelemetry.OpAmp.Client.Messages.RemoteConfigMessage.AgentConfigMap.get -> System.Collections.Generic.IReadOnlyDictionary<string!, OpenTelemetry.OpAmp.Client.Messages.AgentConfigFile!>!
-OpenTelemetry.OpAmp.Client.Messages.RemoteConfigMessage.GetConfigHashBytes() -> byte[]!
-OpenTelemetry.OpAmp.Client.Messages.RemoteConfigMessage.GetConfigHashUtf8String() -> string!
-OpenTelemetry.OpAmp.Client.Messages.RemoteConfigMessage.HashLength.get -> int
-OpenTelemetry.OpAmp.Client.Messages.RemoteConfigMessage.TryGetConfigHash(System.Span<byte> destination, out int bytesWritten) -> bool
+OpenTelemetry.OpAmp.Client.Messages.RemoteConfigMessage.ConfigHash.get -> System.ReadOnlySpan<byte>
 OpenTelemetry.OpAmp.Client.OpAmpClient
 OpenTelemetry.OpAmp.Client.OpAmpClient.Dispose() -> void
 OpenTelemetry.OpAmp.Client.OpAmpClient.OpAmpClient(System.Action<OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings!>? configure = null) -> void

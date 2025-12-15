@@ -50,77 +50,37 @@ public class RemoteConfigMessageTests
     }
 
     [Fact]
-    public void GetConfigHashBytes_WithValidHash_ReturnsExpectedBytes()
+    public void ConfigHash_WithValidHash_ReturnsExpectedBytes()
     {
         // Arrange
         var agentRemoteConfig = this.CreateAgentRemoteConfig();
         var remoteConfigMessage = new Client.Messages.RemoteConfigMessage(agentRemoteConfig);
 
         // Act
-        var hashBytes = remoteConfigMessage.GetConfigHashBytes();
+        var hash = remoteConfigMessage.ConfigHash;
 
         // Assert
-        Assert.Equal(Encoding.UTF8.GetByteCount(HashString), hashBytes.Length);
-        Assert.Equal(HashString, Encoding.UTF8.GetString(hashBytes));
+        Assert.Equal(Encoding.UTF8.GetByteCount(HashString), hash.Length);
+        Assert.Equal(HashString, Encoding.UTF8.GetString(hash.ToArray()));
     }
 
     [Fact]
-    public void GetConfigHashUtf8String_WithValidHash_ReturnsExpectedString()
+    public void ConfigHash_WithEmptyHash_ReturnsEmptySpan()
     {
         // Arrange
-        var agentRemoteConfig = this.CreateAgentRemoteConfig();
+        var agentRemoteConfig = new global::OpAmp.Proto.V1.AgentRemoteConfig
+        {
+            Config = new global::OpAmp.Proto.V1.AgentConfigMap(),
+            ConfigHash = ByteString.Empty,
+        };
         var remoteConfigMessage = new Client.Messages.RemoteConfigMessage(agentRemoteConfig);
 
         // Act
-        var hashString = remoteConfigMessage.GetConfigHashUtf8String();
+        var hashSpan = remoteConfigMessage.ConfigHash;
 
         // Assert
-        Assert.Equal(HashString, hashString);
-    }
-
-    [Fact]
-    public void HashLength_WithValidHash_ReturnsExpectedLength()
-    {
-        // Arrange
-        var agentRemoteConfig = this.CreateAgentRemoteConfig();
-        var remoteConfigMessage = new Client.Messages.RemoteConfigMessage(agentRemoteConfig);
-
-        // Act & Assert
-        Assert.Equal(Encoding.UTF8.GetByteCount(HashString), remoteConfigMessage.HashLength);
-        Assert.Equal(remoteConfigMessage.GetConfigHashBytes().Length, remoteConfigMessage.HashLength);
-    }
-
-    [Fact]
-    public void TryGetConfigHash_WithSufficientBuffer_ReturnsTrueAndWritesBytes()
-    {
-        // Arrange
-        var agentRemoteConfig = this.CreateAgentRemoteConfig();
-        var remoteConfigMessage = new Client.Messages.RemoteConfigMessage(agentRemoteConfig);
-        Span<byte> hashSpan = stackalloc byte[remoteConfigMessage.HashLength];
-
-        // Act
-        var result = remoteConfigMessage.TryGetConfigHash(hashSpan, out int bytesWritten);
-
-        // Assert
-        Assert.True(result);
-        Assert.Equal(remoteConfigMessage.HashLength, bytesWritten);
-        Assert.Equal(HashString, Encoding.UTF8.GetString(hashSpan.ToArray()));
-    }
-
-    [Fact]
-    public void TryGetConfigHash_WithInsufficientBuffer_ReturnsFalse()
-    {
-        // Arrange
-        var agentRemoteConfig = this.CreateAgentRemoteConfig();
-        var remoteConfigMessage = new Client.Messages.RemoteConfigMessage(agentRemoteConfig);
-        Span<byte> hashSpan = stackalloc byte[remoteConfigMessage.HashLength - 1];
-
-        // Act
-        var result = remoteConfigMessage.TryGetConfigHash(hashSpan, out int bytesWritten);
-
-        // Assert
-        Assert.False(result);
-        Assert.Equal(0, bytesWritten);
+        Assert.Equal(0, hashSpan.Length);
+        Assert.True(hashSpan.IsEmpty);
     }
 
     [Theory]
@@ -138,58 +98,128 @@ public class RemoteConfigMessageTests
         // Assert
         Assert.Equal(configName, configFile.Name);
         Assert.Equal(contentType, configFile.ContentType);
-        Assert.Equal(Encoding.UTF8.GetByteCount(bodyContent), configFile.BodyLength);
+        Assert.Equal(bodyContent, Encoding.UTF8.GetString(configFile.Body.ToArray()));
     }
 
     [Fact]
-    public void AgentConfigFile_GetBodyBytes_ReturnsExpectedContent()
+    public void AgentConfigFile_Body_WithEmptyBody_ReturnsEmptySpan()
+    {
+        // Arrange
+        var configMap = new global::OpAmp.Proto.V1.AgentConfigMap();
+        configMap.ConfigMap.Add("empty-config", new global::OpAmp.Proto.V1.AgentConfigFile
+        {
+            Body = ByteString.Empty,
+            ContentType = JsonContentType,
+        });
+
+        var agentRemoteConfig = new global::OpAmp.Proto.V1.AgentRemoteConfig
+        {
+            Config = configMap,
+            ConfigHash = ByteString.CopyFromUtf8(HashString),
+        };
+
+        var remoteConfigMessage = new Client.Messages.RemoteConfigMessage(agentRemoteConfig);
+        var configFile = remoteConfigMessage.AgentConfigMap["empty-config"];
+
+        // Act
+        var bodySpan = configFile.Body;
+
+        // Assert
+        Assert.Equal(0, bodySpan.Length);
+        Assert.True(bodySpan.IsEmpty);
+    }
+
+    [Fact]
+    public void AgentConfigFile_WithEmptyContentType_ReturnsEmptyString()
+    {
+        // Arrange
+        var configMap = new global::OpAmp.Proto.V1.AgentConfigMap();
+        configMap.ConfigMap.Add("empty-content-type", new global::OpAmp.Proto.V1.AgentConfigFile
+        {
+            Body = ByteString.CopyFromUtf8(JsonString),
+            ContentType = string.Empty,
+        });
+
+        var agentRemoteConfig = new global::OpAmp.Proto.V1.AgentRemoteConfig
+        {
+            Config = configMap,
+            ConfigHash = ByteString.CopyFromUtf8(HashString),
+        };
+
+        var remoteConfigMessage = new Client.Messages.RemoteConfigMessage(agentRemoteConfig);
+
+        // Act
+        var configFile = remoteConfigMessage.AgentConfigMap["empty-content-type"];
+
+        // Assert
+        Assert.Equal(string.Empty, configFile.ContentType);
+    }
+
+    [Fact]
+    public void AgentConfigMap_IsReadOnly()
+    {
+        // Arrange
+        var agentRemoteConfig = this.CreateAgentRemoteConfig();
+        var remoteConfigMessage = new Client.Messages.RemoteConfigMessage(agentRemoteConfig);
+
+        // Act & Assert
+        Assert.IsType<IReadOnlyDictionary<string, Client.Messages.AgentConfigFile>>(
+            remoteConfigMessage.AgentConfigMap, exactMatch: false);
+    }
+
+    [Fact]
+    public void AgentConfigMap_UsesOrdinalComparison()
+    {
+        // Arrange
+        var configMap = new global::OpAmp.Proto.V1.AgentConfigMap();
+        configMap.ConfigMap.Add("Config", new global::OpAmp.Proto.V1.AgentConfigFile
+        {
+            Body = ByteString.CopyFromUtf8(JsonString),
+            ContentType = JsonContentType,
+        });
+
+        var agentRemoteConfig = new global::OpAmp.Proto.V1.AgentRemoteConfig
+        {
+            Config = configMap,
+            ConfigHash = ByteString.CopyFromUtf8(HashString),
+        };
+
+        var remoteConfigMessage = new Client.Messages.RemoteConfigMessage(agentRemoteConfig);
+
+        // Act & Assert - case-sensitive check
+        Assert.True(remoteConfigMessage.AgentConfigMap.ContainsKey("Config"));
+        Assert.False(remoteConfigMessage.AgentConfigMap.ContainsKey("config"));
+    }
+
+    [Fact]
+    public void ConfigHash_MultipleAccess_ReturnsSameSpan()
     {
         // Arrange
         var agentRemoteConfig = this.CreateAgentRemoteConfig();
         var remoteConfigMessage = new Client.Messages.RemoteConfigMessage(agentRemoteConfig);
 
         // Act
-        var config1 = remoteConfigMessage.AgentConfigMap[Config1Name];
-        var bodyBytes = config1.GetBodyBytes();
+        var hash1 = remoteConfigMessage.ConfigHash;
+        var hash2 = remoteConfigMessage.ConfigHash;
 
         // Assert
-        Assert.Equal(bodyBytes.Length, config1.BodyLength);
-        Assert.Equal(JsonString, Encoding.UTF8.GetString(bodyBytes));
+        Assert.True(hash1.SequenceEqual(hash2));
     }
 
     [Fact]
-    public void AgentConfigFile_TryGetBody_WithSufficientBuffer_ReturnsTrueAndWritesBytes()
+    public void AgentConfigFile_Body_MultipleAccess_ReturnsSameSpan()
     {
         // Arrange
         var agentRemoteConfig = this.CreateAgentRemoteConfig();
         var remoteConfigMessage = new Client.Messages.RemoteConfigMessage(agentRemoteConfig);
-        var config1 = remoteConfigMessage.AgentConfigMap[Config1Name];
-        Span<byte> bodySpan = stackalloc byte[config1.BodyLength];
+        var configFile = remoteConfigMessage.AgentConfigMap[Config1Name];
 
         // Act
-        var result = config1.TryGetBody(bodySpan, out int bytesWritten);
+        var body1 = configFile.Body;
+        var body2 = configFile.Body;
 
         // Assert
-        Assert.True(result);
-        Assert.Equal(config1.BodyLength, bytesWritten);
-        Assert.Equal(JsonString, Encoding.UTF8.GetString(bodySpan.ToArray()));
-    }
-
-    [Fact]
-    public void AgentConfigFile_TryGetBody_WithInsufficientBuffer_ReturnsFalse()
-    {
-        // Arrange
-        var agentRemoteConfig = this.CreateAgentRemoteConfig();
-        var remoteConfigMessage = new Client.Messages.RemoteConfigMessage(agentRemoteConfig);
-        var config1 = remoteConfigMessage.AgentConfigMap[Config1Name];
-        Span<byte> bodySpan = stackalloc byte[config1.BodyLength - 1];
-
-        // Act
-        var result = config1.TryGetBody(bodySpan, out int bytesWritten);
-
-        // Assert
-        Assert.False(result);
-        Assert.Equal(0, bytesWritten);
+        Assert.True(body1.SequenceEqual(body2));
     }
 
 #if NET
@@ -200,11 +230,9 @@ public class RemoteConfigMessageTests
         var agentRemoteConfig = this.CreateAgentRemoteConfig();
         var remoteConfigMessage = new Client.Messages.RemoteConfigMessage(agentRemoteConfig);
         var config1 = remoteConfigMessage.AgentConfigMap[Config1Name];
-        Span<byte> bodySpan = stackalloc byte[config1.BodyLength];
-        Assert.True(config1.TryGetBody(bodySpan, out _));
 
         // Act
-        var config = System.Text.Json.JsonSerializer.Deserialize<Config>(bodySpan);
+        var config = System.Text.Json.JsonSerializer.Deserialize<Config>(config1.Body);
 
         // Assert
         Assert.NotNull(config);
