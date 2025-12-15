@@ -101,6 +101,11 @@ public sealed class OpAmpClientSettings
     public HeartbeatSettings Heartbeat { get; set; } = new();
 
     /// <summary>
+    /// Gets or sets the remote configuration settings.
+    /// </summary>
+    public RemoteConfigSettings RemoteConfiguration { get; set; } = new();
+
+    /// <summary>
     /// Gets or sets the factory function called to create the <see
     /// cref="HttpClient"/> instance that will be used at runtime to
     /// transmit OpAmp messages over HTTP. The returned instance will

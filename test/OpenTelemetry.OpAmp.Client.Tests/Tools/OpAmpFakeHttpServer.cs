@@ -45,7 +45,7 @@ internal class OpAmpFakeHttpServer : IDisposable
 
     public Uri Endpoint { get; }
 
-    public IReadOnlyCollection<AgentToServer> GetFrames()
+    public IReadOnlyList<AgentToServer> GetFrames()
     {
         return this.frames.ToArray();
     }

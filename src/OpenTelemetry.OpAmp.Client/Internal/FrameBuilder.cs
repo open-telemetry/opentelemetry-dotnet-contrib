@@ -132,9 +132,20 @@ internal sealed class FrameBuilder : IFrameBuilder
         this.EnsureInitialized();
 
         // TODO: Update the actual capabilities when features are implemented.
-        this.currentMessage.Capabilities = (ulong)(AgentCapabilities.ReportsStatus
-            | AgentCapabilities.ReportsHealth
-            | AgentCapabilities.ReportsHeartbeat);
+
+        var capabilities = AgentCapabilities.ReportsStatus;
+
+        if (this.settings.Heartbeat.IsEnabled)
+        {
+            capabilities |= AgentCapabilities.ReportsHeartbeat | AgentCapabilities.ReportsHealth;
+        }
+
+        if (this.settings.RemoteConfiguration.AcceptsRemoteConfig)
+        {
+            capabilities |= AgentCapabilities.AcceptsRemoteConfig;
+        }
+
+        this.currentMessage.Capabilities = (ulong)capabilities;
 
         return this;
     }

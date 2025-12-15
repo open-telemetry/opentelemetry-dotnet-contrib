@@ -56,8 +56,14 @@ OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.Identification.set -> vo
 OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.InstanceUid.get -> System.Guid
 OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.InstanceUid.set -> void
 OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.OpAmpClientSettings() -> void
+OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.RemoteConfiguration.get -> OpenTelemetry.OpAmp.Client.Settings.RemoteConfigSettings!
+OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.RemoteConfiguration.set -> void
 OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.ServerUrl.get -> System.Uri!
 OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.ServerUrl.set -> void
+OpenTelemetry.OpAmp.Client.Settings.RemoteConfigSettings
+OpenTelemetry.OpAmp.Client.Settings.RemoteConfigSettings.AcceptsRemoteConfig.get -> bool
+OpenTelemetry.OpAmp.Client.Settings.RemoteConfigSettings.AcceptsRemoteConfig.set -> void
+OpenTelemetry.OpAmp.Client.Settings.RemoteConfigSettings.RemoteConfigSettings() -> void
 override OpenTelemetry.OpAmp.Client.Settings.AnyValueUnion.Equals(object? obj) -> bool
 override OpenTelemetry.OpAmp.Client.Settings.AnyValueUnion.GetHashCode() -> int
 static OpenTelemetry.OpAmp.Client.Settings.AnyValueUnion.operator !=(OpenTelemetry.OpAmp.Client.Settings.AnyValueUnion left, OpenTelemetry.OpAmp.Client.Settings.AnyValueUnion right) -> bool
