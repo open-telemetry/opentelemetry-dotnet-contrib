@@ -383,12 +383,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
                                 try
                                 {
                                     var stringValue = Convert.ToString(value, CultureInfo.InvariantCulture);
-                                    if (stringValue == null)
-                                    {
-                                        value = "<Unsupported type>";
-                                    }
-
-                                    value = $"<Unsupported type: {stringValue}>";
+                                    value = stringValue == null ? "<Unsupported type>" : $"<Unsupported type: {stringValue}>";
                                 }
                                 catch
                                 {

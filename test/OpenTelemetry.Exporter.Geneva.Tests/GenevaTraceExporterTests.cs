@@ -464,7 +464,7 @@ public class GenevaTraceExporterTests : IDisposable
     }
 
     [Fact]
-    public void GenevaTraceExporter_InvalidResourceAttrType_Throws()
+    public void GenevaTraceExporter_InvalidResourceAttrType_PlaceholderMessage()
     {
         var path = string.Empty;
         Socket server = null;
@@ -985,6 +985,9 @@ public class GenevaTraceExporterTests : IDisposable
 
             // Set the ActivitySourceName to the unique value of the test method name to avoid interference with
             // the ActivitySource used by other unit tests.
+
+            var rb = ResourceBuilder.CreateEmpty().AddAttributes(new Dictionary<string, object> { ["hello"] = "there" });
+
             var sourceName = GetTestMethodName();
             using var tracerProvider = Sdk.CreateTracerProviderBuilder()
                 .SetSampler(new AlwaysOnSampler())
@@ -997,6 +1000,7 @@ public class GenevaTraceExporterTests : IDisposable
                         ["cloud.roleVer"] = "9.0.15289.2",
                     };
                 })
+                .SetResourceBuilder(rb)
                 .Build();
             using var serverSocket = server.Accept();
             serverSocket.ReceiveTimeout = 10000;
