@@ -6,19 +6,24 @@ using OpAmp.Proto.V1;
 namespace OpenTelemetry.OpAmp.Client.Messages;
 
 /// <summary>
-/// Represents a server-to-agent remote configuration message.
+/// Represents an OpAMP server-to-agent remote configuration message.
 /// </summary>
 public class RemoteConfigMessage : OpAmpMessage
 {
+    private readonly Dictionary<string, AgentConfigFile> agentConfigMap;
+
     internal RemoteConfigMessage(AgentRemoteConfig agentRemoteConfig)
     {
+        this.agentConfigMap = new Dictionary<string, AgentConfigFile>(agentRemoteConfig.Config.ConfigMap.Count, StringComparer.Ordinal);
+
         foreach (var config in agentRemoteConfig.Config.ConfigMap)
         {
-            this.AgentConfigMap ??= [];
-            this.AgentConfigMap[config.Key] = new AgentConfigFile(config.Value);
+            this.agentConfigMap[config.Key] = new AgentConfigFile(config.Key, config.Value);
         }
     }
 
-    /// <inheritdoc cref="AgentConfigDictionary"/>
-    public AgentConfigDictionary AgentConfigMap { get; } = [];
+    /// <summary>
+    /// Gets a dictionary of agent configuration files, keyed by the name of the configuration file.
+    /// </summary>
+    public IReadOnlyDictionary<string, AgentConfigFile> AgentConfigMap => this.agentConfigMap;
 }
