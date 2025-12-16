@@ -16,7 +16,7 @@
   ([#3614](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3614))
 
 * Add settings for remote configuration and update advertised capabilities.
-  (TODO)
+  ([#3618](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3618))
 
 ## 0.1.0-alpha.3
 
