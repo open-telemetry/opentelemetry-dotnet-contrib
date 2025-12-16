@@ -12,7 +12,8 @@ Released 2025-Nov-13
 * Update Amazon.Lambda.Core dependency from 2.2.0 to 2.8.0 which reworks the internal
   logic for determining the trace id created by AWS Lambda.
   ([#3410](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3410))
-* Implement AWS Lambda detector ([#3411](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3411))
+* Implement AWS Lambda detector.
+  ([#3411](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3411))
 
 * Update .NET 10.0 NuGet package versions from `10.0.0-rc.2.25502.107` to `10.0.0`.
   ([#3403](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3403))
