@@ -1,8 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using OpenTelemetry.OpAmp.Client.Internal.Listeners;
 using OpenTelemetry.OpAmp.Client.Internal.Listeners.Messages;
+using OpenTelemetry.OpAmp.Client.Listeners;
 using OpenTelemetry.OpAmp.Client.Settings;
 
 namespace OpenTelemetry.OpAmp.Client.Internal.Services.Heartbeat;

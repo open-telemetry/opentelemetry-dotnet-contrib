@@ -196,6 +196,6 @@ This is the first release for the `OpenTelemetry.Contrib.Instrumentation.AWSLamb
 project. The project targets v1.1.0-beta1 of the [OpenTelemetry
 SDK](https://www.nuget.org/packages/OpenTelemetry/).
 
-The AWSLambda library includes extension and tracing APIs to configure resource detector
-and generate incoming AWS Lambda OTel span. For more details, please refer to the
-[README](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/Instrumentation.AWSLambda-1.1.0-beta1/src/OpenTelemetry.Contrib.Instrumentation.AWSLambda/README.md)
+The AWSLambda library includes extension and tracing APIs to configure resource
+detector and generate incoming AWS Lambda OTel span. For more details, please
+refer to the [README](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/Instrumentation.AWSLambda-1.1.0-beta1/src/OpenTelemetry.Contrib.Instrumentation.AWSLambda/README.md)

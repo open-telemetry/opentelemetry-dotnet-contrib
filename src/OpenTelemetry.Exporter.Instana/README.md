@@ -44,5 +44,5 @@ For ASP.NET applications, this should be in `Global.aspx.cs`.
 
 ## Troubleshooting
 
-Before digging into a problem, check if you hit a known issue by looking at the [GitHub
-issues](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues).
+Before digging into a problem, check if you hit a known issue by looking at the
+[GitHub issues](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues).

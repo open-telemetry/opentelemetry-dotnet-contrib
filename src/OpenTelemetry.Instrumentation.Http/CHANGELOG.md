@@ -264,8 +264,8 @@ Released 2023-Oct-26
   page](https://learn.microsoft.com/dotnet/core/diagnostics/built-in-metrics-system-net).
 
   **NOTES**:
-  * When targeting `.NET8.0` framework or newer, `http.client.request.duration` metric
-    will only follow
+  * When targeting `.NET8.0` framework or newer, `http.client.request.duration`
+    metric will only follow
     [v1.22.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.22.0/docs/http/http-metrics.md#metric-httpclientrequestduration)
     semantic conventions specification. Ability to switch behavior to older
     conventions using  `OTEL_SEMCONV_STABILITY_OPT_IN` environment variable is

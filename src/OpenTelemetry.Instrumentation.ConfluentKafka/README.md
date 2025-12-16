@@ -11,7 +11,8 @@
 
 ## Usage
 
-To use the `OpenTelemetry.Instrumentation.ConfluentKafka` package, follow these steps:
+To use the `OpenTelemetry.Instrumentation.ConfluentKafka` package, follow these
+steps:
 
 1. **Install the package**:
 
@@ -72,7 +73,7 @@ To use the `OpenTelemetry.Instrumentation.ConfluentKafka` package, follow these 
 This will set up OpenTelemetry instrumentation for Confluent.Kafka producers
 and consumers, allowing you to collect and export telemetry data.
 
-## Extending `ConsumerBuilder<TKey, TValue>` or `ProducerBuilder<TKey, TValue>` instances
+## Extending `ConsumerBuilder` or `ProducerBuilder` instances
 
 To extend an already built `ConsumerBuilder<TKey, TValue>`
 or `ProducerBuilder<TKey, TValue>`
