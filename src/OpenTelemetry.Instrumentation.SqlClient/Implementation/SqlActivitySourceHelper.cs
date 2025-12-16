@@ -46,23 +46,13 @@ internal sealed class SqlActivitySourceHelper
         SemanticConventions.AttributeServerAddress,
     ];
 
-    public static TagList GetTagListFromConnectionInfo(string? dataSource, string? databaseName, SqlClientTraceInstrumentationOptions options, out string activityName)
+    public static TagList GetTagListFromConnectionInfo(string? dataSource, string? databaseName, out string activityName)
     {
-        activityName = options.EmitNewAttributes
-            ? MicrosoftSqlServerDbSystemName
-            : MicrosoftSqlServerDbSystem;
+        activityName = MicrosoftSqlServerDbSystemName;
 
         TagList tags = default;
 
-        if (options.EmitOldAttributes)
-        {
-            tags.Add(SemanticConventions.AttributeDbSystem, MicrosoftSqlServerDbSystem);
-        }
-
-        if (options.EmitNewAttributes)
-        {
-            tags.Add(SemanticConventions.AttributeDbSystemName, MicrosoftSqlServerDbSystemName);
-        }
+        tags.Add(SemanticConventions.AttributeDbSystemName, MicrosoftSqlServerDbSystemName);
 
         if (dataSource != null)
         {
@@ -70,20 +60,11 @@ internal sealed class SqlActivitySourceHelper
 
             if (!string.IsNullOrEmpty(databaseName))
             {
-                if (options.EmitOldAttributes)
-                {
-                    tags.Add(SemanticConventions.AttributeDbName, databaseName);
-                    activityName = databaseName!;
-                }
-
-                if (options.EmitNewAttributes)
-                {
-                    var dbNamespace = !string.IsNullOrEmpty(connectionDetails.InstanceName)
-                        ? $"{connectionDetails.InstanceName}.{databaseName}" // TODO: Refactor SqlConnectionDetails to include database to avoid string allocation here.
-                        : databaseName!;
-                    tags.Add(SemanticConventions.AttributeDbNamespace, dbNamespace);
-                    activityName = dbNamespace;
-                }
+                var dbNamespace = !string.IsNullOrEmpty(connectionDetails.InstanceName)
+                    ? $"{connectionDetails.InstanceName}.{databaseName}"
+                    : databaseName!;
+                tags.Add(SemanticConventions.AttributeDbNamespace, dbNamespace);
+                activityName = dbNamespace;
             }
 
             var serverAddress = connectionDetails.ServerHostName ?? connectionDetails.ServerIpAddress;
@@ -95,11 +76,11 @@ internal sealed class SqlActivitySourceHelper
                     tags.Add(SemanticConventions.AttributeServerPort, port);
                 }
 
-                if (activityName == MicrosoftSqlServerDbSystem || activityName == MicrosoftSqlServerDbSystemName)
+                if (activityName == MicrosoftSqlServerDbSystemName)
                 {
                     if (connectionDetails.Port is { } portNumber)
                     {
-                        activityName = $"{serverAddress}:{portNumber}"; // TODO: Another opportunity to refactor SqlConnectionDetails
+                        activityName = $"{serverAddress}:{portNumber}";
                     }
                     else
                     {
@@ -107,24 +88,10 @@ internal sealed class SqlActivitySourceHelper
                     }
                 }
             }
-
-            if (options.EmitOldAttributes && !string.IsNullOrEmpty(connectionDetails.InstanceName))
-            {
-                tags.Add(SemanticConventions.AttributeDbMsSqlInstanceName, connectionDetails.InstanceName);
-            }
         }
         else if (!string.IsNullOrEmpty(databaseName))
         {
-            if (options.EmitNewAttributes)
-            {
-                tags.Add(SemanticConventions.AttributeDbNamespace, databaseName);
-            }
-
-            if (options.EmitOldAttributes)
-            {
-                tags.Add(SemanticConventions.AttributeDbName, databaseName);
-            }
-
+            tags.Add(SemanticConventions.AttributeDbNamespace, databaseName);
             activityName = databaseName!;
         }
 

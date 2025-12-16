@@ -221,18 +221,10 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
         string? commandText,
         bool isFailure,
         bool recordException,
-        Activity activity,
-        bool emitOldAttributes = true,
-        bool emitNewAttributes = false)
+        Activity activity)
     {
-        if (emitNewAttributes)
-        {
-            Assert.Equal("MSSQLLocalDB.master", activity.DisplayName);
-        }
-        else
-        {
-            Assert.Equal("master", activity.DisplayName);
-        }
+        var dbQuerySummary = activity.GetTagValue(SemanticConventions.AttributeDbQuerySummary);
+        Assert.Equal(dbQuerySummary, activity.DisplayName);
 
         Assert.Equal(ActivityKind.Client, activity.Kind);
 
@@ -258,17 +250,8 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
             }
         }
 
-        if (emitOldAttributes)
-        {
-            Assert.Equal(SqlActivitySourceHelper.MicrosoftSqlServerDbSystem, activity.GetTagValue(SemanticConventions.AttributeDbSystem));
-            Assert.Equal("master", activity.GetTagValue(SemanticConventions.AttributeDbName));
-        }
-
-        if (emitNewAttributes)
-        {
-            Assert.Equal(SqlActivitySourceHelper.MicrosoftSqlServerDbSystemName, activity.GetTagValue(SemanticConventions.AttributeDbSystemName));
-            Assert.Equal("MSSQLLocalDB.master", activity.GetTagValue(SemanticConventions.AttributeDbNamespace));
-        }
+        Assert.Equal(SqlActivitySourceHelper.MicrosoftSqlServerDbSystemName, activity.GetTagValue(SemanticConventions.AttributeDbSystemName));
+        Assert.Equal("master", activity.GetTagValue(SemanticConventions.AttributeDbNamespace));
 
         Assert.DoesNotContain(activity.TagObjects, tag => tag.Key.StartsWith("db.query.parameter.", StringComparison.Ordinal));
         Assert.DoesNotContain(activity.Tags, tag => tag.Key.StartsWith("db.query.parameter.", StringComparison.Ordinal));
@@ -276,29 +259,10 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
         switch (commandType)
         {
             case CommandType.StoredProcedure:
-                if (emitOldAttributes)
-                {
-                    Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbStatement));
-                }
-
-                if (emitNewAttributes)
-                {
-                    Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbStoredProcedureName));
-                }
-
+                Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbStoredProcedureName));
                 break;
-
             case CommandType.Text:
-                if (emitOldAttributes)
-                {
-                    Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbStatement));
-                }
-
-                if (emitNewAttributes)
-                {
-                    Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
-                }
-
+                Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
                 break;
             case CommandType.TableDirect:
                 Assert.Fail("Not supported command type: CommandType.TableDirect");
@@ -314,9 +278,9 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
         Assert.NotNull(samplingParameters.Tags);
         Assert.Contains(
             samplingParameters.Tags,
-            kvp => kvp.Key == SemanticConventions.AttributeDbSystem
+            kvp => kvp.Key == SemanticConventions.AttributeDbSystemName
                    && kvp.Value != null
-                   && (string)kvp.Value == SqlActivitySourceHelper.MicrosoftSqlServerDbSystem);
+                   && (string)kvp.Value == SqlActivitySourceHelper.MicrosoftSqlServerDbSystemName);
     }
 
     private string GetConnectionString()
