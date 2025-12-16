@@ -28,6 +28,19 @@ TracerProvider tracerProvider = Sdk.CreateTracerProviderBuilder()
         .Build();
 ```
 
+Alternatively, you can use `AddAWSLambdaDetector()` on the `ResourceBuilder` to only add
+the AWS Lambda resource detector without the additional Lambda-specific instrumentation:
+
+```csharp
+ResourceBuilder resourceBuilder = ResourceBuilder.CreateDefault()
+        .AddAWSLambdaDetector();
+
+TracerProvider tracerProvider = Sdk.CreateTracerProviderBuilder()
+        // add other instrumentations
+        .ConfigureResource(resource => resource.AddDetector(resourceBuilder.Build()))
+        .Build();
+```
+
 ### AWSLambdaInstrumentationOptions
 
 `AWSLambdaInstrumentationOptions` contains various properties to configure
