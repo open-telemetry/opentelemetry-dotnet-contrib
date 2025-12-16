@@ -77,8 +77,8 @@ This instrumentation can be configured to change the default behavior by using
 
 ### Capturing 'db.statement'
 
-The `MySqlDataInstrumentationOptions` class exposes several properties that can be
-used to configure how the [`db.statement`](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/mysql.md)
+The `MySqlDataInstrumentationOptions` class exposes several properties that can
+be used to configure how the [`db.statement`](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/mysql.md)
 attribute is captured upon execution of a query.
 
 #### SetDbStatement
@@ -126,8 +126,8 @@ using var tracerProvider = Sdk.CreateTracerProviderBuilder()
 This option can be set to instruct the instrumentation to record Exceptions
 as Activity [events](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/exceptions/exceptions-spans.md).
 
-> Due to the limitation of this library's implementation, We cannot get the raw `MysqlException`,
-> only exception message is available.
+> Due to the limitation of this library's implementation, We cannot get the raw
+> `MysqlException`, only exception message is available.
 
 The default value is `false` and can be changed by the code like below.
 

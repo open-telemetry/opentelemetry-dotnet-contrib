@@ -1,15 +1,20 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if NETFRAMEWORK
+using System.Net.Http;
+#endif
+
 using OpenTelemetry.OpAmp.Client.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Transport.Http;
+using OpenTelemetry.OpAmp.Client.Settings;
 using OpenTelemetry.OpAmp.Client.Tests.Mocks;
 using OpenTelemetry.OpAmp.Client.Tests.Tools;
 using Xunit;
 
 namespace OpenTelemetry.OpAmp.Client.Tests;
 
-public class PlainHttpTransportTest
+public class PlainHttpTransportTests
 {
     [Theory]
     [InlineData(true)]
@@ -19,12 +24,13 @@ public class PlainHttpTransportTest
         // Arrange
         using var opAmpServer = new OpAmpFakeHttpServer(useSmallPackets);
         var opAmpEndpoint = opAmpServer.Endpoint;
+        var settings = new OpAmpClientSettings { ServerUrl = opAmpEndpoint };
 
         using var mockListener = new MockListener();
         var frameProcessor = new FrameProcessor();
         frameProcessor.Subscribe(mockListener);
 
-        var httpTransport = new PlainHttpTransport(opAmpEndpoint, frameProcessor);
+        var httpTransport = new PlainHttpTransport(settings, frameProcessor);
 
         var mockFrame = FrameGenerator.GenerateMockAgentFrame(useSmallPackets);
 
@@ -41,5 +47,38 @@ public class PlainHttpTransportTest
 
         Assert.Single(clientReceivedFrames);
         Assert.StartsWith("This is a mock server frame for testing purposes.", receivedTextData);
+    }
+
+    [Fact]
+    public async Task PlainHttpTransport_UsesConfiguredHttpClientFactory()
+    {
+        // Arrange
+        using var opAmpServer = new OpAmpFakeHttpServer(false);
+        var opAmpEndpoint = opAmpServer.Endpoint;
+        var settings = new OpAmpClientSettings
+        {
+            ServerUrl = opAmpEndpoint,
+            HttpClientFactory = () =>
+            {
+                var client = new HttpClient();
+                client.DefaultRequestHeaders.Add("X-Custom-Header", "CustomValue");
+                return client;
+            },
+        };
+
+        using var mockListener = new MockListener();
+        var frameProcessor = new FrameProcessor();
+        frameProcessor.Subscribe(mockListener);
+
+        var httpTransport = new PlainHttpTransport(settings, frameProcessor);
+
+        var mockFrame = FrameGenerator.GenerateMockAgentFrame(false);
+
+        // Act
+        await httpTransport.SendAsync(mockFrame.Frame, CancellationToken.None);
+
+        // Assert
+        var serverReceivedHeaders = opAmpServer.GetHeaders();
+        Assert.Contains(serverReceivedHeaders, headers => headers["X-Custom-Header"] == "CustomValue");
     }
 }

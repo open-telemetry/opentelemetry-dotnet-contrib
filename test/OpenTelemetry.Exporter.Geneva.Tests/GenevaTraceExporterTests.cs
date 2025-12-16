@@ -43,17 +43,37 @@ public class GenevaTraceExporterTests : IDisposable
                 ConnectionString = null,
             });
         });
+        string connectionString;
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            connectionString = "EtwSession=OpenTelemetry";
+        }
+        else
+        {
+            var path = GetRandomFilePath();
+            connectionString = "Endpoint=unix:" + path;
+        }
 
         // null value in the PrepopulatedFields
         Assert.Throws<ArgumentNullException>(() =>
         {
             using var exporter = new GenevaTraceExporter(new GenevaExporterOptions
             {
-                ConnectionString = "EtwSession=OpenTelemetry",
+                ConnectionString = connectionString,
                 PrepopulatedFields = new Dictionary<string, object>
                 {
                     ["cloud.roleVer"] = null,
                 },
+            });
+        });
+
+        // reserved field in ResourceFieldNames
+        Assert.Throws<ArgumentException>(() =>
+        {
+            using var exporter = new GenevaTraceExporter(new GenevaExporterOptions
+            {
+                ConnectionString = connectionString,
+                ResourceFieldNames = ["env_cloud_role"],
             });
         });
 
@@ -62,7 +82,7 @@ public class GenevaTraceExporterTests : IDisposable
         {
             using var exporter = new GenevaTraceExporter(new GenevaExporterOptions
             {
-                ConnectionString = "EtwSession=OpenTelemetry",
+                ConnectionString = connectionString,
                 PrepopulatedFields = new Dictionary<string, object>
                 {
                     ["cloud.roleVer"] = (char)106,
@@ -75,7 +95,7 @@ public class GenevaTraceExporterTests : IDisposable
         {
             _ = new GenevaExporterOptions
             {
-                ConnectionString = "EtwSession=OpenTelemetry",
+                ConnectionString = connectionString,
                 PrepopulatedFields = new Dictionary<string, object>
                 {
                     ["bool"] = true,
@@ -206,6 +226,7 @@ public class GenevaTraceExporterTests : IDisposable
                     ["cloud.roleVer"] = "9.0.15289.2",
                     ["resourceAndPrepopulated"] = "comes from prepopulated",
                 },
+                ResourceFieldNames = ["resourceAttribute", "resourceAndPrepopulated"],
             };
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -326,19 +347,8 @@ public class GenevaTraceExporterTests : IDisposable
 
                         this.AssertMappingEntry(userFieldsLocation, "foo", 1);
                         this.AssertMappingEntry(userFieldsLocation, "bar", 2);
-                        this.AssertMappingEntry(userFieldsLocation, "resourceAttribute", "resourceValue");
-
-                        // Prepopulated fields should take precedence over resource attributes, except when CustomFields is set,
-                        // in which case the resource attribute makes its way to env_properties, and the prepopulated field is a dedicated field.
-                        if (hasCustomFields)
-                        {
-                            this.AssertMappingEntry(userFieldsLocation, "resourceAndPrepopulated", "comes from resource");
-                            this.AssertMappingEntry(mapping, "resourceAndPrepopulated", "comes from prepopulated");
-                        }
-                        else
-                        {
-                            this.AssertMappingEntry(userFieldsLocation, "resourceAndPrepopulated", "comes from prepopulated");
-                        }
+                        this.AssertMappingEntry(mapping, "resourceAttribute", "resourceValue");
+                        this.AssertMappingEntry(mapping, "resourceAndPrepopulated", "comes from resource");
 
                         // Linked spans are checked in CheckSpanForActivity, so no need to do a custom check here
                     });
@@ -381,7 +391,7 @@ public class GenevaTraceExporterTests : IDisposable
     }
 
     [Fact]
-    public void GenevaTraceExporter_Prepopulated_Overwrites_Resource()
+    public void GenevaTraceExporter_Resource_Overwrites_Prepopulated()
     {
         var path = string.Empty;
         Socket server = null;
@@ -391,9 +401,7 @@ public class GenevaTraceExporterTests : IDisposable
             {
                 PrepopulatedFields = new Dictionary<string, object>
                 {
-                    ["cloud.roleVer"] = "9.0.15289.2",
-                    ["cloud.role"] = "prepopulated role",
-                    ["cloud.roleInstance"] = "prepopulated role instance",
+                    ["prepopulated"] = "from prepopulated",
                 },
             };
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -412,8 +420,7 @@ public class GenevaTraceExporterTests : IDisposable
 
             Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
             {
-                { "service.name", "resource role" },
-                { "service.instanceId", "resource role instance" },
+                { "resource", "from resource attribute" },
             };
             var resource = new Resource(resourceAttributes);
 
@@ -441,6 +448,341 @@ public class GenevaTraceExporterTests : IDisposable
             using (var activity = source.StartActivity("Activity"))
             {
                 this.ExpectSpanFromActivity(activity, (mapping) => { });
+            }
+        }
+        finally
+        {
+            server?.Dispose();
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    [Fact]
+    public void GenevaTraceExporter_InvalidResourceAttrType_PlaceholderMessage()
+    {
+        var path = string.Empty;
+        Socket server = null;
+        try
+        {
+            var exporterOptions = new GenevaExporterOptions
+            {
+                ResourceFieldNames = ["badresource"],
+            };
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+            }
+            else
+            {
+                path = GetRandomFilePath();
+                exporterOptions.ConnectionString = "Endpoint=unix:" + path;
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                server.Bind(endpoint);
+                server.Listen(1);
+            }
+
+            Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
+            {
+                { "badresource", new int[1] }, // the exporter does not accept complex resource types like an array
+            };
+            var resource = new Resource(resourceAttributes);
+
+            using var exporter = new MsgPackTraceExporter(exporterOptions, () => resource);
+            var m_buffer = exporter.Buffer;
+
+            // Add an ActivityListener to serialize the activity and assert that it was valid on ActivityStopped event
+
+            // Set the ActivitySourceName to the unique value of the test method name to avoid interference with
+            // the ActivitySource used by other unit tests.
+            var sourceName = GetTestMethodName();
+
+            using var listener = new ActivityListener();
+            listener.ShouldListenTo = (activitySource) => activitySource.Name == sourceName;
+            listener.Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded;
+            listener.ActivityStopped = (activity) =>
+            {
+                _ = exporter.SerializeActivity(activity);
+                var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+                var signal = (fluentdData as object[])[0] as string;
+                var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
+                var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;
+
+                Assert.Contains("badresource", mapping.Keys);
+                Assert.Equal("<Unsupported type: System.Int64[]>", mapping["badresource"]);
+            };
+            ActivitySource.AddActivityListener(listener);
+
+            using var source = new ActivitySource(sourceName);
+            using (var activity = source.StartActivity("Activity"))
+            {
+            }
+        }
+        finally
+        {
+            server?.Dispose();
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    /// <summary>
+    /// The purpose of this test is to make sure that when ResourceFieldNames is not set,
+    /// that no resource attributes make it to Geneva.
+    /// </summary>
+    [Fact]
+    public void GenevaTraceExporter_WithoutResourceAttributes()
+    {
+        var path = string.Empty;
+        Socket server = null;
+        try
+        {
+            var exporterOptions = new GenevaExporterOptions
+            {
+                PrepopulatedFields = new Dictionary<string, object>
+                {
+                    ["unaffected prepopulated"] = "should be present",
+                },
+
+                // ResourceFieldNames not set
+            };
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+            }
+            else
+            {
+                path = GetRandomFilePath();
+                exporterOptions.ConnectionString = "Endpoint=unix:" + path;
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                server.Bind(endpoint);
+                server.Listen(1);
+            }
+
+            Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
+            {
+                { "resourceAttributes", "should not be present" },
+            };
+            var resource = new Resource(resourceAttributes);
+
+            using var exporter = new MsgPackTraceExporter(exporterOptions, () => resource);
+            var m_buffer = exporter.Buffer;
+
+            // Add an ActivityListener to serialize the activity and assert that it was valid on ActivityStopped event
+
+            // Set the ActivitySourceName to the unique value of the test method name to avoid interference with
+            // the ActivitySource used by other unit tests.
+            var sourceName = GetTestMethodName();
+
+            using var listener = new ActivityListener();
+            listener.ShouldListenTo = (activitySource) => activitySource.Name == sourceName;
+            listener.Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded;
+            listener.ActivityStopped = (activity) =>
+            {
+                _ = exporter.SerializeActivity(activity);
+                var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+                this.CheckSpanForActivity(exporterOptions, fluentdData, activity, exporter.DedicatedFields, resourceAttributes);
+            };
+            ActivitySource.AddActivityListener(listener);
+
+            using var source = new ActivitySource(sourceName);
+            using (var activity = source.StartActivity("Activity"))
+            {
+                this.ExpectSpanFromActivity(activity, (mapping) =>
+                {
+                    Assert.DoesNotContain("resourceAttributes", mapping);
+                    if (mapping.ContainsKey("env_properties"))
+                    {
+                        var env_properties = mapping["env_properties"] as Dictionary<object, object> ?? [];
+                        Assert.DoesNotContain("resourceAttributes", env_properties);
+                    }
+                });
+            }
+        }
+        finally
+        {
+            server?.Dispose();
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    /// <summary>
+    /// The purpose of this test is to make sure that when ResourceFieldNames is set to empty,
+    /// that no resource attributes make it to Geneva.
+    /// </summary>
+    [Fact]
+    public void GenevaTraceExporter_WithEmptyResourceAttributes()
+    {
+        var path = string.Empty;
+        Socket server = null;
+        try
+        {
+            var exporterOptions = new GenevaExporterOptions
+            {
+                PrepopulatedFields = new Dictionary<string, object>
+                {
+                    ["unaffected prepopulated"] = "should be present",
+                },
+
+                ResourceFieldNames = [], // ResourceFieldNames empty
+            };
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+            }
+            else
+            {
+                path = GetRandomFilePath();
+                exporterOptions.ConnectionString = "Endpoint=unix:" + path;
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                server.Bind(endpoint);
+                server.Listen(1);
+            }
+
+            Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
+            {
+                { "resourceAttributes", "should not be present" },
+            };
+            var resource = new Resource(resourceAttributes);
+
+            using var exporter = new MsgPackTraceExporter(exporterOptions, () => resource);
+            var m_buffer = exporter.Buffer;
+
+            // Add an ActivityListener to serialize the activity and assert that it was valid on ActivityStopped event
+
+            // Set the ActivitySourceName to the unique value of the test method name to avoid interference with
+            // the ActivitySource used by other unit tests.
+            var sourceName = GetTestMethodName();
+
+            using var listener = new ActivityListener();
+            listener.ShouldListenTo = (activitySource) => activitySource.Name == sourceName;
+            listener.Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded;
+            listener.ActivityStopped = (activity) =>
+            {
+                _ = exporter.SerializeActivity(activity);
+                var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+                this.CheckSpanForActivity(exporterOptions, fluentdData, activity, exporter.DedicatedFields, resourceAttributes);
+            };
+            ActivitySource.AddActivityListener(listener);
+
+            using var source = new ActivitySource(sourceName);
+            using (var activity = source.StartActivity("Activity"))
+            {
+                this.ExpectSpanFromActivity(activity, (mapping) =>
+                {
+                    Assert.DoesNotContain("resourceAttributes", mapping);
+                    if (mapping.ContainsKey("env_properties"))
+                    {
+                        var env_properties = mapping["env_properties"] as Dictionary<object, object> ?? [];
+                        Assert.DoesNotContain("resourceAttributes", env_properties);
+                    }
+                });
+            }
+        }
+        finally
+        {
+            server?.Dispose();
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    /// <summary>
+    /// The purpose of this test is to make sure that when ResourceFieldNames is set,
+    /// that only resource attributes specified make it to Geneva.
+    /// </summary>
+    [Fact]
+    public void GenevaTraceExporter_ResourceFieldNames()
+    {
+        var path = string.Empty;
+        Socket server = null;
+        try
+        {
+            var exporterOptions = new GenevaExporterOptions
+            {
+                PrepopulatedFields = new Dictionary<string, object>
+                {
+                    ["overridden prepopulated"] = "should not be present",
+                },
+                ResourceFieldNames = new HashSet<string>
+                {
+                    "wanted",
+                },
+            };
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+            }
+            else
+            {
+                path = GetRandomFilePath();
+                exporterOptions.ConnectionString = "Endpoint=unix:" + path;
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                server.Bind(endpoint);
+                server.Listen(1);
+            }
+
+            Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
+            {
+                { "wanted", "should be present" },
+                { "unwanted", "should not be present" },
+            };
+            var resource = new Resource(resourceAttributes);
+
+            using var exporter = new MsgPackTraceExporter(exporterOptions, () => resource);
+            var m_buffer = exporter.Buffer;
+
+            // Add an ActivityListener to serialize the activity and assert that it was valid on ActivityStopped event
+
+            // Set the ActivitySourceName to the unique value of the test method name to avoid interference with
+            // the ActivitySource used by other unit tests.
+            var sourceName = GetTestMethodName();
+
+            using var listener = new ActivityListener();
+            listener.ShouldListenTo = (activitySource) => activitySource.Name == sourceName;
+            listener.Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded;
+            listener.ActivityStopped = (activity) =>
+            {
+                _ = exporter.SerializeActivity(activity);
+                var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+                this.CheckSpanForActivity(exporterOptions, fluentdData, activity, exporter.DedicatedFields, resourceAttributes);
+            };
+            ActivitySource.AddActivityListener(listener);
+
+            using var source = new ActivitySource(sourceName);
+            using (var activity = source.StartActivity("Activity"))
+            {
+                this.ExpectSpanFromActivity(activity, (mapping) =>
+                {
+                    this.AssertMappingEntry(mapping, "wanted", "should be present");
+                    Assert.DoesNotContain("overridden prepopulated", mapping);
+                    Assert.DoesNotContain("unwanted", mapping);
+                });
             }
         }
         finally
@@ -643,6 +985,9 @@ public class GenevaTraceExporterTests : IDisposable
 
             // Set the ActivitySourceName to the unique value of the test method name to avoid interference with
             // the ActivitySource used by other unit tests.
+
+            var rb = ResourceBuilder.CreateEmpty().AddAttributes(new Dictionary<string, object> { ["hello"] = "there" });
+
             var sourceName = GetTestMethodName();
             using var tracerProvider = Sdk.CreateTracerProviderBuilder()
                 .SetSampler(new AlwaysOnSampler())
@@ -655,6 +1000,7 @@ public class GenevaTraceExporterTests : IDisposable
                         ["cloud.roleVer"] = "9.0.15289.2",
                     };
                 })
+                .SetResourceBuilder(rb)
                 .Build();
             using var serverSocket = server.Accept();
             serverSocket.ReceiveTimeout = 10000;
@@ -900,20 +1246,32 @@ public class GenevaTraceExporterTests : IDisposable
         // Check if the user has configured a custom table mapping
         this.AssertMappingEntry(mapping, nameKey, partAName);
 
-        // TODO: Update this when we support multiple Schema formats
         var partAVer = "4.0";
         var verKey = MsgPackExporter.V40_PART_A_MAPPING[Schema.V40.PartA.Ver];
         this.AssertMappingEntry(mapping, verKey, partAVer);
 
-        foreach (var item in exporterOptions.PrepopulatedFields)
+        if (exporterOptions.ResourceFieldNames == null)
         {
-            if (!MsgPackExporter.V40_PART_A_MAPPING.TryGetValue(item.Key, out var partAKey))
+            foreach (var item in exporterOptions.PrepopulatedFields)
             {
-                partAKey = item.Key;
-            }
+                if (!MsgPackExporter.V40_PART_A_MAPPING.TryGetValue(item.Key, out var partAKey))
+                {
+                    partAKey = item.Key;
+                }
 
-            var partAValue = item.Value as string;
-            this.AssertMappingEntry(mapping, partAKey, partAValue);
+                var partAValue = item.Value as string;
+                this.AssertMappingEntry(mapping, partAKey, partAValue);
+            }
+        }
+        else
+        {
+            foreach (var item in exporterOptions.ResourceFieldNames)
+            {
+                if (resourceAttributes.TryGetValue(item, out var val))
+                {
+                    this.AssertMappingEntry(mapping, item, val);
+                }
+            }
         }
 
         var timeKey = MsgPackExporter.V40_PART_A_MAPPING[Schema.V40.PartA.Time];

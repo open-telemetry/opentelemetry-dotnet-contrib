@@ -86,7 +86,7 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        using var tracerProvider = Sdk.CreateMeterProviderBuilder()
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddSqlClientInstrumentation()
             .AddConsoleExporter()
             .Build();
