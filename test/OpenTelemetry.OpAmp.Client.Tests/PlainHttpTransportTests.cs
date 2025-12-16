@@ -43,7 +43,7 @@ public class PlainHttpTransportTests
         var receivedTextData = clientReceivedFrames.First().CustomMessage.Data.ToStringUtf8();
 
         Assert.Single(serverReceivedFrames);
-        Assert.Equal(mockFrame.Uid, serverReceivedFrames.First().InstanceUid);
+        Assert.Equal(mockFrame.Uid, serverReceivedFrames[0].InstanceUid);
 
         Assert.Single(clientReceivedFrames);
         Assert.StartsWith("This is a mock server frame for testing purposes.", receivedTextData);
