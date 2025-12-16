@@ -136,19 +136,16 @@ public static class ContainerAttributes
         /// <summary>
         /// When tasks of the cgroup are in user mode (Linux). When all container processes are in user mode (Windows).
         /// </summary>
-        [Obsolete("Replaced by <c>cpu.mode</c>.")]
         public const string User = "user";
 
         /// <summary>
         /// When CPU is used by the system (host OS).
         /// </summary>
-        [Obsolete("Replaced by <c>cpu.mode</c>.")]
         public const string System = "system";
 
         /// <summary>
         /// When tasks of the cgroup are in kernel mode (Linux). When all container processes are in kernel mode (Windows).
         /// </summary>
-        [Obsolete("Replaced by <c>cpu.mode</c>.")]
         public const string Kernel = "kernel";
     }
 }

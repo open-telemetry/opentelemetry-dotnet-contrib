@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+## 1.14.0
+
+Released 2025-Nov-13
+
+* Add support for .NET 10.0.
+  ([#2822](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2822))
+
+* Update Amazon.Lambda.Core dependency from 2.2.0 to 2.8.0 which reworks the internal
+  logic for determining the trace id created by AWS Lambda.
+  ([#3410](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3410))
+
+* Update .NET 10.0 NuGet package versions from `10.0.0-rc.2.25502.107` to `10.0.0`.
+  ([#3403](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3403))
+
+* Updated OpenTelemetry core component version(s) to `1.14.0`.
+  ([#3403](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3403))
+
 ## 1.13.0
 
 Released 2025-Oct-29
@@ -178,6 +195,6 @@ This is the first release for the `OpenTelemetry.Contrib.Instrumentation.AWSLamb
 project. The project targets v1.1.0-beta1 of the [OpenTelemetry
 SDK](https://www.nuget.org/packages/OpenTelemetry/).
 
-The AWSLambda library includes extension and tracing APIs to configure resource detector
-and generate incoming AWS Lambda OTel span. For more details, please refer to the
-[README](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/Instrumentation.AWSLambda-1.1.0-beta1/src/OpenTelemetry.Contrib.Instrumentation.AWSLambda/README.md)
+The AWSLambda library includes extension and tracing APIs to configure resource
+detector and generate incoming AWS Lambda OTel span. For more details, please
+refer to the [README](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/Instrumentation.AWSLambda-1.1.0-beta1/src/OpenTelemetry.Contrib.Instrumentation.AWSLambda/README.md)

@@ -17,5 +17,11 @@
 * Add support for FaaS resource attributes for Google Cloud Run.
   ([#2789](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2789))
 
-* Updated OpenTelemetry core component version(s) to `1.13.1`.
-  ([#3218](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3218))
+* Add support for .NET 10.0.
+  ([#2822](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2822))
+
+* Update .NET 10.0 NuGet package versions from `10.0.0-rc.2.25502.107` to `10.0.0`.
+  ([#3403](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3403))
+
+* Updated OpenTelemetry core component version(s) to `1.14.0`.
+  ([#3403](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3403))

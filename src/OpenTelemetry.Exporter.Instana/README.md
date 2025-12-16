@@ -1,8 +1,8 @@
 # Instana Exporter for OpenTelemetry .NET
 
-| Status      |           |
-| ----------- | --------- |
-| Stability   | [Stable](../../README.md#stable) |
+| Status | |
+| ------ | --- |
+| Stability | [Stable](../../README.md#stable) |
 | Code Owners | [@zivaninstana](https://github.com/zivaninstana) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Exporter.Instana)](https://www.nuget.org/packages/OpenTelemetry.Exporter.Instana)
@@ -44,5 +44,5 @@ For ASP.NET applications, this should be in `Global.aspx.cs`.
 
 ## Troubleshooting
 
-Before digging into a problem, check if you hit a known issue by looking at the [GitHub
-issues](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues).
+Before digging into a problem, check if you hit a known issue by looking at the
+[GitHub issues](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues).

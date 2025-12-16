@@ -20,7 +20,6 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 internal class AWSLambdaUtils
 {
     private const string AWSRegion = "AWS_REGION";
-    private const string AWSXRayLambdaTraceHeaderKey = "_X_AMZN_TRACE_ID";
     private const string AWSXRayTraceHeaderKey = "X-Amzn-Trace-Id";
     private const string FunctionName = "AWS_LAMBDA_FUNCTION_NAME";
     private const string FunctionVersion = "AWS_LAMBDA_FUNCTION_VERSION";
@@ -41,11 +40,7 @@ internal class AWSLambdaUtils
 
     internal static ActivityContext GetXRayParentContext()
     {
-        // Currently get trace header from Lambda runtime environment variable
-        // https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html#configuration-envvars-runtime
-        // TODO: Add steps to extract trace header from http header
-
-        var tracerHeaderValue = Environment.GetEnvironmentVariable(AWSXRayLambdaTraceHeaderKey);
+        var tracerHeaderValue = LambdaTraceProvider.CurrentTraceId;
         if (tracerHeaderValue == null)
         {
             return default;

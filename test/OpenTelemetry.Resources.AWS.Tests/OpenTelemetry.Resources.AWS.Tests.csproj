@@ -20,4 +20,8 @@
     <None Update="SampleMetadataFiles\**\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="$(RepoRoot)\test\Shared\EnvironmentVariableScope.cs" Link="Includes\EnvironmentVariableScope.cs" />
+  </ItemGroup>
+
 </Project>

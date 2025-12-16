@@ -74,7 +74,8 @@ $content
       --title $tag `
       --verify-tag `
       --notes $notes `
-      --prerelease
+      --prerelease `
+      --draft
   }
   else
   {
@@ -82,8 +83,13 @@ $content
       --title $tag `
       --verify-tag `
       --notes $notes `
-      --latest
+      --latest `
+      --draft
   }
+
+  # Move the release out of draft once it has been created and all artifacts uploaded
+  # as immutable releases cannot have assets added to them after they are published.
+  gh release edit $tag --draft=false
 }
 
 Export-ModuleMember -Function CreateRelease
@@ -113,9 +119,19 @@ function TryPostPackagesReadyNoticeOnPrepareReleasePullRequest {
     }
 
     $foundComment = $false
+
+    $expectedCommentAuthorLogin = $expectedPrAuthorUserName
+
+    # The GitHub API requires bot users to be prefixed with "app/" when querying issues/PRs, but the login in the
+    # response for comments does not include the "app/" prefix, so we need to trim it off here to find the comment.
+    if ($expectedCommentAuthorLogin.StartsWith("app/"))
+    {
+      $expectedCommentAuthorLogin = $expectedCommentAuthorLogin.Substring(4)
+    }
+
     foreach ($comment in $pr.comments)
     {
-      if ($comment.author.login -eq $expectedPrAuthorUserName -and $comment.body.StartsWith("I just pushed the [$tag]"))
+      if ($comment.author.login -eq $expectedCommentAuthorLogin -and $comment.body.StartsWith("I just pushed the [$tag]"))
       {
         $foundComment = $true
         break
@@ -576,7 +592,7 @@ function UpdateCommonPropsVersion {
     (Get-Content Directory.Packages.props -Raw) `
       -replace "<$propertyDisplayName>.*<\/$propertyDisplayName>",
                "<$propertyDisplayName>$version</$propertyDisplayName>" |
-      Set-Content Directory.Packages.props
+      Set-Content Directory.Packages.props -NoNewline
 
     git add Directory.Packages.props 2>&1 | % ToString
     if ($LASTEXITCODE -gt 0)
@@ -584,7 +600,7 @@ function UpdateCommonPropsVersion {
         throw 'git add failure'
     }
 
-    git commit -m "Update $propertyDisplayName version in Common.props to $version." -s 2>&1 | % ToString
+    git commit -m "Update $propertyDisplayName version in Directory.Packages.props to $version." -s 2>&1 | % ToString
     if ($LASTEXITCODE -gt 0)
     {
         throw 'git commit failure'

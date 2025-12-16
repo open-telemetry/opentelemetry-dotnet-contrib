@@ -24,4 +24,10 @@
     <Compile Include="$(RepoRoot)\test\Shared\TestSampler.cs" Link="Includes\TestSampler.cs" />
   </ItemGroup>
 
+  <!-- Resolve version conflicts caused by ElasticsearchClient not targeting netX.0 -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" VersionOverride="10.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Options" VersionOverride="10.0.1" />
+  </ItemGroup>
+
 </Project>

@@ -1,8 +1,8 @@
 # ASP.NET Telemetry HttpModule for OpenTelemetry
 
-| Status      |           |
-| ----------- | --------- |
-| Stability   | [Release candidate](../../README.md#release-candidate) |
+| Status | |
+| ------ | --- |
+| Stability | [Stable](../../README.md#stable) |
 | Code Owners | [@open-telemetry/dotnet-contrib-maintainers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-maintainers) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule/)
@@ -11,11 +11,6 @@
 
 The ASP.NET Telemetry HttpModule is a skeleton to enable distributed tracing
 and metrics of incoming ASP.NET requests using the OpenTelemetry API.
-
-> [!NOTE]
-> This package is a [pre-release](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/VERSIONING.md#pre-releases).
-Until a [stable version](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/telemetry-stability.md)
-is released, there can be breaking changes.
 
 ## Usage
 

@@ -1,12 +1,15 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using OpenTelemetry.Internal;
 using OpenTelemetry.OpAmp.Client.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Services;
 using OpenTelemetry.OpAmp.Client.Internal.Services.Heartbeat;
 using OpenTelemetry.OpAmp.Client.Internal.Transport;
 using OpenTelemetry.OpAmp.Client.Internal.Transport.Http;
 using OpenTelemetry.OpAmp.Client.Internal.Transport.WebSocket;
+using OpenTelemetry.OpAmp.Client.Listeners;
+using OpenTelemetry.OpAmp.Client.Messages;
 using OpenTelemetry.OpAmp.Client.Settings;
 
 namespace OpenTelemetry.OpAmp.Client;
@@ -81,6 +84,30 @@ public sealed class OpAmpClient : IDisposable
     }
 
     /// <summary>
+    /// Subscribe the specified listener to receive OpAMP messages of <typeparamref name="T"/> type.
+    /// </summary>
+    /// <typeparam name="T">The <see cref="OpAmpMessage"/> to subscribe to.</typeparam>
+    /// <param name="listener">A listener capable of handling messages of type <typeparamref name="T"/>.</param>
+    public void Subscribe<T>(IOpAmpListener<T> listener)
+        where T : OpAmpMessage
+    {
+        Guard.ThrowIfNull(listener, nameof(listener));
+        this.processor.Subscribe(listener);
+    }
+
+    /// <summary>
+    /// Unsubscribe the specified listener from receiving OpAMP messages of <typeparamref name="T"/> type.
+    /// </summary>
+    /// <typeparam name="T">The <see cref="OpAmpMessage"/> to unsubscribe from.</typeparam>
+    /// <param name="listener">A listener capable of handling messages of type <typeparamref name="T"/>.</param>
+    public void Unsubscribe<T>(IOpAmpListener<T> listener)
+        where T : OpAmpMessage
+    {
+        Guard.ThrowIfNull(listener, nameof(listener));
+        this.processor.Unsubscribe(listener);
+    }
+
+    /// <summary>
     /// Disposes the OpAmpClient instance and releases all associated resources.
     /// </summary>
     public void Dispose()
@@ -88,12 +115,18 @@ public sealed class OpAmpClient : IDisposable
         this.dispatcher.Dispose();
     }
 
+    // Used for testing purposes only.
+    internal Task SendHeartbeatAsync(HealthReport healthReport, CancellationToken cancellationToken = default)
+    {
+        return this.dispatcher.DispatchHeartbeatAsync(healthReport, cancellationToken);
+    }
+
     private static IOpAmpTransport ConstructTransport(OpAmpClientSettings settings, FrameProcessor processor)
     {
         return settings.ConnectionType switch
         {
             ConnectionType.WebSocket => new WsTransport(settings.ServerUrl, processor),
-            ConnectionType.Http => new PlainHttpTransport(settings.ServerUrl, processor),
+            ConnectionType.Http => new PlainHttpTransport(settings, processor),
             _ => throw new NotSupportedException("Unsupported transport type"),
         };
     }

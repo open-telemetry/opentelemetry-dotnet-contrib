@@ -67,13 +67,8 @@ public class HttpInListenerTests
         bool recordException = false,
         string? expectedErrorType = null)
     {
-        try
+        using (EnvironmentVariableScope.Create("OTEL_DOTNET_EXPERIMENTAL_ASPNET_DISABLE_URL_QUERY_REDACTION", disableQueryRedaction == QueryRedactionDisableBehavior.DisableViaEnvVar ? "true" : null))
         {
-            if (disableQueryRedaction == QueryRedactionDisableBehavior.DisableViaEnvVar)
-            {
-                Environment.SetEnvironmentVariable("OTEL_DOTNET_EXPERIMENTAL_ASPNET_DISABLE_URL_QUERY_REDACTION", "true");
-            }
-
             HttpContext.Current = RouteTestHelper.BuildHttpContext(url, routeType, routeTemplate, requestMethod);
 
             typeof(HttpRequest).GetField("_wr", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(HttpContext.Current.Request, new TestHttpWorkerRequest());
@@ -227,10 +222,6 @@ public class HttpInListenerTests
                 // as the reason can be inferred from SemanticConventions.AttributeHttpStatusCode
                 Assert.True(string.IsNullOrEmpty(span.StatusDescription));
             }
-        }
-        finally
-        {
-            Environment.SetEnvironmentVariable("OTEL_DOTNET_EXPERIMENTAL_ASPNET_DISABLE_URL_QUERY_REDACTION", null);
         }
     }
 

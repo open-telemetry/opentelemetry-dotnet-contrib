@@ -252,37 +252,31 @@ public static class HttpAttributes
         /// <summary>
         /// HTTP/1.0.
         /// </summary>
-        [Obsolete("Split into <c>network.protocol.name</c> and <c>network.protocol.version</c>.")]
         public const string Http10 = "1.0";
 
         /// <summary>
         /// HTTP/1.1.
         /// </summary>
-        [Obsolete("Split into <c>network.protocol.name</c> and <c>network.protocol.version</c>.")]
         public const string Http11 = "1.1";
 
         /// <summary>
         /// HTTP/2.
         /// </summary>
-        [Obsolete("Split into <c>network.protocol.name</c> and <c>network.protocol.version</c>.")]
         public const string Http20 = "2.0";
 
         /// <summary>
         /// HTTP/3.
         /// </summary>
-        [Obsolete("Split into <c>network.protocol.name</c> and <c>network.protocol.version</c>.")]
         public const string Http30 = "3.0";
 
         /// <summary>
         /// SPDY protocol.
         /// </summary>
-        [Obsolete("Split into <c>network.protocol.name</c> and <c>network.protocol.version</c>.")]
         public const string Spdy = "SPDY";
 
         /// <summary>
         /// QUIC protocol.
         /// </summary>
-        [Obsolete("Split into <c>network.protocol.name</c> and <c>network.protocol.version</c>.")]
         public const string Quic = "QUIC";
     }
 

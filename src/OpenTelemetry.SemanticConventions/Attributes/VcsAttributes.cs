@@ -239,6 +239,7 @@ public static class VcsAttributes
         /// <summary>
         /// Deprecated, use <c>gitea</c> instead.
         /// </summary>
+        [Obsolete("Replaced by <c>gitea</c>.")]
         public const string Gittea = "gittea";
 
         /// <summary>
@@ -309,13 +310,11 @@ public static class VcsAttributes
         /// <summary>
         /// <a href="https://git-scm.com/docs/gitglossary#Documentation/gitglossary.txt-aiddefbranchabranch">branch</a>.
         /// </summary>
-        [Obsolete("Replaced by <c>vcs.ref.head.type</c>.")]
         public const string Branch = "branch";
 
         /// <summary>
         /// <a href="https://git-scm.com/docs/gitglossary#Documentation/gitglossary.txt-aiddeftagatag">tag</a>.
         /// </summary>
-        [Obsolete("Replaced by <c>vcs.ref.head.type</c>.")]
         public const string Tag = "tag";
     }
 

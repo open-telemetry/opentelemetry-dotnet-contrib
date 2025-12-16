@@ -586,13 +586,10 @@ public class StackExchangeRedisCallsInstrumentationTests
                    && (string?)kvp.Value == "redis");
     }
 
-    private sealed class SemanticConventionScope(string? previous) : IDisposable
+    private static class SemanticConventionScope
     {
-        private const string ConventionsOptIn = DatabaseSemanticConventionHelper.SemanticConventionOptInKeyName;
-
-        public static SemanticConventionScope Get(DatabaseSemanticConventionHelper.DatabaseSemanticConvention convention)
+        public static IDisposable Get(DatabaseSemanticConventionHelper.DatabaseSemanticConvention convention)
         {
-            var previous = Environment.GetEnvironmentVariable(ConventionsOptIn);
             var value = convention switch
             {
                 DatabaseSemanticConventionHelper.DatabaseSemanticConvention.Dupe => "database/dup",
@@ -600,13 +597,7 @@ public class StackExchangeRedisCallsInstrumentationTests
                 _ => string.Empty,
             };
 
-            Environment.SetEnvironmentVariable(
-                ConventionsOptIn,
-                value);
-
-            return new SemanticConventionScope(previous);
+            return EnvironmentVariableScope.Create("OTEL_SEMCONV_STABILITY_OPT_IN", value);
         }
-
-        public void Dispose() => Environment.SetEnvironmentVariable(ConventionsOptIn, previous);
     }
 }

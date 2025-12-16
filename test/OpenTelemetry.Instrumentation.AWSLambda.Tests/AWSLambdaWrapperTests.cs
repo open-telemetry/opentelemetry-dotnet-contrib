@@ -17,21 +17,25 @@ public class AWSLambdaWrapperTests : IDisposable
 
     private readonly SampleHandlers sampleHandlers;
     private readonly SampleLambdaContext sampleLambdaContext;
+    private readonly IDisposable environmentScope;
 
     public AWSLambdaWrapperTests()
     {
         this.sampleHandlers = new SampleHandlers();
         this.sampleLambdaContext = new SampleLambdaContext();
-        Environment.SetEnvironmentVariable("_X_AMZN_TRACE_ID", $"Root=1-5759e988-bd862e3fe1be46a994272793;Parent={XRayParentId};Sampled=1");
-        Environment.SetEnvironmentVariable("AWS_REGION", "us-east-1");
-        Environment.SetEnvironmentVariable("AWS_LAMBDA_FUNCTION_NAME", "testfunction");
-        Environment.SetEnvironmentVariable("AWS_LAMBDA_FUNCTION_VERSION", "latest");
-        Environment.SetEnvironmentVariable("AWS_LAMBDA_FUNCTION_MEMORY_SIZE", "128");
-        Environment.SetEnvironmentVariable("AWS_LAMBDA_LOG_STREAM_NAME", "2025/07/21/[$LATEST]7b176c212e954e62adfb9b5451cb5374");
+        this.environmentScope = EnvironmentVariableScope.Create(
+            ("_X_AMZN_TRACE_ID", $"Root=1-5759e988-bd862e3fe1be46a994272793;Parent={XRayParentId};Sampled=1"),
+            ("AWS_REGION", "us-east-1"),
+            ("AWS_LAMBDA_FUNCTION_NAME", "testfunction"),
+            ("AWS_LAMBDA_FUNCTION_VERSION", "latest"),
+            ("AWS_LAMBDA_FUNCTION_MEMORY_SIZE", "128"),
+            ("AWS_LAMBDA_LOG_STREAM_NAME", "2025/07/21/[$LATEST]7b176c212e954e62adfb9b5451cb5374"));
     }
 
     public void Dispose()
     {
+        this.environmentScope.Dispose();
+
         // reset Semantic Convention to default
         Sdk.CreateTracerProviderBuilder()
             .AddAWSLambdaConfigurations();
@@ -187,59 +191,63 @@ public class AWSLambdaWrapperTests : IDisposable
     [Fact]
     public void TestLambdaHandlerNotSampled()
     {
-        Environment.SetEnvironmentVariable("_X_AMZN_TRACE_ID", "Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=0");
-
-        var exportedItems = new List<Activity>();
-
-        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                   .AddAWSLambdaConfigurations(opt =>
-                   {
-                       opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
-                   })
-                   .AddInMemoryExporter(exportedItems)
-                   .Build()!)
+        using (EnvironmentVariableScope.Create("_X_AMZN_TRACE_ID", "Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=0"))
         {
-            var result = AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncInputAndReturn, "TestStream", this.sampleLambdaContext);
-            var resource = tracerProvider.GetResource();
-            this.AssertResourceAttributes(resource);
-        }
+            var exportedItems = new List<Activity>();
 
-        Assert.Empty(exportedItems);
+            using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                       .AddAWSLambdaConfigurations(opt =>
+                       {
+                           opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                       })
+                       .AddInMemoryExporter(exportedItems)
+                       .Build()!)
+            {
+                AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncInputAndReturn, "TestStream", this.sampleLambdaContext);
+                var resource = tracerProvider.GetResource();
+                this.AssertResourceAttributes(resource);
+            }
+
+            Assert.Empty(exportedItems);
+        }
     }
 
     [Fact]
     public void OnFunctionStart_NoParent_ActivityCreated()
     {
-        Environment.SetEnvironmentVariable("_X_AMZN_TRACE_ID", null);
-
-        Activity? activity = null;
-        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                   .AddAWSLambdaConfigurations(opt =>
-                   {
-                       opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
-                   })
-                   .Build())
+        using (EnvironmentVariableScope.Create("_X_AMZN_TRACE_ID", null))
         {
-            activity = AWSLambdaWrapper.OnFunctionStart("test-input", new SampleLambdaContext());
-        }
+            Activity? activity = null;
+            using (Sdk.CreateTracerProviderBuilder()
+                      .AddAWSLambdaConfigurations(opt =>
+                      {
+                          opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                      })
+                      .Build())
+            {
+                activity = AWSLambdaWrapper.OnFunctionStart("test-input", new SampleLambdaContext());
+            }
 
-        Assert.NotNull(activity);
+            Assert.NotNull(activity);
+        }
     }
 
     [Fact]
     public void OnFunctionStart_NoSampledAndAwsXRayContextExtractionDisabled_ActivityCreated()
     {
-        Environment.SetEnvironmentVariable("_X_AMZN_TRACE_ID", $"Root=1-5759e988-bd862e3fe1be46a994272793;Parent={XRayParentId};Sampled=0");
-        Activity? activity = null;
-
-        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                   .AddAWSLambdaConfigurations(c => c.DisableAwsXRayContextExtraction = true)
-                   .Build())
+        using (EnvironmentVariableScope.Create("_X_AMZN_TRACE_ID", $"Root=1-5759e988-bd862e3fe1be46a994272793;Parent={XRayParentId};Sampled=0"))
         {
-            activity = AWSLambdaWrapper.OnFunctionStart("test-input", new SampleLambdaContext());
-        }
+            Activity? activity = null;
 
-        Assert.NotNull(activity);
+            using (Sdk.CreateTracerProviderBuilder()
+                      .AddAWSLambdaConfigurations(c => c.DisableAwsXRayContextExtraction = true)
+                      .Build())
+            {
+                activity = AWSLambdaWrapper.OnFunctionStart("test-input", new SampleLambdaContext());
+            }
+
+            Assert.NotNull(activity);
+        }
     }
 
     [Theory]
@@ -250,9 +258,9 @@ public class AWSLambdaWrapperTests : IDisposable
         AWSLambdaWrapper.ResetColdStart();
         Activity? activity = null;
 
-        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                   .AddAWSLambdaConfigurations(c => c.DisableAwsXRayContextExtraction = true)
-                   .Build())
+        using (Sdk.CreateTracerProviderBuilder()
+                  .AddAWSLambdaConfigurations(c => c.DisableAwsXRayContextExtraction = true)
+                  .Build())
         {
             for (var i = 1; i <= invocationsCount; i++)
             {

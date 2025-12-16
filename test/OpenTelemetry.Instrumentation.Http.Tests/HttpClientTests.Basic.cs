@@ -621,7 +621,13 @@ public partial class HttpClientTests : IDisposable
 
         // Exception is thrown and collected as event
         Assert.True(exceptionThrown);
+
+#if NET10_0_OR_GREATER
+        // .NET 10 reports its own activity, but does not set the status description
+        Assert.Contains(exportedItems[0].Events, evt => evt.Name.Equals("exception"));
+#else
         Assert.Single(exportedItems[0].Events, evt => evt.Name.Equals("exception"));
+#endif
     }
 
     [Fact]
@@ -741,12 +747,13 @@ public partial class HttpClientTests : IDisposable
         var expectedUrl = $"{this.url}path{expectedUrlQuery}";
 
 #if NET9_0_OR_GREATER
-        // HACK: THIS IS A HACK TO MAKE THE TEST PASS.
-        // TODO: NEED TO UPDATE THIS TEST TO USE .NET'S SETTING TO DISABLE REDACTION.
-        // Currently this doesn't work with our tests which run in parallel.
-        // For more information see: https://github.com/dotnet/docs/issues/42792
+        // In .NET 9+ URIs are redacted by default. We could disable it with the
+        // System.Net.Http.DisableUriRedaction=true AppContext switch, but as that
+        // is process-wide it affects other tests. Instead, we adjust our expectations
+        // here. For more information see: https://github.com/dotnet/docs/issues/42792
         expectedUrl = $"{this.url}path?*";
 #endif
+
         Assert.Equal(expectedUrl, activity.GetTagValue(SemanticConventions.AttributeUrlFull));
     }
 

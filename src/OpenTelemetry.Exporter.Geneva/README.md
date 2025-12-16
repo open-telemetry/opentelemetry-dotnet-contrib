@@ -1,8 +1,8 @@
 # Geneva Exporter for OpenTelemetry .NET
 
-| Status      |           |
-| ----------- | --------- |
-| Stability   | [Stable](../../README.md#stable) |
+| Status | |
+| ------ | --- |
+| Stability | [Stable](../../README.md#stable) |
 | Code Owners | [@rajkumar-rangaraj](https://github.com/rajkumar-rangaraj/), [@xiang17](https://github.com/xiang17) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Exporter.Geneva)](https://www.nuget.org/packages/OpenTelemetry.Exporter.Geneva)
@@ -116,13 +116,22 @@ On Windows the connection string has the format `EtwSession={ETW session}`.
 A list of fields which should be stored as individual table columns.
 
 * If null, all fields will be stored as individual columns.
-* If non-null, only those fields named in the list will be stored as individual columns.
+* If non-null, only those fields named in the list will be stored as individual
+  columns.
+
+#### `ResourceFieldNames` (optional)
+
+A list of resource attribute keys which should be sent to Geneva.
+
+* If null, no resource attributes will be stored.
+* If non-null, only those resource attributes named in the list will be stored.
+  This will disable PrepopulatedFields (see below).
 
 #### `PrepopulatedFields` (optional)
 
 This is a collection of fields that will be applied to all the Logs and Traces
-sent through this exporter. If a field is present in both PrepopulatedFields and
-resource attributes, the field in PrepopulatedFields takes precedence.
+sent through this exporter. If ResourceFieldNames is also specified,
+PrepopulatedFields has no effect.
 
 #### `IncludeTraceStateForSpan` (optional)
 

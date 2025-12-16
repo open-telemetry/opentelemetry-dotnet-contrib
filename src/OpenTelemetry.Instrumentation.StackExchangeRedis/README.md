@@ -1,8 +1,8 @@
 # StackExchange.Redis Instrumentation for OpenTelemetry
 
-| Status      |           |
-| ----------- | --------- |
-| Stability   | [Beta](../../README.md#beta) |
+| Status | |
+| ------ | --- |
+| Stability | [Beta](../../README.md#beta) |
 | Code Owners | [@matt-hensley](https://github.com/matt-hensley) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.StackExchangeRedis)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.StackExchangeRedis)
@@ -182,8 +182,8 @@ using var tracerProvider = Sdk.CreateTracerProviderBuilder()
 
 This option allows one to enrich the activity with additional information from the
 raw `IProfiledCommand` object. The `Enrich` action is called only when
-`activity.IsAllDataRequested` is `true`. It contains the activity itself (which can
-be enriched), and the source profiled command object.
+`activity.IsAllDataRequested` is `true`. It contains the activity itself (which
+can be enriched), and the source profiled command object.
 
 The following code snippet shows how to add additional tags using `Enrich`.
 

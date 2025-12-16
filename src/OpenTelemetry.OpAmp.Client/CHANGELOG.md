@@ -2,8 +2,33 @@
 
 ## Unreleased
 
+* Add setting to configure the factory used to create `HttpClient` instances
+  used for the OpAMP Plain HTTP transport.
+  ([#3589](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3589))
+* Add support for subscribing and unsubscribing to messages from the OpAMP server.
+  ([#3593](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3593))
+* Clean up directories and namespaces for public API.
+  ([#3612](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3612))
+
+## 0.1.0-alpha.3
+
+Released 2025-Nov-13
+
+* Update .NET 10.0 NuGet package versions from `10.0.0-rc.2.25502.107` to `10.0.0`.
+  ([#3403](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3403))
+
+* Updated OpenTelemetry core component version(s) to `1.14.0`.
+  ([#3403](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3403))
+
+## 0.1.0-alpha.2
+
+Released 2025-Nov-03
+
 * Drop reference to `System.Collections.Immutable`.
   ([#3154](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3154))
+
+* Add support for .NET 10.0.
+  ([#2822](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2822))
 
 ## 0.1.0-alpha.1
 
