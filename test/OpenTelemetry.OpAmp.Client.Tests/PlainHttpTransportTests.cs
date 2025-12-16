@@ -42,8 +42,8 @@ public class PlainHttpTransportTests
         var clientReceivedFrames = mockListener.Messages;
         var receivedTextData = clientReceivedFrames.First().CustomMessage.Data.ToStringUtf8();
 
-        Assert.Single(serverReceivedFrames);
-        Assert.Equal(mockFrame.Uid, serverReceivedFrames[0].InstanceUid);
+        var frame = Assert.Single(serverReceivedFrames);
+        Assert.Equal(mockFrame.Uid, frame.InstanceUid);
 
         Assert.Single(clientReceivedFrames);
         Assert.StartsWith("This is a mock server frame for testing purposes.", receivedTextData);
@@ -71,7 +71,6 @@ public class PlainHttpTransportTests
         frameProcessor.Subscribe(mockListener);
 
         var httpTransport = new PlainHttpTransport(settings, frameProcessor);
-
         var mockFrame = FrameGenerator.GenerateMockAgentFrame(false);
 
         // Act
