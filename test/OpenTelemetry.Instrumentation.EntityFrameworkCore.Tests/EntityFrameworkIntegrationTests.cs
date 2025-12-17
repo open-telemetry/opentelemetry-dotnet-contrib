@@ -65,7 +65,7 @@ public sealed class EntityFrameworkIntegrationTests :
 
         foreach ((var provider, var commandType, var useNewConventions, var system, var database) in providers)
         {
-            var expectedSpanName = useNewConventions
+            var expectedSpanName = useNewConventions || provider is SqlServerProvider
                 ? "select"
                 : database;
 
