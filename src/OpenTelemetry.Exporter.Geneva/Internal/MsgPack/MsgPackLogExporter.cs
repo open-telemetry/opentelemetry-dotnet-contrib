@@ -20,7 +20,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 {
     public const int BUFFER_SIZE = 65360; // the maximum ETW payload (inclusive)
 
-    internal static readonly ThreadLocal<byte[]> Buffer = new();
+    internal readonly ThreadLocal<byte[]> Buffer = new();
 
     private static readonly Action<LogRecordScope, MsgPackLogExporter> ProcessScopeForIndividualColumnsAction = OnProcessScopeForIndividualColumns;
     private static readonly Action<LogRecordScope, MsgPackLogExporter> ProcessScopeForEnvPropertiesAction = OnProcessScopeForEnvProperties;
@@ -39,15 +39,11 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 #endif
 
     private readonly ExceptionStackExportMode exportExceptionStack;
+    private readonly Dictionary<string, object>? prepopulatedFields;
+    private readonly IEnumerable<string>? resourceFieldNames;
     private readonly byte[] bufferEpilogue;
     private readonly IDataTransport dataTransport;
     private readonly Func<Resource> resourceProvider;
-
-    // These are values that are always added to the body as dedicated fields
-    private readonly Dictionary<string, object> prepopulatedFields;
-
-    // These are values that are always added to env_properties
-    private readonly Dictionary<string, object> propertiesEntries;
     private readonly int stringFieldSizeLimitCharCount; // the maximum string size limit for MsgPack strings
 
     // This is used for Scopes
@@ -97,12 +93,28 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
         this.stringFieldSizeLimitCharCount = connectionStringBuilder.PrivatePreviewLogMessagePackStringSizeLimit;
 
-        this.propertiesEntries = [];
+        if (options.PrepopulatedFields != null && options.PrepopulatedFields.Count > 0 && options.ResourceFieldNames != null)
+        {
+            throw new ArgumentException("PrepopulatedFields and ResourceFieldNames are mutually exclusive options");
+        }
 
-        this.prepopulatedFields = new Dictionary<string, object>(options.PrepopulatedFields.Count, StringComparer.Ordinal);
+        if (options.ResourceFieldNames != null)
+        {
+            foreach (var wantedResourceAttribute in options.ResourceFieldNames)
+            {
+                if (PART_A_MAPPING_DICTIONARY.Values.Contains(wantedResourceAttribute))
+                {
+                    throw new ArgumentException($"'{wantedResourceAttribute}' cannot be specified through a resource attribute. Remove it from ResourceFieldNames");
+                }
+            }
+
+            this.prepopulatedFields = new Dictionary<string, object>(0, StringComparer.Ordinal);
+            this.resourceFieldNames = options.ResourceFieldNames;
+        }
 
         if (options.PrepopulatedFields != null)
         {
+            this.prepopulatedFields = new Dictionary<string, object>(options.PrepopulatedFields.Count, StringComparer.Ordinal);
             foreach (var kv in options.PrepopulatedFields)
             {
                 this.prepopulatedFields[kv.Key] = kv.Value;
@@ -164,11 +176,11 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             return;
         }
 
-        // DO NOT Dispose m_buffer as it is a static type
         try
         {
             (this.dataTransport as IDisposable)?.Dispose();
             this.serializationData.Dispose();
+            this.Buffer.Dispose();
         }
         catch (Exception ex)
         {
@@ -178,42 +190,85 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         this.isDisposed = true;
     }
 
+    /// <summary>
+    /// Updates the prepopulatedFields field to include resource attributes only available at runtime.
+    /// This function needs to be idempotent in case it's accidentally called twice.
+    /// </summary>
     internal void AddResourceAttributesToPrepopulated()
     {
-        // This function needs to be idempotent
+        Guard.ThrowIfNull(this.prepopulatedFields);
 
-        foreach (var entry in this.resourceProvider().Attributes)
+        var resourceAttributes = this.resourceProvider().Attributes;
+
+        foreach (var resourceAttribute in resourceAttributes)
         {
-            string key = entry.Key;
-            bool isDedicatedField = false;
-            if (entry.Value is string)
+            var key = resourceAttribute.Key;
+            var value = resourceAttribute.Value;
+
+            var isWantedAttribute = false;
+            if (this.resourceFieldNames != null)
             {
-                switch (key)
+                // this might seem inefficient, but it's only run once and I don't expect there to be many resource attributes
+                foreach (var wantedAttribute in this.resourceFieldNames!)
                 {
-                    case "service.name":
-                        key = Schema.V40.PartA.Extensions.Cloud.Role;
-                        isDedicatedField = true;
+                    if (wantedAttribute == key)
+                    {
+                        switch (value)
+                        {
+                            case bool:
+                            case byte:
+                            case sbyte:
+                            case short:
+                            case ushort:
+                            case int:
+                            case uint:
+                            case long:
+                            case ulong:
+                            case float:
+                            case double:
+                            case string:
+                                break;
+                            case null:
+                                // This should be impossible because Resource attributes cannot have null values.
+                                // But just in case, turn it into something serializable to avoid crashing.
+                                value = "<NULL>";
+                                break;
+                            default:
+                                // Try to construct a value that communicates that the type is not supported.
+                                try
+                                {
+                                    var stringValue = Convert.ToString(value, CultureInfo.InvariantCulture);
+                                    value = stringValue == null ? "<Unsupported type>" : $"<Unsupported type: {stringValue}>";
+                                }
+                                catch
+                                {
+                                    value = "<Unsupported type>";
+                                }
+
+                                break;
+                        }
+
+                        isWantedAttribute = true;
                         break;
-                    case "service.instanceId":
-                        key = Schema.V40.PartA.Extensions.Cloud.RoleInstance;
-                        isDedicatedField = true;
-                        break;
+                    }
                 }
             }
 
-            if (isDedicatedField || this.customFields == null || this.customFields.Contains(key))
+            if (key == "service.name")
             {
-                if (!this.prepopulatedFields.ContainsKey(key))
-                {
-                    this.prepopulatedFields.Add(key, entry.Value);
-                }
+                key = Schema.V40.PartA.Extensions.Cloud.Role;
+                isWantedAttribute = true;
             }
-            else
+
+            if (key == "service.instanceId")
             {
-                if (!this.propertiesEntries.ContainsKey(key))
-                {
-                    this.propertiesEntries.Add(key, entry.Value);
-                }
+                key = Schema.V40.PartA.Extensions.Cloud.RoleInstance;
+                isWantedAttribute = true;
+            }
+
+            if (isWantedAttribute)
+            {
+                this.prepopulatedFields.Add(key, value);
             }
         }
     }
@@ -230,11 +285,17 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         else
         {
             // Attempt to see if State could be ROL_KVP.
-            logFields = logRecord.State as IReadOnlyList<KeyValuePair<string, object?>> ?? [];
+            logFields = logRecord.State as IReadOnlyList<KeyValuePair<string, object?>>;
         }
 #pragma warning restore 0618
 
-        var buffer = Buffer.Value ??= new byte[BUFFER_SIZE]; // TODO: handle OOM
+        var buffer = this.Buffer.Value;
+        if (buffer == null)
+        {
+            this.AddResourceAttributesToPrepopulated();
+            buffer = new byte[BUFFER_SIZE]; // TODO: handle OOM
+            this.Buffer.Value = buffer;
+        }
 
         /* Fluentd Forward Mode:
         [
@@ -271,20 +332,13 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         ushort cntFields = 0;
         var idxMapSizePatch = cursor - 2;
 
-        this.AddResourceAttributesToPrepopulated();
-
-        foreach (var entry in this.prepopulatedFields)
+        if (this.prepopulatedFields != null)
         {
-            // A prepopulated entry should not be added if the same key exists in the log,
-            // and customFields configuration would make it a dedicated field.
-            if ((this.customFields == null || this.customFields.Contains(entry.Key))
-                && logFields.Any(kvp => kvp.Key == entry.Key))
+            foreach (var field in this.prepopulatedFields)
             {
-                continue;
+                cursor = AddPartAField(buffer, cursor, field.Key, field.Value);
+                cntFields += 1;
             }
-
-            cursor = AddPartAField(buffer, cursor, entry.Key, entry.Value);
-            cntFields += 1;
         }
 
         // Part A - core envelope
@@ -347,8 +401,10 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         var hasEnvProperties = false;
         var bodyPopulated = false;
         var namePopulated = false;
-        foreach (var entry in logFields)
+        for (var i = 0; i < logFields?.Count; i++)
         {
+            var entry = logFields[i];
+
             // Iteration #1 - Get those fields which become dedicated columns
             // i.e all Part B fields and opt-in Part C fields.
             if (entry.Key == "{OriginalFormat}")
@@ -416,44 +472,27 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         cursor = dataForScopes.Cursor;
         cntFields = dataForScopes.FieldsCount;
 
-        if (hasEnvProperties || this.propertiesEntries.Count > 0)
+        if (hasEnvProperties)
         {
-            // Anything that's not a dedicated field gets put into a part C field called "env_properties".
+            // Iteration #2 - Get all "other" fields and collapse them into single field
+            // named "env_properties".
             ushort envPropertiesCount = 0;
             cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_properties");
             cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, ushort.MaxValue);
             var idxMapSizeEnvPropertiesPatch = cursor - 2;
-
-            if (hasEnvProperties)
+            for (var i = 0; i < logFields!.Count; i++)
             {
-                foreach (var entry in logFields)
-                {
-                    if (entry.Key == "{OriginalFormat}" || this.customFields!.Contains(entry.Key))
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key, this.stringFieldSizeLimitCharCount);
-                        cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
-                        envPropertiesCount += 1;
-                    }
-                }
-            }
-
-            foreach (var entry in this.propertiesEntries)
-            {
-                // A prepopulated env_properties entry should not be added if the same key exists in the log,
-                // and lack of customFields configuration would place it in env_properties.
-                if (this.customFields != null && !this.customFields.Contains(entry.Key)
-                    && logFields.Any(kvp => kvp.Key == entry.Key))
+                var entry = logFields[i];
+                if (entry.Key == "{OriginalFormat}" || this.customFields!.Contains(entry.Key))
                 {
                     continue;
                 }
-
-                cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
-                cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
-                envPropertiesCount += 1;
+                else
+                {
+                    cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key, this.stringFieldSizeLimitCharCount);
+                    cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
+                    envPropertiesCount += 1;
+                }
             }
 
             // Prepare state for scopes

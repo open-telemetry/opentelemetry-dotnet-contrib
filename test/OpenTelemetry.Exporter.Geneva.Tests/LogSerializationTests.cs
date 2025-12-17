@@ -113,7 +113,7 @@ public class LogSerializationTests
 
             using var exporter = new MsgPackLogExporter(exporterOptions, () => Resource.Empty);
             _ = exporter.SerializeLogRecord(logRecordList[0]);
-            var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+            var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(exporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
 
             return GetFields(fluentdData);
         }

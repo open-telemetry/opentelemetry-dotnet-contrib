@@ -93,7 +93,8 @@ public class GenevaLogExporterAFDCorrelationTests
                         byte[] serializedData;
                         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                         {
-                            serializedData = MsgPackLogExporter.Buffer.Value;
+                            var msgPackExporter = exporter.Exporter as MsgPackLogExporter;
+                            serializedData = msgPackExporter.Buffer.Value;
                         }
                         else
                         {
@@ -123,7 +124,8 @@ public class GenevaLogExporterAFDCorrelationTests
                         byte[] serializedData;
                         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                         {
-                            serializedData = MsgPackLogExporter.Buffer.Value;
+                            var msgPackExporter = exporter.Exporter as MsgPackLogExporter;
+                            serializedData = msgPackExporter.Buffer.Value;
                         }
                         else
                         {
@@ -232,7 +234,8 @@ public class GenevaLogExporterAFDCorrelationTests
             byte[] serializedData;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                serializedData = MsgPackLogExporter.Buffer.Value;
+                var msgPackExporter = exporter.Exporter as MsgPackLogExporter;
+                serializedData = msgPackExporter.Buffer.Value;
             }
             else
             {
@@ -323,7 +326,8 @@ public class GenevaLogExporterAFDCorrelationTests
             byte[] serializedData;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                serializedData = MsgPackLogExporter.Buffer.Value;
+                var msgPackExporter = exporter.Exporter as MsgPackLogExporter;
+                serializedData = msgPackExporter.Buffer.Value;
             }
             else
             {

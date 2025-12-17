@@ -133,6 +133,11 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
                 throw new NotSupportedException($"Protocol '{connectionStringBuilder.Protocol}' is not supported");
         }
 
+        if (options.PrepopulatedFields != null && options.PrepopulatedFields.Count > 0 && options.ResourceFieldNames != null)
+        {
+            throw new ArgumentException("PrepopulatedFields and ResourceFieldNames are mutually exclusive options");
+        }
+
         if (options.ResourceFieldNames != null)
         {
             foreach (var wantedResourceAttribute in options.ResourceFieldNames)
@@ -141,6 +146,15 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
                 {
                     throw new ArgumentException($"'{wantedResourceAttribute}' cannot be specified through a resource attribute. Remove it from ResourceFieldNames");
                 }
+            }
+        }
+
+        this.prepopulatedFields = new Dictionary<string, object>(0, StringComparer.Ordinal);
+        if (options.PrepopulatedFields != null)
+        {
+            foreach (var entry in options.PrepopulatedFields)
+            {
+                this.prepopulatedFields.Add(entry.Key, entry.Value);
             }
         }
 
@@ -185,12 +199,6 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 #else
             this.DedicatedFields = dedicatedFields;
 #endif
-        }
-
-        this.prepopulatedFields = [];
-        foreach (var entry in options.PrepopulatedFields)
-        {
-            this.prepopulatedFields.Add(entry.Key, entry.Value);
         }
 
         this.resourceFieldNames = options.ResourceFieldNames;
@@ -338,8 +346,8 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
         if (this.resourceFieldNames != null)
         {
-            // if ResourceFieldNames is set, it overrides the existing prepopulated fields setting.
-            this.prepopulatedFields = [];
+            // if ResourceFieldNames is set, we use resource attributes rather than PrepopulatedFields
+            this.prepopulatedFields = new Dictionary<string, object>(0, StringComparer.Ordinal);
         }
 
         // this is guaranteed to not be null because it's set in the constructor

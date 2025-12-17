@@ -77,6 +77,20 @@ public class GenevaTraceExporterTests : IDisposable
             });
         });
 
+        // mutually exclusive ResourceFieldNames and PrepopulatedFields
+        Assert.Throws<ArgumentException>(() =>
+        {
+            using var exporter = new GenevaTraceExporter(new GenevaExporterOptions
+            {
+                ConnectionString = connectionString,
+                ResourceFieldNames = ["resource"],
+                PrepopulatedFields = new Dictionary<string, object>
+                {
+                    ["prepopulated"] = "hello",
+                },
+            });
+        });
+
         // unsupported types(char) for PrepopulatedFields
         Assert.Throws<ArgumentException>(() =>
         {
@@ -204,30 +218,44 @@ public class GenevaTraceExporterTests : IDisposable
     }
 
     [Theory]
-    [InlineData(false, false, false)]
-    [InlineData(false, true, false)]
-    [InlineData(true, false, false)]
-    [InlineData(true, true, false)]
-    [InlineData(false, false, true)]
-    [InlineData(false, true, true)]
-    [InlineData(true, false, true)]
-    [InlineData(true, true, true)]
-    public void GenevaTraceExporter_Serialization_Success(bool hasTableNameMapping, bool hasCustomFields, bool includeTraceState)
+    [InlineData(false, false, false, false, true)]
+    [InlineData(false, true, false, false, true)]
+    [InlineData(true, false, false, false, true)]
+    [InlineData(true, true, false, false, true)]
+    [InlineData(false, false, true, false, true)]
+    [InlineData(false, true, true, false, true)]
+    [InlineData(true, false, true, false, true)]
+    [InlineData(true, true, true, false, true)]
+    [InlineData(false, false, false, true, false)]
+    [InlineData(false, true, false, true, false)]
+    [InlineData(true, false, false, true, false)]
+    [InlineData(true, true, false, true, false)]
+    [InlineData(false, false, true, true, false)]
+    [InlineData(false, true, true, true, false)]
+    [InlineData(true, false, true, true, false)]
+    [InlineData(true, true, true, true, false)]
+    public void GenevaTraceExporter_Serialization_Success(bool hasTableNameMapping, bool hasCustomFields, bool includeTraceState, bool hasPrepopulatedFields, bool hasResourceAttributes)
     {
         var path = string.Empty;
         Socket server = null;
         try
         {
             var invocationCount = 0;
-            var exporterOptions = new GenevaExporterOptions
+            var exporterOptions = new GenevaExporterOptions();
+            if (hasPrepopulatedFields)
             {
-                PrepopulatedFields = new Dictionary<string, object>
+                exporterOptions.PrepopulatedFields = new Dictionary<string, object>
                 {
                     ["cloud.roleVer"] = "9.0.15289.2",
                     ["resourceAndPrepopulated"] = "comes from prepopulated",
-                },
-                ResourceFieldNames = ["resourceAttribute", "resourceAndPrepopulated"],
-            };
+                };
+            }
+
+            if (hasResourceAttributes)
+            {
+                exporterOptions.ResourceFieldNames = ["resourceAttribute", "resourceAndPrepopulated"];
+            }
+
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
@@ -347,8 +375,16 @@ public class GenevaTraceExporterTests : IDisposable
 
                         this.AssertMappingEntry(userFieldsLocation, "foo", 1);
                         this.AssertMappingEntry(userFieldsLocation, "bar", 2);
-                        this.AssertMappingEntry(mapping, "resourceAttribute", "resourceValue");
-                        this.AssertMappingEntry(mapping, "resourceAndPrepopulated", "comes from resource");
+
+                        if (hasResourceAttributes)
+                        {
+                            this.AssertMappingEntry(mapping, "resourceAttribute", "resourceValue");
+                            this.AssertMappingEntry(mapping, "resourceAndPrepopulated", "comes from resource");
+                        }
+                        else if (hasPrepopulatedFields)
+                        {
+                            this.AssertMappingEntry(mapping, "resourceAndPrepopulated", "comes from prepopulated");
+                        }
 
                         // Linked spans are checked in CheckSpanForActivity, so no need to do a custom check here
                     });
@@ -637,11 +673,6 @@ public class GenevaTraceExporterTests : IDisposable
         {
             var exporterOptions = new GenevaExporterOptions
             {
-                PrepopulatedFields = new Dictionary<string, object>
-                {
-                    ["unaffected prepopulated"] = "should be present",
-                },
-
                 ResourceFieldNames = [], // ResourceFieldNames empty
             };
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -724,10 +755,6 @@ public class GenevaTraceExporterTests : IDisposable
         {
             var exporterOptions = new GenevaExporterOptions
             {
-                PrepopulatedFields = new Dictionary<string, object>
-                {
-                    ["overridden prepopulated"] = "should not be present",
-                },
                 ResourceFieldNames = new HashSet<string>
                 {
                     "wanted",
@@ -780,7 +807,6 @@ public class GenevaTraceExporterTests : IDisposable
                 this.ExpectSpanFromActivity(activity, (mapping) =>
                 {
                     this.AssertMappingEntry(mapping, "wanted", "should be present");
-                    Assert.DoesNotContain("overridden prepopulated", mapping);
                     Assert.DoesNotContain("unwanted", mapping);
                 });
             }

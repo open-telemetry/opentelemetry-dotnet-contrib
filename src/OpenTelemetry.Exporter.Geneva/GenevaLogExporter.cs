@@ -17,10 +17,10 @@ namespace OpenTelemetry.Exporter.Geneva;
 /// </summary>
 public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
 {
+    internal readonly IDisposable Exporter;
     internal bool IsUsingUnixDomainSocket;
 
     private readonly ExportLogRecordFunc exportLogRecord;
-    private readonly IDisposable exporter;
 
     private bool isDisposed;
 
@@ -46,7 +46,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
             var eventHeaderLogExporter = new EventHeaderLogExporter(options);
             this.IsUsingUnixDomainSocket = false;
             this.exportLogRecord = eventHeaderLogExporter.Export;
-            this.exporter = eventHeaderLogExporter;
+            this.Exporter = eventHeaderLogExporter;
             return;
 #else
             throw new ArgumentException("Exporting data in user_events is only supported for .NET 8 or later on Linux.");
@@ -88,24 +88,19 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
                 throw new NotSupportedException($"Protocol '{connectionStringBuilder.Protocol}' is not supported");
         }
 
-        Resources.Resource ResourceProvider()
-        {
-            return connectionStringBuilder.HonorResourceAttributes ? this.ParentProvider.GetResource() : Resources.Resource.Empty;
-        }
-
         if (useMsgPackExporter)
         {
-            var msgPackLogExporter = new MsgPackLogExporter(options, ResourceProvider);
+            var msgPackLogExporter = new MsgPackLogExporter(options, this.ParentProvider.GetResource);
             this.IsUsingUnixDomainSocket = msgPackLogExporter.IsUsingUnixDomainSocket;
             this.exportLogRecord = msgPackLogExporter.Export;
-            this.exporter = msgPackLogExporter;
+            this.Exporter = msgPackLogExporter;
         }
         else
         {
             var tldLogExporter = new TldLogExporter(options);
             this.IsUsingUnixDomainSocket = false;
             this.exportLogRecord = tldLogExporter.Export;
-            this.exporter = tldLogExporter;
+            this.Exporter = tldLogExporter;
         }
     }
 
@@ -129,7 +124,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         {
             try
             {
-                this.exporter.Dispose();
+                this.Exporter.Dispose();
             }
             catch (Exception ex)
             {
