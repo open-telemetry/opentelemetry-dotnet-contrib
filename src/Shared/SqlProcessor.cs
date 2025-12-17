@@ -44,6 +44,9 @@ internal static class SqlProcessor
         "WHERE", "BY", "AS", "JOIN", "WITH", "CROSS", "HAVING", "WINDOW", "LIMIT", "OFFSET", "TABLESAMPLE", "PIVOT", "UNPIVOT"
     ];
 
+    private static readonly int MaxFromClauseReservedKeywordLength = FromClauseReservedKeywords.Max(k => k.Length);
+    private static readonly int MinFromClauseReservedKeywordLength = FromClauseReservedKeywords.Min(k => k.Length);
+
     // We can extend this in the future to include more keywords if needed.
     // The keywords should be ordered by frequency of use to optimize performance.
     // This only includes keywords that may be the first keyword in a statement.
@@ -185,8 +188,8 @@ internal static class SqlProcessor
 
             if (currentChar == CloseSquareBracketChar)
             {
-                var nextChar = currentPosition + 1 < sql.Length ? sql[currentPosition + 1] : '\0';
-                return nextChar == CloseSquareBracketChar;
+                var nextPosition = currentPosition + 1;
+                return nextPosition < sql.Length && sql[nextPosition] == CloseSquareBracketChar;
             }
 
             return true;
@@ -461,8 +464,8 @@ internal static class SqlProcessor
                 {
                     var isReservedKeyword = false;
 
-                    // Range of shortest ("BY") to longest ("TABLESAMPLE") keywords
-                    if (length >= 2 && length <= 11)
+                    // Fast check to ensure the length is within the range of known reserved keywords.
+                    if (length >= MinFromClauseReservedKeywordLength && length <= MaxFromClauseReservedKeywordLength)
                     {
                         for (int k = 0; k < FromClauseReservedKeywords.Length; k++)
                         {
@@ -514,7 +517,7 @@ internal static class SqlProcessor
             // If we are in a FROM clause, we want to capture the next identifier following a comma or open square bracket.
             // Commas may occur when listing multiple tables in a FROM clause.
             // Brackets may occur when using schema-qualified or delimited identifiers.
-            state.CaptureNextNonKeywordTokenAsIdentifier = state.InFromClause && (currentChar == CommaChar || currentChar == OpenSquareBracketChar);
+            state.CaptureNextNonKeywordTokenAsIdentifier = state.InFromClause && (currentChar is CommaChar or OpenSquareBracketChar);
             state.InEscapedIdentifier = currentChar == OpenSquareBracketChar;
 
             buffer[state.SanitizedPosition++] = currentChar;
