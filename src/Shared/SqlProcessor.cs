@@ -457,14 +457,23 @@ internal static class SqlProcessor
                 // that indicates the end of the FROM clause.
                 if (state.InFromClause)
                 {
-                    foreach (var reservedKeyword in FromClauseReservedKeywords)
+                    var isReservedKeyword = false;
+                    if (length >= 2 && length <= 11) // Range of shortest ("BY") to longest ("TABLESAMPLE") keywords
                     {
-                        if (IsCaseInsensitiveMatch(tokenSpan, reservedKeyword))
+                        for (int k = 0; k < FromClauseReservedKeywords.Length; k++)
                         {
-                            // We've matched a reserved keyword so are no longer in the FROM clause.
-                            state.InFromClause = false;
-                            break;
+                            var keyword = FromClauseReservedKeywords[k];
+                            if (length == keyword.Length && IsCaseInsensitiveMatch(tokenSpan, keyword))
+                            {
+                                isReservedKeyword = true;
+                                break;
+                            }
                         }
+                    }
+
+                    if (isReservedKeyword)
+                    {
+                        state.InFromClause = false;
                     }
                 }
 
