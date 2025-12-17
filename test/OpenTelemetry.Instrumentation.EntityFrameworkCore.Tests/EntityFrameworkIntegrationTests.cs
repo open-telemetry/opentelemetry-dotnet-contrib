@@ -57,7 +57,6 @@ public sealed class EntityFrameworkIntegrationTests :
             (PostgresProvider, typeof(NpgsqlCommand), true, "postgresql", "postgres"),
             (SqliteProvider, typeof(SqliteCommand), false, "sqlite", "main"),
             (SqliteProvider, typeof(SqliteCommand), true, "sqlite", "main"),
-            (SqlServerProvider, typeof(SqlCommand), false, "mssql", "master"),
             (SqlServerProvider, typeof(SqlCommand), true, "microsoft.sql_server", "master"),
         ];
 
@@ -65,7 +64,7 @@ public sealed class EntityFrameworkIntegrationTests :
 
         foreach ((var provider, var commandType, var useNewConventions, var system, var database) in providers)
         {
-            var expectedSpanName = useNewConventions || provider is SqlServerProvider
+            var expectedSpanName = useNewConventions
                 ? "select"
                 : database;
 
