@@ -118,7 +118,7 @@ internal static class SqlProcessor
             return sqlStatementInfo;
         }
 
-        sqlStatementInfo = SanitizeSql(sql.AsSpan());
+        sqlStatementInfo = SanitizeSql(sql);
 
         // Fast-path capacity check using our own approximate count to avoid ConcurrentDictionary.Count cost.
         if (Volatile.Read(ref approxCacheCount) >= CacheCapacity)
@@ -195,13 +195,15 @@ internal static class SqlProcessor
         return (currentChar != DotChar || indexInToken != 0) && IsUnescapedIdentifierChar(currentChar);
     }
 
-    private static SqlStatementInfo SanitizeSql(ReadOnlySpan<char> sql)
+    private static SqlStatementInfo SanitizeSql(string sql)
     {
+        var sqlSpan = sql.AsSpan();
+
         // We use a single buffer for both sanitized SQL and DB query summary.
         // We rent a buffer twice the size of the input SQL to ensure
         // we have enough space for the sanitized SQL and summary. The summary starts
         // from the middle position of the rented buffer.
-        var rentedBuffer = ArrayPool<char>.Shared.Rent(sql.Length * 2);
+        var rentedBuffer = ArrayPool<char>.Shared.Rent(sqlSpan.Length * 2);
 
         var buffer = rentedBuffer.AsSpan();
 
@@ -210,32 +212,32 @@ internal static class SqlProcessor
         // Precompute the summary buffer slice once and carry it via state to avoid repeated Span.Slice calls.
         state.SummaryBuffer = buffer.Slice(rentedBuffer.Length / 2);
 
-        while (state.ParsePosition < sql.Length)
+        while (state.ParsePosition < sqlSpan.Length)
         {
-            if (SkipComment(sql, ref state))
+            if (SkipComment(sqlSpan, ref state))
             {
                 continue;
             }
 
-            if (SanitizeStringLiteral(sql, buffer, ref state) ||
-                SanitizeHexLiteral(sql, buffer, ref state) ||
-                SanitizeNumericLiteral(sql, buffer, ref state))
+            if (SanitizeStringLiteral(sqlSpan, buffer, ref state) ||
+                SanitizeHexLiteral(sqlSpan, buffer, ref state) ||
+                SanitizeNumericLiteral(sqlSpan, buffer, ref state))
             {
                 continue;
             }
 
-            if (ParseWhitespace(sql, buffer, ref state))
+            if (ParseWhitespace(sqlSpan, buffer, ref state))
             {
                 continue;
             }
 
             if (state.SummaryPosition >= MaxSummaryLength)
             {
-                ParseNextTokenFast(sql, buffer, ref state);
+                ParseNextTokenFast(sqlSpan, buffer, ref state);
             }
             else
             {
-                ParseNextToken(sql, buffer, ref state);
+                ParseNextToken(sqlSpan, buffer, ref state);
             }
         }
 
@@ -267,8 +269,13 @@ internal static class SqlProcessor
             }
         }
 
+        var sanitizedSqlSpan = buffer.Slice(0, state.SanitizedPosition);
+
+        // If the sanitized SQL is identical to the input SQL, we can reuse the original string instance.
+        var sanitizedSql = sanitizedSqlSpan.SequenceEqual(sqlSpan) ? sql : sanitizedSqlSpan.ToString();
+
         var sqlStatementInfo = new SqlStatementInfo(
-            buffer.Slice(0, state.SanitizedPosition).ToString(),
+            sanitizedSql,
             summary.Slice(0, summaryLength).ToString());
 
         // We don't clear the buffer as we know the content has been sanitized
@@ -458,7 +465,9 @@ internal static class SqlProcessor
                 if (state.InFromClause)
                 {
                     var isReservedKeyword = false;
-                    if (length >= 2 && length <= 11) // Range of shortest ("BY") to longest ("TABLESAMPLE") keywords
+
+                    // Range of shortest ("BY") to longest ("TABLESAMPLE") keywords
+                    if (length >= 2 && length <= 11)
                     {
                         for (int k = 0; k < FromClauseReservedKeywords.Length; k++)
                         {
