@@ -21,18 +21,6 @@ namespace OpenTelemetry.Exporter.Geneva.Tests;
 
 public class GenevaLogExporterTests
 {
-    private static string GetRandomFilePath()
-    {
-        while (true)
-        {
-            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            if (!File.Exists(path))
-            {
-                return path;
-            }
-        }
-    }
-
     [Fact]
     public void BadArgs()
     {
@@ -43,7 +31,7 @@ public class GenevaLogExporterTests
         }
         else
         {
-            var path = GetRandomFilePath();
+            var path = GenerateTempFilePath();
             connectionString = "Endpoint=unix:" + path;
         }
 
@@ -714,7 +702,6 @@ public class GenevaLogExporterTests
                 {
                     ["cloud.roleVer"] = "9.0.15289.2",
                     ["prepopulated"] = "prepopulated field",
-                    ["test"] = $"{hasTableNameMapping}{hasCustomFields}{parseStateValues}",
                 },
             };
 
@@ -1481,6 +1468,303 @@ public class GenevaLogExporterTests
                 .GetValue(processor);
 
             Assert.Equal(100, scheduledDelayMilliseconds);
+        }
+    }
+
+    [Fact]
+    public void InvalidResourceAttrType_PlaceholderMessage()
+    {
+        var path = string.Empty;
+        Socket server = null;
+        var logRecordList = new List<LogRecord>();
+        try
+        {
+            var exporterOptions = new GenevaExporterOptions
+            {
+                ResourceFieldNames = ["badresource"],
+            };
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+            }
+            else
+            {
+                path = GenerateTempFilePath();
+                exporterOptions.ConnectionString = "Endpoint=unix:" + path;
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                server.Bind(endpoint);
+                server.Listen(1);
+            }
+
+            var resourceAttributes = new Dictionary<string, object>
+            {
+                { "badresource", new int[1] }, // the exporter does not accept complex types like an array
+            };
+            var resource = new Resource(resourceAttributes);
+
+            using var loggerFactory = LoggerFactory.Create(builder => builder
+                .AddOpenTelemetry(options =>
+                {
+                    options.AddInMemoryExporter(logRecordList);
+                })
+                .AddFilter(typeof(GenevaLogExporterTests).FullName, LogLevel.Trace)); // Enable all LogLevels
+
+            // Create a test exporter to get MessagePack byte data to validate if the data was serialized correctly.
+            using var exporter = new MsgPackLogExporter(exporterOptions, () => resource);
+
+            // Emit a LogRecord and grab a copy of the LogRecord from the collection passed to InMemoryExporter
+            var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
+
+            // Set the ActivitySourceName to the unique value of the test method name to avoid interference with
+            // the ActivitySource used by other unit tests.
+            var sourceName = GetTestMethodName();
+
+            using var listener = new ActivityListener();
+            listener.ShouldListenTo = (activitySource) => activitySource.Name == sourceName;
+            listener.Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded;
+            ActivitySource.AddActivityListener(listener);
+
+            using var source = new ActivitySource(sourceName);
+
+            using (var activity = source.StartActivity("Activity"))
+            {
+                // Log inside an activity to set LogRecord.TraceId and LogRecord.SpanId
+                logger.LogInformation("Hello from {Food} {Price}.", "artichoke", 3.99); // structured logging
+            }
+
+            // logRecordList should have a logRecord entry
+            Assert.Single(logRecordList);
+
+            var m_buffer = exporter.Buffer;
+
+            foreach (var logRecord in logRecordList)
+            {
+                _ = exporter.SerializeLogRecord(logRecord);
+                var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+                var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
+                var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;
+
+                Assert.Contains("badresource", mapping.Keys);
+                Assert.Equal("<Unsupported type: System.Int64[]>", mapping["badresource"]);
+            }
+        }
+        finally
+        {
+            server?.Dispose();
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    [Fact]
+    public void WithoutResourceAttributes()
+    {
+        var path = string.Empty;
+        Socket server = null;
+        var logRecordList = new List<LogRecord>();
+        try
+        {
+            var exporterOptions = new GenevaExporterOptions
+            {
+                PrepopulatedFields = new Dictionary<string, object>
+                {
+                    ["unaffected prepopulated"] = "should be present",
+                },
+
+                // ResourceFieldNames not set
+            };
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+            }
+            else
+            {
+                path = GenerateTempFilePath();
+                exporterOptions.ConnectionString = "Endpoint=unix:" + path;
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                server.Bind(endpoint);
+                server.Listen(1);
+            }
+
+            var resourceAttributes = new Dictionary<string, object>
+            {
+                { "resourceAttributes", "should not be present" },
+            };
+            var resource = new Resource(resourceAttributes);
+
+            using var loggerFactory = LoggerFactory.Create(builder => builder
+                .AddOpenTelemetry(options =>
+                {
+                    options.AddInMemoryExporter(logRecordList);
+                })
+                .AddFilter(typeof(GenevaLogExporterTests).FullName, LogLevel.Trace)); // Enable all LogLevels
+
+            // Create a test exporter to get MessagePack byte data to validate if the data was serialized correctly.
+            using var exporter = new MsgPackLogExporter(exporterOptions, () => resource);
+
+            // Emit a LogRecord and grab a copy of the LogRecord from the collection passed to InMemoryExporter
+            var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
+
+            // Set the ActivitySourceName to the unique value of the test method name to avoid interference with
+            // the ActivitySource used by other unit tests.
+            var sourceName = GetTestMethodName();
+
+            using var listener = new ActivityListener();
+            listener.ShouldListenTo = (activitySource) => activitySource.Name == sourceName;
+            listener.Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded;
+            ActivitySource.AddActivityListener(listener);
+
+            using var source = new ActivitySource(sourceName);
+
+            using (var activity = source.StartActivity("Activity"))
+            {
+                // Log inside an activity to set LogRecord.TraceId and LogRecord.SpanId
+                logger.LogInformation("Hello from {Food} {Price}.", "artichoke", 3.99); // structured logging
+            }
+
+            // logRecordList should have a logRecord entry
+            Assert.Single(logRecordList);
+
+            var m_buffer = exporter.Buffer;
+
+            foreach (var logRecord in logRecordList)
+            {
+                _ = exporter.SerializeLogRecord(logRecord);
+                var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+                var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
+                var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;
+
+                Assert.DoesNotContain("resourceAttributes", mapping.Keys);
+
+                if (mapping.ContainsKey("env_properties"))
+                {
+                    var env_properties = mapping["env_properties"] as Dictionary<object, object> ?? [];
+                    Assert.DoesNotContain("resourceAttributes", env_properties);
+                }
+
+                Assert.Contains("unaffected prepopulated", mapping.Keys);
+            }
+        }
+        finally
+        {
+            server?.Dispose();
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    /// <summary>
+    /// The purpose of this test is to make sure that when ResourceFieldNames is set to empty,
+    /// that no resource attributes make it to Geneva.
+    /// </summary>
+    [Fact]
+    public void WithEmptyResourceAttributes()
+    {
+        var path = string.Empty;
+        Socket server = null;
+        var logRecordList = new List<LogRecord>();
+        try
+        {
+            var exporterOptions = new GenevaExporterOptions
+            {
+                ResourceFieldNames = [], // ResourceFieldNames empty
+            };
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+            }
+            else
+            {
+                path = GenerateTempFilePath();
+                exporterOptions.ConnectionString = "Endpoint=unix:" + path;
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                server.Bind(endpoint);
+                server.Listen(1);
+            }
+
+            var resourceAttributes = new Dictionary<string, object>
+            {
+                { "resourceAttributes", "should not be present" },
+            };
+            var resource = new Resource(resourceAttributes);
+
+            using var loggerFactory = LoggerFactory.Create(builder => builder
+                .AddOpenTelemetry(options =>
+                {
+                    options.AddInMemoryExporter(logRecordList);
+                })
+                .AddFilter(typeof(GenevaLogExporterTests).FullName, LogLevel.Trace)); // Enable all LogLevels
+
+            // Create a test exporter to get MessagePack byte data to validate if the data was serialized correctly.
+            using var exporter = new MsgPackLogExporter(exporterOptions, () => resource);
+
+            // Emit a LogRecord and grab a copy of the LogRecord from the collection passed to InMemoryExporter
+            var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
+
+            // Set the ActivitySourceName to the unique value of the test method name to avoid interference with
+            // the ActivitySource used by other unit tests.
+            var sourceName = GetTestMethodName();
+
+            using var listener = new ActivityListener();
+            listener.ShouldListenTo = (activitySource) => activitySource.Name == sourceName;
+            listener.Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded;
+            ActivitySource.AddActivityListener(listener);
+
+            using var source = new ActivitySource(sourceName);
+
+            using (var activity = source.StartActivity("Activity"))
+            {
+                // Log inside an activity to set LogRecord.TraceId and LogRecord.SpanId
+                logger.LogInformation("Hello from {Food} {Price}.", "artichoke", 3.99); // structured logging
+            }
+
+            // logRecordList should have a logRecord entry
+            Assert.Single(logRecordList);
+
+            var m_buffer = exporter.Buffer;
+
+            foreach (var logRecord in logRecordList)
+            {
+                _ = exporter.SerializeLogRecord(logRecord);
+                var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+                var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
+                var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;
+
+                Assert.DoesNotContain("resourceAttributes", mapping.Keys);
+
+                if (mapping.ContainsKey("env_properties"))
+                {
+                    var env_properties = mapping["env_properties"] as Dictionary<object, object> ?? [];
+                    Assert.DoesNotContain("resourceAttributes", env_properties);
+                }
+            }
+        }
+        finally
+        {
+            server?.Dispose();
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
+            }
         }
     }
 
