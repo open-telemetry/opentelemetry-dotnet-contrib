@@ -16,6 +16,7 @@ internal static class SqlProcessor
     private const char SpaceChar = ' ';
     private const char CommaChar = ',';
     private const char OpenSquareBracketChar = '[';
+    private const char CloseSquareBracketChar = ']';
     private const char OpenParenChar = '(';
     private const char CloseParenChar = ')';
     private const char DashChar = '-';
@@ -154,12 +155,45 @@ internal static class SqlProcessor
 #endif
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsAsciiIdentifierChar(char c) =>
+    private static bool IsUnescapedIdentifierChar(char c) =>
 #if NET
         char.IsLetter(c) || char.IsAsciiDigit(c) || c == UnderscoreChar || c == DotChar;
 #else
         char.IsLetter(c) || IsAsciiDigit(c) || c == UnderscoreChar || c == DotChar;
 #endif
+
+    private static bool IsValidTokenCharacter(ReadOnlySpan<char> currentAndNext, int indexInToken, in ParseState state)
+    {
+        var currentChar = currentAndNext[0];
+
+        // If we are not capturing the next token as an identifier, we only accept unescaped identifier characters.
+        if (!state.CaptureNextNonKeywordTokenAsIdentifier)
+        {
+            return IsUnescapedIdentifierChar(currentChar);
+        }
+
+        if (state.InEscapedIdentifier)
+        {
+            // In escaped identifiers, all characters except null are valid.
+            // Double closing brackets (]]) are treated as an escaped bracket within the identifier.
+            // A single closing bracket ends the identifier.
+            if (currentChar == '\0')
+            {
+                return false;
+            }
+
+            if (currentChar == CloseSquareBracketChar)
+            {
+                var nextChar = currentAndNext.Length > 1 ? currentAndNext[1] : '\0';
+                return nextChar == CloseSquareBracketChar;
+            }
+
+            return true;
+        }
+
+        // In unescaped identifiers, periods are invalid at the start but valid in the middle (for schema-qualified names).
+        return (currentChar != DotChar || indexInToken != 0) && IsUnescapedIdentifierChar(currentChar);
+    }
 
     private static SqlStatementInfo SanitizeSql(ReadOnlySpan<char> sql)
     {
@@ -275,10 +309,12 @@ internal static class SqlProcessor
         var currentChar = sql[start];
 
         // Quick first-character filter: only attempt keyword matching if the current char is an ASCII letter.
+        // NOTE: We don't check CaptureNextNonKeywordTokenAsIdentifier here because we want to capture and handle keywords
+        // first, before considering identifiers.
 #if NET
-        var mayBeKeyword = char.IsAsciiLetter(currentChar);
+        var mayBeKeyword = !state.InEscapedIdentifier && char.IsAsciiLetter(currentChar);
 #else
-        var mayBeKeyword = IsAsciiLetter(currentChar);
+        var mayBeKeyword = !state.InEscapedIdentifier && IsAsciiLetter(currentChar);
 #endif
 
         if (mayBeKeyword)
@@ -374,12 +410,12 @@ internal static class SqlProcessor
                         state.PreviousSummaryKeyword = potentialKeywordInfo.SqlKeyword;
                     }
 
-                    state.CaptureNextTokenInSummary = SqlKeywordInfo.CaptureNextTokenInSummary(in state, potentialKeywordInfo.SqlKeyword);
+                    state.CaptureNextNonKeywordTokenAsIdentifier = SqlKeywordInfo.CaptureNextTokenInSummary(in state, potentialKeywordInfo.SqlKeyword);
+                    state.InFromClause = potentialKeywordInfo.SqlKeyword == SqlKeyword.From || (state.PreviousParsedKeyword?.SqlKeyword == SqlKeyword.From && state.CaptureNextNonKeywordTokenAsIdentifier);
                     state.PreviousParsedKeyword = potentialKeywordInfo;
                     state.ParsePosition += keywordLength;
                     state.PreviousTokenStartPosition = start;
                     state.PreviousTokenEndPosition = start + keywordLength;
-                    state.InFromClause = potentialKeywordInfo.SqlKeyword == SqlKeyword.From;
 
                     // No further parsing needed for this token
                     return;
@@ -388,17 +424,22 @@ internal static class SqlProcessor
         }
 
         // If we get this far, we have not matched a keyword, so we copy the token as-is.
+        var currentAndNext = sql.Slice(start, Math.Min(2, sql.Length - start));
 
-        if (char.IsLetter(currentChar) || currentChar == UnderscoreChar)
+        if (IsValidTokenCharacter(currentAndNext, 0, state))
         {
             // This first block handles identifiers (which start with a letter or underscore).
 
             // Scan the token once, then bulk-copy to minimize per-char branching.
             var i = start;
+            var position = -1;
             while (i < sql.Length)
             {
-                var ch = sql[i];
-                if (IsAsciiIdentifierChar(ch))
+                position++;
+
+                currentAndNext = sql.Slice(i, Math.Min(2, sql.Length - i));
+
+                if (IsValidTokenCharacter(currentAndNext, position, state))
                 {
                     i++;
                     continue;
@@ -432,7 +473,7 @@ internal static class SqlProcessor
                 state.SanitizedPosition += length;
 
                 // Optionally copy to summary buffer.
-                if (state.CaptureNextTokenInSummary)
+                if (state.CaptureNextNonKeywordTokenAsIdentifier)
                 {
                     tokenSpan.CopyTo(state.SummaryBuffer.Slice(state.SummaryPosition));
                     state.SummaryPosition += length;
@@ -443,16 +484,26 @@ internal static class SqlProcessor
             }
 
             state.ParsePosition = i;
-            state.CaptureNextTokenInSummary = false;
+            state.CaptureNextNonKeywordTokenAsIdentifier = false;
             state.PreviousTokenStartPosition = start;
             state.PreviousTokenEndPosition = i;
         }
         else
         {
+            // If we end up here, we copy a single-character token to the sanitized buffer.
+            // We also handle some special cases for tracking state.
+
+            // If we are currently in an escaped identifier, check for the closing bracket.
+            if (state.InEscapedIdentifier && currentChar == CloseSquareBracketChar)
+            {
+                state.InEscapedIdentifier = false;
+            }
+
             // If we are in a FROM clause, we want to capture the next identifier following a comma or open square bracket.
             // Commas may occur when listing multiple tables in a FROM clause.
             // Brackets may occur when using schema-qualified or delimited identifiers.
-            state.CaptureNextTokenInSummary = state.InFromClause && (currentChar == CommaChar || currentChar == OpenSquareBracketChar);
+            state.CaptureNextNonKeywordTokenAsIdentifier = state.InFromClause && (currentChar == CommaChar || currentChar == OpenSquareBracketChar);
+            state.InEscapedIdentifier = currentChar == OpenSquareBracketChar;
 
             buffer[state.SanitizedPosition++] = currentChar;
             state.ParsePosition++;
@@ -791,7 +842,12 @@ internal static class SqlProcessor
 
         // NOTE: If the number of bool fields increases significantly, consider combining into a bitfield.
 
-        public bool CaptureNextTokenInSummary; // 1 byte
+        public bool CaptureNextNonKeywordTokenAsIdentifier; // 1 byte
+
+        /// <summary>
+        /// Used to track if we are in an escaped identifier (e.g., "[table]").
+        /// </summary>
+        public bool InEscapedIdentifier; // 1 byte
 
         /// <summary>
         /// Used to track if we are in a FROM clause for special handling of comma-separated table lists.
