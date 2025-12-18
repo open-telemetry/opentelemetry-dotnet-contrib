@@ -5,8 +5,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <SolutionProjects Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Shared.Tests\OpenTelemetry.Contrib.Shared.Tests.csproj" />
     <SolutionProjects Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Shared.Benchmarks\OpenTelemetry.Contrib.Shared.Benchmarks.csproj" />
+    <SolutionProjects Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Shared.FuzzTests\OpenTelemetry.Contrib.Shared.FuzzTests.csproj" />
+    <SolutionProjects Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Shared.Tests\OpenTelemetry.Contrib.Shared.Tests.csproj" />
     <TestProjects Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Shared.Tests\OpenTelemetry.Contrib.Shared.Tests.csproj" />
   </ItemGroup>
 
