@@ -7,8 +7,8 @@
   the stable conventions. Now, only the stable conventions are supported.
   ([#3592](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3592))
 
-* Improve SQL parsing for sanitization and summary generation. Support additional cases
-  for escaped identifiers. Optimize performance of parsing logic.
+* Improve SQL parsing for sanitization and summary generation. Support additional
+  cases for escaped identifiers. Optimize performance of parsing logic.
   ([#3627](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3627))
 
 ## 1.14.0-beta.1
