@@ -3,10 +3,9 @@
 
 using FsCheck;
 using FsCheck.Xunit;
-using OpenTelemetry.Instrumentation;
 using Xunit;
 
-namespace OpenTelemetry.Contrib.Shared.FuzzTests;
+namespace OpenTelemetry.Instrumentation;
 
 public static class SqlProcessorTests
 {
