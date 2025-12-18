@@ -1079,13 +1079,9 @@ internal static class SqlProcessor
                 }
             }
 
-            if (currentKeyword.SqlKeyword == SqlKeyword.Select
-                && state.FirstSummaryKeyword is not SqlKeyword.Create && state.PreviousParsedKeyword?.SqlKeyword is not SqlKeyword.Union)
-            {
-                return true;
-            }
-
-            return false;
+            return currentKeyword.SqlKeyword == SqlKeyword.Select
+                && state.FirstSummaryKeyword is not SqlKeyword.Create
+                && state.PreviousParsedKeyword?.SqlKeyword is not SqlKeyword.Union;
         }
     }
 }

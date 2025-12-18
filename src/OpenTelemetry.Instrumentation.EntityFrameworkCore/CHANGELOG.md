@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Improve SQL parsing for sanitization and summary generation. Support additional cases
+  for escaped identifiers. Optimize performance of parsing logic.
+  ([#3627](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3627))
+
 ## 1.14.0-beta.2
 
 Released 2025-Nov-14
