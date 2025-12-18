@@ -347,7 +347,7 @@ public static class SqlProcessorTests
     }
 
     [Property(MaxTest = MaxValue)]
-    public static void GetSanitizedSql_MultipleValues_InInClause(PositiveInt value)
+    public static void GetSanitizedSql_Multiple_Values_In_In_Clause(PositiveInt value)
     {
         // Arrange
         var count = Math.Min(value.Get, 50);
