@@ -15,7 +15,7 @@
     <DefaultTargetFrameworkForExampleApps>$(NetMinimumSupportedVersion)</DefaultTargetFrameworkForExampleApps>
   </PropertyGroup>
 
-  <PropertyGroup Condition="$(MSBuildProjectName.Contains('.Tests'))">
+  <PropertyGroup Condition="$(MSBuildProjectName.Contains('.Tests')) OR $(MSBuildProjectName.EndsWith('.FuzzTests'))">
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
 
