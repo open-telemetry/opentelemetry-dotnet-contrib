@@ -598,6 +598,18 @@ jobs:
       code-cov-name: SemanticConventions
       run-tests: false # Note: No test project
 
+  build-test-contrib-shared-fuzz-tests:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'contrib-shared-tests')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.Contrib.Shared.FuzzTests
+      code-cov-name: Contrib.Shared.FuzzTests
+      pack: false # No packages produced
+
   build-test-contrib-shared-tests:
     needs: detect-changes
     if: |
@@ -651,6 +663,7 @@ jobs:
       lint-md,
       lint-yml,
       lint-dotnet-format,
+      build-test-contrib-shared-fuzz-tests,
       build-test-contrib-shared-tests,
       build-test-exporter-geneva,
       build-test-exporter-geneva-integration,
