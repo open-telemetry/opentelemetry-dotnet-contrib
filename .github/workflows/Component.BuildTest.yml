@@ -173,7 +173,7 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
 
     - name: Publish ${{ steps.resolve-project.outputs.name }} NuGet packages to Artifacts
-      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
       # Only publish packages from the first job, which should be net462 for Windows in most cases, which is preferred for .NET Framework support
       if: ${{ matrix.os == 'windows-latest' && inputs.pack && strategy.job-index == 0 }}
       with:
