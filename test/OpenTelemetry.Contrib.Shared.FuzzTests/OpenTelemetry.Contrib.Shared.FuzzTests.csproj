@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FsCheck.Xunit" />
     <PackageReference Include="OpenTelemetry.Api" />
   </ItemGroup>
 
