@@ -13,6 +13,9 @@ Released 2026-Jan-21
 * Updated OpenTelemetry core component version(s) to `1.15.0`.
   ([#3721](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3721))
 
+* Added an environment variable `HTTP_URL_IS_SET` check to `OpenTelemetry.Exporter.Geneva` 
+  to enable/disable adding `httpUrl`for HTTP server spans.
+
 ## 1.14.0
 
 Released 2025-Nov-13
