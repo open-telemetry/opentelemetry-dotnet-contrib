@@ -868,7 +868,7 @@
       "db.query.text": [
         "DECLARE @__geräteIds_0 nvarchar(?) = N?;\n\nSELECT [t].[Id]\nFROM [Tests] AS [t]\nWHERE [t].[Id] IN (\n\tSELECT [g].[value]\n\tFROM OPENJSON(@__geräteIds_0) WITH ([value] bigint ?) AS [g]\n)"
       ],
-      "db.query.summary": "SELECT Tests"
+      "db.query.summary": "SELECT [Tests]"
     }
   },
   {
@@ -894,7 +894,7 @@
       "db.query.text": [
         "SELECT * FROM [O'Brien]"
       ],
-      "db.query.summary": "SELECT O'Brien"
+      "db.query.summary": "SELECT [O'Brien]"
     }
   },
   {
@@ -907,7 +907,7 @@
       "db.query.text": [
         "SELECT * FROM [Order-Details]"
       ],
-      "db.query.summary": "SELECT Order-Details"
+      "db.query.summary": "SELECT [Order-Details]"
     }
   },
   {
@@ -920,7 +920,7 @@
       "db.query.text": [
         "SELECT * FROM [Order.Details]"
       ],
-      "db.query.summary": "SELECT Order.Details"
+      "db.query.summary": "SELECT [Order.Details]"
     }
   },
   {
@@ -933,7 +933,7 @@
       "db.query.text": [
         "SELECT * FROM [Order,Details]"
       ],
-      "db.query.summary": "SELECT Order,Details"
+      "db.query.summary": "SELECT [Order,Details]"
     }
   },
   {
@@ -946,7 +946,7 @@
       "db.query.text": [
         "SELECT * FROM [Order_Details]"
       ],
-      "db.query.summary": "SELECT Order_Details"
+      "db.query.summary": "SELECT [Order_Details]"
     }
   },
   {
@@ -959,7 +959,7 @@
       "db.query.text": [
         "SELECT * FROM [#TempOrders]"
       ],
-      "db.query.summary": "SELECT #TempOrders"
+      "db.query.summary": "SELECT [#TempOrders]"
     }
   },
   {
@@ -972,7 +972,7 @@
       "db.query.text": [
         "SELECT * FROM [Order$Details]"
       ],
-      "db.query.summary": "SELECT Order$Details"
+      "db.query.summary": "SELECT [Order$Details]"
     }
   },
   {
@@ -985,7 +985,7 @@
       "db.query.text": [
         "SELECT * FROM [Order@Details]"
       ],
-      "db.query.summary": "SELECT Order@Details"
+      "db.query.summary": "SELECT [Order@Details]"
     }
   },
   {
@@ -998,7 +998,7 @@
       "db.query.text": [
         "SELECT * FROM [Order Details]"
       ],
-      "db.query.summary": "SELECT Order Details"
+      "db.query.summary": "SELECT [Order Details]"
     }
   },
   {
@@ -1011,7 +1011,7 @@
       "db.query.text": [
         "SELECT * FROM [Order-Details] od JOIN [Customer.Info] ci ON od.CustomerId = ci.Id"
       ],
-      "db.query.summary": "SELECT Order-Details Customer.Info"
+      "db.query.summary": "SELECT [Order-Details] [Customer.Info]"
     }
   }
 ]

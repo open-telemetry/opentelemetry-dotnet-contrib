@@ -509,16 +509,27 @@ internal static class SqlProcessor
             // We also handle some special cases for tracking state.
 
             // If we are currently in an escaped identifier, check for the closing bracket.
-            if (state.InEscapedIdentifier && currentChar == CloseSquareBracketChar)
+            if (state.InEscapedIdentifier && currentChar is CloseSquareBracketChar)
             {
                 state.InEscapedIdentifier = false;
+
+                // Remove the space we added after the identifier in the summary buffer before we write the closing bracket.
+                state.SummaryPosition--;
+
+                state.SummaryBuffer[state.SummaryPosition++] = CloseSquareBracketChar;
+                state.SummaryBuffer[state.SummaryPosition++] = SpaceChar;
             }
 
             // If we are in a FROM clause, we want to capture the next identifier following a comma or open square bracket.
             // Commas may occur when listing multiple tables in a FROM clause.
             // Brackets may occur when using schema-qualified or delimited identifiers.
             state.CaptureNextNonKeywordTokenAsIdentifier = state.InFromClause && (currentChar is CommaChar or OpenSquareBracketChar);
-            state.InEscapedIdentifier = currentChar == OpenSquareBracketChar;
+
+            if (state.CaptureNextNonKeywordTokenAsIdentifier && currentChar is OpenSquareBracketChar)
+            {
+                state.InEscapedIdentifier = true;
+                state.SummaryBuffer[state.SummaryPosition++] = OpenSquareBracketChar;
+            }
 
             buffer[state.SanitizedPosition++] = currentChar;
             state.ParsePosition++;
