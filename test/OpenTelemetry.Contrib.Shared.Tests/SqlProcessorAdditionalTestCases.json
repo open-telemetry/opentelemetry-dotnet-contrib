@@ -868,7 +868,7 @@
       "db.query.text": [
         "DECLARE @__geräteIds_0 nvarchar(?) = N?;\n\nSELECT [t].[Id]\nFROM [Tests] AS [t]\nWHERE [t].[Id] IN (\n\tSELECT [g].[value]\n\tFROM OPENJSON(@__geräteIds_0) WITH ([value] bigint ?) AS [g]\n)"
       ],
-      "db.query.summary": "SELECT Tests"
+      "db.query.summary": "SELECT [Tests]"
     }
   },
   {
@@ -882,6 +882,136 @@
         "SELECT a, b FROM TableA, TableB GROUP BY a, b"
       ],
       "db.query.summary": "SELECT TableA TableB"
+    }
+  },
+  {
+    "name": "select_from_table_with_single_quote_in_name",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "SELECT * FROM [O'Brien]"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT * FROM [O'Brien]"
+      ],
+      "db.query.summary": "SELECT [O'Brien]"
+    }
+  },
+  {
+    "name": "select_from_table_with_hyphen_in_name",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "SELECT * FROM [Order-Details]"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT * FROM [Order-Details]"
+      ],
+      "db.query.summary": "SELECT [Order-Details]"
+    }
+  },
+  {
+    "name": "select_from_table_with_period_in_name",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "SELECT * FROM [Order.Details]"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT * FROM [Order.Details]"
+      ],
+      "db.query.summary": "SELECT [Order.Details]"
+    }
+  },
+  {
+    "name": "select_from_table_with_comma_in_name",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "SELECT * FROM [Order,Details]"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT * FROM [Order,Details]"
+      ],
+      "db.query.summary": "SELECT [Order,Details]"
+    }
+  },
+  {
+    "name": "select_from_table_with_underscore_in_name",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "SELECT * FROM [Order_Details]"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT * FROM [Order_Details]"
+      ],
+      "db.query.summary": "SELECT [Order_Details]"
+    }
+  },
+  {
+    "name": "select_from_table_with_hash_in_name",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "SELECT * FROM [#TempOrders]"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT * FROM [#TempOrders]"
+      ],
+      "db.query.summary": "SELECT [#TempOrders]"
+    }
+  },
+  {
+    "name": "select_from_table_with_dollar_sign_in_name",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "SELECT * FROM [Order$Details]"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT * FROM [Order$Details]"
+      ],
+      "db.query.summary": "SELECT [Order$Details]"
+    }
+  },
+  {
+    "name": "select_from_table_with_at_sign_in_name",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "SELECT * FROM [Order@Details]"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT * FROM [Order@Details]"
+      ],
+      "db.query.summary": "SELECT [Order@Details]"
+    }
+  },
+  {
+    "name": "select_from_table_with_space_in_name",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "SELECT * FROM [Order Details]"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT * FROM [Order Details]"
+      ],
+      "db.query.summary": "SELECT [Order Details]"
+    }
+  },
+  {
+    "name": "join_tables_with_special_characters_in_names",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "SELECT * FROM [Order-Details] od JOIN [Customer.Info] ci ON od.CustomerId = ci.Id"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT * FROM [Order-Details] od JOIN [Customer.Info] ci ON od.CustomerId = ci.Id"
+      ],
+      "db.query.summary": "SELECT [Order-Details] [Customer.Info]"
     }
   }
 ]
