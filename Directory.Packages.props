@@ -99,6 +99,7 @@
     <PackageVersion Include="AWSSDK.S3" Version="4.0.15.1" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
     <PackageVersion Include="CommandLineParser" Version="2.9.1" />
+    <PackageVersion Include="FsCheck.Xunit" Version="3.3.2" />
     <PackageVersion Include="GitHubActionsTestLogger" Version="3.0.1" />
     <PackageVersion Include="Google.Api.Gax" Version="4.13.0" />
     <PackageVersion Include="Google.Protobuf" Version="3.33.2" />

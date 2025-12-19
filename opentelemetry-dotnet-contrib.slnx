@@ -238,6 +238,7 @@
   <Folder Name="/test/">
     <Project Path="test/OpenTelemetry.AotCompatibility.TestApp/OpenTelemetry.AotCompatibility.TestApp.csproj" />
     <Project Path="test/OpenTelemetry.Contrib.Shared.Benchmarks/OpenTelemetry.Contrib.Shared.Benchmarks.csproj" />
+    <Project Path="test/OpenTelemetry.Contrib.Shared.FuzzTests/OpenTelemetry.Contrib.Shared.FuzzTests.csproj" />
     <Project Path="test/OpenTelemetry.Contrib.Shared.Tests/OpenTelemetry.Contrib.Shared.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Exporter.Geneva.Benchmarks/OpenTelemetry.Exporter.Geneva.Benchmarks.csproj" />
     <Project Path="test/OpenTelemetry.Exporter.Geneva.Stress/OpenTelemetry.Exporter.Geneva.Stress.csproj" />

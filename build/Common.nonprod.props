@@ -15,7 +15,7 @@
     <DefaultTargetFrameworkForExampleApps>$(NetMinimumSupportedVersion)</DefaultTargetFrameworkForExampleApps>
   </PropertyGroup>
 
-  <PropertyGroup Condition="$(MSBuildProjectName.Contains('.Tests'))">
+  <PropertyGroup Condition="$(MSBuildProjectName.Contains('.Tests')) OR $(MSBuildProjectName.EndsWith('.FuzzTests'))">
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
 
@@ -30,6 +30,10 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(IsTestProject)' == 'true' AND $(MSBuildProjectName.EndsWith('.FuzzTests'))">
+    <PackageReference Include="FsCheck.Xunit" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(IsTestProject)' == 'true' AND '$(SkipStrongNameValidation)' != 'true'">
