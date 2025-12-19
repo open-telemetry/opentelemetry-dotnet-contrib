@@ -25,11 +25,17 @@ internal class AWSLambdaUtils
     private const string FunctionVersion = "AWS_LAMBDA_FUNCTION_VERSION";
     private const string FunctionMaxMemory = "AWS_LAMBDA_FUNCTION_MEMORY_SIZE";
     private const string FunctionLogStreamName = "AWS_LAMBDA_LOG_STREAM_NAME";
+    private const string AWSXRayLambdaTraceHeaderKey = "_X_AMZN_TRACE_ID";
 
     private static readonly Func<IDictionary<string, string>, string, IEnumerable<string>> Getter = (headers, name) =>
     {
         return headers.TryGetValue(name, out var value) ? [value] : [];
     };
+
+    // Added volatile for abundance of caution because in theory, particular in using Lambda's Mananged Instances,
+    // during initial startup multiple invocations invoking GetXRayParentContext() at the same time before the first
+    // TraceProviderIsolated.CurrentTraceId is called.
+    private static volatile bool traceProviderIsolatedFailed;
 
     private readonly AWSSemanticConventions semanticConventionBuilder;
 
@@ -40,7 +46,28 @@ internal class AWSLambdaUtils
 
     internal static ActivityContext GetXRayParentContext()
     {
-        var tracerHeaderValue = LambdaTraceProvider.CurrentTraceId;
+        string? tracerHeaderValue;
+        try
+        {
+            if (!traceProviderIsolatedFailed)
+            {
+                // Prefer the TraceProviderIsolated.CurrentTraceId over the environment variable to support
+                // AWS Lambda's Managed Instances feature. With Managed Instances there are multiple invocations
+                // per execution and environment variable is not set since there isn't a single value to set to.
+                tracerHeaderValue = TraceProviderIsolated.CurrentTraceId;
+            }
+            else
+            {
+                // If accessing TraceProviderIsolated failed before it will always fail, so skip trying to access it again.
+                tracerHeaderValue = Environment.GetEnvironmentVariable(AWSXRayLambdaTraceHeaderKey);
+            }
+        }
+        catch (TypeLoadException)
+        {
+            traceProviderIsolatedFailed = true;
+            tracerHeaderValue = Environment.GetEnvironmentVariable(AWSXRayLambdaTraceHeaderKey);
+        }
+
         if (tracerHeaderValue == null)
         {
             return default;
