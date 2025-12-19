@@ -32,6 +32,11 @@ internal class AWSLambdaUtils
         return headers.TryGetValue(name, out var value) ? [value] : [];
     };
 
+    // Added volatile for abundance of caution because in theory, particular in using Lambda's Mananged Instances,
+    // during initial startup multiple invocations invoking GetXRayParentContext() at the same time before the first
+    // TraceProviderIsolated.CurrentTraceId is called.
+    private static volatile bool traceProviderIsolatedFailed;
+
     private readonly AWSSemanticConventions semanticConventionBuilder;
 
     public AWSLambdaUtils(AWSSemanticConventions semanticConventionBuilder)
@@ -44,13 +49,22 @@ internal class AWSLambdaUtils
         string? tracerHeaderValue;
         try
         {
-            // Prefer the TraceProviderIsolated.CurrentTraceId over the environment variable to support
-            // AWS Lambda's Managed Instances feature. With Managed Instances there are multiple invocations
-            // per execution and environment variable is not set since there isn't a single value to set to.
-            tracerHeaderValue = TraceProviderIsolated.CurrentTraceId;
+            if (!traceProviderIsolatedFailed)
+            {
+                // Prefer the TraceProviderIsolated.CurrentTraceId over the environment variable to support
+                // AWS Lambda's Managed Instances feature. With Managed Instances there are multiple invocations
+                // per execution and environment variable is not set since there isn't a single value to set to.
+                tracerHeaderValue = TraceProviderIsolated.CurrentTraceId;
+            }
+            else
+            {
+                // If accessing TraceProviderIsolated failed before it will always fail, so skip trying to access it again.
+                tracerHeaderValue = Environment.GetEnvironmentVariable(AWSXRayLambdaTraceHeaderKey);
+            }
         }
         catch (TypeLoadException)
         {
+            traceProviderIsolatedFailed = true;
             tracerHeaderValue = Environment.GetEnvironmentVariable(AWSXRayLambdaTraceHeaderKey);
         }
 

@@ -16,7 +16,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 /// is not added explicitly to the Lambda function. In this scenario normal NuGet dependency resolution is not done
 /// forcing a version of Amazon.Lambda.Core that will have the LambdaTraceProvider.CurrentTraceId property.
 /// </remarks>
-internal class TraceProviderIsolated
+internal static class TraceProviderIsolated
 {
     /// <summary>
     /// Gets the current trace id from the LambdaTraceProvider in Amazon.Lambda.Core.
