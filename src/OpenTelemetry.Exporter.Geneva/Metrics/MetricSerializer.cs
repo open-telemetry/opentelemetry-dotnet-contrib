@@ -167,6 +167,8 @@ internal struct MetricData
 
 internal static class MetricSerializer
 {
+    private const int MaxBase128Size = 10;
+
     /// <summary>
     /// Writes the string to buffer.
     /// </summary>
@@ -180,7 +182,7 @@ internal static class MetricSerializer
         {
             if (bufferIndex + value!.Length + sizeof(short) >= buffer.Length)
             {
-                // TODO: What should we do when the data is invalid?
+                ThrowArgumentOutOfRange(nameof(bufferIndex), bufferIndex);
             }
 
 #if NETSTANDARD2_1_OR_GREATER
@@ -218,7 +220,7 @@ internal static class MetricSerializer
     {
         if (bufferIndex + encodedValue.Length + sizeof(short) >= buffer.Length)
         {
-            // TODO: What should we do when the data is invalid?
+            ThrowArgumentOutOfRange(nameof(bufferIndex), bufferIndex);
         }
 
 #if NETSTANDARD2_1_OR_GREATER
@@ -247,7 +249,7 @@ internal static class MetricSerializer
     {
         if (bufferIndex + sizeof(byte) >= buffer.Length)
         {
-            // TODO: What should we do when the data is invalid?
+            ThrowArgumentOutOfRange(nameof(bufferIndex), bufferIndex);
         }
 
         buffer[bufferIndex] = value;
@@ -265,7 +267,7 @@ internal static class MetricSerializer
     {
         if (bufferIndex + sizeof(ushort) >= buffer.Length)
         {
-            // TODO: What should we do when the data is invalid?
+            ThrowArgumentOutOfRange(nameof(bufferIndex), bufferIndex);
         }
 
         buffer[bufferIndex] = (byte)value;
@@ -284,7 +286,7 @@ internal static class MetricSerializer
     {
         if (bufferIndex + sizeof(short) >= buffer.Length)
         {
-            // TODO: What should we do when the data is invalid?
+            ThrowArgumentOutOfRange(nameof(bufferIndex), bufferIndex);
         }
 
         buffer[bufferIndex] = (byte)value;
@@ -303,7 +305,7 @@ internal static class MetricSerializer
     {
         if (bufferIndex + sizeof(uint) >= buffer.Length)
         {
-            // TODO: What should we do when the data is invalid?
+            ThrowArgumentOutOfRange(nameof(bufferIndex), bufferIndex);
         }
 
         buffer[bufferIndex] = (byte)value;
@@ -324,7 +326,7 @@ internal static class MetricSerializer
     {
         if (bufferIndex + sizeof(ulong) >= buffer.Length)
         {
-            // TODO: What should we do when the data is invalid?
+            ThrowArgumentOutOfRange(nameof(bufferIndex), bufferIndex);
         }
 
         buffer[bufferIndex] = (byte)value;
@@ -349,6 +351,7 @@ internal static class MetricSerializer
     {
         if (bufferIndex + sizeof(long) >= buffer.Length)
         {
+            ThrowArgumentOutOfRange(nameof(bufferIndex), bufferIndex);
         }
 
         buffer[bufferIndex] = (byte)value;
@@ -373,7 +376,7 @@ internal static class MetricSerializer
     {
         if (bufferIndex + sizeof(double) >= buffer.Length)
         {
-            // TODO: What should we do when the data is invalid?
+            ThrowArgumentOutOfRange(nameof(bufferIndex), bufferIndex);
         }
 
         fixed (byte* bp = buffer)
@@ -397,7 +400,7 @@ internal static class MetricSerializer
         {
             if (bufferIndex + value!.Length + sizeof(short) >= buffer.Length)
             {
-                // TODO: What should we do when the data is invalid?
+                ThrowArgumentOutOfRange(nameof(bufferIndex), bufferIndex);
             }
 
             var encodedValue = Encoding.UTF8.GetBytes(value);
@@ -419,9 +422,7 @@ internal static class MetricSerializer
     /// <param name="value">Value to write.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void SerializeUInt32AsBase128(byte[] buffer, ref int offset, uint value)
-    {
-        SerializeUInt64AsBase128(buffer, ref offset, value);
-    }
+        => SerializeUInt64AsBase128(buffer, ref offset, value);
 
     /// <summary>
     /// Writes ulong value Base-128 encoded to the buffer starting from the specified offset.
@@ -432,6 +433,11 @@ internal static class MetricSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void SerializeUInt64AsBase128(byte[] buffer, ref int offset, ulong value)
     {
+        if (offset + MaxBase128Size >= buffer.Length)
+        {
+            ThrowArgumentOutOfRange(nameof(offset), offset);
+        }
+
         var t = value;
         do
         {
@@ -455,9 +461,7 @@ internal static class MetricSerializer
     /// <param name="value">Value to write.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void SerializeInt32AsBase128(byte[] buffer, ref int offset, int value)
-    {
-        SerializeInt64AsBase128(buffer, ref offset, value);
-    }
+        => SerializeInt64AsBase128(buffer, ref offset, value);
 
     /// <summary>
     /// Writes long value Base-128 encoded.
@@ -468,6 +472,11 @@ internal static class MetricSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void SerializeInt64AsBase128(byte[] buffer, ref int offset, long value)
     {
+        if (offset + MaxBase128Size >= buffer.Length)
+        {
+            ThrowArgumentOutOfRange(nameof(offset), offset);
+        }
+
         var negative = value < 0;
         var t = negative ? -value : value;
         var first = true;
@@ -513,6 +522,7 @@ internal static class MetricSerializer
     {
         if (bufferIndex + dataLength + sizeof(short) >= buffer.Length)
         {
+            ThrowArgumentOutOfRange(nameof(bufferIndex), bufferIndex);
         }
 
         ReadOnlySpan<byte> source = data.Slice(0, dataLength);
@@ -521,4 +531,10 @@ internal static class MetricSerializer
         source.CopyTo(target);
         bufferIndex += dataLength;
     }
+
+#if NET8_0_OR_GREATER
+    [System.Diagnostics.CodeAnalysis.DoesNotReturn]
+#endif
+    private static void ThrowArgumentOutOfRange(string paramName, object actualValue)
+        => throw new ArgumentOutOfRangeException(paramName, actualValue, "The buffer is too small to write a value at the specified index.");
 }
