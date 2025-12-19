@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.14.1
+
+Released 2025-Dec-19
+
 * Fix issue when using ADOT auto-instrumentation which includes a version of
   OpenTelemetry.Instrumentation.AWSLambda in the Lambda layer. In this scenario
   nothing is forcing the NuGet resolution to include the updated version of
