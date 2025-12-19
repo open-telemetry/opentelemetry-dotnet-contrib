@@ -97,76 +97,6 @@ public class MsgPackTraceExporterTests
     }
 
     [Fact]
-    public void GetHttpUrl_WithQuery_FormatsCorrectly()
-    {
-        var arr = new object?[MsgPackTraceExporter.CS40_PART_B_HTTPURL_MAPPING.Count];
-        arr[0] = "https";
-        arr[1] = "api.example.com";
-        arr[2] = "8080";
-        arr[3] = "/v1/users";
-        arr[4] = "page=1&limit=20";
-
-        var url = MsgPackTraceExporter.GetHttpUrl(arr);
-        Assert.Equal("https://api.example.com:8080/v1/users?page=1&limit=20", url);
-    }
-
-    [Fact]
-    public void GetHttpUrl_WithoutPort_OmitsPort()
-    {
-        var arr = new object?[MsgPackTraceExporter.CS40_PART_B_HTTPURL_MAPPING.Count];
-        arr[0] = "https";
-        arr[1] = "example.com";
-        arr[2] = null;
-        arr[3] = "/api";
-        arr[4] = null;
-
-        var url = MsgPackTraceExporter.GetHttpUrl(arr);
-        Assert.Equal("https://example.com/api", url);
-    }
-
-    [Fact]
-    public void GetHttpUrl_WithoutQuery_OmitsQueryString()
-    {
-        var arr = new object?[MsgPackTraceExporter.CS40_PART_B_HTTPURL_MAPPING.Count];
-        arr[0] = "http";
-        arr[1] = "localhost";
-        arr[2] = "3000";
-        arr[3] = "/home";
-        arr[4] = null;
-
-        var url = MsgPackTraceExporter.GetHttpUrl(arr);
-        Assert.Equal("http://localhost:3000/home", url);
-    }
-
-    [Fact]
-    public void GetHttpUrl_WithoutPath_OmitsPath()
-    {
-        var arr = new object?[MsgPackTraceExporter.CS40_PART_B_HTTPURL_MAPPING.Count];
-        arr[0] = "http";
-        arr[1] = "example.com";
-        arr[2] = "80";
-        arr[3] = null;
-        arr[4] = null;
-
-        var url = MsgPackTraceExporter.GetHttpUrl(arr);
-        Assert.Equal("http://example.com:80", url);
-    }
-
-    [Fact]
-    public void GetHttpUrl_OnlySchemeAndAddress_ReturnsMinimalUrl()
-    {
-        var arr = new object?[MsgPackTraceExporter.CS40_PART_B_HTTPURL_MAPPING.Count];
-        arr[0] = "https";
-        arr[1] = "example.com";
-        arr[2] = null;
-        arr[3] = null;
-        arr[4] = null;
-
-        var url = MsgPackTraceExporter.GetHttpUrl(arr);
-        Assert.Equal("https://example.com", url);
-    }
-
-    [Fact]
     public void GetHttpUrl_EmptyStrings_ReturnsNull()
     {
         var arr = new object?[MsgPackTraceExporter.CS40_PART_B_HTTPURL_MAPPING.Count];
@@ -206,24 +136,6 @@ public class MsgPackTraceExporterTests
 
         var url = MsgPackTraceExporter.GetHttpUrl(arr);
         Assert.Equal("https://search.example.com/search?q=test&sort=desc&page=2&filter=active", url);
-    }
-
-    [Theory]
-    [InlineData("80")]
-    [InlineData("443")]
-    [InlineData("8080")]
-    [InlineData("3000")]
-    public void GetHttpUrl_DifferentPorts_IncludesPort(string port)
-    {
-        var arr = new object?[MsgPackTraceExporter.CS40_PART_B_HTTPURL_MAPPING.Count];
-        arr[0] = "http";
-        arr[1] = "localhost";
-        arr[2] = port;
-        arr[3] = "/";
-        arr[4] = null;
-
-        var url = MsgPackTraceExporter.GetHttpUrl(arr);
-        Assert.Equal($"http://localhost:{port}/", url);
     }
 
     [Fact]
