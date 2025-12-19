@@ -7,6 +7,7 @@
   nothing is forcing the NuGet resolution to include the updated version of
   Amazon.Lambda.Core that has the [reworked logic](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3410)
   for determining the trace id.
+  ([#3629](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3629))
 
 ## 1.14.0
 
