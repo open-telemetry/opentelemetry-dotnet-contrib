@@ -566,7 +566,8 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
         foreach (ref readonly var entry in activity.EnumerateTagObjects())
         {
-            if (isServerActivity && CacheIfPartOfHttpUrl(entry, httpUrlParts))
+            if (Environment.GetEnvironmentVariable("HTTP_URL_IS_SET") == null &&
+                isServerActivity && CacheIfPartOfHttpUrl(entry, httpUrlParts))
             {
                 continue; // Skip this entry, since it is part of httpUrl.
             }
@@ -595,7 +596,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             cntFields += 1;
         }
 
-        if (isServerActivity)
+        if (Environment.GetEnvironmentVariable("HTTP_URL_IS_SET") == null && isServerActivity)
         {
             var httpUrl = GetHttpUrl(httpUrlParts);
             if (httpUrl != null)
