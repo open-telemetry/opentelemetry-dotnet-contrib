@@ -35,8 +35,8 @@ generated for a test case:
 
 ```json
 {
-  "IdealHttpRoute": "ConventionalRoute/ActionWithStringParameter/{id?}",
-  "ActivityDisplayName": "/ConventionalRoute/ActionWithStringParameter/2",
+  "IdealHttpRoute": "ConventionalRoute/ActionWithStringParameter/{id}",
+  "ActivityDisplayName": "GET ConventionalRoute/ActionWithStringParameter/2",
   "ActivityHttpRoute": "",
   "MetricHttpRoute": "{controller=ConventionalRoute}/{action=Default}/{id?}",
   "RouteInfo": {
@@ -66,9 +66,9 @@ generated for a test case:
 ```
 
 > [!NOTE]
-> The test result currently includes an `IdealHttpRoute` property. This is
-> temporary, and is meant to drive a conversation to determine the best way
-> for generating the `http.route` attribute under different routing scenarios.
+> The test result includes an `IdealHttpRoute` property. It is meant to drive
+> a conversation to determine the best way for generating the `http.route`
+> attribute under different routing scenarios.
 > In the example above, the path invoked is
 > `/ConventionalRoute/ActionWithStringParameter/2?num=3`. Currently, we see
 > that the `http.route` attribute on the metric emitted is

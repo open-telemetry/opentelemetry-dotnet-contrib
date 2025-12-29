@@ -94,11 +94,12 @@ internal sealed class HttpInMetricsListener : ListenerHandler
 
 #if NET
         // Check the exception handler feature first in case the endpoint was overwritten
-        var route = (context.Features.Get<IExceptionHandlerPathFeature>()?.Endpoint as RouteEndpoint ??
-                     context.GetEndpoint() as RouteEndpoint)?.RoutePattern.RawText;
-        if (!string.IsNullOrEmpty(route))
+        var endpoint = context.Features.Get<IExceptionHandlerPathFeature>()?.Endpoint as RouteEndpoint
+            ?? context.GetEndpoint() as RouteEndpoint;
+
+        if (endpoint != null)
         {
-            tags.Add(new KeyValuePair<string, object?>(SemanticConventions.AttributeHttpRoute, route));
+            tags.AddRouteAttribute(endpoint, context.Request);
         }
 #endif
         if (context.Items.TryGetValue(ErrorTypeHttpContextItemsKey, out var errorType))
