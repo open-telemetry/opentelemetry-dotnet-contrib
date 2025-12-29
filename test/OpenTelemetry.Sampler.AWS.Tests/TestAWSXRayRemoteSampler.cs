@@ -4,10 +4,8 @@
 using System.Diagnostics;
 using System.Reflection;
 using OpenTelemetry.Resources;
+using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
-using WireMock.RequestBuilders;
-using WireMock.ResponseBuilders;
-using WireMock.Server;
 using Xunit;
 
 namespace OpenTelemetry.Sampler.AWS.Tests;
@@ -58,12 +56,17 @@ public class TestAWSXRayRemoteSampler
     {
         // setup mock server
         var clock = new TestClock();
-        var mockServer = WireMockServer.Start();
+        var requestHandler = new MockServerRequestHandler();
+
+        using var mockServer = TestHttpServer.RunServer(
+            ctx => requestHandler.Handle(ctx),
+            out var host,
+            out var port);
 
         // create sampler
         var sampler = AWSXRayRemoteSampler.Builder(ResourceBuilder.CreateEmpty().Build())
             .SetPollingInterval(TimeSpan.FromMilliseconds(10))
-            .SetEndpoint(mockServer.Url!)
+            .SetEndpoint($"http://{host}:{port}")
             .SetClock(clock)
             .Build();
 
@@ -71,13 +74,7 @@ public class TestAWSXRayRemoteSampler
         Assert.Equal(SamplingDecision.RecordAndSample, this.DoSample(sampler, "cat-service"));
 
         // GetSamplingRules mock response
-        mockServer
-            .Given(Request.Create().WithPath("/GetSamplingRules").UsingPost())
-            .RespondWith(
-                Response.Create()
-                .WithStatusCode(200)
-                .WithHeader("Content-Type", "application/json")
-                .WithBody(File.ReadAllText("Data/GetSamplingRulesResponseOptionalFields.json")));
+        requestHandler.SetResponse("/GetSamplingRules", File.ReadAllText("Data/GetSamplingRulesResponseOptionalFields.json"));
 
         // rules will be polled in 10 milliseconds
         Thread.Sleep(2000);
@@ -86,13 +83,7 @@ public class TestAWSXRayRemoteSampler
         Assert.Equal(SamplingDecision.Drop, this.DoSample(sampler, "cat-service"));
 
         // GetSamplingTargets mock response
-        mockServer
-            .Given(Request.Create().WithPath("/SamplingTargets").UsingPost())
-            .RespondWith(
-                Response.Create()
-                .WithStatusCode(200)
-                .WithHeader("Content-Type", "application/json")
-                .WithBody(File.ReadAllText("Data/GetSamplingTargetsResponseOptionalFields.json")));
+        requestHandler.SetResponse("/SamplingTargets", File.ReadAllText("Data/GetSamplingTargetsResponseOptionalFields.json"));
 
         // targets will be polled in 10 seconds
         Thread.Sleep(13000);
@@ -101,8 +92,6 @@ public class TestAWSXRayRemoteSampler
         Assert.Equal(SamplingDecision.RecordAndSample, this.DoSample(sampler, "cat-service"));
         Assert.Equal(SamplingDecision.RecordAndSample, this.DoSample(sampler, "cat-service"));
         Assert.Equal(SamplingDecision.RecordAndSample, this.DoSample(sampler, "cat-service"));
-
-        mockServer.Stop();
     }
 
     private SamplingDecision DoSample(Trace.Sampler sampler, string serviceName)

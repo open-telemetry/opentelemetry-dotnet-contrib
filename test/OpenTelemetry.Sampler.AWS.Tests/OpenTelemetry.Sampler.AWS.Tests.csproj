@@ -6,11 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Wiremock.Net" />
-  </ItemGroup>
-  <ItemGroup Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETFramework'">
-    <!-- Microsoft.AspNetCore.Server.Kestrel.Core is transitive dependency for Wiremock.Net. It is here to fix https://github.com/advisories/GHSA-5rrx-jjjq-q2r5 -->
-    <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel.Core" />
+    <Compile Include="$(RepoRoot)\test\Shared\TestHttpServer.cs" Link="Includes\TestHttpServer.cs" />
   </ItemGroup>
 
 
