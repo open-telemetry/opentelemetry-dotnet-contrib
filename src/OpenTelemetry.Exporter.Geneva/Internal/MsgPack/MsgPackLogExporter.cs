@@ -20,7 +20,8 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 {
     public const int BUFFER_SIZE = 65360; // the maximum ETW payload (inclusive)
 
-    internal readonly ThreadLocal<byte[]> Buffer = new();
+    // This helps tests subscribe to the output of this class
+    internal Action<ArraySegment<byte>>? DataTransportListener;
 
     private static readonly Action<LogRecordScope, MsgPackLogExporter> ProcessScopeForIndividualColumnsAction = OnProcessScopeForIndividualColumns;
     private static readonly Action<LogRecordScope, MsgPackLogExporter> ProcessScopeForEnvPropertiesAction = OnProcessScopeForEnvProperties;
@@ -29,6 +30,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         "Trace", "Debug", "Information", "Warning", "Error", "Critical", "None"
     ];
 
+    private readonly ThreadLocal<byte[]> buffer = new();
     private readonly bool shouldExportEventName;
     private readonly TableNameSerializer tableNameSerializer;
 
@@ -155,6 +157,8 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             {
                 var data = this.SerializeLogRecord(logRecord);
 
+                this.DataTransportListener?.Invoke(data);
+
                 this.dataTransport.Send(data.Array!, data.Count);
             }
             catch (Exception ex)
@@ -180,7 +184,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         {
             (this.dataTransport as IDisposable)?.Dispose();
             this.serializationData.Dispose();
-            this.Buffer.Dispose();
+            this.buffer.Dispose();
         }
         catch (Exception ex)
         {
@@ -289,12 +293,12 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         }
 #pragma warning restore 0618
 
-        var buffer = this.Buffer.Value;
+        var buffer = this.buffer.Value;
         if (buffer == null)
         {
             this.AddResourceAttributesToPrepopulated();
             buffer = new byte[BUFFER_SIZE]; // TODO: handle OOM
-            this.Buffer.Value = buffer;
+            this.buffer.Value = buffer;
         }
 
         /* Fluentd Forward Mode:

@@ -3,12 +3,10 @@
 
 #nullable disable
 
-using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Exporter.Geneva.MsgPack;
 using OpenTelemetry.Logs;
-using OpenTelemetry.Resources;
 using Xunit;
 
 namespace OpenTelemetry.Exporter.Geneva.Tests;
@@ -78,22 +76,9 @@ public class LogSerializationTests
 
     private static Dictionary<object, object> GetExportedFieldsAfterLogging(Action<ILogger> doLog, Action<GenevaExporterOptions> configureGeneva = null)
     {
-        Socket server = null;
         var path = string.Empty;
         try
         {
-            var logRecordList = new List<LogRecord>();
-            using var loggerFactory = LoggerFactory.Create(builder => builder
-                    .AddOpenTelemetry(options =>
-                    {
-                        options.AddInMemoryExporter(logRecordList);
-                    })
-                    .AddFilter(typeof(LogSerializationTests).FullName, LogLevel.Trace)); // Enable all LogLevels
-
-            var logger = loggerFactory.CreateLogger<LogSerializationTests>();
-            doLog(logger);
-
-            Assert.Single(logRecordList);
             var exporterOptions = new GenevaExporterOptions();
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -103,23 +88,32 @@ public class LogSerializationTests
             {
                 path = GenerateTempFilePath();
                 exporterOptions.ConnectionString = "Endpoint=unix:" + path;
-                var endpoint = new UnixDomainSocketEndPoint(path);
-                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
-                server.Bind(endpoint);
-                server.Listen(1);
             }
 
             configureGeneva?.Invoke(exporterOptions);
 
-            using var exporter = new MsgPackLogExporter(exporterOptions, () => Resource.Empty);
-            _ = exporter.SerializeLogRecord(logRecordList[0]);
-            var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(exporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+            using var exporter = new GenevaLogExporter(exporterOptions);
+
+            using var loggerFactory = LoggerFactory.Create(builder => builder
+                    .AddOpenTelemetry(options =>
+                    {
+                        options.AddProcessor(new ReentrantExportProcessor<LogRecord>(exporter));
+                    })
+                    .AddFilter(typeof(LogSerializationTests).FullName, LogLevel.Trace)); // Enable all LogLevels
+
+            List<ArraySegment<byte>> exportedData = [];
+            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = (data) => exportedData.Add(data);
+
+            var logger = loggerFactory.CreateLogger<LogSerializationTests>();
+            doLog(logger);
+
+            Assert.Single(exportedData);
+            var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(exportedData[0], MessagePack.Resolvers.ContractlessStandardResolver.Options);
 
             return GetFields(fluentdData);
         }
         finally
         {
-            server?.Dispose();
             try
             {
                 File.Delete(path);

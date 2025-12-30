@@ -90,7 +90,11 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
 
         if (useMsgPackExporter)
         {
-            var msgPackLogExporter = new MsgPackLogExporter(options, this.ParentProvider.GetResource);
+            var msgPackLogExporter = new MsgPackLogExporter(options, () =>
+            {
+                // this is not equivalent to passing a method reference, because the ParentProvider could change after the constructor.
+                return this.ParentProvider.GetResource();
+            });
             this.IsUsingUnixDomainSocket = msgPackLogExporter.IsUsingUnixDomainSocket;
             this.exportLogRecord = msgPackLogExporter.Export;
             this.Exporter = msgPackLogExporter;

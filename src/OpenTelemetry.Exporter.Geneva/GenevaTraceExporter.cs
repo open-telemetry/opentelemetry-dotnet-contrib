@@ -68,7 +68,11 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
 
         if (useMsgPackExporter)
         {
-            var msgPackTraceExporter = new MsgPackTraceExporter(options, this.ParentProvider.GetResource);
+            var msgPackTraceExporter = new MsgPackTraceExporter(options, () =>
+            {
+                // this is not equivalent to passing a method reference, because the ParentProvider could change after the constructor.
+                return this.ParentProvider.GetResource();
+            });
             this.IsUsingUnixDomainSocket = msgPackTraceExporter.IsUsingUnixDomainSocket;
             this.exportActivity = msgPackTraceExporter.Export;
             this.exporter = msgPackTraceExporter;
