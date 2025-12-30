@@ -217,6 +217,7 @@ public class GenevaTraceExporterTests : IDisposable
         }
     }
 
+    // hasResourceAttributes and hasPrepopulatedFields are mutually exclusive
     [Theory]
     [InlineData(false, false, false, false, true)]
     [InlineData(false, true, false, false, true)]
@@ -234,6 +235,14 @@ public class GenevaTraceExporterTests : IDisposable
     [InlineData(false, true, true, true, false)]
     [InlineData(true, false, true, true, false)]
     [InlineData(true, true, true, true, false)]
+    [InlineData(false, false, false, false, false)]
+    [InlineData(false, true, false, false, false)]
+    [InlineData(true, false, false, false, false)]
+    [InlineData(true, true, false, false, false)]
+    [InlineData(false, false, true, false, false)]
+    [InlineData(false, true, true, false, false)]
+    [InlineData(true, false, true, false, false)]
+    [InlineData(true, true, true, false, false)]
     public void GenevaTraceExporter_Serialization_Success(bool hasTableNameMapping, bool hasCustomFields, bool includeTraceState, bool hasPrepopulatedFields, bool hasResourceAttributes)
     {
         var path = string.Empty;

@@ -67,8 +67,7 @@ public class GenevaLogExporterAFDCorrelationTests
 
             List<string> exportedCorrelationIds = [];
             int foundWithoutCorrelationIds = 0;
-            var msgPackExporter = exporter.Exporter as MsgPackLogExporter;
-            msgPackExporter.DataTransportListener = (data) =>
+            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = (data) =>
             {
                 var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(data, MessagePack.Resolvers.ContractlessStandardResolver.Options);
                 var signal = (fluentdData as object[])[0] as string;
@@ -211,18 +210,17 @@ public class GenevaLogExporterAFDCorrelationTests
                 receiverSocket.ReceiveTimeout = 10000;
             }
 
-            byte[] serializedData = null;
-            var msgPackExporter = exporter.Exporter as MsgPackLogExporter;
-            msgPackExporter.DataTransportListener = (data) => serializedData = [.. data];
+            List<ArraySegment<byte>> exportedData = [];
+            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = (data) => exportedData.Add(data);
 
             // In this test, AFDCorrelationId is not set in RuntimeContext
             var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
             logger.LogInformation("No correlation ID should be present");
             loggerFactory.Dispose();
 
-            Assert.NotNull(serializedData);
+            Assert.Single(exportedData);
 
-            var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(serializedData, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+            var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(exportedData[0], MessagePack.Resolvers.ContractlessStandardResolver.Options);
             var signal = (fluentdData as object[])[0] as string;
             var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
             var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;
@@ -298,21 +296,17 @@ public class GenevaLogExporterAFDCorrelationTests
                 receiverSocket.ReceiveTimeout = 10000;
             }
 
-            byte[] serializedData = null;
-            var msgPackExporter = exporter.Exporter as MsgPackLogExporter;
-            msgPackExporter.DataTransportListener = (data) =>
-            {
-                serializedData = [.. data];
-            };
+            List<ArraySegment<byte>> exportedData = [];
+            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = (data) => exportedData.Add(data);
 
             // Emit a LogRecord and grab a copy of internal buffer for validation.
             var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
             logger.LogInformation("Hello from {Food} {Price}.", "artichoke", 3.99);
             loggerFactory.Dispose();
 
-            Assert.NotNull(serializedData); // data should have been sent by now
+            Assert.Single(exportedData);
 
-            var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(serializedData, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+            var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(exportedData[0], MessagePack.Resolvers.ContractlessStandardResolver.Options);
             var signal = (fluentdData as object[])[0] as string;
             var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
             var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;

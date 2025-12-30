@@ -320,18 +320,17 @@ public class GenevaLogExporterTests
                 server.Listen(1);
             }
 
+            using var exporter = new GenevaLogExporter(exporterOptions);
+
             using var loggerFactory = LoggerFactory.Create(builder => builder
                 .AddOpenTelemetry(options =>
                 {
-                    options.AddInMemoryExporter(logRecordList);
+                    options.AddProcessor(new ReentrantExportProcessor<LogRecord>(exporter));
                 })
                 .AddFilter("*", LogLevel.Trace)); // Enable all LogLevels
 
-            // Create a test exporter to get MessagePack byte data to validate if the data was serialized correctly.
-            using var exporter = new MsgPackLogExporter(exporterOptions, () => Resource.Empty);
-
-            ArraySegment<byte>? exportedData = null;
-            exporter.DataTransportListener = (data) => exportedData = data;
+            List<ArraySegment<byte>> exportedData = [];
+            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = (data) => exportedData.Add(data);
 
             ILogger passThruTableMappingsLogger, userInitializedTableMappingsLogger;
             object fluentdData;
@@ -340,35 +339,31 @@ public class GenevaLogExporterTests
             // Verify that the category table mappings specified by the users in the Geneva Configuration are mapped correctly.
             foreach (var mapping in userInitializedCategoryToTableNameMappings)
             {
-                exportedData = null;
                 if (mapping.Key != "*")
                 {
                     userInitializedTableMappingsLogger = loggerFactory.CreateLogger(mapping.Key);
                     userInitializedTableMappingsLogger.LogInformation("This information does not matter.");
                     Assert.Single(logRecordList);
+                    Assert.Single(exportedData);
 
-                    _ = exporter.Export(new Batch<LogRecord>(logRecordList[0]));
-                    Assert.True(exportedData.HasValue);
-                    fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(exportedData.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+                    fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(exportedData[0], MessagePack.Resolvers.ContractlessStandardResolver.Options);
                     actualTableName = (fluentdData as object[])[0] as string;
                     userInitializedCategoryToTableNameMappings.TryGetValue(mapping.Key, out var expectedTableNme);
                     Assert.Equal(expectedTableNme, actualTableName);
-
-                    logRecordList.Clear();
                 }
+                logRecordList.Clear();
+                exportedData.Clear();
             }
 
             // Verify that when the "*" = "*" were enabled, the correct table names were being deduced following the set of rules.
             foreach (var mapping in expectedCategoryToTableNameList)
             {
-                exportedData = null;
                 passThruTableMappingsLogger = loggerFactory.CreateLogger(mapping.Key);
                 passThruTableMappingsLogger.LogInformation("This information does not matter.");
-                Assert.Single(logRecordList);
 
-                _ = exporter.Export(new Batch<LogRecord>(logRecordList[0]));
-                Assert.True(exportedData.HasValue);
-                fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(exportedData.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+                Assert.Single(logRecordList);
+                Assert.Single(exportedData);
+                fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(exportedData[0], MessagePack.Resolvers.ContractlessStandardResolver.Options);
                 actualTableName = (fluentdData as object[])[0] as string;
                 var expectedTableName = string.Empty;
                 expectedTableName = mapping.Value;
@@ -415,7 +410,7 @@ public class GenevaLogExporterTests
                 exporterOptions.CustomFields = ["Food", "Name", "Key1"];
             }
 
-            var exportedItems = new List<LogRecord>();
+            var exportedLogs = new List<LogRecord>();
 
             var resourceBuilder = ResourceBuilder.CreateEmpty().AddAttributes([
                 new KeyValuePair<string, object>("resourceAttr", "from resource"),
@@ -430,7 +425,7 @@ public class GenevaLogExporterTests
                 {
                     options.IncludeScopes = true;
                     options.SetResourceBuilder(resourceBuilder);
-                    options.AddInMemoryExporter(exportedItems);
+                    options.AddInMemoryExporter(exportedLogs);
                     options.AddProcessor(new ReentrantExportProcessor<LogRecord>(exporter));
                 }));
 
@@ -449,9 +444,9 @@ public class GenevaLogExporterTests
                 logger.LogInformation("Hello from {Food} {Price}.", "artichoke", 3.99);
             }
 
-            Assert.Single(exportedItems);
+            Assert.Single(exportedLogs);
             Assert.Single(exportedData);
-            var logRecord = exportedItems[0];
+            var logRecord = exportedLogs[0];
 
             var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(exportedData[0], MessagePack.Resolvers.ContractlessStandardResolver.Options);
             var signal = (fluentdData as object[])[0] as string;
@@ -545,14 +540,14 @@ public class GenevaLogExporterTests
             ]);
 
             using var exporter = new GenevaLogExporter(exporterOptions);
-            List<LogRecord> exportedItems = [];
+            List<LogRecord> exportedLogs = [];
 
             using var loggerFactory = LoggerFactory.Create(builder => builder
                 .AddOpenTelemetry(options =>
                 {
                     options.SetResourceBuilder(resourceBuilder);
                     options.AddProcessor(new ReentrantExportProcessor<LogRecord>(exporter));
-                    options.AddInMemoryExporter(exportedItems);
+                    options.AddInMemoryExporter(exportedLogs);
                     options.IncludeFormattedMessage = includeFormattedMessage;
                 })
                 .AddFilter(typeof(GenevaLogExporterTests).FullName, LogLevel.Trace)); // Enable all LogLevels
@@ -577,13 +572,14 @@ public class GenevaLogExporterTests
                 (state, ex) => "Formatted Message");
 
             // VALIDATE
+            Assert.Single(exportedLogs);
             Assert.Single(exportedData);
             var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(exportedData[0], MessagePack.Resolvers.ContractlessStandardResolver.Options);
-            this.AssertFluentdForwardModeForLogRecord(exporterOptions, resourceBuilder.Build(), fluentdData, exportedItems[0]);
+            this.AssertFluentdForwardModeForLogRecord(exporterOptions, resourceBuilder.Build(), fluentdData, exportedLogs[0]);
 
             // ARRANGE
+            exportedLogs.Clear();
             exportedData.Clear();
-            exportedItems.Clear();
 
             // ACT
             // This is treated as Un-structured logging as the state cannot be converted to IReadOnlyList<KeyValuePair<string, object>>
@@ -595,13 +591,14 @@ public class GenevaLogExporterTests
                 formatter: (state, ex) => "Formatted Message");
 
             // VALIDATE
+            Assert.Single(exportedLogs);
             Assert.Single(exportedData);
             fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(exportedData[0], MessagePack.Resolvers.ContractlessStandardResolver.Options);
-            this.AssertFluentdForwardModeForLogRecord(exporterOptions, resourceBuilder.Build(), fluentdData, exportedItems[0]);
+            this.AssertFluentdForwardModeForLogRecord(exporterOptions, resourceBuilder.Build(), fluentdData, exportedLogs[0]);
 
             // ARRANGE
+            exportedLogs.Clear();
             exportedData.Clear();
-            exportedItems.Clear();
 
             // ACT
             // This is treated as Un-structured logging as the state cannot be converted to IReadOnlyList<KeyValuePair<string, object>>
@@ -613,13 +610,14 @@ public class GenevaLogExporterTests
                 formatter: null);
 
             // VALIDATE
+            Assert.Single(exportedLogs);
             Assert.Single(exportedData);
             fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(exportedData[0], MessagePack.Resolvers.ContractlessStandardResolver.Options);
-            this.AssertFluentdForwardModeForLogRecord(exporterOptions, resourceBuilder.Build(), fluentdData, exportedItems[0]);
+            this.AssertFluentdForwardModeForLogRecord(exporterOptions, resourceBuilder.Build(), fluentdData, exportedLogs[0]);
 
             // ARRANGE
+            exportedLogs.Clear();
             exportedData.Clear();
-            exportedItems.Clear();
 
             // ACT
             // This is treated as Structured logging as the state can be converted to IReadOnlyList<KeyValuePair<string, object>>
@@ -634,9 +632,10 @@ public class GenevaLogExporterTests
                 formatter: (state, ex) => "Example formatted message.");
 
             // VALIDATE
+            Assert.Single(exportedLogs);
             Assert.Single(exportedData);
             fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(exportedData[0], MessagePack.Resolvers.ContractlessStandardResolver.Options);
-            this.AssertFluentdForwardModeForLogRecord(exporterOptions, resourceBuilder.Build(), fluentdData, exportedItems[0]);
+            this.AssertFluentdForwardModeForLogRecord(exporterOptions, resourceBuilder.Build(), fluentdData, exportedLogs[0]);
         }
         finally
         {
@@ -1931,7 +1930,7 @@ public class GenevaLogExporterTests
 
                 if (exporterOptions.ResourceFieldNames != null && exporterOptions.ResourceFieldNames.Contains(item.Key))
                 {
-                    // It should be found as a custom field
+                    // It should always be found as a custom field
                     if (item.Value != null)
                     {
                         Assert.Equal(item.Value, mapping[item.Key]);
