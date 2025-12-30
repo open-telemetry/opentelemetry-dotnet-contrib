@@ -330,7 +330,7 @@ public class GenevaLogExporterTests
             // Create a test exporter to get MessagePack byte data to validate if the data was serialized correctly.
             using var exporter = new MsgPackLogExporter(exporterOptions, () => Resource.Empty);
 
-            ArraySegment<byte> exportedData = null;
+            ArraySegment<byte>? exportedData = null;
             exporter.DataTransportListener = (data) => exportedData = data;
 
             ILogger passThruTableMappingsLogger, userInitializedTableMappingsLogger;
@@ -348,7 +348,8 @@ public class GenevaLogExporterTests
                     Assert.Single(logRecordList);
 
                     _ = exporter.Export(new Batch<LogRecord>(logRecordList[0]));
-                    fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(exportedData, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+                    Assert.True(exportedData.HasValue);
+                    fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(exportedData.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
                     actualTableName = (fluentdData as object[])[0] as string;
                     userInitializedCategoryToTableNameMappings.TryGetValue(mapping.Key, out var expectedTableNme);
                     Assert.Equal(expectedTableNme, actualTableName);
@@ -366,7 +367,8 @@ public class GenevaLogExporterTests
                 Assert.Single(logRecordList);
 
                 _ = exporter.Export(new Batch<LogRecord>(logRecordList[0]));
-                fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(exportedData, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+                Assert.True(exportedData.HasValue);
+                fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(exportedData.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
                 actualTableName = (fluentdData as object[])[0] as string;
                 var expectedTableName = string.Empty;
                 expectedTableName = mapping.Value;
