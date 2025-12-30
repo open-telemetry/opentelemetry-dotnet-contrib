@@ -366,6 +366,8 @@ public class GenevaLogExporterTests
                 var expectedTableName = string.Empty;
                 expectedTableName = mapping.Value;
                 Assert.Equal(expectedTableName, actualTableName);
+
+                exportedData.Clear();
             }
         }
         finally
