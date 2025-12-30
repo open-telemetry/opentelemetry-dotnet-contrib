@@ -300,7 +300,6 @@ public class GenevaLogExporterTests
                 new("1.2", null),
             };
 
-            var logRecordList = new List<LogRecord>();
             var exporterOptions = new GenevaExporterOptions
             {
                 TableNameMappings = userInitializedCategoryToTableNameMappings,
@@ -343,7 +342,7 @@ public class GenevaLogExporterTests
                 {
                     userInitializedTableMappingsLogger = loggerFactory.CreateLogger(mapping.Key);
                     userInitializedTableMappingsLogger.LogInformation("This information does not matter.");
-                    Assert.Single(logRecordList);
+
                     Assert.Single(exportedData);
 
                     fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(exportedData[0], MessagePack.Resolvers.ContractlessStandardResolver.Options);
@@ -352,7 +351,6 @@ public class GenevaLogExporterTests
                     Assert.Equal(expectedTableNme, actualTableName);
                 }
 
-                logRecordList.Clear();
                 exportedData.Clear();
             }
 
@@ -362,15 +360,12 @@ public class GenevaLogExporterTests
                 passThruTableMappingsLogger = loggerFactory.CreateLogger(mapping.Key);
                 passThruTableMappingsLogger.LogInformation("This information does not matter.");
 
-                Assert.Single(logRecordList);
                 Assert.Single(exportedData);
                 fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(exportedData[0], MessagePack.Resolvers.ContractlessStandardResolver.Options);
                 actualTableName = (fluentdData as object[])[0] as string;
                 var expectedTableName = string.Empty;
                 expectedTableName = mapping.Value;
                 Assert.Equal(expectedTableName, actualTableName);
-
-                logRecordList.Clear();
             }
         }
         finally

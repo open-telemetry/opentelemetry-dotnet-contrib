@@ -286,8 +286,8 @@ public class GenevaTraceExporterTests : IDisposable
 
             if (hasCustomFields)
             {
-                // The tag "clientRequestId" should be present in the mapping as a separate key. Other tags which are not present
-                // in the m_dedicatedFields should be added in the mapping under "env_properties"
+                // The tag "clientRequestId" should be present in the exported data as a separate key. Other tags which are not present
+                // in DedicatedFields should be added in the mapping under "env_properties"
                 exporterOptions.CustomFields = ["clientRequestId"];
             }
 
