@@ -351,6 +351,7 @@ public class GenevaLogExporterTests
                     userInitializedCategoryToTableNameMappings.TryGetValue(mapping.Key, out var expectedTableNme);
                     Assert.Equal(expectedTableNme, actualTableName);
                 }
+
                 logRecordList.Clear();
                 exportedData.Clear();
             }

@@ -142,7 +142,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         var buffer = new byte[BUFFER_SIZE];
         var cursor = MessagePackSerializer.Serialize(buffer, 0, new Dictionary<string, object> { { "TimeFormat", "DateTime" } });
         this.bufferEpilogue = new byte[cursor - 0];
-        System.Buffer.BlockCopy(buffer, 0, this.bufferEpilogue, 0, cursor - 0);
+        Buffer.BlockCopy(buffer, 0, this.bufferEpilogue, 0, cursor - 0);
     }
 
     internal bool IsUsingUnixDomainSocket => this.dataTransport is UnixDomainSocketDataTransport;
@@ -558,7 +558,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         }
 
         MessagePackSerializer.WriteUInt16(buffer, idxMapSizePatch, cntFields);
-        System.Buffer.BlockCopy(this.bufferEpilogue, 0, buffer, cursor, this.bufferEpilogue.Length);
+        Buffer.BlockCopy(this.bufferEpilogue, 0, buffer, cursor, this.bufferEpilogue.Length);
         cursor += this.bufferEpilogue.Length;
         return new(buffer, 0, cursor);
     }
