@@ -819,7 +819,7 @@ public class GenevaLogExporterTests
     public void SuccessfulExport_Linux()
     {
         var path = GenerateTempFilePath();
-        var logRecordList = new List<LogRecord>();
+        var exportedLogs = new List<LogRecord>();
         try
         {
             var endpoint = new UnixDomainSocketEndPoint(path);
@@ -827,37 +827,29 @@ public class GenevaLogExporterTests
             server.Bind(endpoint);
             server.Listen(1);
 
+            // Create a test exporter to get MessagePack byte data for validation of the data received via Socket.
+            var exporterOptions = new GenevaExporterOptions
+            {
+                ConnectionString = "Endpoint=unix:" + path,
+            };
+
+            using var exporter = new GenevaLogExporter(exporterOptions);
+
+            List<ArraySegment<byte>> exportedData = [];
+            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = (data) => exportedData.Add(data);
+
+            var resourceBuilder = ResourceBuilder.CreateDefault();
+
             using var loggerFactory = LoggerFactory.Create(builder => builder
                 .AddOpenTelemetry(options =>
                 {
-                    options.AddGenevaLogExporter(options =>
-                    {
-                        options.ConnectionString = "Endpoint=unix:" + path;
-                        options.PrepopulatedFields = new Dictionary<string, object>
-                        {
-                            ["cloud.role"] = "BusyWorker",
-                            ["cloud.roleInstance"] = "CY1SCH030021417",
-                            ["cloud.roleVer"] = "9.0.15289.2",
-                        };
-                    });
-                    options.AddInMemoryExporter(logRecordList);
+                    options.SetResourceBuilder(resourceBuilder);
+                    options.AddInMemoryExporter(exportedLogs);
+                    options.AddProcessor(new ReentrantExportProcessor<LogRecord>(exporter));
                 }));
+
             using var serverSocket = server.Accept();
             serverSocket.ReceiveTimeout = 10000;
-
-            // Create a test exporter to get MessagePack byte data for validation of the data received via Socket.
-            using var exporter = new MsgPackLogExporter(
-                new GenevaExporterOptions
-                {
-                    ConnectionString = "Endpoint=unix:" + path,
-                    PrepopulatedFields = new Dictionary<string, object>
-                    {
-                        ["cloud.role"] = "BusyWorker",
-                        ["cloud.roleInstance"] = "CY1SCH030021417",
-                        ["cloud.roleVer"] = "9.0.15289.2",
-                    },
-                },
-                () => Resource.Empty);
 
             // Emit a LogRecord and grab a copy of internal buffer for validation.
             var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
@@ -865,18 +857,21 @@ public class GenevaLogExporterTests
             logger.LogInformation("Hello from {Food} {Price}.", "artichoke", 3.99);
 
             // logRecordList should have a singleLogRecord entry after the logger.LogInformation call
-            Assert.Single(logRecordList);
-
-            var messagePackDataSize = exporter.SerializeLogRecord(logRecordList[0]).Count;
+            Assert.Single(exportedLogs);
+            Assert.Single(exportedData);
 
             // Read the data sent via socket.
             var receivedData = new byte[1024];
             var receivedDataSize = serverSocket.Receive(receivedData);
 
-            // Validation
-            Assert.Equal(messagePackDataSize, receivedDataSize);
+            // the number of bytes received over the socket should match the number of bytes of data exported
+            Assert.Equal(exportedData[0].Count, receivedDataSize);
 
-            logRecordList.Clear();
+            var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(exportedData[0], MessagePack.Resolvers.ContractlessStandardResolver.Options);
+            this.AssertFluentdForwardModeForLogRecord(exporterOptions, resourceBuilder.Build(), fluentdData, exportedLogs[0]);
+
+            exportedLogs.Clear();
+            exportedData.Clear();
 
             // Emit log on a different thread to test for multithreading scenarios
             var thread = new Thread(() =>
@@ -887,11 +882,17 @@ public class GenevaLogExporterTests
             thread.Join();
 
             // logRecordList should have a singleLogRecord entry after the logger.LogInformation call
-            Assert.Single(logRecordList);
+            Assert.Single(exportedLogs);
+            Assert.Single(exportedData);
 
-            messagePackDataSize = exporter.SerializeLogRecord(logRecordList[0]).Count;
+            // Read the data sent via socket.
             receivedDataSize = serverSocket.Receive(receivedData);
-            Assert.Equal(messagePackDataSize, receivedDataSize);
+
+            // the number of bytes received over the socket should match the number of bytes of data exported
+            Assert.Equal(exportedData[0].Count, receivedDataSize);
+
+            fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(exportedData[0], MessagePack.Resolvers.ContractlessStandardResolver.Options);
+            this.AssertFluentdForwardModeForLogRecord(exporterOptions, resourceBuilder.Build(), fluentdData, exportedLogs[0]);
         }
         finally
         {

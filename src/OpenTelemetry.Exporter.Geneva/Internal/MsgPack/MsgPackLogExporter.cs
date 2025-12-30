@@ -272,7 +272,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
             if (isWantedAttribute)
             {
-                this.prepopulatedFields.Add(key, value);
+                this.prepopulatedFields[key] = value;
             }
         }
     }

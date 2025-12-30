@@ -421,7 +421,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
             if (isWantedAttribute)
             {
-                this.prepopulatedFields.Add(key, value);
+                this.prepopulatedFields[key] = value;
             }
         }
 
