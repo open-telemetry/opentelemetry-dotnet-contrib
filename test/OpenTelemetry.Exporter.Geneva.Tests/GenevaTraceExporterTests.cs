@@ -439,7 +439,6 @@ public class GenevaTraceExporterTests : IDisposable
     public void GenevaTraceExporter_Resource_Overwrites_Prepopulated()
     {
         var path = string.Empty;
-        Socket server = null;
         try
         {
             var exporterOptions = new GenevaExporterOptions
@@ -458,9 +457,6 @@ public class GenevaTraceExporterTests : IDisposable
                 path = GetRandomFilePath();
                 exporterOptions.ConnectionString = "Endpoint=unix:" + path;
                 var endpoint = new UnixDomainSocketEndPoint(path);
-                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
-                server.Bind(endpoint);
-                server.Listen(1);
             }
 
             Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
@@ -497,7 +493,71 @@ public class GenevaTraceExporterTests : IDisposable
         }
         finally
         {
-            server?.Dispose();
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    [Fact]
+    public void AutoMappedResourceAttrReplacesPrepopulated()
+    {
+        var path = string.Empty;
+        try
+        {
+            var exporterOptions = new GenevaExporterOptions
+            {
+                PrepopulatedFields = new Dictionary<string, object>
+                {
+                    ["cloud.role"] = "cloud.role from prepopulated",
+                },
+            };
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+            }
+            else
+            {
+                path = GetRandomFilePath();
+                exporterOptions.ConnectionString = "Endpoint=unix:" + path;
+                var endpoint = new UnixDomainSocketEndPoint(path);
+            }
+
+            using var exporter = new GenevaTraceExporter(exporterOptions);
+
+            // Set the ActivitySourceName to the unique value of the test method name to avoid interference with
+            // the ActivitySource used by other unit tests.
+            var sourceName = GetTestMethodName();
+
+            using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .SetSampler(new AlwaysOnSampler())
+                .ConfigureResource(resourceBuilder => resourceBuilder.AddService("cloud.role from resource"))
+                .AddSource(sourceName)
+                .AddProcessor(new ReentrantExportProcessor<Activity>(exporter))
+                .Build();
+
+            var source = new ActivitySource(sourceName);
+            using (var activity = source.StartActivity("test"))
+            {
+            }
+
+            var exportedData = (exporter.Exporter as MsgPackTraceExporter).Buffer.Value;
+            var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(exportedData, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+
+            var signal = (fluentdData as object[])[0] as string;
+            var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
+
+            var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;
+
+            Assert.Contains("env_cloud_role", mapping.Keys);
+            Assert.Equal("cloud.role from resource", mapping["env_cloud_role"]);
+        }
+        finally
+        {
             try
             {
                 File.Delete(path);

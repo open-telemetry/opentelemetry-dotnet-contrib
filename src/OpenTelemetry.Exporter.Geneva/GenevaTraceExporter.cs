@@ -16,8 +16,9 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
 {
     internal readonly bool IsUsingUnixDomainSocket;
 
+    internal readonly IDisposable Exporter;
+
     private readonly ExportActivityFunc exportActivity;
-    private readonly IDisposable exporter;
 
     private bool isDisposed;
 
@@ -75,14 +76,14 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
             });
             this.IsUsingUnixDomainSocket = msgPackTraceExporter.IsUsingUnixDomainSocket;
             this.exportActivity = msgPackTraceExporter.Export;
-            this.exporter = msgPackTraceExporter;
+            this.Exporter = msgPackTraceExporter;
         }
         else
         {
             var tldTraceExporter = new TldTraceExporter(options);
             this.IsUsingUnixDomainSocket = false;
             this.exportActivity = tldTraceExporter.Export;
-            this.exporter = tldTraceExporter;
+            this.Exporter = tldTraceExporter;
         }
     }
 
@@ -106,7 +107,7 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
         {
             try
             {
-                this.exporter.Dispose();
+                this.Exporter.Dispose();
             }
             catch (Exception ex)
             {

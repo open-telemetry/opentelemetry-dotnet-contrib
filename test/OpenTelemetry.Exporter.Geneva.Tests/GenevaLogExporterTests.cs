@@ -825,12 +825,20 @@ public class GenevaLogExporterTests
 
             var exporterOptions = new GenevaExporterOptions
             {
-                ConnectionString = "Endpoint=unix:" + path,
                 PrepopulatedFields = new Dictionary<string, object>
                 {
                     ["cloud.role"] = "cloud.role from prepopulated",
                 },
             };
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+            }
+            else
+            {
+                exporterOptions.ConnectionString = "Endpoint=unix:" + path;
+            }
 
             using var exporter = new GenevaLogExporter(exporterOptions);
 
