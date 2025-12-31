@@ -815,6 +815,58 @@ public class GenevaLogExporterTests
         logger.LogInformation("Hello from {Food} {Price}.", "artichoke", 3.99);
     }
 
+    [Fact]
+    public void AutoMappedResourceAttrReplacesPrepopulated()
+    {
+        var path = GenerateTempFilePath();
+        try
+        {
+            var endpoint = new UnixDomainSocketEndPoint(path);
+
+            var exporterOptions = new GenevaExporterOptions
+            {
+                ConnectionString = "Endpoint=unix:" + path,
+                PrepopulatedFields = new Dictionary<string, object>
+                {
+                    ["cloud.role"] = "cloud.role from prepopulated",
+                },
+            };
+
+            using var exporter = new GenevaLogExporter(exporterOptions);
+
+            List<ArraySegment<byte>> exportedData = [];
+            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = (data) => exportedData.Add(data);
+
+            var resourceBuilder = ResourceBuilder.CreateDefault().AddService("cloud.role from resource");
+
+            using var loggerFactory = LoggerFactory.Create(builder => builder
+                .AddOpenTelemetry(options =>
+                {
+                    options.SetResourceBuilder(resourceBuilder);
+                    options.AddProcessor(new ReentrantExportProcessor<LogRecord>(exporter));
+                }));
+
+            var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
+
+            logger.LogInformation("Hello");
+
+            Assert.Single(exportedData);
+            var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(exportedData[0], MessagePack.Resolvers.ContractlessStandardResolver.Options);
+
+            Assert.Equal("cloud.role from resource", GetField(fluentdData, "env_cloud_role"));
+        }
+        finally
+        {
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
+            }
+        }
+    }
+
     [SkipUnlessPlatformMatchesFact(TestPlatform.Linux)]
     public void SuccessfulExport_Linux()
     {
