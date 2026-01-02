@@ -180,10 +180,7 @@ internal static class MetricSerializer
     {
         if (!string.IsNullOrEmpty(value))
         {
-            if (bufferIndex + value!.Length + sizeof(short) > buffer.Length)
-            {
-                ThrowArgumentOutOfRange(bufferIndex);
-            }
+            CheckBounds(buffer, bufferIndex, value!.Length + sizeof(short));
 
 #if NETSTANDARD2_1_OR_GREATER
             Span<byte> bufferSpan = new Span<byte>(buffer);
@@ -218,10 +215,7 @@ internal static class MetricSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void SerializeEncodedString(byte[] buffer, ref int bufferIndex, byte[] encodedValue)
     {
-        if (bufferIndex + encodedValue.Length + sizeof(short) >= buffer.Length)
-        {
-            ThrowArgumentOutOfRange(bufferIndex);
-        }
+        CheckBounds(buffer, bufferIndex, encodedValue.Length + sizeof(short));
 
 #if NETSTANDARD2_1_OR_GREATER
         Span<byte> sourceSpan = new Span<byte>(encodedValue);
@@ -247,10 +241,7 @@ internal static class MetricSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void SerializeByte(byte[] buffer, ref int bufferIndex, byte value)
     {
-        if (bufferIndex + sizeof(byte) >= buffer.Length)
-        {
-            ThrowArgumentOutOfRange(bufferIndex);
-        }
+        CheckBounds(buffer, bufferIndex, sizeof(byte));
 
         buffer[bufferIndex] = value;
         bufferIndex += sizeof(byte);
@@ -265,10 +256,7 @@ internal static class MetricSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void SerializeUInt16(byte[] buffer, ref int bufferIndex, ushort value)
     {
-        if (bufferIndex + sizeof(ushort) >= buffer.Length)
-        {
-            ThrowArgumentOutOfRange(bufferIndex);
-        }
+        CheckBounds(buffer, bufferIndex, sizeof(ushort));
 
         buffer[bufferIndex] = (byte)value;
         buffer[bufferIndex + 1] = (byte)(value >> 8);
@@ -284,10 +272,7 @@ internal static class MetricSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void SerializeInt16(byte[] buffer, ref int bufferIndex, short value)
     {
-        if (bufferIndex + sizeof(short) >= buffer.Length)
-        {
-            ThrowArgumentOutOfRange(bufferIndex);
-        }
+        CheckBounds(buffer, bufferIndex, sizeof(short));
 
         buffer[bufferIndex] = (byte)value;
         buffer[bufferIndex + 1] = (byte)(value >> 8);
@@ -303,10 +288,7 @@ internal static class MetricSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void SerializeUInt32(byte[] buffer, ref int bufferIndex, uint value)
     {
-        if (bufferIndex + sizeof(uint) >= buffer.Length)
-        {
-            ThrowArgumentOutOfRange(bufferIndex);
-        }
+        CheckBounds(buffer, bufferIndex, sizeof(uint));
 
         buffer[bufferIndex] = (byte)value;
         buffer[bufferIndex + 1] = (byte)(value >> 8);
@@ -324,10 +306,7 @@ internal static class MetricSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void SerializeUInt64(byte[] buffer, ref int bufferIndex, ulong value)
     {
-        if (bufferIndex + sizeof(ulong) >= buffer.Length)
-        {
-            ThrowArgumentOutOfRange(bufferIndex);
-        }
+        CheckBounds(buffer, bufferIndex, sizeof(ulong));
 
         buffer[bufferIndex] = (byte)value;
         buffer[bufferIndex + 1] = (byte)(value >> 8);
@@ -349,10 +328,7 @@ internal static class MetricSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void SerializeInt64(byte[] buffer, ref int bufferIndex, long value)
     {
-        if (bufferIndex + sizeof(long) >= buffer.Length)
-        {
-            ThrowArgumentOutOfRange(bufferIndex);
-        }
+        CheckBounds(buffer, bufferIndex, sizeof(long));
 
         buffer[bufferIndex] = (byte)value;
         buffer[bufferIndex + 1] = (byte)(value >> 8);
@@ -374,10 +350,7 @@ internal static class MetricSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static unsafe void SerializeFloat64(byte[] buffer, ref int bufferIndex, double value)
     {
-        if (bufferIndex + sizeof(double) >= buffer.Length)
-        {
-            ThrowArgumentOutOfRange(bufferIndex);
-        }
+        CheckBounds(buffer, bufferIndex, sizeof(double));
 
         fixed (byte* bp = buffer)
         {
@@ -398,10 +371,7 @@ internal static class MetricSerializer
     {
         if (!string.IsNullOrEmpty(value))
         {
-            if (bufferIndex + value!.Length + sizeof(short) >= buffer.Length)
-            {
-                ThrowArgumentOutOfRange(bufferIndex);
-            }
+            CheckBounds(buffer, bufferIndex, value!.Length + sizeof(short));
 
             var encodedValue = Encoding.UTF8.GetBytes(value);
             SerializeUInt64AsBase128(buffer, ref bufferIndex, (ulong)encodedValue.Length);
@@ -433,10 +403,7 @@ internal static class MetricSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void SerializeUInt64AsBase128(byte[] buffer, ref int offset, ulong value)
     {
-        if (offset + MaxBase128Size >= buffer.Length)
-        {
-            ThrowArgumentOutOfRange(offset);
-        }
+        CheckBounds(buffer, offset, MaxBase128Size);
 
         var t = value;
         do
@@ -472,10 +439,7 @@ internal static class MetricSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void SerializeInt64AsBase128(byte[] buffer, ref int offset, long value)
     {
-        if (offset + MaxBase128Size >= buffer.Length)
-        {
-            ThrowArgumentOutOfRange(offset);
-        }
+        CheckBounds(buffer, offset, MaxBase128Size);
 
         var negative = value < 0;
         var t = negative ? -value : value;
@@ -520,10 +484,7 @@ internal static class MetricSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void SerializeSpanOfBytes(byte[] buffer, ref int bufferIndex, Span<byte> data, int dataLength)
     {
-        if (bufferIndex + dataLength + sizeof(short) >= buffer.Length)
-        {
-            ThrowArgumentOutOfRange(bufferIndex);
-        }
+        CheckBounds(buffer, bufferIndex, dataLength + sizeof(short));
 
         ReadOnlySpan<byte> source = data.Slice(0, dataLength);
         var target = new Span<byte>(buffer, bufferIndex, dataLength);
@@ -532,9 +493,19 @@ internal static class MetricSerializer
         bufferIndex += dataLength;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void CheckBounds(byte[] buffer, int index, int size, [CallerArgumentExpression(nameof(index))] string? paramName = default)
 #if NET8_0_OR_GREATER
-    [System.Diagnostics.CodeAnalysis.DoesNotReturn]
-#endif
+        => ArgumentOutOfRangeException.ThrowIfGreaterThan(index + size, buffer.Length, paramName);
+#else
+    {
+        if (buffer.Length < index + size)
+        {
+            ThrowArgumentOutOfRange(index, paramName);
+        }
+    }
+
     private static void ThrowArgumentOutOfRange(object value, [CallerArgumentExpression(nameof(value))] string? paramName = default)
         => throw new ArgumentOutOfRangeException(paramName, value, "The buffer is too small to write a value at the specified index.");
+#endif
 }
