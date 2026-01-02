@@ -180,9 +180,9 @@ internal static class MetricSerializer
     {
         if (!string.IsNullOrEmpty(value))
         {
-            if (bufferIndex + value!.Length + sizeof(short) >= buffer.Length)
+            if (bufferIndex + value!.Length + sizeof(short) > buffer.Length)
             {
-                ThrowArgumentOutOfRange(nameof(bufferIndex), bufferIndex);
+                ThrowArgumentOutOfRange(bufferIndex);
             }
 
 #if NETSTANDARD2_1_OR_GREATER
@@ -220,7 +220,7 @@ internal static class MetricSerializer
     {
         if (bufferIndex + encodedValue.Length + sizeof(short) >= buffer.Length)
         {
-            ThrowArgumentOutOfRange(nameof(bufferIndex), bufferIndex);
+            ThrowArgumentOutOfRange(bufferIndex);
         }
 
 #if NETSTANDARD2_1_OR_GREATER
@@ -249,7 +249,7 @@ internal static class MetricSerializer
     {
         if (bufferIndex + sizeof(byte) >= buffer.Length)
         {
-            ThrowArgumentOutOfRange(nameof(bufferIndex), bufferIndex);
+            ThrowArgumentOutOfRange(bufferIndex);
         }
 
         buffer[bufferIndex] = value;
@@ -267,7 +267,7 @@ internal static class MetricSerializer
     {
         if (bufferIndex + sizeof(ushort) >= buffer.Length)
         {
-            ThrowArgumentOutOfRange(nameof(bufferIndex), bufferIndex);
+            ThrowArgumentOutOfRange(bufferIndex);
         }
 
         buffer[bufferIndex] = (byte)value;
@@ -286,7 +286,7 @@ internal static class MetricSerializer
     {
         if (bufferIndex + sizeof(short) >= buffer.Length)
         {
-            ThrowArgumentOutOfRange(nameof(bufferIndex), bufferIndex);
+            ThrowArgumentOutOfRange(bufferIndex);
         }
 
         buffer[bufferIndex] = (byte)value;
@@ -305,7 +305,7 @@ internal static class MetricSerializer
     {
         if (bufferIndex + sizeof(uint) >= buffer.Length)
         {
-            ThrowArgumentOutOfRange(nameof(bufferIndex), bufferIndex);
+            ThrowArgumentOutOfRange(bufferIndex);
         }
 
         buffer[bufferIndex] = (byte)value;
@@ -326,7 +326,7 @@ internal static class MetricSerializer
     {
         if (bufferIndex + sizeof(ulong) >= buffer.Length)
         {
-            ThrowArgumentOutOfRange(nameof(bufferIndex), bufferIndex);
+            ThrowArgumentOutOfRange(bufferIndex);
         }
 
         buffer[bufferIndex] = (byte)value;
@@ -351,7 +351,7 @@ internal static class MetricSerializer
     {
         if (bufferIndex + sizeof(long) >= buffer.Length)
         {
-            ThrowArgumentOutOfRange(nameof(bufferIndex), bufferIndex);
+            ThrowArgumentOutOfRange(bufferIndex);
         }
 
         buffer[bufferIndex] = (byte)value;
@@ -376,7 +376,7 @@ internal static class MetricSerializer
     {
         if (bufferIndex + sizeof(double) >= buffer.Length)
         {
-            ThrowArgumentOutOfRange(nameof(bufferIndex), bufferIndex);
+            ThrowArgumentOutOfRange(bufferIndex);
         }
 
         fixed (byte* bp = buffer)
@@ -400,7 +400,7 @@ internal static class MetricSerializer
         {
             if (bufferIndex + value!.Length + sizeof(short) >= buffer.Length)
             {
-                ThrowArgumentOutOfRange(nameof(bufferIndex), bufferIndex);
+                ThrowArgumentOutOfRange(bufferIndex);
             }
 
             var encodedValue = Encoding.UTF8.GetBytes(value);
@@ -435,7 +435,7 @@ internal static class MetricSerializer
     {
         if (offset + MaxBase128Size >= buffer.Length)
         {
-            ThrowArgumentOutOfRange(nameof(offset), offset);
+            ThrowArgumentOutOfRange(offset);
         }
 
         var t = value;
@@ -474,7 +474,7 @@ internal static class MetricSerializer
     {
         if (offset + MaxBase128Size >= buffer.Length)
         {
-            ThrowArgumentOutOfRange(nameof(offset), offset);
+            ThrowArgumentOutOfRange(offset);
         }
 
         var negative = value < 0;
@@ -522,7 +522,7 @@ internal static class MetricSerializer
     {
         if (bufferIndex + dataLength + sizeof(short) >= buffer.Length)
         {
-            ThrowArgumentOutOfRange(nameof(bufferIndex), bufferIndex);
+            ThrowArgumentOutOfRange(bufferIndex);
         }
 
         ReadOnlySpan<byte> source = data.Slice(0, dataLength);
@@ -535,6 +535,6 @@ internal static class MetricSerializer
 #if NET8_0_OR_GREATER
     [System.Diagnostics.CodeAnalysis.DoesNotReturn]
 #endif
-    private static void ThrowArgumentOutOfRange(string paramName, object actualValue)
-        => throw new ArgumentOutOfRangeException(paramName, actualValue, "The buffer is too small to write a value at the specified index.");
+    private static void ThrowArgumentOutOfRange(object value, [CallerArgumentExpression(nameof(value))] string? paramName = default)
+        => throw new ArgumentOutOfRangeException(paramName, value, "The buffer is too small to write a value at the specified index.");
 }
