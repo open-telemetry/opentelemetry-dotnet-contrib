@@ -816,7 +816,7 @@ public class GenevaLogExporterTests
     }
 
     [Fact]
-    public void AutoMappedResourceAttrReplacesPrepopulated()
+    public void AutoMappedResourceAttrDoesNotOverridePrepopulated()
     {
         var path = GenerateTempFilePath();
         try
@@ -828,6 +828,66 @@ public class GenevaLogExporterTests
                 PrepopulatedFields = new Dictionary<string, object>
                 {
                     ["cloud.role"] = "cloud.role from prepopulated",
+                },
+            };
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+            }
+            else
+            {
+                exporterOptions.ConnectionString = "Endpoint=unix:" + path;
+            }
+
+            using var exporter = new GenevaLogExporter(exporterOptions);
+
+            List<ArraySegment<byte>> exportedData = [];
+            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = (data) => exportedData.Add(data);
+
+            var resourceBuilder = ResourceBuilder.CreateDefault().AddService("cloud.role from resource");
+
+            using var loggerFactory = LoggerFactory.Create(builder => builder
+                .AddOpenTelemetry(options =>
+                {
+                    options.SetResourceBuilder(resourceBuilder);
+                    options.AddProcessor(new ReentrantExportProcessor<LogRecord>(exporter));
+                }));
+
+            var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
+
+            logger.LogInformation("Hello");
+
+            Assert.Single(exportedData);
+            var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(exportedData[0], MessagePack.Resolvers.ContractlessStandardResolver.Options);
+
+            Assert.Equal("cloud.role from prepopulated", GetField(fluentdData, "env_cloud_role"));
+        }
+        finally
+        {
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    [Fact]
+    public void AutoMappedResourceAttr()
+    {
+        var path = GenerateTempFilePath();
+        try
+        {
+            var endpoint = new UnixDomainSocketEndPoint(path);
+
+            var exporterOptions = new GenevaExporterOptions
+            {
+                PrepopulatedFields = new Dictionary<string, object>
+                {
+                    // no prepopulated fields
                 },
             };
 
@@ -1890,18 +1950,23 @@ public class GenevaLogExporterTests
         }
 
         // Part A cloud extensions
-        var serviceNameField = resource.Attributes.FirstOrDefault(attr => attr.Key == "service.name");
-        if (serviceNameField.Key == "service.name")
+        if (exporterOptions.PrepopulatedFields != null && exporterOptions.PrepopulatedFields.Count == 0)
         {
-            Assert.Contains("env_cloud_role", mapping);
-            Assert.Equal(serviceNameField.Value, mapping["env_cloud_role"]);
-        }
+            // this mapping only happens when there are no prepopulated fields, to avoid conflicts
 
-        var serviceInstanceField = resource.Attributes.FirstOrDefault(attr => attr.Key == "service.instanceId");
-        if (serviceInstanceField.Key == "service.instanceId")
-        {
-            Assert.Contains("env_cloud_roleInstance", mapping);
-            Assert.Equal(serviceInstanceField.Value, mapping["env_cloud_roleInstance"]);
+            var serviceNameField = resource.Attributes.FirstOrDefault(attr => attr.Key == "service.name");
+            if (serviceNameField.Key == "service.name")
+            {
+                Assert.Contains("env_cloud_role", mapping);
+                Assert.Equal(serviceNameField.Value, mapping["env_cloud_role"]);
+            }
+
+            var serviceInstanceField = resource.Attributes.FirstOrDefault(attr => attr.Key == "service.instanceId");
+            if (serviceInstanceField.Key == "service.instanceId")
+            {
+                Assert.Contains("env_cloud_roleInstance", mapping);
+                Assert.Equal(serviceInstanceField.Value, mapping["env_cloud_roleInstance"]);
+            }
         }
 
         // Part B fields

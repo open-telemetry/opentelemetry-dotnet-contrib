@@ -41,6 +41,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 #endif
 
     private readonly ExceptionStackExportMode exportExceptionStack;
+    private readonly bool userProvidedPrepopulatedFields;
     private readonly Dictionary<string, object>? prepopulatedFields;
     private readonly IEnumerable<string>? resourceFieldNames;
     private readonly byte[] bufferEpilogue;
@@ -114,6 +115,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             this.resourceFieldNames = options.ResourceFieldNames;
         }
 
+        this.userProvidedPrepopulatedFields = options.PrepopulatedFields != null && options.PrepopulatedFields.Count > 0;
         if (options.PrepopulatedFields != null)
         {
             this.prepopulatedFields = new Dictionary<string, object>(options.PrepopulatedFields.Count, StringComparer.Ordinal);
@@ -258,16 +260,20 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 }
             }
 
-            if (key == "service.name")
+            if (!this.userProvidedPrepopulatedFields)
             {
-                key = Schema.V40.PartA.Extensions.Cloud.Role;
-                isWantedAttribute = true;
-            }
+                // it's only safe to add these special resource fields if we are sure the user didn't provide them as a PrepopulatedField already
+                if (key == "service.name")
+                {
+                    key = Schema.V40.PartA.Extensions.Cloud.Role;
+                    isWantedAttribute = true;
+                }
 
-            if (key == "service.instanceId")
-            {
-                key = Schema.V40.PartA.Extensions.Cloud.RoleInstance;
-                isWantedAttribute = true;
+                if (key == "service.instanceId")
+                {
+                    key = Schema.V40.PartA.Extensions.Cloud.RoleInstance;
+                    isWantedAttribute = true;
+                }
             }
 
             if (isWantedAttribute)

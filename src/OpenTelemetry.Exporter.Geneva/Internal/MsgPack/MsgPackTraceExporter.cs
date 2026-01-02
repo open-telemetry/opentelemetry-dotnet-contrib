@@ -75,6 +75,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
     // so constructing a whole new data structure for it is overkill.
     private readonly IEnumerable<string>? resourceFieldNames;
     private readonly bool shouldIncludeTraceState;
+    private readonly bool userProvidedPrepopulatedFields;
     private readonly string partAName;
     private readonly Func<Resource> resourceProvider;
 
@@ -148,6 +149,8 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
                 }
             }
         }
+
+        this.userProvidedPrepopulatedFields = options.PrepopulatedFields != null && options.PrepopulatedFields.Count > 0;
 
         this.prepopulatedFields = new Dictionary<string, object>(0, StringComparer.Ordinal);
         if (options.PrepopulatedFields != null)
@@ -407,16 +410,20 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
                 }
             }
 
-            if (key == "service.name")
+            if (!this.userProvidedPrepopulatedFields)
             {
-                key = Schema.V40.PartA.Extensions.Cloud.Role;
-                isWantedAttribute = true;
-            }
+                // it's only safe to add these special resource fields if we are sure the user didn't provide them as a PrepopulatedField already
+                if (key == "service.name")
+                {
+                    key = Schema.V40.PartA.Extensions.Cloud.Role;
+                    isWantedAttribute = true;
+                }
 
-            if (key == "service.instanceId")
-            {
-                key = Schema.V40.PartA.Extensions.Cloud.RoleInstance;
-                isWantedAttribute = true;
+                if (key == "service.instanceId")
+                {
+                    key = Schema.V40.PartA.Extensions.Cloud.RoleInstance;
+                    isWantedAttribute = true;
+                }
             }
 
             if (isWantedAttribute)
