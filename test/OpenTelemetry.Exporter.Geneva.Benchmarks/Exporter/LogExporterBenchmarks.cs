@@ -5,6 +5,7 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Exporter.Geneva.MsgPack;
 using OpenTelemetry.Logs;
+using OpenTelemetry.Resources;
 
 /*
 BenchmarkDotNet v0.13.10, Windows 11 (10.0.23424.1000)
@@ -74,16 +75,18 @@ public class LogExporterBenchmarks
         // For msgpack serialization + export
         this.logRecord = GenerateTestLogRecord();
         this.batch = GenerateTestLogRecordBatch();
-        this.exporter = new MsgPackLogExporter(new GenevaExporterOptions
-        {
-            ConnectionString = "EtwSession=OpenTelemetry",
-            PrepopulatedFields = new Dictionary<string, object>
+        this.exporter = new MsgPackLogExporter(
+            new GenevaExporterOptions
             {
-                ["cloud.role"] = "BusyWorker",
-                ["cloud.roleInstance"] = "CY1SCH030021417",
-                ["cloud.roleVer"] = "9.0.15289.2",
+                ConnectionString = "EtwSession=OpenTelemetry",
+                PrepopulatedFields = new Dictionary<string, object>
+                {
+                    ["cloud.role"] = "BusyWorker",
+                    ["cloud.roleInstance"] = "CY1SCH030021417",
+                    ["cloud.roleVer"] = "9.0.15289.2",
+                },
             },
-        });
+            () => Resource.Empty);
     }
 
     [Benchmark]

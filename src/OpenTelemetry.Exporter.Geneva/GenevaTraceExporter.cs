@@ -16,8 +16,9 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
 {
     internal readonly bool IsUsingUnixDomainSocket;
 
+    internal readonly IDisposable Exporter;
+
     private readonly ExportActivityFunc exportActivity;
-    private readonly IDisposable exporter;
 
     private bool isDisposed;
 
@@ -68,17 +69,21 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
 
         if (useMsgPackExporter)
         {
-            var msgPackTraceExporter = new MsgPackTraceExporter(options, this.ParentProvider.GetResource);
+            var msgPackTraceExporter = new MsgPackTraceExporter(options, () =>
+            {
+                // this is not equivalent to passing a method reference, because the ParentProvider could change after the constructor.
+                return this.ParentProvider.GetResource();
+            });
             this.IsUsingUnixDomainSocket = msgPackTraceExporter.IsUsingUnixDomainSocket;
             this.exportActivity = msgPackTraceExporter.Export;
-            this.exporter = msgPackTraceExporter;
+            this.Exporter = msgPackTraceExporter;
         }
         else
         {
             var tldTraceExporter = new TldTraceExporter(options);
             this.IsUsingUnixDomainSocket = false;
             this.exportActivity = tldTraceExporter.Export;
-            this.exporter = tldTraceExporter;
+            this.Exporter = tldTraceExporter;
         }
     }
 
@@ -102,7 +107,7 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
         {
             try
             {
-                this.exporter.Dispose();
+                this.Exporter.Dispose();
             }
             catch (Exception ex)
             {
