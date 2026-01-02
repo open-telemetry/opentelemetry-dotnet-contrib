@@ -10,7 +10,7 @@ namespace OpenTelemetry.Exporter.Geneva;
 public static class MetricSerializerTests
 {
     private const int MaxValue = 1_000;
-    private const int BufferSize = 65536;
+    private const int BufferSize = 65_536;
 
     [Property(MaxTest = MaxValue)]
     public static void SerializeByte_Does_Not_Throw(byte value, NonNegativeInt bufferOffset)
@@ -58,8 +58,11 @@ public static class MetricSerializerTests
         var buffer = new byte[BufferSize];
         var offset = bufferOffset.Get % (BufferSize - sizeof(ushort));
 
-        // Act and Assert
+        // Act
         MetricSerializer.SerializeUInt16(buffer, ref offset, value);
+
+        // Assert
+        Assert.True(offset > 0);
     }
 
     [Property(MaxTest = MaxValue)]
@@ -1273,7 +1276,7 @@ public static class MetricSerializerTests
         var buffer = new byte[size];
         var offset = size + (bufferSize.Get % 100);
 
-        // Act
+        // Act and Assert
         Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeUInt32AsBase128(buffer, ref offset, value));
     }
 }
