@@ -58,6 +58,8 @@ internal static class MessagePackSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int SerializeNull(byte[] buffer, int cursor)
     {
+        CheckBounds(buffer, cursor, size: 1);
+
         buffer[cursor++] = NIL;
         return cursor;
     }
@@ -65,6 +67,8 @@ internal static class MessagePackSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int SerializeBool(byte[] buffer, int cursor, bool value)
     {
+        CheckBounds(buffer, cursor, size: 1);
+
         buffer[cursor++] = value ? TRUE : FALSE;
         return cursor;
     }
@@ -76,6 +80,8 @@ internal static class MessagePackSerializer
         {
             return SerializeUInt8(buffer, cursor, unchecked((byte)value));
         }
+
+        CheckBounds(buffer, cursor, size: 2);
 
         if (value < LIMIT_MIN_FIX_NEGATIVE_INT)
         {
@@ -99,6 +105,8 @@ internal static class MessagePackSerializer
             return SerializeInt8(buffer, cursor, unchecked((sbyte)value));
         }
 
+        CheckBounds(buffer, cursor, size: sizeof(short) + 1);
+
         buffer[cursor++] = INT16;
         return WriteInt16(buffer, cursor, value);
     }
@@ -115,6 +123,8 @@ internal static class MessagePackSerializer
         {
             return SerializeInt16(buffer, cursor, unchecked((short)value));
         }
+
+        CheckBounds(buffer, cursor, size: sizeof(int) + 1);
 
         buffer[cursor++] = INT32;
         return WriteInt32(buffer, cursor, value);
@@ -133,6 +143,8 @@ internal static class MessagePackSerializer
             return SerializeInt32(buffer, cursor, unchecked((int)value));
         }
 
+        CheckBounds(buffer, cursor, size: sizeof(long) + 1);
+
         buffer[cursor++] = INT64;
         return WriteInt64(buffer, cursor, value);
     }
@@ -140,6 +152,8 @@ internal static class MessagePackSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int SerializeUInt8(byte[] buffer, int cursor, byte value)
     {
+        CheckBounds(buffer, cursor, size: 2);
+
         if (value > 127)
         {
             buffer[cursor++] = UINT8;
@@ -157,6 +171,8 @@ internal static class MessagePackSerializer
             return SerializeUInt8(buffer, cursor, unchecked((byte)value));
         }
 
+        CheckBounds(buffer, cursor, size: sizeof(ushort) + 1);
+
         buffer[cursor++] = UINT16;
         return WriteUInt16(buffer, cursor, value);
     }
@@ -169,6 +185,8 @@ internal static class MessagePackSerializer
             return SerializeUInt16(buffer, cursor, unchecked((ushort)value));
         }
 
+        CheckBounds(buffer, cursor, size: sizeof(uint) + 1);
+
         buffer[cursor++] = UINT32;
         return WriteUInt32(buffer, cursor, value);
     }
@@ -180,6 +198,8 @@ internal static class MessagePackSerializer
         {
             return SerializeUInt32(buffer, cursor, unchecked((uint)value));
         }
+
+        CheckBounds(buffer, cursor, size: sizeof(ulong) + 1);
 
         buffer[cursor++] = UINT64;
         return WriteUInt64(buffer, cursor, value);
@@ -194,6 +214,8 @@ internal static class MessagePackSerializer
 #else
         unchecked
         {
+            CheckBounds(buffer, cursor, size: sizeof(short));
+
             buffer[cursor++] = (byte)(value >> 8);
             buffer[cursor++] = (byte)value;
         }
@@ -211,6 +233,8 @@ internal static class MessagePackSerializer
 #else
         unchecked
         {
+            CheckBounds(buffer, cursor, size: sizeof(int));
+
             buffer[cursor++] = (byte)(value >> 24);
             buffer[cursor++] = (byte)(value >> 16);
             buffer[cursor++] = (byte)(value >> 8);
@@ -230,6 +254,8 @@ internal static class MessagePackSerializer
 #else
         unchecked
         {
+            CheckBounds(buffer, cursor, size: sizeof(long));
+
             buffer[cursor++] = (byte)(value >> 56);
             buffer[cursor++] = (byte)(value >> 48);
             buffer[cursor++] = (byte)(value >> 40);
@@ -253,6 +279,8 @@ internal static class MessagePackSerializer
 #else
         unchecked
         {
+            CheckBounds(buffer, cursor, size: sizeof(ushort));
+
             buffer[cursor++] = (byte)(value >> 8);
             buffer[cursor++] = (byte)value;
         }
@@ -270,6 +298,8 @@ internal static class MessagePackSerializer
 #else
         unchecked
         {
+            CheckBounds(buffer, cursor, size: sizeof(uint));
+
             buffer[cursor++] = (byte)(value >> 24);
             buffer[cursor++] = (byte)(value >> 16);
             buffer[cursor++] = (byte)(value >> 8);
@@ -289,6 +319,8 @@ internal static class MessagePackSerializer
 #else
         unchecked
         {
+            CheckBounds(buffer, cursor, size: sizeof(ulong));
+
             buffer[cursor++] = (byte)(value >> 56);
             buffer[cursor++] = (byte)(value >> 48);
             buffer[cursor++] = (byte)(value >> 40);
@@ -306,6 +338,8 @@ internal static class MessagePackSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int SerializeFloat32(byte[] buffer, int cursor, float value)
     {
+        CheckBounds(buffer, cursor, size: sizeof(int) + 1);
+
         buffer[cursor++] = FLOAT32;
         return WriteInt32(buffer, cursor, Float32ToInt32(value));
     }
@@ -313,6 +347,8 @@ internal static class MessagePackSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int SerializeFloat64(byte[] buffer, int cursor, double value)
     {
+        CheckBounds(buffer, cursor, size: sizeof(long) + 1);
+
         buffer[cursor++] = FLOAT64;
         return WriteInt64(buffer, cursor, Float64ToInt64(value));
     }
@@ -320,6 +356,8 @@ internal static class MessagePackSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void WriteStr8Header(byte[] buffer, int nameStartIdx, int validNameLength)
     {
+        CheckBounds(buffer, nameStartIdx, size: 2);
+
         buffer[nameStartIdx] = STR8;
         buffer[nameStartIdx + 1] = unchecked((byte)validNameLength);
     }
@@ -348,13 +386,15 @@ internal static class MessagePackSerializer
             cb = Encoding.ASCII.GetBytes(value, 0, cch, buffer, cursor);
             if (cb <= LIMIT_MAX_FIX_STRING_LENGTH_IN_BYTES)
             {
+                CheckBounds(buffer, start, size: cb + 1);
+
                 cursor += cb;
                 buffer[start] = unchecked((byte)(MIN_FIX_STR | cb));
                 return cursor;
             }
             else
             {
-                throw new ArgumentException($"The input string: \"{value}\" has non-ASCII characters in it.", nameof(value));
+                ThrowNonAsciiString(value);
             }
         }
 
@@ -371,7 +411,7 @@ internal static class MessagePackSerializer
             }
             else
             {
-                throw new ArgumentException($"The input string: \"{value}\" has non-ASCII characters in it.", nameof(value));
+                ThrowNonAsciiString(value);
             }
         }
 
@@ -403,9 +443,7 @@ internal static class MessagePackSerializer
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int SerializeUnicodeString(byte[] buffer, int cursor, string? value, int stringSizeLimitCharCount = DEFAULT_STRING_SIZE_LIMIT_CHAR_COUNT)
-    {
-        return value == null ? SerializeNull(buffer, cursor) : SerializeUnicodeString(buffer, cursor, value.AsSpan(), stringSizeLimitCharCount);
-    }
+        => value == null ? SerializeNull(buffer, cursor) : SerializeUnicodeString(buffer, cursor, value.AsSpan(), stringSizeLimitCharCount);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int SerializeUnicodeString(byte[] buffer, int cursor, ReadOnlySpan<char> value, int stringSizeLimitCharCount = DEFAULT_STRING_SIZE_LIMIT_CHAR_COUNT)
@@ -481,15 +519,18 @@ internal static class MessagePackSerializer
     {
         if (length <= LIMIT_MAX_FIX_ARRAY_LENGTH)
         {
+            CheckBounds(buffer, cursor, size: 1);
             buffer[cursor++] = unchecked((byte)(MIN_FIX_ARRAY | length));
         }
         else if (length <= ushort.MaxValue)
         {
+            CheckBounds(buffer, cursor, size: sizeof(short) + 1);
             buffer[cursor++] = ARRAY16;
             cursor = WriteUInt16(buffer, cursor, unchecked((ushort)length));
         }
         else
         {
+            CheckBounds(buffer, cursor, size: sizeof(uint) + 1);
             buffer[cursor++] = ARRAY32;
             cursor = WriteUInt32(buffer, cursor, unchecked((uint)length));
         }
@@ -519,15 +560,18 @@ internal static class MessagePackSerializer
     {
         if (count <= LIMIT_MAX_FIX_MAP_COUNT)
         {
+            CheckBounds(buffer, cursor, size: 1);
             buffer[cursor++] = unchecked((byte)(MIN_FIX_MAP | count));
         }
         else if (count <= ushort.MaxValue)
         {
+            CheckBounds(buffer, cursor, size: sizeof(ushort) + 1);
             buffer[cursor++] = MAP16;
             cursor = WriteUInt16(buffer, cursor, unchecked((ushort)count));
         }
         else
         {
+            CheckBounds(buffer, cursor, size: sizeof(uint) + 1);
             buffer[cursor++] = MAP32;
             cursor = WriteUInt32(buffer, cursor, unchecked((uint)count));
         }
@@ -556,6 +600,8 @@ internal static class MessagePackSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int WriteTimestamp96Header(byte[] buffer, int cursor)
     {
+        CheckBounds(buffer, cursor, size: 3);
+
         buffer[cursor++] = TIMESTAMP96;
         buffer[cursor++] = 12;
         buffer[cursor++] = EXT_DATE_TIME;
@@ -582,9 +628,7 @@ internal static class MessagePackSerializer
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int SerializeUtcDateTime(byte[] buffer, int cursor, DateTime utc)
-    {
-        return SerializeTimestamp96(buffer, cursor, utc.Ticks);
-    }
+        => SerializeTimestamp96(buffer, cursor, utc.Ticks);
 
     public static int Serialize(byte[] buffer, int cursor, object? obj)
     {
@@ -670,14 +714,30 @@ internal static class MessagePackSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static unsafe long Float64ToInt64(double value)
-    {
-        return *(long*)&value;
-    }
+    private static unsafe long Float64ToInt64(double value) => *(long*)&value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static unsafe int Float32ToInt32(float value)
+    private static unsafe int Float32ToInt32(float value) => *(int*)&value;
+
+#if NET8_0_OR_GREATER
+    [System.Diagnostics.CodeAnalysis.DoesNotReturn]
+#endif
+    private static void ThrowNonAsciiString(string value, [CallerArgumentExpression(nameof(value))] string? paramName = default)
+        => throw new ArgumentException($"The input string: \"{value}\" has non-ASCII characters in it.", paramName);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void CheckBounds(byte[] buffer, int index, int size, [CallerArgumentExpression(nameof(index))] string? paramName = default)
+#if NET8_0_OR_GREATER
+        => ArgumentOutOfRangeException.ThrowIfGreaterThan(index + size, buffer.Length, paramName);
+#else
     {
-        return *(int*)&value;
+        if (buffer.Length < index + size)
+        {
+            ThrowArgumentOutOfRange(index, paramName);
+        }
     }
+
+    private static void ThrowArgumentOutOfRange(object value, [CallerArgumentExpression(nameof(value))] string? paramName = default)
+        => throw new ArgumentOutOfRangeException(paramName, value, "The buffer is too small to write a value at the specified index.");
+#endif
 }
