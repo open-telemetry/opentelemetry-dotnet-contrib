@@ -127,7 +127,6 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     {
                         try
                         {
-#if !NETFRAMEWORK
                             if (options.Filter?.Invoke(command) == false)
                             {
                                 SqlClientInstrumentationEventSource.Log.CommandIsFilteredOut(activity.OperationName);
@@ -135,7 +134,6 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                                 activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
                                 return;
                             }
-#endif
                         }
                         catch (Exception ex)
                         {
@@ -177,7 +175,6 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                             }
                         }
 
-#if !NETFRAMEWORK
                         try
                         {
                             options.EnrichWithSqlCommand?.Invoke(activity, command);
@@ -186,7 +183,6 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                         {
                             SqlClientInstrumentationEventSource.Log.EnrichmentException(ex);
                         }
-#endif
                     }
                 }
 
@@ -265,12 +261,10 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
                                 activity.SetStatus(ActivityStatusCode.Error, exception.Message);
 
-#if !NETFRAMEWORK
                                 if (options.RecordException)
                                 {
                                     activity.AddException(exception);
                                 }
-#endif
                             }
                             else
                             {

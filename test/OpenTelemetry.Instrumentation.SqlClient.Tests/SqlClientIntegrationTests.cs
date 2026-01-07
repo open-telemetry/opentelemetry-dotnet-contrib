@@ -170,7 +170,7 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
         using var listener = new ActivityListener()
         {
             ActivityStarted = activities.Add,
-            Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllData,
+            Sample = (ref _) => ActivitySamplingResult.AllData,
             ShouldListenTo = _ => true,
         };
 
