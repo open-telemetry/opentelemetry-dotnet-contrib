@@ -78,14 +78,7 @@ internal sealed class SqlActivitySourceHelper
 
                 if (activityName == MicrosoftSqlServerDbSystemName)
                 {
-                    if (connectionDetails.Port is { } portNumber)
-                    {
-                        activityName = $"{serverAddress}:{portNumber}";
-                    }
-                    else
-                    {
-                        activityName = serverAddress!;
-                    }
+                    activityName = connectionDetails.Port is { } portNumber ? $"{serverAddress}:{portNumber}" : serverAddress!;
                 }
             }
         }

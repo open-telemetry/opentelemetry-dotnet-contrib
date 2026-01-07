@@ -446,13 +446,12 @@ internal static class SqlProcessor
             {
                 position++;
 
-                if (IsValidTokenCharacter(sql, i, position, state))
+                if (!IsValidTokenCharacter(sql, i, position, state))
                 {
-                    i++;
-                    continue;
+                    break;
                 }
 
-                break;
+                i++;
             }
 
             var length = i - start;
