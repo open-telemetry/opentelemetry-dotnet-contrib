@@ -17,7 +17,7 @@ public sealed class SqlClientIntegrationTestsFixture : IAsyncLifetime
     public Task DisposeAsync() => this.DatabaseContainer.DisposeAsync().AsTask();
 
     private static MsSqlContainer CreateMsSql()
-        => new MsSqlBuilder().WithImage(SqlServerImage).Build();
+        => new MsSqlBuilder(SqlServerImage).Build();
 
     private static string GetSqlServerImage()
     {
