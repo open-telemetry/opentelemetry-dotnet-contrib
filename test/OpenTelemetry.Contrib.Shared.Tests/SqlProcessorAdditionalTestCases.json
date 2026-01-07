@@ -480,9 +480,9 @@
     },
     "expected": {
       "db.query.text": [
-        "CREATE USER johndoe WITH PASSWORD = ?;"
+        "CREATE USER ? WITH PASSWORD = ?;"
       ],
-      "db.query.summary": "CREATE USER johndoe"
+      "db.query.summary": "CREATE USER"
     }
   },
   {
@@ -493,9 +493,9 @@
     },
     "expected": {
       "db.query.text": [
-        "ALTER USER johndoe WITH PASSWORD = ?;"
+        "ALTER USER ? WITH PASSWORD = ?;"
       ],
-      "db.query.summary": "ALTER USER johndoe"
+      "db.query.summary": "ALTER USER"
     }
   },
   {
@@ -506,9 +506,48 @@
     },
     "expected": {
       "db.query.text": [
-        "DROP USER IF EXISTS johndoe;"
+        "DROP USER IF EXISTS ?;"
       ],
-      "db.query.summary": "DROP USER johndoe"
+      "db.query.summary": "DROP USER"
+    }
+  },
+  {
+    "name": "create_login",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "CREATE LOGIN johndoe WITH PASSWORD = 'password';"
+    },
+    "expected": {
+      "db.query.text": [
+        "CREATE LOGIN ? WITH PASSWORD = ?;"
+      ],
+      "db.query.summary": "CREATE LOGIN"
+    }
+  },
+  {
+    "name": "alter_login",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "ALTER LOGIN johndoe WITH PASSWORD = 'newpassword';"
+    },
+    "expected": {
+      "db.query.text": [
+        "ALTER LOGIN ? WITH PASSWORD = ?;"
+      ],
+      "db.query.summary": "ALTER LOGIN"
+    }
+  },
+  {
+    "name": "drop_login",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "DROP LOGIN IF EXISTS johndoe;"
+    },
+    "expected": {
+      "db.query.text": [
+        "DROP LOGIN IF EXISTS ?;"
+      ],
+      "db.query.summary": "DROP LOGIN"
     }
   },
   {

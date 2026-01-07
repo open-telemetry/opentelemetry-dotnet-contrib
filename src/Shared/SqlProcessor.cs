@@ -92,6 +92,7 @@ internal static class SqlProcessor
         Insert,
         Into,
         Join,
+        Login,
         NonClustered,
         Not,
         On,
@@ -422,6 +423,7 @@ internal static class SqlProcessor
                     }
 
                     state.CaptureNextNonKeywordTokenAsIdentifier = SqlKeywordInfo.CaptureNextTokenInSummary(in state, potentialKeywordInfo.SqlKeyword);
+                    state.SanitizeNextNonKeywordToken = SqlKeywordInfo.SanitizeNextToken(in state, potentialKeywordInfo.SqlKeyword);
                     state.InFromClause = potentialKeywordInfo.SqlKeyword == SqlKeyword.From || (state.PreviousParsedKeyword?.SqlKeyword == SqlKeyword.From && state.CaptureNextNonKeywordTokenAsIdentifier);
                     state.PreviousParsedKeyword = potentialKeywordInfo;
                     state.ParsePosition += keywordLength;
@@ -484,8 +486,15 @@ internal static class SqlProcessor
                     }
                 }
 
-                sql.Slice(start, length).CopyTo(buffer.Slice(state.SanitizedPosition));
-                state.SanitizedPosition += length;
+                if (state.SanitizeNextNonKeywordToken)
+                {
+                    buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
+                }
+                else
+                {
+                    sql.Slice(start, length).CopyTo(buffer.Slice(state.SanitizedPosition));
+                    state.SanitizedPosition += length;
+                }
 
                 // Optionally copy to summary buffer.
                 if (state.CaptureNextNonKeywordTokenAsIdentifier)
@@ -500,6 +509,7 @@ internal static class SqlProcessor
 
             state.ParsePosition = i;
             state.CaptureNextNonKeywordTokenAsIdentifier = false;
+            state.SanitizeNextNonKeywordToken = false;
             state.PreviousTokenStartPosition = start;
             state.PreviousTokenEndPosition = i;
         }
@@ -881,6 +891,8 @@ internal static class SqlProcessor
 
         public bool CaptureNextNonKeywordTokenAsIdentifier; // 1 byte
 
+        public bool SanitizeNextNonKeywordToken; // 1 byte
+
         /// <summary>
         /// Used to track if we are in an escaped identifier (e.g., "[table]").
         /// </summary>
@@ -926,6 +938,7 @@ internal static class SqlProcessor
             InsertKeyword = new("insert", SqlKeyword.Insert, Unknown);
             IntoKeyword = new("into", SqlKeyword.Into);
             JoinKeyword = new("join", SqlKeyword.Join);
+            LoginKeyword = new("login", SqlKeyword.Login, DdlKeywords);
             NotKeyword = new("not", SqlKeyword.Not);
             OnKeyword = new("on", SqlKeyword.On);
             ProcedureKeyword = new("procedure", SqlKeyword.Procedure, DdlKeywords);
@@ -952,6 +965,7 @@ internal static class SqlProcessor
                 ProcedureKeyword,
                 TriggerKeyword,
                 DatabaseKeyword,
+                LoginKeyword,
                 UserKeyword,
                 RoleKeyword,
                 SequenceKeyword,
@@ -970,6 +984,7 @@ internal static class SqlProcessor
             IndexKeyword.FollowedByKeywords = [OnKeyword, IfKeyword];
             InsertKeyword.FollowedByKeywords = [IntoKeyword];
             JoinKeyword.FollowedByKeywords = [OnKeyword];
+            LoginKeyword.FollowedByKeywords = [IfKeyword];
             NotKeyword.FollowedByKeywords = [ExistsKeyword];
             OnKeyword.FollowedByKeywords = [JoinKeyword];
             ProcedureKeyword.FollowedByKeywords = [IfKeyword];
@@ -1023,6 +1038,8 @@ internal static class SqlProcessor
 
         public static SqlKeywordInfo JoinKeyword { get; }
 
+        public static SqlKeywordInfo LoginKeyword { get; }
+
         public static SqlKeywordInfo NotKeyword { get; }
 
         public static SqlKeywordInfo OnKeyword { get; }
@@ -1063,13 +1080,29 @@ internal static class SqlProcessor
         public static bool CaptureNextTokenInSummary(in ParseState state, SqlKeyword currentKeyword) => currentKeyword switch
         {
             SqlKeyword.Exec => true,
+            SqlKeyword.Exists => state.FirstSummaryKeyword is SqlKeyword.Create or SqlKeyword.Alter or SqlKeyword.Drop && state.PreviousSummaryKeyword is not (SqlKeyword.Login or SqlKeyword.User),
             SqlKeyword.From => state.PreviousSummaryKeyword is SqlKeyword.Select or SqlKeyword.Distinct,
             SqlKeyword.Into => state.FirstSummaryKeyword is SqlKeyword.Insert,
             SqlKeyword.Join => state.FirstSummaryKeyword is SqlKeyword.Select or SqlKeyword.Join,
-            SqlKeyword.Database or SqlKeyword.Schema or SqlKeyword.Table or SqlKeyword.Index or SqlKeyword.View
-                or SqlKeyword.Procedure or SqlKeyword.Trigger or SqlKeyword.Function or SqlKeyword.User
-                or SqlKeyword.Role or SqlKeyword.Sequence => state.FirstSummaryKeyword is SqlKeyword.Create or SqlKeyword.Alter or SqlKeyword.Drop,
-            SqlKeyword.Exists => state.FirstSummaryKeyword is SqlKeyword.Create or SqlKeyword.Alter or SqlKeyword.Drop,
+            SqlKeyword.Login or SqlKeyword.User => false,
+            SqlKeyword.Database or
+            SqlKeyword.Function or
+            SqlKeyword.Index or
+            SqlKeyword.Procedure or
+            SqlKeyword.Role or
+            SqlKeyword.Schema or
+            SqlKeyword.Sequence or
+            SqlKeyword.Table or
+            SqlKeyword.Trigger or
+            SqlKeyword.View => state.FirstSummaryKeyword is SqlKeyword.Create or SqlKeyword.Alter or SqlKeyword.Drop,
+            _ => false,
+        };
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool SanitizeNextToken(in ParseState state, SqlKeyword currentKeyword) => currentKeyword switch
+        {
+            SqlKeyword.Login or SqlKeyword.User => state.FirstSummaryKeyword is SqlKeyword.Create or SqlKeyword.Alter or SqlKeyword.Drop,
+            SqlKeyword.Exists => state.PreviousSummaryKeyword is SqlKeyword.Login or SqlKeyword.User,
             _ => false,
         };
 
