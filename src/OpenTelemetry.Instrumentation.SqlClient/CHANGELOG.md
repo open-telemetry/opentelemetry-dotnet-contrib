@@ -14,6 +14,10 @@
 * Improve SQL parsing for sanitization for Unicode string literals.
   ([#3662](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3662))
 
+* Sanitize the object name for SQL query text using the LOGIN or USER keywords and
+  remove from query summaries.
+  ([#3663](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3663))
+
 ## 1.14.0-beta.1
 
 Released 2025-Nov-13
