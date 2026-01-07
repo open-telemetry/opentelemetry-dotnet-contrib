@@ -42,7 +42,6 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
     private readonly ExceptionStackExportMode exportExceptionStack;
     private readonly bool userProvidedPrepopulatedFields;
-    private readonly Dictionary<string, object>? prepopulatedFields;
     private readonly IEnumerable<string>? resourceFieldNames;
     private readonly byte[] bufferEpilogue;
     private readonly IDataTransport dataTransport;
@@ -52,6 +51,11 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
     // This is used for Scopes
     private readonly ThreadLocal<SerializationDataForScopes> serializationData = new();
 
+#if NET
+    private FrozenDictionary<string, object>? prepopulatedFields;
+#else
+    private Dictionary<string, object>? prepopulatedFields;
+#endif
     private bool isDisposed;
 
     public MsgPackLogExporter(GenevaExporterOptions options, Func<Resource> resourceProvider)
@@ -111,18 +115,23 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 }
             }
 
-            this.prepopulatedFields = new Dictionary<string, object>(0, StringComparer.Ordinal);
             this.resourceFieldNames = options.ResourceFieldNames;
         }
 
         this.userProvidedPrepopulatedFields = options.PrepopulatedFields != null && options.PrepopulatedFields.Count > 0;
         if (options.PrepopulatedFields != null)
         {
-            this.prepopulatedFields = new Dictionary<string, object>(options.PrepopulatedFields.Count, StringComparer.Ordinal);
+            var tempPrepopulatedFields = new Dictionary<string, object>(options.PrepopulatedFields.Count, StringComparer.Ordinal);
             foreach (var kv in options.PrepopulatedFields)
             {
-                this.prepopulatedFields[kv.Key] = kv.Value;
+                tempPrepopulatedFields[kv.Key] = kv.Value;
             }
+
+#if NET
+            this.prepopulatedFields = tempPrepopulatedFields.ToFrozenDictionary(StringComparer.Ordinal);
+#else
+            this.prepopulatedFields = tempPrepopulatedFields;
+#endif
         }
 
         // TODO: Validate custom fields (reserved name? etc).
@@ -202,10 +211,11 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
     /// </summary>
     internal void AddResourceAttributesToPrepopulated()
     {
-        Guard.ThrowIfNull(this.prepopulatedFields);
-
         var resourceAttributes = this.resourceProvider().Attributes;
 
+        var tempPrepopulatedFields = this.prepopulatedFields != null
+            ? new Dictionary<string, object>(this.prepopulatedFields, StringComparer.Ordinal)
+            : new Dictionary<string, object>(StringComparer.Ordinal);
         foreach (var resourceAttribute in resourceAttributes)
         {
             var key = resourceAttribute.Key;
@@ -278,9 +288,15 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
             if (isWantedAttribute)
             {
-                this.prepopulatedFields[key] = value;
+                tempPrepopulatedFields[key] = value;
             }
         }
+
+#if NET
+        this.prepopulatedFields = tempPrepopulatedFields.ToFrozenDictionary(StringComparer.Ordinal);
+#else
+        this.prepopulatedFields = tempPrepopulatedFields
+#endif
     }
 
     internal ArraySegment<byte> SerializeLogRecord(LogRecord logRecord)
