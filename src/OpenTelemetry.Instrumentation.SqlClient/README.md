@@ -68,7 +68,7 @@ public class Program
 ```
 
 The instrumentation adheres to the
-[semantic conventions for database client spans](semconv-spans).
+[semantic conventions for database client spans][semconv-spans].
 An activity emitted by the instrumentation will include the following list of
 attributes:
 
@@ -107,7 +107,7 @@ public class Program
 ```
 
 The instrumentation adheres to the
-[semantic conventions for database client metrics](semconv-metrics).
+[semantic conventions for database client metrics][semconv-metrics].
 
 Currently, the instrumentation supports the following metric and attributes.
 
@@ -295,8 +295,8 @@ while (reader.Read())
 ## References
 
 * [OpenTelemetry Project](https://opentelemetry.io/)
-* [Semantic conventions for database client spans](semconv-spans)
-* [Semantic conventions for database client metrics](semconv-metrics)
+* [Semantic conventions for database client spans][semconv-spans]
+* [Semantic conventions for database client metrics][semconv-metrics]
 * [Semantic conventions for Microsoft SQL Server client operations](https://github.com/open-telemetry/semantic-conventions/blob/v1.33.0/docs/database/sql-server.md)
 
 [semconv-metrics]: https://github.com/open-telemetry/semantic-conventions/blob/v1.33.0/docs/database/database-metrics.md
