@@ -11,6 +11,9 @@
   cases for escaped identifiers. Optimize performance of parsing logic.
   ([#3627](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3627))
 
+* Improve SQL parsing for sanitization for Unicode string literals.
+  ([#3662](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3662))
+
 ## 1.14.0-beta.1
 
 Released 2025-Nov-13
