@@ -28,6 +28,7 @@ internal static class SqlProcessor
     private const char NewLineChar = '\n';
     private const char CarriageReturnChar = '\r';
     private const char TabChar = '\t';
+    private const char UnicodePrefixChar = 'N';
 
     private static readonly ConcurrentDictionary<string, SqlStatementInfo> Cache = new();
 
@@ -662,9 +663,9 @@ internal static class SqlProcessor
                 return true;
             }
 
-            // Is the string literal of the form N'foo'?
-            // If so, we want to skip the leading N when sanitizing.
-            bool isUnicode = state.ParsePosition >= 1 && sql[state.ParsePosition - 1] is 'N';
+            // Is the string literal of the form `N'foo'` (i.e. a Unicode literal)?
+            // If so, we want to skip the Unicode prefix when sanitizing.
+            bool isUnicode = state.ParsePosition >= 1 && sql[state.ParsePosition - 1] is UnicodePrefixChar;
 
             // Use index arithmetic instead of slicing
             var searchPos = state.ParsePosition + 1;
@@ -682,7 +683,7 @@ internal static class SqlProcessor
                     // Found terminating quote
                     if (isUnicode)
                     {
-                        // Skip the leading N
+                        // Skip the Unicode prefix by overwriting the previous position instead
                         state.SanitizedPosition--;
                     }
 
