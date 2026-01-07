@@ -295,7 +295,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 #if NET
         this.prepopulatedFields = tempPrepopulatedFields.ToFrozenDictionary(StringComparer.Ordinal);
 #else
-        this.prepopulatedFields = tempPrepopulatedFields
+        this.prepopulatedFields = tempPrepopulatedFields;
 #endif
     }
 
