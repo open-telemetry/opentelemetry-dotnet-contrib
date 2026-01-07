@@ -662,6 +662,10 @@ internal static class SqlProcessor
                 return true;
             }
 
+            // Is the string literal of the form N'foo'?
+            // If so, we want to skip the leading N when sanitizing.
+            bool isUnicode = state.ParsePosition >= 1 && sql[state.ParsePosition - 1] is 'N';
+
             // Use index arithmetic instead of slicing
             var searchPos = state.ParsePosition + 1;
             while (searchPos < sql.Length)
@@ -676,6 +680,12 @@ internal static class SqlProcessor
                     }
 
                     // Found terminating quote
+                    if (isUnicode)
+                    {
+                        // Skip the leading N
+                        state.SanitizedPosition--;
+                    }
+
                     state.ParsePosition = searchPos + 1;
                     buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
                     return true;
