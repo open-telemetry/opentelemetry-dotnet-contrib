@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using OpenTelemetry.Instrumentation.SqlClient.Tests;
 using Testcontainers.MySql;
 using Xunit;
 
@@ -24,7 +23,7 @@ public sealed class MySqlIntegrationTestsFixture : IAsyncLifetime
 
     private static string GetMySqlImage()
     {
-        var assembly = typeof(SqlClientIntegrationTestsFixture).Assembly;
+        var assembly = typeof(MySqlIntegrationTestsFixture).Assembly;
 
         using var stream = assembly.GetManifestResourceStream("mysql.Dockerfile");
         using var reader = new StreamReader(stream!);

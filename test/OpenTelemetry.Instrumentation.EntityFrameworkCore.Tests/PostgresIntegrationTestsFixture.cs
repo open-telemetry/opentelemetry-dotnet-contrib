@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using OpenTelemetry.Instrumentation.SqlClient.Tests;
 using Testcontainers.PostgreSql;
 using Xunit;
 
@@ -24,7 +23,7 @@ public sealed class PostgresIntegrationTestsFixture : IAsyncLifetime
 
     private static string GetPostgresImage()
     {
-        var assembly = typeof(SqlClientIntegrationTestsFixture).Assembly;
+        var assembly = typeof(PostgresIntegrationTestsFixture).Assembly;
 
         using var stream = assembly.GetManifestResourceStream("postgres.Dockerfile");
         using var reader = new StreamReader(stream!);
