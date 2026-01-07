@@ -6,6 +6,9 @@
   cases for escaped identifiers. Optimize performance of parsing logic.
   ([#3627](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3627))
 
+* Improve SQL parsing for sanitization for Unicode string literals.
+  ([#3662](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3662))
+
 * Sanitize the object name for SQL query text using the LOGIN or USER keywords and
   remove from query summaries.
   ([#3663](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3663))

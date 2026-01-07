@@ -905,7 +905,7 @@
     },
     "expected": {
       "db.query.text": [
-        "DECLARE @__geräteIds_0 nvarchar(?) = N?;\n\nSELECT [t].[Id]\nFROM [Tests] AS [t]\nWHERE [t].[Id] IN (\n\tSELECT [g].[value]\n\tFROM OPENJSON(@__geräteIds_0) WITH ([value] bigint ?) AS [g]\n)"
+        "DECLARE @__geräteIds_0 nvarchar(?) = ?;\n\nSELECT [t].[Id]\nFROM [Tests] AS [t]\nWHERE [t].[Id] IN (\n\tSELECT [g].[value]\n\tFROM OPENJSON(@__geräteIds_0) WITH ([value] bigint ?) AS [g]\n)"
       ],
       "db.query.summary": "SELECT [Tests]"
     }
@@ -1051,6 +1051,19 @@
         "SELECT * FROM [Order-Details] od JOIN [Customer.Info] ci ON od.CustomerId = ci.Id"
       ],
       "db.query.summary": "SELECT [Order-Details] [Customer.Info]"
+    }
+  },
+  {
+    "name": "unicode_string",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "SELECT * FROM USERS WHERE username = N'john.doe'"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT * FROM USERS WHERE username = ?"
+      ],
+      "db.query.summary": "SELECT USERS"
     }
   }
 ]
