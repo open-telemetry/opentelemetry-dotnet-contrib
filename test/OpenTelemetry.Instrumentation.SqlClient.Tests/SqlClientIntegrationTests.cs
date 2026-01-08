@@ -32,8 +32,9 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
 #if NET
     [InlineData(CommandType.Text, GetContextInfoQuery, GetContextInfoQuery, false, false, false)]
     [InlineData(CommandType.Text, GetContextInfoQuery, GetContextInfoQuery, false, false, true)]
-#endif
     [InlineData(CommandType.StoredProcedure, "sp_who", "sp_who")]
+#endif
+    [InlineData(CommandType.Text, "exec sp_who", "exec sp_who")]
     public void SuccessfulCommandTest(
         CommandType commandType,
         string commandText,
