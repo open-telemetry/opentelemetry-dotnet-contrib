@@ -17,10 +17,12 @@ public class SqlProcessorTests
 
     public static TheoryData<SqlProcessorTestCases.TestCase> TestData => SqlProcessorTestCases.GetSemanticConventionsTestCases();
 
-    [Theory]
+    [SkippableTheory]
     [MemberData(nameof(TestData))]
     public void TestGetSanitizedSql(SqlProcessorTestCases.TestCase testCase)
     {
+        Skip.IfNot(string.IsNullOrWhiteSpace(testCase.Skip), testCase.Skip);
+
         this.output.WriteLine($"Input: {testCase.Input.Query}");
 
         var sqlStatementInfo = SqlProcessor.GetSanitizedSql(testCase.Input.Query);
