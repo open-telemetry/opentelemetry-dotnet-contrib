@@ -46,7 +46,7 @@
   <ItemGroup Label="Production .NET packages">
     <PackageVersion Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="4.14.0" />
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="[10.0.0,)" />
-    <PackageVersion Include="Microsoft.Extensions.Options" Version="[10.0.0,)" />
+    <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.1" />
     <PackageVersion Include="Microsoft.Owin" Version="[4.2.2,)" />
     <PackageVersion Include="Microsoft.Win32.Registry" Version="[5.0.0,)" />
     <PackageVersion Include="System.Drawing.Common" Version="[4.7.2,)" />
