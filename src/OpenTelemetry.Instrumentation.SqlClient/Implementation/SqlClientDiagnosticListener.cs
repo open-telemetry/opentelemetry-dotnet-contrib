@@ -88,6 +88,32 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     _ = this.dataSourceFetcher.TryFetch(connection, out var dataSource);
 
                     var startTags = SqlActivitySourceHelper.GetTagListFromConnectionInfo(dataSource, databaseName, out var activityName);
+
+                    if (this.commandTypeFetcher.TryFetch(command, out var commandType) &&
+                        this.commandTextFetcher.TryFetch(command, out var commandText))
+                    {
+                        switch (commandType)
+                        {
+                            case CommandType.StoredProcedure:
+                                DatabaseSemanticConventionHelper.AddTagsForSamplingAndUpdateActivityNameForStoredProcedure(
+                                    ref startTags,
+                                    commandText,
+                                    ref activityName);
+                                break;
+
+                            case CommandType.Text:
+                                DatabaseSemanticConventionHelper.AddTagsForSamplingAndUpdateActivityNameForQueryText(
+                                    ref startTags,
+                                    commandText,
+                                    ref activityName);
+                                break;
+
+                            case CommandType.TableDirect:
+                            default:
+                                break;
+                        }
+                    }
+
                     activity = SqlActivitySourceHelper.ActivitySource.StartActivity(
                         activityName,
                         ActivityKind.Client,
@@ -146,33 +172,6 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                         if (options.SetDbQueryParameters)
                         {
                             SqlParameterProcessor.AddQueryParameters(activity, command);
-                        }
-
-                        if (this.commandTypeFetcher.TryFetch(command, out var commandType) &&
-                            this.commandTextFetcher.TryFetch(command, out var commandText))
-                        {
-                            switch (commandType)
-                            {
-                                case CommandType.StoredProcedure:
-                                    DatabaseSemanticConventionHelper.ApplyConventionsForStoredProcedure(
-                                        activity,
-                                        commandText,
-                                        emitOldAttributes: false,
-                                        emitNewAttributes: true);
-                                    break;
-
-                                case CommandType.Text:
-                                    DatabaseSemanticConventionHelper.ApplyConventionsForQueryText(
-                                        activity,
-                                        commandText,
-                                        emitOldAttributes: false,
-                                        emitNewAttributes: true);
-                                    break;
-
-                                case CommandType.TableDirect:
-                                default:
-                                    break;
-                            }
                         }
 
                         try

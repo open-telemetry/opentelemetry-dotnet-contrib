@@ -196,6 +196,51 @@ public class SqlClientTests : IDisposable
                        && kvp.Value is int
                        && (int)kvp.Value == testCase.Expected.ServerPort);
         }
+
+        if (!string.IsNullOrEmpty(testCase.Expected.DbQuerySummary))
+        {
+            Assert.Contains(
+                samplingParameters.Tags,
+                kvp => kvp.Key == SemanticConventions.AttributeDbQuerySummary
+                       && kvp.Value is string
+                       && (string)kvp.Value == testCase.Expected.DbQuerySummary);
+        }
+
+        if (!string.IsNullOrEmpty(testCase.Expected.DbQueryText))
+        {
+            Assert.Contains(
+                samplingParameters.Tags,
+                kvp => kvp.Key == SemanticConventions.AttributeDbQueryText
+                       && kvp.Value is string
+                       && (string)kvp.Value == testCase.Expected.DbQueryText);
+        }
+
+        if (!string.IsNullOrEmpty(testCase.Expected.DbOperationName))
+        {
+            Assert.Contains(
+                samplingParameters.Tags,
+                kvp => kvp.Key == SemanticConventions.AttributeDbOperationName
+                       && kvp.Value is string
+                       && (string)kvp.Value == testCase.Expected.DbOperationName);
+        }
+
+        if (!string.IsNullOrEmpty(testCase.Expected.DbCollectionName))
+        {
+            Assert.Contains(
+                samplingParameters.Tags,
+                kvp => kvp.Key == SemanticConventions.AttributeDbCollectionName
+                       && kvp.Value is string
+                       && (string)kvp.Value == testCase.Expected.DbCollectionName);
+        }
+
+        if (!string.IsNullOrEmpty(testCase.Expected.DbStoredProcedureName))
+        {
+            Assert.Contains(
+                samplingParameters.Tags,
+                kvp => kvp.Key == SemanticConventions.AttributeDbStoredProcedureName
+                       && kvp.Value is string
+                       && (string)kvp.Value == testCase.Expected.DbStoredProcedureName);
+        }
     }
 
     private void RunSqlClientTestCase(SqlClientTestCase testCase, SqlClientLibrary library)
