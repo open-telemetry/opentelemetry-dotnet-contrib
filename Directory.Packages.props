@@ -54,7 +54,7 @@
     <PackageVersion Include="System.Private.Uri" Version="[4.3.2,)" />
     <PackageVersion Include="System.Reflection.Emit.Lightweight" Version="[4.7.0,)" />
     <PackageVersion Include="System.Runtime.InteropServices.RuntimeInformation" Version="[4.0.0,)" />
-    <PackageVersion Include="System.Security.Cryptography.Xml" Version="[4.7.1,)" />
+    <PackageVersion Include="System.Security.Cryptography.Xml" Version="10.0.1" />
     <PackageVersion Include="System.ServiceModel.Primitives" Version="[4.7.0,)" />
     <PackageVersion Include="System.Text.Encodings.Web" Version="[4.7.2,)" />
     <PackageVersion Include="System.Text.Json" Version="[8.0.5,)" />
