@@ -1091,5 +1091,178 @@
       ],
       "db.query.summary": "EXEC master.dbo.sp_addlinkedsrvlogin"
     }
+  },
+  {
+    "name": "create_login_with_hashed_password",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "CREATE LOGIN Andreas WITH PASSWORD = 0x02000A1A89CD6C6E4C8B30A282354C8EA0860719D5D3AD05E0CAE1952A1C6107A4ED26BEBA2A13B12FAB5093B3CC2A1055910CC0F4B9686A358604E99BB9933C75B4EA48FDEA HASHED;"
+    },
+    "expected": {
+      "db.query.text": [
+        "CREATE LOGIN ? WITH PASSWORD = ? HASHED;"
+      ],
+      "db.query.summary": "CREATE LOGIN"
+    }
+  },
+  {
+    "name": "alter_login_with_hashed_password",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "ALTER LOGIN TestUser WITH PASSWORD = 0x01000CF35567C60BFB41EBDE4CF700A985A13D773D6B45B90900 HASHED;"
+    },
+    "expected": {
+      "db.query.text": [
+        "ALTER LOGIN ? WITH PASSWORD = ? HASHED;"
+      ],
+      "db.query.summary": "ALTER LOGIN"
+    }
+  },
+  {
+    "name": "alter_login_unlock_with_password",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "ALTER LOGIN [Mary5] WITH PASSWORD = '****' UNLOCK;"
+    },
+    "expected": {
+      "db.query.text": [
+        "ALTER LOGIN [?] WITH PASSWORD = ? UNLOCK;"
+      ],
+      "db.query.summary": "ALTER LOGIN"
+    }
+  },
+  {
+    "name": "create_credential",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "CREATE CREDENTIAL AlterEgo WITH IDENTITY = 'Mary5', SECRET = '<EnterStrongPasswordHere>';"
+    },
+    "expected": {
+      "db.query.text": [
+        "CREATE CREDENTIAL AlterEgo WITH IDENTITY = ?, SECRET = ?;"
+      ],
+      "db.query.summary": "CREATE"
+    }
+  },
+  {
+    "name": "alter_asymmetric_key",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "ALTER ASYMMETRIC KEY PacificSales09 WITH PRIVATE KEY (DECRYPTION BY PASSWORD = '<oldPassword>', ENCRYPTION BY PASSWORD = '<enterStrongPasswordHere>');"
+    },
+    "expected": {
+      "db.query.text": [
+        "ALTER ASYMMETRIC KEY PacificSales09 WITH PRIVATE KEY (DECRYPTION BY PASSWORD = ?, ENCRYPTION BY PASSWORD = ?);"
+      ],
+      "db.query.summary": "ALTER"
+    }
+  },
+  {
+    "name": "alter_certificate",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "ALTER CERTIFICATE Shipping11 WITH PRIVATE KEY (DECRYPTION BY PASSWORD = '95hkjdskghFDGGG4%', ENCRYPTION BY PASSWORD = '34958tosdgfkh##38');"
+    },
+    "expected": {
+      "db.query.text": [
+        "ALTER CERTIFICATE Shipping11 WITH PRIVATE KEY (DECRYPTION BY PASSWORD = ?, ENCRYPTION BY PASSWORD = ?);"
+      ],
+      "db.query.summary": "ALTER"
+    }
+  },
+  {
+    "name": "alter_column_encryption_key",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "ALTER COLUMN ENCRYPTION KEY MyCEK ADD VALUE (COLUMN_MASTER_KEY = MyCMK2, ALGORITHM = 'RSA_OAEP', ENCRYPTED_VALUE = 0x016E000001630075007200720065006E00740075007300650072002F006D0079002F0064006500650063006200660034006100340031003000380034006200350033003200360066003200630062006200350030003600380065003900620061003000320030003600610037003800310066001DDA6134C3B73A90D349C8905782DD819B428162CF5B051639BA46EC69A7C8C8F81591A92C395711493B25DCBCCC57836E5B9F17A0713E840721D098F3F8E023ABCDFE2F6D8CC4339FC8F88630ED9EBADA5CA8EEAFA84164C1095B12AE161EABC1DF778C07F07D413AF1ED900F578FC00894BEE705EAC60F4A5090BBE09885D2EFE1C915F7B4C581D9CE3FDAB78ACF4829F85752E9FC985DEB8773889EE4A1945BD554724803A6F5DC0A2CD5EFE001ABED8D61E8449E4FAA9E4DD392DA8D292ECC6EB149E843E395CDE0F98D04940A28C4B05F747149B34A0BAEC04FFF3E304C84AF1FF81225E615B5F94E334378A0A888EF88F4E79F66CB377E3C21964AACB5049C08435FE84EEEF39D20A665C17E04898914A85B3DE23D56575EBC682D154F4F15C37723E04974DB370180A9A579BC84F6BC9B5E7C223E5CBEE721E57EE07EFDCC0A3257BBEBF9ADFFB00DBF7EF682EC1C4C47451438F90B4CF8DA709940F72CFDC91C6EB4E37B4ED7E2385B1FF71B28A1D2669FBEB18EA89F9D391D2FDDEA0ED362E6A591AC64EF4AE31CA8766C259ECB77D01A7F5C36B8418F91C1BEADDD4491C80F0016B66421B4B788C55127135DA2FA625FB7FD195FB40D90A6C67328602ECAF3EC4F5894BFD84A99EB4753BE0D22E0D4DE6A0ADFEDC80EB1B556749B4A8AD00E73B329C95827AB91C0256347E85E3C5FD6726D0E1FE82C925D3DF4A9);"
+    },
+    "expected": {
+      "db.query.text": [
+        "ALTER COLUMN ENCRYPTION KEY MyCEK ADD VALUE (COLUMN_MASTER_KEY = MyCMK2, ALGORITHM = ?, ENCRYPTED_VALUE = ?);"
+      ],
+      "db.query.summary": "ALTER"
+    }
+  },
+  {
+    "name": "alter_master_key",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "ALTER MASTER KEY REGENERATE WITH ENCRYPTION BY PASSWORD = '<secure password>';"
+    },
+    "expected": {
+      "db.query.text": [
+        "ALTER MASTER KEY REGENERATE WITH ENCRYPTION BY PASSWORD = ?;"
+      ],
+      "db.query.summary": "ALTER"
+    }
+  },
+  {
+    "name": "open_symmetric_key",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "OPEN SYMMETRIC KEY JanainaKey043 DECRYPTION BY CERTIFICATE Shipping04 WITH PASSWORD = '<enterStrongPasswordHere>';"
+    },
+    "expected": {
+      "db.query.text": [
+        "OPEN SYMMETRIC KEY JanainaKey043 DECRYPTION BY CERTIFICATE Shipping04 WITH PASSWORD = ?;"
+      ],
+      "db.query.summary": ""
+    }
+  },
+  {
+    "name": "revoke",
+    "skip": "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/3666",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "REVOKE SELECT ON SCHEMA :: Sales TO Vendors;"
+    },
+    "expected": {
+      "db.query.text": [
+        "REVOKE SELECT ON SCHEMA :: Sales TO Vendors;"
+      ],
+      "db.query.summary": "REVOKE SELECT"
+    }
+  },
+  {
+    "name": "grant",
+    "skip": "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/3666",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "GRANT EXECUTE ON TestProc TO TesterRole WITH GRANT OPTION;"
+    },
+    "expected": {
+      "db.query.text": [
+        "GRANT EXECUTE ON TestProc TO TesterRole WITH GRANT OPTION;"
+      ],
+      "db.query.summary": "GRANT EXECUTE"
+    }
+  },
+  {
+    "name": "deny",
+    "skip": "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/3666",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "DENY CONNECT SQL TO Annika CASCADE;"
+    },
+    "expected": {
+      "db.query.text": [
+        "DENY CONNECT SQL TO Annika CASCADE;"
+      ],
+      "db.query.summary": "DENY CONNECT"
+    }
+  },
+  {
+    "name": "truncate_table",
+    "skip": "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/3666",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "TRUNCATE TABLE HumanResources.JobCandidate;"
+    },
+    "expected": {
+      "db.query.text": [
+        "TRUNCATE TABLE HumanResources.JobCandidate;"
+      ],
+      "db.query.summary": "TRUNCATE TABLE"
+    }
   }
 ]
