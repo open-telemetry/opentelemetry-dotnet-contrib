@@ -86,7 +86,7 @@
     <PackageVersion Include="Microsoft.ServiceFabric.Actors" Version="[7.1.2448,)" />
     <PackageVersion Include="Microsoft.ServiceFabric.Services.Remoting" Version="[7.1.2448,)" />
     <PackageVersion Include="Quartz" Version="[3.6.3,)" />
-    <PackageVersion Include="StackExchange.Redis" Version="[2.6.122,)" />
+    <PackageVersion Include="StackExchange.Redis" Version="2.10.1" />
   </ItemGroup>
 
   <!-- Non-production packages are kept up-to-date by dependency automation -->
