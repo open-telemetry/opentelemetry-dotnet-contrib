@@ -85,6 +85,8 @@ public static class SqlProcessorTestCases
     {
         public string Name { get; set; } = string.Empty;
 
+        public string? Skip { get; set; }
+
         public TestCaseInput Input { get; set; } = new();
 
         public TestCaseExpected Expected { get; set; } = new();
@@ -100,6 +102,7 @@ public static class SqlProcessorTestCases
                 this.Name = proxy.Name;
                 this.Input = proxy.Input;
                 this.Expected = proxy.Expected;
+                this.Skip = proxy.Skip;
             }
             else
             {
