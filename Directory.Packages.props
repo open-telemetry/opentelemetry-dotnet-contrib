@@ -80,7 +80,7 @@
     <PackageVersion Include="Amazon.Lambda.SNSEvents" Version="[2.1.0,)" />
     <PackageVersion Include="Amazon.Lambda.SQSEvents" Version="[2.2.0,)" />
     <PackageVersion Include="CassandraCSharpDriver" Version="[3.17.0,)" />
-    <PackageVersion Include="Confluent.Kafka" Version="[2.4.0,)" />
+    <PackageVersion Include="Confluent.Kafka" Version="2.13.0" />
     <PackageVersion Include="Grpc.Core.Api" Version="[2.46.6,)" />
     <PackageVersion Include="InfluxDB.Client" Version="[4.18.0,)" />
     <PackageVersion Include="Microsoft.ServiceFabric.Actors" Version="[7.1.2448,)" />
