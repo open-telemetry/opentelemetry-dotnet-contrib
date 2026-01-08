@@ -1065,5 +1065,31 @@
       ],
       "db.query.summary": "SELECT USERS"
     }
+  },
+  {
+    "name": "execute_named_stored_procedure_with_no_parameters",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "EXEC sp_who"
+    },
+    "expected": {
+      "db.query.text": [
+        "EXEC sp_who"
+      ],
+      "db.query.summary": "EXEC sp_who"
+    }
+  },
+  {
+    "name": "stored_procedure_that_uses_sensitive_data",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname = N'127.0.0.1', @useself = N'False', @locallogin = NULL, @rmtuser = N'sa', @rmtpassword = 'F@k3P@assw0rd';"
+    },
+    "expected": {
+      "db.query.text": [
+        "EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname = ?, @useself = ?, @locallogin = NULL, @rmtuser = ?, @rmtpassword = ?;"
+      ],
+      "db.query.summary": "EXEC master.dbo.sp_addlinkedsrvlogin"
+    }
   }
 ]
