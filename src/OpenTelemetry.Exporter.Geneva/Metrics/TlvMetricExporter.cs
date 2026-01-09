@@ -212,7 +212,7 @@ internal sealed class TlvMetricExporter : IDisposable
 
                         case MetricType.Histogram:
                             {
-                                var sum = Convert.ToUInt64(metricPoint.GetHistogramSum());
+                                var sum = metricPoint.GetHistogramSum();
                                 var count = Convert.ToUInt32(metricPoint.GetHistogramCount());
                                 if (!metricPoint.TryGetHistogramMinMaxValues(out var min, out var max))
                                 {
@@ -525,7 +525,12 @@ internal sealed class TlvMetricExporter : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void SerializeHistogramMetricData(HistogramBuckets buckets, double sum, uint count, double min, double max, long timestamp, byte[] buffer, ref int bufferIndex)
     {
-        MetricSerializer.SerializeByte(buffer, ref bufferIndex, (byte)PayloadType.ExternallyAggregatedULongDistributionMetric);
+        var useDoubleAggregation = sum < 0 || min < 0 || max < 0;
+
+        MetricSerializer.SerializeByte(
+            buffer,
+            ref bufferIndex,
+            (byte)(useDoubleAggregation ? PayloadType.ExternallyAggregatedDoubleDistributionMetric : PayloadType.ExternallyAggregatedULongDistributionMetric));
 
         // Get a placeholder to add the payloadType length
         var payloadTypeStartIndex = bufferIndex;
@@ -535,15 +540,29 @@ internal sealed class TlvMetricExporter : IDisposable
         MetricSerializer.SerializeUInt32(buffer, ref bufferIndex, count); // histogram count
         MetricSerializer.SerializeUInt32(buffer, ref bufferIndex, 0); // padding
         MetricSerializer.SerializeUInt64(buffer, ref bufferIndex, (ulong)timestamp); // timestamp
-        MetricSerializer.SerializeUInt64(buffer, ref bufferIndex, Convert.ToUInt64(sum)); // histogram sum
-        MetricSerializer.SerializeUInt64(buffer, ref bufferIndex, Convert.ToUInt64(min)); // histogram min
-        MetricSerializer.SerializeUInt64(buffer, ref bufferIndex, Convert.ToUInt64(max)); // histogram max
+
+        if (useDoubleAggregation)
+        {
+            MetricSerializer.SerializeFloat64(buffer, ref bufferIndex, sum); // histogram sum
+            MetricSerializer.SerializeFloat64(buffer, ref bufferIndex, min); // histogram min
+            MetricSerializer.SerializeFloat64(buffer, ref bufferIndex, max); // histogram max
+        }
+        else
+        {
+            MetricSerializer.SerializeUInt64(buffer, ref bufferIndex, SafeConvertDoubleToUInt64(sum)); // histogram sum
+            MetricSerializer.SerializeUInt64(buffer, ref bufferIndex, SafeConvertDoubleToUInt64(min)); // histogram min
+            MetricSerializer.SerializeUInt64(buffer, ref bufferIndex, SafeConvertDoubleToUInt64(max)); // histogram max
+        }
 
         var payloadTypeLength = (ushort)(bufferIndex - payloadTypeStartIndex - 2);
         MetricSerializer.SerializeUInt16(buffer, ref payloadTypeStartIndex, payloadTypeLength);
 
         // Serialize histogram buckets as value-count pairs
-        MetricSerializer.SerializeByte(buffer, ref bufferIndex, (byte)PayloadType.HistogramULongValueCountPairs);
+        var useDoubleEncodedBounds = useDoubleAggregation || !AreAllBoundsUInt64Compatible(buckets);
+        MetricSerializer.SerializeByte(
+            buffer,
+            ref bufferIndex,
+            (byte)(useDoubleEncodedBounds ? PayloadType.HistogramDoubleScaledToUInt64ValueCountPairs : PayloadType.HistogramULongValueCountPairs));
 
         // Get a placeholder to add the payloadType length
         payloadTypeStartIndex = bufferIndex;
@@ -562,7 +581,7 @@ internal sealed class TlvMetricExporter : IDisposable
         {
             if (bucket.BucketCount > 0)
             {
-                SerializeHistogramBucketWithTLV(bucket, buffer, ref bufferIndex, lastExplicitBound);
+                SerializeHistogramBucketWithTLV(bucket, buffer, ref bufferIndex, lastExplicitBound, useDoubleEncodedBounds);
                 bucketCount++;
             }
 
@@ -577,19 +596,81 @@ internal sealed class TlvMetricExporter : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SerializeHistogramBucketWithTLV(in HistogramBucket bucket, byte[] buffer, ref int bufferIndex, double lastExplicitBound)
+    private static void SerializeHistogramBucketWithTLV(in HistogramBucket bucket, byte[] buffer, ref int bufferIndex, double lastExplicitBound, bool useDoubleEncodedBound)
     {
-        if (bucket.ExplicitBound != double.PositiveInfinity)
+        var bound = bucket.ExplicitBound != double.PositiveInfinity ? bucket.ExplicitBound : lastExplicitBound + 1;
+
+        if (useDoubleEncodedBound)
         {
-            MetricSerializer.SerializeUInt64(buffer, ref bufferIndex, Convert.ToUInt64(bucket.ExplicitBound));
+            MetricSerializer.SerializeUInt64(buffer, ref bufferIndex, EncodeDoubleToSortableUInt64(bound));
         }
         else
         {
-            // The bucket to catch the overflows is one greater than the last bound provided
-            MetricSerializer.SerializeUInt64(buffer, ref bufferIndex, Convert.ToUInt64(lastExplicitBound + 1));
+            MetricSerializer.SerializeUInt64(buffer, ref bufferIndex, SafeConvertDoubleToUInt64(bound));
         }
 
         MetricSerializer.SerializeUInt32(buffer, ref bufferIndex, Convert.ToUInt32(bucket.BucketCount));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static ulong SafeConvertDoubleToUInt64(double value)
+    {
+        if (double.IsNaN(value))
+        {
+            return 0;
+        }
+
+        if (value <= 0)
+        {
+            return 0;
+        }
+
+        if (value >= (double)ulong.MaxValue)
+        {
+            return ulong.MaxValue;
+        }
+
+        // For positive values in-range, truncation is OK; histogram aggregates should be integral for long instruments.
+        return (ulong)value;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool AreAllBoundsUInt64Compatible(HistogramBuckets buckets)
+    {
+        double lastExplicitBound = default;
+        foreach (var bucket in buckets)
+        {
+            var bound = bucket.ExplicitBound != double.PositiveInfinity ? bucket.ExplicitBound : lastExplicitBound + 1;
+            if (!IsUInt64CompatibleBound(bound))
+            {
+                return false;
+            }
+
+            lastExplicitBound = bucket.ExplicitBound;
+        }
+
+        return true;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsUInt64CompatibleBound(double bound)
+    {
+        return !double.IsNaN(bound)
+            && !double.IsInfinity(bound)
+            && bound >= 0
+            && bound < (double)ulong.MaxValue
+            && bound == Math.Truncate(bound);
+    }
+
+    // Encodes a double into an unsigned 64-bit integer that preserves numeric ordering when
+    // compared as an unsigned integer. This is a common "sortable double" encoding.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static ulong EncodeDoubleToSortableUInt64(double value)
+    {
+        var bits = (ulong)BitConverter.DoubleToInt64Bits(value);
+        var signMask = (ulong)((long)bits >> 63);
+
+        return bits ^ (signMask | 0x8000_0000_0000_0000UL);
     }
 
     private static string? ConvertTagValueToString(object? value)
