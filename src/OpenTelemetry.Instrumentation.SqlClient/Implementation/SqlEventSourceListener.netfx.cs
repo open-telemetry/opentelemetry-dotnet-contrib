@@ -141,6 +141,18 @@ internal sealed class SqlEventSourceListener : EventListener
         var dataSource = (string)eventData.Payload[1];
         var databaseName = (string)eventData.Payload[2];
         var startTags = SqlActivitySourceHelper.GetTagListFromConnectionInfo(dataSource, databaseName, out var activityName);
+        var commandText = (string)eventData.Payload[3];
+        if (!string.IsNullOrEmpty(commandText))
+        {
+            var sqlStatementInfo = SqlProcessor.GetSanitizedSql(commandText);
+            startTags.Add(SemanticConventions.AttributeDbQueryText, sqlStatementInfo.SanitizedSql);
+            if (!string.IsNullOrEmpty(sqlStatementInfo.DbQuerySummary))
+            {
+                startTags.Add(SemanticConventions.AttributeDbQuerySummary, sqlStatementInfo.DbQuerySummary);
+                activityName = sqlStatementInfo.DbQuerySummary;
+            }
+        }
+
         var activity = SqlActivitySourceHelper.ActivitySource.StartActivity(
             activityName,
             ActivityKind.Client,
@@ -152,21 +164,6 @@ internal sealed class SqlEventSourceListener : EventListener
             // There is no listener or it decided not to sample the current request.
             this.beginTimestamp.Value = Stopwatch.GetTimestamp();
             return;
-        }
-
-        if (activity.IsAllDataRequested)
-        {
-            var commandText = (string)eventData.Payload[3];
-            if (!string.IsNullOrEmpty(commandText))
-            {
-                var sqlStatementInfo = SqlProcessor.GetSanitizedSql(commandText);
-                activity.SetTag(SemanticConventions.AttributeDbQueryText, sqlStatementInfo.SanitizedSql);
-                if (!string.IsNullOrEmpty(sqlStatementInfo.DbQuerySummary))
-                {
-                    activity.SetTag(SemanticConventions.AttributeDbQuerySummary, sqlStatementInfo.DbQuerySummary);
-                    activity.DisplayName = sqlStatementInfo.DbQuerySummary;
-                }
-            }
         }
     }
 

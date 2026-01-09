@@ -94,6 +94,31 @@ internal static class DatabaseSemanticConventionHelper
         }
     }
 
+    public static void AddTagsForSamplingAndUpdateActivityNameForQueryText(
+        ref TagList tagList,
+        string? commandText,
+        ref string activityName,
+        bool sanitizeQuery = true)
+    {
+        string queryText = commandText ?? string.Empty;
+        string querySummary = string.Empty;
+
+        if (sanitizeQuery)
+        {
+            var sqlStatementInfo = SqlProcessor.GetSanitizedSql(commandText);
+            queryText = sqlStatementInfo.SanitizedSql;
+            querySummary = sqlStatementInfo.DbQuerySummary;
+        }
+
+        tagList.Add(SemanticConventions.AttributeDbQueryText, queryText);
+
+        if (!string.IsNullOrEmpty(querySummary))
+        {
+            tagList.Add(SemanticConventions.AttributeDbQuerySummary, querySummary);
+            activityName = querySummary;
+        }
+    }
+
     public static void ApplyConventionsForStoredProcedure(
         Activity activity,
         string? commandText,
@@ -113,6 +138,18 @@ internal static class DatabaseSemanticConventionHelper
             activity.SetTag(SemanticConventions.AttributeDbQuerySummary, dbQuerySummary);
             activity.DisplayName = dbQuerySummary;
         }
+    }
+
+    public static void AddTagsForSamplingAndUpdateActivityNameForStoredProcedure(
+        ref TagList tagsList,
+        string? commandText,
+        ref string activityName)
+    {
+        tagsList.Add(SemanticConventions.AttributeDbOperationName, "EXECUTE");
+        tagsList.Add(SemanticConventions.AttributeDbStoredProcedureName, commandText);
+        var dbQuerySummary = $"EXECUTE {commandText}";
+        tagsList.Add(SemanticConventions.AttributeDbQuerySummary, dbQuerySummary);
+        activityName = dbQuerySummary;
     }
 
     private static bool TryGetConfiguredValues(IConfiguration configuration, [NotNullWhen(true)] out HashSet<string>? values)

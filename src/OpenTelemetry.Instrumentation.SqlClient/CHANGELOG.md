@@ -21,6 +21,11 @@
 * Improve SQL parsing to generate query summaries for more T-SQL keywords.
   ([#3671](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3671))
 
+* Make additional attributes available on `Activity` start. The full list of
+  attributes available at time of sampling now conforms with the
+  [semantic conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.33.0/docs/database/database-spans.md#span-definition).
+  ([#3675](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3675))
+
 ## 1.14.0-beta.1
 
 Released 2025-Nov-13
