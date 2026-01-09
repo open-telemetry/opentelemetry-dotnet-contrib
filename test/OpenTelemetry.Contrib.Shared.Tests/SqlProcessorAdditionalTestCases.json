@@ -1210,8 +1210,7 @@
     }
   },
   {
-    "name": "revoke",
-    "skip": "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/3666",
+    "name": "revoke_select",
     "input": {
       "db.system.name": "microsoft.sql_server",
       "query": "REVOKE SELECT ON SCHEMA :: Sales TO Vendors;"
@@ -1220,12 +1219,24 @@
       "db.query.text": [
         "REVOKE SELECT ON SCHEMA :: Sales TO Vendors;"
       ],
-      "db.query.summary": "REVOKE SELECT"
+      "db.query.summary": "REVOKE"
+    }
+  },
+  {
+    "name": "grant_select",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "GRANT SELECT ON SCHEMA :: Sales TO Vendors;"
+    },
+    "expected": {
+      "db.query.text": [
+        "GRANT SELECT ON SCHEMA :: Sales TO Vendors;"
+      ],
+      "db.query.summary": "GRANT"
     }
   },
   {
     "name": "grant",
-    "skip": "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/3666",
     "input": {
       "db.system.name": "microsoft.sql_server",
       "query": "GRANT EXECUTE ON TestProc TO TesterRole WITH GRANT OPTION;"
@@ -1234,12 +1245,11 @@
       "db.query.text": [
         "GRANT EXECUTE ON TestProc TO TesterRole WITH GRANT OPTION;"
       ],
-      "db.query.summary": "GRANT EXECUTE"
+      "db.query.summary": "GRANT"
     }
   },
   {
     "name": "deny",
-    "skip": "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/3666",
     "input": {
       "db.system.name": "microsoft.sql_server",
       "query": "DENY CONNECT SQL TO Annika CASCADE;"
@@ -1248,12 +1258,11 @@
       "db.query.text": [
         "DENY CONNECT SQL TO Annika CASCADE;"
       ],
-      "db.query.summary": "DENY CONNECT"
+      "db.query.summary": "DENY"
     }
   },
   {
     "name": "truncate_table",
-    "skip": "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/3666",
     "input": {
       "db.system.name": "microsoft.sql_server",
       "query": "TRUNCATE TABLE HumanResources.JobCandidate;"
@@ -1263,6 +1272,84 @@
         "TRUNCATE TABLE HumanResources.JobCandidate;"
       ],
       "db.query.summary": "TRUNCATE TABLE"
+    }
+  },
+  {
+    "name": "update_statistics",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "UPDATE STATISTICS Sales.SalesOrderDetail (AK_SalesOrderDetail_rowguid);"
+    },
+    "expected": {
+      "db.query.text": [
+        "UPDATE STATISTICS Sales.SalesOrderDetail (AK_SalesOrderDetail_rowguid);"
+      ],
+      "db.query.summary": "UPDATE STATISTICS Sales.SalesOrderDetail"
+    }
+  },
+  {
+    "name": "backup_database",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "BACKUP DATABASE Sales TO URL = 'https://mystorageaccount.blob.core.windows.net/myfirstcontainer/Sales.bak' WITH STATS = 5;"
+    },
+    "expected": {
+      "db.query.text": [
+        "BACKUP DATABASE Sales TO URL = ? WITH STATS = ?;"
+      ],
+      "db.query.summary": "BACKUP DATABASE"
+    }
+  },
+  {
+    "name": "restore_database",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "RESTORE DATABASE AdventureWorks2022 FROM AdventureWorks2022Backups;"
+    },
+    "expected": {
+      "db.query.text": [
+        "RESTORE DATABASE AdventureWorks2022 FROM AdventureWorks2022Backups;"
+      ],
+      "db.query.summary": "RESTORE DATABASE"
+    }
+  },
+  {
+    "name": "bulk_insert",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "BULK INSERT my_data FROM 'C:\\data\\data.csv';"
+    },
+    "expected": {
+      "db.query.text": [
+        "BULK INSERT my_data FROM ?;"
+      ],
+      "db.query.summary": "BULK INSERT"
+    }
+  },
+  {
+    "name": "disable_trigger",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "DISABLE TRIGGER Person.uAddress ON Person.Address;"
+    },
+    "expected": {
+      "db.query.text": [
+        "DISABLE TRIGGER Person.uAddress ON Person.Address;"
+      ],
+      "db.query.summary": "DISABLE TRIGGER Person.uAddress"
+    }
+  },
+  {
+    "name": "enable_trigger",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "ENABLE TRIGGER Person.uAddress ON Person.Address;"
+    },
+    "expected": {
+      "db.query.text": [
+        "ENABLE TRIGGER Person.uAddress ON Person.Address;"
+      ],
+      "db.query.summary": "ENABLE TRIGGER Person.uAddress"
     }
   }
 ]
