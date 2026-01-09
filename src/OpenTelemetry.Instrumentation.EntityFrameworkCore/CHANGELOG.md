@@ -13,6 +13,9 @@
   remove from query summaries.
   ([#3663](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3663))
 
+* Improve SQL parsing to generate query summaries for more T-SQL keywords.
+  ([#3671](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3671))
+
 ## 1.14.0-beta.2
 
 Released 2025-Nov-14

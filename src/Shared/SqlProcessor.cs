@@ -61,6 +61,16 @@ internal static class SqlProcessor
         SqlKeywordInfo.AlterKeyword,
         SqlKeywordInfo.DropKeyword,
         SqlKeywordInfo.ExecKeyword,
+        SqlKeywordInfo.ExecuteKeyword,
+        SqlKeywordInfo.GrantKeyword,
+        SqlKeywordInfo.DenyKeyword,
+        SqlKeywordInfo.TruncateKeyword,
+        SqlKeywordInfo.RevokeKeyword,
+        SqlKeywordInfo.BulkKeyword,
+        SqlKeywordInfo.DisableKeyword,
+        SqlKeywordInfo.EnableKeyword,
+        SqlKeywordInfo.BackupKeyword,
+        SqlKeywordInfo.RestoreKeyword,
     ];
 
     // This is a special case used when handling sub-queries in parentheses.
@@ -77,17 +87,25 @@ internal static class SqlProcessor
     private enum SqlKeyword
     {
         Unknown,
+        Backup,
+        Bulk,
         Alter,
         Clustered,
+        Connect,
         Create,
         Database,
         Delete,
+        Deny,
+        Disable,
         Distinct,
         Drop,
+        Enable,
         Exec,
+        Execute,
         Exists,
         From,
         Function,
+        Grant,
         If,
         Index,
         Insert,
@@ -98,12 +116,16 @@ internal static class SqlProcessor
         Not,
         On,
         Procedure,
+        Restore,
+        Revoke,
         Role,
         Schema,
         Select,
         Sequence,
+        Statistics,
         Table,
         Trigger,
+        Truncate,
         Unique,
         Union,
         Update,
@@ -935,29 +957,41 @@ internal static class SqlProcessor
             // Phase 1: Create all static instances.
             // We will compare the SQL we are parsing in lowercase, so we store these in lowercase also.
             AlterKeyword = new("alter", SqlKeyword.Alter, Unknown);
+            BackupKeyword = new("backup", SqlKeyword.Backup, Unknown);
+            BulkKeyword = new("bulk", SqlKeyword.Bulk, Unknown);
+            ConnectKeyword = new("connect", SqlKeyword.Connect, Unknown);
             CreateKeyword = new("create", SqlKeyword.Create, Unknown);
-            DatabaseKeyword = new("database", SqlKeyword.Database, DdlKeywords);
+            DatabaseKeyword = new("database", SqlKeyword.Database, [.. DdlKeywords, SqlKeyword.Backup, SqlKeyword.Restore]);
             DeleteKeyword = new("delete", SqlKeyword.Delete, Unknown);
+            DenyKeyword = new("deny", SqlKeyword.Deny, Unknown);
+            DisableKeyword = new("disable", SqlKeyword.Disable, Unknown);
             DropKeyword = new("drop", SqlKeyword.Drop, Unknown);
+            EnableKeyword = new("enable", SqlKeyword.Enable, Unknown);
             ExecKeyword = new("exec", SqlKeyword.Exec, Unknown);
+            ExecuteKeyword = new("execute", SqlKeyword.Execute, Unknown);
             ExistsKeyword = new("exists", SqlKeyword.Exists);
             FromKeyword = new("from", SqlKeyword.From);
             FunctionKeyword = new("function", SqlKeyword.Function, DdlKeywords);
+            GrantKeyword = new("grant", SqlKeyword.Grant, Unknown);
             IfKeyword = new("if", SqlKeyword.If);
             IndexKeyword = new("index", SqlKeyword.Index, [.. DdlKeywords, SqlKeyword.Unique, SqlKeyword.Clustered, SqlKeyword.NonClustered]);
-            InsertKeyword = new("insert", SqlKeyword.Insert, Unknown);
+            InsertKeyword = new("insert", SqlKeyword.Insert, [SqlKeyword.Unknown, SqlKeyword.Bulk]);
             IntoKeyword = new("into", SqlKeyword.Into);
             JoinKeyword = new("join", SqlKeyword.Join);
             LoginKeyword = new("login", SqlKeyword.Login, DdlKeywords);
             NotKeyword = new("not", SqlKeyword.Not);
             OnKeyword = new("on", SqlKeyword.On);
             ProcedureKeyword = new("procedure", SqlKeyword.Procedure, DdlKeywords);
+            RestoreKeyword = new("restore", SqlKeyword.Restore, Unknown);
+            RevokeKeyword = new("revoke", SqlKeyword.Revoke, Unknown);
             RoleKeyword = new("role", SqlKeyword.Role, DdlKeywords);
             SchemaKeyword = new("schema", SqlKeyword.Schema, DdlKeywords);
             SelectKeyword = new("select", SqlKeyword.Select, [SqlKeyword.Select, SqlKeyword.Unknown]);
             SequenceKeyword = new("sequence", SqlKeyword.Sequence, DdlKeywords);
-            TableKeyword = new("table", SqlKeyword.Table, DdlKeywords);
-            TriggerKeyword = new("trigger", SqlKeyword.Trigger, DdlKeywords);
+            StatisticsKeyword = new("statistics", SqlKeyword.Statistics, [SqlKeyword.Update]);
+            TableKeyword = new("table", SqlKeyword.Table, [.. DdlKeywords, SqlKeyword.Truncate]);
+            TriggerKeyword = new("trigger", SqlKeyword.Trigger, [.. DdlKeywords, SqlKeyword.Enable, SqlKeyword.Disable]);
+            TruncateKeyword = new("truncate", SqlKeyword.Truncate, Unknown);
             UnionKeyword = new("union", SqlKeyword.Union);
             UnknownKeyword = new(string.Empty, SqlKeyword.Unknown);
             UpdateKeyword = new("update", SqlKeyword.Update, Unknown);
@@ -985,11 +1019,17 @@ internal static class SqlProcessor
 
             // Phase 3: Wire follow relationships
             AlterKeyword.FollowedByKeywords = DdlSubKeywords;
+            BackupKeyword.FollowedByKeywords = [DatabaseKeyword];
+            BulkKeyword.FollowedByKeywords = [InsertKeyword];
             CreateKeyword.FollowedByKeywords = DdlSubKeywords;
             DatabaseKeyword.FollowedByKeywords = [IfKeyword];
+            DenyKeyword.FollowedByKeywords = [ConnectKeyword];
+            DisableKeyword.FollowedByKeywords = [TriggerKeyword];
             DropKeyword.FollowedByKeywords = DdlSubKeywords;
+            EnableKeyword.FollowedByKeywords = [TriggerKeyword];
             FromKeyword.FollowedByKeywords = [JoinKeyword, UnionKeyword];
             FunctionKeyword.FollowedByKeywords = [IfKeyword];
+            GrantKeyword.FollowedByKeywords = [ConnectKeyword];
             IfKeyword.FollowedByKeywords = [NotKeyword, ExistsKeyword];
             IndexKeyword.FollowedByKeywords = [OnKeyword, IfKeyword];
             InsertKeyword.FollowedByKeywords = [IntoKeyword];
@@ -998,13 +1038,17 @@ internal static class SqlProcessor
             NotKeyword.FollowedByKeywords = [ExistsKeyword];
             OnKeyword.FollowedByKeywords = [JoinKeyword];
             ProcedureKeyword.FollowedByKeywords = [IfKeyword];
+            RestoreKeyword.FollowedByKeywords = [DatabaseKeyword];
+            RevokeKeyword.FollowedByKeywords = [ConnectKeyword];
             RoleKeyword.FollowedByKeywords = [IfKeyword];
             SchemaKeyword.FollowedByKeywords = [IfKeyword, UnionKeyword];
             SelectKeyword.FollowedByKeywords = [FromKeyword];
             SequenceKeyword.FollowedByKeywords = [IfKeyword];
             TableKeyword.FollowedByKeywords = [IfKeyword];
             TriggerKeyword.FollowedByKeywords = [IfKeyword];
+            TruncateKeyword.FollowedByKeywords = [TableKeyword];
             UnionKeyword.FollowedByKeywords = [SelectKeyword];
+            UpdateKeyword.FollowedByKeywords = [StatisticsKeyword];
             UserKeyword.FollowedByKeywords = [IfKeyword];
             ViewKeyword.FollowedByKeywords = [IfKeyword];
         }
@@ -1022,21 +1066,37 @@ internal static class SqlProcessor
 
         public static SqlKeywordInfo AlterKeyword { get; }
 
+        public static SqlKeywordInfo BackupKeyword { get; }
+
+        public static SqlKeywordInfo BulkKeyword { get; }
+
+        public static SqlKeywordInfo ConnectKeyword { get; }
+
         public static SqlKeywordInfo CreateKeyword { get; }
 
         public static SqlKeywordInfo DatabaseKeyword { get; }
 
         public static SqlKeywordInfo DeleteKeyword { get; }
 
+        public static SqlKeywordInfo DenyKeyword { get; }
+
+        public static SqlKeywordInfo DisableKeyword { get; }
+
         public static SqlKeywordInfo DropKeyword { get; }
 
+        public static SqlKeywordInfo EnableKeyword { get; }
+
         public static SqlKeywordInfo ExecKeyword { get; }
+
+        public static SqlKeywordInfo ExecuteKeyword { get; }
 
         public static SqlKeywordInfo ExistsKeyword { get; }
 
         public static SqlKeywordInfo FromKeyword { get; }
 
         public static SqlKeywordInfo FunctionKeyword { get; }
+
+        public static SqlKeywordInfo GrantKeyword { get; }
 
         public static SqlKeywordInfo IfKeyword { get; }
 
@@ -1056,6 +1116,10 @@ internal static class SqlProcessor
 
         public static SqlKeywordInfo ProcedureKeyword { get; }
 
+        public static SqlKeywordInfo RestoreKeyword { get; }
+
+        public static SqlKeywordInfo RevokeKeyword { get; }
+
         public static SqlKeywordInfo RoleKeyword { get; }
 
         public static SqlKeywordInfo SchemaKeyword { get; }
@@ -1064,9 +1128,13 @@ internal static class SqlProcessor
 
         public static SqlKeywordInfo SequenceKeyword { get; }
 
+        public static SqlKeywordInfo StatisticsKeyword { get; }
+
         public static SqlKeywordInfo TableKeyword { get; }
 
         public static SqlKeywordInfo TriggerKeyword { get; }
+
+        public static SqlKeywordInfo TruncateKeyword { get; }
 
         public static SqlKeywordInfo UnionKeyword { get; }
 
@@ -1095,6 +1163,9 @@ internal static class SqlProcessor
             SqlKeyword.Into => state.FirstSummaryKeyword is SqlKeyword.Insert,
             SqlKeyword.Join => state.FirstSummaryKeyword is SqlKeyword.Select or SqlKeyword.Join,
             SqlKeyword.Login or SqlKeyword.User => false,
+            SqlKeyword.Statistics => state.FirstSummaryKeyword is SqlKeyword.Update,
+            SqlKeyword.Trigger => state.FirstSummaryKeyword is SqlKeyword.Create or SqlKeyword.Alter or SqlKeyword.Drop or SqlKeyword.Disable or SqlKeyword.Enable,
+            SqlKeyword.Truncate => state.FirstSummaryKeyword is SqlKeyword.Table,
             SqlKeyword.Database or
             SqlKeyword.Function or
             SqlKeyword.Index or
@@ -1103,7 +1174,6 @@ internal static class SqlProcessor
             SqlKeyword.Schema or
             SqlKeyword.Sequence or
             SqlKeyword.Table or
-            SqlKeyword.Trigger or
             SqlKeyword.View => state.FirstSummaryKeyword is SqlKeyword.Create or SqlKeyword.Alter or SqlKeyword.Drop,
             _ => false,
         };
