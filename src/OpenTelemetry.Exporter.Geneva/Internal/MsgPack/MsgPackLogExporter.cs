@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using OpenTelemetry.Exporter.Geneva.Transports;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Logs;
+using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Exporter.Geneva.MsgPack;
 
@@ -19,7 +20,8 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 {
     public const int BUFFER_SIZE = 65360; // the maximum ETW payload (inclusive)
 
-    internal static readonly ThreadLocal<byte[]> Buffer = new();
+    // This helps tests subscribe to the output of this class
+    internal Action<ArraySegment<byte>>? DataTransportListener;
 
     private static readonly Action<LogRecordScope, MsgPackLogExporter> ProcessScopeForIndividualColumnsAction = OnProcessScopeForIndividualColumns;
     private static readonly Action<LogRecordScope, MsgPackLogExporter> ProcessScopeForEnvPropertiesAction = OnProcessScopeForEnvProperties;
@@ -28,31 +30,40 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         "Trace", "Debug", "Information", "Warning", "Error", "Critical", "None"
     ];
 
+    private readonly ThreadLocal<byte[]> buffer = new();
     private readonly bool shouldExportEventName;
     private readonly TableNameSerializer tableNameSerializer;
 
 #if NET
     private readonly FrozenSet<string>? customFields;
-    private readonly FrozenDictionary<string, object>? prepopulatedFields;
 #else
     private readonly HashSet<string>? customFields;
-    private readonly Dictionary<string, object>? prepopulatedFields;
 #endif
 
     private readonly ExceptionStackExportMode exportExceptionStack;
-    private readonly List<string>? prepopulatedFieldKeys;
+    private readonly bool userProvidedPrepopulatedFields;
+    private readonly IEnumerable<string>? resourceFieldNames;
     private readonly byte[] bufferEpilogue;
     private readonly IDataTransport dataTransport;
+    private readonly Func<Resource> resourceProvider;
     private readonly int stringFieldSizeLimitCharCount; // the maximum string size limit for MsgPack strings
 
     // This is used for Scopes
     private readonly ThreadLocal<SerializationDataForScopes> serializationData = new();
 
+#if NET
+    private FrozenDictionary<string, object>? prepopulatedFields;
+#else
+    private Dictionary<string, object>? prepopulatedFields;
+#endif
     private bool isDisposed;
 
-    public MsgPackLogExporter(GenevaExporterOptions options)
+    public MsgPackLogExporter(GenevaExporterOptions options, Func<Resource> resourceProvider)
     {
         Guard.ThrowIfNull(options);
+        Guard.ThrowIfNull(resourceProvider);
+
+        this.resourceProvider = resourceProvider;
 
         this.tableNameSerializer = new(options, defaultTableName: "Log");
         this.exportExceptionStack = options.ExceptionStackExportMode;
@@ -88,14 +99,32 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         }
 
         this.stringFieldSizeLimitCharCount = connectionStringBuilder.PrivatePreviewLogMessagePackStringSizeLimit;
+
+        if (options.PrepopulatedFields != null && options.PrepopulatedFields.Count > 0 && options.ResourceFieldNames != null)
+        {
+            throw new ArgumentException("PrepopulatedFields and ResourceFieldNames are mutually exclusive options");
+        }
+
+        if (options.ResourceFieldNames != null)
+        {
+            foreach (var wantedResourceAttribute in options.ResourceFieldNames)
+            {
+                if (PART_A_MAPPING_DICTIONARY.Values.Contains(wantedResourceAttribute))
+                {
+                    throw new ArgumentException($"'{wantedResourceAttribute}' cannot be specified through a resource attribute. Remove it from ResourceFieldNames");
+                }
+            }
+
+            this.resourceFieldNames = options.ResourceFieldNames;
+        }
+
+        this.userProvidedPrepopulatedFields = options.PrepopulatedFields != null && options.PrepopulatedFields.Count > 0;
         if (options.PrepopulatedFields != null)
         {
-            this.prepopulatedFieldKeys = [];
             var tempPrepopulatedFields = new Dictionary<string, object>(options.PrepopulatedFields.Count, StringComparer.Ordinal);
             foreach (var kv in options.PrepopulatedFields)
             {
                 tempPrepopulatedFields[kv.Key] = kv.Value;
-                this.prepopulatedFieldKeys.Add(kv.Key);
             }
 
 #if NET
@@ -124,7 +153,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         var buffer = new byte[BUFFER_SIZE];
         var cursor = MessagePackSerializer.Serialize(buffer, 0, new Dictionary<string, object> { { "TimeFormat", "DateTime" } });
         this.bufferEpilogue = new byte[cursor - 0];
-        System.Buffer.BlockCopy(buffer, 0, this.bufferEpilogue, 0, cursor - 0);
+        Buffer.BlockCopy(buffer, 0, this.bufferEpilogue, 0, cursor - 0);
     }
 
     internal bool IsUsingUnixDomainSocket => this.dataTransport is UnixDomainSocketDataTransport;
@@ -138,6 +167,8 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             try
             {
                 var data = this.SerializeLogRecord(logRecord);
+
+                this.DataTransportListener?.Invoke(data);
 
                 this.dataTransport.Send(data.Array!, data.Count);
             }
@@ -160,11 +191,11 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             return;
         }
 
-        // DO NOT Dispose m_buffer as it is a static type
         try
         {
             (this.dataTransport as IDisposable)?.Dispose();
             this.serializationData.Dispose();
+            this.buffer.Dispose();
         }
         catch (Exception ex)
         {
@@ -174,27 +205,127 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         this.isDisposed = true;
     }
 
+    /// <summary>
+    /// Updates the prepopulatedFields field to include resource attributes only available at runtime.
+    /// This function needs to be idempotent in case it's accidentally called twice.
+    /// </summary>
+    internal void AddResourceAttributesToPrepopulated()
+    {
+        var resourceAttributes = this.resourceProvider().Attributes;
+
+        var tempPrepopulatedFields = this.prepopulatedFields != null
+            ? new Dictionary<string, object>(this.prepopulatedFields, StringComparer.Ordinal)
+            : new Dictionary<string, object>(StringComparer.Ordinal);
+        foreach (var resourceAttribute in resourceAttributes)
+        {
+            var key = resourceAttribute.Key;
+            var value = resourceAttribute.Value;
+
+            var isWantedAttribute = false;
+            if (this.resourceFieldNames != null)
+            {
+                // this might seem inefficient, but it's only run once and I don't expect there to be many resource attributes
+                foreach (var wantedAttribute in this.resourceFieldNames!)
+                {
+                    if (wantedAttribute == key)
+                    {
+                        switch (value)
+                        {
+                            case bool:
+                            case byte:
+                            case sbyte:
+                            case short:
+                            case ushort:
+                            case int:
+                            case uint:
+                            case long:
+                            case ulong:
+                            case float:
+                            case double:
+                            case string:
+                                break;
+                            case null:
+                                // This should be impossible because Resource attributes cannot have null values.
+                                // But just in case, turn it into something serializable to avoid crashing.
+                                value = "<NULL>";
+                                break;
+                            default:
+                                // Try to construct a value that communicates that the type is not supported.
+                                try
+                                {
+                                    var stringValue = Convert.ToString(value, CultureInfo.InvariantCulture);
+                                    value = stringValue == null ? "<Unsupported type>" : $"<Unsupported type: {stringValue}>";
+                                }
+                                catch
+                                {
+                                    value = "<Unsupported type>";
+                                }
+
+                                break;
+                        }
+
+                        isWantedAttribute = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!this.userProvidedPrepopulatedFields)
+            {
+                // it's only safe to add these special resource fields if we are sure the user didn't provide them as a PrepopulatedField already
+                if (key == "service.name")
+                {
+                    key = Schema.V40.PartA.Extensions.Cloud.Role;
+                    isWantedAttribute = true;
+                }
+
+                if (key == "service.instanceId")
+                {
+                    key = Schema.V40.PartA.Extensions.Cloud.RoleInstance;
+                    isWantedAttribute = true;
+                }
+            }
+
+            if (isWantedAttribute)
+            {
+                tempPrepopulatedFields[key] = value;
+            }
+        }
+
+#if NET
+        this.prepopulatedFields = tempPrepopulatedFields.ToFrozenDictionary(StringComparer.Ordinal);
+#else
+        this.prepopulatedFields = tempPrepopulatedFields;
+#endif
+    }
+
     internal ArraySegment<byte> SerializeLogRecord(LogRecord logRecord)
     {
         // `LogRecord.State` and `LogRecord.StateValues` were marked Obsolete in https://github.com/open-telemetry/opentelemetry-dotnet/pull/4334
 #pragma warning disable 0618
-        IReadOnlyList<KeyValuePair<string, object?>>? listKvp;
+        IReadOnlyList<KeyValuePair<string, object?>>? logFields;
         if (logRecord.StateValues != null)
         {
-            listKvp = logRecord.StateValues;
+            logFields = logRecord.StateValues;
         }
         else
         {
             // Attempt to see if State could be ROL_KVP.
-            listKvp = logRecord.State as IReadOnlyList<KeyValuePair<string, object?>>;
+            logFields = logRecord.State as IReadOnlyList<KeyValuePair<string, object?>>;
         }
 #pragma warning restore 0618
 
-        var buffer = Buffer.Value ??= new byte[BUFFER_SIZE]; // TODO: handle OOM
+        var buffer = this.buffer.Value;
+        if (buffer == null)
+        {
+            this.AddResourceAttributesToPrepopulated();
+            buffer = new byte[BUFFER_SIZE]; // TODO: handle OOM
+            this.buffer.Value = buffer;
+        }
 
         /* Fluentd Forward Mode:
         [
-            "Log",
+            "Log", // (or category name)
             [
                 [ <timestamp>, { "env_ver": "4.0", ... } ]
             ],
@@ -227,13 +358,11 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         ushort cntFields = 0;
         var idxMapSizePatch = cursor - 2;
 
-        if (this.prepopulatedFieldKeys != null)
+        if (this.prepopulatedFields != null)
         {
-            for (var i = 0; i < this.prepopulatedFieldKeys.Count; i++)
+            foreach (var field in this.prepopulatedFields)
             {
-                var key = this.prepopulatedFieldKeys[i];
-                var value = this.prepopulatedFields![key];
-                cursor = AddPartAField(buffer, cursor, key, value);
+                cursor = AddPartAField(buffer, cursor, field.Key, field.Value);
                 cntFields += 1;
             }
         }
@@ -298,9 +427,9 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         var hasEnvProperties = false;
         var bodyPopulated = false;
         var namePopulated = false;
-        for (var i = 0; i < listKvp?.Count; i++)
+        for (var i = 0; i < logFields?.Count; i++)
         {
-            var entry = listKvp[i];
+            var entry = logFields[i];
 
             // Iteration #1 - Get those fields which become dedicated columns
             // i.e all Part B fields and opt-in Part C fields.
@@ -377,9 +506,9 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_properties");
             cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, ushort.MaxValue);
             var idxMapSizeEnvPropertiesPatch = cursor - 2;
-            for (var i = 0; i < listKvp!.Count; i++)
+            for (var i = 0; i < logFields!.Count; i++)
             {
-                var entry = listKvp[i];
+                var entry = logFields[i];
                 if (entry.Key == "{OriginalFormat}" || this.customFields!.Contains(entry.Key))
                 {
                     continue;
@@ -451,7 +580,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         }
 
         MessagePackSerializer.WriteUInt16(buffer, idxMapSizePatch, cntFields);
-        System.Buffer.BlockCopy(this.bufferEpilogue, 0, buffer, cursor, this.bufferEpilogue.Length);
+        Buffer.BlockCopy(this.bufferEpilogue, 0, buffer, cursor, this.bufferEpilogue.Length);
         cursor += this.bufferEpilogue.Length;
         return new(buffer, 0, cursor);
     }

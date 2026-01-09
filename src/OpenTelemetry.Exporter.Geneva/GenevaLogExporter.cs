@@ -17,10 +17,10 @@ namespace OpenTelemetry.Exporter.Geneva;
 /// </summary>
 public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
 {
+    internal readonly IDisposable Exporter;
     internal bool IsUsingUnixDomainSocket;
 
     private readonly ExportLogRecordFunc exportLogRecord;
-    private readonly IDisposable exporter;
 
     private bool isDisposed;
 
@@ -46,7 +46,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
             var eventHeaderLogExporter = new EventHeaderLogExporter(options);
             this.IsUsingUnixDomainSocket = false;
             this.exportLogRecord = eventHeaderLogExporter.Export;
-            this.exporter = eventHeaderLogExporter;
+            this.Exporter = eventHeaderLogExporter;
             return;
 #else
             throw new ArgumentException("Exporting data in user_events is only supported for .NET 8 or later on Linux.");
@@ -90,17 +90,21 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
 
         if (useMsgPackExporter)
         {
-            var msgPackLogExporter = new MsgPackLogExporter(options);
+            var msgPackLogExporter = new MsgPackLogExporter(options, () =>
+            {
+                // this is not equivalent to passing a method reference, because the ParentProvider could change after the constructor.
+                return this.ParentProvider.GetResource();
+            });
             this.IsUsingUnixDomainSocket = msgPackLogExporter.IsUsingUnixDomainSocket;
             this.exportLogRecord = msgPackLogExporter.Export;
-            this.exporter = msgPackLogExporter;
+            this.Exporter = msgPackLogExporter;
         }
         else
         {
             var tldLogExporter = new TldLogExporter(options);
             this.IsUsingUnixDomainSocket = false;
             this.exportLogRecord = tldLogExporter.Export;
-            this.exporter = tldLogExporter;
+            this.Exporter = tldLogExporter;
         }
     }
 
@@ -124,7 +128,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         {
             try
             {
-                this.exporter.Dispose();
+                this.Exporter.Dispose();
             }
             catch (Exception ex)
             {
