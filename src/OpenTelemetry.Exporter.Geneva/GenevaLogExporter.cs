@@ -9,6 +9,7 @@ using OpenTelemetry.Exporter.Geneva.MsgPack;
 using OpenTelemetry.Exporter.Geneva.Tld;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Logs;
+using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
@@ -93,7 +94,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
             var msgPackLogExporter = new MsgPackLogExporter(options, () =>
             {
                 // this is not equivalent to passing a method reference, because the ParentProvider could change after the constructor.
-                return this.ParentProvider.GetResource();
+                return this.ParentProvider?.GetResource() ?? Resource.Empty;
             });
             this.IsUsingUnixDomainSocket = msgPackLogExporter.IsUsingUnixDomainSocket;
             this.exportLogRecord = msgPackLogExporter.Export;

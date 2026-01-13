@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using OpenTelemetry.Exporter.Geneva.MsgPack;
 using OpenTelemetry.Exporter.Geneva.Tld;
 using OpenTelemetry.Internal;
+using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
@@ -72,7 +73,7 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
             var msgPackTraceExporter = new MsgPackTraceExporter(options, () =>
             {
                 // this is not equivalent to passing a method reference, because the ParentProvider could change after the constructor.
-                return this.ParentProvider.GetResource();
+                return this.ParentProvider?.GetResource() ?? Resource.Empty;
             });
             this.IsUsingUnixDomainSocket = msgPackTraceExporter.IsUsingUnixDomainSocket;
             this.exportActivity = msgPackTraceExporter.Export;
