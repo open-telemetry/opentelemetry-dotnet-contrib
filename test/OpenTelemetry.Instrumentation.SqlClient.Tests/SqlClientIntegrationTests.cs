@@ -69,8 +69,6 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
 
         sqlConnection.Open();
 
-        var dataSource = sqlConnection.DataSource;
-
         sqlConnection.ChangeDatabase("master");
         SqlTransaction? transaction = null;
 #pragma warning disable CA2100
@@ -91,7 +89,7 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
         {
             commandResult = sqlCommand.ExecuteScalar();
         }
-        catch
+        catch (Exception)
         {
         }
 
@@ -137,8 +135,6 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
 
         await sqlConnection.OpenAsync();
 
-        var dataSource = sqlConnection.DataSource;
-
         sqlConnection.ChangeDatabase("master");
 
         using var sqlCommand = new SqlCommand("SELECT @x + @y", sqlConnection);
@@ -166,12 +162,10 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
         var activities = new List<Activity>();
         var metrics = new List<MetricSnapshot>();
 
-        using var listener = new ActivityListener()
-        {
-            ActivityStarted = activities.Add,
-            Sample = (ref _) => ActivitySamplingResult.AllData,
-            ShouldListenTo = _ => true,
-        };
+        using var listener = new ActivityListener();
+        listener.ActivityStarted = activities.Add;
+        listener.Sample = (ref _) => ActivitySamplingResult.AllData;
+        listener.ShouldListenTo = _ => true;
 
         ActivitySource.AddActivityListener(listener);
 
@@ -183,8 +177,6 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
         using var sqlConnection = new SqlConnection(this.GetConnectionString());
 
         await sqlConnection.OpenAsync();
-
-        var dataSource = sqlConnection.DataSource;
 
         sqlConnection.ChangeDatabase("master");
 
