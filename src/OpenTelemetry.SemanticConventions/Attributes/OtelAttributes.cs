@@ -44,6 +44,14 @@ public static class OtelAttributes
     public const string AttributeOtelComponentType = "otel.component.type";
 
     /// <summary>
+    /// Identifies the class / type of event.
+    /// </summary>
+    /// <remarks>
+    /// This attribute SHOULD be used by non-OTLP exporters when destination does not support <c>EventName</c> or equivalent field. This attribute MAY be used by applications using existing logging libraries so that it can be used to set the <c>EventName</c> field by Collector or SDK components.
+    /// </remarks>
+    public const string AttributeOtelEventName = "otel.event.name";
+
+    /// <summary>
     /// The name of the instrumentation scope - (<c>InstrumentationScope.Name</c> in OTLP).
     /// </summary>
     public const string AttributeOtelScopeName = "otel.scope.name";

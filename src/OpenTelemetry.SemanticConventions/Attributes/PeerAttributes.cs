@@ -24,5 +24,6 @@ public static class PeerAttributes
     ///   <li>A gRPC service <c>rpc.service="io.opentelemetry.AuthService"</c> may be hosted in both a gateway, <c>peer.service="ExternalApiService"</c> and a backend, <c>peer.service="AuthService"</c>.</li>
     /// </ul>
     /// </remarks>
+    [Obsolete("Replaced by <c>service.peer.name</c>.")]
     public const string AttributePeerService = "peer.service";
 }

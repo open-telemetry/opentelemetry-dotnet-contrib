@@ -64,7 +64,17 @@ public static class ServiceAttributes
     public const string AttributeServiceNamespace = "service.namespace";
 
     /// <summary>
-    /// The version string of the service API or implementation. The format is not defined by these conventions.
+    /// Logical name of the service on the other side of the connection. SHOULD be equal to the actual <a href="/docs/resource/README.md#service"><c>service.name</c></a> resource attribute of the remote service if any.
+    /// </summary>
+    public const string AttributeServicePeerName = "service.peer.name";
+
+    /// <summary>
+    /// Logical namespace of the service on the other side of the connection. SHOULD be equal to the actual <a href="/docs/resource/README.md#service"><c>service.namespace</c></a> resource attribute of the remote service if any.
+    /// </summary>
+    public const string AttributeServicePeerNamespace = "service.peer.namespace";
+
+    /// <summary>
+    /// The version string of the service component. The format is not defined by these conventions.
     /// </summary>
     public const string AttributeServiceVersion = "service.version";
 }

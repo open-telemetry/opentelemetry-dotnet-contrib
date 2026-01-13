@@ -394,6 +394,28 @@ public static class K8sAttributes
     public const string AttributeK8sPodAnnotationTemplate = "k8s.pod.annotation";
 
     /// <summary>
+    /// Specifies the hostname of the Pod.
+    /// </summary>
+    /// <remarks>
+    /// The K8s Pod spec has an optional hostname field, which can be used to specify a hostname.
+    /// Refer to <a href="https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-hostname-and-subdomain-field">K8s docs</a>
+    /// for more information about this field.
+    /// <p>
+    /// This attribute aligns with the <c>hostname</c> field of the
+    /// <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#podspec-v1-core">K8s PodSpec</a>.
+    /// </remarks>
+    public const string AttributeK8sPodHostname = "k8s.pod.hostname";
+
+    /// <summary>
+    /// IP address allocated to the Pod.
+    /// </summary>
+    /// <remarks>
+    /// This attribute aligns with the <c>podIP</c> field of the
+    /// <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#podstatus-v1-core">K8s PodStatus</a>.
+    /// </remarks>
+    public const string AttributeK8sPodIp = "k8s.pod.ip";
+
+    /// <summary>
     /// The label placed on the Pod, the <c><key></c> being the label name, the value being the label value.
     /// </summary>
     /// <remarks>
@@ -419,6 +441,19 @@ public static class K8sAttributes
     /// The name of the Pod.
     /// </summary>
     public const string AttributeK8sPodName = "k8s.pod.name";
+
+    /// <summary>
+    /// The start timestamp of the Pod.
+    /// </summary>
+    /// <remarks>
+    /// Date and time at which the object was acknowledged by the Kubelet.
+    /// This is before the Kubelet pulled the container image(s) for the pod.
+    /// <p>
+    /// This attribute aligns with the <c>startTime</c> field of the
+    /// <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#podstatus-v1-core">K8s PodStatus</a>,
+    /// in ISO 8601 (RFC 3339 compatible) format.
+    /// </remarks>
+    public const string AttributeK8sPodStartTime = "k8s.pod.start_time";
 
     /// <summary>
     /// The phase for the pod. Corresponds to the <c>phase</c> field of the: <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#podstatus-v1-core">K8s PodStatus</a>.
