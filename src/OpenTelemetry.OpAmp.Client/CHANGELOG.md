@@ -19,7 +19,7 @@
   ([#3618](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3618))
 
 * Expose public `CustomCapabilitiesMessage` and `CustomMessageMessage`.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#3681](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3681))
 
 ## 0.1.0-alpha.3
 
