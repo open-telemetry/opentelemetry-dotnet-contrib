@@ -17,11 +17,13 @@ public static class LinuxAttributes
     /// <summary>
     /// The Linux Slab memory state.
     /// </summary>
+    [Obsolete("Replaced by <c>system.memory.linux.slab.state</c>.")]
     public const string AttributeLinuxMemorySlabState = "linux.memory.slab.state";
 
     /// <summary>
     /// The Linux Slab memory state.
     /// </summary>
+    [Obsolete("Replaced by <c>system.memory.linux.slab.state</c>.")]
     public static class LinuxMemorySlabStateValues
     {
         /// <summary>
