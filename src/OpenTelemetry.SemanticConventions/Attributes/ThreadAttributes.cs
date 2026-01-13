@@ -20,7 +20,7 @@ public static class ThreadAttributes
     /// <remarks>
     /// Examples of where the value can be extracted from:
     /// <p>
-    /// | Language or platform  | Source |
+    /// | Language or platform | Source |
     /// | --- | --- |
     /// | JVM | <c>Thread.currentThread().threadId()</c> |
     /// | .NET | <c>Thread.CurrentThread.ManagedThreadId</c> |
@@ -37,7 +37,7 @@ public static class ThreadAttributes
     /// <remarks>
     /// Examples of where the value can be extracted from:
     /// <p>
-    /// | Language or platform  | Source |
+    /// | Language or platform | Source |
     /// | --- | --- |
     /// | JVM | <c>Thread.currentThread().getName()</c> |
     /// | .NET | <c>Thread.CurrentThread.Name</c> |

@@ -178,6 +178,11 @@ public static class GenAiAttributes
     public const string AttributeGenAiPrompt = "gen_ai.prompt";
 
     /// <summary>
+    /// The name of the prompt that uniquely identifies it.
+    /// </summary>
+    public const string AttributeGenAiPromptName = "gen_ai.prompt.name";
+
+    /// <summary>
     /// The Generative AI provider as identified by the client or server instrumentation.
     /// </summary>
     /// <remarks>

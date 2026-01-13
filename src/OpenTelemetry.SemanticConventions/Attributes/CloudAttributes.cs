@@ -79,6 +79,11 @@ public static class CloudAttributes
     public static class CloudPlatformValues
     {
         /// <summary>
+        /// Akamai Cloud Compute.
+        /// </summary>
+        public const string AkamaiCloudCompute = "akamai_cloud.compute";
+
+        /// <summary>
         /// Alibaba Cloud Elastic Compute Service.
         /// </summary>
         public const string AlibabaCloudEcs = "alibaba_cloud_ecs";
@@ -164,6 +169,11 @@ public static class CloudAttributes
         public const string AzureOpenshift = "azure.openshift";
 
         /// <summary>
+        /// Google Vertex AI Agent Engine.
+        /// </summary>
+        public const string GcpAgentEngine = "gcp.agent_engine";
+
+        /// <summary>
         /// Google Bare Metal Solution (BMS).
         /// </summary>
         public const string GcpBareMetalSolution = "gcp_bare_metal_solution";
@@ -199,6 +209,11 @@ public static class CloudAttributes
         public const string GcpOpenshift = "gcp_openshift";
 
         /// <summary>
+        /// Server on Hetzner Cloud.
+        /// </summary>
+        public const string HetznerCloudServer = "hetzner.cloud_server";
+
+        /// <summary>
         /// Red Hat OpenShift on IBM Cloud.
         /// </summary>
         public const string IbmCloudOpenshift = "ibm_cloud_openshift";
@@ -227,6 +242,11 @@ public static class CloudAttributes
         /// Tencent Cloud Serverless Cloud Function (SCF).
         /// </summary>
         public const string TencentCloudScf = "tencent_cloud_scf";
+
+        /// <summary>
+        /// Vultr Cloud Compute.
+        /// </summary>
+        public const string VultrCloudCompute = "vultr.cloud_compute";
     }
 
     /// <summary>
@@ -234,6 +254,11 @@ public static class CloudAttributes
     /// </summary>
     public static class CloudProviderValues
     {
+        /// <summary>
+        /// Akamai Cloud.
+        /// </summary>
+        public const string AkamaiCloud = "akamai_cloud";
+
         /// <summary>
         /// Alibaba Cloud.
         /// </summary>
@@ -260,6 +285,11 @@ public static class CloudAttributes
         public const string Heroku = "heroku";
 
         /// <summary>
+        /// Hetzner.
+        /// </summary>
+        public const string Hetzner = "hetzner";
+
+        /// <summary>
         /// IBM Cloud.
         /// </summary>
         public const string IbmCloud = "ibm_cloud";
@@ -273,5 +303,10 @@ public static class CloudAttributes
         /// Tencent Cloud.
         /// </summary>
         public const string TencentCloud = "tencent_cloud";
+
+        /// <summary>
+        /// Vultr.
+        /// </summary>
+        public const string Vultr = "vultr";
     }
 }

@@ -52,6 +52,11 @@ public static class SystemAttributes
     public const string AttributeSystemFilesystemType = "system.filesystem.type";
 
     /// <summary>
+    /// The Linux Slab memory state.
+    /// </summary>
+    public const string AttributeSystemMemoryLinuxSlabState = "system.memory.linux.slab.state";
+
+    /// <summary>
     /// The memory state.
     /// </summary>
     public const string AttributeSystemMemoryState = "system.memory.state";
@@ -192,6 +197,22 @@ public static class SystemAttributes
         /// ext4.
         /// </summary>
         public const string Ext4 = "ext4";
+    }
+
+    /// <summary>
+    /// The Linux Slab memory state.
+    /// </summary>
+    public static class SystemMemoryLinuxSlabStateValues
+    {
+        /// <summary>
+        /// reclaimable.
+        /// </summary>
+        public const string Reclaimable = "reclaimable";
+
+        /// <summary>
+        /// unreclaimable.
+        /// </summary>
+        public const string Unreclaimable = "unreclaimable";
     }
 
     /// <summary>
