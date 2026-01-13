@@ -4,6 +4,12 @@ OpenTelemetry.OpAmp.Client.Messages.AgentConfigFile
 OpenTelemetry.OpAmp.Client.Messages.AgentConfigFile.Body.get -> System.ReadOnlySpan<byte>
 OpenTelemetry.OpAmp.Client.Messages.AgentConfigFile.ContentType.get -> string?
 OpenTelemetry.OpAmp.Client.Messages.AgentConfigFile.Name.get -> string!
+OpenTelemetry.OpAmp.Client.Messages.CustomCapabilitiesMessage
+OpenTelemetry.OpAmp.Client.Messages.CustomCapabilitiesMessage.Capabilities.get -> System.Collections.Generic.ICollection<string!>!
+OpenTelemetry.OpAmp.Client.Messages.CustomMessageMessage
+OpenTelemetry.OpAmp.Client.Messages.CustomMessageMessage.Capability.get -> string!
+OpenTelemetry.OpAmp.Client.Messages.CustomMessageMessage.Data.get -> System.ReadOnlySpan<byte>
+OpenTelemetry.OpAmp.Client.Messages.CustomMessageMessage.Type.get -> string!
 OpenTelemetry.OpAmp.Client.Messages.OpAmpMessage
 OpenTelemetry.OpAmp.Client.Messages.OpAmpMessage.OpAmpMessage() -> void
 OpenTelemetry.OpAmp.Client.Messages.RemoteConfigMessage

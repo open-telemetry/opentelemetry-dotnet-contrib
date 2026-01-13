@@ -18,6 +18,9 @@
 * Add settings for remote configuration and update advertised capabilities.
   ([#3618](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3618))
 
+* Expose public `CustomCapabilitiesMessage` and `CustomMessageMessage`.
+  ([#3681](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3681))
+
 ## 0.1.0-alpha.3
 
 Released 2025-Nov-13
