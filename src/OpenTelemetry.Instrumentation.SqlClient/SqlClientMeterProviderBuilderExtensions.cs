@@ -32,7 +32,7 @@ public static class SqlClientMeterProviderBuilderExtensions
             return SqlClientInstrumentation.Instance.HandleManager.AddMetricHandle();
         });
 
-        builder.AddMeter(SqlActivitySourceHelper.MeterName);
+        builder.AddMeter(SqlTelemetryHelper.Meter.Name);
 
         return builder;
     }

@@ -251,7 +251,7 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
             }
         }
 
-        Assert.Equal(SqlActivitySourceHelper.MicrosoftSqlServerDbSystemName, activity.GetTagValue(SemanticConventions.AttributeDbSystemName));
+        Assert.Equal(SqlTelemetryHelper.MicrosoftSqlServerDbSystemName, activity.GetTagValue(SemanticConventions.AttributeDbSystemName));
         Assert.Equal("master", activity.GetTagValue(SemanticConventions.AttributeDbNamespace));
 
         Assert.DoesNotContain(activity.TagObjects, tag => tag.Key.StartsWith("db.query.parameter.", StringComparison.Ordinal));
@@ -281,7 +281,7 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
             samplingParameters.Tags,
             kvp => kvp.Key == SemanticConventions.AttributeDbSystemName
                    && kvp.Value != null
-                   && (string)kvp.Value == SqlActivitySourceHelper.MicrosoftSqlServerDbSystemName);
+                   && (string)kvp.Value == SqlTelemetryHelper.MicrosoftSqlServerDbSystemName);
     }
 
     private string GetConnectionString()

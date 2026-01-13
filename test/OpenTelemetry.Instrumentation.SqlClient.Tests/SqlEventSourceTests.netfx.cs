@@ -227,7 +227,7 @@ public class SqlEventSourceTests
             Assert.Equal(connectionDetails.Port, activity.GetTagValue(SemanticConventions.AttributeServerPort));
         }
 
-        Assert.Equal(SqlActivitySourceHelper.MicrosoftSqlServerDbSystemName, activity.GetTagValue(SemanticConventions.AttributeDbSystemName));
+        Assert.Equal(SqlTelemetryHelper.MicrosoftSqlServerDbSystemName, activity.GetTagValue(SemanticConventions.AttributeDbSystemName));
         Assert.Equal("instanceName.master", activity.GetTagValue(SemanticConventions.AttributeDbNamespace));
         Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
 

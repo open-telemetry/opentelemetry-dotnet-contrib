@@ -62,7 +62,7 @@ public class SqlClientTests : IDisposable
         string? expectedServerIpAddress,
         int? expectedPort)
     {
-        var tags = SqlActivitySourceHelper.GetTagListFromConnectionInfo(dataSource, databaseName: null, out var _);
+        var tags = SqlTelemetryHelper.GetTagListFromConnectionInfo(dataSource, databaseName: null, out var _);
         Assert.Equal(expectedServerHostName ?? expectedServerIpAddress, tags.FirstOrDefault(x => x.Key == SemanticConventions.AttributeServerAddress).Value);
         Assert.Equal(expectedPort, tags.FirstOrDefault(x => x.Key == SemanticConventions.AttributeServerPort).Value);
     }
@@ -168,7 +168,7 @@ public class SqlClientTests : IDisposable
             samplingParameters.Tags,
             kvp => kvp.Key == SemanticConventions.AttributeDbSystemName
                    && kvp.Value is string
-                   && (string)kvp.Value == SqlActivitySourceHelper.MicrosoftSqlServerDbSystemName);
+                   && (string)kvp.Value == SqlTelemetryHelper.MicrosoftSqlServerDbSystemName);
 
         if (testCase.Expected.DbNamespace != null)
         {

@@ -93,7 +93,7 @@ public class SqlClientTestCaseExpected
     [JsonPropertyName("db.stored_procedure.name")]
     public string? DbStoredProcedureName { get; set; }
 
-    public string DbSystemName { get; set; } = SqlActivitySourceHelper.MicrosoftSqlServerDbSystemName;
+    public string DbSystemName { get; set; } = SqlTelemetryHelper.MicrosoftSqlServerDbSystemName;
 
     [JsonPropertyName("error.type")]
     public string? ErrorType { get; set; }
