@@ -77,6 +77,20 @@ public class GenevaTraceExporterTests : IDisposable
             });
         });
 
+        // mutually exclusive ResourceFieldNames and PrepopulatedFields
+        Assert.Throws<ArgumentException>(() =>
+        {
+            using var exporter = new GenevaTraceExporter(new GenevaExporterOptions
+            {
+                ConnectionString = connectionString,
+                ResourceFieldNames = ["resource"],
+                PrepopulatedFields = new Dictionary<string, object>
+                {
+                    ["prepopulated"] = "hello",
+                },
+            });
+        });
+
         // unsupported types(char) for PrepopulatedFields
         Assert.Throws<ArgumentException>(() =>
         {
@@ -203,31 +217,54 @@ public class GenevaTraceExporterTests : IDisposable
         }
     }
 
+    // hasResourceAttributes and hasPrepopulatedFields are mutually exclusive
     [Theory]
-    [InlineData(false, false, false)]
-    [InlineData(false, true, false)]
-    [InlineData(true, false, false)]
-    [InlineData(true, true, false)]
-    [InlineData(false, false, true)]
-    [InlineData(false, true, true)]
-    [InlineData(true, false, true)]
-    [InlineData(true, true, true)]
-    public void GenevaTraceExporter_Serialization_Success(bool hasTableNameMapping, bool hasCustomFields, bool includeTraceState)
+    [InlineData(false, false, false, false, true)]
+    [InlineData(false, true, false, false, true)]
+    [InlineData(true, false, false, false, true)]
+    [InlineData(true, true, false, false, true)]
+    [InlineData(false, false, true, false, true)]
+    [InlineData(false, true, true, false, true)]
+    [InlineData(true, false, true, false, true)]
+    [InlineData(true, true, true, false, true)]
+    [InlineData(false, false, false, true, false)]
+    [InlineData(false, true, false, true, false)]
+    [InlineData(true, false, false, true, false)]
+    [InlineData(true, true, false, true, false)]
+    [InlineData(false, false, true, true, false)]
+    [InlineData(false, true, true, true, false)]
+    [InlineData(true, false, true, true, false)]
+    [InlineData(true, true, true, true, false)]
+    [InlineData(false, false, false, false, false)]
+    [InlineData(false, true, false, false, false)]
+    [InlineData(true, false, false, false, false)]
+    [InlineData(true, true, false, false, false)]
+    [InlineData(false, false, true, false, false)]
+    [InlineData(false, true, true, false, false)]
+    [InlineData(true, false, true, false, false)]
+    [InlineData(true, true, true, false, false)]
+    public void GenevaTraceExporter_Serialization_Success(bool hasTableNameMapping, bool hasCustomFields, bool includeTraceState, bool hasPrepopulatedFields, bool hasResourceAttributes)
     {
         var path = string.Empty;
         Socket server = null;
         try
         {
             var invocationCount = 0;
-            var exporterOptions = new GenevaExporterOptions
+            var exporterOptions = new GenevaExporterOptions();
+            if (hasPrepopulatedFields)
             {
-                PrepopulatedFields = new Dictionary<string, object>
+                exporterOptions.PrepopulatedFields = new Dictionary<string, object>
                 {
                     ["cloud.roleVer"] = "9.0.15289.2",
                     ["resourceAndPrepopulated"] = "comes from prepopulated",
-                },
-                ResourceFieldNames = ["resourceAttribute", "resourceAndPrepopulated"],
-            };
+                };
+            }
+
+            if (hasResourceAttributes)
+            {
+                exporterOptions.ResourceFieldNames = ["resourceAttribute", "resourceAndPrepopulated"];
+            }
+
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
@@ -249,8 +286,8 @@ public class GenevaTraceExporterTests : IDisposable
 
             if (hasCustomFields)
             {
-                // The tag "clientRequestId" should be present in the mapping as a separate key. Other tags which are not present
-                // in the m_dedicatedFields should be added in the mapping under "env_properties"
+                // The tag "clientRequestId" should be present in the exported data as a separate key. Other tags which are not present
+                // in DedicatedFields should be added in the mapping under "env_properties"
                 exporterOptions.CustomFields = ["clientRequestId"];
             }
 
@@ -347,8 +384,16 @@ public class GenevaTraceExporterTests : IDisposable
 
                         this.AssertMappingEntry(userFieldsLocation, "foo", 1);
                         this.AssertMappingEntry(userFieldsLocation, "bar", 2);
-                        this.AssertMappingEntry(mapping, "resourceAttribute", "resourceValue");
-                        this.AssertMappingEntry(mapping, "resourceAndPrepopulated", "comes from resource");
+
+                        if (hasResourceAttributes)
+                        {
+                            this.AssertMappingEntry(mapping, "resourceAttribute", "resourceValue");
+                            this.AssertMappingEntry(mapping, "resourceAndPrepopulated", "comes from resource");
+                        }
+                        else if (hasPrepopulatedFields)
+                        {
+                            this.AssertMappingEntry(mapping, "resourceAndPrepopulated", "comes from prepopulated");
+                        }
 
                         // Linked spans are checked in CheckSpanForActivity, so no need to do a custom check here
                     });
@@ -394,7 +439,6 @@ public class GenevaTraceExporterTests : IDisposable
     public void GenevaTraceExporter_Resource_Overwrites_Prepopulated()
     {
         var path = string.Empty;
-        Socket server = null;
         try
         {
             var exporterOptions = new GenevaExporterOptions
@@ -413,9 +457,6 @@ public class GenevaTraceExporterTests : IDisposable
                 path = GetRandomFilePath();
                 exporterOptions.ConnectionString = "Endpoint=unix:" + path;
                 var endpoint = new UnixDomainSocketEndPoint(path);
-                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
-                server.Bind(endpoint);
-                server.Listen(1);
             }
 
             Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
@@ -452,7 +493,136 @@ public class GenevaTraceExporterTests : IDisposable
         }
         finally
         {
-            server?.Dispose();
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    [Fact]
+    public void AutoMappedResourceAttrDoesNotOverridePrepopulated()
+    {
+        var path = string.Empty;
+        try
+        {
+            var exporterOptions = new GenevaExporterOptions
+            {
+                PrepopulatedFields = new Dictionary<string, object>
+                {
+                    ["cloud.role"] = "cloud.role from prepopulated",
+                },
+            };
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+            }
+            else
+            {
+                path = GetRandomFilePath();
+                exporterOptions.ConnectionString = "Endpoint=unix:" + path;
+                var endpoint = new UnixDomainSocketEndPoint(path);
+            }
+
+            using var exporter = new GenevaTraceExporter(exporterOptions);
+
+            // Set the ActivitySourceName to the unique value of the test method name to avoid interference with
+            // the ActivitySource used by other unit tests.
+            var sourceName = GetTestMethodName();
+
+            using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .SetSampler(new AlwaysOnSampler())
+                .ConfigureResource(resourceBuilder => resourceBuilder.AddService("cloud.role from resource"))
+                .AddSource(sourceName)
+                .AddProcessor(new ReentrantExportProcessor<Activity>(exporter))
+                .Build();
+
+            var source = new ActivitySource(sourceName);
+            using (var activity = source.StartActivity("test"))
+            {
+            }
+
+            var exportedData = (exporter.Exporter as MsgPackTraceExporter).Buffer.Value;
+            var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(exportedData, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+
+            var signal = (fluentdData as object[])[0] as string;
+            var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
+
+            var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;
+
+            Assert.Contains("env_cloud_role", mapping.Keys);
+            Assert.Equal("cloud.role from prepopulated", mapping["env_cloud_role"]);
+        }
+        finally
+        {
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    [Fact]
+    public void AutoMappedResourceAttr()
+    {
+        var path = string.Empty;
+        try
+        {
+            var exporterOptions = new GenevaExporterOptions
+            {
+                PrepopulatedFields = new Dictionary<string, object>
+                {
+                    // no prepopulated fields
+                },
+            };
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+            }
+            else
+            {
+                path = GetRandomFilePath();
+                exporterOptions.ConnectionString = "Endpoint=unix:" + path;
+                var endpoint = new UnixDomainSocketEndPoint(path);
+            }
+
+            using var exporter = new GenevaTraceExporter(exporterOptions);
+
+            // Set the ActivitySourceName to the unique value of the test method name to avoid interference with
+            // the ActivitySource used by other unit tests.
+            var sourceName = GetTestMethodName();
+
+            using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .SetSampler(new AlwaysOnSampler())
+                .ConfigureResource(resourceBuilder => resourceBuilder.AddService("cloud.role from resource"))
+                .AddSource(sourceName)
+                .AddProcessor(new ReentrantExportProcessor<Activity>(exporter))
+                .Build();
+
+            var source = new ActivitySource(sourceName);
+            using (var activity = source.StartActivity("test"))
+            {
+            }
+
+            var exportedData = (exporter.Exporter as MsgPackTraceExporter).Buffer.Value;
+            var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(exportedData, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+
+            var signal = (fluentdData as object[])[0] as string;
+            var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
+
+            var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;
+
+            Assert.Contains("env_cloud_role", mapping.Keys);
+            Assert.Equal("cloud.role from resource", mapping["env_cloud_role"]);
+        }
+        finally
+        {
             try
             {
                 File.Delete(path);
@@ -637,11 +807,6 @@ public class GenevaTraceExporterTests : IDisposable
         {
             var exporterOptions = new GenevaExporterOptions
             {
-                PrepopulatedFields = new Dictionary<string, object>
-                {
-                    ["unaffected prepopulated"] = "should be present",
-                },
-
                 ResourceFieldNames = [], // ResourceFieldNames empty
             };
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -724,10 +889,6 @@ public class GenevaTraceExporterTests : IDisposable
         {
             var exporterOptions = new GenevaExporterOptions
             {
-                PrepopulatedFields = new Dictionary<string, object>
-                {
-                    ["overridden prepopulated"] = "should not be present",
-                },
                 ResourceFieldNames = new HashSet<string>
                 {
                     "wanted",
@@ -780,7 +941,6 @@ public class GenevaTraceExporterTests : IDisposable
                 this.ExpectSpanFromActivity(activity, (mapping) =>
                 {
                     this.AssertMappingEntry(mapping, "wanted", "should be present");
-                    Assert.DoesNotContain("overridden prepopulated", mapping);
                     Assert.DoesNotContain("unwanted", mapping);
                 });
             }
@@ -1279,13 +1439,13 @@ public class GenevaTraceExporterTests : IDisposable
 
         // Part A cloud extensions
         if (resourceAttributes.TryGetValue("service.name", out var expectedServiceName)
-            && !exporterOptions.PrepopulatedFields.ContainsKey("cloud.role"))
+            && exporterOptions.PrepopulatedFields != null && exporterOptions.PrepopulatedFields.Count == 0)
         {
             this.AssertMappingEntry(mapping, "env_cloud_role", expectedServiceName);
         }
 
         if (resourceAttributes.TryGetValue("service.instanceId", out var expectedInstanceId)
-            && !exporterOptions.PrepopulatedFields.ContainsKey("cloud.roleInstance"))
+            && exporterOptions.PrepopulatedFields != null && exporterOptions.PrepopulatedFields.Count == 0)
         {
             this.AssertMappingEntry(mapping, "env_cloud_roleInstance", expectedInstanceId);
         }

@@ -107,6 +107,8 @@ public class GenevaExporterOptions
 
     /// <summary>
     /// Gets or sets prepopulated fields.
+    ///
+    /// Pre-populated fields are fields that are added as dedicated fields to every record, unless it would conflict with a log or trace field that is marked as a custom field.
     /// </summary>
     public IReadOnlyDictionary<string, object> PrepopulatedFields
     {

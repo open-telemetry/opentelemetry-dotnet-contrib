@@ -4,6 +4,7 @@
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using OpenTelemetry.Exporter.Geneva.MsgPack;
+using OpenTelemetry.Resources;
 using Xunit;
 
 namespace OpenTelemetry.Exporter.Geneva.Tests;
@@ -55,7 +56,7 @@ public class MsgPackLogExporterTests
         {
             ConnectionString = this.connectionString,
         };
-        using var exporter = new MsgPackLogExporter(exporterOptions);
+        using var exporter = new MsgPackLogExporter(exporterOptions, () => Resource.Empty);
     }
 
     [Fact]
@@ -65,7 +66,7 @@ public class MsgPackLogExporterTests
         {
             ConnectionString = this.connectionString + ";PrivatePreviewLogMessagePackStringSizeLimit=65360",
         };
-        using var exporter = new MsgPackLogExporter(exporterOptions);
+        using var exporter = new MsgPackLogExporter(exporterOptions, () => Resource.Empty);
     }
 
     private static string GenerateTempFilePath()
