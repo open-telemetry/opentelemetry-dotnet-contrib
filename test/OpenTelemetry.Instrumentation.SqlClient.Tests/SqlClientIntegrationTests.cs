@@ -127,8 +127,6 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
         var sampler = new TestSampler();
         var activities = new List<Activity>();
 
-        using var scope = SemanticConventionScope.Get(useNewConventions: true);
-
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .SetSampler(sampler)
             .AddInMemoryExporter(activities)
@@ -286,10 +284,4 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
 
     private string GetConnectionString()
         => this.fixture.DatabaseContainer.GetConnectionString();
-
-    private static class SemanticConventionScope
-    {
-        public static IDisposable Get(bool useNewConventions)
-            => EnvironmentVariableScope.Create("OTEL_SEMCONV_STABILITY_OPT_IN", useNewConventions ? "database" : string.Empty);
-    }
 }
