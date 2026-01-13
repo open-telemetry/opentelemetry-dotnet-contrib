@@ -26,7 +26,7 @@ public class FrameProcessorTests
 #if NET
             Encoding.UTF8.GetString(message.Data);
 #else
-            Encoding.UTF8.GetString(message.Data.ToArray());
+            Encoding.UTF8.GetString([.. message.Data]);
 #endif
 
         Assert.Equal(mockFrame.ExptectedContent, messageContent);

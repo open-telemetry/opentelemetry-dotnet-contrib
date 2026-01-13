@@ -47,7 +47,7 @@ public class WsTransportTest
 #if NET
             Encoding.UTF8.GetString(clientReceivedFrames.First().Data);
 #else
-            Encoding.UTF8.GetString(clientReceivedFrames.First().Data.ToArray());
+            Encoding.UTF8.GetString([.. clientReceivedFrames.First().Data]);
 #endif
 
         Assert.Single(serverReceivedFrames);

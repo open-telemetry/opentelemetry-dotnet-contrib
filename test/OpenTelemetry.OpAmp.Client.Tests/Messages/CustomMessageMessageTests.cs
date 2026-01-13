@@ -28,7 +28,7 @@ public class CustomMessageMessageTests
 #if NET
         Assert.Equal(DataString, Encoding.UTF8.GetString(customMessageMessage.Data));
 #else
-        Assert.Equal(DataString, Encoding.UTF8.GetString(customMessageMessage.Data.ToArray()));
+        Assert.Equal(DataString, Encoding.UTF8.GetString([.. customMessageMessage.Data]));
 #endif
     }
 
