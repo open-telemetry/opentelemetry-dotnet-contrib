@@ -3,7 +3,6 @@
 
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
-using System.Reflection;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
@@ -13,18 +12,15 @@ namespace OpenTelemetry.Instrumentation.SqlClient.Implementation;
 /// Helper class to hold common properties used by both SqlClientDiagnosticListener on .NET Core
 /// and SqlEventSourceListener on .NET Framework.
 /// </summary>
-internal sealed class SqlActivitySourceHelper
+internal sealed class SqlTelemetryHelper
 {
     public const string MicrosoftSqlServerDbSystemName = "microsoft.sql_server";
-    public const string MicrosoftSqlServerDbSystem = "mssql";
 
-    public static readonly Assembly Assembly = typeof(SqlActivitySourceHelper).Assembly;
-    public static readonly AssemblyName AssemblyName = Assembly.GetName();
-    public static readonly string ActivitySourceName = AssemblyName.Name!;
-    public static readonly ActivitySource ActivitySource = new(ActivitySourceName, Assembly.GetPackageVersion());
-
-    public static readonly string MeterName = AssemblyName.Name!;
-    public static readonly Meter Meter = new(MeterName, Assembly.GetPackageVersion());
+    private static readonly (ActivitySource ActivitySource, Meter Meter) Telemetry = CreateTelemetry();
+#pragma warning disable SA1202 // Elements must be ordered by accessibility. Telemetry field should be private and initialized earlier
+    public static readonly ActivitySource ActivitySource = Telemetry.ActivitySource;
+#pragma warning restore SA1202 // Elements must be ordered by accessibility. Telemetry field should be private and initialized earlier
+    public static readonly Meter Meter = Telemetry.Meter;
 
     public static readonly Histogram<double> DbClientOperationDuration = Meter.CreateHistogram(
         "db.client.operation.duration",
@@ -78,7 +74,9 @@ internal sealed class SqlActivitySourceHelper
 
                 if (activityName == MicrosoftSqlServerDbSystemName)
                 {
-                    activityName = connectionDetails.Port is { } portNumber ? $"{serverAddress}:{portNumber}" : serverAddress!;
+                    activityName = connectionDetails.Port is { } portNumber
+                        ? $"{serverAddress}:{portNumber}"
+                        : serverAddress!;
                 }
             }
         }
@@ -104,5 +102,28 @@ internal sealed class SqlActivitySourceHelper
 #endif
 
         return duration.TotalSeconds;
+    }
+
+    private static (ActivitySource ActivitySource, Meter Meter) CreateTelemetry()
+    {
+        const string telemetrySchemaUrl = "https://opentelemetry.io/schemas/1.33.0";
+        var assembly = typeof(SqlTelemetryHelper).Assembly;
+        var assemblyName = assembly.GetName();
+        var name = assemblyName.Name!;
+        var version = assembly.GetPackageVersion();
+
+        var activitySourceOptions = new ActivitySourceOptions(name)
+        {
+            Version = version,
+            TelemetrySchemaUrl = telemetrySchemaUrl,
+        };
+
+        var meterOptions = new MeterOptions(name)
+        {
+            Version = version,
+            TelemetrySchemaUrl = telemetrySchemaUrl,
+        };
+
+        return (new ActivitySource(activitySourceOptions), new Meter(meterOptions));
     }
 }

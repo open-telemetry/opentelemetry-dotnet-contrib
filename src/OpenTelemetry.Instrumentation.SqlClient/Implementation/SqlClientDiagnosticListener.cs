@@ -87,7 +87,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     _ = this.databaseFetcher.TryFetch(connection, out var databaseName);
                     _ = this.dataSourceFetcher.TryFetch(connection, out var dataSource);
 
-                    var startTags = SqlActivitySourceHelper.GetTagListFromConnectionInfo(dataSource, databaseName, out var activityName);
+                    var startTags = SqlTelemetryHelper.GetTagListFromConnectionInfo(dataSource, databaseName, out var activityName);
 
                     if (this.commandTypeFetcher.TryFetch(command, out var commandType) &&
                         this.commandTextFetcher.TryFetch(command, out var commandText))
@@ -114,7 +114,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                         }
                     }
 
-                    activity = SqlActivitySourceHelper.ActivitySource.StartActivity(
+                    activity = SqlTelemetryHelper.ActivitySource.StartActivity(
                         activityName,
                         ActivityKind.Client,
                         default(ActivityContext),
@@ -207,7 +207,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                         return;
                     }
 
-                    if (activity.Source != SqlActivitySourceHelper.ActivitySource)
+                    if (activity.Source != SqlTelemetryHelper.ActivitySource)
                     {
                         this.RecordDuration(null, payload);
                         return;
@@ -239,7 +239,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                         return;
                     }
 
-                    if (activity.Source != SqlActivitySourceHelper.ActivitySource)
+                    if (activity.Source != SqlTelemetryHelper.ActivitySource)
                     {
                         this.RecordDuration(null, payload);
                         return;
@@ -295,7 +295,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
         if (activity != null && activity.IsAllDataRequested)
         {
-            foreach (var name in SqlActivitySourceHelper.SharedTagNames)
+            foreach (var name in SqlTelemetryHelper.SharedTagNames)
             {
                 var value = activity.GetTagItem(name);
                 if (value != null)
@@ -312,7 +312,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                 this.databaseFetcher.TryFetch(connection, out var databaseName);
                 this.dataSourceFetcher.TryFetch(connection, out var dataSource);
 
-                var connectionTags = SqlActivitySourceHelper.GetTagListFromConnectionInfo(
+                var connectionTags = SqlTelemetryHelper.GetTagListFromConnectionInfo(
                     dataSource,
                     databaseName,
                     out _);
@@ -347,8 +347,8 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
         }
 
         var duration = activity?.Duration.TotalSeconds
-            ?? SqlActivitySourceHelper.CalculateDurationFromTimestamp(this.beginTimestamp.Value);
-        SqlActivitySourceHelper.DbClientOperationDuration.Record(duration, tags);
+            ?? SqlTelemetryHelper.CalculateDurationFromTimestamp(this.beginTimestamp.Value);
+        SqlTelemetryHelper.DbClientOperationDuration.Record(duration, tags);
     }
 }
 #endif

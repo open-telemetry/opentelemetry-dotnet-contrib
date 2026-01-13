@@ -26,6 +26,9 @@
   [semantic conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.33.0/docs/database/database-spans.md#span-definition).
   ([#3675](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3675))
 
+* Metrics and spans report telemetry schema URL v1.33.0.
+  ([#3680](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3680))
+
 ## 1.14.0-beta.1
 
 Released 2025-Nov-13

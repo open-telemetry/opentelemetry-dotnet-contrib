@@ -73,7 +73,7 @@ public static class TracerProviderBuilderExtensions
             return SqlClientInstrumentation.Instance.HandleManager.AddTracingHandle();
         });
 
-        builder.AddSource(SqlActivitySourceHelper.ActivitySourceName);
+        builder.AddSource(SqlTelemetryHelper.ActivitySource.Name);
 
         return builder;
     }
