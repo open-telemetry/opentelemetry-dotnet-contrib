@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.14.0-rc.1
+
+Released 2026-Jan-13
+
 * Remove support for the `OTEL_SEMCONV_STABILITY_OPT_IN` configuration option.
   Previously, the old conventions were emitted be default with the option to emit
   the stable conventions. Now, only the stable conventions are supported.
