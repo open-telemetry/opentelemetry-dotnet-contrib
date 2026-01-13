@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Collections.Concurrent;
-using OpenTelemetry.OpAmp.Client.Internal.Listeners.Messages;
 using OpenTelemetry.OpAmp.Client.Listeners;
+using OpenTelemetry.OpAmp.Client.Messages;
 
 namespace OpenTelemetry.OpAmp.Client.Tests.Mocks;
 

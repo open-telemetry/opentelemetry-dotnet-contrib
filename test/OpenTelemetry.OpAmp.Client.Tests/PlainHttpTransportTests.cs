@@ -5,6 +5,7 @@
 using System.Net.Http;
 #endif
 
+using System.Text;
 using OpenTelemetry.OpAmp.Client.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Transport.Http;
 using OpenTelemetry.OpAmp.Client.Settings;
@@ -40,7 +41,12 @@ public class PlainHttpTransportTests
         // Assert
         var serverReceivedFrames = opAmpServer.GetFrames();
         var clientReceivedFrames = mockListener.Messages;
-        var receivedTextData = clientReceivedFrames.First().CustomMessage.Data.ToStringUtf8();
+        var receivedTextData =
+#if NET
+            Encoding.UTF8.GetString(clientReceivedFrames.First().Data);
+#else
+            Encoding.UTF8.GetString(clientReceivedFrames.First().Data.ToArray());
+#endif
 
         var frame = Assert.Single(serverReceivedFrames);
         Assert.Equal(mockFrame.Uid, frame.InstanceUid);
