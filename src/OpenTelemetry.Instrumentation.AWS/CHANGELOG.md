@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Update minimal supported version of `AWSSDK.Core` to `4.0.3.3`.
+  Older versions are affected by [CVE-2026-22611](https://github.com/advisories/GHSA-9cvc-h2w8-phrp).
+  ([#3683](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3683))
+
 ## 1.14.1
 
 Released 2025-Dec-19
