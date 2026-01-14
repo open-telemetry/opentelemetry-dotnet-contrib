@@ -168,6 +168,7 @@ components:
     - sablancoleis
   test/OpenTelemetry.OpAmp.Client.Tests/:
     - RassK
+    - stevejgordon
   test/OpenTelemetry.PersistentStorage.FileSystem.Tests/:
     - rajkumar-rangaraj
   test/OpenTelemetry.Resources.AWS.Tests/:
