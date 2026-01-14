@@ -104,7 +104,7 @@
     <PackageVersion Include="FsCheck.Xunit" Version="3.3.2" />
     <PackageVersion Include="GitHubActionsTestLogger" Version="3.0.1" />
     <PackageVersion Include="Google.Api.Gax" Version="4.13.0" />
-    <PackageVersion Include="Google.Protobuf" Version="3.33.2" />
+    <PackageVersion Include="Google.Protobuf" Version="3.33.4" />
     <PackageVersion Include="Grpc" Version="2.46.6" />
     <PackageVersion Include="Grpc.AspNetCore.Server" Version="2.76.0" />
     <PackageVersion Include="Grpc.Net.Client" Version="2.76.0" />
