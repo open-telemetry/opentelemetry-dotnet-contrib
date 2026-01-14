@@ -22,19 +22,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.Core" VersionOverride="[4.0.0, 5.0.0)" />
-    <PackageReference Include="AWSSDK.SimpleNotificationService" VersionOverride="[4.0.0, 5.0.0)" />
-    <PackageReference Include="AWSSDK.SQS" VersionOverride="[4.0.0, 5.0.0)" />
+    <PackageReference Include="AWSSDK.Core" VersionOverride="[4.0.3.3, 5.0.0)" />
+    <PackageReference Include="AWSSDK.SimpleNotificationService" VersionOverride="[4.0.2.7, 5.0.0)" />
+    <PackageReference Include="AWSSDK.SQS" VersionOverride="[4.0.2.5, 5.0.0)" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Include="$(RepoRoot)\src\Shared\AWS\*.cs" Link="Includes\AWS\%(Filename).cs" />
     <Compile Include="$(RepoRoot)\src\Shared\AssemblyVersionExtensions.cs" Link="Includes\AssemblyVersionExtensions.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-9cvc-h2w8-phrp" />
   </ItemGroup>
 
 </Project>

@@ -53,8 +53,4 @@
     <ProjectReference Remove="$(RepoRoot)\src\OpenTelemetry.Instrumentation.Http\OpenTelemetry.Instrumentation.Http.csproj"/>
   </ItemGroup>
 
-  <ItemGroup>
-    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-9cvc-h2w8-phrp" />
-  </ItemGroup>
-
 </Project>
