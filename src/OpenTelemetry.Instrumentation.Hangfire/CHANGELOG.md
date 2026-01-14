@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.14.0-beta.2
+
+Released 2026-Jan-14
+
 * Add metrics instrumentation following a POC/draft definition of workflow metrics
   defined as part of [semantic-conventions/#1688](https://github.com/open-telemetry/semantic-conventions/issues/1688).
   ([#3258](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3258))
