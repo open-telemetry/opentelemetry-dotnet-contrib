@@ -67,6 +67,7 @@ components:
     - sablancoleis
   src/OpenTelemetry.OpAmp.Client/:
     - RassK
+    - stevejgordon
   src/OpenTelemetry.PersistentStorage.Abstractions/:
     - rajkumar-rangaraj
   src/OpenTelemetry.PersistentStorage.FileSystem/:
