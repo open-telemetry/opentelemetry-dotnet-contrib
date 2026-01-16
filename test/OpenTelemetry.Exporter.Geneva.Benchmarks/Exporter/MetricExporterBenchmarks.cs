@@ -68,8 +68,8 @@ public class MetricExporterBenchmarks
     private Metric? histogramMetricWith4Dimensions;
     private MetricPoint histogramMetricPointWith3Dimensions;
     private MetricPoint histogramMetricPointWith4Dimensions;
-    private ulong histogramSumWith3Dimensions;
-    private ulong histogramSumWith4Dimensions;
+    private double histogramSumWith3Dimensions;
+    private double histogramSumWith4Dimensions;
     private double histogramMinWith3Dimensions;
     private double histogramMinWith4Dimensions;
     private double histogramMaxWith3Dimensions;
@@ -305,7 +305,7 @@ public class MetricExporterBenchmarks
         return batchGeneratorExporter.Batch;
     }
 
-    private MetricPoint GenerateHistogramMetricItemWith3Dimensions(out ulong sum, out uint count, out double min, out double max)
+    private MetricPoint GenerateHistogramMetricItemWith3Dimensions(out double sum, out uint count, out double min, out double max)
     {
         using var meterWithInMemoryExporter = new Meter("GenerateHistogramMetricItemWith3Dimensions", "0.0.1");
         var histogram = meterWithInMemoryExporter.CreateHistogram<long>("HistogramWith3Dimensions");
@@ -336,7 +336,7 @@ public class MetricExporterBenchmarks
         var metricPointsEnumerator = metric.GetMetricPoints().GetEnumerator();
         metricPointsEnumerator.MoveNext();
         var metricPoint = metricPointsEnumerator.Current;
-        sum = Convert.ToUInt64(metricPoint.GetHistogramSum());
+        sum = metricPoint.GetHistogramSum();
         count = Convert.ToUInt32(metricPoint.GetHistogramCount());
 
         if (!metricPoint.TryGetHistogramMinMaxValues(out min, out max))
@@ -348,7 +348,7 @@ public class MetricExporterBenchmarks
         return metricPoint;
     }
 
-    private MetricPoint GenerateHistogramMetricItemWith4Dimensions(out ulong sum, out uint count, out double min, out double max)
+    private MetricPoint GenerateHistogramMetricItemWith4Dimensions(out double sum, out uint count, out double min, out double max)
     {
         using var meterWithInMemoryExporter = new Meter("GenerateHistogramMetricItemWith4Dimensions", "0.0.1");
         var histogram = meterWithInMemoryExporter.CreateHistogram<long>("HistogramWith4Dimensions");
@@ -383,7 +383,7 @@ public class MetricExporterBenchmarks
         var metricPointsEnumerator = metric.GetMetricPoints().GetEnumerator();
         metricPointsEnumerator.MoveNext();
         var metricPoint = metricPointsEnumerator.Current;
-        sum = Convert.ToUInt64(metricPoint.GetHistogramSum());
+        sum = metricPoint.GetHistogramSum();
         count = Convert.ToUInt32(metricPoint.GetHistogramCount());
 
         if (!metricPoint.TryGetHistogramMinMaxValues(out min, out max))
