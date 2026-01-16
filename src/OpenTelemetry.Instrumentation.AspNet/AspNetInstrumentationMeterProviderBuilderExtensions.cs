@@ -49,7 +49,7 @@ public static class AspNetInstrumentationMeterProviderBuilderExtensions
                 {
                     return AspNetInstrumentation.Instance.HandleManager.AddMetricHandle();
                 });
-                meterProviderBuilder.AddMeter(AspNetInstrumentation.MeterName);
+                meterProviderBuilder.AddMeter(AspNetInstrumentation.Meter.Name);
             });
         });
     }
