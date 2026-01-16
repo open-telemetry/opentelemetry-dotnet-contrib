@@ -6,6 +6,9 @@
   ([#3552](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3552),
    [#3646](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3646))
 
+* Added an environment variable `HTTP_URL_IS_SET` check to `OpenTelemetry.Exporter.Geneva` 
+  to enable/disable adding `httpUrl`for HTTP server spans.
+
 ## 1.14.0
 
 Released 2025-Nov-13

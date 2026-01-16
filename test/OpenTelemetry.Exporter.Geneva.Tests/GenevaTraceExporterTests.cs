@@ -1087,6 +1087,379 @@ public class GenevaTraceExporterTests : IDisposable
         }
     }
 
+    [Fact]
+    public void GenevaTraceExporter_ServerSpan_HttpUrl_WithQuery_Success()
+    {
+        var path = string.Empty;
+        Socket server = null;
+        try
+        {
+            var exporterOptions = new GenevaExporterOptions();
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+            }
+            else
+            {
+                path = GetRandomFilePath();
+                exporterOptions.ConnectionString = "Endpoint=unix:" + path;
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                server.Bind(endpoint);
+                server.Listen(1);
+            }
+
+            using var exporter = new MsgPackTraceExporter(exporterOptions, () => Resource.Empty);
+            var m_buffer = exporter.Buffer;
+            var sourceName = GetTestMethodName();
+
+            using var listener = new ActivityListener();
+            listener.ShouldListenTo = (activitySource) => activitySource.Name == sourceName;
+            listener.Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded;
+            listener.ActivityStopped = (activity) =>
+            {
+                _ = exporter.SerializeActivity(activity);
+                var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+                this.CheckSpanForActivity(exporterOptions, fluentdData, activity, exporter.DedicatedFields, []);
+            };
+            ActivitySource.AddActivityListener(listener);
+
+            var source = new ActivitySource(sourceName);
+            using (var activity = source.StartActivity("HttpServerWithQuery", ActivityKind.Server))
+            {
+                activity.SetTag("url.scheme", "https");
+                activity.SetTag("server.address", "api.example.com");
+                activity.SetTag("server.port", 8080);
+                activity.SetTag("url.path", "/v1/users");
+                activity.SetTag("url.query", "page=2&limit=10");
+
+                this.ExpectSpanFromActivity(activity, (mapping) =>
+                {
+                    this.AssertMappingEntry(mapping, "httpUrl", "https://api.example.com:8080/v1/users?page=2&limit=10");
+                    Assert.DoesNotContain("url.scheme", mapping.Keys);
+                    Assert.DoesNotContain("server.address", mapping.Keys);
+                    Assert.DoesNotContain("server.port", mapping.Keys);
+                    Assert.DoesNotContain("url.path", mapping.Keys);
+                    Assert.DoesNotContain("url.query", mapping.Keys);
+                });
+            }
+        }
+        finally
+        {
+            server?.Dispose();
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    [Fact]
+    public void GenevaTraceExporter_ServerSpan_HttpUrl_PartialComponents_Success()
+    {
+        var path = string.Empty;
+        Socket server = null;
+        try
+        {
+            var exporterOptions = new GenevaExporterOptions();
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+            }
+            else
+            {
+                path = GetRandomFilePath();
+                exporterOptions.ConnectionString = "Endpoint=unix:" + path;
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                server.Bind(endpoint);
+                server.Listen(1);
+            }
+
+            using var exporter = new MsgPackTraceExporter(exporterOptions, () => Resource.Empty);
+            var m_buffer = exporter.Buffer;
+            var sourceName = GetTestMethodName();
+
+            using var listener = new ActivityListener();
+            listener.ShouldListenTo = (activitySource) => activitySource.Name == sourceName;
+            listener.Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded;
+            listener.ActivityStopped = (activity) =>
+            {
+                _ = exporter.SerializeActivity(activity);
+                var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+                this.CheckSpanForActivity(exporterOptions, fluentdData, activity, exporter.DedicatedFields, []);
+            };
+            ActivitySource.AddActivityListener(listener);
+
+            var source = new ActivitySource(sourceName);
+
+            // Test with only scheme and address (no port, path, or query)
+            using (var activity = source.StartActivity("MinimalUrl", ActivityKind.Server))
+            {
+                activity.SetTag("url.scheme", "http");
+                activity.SetTag("server.address", "example.com");
+
+                this.ExpectSpanFromActivity(activity, (mapping) =>
+                {
+                    this.AssertMappingEntry(mapping, "httpUrl", "http://example.com");
+                });
+            }
+
+            // Test with scheme, address, and path (no port or query)
+            using (var activity = source.StartActivity("UrlWithPath", ActivityKind.Server))
+            {
+                activity.SetTag("url.scheme", "https");
+                activity.SetTag("server.address", "example.com");
+                activity.SetTag("url.path", "/api/endpoint");
+
+                this.ExpectSpanFromActivity(activity, (mapping) =>
+                {
+                    this.AssertMappingEntry(mapping, "httpUrl", "https://example.com/api/endpoint");
+                });
+            }
+        }
+        finally
+        {
+            server?.Dispose();
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    [Fact]
+    public void GenevaTraceExporter_ServerSpan_HttpUrl_NoComponents_NoHttpUrl()
+    {
+        var path = string.Empty;
+        Socket server = null;
+        try
+        {
+            var exporterOptions = new GenevaExporterOptions();
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+            }
+            else
+            {
+                path = GetRandomFilePath();
+                exporterOptions.ConnectionString = "Endpoint=unix:" + path;
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                server.Bind(endpoint);
+                server.Listen(1);
+            }
+
+            using var exporter = new MsgPackTraceExporter(exporterOptions, () => Resource.Empty);
+            var m_buffer = exporter.Buffer;
+            var sourceName = GetTestMethodName();
+
+            using var listener = new ActivityListener();
+            listener.ShouldListenTo = (activitySource) => activitySource.Name == sourceName;
+            listener.Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded;
+            listener.ActivityStopped = (activity) =>
+            {
+                _ = exporter.SerializeActivity(activity);
+                var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+                this.CheckSpanForActivity(exporterOptions, fluentdData, activity, exporter.DedicatedFields, []);
+            };
+            ActivitySource.AddActivityListener(listener);
+
+            var source = new ActivitySource(sourceName);
+
+            // Server activity with no HTTP URL components should not have httpUrl field
+            using (var activity = source.StartActivity("NoUrlComponents", ActivityKind.Server))
+            {
+                activity.SetTag("some.other.tag", "value");
+
+                this.ExpectSpanFromActivity(activity, (mapping) =>
+                {
+                    Assert.DoesNotContain("httpUrl", mapping.Keys);
+                });
+            }
+        }
+        finally
+        {
+            server?.Dispose();
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    [Fact]
+    public void GenevaTraceExporter_NonServerSpan_DoesNotConstructHttpUrl()
+    {
+        var path = string.Empty;
+        Socket server = null;
+        try
+        {
+            var exporterOptions = new GenevaExporterOptions();
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+            }
+            else
+            {
+                path = GetRandomFilePath();
+                exporterOptions.ConnectionString = "Endpoint=unix:" + path;
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                server.Bind(endpoint);
+                server.Listen(1);
+            }
+
+            using var exporter = new MsgPackTraceExporter(exporterOptions, () => Resource.Empty);
+            var m_buffer = exporter.Buffer;
+            var sourceName = GetTestMethodName();
+
+            using var listener = new ActivityListener();
+            listener.ShouldListenTo = (activitySource) => activitySource.Name == sourceName;
+            listener.Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded;
+            listener.ActivityStopped = (activity) =>
+            {
+                _ = exporter.SerializeActivity(activity);
+                var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+                this.CheckSpanForActivity(exporterOptions, fluentdData, activity, exporter.DedicatedFields, []);
+            };
+            ActivitySource.AddActivityListener(listener);
+
+            var source = new ActivitySource(sourceName);
+
+            // Client activity should NOT construct httpUrl from parts (it should use url.full or http.url directly)
+            using (var activity = source.StartActivity("ClientActivity", ActivityKind.Client))
+            {
+                activity.SetTag("url.scheme", "https");
+                activity.SetTag("server.address", "localhost");
+                activity.SetTag("server.port", 443);
+                activity.SetTag("url.path", "/api");
+
+                this.ExpectSpanFromActivity(activity, (mapping) =>
+                {
+                    // For non-server activities, the individual components should be present as tags
+                    Assert.DoesNotContain("httpUrl", mapping.Keys);
+                    if (mapping.ContainsKey("env_properties"))
+                    {
+                        var envProps = mapping["env_properties"] as Dictionary<object, object>;
+                        Assert.Contains("url.scheme", envProps.Keys);
+                        Assert.Contains("server.address", envProps.Keys);
+                    }
+                    else
+                    {
+                        // Without custom fields, they appear directly in mapping
+                        Assert.Contains("url.scheme", mapping.Keys);
+                        Assert.Contains("server.address", mapping.Keys);
+                    }
+                });
+            }
+
+            // Internal activity should NOT construct httpUrl from parts
+            using (var activity = source.StartActivity("InternalActivity", ActivityKind.Internal))
+            {
+                activity.SetTag("url.scheme", "https");
+                activity.SetTag("server.address", "localhost");
+
+                this.ExpectSpanFromActivity(activity, (mapping) =>
+                {
+                    Assert.DoesNotContain("httpUrl", mapping.Keys);
+                });
+            }
+        }
+        finally
+        {
+            server?.Dispose();
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    [Fact]
+    public void GenevaTraceExporter_ServerSpan_HttpUrl_WithCustomFields()
+    {
+        var path = string.Empty;
+        Socket server = null;
+        try
+        {
+            var exporterOptions = new GenevaExporterOptions
+            {
+                CustomFields = ["customField"],
+            };
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+            }
+            else
+            {
+                path = GetRandomFilePath();
+                exporterOptions.ConnectionString = "Endpoint=unix:" + path;
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                server.Bind(endpoint);
+                server.Listen(1);
+            }
+
+            using var exporter = new MsgPackTraceExporter(exporterOptions, () => Resource.Empty);
+            var m_buffer = exporter.Buffer;
+            var sourceName = GetTestMethodName();
+
+            using var listener = new ActivityListener();
+            listener.ShouldListenTo = (activitySource) => activitySource.Name == sourceName;
+            listener.Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded;
+            listener.ActivityStopped = (activity) =>
+            {
+                _ = exporter.SerializeActivity(activity);
+                var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+                this.CheckSpanForActivity(exporterOptions, fluentdData, activity, exporter.DedicatedFields, []);
+            };
+            ActivitySource.AddActivityListener(listener);
+
+            var source = new ActivitySource(sourceName);
+            using (var activity = source.StartActivity("ServerWithCustomFields", ActivityKind.Server))
+            {
+                activity.SetTag("url.scheme", "https");
+                activity.SetTag("server.address", "example.com");
+                activity.SetTag("url.path", "/test");
+                activity.SetTag("customField", "customValue");
+
+                this.ExpectSpanFromActivity(activity, (mapping) =>
+                {
+                    // httpUrl should still be constructed and present as a dedicated field
+                    this.AssertMappingEntry(mapping, "httpUrl", "https://example.com/test");
+                    this.AssertMappingEntry(mapping, "customField", "customValue");
+                    Assert.DoesNotContain("url.scheme", mapping.Keys);
+                    Assert.DoesNotContain("server.address", mapping.Keys);
+                    Assert.DoesNotContain("url.path", mapping.Keys);
+                });
+            }
+        }
+        finally
+        {
+            server?.Dispose();
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
+            }
+        }
+    }
+
     [SkipUnlessPlatformMatchesFact(TestPlatform.Linux)]
     public void GenevaTraceExporter_Constructor_Missing_Agent_Linux()
     {
