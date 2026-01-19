@@ -32,6 +32,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="mysql.Dockerfile" LogicalName="mysql.Dockerfile" />
+    <EmbeddedResource Include="postgres.Dockerfile" LogicalName="postgres.Dockerfile" />
     <EmbeddedResource Include="$(RepoRoot)\test\OpenTelemetry.Instrumentation.SqlClient.Tests\sqlserver.Dockerfile" LogicalName="sqlserver.Dockerfile" />
   </ItemGroup>
 

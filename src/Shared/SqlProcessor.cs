@@ -16,6 +16,7 @@ internal static class SqlProcessor
     private const char SpaceChar = ' ';
     private const char CommaChar = ',';
     private const char OpenSquareBracketChar = '[';
+    private const char CloseSquareBracketChar = ']';
     private const char OpenParenChar = '(';
     private const char CloseParenChar = ')';
     private const char DashChar = '-';
@@ -27,6 +28,7 @@ internal static class SqlProcessor
     private const char NewLineChar = '\n';
     private const char CarriageReturnChar = '\r';
     private const char TabChar = '\t';
+    private const char UnicodePrefixChar = 'N';
 
     private static readonly ConcurrentDictionary<string, SqlStatementInfo> Cache = new();
 
@@ -43,6 +45,9 @@ internal static class SqlProcessor
         "WHERE", "BY", "AS", "JOIN", "WITH", "CROSS", "HAVING", "WINDOW", "LIMIT", "OFFSET", "TABLESAMPLE", "PIVOT", "UNPIVOT"
     ];
 
+    private static readonly int MaxFromClauseReservedKeywordLength = FromClauseReservedKeywords.Max(k => k.Length);
+    private static readonly int MinFromClauseReservedKeywordLength = FromClauseReservedKeywords.Min(k => k.Length);
+
     // We can extend this in the future to include more keywords if needed.
     // The keywords should be ordered by frequency of use to optimize performance.
     // This only includes keywords that may be the first keyword in a statement.
@@ -56,6 +61,16 @@ internal static class SqlProcessor
         SqlKeywordInfo.AlterKeyword,
         SqlKeywordInfo.DropKeyword,
         SqlKeywordInfo.ExecKeyword,
+        SqlKeywordInfo.ExecuteKeyword,
+        SqlKeywordInfo.GrantKeyword,
+        SqlKeywordInfo.DenyKeyword,
+        SqlKeywordInfo.TruncateKeyword,
+        SqlKeywordInfo.RevokeKeyword,
+        SqlKeywordInfo.BulkKeyword,
+        SqlKeywordInfo.DisableKeyword,
+        SqlKeywordInfo.EnableKeyword,
+        SqlKeywordInfo.BackupKeyword,
+        SqlKeywordInfo.RestoreKeyword,
     ];
 
     // This is a special case used when handling sub-queries in parentheses.
@@ -72,32 +87,45 @@ internal static class SqlProcessor
     private enum SqlKeyword
     {
         Unknown,
+        Backup,
+        Bulk,
         Alter,
         Clustered,
+        Connect,
         Create,
         Database,
         Delete,
+        Deny,
+        Disable,
         Distinct,
         Drop,
+        Enable,
         Exec,
+        Execute,
         Exists,
         From,
         Function,
+        Grant,
         If,
         Index,
         Insert,
         Into,
         Join,
+        Login,
         NonClustered,
         Not,
         On,
         Procedure,
+        Restore,
+        Revoke,
         Role,
         Schema,
         Select,
         Sequence,
+        Statistics,
         Table,
         Trigger,
+        Truncate,
         Unique,
         Union,
         Update,
@@ -117,7 +145,7 @@ internal static class SqlProcessor
             return sqlStatementInfo;
         }
 
-        sqlStatementInfo = SanitizeSql(sql.AsSpan());
+        sqlStatementInfo = SanitizeSql(sql);
 
         // Fast-path capacity check using our own approximate count to avoid ConcurrentDictionary.Count cost.
         if (Volatile.Read(ref approxCacheCount) >= CacheCapacity)
@@ -154,20 +182,56 @@ internal static class SqlProcessor
 #endif
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsAsciiIdentifierChar(char c) =>
+    private static bool IsUnescapedIdentifierChar(char c) =>
 #if NET
         char.IsLetter(c) || char.IsAsciiDigit(c) || c == UnderscoreChar || c == DotChar;
 #else
         char.IsLetter(c) || IsAsciiDigit(c) || c == UnderscoreChar || c == DotChar;
 #endif
 
-    private static SqlStatementInfo SanitizeSql(ReadOnlySpan<char> sql)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsValidTokenCharacter(ReadOnlySpan<char> sql, int currentPosition, int indexInToken, in ParseState state)
     {
+        var currentChar = sql[currentPosition];
+
+        // If we are not capturing the next token as an identifier, we only accept unescaped identifier characters.
+        if (!state.CaptureNextNonKeywordTokenAsIdentifier)
+        {
+            return IsUnescapedIdentifierChar(currentChar);
+        }
+
+        if (state.InEscapedIdentifier)
+        {
+            // In escaped identifiers, all characters except null are valid.
+            // Double closing brackets (]]) are treated as an escaped bracket within the identifier.
+            // A single closing bracket ends the identifier.
+            if (currentChar == '\0')
+            {
+                return false;
+            }
+
+            if (currentChar == CloseSquareBracketChar)
+            {
+                var nextPosition = currentPosition + 1;
+                return nextPosition < sql.Length && sql[nextPosition] == CloseSquareBracketChar;
+            }
+
+            return true;
+        }
+
+        // In unescaped identifiers, periods are invalid at the start but valid in the middle (for schema-qualified names).
+        return (currentChar != DotChar || indexInToken != 0) && IsUnescapedIdentifierChar(currentChar);
+    }
+
+    private static SqlStatementInfo SanitizeSql(string sql)
+    {
+        var sqlSpan = sql.AsSpan();
+
         // We use a single buffer for both sanitized SQL and DB query summary.
         // We rent a buffer twice the size of the input SQL to ensure
         // we have enough space for the sanitized SQL and summary. The summary starts
         // from the middle position of the rented buffer.
-        var rentedBuffer = ArrayPool<char>.Shared.Rent(sql.Length * 2);
+        var rentedBuffer = ArrayPool<char>.Shared.Rent(sqlSpan.Length * 2);
 
         var buffer = rentedBuffer.AsSpan();
 
@@ -176,32 +240,32 @@ internal static class SqlProcessor
         // Precompute the summary buffer slice once and carry it via state to avoid repeated Span.Slice calls.
         state.SummaryBuffer = buffer.Slice(rentedBuffer.Length / 2);
 
-        while (state.ParsePosition < sql.Length)
+        while (state.ParsePosition < sqlSpan.Length)
         {
-            if (SkipComment(sql, ref state))
+            if (SkipComment(sqlSpan, ref state))
             {
                 continue;
             }
 
-            if (SanitizeStringLiteral(sql, buffer, ref state) ||
-                SanitizeHexLiteral(sql, buffer, ref state) ||
-                SanitizeNumericLiteral(sql, buffer, ref state))
+            if (SanitizeStringLiteral(sqlSpan, buffer, ref state) ||
+                SanitizeHexLiteral(sqlSpan, buffer, ref state) ||
+                SanitizeNumericLiteral(sqlSpan, buffer, ref state))
             {
                 continue;
             }
 
-            if (ParseWhitespace(sql, buffer, ref state))
+            if (ParseWhitespace(sqlSpan, buffer, ref state))
             {
                 continue;
             }
 
             if (state.SummaryPosition >= MaxSummaryLength)
             {
-                ParseNextTokenFast(sql, buffer, ref state);
+                ParseNextTokenFast(sqlSpan, buffer, ref state);
             }
             else
             {
-                ParseNextToken(sql, buffer, ref state);
+                ParseNextToken(sqlSpan, buffer, ref state);
             }
         }
 
@@ -233,8 +297,13 @@ internal static class SqlProcessor
             }
         }
 
+        var sanitizedSqlSpan = buffer.Slice(0, state.SanitizedPosition);
+
+        // If the sanitized SQL is identical to the input SQL, we can reuse the original string instance.
+        var sanitizedSql = sanitizedSqlSpan.SequenceEqual(sqlSpan) ? sql : sanitizedSqlSpan.ToString();
+
         var sqlStatementInfo = new SqlStatementInfo(
-            buffer.Slice(0, state.SanitizedPosition).ToString(),
+            sanitizedSql,
             summary.Slice(0, summaryLength).ToString());
 
         // We don't clear the buffer as we know the content has been sanitized
@@ -249,6 +318,7 @@ internal static class SqlProcessor
         ref ParseState state)
     {
         var start = state.ParsePosition;
+        var remaining = sql.Length - start;
 
 #if NET
         var indexOfNextWhitespace = sql.Slice(start).IndexOfAny(WhitespaceSearchValues);
@@ -256,7 +326,7 @@ internal static class SqlProcessor
         var indexOfNextWhitespace = sql.Slice(start).IndexOfAny(WhitespaceChars);
 #endif
 
-        var length = indexOfNextWhitespace >= 0 ? indexOfNextWhitespace : sql.Length - start;
+        var length = indexOfNextWhitespace >= 0 ? indexOfNextWhitespace : remaining;
 
         sql.Slice(start, length).CopyTo(buffer.Slice(state.SanitizedPosition));
         state.SanitizedPosition += length;
@@ -275,22 +345,25 @@ internal static class SqlProcessor
         var currentChar = sql[start];
 
         // Quick first-character filter: only attempt keyword matching if the current char is an ASCII letter.
+        // NOTE: We don't check CaptureNextNonKeywordTokenAsIdentifier here because we want to capture and handle keywords
+        // first, before considering identifiers.
 #if NET
-        var mayBeKeyword = char.IsAsciiLetter(currentChar);
+        var mayBeKeyword = !state.InEscapedIdentifier && char.IsAsciiLetter(currentChar);
 #else
-        var mayBeKeyword = IsAsciiLetter(currentChar);
+        var mayBeKeyword = !state.InEscapedIdentifier && IsAsciiLetter(currentChar);
 #endif
 
         if (mayBeKeyword)
         {
-            var remainingSql = sql.Slice(start);
+            var sqlLength = sql.Length;
+            var remaining = sqlLength - start;
 
             // Determine the length of the next contiguous ascii-letter run.
             // This allows some fast paths in the comparisons below.
             var asciiLetterLength = 1;
-            while (asciiLetterLength < remainingSql.Length)
+            while (asciiLetterLength < remaining)
             {
-                var ch = remainingSql[asciiLetterLength];
+                var ch = sql[start + asciiLetterLength];
 #if NET
                 if (!char.IsAsciiLetter(ch))
 #else
@@ -337,14 +410,13 @@ internal static class SqlProcessor
                     continue;
                 }
 
-                var sqlToCopy = remainingSql.Slice(0, keywordLength);
                 var matchedKeyword = true;
 
-                // Compare the potential keyword in a case-insensitive manner.
+                // Compare the potential keyword in a case-insensitive manner using indices instead of slicing.
                 for (var charPos = 1; charPos < keywordLength; charPos++)
                 {
-                    // We know that sqlToCopy is all ascii letters so this comparison is safe.
-                    if ((sqlToCopy[charPos] | 0x20) != keywordSpan[charPos])
+                    // We know that sql[start..] is all ascii letters so this comparison is safe.
+                    if ((sql[start + charPos] | 0x20) != keywordSpan[charPos])
                     {
                         matchedKeyword = false;
                         break;
@@ -353,8 +425,7 @@ internal static class SqlProcessor
 
                 if (matchedKeyword)
                 {
-                    // Copy the keyword to the sanitized buffer.
-                    sqlToCopy.CopyTo(buffer.Slice(state.SanitizedPosition));
+                    sql.Slice(start, keywordLength).CopyTo(buffer.Slice(state.SanitizedPosition));
                     state.SanitizedPosition += keywordLength;
 
                     // Potentially copy the keyword to the summary buffer.
@@ -365,7 +436,7 @@ internal static class SqlProcessor
                             state.FirstSummaryKeyword = potentialKeywordInfo.SqlKeyword;
                         }
 
-                        sqlToCopy.CopyTo(state.SummaryBuffer.Slice(state.SummaryPosition));
+                        sql.Slice(start, keywordLength).CopyTo(state.SummaryBuffer.Slice(state.SummaryPosition));
                         state.SummaryPosition += keywordLength;
 
                         // Add a space after the keyword. The trailing space will be trimmed later.
@@ -374,12 +445,13 @@ internal static class SqlProcessor
                         state.PreviousSummaryKeyword = potentialKeywordInfo.SqlKeyword;
                     }
 
-                    state.CaptureNextTokenInSummary = SqlKeywordInfo.CaptureNextTokenInSummary(in state, potentialKeywordInfo.SqlKeyword);
+                    state.CaptureNextNonKeywordTokenAsIdentifier = SqlKeywordInfo.CaptureNextTokenInSummary(in state, potentialKeywordInfo.SqlKeyword);
+                    state.SanitizeNextNonKeywordToken = SqlKeywordInfo.SanitizeNextToken(in state, potentialKeywordInfo.SqlKeyword);
+                    state.InFromClause = potentialKeywordInfo.SqlKeyword == SqlKeyword.From || (state.PreviousParsedKeyword?.SqlKeyword == SqlKeyword.From && state.CaptureNextNonKeywordTokenAsIdentifier);
                     state.PreviousParsedKeyword = potentialKeywordInfo;
                     state.ParsePosition += keywordLength;
                     state.PreviousTokenStartPosition = start;
                     state.PreviousTokenEndPosition = start + keywordLength;
-                    state.InFromClause = potentialKeywordInfo.SqlKeyword == SqlKeyword.From;
 
                     // No further parsing needed for this token
                     return;
@@ -388,53 +460,68 @@ internal static class SqlProcessor
         }
 
         // If we get this far, we have not matched a keyword, so we copy the token as-is.
-
-        if (char.IsLetter(currentChar) || currentChar == UnderscoreChar)
+        if (IsValidTokenCharacter(sql, start, 0, state))
         {
             // This first block handles identifiers (which start with a letter or underscore).
 
-            // Scan the token once, then bulk-copy to minimize per-char branching.
+            // Scan the token once using indices, then bulk-copy to minimize per-char branching.
             var i = start;
+            var position = -1;
             while (i < sql.Length)
             {
-                var ch = sql[i];
-                if (IsAsciiIdentifierChar(ch))
+                position++;
+
+                if (!IsValidTokenCharacter(sql, i, position, state))
                 {
-                    i++;
-                    continue;
+                    break;
                 }
 
-                break;
+                i++;
             }
 
             var length = i - start;
             if (length > 0)
             {
-                var tokenSpan = sql.Slice(start, length);
-
                 // Special handling: if we are in a FROM clause, check if this identifier is a reserved keyword
                 // that indicates the end of the FROM clause.
                 if (state.InFromClause)
                 {
-                    foreach (var reservedKeyword in FromClauseReservedKeywords)
+                    var isReservedKeyword = false;
+
+                    // Fast check to ensure the length is within the range of known reserved keywords.
+                    if (length >= MinFromClauseReservedKeywordLength && length <= MaxFromClauseReservedKeywordLength)
                     {
-                        if (IsCaseInsensitiveMatch(tokenSpan, reservedKeyword))
+                        for (int k = 0; k < FromClauseReservedKeywords.Length; k++)
                         {
-                            // We've matched a reserved keyword so are no longer in the FROM clause.
-                            state.InFromClause = false;
-                            break;
+                            var keyword = FromClauseReservedKeywords[k];
+                            if (length == keyword.Length && IsCaseInsensitiveMatch(sql, start, length, keyword))
+                            {
+                                isReservedKeyword = true;
+                                break;
+                            }
                         }
+                    }
+
+                    if (isReservedKeyword)
+                    {
+                        state.InFromClause = false;
                     }
                 }
 
-                // Copy to sanitized buffer.
-                tokenSpan.CopyTo(buffer.Slice(state.SanitizedPosition));
-                state.SanitizedPosition += length;
+                if (state.SanitizeNextNonKeywordToken)
+                {
+                    buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
+                }
+                else
+                {
+                    sql.Slice(start, length).CopyTo(buffer.Slice(state.SanitizedPosition));
+                    state.SanitizedPosition += length;
+                }
 
                 // Optionally copy to summary buffer.
-                if (state.CaptureNextTokenInSummary)
+                if (state.CaptureNextNonKeywordTokenAsIdentifier)
                 {
-                    tokenSpan.CopyTo(state.SummaryBuffer.Slice(state.SummaryPosition));
+                    sql.Slice(start, length).CopyTo(state.SummaryBuffer.Slice(state.SummaryPosition));
                     state.SummaryPosition += length;
 
                     // Add a space after the identifier. The trailing space will be trimmed later.
@@ -443,16 +530,38 @@ internal static class SqlProcessor
             }
 
             state.ParsePosition = i;
-            state.CaptureNextTokenInSummary = false;
+            state.CaptureNextNonKeywordTokenAsIdentifier = false;
+            state.SanitizeNextNonKeywordToken = false;
             state.PreviousTokenStartPosition = start;
             state.PreviousTokenEndPosition = i;
         }
         else
         {
+            // If we end up here, we copy a single-character token to the sanitized buffer.
+            // We also handle some special cases for tracking state.
+
+            // If we are currently in an escaped identifier, check for the closing bracket.
+            if (state.InEscapedIdentifier && currentChar is CloseSquareBracketChar)
+            {
+                state.InEscapedIdentifier = false;
+
+                // Remove the space we added after the identifier in the summary buffer before we write the closing bracket.
+                state.SummaryPosition--;
+
+                state.SummaryBuffer[state.SummaryPosition++] = CloseSquareBracketChar;
+                state.SummaryBuffer[state.SummaryPosition++] = SpaceChar;
+            }
+
             // If we are in a FROM clause, we want to capture the next identifier following a comma or open square bracket.
             // Commas may occur when listing multiple tables in a FROM clause.
             // Brackets may occur when using schema-qualified or delimited identifiers.
-            state.CaptureNextTokenInSummary = state.InFromClause && (currentChar == CommaChar || currentChar == OpenSquareBracketChar);
+            state.CaptureNextNonKeywordTokenAsIdentifier = state.InFromClause && (currentChar is CommaChar or OpenSquareBracketChar);
+
+            if (state.CaptureNextNonKeywordTokenAsIdentifier && currentChar is OpenSquareBracketChar)
+            {
+                state.InEscapedIdentifier = true;
+                state.SummaryBuffer[state.SummaryPosition++] = OpenSquareBracketChar;
+            }
 
             buffer[state.SanitizedPosition++] = currentChar;
             state.ParsePosition++;
@@ -460,18 +569,17 @@ internal static class SqlProcessor
             // NOTE: We don't update previous token start/end positions for single-char tokens.
         }
 
-        static bool IsCaseInsensitiveMatch(ReadOnlySpan<char> tokenSpan, string reservedKeyword)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static bool IsCaseInsensitiveMatch(ReadOnlySpan<char> sql, int tokenStart, int tokenLength, string reservedKeyword)
         {
-            if (tokenSpan.Length != reservedKeyword.Length)
+            if (tokenLength != reservedKeyword.Length)
             {
                 return false;
             }
 
-            var reservedKeywordSpan = reservedKeyword.AsSpan();
-
-            for (var charPos = 0; charPos < tokenSpan.Length; charPos++)
+            for (var charPos = 0; charPos < tokenLength; charPos++)
             {
-                if ((tokenSpan[charPos] | 0x20) != (reservedKeywordSpan[charPos] | 0x20))
+                if ((sql[tokenStart + charPos] | 0x20) != (reservedKeyword[charPos] | 0x20))
                 {
                     return false;
                 }
@@ -483,11 +591,14 @@ internal static class SqlProcessor
 
     private static bool ParseWhitespace(ReadOnlySpan<char> sql, Span<char> buffer, ref ParseState state)
     {
+        var start = state.ParsePosition;
         var foundWhitespace = false;
 
-        while (state.ParsePosition < sql.Length)
+        // Find the end of whitespace run first
+        var i = start;
+        while (i < sql.Length)
         {
-            var currentChar = sql[state.ParsePosition];
+            var currentChar = sql[i];
 
 #if NET
             if (WhitespaceSearchValues.Contains(currentChar))
@@ -496,12 +607,20 @@ internal static class SqlProcessor
 #endif
             {
                 foundWhitespace = true;
-                buffer[state.SanitizedPosition++] = currentChar;
-                state.ParsePosition++;
-                continue; // keep consuming contiguous whitespace
+                i++;
+                continue;
             }
 
-            break; // stop when currentChar is not whitespace
+            break;
+        }
+
+        // Bulk copy whitespace if found
+        if (foundWhitespace)
+        {
+            var length = i - start;
+            sql.Slice(start, length).CopyTo(buffer.Slice(state.SanitizedPosition));
+            state.SanitizedPosition += length;
+            state.ParsePosition = i;
         }
 
         return foundWhitespace;
@@ -519,28 +638,23 @@ internal static class SqlProcessor
         // Scan past multi-line comment
         if (ch == '/' && iPlusOne < length && sql[iPlusOne] == AsteriskChar)
         {
-            var rest = sql.Slice(iPlusTwo);
-            while (!rest.IsEmpty)
+            // Use index arithmetic instead of slicing
+            var searchPos = iPlusTwo;
+            while (searchPos < length)
             {
-                var starIdx = rest.IndexOf(AsteriskChar);
-                if (starIdx < 0)
+                if (sql[searchPos] == AsteriskChar)
                 {
-                    // Unterminated comment, consume to end
-                    state.ParsePosition = length;
-                    return true;
+                    if (searchPos + 1 < length && sql[searchPos + 1] == ForwardSlashChar)
+                    {
+                        state.ParsePosition = searchPos + 2;
+                        return true;
+                    }
                 }
 
-                // Check for closing */
-                if (starIdx + 1 < rest.Length && rest[starIdx + 1] == ForwardSlashChar)
-                {
-                    state.ParsePosition = iPlusTwo + starIdx + 2; // position after */
-                    return true;
-                }
-
-                // Continue searching after this '*'
-                rest = rest.Slice(starIdx + 1);
+                searchPos++;
             }
 
+            // Unterminated comment, consume to end
             state.ParsePosition = length;
             return true;
         }
@@ -548,19 +662,22 @@ internal static class SqlProcessor
         // Scan past single-line comment
         if (ch == DashChar && iPlusOne < length && sql[iPlusOne] == DashChar)
         {
-            // Find next line break efficiently and preserve the newline for whitespace handling
-            var rest = sql.Slice(iPlusTwo);
-            var idx = rest.IndexOfAny(CarriageReturnChar, NewLineChar);
-            if (idx >= 0)
+            // Find next line break efficiently using index arithmetic
+            var searchPosition = iPlusTwo;
+            while (searchPosition < length)
             {
-                // Position at the newline so ParseWhitespace can copy it
-                state.ParsePosition = iPlusTwo + idx;
-            }
-            else
-            {
-                state.ParsePosition = sql.Length;
+                var currentChar = sql[searchPosition];
+                if (currentChar == CarriageReturnChar || currentChar == NewLineChar)
+                {
+                    // Position at the newline so ParseWhitespace can copy it
+                    state.ParsePosition = searchPosition;
+                    return true;
+                }
+
+                searchPosition++;
             }
 
+            state.ParsePosition = length;
             return true;
         }
 
@@ -577,31 +694,39 @@ internal static class SqlProcessor
                 return true;
             }
 
-            var rest = sql.Slice(state.ParsePosition + 1);
-            while (!rest.IsEmpty)
+            // Is the string literal of the form `N'foo'` (i.e. a Unicode literal)?
+            // If so, we want to skip the Unicode prefix when sanitizing.
+            bool isUnicode = state.ParsePosition >= 1 && sql[state.ParsePosition - 1] is UnicodePrefixChar;
+
+            // Use index arithmetic instead of slicing
+            var searchPos = state.ParsePosition + 1;
+            while (searchPos < sql.Length)
             {
-                var idx = rest.IndexOf(SingleQuoteChar);
-                var idxPlusOne = idx + 1;
-                if (idx < 0)
+                if (sql[searchPos] == SingleQuoteChar)
                 {
-                    state.ParsePosition = sql.Length;
+                    if (searchPos + 1 < sql.Length && sql[searchPos + 1] == SingleQuoteChar)
+                    {
+                        // Skip escaped quote ('')
+                        searchPos += 2;
+                        continue;
+                    }
+
+                    // Found terminating quote
+                    if (isUnicode)
+                    {
+                        // Skip the Unicode prefix by overwriting the previous position instead
+                        state.SanitizedPosition--;
+                    }
+
+                    state.ParsePosition = searchPos + 1;
+                    buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
                     return true;
                 }
 
-                if (idxPlusOne < rest.Length && rest[idxPlusOne] == SingleQuoteChar)
-                {
-                    // Skip escaped quote ('')
-                    rest = rest.Slice(idx + 2);
-                    continue;
-                }
-
-                // Found terminating quote
-                state.ParsePosition = sql.Length - rest.Length + idxPlusOne;
-
-                buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
-                return true;
+                searchPos++;
             }
 
+            state.ParsePosition = sql.Length;
             buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
             return true;
         }
@@ -746,13 +871,18 @@ internal static class SqlProcessor
                 return false;
             }
 
-            var closingParenIndex = sql.Slice(parsePosition).IndexOf(CloseParenChar);
-
-            if (closingParenIndex > 0)
+            // Use index arithmetic instead of slicing
+            var searchPosition = parsePosition;
+            while (searchPosition < sql.Length)
             {
-                state.ParsePosition = parsePosition + closingParenIndex;
-                buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
-                return true;
+                if (sql[searchPosition] == CloseParenChar)
+                {
+                    state.ParsePosition = searchPosition;
+                    buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
+                    return true;
+                }
+
+                searchPosition++;
             }
         }
 
@@ -791,7 +921,14 @@ internal static class SqlProcessor
 
         // NOTE: If the number of bool fields increases significantly, consider combining into a bitfield.
 
-        public bool CaptureNextTokenInSummary; // 1 byte
+        public bool CaptureNextNonKeywordTokenAsIdentifier; // 1 byte
+
+        public bool SanitizeNextNonKeywordToken; // 1 byte
+
+        /// <summary>
+        /// Used to track if we are in an escaped identifier (e.g., "[table]").
+        /// </summary>
+        public bool InEscapedIdentifier; // 1 byte
 
         /// <summary>
         /// Used to track if we are in a FROM clause for special handling of comma-separated table lists.
@@ -820,28 +957,41 @@ internal static class SqlProcessor
             // Phase 1: Create all static instances.
             // We will compare the SQL we are parsing in lowercase, so we store these in lowercase also.
             AlterKeyword = new("alter", SqlKeyword.Alter, Unknown);
+            BackupKeyword = new("backup", SqlKeyword.Backup, Unknown);
+            BulkKeyword = new("bulk", SqlKeyword.Bulk, Unknown);
+            ConnectKeyword = new("connect", SqlKeyword.Connect, Unknown);
             CreateKeyword = new("create", SqlKeyword.Create, Unknown);
-            DatabaseKeyword = new("database", SqlKeyword.Database, DdlKeywords);
+            DatabaseKeyword = new("database", SqlKeyword.Database, [.. DdlKeywords, SqlKeyword.Backup, SqlKeyword.Restore]);
             DeleteKeyword = new("delete", SqlKeyword.Delete, Unknown);
+            DenyKeyword = new("deny", SqlKeyword.Deny, Unknown);
+            DisableKeyword = new("disable", SqlKeyword.Disable, Unknown);
             DropKeyword = new("drop", SqlKeyword.Drop, Unknown);
+            EnableKeyword = new("enable", SqlKeyword.Enable, Unknown);
             ExecKeyword = new("exec", SqlKeyword.Exec, Unknown);
+            ExecuteKeyword = new("execute", SqlKeyword.Execute, Unknown);
             ExistsKeyword = new("exists", SqlKeyword.Exists);
             FromKeyword = new("from", SqlKeyword.From);
             FunctionKeyword = new("function", SqlKeyword.Function, DdlKeywords);
+            GrantKeyword = new("grant", SqlKeyword.Grant, Unknown);
             IfKeyword = new("if", SqlKeyword.If);
             IndexKeyword = new("index", SqlKeyword.Index, [.. DdlKeywords, SqlKeyword.Unique, SqlKeyword.Clustered, SqlKeyword.NonClustered]);
-            InsertKeyword = new("insert", SqlKeyword.Insert, Unknown);
+            InsertKeyword = new("insert", SqlKeyword.Insert, [SqlKeyword.Unknown, SqlKeyword.Bulk]);
             IntoKeyword = new("into", SqlKeyword.Into);
             JoinKeyword = new("join", SqlKeyword.Join);
+            LoginKeyword = new("login", SqlKeyword.Login, DdlKeywords);
             NotKeyword = new("not", SqlKeyword.Not);
             OnKeyword = new("on", SqlKeyword.On);
             ProcedureKeyword = new("procedure", SqlKeyword.Procedure, DdlKeywords);
+            RestoreKeyword = new("restore", SqlKeyword.Restore, Unknown);
+            RevokeKeyword = new("revoke", SqlKeyword.Revoke, Unknown);
             RoleKeyword = new("role", SqlKeyword.Role, DdlKeywords);
             SchemaKeyword = new("schema", SqlKeyword.Schema, DdlKeywords);
             SelectKeyword = new("select", SqlKeyword.Select, [SqlKeyword.Select, SqlKeyword.Unknown]);
             SequenceKeyword = new("sequence", SqlKeyword.Sequence, DdlKeywords);
-            TableKeyword = new("table", SqlKeyword.Table, DdlKeywords);
-            TriggerKeyword = new("trigger", SqlKeyword.Trigger, DdlKeywords);
+            StatisticsKeyword = new("statistics", SqlKeyword.Statistics, [SqlKeyword.Update]);
+            TableKeyword = new("table", SqlKeyword.Table, [.. DdlKeywords, SqlKeyword.Truncate]);
+            TriggerKeyword = new("trigger", SqlKeyword.Trigger, [.. DdlKeywords, SqlKeyword.Enable, SqlKeyword.Disable]);
+            TruncateKeyword = new("truncate", SqlKeyword.Truncate, Unknown);
             UnionKeyword = new("union", SqlKeyword.Union);
             UnknownKeyword = new(string.Empty, SqlKeyword.Unknown);
             UpdateKeyword = new("update", SqlKeyword.Update, Unknown);
@@ -859,6 +1009,7 @@ internal static class SqlProcessor
                 ProcedureKeyword,
                 TriggerKeyword,
                 DatabaseKeyword,
+                LoginKeyword,
                 UserKeyword,
                 RoleKeyword,
                 SequenceKeyword,
@@ -868,25 +1019,36 @@ internal static class SqlProcessor
 
             // Phase 3: Wire follow relationships
             AlterKeyword.FollowedByKeywords = DdlSubKeywords;
+            BackupKeyword.FollowedByKeywords = [DatabaseKeyword];
+            BulkKeyword.FollowedByKeywords = [InsertKeyword];
             CreateKeyword.FollowedByKeywords = DdlSubKeywords;
             DatabaseKeyword.FollowedByKeywords = [IfKeyword];
+            DenyKeyword.FollowedByKeywords = [ConnectKeyword];
+            DisableKeyword.FollowedByKeywords = [TriggerKeyword];
             DropKeyword.FollowedByKeywords = DdlSubKeywords;
+            EnableKeyword.FollowedByKeywords = [TriggerKeyword];
             FromKeyword.FollowedByKeywords = [JoinKeyword, UnionKeyword];
             FunctionKeyword.FollowedByKeywords = [IfKeyword];
+            GrantKeyword.FollowedByKeywords = [ConnectKeyword];
             IfKeyword.FollowedByKeywords = [NotKeyword, ExistsKeyword];
             IndexKeyword.FollowedByKeywords = [OnKeyword, IfKeyword];
             InsertKeyword.FollowedByKeywords = [IntoKeyword];
             JoinKeyword.FollowedByKeywords = [OnKeyword];
+            LoginKeyword.FollowedByKeywords = [IfKeyword];
             NotKeyword.FollowedByKeywords = [ExistsKeyword];
             OnKeyword.FollowedByKeywords = [JoinKeyword];
             ProcedureKeyword.FollowedByKeywords = [IfKeyword];
+            RestoreKeyword.FollowedByKeywords = [DatabaseKeyword];
+            RevokeKeyword.FollowedByKeywords = [ConnectKeyword];
             RoleKeyword.FollowedByKeywords = [IfKeyword];
             SchemaKeyword.FollowedByKeywords = [IfKeyword, UnionKeyword];
             SelectKeyword.FollowedByKeywords = [FromKeyword];
             SequenceKeyword.FollowedByKeywords = [IfKeyword];
             TableKeyword.FollowedByKeywords = [IfKeyword];
             TriggerKeyword.FollowedByKeywords = [IfKeyword];
+            TruncateKeyword.FollowedByKeywords = [TableKeyword];
             UnionKeyword.FollowedByKeywords = [SelectKeyword];
+            UpdateKeyword.FollowedByKeywords = [StatisticsKeyword];
             UserKeyword.FollowedByKeywords = [IfKeyword];
             ViewKeyword.FollowedByKeywords = [IfKeyword];
         }
@@ -904,21 +1066,37 @@ internal static class SqlProcessor
 
         public static SqlKeywordInfo AlterKeyword { get; }
 
+        public static SqlKeywordInfo BackupKeyword { get; }
+
+        public static SqlKeywordInfo BulkKeyword { get; }
+
+        public static SqlKeywordInfo ConnectKeyword { get; }
+
         public static SqlKeywordInfo CreateKeyword { get; }
 
         public static SqlKeywordInfo DatabaseKeyword { get; }
 
         public static SqlKeywordInfo DeleteKeyword { get; }
 
+        public static SqlKeywordInfo DenyKeyword { get; }
+
+        public static SqlKeywordInfo DisableKeyword { get; }
+
         public static SqlKeywordInfo DropKeyword { get; }
 
+        public static SqlKeywordInfo EnableKeyword { get; }
+
         public static SqlKeywordInfo ExecKeyword { get; }
+
+        public static SqlKeywordInfo ExecuteKeyword { get; }
 
         public static SqlKeywordInfo ExistsKeyword { get; }
 
         public static SqlKeywordInfo FromKeyword { get; }
 
         public static SqlKeywordInfo FunctionKeyword { get; }
+
+        public static SqlKeywordInfo GrantKeyword { get; }
 
         public static SqlKeywordInfo IfKeyword { get; }
 
@@ -930,11 +1108,17 @@ internal static class SqlProcessor
 
         public static SqlKeywordInfo JoinKeyword { get; }
 
+        public static SqlKeywordInfo LoginKeyword { get; }
+
         public static SqlKeywordInfo NotKeyword { get; }
 
         public static SqlKeywordInfo OnKeyword { get; }
 
         public static SqlKeywordInfo ProcedureKeyword { get; }
+
+        public static SqlKeywordInfo RestoreKeyword { get; }
+
+        public static SqlKeywordInfo RevokeKeyword { get; }
 
         public static SqlKeywordInfo RoleKeyword { get; }
 
@@ -944,9 +1128,13 @@ internal static class SqlProcessor
 
         public static SqlKeywordInfo SequenceKeyword { get; }
 
+        public static SqlKeywordInfo StatisticsKeyword { get; }
+
         public static SqlKeywordInfo TableKeyword { get; }
 
         public static SqlKeywordInfo TriggerKeyword { get; }
+
+        public static SqlKeywordInfo TruncateKeyword { get; }
 
         public static SqlKeywordInfo UnionKeyword { get; }
 
@@ -970,13 +1158,31 @@ internal static class SqlProcessor
         public static bool CaptureNextTokenInSummary(in ParseState state, SqlKeyword currentKeyword) => currentKeyword switch
         {
             SqlKeyword.Exec => true,
+            SqlKeyword.Exists => state.FirstSummaryKeyword is SqlKeyword.Create or SqlKeyword.Alter or SqlKeyword.Drop && state.PreviousSummaryKeyword is not (SqlKeyword.Login or SqlKeyword.User),
             SqlKeyword.From => state.PreviousSummaryKeyword is SqlKeyword.Select or SqlKeyword.Distinct,
             SqlKeyword.Into => state.FirstSummaryKeyword is SqlKeyword.Insert,
             SqlKeyword.Join => state.FirstSummaryKeyword is SqlKeyword.Select or SqlKeyword.Join,
-            SqlKeyword.Database or SqlKeyword.Schema or SqlKeyword.Table or SqlKeyword.Index or SqlKeyword.View
-                or SqlKeyword.Procedure or SqlKeyword.Trigger or SqlKeyword.Function or SqlKeyword.User
-                or SqlKeyword.Role or SqlKeyword.Sequence => state.FirstSummaryKeyword is SqlKeyword.Create or SqlKeyword.Alter or SqlKeyword.Drop,
-            SqlKeyword.Exists => state.FirstSummaryKeyword is SqlKeyword.Create or SqlKeyword.Alter or SqlKeyword.Drop,
+            SqlKeyword.Login or SqlKeyword.User => false,
+            SqlKeyword.Statistics => state.FirstSummaryKeyword is SqlKeyword.Update,
+            SqlKeyword.Trigger => state.FirstSummaryKeyword is SqlKeyword.Create or SqlKeyword.Alter or SqlKeyword.Drop or SqlKeyword.Disable or SqlKeyword.Enable,
+            SqlKeyword.Truncate => state.FirstSummaryKeyword is SqlKeyword.Table,
+            SqlKeyword.Database or
+            SqlKeyword.Function or
+            SqlKeyword.Index or
+            SqlKeyword.Procedure or
+            SqlKeyword.Role or
+            SqlKeyword.Schema or
+            SqlKeyword.Sequence or
+            SqlKeyword.Table or
+            SqlKeyword.View => state.FirstSummaryKeyword is SqlKeyword.Create or SqlKeyword.Alter or SqlKeyword.Drop,
+            _ => false,
+        };
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool SanitizeNextToken(in ParseState state, SqlKeyword currentKeyword) => currentKeyword switch
+        {
+            SqlKeyword.Login or SqlKeyword.User => state.FirstSummaryKeyword is SqlKeyword.Create or SqlKeyword.Alter or SqlKeyword.Drop,
+            SqlKeyword.Exists => state.PreviousSummaryKeyword is SqlKeyword.Login or SqlKeyword.User,
             _ => false,
         };
 
@@ -997,13 +1203,9 @@ internal static class SqlProcessor
                 }
             }
 
-            if (currentKeyword.SqlKeyword == SqlKeyword.Select
-                && state.FirstSummaryKeyword is not SqlKeyword.Create && state.PreviousParsedKeyword?.SqlKeyword is not SqlKeyword.Union)
-            {
-                return true;
-            }
-
-            return false;
+            return currentKeyword.SqlKeyword == SqlKeyword.Select
+                && state.FirstSummaryKeyword is not SqlKeyword.Create
+                && state.PreviousParsedKeyword?.SqlKeyword is not SqlKeyword.Union;
         }
     }
 }

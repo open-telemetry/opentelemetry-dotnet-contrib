@@ -18,7 +18,7 @@ public static class UserAgentAttributes
     /// Name of the user-agent extracted from original. Usually refers to the browser's name.
     /// </summary>
     /// <remarks>
-    /// <a href="https://www.whatsmyua.info">Example</a> of extracting browser's name from original string. In the case of using a user-agent for non-browser products, such as microservices with multiple names/versions inside the <c>user_agent.original</c>, the most significant name SHOULD be selected. In such a scenario it should align with <c>user_agent.version</c>.
+    /// <a href="https://uaparser.dev/#demo">Example</a> of extracting browser's name from original string. In the case of using a user-agent for non-browser products, such as microservices with multiple names/versions inside the <c>user_agent.original</c>, the most significant name SHOULD be selected. In such a scenario it should align with <c>user_agent.version</c>.
     /// </remarks>
     public const string AttributeUserAgentName = "user_agent.name";
 
@@ -55,7 +55,7 @@ public static class UserAgentAttributes
     /// Version of the user-agent extracted from original. Usually refers to the browser's version.
     /// </summary>
     /// <remarks>
-    /// <a href="https://www.whatsmyua.info">Example</a> of extracting browser's version from original string. In the case of using a user-agent for non-browser products, such as microservices with multiple names/versions inside the <c>user_agent.original</c>, the most significant version SHOULD be selected. In such a scenario it should align with <c>user_agent.name</c>.
+    /// <a href="https://uaparser.dev/#demo">Example</a> of extracting browser's version from original string. In the case of using a user-agent for non-browser products, such as microservices with multiple names/versions inside the <c>user_agent.original</c>, the most significant version SHOULD be selected. In such a scenario it should align with <c>user_agent.name</c>.
     /// </remarks>
     public const string AttributeUserAgentVersion = "user_agent.version";
 

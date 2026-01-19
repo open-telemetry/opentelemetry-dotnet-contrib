@@ -15,12 +15,19 @@ benchmark[s] and stress test csprojs are also supported. -->
       Condition="Exists('$(RepoRoot)\test\$(BUILD_COMPONENT).Benchmarks\$(BUILD_COMPONENT).Benchmarks.csproj')"
       Include="$(RepoRoot)\test\$(BUILD_COMPONENT).Benchmarks\$(BUILD_COMPONENT).Benchmarks.csproj" />
     <SolutionProjects
+      Condition="Exists('$(RepoRoot)\test\$(BUILD_COMPONENT).FuzzTests\$(BUILD_COMPONENT).FuzzTests.csproj')"
+      Include="$(RepoRoot)\test\$(BUILD_COMPONENT).FuzzTests\$(BUILD_COMPONENT).FuzzTests.csproj" />
+    <SolutionProjects
       Condition="Exists('$(RepoRoot)\test\$(BUILD_COMPONENT).Stress\$(BUILD_COMPONENT).Stress.csproj')"
       Include="$(RepoRoot)\test\$(BUILD_COMPONENT).Stress\$(BUILD_COMPONENT).Stress.csproj" />
 
     <PackProjects Include="$(RepoRoot)\src\$(BUILD_COMPONENT)\$(BUILD_COMPONENT).csproj" />
 
     <TestProjects Include="$(RepoRoot)\test\$(BUILD_COMPONENT).Tests\$(BUILD_COMPONENT).Tests.csproj" />
+
+    <TestProjects
+      Condition="Exists('$(RepoRoot)\test\$(BUILD_COMPONENT).FuzzTests\$(BUILD_COMPONENT).FuzzTests.csproj')"
+      Include="$(RepoRoot)\test\$(BUILD_COMPONENT).FuzzTests\$(BUILD_COMPONENT).FuzzTests.csproj" />
   </ItemGroup>
 
   <Target Name="Build">

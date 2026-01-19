@@ -81,7 +81,8 @@ for more details about each individual attribute:
 #### Configure OpenTelemetry MeterProvider
 
 Call the `AddOwinInstrumentation` `MeterProviderBuilder` extension to register
-OpenTelemetry instrumentation which generates request duration metrics for OWIN requests.
+OpenTelemetry instrumentation which generates request duration metrics for OWIN
+requests.
 
 The metric implemention does not rely on tracing, and will generate metrics
 even if tracing is disabled.

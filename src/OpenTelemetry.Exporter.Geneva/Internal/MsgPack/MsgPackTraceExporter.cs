@@ -58,11 +58,9 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
 #if NET
     internal readonly FrozenSet<string>? CustomFields;
-
     internal readonly FrozenSet<string>? DedicatedFields;
 #else
     internal readonly HashSet<string>? CustomFields;
-
     internal readonly HashSet<string>? DedicatedFields;
 #endif
 
@@ -70,16 +68,25 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
     private static readonly string INVALID_SPAN_ID = default(ActivitySpanId).ToHexString();
 
-    private readonly byte[] bufferEpilogue;
-    private readonly int timestampPatchIndex;
-    private readonly int mapSizePatchIndex;
     private readonly IDataTransport dataTransport;
-    private readonly bool shouldIncludeTraceState;
-    private readonly Func<Resource> resourceProvider;
-    private readonly List<string> prepopulatedFields;
-    private readonly Dictionary<string, object> propertiesEntries;
 
-    private byte[] bufferPrologue;
+    // this is a reference to the eponymous options field.
+    // It would make more sense as a HashSet/FrozenSet, but it's only used once,
+    // so constructing a whole new data structure for it is overkill.
+    private readonly IEnumerable<string>? resourceFieldNames;
+    private readonly bool shouldIncludeTraceState;
+    private readonly bool userProvidedPrepopulatedFields;
+    private readonly string partAName;
+    private readonly Func<Resource> resourceProvider;
+
+    private byte[]? bufferPrologue;
+    private byte[]? bufferEpilogue;
+    private int timestampPatchIndex;
+    private int mapSizePatchIndex;
+
+    // this stores the prepopulated fields until CreateFraming can consume them into the prologue.
+    // after CreateFraming is called, this dictionary is set to null, so don't use it after that.
+    private Dictionary<string, object> prepopulatedFields;
 
     private bool isDisposed;
 
@@ -96,6 +103,8 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         {
             partAName = customTableName;
         }
+
+        this.partAName = partAName;
 
         var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
         switch (connectionStringBuilder.Protocol)
@@ -123,6 +132,33 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             case TransportProtocol.Unspecified:
             default:
                 throw new NotSupportedException($"Protocol '{connectionStringBuilder.Protocol}' is not supported");
+        }
+
+        if (options.PrepopulatedFields != null && options.PrepopulatedFields.Count > 0 && options.ResourceFieldNames != null)
+        {
+            throw new ArgumentException("PrepopulatedFields and ResourceFieldNames are mutually exclusive options");
+        }
+
+        if (options.ResourceFieldNames != null)
+        {
+            foreach (var wantedResourceAttribute in options.ResourceFieldNames)
+            {
+                if (PART_A_MAPPING_DICTIONARY.Values.Contains(wantedResourceAttribute))
+                {
+                    throw new ArgumentException($"'{wantedResourceAttribute}' cannot be specified through a resource attribute. Remove it from ResourceFieldNames");
+                }
+            }
+        }
+
+        this.userProvidedPrepopulatedFields = options.PrepopulatedFields != null && options.PrepopulatedFields.Count > 0;
+
+        this.prepopulatedFields = new Dictionary<string, object>(0, StringComparer.Ordinal);
+        if (options.PrepopulatedFields != null)
+        {
+            foreach (var entry in options.PrepopulatedFields)
+            {
+                this.prepopulatedFields.Add(entry.Key, entry.Value);
+            }
         }
 
         // TODO: Validate custom fields (reserved name? etc).
@@ -168,56 +204,8 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 #endif
         }
 
+        this.resourceFieldNames = options.ResourceFieldNames;
         this.shouldIncludeTraceState = options.IncludeTraceStateForSpan;
-
-        var buffer = new byte[BUFFER_SIZE];
-
-        var cursor = 0;
-
-        /* Fluentd Forward Mode:
-        [
-            "Span",
-            [
-                [ <timestamp>, { "env_ver": "4.0", ... } ]
-            ],
-            { "TimeFormat": "DateTime" }
-        ]
-        */
-        cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, 3);
-        cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, partAName);
-        cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, 1);
-        cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, 2);
-
-        // timestamp
-        cursor = MessagePackSerializer.WriteTimestamp96Header(buffer, cursor);
-        this.timestampPatchIndex = cursor;
-        cursor += 12; // reserve 12 bytes for the timestamp
-
-        cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, ushort.MaxValue); // Note: always use Map16 for perf consideration
-        this.mapSizePatchIndex = cursor - 2;
-
-        this.prepopulatedFields = [];
-
-        // TODO: Do we support PartB as well?
-        // Part A - core envelope
-        cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Name, partAName);
-        this.prepopulatedFields.Add(Schema.V40.PartA.Name);
-
-        foreach (var entry in options.PrepopulatedFields)
-        {
-            cursor = AddPartAField(buffer, cursor, entry.Key, entry.Value);
-            this.prepopulatedFields.Add(entry.Key);
-        }
-
-        this.propertiesEntries = [];
-
-        this.bufferPrologue = new byte[cursor - 0];
-        System.Buffer.BlockCopy(buffer, 0, this.bufferPrologue, 0, cursor - 0);
-
-        cursor = MessagePackSerializer.Serialize(buffer, 0, new Dictionary<string, object> { { "TimeFormat", "DateTime" } });
-
-        this.bufferEpilogue = new byte[cursor - 0];
-        System.Buffer.BlockCopy(buffer, 0, this.bufferEpilogue, 0, cursor - 0);
     }
 
     internal bool IsUsingUnixDomainSocket => this.dataTransport is UnixDomainSocketDataTransport;
@@ -320,71 +308,163 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         return urlStringBuilder.ToString();
     }
 
-    internal int AppendResourceAttributesToBuffer(byte[] buffer, int cursor)
+    /// <summary>
+    /// Populates this.bufferPrologue and this.bufferEpilogue.
+    /// </summary>
+    internal void CreateFraming()
     {
-        foreach (var entry in this.resourceProvider().Attributes)
+        var buffer = new byte[BUFFER_SIZE];
+
+        var cursor = 0;
+
+        /* Fluentd Forward Mode:
+        [
+            "Span",
+            [
+                [ <timestamp>, { "env_ver": "4.0", ... } ]
+            ],
+            { "TimeFormat": "DateTime" }
+        ]
+        */
+        cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, 3);
+        cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, this.partAName);
+        cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, 1);
+        cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, 2);
+
+        // timestamp
+        cursor = MessagePackSerializer.WriteTimestamp96Header(buffer, cursor);
+        this.timestampPatchIndex = cursor;
+        cursor += 12; // reserve 12 bytes for the timestamp
+
+        cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, ushort.MaxValue); // Note: always use Map16 for perf consideration
+        this.mapSizePatchIndex = cursor - 2;
+
+        // TODO: Do we support PartB as well?
+        // Part A - core envelope
+        cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Name, this.partAName);
+
+        cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Ver, "4.0");
+
+        var resourceAttributes = this.resourceProvider().Attributes;
+
+        if (this.resourceFieldNames != null)
         {
-            string key = entry.Key;
-            bool isDedicatedField = false;
+            // if ResourceFieldNames is set, we use resource attributes rather than PrepopulatedFields
+            this.prepopulatedFields = new Dictionary<string, object>(0, StringComparer.Ordinal);
+        }
 
-            if (entry.Value is string resourceValue)
+        // this is guaranteed to not be null because it's set in the constructor
+        Guard.ThrowIfNull(this.prepopulatedFields);
+
+        foreach (var resourceAttribute in resourceAttributes)
+        {
+            var key = resourceAttribute.Key;
+            var value = resourceAttribute.Value;
+
+            var isWantedAttribute = false;
+            if (this.resourceFieldNames != null)
             {
-                switch (key)
+                // this might seem inefficient, but it's only run once and I don't expect there to be many resource attributes
+                foreach (var wantedAttribute in this.resourceFieldNames!)
                 {
-                    case "service.name":
-                        key = Schema.V40.PartA.Extensions.Cloud.Role;
-                        isDedicatedField = true;
+                    if (wantedAttribute == key)
+                    {
+                        switch (value)
+                        {
+                            case bool:
+                            case byte:
+                            case sbyte:
+                            case short:
+                            case ushort:
+                            case int:
+                            case uint:
+                            case long:
+                            case ulong:
+                            case float:
+                            case double:
+                            case string:
+                                break;
+                            case null:
+                                // This should be impossible because Resource attributes cannot have null values.
+                                // But just in case, turn it into something serializable to avoid crashing.
+                                value = "<NULL>";
+                                break;
+                            default:
+                                // Try to construct a value that communicates that the type is not supported.
+                                try
+                                {
+                                    var stringValue = Convert.ToString(value, CultureInfo.InvariantCulture);
+                                    value = stringValue == null ? "<Unsupported type>" : $"<Unsupported type: {stringValue}>";
+                                }
+                                catch
+                                {
+                                    value = "<Unsupported type>";
+                                }
+
+                                break;
+                        }
+
+                        isWantedAttribute = true;
                         break;
-                    case "service.instanceId":
-                        key = Schema.V40.PartA.Extensions.Cloud.RoleInstance;
-                        isDedicatedField = true;
-                        break;
+                    }
                 }
             }
 
-            if (isDedicatedField || this.CustomFields == null || this.CustomFields.Contains(key))
+            if (!this.userProvidedPrepopulatedFields)
             {
-                if (this.prepopulatedFields.Contains(key))
+                // it's only safe to add these special resource fields if we are sure the user didn't provide them as a PrepopulatedField already
+                if (key == "service.name")
                 {
-                    // pre-populated fields take priority over resource attributes.
-                    // TODO: log warning? error out?
-                    continue;
+                    key = Schema.V40.PartA.Extensions.Cloud.Role;
+                    isWantedAttribute = true;
                 }
 
-                cursor = AddPartAField(buffer, cursor, key, entry.Value);
-                this.prepopulatedFields.Add(key);
+                if (key == "service.instanceId")
+                {
+                    key = Schema.V40.PartA.Extensions.Cloud.RoleInstance;
+                    isWantedAttribute = true;
+                }
             }
-            else
+
+            if (isWantedAttribute)
             {
-                this.propertiesEntries.Add(key, entry.Value);
+                this.prepopulatedFields[key] = value;
             }
         }
 
-        return cursor;
+        foreach (var entry in this.prepopulatedFields)
+        {
+            cursor = AddPartAField(buffer, cursor, entry.Key, entry.Value);
+        }
+
+        this.bufferPrologue = new byte[cursor - 0];
+        System.Buffer.BlockCopy(buffer, 0, this.bufferPrologue, 0, cursor - 0);
+
+        // Now generate the epilogue
+        cursor = MessagePackSerializer.Serialize(buffer, 0, new Dictionary<string, object> { { "TimeFormat", "DateTime" } });
+
+        this.bufferEpilogue = new byte[cursor - 0];
+        System.Buffer.BlockCopy(buffer, 0, this.bufferEpilogue, 0, cursor - 0);
     }
 
     internal ArraySegment<byte> SerializeActivity(Activity activity)
     {
         var buffer = this.Buffer.Value;
-        int cursor;
         if (buffer == null)
         {
+            this.CreateFraming();
             buffer = new byte[BUFFER_SIZE]; // TODO: handle OOM
-            System.Buffer.BlockCopy(this.bufferPrologue, 0, buffer, 0, this.bufferPrologue.Length);
-
-            // Augment the prologue now that we have the resource attributes.
-            cursor = this.AppendResourceAttributesToBuffer(buffer, this.bufferPrologue.Length);
-            this.bufferPrologue = new byte[cursor];
-            System.Buffer.BlockCopy(buffer, 0, this.bufferPrologue, 0, cursor);
-
+            System.Buffer.BlockCopy(this.bufferPrologue!, 0, buffer, 0, this.bufferPrologue!.Length);
             this.Buffer.Value = buffer;
         }
-        else
-        {
-            cursor = this.bufferPrologue.Length;
-        }
 
-        var cntFields = (ushort)this.prepopulatedFields.Count;
+        // These are guaranteed to not be null because CreateFraming must be called.
+        Guard.ThrowIfNull(this.bufferPrologue);
+        Guard.ThrowIfNull(this.bufferEpilogue);
+
+        var cursor = this.bufferPrologue.Length;
+
+        var cntFields = (ushort)(this.prepopulatedFields.Count + 2); // the two extra are for Name and Ver, set in CreateFraming
         var dtBegin = activity.StartTimeUtc;
         var tsBegin = dtBegin.Ticks;
         var tsEnd = tsBegin + activity.Duration.Ticks;
@@ -542,7 +622,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             }
         }
 
-        if (hasEnvProperties || this.propertiesEntries.Count > 0)
+        if (hasEnvProperties)
         {
             // Anything that's not a dedicated field gets put into a part C field called properties
             ushort envPropertiesCount = 0;
@@ -550,28 +630,18 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, ushort.MaxValue);
             var idxMapSizeEnvPropertiesPatch = cursor - 2;
 
-            if (hasEnvProperties)
+            foreach (ref readonly var entry in activity.EnumerateTagObjects())
             {
-                foreach (ref readonly var entry in activity.EnumerateTagObjects())
+                if (this.DedicatedFields!.Contains(entry.Key))
                 {
-                    if (this.DedicatedFields!.Contains(entry.Key))
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
-                        cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
-                        envPropertiesCount += 1;
-                    }
+                    continue;
                 }
-            }
-
-            foreach (var entry in this.propertiesEntries)
-            {
-                cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
-                cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
-                envPropertiesCount += 1;
+                else
+                {
+                    cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
+                    cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
+                    envPropertiesCount += 1;
+                }
             }
 
             cntFields += 1;

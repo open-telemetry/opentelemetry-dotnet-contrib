@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 1.14.2
+
+Released 2026-Jan-14
+
+## 1.14.1
+
+Released 2025-Dec-19
+
 ## 1.14.0
 
 Released 2025-Nov-13

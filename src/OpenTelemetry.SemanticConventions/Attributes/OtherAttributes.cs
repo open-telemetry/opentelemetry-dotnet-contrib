@@ -29,13 +29,11 @@ public static class OtherAttributes
         /// <summary>
         /// idle.
         /// </summary>
-        [Obsolete("Replaced by <c>db.client.connection.state</c>.")]
         public const string Idle = "idle";
 
         /// <summary>
         /// used.
         /// </summary>
-        [Obsolete("Replaced by <c>db.client.connection.state</c>.")]
         public const string Used = "used";
     }
 }

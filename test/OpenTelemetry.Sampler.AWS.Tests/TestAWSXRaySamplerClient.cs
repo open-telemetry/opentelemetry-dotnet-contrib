@@ -1,23 +1,25 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using WireMock.RequestBuilders;
-using WireMock.ResponseBuilders;
-using WireMock.Server;
+using OpenTelemetry.Tests;
 using Xunit;
 
 namespace OpenTelemetry.Sampler.AWS.Tests;
 
 public class TestAWSXRaySamplerClient : IDisposable
 {
-    private readonly WireMockServer mockServer;
-
+    private readonly IDisposable mockServer;
     private readonly AWSXRaySamplerClient client;
+    private readonly MockServerRequestHandler requestHandler;
 
     public TestAWSXRaySamplerClient()
     {
-        this.mockServer = WireMockServer.Start();
-        this.client = new AWSXRaySamplerClient(this.mockServer.Url!);
+        this.requestHandler = new MockServerRequestHandler();
+        this.mockServer = TestHttpServer.RunServer(
+            ctx => this.requestHandler.Handle(ctx),
+            out var host,
+            out var port);
+        this.client = new AWSXRaySamplerClient($"http://{host}:{port}");
     }
 
     public void Dispose()
@@ -26,11 +28,7 @@ public class TestAWSXRaySamplerClient : IDisposable
         this.client.Dispose();
     }
 
-#if NETFRAMEWORK
-    [Fact(Skip = "Skip due to https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/3243")]
-#else
     [Fact]
-#endif
     public async Task TestGetSamplingRules()
     {
         this.CreateResponse("/GetSamplingRules", "Data/GetSamplingRulesResponse.json");
@@ -78,28 +76,17 @@ public class TestAWSXRaySamplerClient : IDisposable
         Assert.Empty(rules[2].Attributes);
     }
 
-#if NETFRAMEWORK
-    [Fact(Skip = "Skip due to https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/3243")]
-#else
     [Fact]
-#endif
     public async Task TestGetSamplingRulesMalformed()
     {
-        this.mockServer
-            .Given(Request.Create().WithPath("/GetSamplingRules").UsingPost())
-            .RespondWith(
-                Response.Create().WithStatusCode(200).WithHeader("Content-Type", "application/json").WithBody("notJson"));
+        this.requestHandler.SetResponse("/GetSamplingRules", "notJson");
 
         var rules = await this.client.GetSamplingRules();
 
         Assert.Empty(rules);
     }
 
-#if NETFRAMEWORK
-    [Fact(Skip = "Skip due to https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/3243")]
-#else
     [Fact]
-#endif
     public async Task TestGetSamplingTargets()
     {
         var clock = new TestClock();
@@ -154,18 +141,11 @@ public class TestAWSXRaySamplerClient : IDisposable
         Assert.Equal("Unknown rule", targetsResponse.UnprocessedStatistics[0].Message);
     }
 
-#if NETFRAMEWORK
-    [Fact(Skip = "Skip due to https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/3243")]
-#else
     [Fact]
-#endif
     public async Task TestGetSamplingTargetsWithMalformed()
     {
         var clock = new TestClock();
-        this.mockServer
-            .Given(Request.Create().WithPath("/SamplingTargets").UsingPost())
-            .RespondWith(
-                Response.Create().WithStatusCode(200).WithHeader("Content-Type", "application/json").WithBody("notJson"));
+        this.requestHandler.SetResponse("/SamplingTargets", "notJson");
 
         var request = new GetSamplingTargetsRequest(
         [
@@ -186,9 +166,6 @@ public class TestAWSXRaySamplerClient : IDisposable
     private void CreateResponse(string endpoint, string filePath)
     {
         var mockResponse = File.ReadAllText(filePath);
-        this.mockServer
-            .Given(Request.Create().WithPath(endpoint).UsingPost())
-            .RespondWith(
-                Response.Create().WithStatusCode(200).WithHeader("Content-Type", "application/json").WithBody(mockResponse));
+        this.requestHandler.SetResponse(endpoint, mockResponse);
     }
 }

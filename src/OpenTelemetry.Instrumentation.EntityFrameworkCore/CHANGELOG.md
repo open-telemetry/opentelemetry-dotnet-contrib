@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+* Improve SQL parsing for sanitization and summary generation. Support additional
+  cases for escaped identifiers. Optimize performance of parsing logic.
+  ([#3627](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3627))
+
+* Improve SQL parsing for sanitization for Unicode string literals.
+  ([#3662](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3662))
+
+* Sanitize the object name for SQL query text using the LOGIN or USER keywords and
+  remove from query summaries.
+  ([#3663](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3663))
+
+* Improve SQL parsing to generate query summaries for more T-SQL keywords.
+  ([#3671](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3671))
+
 ## 1.14.0-beta.2
 
 Released 2025-Nov-14

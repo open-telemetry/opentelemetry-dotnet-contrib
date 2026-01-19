@@ -301,7 +301,7 @@ public static class DbAttributes
     /// Summary may be available to the instrumentation through
     /// instrumentation hooks or other means. If it is not available, instrumentations
     /// that support query parsing SHOULD generate a summary following
-    /// <a href="/docs/database/database-spans.md#generating-a-summary-of-the-query">Generating query summary</a>
+    /// <a href="/docs/db/database-spans.md#generating-a-summary-of-the-query">Generating query summary</a>
     /// section.
     /// </remarks>
     public const string AttributeDbQuerySummary = "db.query.summary";
@@ -310,7 +310,7 @@ public static class DbAttributes
     /// The database query being executed.
     /// </summary>
     /// <remarks>
-    /// For sanitization see <a href="/docs/database/database-spans.md#sanitization-of-dbquerytext">Sanitization of <c>db.query.text</c></a>.
+    /// For sanitization see <a href="/docs/db/database-spans.md#sanitization-of-dbquerytext">Sanitization of <c>db.query.text</c></a>.
     /// For batch operations, if the individual operations are known to have the same query text then that query text SHOULD be used, otherwise all of the individual query texts SHOULD be concatenated with separator <c>; </c> or some other database system specific separator if more applicable.
     /// Parameterized query text SHOULD NOT be sanitized. Even though parameterized query text can potentially have sensitive data, by using a parameterized query the user is giving a strong signal that any sensitive data will be passed as parameter values, and the benefit to observability of capturing the static part of the query text by default outweighs the risk.
     /// </remarks>
@@ -389,67 +389,56 @@ public static class DbAttributes
         /// <summary>
         /// all.
         /// </summary>
-        [Obsolete("Replaced by <c>cassandra.consistency.level</c>.")]
         public const string All = "all";
 
         /// <summary>
         /// each_quorum.
         /// </summary>
-        [Obsolete("Replaced by <c>cassandra.consistency.level</c>.")]
         public const string EachQuorum = "each_quorum";
 
         /// <summary>
         /// quorum.
         /// </summary>
-        [Obsolete("Replaced by <c>cassandra.consistency.level</c>.")]
         public const string Quorum = "quorum";
 
         /// <summary>
         /// local_quorum.
         /// </summary>
-        [Obsolete("Replaced by <c>cassandra.consistency.level</c>.")]
         public const string LocalQuorum = "local_quorum";
 
         /// <summary>
         /// one.
         /// </summary>
-        [Obsolete("Replaced by <c>cassandra.consistency.level</c>.")]
         public const string One = "one";
 
         /// <summary>
         /// two.
         /// </summary>
-        [Obsolete("Replaced by <c>cassandra.consistency.level</c>.")]
         public const string Two = "two";
 
         /// <summary>
         /// three.
         /// </summary>
-        [Obsolete("Replaced by <c>cassandra.consistency.level</c>.")]
         public const string Three = "three";
 
         /// <summary>
         /// local_one.
         /// </summary>
-        [Obsolete("Replaced by <c>cassandra.consistency.level</c>.")]
         public const string LocalOne = "local_one";
 
         /// <summary>
         /// any.
         /// </summary>
-        [Obsolete("Replaced by <c>cassandra.consistency.level</c>.")]
         public const string Any = "any";
 
         /// <summary>
         /// serial.
         /// </summary>
-        [Obsolete("Replaced by <c>cassandra.consistency.level</c>.")]
         public const string Serial = "serial";
 
         /// <summary>
         /// local_serial.
         /// </summary>
-        [Obsolete("Replaced by <c>cassandra.consistency.level</c>.")]
         public const string LocalSerial = "local_serial";
     }
 
@@ -478,13 +467,11 @@ public static class DbAttributes
         /// <summary>
         /// idle.
         /// </summary>
-        [Obsolete("Replaced by <c>db.client.connection.state</c>.")]
         public const string Idle = "idle";
 
         /// <summary>
         /// used.
         /// </summary>
-        [Obsolete("Replaced by <c>db.client.connection.state</c>.")]
         public const string Used = "used";
     }
 
@@ -497,13 +484,11 @@ public static class DbAttributes
         /// <summary>
         /// Gateway (HTTP) connection.
         /// </summary>
-        [Obsolete("Replaced by <c>azure.cosmosdb.connection.mode</c>.")]
         public const string Gateway = "gateway";
 
         /// <summary>
         /// Direct connection.
         /// </summary>
-        [Obsolete("Replaced by <c>azure.cosmosdb.connection.mode</c>.")]
         public const string Direct = "direct";
     }
 
@@ -516,31 +501,26 @@ public static class DbAttributes
         /// <summary>
         /// strong.
         /// </summary>
-        [Obsolete("Replaced by <c>azure.cosmosdb.consistency.level</c>.")]
         public const string Strong = "Strong";
 
         /// <summary>
         /// bounded_staleness.
         /// </summary>
-        [Obsolete("Replaced by <c>azure.cosmosdb.consistency.level</c>.")]
         public const string BoundedStaleness = "BoundedStaleness";
 
         /// <summary>
         /// session.
         /// </summary>
-        [Obsolete("Replaced by <c>azure.cosmosdb.consistency.level</c>.")]
         public const string Session = "Session";
 
         /// <summary>
         /// eventual.
         /// </summary>
-        [Obsolete("Replaced by <c>azure.cosmosdb.consistency.level</c>.")]
         public const string Eventual = "Eventual";
 
         /// <summary>
         /// consistent_prefix.
         /// </summary>
-        [Obsolete("Replaced by <c>azure.cosmosdb.consistency.level</c>.")]
         public const string ConsistentPrefix = "ConsistentPrefix";
     }
 
@@ -553,91 +533,76 @@ public static class DbAttributes
         /// <summary>
         /// batch.
         /// </summary>
-        [Obsolete("Removed, no replacement at this time.")]
         public const string Batch = "batch";
 
         /// <summary>
         /// create.
         /// </summary>
-        [Obsolete("Removed, no replacement at this time.")]
         public const string Create = "create";
 
         /// <summary>
         /// delete.
         /// </summary>
-        [Obsolete("Removed, no replacement at this time.")]
         public const string Delete = "delete";
 
         /// <summary>
         /// execute.
         /// </summary>
-        [Obsolete("Removed, no replacement at this time.")]
         public const string Execute = "execute";
 
         /// <summary>
         /// execute_javascript.
         /// </summary>
-        [Obsolete("Removed, no replacement at this time.")]
         public const string ExecuteJavascript = "execute_javascript";
 
         /// <summary>
         /// invalid.
         /// </summary>
-        [Obsolete("Removed, no replacement at this time.")]
         public const string Invalid = "invalid";
 
         /// <summary>
         /// head.
         /// </summary>
-        [Obsolete("Removed, no replacement at this time.")]
         public const string Head = "head";
 
         /// <summary>
         /// head_feed.
         /// </summary>
-        [Obsolete("Removed, no replacement at this time.")]
         public const string HeadFeed = "head_feed";
 
         /// <summary>
         /// patch.
         /// </summary>
-        [Obsolete("Removed, no replacement at this time.")]
         public const string Patch = "patch";
 
         /// <summary>
         /// query.
         /// </summary>
-        [Obsolete("Removed, no replacement at this time.")]
         public const string Query = "query";
 
         /// <summary>
         /// query_plan.
         /// </summary>
-        [Obsolete("Removed, no replacement at this time.")]
         public const string QueryPlan = "query_plan";
 
         /// <summary>
         /// read.
         /// </summary>
-        [Obsolete("Removed, no replacement at this time.")]
         public const string Read = "read";
 
         /// <summary>
         /// read_feed.
         /// </summary>
-        [Obsolete("Removed, no replacement at this time.")]
         public const string ReadFeed = "read_feed";
 
         /// <summary>
         /// replace.
         /// </summary>
-        [Obsolete("Removed, no replacement at this time.")]
         public const string Replace = "replace";
 
         /// <summary>
         /// upsert.
         /// </summary>
-        [Obsolete("Removed, no replacement at this time.")]
         public const string Upsert = "upsert";
     }
 
@@ -650,325 +615,276 @@ public static class DbAttributes
         /// <summary>
         /// Some other SQL database. Fallback only. See notes.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string OtherSql = "other_sql";
 
         /// <summary>
         /// Adabas (Adaptable Database System).
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Adabas = "adabas";
 
         /// <summary>
         /// Deprecated, use <c>intersystems_cache</c> instead.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
+        [Obsolete("Replaced by <c>intersystems_cache</c>.")]
         public const string Cache = "cache";
 
         /// <summary>
         /// InterSystems Caché.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string IntersystemsCache = "intersystems_cache";
 
         /// <summary>
         /// Apache Cassandra.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Cassandra = "cassandra";
 
         /// <summary>
         /// ClickHouse.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Clickhouse = "clickhouse";
 
         /// <summary>
         /// Deprecated, use <c>other_sql</c> instead.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
+        [Obsolete("Replaced by <c>other_sql</c>.")]
         public const string Cloudscape = "cloudscape";
 
         /// <summary>
         /// CockroachDB.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Cockroachdb = "cockroachdb";
 
         /// <summary>
         /// Deprecated, no replacement at this time.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
+        [Obsolete("Obsoleted.")]
         public const string Coldfusion = "coldfusion";
 
         /// <summary>
         /// Microsoft Azure Cosmos DB.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Cosmosdb = "cosmosdb";
 
         /// <summary>
         /// Couchbase.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Couchbase = "couchbase";
 
         /// <summary>
         /// CouchDB.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Couchdb = "couchdb";
 
         /// <summary>
         /// IBM Db2.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Db2 = "db2";
 
         /// <summary>
         /// Apache Derby.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Derby = "derby";
 
         /// <summary>
         /// Amazon DynamoDB.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Dynamodb = "dynamodb";
 
         /// <summary>
         /// EnterpriseDB.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Edb = "edb";
 
         /// <summary>
         /// Elasticsearch.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Elasticsearch = "elasticsearch";
 
         /// <summary>
         /// FileMaker.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Filemaker = "filemaker";
 
         /// <summary>
         /// Firebird.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Firebird = "firebird";
 
         /// <summary>
         /// Deprecated, use <c>other_sql</c> instead.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
+        [Obsolete("Replaced by <c>other_sql</c>.")]
         public const string Firstsql = "firstsql";
 
         /// <summary>
         /// Apache Geode.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Geode = "geode";
 
         /// <summary>
         /// H2.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string H2 = "h2";
 
         /// <summary>
         /// SAP HANA.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Hanadb = "hanadb";
 
         /// <summary>
         /// Apache HBase.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Hbase = "hbase";
 
         /// <summary>
         /// Apache Hive.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Hive = "hive";
 
         /// <summary>
         /// HyperSQL DataBase.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Hsqldb = "hsqldb";
 
         /// <summary>
         /// InfluxDB.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Influxdb = "influxdb";
 
         /// <summary>
         /// Informix.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Informix = "informix";
 
         /// <summary>
         /// Ingres.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Ingres = "ingres";
 
         /// <summary>
         /// InstantDB.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Instantdb = "instantdb";
 
         /// <summary>
         /// InterBase.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Interbase = "interbase";
 
         /// <summary>
         /// MariaDB.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Mariadb = "mariadb";
 
         /// <summary>
         /// SAP MaxDB.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Maxdb = "maxdb";
 
         /// <summary>
         /// Memcached.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Memcached = "memcached";
 
         /// <summary>
         /// MongoDB.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Mongodb = "mongodb";
 
         /// <summary>
         /// Microsoft SQL Server.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Mssql = "mssql";
 
         /// <summary>
         /// Deprecated, Microsoft SQL Server Compact is discontinued.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
+        [Obsolete("Replaced by <c>other_sql</c>.")]
         public const string Mssqlcompact = "mssqlcompact";
 
         /// <summary>
         /// MySQL.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Mysql = "mysql";
 
         /// <summary>
         /// Neo4j.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Neo4j = "neo4j";
 
         /// <summary>
         /// Netezza.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Netezza = "netezza";
 
         /// <summary>
         /// OpenSearch.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Opensearch = "opensearch";
 
         /// <summary>
         /// Oracle Database.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Oracle = "oracle";
 
         /// <summary>
         /// Pervasive PSQL.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Pervasive = "pervasive";
 
         /// <summary>
         /// PointBase.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Pointbase = "pointbase";
 
         /// <summary>
         /// PostgreSQL.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Postgresql = "postgresql";
 
         /// <summary>
         /// Progress Database.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Progress = "progress";
 
         /// <summary>
         /// Redis.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Redis = "redis";
 
         /// <summary>
         /// Amazon Redshift.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Redshift = "redshift";
 
         /// <summary>
         /// Cloud Spanner.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Spanner = "spanner";
 
         /// <summary>
         /// SQLite.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Sqlite = "sqlite";
 
         /// <summary>
         /// Sybase.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Sybase = "sybase";
 
         /// <summary>
         /// Teradata.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Teradata = "teradata";
 
         /// <summary>
         /// Trino.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Trino = "trino";
 
         /// <summary>
         /// Vertica.
         /// </summary>
-        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Vertica = "vertica";
     }
 

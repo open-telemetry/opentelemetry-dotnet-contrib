@@ -26,8 +26,8 @@
 
   <!-- Resolve version conflicts caused by ElasticsearchClient not targeting netX.0 -->
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" VersionOverride="10.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Options" VersionOverride="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" VersionOverride="10.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Options" VersionOverride="10.0.2" />
   </ItemGroup>
 
 </Project>

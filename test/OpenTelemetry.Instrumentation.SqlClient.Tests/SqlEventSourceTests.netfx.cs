@@ -15,7 +15,7 @@ namespace OpenTelemetry.Instrumentation.SqlClient.Tests;
 [Collection("SqlClient")]
 public class SqlEventSourceTests
 {
-    public static TheoryData<Type, CommandType, string, bool, int, bool, bool, bool, bool> EventSourceFakeTestCases()
+    public static TheoryData<Type, CommandType, string, bool, int, bool, bool> EventSourceFakeTestCases()
     {
         /* netfx driver can't capture queries, only stored procedure names */
         /* always emit some attribute */
@@ -24,12 +24,9 @@ public class SqlEventSourceTests
             from eventSourceType in new[] { typeof(FakeBehavingAdoNetSqlEventSource), typeof(FakeBehavingMdsSqlEventSource) }
             from commandType in new[] { CommandType.StoredProcedure, CommandType.Text }
             from isFailure in bools
-            from emitOldAttributes in bools
-            from emitNewAttributes in bools
             from tracingEnabled in bools
             from metricsEnabled in bools
             where !(commandType == CommandType.Text)
-            where emitOldAttributes && emitNewAttributes
             let commandText = commandType == CommandType.Text
                 ? (!isFailure ? "select 1/1" : "select 1/0")
                 : "sp_who"
@@ -41,13 +38,11 @@ public class SqlEventSourceTests
                 commandText,
                 isFailure,
                 sqlExceptionNumber,
-                emitOldAttributes,
-                emitNewAttributes,
                 tracingEnabled,
                 metricsEnabled,
             };
 
-        var testCases = new TheoryData<Type, CommandType, string, bool, int, bool, bool, bool, bool>();
+        var testCases = new TheoryData<Type, CommandType, string, bool, int, bool, bool>();
 
         foreach (var item in query)
         {
@@ -57,8 +52,6 @@ public class SqlEventSourceTests
                 item.commandText,
                 item.isFailure,
                 item.sqlExceptionNumber,
-                item.emitOldAttributes,
-                item.emitNewAttributes,
                 item.tracingEnabled,
                 item.metricsEnabled);
         }
@@ -74,8 +67,6 @@ public class SqlEventSourceTests
         string commandText,
         bool isFailure,
         int sqlExceptionNumber,
-        bool emitOldAttributes,
-        bool emitNewAttributes,
         bool tracingEnabled,
         bool metricsEnabled)
     {
@@ -89,11 +80,7 @@ public class SqlEventSourceTests
         if (tracingEnabled)
         {
             traceProviderBuilder.AddInMemoryExporter(activities)
-                .AddSqlClientInstrumentation(options =>
-                {
-                    options.EmitOldAttributes = emitOldAttributes;
-                    options.EmitNewAttributes = emitNewAttributes;
-                });
+                .AddSqlClientInstrumentation();
         }
 
         var meterProviderBuilder = Sdk.CreateMeterProviderBuilder();
@@ -138,7 +125,7 @@ public class SqlEventSourceTests
         if (tracingEnabled)
         {
             activity = Assert.Single(activities);
-            VerifyActivityData(commandText, isFailure, dataSource, activity, emitOldAttributes, emitNewAttributes);
+            VerifyActivityData(commandText, isFailure, dataSource, activity);
         }
 
         var dbClientOperationDurationMetrics = metrics
@@ -218,18 +205,9 @@ public class SqlEventSourceTests
         string commandText,
         bool isFailure,
         string dataSource,
-        Activity activity,
-        bool emitOldAttributes = true,
-        bool emitNewAttributes = false)
+        Activity activity)
     {
-        if (emitNewAttributes)
-        {
-            Assert.Equal("instanceName.master", activity.DisplayName);
-        }
-        else
-        {
-            Assert.Equal("master", activity.DisplayName);
-        }
+        Assert.Equal("instanceName.master", activity.DisplayName);
 
         Assert.Equal(ActivityKind.Client, activity.Kind);
 
@@ -244,41 +222,14 @@ public class SqlEventSourceTests
             Assert.Equal(connectionDetails.ServerIpAddress, activity.GetTagValue(SemanticConventions.AttributeServerAddress));
         }
 
-        if (emitOldAttributes && !string.IsNullOrEmpty(connectionDetails.InstanceName))
-        {
-            Assert.Equal(connectionDetails.InstanceName, activity.GetTagValue(SemanticConventions.AttributeDbMsSqlInstanceName));
-        }
-        else
-        {
-            Assert.Null(activity.GetTagValue(SemanticConventions.AttributeDbMsSqlInstanceName));
-        }
-
         if (connectionDetails.Port.HasValue)
         {
             Assert.Equal(connectionDetails.Port, activity.GetTagValue(SemanticConventions.AttributeServerPort));
         }
 
-        if (emitOldAttributes)
-        {
-            Assert.Equal(SqlActivitySourceHelper.MicrosoftSqlServerDbSystem, activity.GetTagValue(SemanticConventions.AttributeDbSystem));
-            Assert.Equal("master", activity.GetTagValue(SemanticConventions.AttributeDbName));
-        }
-
-        if (emitNewAttributes)
-        {
-            Assert.Equal(SqlActivitySourceHelper.MicrosoftSqlServerDbSystemName, activity.GetTagValue(SemanticConventions.AttributeDbSystemName));
-            Assert.Equal("instanceName.master", activity.GetTagValue(SemanticConventions.AttributeDbNamespace));
-        }
-
-        if (emitOldAttributes)
-        {
-            Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbStatement));
-        }
-
-        if (emitNewAttributes)
-        {
-            Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
-        }
+        Assert.Equal(SqlTelemetryHelper.MicrosoftSqlServerDbSystemName, activity.GetTagValue(SemanticConventions.AttributeDbSystemName));
+        Assert.Equal("instanceName.master", activity.GetTagValue(SemanticConventions.AttributeDbNamespace));
+        Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
 
         if (!isFailure)
         {

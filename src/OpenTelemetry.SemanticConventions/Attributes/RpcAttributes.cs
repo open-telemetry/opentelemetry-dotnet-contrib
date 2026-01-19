@@ -15,81 +15,63 @@ namespace OpenTelemetry.SemanticConventions;
 public static class RpcAttributes
 {
     /// <summary>
-    /// The <a href="https://connectrpc.com//docs/protocol/#error-codes">error codes</a> of the Connect request. Error codes are always string values.
+    /// Deprecated, use <c>rpc.response.status_code</c> attribute instead.
     /// </summary>
+    [Obsolete("Replaced by <c>rpc.response.status_code</c>.")]
     public const string AttributeRpcConnectRpcErrorCode = "rpc.connect_rpc.error_code";
 
     /// <summary>
-    /// Connect request metadata, <c><key></c> being the normalized Connect Metadata key (lowercase), the value being the metadata values.
+    /// Deprecated, use <c>rpc.request.metadata</c> instead.
     /// </summary>
-    /// <remarks>
-    /// Instrumentations SHOULD require an explicit configuration of which metadata values are to be captured.
-    /// Including all request metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information.
-    /// <p>
-    /// For example, a property <c>my-custom-key</c> with value <c>["1.2.3.4", "1.2.3.5"]</c> SHOULD be recorded as
-    /// the <c>rpc.connect_rpc.request.metadata.my-custom-key</c> attribute with value <c>["1.2.3.4", "1.2.3.5"]</c>.
-    /// </remarks>
+    [Obsolete("Replaced by <c>rpc.request.metadata</c>.")]
     public const string AttributeRpcConnectRpcRequestMetadataTemplate = "rpc.connect_rpc.request.metadata";
 
     /// <summary>
-    /// Connect response metadata, <c><key></c> being the normalized Connect Metadata key (lowercase), the value being the metadata values.
+    /// Deprecated, use <c>rpc.response.metadata</c> instead.
     /// </summary>
-    /// <remarks>
-    /// Instrumentations SHOULD require an explicit configuration of which metadata values are to be captured.
-    /// Including all response metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information.
-    /// <p>
-    /// For example, a property <c>my-custom-key</c> with value <c>"attribute_value"</c> SHOULD be recorded as
-    /// the <c>rpc.connect_rpc.response.metadata.my-custom-key</c> attribute with value <c>["attribute_value"]</c>.
-    /// </remarks>
+    [Obsolete("Replaced by <c>rpc.response.metadata</c>.")]
     public const string AttributeRpcConnectRpcResponseMetadataTemplate = "rpc.connect_rpc.response.metadata";
 
     /// <summary>
-    /// gRPC request metadata, <c><key></c> being the normalized gRPC Metadata key (lowercase), the value being the metadata values.
+    /// Deprecated, use <c>rpc.request.metadata</c> instead.
     /// </summary>
-    /// <remarks>
-    /// Instrumentations SHOULD require an explicit configuration of which metadata values are to be captured.
-    /// Including all request metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information.
-    /// <p>
-    /// For example, a property <c>my-custom-key</c> with value <c>["1.2.3.4", "1.2.3.5"]</c> SHOULD be recorded as
-    /// <c>rpc.grpc.request.metadata.my-custom-key</c> attribute with value <c>["1.2.3.4", "1.2.3.5"]</c>.
-    /// </remarks>
+    [Obsolete("Replaced by <c>rpc.request.metadata</c>.")]
     public const string AttributeRpcGrpcRequestMetadataTemplate = "rpc.grpc.request.metadata";
 
     /// <summary>
-    /// gRPC response metadata, <c><key></c> being the normalized gRPC Metadata key (lowercase), the value being the metadata values.
+    /// Deprecated, use <c>rpc.response.metadata</c> instead.
     /// </summary>
-    /// <remarks>
-    /// Instrumentations SHOULD require an explicit configuration of which metadata values are to be captured.
-    /// Including all response metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information.
-    /// <p>
-    /// For example, a property <c>my-custom-key</c> with value <c>["attribute_value"]</c> SHOULD be recorded as
-    /// the <c>rpc.grpc.response.metadata.my-custom-key</c> attribute with value <c>["attribute_value"]</c>.
-    /// </remarks>
+    [Obsolete("Replaced by <c>rpc.response.metadata</c>.")]
     public const string AttributeRpcGrpcResponseMetadataTemplate = "rpc.grpc.response.metadata";
 
     /// <summary>
-    /// The <a href="https://github.com/grpc/grpc/blob/v1.33.2/doc/statuscodes.md">numeric status code</a> of the gRPC request.
+    /// Deprecated, use string representation on the <c>rpc.response.status_code</c> attribute instead.
     /// </summary>
+    [Obsolete("Use string representation of the gRPC status code on the <c>rpc.response.status_code</c> attribute.")]
     public const string AttributeRpcGrpcStatusCode = "rpc.grpc.status_code";
 
     /// <summary>
-    /// <c>error.code</c> property of response if it is an error response.
+    /// Deprecated, use string representation on the <c>rpc.response.status_code</c> attribute instead.
     /// </summary>
+    [Obsolete("Use string representation of the error code on the <c>rpc.response.status_code</c> attribute.")]
     public const string AttributeRpcJsonrpcErrorCode = "rpc.jsonrpc.error_code";
 
     /// <summary>
-    /// <c>error.message</c> property of response if it is an error response.
+    /// Deprecated, use span status description or <c>error.message</c> attribute on other signals.
     /// </summary>
+    [Obsolete("Use the span status description or <c>error.message</c> attribute on other signals.")]
     public const string AttributeRpcJsonrpcErrorMessage = "rpc.jsonrpc.error_message";
 
     /// <summary>
-    /// <c>id</c> property of request or response. Since protocol allows id to be int, string, <c>null</c> or missing (for notifications), value is expected to be cast to string for simplicity. Use empty string in case of <c>null</c> value. Omit entirely if this is a notification.
+    /// Deprecated, use <c>jsonrpc.request.id</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>jsonrpc.request.id</c>.")]
     public const string AttributeRpcJsonrpcRequestId = "rpc.jsonrpc.request_id";
 
     /// <summary>
-    /// Protocol version as in <c>jsonrpc</c> property of request/response. Since JSON-RPC 1.0 doesn't specify this, the value can be omitted.
+    /// Deprecated, use <c>jsonrpc.protocol.version</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>jsonrpc.protocol.version</c>.")]
     public const string AttributeRpcJsonrpcVersion = "rpc.jsonrpc.version";
 
     /// <summary>
@@ -116,23 +98,97 @@ public static class RpcAttributes
     public const string AttributeRpcMessageUncompressedSize = "rpc.message.uncompressed_size";
 
     /// <summary>
-    /// This is the logical name of the method from the RPC interface perspective.
+    /// The fully-qualified logical name of the method from the RPC interface perspective.
     /// </summary>
+    /// <remarks>
+    /// The method name MAY have unbounded cardinality in edge or error cases.
+    /// <p>
+    /// Some RPC frameworks or libraries provide a fixed set of recognized methods
+    /// for client stubs and server implementations. Instrumentations for such
+    /// frameworks MUST set this attribute to the original method name only
+    /// when the method is recognized by the framework or library.
+    /// <p>
+    /// When the method is not recognized, for example, when the server receives
+    /// a request for a method that is not predefined on the server, or when
+    /// instrumentation is not able to reliably detect if the method is predefined,
+    /// the attribute MUST be set to <c>_OTHER</c>. In such cases, tracing
+    /// instrumentations MUST also set <c>rpc.method_original</c> attribute to
+    /// the original method value.
+    /// <p>
+    /// If the RPC instrumentation could end up converting valid RPC methods to
+    /// <c>_OTHER</c>, then it SHOULD provide a way to configure the list of recognized
+    /// RPC methods.
+    /// <p>
+    /// The <c>rpc.method</c> can be different from the name of any implementing
+    /// method/function.
+    /// The <c>code.function.name</c> attribute may be used to record the fully-qualified
+    /// method actually executing the call on the server side, or the
+    /// RPC client stub method on the client side.
+    /// </remarks>
     public const string AttributeRpcMethod = "rpc.method";
 
     /// <summary>
-    /// The full (logical) name of the service being called, including its package name, if applicable.
+    /// The original name of the method used by the client.
     /// </summary>
+    public const string AttributeRpcMethodOriginal = "rpc.method_original";
+
+    /// <summary>
+    /// RPC request metadata, <c><key></c> being the normalized RPC metadata key (lowercase), the value being the metadata values.
+    /// </summary>
+    /// <remarks>
+    /// Instrumentations SHOULD require an explicit configuration of which metadata values are to be captured.
+    /// Including all request metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information.
+    /// <p>
+    /// For example, a property <c>my-custom-key</c> with value <c>["1.2.3.4", "1.2.3.5"]</c> SHOULD be recorded as
+    /// <c>rpc.request.metadata.my-custom-key</c> attribute with value <c>["1.2.3.4", "1.2.3.5"]</c>.
+    /// </remarks>
+    public const string AttributeRpcRequestMetadataTemplate = "rpc.request.metadata";
+
+    /// <summary>
+    /// RPC response metadata, <c><key></c> being the normalized RPC metadata key (lowercase), the value being the metadata values.
+    /// </summary>
+    /// <remarks>
+    /// Instrumentations SHOULD require an explicit configuration of which metadata values are to be captured.
+    /// Including all response metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information.
+    /// <p>
+    /// For example, a property <c>my-custom-key</c> with value <c>["attribute_value"]</c> SHOULD be recorded as
+    /// the <c>rpc.response.metadata.my-custom-key</c> attribute with value <c>["attribute_value"]</c>.
+    /// </remarks>
+    public const string AttributeRpcResponseMetadataTemplate = "rpc.response.metadata";
+
+    /// <summary>
+    /// Status code of the RPC returned by the RPC server or generated by the client.
+    /// </summary>
+    /// <remarks>
+    /// Usually it represents an error code, but may also represent partial success, warning, or differentiate between various types of successful outcomes.
+    /// Semantic conventions for individual RPC frameworks SHOULD document what <c>rpc.response.status_code</c> means in the context of that system and which values are considered to represent errors.
+    /// </remarks>
+    public const string AttributeRpcResponseStatusCode = "rpc.response.status_code";
+
+    /// <summary>
+    /// Deprecated, use fully-qualified <c>rpc.method</c> instead.
+    /// </summary>
+    [Obsolete("Value should be included in <c>rpc.method</c> which is expected to be a fully-qualified name.")]
     public const string AttributeRpcService = "rpc.service";
 
     /// <summary>
-    /// A string identifying the remoting system. See below for a list of well-known identifiers.
+    /// Deprecated, use <c>rpc.system.name</c> attribute instead.
     /// </summary>
+    [Obsolete("Replaced by <c>rpc.system.name</c>.")]
     public const string AttributeRpcSystem = "rpc.system";
 
     /// <summary>
-    /// The <a href="https://connectrpc.com//docs/protocol/#error-codes">error codes</a> of the Connect request. Error codes are always string values.
+    /// The Remote Procedure Call (RPC) system.
     /// </summary>
+    /// <remarks>
+    /// The client and server RPC systems may differ for the same RPC interaction. For example, a client may use Apache Dubbo or Connect RPC to communicate with a server that uses gRPC since both protocols provide compatibility with gRPC.
+    /// </remarks>
+    public const string AttributeRpcSystemName = "rpc.system.name";
+
+    /// <summary>
+    /// Deprecated, use <c>rpc.response.status_code</c> attribute instead.
+    /// </summary>
+    [Obsolete("Replaced by <c>rpc.response.status_code</c>.")]
     public static class RpcConnectRpcErrorCodeValues
     {
         /// <summary>
@@ -217,8 +273,9 @@ public static class RpcAttributes
     }
 
     /// <summary>
-    /// The <a href="https://github.com/grpc/grpc/blob/v1.33.2/doc/statuscodes.md">numeric status code</a> of the gRPC request.
+    /// Deprecated, use string representation on the <c>rpc.response.status_code</c> attribute instead.
     /// </summary>
+    [Obsolete("Use string representation of the gRPC status code on the <c>rpc.response.status_code</c> attribute.")]
     public static class RpcGrpcStatusCodeValues
     {
         /// <summary>
@@ -324,8 +381,9 @@ public static class RpcAttributes
     }
 
     /// <summary>
-    /// A string identifying the remoting system. See below for a list of well-known identifiers.
+    /// Deprecated, use <c>rpc.system.name</c> attribute instead.
     /// </summary>
+    [Obsolete("Replaced by <c>rpc.system.name</c>.")]
     public static class RpcSystemValues
     {
         /// <summary>
@@ -360,6 +418,32 @@ public static class RpcAttributes
 
         /// <summary>
         /// JSON-RPC.
+        /// </summary>
+        public const string Jsonrpc = "jsonrpc";
+    }
+
+    /// <summary>
+    /// The Remote Procedure Call (RPC) system.
+    /// </summary>
+    public static class RpcSystemNameValues
+    {
+        /// <summary>
+        /// <a href="https://grpc.io/">gRPC</a>.
+        /// </summary>
+        public const string Grpc = "grpc";
+
+        /// <summary>
+        /// <a href="https://dubbo.apache.org/">Apache Dubbo</a>.
+        /// </summary>
+        public const string Dubbo = "dubbo";
+
+        /// <summary>
+        /// <a href="https://connectrpc.com/">Connect RPC</a>.
+        /// </summary>
+        public const string Connectrpc = "connectrpc";
+
+        /// <summary>
+        /// <a href="https://www.jsonrpc.org/">JSON-RPC</a>.
         /// </summary>
         public const string Jsonrpc = "jsonrpc";
     }

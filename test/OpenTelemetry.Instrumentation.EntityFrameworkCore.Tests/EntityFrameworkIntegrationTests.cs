@@ -57,7 +57,6 @@ public sealed class EntityFrameworkIntegrationTests :
             (PostgresProvider, typeof(NpgsqlCommand), true, "postgresql", "postgres"),
             (SqliteProvider, typeof(SqliteCommand), false, "sqlite", "main"),
             (SqliteProvider, typeof(SqliteCommand), true, "sqlite", "main"),
-            (SqlServerProvider, typeof(SqlCommand), false, "mssql", "master"),
             (SqlServerProvider, typeof(SqlCommand), true, "microsoft.sql_server", "master"),
         ];
 

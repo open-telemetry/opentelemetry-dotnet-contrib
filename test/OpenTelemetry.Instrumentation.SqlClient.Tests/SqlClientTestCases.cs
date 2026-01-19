@@ -56,8 +56,6 @@ public class SqlClientTestCase
     public SqlClientTestCaseExpected Expected { get; set; } = new();
 
     public SqlClientTestCaseExpected ExpectedNetFramework { get; set; } = new();
-
-    public SqlClientTestCaseOldConventions ExpectedOldConventions { get; set; } = new();
 }
 
 public class SqlClientTestCaseInput
@@ -95,7 +93,7 @@ public class SqlClientTestCaseExpected
     [JsonPropertyName("db.stored_procedure.name")]
     public string? DbStoredProcedureName { get; set; }
 
-    public string DbSystemName { get; set; } = SqlActivitySourceHelper.MicrosoftSqlServerDbSystemName;
+    public string DbSystemName { get; set; } = SqlTelemetryHelper.MicrosoftSqlServerDbSystemName;
 
     [JsonPropertyName("error.type")]
     public string? ErrorType { get; set; }
@@ -105,22 +103,6 @@ public class SqlClientTestCaseExpected
 
     [JsonPropertyName("server.port")]
     public int? ServerPort { get; set; }
-
-    public string SpanName { get; set; } = string.Empty;
-}
-
-public class SqlClientTestCaseOldConventions
-{
-    [JsonPropertyName("db.mssql.instance_name")]
-    public string? DbMsSqlInstanceName { get; set; }
-
-    [JsonPropertyName("db.name")]
-    public string? DbName { get; set; }
-
-    public string DbSystem { get; set; } = SqlActivitySourceHelper.MicrosoftSqlServerDbSystem;
-
-    [JsonPropertyName("db.statement")]
-    public string? DbStatement { get; set; }
 
     public string SpanName { get; set; } = string.Empty;
 }

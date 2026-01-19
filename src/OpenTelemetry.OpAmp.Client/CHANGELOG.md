@@ -2,6 +2,29 @@
 
 ## Unreleased
 
+## 0.1.0-alpha.4
+
+Released 2026-Jan-14
+
+* Add setting to configure the factory used to create `HttpClient` instances
+  used for the OpAMP Plain HTTP transport.
+  ([#3589](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3589))
+
+* Add support for subscribing and unsubscribing to messages from the OpAMP server.
+  ([#3593](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3593))
+
+* Clean up directories and namespaces for public API.
+  ([#3612](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3612))
+
+* Expose public `RemoteConfigMessage`.
+  ([#3614](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3614))
+
+* Add settings for remote configuration and update advertised capabilities.
+  ([#3618](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3618))
+
+* Expose public `CustomCapabilitiesMessage` and `CustomMessageMessage`.
+  ([#3681](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3681))
+
 ## 0.1.0-alpha.3
 
 Released 2025-Nov-13

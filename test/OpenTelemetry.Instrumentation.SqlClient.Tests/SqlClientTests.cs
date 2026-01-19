@@ -52,78 +52,18 @@ public class SqlClientTests : IDisposable
     }
 
     [Theory]
-    [MemberData(nameof(TestData))]
-    public void TestMicrosoftDataSqlClientOldConventions(SqlClientTestCase testCase)
-    {
-        this.RunSqlClientTestCase(testCase, SqlClientLibrary.MicrosoftDataSqlClient, emitOldAttributes: true, emitNewAttributes: false);
-    }
-
-    [Theory]
-    [MemberData(nameof(TestData))]
-    public void TestMicrosoftDataSqlClientOldAndNewConventions(SqlClientTestCase testCase)
-    {
-        this.RunSqlClientTestCase(testCase, SqlClientLibrary.MicrosoftDataSqlClient, emitOldAttributes: true, emitNewAttributes: true);
-    }
-
-    [Theory]
-    [MemberData(nameof(TestData))]
-    public void TestSystemDataSqlClientOldConventions(SqlClientTestCase testCase)
-    {
-        this.RunSqlClientTestCase(testCase, SqlClientLibrary.SystemDataSqlClient, emitOldAttributes: true, emitNewAttributes: false);
-    }
-
-    [Theory]
-    [MemberData(nameof(TestData))]
-    public void TestSystemDataSqlClientOldAndNewConventions(SqlClientTestCase testCase)
-    {
-        this.RunSqlClientTestCase(testCase, SqlClientLibrary.SystemDataSqlClient, emitOldAttributes: true, emitNewAttributes: true);
-    }
-
-    [Theory]
-    [InlineData("localhost", "localhost", null, null, null)]
-    [InlineData("127.0.0.1,1433", null, "127.0.0.1", null, null)]
-    [InlineData("127.0.0.1,1434", null, "127.0.0.1", null, 1434)]
-    [InlineData("127.0.0.1\\instanceName, 1818", null, "127.0.0.1", "instanceName", 1818)]
-
-    // Test cases when EmitOldAttributes = false and EmitNewAttributes = true (i.e., OTEL_SEMCONV_STABILITY_OPT_IN=database)
-    [InlineData("localhost", "localhost", null, null, null, false, true)]
-    [InlineData("127.0.0.1,1433", null, "127.0.0.1", null, null, false, true)]
-    [InlineData("127.0.0.1,1434", null, "127.0.0.1", null, 1434, false, true)]
-    [InlineData("127.0.0.1\\instanceName, 1818", null, "127.0.0.1", null, 1818, false, true)]
-
-    // Test cases when EmitOldAttributes = true and EmitNewAttributes = true (i.e., OTEL_SEMCONV_STABILITY_OPT_IN=database/dup)
-    [InlineData("localhost", "localhost", null, null, null, true, true)]
-    [InlineData("127.0.0.1,1433", null, "127.0.0.1", null, null, true, true)]
-    [InlineData("127.0.0.1,1434", null, "127.0.0.1", null, 1434, true, true)]
-    [InlineData("127.0.0.1\\instanceName, 1818", null, "127.0.0.1", "instanceName", 1818, true, true)]
+    [InlineData("localhost", "localhost", null, null)]
+    [InlineData("127.0.0.1,1433", null, "127.0.0.1", null)]
+    [InlineData("127.0.0.1,1434", null, "127.0.0.1", 1434)]
+    [InlineData("127.0.0.1\\instanceName, 1818", null, "127.0.0.1", 1818)]
     public void SqlClientAddsConnectionLevelAttributes(
         string dataSource,
         string? expectedServerHostName,
         string? expectedServerIpAddress,
-        string? expectedInstanceName,
-        int? expectedPort,
-        bool emitOldAttributes = true,
-        bool emitNewAttributes = false)
+        int? expectedPort)
     {
-        var options = new SqlClientTraceInstrumentationOptions()
-        {
-            EmitOldAttributes = emitOldAttributes,
-            EmitNewAttributes = emitNewAttributes,
-        };
-
-        var tags = SqlActivitySourceHelper.GetTagListFromConnectionInfo(dataSource, databaseName: null, options, out var _);
-
+        var tags = SqlTelemetryHelper.GetTagListFromConnectionInfo(dataSource, databaseName: null, out var _);
         Assert.Equal(expectedServerHostName ?? expectedServerIpAddress, tags.FirstOrDefault(x => x.Key == SemanticConventions.AttributeServerAddress).Value);
-
-        if (emitOldAttributes)
-        {
-            Assert.Equal(expectedInstanceName, tags.FirstOrDefault(x => x.Key == SemanticConventions.AttributeDbMsSqlInstanceName).Value);
-        }
-        else
-        {
-            Assert.Null(tags.FirstOrDefault(x => x.Key == SemanticConventions.AttributeDbMsSqlInstanceName).Value);
-        }
-
         Assert.Equal(expectedPort, tags.FirstOrDefault(x => x.Key == SemanticConventions.AttributeServerPort).Value);
     }
 
@@ -221,26 +161,6 @@ public class SqlClientTests : IDisposable
         Assert.Equal(testCase.Expected.ServerPort, metricAttributes.TryGetValue(SemanticConventions.AttributeServerPort, out value) ? value : null);
     }
 
-    private static void VerifyOldAttributes(SqlClientTestCase testCase, Activity activity, MetricPoint metricPoint)
-    {
-        var metricAttributes = new Dictionary<string, object?>();
-        foreach (var tag in metricPoint.Tags)
-        {
-            metricAttributes[tag.Key] = tag.Value;
-        }
-
-        Assert.Equal(testCase.ExpectedOldConventions.DbMsSqlInstanceName, activity.GetTagValue(SemanticConventions.AttributeDbMsSqlInstanceName));
-        Assert.Equal(testCase.ExpectedOldConventions.DbName, activity.GetTagValue(SemanticConventions.AttributeDbName));
-        Assert.Equal(testCase.ExpectedOldConventions.DbSystem, activity.GetTagValue(SemanticConventions.AttributeDbSystem));
-        Assert.Equal(testCase.ExpectedOldConventions.DbStatement, activity.GetTagValue(SemanticConventions.AttributeDbStatement));
-        Assert.Equal(testCase.Expected.ServerAddress, activity.GetTagValue(SemanticConventions.AttributeServerAddress));
-        Assert.Equal(testCase.Expected.ServerPort, activity.GetTagValue(SemanticConventions.AttributeServerPort));
-
-        Assert.Equal(testCase.ExpectedOldConventions.DbSystem, metricAttributes.TryGetValue(SemanticConventions.AttributeDbSystem, out var value) ? value : null);
-        Assert.Equal(testCase.Expected.ServerAddress, metricAttributes.TryGetValue(SemanticConventions.AttributeServerAddress, out value) ? value : null);
-        Assert.Equal(testCase.Expected.ServerPort, metricAttributes.TryGetValue(SemanticConventions.AttributeServerPort, out value) ? value : null);
-    }
-
     private static void VerifySamplingParameters(SqlClientTestCase testCase, SamplingParameters samplingParameters)
     {
         Assert.NotNull(samplingParameters.Tags);
@@ -248,7 +168,7 @@ public class SqlClientTests : IDisposable
             samplingParameters.Tags,
             kvp => kvp.Key == SemanticConventions.AttributeDbSystemName
                    && kvp.Value is string
-                   && (string)kvp.Value == SqlActivitySourceHelper.MicrosoftSqlServerDbSystemName);
+                   && (string)kvp.Value == SqlTelemetryHelper.MicrosoftSqlServerDbSystemName);
 
         if (testCase.Expected.DbNamespace != null)
         {
@@ -276,59 +196,54 @@ public class SqlClientTests : IDisposable
                        && kvp.Value is int
                        && (int)kvp.Value == testCase.Expected.ServerPort);
         }
+
+        if (!string.IsNullOrEmpty(testCase.Expected.DbQuerySummary))
+        {
+            Assert.Contains(
+                samplingParameters.Tags,
+                kvp => kvp.Key == SemanticConventions.AttributeDbQuerySummary
+                       && kvp.Value is string
+                       && (string)kvp.Value == testCase.Expected.DbQuerySummary);
+        }
+
+        if (!string.IsNullOrEmpty(testCase.Expected.DbQueryText))
+        {
+            Assert.Contains(
+                samplingParameters.Tags,
+                kvp => kvp.Key == SemanticConventions.AttributeDbQueryText
+                       && kvp.Value is string
+                       && (string)kvp.Value == testCase.Expected.DbQueryText);
+        }
+
+        if (!string.IsNullOrEmpty(testCase.Expected.DbOperationName))
+        {
+            Assert.Contains(
+                samplingParameters.Tags,
+                kvp => kvp.Key == SemanticConventions.AttributeDbOperationName
+                       && kvp.Value is string
+                       && (string)kvp.Value == testCase.Expected.DbOperationName);
+        }
+
+        if (!string.IsNullOrEmpty(testCase.Expected.DbCollectionName))
+        {
+            Assert.Contains(
+                samplingParameters.Tags,
+                kvp => kvp.Key == SemanticConventions.AttributeDbCollectionName
+                       && kvp.Value is string
+                       && (string)kvp.Value == testCase.Expected.DbCollectionName);
+        }
+
+        if (!string.IsNullOrEmpty(testCase.Expected.DbStoredProcedureName))
+        {
+            Assert.Contains(
+                samplingParameters.Tags,
+                kvp => kvp.Key == SemanticConventions.AttributeDbStoredProcedureName
+                       && kvp.Value is string
+                       && (string)kvp.Value == testCase.Expected.DbStoredProcedureName);
+        }
     }
 
-    private static void VerifySamplingParametersOldConventions(SqlClientTestCase testCase, SamplingParameters samplingParameters)
-    {
-        Assert.NotNull(samplingParameters.Tags);
-        Assert.Contains(
-            samplingParameters.Tags,
-            kvp => kvp.Key == SemanticConventions.AttributeDbSystem
-                   && kvp.Value is string
-                   && (string)kvp.Value == SqlActivitySourceHelper.MicrosoftSqlServerDbSystem);
-
-        if (testCase.ExpectedOldConventions.DbName != null)
-        {
-            Assert.Contains(
-                samplingParameters.Tags,
-                kvp => kvp.Key == SemanticConventions.AttributeDbName
-                       && kvp.Value is string
-                       && (string)kvp.Value == testCase.ExpectedOldConventions.DbName);
-        }
-
-        if (testCase.Expected.ServerAddress != null)
-        {
-            Assert.Contains(
-            samplingParameters.Tags,
-            kvp => kvp.Key == SemanticConventions.AttributeServerAddress
-                   && kvp.Value is string
-                   && (string)kvp.Value == testCase.Expected.ServerAddress);
-        }
-
-        if (testCase.Expected.ServerPort.HasValue)
-        {
-            Assert.Contains(
-                samplingParameters.Tags,
-                kvp => kvp.Key == SemanticConventions.AttributeServerPort
-                       && kvp.Value is int
-                       && (int)kvp.Value == testCase.Expected.ServerPort);
-        }
-
-        if (testCase.ExpectedOldConventions.DbMsSqlInstanceName != null)
-        {
-            Assert.Contains(
-                samplingParameters.Tags,
-                kvp => kvp.Key == SemanticConventions.AttributeDbMsSqlInstanceName
-                       && kvp.Value is string
-                       && (string)kvp.Value == testCase.ExpectedOldConventions.DbMsSqlInstanceName);
-        }
-    }
-
-    private void RunSqlClientTestCase(
-        SqlClientTestCase testCase,
-        SqlClientLibrary library,
-        bool emitOldAttributes = false,
-        bool emitNewAttributes = true)
+    private void RunSqlClientTestCase(SqlClientTestCase testCase, SqlClientLibrary library)
     {
         var activities = new List<Activity>();
         var metrics = new List<Metric>();
@@ -345,8 +260,6 @@ public class SqlClientTests : IDisposable
 #if NET
                 options.RecordException = true;
 #endif
-                options.EmitOldAttributes = emitOldAttributes;
-                options.EmitNewAttributes = emitNewAttributes;
             })
             .AddInMemoryExporter(activities)
             .Build();
@@ -370,7 +283,7 @@ public class SqlClientTests : IDisposable
 
         activity = Assert.Single(activities);
 
-        Assert.Equal(emitNewAttributes ? testCase.Expected.SpanName : testCase.ExpectedOldConventions.SpanName, activity.DisplayName);
+        Assert.Equal(testCase.Expected.SpanName, activity.DisplayName);
         Assert.Equal(ActivityKind.Client, activity.Kind);
         if (testCase.Expected.ErrorType == null)
         {
@@ -405,16 +318,7 @@ public class SqlClientTests : IDisposable
         var sum = metricPoint.GetHistogramSum();
         Assert.Equal(activity.Duration.TotalSeconds, sum);
 
-        if (emitNewAttributes)
-        {
-            VerifySamplingParameters(testCase, sampler.LatestSamplingParameters);
-            VerifyAttributes(testCase, activity, metricPoint);
-        }
-
-        if (emitOldAttributes)
-        {
-            VerifySamplingParametersOldConventions(testCase, sampler.LatestSamplingParameters);
-            VerifyOldAttributes(testCase, activity, metricPoint);
-        }
+        VerifySamplingParameters(testCase, sampler.LatestSamplingParameters);
+        VerifyAttributes(testCase, activity, metricPoint);
     }
 }

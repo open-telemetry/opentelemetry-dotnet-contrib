@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Text;
 using OpenTelemetry.OpAmp.Client.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Transport.WebSocket;
 using OpenTelemetry.OpAmp.Client.Tests.Mocks;
@@ -42,7 +43,12 @@ public class WsTransportTest
         // Assert
         var serverReceivedFrames = opAmpServer.GetFrames();
         var clientReceivedFrames = mockListener.Messages;
-        var receivedTextData = clientReceivedFrames.First().CustomMessage.Data.ToStringUtf8();
+        var receivedTextData =
+#if NET
+            Encoding.UTF8.GetString(clientReceivedFrames.First().Data);
+#else
+            Encoding.UTF8.GetString([.. clientReceivedFrames.First().Data]);
+#endif
 
         Assert.Single(serverReceivedFrames);
         Assert.Equal(mockFrame.Uid, serverReceivedFrames.First().InstanceUid);

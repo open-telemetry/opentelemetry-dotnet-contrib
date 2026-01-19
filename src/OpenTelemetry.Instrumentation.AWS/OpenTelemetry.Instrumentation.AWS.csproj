@@ -14,7 +14,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageValidationBaselineVersion>1.14.0</PackageValidationBaselineVersion>
+    <PackageValidationBaselineVersion>1.14.2</PackageValidationBaselineVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,9 +22,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.Core" VersionOverride="[4.0.0, 5.0.0)" />
-    <PackageReference Include="AWSSDK.SimpleNotificationService" VersionOverride="[4.0.0, 5.0.0)" />
-    <PackageReference Include="AWSSDK.SQS" VersionOverride="[4.0.0, 5.0.0)" />
+    <PackageReference Include="AWSSDK.Core" VersionOverride="[4.0.3.3, 5.0.0)" />
+    <PackageReference Include="AWSSDK.SimpleNotificationService" VersionOverride="[4.0.2.7, 5.0.0)" />
+    <PackageReference Include="AWSSDK.SQS" VersionOverride="[4.0.2.5, 5.0.0)" />
   </ItemGroup>
 
   <ItemGroup>

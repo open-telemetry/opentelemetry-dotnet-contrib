@@ -10,6 +10,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration" />
     <PackageReference Include="OpenTelemetry.Api" />
     <PackageReference Include="System.Text.Json" VersionOverride="8.0.6" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
+    <PackageReference Include="Xunit.SkippableFact" />
   </ItemGroup>
 
   <ItemGroup>

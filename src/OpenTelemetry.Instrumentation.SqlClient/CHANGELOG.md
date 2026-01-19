@@ -2,6 +2,37 @@
 
 ## Unreleased
 
+## 1.14.0-rc.1
+
+Released 2026-Jan-13
+
+* Remove support for the `OTEL_SEMCONV_STABILITY_OPT_IN` configuration option.
+  Previously, the old conventions were emitted by default with the option to emit
+  the stable conventions. Now, only the stable conventions are supported.
+  ([#3592](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3592))
+
+* Improve SQL parsing for sanitization and summary generation. Support additional
+  cases for escaped identifiers. Optimize performance of parsing logic.
+  ([#3627](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3627))
+
+* Improve SQL parsing for sanitization for Unicode string literals.
+  ([#3662](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3662))
+
+* Sanitize the object name for SQL query text using the LOGIN or USER keywords and
+  remove from query summaries.
+  ([#3663](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3663))
+
+* Improve SQL parsing to generate query summaries for more T-SQL keywords.
+  ([#3671](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3671))
+
+* Make additional attributes available on `Activity` start. The full list of
+  attributes available at time of sampling now conforms with the
+  [semantic conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.33.0/docs/database/database-spans.md#span-definition).
+  ([#3675](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3675))
+
+* Metrics and spans report telemetry schema URL v1.33.0.
+  ([#3680](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3680))
+
 ## 1.14.0-beta.1
 
 Released 2025-Nov-13

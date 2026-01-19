@@ -71,31 +71,26 @@ public static class IosAttributes
         /// <summary>
         /// The app has become <c>active</c>. Associated with UIKit notification <c>applicationDidBecomeActive</c>.
         /// </summary>
-        [Obsolete("Replaced by <c>ios.app.state</c>.")]
         public const string Active = "active";
 
         /// <summary>
         /// The app is now <c>inactive</c>. Associated with UIKit notification <c>applicationWillResignActive</c>.
         /// </summary>
-        [Obsolete("Replaced by <c>ios.app.state</c>.")]
         public const string Inactive = "inactive";
 
         /// <summary>
         /// The app is now in the background. This value is associated with UIKit notification <c>applicationDidEnterBackground</c>.
         /// </summary>
-        [Obsolete("Replaced by <c>ios.app.state</c>.")]
         public const string Background = "background";
 
         /// <summary>
         /// The app is now in the foreground. This value is associated with UIKit notification <c>applicationWillEnterForeground</c>.
         /// </summary>
-        [Obsolete("Replaced by <c>ios.app.state</c>.")]
         public const string Foreground = "foreground";
 
         /// <summary>
         /// The app is about to terminate. Associated with UIKit notification <c>applicationWillTerminate</c>.
         /// </summary>
-        [Obsolete("Replaced by <c>ios.app.state</c>.")]
         public const string Terminate = "terminate";
     }
 }

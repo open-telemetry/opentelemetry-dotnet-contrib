@@ -1,6 +1,12 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if NETFRAMEWORK
+using System.Net.Http;
+#endif
+
+using OpenTelemetry.Internal;
+
 namespace OpenTelemetry.OpAmp.Client.Settings;
 
 /// <summary>
@@ -8,6 +14,8 @@ namespace OpenTelemetry.OpAmp.Client.Settings;
 /// </summary>
 public sealed class OpAmpClientSettings
 {
+    private readonly Func<HttpClient> defaultHttpClientFactory = () => new HttpClient();
+
     private Uri? serverUrl;
 
     /// <summary>
@@ -91,4 +99,32 @@ public sealed class OpAmpClientSettings
     /// Gets or sets the heartbeat settings.
     /// </summary>
     public HeartbeatSettings Heartbeat { get; set; } = new();
+
+    /// <summary>
+    /// Gets or sets the remote configuration settings.
+    /// </summary>
+    public RemoteConfigSettings RemoteConfiguration { get; set; } = new();
+
+    /// <summary>
+    /// Gets or sets the factory function called to create the <see
+    /// cref="HttpClient"/> instance that will be used at runtime to
+    /// transmit OpAmp messages over HTTP. The returned instance will
+    /// be reused for all communication.
+    /// </summary>
+    /// <remarks>
+    /// Notes:
+    /// <list type="bullet">
+    /// <item>This is only invoked for the <see
+    /// cref="ConnectionType.Http"/> protocol.</item>
+    /// </list>
+    /// </remarks>
+    public Func<HttpClient> HttpClientFactory
+    {
+        get => field ?? this.defaultHttpClientFactory;
+        set
+        {
+            Guard.ThrowIfNull(value);
+            field = value;
+        }
+    }
 }

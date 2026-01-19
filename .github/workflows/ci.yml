@@ -28,7 +28,7 @@ jobs:
       changes: ${{ steps.changes.outputs.changes }}
     steps:
     - name: check out code
-      uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       if: github.event_name == 'push' || github.event_name == 'merge_group'
 
     - uses: AurorNZ/paths-filter@c9dd42e99db87803313ff6f4b1150cc9f6c836af # v5.0.0
@@ -39,7 +39,7 @@ jobs:
           yml: [ '**.yml', '**.yaml', '.yamllint' ]
           build: ['build/**', '.github/**/*.yml', '!.github/workflows/package-*', '**/*.targets', '**/*.props', 'global.json']
           shared: ['src/Shared/**', 'test/Shared/**']
-          contrib-shared-tests: ['test/OpenTelemetry.Contrib.Shared.Tests/**', 'test/OpenTelemetry.Contrib.Shared.Benchmarks/**']
+          contrib-shared-tests: ['test/OpenTelemetry.Contrib.Shared.Benchmarks/**', 'test/OpenTelemetry.Contrib.Shared.FuzzTests/**', 'test/OpenTelemetry.Contrib.Shared.Tests/**']
           code: ['**.cs', '**.csproj', '.editorconfig']
           aottestapp: ['test/OpenTelemetry.AotCompatibility.TestApp/**']
           exporter-geneva: ['*/OpenTelemetry.Exporter.Geneva*/**', '!**/*.md']
@@ -56,7 +56,7 @@ jobs:
           instrumentation-cassandra: ['*/OpenTelemetry.Instrumentation.Cassandra*/**', '!**/*.md']
           instrumentation-confluentkafka: ['*/OpenTelemetry.Instrumentation.ConfluentKafka*/**', 'examples/kafka/**', '!**/*.md']
           instrumentation-elasticsearchclient: ['*/OpenTelemetry.Instrumentation.ElasticsearchClient*/**', '!**/*.md']
-          instrumentation-entityframeworkcore: ['*/OpenTelemetry.Instrumentation.EntityFrameworkCore*/**', '!**/*.md']
+          instrumentation-entityframeworkcore: ['*/OpenTelemetry.Instrumentation.EntityFrameworkCore*/**', '*/OpenTelemetry.Instrumentation.SqlClient/**', '!**/*.md']
           instrumentation-eventcounters: ['*/OpenTelemetry.Instrumentation.EventCounters*/**', 'examples/event-counters/**', '!**/*.md']
           instrumentation-grpccore: ['*/OpenTelemetry.Instrumentation.GrpcCore*/**', '!**/*.md']
           instrumentation-grpcnetclient: ['*/OpenTelemetry.Instrumentation.GrpcNetClient*/**', '!**/*.md']
@@ -651,6 +651,7 @@ jobs:
       lint-md,
       lint-yml,
       lint-dotnet-format,
+      build-test-contrib-shared-tests,
       build-test-exporter-geneva,
       build-test-exporter-geneva-integration,
       build-test-exporter-influxdb,
@@ -693,7 +694,6 @@ jobs:
       build-test-resources-processruntime,
       build-test-sampler-aws,
       build-test-semanticconventions,
-      build-test-contrib-shared-tests,
       verify-aot-compat
     ]
     if: always() && !cancelled()
