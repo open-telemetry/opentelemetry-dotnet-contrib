@@ -108,6 +108,17 @@ public sealed class OpAmpClient : IDisposable
     }
 
     /// <summary>
+    /// Report current effective configuration of the agent.
+    /// </summary>
+    /// <param name="files">Configuration files to report.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A task that represents the asynchronous send operation.</returns>
+    public Task SendEffectiveConfigAsync(IEnumerable<EffectiveConfigFile> files, CancellationToken cancellationToken = default)
+    {
+        return this.dispatcher.DispatchEffectiveConfigAsync(files, cancellationToken);
+    }
+
+    /// <summary>
     /// Disposes the OpAmpClient instance and releases all associated resources.
     /// </summary>
     public void Dispose()
