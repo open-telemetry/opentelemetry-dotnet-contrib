@@ -84,7 +84,7 @@ internal sealed class MultiTypePropertyFetcher<T>
             public TypedPropertyFetch(PropertyInfo property)
             {
                 this.propertyFetch =
-#if NET8_0_OR_GREATER
+#if NET
                     property.GetMethod!.CreateDelegate<Func<TDeclaredObject, TDeclaredProperty>>();
 #else
                     (Func<TDeclaredObject, TDeclaredProperty>)property.GetMethod.CreateDelegate(typeof(Func<TDeclaredObject, TDeclaredProperty>));

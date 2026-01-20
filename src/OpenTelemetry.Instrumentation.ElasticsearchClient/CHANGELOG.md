@@ -3,7 +3,7 @@
 ## Unreleased
 
 * Add `net8.0`, `net9.0` and `net10.0` target frameworks.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#3717](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3717))
 
 ## 1.14.0-beta.1
 

@@ -29,7 +29,7 @@ internal partial class ElasticsearchRequestPipelineDiagnosticListener : Listener
 
     private const string RequestRegexPattern = @"\n# Request:\r?\n(\{.*)\n# Response";
 
-#if !NET8_0_OR_GREATER
+#if !NET
     private static readonly Regex ParseRequest = new(RequestRegexPattern, RegexOptions.Compiled | RegexOptions.Singleline);
 #endif
     private static readonly ConcurrentDictionary<object, string> MethodNameCache = new();
@@ -92,7 +92,7 @@ internal partial class ElasticsearchRequestPipelineDiagnosticListener : Listener
         }
 
         // operations starting with _ are not indices (_cat, _search, etc.)
-#if NET8_0_OR_GREATER
+#if NET
         if (uri.Segments[1].StartsWith('_'))
 #else
         if (uri.Segments[1].StartsWith("_", StringComparison.Ordinal))
@@ -104,7 +104,7 @@ internal partial class ElasticsearchRequestPipelineDiagnosticListener : Listener
         var elasticType = Uri.UnescapeDataString(uri.Segments[1]);
 
         // multiple indices used, return null to avoid high cardinality
-#if NET8_0_OR_GREATER
+#if NET
         if (elasticType.Contains(',', StringComparison.Ordinal))
 #else
         if (elasticType.Contains(','))
@@ -113,7 +113,7 @@ internal partial class ElasticsearchRequestPipelineDiagnosticListener : Listener
             return null;
         }
 
-#if NET8_0_OR_GREATER
+#if NET
         if (elasticType.EndsWith('/'))
 #else
         if (elasticType.EndsWith("/", StringComparison.Ordinal))
@@ -125,7 +125,7 @@ internal partial class ElasticsearchRequestPipelineDiagnosticListener : Listener
         return elasticType;
     }
 
-#if NET8_0_OR_GREATER
+#if NET
     [GeneratedRegex(RequestRegexPattern, RegexOptions.Compiled | RegexOptions.Singleline)]
     private static partial Regex RequestParser();
 #else
