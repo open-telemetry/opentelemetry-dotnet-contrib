@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Text;
-
 namespace OpenTelemetry.OpAmp.Client.Tests.DataGenerators;
 
 internal class TempFile : IDisposable
@@ -32,18 +30,9 @@ internal class TempFile : IDisposable
 
         var fullPath = tempDir + fileName;
 
-        using var stream = new FileStream(
-            fullPath,
-            FileMode.CreateNew,
-            FileAccess.ReadWrite,
-            FileShare.None);
-
         if (!string.IsNullOrEmpty(content))
         {
-            var bytes = Encoding.UTF8.GetBytes(content);
-            stream.Write(bytes, 0, bytes.Length);
-            stream.Flush();
-            stream.Position = 0;
+            File.WriteAllText(fullPath, content);
         }
 
         return new TempFile(fullPath, fileName);
