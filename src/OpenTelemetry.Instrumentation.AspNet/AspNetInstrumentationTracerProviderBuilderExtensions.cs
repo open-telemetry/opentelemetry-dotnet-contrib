@@ -52,7 +52,7 @@ public static class AspNetInstrumentationTracerProviderBuilderExtensions
                 {
                     return AspNetInstrumentation.Instance.HandleManager.AddTracingHandle();
                 });
-                tracerProviderBuilder.AddSource(AspNetInstrumentation.ActivitySourceName);
+                tracerProviderBuilder.AddSource(AspNetInstrumentation.ActivitySource.Name);
             });
         });
     }

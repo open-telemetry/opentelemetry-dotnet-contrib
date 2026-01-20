@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Metrics and spans report telemetry schema URL v1.36.0.
+  ([#3686](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3686))
+
 ## 1.14.0
 
 Released 2025-Nov-27
