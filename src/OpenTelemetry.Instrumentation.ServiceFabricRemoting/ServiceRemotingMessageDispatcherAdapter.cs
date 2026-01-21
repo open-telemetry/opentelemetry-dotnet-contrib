@@ -6,7 +6,6 @@ using Microsoft.ServiceFabric.Services.Remoting.V2;
 using Microsoft.ServiceFabric.Services.Remoting.V2.Runtime;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Internal;
-using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting;
 
@@ -92,7 +91,7 @@ public sealed class ServiceRemotingMessageDispatcherAdapter : IServiceRemotingMe
 
                         if (ServiceFabricRemotingActivitySource.Options?.AddExceptionAtServer == true)
                         {
-                            activity.RecordException(ex);
+                            activity.AddException(ex);
                         }
                     }
 
