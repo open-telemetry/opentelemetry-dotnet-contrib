@@ -14,7 +14,7 @@ using StackExchange.Redis;
 // connect to the redis server. The default port 6379 will be used.
 var connection = ConnectionMultiplexer.Connect("localhost");
 
-// Configure exporter to export traces to Zipkin
+// Configure exporter to export traces to Console
 using var tracerProvider = Sdk.CreateTracerProviderBuilder()
     .AddConsoleExporter()
     .AddRedisInstrumentation(connection, options =>
