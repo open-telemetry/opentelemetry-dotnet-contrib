@@ -6,6 +6,9 @@
   ([#3552](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3552),
    [#3646](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3646))
 
+* Updated OpenTelemetry core component version(s) to `1.15.0`.
+  ([#3721](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3721))
+
 ## 1.14.0
 
 Released 2025-Nov-13
@@ -26,6 +29,7 @@ Released 2025-Oct-29
 * Support for specifying resource attributes, including
   `service.name`, `service.instanceId`, and custom attributes.
   ([#3214](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3214))
+
 * Allow custom string size limit in custom fields.
   ([#3360](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3360))
 
