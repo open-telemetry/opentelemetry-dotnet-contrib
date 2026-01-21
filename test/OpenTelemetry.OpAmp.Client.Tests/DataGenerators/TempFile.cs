@@ -21,14 +21,7 @@ internal class TempFile : IDisposable
     {
         var tempDir = Path.GetTempPath();
         var fileName = Path.GetRandomFileName();
-
-        // Manual separator handling (cross-platform)
-        if (!tempDir.EndsWith(Path.DirectorySeparatorChar.ToString(), StringComparison.Ordinal))
-        {
-            tempDir += Path.DirectorySeparatorChar;
-        }
-
-        var fullPath = tempDir + fileName;
+        var fullPath = Path.Combine(tempDir, fileName);
 
         if (!string.IsNullOrEmpty(content))
         {
