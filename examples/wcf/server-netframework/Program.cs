@@ -15,7 +15,7 @@ internal static class Program
         using var openTelemetry = Sdk.CreateTracerProviderBuilder()
             .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Wcf-Server"))
             .AddWcfInstrumentation()
-            .AddZipkinExporter()
+            .AddOtlpExporter()
             .Build();
 
         var serviceHost = new ServiceHost(typeof(StatusService));

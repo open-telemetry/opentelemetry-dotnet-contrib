@@ -16,6 +16,9 @@
 * Improve SQL parsing to generate query summaries for more T-SQL keywords.
   ([#3671](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3671))
 
+* Updated OpenTelemetry core component version(s) to `1.15.0`.
+  ([#3721](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3721))
+
 ## 1.14.0-beta.2
 
 Released 2025-Nov-14

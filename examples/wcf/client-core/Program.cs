@@ -23,7 +23,7 @@ internal static class Program
         using var openTelemetry = Sdk.CreateTracerProviderBuilder()
             .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Wcf-Client-Core"))
             .AddWcfInstrumentation()
-            .AddZipkinExporter()
+            .AddOtlpExporter()
             .Build();
 
         switch (config.GetValue<string>("Server")!.ToUpperInvariant())

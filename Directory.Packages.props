@@ -6,7 +6,7 @@
 
   <!-- OpenTelemetry packages -->
   <PropertyGroup>
-    <OpenTelemetryCoreLatestVersion>1.14.0</OpenTelemetryCoreLatestVersion>
+    <OpenTelemetryCoreLatestVersion>1.15.0</OpenTelemetryCoreLatestVersion>
     <OpenTelemetryCoreUnstableLatestVersion>1.14.0-beta.1</OpenTelemetryCoreUnstableLatestVersion>
     <OpenTelemetryCoreLatestPrereleaseVersion>1.14.0-rc.1</OpenTelemetryCoreLatestPrereleaseVersion>
     <OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>1.14.0</OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>
@@ -23,7 +23,6 @@
     <PackageVersion Include="OpenTelemetry.Exporter.InMemory" Version="[$(OpenTelemetryCoreLatestVersion),2.0)" />
     <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="[$(OpenTelemetryCoreLatestVersion),2.0)" />
     <PackageVersion Include="OpenTelemetry.Exporter.Prometheus.HttpListener" Version="[$(OpenTelemetryCoreUnstableLatestVersion),2.0)" />
-    <PackageVersion Include="OpenTelemetry.Exporter.Zipkin" Version="[$(OpenTelemetryCoreLatestVersion),2.0)" />
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="[$(OpenTelemetryCoreLatestVersion),2.0)" />
     <PackageVersion Include="OpenTelemetry.Extensions.Propagators" Version="[$(OpenTelemetryCoreLatestVersion),2.0)" />
     <PackageVersion Include="OpenTelemetry.Extensions.Enrichment" Version="[$(OpenTelemetryEnrichmentUnstableLatestVersion),2.0)" />

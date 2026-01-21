@@ -9,7 +9,7 @@
     <PackageReference Include="System.ServiceModel.Http" />
     <PackageReference Include="System.ServiceModel.NetTcp" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
-    <PackageReference Include="OpenTelemetry.Exporter.Zipkin" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
   </ItemGroup>
 
   <ItemGroup>

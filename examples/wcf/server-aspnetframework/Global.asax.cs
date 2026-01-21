@@ -26,12 +26,6 @@ public class WebApiApplication : HttpApplication
 
         switch (ConfigurationManager.AppSettings["UseExporter"].ToUpperInvariant())
         {
-            case "ZIPKIN":
-                builder.AddZipkinExporter(zipkinOptions =>
-                {
-                    zipkinOptions.Endpoint = new Uri(ConfigurationManager.AppSettings["ZipkinEndpoint"]);
-                });
-                break;
             case "OTLP":
                 builder.AddOtlpExporter(otlpOptions =>
                 {
