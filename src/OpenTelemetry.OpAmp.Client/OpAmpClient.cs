@@ -115,6 +115,11 @@ public sealed class OpAmpClient : IDisposable
     /// <returns>A task that represents the asynchronous send operation.</returns>
     public Task SendEffectiveConfigAsync(IEnumerable<EffectiveConfigFile> files, CancellationToken cancellationToken = default)
     {
+        if (!this.settings.EffectiveConfigurationReporting.EnableReporting)
+        {
+            throw new InvalidOperationException("Effective configuration reporting is not enabled in settings.");
+        }
+
         return this.dispatcher.DispatchEffectiveConfigAsync(files, cancellationToken);
     }
 

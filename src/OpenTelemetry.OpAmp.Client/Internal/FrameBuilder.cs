@@ -146,6 +146,11 @@ internal sealed class FrameBuilder : IFrameBuilder
             capabilities |= AgentCapabilities.AcceptsRemoteConfig;
         }
 
+        if (this.settings.EffectiveConfigurationReporting.EnableReporting)
+        {
+            capabilities |= AgentCapabilities.ReportsEffectiveConfig;
+        }
+
         this.currentMessage.Capabilities = (ulong)capabilities;
 
         return this;
@@ -156,7 +161,7 @@ internal sealed class FrameBuilder : IFrameBuilder
         this.EnsureInitialized();
 
         var configMap = new AgentConfigMap();
-        var fileMap = new Dictionary<string, global::OpAmp.Proto.V1.AgentConfigFile>();
+        var fileMap = new Dictionary<string, global::OpAmp.Proto.V1.AgentConfigFile>(StringComparer.Ordinal);
         foreach (var file in files)
         {
             fileMap.Add(file.FileName, new global::OpAmp.Proto.V1.AgentConfigFile()

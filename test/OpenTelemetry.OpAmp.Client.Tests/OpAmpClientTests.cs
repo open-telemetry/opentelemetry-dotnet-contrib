@@ -145,6 +145,28 @@ public class OpAmpClientTests
     }
 
     [Fact]
+    internal async Task SendsEffectiveConfigFile_IsDisabledAndThrows()
+    {
+        // Setup OpAMP server
+        using var opAmpServer = new OpAmpFakeHttpServer(false);
+        var opAmpEndpoint = opAmpServer.Endpoint;
+
+        using var client = new OpAmpClient(o =>
+        {
+            o.ServerUrl = opAmpEndpoint;
+        });
+
+        // Setup OpAMP content
+        var configFileContents = Encoding.UTF8.GetBytes("test");
+        var configFile = new EffectiveConfigFile(configFileContents, "plain/text", "my-configuration-file.txt");
+
+        // Act
+        await client.StartAsync();
+        await Assert.ThrowsAsync<InvalidOperationException>(() => client.SendEffectiveConfigAsync([configFile]));
+        await client.StopAsync();
+    }
+
+    [Fact]
     internal async Task SendsEffectiveConfigFile_FromMemory()
     {
         // Setup OpAMP server
@@ -154,6 +176,7 @@ public class OpAmpClientTests
         using var client = new OpAmpClient(o =>
         {
             o.ServerUrl = opAmpEndpoint;
+            o.EffectiveConfigurationReporting.EnableReporting = true;
         });
 
         // Setup OpAMP content
@@ -195,6 +218,7 @@ public class OpAmpClientTests
         using var client = new OpAmpClient(o =>
         {
             o.ServerUrl = opAmpEndpoint;
+            o.EffectiveConfigurationReporting.EnableReporting = true;
         });
 
         // Setup OpAMP content
@@ -234,6 +258,8 @@ public class OpAmpClientTests
             this.Add(o => o.Heartbeat.IsEnabled = true, [AgentCapabilities.ReportsHeartbeat, AgentCapabilities.ReportsHealth], []);
             this.Add(o => o.RemoteConfiguration.AcceptsRemoteConfig = true, [AgentCapabilities.AcceptsRemoteConfig], []);
             this.Add(o => o.RemoteConfiguration.AcceptsRemoteConfig = false, [], [AgentCapabilities.AcceptsRemoteConfig]);
+            this.Add(o => o.EffectiveConfigurationReporting.EnableReporting = true, [AgentCapabilities.ReportsEffectiveConfig], []);
+            this.Add(o => o.EffectiveConfigurationReporting.EnableReporting = false, [], [AgentCapabilities.ReportsEffectiveConfig]);
         }
     }
 }

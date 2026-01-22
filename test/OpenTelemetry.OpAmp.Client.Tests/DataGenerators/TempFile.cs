@@ -19,16 +19,15 @@ internal class TempFile : IDisposable
 
     public static TempFile Create(string content)
     {
-        var tempDir = Path.GetTempPath();
-        var fileName = Path.GetRandomFileName();
-        var fullPath = Path.Combine(tempDir, fileName);
+        var tempFile = Path.GetTempFileName();
+        var fileName = Path.GetFileName(tempFile);
 
         if (!string.IsNullOrEmpty(content))
         {
-            File.WriteAllText(fullPath, content);
+            File.WriteAllText(tempFile, content);
         }
 
-        return new TempFile(fullPath, fileName);
+        return new TempFile(tempFile, fileName);
     }
 
     public void Dispose()
