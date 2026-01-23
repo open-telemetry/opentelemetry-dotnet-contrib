@@ -25,11 +25,13 @@ internal class OpAmpClientEventSource : EventSource
     private const int EventIdSendingIdentificationMessage = 1_000;
     private const int EventIdSendingHeartbeatMessage = 1_001;
     private const int EventIdSendingAgentDisconnectMessage = 1_002;
+    private const int EventIdSendingEffectiveConfigMessage = 1_003;
 
     // FrameDispatcher error messages 1100-1199
     private const int EventIdFailedToSendIdentificationMessage = 1_100;
     private const int EventIdFailedToSendHeartbeatMessage = 1_101;
     private const int EventIdFailedToSendAgentDisconnectMessage = 1_102;
+    private const int EventIdFailedToSendEffectiveConfigMessage = 1_103;
 
     [Event(EventIdInvalidWsFrame, Message = "Received invalid WebSocket frame header: {0}. Dropping the frame.", Level = EventLevel.Warning)]
     public void InvalidWsFrame(string errorMessage)
@@ -105,6 +107,12 @@ internal class OpAmpClientEventSource : EventSource
         this.WriteEvent(EventIdSendingAgentDisconnectMessage);
     }
 
+    [Event(EventIdSendingEffectiveConfigMessage, Message = "Sending effective config message.", Level = EventLevel.Informational)]
+    public void SendingEffectiveConfigMessage()
+    {
+        this.WriteEvent(EventIdSendingEffectiveConfigMessage);
+    }
+
     [NonEvent]
     public void SendIdentificationMessageException(Exception ex)
     {
@@ -148,5 +156,20 @@ internal class OpAmpClientEventSource : EventSource
     public void FailedToSendAgentDisconnectMessage(string exception)
     {
         this.WriteEvent(EventIdFailedToSendAgentDisconnectMessage, exception);
+    }
+
+    [NonEvent]
+    public void SendEffectiveConfigMessageException(Exception ex)
+    {
+        if (!this.IsEnabled(EventLevel.Error, EventKeywords.All))
+        {
+            this.FailedToSendEffectiveConfigMessage(ex.ToInvariantString());
+        }
+    }
+
+    [Event(EventIdFailedToSendEffectiveConfigMessage, Message = "Failed to send effective config message: {0}", Level = EventLevel.Error)]
+    public void FailedToSendEffectiveConfigMessage(string exception)
+    {
+        this.WriteEvent(EventIdFailedToSendEffectiveConfigMessage, exception);
     }
 }

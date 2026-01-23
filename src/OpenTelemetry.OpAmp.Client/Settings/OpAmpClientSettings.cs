@@ -106,6 +106,11 @@ public sealed class OpAmpClientSettings
     public RemoteConfigSettings RemoteConfiguration { get; set; } = new();
 
     /// <summary>
+    /// Gets or sets the effective configuration reporting settings.
+    /// </summary>
+    public EffectiveConfigSettings EffectiveConfigurationReporting { get; set; } = new();
+
+    /// <summary>
     /// Gets or sets the factory function called to create the <see
     /// cref="HttpClient"/> instance that will be used at runtime to
     /// transmit OpAmp messages over HTTP. The returned instance will
