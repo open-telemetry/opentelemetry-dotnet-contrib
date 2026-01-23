@@ -12,8 +12,8 @@ public sealed class EffectiveConfigSettings
     /// Gets or sets a value indicating whether the client can report effective configuration.
     /// </summary>
     /// <value>
-    /// <c>true</c> if effective configuration reporting is enabled; otherwise, <c>false</c>.
-    /// Default is <c>false</c>.
+    /// <see langword="true"/> if effective configuration reporting is enabled; otherwise, <see langword="false"/>.
+    /// Default is <see langword="false"/>.
     /// </value>
     public bool EnableReporting { get; set; }
 }
