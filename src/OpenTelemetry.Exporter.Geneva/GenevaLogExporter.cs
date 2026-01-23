@@ -9,7 +9,6 @@ using OpenTelemetry.Exporter.Geneva.MsgPack;
 using OpenTelemetry.Exporter.Geneva.Tld;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Logs;
-using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
