@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.15.0-beta.1
+
+Released 2026-Jan-21
+
 * Improve SQL parsing for sanitization and summary generation. Support additional
   cases for escaped identifiers. Optimize performance of parsing logic.
   ([#3627](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3627))
@@ -15,6 +19,9 @@
 
 * Improve SQL parsing to generate query summaries for more T-SQL keywords.
   ([#3671](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3671))
+
+* Updated OpenTelemetry core component version(s) to `1.15.0`.
+  ([#3721](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3721))
 
 ## 1.14.0-beta.2
 

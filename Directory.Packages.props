@@ -6,13 +6,13 @@
 
   <!-- OpenTelemetry packages -->
   <PropertyGroup>
-    <OpenTelemetryCoreLatestVersion>1.14.0</OpenTelemetryCoreLatestVersion>
-    <OpenTelemetryCoreUnstableLatestVersion>1.14.0-beta.1</OpenTelemetryCoreUnstableLatestVersion>
+    <OpenTelemetryCoreLatestVersion>1.15.0</OpenTelemetryCoreLatestVersion>
+    <OpenTelemetryCoreUnstableLatestVersion>1.15.0-beta.1</OpenTelemetryCoreUnstableLatestVersion>
     <OpenTelemetryCoreLatestPrereleaseVersion>1.14.0-rc.1</OpenTelemetryCoreLatestPrereleaseVersion>
-    <OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>1.14.0</OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>
-    <OpenTelemetryInstrumentationHttpLatestStableVersion>1.14.0</OpenTelemetryInstrumentationHttpLatestStableVersion>
-    <OpenTelemetryInstrumentationRuntimeLatestStableVersion>1.14.0</OpenTelemetryInstrumentationRuntimeLatestStableVersion>
-    <OpenTelemetryEnrichmentUnstableLatestVersion>1.14.0-beta.1</OpenTelemetryEnrichmentUnstableLatestVersion>
+    <OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>1.15.0</OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>
+    <OpenTelemetryInstrumentationHttpLatestStableVersion>1.15.0</OpenTelemetryInstrumentationHttpLatestStableVersion>
+    <OpenTelemetryInstrumentationRuntimeLatestStableVersion>1.15.0</OpenTelemetryInstrumentationRuntimeLatestStableVersion>
+    <OpenTelemetryEnrichmentUnstableLatestVersion>1.15.0-beta.1</OpenTelemetryEnrichmentUnstableLatestVersion>
   </PropertyGroup>
 
   <ItemGroup Label="OpenTelemetry packages">
@@ -23,7 +23,6 @@
     <PackageVersion Include="OpenTelemetry.Exporter.InMemory" Version="[$(OpenTelemetryCoreLatestVersion),2.0)" />
     <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="[$(OpenTelemetryCoreLatestVersion),2.0)" />
     <PackageVersion Include="OpenTelemetry.Exporter.Prometheus.HttpListener" Version="[$(OpenTelemetryCoreUnstableLatestVersion),2.0)" />
-    <PackageVersion Include="OpenTelemetry.Exporter.Zipkin" Version="[$(OpenTelemetryCoreLatestVersion),2.0)" />
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="[$(OpenTelemetryCoreLatestVersion),2.0)" />
     <PackageVersion Include="OpenTelemetry.Extensions.Propagators" Version="[$(OpenTelemetryCoreLatestVersion),2.0)" />
     <PackageVersion Include="OpenTelemetry.Extensions.Enrichment" Version="[$(OpenTelemetryEnrichmentUnstableLatestVersion),2.0)" />
@@ -91,14 +90,14 @@
 
   <!-- Non-production packages are kept up-to-date by dependency automation -->
   <ItemGroup Label="Non-production packages, such as for examples and tests">
-    <PackageVersion Include="AWSSDK.Bedrock" Version="4.0.19" />
-    <PackageVersion Include="AWSSDK.BedrockAgent" Version="4.0.7.5" />
-    <PackageVersion Include="AWSSDK.BedrockAgentRuntime" Version="4.0.8.5" />
-    <PackageVersion Include="AWSSDK.BedrockRuntime" Version="4.0.14.5" />
-    <PackageVersion Include="AWSSDK.DynamoDBv2" Version="4.0.10.7" />
-    <PackageVersion Include="AWSSDK.S3" Version="4.0.17.1" />
-    <PackageVersion Include="AWSSDK.SimpleNotificationService" Version="4.0.2.13" />
-    <PackageVersion Include="AWSSDK.SQS" Version="4.0.2.11" />
+    <PackageVersion Include="AWSSDK.Bedrock" Version="4.0.19.2" />
+    <PackageVersion Include="AWSSDK.BedrockAgent" Version="4.0.7.7" />
+    <PackageVersion Include="AWSSDK.BedrockAgentRuntime" Version="4.0.8.7" />
+    <PackageVersion Include="AWSSDK.BedrockRuntime" Version="4.0.15" />
+    <PackageVersion Include="AWSSDK.DynamoDBv2" Version="4.0.10.9" />
+    <PackageVersion Include="AWSSDK.S3" Version="4.0.17.3" />
+    <PackageVersion Include="AWSSDK.SimpleNotificationService" Version="4.0.2.15" />
+    <PackageVersion Include="AWSSDK.SQS" Version="4.0.2.13" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
     <PackageVersion Include="CommandLineParser" Version="2.9.1" />
     <PackageVersion Include="FsCheck.Xunit" Version="3.3.2" />
@@ -120,13 +119,13 @@
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="8.0.23" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.23" />
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.23" />
-    <PackageVersion Include="Microsoft.Data.SqlClient" Version="6.1.3" />
+    <PackageVersion Include="Microsoft.Data.SqlClient" Version="6.1.4" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.23" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.23" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="8.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
-    <PackageVersion Include="Microsoft.Web.Xdt" Version="3.2.0" />
+    <PackageVersion Include="Microsoft.Web.Xdt" Version="3.2.2" />
     <PackageVersion Include="MinVer" Version="7.0.0" />
     <PackageVersion Include="MessagePack" Version="3.1.4" />
     <PackageVersion Include="NEST" Version="7.9.0" />

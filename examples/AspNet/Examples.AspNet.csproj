@@ -56,7 +56,6 @@
     <PackageReference Include="OpenTelemetry.Exporter.Console" />
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
     <PackageReference Include="OpenTelemetry.Exporter.Prometheus.HttpListener" />
-    <PackageReference Include="OpenTelemetry.Exporter.Zipkin" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Http" />
   </ItemGroup>
   <ItemGroup>

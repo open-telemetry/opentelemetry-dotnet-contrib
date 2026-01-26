@@ -5,6 +5,7 @@ using OpAmp.Proto.V1;
 using OpenTelemetry.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Services.Heartbeat;
 using OpenTelemetry.OpAmp.Client.Internal.Transport;
+using OpenTelemetry.OpAmp.Client.Messages;
 using OpenTelemetry.OpAmp.Client.Settings;
 
 namespace OpenTelemetry.OpAmp.Client.Internal;
@@ -68,6 +69,20 @@ internal sealed class FrameDispatcher : IDisposable
         static AgentToServer BuildDisconnectMessage(FrameBuilder fb)
         {
             return fb.StartBaseMessage().AddAgentDisconnect().Build();
+        }
+    }
+
+    public async Task DispatchEffectiveConfigAsync(IEnumerable<EffectiveConfigFile> files, CancellationToken token)
+    {
+        await this.DispatchFrameAsync(
+            BuildEffectiveConfigMessage,
+            OpAmpClientEventSource.Log.SendingEffectiveConfigMessage,
+            OpAmpClientEventSource.Log.SendEffectiveConfigMessageException,
+            token).ConfigureAwait(false);
+
+        AgentToServer BuildEffectiveConfigMessage(FrameBuilder fb)
+        {
+            return fb.StartBaseMessage().AddEffectiveConfig(files).Build();
         }
     }
 
