@@ -249,6 +249,69 @@ public class OpAmpClientTests
         Assert.Equal(fileContentType, actualConfig.ContentType);
     }
 
+    [Fact]
+    internal async Task SendsCustomCapabilities()
+    {
+        // Setup OpAMP server
+        using var opAmpServer = new OpAmpFakeHttpServer(false);
+        var opAmpEndpoint = opAmpServer.Endpoint;
+
+        using var client = new OpAmpClient(o =>
+        {
+            o.ServerUrl = opAmpEndpoint;
+        });
+
+        // Setup content
+        string[] capabilities = ["custom-c1", "custom-c2", "custom-c3"];
+
+        // Act
+        await client.StartAsync();
+        await client.SendCustomCapabilitiesAsync(capabilities);
+        await client.StopAsync();
+
+        // Assert received frames
+        var frames = opAmpServer.GetFrames();
+        var actualCapabilities = frames[1].CustomCapabilities.Capabilities;
+
+        Assert.Equal(3, frames.Count); // 3 frames: 1 identification, 2 custom capabilities, 3 disconnect
+        Assert.Equal(capabilities, actualCapabilities);
+    }
+
+    [Fact]
+    internal async Task SendsCustomMessage()
+    {
+        // Setup OpAMP server
+        using var opAmpServer = new OpAmpFakeHttpServer(false);
+        var opAmpEndpoint = opAmpServer.Endpoint;
+
+        using var client = new OpAmpClient(o =>
+        {
+            o.ServerUrl = opAmpEndpoint;
+        });
+
+        // Setup content
+        const string capability = "custom-c1";
+        const string type = "custom-type-1";
+        const string messageContent = "a custom message contents";
+        var message = Encoding.UTF8.GetBytes(messageContent);
+
+        // Act
+        await client.StartAsync();
+        await client.SendCustomMessageAsync(capability, type, message);
+        await client.StopAsync();
+
+        // Assert received frames
+        var frames = opAmpServer.GetFrames();
+        var actualCapability = frames[1].CustomMessage.Capability;
+        var actualType = frames[1].CustomMessage.Type;
+        var actualMessageContent = frames[1].CustomMessage.Data.ToStringUtf8();
+
+        Assert.Equal(3, frames.Count); // 3 frames: 1 identification, 2 custom message, 3 disconnect
+        Assert.Equal(capability, actualCapability);
+        Assert.Equal(type, actualType);
+        Assert.Equal(messageContent, actualMessageContent);
+    }
+
     internal class CapabilityTestData
         : TheoryData<Action<OpAmpClientSettings>, IEnumerable<AgentCapabilities>, IEnumerable<AgentCapabilities>>
     {

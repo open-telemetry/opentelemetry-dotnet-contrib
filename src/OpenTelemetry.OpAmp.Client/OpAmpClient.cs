@@ -124,6 +124,30 @@ public sealed class OpAmpClient : IDisposable
     }
 
     /// <summary>
+    /// Reports custom capabilities supported by the agent.
+    /// </summary>
+    /// <param name="capabilities">Capabilities list.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A task that represents the asynchronous send operation.</returns>
+    public Task SendCustomCapabilitiesAsync(IEnumerable<string> capabilities, CancellationToken cancellationToken = default)
+    {
+        return this.dispatcher.DispatchCustomCapabilitiesAsync(capabilities, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a custom message within reported capabilities.
+    /// </summary>
+    /// <param name="capability">Capability that matches a reported capability.</param>
+    /// <param name="type">A type within the capability.</param>
+    /// <param name="data">Contents of the message.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A task that represents the asynchronous send operation.</returns>
+    public Task SendCustomMessageAsync(string capability, string type, ReadOnlyMemory<byte> data, CancellationToken cancellationToken = default)
+    {
+        return this.dispatcher.DispatchCustomMessageAsync(capability, type, data, cancellationToken);
+    }
+
+    /// <summary>
     /// Disposes the OpAmpClient instance and releases all associated resources.
     /// </summary>
     public void Dispose()

@@ -23,6 +23,8 @@ OpenTelemetry.OpAmp.Client.Messages.RemoteConfigMessage.ConfigHash.get -> System
 OpenTelemetry.OpAmp.Client.OpAmpClient
 OpenTelemetry.OpAmp.Client.OpAmpClient.Dispose() -> void
 OpenTelemetry.OpAmp.Client.OpAmpClient.OpAmpClient(System.Action<OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings!>? configure = null) -> void
+OpenTelemetry.OpAmp.Client.OpAmpClient.SendCustomCapabilitiesAsync(System.Collections.Generic.IEnumerable<string!>! capabilities, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+OpenTelemetry.OpAmp.Client.OpAmpClient.SendCustomMessageAsync(string! capability, string! type, System.ReadOnlyMemory<byte> data, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 OpenTelemetry.OpAmp.Client.OpAmpClient.SendEffectiveConfigAsync(System.Collections.Generic.IEnumerable<OpenTelemetry.OpAmp.Client.Messages.EffectiveConfigFile!>! files, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 OpenTelemetry.OpAmp.Client.OpAmpClient.StartAsync(System.Threading.CancellationToken token = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 OpenTelemetry.OpAmp.Client.OpAmpClient.StopAsync(System.Threading.CancellationToken token = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!

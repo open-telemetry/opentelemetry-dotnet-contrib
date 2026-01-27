@@ -86,6 +86,34 @@ internal sealed class FrameDispatcher : IDisposable
         }
     }
 
+    public async Task DispatchCustomCapabilitiesAsync(IEnumerable<string> capabilities, CancellationToken token)
+    {
+        await this.DispatchFrameAsync(
+            BuildCustomCapabilitiesMessage,
+            OpAmpClientEventSource.Log.SendingCustomCapabilitiesMessage,
+            OpAmpClientEventSource.Log.SendCustomCapabilitiesMessageException,
+            token).ConfigureAwait(false);
+
+        AgentToServer BuildCustomCapabilitiesMessage(FrameBuilder fb)
+        {
+            return fb.StartBaseMessage().AddCustomCapabilities(capabilities).Build();
+        }
+    }
+
+    public async Task DispatchCustomMessageAsync(string capability, string type, ReadOnlyMemory<byte> data, CancellationToken token)
+    {
+        await this.DispatchFrameAsync(
+            BuildCustomMessageMessage,
+            OpAmpClientEventSource.Log.SendingCustomMessageMessage,
+            OpAmpClientEventSource.Log.SendCustomMessageMessageException,
+            token).ConfigureAwait(false);
+
+        AgentToServer BuildCustomMessageMessage(FrameBuilder fb)
+        {
+            return fb.StartBaseMessage().AddCustomMessage(capability, type, data).Build();
+        }
+    }
+
     public void Dispose()
     {
         this.syncRoot.Dispose();
