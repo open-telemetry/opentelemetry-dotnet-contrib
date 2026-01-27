@@ -5,6 +5,9 @@
 * Add agent effective config reporting.
   ([#3716](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3716))
 
+* Add ability to send custom messages.
+  ([#3809](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3809))
+
 ## 0.1.0-alpha.4
 
 Released 2026-Jan-14
