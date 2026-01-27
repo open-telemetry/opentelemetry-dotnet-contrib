@@ -123,7 +123,7 @@ internal class OpAmpClientEventSource : EventSource
         this.WriteEvent(EventIdSendingCustomCapabilitiesMessage);
     }
 
-    [Event(EventIdSendingCustomMessageMessage, Message = "Sending custom message message.", Level = EventLevel.Informational)]
+    [Event(EventIdSendingCustomMessageMessage, Message = "Sending custom message.", Level = EventLevel.Informational)]
     public void SendingCustomMessageMessage()
     {
         this.WriteEvent(EventIdSendingCustomMessageMessage);
@@ -213,7 +213,7 @@ internal class OpAmpClientEventSource : EventSource
         }
     }
 
-    [Event(EventIdFailedToSendCustomMessageMessage, Message = "Failed to send a custom messages: {0}", Level = EventLevel.Error)]
+    [Event(EventIdFailedToSendCustomMessageMessage, Message = "Failed to send a custom message: {0}", Level = EventLevel.Error)]
     public void FailedToSendCustomMessageMessage(string exception)
     {
         this.WriteEvent(EventIdFailedToSendCustomMessageMessage, exception);
