@@ -156,6 +156,30 @@ internal sealed class FrameBuilder : IFrameBuilder
         return this;
     }
 
+    IFrameBuilder IFrameBuilder.AddCustomCapabilities(IEnumerable<string> capabilities)
+    {
+        this.EnsureInitialized();
+
+        this.currentMessage.CustomCapabilities = new CustomCapabilities();
+        this.currentMessage.CustomCapabilities.Capabilities.Add(capabilities);
+
+        return this;
+    }
+
+    IFrameBuilder IFrameBuilder.AddCustomMessage(string capability, string type, ReadOnlyMemory<byte> data)
+    {
+        this.EnsureInitialized();
+
+        this.currentMessage.CustomMessage = new CustomMessage
+        {
+            Capability = capability,
+            Type = type,
+            Data = ByteString.CopyFrom(data.Span),
+        };
+
+        return this;
+    }
+
     IFrameBuilder IFrameBuilder.AddEffectiveConfig(IEnumerable<EffectiveConfigFile> files)
     {
         this.EnsureInitialized();

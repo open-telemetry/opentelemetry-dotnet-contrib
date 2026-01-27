@@ -26,12 +26,16 @@ internal class OpAmpClientEventSource : EventSource
     private const int EventIdSendingHeartbeatMessage = 1_001;
     private const int EventIdSendingAgentDisconnectMessage = 1_002;
     private const int EventIdSendingEffectiveConfigMessage = 1_003;
+    private const int EventIdSendingCustomCapabilitiesMessage = 1_004;
+    private const int EventIdSendingCustomMessageMessage = 1_005;
 
     // FrameDispatcher error messages 1100-1199
     private const int EventIdFailedToSendIdentificationMessage = 1_100;
     private const int EventIdFailedToSendHeartbeatMessage = 1_101;
     private const int EventIdFailedToSendAgentDisconnectMessage = 1_102;
     private const int EventIdFailedToSendEffectiveConfigMessage = 1_103;
+    private const int EventIdFailedToSendCustomCapabilitiesMessage = 1_104;
+    private const int EventIdFailedToSendCustomMessageMessage = 1_105;
 
     [Event(EventIdInvalidWsFrame, Message = "Received invalid WebSocket frame header: {0}. Dropping the frame.", Level = EventLevel.Warning)]
     public void InvalidWsFrame(string errorMessage)
@@ -113,6 +117,18 @@ internal class OpAmpClientEventSource : EventSource
         this.WriteEvent(EventIdSendingEffectiveConfigMessage);
     }
 
+    [Event(EventIdSendingCustomCapabilitiesMessage, Message = "Sending custom capabilities message.", Level = EventLevel.Informational)]
+    public void SendingCustomCapabilitiesMessage()
+    {
+        this.WriteEvent(EventIdSendingCustomCapabilitiesMessage);
+    }
+
+    [Event(EventIdSendingCustomMessageMessage, Message = "Sending custom message.", Level = EventLevel.Informational)]
+    public void SendingCustomMessageMessage()
+    {
+        this.WriteEvent(EventIdSendingCustomMessageMessage);
+    }
+
     [NonEvent]
     public void SendIdentificationMessageException(Exception ex)
     {
@@ -171,5 +187,35 @@ internal class OpAmpClientEventSource : EventSource
     public void FailedToSendEffectiveConfigMessage(string exception)
     {
         this.WriteEvent(EventIdFailedToSendEffectiveConfigMessage, exception);
+    }
+
+    [NonEvent]
+    public void SendCustomCapabilitiesMessageException(Exception ex)
+    {
+        if (!this.IsEnabled(EventLevel.Error, EventKeywords.All))
+        {
+            this.FailedToSendCustomCapabilitiesMessage(ex.ToInvariantString());
+        }
+    }
+
+    [Event(EventIdFailedToSendCustomCapabilitiesMessage, Message = "Failed to send custom capabilities message: {0}", Level = EventLevel.Error)]
+    public void FailedToSendCustomCapabilitiesMessage(string exception)
+    {
+        this.WriteEvent(EventIdFailedToSendCustomCapabilitiesMessage, exception);
+    }
+
+    [NonEvent]
+    public void SendCustomMessageMessageException(Exception ex)
+    {
+        if (!this.IsEnabled(EventLevel.Error, EventKeywords.All))
+        {
+            this.FailedToSendCustomMessageMessage(ex.ToInvariantString());
+        }
+    }
+
+    [Event(EventIdFailedToSendCustomMessageMessage, Message = "Failed to send a custom message: {0}", Level = EventLevel.Error)]
+    public void FailedToSendCustomMessageMessage(string exception)
+    {
+        this.WriteEvent(EventIdFailedToSendCustomMessageMessage, exception);
     }
 }

@@ -17,7 +17,11 @@ internal interface IFrameBuilder
 
     IFrameBuilder AddCapabilities();
 
+    IFrameBuilder AddCustomCapabilities(IEnumerable<string> capabilities);
+
     IFrameBuilder AddEffectiveConfig(IEnumerable<EffectiveConfigFile> files);
+
+    IFrameBuilder AddCustomMessage(string capability, string type, ReadOnlyMemory<byte> data);
 
     AgentToServer Build();
 }
