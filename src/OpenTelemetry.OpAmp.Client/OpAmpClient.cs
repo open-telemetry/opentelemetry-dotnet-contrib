@@ -137,7 +137,7 @@ public sealed class OpAmpClient : IDisposable
     /// <summary>
     /// Sends a custom message related to a supported custom capability.
     /// </summary>
-    /// <param name="capability">Capability that matches a reported capability.</param>
+    /// <param name="capability">Capability that matches a reported custom capability.</param>
     /// <param name="type">Type of message within the capability.</param>
     /// <param name="data">Contents of the message.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
