@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Collections;
-using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Web;
 using OpenTelemetry.Context.Propagation;
@@ -505,65 +503,6 @@ public class ActivityHelperTest : IDisposable
     private Activity? StartTestActivity(HttpContextBase httpContext, ActivityContext activityContext)
     {
         return this.testActivitySource.StartActivity(ActivityKind.Server, activityContext);
-    }
-
-    private class TestHttpRequest : HttpRequestBase
-    {
-        private readonly NameValueCollection headers = [];
-
-        public override NameValueCollection Headers => this.headers;
-
-        public override UnvalidatedRequestValuesBase Unvalidated => new TestUnvalidatedRequestValues(this.headers);
-    }
-
-    private class TestUnvalidatedRequestValues : UnvalidatedRequestValuesBase
-    {
-        public TestUnvalidatedRequestValues(NameValueCollection headers)
-        {
-            this.Headers = headers;
-        }
-
-        public override NameValueCollection Headers { get; }
-    }
-
-    private class TestHttpResponse : HttpResponseBase
-    {
-    }
-
-    private class TestHttpServerUtility : HttpServerUtilityBase
-    {
-        private readonly HttpContextBase context;
-
-        public TestHttpServerUtility(HttpContextBase context)
-        {
-            this.context = context;
-        }
-
-        public override Exception GetLastError()
-        {
-            return this.context.Error;
-        }
-    }
-
-    private class TestHttpContext : HttpContextBase
-    {
-        private readonly Hashtable items;
-
-        public TestHttpContext(Exception? error = null)
-        {
-            this.Server = new TestHttpServerUtility(this);
-            this.items = [];
-            this.Error = error;
-        }
-
-        public override HttpRequestBase Request { get; } = new TestHttpRequest();
-
-        /// <inheritdoc />
-        public override IDictionary Items => this.items;
-
-        public override Exception? Error { get; }
-
-        public override HttpServerUtilityBase Server { get; }
     }
 
     private class NoopTextMapPropagator : TextMapPropagator
