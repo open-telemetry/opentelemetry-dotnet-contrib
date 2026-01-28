@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Collections;
-using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Web;
 using OpenTelemetry.Context.Propagation;
@@ -54,6 +52,16 @@ public class ActivityHelperTest : IDisposable
         Assert.True(result);
         Assert.NotNull(aspNetActivity);
         Assert.Equal(activity, aspNetActivity);
+    }
+
+    [Fact]
+    public void Baggage_Is_Restored_Before_Starting_Activity()
+    {
+        this.EnableListener();
+        var propagator = new MockTextMapPropagator();
+        var context = HttpContextHelper.GetFakeHttpContextBase();
+        using var activity = ActivityHelper.StartAspNetActivity(propagator, context, this.StartTestActivityWithBaggageAttribute);
+        Assert.Equal(MockTextMapPropagator.BaggageValue, activity?.Tags.FirstOrDefault(kv => kv.Key == MockTextMapPropagator.BaggageKey).Value);
     }
 
     [Fact]
@@ -507,63 +515,12 @@ public class ActivityHelperTest : IDisposable
         return this.testActivitySource.StartActivity(ActivityKind.Server, activityContext);
     }
 
-    private class TestHttpRequest : HttpRequestBase
+    private Activity? StartTestActivityWithBaggageAttribute(HttpContextBase httpContext, ActivityContext activityContext)
     {
-        private readonly NameValueCollection headers = [];
-
-        public override NameValueCollection Headers => this.headers;
-
-        public override UnvalidatedRequestValuesBase Unvalidated => new TestUnvalidatedRequestValues(this.headers);
-    }
-
-    private class TestUnvalidatedRequestValues : UnvalidatedRequestValuesBase
-    {
-        public TestUnvalidatedRequestValues(NameValueCollection headers)
-        {
-            this.Headers = headers;
-        }
-
-        public override NameValueCollection Headers { get; }
-    }
-
-    private class TestHttpResponse : HttpResponseBase
-    {
-    }
-
-    private class TestHttpServerUtility : HttpServerUtilityBase
-    {
-        private readonly HttpContextBase context;
-
-        public TestHttpServerUtility(HttpContextBase context)
-        {
-            this.context = context;
-        }
-
-        public override Exception GetLastError()
-        {
-            return this.context.Error;
-        }
-    }
-
-    private class TestHttpContext : HttpContextBase
-    {
-        private readonly Hashtable items;
-
-        public TestHttpContext(Exception? error = null)
-        {
-            this.Server = new TestHttpServerUtility(this);
-            this.items = [];
-            this.Error = error;
-        }
-
-        public override HttpRequestBase Request { get; } = new TestHttpRequest();
-
-        /// <inheritdoc />
-        public override IDictionary Items => this.items;
-
-        public override Exception? Error { get; }
-
-        public override HttpServerUtilityBase Server { get; }
+        var baggageValue = Baggage.Current.GetBaggage(MockTextMapPropagator.BaggageKey);
+        var activity = this.testActivitySource.StartActivity(ActivityKind.Server, activityContext);
+        activity?.AddTag(MockTextMapPropagator.BaggageKey, baggageValue);
+        return activity;
     }
 
     private class NoopTextMapPropagator : TextMapPropagator
@@ -573,6 +530,30 @@ public class ActivityHelperTest : IDisposable
         public override PropagationContext Extract<T>(PropagationContext context, T carrier, Func<T, string, IEnumerable<string>?> getter)
         {
             return default;
+        }
+
+        public override void Inject<T>(PropagationContext context, T carrier, Action<T, string, string> setter)
+        {
+        }
+    }
+
+    private class MockTextMapPropagator : TextMapPropagator
+    {
+        internal const string BaggageKey = "TestKey1";
+        internal const string BaggageValue = "TestValue1";
+
+        public override ISet<string>? Fields => null;
+
+        public override PropagationContext Extract<T>(PropagationContext context, T carrier, Func<T, string, IEnumerable<string>?> getter)
+        {
+            var baggage = Baggage.Create(new Dictionary<string, string>
+            {
+                { BaggageKey, BaggageValue },
+            });
+
+            var activityContext = new ActivityContext(ActivityTraceId.CreateRandom(), ActivitySpanId.CreateRandom(), ActivityTraceFlags.Recorded);
+
+            return new PropagationContext(activityContext, baggage);
         }
 
         public override void Inject<T>(PropagationContext context, T carrier, Action<T, string, string> setter)

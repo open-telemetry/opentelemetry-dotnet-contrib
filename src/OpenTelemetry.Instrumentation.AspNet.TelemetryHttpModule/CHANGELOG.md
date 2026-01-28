@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Propagate baggage before `Activity` is created.
+  ([#3820](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3820))
+
 ## 1.15.0
 
 Released 2026-Jan-21
