@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.15.0-beta.2
+
+Released 2026-Jan-28
+
 * **Breaking Change:** Fixed `host.arch` attribute to return `amd64` instead of
   `x64` for X64 architecture to comply with OpenTelemetry Semantic Conventions.
   ([#3811](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3811))
