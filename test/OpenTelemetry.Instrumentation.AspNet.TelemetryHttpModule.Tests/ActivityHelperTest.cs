@@ -55,6 +55,16 @@ public class ActivityHelperTest : IDisposable
     }
 
     [Fact]
+    public void Baggage_Is_Restored_Before_Starting_Activity()
+    {
+        this.EnableListener();
+        var propagator = new MockTextMapPropagator();
+        var context = HttpContextHelper.GetFakeHttpContextBase();
+        using var activity = ActivityHelper.StartAspNetActivity(propagator, context, this.StartTestActivityWithBaggageAttribute);
+        Assert.Equal(MockTextMapPropagator.BaggageValue, activity?.Tags.FirstOrDefault(kv => kv.Key == MockTextMapPropagator.BaggageKey).Value);
+    }
+
+    [Fact]
     public async Task Can_Restore_Activity()
     {
         this.EnableListener();
@@ -505,6 +515,15 @@ public class ActivityHelperTest : IDisposable
         return this.testActivitySource.StartActivity(ActivityKind.Server, activityContext);
     }
 
+    private Activity? StartTestActivityWithBaggageAttribute(HttpContextBase httpContext, ActivityContext activityContext)
+    {
+
+        var baggageValue = Baggage.Current.GetBaggage(MockTextMapPropagator.BaggageKey);
+        var activity = this.testActivitySource.StartActivity(ActivityKind.Server, activityContext);
+        activity?.AddTag(MockTextMapPropagator.BaggageKey, baggageValue);
+        return activity;
+    }
+
     private class NoopTextMapPropagator : TextMapPropagator
     {
         public override ISet<string>? Fields => null;
@@ -512,6 +531,30 @@ public class ActivityHelperTest : IDisposable
         public override PropagationContext Extract<T>(PropagationContext context, T carrier, Func<T, string, IEnumerable<string>?> getter)
         {
             return default;
+        }
+
+        public override void Inject<T>(PropagationContext context, T carrier, Action<T, string, string> setter)
+        {
+        }
+    }
+
+    private class MockTextMapPropagator : TextMapPropagator
+    {
+        internal const string BaggageKey = "TestKey1";
+        internal const string BaggageValue = "TestValue1";
+
+        public override ISet<string>? Fields => null;
+
+        public override PropagationContext Extract<T>(PropagationContext context, T carrier, Func<T, string, IEnumerable<string>?> getter)
+        {
+            var baggage = Baggage.Create(new Dictionary<string, string>
+            {
+                { BaggageKey, BaggageValue },
+            });
+
+            var activityContext = new ActivityContext(ActivityTraceId.CreateRandom(), ActivitySpanId.CreateRandom(), ActivityTraceFlags.Recorded);
+
+            return new PropagationContext(activityContext, baggage);
         }
 
         public override void Inject<T>(PropagationContext context, T carrier, Action<T, string, string> setter)
