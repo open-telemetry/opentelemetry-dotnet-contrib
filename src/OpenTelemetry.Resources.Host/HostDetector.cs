@@ -82,7 +82,7 @@ internal sealed class HostDetector : IResourceDetector
         return arch switch
         {
             Architecture.X86 => "x86",
-            Architecture.X64 => "x64",
+            Architecture.X64 => "amd64",
             Architecture.Arm => "arm32",
             Architecture.Arm64 => "arm64",
 #if NET
