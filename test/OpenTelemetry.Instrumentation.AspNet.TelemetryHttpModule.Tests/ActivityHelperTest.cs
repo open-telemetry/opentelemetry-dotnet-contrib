@@ -517,7 +517,6 @@ public class ActivityHelperTest : IDisposable
 
     private Activity? StartTestActivityWithBaggageAttribute(HttpContextBase httpContext, ActivityContext activityContext)
     {
-
         var baggageValue = Baggage.Current.GetBaggage(MockTextMapPropagator.BaggageKey);
         var activity = this.testActivitySource.StartActivity(ActivityKind.Server, activityContext);
         activity?.AddTag(MockTextMapPropagator.BaggageKey, baggageValue);
