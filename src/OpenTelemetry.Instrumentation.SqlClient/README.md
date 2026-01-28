@@ -2,7 +2,7 @@
 
 | Status | |
 | ------ | --- |
-| Stability | [Release candidate](../../README.md#release-candidate) |
+| Stability | [Stable](../../README.md#release-candidate) |
 | Code Owners | [@open-telemetry/dotnet-contrib-maintainers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-maintainers) |
 
 [![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.SqlClient.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.SqlClient)
@@ -37,7 +37,7 @@ Add a reference to the
 package. Also, add any other instrumentations & exporters you will need.
 
 ```shell
-dotnet add package --prerelease OpenTelemetry.Instrumentation.SqlClient
+dotnet add package OpenTelemetry.Instrumentation.SqlClient
 ```
 
 ### Step 2: Enable SqlClient Instrumentation at application startup
