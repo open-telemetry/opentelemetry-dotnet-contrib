@@ -1279,4 +1279,59 @@ public static class MetricSerializerTests
         // Act and Assert
         Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeUInt32AsBase128(buffer, ref offset, value));
     }
+
+    [Theory]
+    [InlineData(0x80UL)]
+    [InlineData(0x4000UL)]
+    [InlineData(0x200000UL)]
+    [InlineData(0xFFFFFFFUL)]
+    [InlineData(ulong.MaxValue)]
+    public static void SerializeUInt64AsBase128_SetsHighBit_WhenMoreBytesRequired(ulong value)
+    {
+        // Arrange
+        var buffer = new byte[10];
+        var offset = 0;
+
+        // Act
+        MetricSerializer.SerializeUInt64AsBase128(buffer, ref offset, value);
+
+        // Assert - all bytes except the last should have the high bit (0x80) set
+        for (int i = 0; i < offset - 1; i++)
+        {
+            Assert.NotEqual(0, buffer[i] & 0x80);
+        }
+
+        // The last byte should NOT have the high bit set
+        Assert.Equal(0, buffer[offset - 1] & 0x80);
+    }
+
+    [Property(MaxTest = MaxValue)]
+    public static void SerializeUInt64AsBase128_FuzzTest_RandomValues_VerifiesContinuationBit(ulong first, uint second)
+    {
+        // Arrange
+        var buffer = new byte[10];
+
+        var value = (first << 32) | second;
+        var offset = 0;
+
+        // Act
+        MetricSerializer.SerializeUInt64AsBase128(buffer, ref offset, value);
+
+        // Assert
+        // Verify valid encoding length
+        Assert.InRange(offset, 1, 10);
+
+        // Verify the continuation bit (b |= 0x80) is set correctly
+        if (value >= 128)
+        {
+            // Multi-byte encoding: all bytes except last must have 0x80 set
+            for (int j = 0; j < offset - 1; j++)
+            {
+                Assert.NotEqual(0, buffer[j] & 0x80);
+            }
+        }
+
+        // Last byte must never have continuation bit set
+        Assert.Equal(0, buffer[offset - 1] & 0x80);
+    }
 }
