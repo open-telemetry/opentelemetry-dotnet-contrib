@@ -524,7 +524,7 @@ public static class MessagePackSerializerTests
         // Arrange
         var buffer = new byte[BufferSize];
         var cursor = 0;
-        var unicodeString = $"🔥{input.Get}🎉";
+        var unicodeString = $"\uD83D\uDD25{input.Get}\uD83C\uDF89";
 
         // Act
         var actual = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, unicodeString);

@@ -894,7 +894,7 @@ public static class MetricSerializerTests
         // Arrange
         var buffer = new byte[BufferSize];
         var offset = 0;
-        var unicodeString = $"🔥{input.Get}🎉";
+        var unicodeString = $"\uD83D\uDD25{input.Get}\uD83C\uDF89";
 
         // Act
         MetricSerializer.SerializeString(buffer, ref offset, unicodeString);
