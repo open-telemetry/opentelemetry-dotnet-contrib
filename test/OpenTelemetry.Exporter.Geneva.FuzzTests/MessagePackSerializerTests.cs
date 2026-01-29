@@ -1289,4 +1289,192 @@ public static class MessagePackSerializerTests
         // Assert
         Assert.True(actual > cursor);
     }
+
+    [Property(MaxTest = MaxValue)]
+    public static void WriteArrayHeader_Large_Length_Greater_Than_UInt16_Max(PositiveInt additionalLength)
+    {
+        // Arrange
+        var buffer = new byte[BufferSize];
+        var cursor = 0;
+        var arrayLength = ushort.MaxValue + 1 + (additionalLength.Get % 1000);
+
+        // Act
+        var actual = MessagePackSerializer.WriteArrayHeader(buffer, cursor, arrayLength);
+
+        // Assert
+        Assert.True(actual > cursor);
+        Assert.Equal(cursor + 5, actual); // Should use ARRAY32 format (1 byte type + 4 bytes length)
+    }
+
+    [Property(MaxTest = MaxValue)]
+    public static void WriteMapHeader_Large_Count_Greater_Than_UInt16_Max(PositiveInt additionalCount)
+    {
+        // Arrange
+        var buffer = new byte[BufferSize];
+        var cursor = 0;
+        var mapCount = ushort.MaxValue + 1 + (additionalCount.Get % 1000);
+
+        // Act
+        var actual = MessagePackSerializer.WriteMapHeader(buffer, cursor, mapCount);
+
+        // Assert
+        Assert.True(actual > cursor);
+        Assert.Equal(cursor + 5, actual); // Should use MAP32 format (1 byte type + 4 bytes count)
+    }
+
+    [Property(MaxTest = MaxValue)]
+    public static void Serialize_Unsupported_Type_Does_Not_Throw(PositiveInt value)
+    {
+        // Arrange
+        var buffer = new byte[BufferSize];
+        var cursor = 0;
+        var customValue = new UnsupportedCustomType { Value = value.Get };
+
+        // Act
+        var actual = MessagePackSerializer.Serialize(buffer, cursor, customValue);
+
+        // Assert
+        Assert.True(actual > cursor);
+    }
+
+    [Property(MaxTest = MaxValue)]
+    public static void Serialize_Type_That_Throws_On_ToString()
+    {
+        // Arrange
+        var buffer = new byte[BufferSize];
+        var cursor = 0;
+        var customValue = new TypeThatThrowsOnConvert();
+
+        // Act
+        var actual = MessagePackSerializer.Serialize(buffer, cursor, customValue);
+
+        // Assert
+        Assert.True(actual > cursor);
+    }
+
+#if NET
+    [Property(MaxTest = MaxValue)]
+    public static void Serialize_ISpanFormattable_Custom_Type_Does_Not_Throw(PositiveInt value)
+    {
+        // Arrange
+        var buffer = new byte[BufferSize];
+        var cursor = 0;
+        var customValue = new CustomSpanFormattable(value.Get);
+
+        // Act
+        var actual = MessagePackSerializer.Serialize(buffer, cursor, customValue);
+
+        // Assert
+        Assert.True(actual > cursor);
+    }
+
+    [Property(MaxTest = MaxValue)]
+    public static void Serialize_ISpanFormattable_Custom_Type_TryFormat_Fails(PositiveInt value)
+    {
+        // Arrange
+        var buffer = new byte[BufferSize];
+        var cursor = 0;
+        var customValue = new CustomSpanFormattableThatFails(value.Get);
+
+        // Act
+        var actual = MessagePackSerializer.Serialize(buffer, cursor, customValue);
+
+        // Assert
+        Assert.True(actual > cursor);
+    }
+
+    private sealed class CustomSpanFormattable : ISpanFormattable
+    {
+        private readonly int value;
+
+        public CustomSpanFormattable(int value)
+        {
+            this.value = value;
+        }
+
+        public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+        {
+            var str = this.value.ToString(provider);
+            if (str.Length <= destination.Length)
+            {
+                str.AsSpan().CopyTo(destination);
+                charsWritten = str.Length;
+                return true;
+            }
+
+            charsWritten = 0;
+            return false;
+        }
+
+        public override string ToString() => this.value.ToString();
+
+        public string ToString(string? format, IFormatProvider? formatProvider) => this.ToString();
+    }
+
+    private sealed class CustomSpanFormattableThatFails : ISpanFormattable
+    {
+        private readonly int value;
+
+        public CustomSpanFormattableThatFails(int value)
+        {
+            this.value = value;
+        }
+
+        public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+        {
+            charsWritten = 0;
+            return false; // Always fail to trigger fallback to default case
+        }
+
+        public override string ToString() => $"CustomValue_{this.value}";
+
+        public string ToString(string? format, IFormatProvider? formatProvider) => this.ToString();
+    }
+#endif
+
+    // Helper class that doesn't implement ISpanFormattable and isn't a built-in type
+    private sealed class UnsupportedCustomType
+    {
+        public int Value { get; set; }
+
+        public override string ToString() => $"UnsupportedCustomType({this.Value})";
+    }
+
+    // Helper class that throws when Convert.ToString is called
+    private sealed class TypeThatThrowsOnConvert : IConvertible
+    {
+        public TypeCode GetTypeCode() => throw new NotSupportedException();
+
+        public bool ToBoolean(IFormatProvider? provider) => throw new NotSupportedException();
+
+        public byte ToByte(IFormatProvider? provider) => throw new NotSupportedException();
+
+        public char ToChar(IFormatProvider? provider) => throw new NotSupportedException();
+
+        public DateTime ToDateTime(IFormatProvider? provider) => throw new NotSupportedException();
+
+        public decimal ToDecimal(IFormatProvider? provider) => throw new NotSupportedException();
+
+        public double ToDouble(IFormatProvider? provider) => throw new NotSupportedException();
+
+        public short ToInt16(IFormatProvider? provider) => throw new NotSupportedException();
+
+        public int ToInt32(IFormatProvider? provider) => throw new NotSupportedException();
+
+        public long ToInt64(IFormatProvider? provider) => throw new NotSupportedException();
+
+        public sbyte ToSByte(IFormatProvider? provider) => throw new NotSupportedException();
+
+        public float ToSingle(IFormatProvider? provider) => throw new NotSupportedException();
+
+        public string ToString(IFormatProvider? provider) => throw new NotSupportedException();
+
+        public object ToType(Type conversionType, IFormatProvider? provider) => throw new NotSupportedException();
+
+        public ushort ToUInt16(IFormatProvider? provider) => throw new NotSupportedException();
+
+        public uint ToUInt32(IFormatProvider? provider) => throw new NotSupportedException();
+
+        public ulong ToUInt64(IFormatProvider? provider) => throw new NotSupportedException();
+    }
 }
