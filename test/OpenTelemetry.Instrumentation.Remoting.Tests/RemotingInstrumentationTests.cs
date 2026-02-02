@@ -16,22 +16,26 @@ public class RemotingInstrumentationTests
     public void CrossDomainMessageTest(bool success, string? exceptionMessage)
     {
         var activities = new List<Activity>();
-        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddInMemoryExporter(activities)
-            .AddRemotingInstrumentation(options =>
-                options.Filter = msg =>
+            .AddRemotingInstrumentation(
+                options =>
                 {
-                    // xUnit runner uses AppDomains to execute tests.
-                    // Without the Filter, we would start instrumenting all cross-domain messages, including the xUnit runner ones.
-                    // We don't want this obviously, instead just inspect calls to our test object only.
-                    if (msg is IMethodMessage methodMsg)
+                    options.RecordException = true;
+                    options.Filter = msg =>
                     {
-                        return methodMsg.TypeName.Contains("RemoteObject");
-                    }
+                        // xUnit runner uses AppDomains to execute tests.
+                        // Without the Filter, we would start instrumenting all cross-domain messages, including the xUnit runner ones.
+                        // We don't want this obviously, instead just inspect calls to our test object only.
+                        if (msg is IMethodMessage methodMsg)
+                        {
+                            return methodMsg.TypeName.Contains("RemoteObject");
+                        }
 
-                    return false;
+                        return false;
+                    };
                 })
-            .Build())
+            .Build();
         {
             var domainSetup = AppDomain.CurrentDomain.SetupInformation;
             var ad = AppDomain.CreateDomain("other-domain", null, domainSetup);
@@ -59,10 +63,7 @@ public class RemotingInstrumentationTests
         var activity = activities.FirstOrDefault(); // Get the OnEnd activity.
         Assert.Equal(ActivityKind.Client, activity.Kind);
         Assert.Equal("netframework_remoting", activity.GetTagItem("rpc.system.name"));
-        Assert.Equal(
-            "OpenTelemetry.Instrumentation.Remoting.Tests.RemotingInstrumentationTests+RemoteObject",
-            activity.GetTagItem("rpc.service"));
-        Assert.Equal("DoStuff", activity.GetTagItem("rpc.method"));
+        Assert.Equal("OpenTelemetry.Instrumentation.Remoting.Tests.RemotingInstrumentationTests+RemoteObject/DoStuff", activity.GetTagItem("rpc.method"));
 
         if (success)
         {
