@@ -24,6 +24,7 @@ namespace OpenTelemetry.Instrumentation.Remoting.Implementation;
 internal class TelemetryDynamicSink : IDynamicMessageSink
 {
     internal const string AttributeRpcSystemName = "rpc.system.name";
+    internal const string AttributeRpcSystemNameValue = "netframework_remoting";
     internal const string AttributeRpcMethod = "rpc.method";
 
     // Uri like "tcp://localhost:1234/HelloServer.rem"
@@ -84,6 +85,15 @@ internal class TelemetryDynamicSink : IDynamicMessageSink
                     if (activity.IsAllDataRequested && reqMsg is IMethodMessage methodMsg)
                     {
                         SetStartingActivityAttributes(activity, methodMsg);
+
+                        try
+                        {
+                            this.options.Enrich?.Invoke(activity, RemotingInstrumentationEnrichEventNames.OnMessageStart, methodMsg);
+                        }
+                        catch (Exception ex)
+                        {
+                            RemotingInstrumentationEventSource.Log.EnrichmentException(ex);
+                        }
                     }
 
                     contextToInject = activity.Context;
@@ -161,6 +171,15 @@ internal class TelemetryDynamicSink : IDynamicMessageSink
                 if (ourActivity != null && ourActivity.IsAllDataRequested && reqMsg is IMethodMessage methodMsg)
                 {
                     SetStartingActivityAttributes(ourActivity, methodMsg);
+
+                    try
+                    {
+                        this.options.Enrich?.Invoke(ourActivity, RemotingInstrumentationEnrichEventNames.OnMessageStart, methodMsg);
+                    }
+                    catch (Exception ex)
+                    {
+                        RemotingInstrumentationEventSource.Log.EnrichmentException(ex);
+                    }
                 }
             }
         }
@@ -202,7 +221,20 @@ internal class TelemetryDynamicSink : IDynamicMessageSink
                     else
                     {
                         activity.SetStatus(ActivityStatusCode.Error);
-                        activity.AddException(returnMsg.Exception);
+                        if (this.options.RecordException)
+                        {
+                            activity.AddException(returnMsg.Exception);
+                        }
+                    }
+
+                    // Call enrich before stopping
+                    try
+                    {
+                        this.options.Enrich?.Invoke(activity, RemotingInstrumentationEnrichEventNames.OnMessageFinish, returnMsg);
+                    }
+                    catch (Exception ex)
+                    {
+                        RemotingInstrumentationEventSource.Log.EnrichmentException(ex);
                     }
                 }
 
@@ -229,7 +261,7 @@ internal class TelemetryDynamicSink : IDynamicMessageSink
         string fullyQualifiedMethod = $"{serviceName}/{methodName}";  // "SharedLib.IHelloServer/SayHello"
 
         activity.DisplayName = fullyQualifiedMethod;
-        activity.SetTag(AttributeRpcSystemName, "netframework_remoting");
+        activity.SetTag(AttributeRpcSystemName, AttributeRpcSystemNameValue);
         activity.SetTag(AttributeRpcMethod, fullyQualifiedMethod);
 
         var uriString = msg.Uri;
