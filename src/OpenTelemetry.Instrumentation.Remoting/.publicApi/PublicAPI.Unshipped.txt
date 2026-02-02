@@ -5,4 +5,5 @@ OpenTelemetry.Instrumentation.Remoting.RemotingInstrumentationOptions.Propagator
 OpenTelemetry.Instrumentation.Remoting.RemotingInstrumentationOptions.Propagator.set -> void
 OpenTelemetry.Instrumentation.Remoting.RemotingInstrumentationOptions.RemotingInstrumentationOptions() -> void
 OpenTelemetry.Trace.TracerProviderBuilderExtensions
+static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddRemotingInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder! builder) -> OpenTelemetry.Trace.TracerProviderBuilder!
 static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddRemotingInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder! builder, System.Action<OpenTelemetry.Instrumentation.Remoting.RemotingInstrumentationOptions!>? configure) -> OpenTelemetry.Trace.TracerProviderBuilder!

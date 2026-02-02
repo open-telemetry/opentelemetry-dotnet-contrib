@@ -49,6 +49,11 @@ internal class TelemetryDynamicSink : IDynamicMessageSink
 
     public void ProcessMessageStart(IMessage reqMsg, bool bCliSide, bool bAsync)
     {
+        if (Sdk.SuppressInstrumentation)
+        {
+            return;
+        }
+
         try
         {
             if (this.options.Filter?.Invoke(reqMsg) == false)
