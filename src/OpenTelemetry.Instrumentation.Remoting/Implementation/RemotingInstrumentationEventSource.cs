@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics.Tracing;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation;
 
@@ -15,7 +16,7 @@ internal class RemotingInstrumentationEventSource : EventSource
     {
         if (this.IsEnabled(EventLevel.Error, (EventKeywords)(-1)))
         {
-            this.MessageFilterException(ex.ToString());
+            this.MessageFilterException(ex.ToInvariantString());
         }
     }
 
@@ -30,7 +31,7 @@ internal class RemotingInstrumentationEventSource : EventSource
     {
         if (this.IsEnabled(EventLevel.Error, (EventKeywords)(-1)))
         {
-            this.DynamicSinkException(ex.ToString());
+            this.DynamicSinkException(ex.ToInvariantString());
         }
     }
 
@@ -38,5 +39,20 @@ internal class RemotingInstrumentationEventSource : EventSource
     public void DynamicSinkException(string exception)
     {
         this.WriteEvent(2, exception);
+    }
+
+    [NonEvent]
+    public void EnrichmentException(Exception ex)
+    {
+        if (this.IsEnabled(EventLevel.Error, (EventKeywords)(-1)))
+        {
+            this.EnrichmentException(ex.ToInvariantString());
+        }
+    }
+
+    [Event(3, Message = "Enrichment threw exception. Exception {0}.", Level = EventLevel.Error)]
+    public void EnrichmentException(string exception)
+    {
+        this.WriteEvent(3, exception);
     }
 }

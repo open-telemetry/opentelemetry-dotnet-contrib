@@ -1,8 +1,15 @@
+const OpenTelemetry.Instrumentation.Remoting.RemotingInstrumentationEnrichEventNames.OnMessageFinish = "OnMessageFinish" -> string!
+const OpenTelemetry.Instrumentation.Remoting.RemotingInstrumentationEnrichEventNames.OnMessageStart = "OnMessageStart" -> string!
+OpenTelemetry.Instrumentation.Remoting.RemotingInstrumentationEnrichEventNames
 OpenTelemetry.Instrumentation.Remoting.RemotingInstrumentationOptions
+OpenTelemetry.Instrumentation.Remoting.RemotingInstrumentationOptions.Enrich.get -> System.Action<System.Diagnostics.Activity!, string!, System.Runtime.Remoting.Messaging.IMethodMessage!>?
+OpenTelemetry.Instrumentation.Remoting.RemotingInstrumentationOptions.Enrich.set -> void
 OpenTelemetry.Instrumentation.Remoting.RemotingInstrumentationOptions.Filter.get -> System.Func<System.Runtime.Remoting.Messaging.IMessage!, bool>?
 OpenTelemetry.Instrumentation.Remoting.RemotingInstrumentationOptions.Filter.set -> void
 OpenTelemetry.Instrumentation.Remoting.RemotingInstrumentationOptions.Propagator.get -> OpenTelemetry.Context.Propagation.TextMapPropagator!
 OpenTelemetry.Instrumentation.Remoting.RemotingInstrumentationOptions.Propagator.set -> void
+OpenTelemetry.Instrumentation.Remoting.RemotingInstrumentationOptions.RecordException.get -> bool
+OpenTelemetry.Instrumentation.Remoting.RemotingInstrumentationOptions.RecordException.set -> void
 OpenTelemetry.Instrumentation.Remoting.RemotingInstrumentationOptions.RemotingInstrumentationOptions() -> void
 OpenTelemetry.Trace.TracerProviderBuilderExtensions
 static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddRemotingInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder! builder) -> OpenTelemetry.Trace.TracerProviderBuilder!
