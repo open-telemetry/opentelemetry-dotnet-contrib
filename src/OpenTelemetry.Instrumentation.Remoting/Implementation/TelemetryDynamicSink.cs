@@ -7,6 +7,7 @@ using System.Runtime.Remoting.Contexts;
 using System.Runtime.Remoting.Messaging;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.Remoting.Implementation;
 
@@ -30,14 +31,13 @@ internal class TelemetryDynamicSink : IDynamicMessageSink
     // TODO: semantic conventions don't have an attribute for a full uri of an RPC endpoint, but seems useful?
     internal const string AttributeRpcRemotingUri = "rpc.netframework_remoting.uri";
 
-    internal const string ActivitySourceName = "OpenTelemetry.Remoting";
+    internal const string ActivitySourceName = "OpenTelemetry.Instrumentation.Remoting";
     private const string ActivityOutName = ActivitySourceName + ".RequestOut";
     private const string ActivityInName = ActivitySourceName + ".RequestIn";
 
     private const string SavedAspnetActivityPropertyName = ActivitySourceName + ".SavedAspnetActivity";
 
-    private static readonly Version Version = typeof(TelemetryDynamicSink).Assembly.GetName().Version;
-    private static readonly ActivitySource RemotingActivitySource = new(ActivitySourceName, Version.ToString());
+    private static readonly ActivitySource RemotingActivitySource = new(ActivitySourceName, typeof(TelemetryDynamicSink).Assembly.GetPackageVersion());
 
     private static readonly ConcurrentDictionary<string, string> ServiceNameCache = new();
 
@@ -100,7 +100,7 @@ internal class TelemetryDynamicSink : IDynamicMessageSink
                 var callContext = (LogicalCallContext)reqMsg.Properties["__CallContext"];
                 var activityParentContext = this.options.Propagator.Extract(default, callContext, ExtractActivityProperties);
 
-                Activity ourActivity = null;
+                Activity? ourActivity = null;
 
                 // Do we already have an incoming activity?
                 // Existing activity might be started by an instrumentation layer higher up the
@@ -144,7 +144,7 @@ internal class TelemetryDynamicSink : IDynamicMessageSink
                     // (see ProcessMessageFinish) to give ASP.NET Instrumentation a chance to stop it.
 
                     ourActivity = RemotingActivitySource.StartActivity(ActivityInName, ActivityKind.Server, activityParentContext.ActivityContext);
-                    ourActivity.SetCustomProperty(SavedAspnetActivityPropertyName, parentActivity);
+                    ourActivity?.SetCustomProperty(SavedAspnetActivityPropertyName, parentActivity);
                 }
                 else
                 {
