@@ -24,7 +24,6 @@ namespace OpenTelemetry.Instrumentation.Remoting.Implementation;
 internal class TelemetryDynamicSink : IDynamicMessageSink
 {
     internal const string AttributeRpcSystemName = "rpc.system.name";
-    internal const string AttributeRpcService = "rpc.service";
     internal const string AttributeRpcMethod = "rpc.method";
 
     // Uri like "tcp://localhost:1234/HelloServer.rem"
@@ -222,10 +221,11 @@ internal class TelemetryDynamicSink : IDynamicMessageSink
     {
         string serviceName = GetServiceName(msg.TypeName);
         string methodName = msg.MethodName;
-        activity.DisplayName = $"{serviceName}/{methodName}";
+        string fullyQualifiedMethod = $"{serviceName}/{methodName}";  // "SharedLib.IHelloServer/SayHello"
+
+        activity.DisplayName = fullyQualifiedMethod;
         activity.SetTag(AttributeRpcSystemName, "netframework_remoting");
-        activity.SetTag(AttributeRpcService, serviceName);
-        activity.SetTag(AttributeRpcMethod, methodName);
+        activity.SetTag(AttributeRpcMethod, fullyQualifiedMethod);
 
         var uriString = msg.Uri;
         activity.SetTag(AttributeRpcRemotingUri, uriString);
