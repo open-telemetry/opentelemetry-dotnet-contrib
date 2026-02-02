@@ -27,8 +27,5 @@ internal class TelemetryDynamicSinkProvider : IDynamicProperty, IContributeDynam
     /// Creates and returns a <see cref="TelemetryDynamicSink"/> to be used for instrumentation.
     /// </summary>
     /// <returns>A new instance of <see cref="TelemetryDynamicSink"/>.</returns>
-    public IDynamicMessageSink GetDynamicSink()
-    {
-        return new TelemetryDynamicSink(this.options);
-    }
+    public IDynamicMessageSink GetDynamicSink() => new TelemetryDynamicSink(this.options);
 }

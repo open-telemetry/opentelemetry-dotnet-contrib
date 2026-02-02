@@ -16,6 +16,14 @@ public static class TracerProviderBuilderExtensions
     /// Enables .NET Remoting instrumentation.
     /// </summary>
     /// <param name="builder"><see cref="TracerProviderBuilderExtensions"/> being configured.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilderExtensions"/> to chain the calls.</returns>
+    public static TracerProviderBuilder AddRemotingInstrumentation(this TracerProviderBuilder builder) =>
+    AddRemotingInstrumentation(builder, configure: null);
+
+    /// <summary>
+    /// Enables .NET Remoting instrumentation.
+    /// </summary>
+    /// <param name="builder"><see cref="TracerProviderBuilderExtensions"/> being configured.</param>
     /// <param name="configure">Instrumentation options.</param>
     /// <returns>The instance of <see cref="TracerProviderBuilderExtensions"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddRemotingInstrumentation(
