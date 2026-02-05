@@ -354,7 +354,7 @@ internal static class MessagePackSerializer
             }
             else
             {
-                throw new ArgumentException($"The input string: \"{value}\" has non-ASCII characters in it.", nameof(value));
+                ThrowNonAsciiString(value);
             }
         }
 
@@ -371,7 +371,7 @@ internal static class MessagePackSerializer
             }
             else
             {
-                throw new ArgumentException($"The input string: \"{value}\" has non-ASCII characters in it.", nameof(value));
+                ThrowNonAsciiString(value);
             }
         }
 
@@ -403,9 +403,7 @@ internal static class MessagePackSerializer
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int SerializeUnicodeString(byte[] buffer, int cursor, string? value, int stringSizeLimitCharCount = DEFAULT_STRING_SIZE_LIMIT_CHAR_COUNT)
-    {
-        return value == null ? SerializeNull(buffer, cursor) : SerializeUnicodeString(buffer, cursor, value.AsSpan(), stringSizeLimitCharCount);
-    }
+        => value == null ? SerializeNull(buffer, cursor) : SerializeUnicodeString(buffer, cursor, value.AsSpan(), stringSizeLimitCharCount);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int SerializeUnicodeString(byte[] buffer, int cursor, ReadOnlySpan<char> value, int stringSizeLimitCharCount = DEFAULT_STRING_SIZE_LIMIT_CHAR_COUNT)
@@ -582,9 +580,7 @@ internal static class MessagePackSerializer
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int SerializeUtcDateTime(byte[] buffer, int cursor, DateTime utc)
-    {
-        return SerializeTimestamp96(buffer, cursor, utc.Ticks);
-    }
+        => SerializeTimestamp96(buffer, cursor, utc.Ticks);
 
     public static int Serialize(byte[] buffer, int cursor, object? obj)
     {
@@ -670,14 +666,14 @@ internal static class MessagePackSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static unsafe long Float64ToInt64(double value)
-    {
-        return *(long*)&value;
-    }
+    private static unsafe long Float64ToInt64(double value) => *(long*)&value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static unsafe int Float32ToInt32(float value)
-    {
-        return *(int*)&value;
-    }
+    private static unsafe int Float32ToInt32(float value) => *(int*)&value;
+
+#if NET8_0_OR_GREATER
+    [System.Diagnostics.CodeAnalysis.DoesNotReturn]
+#endif
+    private static void ThrowNonAsciiString(string value, [CallerArgumentExpression(nameof(value))] string? paramName = default)
+        => throw new ArgumentException($"The input string: \"{value}\" has non-ASCII characters in it.", paramName);
 }
