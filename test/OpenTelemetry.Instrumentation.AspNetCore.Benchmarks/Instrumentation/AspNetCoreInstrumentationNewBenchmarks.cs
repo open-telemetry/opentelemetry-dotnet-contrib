@@ -99,7 +99,7 @@ public class AspNetCoreInstrumentationNewBenchmarks
     [GlobalSetup(Target = nameof(GetRequestForAspNetCoreApp))]
     public void GetRequestForAspNetCoreAppGlobalSetup()
     {
-        KeyValuePair<string, string?>[] config = [new("OTEL_SEMCONV_STABILITY_OPT_IN", "http")];
+        KeyValuePair<string, string?>[] config = [];
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(config)
             .Build();
