@@ -1112,7 +1112,7 @@ public static class MessagePackSerializerTests
         var cursor = size + (bufferSize.Get % 100);
 
         // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MessagePackSerializer.SerializeNull(buffer, cursor));
+        Assert.Throws<IndexOutOfRangeException>(() => MessagePackSerializer.SerializeNull(buffer, cursor));
     }
 
     [Property(MaxTest = MaxValue)]
@@ -1129,7 +1129,7 @@ public static class MessagePackSerializerTests
         var cursor = size + (bufferSize.Get % 100);
 
         // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MessagePackSerializer.SerializeBool(buffer, cursor, value));
+        Assert.Throws<IndexOutOfRangeException>(() => MessagePackSerializer.SerializeBool(buffer, cursor, value));
     }
 
     [Property(MaxTest = MaxValue)]
@@ -1146,7 +1146,7 @@ public static class MessagePackSerializerTests
         var cursor = size + (bufferSize.Get % 100);
 
         // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MessagePackSerializer.SerializeInt32(buffer, cursor, value));
+        Assert.Throws<IndexOutOfRangeException>(() => MessagePackSerializer.SerializeInt32(buffer, cursor, value));
     }
 
     [Property(MaxTest = MaxValue)]
@@ -1163,7 +1163,7 @@ public static class MessagePackSerializerTests
         var cursor = size + (bufferSize.Get % 100);
 
         // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MessagePackSerializer.SerializeUInt64(buffer, cursor, value));
+        Assert.Throws<IndexOutOfRangeException>(() => MessagePackSerializer.SerializeUInt64(buffer, cursor, value));
     }
 
     [Property(MaxTest = MaxValue)]
@@ -1180,7 +1180,7 @@ public static class MessagePackSerializerTests
         var cursor = size + (bufferSize.Get % 100);
 
         // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MessagePackSerializer.SerializeFloat64(buffer, cursor, value.Get));
+        Assert.Throws<IndexOutOfRangeException>(() => MessagePackSerializer.SerializeFloat64(buffer, cursor, value.Get));
     }
 
     [Property(MaxTest = MaxValue)]
@@ -1197,8 +1197,11 @@ public static class MessagePackSerializerTests
         var cursor = size + (bufferSize.Get % 100);
         var str = input.Get.Substring(0, Math.Min(input.Get.Length, 5));
 
-        // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MessagePackSerializer.SerializeUnicodeString(buffer, cursor, str));
+        // Act
+        var ex = Assert.ThrowsAny<Exception>(() => MessagePackSerializer.SerializeUnicodeString(buffer, cursor, str));
+
+        // Assert
+        Assert.True(ex is ArgumentOutOfRangeException or IndexOutOfRangeException, $"Unexpected exception type {ex.GetType()}.");
     }
 
     [Property(MaxTest = MaxValue)]
@@ -1210,7 +1213,7 @@ public static class MessagePackSerializerTests
         var arrayLength = length.Get % 100;
 
         // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MessagePackSerializer.WriteArrayHeader(buffer, cursor, arrayLength));
+        Assert.Throws<IndexOutOfRangeException>(() => MessagePackSerializer.WriteArrayHeader(buffer, cursor, arrayLength));
     }
 
     [Property(MaxTest = MaxValue)]
@@ -1222,7 +1225,7 @@ public static class MessagePackSerializerTests
         var mapCount = count.Get % 100;
 
         // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MessagePackSerializer.WriteMapHeader(buffer, cursor, mapCount));
+        Assert.Throws<IndexOutOfRangeException>(() => MessagePackSerializer.WriteMapHeader(buffer, cursor, mapCount));
     }
 
     [Property(MaxTest = MaxValue)]
@@ -1240,7 +1243,7 @@ public static class MessagePackSerializerTests
         var ticks = DateTime.UtcNow.Ticks;
 
         // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MessagePackSerializer.SerializeTimestamp96(buffer, cursor, ticks));
+        Assert.Throws<IndexOutOfRangeException>(() => MessagePackSerializer.SerializeTimestamp96(buffer, cursor, ticks));
     }
 
     [Property(MaxTest = MaxValue)]
@@ -1251,11 +1254,11 @@ public static class MessagePackSerializerTests
         var cursor = 0;
 
         // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MessagePackSerializer.SerializeNull(buffer, cursor));
-        Assert.Throws<ArgumentOutOfRangeException>(() => MessagePackSerializer.SerializeBool(buffer, cursor, true));
-        Assert.Throws<ArgumentOutOfRangeException>(() => MessagePackSerializer.SerializeInt32(buffer, cursor, 1));
-        Assert.Throws<ArgumentOutOfRangeException>(() => MessagePackSerializer.SerializeUInt64(buffer, cursor, 1UL));
-        Assert.Throws<ArgumentOutOfRangeException>(() => MessagePackSerializer.SerializeFloat64(buffer, cursor, 1.0));
+        Assert.Throws<IndexOutOfRangeException>(() => MessagePackSerializer.SerializeNull(buffer, cursor));
+        Assert.Throws<IndexOutOfRangeException>(() => MessagePackSerializer.SerializeBool(buffer, cursor, true));
+        Assert.Throws<IndexOutOfRangeException>(() => MessagePackSerializer.SerializeInt32(buffer, cursor, 1));
+        Assert.Throws<IndexOutOfRangeException>(() => MessagePackSerializer.SerializeUInt64(buffer, cursor, 1UL));
+        Assert.Throws<IndexOutOfRangeException>(() => MessagePackSerializer.SerializeFloat64(buffer, cursor, 1.0));
     }
 
     [Property(MaxTest = MaxValue)]

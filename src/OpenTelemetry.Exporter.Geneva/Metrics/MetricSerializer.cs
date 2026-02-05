@@ -167,8 +167,6 @@ internal struct MetricData
 
 internal static class MetricSerializer
 {
-    private const int MaxBase128Size = 10;
-
     /// <summary>
     /// Writes the string to buffer.
     /// </summary>
@@ -180,8 +178,6 @@ internal static class MetricSerializer
     {
         if (!string.IsNullOrEmpty(value))
         {
-            CheckBounds(buffer, bufferIndex, value!.Length + sizeof(short));
-
 #if NETSTANDARD2_1_OR_GREATER
             Span<byte> bufferSpan = new Span<byte>(buffer);
             bufferSpan = bufferSpan.Slice(bufferIndex);
@@ -193,7 +189,7 @@ internal static class MetricSerializer
             // Advanced the buffer to account for the length, we will write it back after encoding.
             var currentIndex = bufferIndex;
             bufferIndex += sizeof(short);
-            var lengthWritten = Encoding.UTF8.GetBytes(value, 0, value.Length, buffer, bufferIndex);
+            var lengthWritten = Encoding.UTF8.GetBytes(value, 0, value!.Length, buffer, bufferIndex);
             bufferIndex += lengthWritten;
 
             // Write the length now that it is known
@@ -215,8 +211,6 @@ internal static class MetricSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void SerializeEncodedString(byte[] buffer, ref int bufferIndex, byte[] encodedValue)
     {
-        CheckBounds(buffer, bufferIndex, encodedValue.Length + sizeof(short));
-
 #if NETSTANDARD2_1_OR_GREATER
         Span<byte> sourceSpan = new Span<byte>(encodedValue);
         Span<byte> bufferSpan = new Span<byte>(buffer);
@@ -241,8 +235,6 @@ internal static class MetricSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void SerializeByte(byte[] buffer, ref int bufferIndex, byte value)
     {
-        CheckBounds(buffer, bufferIndex, sizeof(byte));
-
         buffer[bufferIndex] = value;
         bufferIndex += sizeof(byte);
     }
@@ -256,8 +248,6 @@ internal static class MetricSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void SerializeUInt16(byte[] buffer, ref int bufferIndex, ushort value)
     {
-        CheckBounds(buffer, bufferIndex, sizeof(ushort));
-
         buffer[bufferIndex] = (byte)value;
         buffer[bufferIndex + 1] = (byte)(value >> 8);
         bufferIndex += sizeof(ushort);
@@ -272,8 +262,6 @@ internal static class MetricSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void SerializeInt16(byte[] buffer, ref int bufferIndex, short value)
     {
-        CheckBounds(buffer, bufferIndex, sizeof(short));
-
         buffer[bufferIndex] = (byte)value;
         buffer[bufferIndex + 1] = (byte)(value >> 8);
         bufferIndex += sizeof(short);
@@ -288,8 +276,6 @@ internal static class MetricSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void SerializeUInt32(byte[] buffer, ref int bufferIndex, uint value)
     {
-        CheckBounds(buffer, bufferIndex, sizeof(uint));
-
         buffer[bufferIndex] = (byte)value;
         buffer[bufferIndex + 1] = (byte)(value >> 8);
         buffer[bufferIndex + 2] = (byte)(value >> 0x10);
@@ -306,8 +292,6 @@ internal static class MetricSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void SerializeUInt64(byte[] buffer, ref int bufferIndex, ulong value)
     {
-        CheckBounds(buffer, bufferIndex, sizeof(ulong));
-
         buffer[bufferIndex] = (byte)value;
         buffer[bufferIndex + 1] = (byte)(value >> 8);
         buffer[bufferIndex + 2] = (byte)(value >> 0x10);
@@ -328,8 +312,6 @@ internal static class MetricSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void SerializeInt64(byte[] buffer, ref int bufferIndex, long value)
     {
-        CheckBounds(buffer, bufferIndex, sizeof(long));
-
         buffer[bufferIndex] = (byte)value;
         buffer[bufferIndex + 1] = (byte)(value >> 8);
         buffer[bufferIndex + 2] = (byte)(value >> 0x10);
@@ -371,8 +353,6 @@ internal static class MetricSerializer
     {
         if (!string.IsNullOrEmpty(value))
         {
-            CheckBounds(buffer, bufferIndex, value!.Length + sizeof(short));
-
             var encodedValue = Encoding.UTF8.GetBytes(value);
             SerializeUInt64AsBase128(buffer, ref bufferIndex, (ulong)encodedValue.Length);
             Array.Copy(encodedValue, 0, buffer, bufferIndex, encodedValue.Length);
@@ -403,8 +383,6 @@ internal static class MetricSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void SerializeUInt64AsBase128(byte[] buffer, ref int offset, ulong value)
     {
-        CheckBounds(buffer, offset, MaxBase128Size);
-
         var t = value;
         do
         {
@@ -439,8 +417,6 @@ internal static class MetricSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void SerializeInt64AsBase128(byte[] buffer, ref int offset, long value)
     {
-        CheckBounds(buffer, offset, MaxBase128Size);
-
         var negative = value < 0;
         var t = negative ? -value : value;
         var first = true;
@@ -484,8 +460,6 @@ internal static class MetricSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void SerializeSpanOfBytes(byte[] buffer, ref int bufferIndex, Span<byte> data, int dataLength)
     {
-        CheckBounds(buffer, bufferIndex, dataLength + sizeof(short));
-
         ReadOnlySpan<byte> source = data.Slice(0, dataLength);
         var target = new Span<byte>(buffer, bufferIndex, dataLength);
 

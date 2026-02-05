@@ -48,7 +48,7 @@ public static class MetricSerializerTests
         var offset = 1; // At boundary
 
         // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeByte(buffer, ref offset, value));
+        Assert.Throws<IndexOutOfRangeException>(() => MetricSerializer.SerializeByte(buffer, ref offset, value));
     }
 
     [Property(MaxTest = MaxValue)]
@@ -102,7 +102,7 @@ public static class MetricSerializerTests
         var offset = 0; // Need 2 bytes but only have 1
 
         // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeUInt16(buffer, ref offset, value));
+        Assert.Throws<IndexOutOfRangeException>(() => MetricSerializer.SerializeUInt16(buffer, ref offset, value));
     }
 
     [Property(MaxTest = MaxValue)]
@@ -113,7 +113,7 @@ public static class MetricSerializerTests
         var offset = 2; // At exact boundary
 
         // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeUInt16(buffer, ref offset, value));
+        Assert.Throws<IndexOutOfRangeException>(() => MetricSerializer.SerializeUInt16(buffer, ref offset, value));
     }
 
     [Property(MaxTest = MaxValue)]
@@ -153,7 +153,7 @@ public static class MetricSerializerTests
         var offset = 0;
 
         // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeInt16(buffer, ref offset, value));
+        Assert.Throws<IndexOutOfRangeException>(() => MetricSerializer.SerializeInt16(buffer, ref offset, value));
     }
 
     [Property(MaxTest = MaxValue)]
@@ -216,7 +216,7 @@ public static class MetricSerializerTests
         var offset = 0;
 
         // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeUInt32(buffer, ref offset, value));
+        Assert.Throws<IndexOutOfRangeException>(() => MetricSerializer.SerializeUInt32(buffer, ref offset, value));
     }
 
     [Property(MaxTest = MaxValue)]
@@ -262,7 +262,7 @@ public static class MetricSerializerTests
         var offset = 0;
 
         // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeUInt64(buffer, ref offset, value));
+        Assert.Throws<IndexOutOfRangeException>(() => MetricSerializer.SerializeUInt64(buffer, ref offset, value));
     }
 
     [Property(MaxTest = MaxValue)]
@@ -308,7 +308,7 @@ public static class MetricSerializerTests
         var offset = 0;
 
         // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeInt64(buffer, ref offset, value));
+        Assert.Throws<IndexOutOfRangeException>(() => MetricSerializer.SerializeInt64(buffer, ref offset, value));
     }
 
     [Property(MaxTest = MaxValue)]
@@ -462,8 +462,11 @@ public static class MetricSerializerTests
         var buffer = new byte[bufferSize];
         var offset = 0;
 
-        // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeString(buffer, ref offset, str));
+        // Act
+        var ex = Assert.ThrowsAny<Exception>(() => MetricSerializer.SerializeString(buffer, ref offset, str));
+
+        // Assert
+        Assert.True(ex is ArgumentException or IndexOutOfRangeException, $"Unexpected exception type {ex.GetType()}.");
     }
 
     [Property(MaxTest = MaxValue)]
@@ -520,8 +523,11 @@ public static class MetricSerializerTests
         var buffer = new byte[bufferSize];
         var offset = 0;
 
-        // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeEncodedString(buffer, ref offset, encodedValue));
+        // Act
+        var ex = Assert.ThrowsAny<Exception>(() => MetricSerializer.SerializeEncodedString(buffer, ref offset, encodedValue));
+
+        // Assert
+        Assert.True(ex is ArgumentException or IndexOutOfRangeException, $"Unexpected exception type {ex.GetType()}.");
     }
 
     [Property(MaxTest = MaxValue)]
@@ -571,11 +577,14 @@ public static class MetricSerializerTests
     {
         // Arrange
         var str = input.Get.Substring(0, Math.Min(input.Get.Length, 5));
-        var buffer = new byte[2]; // Very small buffer
+        var buffer = new byte[1]; // Very small buffer
         var offset = 0;
 
-        // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeBase128String(buffer, ref offset, str));
+        // Act
+        var ex = Assert.ThrowsAny<Exception>(() => MetricSerializer.SerializeBase128String(buffer, ref offset, str));
+
+        // Assert
+        Assert.True(ex is ArgumentException or IndexOutOfRangeException, $"Unexpected exception type {ex.GetType()}.");
     }
 
     [Property(MaxTest = MaxValue)]
@@ -615,7 +624,7 @@ public static class MetricSerializerTests
         var offset = 0;
 
         // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeUInt32AsBase128(buffer, ref offset, (uint)value.Get));
+        Assert.Throws<IndexOutOfRangeException>(() => MetricSerializer.SerializeUInt32AsBase128(buffer, ref offset, (uint)value.Get));
     }
 
     [Property(MaxTest = MaxValue)]
@@ -655,7 +664,7 @@ public static class MetricSerializerTests
         var offset = 0;
 
         // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeUInt64AsBase128(buffer, ref offset, value));
+        Assert.Throws<IndexOutOfRangeException>(() => MetricSerializer.SerializeUInt64AsBase128(buffer, ref offset, value));
     }
 
     [Property(MaxTest = MaxValue)]
@@ -695,7 +704,7 @@ public static class MetricSerializerTests
         var offset = 0;
 
         // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeInt32AsBase128(buffer, ref offset, value));
+        Assert.Throws<IndexOutOfRangeException>(() => MetricSerializer.SerializeInt32AsBase128(buffer, ref offset, value));
     }
 
     [Property(MaxTest = MaxValue)]
@@ -749,7 +758,7 @@ public static class MetricSerializerTests
         var offset = 0;
 
         // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeInt64AsBase128(buffer, ref offset, value));
+        Assert.Throws<IndexOutOfRangeException>(() => MetricSerializer.SerializeInt64AsBase128(buffer, ref offset, value));
     }
 
     [Property(MaxTest = MaxValue)]
@@ -808,16 +817,25 @@ public static class MetricSerializerTests
     {
         // Arrange
         var bytes = data.Get;
+
+        if (bytes.Length is 1)
+        {
+            bytes = [bytes[0], bytes[0]];
+        }
+
         var bufferSize = Math.Max(1, bytes.Length / 2); // Intentionally too small
         var buffer = new byte[bufferSize];
         var offset = 0;
 
-        // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() =>
+        // Act
+        var ex = Assert.ThrowsAny<Exception>(() =>
         {
             var span = new Span<byte>(bytes);
             MetricSerializer.SerializeSpanOfBytes(buffer, ref offset, span, bytes.Length);
         });
+
+        // Assert
+        Assert.True(ex is ArgumentException or IndexOutOfRangeException, $"Unexpected exception type {ex.GetType()}.");
     }
 
     [Property(MaxTest = MaxValue)]
@@ -855,7 +873,7 @@ public static class MetricSerializerTests
         MetricSerializer.SerializeUInt16(buffer, ref offset, u16);
         MetricSerializer.SerializeUInt32(buffer, ref offset, u32);
 
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeUInt64(buffer, ref offset, 12345UL));
+        Assert.Throws<IndexOutOfRangeException>(() => MetricSerializer.SerializeUInt64(buffer, ref offset, 12345UL));
     }
 
     [Property(MaxTest = MaxValue)]
@@ -942,12 +960,12 @@ public static class MetricSerializerTests
         var offset = 0;
 
         // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeByte(buffer, ref offset, 1));
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeUInt16(buffer, ref offset, 1));
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeInt16(buffer, ref offset, 1));
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeUInt32(buffer, ref offset, 1));
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeUInt64(buffer, ref offset, 1));
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeInt64(buffer, ref offset, 1));
+        Assert.Throws<IndexOutOfRangeException>(() => MetricSerializer.SerializeByte(buffer, ref offset, 1));
+        Assert.Throws<IndexOutOfRangeException>(() => MetricSerializer.SerializeUInt16(buffer, ref offset, 1));
+        Assert.Throws<IndexOutOfRangeException>(() => MetricSerializer.SerializeInt16(buffer, ref offset, 1));
+        Assert.Throws<IndexOutOfRangeException>(() => MetricSerializer.SerializeUInt32(buffer, ref offset, 1));
+        Assert.Throws<IndexOutOfRangeException>(() => MetricSerializer.SerializeUInt64(buffer, ref offset, 1));
+        Assert.Throws<IndexOutOfRangeException>(() => MetricSerializer.SerializeInt64(buffer, ref offset, 1));
         Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeFloat64(buffer, ref offset, 1.0));
     }
 
@@ -965,7 +983,7 @@ public static class MetricSerializerTests
         var offset = size + (bufferSize.Get % 100); // Offset beyond buffer
 
         // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeByte(buffer, ref offset, value));
+        Assert.Throws<IndexOutOfRangeException>(() => MetricSerializer.SerializeByte(buffer, ref offset, value));
     }
 
     [Property(MaxTest = MaxValue)]
@@ -982,7 +1000,7 @@ public static class MetricSerializerTests
         var offset = size + (bufferSize.Get % 100);
 
         // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeUInt16(buffer, ref offset, value));
+        Assert.Throws<IndexOutOfRangeException>(() => MetricSerializer.SerializeUInt16(buffer, ref offset, value));
     }
 
     [Property(MaxTest = MaxValue)]
@@ -999,7 +1017,7 @@ public static class MetricSerializerTests
         var offset = size + (bufferSize.Get % 100);
 
         // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeUInt32(buffer, ref offset, value));
+        Assert.Throws<IndexOutOfRangeException>(() => MetricSerializer.SerializeUInt32(buffer, ref offset, value));
     }
 
     [Property(MaxTest = MaxValue)]
@@ -1016,7 +1034,7 @@ public static class MetricSerializerTests
         var offset = size + (bufferSize.Get % 100);
 
         // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeUInt64(buffer, ref offset, value));
+        Assert.Throws<IndexOutOfRangeException>(() => MetricSerializer.SerializeUInt64(buffer, ref offset, value));
     }
 
     [Property(MaxTest = MaxValue)]
@@ -1033,7 +1051,7 @@ public static class MetricSerializerTests
         var offset = size + (bufferSize.Get % 100);
 
         // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeInt64(buffer, ref offset, value));
+        Assert.Throws<IndexOutOfRangeException>(() => MetricSerializer.SerializeInt64(buffer, ref offset, value));
     }
 
     [Property(MaxTest = MaxValue)]
@@ -1067,8 +1085,11 @@ public static class MetricSerializerTests
         var offset = size + (bufferSize.Get % 100);
         var str = input.Get.Substring(0, Math.Min(input.Get.Length, 5));
 
-        // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeString(buffer, ref offset, str));
+        // Act
+        var ex = Assert.ThrowsAny<Exception>(() => MetricSerializer.SerializeString(buffer, ref offset, str));
+
+        // Assert
+        Assert.True(ex is ArgumentException or IndexOutOfRangeException, $"Unexpected exception type {ex.GetType()}.");
     }
 
     [Property(MaxTest = MaxValue)]
@@ -1085,7 +1106,7 @@ public static class MetricSerializerTests
         var offset = size + (bufferSize.Get % 100);
 
         // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeUInt64AsBase128(buffer, ref offset, value));
+        Assert.Throws<IndexOutOfRangeException>(() => MetricSerializer.SerializeUInt64AsBase128(buffer, ref offset, value));
     }
 
     [Property(MaxTest = MaxValue)]
@@ -1102,7 +1123,7 @@ public static class MetricSerializerTests
         var offset = size + (bufferSize.Get % 100);
 
         // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeInt64AsBase128(buffer, ref offset, value));
+        Assert.Throws<IndexOutOfRangeException>(() => MetricSerializer.SerializeInt64AsBase128(buffer, ref offset, value));
     }
 
     [Property(MaxTest = MaxValue)]
@@ -1119,12 +1140,15 @@ public static class MetricSerializerTests
         var offset = size + (bufferSize.Get % 100);
         var bytes = data.Get;
 
-        // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() =>
+        // Act
+        var ex = Assert.ThrowsAny<Exception>(() =>
         {
             var span = new Span<byte>(bytes);
             MetricSerializer.SerializeSpanOfBytes(buffer, ref offset, span, bytes.Length);
         });
+
+        // Assert
+        Assert.True(ex is ArgumentException or IndexOutOfRangeException, $"Unexpected exception type {ex.GetType()}.");
     }
 
     [Property(MaxTest = MaxValue)]
@@ -1135,7 +1159,7 @@ public static class MetricSerializerTests
         var offset = buffer.Length; // Exactly at boundary
 
         // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeByte(buffer, ref offset, value));
+        Assert.Throws<IndexOutOfRangeException>(() => MetricSerializer.SerializeByte(buffer, ref offset, value));
     }
 
     [Property(MaxTest = MaxValue)]
@@ -1146,7 +1170,7 @@ public static class MetricSerializerTests
         var offset = buffer.Length;
 
         // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeUInt16(buffer, ref offset, value));
+        Assert.Throws<IndexOutOfRangeException>(() => MetricSerializer.SerializeUInt16(buffer, ref offset, value));
     }
 
     [Property(MaxTest = MaxValue)]
@@ -1157,7 +1181,7 @@ public static class MetricSerializerTests
         var offset = buffer.Length;
 
         // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeUInt32(buffer, ref offset, value));
+        Assert.Throws<IndexOutOfRangeException>(() => MetricSerializer.SerializeUInt32(buffer, ref offset, value));
     }
 
     [Property(MaxTest = MaxValue)]
@@ -1168,7 +1192,7 @@ public static class MetricSerializerTests
         var offset = buffer.Length;
 
         // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeUInt64(buffer, ref offset, value));
+        Assert.Throws<IndexOutOfRangeException>(() => MetricSerializer.SerializeUInt64(buffer, ref offset, value));
     }
 
     [Property(MaxTest = MaxValue)]
@@ -1190,7 +1214,7 @@ public static class MetricSerializerTests
         var offset = buffer.Length - 1;
 
         // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeInt16(buffer, ref offset, value));
+        Assert.Throws<IndexOutOfRangeException>(() => MetricSerializer.SerializeInt16(buffer, ref offset, value));
     }
 
     [Property(MaxTest = MaxValue)]
@@ -1201,7 +1225,7 @@ public static class MetricSerializerTests
         var offset = buffer.Length - 2;
 
         // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeUInt32(buffer, ref offset, value));
+        Assert.Throws<IndexOutOfRangeException>(() => MetricSerializer.SerializeUInt32(buffer, ref offset, value));
     }
 
     [Property(MaxTest = MaxValue)]
@@ -1212,7 +1236,7 @@ public static class MetricSerializerTests
         var offset = buffer.Length - 4;
 
         // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeUInt64(buffer, ref offset, value));
+        Assert.Throws<IndexOutOfRangeException>(() => MetricSerializer.SerializeUInt64(buffer, ref offset, value));
     }
 
     [Property(MaxTest = MaxValue)]
@@ -1223,8 +1247,11 @@ public static class MetricSerializerTests
         var offset = 1000 + largeOffset.Get; // Way beyond buffer
         var str = input.Get.Substring(0, Math.Min(input.Get.Length, 3));
 
-        // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeString(buffer, ref offset, str));
+        // Act
+        var ex = Assert.ThrowsAny<Exception>(() => MetricSerializer.SerializeString(buffer, ref offset, str));
+
+        // Assert
+        Assert.True(ex is ArgumentException or IndexOutOfRangeException, $"Unexpected exception type {ex.GetType()}.");
     }
 
     [Property(MaxTest = MaxValue)]
@@ -1242,7 +1269,7 @@ public static class MetricSerializerTests
         var encodedValue = System.Text.Encoding.UTF8.GetBytes(input.Get.Substring(0, Math.Min(input.Get.Length, 5)));
 
         // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeEncodedString(buffer, ref offset, encodedValue));
+        Assert.Throws<IndexOutOfRangeException>(() => MetricSerializer.SerializeEncodedString(buffer, ref offset, encodedValue));
     }
 
     [Property(MaxTest = MaxValue)]
@@ -1260,7 +1287,7 @@ public static class MetricSerializerTests
         var str = input.Get.Substring(0, Math.Min(input.Get.Length, 3));
 
         // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeBase128String(buffer, ref offset, str));
+        Assert.Throws<IndexOutOfRangeException>(() => MetricSerializer.SerializeBase128String(buffer, ref offset, str));
     }
 
     [Property(MaxTest = MaxValue)]
@@ -1277,7 +1304,7 @@ public static class MetricSerializerTests
         var offset = size + (bufferSize.Get % 100);
 
         // Act and Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => MetricSerializer.SerializeUInt32AsBase128(buffer, ref offset, value));
+        Assert.Throws<IndexOutOfRangeException>(() => MetricSerializer.SerializeUInt32AsBase128(buffer, ref offset, value));
     }
 
     [Theory]
