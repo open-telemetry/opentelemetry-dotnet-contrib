@@ -346,16 +346,11 @@ internal static class MessagePackSerializer
         {
             cursor += 1;
             cb = Encoding.ASCII.GetBytes(value, 0, cch, buffer, cursor);
-            if (cb <= LIMIT_MAX_FIX_STRING_LENGTH_IN_BYTES)
-            {
-                cursor += cb;
-                buffer[start] = unchecked((byte)(MIN_FIX_STR | cb));
-                return cursor;
-            }
-            else
-            {
-                ThrowNonAsciiString(value);
-            }
+
+            cursor += cb;
+            buffer[start] = unchecked((byte)(MIN_FIX_STR | cb));
+
+            return cursor;
         }
 
         if (cch <= LIMIT_MAX_STR8_LENGTH_IN_BYTES)
@@ -363,16 +358,11 @@ internal static class MessagePackSerializer
             cursor += 2;
             cb = Encoding.ASCII.GetBytes(value, 0, cch, buffer, cursor);
             cursor += cb;
-            if (cb <= LIMIT_MAX_STR8_LENGTH_IN_BYTES)
-            {
-                buffer[start] = STR8;
-                buffer[start + 1] = unchecked((byte)cb);
-                return cursor;
-            }
-            else
-            {
-                ThrowNonAsciiString(value);
-            }
+
+            buffer[start] = STR8;
+            buffer[start + 1] = unchecked((byte)cb);
+
+            return cursor;
         }
 
         cursor += 3;
@@ -670,10 +660,4 @@ internal static class MessagePackSerializer
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static unsafe int Float32ToInt32(float value) => *(int*)&value;
-
-#if NET8_0_OR_GREATER
-    [System.Diagnostics.CodeAnalysis.DoesNotReturn]
-#endif
-    private static void ThrowNonAsciiString(string value, [CallerArgumentExpression(nameof(value))] string? paramName = default)
-        => throw new ArgumentException($"The input string: \"{value}\" has non-ASCII characters in it.", paramName);
 }
