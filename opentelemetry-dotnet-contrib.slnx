@@ -134,6 +134,7 @@
     <File Path="README.md" />
   </Folder>
   <Folder Name="/src/">
+    <Project Path="src/OpenTelemetry.Events.SurrealDb/OpenTelemetry.Events.SurrealDb.csproj" />
     <Project Path="src/OpenTelemetry.Exporter.Geneva/OpenTelemetry.Exporter.Geneva.csproj" />
     <Project Path="src/OpenTelemetry.Exporter.InfluxDB/OpenTelemetry.Exporter.InfluxDB.csproj" />
     <Project Path="src/OpenTelemetry.Exporter.Instana/OpenTelemetry.Exporter.Instana.csproj" />
@@ -164,6 +165,7 @@
     <Project Path="src/OpenTelemetry.Instrumentation.ServiceFabricRemoting/OpenTelemetry.Instrumentation.ServiceFabricRemoting.csproj" />
     <Project Path="src/OpenTelemetry.Instrumentation.SqlClient/OpenTelemetry.Instrumentation.SqlClient.csproj" />
     <Project Path="src/OpenTelemetry.Instrumentation.StackExchangeRedis/OpenTelemetry.Instrumentation.StackExchangeRedis.csproj" />
+    <Project Path="src/OpenTelemetry.Instrumentation.SurrealDb/OpenTelemetry.Instrumentation.SurrealDb.csproj" />
     <Project Path="src/OpenTelemetry.Instrumentation.Wcf/OpenTelemetry.Instrumentation.Wcf.csproj" />
     <Project Path="src/OpenTelemetry.OpAmp.Client/OpenTelemetry.OpAmp.Client.csproj" />
     <Project Path="src/OpenTelemetry.PersistentStorage.Abstractions/OpenTelemetry.PersistentStorage.Abstractions.csproj" />
