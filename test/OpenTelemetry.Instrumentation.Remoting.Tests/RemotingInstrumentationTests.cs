@@ -36,10 +36,10 @@ public class RemotingInstrumentationTests
                     };
                 })
             .Build();
+        var domainSetup = AppDomain.CurrentDomain.SetupInformation;
+        var ad = AppDomain.CreateDomain("other-domain", null, domainSetup);
+        try
         {
-            var domainSetup = AppDomain.CurrentDomain.SetupInformation;
-            var ad = AppDomain.CreateDomain("other-domain", null, domainSetup);
-
             var remoteObjectTypeName = typeof(RemoteObject).FullName;
             Assert.NotNull(remoteObjectTypeName);
 
@@ -55,7 +55,9 @@ public class RemotingInstrumentationTests
             {
                 Assert.Throws<Exception>(() => obj.DoStuff(exceptionMessage));
             }
-
+        }
+        finally
+        {
             AppDomain.Unload(ad);
         }
 
