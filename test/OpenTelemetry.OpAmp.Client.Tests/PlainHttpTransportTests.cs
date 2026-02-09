@@ -86,4 +86,32 @@ public class PlainHttpTransportTests
         var serverReceivedHeaders = opAmpServer.GetHeaders();
         Assert.Contains(serverReceivedHeaders, headers => headers["X-Custom-Header"] == "CustomValue");
     }
+
+    [Fact]
+    public async Task PlainHttpTransport_SendsInstanceUUIDHeader()
+    {
+        // Arrange
+        using var opAmpServer = new OpAmpFakeHttpServer(false);
+
+        var uuid = Guid.NewGuid();
+        var settings = new OpAmpClientSettings
+        {
+            ServerUrl = opAmpServer.Endpoint,
+            InstanceUid = uuid,
+        };
+
+        using var mockListener = new MockListener();
+        var frameProcessor = new FrameProcessor();
+        frameProcessor.Subscribe(mockListener);
+
+        var httpTransport = new PlainHttpTransport(settings, frameProcessor);
+        var mockFrame = FrameGenerator.GenerateMockAgentFrame(false);
+
+        // Act
+        await httpTransport.SendAsync(mockFrame.Frame, CancellationToken.None);
+
+        // Assert
+        var serverReceivedHeaders = opAmpServer.GetHeaders();
+        Assert.Contains(serverReceivedHeaders, headers => headers["OpAMP-Instance-UID"] == uuid.ToString());
+    }
 }

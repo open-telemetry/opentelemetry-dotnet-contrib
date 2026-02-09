@@ -14,9 +14,13 @@ namespace OpenTelemetry.OpAmp.Client.Internal.Transport.Http;
 
 internal sealed class PlainHttpTransport : IOpAmpTransport, IDisposable
 {
+    private const string HeaderContentType = "Content-Type";
+    private const string HeaderOpAmpInstanceUUID = "OpAMP-Instance-UID";
+
     private readonly Uri uri;
     private readonly HttpClient httpClient;
     private readonly FrameProcessor processor;
+    private readonly OpAmpClientSettings settings;
 
     public PlainHttpTransport(OpAmpClientSettings settings, FrameProcessor processor)
     {
@@ -26,6 +30,7 @@ internal sealed class PlainHttpTransport : IOpAmpTransport, IDisposable
         this.uri = settings.ServerUrl;
         this.processor = processor;
         this.httpClient = settings.HttpClientFactory();
+        this.settings = settings;
     }
 
     public async Task SendAsync<T>(T message, CancellationToken token)
@@ -34,7 +39,8 @@ internal sealed class PlainHttpTransport : IOpAmpTransport, IDisposable
         var content = message.ToByteArray();
 
         using var byteContent = new ByteArrayContent(content);
-        byteContent.Headers.Add("Content-Type", "application/x-protobuf");
+        byteContent.Headers.Add(HeaderContentType, "application/x-protobuf");
+        byteContent.Headers.Add(HeaderOpAmpInstanceUUID, this.settings.InstanceUid.ToString());
 
         var response = await this.httpClient
             .PostAsync(this.uri, byteContent, cancellationToken: token)
