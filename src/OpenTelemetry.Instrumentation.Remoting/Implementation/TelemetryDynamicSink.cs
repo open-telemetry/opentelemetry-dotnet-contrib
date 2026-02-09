@@ -26,11 +26,6 @@ internal class TelemetryDynamicSink : IDynamicMessageSink
     internal const string AttributeRpcSystemName = "rpc.system.name";
     internal const string AttributeRpcSystemNameValue = "netframework_remoting";
     internal const string AttributeRpcMethod = "rpc.method";
-
-    // Uri like "tcp://localhost:1234/HelloServer.rem"
-    // TODO: semantic conventions don't have an attribute for a full uri of an RPC endpoint, but seems useful?
-    internal const string AttributeRpcRemotingUri = "rpc.netframework_remoting.uri";
-
     internal const string ActivitySourceName = "OpenTelemetry.Instrumentation.Remoting";
     private const string ActivityOutName = ActivitySourceName + ".RequestOut";
     private const string ActivityInName = ActivitySourceName + ".RequestIn";
@@ -281,13 +276,11 @@ internal class TelemetryDynamicSink : IDynamicMessageSink
         string serviceName = GetServiceName(msg.TypeName);
         string methodName = msg.MethodName;
         string fullyQualifiedMethod = $"{serviceName}/{methodName}";
-        string? uriString = msg.Uri;
 
         return new ActivityTagsCollection
         {
             { AttributeRpcSystemName, AttributeRpcSystemNameValue },
             { AttributeRpcMethod, fullyQualifiedMethod },
-            { AttributeRpcRemotingUri, uriString },
         };
     }
 
