@@ -85,9 +85,11 @@ public class RemotingInstrumentationTests
     {
         // This will register the dynamic property on the current context
         using var i1 = new RemotingInstrumentation(null);
+        Assert.Equal(1, RemotingInstrumentation.RegCount);
 
-        // Make sure the second call succeeds as well and won't try to re-register the property
+        // Second call should increment count but NOT re-register the property
         using var i2 = new RemotingInstrumentation(null);
+        Assert.Equal(2, RemotingInstrumentation.RegCount);
     }
 
     private class RemoteObject : ContextBoundObject
