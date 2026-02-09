@@ -83,12 +83,14 @@ public class RemotingInstrumentationTests
     [Fact]
     public void RemotingInstrumentation_RegisterDynamicProperty_OnlyOnce()
     {
+        var options = new RemotingInstrumentationOptions();
+
         // This will register the dynamic property on the current context
-        using var i1 = new RemotingInstrumentation(null);
+        using var i1 = new RemotingInstrumentation(options);
         Assert.Equal(1, RemotingInstrumentation.RegCount);
 
         // Second call should increment count but NOT re-register the property
-        using var i2 = new RemotingInstrumentation(null);
+        using var i2 = new RemotingInstrumentation(options);
         Assert.Equal(2, RemotingInstrumentation.RegCount);
     }
 
