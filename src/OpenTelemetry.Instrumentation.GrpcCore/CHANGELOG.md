@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Update minimum supported version of `Google.Protobuf` to `3.33.2`
+  for native AoT compatibility.
+  ([#1456](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 1.0.0-beta.9
 
 Released 2026-Jan-21
