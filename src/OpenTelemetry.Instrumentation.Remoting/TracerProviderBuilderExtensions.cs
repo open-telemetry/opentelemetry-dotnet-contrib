@@ -1,6 +1,8 @@
 ﻿// Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using OpenTelemetry.Instrumentation.Remoting;
 using OpenTelemetry.Instrumentation.Remoting.Implementation;
 using OpenTelemetry.Internal;
@@ -34,10 +36,19 @@ public static class TracerProviderBuilderExtensions
 
         builder.AddSource(TelemetryDynamicSink.ActivitySourceName);
 
-        var remotingOptions = new RemotingInstrumentationOptions();
-        configure?.Invoke(remotingOptions);
+        builder.ConfigureServices(services =>
+        {
+            if (configure != null)
+            {
+                services.Configure(configure);
+            }
+        });
 
-        builder.AddInstrumentation(_ => new RemotingInstrumentation(remotingOptions));
+        builder.AddInstrumentation(sp =>
+        {
+            var remotingOptions = sp.GetRequiredService<IOptionsMonitor<RemotingInstrumentationOptions>>().CurrentValue;
+            return new RemotingInstrumentation(remotingOptions);
+        });
 
         return builder;
     }
