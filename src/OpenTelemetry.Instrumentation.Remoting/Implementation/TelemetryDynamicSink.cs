@@ -70,6 +70,11 @@ internal class TelemetryDynamicSink : IDynamicMessageSink
 
         try
         {
+            IMethodMessage? methodMsg = reqMsg as IMethodMessage;
+            ActivityTagsCollection? tags = methodMsg != null
+                ? BuildSamplingTags(methodMsg)
+                : null;
+
             // Are we executing on client?
             if (bCliSide)
             {
@@ -79,12 +84,17 @@ internal class TelemetryDynamicSink : IDynamicMessageSink
                 ActivityContext contextToInject = default;
 
                 // Start new outgoing activity
-                var activity = RemotingActivitySource.StartActivity(ActivityOutName, ActivityKind.Client);
+                var activity = RemotingActivitySource.StartActivity(
+                    ActivityOutName,
+                    ActivityKind.Client,
+                    default(ActivityContext),
+                    tags);
+
                 if (activity != null)
                 {
-                    if (activity.IsAllDataRequested && reqMsg is IMethodMessage methodMsg)
+                    if (activity.IsAllDataRequested && methodMsg != null)
                     {
-                        SetStartingActivityAttributes(activity, methodMsg);
+                        SetPostCreationAttributes(activity, methodMsg);
 
                         try
                         {
@@ -127,7 +137,11 @@ internal class TelemetryDynamicSink : IDynamicMessageSink
                 {
                     // We don't have an existing incoming activity. Start a brand new one ourselves using the extracted context.
 
-                    ourActivity = RemotingActivitySource.StartActivity(ActivityInName, ActivityKind.Server, activityParentContext.ActivityContext);
+                    ourActivity = RemotingActivitySource.StartActivity(
+                        ActivityInName,
+                        ActivityKind.Server,
+                        activityParentContext.ActivityContext,
+                        tags);
                 }
                 else if (parentActivity.TraceId == activityParentContext.ActivityContext.TraceId)
                 {
@@ -142,7 +156,11 @@ internal class TelemetryDynamicSink : IDynamicMessageSink
                     // The context was propagated between HttpClient and ASP.NET Instrumentation.
                     // We let this context take over and simply create our Remoting activity as a child of the ASP.NET one.
 
-                    ourActivity = RemotingActivitySource.StartActivity(ActivityInName, ActivityKind.Server);
+                    ourActivity = RemotingActivitySource.StartActivity(
+                        ActivityInName,
+                        ActivityKind.Server,
+                        default(ActivityContext),
+                        tags);
                 }
                 else if (activityParentContext.ActivityContext.IsValid())
                 {
@@ -157,7 +175,11 @@ internal class TelemetryDynamicSink : IDynamicMessageSink
                     // the context. ASP.NET activity is saved as a custom property so that we can restore it later
                     // (see ProcessMessageFinish) to give ASP.NET Instrumentation a chance to stop it.
 
-                    ourActivity = RemotingActivitySource.StartActivity(ActivityInName, ActivityKind.Server, activityParentContext.ActivityContext);
+                    ourActivity = RemotingActivitySource.StartActivity(
+                        ActivityInName,
+                        ActivityKind.Server,
+                        activityParentContext.ActivityContext,
+                        tags);
                     ourActivity?.SetCustomProperty(SavedAspnetActivityPropertyName, parentActivity);
                 }
                 else
@@ -168,9 +190,9 @@ internal class TelemetryDynamicSink : IDynamicMessageSink
                     // Current (better than creating a new "root" Remoting activity).
                 }
 
-                if (ourActivity != null && ourActivity.IsAllDataRequested && reqMsg is IMethodMessage methodMsg)
+                if (ourActivity != null && ourActivity.IsAllDataRequested && methodMsg != null)
                 {
-                    SetStartingActivityAttributes(ourActivity, methodMsg);
+                    SetPostCreationAttributes(ourActivity, methodMsg);
 
                     try
                     {
@@ -254,18 +276,28 @@ internal class TelemetryDynamicSink : IDynamicMessageSink
         }
     }
 
-    private static void SetStartingActivityAttributes(Activity activity, IMethodMessage msg)
+    internal static ActivityTagsCollection BuildSamplingTags(IMethodMessage msg)
     {
         string serviceName = GetServiceName(msg.TypeName);
         string methodName = msg.MethodName;
-        string fullyQualifiedMethod = $"{serviceName}/{methodName}";  // "SharedLib.IHelloServer/SayHello"
+        string fullyQualifiedMethod = $"{serviceName}/{methodName}";
+        string? uriString = msg.Uri;
+
+        return new ActivityTagsCollection
+        {
+            { AttributeRpcSystemName, AttributeRpcSystemNameValue },
+            { AttributeRpcMethod, fullyQualifiedMethod },
+            { AttributeRpcRemotingUri, uriString },
+        };
+    }
+
+    internal static void SetPostCreationAttributes(Activity activity, IMethodMessage msg)
+    {
+        string serviceName = GetServiceName(msg.TypeName);
+        string methodName = msg.MethodName;
+        string fullyQualifiedMethod = $"{serviceName}/{methodName}";
 
         activity.DisplayName = fullyQualifiedMethod;
-        activity.SetTag(AttributeRpcSystemName, AttributeRpcSystemNameValue);
-        activity.SetTag(AttributeRpcMethod, fullyQualifiedMethod);
-
-        var uriString = msg.Uri;
-        activity.SetTag(AttributeRpcRemotingUri, uriString);
     }
 
     private static string GetServiceName(string typeName) =>
