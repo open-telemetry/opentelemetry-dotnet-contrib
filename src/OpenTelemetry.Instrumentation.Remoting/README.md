@@ -1,4 +1,13 @@
-# .NET Remoting Instrumentation for OpenTelemetry.Contrib .NET
+# .NET Remoting Instrumentation for OpenTelemetry .NET
+
+| Status | |
+| ------ | --- |
+| Stability | [Alpha](../../README.md#beta) |
+| Code Owners | [@lewis800](https://github.com/lewis800) |
+
+[![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Remoting)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Remoting)
+[![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.Remoting)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Remoting)
+[![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Instrumentation.Remoting)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Instrumentation.Remoting)
 
 This is an instrumentation library, which instruments [.NET Remoting](https://docs.microsoft.com/previous-versions/dotnet/netframework-3.0/72x4h507(v=vs.85))
 and collects telemetry about incoming and outgoing requests on client
@@ -9,10 +18,14 @@ that shouldn't be used for new .NET applications and [doesn't exist](https://doc
 in .NET Core at all. However, if you do have a legacy application you are
 looking to instrument, consider using this package.
 
-## Installation
+### Installation
+
+Add a reference to the
+[`OpenTelemetry.Instrumentation.Remoting`](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Remoting)
+package. Also, add any other instrumentations & exporters you will need.
 
 ```shell
-dotnet add package OpenTelemetry.Contrib.Instrumentation.Remoting
+dotnet add package --prerelease OpenTelemetry.Instrumentation.Remoting
 ```
 
 ## Configuration
