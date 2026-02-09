@@ -689,7 +689,7 @@ jobs:
       build-test-instrumentation-owin,
       build-test-instrumentation-process,
       build-test-instrumentation-quartz,
-      build-test-instrumentation-Remoting,
+      build-test-instrumentation-remoting,
       build-test-instrumentation-runtime,
       build-test-instrumentation-servicefabricremoting,
       build-test-instrumentation-sqlclient,

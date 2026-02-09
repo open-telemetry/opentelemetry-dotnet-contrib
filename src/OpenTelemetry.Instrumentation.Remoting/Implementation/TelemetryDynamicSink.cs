@@ -21,7 +21,7 @@ namespace OpenTelemetry.Instrumentation.Remoting.Implementation;
 /// information about remoting sinks and https://docs.microsoft.com/dotnet/api/system.runtime.remoting.contexts.context.registerdynamicproperty
 /// for RegisterDynamicProperty behavior.
 /// </remarks>
-internal class TelemetryDynamicSink : IDynamicMessageSink
+internal sealed class TelemetryDynamicSink : IDynamicMessageSink
 {
     internal const string AttributeRpcSystemName = "rpc.system.name";
     internal const string AttributeRpcSystemNameValue = "netframework_remoting";
