@@ -8,8 +8,8 @@ namespace OpenTelemetry.Instrumentation.Remoting;
 
 internal class RemotingInstrumentation : IDisposable
 {
+    internal static int RegCount;
     private static readonly object LockObj = new();
-    private static int regCount;
 
     public RemotingInstrumentation(RemotingInstrumentationOptions options)
     {
@@ -17,7 +17,7 @@ internal class RemotingInstrumentation : IDisposable
         // the dynamic sink only once per AppDomain
         lock (LockObj)
         {
-            if (regCount == 0)
+            if (RegCount == 0)
             {
                 // See https://docs.microsoft.com/dotnet/api/system.runtime.remoting.contexts.context.registerdynamicproperty
                 // This will register our dynamic sink to listen to all calls leaving or entering
@@ -28,7 +28,7 @@ internal class RemotingInstrumentation : IDisposable
                     RemotingContext.DefaultContext);
             }
 
-            regCount++;
+            RegCount++;
         }
     }
 
@@ -38,8 +38,8 @@ internal class RemotingInstrumentation : IDisposable
         // of those registrations will also try to un-register.
         lock (LockObj)
         {
-            regCount--;
-            if (regCount == 0)
+            RegCount--;
+            if (RegCount == 0)
             {
                 // When the last registration disposes, remove the property.
                 RemotingContext.UnregisterDynamicProperty(
