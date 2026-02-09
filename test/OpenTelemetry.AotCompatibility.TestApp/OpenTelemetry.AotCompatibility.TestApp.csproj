@@ -31,9 +31,11 @@
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.GrpcCore" />
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.GrpcNetClient" />
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.Http" />
+    <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.Process" />
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.Runtime" />
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.SqlClient" />
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.StackExchangeRedis" />
+    <TrimmerRootAssembly Include="OpenTelemetry.OpAmp.Client" />
     <TrimmerRootAssembly Include="OpenTelemetry.Resources.AWS" />
     <TrimmerRootAssembly Include="OpenTelemetry.Resources.Azure" />
     <TrimmerRootAssembly Include="OpenTelemetry.Resources.Container" />
@@ -49,9 +51,9 @@
     <!-- Exclude projects that are transitively referenced by
       OpenTelemetry.Extensions.Enrichment.AspNetCore and OpenTelemetry.Extensions.Enrichment.Http:
     -->
-    <ProjectReference Remove="$(RepoRoot)\src\OpenTelemetry.Extensions.Enrichment\OpenTelemetry.Extensions.Enrichment.csproj"/>
-    <ProjectReference Remove="$(RepoRoot)\src\OpenTelemetry.Instrumentation.AspNetCore\OpenTelemetry.Instrumentation.AspNetCore.csproj"/>
-    <ProjectReference Remove="$(RepoRoot)\src\OpenTelemetry.Instrumentation.Http\OpenTelemetry.Instrumentation.Http.csproj"/>
+    <ProjectReference Remove="$(RepoRoot)\src\OpenTelemetry.Extensions.Enrichment\OpenTelemetry.Extensions.Enrichment.csproj" />
+    <ProjectReference Remove="$(RepoRoot)\src\OpenTelemetry.Instrumentation.AspNetCore\OpenTelemetry.Instrumentation.AspNetCore.csproj" />
+    <ProjectReference Remove="$(RepoRoot)\src\OpenTelemetry.Instrumentation.Http\OpenTelemetry.Instrumentation.Http.csproj" />
   </ItemGroup>
 
 </Project>
