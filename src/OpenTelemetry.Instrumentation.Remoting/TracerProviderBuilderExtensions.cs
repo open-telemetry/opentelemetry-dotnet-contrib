@@ -37,7 +37,7 @@ public static class TracerProviderBuilderExtensions
         var remotingOptions = new RemotingInstrumentationOptions();
         configure?.Invoke(remotingOptions);
 
-        builder.AddInstrumentation(activitySource => new RemotingInstrumentation(remotingOptions));
+        builder.AddInstrumentation(_ => new RemotingInstrumentation(remotingOptions));
 
         return builder;
     }
