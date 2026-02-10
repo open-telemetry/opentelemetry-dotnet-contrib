@@ -22,7 +22,9 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Run redis docker compose
-        run: docker compose --file=test/OpenTelemetry.Instrumentation.StackExchangeRedis.Tests/docker-compose.yml --file=build/docker-compose.${{ matrix.version }}.yml --project-directory=. up --exit-code-from=tests --build
+        run: docker compose --file=test/OpenTelemetry.Instrumentation.StackExchangeRedis.Tests/docker-compose.yml "--file=build/docker-compose.${TARGET_FRAMEWORK}.yml" --project-directory=. up --exit-code-from=tests --build
+        env:
+          TARGET_FRAMEWORK: ${{ matrix.version }}
 
   kafka-integration-test:
     if: inputs.job == 'all' || inputs.job == 'kafka-integration-test'
@@ -35,7 +37,9 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Run kafka docker compose
-        run: docker compose --file=test/OpenTelemetry.Instrumentation.ConfluentKafka.Tests/docker-compose.yml --file=build/docker-compose.${{ matrix.version }}.yml --project-directory=. up --exit-code-from=tests --build
+        run: docker compose --file=test/OpenTelemetry.Instrumentation.ConfluentKafka.Tests/docker-compose.yml "--file=build/docker-compose.${TARGET_FRAMEWORK}.yml" --project-directory=. up --exit-code-from=tests --build
+        env:
+          TARGET_FRAMEWORK: ${{ matrix.version }}
 
   cassandra-integration-test:
     if: inputs.job == 'all' || inputs.job == 'cassandra-integration-test'
@@ -48,4 +52,6 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Run cassandra docker compose
-        run: docker compose --file=test/OpenTelemetry.Instrumentation.Cassandra.Tests/docker-compose.yml --file=build/docker-compose.${{ matrix.version }}.yml --project-directory=. up --exit-code-from=tests --build
+        run: docker compose --file=test/OpenTelemetry.Instrumentation.Cassandra.Tests/docker-compose.yml "--file=build/docker-compose.${TARGET_FRAMEWORK}.yml" --project-directory=. up --exit-code-from=tests --build
+        env:
+          TARGET_FRAMEWORK: ${{ matrix.version }}
