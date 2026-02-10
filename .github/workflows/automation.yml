@@ -31,6 +31,6 @@ jobs:
     steps:
     - id: evaluate
       env:
-        IS_ENABLED: ${{ secrets.OTELBOT_DOTNET_PRIVATE_KEY != '' }}
+        IS_ENABLED: ${{ secrets.OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY != '' }}
       run: |
         echo "enabled=$IS_ENABLED" >> "$GITHUB_OUTPUT"

@@ -144,7 +144,7 @@ jobs:
         --logger:"console;verbosity=detailed"
         --logger:"GitHubActions;report-warnings=false"
         --logger:"junit;LogFilePath=TestResults/junit.xml"
-        --filter ${env:TEST_FILTER}
+        --filter "${env:TEST_FILTER}"
         -- RunConfiguration.DisableAppDomain=true
         ${{ inputs.test-require-elevated && matrix.os != 'windows-latest' && '&& sudo chmod a+rw ./TestResults' || '' }}
 
