@@ -26,6 +26,9 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
     internal const string AttributeRpcSystemName = "rpc.system.name";
     internal const string AttributeRpcSystemNameValue = "netframework_remoting";
     internal const string AttributeRpcMethod = "rpc.method";
+    internal const string AttributeServerAddress = "server.address";
+    internal const string AttributeServerPort = "server.port";
+    internal const string AttributeErrorType = "error.type";
     internal const string ActivitySourceName = "OpenTelemetry.Instrumentation.Remoting";
     private const string ActivityOutName = ActivitySourceName + ".RequestOut";
     private const string ActivityInName = ActivitySourceName + ".RequestIn";
@@ -238,6 +241,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
                     else
                     {
                         activity.SetStatus(ActivityStatusCode.Error);
+                        activity.SetTag(AttributeErrorType, returnMsg.Exception.GetType().FullName);
                         if (this.options.RecordException)
                         {
                             activity.AddException(returnMsg.Exception);
@@ -277,11 +281,22 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
         string methodName = msg.MethodName;
         string fullyQualifiedMethod = $"{serviceName}/{methodName}";
 
-        return new ActivityTagsCollection
+        var tags = new ActivityTagsCollection
         {
             { AttributeRpcSystemName, AttributeRpcSystemNameValue },
             { AttributeRpcMethod, fullyQualifiedMethod },
         };
+
+        if (TryParseUri(msg.Uri, out string? host, out int? port))
+        {
+            tags.Add(AttributeServerAddress, host!);
+            if (port.HasValue)
+            {
+                tags.Add(AttributeServerPort, port.Value);
+            }
+        }
+
+        return tags;
     }
 
     internal static void SetPostCreationAttributes(Activity activity, IMethodMessage msg)
@@ -306,6 +321,36 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
 
                 return s;
             });
+
+    private static bool TryParseUri(string? uri, out string? host, out int? port)
+    {
+        host = null;
+        port = null;
+
+        if (string.IsNullOrEmpty(uri))
+        {
+            return false;
+        }
+
+        if (!Uri.TryCreate(uri, UriKind.Absolute, out Uri? parsedUri))
+        {
+            return false;
+        }
+
+        if (string.IsNullOrEmpty(parsedUri.Host))
+        {
+            return false;
+        }
+
+        host = parsedUri.Host;
+
+        if (!parsedUri.IsDefaultPort)
+        {
+            port = parsedUri.Port;
+        }
+
+        return true;
+    }
 
     private static void InjectActivityProperties(LogicalCallContext ctx, string key, string value) => ctx.SetData(key, value);
 

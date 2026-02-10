@@ -67,13 +67,18 @@ public class RemotingInstrumentationTests
         Assert.Equal("netframework_remoting", activity.GetTagItem("rpc.system.name"));
         Assert.Equal("OpenTelemetry.Instrumentation.Remoting.Tests.RemotingInstrumentationTests+RemoteObject/DoStuff", activity.GetTagItem("rpc.method"));
 
+        Assert.Null(activity.GetTagItem("server.address"));
+        Assert.Null(activity.GetTagItem("server.port"));
+
         if (success)
         {
             Assert.Equal(ActivityStatusCode.Unset, activity.Status);
+            Assert.Null(activity.GetTagItem("error.type"));
         }
         else
         {
             Assert.Equal(ActivityStatusCode.Error, activity.Status);
+            Assert.Equal(typeof(Exception).FullName, activity.GetTagItem("error.type"));
 
             var eventList = activity.Events.ToList();
             Assert.Single(eventList);
