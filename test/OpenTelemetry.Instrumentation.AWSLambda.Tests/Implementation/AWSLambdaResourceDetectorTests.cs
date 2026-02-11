@@ -25,7 +25,7 @@ public class AWSLambdaResourceDetectorTests : IDisposable
     [Fact]
     public void Detect_WithAccountIdSymlink_SetsCloudAccountId()
     {
-        const string expectedAccountId = "123456789012";
+        var expectedAccountId = Random.Shared.NextInt64(100000000000, 999999999999).ToString();
 
         // Create a symlink whose target is the raw account ID string.
         File.CreateSymbolicLink(SymlinkPath, expectedAccountId);
@@ -43,7 +43,7 @@ public class AWSLambdaResourceDetectorTests : IDisposable
     [Fact]
     public void Detect_WithAccountIdSymlink_PreservesLeadingZeros()
     {
-        const string expectedAccountId = "000123456789";
+        var expectedAccountId = "000" + Random.Shared.NextInt64(100000000, 999999999).ToString();
 
         File.CreateSymbolicLink(SymlinkPath, expectedAccountId);
 

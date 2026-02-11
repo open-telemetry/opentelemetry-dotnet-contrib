@@ -8,7 +8,9 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 
 internal sealed class AWSLambdaResourceDetector : IResourceDetector
 {
+#if NET
     private const string AccountIdSymlinkPath = "/tmp/.otel-account-id";
+#endif
 
     private readonly AWSSemanticConventions semanticConventionBuilder;
 
@@ -28,7 +30,9 @@ internal sealed class AWSLambdaResourceDetector : IResourceDetector
                 .AttributeBuilder
                 .AddAttributeCloudProviderIsAWS()
                 .AddAttributeCloudRegion(AWSLambdaUtils.GetAWSRegion())
+#if NET
                 .AddAttributeCloudAccountID(GetAccountIdFromSymlink())
+#endif
                 .AddAttributeFaasName(AWSLambdaUtils.GetFunctionName())
                 .AddAttributeFaasVersion(AWSLambdaUtils.GetFunctionVersion())
                 .AddAttributeFaasInstance(AWSLambdaUtils.GetFunctionInstance())
@@ -38,9 +42,9 @@ internal sealed class AWSLambdaResourceDetector : IResourceDetector
         return new Resource(resourceAttributes);
     }
 
+#if NET
     private static string? GetAccountIdFromSymlink()
     {
-#if NET
         try
         {
             var fileInfo = new FileInfo(AccountIdSymlinkPath);
@@ -51,8 +55,6 @@ internal sealed class AWSLambdaResourceDetector : IResourceDetector
             // Symlink doesn't exist or cannot be read — silently skip.
             return null;
         }
-#else
-        return null;
-#endif
     }
+#endif
 }
