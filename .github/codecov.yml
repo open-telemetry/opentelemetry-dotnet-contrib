@@ -150,6 +150,11 @@ flags:
     paths:
       - src/OpenTelemetry.Instrumentation.Quartz
 
+  unittests-Instrumentation.Remoting:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Instrumentation.Remoting
+
   unittests-Instrumentation.Runtime:
     carryforward: true
     paths:
