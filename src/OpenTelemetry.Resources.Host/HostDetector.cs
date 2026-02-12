@@ -16,13 +16,13 @@ namespace OpenTelemetry.Resources.Host;
 /// </summary>
 internal sealed class HostDetector : IResourceDetector
 {
+#if !NETFRAMEWORK
     private const string ETCMACHINEID = "/etc/machine-id";
     private const string ETCVARDBUSMACHINEID = "/var/lib/dbus/machine-id";
-#if !NETFRAMEWORK
     private readonly Func<OSPlatform, bool> isOsPlatform;
-#endif
     private readonly Func<IEnumerable<string>> getFilePaths;
     private readonly Func<string?> getMacOsMachineId;
+#endif
     private readonly Func<string?> getWindowsMachineId;
 
     /// <summary>
@@ -32,9 +32,9 @@ internal sealed class HostDetector : IResourceDetector
         : this(
 #if !NETFRAMEWORK
         RuntimeInformation.IsOSPlatform,
-#endif
         GetFilePaths,
         GetMachineIdMacOs,
+#endif
         GetMachineIdWindows)
     {
     }
@@ -56,30 +56,29 @@ internal sealed class HostDetector : IResourceDetector
     internal HostDetector(
 #if !NETFRAMEWORK
         Func<OSPlatform, bool> isOsPlatform,
-#endif
         Func<IEnumerable<string>> getFilePaths,
         Func<string?> getMacOsMachineId,
+#endif
         Func<string?> getWindowsMachineId)
     {
 #if !NETFRAMEWORK
         Guard.ThrowIfNull(isOsPlatform);
-#endif
         Guard.ThrowIfNull(getFilePaths);
         Guard.ThrowIfNull(getMacOsMachineId);
+#endif
         Guard.ThrowIfNull(getWindowsMachineId);
 
 #if !NETFRAMEWORK
         this.isOsPlatform = isOsPlatform;
-#endif
         this.getFilePaths = getFilePaths;
         this.getMacOsMachineId = getMacOsMachineId;
+#endif
         this.getWindowsMachineId = getWindowsMachineId;
     }
 
 #if !NETFRAMEWORK
-    public static string? MapArchitectureToOtel(Architecture arch)
-    {
-        return arch switch
+    public static string? MapArchitectureToOtel(Architecture arch) =>
+        arch switch
         {
             Architecture.X86 => "x86",
             Architecture.X64 => "amd64",
@@ -90,13 +89,15 @@ internal sealed class HostDetector : IResourceDetector
             Architecture.Armv6 => "arm32",
             Architecture.Ppc64le => "ppc64",
 
-            // following architectures do not have a mapping in OTEL spec https://github.com/open-telemetry/semantic-conventions/blob/v1.37.0/docs/resource/host.md
+            // The following architectures do not have a mapping in OTel spec: https://github.com/open-telemetry/semantic-conventions/blob/v1.39.0/docs/resource/host.md
             Architecture.Wasm => null,
             Architecture.LoongArch64 => null,
+#if NET10_0_OR_GREATER
+            Architecture.RiscV64 => null,
+#endif
 #endif
             _ => null,
         };
-    }
 #endif
 
     /// <summary>
@@ -134,13 +135,14 @@ internal sealed class HostDetector : IResourceDetector
         }
         catch (InvalidOperationException ex)
         {
-            // Handling InvalidOperationException due to https://learn.microsoft.com/en-us/dotnet/api/system.environment.machinename#exceptions
+            // Handling InvalidOperationException due to https://learn.microsoft.com/dotnet/api/system.environment.machinename#exceptions
             HostResourceEventSource.Log.ResourceAttributesExtractException(nameof(HostDetector), ex);
         }
 
         return Resource.Empty;
     }
 
+#if !NETFRAMEWORK
     internal static string? ParseMacOsOutput(string? output)
     {
         if (output == null || string.IsNullOrEmpty(output))
@@ -175,6 +177,7 @@ internal sealed class HostDetector : IResourceDetector
         yield return ETCMACHINEID;
         yield return ETCVARDBUSMACHINEID;
     }
+#endif
 
     private static string? GetMachineIdMacOs()
     {
@@ -245,18 +248,16 @@ internal sealed class HostDetector : IResourceDetector
     }
 #pragma warning restore CA1416
 
-    private string? GetMachineId()
-    {
+    private string? GetMachineId() =>
 #if NETFRAMEWORK
-        return this.getWindowsMachineId();
+        this.getWindowsMachineId();
 #else
-        return this.isOsPlatform(OSPlatform.Windows) ? this.getWindowsMachineId() :
-            this.isOsPlatform(OSPlatform.Linux) ? this.GetMachineIdLinux() :
-            this.isOsPlatform(OSPlatform.OSX) ? ParseMacOsOutput(this.getMacOsMachineId()) : null;
-
+        this.isOsPlatform(OSPlatform.Windows) ? this.getWindowsMachineId() :
+        this.isOsPlatform(OSPlatform.Linux) ? this.GetMachineIdLinux() :
+        this.isOsPlatform(OSPlatform.OSX) ? ParseMacOsOutput(this.getMacOsMachineId()) : null;
 #endif
-    }
 
+#if !NETFRAMEWORK
     private string? GetMachineIdLinux()
     {
         var paths = this.getFilePaths();
@@ -278,4 +279,5 @@ internal sealed class HostDetector : IResourceDetector
 
         return null;
     }
+#endif
 }
