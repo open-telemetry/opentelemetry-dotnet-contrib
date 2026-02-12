@@ -22,28 +22,12 @@ public class AWSLambdaResourceDetectorTests : IDisposable
     }
 
 #if NET
-    [Fact]
-    public void Detect_WithAccountIdSymlink_SetsCloudAccountId()
+    [Theory]
+    [InlineData("")]
+    [InlineData("000")]
+    public void Detect_WithAccountIdSymlink_SetsCloudAccountId(string prefix)
     {
-        var expectedAccountId = Random.Shared.NextInt64(100000000000, 999999999999).ToString();
-
-        // Create a symlink whose target is the raw account ID string.
-        File.CreateSymbolicLink(SymlinkPath, expectedAccountId);
-
-        var conventions = new AWSSemanticConventions(SemanticConventionVersion.Latest);
-        var detector = new AWSLambdaResourceDetector(conventions);
-
-        var resource = detector.Detect();
-        var attributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
-
-        Assert.True(attributes.ContainsKey("cloud.account.id"));
-        Assert.Equal(expectedAccountId, attributes["cloud.account.id"]);
-    }
-
-    [Fact]
-    public void Detect_WithAccountIdSymlink_PreservesLeadingZeros()
-    {
-        var expectedAccountId = "000" + Random.Shared.NextInt64(100000000, 999999999).ToString();
+        var expectedAccountId = prefix + Random.Shared.NextInt64(100000000, 999999999).ToString();
 
         File.CreateSymbolicLink(SymlinkPath, expectedAccountId);
 
