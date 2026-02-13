@@ -7,6 +7,8 @@ using Xunit;
 
 namespace OpenTelemetry.Tests;
 
+// Adapted from https://github.com/dotnet/aspnetcore/blob/3a973a5f4d28242262f27c86eb3f14299fe712ba/src/Testing/test/EventSourceValidatorTests.cs
+
 internal static class EventSourceTestHelper
 {
     /// <summary>
@@ -100,7 +102,9 @@ internal static class EventSourceTestHelper
     /// <remarks>
     /// Adapted from https://github.com/microsoft/ApplicationInsights-aspnetcore/blob/bfccb57e4f632fa2ee627dacedeaa55644c739f5/NETCORE/test/Microsoft.ApplicationInsights.AspNetCore.Tests/Extensibility/Implementation/Tracing/TestEventListener.cs.
     /// </remarks>
+#pragma warning disable CA1812
     private class TestEventListener : EventListener
+#pragma warning restore CA1812
     {
         private readonly Queue<EventWrittenEventArgs> events;
         private readonly AutoResetEvent eventWritten;

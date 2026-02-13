@@ -42,9 +42,9 @@ public static class EventSourceTestHelperTests
         var ex = Assert.ThrowsAny<Exception>(
             EventSourceTestHelper.ValidateEventSourceIds<DuplicateIdEventSource>);
 
-        Assert.Contains("Duplicate EventId 1", ex.Message);
-        Assert.Contains("EventAlpha", ex.Message);
-        Assert.Contains("EventBeta", ex.Message);
+        Assert.Contains("Duplicate EventId 1", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("EventAlpha", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("EventBeta", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -54,7 +54,7 @@ public static class EventSourceTestHelperTests
         var ex = Assert.ThrowsAny<Exception>(
             () => EventSourceTestHelper.ValidateEventSourceIds(typeof(string)));
 
-        Assert.Contains("does not derive from EventSource", ex.Message);
+        Assert.Contains("does not derive from EventSource", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -64,6 +64,8 @@ public static class EventSourceTestHelperTests
     [Fact]
     public static void ValidateEventSourceIds_PassesForEventSourceWithMultipleParameterTypes() =>
         EventSourceTestHelper.ValidateEventSourceIds<MultiParamEventSource>();
+
+#pragma warning disable CA1812
 
     // -- Test-only EventSource implementations --
 
@@ -118,4 +120,6 @@ public static class EventSourceTestHelperTests
         [Event(5, Level = EventLevel.Informational)]
         public void EventWithNoArgs() => this.WriteEvent(5);
     }
+
+#pragma warning restore CA1812
 }
