@@ -21,9 +21,19 @@ public static class EventSourceTestHelperTests
     // only verify the validator rejects the bad source.
 
     [Fact]
-    public static void ValidateEventSourceIds_FailsForMismatchedWriteEventId() =>
+    public static void ValidateEventSourceIds_FailsForMismatchedWriteEventId()
+    {
+#if !NETFRAMEWORK
+        if (!OperatingSystem.IsWindows())
+        {
+            // Only supported on Windows
+            return;
+        }
+#endif
+
         Assert.ThrowsAny<Exception>(
             EventSourceTestHelper.ValidateEventSourceIds<MismatchedIdEventSource>);
+    }
 
     [Fact]
     public static void ValidateEventSourceIds_FailsForDuplicateEventIds()

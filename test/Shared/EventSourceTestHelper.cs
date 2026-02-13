@@ -67,7 +67,7 @@ internal static class EventSourceTestHelper
         // Use GenerateManifest with Strict mode to validate that each method's
         // WriteEvent(id, ...) call uses an ID that matches its [Event(id)] attribute.
         // Internally this uses GetHelperCallFirstArg to IL-inspect the method body
-        // and extract the integer constant passed to WriteEvent — the same validation
+        // and extract the integer constant passed to WriteEvent - the same validation
         // the .NET runtime performs when constructing an EventSource.
         try
         {
