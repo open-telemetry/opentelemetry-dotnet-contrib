@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
     <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <Description>Unit test project for OpenTelemetry Elasticsearch client instrumentation.</Description>
@@ -19,6 +18,7 @@
 
   <ItemGroup>
     <Compile Include="$(RepoRoot)\src\Shared\ActivityHelperExtensions.cs" Link="Includes\ActivityHelperExtensions.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\EventSourceTestHelper.cs" Link="Includes\EventSourceTestHelper.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\TestActivityExportProcessor.cs" Link="Includes\TestActivityExportProcessor.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\TestActivityProcessor.cs" Link="Includes\TestActivityProcessor.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\TestSampler.cs" Link="Includes\TestSampler.cs" />

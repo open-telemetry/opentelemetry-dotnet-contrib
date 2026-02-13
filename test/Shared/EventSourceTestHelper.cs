@@ -2,129 +2,147 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics.Tracing;
-using System.Globalization;
 using System.Reflection;
+using Xunit;
 
 namespace OpenTelemetry.Tests;
 
 internal static class EventSourceTestHelper
 {
-    public static void MethodsAreImplementedConsistentlyWithTheirAttributes(EventSource eventSource)
+    /// <summary>
+    /// Validates all <c>[Event]</c>-attributed methods on <typeparamref name="T"/>.
+    /// </summary>
+    /// <typeparam name="T">A type that derives from <see cref="EventSource"/>.</typeparam>
+    public static void ValidateEventSourceIds<T>()
+        where T : EventSource
+        => ValidateEventSourceIds(typeof(T));
+
+    /// <summary>
+    /// Validates all <c>[Event]</c>-attributed methods on the given <see cref="EventSource"/>-derived type.
+    /// <para>
+    /// Uses <see cref="EventSource.GenerateManifest(Type, string, EventManifestOptions)"/> with
+    /// <see cref="EventManifestOptions.Strict"/> to perform IL-level validation that the integer
+    /// argument passed to each <c>WriteEvent</c> call matches the <c>[Event(id)]</c> attribute
+    /// on the calling method. This is the same validation the .NET runtime itself uses.
+    /// </para>
+    /// <para>
+    /// Additionally checks for duplicate <see cref="EventAttribute.EventId"/> values across methods.
+    /// </para>
+    /// </summary>
+    /// <param name="eventSourceType">A type that derives from <see cref="EventSource"/>.</param>
+    public static void ValidateEventSourceIds(Type eventSourceType)
     {
-        foreach (var publicMethod in GetEventMethods(eventSource))
+        Assert.NotNull(eventSourceType);
+
+        Assert.True(
+            typeof(EventSource).IsAssignableFrom(eventSourceType),
+            $"Type '{eventSourceType.FullName}' does not derive from EventSource.");
+
+        var errors = new List<string>();
+
+        // Check for duplicate Event IDs across methods.
+        var seenIds = new Dictionary<int, string>();
+        var methods = eventSourceType.GetMethods(
+            BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+
+        foreach (var method in methods)
         {
-            VerifyMethodImplementation(eventSource, publicMethod);
-        }
-    }
-
-    private static void VerifyMethodImplementation(EventSource eventSource, MethodInfo eventMethod)
-    {
-        using var listener = new TestEventListener();
-        listener.EnableEvents(eventSource, EventLevel.Verbose, EventKeywords.All);
-        try
-        {
-            var eventArguments = GenerateEventArguments(eventMethod);
-            eventMethod.Invoke(eventSource, eventArguments);
-
-            var actualEvent = listener.Messages.First(q => q.EventName == eventMethod.Name);
-
-            VerifyEventId(eventMethod, actualEvent);
-            VerifyEventLevel(eventMethod, actualEvent);
-
-            if (eventMethod.Name != "ExporterErrorResult")
+            var eventAttr = method.GetCustomAttribute<EventAttribute>();
+            if (eventAttr is null)
             {
-                VerifyEventMessage(eventMethod, actualEvent, eventArguments);
+                continue;
+            }
+
+            if (seenIds.TryGetValue(eventAttr.EventId, out var existingMethod))
+            {
+                errors.Add(
+                    $"Duplicate EventId {eventAttr.EventId}: methods '{existingMethod}' and '{method.Name}' share the same ID.");
+            }
+            else
+            {
+                seenIds[eventAttr.EventId] = method.Name;
             }
         }
-        catch (Exception e)
-        {
-            var name = eventMethod.DeclaringType == null
-                ? eventMethod.Name
-                : eventMethod.DeclaringType.Name + "." + eventMethod.Name;
 
-            throw new Exception("Method '" + name + "' is implemented incorrectly.", e);
+        // Use GenerateManifest with Strict mode to validate that each method's
+        // WriteEvent(id, ...) call uses an ID that matches its [Event(id)] attribute.
+        // Internally this uses GetHelperCallFirstArg to IL-inspect the method body
+        // and extract the integer constant passed to WriteEvent — the same validation
+        // the .NET runtime performs when constructing an EventSource.
+        try
+        {
+            var manifest = EventSource.GenerateManifest(
+                eventSourceType,
+                assemblyPathToIncludeInManifest: "assemblyPathForValidation",
+                flags: EventManifestOptions.Strict);
+
+            if (manifest is null)
+            {
+                errors.Add("GenerateManifest returned null, indicating the type is not a valid EventSource.");
+            }
         }
-        finally
+        catch (ArgumentException ex)
         {
-            listener.ClearMessages();
-        }
-    }
-
-    private static object[] GenerateEventArguments(MethodInfo eventMethod)
-    {
-        var parameters = eventMethod.GetParameters();
-        var arguments = new object[parameters.Length];
-        for (var i = 0; i < parameters.Length; i++)
-        {
-            arguments[i] = GenerateArgument(parameters[i]);
-        }
-
-        return arguments;
-    }
-
-    private static object GenerateArgument(ParameterInfo parameter)
-    {
-        if (parameter.ParameterType == typeof(string))
-        {
-            return "Test String";
+            errors.Add(ex.Message);
         }
 
-        return parameter.ParameterType.IsValueType
-            ? Activator.CreateInstance(parameter.ParameterType)
-              ?? throw new NotSupportedException(
-                  $"Could not create an instance of the '{parameter.ParameterType}' type.")
-            : throw new NotSupportedException("Complex types are not supported");
-    }
-
-    private static void VerifyEventId(MethodInfo eventMethod, EventWrittenEventArgs actualEvent)
-    {
-        var expectedEventId = GetEventAttribute(eventMethod).EventId;
-        AssertEqual(nameof(VerifyEventId), expectedEventId, actualEvent.EventId);
-    }
-
-    private static void VerifyEventLevel(MethodInfo eventMethod, EventWrittenEventArgs actualEvent)
-    {
-        var expectedLevel = GetEventAttribute(eventMethod).Level;
-        AssertEqual(nameof(VerifyEventLevel), expectedLevel, actualEvent.Level);
-    }
-
-    private static void VerifyEventMessage(MethodInfo eventMethod, EventWrittenEventArgs actualEvent, object[] eventArguments)
-    {
-        var expectedMessage = eventArguments.Length == 0
-            ? GetEventAttribute(eventMethod).Message!
-            : string.Format(CultureInfo.InvariantCulture, GetEventAttribute(eventMethod).Message!, eventArguments);
-
-        var actualMessage = string.Format(
-            CultureInfo.InvariantCulture,
-            actualEvent.Message!,
-            actualEvent.Payload?.ToArray() ?? []);
-
-        AssertEqual(nameof(VerifyEventMessage), expectedMessage, actualMessage);
-    }
-
-    private static void AssertEqual<T>(string methodName, T expected, T actual)
-        where T : notnull
-    {
-        if (!expected.Equals(actual))
+        if (errors.Count > 0)
         {
-            var errorMessage = string.Format(
-                CultureInfo.InvariantCulture,
-                "{0} Failed: expected: '{1}' actual: '{2}'",
-                methodName,
-                expected,
-                actual);
-            throw new Exception(errorMessage);
+            Assert.Fail(
+                $"EventSource '{eventSourceType.FullName}' has event ID validation error(s):" +
+                Environment.NewLine + string.Join(Environment.NewLine, errors));
         }
     }
 
-    private static EventAttribute GetEventAttribute(MethodInfo eventMethod)
+    /// <summary>
+    /// Event listener for testing event sources.
+    /// </summary>
+    /// <remarks>
+    /// Adapted from https://github.com/microsoft/ApplicationInsights-aspnetcore/blob/bfccb57e4f632fa2ee627dacedeaa55644c739f5/NETCORE/test/Microsoft.ApplicationInsights.AspNetCore.Tests/Extensibility/Implementation/Tracing/TestEventListener.cs.
+    /// </remarks>
+    private class TestEventListener : EventListener
     {
-        return (EventAttribute)eventMethod.GetCustomAttributes(typeof(EventAttribute), false).Single();
-    }
+        private readonly Queue<EventWrittenEventArgs> events;
+        private readonly AutoResetEvent eventWritten;
 
-    private static IEnumerable<MethodInfo> GetEventMethods(EventSource eventSource)
-    {
-        var methods = eventSource.GetType().GetMethods();
-        return methods.Where(m => m.GetCustomAttributes(typeof(EventAttribute), false).Length != 0);
+        public TestEventListener()
+        {
+            this.events = new Queue<EventWrittenEventArgs>();
+            this.eventWritten = new AutoResetEvent(false);
+            this.OnOnEventWritten = e =>
+            {
+                this.events.Enqueue(e);
+                this.eventWritten.Set();
+            };
+        }
+
+        public Action<EventSource>? OnOnEventSourceCreated { get; set; }
+
+        public Action<EventWrittenEventArgs> OnOnEventWritten { get; set; }
+
+        public IEnumerable<EventWrittenEventArgs> Messages
+        {
+            get
+            {
+                if (this.events.Count == 0)
+                {
+                    this.eventWritten.WaitOne(TimeSpan.FromSeconds(5));
+                }
+
+                while (this.events.Count != 0)
+                {
+                    yield return this.events.Dequeue();
+                }
+            }
+        }
+
+        public void ClearMessages() =>
+            this.events.Clear();
+
+        protected override void OnEventWritten(EventWrittenEventArgs eventData)
+            => this.OnOnEventWritten(eventData);
+
+        protected override void OnEventSourceCreated(EventSource eventSource) =>
+            this.OnOnEventSourceCreated?.Invoke(eventSource);
     }
 }

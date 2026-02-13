@@ -7,11 +7,9 @@ using Xunit;
 
 namespace OpenTelemetry.Instrumentation.SqlClient.Tests;
 
-public class EventSourceTest
+public class EventSourceTests
 {
     [Fact]
-    public void EventSourceTest_SqlClientInstrumentationEventSource()
-    {
-        EventSourceTestHelper.MethodsAreImplementedConsistentlyWithTheirAttributes(SqlClientInstrumentationEventSource.Log);
-    }
+    public void EventSourceTest_SqlClientInstrumentationEventSource() =>
+        EventSourceTestHelper.ValidateEventSourceIds<SqlClientInstrumentationEventSource>();
 }

@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
     <TargetFrameworks>$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <Description>Unit test project for ASP.NET HttpModule.</Description>
   </PropertyGroup>
@@ -26,6 +25,10 @@
     <EmbeddedResource Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule\web.config.uninstall.xdt">
       <Link>Resources\web.config.uninstall.xdt</Link>
     </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="$(RepoRoot)\test\Shared\EventSourceTestHelper.cs" Link="Includes\EventSourceTestHelper.cs" />
   </ItemGroup>
 
 </Project>
