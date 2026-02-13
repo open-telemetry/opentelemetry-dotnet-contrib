@@ -31,6 +31,8 @@ Intel Core i7-9700 CPU 3.00GHz, 1 CPU, 8 logical and 8 physical cores
 
 namespace OpenTelemetry.Exporter.Geneva.Benchmarks;
 
+#pragma warning disable CA1873
+
 [MemoryDiagnoser]
 public class LogExporterBenchmarks
 {
@@ -91,9 +93,7 @@ public class LogExporterBenchmarks
 
     [Benchmark]
     public void LoggerWithMessageTemplate()
-    {
-        this.logger.LogInformation("Hello from {Food} {Price}.", "artichoke", 3.99);
-    }
+        => this.logger.LogInformation("Hello from {Food} {Price}.", "artichoke", 3.99);
 
     [Benchmark]
     public void LoggerWithDirectLoggerAPI()
@@ -114,21 +114,15 @@ public class LogExporterBenchmarks
 
     [Benchmark]
     public void LoggerWithSourceGenerator()
-    {
-        Food.SayHello(this.logger, "artichoke", 3.99);
-    }
+        => Food.SayHello(this.logger, "artichoke", 3.99);
 
     [Benchmark]
     public void SerializeLogRecord()
-    {
-        this.exporter.SerializeLogRecord(this.logRecord);
-    }
+        => this.exporter.SerializeLogRecord(this.logRecord);
 
     [Benchmark]
     public void Export()
-    {
-        this.exporter.Export(this.batch);
-    }
+        => this.exporter.Export(this.batch);
 
     [GlobalCleanup]
     public void Cleanup()

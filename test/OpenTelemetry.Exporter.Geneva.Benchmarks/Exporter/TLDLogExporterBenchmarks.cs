@@ -27,6 +27,8 @@ Intel Core i7-9700 CPU 3.00GHz, 1 CPU, 8 logical and 8 physical cores
 
 namespace OpenTelemetry.Exporter.Geneva.Benchmarks;
 
+#pragma warning disable CA1873
+
 [MemoryDiagnoser]
 public class TLDLogExporterBenchmarks
 {
@@ -83,27 +85,19 @@ public class TLDLogExporterBenchmarks
 
     [Benchmark]
     public void MsgPack_SerializeLogRecord()
-    {
-        this.msgPackExporter.SerializeLogRecord(this.logRecord);
-    }
+        => this.msgPackExporter.SerializeLogRecord(this.logRecord);
 
     [Benchmark]
     public void TLD_SerializeLogRecord()
-    {
-        this.tldExporter.SerializeLogRecord(this.logRecord);
-    }
+        => this.tldExporter.SerializeLogRecord(this.logRecord);
 
     [Benchmark]
     public void MsgPack_ExportLogRecord()
-    {
-        this.msgPackExporter.Export(this.batch);
-    }
+        => this.msgPackExporter.Export(this.batch);
 
     [Benchmark]
     public void TLD_ExportLogRecord()
-    {
-        this.tldExporter.Export(this.batch);
-    }
+        => this.tldExporter.Export(this.batch);
 
     [GlobalCleanup]
     public void Cleanup()
