@@ -9,8 +9,6 @@ namespace OpenTelemetry.PersistentStorage.Abstractions.Tests;
 public class EventSourceTests
 {
     [Fact]
-    public void EventSourceTest_PersistentStorageEventSource()
-    {
-        EventSourceTestHelper.MethodsAreImplementedConsistentlyWithTheirAttributes(PersistentStorageAbstractionsEventSource.Log);
-    }
+    public void EventSourceTests_PersistentStorageAbstractionsEventSource() =>
+        EventSourceTestHelper.ValidateEventSourceIds<PersistentStorageAbstractionsEventSource>();
 }

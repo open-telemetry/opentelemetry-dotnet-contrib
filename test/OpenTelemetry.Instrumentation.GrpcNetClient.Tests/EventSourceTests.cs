@@ -7,11 +7,9 @@ using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Grpc.Tests;
 
-public class EventSourceTest
+public class EventSourceTests
 {
     [Fact]
-    public void EventSourceTest_GrpcInstrumentationEventSource()
-    {
-        EventSourceTestHelper.MethodsAreImplementedConsistentlyWithTheirAttributes(GrpcInstrumentationEventSource.Log);
-    }
+    public void EventSourceTests_GrpcInstrumentationEventSource() =>
+        EventSourceTestHelper.ValidateEventSourceIds<GrpcInstrumentationEventSource>();
 }
