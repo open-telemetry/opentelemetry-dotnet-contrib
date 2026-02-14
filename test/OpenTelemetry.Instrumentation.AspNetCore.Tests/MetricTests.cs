@@ -40,7 +40,7 @@ public class MetricTests(WebApplicationFactory<Program> factory)
 
 #if NET
     [Fact]
-    public async Task ValidateNet8MetricsAsync()
+    public async Task ValidateNetMetricsAsync()
     {
         var exportedItems = new List<Metric>();
         this.meterProvider = Sdk.CreateMeterProviderBuilder()
@@ -102,7 +102,7 @@ public class MetricTests(WebApplicationFactory<Program> factory)
     }
 
     [Fact]
-    public async Task ValidateNet8RateLimitingMetricsAsync()
+    public async Task ValidateNetRateLimitingMetricsAsync()
     {
         var exportedItems = new List<Metric>();
 

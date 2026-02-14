@@ -86,8 +86,11 @@ public class ConnectionStringBuilderTests
         Assert.Equal(TransportProtocol.Unix, builder.Protocol);
         Assert.Equal("/var/run/default_fluent.socket", builder.ParseUnixDomainSocketPath());
 
+#if !NET11_0_OR_GREATER
+        // HACK Disabled due to https://github.com/dotnet/runtime/issues/124426
         builder = new ConnectionStringBuilder("Endpoint=unix://:11111");
         Assert.Throws<ArgumentException>(() => _ = builder.ParseUnixDomainSocketPath());
+#endif
 
         builder = new ConnectionStringBuilder("EtwSession=OpenTelemetry");
         Assert.Throws<ArgumentException>(() => _ = builder.ParseUnixDomainSocketPath());
@@ -147,8 +150,11 @@ public class ConnectionStringBuilderTests
         Assert.Throws<ArgumentException>(() => _ = builder.Port);
 
         builder = new ConnectionStringBuilder("Endpoint=udp://:11111");
+#if !NET11_0_OR_GREATER
+        // HACK Disabled due to https://github.com/dotnet/runtime/issues/124426
         Assert.Throws<ArgumentException>(() => _ = builder.Protocol);
         Assert.Throws<ArgumentException>(() => _ = builder.Host);
+#endif
         Assert.Throws<ArgumentException>(() => _ = builder.Port);
     }
 
@@ -174,7 +180,10 @@ public class ConnectionStringBuilderTests
 
         builder = new ConnectionStringBuilder("Endpoint=tpc://:11111");
         Assert.Throws<ArgumentException>(() => _ = builder.Protocol);
+#if !NET11_0_OR_GREATER
+        // HACK Disabled due to https://github.com/dotnet/runtime/issues/124426
         Assert.Throws<ArgumentException>(() => _ = builder.Host);
+#endif
         Assert.Throws<ArgumentException>(() => _ = builder.Port);
     }
 
