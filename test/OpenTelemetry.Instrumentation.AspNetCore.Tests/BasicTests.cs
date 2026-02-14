@@ -1115,7 +1115,7 @@ public sealed class BasicTests
         Assert.Equal(expectedUrlQuery, activity.GetTagValue(SemanticConventions.AttributeUrlQuery));
     }
 
-#if NET9_0_OR_GREATER
+#if NET
     [Fact]
     public async Task SignalRActivitesAreListenedTo()
     {
