@@ -623,6 +623,7 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-aws')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-confluentkafka')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-eventcounters')
+      || contains(needs.detect-changes.outputs.changes, 'instrumentation-grpccore')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-grpcnetclient')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-http')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-runtime')

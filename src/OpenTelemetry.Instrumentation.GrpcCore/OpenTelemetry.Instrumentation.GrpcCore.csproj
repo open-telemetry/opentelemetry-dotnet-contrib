@@ -14,7 +14,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Google.Protobuf" VersionOverride="[3.15.0,)" />
+    <PackageReference Include="Google.Protobuf" VersionOverride="[3.33.2,)" />
     <PackageReference Include="Grpc.Core.Api" />
     <PackageReference Include="OpenTelemetry.Api" />
   </ItemGroup>
