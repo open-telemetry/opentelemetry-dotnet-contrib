@@ -90,12 +90,12 @@ public class OneCollectorIntegrationTests
     [SkipUnlessEnvVarFoundFact(OneCollectorInstrumentationKeyEnvName)]
     public void LogWithDataIntegrationTest()
     {
-#pragma warning disable CA1873
+#pragma warning disable CA1873 // Avoid potentially expensive logging
         this.RunIntegrationTest(
             logger => logger.LogInformation("Hello world {StructuredData}", "Goodbye world"),
             out var succeeded,
             out var actualJson);
-#pragma warning restore CA1873
+#pragma warning restore CA1873 // Avoid potentially expensive logging
 
         Assert.True(succeeded);
         Assert.NotNull(actualJson);

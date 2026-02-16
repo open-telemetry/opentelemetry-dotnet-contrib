@@ -8,7 +8,7 @@ using Xunit;
 
 namespace OpenTelemetry.Extensions.Tests;
 
-#pragma warning disable CA1873
+#pragma warning disable CA1873 // Avoid potentially expensive logging
 
 public sealed class ActivityEventAttachingLogProcessorTests : IDisposable
 {

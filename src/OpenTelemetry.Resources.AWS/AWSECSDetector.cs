@@ -100,10 +100,10 @@ internal sealed partial class AWSECSDetector : IResourceDetector
         using var scope = SuppressInstrumentationScope.Begin();
         using var httpClientHandler = new HttpClientHandler();
 
-#pragma warning disable CA2025
+#pragma warning disable CA2025 // Do not pass 'IDisposable' instances into unawaited tasks
         var metadataV4ContainerResponse = AsyncHelper.RunSync(() => ResourceDetectorUtils.SendOutRequestAsync(metadataV4Url, HttpMethod.Get, null, httpClientHandler));
         var metadataV4TaskResponse = AsyncHelper.RunSync(() => ResourceDetectorUtils.SendOutRequestAsync($"{metadataV4Url.TrimEnd('/')}/task", HttpMethod.Get, null, httpClientHandler));
-#pragma warning restore CA2025
+#pragma warning restore CA2025 // Do not pass 'IDisposable' instances into unawaited tasks
 
         using var containerResponse = JsonDocument.Parse(metadataV4ContainerResponse);
         using var taskResponse = JsonDocument.Parse(metadataV4TaskResponse);

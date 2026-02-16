@@ -19,7 +19,7 @@ using Xunit;
 
 namespace OpenTelemetry.Exporter.Geneva.Tests;
 
-#pragma warning disable CA1873
+#pragma warning disable CA1873 // Avoid potentially expensive logging
 
 public class GenevaLogExporterTests
 {

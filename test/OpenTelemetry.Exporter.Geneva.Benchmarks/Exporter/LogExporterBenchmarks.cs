@@ -31,7 +31,7 @@ Intel Core i7-9700 CPU 3.00GHz, 1 CPU, 8 logical and 8 physical cores
 
 namespace OpenTelemetry.Exporter.Geneva.Benchmarks;
 
-#pragma warning disable CA1873
+#pragma warning disable CA1873 // Avoid potentially expensive logging
 
 [MemoryDiagnoser]
 public class LogExporterBenchmarks
