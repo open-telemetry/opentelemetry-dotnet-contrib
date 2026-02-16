@@ -97,14 +97,11 @@ public class RoutingTests(RoutingTestFixture fixture) : IClassFixture<RoutingTes
         Assert.Equal(testCase.ExpectedStatusCode, metricHttpStatusCode);
         Assert.Equal(testCase.HttpMethod, metricHttpMethod);
 
-#if !NET11_0_OR_GREATER
-        // TODO Update these tests for .NET 11
         // TODO: The CurrentHttpRoute property will go away. They only serve to capture status quo.
         // If CurrentHttpRoute is null, then that means we already conform to the correct behavior.
         var expectedHttpRoute = testCase.CurrentHttpRoute ?? testCase.ExpectedHttpRoute;
         var expectedMetricRoute = testCase.ExpectedMetricRoute ?? expectedHttpRoute;
         Assert.Equal(expectedMetricRoute, metricHttpRoute);
-#endif
 
         var testResult = new MetricRoutingTestResult(testCase)
         {
