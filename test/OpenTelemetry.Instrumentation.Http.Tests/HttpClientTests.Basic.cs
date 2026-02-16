@@ -430,7 +430,7 @@ public partial class HttpClientTests : IDisposable
         if (expectedOriginalMethod is not null and not "CUSTOM")
         {
             // HACK: THIS IS A HACK TO MAKE THE TEST PASS.
-            // TODO: THIS CAN BE REMOVED AFTER RUNTIME PATCHES NET9.
+            // TODO: THIS CAN BE REMOVED AFTER RUNTIME PATCHES NET 9+.
             // Currently Runtime is not following the OTel Spec for Http Spans: https://github.com/open-telemetry/semantic-conventions/blob/main/docs/http/http-spans.md#http-client
             // Currently "http.request.method_original" is not being set as expected.
             // Tracking issue: https://github.com/dotnet/runtime/issues/109847

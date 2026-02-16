@@ -4,7 +4,7 @@ Navigate to `./test/OpenTelemetry.Instrumentation.Http.Benchmarks` directory
 and run the following command:
 
 ```sh
-dotnet run -c Release -f net8.0 -- -m
+dotnet run -c Release -f net10.0 -- -m
 ``
 
 Then choose the benchmark class that you want to run by entering the required

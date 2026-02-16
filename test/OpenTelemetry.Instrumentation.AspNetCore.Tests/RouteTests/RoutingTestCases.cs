@@ -4,6 +4,7 @@
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Xunit;
 
 namespace RouteTests;
 
@@ -15,7 +16,7 @@ public static class RoutingTestCases
         Converters = { new JsonStringEnumConverter() },
     };
 
-    public static IEnumerable<object[]> GetTestCases()
+    public static TheoryData<TestCase> GetTestCases()
     {
         var assembly = Assembly.GetExecutingAssembly();
         var input = JsonSerializer.Deserialize<TestCase[]>(
@@ -24,9 +25,9 @@ public static class RoutingTestCases
         return GetArgumentsFromTestCaseObject(input!);
     }
 
-    private static List<object[]> GetArgumentsFromTestCaseObject(IEnumerable<TestCase> input)
+    private static TheoryData<TestCase> GetArgumentsFromTestCaseObject(IEnumerable<TestCase> input)
     {
-        var result = new List<object[]>();
+        var result = new TheoryData<TestCase>();
         var dotnetVersion = Environment.Version.Major;
 
         foreach (var testCase in input)
@@ -37,7 +38,7 @@ public static class RoutingTestCases
                 continue;
             }
 
-            result.Add([testCase]);
+            result.Add(testCase);
         }
 
         return result;

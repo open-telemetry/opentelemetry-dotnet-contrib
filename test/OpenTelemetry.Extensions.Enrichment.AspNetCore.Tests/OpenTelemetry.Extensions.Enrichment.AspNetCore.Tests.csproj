@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <!-- Target only supported net targets for AspNetCore (net8+, net9+) -->
+    <!-- Target only supported net targets for AspNetCore (.NET 8+) -->
     <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
     <Description>Unit test project for OpenTelemetry .NET SDK ASP.NET Core telemetry enrichment.</Description>
   </PropertyGroup>

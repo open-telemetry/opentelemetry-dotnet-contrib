@@ -193,7 +193,6 @@
   },
   {
     "name": "Action without parameter (MapGroup)",
-    "minimumDotnetVersion": 7,
     "testApplicationScenario": "MinimalApi",
     "httpMethod": "GET",
     "path": "/MinimalApiUsingMapGroup",
@@ -203,7 +202,6 @@
   },
   {
     "name": "Action with parameter (MapGroup)",
-    "minimumDotnetVersion": 7,
     "testApplicationScenario": "MinimalApi",
     "httpMethod": "GET",
     "path": "/MinimalApiUsingMapGroup/123",
