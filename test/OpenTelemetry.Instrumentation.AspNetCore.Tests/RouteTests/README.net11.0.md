@@ -1,6 +1,6 @@
 <!-- markdownlint-disable MD022 MD024 MD031 MD033 -->
 
-# Test results for ASP.NET Core 8
+# Test results for ASP.NET Core 11
 
 ## Tracing
 
@@ -72,7 +72,7 @@
     "HttpMethod": "GET",
     "Path": "/",
     "RoutePattern.RawText": "{controller=ConventionalRoute}/{action=Default}/{id?}",
-    "IRouteDiagnosticsMetadata.Route": "{controller=ConventionalRoute}/{action=Default}/{id?}",
+    "IRouteDiagnosticsMetadata.Route": "ConventionalRoute/Default/{id?}",
     "HttpContext.GetRouteData()": {
       "controller": "ConventionalRoute",
       "action": "Default"
@@ -101,7 +101,7 @@
     "HttpMethod": "GET",
     "Path": "/ConventionalRoute/ActionWithStringParameter/2?num=3",
     "RoutePattern.RawText": "{controller=ConventionalRoute}/{action=Default}/{id?}",
-    "IRouteDiagnosticsMetadata.Route": "{controller=ConventionalRoute}/{action=Default}/{id?}",
+    "IRouteDiagnosticsMetadata.Route": "ConventionalRoute/ActionWithStringParameter/{id?}",
     "HttpContext.GetRouteData()": {
       "controller": "ConventionalRoute",
       "action": "ActionWithStringParameter",
@@ -134,7 +134,7 @@
     "HttpMethod": "GET",
     "Path": "/ConventionalRoute/ActionWithStringParameter?num=3",
     "RoutePattern.RawText": "{controller=ConventionalRoute}/{action=Default}/{id?}",
-    "IRouteDiagnosticsMetadata.Route": "{controller=ConventionalRoute}/{action=Default}/{id?}",
+    "IRouteDiagnosticsMetadata.Route": "ConventionalRoute/ActionWithStringParameter/{id?}",
     "HttpContext.GetRouteData()": {
       "controller": "ConventionalRoute",
       "action": "ActionWithStringParameter"
@@ -236,7 +236,7 @@
     "HttpMethod": "GET",
     "Path": "/MyArea",
     "RoutePattern.RawText": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
-    "IRouteDiagnosticsMetadata.Route": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
+    "IRouteDiagnosticsMetadata.Route": "MyArea/ControllerForMyArea/Default/{id?}",
     "HttpContext.GetRouteData()": {
       "controller": "ControllerForMyArea",
       "action": "Default",
@@ -266,7 +266,7 @@
     "HttpMethod": "GET",
     "Path": "/MyArea/ControllerForMyArea/NonDefault",
     "RoutePattern.RawText": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
-    "IRouteDiagnosticsMetadata.Route": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
+    "IRouteDiagnosticsMetadata.Route": "MyArea/ControllerForMyArea/NonDefault/{id?}",
     "HttpContext.GetRouteData()": {
       "controller": "ControllerForMyArea",
       "area": "MyArea",
@@ -296,7 +296,7 @@
     "HttpMethod": "GET",
     "Path": "/SomePrefix",
     "RoutePattern.RawText": "SomePrefix/{controller=AnotherArea}/{action=Index}/{id?}",
-    "IRouteDiagnosticsMetadata.Route": "SomePrefix/{controller=AnotherArea}/{action=Index}/{id?}",
+    "IRouteDiagnosticsMetadata.Route": "SomePrefix/AnotherArea/Index/{id?}",
     "HttpContext.GetRouteData()": {
       "area": "AnotherArea",
       "controller": "AnotherArea",
@@ -480,7 +480,7 @@
     "HttpMethod": "GET",
     "Path": "/",
     "RoutePattern.RawText": "",
-    "IRouteDiagnosticsMetadata.Route": "",
+    "IRouteDiagnosticsMetadata.Route": "/",
     "HttpContext.GetRouteData()": {
       "page": "/Index"
     },
@@ -672,13 +672,13 @@
 
 ```json
 {
-  "MetricHttpRoute": "{controller=ConventionalRoute}/{action=Default}/{id?}",
+  "MetricHttpRoute": "ConventionalRoute/Default/{id?}",
   "IdealHttpRoute": "ConventionalRoute/Default/{id?}",
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/",
     "RoutePattern.RawText": "{controller=ConventionalRoute}/{action=Default}/{id?}",
-    "IRouteDiagnosticsMetadata.Route": "{controller=ConventionalRoute}/{action=Default}/{id?}",
+    "IRouteDiagnosticsMetadata.Route": "ConventionalRoute/Default/{id?}",
     "HttpContext.GetRouteData()": {
       "controller": "ConventionalRoute",
       "action": "Default"
@@ -700,13 +700,13 @@
 
 ```json
 {
-  "MetricHttpRoute": "{controller=ConventionalRoute}/{action=Default}/{id?}",
+  "MetricHttpRoute": "ConventionalRoute/ActionWithStringParameter/{id?}",
   "IdealHttpRoute": "ConventionalRoute/ActionWithStringParameter/{id?}",
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/ConventionalRoute/ActionWithStringParameter/2?num=3",
     "RoutePattern.RawText": "{controller=ConventionalRoute}/{action=Default}/{id?}",
-    "IRouteDiagnosticsMetadata.Route": "{controller=ConventionalRoute}/{action=Default}/{id?}",
+    "IRouteDiagnosticsMetadata.Route": "ConventionalRoute/ActionWithStringParameter/{id?}",
     "HttpContext.GetRouteData()": {
       "controller": "ConventionalRoute",
       "action": "ActionWithStringParameter",
@@ -732,13 +732,13 @@
 
 ```json
 {
-  "MetricHttpRoute": "{controller=ConventionalRoute}/{action=Default}/{id?}",
+  "MetricHttpRoute": "ConventionalRoute/ActionWithStringParameter/{id?}",
   "IdealHttpRoute": "ConventionalRoute/ActionWithStringParameter/{id?}",
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/ConventionalRoute/ActionWithStringParameter?num=3",
     "RoutePattern.RawText": "{controller=ConventionalRoute}/{action=Default}/{id?}",
-    "IRouteDiagnosticsMetadata.Route": "{controller=ConventionalRoute}/{action=Default}/{id?}",
+    "IRouteDiagnosticsMetadata.Route": "ConventionalRoute/ActionWithStringParameter/{id?}",
     "HttpContext.GetRouteData()": {
       "controller": "ConventionalRoute",
       "action": "ActionWithStringParameter"
@@ -830,13 +830,13 @@
 
 ```json
 {
-  "MetricHttpRoute": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
+  "MetricHttpRoute": "MyArea/ControllerForMyArea/Default/{id?}",
   "IdealHttpRoute": "{area:exists}/ControllerForMyArea/Default/{id?}",
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/MyArea",
     "RoutePattern.RawText": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
-    "IRouteDiagnosticsMetadata.Route": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
+    "IRouteDiagnosticsMetadata.Route": "MyArea/ControllerForMyArea/Default/{id?}",
     "HttpContext.GetRouteData()": {
       "controller": "ControllerForMyArea",
       "action": "Default",
@@ -859,13 +859,13 @@
 
 ```json
 {
-  "MetricHttpRoute": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
+  "MetricHttpRoute": "MyArea/ControllerForMyArea/NonDefault/{id?}",
   "IdealHttpRoute": "{area:exists}/ControllerForMyArea/NonDefault/{id?}",
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/MyArea/ControllerForMyArea/NonDefault",
     "RoutePattern.RawText": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
-    "IRouteDiagnosticsMetadata.Route": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
+    "IRouteDiagnosticsMetadata.Route": "MyArea/ControllerForMyArea/NonDefault/{id?}",
     "HttpContext.GetRouteData()": {
       "controller": "ControllerForMyArea",
       "area": "MyArea",
@@ -888,13 +888,13 @@
 
 ```json
 {
-  "MetricHttpRoute": "SomePrefix/{controller=AnotherArea}/{action=Index}/{id?}",
+  "MetricHttpRoute": "SomePrefix/AnotherArea/Index/{id?}",
   "IdealHttpRoute": "SomePrefix/AnotherArea/Index/{id?}",
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/SomePrefix",
     "RoutePattern.RawText": "SomePrefix/{controller=AnotherArea}/{action=Index}/{id?}",
-    "IRouteDiagnosticsMetadata.Route": "SomePrefix/{controller=AnotherArea}/{action=Index}/{id?}",
+    "IRouteDiagnosticsMetadata.Route": "SomePrefix/AnotherArea/Index/{id?}",
     "HttpContext.GetRouteData()": {
       "area": "AnotherArea",
       "controller": "AnotherArea",
@@ -1066,13 +1066,13 @@
 
 ```json
 {
-  "MetricHttpRoute": "",
+  "MetricHttpRoute": "/",
   "IdealHttpRoute": "/Index",
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/",
     "RoutePattern.RawText": "",
-    "IRouteDiagnosticsMetadata.Route": "",
+    "IRouteDiagnosticsMetadata.Route": "/",
     "HttpContext.GetRouteData()": {
       "page": "/Index"
     },

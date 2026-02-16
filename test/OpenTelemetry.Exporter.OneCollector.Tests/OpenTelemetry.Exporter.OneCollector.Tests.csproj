@@ -23,9 +23,4 @@
     <Compile Include="$(RepoRoot)\test\Shared\TestHttpServer.cs" Link="Includes\TestHttpServer.cs" />
   </ItemGroup>
 
-  <!-- Resolve version conflict caused by OneCollector not targeting net9.0 -->
-  <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
-    <PackageReference Include="Microsoft.Extensions.Logging.Configuration" VersionOverride="9.0.13" />
-  </ItemGroup>
-
 </Project>

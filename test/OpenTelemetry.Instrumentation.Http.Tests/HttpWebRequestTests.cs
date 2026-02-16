@@ -110,7 +110,7 @@ public partial class HttpWebRequestTests
                 Assert.Fail($"Tag {tag.Key} was not found in test data.");
             }
 
-#if NET9_0_OR_GREATER
+#if NET
             // TODO: NEED TO REVIEW THE SPEC
             // NET 9+ does not record the URL Fragment Identifier.
             if (value.EndsWith("#fragment", StringComparison.Ordinal))

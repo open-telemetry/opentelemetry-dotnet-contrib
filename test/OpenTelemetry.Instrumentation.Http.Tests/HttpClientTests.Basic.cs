@@ -426,11 +426,11 @@ public partial class HttpClientTests : IDisposable
 
         Assert.Equal(expectedMethod, activity.GetTagValue(SemanticConventions.AttributeHttpRequestMethod));
 
-#if NET9_0_OR_GREATER
+#if NET
         if (expectedOriginalMethod is not null and not "CUSTOM")
         {
             // HACK: THIS IS A HACK TO MAKE THE TEST PASS.
-            // TODO: THIS CAN BE REMOVED AFTER RUNTIME PATCHES NET 9+.
+            // TODO: THIS CAN BE REMOVED AFTER RUNTIME PATCHES NET 10+.
             // Currently Runtime is not following the OTel Spec for Http Spans: https://github.com/open-telemetry/semantic-conventions/blob/main/docs/http/http-spans.md#http-client
             // Currently "http.request.method_original" is not being set as expected.
             // Tracking issue: https://github.com/dotnet/runtime/issues/109847
@@ -746,7 +746,7 @@ public partial class HttpClientTests : IDisposable
 
         var expectedUrl = $"{this.url}path{expectedUrlQuery}";
 
-#if NET9_0_OR_GREATER
+#if NET
         // In .NET 9+ URIs are redacted by default. We could disable it with the
         // System.Net.Http.DisableUriRedaction=true AppContext switch, but as that
         // is process-wide it affects other tests. Instead, we adjust our expectations
