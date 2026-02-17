@@ -7,6 +7,8 @@ using Microsoft.Extensions.Logging;
 
 namespace OpenTelemetry.Instrumentation.Grpc.Services.Tests;
 
+#pragma warning disable CA1873 // Avoid potentially expensive logging
+
 internal class GreeterService : Greeter.GreeterBase
 {
     private readonly ILogger logger;

@@ -10,6 +10,7 @@ namespace OpenTelemetry.Resources.Host.Tests;
 
 public class HostDetectorTests
 {
+#if !NETFRAMEWORK
     private const string MacOSMachineIdOutput = @"+-o J293AP  <class IOPlatformExpertDevice, id 0x100000227, registered, matched,$
         {
           ""IOPolledInterface"" = ""AppleARMWatchdogTimerHibernateHandler is not seria$
@@ -38,6 +39,7 @@ public class HostDetectorTests
           ""#size-cells"" = <02000000>
           ""IOPlatformUUID"" = ""1AB2345C-03E4-57D4-A375-1234D48DE123""
         }";
+#endif
 
 #if NET
     private static readonly IEnumerable<string> ETCMACHINEID = ["Samples/etc_machineid"];
@@ -118,7 +120,6 @@ public class HostDetectorTests
         Assert.NotEmpty(resourceAttributes[HostSemanticConventions.AttributeHostId]);
         Assert.Equal("1AB2345C-03E4-57D4-A375-1234D48DE123", resourceAttributes[HostSemanticConventions.AttributeHostId]);
     }
-#endif
 
     [Fact]
     public void TestParseMacOsOutput()
@@ -126,6 +127,7 @@ public class HostDetectorTests
         var id = HostDetector.ParseMacOsOutput(MacOSMachineIdOutput);
         Assert.Equal("1AB2345C-03E4-57D4-A375-1234D48DE123", id);
     }
+#endif
 
     [Fact]
     public void TestHostMachineIdWindows()
@@ -133,7 +135,7 @@ public class HostDetectorTests
 #if NET
         var detector = new HostDetector(osPlatform => osPlatform == OSPlatform.Windows, () => [], () => throw new Exception("should not be called"), () => "windows-machine-id");
 #else
-        var detector = new HostDetector(() => [], () => throw new Exception("should not be called"), () => "windows-machine-id");
+        var detector = new HostDetector(() => "windows-machine-id");
 #endif
 
         var resource = ResourceBuilder.CreateEmpty().AddDetector(detector).Build();

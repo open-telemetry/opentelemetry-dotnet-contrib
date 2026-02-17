@@ -4,7 +4,6 @@
 #nullable disable
 
 using System.Net.Sockets;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Context;
@@ -102,9 +101,11 @@ public class GenevaLogExporterAFDCorrelationTests
                         // This thread sets AFDCorrelationId before logging
                         var expectedCorrelationId = $"CorrelationId-{threadIndex}";
                         OpenTelemetryContext.SetAFDCorrelationId(expectedCorrelationId);
+#pragma warning disable CA1873 // Avoid potentially expensive logging
 #pragma warning disable CA2254 // Template should be a static expression
                         logger.LogInformation($"Thread {threadIndex} with correlation ID");
 #pragma warning restore CA2254 // Template should be a static expression
+#pragma warning restore CA1873 // Avoid potentially expensive logging
                         lock (syncObj)
                         {
                             countWithCorrelationId++;
@@ -113,9 +114,11 @@ public class GenevaLogExporterAFDCorrelationTests
                     }
                     else
                     {
+#pragma warning disable CA1873 // Avoid potentially expensive logging
 #pragma warning disable CA2254 // Template should be a static expression
                         logger.LogInformation($"Thread {threadIndex} without correlation ID");
 #pragma warning restore CA2254 // Template should be a static expression
+#pragma warning restore CA1873 // Avoid potentially expensive logging
                         lock (syncObj)
                         {
                             countWithoutCorrelationId++;
@@ -297,11 +300,13 @@ public class GenevaLogExporterAFDCorrelationTests
             }
 
             List<ArraySegment<byte>> exportedData = [];
-            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = (data) => exportedData.Add(data);
+            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = exportedData.Add;
 
             // Emit a LogRecord and grab a copy of internal buffer for validation.
             var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
+#pragma warning disable CA1873 // Avoid potentially expensive logging
             logger.LogInformation("Hello from {Food} {Price}.", "artichoke", 3.99);
+#pragma warning restore CA1873// Avoid potentially expensive logging
             loggerFactory.Dispose();
 
             Assert.Single(exportedData);
@@ -325,16 +330,6 @@ public class GenevaLogExporterAFDCorrelationTests
             catch
             {
             }
-        }
-    }
-
-    private static void ClearRunTimeContext()
-    {
-        var type = typeof(RuntimeContext);
-        var method = type.GetMethod("Clear", BindingFlags.Static | BindingFlags.NonPublic);
-        if (method != null)
-        {
-            method.Invoke(null, null);
         }
     }
 

@@ -8,7 +8,9 @@ namespace OpenTelemetry.Tests;
 /// <summary>
 /// Event listener for testing event sources.
 /// </summary>
-internal class TestEventListener : EventListener
+#pragma warning disable CA1812
+internal sealed class TestEventListener : EventListener
+#pragma warning restore CA1812
 {
     /// <summary>A queue of events that have been logged.</summary>
     private readonly Queue<EventWrittenEventArgs> events;
@@ -58,17 +60,13 @@ internal class TestEventListener : EventListener
     /// <summary>
     /// Clears all event messages so that testing can assert expected counts.
     /// </summary>
-    public void ClearMessages()
-    {
+    public void ClearMessages() =>
         this.events.Clear();
-    }
 
     /// <summary>Handler for event source writes.</summary>
     /// <param name="eventData">The event data that was written.</param>
-    protected override void OnEventWritten(EventWrittenEventArgs eventData)
-    {
+    protected override void OnEventWritten(EventWrittenEventArgs eventData) =>
         this.OnOnEventWritten(eventData);
-    }
 
     /// <summary>Handler for event source creation.</summary>
     /// <param name="eventSource">The event source that was created.</param>

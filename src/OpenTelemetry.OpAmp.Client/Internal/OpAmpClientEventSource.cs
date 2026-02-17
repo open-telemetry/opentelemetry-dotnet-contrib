@@ -7,7 +7,7 @@ using OpenTelemetry.Internal;
 namespace OpenTelemetry.OpAmp.Client.Internal;
 
 [EventSource(Name = "OpenTelemetry-OpAmp-Client")]
-internal class OpAmpClientEventSource : EventSource
+internal sealed class OpAmpClientEventSource : EventSource
 {
     public static OpAmpClientEventSource Log = new();
 

@@ -13,4 +13,8 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="$(RepoRoot)\test\Shared\EventSourceTestHelper.cs" Link="Includes\EventSourceTestHelper.cs" />
+  </ItemGroup>
+
 </Project>

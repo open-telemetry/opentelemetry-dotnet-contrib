@@ -16,8 +16,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="$(RepoRoot)\test\Shared\TestHttpServer.cs" Link="Includes\TestHttpServer.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\IsExternalInit.cs" Link="Includes\IsExternalInit.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\EventSourceTestHelper.cs" Link="Includes\EventSourceTestHelper.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\TestHttpServer.cs" Link="Includes\TestHttpServer.cs" />
   </ItemGroup>
 
 </Project>
