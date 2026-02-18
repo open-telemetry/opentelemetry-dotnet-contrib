@@ -3,7 +3,7 @@
 ## Unreleased
 
 * Improve multithreaded reliability of Geneva exporter.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#3881](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3881))
 
 ## 1.15.0
 
