@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #if NET
-using System.Collections.Concurrent;
 using System.Collections.Frozen;
 #endif
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
