@@ -9,7 +9,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation;
 
 public class AWSLambdaResourceDetectorTests : IDisposable
 {
-    private const string SymlinkPath = "/tmp/.otel-account-id";
+    private const string SymlinkPath = "/tmp/.otel-aws-account-id";
 
     public AWSLambdaResourceDetectorTests()
     {

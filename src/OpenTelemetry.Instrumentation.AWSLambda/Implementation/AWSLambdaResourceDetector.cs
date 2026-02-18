@@ -9,7 +9,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 internal sealed class AWSLambdaResourceDetector : IResourceDetector
 {
 #if NET
-    private const string AccountIdSymlinkPath = "/tmp/.otel-account-id";
+    private const string AccountIdSymlinkPath = "/tmp/.otel-aws-account-id";
 #endif
 
     private readonly AWSSemanticConventions semanticConventionBuilder;
