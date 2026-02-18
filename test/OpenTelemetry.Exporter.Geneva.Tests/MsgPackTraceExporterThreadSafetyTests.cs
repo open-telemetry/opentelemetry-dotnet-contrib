@@ -57,7 +57,7 @@ public class MsgPackTraceExporterThreadSafetyTests
 
         // Provide resource attributes including service.name and service.instanceId
         // These get auto-mapped to cloud.role / cloud.roleInstance in CreateFraming,
-        // adding entries to prepopulatedFields — which is the core of the race.
+        // adding entries to prepopulatedFields - which is the core of the race.
         var resourceAttributes = new Dictionary<string, object>
         {
             { "service.name", "TestService" },
@@ -163,7 +163,7 @@ public class MsgPackTraceExporterThreadSafetyTests
                         {
                             throw new InvalidOperationException(
                                 $"Thread {threadIndex}, iteration {i}: Serialized data is not valid MessagePack / Fluentd format. " +
-                                $"This indicates a race condition in CreateFraming() — the Map16 field count at mapSizePatchIndex " +
+                                $"This indicates a race condition in CreateFraming() - the Map16 field count at mapSizePatchIndex " +
                                 $"is out of sync with actual serialized content.",
                                 ex);
                         }
@@ -193,7 +193,7 @@ public class MsgPackTraceExporterThreadSafetyTests
         {
             throw new AggregateException(
                 $"Thread-safety test failed with {exceptions.Count} error(s). " +
-                "This demonstrates the race condition in MsgPackTraceExporter.CreateFraming() — " +
+                "This demonstrates the race condition in MsgPackTraceExporter.CreateFraming() - " +
                 "concurrent calls mutate shared state (prepopulatedFields, bufferPrologue, " +
                 "mapSizePatchIndex) without synchronization, corrupting the MessagePack output.",
                 exceptions);
@@ -329,7 +329,7 @@ public class MsgPackTraceExporterThreadSafetyTests
 
                     var serialized = exporter.SerializeActivity(activity);
 
-                    // Read the mapSizePatchIndex — after CreateFraming runs, this field
+                    // Read the mapSizePatchIndex - after CreateFraming runs, this field
                     // points to where the Map16 size was written. We need the *current*
                     // value since CreateFraming may have changed it.
                     var currentPatchIndex = (int)exporter.GetType()
