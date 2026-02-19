@@ -9,13 +9,15 @@
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.Remoting)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Remoting)
 [![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Instrumentation.Remoting)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Instrumentation.Remoting)
 
-This is an instrumentation library, which instruments [.NET Remoting](https://docs.microsoft.com/previous-versions/dotnet/netframework-3.0/72x4h507(v=vs.85))
+This is an [Instrumentation
+Library](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/glossary.md#instrumentation-library),
+which instruments [.NET Remoting](https://docs.microsoft.com/previous-versions/dotnet/netframework-3.0/72x4h507(v=vs.85))
 and collects telemetry about incoming and outgoing requests on client
 and server objects.
 
 .NET Remoting is a [legacy technology](https://docs.microsoft.com/previous-versions/dotnet/netframework-3.0/kwdt6w2k(v=vs.85))
 that shouldn't be used for new .NET applications and [doesn't exist](https://docs.microsoft.com/dotnet/core/porting/net-framework-tech-unavailable#remoting)
-in .NET Core at all. However, if you do have a legacy application you are
+in .NET 6 and later versions. However, if you do have a legacy application you are
 looking to instrument, consider using this package.
 
 ## Installation
@@ -36,7 +38,7 @@ server code.
 
 The following example demonstrates adding .NET Framework remoting instrumentation to a
 client console application. This example also sets up the OpenTelemetry Console
-exporter, which requires adding the package [`OpenTelemetry.Exporter.Console`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/master/src/OpenTelemetry.Exporter.Console/README.md)
+exporter, which requires adding the [`OpenTelemetry.Exporter.Console`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Console/README.md) package
 to the project.
 
 ```csharp
@@ -99,9 +101,9 @@ namespace ServerAspNet
 }
 ```
 
-Additionally, when using [http channel](https://docs.microsoft.com/dotnet/api/system.runtime.remoting.channels.http.httpchannel?view=netframework-4.8)
-for remoting, consider registering [`OpenTelemetry.Instrumentation.Http`](https://github.com/open-telemetry/opentelemetry-dotnet/tree/master/src/OpenTelemetry.Instrumentation.Http)
-on the client and [`OpenTelemetry.Instrumentation.AspNet`](https://github.com/open-telemetry/opentelemetry-dotnet/tree/master/src/OpenTelemetry.Instrumentation.AspNet)
+Additionally, when using [`HttpChannel`](https://docs.microsoft.com/dotnet/api/system.runtime.remoting.channels.http.httpchannel)
+for remoting, consider registering [`OpenTelemetry.Instrumentation.Http`](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/tree/main/src/OpenTelemetry.Instrumentation.Http)
+on the client and [`OpenTelemetry.Instrumentation.AspNet`](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/tree/main/src/OpenTelemetry.Instrumentation.AspNet)
 on the server.
 
 ## Filtering
@@ -113,12 +115,12 @@ specific remote objects, you can use a `Filter` like below:
 ```csharp
 var tracerProvider = Sdk.CreateTracerProviderBuilder()
     .AddRemotingInstrumentation(options =>
-        options.Filter = msg =>
+        options.Filter = message =>
         {
             // Only capture calls to and from "RemoteObject"
-            if (msg is IMethodMessage methodMsg)
+            if (message is IMethodMessage methodMessage)
             {
-                return methodMsg.TypeName.Contains("RemoteObject");
+                return methodMessage.TypeName.Contains("RemoteObject");
             }
 
             return false;
@@ -126,14 +128,14 @@ var tracerProvider = Sdk.CreateTracerProviderBuilder()
     .Build()
 ```
 
-The `Filter` takes an [`IMessage`](https://docs.microsoft.com/dotnet/api/system.runtime.remoting.messaging.imessage?view=netframework-4.8)
-and returns true or false. You can inspect the message to decide if you
+The `Filter` takes an [`IMessage`](https://docs.microsoft.com/dotnet/api/system.runtime.remoting.messaging.imessage)
+and returns a boolean. You can inspect the message to decide if you
 want to instrument it or not.
 
 ## Implementation Details
 
-The instrumentation is implemented via custom [`IDynamicMessageSink`](https://docs.microsoft.com/dotnet/api/system.runtime.remoting.contexts.idynamicmessagesink?view=netframework-4.8),
-that is registered on the current `AppDomain` when you call
+The instrumentation is implemented via  custom [`IDynamicMessageSink`](https://docs.microsoft.com/dotnet/api/system.runtime.remoting.contexts.idynamicmessagesink) implementation,
+that is registered in the current `AppDomain` when you call
 `AddRemotingInstrumentation` and unregistered when the constructed
 `TracerProvider` is disposed.
 
