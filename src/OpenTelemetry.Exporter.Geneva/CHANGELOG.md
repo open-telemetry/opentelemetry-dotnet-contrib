@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.15.1
+
+Released 2026-Feb-18
+
 * Fixed race condition in `MsgPackTraceExporter` where concurrent threads
   calling `SerializeActivity` would corrupt the `prepopulatedFields` dictionary,
   leading to "Bad forward protocol format" errors.
