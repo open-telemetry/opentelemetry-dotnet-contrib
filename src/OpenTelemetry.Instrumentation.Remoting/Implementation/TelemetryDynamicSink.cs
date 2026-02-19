@@ -214,7 +214,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
                     if (returnMsg.Exception == null)
                     {
                         // Default to "Unset" status as per spec:
-                        // https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/trace/api.md#status
+                        // https://github.com/open-telemetry/opentelemetry-specification/blob/fc2e1a9ef6472ea8ccbc71d9bff748211a3f5001/specification/trace/api.md#status
                         activity.SetStatus(ActivityStatusCode.Unset);
                     }
                     else
