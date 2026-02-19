@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## 1.15.1
+
+Released 2026-Feb-18
+
+* Fixed race condition in `MsgPackTraceExporter` where concurrent threads
+  calling `SerializeActivity` would corrupt the `prepopulatedFields` dictionary,
+  leading to "Bad forward protocol format" errors.
+  ([#3881](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3881))
+
 ## 1.15.0
 
 Released 2026-Jan-21

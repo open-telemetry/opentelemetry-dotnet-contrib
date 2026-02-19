@@ -1,0 +1,195 @@
+// Copyright The OpenTelemetry Authors
+// SPDX-License-Identifier: Apache-2.0
+
+#nullable disable
+
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using OpenTelemetry.Exporter.Geneva.MsgPack;
+using OpenTelemetry.Resources;
+using Xunit;
+
+namespace OpenTelemetry.Exporter.Geneva.Tests;
+
+/// <summary>
+/// This test suite runs various multi-threaded tests to test for potential race conditions
+/// associated with multi-threaded execution of the trace exporter.
+/// For example, the one introduced in PR #3214.
+/// </summary>
+public class MsgPackTraceExporterThreadSafetyTests
+{
+    [Fact]
+    public void SerializeActivity_ConcurrentThreads_ProducesValidMsgPack()
+    {
+        var exporterOptions = new GenevaExporterOptions();
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+        }
+        else
+        {
+            var path = GetRandomFilePath();
+            exporterOptions.ConnectionString = "Endpoint=unix:" + path;
+        }
+
+        // Provide resource attributes including service.name and service.instanceId
+        // These get auto-mapped to cloud.role / cloud.roleInstance.
+        var resourceAttributes = new Dictionary<string, object>
+        {
+            { "service.name", "TestService" },
+            { "service.instanceId", "Instance123" },
+        };
+        var resource = new Resource(resourceAttributes);
+
+        using var exporter = new MsgPackTraceExporter(exporterOptions, () => resource);
+
+        const int threadCount = 8;
+        const int iterationsPerThread = 50;
+        var barrier = new Barrier(threadCount);
+        Exception exception = null;
+
+        // Create a real activity to serialize
+        var sourceName = GetTestMethodName();
+        using var activitySource = new ActivitySource(sourceName);
+        using var listener = new ActivityListener
+        {
+            ShouldListenTo = (activitySource) => activitySource.Name == sourceName,
+            Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded,
+        };
+        ActivitySource.AddActivityListener(listener);
+
+        var threads = new Thread[threadCount];
+        for (int t = 0; t < threadCount; t++)
+        {
+            var threadIndex = t;
+            threads[t] = new Thread(() =>
+            {
+                try
+                {
+                    // Wait for all threads to be ready, maximizing contention on CreateFraming
+                    barrier.SignalAndWait();
+
+                    for (int i = 0; i < iterationsPerThread; i++)
+                    {
+                        using var activity = activitySource.StartActivity($"Op-T{threadIndex}-I{i}", ActivityKind.Internal);
+                        if (activity == null)
+                        {
+                            continue;
+                        }
+
+                        activity.SetTag("thread", threadIndex);
+                        activity.SetTag("iteration", i);
+
+                        var serialized = exporter.SerializeActivity(activity);
+
+                        // Validate: the serialized data must be valid MessagePack
+                        // representing a proper Fluentd Forward Mode message.
+                        try
+                        {
+                            var data = new byte[serialized.Count];
+                            Array.Copy(serialized.Array!, serialized.Offset, data, 0, serialized.Count);
+
+                            var msgPackReader = new MessagePack.MessagePackReader(data);
+
+                            var deserialized = MessagePack.MessagePackSerializer.Deserialize<object>(
+                                ref msgPackReader,
+                                MessagePack.Resolvers.ContractlessStandardResolver.Options);
+
+                            Assert.True(msgPackReader.End);
+                            Assert.Equal(data.Length, msgPackReader.Consumed);
+
+                            // Verify the Fluentd Forward Mode structure:
+                            // [ "Span", [ [<timestamp>, { map }] ], { "TimeFormat": "DateTime" } ]
+                            var outerArray = deserialized as object[];
+                            Assert.NotNull(outerArray);
+                            Assert.Equal(3, outerArray.Length);
+                            Assert.Equal("Span", outerArray[0] as string);
+
+                            var innerArray = outerArray[1] as object[];
+                            Assert.NotNull(innerArray);
+                            Assert.Single(innerArray);
+
+                            var timestampAndMapping = innerArray[0] as object[];
+                            Assert.NotNull(timestampAndMapping);
+                            Assert.Equal(2, timestampAndMapping.Length);
+
+                            var mapping = timestampAndMapping[1] as Dictionary<object, object>;
+                            Assert.NotNull(mapping);
+
+                            // Verify essential fields are present and correct
+                            Assert.Contains("env_name", mapping.Keys);
+                            Assert.Contains("env_ver", mapping.Keys);
+                            Assert.Contains("env_time", mapping.Keys);
+                            Assert.Contains("env_dt_traceId", mapping.Keys);
+                            Assert.Contains("env_dt_spanId", mapping.Keys);
+                            Assert.Contains("name", mapping.Keys);
+                            Assert.Contains("kind", mapping.Keys);
+
+                            // Verify resource-derived fields
+                            Assert.Contains("env_cloud_role", mapping.Keys);
+                            Assert.Equal("TestService", mapping["env_cloud_role"]);
+                            Assert.Contains("env_cloud_roleInstance", mapping.Keys);
+                            Assert.Equal("Instance123", mapping["env_cloud_roleInstance"]);
+
+                            // Verify span fields
+                            Assert.Contains("thread", mapping.Keys);
+                            Assert.Equal(threadIndex, Convert.ToInt32(mapping["thread"]));
+                            Assert.Contains("iteration", mapping.Keys);
+                            Assert.Equal(i, Convert.ToInt32(mapping["iteration"]));
+
+                            Assert.Equal(13, mapping.Count);
+
+                            // Verify the epilogue
+                            var epilogue = outerArray[2] as Dictionary<object, object>;
+                            Assert.NotNull(epilogue);
+                            Assert.Equal("DateTime", epilogue["TimeFormat"]);
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new InvalidOperationException(
+                                $"Thread {threadIndex}, iteration {i}: Serialized data is not valid MessagePack / Fluentd format. ",
+                                ex);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    exception = ex;
+                }
+            })
+            {
+                IsBackground = true,
+            };
+        }
+
+        foreach (var thread in threads)
+        {
+            thread.Start();
+        }
+
+        foreach (var thread in threads)
+        {
+            Assert.True(thread.Join(TimeSpan.FromSeconds(30)));
+        }
+
+        if (exception != null)
+        {
+            throw exception;
+        }
+    }
+
+    private static string GetTestMethodName([CallerMemberName] string callingMethodName = "") => callingMethodName;
+
+    private static string GetRandomFilePath()
+    {
+        while (true)
+        {
+            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            if (!File.Exists(path))
+            {
+                return path;
+            }
+        }
+    }
+}
