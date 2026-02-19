@@ -10,6 +10,7 @@ internal sealed class RemotingInstrumentation : IDisposable
 {
     internal static int RegCount;
     private static readonly object LockObj = new();
+    private static TelemetryDynamicSinkProvider? provider;
 
     public RemotingInstrumentation(RemotingInstrumentationOptions options)
     {
@@ -22,8 +23,10 @@ internal sealed class RemotingInstrumentation : IDisposable
                 // See https://docs.microsoft.com/dotnet/api/system.runtime.remoting.contexts.context.registerdynamicproperty
                 // This will register our dynamic sink to listen to all calls leaving or entering
                 // current AppDomain.
+                provider = new TelemetryDynamicSinkProvider(options);
+
                 RemotingContext.RegisterDynamicProperty(
-                    new TelemetryDynamicSinkProvider(options),
+                    provider,
                     null,
                     RemotingContext.DefaultContext);
             }
@@ -46,6 +49,9 @@ internal sealed class RemotingInstrumentation : IDisposable
                     TelemetryDynamicSinkProvider.DynamicPropertyName,
                     null,
                     RemotingContext.DefaultContext);
+
+                provider?.Dispose();
+                provider = null;
             }
         }
     }
