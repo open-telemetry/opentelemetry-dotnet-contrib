@@ -90,19 +90,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
 
                 if (activity != null)
                 {
-                    if (activity.IsAllDataRequested && methodMsg != null)
-                    {
-                        SetPostCreationAttributes(activity, methodMsg);
-
-                        try
-                        {
-                            this.options.Enrich?.Invoke(activity, RemotingInstrumentationEnrichEventNames.OnMessageStart, methodMsg);
-                        }
-                        catch (Exception ex)
-                        {
-                            RemotingInstrumentationEventSource.Log.EnrichmentException(ex);
-                        }
-                    }
+                    this.SetPostCreationAttributes(activity, methodMsg);
 
                     contextToInject = activity.Context;
                 }
@@ -188,18 +176,9 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
                     // Current (better than creating a new "root" Remoting activity).
                 }
 
-                if (ourActivity != null && ourActivity.IsAllDataRequested && methodMsg != null)
+                if (ourActivity != null)
                 {
-                    SetPostCreationAttributes(ourActivity, methodMsg);
-
-                    try
-                    {
-                        this.options.Enrich?.Invoke(ourActivity, RemotingInstrumentationEnrichEventNames.OnMessageStart, methodMsg);
-                    }
-                    catch (Exception ex)
-                    {
-                        RemotingInstrumentationEventSource.Log.EnrichmentException(ex);
-                    }
+                    this.SetPostCreationAttributes(ourActivity, methodMsg);
                 }
             }
         }
@@ -275,7 +254,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
         }
     }
 
-    internal static ActivityTagsCollection BuildSamplingTags(IMethodMessage msg)
+    private static ActivityTagsCollection BuildSamplingTags(IMethodMessage msg)
     {
         string serviceName = GetServiceName(msg.TypeName);
         string methodName = msg.MethodName;
@@ -289,7 +268,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
 
         if (TryParseUri(msg.Uri, out string? host, out int? port))
         {
-            tags.Add(AttributeServerAddress, host!);
+            tags.Add(AttributeServerAddress, host);
             if (port.HasValue)
             {
                 tags.Add(AttributeServerPort, port.Value);
@@ -297,15 +276,6 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
         }
 
         return tags;
-    }
-
-    internal static void SetPostCreationAttributes(Activity activity, IMethodMessage msg)
-    {
-        string serviceName = GetServiceName(msg.TypeName);
-        string methodName = msg.MethodName;
-        string fullyQualifiedMethod = $"{serviceName}/{methodName}";
-
-        activity.DisplayName = fullyQualifiedMethod;
     }
 
     private static string GetServiceName(string typeName) =>
@@ -363,5 +333,28 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
         }
 
         return Enumerable.Empty<string>();
+    }
+
+    private void SetPostCreationAttributes(Activity activity, IMethodMessage? msg)
+    {
+        if (!activity.IsAllDataRequested || msg == null)
+        {
+            return;
+        }
+
+        string serviceName = GetServiceName(msg.TypeName);
+        string methodName = msg.MethodName;
+        string fullyQualifiedMethod = $"{serviceName}/{methodName}";
+
+        activity.DisplayName = fullyQualifiedMethod;
+
+        try
+        {
+            this.options.Enrich?.Invoke(activity, RemotingInstrumentationEnrichEventNames.OnMessageStart, msg);
+        }
+        catch (Exception ex)
+        {
+            RemotingInstrumentationEventSource.Log.EnrichmentException(ex);
+        }
     }
 }
