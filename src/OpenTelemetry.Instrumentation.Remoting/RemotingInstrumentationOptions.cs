@@ -46,7 +46,7 @@ public class RemotingInstrumentationOptions
     /// <summary>
     /// Gets or sets a value indicating whether exception will be recorded
     /// as an <see cref="ActivityEvent"/> or not. Default value: <see
-    /// langword="true"/>.
+    /// langword="false"/>.
     /// </summary>
     /// <remarks>
     /// <para>For specification details see: <see
