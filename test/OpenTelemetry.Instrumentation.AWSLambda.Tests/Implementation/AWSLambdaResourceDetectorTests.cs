@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Runtime.InteropServices;
 using OpenTelemetry.AWS;
 using OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 using Xunit;
@@ -27,6 +28,12 @@ public class AWSLambdaResourceDetectorTests : IDisposable
     [InlineData("000")]
     public void Detect_WithAccountIdSymlink_SetsCloudAccountId(string prefix)
     {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            // Symlinks at /tmp/ are only available on Linux (Lambda runtime).
+            return;
+        }
+
         var expectedAccountId = prefix + Random.Shared.NextInt64(100000000, 999999999).ToString();
 
         File.CreateSymbolicLink(SymlinkPath, expectedAccountId);

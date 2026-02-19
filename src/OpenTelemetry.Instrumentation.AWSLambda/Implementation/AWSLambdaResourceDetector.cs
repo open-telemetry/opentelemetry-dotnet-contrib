@@ -52,7 +52,7 @@ internal sealed class AWSLambdaResourceDetector : IResourceDetector
         }
         catch
         {
-            // Symlink doesn't exist or cannot be read — silently skip.
+            // Symlink doesn't exist or cannot be read -- silently skip.
             return null;
         }
     }
