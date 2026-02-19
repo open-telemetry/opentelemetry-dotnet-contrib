@@ -7,7 +7,6 @@ using System.Runtime.Remoting.Contexts;
 using System.Runtime.Remoting.Messaging;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation;
-using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.Remoting.Implementation;
 
@@ -34,16 +33,15 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
     private const string ActivityInName = ActivitySourceName + ".RequestIn";
 
     private const string SavedAspnetActivityPropertyName = ActivitySourceName + ".SavedAspnetActivity";
-
-    private static readonly ActivitySource RemotingActivitySource = new(ActivitySourceName, typeof(TelemetryDynamicSink).Assembly.GetPackageVersion());
-
     private static readonly ConcurrentDictionary<string, string> ServiceNameCache = new();
+    private readonly ActivitySource remotingActivitySource;
 
     private readonly RemotingInstrumentationOptions options;
 
-    public TelemetryDynamicSink(RemotingInstrumentationOptions options)
+    public TelemetryDynamicSink(RemotingInstrumentationOptions options, ActivitySource activitySource)
     {
         this.options = options;
+        this.remotingActivitySource = activitySource;
     }
 
     public void ProcessMessageStart(IMessage reqMsg, bool bCliSide, bool bAsync)
@@ -82,7 +80,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
                 ActivityContext contextToInject = default;
 
                 // Start new outgoing activity
-                var activity = RemotingActivitySource.StartActivity(
+                var activity = this.remotingActivitySource.StartActivity(
                     ActivityOutName,
                     ActivityKind.Client,
                     default(ActivityContext),
@@ -123,7 +121,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
                 {
                     // We don't have an existing incoming activity. Start a brand new one ourselves using the extracted context.
 
-                    ourActivity = RemotingActivitySource.StartActivity(
+                    ourActivity = this.remotingActivitySource.StartActivity(
                         ActivityInName,
                         ActivityKind.Server,
                         activityParentContext.ActivityContext,
@@ -142,7 +140,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
                     // The context was propagated between HttpClient and ASP.NET Instrumentation.
                     // We let this context take over and simply create our Remoting activity as a child of the ASP.NET one.
 
-                    ourActivity = RemotingActivitySource.StartActivity(
+                    ourActivity = this.remotingActivitySource.StartActivity(
                         ActivityInName,
                         ActivityKind.Server,
                         default(ActivityContext),
@@ -161,7 +159,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
                     // the context. ASP.NET activity is saved as a custom property so that we can restore it later
                     // (see ProcessMessageFinish) to give ASP.NET Instrumentation a chance to stop it.
 
-                    ourActivity = RemotingActivitySource.StartActivity(
+                    ourActivity = this.remotingActivitySource.StartActivity(
                         ActivityInName,
                         ActivityKind.Server,
                         activityParentContext.ActivityContext,
