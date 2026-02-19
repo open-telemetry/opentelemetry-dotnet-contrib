@@ -62,7 +62,7 @@ When hosting server objects in IIS, adding instrumentation should typically
 be done in `Global.asax.cs` like in the below example.
 
 This example also sets up the OpenTelemetry Jaeger exporter, which requires
-adding the package [`OpenTelemetry.Exporter.Jaeger`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/master/src/OpenTelemetry.Exporter.Jaeger/README.md)
+adding the package [`OpenTelemetry.Exporter.OpenTelemetryProtocol`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.OpenTelemetryProtocol/README.md)
 to the project.
 
 ```csharp
