@@ -24,7 +24,7 @@ namespace OpenTelemetry.Instrumentation.Remoting.Implementation;
 internal sealed class TelemetryDynamicSink : IDynamicMessageSink
 {
     internal const string AttributeRpcSystemName = "rpc.system.name";
-    internal const string AttributeRpcSystemNameValue = "netframework_remoting";
+    internal const string AttributeRpcSystemNameValue = "dotnet.remoting";
     internal const string AttributeRpcMethod = "rpc.method";
     internal const string AttributeServerAddress = "server.address";
     internal const string AttributeServerPort = "server.port";
