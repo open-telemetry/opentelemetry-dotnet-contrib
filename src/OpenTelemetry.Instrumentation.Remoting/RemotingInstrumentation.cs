@@ -6,7 +6,7 @@ using RemotingContext = System.Runtime.Remoting.Contexts.Context;
 
 namespace OpenTelemetry.Instrumentation.Remoting;
 
-internal class RemotingInstrumentation : IDisposable
+internal sealed class RemotingInstrumentation : IDisposable
 {
     internal static int RegCount;
     private static readonly object LockObj = new();
