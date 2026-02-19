@@ -6,15 +6,15 @@ namespace OpenTelemetry.Instrumentation.Remoting;
 /// <summary>
 /// Defines the event names used by the Remoting instrumentation Enrich callback.
 /// </summary>
-public static class RemotingInstrumentationEnrichEventNames
+internal static class RemotingInstrumentationEnrichEventNames
 {
     /// <summary>
     /// Event name for when a remoting message starts processing.
     /// </summary>
-    public const string OnMessageStart = "OnMessageStart";
+    internal const string OnMessageStart = "OnMessageStart";
 
     /// <summary>
     /// Event name for when a remoting message finishes processing.
     /// </summary>
-    public const string OnMessageFinish = "OnMessageFinish";
+    internal const string OnMessageFinish = "OnMessageFinish";
 }
