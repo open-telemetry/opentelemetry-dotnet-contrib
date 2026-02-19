@@ -256,9 +256,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
 
     private static ActivityTagsCollection BuildSamplingTags(IMethodMessage msg)
     {
-        string serviceName = GetServiceName(msg.TypeName);
-        string methodName = msg.MethodName;
-        string fullyQualifiedMethod = $"{serviceName}/{methodName}";
+        var fullyQualifiedMethod = GetFullyQualifiedMethod(msg);
 
         var tags = new ActivityTagsCollection
         {
@@ -276,6 +274,13 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
         }
 
         return tags;
+    }
+
+    private static string GetFullyQualifiedMethod(IMethodMessage msg)
+    {
+        string serviceName = GetServiceName(msg.TypeName);
+        string methodName = msg.MethodName;
+        return $"{serviceName}/{methodName}";
     }
 
     private static string GetServiceName(string typeName) =>
@@ -342,9 +347,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
             return;
         }
 
-        string serviceName = GetServiceName(msg.TypeName);
-        string methodName = msg.MethodName;
-        string fullyQualifiedMethod = $"{serviceName}/{methodName}";
+        string fullyQualifiedMethod = GetFullyQualifiedMethod(msg);
 
         activity.DisplayName = fullyQualifiedMethod;
 
