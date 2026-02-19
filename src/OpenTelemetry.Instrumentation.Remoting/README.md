@@ -34,7 +34,7 @@ To enable .NET remoting instrumentation, call `AddRemotingInstrumentaion()` on
 the `TracerProviderBuilder` during the application startup in both client and
 server code.
 
-The following example demonstrates adding .NET remoting instrumentation to a
+The following example demonstrates adding .NET Framework remoting instrumentation to a
 client console application. This example also sets up the OpenTelemetry Console
 exporter, which requires adding the package [`OpenTelemetry.Exporter.Console`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/master/src/OpenTelemetry.Exporter.Console/README.md)
 to the project.
