@@ -20,7 +20,7 @@ that shouldn't be used for new .NET applications and [doesn't exist](https://doc
 in .NET 6 and later versions. However, if you do have a legacy application you are
 looking to instrument, consider using this package.
 
-### Installation
+## Installation
 
 Add a reference to the
 [`OpenTelemetry.Instrumentation.Remoting`](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Remoting)
