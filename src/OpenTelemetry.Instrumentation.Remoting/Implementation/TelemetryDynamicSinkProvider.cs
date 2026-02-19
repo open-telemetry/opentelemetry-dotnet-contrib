@@ -9,7 +9,7 @@ namespace OpenTelemetry.Instrumentation.Remoting.Implementation;
 /// A <see cref="IContributeDynamicSink"/> implementation that returns an instance of
 /// <see cref="TelemetryDynamicSink"/> responsible for instrumenting remoting calls.
 /// </summary>
-internal class TelemetryDynamicSinkProvider : IDynamicProperty, IContributeDynamicSink
+internal sealed class TelemetryDynamicSinkProvider : IDynamicProperty, IContributeDynamicSink
 {
     internal const string DynamicPropertyName = "TelemetryDynamicSinkProvider";
 
