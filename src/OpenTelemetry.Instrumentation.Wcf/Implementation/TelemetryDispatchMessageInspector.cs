@@ -8,6 +8,7 @@ using System.ServiceModel.Channels;
 using System.ServiceModel.Dispatcher;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Internal;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 
@@ -68,7 +69,7 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
 
             if (activity.IsAllDataRequested)
             {
-                activity.SetTag(WcfInstrumentationConstants.RpcSystemTag, WcfInstrumentationConstants.WcfSystemValue);
+                activity.SetTag(SemanticConventions.AttributeRpcSystem, WcfInstrumentationConstants.WcfSystemValue);
 
                 if (!this.actionMappings.TryGetValue(action, out var actionMetadata))
                 {
@@ -77,8 +78,8 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
                         operationName: action);
                 }
 
-                activity.SetTag(WcfInstrumentationConstants.RpcServiceTag, actionMetadata.ContractName);
-                activity.SetTag(WcfInstrumentationConstants.RpcMethodTag, actionMetadata.OperationName);
+                activity.SetTag(SemanticConventions.AttributeRpcService, actionMetadata.ContractName);
+                activity.SetTag(SemanticConventions.AttributeRpcMethod, actionMetadata.OperationName);
 
                 if (WcfInstrumentationActivitySource.Options.SetSoapMessageVersion)
                 {
@@ -88,8 +89,8 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
                 var localAddressUri = channel.LocalAddress?.Uri;
                 if (localAddressUri != null)
                 {
-                    activity.SetTag(WcfInstrumentationConstants.NetHostNameTag, localAddressUri.Host);
-                    activity.SetTag(WcfInstrumentationConstants.NetHostPortTag, localAddressUri.Port);
+                    activity.SetTag(SemanticConventions.AttributeNetHostName, localAddressUri.Host);
+                    activity.SetTag(SemanticConventions.AttributeNetHostPort, localAddressUri.Port);
                     activity.SetTag(WcfInstrumentationConstants.WcfChannelSchemeTag, localAddressUri.Scheme);
                     activity.SetTag(WcfInstrumentationConstants.WcfChannelPathTag, localAddressUri.LocalPath);
                 }
