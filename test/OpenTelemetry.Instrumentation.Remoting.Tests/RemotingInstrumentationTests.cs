@@ -64,7 +64,7 @@ public class RemotingInstrumentationTests
         Assert.Single(activities); // OnStart/OnEnd/OnShutdown/Dispose called.
         var activity = activities.FirstOrDefault(); // Get the OnEnd activity.
         Assert.Equal(ActivityKind.Client, activity.Kind);
-        Assert.Equal("netframework_remoting", activity.GetTagItem("rpc.system.name"));
+        Assert.Equal("dotnet.remoting", activity.GetTagItem("rpc.system.name"));
         Assert.Equal("OpenTelemetry.Instrumentation.Remoting.Tests.RemotingInstrumentationTests+RemoteObject/DoStuff", activity.GetTagItem("rpc.method"));
 
         Assert.Null(activity.GetTagItem("server.address"));
