@@ -13,19 +13,23 @@ namespace OpenTelemetry.Instrumentation.Wcf.Tests;
 [Collection("WCF")]
 public class TelemetryBindingElementForHttpTests : IDisposable
 {
+    private const int MinPort = 2000;
+    private const int MaxPort = 5000;
+    private const int MaxRetries = 5;
+
     private readonly Uri serviceBaseUri;
     private readonly HttpListener listener;
 
     public TelemetryBindingElementForHttpTests()
     {
         var random = new Random();
-        var retryCount = 5;
+        var retryCount = MaxRetries;
         HttpListener? createdListener = null;
         while (retryCount > 0)
         {
             try
             {
-                this.serviceBaseUri = new Uri($"http://localhost:{random.Next(2000, 5000)}/");
+                this.serviceBaseUri = new Uri($"http://localhost:{random.Next(MinPort, MaxPort)}/");
 
                 createdListener = new HttpListener();
                 createdListener.Prefixes.Add(this.serviceBaseUri.OriginalString);
