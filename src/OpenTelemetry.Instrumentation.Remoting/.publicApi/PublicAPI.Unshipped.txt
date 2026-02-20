@@ -1,6 +1,3 @@
-const OpenTelemetry.Instrumentation.Remoting.RemotingInstrumentationEnrichEventNames.OnMessageFinish = "OnMessageFinish" -> string!
-const OpenTelemetry.Instrumentation.Remoting.RemotingInstrumentationEnrichEventNames.OnMessageStart = "OnMessageStart" -> string!
-OpenTelemetry.Instrumentation.Remoting.RemotingInstrumentationEnrichEventNames
 OpenTelemetry.Instrumentation.Remoting.RemotingInstrumentationOptions
 OpenTelemetry.Instrumentation.Remoting.RemotingInstrumentationOptions.Enrich.get -> System.Action<System.Diagnostics.Activity!, string!, System.Runtime.Remoting.Messaging.IMethodMessage!>?
 OpenTelemetry.Instrumentation.Remoting.RemotingInstrumentationOptions.Enrich.set -> void
