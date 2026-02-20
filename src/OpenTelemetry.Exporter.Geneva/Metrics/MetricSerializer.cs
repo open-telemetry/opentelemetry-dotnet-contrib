@@ -27,6 +27,8 @@ internal enum PayloadType
     DoubleMetric = 6,
     ExternallyAggregatedULongDistributionMetric = 8,
     HistogramULongValueCountPairs = 12,
+    ExternallyAggregatedDoubleDistributionMetric = 9,
+    HistogramDoubleScaledToUInt64ValueCountPairs = 13,
     Exemplars = 15,
 }
 
