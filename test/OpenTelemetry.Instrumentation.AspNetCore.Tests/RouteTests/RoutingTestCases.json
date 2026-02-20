@@ -5,8 +5,9 @@
     "httpMethod": "GET",
     "path": "/",
     "expectedStatusCode": 200,
-    "currentHttpRoute": "{controller=ConventionalRoute}/{action=Default}/{id?}",
-    "expectedHttpRoute": "ConventionalRoute/Default/{id?}"
+    "currentHttpRoute": null,
+    "currentMetricRoute": "{controller=ConventionalRoute}/{action=Default}/{id?}",
+    "expectedHttpRoute": "ConventionalRoute/Default"
   },
   {
     "name": "Non-default action with route parameter and query string",
@@ -14,8 +15,9 @@
     "httpMethod": "GET",
     "path": "/ConventionalRoute/ActionWithStringParameter/2?num=3",
     "expectedStatusCode": 200,
-    "currentHttpRoute": "{controller=ConventionalRoute}/{action=Default}/{id?}",
-    "expectedHttpRoute": "ConventionalRoute/ActionWithStringParameter/{id?}"
+    "currentHttpRoute": null,
+    "currentMetricRoute": "{controller=ConventionalRoute}/{action=Default}/{id?}",
+    "expectedHttpRoute": "ConventionalRoute/ActionWithStringParameter/{id}"
   },
   {
     "name": "Non-default action with query string",
@@ -23,8 +25,9 @@
     "httpMethod": "GET",
     "path": "/ConventionalRoute/ActionWithStringParameter?num=3",
     "expectedStatusCode": 200,
-    "currentHttpRoute": "{controller=ConventionalRoute}/{action=Default}/{id?}",
-    "expectedHttpRoute": "ConventionalRoute/ActionWithStringParameter/{id?}"
+    "currentHttpRoute": null,
+    "currentMetricRoute": "{controller=ConventionalRoute}/{action=Default}/{id?}",
+    "expectedHttpRoute": "ConventionalRoute/ActionWithStringParameter"
   },
   {
     "name": "Not Found (404)",
@@ -33,6 +36,7 @@
     "path": "/ConventionalRoute/NotFound",
     "expectedStatusCode": 404,
     "currentHttpRoute": null,
+    "currentMetricRoute": null,
     "expectedHttpRoute": ""
   },
   {
@@ -42,7 +46,8 @@
     "path": "/SomePath/SomeString/2",
     "expectedStatusCode": 200,
     "currentHttpRoute": null,
-    "expectedHttpRoute": "SomePath/{id}/{num:int}"
+    "currentMetricRoute": "SomePath/{id}/{num:int}",
+    "expectedHttpRoute": "SomePath/{id}/{num}"
   },
   {
     "name": "Path that does not match parameter constraint",
@@ -51,6 +56,7 @@
     "path": "/SomePath/SomeString/NotAnInt",
     "expectedStatusCode": 404,
     "currentHttpRoute": null,
+    "currentMetricRoute": null,
     "expectedHttpRoute": ""
   },
   {
@@ -59,8 +65,9 @@
     "httpMethod": "GET",
     "path": "/MyArea",
     "expectedStatusCode": 200,
-    "currentHttpRoute": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
-    "expectedHttpRoute": "{area:exists}/ControllerForMyArea/Default/{id?}"
+    "currentHttpRoute": null,
+    "currentMetricRoute": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
+    "expectedHttpRoute": "MyArea/ControllerForMyArea/Default"
   },
   {
     "name": "Area using `area:exists`, non-default action",
@@ -68,8 +75,9 @@
     "httpMethod": "GET",
     "path": "/MyArea/ControllerForMyArea/NonDefault",
     "expectedStatusCode": 200,
-    "currentHttpRoute": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
-    "expectedHttpRoute": "{area:exists}/ControllerForMyArea/NonDefault/{id?}"
+    "currentHttpRoute": null,
+    "currentMetricRoute": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
+    "expectedHttpRoute": "MyArea/ControllerForMyArea/NonDefault"
   },
   {
     "name": "Area w/o `area:exists`, default controller/action",
@@ -77,8 +85,9 @@
     "httpMethod": "GET",
     "path": "/SomePrefix",
     "expectedStatusCode": 200,
-    "currentHttpRoute": "SomePrefix/{controller=AnotherArea}/{action=Index}/{id?}",
-    "expectedHttpRoute": "SomePrefix/AnotherArea/Index/{id?}"
+    "currentHttpRoute": null,
+    "currentMetricRoute": "SomePrefix/{controller=AnotherArea}/{action=Index}/{id?}",
+    "expectedHttpRoute": "SomePrefix/AnotherArea/Index"
   },
   {
     "name": "Default action",
@@ -87,6 +96,7 @@
     "path": "/AttributeRoute",
     "expectedStatusCode": 200,
     "currentHttpRoute": null,
+    "currentMetricRoute": null,
     "expectedHttpRoute": "AttributeRoute"
   },
   {
@@ -96,6 +106,7 @@
     "path": "/AttributeRoute/Get",
     "expectedStatusCode": 200,
     "currentHttpRoute": null,
+    "currentMetricRoute": null,
     "expectedHttpRoute": "AttributeRoute/Get"
   },
   {
@@ -105,6 +116,7 @@
     "path": "/AttributeRoute/Get/12",
     "expectedStatusCode": 200,
     "currentHttpRoute": null,
+    "currentMetricRoute": null,
     "expectedHttpRoute": "AttributeRoute/Get/{id}"
   },
   {
@@ -114,6 +126,7 @@
     "path": "/AttributeRoute/12/GetWithActionNameInDifferentSpotInTemplate",
     "expectedStatusCode": 200,
     "currentHttpRoute": null,
+    "currentMetricRoute": null,
     "expectedHttpRoute": "AttributeRoute/{id}/GetWithActionNameInDifferentSpotInTemplate"
   },
   {
@@ -123,6 +136,7 @@
     "path": "/AttributeRoute/NotAnInt/GetWithActionNameInDifferentSpotInTemplate",
     "expectedStatusCode": 400,
     "currentHttpRoute": null,
+    "currentMetricRoute": null,
     "expectedHttpRoute": "AttributeRoute/{id}/GetWithActionNameInDifferentSpotInTemplate"
   },
   {
@@ -132,8 +146,9 @@
     "httpMethod": "GET",
     "path": "/",
     "expectedStatusCode": 200,
-    "currentHttpRoute": "",
-    "expectedHttpRoute": "/Index"
+    "currentHttpRoute": null,
+    "currentMetricRoute": "",
+    "expectedHttpRoute": "Index"
   },
   {
     "name": "Root path",
@@ -142,9 +157,9 @@
     "httpMethod": "GET",
     "path": "/",
     "expectedStatusCode": 200,
-    "currentHttpRoute": "",
-    "expectedHttpRoute": "/Index",
-    "expectedMetricRoute": "/"
+    "currentHttpRoute": null,
+    "currentMetricRoute": "/",
+    "expectedHttpRoute": "Index"
   },
   {
     "name": "Index page",
@@ -152,8 +167,9 @@
     "httpMethod": "GET",
     "path": "/Index",
     "expectedStatusCode": 200,
-    "currentHttpRoute": "Index",
-    "expectedHttpRoute": "/Index"
+    "currentHttpRoute": null,
+    "currentMetricRoute": null,
+    "expectedHttpRoute": "Index"
   },
   {
     "name": "Throws exception",
@@ -161,8 +177,9 @@
     "httpMethod": "GET",
     "path": "/PageThatThrowsException",
     "expectedStatusCode": 500,
-    "currentHttpRoute": "PageThatThrowsException",
-    "expectedHttpRoute": "/PageThatThrowsException"
+    "currentHttpRoute": null,
+    "currentMetricRoute": null,
+    "expectedHttpRoute": "PageThatThrowsException"
   },
   {
     "name": "Static content",
@@ -171,6 +188,7 @@
     "path": "/js/site.js",
     "expectedStatusCode": 200,
     "currentHttpRoute": null,
+    "currentMetricRoute": null,
     "expectedHttpRoute": ""
   },
   {
@@ -180,7 +198,8 @@
     "path": "/MinimalApi",
     "expectedStatusCode": 200,
     "currentHttpRoute": null,
-    "expectedHttpRoute": "/MinimalApi"
+    "currentMetricRoute": "/MinimalApi",
+    "expectedHttpRoute": "MinimalApi"
   },
   {
     "name": "Action with parameter",
@@ -189,7 +208,8 @@
     "path": "/MinimalApi/123",
     "expectedStatusCode": 200,
     "currentHttpRoute": null,
-    "expectedHttpRoute": "/MinimalApi/{id}"
+    "currentMetricRoute": "/MinimalApi/{id}",
+    "expectedHttpRoute": "MinimalApi/{id}"
   },
   {
     "name": "Action without parameter (MapGroup)",
@@ -198,7 +218,8 @@
     "path": "/MinimalApiUsingMapGroup",
     "expectedStatusCode": 200,
     "currentHttpRoute": null,
-    "expectedHttpRoute": "/MinimalApiUsingMapGroup/"
+    "currentMetricRoute": "/MinimalApiUsingMapGroup/",
+    "expectedHttpRoute": "MinimalApiUsingMapGroup"
   },
   {
     "name": "Action with parameter (MapGroup)",
@@ -207,7 +228,8 @@
     "path": "/MinimalApiUsingMapGroup/123",
     "expectedStatusCode": 200,
     "currentHttpRoute": null,
-    "expectedHttpRoute": "/MinimalApiUsingMapGroup/{id}"
+    "currentMetricRoute": "/MinimalApiUsingMapGroup/{id}",
+    "expectedHttpRoute": "MinimalApiUsingMapGroup/{id}"
   },
   {
     "name": "Exception Handled by Exception Handler Middleware",
@@ -216,6 +238,7 @@
     "path": "/Exception",
     "expectedStatusCode": 500,
     "currentHttpRoute": null,
-    "expectedHttpRoute": "/Exception"
+    "currentMetricRoute": "/Exception",
+    "expectedHttpRoute": "Exception"
   }
 ]
