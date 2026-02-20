@@ -160,6 +160,7 @@
     <Project Path="src/OpenTelemetry.Instrumentation.Owin/OpenTelemetry.Instrumentation.Owin.csproj" />
     <Project Path="src/OpenTelemetry.Instrumentation.Process/OpenTelemetry.Instrumentation.Process.csproj" />
     <Project Path="src/OpenTelemetry.Instrumentation.Quartz/OpenTelemetry.Instrumentation.Quartz.csproj" />
+    <Project Path="src/OpenTelemetry.Instrumentation.Remoting/OpenTelemetry.Instrumentation.Remoting.csproj" />
     <Project Path="src/OpenTelemetry.Instrumentation.Runtime/OpenTelemetry.Instrumentation.Runtime.csproj" />
     <Project Path="src/OpenTelemetry.Instrumentation.ServiceFabricRemoting/OpenTelemetry.Instrumentation.ServiceFabricRemoting.csproj" />
     <Project Path="src/OpenTelemetry.Instrumentation.SqlClient/OpenTelemetry.Instrumentation.SqlClient.csproj" />
@@ -272,6 +273,7 @@
     <Project Path="test/OpenTelemetry.Instrumentation.Owin.Tests/OpenTelemetry.Instrumentation.Owin.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.Process.Tests/OpenTelemetry.Instrumentation.Process.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.Quartz.Tests/OpenTelemetry.Instrumentation.Quartz.Tests.csproj" />
+    <Project Path="test/OpenTelemetry.Instrumentation.Remoting.Tests/OpenTelemetry.Instrumentation.Remoting.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.Runtime.Tests/OpenTelemetry.Instrumentation.Runtime.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests/OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.SqlClient.Tests/OpenTelemetry.Instrumentation.SqlClient.Tests.csproj" />
