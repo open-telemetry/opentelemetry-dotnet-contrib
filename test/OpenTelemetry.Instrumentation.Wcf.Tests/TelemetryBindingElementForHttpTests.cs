@@ -186,18 +186,15 @@ public class TelemetryBindingElementForHttpTests : IDisposable
         {
             client.Endpoint.EndpointBehaviors.Add(new DownstreamInstrumentationEndpointBehavior());
             client.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());
+            var req = new ServiceRequest(payload: "Hello Open Telemetry!");
 
             if (emptyOrNullAction)
             {
-                await client.ExecuteWithEmptyActionNameAsync(
-                    new ServiceRequest(
-                        payload: "Hello Open Telemetry!"));
+                await client.ExecuteWithEmptyActionNameAsync(req);
             }
             else
             {
-                await client.ExecuteAsync(
-                    new ServiceRequest(
-                        payload: "Hello Open Telemetry!"));
+                await client.ExecuteAsync(req);
             }
         }
         finally
@@ -241,34 +238,15 @@ public class TelemetryBindingElementForHttpTests : IDisposable
                     Assert.NotEmpty(stoppedActivities);
                     var activity = Assert.Single(stoppedActivities);
 
-                    if (emptyOrNullAction)
-                    {
-                        Assert.Equal(WcfInstrumentationActivitySource.OutgoingRequestActivityName, activity.DisplayName);
-                        Assert.Equal("ExecuteWithEmptyActionName", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcMethod).Value);
-                    }
-                    else
-                    {
-                        Assert.Equal("http://opentelemetry.io/Service/Execute", activity.DisplayName);
-                        Assert.Equal("Execute", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcMethod).Value);
-                    }
-
-                    Assert.Equal(WcfInstrumentationActivitySource.OutgoingRequestActivityName, activity.OperationName);
-                    Assert.Equal(WcfInstrumentationConstants.WcfSystemValue, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcSystem).Value);
-                    Assert.Equal("http://opentelemetry.io/Service", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcService).Value);
-                    Assert.Equal(this.serviceBaseUri.Host, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeNetPeerName).Value);
-                    Assert.Equal(this.serviceBaseUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeNetPeerPort).Value);
-                    Assert.Equal("http", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.WcfChannelSchemeTag).Value);
-                    Assert.Equal("/Service", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.WcfChannelPathTag).Value);
-                    if (includeVersion)
-                    {
-                        Assert.Equal("Soap11 (http://schemas.xmlsoap.org/soap/envelope/) AddressingNone (http://schemas.microsoft.com/ws/2005/05/addressing/none)", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.SoapMessageVersionTag).Value);
-                    }
-
-                    if (enrich && !enrichmentException)
-                    {
-                        Assert.Equal(WcfEnrichEventNames.BeforeSendRequest, activity.TagObjects.Single(t => t.Key == "client.beforesendrequest").Value);
-                        Assert.Equal(WcfEnrichEventNames.AfterReceiveReply, activity.TagObjects.Single(t => t.Key == "client.afterreceivereply").Value);
-                    }
+                    WcfTestHelpers.AssertOutgoingRequestActivity(
+                        activity,
+                        this.serviceBaseUri,
+                        emptyOrNullAction,
+                        includeVersion,
+                        "Soap11 (http://schemas.xmlsoap.org/soap/envelope/) AddressingNone (http://schemas.microsoft.com/ws/2005/05/addressing/none)",
+                        "http",
+                        enrich,
+                        enrichmentException);
                 }
                 else
                 {
@@ -325,12 +303,7 @@ public class TelemetryBindingElementForHttpTests : IDisposable
             WcfInstrumentationActivitySource.Options = null;
         }
 
-        Assert.Equal(5, stoppedActivities.Count);
-        Assert.All(stoppedActivities, activity => Assert.Equal(stoppedActivities[0].TraceId, activity.TraceId));
-        var parent = stoppedActivities.Single(activity => activity.Parent == null);
-        Assert.All(
-            stoppedActivities.Where(activity => activity != parent),
-            activity => Assert.Equal(parent.SpanId, activity.ParentSpanId));
+        WcfTestHelpers.AssertActivitiesHaveCorrectParentage(stoppedActivities);
     }
 
     [Fact]
@@ -389,9 +362,6 @@ public class TelemetryBindingElementForHttpTests : IDisposable
         }
 
         Assert.Equal(5, stoppedActivities.Count);
-        Assert.All(stoppedActivities, activity => Assert.Equal(stoppedActivities[0].TraceId, activity.TraceId));
-        var parent = stoppedActivities.Single(activity => activity.Parent == null);
-        var children = stoppedActivities.Where(activity => activity != parent);
-        Assert.All(children, activity => Assert.Equal(parent.SpanId, activity.ParentSpanId));
+        WcfTestHelpers.AssertActivitiesHaveCorrectParent(stoppedActivities);
     }
 }

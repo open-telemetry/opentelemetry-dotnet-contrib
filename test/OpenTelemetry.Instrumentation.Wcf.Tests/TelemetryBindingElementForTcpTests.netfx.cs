@@ -153,35 +153,15 @@ public class TelemetryBindingElementForTcpTests : IDisposable
                     Assert.NotEmpty(stoppedActivities);
                     var activity = Assert.Single(stoppedActivities);
 
-                    if (emptyOrNullAction)
-                    {
-                        Assert.Equal(WcfInstrumentationActivitySource.OutgoingRequestActivityName, activity.DisplayName);
-                        Assert.Equal("ExecuteWithEmptyActionName", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcMethod).Value);
-                    }
-                    else
-                    {
-                        Assert.Equal("http://opentelemetry.io/Service/Execute", activity.DisplayName);
-                        Assert.Equal("Execute", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcMethod).Value);
-                    }
-
-                    Assert.Equal(WcfInstrumentationActivitySource.OutgoingRequestActivityName, activity.OperationName);
-                    Assert.Equal(WcfInstrumentationConstants.WcfSystemValue, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcSystem).Value);
-                    Assert.Equal("http://opentelemetry.io/Service", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcService).Value);
-                    Assert.Equal(this.serviceBaseUri.Host, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeNetPeerName).Value);
-                    Assert.Equal(this.serviceBaseUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeNetPeerPort).Value);
-                    Assert.Equal("net.tcp", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.WcfChannelSchemeTag).Value);
-                    Assert.Equal("/Service", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.WcfChannelPathTag).Value);
-                    if (includeVersion)
-                    {
-                        var value = activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.SoapMessageVersionTag).Value!.ToString();
-                        Assert.Matches("""Soap.* \(http.*\) Addressing.* \(http.*\)""", value);
-                    }
-
-                    if (enrich && !enrichmentException)
-                    {
-                        Assert.Equal(WcfEnrichEventNames.BeforeSendRequest, activity.TagObjects.Single(t => t.Key == "client.beforesendrequest").Value);
-                        Assert.Equal(WcfEnrichEventNames.AfterReceiveReply, activity.TagObjects.Single(t => t.Key == "client.afterreceivereply").Value);
-                    }
+                    WcfTestHelpers.AssertOutgoingRequestActivity(
+                        activity,
+                        this.serviceBaseUri,
+                        emptyOrNullAction,
+                        includeVersion,
+                        null, // TCP uses regex matching, not exact match
+                        "net.tcp",
+                        enrich,
+                        enrichmentException);
                 }
                 else
                 {
@@ -238,12 +218,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
             WcfInstrumentationActivitySource.Options = null;
         }
 
-        Assert.Equal(5, stoppedActivities.Count);
-        Assert.All(stoppedActivities, activity => Assert.Equal(stoppedActivities[0].TraceId, activity.TraceId));
-        var parent = stoppedActivities.Single(activity => activity.Parent == null);
-        Assert.All(
-            stoppedActivities.Where(activity => activity != parent),
-            activity => Assert.Equal(parent.SpanId, activity.ParentSpanId));
+        WcfTestHelpers.AssertActivitiesHaveCorrectParentage(stoppedActivities);
     }
 
     [Fact]
@@ -306,10 +281,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
 
         // this is 3 instead of 5 because the clientBadUrl calls fail during Open(), before the activity is created
         Assert.Equal(3, stoppedActivities.Count);
-        Assert.All(stoppedActivities, activity => Assert.Equal(stoppedActivities[0].TraceId, activity.TraceId));
-        var parent = stoppedActivities.Single(activity => activity.Parent == null);
-        var children = stoppedActivities.Where(activity => activity != parent);
-        Assert.All(children, activity => Assert.Equal(parent.SpanId, activity.ParentSpanId));
+        WcfTestHelpers.AssertActivitiesHaveCorrectParent(stoppedActivities);
     }
 
     [Fact]
