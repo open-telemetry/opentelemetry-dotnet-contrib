@@ -224,8 +224,8 @@ public class TelemetryBindingElementForHttpTests : IDisposable
                 Assert.NotEmpty(stoppedActivities);
                 if (filter)
                 {
-                    Assert.Single(stoppedActivities);
-                    Assert.Equal("DownstreamInstrumentation", stoppedActivities[0].OperationName);
+                    var activity = Assert.Single(stoppedActivities);
+                    Assert.Equal("DownstreamInstrumentation", activity.OperationName);
                 }
                 else
                 {
@@ -239,9 +239,7 @@ public class TelemetryBindingElementForHttpTests : IDisposable
                 if (!filter)
                 {
                     Assert.NotEmpty(stoppedActivities);
-                    Assert.Single(stoppedActivities);
-
-                    var activity = stoppedActivities[0];
+                    var activity = Assert.Single(stoppedActivities);
 
                     if (emptyOrNullAction)
                     {
