@@ -53,7 +53,9 @@ using var loggerFactory = LoggerFactory.Create(builder =>
 The resource detectors will record the following metadata based on where
 your application is running:
 
-- **ProcessDetector**: `process.owner`, `process.pid`.
+- **ProcessDetector**: `process.owner`, `process.pid`, `process.executable.path`,
+`process.working_directory`, `process.args_count`,`process.creation.time`,
+`process.executable.name`, `process.interactive`, `process.title`.
 
 ## References
 

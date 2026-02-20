@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.ComponentModel;
+
 namespace OpenTelemetry.Resources.Process;
 
 /// <summary>
@@ -14,20 +16,43 @@ internal sealed class ProcessDetector : IResourceDetector
     /// <returns>Resource with key-value pairs of resource attributes.</returns>
     public Resource Detect()
     {
-        return new Resource(new List<KeyValuePair<string, object>>(2)
+        using var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
+
+        if (currentProcess.HasExited)
+        {
+            return Resource.Empty;
+        }
+
+        bool isInteractive = Environment.UserInteractive &&
+                             !Console.IsOutputRedirected &&
+                             !Console.IsInputRedirected;
+
+        var attributes = new List<KeyValuePair<string, object>>(9)
         {
             new(ProcessSemanticConventions.AttributeProcessOwner, Environment.UserName),
-#if NET
-            new(ProcessSemanticConventions.AttributeProcessPid, Environment.ProcessId),
-        });
-#else
-            new(ProcessSemanticConventions.AttributeProcessPid, GetProcessPid()),
-        });
-        static int GetProcessPid()
+            new(ProcessSemanticConventions.AttributeProcessArgsCount, Environment.GetCommandLineArgs().Length),
+            new(ProcessSemanticConventions.AttributeProcessTitle, currentProcess.ProcessName),
+            new(ProcessSemanticConventions.AttributeProcessWorkingDir, Environment.CurrentDirectory),
+
+            new(ProcessSemanticConventions.AttributeProcessInteractive, isInteractive),
+            new(ProcessSemanticConventions.AttributeProcessPid, currentProcess.Id),
+        };
+        try
         {
-            using var process = System.Diagnostics.Process.GetCurrentProcess();
-            return process.Id;
+            attributes.Add(new(ProcessSemanticConventions.AttributeProcessStartTime, currentProcess.StartTime.ToString("O")));
         }
-#endif
+        catch (Win32Exception)
+        {
+        }
+
+        if (currentProcess.MainModule is not null)
+        {
+            attributes.Add(new(ProcessSemanticConventions.AttributeProcessExecName, currentProcess.MainModule.ModuleName));
+
+            var fileInfo = new FileInfo(currentProcess.MainModule.FileName);
+            attributes.Add(new(ProcessSemanticConventions.AttributeProcessExecPath, fileInfo.DirectoryName ?? string.Empty));
+        }
+
+        return new Resource(attributes);
     }
 }
