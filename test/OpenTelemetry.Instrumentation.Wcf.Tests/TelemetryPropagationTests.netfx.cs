@@ -61,15 +61,7 @@ public class TelemetryPropagationTests
         }
         finally
         {
-            if (client.State == CommunicationState.Faulted)
-            {
-                client.Abort();
-            }
-            else
-            {
-                client.Close();
-            }
-
+            client.AbortOrClose();
             tracerProvider?.Shutdown();
             tracerProvider?.Dispose();
 

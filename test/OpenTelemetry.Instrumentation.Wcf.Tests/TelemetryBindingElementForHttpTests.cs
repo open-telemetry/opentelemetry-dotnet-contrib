@@ -203,15 +203,7 @@ public class TelemetryBindingElementForHttpTests : IDisposable
         }
         finally
         {
-            if (client.State == CommunicationState.Faulted)
-            {
-                client.Abort();
-            }
-            else
-            {
-                client.Close();
-            }
-
+            client.AbortOrClose();
             tracerProvider?.Shutdown();
             tracerProvider?.Dispose();
 
@@ -292,15 +284,7 @@ public class TelemetryBindingElementForHttpTests : IDisposable
         }
         finally
         {
-            if (client.State == CommunicationState.Faulted)
-            {
-                client.Abort();
-            }
-            else
-            {
-                client.Close();
-            }
-
+            client.AbortOrClose();
             tracerProvider?.Shutdown();
             tracerProvider?.Dispose();
             testSource.Dispose();
@@ -341,24 +325,8 @@ public class TelemetryBindingElementForHttpTests : IDisposable
         }
         finally
         {
-            if (client.State == CommunicationState.Faulted)
-            {
-                client.Abort();
-            }
-            else
-            {
-                client.Close();
-            }
-
-            if (clientBadUrl.State == CommunicationState.Faulted)
-            {
-                clientBadUrl.Abort();
-            }
-            else
-            {
-                clientBadUrl.Close();
-            }
-
+            client.AbortOrClose();
+            clientBadUrl.AbortOrClose();
             tracerProvider?.Shutdown();
             tracerProvider?.Dispose();
             testSource.Dispose();

@@ -146,15 +146,7 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
         }
         finally
         {
-            if (client.State == CommunicationState.Faulted)
-            {
-                client.Abort();
-            }
-            else
-            {
-                client.Close();
-            }
-
+            client.AbortOrClose();
             tracerProvider?.Shutdown();
             tracerProvider?.Dispose();
 
@@ -286,15 +278,7 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
             startedActivities[0].AddTag(nameof(triggerException), triggerException);
             startedActivities[0].AddTag(nameof(runAsync), runAsync);
 
-            if (client.State == CommunicationState.Faulted)
-            {
-                client.Abort();
-            }
-            else
-            {
-                client.Close();
-            }
-
+            client.AbortOrClose();
             tracerProvider?.Shutdown();
             tracerProvider?.Dispose();
 

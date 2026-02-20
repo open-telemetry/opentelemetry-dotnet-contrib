@@ -114,15 +114,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
         }
         finally
         {
-            if (client.State == CommunicationState.Faulted)
-            {
-                client.Abort();
-            }
-            else
-            {
-                client.Close();
-            }
-
+            client.AbortOrClose();
             tracerProvider?.Shutdown();
             tracerProvider?.Dispose();
 
@@ -203,15 +195,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
         }
         finally
         {
-            if (client.State == CommunicationState.Faulted)
-            {
-                client.Abort();
-            }
-            else
-            {
-                client.Close();
-            }
-
+            client.AbortOrClose();
             tracerProvider?.Shutdown();
             tracerProvider?.Dispose();
             testSource.Dispose();
@@ -256,23 +240,10 @@ public class TelemetryBindingElementForTcpTests : IDisposable
         }
         finally
         {
-            static void CloseClient(ServiceClient client)
-            {
-                if (client.State == CommunicationState.Faulted)
-                {
-                    client.Abort();
-                }
-                else
-                {
-                    client.Close();
-                }
-            }
-
-            CloseClient(client);
-            CloseClient(client2);
-            CloseClient(clientBadUrl);
-            CloseClient(clientBadUrl2);
-
+            client.AbortOrClose();
+            client2.AbortOrClose();
+            clientBadUrl.AbortOrClose();
+            clientBadUrl2.AbortOrClose();
             tracerProvider?.Shutdown();
             tracerProvider?.Dispose();
             testSource.Dispose();
@@ -319,15 +290,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
         }
         finally
         {
-            if (client.State == CommunicationState.Faulted)
-            {
-                client.Abort();
-            }
-            else
-            {
-                client.Close();
-            }
-
+            client.AbortOrClose();
             tracerProvider?.Shutdown();
             tracerProvider?.Dispose();
             WcfInstrumentationActivitySource.Options = null;
@@ -372,15 +335,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
         }
         finally
         {
-            if (client.State == CommunicationState.Faulted)
-            {
-                client.Abort();
-            }
-            else
-            {
-                client.Close();
-            }
-
+            client.AbortOrClose();
             tracerProvider?.Shutdown();
             tracerProvider?.Dispose();
             WcfInstrumentationActivitySource.Options = null;
@@ -418,15 +373,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
         }
         finally
         {
-            if (client.State == CommunicationState.Faulted)
-            {
-                client.Abort();
-            }
-            else
-            {
-                client.Close();
-            }
-
+            client.AbortOrClose();
             host.Close();
 
             tracerProvider?.Shutdown();
