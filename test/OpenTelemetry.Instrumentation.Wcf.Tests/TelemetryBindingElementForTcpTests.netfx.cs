@@ -404,12 +404,12 @@ public class TelemetryBindingElementForTcpTests : IDisposable
     {
         ServiceHost? serviceHost = null;
         var random = new Random();
-        var retryCount = 5;
+        var retryCount = WcfTestHelpers.MaxRetries;
         while (retryCount > 0)
         {
             try
             {
-                var baseUri = new Uri($"net.tcp://localhost:{random.Next(2000, 5000)}/");
+                var baseUri = new Uri($"net.tcp://localhost:{random.Next(WcfTestHelpers.MinPort, WcfTestHelpers.MaxPort)}/");
                 serviceHost = new ServiceHost(new Service(), baseUri);
                 if (cert != null)
                 {

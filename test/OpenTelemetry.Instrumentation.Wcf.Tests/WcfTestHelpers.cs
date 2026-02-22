@@ -13,6 +13,10 @@ namespace OpenTelemetry.Instrumentation.Wcf.Tests;
 /// </summary>
 internal static class WcfTestHelpers
 {
+    internal const int MinPort = 2000;
+    internal const int MaxPort = 5000;
+    internal const int MaxRetries = 5;
+
     /// <summary>
     /// Asserts common activity properties for outgoing request instrumentation tests.
     /// </summary>
