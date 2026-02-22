@@ -76,8 +76,6 @@ public class TelemetryBindingElementForTcpTests : IDisposable
                                     case WcfEnrichEventNames.AfterReceiveReply:
                                         activity.SetTag("client.afterreceivereply", WcfEnrichEventNames.AfterReceiveReply);
                                         break;
-                                    default:
-                                        break;
                                 }
                             };
                     }
@@ -172,7 +170,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
     {
         var testSource = new ActivitySource("TestSource");
 
-        var stoppedActivities = new List<Activity>();
+        List<Activity> stoppedActivities = [];
         var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddSource("TestSource")
             .AddInMemoryExporter(stoppedActivities)
@@ -210,7 +208,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
     {
         var testSource = new ActivitySource("TestSource");
 
-        var stoppedActivities = new List<Activity>();
+        List<Activity> stoppedActivities = [];
         var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddSource("TestSource")
             .AddInMemoryExporter(stoppedActivities)
@@ -252,7 +250,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
 
         // this is 3 instead of 5 because the clientBadUrl calls fail during Open(), before the activity is created
         Assert.Equal(3, stoppedActivities.Count);
-        WcfTestHelpers.AssertActivitiesHaveCorrectParent(stoppedActivities);
+        WcfTestHelpers.AssertActivitiesHaveCorrectParentage(stoppedActivities);
     }
 
     [Fact]

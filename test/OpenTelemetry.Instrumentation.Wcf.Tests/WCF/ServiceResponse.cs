@@ -6,13 +6,8 @@ using System.Runtime.Serialization;
 namespace OpenTelemetry.Instrumentation.Wcf.Tests;
 
 [DataContract]
-public class ServiceResponse
+public class ServiceResponse(string payload)
 {
-    public ServiceResponse(string payload)
-    {
-        this.Payload = payload;
-    }
-
     [DataMember]
-    public string Payload { get; set; }
+    public string Payload { get; set; } = payload;
 }

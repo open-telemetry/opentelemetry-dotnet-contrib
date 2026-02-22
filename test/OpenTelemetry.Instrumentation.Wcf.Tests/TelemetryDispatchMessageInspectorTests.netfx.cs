@@ -88,7 +88,7 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
 
         using var activityListener = new ActivityListener
         {
-            ShouldListenTo = activitySource => true,
+            ShouldListenTo = _ => true,
             ActivityStopped = stoppedActivities.Add,
         };
 
@@ -113,8 +113,6 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
                                         break;
                                     case WcfEnrichEventNames.BeforeSendReply:
                                         activity.SetTag("server.beforesendreply", WcfEnrichEventNames.BeforeSendReply);
-                                        break;
-                                    default:
                                         break;
                                 }
                             };
@@ -218,7 +216,7 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
         List<Exception> recordedExceptions = [];
         using var activityListener = new ActivityListener
         {
-            ShouldListenTo = activitySource => true,
+            ShouldListenTo = _ => true,
             ActivityStarted = startedActivities.Add,
             ActivityStopped = stoppedActivities.Add,
         };

@@ -28,10 +28,10 @@ public class TelemetryPropagationTests
     {
         using var context = new ServiceHostContext();
 
-        var stoppedActivities = new List<Activity>();
+        List<Activity> stoppedActivities = [];
         using var activityListener = new ActivityListener
         {
-            ShouldListenTo = activitySource => true,
+            ShouldListenTo = _ => true,
             ActivityStopped = stoppedActivities.Add,
         };
         ActivitySource.AddActivityListener(activityListener);

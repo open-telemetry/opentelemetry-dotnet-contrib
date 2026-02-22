@@ -86,7 +86,7 @@ public class TelemetryDispatchMessageInspectorForOneWayOperationsTests : IDispos
 
         using var activityListener = new ActivityListener
         {
-            ShouldListenTo = activitySource => true,
+            ShouldListenTo = _ => true,
             ActivityStopped = stoppedActivities.Add,
         };
 

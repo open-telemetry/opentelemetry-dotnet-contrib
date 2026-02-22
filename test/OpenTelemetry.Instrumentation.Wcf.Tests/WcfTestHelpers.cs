@@ -91,16 +91,4 @@ internal static class WcfTestHelpers
             activity => Assert.Equal(parent.SpanId, activity.ParentSpanId));
     }
 
-    /// <summary>
-    /// Asserts that all activities have the same trace ID and that children have the specified parent span ID.
-    /// </summary>
-    /// <param name="activities">The activities to validate.</param>
-    public static void AssertActivitiesHaveCorrectParent(IList<Activity> activities)
-    {
-        Assert.NotEmpty(activities);
-        Assert.All(activities, activity => Assert.Equal(activities[0].TraceId, activity.TraceId));
-        var parent = activities.Single(activity => activity.Parent == null);
-        var children = activities.Where(activity => activity != parent);
-        Assert.All(children, activity => Assert.Equal(parent.SpanId, activity.ParentSpanId));
-    }
 }

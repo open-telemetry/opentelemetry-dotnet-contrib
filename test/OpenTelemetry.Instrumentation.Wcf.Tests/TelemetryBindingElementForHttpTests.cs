@@ -168,8 +168,6 @@ public class TelemetryBindingElementForHttpTests : IDisposable
                                     case WcfEnrichEventNames.AfterReceiveReply:
                                         activity.SetTag("client.afterreceivereply", WcfEnrichEventNames.AfterReceiveReply);
                                         break;
-                                    default:
-                                        break;
                                 }
                             };
                     }
@@ -261,7 +259,7 @@ public class TelemetryBindingElementForHttpTests : IDisposable
     {
         var testSource = new ActivitySource("TestSource");
 
-        var stoppedActivities = new List<Activity>();
+        List<Activity> stoppedActivities = [];
         var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddSource("TestSource")
             .AddInMemoryExporter(stoppedActivities)
@@ -299,7 +297,7 @@ public class TelemetryBindingElementForHttpTests : IDisposable
     {
         var testSource = new ActivitySource("TestSource");
 
-        var stoppedActivities = new List<Activity>();
+        List<Activity> stoppedActivities = [];
         var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddSource("TestSource")
             .AddInMemoryExporter(stoppedActivities)
@@ -334,6 +332,6 @@ public class TelemetryBindingElementForHttpTests : IDisposable
         }
 
         Assert.Equal(5, stoppedActivities.Count);
-        WcfTestHelpers.AssertActivitiesHaveCorrectParent(stoppedActivities);
+        WcfTestHelpers.AssertActivitiesHaveCorrectParentage(stoppedActivities);
     }
 }
