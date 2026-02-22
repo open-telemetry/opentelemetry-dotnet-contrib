@@ -154,9 +154,7 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
         if (instrument && !filter)
         {
             Assert.NotEmpty(stoppedActivities);
-            Assert.Single(stoppedActivities);
-
-            var activity = stoppedActivities[0];
+            var activity = Assert.Single(stoppedActivities);
 
             if (emptyOrNullAction)
             {
