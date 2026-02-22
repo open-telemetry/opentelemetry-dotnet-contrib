@@ -81,6 +81,22 @@ internal static class WcfTestHelpers
         }
     }
 
+
+    public static void AssertDownstreamInstrumentationActivities(IList<Activity> stoppedActivities, bool filter)
+    {
+        Assert.NotEmpty(stoppedActivities);
+        if (filter)
+        {
+            var activity = Assert.Single(stoppedActivities);
+            Assert.Equal("DownstreamInstrumentation", activity.OperationName);
+        }
+        else
+        {
+            Assert.Equal(2, stoppedActivities.Count);
+            Assert.NotNull(stoppedActivities.SingleOrDefault(a => a.OperationName == "DownstreamInstrumentation"));
+            Assert.NotNull(stoppedActivities.SingleOrDefault(a => a.OperationName == WcfInstrumentationActivitySource.OutgoingRequestActivityName));
+        }
+    }
     /// <summary>
     /// Asserts that all activities have the same trace ID and that children have the parent as their parent.
     /// </summary>
