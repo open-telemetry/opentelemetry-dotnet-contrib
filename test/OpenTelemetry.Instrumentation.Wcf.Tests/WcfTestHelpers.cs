@@ -81,6 +81,20 @@ internal static class WcfTestHelpers
         }
     }
 
+#if NETFRAMEWORK
+    public static void AssertIncomingRequestActivityCommon(Activity activity, Uri serviceBaseUri)
+    {
+        Assert.NotNull(activity);
+
+        Assert.Equal(WcfInstrumentationActivitySource.IncomingRequestActivityName, activity.OperationName);
+        Assert.Equal(WcfInstrumentationConstants.WcfSystemValue, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcSystem).Value);
+        Assert.Equal("http://opentelemetry.io/Service", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcService).Value);
+        Assert.Equal(serviceBaseUri.Host, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeNetHostName).Value);
+        Assert.Equal(serviceBaseUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeNetHostPort).Value);
+        Assert.Equal("net.tcp", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.WcfChannelSchemeTag).Value);
+        Assert.Equal("/Service", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.WcfChannelPathTag).Value);
+    }
+#endif
 
     public static void AssertDownstreamInstrumentationActivities(IList<Activity> stoppedActivities, bool filter)
     {
