@@ -179,6 +179,7 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
                 Assert.Equal(WcfEnrichEventNames.AfterReceiveRequest, activity.TagObjects.Single(t => t.Key == "server.afterreceiverequest").Value);
                 Assert.Equal(WcfEnrichEventNames.BeforeSendReply, activity.TagObjects.Single(t => t.Key == "server.beforesendreply").Value);
             }
+
             WcfTestHelpers.AssertIncomingRequestActivityCommon(activity, this.serviceBaseUri);
         }
         else

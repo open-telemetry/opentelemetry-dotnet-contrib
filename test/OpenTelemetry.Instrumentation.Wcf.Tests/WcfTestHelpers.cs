@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-using OpenTelemetry.Instrumentation.Wcf.Tests.Tools;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -111,6 +110,7 @@ internal static class WcfTestHelpers
             Assert.NotNull(stoppedActivities.SingleOrDefault(a => a.OperationName == WcfInstrumentationActivitySource.OutgoingRequestActivityName));
         }
     }
+
     /// <summary>
     /// Asserts that all activities have the same trace ID and that children have the parent as their parent.
     /// </summary>
@@ -124,5 +124,4 @@ internal static class WcfTestHelpers
             activities.Where(activity => activity != parent),
             activity => Assert.Equal(parent.SpanId, activity.ParentSpanId));
     }
-
 }
