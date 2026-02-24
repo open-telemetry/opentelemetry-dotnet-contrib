@@ -55,20 +55,20 @@ internal static class WcfTestHelpers
         Assert.Equal("http://opentelemetry.io/Service", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcService).Value);
         Assert.Equal(serviceBaseUri.Host, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeNetPeerName).Value);
         Assert.Equal(serviceBaseUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeNetPeerPort).Value);
-        Assert.Equal(schemeTag, activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.WcfChannelSchemeTag).Value);
-        Assert.Equal("/Service", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.WcfChannelPathTag).Value);
+        Assert.Equal(schemeTag, activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.AttributeWcfChannelScheme).Value);
+        Assert.Equal("/Service", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.AttributeWcfChannelPath).Value);
 
         if (includeVersion)
         {
             if (includeVersionExpected != null)
             {
                 // HTTP binding: exact match
-                Assert.Equal(includeVersionExpected, activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.SoapMessageVersionTag).Value);
+                Assert.Equal(includeVersionExpected, activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.AttributeSoapMessageVersion).Value);
             }
             else
             {
                 // TCP binding: regex match
-                var value = activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.SoapMessageVersionTag).Value!.ToString();
+                var value = activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.AttributeSoapMessageVersion).Value!.ToString();
                 Assert.Matches("""Soap.* \(http.*\) Addressing.* \(http.*\)""", value);
             }
         }
@@ -90,8 +90,8 @@ internal static class WcfTestHelpers
         Assert.Equal("http://opentelemetry.io/Service", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcService).Value);
         Assert.Equal(serviceBaseUri.Host, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeNetHostName).Value);
         Assert.Equal(serviceBaseUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeNetHostPort).Value);
-        Assert.Equal("net.tcp", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.WcfChannelSchemeTag).Value);
-        Assert.Equal("/Service", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.WcfChannelPathTag).Value);
+        Assert.Equal("net.tcp", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.AttributeWcfChannelScheme).Value);
+        Assert.Equal("/Service", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.AttributeWcfChannelPath).Value);
     }
 #endif
 

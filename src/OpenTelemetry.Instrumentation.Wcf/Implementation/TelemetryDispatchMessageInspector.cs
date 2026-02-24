@@ -83,7 +83,7 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
 
                 if (WcfInstrumentationActivitySource.Options.SetSoapMessageVersion)
                 {
-                    activity.SetTag(WcfInstrumentationConstants.SoapMessageVersionTag, request.Version.ToString());
+                    activity.SetTag(WcfInstrumentationConstants.AttributeSoapMessageVersion, request.Version.ToString());
                 }
 
                 var localAddressUri = channel.LocalAddress?.Uri;
@@ -91,8 +91,8 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
                 {
                     activity.SetTag(SemanticConventions.AttributeNetHostName, localAddressUri.Host);
                     activity.SetTag(SemanticConventions.AttributeNetHostPort, localAddressUri.Port);
-                    activity.SetTag(WcfInstrumentationConstants.WcfChannelSchemeTag, localAddressUri.Scheme);
-                    activity.SetTag(WcfInstrumentationConstants.WcfChannelPathTag, localAddressUri.LocalPath);
+                    activity.SetTag(WcfInstrumentationConstants.AttributeWcfChannelScheme, localAddressUri.Scheme);
+                    activity.SetTag(WcfInstrumentationConstants.AttributeWcfChannelPath, localAddressUri.LocalPath);
                 }
 
                 try
@@ -131,7 +131,7 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
                     activity.SetStatus(ActivityStatusCode.Error);
                 }
 
-                activity.SetTag(WcfInstrumentationConstants.SoapReplyActionTag, reply.Headers.Action);
+                activity.SetTag(WcfInstrumentationConstants.AttributeSoapReplyAction, reply.Headers.Action);
                 try
                 {
                     WcfInstrumentationActivitySource.Options!.Enrich?.Invoke(activity, WcfEnrichEventNames.BeforeSendReply, reply);

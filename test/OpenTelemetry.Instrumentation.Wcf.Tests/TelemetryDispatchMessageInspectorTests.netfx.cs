@@ -159,18 +159,18 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
             {
                 Assert.Equal(WcfInstrumentationActivitySource.IncomingRequestActivityName, activity.DisplayName);
                 Assert.Equal("ExecuteWithEmptyActionName", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcMethod).Value);
-                Assert.Equal("http://opentelemetry.io/Service/ExecuteWithEmptyActionNameResponse", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.SoapReplyActionTag).Value);
+                Assert.Equal("http://opentelemetry.io/Service/ExecuteWithEmptyActionNameResponse", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.AttributeSoapReplyAction).Value);
             }
             else
             {
                 Assert.Equal("http://opentelemetry.io/Service/Execute", activity.DisplayName);
                 Assert.Equal("Execute", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcMethod).Value);
-                Assert.Equal("http://opentelemetry.io/Service/ExecuteResponse", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.SoapReplyActionTag).Value);
+                Assert.Equal("http://opentelemetry.io/Service/ExecuteResponse", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.AttributeSoapReplyAction).Value);
             }
 
             if (includeVersion)
             {
-                Assert.Equal("Soap12 (http://www.w3.org/2003/05/soap-envelope) Addressing10 (http://www.w3.org/2005/08/addressing)", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.SoapMessageVersionTag).Value);
+                Assert.Equal("Soap12 (http://www.w3.org/2003/05/soap-envelope) Addressing10 (http://www.w3.org/2005/08/addressing)", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.AttributeSoapMessageVersion).Value);
             }
 
             if (enrich && !enrichmentException)
