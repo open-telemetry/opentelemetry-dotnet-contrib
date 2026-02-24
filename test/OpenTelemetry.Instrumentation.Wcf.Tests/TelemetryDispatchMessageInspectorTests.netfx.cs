@@ -63,10 +63,7 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
         this.serviceHost = createdHost;
     }
 
-    public void Dispose()
-    {
-        this.serviceHost?.Close();
-    }
+    public void Dispose() => this.serviceHost?.Close();
 
     [Theory]
     [InlineData(true, false)]
@@ -213,7 +210,7 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
             ActivityStopped = stoppedActivities.Add,
         };
 
-        activityListener.ExceptionRecorder += (Activity activity, Exception ex, ref TagList tags) =>
+        activityListener.ExceptionRecorder += (activity, ex, ref tags) =>
         {
             recordedExceptions.Add(ex);
         };
@@ -280,7 +277,7 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
 
         if (recordException && triggerException)
         {
-            Assert.Collection(recordedExceptions, e => Assert.IsType<Exception>(e));
+            Assert.All(recordedExceptions, e => Assert.IsType<Exception>(e));
         }
         else
         {
