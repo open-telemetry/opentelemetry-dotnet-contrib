@@ -111,6 +111,8 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
                                     case WcfEnrichEventNames.BeforeSendReply:
                                         activity.SetTag("server.beforesendreply", WcfEnrichEventNames.BeforeSendReply);
                                         break;
+                                    default:
+                                        break;
                                 }
                             };
                     }
