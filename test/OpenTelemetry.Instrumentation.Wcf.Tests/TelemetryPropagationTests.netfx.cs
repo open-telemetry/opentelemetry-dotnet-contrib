@@ -28,10 +28,10 @@ public class TelemetryPropagationTests
     {
         using var context = new ServiceHostContext();
 
-        var stoppedActivities = new List<Activity>();
+        List<Activity> stoppedActivities = [];
         using var activityListener = new ActivityListener
         {
-            ShouldListenTo = activitySource => true,
+            ShouldListenTo = _ => true,
             ActivityStopped = stoppedActivities.Add,
         };
         ActivitySource.AddActivityListener(activityListener);
@@ -61,15 +61,7 @@ public class TelemetryPropagationTests
         }
         finally
         {
-            if (client.State == CommunicationState.Faulted)
-            {
-                client.Abort();
-            }
-            else
-            {
-                client.Close();
-            }
-
+            client.AbortOrClose();
             tracerProvider?.Shutdown();
             tracerProvider?.Dispose();
 
@@ -100,7 +92,7 @@ public class TelemetryPropagationTests
         {
             var random = new Random();
             var attempts = 0;
-            var retryCount = 5;
+            var retryCount = WcfTestHelpers.MaxRetries;
             ServiceHost? createdHost = null;
             while (retryCount > 0)
             {
@@ -108,8 +100,8 @@ public class TelemetryPropagationTests
 
                 try
                 {
-                    this.serviceBaseUriTcp = new Uri($"net.tcp://localhost:{random.Next(2000, 5000)}/");
-                    this.serviceBaseUriHttp = new Uri($"http://localhost:{random.Next(2000, 5000)}/");
+                    this.serviceBaseUriTcp = new Uri($"net.tcp://localhost:{random.Next(WcfTestHelpers.MinPort, WcfTestHelpers.MaxPort)}/");
+                    this.serviceBaseUriHttp = new Uri($"http://localhost:{random.Next(WcfTestHelpers.MinPort, WcfTestHelpers.MaxPort)}/");
                     createdHost = new ServiceHost(new Service(), this.serviceBaseUriTcp, this.serviceBaseUriHttp);
                     var tcpEndpoint = createdHost.AddServiceEndpoint(typeof(IServiceContract), new NetTcpBinding(), "/tcp");
                     tcpEndpoint.Behaviors.Add(new TelemetryEndpointBehavior());
