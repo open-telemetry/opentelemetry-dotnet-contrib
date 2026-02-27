@@ -203,6 +203,54 @@ public class SqlClientTraceInstrumentationOptionsTests
         Assert.Equal(expected, options.SetDbQueryParameters);
     }
 
+    [Theory]
+    [InlineData("", false)]
+    [InlineData("invalid", false)]
+    [InlineData("false", false)]
+    [InlineData("true", true)]
+    public void ShouldAssignRecordReturnedRowsFromEnvironmentVariable(string value, bool expected)
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?> { ["OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_RECORD_RETURNED_ROWS"] = value })
+            .Build();
+        var options = new SqlClientTraceInstrumentationOptions(configuration);
+        Assert.Equal(expected, options.RecordReturnedRows);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void RecordReturnedRowsCollected(bool recordReturnedRows)
+    {
+        var activities = new List<Activity>();
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation(options =>
+            {
+                options.RecordReturnedRows = recordReturnedRows;
+            })
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        var commandText = "update Foo set Bar = 1";
+        MockCommandExecutor.ExecuteCommand(TestConnectionString, CommandType.Text, commandText, false, SqlClientLibrary.MicrosoftDataSqlClient, recordsAffected: 10);
+        MockCommandExecutor.ExecuteCommand(TestConnectionString, CommandType.Text, commandText, false, SqlClientLibrary.MicrosoftDataSqlClient, rows: 20);
+
+        tracerProvider.ForceFlush();
+        Assert.Equal(2, activities.Count);
+
+        if (recordReturnedRows)
+        {
+            Assert.Equal(10, activities[0].GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
+            Assert.Equal(20L, activities[1].GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
+        }
+        else
+        {
+            Assert.Null(activities[0].GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
+            Assert.Null(activities[1].GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
+        }
+    }
+
     private static void ActivityEnrichment(Activity activity, object obj)
     {
         activity.SetTag("enriched", "yes");

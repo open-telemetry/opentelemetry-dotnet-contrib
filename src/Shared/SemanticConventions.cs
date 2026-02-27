@@ -150,6 +150,7 @@ internal static class SemanticConventions
     public const string AttributeDbQuerySummary = "db.query.summary";
     public const string AttributeDbQueryText = "db.query.text";
     public const string AttributeDbStoredProcedureName = "db.stored_procedure.name";
+    public const string AttributeDbResponseReturnedRows = "db.response.returned_rows";
 
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 }
