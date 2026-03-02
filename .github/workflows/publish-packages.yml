@@ -32,7 +32,6 @@ jobs:
       attestations: write
       contents: read
       id-token: write
-     
 
     runs-on: windows-latest
 
