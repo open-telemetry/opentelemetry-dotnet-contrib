@@ -525,3 +525,9 @@ Released 2020-07-24
 Released 2020-07-23
 
 * Initial release
+
+## Unreleased
+
+* Fix incorrect `db.query.summary` when table names include a schema and are
+  enclosed in brackets (e.g. `[dbo].[Person]`).
+  ([#3897](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3863))
