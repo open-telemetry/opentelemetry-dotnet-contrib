@@ -288,7 +288,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         port = port != null ? $":{port}" : string.Empty;
         var path = httpUrlParts[3]?.ToString() ?? string.Empty;  // 3 => CS40_PART_B_HTTPURL_MAPPING["url.path"]
         var query = httpUrlParts[4]?.ToString();  // 4 => CS40_PART_B_HTTPURL_MAPPING["url.query"]
-        query = string.IsNullOrEmpty(query) ? string.Empty : query[0] == '?' ? query : $"?{query}";
+        query = string.IsNullOrEmpty(query) ? string.Empty : query![0] == '?' ? query : $"?{query}";
 
         var length = scheme.Length + Uri.SchemeDelimiter.Length + address.Length + port.Length + path.Length + query.Length;
 
