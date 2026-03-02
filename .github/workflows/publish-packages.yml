@@ -28,10 +28,11 @@ jobs:
   build-pack-publish:
 
     permissions:
+      artifact-metadata: write
       attestations: write
       contents: read
       id-token: write
-      artifact-metadata: write
+     
 
     runs-on: windows-latest
 
