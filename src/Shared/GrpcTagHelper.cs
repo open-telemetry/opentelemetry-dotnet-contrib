@@ -47,11 +47,12 @@ internal static partial class GrpcTagHelper
 
     /// <summary>
     /// Helper method that populates span properties from RPC status code according
-    /// to https://github.com/open-telemetry/semantic-conventions/blob/main/docs/rpc/grpc.md#grpc-attributes.
+    /// to https://github.com/open-telemetry/semantic-conventions/blob/main/docs/rpc/grpc.md#client.
+    /// This method is for client spans where all non-OK status codes are considered errors.
     /// </summary>
     /// <param name="statusCode">RPC status code.</param>
     /// <returns>Resolved span <see cref="Status"/> for the Grpc status code.</returns>
-    public static ActivityStatusCode ResolveSpanStatusForGrpcStatusCode(int statusCode)
+    public static ActivityStatusCode ResolveSpanStatusForGrpcStatusCodeOnClient(int statusCode)
     {
         var status = ActivityStatusCode.Error;
 
@@ -82,6 +83,45 @@ internal static partial class GrpcTagHelper
 
         return status;
     }
+
+    /// <summary>
+    /// Helper method that populates span properties from RPC status code according
+    /// to https://github.com/open-telemetry/semantic-conventions/blob/main/docs/rpc/grpc.md#server.
+    /// This method is for server spans where only specific status codes are considered errors:
+    /// UNKNOWN, DEADLINE_EXCEEDED, UNIMPLEMENTED, INTERNAL, UNAVAILABLE, and DATA_LOSS.
+    /// </summary>
+    /// <param name="statusCode">RPC status code.</param>
+    /// <returns>Resolved span <see cref="Status"/> for the Grpc status code.</returns>
+    public static ActivityStatusCode ResolveSpanStatusForGrpcStatusCodeOnServer(int statusCode)
+    {
+        if (typeof(GrpcStatusCanonicalCode).IsEnumDefined(statusCode))
+        {
+            return (GrpcStatusCanonicalCode)statusCode switch
+            {
+                GrpcStatusCanonicalCode.Unknown => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.DeadlineExceeded => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.Unimplemented => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.Internal => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.Unavailable => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.DataLoss => ActivityStatusCode.Error,
+                _ => ActivityStatusCode.Unset,
+            };
+        }
+
+        // Unknown status code, treat as error
+        return ActivityStatusCode.Error;
+    }
+
+    /// <summary>
+    /// Helper method that populates span properties from RPC status code according
+    /// to https://github.com/open-telemetry/semantic-conventions/blob/main/docs/rpc/grpc.md#server.
+    /// This method uses client-side semantics where all non-OK status codes are considered errors.
+    /// </summary>
+    /// <param name="statusCode">RPC status code.</param>
+    /// <returns>Resolved span <see cref="Status"/> for the Grpc status code.</returns>
+    [System.Obsolete("Use ResolveSpanStatusForGrpcStatusCodeOnClient or ResolveSpanStatusForGrpcStatusCodeOnServer instead.")]
+    public static ActivityStatusCode ResolveSpanStatusForGrpcStatusCode(int statusCode)
+        => ResolveSpanStatusForGrpcStatusCodeOnClient(statusCode);
 
 #if NET
     [GeneratedRegex(@"^/?(?<service>.*)/(?<method>.*)$")]

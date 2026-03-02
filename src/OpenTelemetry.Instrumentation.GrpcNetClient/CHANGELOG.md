@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Internal refactoring: `GrpcTagHelper.ResolveSpanStatusForGrpcStatusCode` has
+  been renamed to `ResolveSpanStatusForGrpcStatusCodeOnClient`. The original
+  method is marked obsolete. No behavioral change for client spans.
+
 ## 1.15.0-beta.1
 
 Released 2026-Jan-21

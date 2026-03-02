@@ -376,7 +376,7 @@ internal class HttpInListener : ListenerHandler
         var validConversion = GrpcTagHelper.TryGetGrpcStatusCodeFromActivity(activity, out var status);
         if (validConversion)
         {
-            activity.SetStatus(GrpcTagHelper.ResolveSpanStatusForGrpcStatusCode(status));
+            activity.SetStatus(GrpcTagHelper.ResolveSpanStatusForGrpcStatusCodeOnServer(status));
         }
 
         if (GrpcTagHelper.TryParseRpcServiceAndRpcMethod(grpcMethod, out var rpcService, out var rpcMethod))
