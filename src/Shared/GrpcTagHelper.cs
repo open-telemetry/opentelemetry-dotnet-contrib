@@ -60,23 +60,23 @@ internal static partial class GrpcTagHelper
         {
             status = (GrpcStatusCanonicalCode)statusCode switch
             {
-                GrpcStatusCanonicalCode.Ok => ActivityStatusCode.Unset,
-                GrpcStatusCanonicalCode.Cancelled => ActivityStatusCode.Error,
-                GrpcStatusCanonicalCode.Unknown => ActivityStatusCode.Error,
-                GrpcStatusCanonicalCode.InvalidArgument => ActivityStatusCode.Error,
-                GrpcStatusCanonicalCode.DeadlineExceeded => ActivityStatusCode.Error,
-                GrpcStatusCanonicalCode.NotFound => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.Aborted => ActivityStatusCode.Error,
                 GrpcStatusCanonicalCode.AlreadyExists => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.Cancelled => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.DataLoss => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.DeadlineExceeded => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.FailedPrecondition => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.Internal => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.InvalidArgument => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.NotFound => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.Ok => ActivityStatusCode.Unset,
+                GrpcStatusCanonicalCode.OutOfRange => ActivityStatusCode.Error,
                 GrpcStatusCanonicalCode.PermissionDenied => ActivityStatusCode.Error,
                 GrpcStatusCanonicalCode.ResourceExhausted => ActivityStatusCode.Error,
-                GrpcStatusCanonicalCode.FailedPrecondition => ActivityStatusCode.Error,
-                GrpcStatusCanonicalCode.Aborted => ActivityStatusCode.Error,
-                GrpcStatusCanonicalCode.OutOfRange => ActivityStatusCode.Error,
-                GrpcStatusCanonicalCode.Unimplemented => ActivityStatusCode.Error,
-                GrpcStatusCanonicalCode.Internal => ActivityStatusCode.Error,
-                GrpcStatusCanonicalCode.Unavailable => ActivityStatusCode.Error,
-                GrpcStatusCanonicalCode.DataLoss => ActivityStatusCode.Error,
                 GrpcStatusCanonicalCode.Unauthenticated => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.Unavailable => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.Unimplemented => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.Unknown => ActivityStatusCode.Error,
                 _ => ActivityStatusCode.Error,
             };
         }
@@ -98,12 +98,12 @@ internal static partial class GrpcTagHelper
         {
             return (GrpcStatusCanonicalCode)statusCode switch
             {
-                GrpcStatusCanonicalCode.Unknown => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.DataLoss => ActivityStatusCode.Error,
                 GrpcStatusCanonicalCode.DeadlineExceeded => ActivityStatusCode.Error,
-                GrpcStatusCanonicalCode.Unimplemented => ActivityStatusCode.Error,
                 GrpcStatusCanonicalCode.Internal => ActivityStatusCode.Error,
                 GrpcStatusCanonicalCode.Unavailable => ActivityStatusCode.Error,
-                GrpcStatusCanonicalCode.DataLoss => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.Unimplemented => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.Unknown => ActivityStatusCode.Error,
                 _ => ActivityStatusCode.Unset,
             };
         }
@@ -111,17 +111,6 @@ internal static partial class GrpcTagHelper
         // Unknown status code, treat as error
         return ActivityStatusCode.Error;
     }
-
-    /// <summary>
-    /// Helper method that populates span properties from RPC status code according
-    /// to https://github.com/open-telemetry/semantic-conventions/blob/main/docs/rpc/grpc.md#server.
-    /// This method uses client-side semantics where all non-OK status codes are considered errors.
-    /// </summary>
-    /// <param name="statusCode">RPC status code.</param>
-    /// <returns>Resolved span <see cref="Status"/> for the Grpc status code.</returns>
-    [System.Obsolete("Use ResolveSpanStatusForGrpcStatusCodeOnClient or ResolveSpanStatusForGrpcStatusCodeOnServer instead.")]
-    public static ActivityStatusCode ResolveSpanStatusForGrpcStatusCode(int statusCode)
-        => ResolveSpanStatusForGrpcStatusCodeOnClient(statusCode);
 
 #if NET
     [GeneratedRegex(@"^/?(?<service>.*)/(?<method>.*)$")]
