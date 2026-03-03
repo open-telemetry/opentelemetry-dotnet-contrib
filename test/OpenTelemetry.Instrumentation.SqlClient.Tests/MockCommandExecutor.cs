@@ -11,7 +11,7 @@ namespace OpenTelemetry.Instrumentation.SqlClient.Tests;
 
 public class MockCommandExecutor
 {
-    public static void ExecuteCommand(string connectionString, CommandType commandType, string commandText, bool error, SqlClientLibrary library)
+    public static void ExecuteCommand(string connectionString, CommandType commandType, string commandText, bool error, SqlClientLibrary library, int? recordsAffected = null, long? rows = null)
     {
         using var fakeSqlClientDiagnosticSource = new FakeSqlClientDiagnosticSource();
 
@@ -67,6 +67,8 @@ public class MockCommandExecutor
             {
                 OperationId = operationId,
                 Command = sqlCommand,
+                ReturnValue = recordsAffected,
+                Rows = rows,
                 Timestamp = 2000000L,
             };
 

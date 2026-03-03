@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+* Add `db.response.returned_rows` attribute to query spans if opted into using
+  the `RecordReturnedRows` option or the
+  `OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_RECORD_RETURNED_ROWS`
+  environment variable. Not supported on .NET Framework.
+  ([#3899](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3899))
+
 ## 1.15.0
 
 Released 2026-Jan-28

@@ -43,6 +43,8 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
     private readonly PropertyFetcher<string> commandTextFetcher = new("CommandText");
     private readonly PropertyFetcher<Exception> exceptionFetcher = new("Exception");
     private readonly PropertyFetcher<int> exceptionNumberFetcher = new("Number");
+    private readonly PropertyFetcher<object> returnValueFetcher = new("ReturnValue");
+    private readonly PropertyFetcher<long> rowsFetcher = new("Rows");
     private readonly AsyncLocal<long> beginTimestamp = new();
 
     public SqlClientDiagnosticListener(string sourceName)
@@ -211,6 +213,18 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     {
                         this.RecordDuration(null, payload);
                         return;
+                    }
+
+                    if (options.RecordReturnedRows && activity.IsAllDataRequested)
+                    {
+                        if (this.rowsFetcher.TryFetch(payload, out var rows))
+                        {
+                            activity.SetTag(SemanticConventions.AttributeDbResponseReturnedRows, rows);
+                        }
+                        else if (this.returnValueFetcher.TryFetch(payload, out var returnValue) && returnValue is int recordsAffected && recordsAffected != -1)
+                        {
+                            activity.SetTag(SemanticConventions.AttributeDbResponseReturnedRows, recordsAffected);
+                        }
                     }
 
                     activity.Stop();
