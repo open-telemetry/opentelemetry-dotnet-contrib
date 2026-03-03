@@ -18,14 +18,13 @@ public class TelemetryBindingElementForHttpTests : IDisposable
 
     public TelemetryBindingElementForHttpTests()
     {
-        var random = new Random();
         var retryCount = WcfTestHelpers.MaxRetries;
         HttpListener? createdListener = null;
         while (retryCount > 0)
         {
             try
             {
-                this.serviceBaseUri = new Uri($"http://localhost:{random.Next(WcfTestHelpers.MinPort, WcfTestHelpers.MaxPort)}/");
+                this.serviceBaseUri = WcfTestHelpers.GetRandomBaseUri(Uri.UriSchemeHttp);
 
                 createdListener = new HttpListener();
                 createdListener.Prefixes.Add(this.serviceBaseUri.OriginalString);
