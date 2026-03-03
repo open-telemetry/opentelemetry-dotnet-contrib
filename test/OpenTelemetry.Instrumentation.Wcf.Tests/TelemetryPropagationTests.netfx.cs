@@ -90,7 +90,6 @@ public class TelemetryPropagationTests
 
         public ServiceHostContext()
         {
-            var random = new Random();
             var attempts = 0;
             var retryCount = WcfTestHelpers.MaxRetries;
             ServiceHost? createdHost = null;
@@ -100,8 +99,8 @@ public class TelemetryPropagationTests
 
                 try
                 {
-                    this.serviceBaseUriTcp = new Uri($"net.tcp://localhost:{random.Next(WcfTestHelpers.MinPort, WcfTestHelpers.MaxPort)}/");
-                    this.serviceBaseUriHttp = new Uri($"http://localhost:{random.Next(WcfTestHelpers.MinPort, WcfTestHelpers.MaxPort)}/");
+                    this.serviceBaseUriTcp = WcfTestHelpers.GetRandomBaseUri("net.tcp");
+                    this.serviceBaseUriHttp = WcfTestHelpers.GetRandomBaseUri(Uri.UriSchemeHttp);
                     createdHost = new ServiceHost(new Service(), this.serviceBaseUriTcp, this.serviceBaseUriHttp);
                     var tcpEndpoint = createdHost.AddServiceEndpoint(typeof(IServiceContract), new NetTcpBinding(), "/tcp");
                     tcpEndpoint.Behaviors.Add(new TelemetryEndpointBehavior());

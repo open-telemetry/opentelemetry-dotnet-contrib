@@ -30,9 +30,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
     }
 
     public void Dispose()
-    {
-        this.serviceHost?.Close();
-    }
+        => this.serviceHost?.Close();
 
     [Theory]
     [InlineData(true, false)]
@@ -392,13 +390,12 @@ public class TelemetryBindingElementForTcpTests : IDisposable
     private ServiceHost CreateServiceHost(NetTcpBinding binding, X509Certificate2? cert)
     {
         ServiceHost? serviceHost = null;
-        var random = new Random();
         var retryCount = WcfTestHelpers.MaxRetries;
         while (retryCount > 0)
         {
             try
             {
-                var baseUri = new Uri($"net.tcp://localhost:{random.Next(WcfTestHelpers.MinPort, WcfTestHelpers.MaxPort)}/");
+                var baseUri = WcfTestHelpers.GetRandomBaseUri("net.tcp");
                 serviceHost = new ServiceHost(new Service(), baseUri);
                 if (cert != null)
                 {
