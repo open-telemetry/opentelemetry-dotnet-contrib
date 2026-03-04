@@ -90,7 +90,7 @@
 
   <!-- Non-production packages are kept up-to-date by dependency automation -->
   <ItemGroup Label="Non-production packages, such as for examples and tests">
-    <PackageVersion Include="AWSSDK.Bedrock" Version="4.0.20" />
+    <PackageVersion Include="AWSSDK.Bedrock" Version="4.0.21" />
     <PackageVersion Include="AWSSDK.BedrockAgent" Version="4.0.7.9" />
     <PackageVersion Include="AWSSDK.BedrockAgentRuntime" Version="4.0.8.9" />
     <PackageVersion Include="AWSSDK.BedrockRuntime" Version="4.0.16.1" />
