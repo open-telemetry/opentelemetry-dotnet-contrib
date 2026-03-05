@@ -48,10 +48,5 @@ public class RemotingInstrumentationOptions
     /// as an <see cref="ActivityEvent"/> or not. Default value: <see
     /// langword="false"/>.
     /// </summary>
-    /// <remarks>
-    /// <para>For specification details see: <see
-    /// href="https://github.com/open-telemetry/semantic-conventions/blob/main/docs/exceptions/exceptions-spans.md"
-    /// />.</para>
-    /// </remarks>
     public bool RecordException { get; set; }
 }
