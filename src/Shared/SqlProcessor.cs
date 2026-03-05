@@ -549,13 +549,22 @@ internal static class SqlProcessor
                 state.SummaryPosition--;
 
                 state.SummaryBuffer[state.SummaryPosition++] = CloseSquareBracketChar;
-                state.SummaryBuffer[state.SummaryPosition++] = SpaceChar;
+
+                var nextPos = state.ParsePosition + 1;
+                if (nextPos >= sql.Length || sql[nextPos] != DotChar)
+                {
+                    state.SummaryBuffer[state.SummaryPosition++] = SpaceChar;
+                }
+                else
+                {
+                    state.SummaryBuffer[state.SummaryPosition++] = DotChar; // write the dot to summary
+                }
             }
 
             // If we are in a FROM clause, we want to capture the next identifier following a comma or open square bracket.
             // Commas may occur when listing multiple tables in a FROM clause.
             // Brackets may occur when using schema-qualified or delimited identifiers.
-            state.CaptureNextNonKeywordTokenAsIdentifier = state.InFromClause && (currentChar is CommaChar or OpenSquareBracketChar);
+            state.CaptureNextNonKeywordTokenAsIdentifier = state.InFromClause && (currentChar is CommaChar or OpenSquareBracketChar or DotChar);
 
             if (state.CaptureNextNonKeywordTokenAsIdentifier && currentChar is OpenSquareBracketChar)
             {
