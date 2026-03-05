@@ -16,7 +16,7 @@ internal sealed class TelemetryDynamicSinkProvider : IDynamicProperty, IContribu
 {
     internal const string DynamicPropertyName = "TelemetryDynamicSinkProvider";
 
-    private readonly ActivitySource activitySource = new(TelemetryDynamicSink.ActivitySourceName, typeof(TelemetryDynamicSink).Assembly.GetPackageVersion());
+    private readonly ActivitySource activitySource = CreateActivitySource();
     private readonly ConcurrentDictionary<string, string> serviceNameCache = new();
 
     private readonly RemotingInstrumentationOptions options;
@@ -37,4 +37,19 @@ internal sealed class TelemetryDynamicSinkProvider : IDynamicProperty, IContribu
 
     /// <inheritdoc />
     public void Dispose() => this.activitySource.Dispose();
+
+    private static ActivitySource CreateActivitySource()
+    {
+        const string telemetrySchemaUrl = "https://opentelemetry.io/schemas/1.39.0";
+        var assembly = typeof(TelemetryDynamicSink).Assembly;
+        var version = assembly.GetPackageVersion();
+
+        var activitySourceOptions = new ActivitySourceOptions(TelemetryDynamicSink.ActivitySourceName)
+        {
+            Version = version,
+            TelemetrySchemaUrl = telemetrySchemaUrl,
+        };
+
+        return new ActivitySource(activitySourceOptions);
+    }
 }
