@@ -63,7 +63,7 @@ namespace ExampleClient
 When hosting server objects in IIS, adding instrumentation should typically
 be done in `Global.asax.cs` like in the below example.
 
-This example also sets up the OpenTelemetry Jaeger exporter, which requires
+This example also sets up the OpenTelemetry OTLP exporter, which requires
 adding the package [`OpenTelemetry.Exporter.OpenTelemetryProtocol`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.OpenTelemetryProtocol/README.md)
 to the project.
 
@@ -82,11 +82,9 @@ namespace ServerAspNet
         {
             _tracerProvider = Sdk.CreateTracerProviderBuilder()
                 .AddRemotingInstrumentation()
-                .AddJaegerExporter(o =>
+                .AddOtlpExporter(o =>
                 {
-                    o.ServiceName = "remoting-server";
-                    o.AgentHost = "localhost";
-                    o.AgentPort = 6831;
+                    o.Endpoint = new Uri("http://localhost:4317");
                 })
                 .Build();
         }
