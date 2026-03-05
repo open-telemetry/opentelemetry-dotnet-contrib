@@ -1,6 +1,7 @@
 ﻿// Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.Remoting.Contexts;
 using OpenTelemetry.Internal;
@@ -16,6 +17,7 @@ internal sealed class TelemetryDynamicSinkProvider : IDynamicProperty, IContribu
     internal const string DynamicPropertyName = "TelemetryDynamicSinkProvider";
 
     private readonly ActivitySource activitySource = new(TelemetryDynamicSink.ActivitySourceName, typeof(TelemetryDynamicSink).Assembly.GetPackageVersion());
+    private readonly ConcurrentDictionary<string, string> serviceNameCache = new();
 
     private readonly RemotingInstrumentationOptions options;
 
@@ -31,7 +33,7 @@ internal sealed class TelemetryDynamicSinkProvider : IDynamicProperty, IContribu
     /// Creates and returns a <see cref="TelemetryDynamicSink"/> to be used for instrumentation.
     /// </summary>
     /// <returns>A new instance of <see cref="TelemetryDynamicSink"/>.</returns>
-    public IDynamicMessageSink GetDynamicSink() => new TelemetryDynamicSink(this.options, this.activitySource);
+    public IDynamicMessageSink GetDynamicSink() => new TelemetryDynamicSink(this.options, this.activitySource, this.serviceNameCache);
 
     /// <inheritdoc />
     public void Dispose() => this.activitySource.Dispose();
