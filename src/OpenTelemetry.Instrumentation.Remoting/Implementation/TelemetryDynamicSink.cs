@@ -33,15 +33,19 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
     private const string ActivityInName = ActivitySourceName + ".RequestIn";
 
     private const string SavedAspnetActivityPropertyName = ActivitySourceName + ".SavedAspnetActivity";
-    private static readonly ConcurrentDictionary<string, string> ServiceNameCache = new();
     private readonly ActivitySource remotingActivitySource;
+    private readonly ConcurrentDictionary<string, string> serviceNameCache;
 
     private readonly RemotingInstrumentationOptions options;
 
-    public TelemetryDynamicSink(RemotingInstrumentationOptions options, ActivitySource activitySource)
+    public TelemetryDynamicSink(
+        RemotingInstrumentationOptions options,
+        ActivitySource activitySource,
+        ConcurrentDictionary<string, string> serviceNameCache)
     {
         this.options = options;
         this.remotingActivitySource = activitySource;
+        this.serviceNameCache = serviceNameCache;
     }
 
     public void ProcessMessageStart(IMessage reqMsg, bool bCliSide, bool bAsync)
@@ -68,7 +72,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
         {
             IMethodMessage? methodMsg = reqMsg as IMethodMessage;
             ActivityTagsCollection? tags = methodMsg != null
-                ? BuildSamplingTags(methodMsg)
+                ? this.BuildSamplingTags(methodMsg)
                 : null;
 
             // Are we executing on client?
@@ -252,9 +256,9 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
         }
     }
 
-    private static ActivityTagsCollection BuildSamplingTags(IMethodMessage msg)
+    private ActivityTagsCollection BuildSamplingTags(IMethodMessage msg)
     {
-        var fullyQualifiedMethod = GetFullyQualifiedMethod(msg);
+        var fullyQualifiedMethod = this.GetFullyQualifiedMethod(msg);
 
         var tags = new ActivityTagsCollection
         {
@@ -274,17 +278,17 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
         return tags;
     }
 
-    private static string GetFullyQualifiedMethod(IMethodMessage msg)
+    private string GetFullyQualifiedMethod(IMethodMessage msg)
     {
-        string serviceName = GetServiceName(msg.TypeName);
+        string serviceName = this.GetServiceName(msg.TypeName);
         string methodName = msg.MethodName;
         return $"{serviceName}/{methodName}";
     }
 
-    private static string GetServiceName(string typeName) =>
+    private string GetServiceName(string typeName) =>
 
         // typeName will be a full .NET type name as a string "SharedLib.IHelloServer, SharedLib, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
-        ServiceNameCache.GetOrAdd(typeName, s =>
+        this.serviceNameCache.GetOrAdd(typeName, s =>
             {
                 int pos = s.IndexOf(",", StringComparison.OrdinalIgnoreCase);
                 if (pos >= 0)
