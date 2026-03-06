@@ -3,6 +3,7 @@
 
 using System.Diagnostics;
 using System.Runtime.Remoting.Messaging;
+using OpenTelemetry.Instrumentation.Remoting.Implementation;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -66,26 +67,26 @@ public class RemotingInstrumentationTests
         Assert.Single(activities); // OnStart/OnEnd/OnShutdown/Dispose called.
         var activity = activities.FirstOrDefault(); // Get the OnEnd activity.
         Assert.Equal(ActivityKind.Client, activity.Kind);
-        Assert.Equal("dotnet.remoting", activity.GetTagItem("rpc.system.name"));
-        Assert.Equal("OpenTelemetry.Instrumentation.Remoting.Tests.RemotingInstrumentationTests+RemoteObject/DoStuff", activity.GetTagItem("rpc.method"));
+        Assert.Equal(TelemetryDynamicSink.AttributeRpcSystemNameValue, activity.GetTagItem(SemanticConventions.AttributeRpcSystemName));
+        Assert.Equal("OpenTelemetry.Instrumentation.Remoting.Tests.RemotingInstrumentationTests+RemoteObject/DoStuff", activity.GetTagItem(SemanticConventions.AttributeRpcMethod));
 
-        Assert.Null(activity.GetTagItem("server.address"));
-        Assert.Null(activity.GetTagItem("server.port"));
+        Assert.Null(activity.GetTagItem(SemanticConventions.AttributeServerAddress));
+        Assert.Null(activity.GetTagItem(SemanticConventions.AttributeServerPort));
 
         if (success)
         {
             Assert.Equal(ActivityStatusCode.Unset, activity.Status);
-            Assert.Null(activity.GetTagItem("error.type"));
+            Assert.Null(activity.GetTagItem(SemanticConventions.AttributeErrorType));
         }
         else
         {
             Assert.Equal(ActivityStatusCode.Error, activity.Status);
-            Assert.Equal(typeof(Exception).FullName, activity.GetTagItem("error.type"));
+            Assert.Equal(typeof(Exception).FullName, activity.GetTagItem(SemanticConventions.AttributeErrorType));
 
             var eventList = activity.Events.ToList();
             Assert.Single(eventList);
 
-            Assert.Equal("exception", eventList[0].Name);
+            Assert.Equal(SemanticConventions.AttributeExceptionEventName, eventList[0].Name);
         }
     }
 

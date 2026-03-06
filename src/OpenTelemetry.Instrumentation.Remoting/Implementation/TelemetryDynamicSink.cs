@@ -7,6 +7,7 @@ using System.Runtime.Remoting.Contexts;
 using System.Runtime.Remoting.Messaging;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.Remoting.Implementation;
 
@@ -22,12 +23,7 @@ namespace OpenTelemetry.Instrumentation.Remoting.Implementation;
 /// </remarks>
 internal sealed class TelemetryDynamicSink : IDynamicMessageSink
 {
-    internal const string AttributeRpcSystemName = "rpc.system.name";
     internal const string AttributeRpcSystemNameValue = "dotnet.remoting";
-    internal const string AttributeRpcMethod = "rpc.method";
-    internal const string AttributeServerAddress = "server.address";
-    internal const string AttributeServerPort = "server.port";
-    internal const string AttributeErrorType = "error.type";
     internal const string ActivitySourceName = "OpenTelemetry.Instrumentation.Remoting";
     private const string ActivityOutName = ActivitySourceName + ".RequestOut";
     private const string ActivityInName = ActivitySourceName + ".RequestIn";
@@ -222,7 +218,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
                     else
                     {
                         activity.SetStatus(ActivityStatusCode.Error);
-                        activity.SetTag(AttributeErrorType, returnMsg.Exception.GetType().FullName);
+                        activity.SetTag(SemanticConventions.AttributeErrorType, returnMsg.Exception.GetType().FullName);
                         if (this.options.RecordException)
                         {
                             activity.AddException(returnMsg.Exception);
@@ -305,16 +301,16 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
 
         var tags = new ActivityTagsCollection
         {
-            { AttributeRpcSystemName, AttributeRpcSystemNameValue },
-            { AttributeRpcMethod, fullyQualifiedMethod },
+            { SemanticConventions.AttributeRpcSystemName, AttributeRpcSystemNameValue },
+            { SemanticConventions.AttributeRpcMethod, fullyQualifiedMethod },
         };
 
         if (TryParseUri(msg.Uri, out string? host, out int? port))
         {
-            tags.Add(AttributeServerAddress, host);
+            tags.Add(SemanticConventions.AttributeServerAddress, host);
             if (port.HasValue)
             {
-                tags.Add(AttributeServerPort, port.Value);
+                tags.Add(SemanticConventions.AttributeServerPort, port.Value);
             }
         }
 
