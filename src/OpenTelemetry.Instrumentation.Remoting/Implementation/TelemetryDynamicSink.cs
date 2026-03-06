@@ -256,50 +256,6 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
         }
     }
 
-    private ActivityTagsCollection BuildSamplingTags(IMethodMessage msg)
-    {
-        var fullyQualifiedMethod = this.GetFullyQualifiedMethod(msg);
-
-        var tags = new ActivityTagsCollection
-        {
-            { AttributeRpcSystemName, AttributeRpcSystemNameValue },
-            { AttributeRpcMethod, fullyQualifiedMethod },
-        };
-
-        if (TryParseUri(msg.Uri, out string? host, out int? port))
-        {
-            tags.Add(AttributeServerAddress, host);
-            if (port.HasValue)
-            {
-                tags.Add(AttributeServerPort, port.Value);
-            }
-        }
-
-        return tags;
-    }
-
-    private string GetFullyQualifiedMethod(IMethodMessage message)
-    {
-        string serviceName = this.GetServiceName(message.TypeName);
-        string methodName = msg.MethodName;
-        return $"{serviceName}/{methodName}";
-    }
-
-    private string GetServiceName(string typeName) =>
-
-        // typeName will be a full .NET type name as a string "SharedLib.IHelloServer, SharedLib, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
-        this.serviceNameCache.GetOrAdd(typeName, assemblyQualifiedTypeName =>
-            {
-                int index = assemblyQualifiedTypeName.IndexOf(",", StringComparison.OrdinalIgnoreCase);
-                if (index >= 0)
-                {
-                    // Trim to just the type's full name
-                    return assemblyQualifiedTypeName.Substring(0, index);
-                }
-
-                return assemblyQualifiedTypeName;
-            });
-
     private static bool TryParseUri(string? uri, out string? host, out int? port)
     {
         host = null;
@@ -343,6 +299,50 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
         return Enumerable.Empty<string>();
     }
 
+    private ActivityTagsCollection BuildSamplingTags(IMethodMessage msg)
+    {
+        var fullyQualifiedMethod = this.GetFullyQualifiedMethod(msg);
+
+        var tags = new ActivityTagsCollection
+        {
+            { AttributeRpcSystemName, AttributeRpcSystemNameValue },
+            { AttributeRpcMethod, fullyQualifiedMethod },
+        };
+
+        if (TryParseUri(msg.Uri, out string? host, out int? port))
+        {
+            tags.Add(AttributeServerAddress, host);
+            if (port.HasValue)
+            {
+                tags.Add(AttributeServerPort, port.Value);
+            }
+        }
+
+        return tags;
+    }
+
+    private string GetFullyQualifiedMethod(IMethodMessage message)
+    {
+        string serviceName = this.GetServiceName(message.TypeName);
+        string methodName = message.MethodName;
+        return $"{serviceName}/{methodName}";
+    }
+
+    private string GetServiceName(string typeName) =>
+
+        // typeName will be a full .NET type name as a string "SharedLib.IHelloServer, SharedLib, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+        this.serviceNameCache.GetOrAdd(typeName, assemblyQualifiedTypeName =>
+            {
+                int index = assemblyQualifiedTypeName.IndexOf(",", StringComparison.OrdinalIgnoreCase);
+                if (index >= 0)
+                {
+                    // Trim to just the type's full name
+                    return assemblyQualifiedTypeName.Substring(0, index);
+                }
+
+                return assemblyQualifiedTypeName;
+            });
+
     private void SetPostCreationAttributes(Activity activity, IMethodMessage? msg)
     {
         if (!activity.IsAllDataRequested || msg == null)
@@ -350,7 +350,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
             return;
         }
 
-        string fullyQualifiedMethod = GetFullyQualifiedMethod(msg);
+        string fullyQualifiedMethod = this.GetFullyQualifiedMethod(msg);
 
         activity.DisplayName = fullyQualifiedMethod;
 
