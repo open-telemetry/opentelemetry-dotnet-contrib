@@ -409,6 +409,8 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Instrumentation.Remoting]
       code-cov-name: Instrumentation.Remoting
+      os-list: '[ "windows-latest" ]'
+      tfm-list: '[ "net462" ]'
 
   build-test-instrumentation-runtime:
     needs: detect-changes

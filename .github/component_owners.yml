@@ -59,7 +59,7 @@ components:
   src/OpenTelemetry.Instrumentation.Quartz/:
     - maldago
   src/OpenTelemetry.Instrumentation.Remoting/:
-    - lewis800    
+    - lewis800
   src/OpenTelemetry.Instrumentation.StackExchangeRedis/:
     - matt-hensley
   src/OpenTelemetry.Instrumentation.Runtime/:
@@ -162,7 +162,7 @@ components:
   test/OpenTelemetry.Instrumentation.Quartz.Tests/:
     - maldago
   test/OpenTelemetry.Instrumentation.Remoting.Tests/:
-    - lewis800    
+    - lewis800
   test/OpenTelemetry.Instrumentation.StackExchangeRedis.Tests/:
     - matt-hensley
   test/OpenTelemetry.Instrumentation.Runtime.Tests/:
