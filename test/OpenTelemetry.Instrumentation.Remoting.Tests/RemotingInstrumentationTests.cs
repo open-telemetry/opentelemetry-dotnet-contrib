@@ -38,14 +38,14 @@ public class RemotingInstrumentationTests
             .Build();
 
         var domainSetup = AppDomain.CurrentDomain.SetupInformation;
-        var ad = AppDomain.CreateDomain("other-domain", null, domainSetup);
+        var appDomain = AppDomain.CreateDomain("other-domain", null, domainSetup);
 
         try
         {
             var remoteObjectTypeName = typeof(RemoteObject).FullName;
             Assert.NotNull(remoteObjectTypeName);
 
-            var obj = (RemoteObject)ad.CreateInstanceAndUnwrap(
+            var obj = (RemoteObject)appDomain.CreateInstanceAndUnwrap(
                 typeof(RemoteObject).Assembly.FullName,
                 remoteObjectTypeName);
 
@@ -60,7 +60,7 @@ public class RemotingInstrumentationTests
         }
         finally
         {
-            AppDomain.Unload(ad);
+            AppDomain.Unload(appDomain);
         }
 
         Assert.Single(activities); // OnStart/OnEnd/OnShutdown/Dispose called.
@@ -96,11 +96,11 @@ public class RemotingInstrumentationTests
 
         // This will register the dynamic property on the current context
         using var i1 = new RemotingInstrumentation(options);
-        Assert.Equal(1, RemotingInstrumentation.RegCount);
+        Assert.Equal(1, RemotingInstrumentation.RegistrationCount);
 
         // Second call should increment count but NOT re-register the property
         using var i2 = new RemotingInstrumentation(options);
-        Assert.Equal(2, RemotingInstrumentation.RegCount);
+        Assert.Equal(2, RemotingInstrumentation.RegistrationCount);
     }
 
     private class RemoteObject : ContextBoundObject
