@@ -36,13 +36,10 @@ public static class TracerProviderBuilderExtensions
 
         builder.AddSource(TelemetryDynamicSink.ActivitySourceName);
 
-        builder.ConfigureServices(services =>
+        if (configure != null)
         {
-            if (configure != null)
-            {
-                services.Configure(configure);
-            }
-        });
+            builder.ConfigureServices(services => services.Configure(configure));
+        }
 
         builder.AddInstrumentation(sp =>
         {
