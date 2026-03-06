@@ -40,7 +40,7 @@ internal sealed class TelemetryDynamicSinkProvider : IDynamicProperty, IContribu
 
     private static ActivitySource CreateActivitySource()
     {
-        const string telemetrySchemaUrl = "https://opentelemetry.io/schemas/1.39.0";
+        const string telemetrySchemaUrl = "https://opentelemetry.io/schemas/1.40.0";
         var assembly = typeof(TelemetryDynamicSink).Assembly;
         var version = assembly.GetPackageVersion();
 
