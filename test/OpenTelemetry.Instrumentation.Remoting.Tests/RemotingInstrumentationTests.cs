@@ -36,8 +36,10 @@ public class RemotingInstrumentationTests
                     };
                 })
             .Build();
+
         var domainSetup = AppDomain.CurrentDomain.SetupInformation;
         var ad = AppDomain.CreateDomain("other-domain", null, domainSetup);
+
         try
         {
             var remoteObjectTypeName = typeof(RemoteObject).FullName;

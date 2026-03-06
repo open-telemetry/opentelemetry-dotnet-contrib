@@ -278,9 +278,9 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
         return tags;
     }
 
-    private string GetFullyQualifiedMethod(IMethodMessage msg)
+    private string GetFullyQualifiedMethod(IMethodMessage message)
     {
-        string serviceName = this.GetServiceName(msg.TypeName);
+        string serviceName = this.GetServiceName(message.TypeName);
         string methodName = msg.MethodName;
         return $"{serviceName}/{methodName}";
     }
@@ -288,15 +288,16 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
     private string GetServiceName(string typeName) =>
 
         // typeName will be a full .NET type name as a string "SharedLib.IHelloServer, SharedLib, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
-        this.serviceNameCache.GetOrAdd(typeName, s =>
+        this.serviceNameCache.GetOrAdd(typeName, assemblyQualifiedTypeName =>
             {
-                int pos = s.IndexOf(",", StringComparison.OrdinalIgnoreCase);
-                if (pos >= 0)
+                int index = assemblyQualifiedTypeName.IndexOf(",", StringComparison.OrdinalIgnoreCase);
+                if (index >= 0)
                 {
-                    return s.Substring(0, pos);
+                    // Trim to just the type's full name
+                    return assemblyQualifiedTypeName.Substring(0, index);
                 }
 
-                return s;
+                return assemblyQualifiedTypeName;
             });
 
     private static bool TryParseUri(string? uri, out string? host, out int? port)
