@@ -36,10 +36,11 @@ To enable .NET remoting instrumentation, call `AddRemotingInstrumentaion()` on
 the `TracerProviderBuilder` during the application startup in both client and
 server code.
 
-The following example demonstrates adding .NET Framework remoting instrumentation to a
-client console application. This example also sets up the OpenTelemetry Console
-exporter, which requires adding the [`OpenTelemetry.Exporter.Console`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Console/README.md) package
-to the project.
+The following example demonstrates adding .NET Framework remoting
+instrumentation to a client console application. This example also
+sets up the OpenTelemetry Console exporter, which requires adding
+the [`OpenTelemetry.Exporter.Console`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Console/README.md)
+package to the project.
 
 ```csharp
 using OpenTelemetry;
@@ -132,8 +133,9 @@ want to instrument it or not.
 
 ## Implementation Details
 
-The instrumentation is implemented via  custom [`IDynamicMessageSink`](https://docs.microsoft.com/dotnet/api/system.runtime.remoting.contexts.idynamicmessagesink) implementation,
-that is registered in the current `AppDomain` when you call
+The instrumentation is implemented via custom
+[`IDynamicMessageSink`](https://docs.microsoft.com/dotnet/api/system.runtime.remoting.contexts.idynamicmessagesink)
+implementation, that is registered in the current `AppDomain` when you call
 `AddRemotingInstrumentation` and unregistered when the constructed
 `TracerProvider` is disposed.
 

@@ -1,4 +1,4 @@
-﻿// Copyright The OpenTelemetry Authors
+// Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Collections.Concurrent;
@@ -324,20 +324,21 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
         return $"{serviceName}/{methodName}";
     }
 
-    private string GetServiceName(string typeName) =>
-
+    private string GetServiceName(string typeName)
+    {
         // typeName will be a full .NET type name as a string "SharedLib.IHelloServer, SharedLib, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
-        this.serviceNameCache.GetOrAdd(typeName, assemblyQualifiedTypeName =>
+        return this.serviceNameCache.GetOrAdd(typeName, assemblyQualifiedTypeName =>
+        {
+            int index = assemblyQualifiedTypeName.IndexOf(",", StringComparison.OrdinalIgnoreCase);
+            if (index >= 0)
             {
-                int index = assemblyQualifiedTypeName.IndexOf(",", StringComparison.OrdinalIgnoreCase);
-                if (index >= 0)
-                {
-                    // Trim to just the type's full name
-                    return assemblyQualifiedTypeName.Substring(0, index);
-                }
+                // Trim to just the type's full name
+                return assemblyQualifiedTypeName.Substring(0, index);
+            }
 
-                return assemblyQualifiedTypeName;
-            });
+            return assemblyQualifiedTypeName;
+        });
+    }
 
     private void SetPostCreationAttributes(Activity activity, IMethodMessage? msg)
     {
