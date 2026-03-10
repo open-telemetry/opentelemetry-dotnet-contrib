@@ -12,9 +12,30 @@ namespace OpenTelemetry.Instrumentation.Wcf.Tests;
 /// </summary>
 internal static class WcfTestHelpers
 {
-    internal const int MinPort = 2000;
-    internal const int MaxPort = 5000;
     internal const int MaxRetries = 5;
+
+    private static readonly Random Random =
+#if NET
+        Random.Shared;
+#else
+        new();
+#endif
+
+    public static Uri GetRandomBaseUri(string scheme)
+    {
+        const int MinPort = 2000;
+        const int MaxPort = 5000;
+
+        var port = Random.Next(MinPort, MaxPort);
+
+        return new UriBuilder()
+        {
+            Scheme = scheme,
+            Host = "localhost",
+            Port = port,
+            Path = "/",
+        }.Uri;
+    }
 
     /// <summary>
     /// Asserts common activity properties for outgoing request instrumentation tests.

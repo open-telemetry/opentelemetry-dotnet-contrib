@@ -1354,7 +1354,6 @@
   },
   {
     "name": "table_with_schema_and_brackets",
-    "skip": "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/3862",
     "input": {
       "db.system.name": "microsoft.sql_server",
       "query": "SELECT * FROM [dbo].[Person] AS [P] LEFT JOIN [dbo].[Address] AS [A] ON [P].[PersonId] = [A].[PersonId]"

@@ -202,6 +202,9 @@ function CreateReleaseTagAndPostNoticeOnPullRequest {
 
   gh pr unlock $pullRequestNumber
 
+  # Avoid race condition between the PR being unlocked and being able to post a comment
+  sleep 10
+
   $body =
 @"
 I just pushed the [$tag](https://github.com/$gitRepository/releases/tag/$tag) tag.
