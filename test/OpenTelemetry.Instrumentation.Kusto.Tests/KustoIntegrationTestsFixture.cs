@@ -20,8 +20,7 @@ public sealed class KustoIntegrationTestsFixture : IAsyncLifetime
     public Task DisposeAsync() => this.DatabaseContainer.DisposeAsync().AsTask();
 
     private static KustoContainer CreateKusto()
-        => new KustoBuilder()
-        .WithImage(KustoImage)
+        => new KustoBuilder(KustoImage)
         .Build();
 
     private static string GetKustoImage()
