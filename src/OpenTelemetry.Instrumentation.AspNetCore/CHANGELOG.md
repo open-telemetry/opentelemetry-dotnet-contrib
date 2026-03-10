@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+* **Breaking Change**: For gRPC server spans, span status is now follow the
+  OpenTelemetry Semantic Conventions. Only the following gRPC status codes
+  set span status to `Error`: `UNKNOWN`, `DEADLINE_EXCEEDED`, `UNIMPLEMENTED`, `INTERNAL`,
+  `UNAVAILABLE`, and `DATA_LOSS`. Previously, all non-OK status codes were treated
+  as errors.
+  ([#3902](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3902))
+
 ## 1.15.0
 
 Released 2026-Jan-21
