@@ -422,8 +422,8 @@ public class InfluxDBMetricsExporterTests
         AssertBucketDataPoint(influxServer.ReadPoint(), "10.00", 0);
         AssertBucketDataPoint(influxServer.ReadPoint(), "20.00", 0);
         AssertBucketDataPoint(influxServer.ReadPoint(), "100.00", 2);
-        AssertBucketDataPoint(influxServer.ReadPoint(), "200.00", 1);
-        AssertBucketDataPoint(influxServer.ReadPoint(), "+Inf", 1);
+        AssertBucketDataPoint(influxServer.ReadPoint(), "200.00", 3);
+        AssertBucketDataPoint(influxServer.ReadPoint(), "+Inf", 4);
 
         static void AssertBucketDataPoint(PointData dataPoint, string bound, long count)
         {
