@@ -32,14 +32,14 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
     private readonly ActivitySource remotingActivitySource;
     private readonly ConcurrentDictionary<string, string> serviceNameCache;
 
-    private readonly RemotingInstrumentationOptions options;
+    private readonly TelemetryDynamicSinkProvider optionsProvider;
 
     public TelemetryDynamicSink(
-        RemotingInstrumentationOptions options,
+        TelemetryDynamicSinkProvider optionsProvider,
         ActivitySource activitySource,
         ConcurrentDictionary<string, string> serviceNameCache)
     {
-        this.options = options;
+        this.optionsProvider = optionsProvider;
         this.remotingActivitySource = activitySource;
         this.serviceNameCache = serviceNameCache;
     }
@@ -51,9 +51,11 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
             return;
         }
 
+        var options = this.optionsProvider.GetOptions();
+
         try
         {
-            if (this.options.Filter?.Invoke(reqMsg) == false)
+            if (options.Filter?.Invoke(reqMsg) == false)
             {
                 return;
             }
@@ -99,14 +101,14 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
 
                 var callContext = (LogicalCallContext)reqMsg.Properties["__CallContext"];
 
-                this.options.Propagator.Inject(new PropagationContext(contextToInject, Baggage.Current), callContext, InjectActivityProperties);
+                options.Propagator.Inject(new PropagationContext(contextToInject, Baggage.Current), callContext, InjectActivityProperties);
             }
             else
             {
                 // We are on server, need to start new or attach to an existing incoming activity.
 
                 var callContext = (LogicalCallContext)reqMsg.Properties["__CallContext"];
-                var activityParentContext = this.options.Propagator.Extract(default, callContext, ExtractActivityProperties);
+                var activityParentContext = options.Propagator.Extract(default, callContext, ExtractActivityProperties);
 
                 Activity? ourActivity = null;
 
@@ -197,6 +199,8 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
 
         try
         {
+            var options = this.optionsProvider.GetOptions();
+
             var activity = Activity.Current;
             if (activity == null)
             {
@@ -219,7 +223,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
                     {
                         activity.SetStatus(ActivityStatusCode.Error);
                         activity.SetTag(SemanticConventions.AttributeErrorType, returnMsg.Exception.GetType().FullName);
-                        if (this.options.RecordException)
+                        if (options.RecordException)
                         {
                             activity.AddException(returnMsg.Exception);
                         }
@@ -228,7 +232,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
                     // Call enrich before stopping
                     try
                     {
-                        this.options.Enrich?.Invoke(activity, RemotingInstrumentationEnrichEventNames.OnMessageFinish, returnMsg);
+                        options.Enrich?.Invoke(activity, RemotingInstrumentationEnrichEventNames.OnMessageFinish, returnMsg);
                     }
                     catch (Exception ex)
                     {
@@ -347,13 +351,15 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
             return;
         }
 
+        var options = this.optionsProvider.GetOptions();
+
         string fullyQualifiedMethod = this.GetFullyQualifiedMethod(msg);
 
         activity.DisplayName = fullyQualifiedMethod;
 
         try
         {
-            this.options.Enrich?.Invoke(activity, RemotingInstrumentationEnrichEventNames.OnMessageStart, msg);
+            options.Enrich?.Invoke(activity, RemotingInstrumentationEnrichEventNames.OnMessageStart, msg);
         }
         catch (Exception ex)
         {

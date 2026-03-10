@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using Microsoft.Extensions.Options;
 using OpenTelemetry.Instrumentation.Remoting.Implementation;
 using RemotingContext = System.Runtime.Remoting.Contexts.Context;
 
@@ -11,7 +12,7 @@ internal sealed class RemotingInstrumentation : IDisposable
     internal static int RegistrationCount;
     private static TelemetryDynamicSinkProvider? provider;
 
-    public RemotingInstrumentation(RemotingInstrumentationOptions options)
+    public RemotingInstrumentation(IOptionsMonitor<RemotingInstrumentationOptions> options)
     {
         // Just in case we are called multiple times, make sure we register
         // the dynamic sink only once per AppDomain
