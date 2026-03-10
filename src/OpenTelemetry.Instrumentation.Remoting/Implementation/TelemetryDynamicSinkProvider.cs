@@ -4,6 +4,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.Remoting.Contexts;
+using Microsoft.Extensions.Options;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.Remoting.Implementation;
@@ -18,12 +19,14 @@ internal sealed class TelemetryDynamicSinkProvider : IDynamicProperty, IContribu
 
     private readonly ActivitySource activitySource = CreateActivitySource();
     private readonly ConcurrentDictionary<string, string> serviceNameCache = new();
+    private readonly IDisposable? optionsChangeRegistration;
 
-    private readonly RemotingInstrumentationOptions options;
+    private volatile RemotingInstrumentationOptions options;
 
-    public TelemetryDynamicSinkProvider(RemotingInstrumentationOptions options)
+    public TelemetryDynamicSinkProvider(IOptionsMonitor<RemotingInstrumentationOptions> options)
     {
-        this.options = options;
+        this.options = options.CurrentValue;
+        this.optionsChangeRegistration = options.OnChange((updatedOptions, _) => this.options = updatedOptions);
     }
 
     /// <inheritdoc />
@@ -33,10 +36,16 @@ internal sealed class TelemetryDynamicSinkProvider : IDynamicProperty, IContribu
     /// Creates and returns a <see cref="TelemetryDynamicSink"/> to be used for instrumentation.
     /// </summary>
     /// <returns>A new instance of <see cref="TelemetryDynamicSink"/>.</returns>
-    public IDynamicMessageSink GetDynamicSink() => new TelemetryDynamicSink(this.options, this.activitySource, this.serviceNameCache);
+    public IDynamicMessageSink GetDynamicSink() => new TelemetryDynamicSink(this, this.activitySource, this.serviceNameCache);
 
     /// <inheritdoc />
-    public void Dispose() => this.activitySource.Dispose();
+    public void Dispose()
+    {
+        this.optionsChangeRegistration?.Dispose();
+        this.activitySource.Dispose();
+    }
+
+    internal RemotingInstrumentationOptions GetOptions() => this.options;
 
     private static ActivitySource CreateActivitySource()
     {

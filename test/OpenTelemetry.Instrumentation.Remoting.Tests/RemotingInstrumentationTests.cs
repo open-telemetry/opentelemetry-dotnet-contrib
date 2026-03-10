@@ -3,6 +3,8 @@
 
 using System.Diagnostics;
 using System.Runtime.Remoting.Messaging;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using OpenTelemetry.Instrumentation.Remoting.Implementation;
 using OpenTelemetry.Trace;
 using Xunit;
@@ -93,7 +95,7 @@ public class RemotingInstrumentationTests
     [Fact]
     public void RemotingInstrumentation_RegisterDynamicProperty_OnlyOnce()
     {
-        var options = new RemotingInstrumentationOptions();
+        var options = new TestOptionsMonitor<RemotingInstrumentationOptions>(new RemotingInstrumentationOptions());
 
         // This will register the dynamic property on the current context
         using var i1 = new RemotingInstrumentation(options);
@@ -104,6 +106,67 @@ public class RemotingInstrumentationTests
         Assert.Equal(2, RemotingInstrumentation.RegistrationCount);
     }
 
+    [Fact]
+    public void RemotingInstrumentation_HonorsReloadedOptions()
+    {
+        var activities = new List<Activity>();
+        var optionsMonitor = new TestOptionsMonitor<RemotingInstrumentationOptions>(
+            new RemotingInstrumentationOptions
+            {
+                Filter = _ => false,
+            },
+            updateCurrentValueOnSet: false);
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddInMemoryExporter(activities)
+            .ConfigureServices(services => services.AddSingleton<IOptionsMonitor<RemotingInstrumentationOptions>>(optionsMonitor))
+            .AddRemotingInstrumentation()
+            .Build();
+
+        InvokeRemoteObject();
+
+        Assert.Empty(activities);
+
+        optionsMonitor.Set(new RemotingInstrumentationOptions
+        {
+            Filter = message =>
+            {
+                if (message is IMethodMessage methodMessage)
+                {
+                    return methodMessage.TypeName.Contains("RemoteObject");
+                }
+
+                return false;
+            },
+        });
+
+        InvokeRemoteObject();
+
+        Assert.Single(activities);
+    }
+
+    private static void InvokeRemoteObject()
+    {
+        var domainSetup = AppDomain.CurrentDomain.SetupInformation;
+        var appDomain = AppDomain.CreateDomain("other-domain", null, domainSetup);
+
+        try
+        {
+            var remoteObjectTypeName = typeof(RemoteObject).FullName;
+            Assert.NotNull(remoteObjectTypeName);
+
+            var obj = (RemoteObject)appDomain.CreateInstanceAndUnwrap(
+                typeof(RemoteObject).Assembly.FullName,
+                remoteObjectTypeName);
+
+            obj.DoStuff();
+        }
+        finally
+        {
+            AppDomain.Unload(appDomain);
+        }
+    }
+
     private class RemoteObject : ContextBoundObject
     {
         public void DoStuff(string? exceptionMessage = null)
@@ -112,6 +175,57 @@ public class RemotingInstrumentationTests
             {
                 throw new Exception(exceptionMessage);
             }
+        }
+    }
+
+    private sealed class TestOptionsMonitor<TOptions> : IOptionsMonitor<TOptions>
+    {
+        private readonly List<Action<TOptions, string?>> listeners = [];
+        private readonly bool updateCurrentValueOnSet;
+        private TOptions currentValue;
+
+        public TestOptionsMonitor(TOptions currentValue, bool updateCurrentValueOnSet = true)
+        {
+            this.currentValue = currentValue;
+            this.updateCurrentValueOnSet = updateCurrentValueOnSet;
+        }
+
+        public TOptions CurrentValue => this.currentValue;
+
+        public TOptions Get(string? name) => this.currentValue;
+
+        public IDisposable OnChange(Action<TOptions, string?> listener)
+        {
+            this.listeners.Add(listener);
+            return new CallbackDisposable(() => this.listeners.Remove(listener));
+        }
+
+        public void Set(TOptions value)
+        {
+            if (this.updateCurrentValueOnSet)
+            {
+                this.currentValue = value;
+            }
+
+            foreach (var listener in this.listeners)
+            {
+                listener(value, null);
+            }
+        }
+    }
+
+    private sealed class CallbackDisposable : IDisposable
+    {
+        private readonly Action callback;
+
+        public CallbackDisposable(Action callback)
+        {
+            this.callback = callback;
+        }
+
+        public void Dispose()
+        {
+            this.callback();
         }
     }
 }

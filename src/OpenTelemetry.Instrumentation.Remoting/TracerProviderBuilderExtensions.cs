@@ -43,7 +43,7 @@ public static class TracerProviderBuilderExtensions
 
         builder.AddInstrumentation(sp =>
         {
-            var remotingOptions = sp.GetRequiredService<IOptionsMonitor<RemotingInstrumentationOptions>>().CurrentValue;
+            var remotingOptions = sp.GetRequiredService<IOptionsMonitor<RemotingInstrumentationOptions>>();
             return new RemotingInstrumentation(remotingOptions);
         });
 
