@@ -105,13 +105,13 @@ jobs:
         echo "BUILD_COMPONENT=$component" >> $env:GITHUB_ENV
 
     - name: Setup previous .NET runtimes
-      uses: actions/setup-dotnet@baa11fbfe1d6520db94683bd5c7a3818018e4309 # v5.1.0
+      uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5.2.0
       with:
         dotnet-version: |
           8.0.x
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@baa11fbfe1d6520db94683bd5c7a3818018e4309 # v5.1.0
+      uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5.2.0
 
     - name: dotnet restore ${{ steps.resolve-project.outputs.title }}
       run: dotnet restore ${env:PROJECT_PATH} -p:EnablePackageValidation=true
@@ -190,7 +190,7 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
 
     - name: Publish ${{ steps.resolve-project.outputs.name }} NuGet packages to Artifacts
-      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
       # Only publish packages from the first job, which should be net462 for Windows in most cases, which is preferred for .NET Framework support
       if: matrix.os == 'windows-latest' && inputs.pack && strategy.job-index == 0
       with:

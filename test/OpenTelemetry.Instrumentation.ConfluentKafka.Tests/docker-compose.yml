@@ -3,7 +3,7 @@
 #  opentelemetry>docker-compose --file=test/OpenTelemetry.Instrumentation.ConfluentKafka.Tests/docker-compose.yml --project-directory=. up --exit-code-from=tests --build
 services:
   kafka:
-    image: confluentinc/confluent-local:8.1.1@sha256:837caa579471c6163aee80f56fe3df131576bb43131f7eb34e1321210f5a1b4b
+    image: confluentinc/confluent-local:8.2.0@sha256:11b351dc22765780047a07b02d1f19a820bbdd3fae2cfe7ba4ef0d0a26b52248
     environment:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
       KAFKA_LISTENERS: PLAINTEXT://localhost:29092,CONTROLLER://localhost:29093,PLAINTEXT_HOST://0.0.0.0:9092,PLAINTEXT_INTERNAL://kafka:9093

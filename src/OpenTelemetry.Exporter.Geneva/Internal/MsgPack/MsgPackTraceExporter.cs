@@ -4,6 +4,7 @@
 #if NET
 using System.Collections.Frozen;
 #endif
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
@@ -86,7 +87,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
     // this stores the prepopulated fields until CreateFraming can consume them into the prologue.
     // after CreateFraming is called, this dictionary is set to null, so don't use it after that.
-    private Dictionary<string, object> prepopulatedFields;
+    private ConcurrentDictionary<string, object> prepopulatedFields;
 
     private bool isDisposed;
 
@@ -152,12 +153,12 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
         this.userProvidedPrepopulatedFields = options.PrepopulatedFields != null && options.PrepopulatedFields.Count > 0;
 
-        this.prepopulatedFields = new Dictionary<string, object>(0, StringComparer.Ordinal);
+        this.prepopulatedFields = new ConcurrentDictionary<string, object>(StringComparer.Ordinal);
         if (options.PrepopulatedFields != null)
         {
             foreach (var entry in options.PrepopulatedFields)
             {
-                this.prepopulatedFields.Add(entry.Key, entry.Value);
+                this.prepopulatedFields[entry.Key] = entry.Value;
             }
         }
 
@@ -347,15 +348,6 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
         var resourceAttributes = this.resourceProvider().Attributes;
 
-        if (this.resourceFieldNames != null)
-        {
-            // if ResourceFieldNames is set, we use resource attributes rather than PrepopulatedFields
-            this.prepopulatedFields = new Dictionary<string, object>(0, StringComparer.Ordinal);
-        }
-
-        // this is guaranteed to not be null because it's set in the constructor
-        Guard.ThrowIfNull(this.prepopulatedFields);
-
         foreach (var resourceAttribute in resourceAttributes)
         {
             var key = resourceAttribute.Key;
@@ -437,14 +429,17 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             cursor = AddPartAField(buffer, cursor, entry.Key, entry.Value);
         }
 
-        this.bufferPrologue = new byte[cursor - 0];
-        System.Buffer.BlockCopy(buffer, 0, this.bufferPrologue, 0, cursor - 0);
+        var bufferPrologue = new byte[cursor - 0];
+        System.Buffer.BlockCopy(buffer, 0, bufferPrologue, 0, cursor - 0);
 
         // Now generate the epilogue
         cursor = MessagePackSerializer.Serialize(buffer, 0, new Dictionary<string, object> { { "TimeFormat", "DateTime" } });
 
-        this.bufferEpilogue = new byte[cursor - 0];
-        System.Buffer.BlockCopy(buffer, 0, this.bufferEpilogue, 0, cursor - 0);
+        var bufferEpilogue = new byte[cursor - 0];
+        System.Buffer.BlockCopy(buffer, 0, bufferEpilogue, 0, cursor - 0);
+
+        this.bufferPrologue = bufferPrologue;
+        this.bufferEpilogue = bufferEpilogue;
     }
 
     internal ArraySegment<byte> SerializeActivity(Activity activity)

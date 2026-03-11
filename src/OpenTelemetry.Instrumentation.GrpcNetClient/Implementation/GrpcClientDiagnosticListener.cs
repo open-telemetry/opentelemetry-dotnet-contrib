@@ -178,7 +178,7 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
             {
                 if (activity.Status == ActivityStatusCode.Unset)
                 {
-                    activity.SetStatus(GrpcTagHelper.ResolveSpanStatusForGrpcStatusCode(status));
+                    activity.SetStatus(GrpcTagHelper.ResolveSpanStatusForGrpcStatusCodeOnClient(status));
                 }
 
                 // setting rpc.grpc.status_code
