@@ -62,6 +62,7 @@ jobs:
           instrumentation-grpcnetclient: ['*/OpenTelemetry.Instrumentation.GrpcNetClient*/**', '!**/*.md']
           instrumentation-hangfire: ['*/OpenTelemetry.Instrumentation.Hangfire*/**', '!**/*.md']
           instrumentation-http: ['*/OpenTelemetry.Instrumentation.Http*/**', '!**/*.md']
+          instrumentation-kusto: ['*/OpenTelemetry.Instrumentation.Kusto*/**', '!**/*.md']
           instrumentation-owin: ['*/OpenTelemetry.Instrumentation.Owin*/**', 'examples/owin/**', '!**/*.md']
           instrumentation-process: ['*/OpenTelemetry.Instrumentation.Process*/**', 'examples/process-instrumentation/**', '!**/*.md']
           instrumentation-quartz: ['*/OpenTelemetry.Instrumentation.Quartz*/**', '!**/*.md']
@@ -362,6 +363,17 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Instrumentation.Http]
       code-cov-name: Instrumentation.Http
+
+  build-test-instrumentation-kusto:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'instrumentation-kusto')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: Component[OpenTelemetry.Instrumentation.Kusto]
+      code-cov-name: Instrumentation.Kusto
 
   build-test-instrumentation-owin:
     needs: detect-changes
