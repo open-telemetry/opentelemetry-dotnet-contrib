@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Read `cloud.account.id` from symlink created by the OTel Lambda Extension.
+  ([#3848](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3848))
+
 ## 1.15.0
 
 Released 2026-Jan-21
