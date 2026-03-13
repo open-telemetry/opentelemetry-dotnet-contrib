@@ -169,7 +169,7 @@ internal static class SqlProcessor
     private static bool IsAsciiLetter(char c)
     {
         var lower = (char)(c | 0x20);
-        return lower >= 'a' && lower <= 'z';
+        return lower is >= 'a' and <= 'z';
     }
 #endif
 
@@ -178,7 +178,7 @@ internal static class SqlProcessor
 #if NET
         char.IsAsciiDigit(c);
 #else
-        c >= '0' && c <= '9';
+        c is >= '0' and <= '9';
 #endif
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -291,7 +291,7 @@ internal static class SqlProcessor
         {
             var lastChar = summary[summaryLength - 1];
 
-            if (lastChar == SpaceChar || lastChar == TabChar || lastChar == NewLineChar || lastChar == CarriageReturnChar)
+            if (lastChar is SpaceChar or TabChar or NewLineChar or CarriageReturnChar)
             {
                 summaryLength -= 1;
             }
@@ -398,7 +398,7 @@ internal static class SqlProcessor
                     : (ReadOnlySpan<SqlKeywordInfo>)SqlKeywords;
             }
 
-            for (int i = 0; i < keywordsToCheck.Length; i++)
+            for (var i = 0; i < keywordsToCheck.Length; i++)
             {
                 var potentialKeywordInfo = keywordsToCheck[i];
                 var keywordSpan = potentialKeywordInfo.KeywordText.AsSpan();
@@ -491,7 +491,7 @@ internal static class SqlProcessor
                     // Fast check to ensure the length is within the range of known reserved keywords.
                     if (length >= MinFromClauseReservedKeywordLength && length <= MaxFromClauseReservedKeywordLength)
                     {
-                        for (int k = 0; k < FromClauseReservedKeywords.Length; k++)
+                        for (var k = 0; k < FromClauseReservedKeywords.Length; k++)
                         {
                             var keyword = FromClauseReservedKeywords[k];
                             if (length == keyword.Length && IsCaseInsensitiveMatch(sql, start, length, keyword))
@@ -612,7 +612,7 @@ internal static class SqlProcessor
 #if NET
             if (WhitespaceSearchValues.Contains(currentChar))
 #else
-            if (currentChar == SpaceChar || currentChar == TabChar || currentChar == CarriageReturnChar || currentChar == NewLineChar)
+            if (currentChar is SpaceChar or TabChar or CarriageReturnChar or NewLineChar)
 #endif
             {
                 foundWhitespace = true;
@@ -676,7 +676,7 @@ internal static class SqlProcessor
             while (searchPosition < length)
             {
                 var currentChar = sql[searchPosition];
-                if (currentChar == CarriageReturnChar || currentChar == NewLineChar)
+                if (currentChar is CarriageReturnChar or NewLineChar)
                 {
                     // Position at the newline so ParseWhitespace can copy it
                     state.ParsePosition = searchPosition;
@@ -705,7 +705,7 @@ internal static class SqlProcessor
 
             // Is the string literal of the form `N'foo'` (i.e. a Unicode literal)?
             // If so, we want to skip the Unicode prefix when sanitizing.
-            bool isUnicode = state.ParsePosition >= 1 && sql[state.ParsePosition - 1] is UnicodePrefixChar;
+            var isUnicode = state.ParsePosition >= 1 && sql[state.ParsePosition - 1] is UnicodePrefixChar;
 
             // Use index arithmetic instead of slicing
             var searchPos = state.ParsePosition + 1;
@@ -1163,6 +1163,7 @@ internal static class SqlProcessor
 
         public SqlKeywordInfo[] FollowedByKeywords { get; private set; }
 
+#pragma warning disable IDE0072 // Add missing cases
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool CaptureNextTokenInSummary(in ParseState state, SqlKeyword currentKeyword) => currentKeyword switch
         {
@@ -1194,6 +1195,7 @@ internal static class SqlProcessor
             SqlKeyword.Exists => state.PreviousSummaryKeyword is SqlKeyword.Login or SqlKeyword.User,
             _ => false,
         };
+#pragma warning restore IDE0072 // Add missing cases
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool CaptureInSummary(in ParseState state, SqlKeywordInfo currentKeyword)
@@ -1204,7 +1206,7 @@ internal static class SqlProcessor
             }
 
             var prev = state.PreviousParsedKeyword?.SqlKeyword ?? SqlKeyword.Unknown;
-            for (int i = 0; i < currentKeyword.captureInSummaryWhenPrevious.Length; i++)
+            for (var i = 0; i < currentKeyword.captureInSummaryWhenPrevious.Length; i++)
             {
                 if (currentKeyword.captureInSummaryWhenPrevious[i] == prev)
                 {

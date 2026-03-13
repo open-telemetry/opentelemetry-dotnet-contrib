@@ -100,9 +100,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
     }
 
     public void Dispose()
-    {
-        this.testServer.Dispose();
-    }
+        => this.testServer.Dispose();
 
     /// <summary>
     /// A simple test to make sure the Http Diagnostic Source is added into the list of DiagnosticListeners.
@@ -772,9 +770,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
     }
 
     private static void VerifyActivityStopTags(int statusCode, Activity activity)
-    {
-        Assert.Equal(statusCode, activity.GetTagValue(SemanticConventions.AttributeHttpResponseStatusCode));
-    }
+        => Assert.Equal(statusCode, activity.GetTagValue(SemanticConventions.AttributeHttpResponseStatusCode));
 
     private static void ValidateBaggage(HttpWebRequest request)
     {
@@ -787,9 +783,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
     }
 
     private string BuildRequestUrl(bool useHttps = false, string path = "echo", string queryString = null)
-    {
-        return $"{(useHttps ? "https" : "http")}://{this.testServerHost}:{this.testServerPort}/{path}{(string.IsNullOrWhiteSpace(queryString) ? string.Empty : $"?{queryString}")}";
-    }
+        => $"{(useHttps ? "https" : "http")}://{this.testServerHost}:{this.testServerPort}/{path}{(string.IsNullOrWhiteSpace(queryString) ? string.Empty : $"?{queryString}")}";
 
     private void CleanUpActivity()
     {
@@ -814,7 +808,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
                 ShouldListenTo = activitySource => activitySource.Name == HttpWebRequestActivitySource.ActivitySourceName,
                 ActivityStarted = this.ActivityStarted,
                 ActivityStopped = this.ActivityStopped,
-                Sample = (ref ActivityCreationOptions<ActivityContext> _) => activitySamplingResult,
+                Sample = (ref _) => activitySamplingResult,
             };
 
             ActivitySource.AddActivityListener(this.activityListener);
@@ -825,9 +819,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         public ConcurrentQueue<KeyValuePair<string, Activity>> Records { get; } = new ConcurrentQueue<KeyValuePair<string, Activity>>();
 
         public void Dispose()
-        {
-            this.activityListener.Dispose();
-        }
+            => this.activityListener.Dispose();
 
         public void ActivityStarted(Activity activity) => this.Record("Start", activity);
 
