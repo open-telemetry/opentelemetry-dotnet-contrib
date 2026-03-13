@@ -226,14 +226,14 @@ public class LogRecordCommonSchemaJsonSerializerTests
     [Fact]
     public void LogRecordAttributesWithEventFullNameJsonTest()
     {
-        string json = GetLogRecordJson(1, (index, logRecord) =>
+        var json = GetLogRecordJson(1, (index, logRecord) =>
         {
-            logRecord.Attributes = new List<KeyValuePair<string, object?>>
-            {
+            logRecord.Attributes =
+            [
                 new KeyValuePair<string, object?>("{EventFullName}", "company_Product_EventName"),
                 new KeyValuePair<string, object?>("stateKey1", "stateValue1"),
                 new KeyValuePair<string, object?>("stateKey2", "stateValue2"),
-            };
+            ];
         });
 
         Assert.Equal(
@@ -332,7 +332,9 @@ public class LogRecordCommonSchemaJsonSerializerTests
 
         for (var i = 0; i < numberOfLogRecords; i++)
         {
+#pragma warning disable IDE0370 // Suppression is unnecessary
             var logRecord = (LogRecord)Activator.CreateInstance(typeof(LogRecord), nonPublic: true)!;
+#pragma warning restore IDE0370 // Suppression is unnecessary
 
             logRecord.Timestamp = DateTime.SpecifyKind(new DateTime(2032, 1, 18, 10, 11, 12), DateTimeKind.Utc);
 
@@ -390,8 +392,6 @@ public class LogRecordCommonSchemaJsonSerializerTests
         }
 
         public IDisposable Push(object? state)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
     }
 }

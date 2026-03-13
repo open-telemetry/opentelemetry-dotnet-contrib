@@ -15,7 +15,7 @@ internal static class RouteTestHelper
     public static HttpContext BuildHttpContext(string url, int routeType, string? routeTemplate, string requestMethod)
     {
         RouteData routeData;
-        bool isMvcRoute = routeType is 1 or 2;
+        var isMvcRoute = routeType is 1 or 2;
         switch (routeType)
         {
             case 0: // WebForm, no route data.
@@ -110,7 +110,7 @@ internal static class RouteTestHelper
         var pathSegments = uri.AbsolutePath.Trim('/').Split(['/'], StringSplitOptions.RemoveEmptyEntries);
         var templateSegments = template!.Trim('/').Split(['/'], StringSplitOptions.RemoveEmptyEntries);
 
-        int pathIndex = 0;
+        var pathIndex = 0;
 
         // start with defaults
         var values = new RouteValueDictionary

@@ -296,7 +296,7 @@ public class GenevaTraceExporterTests : IDisposable
                 exporterOptions.IncludeTraceStateForSpan = true;
             }
 
-            Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
+            var resourceAttributes = new Dictionary<string, object>
             {
                 { "resourceAttribute", "resourceValue" },
                 { "service.name", "BusyWorker" },
@@ -316,7 +316,7 @@ public class GenevaTraceExporterTests : IDisposable
 
             using var listener = new ActivityListener();
             listener.ShouldListenTo = (activitySource) => activitySource.Name == sourceName;
-            listener.Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded;
+            listener.Sample = (ref options) => ActivitySamplingResult.AllDataAndRecorded;
             listener.ActivityStopped = (activity) =>
             {
                 _ = exporter.SerializeActivity(activity);
@@ -459,7 +459,7 @@ public class GenevaTraceExporterTests : IDisposable
                 var endpoint = new UnixDomainSocketEndPoint(path);
             }
 
-            Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
+            var resourceAttributes = new Dictionary<string, object>
             {
                 { "resource", "from resource attribute" },
             };
@@ -476,7 +476,7 @@ public class GenevaTraceExporterTests : IDisposable
 
             using var listener = new ActivityListener();
             listener.ShouldListenTo = (activitySource) => activitySource.Name == sourceName;
-            listener.Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded;
+            listener.Sample = (ref options) => ActivitySamplingResult.AllDataAndRecorded;
             listener.ActivityStopped = (activity) =>
             {
                 _ = exporter.SerializeActivity(activity);
@@ -658,7 +658,7 @@ public class GenevaTraceExporterTests : IDisposable
                 server.Listen(1);
             }
 
-            Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
+            var resourceAttributes = new Dictionary<string, object>
             {
                 { "badresource", new int[1] }, // the exporter does not accept complex resource types like an array
             };
@@ -675,7 +675,7 @@ public class GenevaTraceExporterTests : IDisposable
 
             using var listener = new ActivityListener();
             listener.ShouldListenTo = (activitySource) => activitySource.Name == sourceName;
-            listener.Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded;
+            listener.Sample = (ref options) => ActivitySamplingResult.AllDataAndRecorded;
             listener.ActivityStopped = (activity) =>
             {
                 _ = exporter.SerializeActivity(activity);
@@ -741,7 +741,7 @@ public class GenevaTraceExporterTests : IDisposable
                 server.Listen(1);
             }
 
-            Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
+            var resourceAttributes = new Dictionary<string, object>
             {
                 { "resourceAttributes", "should not be present" },
             };
@@ -758,7 +758,7 @@ public class GenevaTraceExporterTests : IDisposable
 
             using var listener = new ActivityListener();
             listener.ShouldListenTo = (activitySource) => activitySource.Name == sourceName;
-            listener.Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded;
+            listener.Sample = (ref options) => ActivitySamplingResult.AllDataAndRecorded;
             listener.ActivityStopped = (activity) =>
             {
                 _ = exporter.SerializeActivity(activity);
@@ -823,7 +823,7 @@ public class GenevaTraceExporterTests : IDisposable
                 server.Listen(1);
             }
 
-            Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
+            var resourceAttributes = new Dictionary<string, object>
             {
                 { "resourceAttributes", "should not be present" },
             };
@@ -840,7 +840,7 @@ public class GenevaTraceExporterTests : IDisposable
 
             using var listener = new ActivityListener();
             listener.ShouldListenTo = (activitySource) => activitySource.Name == sourceName;
-            listener.Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded;
+            listener.Sample = (ref options) => ActivitySamplingResult.AllDataAndRecorded;
             listener.ActivityStopped = (activity) =>
             {
                 _ = exporter.SerializeActivity(activity);
@@ -908,7 +908,7 @@ public class GenevaTraceExporterTests : IDisposable
                 server.Listen(1);
             }
 
-            Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
+            var resourceAttributes = new Dictionary<string, object>
             {
                 { "wanted", "should be present" },
                 { "unwanted", "should not be present" },
@@ -926,7 +926,7 @@ public class GenevaTraceExporterTests : IDisposable
 
             using var listener = new ActivityListener();
             listener.ShouldListenTo = (activitySource) => activitySource.Name == sourceName;
-            listener.Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded;
+            listener.Sample = (ref options) => ActivitySamplingResult.AllDataAndRecorded;
             listener.ActivityStopped = (activity) =>
             {
                 _ = exporter.SerializeActivity(activity);
@@ -993,7 +993,7 @@ public class GenevaTraceExporterTests : IDisposable
 
             using var listener = new ActivityListener();
             listener.ShouldListenTo = (activitySource) => activitySource.Name == sourceName;
-            listener.Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded;
+            listener.Sample = (ref options) => ActivitySamplingResult.AllDataAndRecorded;
             listener.ActivityStopped = (activity) =>
             {
                 _ = exporter.SerializeActivity(activity);

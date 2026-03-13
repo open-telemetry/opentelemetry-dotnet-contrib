@@ -110,11 +110,10 @@ public class WeatherForecastController : ApiController
     private static WeatherForecast[] GetWeatherForecast()
     {
         var rng = new Random();
-        return Enumerable.Range(1, 5).Select(index => new WeatherForecast(
+        return [.. Enumerable.Range(1, 5).Select(index => new WeatherForecast(
             date: DateTime.Now.AddDays(index),
             temperatureC: rng.Next(-20, 55),
-            summary: Summaries[rng.Next(Summaries.Length)]))
-        .ToArray();
+            summary: Summaries[rng.Next(Summaries.Length)]))];
     }
 
     // Test successful dependency collection via HttpClient.

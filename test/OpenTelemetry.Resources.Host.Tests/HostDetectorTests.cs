@@ -63,6 +63,7 @@ public class HostDetectorTests
         Assert.NotEmpty(resourceAttributes[HostSemanticConventions.AttributeHostId]);
 #if NET
         Assert.NotEmpty(resourceAttributes["host.arch"]);
+#pragma warning disable IDE0072 // Add missing cases
         var expectedArch = RuntimeInformation.ProcessArchitecture switch
         {
             Architecture.X64 => "amd64",
@@ -70,6 +71,7 @@ public class HostDetectorTests
             _ => RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant(),
 #pragma warning restore CA1308 // Normalize strings to uppercase
         };
+#pragma warning restore IDE0072 // Add missing cases
         Assert.Equal(expectedArch, resourceAttributes["host.arch"]);
 #endif
     }

@@ -9,11 +9,11 @@ namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests;
 
 internal class ServiceRemotingResponseMessageHeaderMock : IServiceRemotingResponseMessageHeader
 {
-    private Dictionary<string, byte[]> headers;
+    private readonly Dictionary<string, byte[]> headers;
 
     public ServiceRemotingResponseMessageHeaderMock()
     {
-        this.headers = new Dictionary<string, byte[]>();
+        this.headers = [];
     }
 
     public void AddHeader(string headerName, byte[] headerValue)
@@ -27,23 +27,11 @@ internal class ServiceRemotingResponseMessageHeaderMock : IServiceRemotingRespon
     }
 
     public bool CheckIfItsEmpty()
-    {
-        if (this.headers == null || this.headers.Count == 0)
-        {
-            return true;
-        }
-
-        return false;
-    }
+        => this.headers == null || this.headers.Count == 0;
 
     public bool TryGetHeaderValue(string headerName, out byte[]? headerValue)
     {
         headerValue = null;
-        if (this.headers == null)
-        {
-            return false;
-        }
-
-        return this.headers.TryGetValue(headerName, out headerValue);
+        return this.headers != null && this.headers.TryGetValue(headerName, out headerValue);
     }
 }

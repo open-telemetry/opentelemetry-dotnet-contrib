@@ -43,7 +43,7 @@ public class IncomingRequestsCollectionsIsAccordingToTheSpecTests
         using (var client = this.factory
             .WithWebHostBuilder(builder =>
             {
-                builder.ConfigureTestServices((IServiceCollection services) =>
+                builder.ConfigureTestServices(services =>
                 {
                     services.AddSingleton<TestCallbackMiddleware>(new ExceptionTestCallbackMiddleware(statusCode));
                     services.AddOpenTelemetry()
@@ -115,9 +115,14 @@ public class IncomingRequestsCollectionsIsAccordingToTheSpecTests
             Assert.Equal(ActivityStatusCode.Unset, activity.Status);
         }
 
+        // TODO Is ASP.NET Core 11 doing the right thing here?
+#if NET11_0_OR_GREATER
+        Assert.Equal(statusCode is 503 ? "exception description" : null, activity.StatusDescription);
+#else
         // Instrumentation is not expected to set status description
         // as the reason can be inferred from SemanticConventions.AttributeHttpStatusCode
         Assert.Null(activity.StatusDescription);
+#endif
 
         if (recordException)
         {
@@ -156,12 +161,9 @@ public class IncomingRequestsCollectionsIsAccordingToTheSpecTests
             context.Response.StatusCode = this.statusCode;
             await context.Response.WriteAsync("empty");
 
-            if (context.Request.Path.HasValue && context.Request.Path!.Value.EndsWith("exception", StringComparison.Ordinal))
-            {
-                throw new Exception("exception description");
-            }
-
-            return false;
+            return context.Request.Path.HasValue && context.Request.Path.Value.EndsWith("exception", StringComparison.Ordinal)
+                ? throw new Exception("exception description")
+                : false;
         }
     }
 }

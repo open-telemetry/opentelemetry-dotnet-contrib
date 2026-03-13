@@ -15,7 +15,7 @@ public class LogSerializationTests
 {
     /*
     Run from the current directory:
-    dotnet test -f net10.0 --filter FullyQualifiedName~LogSerializationTests -l "console;verbosity=detailed"
+    dotnet test -f net11.0 --filter FullyQualifiedName~LogSerializationTests -l "console;verbosity=detailed"
     */
     [Fact]
     public void SerializationTestForException()
@@ -102,7 +102,7 @@ public class LogSerializationTests
                     .AddFilter(typeof(LogSerializationTests).FullName, LogLevel.Trace)); // Enable all LogLevels
 
             List<ArraySegment<byte>> exportedData = [];
-            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = (data) => exportedData.Add(data);
+            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = exportedData.Add;
 
             var logger = loggerFactory.CreateLogger<LogSerializationTests>();
             doLog(logger);
@@ -164,8 +164,6 @@ public class LogSerializationTests
         }
 
         public override string ToString()
-        {
-            return this.stackTrace;
-        }
+            => this.stackTrace;
     }
 }

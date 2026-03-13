@@ -469,7 +469,7 @@ public static class MessagePackSerializerTests
         var cursor = 0;
 
         // Act
-        var actual = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, (string?)null);
+        var actual = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, null);
 
         // Assert
         Assert.Equal(1, actual);

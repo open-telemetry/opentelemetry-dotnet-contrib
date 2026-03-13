@@ -17,9 +17,7 @@ internal static partial class GrpcTagHelper
     public const string GrpcStatusCodeTagName = "grpc.status_code";
 
     public static string? GetGrpcMethodFromActivity(Activity activity)
-    {
-        return activity.GetTagValue(GrpcMethodTagName) as string;
-    }
+        => activity.GetTagValue(GrpcMethodTagName) as string;
 
     public static bool TryGetGrpcStatusCodeFromActivity(Activity activity, out int statusCode)
     {
@@ -96,6 +94,7 @@ internal static partial class GrpcTagHelper
     {
         if (typeof(GrpcStatusCanonicalCode).IsEnumDefined(statusCode))
         {
+#pragma warning disable IDE0072 // Add missing cases
             return (GrpcStatusCanonicalCode)statusCode switch
             {
                 GrpcStatusCanonicalCode.DataLoss => ActivityStatusCode.Error,
@@ -106,6 +105,7 @@ internal static partial class GrpcTagHelper
                 GrpcStatusCanonicalCode.Unknown => ActivityStatusCode.Error,
                 _ => ActivityStatusCode.Unset,
             };
+#pragma warning restore IDE0072 // Add missing cases
         }
 
         // Unknown status code, treat as error
