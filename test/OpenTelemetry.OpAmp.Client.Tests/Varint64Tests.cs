@@ -35,7 +35,7 @@ public class Varint64Tests
     public void OpAmpHeaderHelper_Decode(ulong expectedValue, int expectedLength, byte[] buffer)
     {
         var sequence = new ReadOnlySequence<byte>(buffer);
-        var decodeResult = Varint64.TryDecode(sequence, out int bytesRead, out ulong result, out string errorMessage);
+        var decodeResult = Varint64.TryDecode(sequence, out var bytesRead, out var result, out var errorMessage);
 
         Assert.True(decodeResult, errorMessage);
         Assert.Equal(expectedValue, result);

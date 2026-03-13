@@ -35,6 +35,8 @@ public class MockCommandExecutor
     public static void ExecuteCommand(string connectionString, CommandType commandType, string commandText, bool error, SqlClientLibrary library)
 #pragma warning restore xUnit1013 // Public method should be marked as test
     {
+        Assert.True(Enum.IsDefined(typeof(CommandType), commandType));
+
         var eventSourceType = library == SqlClientLibrary.SystemDataSqlClient
             ? typeof(FakeBehavingAdoNetSqlEventSource)
             : typeof(FakeBehavingMdsSqlEventSource);
@@ -108,15 +110,11 @@ public class MockCommandExecutor
     {
         [Event(SqlEventSourceListener.BeginExecuteEventId)]
         public void WriteBeginExecuteEvent(int objectId, string dataSource, string databaseName, string commandText)
-        {
-            this.WriteEvent(SqlEventSourceListener.BeginExecuteEventId, objectId, dataSource, databaseName, commandText);
-        }
+            => this.WriteEvent(SqlEventSourceListener.BeginExecuteEventId, objectId, dataSource, databaseName, commandText);
 
         [Event(SqlEventSourceListener.EndExecuteEventId)]
         public void WriteEndExecuteEvent(int objectId, int compositeState, int sqlExceptionNumber)
-        {
-            this.WriteEvent(SqlEventSourceListener.EndExecuteEventId, objectId, compositeState, sqlExceptionNumber);
-        }
+            => this.WriteEvent(SqlEventSourceListener.EndExecuteEventId, objectId, compositeState, sqlExceptionNumber);
     }
 
     [EventSource(Name = SqlEventSourceListener.MdsEventSourceName + "-FakeFriendly")]
@@ -124,15 +122,11 @@ public class MockCommandExecutor
     {
         [Event(SqlEventSourceListener.BeginExecuteEventId)]
         public void WriteBeginExecuteEvent(int objectId, string dataSource, string databaseName, string commandText)
-        {
-            this.WriteEvent(SqlEventSourceListener.BeginExecuteEventId, objectId, dataSource, databaseName, commandText);
-        }
+            => this.WriteEvent(SqlEventSourceListener.BeginExecuteEventId, objectId, dataSource, databaseName, commandText);
 
         [Event(SqlEventSourceListener.EndExecuteEventId)]
         public void WriteEndExecuteEvent(int objectId, int compositeState, int sqlExceptionNumber)
-        {
-            this.WriteEvent(SqlEventSourceListener.EndExecuteEventId, objectId, compositeState, sqlExceptionNumber);
-        }
+            => this.WriteEvent(SqlEventSourceListener.EndExecuteEventId, objectId, compositeState, sqlExceptionNumber);
     }
 
     [EventSource(Name = SqlEventSourceListener.AdoNetEventSourceName + "-FakeEvil")]
@@ -140,15 +134,11 @@ public class MockCommandExecutor
     {
         [Event(SqlEventSourceListener.BeginExecuteEventId)]
         public void WriteBeginExecuteEvent(string arg1)
-        {
-            this.WriteEvent(SqlEventSourceListener.BeginExecuteEventId, arg1);
-        }
+            => this.WriteEvent(SqlEventSourceListener.BeginExecuteEventId, arg1);
 
         [Event(SqlEventSourceListener.EndExecuteEventId)]
         public void WriteEndExecuteEvent(string arg1, string arg2, string arg3, string arg4)
-        {
-            this.WriteEvent(SqlEventSourceListener.EndExecuteEventId, arg1, arg2, arg3, arg4);
-        }
+            => this.WriteEvent(SqlEventSourceListener.EndExecuteEventId, arg1, arg2, arg3, arg4);
 
         [Event(3)]
         public void WriteUnknownEventWithNullPayload()
@@ -164,15 +154,11 @@ public class MockCommandExecutor
     {
         [Event(SqlEventSourceListener.BeginExecuteEventId)]
         public void WriteBeginExecuteEvent(string arg1)
-        {
-            this.WriteEvent(SqlEventSourceListener.BeginExecuteEventId, arg1);
-        }
+            => this.WriteEvent(SqlEventSourceListener.BeginExecuteEventId, arg1);
 
         [Event(SqlEventSourceListener.EndExecuteEventId)]
         public void WriteEndExecuteEvent(string arg1, string arg2, string arg3, string arg4)
-        {
-            this.WriteEvent(SqlEventSourceListener.EndExecuteEventId, arg1, arg2, arg3, arg4);
-        }
+            => this.WriteEvent(SqlEventSourceListener.EndExecuteEventId, arg1, arg2, arg3, arg4);
 
         [Event(3)]
         public void WriteUnknownEventWithNullPayload()

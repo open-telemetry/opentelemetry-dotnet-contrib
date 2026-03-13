@@ -66,20 +66,20 @@ public sealed class ServiceRemotingMessageDispatcherAdapter : IServiceRemotingMe
         }
         else
         {
-            IServiceRemotingRequestMessageHeader requestMessageHeader = requestMessage.GetHeader();
+            var requestMessageHeader = requestMessage.GetHeader();
             Guard.ThrowIfNull(requestMessageHeader, "requestMessage.GetHeader()");
 
             // Extract the PropagationContext of the upstream parent from the message headers.
-            PropagationContext parentContext = Propagator.Extract(default, requestMessageHeader, ServiceFabricRemotingUtils.ExtractTraceContextFromRequestMessageHeader);
+            var parentContext = Propagator.Extract(default, requestMessageHeader, ServiceFabricRemotingUtils.ExtractTraceContextFromRequestMessageHeader);
             Baggage.Current = parentContext.Baggage;
 
-            string activityName = requestMessageHeader?.MethodName ?? ServiceFabricRemotingActivitySource.IncomingRequestActivityName;
+            var activityName = requestMessageHeader?.MethodName ?? ServiceFabricRemotingActivitySource.IncomingRequestActivityName;
 
-            using (Activity? activity = ServiceFabricRemotingActivitySource.ActivitySource.StartActivity(activityName, ActivityKind.Server, parentContext.ActivityContext))
+            using (var activity = ServiceFabricRemotingActivitySource.ActivitySource.StartActivity(activityName, ActivityKind.Server, parentContext.ActivityContext))
             {
                 try
                 {
-                    IServiceRemotingResponseMessage responseMessage = await this.innerDispatcher.HandleRequestResponseAsync(requestContext, requestMessage).ConfigureAwait(false);
+                    var responseMessage = await this.innerDispatcher.HandleRequestResponseAsync(requestContext, requestMessage).ConfigureAwait(false);
 
                     return responseMessage;
                 }

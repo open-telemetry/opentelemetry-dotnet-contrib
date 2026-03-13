@@ -13,7 +13,7 @@ internal sealed class TraceEnrichmentProcessor : BaseProcessor<Activity>
 
     public TraceEnrichmentProcessor(IEnumerable<TraceEnricher> traceEnrichers)
     {
-        this.traceEnrichers = traceEnrichers.ToArray();
+        this.traceEnrichers = [.. traceEnrichers];
     }
 
     public override void OnStart(Activity activity)

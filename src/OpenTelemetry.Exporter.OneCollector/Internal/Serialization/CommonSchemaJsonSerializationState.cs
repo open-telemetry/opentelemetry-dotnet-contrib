@@ -52,11 +52,13 @@ internal sealed class CommonSchemaJsonSerializationState
             this.AssignNewExtensionToLookupIndex(ref lookupIndex);
         }
 #else
+#pragma warning disable IDE0370 // Suppression is unnecessary
         if (!this.keys.TryGetValue(fieldInformation!.ExtensionName!, out var lookupIndex))
         {
             this.AssignNewExtensionToLookupIndex(ref lookupIndex);
             this.keys[fieldInformation.ExtensionName!] = lookupIndex;
         }
+#pragma warning restore IDE0370 // Suppression is unnecessary
 #endif
 
         if (lookupIndex == -1)

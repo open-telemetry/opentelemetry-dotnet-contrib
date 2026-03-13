@@ -13,9 +13,11 @@ internal static class HttpTestData
     public static IEnumerable<object[]> ReadTestCases()
     {
         var assembly = Assembly.GetExecutingAssembly();
+#pragma warning disable IDE0370 // Suppression is unnecessary
         var input = JsonSerializer.Deserialize<HttpOutTestCase[]>(
             assembly.GetManifestResourceStream("OpenTelemetry.Instrumentation.Http.Tests.http-out-test-cases.json")!,
             JsonSerializerOptions);
+#pragma warning restore IDE0370 // Suppression is unnecessary
         return GetArgumentsFromTestCaseObject(input);
     }
 
@@ -39,10 +41,8 @@ internal static class HttpTestData
     }
 
     public static string NormalizeValues(string value, string host, int port)
-    {
-        return value
+        => value
             .Replace("{host}", host)
             .Replace("{port}", port.ToString())
             .Replace("{flavor}", "1.1");
-    }
 }

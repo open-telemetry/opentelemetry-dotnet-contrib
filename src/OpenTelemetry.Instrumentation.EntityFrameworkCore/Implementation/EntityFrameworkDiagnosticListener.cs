@@ -19,7 +19,9 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     internal const string EntityFrameworkCoreCommandError = "Microsoft.EntityFrameworkCore.Database.Command.CommandError";
 
     internal static readonly Assembly Assembly = typeof(EntityFrameworkDiagnosticListener).Assembly;
+#pragma warning disable IDE0370 // Suppression is unnecessary
     internal static readonly string ActivitySourceName = Assembly.GetName().Name!;
+#pragma warning disable IDE0370 // Suppression is unnecessary
     internal static readonly string ActivityName = ActivitySourceName + ".Execute";
     internal static readonly ActivitySource EntityFrameworkActivitySource = new(ActivitySourceName, Assembly.GetPackageVersion());
 
@@ -175,7 +177,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                 case CommandType.Text:
                                     // Only SQL-like providers support sanitization as we are not
                                     // able to sanitize arbitrary commands for other query dialects.
-                                    bool sanitizeQuery = IsSqlLikeProvider(providerName);
+                                    var sanitizeQuery = IsSqlLikeProvider(providerName);
 
                                     DatabaseSemanticConventionHelper.ApplyConventionsForQueryText(
                                         activity,

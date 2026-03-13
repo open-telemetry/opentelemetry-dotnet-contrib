@@ -31,8 +31,7 @@ internal class LineProtocolParser
     }
 
     private static Dictionary<string, object> ParseFields(string fieldsSection)
-    {
-        return fieldsSection.Split(',')
+        => fieldsSection.Split(',')
             .Where(field => !string.IsNullOrEmpty(field))
             .Select(field =>
             {
@@ -42,18 +41,14 @@ internal class LineProtocolParser
                 return new KeyValuePair<string, object>(key, value);
             })
             .ToDictionary(x => x.Key, x => x.Value);
-    }
 
     private static List<KeyValuePair<string, string>> ParseTags(IEnumerable<string> tagParts)
-    {
-        return tagParts
+        => [.. tagParts
             .Select(tagPart =>
             {
                 var kv = tagPart.Split('=');
                 return new KeyValuePair<string, string>(kv[0], kv[1]);
-            })
-            .ToList();
-    }
+            })];
 
     private static object ParseFieldValue(string fieldValue)
     {

@@ -46,7 +46,7 @@ public class TLDTraceExporterBenchmarks
             ActivityStarted = null,
             ActivityStopped = null,
             ShouldListenTo = (activitySource) => activitySource.Name == this.activitySource.Name,
-            Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded,
+            Sample = (ref options) => ActivitySamplingResult.AllDataAndRecorded,
         };
 
         ActivitySource.AddActivityListener(activityListener);
@@ -86,27 +86,19 @@ public class TLDTraceExporterBenchmarks
 
     [Benchmark]
     public void MsgPack_SerializeActivity()
-    {
-        this.msgPackExporter.SerializeActivity(this.activity!);
-    }
+        => this.msgPackExporter.SerializeActivity(this.activity!);
 
     [Benchmark]
     public void TLD_SerializeActivity()
-    {
-        this.tldExporter.SerializeActivity(this.activity!);
-    }
+        => this.tldExporter.SerializeActivity(this.activity!);
 
     [Benchmark]
     public void MsgPack_ExportActivity()
-    {
-        this.msgPackExporter.Export(this.batch);
-    }
+        => this.msgPackExporter.Export(this.batch);
 
     [Benchmark]
     public void TLD_ExportActivity()
-    {
-        this.tldExporter.Export(this.batch);
-    }
+        => this.tldExporter.Export(this.batch);
 
     [GlobalCleanup]
     public void Cleanup()

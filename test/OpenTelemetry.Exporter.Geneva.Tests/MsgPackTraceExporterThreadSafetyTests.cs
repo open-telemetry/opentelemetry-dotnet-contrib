@@ -55,12 +55,12 @@ public class MsgPackTraceExporterThreadSafetyTests
         using var listener = new ActivityListener
         {
             ShouldListenTo = (activitySource) => activitySource.Name == sourceName,
-            Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded,
+            Sample = (ref options) => ActivitySamplingResult.AllDataAndRecorded,
         };
         ActivitySource.AddActivityListener(listener);
 
         var threads = new Thread[threadCount];
-        for (int t = 0; t < threadCount; t++)
+        for (var t = 0; t < threadCount; t++)
         {
             var threadIndex = t;
             threads[t] = new Thread(() =>
@@ -70,7 +70,7 @@ public class MsgPackTraceExporterThreadSafetyTests
                     // Wait for all threads to be ready, maximizing contention on CreateFraming
                     barrier.SignalAndWait();
 
-                    for (int i = 0; i < iterationsPerThread; i++)
+                    for (var i = 0; i < iterationsPerThread; i++)
                     {
                         using var activity = activitySource.StartActivity($"Op-T{threadIndex}-I{i}", ActivityKind.Internal);
                         if (activity == null)

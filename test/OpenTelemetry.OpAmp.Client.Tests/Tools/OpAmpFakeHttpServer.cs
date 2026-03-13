@@ -35,7 +35,9 @@ internal class OpAmpFakeHttpServer : IDisposable
 
                 context.Response.StatusCode = (int)HttpStatusCode.OK;
                 context.Response.ContentType = "application/x-protobuf";
+#pragma warning disable IDE0370 // Suppression is unnecessary
                 context.Response.OutputStream.Write(response.Array!, response.Offset, response.Count);
+#pragma warning restore IDE0370 // Suppression is unnecessary
                 context.Response.Close();
             },
             out var host,
@@ -46,19 +48,13 @@ internal class OpAmpFakeHttpServer : IDisposable
     public Uri Endpoint { get; }
 
     public IReadOnlyList<AgentToServer> GetFrames()
-    {
-        return this.frames.ToArray();
-    }
+        => [.. this.frames];
 
     public IReadOnlyList<NameValueCollection> GetHeaders()
-    {
-        return this.receivedHeaders.AsReadOnly();
-    }
+        => this.receivedHeaders.AsReadOnly();
 
     public void Dispose()
-    {
-        this.httpServer.Dispose();
-    }
+        => this.httpServer.Dispose();
 
     private static AgentToServer ProcessReceive(HttpListenerRequest request)
     {
