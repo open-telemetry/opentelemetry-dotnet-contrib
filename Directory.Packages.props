@@ -44,8 +44,8 @@
   -->
   <ItemGroup Label="Production .NET packages">
     <PackageVersion Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="4.14.0" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="[11.0.0-preview.1.26104.118,)" />
-    <PackageVersion Include="Microsoft.Extensions.Options" Version="[11.0.0-preview.1.26104.118,)" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="[11.0.0-preview.2.26159.112,)" />
+    <PackageVersion Include="Microsoft.Extensions.Options" Version="[11.0.0-preview.2.26159.112,)" />
     <PackageVersion Include="Microsoft.Owin" Version="[4.2.2,)" />
     <PackageVersion Include="Microsoft.Win32.Registry" Version="[5.0.0,)" />
     <PackageVersion Include="System.Drawing.Common" Version="[4.7.2,)" />
@@ -64,8 +64,8 @@
     <PackageVersion Update="Microsoft.Extensions.Options" Version="[10.0.0,)" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net11.0'">
-    <PackageVersion Update="Microsoft.Extensions.Configuration" Version="[11.0.0-preview.1.26104.118,)" />
-    <PackageVersion Update="Microsoft.Extensions.Options" Version="[11.0.0-preview.1.26104.118,)" />
+    <PackageVersion Update="Microsoft.Extensions.Configuration" Version="[11.0.0-preview.2.26159.112,)" />
+    <PackageVersion Update="Microsoft.Extensions.Options" Version="[11.0.0-preview.2.26159.112,)" />
   </ItemGroup>
 
   <ItemGroup Label="Production other packages">
@@ -147,9 +147,9 @@
     <PackageVersion Update="Microsoft.AspNetCore.SignalR.Client" Version="10.0.5" />
   </ItemGroup>
   <ItemGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net11.0'))" Label="Non-production packages, such as for examples and tests, for .NET 11">
-    <PackageVersion Update="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="11.0.0-preview.1.26104.118" />
-    <PackageVersion Update="Microsoft.AspNetCore.Mvc.Testing" Version="11.0.0-preview.1.26104.118" />
-    <PackageVersion Update="Microsoft.AspNetCore.SignalR.Client" Version="11.0.0-preview.1.26104.118" />
+    <PackageVersion Update="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="11.0.0-preview.2.26159.112" />
+    <PackageVersion Update="Microsoft.AspNetCore.Mvc.Testing" Version="11.0.0-preview.2.26159.112" />
+    <PackageVersion Update="Microsoft.AspNetCore.SignalR.Client" Version="11.0.0-preview.2.26159.112" />
   </ItemGroup>
 
 </Project>
