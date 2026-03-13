@@ -32,13 +32,11 @@ internal sealed class HttpJsonPostTransport : ITransport, IDisposable
         IHttpClient httpClient)
     {
         Debug.Assert(!string.IsNullOrWhiteSpace(instrumentationKey), "instrumentationKey was null or whitespace");
-        Debug.Assert(endpoint != null, "endpoint was null");
-        Debug.Assert(httpClient != null, "httpClient was null");
 
-        this.instrumentationKey = instrumentationKey!;
-        this.endpoint = endpoint!;
+        this.instrumentationKey = instrumentationKey;
+        this.endpoint = endpoint;
         this.compressionType = compressionType;
-        this.httpClient = httpClient!;
+        this.httpClient = httpClient;
 
         this.Description = $"http.jsonpost@{endpoint}";
     }
@@ -271,9 +269,7 @@ internal sealed class HttpJsonPostTransport : ITransport, IDisposable
 
         public NonDisposingStreamContent(Stream stream)
         {
-            Debug.Assert(stream != null, "stream was null");
-
-            this.stream = stream!;
+            this.stream = stream;
         }
 
         protected override bool TryComputeLength(out long length)
