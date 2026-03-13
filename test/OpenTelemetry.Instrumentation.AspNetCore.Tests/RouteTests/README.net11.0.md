@@ -20,6 +20,7 @@
 | :green_heart: | AttributeRouting | [Action with parameter](#activity__attributerouting-action-with-parameter) |
 | :green_heart: | AttributeRouting | [Action with parameter before action name in template](#activity__attributerouting-action-with-parameter-before-action-name-in-template) |
 | :green_heart: | AttributeRouting | [Action invoked resulting in 400 Bad Request](#activity__attributerouting-action-invoked-resulting-in-400-bad-request) |
+| :broken_heart: | RazorPages | [Root path](#activity__razorpages-root-path) |
 | :broken_heart: | RazorPages | [Index page](#activity__razorpages-index-page) |
 | :broken_heart: | RazorPages | [Throws exception](#activity__razorpages-throws-exception) |
 | :green_heart: | RazorPages | [Static content](#activity__razorpages-static-content) |
@@ -463,6 +464,34 @@
         "ActionName": "GetWithActionNameInDifferentSpotInTemplate"
       },
       "PageActionDescriptor": null
+    }
+  }
+}
+```
+<a name="activity__razorpages-root-path"></a>
+## RazorPages: Root path
+
+```json
+{
+  "ActivityDisplayName": "GET /",
+  "ActivityHttpRoute": "/",
+  "IdealHttpRoute": "/Index",
+  "RouteInfo": {
+    "HttpMethod": "GET",
+    "Path": "/",
+    "RoutePattern.RawText": "",
+    "IRouteDiagnosticsMetadata.Route": "/",
+    "HttpContext.GetRouteData()": {
+      "page": "/Index"
+    },
+    "ActionDescriptor": {
+      "AttributeRouteInfo.Template": "",
+      "Parameters": [],
+      "ControllerActionDescriptor": null,
+      "PageActionDescriptor": {
+        "RelativePath": "/Pages/Index.cshtml",
+        "ViewEnginePath": "/Index"
+      }
     }
   }
 }
