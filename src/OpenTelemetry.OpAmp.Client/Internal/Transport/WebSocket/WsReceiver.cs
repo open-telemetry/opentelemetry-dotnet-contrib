@@ -42,9 +42,7 @@ internal sealed class WsReceiver : IDisposable
     }
 
     public void Dispose()
-    {
-        this.receiveThread?.Join();
-    }
+        => this.receiveThread?.Join();
 
     private static void ReturnRentalBuffers(List<byte[]>? rentalBuffers)
     {
@@ -72,7 +70,7 @@ internal sealed class WsReceiver : IDisposable
         var totalCount = 0;
         var workingCount = 0;
         WebSocketReceiveResult result;
-        byte[] workingBuffer = this.receiveBuffer;
+        var workingBuffer = this.receiveBuffer;
 
         List<byte[]>? rentalBuffers = null;
         bool continueRead;
@@ -83,10 +81,7 @@ internal sealed class WsReceiver : IDisposable
             // out of space, need to rent more
             if (workingBuffer.Length - workingCount == 0)
             {
-                if (rentalBuffers == null)
-                {
-                    rentalBuffers = [this.receiveBuffer];
-                }
+                rentalBuffers ??= [this.receiveBuffer];
 
                 workingBuffer = ArrayPool<byte>.Shared.Rent(RentalBufferSize);
                 workingCount = 0;

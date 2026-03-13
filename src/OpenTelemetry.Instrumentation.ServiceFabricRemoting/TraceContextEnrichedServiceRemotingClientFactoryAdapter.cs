@@ -59,7 +59,7 @@ public class TraceContextEnrichedServiceRemotingClientFactoryAdapter : IServiceR
     /// <inheritdoc/>
     public async Task<IServiceRemotingClient> GetClientAsync(Uri serviceUri, ServicePartitionKey partitionKey, TargetReplicaSelector targetReplicaSelector, string listenerName, OperationRetrySettings retrySettings, CancellationToken cancellationToken)
     {
-        IServiceRemotingClient serviceRemotingClient = await this.innerFactory.GetClientAsync(
+        var serviceRemotingClient = await this.innerFactory.GetClientAsync(
             serviceUri,
             partitionKey,
             targetReplicaSelector,
@@ -73,7 +73,7 @@ public class TraceContextEnrichedServiceRemotingClientFactoryAdapter : IServiceR
     /// <inheritdoc/>
     public async Task<IServiceRemotingClient> GetClientAsync(ResolvedServicePartition previousRsp, TargetReplicaSelector targetReplicaSelector, string listenerName, OperationRetrySettings retrySettings, CancellationToken cancellationToken)
     {
-        IServiceRemotingClient serviceRemotingClient = await this.innerFactory.GetClientAsync(
+        var serviceRemotingClient = await this.innerFactory.GetClientAsync(
             previousRsp,
             targetReplicaSelector,
             listenerName,
@@ -86,8 +86,8 @@ public class TraceContextEnrichedServiceRemotingClientFactoryAdapter : IServiceR
     /// <inheritdoc/>
     public Task<OperationRetryControl> ReportOperationExceptionAsync(IServiceRemotingClient client, ExceptionInformation exceptionInformation, OperationRetrySettings retrySettings, CancellationToken cancellationToken)
     {
-        IServiceRemotingClient innerClient = client;
-        TraceContextEnrichedServiceRemotingClientAdapter? clientAdapter = client as TraceContextEnrichedServiceRemotingClientAdapter;
+        var innerClient = client;
+        var clientAdapter = client as TraceContextEnrichedServiceRemotingClientAdapter;
         if (clientAdapter != null)
         {
             innerClient = clientAdapter.InnerClient;

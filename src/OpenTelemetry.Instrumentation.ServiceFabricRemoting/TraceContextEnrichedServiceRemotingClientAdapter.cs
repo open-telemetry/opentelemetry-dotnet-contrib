@@ -58,12 +58,12 @@ internal class TraceContextEnrichedServiceRemotingClientAdapter : IServiceRemoti
         }
         else
         {
-            IServiceRemotingRequestMessageHeader requestMessageHeader = requestMessage.GetHeader();
+            var requestMessageHeader = requestMessage.GetHeader();
             Guard.ThrowIfNull(requestMessageHeader, "requestMessage.GetHeader()");
 
-            string activityName = requestMessageHeader.MethodName ?? ServiceFabricRemotingActivitySource.OutgoingRequestActivityName;
+            var activityName = requestMessageHeader.MethodName ?? ServiceFabricRemotingActivitySource.OutgoingRequestActivityName;
 
-            using (Activity? activity = ServiceFabricRemotingActivitySource.ActivitySource.StartActivity(activityName, ActivityKind.Client))
+            using (var activity = ServiceFabricRemotingActivitySource.ActivitySource.StartActivity(activityName, ActivityKind.Client))
             {
                 // Depending on Sampling (and whether a listener is registered or not), the activity above may not be created.
                 // If it is created, then propagate its context.
@@ -91,7 +91,7 @@ internal class TraceContextEnrichedServiceRemotingClientAdapter : IServiceRemoti
 
                 try
                 {
-                    IServiceRemotingResponseMessage responseMessage = await this.innerClient.RequestResponseAsync(requestMessage).ConfigureAwait(false);
+                    var responseMessage = await this.innerClient.RequestResponseAsync(requestMessage).ConfigureAwait(false);
 
                     if (activity != null)
                     {

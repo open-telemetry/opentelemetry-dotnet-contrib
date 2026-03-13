@@ -44,16 +44,16 @@ internal sealed class AspNetInstrumentation : IDisposable
 
     /// <inheritdoc/>
     public void Dispose()
-    {
-        this.httpInListener?.Dispose();
-    }
+        => this.httpInListener?.Dispose();
 
     private static (ActivitySource ActivitySource, Meter Meter) CreateTelemetry()
     {
         const string telemetrySchemaUrl = "https://opentelemetry.io/schemas/1.36.0";
         var assembly = typeof(AspNetInstrumentation).Assembly;
         var assemblyName = assembly.GetName();
+#pragma warning disable IDE0370 // Suppression is unnecessary
         var name = assemblyName.Name!;
+#pragma warning restore IDE0370 // Suppression is unnecessary
         var version = assembly.GetPackageVersion();
 
         var activitySourceOptions = new ActivitySourceOptions(name)

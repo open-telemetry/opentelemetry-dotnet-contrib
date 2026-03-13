@@ -75,9 +75,7 @@ public class LogRecordCommonSchemaJsonHttpPostBenchmarks
 
     [GlobalCleanup]
     public void GlobalCleanup()
-    {
-        this.exporter?.Dispose();
-    }
+        => this.exporter?.Dispose();
 
     [Benchmark]
     public void Export()
@@ -90,7 +88,9 @@ public class LogRecordCommonSchemaJsonHttpPostBenchmarks
 
     private static LogRecord CreateLogRecord(int index)
     {
+#pragma warning disable IDE0370 // Suppression is unnecessary
         var logRecord = (LogRecord)Activator.CreateInstance(typeof(LogRecord), nonPublic: true)!;
+#pragma warning restore IDE0370 // Suppression is unnecessary
 
         logRecord.Timestamp = DateTime.UtcNow;
         logRecord.CategoryName = typeof(LogRecordCommonSchemaJsonHttpPostBenchmarks).FullName;
@@ -149,12 +149,7 @@ public class LogRecordCommonSchemaJsonHttpPostBenchmarks
             HttpRequestMessage request,
             HttpCompletionOption completionOption,
             CancellationToken cancellationToken)
-        {
-            return new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.OK,
-            };
-        }
+            => new() { StatusCode = HttpStatusCode.OK };
     }
 
     private sealed class ScopeProvider : IExternalScopeProvider
@@ -175,8 +170,6 @@ public class LogRecordCommonSchemaJsonHttpPostBenchmarks
         }
 
         public IDisposable Push(object? state)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
     }
 }

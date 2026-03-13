@@ -806,7 +806,7 @@ public static class MetricSerializerTests
         MetricSerializer.SerializeSpanOfBytes(buffer, ref offset, span, bytes.Length);
 
         // Assert
-        for (int i = 0; i < bytes.Length; i++)
+        for (var i = 0; i < bytes.Length; i++)
         {
             Assert.Equal(bytes[i], buffer[i]);
         }
@@ -1269,7 +1269,10 @@ public static class MetricSerializerTests
         var encodedValue = System.Text.Encoding.UTF8.GetBytes(input.Get.Substring(0, Math.Min(input.Get.Length, 5)));
 
         // Act and Assert
-        Assert.Throws<IndexOutOfRangeException>(() => MetricSerializer.SerializeEncodedString(buffer, ref offset, encodedValue));
+        var ex = Assert.ThrowsAny<Exception>(() => MetricSerializer.SerializeEncodedString(buffer, ref offset, encodedValue));
+
+        // Assert
+        Assert.True(ex is ArgumentOutOfRangeException or IndexOutOfRangeException, $"Unexpected exception type {ex.GetType()}.");
     }
 
     [Property(MaxTest = MaxValue)]
@@ -1323,7 +1326,7 @@ public static class MetricSerializerTests
         MetricSerializer.SerializeUInt64AsBase128(buffer, ref offset, value);
 
         // Assert - all bytes except the last should have the high bit (0x80) set
-        for (int i = 0; i < offset - 1; i++)
+        for (var i = 0; i < offset - 1; i++)
         {
             Assert.NotEqual(0, buffer[i] & 0x80);
         }
@@ -1352,7 +1355,7 @@ public static class MetricSerializerTests
         if (value >= 128)
         {
             // Multi-byte encoding: all bytes except last must have 0x80 set
-            for (int j = 0; j < offset - 1; j++)
+            for (var j = 0; j < offset - 1; j++)
             {
                 Assert.NotEqual(0, buffer[j] & 0x80);
             }

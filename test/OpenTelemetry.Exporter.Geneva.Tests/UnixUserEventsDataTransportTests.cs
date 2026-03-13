@@ -201,7 +201,7 @@ public class UnixUserEventsDataTransportTests
 
         eb.AddStructWithMetadataPosition("partA", out var partAFieldsCountMetadataPosition);
 
-        string rfc3339String = DateTime.UtcNow.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.FFFFFFZ", CultureInfo.InvariantCulture);
+        var rfc3339String = DateTime.UtcNow.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.FFFFFFZ", CultureInfo.InvariantCulture);
         eb.AddString16("time", rfc3339String);
 
         byte partAFieldsCount = 1;

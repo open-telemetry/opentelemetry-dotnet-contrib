@@ -45,7 +45,7 @@ public class TraceExporterBenchmarks
             ActivityStarted = null,
             ActivityStopped = null,
             ShouldListenTo = (activitySource) => activitySource.Name == this.activitySource.Name,
-            Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded,
+            Sample = (ref options) => ActivitySamplingResult.AllDataAndRecorded,
         };
 
         ActivitySource.AddActivityListener(activityListener);
@@ -92,15 +92,11 @@ public class TraceExporterBenchmarks
 
     [Benchmark]
     public void ExportActivity()
-    {
-        this.exporter.Export(this.batch);
-    }
+        => this.exporter.Export(this.batch);
 
     [Benchmark]
     public void SerializeActivity()
-    {
-        this.exporter.SerializeActivity(this.activity);
-    }
+        => this.exporter.SerializeActivity(this.activity);
 
     [Benchmark]
     public void CreateActivityWithGenevaExporter()

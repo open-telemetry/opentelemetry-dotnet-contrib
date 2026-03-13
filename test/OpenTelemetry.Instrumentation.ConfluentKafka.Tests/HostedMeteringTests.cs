@@ -94,7 +94,7 @@ public class HostedMeteringTests(ITestOutputHelper outputHelper)
             await host.StopAsync();
         }
 
-        groups = metrics.GroupBy(x => x.Name).ToArray();
+        groups = [.. metrics.GroupBy(x => x.Name)];
 
         Assert.Equal(4, groups.Length);
     }

@@ -845,8 +845,8 @@ public partial class HttpClientTests : IDisposable
     [InlineData(ActivityStatusCode.Error)]
     public async Task ResponseEnrichmentCanChangeActivityStatus(ActivityStatusCode activityStatus)
     {
-        bool httpWebResponseEnrichmentApplied = false;
-        bool httpResponseMessageEnrichmentApplied = false;
+        var httpWebResponseEnrichmentApplied = false;
+        var httpResponseMessageEnrichmentApplied = false;
 
         var exportedItems = new List<Activity>();
 

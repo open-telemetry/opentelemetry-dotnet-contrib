@@ -557,7 +557,7 @@ public class StackExchangeRedisCallsInstrumentationTests
             {
                 DatabaseSemanticConventionHelper.DatabaseSemanticConvention.Dupe => "database/dup",
                 DatabaseSemanticConventionHelper.DatabaseSemanticConvention.New => "database",
-                _ => string.Empty,
+                DatabaseSemanticConventionHelper.DatabaseSemanticConvention.Old or _ => string.Empty,
             };
 
             return EnvironmentVariableScope.Create("OTEL_SEMCONV_STABILITY_OPT_IN", value);
