@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* Export histogram bucket counts as cumulative values instead of delta values
+  in `TelegrafPrometheusWriterV2` to fix the "histogram records counts are not
+  monotonic" error in InfluxDB.
+  ([#3920](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3920))
+
 ## 1.0.0-alpha.7
 
 Released 2026-Jan-21
