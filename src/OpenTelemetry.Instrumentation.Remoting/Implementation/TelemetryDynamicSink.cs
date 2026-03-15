@@ -51,7 +51,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
             return;
         }
 
-        var options = this.optionsProvider.GetOptions();
+        var options = this.optionsProvider.Options;
 
         try
         {
@@ -199,7 +199,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
 
         try
         {
-            var options = this.optionsProvider.GetOptions();
+            var options = this.optionsProvider.Options;
 
             var activity = Activity.Current;
             if (activity == null)
@@ -351,7 +351,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
             return;
         }
 
-        var options = this.optionsProvider.GetOptions();
+        var options = this.optionsProvider.Options;
 
         string fullyQualifiedMethod = this.GetFullyQualifiedMethod(msg);
 

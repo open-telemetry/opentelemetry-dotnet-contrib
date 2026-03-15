@@ -32,6 +32,8 @@ internal sealed class TelemetryDynamicSinkProvider : IDynamicProperty, IContribu
     /// <inheritdoc />
     public string Name => DynamicPropertyName;
 
+    internal RemotingInstrumentationOptions Options => this.options;
+
     /// <summary>
     /// Creates and returns a <see cref="TelemetryDynamicSink"/> to be used for instrumentation.
     /// </summary>
@@ -44,8 +46,6 @@ internal sealed class TelemetryDynamicSinkProvider : IDynamicProperty, IContribu
         this.optionsChangeRegistration?.Dispose();
         this.activitySource.Dispose();
     }
-
-    internal RemotingInstrumentationOptions GetOptions() => this.options;
 
     private static ActivitySource CreateActivitySource()
     {
