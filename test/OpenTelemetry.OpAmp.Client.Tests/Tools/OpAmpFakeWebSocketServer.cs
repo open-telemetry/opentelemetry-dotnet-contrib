@@ -54,7 +54,7 @@ internal class OpAmpFakeWebSocketServer : IDisposable
                 }
                 finally
                 {
-                    if (socket.State == WebSocketState.Open || socket.State == WebSocketState.CloseReceived)
+                    if (socket.State is WebSocketState.Open or WebSocketState.CloseReceived)
                     {
                         await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Server disposed", this.cts.Token);
                     }
@@ -69,9 +69,7 @@ internal class OpAmpFakeWebSocketServer : IDisposable
     public Uri Endpoint { get; }
 
     public IReadOnlyCollection<AgentToServer> GetFrames()
-    {
-        return this.frames.ToArray();
-    }
+        => [.. this.frames];
 
     public void Dispose()
     {
@@ -83,7 +81,7 @@ internal class OpAmpFakeWebSocketServer : IDisposable
     private static AgentToServer ProcessReceive(MemoryStream ms)
     {
         var fullMessageBytes = new ReadOnlySequence<byte>(ms.ToArray());
-        bool result = OpAmpWsHeaderHelper.TryVerifyHeader(fullMessageBytes, out var headerSize, out string errorMessage);
+        var result = OpAmpWsHeaderHelper.TryVerifyHeader(fullMessageBytes, out var headerSize, out var errorMessage);
         if (!result)
         {
             throw new InvalidOperationException(errorMessage);
