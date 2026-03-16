@@ -44,7 +44,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             "Couchbase.EntityFrameworkCore.Storage.Internal",
         ];
 
-        foreach (string name in names)
+        foreach (var name in names)
         {
             testCases.Add(name, "couchbase", "couchbase");
         }
@@ -57,7 +57,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             "IBM.EntityFrameworkCore-osx",
         ];
 
-        foreach (string name in names)
+        foreach (var name in names)
         {
             testCases.Add(name, "db2", "ibm.db2");
         }
@@ -69,7 +69,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             "FirebirdSql.EntityFrameworkCore.Firebird",
         ];
 
-        foreach (string name in names)
+        foreach (var name in names)
         {
             testCases.Add(name, "firebird", "firebirdsql");
         }
@@ -81,7 +81,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             "Microsoft.EntityFrameworkCore.SqlServer",
         ];
 
-        foreach (string name in names)
+        foreach (var name in names)
         {
             testCases.Add(name, "mssql", "microsoft.sql_server");
         }
@@ -97,7 +97,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             "Pomelo.EntityFrameworkCore.MySql",
         ];
 
-        foreach (string name in names)
+        foreach (var name in names)
         {
             testCases.Add(name, "mysql", "mysql");
         }
@@ -111,7 +111,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             "Oracle.ManagedDataAccess.Client.OracleCommand",
         ];
 
-        foreach (string name in names)
+        foreach (var name in names)
         {
             testCases.Add(name, "oracle", "oracle.db");
         }
@@ -125,7 +125,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             "Npgsql.NpgsqlCommand",
         ];
 
-        foreach (string name in names)
+        foreach (var name in names)
         {
             testCases.Add(name, "postgresql", "postgresql");
         }
@@ -138,7 +138,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             "Microsoft.EntityFrameworkCore.Sqlite",
         ];
 
-        foreach (string name in names)
+        foreach (var name in names)
         {
             testCases.Add(name, "sqlite", "sqlite");
         }
@@ -150,7 +150,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             "Google.Cloud.Spanner.Data.SpannerCommand",
         ];
 
-        foreach (string name in names)
+        foreach (var name in names)
         {
             testCases.Add(name, "spanner", "gcp.spanner");
         }
@@ -162,7 +162,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             "Teradata.EntityFrameworkCore",
         ];
 
-        foreach (string name in names)
+        foreach (var name in names)
         {
             testCases.Add(name, "teradata", "teradata");
         }
@@ -174,7 +174,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             "Contoso.BusinessLogic.DataAccess.Command",
         ];
 
-        foreach (string name in names)
+        foreach (var name in names)
         {
             testCases.Add(name, "other_sql", "other_sql");
         }
