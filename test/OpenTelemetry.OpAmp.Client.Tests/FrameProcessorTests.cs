@@ -55,7 +55,7 @@ public class FrameProcessorTests
         using var listener = new MockListener();
         var processor = new FrameProcessor();
         var mockFrame = FrameGenerator.GenerateMockServerFrame();
-        int iterations = 1000;
+        var iterations = 1000;
         var tasks = new List<Task>
         {
             // Task to repeatedly call OnServerFrame
