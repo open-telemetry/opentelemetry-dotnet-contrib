@@ -112,7 +112,7 @@ public static class AWSXRayIdGenerator
         lock (RandLock)
         {
             NextBytes(bytes);
-            hexNumber = string.Concat([.. bytes.Select(x => x.ToString("x2", CultureInfo.InvariantCulture))]);
+            hexNumber = string.Concat(bytes.Select(x => x.ToString("x2", CultureInfo.InvariantCulture)));
             if (digits % 2 != 0)
             {
                 hexNumber += Next(16).ToString("x", CultureInfo.InvariantCulture);
