@@ -107,7 +107,7 @@ public class RoutingTestFixture : IAsyncLifetime
 
         this.AppendJsonResults(sb, this.metricsTestResults);
 
-        string routeTestsPath =
+        var routeTestsPath =
             typeof(TestApplicationFactory).Assembly
             .GetCustomAttributes()
             .OfType<AssemblyMetadataAttribute>()
