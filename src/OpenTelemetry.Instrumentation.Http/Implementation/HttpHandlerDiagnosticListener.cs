@@ -26,7 +26,9 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
 
     // https://github.com/dotnet/runtime/blob/7d034ddbbbe1f2f40c264b323b3ed3d6b3d45e9a/src/libraries/System.Net.Http/src/System/Net/Http/DiagnosticsHandler.cs#L19
     internal static readonly string ActivitySourceName = AssemblyName.Name + ".HttpClient";
+#pragma warning disable IDE0370 // Suppression is unnecessary
     internal static readonly Version Version = AssemblyName.Version!;
+#pragma warning restore IDE0370 // Suppression is unnecessary
     internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, Version.ToString());
 
     private const string OnStartEvent = "System.Net.Http.HttpRequestOut.Start";
