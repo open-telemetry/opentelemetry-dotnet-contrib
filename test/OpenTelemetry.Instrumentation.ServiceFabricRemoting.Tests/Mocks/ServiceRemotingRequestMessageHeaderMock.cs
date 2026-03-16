@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Fabric;
-using System.Globalization;
 using System.Runtime.Serialization;
 using Microsoft.ServiceFabric.Services.Remoting.V2;
 
@@ -52,7 +51,7 @@ internal class ServiceRemotingRequestMessageHeaderMock : IServiceRemotingRequest
     {
         if (this.headers.ContainsKey(headerName))
         {
-            throw new FabricElementAlreadyExistsException(string.Format((IFormatProvider)(object)CultureInfo.CurrentCulture, "ErrorHeaderAlreadyExists"));
+            throw new FabricElementAlreadyExistsException("ErrorHeaderAlreadyExists");
         }
 
         this.headers[headerName] = headerValue;
