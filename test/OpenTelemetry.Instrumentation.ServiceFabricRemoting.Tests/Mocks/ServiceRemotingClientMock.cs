@@ -23,14 +23,14 @@ internal class ServiceRemotingClientMock : IServiceRemotingClient
     public ResolvedServiceEndpoint Endpoint { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
     /// <summary>
-    /// The RequestResponseAsync method reads the headers from the request and injects them into the response, using OpneTelemetry's TextMapPropagator.
+    /// The RequestResponseAsync method reads the headers from the request and injects them into the response, using OpenTelemetry's TextMapPropagator.
     /// </summary>
     public Task<IServiceRemotingResponseMessage> RequestResponseAsync(IServiceRemotingRequestMessage requestMessage)
     {
-        IServiceRemotingRequestMessageHeader requestMessageHeader = requestMessage.GetHeader();
-        PropagationContext propagationContext = Propagators.DefaultTextMapPropagator.Extract(default, requestMessageHeader, ServiceFabricRemotingUtils.ExtractTraceContextFromRequestMessageHeader);
+        var requestMessageHeader = requestMessage.GetHeader();
+        var propagationContext = Propagators.DefaultTextMapPropagator.Extract(default, requestMessageHeader, ServiceFabricRemotingUtils.ExtractTraceContextFromRequestMessageHeader);
 
-        MockServiceRemotingResponseMessage responseMessage = new MockServiceRemotingResponseMessage()
+        var responseMessage = new MockServiceRemotingResponseMessage()
         {
             Header = new ServiceRemotingResponseMessageHeaderMock(),
         };
@@ -44,9 +44,9 @@ internal class ServiceRemotingClientMock : IServiceRemotingClient
 
     private void InjectTraceContextIntoServiceRemotingRequestMessageHeader(IServiceRemotingResponseMessageHeader responseMessageHeaders, string key, string value)
     {
-        if (!responseMessageHeaders.TryGetHeaderValue(key, out byte[] _))
+        if (!responseMessageHeaders.TryGetHeaderValue(key, out var _))
         {
-            byte[] valueAsBytes = Encoding.UTF8.GetBytes(value);
+            var valueAsBytes = Encoding.UTF8.GetBytes(value);
 
             responseMessageHeaders.AddHeader(key, valueAsBytes);
         }
