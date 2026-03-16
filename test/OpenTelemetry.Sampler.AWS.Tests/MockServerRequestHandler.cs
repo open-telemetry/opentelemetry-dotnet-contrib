@@ -7,7 +7,7 @@ namespace OpenTelemetry.Sampler.AWS.Tests;
 
 internal sealed class MockServerRequestHandler
 {
-    private readonly Dictionary<string, string> responses = new();
+    private readonly Dictionary<string, string> responses = [];
 
     public MockServerRequestHandler()
     {
@@ -19,9 +19,7 @@ internal sealed class MockServerRequestHandler
     }
 
     public void SetResponse(string path, string responseBody)
-    {
-        this.responses[path] = responseBody;
-    }
+        => this.responses[path] = responseBody;
 
     public void Handle(HttpListenerContext context)
     {
