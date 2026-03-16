@@ -11,7 +11,7 @@ namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests;
 internal class ServiceRemotingRequestMessageHeaderMock : IServiceRemotingRequestMessageHeader
 {
     [DataMember(Name = "Headers", IsRequired = true, Order = 2)]
-    private readonly Dictionary<string, byte[]> headers = new Dictionary<string, byte[]>();
+    private readonly Dictionary<string, byte[]> headers = [];
 
     public ServiceRemotingRequestMessageHeaderMock()
     {
@@ -61,11 +61,6 @@ internal class ServiceRemotingRequestMessageHeaderMock : IServiceRemotingRequest
     public bool TryGetHeaderValue(string headerName, out byte[]? headerValue)
     {
         headerValue = null;
-        if (this.headers == null)
-        {
-            return false;
-        }
-
-        return this.headers.TryGetValue(headerName, out headerValue);
+        return this.headers != null && this.headers.TryGetValue(headerName, out headerValue);
     }
 }
