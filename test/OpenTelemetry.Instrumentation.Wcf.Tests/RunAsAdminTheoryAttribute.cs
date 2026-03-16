@@ -16,10 +16,10 @@ public sealed class RunAsAdminTheoryAttribute : TheoryAttribute
     public RunAsAdminTheoryAttribute()
         : base()
     {
-        this.Skip = IsCurrentUserAdmin(out string name) ? null : $"The current user '{name}' does not have administrative privileges.";
+        this.Skip = IsCurrentUserAdmin(out var name) ? null : $"The current user '{name}' does not have administrative privileges.";
     }
 
-    internal static bool IsCurrentUserAdmin() => IsCurrentUserAdmin(out string _);
+    internal static bool IsCurrentUserAdmin() => IsCurrentUserAdmin(out var _);
 
     private static bool IsCurrentUserAdmin(out string name)
     {
