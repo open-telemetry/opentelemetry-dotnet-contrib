@@ -59,7 +59,7 @@ public class TestAWSXRayRemoteSampler
         var requestHandler = new MockServerRequestHandler();
 
         using var mockServer = TestHttpServer.RunServer(
-            ctx => requestHandler.Handle(ctx),
+            requestHandler.Handle,
             out var host,
             out var port);
 
