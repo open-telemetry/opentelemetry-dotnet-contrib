@@ -116,6 +116,7 @@ public class IncomingRequestsCollectionsIsAccordingToTheSpecTests
         }
 
         // TODO Is ASP.NET Core 11 doing the right thing here?
+        // See https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/3968.
 #if NET11_0_OR_GREATER
         Assert.Equal(statusCode is 503 ? "exception description" : null, activity.StatusDescription);
 #else
