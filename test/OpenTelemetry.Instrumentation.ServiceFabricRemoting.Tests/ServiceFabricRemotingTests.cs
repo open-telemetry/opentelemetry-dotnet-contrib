@@ -129,7 +129,7 @@ public class ServiceFabricRemotingTests
         var messageBody = new MockServiceRemotingRequestMessageBody();
         ServiceRemotingRequestMessageMock requestMessage = new(header, messageBody);
 
-        // The ServiceRemotingClientMock reads the headers from the request and injects them into the response, using OpneTelemetry's TextMapPropagator.
+        // The ServiceRemotingClientMock reads the headers from the request and injects them into the response, using OpenTelemetry's TextMapPropagator.
         var innerClient = new ServiceRemotingClientMock();
         var serviceRemotingClientAdapter = new TraceContextEnrichedServiceRemotingClientAdapter(innerClient);
 
