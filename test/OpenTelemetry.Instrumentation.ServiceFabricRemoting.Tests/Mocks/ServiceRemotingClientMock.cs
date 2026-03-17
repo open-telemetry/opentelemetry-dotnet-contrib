@@ -23,7 +23,7 @@ internal class ServiceRemotingClientMock : IServiceRemotingClient
     public ResolvedServiceEndpoint Endpoint { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
     /// <summary>
-    /// The RequestResponseAsync method reads the headers from the request and injects them into the response, using OpneTelemetry's TextMapPropagator.
+    /// The RequestResponseAsync method reads the headers from the request and injects them into the response, using OpenTelemetry's TextMapPropagator.
     /// </summary>
     public Task<IServiceRemotingResponseMessage> RequestResponseAsync(IServiceRemotingRequestMessage requestMessage)
     {

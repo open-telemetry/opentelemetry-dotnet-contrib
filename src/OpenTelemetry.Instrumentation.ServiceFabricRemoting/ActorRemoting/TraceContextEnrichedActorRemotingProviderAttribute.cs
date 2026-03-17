@@ -82,8 +82,8 @@ public sealed class TraceContextEnrichedActorRemotingProviderAttribute : FabricT
     {
         var sectionName = ActorNameFormat.GetFabricServiceTransportSettingsSectionName(actorService.ActorTypeInformation.ImplementationType);
 
-        var isSucceded = FabricTransportRemotingListenerSettings.TryLoadFrom(sectionName, out var listenerSettings);
-        if (!isSucceded)
+        var succeeded = FabricTransportRemotingListenerSettings.TryLoadFrom(sectionName, out var listenerSettings);
+        if (!succeeded)
         {
             listenerSettings = new FabricTransportRemotingListenerSettings();
         }
