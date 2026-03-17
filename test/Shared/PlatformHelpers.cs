@@ -38,6 +38,8 @@ internal sealed class TestPlatformHelpers
                 return false;
 
             // TODO: Add support for this check on other platforms as needed.
+            case TestPlatform.OSX:
+            case TestPlatform.Unknown:
             default:
                 throw new NotSupportedException($"TestPlatform '{platform}' is not supported for elevation check.");
         }
@@ -47,8 +49,10 @@ internal sealed class TestPlatformHelpers
     private static class SystemNativeUnix
     {
 #pragma warning disable CA5392 // Use DefaultDllImportSearchPaths attribute for P/Invokes
+#pragma warning disable SYSLIB1054 // Use 'LibraryImportAttribute' instead of 'DllImportAttribute' to generate P/Invoke marshalling code at compile time
         [DllImport("libc", EntryPoint = "geteuid", SetLastError = true)]
         internal static extern uint GetEUid();
+#pragma warning restore SYSLIB1054 // Use 'LibraryImportAttribute' instead of 'DllImportAttribute' to generate P/Invoke marshalling code at compile time
 #pragma warning restore CA5392 // Use DefaultDllImportSearchPaths attribute for P/Invokes
     }
 }

@@ -23,8 +23,10 @@ internal sealed class HttpInMetricsListener : ListenerHandler
     internal const string OnUnhandledDiagnosticsExceptionEvent = "Microsoft.AspNetCore.Diagnostics.UnhandledException";
 
     internal static readonly AssemblyName AssemblyName = typeof(HttpInListener).Assembly.GetName();
+#pragma warning disable IDE0370 // Suppression is unnecessary
     internal static readonly string InstrumentationName = AssemblyName.Name!;
     internal static readonly string InstrumentationVersion = AssemblyName.Version!.ToString();
+#pragma warning restore IDE0370 // Suppression is unnecessary
     internal static readonly Meter Meter = new(InstrumentationName, InstrumentationVersion);
 
     private const string OnStopEvent = "Microsoft.AspNetCore.Hosting.HttpRequestIn.Stop";

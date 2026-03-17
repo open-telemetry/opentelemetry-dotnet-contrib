@@ -22,8 +22,10 @@ internal static class RedisProfilerEntryToActivityConverter
 {
     private static readonly Lazy<Func<object, (string?, string?)>> MessageDataGetter = new(() =>
     {
+#pragma warning disable IDE0370 // Suppression is unnecessary
         var profiledCommandType = Type.GetType("StackExchange.Redis.Profiling.ProfiledCommand, StackExchange.Redis", throwOnError: true)!;
         var scriptMessageType = Type.GetType("StackExchange.Redis.RedisDatabase+ScriptEvalMessage, StackExchange.Redis", throwOnError: true)!;
+#pragma warning restore IDE0370 // Suppression is unnecessary
 
         var messageDelegate = CreateFieldGetter<object>(profiledCommandType, "Message", BindingFlags.NonPublic | BindingFlags.Instance);
         var scriptDelegate = CreateFieldGetter<string>(scriptMessageType, "script", BindingFlags.NonPublic | BindingFlags.Instance);

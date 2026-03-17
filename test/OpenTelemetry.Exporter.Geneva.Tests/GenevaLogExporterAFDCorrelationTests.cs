@@ -65,7 +65,7 @@ public class GenevaLogExporterAFDCorrelationTests
             using var exporter = new GenevaLogExporter(exporterOptions);
 
             List<string> exportedCorrelationIds = [];
-            int foundWithoutCorrelationIds = 0;
+            var foundWithoutCorrelationIds = 0;
             (exporter.Exporter as MsgPackLogExporter).DataTransportListener = (data) =>
             {
                 var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(data, MessagePack.Resolvers.ContractlessStandardResolver.Options);
@@ -91,7 +91,7 @@ public class GenevaLogExporterAFDCorrelationTests
             List<string> expectedCorrelationIds = [];
             var countWithoutCorrelationId = 0;
 
-            for (int i = 0; i < threadCount; i++)
+            for (var i = 0; i < threadCount; i++)
             {
                 var threadIndex = i;
                 threads[i] = new Thread(() =>
@@ -214,7 +214,7 @@ public class GenevaLogExporterAFDCorrelationTests
             }
 
             List<ArraySegment<byte>> exportedData = [];
-            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = (data) => exportedData.Add(data);
+            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = exportedData.Add;
 
             // In this test, AFDCorrelationId is not set in RuntimeContext
             var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();

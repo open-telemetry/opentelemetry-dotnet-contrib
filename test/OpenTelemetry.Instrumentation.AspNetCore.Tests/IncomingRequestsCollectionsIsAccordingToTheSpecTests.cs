@@ -43,7 +43,7 @@ public class IncomingRequestsCollectionsIsAccordingToTheSpecTests
         using (var client = this.factory
             .WithWebHostBuilder(builder =>
             {
-                builder.ConfigureTestServices((IServiceCollection services) =>
+                builder.ConfigureTestServices(services =>
                 {
                     services.AddSingleton<TestCallbackMiddleware>(new ExceptionTestCallbackMiddleware(statusCode));
                     services.AddOpenTelemetry()
@@ -156,12 +156,9 @@ public class IncomingRequestsCollectionsIsAccordingToTheSpecTests
             context.Response.StatusCode = this.statusCode;
             await context.Response.WriteAsync("empty");
 
-            if (context.Request.Path.HasValue && context.Request.Path!.Value.EndsWith("exception", StringComparison.Ordinal))
-            {
-                throw new Exception("exception description");
-            }
-
-            return false;
+            return context.Request.Path.HasValue && context.Request.Path.Value.EndsWith("exception", StringComparison.Ordinal)
+                ? throw new Exception("exception description")
+                : false;
         }
     }
 }
