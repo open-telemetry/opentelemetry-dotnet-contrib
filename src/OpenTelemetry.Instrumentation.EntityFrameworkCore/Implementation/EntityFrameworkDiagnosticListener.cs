@@ -21,7 +21,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     internal static readonly Assembly Assembly = typeof(EntityFrameworkDiagnosticListener).Assembly;
 #pragma warning disable IDE0370 // Suppression is unnecessary
     internal static readonly string ActivitySourceName = Assembly.GetName().Name!;
-#pragma restore disable IDE0370 // Suppression is unnecessary
+#pragma warning restore IDE0370 // Suppression is unnecessary
     internal static readonly string ActivityName = ActivitySourceName + ".Execute";
     internal static readonly ActivitySource EntityFrameworkActivitySource = new(ActivitySourceName, Assembly.GetPackageVersion());
 
