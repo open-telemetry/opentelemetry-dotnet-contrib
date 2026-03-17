@@ -1,11 +1,11 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Diagnostics;
 #if !NETFRAMEWORK
+using System.Diagnostics;
 using System.Runtime.InteropServices;
-#endif
 using System.Text;
+#endif
 using Microsoft.Win32;
 using OpenTelemetry.Internal;
 
@@ -179,6 +179,7 @@ internal sealed class HostDetector : IResourceDetector
     }
 #endif
 
+#if !NETFRAMEWORK
     private static string? GetMachineIdMacOs()
     {
         try
@@ -228,6 +229,7 @@ internal sealed class HostDetector : IResourceDetector
 
         return null;
     }
+#endif
 
 #pragma warning disable CA1416
     // stylecop wants this protected by System.OperatingSystem.IsWindows
