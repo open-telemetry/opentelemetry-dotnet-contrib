@@ -60,7 +60,7 @@ internal sealed class SqlTelemetryHelper
                 var dbNamespace = !string.IsNullOrEmpty(connectionDetails.InstanceName)
                     ? $"{connectionDetails.InstanceName}.{databaseName}"
                     : databaseName!;
-#pragma warning disable IDE0370 // Suppression is unnecessary
+#pragma warning restore IDE0370 // Suppression is unnecessary
                 tags.Add(SemanticConventions.AttributeDbNamespace, dbNamespace);
                 activityName = dbNamespace;
             }
