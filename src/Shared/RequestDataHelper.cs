@@ -29,9 +29,16 @@ internal sealed class RequestDataHelper
     {
         var suppliedKnownMethods = configureByHttpKnownMethodsEnvironmentalVariable ? Environment.GetEnvironmentVariable(KnownHttpMethodsEnvironmentVariable)
             ?.Split(SplitChars, StringSplitOptions.RemoveEmptyEntries) : null;
-        var knownMethodSet = suppliedKnownMethods?.Length > 0
-            ? suppliedKnownMethods.ToDictionary(x => x, x => x, StringComparer.OrdinalIgnoreCase)
-            : new(StringComparer.OrdinalIgnoreCase)
+
+        Dictionary<string, string> knownMethodSet;
+
+        if (suppliedKnownMethods?.Length > 0)
+        {
+            knownMethodSet = suppliedKnownMethods.ToDictionary(x => x, x => x, StringComparer.OrdinalIgnoreCase);
+        }
+        else
+        {
+            knownMethodSet = new(StringComparer.OrdinalIgnoreCase)
             {
                 // See https://github.com/open-telemetry/semantic-conventions/blob/v1.38.0/model/http/registry.yaml
                 ["GET"] = "GET",
@@ -45,12 +52,13 @@ internal sealed class RequestDataHelper
                 ["CONNECT"] = "CONNECT",
             };
 
-        // .NET 9+ has native support for instrumentation, so our custom code doesn't run,
-        // but we don't target net9.0 so we cannot use conditional compilation to light-up
-        // support for QUERY and only .NET 10+ has support for QUERY itself.
-        if (Environment.Version.Major is not 9)
-        {
-            knownMethodSet["QUERY"] = "QUERY";
+            // .NET 9+ has native support for instrumentation, so our custom code doesn't run,
+            // but we don't target net9.0 so we cannot use conditional compilation to light-up
+            // support for QUERY and only .NET 10+ has support for QUERY itself.
+            if (Environment.Version.Major is not 9)
+            {
+                knownMethodSet["QUERY"] = "QUERY";
+            }
         }
 
 #if NET
