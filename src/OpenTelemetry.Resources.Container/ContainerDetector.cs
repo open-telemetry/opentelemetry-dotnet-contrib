@@ -69,15 +69,25 @@ internal sealed partial class ContainerDetector : IResourceDetector
     private static string? GetIdFromLineV1(string line)
     {
         // This cgroup output line should have the container id in it
+#if NET11_0_OR_GREATER
+        var lastSlashIndex = line.LastIndexOf('/', StringComparison.Ordinal);
+#else
         var lastSlashIndex = line.LastIndexOf('/');
+#endif
         if (lastSlashIndex < 0)
         {
             return null;
         }
 
         var lastSection = line.Substring(lastSlashIndex + 1);
+
+#if NET11_0_OR_GREATER
+        var startIndex = lastSection.LastIndexOf('-', StringComparison.Ordinal);
+        var endIndex = lastSection.LastIndexOf('.', StringComparison.Ordinal);
+#else
         var startIndex = lastSection.LastIndexOf('-');
         var endIndex = lastSection.LastIndexOf('.');
+#endif
 
         var containerId = RemovePrefixAndSuffixIfNeeded(lastSection, startIndex, endIndex);
 
