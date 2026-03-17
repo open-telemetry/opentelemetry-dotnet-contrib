@@ -54,7 +54,7 @@ public class MsgPackTraceExporterTests
     [InlineData("http", "host", "", "/x?y=1", "http://host/x?y=1")]
     public void GetHttpUrl_ReturnsExpectedUrl(string scheme, string hostOrAddress, string port, string pathAndQuery, string? expected)
     {
-        var arr = new object?[MsgPackTraceExporter.CS40_PART_B_MAPPING_DICTIONARY.Count];
+        var arr = new object?[MsgPackTraceExporter.CS40_PART_B_HTTPURL_MAPPING_DICTIONARY.Count];
         arr[0] = scheme;
         arr[1] = hostOrAddress;
         arr[2] = string.IsNullOrEmpty(port) ? null : port;
@@ -67,6 +67,41 @@ public class MsgPackTraceExporterTests
         else
         {
             arr[3] = string.IsNullOrEmpty(pathAndQuery) ? null : pathAndQuery;
+        }
+
+        var url = MsgPackTraceExporter.GetHttpUrl(arr);
+        Assert.Equal(expected, url);
+    }
+
+    [Theory]
+    [InlineData("", "", "", "", null)]
+    [InlineData("http", "host", "", "", "http://host")]
+    [InlineData("http", "host", "8080", "/x", "http://host:8080/x")]
+    [InlineData("https", "server", "443", "/api", "https://server:443/api")]
+    [InlineData("http", "host", "", "/x?y=1", "http://host/x?y=1")]
+    public void GetHttpUrl_QueryStartsWithQuestionMark_ReturnsExpectedUrl(string scheme, string hostOrAddress, string port, string pathAndQuery, string? expected)
+    {
+        var arr = new object?[MsgPackTraceExporter.CS40_PART_B_HTTPURL_MAPPING_DICTIONARY.Count];
+        arr[0] = scheme;
+        arr[1] = hostOrAddress;
+        arr[2] = string.IsNullOrEmpty(port) ? null : port;
+        if (!string.IsNullOrEmpty(pathAndQuery))
+        {
+            var queryIndex = pathAndQuery.IndexOf('?');
+            if (queryIndex == -1)
+            {
+                arr[3] = pathAndQuery;
+                arr[4] = string.Empty;
+            }
+            else
+            {
+                arr[3] = pathAndQuery.Substring(0, queryIndex);
+                arr[4] = pathAndQuery.Substring(queryIndex);
+            }
+        }
+        else
+        {
+            arr[3] = null;
         }
 
         var url = MsgPackTraceExporter.GetHttpUrl(arr);
