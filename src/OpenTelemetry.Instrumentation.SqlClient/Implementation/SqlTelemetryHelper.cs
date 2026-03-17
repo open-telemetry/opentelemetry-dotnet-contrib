@@ -56,9 +56,11 @@ internal sealed class SqlTelemetryHelper
 
             if (!string.IsNullOrEmpty(databaseName))
             {
+#pragma warning disable IDE0370 // Suppression is unnecessary
                 var dbNamespace = !string.IsNullOrEmpty(connectionDetails.InstanceName)
                     ? $"{connectionDetails.InstanceName}.{databaseName}"
                     : databaseName!;
+#pragma warning restore IDE0370 // Suppression is unnecessary
                 tags.Add(SemanticConventions.AttributeDbNamespace, dbNamespace);
                 activityName = dbNamespace;
             }
@@ -74,16 +76,20 @@ internal sealed class SqlTelemetryHelper
 
                 if (activityName == MicrosoftSqlServerDbSystemName)
                 {
+#pragma warning disable IDE0370 // Suppression is unnecessary
                     activityName = connectionDetails.Port is { } portNumber
                         ? $"{serverAddress}:{portNumber}"
                         : serverAddress!;
+#pragma warning restore IDE0370 // Suppression is unnecessary
                 }
             }
         }
         else if (!string.IsNullOrEmpty(databaseName))
         {
             tags.Add(SemanticConventions.AttributeDbNamespace, databaseName);
+#pragma warning disable IDE0370 // Suppression is unnecessary
             activityName = databaseName!;
+#pragma warning restore IDE0370 // Suppression is unnecessary
         }
 
         return tags;
@@ -109,7 +115,9 @@ internal sealed class SqlTelemetryHelper
         const string telemetrySchemaUrl = "https://opentelemetry.io/schemas/1.33.0";
         var assembly = typeof(SqlTelemetryHelper).Assembly;
         var assemblyName = assembly.GetName();
+#pragma warning disable IDE0370 // Suppression is unnecessary
         var name = assemblyName.Name!;
+#pragma warning restore IDE0370 // Suppression is unnecessary
         var version = assembly.GetPackageVersion();
 
         var activitySourceOptions = new ActivitySourceOptions(name)

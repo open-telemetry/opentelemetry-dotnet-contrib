@@ -11,7 +11,7 @@ internal sealed class TraceEnrichmentActions : TraceEnricher
 
     public TraceEnrichmentActions(IEnumerable<Action<TraceEnrichmentBag>> actions)
     {
-        this.actions = actions.ToArray();
+        this.actions = [.. actions];
     }
 
     public override void Enrich(in TraceEnrichmentBag bag)

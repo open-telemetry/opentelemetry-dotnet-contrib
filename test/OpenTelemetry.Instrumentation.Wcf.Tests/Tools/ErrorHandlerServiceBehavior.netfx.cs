@@ -10,17 +10,8 @@ using System.ServiceModel.Dispatcher;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Tests.Tools;
 
-internal class ErrorHandlerServiceBehavior : IServiceBehavior
+internal class ErrorHandlerServiceBehavior(EventWaitHandle handle, Action<Exception> action) : IServiceBehavior
 {
-    private readonly EventWaitHandle handle;
-    private readonly Action<Exception> action;
-
-    public ErrorHandlerServiceBehavior(EventWaitHandle handle, Action<Exception> action)
-    {
-        this.handle = handle;
-        this.action = action;
-    }
-
     public void AddBindingParameters(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase, Collection<ServiceEndpoint> endpoints, BindingParameterCollection bindingParameters)
     {
     }
@@ -29,7 +20,7 @@ internal class ErrorHandlerServiceBehavior : IServiceBehavior
     {
         foreach (var dispatcher in serviceHostBase.ChannelDispatchers.Cast<ChannelDispatcher>())
         {
-            dispatcher.ErrorHandlers.Add(new ErrorHandler(this.handle, this.action));
+            dispatcher.ErrorHandlers.Add(new ErrorHandler(handle, action));
         }
     }
 

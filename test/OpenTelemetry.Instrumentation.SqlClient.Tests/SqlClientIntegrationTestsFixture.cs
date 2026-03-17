@@ -23,8 +23,10 @@ public sealed class SqlClientIntegrationTestsFixture : IAsyncLifetime
     {
         var assembly = typeof(SqlClientIntegrationTestsFixture).Assembly;
 
+#pragma warning disable IDE0370 // Suppression is unnecessary
         using var stream = assembly.GetManifestResourceStream("sqlserver.Dockerfile");
         using var reader = new StreamReader(stream!);
+#pragma warning restore IDE0370 // Suppression is unnecessary
 
         var raw = reader.ReadToEnd();
 

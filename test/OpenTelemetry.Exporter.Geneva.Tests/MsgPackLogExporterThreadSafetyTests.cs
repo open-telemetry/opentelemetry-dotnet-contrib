@@ -55,7 +55,7 @@ public class MsgPackLogExporterThreadSafetyTests
         var sourceName = GetTestMethodName();
 
         var threads = new Thread[threadCount];
-        for (int t = 0; t < threadCount; t++)
+        for (var t = 0; t < threadCount; t++)
         {
             var threadIndex = t;
             threads[t] = new Thread(() =>
@@ -65,7 +65,7 @@ public class MsgPackLogExporterThreadSafetyTests
                     // Wait for all threads to be ready, maximizing contention on CreateFraming
                     barrier.SignalAndWait();
 
-                    for (int i = 0; i < iterationsPerThread; i++)
+                    for (var i = 0; i < iterationsPerThread; i++)
                     {
                         List<LogRecord> logRecords = [];
                         using var loggerFactory = LoggerFactory.Create(builder => builder

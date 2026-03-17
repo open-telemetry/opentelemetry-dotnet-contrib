@@ -11,7 +11,9 @@ internal class ServiceFabricRemotingActivitySource
 {
     internal static readonly Assembly Assembly = typeof(ServiceFabricRemotingActivitySource).Assembly;
     internal static readonly AssemblyName AssemblyName = Assembly.GetName();
+#pragma warning disable IDE0370 // Suppression is unnecessary
     internal static readonly string ActivitySourceName = AssemblyName.Name!;
+#pragma warning restore IDE0370 // Suppression is unnecessary
 
     internal static readonly string IncomingRequestActivityName = ActivitySourceName + ".IncomingRequest";
     internal static readonly string OutgoingRequestActivityName = ActivitySourceName + ".OutgoingRequest";

@@ -66,8 +66,8 @@ internal static class DatabaseSemanticConventionHelper
         bool emitNewAttributes,
         bool sanitizeQuery = true)
     {
-        string queryText = commandText ?? string.Empty;
-        string querySummary = string.Empty;
+        var queryText = commandText ?? string.Empty;
+        var querySummary = string.Empty;
 
         if (sanitizeQuery)
         {
@@ -100,8 +100,8 @@ internal static class DatabaseSemanticConventionHelper
         ref string activityName,
         bool sanitizeQuery = true)
     {
-        string queryText = commandText ?? string.Empty;
-        string querySummary = string.Empty;
+        var queryText = commandText ?? string.Empty;
+        var querySummary = string.Empty;
 
         if (sanitizeQuery)
         {
@@ -164,7 +164,9 @@ internal static class DatabaseSemanticConventionHelper
                 return false;
             }
 
+#pragma warning disable IDE0370 // Suppression is unnecessary
             var stringValues = stringValue!.Split(separator: Separator, options: StringSplitOptions.RemoveEmptyEntries);
+#pragma warning restore IDE0370 // Suppression is unnecessary
             values = new HashSet<string>(stringValues, StringComparer.OrdinalIgnoreCase);
             return true;
         }

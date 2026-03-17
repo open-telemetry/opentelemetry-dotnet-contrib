@@ -691,7 +691,7 @@ public sealed class BasicTests
         using (var client = this.factory
             .WithWebHostBuilder(builder =>
             {
-                builder.ConfigureTestServices((IServiceCollection services) =>
+                builder.ConfigureTestServices(services =>
                 {
                     services.AddSingleton<TestActivityMiddleware>(new TestNullHostActivityMiddlewareImpl(activitySourceName, activityName));
                     services.AddOpenTelemetry()
@@ -1313,25 +1313,21 @@ public sealed class BasicTests
 #endif
 
     public void Dispose()
-    {
-        this.tracerProvider?.Dispose();
-    }
+        => this.tracerProvider?.Dispose();
 
     private static void WaitForActivityExport(List<Activity> exportedItems, int count)
-    {
-        // We need to let End callback execute as it is executed AFTER response was returned.
-        // In unit tests environment there may be a lot of parallel unit tests executed, so
-        // giving some breezing room for the End callback to complete
-        Assert.True(
+        => Assert.True(
             SpinWait.SpinUntil(
             () =>
             {
+                // We need to let End callback execute as it is executed AFTER response was returned.
+                // In unit tests environment there may be a lot of parallel unit tests executed, so
+                // giving some breathing room for the End callback to complete
                 Thread.Sleep(10);
                 return exportedItems.Count >= count;
             },
             TimeSpan.FromSeconds(1)),
             $"Actual: {exportedItems.Count} Expected: {count}");
-    }
 
     private static void ValidateAspNetCoreActivity(Activity activityToValidate, string expectedHttpPath)
     {
@@ -1389,14 +1385,10 @@ public sealed class BasicTests
         public override ISet<string> Fields => throw new NotImplementedException();
 
         public override PropagationContext Extract<T>(PropagationContext context, T carrier, Func<T, string, IEnumerable<string>?> getter)
-        {
-            return new PropagationContext(this.activityContext, this.baggage);
-        }
+            => new(this.activityContext, this.baggage);
 
         public override void Inject<T>(PropagationContext context, T carrier, Action<T, string, string> setter)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
     }
 
     private class TestSampler(SamplingDecision samplingDecision, IEnumerable<KeyValuePair<string, object>>? attributes = null) : Sampler
@@ -1405,9 +1397,7 @@ public sealed class BasicTests
         private readonly IEnumerable<KeyValuePair<string, object>>? attributes = attributes;
 
         public override SamplingResult ShouldSample(in SamplingParameters samplingParameters)
-        {
-            return new SamplingResult(this.samplingDecision, this.attributes);
-        }
+            => new(this.samplingDecision, this.attributes);
     }
 
     private class TestHttpInListener(AspNetCoreTraceInstrumentationOptions options) : HttpInListener(options)
@@ -1439,9 +1429,7 @@ public sealed class BasicTests
         }
 
         public override void PostProcess(HttpContext context)
-        {
-            this.activity?.Stop();
-        }
+            => this.activity?.Stop();
     }
 
     private class TestTestActivityMiddleware(string activitySourceName, string activityName) : TestActivityMiddleware
@@ -1451,13 +1439,9 @@ public sealed class BasicTests
         private Activity? activity;
 
         public override void PreProcess(HttpContext context)
-        {
-            this.activity = this.activitySource.StartActivity(this.activityName);
-        }
+            => this.activity = this.activitySource.StartActivity(this.activityName);
 
         public override void PostProcess(HttpContext context)
-        {
-            this.activity?.Stop();
-        }
+            => this.activity?.Stop();
     }
 }

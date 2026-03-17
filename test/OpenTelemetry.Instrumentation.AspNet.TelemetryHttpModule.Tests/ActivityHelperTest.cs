@@ -501,7 +501,7 @@ public class ActivityHelperTest : IDisposable
             ShouldListenTo = (activitySource) => activitySource.Name == TestActivitySourceName,
             ActivityStarted = (a) => onStarted?.Invoke(a),
             ActivityStopped = (a) => onStopped?.Invoke(a),
-            Sample = (ref ActivityCreationOptions<ActivityContext> options) =>
+            Sample = (ref options) =>
             {
                 return onSample?.Invoke(options.Parent) ?? ActivitySamplingResult.AllDataAndRecorded;
             },
@@ -511,9 +511,7 @@ public class ActivityHelperTest : IDisposable
     }
 
     private Activity? StartTestActivity(HttpContextBase httpContext, ActivityContext activityContext)
-    {
-        return this.testActivitySource.StartActivity(ActivityKind.Server, activityContext);
-    }
+        => this.testActivitySource.StartActivity(ActivityKind.Server, activityContext);
 
     private Activity? StartTestActivityWithBaggageAttribute(HttpContextBase httpContext, ActivityContext activityContext)
     {
@@ -527,10 +525,7 @@ public class ActivityHelperTest : IDisposable
     {
         public override ISet<string>? Fields => null;
 
-        public override PropagationContext Extract<T>(PropagationContext context, T carrier, Func<T, string, IEnumerable<string>?> getter)
-        {
-            return default;
-        }
+        public override PropagationContext Extract<T>(PropagationContext context, T carrier, Func<T, string, IEnumerable<string>?> getter) => default;
 
         public override void Inject<T>(PropagationContext context, T carrier, Action<T, string, string> setter)
         {

@@ -315,9 +315,9 @@ public class HttpJsonPostTransportTests
     private static void AssertStandardHeaders(HttpListenerRequest request, bool listenerEnabled)
     {
         Assert.Equal("POST", request.HttpMethod);
-        Assert.True(!string.IsNullOrWhiteSpace(request.Headers["User-Agent"]));
-        Assert.True(!string.IsNullOrWhiteSpace(request.Headers["sdk-version"]));
-        Assert.True(!string.IsNullOrWhiteSpace(request.Headers["x-apikey"]));
+        Assert.False(string.IsNullOrWhiteSpace(request.Headers["User-Agent"]));
+        Assert.False(string.IsNullOrWhiteSpace(request.Headers["sdk-version"]));
+        Assert.False(string.IsNullOrWhiteSpace(request.Headers["x-apikey"]));
         Assert.Equal("application/x-json-stream; charset=utf-8", request.Headers["Content-Type"]);
         if (listenerEnabled)
         {

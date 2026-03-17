@@ -25,10 +25,10 @@ public class MyTestStatefulService : StatefulService, ITestMyStatefulService
 
     public Task<ServiceResponse> TestContextPropagation(string valueToReturn)
     {
-        ActivityContext activityContext = Activity.Current!.Context;
-        Baggage baggage = Baggage.Current;
+        var activityContext = Activity.Current!.Context;
+        var baggage = Baggage.Current;
 
-        ServiceResponse serviceResponse = new ServiceResponse
+        var serviceResponse = new ServiceResponse
         {
             ParameterValue = valueToReturn,
             ActivityContext = activityContext,
@@ -39,20 +39,18 @@ public class MyTestStatefulService : StatefulService, ITestMyStatefulService
     }
 
     internal void SetDispatcher(IServiceRemotingMessageHandler dispatcher)
-    {
-        this.dispatcher = dispatcher;
-    }
+        => this.dispatcher = dispatcher;
 
     protected override IEnumerable<ServiceReplicaListener> CreateServiceReplicaListeners()
     {
-        Func<ServiceContext, IService, IServiceRemotingListener> getListenerFunc = (ServiceContext serviceContext, IService serviceImplementation) =>
+        IServiceRemotingListener CreateListener(ServiceContext serviceContext, IService serviceImplementation)
         {
-            FabricTransportRemotingListenerSettings listenerSettings = new FabricTransportRemotingListenerSettings();
+            var listenerSettings = new FabricTransportRemotingListenerSettings();
 
             return new FabricTransportServiceRemotingListener(serviceContext, this.dispatcher, listenerSettings);
-        };
+        }
 
-        ServiceReplicaListener serviceReplicaListener = new ServiceReplicaListener((StatefulServiceContext t) => getListenerFunc(this.ServiceContext, this), "V2Listener");
+        var serviceReplicaListener = new ServiceReplicaListener(t => CreateListener(this.ServiceContext, this), "V2Listener");
 
         return [serviceReplicaListener];
     }
