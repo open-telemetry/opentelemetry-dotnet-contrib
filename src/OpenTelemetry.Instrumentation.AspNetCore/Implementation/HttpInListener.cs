@@ -6,10 +6,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Http;
-#if !NETSTANDARD
-using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Routing;
-#endif
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
@@ -246,8 +242,7 @@ internal class HttpInListener : ListenerHandler
             var response = context.Response;
 
 #if !NETSTANDARD
-            var routePattern = (context.Features.Get<IExceptionHandlerPathFeature>()?.Endpoint as RouteEndpoint ??
-                    context.GetEndpoint() as RouteEndpoint)?.RoutePattern.RawText;
+            var routePattern = context.GetHttpRoute();
             if (!string.IsNullOrEmpty(routePattern))
             {
                 TelemetryHelper.RequestDataHelper.SetActivityDisplayName(activity, context.Request.Method, routePattern);
