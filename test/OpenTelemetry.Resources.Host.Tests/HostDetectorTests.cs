@@ -62,17 +62,35 @@ public class HostDetectorTests
         Assert.NotEmpty(resourceAttributes[HostSemanticConventions.AttributeHostName]);
         Assert.NotEmpty(resourceAttributes[HostSemanticConventions.AttributeHostId]);
 #if NET
-        Assert.NotEmpty(resourceAttributes["host.arch"]);
 #pragma warning disable IDE0072 // Add missing cases
         var expectedArch = RuntimeInformation.ProcessArchitecture switch
         {
+            Architecture.Arm => "arm32",
+#if NET
+            Architecture.Armv6 => "arm32",
+            Architecture.LoongArch64 => null,
+#if NET10_0_OR_GREATER
+            Architecture.RiscV64 => null,
+#endif
+            Architecture.Ppc64le => "ppc64",
+            Architecture.Wasm => null,
+#endif
             Architecture.X64 => "amd64",
 #pragma warning disable CA1308 // Normalize strings to uppercase
             _ => RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant(),
 #pragma warning restore CA1308 // Normalize strings to uppercase
         };
 #pragma warning restore IDE0072 // Add missing cases
-        Assert.Equal(expectedArch, resourceAttributes["host.arch"]);
+
+        if (expectedArch is not null)
+        {
+            Assert.NotEmpty(resourceAttributes["host.arch"]);
+            Assert.Equal(expectedArch, resourceAttributes["host.arch"]);
+        }
+        else
+        {
+            Assert.False(resourceAttributes.ContainsKey("host.arch"));
+        }
 #endif
     }
 
