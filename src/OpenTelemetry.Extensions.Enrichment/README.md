@@ -88,11 +88,19 @@ only need to override it when you need start-time enrichment:
 ```csharp
 internal sealed class MyTraceEnricher : TraceEnricher
 {
-    public override void Enrich(in TraceEnrichmentBag bag)
+    private readonly IMyService myService;
+
+    public MyTraceEnricher(IMyService myService)
     {
-        bag.Add("deployment.environment", "production");
+        this.myService = myService;
     }
 
+    public override void Enrich(in TraceEnrichmentBag bag)
+    {
+        var (service, status) = this.myService.MyDailyStatus();
+
+        bag.Add(service, status);
+    }
     public override void EnrichOnActivityStart(in TraceEnrichmentBag bag)
     {
         bag.Add("trace.start_time", DateTimeOffset.UtcNow.ToString());
