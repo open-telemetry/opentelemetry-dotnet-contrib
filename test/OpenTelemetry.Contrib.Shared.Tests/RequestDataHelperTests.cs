@@ -7,25 +7,30 @@ namespace OpenTelemetry.Internal.Tests;
 
 public class RequestDataHelperTests
 {
-    public static IEnumerable<object[]> MappingVersionProtocolToVersionData =>
-        [
-            [new Version(1, 0), "1.0"],
-            [new Version(1, 1), "1.1"],
-            [new Version(2, 0), "2"],
-            [new Version(3, 0), "3"],
-            [new Version(7, 6, 5), "7.6.5"],
-        ];
+    public static TheoryData<Version, string> MappingVersionProtocolToVersionData => new()
+    {
+        { new Version(1, 0), "1.0" },
+        { new Version(1, 1), "1.1" },
+        { new Version(2, 0), "2" },
+        { new Version(3, 0), "3" },
+        { new Version(7, 6, 5), "7.6.5" },
+    };
 
     [Theory]
-    [InlineData("GET", "GET")]
-    [InlineData("POST", "POST")]
-    [InlineData("PUT", "PUT")]
+    [InlineData("CONNECT", "CONNECT")]
     [InlineData("DELETE", "DELETE")]
+    [InlineData("GET", "GET")]
     [InlineData("HEAD", "HEAD")]
     [InlineData("OPTIONS", "OPTIONS")]
-    [InlineData("TRACE", "TRACE")]
     [InlineData("PATCH", "PATCH")]
-    [InlineData("CONNECT", "CONNECT")]
+    [InlineData("POST", "POST")]
+    [InlineData("PUT", "PUT")]
+#if NET9_0
+    [InlineData("QUERY", "_OTHER")]
+#else
+    [InlineData("QUERY", "QUERY")]
+#endif
+    [InlineData("TRACE", "TRACE")]
     [InlineData("get", "GET")]
     [InlineData("invalid", "_OTHER")]
     public void MethodMappingWorksForKnownMethods(string method, string expected)
@@ -36,15 +41,16 @@ public class RequestDataHelperTests
     }
 
     [Theory]
-    [InlineData("GET", "GET")]
-    [InlineData("POST", "POST")]
-    [InlineData("PUT", "_OTHER")]
+    [InlineData("CONNECT", "_OTHER")]
     [InlineData("DELETE", "_OTHER")]
+    [InlineData("GET", "GET")]
     [InlineData("HEAD", "_OTHER")]
     [InlineData("OPTIONS", "_OTHER")]
-    [InlineData("TRACE", "_OTHER")]
     [InlineData("PATCH", "_OTHER")]
-    [InlineData("CONNECT", "_OTHER")]
+    [InlineData("POST", "POST")]
+    [InlineData("PUT", "_OTHER")]
+    [InlineData("QUERY", "_OTHER")]
+    [InlineData("TRACE", "_OTHER")]
     [InlineData("get", "GET")]
     [InlineData("post", "POST")]
     [InlineData("invalid", "_OTHER")]
@@ -81,7 +87,9 @@ public class RequestDataHelperTests
     }
 
     [Theory]
+#pragma warning disable xUnit1044 // Avoid using TheoryData type arguments that are not serializable
     [MemberData(nameof(MappingVersionProtocolToVersionData))]
+#pragma warning restore xUnit1044 // Avoid using TheoryData type arguments that are not serializable
     public void MappingVersionProtocolToVersion(Version protocolVersion, string expected)
     {
         var actual = RequestDataHelper.GetHttpProtocolVersion(protocolVersion);

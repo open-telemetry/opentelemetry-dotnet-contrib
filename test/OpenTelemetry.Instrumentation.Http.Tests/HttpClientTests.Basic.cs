@@ -362,11 +362,16 @@ public partial class HttpClientTests : IDisposable
     [InlineData("CONNECT", "CONNECT", null)]
     [InlineData("DELETE", "DELETE", null)]
     [InlineData("GET", "GET", null)]
-    [InlineData("PUT", "PUT", null)]
     [InlineData("HEAD", "HEAD", null)]
     [InlineData("OPTIONS", "OPTIONS", null)]
     [InlineData("PATCH", "PATCH", null)]
     [InlineData("POST", "POST", null)]
+    [InlineData("PUT", "PUT", null)]
+#if NET9_0
+    [InlineData("QUERY", "_OTHER", "QUERY")]
+#else
+    [InlineData("QUERY", "QUERY", null)]
+#endif
     [InlineData("TRACE", "TRACE", null)]
     [InlineData("Delete", "DELETE", "Delete")]
 #if NETFRAMEWORK
@@ -427,7 +432,7 @@ public partial class HttpClientTests : IDisposable
         Assert.Equal(expectedMethod, activity.GetTagValue(SemanticConventions.AttributeHttpRequestMethod));
 
 #if NET
-        if (expectedOriginalMethod is not null and not "CUSTOM")
+        if (expectedOriginalMethod is not null and not ("CUSTOM" or "QUERY"))
         {
             // HACK: THIS IS A HACK TO MAKE THE TEST PASS.
             // TODO: THIS CAN BE REMOVED AFTER RUNTIME PATCHES NET 10+.
