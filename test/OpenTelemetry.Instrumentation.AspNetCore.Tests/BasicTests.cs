@@ -630,6 +630,9 @@ public sealed class BasicTests
     [InlineData("PATCH", "PATCH", null, "PATCH")]
     [InlineData("Get", "GET", "Get", "GET")]
     [InlineData("POST", "POST", null, "POST")]
+#if NET11_0_OR_GREATER
+    [InlineData("QUERY", "QUERY", null, "QUERY", Skip = "TODO Depends on https://github.com/dotnet/aspnetcore/pull/63276")]
+#endif
     [InlineData("TRACE", "TRACE", null, "TRACE")]
     [InlineData("CUSTOM", "_OTHER", "CUSTOM", "HTTP")]
     public async Task HttpRequestMethodAndActivityDisplayIsSetAsPerSpec(string originalMethod, string expectedMethod, string? expectedOriginalMethod, string expectedDisplayName)
