@@ -77,7 +77,7 @@ An example of IMyService implementation is available
 For every `Activity`, the `Enrich()`
 method is guaranteed to be called exactly once when the `Activity` stops.
 Semantically, for the example above it means that a new
-[tag object](https://learn.microsoft.com/dotnet/api/system.diagnostics.activity.tagobjects?view=net-7.0)
+[tag object](https://learn.microsoft.com/dotnet/api/system.diagnostics.activity.tagobjects)
 with the service key and the status value will be added to every `Activity`
 in your application.
 
