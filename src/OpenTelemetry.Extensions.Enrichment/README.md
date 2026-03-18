@@ -95,7 +95,7 @@ internal sealed class MyTraceEnricher : TraceEnricher
 
     public override void EnrichOnActivityStart(in TraceEnrichmentBag bag)
     {
-        bag.Add("trace.start_time", DateTimeOffset.UtcNow.ToString("o"));
+        bag.Add("trace.start_time", DateTimeOffset.UtcNow.ToString());
     }
 }
 ```
