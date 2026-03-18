@@ -469,7 +469,7 @@ internal static class MetricSerializer
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void CheckBounds(byte[] buffer, int index, int size, [CallerArgumentExpression(nameof(index))] string? paramName = default)
-#if NET8_0_OR_GREATER
+#if NET
         => ArgumentOutOfRangeException.ThrowIfGreaterThan(index + size, buffer.Length, paramName);
 #else
     {
