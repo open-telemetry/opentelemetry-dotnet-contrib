@@ -8,8 +8,8 @@ namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests;
 
 internal static class ServiceFabricUtils
 {
-    private static readonly ulong[] Crc64Table = new ulong[256]
-    {
+    private static readonly ulong[] Crc64Table =
+    [
         0uL, 4823603603198064275uL, 9647207206396128550uL, 14344283933443513269uL, 5274672035359026399uL, 847670339082705484uL, 14759040976900489721uL, 10241823793177474922uL, 10549344070718052798uL, 15030250704074698541uL,
         1695340678165410968uL, 6158653484774949387uL, 15804726273676621153uL, 11071337880091427826uL, 6824194888265062471uL, 2036903512645398228uL, 7367177604490692079uL, 2651944067726553980uL, 16419204125234161865uL, 11613757334439845466uL,
         3390681356330821936uL, 7926053118503640995uL, 12317306969549898774uL, 16726154088988619397uL, 17607865585094646865uL, 13162708473643690690uL, 8194994013375312247uL, 3695931686473304036uL, 13648389776530124942uL, 18417527692557321757uL,
@@ -36,23 +36,23 @@ internal static class ServiceFabricUtils
         3195220067441434565uL, 7973432182840617302uL, 8278700923620460418uL, 3464177731752866065uL, 17798816680404380324uL, 13110814815472245815uL, 4310152537884486493uL, 8728078392784608718uL, 13704874997943502459uL, 18213013024491712744uL,
         9707630858549910483uL, 14143712128616820032uL, 241414281116563189uL, 4731397450835853414uL, 14955056402857342732uL, 10194998898151653791uL, 5362321814220069418uL, 619854820462849209uL, 1503817855483314797uL, 6209975379031176446uL,
         10466191297540353867uL, 15262558828106308056uL, 6768281431840648882uL, 2241989909157107745uL, 15567826590698013588uL, 11168054230320002311uL,
-    };
+    ];
 
     internal static int GetInterfaceId(Type type)
     {
-        string text = ((MemberInfo)type).Name;
+        var text = type.Name;
         if (type.Namespace != null)
         {
             text = string.Concat(type.Namespace, text);
         }
 
-        int interfaceId = (int)ToCRC64(Encoding.UTF8.GetBytes(text));
+        var interfaceId = (int)ToCRC64(Encoding.UTF8.GetBytes(text));
         return interfaceId;
     }
 
     internal static int GetMethodId(MethodInfo methodInfo)
     {
-        string text = methodInfo.Name;
+        var text = methodInfo.Name;
         if (methodInfo.DeclaringType != null)
         {
             if (methodInfo.DeclaringType.Namespace != null)
@@ -63,16 +63,16 @@ internal static class ServiceFabricUtils
             text = methodInfo.DeclaringType.Name + text;
         }
 
-        int methodId = (int)ToCRC64(Encoding.UTF8.GetBytes(text));
+        var methodId = (int)ToCRC64(Encoding.UTF8.GetBytes(text));
         return methodId;
     }
 
     private static ulong ToCRC64(byte[] value)
     {
-        ulong num = 18446744073709551615uL;
-        for (int i = 0; i < value.Length; i++)
+        var num = 18446744073709551615uL;
+        for (var i = 0; i < value.Length; i++)
         {
-            uint num2 = (uint)((int)(num >> 56) ^ value[i]) & 0xFFu;
+            var num2 = (uint)((int)(num >> 56) ^ value[i]) & 0xFFu;
             num = Crc64Table[num2] ^ (num << 8);
         }
 

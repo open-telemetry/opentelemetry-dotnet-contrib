@@ -98,7 +98,7 @@ public class RequestContextHelperTests
         // if at least one attribute is already present the whole injection is skipped.
         // We just use default trace propagator as an example which injects only traceparent and tracestate.
 
-        string traceParentValue = $"00-{TraceId}-{ParentId}-00";
+        var traceParentValue = $"00-{TraceId}-{ParentId}-00";
         var expectedParameters = new List<KeyValuePair<string, string>>
         {
             new("traceparent", traceParentValue),
@@ -134,7 +134,7 @@ public class RequestContextHelperTests
         // if at least one attribute is already present the whole injection is skipped.
         // We just use default trace propagator as an example which injects only traceparent and tracestate.
 
-        string traceParentValue = $"00-{TraceId}-{ParentId}-00";
+        var traceParentValue = $"00-{TraceId}-{ParentId}-00";
         var expectedParameters = new List<KeyValuePair<string, string>>
         {
             new("traceparent", traceParentValue),

@@ -38,13 +38,9 @@ public partial class HttpWebRequestTests : IDisposable
                     ctx.Response.StatusCode = 500;
                     ctx.Response.StatusDescription = "Missing trace context";
                 }
-                else if (ctx.Request.Url != null && ctx.Request.Url.PathAndQuery.Contains("500"))
-                {
-                    ctx.Response.StatusCode = 500;
-                }
                 else
                 {
-                    ctx.Response.StatusCode = 200;
+                    ctx.Response.StatusCode = ctx.Request.Url != null && ctx.Request.Url.PathAndQuery.Contains("500") ? 500 : 200;
                 }
 
                 ctx.Response.OutputStream.Close();
@@ -56,9 +52,7 @@ public partial class HttpWebRequestTests : IDisposable
     }
 
     public void Dispose()
-    {
-        this.serverLifeTime?.Dispose();
-    }
+        => this.serverLifeTime?.Dispose();
 
     [Fact]
     public async Task BacksOffIfAlreadyInstrumented()
@@ -212,7 +206,7 @@ public partial class HttpWebRequestTests : IDisposable
 
         var propagator = new CustomTextMapPropagator
         {
-            Injected = (PropagationContext context) => contextFromPropagator = context.ActivityContext,
+            Injected = context => contextFromPropagator = context.ActivityContext,
         };
         propagator.InjectValues.Add("custom_traceParent", context => $"00/{context.ActivityContext.TraceId}/{context.ActivityContext.SpanId}/01");
         propagator.InjectValues.Add("custom_traceState", context => Activity.Current?.TraceStateString ?? string.Empty);
@@ -379,8 +373,8 @@ public partial class HttpWebRequestTests : IDisposable
     [InlineData(ActivityStatusCode.Error)]
     public async Task ResponseEnrichmentCanChangeActivityStatus(ActivityStatusCode activityStatus)
     {
-        bool httpWebResponseEnrichmentApplied = false;
-        bool httpResponseMessageEnrichmentApplied = false;
+        var httpWebResponseEnrichmentApplied = false;
+        var httpResponseMessageEnrichmentApplied = false;
 
         var exportedItems = new List<Activity>();
 

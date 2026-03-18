@@ -178,12 +178,12 @@ internal static class MetricSerializer
     {
         if (!string.IsNullOrEmpty(value))
         {
-#if NETSTANDARD2_1_OR_GREATER
-            Span<byte> bufferSpan = new Span<byte>(buffer);
+#if NETSTANDARD2_1_OR_GREATER || NET
+            var bufferSpan = new Span<byte>(buffer);
             bufferSpan = bufferSpan.Slice(bufferIndex);
-            Span<byte> stringSpan = bufferSpan.Slice(2);
+            var stringSpan = bufferSpan.Slice(2);
             var lengthWritten = (short)Encoding.UTF8.GetBytes(value, stringSpan);
-            MemoryMarshal.Write(bufferSpan, ref lengthWritten);
+            MemoryMarshal.Write(bufferSpan, lengthWritten);
             bufferIndex += sizeof(short) + lengthWritten;
 #else
             // Advanced the buffer to account for the length, we will write it back after encoding.
@@ -211,13 +211,13 @@ internal static class MetricSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void SerializeEncodedString(byte[] buffer, ref int bufferIndex, byte[] encodedValue)
     {
-#if NETSTANDARD2_1_OR_GREATER
-        Span<byte> sourceSpan = new Span<byte>(encodedValue);
-        Span<byte> bufferSpan = new Span<byte>(buffer);
+#if NETSTANDARD2_1_OR_GREATER || NET
+        var sourceSpan = new Span<byte>(encodedValue);
+        var bufferSpan = new Span<byte>(buffer);
         bufferSpan = bufferSpan.Slice(bufferIndex);
         sourceSpan.CopyTo(bufferSpan.Slice(2));
-        short encodedLength = (short)encodedValue.Length;
-        MemoryMarshal.Write(bufferSpan, ref encodedLength);
+        var encodedLength = (short)encodedValue.Length;
+        MemoryMarshal.Write(bufferSpan, encodedLength);
         bufferIndex += sizeof(short) + encodedLength;
 #else
         SerializeInt16(buffer, ref bufferIndex, (short)encodedValue.Length);
@@ -458,9 +458,9 @@ internal static class MetricSerializer
     /// <param name="data">Source data.</param>
     /// <param name="dataLength"> Number of bytes to copy.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void SerializeSpanOfBytes(byte[] buffer, ref int bufferIndex, Span<byte> data, int dataLength)
+    public static void SerializeSpanOfBytes(byte[] buffer, ref int bufferIndex, ReadOnlySpan<byte> data, int dataLength)
     {
-        ReadOnlySpan<byte> source = data.Slice(0, dataLength);
+        var source = data.Slice(0, dataLength);
         var target = new Span<byte>(buffer, bufferIndex, dataLength);
 
         source.CopyTo(target);
@@ -469,7 +469,7 @@ internal static class MetricSerializer
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void CheckBounds(byte[] buffer, int index, int size, [CallerArgumentExpression(nameof(index))] string? paramName = default)
-#if NET8_0_OR_GREATER
+#if NET
         => ArgumentOutOfRangeException.ThrowIfGreaterThan(index + size, buffer.Length, paramName);
 #else
     {

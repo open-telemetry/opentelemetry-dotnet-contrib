@@ -102,7 +102,7 @@ public class LogSerializationTests
                     .AddFilter(typeof(LogSerializationTests).FullName, LogLevel.Trace)); // Enable all LogLevels
 
             List<ArraySegment<byte>> exportedData = [];
-            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = (data) => exportedData.Add(data);
+            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = exportedData.Add;
 
             var logger = loggerFactory.CreateLogger<LogSerializationTests>();
             doLog(logger);
@@ -164,8 +164,6 @@ public class LogSerializationTests
         }
 
         public override string ToString()
-        {
-            return this.stackTrace;
-        }
+            => this.stackTrace;
     }
 }

@@ -17,7 +17,9 @@ internal sealed class RuntimeMetrics
 {
     internal static readonly Assembly Assembly = typeof(RuntimeMetrics).Assembly;
     internal static readonly AssemblyName AssemblyName = Assembly.GetName();
+#pragma warning disable IDE0370 // Suppression is unnecessary
     internal static readonly Meter MeterInstance = new(AssemblyName.Name!, Assembly.GetPackageVersion());
+#pragma warning restore IDE0370 // Suppression is unnecessary
 
 #if NET
     private const long NanosecondsPerTick = 100;
@@ -25,9 +27,6 @@ internal sealed class RuntimeMetrics
     private const int NumberOfGenerations = 3;
 
     private static readonly string[] GenNames = ["gen0", "gen1", "gen2", "loh", "poh"];
-#if NET
-    private static bool isGcInfoAvailable;
-#endif
 
     static RuntimeMetrics()
     {
@@ -185,17 +184,17 @@ internal sealed class RuntimeMetrics
     {
         get
         {
-            if (isGcInfoAvailable)
+            if (field)
             {
                 return true;
             }
 
             if (GC.CollectionCount(0) > 0)
             {
-                isGcInfoAvailable = true;
+                field = true;
             }
 
-            return isGcInfoAvailable;
+            return field;
         }
     }
 #endif

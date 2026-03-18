@@ -97,7 +97,7 @@ internal partial class AWSSemanticConventions
     public class ParameterMappingBuilderImpl
     {
         private readonly AWSSemanticConventions awsSemanticConventions;
-        private Dictionary<string, string> state = new();
+        private Dictionary<string, string> state = [];
 
         public ParameterMappingBuilderImpl(AWSSemanticConventions semanticConventions)
         {
@@ -110,7 +110,7 @@ internal partial class AWSSemanticConventions
         {
             var builtState = this.state;
 
-            this.state = new Dictionary<string, string>();
+            this.state = [];
 
             return builtState;
         }
@@ -489,22 +489,13 @@ internal partial class AWSSemanticConventions
         return dict;
     }
 
-    private AWSSemanticConventionsBase GetSemanticConventionVersion()
+    private AWSSemanticConventions_V1_28_0 GetSemanticConventionVersion() => this.semanticConventionVersion switch
     {
-        switch (this.semanticConventionVersion)
-        {
-            case SemanticConventionVersion.Latest:
-            case SemanticConventionVersion.V1_29_0:
-                return new AWSSemanticConventions_V1_29_0();
-
-            case SemanticConventionVersion.V1_28_0:
-                return new AWSSemanticConventions_V1_28_0();
-
-            default:
-                throw new InvalidEnumArgumentException(
-                    argumentName: nameof(SemanticConventionVersion),
-                    (int)this.semanticConventionVersion,
-                    typeof(SemanticConventionVersion));
-        }
-    }
+        SemanticConventionVersion.Latest or SemanticConventionVersion.V1_29_0 => new AWSSemanticConventions_V1_29_0(),
+        SemanticConventionVersion.V1_28_0 => new AWSSemanticConventions_V1_28_0(),
+        _ => throw new InvalidEnumArgumentException(
+                argumentName: nameof(SemanticConventionVersion),
+                (int)this.semanticConventionVersion,
+                typeof(SemanticConventionVersion)),
+    };
 }
