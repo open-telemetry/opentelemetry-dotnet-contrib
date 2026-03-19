@@ -3,6 +3,7 @@
 
 using System.Net;
 using System.Net.Http.Headers;
+using Amazon.Runtime.EventStreams;
 using Amazon.Runtime.Internal.Transform;
 
 namespace OpenTelemetry.Instrumentation.AWS.Tests.Tools;
@@ -50,6 +51,10 @@ internal class CustomWebResponse : IWebResponseData
             ? headerValue
             : string.Empty;
     }
+
+    public bool IsEventHeaderPresent(string headerName) => throw new NotImplementedException();
+
+    public IEventStreamHeader GetEventStreamHeader(string headerName) => throw new NotImplementedException();
 
     public bool IsHeaderPresent(string headerName)
     {
