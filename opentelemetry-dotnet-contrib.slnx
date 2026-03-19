@@ -206,7 +206,6 @@
     <File Path="src/Shared/SemanticConventions.cs" />
     <File Path="src/Shared/ServerCertificateValidationHandler.cs" />
     <File Path="src/Shared/ServerCertificateValidationProvider.cs" />
-    <File Path="src/Shared/SpanAttributeConstants.cs" />
     <File Path="src/Shared/SpanHelper.cs" />
     <File Path="src/Shared/SqlConnectionDetails.cs" />
     <File Path="src/Shared/SqlParameterProcessor.cs" />
