@@ -26,6 +26,7 @@
     "**/__fixtures__/**"
   ],
   "labels": ["dependencies", "infra"],
+  "mode": "full",
   "packageRules": [
     {
       "matchManagers": ["dockerfile"],
