@@ -22,6 +22,8 @@ internal class TestRequest : IRequest
 
     public IDictionary<string, string> Headers => throw new NotImplementedException();
 
+    public IList<EventStreamHeader> EventHeaders => throw new NotImplementedException();
+
     public bool UseQueryString { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
     public IDictionary<string, string> Parameters => throw new NotImplementedException();
