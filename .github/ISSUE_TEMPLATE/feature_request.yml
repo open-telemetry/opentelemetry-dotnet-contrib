@@ -46,6 +46,7 @@ body:
         - OpenTelemetry.Instrumentation.Owin
         - OpenTelemetry.Instrumentation.Process
         - OpenTelemetry.Instrumentation.Quartz
+        - OpenTelemetry.Instrumentation.Remoting
         - OpenTelemetry.Instrumentation.Runtime
         - OpenTelemetry.Instrumentation.ServiceFabricRemoting
         - OpenTelemetry.Instrumentation.SqlClient

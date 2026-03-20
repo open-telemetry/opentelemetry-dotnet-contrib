@@ -362,11 +362,16 @@ public partial class HttpClientTests : IDisposable
     [InlineData("CONNECT", "CONNECT", null)]
     [InlineData("DELETE", "DELETE", null)]
     [InlineData("GET", "GET", null)]
-    [InlineData("PUT", "PUT", null)]
     [InlineData("HEAD", "HEAD", null)]
     [InlineData("OPTIONS", "OPTIONS", null)]
     [InlineData("PATCH", "PATCH", null)]
     [InlineData("POST", "POST", null)]
+    [InlineData("PUT", "PUT", null)]
+#if NET9_0
+    [InlineData("QUERY", "_OTHER", "QUERY")]
+#else
+    [InlineData("QUERY", "QUERY", null)]
+#endif
     [InlineData("TRACE", "TRACE", null)]
     [InlineData("Delete", "DELETE", "Delete")]
 #if NETFRAMEWORK
@@ -427,10 +432,10 @@ public partial class HttpClientTests : IDisposable
         Assert.Equal(expectedMethod, activity.GetTagValue(SemanticConventions.AttributeHttpRequestMethod));
 
 #if NET9_0_OR_GREATER
-        if (expectedOriginalMethod is not null and not "CUSTOM")
+        if (expectedOriginalMethod is not null and not ("CUSTOM" or "QUERY"))
         {
             // HACK: THIS IS A HACK TO MAKE THE TEST PASS.
-            // TODO: THIS CAN BE REMOVED AFTER RUNTIME PATCHES NET 9+.
+            // TODO: THIS CAN BE REMOVED AFTER RUNTIME PATCHES NET 10+.
             // Currently Runtime is not following the OTel Spec for Http Spans: https://github.com/open-telemetry/semantic-conventions/blob/main/docs/http/http-spans.md#http-client
             // Currently "http.request.method_original" is not being set as expected.
             // Tracking issue: https://github.com/dotnet/runtime/issues/109847

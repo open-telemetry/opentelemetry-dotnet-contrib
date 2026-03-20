@@ -90,14 +90,14 @@
 
   <!-- Non-production packages are kept up-to-date by dependency automation -->
   <ItemGroup Label="Non-production packages, such as for examples and tests">
-    <PackageVersion Include="AWSSDK.Bedrock" Version="4.0.22.1" />
-    <PackageVersion Include="AWSSDK.BedrockAgent" Version="4.0.7.10" />
-    <PackageVersion Include="AWSSDK.BedrockAgentRuntime" Version="4.0.8.10" />
-    <PackageVersion Include="AWSSDK.BedrockRuntime" Version="4.0.16.2" />
-    <PackageVersion Include="AWSSDK.DynamoDBv2" Version="4.0.15.1" />
-    <PackageVersion Include="AWSSDK.S3" Version="4.0.18.8" />
-    <PackageVersion Include="AWSSDK.SimpleNotificationService" Version="4.0.2.18" />
-    <PackageVersion Include="AWSSDK.SQS" Version="4.0.2.16" />
+    <PackageVersion Include="AWSSDK.Bedrock" Version="4.0.23.1" />
+    <PackageVersion Include="AWSSDK.BedrockAgent" Version="4.0.7.12" />
+    <PackageVersion Include="AWSSDK.BedrockAgentRuntime" Version="4.0.8.12" />
+    <PackageVersion Include="AWSSDK.BedrockRuntime" Version="4.0.16.4" />
+    <PackageVersion Include="AWSSDK.DynamoDBv2" Version="4.0.15.3" />
+    <PackageVersion Include="AWSSDK.S3" Version="4.0.19.1" />
+    <PackageVersion Include="AWSSDK.SimpleNotificationService" Version="4.0.2.20" />
+    <PackageVersion Include="AWSSDK.SQS" Version="4.0.2.18" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
     <PackageVersion Include="CommandLineParser" Version="2.9.1" />
     <PackageVersion Include="FsCheck.Xunit" Version="3.3.2" />
@@ -119,7 +119,7 @@
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="8.0.25" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.25" />
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.25" />
-    <PackageVersion Include="Microsoft.Data.SqlClient" Version="6.1.4" />
+    <PackageVersion Include="Microsoft.Data.SqlClient" Version="7.0.0" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.25" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.25" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="8.0.1" />
@@ -139,9 +139,9 @@
     <!-- These WCF dependencies are pinned until we drop support for net8.0 and net9.0 -->
     <PackageVersion Include="System.ServiceModel.Http" Version="[8.1.2,)" />
     <PackageVersion Include="System.ServiceModel.NetTcp" Version="[8.1.2,)" />
-    <PackageVersion Include="Testcontainers.MsSql" Version="4.10.0" />
-    <PackageVersion Include="Testcontainers.MySql" Version="4.10.0" />
-    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.10.0" />
+    <PackageVersion Include="Testcontainers.MsSql" Version="4.11.0" />
+    <PackageVersion Include="Testcontainers.MySql" Version="4.11.0" />
+    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.11.0" />
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="[2.8.2,)" />
     <PackageVersion Include="Xunit.SkippableFact" Version="1.5.61" />

@@ -6,10 +6,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Metrics;
 using System.Reflection;
 using Microsoft.AspNetCore.Http;
-#if NET
-using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Routing;
-#endif
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
@@ -96,11 +92,10 @@ internal sealed class HttpInMetricsListener : ListenerHandler
 
 #if NET
         // Check the exception handler feature first in case the endpoint was overwritten
-        var route = (context.Features.Get<IExceptionHandlerPathFeature>()?.Endpoint as RouteEndpoint ??
-                     context.GetEndpoint() as RouteEndpoint)?.RoutePattern.RawText;
-        if (!string.IsNullOrEmpty(route))
+        var routePattern = context.GetHttpRoute();
+        if (!string.IsNullOrEmpty(routePattern))
         {
-            tags.Add(new KeyValuePair<string, object?>(SemanticConventions.AttributeHttpRoute, route));
+            tags.Add(new KeyValuePair<string, object?>(SemanticConventions.AttributeHttpRoute, routePattern));
         }
 #endif
         if (context.Items.TryGetValue(ErrorTypeHttpContextItemsKey, out var errorType))

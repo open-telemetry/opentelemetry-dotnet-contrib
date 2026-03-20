@@ -122,11 +122,6 @@ internal sealed partial class AWSECSDetector : IResourceDetector
             return;
         }
 
-        if (!clusterArn.StartsWith("arn:", StringComparison.Ordinal))
-        {
-            var baseArn = containerArn.Substring(containerArn.LastIndexOf(':'));
-        }
-
         resourceAttributes
             .AddAttributeCloudResourceId(containerArn)
             .AddAttributeEcsContainerArn(containerArn)
