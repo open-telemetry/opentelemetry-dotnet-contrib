@@ -6,15 +6,15 @@
 
 | http.route | App | Test Name |
 | - | - | - |
-| :broken_heart: | ConventionalRouting | [Root path](#activity__conventionalrouting-root-path) |
-| :broken_heart: | ConventionalRouting | [Non-default action with route parameter and query string](#activity__conventionalrouting-non-default-action-with-route-parameter-and-query-string) |
-| :broken_heart: | ConventionalRouting | [Non-default action with query string](#activity__conventionalrouting-non-default-action-with-query-string) |
+| :green_heart: | ConventionalRouting | [Root path](#activity__conventionalrouting-root-path) |
+| :green_heart: | ConventionalRouting | [Non-default action with route parameter and query string](#activity__conventionalrouting-non-default-action-with-route-parameter-and-query-string) |
+| :green_heart: | ConventionalRouting | [Non-default action with query string](#activity__conventionalrouting-non-default-action-with-query-string) |
 | :green_heart: | ConventionalRouting | [Not Found (404)](#activity__conventionalrouting-not-found-404) |
 | :green_heart: | ConventionalRouting | [Route template with parameter constraint](#activity__conventionalrouting-route-template-with-parameter-constraint) |
 | :green_heart: | ConventionalRouting | [Path that does not match parameter constraint](#activity__conventionalrouting-path-that-does-not-match-parameter-constraint) |
 | :broken_heart: | ConventionalRouting | [Area using `area:exists`, default controller/action](#activity__conventionalrouting-area-using-areaexists-default-controlleraction) |
 | :broken_heart: | ConventionalRouting | [Area using `area:exists`, non-default action](#activity__conventionalrouting-area-using-areaexists-non-default-action) |
-| :broken_heart: | ConventionalRouting | [Area w/o `area:exists`, default controller/action](#activity__conventionalrouting-area-wo-areaexists-default-controlleraction) |
+| :green_heart: | ConventionalRouting | [Area w/o `area:exists`, default controller/action](#activity__conventionalrouting-area-wo-areaexists-default-controlleraction) |
 | :green_heart: | AttributeRouting | [Default action](#activity__attributerouting-default-action) |
 | :green_heart: | AttributeRouting | [Action without parameter](#activity__attributerouting-action-without-parameter) |
 | :green_heart: | AttributeRouting | [Action with parameter](#activity__attributerouting-action-with-parameter) |
@@ -34,15 +34,15 @@
 
 | http.route | App | Test Name |
 | - | - | - |
-| :broken_heart: | ConventionalRouting | [Root path](#metrics__conventionalrouting-root-path) |
-| :broken_heart: | ConventionalRouting | [Non-default action with route parameter and query string](#metrics__conventionalrouting-non-default-action-with-route-parameter-and-query-string) |
-| :broken_heart: | ConventionalRouting | [Non-default action with query string](#metrics__conventionalrouting-non-default-action-with-query-string) |
+| :green_heart: | ConventionalRouting | [Root path](#metrics__conventionalrouting-root-path) |
+| :green_heart: | ConventionalRouting | [Non-default action with route parameter and query string](#metrics__conventionalrouting-non-default-action-with-route-parameter-and-query-string) |
+| :green_heart: | ConventionalRouting | [Non-default action with query string](#metrics__conventionalrouting-non-default-action-with-query-string) |
 | :green_heart: | ConventionalRouting | [Not Found (404)](#metrics__conventionalrouting-not-found-404) |
 | :green_heart: | ConventionalRouting | [Route template with parameter constraint](#metrics__conventionalrouting-route-template-with-parameter-constraint) |
 | :green_heart: | ConventionalRouting | [Path that does not match parameter constraint](#metrics__conventionalrouting-path-that-does-not-match-parameter-constraint) |
 | :broken_heart: | ConventionalRouting | [Area using `area:exists`, default controller/action](#metrics__conventionalrouting-area-using-areaexists-default-controlleraction) |
 | :broken_heart: | ConventionalRouting | [Area using `area:exists`, non-default action](#metrics__conventionalrouting-area-using-areaexists-non-default-action) |
-| :broken_heart: | ConventionalRouting | [Area w/o `area:exists`, default controller/action](#metrics__conventionalrouting-area-wo-areaexists-default-controlleraction) |
+| :green_heart: | ConventionalRouting | [Area w/o `area:exists`, default controller/action](#metrics__conventionalrouting-area-wo-areaexists-default-controlleraction) |
 | :green_heart: | AttributeRouting | [Default action](#metrics__attributerouting-default-action) |
 | :green_heart: | AttributeRouting | [Action without parameter](#metrics__attributerouting-action-without-parameter) |
 | :green_heart: | AttributeRouting | [Action with parameter](#metrics__attributerouting-action-with-parameter) |
@@ -65,8 +65,8 @@
 
 ```json
 {
-  "ActivityDisplayName": "GET {controller=ConventionalRoute}/{action=Default}/{id?}",
-  "ActivityHttpRoute": "{controller=ConventionalRoute}/{action=Default}/{id?}",
+  "ActivityDisplayName": "GET ConventionalRoute/Default/{id?}",
+  "ActivityHttpRoute": "ConventionalRoute/Default/{id?}",
   "IdealHttpRoute": "ConventionalRoute/Default/{id?}",
   "RouteInfo": {
     "HttpMethod": "GET",
@@ -94,8 +94,8 @@
 
 ```json
 {
-  "ActivityDisplayName": "GET {controller=ConventionalRoute}/{action=Default}/{id?}",
-  "ActivityHttpRoute": "{controller=ConventionalRoute}/{action=Default}/{id?}",
+  "ActivityDisplayName": "GET ConventionalRoute/ActionWithStringParameter/{id?}",
+  "ActivityHttpRoute": "ConventionalRoute/ActionWithStringParameter/{id?}",
   "IdealHttpRoute": "ConventionalRoute/ActionWithStringParameter/{id?}",
   "RouteInfo": {
     "HttpMethod": "GET",
@@ -127,8 +127,8 @@
 
 ```json
 {
-  "ActivityDisplayName": "GET {controller=ConventionalRoute}/{action=Default}/{id?}",
-  "ActivityHttpRoute": "{controller=ConventionalRoute}/{action=Default}/{id?}",
+  "ActivityDisplayName": "GET ConventionalRoute/ActionWithStringParameter/{id?}",
+  "ActivityHttpRoute": "ConventionalRoute/ActionWithStringParameter/{id?}",
   "IdealHttpRoute": "ConventionalRoute/ActionWithStringParameter/{id?}",
   "RouteInfo": {
     "HttpMethod": "GET",
@@ -229,8 +229,8 @@
 
 ```json
 {
-  "ActivityDisplayName": "GET {area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
-  "ActivityHttpRoute": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
+  "ActivityDisplayName": "GET MyArea/ControllerForMyArea/Default/{id?}",
+  "ActivityHttpRoute": "MyArea/ControllerForMyArea/Default/{id?}",
   "IdealHttpRoute": "{area:exists}/ControllerForMyArea/Default/{id?}",
   "RouteInfo": {
     "HttpMethod": "GET",
@@ -259,8 +259,8 @@
 
 ```json
 {
-  "ActivityDisplayName": "GET {area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
-  "ActivityHttpRoute": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
+  "ActivityDisplayName": "GET MyArea/ControllerForMyArea/NonDefault/{id?}",
+  "ActivityHttpRoute": "MyArea/ControllerForMyArea/NonDefault/{id?}",
   "IdealHttpRoute": "{area:exists}/ControllerForMyArea/NonDefault/{id?}",
   "RouteInfo": {
     "HttpMethod": "GET",
@@ -289,8 +289,8 @@
 
 ```json
 {
-  "ActivityDisplayName": "GET SomePrefix/{controller=AnotherArea}/{action=Index}/{id?}",
-  "ActivityHttpRoute": "SomePrefix/{controller=AnotherArea}/{action=Index}/{id?}",
+  "ActivityDisplayName": "GET SomePrefix/AnotherArea/Index/{id?}",
+  "ActivityHttpRoute": "SomePrefix/AnotherArea/Index/{id?}",
   "IdealHttpRoute": "SomePrefix/AnotherArea/Index/{id?}",
   "RouteInfo": {
     "HttpMethod": "GET",
