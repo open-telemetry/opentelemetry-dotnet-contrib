@@ -16,9 +16,7 @@
     "httpMethod": "GET",
     "path": "/",
     "expectedStatusCode": 200,
-    "currentHttpRoute": "{controller=ConventionalRoute}/{action=Default}/{id?}",
-    "expectedHttpRoute": "ConventionalRoute/Default/{id?}",
-    "expectedMetricRoute": "ConventionalRoute/Default/{id?}"
+    "expectedHttpRoute": "ConventionalRoute/Default/{id?}"
   },
   {
     "name": "Non-default action with route parameter and query string",
@@ -37,9 +35,7 @@
     "httpMethod": "GET",
     "path": "/ConventionalRoute/ActionWithStringParameter/2?num=3",
     "expectedStatusCode": 200,
-    "currentHttpRoute": "{controller=ConventionalRoute}/{action=Default}/{id?}",
-    "expectedHttpRoute": "ConventionalRoute/ActionWithStringParameter/{id?}",
-    "expectedMetricRoute": "ConventionalRoute/ActionWithStringParameter/{id?}"
+    "expectedHttpRoute": "ConventionalRoute/ActionWithStringParameter/{id?}"
   },
   {
     "name": "Non-default action with query string",
@@ -58,9 +54,7 @@
     "httpMethod": "GET",
     "path": "/ConventionalRoute/ActionWithStringParameter?num=3",
     "expectedStatusCode": 200,
-    "currentHttpRoute": "{controller=ConventionalRoute}/{action=Default}/{id?}",
-    "expectedHttpRoute": "ConventionalRoute/ActionWithStringParameter/{id?}",
-    "expectedMetricRoute": "ConventionalRoute/ActionWithStringParameter/{id?}"
+    "expectedHttpRoute": "ConventionalRoute/ActionWithStringParameter/{id?}"
   },
   {
     "name": "Not Found (404)",
@@ -106,9 +100,8 @@
     "httpMethod": "GET",
     "path": "/MyArea",
     "expectedStatusCode": 200,
-    "currentHttpRoute": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
-    "expectedHttpRoute": "{area:exists}/ControllerForMyArea/Default/{id?}",
-    "expectedMetricRoute": "MyArea/ControllerForMyArea/Default/{id?}"
+    "currentHttpRoute": "MyArea/ControllerForMyArea/Default/{id?}",
+    "expectedHttpRoute": "{area:exists}/ControllerForMyArea/Default/{id?}"
   },
   {
     "name": "Area using `area:exists`, non-default action",
@@ -127,9 +120,8 @@
     "httpMethod": "GET",
     "path": "/MyArea/ControllerForMyArea/NonDefault",
     "expectedStatusCode": 200,
-    "currentHttpRoute": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
-    "expectedHttpRoute": "{area:exists}/ControllerForMyArea/NonDefault/{id?}",
-    "expectedMetricRoute": "MyArea/ControllerForMyArea/NonDefault/{id?}"
+    "currentHttpRoute": "MyArea/ControllerForMyArea/NonDefault/{id?}",
+    "expectedHttpRoute": "{area:exists}/ControllerForMyArea/NonDefault/{id?}"
   },
   {
     "name": "Area w/o `area:exists`, default controller/action",
@@ -148,9 +140,7 @@
     "httpMethod": "GET",
     "path": "/SomePrefix",
     "expectedStatusCode": 200,
-    "currentHttpRoute": "SomePrefix/{controller=AnotherArea}/{action=Index}/{id?}",
-    "expectedHttpRoute": "SomePrefix/AnotherArea/Index/{id?}",
-    "expectedMetricRoute": "SomePrefix/AnotherArea/Index/{id?}"
+    "expectedHttpRoute": "SomePrefix/AnotherArea/Index/{id?}"
   },
   {
     "name": "Default action",
@@ -204,9 +194,8 @@
     "httpMethod": "GET",
     "path": "/",
     "expectedStatusCode": 200,
-    "currentHttpRoute": "",
-    "expectedHttpRoute": "/Index",
-    "expectedMetricRoute": "/"
+    "currentHttpRoute": "/",
+    "expectedHttpRoute": "/Index"
   },
   {
     "name": "Root path",
@@ -216,8 +205,7 @@
     "path": "/",
     "expectedStatusCode": 200,
     "currentHttpRoute": "/",
-    "expectedHttpRoute": "/Index",
-    "expectedMetricRoute": "/"
+    "expectedHttpRoute": "/Index"
   },
   {
     "name": "Index page",
