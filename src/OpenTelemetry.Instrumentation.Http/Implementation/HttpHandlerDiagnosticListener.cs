@@ -54,23 +54,17 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
         switch (name)
         {
             case OnStartEvent:
-                {
-                    this.OnStartActivity(activity, payload);
-                }
-
+                this.OnStartActivity(activity, payload);
                 break;
+
             case OnStopEvent:
-                {
-                    this.OnStopActivity(activity, payload);
-                }
-
+                this.OnStopActivity(activity, payload);
                 break;
+
             case OnUnhandledExceptionEvent:
-                {
-                    this.OnException(activity, payload);
-                }
-
+                this.OnException(activity, payload);
                 break;
+
             default:
                 break;
         }
@@ -101,17 +95,16 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
             textMapPropagator.Inject(new PropagationContext(activity.Context, Baggage.Current), request, HttpRequestMessageContextPropagation.HeaderValueSetter);
         }
 
-        // For .NET7.0 or higher versions, activity is created using activity source.
-        // However the framework will fallback to creating activity if the sampler's decision is to drop and there is a active diagnostic listener.
-        // To prevent processing such activities we first check the source name to confirm if it was created using
-        // activity source or not.
+        // For .NET 7.0 or higher versions, activity is created using an activity source.
+        // However the framework will fallback to creating an activity if the sampler's decision
+        // is to drop and there is an active diagnostic listener. To prevent processing such activities
+        // we first check the source name to confirm if it was created using activity source or not.
         if (IsNet7OrGreater && string.IsNullOrEmpty(activity.Source.Name))
         {
             activity.IsAllDataRequested = false;
         }
 
-        // enrich Activity from payload only if sampling decision
-        // is favorable.
+        // Enrich Activity from the payload only if the sampling decision is favorable.
         if (activity.IsAllDataRequested)
         {
             try
@@ -119,19 +112,24 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
                 if (!this.options.EventFilterHttpRequestMessage(activity.OperationName, request))
                 {
                     HttpInstrumentationEventSource.Log.RequestIsFilteredOut(activity.OperationName);
-                    activity.IsAllDataRequested = false;
-                    activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
+                    DisableTracing(activity);
                     return;
                 }
             }
             catch (Exception ex)
             {
                 HttpInstrumentationEventSource.Log.RequestFilterException(ex);
-                activity.IsAllDataRequested = false;
-                activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
+                DisableTracing(activity);
                 return;
             }
 
+            static void DisableTracing(Activity activity)
+            {
+                activity.IsAllDataRequested = false;
+                activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
+            }
+
+            // .NET doesn't support OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS, so we still set the activity's display name
             HttpTagHelper.RequestDataHelper.SetActivityDisplayName(activity, request.Method.Method);
 
             if (!IsNet7OrGreater)
@@ -142,7 +140,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
 
             if (!IsNet9OrGreater)
             {
-                // see the spec https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/http/http-spans.md
+                // See the spec: https://github.com/open-telemetry/semantic-conventions/blob/v1.40.0/docs/http/http-spans.md
                 HttpTagHelper.RequestDataHelper.SetHttpMethodTag(activity, request.Method.Method);
 
                 if (request.RequestUri != null)
