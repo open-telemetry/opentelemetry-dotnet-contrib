@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* The value of the `http.route` attribute is now aligned with ASP.NET Core itself.
+  ([#3992](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3992))
 * Avoid duplicative work to add tags to traces when they are already natively supported
   by ASP.NET Core itself. When using ASP.NET Core 10, performance can be
   improved by setting the `Microsoft.AspNetCore.Hosting.SuppressActivityOpenTelemetryData`
