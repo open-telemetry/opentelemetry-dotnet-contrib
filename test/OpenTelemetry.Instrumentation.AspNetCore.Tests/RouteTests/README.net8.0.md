@@ -473,8 +473,8 @@
 
 ```json
 {
-  "ActivityDisplayName": "GET",
-  "ActivityHttpRoute": "",
+  "ActivityDisplayName": "GET /",
+  "ActivityHttpRoute": "/",
   "IdealHttpRoute": "/Index",
   "RouteInfo": {
     "HttpMethod": "GET",
