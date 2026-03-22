@@ -25,11 +25,10 @@ public class RemotingInstrumentationOptions
     /// <summary>
     /// Gets or sets a <see cref="TextMapPropagator"/> for context propagation. Default value: <see cref="CompositeTextMapPropagator"/> with <see cref="TraceContextPropagator"/> and <see cref="BaggagePropagator"/>.
     /// </summary>
-    public TextMapPropagator Propagator { get; set; } = new CompositeTextMapPropagator(new TextMapPropagator[]
-    {
+    public TextMapPropagator Propagator { get; set; } = new CompositeTextMapPropagator([
         new TraceContextPropagator(),
-        new BaggagePropagator(),
-    });
+        new BaggagePropagator()
+    ]);
 
     /// <summary>
     /// Gets or sets a filter function that determines whether or not to collect telemetry about a Remoting message.
