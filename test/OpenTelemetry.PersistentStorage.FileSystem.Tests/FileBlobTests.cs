@@ -152,17 +152,19 @@ public class FileBlobTests
 
         Assert.True(blob.TryWrite(data));
 
-        var initialLeasePeriodMilliseconds = 10000;
+        var initialLeasePeriodMilliseconds = 10_000;
         Assert.True(blob.TryLease(initialLeasePeriodMilliseconds));
 
         var leaseTime = PersistentStorageHelper.GetDateTimeFromLeaseName(blob.FullPath);
 
-        var extendedLeasePeriodMilliseconds = 20000;
+        var extendedLeasePeriodMilliseconds = 20_000;
         Assert.True(blob.TryLease(extendedLeasePeriodMilliseconds));
 
         var newLeaseTime = PersistentStorageHelper.GetDateTimeFromLeaseName(blob.FullPath);
 
-        Assert.True(newLeaseTime > leaseTime);
+        Assert.True(
+            newLeaseTime > leaseTime,
+            $"Expected new lease time > old lease time. Old: {leaseTime:o}, New: {newLeaseTime:o}");
 
         Assert.True(blob.TryDelete());
     }
