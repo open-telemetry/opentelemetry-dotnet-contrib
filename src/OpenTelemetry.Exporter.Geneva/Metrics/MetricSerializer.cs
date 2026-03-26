@@ -335,7 +335,7 @@ internal static class MetricSerializer
     {
         CheckBounds(buffer, bufferIndex, sizeof(double));
 
-        BinaryPrimitives.WriteInt64LittleEndian(buffer.AsSpan(bufferIndex, 8), BitConverter.DoubleToInt64Bits(value));
+        BinaryPrimitives.WriteInt64LittleEndian(buffer.AsSpan(bufferIndex, sizeof(double)), BitConverter.DoubleToInt64Bits(value));
 
         bufferIndex += sizeof(double);
     }
