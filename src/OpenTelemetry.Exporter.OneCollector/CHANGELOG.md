@@ -3,7 +3,7 @@
 ## Unreleased
 
 * Fix serialization of whole `float`/`double` values.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#4017](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4017))
 
 ## 1.15.0
 
