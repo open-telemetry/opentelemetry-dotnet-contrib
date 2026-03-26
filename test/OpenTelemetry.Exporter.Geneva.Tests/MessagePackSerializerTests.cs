@@ -385,6 +385,12 @@ public class MessagePackSerializerTests
         var deserializedByteArray = MessagePack.MessagePackSerializer.Deserialize<byte[]>(buffer.AsMemory(0, length));
         Assert.Equal(byteArray, deserializedByteArray);
 
+        // short[]
+        var shortArray = new short[] { short.MinValue, 0, short.MaxValue };
+        length = MessagePackSerializer.Serialize(buffer, 0, shortArray);
+        var deserializedShortArray = MessagePack.MessagePackSerializer.Deserialize<short[]>(buffer.AsMemory(0, length));
+        Assert.Equal(shortArray, deserializedShortArray);
+
         // Verify int[] was serialized as a fixarray of 3 elements (0x93 = 0x90 | 3),
         // not as a string like "System.Int32[]"
         MessagePackSerializer.Serialize(buffer, 0, intArray);
