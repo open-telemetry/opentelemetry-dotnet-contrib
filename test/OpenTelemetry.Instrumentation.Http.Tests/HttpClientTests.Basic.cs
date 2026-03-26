@@ -889,6 +889,54 @@ public partial class HttpClientTests : IDisposable
         Assert.Equal(activityStatus, item.Status);
     }
 
+    [Fact]
+    public async Task EnrichCallbackNotCalledMultipleTimesWhenInstrumentationAddedTwice()
+    {
+        // When AddHttpClientInstrumentation is called multiple times (e.g., by a distro package
+        // and the user), enrich callbacks should only fire once per request, not once per registration.
+        var callCountDefault = 0;
+
+#if NET
+        var callCountNamed = 0;
+#endif
+
+        var exportedItems = new List<Activity>();
+
+        using (Sdk.CreateTracerProviderBuilder()
+            .AddHttpClientInstrumentation()
+            .AddHttpClientInstrumentation(options =>
+            {
+#if NETFRAMEWORK
+                options.EnrichWithHttpWebRequest = (_, _) => callCountDefault++;
+#else
+                options.EnrichWithHttpRequestMessage = (_, _) => callCountDefault++;
+#endif
+            })
+#if NET
+            .AddHttpClientInstrumentation("named", options =>
+            {
+                options.EnrichWithHttpRequestMessage = (_, _) => callCountNamed++;
+            })
+            .AddHttpClientInstrumentation("named", options =>
+            {
+                options.EnrichWithHttpRequestMessage = (_, _) => callCountNamed++;
+            })
+#endif
+            .AddInMemoryExporter(exportedItems)
+            .Build())
+        {
+            using var client = new HttpClient();
+            await client.GetAsync(new Uri(this.url));
+        }
+
+        Assert.Equal(1, callCountDefault);
+        Assert.NotEmpty(exportedItems);
+
+#if NET
+        Assert.Equal(1, callCountNamed);
+#endif
+    }
+
     public void Dispose()
     {
         this.serverLifeTime?.Dispose();

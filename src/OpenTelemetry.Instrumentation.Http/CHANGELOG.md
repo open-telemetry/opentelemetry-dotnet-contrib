@@ -5,6 +5,9 @@
 * Recognize the HTTP QUERY method for `http.request.method` (except for .NET 9.0).
   ([#3969](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3969))
 
+* Fix enrich methods being called multiple times.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 1.15.0
 
 Released 2026-Jan-21
