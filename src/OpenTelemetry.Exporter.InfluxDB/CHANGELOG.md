@@ -3,7 +3,7 @@
 ## Unreleased
 
 * Custom metrics tags are now exported.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#4014](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4014))
 
 ## 1.0.0-alpha.7
 
