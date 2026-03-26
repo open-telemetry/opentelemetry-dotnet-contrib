@@ -3,7 +3,7 @@
 ## Unreleased
 
 * Fix serialization of arrays of primitive types.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#4012](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4012))
 
 ## 1.15.1
 
