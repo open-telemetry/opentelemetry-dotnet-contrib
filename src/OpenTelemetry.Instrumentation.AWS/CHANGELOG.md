@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Fix incorrect type for the `` attribute.
+  ([#2822](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2822))
+
 ## 1.15.0
 
 Released 2026-Jan-21
