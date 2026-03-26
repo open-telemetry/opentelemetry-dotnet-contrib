@@ -6,7 +6,7 @@
   ([#3992](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3992))
 
 * Fix enrich methods being called multiple times.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#4015](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4015))
 
 ## 1.15.1
 
