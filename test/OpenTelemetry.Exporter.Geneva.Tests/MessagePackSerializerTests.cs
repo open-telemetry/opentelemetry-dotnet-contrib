@@ -133,9 +133,7 @@ public class MessagePackSerializerTests
 
     [Fact]
     public void MessagePackSerializer_Null()
-    {
-        this.MessagePackSerializer_TestSerialization<object>(null);
-    }
+        => this.MessagePackSerializer_TestSerialization<object>(null);
 
     [Fact]
     public void MessagePackSerializer_Boolean()
@@ -338,6 +336,59 @@ public class MessagePackSerializerTests
         this.MessagePackSerializer_TestUnicodeStringSerialization("\u0418TestString");
         this.MessagePackSerializer_TestUnicodeStringSerialization("TestString\u0418");
         this.MessagePackSerializer_TestUnicodeStringSerialization("Test\u0418String");
+    }
+
+    [Fact]
+    public void MessagePackSerializer_PrimitiveArrays()
+    {
+        var buffer = new byte[64 * 1024];
+
+        // int[]
+        var intArray = new int[] { 1, 2, 3 };
+        var length = MessagePackSerializer.Serialize(buffer, 0, intArray);
+        var deserializedIntArray = MessagePack.MessagePackSerializer.Deserialize<int[]>(buffer.AsMemory(0, length));
+        Assert.Equal(intArray, deserializedIntArray);
+
+        // long[]
+        var longArray = new long[] { long.MinValue, 0, long.MaxValue };
+        length = MessagePackSerializer.Serialize(buffer, 0, longArray);
+        var deserializedLongArray = MessagePack.MessagePackSerializer.Deserialize<long[]>(buffer.AsMemory(0, length));
+        Assert.Equal(longArray, deserializedLongArray);
+
+        // double[]
+        var doubleArray = new double[] { 1.0, 2.5, -3.14 };
+        length = MessagePackSerializer.Serialize(buffer, 0, doubleArray);
+        var deserializedDoubleArray = MessagePack.MessagePackSerializer.Deserialize<double[]>(buffer.AsMemory(0, length));
+        Assert.Equal(doubleArray, deserializedDoubleArray);
+
+        // float[]
+        var floatArray = new float[] { 1.0f, 2.5f };
+        length = MessagePackSerializer.Serialize(buffer, 0, floatArray);
+        var deserializedFloatArray = MessagePack.MessagePackSerializer.Deserialize<float[]>(buffer.AsMemory(0, length));
+        Assert.Equal(floatArray, deserializedFloatArray);
+
+        // bool[]
+        var boolArray = new bool[] { true, false, true };
+        length = MessagePackSerializer.Serialize(buffer, 0, boolArray);
+        var deserializedBoolArray = MessagePack.MessagePackSerializer.Deserialize<bool[]>(buffer.AsMemory(0, length));
+        Assert.Equal(boolArray, deserializedBoolArray);
+
+        // string[]
+        var stringArray = new string[] { "a", "b", "c" };
+        length = MessagePackSerializer.Serialize(buffer, 0, stringArray);
+        var deserializedStringArray = MessagePack.MessagePackSerializer.Deserialize<string[]>(buffer.AsMemory(0, length));
+        Assert.Equal(stringArray, deserializedStringArray);
+
+        // byte[]
+        var byteArray = new byte[] { 1, 2, 255 };
+        length = MessagePackSerializer.Serialize(buffer, 0, byteArray);
+        var deserializedByteArray = MessagePack.MessagePackSerializer.Deserialize<byte[]>(buffer.AsMemory(0, length));
+        Assert.Equal(byteArray, deserializedByteArray);
+
+        // Verify int[] was serialized as a fixarray of 3 elements (0x93 = 0x90 | 3),
+        // not as a string like "System.Int32[]"
+        MessagePackSerializer.Serialize(buffer, 0, intArray);
+        Assert.Equal(0x93, buffer[0]);
     }
 
     [Fact]
