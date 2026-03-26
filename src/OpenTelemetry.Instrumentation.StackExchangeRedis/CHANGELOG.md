@@ -4,7 +4,7 @@
 
 * Commands that fail due to a connection timeout or connection failure
   now correctly set the trace `Activity` status to `Error`.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#4019](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4019))
 
 ## 1.15.0-beta.1
 
