@@ -26,7 +26,22 @@ internal static class PointDataExtensions
 
         foreach (var tag in tags)
         {
-            pointData = pointData.Tag(tag.Key, tag.Value.ToString());
+            pointData = pointData.Tag(tag.Key, tag.Value?.ToString());
+        }
+
+        return pointData;
+    }
+
+    public static PointData MeterTags(this PointData pointData, IEnumerable<KeyValuePair<string, object?>>? meterTags)
+    {
+        if (meterTags == null)
+        {
+            return pointData;
+        }
+
+        foreach (var tag in meterTags)
+        {
+            pointData = pointData.Tag(tag.Key, tag.Value?.ToString());
         }
 
         return pointData;

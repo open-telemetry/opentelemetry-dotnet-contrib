@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Custom metrics tags are now exported.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 1.0.0-alpha.7
 
 Released 2026-Jan-21
