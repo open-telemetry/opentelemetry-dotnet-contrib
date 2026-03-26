@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -330,14 +331,11 @@ internal static class MetricSerializer
     /// <param name="bufferIndex">Index of the buffer.</param>
     /// <param name="value">The value.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe void SerializeFloat64(byte[] buffer, ref int bufferIndex, double value)
+    public static void SerializeFloat64(byte[] buffer, ref int bufferIndex, double value)
     {
         CheckBounds(buffer, bufferIndex, sizeof(double));
 
-        fixed (byte* bp = buffer)
-        {
-            *(double*)(bp + bufferIndex) = value;
-        }
+        BinaryPrimitives.WriteInt64LittleEndian(buffer.AsSpan(bufferIndex, 8), BitConverter.DoubleToInt64Bits(value));
 
         bufferIndex += sizeof(double);
     }
