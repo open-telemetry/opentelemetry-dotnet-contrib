@@ -5,6 +5,9 @@
 * The value of the `http.route` attribute is now aligned with ASP.NET Core itself.
   ([#3992](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3992))
 
+* Fix enrich methods being called multiple times.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 1.15.1
 
 Released 2026-Mar-11

@@ -1312,6 +1312,45 @@ public sealed class BasicTests
 
 #endif
 
+    [Fact]
+    public async Task EnrichCallbackNotCalledMultipleTimesWhenInstrumentationAddedTwice()
+    {
+        // When AddAspNetCoreInstrumentation is called multiple times (e.g., by a distro package
+        // and the user), enrich callbacks should only fire once per request, not once per registration.
+        var callCountDefault = 0;
+        var callCountNamed = 0;
+
+        var exportedItems = new List<Activity>();
+
+        void ConfigureTestServices(IServiceCollection services)
+        {
+            this.tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .AddAspNetCoreInstrumentation()
+                .AddAspNetCoreInstrumentation(options => options.EnrichWithHttpRequest = (activity, request) => callCountDefault++)
+                .AddAspNetCoreInstrumentation("named", options => options.EnrichWithHttpRequest = (activity, request) => callCountNamed++)
+                .AddAspNetCoreInstrumentation("named", options => options.EnrichWithHttpRequest = (activity, request) => callCountNamed++)
+                .AddInMemoryExporter(exportedItems)
+                .Build();
+        }
+
+        using (var client = this.factory
+            .WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureTestServices(ConfigureTestServices);
+                builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
+            })
+            .CreateClient())
+        {
+            using var response = await client.GetAsync(new Uri("/api/values", UriKind.Relative));
+            response.EnsureSuccessStatusCode();
+            WaitForActivityExport(exportedItems, 1);
+        }
+
+        Assert.Equal(1, callCountDefault);
+        Assert.Equal(1, callCountDefault);
+        Assert.Single(exportedItems);
+    }
+
     public void Dispose()
         => this.tracerProvider?.Dispose();
 
