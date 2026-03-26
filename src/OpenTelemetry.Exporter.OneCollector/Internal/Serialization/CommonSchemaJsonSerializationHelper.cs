@@ -92,7 +92,7 @@ internal static class CommonSchemaJsonSerializationHelper
                 return;
 
             case double v:
-                if (!double.IsNaN(v) && !double.IsInfinity(v) && v % 1.0 == 0.0 && v > -1e15 && v < 1e15)
+                if (!double.IsNaN(v) && !double.IsInfinity(v) && v % 1.0 == 0.0 && v > -1e17 && v < 1e17)
                 {
                     // Append ".0" for whole numbers so the backend treats the column as double
                     // rather than integer. G17 is used for full double precision without scientific notation.
