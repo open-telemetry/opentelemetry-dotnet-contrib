@@ -309,7 +309,7 @@ internal partial class AWSSemanticConventions
         /// (string array) rather than a plain <c>string</c>, as required by the
         /// OpenTelemetry Semantic Conventions specification.
         /// </summary>
-        public virtual IReadOnlyCollection<string> ArrayValueAttributeNames => Array.Empty<string>();
+        public virtual IReadOnlyCollection<string> ArrayValueAttributeNames { get; } = [];
 
         /// <summary>
         /// Not yet incorporated in Semantic Conventions repository.
