@@ -6,7 +6,7 @@
   ([#3992](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3992))
 
 * Fix `http.route` for the root path for Razor Pages.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#4016](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4016))
 
 ## 1.15.1
 
