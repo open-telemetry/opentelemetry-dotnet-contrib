@@ -31,7 +31,7 @@ internal sealed partial class SqlConnectionDetails
 
         var match = DataSourceRegex().Match(dataSource);
 
-        var serverHostName = match.Groups[2].Value;
+        var serverHostName = match.Groups["host"].Value;
         string? serverIpAddress = null;
         string? instanceName = null;
         int? port = null;
@@ -43,39 +43,39 @@ internal sealed partial class SqlConnectionDetails
             serverHostName = null;
         }
 
-        var maybeProtocol = match.Groups[1].Value;
+        var maybeProtocol = match.Groups["protocol"].Value;
         var isNamedPipe = maybeProtocol.Length > 0 &&
                           maybeProtocol.StartsWith("np", StringComparison.OrdinalIgnoreCase);
 
         if (isNamedPipe)
         {
-            var pipeName = match.Groups[3].Value;
+            var pipeName = match.Groups["nameOrPort"].Value;
             if (pipeName.Length > 0)
             {
                 var namedInstancePipeMatch = NamedPipeRegex().Match(pipeName);
                 if (namedInstancePipeMatch.Success)
                 {
-                    instanceName = namedInstancePipeMatch.Groups[1].Value;
+                    instanceName = namedInstancePipeMatch.Groups["instanceName"].Value;
                 }
             }
         }
         else
         {
-            if (match.Groups[4].Length > 0)
+            if (match.Groups["port"].Length > 0)
             {
-                instanceName = match.Groups[3].Value;
-                port = int.TryParse(match.Groups[4].Value, out var parsedPort)
+                instanceName = match.Groups["nameOrPort"].Value;
+                port = int.TryParse(match.Groups["port"].Value, out var parsedPort)
                     ? parsedPort == 1433 ? null : parsedPort
                     : null;
             }
-            else if (int.TryParse(match.Groups[3].Value, out var parsedPort))
+            else if (int.TryParse(match.Groups["nameOrPort"].Value, out var parsedPort))
             {
                 instanceName = null;
                 port = parsedPort == 1433 ? null : parsedPort;
             }
             else
             {
-                instanceName = match.Groups[3].Value;
+                instanceName = match.Groups["nameOrPort"].Value;
                 if (string.IsNullOrEmpty(instanceName))
                 {
                     instanceName = null;
@@ -118,11 +118,11 @@ internal sealed partial class SqlConnectionDetails
      *  np:\\serverName\pipe\MSSQL$instanceName\pipeName - in this case a separate regex (see NamedPipeRegex below)
      *  is used to extract instanceName
      */
-    [GeneratedRegex("^([^[]*\\s*:\\s*\\\\{0,2})?(.*?)\\s*(?:[\\\\,]|$)\\s*(.*?)\\s*(?:,|$)\\s*(.*)$")]
+    [GeneratedRegex("^(?<protocol>[^[]*\\s*:\\s*\\\\{0,2})?(?<host>.*?)\\s*(?:[\\\\,]|$)\\s*(?<nameOrPort>.*?)\\s*(?:,|$)\\s*(?<port>.*)$")]
     private static partial Regex DataSourceRegex();
 #else
 #pragma warning disable SA1201 // A field should not follow a method
-    private static readonly Regex DataSourceRegexField = new("^([^[]*\\s*:\\s*\\\\{0,2})?(.*?)\\s*(?:[\\\\,]|$)\\s*(.*?)\\s*(?:,|$)\\s*(.*)$", RegexOptions.Compiled);
+    private static readonly Regex DataSourceRegexField = new("^(?<protocol>[^[]*\\s*:\\s*\\\\{0,2})?(?<host>.*?)\\s*(?:[\\\\,]|$)\\s*(?<nameOrPort>.*?)\\s*(?:,|$)\\s*(?<port>.*)$", RegexOptions.Compiled);
 #pragma warning restore SA1201 // A field should not follow a method
 
     private static Regex DataSourceRegex() => DataSourceRegexField;
@@ -135,11 +135,11 @@ internal sealed partial class SqlConnectionDetails
      * https://docs.microsoft.com/previous-versions/sql/sql-server-2016/ms189307(v=sql.130)
      */
 
-    [GeneratedRegex("pipe\\\\MSSQL\\$(.*?)\\\\")]
+    [GeneratedRegex("pipe\\\\MSSQL\\$(?<instanceName>.*?)\\\\")]
     private static partial Regex NamedPipeRegex();
 #else
 #pragma warning disable SA1201 // A field should not follow a method
-    private static readonly Regex NamedPipeRegexField = new("pipe\\\\MSSQL\\$(.*?)\\\\", RegexOptions.Compiled);
+    private static readonly Regex NamedPipeRegexField = new("pipe\\\\MSSQL\\$(?<instanceName>.*?)\\\\", RegexOptions.Compiled);
 #pragma warning restore SA1201 // A field should not follow a method
 
     private static Regex NamedPipeRegex() => NamedPipeRegexField;
