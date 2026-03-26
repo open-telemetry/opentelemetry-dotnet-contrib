@@ -1347,7 +1347,7 @@ public sealed class BasicTests
         }
 
         Assert.Equal(1, callCountDefault);
-        Assert.Equal(1, callCountDefault);
+        Assert.Equal(1, callCountNamed);
         Assert.Single(exportedItems);
     }
 
