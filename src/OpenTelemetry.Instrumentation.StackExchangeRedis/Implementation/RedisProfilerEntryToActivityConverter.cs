@@ -204,6 +204,16 @@ internal static class RedisProfilerEntryToActivityConverter
             options.Enrich?.Invoke(activity, new(parentActivity, command));
         }
 
+        // When a command was never sent due to a connection failure or timeout, its
+        // lifecycle timestamps (e.g. RequestSentTimeStamp) are never set and remain 0.
+        // This causes EnqueuedToSending (and potentially CreationToEnqueued) to be
+        // negative, which is the only signal available through the IProfiledCommand
+        // interface that a connection-level error occurred.
+        if (command.CreationToEnqueued < TimeSpan.Zero || command.EnqueuedToSending < TimeSpan.Zero)
+        {
+            activity.SetStatus(ActivityStatusCode.Error, "Redis command failed to send (connection failure or timeout)");
+        }
+
         activity.Stop();
 
         return activity;

@@ -47,7 +47,7 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
     [Fact]
     public void ProfilerCommandToActivity_UsesCommandAsName()
     {
-        var activity = new Activity("redis-profiler");
+        using var activity = new Activity("redis-profiler");
         var profiledCommand = new TestProfiledCommand(DateTime.UtcNow);
 
         var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand, new StackExchangeRedisInstrumentationOptions());
@@ -60,7 +60,7 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
     public void ProfilerCommandToActivity_UsesTimestampAsStartTime()
     {
         var now = DateTimeOffset.Now;
-        var activity = new Activity("redis-profiler");
+        using var activity = new Activity("redis-profiler");
         var profiledCommand = new TestProfiledCommand(now.DateTime);
 
         var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand, new StackExchangeRedisInstrumentationOptions());
@@ -72,7 +72,7 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
     [Fact]
     public void ProfilerCommandToActivity_SetsDbTypeAttributeAsRedis()
     {
-        var activity = new Activity("redis-profiler");
+        using var activity = new Activity("redis-profiler");
         var profiledCommand = new TestProfiledCommand(DateTime.UtcNow);
 
         var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand, new StackExchangeRedisInstrumentationOptions());
@@ -85,7 +85,7 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
     [Fact]
     public void ProfilerCommandToActivity_UsesCommandAsDbStatementAttribute()
     {
-        var activity = new Activity("redis-profiler");
+        using var activity = new Activity("redis-profiler");
         var profiledCommand = new TestProfiledCommand(DateTime.UtcNow);
 
         var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand, new StackExchangeRedisInstrumentationOptions());
@@ -102,7 +102,7 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
         var port = 2;
         var ip = $"{address}.0.0.0";
 
-        var activity = new Activity("redis-profiler");
+        using var activity = new Activity("redis-profiler");
         var ipLocalEndPoint = new IPEndPoint(address, port);
         var profiledCommand = new TestProfiledCommand(DateTime.UtcNow, ipLocalEndPoint);
 
@@ -124,7 +124,7 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
     {
         var dnsEndPoint = new DnsEndPoint("https://opentelemetry.io/", 443);
 
-        var activity = new Activity("redis-profiler");
+        using var activity = new Activity("redis-profiler");
         var profiledCommand = new TestProfiledCommand(DateTime.UtcNow, dnsEndPoint);
 
         var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand, new StackExchangeRedisInstrumentationOptions());
@@ -136,12 +136,29 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
         Assert.Equal(dnsEndPoint.Port, result.GetTagValue(SemanticConventions.AttributeServerPort));
     }
 
+    [Fact]
+    public void ProfilerCommandToActivity_SetsErrorStatusOnConnectionFailure()
+    {
+        using var activity = new Activity("redis-profiler");
+
+        // When a command fails due to connection timeout or connection failure,
+        // StackExchange.Redis leaves the RequestSentTimeStamp at 0 (unset),
+        // which makes EnqueuedToSending negative.
+        var profiledCommand = new TestProfiledCommand(DateTime.UtcNow, connectionFailed: true);
+
+        var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand, new StackExchangeRedisInstrumentationOptions());
+
+        Assert.NotNull(result);
+        Assert.Equal(ActivityStatusCode.Error, result.Status);
+        Assert.NotNull(result.StatusDescription);
+    }
+
 #if !NETFRAMEWORK
     [Fact]
     public void ProfilerCommandToActivity_UsesOtherEndPointAsEndPoint()
     {
         var unixEndPoint = new UnixDomainSocketEndPoint("https://opentelemetry.io/");
-        var activity = new Activity("redis-profiler");
+        using var activity = new Activity("redis-profiler");
         var profiledCommand = new TestProfiledCommand(DateTime.UtcNow, unixEndPoint);
 
         var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand, new StackExchangeRedisInstrumentationOptions());

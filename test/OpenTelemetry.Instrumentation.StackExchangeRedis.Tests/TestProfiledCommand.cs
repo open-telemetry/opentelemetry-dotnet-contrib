@@ -12,6 +12,7 @@ internal class TestProfiledCommand(DateTime commandCreated) : IProfiledCommand
     private readonly DateTime commandCreated = commandCreated;
     private readonly CommandFlags flags = CommandFlags.None;
     private readonly EndPoint endPoint = new IPEndPoint(0, 0);
+    private readonly TimeSpan enqueuedToSending;
 
     public TestProfiledCommand(DateTime commandCreated, CommandFlags flags)
         : this(commandCreated)
@@ -23,6 +24,23 @@ internal class TestProfiledCommand(DateTime commandCreated) : IProfiledCommand
         : this(commandCreated)
     {
         this.endPoint = endpoint;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TestProfiledCommand"/> class
+    /// that simulates a connection failure (command was enqueued but never sent).
+    /// When <paramref name="connectionFailed"/> is <see langword="true"/>, the
+    /// <see cref="EnqueuedToSending"/> property returns a negative value, mirroring
+    /// how StackExchange.Redis exposes commands that were aborted due to a connection
+    /// timeout or connection failure.
+    /// </summary>
+    public TestProfiledCommand(DateTime commandCreated, bool connectionFailed)
+        : this(commandCreated)
+    {
+        if (connectionFailed)
+        {
+            this.enqueuedToSending = TimeSpan.FromSeconds(-1);
+        }
     }
 
     public EndPoint EndPoint => this.endPoint;
@@ -37,7 +55,7 @@ internal class TestProfiledCommand(DateTime commandCreated) : IProfiledCommand
 
     public TimeSpan CreationToEnqueued => default;
 
-    public TimeSpan EnqueuedToSending => default;
+    public TimeSpan EnqueuedToSending => this.enqueuedToSending;
 
     public TimeSpan SentToResponse => default;
 
