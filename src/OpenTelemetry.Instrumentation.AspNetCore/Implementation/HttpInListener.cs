@@ -184,9 +184,9 @@ internal class HttpInListener : ListenerHandler
 
             if (!Net10OrGreater || this.nativeAspNetCoreOpenTelemetrySuppressed)
             {
-                if (request.Host is { } host)
+                if (request.Host.HasValue)
                 {
-                    activity.SetTag(SemanticConventions.AttributeServerAddress, host.Host);
+                    activity.SetTag(SemanticConventions.AttributeServerAddress, request.Host.Value);
 
                     if (request.Host.Port is { } port)
                     {
