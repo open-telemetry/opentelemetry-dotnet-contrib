@@ -202,19 +202,19 @@ public class InstrumentedProducerTests
             this.ThrowArgumentException != null
                 ? throw this.ThrowArgumentException
                 : Task.FromResult(new DeliveryResult<TKey, TValue>
-            {
-                Topic = topic,
-                Status = PersistenceStatus.Persisted,
-            });
+                {
+                    Topic = topic,
+                    Status = PersistenceStatus.Persisted,
+                });
 
         public Task<DeliveryResult<TKey, TValue>> ProduceAsync(TopicPartition topicPartition, Message<TKey, TValue> message, CancellationToken cancellationToken = default) =>
             this.ThrowArgumentException != null
                 ? throw this.ThrowArgumentException
                 : Task.FromResult(new DeliveryResult<TKey, TValue>
-            {
-                Topic = topicPartition.Topic,
-                Status = PersistenceStatus.Persisted,
-            });
+                {
+                    Topic = topicPartition.Topic,
+                    Status = PersistenceStatus.Persisted,
+                });
 
         public void Produce(string topic, Message<TKey, TValue> message, Action<DeliveryReport<TKey, TValue>>? deliveryHandler = null)
         {
