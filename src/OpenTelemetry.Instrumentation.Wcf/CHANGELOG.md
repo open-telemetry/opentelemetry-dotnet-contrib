@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Fixed `ArgumentNullException` thrown by `TelemetryEndpointBehavior` when an endpoint
+  operation has a `null` Action (e.g., when WCF service help pages are enabled).
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 * Updated OpenTelemetry core component version(s) to `1.15.1`.
   ([#4020](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4020))
 
