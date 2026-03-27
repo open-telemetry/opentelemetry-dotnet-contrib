@@ -260,31 +260,4 @@ public class RemotingInstrumentationTests
             this.callback();
         }
     }
-
-    private sealed class RemotingTestEventListener : EventListener
-    {
-        private const string EventSourceName = "OpenTelemetry-Instrumentation-Remoting";
-
-        public List<EventWrittenEventArgs> Events { get; } = [];
-
-        protected override void OnEventSourceCreated(EventSource eventSource)
-        {
-            if (eventSource.Name == EventSourceName)
-            {
-                this.EnableEvents(eventSource, EventLevel.Error, EventKeywords.All);
-            }
-
-            base.OnEventSourceCreated(eventSource);
-        }
-
-        protected override void OnEventWritten(EventWrittenEventArgs eventData)
-        {
-            if (eventData.EventSource.Name == EventSourceName)
-            {
-                this.Events.Add(eventData);
-            }
-
-            base.OnEventWritten(eventData);
-        }
-    }
 }
