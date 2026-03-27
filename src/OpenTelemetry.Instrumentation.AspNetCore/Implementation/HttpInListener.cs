@@ -399,7 +399,7 @@ internal class HttpInListener : ListenerHandler
     }
 
     // ASP.NET Core 10 does not generate OpenTelemetry tags by default so we can only take the optimal
-    // path if the user has not explicitly opened into ASP.NET Core 10's native OpenTelemetry support.
+    // path if the user has not explicitly opted into ASP.NET Core 10's native OpenTelemetry support.
     // https://github.com/dotnet/aspnetcore/blob/7387de91234d3ef751fa50b3d1bfede4130213ff/src/Hosting/Hosting/src/Internal/HostingApplicationDiagnostics.cs#L58-L67
 
     private static bool IsOpenTelemetryActivityDataSuppressed() =>
