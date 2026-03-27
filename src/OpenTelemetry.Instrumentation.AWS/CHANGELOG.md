@@ -6,7 +6,7 @@
   ([#4013](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4013))
 
 * Add the `aws.s3.bucket` and `aws.s3.key` attributes to S3 spans.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#4029](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4029))
 
 ## 1.15.0
 
