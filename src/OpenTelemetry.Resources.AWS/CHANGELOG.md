@@ -7,7 +7,7 @@
 
 * Extract `container.id` from the ECS Metadata V4 `DockerId` field for
   Windows containers running on AWS ECS.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#4028](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4028))
 
 ## 1.15.0
 
