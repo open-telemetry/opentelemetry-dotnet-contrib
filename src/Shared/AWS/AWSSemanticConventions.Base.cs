@@ -305,6 +305,13 @@ internal partial class AWSSemanticConventions
         public virtual string AttributeAWSDynamoTableName => string.Empty;
 
         /// <summary>
+        /// Returns attribute names whose values must be reported as a <c>string[]</c>
+        /// (string array) rather than a plain <c>string</c>, as required by the
+        /// OpenTelemetry Semantic Conventions specification.
+        /// </summary>
+        public virtual IReadOnlyCollection<string> ArrayValueAttributeNames { get; } = [];
+
+        /// <summary>
         /// Not yet incorporated in Semantic Conventions repository.
         /// </summary>
         public virtual string AttributeAWSSQSQueueUrl => string.Empty;

@@ -5,6 +5,7 @@
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Metadata;
+using Microsoft.AspNetCore.Routing;
 
 namespace OpenTelemetry.Instrumentation.AspNetCore;
 
@@ -19,6 +20,20 @@ internal static class HttpContextExtensions
     {
         var endpoint = GetOriginalEndpoint(context);
         var route = endpoint?.Metadata.GetMetadata<IRouteDiagnosticsMetadata>()?.Route;
+
+#if !NET11_0_OR_GREATER
+        if (string.IsNullOrEmpty(route))
+        {
+            // For Razor Pages, the route template may be empty (e.g., for the Index page mapped to root "/").
+            // Fall back to the "page" route value which contains the page name (e.g., "/Index").
+            var pageValue = context.GetRouteValue("page") as string;
+            if (!string.IsNullOrEmpty(pageValue))
+            {
+                return pageValue;
+            }
+        }
+#endif
+
         return route is not null ? ResolveHttpRoute(route) : null;
     }
 

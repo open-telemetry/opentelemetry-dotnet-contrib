@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Updated OpenTelemetry core component version(s) to `1.15.1`.
+  ([#4020](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4020))
+
 ## 1.15.1
 
 Released 2026-Mar-04
@@ -120,7 +123,7 @@ Released 2025-Jul-15
 
 * Added `OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_TRACE_CONTEXT_PROPAGATION`
   environment variable to propagate trace context to SQL Server databases.
-  This will remain experimental while the [specification](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/sql-server.md#context-propagation)
+  This will remain experimental while the [specification](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/db/sql-server.md#context-propagation)
   remains in development.
   It is now only available on .NET 8 and newer.
   ([#2709](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2709))
