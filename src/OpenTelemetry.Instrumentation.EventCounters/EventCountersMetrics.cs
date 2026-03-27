@@ -118,6 +118,11 @@ internal sealed class EventCountersMetrics : EventListener
 
         var eventSourceName = eventData.EventSource.Name;
 
+        if (!this.options.ShouldListenToSource(eventSourceName))
+        {
+            return;
+        }
+
         if (eventData.EventName != "EventCounters")
         {
             EventCountersInstrumentationEventSource.Log.IgnoreNonEventCountersName(eventSourceName);

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Fixed `OnEventWritten` processing events from EventSources that were not
+  configured via `AddEventSources`.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 * Updated OpenTelemetry core component version(s) to `1.15.1`.
   ([#4020](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4020))
 
