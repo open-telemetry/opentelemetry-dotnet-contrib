@@ -110,7 +110,7 @@ public class InstrumentedConsumerTests
                     Topic = "eof-topic",
                     Partition = new Partition(0),
                     Offset = Offset.End,
-                    IsPartitionEOF = true,  // EOF — should be skipped
+                    IsPartitionEOF = true,
                 },
             };
 
