@@ -10,6 +10,13 @@
   and [GHSA-37gx-xxp4-5rgx](https://github.com/dotnet/runtime/security/advisories/GHSA-37gx-xxp4-5rgx).
   ([#4103](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4103))
 
+* Fixed `ArgumentNullException` thrown by `TelemetryEndpointBehavior` when an endpoint
+  operation has a `null` Action (e.g., when WCF service help pages are enabled).
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
+* Updated OpenTelemetry core component version(s) to `1.15.1`.
+  ([#4020](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4020))
+
 ## 1.15.0-beta.1
 
 Released 2026-Jan-21
