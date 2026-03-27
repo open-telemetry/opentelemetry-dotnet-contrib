@@ -154,6 +154,9 @@ public class AzureResourceDetectorTests
             Assert.Contains(
                 new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "my-app-service"),
                 resource.Attributes);
+            Assert.DoesNotContain(
+                new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "custom-service"),
+                resource.Attributes);
         }
     }
 
@@ -178,6 +181,9 @@ public class AzureResourceDetectorTests
             // AddAttributes is applied after the detector, so the custom value wins.
             Assert.Contains(
                 new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "custom-service"),
+                resource.Attributes);
+            Assert.DoesNotContain(
+                new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "my-app-service"),
                 resource.Attributes);
         }
     }
