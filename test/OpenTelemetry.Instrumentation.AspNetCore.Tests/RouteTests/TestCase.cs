@@ -25,6 +25,8 @@ public class TestCase
 
     public string? CurrentHttpRoute { get; set; }
 
+    public string? ExpectedMetricRoute { get; set; }
+
     public override string ToString()
     {
         // This is used by Visual Studio's test runner to identify the test case.

@@ -100,7 +100,8 @@ public class RoutingTests(RoutingTestFixture fixture) : IClassFixture<RoutingTes
         // TODO: The CurrentHttpRoute property will go away. They only serve to capture status quo.
         // If CurrentHttpRoute is null, then that means we already conform to the correct behavior.
         var expectedHttpRoute = testCase.CurrentHttpRoute ?? testCase.ExpectedHttpRoute;
-        Assert.Equal(expectedHttpRoute, metricHttpRoute);
+        var expectedMetricRoute = testCase.ExpectedMetricRoute ?? expectedHttpRoute;
+        Assert.Equal(expectedMetricRoute, metricHttpRoute);
 
         var testResult = new MetricRoutingTestResult(testCase)
         {
