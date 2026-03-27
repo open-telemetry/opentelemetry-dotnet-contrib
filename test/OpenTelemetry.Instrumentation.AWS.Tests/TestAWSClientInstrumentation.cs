@@ -24,6 +24,8 @@ namespace OpenTelemetry.Instrumentation.AWS.Tests;
 
 public class TestAWSClientInstrumentation
 {
+    private static readonly string[] ExpectedDynamoTableNames = ["SampleProduct"];
+
     [Fact]
 #if NETFRAMEWORK
     public void TestDDBScanSuccessful()
@@ -618,7 +620,7 @@ public class TestAWSClientInstrumentation
     private void ValidateDynamoActivityTags(Activity ddb_activity)
     {
         Assert.Equal("DynamoDB.Scan", ddb_activity.DisplayName);
-        Assert.Equal("SampleProduct", Utils.GetTagValue(ddb_activity, "aws.dynamodb.table_names"));
+        Assert.Equal(ExpectedDynamoTableNames, Utils.GetTagValue(ddb_activity, "aws.dynamodb.table_names"));
         Assert.Equal("dynamodb", Utils.GetTagValue(ddb_activity, "db.system"));
         Assert.Equal("aws-api", Utils.GetTagValue(ddb_activity, "rpc.system"));
         Assert.Equal("DynamoDB", Utils.GetTagValue(ddb_activity, "rpc.service"));
