@@ -79,6 +79,15 @@ internal partial class AWSSemanticConventions
     /// <inheritdoc cref="TagBuilderImpl"/>
     public TagBuilderImpl TagBuilder { get; }
 
+    /// <summary>
+    /// Returns attribute names whose values must be reported as a <c>string[]</c>
+    /// (string array) rather than a plain <c>string</c>, as required by the
+    /// OpenTelemetry Semantic Conventions specification.
+    /// </summary>
+    /// <returns>A collection of attribute names that require array values.</returns>
+    public IReadOnlyCollection<string> GetArrayValueAttributeNames()
+        => this.GetSemanticConventionVersion().ArrayValueAttributeNames;
+
     /// <inheritdoc cref="AWSSemanticConventions"/>
     /// <param name="semanticConventionVersion">
     /// Sets the <see cref="SemanticConventionVersion"/> that will be used to resolve attribute names.

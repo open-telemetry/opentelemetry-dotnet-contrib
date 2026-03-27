@@ -21,6 +21,8 @@ internal class AWSServiceHelper
                 .AddAttributeAWSBedrockGuardrailId("GuardrailId")
                 .AddAttributeAWSBedrockKnowledgeBaseId("KnowledgeBaseId")
                 .Build();
+
+        this.ArrayValueAttributeNames = new(semanticConventions.GetArrayValueAttributeNames(), StringComparer.Ordinal);
     }
 
     internal static IReadOnlyDictionary<string, List<string>> ServiceRequestParameterMap { get; } = new Dictionary<string, List<string>>()
@@ -81,6 +83,8 @@ internal class AWSServiceHelper
     ];
 
     internal IDictionary<string, string> ParameterAttributeMap { get; }
+
+    internal HashSet<string> ArrayValueAttributeNames { get; }
 
     internal static IReadOnlyDictionary<string, string> OperationNameToResourceMap()
     {
