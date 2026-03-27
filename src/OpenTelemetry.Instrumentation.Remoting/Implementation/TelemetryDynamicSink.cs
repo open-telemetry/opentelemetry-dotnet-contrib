@@ -23,13 +23,11 @@ namespace OpenTelemetry.Instrumentation.Remoting.Implementation;
 /// </remarks>
 internal sealed class TelemetryDynamicSink : IDynamicMessageSink
 {
-    internal const string AttributeRpcSystemNameValue = "dotnet.remoting";
-    internal const string ActivitySourceName = "OpenTelemetry.Instrumentation.Remoting";
-    private const string ActivityOutName = ActivitySourceName + ".RequestOut";
-    private const string ActivityInName = ActivitySourceName + ".RequestIn";
-
-    private const string SavedAspnetActivityPropertyName = ActivitySourceName + ".SavedAspnetActivity";
+    private const string AttributeRpcSystemNameValue = "dotnet.remoting";
     private readonly ActivitySource remotingActivitySource;
+    private readonly string activityInName;
+    private readonly string activityOutName;
+    private readonly string savedAspnetActivityPropertyName;
     private readonly ConcurrentDictionary<string, string> serviceNameCache;
 
     private readonly TelemetryDynamicSinkProvider optionsProvider;
@@ -41,6 +39,9 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
     {
         this.optionsProvider = optionsProvider;
         this.remotingActivitySource = activitySource;
+        this.activityOutName = activitySource.Name + ".RequestOut";
+        this.activityInName = activitySource.Name + ".RequestIn";
+        this.savedAspnetActivityPropertyName = activitySource.Name + ".SavedAspnetActivity";
         this.serviceNameCache = serviceNameCache;
     }
 
@@ -83,7 +84,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
 
                 // Start new outgoing activity
                 var activity = this.remotingActivitySource.StartActivity(
-                    ActivityOutName,
+                    this.activityOutName,
                     ActivityKind.Client,
                     default(ActivityContext),
                     tags);
@@ -124,7 +125,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
                     // We don't have an existing incoming activity. Start a brand new one ourselves using the extracted context.
 
                     ourActivity = this.remotingActivitySource.StartActivity(
-                        ActivityInName,
+                        this.activityInName,
                         ActivityKind.Server,
                         activityParentContext.ActivityContext,
                         tags);
@@ -143,7 +144,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
                     // We let this context take over and simply create our Remoting activity as a child of the ASP.NET one.
 
                     ourActivity = this.remotingActivitySource.StartActivity(
-                        ActivityInName,
+                        this.activityInName,
                         ActivityKind.Server,
                         default(ActivityContext),
                         tags);
@@ -162,11 +163,11 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
                     // (see ProcessMessageFinish) to give ASP.NET Instrumentation a chance to stop it.
 
                     ourActivity = this.remotingActivitySource.StartActivity(
-                        ActivityInName,
+                        this.activityInName,
                         ActivityKind.Server,
                         activityParentContext.ActivityContext,
                         tags);
-                    ourActivity?.SetCustomProperty(SavedAspnetActivityPropertyName, parentActivity);
+                    ourActivity?.SetCustomProperty(this.savedAspnetActivityPropertyName, parentActivity);
                 }
                 else
                 {
@@ -207,8 +208,8 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
                 return;
             }
 
-            bool validClientActivity = bCliSide && activity.OperationName == ActivityOutName;
-            bool validServerActivity = !bCliSide && activity.OperationName == ActivityInName;
+            bool validClientActivity = bCliSide && activity.OperationName == this.activityOutName;
+            bool validServerActivity = !bCliSide && activity.OperationName == this.activityInName;
             if (validClientActivity || validServerActivity)
             {
                 if (replyMsg is IMethodReturnMessage returnMsg)
@@ -232,11 +233,11 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
                     // Call enrich before stopping
                     try
                     {
-                        options.Enrich?.Invoke(activity, RemotingInstrumentationEnrichEventNames.OnMessageFinish, returnMsg);
+                        options.EnrichWithMethodReturnMessage?.Invoke(activity, returnMsg);
                     }
                     catch (Exception ex)
                     {
-                        RemotingInstrumentationEventSource.Log.EnrichmentException(ex);
+                        RemotingInstrumentationEventSource.Log.MethodReturnMessageEnrichmentException(ex);
                     }
                 }
 
@@ -244,7 +245,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
 
                 // Did ProcessMessageStart discard activity created by the ASP.NET Instrumentation?
                 // If yes, we need to restore it here, so that it can be stopped by the instrumentation later.
-                if (validServerActivity && activity.GetCustomProperty(SavedAspnetActivityPropertyName) is Activity otherActivity)
+                if (validServerActivity && activity.GetCustomProperty(this.savedAspnetActivityPropertyName) is Activity otherActivity)
                 {
                     Activity.Current = otherActivity;
                 }
@@ -359,11 +360,11 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
 
         try
         {
-            options.Enrich?.Invoke(activity, RemotingInstrumentationEnrichEventNames.OnMessageStart, msg);
+            options.EnrichWithMethodMessage?.Invoke(activity, msg);
         }
         catch (Exception ex)
         {
-            RemotingInstrumentationEventSource.Log.EnrichmentException(ex);
+            RemotingInstrumentationEventSource.Log.MethodMessageEnrichmentException(ex);
         }
     }
 }

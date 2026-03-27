@@ -13,14 +13,20 @@ namespace OpenTelemetry.Instrumentation.Remoting;
 public class RemotingInstrumentationOptions
 {
     /// <summary>
-    /// Gets or sets an action to enrich an Activity.
+    /// Gets or sets an action to enrich an <see cref="Activity"/> from a remoting method message.
     /// </summary>
     /// <remarks>
-    /// <para><see cref="Activity"/>: the activity being enriched.</para>
-    /// <para>string: the name of the event. See <see cref="RemotingInstrumentationEnrichEventNames"/> for available values.</para>
-    /// <para><see cref="IMethodMessage"/>: the Remoting method message from which additional information can be extracted to enrich the activity.</para>
+    /// This callback is invoked after the activity is created and before the remoting call is processed.
     /// </remarks>
-    public Action<Activity, string, IMethodMessage>? Enrich { get; set; }
+    public Action<Activity, IMethodMessage>? EnrichWithMethodMessage { get; set; }
+
+    /// <summary>
+    /// Gets or sets an action to enrich an <see cref="Activity"/> from a remoting method return message.
+    /// </summary>
+    /// <remarks>
+    /// This callback is invoked before the activity is stopped when a remoting method return message is available.
+    /// </remarks>
+    public Action<Activity, IMethodReturnMessage>? EnrichWithMethodReturnMessage { get; set; }
 
     /// <summary>
     /// Gets or sets a <see cref="TextMapPropagator"/> for context propagation. Default value: <see cref="CompositeTextMapPropagator"/> with <see cref="TraceContextPropagator"/> and <see cref="BaggagePropagator"/>.

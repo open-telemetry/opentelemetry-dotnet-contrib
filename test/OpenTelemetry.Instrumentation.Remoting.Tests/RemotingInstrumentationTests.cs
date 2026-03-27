@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using System.Diagnostics.Tracing;
 using System.Runtime.Remoting.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -69,7 +70,7 @@ public class RemotingInstrumentationTests
         Assert.Single(activities); // OnStart/OnEnd/OnShutdown/Dispose called.
         var activity = activities.FirstOrDefault(); // Get the OnEnd activity.
         Assert.Equal(ActivityKind.Client, activity.Kind);
-        Assert.Equal(TelemetryDynamicSink.AttributeRpcSystemNameValue, activity.GetTagItem(SemanticConventions.AttributeRpcSystemName));
+        Assert.Equal("dotnet.remoting", activity.GetTagItem(SemanticConventions.AttributeRpcSystemName));
         Assert.Equal("OpenTelemetry.Instrumentation.Remoting.Tests.RemotingInstrumentationTests+RemoteObject/DoStuff", activity.GetTagItem(SemanticConventions.AttributeRpcMethod));
 
         Assert.Null(activity.GetTagItem(SemanticConventions.AttributeServerAddress));
@@ -143,6 +144,37 @@ public class RemotingInstrumentationTests
         InvokeRemoteObject();
 
         Assert.Single(activities);
+    }
+
+    [Fact]
+    public void RemotingInstrumentation_EnrichCallbacks_HonorSpecificMessageTypes()
+    {
+        var activities = new List<Activity>();
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddInMemoryExporter(activities)
+            .AddRemotingInstrumentation(options =>
+            {
+                options.Filter = message =>
+                {
+                    if (message is IMethodMessage methodMessage)
+                    {
+                        return methodMessage.TypeName.Contains("RemoteObject");
+                    }
+
+                    return false;
+                };
+                options.EnrichWithMethodMessage = (activity, message) => activity.SetTag("remoting.start.method", message.MethodName);
+                options.EnrichWithMethodReturnMessage = (activity, message) => activity.SetTag("remoting.finish.method", message.MethodName);
+            })
+            .Build();
+
+        InvokeRemoteObject();
+
+        var activity = Assert.Single(activities);
+        Assert.Equal(TelemetryDynamicSinkProvider.ActivitySourceName, activity.Source.Name);
+        Assert.Equal("DoStuff", activity.GetTagItem("remoting.start.method"));
+        Assert.Equal("DoStuff", activity.GetTagItem("remoting.finish.method"));
     }
 
     private static void InvokeRemoteObject()
@@ -226,6 +258,33 @@ public class RemotingInstrumentationTests
         public void Dispose()
         {
             this.callback();
+        }
+    }
+
+    private sealed class RemotingTestEventListener : EventListener
+    {
+        private const string EventSourceName = "OpenTelemetry-Instrumentation-Remoting";
+
+        public List<EventWrittenEventArgs> Events { get; } = [];
+
+        protected override void OnEventSourceCreated(EventSource eventSource)
+        {
+            if (eventSource.Name == EventSourceName)
+            {
+                this.EnableEvents(eventSource, EventLevel.Error, EventKeywords.All);
+            }
+
+            base.OnEventSourceCreated(eventSource);
+        }
+
+        protected override void OnEventWritten(EventWrittenEventArgs eventData)
+        {
+            if (eventData.EventSource.Name == EventSourceName)
+            {
+                this.Events.Add(eventData);
+            }
+
+            base.OnEventWritten(eventData);
         }
     }
 }

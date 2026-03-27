@@ -34,7 +34,7 @@ public static class TracerProviderBuilderExtensions
     {
         Guard.ThrowIfNull(builder);
 
-        builder.AddSource(TelemetryDynamicSink.ActivitySourceName);
+        builder.AddSource(TelemetryDynamicSinkProvider.ActivitySourceName);
 
         if (configure != null)
         {

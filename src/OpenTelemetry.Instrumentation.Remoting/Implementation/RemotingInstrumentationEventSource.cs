@@ -42,17 +42,26 @@ internal class RemotingInstrumentationEventSource : EventSource
     }
 
     [NonEvent]
-    public void EnrichmentException(Exception ex)
+    public void MethodMessageEnrichmentException(Exception ex)
     {
         if (this.IsEnabled(EventLevel.Error, (EventKeywords)(-1)))
         {
-            this.EnrichmentException(ex.ToInvariantString());
+            this.MethodMessageEnrichmentException(ex.ToInvariantString());
         }
     }
 
-    [Event(3, Message = "Enrichment threw exception. Exception {0}.", Level = EventLevel.Error)]
-    public void EnrichmentException(string exception)
+    [Event(3, Message = "EnrichWithMethodMessage threw exception. Exception {0}.", Level = EventLevel.Error)]
+    public void MethodMessageEnrichmentException(string exception) => this.WriteEvent(3, exception);
+
+    [NonEvent]
+    public void MethodReturnMessageEnrichmentException(Exception ex)
     {
-        this.WriteEvent(3, exception);
+        if (this.IsEnabled(EventLevel.Error, (EventKeywords)(-1)))
+        {
+            this.MethodReturnMessageEnrichmentException(ex.ToInvariantString());
+        }
     }
+
+    [Event(4, Message = "EnrichWithMethodReturnMessage threw exception. Exception {0}.", Level = EventLevel.Error)]
+    public void MethodReturnMessageEnrichmentException(string exception) => this.WriteEvent(4, exception);
 }

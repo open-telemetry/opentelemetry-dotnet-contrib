@@ -15,6 +15,7 @@ namespace OpenTelemetry.Instrumentation.Remoting.Implementation;
 /// </summary>
 internal sealed class TelemetryDynamicSinkProvider : IDynamicProperty, IContributeDynamicSink, IDisposable
 {
+    internal const string ActivitySourceName = "OpenTelemetry.Instrumentation.Remoting";
     internal const string DynamicPropertyName = "TelemetryDynamicSinkProvider";
 
     private readonly ActivitySource activitySource = CreateActivitySource();
@@ -53,7 +54,7 @@ internal sealed class TelemetryDynamicSinkProvider : IDynamicProperty, IContribu
         var assembly = typeof(TelemetryDynamicSink).Assembly;
         var version = assembly.GetPackageVersion();
 
-        var activitySourceOptions = new ActivitySourceOptions(TelemetryDynamicSink.ActivitySourceName)
+        var activitySourceOptions = new ActivitySourceOptions(ActivitySourceName)
         {
             Version = version,
             TelemetrySchemaUrl = telemetrySchemaUrl,
