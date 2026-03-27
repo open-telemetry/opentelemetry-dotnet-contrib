@@ -248,7 +248,7 @@ if your queries and/or environment are appropriate for enabling this option.
 
 `OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_TRACE_DB_QUERY_PARAMETERS` is implicitly
 `false` by default. When set to `true`, the instrumentation will set
-[`db.query.parameter.<key>`](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/database-spans.md#span-definition)
+[`db.query.parameter.<key>`](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/db/database-spans.md#span-definition)
 attributes for each of the query parameters associated with a database command.
 
 ### Trace Context Propagation

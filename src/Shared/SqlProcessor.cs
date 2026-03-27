@@ -281,7 +281,7 @@ internal static class SqlProcessor
             var indexOfLastWhitespace = summary.Slice(0, MaxSummaryLength).LastIndexOfAny(WhitespaceChars);
 #endif
 
-            summary = summary.Slice(0, indexOfLastWhitespace);
+            summary = summary.Slice(0, indexOfLastWhitespace >= 0 ? indexOfLastWhitespace : MaxSummaryLength);
         }
 
         var summaryLength = summary.Length;

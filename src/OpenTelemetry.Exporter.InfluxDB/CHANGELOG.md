@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+* Updated OpenTelemetry core component version(s) to `1.15.1`.
+  ([#4020](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4020))
+
+* Custom metric tags are now exported.
+  ([#4014](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4014))
+
 ## 1.0.0-alpha.7
 
 Released 2026-Jan-21

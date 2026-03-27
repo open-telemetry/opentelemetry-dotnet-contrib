@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Fix incorrect type for the `aws.dynamodb.table_names` attribute.
+  ([#4013](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4013))
+
 ## 1.15.0
 
 Released 2026-Jan-21
