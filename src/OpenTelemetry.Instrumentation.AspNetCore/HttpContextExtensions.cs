@@ -3,20 +3,40 @@
 
 #if NET
 
-using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Http.Metadata;
 
 namespace OpenTelemetry.Instrumentation.AspNetCore;
+
+// Adapted from the following ASP.NET Core code:
+// - https://github.com/dotnet/aspnetcore/blob/1855c53140e5254d54078ccea41e2b21bd264309/src/Hosting/Hosting/src/Internal/HostingApplicationDiagnostics.cs#L533-L536
+// - https://github.com/dotnet/aspnetcore/blob/1855c53140e5254d54078ccea41e2b21bd264309/src/Shared/HttpExtensions.cs#L36-L47
+// - https://github.com/dotnet/aspnetcore/blob/1855c53140e5254d54078ccea41e2b21bd264309/src/Shared/Diagnostics/RouteDiagnosticsHelpers.cs#L8-L16.
 
 internal static class HttpContextExtensions
 {
     public static string? GetHttpRoute(this HttpContext context)
     {
-        var endpoint = context.Features.Get<IExceptionHandlerPathFeature>()?.Endpoint as RouteEndpoint ??
-                       context.GetEndpoint() as RouteEndpoint;
-
-        return endpoint?.RoutePattern.RawText;
+        var endpoint = GetOriginalEndpoint(context);
+        var route = endpoint?.Metadata.GetMetadata<IRouteDiagnosticsMetadata>()?.Route;
+        return route is not null ? ResolveHttpRoute(route) : null;
     }
+
+    private static Endpoint? GetOriginalEndpoint(HttpContext context)
+    {
+        var endpoint = context.GetEndpoint();
+
+        // Some middleware re-execute the middleware pipeline with the HttpContext. Before they do this, they clear state from context, such as the previously matched endpoint.
+        // The original endpoint is stashed with a known key in HttpContext.Items. Use it as a fallback.
+        if (endpoint is null && context.Items.TryGetValue("__OriginalEndpoint", out var e) && e is Endpoint originalEndpoint)
+        {
+            endpoint = originalEndpoint;
+        }
+
+        return endpoint;
+    }
+
+    private static string ResolveHttpRoute(string route)
+        => string.IsNullOrEmpty(route) ? "/" : route;
 }
 #endif

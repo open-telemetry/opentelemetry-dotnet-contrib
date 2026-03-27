@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration" />
+    <PackageReference Include="Newtonsoft.Json.Schema" />
     <PackageReference Include="OpenTelemetry.Api" />
     <PackageReference Include="System.Text.Json" VersionOverride="8.0.6" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
     <PackageReference Include="Xunit.SkippableFact" />
@@ -34,6 +35,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="*.json" LogicalName="%(FileName)%(Extension)" />
+    <EmbeddedResource Include="$(RepoRoot)\.github\renovate.json" Link="%(FileName)%(Extension)" />
   </ItemGroup>
 
 </Project>

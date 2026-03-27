@@ -42,7 +42,7 @@ HTTP instrumentation must be enabled at application startup.
 
 Starting with .NET 9, trace instrumentation is natively implemented, and the
 HttpClient library emits attributes defined in the
-[OpenTelemetry Specification](https://github.com/open-telemetry/semantic-conventions/blob/v1.28.0/docs/http/http-spans.md).
+[OpenTelemetry Specification](https://github.com/open-telemetry/semantic-conventions/blob/v1.40.0/docs/http/http-spans.md).
 When running on .NET 9+ this instrumentation library will not add/change/override
 any attributes set by the native instrumentation but it is still required for
 performing context propagation using the OpenTelemetry SDK and supports additional
@@ -72,7 +72,7 @@ public class Program
 ```
 
 Following list of attributes are added by default on activity. See
-[http-spans](https://github.com/open-telemetry/semantic-conventions/tree/v1.23.0/docs/http/http-spans.md)
+[http-spans](https://github.com/open-telemetry/semantic-conventions/blob/v1.40.0/docs/http/http-spans.md#http-client-span)
 for more details about each individual attribute:
 
 * `error.type`
