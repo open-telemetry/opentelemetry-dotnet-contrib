@@ -5,6 +5,9 @@
 * Fix incorrect type for the `aws.dynamodb.table_names` attribute.
   ([#4013](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4013))
 
+* Add the `aws.s3.bucket` and `aws.s3.key` attributes to S3 spans.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 1.15.0
 
 Released 2026-Jan-21
