@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-using System.Diagnostics.Tracing;
 using System.Runtime.Remoting.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -25,7 +24,6 @@ public class RemotingInstrumentationTests
             .AddRemotingInstrumentation(
                 options =>
                 {
-                    options.RecordException = true;
                     options.Filter = msg =>
                     {
                         // xUnit runner uses AppDomains to execute tests.
@@ -85,11 +83,7 @@ public class RemotingInstrumentationTests
         {
             Assert.Equal(ActivityStatusCode.Error, activity.Status);
             Assert.Equal(typeof(Exception).FullName, activity.GetTagItem(SemanticConventions.AttributeErrorType));
-
-            var eventList = activity.Events.ToList();
-            Assert.Single(eventList);
-
-            Assert.Equal(SemanticConventions.AttributeExceptionEventName, eventList[0].Name);
+            Assert.Empty(activity.Events);
         }
     }
 

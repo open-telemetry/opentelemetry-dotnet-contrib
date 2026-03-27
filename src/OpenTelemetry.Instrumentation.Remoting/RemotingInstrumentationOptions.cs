@@ -47,11 +47,4 @@ public class RemotingInstrumentationOptions
     /// </list>
     /// </remarks>
     public Func<IMessage, bool>? Filter { get; set; }
-
-    /// <summary>
-    /// Gets or sets a value indicating whether exception will be recorded
-    /// as an <see cref="ActivityEvent"/> or not. Default value: <see
-    /// langword="false"/>.
-    /// </summary>
-    public bool RecordException { get; set; }
 }

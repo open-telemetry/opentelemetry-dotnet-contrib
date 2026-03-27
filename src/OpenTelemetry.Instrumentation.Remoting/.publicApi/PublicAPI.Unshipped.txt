@@ -7,8 +7,6 @@ OpenTelemetry.Instrumentation.Remoting.RemotingInstrumentationOptions.Filter.get
 OpenTelemetry.Instrumentation.Remoting.RemotingInstrumentationOptions.Filter.set -> void
 OpenTelemetry.Instrumentation.Remoting.RemotingInstrumentationOptions.Propagator.get -> OpenTelemetry.Context.Propagation.TextMapPropagator!
 OpenTelemetry.Instrumentation.Remoting.RemotingInstrumentationOptions.Propagator.set -> void
-OpenTelemetry.Instrumentation.Remoting.RemotingInstrumentationOptions.RecordException.get -> bool
-OpenTelemetry.Instrumentation.Remoting.RemotingInstrumentationOptions.RecordException.set -> void
 OpenTelemetry.Instrumentation.Remoting.RemotingInstrumentationOptions.RemotingInstrumentationOptions() -> void
 OpenTelemetry.Trace.TracerProviderBuilderExtensions
 static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddRemotingInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder! builder) -> OpenTelemetry.Trace.TracerProviderBuilder!

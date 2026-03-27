@@ -224,10 +224,6 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
                     {
                         activity.SetStatus(ActivityStatusCode.Error);
                         activity.SetTag(SemanticConventions.AttributeErrorType, returnMsg.Exception.GetType().FullName);
-                        if (options.RecordException)
-                        {
-                            activity.AddException(returnMsg.Exception);
-                        }
                     }
 
                     // Call enrich before stopping
