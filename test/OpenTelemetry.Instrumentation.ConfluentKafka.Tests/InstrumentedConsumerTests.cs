@@ -142,9 +142,9 @@ public class InstrumentedConsumerTests
             // A well-formed traceparent header representing a remote producer span
             const string traceparent = "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01";
             var headers = new Headers
-        {
-            { "traceparent", Encoding.UTF8.GetBytes(traceparent) },
-        };
+            {
+                { "traceparent", Encoding.UTF8.GetBytes(traceparent) },
+            };
 
             var fakeConsumer = new FakeConsumer<string, string>
             {
