@@ -18,6 +18,9 @@ internal partial class AWSSemanticConventions
     /// </summary>
     private class AWSSemanticConventions_V1_34_0 : AWSSemanticConventions_V1_29_0
     {
+        // CLOUD Attributes
+        public override string AttributeCloudRegion => "cloud.region";
+
         // AWS Attributes
         public override string AttributeAWSSNSTopicArn => "aws.sns.topic.arn";
 

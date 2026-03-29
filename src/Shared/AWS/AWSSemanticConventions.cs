@@ -440,6 +440,10 @@ internal partial class AWSSemanticConventions
         /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeGenAiSystem"/>
         public Activity? SetTagAttributeGenAiSystemToBedrock(Activity? activity)
             => this.awsSemanticConventions.SetTag(activity, x => x.AttributeGenAiSystem, x => x.AttributeAWSBedrock);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeCloudRegion"/>
+        public Activity? SetTagAttributeCloudRegion(Activity? activity, object? value)
+            => this.awsSemanticConventions.SetTag(activity, x => x.AttributeCloudRegion, value);
         #endregion
 
         #region Http

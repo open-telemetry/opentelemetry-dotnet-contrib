@@ -196,6 +196,12 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         {
             this.awsSemanticConventions.TagBuilder.SetTagAttributeGenAiSystemToBedrock(activity);
         }
+
+        var region = requestContext.ClientConfig?.RegionEndpoint?.SystemName;
+        if (!string.IsNullOrEmpty(region))
+        {
+            this.awsSemanticConventions.TagBuilder.SetTagAttributeCloudRegion(activity, region);
+        }
     }
 
     private void ProcessEndRequest(Activity? activity, IExecutionContext executionContext)

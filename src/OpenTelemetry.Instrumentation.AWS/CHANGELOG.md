@@ -11,6 +11,9 @@
 * Capture SNS `TopicArn` as the `aws.sns.topic.arn` span attribute.
   ([#4043](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4043))
 
+* Add `cloud.region` attribute to all AWS SDK client spans.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 1.15.0
 
 Released 2026-Jan-21

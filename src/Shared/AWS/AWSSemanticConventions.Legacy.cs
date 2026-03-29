@@ -27,7 +27,6 @@ internal partial class AWSSemanticConventions
         public override string AttributeCloudAvailabilityZone => "cloud.availability_zone";
         public override string AttributeCloudPlatform => "cloud.platform";
         public override string AttributeCloudProvider => "cloud.provider";
-        public override string AttributeCloudRegion => "cloud.region";
         public override string AttributeCloudResourceId => "cloud.resource_id";
         public override string CloudPlatformValuesAwsEc2 => "aws_ec2";
         public override string CloudPlatformValuesAwsEcs => "aws_ecs";

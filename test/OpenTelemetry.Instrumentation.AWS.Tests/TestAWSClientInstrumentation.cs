@@ -730,6 +730,7 @@ public class TestAWSClientInstrumentation
         Assert.Equal("aws-api", Utils.GetTagValue(ddb_activity, "rpc.system"));
         Assert.Equal("DynamoDB", Utils.GetTagValue(ddb_activity, "rpc.service"));
         Assert.Equal("Scan", Utils.GetTagValue(ddb_activity, "rpc.method"));
+        Assert.Equal("us-east-1", Utils.GetTagValue(ddb_activity, "cloud.region"));
     }
 
     private void ValidateSqsActivityTags(Activity sqs_activity)
@@ -739,6 +740,7 @@ public class TestAWSClientInstrumentation
         Assert.Equal("aws-api", Utils.GetTagValue(sqs_activity, "rpc.system"));
         Assert.Equal("SQS", Utils.GetTagValue(sqs_activity, "rpc.service"));
         Assert.Equal("SendMessage", Utils.GetTagValue(sqs_activity, "rpc.method"));
+        Assert.Equal("us-east-1", Utils.GetTagValue(sqs_activity, "cloud.region"));
     }
 
     private void ValidateSnsActivityTags(Activity sns_activity)
@@ -757,6 +759,7 @@ public class TestAWSClientInstrumentation
         Assert.Equal("aws-api", Utils.GetTagValue(bedrock_activity, "rpc.system"));
         Assert.Equal("Bedrock", Utils.GetTagValue(bedrock_activity, "rpc.service"));
         Assert.Equal("GetGuardrail", Utils.GetTagValue(bedrock_activity, "rpc.method"));
+        Assert.Equal("us-east-1", Utils.GetTagValue(bedrock_activity, "cloud.region"));
     }
 
     private void ValidateBedrockRuntimeActivityTags(Activity bedrock_activity)
@@ -767,6 +770,7 @@ public class TestAWSClientInstrumentation
         Assert.Equal("aws-api", Utils.GetTagValue(bedrock_activity, "rpc.system"));
         Assert.Equal("Bedrock Runtime", Utils.GetTagValue(bedrock_activity, "rpc.service"));
         Assert.Equal("InvokeModel", Utils.GetTagValue(bedrock_activity, "rpc.method"));
+        Assert.Equal("us-east-1", Utils.GetTagValue(bedrock_activity, "cloud.region"));
     }
 
     private void ValidateBedrockAgentAgentOpsActivityTags(Activity bedrock_activity)
@@ -776,6 +780,7 @@ public class TestAWSClientInstrumentation
         Assert.Equal("aws-api", Utils.GetTagValue(bedrock_activity, "rpc.system"));
         Assert.Equal("Bedrock Agent", Utils.GetTagValue(bedrock_activity, "rpc.service"));
         Assert.Equal("GetAgent", Utils.GetTagValue(bedrock_activity, "rpc.method"));
+        Assert.Equal("us-east-1", Utils.GetTagValue(bedrock_activity, "cloud.region"));
     }
 
     private void ValidateBedrockAgentKnowledgeBaseOpsActivityTags(Activity bedrock_activity)
@@ -785,6 +790,7 @@ public class TestAWSClientInstrumentation
         Assert.Equal("aws-api", Utils.GetTagValue(bedrock_activity, "rpc.system"));
         Assert.Equal("Bedrock Agent", Utils.GetTagValue(bedrock_activity, "rpc.service"));
         Assert.Equal("GetKnowledgeBase", Utils.GetTagValue(bedrock_activity, "rpc.method"));
+        Assert.Equal("us-east-1", Utils.GetTagValue(bedrock_activity, "cloud.region"));
     }
 
     private void ValidateBedrockAgentDataSourceOpsActivityTags(Activity bedrock_activity)
@@ -794,6 +800,7 @@ public class TestAWSClientInstrumentation
         Assert.Equal("aws-api", Utils.GetTagValue(bedrock_activity, "rpc.system"));
         Assert.Equal("Bedrock Agent", Utils.GetTagValue(bedrock_activity, "rpc.service"));
         Assert.Equal("GetDataSource", Utils.GetTagValue(bedrock_activity, "rpc.method"));
+        Assert.Equal("us-east-1", Utils.GetTagValue(bedrock_activity, "cloud.region"));
     }
 
     private void ValidateBedrockAgentRuntimeAgentOpsActivityTags(Activity bedrock_activity)
@@ -803,6 +810,7 @@ public class TestAWSClientInstrumentation
         Assert.Equal("aws-api", Utils.GetTagValue(bedrock_activity, "rpc.system"));
         Assert.Equal("Bedrock Agent Runtime", Utils.GetTagValue(bedrock_activity, "rpc.service"));
         Assert.Equal("InvokeAgent", Utils.GetTagValue(bedrock_activity, "rpc.method"));
+        Assert.Equal("us-east-1", Utils.GetTagValue(bedrock_activity, "cloud.region"));
     }
 
     private void ValidateBedrockAgentRuntimeKnowledgeBaseOpsActivityTags(Activity bedrock_activity)
@@ -812,6 +820,7 @@ public class TestAWSClientInstrumentation
         Assert.Equal("aws-api", Utils.GetTagValue(bedrock_activity, "rpc.system"));
         Assert.Equal("Bedrock Agent Runtime", Utils.GetTagValue(bedrock_activity, "rpc.service"));
         Assert.Equal("Retrieve", Utils.GetTagValue(bedrock_activity, "rpc.method"));
+        Assert.Equal("us-east-1", Utils.GetTagValue(bedrock_activity, "cloud.region"));
     }
 
     private void ValidateS3ActivityTags(Activity s3_activity)
