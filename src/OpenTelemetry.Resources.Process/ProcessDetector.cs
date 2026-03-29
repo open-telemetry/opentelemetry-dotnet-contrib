@@ -20,6 +20,7 @@ internal sealed class ProcessDetector : IResourceDetector
         GetProcessAttributes(
             out int processId,
             out DateTime? creationTime,
+            out string? processPath,
             out string? title);
 
         var attributes = new List<KeyValuePair<string, object>>(8)
@@ -40,9 +41,7 @@ internal sealed class ProcessDetector : IResourceDetector
         }
 
 #if NET
-        string? processPath = Environment.ProcessPath;
-#else
-        string? processPath = null;
+        processPath ??= Environment.ProcessPath;
 #endif
 
         // We only set the count to avoid the need to implement redaction.
@@ -87,12 +86,14 @@ internal sealed class ProcessDetector : IResourceDetector
         static void GetProcessAttributes(
             out int processId,
             out DateTime? creationTime,
+            out string? processPath,
             out string? title)
         {
             using var process = CurrentProcess.GetCurrentProcess();
             processId = process.Id;
 
             creationTime = SafeGet(process, (p) => p.StartTime);
+            processPath = SafeGet(process, (p) => p.MainModule?.FileName);
             title = SafeGet(process, (p) => p.MainWindowTitle);
 
             static T? SafeGet<T>(CurrentProcess process, Func<CurrentProcess, T> getter)
