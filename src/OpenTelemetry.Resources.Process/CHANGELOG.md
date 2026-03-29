@@ -9,7 +9,7 @@
   `process.command`, `process.creation.time`,
   `process.executable.path`, `process.title` and
   `process.working_directory`.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#4036](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4036))
 
 ## 1.15.0-beta.1
 
