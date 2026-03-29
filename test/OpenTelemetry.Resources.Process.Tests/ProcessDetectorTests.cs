@@ -14,11 +14,17 @@ public class ProcessDetectorTests
 
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
 
+        Assert.IsType<long>(resourceAttributes[ProcessSemanticConventions.AttributeProcessArgsCount]);
+        Assert.IsType<string>(resourceAttributes[ProcessSemanticConventions.AttributeProcessCommand]);
+        Assert.IsType<string>(resourceAttributes[ProcessSemanticConventions.AttributeProcessCreationTime]);
+        Assert.IsType<string>(resourceAttributes[ProcessSemanticConventions.AttributeProcessExecutablePath]);
         Assert.IsType<string>(resourceAttributes[ProcessSemanticConventions.AttributeProcessOwner]);
         Assert.IsType<long>(resourceAttributes[ProcessSemanticConventions.AttributeProcessPid]);
-        Assert.IsType<string>(resourceAttributes[ProcessSemanticConventions.AttributeProcessExecutablePath]);
-        Assert.IsType<long>(resourceAttributes[ProcessSemanticConventions.AttributeProcessArgsCount]);
+        Assert.IsType<string>(resourceAttributes[ProcessSemanticConventions.AttributeProcessWorkingDirectory]);
 
-        Assert.Equal(4, resourceAttributes.Count);
+        if (resourceAttributes.TryGetValue(ProcessSemanticConventions.AttributeProcessTitle, out var title))
+        {
+            Assert.IsType<string>(title);
+        }
     }
 }

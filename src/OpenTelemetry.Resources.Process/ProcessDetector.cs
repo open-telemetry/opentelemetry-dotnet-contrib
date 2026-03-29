@@ -1,6 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Globalization;
+using CurrentProcess = System.Diagnostics.Process;
+
 namespace OpenTelemetry.Resources.Process;
 
 /// <summary>
@@ -14,15 +17,33 @@ internal sealed class ProcessDetector : IResourceDetector
     /// <returns>Resource with key-value pairs of resource attributes.</returns>
     public Resource Detect()
     {
-        var attributes = new List<KeyValuePair<string, object>>(4)
+        GetProcessAttributes(
+            out int processId,
+            out DateTime? creationTime,
+            out string? title);
+
+        var attributes = new List<KeyValuePair<string, object>>(8)
         {
             new(ProcessSemanticConventions.AttributeProcessOwner, Environment.UserName),
-#if NET
-            new(ProcessSemanticConventions.AttributeProcessPid, Environment.ProcessId),
-#else
-            new(ProcessSemanticConventions.AttributeProcessPid, (long)GetProcessPid()),
-#endif
+            new(ProcessSemanticConventions.AttributeProcessPid, processId),
+            new(ProcessSemanticConventions.AttributeProcessWorkingDirectory, Environment.CurrentDirectory),
         };
+
+        if (creationTime is { } startTime)
+        {
+            attributes.Add(new(ProcessSemanticConventions.AttributeProcessCreationTime, startTime.ToString("O", CultureInfo.InvariantCulture)));
+        }
+
+        if (title is { Length: > 0 })
+        {
+            attributes.Add(new(ProcessSemanticConventions.AttributeProcessTitle, title));
+        }
+
+#if NET
+        string? processPath = Environment.ProcessPath;
+#else
+        string? processPath = null;
+#endif
 
         // We only set the count to avoid the need to implement redaction.
         // See https://github.com/open-telemetry/semantic-conventions/blob/v1.40.0/docs/resource/process.md#selecting-process-attributes.
@@ -30,12 +51,23 @@ internal sealed class ProcessDetector : IResourceDetector
 
         if (commandArgs.Length > 0)
         {
-            attributes.Add(new(ProcessSemanticConventions.AttributeProcessExecutablePath, commandArgs[0]));
+#if NET
+            processPath ??= commandArgs[0];
+#else
+            processPath = commandArgs[0];
+#endif
+
+            attributes.Add(new(ProcessSemanticConventions.AttributeProcessCommand, commandArgs[0]));
 
             // Do not count the executable path as an argument
             int count = commandArgs.Length - 1;
 
             attributes.Add(new(ProcessSemanticConventions.AttributeProcessArgsCount, count));
+        }
+
+        if (!string.IsNullOrEmpty(processPath))
+        {
+            attributes.Add(new(ProcessSemanticConventions.AttributeProcessExecutablePath, commandArgs[0]));
         }
 
         return new Resource(attributes);
@@ -52,12 +84,28 @@ internal sealed class ProcessDetector : IResourceDetector
             }
         }
 
-#if !NET
-        static int GetProcessPid()
+        static void GetProcessAttributes(
+            out int processId,
+            out DateTime? creationTime,
+            out string? title)
         {
-            using var process = System.Diagnostics.Process.GetCurrentProcess();
-            return process.Id;
+            using var process = CurrentProcess.GetCurrentProcess();
+            processId = process.Id;
+
+            creationTime = SafeGet(process, (p) => p.StartTime);
+            title = SafeGet(process, (p) => p.MainWindowTitle);
+
+            static T? SafeGet<T>(CurrentProcess process, Func<CurrentProcess, T> getter)
+            {
+                try
+                {
+                    return getter(process);
+                }
+                catch (Exception)
+                {
+                    return default;
+                }
+            }
         }
-#endif
     }
 }
