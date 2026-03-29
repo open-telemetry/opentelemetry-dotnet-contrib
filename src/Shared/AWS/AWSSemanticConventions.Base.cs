@@ -317,6 +317,11 @@ internal partial class AWSSemanticConventions
         public virtual string AttributeAWSSQSQueueUrl => string.Empty;
 
         /// <summary>
+        /// The ARN of the Amazon SNS topic the message is published to.
+        /// </summary>
+        public virtual string AttributeAWSSNSTopicArn => string.Empty;
+
+        /// <summary>
         /// Not yet incorporated in Semantic Conventions repository.
         /// </summary>
         public virtual string AttributeAWSBedrockAgentId => string.Empty;

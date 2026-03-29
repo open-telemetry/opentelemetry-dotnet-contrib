@@ -14,6 +14,7 @@ using Amazon.BedrockRuntime.Model;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using Amazon.Runtime;
+using Amazon.SimpleNotificationService;
 using Amazon.SQS;
 using Amazon.SQS.Model;
 using OpenTelemetry.Instrumentation.AWS.Tests.Tools;
@@ -295,6 +296,61 @@ public class TestAWSClientInstrumentation
         Assert.Contains(
             send_msg_req.MessageAttributes,
             kv => kv.Key == "Custom" && kv.Value.StringValue == "Value");
+    }
+
+    [Fact]
+#if NETFRAMEWORK
+    public void TestSNSPublishSuccessful()
+#else
+    public async Task TestSNSPublishSuccessful()
+#endif
+    {
+        var exportedItems = new List<Activity>();
+
+        var parent = new Activity("parent").Start();
+        var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+
+        using (Sdk.CreateTracerProviderBuilder()
+                  .AddXRayTraceId()
+                  .SetSampler(new AlwaysOnSampler())
+                  .AddAWSInstrumentation(o => o.SemanticConventionVersion = SemanticConventionVersion.Latest)
+                  .AddInMemoryExporter(exportedItems)
+                  .Build())
+        {
+            var sns = new AmazonSimpleNotificationServiceClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+            var dummyResponse = """
+                <PublishResponse xmlns="https://sns.amazonaws.com/doc/2010-03-31/">
+                  <PublishResult>
+                    <MessageId>567910cd-659e-55d4-bc19-f29d9g3b2378</MessageId>
+                  </PublishResult>
+                  <ResponseMetadata>
+                    <RequestId>fakerequ-esti-dfak-ereq-uestidfakere</RequestId>
+                  </ResponseMetadata>
+                </PublishResponse>
+                """;
+            CustomResponses.SetResponse(sns, dummyResponse, requestId, true);
+            var publishRequest = new Amazon.SimpleNotificationService.Model.PublishRequest
+            {
+                TopicArn = "arn:aws:sns:us-east-1:123456789:MyTestTopic",
+                Message = "Hello from OT",
+            };
+#if NETFRAMEWORK
+            sns.Publish(publishRequest);
+#else
+            await sns.PublishAsync(publishRequest);
+#endif
+        }
+
+        Assert.NotEmpty(exportedItems);
+
+        var activity = exportedItems.FirstOrDefault(e => e.DisplayName == "SNS.Publish");
+        Assert.NotNull(activity);
+
+        this.ValidateAWSActivity(activity, parent);
+        this.ValidateSnsActivityTags(activity);
+
+        Assert.Equal(ActivityStatusCode.Unset, activity.Status);
+        Assert.Equal(requestId, Utils.GetTagValue(activity, "aws.request_id"));
     }
 
     [Fact]
@@ -679,10 +735,19 @@ public class TestAWSClientInstrumentation
     private void ValidateSqsActivityTags(Activity sqs_activity)
     {
         Assert.Equal("SQS.SendMessage", sqs_activity.DisplayName);
-        Assert.Equal("https://sqs.us-east-1.amazonaws.com/123456789/MyTestQueue", Utils.GetTagValue(sqs_activity, "aws.queue_url"));
+        Assert.Equal("https://sqs.us-east-1.amazonaws.com/123456789/MyTestQueue", Utils.GetTagValue(sqs_activity, "aws.sqs.queue.url"));
         Assert.Equal("aws-api", Utils.GetTagValue(sqs_activity, "rpc.system"));
         Assert.Equal("SQS", Utils.GetTagValue(sqs_activity, "rpc.service"));
         Assert.Equal("SendMessage", Utils.GetTagValue(sqs_activity, "rpc.method"));
+    }
+
+    private void ValidateSnsActivityTags(Activity sns_activity)
+    {
+        Assert.Equal("SNS.Publish", sns_activity.DisplayName);
+        Assert.Equal("arn:aws:sns:us-east-1:123456789:MyTestTopic", Utils.GetTagValue(sns_activity, "aws.sns.topic.arn"));
+        Assert.Equal("aws-api", Utils.GetTagValue(sns_activity, "rpc.system"));
+        Assert.Equal("SNS", Utils.GetTagValue(sns_activity, "rpc.service"));
+        Assert.Equal("Publish", Utils.GetTagValue(sns_activity, "rpc.method"));
     }
 
     private void ValidateBedrockActivityTags(Activity bedrock_activity)

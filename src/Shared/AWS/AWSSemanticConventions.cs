@@ -133,6 +133,10 @@ internal partial class AWSSemanticConventions
         public ParameterMappingBuilderImpl AddAttributeAWSSQSQueueUrl(string value)
             => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSSQSQueueUrl, value);
 
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSSNSTopicArn"/>
+        public ParameterMappingBuilderImpl AddAttributeAWSSNSTopicArn(string value)
+            => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSSNSTopicArn, value);
+
         /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeGenAiModelId"/>
         public ParameterMappingBuilderImpl AddAttributeGenAiModelId(string value)
             => this.awsSemanticConventions.AddDic(this, x => x.AttributeGenAiModelId, value);
@@ -508,7 +512,8 @@ internal partial class AWSSemanticConventions
 
     private AWSSemanticConventions_V1_28_0 GetSemanticConventionVersion() => this.semanticConventionVersion switch
     {
-        SemanticConventionVersion.Latest or SemanticConventionVersion.V1_29_0 => new AWSSemanticConventions_V1_29_0(),
+        SemanticConventionVersion.Latest or SemanticConventionVersion.V1_34_0 => new AWSSemanticConventions_V1_34_0(),
+        SemanticConventionVersion.V1_29_0 => new AWSSemanticConventions_V1_29_0(),
         SemanticConventionVersion.V1_28_0 => new AWSSemanticConventions_V1_28_0(),
         _ => throw new InvalidEnumArgumentException(
                 argumentName: nameof(SemanticConventionVersion),

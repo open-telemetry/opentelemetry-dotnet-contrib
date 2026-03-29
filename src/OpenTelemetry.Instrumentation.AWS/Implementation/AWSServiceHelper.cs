@@ -14,6 +14,7 @@ internal class AWSServiceHelper
             semanticConventions
                 .ParameterMappingBuilder
                 .AddAttributeAWSDynamoTableName("TableName")
+                .AddAttributeAWSSNSTopicArn("TopicArn")
                 .AddAttributeAWSSQSQueueUrl("QueueUrl")
                 .AddAttributeGenAiModelId("ModelId")
                 .AddAttributeAWSBedrockAgentId("AgentId")
@@ -31,6 +32,7 @@ internal class AWSServiceHelper
     {
         { AWSServiceType.DynamoDbService, ["TableName"] },
         { AWSServiceType.S3Service, ["BucketName", "Key"] },
+        { AWSServiceType.SNSService, ["TopicArn"] },
         { AWSServiceType.SQSService, ["QueueUrl"] },
         { AWSServiceType.BedrockAgentService, ["AgentId", "KnowledgeBaseId", "DataSourceId"] },
         { AWSServiceType.BedrockAgentRuntimeService, ["AgentId", "KnowledgeBaseId"] },
