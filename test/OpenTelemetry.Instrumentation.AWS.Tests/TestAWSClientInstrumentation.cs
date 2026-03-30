@@ -24,6 +24,8 @@ namespace OpenTelemetry.Instrumentation.AWS.Tests;
 
 public class TestAWSClientInstrumentation
 {
+    private static readonly string[] ExpectedDynamoTableNames = ["SampleProduct"];
+
     [Fact]
 #if NETFRAMEWORK
     public void TestDDBScanSuccessful()
@@ -609,6 +611,55 @@ public class TestAWSClientInstrumentation
         Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
     }
 
+    [Fact]
+#if NETFRAMEWORK
+    public void TestS3PutObjectSuccessful()
+#else
+    public async Task TestS3PutObjectSuccessful()
+#endif
+    {
+        var exportedItems = new List<Activity>();
+
+        var parent = new Activity("parent").Start();
+        var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .SetSampler(new AlwaysOnSampler())
+                   .AddXRayTraceId()
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
+                   .AddInMemoryExporter(exportedItems)
+                   .Build())
+        {
+            var s3 = new Amazon.S3.AmazonS3Client(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+            CustomResponses.SetResponse(s3, "{}", requestId, true);
+            var putRequest = new Amazon.S3.Model.PutObjectRequest
+            {
+                BucketName = "my-test-bucket",
+                Key = "test-key",
+                ContentBody = "test content",
+            };
+#if NETFRAMEWORK
+            s3.PutObject(putRequest);
+#else
+            await s3.PutObjectAsync(putRequest);
+#endif
+        }
+
+        Assert.NotEmpty(exportedItems);
+
+        var awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "S3.PutObject");
+        Assert.NotNull(awssdk_activity);
+
+        this.ValidateAWSActivity(awssdk_activity, parent);
+        this.ValidateS3ActivityTags(awssdk_activity);
+
+        Assert.Equal(ActivityStatusCode.Unset, awssdk_activity.Status);
+        Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
+    }
+
     private void ValidateAWSActivity(Activity aws_activity, Activity parent)
     {
         Assert.Equal(parent.SpanId, aws_activity.ParentSpanId);
@@ -618,7 +669,7 @@ public class TestAWSClientInstrumentation
     private void ValidateDynamoActivityTags(Activity ddb_activity)
     {
         Assert.Equal("DynamoDB.Scan", ddb_activity.DisplayName);
-        Assert.Equal("SampleProduct", Utils.GetTagValue(ddb_activity, "aws.dynamodb.table_names"));
+        Assert.Equal(ExpectedDynamoTableNames, Utils.GetTagValue(ddb_activity, "aws.dynamodb.table_names"));
         Assert.Equal("dynamodb", Utils.GetTagValue(ddb_activity, "db.system"));
         Assert.Equal("aws-api", Utils.GetTagValue(ddb_activity, "rpc.system"));
         Assert.Equal("DynamoDB", Utils.GetTagValue(ddb_activity, "rpc.service"));
@@ -696,5 +747,15 @@ public class TestAWSClientInstrumentation
         Assert.Equal("aws-api", Utils.GetTagValue(bedrock_activity, "rpc.system"));
         Assert.Equal("Bedrock Agent Runtime", Utils.GetTagValue(bedrock_activity, "rpc.service"));
         Assert.Equal("Retrieve", Utils.GetTagValue(bedrock_activity, "rpc.method"));
+    }
+
+    private void ValidateS3ActivityTags(Activity s3_activity)
+    {
+        Assert.Equal("S3.PutObject", s3_activity.DisplayName);
+        Assert.Equal("my-test-bucket", Utils.GetTagValue(s3_activity, "aws.s3.bucket"));
+        Assert.Equal("test-key", Utils.GetTagValue(s3_activity, "aws.s3.key"));
+        Assert.Equal("aws-api", Utils.GetTagValue(s3_activity, "rpc.system"));
+        Assert.Equal("S3", Utils.GetTagValue(s3_activity, "rpc.service"));
+        Assert.Equal("PutObject", Utils.GetTagValue(s3_activity, "rpc.method"));
     }
 }
