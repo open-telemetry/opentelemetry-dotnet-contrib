@@ -76,7 +76,6 @@ distribution-points:
   - pkg:nuget/OpenTelemetry.Resources.Process
   - pkg:nuget/OpenTelemetry.Resources.ProcessRuntime
   - pkg:nuget/OpenTelemetry.Sampler.AWS
-  - pkg:nuget/OpenTelemetry.Sampler.Probability
 
 security-artifacts:
   threat-model:
