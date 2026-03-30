@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+* Updated OpenTelemetry core component version(s) to `1.15.1`.
+  ([#4020](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4020))
+
+* Custom metric tags are now exported.
+  ([#4014](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4014))
+  
 * Export histogram bucket counts as cumulative values instead of delta values
   in `TelegrafPrometheusWriterV2` to fix the "histogram records counts are not
   monotonic" error in InfluxDB.

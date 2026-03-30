@@ -477,6 +477,46 @@ public class InfluxDBMetricsExporterTests
         Assert.DoesNotContain("histogram_metric_max", pointData.Fields);
     }
 
+    [Theory]
+    [InlineData(MetricsSchema.TelegrafPrometheusV1, "test-gauge", "gauge")]
+    [InlineData(MetricsSchema.TelegrafPrometheusV2, "prometheus", "test-gauge")]
+    public void ExportMetricWithMeterTags(MetricsSchema metricsSchema, string measurement, string valueKey)
+    {
+        // Arrange
+        using var influxServer = new InfluxDBFakeServer();
+        var influxServerEndpoint = influxServer.Endpoint;
+
+        using var meter = new Meter(
+            "test-meter-with-tags",
+            "1.0",
+            new List<KeyValuePair<string, object?>> { new("MeterTag", "MeterValue") });
+
+        using var provider = Sdk.CreateMeterProviderBuilder()
+            .AddMeter(meter.Name)
+            .ConfigureDefaultTestResource()
+            .AddInfluxDBMetricsExporter(options =>
+            {
+                options.WithDefaultTestConfiguration();
+                options.Endpoint = influxServerEndpoint;
+                options.MetricsSchema = metricsSchema;
+            })
+            .Build();
+
+        // Act
+        _ = meter.CreateObservableGauge("test-gauge", () => new[]
+        {
+            new Measurement<int>(42),
+        });
+
+        provider.ForceFlush();
+
+        // Assert
+        var dataPoint = influxServer.ReadPoint();
+        Assert.Equal(measurement, dataPoint.Measurement);
+        AssertUtils.HasField(valueKey, 42L, dataPoint.Fields);
+        AssertUtils.HasTag("MeterTag", "MeterValue", 0, dataPoint.Tags);
+    }
+
     private static void AssertTags(PointData dataPoint)
     {
         Assert.Equal(9, dataPoint.Tags.Count);

@@ -132,8 +132,8 @@
     "httpMethod": "GET",
     "path": "/",
     "expectedStatusCode": 200,
-    "currentHttpRoute": "",
-    "expectedHttpRoute": "/Index"
+    "expectedHttpRoute": "/Index",
+    "expectedMetricRoute": ""
   },
   {
     "name": "Root path",
@@ -142,7 +142,6 @@
     "httpMethod": "GET",
     "path": "/",
     "expectedStatusCode": 200,
-    "currentHttpRoute": "",
     "expectedHttpRoute": "/Index",
     "expectedMetricRoute": "/"
   },

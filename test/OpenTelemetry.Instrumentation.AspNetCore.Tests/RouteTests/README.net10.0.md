@@ -20,7 +20,7 @@
 | :green_heart: | AttributeRouting | [Action with parameter](#activity__attributerouting-action-with-parameter) |
 | :green_heart: | AttributeRouting | [Action with parameter before action name in template](#activity__attributerouting-action-with-parameter-before-action-name-in-template) |
 | :green_heart: | AttributeRouting | [Action invoked resulting in 400 Bad Request](#activity__attributerouting-action-invoked-resulting-in-400-bad-request) |
-| :broken_heart: | RazorPages | [Root path](#activity__razorpages-root-path) |
+| :green_heart: | RazorPages | [Root path](#activity__razorpages-root-path) |
 | :broken_heart: | RazorPages | [Index page](#activity__razorpages-index-page) |
 | :broken_heart: | RazorPages | [Throws exception](#activity__razorpages-throws-exception) |
 | :green_heart: | RazorPages | [Static content](#activity__razorpages-static-content) |
@@ -48,7 +48,7 @@
 | :green_heart: | AttributeRouting | [Action with parameter](#metrics__attributerouting-action-with-parameter) |
 | :green_heart: | AttributeRouting | [Action with parameter before action name in template](#metrics__attributerouting-action-with-parameter-before-action-name-in-template) |
 | :green_heart: | AttributeRouting | [Action invoked resulting in 400 Bad Request](#metrics__attributerouting-action-invoked-resulting-in-400-bad-request) |
-| :broken_heart: | RazorPages | [Root path](#metrics__razorpages-root-path) |
+| :green_heart: | RazorPages | [Root path](#metrics__razorpages-root-path) |
 | :broken_heart: | RazorPages | [Index page](#metrics__razorpages-index-page) |
 | :broken_heart: | RazorPages | [Throws exception](#metrics__razorpages-throws-exception) |
 | :green_heart: | RazorPages | [Static content](#metrics__razorpages-static-content) |
@@ -473,8 +473,8 @@
 
 ```json
 {
-  "ActivityDisplayName": "GET",
-  "ActivityHttpRoute": "",
+  "ActivityDisplayName": "GET /Index",
+  "ActivityHttpRoute": "/Index",
   "IdealHttpRoute": "/Index",
   "RouteInfo": {
     "HttpMethod": "GET",
