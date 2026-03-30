@@ -20,9 +20,9 @@ public class EventCountersMetricsTests
         Metric? metric;
 
         using (var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddEventCountersInstrumentation(options => options.AddEventSources(source.Name))
-            .AddInMemoryExporter(exported)
-            .Build())
+                                      .AddEventCountersInstrumentation(options => options.AddEventSources(source.Name))
+                                      .AddInMemoryExporter(exported)
+                                      .Build())
         {
             // Act
             counter.WriteMetric(1997.0202);
@@ -46,9 +46,9 @@ public class EventCountersMetricsTests
         Metric? metric;
 
         using (var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddEventCountersInstrumentation(options => options.AddEventSources(source.Name))
-            .AddInMemoryExporter(metricItems)
-            .Build())
+                                      .AddEventCountersInstrumentation(options => options.AddEventSources(source.Name))
+                                      .AddInMemoryExporter(metricItems)
+                                      .Build())
         {
             // Act
             incCounter.Increment(1);
@@ -76,9 +76,9 @@ public class EventCountersMetricsTests
         Metric? metric;
 
         using (var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddEventCountersInstrumentation(options => options.AddEventSources(source.Name))
-            .AddInMemoryExporter(metricItems)
-            .Build())
+                                      .AddEventCountersInstrumentation(options => options.AddEventSources(source.Name))
+                                      .AddInMemoryExporter(metricItems)
+                                      .Build())
         {
             // Act
             metric = AwaitExport(meterProvider, metricItems, expectedInstrumentName: "ec.c.poll-c");
@@ -102,9 +102,9 @@ public class EventCountersMetricsTests
         Metric? metric;
 
         using (var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddEventCountersInstrumentation(options => options.AddEventSources(source.Name))
-            .AddInMemoryExporter(metricItems)
-            .Build())
+                                      .AddEventCountersInstrumentation(options => options.AddEventSources(source.Name))
+                                      .AddInMemoryExporter(metricItems)
+                                      .Build())
         {
             // Act
             metric = AwaitExport(meterProvider, metricItems, expectedInstrumentName: "ec.d.inc-poll-c");
@@ -147,9 +147,9 @@ public class EventCountersMetricsTests
         Metric? metric;
 
         using (var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddEventCountersInstrumentation(options => options.AddEventSources(source.Name))
-            .AddInMemoryExporter(metricItems)
-            .Build())
+                                      .AddEventCountersInstrumentation(options => options.AddEventSources(source.Name))
+                                      .AddInMemoryExporter(metricItems)
+                                      .Build())
         {
             // Act
             connections.Increment(1);
@@ -173,9 +173,9 @@ public class EventCountersMetricsTests
         using IncrementingEventCounter connections = new(veryLongEventName, source);
 
         using (var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddEventCountersInstrumentation(options => options.AddEventSources(source.Name))
-            .AddInMemoryExporter(metricItems)
-            .Build())
+                                      .AddEventCountersInstrumentation(options => options.AddEventSources(source.Name))
+                                      .AddInMemoryExporter(metricItems)
+                                      .Build())
         {
             // Act
             connections.Increment(1);
@@ -211,13 +211,13 @@ public class EventCountersMetricsTests
         Metric? configuredMetric;
 
         using (var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddEventCountersInstrumentation(options =>
-            {
-                options.AddEventSources(configuredSource.Name);
-                options.RefreshIntervalSecs = 1;
-            })
-            .AddInMemoryExporter(metrics)
-            .Build())
+                                      .AddEventCountersInstrumentation(options =>
+                                      {
+                                          options.AddEventSources(configuredSource.Name);
+                                          options.RefreshIntervalSecs = 1;
+                                      })
+                                      .AddInMemoryExporter(metrics)
+                                      .Build())
         {
             // Act: write to both sources
             configuredCounter.Increment(1);

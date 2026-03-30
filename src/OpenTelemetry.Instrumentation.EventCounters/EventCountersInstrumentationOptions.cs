@@ -36,7 +36,5 @@ public class EventCountersInstrumentationOptions
     /// <param name="eventSourceName">The EventSource name.</param>
     /// <returns><c>true</c> when an EventSource with the name <paramref name="eventSourceName"/> should be enabled.</returns>
     internal bool ShouldListenToSource(string eventSourceName)
-    {
-        return this.EventSourceNames.Contains(eventSourceName);
-    }
+        => this.EventSourceNames.Contains(eventSourceName);
 }
