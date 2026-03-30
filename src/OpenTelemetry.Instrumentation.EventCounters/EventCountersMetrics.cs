@@ -80,7 +80,7 @@ internal sealed class EventCountersMetrics : EventListener
 
             // DO NOT clear the ConcurrentDictionary instances as some other thread executing the OnEventWritten callback might be using them
             this.enabledEventSources.Clear();
-            this.options.EventSourceNames.Clear();
+            this.options.ClearEventSources();
         }
 
         base.Dispose();
