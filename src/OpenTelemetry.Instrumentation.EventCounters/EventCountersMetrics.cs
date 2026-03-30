@@ -195,9 +195,7 @@ internal sealed class EventCountersMetrics : EventListener
     }
 
     private void EnableEvents(EventSource eventSource)
-    {
-        this.EnableEvents(eventSource, EventLevel.Critical, EventKeywords.None, GetEnableEventsArguments(this.options));
-    }
+        => this.EnableEvents(eventSource, EventLevel.Critical, EventKeywords.None, GetEnableEventsArguments(this.options));
 
     private void UpdateInstrumentWithEvent(bool isGauge, string eventSourceName, string name, double value)
     {
