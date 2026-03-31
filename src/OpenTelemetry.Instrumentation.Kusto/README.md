@@ -18,5 +18,5 @@ and collects telemetry about Kusto operations.
 
 * [OpenTelemetry Project](https://opentelemetry.io/)
 * [Azure Data Explorer (Kusto)](https://docs.microsoft.com/azure/data-explorer/)
-* [OpenTelemetry semantic conventions for database spans](https://github.com/open-telemetry/semantic-conventions/blob/v1.36.0/docs/database/database-spans.md)
-* [OpenTelemetry semantic conventions for database metrics](https://github.com/open-telemetry/semantic-conventions/blob/v1.36.0/docs/database/database-metrics.md)
+* [OpenTelemetry semantic conventions for database spans](https://github.com/open-telemetry/semantic-conventions/blob/v1.40.0/docs/db/database-spans.md)
+* [OpenTelemetry semantic conventions for database metrics](https://github.com/open-telemetry/semantic-conventions/blob/v1.40.0/docs/db/database-metrics.md)
