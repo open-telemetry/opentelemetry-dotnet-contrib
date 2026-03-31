@@ -6,7 +6,8 @@
     <Description>OpenTelemetry Kusto Instrumentation.</Description>
     <PackageTags>$(PackageTags);Kusto;AzureDataExplorer</PackageTags>
     <MinVerTagPrefix>Instrumentation.Kusto-</MinVerTagPrefix>
-    <!-- Disable signing because Microsoft.Azure.Kusto.Language is not signed -->
+    <!-- Disable signing because Microsoft.Azure.Kusto.Language is not signed.
+    TODO: Revisit if https://github.com/microsoft/Kusto-Query-Language/issues/189 is fixed. -->
     <SignAssembly>false</SignAssembly>
   </PropertyGroup>
 
