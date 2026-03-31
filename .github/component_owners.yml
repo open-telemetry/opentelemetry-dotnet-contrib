@@ -53,7 +53,6 @@ components:
     - fred2u
   src/OpenTelemetry.Instrumentation.Kusto/:
     - MattKotsenas
-    - rajkumar-rangaraj
   src/OpenTelemetry.Instrumentation.Process/:
     - Yun-Ting
   src/OpenTelemetry.Instrumentation.Quartz/:
@@ -156,7 +155,6 @@ components:
     - fred2u
   test/OpenTelemetry.Instrumentation.Kusto.Tests/:
     - MattKotsenas
-    - rajkumar-rangaraj
   test/OpenTelemetry.Instrumentation.Quartz.Tests/:
     - maldago
   test/OpenTelemetry.Instrumentation.Remoting.Tests/:
