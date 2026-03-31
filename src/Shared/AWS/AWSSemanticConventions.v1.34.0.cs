@@ -22,8 +22,12 @@ internal partial class AWSSemanticConventions
         public override string AttributeCloudRegion => "cloud.region";
 
         // AWS Attributes
+        public override string AttributeAWSExtendedRequestId => "aws.extended_request_id";
         public override string AttributeAWSSNSTopicArn => "aws.sns.topic.arn";
-
         public override string AttributeAWSSQSQueueUrl => "aws.sqs.queue.url";
+
+        // RPC Attributes
+        public override string AttributeRpcService => "rpc.method";
+        public override string AttributeRpcSystemName => "rpc.system.name";
     }
 }

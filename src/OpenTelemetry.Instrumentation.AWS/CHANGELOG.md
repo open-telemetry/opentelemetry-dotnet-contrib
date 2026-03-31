@@ -12,7 +12,10 @@
   ([#4043](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4043))
 
 * Add `cloud.region` attribute to all AWS SDK client spans.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#4043](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4043))
+
+* BREAKING: Update latest AWS Semantic Conventions to 1.40.0.
+  ([#4043](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4043))
 
 ## 1.15.0
 

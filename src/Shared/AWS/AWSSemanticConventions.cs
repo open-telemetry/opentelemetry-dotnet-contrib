@@ -444,6 +444,10 @@ internal partial class AWSSemanticConventions
         /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeCloudRegion"/>
         public Activity? SetTagAttributeCloudRegion(Activity? activity, object? value)
             => this.awsSemanticConventions.SetTag(activity, x => x.AttributeCloudRegion, value);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeCloudRegion"/>
+        public Activity? SetTagAttributeAWSExtendedRequestId(Activity? activity, object? value)
+            => this.awsSemanticConventions.SetTag(activity, x => x.AttributeAWSExtendedRequestId, value);
         #endregion
 
         #region Http
@@ -456,6 +460,11 @@ internal partial class AWSSemanticConventions
         /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeHttpResponseStatusCode"/>
         public Activity? SetTagAttributeHttpResponseStatusCode(Activity? activity, int value)
             => this.awsSemanticConventions.SetTag(activity, x => x.AttributeHttpResponseStatusCode, value);
+        #endregion
+
+        #region RPC
+        public Activity? SetTagAttributeRpcSystemName(Activity? activity)
+            => this.awsSemanticConventions.SetTag(activity, x => x.AttributeRpcSystemName, x => x.AttributeRpcSystemNameValue);
         #endregion
     }
 

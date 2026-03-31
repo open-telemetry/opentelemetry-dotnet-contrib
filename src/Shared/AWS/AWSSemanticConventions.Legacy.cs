@@ -102,6 +102,11 @@ internal partial class AWSSemanticConventions
         // K8s Attributes
         public override string AttributeK8SClusterName => "k8s.cluster.name";
 
+        // RPC Attributes
+        public override string AttributeRpcService => "rpc.service";
+        public override string AttributeRpcSystemName => "rpc.system";
+        public override string AttributeRpcSystemNameValue => "aws-api";
+
         // SERVICE Attributes
         public override string AttributeServiceName => "service.name";
         public override string AttributeServiceNamespace => "service.namespace";

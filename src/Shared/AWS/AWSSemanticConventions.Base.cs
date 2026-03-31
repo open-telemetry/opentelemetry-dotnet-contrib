@@ -356,6 +356,11 @@ internal partial class AWSSemanticConventions
         /// </summary>
         public virtual string AttributeAWSS3Key => string.Empty;
 
+        /// <summary>
+        /// The AWS extended request ID as returned in the response header <c>x-amz-id-2</c>.
+        /// </summary>
+        public virtual string AttributeAWSExtendedRequestId => string.Empty;
+
         #endregion
 
         #region FAAS Attributes
@@ -628,6 +633,25 @@ internal partial class AWSSemanticConventions
         /// </remarks>
         [Obsolete("Replaced by <c>server.port</c>.")]
         public virtual string AttributeNetHostPort => string.Empty;
+
+        #endregion
+
+        #region SERVER Attributes
+
+        /// <summary>
+        /// The name of the operation corresponding to the request, as returned by the AWS SDK.
+        /// </summary>
+        public virtual string AttributeRpcService => string.Empty;
+
+        /// <summary>
+        /// The Remote Procedure Call (RPC) system.
+        /// </summary>
+        public virtual string AttributeRpcSystemName => string.Empty;
+
+        /// <summary>
+        /// The Remote Procedure Call (RPC) system value for AWS.
+        /// </summary>
+        public virtual string AttributeRpcSystemNameValue => string.Empty;
 
         #endregion
 

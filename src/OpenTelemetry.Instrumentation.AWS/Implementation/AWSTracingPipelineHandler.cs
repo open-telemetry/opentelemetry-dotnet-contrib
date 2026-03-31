@@ -5,6 +5,7 @@ using System.Diagnostics;
 using Amazon.Runtime;
 using Amazon.Runtime.Internal;
 using Amazon.Runtime.Telemetry;
+using Amazon.Util;
 using OpenTelemetry.AWS;
 using OpenTelemetry.Context.Propagation;
 
@@ -72,6 +73,11 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
     {
         var service = executionContext.RequestContext.ServiceMetaData.ServiceId;
         var responseContext = executionContext.ResponseContext;
+
+        if (responseContext.HttpResponse.IsHeaderPresent(HeaderKeys.XAmzId2Header))
+        {
+            this.awsSemanticConventions.TagBuilder.SetTagAttributeAWSExtendedRequestId(activity, responseContext.HttpResponse.GetHeaderValue(HeaderKeys.XAmzId2Header));
+        }
 
         if (AWSServiceHelper.ServiceResponseParameterMap.TryGetValue(service, out var parameters))
         {
@@ -202,6 +208,8 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         {
             this.awsSemanticConventions.TagBuilder.SetTagAttributeCloudRegion(activity, region);
         }
+
+        this.awsSemanticConventions.TagBuilder.SetTagAttributeRpcSystemName(activity);
     }
 
     private void ProcessEndRequest(Activity? activity, IExecutionContext executionContext)
