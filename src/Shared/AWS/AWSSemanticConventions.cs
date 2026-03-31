@@ -525,7 +525,7 @@ internal partial class AWSSemanticConventions
 
     private AWSSemanticConventions_V1_28_0 GetSemanticConventionVersion() => this.semanticConventionVersion switch
     {
-        SemanticConventionVersion.Latest or SemanticConventionVersion.V1_34_0 => new AWSSemanticConventions_V1_34_0(),
+        SemanticConventionVersion.Latest or SemanticConventionVersion.V1_40_0 => new AWSSemanticConventions_V1_40_0(),
         SemanticConventionVersion.V1_29_0 => new AWSSemanticConventions_V1_29_0(),
         SemanticConventionVersion.V1_28_0 => new AWSSemanticConventions_V1_28_0(),
         _ => throw new InvalidEnumArgumentException(

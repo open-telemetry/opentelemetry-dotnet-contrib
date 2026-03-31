@@ -699,6 +699,7 @@ public class TestAWSClientInstrumentation
 
         var parent = new Activity("parent").Start();
         var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+        var extendedRequestId = @"wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .SetSampler(new AlwaysOnSampler())
@@ -711,7 +712,7 @@ public class TestAWSClientInstrumentation
                    .Build())
         {
             var s3 = new Amazon.S3.AmazonS3Client(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            CustomResponses.SetResponse(s3, "{}", requestId, true);
+            CustomResponses.SetResponse(s3, "{}", requestId, extendedRequestId, true);
             var putRequest = new Amazon.S3.Model.PutObjectRequest
             {
                 BucketName = "my-test-bucket",
@@ -735,6 +736,7 @@ public class TestAWSClientInstrumentation
 
         Assert.Equal(ActivityStatusCode.Unset, awssdk_activity.Status);
         Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
+        Assert.Equal(extendedRequestId, Utils.GetTagValue(awssdk_activity, "aws.extended_request_id"));
     }
 
     private void ValidateAWSActivity(Activity aws_activity, Activity parent)

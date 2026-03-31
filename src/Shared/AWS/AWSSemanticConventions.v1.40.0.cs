@@ -13,10 +13,10 @@ namespace OpenTelemetry.AWS;
 internal partial class AWSSemanticConventions
 {
     /// <summary>
-    /// Open Telemetry Semantic Conventions as of 1.34.0:
-    /// https://github.com/open-telemetry/semantic-conventions/releases/tag/v1.34.0.
+    /// Open Telemetry Semantic Conventions as of 1.40.0:
+    /// https://github.com/open-telemetry/semantic-conventions/releases/tag/v1.40.0.
     /// </summary>
-    private class AWSSemanticConventions_V1_34_0 : AWSSemanticConventions_V1_29_0
+    private class AWSSemanticConventions_V1_40_0 : AWSSemanticConventions_V1_29_0
     {
         // CLOUD Attributes
         public override string AttributeCloudRegion => "cloud.region";
