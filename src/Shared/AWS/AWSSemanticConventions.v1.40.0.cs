@@ -29,7 +29,6 @@ internal partial class AWSSemanticConventions
         public override string AttributeAWSSQSQueueUrl => "aws.sqs.queue.url";
 
         // MESSAGING Attributes
-
         public override string AttributeMessagingDestinationName => "messaging.destination.name";
         public override string AttributeMessagingMessageId => "messaging.message.id";
         public override string AttributeMessagingOperationName => "messaging.operation.name";
