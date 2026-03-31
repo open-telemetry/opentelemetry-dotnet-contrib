@@ -164,6 +164,10 @@ internal partial class AWSSemanticConventions
         /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSS3Key"/>
         public ParameterMappingBuilderImpl AddAttributeAWSS3Key(string value)
             => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSS3Key, value);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeMessagingMessageId"/>
+        public ParameterMappingBuilderImpl AddAttributeMessageId(string value)
+            => this.awsSemanticConventions.AddDic(this, x => x.AttributeMessagingMessageId, value);
         #endregion
     }
 
@@ -448,6 +452,14 @@ internal partial class AWSSemanticConventions
         /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeCloudRegion"/>
         public Activity? SetTagAttributeAWSExtendedRequestId(Activity? activity, object? value)
             => this.awsSemanticConventions.SetTag(activity, x => x.AttributeAWSExtendedRequestId, value);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeGenAiSystem"/>
+        public Activity? SetTagAttributeMessagingSystemToSns(Activity? activity)
+            => this.awsSemanticConventions.SetTag(activity, x => x.AttributeMessagingSystem, x => x.AttributeAWSSNS);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeGenAiSystem"/>
+        public Activity? SetTagAttributeMessagingSystemToSqs(Activity? activity)
+            => this.awsSemanticConventions.SetTag(activity, x => x.AttributeMessagingSystem, x => x.AttributeAWSSQS);
         #endregion
 
         #region Http
@@ -460,6 +472,22 @@ internal partial class AWSSemanticConventions
         /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeHttpResponseStatusCode"/>
         public Activity? SetTagAttributeHttpResponseStatusCode(Activity? activity, int value)
             => this.awsSemanticConventions.SetTag(activity, x => x.AttributeHttpResponseStatusCode, value);
+        #endregion
+
+        #region Messaging
+
+        public Activity? SetTagAttributeMessagingDestinationName(Activity? activity, string value)
+            => this.awsSemanticConventions.SetTag(activity, x => x.AttributeMessagingDestinationName, value);
+
+        public Activity? SetTagAttributeMessagingMessageId(Activity? activity, string value)
+            => this.awsSemanticConventions.SetTag(activity, x => x.AttributeMessagingMessageId, value);
+
+        public Activity? SetTagAttributeMessagingOperationName(Activity? activity, string value)
+            => this.awsSemanticConventions.SetTag(activity, x => x.AttributeMessagingOperationName, value);
+
+        public Activity? SetTagAttributeMessagingOperationType(Activity? activity, string value)
+            => this.awsSemanticConventions.SetTag(activity, x => x.AttributeMessagingOperationType, value);
+
         #endregion
 
         #region RPC

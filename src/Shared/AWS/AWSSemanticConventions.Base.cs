@@ -312,12 +312,24 @@ internal partial class AWSSemanticConventions
         public virtual IReadOnlyCollection<string> ArrayValueAttributeNames { get; } = [];
 
         /// <summary>
-        /// Not yet incorporated in Semantic Conventions repository.
+        /// The messaging system as identified by the client instrumentation for AWS SQS.
+        /// </summary>
+        public virtual string AttributeAWSSQS => string.Empty;
+
+        /// <summary>
+        /// The URL of the AWS SQS Queue. It's a unique identifier for a queue in
+        /// Amazon Simple Queue Service (SQS) and is used to access the queue and perform actions on it.
         /// </summary>
         public virtual string AttributeAWSSQSQueueUrl => string.Empty;
 
         /// <summary>
-        /// The ARN of the Amazon SNS topic the message is published to.
+        /// The messaging system as identified by the client instrumentation for AWS SNS.
+        /// </summary>
+        public virtual string AttributeAWSSNS => string.Empty;
+
+        /// <summary>
+        /// The ARN of the AWS SNS Topic. An Amazon SNS topic is a logical
+        /// access point that acts as a communication channel.
         /// </summary>
         public virtual string AttributeAWSSNSTopicArn => string.Empty;
 
@@ -611,6 +623,35 @@ internal partial class AWSSemanticConventions
         /// HttpAttributes.AttributeHttpRequestMethod
         /// </remarks>
         public virtual string AttributeHttpRequestMethod => string.Empty;
+
+        #endregion
+
+        #region MESSAGING Attributes
+
+        /// <summary>
+        /// The message destination name.
+        /// </summary>
+        public virtual string AttributeMessagingDestinationName => string.Empty;
+
+        /// <summary>
+        /// A value used by the messaging system as an identifier for the message, represented as a string.
+        /// </summary>
+        public virtual string AttributeMessagingMessageId => string.Empty;
+
+        /// <summary>
+        /// The system-specific name of the messaging operation.
+        /// </summary>
+        public virtual string AttributeMessagingOperationName => string.Empty;
+
+        /// <summary>
+        /// A string identifying the type of the messaging operation.
+        /// </summary>
+        public virtual string AttributeMessagingOperationType => string.Empty;
+
+        /// <summary>
+        /// The messaging system as identified by the client instrumentation.
+        /// </summary>
+        public virtual string AttributeMessagingSystem => string.Empty;
 
         #endregion
 

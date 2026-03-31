@@ -23,8 +23,18 @@ internal partial class AWSSemanticConventions
 
         // AWS Attributes
         public override string AttributeAWSExtendedRequestId => "aws.extended_request_id";
+        public override string AttributeAWSSNS => "aws.sns";
         public override string AttributeAWSSNSTopicArn => "aws.sns.topic.arn";
+        public override string AttributeAWSSQS => "aws_sqs";
         public override string AttributeAWSSQSQueueUrl => "aws.sqs.queue.url";
+
+        // MESSAGING Attributes
+
+        public override string AttributeMessagingDestinationName => "messaging.destination.name";
+        public override string AttributeMessagingMessageId => "messaging.message.id";
+        public override string AttributeMessagingOperationName => "messaging.operation.name";
+        public override string AttributeMessagingOperationType => "messaging.operation.type";
+        public override string AttributeMessagingSystem => "messaging.system";
 
         // RPC Attributes
         public override string AttributeRpcService => "rpc.method";

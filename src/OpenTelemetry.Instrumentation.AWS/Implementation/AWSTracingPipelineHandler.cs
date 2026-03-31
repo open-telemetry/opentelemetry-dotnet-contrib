@@ -202,6 +202,53 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         {
             this.awsSemanticConventions.TagBuilder.SetTagAttributeGenAiSystemToBedrock(activity);
         }
+        else if (AWSServiceType.IsSnsService(service))
+        {
+            // See https://github.com/open-telemetry/semantic-conventions/blob/v1.40.0/docs/messaging/sns.md
+            this.awsSemanticConventions.TagBuilder.SetTagAttributeMessagingSystemToSns(activity);
+
+            var topicArn = activity.GetTagItem("aws.sns.topic.arn");
+
+            if (topicArn is string arn && arn.Split(':').LastOrDefault() is { Length: > 0 } topicName)
+            {
+                this.awsSemanticConventions.TagBuilder.SetTagAttributeMessagingDestinationName(activity, topicName);
+            }
+
+            var operationName = AWSServiceHelper.GetAWSOperationName(requestContext);
+            this.awsSemanticConventions.TagBuilder.SetTagAttributeMessagingOperationName(activity, operationName);
+
+            if (AWSServiceHelper.MessagingOperationTypeMap.TryGetValue(AWSServiceType.SNSService, out var map) &&
+                map.TryGetValue(operationName, out var operationType))
+            {
+                this.awsSemanticConventions.TagBuilder.SetTagAttributeMessagingOperationType(activity, operationType);
+            }
+        }
+        else if (AWSServiceType.IsSqsService(service))
+        {
+            // See https://github.com/open-telemetry/semantic-conventions/blob/v1.40.0/docs/messaging/sqs.md
+            this.awsSemanticConventions.TagBuilder.SetTagAttributeMessagingSystemToSqs(activity);
+
+            var queueUrl = activity.GetTagItem("aws.sqs.queue.url");
+
+            if (queueUrl is string url && Uri.TryCreate(url, UriKind.Absolute, out var uri))
+            {
+                activity.SetTag("server.address", uri.Host);
+
+                if (uri.GetLeftPart(UriPartial.Path).Split('/').LastOrDefault() is { Length: > 0 } queueName)
+                {
+                    this.awsSemanticConventions.TagBuilder.SetTagAttributeMessagingDestinationName(activity, queueName);
+                }
+            }
+
+            var operationName = AWSServiceHelper.GetAWSOperationName(requestContext);
+            this.awsSemanticConventions.TagBuilder.SetTagAttributeMessagingOperationName(activity, operationName);
+
+            if (AWSServiceHelper.MessagingOperationTypeMap.TryGetValue(AWSServiceType.SQSService, out var map) &&
+                map.TryGetValue(operationName, out var operationType))
+            {
+                this.awsSemanticConventions.TagBuilder.SetTagAttributeMessagingOperationType(activity, operationType);
+            }
+        }
 
         var region = requestContext.ClientConfig?.RegionEndpoint?.SystemName;
         if (!string.IsNullOrEmpty(region))

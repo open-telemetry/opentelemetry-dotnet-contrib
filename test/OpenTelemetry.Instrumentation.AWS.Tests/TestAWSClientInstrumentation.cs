@@ -215,7 +215,12 @@ public class TestAWSClientInstrumentation
                    .Build())
         {
             var sqs = new AmazonSQSClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            var dummyResponse = "{}";
+            var dummyResponse =
+                """
+                {
+                  "MessageId": "567910cd-659e-55d4-bc19-f29d9g3b2378",
+                }
+                """;
             CustomResponses.SetResponse(sqs, dummyResponse, requestId, extendedRequestId, true);
             send_msg_req = new SendMessageRequest
             {
@@ -277,7 +282,12 @@ public class TestAWSClientInstrumentation
                    .Build())
         {
             var sqs = new AmazonSQSClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            var dummyResponse = "{}";
+            var dummyResponse =
+                """
+                {
+                  "MessageId": "567910cd-659e-55d4-bc19-f29d9g3b2378",
+                }
+                """;
             CustomResponses.SetResponse(sqs, dummyResponse, requestId, extendedRequestId, true);
             send_msg_req = new SendMessageRequest
             {
@@ -764,6 +774,12 @@ public class TestAWSClientInstrumentation
         Assert.Equal("SQS", Utils.GetTagValue(sqs_activity, "rpc.service"));
         Assert.Equal("SendMessage", Utils.GetTagValue(sqs_activity, "rpc.method"));
         Assert.Equal("us-east-1", Utils.GetTagValue(sqs_activity, "cloud.region"));
+        Assert.Equal("MyTestQueue", Utils.GetTagValue(sqs_activity, "messaging.destination.name"));
+        Assert.Equal("567910cd-659e-55d4-bc19-f29d9g3b2378", Utils.GetTagValue(sqs_activity, "messaging.message.id"));
+        Assert.Equal("SendMessage", Utils.GetTagValue(sqs_activity, "messaging.operation.name"));
+        Assert.Equal("send", Utils.GetTagValue(sqs_activity, "messaging.operation.type"));
+        Assert.Equal("sqs.us-east-1.amazonaws.com", Utils.GetTagValue(sqs_activity, "server.address"));
+        Assert.Equal("aws_sqs", Utils.GetTagValue(sqs_activity, "messaging.system"));
     }
 
     private void ValidateSnsActivityTags(Activity sns_activity)
@@ -773,6 +789,11 @@ public class TestAWSClientInstrumentation
         Assert.Equal("aws-api", Utils.GetTagValue(sns_activity, "rpc.system.name"));
         Assert.Equal("SNS", Utils.GetTagValue(sns_activity, "rpc.service"));
         Assert.Equal("Publish", Utils.GetTagValue(sns_activity, "rpc.method"));
+        Assert.Equal("MyTestTopic", Utils.GetTagValue(sns_activity, "messaging.destination.name"));
+        Assert.Equal("567910cd-659e-55d4-bc19-f29d9g3b2378", Utils.GetTagValue(sns_activity, "messaging.message.id"));
+        Assert.Equal("Publish", Utils.GetTagValue(sns_activity, "messaging.operation.name"));
+        Assert.Equal("send", Utils.GetTagValue(sns_activity, "messaging.operation.type"));
+        Assert.Equal("aws.sns", Utils.GetTagValue(sns_activity, "messaging.system"));
     }
 
     private void ValidateBedrockActivityTags(Activity bedrock_activity)
