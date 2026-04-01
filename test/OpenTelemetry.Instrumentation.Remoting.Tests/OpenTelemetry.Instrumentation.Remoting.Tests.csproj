@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
+    <TargetFrameworks Condition="$(OS) != 'Windows_NT'">$(NetMinimumSupportedVersion)</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -10,6 +11,11 @@
 
   <ItemGroup>
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.Remoting\OpenTelemetry.Instrumentation.Remoting.csproj" />
+  </ItemGroup>
+
+  <!-- Remove all the test on non-Windows platforms since remoting is only supported for .NET Framework -->
+  <ItemGroup Condition="$(OS) != 'Windows_NT'">
+    <Compile Remove="**/*" />
   </ItemGroup>
 
 </Project>
