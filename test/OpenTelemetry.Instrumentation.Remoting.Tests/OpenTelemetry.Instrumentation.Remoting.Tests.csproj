@@ -13,7 +13,7 @@
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.Remoting\OpenTelemetry.Instrumentation.Remoting.csproj" />
   </ItemGroup>
 
-  <!-- Remove all the test on non-Windows platforms since remoting is only supported for .NET Framework -->
+  <!-- Remove all the tests on non-Windows platforms since remoting is only supported for .NET Framework -->
   <ItemGroup Condition="$(OS) != 'Windows_NT'">
     <Compile Remove="**/*.cs" />
   </ItemGroup>
