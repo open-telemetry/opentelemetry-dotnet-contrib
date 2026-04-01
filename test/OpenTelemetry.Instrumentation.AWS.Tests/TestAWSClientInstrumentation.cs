@@ -218,7 +218,7 @@ public class TestAWSClientInstrumentation
             var dummyResponse =
                 """
                 {
-                  "MessageId": "567910cd-659e-55d4-bc19-f29d9g3b2378",
+                  "MessageId": "567910cd-659e-55d4-bc19-f29d9g3b2378"
                 }
                 """;
             CustomResponses.SetResponse(sqs, dummyResponse, requestId, extendedRequestId, true);
@@ -285,7 +285,7 @@ public class TestAWSClientInstrumentation
             var dummyResponse =
                 """
                 {
-                  "MessageId": "567910cd-659e-55d4-bc19-f29d9g3b2378",
+                  "MessageId": "567910cd-659e-55d4-bc19-f29d9g3b2378"
                 }
                 """;
             CustomResponses.SetResponse(sqs, dummyResponse, requestId, extendedRequestId, true);

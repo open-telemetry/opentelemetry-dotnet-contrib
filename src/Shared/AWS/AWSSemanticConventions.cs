@@ -449,7 +449,7 @@ internal partial class AWSSemanticConventions
         public Activity? SetTagAttributeCloudRegion(Activity? activity, object? value)
             => this.awsSemanticConventions.SetTag(activity, x => x.AttributeCloudRegion, value);
 
-        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeCloudRegion"/>
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSExtendedRequestId"/>
         public Activity? SetTagAttributeAWSExtendedRequestId(Activity? activity, object? value)
             => this.awsSemanticConventions.SetTag(activity, x => x.AttributeAWSExtendedRequestId, value);
 
