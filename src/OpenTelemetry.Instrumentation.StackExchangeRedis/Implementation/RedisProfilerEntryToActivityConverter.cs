@@ -240,9 +240,13 @@ internal static class RedisProfilerEntryToActivityConverter
 #endif
             {
                 var methodName = classType.FullName + ".get_" + field.Name;
+#if NET8_0
 #pragma warning disable IL3050 // Avoid calling members annotated with 'RequiresDynamicCodeAttribute' when publishing as Native AOT
+#endif
                 var getterMethod = new DynamicMethod(methodName, typeof(TField), [typeof(object)], true);
+#if NET8_0
 #pragma warning restore IL3050 // Avoid calling members annotated with 'RequiresDynamicCodeAttribute' when publishing as Native AOT
+#endif
                 var generator = getterMethod.GetILGenerator();
                 generator.Emit(OpCodes.Ldarg_0);
                 generator.Emit(OpCodes.Castclass, classType);
