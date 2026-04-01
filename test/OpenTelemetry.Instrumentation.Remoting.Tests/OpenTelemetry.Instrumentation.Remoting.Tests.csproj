@@ -15,7 +15,7 @@
 
   <!-- Remove all the test on non-Windows platforms since remoting is only supported for .NET Framework -->
   <ItemGroup Condition="$(OS) != 'Windows_NT'">
-    <Compile Remove="**/*" />
+    <Compile Remove="**/*.cs" />
   </ItemGroup>
 
 </Project>
