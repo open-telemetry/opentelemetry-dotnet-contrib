@@ -148,8 +148,8 @@ NuGet are attested using [GitHub Artifact attestations](https://docs.github.com/
 To verify the attestation of a DLL inside a NuGet package use the [GitHub CLI](https://cli.github.com/).
 
 For example:
-
-```bash
+```
+bash
 gh attestation verify --owner open-telemetry .\OpenTelemetry.Instrumentation.Http.dll
 ```
 
