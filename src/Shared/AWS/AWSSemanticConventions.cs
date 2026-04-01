@@ -152,6 +152,14 @@ internal partial class AWSSemanticConventions
         /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSBedrockKnowledgeBaseId"/>
         public ParameterMappingBuilderImpl AddAttributeAWSBedrockKnowledgeBaseId(string value)
             => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSBedrockKnowledgeBaseId, value);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSS3BucketName"/>
+        public ParameterMappingBuilderImpl AddAttributeAWSS3BucketName(string value)
+            => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSS3BucketName, value);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSS3Key"/>
+        public ParameterMappingBuilderImpl AddAttributeAWSS3Key(string value)
+            => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSS3Key, value);
         #endregion
     }
 

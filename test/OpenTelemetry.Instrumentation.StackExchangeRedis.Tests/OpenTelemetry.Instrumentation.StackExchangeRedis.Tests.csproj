@@ -22,6 +22,7 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" />
+    <PackageReference Include="StackExchange.Redis" VersionOverride="2.12.8" />
   </ItemGroup>
 
 </Project>

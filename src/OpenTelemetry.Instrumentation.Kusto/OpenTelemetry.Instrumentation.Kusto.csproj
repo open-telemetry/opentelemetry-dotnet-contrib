@@ -3,12 +3,12 @@
   <PropertyGroup>
     <TargetFrameworks>$(TargetFrameworksForLibraries)</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
-    <Description>OpenTelemetry .NET SDK preview features and extensions.</Description>
-    <MinVerTagPrefix>Extensions-</MinVerTagPrefix>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETCoreApp'">
-    <IsAotCompatible>true</IsAotCompatible>
+    <Description>OpenTelemetry Kusto Instrumentation.</Description>
+    <PackageTags>$(PackageTags);Kusto;AzureDataExplorer</PackageTags>
+    <MinVerTagPrefix>Instrumentation.Kusto-</MinVerTagPrefix>
+    <!-- Disable signing because Microsoft.Azure.Kusto.Language is not signed.
+    TODO: Revisit if https://github.com/microsoft/Kusto-Query-Language/issues/189 is fixed. -->
+    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
 
   <!-- Do not run Package Baseline Validation as this package has never released a stable version.
@@ -16,14 +16,5 @@
   <PropertyGroup>
     <DisablePackageBaselineValidation>true</DisablePackageBaselineValidation>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Include="$(RepoRoot)\src\Shared\ExceptionExtensions.cs" Link="Includes\ExceptionExtensions.cs" />
-    <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="OpenTelemetry" />
-  </ItemGroup>
 
 </Project>

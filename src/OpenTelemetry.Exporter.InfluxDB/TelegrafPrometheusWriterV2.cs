@@ -144,14 +144,18 @@ internal sealed class TelegrafPrometheusWriterV2 : IMetricsWriter
 
                     writeApi.WritePoint(headPoint);
 
+                    long cumulativeCount = 0;
+
                     foreach (var histogramBucket in metricPoint.GetHistogramBuckets())
                     {
+                        cumulativeCount += histogramBucket.BucketCount;
+
                         var boundFieldKey = double.IsPositiveInfinity(histogramBucket.ExplicitBound)
                             ? "+Inf"
                             : histogramBucket.ExplicitBound.ToString("F", CultureInfo.InvariantCulture);
                         var bucketPoint = basePoint
                             .Tag("le", boundFieldKey)
-                            .Field($"{metricName}_bucket", histogramBucket.BucketCount);
+                            .Field($"{metricName}_bucket", cumulativeCount);
                         writeApi.WritePoint(bucketPoint);
                     }
                 }

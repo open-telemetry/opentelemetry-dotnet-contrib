@@ -341,6 +341,16 @@ internal partial class AWSSemanticConventions
         /// </summary>
         public virtual string AttributeAWSBedrock => string.Empty;
 
+        /// <summary>
+        /// The name of the S3 bucket the request targets.
+        /// </summary>
+        public virtual string AttributeAWSS3BucketName => string.Empty;
+
+        /// <summary>
+        /// The name of the S3 key the request targets.
+        /// </summary>
+        public virtual string AttributeAWSS3Key => string.Empty;
+
         #endregion
 
         #region FAAS Attributes

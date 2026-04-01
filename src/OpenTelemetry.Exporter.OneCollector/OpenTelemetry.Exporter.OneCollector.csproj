@@ -17,6 +17,10 @@
     <AssemblyIsCLSCompliant>false</AssemblyIsCLSCompliant>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETCoreApp'">
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" />
   </ItemGroup>
