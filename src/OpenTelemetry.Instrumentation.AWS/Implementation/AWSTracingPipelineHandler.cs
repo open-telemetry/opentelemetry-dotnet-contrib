@@ -209,9 +209,9 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
 
             var topicArn = activity.GetTagItem("aws.sns.topic.arn");
 
-            if (topicArn is string arn && arn.Split(':').LastOrDefault() is { Length: > 0 } topicName)
+            if (topicArn is string arn && TryGetLastSplitItem(arn, ':', out var topicName))
             {
-                this.awsSemanticConventions.TagBuilder.SetTagAttributeMessagingDestinationName(activity, topicName);
+                this.awsSemanticConventions.TagBuilder.SetTagAttributeMessagingDestinationName(activity, topicName!);
             }
 
             var operationName = AWSServiceHelper.GetAWSOperationName(requestContext);
@@ -234,9 +234,9 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
             {
                 activity.SetTag("server.address", uri.Host);
 
-                if (uri.GetLeftPart(UriPartial.Path).Split('/').LastOrDefault() is { Length: > 0 } queueName)
+                if (uri.GetLeftPart(UriPartial.Path) is { Length: > 0 } path && TryGetLastSplitItem(path, '/', out var queueName))
                 {
-                    this.awsSemanticConventions.TagBuilder.SetTagAttributeMessagingDestinationName(activity, queueName);
+                    this.awsSemanticConventions.TagBuilder.SetTagAttributeMessagingDestinationName(activity, queueName!);
                 }
             }
 
@@ -257,6 +257,33 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         }
 
         this.awsSemanticConventions.TagBuilder.SetTagAttributeRpcSystemName(activity);
+
+        static bool TryGetLastSplitItem(
+            string value,
+            char delimiter,
+#if NET
+            [System.Diagnostics.CodeAnalysis.NotNullWhen(true)]
+#endif
+            out string? lastItem)
+        {
+            lastItem = null;
+            bool result = false;
+
+            int index = value.LastIndexOf(delimiter);
+
+            if (index > -1 && index < value.Length - 1)
+            {
+#if NET
+                lastItem = value[(index + 1)..];
+#else
+                lastItem = value.Substring(index + 1);
+#endif
+
+                result = true;
+            }
+
+            return result;
+        }
     }
 
     private void ProcessEndRequest(Activity? activity, IExecutionContext executionContext)
