@@ -8,6 +8,7 @@ permissions: {}
 
 jobs:
   submit-nuget:
+    if: github.event.repository.fork == false
     runs-on: windows-latest
     timeout-minutes: 10
 
