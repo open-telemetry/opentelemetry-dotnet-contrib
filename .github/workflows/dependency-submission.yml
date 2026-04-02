@@ -34,6 +34,6 @@ jobs:
         uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5.2.0
 
       - name: Component detection
-        uses: advanced-security/component-detection-dependency-submission-action@b876b8cc341a53970394b33ea0ca4e86c25542de # v0.1.3
+        uses: actions/component-detection-dependency-submission-action@374343effede691df3a5ffaf36b4e7acab919590
         with:
           detectorsCategories: NuGet
