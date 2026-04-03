@@ -5,6 +5,7 @@ using System.Diagnostics;
 using Amazon.Runtime;
 using Amazon.Runtime.Internal;
 using Amazon.Runtime.Telemetry;
+using Amazon.Util;
 using OpenTelemetry.AWS;
 using OpenTelemetry.Context.Propagation;
 
@@ -72,6 +73,11 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
     {
         var service = executionContext.RequestContext.ServiceMetaData.ServiceId;
         var responseContext = executionContext.ResponseContext;
+
+        if (responseContext.HttpResponse.IsHeaderPresent(HeaderKeys.XAmzId2Header))
+        {
+            this.awsSemanticConventions.TagBuilder.SetTagAttributeAWSExtendedRequestId(activity, responseContext.HttpResponse.GetHeaderValue(HeaderKeys.XAmzId2Header));
+        }
 
         if (AWSServiceHelper.ServiceResponseParameterMap.TryGetValue(service, out var parameters))
         {
@@ -195,6 +201,88 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         else if (AWSServiceType.IsBedrockRuntimeService(service))
         {
             this.awsSemanticConventions.TagBuilder.SetTagAttributeGenAiSystemToBedrock(activity);
+        }
+        else if (AWSServiceType.IsSnsService(service))
+        {
+            // See https://github.com/open-telemetry/semantic-conventions/blob/v1.40.0/docs/messaging/sns.md
+            this.awsSemanticConventions.TagBuilder.SetTagAttributeMessagingSystemToSns(activity);
+
+            var topicArn = activity.GetTagItem("aws.sns.topic.arn");
+
+            if (topicArn is string arn && TryGetLastSplitItem(arn, ':', out var topicName))
+            {
+                this.awsSemanticConventions.TagBuilder.SetTagAttributeMessagingDestinationName(activity, topicName!);
+            }
+
+            var operationName = AWSServiceHelper.GetAWSOperationName(requestContext);
+            this.awsSemanticConventions.TagBuilder.SetTagAttributeMessagingOperationName(activity, operationName);
+
+            if (AWSServiceHelper.MessagingOperationTypeMap.TryGetValue(AWSServiceType.SNSService, out var map) &&
+                map.TryGetValue(operationName, out var operationType))
+            {
+                this.awsSemanticConventions.TagBuilder.SetTagAttributeMessagingOperationType(activity, operationType);
+            }
+        }
+        else if (AWSServiceType.IsSqsService(service))
+        {
+            // See https://github.com/open-telemetry/semantic-conventions/blob/v1.40.0/docs/messaging/sqs.md
+            this.awsSemanticConventions.TagBuilder.SetTagAttributeMessagingSystemToSqs(activity);
+
+            var queueUrl = activity.GetTagItem("aws.sqs.queue.url");
+
+            if (queueUrl is string url && Uri.TryCreate(url, UriKind.Absolute, out var uri))
+            {
+                activity.SetTag("server.address", uri.Host);
+
+                if (uri.GetLeftPart(UriPartial.Path) is { Length: > 0 } path && TryGetLastSplitItem(path, '/', out var queueName))
+                {
+                    this.awsSemanticConventions.TagBuilder.SetTagAttributeMessagingDestinationName(activity, queueName!);
+                }
+            }
+
+            var operationName = AWSServiceHelper.GetAWSOperationName(requestContext);
+            this.awsSemanticConventions.TagBuilder.SetTagAttributeMessagingOperationName(activity, operationName);
+
+            if (AWSServiceHelper.MessagingOperationTypeMap.TryGetValue(AWSServiceType.SQSService, out var map) &&
+                map.TryGetValue(operationName, out var operationType))
+            {
+                this.awsSemanticConventions.TagBuilder.SetTagAttributeMessagingOperationType(activity, operationType);
+            }
+        }
+
+        var region = requestContext.ClientConfig?.RegionEndpoint?.SystemName;
+        if (!string.IsNullOrEmpty(region))
+        {
+            this.awsSemanticConventions.TagBuilder.SetTagAttributeCloudRegion(activity, region);
+        }
+
+        this.awsSemanticConventions.TagBuilder.SetTagAttributeRpcSystemName(activity);
+
+        static bool TryGetLastSplitItem(
+            string value,
+            char delimiter,
+#if NET
+            [System.Diagnostics.CodeAnalysis.NotNullWhen(true)]
+#endif
+            out string? lastItem)
+        {
+            lastItem = null;
+            bool result = false;
+
+            int index = value.LastIndexOf(delimiter);
+
+            if (index > -1 && index < value.Length - 1)
+            {
+#if NET
+                lastItem = value[(index + 1)..];
+#else
+                lastItem = value.Substring(index + 1);
+#endif
+
+                result = true;
+            }
+
+            return result;
         }
     }
 
