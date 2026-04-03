@@ -66,7 +66,7 @@ internal sealed class ProcessDetector : IResourceDetector
 
         if (!string.IsNullOrEmpty(processPath))
         {
-            attributes.Add(new(ProcessSemanticConventions.AttributeProcessExecutablePath, commandArgs[0]));
+            attributes.Add(new(ProcessSemanticConventions.AttributeProcessExecutablePath, processPath!));
         }
 
         return new Resource(attributes);
