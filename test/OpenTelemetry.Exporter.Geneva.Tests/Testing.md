@@ -137,7 +137,7 @@ Go into `test/OpenTelemetry.Exporter.Geneva.Tests` folder
 and run the following command in one terminal.
 
 ```bash
-sudo dotnet test --configuration Debug --framework net10.0 --filter SuccessfulUserEventsExport_Linux
+sudo dotnet test --configuration Debug --framework net11.0 --filter SuccessfulUserEventsExport_Linux
 ```
 
 In the other terminal, run the same commands in the above steps. See the

@@ -32,7 +32,7 @@ public sealed class OpAmpClientSettings
     /// </list>
     /// </value>
     public Guid InstanceUid { get; set; }
-#if NET9_0_OR_GREATER
+#if NET
         = Guid.CreateVersion7();
 #else
         = Guid.NewGuid();
