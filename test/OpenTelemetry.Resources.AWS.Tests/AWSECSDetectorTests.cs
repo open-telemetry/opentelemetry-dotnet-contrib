@@ -36,9 +36,7 @@ public class AWSECSDetectorTests
 
     [Fact]
     public void TestGetECSContainerId()
-    {
-        Assert.Equal("a4d00c9dd675d67f866c786181419e1b44832d4696780152e61afd44a3e02856", AWSECSDetector.GetECSContainerId(AWSECSMetadataFilePath));
-    }
+        => Assert.Equal("a4d00c9dd675d67f866c786181419e1b44832d4696780152e61afd44a3e02856", AWSECSDetector.GetECSContainerId(AWSECSMetadataFilePath));
 
     [Fact]
     public void TestEcsMetadataV3()
@@ -89,6 +87,11 @@ public class AWSECSDetectorTests
                 Assert.NotStrictEqual(resourceAttributes[ExpectedSemanticConventions.AttributeLogStreamNames], new string[] { "ecs/curl/8f03e41243824aea923aca126495f665" });
                 Assert.NotStrictEqual(resourceAttributes[ExpectedSemanticConventions.AttributeLogStreamArns], new string[] { "arn:aws:logs:us-west-2:111122223333:log-group:/ecs/metadata:log-stream:ecs/curl/8f03e41243824aea923aca126495f665" });
 #pragma warning restore CA1861 // Avoid constant arrays as arguments
+
+                if (OperatingSystem.IsWindows())
+                {
+                    Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeContainerId], "ea32192c8553fbff06c9340478a2ff089b2bb5646fb718b4ee206641c9086d66");
+                }
             }
         }
     }
@@ -126,6 +129,11 @@ public class AWSECSDetectorTests
                 Assert.NotStrictEqual(resourceAttributes[ExpectedSemanticConventions.AttributeLogStreamNames], new string[] { "ecs/curl/cd189a933e5849daa93386466019ab50" });
                 Assert.NotStrictEqual(resourceAttributes[ExpectedSemanticConventions.AttributeLogStreamArns], new string[] { "arn:aws:logs:us-west-2:111122223333:log-group:/ecs/containerlogs:log-stream:ecs/curl/cd189a933e5849daa93386466019ab50" });
 #pragma warning restore CA1861 // Avoid constant arrays as arguments
+
+                if (OperatingSystem.IsWindows())
+                {
+                    Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeContainerId], "cd189a933e5849daa93386466019ab50-2495160603");
+                }
             }
         }
     }
@@ -187,6 +195,7 @@ public class AWSECSDetectorTests
         public const string AttributeCloudAvailabilityZone = "cloud.availability_zone";
         public const string AttributeCloudRegion = "cloud.region";
         public const string AttributeCloudResourceId = "cloud.resource_id";
+        public const string AttributeContainerId = "container.id";
         public const string AttributeEcsContainerArn = "aws.ecs.container.arn";
         public const string AttributeEcsLaunchtype = "aws.ecs.launchtype";
         public const string AttributeEcsTaskArn = "aws.ecs.task.arn";
