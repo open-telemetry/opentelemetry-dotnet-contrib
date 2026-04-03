@@ -5,6 +5,9 @@
 * Updated OpenTelemetry core component version(s) to `1.15.1`.
   ([#4020](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4020))
 
+* Fix serialization of whole `float`/`double` values.
+  ([#4017](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4017))
+
 ## 1.15.0
 
 Released 2026-Jan-21
