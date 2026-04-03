@@ -1,0 +1,34 @@
+﻿{
+  Activities: [
+    {
+      ActivitySourceName: OpenTelemetry.Instrumentation.Kusto,
+      DisplayName: KD.RestClient.ExecuteQuery,
+      Status: Ok,
+      TagObjects: [
+        {
+          azure.kusto.client_request_id: cHJpbnQgbnVtYmVyPTQy
+        },
+        {
+          db.system.name: azure.kusto
+        },
+        {
+          db.operation.name: KD.RestClient.ExecuteQuery
+        },
+        {
+          server.address: Scrubbed
+        },
+        {
+          server.port: Scrubbed
+        },
+        {
+          db.namespace: NetDefaultDB
+        },
+        {
+          db.query.text: print number=?
+        }
+      ],
+      OperationName: KD.RestClient.ExecuteQuery,
+      IdFormat: W3C
+    }
+  ]
+}
