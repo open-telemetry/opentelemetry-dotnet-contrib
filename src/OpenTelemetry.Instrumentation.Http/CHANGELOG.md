@@ -8,6 +8,9 @@
 * Updated OpenTelemetry core component version(s) to `1.15.1`.
   ([#4020](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4020))
 
+* Fix enrich methods being called multiple times.
+  ([#4018](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4018))
+
 ## 1.15.0
 
 Released 2026-Jan-21
