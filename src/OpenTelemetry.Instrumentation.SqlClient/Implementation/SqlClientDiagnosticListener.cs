@@ -273,11 +273,8 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
         }
     }
 
-    // The SqlClient DiagnosticSource event sources preserve top-level payload properties via
-    // DynamicallyAccessedMembers annotations, ensuring Command, Exception, etc. are not trimmed.
-    // See: https://github.com/dotnet/SqlClient/blob/main/src/Microsoft.Data.SqlClient/src/Microsoft/Data/SqlClient/SqlClientDiagnosticListenerExtensions.cs
 #if NET
-    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "SqlClient DiagnosticSource event sources preserve top-level payload properties via DynamicallyAccessedMembers annotations.")]
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Client application usage will ensure that core types from usage are preserved.")]
 #endif
     private static bool TryFetchCommand(
         PropertyFetcher<IDbCommand> fetcher,
@@ -286,7 +283,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
         => fetcher.TryFetch(payload, out command);
 
 #if NET
-    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "SqlClient DiagnosticSource event sources preserve top-level payload properties via DynamicallyAccessedMembers annotations.")]
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Client application usage will ensure that core types from usage are preserved.")]
 #endif
     private static bool TryFetchException(
         PropertyFetcher<Exception> fetcher,
@@ -295,7 +292,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
         => fetcher.TryFetch(payload, out exception);
 
 #if NET
-    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "SqlException is part of the SqlClient assembly which is rooted by the application; its Number property will not be trimmed.")]
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Client application usage will ensure that core types from usage are preserved.")]
 #endif
     private static bool TryFetchExceptionNumber(
         PropertyFetcher<int> fetcher,
