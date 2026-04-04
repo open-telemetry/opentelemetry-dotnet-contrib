@@ -5,6 +5,9 @@
 * Updated OpenTelemetry core component version(s) to `1.15.1`.
   ([#4020](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4020))
 
+* Add support for native AoT on .NET 8+.
+  ([#4062](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4062))
+
 ## 1.15.1
 
 Released 2026-Mar-04
