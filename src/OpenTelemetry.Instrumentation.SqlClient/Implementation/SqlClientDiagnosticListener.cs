@@ -3,10 +3,9 @@
 
 #if !NETFRAMEWORK
 using System.Data;
+using System.Data.Common;
 using System.Diagnostics;
-#if NET
 using System.Diagnostics.CodeAnalysis;
-#endif
 using System.Globalization;
 #if NET
 using System.Text;
@@ -16,9 +15,6 @@ using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.SqlClient.Implementation;
 
-#if NET
-[RequiresUnreferencedCode(SqlClientInstrumentation.SqlClientTrimmingUnsupportedMessage)]
-#endif
 internal sealed class SqlClientDiagnosticListener : ListenerHandler
 {
     public const string SqlDataBeforeExecuteCommand = "System.Data.SqlClient.WriteCommandBefore";
@@ -35,12 +31,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
     private const string SetContextSql = $"set context_info {ContextInfoParameterName}";
 #endif
 
-    private readonly PropertyFetcher<object> commandFetcher = new("Command");
-    private readonly PropertyFetcher<object> connectionFetcher = new("Connection");
-    private readonly PropertyFetcher<string> dataSourceFetcher = new("DataSource");
-    private readonly PropertyFetcher<string> databaseFetcher = new("Database");
-    private readonly PropertyFetcher<CommandType> commandTypeFetcher = new("CommandType");
-    private readonly PropertyFetcher<string> commandTextFetcher = new("CommandText");
+    private readonly PropertyFetcher<IDbCommand> commandFetcher = new("Command");
     private readonly PropertyFetcher<Exception> exceptionFetcher = new("Exception");
     private readonly PropertyFetcher<int> exceptionNumberFetcher = new("Number");
     private readonly AsyncLocal<long> beginTimestamp = new();
@@ -67,8 +58,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
             case SqlDataBeforeExecuteCommand:
             case SqlMicrosoftBeforeExecuteCommand:
                 {
-                    _ = this.commandFetcher.TryFetch(payload, out var command);
-                    if (command == null)
+                    if (!TryFetchCommand(this.commandFetcher, payload, out var command))
                     {
                         SqlClientInstrumentationEventSource.Log.NullPayload(nameof(SqlClientDiagnosticListener), name);
                         return;
@@ -77,41 +67,40 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 #if NET
                     // skip if this is an injected query
                     if (options.EnableTraceContextPropagation &&
-                        command is IDbCommand { CommandType: CommandType.Text, CommandText: SetContextSql })
+                        command.CommandType is CommandType.Text && command.CommandText == SetContextSql)
                     {
                         return;
                     }
 #endif
 
-                    _ = this.connectionFetcher.TryFetch(command, out var connection);
-                    _ = this.databaseFetcher.TryFetch(connection, out var databaseName);
-                    _ = this.dataSourceFetcher.TryFetch(connection, out var dataSource);
+                    var connection = command.Connection;
+                    var databaseName = connection?.Database;
+                    var dataSource = (connection as DbConnection)?.DataSource;
 
                     var startTags = SqlTelemetryHelper.GetTagListFromConnectionInfo(dataSource, databaseName, out var activityName);
 
-                    if (this.commandTypeFetcher.TryFetch(command, out var commandType) &&
-                        this.commandTextFetcher.TryFetch(command, out var commandText))
+                    var commandType = command.CommandType;
+                    var commandText = command.CommandText;
+
+                    switch (commandType)
                     {
-                        switch (commandType)
-                        {
-                            case CommandType.StoredProcedure:
-                                DatabaseSemanticConventionHelper.AddTagsForSamplingAndUpdateActivityNameForStoredProcedure(
-                                    ref startTags,
-                                    commandText,
-                                    ref activityName);
-                                break;
+                        case CommandType.StoredProcedure:
+                            DatabaseSemanticConventionHelper.AddTagsForSamplingAndUpdateActivityNameForStoredProcedure(
+                                ref startTags,
+                                commandText,
+                                ref activityName);
+                            break;
 
-                            case CommandType.Text:
-                                DatabaseSemanticConventionHelper.AddTagsForSamplingAndUpdateActivityNameForQueryText(
-                                    ref startTags,
-                                    commandText,
-                                    ref activityName);
-                                break;
+                        case CommandType.Text:
+                            DatabaseSemanticConventionHelper.AddTagsForSamplingAndUpdateActivityNameForQueryText(
+                                ref startTags,
+                                commandText,
+                                ref activityName);
+                            break;
 
-                            case CommandType.TableDirect:
-                            default:
-                                break;
-                        }
+                        case CommandType.TableDirect:
+                        default:
+                            break;
                     }
 
                     activity = SqlTelemetryHelper.ActivitySource.StartActivity(
@@ -129,10 +118,10 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
 #if NET
                     if (options.EnableTraceContextPropagation &&
-                        command is IDbCommand { CommandType: CommandType.Text, Connection.State: ConnectionState.Open } iDbCommand)
+                        command.CommandType is CommandType.Text && command.Connection?.State is ConnectionState.Open)
                     {
-                        var setContextCommand = iDbCommand.Connection.CreateCommand();
-                        setContextCommand.Transaction = iDbCommand.Transaction;
+                        var setContextCommand = command.Connection.CreateCommand();
+                        setContextCommand.Transaction = command.Transaction;
                         setContextCommand.CommandText = SetContextSql;
                         setContextCommand.CommandType = CommandType.Text;
                         var parameter = setContextCommand.CreateParameter();
@@ -189,12 +178,12 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
             case SqlDataAfterExecuteCommand:
             case SqlMicrosoftAfterExecuteCommand:
                 {
-                    _ = this.commandFetcher.TryFetch(payload, out var command);
+                    _ = TryFetchCommand(this.commandFetcher, payload, out var command);
 
 #if NET
                     // skip if this is an injected query
-                    if (options.EnableTraceContextPropagation &&
-                        command is IDbCommand { CommandType: CommandType.Text, CommandText: SetContextSql })
+                    if (options.EnableTraceContextPropagation && command != null &&
+                        command.CommandType is CommandType.Text && command.CommandText == SetContextSql)
                     {
                         return;
                     }
@@ -221,12 +210,12 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
             case SqlDataWriteCommandError:
             case SqlMicrosoftWriteCommandError:
                 {
-                    _ = this.commandFetcher.TryFetch(payload, out var command);
+                    _ = TryFetchCommand(this.commandFetcher, payload, out var command);
 
 #if NET
                     // skip if this is an injected query
-                    if (options.EnableTraceContextPropagation &&
-                        command is IDbCommand { CommandType: CommandType.Text, CommandText: SetContextSql })
+                    if (options.EnableTraceContextPropagation && command != null &&
+                        command.CommandType is CommandType.Text && command.CommandText == SetContextSql)
                     {
                         return;
                     }
@@ -249,11 +238,11 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     {
                         if (activity.IsAllDataRequested)
                         {
-                            if (this.exceptionFetcher.TryFetch(payload, out var exception) && exception != null)
+                            if (TryFetchException(this.exceptionFetcher, payload, out var exception))
                             {
                                 activity.AddTag(SemanticConventions.AttributeErrorType, exception.GetType().FullName);
 
-                                if (this.exceptionNumberFetcher.TryFetch(exception, out var exceptionNumber))
+                                if (TryFetchExceptionNumber(this.exceptionNumberFetcher, exception, out var exceptionNumber))
                                 {
                                     activity.AddTag(SemanticConventions.AttributeDbResponseStatusCode, exceptionNumber.ToString(CultureInfo.InvariantCulture));
                                 }
@@ -284,6 +273,36 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
         }
     }
 
+    // The SqlClient DiagnosticSource event sources preserve top-level payload properties via
+    // DynamicallyAccessedMembers annotations, ensuring Command, Exception, etc. are not trimmed.
+    // See: https://github.com/dotnet/SqlClient/blob/main/src/Microsoft.Data.SqlClient/src/Microsoft/Data/SqlClient/SqlClientDiagnosticListenerExtensions.cs
+#if NET
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "SqlClient DiagnosticSource event sources preserve top-level payload properties via DynamicallyAccessedMembers annotations.")]
+#endif
+    private static bool TryFetchCommand(
+        PropertyFetcher<IDbCommand> fetcher,
+        object? payload,
+        [NotNullWhen(true)] out IDbCommand? command)
+        => fetcher.TryFetch(payload, out command);
+
+#if NET
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "SqlClient DiagnosticSource event sources preserve top-level payload properties via DynamicallyAccessedMembers annotations.")]
+#endif
+    private static bool TryFetchException(
+        PropertyFetcher<Exception> fetcher,
+        object? payload,
+        [NotNullWhen(true)] out Exception? exception)
+        => fetcher.TryFetch(payload, out exception);
+
+#if NET
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "SqlException is part of the SqlClient assembly which is rooted by the application; its Number property will not be trimmed.")]
+#endif
+    private static bool TryFetchExceptionNumber(
+        PropertyFetcher<int> fetcher,
+        Exception exception,
+        out int number)
+        => fetcher.TryFetch(exception, out number);
+
     private void RecordDuration(Activity? activity, object? payload, bool hasError = false)
     {
         if (SqlClientInstrumentation.Instance.HandleManager.MetricHandles == 0)
@@ -306,11 +325,11 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
         }
         else if (payload != null)
         {
-            if (this.commandFetcher.TryFetch(payload, out var command) && command != null &&
-                this.connectionFetcher.TryFetch(command, out var connection))
+            if (TryFetchCommand(this.commandFetcher, payload, out var command))
             {
-                this.databaseFetcher.TryFetch(connection, out var databaseName);
-                this.dataSourceFetcher.TryFetch(connection, out var dataSource);
+                var connection = command.Connection;
+                var databaseName = connection?.Database;
+                var dataSource = (connection as DbConnection)?.DataSource;
 
                 var connectionTags = SqlTelemetryHelper.GetTagListFromConnectionInfo(
                     dataSource,
@@ -322,23 +341,19 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     tags.Add(tag.Key, tag.Value);
                 }
 
-                if (this.commandTypeFetcher.TryFetch(command, out var commandType) &&
-                    commandType == CommandType.StoredProcedure)
+                if (command.CommandType is CommandType.StoredProcedure)
                 {
-                    if (this.commandTextFetcher.TryFetch(command, out var commandText))
-                    {
-                        tags.Add(SemanticConventions.AttributeDbStoredProcedureName, commandText);
-                    }
+                    tags.Add(SemanticConventions.AttributeDbStoredProcedureName, command.CommandText);
                 }
             }
 
             if (hasError)
             {
-                if (this.exceptionFetcher.TryFetch(payload, out var exception) && exception != null)
+                if (TryFetchException(this.exceptionFetcher, payload, out var exception))
                 {
                     tags.Add(SemanticConventions.AttributeErrorType, exception.GetType().FullName);
 
-                    if (this.exceptionNumberFetcher.TryFetch(exception, out var exceptionNumber))
+                    if (TryFetchExceptionNumber(this.exceptionNumberFetcher, exception, out var exceptionNumber))
                     {
                         tags.Add(SemanticConventions.AttributeDbResponseStatusCode, exceptionNumber.ToString(CultureInfo.InvariantCulture));
                     }
