@@ -20,6 +20,7 @@ internal sealed class ExporterEventSource : EventSource
     private const int EVENT_ID_TRANSPORT_EXCEPTION = 8; // Transport exception
     private const int EVENT_ID_TRANSPORT_INFO = 9; // Transport info
     private const int EVENT_ID_AFD_CORRELATION_ID = 10; // Failed to get AFD correlation ID
+    private const int EVENT_ID_METRIC_BUFFER_OVERFLOW = 11; // Metric serialization buffer overflow
 
     [NonEvent]
     public void FailedToSendTraceData(Exception ex)
@@ -156,5 +157,11 @@ internal sealed class ExporterEventSource : EventSource
     public void FailedToGetAFDCorrelationId(string error)
     {
         this.WriteEvent(EVENT_ID_AFD_CORRELATION_ID, error);
+    }
+
+    [Event(EVENT_ID_METRIC_BUFFER_OVERFLOW, Message = "Failed to export '{0}' metric: the {1}-byte serialization buffer was exceeded. Reduce the number or size of metric dimensions.", Level = EventLevel.Error)]
+    public void MetricSerializationBufferFull(string metricName, int bufferSizeBytes)
+    {
+        this.WriteEvent(EVENT_ID_METRIC_BUFFER_OVERFLOW, metricName, bufferSizeBytes);
     }
 }
