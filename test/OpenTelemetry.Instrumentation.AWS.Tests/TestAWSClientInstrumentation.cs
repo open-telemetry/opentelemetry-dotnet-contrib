@@ -664,6 +664,9 @@ public class TestAWSClientInstrumentation
     {
         Assert.Equal(parent.SpanId, aws_activity.ParentSpanId);
         Assert.Equal(ActivityKind.Client, aws_activity.Kind);
+        Assert.NotNull(aws_activity.Source.Version);
+        Assert.NotEmpty(aws_activity.Source.Version);
+        Assert.StartsWith("https://opentelemetry.io/schemas/", aws_activity.Source.TelemetrySchemaUrl);
     }
 
     private void ValidateDynamoActivityTags(Activity ddb_activity)

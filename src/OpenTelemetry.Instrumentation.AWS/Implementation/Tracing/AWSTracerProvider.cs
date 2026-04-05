@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Collections.Concurrent;
+using System.ComponentModel;
 using System.Diagnostics;
 using Amazon.Runtime.Telemetry.Tracing;
 using OpenTelemetry.Internal;
@@ -11,15 +12,15 @@ namespace OpenTelemetry.Instrumentation.AWS.Implementation.Tracing;
 internal sealed class AWSTracerProvider(SemanticConventionVersion version) : TracerProvider
 {
     private static readonly string ActivitySourceVersion = GetActivitySourceVersion();
-    private static readonly ConcurrentDictionary<string, AWSTracer> TracersDictionary = new();
 
+    private readonly ConcurrentDictionary<string, AWSTracer> tracers = new();
     private readonly string telemetrySchemaUrl = GetTelemetrySchemaUrl(version);
 
     public override Tracer GetTracer(string scope)
     {
-        if (!TracersDictionary.TryGetValue(scope, out var awsTracer))
+        if (!this.tracers.TryGetValue(scope, out var awsTracer))
         {
-            awsTracer = TracersDictionary.GetOrAdd(
+            awsTracer = this.tracers.GetOrAdd(
                 scope,
                 (name) =>
                 {
@@ -50,8 +51,8 @@ internal sealed class AWSTracerProvider(SemanticConventionVersion version) : Tra
 
     private static string GetSemanticConventionVersion(SemanticConventionVersion version) => version switch
     {
-        SemanticConventionVersion.V1_29_0 or SemanticConventionVersion.Latest => "1.29.0",
+        SemanticConventionVersion.Latest or SemanticConventionVersion.V1_29_0 => "1.29.0",
         SemanticConventionVersion.V1_28_0 => "1.28.0",
-        _ => throw new ArgumentOutOfRangeException(nameof(version), version, "Invalid Semantic Convention version."),
+        _ => throw new InvalidEnumArgumentException(nameof(version), (int)version, typeof(SemanticConventionVersion)),
     };
 }
