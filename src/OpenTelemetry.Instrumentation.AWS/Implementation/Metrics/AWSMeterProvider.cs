@@ -21,25 +21,25 @@ internal sealed class AWSMeterProvider(SemanticConventionVersion version) : Mete
         if (!this.meters.TryGetValue(scope, out var meter))
         {
 #if NET
-            meter = this.meters.GetOrAdd(scope, CreateMeter, attributes);
+            meter = this.meters.GetOrAdd(scope, static (name, state) => CreateMeter(name, state), (this.telemetrySchemaUrl, attributes?.AllAttributes));
 #else
-            meter = this.meters.GetOrAdd(scope, (name) => CreateMeter(name, attributes));
+            meter = this.meters.GetOrAdd(scope, (name) => CreateMeter(name, (this.telemetrySchemaUrl, attributes?.AllAttributes)));
 #endif
         }
 
         return meter;
 
-        AWSMeter CreateMeter(string name, Attributes? attributes)
+        static AWSMeter CreateMeter(string name, (string SchemaUrl, IEnumerable<KeyValuePair<string, object?>>? Attributes) state)
         {
             var options = new System.Diagnostics.Metrics.MeterOptions(name)
             {
-                TelemetrySchemaUrl = this.telemetrySchemaUrl,
+                TelemetrySchemaUrl = state.SchemaUrl,
                 Version = MeterVersion,
             };
 
-            if (attributes?.AllAttributes is { } allAttributes)
+            if (state.Attributes is { } attributes)
             {
-                options.Tags = allAttributes;
+                options.Tags = attributes;
             }
 
             return new AWSMeter(new System.Diagnostics.Metrics.Meter(options));

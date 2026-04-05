@@ -20,21 +20,25 @@ internal sealed class AWSTracerProvider(SemanticConventionVersion version) : Tra
     {
         if (!this.tracers.TryGetValue(scope, out var awsTracer))
         {
-            awsTracer = this.tracers.GetOrAdd(
-                scope,
-                (name) =>
-                {
-                    var options = new ActivitySourceOptions(name)
-                    {
-                        TelemetrySchemaUrl = this.telemetrySchemaUrl,
-                        Version = ActivitySourceVersion,
-                    };
-
-                    return new AWSTracer(new ActivitySource(options));
-                });
+#if NET
+            awsTracer = this.tracers.GetOrAdd(scope, static (name, schemaUrl) => CreateTracer(name, schemaUrl), this.telemetrySchemaUrl);
+#else
+            awsTracer = this.tracers.GetOrAdd(scope, (name) => CreateTracer(name, this.telemetrySchemaUrl));
+#endif
         }
 
         return awsTracer;
+
+        static AWSTracer CreateTracer(string name, string telemetrySchemaUrl)
+        {
+            var options = new ActivitySourceOptions(name)
+            {
+                TelemetrySchemaUrl = telemetrySchemaUrl,
+                Version = ActivitySourceVersion,
+            };
+
+            return new AWSTracer(new ActivitySource(options));
+        }
     }
 
     private static string GetActivitySourceVersion()
