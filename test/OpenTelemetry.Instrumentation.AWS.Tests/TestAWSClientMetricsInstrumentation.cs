@@ -27,25 +27,28 @@ public class TestAWSClientMetricsInstrumentation
 #endif
     {
         var exportedItems = new List<Metrics.Metric>();
-        using var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddAWSInstrumentation()
-            .AddInMemoryExporter(exportedItems)
-            .Build();
 
-        var s3 = new AmazonS3Client(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-        CustomResponses.SetResponse(s3, null, "test_request_id", true);
-        var putObjectRequest = new PutObjectRequest
+        using (var meterProvider = Sdk.CreateMeterProviderBuilder()
+                                      .AddAWSInstrumentation()
+                                      .AddInMemoryExporter(exportedItems)
+                                      .Build())
         {
-            BucketName = "TestBucket",
-            Key = "TestKey",
-            ContentBody = "Test Content",
-        };
+            var s3 = new AmazonS3Client(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+            CustomResponses.SetResponse(s3, null, "test_request_id", true);
+            var putObjectRequest = new PutObjectRequest
+            {
+                BucketName = "TestBucket",
+                Key = "TestKey",
+                ContentBody = "Test Content",
+            };
+
 #if NETFRAMEWORK
-        s3.PutObject(putObjectRequest);
+            s3.PutObject(putObjectRequest);
 #else
-        await s3.PutObjectAsync(putObjectRequest);
+            await s3.PutObjectAsync(putObjectRequest);
 #endif
-        meterProvider.ForceFlush();
+            meterProvider.ForceFlush();
+        }
 
         this.ValidateCommonMetrics(exportedItems);
         this.ValidateHTTPBytesMetric(exportedItems, "client.http.bytes_sent");
@@ -59,53 +62,59 @@ public class TestAWSClientMetricsInstrumentation
 #endif
     {
         var exportedItems = new List<Metrics.Metric>();
-        using var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddAWSInstrumentation()
-            .AddInMemoryExporter(exportedItems)
-            .Build();
 
-        var sns = new AmazonSimpleNotificationServiceClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-        var amazonServiceException = new AmazonServiceException
+        using (var meterProvider = Sdk.CreateMeterProviderBuilder()
+                                      .AddAWSInstrumentation()
+                                      .AddInMemoryExporter(exportedItems)
+                                      .Build())
         {
-            StatusCode = System.Net.HttpStatusCode.NotFound,
-            RequestId = "requestId",
-        };
-        CustomResponses.SetResponse(sns, (request) => { throw amazonServiceException; });
-        var createTopicRequest = new CreateTopicRequest
-        {
-            Name = "NewTopic",
-        };
-
-        try
-        {
-#if NETFRAMEWORK
-            sns.CreateTopic(createTopicRequest);
-#else
-            await sns.CreateTopicAsync(createTopicRequest);
-#endif
-        }
-        catch (AmazonServiceException)
-        {
-            meterProvider.ForceFlush();
-
-            this.ValidateCommonMetrics(exportedItems, false);
-
-            var callErrorsMetric = exportedItems.FirstOrDefault(i => i.Name == "client.call.errors");
-            Assert.NotNull(callErrorsMetric);
-
-            var metricPoints = new List<MetricPoint>();
-            foreach (var p in callErrorsMetric.GetMetricPoints())
+            var sns = new AmazonSimpleNotificationServiceClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+            var amazonServiceException = new AmazonServiceException
             {
-                metricPoints.Add(p);
+                StatusCode = System.Net.HttpStatusCode.NotFound,
+                RequestId = "requestId",
+            };
+            CustomResponses.SetResponse(sns, (request) => { throw amazonServiceException; });
+            var createTopicRequest = new CreateTopicRequest
+            {
+                Name = "NewTopic",
+            };
+
+            try
+            {
+#if NETFRAMEWORK
+                sns.CreateTopic(createTopicRequest);
+#else
+                await sns.CreateTopicAsync(createTopicRequest);
+#endif
             }
-
-            var metricPoint = metricPoints[0];
-            var sum = metricPoint.GetSumLong();
-
-            Assert.Equal(MetricType.LongSum, callErrorsMetric.MetricType);
-            Assert.Equal("{error}", callErrorsMetric.Unit);
-            Assert.True(sum > 0);
+            catch (AmazonServiceException)
+            {
+                // Expected
+            }
+            finally
+            {
+                meterProvider.ForceFlush();
+            }
         }
+
+        this.ValidateCommonMetrics(exportedItems, false);
+
+        var callErrorsMetric = exportedItems.FirstOrDefault(i => i.Name == "client.call.errors");
+        Assert.NotNull(callErrorsMetric);
+
+        var metricPoints = new List<MetricPoint>();
+        foreach (var p in callErrorsMetric.GetMetricPoints())
+        {
+            metricPoints.Add(p);
+        }
+
+        var metricPoint = metricPoints[0];
+        var sum = metricPoint.GetSumLong();
+
+        Assert.Equal(MetricType.LongSum, callErrorsMetric.MetricType);
+        Assert.Equal("{error}", callErrorsMetric.Unit);
+        Assert.True(sum > 0);
     }
 
     [Fact]
@@ -116,25 +125,27 @@ public class TestAWSClientMetricsInstrumentation
 #endif
     {
         var exportedItems = new List<Metrics.Metric>();
-        using var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddAWSInstrumentation()
-            .AddInMemoryExporter(exportedItems)
-            .Build();
 
-        var sqs = new AmazonSQSClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-        var dummyResponse = "{}";
-        CustomResponses.SetResponse(sqs, dummyResponse, "requestId", true);
-        var send_msg_req = new CreateQueueRequest()
+        using (var meterProvider = Sdk.CreateMeterProviderBuilder()
+                                      .AddAWSInstrumentation()
+                                      .AddInMemoryExporter(exportedItems)
+                                      .Build())
         {
-            QueueName = "MyTestQueue",
-        };
+            var sqs = new AmazonSQSClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+            var dummyResponse = "{}";
+            CustomResponses.SetResponse(sqs, dummyResponse, "requestId", true);
+            var send_msg_req = new CreateQueueRequest()
+            {
+                QueueName = "MyTestQueue",
+            };
 
 #if NETFRAMEWORK
-        sqs.CreateQueue(send_msg_req);
+            sqs.CreateQueue(send_msg_req);
 #else
-        await sqs.CreateQueueAsync(send_msg_req);
+            await sqs.CreateQueueAsync(send_msg_req);
 #endif
-        meterProvider.ForceFlush();
+            meterProvider.ForceFlush();
+        }
 
         this.ValidateCommonMetrics(exportedItems);
         this.ValidateHTTPBytesMetric(exportedItems, "client.http.bytes_sent");
@@ -144,21 +155,25 @@ public class TestAWSClientMetricsInstrumentation
     [Fact]
     public void TestAWSUpDownCounterIsCalledProperly()
     {
-        var exportedItems = new List<Metrics.Metric>();
-        using var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddAWSInstrumentation()
-            .AddInMemoryExporter(exportedItems)
-            .Build();
-
         var countAmount = 7;
-        var counterName = "TestCounter";
-        var meter = AWSConfigs.TelemetryProvider.MeterProvider.GetMeter($"{TelemetryConstants.TelemetryScopePrefix}.TestMeter");
-        var counter = meter.CreateUpDownCounter<long>(counterName);
+        var counterName = $"{nameof(this.TestAWSUpDownCounterIsCalledProperly)}.Counter";
+        var meterName = $"{TelemetryConstants.TelemetryScopePrefix}.{nameof(this.TestAWSUpDownCounterIsCalledProperly)}";
 
-        counter.Add(countAmount);
-        counter.Add(countAmount);
+        var exportedItems = new List<Metrics.Metric>();
 
-        meterProvider.ForceFlush();
+        using (var meterProvider = Sdk.CreateMeterProviderBuilder()
+                                      .AddAWSInstrumentation()
+                                      .AddInMemoryExporter(exportedItems)
+                                      .Build())
+        {
+            using var meter = AWSConfigs.TelemetryProvider.MeterProvider.GetMeter(meterName);
+            var counter = meter.CreateUpDownCounter<long>(counterName);
+
+            counter.Add(countAmount);
+            counter.Add(countAmount);
+
+            meterProvider.ForceFlush();
+        }
 
         var counterMetric = exportedItems.FirstOrDefault(i => i.Name == counterName);
 
@@ -175,30 +190,80 @@ public class TestAWSClientMetricsInstrumentation
         var metricPoint = metricPoints[0];
 
         Assert.Equal(countAmount * 2, metricPoint.GetSumLong());
+        Assert.Null(counterMetric.MeterTags);
     }
 
     [Fact]
     public void TestAWSUpDownCounterIsntCalledAfterMeterDispose()
     {
-        var exportedItems = new List<Metrics.Metric>();
-        using var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddAWSInstrumentation()
-            .AddInMemoryExporter(exportedItems)
-            .Build();
-
         var countAmount = 7;
-        var counterName = "TestCounter";
+        var counterName = $"{nameof(this.TestAWSUpDownCounterIsntCalledAfterMeterDispose)}.Counter";
         var meterName = $"{TelemetryConstants.TelemetryScopePrefix}.TestDisposedMeter";
-        var meter = AWSConfigs.TelemetryProvider.MeterProvider.GetMeter(meterName);
-        var counter = meter.CreateUpDownCounter<long>(counterName);
 
-        meter.Dispose();
-        counter.Add(countAmount);
+        var exportedItems = new List<Metrics.Metric>();
 
-        meterProvider.ForceFlush();
+        using (var meterProvider = Sdk.CreateMeterProviderBuilder()
+                                      .AddAWSInstrumentation()
+                                      .AddInMemoryExporter(exportedItems)
+                                      .Build())
+        {
+            using var meter = AWSConfigs.TelemetryProvider.MeterProvider.GetMeter(meterName);
+            var counter = meter.CreateUpDownCounter<long>(counterName);
+
+            meter.Dispose();
+            counter.Add(countAmount);
+
+            meterProvider.ForceFlush();
+        }
 
         var counterMetric = exportedItems.FirstOrDefault(i => i.MeterName == meterName && i.Name == counterName);
         Assert.Null(counterMetric);
+    }
+
+    [Fact]
+    public void TestMeterProviderAddsTagsToMetrics()
+    {
+        var countAmount = 7;
+        var counterName = $"{nameof(this.TestMeterProviderAddsTagsToMetrics)}.Counter";
+        var meterName = $"{TelemetryConstants.TelemetryScopePrefix}.{nameof(this.TestMeterProviderAddsTagsToMetrics)}";
+
+        var attributes = new Attributes([new KeyValuePair<string, object>("key1", "value1"), new KeyValuePair<string, object>("key2", "value2")]);
+
+        var exportedItems = new List<Metrics.Metric>();
+        using (var meterProvider = Sdk.CreateMeterProviderBuilder()
+                                      .AddAWSInstrumentation()
+                                      .AddInMemoryExporter(exportedItems)
+                                      .Build())
+        {
+            using var meter = AWSConfigs.TelemetryProvider.MeterProvider.GetMeter(meterName, attributes);
+            var counter = meter.CreateUpDownCounter<long>(counterName);
+
+            counter.Add(countAmount);
+            counter.Add(countAmount);
+
+            meterProvider.ForceFlush();
+        }
+
+        var counterMetric = exportedItems.FirstOrDefault(i => i.Name == counterName);
+
+        Assert.NotNull(counterMetric);
+        Assert.Equal(MetricType.LongSumNonMonotonic, counterMetric.MetricType);
+
+        var metricPoints = new List<MetricPoint>();
+        foreach (var p in counterMetric.GetMetricPoints())
+        {
+            metricPoints.Add(p);
+        }
+
+        Assert.Single(metricPoints);
+        var metricPoint = metricPoints[0];
+
+        Assert.Equal(countAmount * 2, metricPoint.GetSumLong());
+
+        Assert.NotNull(counterMetric.MeterTags);
+        Assert.NotEmpty(counterMetric.MeterTags);
+        Assert.Contains(new KeyValuePair<string, object?>("key1", "value1"), counterMetric.MeterTags);
+        Assert.Contains(new KeyValuePair<string, object?>("key2", "value2"), counterMetric.MeterTags);
     }
 
     private void ValidateHTTPBytesMetric(List<Metrics.Metric> exportedMetrics, string metricName)
