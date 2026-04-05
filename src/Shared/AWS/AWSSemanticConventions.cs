@@ -79,6 +79,8 @@ internal partial class AWSSemanticConventions
     /// <inheritdoc cref="TagBuilderImpl"/>
     public TagBuilderImpl TagBuilder { get; }
 
+    public string SchemaUrl { get; }
+
     /// <summary>
     /// Returns attribute names whose values must be reported as a <c>string[]</c>
     /// (string array) rather than a plain <c>string</c>, as required by the
@@ -98,6 +100,7 @@ internal partial class AWSSemanticConventions
         this.AttributeBuilder = new(this);
         this.ParameterMappingBuilder = new(this);
         this.TagBuilder = new(this);
+        this.SchemaUrl = GetTelemetrySchemaUrl(this.semanticConventionVersion);
     }
 
     /// <summary>
@@ -449,6 +452,18 @@ internal partial class AWSSemanticConventions
         public Activity? SetTagAttributeHttpResponseStatusCode(Activity? activity, int value)
             => this.awsSemanticConventions.SetTag(activity, x => x.AttributeHttpResponseStatusCode, value);
         #endregion
+    }
+
+    internal static string GetTelemetrySchemaUrl(SemanticConventionVersion semanticConventionVersion)
+    {
+        var versionString = semanticConventionVersion switch
+        {
+            SemanticConventionVersion.Latest or SemanticConventionVersion.V1_29_0 => "1.29.0",
+            SemanticConventionVersion.V1_28_0 => "1.28.0",
+            _ => throw new InvalidEnumArgumentException(nameof(semanticConventionVersion), (int)semanticConventionVersion, typeof(SemanticConventionVersion)),
+        };
+
+        return $"https://opentelemetry.io/schemas/{versionString}";
     }
 
     private AttributeBuilderImpl Add(AttributeBuilderImpl attributes, Func<AWSSemanticConventionsBase, string> attributeNameFunc, Func<AWSSemanticConventionsBase, string> valueFunc) =>

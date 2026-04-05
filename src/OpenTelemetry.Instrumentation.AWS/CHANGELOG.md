@@ -8,6 +8,12 @@
 * Add the `aws.s3.bucket` and `aws.s3.key` attributes to S3 spans.
   ([#4029](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4029))
 
+* Add instrumentation scope version and schema URL to metrics and traces.
+  ([#4063](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4063))
+
+* Pass AWS attribute values to created meters as tags.
+  ([#4063](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4063))
+
 ## 1.15.0
 
 Released 2026-Jan-21
