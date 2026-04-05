@@ -52,6 +52,6 @@ internal sealed class AWSTracerProvider(SemanticConventionVersion version) : Tra
     {
         SemanticConventionVersion.V1_29_0 or SemanticConventionVersion.Latest => "1.29.0",
         SemanticConventionVersion.V1_28_0 => "1.28.0",
-        _ => throw new ArgumentOutOfRangeException(nameof(version), version, null),
+        _ => throw new ArgumentOutOfRangeException(nameof(version), version, "Invalid Semantic Convention version."),
     };
 }
