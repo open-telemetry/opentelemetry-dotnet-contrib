@@ -9,7 +9,7 @@
   ([#4029](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4029))
 
 * Add instrumentation scope version and schema URL to traces.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#4063](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4063))
 
 ## 1.15.0
 
