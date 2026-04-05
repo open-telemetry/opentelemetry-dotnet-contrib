@@ -240,6 +240,13 @@ public class TestAWSClientMetricsInstrumentation
             var callDeserializationDuration = exportedMetrics.FirstOrDefault(i => i.Name == "client.call.deserialization_duration");
             this.ValidateDurationMetric(callDeserializationDuration);
         }
+
+        foreach (var metric in exportedMetrics)
+        {
+            Assert.NotNull(metric.MeterVersion);
+            Assert.NotEmpty(metric.MeterVersion);
+            Assert.StartsWith("https://opentelemetry.io/schemas/1.28.0", metric.MeterSchemaUrl);
+        }
     }
 
     private void ValidateDurationMetric(Metrics.Metric? durationMetric)
