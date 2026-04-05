@@ -22,6 +22,35 @@ namespace OpenTelemetry.Instrumentation.AWS.Tests;
 /// </summary>
 public sealed class AWSClientInstrumentationOptionsTests
 {
+    public static TheoryData<SemanticConventionVersion> SemanticConventionVersions()
+    {
+        var testCases = new TheoryData<SemanticConventionVersion>();
+
+#if NET
+        var values = Enum.GetValues<SemanticConventionVersion>();
+#else
+        var values = Enum.GetValues(typeof(SemanticConventionVersion)).OfType<SemanticConventionVersion>();
+#endif
+
+        foreach (var value in values)
+        {
+            testCases.Add(value);
+        }
+
+        return testCases;
+    }
+
+    [Theory]
+    [MemberData(nameof(SemanticConventionVersions))]
+    public async Task CanUseSemanticConvention(SemanticConventionVersion semanticVersion)
+    {
+        // Act - Verify that when new versions are added to the enum, no exceptions are thrown
+        var exception = await Record.ExceptionAsync(async () => await this.GetActivityTagsAsync(semanticVersion));
+
+        // Assert
+        Assert.Null(exception);
+    }
+
     [Fact]
     public async Task CanUseSemanticConvention_V1_28_0()
     {
