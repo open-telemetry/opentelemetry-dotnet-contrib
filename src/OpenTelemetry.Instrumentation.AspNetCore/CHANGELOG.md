@@ -11,6 +11,9 @@
 * Updated OpenTelemetry core component version(s) to `1.15.2`.
   ([#4080](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4080))
 
+* Add instrumentation schema URL to traces.
+  ([#4066](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4066))
+
 ## 1.15.1
 
 Released 2026-Mar-11

@@ -122,7 +122,7 @@ public static class AspNetCoreInstrumentationTracerProviderBuilderExtensions
         }
         else
         {
-            builder.AddSource(HttpInListener.ActivitySourceName);
+            builder.AddSource(HttpInListener.ActivitySource.Name);
             builder.AddLegacySource(HttpInListener.ActivityOperationName); // for the activities created by AspNetCore
         }
 
