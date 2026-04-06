@@ -55,6 +55,7 @@ distribution-points:
   - pkg:nuget/OpenTelemetry.Instrumentation.GrpcNetClient
   - pkg:nuget/OpenTelemetry.Instrumentation.Hangfire
   - pkg:nuget/OpenTelemetry.Instrumentation.Http
+  - pkg:nuget/OpenTelemetry.Instrumentation.Kusto
   - pkg:nuget/OpenTelemetry.Instrumentation.Owin
   - pkg:nuget/OpenTelemetry.Instrumentation.Process
   - pkg:nuget/OpenTelemetry.Instrumentation.Quartz
