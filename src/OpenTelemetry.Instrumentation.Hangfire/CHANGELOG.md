@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* Update Hangfire job parameter key used to store the `enqueued-at` timestamp from
+  `"OpenTelemetry.EnqueuedAt"` to `"opentelemetry_enqueued_at"` to fix compatibility
+  with MongoDB.
+  ([#4025](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4025))
+
 * Updated OpenTelemetry core component version(s) to `1.15.1`.
   ([#4020](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4020))
 
