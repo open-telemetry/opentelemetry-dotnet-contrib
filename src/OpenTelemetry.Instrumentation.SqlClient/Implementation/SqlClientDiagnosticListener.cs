@@ -118,9 +118,9 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
 #if NET
                     if (options.EnableTraceContextPropagation &&
-                        command.CommandType is CommandType.Text && command.Connection?.State is ConnectionState.Open)
+                        command.CommandType is CommandType.Text && connection is { State: ConnectionState.Open })
                     {
-                        var setContextCommand = command.Connection.CreateCommand();
+                        using var setContextCommand = connection.CreateCommand();
                         setContextCommand.Transaction = command.Transaction;
                         setContextCommand.CommandText = SetContextSql;
                         setContextCommand.CommandType = CommandType.Text;
