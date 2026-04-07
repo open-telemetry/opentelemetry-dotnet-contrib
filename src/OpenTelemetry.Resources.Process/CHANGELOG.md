@@ -6,9 +6,8 @@
   ([#4080](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4080))
 
 * Add new process resource attributes: `process.args_count`,
-  `process.command`, `process.creation.time`,
-  `process.executable.path`, `process.title` and
-  `process.working_directory`.
+  `process.creation.time`, `process.executable.path`,
+  `process.title` and `process.working_directory`.
   ([#4036](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4036))
 
 ## 1.15.0-beta.1

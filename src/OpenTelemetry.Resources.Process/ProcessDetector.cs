@@ -48,20 +48,9 @@ internal sealed class ProcessDetector : IResourceDetector
         // See https://github.com/open-telemetry/semantic-conventions/blob/v1.40.0/docs/resource/process.md#selecting-process-attributes.
         var commandArgs = GetCommandLineArgs();
 
-        if (commandArgs.Length > 0)
+        if (commandArgs is not null)
         {
-#if NET
-            processPath ??= commandArgs[0];
-#else
-            processPath = commandArgs[0];
-#endif
-
-            attributes.Add(new(ProcessSemanticConventions.AttributeProcessCommand, commandArgs[0]));
-
-            // Do not count the executable path as an argument
-            int count = commandArgs.Length - 1;
-
-            attributes.Add(new(ProcessSemanticConventions.AttributeProcessArgsCount, count));
+            attributes.Add(new(ProcessSemanticConventions.AttributeProcessArgsCount, commandArgs.Length));
         }
 
         if (!string.IsNullOrEmpty(processPath))
@@ -71,7 +60,7 @@ internal sealed class ProcessDetector : IResourceDetector
 
         return new Resource(attributes);
 
-        static string[] GetCommandLineArgs()
+        static string[]? GetCommandLineArgs()
         {
             try
             {
@@ -79,7 +68,7 @@ internal sealed class ProcessDetector : IResourceDetector
             }
             catch (NotSupportedException)
             {
-                return [];
+                return null;
             }
         }
 
