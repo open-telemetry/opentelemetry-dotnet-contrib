@@ -4,7 +4,7 @@
 using OpenTelemetry.Trace;
 using Xunit;
 
-namespace OpenTelemetry.Contrib.Shared.Tests;
+namespace OpenTelemetry.Instrumentation.Tests;
 
 public class MeterFactoryTests
 {
