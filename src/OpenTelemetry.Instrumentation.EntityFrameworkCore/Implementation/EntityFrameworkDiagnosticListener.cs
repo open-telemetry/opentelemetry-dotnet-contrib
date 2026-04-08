@@ -3,7 +3,6 @@
 
 using System.Data;
 using System.Diagnostics;
-using System.Reflection;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
@@ -18,12 +17,9 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     internal const string EntityFrameworkCoreCommandExecuted = "Microsoft.EntityFrameworkCore.Database.Command.CommandExecuted";
     internal const string EntityFrameworkCoreCommandError = "Microsoft.EntityFrameworkCore.Database.Command.CommandError";
 
-    internal static readonly Assembly Assembly = typeof(EntityFrameworkDiagnosticListener).Assembly;
-#pragma warning disable IDE0370 // Suppression is unnecessary
-    internal static readonly string ActivitySourceName = Assembly.GetName().Name!;
-#pragma warning restore IDE0370 // Suppression is unnecessary
-    internal static readonly string ActivityName = ActivitySourceName + ".Execute";
-    internal static readonly ActivitySource EntityFrameworkActivitySource = new(ActivitySourceName, Assembly.GetPackageVersion());
+    internal static readonly Version SemanticConventionsVersion = new(1, 36, 0);
+    internal static readonly ActivitySource EntityFrameworkActivitySource = ActivitySourceFactory.Create<EntityFrameworkDiagnosticListener>(SemanticConventionsVersion);
+    internal static readonly string ActivityName = EntityFrameworkActivitySource.Name + ".Execute";
 
     private readonly PropertyFetcher<object> commandFetcher = new("Command");
     private readonly PropertyFetcher<object> connectionFetcher = new("Connection");
