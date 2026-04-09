@@ -2,11 +2,11 @@
 
 ## Unreleased
 
+* Updated OpenTelemetry core component version(s) to `1.15.2`.
+  ([#4080](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4080))
+
 * Log error when a metric's dimensions exceed the serialization buffer length.
   ([#4027](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4027))
-
-* Updated OpenTelemetry core component version(s) to `1.15.1`.
-  ([#4020](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4020))
 
 ## 1.15.1
 
