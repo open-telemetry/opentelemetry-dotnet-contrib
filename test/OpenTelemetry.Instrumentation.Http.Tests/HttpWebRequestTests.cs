@@ -4,7 +4,6 @@
 using System.Diagnostics;
 using System.Net;
 using System.Text.Json;
-using OpenTelemetry.Metrics;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using Xunit;
