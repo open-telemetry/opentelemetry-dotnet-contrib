@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using System.Runtime.ExceptionServices;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -75,13 +76,10 @@ public class AWSXRayIdGeneratorTests
                    .Build())
 #pragma warning restore CS0618 // Type or member is obsolete
         {
-            using (var activitySource = new ActivitySource("TestTraceIdBasedSamplerOn"))
-            {
-                using (var activity = activitySource.StartActivity("RootActivity", ActivityKind.Internal))
-                {
-                    Assert.Equal(ActivityTraceFlags.Recorded, activity?.ActivityTraceFlags);
-                }
-            }
+            using var activitySource = new ActivitySource("TestTraceIdBasedSamplerOn");
+            using var activity = activitySource.StartActivity("RootActivity", ActivityKind.Internal);
+
+            Assert.Equal(ActivityTraceFlags.Recorded, activity?.ActivityTraceFlags);
         }
     }
 
@@ -96,13 +94,65 @@ public class AWSXRayIdGeneratorTests
                    .Build())
 #pragma warning restore CS0618 // Type or member is obsolete
         {
-            using (var activitySource = new ActivitySource("TestTraceIdBasedSamplerOff"))
+            using var activitySource = new ActivitySource("TestTraceIdBasedSamplerOff");
+            using var activity = activitySource.StartActivity("RootActivity", ActivityKind.Internal);
+
+            Assert.Equal(ActivityTraceFlags.None, activity?.ActivityTraceFlags);
+        }
+    }
+
+#if NETFRAMEWORK
+    [Fact(Skip = "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1615")]
+#else
+    [Fact]
+#endif
+    public void AddXRayTraceId_WithActivitySource_SetsXRayCompatibleTraceIdWithoutExceptions()
+    {
+        Exception? exception = null;
+
+        void Handler(object? sender, FirstChanceExceptionEventArgs args)
+        {
+            if (args.Exception is InvalidOperationException ex &&
+                ex.Message.Contains("parent", StringComparison.OrdinalIgnoreCase))
             {
-                using (var activity = activitySource.StartActivity("RootActivity", ActivityKind.Internal))
-                {
-                    Assert.Equal(ActivityTraceFlags.None, activity?.ActivityTraceFlags);
-                }
+                exception = args.Exception;
             }
+        }
+
+        AppDomain.CurrentDomain.FirstChanceException += Handler;
+
+        try
+        {
+            ActivityTraceId capturedTraceId = default;
+
+            using (Sdk.CreateTracerProviderBuilder()
+                       .AddXRayTraceId()
+                       .AddSource("TestXRayRegressionSource")
+                       .Build())
+            {
+                using var activitySource = new ActivitySource("TestXRayRegressionSource");
+                using var activity = activitySource.StartActivity("TestRootActivity");
+
+                Assert.NotNull(activity);
+
+                capturedTraceId = activity.TraceId;
+            }
+
+            Assert.Null(exception);
+
+            // Verify the trace ID is X-Ray compatible:
+            // the first 8 hex characters encode a big-endian Unix timestamp (seconds since epoch).
+            var traceIdHex = capturedTraceId.ToHexString();
+            var timestampSeconds = Convert.ToUInt32(traceIdHex.Substring(0, 8), 16);
+            var nowSeconds = (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
+            Assert.True(
+                Math.Abs((int)(nowSeconds - timestampSeconds)) < 60,
+                $"Expected an X-Ray compatible trace ID whose first 8 hex digits are a recent Unix timestamp. Value: {traceIdHex}");
+        }
+        finally
+        {
+            AppDomain.CurrentDomain.FirstChanceException -= Handler;
         }
     }
 }

@@ -1,0 +1,43 @@
+name: Dependency Submission (NuGet)
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  submit-nuget:
+    if: github.event.repository.fork == false
+    runs-on: windows-latest
+    timeout-minutes: 10
+
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+      - name: Update agent configuration
+        shell: pwsh
+        run: |
+          "DOTNET_INSTALL_DIR=D:\tools\dotnet" >> ${env:GITHUB_ENV}
+          "DOTNET_ROOT=D:\tools\dotnet" >> ${env:GITHUB_ENV}
+          "NUGET_PACKAGES=D:\.nuget\packages" >> ${env:GITHUB_ENV}
+
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          filter: 'tree:0'
+          persist-credentials: false
+          show-progress: false
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5.2.0
+
+      - name: Restore NuGet packages
+        run: dotnet restore
+
+      - name: Component detection
+        uses: advanced-security/component-detection-dependency-submission-action@b876b8cc341a53970394b33ea0ca4e86c25542de # v0.1.3
+        with:
+          detectorsCategories: NuGet
