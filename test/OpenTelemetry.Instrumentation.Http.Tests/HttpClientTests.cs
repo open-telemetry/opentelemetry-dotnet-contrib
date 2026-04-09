@@ -6,8 +6,6 @@ using System.Diagnostics;
 using System.Net.Http;
 #endif
 #if !NET
-using System.Globalization;
-using System.Reflection;
 using System.Text.Json;
 #endif
 using OpenTelemetry.Metrics;
@@ -19,59 +17,49 @@ namespace OpenTelemetry.Instrumentation.Http.Tests;
 [Collection("Http")]
 public partial class HttpClientTests
 {
-    public static readonly IEnumerable<object[]> TestData = HttpTestData.ReadTestCases();
-
 #if !NET
     private static readonly JsonSerializerOptions JsonSerializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 #endif
 
     [Theory]
-    [MemberData(nameof(TestData))]
-    public async Task HttpOutCallsAreCollectedSuccessfullyTracesAndMetricsSemanticConventionsAsync(HttpOutTestCase tc)
-    {
+    [MemberData(nameof(HttpTestData.TestData), MemberType = typeof(HttpTestData))]
+    public async Task HttpOutCallsAreCollectedSuccessfullyTracesAndMetricsSemanticConventionsAsync(HttpOutTestCase tc) =>
         await HttpOutCallsAreCollectedSuccessfullyBodyAsync(
             this.host,
             this.port,
             tc,
             enableTracing: true,
             enableMetrics: true);
-    }
 
     [Theory]
-    [MemberData(nameof(TestData))]
-    public async Task HttpOutCallsAreCollectedSuccessfullyMetricsOnlyAsync(HttpOutTestCase tc)
-    {
+    [MemberData(nameof(HttpTestData.TestData), MemberType = typeof(HttpTestData))]
+    public async Task HttpOutCallsAreCollectedSuccessfullyMetricsOnlyAsync(HttpOutTestCase tc) =>
         await HttpOutCallsAreCollectedSuccessfullyBodyAsync(
             this.host,
             this.port,
             tc,
             enableTracing: false,
             enableMetrics: true);
-    }
 
     [Theory]
-    [MemberData(nameof(TestData))]
-    public async Task HttpOutCallsAreCollectedSuccessfullyTracesOnlyAsync(HttpOutTestCase tc)
-    {
+    [MemberData(nameof(HttpTestData.TestData), MemberType = typeof(HttpTestData))]
+    public async Task HttpOutCallsAreCollectedSuccessfullyTracesOnlyAsync(HttpOutTestCase tc) =>
         await HttpOutCallsAreCollectedSuccessfullyBodyAsync(
             this.host,
             this.port,
             tc,
             enableTracing: true,
             enableMetrics: false);
-    }
 
     [Theory]
-    [MemberData(nameof(TestData))]
-    public async Task HttpOutCallsAreCollectedSuccessfullyNoSignalsAsync(HttpOutTestCase tc)
-    {
+    [MemberData(nameof(HttpTestData.TestData), MemberType = typeof(HttpTestData))]
+    public async Task HttpOutCallsAreCollectedSuccessfullyNoSignalsAsync(HttpOutTestCase tc) =>
         await HttpOutCallsAreCollectedSuccessfullyBodyAsync(
             this.host,
             this.port,
             tc,
             enableTracing: false,
             enableMetrics: false);
-    }
 
 #if !NET
     [Fact]
@@ -103,8 +91,7 @@ public partial class HttpClientTests
                 ",
             JsonSerializerOptions);
 
-        var t = (Task)this.GetType().InvokeMember(nameof(this.HttpOutCallsAreCollectedSuccessfullyTracesAndMetricsSemanticConventionsAsync), BindingFlags.InvokeMethod, null, this, HttpTestData.GetArgumentsFromTestCaseObject(input).First(), CultureInfo.InvariantCulture)!;
-        await t;
+        await this.HttpOutCallsAreCollectedSuccessfullyTracesAndMetricsSemanticConventionsAsync(input![0]);
     }
 #endif
 
@@ -117,7 +104,7 @@ public partial class HttpClientTests
 
 #if NET
     [Theory]
-    [MemberData(nameof(TestData))]
+    [MemberData(nameof(HttpTestData.TestData), MemberType = typeof(HttpTestData))]
     public async Task ValidateNetMetricsAsync(HttpOutTestCase tc)
     {
         var metrics = new List<Metric>();
@@ -515,6 +502,21 @@ public partial class HttpClientTests
                 Enumerable.SequenceEqual(expectedHistogramBoundsNew, histogramBounds);
 
             Assert.True(histogramBoundsMatchCorrectly);
+        }
+
+        foreach (var activity in activities.Where((p) => p.Source == Implementation.HttpHandlerDiagnosticListener.ActivitySource))
+        {
+            Assert.Equal("OpenTelemetry.Instrumentation.Http.HttpClient", activity.Source.Name);
+            Assert.NotNull(activity.Source.Version);
+            Assert.NotEmpty(activity.Source.Version);
+            Assert.StartsWith("https://opentelemetry.io/schemas/", activity.Source.TelemetrySchemaUrl);
+        }
+
+        foreach (var metric in metrics.Where((p) => p.MeterName is "OpenTelemetry.Instrumentation.Http"))
+        {
+            Assert.NotNull(metric.MeterVersion);
+            Assert.NotEmpty(metric.MeterVersion);
+            Assert.StartsWith("https://opentelemetry.io/schemas/", metric.MeterSchemaUrl);
         }
     }
 

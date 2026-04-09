@@ -37,7 +37,7 @@ public static class HttpClientInstrumentationMeterProviderBuilderExtensions
         _ = HttpTagHelper.RequestDataHelper;
 
 #if NETFRAMEWORK
-        builder.AddMeter(HttpWebRequestActivitySource.MeterName);
+        builder.AddMeter(HttpWebRequestActivitySource.WebRequestMeter.Name);
 #else
         builder.AddMeter(HttpHandlerMetricsDiagnosticListener.Meter.Name);
 

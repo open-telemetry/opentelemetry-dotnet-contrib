@@ -6,7 +6,6 @@ using System.Diagnostics.CodeAnalysis;
 #if NETFRAMEWORK
 using System.Net.Http;
 #endif
-using System.Reflection;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
@@ -22,7 +21,6 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
     // https://github.com/dotnet/runtime/blob/7d034ddbbbe1f2f40c264b323b3ed3d6b3d45e9a/src/libraries/System.Net.Http/src/System/Net/Http/DiagnosticsHandler.cs#L19
     internal const string ActivitySourceName = "OpenTelemetry.Instrumentation.Http.HttpClient";
 
-    internal static readonly AssemblyName AssemblyName = typeof(HttpHandlerDiagnosticListener).Assembly.GetName();
     internal static readonly bool IsNet7OrGreater = Environment.Version.Major >= 7;
     internal static readonly bool IsNet9OrGreater = Environment.Version.Major >= 9;
     internal static readonly bool IsNet10OrGreater = Environment.Version.Major >= 10;
