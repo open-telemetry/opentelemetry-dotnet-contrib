@@ -30,8 +30,6 @@ internal static class MeterFactory
         Guard.ThrowIfNull(type);
         Guard.ThrowIfNull(semanticConventionsVersion);
 
-        string telemetrySchemaUrl = $"https://opentelemetry.io/schemas/{semanticConventionsVersion.ToString(3)}";
-
         var assembly = type.Assembly;
         var assemblyName = assembly.GetName();
 #pragma warning disable IDE0370 // Suppression is unnecessary
@@ -41,9 +39,13 @@ internal static class MeterFactory
 
         var options = new MeterOptions(name)
         {
-            TelemetrySchemaUrl = telemetrySchemaUrl,
             Version = version,
         };
+
+        if (semanticConventionsVersion is not { Major: 0, Minor: 0, Build: 0 })
+        {
+            options.TelemetrySchemaUrl = $"https://opentelemetry.io/schemas/{semanticConventionsVersion.ToString(3)}";
+        }
 
         return new(options);
     }

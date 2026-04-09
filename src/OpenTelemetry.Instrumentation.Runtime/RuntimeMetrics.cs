@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics.Metrics;
+#if NET
 using System.Reflection;
-using OpenTelemetry.Internal;
+#endif
 #if NET
 using JitInfo = System.Runtime.JitInfo;
 #endif
@@ -15,11 +16,7 @@ namespace OpenTelemetry.Instrumentation.Runtime;
 /// </summary>
 internal sealed class RuntimeMetrics
 {
-    internal static readonly Assembly Assembly = typeof(RuntimeMetrics).Assembly;
-    internal static readonly AssemblyName AssemblyName = Assembly.GetName();
-#pragma warning disable IDE0370 // Suppression is unnecessary
-    internal static readonly Meter MeterInstance = new(AssemblyName.Name!, Assembly.GetPackageVersion());
-#pragma warning restore IDE0370 // Suppression is unnecessary
+    internal static readonly Meter MeterInstance = Trace.MeterFactory.Create<RuntimeMetrics>(new(0, 0, 0)); // These metrics are not in the Semantic Conventions
 
 #if NET
     private const long NanosecondsPerTick = 100;
