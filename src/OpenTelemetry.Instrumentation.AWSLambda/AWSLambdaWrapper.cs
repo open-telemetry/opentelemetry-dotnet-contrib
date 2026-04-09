@@ -256,17 +256,6 @@ public static class AWSLambdaWrapper
         }
     }
 
-    private static ActivitySource CreateActivitySource()
-    {
-        var assembly = typeof(AWSLambdaWrapper).Assembly;
-        var version = assembly.GetPackageVersion();
-
-        var activitySourceOptions = new ActivitySourceOptions(ActivitySourceName)
-        {
-            TelemetrySchemaUrl = AWSSemanticConventions.SchemaUrl,
-            Version = version,
-        };
-
-        return new(activitySourceOptions);
-    }
+    private static ActivitySource CreateActivitySource() =>
+        ActivitySourceFactory.Create(typeof(AWSLambdaWrapper), AWSSemanticConventions.Version);
 }

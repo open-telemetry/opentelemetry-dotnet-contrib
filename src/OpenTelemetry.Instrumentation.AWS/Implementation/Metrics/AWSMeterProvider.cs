@@ -5,50 +5,30 @@ using System.Collections.Concurrent;
 using Amazon.Runtime.Telemetry;
 using Amazon.Runtime.Telemetry.Metrics;
 using OpenTelemetry.AWS;
-using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.AWS.Implementation.Metrics;
 
 internal sealed class AWSMeterProvider(SemanticConventionVersion version) : MeterProvider
 {
-    private static readonly string MeterVersion = GetMeterVersion();
-
     private readonly ConcurrentDictionary<string, AWSMeter> meters = new();
-    private readonly string telemetrySchemaUrl = AWSSemanticConventions.GetTelemetrySchemaUrl(version);
+    private readonly Version semanticConventionVersion = AWSSemanticConventions.GetVersion(version);
 
     public override Meter GetMeter(string scope, Attributes? attributes = null)
     {
         if (!this.meters.TryGetValue(scope, out var meter))
         {
 #if NET
-            meter = this.meters.GetOrAdd(scope, static (name, state) => CreateMeter(name, state), (this.telemetrySchemaUrl, attributes?.AllAttributes));
+            meter = this.meters.GetOrAdd(scope, static (name, state) => CreateMeter(name, state), (this.semanticConventionVersion, attributes?.AllAttributes));
 #else
-            meter = this.meters.GetOrAdd(scope, (name) => CreateMeter(name, (this.telemetrySchemaUrl, attributes?.AllAttributes)));
+            meter = this.meters.GetOrAdd(scope, (name) => CreateMeter(name, (this.semanticConventionVersion, attributes?.AllAttributes)));
 #endif
         }
 
         return meter;
 
-        static AWSMeter CreateMeter(string name, (string SchemaUrl, IEnumerable<KeyValuePair<string, object?>>? Attributes) state)
+        static AWSMeter CreateMeter(string name, (Version Version, IEnumerable<KeyValuePair<string, object?>>? Attributes) state)
         {
-            var options = new System.Diagnostics.Metrics.MeterOptions(name)
-            {
-                TelemetrySchemaUrl = state.SchemaUrl,
-                Version = MeterVersion,
-            };
-
-            if (state.Attributes is { } attributes)
-            {
-                options.Tags = attributes;
-            }
-
-            return new AWSMeter(new System.Diagnostics.Metrics.Meter(options));
+            return new AWSMeter(OpenTelemetry.Metrics.MeterFactory.Create<AWSMeterProvider>(state.Version, state.Attributes));
         }
-    }
-
-    private static string GetMeterVersion()
-    {
-        var assembly = typeof(AWSMeterProvider).Assembly;
-        return assembly.GetPackageVersion();
     }
 }

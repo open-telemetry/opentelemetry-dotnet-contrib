@@ -2,48 +2,32 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using Amazon.Runtime.Telemetry.Tracing;
 using OpenTelemetry.AWS;
-using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.AWS.Implementation.Tracing;
 
 internal sealed class AWSTracerProvider(SemanticConventionVersion version) : TracerProvider
 {
-    private static readonly string ActivitySourceVersion = GetActivitySourceVersion();
-
     private readonly ConcurrentDictionary<string, AWSTracer> tracers = new();
-    private readonly string telemetrySchemaUrl = AWSSemanticConventions.GetTelemetrySchemaUrl(version);
+    private readonly Version semanticConventionVersion = AWSSemanticConventions.GetVersion(version);
 
     public override Tracer GetTracer(string scope)
     {
         if (!this.tracers.TryGetValue(scope, out var awsTracer))
         {
 #if NET
-            awsTracer = this.tracers.GetOrAdd(scope, static (name, schemaUrl) => CreateTracer(name, schemaUrl), this.telemetrySchemaUrl);
+            awsTracer = this.tracers.GetOrAdd(scope, static (name, version) => CreateTracer(name, version), this.semanticConventionVersion);
 #else
-            awsTracer = this.tracers.GetOrAdd(scope, (name) => CreateTracer(name, this.telemetrySchemaUrl));
+            awsTracer = this.tracers.GetOrAdd(scope, (name) => CreateTracer(name, this.semanticConventionVersion));
 #endif
         }
 
         return awsTracer;
 
-        static AWSTracer CreateTracer(string name, string telemetrySchemaUrl)
+        static AWSTracer CreateTracer(string name, Version version)
         {
-            var options = new ActivitySourceOptions(name)
-            {
-                TelemetrySchemaUrl = telemetrySchemaUrl,
-                Version = ActivitySourceVersion,
-            };
-
-            return new AWSTracer(new ActivitySource(options));
+            return new AWSTracer(Trace.ActivitySourceFactory.Create<AWSTracerProvider>(version));
         }
-    }
-
-    private static string GetActivitySourceVersion()
-    {
-        var assembly = typeof(AWSTracerProvider).Assembly;
-        return assembly.GetPackageVersion();
     }
 }

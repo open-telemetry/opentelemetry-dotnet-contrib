@@ -79,7 +79,7 @@ internal partial class AWSSemanticConventions
     /// <inheritdoc cref="TagBuilderImpl"/>
     public TagBuilderImpl TagBuilder { get; }
 
-    public string SchemaUrl { get; }
+    public Version Version { get; }
 
     /// <summary>
     /// Returns attribute names whose values must be reported as a <c>string[]</c>
@@ -100,7 +100,7 @@ internal partial class AWSSemanticConventions
         this.AttributeBuilder = new(this);
         this.ParameterMappingBuilder = new(this);
         this.TagBuilder = new(this);
-        this.SchemaUrl = GetTelemetrySchemaUrl(this.semanticConventionVersion);
+        this.Version = GetVersion(this.semanticConventionVersion);
     }
 
     /// <summary>
@@ -454,17 +454,12 @@ internal partial class AWSSemanticConventions
         #endregion
     }
 
-    internal static string GetTelemetrySchemaUrl(SemanticConventionVersion semanticConventionVersion)
+    internal static Version GetVersion(SemanticConventionVersion semanticConventionVersion) => semanticConventionVersion switch
     {
-        var versionString = semanticConventionVersion switch
-        {
-            SemanticConventionVersion.Latest or SemanticConventionVersion.V1_29_0 => "1.29.0",
-            SemanticConventionVersion.V1_28_0 => "1.28.0",
-            _ => throw new InvalidEnumArgumentException(nameof(semanticConventionVersion), (int)semanticConventionVersion, typeof(SemanticConventionVersion)),
-        };
-
-        return $"https://opentelemetry.io/schemas/{versionString}";
-    }
+        SemanticConventionVersion.Latest or SemanticConventionVersion.V1_29_0 => new(1, 29, 0),
+        SemanticConventionVersion.V1_28_0 => new(1, 28, 0),
+        _ => throw new InvalidEnumArgumentException(nameof(semanticConventionVersion), (int)semanticConventionVersion, typeof(SemanticConventionVersion)),
+    };
 
     private AttributeBuilderImpl Add(AttributeBuilderImpl attributes, Func<AWSSemanticConventionsBase, string> attributeNameFunc, Func<AWSSemanticConventionsBase, string> valueFunc) =>
         this.Add(attributes, attributeNameFunc, valueFunc(this.GetSemanticConventionVersion()));
