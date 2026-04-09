@@ -28,7 +28,7 @@ internal sealed class AWSMeterProvider(SemanticConventionVersion version) : Mete
 
         static AWSMeter CreateMeter(string name, (Version Version, IEnumerable<KeyValuePair<string, object?>>? Attributes) state)
         {
-            return new AWSMeter(OpenTelemetry.Metrics.MeterFactory.Create<AWSMeterProvider>(state.Version, state.Attributes));
+            return new AWSMeter(OpenTelemetry.Metrics.MeterFactory.Create(typeof(AWSMeterProvider), state.Version, state.Attributes, name));
         }
     }
 }

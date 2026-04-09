@@ -77,7 +77,7 @@ public sealed class AWSClientInstrumentationOptionsTests
     {
         var exportedItems = new List<Activity>();
 
-        var parent = new Activity("parent").Start();
+        using var parent = new Activity("parent").Start();
         var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
 
         try

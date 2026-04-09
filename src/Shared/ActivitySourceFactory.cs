@@ -24,8 +24,9 @@ internal static class ActivitySourceFactory
     /// </summary>
     /// <param name="type">The type for which the <see cref="ActivitySource"/> is created for its assembly.</param>
     /// <param name="semanticConventionsVersion">The version of the semantic conventions.</param>
+    /// <param name="name">The optional name to use for the <see cref="ActivitySource"/> instead of the assembly name associated with <paramref name="type"/>.</param>
     /// <returns>A new <see cref="ActivitySource"/> instance.</returns>
-    public static ActivitySource Create(Type type, Version semanticConventionsVersion)
+    public static ActivitySource Create(Type type, Version semanticConventionsVersion, string? name = null)
     {
         Guard.ThrowIfNull(type);
         Guard.ThrowIfNull(semanticConventionsVersion);
@@ -34,10 +35,11 @@ internal static class ActivitySourceFactory
 
         var assembly = type.Assembly;
         var assemblyName = assembly.GetName();
-#pragma warning disable IDE0370 // Suppression is unnecessary
-        var name = assemblyName.Name!;
-#pragma warning restore IDE0370 // Suppression is unnecessary
         var version = assembly.GetPackageVersion();
+
+#pragma warning disable IDE0370 // Suppression is unnecessary
+        name ??= assemblyName.Name!;
+#pragma warning restore IDE0370 // Suppression is unnecessary
 
         var options = new ActivitySourceOptions(name)
         {
