@@ -13,6 +13,10 @@
     <DefineConstants>INSTRUMENTATION_AWS;$(DefineConstants)</DefineConstants>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETCoreApp'">
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
   <PropertyGroup>
     <PackageValidationBaselineVersion>1.15.0</PackageValidationBaselineVersion>
   </PropertyGroup>
