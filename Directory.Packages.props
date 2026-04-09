@@ -6,8 +6,8 @@
 
   <!-- OpenTelemetry packages -->
   <PropertyGroup>
-    <OpenTelemetryCoreLatestVersion>1.15.1</OpenTelemetryCoreLatestVersion>
-    <OpenTelemetryCoreUnstableLatestVersion>1.15.1-beta.1</OpenTelemetryCoreUnstableLatestVersion>
+    <OpenTelemetryCoreLatestVersion>1.15.2</OpenTelemetryCoreLatestVersion>
+    <OpenTelemetryCoreUnstableLatestVersion>1.15.2-beta.1</OpenTelemetryCoreUnstableLatestVersion>
     <OpenTelemetryCoreLatestPrereleaseVersion>1.14.0-rc.1</OpenTelemetryCoreLatestPrereleaseVersion>
     <OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>1.15.1</OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>
     <OpenTelemetryInstrumentationHttpLatestStableVersion>1.15.0</OpenTelemetryInstrumentationHttpLatestStableVersion>
@@ -90,14 +90,14 @@
 
   <!-- Non-production packages are kept up-to-date by dependency automation -->
   <ItemGroup Label="Non-production packages, such as for examples and tests">
-    <PackageVersion Include="AWSSDK.Bedrock" Version="4.0.23.4" />
-    <PackageVersion Include="AWSSDK.BedrockAgent" Version="4.0.7.15" />
-    <PackageVersion Include="AWSSDK.BedrockAgentRuntime" Version="4.0.8.15" />
-    <PackageVersion Include="AWSSDK.BedrockRuntime" Version="4.0.16.7" />
-    <PackageVersion Include="AWSSDK.DynamoDBv2" Version="4.0.17.4" />
-    <PackageVersion Include="AWSSDK.S3" Version="4.0.20.1" />
-    <PackageVersion Include="AWSSDK.SimpleNotificationService" Version="4.0.2.23" />
-    <PackageVersion Include="AWSSDK.SQS" Version="4.0.2.21" />
+    <PackageVersion Include="AWSSDK.Bedrock" Version="4.0.25.1" />
+    <PackageVersion Include="AWSSDK.BedrockAgent" Version="4.0.8.1" />
+    <PackageVersion Include="AWSSDK.BedrockAgentRuntime" Version="4.0.8.18" />
+    <PackageVersion Include="AWSSDK.BedrockRuntime" Version="4.0.17.2" />
+    <PackageVersion Include="AWSSDK.DynamoDBv2" Version="4.0.17.7" />
+    <PackageVersion Include="AWSSDK.S3" Version="4.0.21" />
+    <PackageVersion Include="AWSSDK.SimpleNotificationService" Version="4.0.2.26" />
+    <PackageVersion Include="AWSSDK.SQS" Version="4.0.2.24" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
     <PackageVersion Include="CommandLineParser" Version="2.9.1" />
     <PackageVersion Include="FsCheck.Xunit" Version="3.3.2" />
@@ -124,7 +124,7 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.25" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="8.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.3.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.4.0" />
     <PackageVersion Include="Microsoft.Web.Xdt" Version="3.2.5" />
     <PackageVersion Include="MinVer" Version="7.0.0" />
     <PackageVersion Include="MessagePack" Version="3.1.4" />
@@ -133,7 +133,7 @@
     <PackageVersion Include="Newtonsoft.Json.Schema" Version="4.0.1" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
     <PackageVersion Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.3" />
-    <PackageVersion Include="ServiceFabric.Mocks" Version="8.0.5" />
+    <PackageVersion Include="ServiceFabric.Mocks" Version="8.0.6" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.1.7" />
     <PackageVersion Include="System.Reactive.Core" Version="6.1.0" />
     <PackageVersion Include="System.Reflection.DispatchProxy" Version="4.8.2" />
