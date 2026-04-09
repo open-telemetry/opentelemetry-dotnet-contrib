@@ -13,58 +13,69 @@ public class ProcessMetricsTests
     [Fact]
     public void ProcessMetricsAreCaptured()
     {
-        var exportedItemsA = new List<Metric>();
-        var meterProviderA = Sdk.CreateMeterProviderBuilder()
-            .AddProcessInstrumentation()
-            .AddInMemoryExporter(exportedItemsA)
-            .Build();
+        var firstMetrics = new List<Metric>();
 
-        meterProviderA.ForceFlush(MaxTimeToAllowForFlush);
+        using (var first = Sdk.CreateMeterProviderBuilder()
+                              .AddProcessInstrumentation()
+                              .AddInMemoryExporter(firstMetrics)
+                              .Build())
+        {
+            first.ForceFlush(MaxTimeToAllowForFlush);
+        }
 
-        Assert.Equal(5, exportedItemsA.Count);
-        var physicalMemoryMetric = exportedItemsA.FirstOrDefault(i => i.Name == "process.memory.usage");
+        Assert.Equal(5, firstMetrics.Count);
+        var physicalMemoryMetric = firstMetrics.FirstOrDefault(i => i.Name == "process.memory.usage");
         Assert.NotNull(physicalMemoryMetric);
-        var virtualMemoryMetric = exportedItemsA.FirstOrDefault(i => i.Name == "process.memory.virtual");
+        var virtualMemoryMetric = firstMetrics.FirstOrDefault(i => i.Name == "process.memory.virtual");
         Assert.NotNull(virtualMemoryMetric);
-        var cpuTimeMetric = exportedItemsA.FirstOrDefault(i => i.Name == "process.cpu.time");
+        var cpuTimeMetric = firstMetrics.FirstOrDefault(i => i.Name == "process.cpu.time");
         Assert.NotNull(cpuTimeMetric);
-        var processorCountMetric = exportedItemsA.FirstOrDefault(i => i.Name == "process.cpu.count");
+        var processorCountMetric = firstMetrics.FirstOrDefault(i => i.Name == "process.cpu.count");
         Assert.NotNull(processorCountMetric);
-        var threadMetric = exportedItemsA.FirstOrDefault(i => i.Name == "process.thread.count");
+        var threadMetric = firstMetrics.FirstOrDefault(i => i.Name == "process.thread.count");
         Assert.NotNull(threadMetric);
 
-        exportedItemsA.Clear();
+        firstMetrics.Clear();
 
-        var exportedItemsB = new List<Metric>();
+        var secondMetrics = new List<Metric>();
 
-        using var meterProviderB = Sdk.CreateMeterProviderBuilder()
-            .AddProcessInstrumentation()
-            .AddInMemoryExporter(exportedItemsA, metricReaderOptions =>
-            {
-                metricReaderOptions.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 1500;
-            })
-            .AddInMemoryExporter(exportedItemsB, metricReaderOptions =>
-            {
-                metricReaderOptions.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 5000;
-            })
-            .Build();
+        using (var second = Sdk.CreateMeterProviderBuilder()
+                               .AddProcessInstrumentation()
+                               .AddInMemoryExporter(firstMetrics, metricReaderOptions =>
+                               {
+                                   metricReaderOptions.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 1500;
+                               })
+                               .AddInMemoryExporter(secondMetrics, metricReaderOptions =>
+                               {
+                                   metricReaderOptions.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 5000;
+                               })
+                               .Build())
+        {
+            second.ForceFlush(MaxTimeToAllowForFlush);
+        }
 
-        meterProviderB.ForceFlush(MaxTimeToAllowForFlush);
+        Assert.Equal(5, firstMetrics.Count);
+        Assert.Equal(5, secondMetrics.Count);
 
-        Assert.Equal(5, exportedItemsA.Count);
-        Assert.Equal(5, exportedItemsB.Count);
+        foreach (var metric in firstMetrics)
+        {
+            Assert.NotNull(metric.MeterVersion);
+            Assert.NotEmpty(metric.MeterVersion);
+            Assert.StartsWith("https://opentelemetry.io/schemas/", metric.MeterSchemaUrl);
+        }
     }
 
     [Fact]
     public void CpuTimeMetricsAreCaptured()
     {
         var exportedItems = new List<Metric>();
-        using var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddProcessInstrumentation()
-            .AddInMemoryExporter(exportedItems)
-            .Build();
-
-        meterProvider.ForceFlush(MaxTimeToAllowForFlush);
+        using (var meterProvider = Sdk.CreateMeterProviderBuilder()
+                                      .AddProcessInstrumentation()
+                                      .AddInMemoryExporter(exportedItems)
+                                      .Build())
+        {
+            meterProvider.ForceFlush(MaxTimeToAllowForFlush);
+        }
 
         var cpuTimeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.cpu.time");
         Assert.NotNull(cpuTimeMetric);
@@ -104,10 +115,10 @@ public class ProcessMetricsTests
         {
             Task.Run(() =>
             {
-                var meterProviderA = Sdk.CreateMeterProviderBuilder()
-                    .AddProcessInstrumentation()
-                    .AddInMemoryExporter(exportedItemsA)
-                    .Build();
+                using var meterProviderA = Sdk.CreateMeterProviderBuilder()
+                                              .AddProcessInstrumentation()
+                                              .AddInMemoryExporter(exportedItemsA)
+                                              .Build();
 
                 Thread.Sleep(3000); // increase the odds of 2 tasks overlaps
 
@@ -116,10 +127,10 @@ public class ProcessMetricsTests
 
             Task.Run(() =>
             {
-                var meterProviderB = Sdk.CreateMeterProviderBuilder()
-                    .AddProcessInstrumentation()
-                    .AddInMemoryExporter(exportedItemsB)
-                    .Build();
+                using var meterProviderB = Sdk.CreateMeterProviderBuilder()
+                                              .AddProcessInstrumentation()
+                                              .AddInMemoryExporter(exportedItemsB)
+                                              .Build();
 
                 Thread.Sleep(3000); // increase the odds of 2 tasks overlaps
 
@@ -161,14 +172,14 @@ public class ProcessMetricsTests
         var exportedItemsB = new List<Metric>();
 
         using var meterProviderA = Sdk.CreateMeterProviderBuilder()
-            .AddProcessInstrumentation()
-            .AddInMemoryExporter(exportedItemsA)
-            .Build();
+                                      .AddProcessInstrumentation()
+                                      .AddInMemoryExporter(exportedItemsA)
+                                      .Build();
 
         using (var meterProviderB = Sdk.CreateMeterProviderBuilder()
-            .AddProcessInstrumentation()
-            .AddInMemoryExporter(exportedItemsB)
-            .Build())
+                                       .AddProcessInstrumentation()
+                                       .AddInMemoryExporter(exportedItemsB)
+                                       .Build())
         {
             meterProviderA.ForceFlush(MaxTimeToAllowForFlush);
             meterProviderB.ForceFlush(MaxTimeToAllowForFlush);
