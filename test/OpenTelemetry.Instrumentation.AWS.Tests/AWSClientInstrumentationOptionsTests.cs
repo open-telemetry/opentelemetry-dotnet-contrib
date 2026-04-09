@@ -83,14 +83,11 @@ public sealed class AWSClientInstrumentationOptionsTests
         try
         {
             using (Sdk.CreateTracerProviderBuilder()
-                       .AddXRayTraceId()
-                       .SetSampler(new AlwaysOnSampler())
-                       .AddAWSInstrumentation(o =>
-                       {
-                           o.SemanticConventionVersion = semVersion;
-                       })
-                       .AddInMemoryExporter(exportedItems)
-                       .Build())
+                      .AddXRayTraceId()
+                      .SetSampler(new AlwaysOnSampler())
+                      .AddAWSInstrumentation(o => o.SemanticConventionVersion = semVersion)
+                      .AddInMemoryExporter(exportedItems)
+                      .Build())
             {
                 var client = new AmazonBedrockRuntimeClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
                 var dummyResponse = "{}";
