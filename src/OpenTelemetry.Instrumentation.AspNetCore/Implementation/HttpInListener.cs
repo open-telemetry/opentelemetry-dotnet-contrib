@@ -11,7 +11,7 @@ using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.AspNetCore.Implementation;
 
-internal sealed class HttpInListener : ListenerHandler
+internal class HttpInListener : ListenerHandler
 {
     internal const string ActivityOperationName = "Microsoft.AspNetCore.Hosting.HttpRequestIn";
     internal const string OnStartEvent = "Microsoft.AspNetCore.Hosting.HttpRequestIn.Start";
