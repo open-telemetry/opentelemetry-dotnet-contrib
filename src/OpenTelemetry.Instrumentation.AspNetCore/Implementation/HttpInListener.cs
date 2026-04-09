@@ -11,7 +11,7 @@ using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.AspNetCore.Implementation;
 
-internal class HttpInListener : ListenerHandler
+internal sealed class HttpInListener : ListenerHandler
 {
     internal const string ActivityOperationName = "Microsoft.AspNetCore.Hosting.HttpRequestIn";
     internal const string OnStartEvent = "Microsoft.AspNetCore.Hosting.HttpRequestIn.Start";
@@ -22,7 +22,8 @@ internal class HttpInListener : ListenerHandler
     // https://github.com/dotnet/aspnetcore/blob/8d6554e655b64da75b71e0e20d6db54a3ba8d2fb/src/Hosting/Hosting/src/GenericHost/GenericWebHostBuilder.cs#L85
     internal const string AspNetCoreActivitySourceName = "Microsoft.AspNetCore";
 
-    internal static readonly ActivitySource ActivitySource = CreateActivitySource();
+    internal static readonly Version SemanticConventionsVersion = new(1, 40, 0);
+    internal static readonly ActivitySource ActivitySource = ActivitySourceFactory.Create<HttpInListener>(SemanticConventionsVersion);
     internal static readonly bool Net7OrGreater = Environment.Version.Major >= 7;
 
     private const string DiagnosticSourceName = "Microsoft.AspNetCore";
@@ -387,25 +388,5 @@ internal class HttpInListener : ListenerHandler
                 activity.SetTag(SemanticConventions.AttributeRpcGrpcStatusCode, status);
             }
         }
-    }
-
-    private static ActivitySource CreateActivitySource()
-    {
-        const string telemetrySchemaUrl = "https://opentelemetry.io/schemas/1.40.0";
-
-        var assembly = typeof(HttpInListener).Assembly;
-        var assemblyName = assembly.GetName();
-#pragma warning disable IDE0370 // Suppression is unnecessary
-        var name = assemblyName.Name!;
-#pragma warning restore IDE0370 // Suppression is unnecessary
-        var version = assembly.GetPackageVersion();
-
-        var activitySourceOptions = new ActivitySourceOptions(name)
-        {
-            TelemetrySchemaUrl = telemetrySchemaUrl,
-            Version = version,
-        };
-
-        return new ActivitySource(activitySourceOptions);
     }
 }
