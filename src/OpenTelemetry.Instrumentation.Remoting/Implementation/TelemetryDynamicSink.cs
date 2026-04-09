@@ -47,11 +47,6 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
 
     public void ProcessMessageStart(IMessage reqMsg, bool bCliSide, bool bAsync)
     {
-        if (Sdk.SuppressInstrumentation)
-        {
-            return;
-        }
-
         var options = this.optionsProvider.Options;
 
         try
