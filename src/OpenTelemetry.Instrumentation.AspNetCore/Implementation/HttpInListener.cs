@@ -1,8 +1,10 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Http;
@@ -45,6 +47,10 @@ internal class HttpInListener : ListenerHandler
     };
 
     private static readonly PropertyFetcher<Exception> ExceptionPropertyFetcher = new("Exception");
+
+    // Caches the display name, rpc.service, and rpc.method derived from the raw gRPC method string.
+    // The set of distinct gRPC method strings is bounded by the number of gRPC endpoints in the app.
+    private static readonly ConcurrentDictionary<string, GrpcMethodDetails> GrpcMethodCache = new();
 
     private readonly AspNetCoreTraceInstrumentationOptions options;
 
@@ -252,9 +258,37 @@ internal class HttpInListener : ListenerHandler
 
             activity.SetTag(SemanticConventions.AttributeHttpResponseStatusCode, TelemetryHelper.GetBoxedStatusCode(response.StatusCode));
 
-            if (this.options.EnableGrpcAspNetCoreSupport && TryGetGrpcMethod(activity, out var grpcMethod))
+            if (this.options.EnableGrpcAspNetCoreSupport)
             {
-                AddGrpcAttributes(activity, grpcMethod, context);
+                // Single pass over the tag collection to retrieve both gRPC tags,
+                // avoiding two separate GetTagValue iterations.
+                string? grpcMethod = null;
+                int grpcStatusCode = -1;
+                var hasGrpcStatusCode = false;
+
+                var tagEnumerator = activity.EnumerateTagObjects();
+                while (tagEnumerator.MoveNext())
+                {
+                    ref readonly var tag = ref tagEnumerator.Current;
+                    if (grpcMethod is null && tag.Key == GrpcTagHelper.GrpcMethodTagName)
+                    {
+                        grpcMethod = tag.Value as string;
+                    }
+                    else if (!hasGrpcStatusCode && tag.Key == GrpcTagHelper.GrpcStatusCodeTagName)
+                    {
+                        hasGrpcStatusCode = int.TryParse(tag.Value as string, NumberStyles.None, CultureInfo.InvariantCulture, out grpcStatusCode);
+                    }
+
+                    if (grpcMethod is not null && hasGrpcStatusCode)
+                    {
+                        break;
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(grpcMethod))
+                {
+                    AddGrpcAttributes(activity, grpcMethod!, context, grpcStatusCode, hasGrpcStatusCode);
+                }
             }
 
             if (activity.Status == ActivityStatusCode.Unset)
@@ -345,19 +379,20 @@ internal class HttpInListener : ListenerHandler
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool TryGetGrpcMethod(Activity activity, [NotNullWhen(true)] out string? grpcMethod)
+    private static void AddGrpcAttributes(Activity activity, string grpcMethod, HttpContext context, int grpcStatusCode, bool validStatusCode)
     {
-        grpcMethod = GrpcTagHelper.GetGrpcMethodFromActivity(activity);
-        return !string.IsNullOrEmpty(grpcMethod);
-    }
+        var details = GrpcMethodCache.GetOrAdd(grpcMethod, static (method) =>
+        {
+            var displayName = method.Length > 0 && method[0] == '/' ? method.Substring(1) : method;
+            var isParsed = GrpcTagHelper.TryParseRpcServiceAndRpcMethod(method, out var serviceName, out var methodName);
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void AddGrpcAttributes(Activity activity, string grpcMethod, HttpContext context)
-    {
+            return new(displayName, isParsed ? serviceName : null, isParsed ? methodName : null, isParsed);
+        });
+
         // The RPC semantic conventions indicate the span name
         // should not have a leading forward slash.
         // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/rpc/rpc-spans.md#span-name
-        activity.DisplayName = grpcMethod.TrimStart('/');
+        activity.DisplayName = details.DisplayName;
 
         activity.SetTag(SemanticConventions.AttributeRpcSystem, GrpcTagHelper.RpcSystemGrpc);
 
@@ -370,16 +405,15 @@ internal class HttpInListener : ListenerHandler
 
         activity.SetTag(SemanticConventions.AttributeClientPort, context.Connection.RemotePort);
 
-        var validConversion = GrpcTagHelper.TryGetGrpcStatusCodeFromActivity(activity, out var status);
-        if (validConversion)
+        if (validStatusCode)
         {
-            activity.SetStatus(GrpcTagHelper.ResolveSpanStatusForGrpcStatusCodeOnServer(status));
+            activity.SetStatus(GrpcTagHelper.ResolveSpanStatusForGrpcStatusCodeOnServer(grpcStatusCode));
         }
 
-        if (GrpcTagHelper.TryParseRpcServiceAndRpcMethod(grpcMethod, out var rpcService, out var rpcMethod))
+        if (details.IsParsed)
         {
-            activity.SetTag(SemanticConventions.AttributeRpcService, rpcService);
-            activity.SetTag(SemanticConventions.AttributeRpcMethod, rpcMethod);
+            activity.SetTag(SemanticConventions.AttributeRpcService, details.RpcService);
+            activity.SetTag(SemanticConventions.AttributeRpcMethod, details.RpcMethod);
 
             // Remove the grpc.method tag added by the gRPC .NET library
             activity.SetTag(GrpcTagHelper.GrpcMethodTagName, null);
@@ -387,11 +421,30 @@ internal class HttpInListener : ListenerHandler
             // Remove the grpc.status_code tag added by the gRPC .NET library
             activity.SetTag(GrpcTagHelper.GrpcStatusCodeTagName, null);
 
-            if (validConversion)
+            if (validStatusCode)
             {
                 // setting rpc.grpc.status_code
-                activity.SetTag(SemanticConventions.AttributeRpcGrpcStatusCode, status);
+                activity.SetTag(SemanticConventions.AttributeRpcGrpcStatusCode, grpcStatusCode);
             }
         }
+    }
+
+    private readonly struct GrpcMethodDetails
+    {
+        public GrpcMethodDetails(string displayName, string? rpcService, string? rpcMethod, bool isParsed)
+        {
+            this.DisplayName = displayName;
+            this.RpcService = rpcService;
+            this.RpcMethod = rpcMethod;
+            this.IsParsed = isParsed;
+        }
+
+        public readonly string DisplayName { get; }
+
+        public readonly string? RpcService { get; }
+
+        public readonly string? RpcMethod { get; }
+
+        public readonly bool IsParsed { get; }
     }
 }
