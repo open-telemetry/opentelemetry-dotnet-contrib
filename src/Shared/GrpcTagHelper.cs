@@ -2,12 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-using System.Text.RegularExpressions;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation;
 
-internal static partial class GrpcTagHelper
+internal static class GrpcTagHelper
 {
     public const string RpcSystemGrpc = "grpc";
 
@@ -28,19 +27,25 @@ internal static partial class GrpcTagHelper
 
     public static bool TryParseRpcServiceAndRpcMethod(string grpcMethod, out string rpcService, out string rpcMethod)
     {
-        var match = GrpcMethodRegex().Match(grpcMethod);
-        if (match.Success)
+        var span = grpcMethod.AsSpan();
+
+        if (!span.IsEmpty && span[0] is '/')
         {
-            rpcService = match.Groups["service"].Value;
-            rpcMethod = match.Groups["method"].Value;
-            return true;
+            span = span.Slice(1);
         }
-        else
+
+        var lastSlash = span.LastIndexOf('/');
+        if (lastSlash < 0)
         {
             rpcService = string.Empty;
             rpcMethod = string.Empty;
             return false;
         }
+
+        rpcService = span.Slice(0, lastSlash).ToString();
+        rpcMethod = span.Slice(lastSlash + 1).ToString();
+
+        return true;
     }
 
     /// <summary>
@@ -54,7 +59,7 @@ internal static partial class GrpcTagHelper
     {
         var status = ActivityStatusCode.Error;
 
-        if (typeof(GrpcStatusCanonicalCode).IsEnumDefined(statusCode))
+        if (statusCode <= (int)GrpcStatusCanonicalCode.MaxValue)
         {
             status = (GrpcStatusCanonicalCode)statusCode switch
             {
@@ -92,7 +97,7 @@ internal static partial class GrpcTagHelper
     /// <returns>Resolved span <see cref="Status"/> for the Grpc status code.</returns>
     public static ActivityStatusCode ResolveSpanStatusForGrpcStatusCodeOnServer(int statusCode)
     {
-        if (typeof(GrpcStatusCanonicalCode).IsEnumDefined(statusCode))
+        if (statusCode <= (int)GrpcStatusCanonicalCode.MaxValue)
         {
 #pragma warning disable IDE0072 // Add missing cases
             return (GrpcStatusCanonicalCode)statusCode switch
@@ -111,16 +116,4 @@ internal static partial class GrpcTagHelper
         // Unknown status code, treat as error
         return ActivityStatusCode.Error;
     }
-
-#if NET
-    [GeneratedRegex(@"^/?(?<service>.*)/(?<method>.*)$")]
-    private static partial Regex GrpcMethodRegex();
-#else
-#pragma warning disable SA1201 // A field should not follow a method
-    private static readonly Regex GrpcMethodRegexField = new(@"^/?(?<service>.*)/(?<method>.*)$", RegexOptions.Compiled);
-#pragma warning restore SA1201 // A field should not follow a method
-
-    private static Regex GrpcMethodRegex() => GrpcMethodRegexField;
-#endif
-
 }
