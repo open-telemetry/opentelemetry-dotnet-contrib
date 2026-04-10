@@ -53,9 +53,23 @@ internal sealed class WsTransport : IOpAmpTransport, IDisposable
 
     public async Task StopAsync(CancellationToken token = default)
     {
-        await this.ws
-            .CloseAsync(WebSocketCloseStatus.NormalClosure, "Client closed connection", token)
-            .ConfigureAwait(false);
+        if (this.ws.State is not (WebSocketState.Open or WebSocketState.CloseReceived))
+        {
+            return;
+        }
+
+        try
+        {
+            await this.ws
+                .CloseAsync(WebSocketCloseStatus.NormalClosure, "Client closed connection", token)
+                .ConfigureAwait(false);
+        }
+        catch (WebSocketException ex)
+        {
+            // The WsReceiver may consume the peer's close frame before
+            // CloseAsync sees it, causing a WebSocketException under load.
+            OpAmpClientEventSource.Log.TransportCloseException(ex);
+        }
     }
 
     public Task SendAsync<T>(T message, CancellationToken token = default)
