@@ -123,7 +123,7 @@ internal sealed class RequestDataHelper
         // https://github.com/open-telemetry/semantic-conventions/blob/v1.24.0/docs/http/http-spans.md#name
 
         var normalizedHttpMethod = this.GetNormalizedHttpMethod(originalHttpMethod);
-        var namePrefix = normalizedHttpMethod == "_OTHER" ? "HTTP" : normalizedHttpMethod;
+        var namePrefix = normalizedHttpMethod == OtherHttpMethod ? "HTTP" : normalizedHttpMethod;
 
         if (string.IsNullOrEmpty(httpRoute))
         {
