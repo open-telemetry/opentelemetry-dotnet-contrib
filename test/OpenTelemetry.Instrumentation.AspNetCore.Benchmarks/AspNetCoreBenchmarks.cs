@@ -74,9 +74,12 @@ public class AspNetCoreBenchmarks
 
         if (this.EnableInstrumentation.HasFlag(EnableInstrumentationOption.Metrics))
         {
+            var exportedItems = new List<Metric>();
+
             this.meterProvider = Sdk.CreateMeterProviderBuilder()
                 .ConfigureServices((services) => services.AddSingleton(configuration))
                 .AddAspNetCoreInstrumentation()
+                .AddInMemoryExporter(exportedItems)
                 .Build();
         }
     }
