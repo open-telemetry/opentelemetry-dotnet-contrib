@@ -196,9 +196,9 @@ internal class HttpInListener : ListenerHandler
             {
                 activity.SetTag(SemanticConventions.AttributeServerAddress, request.Host.Host);
 
-                if (request.Host.Port.HasValue)
+                if (request.Host.Port is { } port)
                 {
-                    activity.SetTag(SemanticConventions.AttributeServerPort, request.Host.Port.Value);
+                    activity.SetTag(SemanticConventions.AttributeServerPort, port);
                 }
             }
 
