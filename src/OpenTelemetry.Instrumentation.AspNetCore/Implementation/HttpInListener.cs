@@ -158,22 +158,25 @@ internal class HttpInListener : ListenerHandler
         // is favorable.
         if (activity.IsAllDataRequested)
         {
-            try
+            if (this.options.Filter is { } filter)
             {
-                if (this.options.Filter?.Invoke(context) == false)
+                try
                 {
-                    AspNetCoreInstrumentationEventSource.Log.RequestIsFilteredOut(nameof(HttpInListener), nameof(this.OnStartActivity), activity.OperationName);
+                    if (!filter(context))
+                    {
+                        AspNetCoreInstrumentationEventSource.Log.RequestIsFilteredOut(nameof(HttpInListener), nameof(this.OnStartActivity), activity.OperationName);
+                        activity.IsAllDataRequested = false;
+                        activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
+                        return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    AspNetCoreInstrumentationEventSource.Log.RequestFilterException(nameof(HttpInListener), nameof(this.OnStartActivity), activity.OperationName, ex);
                     activity.IsAllDataRequested = false;
                     activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
                     return;
                 }
-            }
-            catch (Exception ex)
-            {
-                AspNetCoreInstrumentationEventSource.Log.RequestFilterException(nameof(HttpInListener), nameof(this.OnStartActivity), activity.OperationName, ex);
-                activity.IsAllDataRequested = false;
-                activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
-                return;
             }
 
             if (!Net7OrGreater)
@@ -224,13 +227,16 @@ internal class HttpInListener : ListenerHandler
                 }
             }
 
-            try
+            if (this.options.EnrichWithHttpRequest is { } enricher)
             {
-                this.options.EnrichWithHttpRequest?.Invoke(activity, request);
-            }
-            catch (Exception ex)
-            {
-                AspNetCoreInstrumentationEventSource.Log.EnrichmentException(nameof(HttpInListener), nameof(this.OnStartActivity), activity.OperationName, ex);
+                try
+                {
+                    enricher(activity, request);
+                }
+                catch (Exception ex)
+                {
+                    AspNetCoreInstrumentationEventSource.Log.EnrichmentException(nameof(HttpInListener), nameof(this.OnStartActivity), activity.OperationName, ex);
+                }
             }
         }
     }
@@ -296,13 +302,16 @@ internal class HttpInListener : ListenerHandler
                 activity.SetStatus(SpanHelper.ResolveActivityStatusForHttpStatusCode(activity.Kind, response.StatusCode));
             }
 
-            try
+            if (this.options.EnrichWithHttpResponse is { } enricher)
             {
-                this.options.EnrichWithHttpResponse?.Invoke(activity, response);
-            }
-            catch (Exception ex)
-            {
-                AspNetCoreInstrumentationEventSource.Log.EnrichmentException(nameof(HttpInListener), nameof(this.OnStopActivity), activity.OperationName, ex);
+                try
+                {
+                    enricher(activity, response);
+                }
+                catch (Exception ex)
+                {
+                    AspNetCoreInstrumentationEventSource.Log.EnrichmentException(nameof(HttpInListener), nameof(this.OnStopActivity), activity.OperationName, ex);
+                }
             }
         }
 
@@ -356,13 +365,16 @@ internal class HttpInListener : ListenerHandler
 
             activity.SetStatus(ActivityStatusCode.Error);
 
-            try
+            if (this.options.EnrichWithException is { } enricher)
             {
-                this.options.EnrichWithException?.Invoke(activity, exc);
-            }
-            catch (Exception ex)
-            {
-                AspNetCoreInstrumentationEventSource.Log.EnrichmentException(nameof(HttpInListener), nameof(this.OnException), activity.OperationName, ex);
+                try
+                {
+                    enricher(activity, exc);
+                }
+                catch (Exception ex)
+                {
+                    AspNetCoreInstrumentationEventSource.Log.EnrichmentException(nameof(HttpInListener), nameof(this.OnException), activity.OperationName, ex);
+                }
             }
         }
 
