@@ -8,6 +8,7 @@ using Grpc.Net.Client;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Metrics;
@@ -20,9 +21,9 @@ public class AspNetCoreBenchmarks
 {
     private static readonly Uri BaseAddress = new("/", UriKind.Relative);
 
+    private readonly HelloRequest helloRequest = new();
     private HttpClient? httpClient;
     private Greeter.GreeterClient? grpcClient;
-    private HelloRequest helloRequest = new();
     private WebApplication? app;
     private TracerProvider? tracerProvider;
     private MeterProvider? meterProvider;
@@ -54,9 +55,19 @@ public class AspNetCoreBenchmarks
     {
         await this.StartWebApplicationAsync();
 
+        KeyValuePair<string, string?>[] config =
+        [
+            new("OTEL_DOTNET_EXPERIMENTAL_ASPNETCORE_ENABLE_GRPC_INSTRUMENTATION", "true"),
+        ];
+
+        IConfiguration configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(config)
+            .Build();
+
         if (this.EnableInstrumentation.HasFlag(EnableInstrumentationOption.Traces))
         {
             this.tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .ConfigureServices((services) => services.AddSingleton(configuration))
                 .AddAspNetCoreInstrumentation()
                 .Build();
         }
@@ -64,6 +75,7 @@ public class AspNetCoreBenchmarks
         if (this.EnableInstrumentation.HasFlag(EnableInstrumentationOption.Metrics))
         {
             this.meterProvider = Sdk.CreateMeterProviderBuilder()
+                .ConfigureServices((services) => services.AddSingleton(configuration))
                 .AddAspNetCoreInstrumentation()
                 .Build();
         }
