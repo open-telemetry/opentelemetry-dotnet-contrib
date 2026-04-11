@@ -59,7 +59,7 @@ internal static class GrpcTagHelper
     {
         var status = ActivityStatusCode.Error;
 
-        if (statusCode <= (int)GrpcStatusCanonicalCode.MaxValue)
+        if (statusCode >= 0 && statusCode <= (int)GrpcStatusCanonicalCode.MaxValue)
         {
             status = (GrpcStatusCanonicalCode)statusCode switch
             {
@@ -97,7 +97,7 @@ internal static class GrpcTagHelper
     /// <returns>Resolved span <see cref="Status"/> for the Grpc status code.</returns>
     public static ActivityStatusCode ResolveSpanStatusForGrpcStatusCodeOnServer(int statusCode)
     {
-        if (statusCode <= (int)GrpcStatusCanonicalCode.MaxValue)
+        if (statusCode >= 0 && statusCode <= (int)GrpcStatusCanonicalCode.MaxValue)
         {
 #pragma warning disable IDE0072 // Add missing cases
             return (GrpcStatusCanonicalCode)statusCode switch
