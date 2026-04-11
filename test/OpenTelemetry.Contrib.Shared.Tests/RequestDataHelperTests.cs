@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics;
+using OpenTelemetry.Trace;
 using Xunit;
 
 namespace OpenTelemetry.Internal.Tests;
@@ -86,6 +88,21 @@ public class RequestDataHelperTests
         var actual = requestHelper.GetActivityDisplayName(method, route);
 
         Assert.Equal(expected, actual);
+    }
+
+    [Theory]
+    [InlineData("GET", "GET", null)]
+    [InlineData("CUSTOM", "HTTP", "CUSTOM")]
+    public void SetActivityDisplayNameAndHttpMethodTagSetsExpectedValues(string method, string expectedDisplayName, string? expectedOriginalMethod)
+    {
+        var requestHelper = new RequestDataHelper(configureByHttpKnownMethodsEnvironmentalVariable: false);
+        using var activity = new Activity("operation");
+
+        requestHelper.SetActivityDisplayNameAndHttpMethodTag(activity, method);
+
+        Assert.Equal(expectedDisplayName, activity.DisplayName);
+        Assert.Equal(expectedDisplayName == "HTTP" ? "_OTHER" : method, activity.GetTagItem(SemanticConventions.AttributeHttpRequestMethod));
+        Assert.Equal(expectedOriginalMethod, activity.GetTagItem(SemanticConventions.AttributeHttpRequestMethodOriginal));
     }
 
 #if NET

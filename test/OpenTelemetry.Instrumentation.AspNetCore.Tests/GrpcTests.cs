@@ -112,6 +112,7 @@ public class GrpcTests
 
         context.Connection.RemoteIpAddress = remoteIpAddress;
         context.Connection.RemotePort = remotePort;
+        context.Request.Protocol = "HTTP/2";
         context.Response.StatusCode = StatusCodes.Status200OK;
 
         return context;
