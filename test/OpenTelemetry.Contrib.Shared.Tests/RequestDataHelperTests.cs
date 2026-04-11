@@ -76,6 +76,32 @@ public class RequestDataHelperTests
     }
 
     [Theory]
+    [InlineData("GET", null, "GET")]
+    [InlineData("POST", "/orders/{id}", "POST /orders/{id}")]
+    [InlineData("CUSTOM", "/orders/{id}", "HTTP /orders/{id}")]
+    public void GetActivityDisplayNameReturnsExpectedValue(string method, string? route, string expected)
+    {
+        var requestHelper = new RequestDataHelper(configureByHttpKnownMethodsEnvironmentalVariable: false);
+
+        var actual = requestHelper.GetActivityDisplayName(method, route);
+
+        Assert.Equal(expected, actual);
+    }
+
+#if NET
+    [Fact]
+    public void GetActivityDisplayNameCachesRouteDisplayNames()
+    {
+        var requestHelper = new RequestDataHelper(configureByHttpKnownMethodsEnvironmentalVariable: false);
+
+        var first = requestHelper.GetActivityDisplayName("GET", "/orders/{id}");
+        var second = requestHelper.GetActivityDisplayName("GET", "/orders/{id}");
+
+        Assert.Same(first, second);
+    }
+#endif
+
+    [Theory]
     [InlineData("HTTP/1.1", "1.1")]
     [InlineData("HTTP/2", "2")]
     [InlineData("HTTP/3", "3")]
