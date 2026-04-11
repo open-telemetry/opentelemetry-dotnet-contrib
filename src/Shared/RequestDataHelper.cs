@@ -86,6 +86,19 @@ internal sealed class RequestDataHelper
         }
     }
 
+    public void SetActivityDisplayNameAndHttpMethodTag(Activity activity, string originalHttpMethod)
+    {
+        var normalizedHttpMethod = this.GetNormalizedHttpMethod(originalHttpMethod);
+
+        activity.DisplayName = normalizedHttpMethod == OtherHttpMethod ? "HTTP" : normalizedHttpMethod;
+        activity.SetTag(SemanticConventions.AttributeHttpRequestMethod, normalizedHttpMethod);
+
+        if (originalHttpMethod != normalizedHttpMethod)
+        {
+            activity.SetTag(SemanticConventions.AttributeHttpRequestMethodOriginal, originalHttpMethod);
+        }
+    }
+
     public void SetHttpMethodTag(ref TagList tags, string originalHttpMethod)
     {
         var normalizedHttpMethod = this.GetNormalizedHttpMethod(originalHttpMethod);

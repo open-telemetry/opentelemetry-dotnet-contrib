@@ -34,6 +34,7 @@ internal class HttpInListener : ListenerHandler
     internal static readonly bool Net7OrGreater = Environment.Version.Major >= 7;
 
     private const string DiagnosticSourceName = "Microsoft.AspNetCore";
+    private const string CreatedByInstrumentationPropertyName = "OpenTelemetry.AspNetCore.CreatedByInstrumentation";
 
     private static readonly Func<HttpRequest, string, IEnumerable<string>> HttpRequestHeaderValuesGetter = (request, name) =>
     {
@@ -47,6 +48,7 @@ internal class HttpInListener : ListenerHandler
     };
 
     private static readonly PropertyFetcher<Exception> ExceptionPropertyFetcher = new("Exception");
+    private static readonly object CreatedByInstrumentationMarker = new();
 
     // Caches the display name, rpc.service, and rpc.method derived from the raw gRPC method string.
     // The set of distinct gRPC method strings is bounded by the number of gRPC endpoints in the app.
@@ -141,7 +143,7 @@ internal class HttpInListener : ListenerHandler
 
                 newOne!.TraceStateString = ctx.ActivityContext.TraceState;
 
-                newOne.SetTag("IsCreatedByInstrumentation", bool.TrueString);
+                newOne.SetCustomProperty(CreatedByInstrumentationPropertyName, CreatedByInstrumentationMarker);
 
                 // Starting the new activity make it the Activity.Current one.
                 newOne.Start();
@@ -185,8 +187,8 @@ internal class HttpInListener : ListenerHandler
                 ActivityInstrumentationHelper.SetKindProperty(activity, ActivityKind.Server);
             }
 
-            var path = (request.PathBase.HasValue || request.Path.HasValue) ? (request.PathBase + request.Path).ToString() : "/";
-            TelemetryHelper.RequestDataHelper.SetActivityDisplayName(activity, request.Method);
+            var path = GetRequestPath(request);
+            TelemetryHelper.RequestDataHelper.SetActivityDisplayNameAndHttpMethodTag(activity, request.Method);
 
             // see the spec https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/http/http-spans.md
 
@@ -211,8 +213,6 @@ internal class HttpInListener : ListenerHandler
                     activity.SetTag(SemanticConventions.AttributeUrlQuery, RedactionHelper.GetRedactedQueryString(request.QueryString.Value!));
                 }
             }
-
-            TelemetryHelper.RequestDataHelper.SetHttpMethodTag(activity, request.Method);
 
             activity.SetTag(SemanticConventions.AttributeUrlScheme, request.Scheme);
             activity.SetTag(SemanticConventions.AttributeUrlPath, path);
@@ -264,7 +264,7 @@ internal class HttpInListener : ListenerHandler
 
             activity.SetTag(SemanticConventions.AttributeHttpResponseStatusCode, TelemetryHelper.GetBoxedStatusCode(response.StatusCode));
 
-            if (this.options.EnableGrpcAspNetCoreSupport)
+            if (this.options.EnableGrpcAspNetCoreSupport && IsGrpcRequestProtocol(context.Request.Protocol))
             {
                 // Single pass over the tag collection to retrieve both gRPC tags,
                 // avoiding two separate GetTagValue iterations.
@@ -315,21 +315,10 @@ internal class HttpInListener : ListenerHandler
             }
         }
 
-        object? tagValue;
-        if (Net7OrGreater)
-        {
-            tagValue = activity.GetTagValue("IsCreatedByInstrumentation");
-        }
-        else
-        {
-            _ = activity.TryCheckFirstTag("IsCreatedByInstrumentation", out tagValue);
-        }
-
-        if (ReferenceEquals(tagValue, bool.TrueString))
+        if (ReferenceEquals(activity.GetCustomProperty(CreatedByInstrumentationPropertyName), CreatedByInstrumentationMarker))
         {
             // If instrumentation started a new Activity, it must
             // be stopped here.
-            activity.SetTag("IsCreatedByInstrumentation", null);
             activity.Stop();
 
             // After the activity.Stop() code, Activity.Current becomes null.
@@ -440,6 +429,15 @@ internal class HttpInListener : ListenerHandler
             }
         }
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static string GetRequestPath(HttpRequest request) => !request.PathBase.HasValue
+        ? request.Path.Value ?? "/"
+        : !request.Path.HasValue ? request.PathBase.Value : string.Concat(request.PathBase.Value, request.Path.Value);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsGrpcRequestProtocol(string protocol) =>
+        protocol == "HTTP/2" || protocol == "HTTP/3";
 
     private readonly struct GrpcMethodDetails
     {
