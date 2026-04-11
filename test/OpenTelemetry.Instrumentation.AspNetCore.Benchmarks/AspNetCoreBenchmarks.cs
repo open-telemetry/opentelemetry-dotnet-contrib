@@ -2,9 +2,13 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using BenchmarkDotNet.Attributes;
+using Greet;
+using Grpc.Core;
+using Grpc.Net.Client;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
@@ -17,6 +21,8 @@ public class AspNetCoreBenchmarks
     private static readonly Uri BaseAddress = new("/", UriKind.Relative);
 
     private HttpClient? httpClient;
+    private Greeter.GreeterClient? grpcClient;
+    private HelloRequest helloRequest = new();
     private WebApplication? app;
     private TracerProvider? tracerProvider;
     private MeterProvider? meterProvider;
@@ -85,6 +91,10 @@ public class AspNetCoreBenchmarks
         httpResponse.EnsureSuccessStatusCode();
     }
 
+    [Benchmark]
+    public async Task<HelloReply> GrpcGet() =>
+        await this.grpcClient!.SayHelloAsync(this.helloRequest);
+
     private async Task StartWebApplicationAsync()
     {
         var builder = WebApplication.CreateBuilder();
@@ -92,13 +102,30 @@ public class AspNetCoreBenchmarks
         builder.Logging.ClearProviders();
         builder.WebHost.UseTestServer();
 
+        builder.Services.AddGrpc();
+
         var app = builder.Build();
 
         app.MapGet("/", async context => await context.Response.WriteAsync("Hello World!"));
+
+        app.MapGrpcService<GreeterService>();
 
         await app.StartAsync();
 
         this.app = app;
         this.httpClient = app.GetTestClient();
+
+        var channel = GrpcChannel.ForAddress("http://localhost", new()
+        {
+            HttpClient = this.httpClient,
+        });
+
+        this.grpcClient = new Greeter.GreeterClient(channel);
+    }
+
+    private sealed class GreeterService : Greeter.GreeterBase
+    {
+        public override Task<HelloReply> SayHello(HelloRequest request, ServerCallContext context) =>
+            Task.FromResult(new HelloReply { Message = "Hello " + request.Name });
     }
 }
