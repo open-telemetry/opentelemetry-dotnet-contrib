@@ -75,9 +75,7 @@ public static class AspNetCoreInstrumentationTracerProviderBuilderExtensions
         return builder.AddInstrumentation(sp =>
         {
             var options = sp.GetRequiredService<IOptionsMonitor<AspNetCoreTraceInstrumentationOptions>>().Get(name);
-
-            return new AspNetCoreInstrumentation(
-                new HttpInListener(options));
+            return new AspNetCoreInstrumentation(new HttpInListener(options));
         });
     }
 
@@ -102,9 +100,9 @@ public static class AspNetCoreInstrumentationTracerProviderBuilderExtensions
         string optionsName,
         IServiceProvider? serviceProvider = null)
     {
-        // For .NET7.0 onwards activity will be created using activitySource.
+        // For .NET 7.0+ the activity will be created using activitySource.
         // https://github.com/dotnet/aspnetcore/blob/bf3352f2422bf16fa3ca49021f0e31961ce525eb/src/Hosting/Hosting/src/Internal/HostingApplicationDiagnostics.cs#L327
-        // For .NET6.0 and below, we will continue to use legacy way.
+        // For .NET 6.0 and below, we will continue to use legacy way.
         if (HttpInListener.Net7OrGreater)
         {
             // TODO: Check with .NET team to see if this can be prevented
