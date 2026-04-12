@@ -725,7 +725,6 @@ public sealed class BasicTests
         Assert.Equal("Microsoft.AspNetCore.Hosting.HttpRequestIn", aspnetcoreframeworkactivity.OperationName);
     }
 
-#if NET
     [Fact]
     public async Task UserRegisteredActivitySourceIsUsedForActivityCreationByAspNetCore()
     {
@@ -766,7 +765,6 @@ public sealed class BasicTests
 
         Assert.Equal("UserRegisteredActivitySource", activity.Source.Name);
     }
-#endif
 
     [Theory]
     [InlineData(1)]
@@ -1332,14 +1330,9 @@ public sealed class BasicTests
     private static void ValidateAspNetCoreActivity(Activity activityToValidate, string expectedHttpPath)
     {
         Assert.Equal(ActivityKind.Server, activityToValidate.Kind);
-#if NET
         Assert.Equal(HttpInListener.AspNetCoreActivitySourceName, activityToValidate.Source.Name);
         Assert.NotNull(activityToValidate.Source.Version);
         Assert.Empty(activityToValidate.Source.Version);
-#else
-        Assert.Equal(HttpInListener.ActivitySourceName, activityToValidate.Source.Name);
-        Assert.Equal(HttpInListener.Version.ToString(), activityToValidate.Source.Version);
-#endif
         Assert.Equal(expectedHttpPath, activityToValidate.GetTagValue(SemanticConventions.AttributeUrlPath) as string);
     }
 
