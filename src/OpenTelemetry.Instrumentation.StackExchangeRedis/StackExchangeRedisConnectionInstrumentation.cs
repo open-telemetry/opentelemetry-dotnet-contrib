@@ -3,7 +3,6 @@
 
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Reflection;
 using OpenTelemetry.Instrumentation.StackExchangeRedis.Implementation;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
@@ -18,12 +17,15 @@ namespace OpenTelemetry.Instrumentation.StackExchangeRedis;
 internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
 {
     internal const string RedisDatabaseIndexKeyName = "db.redis.database_index";
-    internal static readonly Assembly Assembly = typeof(StackExchangeRedisConnectionInstrumentation).Assembly;
-#pragma warning disable IDE0370 // Suppression is unnecessary
-    internal static readonly string ActivitySourceName = Assembly.GetName().Name!;
-#pragma warning restore IDE0370 // Suppression is unnecessary
-    internal static readonly string ActivityName = ActivitySourceName + ".Execute";
-    internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, Assembly.GetPackageVersion());
+
+    internal static readonly Version SemanticConventionsVersion = new(1, 23, 0);
+    internal static readonly ActivitySource ActivitySource = ActivitySourceFactory.Create<StackExchangeRedisConnectionInstrumentation>(SemanticConventionsVersion);
+
+    internal static readonly Version SemanticConventionsVersionNew = new(1, 28, 0); // TODO Confirm version - might be 1.37.0
+    internal static readonly ActivitySource ActivitySourceNew = ActivitySourceFactory.Create<StackExchangeRedisConnectionInstrumentation>(SemanticConventionsVersionNew);
+
+    internal static readonly string ActivityName = $"{ActivitySource.Name}.Execute";
+
     internal static readonly IEnumerable<KeyValuePair<string, object?>> OldCreationTags =
     [
         new(SemanticConventions.AttributeDbSystem, "redis")

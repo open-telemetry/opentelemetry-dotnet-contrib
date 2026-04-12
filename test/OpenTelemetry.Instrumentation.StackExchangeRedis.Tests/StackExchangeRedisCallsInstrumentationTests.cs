@@ -174,6 +174,16 @@ public class StackExchangeRedisCallsInstrumentationTests
 
             // TODO VerifySamplingParameters(sampler.LatestSamplingParameters);
         }
+        else
+        {
+            foreach (var activity in exportedItems)
+            {
+                Assert.Equal("OpenTelemetry.Instrumentation.StackExchangeRedis", activity.Source.Name);
+                Assert.NotNull(activity.Source.Version);
+                Assert.NotEmpty(activity.Source.Version);
+                Assert.Equal("https://opentelemetry.io/schemas/1.23.0", activity.Source.TelemetrySchemaUrl);
+            }
+        }
     }
 
     [Fact]
@@ -514,6 +524,11 @@ public class StackExchangeRedisCallsInstrumentationTests
         Assert.Equal("0", activity.GetTagValue(SemanticConventions.AttributeDbNamespace));
         Assert.Equal(dbOperationName, activity.GetTagValue(SemanticConventions.AttributeDbOperationName));
         Assert.Equal(dbQueryText, activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
+
+        Assert.Equal("OpenTelemetry.Instrumentation.StackExchangeRedis", activity.Source.Name);
+        Assert.NotNull(activity.Source.Version);
+        Assert.NotEmpty(activity.Source.Version);
+        Assert.Equal("https://opentelemetry.io/schemas/1.28.0", activity.Source.TelemetrySchemaUrl);
 
         VerifyEndPoint(activity, endPoint);
     }

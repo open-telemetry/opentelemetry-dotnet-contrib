@@ -94,7 +94,12 @@ internal static class RedisProfilerEntryToActivityConverter
             name = StackExchangeRedisConnectionInstrumentation.ActivityName;
         }
 
-        var activity = StackExchangeRedisConnectionInstrumentation.ActivitySource.StartActivity(
+        var activitySource =
+            options.EmitNewAttributes ?
+            StackExchangeRedisConnectionInstrumentation.ActivitySourceNew :
+            StackExchangeRedisConnectionInstrumentation.ActivitySource;
+
+        var activity = activitySource.StartActivity(
             name,
             ActivityKind.Client,
             parentActivity?.Context ?? default,
