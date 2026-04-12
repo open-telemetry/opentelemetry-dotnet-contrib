@@ -15,21 +15,12 @@ using Xunit;
 namespace OpenTelemetry.Instrumentation.StackExchangeRedis.Tests;
 
 [Collection("Redis")]
-public class StackExchangeRedisCallsInstrumentationTests
+public class StackExchangeRedisCallsInstrumentationTests(RedisXunitFixture fixture) : IClassFixture<RedisXunitFixture>
 {
-    /*
-        To run the integration tests, set the OTEL_REDISENDPOINT machine-level environment variable to a valid Redis endpoint.
-
-        To use Docker...
-         1) Run: docker run -d --name redis -p 6379:6379 redis
-         2) Set OTEL_REDISENDPOINT as: localhost:6379
-     */
-
-    private const string RedisEndPointEnvVarName = "OTEL_REDISENDPOINT";
-    private static readonly string? RedisEndPoint = SkipUnlessEnvVarFoundTheoryAttribute.GetEnvironmentVariable(RedisEndPointEnvVarName);
+    private readonly string connectionString = fixture.DatabaseContainer.GetConnectionString();
 
     [Trait("CategoryName", "RedisIntegrationTests")]
-    [SkipUnlessEnvVarFoundTheory(RedisEndPointEnvVarName)]
+    [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
     [InlineData("value1")]
     public void SuccessfulCommandTestWithKey(string value)
     {
@@ -37,7 +28,7 @@ public class StackExchangeRedisCallsInstrumentationTests
         {
             AbortOnConnectFail = true,
         };
-        connectionOptions.EndPoints.Add(RedisEndPoint!);
+        connectionOptions.EndPoints.Add(this.connectionString);
 
         using var connection = ConnectionMultiplexer.Connect(connectionOptions);
         var db = connection.GetDatabase();
@@ -82,15 +73,13 @@ public class StackExchangeRedisCallsInstrumentationTests
     }
 
     [Trait("CategoryName", "RedisIntegrationTests")]
-    [SkipUnlessEnvVarFoundTheory(RedisEndPointEnvVarName)]
+    [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
     [InlineData("value1", null, true, false)]
     [InlineData("value1", null, false, true)]
     [InlineData("value1", null, true, true)]
-
     [InlineData("value1", "serviceKey", true, false)]
     [InlineData("value1", "serviceKey", false, true)]
     [InlineData("value1", "serviceKey", true, true)]
-
     public void SuccessfulCommandTest(
         string value,
         string? serviceKey,
@@ -109,7 +98,7 @@ public class StackExchangeRedisCallsInstrumentationTests
         {
             AbortOnConnectFail = true,
         };
-        connectionOptions.EndPoints.Add(RedisEndPoint!);
+        connectionOptions.EndPoints.Add(this.connectionString);
 
         ConnectionMultiplexer? connection = null;
         var exportedItems = new List<Activity>();
@@ -200,7 +189,7 @@ public class StackExchangeRedisCallsInstrumentationTests
     }
 
     [Trait("CategoryName", "RedisIntegrationTests")]
-    [SkipUnlessEnvVarFoundTheory(RedisEndPointEnvVarName)]
+    [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
     [InlineData("value1")]
     public void CanEnrichActivityFromCommand(string value)
     {
@@ -210,7 +199,7 @@ public class StackExchangeRedisCallsInstrumentationTests
         {
             AbortOnConnectFail = true,
         };
-        connectionOptions.EndPoints.Add(RedisEndPoint!);
+        connectionOptions.EndPoints.Add(this.connectionString);
         using var connection = ConnectionMultiplexer.Connect(connectionOptions);
 
         var exportedItems = new List<Activity>();
@@ -429,15 +418,15 @@ public class StackExchangeRedisCallsInstrumentationTests
         Assert.Empty(instrumentation.InstrumentedConnections);
     }
 
+    [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
     [InlineData("value1")]
-    [SkipUnlessEnvVarFoundTheory(RedisEndPointEnvVarName)]
     public void FilterOption_FiltersOutSpecifiedCommands(string value)
     {
         var connectionOptions = new ConfigurationOptions
         {
             AbortOnConnectFail = false,
         };
-        connectionOptions.EndPoints.Add(RedisEndPoint!);
+        connectionOptions.EndPoints.Add(this.connectionString);
 
         using var connection = ConnectionMultiplexer.Connect(connectionOptions);
         var db = connection.GetDatabase();
