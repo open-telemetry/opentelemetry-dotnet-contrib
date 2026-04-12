@@ -493,7 +493,15 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         Assert.Equal("OpenTelemetry.Instrumentation.EntityFrameworkCore", activity.Source.Name);
         Assert.NotNull(activity.Source.Version);
         Assert.NotEmpty(activity.Source.Version);
-        Assert.StartsWith("https://opentelemetry.io/schemas/", activity.Source.TelemetrySchemaUrl);
+
+        if (emitNewAttributes)
+        {
+            Assert.Equal("https://opentelemetry.io/schemas/1.36.0", activity.Source.TelemetrySchemaUrl);
+        }
+        else
+        {
+            Assert.Equal("https://opentelemetry.io/schemas/1.24.0", activity.Source.TelemetrySchemaUrl);
+        }
 
         // TBD: SqlLite not setting the DataSource so it doesn't get set.
         Assert.DoesNotContain(activity.Tags, t => t.Key == "peer.service");
