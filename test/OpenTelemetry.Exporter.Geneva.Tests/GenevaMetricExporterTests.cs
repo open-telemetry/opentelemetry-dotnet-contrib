@@ -1127,10 +1127,13 @@ public class GenevaMetricExporterTests
             var doubleValueSectionField = fields.FirstOrDefault(field => field.Type == PayloadTypes.ExtAggregatedDoubleValue);
             var hasDoubleValueSection = doubleValueSectionField != null;
 
+            var doubleBoundsField = fields.FirstOrDefault(field => field.Type == PayloadTypes.HistogramDoubleScaledToUint64ValueCountPairs);
+            var hasDoubleEncodedBounds = doubleBoundsField != null;
+
             HistogramValueCountPairs valueCountPairs;
-            if (hasDoubleValueSection)
+            if (hasDoubleEncodedBounds)
             {
-                valueCountPairs = fields.FirstOrDefault(field => field.Type == PayloadTypes.HistogramDoubleScaledToUint64ValueCountPairs).Value as HistogramValueCountPairs;
+                valueCountPairs = doubleBoundsField.Value as HistogramValueCountPairs;
                 Assert.NotNull(valueCountPairs);
             }
             else
@@ -1146,7 +1149,7 @@ public class GenevaMetricExporterTests
             {
                 if (bucket.BucketCount > 0)
                 {
-                    AssertHistogramBucketSerialization(bucket, valueCountPairs, listIterator, lastExplicitBound, hasDoubleValueSection);
+                    AssertHistogramBucketSerialization(bucket, valueCountPairs, listIterator, lastExplicitBound, hasDoubleEncodedBounds);
                     listIterator++;
                     bucketsWithPositiveCount++;
                 }
@@ -1463,14 +1466,14 @@ public class GenevaMetricExporterTests
     }
 
     [Fact]
-    public void HistogramWithNegativeValues()
+    public void HistogramWithPositiveNonIntegerValues()
     {
         var path = string.Empty;
         Socket server = null;
         try
         {
             using var meter = new Meter("TestMeter", "0.0.1");
-            var histogram = meter.CreateHistogram<long>("histogram");
+            var histogram = meter.CreateHistogram<double>("histogram");
             var exportedItems = new List<Metric>();
             using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
             {
@@ -1482,11 +1485,8 @@ public class GenevaMetricExporterTests
                 .AddReader(inMemoryReader)
                 .Build();
 
-            // Record negative values
-            histogram.Record(-1);
-            histogram.Record(-10);
-            histogram.Record(-100);
-            histogram.Record(50);  // Also add a positive value
+            histogram.Record(0.5);
+            histogram.Record(1.5);
 
             meterProvider.ForceFlush();
 
@@ -1516,10 +1516,267 @@ public class GenevaMetricExporterTests
 
             var valueSection = fields.FirstOrDefault(field => field.Type == PayloadTypes.ExtAggregatedDoubleValue).Value as ExtAggregatedDoubleValueV2;
             Assert.NotNull(valueSection);
-            Assert.True(valueSection.Min < 0);
-            Assert.True(valueSection.Sum < 0);
+            Assert.Equal(2u, valueSection.Count);
+            Assert.Equal(2.0, valueSection.Sum);
+            Assert.Equal(0.5, valueSection.Min);
+            Assert.Equal(1.5, valueSection.Max);
 
             Assert.NotNull(fields.FirstOrDefault(field => field.Type == PayloadTypes.HistogramDoubleScaledToUint64ValueCountPairs));
+            Assert.Null(fields.FirstOrDefault(field => field.Type == PayloadTypes.ExtAggregatedUint64Value));
+        }
+        finally
+        {
+            server?.Dispose();
+            try
+            {
+                if (!string.IsNullOrEmpty(path))
+                {
+                    File.Delete(path);
+                }
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    [Fact]
+    public void HistogramWithIntegralValuesAndNonIntegerBounds()
+    {
+        var path = string.Empty;
+        Socket server = null;
+        try
+        {
+            using var meter = new Meter("TestMeter", "0.0.1");
+            var histogram = meter.CreateHistogram<double>("histogram");
+            var exportedItems = new List<Metric>();
+            using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
+            {
+                TemporalityPreference = MetricReaderTemporalityPreference.Delta,
+            };
+
+            using var meterProvider = Sdk.CreateMeterProviderBuilder()
+                .AddMeter("TestMeter")
+                .AddView(
+                    "histogram",
+                    new ExplicitBucketHistogramConfiguration
+                    {
+                        Boundaries = [0.5, 1.5],
+                    })
+                .AddReader(inMemoryReader)
+                .Build();
+
+            histogram.Record(1.0);
+            histogram.Record(2.0);
+
+            meterProvider.ForceFlush();
+
+            var batch = exportedItems.ToArray();
+
+            var exporterOptions = new GenevaMetricExporterOptions();
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
+            }
+            else
+            {
+                path = GenerateTempFilePath();
+                exporterOptions.ConnectionString = $"Endpoint=unix:{path};Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                server.Bind(endpoint);
+                server.Listen(1);
+            }
+
+            using var exporter = new TlvMetricExporter(new ConnectionStringBuilder(exporterOptions.ConnectionString), exporterOptions.PrepopulatedMetricDimensions);
+
+            Assert.Single(batch);
+
+            var serialized = GetSerializedData(batch[0], exporter);
+            var fields = serialized.Fields;
+
+            var uint64Aggregates = fields.FirstOrDefault(field => field.Type == PayloadTypes.ExtAggregatedUint64Value).Value as ExtAggregatedUint64ValueV2;
+            Assert.NotNull(uint64Aggregates);
+            Assert.Equal(2u, uint64Aggregates.Count);
+            Assert.Equal(3ul, uint64Aggregates.Sum);
+            Assert.Equal(1ul, uint64Aggregates.Min);
+            Assert.Equal(2ul, uint64Aggregates.Max);
+
+            var doubleBounds = fields.FirstOrDefault(field => field.Type == PayloadTypes.HistogramDoubleScaledToUint64ValueCountPairs).Value as HistogramValueCountPairs;
+            Assert.NotNull(doubleBounds);
+            Assert.Equal(2, doubleBounds.DistributionSize);
+
+            var hasFractionalBound = false;
+            foreach (var column in doubleBounds.Columns)
+            {
+                var decoded = DecodeSortableUInt64ToDouble(column.Value);
+                if (decoded != Math.Truncate(decoded))
+                {
+                    hasFractionalBound = true;
+                    break;
+                }
+            }
+
+            Assert.True(hasFractionalBound);
+            Assert.Null(fields.FirstOrDefault(field => field.Type == PayloadTypes.ExtAggregatedDoubleValue));
+            Assert.Null(fields.FirstOrDefault(field => field.Type == PayloadTypes.HistogramUint64ValueCountPairs));
+        }
+        finally
+        {
+            server?.Dispose();
+            try
+            {
+                if (!string.IsNullOrEmpty(path))
+                {
+                    File.Delete(path);
+                }
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    [Fact]
+    public void HistogramWithIntegralValuesAndIntegerBounds()
+    {
+        var path = string.Empty;
+        Socket server = null;
+        try
+        {
+            using var meter = new Meter("TestMeter", "0.0.1");
+            var histogram = meter.CreateHistogram<double>("histogram");
+            var exportedItems = new List<Metric>();
+            using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
+            {
+                TemporalityPreference = MetricReaderTemporalityPreference.Delta,
+            };
+
+            using var meterProvider = Sdk.CreateMeterProviderBuilder()
+                .AddMeter("TestMeter")
+                .AddView(
+                    "histogram",
+                    new ExplicitBucketHistogramConfiguration
+                    {
+                        Boundaries = [1, 2],
+                    })
+                .AddReader(inMemoryReader)
+                .Build();
+
+            histogram.Record(1.0);
+            histogram.Record(2.0);
+
+            meterProvider.ForceFlush();
+
+            var batch = exportedItems.ToArray();
+
+            var exporterOptions = new GenevaMetricExporterOptions();
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
+            }
+            else
+            {
+                path = GenerateTempFilePath();
+                exporterOptions.ConnectionString = $"Endpoint=unix:{path};Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                server.Bind(endpoint);
+                server.Listen(1);
+            }
+
+            using var exporter = new TlvMetricExporter(new ConnectionStringBuilder(exporterOptions.ConnectionString), exporterOptions.PrepopulatedMetricDimensions);
+
+            Assert.Single(batch);
+
+            var serialized = GetSerializedData(batch[0], exporter);
+            var fields = serialized.Fields;
+
+            var uint64Aggregates = fields.FirstOrDefault(field => field.Type == PayloadTypes.ExtAggregatedUint64Value).Value as ExtAggregatedUint64ValueV2;
+            Assert.NotNull(uint64Aggregates);
+            Assert.Equal(2u, uint64Aggregates.Count);
+            Assert.Equal(3ul, uint64Aggregates.Sum);
+            Assert.Equal(1ul, uint64Aggregates.Min);
+            Assert.Equal(2ul, uint64Aggregates.Max);
+
+            Assert.NotNull(fields.FirstOrDefault(field => field.Type == PayloadTypes.HistogramUint64ValueCountPairs));
+            Assert.Null(fields.FirstOrDefault(field => field.Type == PayloadTypes.ExtAggregatedDoubleValue));
+            Assert.Null(fields.FirstOrDefault(field => field.Type == PayloadTypes.HistogramDoubleScaledToUint64ValueCountPairs));
+        }
+        finally
+        {
+            server?.Dispose();
+            try
+            {
+                if (!string.IsNullOrEmpty(path))
+                {
+                    File.Delete(path);
+                }
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    [Fact]
+    public void HistogramWithNegativeValues()
+    {
+        var path = string.Empty;
+        Socket server = null;
+        try
+        {
+            using var meter = new Meter("TestMeter", "0.0.1");
+            var histogram = meter.CreateHistogram<double>("histogram");
+            var exportedItems = new List<Metric>();
+            using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
+            {
+                TemporalityPreference = MetricReaderTemporalityPreference.Delta,
+            };
+
+            using var meterProvider = Sdk.CreateMeterProviderBuilder()
+                .AddMeter("TestMeter")
+                .AddReader(inMemoryReader)
+                .Build();
+
+            histogram.Record(-0.5);
+            histogram.Record(-1.5);
+
+            meterProvider.ForceFlush();
+
+            var batch = exportedItems.ToArray();
+
+            var exporterOptions = new GenevaMetricExporterOptions();
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
+            }
+            else
+            {
+                path = GenerateTempFilePath();
+                exporterOptions.ConnectionString = $"Endpoint=unix:{path};Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                server.Bind(endpoint);
+                server.Listen(1);
+            }
+
+            using var exporter = new TlvMetricExporter(new ConnectionStringBuilder(exporterOptions.ConnectionString), exporterOptions.PrepopulatedMetricDimensions);
+
+            Assert.Single(batch);
+
+            var serialized = GetSerializedData(batch[0], exporter);
+            var fields = serialized.Fields;
+
+            var valueSection = fields.FirstOrDefault(field => field.Type == PayloadTypes.ExtAggregatedDoubleValue).Value as ExtAggregatedDoubleValueV2;
+            Assert.NotNull(valueSection);
+            Assert.Equal(2u, valueSection.Count);
+            Assert.Equal(-2.0, valueSection.Sum);
+            Assert.Equal(-1.5, valueSection.Min);
+            Assert.Equal(-0.5, valueSection.Max);
+
+            Assert.NotNull(fields.FirstOrDefault(field => field.Type == PayloadTypes.HistogramDoubleScaledToUint64ValueCountPairs));
+            Assert.Null(fields.FirstOrDefault(field => field.Type == PayloadTypes.ExtAggregatedUint64Value));
         }
         finally
         {
