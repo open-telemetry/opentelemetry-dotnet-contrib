@@ -35,6 +35,8 @@ public class RedisProfilerEntryToActivityConverterBenchmarks
 
         this.options = new StackExchangeRedisInstrumentationOptions()
         {
+            EmitNewAttributes = true,
+            EmitOldAttributes = false,
             EnrichActivityWithTimingEvents = this.EnrichActivityWithTimingEvents,
         };
 

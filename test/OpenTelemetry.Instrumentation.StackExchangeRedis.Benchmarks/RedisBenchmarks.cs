@@ -30,7 +30,10 @@ public class RedisBenchmarks
         this.connection = await ConnectionMultiplexer.ConnectAsync(connectionString);
         this.database = this.connection.GetDatabase();
 
-        KeyValuePair<string, string?>[] config = [];
+        KeyValuePair<string, string?>[] config =
+        [
+            new("OTEL_SEMCONV_STABILITY_OPT_IN", "database"),
+        ];
 
         IConfiguration configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(config)
@@ -40,7 +43,7 @@ public class RedisBenchmarks
         {
             this.tracerProvider = Sdk.CreateTracerProviderBuilder()
                 .ConfigureServices((services) => services.AddSingleton(configuration))
-                .AddRedisInstrumentation()
+                .AddRedisInstrumentation(this.connection)
                 .Build();
         }
     }
