@@ -36,8 +36,8 @@ public class RedisProfilerDrainSessionBenchmarks
 
         this.options = new StackExchangeRedisInstrumentationOptions()
         {
-            EmitNewAttributes = true,
-            EmitOldAttributes = false,
+            EmitNewAttributes = false,
+            EmitOldAttributes = true,
             EnrichActivityWithTimingEvents = this.EnrichActivityWithTimingEvents,
         };
 
