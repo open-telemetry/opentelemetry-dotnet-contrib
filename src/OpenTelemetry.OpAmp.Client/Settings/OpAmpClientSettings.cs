@@ -16,8 +16,6 @@ public sealed class OpAmpClientSettings
 {
     private readonly Func<HttpClient> defaultHttpClientFactory = () => new HttpClient();
 
-    private Uri? serverUrl;
-
     /// <summary>
     /// Gets or sets the unique identifier for the current client instance.
     /// </summary>
@@ -70,24 +68,13 @@ public sealed class OpAmpClientSettings
     /// </exception>
     public Uri ServerUrl
     {
-        get
+        get => field ?? this.ConnectionType switch
         {
-            if (this.serverUrl != null)
-            {
-                return this.serverUrl;
-            }
-
-            switch (this.ConnectionType)
-            {
-                case ConnectionType.Http:
-                    return new("https://localhost:4318/v1/opamp");
-                case ConnectionType.WebSocket:
-                    return new("wss://localhost:4318/v1/opamp");
-                default:
-                    throw new InvalidOperationException("Unknown connection type");
-            }
-        }
-        set => this.serverUrl = value;
+            ConnectionType.Http => new("https://localhost:4318/v1/opamp"),
+            ConnectionType.WebSocket => new("wss://localhost:4318/v1/opamp"),
+            _ => throw new InvalidOperationException("Unknown connection type"),
+        };
+        set;
     }
 
     /// <summary>

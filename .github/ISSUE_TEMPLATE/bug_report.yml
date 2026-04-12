@@ -41,11 +41,13 @@ body:
         - OpenTelemetry.Instrumentation.GrpcNetClient
         - OpenTelemetry.Instrumentation.Hangfire
         - OpenTelemetry.Instrumentation.Http
+        - OpenTelemetry.Instrumentation.Kusto
         - OpenTelemetry.Instrumentation.MassTransit
         - OpenTelemetry.Instrumentation.MySqlData
         - OpenTelemetry.Instrumentation.Owin
         - OpenTelemetry.Instrumentation.Process
         - OpenTelemetry.Instrumentation.Quartz
+        - OpenTelemetry.Instrumentation.Remoting
         - OpenTelemetry.Instrumentation.Runtime
         - OpenTelemetry.Instrumentation.ServiceFabricRemoting
         - OpenTelemetry.Instrumentation.SqlClient
@@ -83,7 +85,7 @@ body:
   - type: input
     attributes:
       label: Runtime Version
-      description: What .NET runtime version did you use? (e.g. `net462`, `net48`, `net8.0` etc. You can find this information from the `*.csproj` file)
+      description: What .NET runtime version did you use? (e.g. `net462`, `net48`, `net10.0` etc. You can find this information from the `*.csproj` file)
     validations:
       required: true
 

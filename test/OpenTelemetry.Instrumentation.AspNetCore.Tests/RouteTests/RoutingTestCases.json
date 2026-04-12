@@ -132,8 +132,8 @@
     "httpMethod": "GET",
     "path": "/",
     "expectedStatusCode": 200,
-    "currentHttpRoute": "",
-    "expectedHttpRoute": "/Index"
+    "expectedHttpRoute": "/Index",
+    "expectedMetricRoute": ""
   },
   {
     "name": "Root path",
@@ -142,7 +142,6 @@
     "httpMethod": "GET",
     "path": "/",
     "expectedStatusCode": 200,
-    "currentHttpRoute": "",
     "expectedHttpRoute": "/Index",
     "expectedMetricRoute": "/"
   },
@@ -193,7 +192,6 @@
   },
   {
     "name": "Action without parameter (MapGroup)",
-    "minimumDotnetVersion": 7,
     "testApplicationScenario": "MinimalApi",
     "httpMethod": "GET",
     "path": "/MinimalApiUsingMapGroup",
@@ -203,7 +201,6 @@
   },
   {
     "name": "Action with parameter (MapGroup)",
-    "minimumDotnetVersion": 7,
     "testApplicationScenario": "MinimalApi",
     "httpMethod": "GET",
     "path": "/MinimalApiUsingMapGroup/123",

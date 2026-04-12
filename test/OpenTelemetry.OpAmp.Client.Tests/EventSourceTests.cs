@@ -10,8 +10,6 @@ namespace OpenTelemetry.OpAmp.Client.Tests;
 public class EventSourceTests
 {
     [Fact]
-    public void EventSourceTest_OpAmpClientEventSource()
-    {
-        EventSourceTestHelper.MethodsAreImplementedConsistentlyWithTheirAttributes(OpAmpClientEventSource.Log);
-    }
+    public void EventSourceTests_OpAmpClientEventSource()
+        => EventSourceTestHelper.ValidateEventSourceIds<OpAmpClientEventSource>();
 }

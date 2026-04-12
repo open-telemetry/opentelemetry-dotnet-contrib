@@ -17,7 +17,6 @@ components:
   src/OpenTelemetry.Extensions.AWS/:
     - srprash
     - normj
-    - lukeina2z
   src/OpenTelemetry.Extensions.Enrichment/:
     - evgenyfedorov2
     - dariusclay
@@ -31,12 +30,10 @@ components:
     - srprash
     - normj
     - muhammad-othman
-    - lukeina2z
   src/OpenTelemetry.Instrumentation.AWSLambda/:
     - rypdal
     - Oberon00
     - normj
-    - lukeina2z
   src/OpenTelemetry.Instrumentation.Cassandra/:
     - xsoheilalizadeh
   src/OpenTelemetry.Instrumentation.ConfluentKafka/:
@@ -54,10 +51,14 @@ components:
     - pcwiese
   src/OpenTelemetry.Instrumentation.Hangfire/:
     - fred2u
+  src/OpenTelemetry.Instrumentation.Kusto/:
+    - MattKotsenas
   src/OpenTelemetry.Instrumentation.Process/:
     - Yun-Ting
   src/OpenTelemetry.Instrumentation.Quartz/:
     - maldago
+  src/OpenTelemetry.Instrumentation.Remoting/:
+    - lewis800
   src/OpenTelemetry.Instrumentation.StackExchangeRedis/:
     - matt-hensley
   src/OpenTelemetry.Instrumentation.Runtime/:
@@ -75,7 +76,6 @@ components:
   src/OpenTelemetry.Resources.AWS/:
     - srprash
     - normj
-    - lukeina2z
   src/OpenTelemetry.Resources.Azure/:
     - rajkumar-rangaraj
   src/OpenTelemetry.Resources.Container/:
@@ -97,7 +97,6 @@ components:
   src/OpenTelemetry.Sampler.AWS/:
     - srprash
     - normj
-    - lukeina2z
   test/OpenTelemetry.Exporter.Geneva.Benchmarks/:
     - rajkumar-rangaraj
     - xiang17
@@ -120,7 +119,6 @@ components:
   test/OpenTelemetry.Extensions.AWS.Tests/:
     - srprash
     - normj
-    - lukeina2z
   test/OpenTelemetry.Extensions.Enrichment.Tests/:
     - evgenyfedorov2
     - dariusclay
@@ -134,12 +132,10 @@ components:
     - srprash
     - normj
     - muhammad-othman
-    - lukeina2z
   test/OpenTelemetry.Instrumentation.AWSLambda.Tests/:
     - rypdal
     - Oberon00
     - normj
-    - lukeina2z
   test/OpenTelemetry.Instrumentation.Cassandra.Tests/:
     - xsoheilalizadeh
   test/OpenTelemetry.Instrumentation.ConfluentKafka.Tests/:
@@ -157,8 +153,12 @@ components:
     - pcwiese
   test/OpenTelemetry.Instrumentation.Hangfire.Tests/:
     - fred2u
+  test/OpenTelemetry.Instrumentation.Kusto.Tests/:
+    - MattKotsenas
   test/OpenTelemetry.Instrumentation.Quartz.Tests/:
     - maldago
+  test/OpenTelemetry.Instrumentation.Remoting.Tests/:
+    - lewis800
   test/OpenTelemetry.Instrumentation.StackExchangeRedis.Tests/:
     - matt-hensley
   test/OpenTelemetry.Instrumentation.Runtime.Tests/:
@@ -174,7 +174,6 @@ components:
   test/OpenTelemetry.Resources.AWS.Tests/:
     - srprash
     - normj
-    - lukeina2z
   test/OpenTelemetry.Resources.Azure.Tests/:
     - rajkumar-rangaraj
   test/OpenTelemetry.Resources.Container.Tests/:
@@ -193,4 +192,3 @@ components:
   test/OpenTelemetry.Sampler.AWS.Tests/:
     - srprash
     - normj
-    - lukeina2z

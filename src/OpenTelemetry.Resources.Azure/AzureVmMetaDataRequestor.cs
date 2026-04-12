@@ -9,7 +9,7 @@ internal static class AzureVmMetaDataRequestor
 {
     private const string AzureVmMetadataEndpointURL = "http://169.254.169.254/metadata/instance/compute?api-version=2021-12-13&format=json";
 
-    public static Func<AzureVmMetadataResponse?> GetAzureVmMetaDataResponse { get; internal set; } = GetAzureVmMetaDataResponseDefault!;
+    public static Func<AzureVmMetadataResponse?> GetAzureVmMetaDataResponse { get; internal set; } = GetAzureVmMetaDataResponseDefault;
 
     public static AzureVmMetadataResponse? GetAzureVmMetaDataResponseDefault()
     {

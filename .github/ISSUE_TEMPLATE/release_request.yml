@@ -39,11 +39,13 @@ body:
         - OpenTelemetry.Instrumentation.GrpcNetClient
         - OpenTelemetry.Instrumentation.Hangfire
         - OpenTelemetry.Instrumentation.Http
+        - OpenTelemetry.Instrumentation.Kusto
         - OpenTelemetry.Instrumentation.MassTransit
         - OpenTelemetry.Instrumentation.MySqlData
         - OpenTelemetry.Instrumentation.Owin
         - OpenTelemetry.Instrumentation.Process
         - OpenTelemetry.Instrumentation.Quartz
+        - OpenTelemetry.Instrumentation.Remoting
         - OpenTelemetry.Instrumentation.Runtime
         - OpenTelemetry.Instrumentation.ServiceFabricRemoting
         - OpenTelemetry.Instrumentation.SqlClient

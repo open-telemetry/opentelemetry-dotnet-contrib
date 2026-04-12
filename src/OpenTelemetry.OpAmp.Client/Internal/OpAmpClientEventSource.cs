@@ -7,12 +7,13 @@ using OpenTelemetry.Internal;
 namespace OpenTelemetry.OpAmp.Client.Internal;
 
 [EventSource(Name = "OpenTelemetry-OpAmp-Client")]
-internal class OpAmpClientEventSource : EventSource
+internal sealed class OpAmpClientEventSource : EventSource
 {
     public static OpAmpClientEventSource Log = new();
 
     // General events 1-499
     private const int EventIdInvalidWsFrame = 1;
+    private const int EventIdTransportCloseFailure = 2;
 
     // Service events 500-999
     private const int EventIdHeartbeatServiceStart = 500;
@@ -41,6 +42,21 @@ internal class OpAmpClientEventSource : EventSource
     public void InvalidWsFrame(string errorMessage)
     {
         this.WriteEvent(EventIdInvalidWsFrame, errorMessage);
+    }
+
+    [NonEvent]
+    public void TransportCloseException(Exception ex)
+    {
+        if (this.IsEnabled(EventLevel.Warning, EventKeywords.All))
+        {
+            this.TransportCloseFailure(ex.ToInvariantString());
+        }
+    }
+
+    [Event(EventIdTransportCloseFailure, Message = "WebSocket close failed: {0}", Level = EventLevel.Warning)]
+    public void TransportCloseFailure(string exception)
+    {
+        this.WriteEvent(EventIdTransportCloseFailure, exception);
     }
 
     [Event(EventIdHeartbeatServiceStart, Message = "Heartbeat service started.", Level = EventLevel.Informational)]

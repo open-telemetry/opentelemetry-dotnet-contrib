@@ -62,9 +62,11 @@ jobs:
           instrumentation-grpcnetclient: ['*/OpenTelemetry.Instrumentation.GrpcNetClient*/**', '!**/*.md']
           instrumentation-hangfire: ['*/OpenTelemetry.Instrumentation.Hangfire*/**', '!**/*.md']
           instrumentation-http: ['*/OpenTelemetry.Instrumentation.Http*/**', '!**/*.md']
+          instrumentation-kusto: ['*/OpenTelemetry.Instrumentation.Kusto*/**', '!**/*.md']
           instrumentation-owin: ['*/OpenTelemetry.Instrumentation.Owin*/**', 'examples/owin/**', '!**/*.md']
           instrumentation-process: ['*/OpenTelemetry.Instrumentation.Process*/**', 'examples/process-instrumentation/**', '!**/*.md']
           instrumentation-quartz: ['*/OpenTelemetry.Instrumentation.Quartz*/**', '!**/*.md']
+          instrumentation-remoting: ['*/OpenTelemetry.Instrumentation.Remoting*/**', '!**/*.md']
           instrumentation-runtime: ['*/OpenTelemetry.Instrumentation.Runtime*/**', 'examples/runtime-instrumentation/**', '!**/*.md']
           instrumentation-servicefabricremoting: ['*/OpenTelemetry.Instrumentation.ServiceFabricRemoting*/**', '!**/*.md']
           instrumentation-sqlclient: ['*/OpenTelemetry.Instrumentation.SqlClient*/**', '!**/*.md']
@@ -363,6 +365,17 @@ jobs:
       project-name: Component[OpenTelemetry.Instrumentation.Http]
       code-cov-name: Instrumentation.Http
 
+  build-test-instrumentation-kusto:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'instrumentation-kusto')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: Component[OpenTelemetry.Instrumentation.Kusto]
+      code-cov-name: Instrumentation.Kusto
+
   build-test-instrumentation-owin:
     needs: detect-changes
     if: |
@@ -397,6 +410,19 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Instrumentation.Quartz]
       code-cov-name: Instrumentation.Quartz
+
+  build-test-instrumentation-remoting:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'instrumentation-remoting')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: Component[OpenTelemetry.Instrumentation.Remoting]
+      code-cov-name: Instrumentation.Remoting
+      os-list: '[ "windows-latest" ]'
+      tfm-list: '[ "net462" ]'
 
   build-test-instrumentation-runtime:
     needs: detect-changes
@@ -623,12 +649,15 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-aws')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-confluentkafka')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-eventcounters')
+      || contains(needs.detect-changes.outputs.changes, 'instrumentation-grpccore')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-grpcnetclient')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-http')
+      || contains(needs.detect-changes.outputs.changes, 'instrumentation-process')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-runtime')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-servicefabricremoting')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-sqlclient')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-stackexchangeredis')
+      || contains(needs.detect-changes.outputs.changes, 'opamp-client')
       || contains(needs.detect-changes.outputs.changes, 'resources-aws')
       || contains(needs.detect-changes.outputs.changes, 'resources-azure')
       || contains(needs.detect-changes.outputs.changes, 'resources-container')
@@ -674,9 +703,11 @@ jobs:
       build-test-instrumentation-grpcnetclient,
       build-test-instrumentation-hangfire,
       build-test-instrumentation-http,
+      build-test-instrumentation-kusto,
       build-test-instrumentation-owin,
       build-test-instrumentation-process,
       build-test-instrumentation-quartz,
+      build-test-instrumentation-remoting,
       build-test-instrumentation-runtime,
       build-test-instrumentation-servicefabricremoting,
       build-test-instrumentation-sqlclient,

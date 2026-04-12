@@ -118,7 +118,7 @@ public partial class HttpClientTests
 #if NET
     [Theory]
     [MemberData(nameof(TestData))]
-    public async Task ValidateNet8MetricsAsync(HttpOutTestCase tc)
+    public async Task ValidateNetMetricsAsync(HttpOutTestCase tc)
     {
         var metrics = new List<Metric>();
         var meterProvider = Sdk.CreateMeterProviderBuilder()
@@ -351,7 +351,7 @@ public partial class HttpClientTests
 
 #if NET9_0_OR_GREATER
             // HACK: THIS IS A HACK TO MAKE THE TEST PASS.
-            // TODO: THIS CAN BE REMOVED AFTER RUNTIME PATCHES NET9.
+            // TODO: THIS CAN BE REMOVED AFTER RUNTIME PATCHES NET 9+.
             // Currently Runtime is not following the OTel Spec for Http Spans: https://github.com/open-telemetry/semantic-conventions/blob/main/docs/http/http-spans.md#http-client
             // Currently the URL Fragment Identifier (#fragment) isn't being recorded.
             // Tracking issue: https://github.com/dotnet/runtime/issues/109847

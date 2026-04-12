@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+* Updated OpenTelemetry core component version(s) to `1.15.2`.
+  ([#4080](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4080))
+
+## 1.0.0-beta.10
+
+Released 2026-Feb-16
+
+* Update minimum supported version of `Google.Protobuf` to `3.33.2`
+  for native AoT compatibility.
+  ([#3845](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3845))
+
 ## 1.0.0-beta.9
 
 Released 2026-Jan-21

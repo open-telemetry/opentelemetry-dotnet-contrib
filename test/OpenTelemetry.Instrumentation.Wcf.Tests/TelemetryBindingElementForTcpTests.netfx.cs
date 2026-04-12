@@ -30,9 +30,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
     }
 
     public void Dispose()
-    {
-        this.serviceHost?.Close();
-    }
+        => this.serviceHost?.Close();
 
     [Theory]
     [InlineData(true, false)]
@@ -114,15 +112,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
         }
         finally
         {
-            if (client.State == CommunicationState.Faulted)
-            {
-                client.Abort();
-            }
-            else
-            {
-                client.Close();
-            }
-
+            client.AbortOrClose();
             tracerProvider?.Shutdown();
             tracerProvider?.Dispose();
 
@@ -133,57 +123,24 @@ public class TelemetryBindingElementForTcpTests : IDisposable
         {
             if (!suppressDownstreamInstrumentation)
             {
-                Assert.NotEmpty(stoppedActivities);
-                if (filter)
-                {
-                    Assert.Single(stoppedActivities);
-                    Assert.Equal("DownstreamInstrumentation", stoppedActivities[0].OperationName);
-                }
-                else
-                {
-                    Assert.Equal(2, stoppedActivities.Count);
-                    Assert.NotNull(stoppedActivities.SingleOrDefault(activity => activity.OperationName == "DownstreamInstrumentation"));
-                    Assert.NotNull(stoppedActivities.SingleOrDefault(activity => activity.OperationName == WcfInstrumentationActivitySource.OutgoingRequestActivityName));
-                }
+                WcfTestHelpers.AssertDownstreamInstrumentationActivities(stoppedActivities, filter);
             }
             else
             {
                 if (!filter)
                 {
                     Assert.NotEmpty(stoppedActivities);
-                    Assert.Single(stoppedActivities);
+                    var activity = Assert.Single(stoppedActivities);
 
-                    var activity = stoppedActivities[0];
-
-                    if (emptyOrNullAction)
-                    {
-                        Assert.Equal(WcfInstrumentationActivitySource.OutgoingRequestActivityName, activity.DisplayName);
-                        Assert.Equal("ExecuteWithEmptyActionName", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.RpcMethodTag).Value);
-                    }
-                    else
-                    {
-                        Assert.Equal("http://opentelemetry.io/Service/Execute", activity.DisplayName);
-                        Assert.Equal("Execute", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.RpcMethodTag).Value);
-                    }
-
-                    Assert.Equal(WcfInstrumentationActivitySource.OutgoingRequestActivityName, activity.OperationName);
-                    Assert.Equal(WcfInstrumentationConstants.WcfSystemValue, activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.RpcSystemTag).Value);
-                    Assert.Equal("http://opentelemetry.io/Service", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.RpcServiceTag).Value);
-                    Assert.Equal(this.serviceBaseUri.Host, activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.NetPeerNameTag).Value);
-                    Assert.Equal(this.serviceBaseUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.NetPeerPortTag).Value);
-                    Assert.Equal("net.tcp", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.WcfChannelSchemeTag).Value);
-                    Assert.Equal("/Service", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.WcfChannelPathTag).Value);
-                    if (includeVersion)
-                    {
-                        var value = activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.SoapMessageVersionTag).Value!.ToString();
-                        Assert.Matches("""Soap.* \(http.*\) Addressing.* \(http.*\)""", value);
-                    }
-
-                    if (enrich && !enrichmentException)
-                    {
-                        Assert.Equal(WcfEnrichEventNames.BeforeSendRequest, activity.TagObjects.Single(t => t.Key == "client.beforesendrequest").Value);
-                        Assert.Equal(WcfEnrichEventNames.AfterReceiveReply, activity.TagObjects.Single(t => t.Key == "client.afterreceivereply").Value);
-                    }
+                    WcfTestHelpers.AssertOutgoingRequestActivity(
+                        activity,
+                        this.serviceBaseUri,
+                        emptyOrNullAction,
+                        includeVersion,
+                        null, // TCP uses regex matching, not exact match
+                        "net.tcp",
+                        enrich,
+                        enrichmentException);
                 }
                 else
                 {
@@ -202,7 +159,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
     {
         var testSource = new ActivitySource("TestSource");
 
-        var stoppedActivities = new List<Activity>();
+        List<Activity> stoppedActivities = [];
         var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddSource("TestSource")
             .AddInMemoryExporter(stoppedActivities)
@@ -225,27 +182,14 @@ public class TelemetryBindingElementForTcpTests : IDisposable
         }
         finally
         {
-            if (client.State == CommunicationState.Faulted)
-            {
-                client.Abort();
-            }
-            else
-            {
-                client.Close();
-            }
-
+            client.AbortOrClose();
             tracerProvider?.Shutdown();
             tracerProvider?.Dispose();
             testSource.Dispose();
             WcfInstrumentationActivitySource.Options = null;
         }
 
-        Assert.Equal(5, stoppedActivities.Count);
-        Assert.All(stoppedActivities, activity => Assert.Equal(stoppedActivities[0].TraceId, activity.TraceId));
-        var parent = stoppedActivities.Single(activity => activity.Parent == null);
-        Assert.All(
-            stoppedActivities.Where(activity => activity != parent),
-            activity => Assert.Equal(parent.SpanId, activity.ParentSpanId));
+        WcfTestHelpers.AssertActivitiesHaveCorrectParentage(stoppedActivities);
     }
 
     [Fact]
@@ -253,7 +197,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
     {
         var testSource = new ActivitySource("TestSource");
 
-        var stoppedActivities = new List<Activity>();
+        List<Activity> stoppedActivities = [];
         var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddSource("TestSource")
             .AddInMemoryExporter(stoppedActivities)
@@ -283,23 +227,10 @@ public class TelemetryBindingElementForTcpTests : IDisposable
         }
         finally
         {
-            static void CloseClient(ServiceClient client)
-            {
-                if (client.State == CommunicationState.Faulted)
-                {
-                    client.Abort();
-                }
-                else
-                {
-                    client.Close();
-                }
-            }
-
-            CloseClient(client);
-            CloseClient(client2);
-            CloseClient(clientBadUrl);
-            CloseClient(clientBadUrl2);
-
+            client.AbortOrClose();
+            client2.AbortOrClose();
+            clientBadUrl.AbortOrClose();
+            clientBadUrl2.AbortOrClose();
             tracerProvider?.Shutdown();
             tracerProvider?.Dispose();
             testSource.Dispose();
@@ -308,10 +239,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
 
         // this is 3 instead of 5 because the clientBadUrl calls fail during Open(), before the activity is created
         Assert.Equal(3, stoppedActivities.Count);
-        Assert.All(stoppedActivities, activity => Assert.Equal(stoppedActivities[0].TraceId, activity.TraceId));
-        var parent = stoppedActivities.Single(activity => activity.Parent == null);
-        var children = stoppedActivities.Where(activity => activity != parent);
-        Assert.All(children, activity => Assert.Equal(parent.SpanId, activity.ParentSpanId));
+        WcfTestHelpers.AssertActivitiesHaveCorrectParentage(stoppedActivities);
     }
 
     [Fact]
@@ -349,15 +277,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
         }
         finally
         {
-            if (client.State == CommunicationState.Faulted)
-            {
-                client.Abort();
-            }
-            else
-            {
-                client.Close();
-            }
-
+            client.AbortOrClose();
             tracerProvider?.Shutdown();
             tracerProvider?.Dispose();
             WcfInstrumentationActivitySource.Options = null;
@@ -402,15 +322,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
         }
         finally
         {
-            if (client.State == CommunicationState.Faulted)
-            {
-                client.Abort();
-            }
-            else
-            {
-                client.Close();
-            }
-
+            client.AbortOrClose();
             tracerProvider?.Shutdown();
             tracerProvider?.Dispose();
             WcfInstrumentationActivitySource.Options = null;
@@ -448,15 +360,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
         }
         finally
         {
-            if (client.State == CommunicationState.Faulted)
-            {
-                client.Abort();
-            }
-            else
-            {
-                client.Close();
-            }
-
+            client.AbortOrClose();
             host.Close();
 
             tracerProvider?.Shutdown();
@@ -488,13 +392,12 @@ public class TelemetryBindingElementForTcpTests : IDisposable
     private ServiceHost CreateServiceHost(NetTcpBinding binding, X509Certificate2? cert)
     {
         ServiceHost? serviceHost = null;
-        var random = new Random();
-        var retryCount = 5;
+        var retryCount = WcfTestHelpers.MaxRetries;
         while (retryCount > 0)
         {
             try
             {
-                var baseUri = new Uri($"net.tcp://localhost:{random.Next(2000, 5000)}/");
+                var baseUri = WcfTestHelpers.GetRandomBaseUri("net.tcp");
                 serviceHost = new ServiceHost(new Service(), baseUri);
                 if (cert != null)
                 {

@@ -68,23 +68,13 @@ public class AzureResourceDetectorTests
 
         foreach (var field in AzureVMResourceDetector.ExpectedAzureAmsFields)
         {
-            KeyValuePair<string, object> expectedValue;
-            if (field == ResourceSemanticConventions.AttributeServiceInstance)
+            var expectedValue = field switch
             {
-                expectedValue = new KeyValuePair<string, object>(field, ResourceSemanticConventions.AttributeHostId);
-            }
-            else if (field == ResourceSemanticConventions.AttributeCloudPlatform)
-            {
-                expectedValue = new KeyValuePair<string, object>(field, ResourceAttributeConstants.AzureVmCloudPlatformValue);
-            }
-            else if (field == ResourceSemanticConventions.AttributeCloudProvider)
-            {
-                expectedValue = new KeyValuePair<string, object>(field, ResourceAttributeConstants.AzureCloudProviderValue);
-            }
-            else
-            {
-                expectedValue = new KeyValuePair<string, object>(field, field);
-            }
+                ResourceSemanticConventions.AttributeServiceInstance => new KeyValuePair<string, object>(field, ResourceSemanticConventions.AttributeHostId),
+                ResourceSemanticConventions.AttributeCloudPlatform => new KeyValuePair<string, object>(field, ResourceAttributeConstants.AzureVmCloudPlatformValue),
+                ResourceSemanticConventions.AttributeCloudProvider => new KeyValuePair<string, object>(field, ResourceAttributeConstants.AzureCloudProviderValue),
+                _ => new KeyValuePair<string, object>(field, field),
+            };
 
             Assert.Contains(expectedValue, resource.Attributes);
         }
@@ -139,6 +129,62 @@ public class AzureResourceDetectorTests
             {
                 Assert.Contains(new KeyValuePair<string, object>(kvp.Key, kvp.Key), resource.Attributes);
             }
+        }
+    }
+
+    [Fact]
+    public void AppServiceDetectorServiceNameOverridesEarlierCustomName()
+    {
+        var environment = new Dictionary<string, string?>
+        {
+            [ResourceAttributeConstants.AppServiceSiteNameEnvVar] = "my-app-service",
+        };
+
+        using (EnvironmentVariableScope.Create(environment))
+        {
+            var resource = ResourceBuilder
+                .CreateEmpty()
+                .AddAttributes([new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "custom-service")])
+                .AddAzureAppServiceDetector()
+                .Build();
+
+            Assert.NotNull(resource);
+
+            // Detector is applied after AddAttributes, so detector value wins.
+            Assert.Contains(
+                new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "my-app-service"),
+                resource.Attributes);
+            Assert.DoesNotContain(
+                new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "custom-service"),
+                resource.Attributes);
+        }
+    }
+
+    [Fact]
+    public void CustomServiceNameAfterAppServiceDetectorOverridesDetectorValue()
+    {
+        var environment = new Dictionary<string, string?>
+        {
+            [ResourceAttributeConstants.AppServiceSiteNameEnvVar] = "my-app-service",
+        };
+
+        using (EnvironmentVariableScope.Create(environment))
+        {
+            var resource = ResourceBuilder
+                .CreateEmpty()
+                .AddAzureAppServiceDetector()
+                .AddAttributes([new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "custom-service")])
+                .Build();
+
+            Assert.NotNull(resource);
+
+            // AddAttributes is applied after the detector, so the custom value wins.
+            Assert.Contains(
+                new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "custom-service"),
+                resource.Attributes);
+            Assert.DoesNotContain(
+                new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "my-app-service"),
+                resource.Attributes);
         }
     }
 }

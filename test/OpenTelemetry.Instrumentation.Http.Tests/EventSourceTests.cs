@@ -7,11 +7,9 @@ using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Http.Tests;
 
-public class EventSourceTest
+public class EventSourceTests
 {
     [Fact]
-    public void EventSourceTest_HttpInstrumentationEventSource()
-    {
-        EventSourceTestHelper.MethodsAreImplementedConsistentlyWithTheirAttributes(HttpInstrumentationEventSource.Log);
-    }
+    public void EventSourceTests_HttpInstrumentationEventSource() =>
+        EventSourceTestHelper.ValidateEventSourceIds<HttpInstrumentationEventSource>();
 }

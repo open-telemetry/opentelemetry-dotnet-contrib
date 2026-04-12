@@ -29,11 +29,13 @@ on:
         - OpenTelemetry.Instrumentation.GrpcNetClient
         - OpenTelemetry.Instrumentation.Hangfire
         - OpenTelemetry.Instrumentation.Http
+        - OpenTelemetry.Instrumentation.Kusto
         - OpenTelemetry.Instrumentation.MassTransit
         - OpenTelemetry.Instrumentation.MySqlData
         - OpenTelemetry.Instrumentation.Owin
         - OpenTelemetry.Instrumentation.Process
         - OpenTelemetry.Instrumentation.Quartz
+        - OpenTelemetry.Instrumentation.Remoting
         - OpenTelemetry.Instrumentation.Runtime
         - OpenTelemetry.Instrumentation.ServiceFabricRemoting
         - OpenTelemetry.Instrumentation.SqlClient
@@ -93,11 +95,13 @@ jobs:
     if: github.event_name == 'workflow_dispatch' && needs.automation.outputs.enabled
 
     steps:
-    - uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
+    - uses: actions/create-github-app-token@f8d387b68d61c58ab83c6c016672934102569859 # v3.0.0
       id: otelbot-token
       with:
         app-id: ${{ vars.OTELBOT_DOTNET_CONTRIB_APP_ID }}
         private-key: ${{ secrets.OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY }}
+        permission-contents: write
+        permission-pull-requests: write
 
     - name: Check out code
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -141,11 +145,13 @@ jobs:
       needs.automation.outputs.enabled
 
     steps:
-    - uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
+    - uses: actions/create-github-app-token@f8d387b68d61c58ab83c6c016672934102569859 # v3.0.0
       id: otelbot-token
       with:
         app-id: ${{ vars.OTELBOT_DOTNET_CONTRIB_APP_ID }}
         private-key: ${{ secrets.OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY }}
+        permission-contents: read
+        permission-pull-requests: write
 
     - name: Check out code
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -182,11 +188,13 @@ jobs:
       needs.automation.outputs.enabled
 
     steps:
-    - uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
+    - uses: actions/create-github-app-token@f8d387b68d61c58ab83c6c016672934102569859 # v3.0.0
       id: otelbot-token
       with:
         app-id: ${{ vars.OTELBOT_DOTNET_CONTRIB_APP_ID }}
         private-key: ${{ secrets.OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY }}
+        permission-contents: write
+        permission-pull-requests: write
 
     - name: Check out code
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -230,11 +238,13 @@ jobs:
       needs.automation.outputs.enabled
 
     steps:
-    - uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
+    - uses: actions/create-github-app-token@f8d387b68d61c58ab83c6c016672934102569859 # v3.0.0
       id: otelbot-token
       with:
         app-id: ${{ vars.OTELBOT_DOTNET_CONTRIB_APP_ID }}
         private-key: ${{ secrets.OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY }}
+        permission-contents: write
+        permission-pull-requests: write
 
     - name: Check out code
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -283,11 +293,14 @@ jobs:
       )
 
     steps:
-    - uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
+    - uses: actions/create-github-app-token@f8d387b68d61c58ab83c6c016672934102569859 # v3.0.0
       id: otelbot-token
       with:
         app-id: ${{ vars.OTELBOT_DOTNET_CONTRIB_APP_ID }}
         private-key: ${{ secrets.OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY }}
+        permission-contents: write
+        permission-issues: write
+        permission-pull-requests: write
 
     - name: Check out code
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2

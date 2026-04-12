@@ -4,7 +4,7 @@
 using System.Runtime.InteropServices;
 using Xunit;
 
-namespace OpenTelemetry.Resources.OperatingSystem.Test;
+namespace OpenTelemetry.Resources.OperatingSystem.Tests;
 
 public class OperatingSystemDetectorTests
 {

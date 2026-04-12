@@ -42,7 +42,7 @@ internal class FrameGenerator
             content = string.Concat(content, "__", padding);
         }
 
-        ByteString uid = instanceUid ?? ByteString.CopyFrom(Guid.NewGuid().ToByteArray());
+        var uid = instanceUid ?? ByteString.CopyFrom(Guid.NewGuid().ToByteArray());
 
         var frame = new ServerToAgent
         {

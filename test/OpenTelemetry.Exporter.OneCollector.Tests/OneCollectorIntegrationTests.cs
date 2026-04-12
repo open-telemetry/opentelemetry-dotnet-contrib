@@ -90,13 +90,12 @@ public class OneCollectorIntegrationTests
     [SkipUnlessEnvVarFoundFact(OneCollectorInstrumentationKeyEnvName)]
     public void LogWithDataIntegrationTest()
     {
+#pragma warning disable CA1873 // Avoid potentially expensive logging
         this.RunIntegrationTest(
-            logger =>
-            {
-                logger.LogInformation("Hello world {StructuredData}", "Goodbye world");
-            },
+            logger => logger.LogInformation("Hello world {StructuredData}", "Goodbye world"),
             out var succeeded,
             out var actualJson);
+#pragma warning restore CA1873 // Avoid potentially expensive logging
 
         Assert.True(succeeded);
         Assert.NotNull(actualJson);
@@ -227,8 +226,8 @@ public class OneCollectorIntegrationTests
         var rootElement = document.RootElement;
 
         Assert.Equal("4.0", rootElement.GetProperty("ver").GetString());
-        Assert.True(!string.IsNullOrWhiteSpace(rootElement.GetProperty("time").GetString()));
-        Assert.True(!string.IsNullOrWhiteSpace(rootElement.GetProperty("iKey").GetString()));
+        Assert.False(string.IsNullOrWhiteSpace(rootElement.GetProperty("time").GetString()));
+        Assert.False(string.IsNullOrWhiteSpace(rootElement.GetProperty("iKey").GetString()));
 
         assertRootElement(rootElement);
 

@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Diagnostics;
 using System.Web;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Metrics;
@@ -48,7 +47,7 @@ public class HttpInMetricsListenerTests
             {
                 options.EnableServerAttributesForRequestDuration = enableServerAttributesForRequestDuration;
 
-                options.EnrichWithHttpContext += (HttpContextBase context, ref TagList tags) =>
+                options.EnrichWithHttpContext += (context, ref tags) =>
                 {
                     if (enrichMode == "throw")
                     {

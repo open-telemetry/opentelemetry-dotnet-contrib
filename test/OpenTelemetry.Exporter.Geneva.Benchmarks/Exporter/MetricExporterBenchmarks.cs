@@ -193,11 +193,13 @@ public class MetricExporterBenchmarks
             .AddReader(inMemoryReader)
             .Build();
 
+#pragma warning disable IDE0370 // Suppression is unnecessary
         counter.Add(
             100,
             new("DimName1", dimensionValues[this.random.Value!.Next(0, 10)]),
             new("DimName2", dimensionValues[this.random.Value.Next(0, 10)]),
             new("DimName3", dimensionValues[this.random.Value.Next(0, 10)]));
+#pragma warning restore IDE0370 // Suppression is unnecessary
 
         inMemoryReader.Collect();
 
@@ -227,6 +229,7 @@ public class MetricExporterBenchmarks
             .AddReader(inMemoryReader)
             .Build();
 
+#pragma warning disable IDE0370 // Suppression is unnecessary
         var tags = new TagList
         {
             { "DimName1", dimensionValues[this.random.Value!.Next(0, 2)] },
@@ -234,6 +237,7 @@ public class MetricExporterBenchmarks
             { "DimName3", dimensionValues[this.random.Value.Next(0, 10)] },
             { "DimName4", dimensionValues[this.random.Value.Next(0, 10)] },
         };
+#pragma warning restore IDE0370 // Suppression is unnecessary
 
         counter.Add(100, tags);
 
@@ -265,11 +269,13 @@ public class MetricExporterBenchmarks
             .AddReader(batchGeneratorReader)
             .Build();
 
+#pragma warning disable IDE0370 // Suppression is unnecessary
         counter.Add(
             100,
             new("DimName1", dimensionValues[this.random.Value!.Next(0, 10)]),
             new("DimName2", dimensionValues[this.random.Value.Next(0, 10)]),
             new("DimName3", dimensionValues[this.random.Value.Next(0, 10)]));
+#pragma warning restore IDE0370 // Suppression is unnecessary
 
         this.meterProviderForCounterBatchWith3Dimensions.ForceFlush();
         return batchGeneratorExporter.Batch;
@@ -291,6 +297,7 @@ public class MetricExporterBenchmarks
             .AddReader(batchGeneratorReader)
             .Build();
 
+#pragma warning disable IDE0370 // Suppression is unnecessary
         var tags = new TagList
         {
             { "DimName1", dimensionValues[this.random.Value!.Next(0, 2)] },
@@ -298,6 +305,7 @@ public class MetricExporterBenchmarks
             { "DimName3", dimensionValues[this.random.Value.Next(0, 10)] },
             { "DimName4", dimensionValues[this.random.Value.Next(0, 10)] },
         };
+#pragma warning restore IDE0370 // Suppression is unnecessary
 
         counter.Add(100, tags);
 
@@ -321,9 +329,11 @@ public class MetricExporterBenchmarks
             .AddReader(inMemoryReader)
             .Build();
 
+#pragma warning disable IDE0370 // Suppression is unnecessary
         var tag1 = new KeyValuePair<string, object?>("DimName1", dimensionValues[this.random.Value!.Next(0, 10)]);
         var tag2 = new KeyValuePair<string, object?>("DimName2", dimensionValues[this.random.Value.Next(0, 10)]);
         var tag3 = new KeyValuePair<string, object?>("DimName3", dimensionValues[this.random.Value.Next(0, 10)]);
+#pragma warning restore IDE0370 // Suppression is unnecessary
 
         for (var i = 0; i < 1000; i++)
         {
@@ -364,6 +374,7 @@ public class MetricExporterBenchmarks
             .AddReader(inMemoryReader)
             .Build();
 
+#pragma warning disable IDE0370 // Suppression is unnecessary
         var tags = new TagList
         {
             { "DimName1", dimensionValues[this.random.Value!.Next(0, 2)] },
@@ -371,6 +382,7 @@ public class MetricExporterBenchmarks
             { "DimName3", dimensionValues[this.random.Value.Next(0, 10)] },
             { "DimName4", dimensionValues[this.random.Value.Next(0, 10)] },
         };
+#pragma warning restore IDE0370 // Suppression is unnecessary
 
         for (var i = 0; i < 1000; i++)
         {
@@ -411,9 +423,11 @@ public class MetricExporterBenchmarks
             .AddReader(batchGeneratorReader)
             .Build();
 
+#pragma warning disable IDE0370 // Suppression is unnecessary
         var tag1 = new KeyValuePair<string, object?>("DimName1", dimensionValues[this.random.Value!.Next(0, 10)]);
         var tag2 = new KeyValuePair<string, object?>("DimName2", dimensionValues[this.random.Value.Next(0, 10)]);
         var tag3 = new KeyValuePair<string, object?>("DimName3", dimensionValues[this.random.Value.Next(0, 10)]);
+#pragma warning restore IDE0370 // Suppression is unnecessary
 
         for (var i = 0; i < 1000; i++)
         {
@@ -440,6 +454,7 @@ public class MetricExporterBenchmarks
             .AddReader(batchGeneratorReader)
             .Build();
 
+#pragma warning disable IDE0370 // Suppression is unnecessary
         var tags = new TagList
         {
             { "DimName1", dimensionValues[this.random.Value!.Next(0, 2)] },
@@ -447,6 +462,7 @@ public class MetricExporterBenchmarks
             { "DimName3", dimensionValues[this.random.Value.Next(0, 10)] },
             { "DimName4", dimensionValues[this.random.Value.Next(0, 10)] },
         };
+#pragma warning restore IDE0370 // Suppression is unnecessary
 
         for (var i = 0; i < 1000; i++)
         {
@@ -606,15 +622,11 @@ public class MetricExporterBenchmarks
 
     [Benchmark]
     public void ExportCounterMetricItemWith3Dimensions()
-    {
-        this.tlvMetricsExporter!.Export(this.counterMetricBatchWith3Dimensions);
-    }
+        => this.tlvMetricsExporter!.Export(this.counterMetricBatchWith3Dimensions);
 
     [Benchmark]
     public void ExportCounterMetricItemWith4Dimensions()
-    {
-        this.tlvMetricsExporter!.Export(this.counterMetricBatchWith4Dimensions);
-    }
+        => this.tlvMetricsExporter!.Export(this.counterMetricBatchWith4Dimensions);
 
     [Benchmark]
     public void SerializeHistogramMetricItemWith3Dimensions()
@@ -656,63 +668,43 @@ public class MetricExporterBenchmarks
 
     [Benchmark]
     public void ExportHistogramMetricItemWith3Dimensions()
-    {
-        this.tlvMetricsExporter!.Export(this.histogramMetricBatchWith3Dimensions);
-    }
+        => this.tlvMetricsExporter!.Export(this.histogramMetricBatchWith3Dimensions);
 
     [Benchmark]
     public void ExportHistogramMetricItemWith4Dimensions()
-    {
-        this.tlvMetricsExporter!.Export(this.histogramMetricBatchWith4Dimensions);
-    }
+        => this.tlvMetricsExporter!.Export(this.histogramMetricBatchWith4Dimensions);
 
     [Benchmark]
     public void SerializeCounterMetricItemWith3Dimensions_Otlp()
-    {
-        this.otlpProtobufSerializer!.SerializeAndSendMetrics(this.buffer!, this.resource!, this.counterMetricBatchWith3Dimensions);
-    }
+        => this.otlpProtobufSerializer!.SerializeAndSendMetrics(this.buffer!, this.resource!, this.counterMetricBatchWith3Dimensions);
 
     [Benchmark]
     public void SerializeCounterMetricItemWith4Dimensions_Otlp()
-    {
-        this.otlpProtobufSerializer!.SerializeAndSendMetrics(this.buffer!, this.resource!, this.counterMetricBatchWith4Dimensions);
-    }
+        => this.otlpProtobufSerializer!.SerializeAndSendMetrics(this.buffer!, this.resource!, this.counterMetricBatchWith4Dimensions);
 
     [Benchmark]
     public void ExportCounterMetricItemWith3Dimensions_Otlp()
-    {
-        this.otlpProtobufMetricExporter!.Export(this.counterMetricBatchWith3Dimensions);
-    }
+        => this.otlpProtobufMetricExporter!.Export(this.counterMetricBatchWith3Dimensions);
 
     [Benchmark]
     public void ExportCounterMetricItemWith4Dimensions_Otlp()
-    {
-        this.otlpProtobufMetricExporter!.Export(this.counterMetricBatchWith4Dimensions);
-    }
+        => this.otlpProtobufMetricExporter!.Export(this.counterMetricBatchWith4Dimensions);
 
     [Benchmark]
     public void SerializeHistogramMetricItemWith3Dimensions_Otlp()
-    {
-        this.otlpProtobufSerializer!.SerializeAndSendMetrics(this.buffer!, this.resource!, this.histogramMetricBatchWith3Dimensions);
-    }
+        => this.otlpProtobufSerializer!.SerializeAndSendMetrics(this.buffer!, this.resource!, this.histogramMetricBatchWith3Dimensions);
 
     [Benchmark]
     public void SerializeHistogramMetricItemWith4Dimensions_Otlp()
-    {
-        this.otlpProtobufSerializer!.SerializeAndSendMetrics(this.buffer!, this.resource!, this.histogramMetricBatchWith4Dimensions);
-    }
+        => this.otlpProtobufSerializer!.SerializeAndSendMetrics(this.buffer!, this.resource!, this.histogramMetricBatchWith4Dimensions);
 
     [Benchmark]
     public void ExportHistogramMetricItemWith3Dimensions_Otlp()
-    {
-        this.otlpProtobufMetricExporter!.Export(this.histogramMetricBatchWith3Dimensions);
-    }
+        => this.otlpProtobufMetricExporter!.Export(this.histogramMetricBatchWith3Dimensions);
 
     [Benchmark]
     public void ExportHistogramMetricItemWith4Dimensions_Otlp()
-    {
-        this.otlpProtobufMetricExporter!.Export(this.histogramMetricBatchWith4Dimensions);
-    }
+        => this.otlpProtobufMetricExporter!.Export(this.histogramMetricBatchWith4Dimensions);
 
     private class DummyReader : BaseExportingMetricReader
     {
@@ -724,10 +716,7 @@ public class MetricExporterBenchmarks
 
     private class DummyMetricExporter : BaseExporter<Metric>
     {
-        public override ExportResult Export(in Batch<Metric> batch)
-        {
-            return ExportResult.Success;
-        }
+        public override ExportResult Export(in Batch<Metric> batch) => ExportResult.Success;
     }
 
     private class BatchGenerator : BaseExporter<Metric>
@@ -749,9 +738,7 @@ public class MetricExporterBenchmarks
         }
 
         public void Send(MetricEventType eventType, byte[] body, int size)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public void Dispose()
         {

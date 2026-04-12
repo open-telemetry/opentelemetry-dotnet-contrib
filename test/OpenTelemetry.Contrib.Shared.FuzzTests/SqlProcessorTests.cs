@@ -215,7 +215,7 @@ public static class SqlProcessorTests
     public static void GetSanitizedSql_Scientific_Notation_Is_Sanitized(int exponent)
     {
         // Arrange
-        if (exponent < -10 || exponent > 10)
+        if (exponent is < -10 or > 10)
         {
             return;
         }

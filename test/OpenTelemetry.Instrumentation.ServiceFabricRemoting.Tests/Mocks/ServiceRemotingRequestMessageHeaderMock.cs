@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Fabric;
-using System.Globalization;
 using System.Runtime.Serialization;
 using Microsoft.ServiceFabric.Services.Remoting.V2;
 
@@ -11,7 +10,7 @@ namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests;
 internal class ServiceRemotingRequestMessageHeaderMock : IServiceRemotingRequestMessageHeader
 {
     [DataMember(Name = "Headers", IsRequired = true, Order = 2)]
-    private readonly Dictionary<string, byte[]> headers = new Dictionary<string, byte[]>();
+    private readonly Dictionary<string, byte[]> headers = [];
 
     public ServiceRemotingRequestMessageHeaderMock()
     {
@@ -52,7 +51,7 @@ internal class ServiceRemotingRequestMessageHeaderMock : IServiceRemotingRequest
     {
         if (this.headers.ContainsKey(headerName))
         {
-            throw new FabricElementAlreadyExistsException(string.Format((IFormatProvider)(object)CultureInfo.CurrentCulture, "ErrorHeaderAlreadyExists"));
+            throw new FabricElementAlreadyExistsException("ErrorHeaderAlreadyExists");
         }
 
         this.headers[headerName] = headerValue;
@@ -61,11 +60,6 @@ internal class ServiceRemotingRequestMessageHeaderMock : IServiceRemotingRequest
     public bool TryGetHeaderValue(string headerName, out byte[]? headerValue)
     {
         headerValue = null;
-        if (this.headers == null)
-        {
-            return false;
-        }
-
-        return this.headers.TryGetValue(headerName, out headerValue);
+        return this.headers != null && this.headers.TryGetValue(headerName, out headerValue);
     }
 }

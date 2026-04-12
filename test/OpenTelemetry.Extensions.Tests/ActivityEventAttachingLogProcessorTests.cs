@@ -8,10 +8,12 @@ using Xunit;
 
 namespace OpenTelemetry.Extensions.Tests;
 
+#pragma warning disable CA1873 // Avoid potentially expensive logging
+
 public sealed class ActivityEventAttachingLogProcessorTests : IDisposable
 {
-    private readonly ActivitySource activitySource = new ActivitySource("Test");
-    private readonly ActivityListener activityListener = new ActivityListener
+    private readonly ActivitySource activitySource = new("Test");
+    private readonly ActivityListener activityListener = new()
     {
         ShouldListenTo = source => true,
     };
@@ -20,12 +22,10 @@ public sealed class ActivityEventAttachingLogProcessorTests : IDisposable
 
     public ActivityEventAttachingLogProcessorTests()
     {
-        this.activityListener.Sample = (ref ActivityCreationOptions<ActivityContext> options) =>
-        {
-            return this.sampled
+        this.activityListener.Sample = (ref options) =>
+            this.sampled
                 ? ActivitySamplingResult.AllDataAndRecorded
                 : ActivitySamplingResult.PropagationData;
-        };
 
         ActivitySource.AddActivityListener(this.activityListener);
     }

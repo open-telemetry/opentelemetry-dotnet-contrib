@@ -16,10 +16,10 @@ public class MyTestActor : Actor, IMyTestActor
 
     public Task<ServiceResponse> TestContextPropagation(string valueToReturn)
     {
-        ActivityContext activityContext = Activity.Current!.Context;
-        Baggage baggage = Baggage.Current;
+        var activityContext = Activity.Current!.Context;
+        var baggage = Baggage.Current;
 
-        ServiceResponse serviceResponse = new ServiceResponse
+        var serviceResponse = new ServiceResponse
         {
             ParameterValue = valueToReturn,
             ActivityContext = activityContext,

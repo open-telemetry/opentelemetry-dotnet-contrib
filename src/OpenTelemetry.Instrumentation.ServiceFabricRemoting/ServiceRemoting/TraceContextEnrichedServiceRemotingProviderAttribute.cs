@@ -39,16 +39,17 @@ public sealed class TraceContextEnrichedServiceRemotingProviderAttribute : Fabri
     /// </returns>
     public override Dictionary<string, Func<ServiceContext, IService, IServiceRemotingListener>> CreateServiceRemotingListeners()
     {
-        Dictionary<string, Func<ServiceContext, IService, IServiceRemotingListener>> dictionary = new Dictionary<string, Func<ServiceContext, IService, IServiceRemotingListener>>();
-
-        dictionary.Add(DefaultV2listenerName, (ServiceContext serviceContext, IService serviceImplementation) =>
+        var dictionary = new Dictionary<string, Func<ServiceContext, IService, IServiceRemotingListener>>
         {
-            FabricTransportRemotingListenerSettings listenerSettings = this.GetListenerSettings(serviceContext);
-            ServiceRemotingMessageDispatcher serviceRemotingMessageDispatcher = new ServiceRemotingMessageDispatcher(serviceContext, serviceImplementation);
-            ServiceRemotingMessageDispatcherAdapter dispatcherAdapter = new ServiceRemotingMessageDispatcherAdapter(serviceRemotingMessageDispatcher);
+            [DefaultV2listenerName] = (serviceContext, serviceImplementation) =>
+            {
+                var listenerSettings = this.GetListenerSettings();
+                var serviceRemotingMessageDispatcher = new ServiceRemotingMessageDispatcher(serviceContext, serviceImplementation);
+                var dispatcherAdapter = new ServiceRemotingMessageDispatcherAdapter(serviceRemotingMessageDispatcher);
 
-            return new FabricTransportServiceRemotingListener(serviceContext, dispatcherAdapter, listenerSettings);
-        });
+                return new FabricTransportServiceRemotingListener(serviceContext, dispatcherAdapter, listenerSettings);
+            },
+        };
 
         return dictionary;
     }
@@ -65,13 +66,13 @@ public sealed class TraceContextEnrichedServiceRemotingProviderAttribute : Fabri
     /// </returns>
     public override IServiceRemotingClientFactory CreateServiceRemotingClientFactoryV2(IServiceRemotingCallbackMessageHandler? callbackMessageHandler)
     {
-        FabricTransportRemotingSettings fabricTransportRemotingSettings = new FabricTransportRemotingSettings();
+        var fabricTransportRemotingSettings = new FabricTransportRemotingSettings();
         fabricTransportRemotingSettings.MaxMessageSize = this.GetAndValidateMaxMessageSize(fabricTransportRemotingSettings.MaxMessageSize);
         fabricTransportRemotingSettings.OperationTimeout = this.GetAndValidateOperationTimeout(fabricTransportRemotingSettings.OperationTimeout);
         fabricTransportRemotingSettings.KeepAliveTimeout = this.GetAndValidateKeepAliveTimeout(fabricTransportRemotingSettings.KeepAliveTimeout);
         fabricTransportRemotingSettings.ConnectTimeout = this.GetConnectTimeout(fabricTransportRemotingSettings.ConnectTimeout);
 
-        FabricTransportServiceRemotingClientFactory fabricTransportServiceRemotingClientFactory = new FabricTransportServiceRemotingClientFactory(
+        var fabricTransportServiceRemotingClientFactory = new FabricTransportServiceRemotingClientFactory(
             fabricTransportRemotingSettings,
             callbackMessageHandler,
             servicePartitionResolver: null,
@@ -81,9 +82,9 @@ public sealed class TraceContextEnrichedServiceRemotingProviderAttribute : Fabri
         return new TraceContextEnrichedServiceRemotingClientFactoryAdapter(fabricTransportServiceRemotingClientFactory);
     }
 
-    private FabricTransportRemotingListenerSettings GetListenerSettings(ServiceContext serviceContext)
+    private FabricTransportRemotingListenerSettings GetListenerSettings()
     {
-        FabricTransportRemotingListenerSettings listenerSettings = new FabricTransportRemotingListenerSettings();
+        var listenerSettings = new FabricTransportRemotingListenerSettings();
 
         listenerSettings.MaxMessageSize = this.GetAndValidateMaxMessageSize(listenerSettings.MaxMessageSize);
         listenerSettings.OperationTimeout = this.GetAndValidateOperationTimeout(listenerSettings.OperationTimeout);
@@ -93,22 +94,14 @@ public sealed class TraceContextEnrichedServiceRemotingProviderAttribute : Fabri
     }
 
     private long GetAndValidateMaxMessageSize(long maxMessageSizeDefault)
-    {
-        return (this.MaxMessageSize > 0) ? this.MaxMessageSize : maxMessageSizeDefault;
-    }
+        => (this.MaxMessageSize > 0) ? this.MaxMessageSize : maxMessageSizeDefault;
 
     private TimeSpan GetAndValidateOperationTimeout(TimeSpan operationTimeoutDefault)
-    {
-        return (this.OperationTimeoutInSeconds > 0) ? TimeSpan.FromSeconds(this.OperationTimeoutInSeconds) : operationTimeoutDefault;
-    }
+        => (this.OperationTimeoutInSeconds > 0) ? TimeSpan.FromSeconds(this.OperationTimeoutInSeconds) : operationTimeoutDefault;
 
     private TimeSpan GetAndValidateKeepAliveTimeout(TimeSpan keepAliveTimeoutDefault)
-    {
-        return (this.KeepAliveTimeoutInSeconds > 0) ? TimeSpan.FromSeconds(this.KeepAliveTimeoutInSeconds) : keepAliveTimeoutDefault;
-    }
+        => (this.KeepAliveTimeoutInSeconds > 0) ? TimeSpan.FromSeconds(this.KeepAliveTimeoutInSeconds) : keepAliveTimeoutDefault;
 
     private TimeSpan GetConnectTimeout(TimeSpan connectTimeoutDefault)
-    {
-        return (this.ConnectTimeoutInMilliseconds > 0) ? TimeSpan.FromMilliseconds(this.ConnectTimeoutInMilliseconds) : connectTimeoutDefault;
-    }
+        => (this.ConnectTimeoutInMilliseconds > 0) ? TimeSpan.FromMilliseconds(this.ConnectTimeoutInMilliseconds) : connectTimeoutDefault;
 }

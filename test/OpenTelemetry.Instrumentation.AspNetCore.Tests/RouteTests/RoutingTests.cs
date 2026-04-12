@@ -11,23 +11,14 @@ using Xunit;
 namespace RouteTests;
 
 [Collection("AspNetCore")]
-public class RoutingTests : IClassFixture<RoutingTestFixture>
+public class RoutingTests(RoutingTestFixture fixture) : IClassFixture<RoutingTestFixture>
 {
     private const string HttpStatusCode = "http.response.status_code";
     private const string HttpMethod = "http.request.method";
     private const string HttpRoute = "http.route";
 
-    private readonly RoutingTestFixture fixture;
-
-    public RoutingTests(RoutingTestFixture fixture)
-    {
-        this.fixture = fixture;
-    }
-
-    public static IEnumerable<object[]> TestData => RoutingTestCases.GetTestCases();
-
     [Theory]
-    [MemberData(nameof(TestData))]
+    [MemberData(nameof(RoutingTestCases.GetTestCases), MemberType = typeof(RoutingTestCases))]
     public async Task TestHttpRoute_Traces(TestCase testCase)
     {
         List<Activity> exportedActivities = [];
@@ -37,10 +28,9 @@ public class RoutingTests : IClassFixture<RoutingTestFixture>
             .AddInMemoryExporter(exportedActivities)
             .Build()!;
 
-        await this.fixture.MakeRequest(testCase.TestApplicationScenario, testCase.Path);
+        await fixture.MakeRequest(testCase.TestApplicationScenario, testCase.Path);
 
-        Action flushAction = () => tracerProvider.ForceFlush();
-        var result = await TryWaitUntilAny(exportedActivities, flushAction);
+        var result = await TryWaitUntilAny(exportedActivities, () => tracerProvider.ForceFlush());
         Assert.True(result, "No activities were collected");
 
         var activity = Assert.Single(exportedActivities);
@@ -71,11 +61,11 @@ public class RoutingTests : IClassFixture<RoutingTestFixture>
             RouteInfo = RouteInfo.Current,
         };
 
-        this.fixture.AddActivityTestResult(testResult);
+        fixture.AddActivityTestResult(testResult);
     }
 
     [Theory]
-    [MemberData(nameof(TestData))]
+    [MemberData(nameof(RoutingTestCases.GetTestCases), MemberType = typeof(RoutingTestCases))]
     public async Task TestHttpRoute_Metrics(TestCase testCase)
     {
         List<Metric> exportedMetrics = [];
@@ -85,7 +75,7 @@ public class RoutingTests : IClassFixture<RoutingTestFixture>
             .AddInMemoryExporter(exportedMetrics)
             .Build()!;
 
-        await this.fixture.MakeRequest(testCase.TestApplicationScenario, testCase.Path);
+        await fixture.MakeRequest(testCase.TestApplicationScenario, testCase.Path);
 
         var filter = new Func<Metric, bool>(x =>
             x.Name is "http.server.request.duration" or "http.server.duration");
@@ -120,7 +110,7 @@ public class RoutingTests : IClassFixture<RoutingTestFixture>
             RouteInfo = RouteInfo.Current,
         };
 
-        this.fixture.AddMetricsTestResult(testResult);
+        fixture.AddMetricsTestResult(testResult);
     }
 
     private static async Task<bool> TryWaitUntilAny<T>(ICollection<T> collection, Action flush, Func<T, bool>? filter = null)

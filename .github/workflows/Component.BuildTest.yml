@@ -55,6 +55,7 @@ jobs:
           version: net462
 
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
 
     steps:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -67,6 +68,8 @@ jobs:
     - name: Resolve project
       id: resolve-project
       shell: pwsh
+      env:
+        PROJECT_NAME: ${{ inputs.project-name }}
       run: |
         Import-Module .\build\scripts\build.psm1
 
@@ -79,7 +82,7 @@ jobs:
         $component = '' # Used to tell Component.proj what to build
 
         ResolveProject `
-          -projectNameOrComponentData '${{ inputs.project-name }}' `
+          -projectNameOrComponentData ${env:PROJECT_NAME} `
           -title ([ref]$title) `
           -project ([ref]$project) `
           -component ([ref]$component)
@@ -102,53 +105,67 @@ jobs:
         echo "BUILD_COMPONENT=$component" >> $env:GITHUB_ENV
 
     - name: Setup previous .NET runtimes
-      uses: actions/setup-dotnet@baa11fbfe1d6520db94683bd5c7a3818018e4309 # v5.1.0
+      uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5.2.0
       with:
         dotnet-version: |
           8.0.x
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@baa11fbfe1d6520db94683bd5c7a3818018e4309 # v5.1.0
+      uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5.2.0
 
     - name: dotnet restore ${{ steps.resolve-project.outputs.title }}
-      run: dotnet restore ${{ steps.resolve-project.outputs.project }} -p:EnablePackageValidation=true
+      run: dotnet restore ${env:PROJECT_PATH} -p:EnablePackageValidation=true
+      shell: pwsh
+      env:
+        PROJECT_PATH: ${{ steps.resolve-project.outputs.project }}
 
     - name: dotnet build ${{ steps.resolve-project.outputs.title }}
-      run: dotnet build ${{ steps.resolve-project.outputs.project }} --configuration Release --no-restore
+      run: dotnet build ${env:PROJECT_PATH} --configuration Release --no-restore
+      shell: pwsh
+      env:
+        PROJECT_PATH: ${{ steps.resolve-project.outputs.project }}
 
     - name: dotnet test ${{ steps.resolve-project.outputs.title }}
-      if: ${{ inputs.run-tests }}
+      if: inputs.run-tests
+      shell: pwsh
+      env:
+        PROJECT_PATH: ${{ steps.resolve-project.outputs.project }}
+        TARGET_FRAMEWORK: ${{ matrix.version }}
+        TEST_FILTER: ${{ inputs.test-case-filter }}
       run: >
         ${{ inputs.test-require-elevated && matrix.os != 'windows-latest' && 'sudo -E' || '' }}
-        dotnet test ${{ steps.resolve-project.outputs.project }}
+        dotnet test ${env:PROJECT_PATH}
         --collect:"Code Coverage"
         --results-directory:TestResults
-        --framework ${{ matrix.version }}
+        --framework ${env:TARGET_FRAMEWORK}
         --configuration Release
         --no-restore
         --no-build
         --logger:"console;verbosity=detailed"
         --logger:"GitHubActions;report-warnings=false"
         --logger:"junit;LogFilePath=TestResults/junit.xml"
-        --filter "${{ inputs.test-case-filter }}"
+        --filter "${env:TEST_FILTER}"
         -- RunConfiguration.DisableAppDomain=true
         ${{ inputs.test-require-elevated && matrix.os != 'windows-latest' && '&& sudo chmod a+rw ./TestResults' || '' }}
 
     - name: dotnet pack ${{ steps.resolve-project.outputs.title }}
-      if: ${{ matrix.os == 'windows-latest' && inputs.pack }}
-      run: dotnet pack ${{ steps.resolve-project.outputs.project }} --configuration Release --no-restore --no-build -p:EnablePackageValidation=true
+      if: matrix.os == 'windows-latest' && inputs.pack
+      run: dotnet pack ${env:PROJECT_PATH} --configuration Release --no-restore --no-build -p:EnablePackageValidation=true
+      shell: pwsh
+      env:
+        PROJECT_PATH: ${{ steps.resolve-project.outputs.project }}
 
     - name: Install coverage tool
-      if: ${{ inputs.run-tests }}
+      if: inputs.run-tests
       run: dotnet tool install -g dotnet-coverage
 
     - name: Merging test results
-      if: ${{ inputs.run-tests && hashFiles('./TestResults/**/*.coverage') != '' }}
+      if: inputs.run-tests && hashFiles('./TestResults/**/*.coverage') != ''
       run: dotnet-coverage merge -f cobertura -o ./TestResults/Cobertura.xml ./TestResults/**/*.coverage
 
     - name: Upload code coverage ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
-      if: ${{ inputs.run-tests && hashFiles('./TestResults/Cobertura.xml') != '' }}
-      uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
+      if: inputs.run-tests && hashFiles('./TestResults/Cobertura.xml') != ''
+      uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6.0.0
       continue-on-error: true # Note: Don't fail for upload failures
       env:
         OS: ${{ matrix.os }}
@@ -164,7 +181,7 @@ jobs:
 
     - name: Upload test results  ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
       if: ${{ !cancelled() && inputs.run-tests && hashFiles('./**/TestResults/junit.xml') != '' }}
-      uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
+      uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6.0.0
       with:
         env_vars: OS,TFM,FILTER
         flags: ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
@@ -173,9 +190,9 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
 
     - name: Publish ${{ steps.resolve-project.outputs.name }} NuGet packages to Artifacts
-      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
       # Only publish packages from the first job, which should be net462 for Windows in most cases, which is preferred for .NET Framework support
-      if: ${{ matrix.os == 'windows-latest' && inputs.pack && strategy.job-index == 0 }}
+      if: matrix.os == 'windows-latest' && inputs.pack && strategy.job-index == 0
       with:
         name: ${{ steps.resolve-project.outputs.name }}-packages
         path: ./artifacts/package/release

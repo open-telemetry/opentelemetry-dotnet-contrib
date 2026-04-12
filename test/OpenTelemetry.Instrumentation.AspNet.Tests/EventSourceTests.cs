@@ -7,11 +7,9 @@ using Xunit;
 
 namespace OpenTelemetry.Instrumentation.AspNet.Tests;
 
-public class EventSourceTest
+public class EventSourceTests
 {
     [Fact]
-    public void EventSourceTest_AspNetInstrumentationEventSource()
-    {
-        EventSourceTestHelper.MethodsAreImplementedConsistentlyWithTheirAttributes(AspNetInstrumentationEventSource.Log);
-    }
+    public void EventSourceTests_AspNetInstrumentationEventSource() =>
+        EventSourceTestHelper.ValidateEventSourceIds<AspNetInstrumentationEventSource>();
 }

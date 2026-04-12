@@ -19,6 +19,8 @@ using Xunit;
 
 namespace OpenTelemetry.Exporter.Geneva.Tests;
 
+#pragma warning disable CA1873 // Avoid potentially expensive logging
+
 public class GenevaLogExporterTests
 {
     [Fact]
@@ -212,7 +214,7 @@ public class GenevaLogExporterTests
                 .AddFilter("*", LogLevel.Trace)); // Enable all LogLevels
 
             List<ArraySegment<byte>> exportedData = [];
-            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = (data) => exportedData.Add(data);
+            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = exportedData.Add;
 
             ILogger logger;
             object fluentdData;
@@ -329,7 +331,7 @@ public class GenevaLogExporterTests
                 .AddFilter("*", LogLevel.Trace)); // Enable all LogLevels
 
             List<ArraySegment<byte>> exportedData = [];
-            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = (data) => exportedData.Add(data);
+            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = exportedData.Add;
 
             ILogger passThruTableMappingsLogger, userInitializedTableMappingsLogger;
             object fluentdData;
@@ -429,7 +431,7 @@ public class GenevaLogExporterTests
 
             List<ArraySegment<byte>> exportedData = [];
 
-            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = (data) => exportedData.Add(data);
+            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = exportedData.Add;
 
             // Emit a LogRecord and grab a copy of internal buffer for validation.
             var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
@@ -551,7 +553,7 @@ public class GenevaLogExporterTests
                 .AddFilter(typeof(GenevaLogExporterTests).FullName, LogLevel.Trace)); // Enable all LogLevels
 
             List<ArraySegment<byte>> exportedData = [];
-            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = (data) => exportedData.Add(data);
+            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = exportedData.Add;
 
             // Emit a LogRecord and grab a copy of the LogRecord from the collection passed to InMemoryExporter
             var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
@@ -728,7 +730,7 @@ public class GenevaLogExporterTests
 
             using var listener = new ActivityListener();
             listener.ShouldListenTo = (activitySource) => activitySource.Name == sourceName;
-            listener.Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded;
+            listener.Sample = (ref options) => ActivitySamplingResult.AllDataAndRecorded;
             ActivitySource.AddActivityListener(listener);
 
             using var source = new ActivitySource(sourceName);
@@ -829,21 +831,16 @@ public class GenevaLogExporterTests
                 {
                     ["cloud.role"] = "cloud.role from prepopulated",
                 },
+                ConnectionString =
+                    RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
+                    "EtwSession=OpenTelemetry" :
+                    "Endpoint=unix:" + path,
             };
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
-            }
-            else
-            {
-                exporterOptions.ConnectionString = "Endpoint=unix:" + path;
-            }
 
             using var exporter = new GenevaLogExporter(exporterOptions);
 
             List<ArraySegment<byte>> exportedData = [];
-            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = (data) => exportedData.Add(data);
+            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = exportedData.Add;
 
             var resourceBuilder = ResourceBuilder.CreateDefault().AddService("cloud.role from resource");
 
@@ -889,21 +886,16 @@ public class GenevaLogExporterTests
                 {
                     // no prepopulated fields
                 },
+                ConnectionString =
+                    RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
+                    "EtwSession=OpenTelemetry" :
+                    "Endpoint=unix:" + path,
             };
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
-            }
-            else
-            {
-                exporterOptions.ConnectionString = "Endpoint=unix:" + path;
-            }
 
             using var exporter = new GenevaLogExporter(exporterOptions);
 
             List<ArraySegment<byte>> exportedData = [];
-            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = (data) => exportedData.Add(data);
+            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = exportedData.Add;
 
             var resourceBuilder = ResourceBuilder.CreateDefault().AddService("cloud.role from resource");
 
@@ -956,7 +948,7 @@ public class GenevaLogExporterTests
             using var exporter = new GenevaLogExporter(exporterOptions);
 
             List<ArraySegment<byte>> exportedData = [];
-            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = (data) => exportedData.Add(data);
+            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = exportedData.Add;
 
             var resourceBuilder = ResourceBuilder.CreateDefault();
 
@@ -1060,7 +1052,7 @@ public class GenevaLogExporterTests
                 .AddFilter(typeof(GenevaLogExporterTests).FullName, LogLevel.Trace)); // Enable all LogLevels
 
             List<ArraySegment<byte>> exportedData = [];
-            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = (data) => exportedData.Add(data);
+            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = exportedData.Add;
 
             // Emit a LogRecord and grab a copy of the LogRecord from the collection passed to InMemoryExporter
             var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
@@ -1143,7 +1135,7 @@ public class GenevaLogExporterTests
                 }));
 
             List<ArraySegment<byte>> exportedData = [];
-            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = (data) => exportedData.Add(data);
+            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = exportedData.Add;
 
             // Emit a LogRecord and grab a copy of the LogRecord from the collection passed to InMemoryExporter
             var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
@@ -1261,7 +1253,7 @@ public class GenevaLogExporterTests
                 }));
 
             List<ArraySegment<byte>> exportedData = [];
-            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = (data) => exportedData.Add(data);
+            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = exportedData.Add;
 
             // Emit a LogRecord and grab a copy of the LogRecord from the collection passed to InMemoryExporter
             var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
@@ -1369,7 +1361,7 @@ public class GenevaLogExporterTests
                 .AddFilter(typeof(GenevaLogExporterTests).FullName, LogLevel.Trace)); // Enable all LogLevels
 
             List<ArraySegment<byte>> exportedData = [];
-            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = (data) => exportedData.Add(data);
+            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = exportedData.Add;
 
             // Emit a LogRecord and grab a copy of the LogRecord from the collection passed to InMemoryExporter
             var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
@@ -1566,7 +1558,7 @@ public class GenevaLogExporterTests
                 .AddFilter(typeof(GenevaLogExporterTests).FullName, LogLevel.Trace)); // Enable all LogLevels
 
             List<ArraySegment<byte>> exportedData = [];
-            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = (data) => exportedData.Add(data);
+            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = exportedData.Add;
 
             // Emit a LogRecord and grab a copy of the LogRecord from the collection passed to InMemoryExporter
             var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
@@ -1577,7 +1569,7 @@ public class GenevaLogExporterTests
 
             using var listener = new ActivityListener();
             listener.ShouldListenTo = (activitySource) => activitySource.Name == sourceName;
-            listener.Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded;
+            listener.Sample = (ref options) => ActivitySamplingResult.AllDataAndRecorded;
             ActivitySource.AddActivityListener(listener);
 
             using var source = new ActivitySource(sourceName);
@@ -1654,7 +1646,7 @@ public class GenevaLogExporterTests
                 .AddFilter(typeof(GenevaLogExporterTests).FullName, LogLevel.Trace)); // Enable all LogLevels
 
             List<ArraySegment<byte>> exportedData = [];
-            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = (data) => exportedData.Add(data);
+            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = exportedData.Add;
 
             // Emit a LogRecord and grab a copy of the LogRecord from the collection passed to InMemoryExporter
             var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
@@ -1665,7 +1657,7 @@ public class GenevaLogExporterTests
 
             using var listener = new ActivityListener();
             listener.ShouldListenTo = (activitySource) => activitySource.Name == sourceName;
-            listener.Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded;
+            listener.Sample = (ref options) => ActivitySamplingResult.AllDataAndRecorded;
             ActivitySource.AddActivityListener(listener);
 
             using var source = new ActivitySource(sourceName);
@@ -1744,7 +1736,7 @@ public class GenevaLogExporterTests
                 .AddFilter(typeof(GenevaLogExporterTests).FullName, LogLevel.Trace)); // Enable all LogLevels
 
             List<ArraySegment<byte>> exportedData = [];
-            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = (data) => exportedData.Add(data);
+            (exporter.Exporter as MsgPackLogExporter).DataTransportListener = exportedData.Add;
 
             // Emit a LogRecord and grab a copy of the LogRecord from the collection passed to InMemoryExporter
             var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
@@ -1755,7 +1747,7 @@ public class GenevaLogExporterTests
 
             using var listener = new ActivityListener();
             listener.ShouldListenTo = (activitySource) => activitySource.Name == sourceName;
-            listener.Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded;
+            listener.Sample = (ref options) => ActivitySamplingResult.AllDataAndRecorded;
             ActivitySource.AddActivityListener(listener);
 
             using var source = new ActivitySource(sourceName);
@@ -1846,9 +1838,7 @@ public class GenevaLogExporterTests
     }
 
     private static string GetTestMethodName([CallerMemberName] string callingMethodName = "")
-    {
-        return callingMethodName;
-    }
+        => callingMethodName;
 
     private static object GetField(object fluentdData, string key)
     {
@@ -2000,7 +1990,7 @@ public class GenevaLogExporterTests
 #pragma warning disable 0618
             if (logRecord.FormattedMessage != null)
             {
-                Assert.Equal(logRecord.FormattedMessage!, mapping["body"]);
+                Assert.Equal(logRecord.FormattedMessage, mapping["body"]);
             }
             else if (logRecord.State != null)
             {
@@ -2046,7 +2036,7 @@ public class GenevaLogExporterTests
 
             foreach (var item in resource.Attributes)
             {
-                if (item.Key == "service.name" || item.Key == "service.instanceId")
+                if (item.Key is "service.name" or "service.instanceId")
                 {
                     // these ones are already checked.
                     continue;
@@ -2078,7 +2068,5 @@ public class GenevaLogExporterTests
     }
 
     // A custom exception class with non-ASCII character in the type name
-    private class CustomException\u0418 : Exception
-    {
-    }
+    private class CustomException\u0418 : Exception;
 }
