@@ -15,11 +15,11 @@ using Xunit;
 namespace OpenTelemetry.Instrumentation.StackExchangeRedis.Tests;
 
 [Collection("Redis")]
+[Trait("CategoryName", "RedisIntegrationTests")]
 public class StackExchangeRedisCallsInstrumentationTests(RedisXunitFixture fixture) : IClassFixture<RedisXunitFixture>
 {
     private readonly string connectionString = fixture.DatabaseContainer.GetConnectionString();
 
-    [Trait("CategoryName", "RedisIntegrationTests")]
     [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
     [InlineData("value1")]
     public void SuccessfulCommandTestWithKey(string value)
@@ -72,7 +72,6 @@ public class StackExchangeRedisCallsInstrumentationTests(RedisXunitFixture fixtu
         VerifySamplingParameters(sampler.LatestSamplingParameters);
     }
 
-    [Trait("CategoryName", "RedisIntegrationTests")]
     [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
     [InlineData("value1", null, true, false)]
     [InlineData("value1", null, false, true)]
@@ -165,7 +164,7 @@ public class StackExchangeRedisCallsInstrumentationTests(RedisXunitFixture fixtu
         }
     }
 
-    [Fact]
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
     public async Task ProfilerSessionUsesTheSameDefault()
     {
         var connectionOptions = new ConfigurationOptions
@@ -188,7 +187,6 @@ public class StackExchangeRedisCallsInstrumentationTests(RedisXunitFixture fixtu
         Assert.Equal(second, third);
     }
 
-    [Trait("CategoryName", "RedisIntegrationTests")]
     [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
     [InlineData("value1")]
     public void CanEnrichActivityFromCommand(string value)
@@ -243,7 +241,7 @@ public class StackExchangeRedisCallsInstrumentationTests(RedisXunitFixture fixtu
         Assert.Equal(true, exportedItems[1].GetTagValue("is_fast"));
     }
 
-    [Fact]
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
     public void CheckCacheIsFlushedProperly()
     {
         var connectionOptions = new ConfigurationOptions
@@ -284,7 +282,7 @@ public class StackExchangeRedisCallsInstrumentationTests(RedisXunitFixture fixtu
         Assert.Empty(instrumentation.Cache);
     }
 
-    [Fact]
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
     public async Task ProfilerSessionsHandleMultipleSpans()
     {
         var connectionOptions = new ConfigurationOptions
@@ -339,7 +337,7 @@ public class StackExchangeRedisCallsInstrumentationTests(RedisXunitFixture fixtu
         Assert.Same(profiler0, profiles3);
     }
 
-    [Fact]
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
     public void StackExchangeRedis_DependencyInjection_Success()
     {
         var connectionMultiplexerPickedFromDI = false;
@@ -373,7 +371,7 @@ public class StackExchangeRedisCallsInstrumentationTests(RedisXunitFixture fixtu
         Assert.True(optionsPickedFromDI);
     }
 
-    [Fact]
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
     public void StackExchangeRedis_StackExchangeRedisInstrumentation_Test()
     {
         StackExchangeRedisInstrumentation? instrumentation = null;

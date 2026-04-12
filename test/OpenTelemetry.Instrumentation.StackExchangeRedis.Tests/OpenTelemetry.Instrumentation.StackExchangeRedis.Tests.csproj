@@ -12,6 +12,7 @@
     <Compile Include="$(RepoRoot)\test\Shared\DockerHelper.cs" Link="Includes\DockerHelper.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\DockerPlatform.cs" Link="Includes\DockerPlatform.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\EnabledOnDockerPlatformTheoryAttribute.cs" Link="Includes\EnabledOnDockerPlatformTheoryAttribute.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\EnabledOnDockerPlatformFactAttribute.cs" Link="Includes\EnabledOnDockerPlatformFactAttribute.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\EnvironmentVariableScope.cs" Link="Includes\EnvironmentVariableScope.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\TestSampler.cs" Link="Includes\TestSampler.cs" />
   </ItemGroup>
