@@ -525,7 +525,7 @@ internal sealed class TlvMetricExporter : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void SerializeHistogramMetricData(HistogramBuckets buckets, double sum, uint count, double min, double max, long timestamp, byte[] buffer, ref int bufferIndex)
     {
-        var useDoubleAggregation = sum < 0 || min < 0 || max < 0;
+        var useDoubleAggregation = !AreAllAggregatesUInt64Compatible(sum, min, max);
 
         MetricSerializer.SerializeByte(
             buffer,
@@ -630,8 +630,27 @@ internal sealed class TlvMetricExporter : IDisposable
             return ulong.MaxValue;
         }
 
-        // For positive values in-range, truncation is OK; histogram aggregates should be integral for long instruments.
+        // The caller should ensure this is only used for UInt64-compatible values.
+        // We keep this conversion defensive to avoid throwing in edge cases.
         return (ulong)value;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool AreAllAggregatesUInt64Compatible(double sum, double min, double max)
+    {
+        return IsUInt64CompatibleAggregate(sum)
+            && IsUInt64CompatibleAggregate(min)
+            && IsUInt64CompatibleAggregate(max);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsUInt64CompatibleAggregate(double value)
+    {
+        return !double.IsNaN(value)
+            && !double.IsInfinity(value)
+            && value >= 0
+            && value <= (double)ulong.MaxValue
+            && value == Math.Truncate(value);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
