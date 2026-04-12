@@ -13,10 +13,12 @@ using Xunit.Abstractions;
 namespace OpenTelemetry.Instrumentation.ConfluentKafka.Tests;
 
 [Collection("Kafka")]
-public class HostedTracingTests(ITestOutputHelper outputHelper)
+[Trait("CategoryName", "KafkaIntegrationTests")]
+public class HostedTracingTests(KafkaFixture fixture, ITestOutputHelper outputHelper) : IClassFixture<KafkaFixture>
 {
-    [Trait("CategoryName", "KafkaIntegrationTests")]
-    [SkipUnlessEnvVarFoundFact(KafkaHelpers.KafkaEndPointEnvVarName)]
+    private readonly string connectionString = fixture.DatabaseContainer.GetConnectionString();
+
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
     public async Task ResolveInstrumentedBuildersFromHostServiceProviderTest()
     {
         List<Activity> activities = [];
@@ -26,12 +28,12 @@ public class HostedTracingTests(ITestOutputHelper outputHelper)
             services.AddSingleton(_ =>
                 new InstrumentedProducerBuilder<string, string>(new ProducerConfig()
                 {
-                    BootstrapServers = KafkaHelpers.KafkaEndPoint,
+                    BootstrapServers = this.connectionString,
                 }));
             services.AddSingleton(_ =>
                 new InstrumentedConsumerBuilder<string, string>(new ConsumerConfig()
                 {
-                    BootstrapServers = KafkaHelpers.KafkaEndPoint,
+                    BootstrapServers = this.connectionString,
                     GroupId = Guid.NewGuid().ToString(),
                     AutoOffsetReset = AutoOffsetReset.Earliest,
                     EnablePartitionEof = true,
