@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using OpenTelemetry.Tests;
 using Testcontainers.Cassandra;
 using Xunit;
 
@@ -12,8 +13,13 @@ public sealed class CassandraFixture : IAsyncLifetime
 
     public CassandraContainer DatabaseContainer { get; } = CreateCassandra();
 
-    public Task InitializeAsync() =>
-        this.DatabaseContainer.StartAsync();
+    public async Task InitializeAsync()
+    {
+        if (DockerHelper.IsAvailable(DockerPlatform.Linux))
+        {
+            await this.DatabaseContainer.StartAsync();
+        }
+    }
 
     public Task DisposeAsync() =>
         this.DatabaseContainer.DisposeAsync().AsTask();

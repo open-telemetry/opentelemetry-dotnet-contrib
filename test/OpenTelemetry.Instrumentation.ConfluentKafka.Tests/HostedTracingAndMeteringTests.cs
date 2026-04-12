@@ -13,9 +13,9 @@ using Xunit.Abstractions;
 
 namespace OpenTelemetry.Instrumentation.ConfluentKafka.Tests;
 
-[Collection("Kafka")]
+[Collection(KafkaCollection.Name)]
 [Trait("CategoryName", "KafkaIntegrationTests")]
-public class HostedTracingAndMeteringTests(KafkaFixture fixture, ITestOutputHelper outputHelper) : IClassFixture<KafkaFixture>
+public class HostedTracingAndMeteringTests(KafkaFixture fixture, ITestOutputHelper outputHelper)
 {
     private readonly string connectionString = fixture.DatabaseContainer.GetConnectionString();
 

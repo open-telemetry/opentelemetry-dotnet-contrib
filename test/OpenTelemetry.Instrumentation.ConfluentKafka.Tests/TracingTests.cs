@@ -9,9 +9,9 @@ using Xunit;
 
 namespace OpenTelemetry.Instrumentation.ConfluentKafka.Tests;
 
-[Collection("Kafka")]
+[Collection(KafkaCollection.Name)]
 [Trait("CategoryName", "KafkaIntegrationTests")]
-public class TracingTests(KafkaFixture fixture) : IClassFixture<KafkaFixture>
+public class TracingTests(KafkaFixture fixture)
 {
     private readonly string connectionString = fixture.DatabaseContainer.GetConnectionString();
 

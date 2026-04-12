@@ -11,9 +11,9 @@ using CassandraData = Cassandra.Data.Linq;
 
 namespace OpenTelemetry.Instrumentation.Cassandra.Tests;
 
-[Collection("Cassandra")]
+[Collection(CassandraCollection.Name)]
 [Trait("CategoryName", "CassandraIntegrationTests")]
-public class CassandraInstrumentationTests(CassandraFixture fixture) : IClassFixture<CassandraFixture>
+public class CassandraInstrumentationTests(CassandraFixture fixture)
 {
     private const int MaxTimeToAllowForFlush = 20000;
 
