@@ -5,7 +5,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.Remoting.Contexts;
 using Microsoft.Extensions.Options;
-using OpenTelemetry.Internal;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.Remoting.Implementation;
 
@@ -17,8 +17,9 @@ internal sealed class TelemetryDynamicSinkProvider : IDynamicProperty, IContribu
 {
     internal const string ActivitySourceName = "OpenTelemetry.Instrumentation.Remoting";
     internal const string DynamicPropertyName = "TelemetryDynamicSinkProvider";
+    internal static readonly Version SemanticConventionsVersion = new(1, 40, 0);
 
-    private readonly ActivitySource activitySource = CreateActivitySource();
+    private readonly ActivitySource activitySource = ActivitySourceFactory.Create<TelemetryDynamicSinkProvider>(SemanticConventionsVersion);
     private readonly ConcurrentDictionary<string, string> serviceNameCache = new();
     private readonly IDisposable? optionsChangeRegistration;
 
@@ -46,20 +47,5 @@ internal sealed class TelemetryDynamicSinkProvider : IDynamicProperty, IContribu
     {
         this.optionsChangeRegistration?.Dispose();
         this.activitySource.Dispose();
-    }
-
-    private static ActivitySource CreateActivitySource()
-    {
-        const string telemetrySchemaUrl = "https://opentelemetry.io/schemas/1.40.0";
-        var assembly = typeof(TelemetryDynamicSink).Assembly;
-        var version = assembly.GetPackageVersion();
-
-        var activitySourceOptions = new ActivitySourceOptions(ActivitySourceName)
-        {
-            Version = version,
-            TelemetrySchemaUrl = telemetrySchemaUrl,
-        };
-
-        return new ActivitySource(activitySourceOptions);
     }
 }
