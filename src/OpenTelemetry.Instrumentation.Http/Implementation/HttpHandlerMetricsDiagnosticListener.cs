@@ -16,7 +16,7 @@ internal sealed class HttpHandlerMetricsDiagnosticListener : ListenerHandler
 {
     internal const string OnStopEvent = "System.Net.Http.HttpRequestOut.Stop";
 
-    internal static readonly Meter Meter = MeterFactory.Create<HttpHandlerMetricsDiagnosticListener>(HttpClientInstrumentation.SemanticConventionsVersion);
+    internal static readonly Meter Meter = Metrics.MeterFactory.Create<HttpHandlerMetricsDiagnosticListener>(HttpClientInstrumentation.SemanticConventionsVersion);
 
     private const string OnUnhandledExceptionEvent = "System.Net.Http.Exception";
     private static readonly Histogram<double> HttpClientRequestDuration = Meter.CreateHistogram(

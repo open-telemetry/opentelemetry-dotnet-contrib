@@ -34,7 +34,7 @@ internal static class HttpWebRequestActivitySource
     internal static readonly Action<HttpWebRequest, string, string> HttpWebRequestHeaderValuesSetter = (request, name, value) => request.Headers.Add(name, value);
 
     internal static readonly ActivitySource WebRequestActivitySource = ActivitySourceFactory.Create(typeof(HttpWebRequestActivitySource), HttpClientInstrumentation.SemanticConventionsVersion, ActivitySourceName);
-    internal static readonly Meter WebRequestMeter = MeterFactory.Create(typeof(HttpWebRequestActivitySource), HttpClientInstrumentation.SemanticConventionsVersion);
+    internal static readonly Meter WebRequestMeter = Metrics.MeterFactory.Create(typeof(HttpWebRequestActivitySource), HttpClientInstrumentation.SemanticConventionsVersion);
 
     private static readonly Histogram<double> HttpClientRequestDuration = WebRequestMeter.CreateHistogram(
         "http.client.request.duration",
