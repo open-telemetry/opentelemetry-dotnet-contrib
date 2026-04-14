@@ -45,7 +45,7 @@ internal sealed class LimitedStream : Stream
         var remaining = this.maxBytes - this.totalBytesRead;
         if (remaining <= 0)
         {
-            // Allowance exhausted — signal EOF so callers stop reading.
+            // Allowance exhausted - signal EOF so callers stop reading.
             return 0;
         }
 
