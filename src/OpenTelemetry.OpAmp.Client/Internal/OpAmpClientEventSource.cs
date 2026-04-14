@@ -193,7 +193,7 @@ internal sealed class OpAmpClientEventSource : EventSource
     [NonEvent]
     public void SendEffectiveConfigMessageException(Exception ex)
     {
-        if (!this.IsEnabled(EventLevel.Error, EventKeywords.All))
+        if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
         {
             this.FailedToSendEffectiveConfigMessage(ex.ToInvariantString());
         }
@@ -208,7 +208,7 @@ internal sealed class OpAmpClientEventSource : EventSource
     [NonEvent]
     public void SendCustomCapabilitiesMessageException(Exception ex)
     {
-        if (!this.IsEnabled(EventLevel.Error, EventKeywords.All))
+        if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
         {
             this.FailedToSendCustomCapabilitiesMessage(ex.ToInvariantString());
         }
@@ -223,7 +223,7 @@ internal sealed class OpAmpClientEventSource : EventSource
     [NonEvent]
     public void SendCustomMessageMessageException(Exception ex)
     {
-        if (!this.IsEnabled(EventLevel.Error, EventKeywords.All))
+        if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
         {
             this.FailedToSendCustomMessageMessage(ex.ToInvariantString());
         }
