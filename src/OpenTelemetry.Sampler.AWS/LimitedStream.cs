@@ -17,6 +17,12 @@ internal sealed class LimitedStream : Stream
     public LimitedStream(Stream innerStream, long maxBytes)
     {
         this.innerStream = innerStream ?? throw new ArgumentNullException(nameof(innerStream));
+
+        if (maxBytes <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(maxBytes), maxBytes, "Value must be greater than zero.");
+        }
+
         this.maxBytes = maxBytes;
     }
 
@@ -36,14 +42,16 @@ internal sealed class LimitedStream : Stream
 
     public override int Read(byte[] buffer, int offset, int count)
     {
-        var bytesRead = this.innerStream.Read(buffer, offset, count);
-        this.totalBytesRead += bytesRead;
-        if (this.totalBytesRead > this.maxBytes)
+        var remaining = this.maxBytes - this.totalBytesRead;
+        if (remaining <= 0)
         {
-            throw new InvalidOperationException(
-                $"Response exceeded the maximum allowed size of {this.maxBytes} bytes.");
+            // Allowance exhausted — signal EOF so callers stop reading.
+            return 0;
         }
 
+        var clampedCount = (int)Math.Min(count, remaining);
+        var bytesRead = this.innerStream.Read(buffer, offset, clampedCount);
+        this.totalBytesRead += bytesRead;
         return bytesRead;
     }
 
@@ -52,14 +60,15 @@ internal sealed class LimitedStream : Stream
 #if NET
         return await this.ReadAsync(buffer.AsMemory(offset, count), cancellationToken).ConfigureAwait(false);
 #else
-        var bytesRead = await this.innerStream.ReadAsync(buffer, offset, count, cancellationToken).ConfigureAwait(false);
-        this.totalBytesRead += bytesRead;
-        if (this.totalBytesRead > this.maxBytes)
+        var remaining = this.maxBytes - this.totalBytesRead;
+        if (remaining <= 0)
         {
-            throw new InvalidOperationException(
-                $"Response exceeded the maximum allowed size of {this.maxBytes} bytes.");
+            return 0;
         }
 
+        var clampedCount = (int)Math.Min(count, remaining);
+        var bytesRead = await this.innerStream.ReadAsync(buffer, offset, clampedCount, cancellationToken).ConfigureAwait(false);
+        this.totalBytesRead += bytesRead;
         return bytesRead;
 #endif
     }
@@ -67,14 +76,15 @@ internal sealed class LimitedStream : Stream
 #if NET
     public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
     {
-        var bytesRead = await this.innerStream.ReadAsync(buffer, cancellationToken).ConfigureAwait(false);
-        this.totalBytesRead += bytesRead;
-        if (this.totalBytesRead > this.maxBytes)
+        var remaining = this.maxBytes - this.totalBytesRead;
+        if (remaining <= 0)
         {
-            throw new InvalidOperationException(
-                $"Response exceeded the maximum allowed size of {this.maxBytes} bytes.");
+            return 0;
         }
 
+        var clampedLength = (int)Math.Min(buffer.Length, remaining);
+        var bytesRead = await this.innerStream.ReadAsync(buffer[..clampedLength], cancellationToken).ConfigureAwait(false);
+        this.totalBytesRead += bytesRead;
         return bytesRead;
     }
 #endif

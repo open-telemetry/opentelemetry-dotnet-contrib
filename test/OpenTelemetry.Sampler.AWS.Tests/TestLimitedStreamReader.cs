@@ -35,27 +35,47 @@ public class TestLimitedStreamReader
     }
 
     [Fact]
-    public async Task ReadExceedingLimitThrows()
+    public async Task ReadExceedingLimitTruncates()
     {
         var data = Encoding.UTF8.GetBytes(new string('x', 2048));
         using var inner = new MemoryStream(data);
         using var limited = new LimitedStream(inner, maxBytes: 1024);
         using var reader = new StreamReader(limited);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(
-            () => reader.ReadToEndAsync());
+        var result = await reader.ReadToEndAsync();
+
+        Assert.Equal(1024, result.Length);
     }
 
     [Fact]
-    public void SyncReadExceedingLimitThrows()
+    public void SyncReadClampsThenReturnsZero()
     {
         var data = Encoding.UTF8.GetBytes(new string('x', 2048));
         using var inner = new MemoryStream(data);
         using var limited = new LimitedStream(inner, maxBytes: 1024);
 
         var buffer = new byte[2048];
-        Assert.Throws<InvalidOperationException>(
-            () => limited.Read(buffer, 0, buffer.Length));
+
+        // First read is clamped to 1024 bytes.
+        var bytesRead = limited.Read(buffer, 0, buffer.Length);
+        Assert.Equal(1024, bytesRead);
+
+        // Second read returns 0 (EOF) because the allowance is exhausted.
+        bytesRead = limited.Read(buffer, 0, buffer.Length);
+        Assert.Equal(0, bytesRead);
+    }
+
+    [Fact]
+    public void SyncReadClampsToRemainingAllowance()
+    {
+        var data = Encoding.UTF8.GetBytes(new string('x', 200));
+        using var inner = new MemoryStream(data);
+        using var limited = new LimitedStream(inner, maxBytes: 100);
+
+        var buffer = new byte[200];
+        var bytesRead = limited.Read(buffer, 0, buffer.Length);
+
+        Assert.Equal(100, bytesRead);
     }
 
     [Fact]
@@ -84,5 +104,15 @@ public class TestLimitedStreamReader
     public void ThrowsOnNullInnerStream()
     {
         Assert.Throws<ArgumentNullException>(() => new LimitedStream(null!, maxBytes: 1024));
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    [InlineData(-100)]
+    public void ThrowsOnInvalidMaxBytes(long maxBytes)
+    {
+        using var inner = new MemoryStream();
+        Assert.Throws<ArgumentOutOfRangeException>(() => new LimitedStream(inner, maxBytes));
     }
 }

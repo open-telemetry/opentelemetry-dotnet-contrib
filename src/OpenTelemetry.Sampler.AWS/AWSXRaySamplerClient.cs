@@ -130,7 +130,10 @@ internal class AWSXRaySamplerClient : IDisposable
 
         try
         {
-            var response = await this.httpClient.SendAsync(request).ConfigureAwait(false);
+            // Use ResponseHeadersRead so the response body is streamed rather
+            // than buffered entirely in memory, allowing LimitedStream to
+            // enforce the cap during download.
+            using var response = await this.httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode)
             {
                 AWSSamplerEventSource.Log.FailedToGetSuccessResponse(endpoint, response.StatusCode.ToString());
