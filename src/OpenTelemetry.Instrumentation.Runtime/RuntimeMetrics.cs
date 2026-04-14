@@ -16,7 +16,7 @@ namespace OpenTelemetry.Instrumentation.Runtime;
 /// </summary>
 internal sealed class RuntimeMetrics
 {
-    internal static readonly Meter MeterInstance = Trace.MeterFactory.Create<RuntimeMetrics>(new(0, 0, 0)); // These metrics are not in the Semantic Conventions
+    internal static readonly Meter MeterInstance = Metrics.MeterFactory.Create<RuntimeMetrics>(null); // These metrics are not in the Semantic Conventions
 
 #if NET
     private const long NanosecondsPerTick = 100;
