@@ -159,6 +159,8 @@ components:
     - maldago
   test/OpenTelemetry.Instrumentation.Remoting.Tests/:
     - lewis800
+  test/OpenTelemetry.Instrumentation.StackExchangeRedis.Benchmarks/:
+    - matt-hensley
   test/OpenTelemetry.Instrumentation.StackExchangeRedis.Tests/:
     - matt-hensley
   test/OpenTelemetry.Instrumentation.Runtime.Tests/:
