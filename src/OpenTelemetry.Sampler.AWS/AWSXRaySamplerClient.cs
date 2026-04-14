@@ -124,17 +124,26 @@ internal class AWSXRaySamplerClient : IDisposable
 
     private async Task<string> DoRequestAsync(string endpoint, HttpRequestMessage request)
     {
+        // 1 MB is well above any legitimate X-Ray sampling rules/targets
+        // response while still protecting against unbounded reads.
+        const int maxResponseSizeInBytes = 1024 * 1024;
+
         try
         {
-            var response = await this.httpClient.SendAsync(request).ConfigureAwait(false);
+            // Use ResponseHeadersRead so the response body is streamed rather
+            // than buffered entirely in memory, allowing LimitedStream to
+            // enforce the cap during download.
+            using var response = await this.httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode)
             {
                 AWSSamplerEventSource.Log.FailedToGetSuccessResponse(endpoint, response.StatusCode.ToString());
                 return string.Empty;
             }
 
-            var responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            return responseString;
+            var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+            using var limitedStream = new LimitedStream(stream, maxResponseSizeInBytes);
+            using var reader = new StreamReader(limitedStream);
+            return await reader.ReadToEndAsync().ConfigureAwait(false);
         }
         catch (Exception ex)
         {
