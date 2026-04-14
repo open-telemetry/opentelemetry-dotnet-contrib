@@ -4,7 +4,6 @@
 using BenchmarkDotNet.Attributes;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using OpenTelemetry.Instrumentation.StackExchangeRedis.Tests;
 using OpenTelemetry.Trace;
 using StackExchange.Redis;
 
