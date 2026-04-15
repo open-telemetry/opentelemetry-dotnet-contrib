@@ -11,7 +11,7 @@ using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Tests;
 
-public class HttpClientHelperTests
+public class HttpClientHelpersTests
 {
     private const int MessageSizeLimit = 4 * 1024 * 1024;
     private const string TruncationSuffix = "[TRUNCATED]";
