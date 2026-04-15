@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #if NETFRAMEWORK
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
 #endif
 
@@ -124,6 +125,9 @@ public class PlainHttpTransportTests
     }
 
     [Fact]
+#if NETFRAMEWORK
+    [SuppressMessage("Security", "CA5399:Enable HttpClient certificate revocation list check", Justification = "Causes PlatformNotSupportedException at runtime on net462")]
+#endif
     public async Task PlainHttpTransport_RejectsOversizedCompressedResponse()
     {
         // Arrange - server sends a gzip-compressed response where the compressed payload is within
