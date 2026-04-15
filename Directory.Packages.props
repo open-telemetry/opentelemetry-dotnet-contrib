@@ -44,8 +44,8 @@
   -->
   <ItemGroup Label="Production .NET packages">
     <PackageVersion Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="4.14.0" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="[11.0.0-preview.2.26159.112,)" />
-    <PackageVersion Include="Microsoft.Extensions.Options" Version="[11.0.0-preview.2.26159.112,)" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="[11.0.0-preview.3.26207.106,)" />
+    <PackageVersion Include="Microsoft.Extensions.Options" Version="[11.0.0-preview.3.26207.106,)" />
     <PackageVersion Include="Microsoft.Owin" Version="[4.2.2,)" />
     <PackageVersion Include="Microsoft.Win32.Registry" Version="[5.0.0,)" />
     <PackageVersion Include="System.Drawing.Common" Version="[4.7.2,)" />
@@ -65,8 +65,9 @@
     <PackageVersion Update="System.Security.Cryptography.Xml" Version="[10.0.6,)" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net11.0'">
-    <PackageVersion Update="Microsoft.Extensions.Configuration" Version="[11.0.0-preview.2.26159.112,)" />
-    <PackageVersion Update="Microsoft.Extensions.Options" Version="[11.0.0-preview.2.26159.112,)" />
+    <PackageVersion Update="Microsoft.Extensions.Configuration" Version="[11.0.0-preview.3.26207.106,)" />
+    <PackageVersion Update="Microsoft.Extensions.Options" Version="[11.0.0-preview.3.26207.106,)" />
+    <PackageVersion Update="System.Security.Cryptography.Xml" Version="[11.0.0-preview.3.26207.106,)" />
   </ItemGroup>
 
   <ItemGroup Label="Production other packages">
@@ -152,9 +153,9 @@
     <PackageVersion Update="Microsoft.AspNetCore.TestHost" Version="10.0.6" />
   </ItemGroup>
   <ItemGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net11.0'))" Label="Non-production packages, such as for examples and tests, for .NET 11">
-    <PackageVersion Update="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="11.0.0-preview.2.26159.112" />
-    <PackageVersion Update="Microsoft.AspNetCore.Mvc.Testing" Version="11.0.0-preview.2.26159.112" />
-    <PackageVersion Update="Microsoft.AspNetCore.SignalR.Client" Version="11.0.0-preview.2.26159.112" />
+    <PackageVersion Update="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="11.0.0-preview.3.26207.106" />
+    <PackageVersion Update="Microsoft.AspNetCore.Mvc.Testing" Version="11.0.0-preview.3.26207.106" />
+    <PackageVersion Update="Microsoft.AspNetCore.SignalR.Client" Version="11.0.0-preview.3.26207.106" />
   </ItemGroup>
 
 </Project>
