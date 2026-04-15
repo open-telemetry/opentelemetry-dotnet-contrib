@@ -17,6 +17,190 @@ public class HttpClientHelperTests
     private const string TruncationSuffix = "[TRUNCATED]";
 
     [Fact]
+    public void GetResponseBodyAsString_HttpResponseWithoutContent_ReturnsCorrectResult()
+    {
+        // Arrange
+        using var httpResponse = new HttpResponseMessage() { Content = null };
+        var cancellationToken = CancellationToken.None;
+
+        // Act
+        var actual = HttpClientHelpers.GetResponseBodyAsString(httpResponse, cancellationToken);
+
+        // Assert
+#if NETFRAMEWORK
+        Assert.Null(actual);
+#else
+        Assert.Equal(string.Empty, actual);
+#endif
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(256)]
+    [InlineData(1024)]
+    [InlineData((30 * 1024) - 1)]
+    [InlineData(30 * 1024)]
+    public void GetResponseBodyAsString_SmallContent_ReturnsFullContent(int length)
+    {
+        // Arrange
+        var expected = new string('A', length);
+        var cancellationToken = CancellationToken.None;
+
+        using var httpResponse = new HttpResponseMessage()
+        {
+            Content = new StringContent(expected),
+        };
+
+        // Act
+        var actual = HttpClientHelpers.GetResponseBodyAsString(httpResponse, cancellationToken);
+
+        // Assert
+        Assert.Equal(expected, actual);
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(1024)]
+    [InlineData(2048)]
+    public void GetResponseBodyAsString_ContentExceedsLimit_Throws(int excess)
+    {
+        // Arrange
+        var content = new string('C', MessageSizeLimit + excess);
+        var cancellationToken = CancellationToken.None;
+
+        using var httpResponse = new HttpResponseMessage()
+        {
+            Content = new StringContent(content),
+        };
+
+        // Act and Assert
+        Assert.Throws<InvalidOperationException>(() => HttpClientHelpers.GetResponseBodyAsString(httpResponse, cancellationToken));
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(1024)]
+    [InlineData(2048)]
+    public void TryGetResponseBodyAsString_DecompressedContentExceedsLimit_Throws(int excess)
+    {
+        // Arrange
+        var content = new string('G', MessageSizeLimit + excess);
+        var rawBytes = Encoding.UTF8.GetBytes(content);
+        var cancellationToken = CancellationToken.None;
+
+        using var memoryStream = new MemoryStream();
+
+        using (var compressor = new GZipStream(memoryStream, CompressionMode.Compress, leaveOpen: true))
+        {
+            compressor.Write(rawBytes, 0, rawBytes.Length);
+        }
+
+        memoryStream.Seek(0, SeekOrigin.Begin);
+
+        Assert.True(
+            memoryStream.Length < MessageSizeLimit,
+            $"The compressed message length {memoryStream.Length} is not less than {MessageSizeLimit}.");
+
+        using var compressed = new GZipStream(memoryStream, CompressionMode.Decompress, leaveOpen: true);
+
+        using var httpResponse = new HttpResponseMessage()
+        {
+            Content = new StreamContent(compressed),
+        };
+
+        // Act and Assert
+        Assert.Throws<InvalidOperationException>(() => HttpClientHelpers.GetResponseBodyAsString(httpResponse, cancellationToken));
+    }
+
+    [Fact]
+    public void GetResponseBodyAsString_EmptyContent_ReturnsEmptyString()
+    {
+        // Arrange
+        var cancellationToken = CancellationToken.None;
+
+        using var httpResponse = new HttpResponseMessage()
+        {
+            Content = new StringContent(string.Empty),
+        };
+
+        // Act
+        var actual = HttpClientHelpers.GetResponseBodyAsString(httpResponse, cancellationToken);
+
+        // Assert
+        Assert.Equal(string.Empty, actual);
+    }
+
+    [Fact]
+    public void GetResponseBodyAsString_ExceptionDuringRead_Throws()
+    {
+        // Arrange
+        var cancellationToken = CancellationToken.None;
+
+        using var httpResponse = new HttpResponseMessage()
+        {
+            Content = new ThrowingHttpContent(),
+        };
+
+        // Act and Assert
+        Assert.Throws<InvalidOperationException>(() => HttpClientHelpers.GetResponseBodyAsString(httpResponse, cancellationToken));
+    }
+
+    [Fact]
+    public void GetResponseBodyAsString_CancellationTokenSignalled_Throws()
+    {
+        // Arrange
+        var cancellationToken = new CancellationToken(canceled: true);
+
+        using var httpResponse = new HttpResponseMessage()
+        {
+            Content = new StringContent("foo"),
+        };
+
+        // Act and Assert
+        Assert.Throws<OperationCanceledException>(() => HttpClientHelpers.GetResponseBodyAsString(httpResponse, cancellationToken));
+    }
+
+    [Fact]
+    public void GetResponseBodyAsString_NonSeekableStream_ReturnsContent()
+    {
+        // Arrange
+        var expected = "non-seekable response body";
+        var cancellationToken = CancellationToken.None;
+
+        using var httpResponse = new HttpResponseMessage()
+        {
+            Content = new NonSeekableStreamContent(Encoding.UTF8.GetBytes(expected)),
+        };
+
+        // Act
+        var actual = HttpClientHelpers.GetResponseBodyAsString(httpResponse, cancellationToken);
+
+        // Assert
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void GetResponseBodyAsString_NonUtf8Charset_ReturnsCorrectlyDecodedContent()
+    {
+        // Arrange
+        var expected = "iso-8859-1 response body: caf\u00e9";
+        var cancellationToken = CancellationToken.None;
+        var iso8859 = Encoding.GetEncoding("iso-8859-1");
+
+        using var httpResponse = new HttpResponseMessage()
+        {
+            Content = new StringContent(expected, iso8859),
+        };
+
+        // Act
+        var actual = HttpClientHelpers.GetResponseBodyAsString(httpResponse, cancellationToken);
+
+        // Assert
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
     public void TryGetResponseBodyAsString_HttpResponseWithoutContent_ReturnsCorrectResult()
     {
         // Arrange
@@ -223,6 +407,9 @@ public class HttpClientHelperTests
 
 #if NET
         protected override Task SerializeToStreamAsync(Stream stream, TransportContext? context, CancellationToken cancellationToken)
+            => throw new InvalidOperationException("Test exception");
+
+        protected override void SerializeToStream(Stream stream, TransportContext? context, CancellationToken cancellationToken)
             => throw new InvalidOperationException("Test exception");
 #endif
 

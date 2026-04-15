@@ -3,6 +3,8 @@
 
 #if NET
 using System.Buffers;
+using System.Runtime.InteropServices;
+
 #endif
 using System.Text;
 using OpenTelemetry.Internal;
@@ -14,9 +16,13 @@ internal static class HttpClientHelpers
     private const int DefaultMessageSizeLimit = 4 * 1024 * 1024; // 4MiB
 
     internal static string? TryGetResponseBodyAsString(HttpResponseMessage httpResponse, CancellationToken cancellationToken)
-        => TryGetResponseBodyAsString(DefaultMessageSizeLimit, httpResponse, cancellationToken);
+        => GetResponseBodyAsString(allowTruncation: true, DefaultMessageSizeLimit, httpResponse, cancellationToken);
 
-    internal static string? TryGetResponseBodyAsString(
+    internal static string? GetResponseBodyAsString(HttpResponseMessage httpResponse, CancellationToken cancellationToken)
+        => GetResponseBodyAsString(allowTruncation: false, DefaultMessageSizeLimit, httpResponse, cancellationToken);
+
+    private static string? GetResponseBodyAsString(
+        bool allowTruncation,
         int limit,
         HttpResponseMessage httpResponse,
         CancellationToken cancellationToken)
@@ -25,6 +31,16 @@ internal static class HttpClientHelpers
         Guard.ThrowIfOutOfRange(limit, nameof(limit), 1, int.MaxValue);
 
         if (cancellationToken.IsCancellationRequested)
+        {
+            if (allowTruncation)
+            {
+                return null;
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+        }
+
+        if (httpResponse.Content is null)
         {
             return null;
         }
@@ -45,32 +61,48 @@ internal static class HttpClientHelpers
             var buffer = new byte[length];
 #endif
 
-            string result;
-
             try
             {
-                var count = 0;
+                var totalRead = 0;
 
                 // Read raw bytes so the size limit applies to bytes rather than characters
-                while (count < length && !cancellationToken.IsCancellationRequested)
+                while (totalRead < limit && !cancellationToken.IsCancellationRequested)
                 {
-                    var read = stream.Read(buffer, count, length - count);
+                    var bytesRead = stream.Read(buffer, totalRead, length - totalRead);
 
-                    if (read is 0)
+                    if (bytesRead is 0)
                     {
                         break;
                     }
 
-                    count += read;
+                    totalRead += bytesRead;
                 }
 
-                if (cancellationToken.IsCancellationRequested)
+                // We've read exactly limit bytes. Check if there's more data.
+                var probe = new byte[1];
+
+#if NETFRAMEWORK || NETSTANDARD
+                var extra = stream.Read(probe, 0, 1);
+#else
+                var extra = stream.Read(probe);
+#endif
+
+                if (extra > 0 && !allowTruncation)
                 {
-                    return null;
+                    // + 1: we read exactly MaxMessageSize bytes and confirmed at least one more byte exists.
+                    throw new InvalidOperationException($"Response body exceeded the size limit of {limit} bytes.");
                 }
 
                 // Decode using the charset from the response content headers, if available
-                result = GetString(buffer, count, limit, httpResponse.Content.Headers.ContentType?.CharSet);
+                var encoding = GetEncoding(httpResponse.Content.Headers.ContentType?.CharSet);
+                var result = encoding.GetString(buffer, 0, totalRead);
+
+                if (extra > 0)
+                {
+                    result += "[TRUNCATED]";
+                }
+
+                return result;
             }
             finally
             {
@@ -78,10 +110,8 @@ internal static class HttpClientHelpers
                 ArrayPool<byte>.Shared.Return(buffer);
 #endif
             }
-
-            return result;
         }
-        catch (Exception)
+        catch (Exception) when (allowTruncation)
         {
             return null;
         }
@@ -120,17 +150,10 @@ internal static class HttpClientHelpers
         return encoding;
     }
 
-    private static string GetString(byte[] buffer, int count, int limit, string? charSet)
+    private static string GetString(byte[] buffer, int count, string? charSet)
     {
         // Decode using the charset from the response content headers, if available
         var encoding = GetEncoding(charSet);
-        string result = encoding.GetString(buffer, 0, count);
-
-        if (result.Length == limit)
-        {
-            result += "[TRUNCATED]";
-        }
-
-        return result;
+        return encoding.GetString(buffer, 0, count);
     }
 }
