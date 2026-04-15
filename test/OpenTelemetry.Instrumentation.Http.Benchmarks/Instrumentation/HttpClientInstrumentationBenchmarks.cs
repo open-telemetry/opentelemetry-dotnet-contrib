@@ -63,14 +63,14 @@ public class HttpClientInstrumentationBenchmarks
         this.StartWebApplication();
         this.httpClient = new HttpClient();
 
-        if (this.EnableInstrumentation == EnableInstrumentationOption.Traces)
+        if (this.EnableInstrumentation.HasFlag(EnableInstrumentationOption.Traces))
         {
             this.tracerProvider = Sdk.CreateTracerProviderBuilder()
                 .AddHttpClientInstrumentation()
                 .Build();
         }
 
-        if (this.EnableInstrumentation == EnableInstrumentationOption.Metrics)
+        if (this.EnableInstrumentation.HasFlag(EnableInstrumentationOption.Metrics))
         {
             var exportedItems = new List<Metric>();
             this.meterProvider = Sdk.CreateMeterProviderBuilder()
