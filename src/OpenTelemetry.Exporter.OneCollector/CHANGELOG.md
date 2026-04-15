@@ -7,7 +7,7 @@
 
 * Limit how much of the response body is read when export fails using the HTTP
   JSON transport and informational logging is enabled.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet/pull/TODO))
+  ([#4117](https://github.com/open-telemetry/opentelemetry-dotnet/pull/4117))
 
 ## 1.15.0
 
