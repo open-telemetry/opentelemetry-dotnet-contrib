@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Add instrumentation scope version and schema URL to metrics.
+  ([#4088](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4088))
+
 * Updated OpenTelemetry core component version(s) to `1.15.2`.
   ([#4080](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4080))
 
