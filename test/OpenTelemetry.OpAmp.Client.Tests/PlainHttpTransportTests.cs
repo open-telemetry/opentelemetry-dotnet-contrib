@@ -170,7 +170,6 @@ public class PlainHttpTransportTests
                 var handler = new HttpClientHandler
                 {
                     AutomaticDecompression = System.Net.DecompressionMethods.GZip,
-                    CheckCertificateRevocationList = true,
                 };
                 return new HttpClient(handler);
             },
