@@ -5,7 +5,6 @@
 using System.Buffers;
 #endif
 using System.Text;
-using OpenTelemetry.Internal;
 
 namespace System.Net.Http;
 
@@ -13,20 +12,22 @@ internal static class HttpClientHelpers
 {
     private const int DefaultMessageSizeLimit = 4 * 1024 * 1024; // 4MiB
 
-    internal static string? TryGetResponseBodyAsString(HttpResponseMessage httpResponse, CancellationToken cancellationToken)
+    internal static string? TryGetResponseBodyAsString(HttpResponseMessage? httpResponse, CancellationToken cancellationToken)
         => GetResponseBodyAsString(allowTruncation: true, DefaultMessageSizeLimit, httpResponse, cancellationToken);
 
-    internal static string? GetResponseBodyAsString(HttpResponseMessage httpResponse, CancellationToken cancellationToken)
+    internal static string? GetResponseBodyAsString(HttpResponseMessage? httpResponse, CancellationToken cancellationToken)
         => GetResponseBodyAsString(allowTruncation: false, DefaultMessageSizeLimit, httpResponse, cancellationToken);
 
     private static string? GetResponseBodyAsString(
         bool allowTruncation,
         int limit,
-        HttpResponseMessage httpResponse,
+        HttpResponseMessage? httpResponse,
         CancellationToken cancellationToken)
     {
-        Guard.ThrowIfNull(httpResponse, nameof(httpResponse));
-        Guard.ThrowIfOutOfRange(limit, nameof(limit), 1, int.MaxValue);
+        if (httpResponse?.Content is null)
+        {
+            return null;
+        }
 
         if (cancellationToken.IsCancellationRequested)
         {
@@ -36,11 +37,6 @@ internal static class HttpClientHelpers
             }
 
             cancellationToken.ThrowIfCancellationRequested();
-        }
-
-        if (httpResponse.Content is null)
-        {
-            return null;
         }
 
         try
@@ -91,6 +87,11 @@ internal static class HttpClientHelpers
                     throw new InvalidOperationException($"Response body exceeded the size limit of {limit} bytes.");
                 }
 
+                if (!allowTruncation)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                }
+
                 // Decode using the charset from the response content headers, if available
                 var encoding = GetEncoding(httpResponse.Content.Headers.ContentType?.CharSet);
                 var result = encoding.GetString(buffer, 0, totalRead);
@@ -105,7 +106,7 @@ internal static class HttpClientHelpers
             finally
             {
 #if NET
-                ArrayPool<byte>.Shared.Return(buffer);
+                ArrayPool<byte>.Shared.Return(buffer, clearArray: true);
 #endif
             }
         }
