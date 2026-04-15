@@ -5,6 +5,7 @@
 using System.Net.Http;
 #endif
 
+using System.IO.Compression;
 using System.Text;
 using OpenTelemetry.OpAmp.Client.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Transport;
@@ -118,6 +119,69 @@ public class PlainHttpTransportTests
         var mockFrame = FrameGenerator.GenerateMockAgentFrame(true);
 
         // Act & Assert
+        await Assert.ThrowsAsync<OpAmpOversizedResponseException>(
+            () => httpTransport.SendAsync(mockFrame.Frame, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task PlainHttpTransport_RejectsOversizedCompressedResponse()
+    {
+        // Arrange - server sends a gzip-compressed response where the compressed payload is within
+        // MaxMessageSize (so the Content-Length pre-check is bypassed) but the decompressed body
+        // exceeds it. When HttpClient transparently decompresses the stream, the body-read loop
+        // must still enforce the limit on the decompressed bytes.
+        var largeBody = new byte[TransportConstants.MaxMessageSize + 1];
+
+        byte[] compressedBody;
+        using (var ms = new MemoryStream())
+        {
+            using (var gzip = new GZipStream(ms, CompressionLevel.Optimal))
+            {
+                gzip.Write(largeBody, 0, largeBody.Length);
+            }
+
+            compressedBody = ms.ToArray();
+        }
+
+        // All-zeroes compress extremely well; assert the compressed size is within the limit so
+        // the test genuinely exercises the body-read path rather than the Content-Length check.
+        Assert.True(
+            compressedBody.Length < TransportConstants.MaxMessageSize,
+            $"Compressed body ({compressedBody.Length} bytes) must be smaller than MaxMessageSize ({TransportConstants.MaxMessageSize}) for this test to be meaningful.");
+
+        using var opAmpServer = TestHttpServer.RunServer(
+            context =>
+            {
+                context.Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
+                context.Response.ContentType = "application/x-protobuf";
+                context.Response.Headers["Content-Encoding"] = "gzip";
+                context.Response.ContentLength64 = compressedBody.Length;
+                context.Response.OutputStream.Write(compressedBody, 0, compressedBody.Length);
+                context.Response.Close();
+            },
+            out var host,
+            out var port);
+
+        var settings = new OpAmpClientSettings
+        {
+            ServerUrl = new Uri($"http://{host}:{port}"),
+            HttpClientFactory = () =>
+            {
+                var handler = new HttpClientHandler
+                {
+                    AutomaticDecompression = System.Net.DecompressionMethods.GZip,
+                    CheckCertificateRevocationList = true,
+                };
+                return new HttpClient(handler);
+            },
+        };
+
+        var frameProcessor = new FrameProcessor();
+        using var httpTransport = new PlainHttpTransport(settings, frameProcessor);
+        var mockFrame = FrameGenerator.GenerateMockAgentFrame(true);
+
+        // Act & Assert - the decompressed body exceeds MaxMessageSize so the body-read
+        // limit must fire even though the Content-Length (showing compressed size) does not.
         await Assert.ThrowsAsync<OpAmpOversizedResponseException>(
             () => httpTransport.SendAsync(mockFrame.Frame, CancellationToken.None));
     }

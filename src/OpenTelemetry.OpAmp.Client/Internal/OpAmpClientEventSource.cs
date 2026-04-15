@@ -78,18 +78,18 @@ internal sealed class OpAmpClientEventSource : EventSource
     }
 
     [NonEvent]
-    public void OversizedResponseBodyReceived(int minimumBytes)
+    public void OversizedResponseBodyReceived(int minimumBytes, int limitBytes)
     {
         if (this.IsEnabled(EventLevel.Warning, EventKeywords.All))
         {
-            this.OversizedResponseBody(minimumBytes);
+            this.OversizedResponseBody(minimumBytes, limitBytes);
         }
     }
 
-    [Event(EventIdOversizedResponseBody, Message = "OpAMP server response discarded: response body is at least {0} bytes, exceeding the read limit. The request was delivered but the server response was not processed.", Level = EventLevel.Warning)]
-    public void OversizedResponseBody(int minimumBytes)
+    [Event(EventIdOversizedResponseBody, Message = "OpAMP server response discarded: response body is at least {0} bytes, exceeding the {1}-byte limit. The request was delivered but the server response was not processed.", Level = EventLevel.Warning)]
+    public void OversizedResponseBody(int minimumBytes, int limitBytes)
     {
-        this.WriteEvent(EventIdOversizedResponseBody, minimumBytes);
+        this.WriteEvent(EventIdOversizedResponseBody, minimumBytes, limitBytes);
     }
 
     [NonEvent]

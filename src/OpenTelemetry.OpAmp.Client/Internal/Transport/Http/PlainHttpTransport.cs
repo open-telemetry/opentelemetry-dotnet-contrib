@@ -108,7 +108,7 @@ internal sealed class PlainHttpTransport : IOpAmpTransport, IDisposable
 
                     if (bytesRead == 0)
                     {
-                        // End of stream — copy the exact number of bytes read.
+                        // End of stream - copy the exact number of bytes read.
                         OpAmpClientEventSource.Log.HttpResponseBytesReceived(totalRead);
                         var result = new byte[totalRead];
                         Buffer.BlockCopy(buffer, 0, result, 0, totalRead);
@@ -131,7 +131,7 @@ internal sealed class PlainHttpTransport : IOpAmpTransport, IDisposable
                 if (extra > 0)
                 {
                     // + 1: we read exactly MaxMessageSize bytes and confirmed at least one more byte exists.
-                    OpAmpClientEventSource.Log.OversizedResponseBodyReceived(TransportConstants.MaxMessageSize + 1);
+                    OpAmpClientEventSource.Log.OversizedResponseBodyReceived(TransportConstants.MaxMessageSize + 1, TransportConstants.MaxMessageSize);
                     throw new OpAmpOversizedResponseException(
                         $"OpAMP server response body exceeds the maximum allowed size of {TransportConstants.MaxMessageSize} bytes.");
                 }
