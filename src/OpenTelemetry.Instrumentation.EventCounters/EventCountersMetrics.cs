@@ -5,9 +5,6 @@ using System.Collections.Concurrent;
 using System.Diagnostics.Metrics;
 using System.Diagnostics.Tracing;
 using System.Globalization;
-#if NET
-using System.Reflection;
-#endif
 
 namespace OpenTelemetry.Instrumentation.EventCounters;
 
