@@ -147,11 +147,4 @@ internal static class HttpClientHelpers
 
         return encoding;
     }
-
-    private static string GetString(byte[] buffer, int count, string? charSet)
-    {
-        // Decode using the charset from the response content headers, if available
-        var encoding = GetEncoding(charSet);
-        return encoding.GetString(buffer, 0, count);
-    }
 }
