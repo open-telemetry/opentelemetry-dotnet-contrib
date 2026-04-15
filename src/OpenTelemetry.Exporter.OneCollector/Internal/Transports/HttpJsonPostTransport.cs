@@ -104,7 +104,7 @@ internal sealed class HttpJsonPostTransport : ITransport, IDisposable
             }
 
             var cancellationToken = CancellationToken.None;
-            var completionOption = infoLoggingEnabled ? HttpCompletionOption.ResponseContentRead : HttpCompletionOption.ResponseHeadersRead;
+            var completionOption = HttpCompletionOption.ResponseHeadersRead;
 
             using var response = this.httpClient.Send(request, completionOption, cancellationToken);
 

@@ -64,14 +64,13 @@ internal static class HttpClientHelpers
                     count += read;
                 }
 
-                // Decode using the charset from the response content headers, if available
-                var encoding = GetEncoding(httpResponse.Content.Headers.ContentType?.CharSet);
-                result = encoding.GetString(buffer, 0, count);
-
-                if (result.Length == limit)
+                if (cancellationToken.IsCancellationRequested)
                 {
-                    result += "[TRUNCATED]";
+                    return null;
                 }
+
+                // Decode using the charset from the response content headers, if available
+                result = GetString(buffer, count, limit, httpResponse.Content.Headers.ContentType?.CharSet);
             }
             finally
             {
@@ -119,5 +118,19 @@ internal static class HttpClientHelpers
         }
 
         return encoding;
+    }
+
+    private static string GetString(byte[] buffer, int count, int limit, string? charSet)
+    {
+        // Decode using the charset from the response content headers, if available
+        var encoding = GetEncoding(charSet);
+        string result = encoding.GetString(buffer, 0, count);
+
+        if (result.Length == limit)
+        {
+            result += "[TRUNCATED]";
+        }
+
+        return result;
     }
 }
