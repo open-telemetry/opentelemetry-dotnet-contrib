@@ -16,17 +16,22 @@ using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Grpc.Tests;
 
-public partial class GrpcTests : IDisposable
+public partial class GrpcTests : IAsyncLifetime
 {
     private const string OperationNameHttpRequestIn = "Microsoft.AspNetCore.Hosting.HttpRequestIn";
     private const string OperationNameGrpcOut = "Grpc.Net.Client.GrpcOut";
     private const string OperationNameHttpOut = "System.Net.Http.HttpRequestOut";
 
-    private readonly GrpcServer<GreeterService> server;
+    private readonly GrpcServer<GreeterService> server = new();
 
-    public GrpcTests()
+    public async Task InitializeAsync() => await this.server.StartAsync();
+
+    public async Task DisposeAsync()
     {
-        this.server = new GrpcServer<GreeterService>();
+        if (this.server != null)
+        {
+            await this.server.DisposeAsync();
+        }
     }
 
     [Theory]
@@ -96,11 +101,7 @@ public partial class GrpcTests : IDisposable
         Assert.StartsWith("grpc-dotnet", activity.GetTagValue(SemanticConventions.AttributeUserAgentOriginal) as string);
     }
 
-#if NET
     [Theory(Skip = "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1778")]
-#else
-    [Theory]
-#endif
     [InlineData(null)]
     [InlineData("true")]
     [InlineData("false")]
@@ -181,12 +182,6 @@ public partial class GrpcTests : IDisposable
                 new BaggagePropagator()
             ]));
         }
-    }
-
-    public void Dispose()
-    {
-        this.server.Dispose();
-        GC.SuppressFinalize(this);
     }
 
     private static void WaitForExporterToReceiveItems(List<Activity> itemsReceived, int itemCount)
