@@ -227,7 +227,7 @@ public class PlainHttpTransportTests
     [Fact]
     public async Task PlainHttpTransport_AcceptsResponseAtExactMaxSize()
     {
-        // Arrange — response body is exactly MaxMessageSize bytes (the boundary).
+        // Arrange - response body is exactly MaxMessageSize bytes (the boundary).
         // The bounded read should accept this; only responses strictly exceeding the limit are rejected.
         var body = new byte[TransportConstants.MaxMessageSize];
         using var opAmpServer = TestHttpServer.RunServer(
