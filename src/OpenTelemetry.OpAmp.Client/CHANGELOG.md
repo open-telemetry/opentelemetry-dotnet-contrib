@@ -11,6 +11,9 @@
 * Add support for sticky HTTP connections via the `OpAMP-Instance-UID` header
   ([#3830](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3830))
 
+* Response size limits for oversized OpAMP responses (CWE-789)
+  ([#4116](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4116))
+
 ## 0.1.0-alpha.4
 
 Released 2026-Jan-14
