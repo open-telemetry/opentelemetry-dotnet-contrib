@@ -251,7 +251,7 @@ public class PlainHttpTransportTests
         using var httpTransport = new PlainHttpTransport(settings, frameProcessor);
         var mockFrame = FrameGenerator.GenerateMockAgentFrame(true);
 
-        // Act — the response is exactly at the limit so it should NOT be rejected as oversized.
+        // Act - the response is exactly at the limit so it should NOT be rejected as oversized.
         // The body (zeroed bytes) is not a valid ServerToAgent message, so protobuf parsing may
         // throw, but the key assertion is that OpAmpOversizedResponseException is not thrown.
         var ex = await Record.ExceptionAsync(
