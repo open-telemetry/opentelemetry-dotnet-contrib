@@ -92,7 +92,7 @@ public class PlainHttpTransportTests
     [Fact]
     public async Task PlainHttpTransport_RejectsOversizedResponse()
     {
-        // Arrange — stand up a fake server that returns a response body larger than the 128 KB transport limit.
+        // Arrange - stand up a fake server that returns a response body larger than the 128 KB transport limit.
         // SendChunked suppresses the Content-Length header so this test exercises the body-read limit,
         // not the Content-Length pre-check (which has its own test below).
         var oversizedBody = new byte[TransportConstants.MaxMessageSize + 1];
