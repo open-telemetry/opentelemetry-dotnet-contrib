@@ -195,7 +195,7 @@ public class PlainHttpTransportTests
     [Fact]
     public async Task PlainHttpTransport_RejectsResponseWithOversizedContentLength()
     {
-        // Arrange — server advertises and sends a Content-Length larger than the limit.
+        // Arrange - server advertises and sends a Content-Length larger than the limit.
         // The Content-Length pre-check in the transport should reject this before reading the body.
         var oversizedBody = new byte[TransportConstants.MaxMessageSize + 1];
         using var opAmpServer = TestHttpServer.RunServer(
