@@ -57,47 +57,21 @@ public class HttpClientInstrumentationBenchmarks
     [Params(EnableInstrumentationOption.None, EnableInstrumentationOption.Traces, EnableInstrumentationOption.Metrics, EnableInstrumentationOption.Traces | EnableInstrumentationOption.Metrics)]
     public EnableInstrumentationOption EnableInstrumentation { get; set; }
 
-    [GlobalSetup(Target = nameof(HttpClientRequest))]
+    [GlobalSetup]
     public void HttpClientRequestGlobalSetup()
     {
-        if (this.EnableInstrumentation == EnableInstrumentationOption.None)
-        {
-            this.StartWebApplication();
-            this.httpClient = new HttpClient();
-        }
-        else if (this.EnableInstrumentation == EnableInstrumentationOption.Traces)
-        {
-            this.StartWebApplication();
-            this.httpClient = new HttpClient();
+        this.StartWebApplication();
+        this.httpClient = new HttpClient();
 
+        if (this.EnableInstrumentation.HasFlag(EnableInstrumentationOption.Traces))
+        {
             this.tracerProvider = Sdk.CreateTracerProviderBuilder()
                 .AddHttpClientInstrumentation()
                 .Build();
         }
-        else if (this.EnableInstrumentation == EnableInstrumentationOption.Metrics)
+
+        if (this.EnableInstrumentation.HasFlag(EnableInstrumentationOption.Metrics))
         {
-            this.StartWebApplication();
-            this.httpClient = new HttpClient();
-
-            var exportedItems = new List<Metric>();
-            this.meterProvider = Sdk.CreateMeterProviderBuilder()
-                .AddHttpClientInstrumentation()
-                .AddInMemoryExporter(exportedItems, metricReaderOptions =>
-                {
-                    metricReaderOptions.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 1000;
-                })
-                .Build();
-        }
-        else if (this.EnableInstrumentation.HasFlag(EnableInstrumentationOption.Traces) &&
-            this.EnableInstrumentation.HasFlag(EnableInstrumentationOption.Metrics))
-        {
-            this.StartWebApplication();
-            this.httpClient = new HttpClient();
-
-            this.tracerProvider = Sdk.CreateTracerProviderBuilder()
-                .AddHttpClientInstrumentation()
-                .Build();
-
             var exportedItems = new List<Metric>();
             this.meterProvider = Sdk.CreateMeterProviderBuilder()
                 .AddHttpClientInstrumentation()
@@ -109,42 +83,18 @@ public class HttpClientInstrumentationBenchmarks
         }
     }
 
-    [GlobalCleanup(Target = nameof(HttpClientRequest))]
-    public void HttpClientRequestGlobalCleanup()
+    [GlobalCleanup]
+    public async Task HttpClientRequestGlobalCleanup()
     {
-        if (this.EnableInstrumentation == EnableInstrumentationOption.None)
+        this.httpClient?.Dispose();
+
+        if (this.app != null)
         {
-            this.httpClient?.Dispose();
-#pragma warning disable CA2012 // Use ValueTasks correctly
-            this.app?.DisposeAsync().GetAwaiter().GetResult();
-#pragma warning restore CA2012 // Use ValueTasks correctly
+            await this.app.DisposeAsync();
         }
-        else if (this.EnableInstrumentation == EnableInstrumentationOption.Traces)
-        {
-            this.httpClient?.Dispose();
-#pragma warning disable CA2012 // Use ValueTasks correctly
-            this.app?.DisposeAsync().GetAwaiter().GetResult();
-#pragma warning restore CA2012 // Use ValueTasks correctly
-            this.tracerProvider?.Dispose();
-        }
-        else if (this.EnableInstrumentation == EnableInstrumentationOption.Metrics)
-        {
-            this.httpClient?.Dispose();
-#pragma warning disable CA2012 // Use ValueTasks correctly
-            this.app?.DisposeAsync().GetAwaiter().GetResult();
-#pragma warning restore CA2012 // Use ValueTasks correctly
-            this.meterProvider?.Dispose();
-        }
-        else if (this.EnableInstrumentation.HasFlag(EnableInstrumentationOption.Traces) &&
-            this.EnableInstrumentation.HasFlag(EnableInstrumentationOption.Metrics))
-        {
-            this.httpClient?.Dispose();
-#pragma warning disable CA2012 // Use ValueTasks correctly
-            this.app?.DisposeAsync().GetAwaiter().GetResult();
-#pragma warning restore CA2012 // Use ValueTasks correctly
-            this.tracerProvider?.Dispose();
-            this.meterProvider?.Dispose();
-        }
+
+        this.tracerProvider?.Dispose();
+        this.meterProvider?.Dispose();
     }
 
     [Benchmark]

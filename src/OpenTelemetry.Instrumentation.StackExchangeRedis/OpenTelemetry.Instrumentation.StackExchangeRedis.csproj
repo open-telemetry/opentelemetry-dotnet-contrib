@@ -38,4 +38,8 @@
     <PackageReference Include="System.Reflection.Emit.Lightweight" Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETStandard'" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="OpenTelemetry.Instrumentation.StackExchangeRedis.Benchmarks" PublicKey="$(StrongNamePublicKey)" />
+  </ItemGroup>
+
 </Project>

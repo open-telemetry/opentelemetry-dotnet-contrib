@@ -2,8 +2,12 @@
 
 ## Unreleased
 
-* Updated OpenTelemetry core component version(s) to `1.15.1`.
-  ([#4020](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4020))
+* Updated OpenTelemetry core component version(s) to `1.15.2`.
+  ([#4080](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4080))
+
+* Extract `container.id` from the ECS Metadata V4 `DockerId` field for
+  Windows containers running on AWS ECS.
+  ([#4028](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4028))
 
 ## 1.15.0
 

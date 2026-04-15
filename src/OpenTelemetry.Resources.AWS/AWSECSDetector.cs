@@ -108,6 +108,16 @@ internal sealed partial class AWSECSDetector : IResourceDetector
         using var containerResponse = JsonDocument.Parse(metadataV4ContainerResponse);
         using var taskResponse = JsonDocument.Parse(metadataV4TaskResponse);
 
+        // On Linux the container ID is obtained from a file which does not exist on Windows.
+        // The ECS Metadata V4 container endpoint always carries the same ID in the "DockerId" field.
+        // See https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-metadata-endpoint-v4-response.html.
+        if (OperatingSystem.IsWindows() &&
+            containerResponse.RootElement.TryGetProperty("DockerId", out var dockerIdElement) &&
+            dockerIdElement.GetString() is string { Length: > 0 } dockerId)
+        {
+            resourceAttributes.AddAttributeContainerId(dockerId);
+        }
+
         if (!containerResponse.RootElement.TryGetProperty("ContainerARN", out var containerArnElement)
             || containerArnElement.GetString() is not string containerArn)
         {
