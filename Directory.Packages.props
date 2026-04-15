@@ -90,14 +90,14 @@
 
   <!-- Non-production packages are kept up-to-date by dependency automation -->
   <ItemGroup Label="Non-production packages, such as for examples and tests">
-    <PackageVersion Include="AWSSDK.Bedrock" Version="4.0.25.1" />
-    <PackageVersion Include="AWSSDK.BedrockAgent" Version="4.0.8.1" />
-    <PackageVersion Include="AWSSDK.BedrockAgentRuntime" Version="4.0.8.18" />
-    <PackageVersion Include="AWSSDK.BedrockRuntime" Version="4.0.17.2" />
-    <PackageVersion Include="AWSSDK.DynamoDBv2" Version="4.0.17.7" />
-    <PackageVersion Include="AWSSDK.S3" Version="4.0.21" />
-    <PackageVersion Include="AWSSDK.SimpleNotificationService" Version="4.0.2.26" />
-    <PackageVersion Include="AWSSDK.SQS" Version="4.0.2.24" />
+    <PackageVersion Include="AWSSDK.Bedrock" Version="4.0.25.2" />
+    <PackageVersion Include="AWSSDK.BedrockAgent" Version="4.0.8.2" />
+    <PackageVersion Include="AWSSDK.BedrockAgentRuntime" Version="4.0.8.19" />
+    <PackageVersion Include="AWSSDK.BedrockRuntime" Version="4.0.17.3" />
+    <PackageVersion Include="AWSSDK.DynamoDBv2" Version="4.0.17.8" />
+    <PackageVersion Include="AWSSDK.S3" Version="4.0.21.1" />
+    <PackageVersion Include="AWSSDK.SimpleNotificationService" Version="4.0.2.27" />
+    <PackageVersion Include="AWSSDK.SQS" Version="4.0.2.25" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
     <PackageVersion Include="CommandLineParser" Version="2.9.1" />
     <PackageVersion Include="FsCheck.Xunit" Version="3.3.2" />
