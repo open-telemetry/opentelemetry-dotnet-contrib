@@ -43,10 +43,10 @@ internal static class ResourceDetectorUtils
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
 #if NET
-        using var response = httpClient.Send(httpRequestMessage, cancellationToken);
+        using var response = httpClient.Send(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
 #else
 #pragma warning disable CA2025 // Do not pass 'IDisposable' instances into unawaited tasks
-        using var response = httpClient.SendAsync(httpRequestMessage, cancellationToken).ConfigureAwait(false).GetAwaiter().GetResult();
+        using var response = httpClient.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false).GetAwaiter().GetResult();
 #pragma warning restore CA2025 // Do not pass 'IDisposable' instances into unawaited tasks
 #endif
 
