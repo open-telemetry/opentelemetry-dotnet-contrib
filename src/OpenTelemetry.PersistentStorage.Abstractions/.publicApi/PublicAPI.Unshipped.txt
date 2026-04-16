@@ -1,0 +1,6 @@
+OpenTelemetry.PersistentStorage.Abstractions.PersistentBlob.TryWrite(System.ReadOnlySpan<byte> buffer, int leasePeriodMilliseconds = 0) -> bool
+OpenTelemetry.PersistentStorage.Abstractions.PersistentBlobProvider.TryCreateBlob(System.ReadOnlySpan<byte> buffer, int leasePeriodMilliseconds, out OpenTelemetry.PersistentStorage.Abstractions.PersistentBlob? blob) -> bool
+OpenTelemetry.PersistentStorage.Abstractions.PersistentBlobProvider.TryCreateBlob(System.ReadOnlySpan<byte> buffer, out OpenTelemetry.PersistentStorage.Abstractions.PersistentBlob? blob) -> bool
+virtual OpenTelemetry.PersistentStorage.Abstractions.PersistentBlob.OnTryWriteSpan(System.ReadOnlySpan<byte> buffer, int leasePeriodMilliseconds) -> bool
+virtual OpenTelemetry.PersistentStorage.Abstractions.PersistentBlobProvider.OnTryCreateBlob(System.ReadOnlySpan<byte> buffer, int leasePeriodMilliseconds, out OpenTelemetry.PersistentStorage.Abstractions.PersistentBlob? blob) -> bool
+virtual OpenTelemetry.PersistentStorage.Abstractions.PersistentBlobProvider.OnTryCreateBlob(System.ReadOnlySpan<byte> buffer, out OpenTelemetry.PersistentStorage.Abstractions.PersistentBlob? blob) -> bool
