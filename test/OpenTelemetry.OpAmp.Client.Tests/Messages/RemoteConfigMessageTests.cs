@@ -35,8 +35,7 @@ public class RemoteConfigMessageTests
     [Fact]
     public void Constructor_WithNullConfig_InitializesEmptyDictionary()
     {
-        // Arrange — the OpAmp proto says Config SHOULD NOT be set when unchanged,
-        // so a valid server response may omit it entirely.
+        // Arrange
         var agentRemoteConfig = new global::OpAmp.Proto.V1.AgentRemoteConfig
         {
             ConfigHash = ByteString.CopyFromUtf8(HashString),
