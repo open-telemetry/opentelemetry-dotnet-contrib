@@ -120,7 +120,7 @@ internal class AWSLambdaUtils
     internal static string? GetFunctionVersion()
         => Environment.GetEnvironmentVariable(FunctionVersion);
 
-    internal static int? GetFunctionMemorySize(ILambdaContext? context = null)
+    internal static long? GetFunctionMemorySize(ILambdaContext? context = null)
     {
         var memoryLimitInMB = context?.MemoryLimitInMB;
 
@@ -137,7 +137,7 @@ internal class AWSLambdaUtils
         if (memoryLimitInMB.HasValue)
         {
             // Convert to bytes to match semantic conventions (e.g. 128 to 134217728)
-            return memoryLimitInMB.Value * 1024 * 1024;
+            return memoryLimitInMB.Value * 1024L * 1024L;
         }
 
         return null;
