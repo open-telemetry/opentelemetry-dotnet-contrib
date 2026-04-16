@@ -45,9 +45,9 @@ public sealed class EffectiveConfigFile
     /// <returns>Effective config object.</returns>
     /// <remarks>
     /// <para>
-    /// The entire file is read into memory and transmitted verbatim to the OpAMP server.
+    /// The entire file is read into memory and transmitted as-is to the OpAMP server.
     /// Do not include files that contain secrets (passwords, tokens, private keys) unless
-    /// the transport is secured with TLS and the OpAMP server is fully trusted.
+    /// the transport is secure (e.g. with TLS) and the OpAMP server is fully trusted.
     /// </para>
     /// </remarks>
     public static EffectiveConfigFile CreateFromFilePath(string filePath, string contentType, string? filename = null)
