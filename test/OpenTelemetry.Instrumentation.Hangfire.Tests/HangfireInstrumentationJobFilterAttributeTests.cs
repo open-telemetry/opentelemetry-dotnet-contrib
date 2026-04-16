@@ -10,33 +10,34 @@ using Xunit;
 namespace OpenTelemetry.Instrumentation.Hangfire.Tests;
 
 [Collection("Hangfire")]
-public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<HangfireFixture>
+public class HangfireInstrumentationJobFilterAttributeTests
 {
-    private readonly HangfireFixture hangfireFixture;
-
-    public HangfireInstrumentationJobFilterAttributeTests(HangfireFixture hangfireFixture)
-    {
-        this.hangfireFixture = hangfireFixture;
-    }
+    private readonly HangfireFixture hangfireFixture = new();
 
     [Fact]
     public async Task Should_Create_Activity()
     {
         // Arrange
         var exportedItems = new List<Activity>();
-        using var tel = Sdk.CreateTracerProviderBuilder()
-            .AddHangfireInstrumentation()
-            .AddInMemoryExporter(exportedItems)
-            .SetSampler<AlwaysOnSampler>()
-            .Build();
 
-        // Act
-        var jobId = BackgroundJob.Enqueue<TestJob>(x => x.Execute());
-        await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
+        string jobId;
+
+        using (var provider = Sdk.CreateTracerProviderBuilder()
+                                 .AddHangfireInstrumentation()
+                                 .AddInMemoryExporter(exportedItems)
+                                 .SetSampler<AlwaysOnSampler>()
+                                 .Build())
+        {
+            // Act
+            jobId = BackgroundJob.Enqueue<TestJob>(x => x.Execute());
+            await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
+
+            provider.ForceFlush();
+        }
 
         // Assert
-        Assert.Single(exportedItems, i => (i.GetTagItem("job.id") as string) == jobId);
-        var activity = exportedItems.Single(i => (i.GetTagItem("job.id") as string) == jobId);
+        var activity = Assert.Single(exportedItems, i => (i.GetTagItem("job.id") as string) == jobId);
+
         Assert.Contains("JOB TestJob.Execute", activity.DisplayName);
         Assert.Equal(ActivityKind.Internal, activity.Kind);
     }
@@ -46,18 +47,24 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
     {
         // Arrange
         var exportedItems = new List<Activity>();
-        using var tel = Sdk.CreateTracerProviderBuilder()
-            .AddHangfireInstrumentation()
-            .AddInMemoryExporter(exportedItems)
-            .Build();
 
-        // Act
-        var jobId = BackgroundJob.Enqueue<TestJob>(x => x.ThrowException());
-        await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
+        string jobId;
+
+        using (var provider = Sdk.CreateTracerProviderBuilder()
+                                 .AddHangfireInstrumentation()
+                                 .AddInMemoryExporter(exportedItems)
+                                 .Build())
+        {
+            // Act
+            jobId = BackgroundJob.Enqueue<TestJob>(x => x.ThrowException());
+            await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
+
+            provider.ForceFlush();
+        }
 
         // Assert
-        Assert.Single(exportedItems, i => (i.GetTagItem("job.id") as string) == jobId);
-        var activity = exportedItems.Single(i => (i.GetTagItem("job.id") as string) == jobId);
+        var activity = Assert.Single(exportedItems, i => (i.GetTagItem("job.id") as string) == jobId);
+
         Assert.Contains("JOB TestJob.ThrowException", activity.DisplayName);
         Assert.Equal(ActivityKind.Internal, activity.Kind);
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
@@ -70,18 +77,24 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
     {
         // Arrange
         var exportedItems = new List<Activity>();
-        using var tel = Sdk.CreateTracerProviderBuilder()
-            .AddHangfireInstrumentation(options => options.RecordException = true)
-            .AddInMemoryExporter(exportedItems)
-            .Build();
 
-        // Act
-        var jobId = BackgroundJob.Enqueue<TestJob>(x => x.ThrowException());
-        await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
+        string jobId;
+
+        using (var provider = Sdk.CreateTracerProviderBuilder()
+                                 .AddHangfireInstrumentation(options => options.RecordException = true)
+                                 .AddInMemoryExporter(exportedItems)
+                                 .Build())
+        {
+            // Act
+            jobId = BackgroundJob.Enqueue<TestJob>(x => x.ThrowException());
+            await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
+
+            provider.ForceFlush();
+        }
 
         // Assert
-        Assert.Single(exportedItems, i => (i.GetTagItem("job.id") as string) == jobId);
-        var activity = exportedItems.Single(i => (i.GetTagItem("job.id") as string) == jobId);
+        var activity = Assert.Single(exportedItems, i => (i.GetTagItem("job.id") as string) == jobId);
+
         Assert.Contains("JOB TestJob.ThrowException", activity.DisplayName);
         Assert.Equal(ActivityKind.Internal, activity.Kind);
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
@@ -94,18 +107,24 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
     {
         // Arrange
         var exportedItems = new List<Activity>();
-        using var tel = Sdk.CreateTracerProviderBuilder()
-            .AddHangfireInstrumentation(options => options.RecordException = false)
-            .AddInMemoryExporter(exportedItems)
-            .Build();
 
-        // Act
-        var jobId = BackgroundJob.Enqueue<TestJob>(x => x.ThrowException());
-        await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
+        string jobId;
+
+        using (var provider = Sdk.CreateTracerProviderBuilder()
+                                 .AddHangfireInstrumentation(options => options.RecordException = false)
+                                 .AddInMemoryExporter(exportedItems)
+                                 .Build())
+        {
+            // Act
+            jobId = BackgroundJob.Enqueue<TestJob>(x => x.ThrowException());
+            await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
+
+            provider.ForceFlush();
+        }
 
         // Assert
-        Assert.Single(exportedItems, i => (i.GetTagItem("job.id") as string) == jobId);
-        var activity = exportedItems.Single(i => (i.GetTagItem("job.id") as string) == jobId);
+        var activity = Assert.Single(exportedItems, i => (i.GetTagItem("job.id") as string) == jobId);
+
         Assert.Contains("JOB TestJob.ThrowException", activity.DisplayName);
         Assert.Equal(ActivityKind.Internal, activity.Kind);
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
@@ -118,19 +137,25 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
     {
         // Arrange
         var exportedItems = new List<Activity>();
-        using var tel = Sdk.CreateTracerProviderBuilder()
-            .AddHangfireInstrumentation(options => options.DisplayNameFunc = backgroundJob => $"JOB {backgroundJob.Id}")
-            .AddInMemoryExporter(exportedItems)
-            .SetSampler<AlwaysOnSampler>()
-            .Build();
 
-        // Act
-        var jobId = BackgroundJob.Enqueue<TestJob>(x => x.Execute());
-        await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
+        string jobId;
+
+        using (var provider = Sdk.CreateTracerProviderBuilder()
+                                 .AddHangfireInstrumentation(options => options.DisplayNameFunc = backgroundJob => $"JOB {backgroundJob.Id}")
+                                 .AddInMemoryExporter(exportedItems)
+                                 .SetSampler<AlwaysOnSampler>()
+                                 .Build())
+        {
+            // Act
+            jobId = BackgroundJob.Enqueue<TestJob>(x => x.Execute());
+            await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
+
+            provider.ForceFlush();
+        }
 
         // Assert
-        Assert.Single(exportedItems, i => (i.GetTagItem("job.id") as string) == jobId);
-        var activity = exportedItems.Single(i => (i.GetTagItem("job.id") as string) == jobId);
+        var activity = Assert.Single(exportedItems, i => (i.GetTagItem("job.id") as string) == jobId);
+
         Assert.Contains($"JOB {jobId}", activity.DisplayName);
         Assert.Equal(ActivityKind.Internal, activity.Kind);
     }
@@ -176,18 +201,22 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
         var processedItems = new List<Activity>();
         var activityProcessor = new ProcessorMock<Activity>(onStart: processedItems.Add);
 
-        using var tel = Sdk.CreateTracerProviderBuilder()
-            .AddHangfireInstrumentation(configure)
-            .AddProcessor(activityProcessor)
-            .Build();
+        string jobId;
 
-        // Act
-        var jobId = BackgroundJob.Enqueue<TestJob>(x => x.Execute());
-        await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
+        using (var provider = Sdk.CreateTracerProviderBuilder()
+                                 .AddHangfireInstrumentation(configure)
+                                 .AddProcessor(activityProcessor)
+                                 .Build())
+        {
+            // Act
+            jobId = BackgroundJob.Enqueue<TestJob>(x => x.Execute());
+            await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
+
+            provider.ForceFlush();
+        }
 
         // Assert
-        Assert.Single(processedItems);
-        var activity = processedItems.First();
+        var activity = Assert.Single(processedItems);
 
         Assert.Equal(shouldRecord, activity.IsAllDataRequested);
         Assert.Equal(shouldRecord, activity.ActivityTraceFlags.HasFlag(ActivityTraceFlags.Recorded));
@@ -198,17 +227,21 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
     {
         // Arrange
         var exportedItems = new List<Activity>();
-        using var tel = Sdk.CreateTracerProviderBuilder()
-            .AddHangfireInstrumentation()
-            .AddInMemoryExporter(exportedItems)
-            .SetSampler<AlwaysOffSampler>()
-            .Build();
 
         using var listener = new OpenTelemetryEventListener();
 
-        // Act
-        var jobId = BackgroundJob.Enqueue<TestJob>(x => x.Execute());
-        await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
+        using (var provider = Sdk.CreateTracerProviderBuilder()
+                                 .AddHangfireInstrumentation()
+                                 .AddInMemoryExporter(exportedItems)
+                                 .SetSampler<AlwaysOffSampler>()
+                                 .Build())
+        {
+            // Act
+            var jobId = BackgroundJob.Enqueue<TestJob>(x => x.Execute());
+            await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
+
+            provider.ForceFlush();
+        }
 
         // Assert
         Assert.All(listener.Messages, args => Assert.NotEqual("FailedToInjectActivityContext", args.EventName));
