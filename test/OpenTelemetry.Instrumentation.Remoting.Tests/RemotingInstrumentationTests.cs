@@ -171,6 +171,30 @@ public class RemotingInstrumentationTests
         Assert.Equal("DoStuff", activity.GetTagItem("remoting.finish.method"));
     }
 
+    [Theory]
+    [InlineData("SharedLib.IHelloServer, SharedLib, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", "SharedLib.IHelloServer")]
+    [InlineData("SharedLib.IHelloServer", "SharedLib.IHelloServer")]
+    public void TelemetryDynamicSinkProvider_ExtractServiceName_HandlesQualifiedAndPlainTypeNames(string typeName, string expectedServiceName)
+    {
+        Assert.Equal(expectedServiceName, TelemetryDynamicSinkProvider.ExtractServiceName(typeName));
+    }
+
+    [Fact]
+    public void TelemetryDynamicSinkProvider_BoundsServiceNameCache()
+    {
+        var provider = new TelemetryDynamicSinkProvider(new TestOptionsMonitor<RemotingInstrumentationOptions>(new RemotingInstrumentationOptions()));
+
+        string? lastResolvedServiceName = null;
+
+        for (int i = 0; i < TelemetryDynamicSinkProvider.MaxCachedServiceNames + 32; i++)
+        {
+            lastResolvedServiceName = provider.GetServiceName($"Namespace.Type{i}, Assembly{i}, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null");
+        }
+
+        Assert.Equal($"Namespace.Type{TelemetryDynamicSinkProvider.MaxCachedServiceNames + 31}", lastResolvedServiceName);
+        Assert.Equal(TelemetryDynamicSinkProvider.MaxCachedServiceNames, provider.CachedServiceNameCount);
+    }
+
     private static void InvokeRemoteObject()
     {
         var domainSetup = AppDomain.CurrentDomain.SetupInformation;

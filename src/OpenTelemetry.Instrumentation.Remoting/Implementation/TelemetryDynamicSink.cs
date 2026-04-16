@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.Remoting.Contexts;
 using System.Runtime.Remoting.Messaging;
@@ -28,21 +27,18 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
     private readonly string activityInName;
     private readonly string activityOutName;
     private readonly string savedAspnetActivityPropertyName;
-    private readonly ConcurrentDictionary<string, string> serviceNameCache;
 
     private readonly TelemetryDynamicSinkProvider optionsProvider;
 
     public TelemetryDynamicSink(
         TelemetryDynamicSinkProvider optionsProvider,
-        ActivitySource activitySource,
-        ConcurrentDictionary<string, string> serviceNameCache)
+        ActivitySource activitySource)
     {
         this.optionsProvider = optionsProvider;
         this.remotingActivitySource = activitySource;
         this.activityOutName = activitySource.Name + ".RequestOut";
         this.activityInName = activitySource.Name + ".RequestIn";
         this.savedAspnetActivityPropertyName = activitySource.Name + ".SavedAspnetActivity";
-        this.serviceNameCache = serviceNameCache;
     }
 
     public void ProcessMessageStart(IMessage reqMsg, bool bCliSide, bool bAsync)
@@ -318,17 +314,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
     private string GetServiceName(string typeName)
     {
         // typeName will be a full .NET type name as a string "SharedLib.IHelloServer, SharedLib, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
-        return this.serviceNameCache.GetOrAdd(typeName, assemblyQualifiedTypeName =>
-        {
-            int index = assemblyQualifiedTypeName.IndexOf(",", StringComparison.OrdinalIgnoreCase);
-            if (index >= 0)
-            {
-                // Trim to just the type's full name
-                return assemblyQualifiedTypeName.Substring(0, index);
-            }
-
-            return assemblyQualifiedTypeName;
-        });
+        return this.optionsProvider.GetServiceName(typeName);
     }
 
     private void SetPostCreationAttributes(Activity activity, IMethodMessage? msg)
