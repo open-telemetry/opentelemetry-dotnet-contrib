@@ -139,9 +139,18 @@ internal sealed class FrameDispatcher : IDisposable
         }
         catch (Exception ex)
         {
-            exceptionLogger(ex);
+            // Exceptions are deliberately swallowed to prevent transport errors from crashing the
+            // host application. The frame builder is reset so the next dispatch re-sends full state.
 
-            this.frameBuilder.Reset(); // Reset the builder in case of failure
+            // OpAmpOversizedResponseException is already logged at the transport layer with
+            // accurate semantics (the request was delivered; only the response was discarded).
+            // Suppress the generic "Failed to send" event here to avoid a misleading duplicate.
+            if (ex is not OpAmpOversizedResponseException)
+            {
+                exceptionLogger(ex);
+            }
+
+            this.frameBuilder.Reset();
         }
         finally
         {
