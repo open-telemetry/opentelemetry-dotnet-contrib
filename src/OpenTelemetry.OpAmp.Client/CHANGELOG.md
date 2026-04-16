@@ -2,9 +2,6 @@
 
 ## Unreleased
 
-* Ensure heartbeat interval is bounded.
-  ([#4136](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4136))
-
 * Add agent effective config reporting.
   ([#3716](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3716))
 
@@ -16,6 +13,12 @@
 
 * Apply response size limits for oversized OpAMP responses.
   ([#4116](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4116))
+
+* Ensure heartbeat interval is bounded.
+  ([#4136](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4136))
+
+* Add missing null check for remote config.
+  ([#4138](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4138))
 
 ## 0.1.0-alpha.4
 
