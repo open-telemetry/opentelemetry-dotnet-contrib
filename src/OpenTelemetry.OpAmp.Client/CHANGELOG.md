@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Add missing null check for remote config.
+  ([#4138](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4138))
+
 * Ensure heartbeat interval is bounded.
   ([#4136](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4136))
 
