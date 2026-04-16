@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Ensure heartbeat interval is bounded.
+  ([#4136](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4136))
+
 * Add agent effective config reporting.
   ([#3716](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3716))
 
