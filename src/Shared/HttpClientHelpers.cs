@@ -47,7 +47,7 @@ internal static class HttpClientHelpers
         using (stream)
 #endif
         {
-            var length = GetBufferLength(stream, limit);
+            var length = GetBufferLength(stream, limit, httpResponse.Content.Headers.ContentLength);
 
 #if NET
             var buffer = ArrayPool<byte>.Shared.Rent(length);
@@ -164,7 +164,7 @@ internal static class HttpClientHelpers
             using var stream = httpResponse.Content.ReadAsStreamAsync().GetAwaiter().GetResult();
 #endif
 
-            var length = GetBufferLength(stream, limit);
+            var length = GetBufferLength(stream, limit, httpResponse.Content.Headers.ContentLength);
 
 #if NET
             var buffer = ArrayPool<byte>.Shared.Rent(length);
@@ -238,8 +238,13 @@ internal static class HttpClientHelpers
         }
     }
 
-    private static int GetBufferLength(Stream stream, int limit)
+    private static int GetBufferLength(Stream stream, int limit, long? contentLength)
     {
+        if (contentLength is { } value && value <= limit)
+        {
+            return (int)value;
+        }
+
         try
         {
             // Avoid allocating an overly large buffer if the stream is smaller than the size limit
