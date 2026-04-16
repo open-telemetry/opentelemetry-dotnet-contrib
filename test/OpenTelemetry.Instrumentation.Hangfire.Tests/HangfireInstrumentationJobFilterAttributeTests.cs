@@ -135,6 +135,27 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
         Assert.Equal(ActivityKind.Internal, activity.Kind);
     }
 
+    [Fact]
+    public async Task Should_Fall_Back_To_Default_DisplayName_When_DisplayNameFunc_Is_Null()
+    {
+        // Arrange
+        var exportedItems = new List<Activity>();
+        using var tel = Sdk.CreateTracerProviderBuilder()
+            .AddHangfireInstrumentation(options => options.DisplayNameFunc = null!)
+            .AddInMemoryExporter(exportedItems)
+            .SetSampler<AlwaysOnSampler>()
+            .Build();
+
+        // Act
+        var jobId = BackgroundJob.Enqueue<TestJob>(x => x.Execute());
+        await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
+
+        // Assert
+        var activity = Assert.Single(exportedItems, i => (i.GetTagItem("job.id") as string) == jobId);
+        Assert.Contains("JOB TestJob.Execute", activity.DisplayName);
+        Assert.Equal(ActivityKind.Internal, activity.Kind);
+    }
+
     [Theory]
     [InlineData("null", true)]
     [InlineData("true", true)]
