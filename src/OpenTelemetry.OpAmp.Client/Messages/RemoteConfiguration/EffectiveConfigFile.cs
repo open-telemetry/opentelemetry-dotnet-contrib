@@ -43,6 +43,13 @@ public sealed class EffectiveConfigFile
     /// <param name="contentType">The content type of the configuration file.</param>
     /// <param name="filename">The reported filename.</param>
     /// <returns>Effective config object.</returns>
+    /// <remarks>
+    /// <para>
+    /// The entire file is read into memory and transmitted as-is to the OpAMP server.
+    /// Do not include files that contain secrets (passwords, tokens, private keys) unless
+    /// the transport is secure (e.g. with TLS) and the OpAMP server is fully trusted.
+    /// </para>
+    /// </remarks>
     public static EffectiveConfigFile CreateFromFilePath(string filePath, string contentType, string? filename = null)
     {
         try

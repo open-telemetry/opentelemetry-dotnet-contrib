@@ -113,6 +113,13 @@ public sealed class OpAmpClient : IDisposable
     /// <param name="files">Configuration files to report.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A task that represents the asynchronous send operation.</returns>
+    /// <remarks>
+    /// <para>
+    /// File contents are transmitted verbatim to the OpAMP server with no redaction.
+    /// Ensure the transport is secured with TLS and the OpAMP server is fully trusted
+    /// before reporting files that may contain sensitive data such as passwords or tokens.
+    /// </para>
+    /// </remarks>
     public Task SendEffectiveConfigAsync(IEnumerable<EffectiveConfigFile> files, CancellationToken cancellationToken = default)
     {
         if (!this.settings.EffectiveConfigurationReporting.EnableReporting)
