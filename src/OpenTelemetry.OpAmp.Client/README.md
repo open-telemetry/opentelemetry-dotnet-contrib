@@ -59,7 +59,3 @@ redaction.
 - **Avoid sensitive files**: Do not report files that contain secrets such as
   passwords, API tokens, or private keys unless you fully trust the OpAMP server
   and the network path to it.
-
-## References
-
-* [Open Agent Management Protocol](https://opentelemetry.io/docs/specs/opamp/)
