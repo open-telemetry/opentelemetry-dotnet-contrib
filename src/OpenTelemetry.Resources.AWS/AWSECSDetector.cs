@@ -67,23 +67,19 @@ internal sealed partial class AWSECSDetector : IResourceDetector
 
     internal static string? GetECSContainerId(string path)
     {
-        string? containerId = null;
+        using var streamReader = ResourceDetectorUtils.GetStreamReader(path);
+        string? line = null;
 
-        using (var streamReader = ResourceDetectorUtils.GetStreamReader(path))
+        while ((line = streamReader.ReadLine()) is not null)
         {
-            string? line = null;
-
-            while ((line = streamReader.ReadLine()) is not null)
+            var trimmedLine = line.Trim();
+            if (trimmedLine.Length > 64)
             {
-                var trimmedLine = line.Trim();
-                if (trimmedLine.Length > 64)
-                {
-                    return trimmedLine.Substring(trimmedLine.Length - 64);
-                }
+                return trimmedLine.Substring(trimmedLine.Length - 64);
             }
         }
 
-        return containerId;
+        return null;
     }
 
     internal static bool IsECSProcess() =>
