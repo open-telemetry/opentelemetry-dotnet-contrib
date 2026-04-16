@@ -8,6 +8,7 @@ namespace OpenTelemetry.Instrumentation.AWS.Implementation.Metrics;
 internal sealed class AWSMeter : Meter
 {
     private readonly System.Diagnostics.Metrics.Meter meter;
+    private int disposed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AWSMeter"/> class.
@@ -24,7 +25,7 @@ internal sealed class AWSMeter : Meter
         string? description = null)
         where T : struct
     {
-        return new AWSUpDownCounter<T>(this.meter, name, units, description);
+        return new AWSUpDownCounter<T>(this.meter, name, this.IsDisposed, units, description);
     }
 
     public override MonotonicCounter<T> CreateMonotonicCounter<T>(
@@ -33,7 +34,7 @@ internal sealed class AWSMeter : Meter
         string? description = null)
         where T : struct
     {
-        return new AWSMonotonicCounter<T>(this.meter, name, units, description);
+        return new AWSMonotonicCounter<T>(this.meter, name, this.IsDisposed, units, description);
     }
 
     public override Histogram<T> CreateHistogram<T>(
@@ -42,16 +43,19 @@ internal sealed class AWSMeter : Meter
         string? description = null)
         where T : struct
     {
-        return new AWSHistogram<T>(this.meter, name, units, description);
+        return new AWSHistogram<T>(this.meter, name, this.IsDisposed, units, description);
     }
 
     protected override void Dispose(bool disposing)
     {
         if (disposing)
         {
-            this.meter?.Dispose();
+            Interlocked.Exchange(ref this.disposed, 1);
         }
 
         base.Dispose(disposing);
     }
+
+    private bool IsDisposed()
+        => Volatile.Read(ref this.disposed) != 0;
 }

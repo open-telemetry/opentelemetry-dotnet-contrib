@@ -12,26 +12,30 @@ internal sealed class AWSMonotonicCounter<T> : MonotonicCounter<T>
 {
     private static readonly ConcurrentDictionary<string, System.Diagnostics.Metrics.Counter<T>> MonotonicCountersDictionary = new();
 
+    private readonly Func<bool> isDisposed;
     private readonly System.Diagnostics.Metrics.Counter<T> monotonicCounter;
 
     public AWSMonotonicCounter(
         System.Diagnostics.Metrics.Meter meter,
         string name,
+        Func<bool> isDisposed,
         string? units = null,
         string? description = null)
     {
-        if (MonotonicCountersDictionary.TryGetValue(name, out var monotonicCounter))
-        {
-            this.monotonicCounter = monotonicCounter;
-        }
+        this.isDisposed = isDisposed ?? throw new ArgumentNullException(nameof(isDisposed));
 
         this.monotonicCounter = MonotonicCountersDictionary.GetOrAdd(
             name,
-            meter.CreateCounter<T>(name, units, description));
+            counterName => meter.CreateCounter<T>(counterName, units, description));
     }
 
     public override void Add(T value, Attributes? attributes = null)
     {
+        if (this.isDisposed())
+        {
+            return;
+        }
+
         if (attributes != null)
         {
             // TODO: remove ToArray call and use when AttributesAsSpan expected to be added at AWS SDK v4.
