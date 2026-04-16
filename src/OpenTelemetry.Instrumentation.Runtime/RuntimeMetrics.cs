@@ -25,7 +25,7 @@ internal sealed class RuntimeMetrics : IDisposable
     private const int NumberOfGenerations = 3;
 
     private static readonly string[] GenNames = ["gen0", "gen1", "gen2", "loh", "poh"];
-    private static readonly object ExceptionSubscriptionSync = new();
+    private static readonly Lock ExceptionSubscriptionSync = new();
     private static readonly Counter<long> ExceptionCounter = MeterInstance.CreateCounter<long>(
         "process.runtime.dotnet.exceptions.count",
         description: "Count of exceptions that have been thrown in managed code, since the observation started. The value will be unavailable until an exception has been thrown after OpenTelemetry.Instrumentation.Runtime initialization.");
