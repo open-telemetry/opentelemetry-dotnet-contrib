@@ -14,9 +14,17 @@ internal static class AzureVmMetaDataRequestor
     public static AzureVmMetadataResponse? GetAzureVmMetaDataResponseDefault()
     {
         var timeout = TimeSpan.FromSeconds(2);
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
 
+        using var cts = new CancellationTokenSource(timeout);
         using var httpClient = new HttpClient() { Timeout = timeout };
+
+        return GetAzureVmMetaData(httpClient, cts.Token);
+    }
+
+    public static AzureVmMetadataResponse? GetAzureVmMetaData(
+        HttpClient client,
+        CancellationToken cancellationToken)
+    {
         using var httpRequestMessage = new HttpRequestMessage();
 
         httpRequestMessage.RequestUri = AzureVmMetadataEndpointUri;
@@ -24,18 +32,18 @@ internal static class AzureVmMetaDataRequestor
         httpRequestMessage.Headers.Add("Metadata", "True");
 
 #if NET
-        using var response = httpClient.Send(httpRequestMessage, cts.Token);
+        using var response = client.Send(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
 #else
 #pragma warning disable CA2025 // Do not pass 'IDisposable' instances into unawaited tasks
-        using var response = httpClient.SendAsync(httpRequestMessage, cts.Token).ConfigureAwait(false).GetAwaiter().GetResult();
+        using var response = client.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false).GetAwaiter().GetResult();
 #pragma warning restore CA2025 // Do not pass 'IDisposable' instances into unawaited tasks
 #endif
 
         response.EnsureSuccessStatusCode();
 
-        var result = HttpClientHelpers.GetResponseBodyAsString(response, cts.Token);
+        var result = HttpClientHelpers.GetResponseBodyAsString(response, cancellationToken);
 
-        if (result != null)
+        if (!string.IsNullOrEmpty(result))
         {
 #if NET
             return JsonSerializer.Deserialize(result, SourceGenerationContext.Default.AzureVmMetadataResponse);
