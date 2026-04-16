@@ -13,6 +13,106 @@ internal static class HttpClientHelpers
 {
     private const int DefaultMessageSizeLimit = 4 * 1024 * 1024; // 4MiB
 
+    internal static async Task<byte[]> GetResponseBodyAsByteArrayAsync(
+        int limit,
+        HttpResponseMessage? httpResponse,
+        CancellationToken cancellationToken)
+    {
+        Guard.ThrowIfOutOfRange(limit, nameof(limit), 1, int.MaxValue);
+
+        if (httpResponse?.Content is null)
+        {
+            return [];
+        }
+
+        // Check Content-Length before reading if the header is present.
+        if (httpResponse.Content.Headers.ContentLength > limit)
+        {
+            throw new InvalidOperationException($"Response body exceeded the size limit of {limit} bytes.");
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var stream = await httpResponse.Content
+#if NET
+            .ReadAsStreamAsync(cancellationToken)
+#else
+            .ReadAsStreamAsync()
+#endif
+            .ConfigureAwait(false);
+
+#if NET
+        await using (stream.ConfigureAwait(false))
+#else
+        using (stream)
+#endif
+        {
+            var length = GetBufferLength(stream, limit);
+
+#if NET
+            var buffer = ArrayPool<byte>.Shared.Rent(length);
+#else
+            var buffer = new byte[length];
+#endif
+
+            try
+            {
+                var totalRead = 0;
+
+                // Read raw bytes so the size limit applies to bytes rather than characters
+                while (totalRead < limit && !cancellationToken.IsCancellationRequested)
+                {
+                    var bytesRead = await stream
+#if NET || NETSTANDARD2_1_OR_GREATER
+                        .ReadAsync(buffer.AsMemory(totalRead, limit - totalRead), cancellationToken)
+#else
+                        .ReadAsync(buffer, totalRead, limit - totalRead, cancellationToken)
+#endif
+                        .ConfigureAwait(false);
+
+                    if (bytesRead is 0)
+                    {
+                        break;
+                    }
+
+                    totalRead += bytesRead;
+                }
+
+                // We've read exactly limit bytes. Check if there's more data.
+                var probe = new byte[1];
+
+                var extra = await stream
+#if NET || NETSTANDARD2_1_OR_GREATER
+                    .ReadAsync(probe.AsMemory(0, 1), cancellationToken)
+#else
+                    .ReadAsync(probe, 0, 1, cancellationToken)
+#endif
+                    .ConfigureAwait(false);
+
+                if (extra > 0)
+                {
+                    // + 1: we read exactly MaxMessageSize bytes and confirmed at least one more byte exists.
+                    throw new InvalidOperationException($"Response body exceeded the size limit of {limit} bytes.");
+                }
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var result = new byte[totalRead];
+
+                Buffer.BlockCopy(buffer, 0, result, 0, totalRead);
+
+                return result;
+            }
+            finally
+            {
+#if NET
+                // Clear the rented buffer to avoid leaking sensitive data, then return it to the pool.
+                ArrayPool<byte>.Shared.Return(buffer, clearArray: true);
+#endif
+            }
+        }
+    }
+
     internal static string? TryGetResponseBodyAsString(HttpResponseMessage? httpResponse, CancellationToken cancellationToken)
         => GetResponseBodyAsString(allowTruncation: true, DefaultMessageSizeLimit, httpResponse, cancellationToken);
 
@@ -48,9 +148,9 @@ internal static class HttpClientHelpers
         try
         {
 #if NET
-            var stream = httpResponse.Content.ReadAsStream(cancellationToken);
+            using var stream = httpResponse.Content.ReadAsStream(cancellationToken);
 #else
-            var stream = httpResponse.Content.ReadAsStreamAsync().GetAwaiter().GetResult();
+            using var stream = httpResponse.Content.ReadAsStreamAsync().GetAwaiter().GetResult();
 #endif
 
             var length = GetBufferLength(stream, limit);
