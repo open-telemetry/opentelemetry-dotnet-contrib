@@ -8,8 +8,11 @@
 * Add ability to send custom messages.
   ([#3809](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3809))
 
-* Add support for sticky HTTP connections via the `OpAMP-Instance-UID` header
+* Add support for sticky HTTP connections via the `OpAMP-Instance-UID` header.
   ([#3830](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3830))
+
+* Apply response size limits for oversized OpAMP responses.
+  ([#4116](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4116))
 
 ## 0.1.0-alpha.4
 

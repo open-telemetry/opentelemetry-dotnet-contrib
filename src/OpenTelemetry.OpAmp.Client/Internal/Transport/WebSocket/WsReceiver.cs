@@ -12,7 +12,6 @@ internal sealed class WsReceiver : IDisposable
 {
     private const int RentalBufferSize = 4 * 1024; // 4 KB
     private const int ReceiveBufferSize = 8 * 1024; // 8 KB
-    private const int MaxMessageSize = 128 * 1024; // 128 KB
 
     private readonly ClientWebSocket ws;
     private readonly Thread receiveThread;
@@ -114,7 +113,7 @@ internal sealed class WsReceiver : IDisposable
                 isClosed = true;
             }
 
-            if (totalCount > MaxMessageSize)
+            if (totalCount > TransportConstants.MaxMessageSize)
             {
                 // Message too large, abort the connection.
                 await this.ws
