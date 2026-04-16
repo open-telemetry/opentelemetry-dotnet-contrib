@@ -28,6 +28,11 @@ public class RateLimitingSampler : Sampler
     /// <param name="maxTracesPerSecond">The maximum number of traces that will be emitted each second.</param>
     public RateLimitingSampler(int maxTracesPerSecond)
     {
+        if (maxTracesPerSecond <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(maxTracesPerSecond), maxTracesPerSecond, "Value must be greater than zero.");
+        }
+
         var maxBalance = maxTracesPerSecond < 1.0 ? 1.0 : maxTracesPerSecond;
         this.rateLimiter = new RateLimiter(maxTracesPerSecond, maxBalance);
         var attributes = new Dictionary<string, object>()

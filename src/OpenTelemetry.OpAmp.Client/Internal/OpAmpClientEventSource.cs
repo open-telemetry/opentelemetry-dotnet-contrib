@@ -14,6 +14,9 @@ internal sealed class OpAmpClientEventSource : EventSource
     // General events 1-499
     private const int EventIdInvalidWsFrame = 1;
     private const int EventIdTransportCloseFailure = 2;
+    private const int EventIdOversizedResponseContentLength = 3;
+    private const int EventIdOversizedResponseBody = 4;
+    private const int EventIdHttpResponseReceived = 5;
 
     // Service events 500-999
     private const int EventIdHeartbeatServiceStart = 500;
@@ -57,6 +60,51 @@ internal sealed class OpAmpClientEventSource : EventSource
     public void TransportCloseFailure(string exception)
     {
         this.WriteEvent(EventIdTransportCloseFailure, exception);
+    }
+
+    [NonEvent]
+    public void OversizedResponseContentLengthReceived(long contentLengthBytes, int limitBytes)
+    {
+        if (this.IsEnabled(EventLevel.Warning, EventKeywords.All))
+        {
+            this.OversizedResponseContentLength(contentLengthBytes, limitBytes);
+        }
+    }
+
+    [Event(EventIdOversizedResponseContentLength, Message = "OpAMP server response discarded: Content-Length ({0} bytes) exceeds the {1}-byte limit. The request was delivered but the server response was not processed.", Level = EventLevel.Warning)]
+    public void OversizedResponseContentLength(long contentLengthBytes, int limitBytes)
+    {
+        this.WriteEvent(EventIdOversizedResponseContentLength, contentLengthBytes, limitBytes);
+    }
+
+    [NonEvent]
+    public void OversizedResponseBodyReceived(int minimumBytes, int limitBytes)
+    {
+        if (this.IsEnabled(EventLevel.Warning, EventKeywords.All))
+        {
+            this.OversizedResponseBody(minimumBytes, limitBytes);
+        }
+    }
+
+    [Event(EventIdOversizedResponseBody, Message = "OpAMP server response discarded: response body is at least {0} bytes, exceeding the {1}-byte limit. The request was delivered but the server response was not processed.", Level = EventLevel.Warning)]
+    public void OversizedResponseBody(int minimumBytes, int limitBytes)
+    {
+        this.WriteEvent(EventIdOversizedResponseBody, minimumBytes, limitBytes);
+    }
+
+    [NonEvent]
+    public void HttpResponseBytesReceived(int bytes)
+    {
+        if (this.IsEnabled(EventLevel.Verbose, EventKeywords.All))
+        {
+            this.HttpResponseReceived(bytes);
+        }
+    }
+
+    [Event(EventIdHttpResponseReceived, Message = "OpAMP HTTP response received: {0} bytes.", Level = EventLevel.Verbose)]
+    public void HttpResponseReceived(int bytes)
+    {
+        this.WriteEvent(EventIdHttpResponseReceived, bytes);
     }
 
     [Event(EventIdHeartbeatServiceStart, Message = "Heartbeat service started.", Level = EventLevel.Informational)]
