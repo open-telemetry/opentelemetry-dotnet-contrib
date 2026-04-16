@@ -151,8 +151,7 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
         await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
 
         // Assert
-        Assert.Single(exportedItems, i => (i.GetTagItem("job.id") as string) == jobId);
-        var activity = exportedItems.Single(i => (i.GetTagItem("job.id") as string) == jobId);
+        var activity = Assert.Single(exportedItems, i => (i.GetTagItem("job.id") as string) == jobId);
         Assert.Contains("JOB TestJob.Execute", activity.DisplayName);
         Assert.Equal(ActivityKind.Internal, activity.Kind);
     }
