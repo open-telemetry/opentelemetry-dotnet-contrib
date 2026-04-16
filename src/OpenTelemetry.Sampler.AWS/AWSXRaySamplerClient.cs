@@ -133,8 +133,8 @@ internal class AWSXRaySamplerClient : IDisposable
         try
         {
             // Use ResponseHeadersRead so the response body is streamed rather
-            // than buffered entirely in memory, allowing LimitedStream to
-            // enforce the cap during download.
+            // than buffered entirely in memory. The body is then read with
+            // HttpClientHelpers, which enforces the response size cap.
             using var response = await this.httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode)
             {

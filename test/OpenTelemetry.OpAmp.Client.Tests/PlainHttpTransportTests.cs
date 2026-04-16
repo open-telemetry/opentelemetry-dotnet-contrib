@@ -323,7 +323,7 @@ public class PlainHttpTransportTests
 
         // Act - the response is exactly at the limit so it should NOT be rejected as oversized.
         // The body (zeroed bytes) is not a valid ServerToAgent message, so protobuf parsing may
-        // throw, but the key assertion is that OpAmpOversizedResponseException is not thrown.
+        // throw, but the key assertion is that InvalidOperationException is not thrown.
         var ex = await Record.ExceptionAsync(
             () => httpTransport.SendAsync(mockFrame.Frame, CancellationToken.None));
 

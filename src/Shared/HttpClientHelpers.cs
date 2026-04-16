@@ -60,13 +60,13 @@ internal static class HttpClientHelpers
                 var totalRead = 0;
 
                 // Read raw bytes so the size limit applies to bytes rather than characters
-                while (totalRead < limit && !cancellationToken.IsCancellationRequested)
+                while (totalRead < length && !cancellationToken.IsCancellationRequested)
                 {
                     var bytesRead = await stream
 #if NET || NETSTANDARD2_1_OR_GREATER
-                        .ReadAsync(buffer.AsMemory(totalRead, limit - totalRead), cancellationToken)
+                        .ReadAsync(buffer.AsMemory(totalRead, length - totalRead), cancellationToken)
 #else
-                        .ReadAsync(buffer, totalRead, limit - totalRead, cancellationToken)
+                        .ReadAsync(buffer, totalRead, length - totalRead, cancellationToken)
 #endif
                         .ConfigureAwait(false);
 
@@ -78,21 +78,26 @@ internal static class HttpClientHelpers
                     totalRead += bytesRead;
                 }
 
-                // We've read exactly limit bytes. Check if there's more data.
-                var probe = new byte[1];
+                bool extra = false;
 
-                var extra = await stream
-#if NET || NETSTANDARD2_1_OR_GREATER
-                    .ReadAsync(probe.AsMemory(0, 1), cancellationToken)
-#else
-                    .ReadAsync(probe, 0, 1, cancellationToken)
-#endif
-                    .ConfigureAwait(false);
-
-                if (extra > 0)
+                if (totalRead == length)
                 {
-                    // + 1: we read exactly MaxMessageSize bytes and confirmed at least one more byte exists.
-                    throw new InvalidOperationException($"Response body exceeded the size limit of {limit} bytes.");
+                    // We've read exactly length bytes. Check if there's more data.
+                    var probe = new byte[1];
+
+                    extra = await stream
+#if NET || NETSTANDARD2_1_OR_GREATER
+                        .ReadAsync(probe.AsMemory(0, 1), cancellationToken)
+#else
+                        .ReadAsync(probe, 0, 1, cancellationToken)
+#endif
+                        .ConfigureAwait(false) > 0;
+
+                    if (extra)
+                    {
+                        // + 1: we read exactly MaxMessageSize bytes and confirmed at least one more byte exists.
+                        throw new InvalidOperationException($"Response body exceeded the size limit of {limit} bytes.");
+                    }
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
@@ -135,6 +140,12 @@ internal static class HttpClientHelpers
             return null;
         }
 
+        // Check Content-Length before reading if the header is present.
+        if (!allowTruncation && httpResponse.Content.Headers.ContentLength > limit)
+        {
+            throw new InvalidOperationException($"Response body exceeded the size limit of {limit} bytes.");
+        }
+
         if (cancellationToken.IsCancellationRequested)
         {
             if (allowTruncation)
@@ -166,7 +177,7 @@ internal static class HttpClientHelpers
                 var totalRead = 0;
 
                 // Read raw bytes so the size limit applies to bytes rather than characters
-                while (totalRead < limit && !cancellationToken.IsCancellationRequested)
+                while (totalRead < length && !cancellationToken.IsCancellationRequested)
                 {
                     var bytesRead = stream.Read(buffer, totalRead, length - totalRead);
 
@@ -178,19 +189,24 @@ internal static class HttpClientHelpers
                     totalRead += bytesRead;
                 }
 
-                // We've read exactly limit bytes. Check if there's more data.
-                var probe = new byte[1];
+                bool extra = false;
+
+                if (totalRead == length)
+                {
+                    // We've read exactly length bytes. Check if there's more data.
+                    var probe = new byte[1];
 
 #if NETFRAMEWORK || NETSTANDARD
-                var extra = stream.Read(probe, 0, 1);
+                    extra = stream.Read(probe, 0, 1) > 0;
 #else
-                var extra = stream.Read(probe);
+                    extra = stream.Read(probe) > 0;
 #endif
 
-                if (extra > 0 && !allowTruncation)
-                {
-                    // + 1: we read exactly MaxMessageSize bytes and confirmed at least one more byte exists.
-                    throw new InvalidOperationException($"Response body exceeded the size limit of {limit} bytes.");
+                    if (extra && !allowTruncation)
+                    {
+                        // + 1: we read exactly MaxMessageSize bytes and confirmed at least one more byte exists.
+                        throw new InvalidOperationException($"Response body exceeded the size limit of {limit} bytes.");
+                    }
                 }
 
                 if (!allowTruncation)
@@ -202,7 +218,7 @@ internal static class HttpClientHelpers
                 var encoding = GetEncoding(httpResponse.Content.Headers.ContentType?.CharSet);
                 var result = encoding.GetString(buffer, 0, totalRead);
 
-                if (extra > 0)
+                if (extra)
                 {
                     result += "[TRUNCATED]";
                 }
