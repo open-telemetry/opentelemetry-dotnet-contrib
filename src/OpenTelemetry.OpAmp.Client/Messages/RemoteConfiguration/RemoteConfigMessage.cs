@@ -16,7 +16,7 @@ public class RemoteConfigMessage : OpAmpMessage
 
     internal RemoteConfigMessage(AgentRemoteConfig agentRemoteConfig)
     {
-        // Config may be absent per the OpAmp proto spec — it SHOULD NOT be set when
+        // Config may be absent per the OpAmp proto spec - it SHOULD NOT be set when
         // the configuration has not changed since the last request.
         if (agentRemoteConfig.Config is not null)
         {
