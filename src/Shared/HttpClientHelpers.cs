@@ -5,6 +5,7 @@
 using System.Buffers;
 #endif
 using System.Text;
+using OpenTelemetry.Internal;
 
 namespace System.Net.Http;
 
@@ -16,7 +17,10 @@ internal static class HttpClientHelpers
         => GetResponseBodyAsString(allowTruncation: true, DefaultMessageSizeLimit, httpResponse, cancellationToken);
 
     internal static string? GetResponseBodyAsString(HttpResponseMessage? httpResponse, CancellationToken cancellationToken)
-        => GetResponseBodyAsString(allowTruncation: false, DefaultMessageSizeLimit, httpResponse, cancellationToken);
+        => GetResponseBodyAsString(httpResponse, DefaultMessageSizeLimit, cancellationToken);
+
+    internal static string? GetResponseBodyAsString(HttpResponseMessage? httpResponse, int limit, CancellationToken cancellationToken)
+        => GetResponseBodyAsString(allowTruncation: false, limit, httpResponse, cancellationToken);
 
     private static string? GetResponseBodyAsString(
         bool allowTruncation,
@@ -24,6 +28,8 @@ internal static class HttpClientHelpers
         HttpResponseMessage? httpResponse,
         CancellationToken cancellationToken)
     {
+        Guard.ThrowIfOutOfRange(limit, nameof(limit), 1, int.MaxValue);
+
         if (httpResponse?.Content is null)
         {
             return null;
