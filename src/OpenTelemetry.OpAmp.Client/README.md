@@ -46,6 +46,20 @@ await client.StartAsync();
 await client.StopAsync();
 ```
 
+## Security Considerations
+
+### Effective Configuration Reporting
+
+When effective configuration reporting is enabled, file contents are read in
+full and transmitted verbatim to the OpAMP server. There is no automatic
+redaction.
+
+- **Use TLS**: Configure `ServerUrl` with a `wss://` or `https://` scheme so
+  that configuration data is encrypted in transit.
+- **Avoid sensitive files**: Do not report files that contain secrets such as
+  passwords, API tokens, or private keys unless you fully trust the OpAMP server
+  and the network path to it.
+
 ## References
 
 * [Open Agent Management Protocol](https://opentelemetry.io/docs/specs/opamp/)
