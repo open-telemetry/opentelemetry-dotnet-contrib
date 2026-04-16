@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+* Add `net8.0` and `net10.0` target frameworks.
+  ([#4128](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4128))
+
+* Add support for `ReadOnlySpan<byte>` as buffers. It also obsoletes `byte[]` buffers in the API.
+  ([#4128](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4128))
+
 ## 1.0.2
 
 Released 2025-Nov-13
