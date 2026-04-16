@@ -6,7 +6,7 @@
   ([#4080](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4080))
 
 * Fix `IndexOutOfRangeException` when parsing SQL statements.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#4139](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4139))
 
 ## 1.15.0-beta.1
 
