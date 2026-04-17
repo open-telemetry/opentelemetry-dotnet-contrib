@@ -211,13 +211,17 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
         var activity = context.Value.Activity;
 
         var result = TraceRecordParser.ParseActivityComplete(record.Message.AsSpan());
-        if (result.HowEnded.Equals("Success".AsSpan(), StringComparison.Ordinal))
-        {
-            activity?.SetStatus(ActivityStatusCode.Ok);
-        }
 
-        this.CallEnrichment(record);
-        activity?.Stop();
+        if (activity is not null)
+        {
+            if (result.HowEnded.Equals("Success".AsSpan(), StringComparison.Ordinal))
+            {
+                activity.SetStatus(ActivityStatusCode.Ok);
+            }
+
+            this.CallEnrichment(record);
+            activity.Stop();
+        }
 
         var duration = activity?.Duration.TotalSeconds ?? GetElapsedTime(context.Value.BeginTimestamp);
         KustoActivitySourceHelper.OperationDurationHistogram.Record(duration, context.Value.MeterTags);
