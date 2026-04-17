@@ -3,22 +3,15 @@
 
 using System.Diagnostics;
 using BenchmarkDotNet.Running;
+using OpenTelemetry.Instrumentation.Kusto.Benchmarks;
 
-namespace OpenTelemetry.Instrumentation.Kusto.Benchmarks;
-
-internal class Program
+if (Debugger.IsAttached)
 {
-    private static void Main(string[] args)
-    {
-        if (Debugger.IsAttached)
-        {
-            var benchmarks = new InstrumentationBenchmarks();
-            benchmarks.Setup();
-            benchmarks.FailedQuery();
-        }
-        else
-        {
-            BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
-        }
-    }
+    var benchmarks = new InstrumentationBenchmarks();
+    benchmarks.Setup();
+    benchmarks.FailedQuery();
+}
+else
+{
+    BenchmarkSwitcher.FromAssembly(typeof(InstrumentationBenchmarks).Assembly).Run(args);
 }
