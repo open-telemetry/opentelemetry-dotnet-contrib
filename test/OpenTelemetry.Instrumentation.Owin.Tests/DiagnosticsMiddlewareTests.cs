@@ -345,6 +345,16 @@ public class DiagnosticsMiddlewareTests : IDisposable
         }
     }
 
+    [Fact]
+    public void AddOwinInstrumentation_DoesNotRequireIConfigurationRegistration()
+    {
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddOwinInstrumentation()
+            .Build();
+
+        Assert.NotNull(tracerProvider);
+    }
+
     private List<MetricPoint> GetMetricPoints(Metric metric)
     {
         List<MetricPoint> metricPoints = [];
