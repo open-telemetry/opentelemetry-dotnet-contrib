@@ -7,7 +7,7 @@
 
 * Ensure that `TransportSettings` configuration is applied to created
   instances of `IServiceRemotingClientFactory`.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#4148](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4148))
 
 ## 1.15.0-beta.1
 
