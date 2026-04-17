@@ -135,9 +135,9 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
             activity?.DisplayName = operationName;
             activity?.AddTag(KustoActivitySourceHelper.ClientRequestIdTagKey, record.Activity.ClientRequestId.ToString());
 
-            activity?.AddTag(SemanticConventions.AttributeDbSystemName, KustoActivitySourceHelper.DbSystem);
+            activity?.AddTag(SemanticConventions.AttributeDbSystemName, KustoActivitySourceHelper.DbSystemNameValue);
             activity?.AddTag(SemanticConventions.AttributeDbOperationName, operationName);
-            meterTags.Add(SemanticConventions.AttributeDbSystemName, KustoActivitySourceHelper.DbSystem);
+            meterTags.Add(SemanticConventions.AttributeDbSystemName, KustoActivitySourceHelper.DbSystemNameValue);
             meterTags.Add(SemanticConventions.AttributeDbOperationName, operationName);
 
             var result = TraceRecordParser.ParseRequestStart(record.Message.AsSpan());

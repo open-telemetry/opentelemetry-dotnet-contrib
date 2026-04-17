@@ -13,8 +13,8 @@ namespace OpenTelemetry.Instrumentation.Kusto.Implementation;
 /// </summary>
 internal static class KustoActivitySourceHelper
 {
-    public const string DbSystem = "azure.kusto";
-    public const string ClientRequestIdTagKey = $"{DbSystem}.client_request_id";
+    public const string DbSystemNameValue = "azure.kusto";
+    public const string ClientRequestIdTagKey = $"{DbSystemNameValue}.client_request_id";
 
     public static readonly Assembly Assembly = typeof(KustoActivitySourceHelper).Assembly;
     public static readonly AssemblyName AssemblyName = Assembly.GetName();
