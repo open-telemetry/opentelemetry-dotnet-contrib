@@ -45,11 +45,9 @@ internal static class DelegatingOptionsFactoryServiceCollectionExtensions
     {
         services.TryAddSingleton<IOptionsFactory<T>>(sp =>
         {
-            var configuration = sp.GetService<IConfiguration>();
-
             return new DelegatingOptionsFactory<T>(
                 (c, n) => optionsFactoryFunc(sp, c, n),
-                configuration ?? new ConfigurationBuilder().Build(),
+                sp.GetRequiredService<IConfiguration>(),
                 sp.GetServices<IConfigureOptions<T>>(),
                 sp.GetServices<IPostConfigureOptions<T>>(),
                 sp.GetServices<IValidateOptions<T>>());
