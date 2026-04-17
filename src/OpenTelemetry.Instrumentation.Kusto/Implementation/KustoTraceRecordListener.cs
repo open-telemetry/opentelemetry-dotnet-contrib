@@ -184,7 +184,7 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
                     if (KustoInstrumentation.TraceOptions.RecordQuerySummary)
                     {
                         activity?.AddTag(SemanticConventions.AttributeDbQuerySummary, info.Summarized);
-                        activity?.DisplayName = info.Summarized!;
+                        activity?.DisplayName = info.Summarized;
                     }
 
                     if (KustoInstrumentation.MeterOptions.RecordQuerySummary)
