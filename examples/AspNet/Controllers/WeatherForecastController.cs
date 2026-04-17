@@ -13,9 +13,6 @@ namespace Examples.AspNet.Controllers;
 
 public class WeatherForecastController : ApiController
 {
-    private const int DataRequestSizeBytes = 64 * 1024;
-    private const int MaxDataRequestBodyBytes = 128 * 1024;
-
     private static readonly string[] Summaries =
     [
         "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
@@ -60,8 +57,10 @@ public class WeatherForecastController : ApiController
     }
 
     /// <summary>
-    /// For testing async request/response propagation with a bounded payload size.
+    /// For testing large async operation which causes IIS to jump threads and results in lost AsyncLocals.
     /// </summary>
+    // If this sample is adapted for real deployments, be careful to avoid
+    // unbounded per-request allocations or request/response sizes.
     [Route("data")]
     [HttpGet]
     public async Task<string> GetData()
@@ -70,7 +69,7 @@ public class WeatherForecastController : ApiController
 
         using var rng = RandomNumberGenerator.Create();
 
-        var requestData = new byte[DataRequestSizeBytes];
+        var requestData = new byte[1024 * 1024 * 100];
         rng.GetBytes(requestData);
 
         using var client = new HttpClient();
@@ -85,7 +84,7 @@ public class WeatherForecastController : ApiController
 
         var responseData = await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
 
-        return responseData.SequenceEqual(requestData) ? "match" : "mismatch";
+        return responseData.SequenceEqual(responseData) ? "match" : "mismatch";
     }
 
     [Route("data")]
@@ -98,11 +97,11 @@ public class WeatherForecastController : ApiController
             throw new InvalidOperationException("Key1 was not found on Baggage.");
         }
 
-        var requestBody = await this.ReadRequestBodyAsync(MaxDataRequestBodyBytes).ConfigureAwait(false);
+        var stream = await this.Request.Content.ReadAsStreamAsync().ConfigureAwait(false);
 
         var result = new HttpResponseMessage(HttpStatusCode.OK)
         {
-            Content = new ByteArrayContent(requestBody),
+            Content = new StreamContent(stream),
         };
 
         result.Content.Headers.ContentType = this.Request.Content.Headers.ContentType;
@@ -153,52 +152,6 @@ public class WeatherForecastController : ApiController
         var asyncResult = request.BeginGetResponse(null, null);
 
         using var response = request.EndGetResponse(asyncResult);
-    }
-
-    private async Task<byte[]> ReadRequestBodyAsync(int maxAllowedBytes)
-    {
-        if (this.Request.Content.Headers.ContentLength is long contentLength &&
-            contentLength > maxAllowedBytes)
-        {
-            throw this.CreateHttpResponseException(
-                HttpStatusCode.RequestEntityTooLarge,
-                $"Request content must be {maxAllowedBytes} bytes or smaller.");
-        }
-
-        using var stream = await this.Request.Content.ReadAsStreamAsync().ConfigureAwait(false);
-        using var buffer = new MemoryStream();
-
-        var readBuffer = new byte[81920];
-        var totalBytesRead = 0;
-
-        while (true)
-        {
-            var read = await stream.ReadAsync(readBuffer, 0, readBuffer.Length).ConfigureAwait(false);
-            if (read == 0)
-            {
-                break;
-            }
-
-            totalBytesRead += read;
-            if (totalBytesRead > maxAllowedBytes)
-            {
-                throw this.CreateHttpResponseException(
-                    HttpStatusCode.RequestEntityTooLarge,
-                    $"Request content must be {maxAllowedBytes} bytes or smaller.");
-            }
-
-            await buffer.WriteAsync(readBuffer, 0, read).ConfigureAwait(false);
-        }
-
-        return buffer.ToArray();
-    }
-
-    private HttpResponseException CreateHttpResponseException(HttpStatusCode statusCode, string message)
-    {
-        return new(new HttpResponseMessage(statusCode)
-        {
-            Content = new StringContent(message),
-        });
     }
 
     // Test exception dependency collection via HttpClient.
