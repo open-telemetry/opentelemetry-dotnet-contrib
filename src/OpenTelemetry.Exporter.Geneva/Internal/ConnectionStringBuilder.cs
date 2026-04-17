@@ -239,7 +239,7 @@ internal sealed class ConnectionStringBuilder
     }
 
     /// <summary>
-    /// Replace first charater of string if it matches with <paramref name="oldChar"/> with <paramref name="newChar"/>.
+    /// Replace first character of string if it matches with <paramref name="oldChar"/> with <paramref name="newChar"/>.
     /// </summary>
     /// <param name="str">String to be updated.</param>
     /// <param name="oldChar">Old character to be replaced.</param>

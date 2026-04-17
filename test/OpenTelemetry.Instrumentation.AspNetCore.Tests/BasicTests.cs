@@ -1117,7 +1117,7 @@ public sealed class BasicTests
 
 #if NET9_0_OR_GREATER
     [Fact]
-    public async Task SignalRActivitesAreListenedTo()
+    public async Task SignalRActivitiesAreListenedTo()
     {
         var exportedItems = new List<Activity>();
         void ConfigureTestServices(IServiceCollection services)
@@ -1172,7 +1172,7 @@ public sealed class BasicTests
     }
 
     [Fact]
-    public async Task SignalRActivitesCanBeDisabled()
+    public async Task SignalRActivitiesCanBeDisabled()
     {
         var exportedItems = new List<Activity>();
         void ConfigureTestServices(IServiceCollection services)

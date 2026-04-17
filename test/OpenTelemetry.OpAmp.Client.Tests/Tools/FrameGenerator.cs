@@ -78,7 +78,7 @@ internal class FrameGenerator
             Frame = responseSegment,
             Size = size,
             HasHeader = addHeader,
-            ExptectedContent = content,
+            ExpectedContent = content,
         };
     }
 }
