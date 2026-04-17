@@ -120,7 +120,7 @@ public class PlainHttpTransportTests
         var mockFrame = FrameGenerator.GenerateMockAgentFrame(true);
 
         // Act & Assert
-        await Assert.ThrowsAsync<OpAmpOversizedResponseException>(
+        await Assert.ThrowsAsync<InvalidOperationException>(
             () => httpTransport.SendAsync(mockFrame.Frame, CancellationToken.None));
     }
 
@@ -188,7 +188,7 @@ public class PlainHttpTransportTests
 
         // Act & Assert - the decompressed body exceeds MaxMessageSize so the body-read
         // limit must fire even though the Content-Length (showing compressed size) does not.
-        await Assert.ThrowsAsync<OpAmpOversizedResponseException>(
+        await Assert.ThrowsAsync<InvalidOperationException>(
             () => httpTransport.SendAsync(mockFrame.Frame, CancellationToken.None));
     }
 
@@ -254,7 +254,7 @@ public class PlainHttpTransportTests
             var completedTask = await Task.WhenAny(sendTask, Task.Delay(TimeSpan.FromSeconds(2)));
 
             Assert.Same(sendTask, completedTask);
-            await Assert.ThrowsAsync<OpAmpOversizedResponseException>(async () => await sendTask);
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await sendTask);
         }
         finally
         {
@@ -290,7 +290,7 @@ public class PlainHttpTransportTests
         var mockFrame = FrameGenerator.GenerateMockAgentFrame(true);
 
         // Act & Assert
-        await Assert.ThrowsAsync<OpAmpOversizedResponseException>(
+        await Assert.ThrowsAsync<InvalidOperationException>(
             () => httpTransport.SendAsync(mockFrame.Frame, CancellationToken.None));
     }
 
@@ -323,13 +323,13 @@ public class PlainHttpTransportTests
 
         // Act - the response is exactly at the limit so it should NOT be rejected as oversized.
         // The body (zeroed bytes) is not a valid ServerToAgent message, so protobuf parsing may
-        // throw, but the key assertion is that OpAmpOversizedResponseException is not thrown.
+        // throw, but the key assertion is that InvalidOperationException is not thrown.
         var ex = await Record.ExceptionAsync(
             () => httpTransport.SendAsync(mockFrame.Frame, CancellationToken.None));
 
         // Assert
         Assert.False(
-            ex is OpAmpOversizedResponseException,
+            ex is InvalidOperationException,
             "A response at exactly MaxMessageSize should not be rejected as oversized.");
     }
 
