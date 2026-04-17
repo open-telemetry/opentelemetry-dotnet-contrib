@@ -8,7 +8,6 @@ using OpenTelemetry.Instrumentation.Kusto.Implementation;
 
 namespace OpenTelemetry.Instrumentation.Kusto.Benchmarks;
 
-[ShortRunJob]
 [MemoryDiagnoser]
 [DotNetObjectAllocDiagnoser]
 [DotNetObjectAllocJobConfiguration]
