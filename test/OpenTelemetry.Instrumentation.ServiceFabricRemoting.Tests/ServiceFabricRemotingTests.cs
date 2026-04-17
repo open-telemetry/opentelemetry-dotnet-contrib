@@ -2,9 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using System.Fabric;
 using System.Text;
 using Microsoft.ServiceFabric.Actors;
 using Microsoft.ServiceFabric.Actors.Runtime;
+using Microsoft.ServiceFabric.Services.Remoting.FabricTransport;
+using Microsoft.ServiceFabric.Services.Remoting.FabricTransport.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.V2;
 using Microsoft.ServiceFabric.Services.Remoting.V2.Runtime;
 using OpenTelemetry.Context.Propagation;
@@ -22,6 +25,7 @@ public class ServiceFabricRemotingTests
     private const string BaggageKey = "SomeBaggageKey";
     private const string BaggageValue = "SomeBaggageValue";
     private static readonly ActivitySource ActivitySource = new("ServiceFabricRemotingTests");
+    private static readonly Lock TransportSettingsLock = new();
 
     [Fact]
     public async Task TestStatefulServiceContextPropagation_ShouldExtractActivityContextAndBaggage()
@@ -142,6 +146,74 @@ public class ServiceFabricRemotingTests
 
         Assert.Equal(activity.TraceId, propagationContext.ActivityContext.TraceId);
         Assert.Equal(BaggageValue, propagationContext.Baggage.GetBaggage(BaggageKey));
+    }
+
+    [Fact]
+    public void ServiceRemotingProviderListenerSettings_LoadConfiguredTransportDefaults()
+    {
+        lock (TransportSettingsLock)
+        {
+            var originalLoader = TraceContextEnrichedServiceRemotingProviderAttribute.ListenerSettingsLoader;
+
+            try
+            {
+                TraceContextEnrichedServiceRemotingProviderAttribute.ListenerSettingsLoader = () => new FabricTransportRemotingListenerSettings
+                {
+                    MaxQueueSize = 35,
+                    SecurityCredentials = new X509Credentials(),
+                };
+
+                var provider = new TraceContextEnrichedServiceRemotingProviderAttribute
+                {
+                    MaxMessageSize = 17,
+                };
+
+                var actual = provider.GetListenerSettings();
+
+                Assert.Equal(35, actual.MaxQueueSize);
+                Assert.Equal(CredentialType.X509, actual.SecurityCredentials.CredentialType);
+                Assert.Equal(17, actual.MaxMessageSize);
+            }
+            finally
+            {
+                TraceContextEnrichedServiceRemotingProviderAttribute.ListenerSettingsLoader = originalLoader;
+            }
+        }
+    }
+
+    [Fact]
+    public void ServiceRemotingProviderClientFactory_LoadsConfiguredTransportDefaults()
+    {
+        lock (TransportSettingsLock)
+        {
+            var originalLoader = TraceContextEnrichedServiceRemotingProviderAttribute.RemotingSettingsLoader;
+
+            try
+            {
+                TraceContextEnrichedServiceRemotingProviderAttribute.RemotingSettingsLoader = () => new FabricTransportRemotingSettings
+                {
+                    MaxQueueSize = 35,
+                    ConnectTimeout = TimeSpan.FromMilliseconds(7),
+                    SecurityCredentials = new X509Credentials(),
+                };
+
+                var provider = new TraceContextEnrichedServiceRemotingProviderAttribute
+                {
+                    MaxMessageSize = 17,
+                };
+
+                var actual = provider.GetRemotingSettings();
+
+                Assert.Equal(35, actual.MaxQueueSize);
+                Assert.Equal(CredentialType.X509, actual.SecurityCredentials.CredentialType);
+                Assert.Equal(TimeSpan.FromMilliseconds(7), actual.ConnectTimeout);
+                Assert.Equal(17, actual.MaxMessageSize);
+            }
+            finally
+            {
+                TraceContextEnrichedServiceRemotingProviderAttribute.RemotingSettingsLoader = originalLoader;
+            }
+        }
     }
 
     private ServiceRemotingRequestMessageHeaderMock CreateServiceRemotingRequestMessageHeader(Type interfaceType, string methodName)
