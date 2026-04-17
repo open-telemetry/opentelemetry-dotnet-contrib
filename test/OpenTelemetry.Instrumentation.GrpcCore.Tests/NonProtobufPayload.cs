@@ -3,6 +3,4 @@
 
 namespace OpenTelemetry.Instrumentation.GrpcCore.Tests;
 
-internal sealed class NonProtobufPayload
-{
-}
+internal sealed class NonProtobufPayload;
