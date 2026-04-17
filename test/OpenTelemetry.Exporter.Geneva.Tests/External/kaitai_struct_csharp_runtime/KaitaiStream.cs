@@ -697,7 +697,7 @@ namespace Kaitai
         /// </remarks>
         /// <param name="a">The value to be divided</param>
         /// <param name="b">The value to divide by. Must be greater than zero.</param>
-        /// <returns>The result of the modulo opertion. Will always be positive.</returns>
+        /// <returns>The result of the modulo operation. Will always be positive.</returns>
         public static int Mod(int a, int b)
         {
             if (b <= 0) throw new ArgumentException("Divisor of mod operation must be greater than zero.", "b");
@@ -716,7 +716,7 @@ namespace Kaitai
         /// </remarks>
         /// <param name="a">The value to be divided</param>
         /// <param name="b">The value to divide by. Must be greater than zero.</param>
-        /// <returns>The result of the modulo opertion. Will always be positive.</returns>
+        /// <returns>The result of the modulo operation. Will always be positive.</returns>
         public static long Mod(long a, long b)
         {
             if (b <= 0) throw new ArgumentException("Divisor of mod operation must be greater than zero.", "b");
