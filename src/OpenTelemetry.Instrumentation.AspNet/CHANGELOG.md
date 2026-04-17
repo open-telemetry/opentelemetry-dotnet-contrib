@@ -6,7 +6,7 @@
   ([#4080](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4080))
 
 * Avoid creating high-cardinality attributes for `http.route`.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#4145](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4145))
 
 ## 1.15.1
 
