@@ -182,7 +182,7 @@ public class ServiceFabricRemotingTests
     }
 
     [Fact]
-    public void ServiceRemotingProviderClientFactory_LoadsConfiguredTransportDefaults()
+    public void ServiceRemotingProviderListenerSettings_LoadConfiguredRemotingSettings()
     {
         lock (TransportSettingsLock)
         {
