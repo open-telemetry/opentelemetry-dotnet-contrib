@@ -35,7 +35,7 @@ public class DependencyInjectionConfigTests : IDisposable
                     options.Enrich = (_, _) => { enrichCalled = true; };
                 });
             })
-            .AddKustoInstrumentation(configureKustoTraceInstrumentationOptions: null)
+            .AddKustoInstrumentation(configure: null)
             .Build();
 
         // Assert that the options were picked up from DI and set on the static property
@@ -59,7 +59,7 @@ public class DependencyInjectionConfigTests : IDisposable
                     options.RecordQuerySummary = false;
                 });
             })
-            .AddKustoInstrumentation(configureKustoMeterInstrumentationOptions: null)
+            .AddKustoInstrumentation(configure: null)
             .Build();
 
         // Assert that the options were picked up from DI and set on the static property
@@ -80,7 +80,7 @@ public class DependencyInjectionConfigTests : IDisposable
                     options.Enrich = (_, _) => { enrichCalled = true; };
                 });
             })
-            .AddKustoInstrumentation(configureKustoTraceInstrumentationOptions: null)
+            .AddKustoInstrumentation(configure: null)
             .Build();
 
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
@@ -92,7 +92,7 @@ public class DependencyInjectionConfigTests : IDisposable
                     options.RecordQuerySummary = false;
                 });
             })
-            .AddKustoInstrumentation(configureKustoMeterInstrumentationOptions: null)
+            .AddKustoInstrumentation(configure: null)
             .Build();
 
         // Assert that both options were picked up from DI and set on the static properties
@@ -123,7 +123,7 @@ public class DependencyInjectionConfigTests : IDisposable
                     options.Enrich = (_, _) => { enrichFromDiCalled = true; };
                 });
             })
-            .AddKustoInstrumentation(configureKustoTraceInstrumentationOptions: options =>
+            .AddKustoInstrumentation(configure: options =>
             {
                 // Callback should override DI configuration
                 options.Enrich = (_, _) => { enrichFromCallbackCalled = true; };
@@ -153,7 +153,7 @@ public class DependencyInjectionConfigTests : IDisposable
                     options.RecordQuerySummary = true;
                 });
             })
-            .AddKustoInstrumentation(configureKustoMeterInstrumentationOptions: options =>
+            .AddKustoInstrumentation(configure: options =>
             {
                 // Callback should override DI configuration
                 options.RecordQueryText = true;

@@ -16,6 +16,6 @@ OpenTelemetry.Trace.KustoTraceInstrumentationOptions.RecordQueryText.get -> bool
 OpenTelemetry.Trace.KustoTraceInstrumentationOptions.RecordQueryText.set -> void
 OpenTelemetry.Trace.TracerProviderBuilderExtensions
 static OpenTelemetry.Metrics.MeterProviderBuilderExtensions.AddKustoInstrumentation(this OpenTelemetry.Metrics.MeterProviderBuilder! builder) -> OpenTelemetry.Metrics.MeterProviderBuilder!
-static OpenTelemetry.Metrics.MeterProviderBuilderExtensions.AddKustoInstrumentation(this OpenTelemetry.Metrics.MeterProviderBuilder! builder, System.Action<OpenTelemetry.Metrics.KustoMeterInstrumentationOptions!>? configureKustoMeterInstrumentationOptions) -> OpenTelemetry.Metrics.MeterProviderBuilder!
+static OpenTelemetry.Metrics.MeterProviderBuilderExtensions.AddKustoInstrumentation(this OpenTelemetry.Metrics.MeterProviderBuilder! builder, System.Action<OpenTelemetry.Metrics.KustoMeterInstrumentationOptions!>? configure) -> OpenTelemetry.Metrics.MeterProviderBuilder!
 static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddKustoInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder! builder) -> OpenTelemetry.Trace.TracerProviderBuilder!
-static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddKustoInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder! builder, System.Action<OpenTelemetry.Trace.KustoTraceInstrumentationOptions!>? configureKustoTraceInstrumentationOptions) -> OpenTelemetry.Trace.TracerProviderBuilder!
+static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddKustoInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder! builder, System.Action<OpenTelemetry.Trace.KustoTraceInstrumentationOptions!>? configure) -> OpenTelemetry.Trace.TracerProviderBuilder!

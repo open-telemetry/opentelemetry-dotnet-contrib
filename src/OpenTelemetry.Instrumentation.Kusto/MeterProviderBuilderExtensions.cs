@@ -19,23 +19,23 @@ public static class MeterProviderBuilderExtensions
     /// <param name="builder"><see cref="MeterProviderBuilder"/> being configured.</param>
     /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
     public static MeterProviderBuilder AddKustoInstrumentation(this MeterProviderBuilder builder) =>
-        builder.AddKustoInstrumentation(configureKustoMeterInstrumentationOptions: null);
+        builder.AddKustoInstrumentation(configure: null);
 
     /// <summary>
     /// Enables Kusto instrumentation.
     /// </summary>
     /// <param name="builder"><see cref="MeterProviderBuilder"/> being configured.</param>
-    /// <param name="configureKustoMeterInstrumentationOptions">Callback action for configuring <see cref="KustoMeterInstrumentationOptions"/>.</param>
+    /// <param name="configure">Callback action for configuring <see cref="KustoMeterInstrumentationOptions"/>.</param>
     /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
     public static MeterProviderBuilder AddKustoInstrumentation(
         this MeterProviderBuilder builder,
-        Action<KustoMeterInstrumentationOptions>? configureKustoMeterInstrumentationOptions)
+        Action<KustoMeterInstrumentationOptions>? configure)
     {
         Guard.ThrowIfNull(builder);
 
-        if (configureKustoMeterInstrumentationOptions != null)
+        if (configure != null)
         {
-            builder.ConfigureServices(services => services.Configure(configureKustoMeterInstrumentationOptions));
+            builder.ConfigureServices(services => services.Configure(configure));
         }
 
         // Be sure to eagerly initialize the instrumentation, as we must set environment variables before any clients are created.

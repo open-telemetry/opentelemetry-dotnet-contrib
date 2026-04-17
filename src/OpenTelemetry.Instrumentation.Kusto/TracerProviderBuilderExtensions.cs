@@ -19,23 +19,23 @@ public static class TracerProviderBuilderExtensions
     /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddKustoInstrumentation(this TracerProviderBuilder builder) =>
-        AddKustoInstrumentation(builder, configureKustoTraceInstrumentationOptions: null);
+        AddKustoInstrumentation(builder, configure: null);
 
     /// <summary>
     /// Enables Kusto instrumentation.
     /// </summary>
     /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
-    /// <param name="configureKustoTraceInstrumentationOptions">Callback action for configuring <see cref="KustoTraceInstrumentationOptions"/>.</param>
+    /// <param name="configure">Callback action for configuring <see cref="KustoTraceInstrumentationOptions"/>.</param>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddKustoInstrumentation(
         this TracerProviderBuilder builder,
-        Action<KustoTraceInstrumentationOptions>? configureKustoTraceInstrumentationOptions)
+        Action<KustoTraceInstrumentationOptions>? configure)
     {
         Guard.ThrowIfNull(builder);
 
-        if (configureKustoTraceInstrumentationOptions != null)
+        if (configure != null)
         {
-            builder.ConfigureServices(services => services.Configure(configureKustoTraceInstrumentationOptions));
+            builder.ConfigureServices(services => services.Configure(configure));
         }
 
         // Be sure to eagerly initialize the instrumentation, as we must set environment variables before any clients are created.
