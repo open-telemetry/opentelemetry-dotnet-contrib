@@ -7,6 +7,7 @@ using System.Net.Http;
 #endif
 
 using System.IO.Compression;
+using System.Net;
 using System.Text;
 using OpenTelemetry.OpAmp.Client.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Transport;
@@ -101,7 +102,7 @@ public class PlainHttpTransportTests
         using var opAmpServer = TestHttpServer.RunServer(
             context =>
             {
-                context.Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
+                context.Response.StatusCode = (int)HttpStatusCode.OK;
                 context.Response.ContentType = "application/x-protobuf";
                 context.Response.SendChunked = true;
                 context.Response.OutputStream.Write(oversizedBody, 0, oversizedBody.Length);
@@ -156,7 +157,7 @@ public class PlainHttpTransportTests
         using var opAmpServer = TestHttpServer.RunServer(
             context =>
             {
-                context.Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
+                context.Response.StatusCode = (int)HttpStatusCode.OK;
                 context.Response.ContentType = "application/x-protobuf";
                 context.Response.Headers["Content-Encoding"] = "gzip";
                 context.Response.ContentLength64 = compressedBody.Length;
@@ -173,7 +174,7 @@ public class PlainHttpTransportTests
             {
                 var handler = new HttpClientHandler
                 {
-                    AutomaticDecompression = System.Net.DecompressionMethods.GZip,
+                    AutomaticDecompression = DecompressionMethods.GZip,
 #if NET
                     CheckCertificateRevocationList = true,
 #endif
@@ -203,7 +204,7 @@ public class PlainHttpTransportTests
             {
                 try
                 {
-                    context.Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
+                    context.Response.StatusCode = (int)HttpStatusCode.OK;
                     context.Response.ContentType = "application/x-protobuf";
                     context.Response.SendChunked = true;
 
@@ -224,7 +225,7 @@ public class PlainHttpTransportTests
                     context.Response.OutputStream.WriteByte(0);
                     context.Response.Close();
                 }
-                catch (System.Net.HttpListenerException)
+                catch (HttpListenerException)
                 {
                     thresholdReached.Set();
                 }
@@ -265,17 +266,39 @@ public class PlainHttpTransportTests
     [Fact]
     public async Task PlainHttpTransport_RejectsResponseWithOversizedContentLength()
     {
-        // Arrange - server advertises and sends a Content-Length larger than the limit.
-        // The Content-Length pre-check in the transport should reject this before reading the body.
-        var oversizedBody = new byte[TransportConstants.MaxMessageSize + 1];
+        // Arrange - server advertises a Content-Length larger than the limit.
+        // The Content-Length pre-check in the transport should reject this before reading the body,
+        // so the client may disconnect immediately after the headers are flushed.
+        var oversizedLength = TransportConstants.MaxMessageSize + 1;
         using var opAmpServer = TestHttpServer.RunServer(
             context =>
             {
-                context.Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
+                context.Response.StatusCode = (int)HttpStatusCode.OK;
                 context.Response.ContentType = "application/x-protobuf";
-                context.Response.ContentLength64 = oversizedBody.Length;
-                context.Response.OutputStream.Write(oversizedBody, 0, oversizedBody.Length);
-                context.Response.Close();
+                context.Response.ContentLength64 = oversizedLength;
+
+                try
+                {
+                    context.Response.OutputStream.WriteByte(0);
+                    context.Response.OutputStream.Flush();
+                }
+                catch (Exception ex) when (ex is HttpListenerException || ex is IOException || ex is ObjectDisposedException)
+                {
+                    // The client may close the connection as soon as it sees the oversized Content-Length.
+                }
+                finally
+                {
+                    try
+                    {
+                        context.Response.Close();
+                    }
+                    catch (HttpListenerException)
+                    {
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                    }
+                }
             },
             out var host,
             out var port);
@@ -288,6 +311,7 @@ public class PlainHttpTransportTests
         var frameProcessor = new FrameProcessor();
         using var httpTransport = new PlainHttpTransport(settings, frameProcessor);
         var mockFrame = FrameGenerator.GenerateMockAgentFrame(true);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(
@@ -303,7 +327,7 @@ public class PlainHttpTransportTests
         using var opAmpServer = TestHttpServer.RunServer(
             context =>
             {
-                context.Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
+                context.Response.StatusCode = (int)HttpStatusCode.OK;
                 context.Response.ContentType = "application/x-protobuf";
                 context.Response.SendChunked = true;
                 context.Response.OutputStream.Write(body, 0, body.Length);

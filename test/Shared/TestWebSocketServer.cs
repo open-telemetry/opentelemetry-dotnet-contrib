@@ -17,6 +17,11 @@ internal static class TestWebSocketServer
 
     public static IDisposable RunServer(Func<WebSocket, Task> handler, out string host, out int port)
     {
+        return RunServer((_, socket) => handler(socket), out host, out port);
+    }
+
+    public static IDisposable RunServer(Func<HttpListenerContext, WebSocket, Task> handler, out string host, out int port)
+    {
         host = "localhost";
         port = 0;
         RunningServer? server = null;
@@ -55,55 +60,20 @@ internal static class TestWebSocketServer
     {
         private readonly Task listenerTask;
         private readonly HttpListener listener;
-        private readonly AutoResetEvent initialized = new(false);
+        private readonly TaskCompletionSource<bool> initialized = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        public RunningServer(Func<WebSocket, Task> handler, string host, int port)
+        public RunningServer(Func<HttpListenerContext, WebSocket, Task> handler, string host, int port)
         {
             this.listener = new HttpListener();
             this.listener.Prefixes.Add($"http://{host}:{port}/");
             this.listener.Start();
 
-            this.listenerTask = new Task(async () =>
-            {
-                while (true)
-                {
-                    try
-                    {
-                        var ctxTask = this.listener.GetContextAsync();
-
-                        this.initialized.Set();
-
-                        var ctx = await ctxTask.ConfigureAwait(false);
-
-                        if (ctx.Request.IsWebSocketRequest)
-                        {
-                            var wsContext = await ctx.AcceptWebSocketAsync(null).ConfigureAwait(false);
-                            await handler(wsContext.WebSocket);
-                        }
-                        else
-                        {
-                            ctx.Response.StatusCode = 400;
-                            ctx.Response.Close();
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        if (ex is ObjectDisposedException
-                            || (ex is HttpListenerException httpEx && httpEx.ErrorCode == 995))
-                        {
-                            break; // listener closed
-                        }
-
-                        throw;
-                    }
-                }
-            });
+            this.listenerTask = Task.Run(() => this.ListenAsync(handler));
         }
 
         public void Start()
         {
-            this.listenerTask.Start();
-            this.initialized.WaitOne();
+            this.initialized.Task.GetAwaiter().GetResult();
         }
 
         public void Dispose()
@@ -111,12 +81,51 @@ internal static class TestWebSocketServer
             try
             {
                 this.listener.Close();
-                this.listenerTask?.Wait();
-                this.initialized.Dispose();
+                this.listenerTask.GetAwaiter().GetResult();
             }
-            catch (ObjectDisposedException)
+            catch (Exception ex) when (this.IsListenerShutdownException(ex))
             {
-                // swallow this exception just in case
+                // Listener was already closed as part of disposal.
+            }
+        }
+
+        private bool IsListenerShutdownException(Exception ex)
+        {
+            return ex is ObjectDisposedException
+                || (ex is HttpListenerException httpEx && (httpEx.ErrorCode == 995 || httpEx.ErrorCode == 6))
+                || (ex is InvalidOperationException && !this.listener.IsListening);
+        }
+
+        private async Task ListenAsync(Func<HttpListenerContext, WebSocket, Task> handler)
+        {
+            this.initialized.TrySetResult(true);
+
+            while (true)
+            {
+                try
+                {
+                    var ctx = await this.listener.GetContextAsync().ConfigureAwait(false);
+
+                    if (ctx.Request.IsWebSocketRequest)
+                    {
+                        var wsContext = await ctx.AcceptWebSocketAsync(null).ConfigureAwait(false);
+                        await handler(ctx, wsContext.WebSocket).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        ctx.Response.StatusCode = 400;
+                        ctx.Response.Close();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    if (this.IsListenerShutdownException(ex))
+                    {
+                        break;
+                    }
+
+                    throw;
+                }
             }
         }
     }
