@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Web;
 using System.Web.Routing;
@@ -50,30 +49,9 @@ internal sealed class HttpRequestRouteHelper
         return template;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool CompareStringToSubstring(string example, string target, int start)
-    {
-        for (var i = 0; i < example.Length; i++)
-        {
-            if (target[start + 1 + i] != example[i])
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
     private static string PrepareRouteTemplate(Route route, RouteData routeData)
     {
-        const string controllerToken = "controller";
-        const string actionToken = "action";
-
         var template = route.Url;
-        var controller = (string)routeData.Values[controllerToken];
-        var action = (string)routeData.Values[actionToken];
-        var hasController = !string.IsNullOrWhiteSpace(controller);
-        var hasAction = !string.IsNullOrWhiteSpace(action);
         var sb = new StringBuilder(template.Length);
 
         var i = 0;
@@ -84,28 +62,17 @@ internal sealed class HttpRequestRouteHelper
                 var end = template.IndexOf('}', i + 1);
                 if (end != -1)
                 {
-                    if (hasController && CompareStringToSubstring(controllerToken, template, i))
+                    var defaults = route.Defaults;
+                    var values = routeData.Values;
+                    var token = template.Substring(i + 1, end - i - 1);
+
+                    if (defaults.ContainsKey(token) && !values.ContainsKey(token))
                     {
-                        sb.Append(controller);
-                    }
-                    else if (hasAction && CompareStringToSubstring(actionToken, template, i))
-                    {
-                        sb.Append(action);
+                        // Ignore defaults with no values.
                     }
                     else
                     {
-                        var defaults = route.Defaults;
-                        var values = routeData.Values;
-                        var token = template.Substring(i + 1, end - i - 1);
-
-                        if (defaults.ContainsKey(token) && !values.ContainsKey(token))
-                        {
-                            // Ignore defaults with no values.
-                        }
-                        else
-                        {
-                            sb.Append('{').Append(token).Append('}');
-                        }
+                        sb.Append('{').Append(token).Append('}');
                     }
 
                     i = end + 1;
