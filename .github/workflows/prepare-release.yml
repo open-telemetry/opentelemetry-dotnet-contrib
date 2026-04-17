@@ -84,6 +84,29 @@ permissions:
 jobs:
   automation:
     uses: ./.github/workflows/automation.yml
+
+    # Partial combination of simplified child jobs condition to avoid running jobs at all
+    if: |
+      github.event_name == 'workflow_dispatch'
+      ||
+      (
+        github.event_name == 'pull_request' &&
+        github.event.action == 'closed' &&
+        github.event.pull_request.merged == true &&
+        startsWith(github.event.pull_request.title, '[release] Prepare release ')
+      )
+      ||
+      (
+        github.event_name == 'issue_comment' &&
+        github.event.issue.pull_request &&
+        startsWith(github.event.issue.title, '[release] Prepare release ')
+      )
+      ||
+      (
+        startsWith(github.event.issue.title, '[release request] ') &&
+        github.event.issue.pull_request == null
+      )
+
     secrets:
       OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY: ${{ secrets.OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY }}
 
