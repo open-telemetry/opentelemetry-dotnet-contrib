@@ -56,9 +56,8 @@ internal sealed class WsTransport : IOpAmpTransport, IDisposable
     /// the transport aborts the socket and the instance cannot be reused. A new <see cref="WsTransport"/>
     /// instance (and therefore a new <see cref="ClientWebSocket"/>) is required to reconnect.
     /// </remarks>
-    /// <exception cref=" ObjectDisposedException">
-    /// Thrown if the transport has already been started.
-    /// </exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the transport has been disposed.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when the transport has already been started.</exception>
     public async Task StartAsync(CancellationToken token = default)
     {
         this.ThrowIfDisposed();
