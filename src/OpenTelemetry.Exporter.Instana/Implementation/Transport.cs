@@ -49,7 +49,7 @@ internal sealed class Transport : IDisposable
             int maxBatchSize = this.options.BatchExportProcessorOptions.MaxExportBatchSize;
             int written = 0;
 
-            while (batch.TryDequeue(out var span) && sendBuffer.Position < MultiSpanBufferLimit && written <= maxBatchSize)
+            while (sendBuffer.Position < MultiSpanBufferLimit && written < maxBatchSize && batch.TryDequeue(out var span))
             {
                 if (written > 0)
                 {
@@ -82,14 +82,14 @@ internal sealed class Transport : IDisposable
             using var content = new StreamContent(sendBuffer, (int)length);
             content.Headers.ContentType = MediaType;
 
-            content.Headers.Add("X-INSTANA-KEY", this.options.AgentKey);
-            content.Headers.Add("X-INSTANA-NOTRACE", "1");
-            content.Headers.Add("X-INSTANA-TIME", this.options.UtcNow().ToUnixTimeMilliseconds().ToString(CultureInfo.InvariantCulture));
-
             using var message = new HttpRequestMessage(HttpMethod.Post, this.bundleUri)
             {
                 Content = content,
             };
+
+            message.Headers.Add("X-INSTANA-KEY", this.options.AgentKey);
+            message.Headers.Add("X-INSTANA-NOTRACE", "1");
+            message.Headers.Add("X-INSTANA-TIME", this.options.UtcNow().ToUnixTimeMilliseconds().ToString(CultureInfo.InvariantCulture));
 
             this.client ??= this.CreateClient();
 

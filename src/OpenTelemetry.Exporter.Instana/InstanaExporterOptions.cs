@@ -34,6 +34,10 @@ public class InstanaExporterOptions
     /// Gets or sets an optional delegate to a method to create an
     /// <see cref="HttpClient"/> to use to send telemetry to the Instana endpoint.
     /// </summary>
+    /// <remarks>
+    /// The delegate should return a new instance of <see cref="HttpClient"/> each time it is called.
+    /// The Instana exporter will dispose of the <see cref="HttpClient"/> after use.
+    /// </remarks>
     public Func<HttpClient>? HttpClientFactory { get; set; }
 
     /// <summary>

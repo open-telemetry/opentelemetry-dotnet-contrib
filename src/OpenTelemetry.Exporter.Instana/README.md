@@ -40,7 +40,8 @@ using var tracerProvider = Sdk.CreateTracerProviderBuilder()
 ```
 
 Optionally backend communication timeout can be configured using the environment
-variable `INSTANA_TIMEOUT` or the `InstanaExporterOptions.Timeout` property.
+variable `INSTANA_TIMEOUT` or the
+`InstanaExporterOptions.BatchExportProcessorOptions.ExporterTimeoutMilliseconds` property.
 
 ## Troubleshooting
 

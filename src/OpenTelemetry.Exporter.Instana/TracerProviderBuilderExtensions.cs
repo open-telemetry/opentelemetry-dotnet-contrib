@@ -69,5 +69,11 @@ public static class TracerProviderBuilderExtensions
         {
             options.BatchExportProcessorOptions.ExporterTimeoutMilliseconds = timeoutMilliseconds;
         }
+
+        if (options.ProxyUri is null &&
+            Environment.GetEnvironmentVariable(InstanaExporterConstants.InstanaEndpointProxy) is { Length: > 0 } proxyUrl)
+        {
+            options.ProxyUri = new Uri(proxyUrl, UriKind.Absolute);
+        }
     }
 }

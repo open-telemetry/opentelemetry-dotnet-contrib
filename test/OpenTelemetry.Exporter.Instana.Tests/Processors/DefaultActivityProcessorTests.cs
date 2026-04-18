@@ -15,11 +15,12 @@ public class DefaultActivityProcessorTests
     {
         // Arrange
         var activity = new Activity("testOperationName");
-        activity.Start();
 
-        Thread.Sleep(200); // Simulate some work being done
+        var start = DateTime.UtcNow;
 
-        activity.Stop();
+        activity.SetStartTime(start);
+        activity.SetEndTime(start.AddSeconds(1));
+
         var instanaSpan = new InstanaSpan();
 
         // Act
