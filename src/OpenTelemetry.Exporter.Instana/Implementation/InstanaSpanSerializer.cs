@@ -6,6 +6,8 @@ using System.Globalization;
 
 namespace OpenTelemetry.Exporter.Instana.Implementation;
 
+// TODO Use a proper JSON serializer that encodes strings safely.
+
 internal static class InstanaSpanSerializer
 {
     private const string Comma = ",";
@@ -50,9 +52,7 @@ internal static class InstanaSpanSerializer
 
         if (instanaSpan.Tp)
         {
-#pragma warning disable CA1308 // Normalize strings to uppercase
-            await AppendProperty(true.ToString().ToLowerInvariant(), "tp", writer).ConfigureAwait(false);
-#pragma warning restore CA1308 // Normalize strings to uppercase
+            await AppendProperty("true", "tp", writer).ConfigureAwait(false);
             await writer.WriteAsync(Comma).ConfigureAwait(false);
         }
 
@@ -188,9 +188,8 @@ internal static class InstanaSpanSerializer
             }
             catch (InvalidOperationException)
             {
-                // if the collection gets modified while serializing, we might get a collision.
-                // There is no good way of preventing this and continuing normally except locking
-                // which needs investigation
+                // If the collection gets modified while serializing, we might get a collision.
+                // There is no good way of preventing this and continuing normally except locking.
             }
         }
 
@@ -198,7 +197,7 @@ internal static class InstanaSpanSerializer
         {
             await writer.WriteAsync(Comma).ConfigureAwait(false);
 
-            // serialize tags
+            // Serialize tags
             await AppendObjectAsync(SerializeTagsAsync, InstanaExporterConstants.TagsField, instanaSpan, writer).ConfigureAwait(false);
         }
 
@@ -206,7 +205,7 @@ internal static class InstanaSpanSerializer
         {
             await writer.WriteAsync(Comma).ConfigureAwait(false);
 
-            // serialize tags
+            // Serialize events
             await AppendObjectAsync(SerializeEventsAsync, InstanaExporterConstants.EventsField, instanaSpan, writer).ConfigureAwait(false);
         }
 
@@ -264,9 +263,8 @@ internal static class InstanaSpanSerializer
         }
         catch (InvalidOperationException)
         {
-            // if the collection gets modified while serializing, we might get a collision.
-            // There is no good way of preventing this and continuing normally except locking
-            // which needs investigation
+            // If the collection gets modified while serializing, we might get a collision.
+            // There is no good way of preventing this and continuing normally except locking.
         }
     }
 }
