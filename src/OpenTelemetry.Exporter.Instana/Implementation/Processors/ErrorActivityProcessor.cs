@@ -14,12 +14,12 @@ internal sealed class ErrorActivityProcessor : ActivityProcessorBase
         if (activity.Status == ActivityStatusCode.Error)
         {
             instanaSpan.Ec = 1;
-            if (instanaSpan.Data.data != null)
+            if (instanaSpan.Data.Values != null)
             {
-                instanaSpan.Data.data[InstanaExporterConstants.ERROR_FIELD] = activity.Status.ToString();
+                instanaSpan.Data.Values[InstanaExporterConstants.ErrorField] = activity.Status.ToString();
                 if (activity.StatusDescription != null && !string.IsNullOrEmpty(activity.StatusDescription))
                 {
-                    instanaSpan.Data.data[InstanaExporterConstants.ERROR_DETAIL_FIELD] = activity.StatusDescription;
+                    instanaSpan.Data.Values[InstanaExporterConstants.ErrorDetailField] = activity.StatusDescription;
                 }
             }
         }

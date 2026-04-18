@@ -32,7 +32,7 @@ public class DefaultActivityProcessorTests
         Assert.True(instanaSpan.D > 0);
         Assert.True(instanaSpan.Ts > 0);
         Assert.NotNull(instanaSpan.Data);
-        Assert.NotNull(instanaSpan.Data.data);
-        Assert.Contains(instanaSpan.Data.data, filter: x => x.Key == "kind" && x.Value.Equals("internal"));
+        Assert.NotNull(instanaSpan.Data.Values);
+        Assert.Contains(instanaSpan.Data.Values, filter: x => x.Key == "kind" && x.Value.Equals("internal"));
     }
 }

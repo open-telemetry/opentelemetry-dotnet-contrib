@@ -25,9 +25,9 @@ public class ErrorActivityProcessorTests
         // Assert
         Assert.Equal(1, instanaSpan.Ec);
         Assert.NotNull(instanaSpan.Data);
-        Assert.NotNull(instanaSpan.Data.data);
-        Assert.Equal("Error", instanaSpan.Data.data[InstanaExporterConstants.ERROR_FIELD]);
-        Assert.Equal("TestErrorDesc", instanaSpan.Data.data[InstanaExporterConstants.ERROR_DETAIL_FIELD]);
+        Assert.NotNull(instanaSpan.Data.Values);
+        Assert.Equal("Error", instanaSpan.Data.Values[InstanaExporterConstants.ErrorField]);
+        Assert.Equal("TestErrorDesc", instanaSpan.Data.Values[InstanaExporterConstants.ErrorDetailField]);
     }
 
     [Fact]

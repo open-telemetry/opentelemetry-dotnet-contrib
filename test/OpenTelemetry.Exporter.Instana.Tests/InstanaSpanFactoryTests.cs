@@ -16,7 +16,7 @@ public static class InstanaSpanFactoryTests
         Assert.NotNull(actual);
         Assert.NotNull(actual.TransformInfo);
         Assert.NotNull(actual.Data);
-        Assert.Empty(actual.Data.data);
+        Assert.Empty(actual.Data.Values);
         Assert.Empty(actual.Data.Tags);
         Assert.Empty(actual.Data.Events);
     }

@@ -11,7 +11,7 @@ internal sealed class DefaultActivityProcessor : ActivityProcessorBase
     {
         this.PreProcess(activity, instanaSpan);
 
-        instanaSpan.N = InstanaExporterConstants.OTEL_SPAN_TYPE;
+        instanaSpan.N = InstanaExporterConstants.OpenTelemetrySpanType;
 
         var traceId = activity.TraceId.ToHexString();
         if (traceId.Length == 32)
@@ -90,26 +90,26 @@ internal sealed class DefaultActivityProcessor : ActivityProcessorBase
     {
         var isEntrySpan = false;
 
-        if (instanaSpan.Data.data != null)
+        if (instanaSpan.Data.Values != null)
         {
             switch (activity.Kind)
             {
                 case ActivityKind.Server:
                     isEntrySpan = true;
-                    instanaSpan.Data.data[InstanaExporterConstants.KIND_FIELD] = InstanaExporterConstants.SERVER_KIND;
+                    instanaSpan.Data.Values[InstanaExporterConstants.KindField] = InstanaExporterConstants.ServerKind;
                     break;
                 case ActivityKind.Client:
-                    instanaSpan.Data.data[InstanaExporterConstants.KIND_FIELD] = InstanaExporterConstants.CLIENT_KIND;
+                    instanaSpan.Data.Values[InstanaExporterConstants.KindField] = InstanaExporterConstants.ClientKind;
                     break;
                 case ActivityKind.Producer:
-                    instanaSpan.Data.data[InstanaExporterConstants.KIND_FIELD] = InstanaExporterConstants.PRODUCER_KIND;
+                    instanaSpan.Data.Values[InstanaExporterConstants.KindField] = InstanaExporterConstants.ProducerKind;
                     break;
                 case ActivityKind.Consumer:
                     isEntrySpan = true;
-                    instanaSpan.Data.data[InstanaExporterConstants.KIND_FIELD] = InstanaExporterConstants.CONSUMER_KIND;
+                    instanaSpan.Data.Values[InstanaExporterConstants.KindField] = InstanaExporterConstants.ConsumerKind;
                     break;
                 case ActivityKind.Internal:
-                    instanaSpan.Data.data[InstanaExporterConstants.KIND_FIELD] = InstanaExporterConstants.INTERNAL_KIND;
+                    instanaSpan.Data.Values[InstanaExporterConstants.KindField] = InstanaExporterConstants.InternalKind;
                     break;
                 default:
                     break;

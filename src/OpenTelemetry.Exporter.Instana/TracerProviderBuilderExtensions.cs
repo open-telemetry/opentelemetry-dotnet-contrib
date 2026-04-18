@@ -53,18 +53,18 @@ public static class TracerProviderBuilderExtensions
     private static void ConfigureFromEnvironment(InstanaExporterOptions options)
     {
         if (options.EndpointUri is null &&
-            Environment.GetEnvironmentVariable(InstanaExporterConstants.ENVVAR_INSTANA_ENDPOINT_URL) is { Length: > 0 } endpointUrl)
+            Environment.GetEnvironmentVariable(InstanaExporterConstants.InstanaEndpointUrl) is { Length: > 0 } endpointUrl)
         {
             options.EndpointUri = new Uri(endpointUrl, UriKind.Absolute);
         }
 
         if (string.IsNullOrEmpty(options.AgentKey) &&
-            Environment.GetEnvironmentVariable(InstanaExporterConstants.ENVVAR_INSTANA_AGENT_KEY) is { Length: > 0 } agentKey)
+            Environment.GetEnvironmentVariable(InstanaExporterConstants.InstanaAgentKey) is { Length: > 0 } agentKey)
         {
             options.AgentKey = agentKey;
         }
 
-        if (Environment.GetEnvironmentVariable(InstanaExporterConstants.ENVVAR_INSTANA_TIMEOUT) is { Length: > 0 } timeout &&
+        if (Environment.GetEnvironmentVariable(InstanaExporterConstants.InstanaTimeout) is { Length: > 0 } timeout &&
             int.TryParse(timeout, NumberStyles.Integer, CultureInfo.InvariantCulture, out var timeoutMilliseconds))
         {
             options.BatchExportProcessorOptions.ExporterTimeoutMilliseconds = timeoutMilliseconds;

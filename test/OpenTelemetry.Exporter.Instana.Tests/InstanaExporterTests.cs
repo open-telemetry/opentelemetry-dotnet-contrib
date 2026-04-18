@@ -124,9 +124,9 @@ public class InstanaExporterTests
         var instanaSpan = Assert.Single(spans);
 
         Assert.NotNull(instanaSpan);
-        Assert.Equal("serviceName", instanaSpan.Data.data["service"]);
-        Assert.Equal("testOperationName", instanaSpan.Data.data["operation"]);
-        Assert.Equal("TraceStateString", instanaSpan.Data.data["trace_state"]);
+        Assert.Equal("serviceName", instanaSpan.Data.Values["service"]);
+        Assert.Equal("testOperationName", instanaSpan.Data.Values["operation"]);
+        Assert.Equal("TraceStateString", instanaSpan.Data.Values["trace_state"]);
 
 #if NETFRAMEWORK
         using var process = Process.GetCurrentProcess();
@@ -251,8 +251,8 @@ public class InstanaExporterTests
         var instanaSpan = Assert.Single(spans);
 
         Assert.NotNull(instanaSpan);
-        Assert.Equal("serviceName", instanaSpan.Data.data["service"]);
-        Assert.Equal("testOperationName", instanaSpan.Data.data["operation"]);
+        Assert.Equal("serviceName", instanaSpan.Data.Values["service"]);
+        Assert.Equal("testOperationName", instanaSpan.Data.Values["operation"]);
 
 #if NETFRAMEWORK
         using var process = Process.GetCurrentProcess();

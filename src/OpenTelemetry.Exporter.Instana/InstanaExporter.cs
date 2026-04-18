@@ -152,16 +152,16 @@ internal sealed class InstanaExporter : BaseExporter<Activity>
 
         this.activityProcessor.Process(activity, instanaSpan);
 
-        if (serviceName != null && !string.IsNullOrEmpty(serviceName) && instanaSpan.Data.data != null)
+        if (serviceName != null && !string.IsNullOrEmpty(serviceName) && instanaSpan.Data.Values != null)
         {
-            instanaSpan.Data.data[InstanaExporterConstants.SERVICE_FIELD] = serviceName;
+            instanaSpan.Data.Values[InstanaExporterConstants.ServiceField] = serviceName;
         }
 
-        instanaSpan.Data.data?[InstanaExporterConstants.OPERATION_FIELD] = activity.DisplayName;
+        instanaSpan.Data.Values?[InstanaExporterConstants.OperationField] = activity.DisplayName;
 
-        if (activity.TraceStateString != null && !string.IsNullOrEmpty(activity.TraceStateString) && instanaSpan.Data.data != null)
+        if (activity.TraceStateString != null && !string.IsNullOrEmpty(activity.TraceStateString) && instanaSpan.Data.Values != null)
         {
-            instanaSpan.Data.data[InstanaExporterConstants.TRACE_STATE_FIELD] = activity.TraceStateString;
+            instanaSpan.Data.Values[InstanaExporterConstants.TraceStateField] = activity.TraceStateString;
         }
 
         if (from != null)

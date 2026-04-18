@@ -29,7 +29,7 @@ internal sealed class InstanaSpan
         this.K = SpanKind.NOT_SET;
         this.Data = new Data
         {
-            data = new Dictionary<string, object>(8),
+            Values = new Dictionary<string, object>(8),
             Events = new(8),
             Tags = new Dictionary<string, string>(2),
         };
@@ -186,12 +186,11 @@ internal sealed class Data
     public Data()
     {
         this.Events = new(8);
-        this.data = new(8);
+        this.Values = new(8);
         this.Tags = new(2);
     }
 
-#pragma warning disable SA1300 // Element should begin with upper-case letter
-    public Dictionary<string, object> data
+    public Dictionary<string, object> Values
     {
         get => field;
         set
@@ -200,7 +199,6 @@ internal sealed class Data
             field = value;
         }
     }
-#pragma warning restore SA1300 // Element should begin with upper-case letter
 
     public Dictionary<string, string> Tags
     {

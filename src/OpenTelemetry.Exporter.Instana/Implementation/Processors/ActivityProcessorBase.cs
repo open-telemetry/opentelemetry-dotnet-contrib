@@ -18,7 +18,7 @@ internal abstract class ActivityProcessorBase : IActivityProcessor
 
         instanaSpan.Data ??= new Data()
         {
-            data = [],
+            Values = [],
             Events = new(8),
             Tags = [],
         };

@@ -9,7 +9,7 @@ internal static class InstanaSpanFactory
     {
         Data = new Data()
         {
-            data = [],
+            Values = [],
             Tags = [],
             Events = new(8),
         },

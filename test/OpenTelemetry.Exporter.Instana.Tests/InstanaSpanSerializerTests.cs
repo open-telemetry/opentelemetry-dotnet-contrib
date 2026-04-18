@@ -24,7 +24,7 @@ public static class InstanaSpanSerializerTests
         instanaOtelSpan.Lt = "hexNumberLT1234567890123";
         instanaOtelSpan.Tp = true;
         instanaOtelSpan.Data.Tags = new Dictionary<string, string> { ["tag1Key"] = "tag1Vale", ["tag2Key"] = "tag2Vale" };
-        instanaOtelSpan.Data.data = new Dictionary<string, object> { ["data1Key"] = "data1Vale", ["data2Key"] = "data2Vale" };
+        instanaOtelSpan.Data.Values = new Dictionary<string, object> { ["data1Key"] = "data1Vale", ["data2Key"] = "data2Vale" };
         instanaOtelSpan.Data.Events =
         [
             new()
@@ -77,8 +77,8 @@ public static class InstanaSpanSerializerTests
         Assert.Equal(instanaOtelSpan.Data.Tags["tag1Key"], span.Data.Tags["tag1Key"]);
         Assert.Equal(instanaOtelSpan.Data.Tags["tag2Key"], span.Data.Tags["tag2Key"]);
         Assert.NotNull(span.Data.data);
-        Assert.Equal(instanaOtelSpan.Data.data["data1Key"], span.Data.data["data1Key"]);
-        Assert.Equal(instanaOtelSpan.Data.data["data2Key"], span.Data.data["data2Key"]);
+        Assert.Equal(instanaOtelSpan.Data.Values["data1Key"], span.Data.data["data1Key"]);
+        Assert.Equal(instanaOtelSpan.Data.Values["data2Key"], span.Data.data["data2Key"]);
         Assert.NotNull(span.Data.Events);
         var event0 = span.Data.Events[0];
         Assert.Equal(instanaOtelSpan.Data.Events[0].Name, event0.Name);
