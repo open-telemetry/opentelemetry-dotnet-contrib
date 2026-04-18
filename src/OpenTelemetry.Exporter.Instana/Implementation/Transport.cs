@@ -112,11 +112,9 @@ internal sealed class Transport : IDisposable
 #pragma warning disable CA2000 // Dispose objects before losing scope
         var handler = new HttpClientHandler()
         {
-#pragma warning disable CA5399 // .NET Framework does not support CheckCertificateRevocationList
 #if !NETFRAMEWORK
             CheckCertificateRevocationList = true,
 #endif
-#pragma warning restore CA5399 // .NET Framework does not support CheckCertificateRevocationList
         };
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
@@ -126,7 +124,9 @@ internal sealed class Transport : IDisposable
             handler.UseProxy = true;
         }
 
+#pragma warning disable CA5399 // .NET Framework does not support CheckCertificateRevocationList
         var client = new HttpClient(handler, disposeHandler: true);
+#pragma warning restore CA5399 // .NET Framework does not support CheckCertificateRevocationList
 
         try
         {
