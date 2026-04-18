@@ -6,7 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETFramework'">
-    <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="System.Text.Json" />
   </ItemGroup>
 
