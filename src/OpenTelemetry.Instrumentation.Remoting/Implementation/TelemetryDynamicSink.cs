@@ -283,12 +283,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
     private static IEnumerable<string> ExtractActivityProperties(LogicalCallContext ctx, string key)
     {
         var data = ctx.GetData(key);
-        if (data != null)
-        {
-            return new[] { (string)data };
-        }
-
-        return Enumerable.Empty<string>();
+        return data != null ? [(string)data] : [];
     }
 
     private ActivityTagsCollection BuildSamplingTags(IMethodMessage msg)

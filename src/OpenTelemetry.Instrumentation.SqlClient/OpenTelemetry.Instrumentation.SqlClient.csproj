@@ -15,6 +15,10 @@
     <IsAotCompatible>false</IsAotCompatible>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <DefineConstants>$(DefineConstants);INCLUDE_SQL_QUERY_PARSER</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Include="$(RepoRoot)\src\Shared\ActivitySourceFactory.cs" Link="Includes\ActivitySourceFactory.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\AssemblyVersionExtensions.cs" Link="Includes\AssemblyVersionExtensions.cs" />

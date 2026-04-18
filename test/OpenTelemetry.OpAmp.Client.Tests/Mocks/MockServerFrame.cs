@@ -9,7 +9,7 @@ internal class MockServerFrame
 
     public bool HasHeader { get; set; }
 
-    public string? ExptectedContent { get; set; }
+    public string? ExpectedContent { get; set; }
 
     public int Size { get; internal set; }
 }

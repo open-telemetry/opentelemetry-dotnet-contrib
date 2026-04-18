@@ -39,6 +39,6 @@ jobs:
       version: ${{ matrix.version }}
       test-filter: OneCollectorIntegrationTests
       env-var-name: OTEL_ONECOLLECTOR_INSTRUMENTATION_KEY
-      checkout-ref: refs/pull/${{ github.event.pull_request.number }}/merge
+      checkout-ref: ${{ github.event.pull_request.merge_commit_sha || github.event.pull_request.head.sha }}
     secrets:
       instrumentation-key: ${{ secrets.OTEL_ONECOLLECTOR_INSTRUMENTATION_KEY }}

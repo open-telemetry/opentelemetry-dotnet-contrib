@@ -67,22 +67,19 @@ internal sealed partial class AWSECSDetector : IResourceDetector
 
     internal static string? GetECSContainerId(string path)
     {
-        string? containerId = null;
+        using var streamReader = ResourceDetectorUtils.GetStreamReader(path);
+        string? line = null;
 
-        using (var streamReader = ResourceDetectorUtils.GetStreamReader(path))
+        while ((line = streamReader.ReadLine()) is not null)
         {
-            while (!streamReader.EndOfStream)
+            var trimmedLine = line.Trim();
+            if (trimmedLine.Length > 64)
             {
-                var trimmedLine = streamReader.ReadLine()?.Trim();
-                if (trimmedLine?.Length > 64)
-                {
-                    containerId = trimmedLine.Substring(trimmedLine.Length - 64);
-                    return containerId;
-                }
+                return trimmedLine.Substring(trimmedLine.Length - 64);
             }
         }
 
-        return containerId;
+        return null;
     }
 
     internal static bool IsECSProcess() =>
@@ -100,10 +97,8 @@ internal sealed partial class AWSECSDetector : IResourceDetector
         using var scope = SuppressInstrumentationScope.Begin();
         using var httpClientHandler = new HttpClientHandler();
 
-#pragma warning disable CA2025 // Do not pass 'IDisposable' instances into unawaited tasks
-        var metadataV4ContainerResponse = AsyncHelper.RunSync(() => ResourceDetectorUtils.SendOutRequestAsync(metadataV4Url, HttpMethod.Get, null, httpClientHandler));
-        var metadataV4TaskResponse = AsyncHelper.RunSync(() => ResourceDetectorUtils.SendOutRequestAsync($"{metadataV4Url.TrimEnd('/')}/task", HttpMethod.Get, null, httpClientHandler));
-#pragma warning restore CA2025 // Do not pass 'IDisposable' instances into unawaited tasks
+        var metadataV4ContainerResponse = ResourceDetectorUtils.SendOutRequest(metadataV4Url, HttpMethod.Get, null, httpClientHandler);
+        var metadataV4TaskResponse = ResourceDetectorUtils.SendOutRequest($"{metadataV4Url.TrimEnd('/')}/task", HttpMethod.Get, null, httpClientHandler);
 
         using var containerResponse = JsonDocument.Parse(metadataV4ContainerResponse);
         using var taskResponse = JsonDocument.Parse(metadataV4TaskResponse);
