@@ -42,25 +42,28 @@ internal sealed class PlainHttpTransport : IOpAmpTransport, IDisposable
         byteContent.Headers.Add(HeaderContentType, "application/x-protobuf");
         byteContent.Headers.Add(HeaderOpAmpInstanceUUID, this.settings.InstanceUid.ToString());
 
-        var response = await this.httpClient
-            .PostAsync(this.uri, byteContent, cancellationToken: token)
+        using var request = new HttpRequestMessage(HttpMethod.Post, this.uri)
+        {
+            Content = byteContent,
+        };
+
+        // ResponseHeadersRead prevents HttpClient from buffering the entire response body
+        // before we can enforce the transport size limit.
+        using var response = await this.httpClient
+            .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token)
             .ConfigureAwait(false);
 
         response.EnsureSuccessStatusCode();
 
-        var responseMessage = await response.Content
-#if NET
-            .ReadAsByteArrayAsync(token)
-#else
-            .ReadAsByteArrayAsync()
-#endif
-            .ConfigureAwait(false);
+        var responseMessage = await HttpClientHelpers.GetResponseBodyAsByteArrayAsync(
+            TransportConstants.MaxMessageSize,
+            response,
+            token).ConfigureAwait(false);
+
+        OpAmpClientEventSource.Log.HttpResponseBytesReceived(responseMessage.Length);
 
         this.processor.OnServerFrame(responseMessage.AsSequence());
     }
 
-    public void Dispose()
-    {
-        this.httpClient?.Dispose();
-    }
+    public void Dispose() => this.httpClient?.Dispose();
 }

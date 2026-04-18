@@ -153,6 +153,21 @@ public static class SqlProcessorTests
     }
 
     [Property(MaxTest = MaxValue)]
+    public static void GetSanitizedSql_SqlStatement_AlignedToArrayPoolBuckets_DoesNotThrow(PositiveInt seed)
+    {
+        // Choose statement lengths that align with common ArrayPool buckets. Before the fix,
+        // these lengths can make the initial summary slice exactly as long as the SQL text.
+        var sqlLength = 1 << ((seed.Get % 5) + 4);
+        var prefix = "CREATE TABLE ";
+        var identifier = new string('X', sqlLength - prefix.Length);
+        var sql = prefix + identifier;
+
+        var exception = Record.Exception(() => SqlProcessor.GetSanitizedSql(sql));
+
+        Assert.Null(exception);
+    }
+
+    [Property(MaxTest = MaxValue)]
     public static void GetSanitizedSql_In_Clause_Optimizes_Sanitization(PositiveInt input)
     {
         // Arrange

@@ -103,10 +103,10 @@ internal sealed class HttpJsonPostTransport : ITransport, IDisposable
                 request.Headers.TryAddWithoutValidation("NoResponseBody", "true");
             }
 
-            using var response = this.httpClient.Send(
-                request,
-                infoLoggingEnabled ? HttpCompletionOption.ResponseContentRead : HttpCompletionOption.ResponseHeadersRead,
-                CancellationToken.None);
+            var cancellationToken = CancellationToken.None;
+            var completionOption = HttpCompletionOption.ResponseHeadersRead;
+
+            using var response = this.httpClient.Send(request, completionOption, cancellationToken);
 
             if (response.IsSuccessStatusCode)
             {
@@ -130,11 +130,14 @@ internal sealed class HttpJsonPostTransport : ITransport, IDisposable
             }
             else
             {
-                response.Headers.TryGetValues("Collector-Error", out var collectorErrors);
+                _ = response.Headers.TryGetValues("Collector-Error", out var collectorErrors);
 
-                var errorDetails = infoLoggingEnabled
-                    ? response.Content.ReadAsStringAsync().GetAwaiter().GetResult()
-                    : null;
+                string? errorDetails = null;
+
+                if (infoLoggingEnabled)
+                {
+                    errorDetails = HttpClientHelpers.TryGetResponseBodyAsString(response, cancellationToken);
+                }
 
                 OneCollectorExporterEventSource.Log.WriteHttpTransportErrorResponseReceivedEventIfEnabled(
                     this.Description,
