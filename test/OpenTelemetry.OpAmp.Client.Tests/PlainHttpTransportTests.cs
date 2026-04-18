@@ -315,7 +315,7 @@ public class PlainHttpTransportTests
 
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => httpTransport.SendAsync(mockFrame.Frame, CancellationToken.None));
+            () => httpTransport.SendAsync(mockFrame.Frame, cts.Token));
     }
 
     [Fact]

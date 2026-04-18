@@ -338,6 +338,83 @@ public class WsTransportTest
     }
 
     [Fact]
+    public async Task WsTransport_StartAsync_WhenCanceled_ThrowsAndTransitionsToPermanentlyFailed()
+    {
+        // Use a URI that accepts the TCP connection but never completes the WebSocket handshake
+        // so that ConnectAsync is still in-flight when we cancel.
+        var tcpListener = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Loopback, 0);
+        Task acceptTask = Task.CompletedTask;
+        try
+        {
+            tcpListener.Start();
+            var port = ((System.Net.IPEndPoint)tcpListener.LocalEndpoint).Port;
+            var hangingUri = new Uri($"ws://127.0.0.1:{port}");
+
+            // Accept the TCP connection to prevent an immediate connection-refused, then do nothing
+            // so the WebSocket handshake never completes. Dispose the accepted client promptly
+            // to avoid unobserved-task noise when the listener stops.
+            acceptTask = tcpListener.AcceptTcpClientAsync().ContinueWith(
+                t =>
+                {
+                    if (t.Status == TaskStatus.RanToCompletion)
+                    {
+                        t.Result.Dispose();
+                    }
+                },
+                TaskContinuationOptions.ExecuteSynchronously);
+
+            var settings = new OpAmpClientSettings
+            {
+                ConnectionType = ConnectionType.WebSocket,
+                ServerUrl = hangingUri,
+            };
+            using var wsTransport = new WsTransport(settings, new FrameProcessor());
+
+            using var cts = new CancellationTokenSource();
+            var startTask = wsTransport.StartAsync(cts.Token);
+            cts.Cancel();
+
+            // .NET Framework throws WebSocketException instead of OperationCanceledException on cancellation.
+            var startException = await Record.ExceptionAsync(() => startTask);
+            Assert.True(
+                startException is OperationCanceledException || startException is WebSocketException,
+                $"Expected OperationCanceledException or WebSocketException, but got: {startException?.GetType().Name ?? "null"}");
+
+            // After a canceled start the transport is permanently failed; a second call must
+            // throw InvalidOperationException (not OperationCanceledException).
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => wsTransport.StartAsync(CancellationToken.None));
+            Assert.Contains("permanently failed", ex.Message, StringComparison.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            tcpListener.Stop();
+            await acceptTask;
+        }
+    }
+
+    [Fact]
+    public async Task WsTransport_AfterFailedStart_SecondStartThrowsPermanentlyFailed()
+    {
+        // Port 1 is reserved/unreachable on all platforms — ConnectAsync fails immediately.
+        var settings = new OpAmpClientSettings
+        {
+            ConnectionType = ConnectionType.WebSocket,
+            ServerUrl = new Uri("ws://127.0.0.1:1"),
+        };
+        using var wsTransport = new WsTransport(settings, new FrameProcessor());
+
+        // First call: ConnectAsync fails (connection refused or similar).
+        await Assert.ThrowsAnyAsync<Exception>(() => wsTransport.StartAsync(CancellationToken.None));
+
+        // Second call: must throw InvalidOperationException with the "permanently failed" message,
+        // not the "already started" message.
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => wsTransport.StartAsync(CancellationToken.None));
+        Assert.Contains("permanently failed", ex.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public async Task WsTransport_MethodsThrowAfterDispose()
     {
         var settings = new OpAmpClientSettings

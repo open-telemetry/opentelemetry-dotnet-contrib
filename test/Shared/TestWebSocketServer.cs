@@ -91,8 +91,18 @@ internal static class TestWebSocketServer
 
         private bool IsListenerShutdownException(Exception ex)
         {
+            // Win32 error codes surfaced by HttpListener when the listener is closed while
+            // GetContextAsync is pending:
+            //   995 ERROR_OPERATION_ABORTED – normal abort when the listener is stopped
+            //   6   ERROR_INVALID_HANDLE    – listener handle was already closed
+            //   1   ERROR_INVALID_FUNCTION  – .NET Framework raises this instead of 995 for WebSocket
+            //                                 contexts; guarded by !IsListening to avoid swallowing a
+            //                                 genuine failure that happens to surface as code 1
             return ex is ObjectDisposedException
-                || (ex is HttpListenerException httpEx && (httpEx.ErrorCode == 995 || httpEx.ErrorCode == 6))
+                || (ex is HttpListenerException httpEx
+                    && (httpEx.ErrorCode == 995
+                        || httpEx.ErrorCode == 6
+                        || (httpEx.ErrorCode == 1 && !this.listener.IsListening)))
                 || (ex is InvalidOperationException && !this.listener.IsListening);
         }
 
