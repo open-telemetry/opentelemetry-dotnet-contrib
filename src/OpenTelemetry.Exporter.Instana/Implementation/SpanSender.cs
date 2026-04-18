@@ -2,45 +2,77 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Collections.Concurrent;
+using System.Diagnostics;
 
 namespace OpenTelemetry.Exporter.Instana.Implementation;
 
-#pragma warning disable CA1001 // Types that own disposable fields should be disposable
-internal sealed class SpanSender : ISpanSender
-#pragma warning restore CA1001 // Types that own disposable fields should be disposable
+internal sealed class SpanSender : IDisposable, ISpanSender
 {
-    private readonly Task queueSenderTask;
-    private readonly ConcurrentQueue<InstanaSpan> spansQueue = new();
+    private readonly CancellationTokenSource cancellationTokenSource;
+    private readonly BatchExportProcessorOptions<Activity> options;
+    private readonly ConcurrentQueue<InstanaSpan> queue;
+    private readonly Transport transport;
 
-    public SpanSender()
+    public SpanSender(InstanaExporterOptions options)
     {
-        // create a task that will send a batch of spans every second at least
-        this.queueSenderTask = new Task(this.TaskSpanSender, TaskCreationOptions.LongRunning);
-        this.queueSenderTask.Start();
+        this.options = options.BatchExportProcessorOptions;
+        this.queue = new();
+        this.cancellationTokenSource = new();
+        this.transport = new Transport(options);
+
+        Task.Factory.StartNew(this.ProcessingLoop, this.cancellationTokenSource.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
     }
 
-    public void Enqueue(InstanaSpan instanaSpan)
+    public void Dispose()
     {
-        if (Transport.IsAvailable)
+        if (this.cancellationTokenSource != null)
         {
-            this.spansQueue.Enqueue(instanaSpan);
+            this.cancellationTokenSource.Cancel();
+            this.cancellationTokenSource.Dispose();
         }
+
+        this.transport?.Dispose();
+
+        GC.SuppressFinalize(this);
     }
 
-    private async void TaskSpanSender()
+    public bool Enqueue(InstanaSpan instanaSpan)
     {
-        // this will be an infinite loop
-        while (true)
+        if (this.queue.Count < this.options.MaxQueueSize)
         {
-            // check if we can send spans
-            if (this.spansQueue.TryPeek(out var _))
-            {
-                // actually send spans
-                await Transport.SendSpansAsync(this.spansQueue).ConfigureAwait(false);
-            }
+            this.queue.Enqueue(instanaSpan);
+            return true;
+        }
 
-            // rest for a while
-            await Task.Delay(1000).ConfigureAwait(false);
+        return false;
+    }
+
+    private async Task ProcessingLoop()
+    {
+        var delay = this.options.ScheduledDelayMilliseconds;
+
+        try
+        {
+            while (!this.cancellationTokenSource.IsCancellationRequested)
+            {
+                if (!this.queue.IsEmpty)
+                {
+                    try
+                    {
+                        await this.transport.SendAsync(this.queue, this.cancellationTokenSource.Token).ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        InstanaExporterEventSource.Log.FailedExport(ex);
+                    }
+                }
+
+                await Task.Delay(delay, this.cancellationTokenSource.Token).ConfigureAwait(false);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Processing cancelled
         }
     }
 }

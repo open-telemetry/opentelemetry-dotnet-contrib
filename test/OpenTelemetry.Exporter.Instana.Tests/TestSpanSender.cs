@@ -9,8 +9,9 @@ internal class TestSpanSender : ISpanSender
 {
     public Action<InstanaSpan>? OnEnqueue { get; set; }
 
-    public void Enqueue(InstanaSpan instanaSpan)
+    public bool Enqueue(InstanaSpan instanaSpan)
     {
         this.OnEnqueue?.Invoke(instanaSpan);
+        return true;
     }
 }

@@ -5,177 +5,168 @@ using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Instana.Implementation;
 
+#pragma warning disable SA1402 // File may only contain a single type
+
 internal enum SpanKind
 {
-#pragma warning disable SA1602 // Enumeration items should be documented
     ENTRY,
-#pragma warning restore SA1602 // Enumeration items should be documented
-#pragma warning disable SA1602 // Enumeration items should be documented
     EXIT,
-#pragma warning restore SA1602 // Enumeration items should be documented
-#pragma warning disable SA1602 // Enumeration items should be documented
     INTERMEDIATE,
-#pragma warning restore SA1602 // Enumeration items should be documented
-#pragma warning disable SA1602 // Enumeration items should be documented
     NOT_SET,
-#pragma warning restore SA1602 // Enumeration items should be documented
 }
 
-internal class InstanaSpan
+internal sealed class InstanaSpan
 {
-    private InstanaSpanTransformInfo transformInfo = new();
-    private string n = string.Empty;
-    private string t = string.Empty;
-    private string lt = string.Empty;
-    private From f = new();
-    private string p = string.Empty;
-    private string s = string.Empty;
-    private SpanKind k = SpanKind.NOT_SET;
-    private long ts;
-    private long d;
-    private bool tp;
-    private int ec;
-    private Data data = new()
+    public InstanaSpan()
     {
-        data = new Dictionary<string, object>(8),
-        Events = new List<SpanEvent>(8),
-        Tags = new Dictionary<string, string>(2),
-    };
+        this.TransformInfo = new();
+        this.N = string.Empty;
+        this.T = string.Empty;
+        this.Lt = string.Empty;
+        this.F = new();
+        this.P = string.Empty;
+        this.S = string.Empty;
+        this.K = SpanKind.NOT_SET;
+        this.Data = new Data
+        {
+            data = new Dictionary<string, object>(8),
+            Events = new(8),
+            Tags = new Dictionary<string, string>(2),
+        };
+    }
 
     public InstanaSpanTransformInfo TransformInfo
     {
-        get => this.transformInfo;
+        get => field;
         set
         {
             Guard.ThrowIfNull(value);
-            this.transformInfo = value;
+            field = value;
         }
     }
 
     public string N
     {
-        get => this.n;
-        internal set
+        get => field;
+        set
         {
             Guard.ThrowIfNull(value);
-            this.n = value;
+            field = value;
         }
     }
 
     public string T
     {
-        get => this.t;
-        internal set
+        get => field;
+        set
         {
             Guard.ThrowIfNull(value);
-            this.t = value;
+            field = value;
         }
     }
 
     public string Lt
     {
-        get => this.lt;
-        internal set
+        get => field;
+        set
         {
             Guard.ThrowIfNull(value);
-            this.lt = value;
+            field = value;
         }
     }
 
     public From F
     {
-        get => this.f;
+        get => field;
         set
         {
             Guard.ThrowIfNull(value);
-            this.f = value;
+            field = value;
         }
     }
 
     public string P
     {
-        get => this.p;
-        internal set
+        get => field;
+        set
         {
             Guard.ThrowIfNull(value);
-            this.p = value;
+            field = value;
         }
     }
 
     public string S
     {
-        get => this.s;
-        internal set
+        get => field;
+        set
         {
             Guard.ThrowIfNull(value);
-            this.s = value;
+            field = value;
         }
     }
 
     public SpanKind K
     {
-        get => this.k;
-        internal set
+        get => field;
+        set
         {
             Guard.ThrowIfNull(value);
-            this.k = value;
+            field = value;
         }
     }
 
     public Data Data
     {
-        get => this.data;
-        internal set
+        get => field;
+        set
         {
             Guard.ThrowIfNull(value);
-            this.data = value;
+            field = value;
         }
     }
 
     public long Ts
     {
-        get => this.ts;
-        internal set
+        get => field;
+        set
         {
             Guard.ThrowIfNull(value);
-            this.ts = value;
+            field = value;
         }
     }
 
     public long D
     {
-        get => this.d;
-        internal set
+        get => field;
+        set
         {
             Guard.ThrowIfNull(value);
-            this.d = value;
+            field = value;
         }
     }
 
     public bool Tp
     {
-        get => this.tp;
-        internal set
+        get => field;
+        set
         {
             Guard.ThrowIfNull(value);
-            this.tp = value;
+            field = value;
         }
     }
 
     public int Ec
     {
-        get => this.ec;
-        internal set
+        get => field;
+        set
         {
             Guard.ThrowIfNull(value);
-            this.ec = value;
+            field = value;
         }
     }
 }
 
-#pragma warning disable SA1402 // File may only contain a single type
-internal class From
-#pragma warning restore SA1402 // File may only contain a single type
+internal sealed class From
 {
     internal From()
     {
@@ -183,85 +174,82 @@ internal class From
         this.H = string.Empty;
     }
 
-    public string E { get; internal set; }
+    public string E { get; set; }
 
-    public string H { get; internal set; }
+    public string H { get; set; }
 
-    internal bool IsEmpty()
-    {
-        return string.IsNullOrEmpty(this.E) && string.IsNullOrEmpty(this.H);
-    }
+    internal bool IsEmpty() => string.IsNullOrEmpty(this.E) && string.IsNullOrEmpty(this.H);
 }
 
-#pragma warning disable SA1402 // File may only contain a single type
-internal class Data
-#pragma warning restore SA1402 // File may only contain a single type
+internal sealed class Data
 {
-    private List<SpanEvent> events = new(8);
-    private Dictionary<string, object> dataField = new(8);
-    private Dictionary<string, string> tags = new(2);
-
-#pragma warning disable SA1300 // Element should begin with upper-case letter
-
-    public Dictionary<string, object> data
+    public Data()
     {
-        get => this.dataField;
-        internal set
-        {
-            Guard.ThrowIfNull(value);
-            this.dataField = value;
-        }
+        this.Events = new(8);
+        this.data = new(8);
+        this.Tags = new(2);
     }
 
+#pragma warning disable SA1300 // Element should begin with upper-case letter
+    public Dictionary<string, object> data
+    {
+        get => field;
+        set
+        {
+            Guard.ThrowIfNull(value);
+            field = value;
+        }
+    }
 #pragma warning restore SA1300 // Element should begin with upper-case letter
 
     public Dictionary<string, string> Tags
     {
-        get => this.tags;
-        internal set
+        get => field;
+        set
         {
             Guard.ThrowIfNull(value);
-            this.tags = value;
+            field = value;
         }
     }
 
     public List<SpanEvent> Events
     {
-        get => this.events;
-        internal set
+        get => field;
+        set
         {
             Guard.ThrowIfNull(value);
-            this.events = value;
+            field = value;
         }
     }
 }
 
-#pragma warning disable SA1402 // File may only contain a single type
-internal class SpanEvent
-#pragma warning restore SA1402 // File may only contain a single type
+internal sealed class SpanEvent
 {
-    private string name = string.Empty;
-    private Dictionary<string, string> tags = [];
+    public SpanEvent()
+    {
+        this.Name = string.Empty;
+        this.Tags = [];
+    }
 
     public string Name
     {
-        get => this.name;
-        internal set
+        get => field;
+        set
         {
             Guard.ThrowIfNull(value);
-            this.name = value;
+            field = value;
         }
     }
 
-    public long Ts { get; internal set; }
+    public long Ts { get; set; }
 
     public Dictionary<string, string> Tags
     {
-        get => this.tags;
-        internal set
+        get => field;
+        set
         {
             Guard.ThrowIfNull(value);
-            this.tags = value;
+            field = value;
         }
     }
 }

@@ -18,6 +18,10 @@ public class InstanaExporterTests
     [Fact]
     public void Export()
     {
+        var options = new InstanaExporterOptions()
+        {
+        };
+
         this.instanaExporterHelper.Attributes.Clear();
         this.instanaExporterHelper.Attributes.Add("service.name", "serviceName");
         this.instanaExporterHelper.Attributes.Add("service.instance.id", "serviceInstanceId");
@@ -26,10 +30,9 @@ public class InstanaExporterTests
 
         this.spanSender.OnEnqueue = span => this.CloneSpan(span);
 
-        this.instanaExporter = new InstanaExporter(this.activityProcessor)
+        this.instanaExporter = new InstanaExporter(options, this.activityProcessor)
         {
-            InstanaExporterHelper = this.instanaExporterHelper,
-            SpanSender = this.spanSender,
+            Helper = this.instanaExporterHelper,
         };
 
         var activity = new Activity("testOperationName");
@@ -52,6 +55,10 @@ public class InstanaExporterTests
     [Fact]
     public void Export_ProcessPidDoesNotExistButServiceIdExists()
     {
+        var options = new InstanaExporterOptions()
+        {
+        };
+
         this.instanaExporterHelper.Attributes.Clear();
         this.instanaExporterHelper.Attributes.Add("service.name", "serviceName");
         this.instanaExporterHelper.Attributes.Add("service.instance.id", "serviceInstanceId");
@@ -59,10 +66,9 @@ public class InstanaExporterTests
 
         this.spanSender.OnEnqueue = span => this.CloneSpan(span);
 
-        this.instanaExporter = new InstanaExporter(this.activityProcessor)
+        this.instanaExporter = new InstanaExporter(options, this.activityProcessor)
         {
-            InstanaExporterHelper = this.instanaExporterHelper,
-            SpanSender = this.spanSender,
+            Helper = this.instanaExporterHelper,
         };
 
         var activity = new Activity("testOperationName");
@@ -81,12 +87,15 @@ public class InstanaExporterTests
     }
 
     [Fact]
-    public void Export_ExporterIsShotDown()
+    public void Export_ExporterIsShutDown()
     {
-        this.instanaExporter = new InstanaExporter(this.activityProcessor)
+        var options = new InstanaExporterOptions()
         {
-            InstanaExporterHelper = this.instanaExporterHelper,
-            SpanSender = this.spanSender,
+        };
+
+        this.instanaExporter = new InstanaExporter(options, this.activityProcessor)
+        {
+            Helper = this.instanaExporterHelper,
         };
 
         var activity = new Activity("testOperationName");

@@ -7,12 +7,12 @@ using OpenTelemetry.Exporter.Instana.Implementation.Processors;
 
 namespace OpenTelemetry.Exporter.Instana.Tests;
 
-internal class TestActivityProcessor : IActivityProcessor
+internal sealed class TestActivityProcessor : IActivityProcessor
 {
-    public IActivityProcessor? NextProcessor { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    public IActivityProcessor? NextProcessor { get; set; }
 
-    public Task ProcessAsync(Activity activity, InstanaSpan instanaSpan)
+    public void Process(Activity activity, InstanaSpan instanaSpan)
     {
-        return Task.CompletedTask;
+        // No-op
     }
 }

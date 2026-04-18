@@ -11,11 +11,15 @@ namespace OpenTelemetry.Exporter.Instana;
 
 internal sealed class InstanaExporter : BaseExporter<Activity>
 {
+    private readonly SpanSender sender;
     private readonly IActivityProcessor activityProcessor;
-    private bool shutdownCalled;
+    private readonly string? processId;
 
-    public InstanaExporter(IActivityProcessor? activityProcessor = null)
+    private int wasShutdown;
+
+    public InstanaExporter(InstanaExporterOptions options, IActivityProcessor? activityProcessor = null)
     {
+        this.sender = new SpanSender(options);
         this.activityProcessor = activityProcessor ?? new DefaultActivityProcessor
         {
             NextProcessor = new TagsActivityProcessor
@@ -23,23 +27,32 @@ internal sealed class InstanaExporter : BaseExporter<Activity>
                 NextProcessor = new EventsActivityProcessor { NextProcessor = new ErrorActivityProcessor() },
             },
         };
+
+        if (this.Helper.IsWindows())
+        {
+#if NET
+            this.processId = Environment.ProcessId.ToString(CultureInfo.InvariantCulture);
+#else
+            using var process = Process.GetCurrentProcess();
+            this.processId = process.Id.ToString(CultureInfo.InvariantCulture);
+#endif
+        }
     }
 
-    internal ISpanSender SpanSender { get; set; } = new SpanSender();
-
-    internal IInstanaExporterHelper InstanaExporterHelper { get; set; } = new InstanaExporterHelper();
+    internal IInstanaExporterHelper Helper { get; set; } = new InstanaExporterHelper();
 
     public override ExportResult Export(in Batch<Activity> batch)
     {
-        if (this.shutdownCalled)
+        if (this.wasShutdown is 1)
         {
             return ExportResult.Failure;
         }
 
         var from = new From();
-        if (this.InstanaExporterHelper.IsWindows())
+
+        if (this.processId != null)
         {
-            from = new From { E = Process.GetCurrentProcess().Id.ToString(CultureInfo.InvariantCulture) };
+            from.E = this.processId;
         }
 
         var serviceName = this.ExtractServiceName(ref from);
@@ -51,29 +64,24 @@ internal sealed class InstanaExporter : BaseExporter<Activity>
                 continue;
             }
 
-            var span = this.ParseActivityAsync(activity, serviceName, from).Result;
-            this.SpanSender.Enqueue(span);
+            var span = this.ParseActivity(activity, serviceName, from);
+
+            _ = this.sender.Enqueue(span);
         }
 
         return ExportResult.Success;
     }
 
-    protected override bool OnShutdown(int timeoutMilliseconds)
+    protected override void Dispose(bool disposing)
     {
-        if (!this.shutdownCalled)
-        {
-            this.shutdownCalled = true;
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        this.sender?.Dispose();
+        base.Dispose(disposing);
     }
 
-    protected override bool OnForceFlush(int timeoutMilliseconds)
+    protected override bool OnShutdown(int timeoutMilliseconds)
     {
-        return base.OnForceFlush(timeoutMilliseconds);
+        var wasShutdown = Interlocked.CompareExchange(ref this.wasShutdown, 1, 0);
+        return wasShutdown == 0;
     }
 
     private string ExtractServiceName(ref From from)
@@ -82,29 +90,32 @@ internal sealed class InstanaExporter : BaseExporter<Activity>
         var serviceId = string.Empty;
         var processId = string.Empty;
         var hostId = string.Empty;
-        var resource = this.InstanaExporterHelper.GetParentProviderResource(this);
+        var resource = this.Helper.GetParentProviderResource(this);
+
         if (resource != Resource.Empty && resource.Attributes.Any())
         {
+            var comparison = StringComparison.OrdinalIgnoreCase;
+
             foreach (var resourceAttribute in resource.Attributes)
             {
-                if (resourceAttribute.Key.Equals("service.name", StringComparison.OrdinalIgnoreCase)
-                    && resourceAttribute.Value is string servName
-                    && !string.IsNullOrEmpty(servName))
+                if (string.Equals(resourceAttribute.Key, "service.name", comparison)
+                    && resourceAttribute.Value is string name
+                    && !string.IsNullOrEmpty(name))
                 {
-                    serviceName = servName;
+                    serviceName = name;
                 }
 
                 if (from.IsEmpty())
                 {
-                    if (resourceAttribute.Key.Equals("service.instance.id", StringComparison.OrdinalIgnoreCase))
+                    if (string.Equals(resourceAttribute.Key, "service.instance.id", comparison))
                     {
                         serviceId = resourceAttribute.Value.ToString();
                     }
-                    else if (resourceAttribute.Key.Equals("process.pid", StringComparison.OrdinalIgnoreCase))
+                    else if (string.Equals(resourceAttribute.Key, "process.pid", comparison))
                     {
                         processId = resourceAttribute.Value.ToString();
                     }
-                    else if (resourceAttribute.Key.Equals("host.id", StringComparison.OrdinalIgnoreCase))
+                    else if (string.Equals(resourceAttribute.Key, "host.id", comparison))
                     {
                         hostId = resourceAttribute.Value.ToString();
                     }
@@ -132,21 +143,18 @@ internal sealed class InstanaExporter : BaseExporter<Activity>
         return serviceName;
     }
 
-    private async Task<InstanaSpan> ParseActivityAsync(Activity activity, string? serviceName = null, From? from = null)
+    private InstanaSpan ParseActivity(Activity activity, string? serviceName = null, From? from = null)
     {
         var instanaSpan = InstanaSpanFactory.CreateSpan();
 
-        await this.activityProcessor.ProcessAsync(activity, instanaSpan).ConfigureAwait(false);
+        this.activityProcessor.Process(activity, instanaSpan);
 
         if (serviceName != null && !string.IsNullOrEmpty(serviceName) && instanaSpan.Data.data != null)
         {
             instanaSpan.Data.data[InstanaExporterConstants.SERVICE_FIELD] = serviceName;
         }
 
-        if (instanaSpan.Data.data != null)
-        {
-            instanaSpan.Data.data[InstanaExporterConstants.OPERATION_FIELD] = activity.DisplayName;
-        }
+        instanaSpan.Data.data?[InstanaExporterConstants.OPERATION_FIELD] = activity.DisplayName;
 
         if (activity.TraceStateString != null && !string.IsNullOrEmpty(activity.TraceStateString) && instanaSpan.Data.data != null)
         {

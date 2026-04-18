@@ -5,9 +5,9 @@ using System.Diagnostics;
 
 namespace OpenTelemetry.Exporter.Instana.Implementation.Processors;
 
-internal class DefaultActivityProcessor : ActivityProcessorBase, IActivityProcessor
+internal sealed class DefaultActivityProcessor : ActivityProcessorBase, IActivityProcessor
 {
-    public override async Task ProcessAsync(Activity activity, InstanaSpan instanaSpan)
+    public override void Process(Activity activity, InstanaSpan instanaSpan)
     {
         this.PreProcess(activity, instanaSpan);
 
@@ -47,19 +47,16 @@ internal class DefaultActivityProcessor : ActivityProcessorBase, IActivityProces
             instanaSpan.Tp = true;
         }
 
-        await base.ProcessAsync(activity, instanaSpan).ConfigureAwait(false);
+        base.Process(activity, instanaSpan);
     }
 
-    private static SpanKind GetSpanKind(ActivityKind activityKind)
+    private static SpanKind GetSpanKind(ActivityKind activityKind) => activityKind switch
     {
-        return activityKind switch
-        {
-            ActivityKind.Consumer or ActivityKind.Server => SpanKind.ENTRY,
-            ActivityKind.Client or ActivityKind.Producer => SpanKind.EXIT,
-            ActivityKind.Internal => SpanKind.INTERMEDIATE,
-            _ => SpanKind.NOT_SET,
-        };
-    }
+        ActivityKind.Consumer or ActivityKind.Server => SpanKind.ENTRY,
+        ActivityKind.Client or ActivityKind.Producer => SpanKind.EXIT,
+        ActivityKind.Internal => SpanKind.INTERMEDIATE,
+        _ => SpanKind.NOT_SET,
+    };
 
     private static long GetLongFromHex(string hexValue)
     {
@@ -108,9 +105,6 @@ internal class DefaultActivityProcessor : ActivityProcessorBase, IActivityProces
             }
         }
 
-        if (instanaSpan.TransformInfo != null)
-        {
-            instanaSpan.TransformInfo.IsEntrySpan = isEntrySpan;
-        }
+        instanaSpan.TransformInfo?.IsEntrySpan = isEntrySpan;
     }
 }

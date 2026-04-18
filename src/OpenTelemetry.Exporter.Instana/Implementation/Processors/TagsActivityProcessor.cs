@@ -5,16 +5,11 @@ using System.Diagnostics;
 
 namespace OpenTelemetry.Exporter.Instana.Implementation.Processors;
 
-internal class TagsActivityProcessor : ActivityProcessorBase, IActivityProcessor
+internal sealed class TagsActivityProcessor : ActivityProcessorBase, IActivityProcessor
 {
-    public override async Task ProcessAsync(Activity activity, InstanaSpan instanaSpan)
+    public override void Process(Activity activity, InstanaSpan instanaSpan)
     {
-        if (instanaSpan == null)
-        {
-            return;
-        }
-
-        if (activity == null)
+        if (instanaSpan == null || activity == null)
         {
             return;
         }
@@ -24,6 +19,7 @@ internal class TagsActivityProcessor : ActivityProcessorBase, IActivityProcessor
         var statusCode = string.Empty;
         var statusDesc = string.Empty;
         var tags = new Dictionary<string, string>();
+
         foreach (var tag in activity.Tags)
         {
             if (tag.Key == "otel.status_code")
@@ -44,14 +40,11 @@ internal class TagsActivityProcessor : ActivityProcessorBase, IActivityProcessor
             }
         }
 
-        if (instanaSpan.Data != null)
-        {
-            instanaSpan.Data.Tags = tags;
-        }
+        instanaSpan.Data?.Tags = tags;
 
         instanaSpan.TransformInfo.StatusCode = statusCode;
         instanaSpan.TransformInfo.StatusDesc = statusDesc;
 
-        await base.ProcessAsync(activity, instanaSpan).ConfigureAwait(false);
+        base.Process(activity, instanaSpan);
     }
 }

@@ -5,6 +5,16 @@
 * Updated OpenTelemetry core component version(s) to `1.15.2`.
   ([#4080](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4080))
 
+* Add support for configuring the Instana exporter using `InstanaExporterOptions`.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
+* **Breaking change**: TLS certificate validation is no longer unconditionally
+  disabled when a proxy is configured using the `INSTANA_ENDPOINT_PROXY` environment
+  variable. To restore the previous behaviour and disable TLS certificate validation
+  use the `InstanaExporterOptions.HttpClientFactory` property to configure a custom
+  `HttpClient` for the exporter to use.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 1.0.6
 
 Released 2026-Jan-21

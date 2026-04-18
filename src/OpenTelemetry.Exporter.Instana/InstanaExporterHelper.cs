@@ -6,15 +6,15 @@ using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Exporter.Instana;
 
-internal class InstanaExporterHelper : IInstanaExporterHelper
+internal sealed class InstanaExporterHelper : IInstanaExporterHelper
 {
     public Resource GetParentProviderResource(BaseExporter<Activity> otelExporter)
-    {
-        return otelExporter.ParentProvider.GetResource();
-    }
+        => otelExporter.ParentProvider.GetResource();
 
-    public bool IsWindows()
-    {
-        return Environment.OSVersion.Platform == PlatformID.Win32NT;
-    }
+    public bool IsWindows() =>
+#if NET
+        OperatingSystem.IsWindows();
+#else
+        Environment.OSVersion.Platform == PlatformID.Win32NT;
+#endif
 }

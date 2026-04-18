@@ -11,14 +11,13 @@ public static class InstanaSpanFactoryTests
     [Fact]
     public static void CreateSpan()
     {
-        _ = new InstanaSpanFactory();
-        var instanaSpan = InstanaSpanFactory.CreateSpan();
+        var actual = InstanaSpanFactory.CreateSpan();
 
-        Assert.NotNull(instanaSpan);
-        Assert.NotNull(instanaSpan.TransformInfo);
-        Assert.NotNull(instanaSpan.Data);
-        Assert.Empty(instanaSpan.Data.data);
-        Assert.Empty(instanaSpan.Data.Tags);
-        Assert.Empty(instanaSpan.Data.Events);
+        Assert.NotNull(actual);
+        Assert.NotNull(actual.TransformInfo);
+        Assert.NotNull(actual.Data);
+        Assert.Empty(actual.Data.data);
+        Assert.Empty(actual.Data.Tags);
+        Assert.Empty(actual.Data.Events);
     }
 }

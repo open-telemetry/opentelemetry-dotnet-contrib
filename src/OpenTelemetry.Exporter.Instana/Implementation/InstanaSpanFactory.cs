@@ -3,22 +3,16 @@
 
 namespace OpenTelemetry.Exporter.Instana.Implementation;
 
-internal class InstanaSpanFactory
+internal static class InstanaSpanFactory
 {
-    internal static InstanaSpan CreateSpan()
+    internal static InstanaSpan CreateSpan() => new()
     {
-        var instanaSpan = new InstanaSpan
+        Data = new Data()
         {
-            Data = new Data()
-            {
-                data = [],
-                Tags = [],
-                Events = new List<SpanEvent>(8),
-            },
-
-            TransformInfo = new InstanaSpanTransformInfo(),
-        };
-
-        return instanaSpan;
-    }
+            data = [],
+            Tags = [],
+            Events = new(8),
+        },
+        TransformInfo = new(),
+    };
 }

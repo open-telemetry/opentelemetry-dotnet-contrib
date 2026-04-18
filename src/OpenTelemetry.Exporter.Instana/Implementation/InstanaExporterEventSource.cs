@@ -26,7 +26,5 @@ internal sealed class InstanaExporterEventSource : EventSource
 
     [Event(1, Message = "Failed to send spans: '{0}'", Level = EventLevel.Error)]
     public void FailedExport(string exception)
-    {
-        this.WriteEvent(1, exception);
-    }
+        => this.WriteEvent(1, exception);
 }

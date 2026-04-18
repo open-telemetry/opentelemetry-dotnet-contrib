@@ -5,5 +5,5 @@ namespace OpenTelemetry.Exporter.Instana.Implementation;
 
 internal interface ISpanSender
 {
-    void Enqueue(InstanaSpan instanaSpan);
+    bool Enqueue(InstanaSpan instanaSpan);
 }
