@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 namespace OpenTelemetry.Exporter.Instana.Implementation.Processors;
 
-internal sealed class DefaultActivityProcessor : ActivityProcessorBase, IActivityProcessor
+internal sealed class DefaultActivityProcessor : ActivityProcessorBase
 {
     public override void Process(Activity activity, InstanaSpan instanaSpan)
     {
@@ -49,6 +49,17 @@ internal sealed class DefaultActivityProcessor : ActivityProcessorBase, IActivit
 
         base.Process(activity, instanaSpan);
     }
+
+    internal static DefaultActivityProcessor CreateDefault() => new()
+    {
+        NextProcessor = new TagsActivityProcessor()
+        {
+            NextProcessor = new EventsActivityProcessor()
+            {
+                NextProcessor = new ErrorActivityProcessor(),
+            },
+        },
+    };
 
     private static SpanKind GetSpanKind(ActivityKind activityKind) => activityKind switch
     {

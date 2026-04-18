@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 namespace OpenTelemetry.Exporter.Instana.Implementation.Processors;
 
-internal sealed class ErrorActivityProcessor : ActivityProcessorBase, IActivityProcessor
+internal sealed class ErrorActivityProcessor : ActivityProcessorBase
 {
     public override void Process(Activity activity, InstanaSpan instanaSpan)
     {

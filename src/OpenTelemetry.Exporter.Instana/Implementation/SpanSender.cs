@@ -6,7 +6,7 @@ using System.Diagnostics;
 
 namespace OpenTelemetry.Exporter.Instana.Implementation;
 
-internal sealed class SpanSender : IDisposable, ISpanSender
+internal sealed class SpanSender : IDisposable
 {
     private readonly CancellationTokenSource cancellationTokenSource;
     private readonly BatchExportProcessorOptions<Activity> options;

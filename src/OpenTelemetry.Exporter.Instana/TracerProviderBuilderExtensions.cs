@@ -3,6 +3,7 @@
 
 using System.Globalization;
 using Microsoft.Extensions.DependencyInjection;
+using OpenTelemetry.Exporter.Instana.Implementation.Processors;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Exporter.Instana;
@@ -45,7 +46,7 @@ public static class TracerProviderBuilderExtensions
 
             configure?.Invoke(options);
 
-            return new BatchActivityExportProcessor(new InstanaExporter(options));
+            return new BatchActivityExportProcessor(new InstanaExporter(options, DefaultActivityProcessor.CreateDefault()));
         });
     }
 

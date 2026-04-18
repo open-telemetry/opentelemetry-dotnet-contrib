@@ -6,6 +6,7 @@ using System.Net.Http;
 #endif
 
 using System.Diagnostics;
+using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Exporter.Instana;
 
@@ -49,4 +50,6 @@ public class InstanaExporterOptions
 #else
         static () => DateTimeOffset.UtcNow;
 #endif
+
+    internal Func<BaseExporter<Activity>, Resource> GetParentProviderResource { get; set; } = static (exporter) => exporter.ParentProvider.GetResource();
 }

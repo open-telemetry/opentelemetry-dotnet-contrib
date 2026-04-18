@@ -11,24 +11,20 @@ namespace OpenTelemetry.Exporter.Instana;
 
 internal sealed class InstanaExporter : BaseExporter<Activity>
 {
-    private readonly SpanSender sender;
     private readonly IActivityProcessor activityProcessor;
+    private readonly InstanaExporterOptions options;
+    private readonly SpanSender sender;
     private readonly string? processId;
 
     private int wasShutdown;
 
-    public InstanaExporter(InstanaExporterOptions options, IActivityProcessor? activityProcessor = null)
+    public InstanaExporter(InstanaExporterOptions options, IActivityProcessor activityProcessor)
     {
-        this.sender = new SpanSender(options);
-        this.activityProcessor = activityProcessor ?? new DefaultActivityProcessor
-        {
-            NextProcessor = new TagsActivityProcessor
-            {
-                NextProcessor = new EventsActivityProcessor { NextProcessor = new ErrorActivityProcessor() },
-            },
-        };
+        this.options = options;
+        this.sender = new SpanSender(this.options);
+        this.activityProcessor = activityProcessor;
 
-        if (this.Helper.IsWindows())
+        if (IsWindows())
         {
 #if NET
             this.processId = Environment.ProcessId.ToString(CultureInfo.InvariantCulture);
@@ -37,9 +33,16 @@ internal sealed class InstanaExporter : BaseExporter<Activity>
             this.processId = process.Id.ToString(CultureInfo.InvariantCulture);
 #endif
         }
-    }
 
-    internal IInstanaExporterHelper Helper { get; set; } = new InstanaExporterHelper();
+        static bool IsWindows()
+        {
+#if NET
+            return OperatingSystem.IsWindows();
+#else
+            return Environment.OSVersion.Platform == PlatformID.Win32NT;
+#endif
+        }
+    }
 
     public override ExportResult Export(in Batch<Activity> batch)
     {
@@ -90,7 +93,7 @@ internal sealed class InstanaExporter : BaseExporter<Activity>
         var serviceId = string.Empty;
         var processId = string.Empty;
         var hostId = string.Empty;
-        var resource = this.Helper.GetParentProviderResource(this);
+        var resource = this.options.GetParentProviderResource(this);
 
         if (resource != Resource.Empty && resource.Attributes.Any())
         {
