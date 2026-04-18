@@ -46,7 +46,9 @@ public static class TracerProviderBuilderExtensions
 
             configure?.Invoke(options);
 
-            return new BatchActivityExportProcessor(new InstanaExporter(options, DefaultActivityProcessor.CreateDefault()));
+            return options.EndpointUri is null
+                ? throw new InvalidOperationException("No Instana endpoint URL provided.")
+                : (BaseProcessor<System.Diagnostics.Activity>)new BatchActivityExportProcessor(new InstanaExporter(options, DefaultActivityProcessor.CreateDefault()));
         });
     }
 

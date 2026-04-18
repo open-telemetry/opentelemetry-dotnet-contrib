@@ -13,7 +13,7 @@ public class TagsActivityProcessorTests
     [Fact]
     public void Process_StatusTagsExist()
     {
-        // Act
+        // Arrange
         var activity = new Activity("testOperationName");
         activity.AddTag("otel.status_code", "testStatusCode");
         activity.AddTag("otel.status_description", "testStatusDescription");
@@ -36,7 +36,7 @@ public class TagsActivityProcessorTests
     [Fact]
     public void Process_StatusTagsDoNotExist()
     {
-        // Act
+        // Arrange
         var activity = new Activity("testOperationName");
         activity.AddTag("otel.testTag", "testTag");
 
