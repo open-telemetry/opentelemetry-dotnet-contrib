@@ -16,7 +16,7 @@ namespace OpenTelemetry.Exporter.Instana;
 public class InstanaExporterOptions
 {
     /// <summary>
-    /// Gets or sets the key used to authenticate with the Instana agent.
+    /// Gets or sets the key used to authenticate with the Instana endpoint.
     /// </summary>
     public string AgentKey { get; set; } = string.Empty;
 
@@ -31,8 +31,8 @@ public class InstanaExporterOptions
     public Uri EndpointUri { get; set; } = default!;
 
     /// <summary>
-    /// Gets or sets an optional delegate to a method to configure
-    /// the <see cref="HttpClient"/> to use to send telemetry to the Instana endpoint.
+    /// Gets or sets an optional delegate to a method to create an
+    /// <see cref="HttpClient"/> to use to send telemetry to the Instana endpoint.
     /// </summary>
     public Func<HttpClient>? HttpClientFactory { get; set; }
 
