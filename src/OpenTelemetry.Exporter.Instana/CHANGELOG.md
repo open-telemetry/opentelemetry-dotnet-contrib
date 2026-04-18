@@ -5,6 +5,9 @@
 * Updated OpenTelemetry core component version(s) to `1.15.2`.
   ([#4080](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4080))
 
+* Add `net8.0` and `net10.0` target frameworks.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 * Add support for configuring the Instana exporter using `InstanaExporterOptions`.
   ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
 
