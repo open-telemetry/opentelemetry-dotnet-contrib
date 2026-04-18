@@ -396,7 +396,7 @@ public class WsTransportTest
     [Fact]
     public async Task WsTransport_AfterFailedStart_SecondStartThrowsPermanentlyFailed()
     {
-        // Port 1 is reserved/unreachable on all platforms — ConnectAsync fails immediately.
+        // Port 1 is reserved/unreachable on all platforms - ConnectAsync fails immediately.
         var settings = new OpAmpClientSettings
         {
             ConnectionType = ConnectionType.WebSocket,
