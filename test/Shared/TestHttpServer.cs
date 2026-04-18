@@ -57,7 +57,7 @@ internal static class TestHttpServer
     {
         private readonly Task httpListenerTask;
         private readonly HttpListener listener;
-        private readonly AutoResetEvent initialized = new(false);
+        private readonly TaskCompletionSource<bool> initialized = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         public RunningServer(Action<HttpListenerContext> action, string host, int port)
         {
@@ -66,38 +66,12 @@ internal static class TestHttpServer
             this.listener.Prefixes.Add($"http://{host}:{port}/");
             this.listener.Start();
 
-            this.httpListenerTask = new Task(async () =>
-            {
-                while (true)
-                {
-                    try
-                    {
-                        var ctxTask = this.listener.GetContextAsync();
-
-                        this.initialized.Set();
-
-                        action(await ctxTask.ConfigureAwait(false));
-                    }
-                    catch (Exception ex)
-                    {
-                        if (ex is ObjectDisposedException
-                            || (ex is HttpListenerException httpEx && httpEx.ErrorCode == 995))
-                        {
-                            // Listener was closed before we got into GetContextAsync or
-                            // Listener was closed while we were in GetContextAsync.
-                            break;
-                        }
-
-                        throw;
-                    }
-                }
-            });
+            this.httpListenerTask = Task.Run(() => this.ListenAsync(action));
         }
 
         public void Start()
         {
-            this.httpListenerTask.Start();
-            this.initialized.WaitOne();
+            this.initialized.Task.GetAwaiter().GetResult();
         }
 
         public void Dispose()
@@ -105,12 +79,43 @@ internal static class TestHttpServer
             try
             {
                 this.listener.Close();
-                this.httpListenerTask?.Wait();
-                this.initialized.Dispose();
+                this.httpListenerTask.GetAwaiter().GetResult();
             }
-            catch (ObjectDisposedException)
+            catch (Exception ex) when (this.IsListenerShutdownException(ex))
             {
-                // swallow this exception just in case
+                // Listener was already closed as part of disposal.
+            }
+        }
+
+        private bool IsListenerShutdownException(Exception ex)
+        {
+            return ex is ObjectDisposedException
+                || (ex is HttpListenerException httpEx && (httpEx.ErrorCode == 995 || httpEx.ErrorCode == 6))
+                || (ex is InvalidOperationException && !this.listener.IsListening);
+        }
+
+        private async Task ListenAsync(Action<HttpListenerContext> action)
+        {
+            this.initialized.TrySetResult(true);
+
+            while (true)
+            {
+                try
+                {
+                    var context = await this.listener.GetContextAsync().ConfigureAwait(false);
+                    action(context);
+                }
+                catch (Exception ex)
+                {
+                    if (this.IsListenerShutdownException(ex))
+                    {
+                        // Listener was closed before we got into GetContextAsync or
+                        // Listener was closed while we were in GetContextAsync.
+                        break;
+                    }
+
+                    throw;
+                }
             }
         }
     }
