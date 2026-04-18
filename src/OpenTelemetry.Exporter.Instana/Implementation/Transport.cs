@@ -36,8 +36,9 @@ internal sealed class Transport : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    public async Task SendAsync(ConcurrentQueue<InstanaSpan> batch, CancellationToken cancellationToken)
+    public async Task<int> SendAsync(ConcurrentQueue<InstanaSpan> batch, CancellationToken cancellationToken)
     {
+        int written = 0;
         var buffer = ArrayPool<byte>.Shared.Rent(MultiSpanBufferSize);
 
         try
@@ -47,7 +48,6 @@ internal sealed class Transport : IDisposable
             await writer.WriteAsync("{\"spans\":[").ConfigureAwait(false);
 
             int maxBatchSize = this.options.BatchExportProcessorOptions.MaxExportBatchSize;
-            int written = 0;
 
             while (sendBuffer.Position < MultiSpanBufferLimit && written < maxBatchSize && batch.TryDequeue(out var span))
             {
@@ -96,10 +96,16 @@ internal sealed class Transport : IDisposable
             using var response = await this.client.SendAsync(message, cancellationToken).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
         }
+        catch (Exception ex)
+        {
+            InstanaExporterEventSource.Log.FailedExport(ex);
+        }
         finally
         {
             ArrayPool<byte>.Shared.Return(buffer);
         }
+
+        return written;
     }
 
     private HttpClient CreateClient()

@@ -13,6 +13,8 @@ internal sealed class SpanSender : IDisposable
     private readonly ConcurrentQueue<InstanaSpan> queue;
     private readonly Transport transport;
 
+    private int queueSize;
+
     public SpanSender(InstanaExporterOptions options)
     {
         this.options = options.BatchExportProcessorOptions;
@@ -38,13 +40,21 @@ internal sealed class SpanSender : IDisposable
 
     public bool Enqueue(InstanaSpan instanaSpan)
     {
-        if (this.queue.Count < this.options.MaxQueueSize)
+        if (!this.TryReserveQueueSlot(this.cancellationTokenSource.Token))
+        {
+            return false;
+        }
+
+        try
         {
             this.queue.Enqueue(instanaSpan);
             return true;
         }
-
-        return false;
+        catch
+        {
+            this.ReleaseQueueSlot();
+            throw;
+        }
     }
 
     private async Task ProcessingLoop()
@@ -57,14 +67,8 @@ internal sealed class SpanSender : IDisposable
             {
                 if (!this.queue.IsEmpty)
                 {
-                    try
-                    {
-                        await this.transport.SendAsync(this.queue, this.cancellationTokenSource.Token).ConfigureAwait(false);
-                    }
-                    catch (Exception ex)
-                    {
-                        InstanaExporterEventSource.Log.FailedExport(ex);
-                    }
+                    int consumed = await this.transport.SendAsync(this.queue, this.cancellationTokenSource.Token).ConfigureAwait(false);
+                    Interlocked.Add(ref this.queueSize, -consumed);
                 }
 
                 await Task.Delay(delay, this.cancellationTokenSource.Token).ConfigureAwait(false);
@@ -74,5 +78,27 @@ internal sealed class SpanSender : IDisposable
         {
             // Processing cancelled
         }
+    }
+
+    private void ReleaseQueueSlot() => Interlocked.Decrement(ref this.queueSize);
+
+    private bool TryReserveQueueSlot(CancellationToken cancellationToken)
+    {
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            var queueSize = Volatile.Read(ref this.queueSize);
+
+            if (queueSize >= this.options.MaxQueueSize)
+            {
+                return false;
+            }
+
+            if (Interlocked.CompareExchange(ref this.queueSize, queueSize + 1, queueSize) == queueSize)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
