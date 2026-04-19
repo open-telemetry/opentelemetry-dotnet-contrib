@@ -42,7 +42,7 @@ public class InstanaExporterTests
             UtcNow = () => utcNow,
         };
 
-        var tcs = new TaskCompletionSource<string>();
+        var tcs = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         using var server = TestHttpServer.RunServer(
             (context) =>
@@ -171,7 +171,7 @@ public class InstanaExporterTests
             UtcNow = () => utcNow,
         };
 
-        var tcs = new TaskCompletionSource<string>();
+        var tcs = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         using var server = TestHttpServer.RunServer(
             (context) =>
@@ -313,7 +313,7 @@ public class InstanaExporterTests
     public async Task Export_WithCustomHttpClient()
     {
         // Arrange
-        var tcs = new TaskCompletionSource<string>();
+        var tcs = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         using var handler = new TestHttpMessageHandler(tcs);
         using var httpClient = new HttpClient(handler);
@@ -404,5 +404,20 @@ public class InstanaExporterTests
 
             return new HttpResponseMessage(System.Net.HttpStatusCode.OK);
         }
+
+#if NET
+        protected override HttpResponseMessage Send(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            this.InvocationCount++;
+
+            using (var stream = request.Content!.ReadAsStream(cancellationToken))
+            using (var reader = new StreamReader(stream))
+            {
+                completionSource.SetResult(reader.ReadToEnd());
+            }
+
+            return new HttpResponseMessage(System.Net.HttpStatusCode.OK);
+        }
+#endif
     }
 }

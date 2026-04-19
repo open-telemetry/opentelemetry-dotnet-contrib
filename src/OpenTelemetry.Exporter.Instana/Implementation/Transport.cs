@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Buffers;
-using System.Collections.Concurrent;
 using System.Globalization;
 using System.Net;
 #if NETFRAMEWORK
@@ -36,44 +35,38 @@ internal sealed class Transport : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    public async Task<int> SendAsync(ConcurrentQueue<InstanaSpan> batch, CancellationToken cancellationToken)
+    public bool Send(List<InstanaSpan> batch)
     {
-        int written = 0;
         var buffer = ArrayPool<byte>.Shared.Rent(MultiSpanBufferSize);
 
         try
         {
             using var sendBuffer = new MemoryStream(buffer);
             using var writer = new StreamWriter(sendBuffer);
-            await writer.WriteAsync("{\"spans\":[").ConfigureAwait(false);
+            writer.Write("{\"spans\":[");
 
             int maxBatchSize = this.options.BatchExportProcessorOptions.MaxExportBatchSize;
 
-            while (sendBuffer.Position < MultiSpanBufferLimit && written < maxBatchSize && batch.TryDequeue(out var span))
+            using var enumerator = batch.GetEnumerator();
+
+            int written = 0;
+
+            while (sendBuffer.Position < MultiSpanBufferLimit && written < maxBatchSize && enumerator.MoveNext())
             {
                 if (written > 0)
                 {
-                    await writer.WriteAsync(',').ConfigureAwait(false);
+                    writer.Write(',');
                 }
 
-                await InstanaSpanSerializer.SerializeToStreamWriterAsync(span, writer).ConfigureAwait(false);
+                InstanaSpanSerializer.SerializeToStreamWriter(enumerator.Current, writer);
 
-#if NET
-                await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
-#else
-                await writer.FlushAsync().ConfigureAwait(false);
-#endif
+                writer.Flush();
 
                 written++;
             }
 
-            await writer.WriteAsync("]}").ConfigureAwait(false);
-
-#if NET
-            await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
-#else
-            await writer.FlushAsync().ConfigureAwait(false);
-#endif
+            writer.Write("]}");
+            writer.Flush();
 
             var length = sendBuffer.Position;
             sendBuffer.Position = 0;
@@ -93,19 +86,27 @@ internal sealed class Transport : IDisposable
 
             this.client ??= this.CreateClient();
 
-            using var response = await this.client.SendAsync(message, cancellationToken).ConfigureAwait(false);
+#if NET
+            using var response = this.client.Send(message);
+#else
+#pragma warning disable CA2025 // Do not pass 'IDisposable' instances into unawaited tasks
+            using var response = this.client.SendAsync(message).GetAwaiter().GetResult();
+#pragma warning restore CA2025 // Do not pass 'IDisposable' instances into unawaited tasks
+#endif
+
             response.EnsureSuccessStatusCode();
+
+            return true;
         }
         catch (Exception ex)
         {
             InstanaExporterEventSource.Log.FailedExport(ex);
+            return false;
         }
         finally
         {
             ArrayPool<byte>.Shared.Return(buffer);
         }
-
-        return written;
     }
 
     private HttpClient CreateClient()

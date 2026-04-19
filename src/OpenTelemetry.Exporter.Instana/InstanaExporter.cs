@@ -13,7 +13,7 @@ internal sealed class InstanaExporter : BaseExporter<Activity>
 {
     private readonly IActivityProcessor activityProcessor;
     private readonly InstanaExporterOptions options;
-    private readonly SpanSender sender;
+    private readonly Transport transport;
     private readonly string? processId;
 
     private int wasShutdown;
@@ -21,8 +21,8 @@ internal sealed class InstanaExporter : BaseExporter<Activity>
     public InstanaExporter(InstanaExporterOptions options, IActivityProcessor activityProcessor)
     {
         this.options = options;
-        this.sender = new SpanSender(this.options);
         this.activityProcessor = activityProcessor;
+        this.transport = new(this.options);
 
         if (IsWindows())
         {
@@ -60,6 +60,8 @@ internal sealed class InstanaExporter : BaseExporter<Activity>
 
         var serviceName = this.ExtractServiceName(ref from);
 
+        var spans = new List<InstanaSpan>((int)batch.Count);
+
         foreach (var activity in batch)
         {
             if (activity == null)
@@ -67,17 +69,15 @@ internal sealed class InstanaExporter : BaseExporter<Activity>
                 continue;
             }
 
-            var span = this.ParseActivity(activity, serviceName, from);
-
-            _ = this.sender.Enqueue(span);
+            spans.Add(this.ParseActivity(activity, serviceName, from));
         }
 
-        return ExportResult.Success;
+        return this.transport.Send(spans) ? ExportResult.Success : ExportResult.Failure;
     }
 
     protected override void Dispose(bool disposing)
     {
-        this.sender?.Dispose();
+        this.transport?.Dispose();
         base.Dispose(disposing);
     }
 

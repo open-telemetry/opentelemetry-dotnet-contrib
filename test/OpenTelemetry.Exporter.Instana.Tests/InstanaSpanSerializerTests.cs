@@ -15,7 +15,7 @@ public static class InstanaSpanSerializerTests
     };
 
     [Fact]
-    public static async Task SerializeToStreamWriterAsync()
+    public static void SerializeToStreamWriterAsync()
     {
         var instanaOtelSpan = InstanaSpanFactory.CreateSpan();
         instanaOtelSpan.F = new Implementation.From { E = "12345", H = "localhost" };
@@ -51,8 +51,8 @@ public static class InstanaSpanSerializerTests
         using (var sendBuffer = new MemoryStream())
         {
             using var writer = new StreamWriter(sendBuffer);
-            await InstanaSpanSerializer.SerializeToStreamWriterAsync(instanaOtelSpan, writer);
-            await writer.FlushAsync();
+            InstanaSpanSerializer.SerializeToStreamWriter(instanaOtelSpan, writer);
+            writer.Flush();
 
             var length = sendBuffer.Position;
             sendBuffer.Position = 0;

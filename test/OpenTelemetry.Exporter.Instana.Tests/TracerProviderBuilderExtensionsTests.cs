@@ -22,7 +22,7 @@ public class TracerProviderBuilderExtensionsTests
     {
         // Arrange
         var agentKey = Guid.NewGuid().ToString();
-        var tcs = new TaskCompletionSource<string>();
+        var tcs = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         using var server = TestHttpServer.RunServer(
             (context) => AssertResponse(context, agentKey, tcs),
@@ -49,7 +49,7 @@ public class TracerProviderBuilderExtensionsTests
     {
         // Arrange
         var agentKey = Guid.NewGuid().ToString();
-        var tcs = new TaskCompletionSource<string>();
+        var tcs = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         using var server = TestHttpServer.RunServer(
             (context) => AssertResponse(context, agentKey, tcs),
@@ -78,7 +78,7 @@ public class TracerProviderBuilderExtensionsTests
     {
         // Arrange
         var agentKey = Guid.NewGuid().ToString();
-        var tcs = new TaskCompletionSource<string>();
+        var tcs = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         using var server = TestHttpServer.RunServer(
             (context) => AssertResponse(context, agentKey, tcs),
