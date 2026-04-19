@@ -1,24 +1,13 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Collections;
 using System.Globalization;
+using System.Text.Json;
 
 namespace OpenTelemetry.Exporter.Instana.Implementation;
 
-// TODO Use a proper JSON serializer that encodes strings safely.
-
 internal static class InstanaSpanSerializer
 {
-    private const string Comma = ",";
-    private const string OpenCurlyBrace = "{";
-    private const string CloseCurlyBrace = "}";
-    private const string Quote = "\"";
-    private const string Colon = ":";
-    private const string QuoteColon = Quote + Colon;
-    private const string QuoteColonQuote = Quote + Colon + Quote;
-    private const string QuoteCommaQuote = Quote + Comma + Quote;
-
     private static readonly long UnixZeroTime =
 #if NET
         DateTimeOffset.UnixEpoch.Ticks;
@@ -26,164 +15,112 @@ internal static class InstanaSpanSerializer
         new DateTime(1970, 1, 1, 0, 0, 0, 0).Ticks;
 #endif
 
-    internal static IEnumerator? GetSpanTagsEnumerator(InstanaSpan instanaSpan) => instanaSpan.Data.Tags.GetEnumerator();
-
-    internal static IEnumerator? GetSpanEventsEnumerator(InstanaSpan instanaSpan) => instanaSpan.Data.Events.GetEnumerator();
-
-    internal static void SerializeToStreamWriter(InstanaSpan instanaSpan, StreamWriter writer)
+    internal static void Serialize(InstanaSpan instanaSpan, Utf8JsonWriter writer)
     {
-        writer.Write(OpenCurlyBrace);
+        writer.WriteStartObject();
+
         AppendProperty(instanaSpan.T, "t", writer);
-        writer.Write(Comma);
         AppendProperty(instanaSpan.S, "s", writer);
-        writer.Write(Comma);
 
         if (!string.IsNullOrEmpty(instanaSpan.P))
         {
             AppendProperty(instanaSpan.P, "p", writer);
-            writer.Write(Comma);
         }
 
         if (!string.IsNullOrEmpty(instanaSpan.Lt))
         {
             AppendProperty(instanaSpan.Lt, "lt", writer);
-            writer.Write(Comma);
         }
 
         if (instanaSpan.Tp)
         {
             AppendProperty("true", "tp", writer);
-            writer.Write(Comma);
         }
 
         if (instanaSpan.K != SpanKind.NOT_SET)
         {
             AppendProperty((((int)instanaSpan.K) + 1).ToString(CultureInfo.InvariantCulture), "k", writer);
-            writer.Write(Comma);
         }
 
         AppendProperty(instanaSpan.N, "n", writer);
-        writer.Write(Comma);
-        AppendProperty(DateToUnixMillis(instanaSpan.Ts), "ts", writer);
-        writer.Write(Comma);
-        AppendProperty(instanaSpan.D / 10_000L, "d", writer);
-        writer.Write(Comma);
-        AppendObject(SerializeData, "data", instanaSpan, writer);
-        writer.Write(Comma);
-        AppendObject(SerializeFrom, "f", instanaSpan, writer);
-        writer.Write(Comma);
-        AppendProperty(instanaSpan.Ec, "ec", writer);
-        writer.Write(CloseCurlyBrace);
-    }
 
-    private static void SerializeFrom(InstanaSpan instanaSpan, StreamWriter writer)
-    {
-        writer.Write("{\"e\":\"");
-        writer.Write(instanaSpan.F.E);
-        writer.Write("\"}");
+        writer.WritePropertyName("ts");
+        writer.WriteNumberValue(DateToUnixMillis(instanaSpan.Ts));
+
+        writer.WritePropertyName("d");
+        writer.WriteNumberValue(instanaSpan.D / 10_000L);
+
+        SerializeData(instanaSpan, writer);
+
+        writer.WritePropertyName("f");
+        writer.WriteStartObject();
+
+        writer.WritePropertyName("e");
+        writer.WriteStringValue(instanaSpan.F.E);
+
+        writer.WriteEndObject();
+
+        writer.WritePropertyName("ec");
+        writer.WriteNumberValue(instanaSpan.Ec);
+
+        writer.WriteEndObject();
     }
 
     private static long DateToUnixMillis(long timeStamp) => (timeStamp - UnixZeroTime) / 10_000;
 
-    private static void SerializeTags(InstanaSpan instanaSpan, StreamWriter writer) =>
-        SerializeTagsLogic(instanaSpan.Data.Tags, writer);
-
-    private static void SerializeTagsLogic(Dictionary<string, string>? tags, StreamWriter writer)
+    private static void SerializeTags(Dictionary<string, string>? tags, Utf8JsonWriter writer)
     {
-        writer.Write(OpenCurlyBrace);
-        if (tags == null)
+        if (tags == null || tags.Count < 1)
         {
             return;
         }
 
-        using (var enumerator = tags.GetEnumerator())
-        {
-            byte i = 0;
-            try
-            {
-                while (enumerator.MoveNext())
-                {
-                    if (i > 0)
-                    {
-                        writer.Write(Comma);
-                    }
-                    else
-                    {
-                        i = 1;
-                    }
+        writer.WritePropertyName(InstanaExporterConstants.TagsField);
+        writer.WriteStartObject();
 
-                    writer.Write(Quote);
-                    writer.Write(enumerator.Current.Key);
-                    writer.Write(QuoteColonQuote);
-                    writer.Write(enumerator.Current.Value);
-                    writer.Write(Quote);
-                }
-            }
-            catch (InvalidOperationException)
+        using var enumerator = tags.GetEnumerator();
+
+        try
+        {
+            while (enumerator.MoveNext())
             {
-                // if the collection gets modified while serializing, we might get a collision.
-                // There is no good way of preventing this and continuing normally except locking
-                // which needs investigation
+                writer.WritePropertyName(enumerator.Current.Key);
+                writer.WriteStringValue(enumerator.Current.Value);
             }
         }
+        catch (InvalidOperationException)
+        {
+            // If the collection gets modified while serializing, we might get a collision.
+            // There is no good way of preventing this and continuing normally except locking.
+        }
 
-        writer.Write(CloseCurlyBrace);
+        writer.WriteEndObject();
     }
 
-    private static void AppendProperty(string? value, string? name, StreamWriter json)
+    private static void AppendProperty(string? value, string name, Utf8JsonWriter json)
     {
-        json.Write(Quote);
-        json.Write(name);
-        json.Write(QuoteColonQuote);
-        json.Write(value);
-        json.Write(Quote);
+        json.WritePropertyName(name);
+        json.WriteStringValue(value);
     }
 
-    private static void AppendProperty(long value, string name, StreamWriter json)
+    private static void SerializeData(InstanaSpan instanaSpan, Utf8JsonWriter writer)
     {
-        json.Write(Quote);
-        json.Write(name);
-        json.Write(QuoteColon);
-        json.Write(value.ToString(CultureInfo.InvariantCulture));
-    }
-
-    private static void AppendObject(Action<InstanaSpan, StreamWriter> valueFunction, string name, InstanaSpan instanaSpan, StreamWriter json)
-    {
-        json.Write(Quote);
-        json.Write(name);
-        json.Write(QuoteColon);
-        valueFunction(instanaSpan, json);
-    }
-
-    private static void SerializeData(InstanaSpan instanaSpan, StreamWriter writer)
-    {
-        writer.Write(OpenCurlyBrace);
         if (instanaSpan.Data.Values == null)
         {
             return;
         }
 
+        writer.WritePropertyName("data");
+        writer.WriteStartObject();
+
         using (var enumerator = instanaSpan.Data.Values.GetEnumerator())
         {
-            byte i = 0;
             try
             {
                 while (enumerator.MoveNext())
                 {
-                    if (i > 0)
-                    {
-                        writer.Write(Comma);
-                    }
-                    else
-                    {
-                        i = 1;
-                    }
-
-                    writer.Write(Quote);
-                    writer.Write(enumerator.Current.Key);
-                    writer.Write(QuoteColonQuote);
-                    writer.Write(enumerator.Current.Value.ToString());
-                    writer.Write(Quote);
+                    writer.WritePropertyName(enumerator.Current.Key);
+                    writer.WriteStringValue(enumerator.Current.Value.ToString());
                 }
             }
             catch (InvalidOperationException)
@@ -193,73 +130,41 @@ internal static class InstanaSpanSerializer
             }
         }
 
-        if (instanaSpan.Data.Tags.Count > 0)
-        {
-            writer.Write(Comma);
+        SerializeTags(instanaSpan.Data.Tags, writer);
 
-            // Serialize tags
-            AppendObject(SerializeTags, InstanaExporterConstants.TagsField, instanaSpan, writer);
+        if (instanaSpan.Data.Events is { Count: > 0 } events)
+        {
+            writer.WritePropertyName(InstanaExporterConstants.EventsField);
+            writer.WriteStartArray();
+
+            SerializeEvents(events, writer);
+
+            writer.WriteEndArray();
         }
 
-        if (instanaSpan.Data.Events.Count > 0)
-        {
-            writer.Write(Comma);
-
-            // Serialize events
-            AppendObject(SerializeEvents, InstanaExporterConstants.EventsField, instanaSpan, writer);
-        }
-
-        writer.Write(CloseCurlyBrace);
+        writer.WriteEndObject();
     }
 
-    private static void SerializeEvents(InstanaSpan instanaSpan, StreamWriter writer)
+    private static void SerializeEvents(List<SpanEvent> events, Utf8JsonWriter writer)
     {
-        if (instanaSpan.Data.Events == null)
-        {
-            return;
-        }
+        using var enumerator = events.GetEnumerator();
 
-        using var enumerator = instanaSpan.Data.Events.GetEnumerator();
-        byte i = 0;
         try
         {
-            writer.Write("[");
             while (enumerator.MoveNext())
             {
-                if (i > 0)
-                {
-                    writer.Write(Comma);
-                }
-                else
-                {
-                    i = 1;
-                }
+                writer.WriteStartObject();
 
-                writer.Write(OpenCurlyBrace);
-                writer.Write(Quote);
-                writer.Write(InstanaExporterConstants.EventNameField);
-                writer.Write(QuoteColonQuote);
-                writer.Write(enumerator.Current.Name);
-                writer.Write(QuoteCommaQuote);
-                writer.Write(InstanaExporterConstants.EventTimestampField);
-                writer.Write(QuoteColonQuote);
-                writer.Write(DateToUnixMillis(enumerator.Current.Ts).ToString(CultureInfo.InvariantCulture));
-                writer.Write(Quote);
+                writer.WritePropertyName(InstanaExporterConstants.EventNameField);
+                writer.WriteStringValue(enumerator.Current.Name);
 
-                if (enumerator.Current.Tags.Count > 0)
-                {
-                    writer.Write(Comma);
-                    writer.Write(Quote);
-                    writer.Write(InstanaExporterConstants.TagsField);
-                    writer.Write(Quote);
-                    writer.Write(Colon);
-                    SerializeTagsLogic(enumerator.Current.Tags, writer);
-                }
+                writer.WritePropertyName(InstanaExporterConstants.EventTimestampField);
+                writer.WriteStringValue(DateToUnixMillis(enumerator.Current.Ts).ToString(CultureInfo.InvariantCulture));
 
-                writer.Write(CloseCurlyBrace);
+                SerializeTags(enumerator.Current.Tags, writer);
+
+                writer.WriteEndObject();
             }
-
-            writer.Write("]");
         }
         catch (InvalidOperationException)
         {

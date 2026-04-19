@@ -8,6 +8,7 @@ using System.Net;
 using System.Net.Http;
 #endif
 using System.Net.Http.Headers;
+using System.Text.Json;
 
 namespace OpenTelemetry.Exporter.Instana.Implementation;
 
@@ -41,38 +42,36 @@ internal sealed class Transport : IDisposable
 
         try
         {
-            using var sendBuffer = new MemoryStream(buffer);
-            using var writer = new StreamWriter(sendBuffer);
-            writer.Write("{\"spans\":[");
+            using var stream = new MemoryStream(buffer);
+            using var writer = new Utf8JsonWriter(stream);
+
+            writer.WriteStartObject();
+            writer.WritePropertyName("spans");
+            writer.WriteStartArray();
 
             int maxBatchSize = this.options.BatchExportProcessorOptions.MaxExportBatchSize;
+            int written = 0;
 
             using var enumerator = batch.GetEnumerator();
 
-            int written = 0;
-
-            while (sendBuffer.Position < MultiSpanBufferLimit && written < maxBatchSize && enumerator.MoveNext())
+            while (stream.Position < MultiSpanBufferLimit && written < maxBatchSize && enumerator.MoveNext())
             {
-                if (written > 0)
-                {
-                    writer.Write(',');
-                }
-
-                InstanaSpanSerializer.SerializeToStreamWriter(enumerator.Current, writer);
+                InstanaSpanSerializer.Serialize(enumerator.Current, writer);
 
                 writer.Flush();
 
                 written++;
             }
 
-            writer.Write("]}");
+            writer.WriteEndArray();
+            writer.WriteEndObject();
             writer.Flush();
 
-            var length = sendBuffer.Position;
-            sendBuffer.Position = 0;
-            sendBuffer.SetLength(length);
+            var length = stream.Position;
+            stream.Position = 0;
+            stream.SetLength(length);
 
-            using var content = new StreamContent(sendBuffer, (int)length);
+            using var content = new StreamContent(stream, (int)length);
             content.Headers.ContentType = MediaType;
 
             using var message = new HttpRequestMessage(HttpMethod.Post, this.bundleUri)

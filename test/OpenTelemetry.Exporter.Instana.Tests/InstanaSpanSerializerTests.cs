@@ -48,17 +48,18 @@ public static class InstanaSpanSerializerTests
         ];
 
         InstanaSpanTest? span;
-        using (var sendBuffer = new MemoryStream())
+        using (var stream = new MemoryStream())
         {
-            using var writer = new StreamWriter(sendBuffer);
-            InstanaSpanSerializer.SerializeToStreamWriter(instanaOtelSpan, writer);
+            using var writer = new Utf8JsonWriter(stream);
+
+            InstanaSpanSerializer.Serialize(instanaOtelSpan, writer);
             writer.Flush();
 
-            var length = sendBuffer.Position;
-            sendBuffer.Position = 0;
-            sendBuffer.SetLength(length);
+            var length = stream.Position;
+            stream.Position = 0;
+            stream.SetLength(length);
 
-            span = JsonSerializer.Deserialize<InstanaSpanTest>(sendBuffer, SerializerOptions);
+            span = JsonSerializer.Deserialize<InstanaSpanTest>(stream, SerializerOptions);
         }
 
         Assert.NotNull(span);
