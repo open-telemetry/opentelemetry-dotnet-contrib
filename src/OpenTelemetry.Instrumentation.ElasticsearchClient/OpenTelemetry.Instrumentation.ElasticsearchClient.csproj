@@ -17,6 +17,9 @@
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" />
     <PackageReference Include="System.Text.Encodings.Web" />
+  </ItemGroup>
+
+  <ItemGroup Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">
     <PackageReference Include="System.Text.Json" VersionOverride="[4.7.2,)" />
   </ItemGroup>
 
