@@ -23,6 +23,8 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     private static readonly Version SemanticConventionsVersionNew = new(1, 36, 0);
     private static readonly ActivitySource ActivitySourceNew = ActivitySourceFactory.Create<EntityFrameworkDiagnosticListener>(SemanticConventionsVersionNew);
 
+    private static readonly ActivitySource ActivitySourceBoth = ActivitySourceFactory.Create<EntityFrameworkDiagnosticListener>(null);
+
     private static readonly string ActivityName = ActivitySource.Name + ".Execute";
 
     private readonly PropertyFetcher<object> commandFetcher = new("Command");
@@ -49,7 +51,13 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     public override void OnEventWritten(string name, object? payload)
     {
         var activity = Activity.Current;
-        var activitySource = this.options.EmitNewAttributes ? ActivitySourceNew : ActivitySource;
+
+        var activitySource =
+            this.options.EmitNewAttributes && this.options.EmitOldAttributes ?
+            ActivitySourceBoth :
+            this.options.EmitNewAttributes ?
+            ActivitySourceNew :
+            ActivitySource;
 
         switch (name)
         {
