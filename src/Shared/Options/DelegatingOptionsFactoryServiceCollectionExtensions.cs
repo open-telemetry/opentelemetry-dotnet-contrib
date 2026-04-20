@@ -12,6 +12,8 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 internal static class DelegatingOptionsFactoryServiceCollectionExtensions
 {
+    private static readonly IConfiguration EmptyConfiguration = new ConfigurationBuilder().Build();
+
 #if NET
     public static IServiceCollection RegisterOptionsFactory<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
 #else
@@ -25,7 +27,7 @@ internal static class DelegatingOptionsFactoryServiceCollectionExtensions
         {
             return new DelegatingOptionsFactory<T>(
                 (c, _) => optionsFactoryFunc(c),
-                sp.GetRequiredService<IConfiguration>(),
+                sp.GetService<IConfiguration>() ?? EmptyConfiguration,
                 sp.GetServices<IConfigureOptions<T>>(),
                 sp.GetServices<IPostConfigureOptions<T>>(),
                 sp.GetServices<IValidateOptions<T>>());
@@ -47,7 +49,7 @@ internal static class DelegatingOptionsFactoryServiceCollectionExtensions
         {
             return new DelegatingOptionsFactory<T>(
                 (c, n) => optionsFactoryFunc(sp, c, n),
-                sp.GetRequiredService<IConfiguration>(),
+                sp.GetService<IConfiguration>() ?? EmptyConfiguration,
                 sp.GetServices<IConfigureOptions<T>>(),
                 sp.GetServices<IPostConfigureOptions<T>>(),
                 sp.GetServices<IValidateOptions<T>>());
