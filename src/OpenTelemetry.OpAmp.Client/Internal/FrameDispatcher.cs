@@ -114,10 +114,7 @@ internal sealed class FrameDispatcher : IDisposable
         }
     }
 
-    public void Dispose()
-    {
-        this.syncRoot.Dispose();
-    }
+    public void Dispose() => this.syncRoot.Dispose();
 
     private async Task DispatchFrameAsync(
         Func<FrameBuilder, AgentToServer> messageBuilder,
@@ -139,9 +136,10 @@ internal sealed class FrameDispatcher : IDisposable
         }
         catch (Exception ex)
         {
+            // Exceptions are deliberately swallowed to prevent transport errors from crashing the
+            // host application. The frame builder is reset so the next dispatch re-sends full state.
             exceptionLogger(ex);
-
-            this.frameBuilder.Reset(); // Reset the builder in case of failure
+            this.frameBuilder.Reset();
         }
         finally
         {

@@ -9,6 +9,9 @@
   Windows containers running on AWS ECS.
   ([#4028](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4028))
 
+* Limit how much of the response body is consumed from metadata service HTTP responses.
+  ([#4122](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4122))
+
 ## 1.15.0
 
 Released 2026-Jan-21

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Add a fallback to the default Hangfire display name when `DisplayNameFunc`
+  is set to null.
+  ([#4129](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4129))
+
 * Update Hangfire job parameter key used to store the `enqueued-at` timestamp from
   `"OpenTelemetry.EnqueuedAt"` to `"opentelemetry_enqueued_at"` to fix compatibility
   with MongoDB.

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using Grpc.Core;
+using Grpc.Core.Interceptors;
 using OpenTelemetry.Context.Propagation;
 using Xunit;
 
@@ -90,6 +91,70 @@ public class GrpcCoreServerInterceptorTests
     public async Task DuplexStreamingServerHandlerFail()
     {
         await TestHandlerFailure(FoobarService.MakeDuplexStreamingRequest);
+    }
+
+    /// <summary>
+    /// Validates that non protobuf payloads do not abort server RPCs when
+    /// message event recording is enabled.
+    /// </summary>
+    [Fact]
+    public async Task UnaryServerHandlerWithNonProtobufPayloadDoesNotThrowWhenRecordingMessageEvents()
+    {
+        var testTags = new TestActivityTags();
+        var interceptorOptions = new ServerTracingInterceptorOptions
+        {
+            Propagator = new TraceContextPropagator(),
+            RecordMessageEvents = true,
+            AdditionalTags = testTags.Tags,
+        };
+
+        static Task<NonProtobufPayload> HandleUnaryCall(NonProtobufPayload request, ServerCallContext context) =>
+            Task.FromResult(new NonProtobufPayload());
+
+        var serviceDefinition = ServerServiceDefinition.CreateBuilder()
+            .AddMethod(
+                NonProtobufGrpcTestHelpers.UnaryMethod,
+                HandleUnaryCall)
+            .Build()
+            .Intercept(new ServerTracingInterceptor(interceptorOptions));
+
+        var server = new Server
+        {
+            Ports = { { "localhost", ServerPort.PickUnused, ServerCredentials.Insecure } },
+            Services = { serviceDefinition },
+        };
+
+        server.Start();
+        var serverUriString = new Uri("dns:localhost:" + server.Ports.Single().BoundPort).ToString();
+
+        try
+        {
+            using var activityListener = new InterceptorActivityListener(testTags);
+            var channel = new Channel(serverUriString, ChannelCredentials.Insecure);
+
+            try
+            {
+                var response = channel.CreateCallInvoker().BlockingUnaryCall(
+                    NonProtobufGrpcTestHelpers.UnaryMethod,
+                    null,
+                    default,
+                    new NonProtobufPayload());
+
+                Assert.NotNull(response);
+
+                var activity = activityListener.Activity;
+                GrpcCoreClientInterceptorTests.ValidateCommonActivityTags(activity);
+                Assert.Empty(activity!.Events);
+            }
+            finally
+            {
+                await channel.ShutdownAsync();
+            }
+        }
+        finally
+        {
+            await server.ShutdownAsync();
+        }
     }
 
     /// <summary>
