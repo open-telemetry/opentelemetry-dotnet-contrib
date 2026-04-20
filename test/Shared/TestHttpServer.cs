@@ -71,7 +71,7 @@ internal static class TestHttpServer
                 () => this.ListenAsync(action),
                 this.cancellationTokenSource.Token,
                 TaskCreationOptions.LongRunning,
-                TaskScheduler.Default);
+                TaskScheduler.Default).Unwrap();
         }
 
         public void Start() => this.initialized.Task.GetAwaiter().GetResult();
