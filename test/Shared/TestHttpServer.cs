@@ -91,9 +91,23 @@ internal static class TestHttpServer
             }
         }
 
-        private static bool IsResponseAlreadyClosedException(Exception ex) =>
-            ex is ObjectDisposedException ||
-            (ex is HttpListenerException httpEx && (httpEx.ErrorCode is 1 or 6 or 995 or 10057));
+        private static bool IsResponseAlreadyClosedException(Exception exception)
+        {
+            for (var ex = exception; ex is not null; ex = ex.InnerException)
+            {
+                if (ex is ObjectDisposedException)
+                {
+                    return true;
+                }
+
+                if (ex is HttpListenerException httpEx && (httpEx.ErrorCode is 1 or 6 or 995 or 10057))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         private bool IsListenerShutdownException(Exception ex) =>
             IsResponseAlreadyClosedException(ex) ||
@@ -110,7 +124,17 @@ internal static class TestHttpServer
                 try
                 {
                     context = await this.listener.GetContextAsync().ConfigureAwait(false);
-                    action(context);
+
+                    try
+                    {
+                        action(context);
+                    }
+                    catch (Exception ex) when (IsResponseAlreadyClosedException(ex))
+                    {
+                        // Client disconnected / response stream already torn down while the handler
+                        // was writing the response or disposing response writer/stream.
+                        // Treat as non-fatal and continue accepting new requests.
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -143,7 +167,7 @@ internal static class TestHttpServer
             }
             catch (Exception ex) when (IsResponseAlreadyClosedException(ex))
             {
-                // The handler completed the response explicitly.
+                // The handler completed the response explicitly or the client disconnected.
             }
         }
     }
