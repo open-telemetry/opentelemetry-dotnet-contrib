@@ -2,9 +2,6 @@
 
 ## Unreleased
 
-* Updated OpenTelemetry core component version(s) to `1.15.2`.
-  ([#4080](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4080))
-
 * Update `System.Security.Cryptography.Xml` dependency versions for .NET 8, 9 and
   10 to pick up fixes for [GHSA-w3x6-4m5h-cxqf](https://github.com/dotnet/runtime/security/advisories/GHSA-w3x6-4m5h-cxqf)
   and [GHSA-37gx-xxp4-5rgx](https://github.com/dotnet/runtime/security/advisories/GHSA-37gx-xxp4-5rgx).
@@ -14,8 +11,8 @@
   operation has a `null` Action (e.g., when WCF service help pages are enabled).
   ([#4026](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4026))
 
-* Updated OpenTelemetry core component version(s) to `1.15.1`.
-  ([#4020](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4020))
+* Updated OpenTelemetry core component version(s) to `1.15.2`.
+  ([#4080](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4080))
 
 ## 1.15.0-beta.1
 
