@@ -55,7 +55,7 @@ internal sealed class TelemetryDynamicSinkProvider : IDynamicProperty, IContribu
 
     internal static string ExtractServiceName(string assemblyQualifiedTypeName)
     {
-        int index = assemblyQualifiedTypeName.IndexOf(',');
+        int index = FindAssemblySeparatorIndex(assemblyQualifiedTypeName);
         return index >= 0 ? assemblyQualifiedTypeName.Substring(0, index) : assemblyQualifiedTypeName;
     }
 
@@ -80,5 +80,33 @@ internal sealed class TelemetryDynamicSinkProvider : IDynamicProperty, IContribu
         }
 
         return this.serviceNameCache.TryGetValue(typeName, out var existing) ? existing : serviceName;
+    }
+
+    private static int FindAssemblySeparatorIndex(string assemblyQualifiedTypeName)
+    {
+        int depth = 0;
+
+        for (int i = 0; i < assemblyQualifiedTypeName.Length; i++)
+        {
+            char c = assemblyQualifiedTypeName[i];
+
+            if (c == '[')
+            {
+                depth++;
+            }
+            else if (c == ']')
+            {
+                if (depth > 0)
+                {
+                    depth--;
+                }
+            }
+            else if (c == ',' && depth == 0)
+            {
+                return i;
+            }
+        }
+
+        return -1;
     }
 }
