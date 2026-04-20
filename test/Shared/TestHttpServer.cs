@@ -87,12 +87,10 @@ internal static class TestHttpServer
             }
         }
 
-        private bool IsListenerShutdownException(Exception ex)
-        {
-            return ex is ObjectDisposedException
-                || (ex is HttpListenerException httpEx && (httpEx.ErrorCode == 995 || httpEx.ErrorCode == 6))
-                || (ex is InvalidOperationException && !this.listener.IsListening);
-        }
+        private bool IsListenerShutdownException(Exception ex) =>
+            ex is ObjectDisposedException ||
+            (ex is HttpListenerException httpEx && (httpEx.ErrorCode is 6 or 995 or 10057)) ||
+            (ex is InvalidOperationException && !this.listener.IsListening);
 
         private async Task ListenAsync(Action<HttpListenerContext> action)
         {

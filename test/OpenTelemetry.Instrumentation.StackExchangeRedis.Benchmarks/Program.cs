@@ -2,6 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using BenchmarkDotNet.Running;
-using OpenTelemetry.Instrumentation.StackExchangeRedis.Benchmarks;
+using OpenTelemetry.Instrumentation.StackExchangeRedis.Tests;
 
 BenchmarkSwitcher.FromAssembly(typeof(RedisFixture).Assembly).Run(args);

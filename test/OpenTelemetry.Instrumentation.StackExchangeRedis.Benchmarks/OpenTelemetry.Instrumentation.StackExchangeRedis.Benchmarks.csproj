@@ -18,7 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="*.Dockerfile" LogicalName="%(FileName)%(Extension)" />
+    <Compile Include="..\OpenTelemetry.Instrumentation.StackExchangeRedis.Tests\RedisFixture.cs" Link="RedisFixture.cs" />
+    <EmbeddedResource Include="$(RepoRoot)\test\OpenTelemetry.Instrumentation.StackExchangeRedis.Tests\redis.Dockerfile" LogicalName="redis.Dockerfile" />
   </ItemGroup>
 
 </Project>

@@ -11,8 +11,6 @@ namespace OpenTelemetry.Instrumentation.ConfluentKafka.Tests;
 
 public class OpenTelemetryConsumeResultExtensionsTests
 {
-    // TryExtractPropagationContext
-
     [Fact]
     public void TryExtractPropagationContext_NullConsumeResult_ThrowsArgumentNullException()
     {
@@ -91,8 +89,6 @@ public class OpenTelemetryConsumeResultExtensionsTests
         Assert.Equal(default, propagationContext);
     }
 
-    // ConsumeAndProcessMessageAsync
-
     [Fact]
     public async Task ConsumeAndProcessMessageAsync_NullConsumer_ThrowsArgumentNullException()
     {
@@ -120,10 +116,9 @@ public class OpenTelemetryConsumeResultExtensionsTests
     {
         var plainConsumer = new FakeConsumer<string, string>();
 
-        var ex = await Assert.ThrowsAsync<ArgumentException>(() =>
-            plainConsumer.ConsumeAndProcessMessageAsync(NoOpHandler).AsTask());
-
-        Assert.Equal("consumer", ex.ParamName);
+        await Assert.ThrowsAsync<ArgumentException>(
+            "consumer",
+            () => plainConsumer.ConsumeAndProcessMessageAsync(NoOpHandler).AsTask());
     }
 
     [Fact]
@@ -158,27 +153,27 @@ public class OpenTelemetryConsumeResultExtensionsTests
     {
         var activities = new List<Activity>();
 
-        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddSource(ConfluentKafkaCommon.InstrumentationName)
-            .AddInMemoryExporter(activities)
-            .Build();
-
-        var consumer = BuildInstrumentedConsumer(new ConsumeResult<string, string>
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                                       .AddSource(ConfluentKafkaCommon.InstrumentationName)
+                                       .AddInMemoryExporter(activities)
+                                       .Build())
         {
-            Topic = "error-topic",
-            Partition = new Partition(0),
-            Offset = new Offset(1),
-            Message = new Message<string, string> { Value = "v" },
-        });
+            var consumer = BuildInstrumentedConsumer(new ConsumeResult<string, string>
+            {
+                Topic = "error-topic",
+                Partition = new Partition(0),
+                Offset = new Offset(1),
+                Message = new Message<string, string> { Value = "v" },
+            });
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            consumer.ConsumeAndProcessMessageAsync((_, _, _) =>
-                throw new InvalidOperationException("processing failed")).AsTask());
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                consumer.ConsumeAndProcessMessageAsync((_, _, _) =>
+                    throw new InvalidOperationException("processing failed")).AsTask());
 
-        tracerProvider.ForceFlush();
+            tracerProvider.ForceFlush();
+        }
 
-        var processActivity = activities.SingleOrDefault(a => a.DisplayName.EndsWith("process", StringComparison.Ordinal));
-        Assert.NotNull(processActivity);
+        var processActivity = Assert.Single(activities, a => a.DisplayName.EndsWith("process", StringComparison.Ordinal));
         Assert.Equal(ActivityStatusCode.Error, processActivity.Status);
     }
 
@@ -187,24 +182,26 @@ public class OpenTelemetryConsumeResultExtensionsTests
     {
         var activities = new List<Activity>();
 
-        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddSource(ConfluentKafkaCommon.InstrumentationName)
-            .AddInMemoryExporter(activities)
-            .Build();
-
-        var consumer = BuildInstrumentedConsumer(new ConsumeResult<string, string>
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                                       .AddSource(ConfluentKafkaCommon.InstrumentationName)
+                                       .AddInMemoryExporter(activities)
+                                       .Build())
         {
-            Topic = "process-topic",
-            Partition = new Partition(0),
-            Offset = new Offset(5),
-            Message = new Message<string, string> { Value = "v" },
-        });
+            var consumer = BuildInstrumentedConsumer(new ConsumeResult<string, string>
+            {
+                Topic = "process-topic",
+                Partition = new Partition(0),
+                Offset = new Offset(5),
+                Message = new Message<string, string> { Value = "v" },
+            });
 
-        await consumer.ConsumeAndProcessMessageAsync(NoOpHandler);
+            await consumer.ConsumeAndProcessMessageAsync(NoOpHandler);
 
-        tracerProvider.ForceFlush();
+            tracerProvider.ForceFlush();
+        }
 
-        var processActivity = activities.Single(a => a.DisplayName == "process-topic process");
+        var processActivity = Assert.Single(activities, a => a.DisplayName == "process-topic process");
+
         Assert.Equal(ActivityKind.Consumer, processActivity.Kind);
         Assert.Equal("kafka", processActivity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
         Assert.Equal("process", processActivity.GetTagValue(SemanticConventions.AttributeMessagingOperation));
@@ -219,13 +216,14 @@ public class OpenTelemetryConsumeResultExtensionsTests
             Traces = true,
             Metrics = false,
         };
-        return new InstrumentedConsumer<TKey, TValue>(fake, options) { GroupId = "test-group" };
+
+        return new(fake, options) { GroupId = "test-group" };
     }
 
     private static ValueTask NoOpHandler<TKey, TValue>(
         ConsumeResult<TKey, TValue> result,
         Activity? activity,
-        CancellationToken ct) => new ValueTask(Task.CompletedTask);
+        CancellationToken ct) => new(Task.CompletedTask);
 
     private sealed class FakeConsumer<TKey, TValue> : IConsumer<TKey, TValue>
     {
