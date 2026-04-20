@@ -25,7 +25,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
     internal static readonly bool IsNet9OrGreater = Environment.Version.Major >= 9;
     internal static readonly bool IsNet10OrGreater = Environment.Version.Major >= 10;
 
-    internal static readonly ActivitySource ActivitySource = ActivitySourceFactory.Create(typeof(HttpHandlerDiagnosticListener), HttpClientInstrumentation.SemanticConventionsVersion, ActivitySourceName);
+    internal static readonly ActivitySource ActivitySource = ActivitySourceFactory.Create(typeof(HttpHandlerDiagnosticListener), HttpClientInstrumentation.SemanticConventionsVersion, name: ActivitySourceName);
 
     private const string OnStartEvent = "System.Net.Http.HttpRequestOut.Start";
     private const string OnStopEvent = "System.Net.Http.HttpRequestOut.Stop";
