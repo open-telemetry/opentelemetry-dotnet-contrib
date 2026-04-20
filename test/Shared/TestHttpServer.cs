@@ -58,6 +58,7 @@ internal static class TestHttpServer
         private readonly Task httpListenerTask;
         private readonly HttpListener listener;
         private readonly TaskCompletionSource<bool> initialized = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly CancellationTokenSource cancellationTokenSource = new();
 
         public RunningServer(Action<HttpListenerContext> action, string host, int port)
         {
@@ -66,18 +67,21 @@ internal static class TestHttpServer
             this.listener.Prefixes.Add($"http://{host}:{port}/");
             this.listener.Start();
 
-            this.httpListenerTask = Task.Run(() => this.ListenAsync(action));
+            this.httpListenerTask = Task.Factory.StartNew(
+                () => this.ListenAsync(action),
+                this.cancellationTokenSource.Token,
+                TaskCreationOptions.LongRunning,
+                TaskScheduler.Default);
         }
 
-        public void Start()
-        {
-            this.initialized.Task.GetAwaiter().GetResult();
-        }
+        public void Start() => this.initialized.Task.GetAwaiter().GetResult();
 
         public void Dispose()
         {
             try
             {
+                this.cancellationTokenSource.Cancel();
+                this.cancellationTokenSource.Dispose();
                 this.listener.Close();
                 this.httpListenerTask.GetAwaiter().GetResult();
             }
@@ -87,20 +91,25 @@ internal static class TestHttpServer
             }
         }
 
-        private bool IsListenerShutdownException(Exception ex) =>
+        private static bool IsResponseAlreadyClosedException(Exception ex) =>
             ex is ObjectDisposedException ||
-            (ex is HttpListenerException httpEx && (httpEx.ErrorCode is 6 or 995 or 10057)) ||
+            (ex is HttpListenerException httpEx && (httpEx.ErrorCode is 1 or 6 or 995 or 10057));
+
+        private bool IsListenerShutdownException(Exception ex) =>
+            IsResponseAlreadyClosedException(ex) ||
             (ex is InvalidOperationException && !this.listener.IsListening);
 
         private async Task ListenAsync(Action<HttpListenerContext> action)
         {
             this.initialized.TrySetResult(true);
 
-            while (true)
+            while (!this.cancellationTokenSource.IsCancellationRequested)
             {
+                HttpListenerContext? context = null;
+
                 try
                 {
-                    var context = await this.listener.GetContextAsync().ConfigureAwait(false);
+                    context = await this.listener.GetContextAsync().ConfigureAwait(false);
                     action(context);
                 }
                 catch (Exception ex)
@@ -114,6 +123,27 @@ internal static class TestHttpServer
 
                     throw;
                 }
+                finally
+                {
+                    if (context is not null)
+                    {
+                        this.TryCloseResponse(context.Response);
+                    }
+                }
+
+                await Task.Yield();
+            }
+        }
+
+        private void TryCloseResponse(HttpListenerResponse response)
+        {
+            try
+            {
+                response.Close();
+            }
+            catch (Exception ex) when (IsResponseAlreadyClosedException(ex))
+            {
+                // The handler completed the response explicitly.
             }
         }
     }
