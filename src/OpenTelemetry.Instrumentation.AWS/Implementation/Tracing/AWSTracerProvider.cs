@@ -14,6 +14,7 @@ internal sealed class AWSTracerProvider(SemanticConventionVersion version) : Tra
 
     public override Tracer GetTracer(string scope)
     {
+        // We can add support for tags if https://github.com/aws/aws-sdk-net/issues/4393 is implemented
         if (!this.tracers.TryGetValue(scope, out var awsTracer))
         {
 #if NET
