@@ -68,7 +68,7 @@ public class ExtensionFieldInformationManagerTests
     {
         var extensionFieldInformationManager = new ExtensionFieldInformationManager();
 
-        for (var i = 0; i < ExtensionFieldInformationManager.MaxNumberOfCachedFieldInformations + 128; i++)
+        for (var i = 0; i < ExtensionFieldInformationManager.MaxNumberOfCachedFieldInformation + 128; i++)
         {
             var fieldName = $"fieldName{i}";
 
@@ -80,6 +80,6 @@ public class ExtensionFieldInformationManagerTests
             Assert.Equal(fieldName, fieldInformation.FieldName);
         }
 
-        Assert.Equal(ExtensionFieldInformationManager.MaxNumberOfCachedFieldInformations, extensionFieldInformationManager.CountOfCachedExtensionFields);
+        Assert.Equal(ExtensionFieldInformationManager.MaxNumberOfCachedFieldInformation, extensionFieldInformationManager.CountOfCachedExtensionFields);
     }
 }

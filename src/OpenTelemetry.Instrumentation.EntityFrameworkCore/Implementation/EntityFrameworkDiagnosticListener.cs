@@ -3,7 +3,6 @@
 
 using System.Data;
 using System.Diagnostics;
-using System.Reflection;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
@@ -18,12 +17,15 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     internal const string EntityFrameworkCoreCommandExecuted = "Microsoft.EntityFrameworkCore.Database.Command.CommandExecuted";
     internal const string EntityFrameworkCoreCommandError = "Microsoft.EntityFrameworkCore.Database.Command.CommandError";
 
-    internal static readonly Assembly Assembly = typeof(EntityFrameworkDiagnosticListener).Assembly;
-#pragma warning disable IDE0370 // Suppression is unnecessary
-    internal static readonly string ActivitySourceName = Assembly.GetName().Name!;
-#pragma warning restore IDE0370 // Suppression is unnecessary
-    internal static readonly string ActivityName = ActivitySourceName + ".Execute";
-    internal static readonly ActivitySource EntityFrameworkActivitySource = new(ActivitySourceName, Assembly.GetPackageVersion());
+    internal static readonly Version SemanticConventionsVersion = new(1, 24, 0);
+    internal static readonly ActivitySource ActivitySource = ActivitySourceFactory.Create<EntityFrameworkDiagnosticListener>(SemanticConventionsVersion);
+
+    private static readonly Version SemanticConventionsVersionNew = new(1, 36, 0);
+    private static readonly ActivitySource ActivitySourceNew = ActivitySourceFactory.Create<EntityFrameworkDiagnosticListener>(SemanticConventionsVersionNew);
+
+    private static readonly ActivitySource ActivitySourceBoth = ActivitySourceFactory.Create<EntityFrameworkDiagnosticListener>(null);
+
+    private static readonly string ActivityName = ActivitySource.Name + ".Execute";
 
     private readonly PropertyFetcher<object> commandFetcher = new("Command");
     private readonly PropertyFetcher<object> connectionFetcher = new("Connection");
@@ -50,11 +52,18 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     {
         var activity = Activity.Current;
 
+        var activitySource =
+            this.options.EmitNewAttributes && this.options.EmitOldAttributes ?
+            ActivitySourceBoth :
+            this.options.EmitNewAttributes ?
+            ActivitySourceNew :
+            ActivitySource;
+
         switch (name)
         {
             case EntityFrameworkCoreCommandCreated:
                 {
-                    activity = EntityFrameworkActivitySource.StartActivity(ActivityName, ActivityKind.Client);
+                    activity = activitySource.StartActivity(ActivityName, ActivityKind.Client);
                     if (activity == null)
                     {
                         // There is no listener or it decided not to sample the current request.
@@ -122,7 +131,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                         return;
                     }
 
-                    if (activity.Source != EntityFrameworkActivitySource)
+                    if (activity.Source != activitySource)
                     {
                         return;
                     }
@@ -217,7 +226,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                         return;
                     }
 
-                    if (activity.Source == EntityFrameworkActivitySource)
+                    if (activity.Source == activitySource)
                     {
                         activity.Stop();
                     }
@@ -225,7 +234,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                     // For some reason this EF event comes before the SQLClient SqlMicrosoftAfterExecuteCommand event.
                     // EF span should not be parent of any other span except SQLClient, because of that it can be closed safely.
                     // Can result in a slightly strange timeline where the EF span finishes before its child SQLClient but based on EventSource's it is true.
-                    if (activity.Parent?.Source == EntityFrameworkActivitySource)
+                    if (activity.Parent?.Source == activitySource)
                     {
                         activity.Parent.Stop();
                     }
@@ -241,7 +250,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                         return;
                     }
 
-                    if (activity.Source != EntityFrameworkActivitySource)
+                    if (activity.Source != activitySource)
                     {
                         return;
                     }

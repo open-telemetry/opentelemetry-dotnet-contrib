@@ -14,9 +14,10 @@ internal static class ActivitySourceFactory
     /// </summary>
     /// <typeparam name="T">The type for which the <see cref="ActivitySource"/> is created for its assembly.</typeparam>
     /// <param name="semanticConventionsVersion">The version of the semantic conventions.</param>
+    /// <param name="tags">The optional tags to associate with the created <see cref="ActivitySource"/>.</param>
     /// <returns>A new <see cref="ActivitySource"/> instance.</returns>
-    public static ActivitySource Create<T>(Version semanticConventionsVersion)
-        => Create(typeof(T), semanticConventionsVersion);
+    public static ActivitySource Create<T>(Version? semanticConventionsVersion, IEnumerable<KeyValuePair<string, object?>>? tags = null)
+        => Create(typeof(T), semanticConventionsVersion, tags);
 
     /// <summary>
     /// Creates a new <see cref="ActivitySource"/> for the assembly associated
@@ -24,14 +25,12 @@ internal static class ActivitySourceFactory
     /// </summary>
     /// <param name="type">The type for which the <see cref="ActivitySource"/> is created for its assembly.</param>
     /// <param name="semanticConventionsVersion">The version of the semantic conventions.</param>
+    /// <param name="tags">The optional tags to associate with the created <see cref="ActivitySource"/>.</param>
     /// <param name="name">The optional name to use for the <see cref="ActivitySource"/> instead of the assembly name associated with <paramref name="type"/>.</param>
     /// <returns>A new <see cref="ActivitySource"/> instance.</returns>
-    public static ActivitySource Create(Type type, Version semanticConventionsVersion, string? name = null)
+    public static ActivitySource Create(Type type, Version? semanticConventionsVersion, IEnumerable<KeyValuePair<string, object?>>? tags = null, string? name = null)
     {
         Guard.ThrowIfNull(type);
-        Guard.ThrowIfNull(semanticConventionsVersion);
-
-        string telemetrySchemaUrl = $"https://opentelemetry.io/schemas/{semanticConventionsVersion.ToString(3)}";
 
         var assembly = type.Assembly;
         var assemblyName = assembly.GetName();
@@ -43,9 +42,18 @@ internal static class ActivitySourceFactory
 
         var options = new ActivitySourceOptions(name)
         {
-            TelemetrySchemaUrl = telemetrySchemaUrl,
             Version = version,
         };
+
+        if (tags is not null)
+        {
+            options.Tags = tags;
+        }
+
+        if (semanticConventionsVersion is not null)
+        {
+            options.TelemetrySchemaUrl = $"https://opentelemetry.io/schemas/{semanticConventionsVersion.ToString(3)}";
+        }
 
         return new(options);
     }
