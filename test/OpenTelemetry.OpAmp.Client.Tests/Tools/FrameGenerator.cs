@@ -10,6 +10,8 @@ namespace OpenTelemetry.OpAmp.Client.Tests.Tools;
 
 internal class FrameGenerator
 {
+    private static readonly int WebSocketHeaderSize = OpAmpWsHeaderHelper.WriteHeader(new ArraySegment<byte>(new byte[OpAmpWsHeaderHelper.MaxHeaderLength]));
+
     public static MockAgentFrame GenerateMockAgentFrame(bool useSmallPackets = true)
     {
         var content = "This is a mock agent frame for testing purposes.";
@@ -53,10 +55,70 @@ internal class FrameGenerator
                 Type = "Utf8String",
             },
         };
-        var size = frame.CalculateSize();
 
+        var result = SerializeServerFrame(frame, addHeader);
+        result.ExpectedContent = content;
+        return result;
+    }
+
+    public static MockServerFrame GenerateMockServerFrameOfTotalSize(int totalSize, bool addHeader = false)
+    {
+        for (var typeLength = 1; typeLength <= 64; typeLength++)
+        {
+            var frame = TryGenerateMockServerFrameOfTotalSize(totalSize, addHeader, typeLength);
+            if (frame != null)
+            {
+                return frame;
+            }
+        }
+
+        throw new InvalidOperationException($"Unable to generate a valid server frame of total size {totalSize}.");
+    }
+
+    private static MockServerFrame? TryGenerateMockServerFrameOfTotalSize(int totalSize, bool addHeader, int typeLength)
+    {
+        var uid = ByteString.CopyFrom(Guid.NewGuid().ToByteArray());
+        var type = new string('T', typeLength);
+        var low = 0;
+        var high = totalSize;
+
+        while (low <= high)
+        {
+            var dataLength = low + ((high - low) / 2);
+            var frame = new ServerToAgent
+            {
+                InstanceUid = uid,
+                CustomMessage = new CustomMessage
+                {
+                    Data = ByteString.CopyFrom(new byte[dataLength]),
+                    Type = type,
+                },
+            };
+
+            var totalFrameSize = frame.CalculateSize() + (addHeader ? WebSocketHeaderSize : 0);
+            if (totalFrameSize == totalSize)
+            {
+                return SerializeServerFrame(frame, addHeader);
+            }
+
+            if (totalFrameSize < totalSize)
+            {
+                low = dataLength + 1;
+            }
+            else
+            {
+                high = dataLength - 1;
+            }
+        }
+
+        return null;
+    }
+
+    private static MockServerFrame SerializeServerFrame(ServerToAgent frame, bool addHeader)
+    {
+        var size = frame.CalculateSize();
         var responseBuffer = addHeader
-            ? new byte[size + OpAmpWsHeaderHelper.MaxHeaderLength]
+            ? new byte[size + WebSocketHeaderSize]
             : new byte[size];
         ArraySegment<byte> responseSegment;
 
@@ -78,7 +140,6 @@ internal class FrameGenerator
             Frame = responseSegment,
             Size = size,
             HasHeader = addHeader,
-            ExpectedContent = content,
         };
     }
 }

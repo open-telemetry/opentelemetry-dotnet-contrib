@@ -59,6 +59,8 @@ public class WeatherForecastController : ApiController
     /// <summary>
     /// For testing large async operation which causes IIS to jump threads and results in lost AsyncLocals.
     /// </summary>
+    // If this sample is adapted for real deployments, be careful to avoid
+    // unbounded per-request allocations or request/response sizes.
     [Route("data")]
     [HttpGet]
     public async Task<string> GetData()
