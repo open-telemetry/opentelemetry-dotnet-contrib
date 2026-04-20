@@ -89,7 +89,7 @@ public class HttpJsonPostTransportTests
          * This test runs a few different iterations...
          *
          * 0) Callback is attached and verified to fire.
-         * 1) Exisiting callback fires again and is verified. Then we remove the callback.
+         * 1) Existing callback fires again and is verified. Then we remove the callback.
          * 2) Verifies callback is NOT attached and NOT fired.
          * 3) Callback is attached again and verified to fire. Then we remove the callback.
          * 4) Tests the callback on a failed message with includeFailures: false.
