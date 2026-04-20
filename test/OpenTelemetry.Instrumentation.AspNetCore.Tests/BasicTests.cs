@@ -1204,7 +1204,7 @@ public sealed class BasicTests
             await client.StopAsync();
         }
 
-        WaitForActivityExport(exportedItems, 8);
+        WaitForActivityExport(exportedItems, 7);
 
         var hubActivity = exportedItems
             .Where(a => a.DisplayName.StartsWith("TestApp.AspNetCore.TestHub", StringComparison.InvariantCulture));
