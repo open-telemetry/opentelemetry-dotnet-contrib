@@ -24,10 +24,8 @@ internal sealed class AWSTracerProvider(SemanticConventionVersion version) : Tra
         }
 
         return awsTracer;
-
-        static AWSTracer CreateTracer(string name, Version version)
-        {
-            return new AWSTracer(Trace.ActivitySourceFactory.Create(typeof(AWSTracerProvider), version, name));
-        }
     }
+
+    private static AWSTracer CreateTracer(string name, Version version)
+        => new(Trace.ActivitySourceFactory.Create(typeof(AWSTracerProvider), version, name: name));
 }
