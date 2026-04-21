@@ -14,6 +14,7 @@
 
 * Fixed instrumentation suppression handling so EF Core custom diagnostic events
   do not create spans when `SuppressInstrumentationScope` is active.
+  ([#4168](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4168))
 
 ## 1.15.0-beta.1
 
