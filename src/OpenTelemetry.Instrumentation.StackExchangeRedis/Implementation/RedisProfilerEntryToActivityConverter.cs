@@ -128,8 +128,7 @@ internal static class RedisProfilerEntryToActivityConverter
 
             string? commandAndKey = null;
             string? script = null;
-            if (options.SetVerboseDatabaseStatements
-                && (options.EmitOldAttributes || options.EmitNewAttributes))
+            if (options.SetVerboseDatabaseStatements)
             {
                 (commandAndKey, script) = MessageDataGetter.Value.Invoke(command);
             }
