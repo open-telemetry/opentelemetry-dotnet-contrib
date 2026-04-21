@@ -10,15 +10,20 @@ using Microsoft.Extensions.Hosting;
 
 namespace OpenTelemetry.Instrumentation.Grpc.Tests;
 
-internal class GrpcServer<TService> : IDisposable
+internal sealed class GrpcServer<TService> : IAsyncDisposable
     where TService : class
 {
-    private static readonly Random GlobalRandom = new();
+    private IHost? host;
 
-    private readonly IHost? host;
+    public int Port { get; private set; }
 
-    public GrpcServer()
+    public async Task StartAsync()
     {
+        if (this.host != null)
+        {
+            throw new InvalidOperationException("Server is already started.");
+        }
+
         // Allows gRPC client to call insecure gRPC services
         // https://docs.microsoft.com/aspnet/core/grpc/troubleshoot?view=aspnetcore-3.1#call-insecure-grpc-services-with-net-core-client
         AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
@@ -30,9 +35,10 @@ internal class GrpcServer<TService> : IDisposable
         {
             try
             {
-                this.Port = GlobalRandom.Next(2000, 5000);
+                this.Port = Random.Shared.Next(2000, 5000);
                 this.host = this.CreateServer();
-                this.host.StartAsync().GetAwaiter().GetResult();
+
+                await this.host.StartAsync();
                 break;
             }
             catch (IOException)
@@ -43,11 +49,13 @@ internal class GrpcServer<TService> : IDisposable
         }
     }
 
-    public int Port { get; }
-
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
-        this.host?.StopAsync(TimeSpan.FromSeconds(5)).GetAwaiter().GetResult();
+        if (this.host != null)
+        {
+            await this.host.StopAsync(TimeSpan.FromSeconds(5));
+        }
+
         this.host?.Dispose();
         GC.SuppressFinalize(this);
     }
@@ -71,10 +79,7 @@ internal class GrpcServer<TService> : IDisposable
 
     private class Startup
     {
-        public void ConfigureServices(IServiceCollection services)
-        {
-            services.AddGrpc();
-        }
+        public void ConfigureServices(IServiceCollection services) => services.AddGrpc();
 
         public void Configure(IApplicationBuilder app)
         {

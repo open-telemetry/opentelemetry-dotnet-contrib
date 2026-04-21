@@ -21,6 +21,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="$(RepoRoot)\src\Shared\Lock.cs" Link="Includes\Lock.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Include must be the fully qualified .NET type name of the Attribute to create. -->
     <AssemblyAttribute Include="OpenTelemetry.Instrumentation.ServiceFabricRemoting.TraceContextEnrichedServiceRemotingProviderAttribute" />
     <AssemblyAttribute Include="OpenTelemetry.Instrumentation.ServiceFabricRemoting.TraceContextEnrichedActorRemotingProviderAttribute" />

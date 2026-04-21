@@ -63,7 +63,7 @@ internal sealed class HttpJsonPostTransport : ITransport, IDisposable
 
         var failureRegistration = this.payloadTransmittedFailureCallbacks.Add(callback);
 
-        return new TranmissionCallbackWrapper(successRegistration, failureRegistration);
+        return new TransmissionCallbackWrapper(successRegistration, failureRegistration);
     }
 
     public bool Send(in TransportSendRequest sendRequest)
@@ -103,10 +103,10 @@ internal sealed class HttpJsonPostTransport : ITransport, IDisposable
                 request.Headers.TryAddWithoutValidation("NoResponseBody", "true");
             }
 
-            using var response = this.httpClient.Send(
-                request,
-                infoLoggingEnabled ? HttpCompletionOption.ResponseContentRead : HttpCompletionOption.ResponseHeadersRead,
-                CancellationToken.None);
+            var cancellationToken = CancellationToken.None;
+            var completionOption = HttpCompletionOption.ResponseHeadersRead;
+
+            using var response = this.httpClient.Send(request, completionOption, cancellationToken);
 
             if (response.IsSuccessStatusCode)
             {
@@ -130,11 +130,14 @@ internal sealed class HttpJsonPostTransport : ITransport, IDisposable
             }
             else
             {
-                response.Headers.TryGetValues("Collector-Error", out var collectorErrors);
+                _ = response.Headers.TryGetValues("Collector-Error", out var collectorErrors);
 
-                var errorDetails = infoLoggingEnabled
-                    ? response.Content.ReadAsStringAsync().GetAwaiter().GetResult()
-                    : null;
+                string? errorDetails = null;
+
+                if (infoLoggingEnabled)
+                {
+                    errorDetails = HttpClientHelpers.TryGetResponseBodyAsString(response, cancellationToken);
+                }
 
                 OneCollectorExporterEventSource.Log.WriteHttpTransportErrorResponseReceivedEventIfEnabled(
                     this.Description,
@@ -241,12 +244,12 @@ internal sealed class HttpJsonPostTransport : ITransport, IDisposable
         }
     }
 
-    private sealed class TranmissionCallbackWrapper : IDisposable
+    private sealed class TransmissionCallbackWrapper : IDisposable
     {
         private readonly IDisposable successRegistration;
         private readonly IDisposable failureRegistration;
 
-        public TranmissionCallbackWrapper(
+        public TransmissionCallbackWrapper(
             IDisposable successRegistration,
             IDisposable failureRegistration)
         {
