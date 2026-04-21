@@ -63,7 +63,7 @@ internal sealed class FrameDispatcher : IDisposable
         await this.DispatchFrameAsync(
             BuildDisconnectMessage,
             OpAmpClientEventSource.Log.SendingAgentDisconnectMessage,
-            OpAmpClientEventSource.Log.SendHeartbeatMessageException,
+            OpAmpClientEventSource.Log.SendAgentDisconnectMessageException,
             token).ConfigureAwait(false);
 
         static AgentToServer BuildDisconnectMessage(FrameBuilder fb)
