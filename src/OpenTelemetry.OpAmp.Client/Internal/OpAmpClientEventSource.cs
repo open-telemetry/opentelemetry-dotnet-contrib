@@ -14,6 +14,9 @@ internal sealed class OpAmpClientEventSource : EventSource
     // General events 1-499
     private const int EventIdInvalidWsFrame = 1;
     private const int EventIdTransportCloseFailure = 2;
+    private const int EventIdHttpResponseReceived = 3;
+    private const int EventIdOversizedWebSocketMessage = 4;
+    private const int EventIdFrameProcessingFailure = 5;
 
     // Service events 500-999
     private const int EventIdHeartbeatServiceStart = 500;
@@ -57,6 +60,51 @@ internal sealed class OpAmpClientEventSource : EventSource
     public void TransportCloseFailure(string exception)
     {
         this.WriteEvent(EventIdTransportCloseFailure, exception);
+    }
+
+    [NonEvent]
+    public void OversizedWebSocketMessageReceived(int minimumBytes, int limitBytes)
+    {
+        if (this.IsEnabled(EventLevel.Warning, EventKeywords.All))
+        {
+            this.OversizedWebSocketMessage(minimumBytes, limitBytes);
+        }
+    }
+
+    [Event(EventIdOversizedWebSocketMessage, Message = "OpAMP server WebSocket message discarded: message is at least {0} bytes, exceeding the {1}-byte limit. The connection will be closed and the frame will not be processed.", Level = EventLevel.Warning)]
+    public void OversizedWebSocketMessage(int minimumBytes, int limitBytes)
+    {
+        this.WriteEvent(EventIdOversizedWebSocketMessage, minimumBytes, limitBytes);
+    }
+
+    [NonEvent]
+    public void HttpResponseBytesReceived(int bytes)
+    {
+        if (this.IsEnabled(EventLevel.Verbose, EventKeywords.All))
+        {
+            this.HttpResponseReceived(bytes);
+        }
+    }
+
+    [Event(EventIdHttpResponseReceived, Message = "OpAMP HTTP response received: {0} bytes.", Level = EventLevel.Verbose)]
+    public void HttpResponseReceived(int bytes)
+    {
+        this.WriteEvent(EventIdHttpResponseReceived, bytes);
+    }
+
+    [NonEvent]
+    public void FrameProcessingException(Exception ex)
+    {
+        if (this.IsEnabled(EventLevel.Warning, EventKeywords.All))
+        {
+            this.FrameProcessingFailure(ex.ToInvariantString());
+        }
+    }
+
+    [Event(EventIdFrameProcessingFailure, Message = "Failed to process incoming server frame. The frame was dropped: {0}", Level = EventLevel.Warning)]
+    public void FrameProcessingFailure(string exception)
+    {
+        this.WriteEvent(EventIdFrameProcessingFailure, exception);
     }
 
     [Event(EventIdHeartbeatServiceStart, Message = "Heartbeat service started.", Level = EventLevel.Informational)]
@@ -193,7 +241,7 @@ internal sealed class OpAmpClientEventSource : EventSource
     [NonEvent]
     public void SendEffectiveConfigMessageException(Exception ex)
     {
-        if (!this.IsEnabled(EventLevel.Error, EventKeywords.All))
+        if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
         {
             this.FailedToSendEffectiveConfigMessage(ex.ToInvariantString());
         }
@@ -208,7 +256,7 @@ internal sealed class OpAmpClientEventSource : EventSource
     [NonEvent]
     public void SendCustomCapabilitiesMessageException(Exception ex)
     {
-        if (!this.IsEnabled(EventLevel.Error, EventKeywords.All))
+        if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
         {
             this.FailedToSendCustomCapabilitiesMessage(ex.ToInvariantString());
         }
@@ -223,7 +271,7 @@ internal sealed class OpAmpClientEventSource : EventSource
     [NonEvent]
     public void SendCustomMessageMessageException(Exception ex)
     {
-        if (!this.IsEnabled(EventLevel.Error, EventKeywords.All))
+        if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
         {
             this.FailedToSendCustomMessageMessage(ex.ToInvariantString());
         }

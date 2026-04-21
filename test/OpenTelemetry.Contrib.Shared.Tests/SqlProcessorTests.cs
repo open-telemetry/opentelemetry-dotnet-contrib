@@ -17,6 +17,17 @@ public class SqlProcessorTests
 
     public static TheoryData<SqlProcessorTestCases.TestCase> TestData => SqlProcessorTestCases.GetSemanticConventionsTestCases();
 
+    [Fact]
+    public void GetSanitizedSql_CreateTableWithTrailingIdentifier_DoesNotThrow()
+    {
+        var sql = "CREATE TABLE XXX";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        Assert.Equal(sql, sqlStatementInfo.SanitizedSql);
+        Assert.Equal(sql, sqlStatementInfo.DbQuerySummary);
+    }
+
     [SkippableTheory]
     [MemberData(nameof(TestData))]
     public void TestGetSanitizedSql(SqlProcessorTestCases.TestCase testCase)

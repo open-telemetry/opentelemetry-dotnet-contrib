@@ -4,6 +4,7 @@
 #if NETFRAMEWORK
 using System.Net.Http;
 #endif
+using System.Net.WebSockets;
 
 using OpenTelemetry.Internal;
 
@@ -14,7 +15,8 @@ namespace OpenTelemetry.OpAmp.Client.Settings;
 /// </summary>
 public sealed class OpAmpClientSettings
 {
-    private readonly Func<HttpClient> defaultHttpClientFactory = () => new HttpClient();
+    private static readonly Func<ClientWebSocket> DefaultClientWebSocketFactory = static () => new();
+    private static readonly Func<HttpClient> DefaultHttpClientFactory = static () => new();
 
     /// <summary>
     /// Gets or sets the unique identifier for the current client instance.
@@ -99,20 +101,53 @@ public sealed class OpAmpClientSettings
 
     /// <summary>
     /// Gets or sets the factory function called to create the <see
+    /// cref="ClientWebSocket"/> instance used by the OpAmp client for
+    /// <see cref="ConnectionType.WebSocket"/> transport.
+    /// </summary>
+    /// <remarks>
+    /// Notes:
+    /// <list type="bullet">
+    /// <item>This is only invoked for the <see
+    /// cref="ConnectionType.WebSocket"/> protocol.</item>
+    /// <item>The factory must return a new, unconnected <see
+    /// cref="ClientWebSocket"/> instance each time it is invoked.</item>
+    /// <item>The returned instance is owned and disposed by the OpAmp
+    /// client.</item>
+    /// <item>Available <see cref="ClientWebSocket.Options"/>
+    /// configuration varies by target framework.</item>
+    /// </list>
+    /// </remarks>
+    public Func<ClientWebSocket> ClientWebSocketFactory
+    {
+        get => field ?? DefaultClientWebSocketFactory;
+        set
+        {
+            Guard.ThrowIfNull(value);
+            field = value;
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the factory function called to create the <see
     /// cref="HttpClient"/> instance that will be used at runtime to
-    /// transmit OpAmp messages over HTTP. The returned instance will
-    /// be reused for all communication.
+    /// transmit OpAmp messages over HTTP.
     /// </summary>
     /// <remarks>
     /// Notes:
     /// <list type="bullet">
     /// <item>This is only invoked for the <see
     /// cref="ConnectionType.Http"/> protocol.</item>
+    /// <item>The factory must return a new <see cref="HttpClient"/>
+    /// instance each time it is invoked.</item>
+    /// <item>The returned instance is owned and disposed by the OpAmp
+    /// client.</item>
+    /// <item>When not explicitly set, a default <see
+    /// cref="HttpClient"/> instance is created.</item>
     /// </list>
     /// </remarks>
     public Func<HttpClient> HttpClientFactory
     {
-        get => field ?? this.defaultHttpClientFactory;
+        get => field ?? DefaultHttpClientFactory;
         set
         {
             Guard.ThrowIfNull(value);

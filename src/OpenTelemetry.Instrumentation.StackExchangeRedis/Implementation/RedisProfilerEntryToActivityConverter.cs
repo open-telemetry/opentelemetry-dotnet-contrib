@@ -131,6 +131,13 @@ internal static class RedisProfilerEntryToActivityConverter
             // Total:
             // command.ElapsedTime;             // 00:00:32.4988020
 
+            string? commandAndKey = null;
+            string? script = null;
+            if (options.SetVerboseDatabaseStatements)
+            {
+                (commandAndKey, script) = MessageDataGetter.Value.Invoke(command);
+            }
+
             if (options.EmitOldAttributes)
             {
                 activity.SetTag(StackExchangeRedisConnectionInstrumentation.RedisDatabaseIndexKeyName, command.Db);
@@ -138,8 +145,6 @@ internal static class RedisProfilerEntryToActivityConverter
 
                 if (options.SetVerboseDatabaseStatements)
                 {
-                    var (commandAndKey, script) = MessageDataGetter.Value.Invoke(command);
-
                     if (!string.IsNullOrEmpty(commandAndKey))
                     {
                         statement = commandAndKey;
@@ -162,10 +167,20 @@ internal static class RedisProfilerEntryToActivityConverter
 
             if (options.EmitNewAttributes)
             {
-                var (commandAndKey, script) = MessageDataGetter.Value.Invoke(command);
+                string? queryText = command.Command;
+                if (options.SetVerboseDatabaseStatements && !string.IsNullOrEmpty(commandAndKey))
+                {
+                    queryText = commandAndKey;
+
+                    if (!string.IsNullOrEmpty(script))
+                    {
+                        queryText += " " + script;
+                    }
+                }
+
                 activity.SetTag(SemanticConventions.AttributeDbOperationName, command.Command);
                 activity.SetTag(SemanticConventions.AttributeDbNamespace, command.Db.ToString(CultureInfo.InvariantCulture));
-                activity.SetTag(SemanticConventions.AttributeDbQueryText, commandAndKey);
+                activity.SetTag(SemanticConventions.AttributeDbQueryText, queryText);
             }
 
             if (command.EndPoint != null)

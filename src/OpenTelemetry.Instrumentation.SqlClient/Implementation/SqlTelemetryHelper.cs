@@ -17,7 +17,7 @@ internal sealed class SqlTelemetryHelper
 
     public static readonly Version SemanticConventionsVersion = new(1, 33, 0);
     public static readonly ActivitySource ActivitySource = ActivitySourceFactory.Create<SqlTelemetryHelper>(SemanticConventionsVersion);
-    public static readonly Meter Meter = MeterFactory.Create<SqlTelemetryHelper>(SemanticConventionsVersion);
+    public static readonly Meter Meter = Metrics.MeterFactory.Create<SqlTelemetryHelper>(SemanticConventionsVersion);
 
     public static readonly Histogram<double> DbClientOperationDuration = Meter.CreateHistogram(
         "db.client.operation.duration",
