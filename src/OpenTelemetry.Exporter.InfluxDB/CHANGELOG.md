@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.0-alpha.8
+
+Released 2026-Apr-21
+
 * Custom metric tags are now exported.
   ([#4014](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4014))
 
