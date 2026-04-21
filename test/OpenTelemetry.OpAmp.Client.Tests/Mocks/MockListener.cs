@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Collections.Concurrent;
+
 using OpenTelemetry.OpAmp.Client.Listeners;
 using OpenTelemetry.OpAmp.Client.Messages;
 
@@ -19,9 +20,17 @@ internal class MockListener : IOpAmpListener<CustomMessageMessage>, IDisposable
         this.messageEvent.Set();
     }
 
+    public bool TryWaitForMessage(TimeSpan timeout)
+    {
+        return this.messageEvent.WaitOne(timeout);
+    }
+
     public void WaitForMessages(TimeSpan timeout)
     {
-        this.messageEvent.WaitOne(timeout);
+        if (!this.TryWaitForMessage(timeout))
+        {
+            throw new TimeoutException($"No message was received within {timeout}.");
+        }
     }
 
     public void Dispose()
