@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Fixed `db.query.text` not respecting `SetVerboseDatabaseStatements` when
+  the new database semantic conventions are enabled.
+  ([#4245](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4245))
+
 ## 1.15.1-beta.1
 
 Released 2026-Apr-21
