@@ -251,7 +251,6 @@ function CreatePackageValidationBaselineVersionUpdatePullRequest {
   UpdateCommonPropsVersion -tagPrefix $tagPrefix -version $version -propertyName 'Instrumentation.AspNetCore-' -propertyDisplayName 'OpenTelemetryInstrumentationAspNetCoreLatestStableVersion'
   UpdateCommonPropsVersion -tagPrefix $tagPrefix -version $version -propertyName 'Instrumentation.Http-' -propertyDisplayName 'OpenTelemetryInstrumentationHttpLatestStableVersion'
   UpdateCommonPropsVersion -tagPrefix $tagPrefix -version $version -propertyName 'Instrumentation.Runtime-' -propertyDisplayName 'OpenTelemetryInstrumentationRuntimeLatestStableVersion'
-  UpdateCommonPropsVersion -tagPrefix $tagPrefix -version $version -propertyName 'Extensions.Enrichment-' -propertyDisplayName 'OpenTelemetryEnrichmentUnstableLatestVersion'
 
   git push -u origin $branch 2>&1 | % ToString
   if ($LASTEXITCODE -gt 0)
@@ -273,6 +272,16 @@ Merge once packages are available on NuGet and the build passes.
   if ($tagPrefix -eq 'Instrumentation.AspNetCore-' -and $version -match '^[01]\.')
   {
     $body += "`n* Sets ``OpenTelemetryInstrumentationAspNetCoreLatestStableVersion`` in Common.props to version ``$version``."
+  }
+
+  if ($tagPrefix -eq 'Instrumentation.Http-' -and $version -match '^[01]\.')
+  {
+    $body += "`n* Sets ``OpenTelemetryInstrumentationHttpLatestStableVersion`` in Common.props to version ``$version``."
+  }
+
+  if ($tagPrefix -eq 'Instrumentation.Runtime-' -and $version -match '^[01]\.')
+  {
+    $body += "`n* Sets ``OpenTelemetryInstrumentationRuntimeLatestStableVersion`` in Common.props to version ``$version``."
   }
 
   gh pr create `
