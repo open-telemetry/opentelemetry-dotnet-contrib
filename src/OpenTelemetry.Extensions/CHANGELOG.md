@@ -2,11 +2,11 @@
 
 ## Unreleased
 
-* Updated OpenTelemetry core component version(s) to `1.15.2`.
-  ([#4080](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4080))
-
 * Fixed `RateLimitingSampler` to reject non-positive `maxTracesPerSecond` values.
   ([#4127](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4127))
+
+* Updated OpenTelemetry core component version(s) to `1.15.3`.
+  ([#4166](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4166))
 
 ## 1.14.0-beta.1
 

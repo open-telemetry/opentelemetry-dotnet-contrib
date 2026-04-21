@@ -2,11 +2,11 @@
 
 ## Unreleased
 
-* Updated OpenTelemetry core component version(s) to `1.15.2`.
-  ([#4080](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4080))
-
 * Limit how much of the response body is consumed from metadata service HTTP responses.
   ([#4121](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4121))
+
+* Updated OpenTelemetry core component version(s) to `1.15.3`.
+  ([#4166](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4166))
 
 ## 1.15.0-beta.1
 
