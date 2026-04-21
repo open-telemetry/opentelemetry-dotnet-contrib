@@ -16,7 +16,7 @@ public class RequestContextHelperTests
 {
     private const string TraceId = "5759e988bd862e3fe1be46a994272793";
     private const string ParentId = "53995c3f42cd8ad8";
-    private const string TraceState = "trace-state";
+    private const string TraceState = "key1=value1,key2=value2";
 
     public RequestContextHelperTests()
     {
@@ -51,7 +51,7 @@ public class RequestContextHelperTests
         var expectedParameters = new List<KeyValuePair<string, string>>
         {
             new("traceparent", $"00-{TraceId}-{ParentId}-00"),
-            new("tracestate", "trace-state"),
+            new("tracestate", "key1=value1,key2=value2"),
         };
 
         var originalRequest = new SQS.SendMessageRequest()
@@ -75,7 +75,7 @@ public class RequestContextHelperTests
         var expectedParameters = new List<KeyValuePair<string, string>>
         {
             new("traceparent", $"00-{TraceId}-{ParentId}-00"),
-            new("tracestate", "trace-state"),
+            new("tracestate", "key1=value1,key2=value2"),
         };
 
         var originalRequest = new SNS.PublishRequest()

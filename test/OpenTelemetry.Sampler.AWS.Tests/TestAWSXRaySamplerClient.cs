@@ -163,6 +163,18 @@ public class TestAWSXRaySamplerClient : IDisposable
         Assert.Null(targetsResponse);
     }
 
+    [Fact]
+    public async Task TestGetSamplingRulesWithOversizedResponse()
+    {
+        // Create a response larger than the 1 MB limit enforced by DoRequestAsync.
+        var oversizedPayload = new string('x', (1024 * 1024) + 1);
+        this.requestHandler.SetResponse("/GetSamplingRules", oversizedPayload);
+
+        var rules = await this.client.GetSamplingRules();
+
+        Assert.Empty(rules);
+    }
+
     private void CreateResponse(string endpoint, string filePath)
     {
         var mockResponse = File.ReadAllText(filePath);

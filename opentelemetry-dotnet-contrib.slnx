@@ -30,6 +30,7 @@
     <File Path=".github/workflows/verifyaotcompat.yml" />
   </Folder>
   <Folder Name="/build/">
+    <File Path="build/BannedSymbols.txt" />
     <File Path="build/Common.nonprod.props" />
     <File Path="build/Common.prod.props" />
     <File Path="build/Common.props" />
@@ -280,6 +281,7 @@
     <Project Path="test/OpenTelemetry.Instrumentation.Runtime.Tests/OpenTelemetry.Instrumentation.Runtime.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests/OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.SqlClient.Tests/OpenTelemetry.Instrumentation.SqlClient.Tests.csproj" />
+    <Project Path="test/OpenTelemetry.Instrumentation.StackExchangeRedis.Benchmarks/OpenTelemetry.Instrumentation.StackExchangeRedis.Benchmarks.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.StackExchangeRedis.Tests/OpenTelemetry.Instrumentation.StackExchangeRedis.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.Wcf.Tests/OpenTelemetry.Instrumentation.Wcf.Tests.csproj" />
     <Project Path="test/OpenTelemetry.OpAmp.Client.Tests/OpenTelemetry.OpAmp.Client.Tests.csproj" />

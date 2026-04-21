@@ -8,6 +8,16 @@ namespace OpenTelemetry.Extensions.Tests.Trace;
 
 public class RateLimitingSamplerTests
 {
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void Constructor_ThrowsArgumentOutOfRangeException_WhenMaxTracesPerSecondIsNotPositive(int maxTracesPerSecond)
+    {
+        var exception = Assert.Throws<ArgumentOutOfRangeException>(() => new RateLimitingSampler(maxTracesPerSecond));
+
+        Assert.Equal("maxTracesPerSecond", exception.ParamName);
+    }
+
     [Fact]
     public void ShouldSample_ReturnsRecordAndSample_WhenWithinRateLimit()
     {

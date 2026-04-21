@@ -12,7 +12,7 @@ internal class MockWebResponse
     public static HttpWebResponse? CreateFromResource(string resourceName)
     {
         var rawResponse = Utils.GetResourceText(resourceName);
-        var response = ParseRawReponse(rawResponse);
+        var response = ParseRawResponse(rawResponse);
         var statusCode = ParseStatusCode(response.StatusLine);
         return Create(statusCode, response.Headers, response.Body);
     }
@@ -65,7 +65,7 @@ internal class MockWebResponse
     {
         var rawResponse = Utils.GetResourceText(resourceName);
 
-        var response = ParseRawReponse(rawResponse);
+        var response = ParseRawResponse(rawResponse);
         var statusCode = ParseStatusCode(response.StatusLine);
 
         return Create(statusCode, response.Headers, response.Body);
@@ -100,7 +100,7 @@ internal class MockWebResponse
     }
 
 #endif
-    public static HttpResponse ParseRawReponse(string rawResponse)
+    public static HttpResponse ParseRawResponse(string rawResponse)
     {
         var response = new HttpResponse { StatusLine = rawResponse };
 
