@@ -25,7 +25,12 @@ public class RedisFixture : IAsyncDisposable
         var assembly = typeof(RedisFixture).Assembly;
 
         using var stream = assembly.GetManifestResourceStream("redis.Dockerfile");
+
+#if NET
         using var reader = new StreamReader(stream!);
+#else
+        using var reader = new StreamReader(stream);
+#endif
 
         var raw = reader.ReadToEnd();
 
