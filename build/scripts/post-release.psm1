@@ -274,16 +274,6 @@ Merge once packages are available on NuGet and the build passes.
     $body += "`n* Sets ``OpenTelemetryInstrumentationAspNetCoreLatestStableVersion`` in Common.props to version ``$version``."
   }
 
-  if ($tagPrefix -eq 'Instrumentation.Http-' -and $version -match '^[01]\.')
-  {
-    $body += "`n* Sets ``OpenTelemetryInstrumentationHttpLatestStableVersion`` in Common.props to version ``$version``."
-  }
-
-  if ($tagPrefix -eq 'Instrumentation.Runtime-' -and $version -match '^[01]\.')
-  {
-    $body += "`n* Sets ``OpenTelemetryInstrumentationRuntimeLatestStableVersion`` in Common.props to version ``$version``."
-  }
-
   gh pr create `
     --title "[release] $tagPrefix stable release $version updates" `
     --body $body `
