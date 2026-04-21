@@ -2,4 +2,5 @@
 
 ## Unreleased
 
-For more details, please refer to the [README](README.md).
+* Initial implementation.
+  ([#3591](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3591))
