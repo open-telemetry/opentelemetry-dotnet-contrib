@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.15.0-beta.1
+
+Released 2026-Apr-21
+
 * Fixed `RateLimitingSampler` to reject non-positive `maxTracesPerSecond` values.
   ([#4127](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4127))
 
