@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.15.1-beta.1
+
+Released 2026-Apr-21
+
 * Fix `IndexOutOfRangeException` when parsing SQL statements.
   ([#4139](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4139))
 

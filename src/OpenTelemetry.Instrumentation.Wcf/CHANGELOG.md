@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.15.1-beta.1
+
+Released 2026-Apr-21
+
 * Update `System.Security.Cryptography.Xml` dependency versions for .NET 8, 9 and
   10 to pick up fixes for [GHSA-w3x6-4m5h-cxqf](https://github.com/dotnet/runtime/security/advisories/GHSA-w3x6-4m5h-cxqf)
   and [GHSA-37gx-xxp4-5rgx](https://github.com/dotnet/runtime/security/advisories/GHSA-37gx-xxp4-5rgx).
