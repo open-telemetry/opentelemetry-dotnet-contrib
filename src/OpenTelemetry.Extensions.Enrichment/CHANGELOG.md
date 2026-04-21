@@ -2,8 +2,16 @@
 
 ## Unreleased
 
-* Updated OpenTelemetry core component version(s) to `1.15.2`.
-  ([#4080](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4080))
+## 1.15.1-beta.1
+
+Released 2026-Apr-21
+
+* Updated OpenTelemetry core component version(s) to `1.15.3`.
+  ([#4166](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4166))
+
+* Fixed trace enrichment callbacks so exceptions thrown by user-provided
+  enrichers or enrichment actions no longer interrupt trace processing.
+  ([#4165](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4165))
 
 ## 1.15.0-beta.1
 
