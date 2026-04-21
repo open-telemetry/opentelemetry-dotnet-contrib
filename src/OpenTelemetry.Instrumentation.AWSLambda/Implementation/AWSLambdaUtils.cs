@@ -32,7 +32,7 @@ internal class AWSLambdaUtils
         return headers.TryGetValue(name, out var value) ? [value] : [];
     };
 
-    // Added volatile for abundance of caution because in theory, particular in using Lambda's Mananged Instances,
+    // Added volatile for abundance of caution because in theory, particular in using Lambda's Managed Instances,
     // during initial startup multiple invocations invoking GetXRayParentContext() at the same time before the first
     // TraceProviderIsolated.CurrentTraceId is called.
     private static volatile bool traceProviderIsolatedFailed;
@@ -120,7 +120,7 @@ internal class AWSLambdaUtils
     internal static string? GetFunctionVersion()
         => Environment.GetEnvironmentVariable(FunctionVersion);
 
-    internal static int? GetFunctionMemorySize(ILambdaContext? context = null)
+    internal static long? GetFunctionMemorySize(ILambdaContext? context = null)
     {
         var memoryLimitInMB = context?.MemoryLimitInMB;
 
@@ -137,7 +137,7 @@ internal class AWSLambdaUtils
         if (memoryLimitInMB.HasValue)
         {
             // Convert to bytes to match semantic conventions (e.g. 128 to 134217728)
-            return memoryLimitInMB.Value * 1024 * 1024;
+            return memoryLimitInMB.Value * 1024L * 1024L;
         }
 
         return null;
