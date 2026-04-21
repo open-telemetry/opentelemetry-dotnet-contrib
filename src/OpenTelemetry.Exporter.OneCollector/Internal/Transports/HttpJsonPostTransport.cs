@@ -63,7 +63,7 @@ internal sealed class HttpJsonPostTransport : ITransport, IDisposable
 
         var failureRegistration = this.payloadTransmittedFailureCallbacks.Add(callback);
 
-        return new TranmissionCallbackWrapper(successRegistration, failureRegistration);
+        return new TransmissionCallbackWrapper(successRegistration, failureRegistration);
     }
 
     public bool Send(in TransportSendRequest sendRequest)
@@ -244,12 +244,12 @@ internal sealed class HttpJsonPostTransport : ITransport, IDisposable
         }
     }
 
-    private sealed class TranmissionCallbackWrapper : IDisposable
+    private sealed class TransmissionCallbackWrapper : IDisposable
     {
         private readonly IDisposable successRegistration;
         private readonly IDisposable failureRegistration;
 
-        public TranmissionCallbackWrapper(
+        public TransmissionCallbackWrapper(
             IDisposable successRegistration,
             IDisposable failureRegistration)
         {
