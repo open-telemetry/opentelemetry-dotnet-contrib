@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.15.1-beta.1
+
+Released 2026-Apr-21
+
 * Add a fallback to the default Hangfire display name when `DisplayNameFunc`
   is set to null.
   ([#4129](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4129))
@@ -11,8 +15,8 @@
   with MongoDB.
   ([#4025](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4025))
 
-* Updated OpenTelemetry core component version(s) to `1.15.2`.
-  ([#4080](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4080))
+* Updated OpenTelemetry core component version(s) to `1.15.3`.
+  ([#4166](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4166))
 
 ## 1.15.0-beta.1
 
