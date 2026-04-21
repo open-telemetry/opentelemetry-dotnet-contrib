@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.15.1
+
+Released 2026-Apr-21
+
 * Fix `faas.max_memory` overflow for Lambda memory settings at or above 2048 MB.
   ([#4125](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4125))
 

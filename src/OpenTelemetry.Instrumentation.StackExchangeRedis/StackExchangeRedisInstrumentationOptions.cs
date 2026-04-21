@@ -34,7 +34,9 @@ public class StackExchangeRedisInstrumentationOptions
     public TimeSpan FlushInterval { get; set; } = TimeSpan.FromSeconds(10);
 
     /// <summary>
-    /// Gets or sets a value indicating whether the <see cref="StackExchangeRedisConnectionInstrumentation"/> should use reflection to get more detailed <see cref="SemanticConventions.AttributeDbStatement"/> tag values. Default value: <see langword="false"/>.
+    /// Gets or sets a value indicating whether the <see cref="StackExchangeRedisConnectionInstrumentation"/> should use reflection to get more detailed
+    /// <see cref="SemanticConventions.AttributeDbStatement"/> and <see cref="SemanticConventions.AttributeDbQueryText"/> tag values. Default value:
+    /// <see langword="false"/>.
     /// </summary>
     public bool SetVerboseDatabaseStatements { get; set; }
 
