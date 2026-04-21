@@ -32,7 +32,7 @@ internal class AWSLambdaUtils
         return headers.TryGetValue(name, out var value) ? [value] : [];
     };
 
-    // Added volatile for abundance of caution because in theory, particular in using Lambda's Mananged Instances,
+    // Added volatile for abundance of caution because in theory, particular in using Lambda's Managed Instances,
     // during initial startup multiple invocations invoking GetXRayParentContext() at the same time before the first
     // TraceProviderIsolated.CurrentTraceId is called.
     private static volatile bool traceProviderIsolatedFailed;
