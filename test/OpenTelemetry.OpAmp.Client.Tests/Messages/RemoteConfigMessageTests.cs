@@ -33,6 +33,22 @@ public class RemoteConfigMessageTests
     }
 
     [Fact]
+    public void Constructor_WithNullConfig_InitializesEmptyDictionary()
+    {
+        // Arrange
+        var agentRemoteConfig = new global::OpAmp.Proto.V1.AgentRemoteConfig
+        {
+            ConfigHash = ByteString.CopyFromUtf8(HashString),
+        };
+
+        // Act
+        var remoteConfigMessage = new Client.Messages.RemoteConfigMessage(agentRemoteConfig);
+
+        // Assert
+        Assert.Empty(remoteConfigMessage.AgentConfigMap);
+    }
+
+    [Fact]
     public void Constructor_WithEmptyConfigMap_InitializesEmptyDictionary()
     {
         // Arrange

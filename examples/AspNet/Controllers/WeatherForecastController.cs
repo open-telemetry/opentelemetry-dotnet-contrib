@@ -23,7 +23,7 @@ public class WeatherForecastController : ApiController
     {
         // Build some dependency spans.
 
-        await RequestGoogleHomPageViaHttpClient().ConfigureAwait(false);
+        await RequestGoogleHomePageViaHttpClient().ConfigureAwait(false);
 
         await this.RequestInvalidViaHttpClient().ConfigureAwait(false);
 
@@ -47,11 +47,11 @@ public class WeatherForecastController : ApiController
         // how dependency calls will be captured and treated
         // automatically as child of incoming request.
 
-        RequestGoogleHomPageViaHttpWebRequestLegacySync();
+        RequestGoogleHomePageViaHttpWebRequestLegacySync();
 
-        await RequestGoogleHomPageViaHttpWebRequestLegacyAsync().ConfigureAwait(false);
+        await RequestGoogleHomePageViaHttpWebRequestLegacyAsync().ConfigureAwait(false);
 
-        RequestGoogleHomPageViaHttpWebRequestLegacyAsyncResult();
+        RequestGoogleHomePageViaHttpWebRequestLegacyAsyncResult();
 
         return GetWeatherForecast();
     }
@@ -59,6 +59,8 @@ public class WeatherForecastController : ApiController
     /// <summary>
     /// For testing large async operation which causes IIS to jump threads and results in lost AsyncLocals.
     /// </summary>
+    // If this sample is adapted for real deployments, be careful to avoid
+    // unbounded per-request allocations or request/response sizes.
     [Route("data")]
     [HttpGet]
     public async Task<string> GetData()
@@ -117,7 +119,7 @@ public class WeatherForecastController : ApiController
     }
 
     // Test successful dependency collection via HttpClient.
-    private static async Task RequestGoogleHomPageViaHttpClient()
+    private static async Task RequestGoogleHomePageViaHttpClient()
     {
         using var request = new HttpClient();
 
@@ -127,7 +129,7 @@ public class WeatherForecastController : ApiController
     }
 
     // Test dependency collection via legacy HttpWebRequest sync.
-    private static void RequestGoogleHomPageViaHttpWebRequestLegacySync()
+    private static void RequestGoogleHomePageViaHttpWebRequestLegacySync()
     {
         var request = WebRequest.Create(new Uri("http://www.google.com/?sync"));
 
@@ -135,7 +137,7 @@ public class WeatherForecastController : ApiController
     }
 
     // Test dependency collection via legacy HttpWebRequest async.
-    private static async Task RequestGoogleHomPageViaHttpWebRequestLegacyAsync()
+    private static async Task RequestGoogleHomePageViaHttpWebRequestLegacyAsync()
     {
         var request = (HttpWebRequest)WebRequest.Create(new Uri("http://www.google.com/?async"));
 
@@ -143,7 +145,7 @@ public class WeatherForecastController : ApiController
     }
 
     // Test dependency collection via legacy HttpWebRequest IAsyncResult.
-    private static void RequestGoogleHomPageViaHttpWebRequestLegacyAsyncResult()
+    private static void RequestGoogleHomePageViaHttpWebRequestLegacyAsyncResult()
     {
         var request = (HttpWebRequest)WebRequest.Create(new Uri("http://www.google.com/?async"));
 
