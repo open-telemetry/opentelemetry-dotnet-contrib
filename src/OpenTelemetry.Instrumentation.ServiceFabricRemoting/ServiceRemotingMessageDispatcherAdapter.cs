@@ -6,6 +6,7 @@ using Microsoft.ServiceFabric.Services.Remoting.V2;
 using Microsoft.ServiceFabric.Services.Remoting.V2.Runtime;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Internal;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting;
 
@@ -61,30 +62,35 @@ public sealed class ServiceRemotingMessageDispatcherAdapter : IServiceRemotingMe
 
         if (ServiceFabricRemotingActivitySource.Options?.Filter?.Invoke(requestMessage) == false)
         {
-            // If we filter out the request we don't need to process anything related to the activity
+            // If we filter out the request we don't need to process anything related to the activity or metric.
             return await this.innerDispatcher.HandleRequestResponseAsync(requestContext, requestMessage).ConfigureAwait(false);
         }
         else
         {
-            var requestMessageHeader = requestMessage.GetHeader();
+            IServiceRemotingRequestMessageHeader requestMessageHeader = requestMessage.GetHeader();
             Guard.ThrowIfNull(requestMessageHeader, "requestMessage.GetHeader()");
 
             // Extract the PropagationContext of the upstream parent from the message headers.
-            var parentContext = Propagator.Extract(default, requestMessageHeader, ServiceFabricRemotingUtils.ExtractTraceContextFromRequestMessageHeader);
+            PropagationContext parentContext = Propagator.Extract(default, requestMessageHeader, ServiceFabricRemotingUtils.ExtractTraceContextFromRequestMessageHeader);
             Baggage.Current = parentContext.Baggage;
 
-            var activityName = requestMessageHeader?.MethodName ?? ServiceFabricRemotingActivitySource.IncomingRequestActivityName;
+            string activityName = requestMessageHeader?.MethodName ?? ServiceFabricRemotingActivitySource.IncomingRequestActivityName;
 
-            using (var activity = ServiceFabricRemotingActivitySource.ActivitySource.StartActivity(activityName, ActivityKind.Server, parentContext.ActivityContext))
+            long startTimestamp = Stopwatch.GetTimestamp();
+
+            using (Activity? activity = ServiceFabricRemotingActivitySource.ActivitySource.StartActivity(activityName, ActivityKind.Server, parentContext.ActivityContext))
             {
+                string? errorType = null;
                 try
                 {
-                    var responseMessage = await this.innerDispatcher.HandleRequestResponseAsync(requestContext, requestMessage).ConfigureAwait(false);
+                    IServiceRemotingResponseMessage responseMessage = await this.innerDispatcher.HandleRequestResponseAsync(requestContext, requestMessage).ConfigureAwait(false);
 
                     return responseMessage;
                 }
                 catch (Exception ex)
                 {
+                    errorType = ex.GetType().FullName;
+
                     if (activity != null)
                     {
                         activity.SetStatus(ActivityStatusCode.Error);
@@ -96,6 +102,26 @@ public sealed class ServiceRemotingMessageDispatcherAdapter : IServiceRemotingMe
                     }
 
                     throw;
+                }
+                finally
+                {
+                    if (ServiceFabricRemotingMetrics.ServerCallDuration.Enabled)
+                    {
+                        TagList tags = default;
+                        tags.Add(SemanticConventions.AttributeRpcSystemName, ServiceFabricRemotingSemanticConventions.RpcSystemServiceFabricRemoting);
+                        if (requestMessageHeader?.MethodName != null)
+                        {
+                            tags.Add(SemanticConventions.AttributeRpcMethod, requestMessageHeader.MethodName);
+                        }
+
+                        if (errorType != null)
+                        {
+                            tags.Add(SemanticConventions.AttributeErrorType, errorType);
+                        }
+
+                        double elapsedSeconds = (Stopwatch.GetTimestamp() - startTimestamp) / (double)Stopwatch.Frequency;
+                        ServiceFabricRemotingMetrics.ServerCallDuration.Record(elapsedSeconds, tags);
+                    }
                 }
             }
         }

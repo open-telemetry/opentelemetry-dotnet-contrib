@@ -7,6 +7,7 @@ using Microsoft.ServiceFabric.Services.Remoting.V2;
 using Microsoft.ServiceFabric.Services.Remoting.V2.Client;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Internal;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting;
 
@@ -48,17 +49,21 @@ internal class TraceContextEnrichedServiceRemotingClientAdapter : IServiceRemoti
 
         if (ServiceFabricRemotingActivitySource.Options?.Filter?.Invoke(requestMessage) == false)
         {
-            // If we filter out the request we don't need to process anything related to the activity
+            // If we filter out the request we don't need to process anything related to the activity or metric.
             return await this.InnerClient.RequestResponseAsync(requestMessage).ConfigureAwait(false);
         }
         else
         {
-            var requestMessageHeader = requestMessage.GetHeader();
+            IServiceRemotingRequestMessageHeader requestMessageHeader = requestMessage.GetHeader();
             Guard.ThrowIfNull(requestMessageHeader, "requestMessage.GetHeader()");
 
-            var activityName = requestMessageHeader.MethodName ?? ServiceFabricRemotingActivitySource.OutgoingRequestActivityName;
+            string? serverAddress = ServiceFabricRemotingUtils.GetServerAddress(this.InnerClient);
 
-            using var activity = ServiceFabricRemotingActivitySource.ActivitySource.StartActivity(activityName, ActivityKind.Client);
+            string activityName = requestMessageHeader.MethodName ?? ServiceFabricRemotingActivitySource.OutgoingRequestActivityName;
+
+            long startTimestamp = Stopwatch.GetTimestamp();
+
+            using Activity? activity = ServiceFabricRemotingActivitySource.ActivitySource.StartActivity(activityName, ActivityKind.Client);
 
             // Depending on Sampling (and whether a listener is registered or not), the activity above may not be created.
             // If it is created, then propagate its context.
@@ -84,9 +89,10 @@ internal class TraceContextEnrichedServiceRemotingClientAdapter : IServiceRemoti
                 }
             }
 
+            string? errorType = null;
             try
             {
-                var responseMessage = await this.InnerClient.RequestResponseAsync(requestMessage).ConfigureAwait(false);
+                IServiceRemotingResponseMessage responseMessage = await this.InnerClient.RequestResponseAsync(requestMessage).ConfigureAwait(false);
 
                 if (activity != null)
                 {
@@ -104,6 +110,8 @@ internal class TraceContextEnrichedServiceRemotingClientAdapter : IServiceRemoti
             }
             catch (Exception ex)
             {
+                errorType = ex.GetType().FullName;
+
                 if (activity != null)
                 {
                     activity.SetStatus(ActivityStatusCode.Error);
@@ -124,6 +132,31 @@ internal class TraceContextEnrichedServiceRemotingClientAdapter : IServiceRemoti
                 }
 
                 throw;
+            }
+            finally
+            {
+                if (ServiceFabricRemotingMetrics.ClientCallDuration.Enabled)
+                {
+                    TagList tags = default;
+                    tags.Add(SemanticConventions.AttributeRpcSystemName, ServiceFabricRemotingSemanticConventions.RpcSystemServiceFabricRemoting);
+                    if (requestMessageHeader.MethodName != null)
+                    {
+                        tags.Add(SemanticConventions.AttributeRpcMethod, requestMessageHeader.MethodName);
+                    }
+
+                    if (errorType != null)
+                    {
+                        tags.Add(SemanticConventions.AttributeErrorType, errorType);
+                    }
+
+                    if (serverAddress != null)
+                    {
+                        tags.Add(SemanticConventions.AttributeServerAddress, serverAddress);
+                    }
+
+                    double elapsedSeconds = (Stopwatch.GetTimestamp() - startTimestamp) / (double)Stopwatch.Frequency;
+                    ServiceFabricRemotingMetrics.ClientCallDuration.Record(elapsedSeconds, tags);
+                }
             }
         }
     }
