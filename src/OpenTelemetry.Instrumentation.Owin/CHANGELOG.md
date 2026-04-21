@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.15.1-beta.1
+
+Released 2026-Apr-21
+
 * Fixed a startup regression in `AddOwinInstrumentation` for applications
   which do not register `IConfiguration` in DI.
   ([#4146](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4146))
