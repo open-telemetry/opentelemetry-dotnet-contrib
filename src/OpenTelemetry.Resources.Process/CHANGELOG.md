@@ -2,17 +2,17 @@
 
 ## Unreleased
 
+* Add new process resource attributes: `process.args_count`,
+  `process.creation.time`, `process.executable.path`,
+  `process.title` and `process.working_directory`.
+  ([#4036](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4036))
+
 ## 1.15.1-beta.1
 
 Released 2026-Apr-21
 
 * Updated OpenTelemetry core component version(s) to `1.15.3`.
   ([#4166](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4166))
-
-* Add new process resource attributes: `process.args_count`,
-  `process.creation.time`, `process.executable.path`,
-  `process.title` and `process.working_directory`.
-  ([#4036](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4036))
 
 ## 1.15.0-beta.1
 
