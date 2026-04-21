@@ -6,7 +6,7 @@
   `MeterProviderBuilder.AddServiceFabricRemotingInstrumentation()` to emit
   `rpc.server.call.duration` and `rpc.client.call.duration` histograms per the
   OpenTelemetry RPC metrics semantic conventions.
-  ([#NNNN](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/NNNN))
+  ([#4163](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4163))
 
 * Updated OpenTelemetry core component version(s) to `1.15.2`.
   ([#4080](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4080))
