@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics.Metrics;
-using OpenTelemetry.Internal;
+using OpenTelemetry.Metrics;
 
 namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting;
 
@@ -19,7 +19,10 @@ public static class ServiceFabricRemotingMetrics
     /// </summary>
     public const string MeterName = "OpenTelemetry.Instrumentation.ServiceFabricRemoting";
 
-    internal static readonly Meter Meter = new(MeterName, typeof(ServiceFabricRemotingMetrics).Assembly.GetPackageVersion());
+    internal static readonly Meter Meter = MeterFactory.Create(
+        typeof(ServiceFabricRemotingMetrics),
+        semanticConventionsVersion: null,
+        name: MeterName);
 
     internal static readonly Histogram<double> ServerCallDuration = Meter.CreateHistogram<double>(
         name: ServiceFabricRemotingSemanticConventions.MetricNameRpcServerCallDuration,
