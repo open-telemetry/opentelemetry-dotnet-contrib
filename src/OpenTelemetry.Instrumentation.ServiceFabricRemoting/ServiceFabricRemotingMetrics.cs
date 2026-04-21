@@ -8,7 +8,7 @@ namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting;
 
 internal static class ServiceFabricRemotingMetrics
 {
-    internal static readonly Meter Meter = new(ServiceFabricRemotingActivitySource.ActivitySourceName, ServiceFabricRemotingActivitySource.Assembly.GetPackageVersion());
+    internal static readonly Meter Meter = new(typeof(ServiceFabricRemotingMetrics).Assembly.GetName().Name!, typeof(ServiceFabricRemotingMetrics).Assembly.GetPackageVersion());
 
     internal static readonly Histogram<double> ServerCallDuration = Meter.CreateHistogram<double>(
         name: ServiceFabricRemotingSemanticConventions.MetricNameRpcServerCallDuration,
