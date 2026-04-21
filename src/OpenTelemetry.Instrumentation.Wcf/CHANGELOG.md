@@ -10,6 +10,10 @@
   and [GHSA-37gx-xxp4-5rgx](https://github.com/dotnet/runtime/security/advisories/GHSA-37gx-xxp4-5rgx).
   ([#4103](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4103))
 
+* Fixed an issue where instrumented WCF channel `Begin*` methods threw an
+  `ArgumentNullException` when `AsyncCallback` was `null`.
+  ([#4164](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4164))
+
 ## 1.15.0-beta.1
 
 Released 2026-Jan-21
