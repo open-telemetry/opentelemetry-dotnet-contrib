@@ -468,16 +468,6 @@ jobs:
       project-name: OpenTelemetry.Instrumentation.StackExchangeRedis
       code-cov-name: Instrumentation.StackExchangeRedis
 
-  build-test-instrumentation-stackexchangeredis-integration:
-    needs: detect-changes
-    if: |
-      contains(needs.detect-changes.outputs.changes, 'instrumentation-stackexchangeredis')
-      || contains(needs.detect-changes.outputs.changes, 'build')
-      || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/integration.yml
-    with:
-      job: redis-integration-test
-
   build-test-instrumentation-wcf:
     needs: detect-changes
     if: |
@@ -712,7 +702,6 @@ jobs:
       build-test-instrumentation-servicefabricremoting,
       build-test-instrumentation-sqlclient,
       build-test-instrumentation-stackexchangeredis,
-      build-test-instrumentation-stackexchangeredis-integration,
       build-test-instrumentation-wcf,
       build-test-opamp-client,
       build-test-persistentstorage,

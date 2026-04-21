@@ -29,7 +29,7 @@ public class FrameProcessorTests
             Encoding.UTF8.GetString([.. message.Data]);
 #endif
 
-        Assert.Equal(mockFrame.ExptectedContent, messageContent);
+        Assert.Equal(mockFrame.ExpectedContent, messageContent);
     }
 
     [Fact]

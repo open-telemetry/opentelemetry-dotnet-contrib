@@ -3,9 +3,9 @@
 
 using Testcontainers.Redis;
 
-namespace OpenTelemetry.Instrumentation.StackExchangeRedis.Benchmarks;
+namespace OpenTelemetry.Instrumentation.StackExchangeRedis.Tests;
 
-public sealed class RedisFixture : IAsyncDisposable
+public class RedisFixture : IAsyncDisposable
 {
     private static readonly string RedisImage = GetRedisImage();
 

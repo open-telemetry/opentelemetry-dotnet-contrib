@@ -6,13 +6,17 @@
     <Description>SqlClient instrumentation for OpenTelemetry .NET.</Description>
     <PackageTags>$(PackageTags);distributed-tracing</PackageTags>
     <MinVerTagPrefix>Instrumentation.SqlClient-</MinVerTagPrefix>
-    <PackageValidationBaselineVersion>1.15.1</PackageValidationBaselineVersion>
+    <PackageValidationBaselineVersion>1.15.2</PackageValidationBaselineVersion>
   </PropertyGroup>
 
   <!-- We cannot support native AoT yet, but we can enable the trim analyzer -->
   <PropertyGroup Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETCoreApp'">
     <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
     <IsAotCompatible>false</IsAotCompatible>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <DefineConstants>$(DefineConstants);INCLUDE_SQL_QUERY_PARSER</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
