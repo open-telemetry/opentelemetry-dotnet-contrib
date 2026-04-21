@@ -60,69 +60,70 @@ public sealed class ServiceRemotingMessageDispatcherAdapter : IServiceRemotingMe
     {
         Guard.ThrowIfNull(requestMessage);
 
-        if (ServiceFabricRemotingActivitySource.Options?.Filter?.Invoke(requestMessage) == false)
-        {
-            // If we filter out the request we don't need to process anything related to the activity or metric.
-            return await this.innerDispatcher.HandleRequestResponseAsync(requestContext, requestMessage).ConfigureAwait(false);
-        }
-        else
-        {
-            IServiceRemotingRequestMessageHeader requestMessageHeader = requestMessage.GetHeader();
-            Guard.ThrowIfNull(requestMessageHeader, "requestMessage.GetHeader()");
+        IServiceRemotingRequestMessageHeader requestMessageHeader = requestMessage.GetHeader();
+        Guard.ThrowIfNull(requestMessageHeader, "requestMessage.GetHeader()");
 
+        long startTimestamp = Stopwatch.GetTimestamp();
+        string? errorType = null;
+
+        // Filter only gates tracing. Metrics are always emitted so rate / error-rate dashboards
+        // reflect all real traffic, not just the requests selected for tracing.
+        bool shouldTrace = ServiceFabricRemotingActivitySource.Options?.Filter?.Invoke(requestMessage) != false;
+
+        Activity? activity = null;
+        if (shouldTrace)
+        {
             // Extract the PropagationContext of the upstream parent from the message headers.
             PropagationContext parentContext = Propagator.Extract(default, requestMessageHeader, ServiceFabricRemotingUtils.ExtractTraceContextFromRequestMessageHeader);
             Baggage.Current = parentContext.Baggage;
 
             string activityName = requestMessageHeader?.MethodName ?? ServiceFabricRemotingActivitySource.IncomingRequestActivityName;
 
-            long startTimestamp = Stopwatch.GetTimestamp();
+            activity = ServiceFabricRemotingActivitySource.ActivitySource.StartActivity(activityName, ActivityKind.Server, parentContext.ActivityContext);
+        }
 
-            using (Activity? activity = ServiceFabricRemotingActivitySource.ActivitySource.StartActivity(activityName, ActivityKind.Server, parentContext.ActivityContext))
+        try
+        {
+            IServiceRemotingResponseMessage responseMessage = await this.innerDispatcher.HandleRequestResponseAsync(requestContext, requestMessage).ConfigureAwait(false);
+
+            return responseMessage;
+        }
+        catch (Exception ex)
+        {
+            errorType = ex.GetType().FullName;
+
+            if (activity != null)
             {
-                string? errorType = null;
-                try
+                activity.SetStatus(ActivityStatusCode.Error);
+
+                if (ServiceFabricRemotingActivitySource.Options?.AddExceptionAtServer == true)
                 {
-                    IServiceRemotingResponseMessage responseMessage = await this.innerDispatcher.HandleRequestResponseAsync(requestContext, requestMessage).ConfigureAwait(false);
-
-                    return responseMessage;
+                    activity.AddException(ex);
                 }
-                catch (Exception ex)
+            }
+
+            throw;
+        }
+        finally
+        {
+            activity?.Dispose();
+
+            if (ServiceFabricRemotingMetrics.ServerCallDuration.Enabled)
+            {
+                TagList tags = default;
+                tags.Add(SemanticConventions.AttributeRpcSystemName, ServiceFabricRemotingSemanticConventions.RpcSystemServiceFabricRemoting);
+                if (requestMessageHeader?.MethodName != null)
                 {
-                    errorType = ex.GetType().FullName;
-
-                    if (activity != null)
-                    {
-                        activity.SetStatus(ActivityStatusCode.Error);
-
-                        if (ServiceFabricRemotingActivitySource.Options?.AddExceptionAtServer == true)
-                        {
-                            activity.AddException(ex);
-                        }
-                    }
-
-                    throw;
+                    tags.Add(SemanticConventions.AttributeRpcMethod, requestMessageHeader.MethodName);
                 }
-                finally
+
+                if (errorType != null)
                 {
-                    if (ServiceFabricRemotingMetrics.ServerCallDuration.Enabled)
-                    {
-                        TagList tags = default;
-                        tags.Add(SemanticConventions.AttributeRpcSystemName, ServiceFabricRemotingSemanticConventions.RpcSystemServiceFabricRemoting);
-                        if (requestMessageHeader?.MethodName != null)
-                        {
-                            tags.Add(SemanticConventions.AttributeRpcMethod, requestMessageHeader.MethodName);
-                        }
-
-                        if (errorType != null)
-                        {
-                            tags.Add(SemanticConventions.AttributeErrorType, errorType);
-                        }
-
-                        double elapsedSeconds = (Stopwatch.GetTimestamp() - startTimestamp) / (double)Stopwatch.Frequency;
-                        ServiceFabricRemotingMetrics.ServerCallDuration.Record(elapsedSeconds, tags);
-                    }
+                    tags.Add(SemanticConventions.AttributeErrorType, errorType);
                 }
+
+                double elapsedSeconds = (Stopwatch.GetTimestamp() - startTimestamp) / (double)Stopwatch.Frequency;
+                ServiceFabricRemotingMetrics.ServerCallDuration.Record(elapsedSeconds, tags);
             }
         }
     }

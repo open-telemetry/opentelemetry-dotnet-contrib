@@ -179,20 +179,28 @@ public class ServiceFabricRemotingMetricsTests
     }
 
     [Fact]
-    public async Task Filter_ReturnsFalse_NoMetricRecorded()
+    public async Task Filter_ReturnsFalse_MetricStillRecorded()
     {
+        // Filter is a tracing-only option. Even when it rejects a request (so no activity is
+        // created), the RPC duration metric must still be recorded so rate / error-rate
+        // dashboards reflect all real traffic.
+
         // Arrange
         List<Metric> exportedMetrics = new List<Metric>();
         using MeterProvider meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddServiceFabricRemotingInstrumentation(options => options.Filter = _ => false)
+            .AddServiceFabricRemotingInstrumentation()
             .AddInMemoryExporter(exportedMetrics)
+            .Build();
+
+        using TracerProvider tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddServiceFabricRemotingInstrumentation(options => options.Filter = _ => false)
             .Build();
 
         ServiceRemotingRequestMessageHeaderMock header = new ServiceRemotingRequestMessageHeaderMock
         {
             InterfaceId = 1,
             MethodId = 1,
-            MethodName = "TestMethod",
+            MethodName = "FilteredMethod",
         };
         MockServiceRemotingRequestMessageBody messageBody = new MockServiceRemotingRequestMessageBody();
         ServiceRemotingRequestMessageMock requestMessage = new ServiceRemotingRequestMessageMock(header, messageBody);
@@ -205,7 +213,10 @@ public class ServiceFabricRemotingMetricsTests
         meterProvider.ForceFlush();
 
         // Assert
-        Assert.DoesNotContain(exportedMetrics, m => m.Name == "rpc.client.call.duration");
+        Metric metric = Assert.Single(exportedMetrics, m => m.Name == "rpc.client.call.duration");
+        (Dictionary<string, object?> tags, _, long count) = FindHistogramPointForMethod(metric, "FilteredMethod");
+        Assert.Equal(ExpectedRpcSystemName, tags["rpc.system.name"]);
+        Assert.Equal(1, count);
     }
 
     // Finds the histogram point tagged with the given rpc.method value. Filtering by tag

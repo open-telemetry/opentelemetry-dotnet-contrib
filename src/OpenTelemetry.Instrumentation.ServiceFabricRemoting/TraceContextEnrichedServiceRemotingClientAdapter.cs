@@ -47,116 +47,113 @@ internal class TraceContextEnrichedServiceRemotingClientAdapter : IServiceRemoti
     {
         Guard.ThrowIfNull(requestMessage);
 
-        if (ServiceFabricRemotingActivitySource.Options?.Filter?.Invoke(requestMessage) == false)
+        IServiceRemotingRequestMessageHeader requestMessageHeader = requestMessage.GetHeader();
+        Guard.ThrowIfNull(requestMessageHeader, "requestMessage.GetHeader()");
+
+        string? serverAddress = ServiceFabricRemotingUtils.GetServerAddress(this.InnerClient);
+        long startTimestamp = Stopwatch.GetTimestamp();
+        string? errorType = null;
+
+        // Filter only gates tracing. Metrics are always emitted so rate / error-rate dashboards
+        // reflect all real traffic, not just the requests selected for tracing.
+        bool shouldTrace = ServiceFabricRemotingActivitySource.Options?.Filter?.Invoke(requestMessage) != false;
+
+        string activityName = requestMessageHeader.MethodName ?? ServiceFabricRemotingActivitySource.OutgoingRequestActivityName;
+
+        using Activity? activity = shouldTrace
+            ? ServiceFabricRemotingActivitySource.ActivitySource.StartActivity(activityName, ActivityKind.Client)
+            : null;
+
+        // Depending on Sampling (and whether a listener is registered or not), the activity above may not be created.
+        // If it is created, then propagate its context.
+        if (activity != null)
         {
-            // If we filter out the request we don't need to process anything related to the activity or metric.
-            return await this.InnerClient.RequestResponseAsync(requestMessage).ConfigureAwait(false);
+            try
+            {
+                ServiceFabricRemotingActivitySource.Options?.EnrichAtClientFromRequest?.Invoke(activity, requestMessage);
+            }
+            catch (Exception)
+            {
+                // TODO: Log error
+            }
+
+            try
+            {
+                // Inject the ActivityContext into the message headers to propagate trace context and Baggage to the receiving service.
+                Propagator.Inject(new PropagationContext(activity.Context, Baggage.Current), requestMessageHeader, ServiceFabricRemotingUtils.InjectTraceContextIntoServiceRemotingRequestMessageHeader);
+            }
+            catch (Exception ex)
+            {
+                activity.SetStatus(ActivityStatusCode.Error, $"Error trying to inject the context in the remoting request: '{ex.Message}'");
+            }
         }
-        else
+
+        try
         {
-            IServiceRemotingRequestMessageHeader requestMessageHeader = requestMessage.GetHeader();
-            Guard.ThrowIfNull(requestMessageHeader, "requestMessage.GetHeader()");
+            IServiceRemotingResponseMessage responseMessage = await this.InnerClient.RequestResponseAsync(requestMessage).ConfigureAwait(false);
 
-            string? serverAddress = ServiceFabricRemotingUtils.GetServerAddress(this.InnerClient);
-
-            string activityName = requestMessageHeader.MethodName ?? ServiceFabricRemotingActivitySource.OutgoingRequestActivityName;
-
-            long startTimestamp = Stopwatch.GetTimestamp();
-
-            using Activity? activity = ServiceFabricRemotingActivitySource.ActivitySource.StartActivity(activityName, ActivityKind.Client);
-
-            // Depending on Sampling (and whether a listener is registered or not), the activity above may not be created.
-            // If it is created, then propagate its context.
             if (activity != null)
             {
                 try
                 {
-                    ServiceFabricRemotingActivitySource.Options?.EnrichAtClientFromRequest?.Invoke(activity, requestMessage);
+                    ServiceFabricRemotingActivitySource.Options?.EnrichAtClientFromResponse?.Invoke(activity, responseMessage, /* exception */ null);
                 }
                 catch (Exception)
                 {
                     // TODO: Log error
                 }
+            }
+
+            return responseMessage;
+        }
+        catch (Exception ex)
+        {
+            errorType = ex.GetType().FullName;
+
+            if (activity != null)
+            {
+                activity.SetStatus(ActivityStatusCode.Error);
+
+                if (ServiceFabricRemotingActivitySource.Options?.AddExceptionAtClient == true)
+                {
+                    activity.AddException(ex);
+                }
 
                 try
                 {
-                    // Inject the ActivityContext into the message headers to propagate trace context and Baggage to the receiving service.
-                    Propagator.Inject(new PropagationContext(activity.Context, Baggage.Current), requestMessageHeader, ServiceFabricRemotingUtils.InjectTraceContextIntoServiceRemotingRequestMessageHeader);
+                    ServiceFabricRemotingActivitySource.Options?.EnrichAtClientFromResponse?.Invoke(activity, /* serviceRemotingResponseMessage */ null, ex);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    activity.SetStatus(ActivityStatusCode.Error, $"Error trying to inject the context in the remoting request: '{ex.Message}'");
+                    // TODO: Log error
                 }
             }
 
-            string? errorType = null;
-            try
+            throw;
+        }
+        finally
+        {
+            if (ServiceFabricRemotingMetrics.ClientCallDuration.Enabled)
             {
-                IServiceRemotingResponseMessage responseMessage = await this.InnerClient.RequestResponseAsync(requestMessage).ConfigureAwait(false);
-
-                if (activity != null)
+                TagList tags = default;
+                tags.Add(SemanticConventions.AttributeRpcSystemName, ServiceFabricRemotingSemanticConventions.RpcSystemServiceFabricRemoting);
+                if (requestMessageHeader.MethodName != null)
                 {
-                    try
-                    {
-                        ServiceFabricRemotingActivitySource.Options?.EnrichAtClientFromResponse?.Invoke(activity, responseMessage, /* exception */ null);
-                    }
-                    catch (Exception)
-                    {
-                        // TODO: Log error
-                    }
+                    tags.Add(SemanticConventions.AttributeRpcMethod, requestMessageHeader.MethodName);
                 }
 
-                return responseMessage;
-            }
-            catch (Exception ex)
-            {
-                errorType = ex.GetType().FullName;
-
-                if (activity != null)
+                if (errorType != null)
                 {
-                    activity.SetStatus(ActivityStatusCode.Error);
-
-                    if (ServiceFabricRemotingActivitySource.Options?.AddExceptionAtClient == true)
-                    {
-                        activity.AddException(ex);
-                    }
-
-                    try
-                    {
-                        ServiceFabricRemotingActivitySource.Options?.EnrichAtClientFromResponse?.Invoke(activity, /* serviceRemotingResponseMessage */ null, ex);
-                    }
-                    catch (Exception)
-                    {
-                        // TODO: Log error
-                    }
+                    tags.Add(SemanticConventions.AttributeErrorType, errorType);
                 }
 
-                throw;
-            }
-            finally
-            {
-                if (ServiceFabricRemotingMetrics.ClientCallDuration.Enabled)
+                if (serverAddress != null)
                 {
-                    TagList tags = default;
-                    tags.Add(SemanticConventions.AttributeRpcSystemName, ServiceFabricRemotingSemanticConventions.RpcSystemServiceFabricRemoting);
-                    if (requestMessageHeader.MethodName != null)
-                    {
-                        tags.Add(SemanticConventions.AttributeRpcMethod, requestMessageHeader.MethodName);
-                    }
-
-                    if (errorType != null)
-                    {
-                        tags.Add(SemanticConventions.AttributeErrorType, errorType);
-                    }
-
-                    if (serverAddress != null)
-                    {
-                        tags.Add(SemanticConventions.AttributeServerAddress, serverAddress);
-                    }
-
-                    double elapsedSeconds = (Stopwatch.GetTimestamp() - startTimestamp) / (double)Stopwatch.Frequency;
-                    ServiceFabricRemotingMetrics.ClientCallDuration.Record(elapsedSeconds, tags);
+                    tags.Add(SemanticConventions.AttributeServerAddress, serverAddress);
                 }
+
+                double elapsedSeconds = (Stopwatch.GetTimestamp() - startTimestamp) / (double)Stopwatch.Frequency;
+                ServiceFabricRemotingMetrics.ClientCallDuration.Record(elapsedSeconds, tags);
             }
         }
     }
