@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.0-alpha.8
+
+Released 2026-Apr-21
+
 * Custom metric tags are now exported.
   ([#4014](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4014))
 
@@ -10,8 +14,8 @@
   monotonic" error in InfluxDB.
   ([#3920](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3920))
 
-* Updated OpenTelemetry core component version(s) to `1.15.2`.
-  ([#4080](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4080))
+* Updated OpenTelemetry core component version(s) to `1.15.3`.
+  ([#4166](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4166))
 
 ## 1.0.0-alpha.7
 

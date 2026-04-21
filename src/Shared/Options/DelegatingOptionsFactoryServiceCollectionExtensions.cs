@@ -25,7 +25,7 @@ internal static class DelegatingOptionsFactoryServiceCollectionExtensions
         {
             return new DelegatingOptionsFactory<T>(
                 (c, _) => optionsFactoryFunc(c),
-                sp.GetRequiredService<IConfiguration>(),
+                sp.GetService<IConfiguration>() ?? new ConfigurationBuilder().Build(),
                 sp.GetServices<IConfigureOptions<T>>(),
                 sp.GetServices<IPostConfigureOptions<T>>(),
                 sp.GetServices<IValidateOptions<T>>());
@@ -47,7 +47,7 @@ internal static class DelegatingOptionsFactoryServiceCollectionExtensions
         {
             return new DelegatingOptionsFactory<T>(
                 (c, n) => optionsFactoryFunc(sp, c, n),
-                sp.GetRequiredService<IConfiguration>(),
+                sp.GetService<IConfiguration>() ?? new ConfigurationBuilder().Build(),
                 sp.GetServices<IConfigureOptions<T>>(),
                 sp.GetServices<IPostConfigureOptions<T>>(),
                 sp.GetServices<IValidateOptions<T>>());
