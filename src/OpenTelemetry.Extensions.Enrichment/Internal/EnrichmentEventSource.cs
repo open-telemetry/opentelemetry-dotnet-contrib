@@ -18,7 +18,7 @@ internal sealed class EnrichmentEventSource : EventSource
     [NonEvent]
     public void TraceEnricherException(string operationName, TraceEnricher enricher, Exception ex)
     {
-        if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
+        if (this.IsEnabled(EventLevel.Warning, EventKeywords.All))
         {
             var enricherType = enricher.GetType();
             this.TraceEnricherException(operationName, enricherType.FullName ?? enricherType.Name, ex.ToInvariantString());
@@ -28,7 +28,7 @@ internal sealed class EnrichmentEventSource : EventSource
     [NonEvent]
     public void TraceEnrichmentActionException(Action<TraceEnrichmentBag> action, Exception ex)
     {
-        if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
+        if (this.IsEnabled(EventLevel.Warning, EventKeywords.All))
         {
             var method = action.Method;
             var declaringType = method.DeclaringType;
@@ -40,13 +40,13 @@ internal sealed class EnrichmentEventSource : EventSource
         }
     }
 
-    [Event(1, Message = "Trace enricher '{0}' threw during '{1}'. Trace processing will continue. Exception: '{2}'.", Level = EventLevel.Error)]
+    [Event(1, Message = "Trace enricher '{0}' threw during '{1}'. Trace processing will continue. Exception: '{2}'.", Level = EventLevel.Warning)]
     public void TraceEnricherException(string enricherType, string operationName, string exception)
     {
         this.WriteEvent(1, enricherType, operationName, exception);
     }
 
-    [Event(2, Message = "Trace enrichment action '{0}' threw. Trace processing will continue. Exception: '{1}'.", Level = EventLevel.Error)]
+    [Event(2, Message = "Trace enrichment action '{0}' threw. Trace processing will continue. Exception: '{1}'.", Level = EventLevel.Warning)]
     public void TraceEnrichmentActionException(string actionName, string exception)
     {
         this.WriteEvent(2, actionName, exception);
