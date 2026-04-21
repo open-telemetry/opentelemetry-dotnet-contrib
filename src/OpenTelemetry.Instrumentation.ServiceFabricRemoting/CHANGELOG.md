@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.15.1-beta.1
+
+Released 2026-Apr-21
+
 * Ensure that `TransportSettings` configuration is applied to created
   instances of `IServiceRemotingClientFactory`.
   ([#4148](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4148))
