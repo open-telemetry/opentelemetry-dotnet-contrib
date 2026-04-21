@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.15.1-beta.1
+
+Released 2026-Apr-21
+
 * Limit how much of the response body is consumed from metadata service HTTP responses.
   ([#4121](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4121))
 
