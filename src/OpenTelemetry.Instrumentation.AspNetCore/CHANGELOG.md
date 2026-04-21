@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.15.2
+
+Released 2026-Apr-21
+
 * The value of the `http.route` attribute is now aligned with ASP.NET Core itself.
   ([#3992](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3992))
 
