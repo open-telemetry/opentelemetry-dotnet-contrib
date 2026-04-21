@@ -2,8 +2,16 @@
 
 ## Unreleased
 
-* Updated OpenTelemetry core component version(s) to `1.15.1`.
-  ([#4020](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4020))
+## 1.15.1
+
+Released 2026-Apr-21
+
+* Limit how much of the response body is read when export fails using the HTTP
+  JSON transport and informational logging is enabled.
+  ([#4117](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4117))
+
+* Updated OpenTelemetry core component version(s) to `1.15.3`.
+  ([#4166](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4166))
 
 * Fix serialization of whole `float`/`double` values.
   ([#4017](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4017))

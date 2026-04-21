@@ -51,6 +51,8 @@ components:
     - pcwiese
   src/OpenTelemetry.Instrumentation.Hangfire/:
     - fred2u
+  src/OpenTelemetry.Instrumentation.Kusto/:
+    - MattKotsenas
   src/OpenTelemetry.Instrumentation.Process/:
     - Yun-Ting
   src/OpenTelemetry.Instrumentation.Quartz/:
@@ -151,10 +153,14 @@ components:
     - pcwiese
   test/OpenTelemetry.Instrumentation.Hangfire.Tests/:
     - fred2u
+  test/OpenTelemetry.Instrumentation.Kusto.Tests/:
+    - MattKotsenas
   test/OpenTelemetry.Instrumentation.Quartz.Tests/:
     - maldago
   test/OpenTelemetry.Instrumentation.Remoting.Tests/:
     - lewis800
+  test/OpenTelemetry.Instrumentation.StackExchangeRedis.Benchmarks/:
+    - matt-hensley
   test/OpenTelemetry.Instrumentation.StackExchangeRedis.Tests/:
     - matt-hensley
   test/OpenTelemetry.Instrumentation.Runtime.Tests/:

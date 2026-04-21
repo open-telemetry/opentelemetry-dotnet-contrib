@@ -2,8 +2,15 @@
 
 ## Unreleased
 
-* Updated OpenTelemetry core component version(s) to `1.15.1`.
-  ([#4020](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4020))
+## 1.15.2
+
+Released 2026-Apr-21
+
+* Fix `IndexOutOfRangeException` when parsing SQL statements.
+  ([#4139](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4139))
+
+* Updated OpenTelemetry core component version(s) to `1.15.3`.
+  ([#4166](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4166))
 
 ## 1.15.1
 
