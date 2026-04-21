@@ -170,7 +170,7 @@ public class UnixDomainSocketDataTransportTests
             Console.WriteLine("The new server is ready and accepting connections.");
             var receivedData2 = new byte[5];
             serverSocket2.Receive(receivedData2);
-            Console.WriteLine("Server received a messge.");
+            Console.WriteLine("Server received a message.");
             Assert.Equal(data2[0], receivedData2[0]);
             Assert.Equal(data2[1], receivedData2[1]);
             Assert.Equal(data2[2], receivedData2[2]);

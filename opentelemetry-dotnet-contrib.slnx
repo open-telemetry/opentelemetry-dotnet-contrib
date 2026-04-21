@@ -30,6 +30,7 @@
     <File Path=".github/workflows/verifyaotcompat.yml" />
   </Folder>
   <Folder Name="/build/">
+    <File Path="build/BannedSymbols.txt" />
     <File Path="build/Common.nonprod.props" />
     <File Path="build/Common.prod.props" />
     <File Path="build/Common.props" />
@@ -184,6 +185,7 @@
   <Folder Name="/src/Shared/">
     <File Path="src/Shared/ActivityHelperExtensions.cs" />
     <File Path="src/Shared/ActivityInstrumentationHelper.cs" />
+    <File Path="src/Shared/ActivitySourceFactory.cs" />
     <File Path="src/Shared/AssemblyVersionExtensions.cs" />
     <File Path="src/Shared/DatabaseSemanticConventionHelper.cs" />
     <File Path="src/Shared/DiagnosticSourceListener.cs" />
@@ -198,6 +200,7 @@
     <File Path="src/Shared/IsExternalInit.cs" />
     <File Path="src/Shared/ListenerHandler.cs" />
     <File Path="src/Shared/Lock.cs" />
+    <File Path="src/Shared/MeterFactory.cs" />
     <File Path="src/Shared/MultiTypePropertyFetcher.cs" />
     <File Path="src/Shared/NullableAttributes.cs" />
     <File Path="src/Shared/PropertyFetcher.cs" />
@@ -278,6 +281,7 @@
     <Project Path="test/OpenTelemetry.Instrumentation.Runtime.Tests/OpenTelemetry.Instrumentation.Runtime.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests/OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.SqlClient.Tests/OpenTelemetry.Instrumentation.SqlClient.Tests.csproj" />
+    <Project Path="test/OpenTelemetry.Instrumentation.StackExchangeRedis.Benchmarks/OpenTelemetry.Instrumentation.StackExchangeRedis.Benchmarks.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.StackExchangeRedis.Tests/OpenTelemetry.Instrumentation.StackExchangeRedis.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.Wcf.Tests/OpenTelemetry.Instrumentation.Wcf.Tests.csproj" />
     <Project Path="test/OpenTelemetry.OpAmp.Client.Tests/OpenTelemetry.OpAmp.Client.Tests.csproj" />

@@ -30,7 +30,7 @@ public class ProcessMetricsTests
         Assert.NotNull(cpuTimeMetric);
         var processorCountMetric = exportedItemsA.FirstOrDefault(i => i.Name == "process.cpu.count");
         Assert.NotNull(processorCountMetric);
-        var threadMetric = exportedItemsA.FirstOrDefault(i => i.Name == "process.cpu.count");
+        var threadMetric = exportedItemsA.FirstOrDefault(i => i.Name == "process.thread.count");
         Assert.NotNull(threadMetric);
 
         exportedItemsA.Clear();
