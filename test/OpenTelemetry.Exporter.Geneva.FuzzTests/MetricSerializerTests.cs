@@ -456,14 +456,28 @@ public static class MetricSerializerTests
     public static void SerializeString_Buffer_Too_Small_Throws(NonEmptyString input)
     {
         // Arrange
-        var str = input.Get.Substring(0, Math.Min(input.Get.Length, 10)); // Limit string size
-        var requiredSize = System.Text.Encoding.UTF8.GetByteCount(str) + sizeof(short);
+        var value = input.Get.Substring(0, Math.Min(input.Get.Length, 10)); // Limit string size
+        var requiredSize = System.Text.Encoding.UTF8.GetByteCount(value) + sizeof(short);
         var bufferSize = Math.Max(1, requiredSize / 2); // Intentionally too small
         var buffer = new byte[bufferSize];
         var offset = 0;
 
         // Act
-        var ex = Assert.ThrowsAny<Exception>(() => MetricSerializer.SerializeString(buffer, ref offset, str));
+        var ex = Assert.ThrowsAny<Exception>(() => MetricSerializer.SerializeString(buffer, ref offset, value));
+
+        // Assert
+        Assert.True(ex is ArgumentException or IndexOutOfRangeException, $"Unexpected exception type {ex.GetType()}.");
+    }
+
+    [Property(MaxTest = MaxValue, Replay = "(11934653490780154147,14955749465213992389,100)")]
+    public static void SerializeString_Buffer_Too_Small_Throws_Repro(NonEmptyString input, PositiveInt nearEnd)
+    {
+        // Arrange
+        var buffer = new byte[100];
+        var offset = Math.Min(nearEnd.Get % 100, 47); // Start near or at the end
+
+        // Act
+        var ex = Assert.ThrowsAny<Exception>(() => MetricSerializer.SerializeString(buffer, ref offset, input.Get));
 
         // Assert
         Assert.True(ex is ArgumentException or IndexOutOfRangeException, $"Unexpected exception type {ex.GetType()}.");
@@ -475,6 +489,12 @@ public static class MetricSerializerTests
         // Arrange
         var buffer = new byte[100];
         var offset = Math.Min(nearEnd.Get % 100, 99); // Start near or at the end
+        var encodedLength = System.Text.Encoding.UTF8.GetByteCount(input.Get);
+
+        if (encodedLength > (buffer.Length - offset - sizeof(short)))
+        {
+            return;
+        }
 
         // Act
         MetricSerializer.SerializeString(buffer, ref offset, input.Get);

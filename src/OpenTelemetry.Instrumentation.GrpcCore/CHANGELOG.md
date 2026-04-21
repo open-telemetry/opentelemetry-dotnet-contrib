@@ -2,12 +2,16 @@
 
 ## Unreleased
 
-* Updated OpenTelemetry core component version(s) to `1.15.2`.
-  ([#4080](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4080))
+## 1.0.0-beta.11
+
+Released 2026-Apr-21
 
 * Fixed `RecordMessageEvents` to skip message-event emission for custom-marshalled
   payloads that do not implement `Google.Protobuf.IMessage`.
   ([#4141](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4141))
+
+* Updated OpenTelemetry core component version(s) to `1.15.3`.
+  ([#4166](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4166))
 
 ## 1.0.0-beta.10
 

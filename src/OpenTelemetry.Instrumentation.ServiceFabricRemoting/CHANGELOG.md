@@ -8,8 +8,16 @@
   OpenTelemetry RPC metrics semantic conventions.
   ([#4163](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4163))
 
-* Updated OpenTelemetry core component version(s) to `1.15.2`.
-  ([#4080](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4080))
+## 1.15.1-beta.1
+
+Released 2026-Apr-21
+
+* Ensure that `TransportSettings` configuration is applied to created
+  instances of `IServiceRemotingClientFactory`.
+  ([#4148](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4148))
+
+* Updated OpenTelemetry core component version(s) to `1.15.3`.
+  ([#4166](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4166))
 
 ## 1.15.0-beta.1
 

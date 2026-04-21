@@ -2,8 +2,16 @@
 
 ## Unreleased
 
-* Updated OpenTelemetry core component version(s) to `1.15.2`.
-  ([#4080](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4080))
+* Fixed `db.query.text` not respecting `SetVerboseDatabaseStatements` when
+  the new database semantic conventions are enabled.
+  ([#4245](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4245))
+
+## 1.15.1-beta.1
+
+Released 2026-Apr-21
+
+* Updated OpenTelemetry core component version(s) to `1.15.3`.
+  ([#4166](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4166))
 
 ## 1.15.0-beta.1
 
