@@ -24,7 +24,7 @@ public static class ServiceFabricRemotingMetrics
         semanticConventionsVersion: null,
         name: MeterName);
 
-    internal static readonly Histogram<double> ServerCallDuration = Meter.CreateHistogram<double>(
+    internal static readonly Histogram<double> ServerCallDuration = Meter.CreateHistogram(
         name: ServiceFabricRemotingSemanticConventions.MetricNameRpcServerCallDuration,
         unit: ServiceFabricRemotingSemanticConventions.MetricUnitSeconds,
         description: ServiceFabricRemotingSemanticConventions.MetricDescriptionRpcServerCallDuration,
@@ -33,7 +33,7 @@ public static class ServiceFabricRemotingMetrics
             HistogramBucketBoundaries = ServiceFabricRemotingSemanticConventions.DurationHistogramBucketBoundaries,
         });
 
-    internal static readonly Histogram<double> ClientCallDuration = Meter.CreateHistogram<double>(
+    internal static readonly Histogram<double> ClientCallDuration = Meter.CreateHistogram(
         name: ServiceFabricRemotingSemanticConventions.MetricNameRpcClientCallDuration,
         unit: ServiceFabricRemotingSemanticConventions.MetricUnitSeconds,
         description: ServiceFabricRemotingSemanticConventions.MetricDescriptionRpcClientCallDuration,
