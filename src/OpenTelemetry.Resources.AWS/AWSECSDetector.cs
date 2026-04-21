@@ -129,7 +129,14 @@ internal sealed partial class AWSECSDetector : IResourceDetector
 
         if (!clusterArn.StartsWith("arn:", StringComparison.Ordinal))
         {
-            var baseArn = containerArn.Substring(0, containerArn.LastIndexOf(':'));
+            var containerArnSeparatorIndex = containerArn.LastIndexOf(':');
+            if (containerArnSeparatorIndex < 0)
+            {
+                AWSResourcesEventSource.Log.ResourceAttributesExtractException(nameof(AWSECSDetector), new ArgumentException("The ECS Metadata V4 response contained an invalid 'ContainerARN' field"));
+                return;
+            }
+
+            var baseArn = containerArn.Substring(0, containerArnSeparatorIndex);
             clusterArn = $"{baseArn}:cluster/{clusterArn}";
         }
 

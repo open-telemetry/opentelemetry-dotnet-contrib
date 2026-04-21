@@ -143,6 +143,29 @@ public class AWSECSDetectorTests
     }
 
     [Fact]
+    public async Task TestEcsMetadataV4Ec2WithInvalidContainerArn()
+    {
+        await using var metadataEndpoint = new MockEcsMetadataEndpoint(
+            "ecs_metadata/metadatav4-response-container-ec2-invalid-container-arn.json",
+            "ecs_metadata/metadatav4-response-task-ec2.json");
+
+        using (EnvironmentVariableScope.Create(AWSECSMetadataURLV4Key, metadataEndpoint.Address.ToString()))
+        {
+            var ecsResourceDetector = new AWSECSDetector(
+                new OpenTelemetry.AWS.AWSSemanticConventions(
+                    SemanticConventionVersion.Latest));
+
+            var resourceAttributes = ecsResourceDetector.Detect().Attributes.ToDictionary(x => x.Key, x => x.Value);
+
+            Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeCloudProvider], "aws");
+            Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeCloudPlatform], "aws_ecs");
+            Assert.DoesNotContain(ExpectedSemanticConventions.AttributeCloudResourceId, resourceAttributes.Keys);
+            Assert.DoesNotContain(ExpectedSemanticConventions.AttributeEcsClusterArn, resourceAttributes.Keys);
+            Assert.DoesNotContain(ExpectedSemanticConventions.AttributeEcsContainerArn, resourceAttributes.Keys);
+        }
+    }
+
+    [Fact]
     public async Task TestResponseBodyIsBeyondSizeLimit()
     {
         var source = new CancellationTokenSource();
