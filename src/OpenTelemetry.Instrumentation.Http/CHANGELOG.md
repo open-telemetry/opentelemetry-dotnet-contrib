@@ -1,9 +1,9 @@
 # Changelog
 
+## Unreleased
+
 * Add instrumentation scope version and schema URL to metrics and traces.
   ([#4082](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4082))
-
-## Unreleased
 
 ## 1.15.1
 
