@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+* Avoid duplicative work to add tags to traces when they are already natively supported
+  by ASP.NET Core itself. When using ASP.NET Core 10, performance can be
+  improved by setting the `Microsoft.AspNetCore.Hosting.SuppressActivityOpenTelemetryData`
+  AppContext switch to `false` (its default value is `true`).
+  ([#3993](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3993))
+
 ## 1.15.2
 
 Released 2026-Apr-21
@@ -14,12 +20,6 @@ Released 2026-Apr-21
 
 * Updated OpenTelemetry core component version(s) to `1.15.3`.
   ([#4166](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4166))
-
-* Avoid duplicative work to add tags to traces when they are already natively supported
-  by ASP.NET Core itself. When using ASP.NET Core 10, performance can be
-  improved by setting the `Microsoft.AspNetCore.Hosting.SuppressActivityOpenTelemetryData`
-  AppContext switch to `false` (its default value is `true`).
-  ([#3993](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3993))
 
 ## 1.15.1
 
