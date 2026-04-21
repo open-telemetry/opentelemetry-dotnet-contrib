@@ -6,9 +6,20 @@ using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting;
 
-internal static class ServiceFabricRemotingMetrics
+/// <summary>
+/// Metric instruments emitted by the ServiceFabricRemoting instrumentation.
+/// The <see cref="MeterName"/> constant is exposed for consumers that want to
+/// register the meter manually with a <c>MeterProviderBuilder</c> or a
+/// <c>MeterListener</c>.
+/// </summary>
+public static class ServiceFabricRemotingMetrics
 {
-    internal static readonly Meter Meter = new(typeof(ServiceFabricRemotingMetrics).Assembly.GetName().Name!, typeof(ServiceFabricRemotingMetrics).Assembly.GetPackageVersion());
+    /// <summary>
+    /// Name of the <see cref="System.Diagnostics.Metrics.Meter"/> used by this instrumentation.
+    /// </summary>
+    public const string MeterName = "OpenTelemetry.Instrumentation.ServiceFabricRemoting";
+
+    internal static readonly Meter Meter = new(MeterName, typeof(ServiceFabricRemotingMetrics).Assembly.GetPackageVersion());
 
     internal static readonly Histogram<double> ServerCallDuration = Meter.CreateHistogram<double>(
         name: ServiceFabricRemotingSemanticConventions.MetricNameRpcServerCallDuration,

@@ -44,7 +44,7 @@ public static class MeterProviderBuilderExtensions
             {
                 ServiceFabricRemotingActivitySource.Options = serviceProvider.GetRequiredService<IOptionsMonitor<ServiceFabricRemotingInstrumentationOptions>>().Get(name: null);
 
-                builder.AddMeter(ServiceFabricRemotingMetrics.Meter.Name);
+                builder.AddMeter(ServiceFabricRemotingMetrics.MeterName);
             });
         });
     }
