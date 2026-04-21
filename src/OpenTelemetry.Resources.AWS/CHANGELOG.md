@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.15.1
+
+Released 2026-Apr-21
+
 * Extract `container.id` from the ECS Metadata V4 `DockerId` field for
   Windows containers running on AWS ECS.
   ([#4028](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4028))
