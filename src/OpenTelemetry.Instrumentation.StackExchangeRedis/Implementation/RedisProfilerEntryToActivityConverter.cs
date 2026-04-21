@@ -163,9 +163,16 @@ internal static class RedisProfilerEntryToActivityConverter
 
             if (options.EmitNewAttributes)
             {
-                var queryText = options.SetVerboseDatabaseStatements && !string.IsNullOrEmpty(commandAndKey)
-                    ? commandAndKey
-                    : command.Command;
+                string? queryText = command.Command;
+                if (options.SetVerboseDatabaseStatements && !string.IsNullOrEmpty(commandAndKey))
+                {
+                    queryText = commandAndKey;
+
+                    if (!string.IsNullOrEmpty(script))
+                    {
+                        queryText += " " + script;
+                    }
+                }
 
                 activity.SetTag(SemanticConventions.AttributeDbOperationName, command.Command);
                 activity.SetTag(SemanticConventions.AttributeDbNamespace, command.Db.ToString(CultureInfo.InvariantCulture));
