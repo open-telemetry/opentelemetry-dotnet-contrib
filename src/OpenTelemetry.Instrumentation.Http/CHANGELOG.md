@@ -1,5 +1,8 @@
 # Changelog
 
+* Add instrumentation scope version and schema URL to metrics and traces.
+  ([#4082](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4082))
+
 ## Unreleased
 
 * Recognize the HTTP QUERY method for `http.request.method` (except for .NET 9.0).
@@ -7,9 +10,6 @@
 
 * Updated OpenTelemetry core component version(s) to `1.15.2`.
   ([#4080](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4080))
-
-* Add instrumentation scope version and schema URL to metrics and traces.
-  ([#4082](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4082))
 
 ## 1.15.0
 
