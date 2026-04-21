@@ -19,9 +19,13 @@ public static class ServiceFabricRemotingMetrics
     /// </summary>
     public const string MeterName = "OpenTelemetry.Instrumentation.ServiceFabricRemoting";
 
+    // Version of the OpenTelemetry RPC semantic conventions this instrumentation targets.
+    // Used for the Meter's TelemetrySchemaUrl (see #4064).
+    internal static readonly Version SemanticConventionsVersion = new(1, 40, 0);
+
     internal static readonly Meter Meter = MeterFactory.Create(
         typeof(ServiceFabricRemotingMetrics),
-        semanticConventionsVersion: null,
+        SemanticConventionsVersion,
         name: MeterName);
 
     internal static readonly Histogram<double> ServerCallDuration = Meter.CreateHistogram(
