@@ -1,6 +1,11 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if NETFRAMEWORK
+using System.Net.Http;
+#endif
+
+using System.Net;
 using System.Text;
 using OpAmp.Proto.V1;
 using OpenTelemetry.OpAmp.Client.Internal.Services.Heartbeat;
@@ -15,6 +20,62 @@ namespace OpenTelemetry.OpAmp.Client.Tests;
 
 public class OpAmpClientTests
 {
+    [Fact]
+    public async Task OpAmpClient_PublicMethodsThrowAfterDispose()
+    {
+        using var listener = new MockListener();
+        var client = new OpAmpClient(o => o.Heartbeat.IsEnabled = false);
+        var configFile = new EffectiveConfigFile(Encoding.UTF8.GetBytes("test"), "plain/text", "config.txt");
+
+        client.Dispose();
+
+        Assert.Throws<ObjectDisposedException>(() => client.Subscribe(listener));
+        Assert.Throws<ObjectDisposedException>(() => client.Unsubscribe(listener));
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => client.StartAsync());
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => client.StopAsync());
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => client.SendEffectiveConfigAsync([configFile]));
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => client.SendCustomCapabilitiesAsync(["capability"]));
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => client.SendCustomMessageAsync("capability", "type", Encoding.UTF8.GetBytes("payload")));
+    }
+
+    [Fact]
+    public void OpAmpClient_DisposeDisposesHttpTransportCreatedByFactory()
+    {
+        var handler = new TrackingHttpMessageHandler();
+
+        var client = new OpAmpClient(o =>
+        {
+            o.ServerUrl = new Uri("http://localhost:4318");
+            o.Heartbeat.IsEnabled = false;
+            o.HttpClientFactory = () => new HttpClient(handler);
+        });
+
+        client.Dispose();
+
+        Assert.True(handler.Disposed);
+    }
+
+    [Fact]
+    public async Task OpAmpClient_DisposeDisposesWebSocketTransportWithoutStop()
+    {
+        using var opAmpServer = new OpAmpFakeWebSocketServer(useSmallPackets: false);
+
+        var client = new OpAmpClient(o =>
+        {
+            o.ConnectionType = ConnectionType.WebSocket;
+            o.ServerUrl = opAmpServer.Endpoint;
+            o.Heartbeat.IsEnabled = false;
+        });
+
+        await client.StartAsync();
+
+        var disposeTask = Task.Run(() => client.Dispose());
+        var completedTask = await Task.WhenAny(disposeTask, Task.Delay(TimeSpan.FromSeconds(5)));
+
+        Assert.Same(disposeTask, completedTask);
+        await disposeTask;
+    }
+
     [Fact]
     public async Task OpAmpClient_SubscribeAndUnsubscribe()
     {
@@ -63,7 +124,9 @@ public class OpAmpClientTests
             Status = "OK",
         });
 
-        mockListener.WaitForMessages(TimeSpan.FromSeconds(1));
+        // Listener was unsubscribed; wait briefly to let the server process the frame,
+        // but do not assert a message arrives.
+        mockListener.TryWaitForMessage(TimeSpan.FromSeconds(1));
 
         var serverFrames = opAmpServer.GetFrames();
 
@@ -323,6 +386,31 @@ public class OpAmpClientTests
             this.Add(o => o.RemoteConfiguration.AcceptsRemoteConfig = false, [], [AgentCapabilities.AcceptsRemoteConfig]);
             this.Add(o => o.EffectiveConfigurationReporting.EnableReporting = true, [AgentCapabilities.ReportsEffectiveConfig], []);
             this.Add(o => o.EffectiveConfigurationReporting.EnableReporting = false, [], [AgentCapabilities.ReportsEffectiveConfig]);
+        }
+    }
+
+    private sealed class TrackingHttpMessageHandler : HttpMessageHandler
+    {
+        public bool Disposed { get; private set; }
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            var response = new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new ByteArrayContent([]),
+            };
+
+            return Task.FromResult(response);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                this.Disposed = true;
+            }
+
+            base.Dispose(disposing);
         }
     }
 }
