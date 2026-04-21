@@ -62,7 +62,7 @@ internal sealed class DiagnosticSourceListener : IObserver<KeyValuePair<string, 
             .GetMethod;
 
         return getter != null
-            ? getter.CreateDelegate<Func<bool>>()
+            ? (Func<bool>)Delegate.CreateDelegate(typeof(Func<bool>), getter)
             : static () => false;
     }
 }
