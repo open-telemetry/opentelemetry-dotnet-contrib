@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Add instrumentation schema URL to traces for `netstandard2.0`.
+  ([#4066](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4066))
+
 ## 1.15.2
 
 Released 2026-Apr-21
@@ -14,9 +17,6 @@ Released 2026-Apr-21
 
 * Updated OpenTelemetry core component version(s) to `1.15.3`.
   ([#4166](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4166))
-
-* Add instrumentation schema URL to traces for `netstandard2.0`.
-  ([#4066](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4066))
 
 ## 1.15.1
 
