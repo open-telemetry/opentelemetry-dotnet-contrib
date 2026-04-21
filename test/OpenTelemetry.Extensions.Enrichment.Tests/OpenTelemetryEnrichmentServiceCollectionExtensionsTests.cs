@@ -183,4 +183,155 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
 
         await host.StopAsync();
     }
+
+    [Fact]
+    public async Task DelegateMethod_SwallowsExceptionsFromEnrichmentActions()
+    {
+        var exportedItems = new List<Activity>();
+
+        const string testKey = "safe-key";
+        const string testValue = "safe-value";
+
+        using var host = Host.CreateDefaultBuilder()
+            .ConfigureServices(services => services
+                .AddOpenTelemetry()
+                .WithTracing(builder => builder
+                    .AddSource(SourceName)
+                    .AddInMemoryExporter(exportedItems))
+                .Services
+                .AddTraceEnricher((Action<TraceEnrichmentBag>)(_ => throw new InvalidOperationException("boom")))
+                .AddTraceEnricher((Action<TraceEnrichmentBag>)(bag => bag.Add(testKey, testValue))))
+            .Build();
+
+        await host.StartAsync();
+
+        using var source = new ActivitySource(SourceName);
+
+        var exception = Record.Exception(() =>
+        {
+            using var activity = source.StartActivity(SourceName);
+            Assert.NotNull(activity);
+            activity.Stop();
+        });
+
+        Assert.Null(exception);
+        Assert.Single(exportedItems);
+        Assert.Equal(testValue, exportedItems[0].TagObjects.Single(tag => tag.Key == testKey).Value);
+
+        await host.StopAsync();
+    }
+
+    [Fact]
+    public async Task InstanceMethod_SwallowsExceptionsFromEnrich()
+    {
+        var exportedItems = new List<Activity>();
+        var trackingEnricher = new TrackingTraceEnricher();
+
+        using var host = Host.CreateDefaultBuilder()
+            .ConfigureServices(services => services
+                .AddOpenTelemetry()
+                .WithTracing(builder => builder
+                    .AddSource(SourceName)
+                    .AddInMemoryExporter(exportedItems))
+                .Services
+                .TryAddTraceEnricher(new ThrowingOnEndTraceEnricher())
+                .TryAddTraceEnricher(trackingEnricher))
+            .Build();
+
+        await host.StartAsync();
+
+        using var source = new ActivitySource(SourceName);
+
+        var exception = Record.Exception(() =>
+        {
+            using var activity = source.StartActivity(SourceName);
+            Assert.NotNull(activity);
+            activity.Stop();
+        });
+
+        Assert.Null(exception);
+        Assert.Equal(1, trackingEnricher.StartCalls);
+        Assert.Equal(1, trackingEnricher.EndCalls);
+        Assert.Single(exportedItems);
+        Assert.Equal(TrackingTraceEnricher.EndValue, exportedItems[0].TagObjects.Single(tag => tag.Key == TrackingTraceEnricher.EndKey).Value);
+
+        await host.StopAsync();
+    }
+
+    [Fact]
+    public async Task InstanceMethod_SwallowsExceptionsFromEnrichOnActivityStart()
+    {
+        var exportedItems = new List<Activity>();
+        var trackingEnricher = new TrackingTraceEnricher();
+
+        using var host = Host.CreateDefaultBuilder()
+            .ConfigureServices(services => services
+                .AddOpenTelemetry()
+                .WithTracing(builder => builder
+                    .AddSource(SourceName)
+                    .AddInMemoryExporter(exportedItems))
+                .Services
+                .TryAddTraceEnricher(new ThrowingOnStartTraceEnricher())
+                .TryAddTraceEnricher(trackingEnricher))
+            .Build();
+
+        await host.StartAsync();
+
+        using var source = new ActivitySource(SourceName);
+
+        var exception = Record.Exception(() =>
+        {
+            using var activity = source.StartActivity(SourceName);
+            Assert.NotNull(activity);
+            activity.Stop();
+        });
+
+        Assert.Null(exception);
+        Assert.Equal(1, trackingEnricher.StartCalls);
+        Assert.Equal(1, trackingEnricher.EndCalls);
+        Assert.Single(exportedItems);
+        Assert.Equal(TrackingTraceEnricher.StartValue, exportedItems[0].TagObjects.Single(tag => tag.Key == TrackingTraceEnricher.StartKey).Value);
+
+        await host.StopAsync();
+    }
+
+    private sealed class ThrowingOnStartTraceEnricher : TraceEnricher
+    {
+        public override void Enrich(in TraceEnrichmentBag bag)
+        {
+        }
+
+        public override void EnrichOnActivityStart(in TraceEnrichmentBag bag)
+            => throw new InvalidOperationException("boom");
+    }
+
+    private sealed class ThrowingOnEndTraceEnricher : TraceEnricher
+    {
+        public override void Enrich(in TraceEnrichmentBag bag)
+            => throw new InvalidOperationException("boom");
+    }
+
+    private sealed class TrackingTraceEnricher : TraceEnricher
+    {
+        public const string StartKey = "tracking-start";
+        public const string StartValue = "start";
+        public const string EndKey = "tracking-end";
+        public const string EndValue = "end";
+
+        public int StartCalls { get; private set; }
+
+        public int EndCalls { get; private set; }
+
+        public override void Enrich(in TraceEnrichmentBag bag)
+        {
+            this.EndCalls++;
+            bag.Add(EndKey, EndValue);
+        }
+
+        public override void EnrichOnActivityStart(in TraceEnrichmentBag bag)
+        {
+            this.StartCalls++;
+            bag.Add(StartKey, StartValue);
+        }
+    }
 }
