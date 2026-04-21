@@ -32,7 +32,7 @@ dotnet add package --prerelease OpenTelemetry.Instrumentation.Remoting
 
 ## Configuration
 
-To enable .NET remoting instrumentation, call `AddRemotingInstrumentaion()` on
+To enable .NET remoting instrumentation, call `AddRemotingInstrumentation()` on
 the `TracerProviderBuilder` during the application startup in both client and
 server code.
 
