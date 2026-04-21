@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.2.0-alpha.1
+
+Released 2026-Apr-21
+
 * Add agent effective config reporting.
   ([#3716](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3716))
 
