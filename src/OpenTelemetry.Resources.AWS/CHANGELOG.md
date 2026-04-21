@@ -2,9 +2,6 @@
 
 ## Unreleased
 
-* Updated OpenTelemetry core component version(s) to `1.15.2`.
-  ([#4080](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4080))
-
 * Extract `container.id` from the ECS Metadata V4 `DockerId` field for
   Windows containers running on AWS ECS.
   ([#4028](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4028))
@@ -15,6 +12,9 @@
 * Fix ECS Metadata V4 cluster ARN normalization when the `Cluster` field returns
   a cluster name instead of an ARN.
   ([#4160](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4160))
+
+* Updated OpenTelemetry core component version(s) to `1.15.3`.
+  ([#4166](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4166))
 
 ## 1.15.0
 

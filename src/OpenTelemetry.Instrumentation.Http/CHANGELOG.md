@@ -5,8 +5,8 @@
 * Recognize the HTTP QUERY method for `http.request.method` (except for .NET 9.0).
   ([#3969](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3969))
 
-* Updated OpenTelemetry core component version(s) to `1.15.2`.
-  ([#4080](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4080))
+* Updated OpenTelemetry core component version(s) to `1.15.3`.
+  ([#4166](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4166))
 
 ## 1.15.0
 
