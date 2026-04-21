@@ -26,8 +26,9 @@ internal sealed class TraceEnrichmentProcessor : BaseProcessor<Activity>
             {
                 enricher.EnrichOnActivityStart(bag);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                EnrichmentEventSource.Log.TraceEnricherException(nameof(this.OnStart), enricher, ex);
             }
         }
     }
@@ -42,8 +43,9 @@ internal sealed class TraceEnrichmentProcessor : BaseProcessor<Activity>
             {
                 enricher.Enrich(bag);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                EnrichmentEventSource.Log.TraceEnricherException(nameof(this.OnEnd), enricher, ex);
             }
         }
     }

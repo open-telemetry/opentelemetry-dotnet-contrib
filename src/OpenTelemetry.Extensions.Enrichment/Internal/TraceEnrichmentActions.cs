@@ -22,8 +22,9 @@ internal sealed class TraceEnrichmentActions : TraceEnricher
             {
                 this.actions[i].Invoke(bag);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                EnrichmentEventSource.Log.TraceEnrichmentActionException(this.actions[i], ex);
             }
         }
     }

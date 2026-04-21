@@ -2,8 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using System.Diagnostics.Tracing;
+using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -188,6 +191,7 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
     public async Task DelegateMethod_SwallowsExceptionsFromEnrichmentActions()
     {
         var exportedItems = new List<Activity>();
+        using var eventListener = new InMemoryEventListener(GetEnrichmentEventSource(), EventLevel.Verbose);
 
         const string testKey = "safe-key";
         const string testValue = "safe-value";
@@ -199,7 +203,7 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
                     .AddSource(SourceName)
                     .AddInMemoryExporter(exportedItems))
                 .Services
-                .AddTraceEnricher((Action<TraceEnrichmentBag>)(_ => throw new InvalidOperationException("boom")))
+                .AddTraceEnricher(ThrowingEnrichmentAction)
                 .AddTraceEnricher((Action<TraceEnrichmentBag>)(bag => bag.Add(testKey, testValue))))
             .Build();
 
@@ -218,6 +222,12 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
         Assert.Single(exportedItems);
         Assert.Equal(testValue, exportedItems[0].TagObjects.Single(tag => tag.Key == testKey).Value);
 
+        var loggedEvent = Assert.Single(eventListener.Events);
+        var payload = loggedEvent.Payload!.Select(Assert.IsType<string>).ToArray();
+        Assert.Equal(2, loggedEvent.EventId);
+        Assert.Contains(payload, value => value.Contains(nameof(ThrowingEnrichmentAction), StringComparison.Ordinal));
+        Assert.Contains(payload, value => value.Contains("boom", StringComparison.Ordinal));
+
         await host.StopAsync();
     }
 
@@ -225,6 +235,7 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
     public async Task InstanceMethod_SwallowsExceptionsFromEnrich()
     {
         var exportedItems = new List<Activity>();
+        using var eventListener = new InMemoryEventListener(GetEnrichmentEventSource(), EventLevel.Verbose);
         var trackingEnricher = new TrackingTraceEnricher();
 
         using var host = Host.CreateDefaultBuilder()
@@ -255,6 +266,13 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
         Assert.Single(exportedItems);
         Assert.Equal(TrackingTraceEnricher.EndValue, exportedItems[0].TagObjects.Single(tag => tag.Key == TrackingTraceEnricher.EndKey).Value);
 
+        var loggedEvent = Assert.Single(eventListener.Events);
+        var payload = loggedEvent.Payload!.Select(Assert.IsType<string>).ToArray();
+        Assert.Equal(1, loggedEvent.EventId);
+        Assert.Contains(payload, value => value.Contains(nameof(ThrowingOnEndTraceEnricher), StringComparison.Ordinal));
+        Assert.Contains("OnEnd", payload);
+        Assert.Contains(payload, value => value.Contains("boom", StringComparison.Ordinal));
+
         await host.StopAsync();
     }
 
@@ -262,6 +280,7 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
     public async Task InstanceMethod_SwallowsExceptionsFromEnrichOnActivityStart()
     {
         var exportedItems = new List<Activity>();
+        using var eventListener = new InMemoryEventListener(GetEnrichmentEventSource(), EventLevel.Verbose);
         var trackingEnricher = new TrackingTraceEnricher();
 
         using var host = Host.CreateDefaultBuilder()
@@ -292,7 +311,25 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
         Assert.Single(exportedItems);
         Assert.Equal(TrackingTraceEnricher.StartValue, exportedItems[0].TagObjects.Single(tag => tag.Key == TrackingTraceEnricher.StartKey).Value);
 
+        var loggedEvent = Assert.Single(eventListener.Events);
+        var payload = loggedEvent.Payload!.Select(Assert.IsType<string>).ToArray();
+        Assert.Equal(1, loggedEvent.EventId);
+        Assert.Contains(payload, value => value.Contains(nameof(ThrowingOnStartTraceEnricher), StringComparison.Ordinal));
+        Assert.Contains("OnStart", payload);
+        Assert.Contains(payload, value => value.Contains("boom", StringComparison.Ordinal));
+
         await host.StopAsync();
+    }
+
+    private static void ThrowingEnrichmentAction(TraceEnrichmentBag bag)
+        => throw new InvalidOperationException("boom");
+
+    private static EventSource GetEnrichmentEventSource()
+    {
+        var eventSourceType = typeof(TraceEnricher).Assembly.GetType("OpenTelemetry.Extensions.Enrichment.EnrichmentEventSource", throwOnError: true)!;
+        return (EventSource)eventSourceType
+            .GetField("Log", BindingFlags.Public | BindingFlags.Static)!
+            .GetValue(null)!;
     }
 
     private sealed class ThrowingOnStartTraceEnricher : TraceEnricher
