@@ -18,15 +18,12 @@ internal static class TestsHelper
     /// <para />
     /// This is meant to mimic these logic in <see cref="AWSPropagatorPipelineHandler.AddRequestSpecificInformation"/>.
     /// </summary>
-    internal static Action<IRequestContext, IReadOnlyDictionary<string, string>>? CreateAddAttributesAction(string serviceType)
+    internal static Action<IRequestContext, IReadOnlyDictionary<string, string>>? CreateAddAttributesAction(string serviceType) => serviceType switch
     {
-        return serviceType switch
-        {
-            AWSServiceType.SQSService => SqsRequestContextHelper.AddAttributes,
-            AWSServiceType.SNSService => SnsRequestContextHelper.AddAttributes,
-            _ => throw new NotSupportedException($"Tests for service type {serviceType} not supported."),
-        };
-    }
+        AWSServiceType.SQSService => SqsRequestContextHelper.AddAttributes,
+        AWSServiceType.SNSService => SnsRequestContextHelper.AddAttributes,
+        _ => throw new NotSupportedException($"Tests for service type {serviceType} not supported."),
+    };
 
     internal static AmazonWebServiceRequest CreateOriginalRequest(string serviceType, int attributesCount)
     {
@@ -108,8 +105,7 @@ internal static class TestsHelper
         foreach (var kvp in expectedParameters)
         {
             Assert.NotNull(request.MessageAttributes);
-            Assert.True(request.MessageAttributes.ContainsKey(kvp.Key));
-
+            Assert.Contains(kvp.Key, request.MessageAttributes.Keys);
             Assert.Equal(kvp.Value, request.MessageAttributes[kvp.Key].StringValue);
         }
     }
@@ -119,19 +115,15 @@ internal static class TestsHelper
         foreach (var kvp in expectedParameters)
         {
             Assert.NotNull(request.MessageAttributes);
-            Assert.True(request.MessageAttributes.ContainsKey(kvp.Key));
-
+            Assert.Contains(kvp.Key, request.MessageAttributes.Keys);
             Assert.Equal(kvp.Value, request.MessageAttributes[kvp.Key].StringValue);
         }
     }
 
-    private static string GetNamePrefix(string serviceType)
+    private static string GetNamePrefix(string serviceType) => serviceType switch
     {
-        return serviceType switch
-        {
-            AWSServiceType.SQSService => "MessageAttribute",
-            AWSServiceType.SNSService => "MessageAttributes.entry",
-            _ => throw new NotSupportedException($"Tests for service type {serviceType} not supported."),
-        };
-    }
+        AWSServiceType.SQSService => "MessageAttribute",
+        AWSServiceType.SNSService => "MessageAttributes.entry",
+        _ => throw new NotSupportedException($"Tests for service type {serviceType} not supported."),
+    };
 }

@@ -281,7 +281,7 @@ internal static class SqlProcessor
             var indexOfLastWhitespace = summary.Slice(0, MaxSummaryLength).LastIndexOfAny(WhitespaceChars);
 #endif
 
-            summary = summary.Slice(0, indexOfLastWhitespace);
+            summary = summary.Slice(0, indexOfLastWhitespace >= 0 ? indexOfLastWhitespace : MaxSummaryLength);
         }
 
         var summaryLength = summary.Length;
@@ -306,10 +306,57 @@ internal static class SqlProcessor
             sanitizedSql,
             summary.Slice(0, summaryLength).ToString());
 
+        if (state.RentedSummaryBuffer != null)
+        {
+            ArrayPool<char>.Shared.Return(state.RentedSummaryBuffer);
+        }
+
         // We don't clear the buffer as we know the content has been sanitized
         ArrayPool<char>.Shared.Return(rentedBuffer);
 
         return sqlStatementInfo;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void AppendSummaryChar(char value, ref ParseState state)
+    {
+        EnsureSummaryCapacity(checked(state.SummaryPosition + 1), ref state);
+
+        state.SummaryBuffer[state.SummaryPosition++] = value;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void AppendSummaryToken(ReadOnlySpan<char> value, ref ParseState state)
+    {
+        EnsureSummaryCapacity(checked(state.SummaryPosition + value.Length), ref state);
+
+        value.CopyTo(state.SummaryBuffer.Slice(state.SummaryPosition));
+
+        state.SummaryPosition += value.Length;
+    }
+
+    private static void EnsureSummaryCapacity(int requiredCapacity, ref ParseState state)
+    {
+        if (requiredCapacity <= state.SummaryBuffer.Length)
+        {
+            return;
+        }
+
+        var doubledCapacity = state.SummaryBuffer.Length <= (int.MaxValue / 2)
+            ? state.SummaryBuffer.Length * 2
+            : int.MaxValue;
+
+        var newBuffer = ArrayPool<char>.Shared.Rent(Math.Max(requiredCapacity, doubledCapacity));
+
+        state.SummaryBuffer.Slice(0, state.SummaryPosition).CopyTo(newBuffer);
+
+        if (state.RentedSummaryBuffer != null)
+        {
+            ArrayPool<char>.Shared.Return(state.RentedSummaryBuffer);
+        }
+
+        state.RentedSummaryBuffer = newBuffer;
+        state.SummaryBuffer = newBuffer.AsSpan();
     }
 
     private static void ParseNextTokenFast(
@@ -436,11 +483,10 @@ internal static class SqlProcessor
                             state.FirstSummaryKeyword = potentialKeywordInfo.SqlKeyword;
                         }
 
-                        sql.Slice(start, keywordLength).CopyTo(state.SummaryBuffer.Slice(state.SummaryPosition));
-                        state.SummaryPosition += keywordLength;
+                        AppendSummaryToken(sql.Slice(start, keywordLength), ref state);
 
                         // Add a space after the keyword. The trailing space will be trimmed later.
-                        state.SummaryBuffer[state.SummaryPosition++] = ' ';
+                        AppendSummaryChar(SpaceChar, ref state);
 
                         state.PreviousSummaryKeyword = potentialKeywordInfo.SqlKeyword;
                     }
@@ -521,11 +567,10 @@ internal static class SqlProcessor
                 // Optionally copy to summary buffer.
                 if (state.CaptureNextNonKeywordTokenAsIdentifier)
                 {
-                    sql.Slice(start, length).CopyTo(state.SummaryBuffer.Slice(state.SummaryPosition));
-                    state.SummaryPosition += length;
+                    AppendSummaryToken(sql.Slice(start, length), ref state);
 
                     // Add a space after the identifier. The trailing space will be trimmed later.
-                    state.SummaryBuffer[state.SummaryPosition++] = SpaceChar;
+                    AppendSummaryChar(SpaceChar, ref state);
                 }
             }
 
@@ -548,16 +593,16 @@ internal static class SqlProcessor
                 // Remove the space we added after the identifier in the summary buffer before we write the closing bracket.
                 state.SummaryPosition--;
 
-                state.SummaryBuffer[state.SummaryPosition++] = CloseSquareBracketChar;
+                AppendSummaryChar(CloseSquareBracketChar, ref state);
 
                 var nextPos = state.ParsePosition + 1;
                 if (nextPos >= sql.Length || sql[nextPos] != DotChar)
                 {
-                    state.SummaryBuffer[state.SummaryPosition++] = SpaceChar;
+                    AppendSummaryChar(SpaceChar, ref state);
                 }
                 else
                 {
-                    state.SummaryBuffer[state.SummaryPosition++] = DotChar; // write the dot to summary
+                    AppendSummaryChar(DotChar, ref state); // write the dot to summary
                 }
             }
 
@@ -569,7 +614,7 @@ internal static class SqlProcessor
             if (state.CaptureNextNonKeywordTokenAsIdentifier && currentChar is OpenSquareBracketChar)
             {
                 state.InEscapedIdentifier = true;
-                state.SummaryBuffer[state.SummaryPosition++] = OpenSquareBracketChar;
+                AppendSummaryChar(OpenSquareBracketChar, ref state);
             }
 
             buffer[state.SanitizedPosition++] = currentChar;
@@ -908,6 +953,7 @@ internal static class SqlProcessor
 
         // Stored in state to avoid slicing repeatedly.
         public Span<char> SummaryBuffer;
+        public char[]? RentedSummaryBuffer;
 
         /// <summary>
         /// Will be set if a keyword has been matched by the parser.

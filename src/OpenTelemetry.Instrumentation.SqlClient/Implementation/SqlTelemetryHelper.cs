@@ -3,7 +3,6 @@
 
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
-using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.SqlClient.Implementation;
@@ -16,11 +15,9 @@ internal sealed class SqlTelemetryHelper
 {
     public const string MicrosoftSqlServerDbSystemName = "microsoft.sql_server";
 
-    private static readonly (ActivitySource ActivitySource, Meter Meter) Telemetry = CreateTelemetry();
-#pragma warning disable SA1202 // Elements must be ordered by accessibility. Telemetry field should be private and initialized earlier
-    public static readonly ActivitySource ActivitySource = Telemetry.ActivitySource;
-#pragma warning restore SA1202 // Elements must be ordered by accessibility. Telemetry field should be private and initialized earlier
-    public static readonly Meter Meter = Telemetry.Meter;
+    public static readonly Version SemanticConventionsVersion = new(1, 33, 0);
+    public static readonly ActivitySource ActivitySource = ActivitySourceFactory.Create<SqlTelemetryHelper>(SemanticConventionsVersion);
+    public static readonly Meter Meter = Metrics.MeterFactory.Create<SqlTelemetryHelper>(SemanticConventionsVersion);
 
     public static readonly Histogram<double> DbClientOperationDuration = Meter.CreateHistogram(
         "db.client.operation.duration",
@@ -108,30 +105,5 @@ internal sealed class SqlTelemetryHelper
 #endif
 
         return duration.TotalSeconds;
-    }
-
-    private static (ActivitySource ActivitySource, Meter Meter) CreateTelemetry()
-    {
-        const string telemetrySchemaUrl = "https://opentelemetry.io/schemas/1.33.0";
-        var assembly = typeof(SqlTelemetryHelper).Assembly;
-        var assemblyName = assembly.GetName();
-#pragma warning disable IDE0370 // Suppression is unnecessary
-        var name = assemblyName.Name!;
-#pragma warning restore IDE0370 // Suppression is unnecessary
-        var version = assembly.GetPackageVersion();
-
-        var activitySourceOptions = new ActivitySourceOptions(name)
-        {
-            Version = version,
-            TelemetrySchemaUrl = telemetrySchemaUrl,
-        };
-
-        var meterOptions = new MeterOptions(name)
-        {
-            Version = version,
-            TelemetrySchemaUrl = telemetrySchemaUrl,
-        };
-
-        return (new ActivitySource(activitySourceOptions), new Meter(meterOptions));
     }
 }

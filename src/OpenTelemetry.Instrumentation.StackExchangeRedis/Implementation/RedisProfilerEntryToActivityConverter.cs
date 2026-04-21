@@ -126,6 +126,13 @@ internal static class RedisProfilerEntryToActivityConverter
             // Total:
             // command.ElapsedTime;             // 00:00:32.4988020
 
+            string? commandAndKey = null;
+            string? script = null;
+            if (options.SetVerboseDatabaseStatements)
+            {
+                (commandAndKey, script) = MessageDataGetter.Value.Invoke(command);
+            }
+
             if (options.EmitOldAttributes)
             {
                 activity.SetTag(StackExchangeRedisConnectionInstrumentation.RedisDatabaseIndexKeyName, command.Db);
@@ -133,8 +140,6 @@ internal static class RedisProfilerEntryToActivityConverter
 
                 if (options.SetVerboseDatabaseStatements)
                 {
-                    var (commandAndKey, script) = MessageDataGetter.Value.Invoke(command);
-
                     if (!string.IsNullOrEmpty(commandAndKey))
                     {
                         statement = commandAndKey;
@@ -157,10 +162,20 @@ internal static class RedisProfilerEntryToActivityConverter
 
             if (options.EmitNewAttributes)
             {
-                var (commandAndKey, script) = MessageDataGetter.Value.Invoke(command);
+                string? queryText = command.Command;
+                if (options.SetVerboseDatabaseStatements && !string.IsNullOrEmpty(commandAndKey))
+                {
+                    queryText = commandAndKey;
+
+                    if (!string.IsNullOrEmpty(script))
+                    {
+                        queryText += " " + script;
+                    }
+                }
+
                 activity.SetTag(SemanticConventions.AttributeDbOperationName, command.Command);
                 activity.SetTag(SemanticConventions.AttributeDbNamespace, command.Db.ToString(CultureInfo.InvariantCulture));
-                activity.SetTag(SemanticConventions.AttributeDbQueryText, commandAndKey);
+                activity.SetTag(SemanticConventions.AttributeDbQueryText, queryText);
             }
 
             if (command.EndPoint != null)
@@ -224,6 +239,9 @@ internal static class RedisProfilerEntryToActivityConverter
     private static Func<object, TField?>? CreateFieldGetter<TField>(
 #if NET
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.NonPublicFields)]
+#if NET8_0
+        [UnconditionalSuppressMessage("AotAnalysis", "IL3050:RequiresDynamicCode", Justification = "Guarded by RuntimeFeature.IsDynamicCodeSupported.")]
+#endif
 #endif
         Type classType,
         string fieldName,
@@ -237,7 +255,13 @@ internal static class RedisProfilerEntryToActivityConverter
 #endif
             {
                 var methodName = classType.FullName + ".get_" + field.Name;
+#if NET8_0
+#pragma warning disable IL3050 // Avoid calling members annotated with 'RequiresDynamicCodeAttribute' when publishing as Native AOT
+#endif
                 var getterMethod = new DynamicMethod(methodName, typeof(TField), [typeof(object)], true);
+#if NET8_0
+#pragma warning restore IL3050 // Avoid calling members annotated with 'RequiresDynamicCodeAttribute' when publishing as Native AOT
+#endif
                 var generator = getterMethod.GetILGenerator();
                 generator.Emit(OpCodes.Ldarg_0);
                 generator.Emit(OpCodes.Castclass, classType);

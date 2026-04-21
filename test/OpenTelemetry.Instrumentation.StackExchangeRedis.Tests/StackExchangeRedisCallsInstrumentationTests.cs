@@ -15,21 +15,12 @@ using Xunit;
 namespace OpenTelemetry.Instrumentation.StackExchangeRedis.Tests;
 
 [Collection("Redis")]
-public class StackExchangeRedisCallsInstrumentationTests
+[Trait("CategoryName", "RedisIntegrationTests")]
+public class StackExchangeRedisCallsInstrumentationTests(RedisXunitFixture fixture) : IClassFixture<RedisXunitFixture>
 {
-    /*
-        To run the integration tests, set the OTEL_REDISENDPOINT machine-level environment variable to a valid Redis endpoint.
+    private readonly string connectionString = fixture.DatabaseContainer.GetConnectionString();
 
-        To use Docker...
-         1) Run: docker run -d --name redis -p 6379:6379 redis
-         2) Set OTEL_REDISENDPOINT as: localhost:6379
-     */
-
-    private const string RedisEndPointEnvVarName = "OTEL_REDISENDPOINT";
-    private static readonly string? RedisEndPoint = SkipUnlessEnvVarFoundTheoryAttribute.GetEnvironmentVariable(RedisEndPointEnvVarName);
-
-    [Trait("CategoryName", "RedisIntegrationTests")]
-    [SkipUnlessEnvVarFoundTheory(RedisEndPointEnvVarName)]
+    [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
     [InlineData("value1")]
     public void SuccessfulCommandTestWithKey(string value)
     {
@@ -37,7 +28,7 @@ public class StackExchangeRedisCallsInstrumentationTests
         {
             AbortOnConnectFail = true,
         };
-        connectionOptions.EndPoints.Add(RedisEndPoint!);
+        connectionOptions.EndPoints.Add(this.connectionString);
 
         using var connection = ConnectionMultiplexer.Connect(connectionOptions);
         var db = connection.GetDatabase();
@@ -81,16 +72,13 @@ public class StackExchangeRedisCallsInstrumentationTests
         VerifySamplingParameters(sampler.LatestSamplingParameters);
     }
 
-    [Trait("CategoryName", "RedisIntegrationTests")]
-    [SkipUnlessEnvVarFoundTheory(RedisEndPointEnvVarName)]
+    [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
     [InlineData("value1", null, true, false)]
     [InlineData("value1", null, false, true)]
     [InlineData("value1", null, true, true)]
-
     [InlineData("value1", "serviceKey", true, false)]
     [InlineData("value1", "serviceKey", false, true)]
     [InlineData("value1", "serviceKey", true, true)]
-
     public void SuccessfulCommandTest(
         string value,
         string? serviceKey,
@@ -109,7 +97,7 @@ public class StackExchangeRedisCallsInstrumentationTests
         {
             AbortOnConnectFail = true,
         };
-        connectionOptions.EndPoints.Add(RedisEndPoint!);
+        connectionOptions.EndPoints.Add(this.connectionString);
 
         ConnectionMultiplexer? connection = null;
         var exportedItems = new List<Activity>();
@@ -169,14 +157,63 @@ public class StackExchangeRedisCallsInstrumentationTests
 
         if (emitNewAttributes)
         {
-            VerifyNewActivityData(exportedItems[0], true, endpoint);
-            VerifyNewActivityData(exportedItems[1], false, endpoint);
+            VerifyNewActivityData(exportedItems[0], true, endpoint, setCommandKey: false);
+            VerifyNewActivityData(exportedItems[1], false, endpoint, setCommandKey: false);
 
             // TODO VerifySamplingParameters(sampler.LatestSamplingParameters);
         }
     }
 
-    [Fact]
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
+    public void SuccessfulCommandWithVerboseStatementsEmitsDetailedNewAttributes()
+    {
+        using var scope = SemanticConventionScope.Get(DatabaseSemanticConventionHelper.DatabaseSemanticConvention.New);
+
+        var connectionOptions = new ConfigurationOptions
+        {
+            AbortOnConnectFail = true,
+        };
+        connectionOptions.EndPoints.Add(this.connectionString);
+
+        ConnectionMultiplexer? connection = null;
+        var exportedItems = new List<Activity>();
+        using (Sdk.CreateTracerProviderBuilder()
+            .ConfigureServices(services =>
+            {
+                services.TryAddSingleton<IConnectionMultiplexer>(sp =>
+                {
+                    return connection = ConnectionMultiplexer.Connect(connectionOptions);
+                });
+            })
+            .AddInMemoryExporter(exportedItems)
+            .AddRedisInstrumentation(options =>
+            {
+                options.SetVerboseDatabaseStatements = true;
+            })
+            .Build())
+        {
+            Assert.NotNull(connection);
+
+            var db = connection.GetDatabase();
+
+            var set = db.StringSet("key1", "value1", TimeSpan.FromSeconds(60));
+
+            Assert.True(set);
+
+            var redisValue = db.StringGet("key1");
+
+            Assert.True(redisValue.HasValue);
+            Assert.Equal("value1", redisValue.ToString());
+        }
+
+        Assert.Equal(2, exportedItems.Count);
+
+        var endpoint = connection.GetEndPoints()[0];
+        VerifyNewActivityData(exportedItems[0], true, endpoint, setCommandKey: true);
+        VerifyNewActivityData(exportedItems[1], false, endpoint, setCommandKey: true);
+    }
+
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
     public async Task ProfilerSessionUsesTheSameDefault()
     {
         var connectionOptions = new ConfigurationOptions
@@ -199,8 +236,7 @@ public class StackExchangeRedisCallsInstrumentationTests
         Assert.Equal(second, third);
     }
 
-    [Trait("CategoryName", "RedisIntegrationTests")]
-    [SkipUnlessEnvVarFoundTheory(RedisEndPointEnvVarName)]
+    [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
     [InlineData("value1")]
     public void CanEnrichActivityFromCommand(string value)
     {
@@ -210,7 +246,7 @@ public class StackExchangeRedisCallsInstrumentationTests
         {
             AbortOnConnectFail = true,
         };
-        connectionOptions.EndPoints.Add(RedisEndPoint!);
+        connectionOptions.EndPoints.Add(this.connectionString);
         using var connection = ConnectionMultiplexer.Connect(connectionOptions);
 
         var exportedItems = new List<Activity>();
@@ -254,7 +290,7 @@ public class StackExchangeRedisCallsInstrumentationTests
         Assert.Equal(true, exportedItems[1].GetTagValue("is_fast"));
     }
 
-    [Fact]
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
     public void CheckCacheIsFlushedProperly()
     {
         var connectionOptions = new ConfigurationOptions
@@ -295,7 +331,7 @@ public class StackExchangeRedisCallsInstrumentationTests
         Assert.Empty(instrumentation.Cache);
     }
 
-    [Fact]
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
     public async Task ProfilerSessionsHandleMultipleSpans()
     {
         var connectionOptions = new ConfigurationOptions
@@ -350,7 +386,7 @@ public class StackExchangeRedisCallsInstrumentationTests
         Assert.Same(profiler0, profiles3);
     }
 
-    [Fact]
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
     public void StackExchangeRedis_DependencyInjection_Success()
     {
         var connectionMultiplexerPickedFromDI = false;
@@ -384,7 +420,7 @@ public class StackExchangeRedisCallsInstrumentationTests
         Assert.True(optionsPickedFromDI);
     }
 
-    [Fact]
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
     public void StackExchangeRedis_StackExchangeRedisInstrumentation_Test()
     {
         StackExchangeRedisInstrumentation? instrumentation = null;
@@ -429,15 +465,15 @@ public class StackExchangeRedisCallsInstrumentationTests
         Assert.Empty(instrumentation.InstrumentedConnections);
     }
 
+    [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
     [InlineData("value1")]
-    [SkipUnlessEnvVarFoundTheory(RedisEndPointEnvVarName)]
     public void FilterOption_FiltersOutSpecifiedCommands(string value)
     {
         var connectionOptions = new ConfigurationOptions
         {
             AbortOnConnectFail = false,
         };
-        connectionOptions.EndPoints.Add(RedisEndPoint!);
+        connectionOptions.EndPoints.Add(this.connectionString);
 
         using var connection = ConnectionMultiplexer.Connect(connectionOptions);
         var db = connection.GetDatabase();
@@ -495,17 +531,17 @@ public class StackExchangeRedisCallsInstrumentationTests
         VerifyEndPoint(activity, endPoint);
     }
 
-    private static void VerifyNewActivityData(Activity activity, bool isSet, EndPoint endPoint)
+    private static void VerifyNewActivityData(Activity activity, bool isSet, EndPoint endPoint, bool setCommandKey)
     {
         var displayName = "SETEX";
         var dbOperationName = "SETEX";
-        var dbQueryText = "SETEX key1";
+        var dbQueryText = setCommandKey ? "SETEX key1" : "SETEX";
 
         if (!isSet)
         {
             displayName = "GET";
             dbOperationName = "GET";
-            dbQueryText = "GET key1";
+            dbQueryText = setCommandKey ? "GET key1" : "GET";
         }
 
         Assert.Equal(displayName, activity.DisplayName);
