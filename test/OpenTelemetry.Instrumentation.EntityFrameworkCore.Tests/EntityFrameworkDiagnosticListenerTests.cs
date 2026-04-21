@@ -279,6 +279,32 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         VerifyActivityData(activity);
     }
 
+    [Fact]
+    public void EntityFrameworkContextEventsSuppressedTest()
+    {
+        var exportedItems = new List<Activity>();
+
+        using (Sdk.CreateTracerProviderBuilder()
+                  .AddInMemoryExporter(exportedItems)
+                  .AddEntityFrameworkCoreInstrumentation()
+                  .Build())
+        {
+            using var context = new ItemsContext(this.contextOptions);
+
+            using (SuppressInstrumentationScope.Begin())
+            {
+                var items = context.Set<Item>().OrderBy(e => e.Name).ToList();
+
+                Assert.Equal(3, items.Count);
+                Assert.Equal("ItemOne", items[0].Name);
+                Assert.Equal("ItemThree", items[1].Name);
+                Assert.Equal("ItemTwo", items[2].Name);
+            }
+        }
+
+        Assert.Empty(exportedItems);
+    }
+
     [Theory]
     [InlineData(true, false)]
     [InlineData(false, true)]
