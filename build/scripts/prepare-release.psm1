@@ -361,10 +361,13 @@ function TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue {
 
   $componentOwners = $null
 
-  FindComponentOwners `
+  if ((FindComponentOwners `
       -component $component `
       -issueNumber $issueNumber `
-      -componentOwners ([ref]$componentOwners)
+      -componentOwners ([ref]$componentOwners)) -eq $false)
+  {
+    return
+  }
 
   $requestedByUserPermission = gh api "repos/$gitRepository/collaborators/$requestedByUserName/permission" | ConvertFrom-Json
 

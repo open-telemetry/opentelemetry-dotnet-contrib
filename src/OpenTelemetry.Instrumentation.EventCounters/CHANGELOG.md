@@ -2,8 +2,12 @@
 
 ## Unreleased
 
-* Updated OpenTelemetry core component version(s) to `1.15.2`.
-  ([#4080](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4080))
+## 1.15.1-alpha.1
+
+Released 2026-Apr-21
+
+* Updated OpenTelemetry core component version(s) to `1.15.3`.
+  ([#4166](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4166))
 
 * Fixed `OnEventWritten` processing events from EventSources that were not
   configured via `AddEventSources`.

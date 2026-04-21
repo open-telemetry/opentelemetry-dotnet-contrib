@@ -206,6 +206,49 @@ public class RuntimeMetricsTests
     }
 #endif
 
+    [Fact]
+    public void ExceptionSubscriptionIsReferenceCounted()
+    {
+        Assert.Equal(0, RuntimeMetrics.ActiveRuntimeMetricsInstances);
+
+        var first = new RuntimeMetrics(new RuntimeInstrumentationOptions());
+        var second = new RuntimeMetrics(new RuntimeInstrumentationOptions());
+
+        try
+        {
+            Assert.Equal(2, RuntimeMetrics.ActiveRuntimeMetricsInstances);
+        }
+        finally
+        {
+            first.Dispose();
+            Assert.Equal(1, RuntimeMetrics.ActiveRuntimeMetricsInstances);
+
+            second.Dispose();
+            Assert.Equal(0, RuntimeMetrics.ActiveRuntimeMetricsInstances);
+        }
+    }
+
+    [Fact]
+    public void ExceptionSubscriptionCanBeRecreatedAfterDispose()
+    {
+        Assert.Equal(0, RuntimeMetrics.ActiveRuntimeMetricsInstances);
+
+        var instrumentation = new RuntimeMetrics(new RuntimeInstrumentationOptions());
+        Assert.Equal(1, RuntimeMetrics.ActiveRuntimeMetricsInstances);
+
+        instrumentation.Dispose();
+        instrumentation.Dispose();
+
+        Assert.Equal(0, RuntimeMetrics.ActiveRuntimeMetricsInstances);
+
+        using (var recreatedInstrumentation = new RuntimeMetrics(new RuntimeInstrumentationOptions()))
+        {
+            Assert.Equal(1, RuntimeMetrics.ActiveRuntimeMetricsInstances);
+        }
+
+        Assert.Equal(0, RuntimeMetrics.ActiveRuntimeMetricsInstances);
+    }
+
     private static double GetValue(Metric metric)
     {
         double sum = 0;
