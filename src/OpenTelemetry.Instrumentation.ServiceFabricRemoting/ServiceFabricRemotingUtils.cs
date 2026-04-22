@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics;
 using System.Text;
 using Microsoft.ServiceFabric.Services.Remoting.V2;
 using Microsoft.ServiceFabric.Services.Remoting.V2.Client;
@@ -44,5 +45,20 @@ internal static class ServiceFabricRemotingUtils
         {
             return null;
         }
+    }
+
+    internal static double CalculateDurationFromTimestamp(long begin)
+    {
+#if NET
+        TimeSpan duration = Stopwatch.GetElapsedTime(begin);
+#else
+        long end = Stopwatch.GetTimestamp();
+        double timestampToTicks = TimeSpan.TicksPerSecond / (double)Stopwatch.Frequency;
+        long delta = end - begin;
+        long ticks = (long)(timestampToTicks * delta);
+        TimeSpan duration = new TimeSpan(ticks);
+#endif
+
+        return duration.TotalSeconds;
     }
 }

@@ -122,7 +122,7 @@ public sealed class ServiceRemotingMessageDispatcherAdapter : IServiceRemotingMe
                     tags.Add(SemanticConventions.AttributeErrorType, errorType);
                 }
 
-                double elapsedSeconds = (Stopwatch.GetTimestamp() - startTimestamp) / (double)Stopwatch.Frequency;
+                double elapsedSeconds = ServiceFabricRemotingUtils.CalculateDurationFromTimestamp(startTimestamp);
                 ServiceFabricRemotingMetrics.ServerCallDuration.Record(elapsedSeconds, tags);
             }
         }

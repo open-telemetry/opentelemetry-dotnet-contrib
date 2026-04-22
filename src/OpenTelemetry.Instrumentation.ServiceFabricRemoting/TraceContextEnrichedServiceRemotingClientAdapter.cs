@@ -152,7 +152,7 @@ internal class TraceContextEnrichedServiceRemotingClientAdapter : IServiceRemoti
                     tags.Add(SemanticConventions.AttributeServerAddress, serverAddress);
                 }
 
-                double elapsedSeconds = (Stopwatch.GetTimestamp() - startTimestamp) / (double)Stopwatch.Frequency;
+                double elapsedSeconds = ServiceFabricRemotingUtils.CalculateDurationFromTimestamp(startTimestamp);
                 ServiceFabricRemotingMetrics.ClientCallDuration.Record(elapsedSeconds, tags);
             }
         }
