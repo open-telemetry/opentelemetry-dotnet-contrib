@@ -39,7 +39,7 @@ internal sealed class SqlClientInstrumentation : IDisposable
     ];
 #endif
 
-    private readonly object tracingOptionsSync = new();
+    private readonly Lock tracingOptionsSync = new();
     private readonly List<SqlClientTraceInstrumentationOptions> activeTracingOptions = [];
 #if NETFRAMEWORK
     private readonly SqlEventSourceListener sqlEventSourceListener;
