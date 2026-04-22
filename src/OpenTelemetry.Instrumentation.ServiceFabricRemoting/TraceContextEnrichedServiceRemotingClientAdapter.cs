@@ -48,7 +48,6 @@ internal class TraceContextEnrichedServiceRemotingClientAdapter : IServiceRemoti
         Guard.ThrowIfNull(requestMessage);
 
         IServiceRemotingRequestMessageHeader requestMessageHeader = requestMessage.GetHeader();
-        Guard.ThrowIfNull(requestMessageHeader, "requestMessage.GetHeader()");
 
         string? serverAddress = ServiceFabricRemotingUtils.GetServerAddress(this.InnerClient);
         long startTimestamp = Stopwatch.GetTimestamp();
