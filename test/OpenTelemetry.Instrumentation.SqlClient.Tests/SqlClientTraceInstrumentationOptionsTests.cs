@@ -67,20 +67,20 @@ public class SqlClientTraceInstrumentationOptionsTests
         var filteredActivities = new List<Activity>();
         var defaultActivities = new List<Activity>();
 
-        using var filteredProvider = Sdk.CreateTracerProviderBuilder()
-            .AddSqlClientInstrumentation(options => options.Filter = _ => false)
-            .AddInMemoryExporter(filteredActivities)
-            .Build();
+        using (var filteredProvider = Sdk.CreateTracerProviderBuilder()
+                   .AddSqlClientInstrumentation(options => options.Filter = _ => false)
+                   .AddInMemoryExporter(filteredActivities)
+                   .Build())
+        using (var defaultProvider = Sdk.CreateTracerProviderBuilder()
+                   .AddSqlClientInstrumentation()
+                   .AddInMemoryExporter(defaultActivities)
+                   .Build())
+        {
+            MockCommandExecutor.ExecuteCommand(TestConnectionString, CommandType.Text, "SELECT * FROM Foo", false, SqlClientLibrary.MicrosoftDataSqlClient);
 
-        using var defaultProvider = Sdk.CreateTracerProviderBuilder()
-            .AddSqlClientInstrumentation()
-            .AddInMemoryExporter(defaultActivities)
-            .Build();
-
-        MockCommandExecutor.ExecuteCommand(TestConnectionString, CommandType.Text, "SELECT * FROM Foo", false, SqlClientLibrary.MicrosoftDataSqlClient);
-
-        filteredProvider.ForceFlush();
-        defaultProvider.ForceFlush();
+            filteredProvider.ForceFlush();
+            defaultProvider.ForceFlush();
+        }
 
         Assert.Empty(filteredActivities);
         Assert.Empty(defaultActivities);
@@ -92,20 +92,20 @@ public class SqlClientTraceInstrumentationOptionsTests
         var defaultActivities = new List<Activity>();
         var enrichedActivities = new List<Activity>();
 
-        using var defaultProvider = Sdk.CreateTracerProviderBuilder()
-            .AddSqlClientInstrumentation()
-            .AddInMemoryExporter(defaultActivities)
-            .Build();
+        using (var defaultProvider = Sdk.CreateTracerProviderBuilder()
+                   .AddSqlClientInstrumentation()
+                   .AddInMemoryExporter(defaultActivities)
+                   .Build())
+        using (var enrichedProvider = Sdk.CreateTracerProviderBuilder()
+                   .AddSqlClientInstrumentation(options => options.EnrichWithSqlCommand = ActivityEnrichment)
+                   .AddInMemoryExporter(enrichedActivities)
+                   .Build())
+        {
+            MockCommandExecutor.ExecuteCommand(TestConnectionString, CommandType.Text, "SELECT * FROM Foo", false, SqlClientLibrary.MicrosoftDataSqlClient);
 
-        using var enrichedProvider = Sdk.CreateTracerProviderBuilder()
-            .AddSqlClientInstrumentation(options => options.EnrichWithSqlCommand = ActivityEnrichment)
-            .AddInMemoryExporter(enrichedActivities)
-            .Build();
-
-        MockCommandExecutor.ExecuteCommand(TestConnectionString, CommandType.Text, "SELECT * FROM Foo", false, SqlClientLibrary.MicrosoftDataSqlClient);
-
-        defaultProvider.ForceFlush();
-        enrichedProvider.ForceFlush();
+            defaultProvider.ForceFlush();
+            enrichedProvider.ForceFlush();
+        }
 
         var defaultActivity = Assert.Single(defaultActivities);
         var enrichedActivity = Assert.Single(enrichedActivities);
