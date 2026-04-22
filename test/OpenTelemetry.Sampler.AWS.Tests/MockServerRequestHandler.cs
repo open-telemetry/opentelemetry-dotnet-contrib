@@ -23,29 +23,22 @@ internal sealed class MockServerRequestHandler
 
     public void Handle(HttpListenerContext context)
     {
-        try
+        var path = context.Request.Url?.AbsolutePath;
+        if (path != null && this.responses.TryGetValue(path, out var responseBody))
         {
-            var path = context.Request.Url?.AbsolutePath;
-            if (path != null && this.responses.TryGetValue(path, out var responseBody))
-            {
-                context.Response.StatusCode = 200;
-                context.Response.ContentType = "application/json";
+            context.Response.StatusCode = 200;
+            context.Response.ContentType = "application/json";
 
 #if NET
-                using var writer = new StreamWriter(context.Response.OutputStream, leaveOpen: true);
+            using var writer = new StreamWriter(context.Response.OutputStream, leaveOpen: true);
 #else
-                using var writer = new StreamWriter(context.Response.OutputStream, new System.Text.UTF8Encoding(false), 4096, leaveOpen: true);
+            using var writer = new StreamWriter(context.Response.OutputStream, new System.Text.UTF8Encoding(false), 4096, leaveOpen: true);
 #endif
-                writer.Write(responseBody);
-            }
-            else
-            {
-                context.Response.StatusCode = 404;
-            }
+            writer.Write(responseBody);
         }
-        finally
+        else
         {
-            context.Response.Close();
+            context.Response.StatusCode = 404;
         }
     }
 }
