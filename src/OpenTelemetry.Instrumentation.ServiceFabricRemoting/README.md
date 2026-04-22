@@ -195,11 +195,11 @@ Call the `AddServiceFabricRemotingInstrumentation` extension method on the
 `MeterProviderBuilder` to register the OpenTelemetry metrics instrumentation.
 
 ```csharp
-    using MeterProvider meterProvider = Sdk.CreateMeterProviderBuilder()
-        .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("ServiceFabricRemoting-Example"))
-        .AddServiceFabricRemotingInstrumentation()
-        .AddOtlpExporter()
-        .Build();
+using MeterProvider meterProvider = Sdk.CreateMeterProviderBuilder()
+    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("ServiceFabricRemoting-Example"))
+    .AddServiceFabricRemotingInstrumentation()
+    .AddOtlpExporter()
+    .Build();
 ```
 
 Two RPC duration histograms are emitted per the OpenTelemetry
