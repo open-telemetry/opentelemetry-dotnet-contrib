@@ -227,5 +227,5 @@ with the tracing instrumentation.
 
 ## References
 
-- [Azure Service Fabric documentation](https://learn.microsoft.com/en-us/azure/service-fabric/)
+- [Azure Service Fabric documentation](https://learn.microsoft.com/azure/service-fabric/)
 - [OpenTelemetry Project](https://opentelemetry.io/)
