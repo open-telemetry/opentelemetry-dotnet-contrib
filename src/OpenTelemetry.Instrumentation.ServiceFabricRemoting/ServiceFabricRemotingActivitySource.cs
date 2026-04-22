@@ -2,23 +2,22 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-using System.Reflection;
-using OpenTelemetry.Internal;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting;
 
 internal class ServiceFabricRemotingActivitySource
 {
-    internal static readonly Assembly Assembly = typeof(ServiceFabricRemotingActivitySource).Assembly;
-    internal static readonly AssemblyName AssemblyName = Assembly.GetName();
-#pragma warning disable IDE0370 // Suppression is unnecessary
-    internal static readonly string ActivitySourceName = AssemblyName.Name!;
-#pragma warning restore IDE0370 // Suppression is unnecessary
+    // Version of the OpenTelemetry RPC semantic conventions this instrumentation targets for tracing.
+    // Used for the ActivitySource's TelemetrySchemaUrl (see #4064).
+    internal static readonly Version SemanticConventionsVersion = new(1, 40, 0);
 
-    internal static readonly string IncomingRequestActivityName = ActivitySourceName + ".IncomingRequest";
-    internal static readonly string OutgoingRequestActivityName = ActivitySourceName + ".OutgoingRequest";
+    internal static readonly ActivitySource ActivitySource = ActivitySourceFactory.Create(
+        typeof(ServiceFabricRemotingActivitySource),
+        SemanticConventionsVersion);
 
-    public static ActivitySource ActivitySource { get; } = new(ActivitySourceName, Assembly.GetPackageVersion());
+    internal static readonly string IncomingRequestActivityName = ActivitySource.Name + ".IncomingRequest";
+    internal static readonly string OutgoingRequestActivityName = ActivitySource.Name + ".OutgoingRequest";
 
-    public static ServiceFabricRemotingInstrumentationOptions? Options { get; set; }
+    internal static ServiceFabricRemotingInstrumentationOptions? Options { get; set; }
 }
