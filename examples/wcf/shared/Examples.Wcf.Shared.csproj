@@ -7,7 +7,8 @@
   <!-- Upgrade transitive references to resolve NuGet Audit warnings -->
   <ItemGroup>
     <PackageReference Include="System.Drawing.Common" />
-    <PackageReference Include="System.Security.Cryptography.Xml" />
+    <PackageReference Include="System.Security.Cryptography.Xml" Condition=" '$(TargetFramework)' != 'net8.0' "/>
+    <PackageReference Include="System.Security.Cryptography.Xml" VersionOverride="[8.0.3,)" Condition=" '$(TargetFramework)' == 'net8.0' " />
   </ItemGroup>
 
   <ItemGroup Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETFramework'">
