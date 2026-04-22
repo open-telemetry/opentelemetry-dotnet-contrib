@@ -1,9 +1,13 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Diagnostics.Tracing;
 using OpenTelemetry.OpAmp.Client.Messages;
 using Xunit;
+
+#if NET
+using OpenTelemetry.OpAmp.Client.Internal;
+using OpenTelemetry.Tests;
+#endif
 
 namespace OpenTelemetry.OpAmp.Client.Tests.Messages;
 
@@ -217,7 +221,7 @@ public class EffectiveConfigFileTests
     [Fact]
     public void CreateFromStream_WhenExceedsMaxBytes_LogsEvent()
     {
-        using var listener = new CapturingEventListener("OpenTelemetry-OpAmp-Client");
+        using var listener = new InMemoryEventListener(OpAmpClientEventSource.Log);
 
         var content = new byte[] { 1, 2, 3, 4, 5 };
         using var stream = new MemoryStream(content);
@@ -447,7 +451,7 @@ public class EffectiveConfigFileTests
     [Fact]
     public async Task CreateFromStreamAsync_WhenExceedsMaxBytes_LogsEvent()
     {
-        using var listener = new CapturingEventListener("OpenTelemetry-OpAmp-Client");
+        using var listener = new InMemoryEventListener(OpAmpClientEventSource.Log);
 
         var content = new byte[] { 1, 2, 3, 4, 5 };
         using var stream = new MemoryStream(content);
@@ -569,44 +573,5 @@ public class EffectiveConfigFileTests
 
         public override void Write(byte[] buffer, int offset, int count)
             => throw new NotSupportedException();
-    }
-
-    private sealed class CapturingEventListener : EventListener
-    {
-        private readonly string sourceName;
-        private readonly List<EventWrittenEventArgs> capturedEvents = new();
-
-        public CapturingEventListener(string sourceName)
-        {
-            this.sourceName = sourceName;
-
-            // On some runtime versions, EnableEvents called from OnEventSourceCreated during
-            // the EventSource constructor is deferred and may not take effect immediately.
-            // Re-enable explicitly after the base constructor has finished.
-#if NET
-            foreach (var source in EventSource.GetSources())
-            {
-                this.OnEventSourceCreated(source);
-            }
-#endif
-        }
-
-        public IReadOnlyList<EventWrittenEventArgs> Events => this.capturedEvents;
-
-        protected override void OnEventSourceCreated(EventSource eventSource)
-        {
-            if (eventSource.Name == this.sourceName)
-            {
-                this.EnableEvents(eventSource, EventLevel.Warning);
-            }
-        }
-
-        protected override void OnEventWritten(EventWrittenEventArgs eventData)
-        {
-            if (eventData.EventName == "EffectiveConfigSizeLimitViolation")
-            {
-                this.capturedEvents.Add(eventData);
-            }
-        }
     }
 }
