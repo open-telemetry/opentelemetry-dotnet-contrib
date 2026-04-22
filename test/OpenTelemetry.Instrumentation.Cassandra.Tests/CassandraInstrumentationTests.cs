@@ -19,7 +19,7 @@ public class CassandraInstrumentationTests(CassandraFixture fixture)
 
     private readonly string cassandraConnectionString = fixture.Container.GetConnectionString() + ";Default Keyspace=OT_Cassandra_Testing";
 
-    [Fact]
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
     public void AddCassandraInstrumentationDoesNotThrow()
     {
         var builder = Sdk.CreateMeterProviderBuilder();
