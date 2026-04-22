@@ -136,7 +136,7 @@ internal class TraceContextEnrichedServiceRemotingClientAdapter : IServiceRemoti
             if (ServiceFabricRemotingMetrics.ClientCallDuration.Enabled)
             {
                 TagList tags = default;
-                tags.Add(SemanticConventions.AttributeRpcSystemName, ServiceFabricRemotingSemanticConventions.RpcSystemServiceFabricRemoting);
+                tags.Add(SemanticConventions.AttributeRpcSystemName, ServiceFabricRemotingMetrics.RpcSystemServiceFabricRemoting);
                 if (requestMessageHeader.MethodName != null)
                 {
                     tags.Add(SemanticConventions.AttributeRpcMethod, requestMessageHeader.MethodName);
