@@ -76,9 +76,9 @@ public class ServiceFabricRemotingUtilsTests
     {
         public ResolvedServicePartition ResolvedServicePartition { get => throw new InvalidOperationException("not resolved"); set => throw new NotImplementedException(); }
 
-        public string ListenerName { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public string? ListenerName { get; set; }
 
-        public ResolvedServiceEndpoint Endpoint { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public ResolvedServiceEndpoint? Endpoint { get; set; }
 
         public Task<IServiceRemotingResponseMessage> RequestResponseAsync(IServiceRemotingRequestMessage requestMessage) => throw new NotImplementedException();
 
@@ -87,11 +87,11 @@ public class ServiceFabricRemotingUtilsTests
 
     private sealed class NullPartitionClient : IServiceRemotingClient
     {
-        public ResolvedServicePartition ResolvedServicePartition { get => null!; set => throw new NotImplementedException(); }
+        public ResolvedServicePartition? ResolvedServicePartition { get; set; }
 
-        public string ListenerName { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public string? ListenerName { get; set; }
 
-        public ResolvedServiceEndpoint Endpoint { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public ResolvedServiceEndpoint? Endpoint { get; set; }
 
         public Task<IServiceRemotingResponseMessage> RequestResponseAsync(IServiceRemotingRequestMessage requestMessage) => throw new NotImplementedException();
 
@@ -100,18 +100,16 @@ public class ServiceFabricRemotingUtilsTests
 
     private sealed class PopulatedPartitionClient : IServiceRemotingClient
     {
-        private readonly ResolvedServicePartition partition;
-
         public PopulatedPartitionClient(ResolvedServicePartition partition)
         {
-            this.partition = partition;
+            this.ResolvedServicePartition = partition;
         }
 
-        public ResolvedServicePartition ResolvedServicePartition { get => this.partition; set => throw new NotImplementedException(); }
+        public ResolvedServicePartition ResolvedServicePartition { get; set; }
 
-        public string ListenerName { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public string? ListenerName { get; set; }
 
-        public ResolvedServiceEndpoint Endpoint { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public ResolvedServiceEndpoint? Endpoint { get; set; }
 
         public Task<IServiceRemotingResponseMessage> RequestResponseAsync(IServiceRemotingRequestMessage requestMessage) => throw new NotImplementedException();
 
