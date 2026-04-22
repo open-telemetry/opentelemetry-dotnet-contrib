@@ -114,9 +114,28 @@ internal static class TestHttpServer
             return false;
         }
 
-        private bool IsListenerShutdownException(Exception ex) =>
-            IsResponseAlreadyClosedException(ex) ||
-            (ex is InvalidOperationException && !this.listener.IsListening);
+        private bool IsListenerShutdownException(Exception exception)
+        {
+            if (IsResponseAlreadyClosedException(exception))
+            {
+                return true;
+            }
+
+            for (var ex = exception; ex is not null; ex = ex.InnerException)
+            {
+                if (ex is AggregateException aggregate)
+                {
+                    ex = aggregate.Flatten();
+                }
+
+                if (ex is InvalidOperationException && !this.listener.IsListening)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         private async Task ListenAsync(Action<HttpListenerContext> action)
         {
