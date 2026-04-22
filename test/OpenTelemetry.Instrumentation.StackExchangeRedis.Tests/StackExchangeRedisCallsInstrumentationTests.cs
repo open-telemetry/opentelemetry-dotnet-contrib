@@ -162,15 +162,20 @@ public class StackExchangeRedisCallsInstrumentationTests(RedisXunitFixture fixtu
 
             // TODO VerifySamplingParameters(sampler.LatestSamplingParameters);
         }
-        else
+
+        string? expectedSchemaUrl = (emitOldAttributes, emitNewAttributes) switch
         {
-            foreach (var activity in exportedItems)
-            {
-                Assert.Equal("OpenTelemetry.Instrumentation.StackExchangeRedis", activity.Source.Name);
-                Assert.NotNull(activity.Source.Version);
-                Assert.NotEmpty(activity.Source.Version);
-                Assert.Equal("https://opentelemetry.io/schemas/1.23.0", activity.Source.TelemetrySchemaUrl);
-            }
+            (false, true) => "https://opentelemetry.io/schemas/1.28.0",
+            (true, false) => "https://opentelemetry.io/schemas/1.23.0",
+            _ => null,
+        };
+
+        foreach (var activity in exportedItems)
+        {
+            Assert.Equal("OpenTelemetry.Instrumentation.StackExchangeRedis", activity.Source.Name);
+            Assert.NotNull(activity.Source.Version);
+            Assert.NotEmpty(activity.Source.Version);
+            Assert.Equal(expectedSchemaUrl, activity.Source.TelemetrySchemaUrl);
         }
     }
 
@@ -564,7 +569,6 @@ public class StackExchangeRedisCallsInstrumentationTests(RedisXunitFixture fixtu
         Assert.Equal("OpenTelemetry.Instrumentation.StackExchangeRedis", activity.Source.Name);
         Assert.NotNull(activity.Source.Version);
         Assert.NotEmpty(activity.Source.Version);
-        Assert.Equal("https://opentelemetry.io/schemas/1.28.0", activity.Source.TelemetrySchemaUrl);
 
         VerifyEndPoint(activity, endPoint);
     }

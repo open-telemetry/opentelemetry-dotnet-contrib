@@ -24,6 +24,8 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
     internal static readonly Version SemanticConventionsVersionNew = new(1, 28, 0);
     internal static readonly ActivitySource ActivitySourceNew = ActivitySourceFactory.Create<StackExchangeRedisConnectionInstrumentation>(SemanticConventionsVersionNew);
 
+    internal static readonly ActivitySource ActivitySourceBoth = ActivitySourceFactory.Create<StackExchangeRedisConnectionInstrumentation>(null);
+
     internal static readonly string ActivityName = $"{ActivitySource.Name}.Execute";
 
     internal static readonly IEnumerable<KeyValuePair<string, object?>> OldCreationTags =

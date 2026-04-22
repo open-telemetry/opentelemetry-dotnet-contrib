@@ -95,6 +95,8 @@ internal static class RedisProfilerEntryToActivityConverter
         }
 
         var activitySource =
+            options.EmitNewAttributes && options.EmitOldAttributes ?
+            StackExchangeRedisConnectionInstrumentation.ActivitySourceBoth :
             options.EmitNewAttributes ?
             StackExchangeRedisConnectionInstrumentation.ActivitySourceNew :
             StackExchangeRedisConnectionInstrumentation.ActivitySource;
