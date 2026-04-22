@@ -81,7 +81,7 @@ public class CassandraInstrumentationTests(CassandraFixture fixture)
             var options = new DriverMetricsOptions();
 
             options.SetEnabledNodeMetrics([NodeMetric.Gauges.InFlight]);
-            options.SetEnabledSessionMetrics([]);
+            options.SetEnabledSessionMetrics([SessionMetric.Gauges.ConnectedNodes]);
 
             var cluster = new Builder()
                 .WithConnectionString(this.cassandraConnectionString)
@@ -104,14 +104,16 @@ public class CassandraInstrumentationTests(CassandraFixture fixture)
             provider.ForceFlush(MaxTimeToAllowForFlush);
         }
 
-        var inFlightConnection = exportedItems.FirstOrDefault(i => i.Name == "cassandra.pool.in-flight");
-        Assert.NotNull(inFlightConnection);
         Assert.NotEmpty(books);
 
-#if NET
-        // For some reason this fails on .NET Framework as there are 4 metrics
-        Assert.Single(exportedItems);
-#endif
+        var inFlightConnection = exportedItems.FirstOrDefault(i => i.Name == "cassandra.pool.in-flight");
+        Assert.NotNull(inFlightConnection);
+
+        var connected = exportedItems.FirstOrDefault(i => i.Name == "cassandra.connected-nodes");
+        Assert.NotNull(connected);
+
+        var metricNames = exportedItems.Select(i => i.Name).Distinct();
+        Assert.Equal(2, metricNames.Count());
     }
 
     [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
