@@ -4,7 +4,6 @@
 
 * Revert `System.Security.Cryptography.Xml` dependency version update for
   .NET 8, 9, and 10 to `4.7.1` released in 1.15.1-beta.1 introduced in [#4103](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4103).
-  In fact, there is no security vulnerability in this version.
   ([#4266](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4266))
 
 ## 1.15.1-beta.1
