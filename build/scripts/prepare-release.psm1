@@ -344,7 +344,7 @@ function TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue {
   $component = $match.Groups[1].Value.Trim()
 
   # Compare the component chosen with the title and verify that they match
-  $titleMatch = [regex]::Match($issueTitle, '^\[release request\]\s(OpenTelemetry\.(?:.|\w+)+)\s(\s*(.+))$')
+  $titleMatch = [regex]::Match($issueTitle, '^\[release request\]\s+(OpenTelemetry\.[^\s]+)(?:\s+(.+))?\s*$')
   if ($titleMatch.Success -eq $false)
   {
       Write-Host 'Component and version could not be parsed from title'
@@ -355,7 +355,7 @@ function TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue {
   if ($component -ne $componentInTitle)
   {
       gh issue comment $issueNumber `
-        --body "The component specified in the release request title does not match the component in the body. Please create a new release request with the correct components or edit the issue so they match."
+        --body "The component specified in the release request title does not match the component in the body. Please create a new release request with matching components or edit the issue so they match."
       Return
   }
 
@@ -373,7 +373,7 @@ function TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue {
   if ($version -ne $versionInTitle)
   {
       gh issue comment $issueNumber `
-        --body "The version specified in the release request title does not match the version in the body. Please create a new release request with the correct version or edit the issue so they match."
+        --body "The version specified in the release request title does not match the version in the body. Please create a new release request with matching versions or edit the issue so they match."
       Return
   }
 
