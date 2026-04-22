@@ -17,6 +17,7 @@ internal sealed class OpAmpClientEventSource : EventSource
     private const int EventIdHttpResponseReceived = 3;
     private const int EventIdOversizedWebSocketMessage = 4;
     private const int EventIdFrameProcessingFailure = 5;
+    private const int EventIdEffectiveConfigSizeLimitViolation = 6;
 
     // Service events 500-999
     private const int EventIdHeartbeatServiceStart = 500;
@@ -105,6 +106,21 @@ internal sealed class OpAmpClientEventSource : EventSource
     public void FrameProcessingFailure(string exception)
     {
         this.WriteEvent(EventIdFrameProcessingFailure, exception);
+    }
+
+    [NonEvent]
+    public void EffectiveConfigSizeLimitExceeded(int maxBytes)
+    {
+        if (this.IsEnabled(EventLevel.Warning, EventKeywords.All))
+        {
+            this.EffectiveConfigSizeLimitViolation(maxBytes);
+        }
+    }
+
+    [Event(EventIdEffectiveConfigSizeLimitViolation, Message = "Configuration file exceeds maximum allowed size of {0} bytes.", Level = EventLevel.Warning)]
+    public void EffectiveConfigSizeLimitViolation(int maxBytes)
+    {
+        this.WriteEvent(EventIdEffectiveConfigSizeLimitViolation, maxBytes);
     }
 
     [Event(EventIdHeartbeatServiceStart, Message = "Heartbeat service started.", Level = EventLevel.Informational)]

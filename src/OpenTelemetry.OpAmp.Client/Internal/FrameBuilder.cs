@@ -188,6 +188,7 @@ internal sealed class FrameBuilder : IFrameBuilder
         var fileMap = new Dictionary<string, global::OpAmp.Proto.V1.AgentConfigFile>(StringComparer.Ordinal);
         foreach (var file in files)
         {
+            // Dictionary.Add throws if multiple files share the same FileName (including the empty-string default).
             fileMap.Add(file.FileName, new global::OpAmp.Proto.V1.AgentConfigFile()
             {
                 Body = ByteString.CopyFrom(file.Content.Span),

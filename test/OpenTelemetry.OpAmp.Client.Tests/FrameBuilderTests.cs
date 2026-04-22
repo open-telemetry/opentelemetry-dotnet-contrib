@@ -3,6 +3,7 @@
 
 using OpAmp.Proto.V1;
 using OpenTelemetry.OpAmp.Client.Internal;
+using OpenTelemetry.OpAmp.Client.Messages;
 using OpenTelemetry.OpAmp.Client.Tests.DataGenerators;
 using Xunit;
 
@@ -53,6 +54,34 @@ public class FrameBuilderTests
         frameBuilder.StartBaseMessage();
 
         Assert.Throws<InvalidOperationException>(frameBuilder.StartBaseMessage);
+    }
+
+    [Fact]
+    public void AddEffectiveConfig_DuplicateFileName_ThrowsArgumentException()
+    {
+        var frameBuilder = new FrameBuilder(new());
+        var files = new[]
+        {
+            new EffectiveConfigFile(Array.Empty<byte>(), fileName: "config.yaml"),
+            new EffectiveConfigFile(Array.Empty<byte>(), fileName: "config.yaml"),
+        };
+
+        Assert.Throws<ArgumentException>(() =>
+            frameBuilder.StartBaseMessage().AddEffectiveConfig(files));
+    }
+
+    [Fact]
+    public void AddEffectiveConfig_DuplicateDefaultFileName_ThrowsArgumentException()
+    {
+        var frameBuilder = new FrameBuilder(new());
+        var files = new[]
+        {
+            new EffectiveConfigFile(Array.Empty<byte>()),
+            new EffectiveConfigFile(Array.Empty<byte>()),
+        };
+
+        Assert.Throws<ArgumentException>(() =>
+            frameBuilder.StartBaseMessage().AddEffectiveConfig(files));
     }
 
     [Theory]

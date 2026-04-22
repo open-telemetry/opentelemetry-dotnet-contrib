@@ -41,7 +41,7 @@ internal class TempFile : IDisposable
 
         try
         {
-            if (!File.Exists(this.FilePath))
+            if (File.Exists(this.FilePath))
             {
                 File.Delete(this.FilePath);
             }
