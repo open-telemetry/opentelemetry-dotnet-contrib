@@ -20,6 +20,6 @@ public static class MeterProviderBuilderExtensions
     {
         Guard.ThrowIfNull(builder);
 
-        return builder.AddMeter(ServiceFabricRemotingMetrics.MeterName);
+        return builder.AddMeter(ServiceFabricRemotingMetrics.Meter.Name);
     }
 }

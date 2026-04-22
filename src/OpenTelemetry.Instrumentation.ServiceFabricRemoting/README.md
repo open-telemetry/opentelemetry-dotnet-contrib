@@ -225,14 +225,6 @@ automatically for all request/response calls on both Service and Actor
 remoting paths. One-way calls (`SendOneWay`) are not recorded, consistent
 with the tracing instrumentation.
 
-For consumers that want to register the Meter manually (for example, with a
-`MeterListener`), the meter name is exposed as a public constant:
-
-```csharp
-string meterName = ServiceFabricRemotingMetrics.MeterName;
-// "OpenTelemetry.Instrumentation.ServiceFabricRemoting"
-```
-
 ## References
 
 - [Azure Service Fabric documentation](https://learn.microsoft.com/en-us/azure/service-fabric/)
