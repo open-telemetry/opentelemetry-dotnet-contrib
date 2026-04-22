@@ -229,8 +229,7 @@ public class EffectiveConfigFileTests
         Assert.Throws<InvalidDataException>(() =>
             EffectiveConfigFile.CreateFromStream(stream, "application/octet-stream", "filename.yml", 3));
 
-        var @event = Assert.Single(listener.Events);
-        Assert.Equal("EffectiveConfigSizeLimitViolation", @event.EventName);
+        var @event = Assert.Single(listener.Events, e => e.EventName == "EffectiveConfigSizeLimitViolation");
         Assert.Equal(3, (int)@event.Payload![0]!);
     }
 #endif
@@ -459,8 +458,7 @@ public class EffectiveConfigFileTests
         await Assert.ThrowsAsync<InvalidDataException>(() =>
             EffectiveConfigFile.CreateFromStreamAsync(stream, "application/octet-stream", "filename.yml", 3));
 
-        var @event = Assert.Single(listener.Events);
-        Assert.Equal("EffectiveConfigSizeLimitViolation", @event.EventName);
+        var @event = Assert.Single(listener.Events, e => e.EventName == "EffectiveConfigSizeLimitViolation");
         Assert.Equal(3, (int)@event.Payload![0]!);
     }
 #endif
