@@ -112,8 +112,12 @@ public class CassandraInstrumentationTests(CassandraFixture fixture)
         var connected = exportedItems.FirstOrDefault(i => i.Name == "cassandra.connected-nodes");
         Assert.NotNull(connected);
 
-        var metricNames = exportedItems.Select(i => i.Name).Distinct();
-        Assert.Equal(2, metricNames.Count());
+        var metricNames = exportedItems.Select(i => i.Name).Distinct().OrderBy(x => x);
+#if NET
+        Assert.Equal(["cassandra.connected-nodes", "cassandra.pool.in-flight"], metricNames);
+#else
+        Assert.Equal(["cassandra.connected-nodes", "cassandra.pool.in-flight", "cassandra.pool.open-connections"], metricNames);
+#endif
     }
 
     [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
