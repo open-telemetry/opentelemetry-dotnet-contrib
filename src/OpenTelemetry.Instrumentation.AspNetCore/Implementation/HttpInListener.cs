@@ -52,7 +52,7 @@ internal class HttpInListener : ListenerHandler
 
     // Caches the display name, rpc.service, and rpc.method derived from the raw gRPC method string.
     // The set of distinct gRPC method strings is bounded by the number of gRPC endpoints in the app.
-    private static readonly ConcurrentDictionary<string, GrpcMethodDetails> GrpcMethodCache = new();
+    private static readonly GrpcMethodDetailsCache GrpcMethodCache = new();
 
     private readonly AspNetCoreTraceInstrumentationOptions options;
 
@@ -382,13 +382,7 @@ internal class HttpInListener : ListenerHandler
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void AddGrpcAttributes(Activity activity, string grpcMethod, HttpContext context, int grpcStatusCode, bool validStatusCode)
     {
-        var details = GrpcMethodCache.GetOrAdd(grpcMethod, static (method) =>
-        {
-            var displayName = method.Length > 0 && method[0] == '/' ? method.Substring(1) : method;
-            var isParsed = GrpcTagHelper.TryParseRpcServiceAndRpcMethod(method, out var serviceName, out var methodName);
-
-            return new(displayName, isParsed ? serviceName : null, isParsed ? methodName : null, isParsed);
-        });
+        var details = GrpcMethodCache.Get(grpcMethod);
 
         // The RPC semantic conventions indicate the span name
         // should not have a leading forward slash.
@@ -456,5 +450,30 @@ internal class HttpInListener : ListenerHandler
         public readonly string? RpcMethod { get; }
 
         public readonly bool IsParsed { get; }
+    }
+
+    private sealed class GrpcMethodDetailsCache
+    {
+        private const int MaxCacheSize = 512;
+        private readonly ConcurrentDictionary<string, GrpcMethodDetails> cache = new();
+
+        public GrpcMethodDetails Get(string grpcMethod)
+        {
+            if (this.cache.TryGetValue(grpcMethod, out var details))
+            {
+                return details;
+            }
+
+            // If the cache has reached its maximum size, just create a value without caching
+            return this.cache.Count >= MaxCacheSize ? Create(grpcMethod) : this.cache.GetOrAdd(grpcMethod, Create);
+        }
+
+        private static GrpcMethodDetails Create(string method)
+        {
+            var displayName = method.Length > 0 && method[0] == '/' ? method.Substring(1) : method;
+            var isParsed = GrpcTagHelper.TryParseRpcServiceAndRpcMethod(method, out var serviceName, out var methodName);
+
+            return new(displayName, isParsed ? serviceName : null, isParsed ? methodName : null, isParsed);
+        }
     }
 }

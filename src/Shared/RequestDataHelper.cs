@@ -27,8 +27,8 @@ internal sealed class RequestDataHelper
 #endif
 
 #if NET
-    // Caches the final display name string for each (normalizedMethod, httpRoute) pair.
-    // The number of distinct combinations is bounded by the number of (HTTP methods * routes) in the app.
+    // Caches the final display name string for each (namePrefix, httpRoute) pair.
+    // The number of distinct combinations is bounded by the number of (HTTP method name prefixes * routes) in the app.
     private readonly ConcurrentDictionary<(string Method, string Route), string> displayNameCache = new();
 #endif
 
