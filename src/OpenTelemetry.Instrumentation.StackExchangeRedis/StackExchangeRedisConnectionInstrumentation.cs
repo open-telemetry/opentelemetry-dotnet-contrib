@@ -21,7 +21,7 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
     internal static readonly Version SemanticConventionsVersion = new(1, 23, 0);
     internal static readonly ActivitySource ActivitySource = ActivitySourceFactory.Create<StackExchangeRedisConnectionInstrumentation>(SemanticConventionsVersion);
 
-    internal static readonly Version SemanticConventionsVersionNew = new(1, 28, 0); // TODO Confirm version - might be 1.37.0
+    internal static readonly Version SemanticConventionsVersionNew = new(1, 28, 0);
     internal static readonly ActivitySource ActivitySourceNew = ActivitySourceFactory.Create<StackExchangeRedisConnectionInstrumentation>(SemanticConventionsVersionNew);
 
     internal static readonly string ActivityName = $"{ActivitySource.Name}.Execute";
