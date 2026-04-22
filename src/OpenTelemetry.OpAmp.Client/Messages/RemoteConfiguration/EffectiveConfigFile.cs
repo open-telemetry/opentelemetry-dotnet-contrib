@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Buffers;
+using OpenTelemetry.Internal;
 using OpenTelemetry.OpAmp.Client.Internal;
 
 namespace OpenTelemetry.OpAmp.Client.Messages;
@@ -11,8 +12,6 @@ namespace OpenTelemetry.OpAmp.Client.Messages;
 /// </summary>
 public sealed class EffectiveConfigFile
 {
-    private const int DefaultMaxSize = 512 * 1024; // 512 KB
-
     /// <summary>
     /// Initializes a new instance of the <see cref="EffectiveConfigFile"/> class.
     /// </summary>
@@ -22,24 +21,12 @@ public sealed class EffectiveConfigFile
     /// <remarks>
     /// This constructor does not enforce a maximum content size. Callers must bound <paramref name="content"/> themselves.
     /// </remarks>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="contentType"/> or <paramref name="fileName"/> is null.</exception>
-    public EffectiveConfigFile(ReadOnlyMemory<byte> content, string contentType = "", string fileName = "")
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="content"/>, <paramref name="contentType"/> or <paramref name="fileName"/> are null.</exception>
+    public EffectiveConfigFile(ReadOnlyMemory<byte> content, string contentType, string fileName)
     {
-        // Protect against null here because these are optional in the OpAMP spec, but can only be empty, not null.
-#if NET
-        ArgumentNullException.ThrowIfNull(contentType);
-        ArgumentNullException.ThrowIfNull(fileName);
-#else
-        if (contentType == null)
-        {
-            throw new ArgumentNullException(nameof(contentType));
-        }
-
-        if (fileName == null)
-        {
-            throw new ArgumentNullException(nameof(fileName));
-        }
-#endif
+        Guard.ThrowIfNull(content);
+        Guard.ThrowIfNull(contentType);
+        Guard.ThrowIfNull(fileName);
 
         this.Content = content;
         this.ContentType = contentType;
@@ -84,7 +71,7 @@ public sealed class EffectiveConfigFile
     /// <exception cref="ArgumentException">Thrown when <paramref name="stream"/> does not support reading.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="maxBytes"/> is less than zero.</exception>
     /// <exception cref="InvalidDataException">Thrown when the stream length exceeds the specified <paramref name="maxBytes"/>.</exception>
-    public static EffectiveConfigFile CreateFromStream(Stream stream, string contentType = "", string fileName = "", int maxBytes = DefaultMaxSize)
+    public static EffectiveConfigFile CreateFromStream(Stream stream, string contentType, string fileName, int maxBytes)
     {
         ValidateArguments(stream, contentType, fileName, maxBytes);
         CheckSeekableSize(stream, maxBytes);
@@ -154,7 +141,7 @@ public sealed class EffectiveConfigFile
     /// <exception cref="ArgumentException">Thrown when <paramref name="stream"/> does not support reading.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="maxBytes"/> is less than zero.</exception>
     /// <exception cref="InvalidDataException">Thrown when the stream length exceeds the specified <paramref name="maxBytes"/>.</exception>
-    public static async Task<EffectiveConfigFile> CreateFromStreamAsync(Stream stream, string contentType = "", string fileName = "", int maxBytes = DefaultMaxSize, CancellationToken cancellationToken = default)
+    public static async Task<EffectiveConfigFile> CreateFromStreamAsync(Stream stream, string contentType, string fileName, int maxBytes, CancellationToken cancellationToken = default)
     {
         ValidateArguments(stream, contentType, fileName, maxBytes);
         CheckSeekableSize(stream, maxBytes);
@@ -228,32 +215,10 @@ public sealed class EffectiveConfigFile
 
     private static void ValidateArguments(Stream stream, string contentType, string fileName, int maxBytes)
     {
-#if NET
-        ArgumentNullException.ThrowIfNull(stream);
-        ArgumentNullException.ThrowIfNull(contentType);
-        ArgumentNullException.ThrowIfNull(fileName);
-        ArgumentOutOfRangeException.ThrowIfNegative(maxBytes);
-#else
-        if (stream == null)
-        {
-            throw new ArgumentNullException(nameof(stream));
-        }
-
-        if (contentType == null)
-        {
-            throw new ArgumentNullException(nameof(contentType));
-        }
-
-        if (fileName == null)
-        {
-            throw new ArgumentNullException(nameof(fileName));
-        }
-
-        if (maxBytes < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(maxBytes));
-        }
-#endif
+        Guard.ThrowIfNull(stream);
+        Guard.ThrowIfNull(contentType);
+        Guard.ThrowIfNull(fileName);
+        Guard.ThrowIfNegative(maxBytes);
 
         if (!stream.CanRead)
         {

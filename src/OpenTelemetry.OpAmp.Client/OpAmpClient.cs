@@ -140,7 +140,7 @@ public sealed class OpAmpClient : IDisposable
     /// </remarks>
     /// <exception cref="InvalidOperationException">Thrown if effective configuration reporting is not enabled in settings.</exception>
     /// <exception cref="ObjectDisposedException">Thrown if the client has already been disposed.</exception>
-    /// <exception cref="ArgumentException">Thrown if <paramref name="files"/> contains two or more files with the same filename.</exception>
+    /// <exception cref="ArgumentException">Thrown if <paramref name="files"/> contains two or more files with the same file name.</exception>
     public Task SendEffectiveConfigAsync(IEnumerable<EffectiveConfigFile> files, CancellationToken cancellationToken = default)
     {
         this.ThrowIfDisposed();

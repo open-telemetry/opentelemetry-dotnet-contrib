@@ -11,31 +11,22 @@ public class EffectiveConfigFileTests
 {
     [Fact]
     public void Constructor_NullContentType_ThrowsArgumentNullException() =>
-        Assert.Throws<ArgumentNullException>(() => new EffectiveConfigFile(Array.Empty<byte>(), null!));
+        Assert.Throws<ArgumentNullException>(() => new EffectiveConfigFile(Array.Empty<byte>(), null!, "filename.yml"));
 
     [Fact]
     public void Constructor_NullFileName_ThrowsArgumentNullException() =>
         Assert.Throws<ArgumentNullException>(() => new EffectiveConfigFile(Array.Empty<byte>(), "application/octet-stream", null!));
 
     [Fact]
-    public void Constructor_DefaultOptionalParameters_UsesEmptyStrings()
-    {
-        var config = new EffectiveConfigFile(Array.Empty<byte>());
-
-        Assert.Equal(string.Empty, config.ContentType);
-        Assert.Equal(string.Empty, config.FileName);
-    }
-
-    [Fact]
     public void CreateFromStream_NullStream_ThrowsArgumentNullException() =>
-        Assert.Throws<ArgumentNullException>(() => EffectiveConfigFile.CreateFromStream(null!, "application/octet-stream"));
+        Assert.Throws<ArgumentNullException>(() => EffectiveConfigFile.CreateFromStream(null!, "application/octet-stream", "filename.yml", 1_024));
 
     [Fact]
     public void CreateFromStream_NullContentType_ThrowsArgumentNullException()
     {
         using var stream = new MemoryStream([]);
 
-        Assert.Throws<ArgumentNullException>(() => EffectiveConfigFile.CreateFromStream(stream, null!));
+        Assert.Throws<ArgumentNullException>(() => EffectiveConfigFile.CreateFromStream(stream, null!, "filename.yml", 1_024));
     }
 
     [Fact]
@@ -43,18 +34,7 @@ public class EffectiveConfigFileTests
     {
         using var stream = new MemoryStream([]);
 
-        Assert.Throws<ArgumentNullException>(() => EffectiveConfigFile.CreateFromStream(stream, "application/octet-stream", null!));
-    }
-
-    [Fact]
-    public void CreateFromStream_DefaultOptionalParameters_UsesEmptyStrings()
-    {
-        using var stream = new MemoryStream([]);
-
-        var config = EffectiveConfigFile.CreateFromStream(stream);
-
-        Assert.Equal(string.Empty, config.ContentType);
-        Assert.Equal(string.Empty, config.FileName);
+        Assert.Throws<ArgumentNullException>(() => EffectiveConfigFile.CreateFromStream(stream, "application/octet-stream", null!, 1_024));
     }
 
     [Fact]
@@ -63,7 +43,7 @@ public class EffectiveConfigFileTests
         using var stream = new MemoryStream([]);
 
         Assert.Throws<ArgumentOutOfRangeException>(() =>
-            EffectiveConfigFile.CreateFromStream(stream, "application/octet-stream", maxBytes: -1));
+            EffectiveConfigFile.CreateFromStream(stream, "application/octet-stream", "filename.yml", -1));
     }
 
     [Fact]
@@ -72,7 +52,7 @@ public class EffectiveConfigFileTests
         using var stream = new NonReadableStream();
 
         var exception = Assert.Throws<ArgumentException>(() =>
-            EffectiveConfigFile.CreateFromStream(stream, "application/octet-stream"));
+            EffectiveConfigFile.CreateFromStream(stream, "application/octet-stream", "filename.yml", 1_024));
 
         Assert.Equal("stream", exception.ParamName);
     }
@@ -84,11 +64,11 @@ public class EffectiveConfigFileTests
 
         using var stream = new MemoryStream(content);
 
-        var config = EffectiveConfigFile.CreateFromStream(stream, "application/octet-stream", maxBytes: content.Length + 1);
+        var config = EffectiveConfigFile.CreateFromStream(stream, "application/octet-stream", "filename.yml", content.Length + 1);
 
         Assert.Equal(content, config.Content.ToArray());
         Assert.Equal("application/octet-stream", config.ContentType);
-        Assert.Equal(string.Empty, config.FileName);
+        Assert.Equal("filename.yml", config.FileName);
     }
 
     [Fact]
@@ -99,7 +79,7 @@ public class EffectiveConfigFileTests
         using var stream = new MemoryStream(content);
         stream.Position = 2;
 
-        var config = EffectiveConfigFile.CreateFromStream(stream, "application/json", maxBytes: 3, fileName: "config.json");
+        var config = EffectiveConfigFile.CreateFromStream(stream, "application/json", "config.json", 3);
 
         Assert.Equal([3, 4, 5], config.Content.ToArray());
         Assert.Equal("application/json", config.ContentType);
@@ -113,7 +93,7 @@ public class EffectiveConfigFileTests
 
         using var stream = new MemoryStream(content);
 
-        var config = EffectiveConfigFile.CreateFromStream(stream, "application/octet-stream", maxBytes: content.Length);
+        var config = EffectiveConfigFile.CreateFromStream(stream, "application/octet-stream", "filename.yml", content.Length);
 
         Assert.Equal(content, config.Content.ToArray());
     }
@@ -127,7 +107,7 @@ public class EffectiveConfigFileTests
         stream.Position = 1;
 
         Assert.Throws<InvalidDataException>(() =>
-            EffectiveConfigFile.CreateFromStream(stream, "application/octet-stream", maxBytes: 3));
+            EffectiveConfigFile.CreateFromStream(stream, "application/octet-stream", "filename.yml", 3));
     }
 
     [Fact]
@@ -139,7 +119,7 @@ public class EffectiveConfigFileTests
         stream.Position = 1;
 
         Assert.Throws<InvalidDataException>(() =>
-            EffectiveConfigFile.CreateFromStream(stream, "application/octet-stream", maxBytes: 3));
+            EffectiveConfigFile.CreateFromStream(stream, "application/octet-stream", "filename.yml", 3));
 
         Assert.Equal(1, stream.Position);
     }
@@ -149,7 +129,7 @@ public class EffectiveConfigFileTests
     {
         using var stream = new MemoryStream([]);
 
-        var config = EffectiveConfigFile.CreateFromStream(stream, "application/octet-stream", maxBytes: 0);
+        var config = EffectiveConfigFile.CreateFromStream(stream, "application/octet-stream", "filename.yml", 0);
 
         Assert.Empty(config.Content.ToArray());
     }
@@ -160,7 +140,7 @@ public class EffectiveConfigFileTests
         using var stream = new MemoryStream([1]);
 
         Assert.Throws<InvalidDataException>(() =>
-            EffectiveConfigFile.CreateFromStream(stream, "application/octet-stream", maxBytes: 0));
+            EffectiveConfigFile.CreateFromStream(stream, "application/octet-stream", "filename.yml", 0));
     }
 
     [Fact]
@@ -169,7 +149,7 @@ public class EffectiveConfigFileTests
         using var stream = new MemoryStream([1, 2]);
 
         Assert.Throws<InvalidDataException>(() =>
-            EffectiveConfigFile.CreateFromStream(stream, "application/octet-stream", maxBytes: 0));
+            EffectiveConfigFile.CreateFromStream(stream, "application/octet-stream", "filename.yml", 0));
 
         Assert.Equal(0, stream.Position);
     }
@@ -179,7 +159,7 @@ public class EffectiveConfigFileTests
     {
         using var stream = new MemoryStream([]);
 
-        var config = EffectiveConfigFile.CreateFromStream(stream, "application/octet-stream", maxBytes: 4);
+        var config = EffectiveConfigFile.CreateFromStream(stream, "application/octet-stream", "filename.yml", 4);
 
         Assert.Empty(config.Content.ToArray());
     }
@@ -191,7 +171,7 @@ public class EffectiveConfigFileTests
 
         using var stream = new NonSeekableReadStream(content, maxReadSize: 1);
 
-        var config = EffectiveConfigFile.CreateFromStream(stream, "application/octet-stream", maxBytes: content.Length);
+        var config = EffectiveConfigFile.CreateFromStream(stream, "application/octet-stream", "filename.yml", content.Length);
 
         Assert.Equal(content, config.Content.ToArray());
     }
@@ -203,7 +183,7 @@ public class EffectiveConfigFileTests
 
         using var stream = new NonSeekableReadStream(content);
 
-        var config = EffectiveConfigFile.CreateFromStream(stream, "application/octet-stream", maxBytes: content.Length);
+        var config = EffectiveConfigFile.CreateFromStream(stream, "application/octet-stream", "filename.yml", content.Length);
 
         Assert.Equal(content, config.Content.ToArray());
     }
@@ -216,7 +196,7 @@ public class EffectiveConfigFileTests
         using var stream = new NonSeekableReadStream(content);
 
         Assert.Throws<InvalidDataException>(() =>
-            EffectiveConfigFile.CreateFromStream(stream, "application/octet-stream", maxBytes: content.Length - 1));
+            EffectiveConfigFile.CreateFromStream(stream, "application/octet-stream", "filename.yml", content.Length - 1));
     }
 
     [Fact]
@@ -225,7 +205,7 @@ public class EffectiveConfigFileTests
         using var stream = new NonSeekableReadStream([1, 2]);
 
         Assert.Throws<InvalidDataException>(() =>
-            EffectiveConfigFile.CreateFromStream(stream, "application/octet-stream", maxBytes: 0));
+            EffectiveConfigFile.CreateFromStream(stream, "application/octet-stream", "filename.yml", 0));
 
         Assert.Equal(1, stream.BytesConsumed);
     }
@@ -243,7 +223,7 @@ public class EffectiveConfigFileTests
         using var stream = new MemoryStream(content);
 
         Assert.Throws<InvalidDataException>(() =>
-            EffectiveConfigFile.CreateFromStream(stream, "application/octet-stream", maxBytes: 3));
+            EffectiveConfigFile.CreateFromStream(stream, "application/octet-stream", "filename.yml", 3));
 
         var @event = Assert.Single(listener.Events);
         Assert.Equal("EffectiveConfigSizeLimitViolation", @event.EventName);
@@ -254,7 +234,7 @@ public class EffectiveConfigFileTests
     [Fact]
     public async Task CreateFromStreamAsync_NullStream_ThrowsArgumentNullException() =>
         await Assert.ThrowsAsync<ArgumentNullException>(() =>
-            EffectiveConfigFile.CreateFromStreamAsync(null!, "application/octet-stream"));
+            EffectiveConfigFile.CreateFromStreamAsync(null!, "application/octet-stream", "filename.yml", 1_024));
 
     [Fact]
     public async Task CreateFromStreamAsync_NullContentType_ThrowsArgumentNullException()
@@ -262,7 +242,7 @@ public class EffectiveConfigFileTests
         using var stream = new MemoryStream([]);
 
         await Assert.ThrowsAsync<ArgumentNullException>(() =>
-            EffectiveConfigFile.CreateFromStreamAsync(stream, null!));
+            EffectiveConfigFile.CreateFromStreamAsync(stream, null!, "filename.yml", 1_024));
     }
 
     [Fact]
@@ -271,18 +251,7 @@ public class EffectiveConfigFileTests
         using var stream = new MemoryStream([]);
 
         await Assert.ThrowsAsync<ArgumentNullException>(() =>
-            EffectiveConfigFile.CreateFromStreamAsync(stream, "application/octet-stream", null!));
-    }
-
-    [Fact]
-    public async Task CreateFromStreamAsync_DefaultOptionalParameters_UsesEmptyStrings()
-    {
-        using var stream = new MemoryStream([]);
-
-        var config = await EffectiveConfigFile.CreateFromStreamAsync(stream);
-
-        Assert.Equal(string.Empty, config.ContentType);
-        Assert.Equal(string.Empty, config.FileName);
+            EffectiveConfigFile.CreateFromStreamAsync(stream, "application/octet-stream", null!, 1_024));
     }
 
     [Fact]
@@ -291,7 +260,7 @@ public class EffectiveConfigFileTests
         using var stream = new MemoryStream([]);
 
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
-            EffectiveConfigFile.CreateFromStreamAsync(stream, "application/octet-stream", maxBytes: -1));
+            EffectiveConfigFile.CreateFromStreamAsync(stream, "application/octet-stream", "filename.yml", -1));
     }
 
     [Fact]
@@ -300,7 +269,7 @@ public class EffectiveConfigFileTests
         using var stream = new NonReadableStream();
 
         var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
-            EffectiveConfigFile.CreateFromStreamAsync(stream, "application/octet-stream"));
+            EffectiveConfigFile.CreateFromStreamAsync(stream, "application/octet-stream", "filename.yml", 1_024));
 
         Assert.Equal("stream", exception.ParamName);
     }
@@ -312,11 +281,11 @@ public class EffectiveConfigFileTests
 
         using var stream = new MemoryStream(content);
 
-        var config = await EffectiveConfigFile.CreateFromStreamAsync(stream, "application/octet-stream", maxBytes: content.Length + 1);
+        var config = await EffectiveConfigFile.CreateFromStreamAsync(stream, "application/octet-stream", "filename.yml", content.Length + 1);
 
         Assert.Equal(content, config.Content.ToArray());
         Assert.Equal("application/octet-stream", config.ContentType);
-        Assert.Equal(string.Empty, config.FileName);
+        Assert.Equal("filename.yml", config.FileName);
     }
 
     [Fact]
@@ -327,7 +296,7 @@ public class EffectiveConfigFileTests
         using var stream = new MemoryStream(content);
         stream.Position = 2;
 
-        var config = await EffectiveConfigFile.CreateFromStreamAsync(stream, "application/json", maxBytes: 3, fileName: "config.json");
+        var config = await EffectiveConfigFile.CreateFromStreamAsync(stream, "application/json", "config.json", 3);
 
         Assert.Equal([3, 4, 5], config.Content.ToArray());
         Assert.Equal("application/json", config.ContentType);
@@ -341,7 +310,7 @@ public class EffectiveConfigFileTests
 
         using var stream = new MemoryStream(content);
 
-        var config = await EffectiveConfigFile.CreateFromStreamAsync(stream, "application/octet-stream", maxBytes: content.Length);
+        var config = await EffectiveConfigFile.CreateFromStreamAsync(stream, "application/octet-stream", "filename.yml", content.Length);
 
         Assert.Equal(content, config.Content.ToArray());
     }
@@ -355,7 +324,7 @@ public class EffectiveConfigFileTests
         stream.Position = 1;
 
         await Assert.ThrowsAsync<InvalidDataException>(() =>
-            EffectiveConfigFile.CreateFromStreamAsync(stream, "application/octet-stream", maxBytes: 3));
+            EffectiveConfigFile.CreateFromStreamAsync(stream, "application/octet-stream", "filename.yml", 3));
     }
 
     [Fact]
@@ -367,7 +336,7 @@ public class EffectiveConfigFileTests
         stream.Position = 1;
 
         await Assert.ThrowsAsync<InvalidDataException>(() =>
-            EffectiveConfigFile.CreateFromStreamAsync(stream, "application/octet-stream", maxBytes: 3));
+            EffectiveConfigFile.CreateFromStreamAsync(stream, "application/octet-stream", "filename.yml", 3));
 
         Assert.Equal(1, stream.Position);
     }
@@ -377,7 +346,7 @@ public class EffectiveConfigFileTests
     {
         using var stream = new MemoryStream([]);
 
-        var config = await EffectiveConfigFile.CreateFromStreamAsync(stream, "application/octet-stream", maxBytes: 0);
+        var config = await EffectiveConfigFile.CreateFromStreamAsync(stream, "application/octet-stream", "filename.yml", 0);
 
         Assert.Empty(config.Content.ToArray());
     }
@@ -388,7 +357,7 @@ public class EffectiveConfigFileTests
         using var stream = new MemoryStream([1]);
 
         await Assert.ThrowsAsync<InvalidDataException>(() =>
-            EffectiveConfigFile.CreateFromStreamAsync(stream, "application/octet-stream", maxBytes: 0));
+            EffectiveConfigFile.CreateFromStreamAsync(stream, "application/octet-stream", "filename.yml", 0));
     }
 
     [Fact]
@@ -397,7 +366,7 @@ public class EffectiveConfigFileTests
         using var stream = new MemoryStream([1, 2]);
 
         await Assert.ThrowsAsync<InvalidDataException>(() =>
-            EffectiveConfigFile.CreateFromStreamAsync(stream, "application/octet-stream", maxBytes: 0));
+            EffectiveConfigFile.CreateFromStreamAsync(stream, "application/octet-stream", "filename.yml", 0));
 
         Assert.Equal(0, stream.Position);
     }
@@ -407,7 +376,7 @@ public class EffectiveConfigFileTests
     {
         using var stream = new MemoryStream([]);
 
-        var config = await EffectiveConfigFile.CreateFromStreamAsync(stream, "application/octet-stream", maxBytes: 4);
+        var config = await EffectiveConfigFile.CreateFromStreamAsync(stream, "application/octet-stream", "filename.yml", 4);
 
         Assert.Empty(config.Content.ToArray());
     }
@@ -419,7 +388,7 @@ public class EffectiveConfigFileTests
 
         using var stream = new NonSeekableReadStream(content, maxReadSize: 1);
 
-        var config = await EffectiveConfigFile.CreateFromStreamAsync(stream, "application/octet-stream", maxBytes: content.Length);
+        var config = await EffectiveConfigFile.CreateFromStreamAsync(stream, "application/octet-stream", "filename.yml", content.Length);
 
         Assert.Equal(content, config.Content.ToArray());
     }
@@ -431,7 +400,7 @@ public class EffectiveConfigFileTests
 
         using var stream = new NonSeekableReadStream(content);
 
-        var config = await EffectiveConfigFile.CreateFromStreamAsync(stream, "application/octet-stream", maxBytes: content.Length);
+        var config = await EffectiveConfigFile.CreateFromStreamAsync(stream, "application/octet-stream", "filename.yml", content.Length);
 
         Assert.Equal(content, config.Content.ToArray());
     }
@@ -444,7 +413,7 @@ public class EffectiveConfigFileTests
         using var stream = new NonSeekableReadStream(content);
 
         await Assert.ThrowsAsync<InvalidDataException>(() =>
-            EffectiveConfigFile.CreateFromStreamAsync(stream, "application/octet-stream", maxBytes: content.Length - 1));
+            EffectiveConfigFile.CreateFromStreamAsync(stream, "application/octet-stream", "filename.yml", content.Length - 1));
     }
 
     [Fact]
@@ -453,7 +422,7 @@ public class EffectiveConfigFileTests
         using var stream = new NonSeekableReadStream([1, 2]);
 
         await Assert.ThrowsAsync<InvalidDataException>(() =>
-            EffectiveConfigFile.CreateFromStreamAsync(stream, "application/octet-stream", maxBytes: 0));
+            EffectiveConfigFile.CreateFromStreamAsync(stream, "application/octet-stream", "filename.yml", 0));
 
         Assert.Equal(1, stream.BytesConsumed);
     }
@@ -468,7 +437,7 @@ public class EffectiveConfigFileTests
         using var stream = new NonSeekableReadStream(content);
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
-            EffectiveConfigFile.CreateFromStreamAsync(stream, maxBytes: content.Length, cancellationToken: cts.Token));
+            EffectiveConfigFile.CreateFromStreamAsync(stream, "application/octet-stream", "filename.yml", content.Length, cancellationToken: cts.Token));
     }
 
     // EventListener on .NET Framework uses the ETW stack whose initialization timing
@@ -484,7 +453,7 @@ public class EffectiveConfigFileTests
         using var stream = new MemoryStream(content);
 
         await Assert.ThrowsAsync<InvalidDataException>(() =>
-            EffectiveConfigFile.CreateFromStreamAsync(stream, "application/octet-stream", maxBytes: 3));
+            EffectiveConfigFile.CreateFromStreamAsync(stream, "application/octet-stream", "filename.yml", 3));
 
         var @event = Assert.Single(listener.Events);
         Assert.Equal("EffectiveConfigSizeLimitViolation", @event.EventName);

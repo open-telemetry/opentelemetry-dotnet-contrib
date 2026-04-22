@@ -296,7 +296,7 @@ public class OpAmpClientTests
             """;
         using var tempConfigFile = TempFile.Create(fileContent);
         using var stream = File.OpenRead(tempConfigFile.FilePath);
-        var configFile = EffectiveConfigFile.CreateFromStream(stream, fileContentType, fileName: tempConfigFile.FileName);
+        var configFile = EffectiveConfigFile.CreateFromStream(stream, fileContentType, tempConfigFile.FileName, 512 * 1024);
 
         // Act
         await client.StartAsync();

@@ -62,22 +62,8 @@ public class FrameBuilderTests
         var frameBuilder = new FrameBuilder(new());
         var files = new[]
         {
-            new EffectiveConfigFile(Array.Empty<byte>(), fileName: "config.yaml"),
-            new EffectiveConfigFile(Array.Empty<byte>(), fileName: "config.yaml"),
-        };
-
-        Assert.Throws<ArgumentException>(() =>
-            frameBuilder.StartBaseMessage().AddEffectiveConfig(files));
-    }
-
-    [Fact]
-    public void AddEffectiveConfig_DuplicateDefaultFileName_ThrowsArgumentException()
-    {
-        var frameBuilder = new FrameBuilder(new());
-        var files = new[]
-        {
-            new EffectiveConfigFile(Array.Empty<byte>()),
-            new EffectiveConfigFile(Array.Empty<byte>()),
+            new EffectiveConfigFile(Array.Empty<byte>(), string.Empty, "config.yaml"),
+            new EffectiveConfigFile(Array.Empty<byte>(), string.Empty, "config.yaml"),
         };
 
         Assert.Throws<ArgumentException>(() =>
