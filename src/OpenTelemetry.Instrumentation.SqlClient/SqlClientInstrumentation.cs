@@ -143,23 +143,32 @@ internal sealed class SqlClientInstrumentation : IDisposable
         }
 
 #if !NETFRAMEWORK
-        snapshot.Filter = filters.Count switch
+        switch (filters.Count)
         {
-            0 => null,
-            1 => filters[0],
-            _ => command =>
-            {
-                foreach (var filter in filters)
-                {
-                    if (!filter(command))
-                    {
-                        return false;
-                    }
-                }
+            case 0:
+                snapshot.Filter = null;
+                break;
 
-                return true;
-            },
-        };
+            case 1:
+                snapshot.Filter = filters[0];
+                break;
+
+            default:
+                snapshot.Filter = command =>
+                {
+                    foreach (var filter in filters)
+                    {
+                        if (!filter(command))
+                        {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                };
+                break;
+        }
+
         snapshot.EnrichWithSqlCommand = enrichWithSqlCommand;
 #endif
 
