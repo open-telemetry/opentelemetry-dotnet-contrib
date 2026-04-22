@@ -12,7 +12,7 @@ namespace OpenTelemetry.Metrics;
 public static class MeterProviderBuilderExtensions
 {
     /// <summary>
-    /// Enables the RPC metrics for ServiceFabric Remoting (<c>rpc.server.call.duration</c> and <c>rpc.client.call.duration</c>).
+    /// Enables the RPC metrics for ServiceFabric Remoting.
     /// </summary>
     /// <param name="builder"><see cref="MeterProviderBuilder"/> being configured.</param>
     /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
