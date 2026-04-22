@@ -72,7 +72,7 @@ internal sealed class SqlClientInstrumentation : IDisposable
 #if NETFRAMEWORK
         this.sqlEventSourceListener?.Dispose();
 #else
-    this.diagnosticSourceSubscriber?.Dispose();
+        this.diagnosticSourceSubscriber?.Dispose();
 #endif
 
     internal SqlClientTraceInstrumentationOptions GetTracingOptions() => Volatile.Read(ref this.tracingOptions);
@@ -106,15 +106,17 @@ internal sealed class SqlClientInstrumentation : IDisposable
             return snapshot;
         }
 
+        var firstActiveTracingOption = activeTracingOptions[0];
+
 #if !NETFRAMEWORK
         var filters = new List<Func<object, bool>>();
-        Action<Activity, object>? enrichWithSqlCommand = activeTracingOptions[0].EnrichWithSqlCommand;
+        Action<Activity, object>? enrichWithSqlCommand = firstActiveTracingOption.EnrichWithSqlCommand;
 
-        snapshot.RecordException = activeTracingOptions[0].RecordException;
-        snapshot.SetDbQueryParameters = activeTracingOptions[0].SetDbQueryParameters;
+        snapshot.RecordException = firstActiveTracingOption.RecordException;
+        snapshot.SetDbQueryParameters = firstActiveTracingOption.SetDbQueryParameters;
 #endif
 #if NET
-        snapshot.EnableTraceContextPropagation = activeTracingOptions[0].EnableTraceContextPropagation;
+        snapshot.EnableTraceContextPropagation = firstActiveTracingOption.EnableTraceContextPropagation;
 #endif
 
         for (var i = 0; i < activeTracingOptions.Count; i++)
