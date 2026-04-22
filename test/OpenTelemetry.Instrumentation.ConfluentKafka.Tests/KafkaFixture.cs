@@ -11,18 +11,18 @@ public sealed class KafkaFixture : IAsyncLifetime
 {
     private static readonly string KafkaImage = GetKafkaImage();
 
-    public KafkaContainer DatabaseContainer { get; } = CreateKafka();
+    public KafkaContainer Container { get; } = CreateKafka();
 
     public async Task InitializeAsync()
     {
         if (DockerHelper.IsAvailable(DockerPlatform.Linux))
         {
-            await this.DatabaseContainer.StartAsync();
+            await this.Container.StartAsync();
         }
     }
 
     public Task DisposeAsync() =>
-        this.DatabaseContainer.DisposeAsync().AsTask();
+        this.Container.DisposeAsync().AsTask();
 
     private static KafkaContainer CreateKafka() =>
         new KafkaBuilder(KafkaImage).Build();

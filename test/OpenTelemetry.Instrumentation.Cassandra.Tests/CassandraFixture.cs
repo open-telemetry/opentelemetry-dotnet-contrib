@@ -11,18 +11,18 @@ public sealed class CassandraFixture : IAsyncLifetime
 {
     private static readonly string CassandraImage = GetCassandraImage();
 
-    public CassandraContainer DatabaseContainer { get; } = CreateCassandra();
+    public CassandraContainer Container { get; } = CreateCassandra();
 
     public async Task InitializeAsync()
     {
         if (DockerHelper.IsAvailable(DockerPlatform.Linux))
         {
-            await this.DatabaseContainer.StartAsync();
+            await this.Container.StartAsync();
         }
     }
 
     public Task DisposeAsync() =>
-        this.DatabaseContainer.DisposeAsync().AsTask();
+        this.Container.DisposeAsync().AsTask();
 
     private static CassandraContainer CreateCassandra() =>
         new CassandraBuilder(CassandraImage).Build();

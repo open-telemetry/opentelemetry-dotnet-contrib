@@ -16,7 +16,7 @@ namespace OpenTelemetry.Instrumentation.ConfluentKafka.Tests;
 [Trait("CategoryName", "KafkaIntegrationTests")]
 public class HostedTracingTests(KafkaFixture fixture, ITestOutputHelper outputHelper)
 {
-    private readonly string connectionString = fixture.DatabaseContainer.GetConnectionString();
+    private readonly string connectionString = fixture.Container.GetConnectionString();
 
     [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
     public async Task ResolveInstrumentedBuildersFromHostServiceProviderTest()

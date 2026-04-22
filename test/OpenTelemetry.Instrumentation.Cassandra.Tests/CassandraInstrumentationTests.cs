@@ -17,9 +17,9 @@ public class CassandraInstrumentationTests(CassandraFixture fixture)
 {
     private const int MaxTimeToAllowForFlush = 20000;
 
-    private readonly string? cassandraConnectionString = fixture.DatabaseContainer.GetConnectionString() + ";Default Keyspace=OT_Cassandra_Testing";
+    private readonly string cassandraConnectionString = fixture.Container.GetConnectionString() + ";Default Keyspace=OT_Cassandra_Testing";
 
-    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
+    [Fact]
     public void AddCassandraInstrumentationDoesNotThrow()
     {
         var builder = Sdk.CreateMeterProviderBuilder();
@@ -34,32 +34,35 @@ public class CassandraInstrumentationTests(CassandraFixture fixture)
     {
         var exportedItems = new List<Metric>();
 
-        using var provider = Sdk.CreateMeterProviderBuilder()
-            .AddInMemoryExporter(exportedItems)
-            .AddCassandraInstrumentation()
-            .Build();
+        IEnumerable<BooksEntity> books;
 
-        var cluster = new Builder()
+        using (var provider = Sdk.CreateMeterProviderBuilder()
+                                 .AddInMemoryExporter(exportedItems)
+                                 .AddCassandraInstrumentation()
+                                 .Build())
+        {
+            var cluster = new Builder()
             .WithConnectionString(this.cassandraConnectionString)
             .WithOpenTelemetryMetrics()
             .Build();
 
-        var session = cluster.ConnectAndCreateDefaultKeyspaceIfNotExists();
+            var session = cluster.ConnectAndCreateDefaultKeyspaceIfNotExists();
 
-        var table = new CassandraData.Table<BooksEntity>(session, new MappingConfiguration());
+            var table = new CassandraData.Table<BooksEntity>(session, new MappingConfiguration());
 
-        await table.CreateIfNotExistsAsync();
+            await table.CreateIfNotExistsAsync();
 
-        var mapper = new Mapper(session);
+            var mapper = new Mapper(session);
 
-        await mapper.InsertAsync(new BooksEntity(Guid.NewGuid(), "Good book"));
-        await mapper.InsertAsync(new BooksEntity(Guid.NewGuid(), "Bad book"));
+            await mapper.InsertAsync(new BooksEntity(Guid.NewGuid(), "Good book"));
+            await mapper.InsertAsync(new BooksEntity(Guid.NewGuid(), "Bad book"));
 
-        var books = await mapper.FetchAsync<BooksEntity>();
+            books = await mapper.FetchAsync<BooksEntity>();
 
-        provider.ForceFlush(MaxTimeToAllowForFlush);
+            provider.ForceFlush(MaxTimeToAllowForFlush);
+        }
 
-        Assert.True(exportedItems.Count > 1);
+        Assert.True(exportedItems.Count > 1, $"Expected more than 1 metric, but found {exportedItems.Count}");
         Assert.NotEmpty(books);
     }
 
@@ -68,35 +71,38 @@ public class CassandraInstrumentationTests(CassandraFixture fixture)
     {
         var exportedItems = new List<Metric>();
 
-        using var provider = Sdk.CreateMeterProviderBuilder()
-            .AddInMemoryExporter(exportedItems)
-            .AddCassandraInstrumentation()
-            .Build();
+        IEnumerable<BooksEntity> books;
 
-        var options = new DriverMetricsOptions();
+        using (var provider = Sdk.CreateMeterProviderBuilder()
+                                 .AddInMemoryExporter(exportedItems)
+                                 .AddCassandraInstrumentation()
+                                 .Build())
+        {
+            var options = new DriverMetricsOptions();
 
-        options.SetEnabledNodeMetrics([NodeMetric.Gauges.InFlight]);
-        options.SetEnabledSessionMetrics([]);
+            options.SetEnabledNodeMetrics([NodeMetric.Gauges.InFlight]);
+            options.SetEnabledSessionMetrics([]);
 
-        var cluster = new Builder()
-            .WithConnectionString(this.cassandraConnectionString)
-            .WithOpenTelemetryMetrics(options)
-            .Build();
+            var cluster = new Builder()
+                .WithConnectionString(this.cassandraConnectionString)
+                .WithOpenTelemetryMetrics(options)
+                .Build();
 
-        var session = cluster.ConnectAndCreateDefaultKeyspaceIfNotExists();
+            var session = cluster.ConnectAndCreateDefaultKeyspaceIfNotExists();
 
-        var table = new CassandraData.Table<BooksEntity>(session, new MappingConfiguration());
+            var table = new CassandraData.Table<BooksEntity>(session, new MappingConfiguration());
 
-        await table.CreateIfNotExistsAsync();
+            await table.CreateIfNotExistsAsync();
 
-        var mapper = new Mapper(session);
+            var mapper = new Mapper(session);
 
-        await mapper.InsertAsync(new BooksEntity(Guid.NewGuid(), "Good book"));
-        await mapper.InsertAsync(new BooksEntity(Guid.NewGuid(), "Bad book"));
+            await mapper.InsertAsync(new BooksEntity(Guid.NewGuid(), "Good book"));
+            await mapper.InsertAsync(new BooksEntity(Guid.NewGuid(), "Bad book"));
 
-        var books = await mapper.FetchAsync<BooksEntity>();
+            books = await mapper.FetchAsync<BooksEntity>();
 
-        provider.ForceFlush(MaxTimeToAllowForFlush);
+            provider.ForceFlush(MaxTimeToAllowForFlush);
+        }
 
         var inFlightConnection = exportedItems.FirstOrDefault(i => i.Name == "cassandra.pool.in-flight");
         Assert.NotNull(inFlightConnection);
@@ -113,30 +119,33 @@ public class CassandraInstrumentationTests(CassandraFixture fixture)
     {
         var exportedItems = new List<Metric>();
 
-        using var provider = Sdk.CreateMeterProviderBuilder()
-            .AddInMemoryExporter(exportedItems)
-            .AddCassandraInstrumentation()
-            .Build();
+        IEnumerable<BooksEntity> books;
 
-        var cluster = new Builder()
-            .WithConnectionString(this.cassandraConnectionString)
-            .WithOpenTelemetryMetrics()
-            .Build();
+        using (var provider = Sdk.CreateMeterProviderBuilder()
+                                 .AddInMemoryExporter(exportedItems)
+                                 .AddCassandraInstrumentation()
+                                 .Build())
+        {
+            var cluster = new Builder()
+                .WithConnectionString(this.cassandraConnectionString)
+                .WithOpenTelemetryMetrics()
+                .Build();
 
-        var session = cluster.ConnectAndCreateDefaultKeyspaceIfNotExists();
+            var session = cluster.ConnectAndCreateDefaultKeyspaceIfNotExists();
 
-        var table = new CassandraData.Table<BooksEntity>(session, new MappingConfiguration());
+            var table = new CassandraData.Table<BooksEntity>(session, new MappingConfiguration());
 
-        await table.CreateIfNotExistsAsync();
+            await table.CreateIfNotExistsAsync();
 
-        var mapper = new Mapper(session);
+            var mapper = new Mapper(session);
 
-        await mapper.InsertAsync(new BooksEntity(Guid.NewGuid(), "Good book"));
-        await mapper.InsertAsync(new BooksEntity(Guid.NewGuid(), "Bad book"));
+            await mapper.InsertAsync(new BooksEntity(Guid.NewGuid(), "Good book"));
+            await mapper.InsertAsync(new BooksEntity(Guid.NewGuid(), "Bad book"));
 
-        var books = await mapper.FetchAsync<BooksEntity>();
+            books = await mapper.FetchAsync<BooksEntity>();
 
-        provider.ForceFlush(MaxTimeToAllowForFlush);
+            provider.ForceFlush(MaxTimeToAllowForFlush);
+        }
 
         var cqlMessageLatency = exportedItems.FirstOrDefault(i => i.Name == "cassandra.cql-requests");
         Assert.NotNull(cqlMessageLatency);
