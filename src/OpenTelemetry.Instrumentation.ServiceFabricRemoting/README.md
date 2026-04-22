@@ -203,7 +203,7 @@ using MeterProvider meterProvider = Sdk.CreateMeterProviderBuilder()
 ```
 
 Two RPC duration histograms are emitted per the OpenTelemetry
-[RPC metrics semantic conventions](https://opentelemetry.io/docs/specs/semconv/rpc/rpc-metrics/):
+[RPC metrics semantic conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.40.0/docs/rpc/rpc-metrics.md):
 
 - `rpc.server.call.duration` - histogram of incoming remoting call durations
   (unit: `s`)
