@@ -18,8 +18,7 @@ Released 2026-Apr-21
   `FabricTransportRemotingSettings` (client) and
   `FabricTransportRemotingListenerSettings` (listener) now load from the
   `TransportSettings` config section, with any attribute-level overrides
-  (e.g. `MaxMessageSize`, `OperationTimeout`, `KeepAliveTimeout`,
-  `ConnectTimeout`) layered on top of the loaded values.
+  (e.g. `MaxMessageSize`) layered on top of the loaded values.
   ([#4148](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4148))
 
 * Updated OpenTelemetry core component version(s) to `1.15.3`.
