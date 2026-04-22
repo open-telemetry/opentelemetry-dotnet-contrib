@@ -83,7 +83,7 @@ internal static class TestHttpServer
                 this.cancellationTokenSource.Cancel();
                 this.cancellationTokenSource.Dispose();
                 this.listener.Close();
-                this.httpListenerTask.GetAwaiter().GetResult();
+                this.httpListenerTask.Wait();
             }
             catch (Exception ex) when (this.IsListenerShutdownException(ex))
             {
@@ -95,6 +95,11 @@ internal static class TestHttpServer
         {
             for (var ex = exception; ex is not null; ex = ex.InnerException)
             {
+                if (ex is AggregateException aggregate)
+                {
+                    ex = aggregate.Flatten();
+                }
+
                 if (ex is ObjectDisposedException)
                 {
                     return true;
@@ -109,9 +114,28 @@ internal static class TestHttpServer
             return false;
         }
 
-        private bool IsListenerShutdownException(Exception ex) =>
-            IsResponseAlreadyClosedException(ex) ||
-            (ex is InvalidOperationException && !this.listener.IsListening);
+        private bool IsListenerShutdownException(Exception exception)
+        {
+            if (IsResponseAlreadyClosedException(exception))
+            {
+                return true;
+            }
+
+            for (var ex = exception; ex is not null; ex = ex.InnerException)
+            {
+                if (ex is AggregateException aggregate)
+                {
+                    ex = aggregate.Flatten();
+                }
+
+                if (ex is InvalidOperationException && !this.listener.IsListening)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         private async Task ListenAsync(Action<HttpListenerContext> action)
         {
