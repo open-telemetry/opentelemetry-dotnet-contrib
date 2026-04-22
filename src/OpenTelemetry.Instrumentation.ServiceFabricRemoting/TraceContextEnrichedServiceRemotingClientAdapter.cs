@@ -72,9 +72,12 @@ internal class TraceContextEnrichedServiceRemotingClientAdapter : IServiceRemoti
             {
                 ServiceFabricRemotingActivitySource.Options?.EnrichAtClientFromRequest?.Invoke(activity, requestMessage);
             }
-            catch (Exception)
+            catch (Exception enrichEx)
             {
-                // TODO: Log error
+                ServiceFabricRemotingInstrumentationEventSource.Log.EnrichmentException(
+                    handlerName: nameof(TraceContextEnrichedServiceRemotingClientAdapter),
+                    eventName: nameof(ServiceFabricRemotingInstrumentationOptions.EnrichAtClientFromRequest),
+                    ex: enrichEx);
             }
 
             try
@@ -98,9 +101,12 @@ internal class TraceContextEnrichedServiceRemotingClientAdapter : IServiceRemoti
                 {
                     ServiceFabricRemotingActivitySource.Options?.EnrichAtClientFromResponse?.Invoke(activity, responseMessage, /* exception */ null);
                 }
-                catch (Exception)
+                catch (Exception enrichEx)
                 {
-                    // TODO: Log error
+                    ServiceFabricRemotingInstrumentationEventSource.Log.EnrichmentException(
+                        handlerName: nameof(TraceContextEnrichedServiceRemotingClientAdapter),
+                        eventName: nameof(ServiceFabricRemotingInstrumentationOptions.EnrichAtClientFromResponse),
+                        ex: enrichEx);
                 }
             }
 
@@ -123,9 +129,12 @@ internal class TraceContextEnrichedServiceRemotingClientAdapter : IServiceRemoti
                 {
                     ServiceFabricRemotingActivitySource.Options?.EnrichAtClientFromResponse?.Invoke(activity, /* serviceRemotingResponseMessage */ null, ex);
                 }
-                catch (Exception)
+                catch (Exception enrichEx)
                 {
-                    // TODO: Log error
+                    ServiceFabricRemotingInstrumentationEventSource.Log.EnrichmentException(
+                        handlerName: nameof(TraceContextEnrichedServiceRemotingClientAdapter),
+                        eventName: nameof(ServiceFabricRemotingInstrumentationOptions.EnrichAtClientFromResponse),
+                        ex: enrichEx);
                 }
             }
 
