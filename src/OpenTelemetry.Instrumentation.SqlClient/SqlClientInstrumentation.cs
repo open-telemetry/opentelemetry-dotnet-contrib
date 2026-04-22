@@ -24,6 +24,9 @@ internal sealed class SqlClientInstrumentation : IDisposable
     internal const string SqlClientTrimmingUnsupportedMessage = "Trimming is not yet supported with SqlClient instrumentation.";
 #endif
     internal static readonly SqlClientInstrumentation Instance = new();
+
+    internal readonly InstrumentationHandleManager HandleManager = new();
+
 #if !NETFRAMEWORK
     private static readonly HashSet<string> DiagnosticSourceEvents =
     [
@@ -36,7 +39,6 @@ internal sealed class SqlClientInstrumentation : IDisposable
     ];
 #endif
 
-    internal readonly InstrumentationHandleManager HandleManager = new();
     private readonly object tracingOptionsSync = new();
     private readonly List<SqlClientTraceInstrumentationOptions> activeTracingOptions = [];
 #if NETFRAMEWORK
@@ -48,26 +50,6 @@ internal sealed class SqlClientInstrumentation : IDisposable
     private readonly DiagnosticSourceSubscriber diagnosticSourceSubscriber;
 #endif
     private SqlClientTraceInstrumentationOptions tracingOptions = CreateTracingOptionsSnapshot([]);
-
-    internal SqlClientTraceInstrumentationOptions GetTracingOptions() => Volatile.Read(ref this.tracingOptions);
-
-    internal IDisposable AddTracingHandle(SqlClientTraceInstrumentationOptions options)
-    {
-        lock (this.tracingOptionsSync)
-        {
-            this.activeTracingOptions.Add(options);
-            Volatile.Write(ref this.tracingOptions, CreateTracingOptionsSnapshot(this.activeTracingOptions));
-        }
-
-        return new TracingHandle(this, this.HandleManager.AddTracingHandle(), options);
-    }
-
-    void IDisposable.Dispose() =>
-#if NETFRAMEWORK
-        this.sqlEventSourceListener?.Dispose();
-#else
-        this.diagnosticSourceSubscriber?.Dispose();
-#endif
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SqlClientInstrumentation"/> class.
@@ -84,6 +66,26 @@ internal sealed class SqlClientInstrumentation : IDisposable
            SqlClientInstrumentationEventSource.Log.UnknownErrorProcessingEvent);
         this.diagnosticSourceSubscriber.Subscribe();
 #endif
+    }
+
+    void IDisposable.Dispose() =>
+#if NETFRAMEWORK
+        this.sqlEventSourceListener?.Dispose();
+#else
+    this.diagnosticSourceSubscriber?.Dispose();
+#endif
+
+    internal SqlClientTraceInstrumentationOptions GetTracingOptions() => Volatile.Read(ref this.tracingOptions);
+
+    internal IDisposable AddTracingHandle(SqlClientTraceInstrumentationOptions options)
+    {
+        lock (this.tracingOptionsSync)
+        {
+            this.activeTracingOptions.Add(options);
+            Volatile.Write(ref this.tracingOptions, CreateTracingOptionsSnapshot(this.activeTracingOptions));
+        }
+
+        return new TracingHandle(this, this.HandleManager.AddTracingHandle(), options);
     }
 
     private static SqlClientTraceInstrumentationOptions CreateTracingOptionsSnapshot(
