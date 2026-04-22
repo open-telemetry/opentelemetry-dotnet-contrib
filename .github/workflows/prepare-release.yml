@@ -338,6 +338,7 @@ jobs:
         BOT_USER_NAME: ${{ needs.automation.outputs.username }}
         ISSUE_BODY: ${{ github.event.issue.body }}
         ISSUE_NUMBER: ${{ github.event.issue.number }}
+        ISSUE_TITLE: ${{ github.event.issue.title }}
         REQUESTOR_USER_NAME: ${{ github.event.comment.user.login || github.event.sender.login }}
         TARGET_BRANCH: ${{ github.event.repository.default_branch }}
       run: |
@@ -351,5 +352,6 @@ jobs:
           -requestedByUserName ${env:REQUESTOR_USER_NAME} `
           -issueNumber ${env:ISSUE_NUMBER} `
           -issueBody ${env:ISSUE_BODY} `
+          -issueTitle ${env:ISSUE_TITLE} `
           -gitUserName ${env:BOT_USER_NAME} `
           -gitUserEmail ${env:BOT_USER_EMAIL}

@@ -60,7 +60,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
             return;
         }
 
-        var options = SqlClientInstrumentation.TracingOptions;
+        var options = SqlClientInstrumentation.Instance.GetTracingOptions();
         var activity = Activity.Current;
         switch (name)
         {
