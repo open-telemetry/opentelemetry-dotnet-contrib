@@ -220,6 +220,18 @@ Both histograms are tagged with:
 The client histogram additionally includes `server.address` sourced from
 `ResolvedServicePartition.ServiceName` (for example, `"fabric:/MyApp/MyService"`).
 
+The following RPC semantic convention attributes are intentionally **not**
+populated:
+
+- **`rpc.response.status_code`** — Service Fabric Remoting has no native
+  status-code concept; failures are serialized exceptions, and the failure
+  axis is already captured via the `error.type` tag.
+- **`server.port`** — Service Fabric assigns dynamic ports that change on
+  failover or restart, and traffic typically flows through a reverse proxy
+  or load balancer where the replica port is not visible to callers.
+  `server.address` uses the stable logical SF service URI instead, which is
+  how SF services are actually identified in practice.
+
 The metrics instrumentation has no configuration options: metrics are emitted
 automatically for all request/response calls on both Service and Actor
 remoting paths. One-way calls (`SendOneWay`) are not recorded, consistent
