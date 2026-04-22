@@ -9,8 +9,8 @@
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.ServiceFabricRemoting)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.ServiceFabricRemoting)
 [![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Instrumentation.ServiceFabricRemoting)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Instrumentation.ServiceFabricRemoting)
 
-This is an [Instrumentation Library](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/glossary.md#instrumentation-library)
-that instruments [Service Fabric Remoting](https://learn.microsoft.com/en-us/azure/service-fabric/service-fabric-reliable-services-communication-remoting),
+This is an [Instrumentation Library](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/glossary.md#instrumentation-library)
+that instruments [Service Fabric Remoting](https://learn.microsoft.com/azure/service-fabric/service-fabric-reliable-services-communication-remoting),
 emitting distributed traces and RPC metrics for both client (outgoing) and
 server (incoming) calls.
 
