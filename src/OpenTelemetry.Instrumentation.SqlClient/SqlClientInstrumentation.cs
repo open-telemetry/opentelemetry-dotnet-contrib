@@ -148,17 +148,17 @@ internal sealed class SqlClientInstrumentation : IDisposable
             0 => null,
             1 => filters[0],
             _ => command =>
+            {
+                foreach (var filter in filters)
                 {
-                    foreach (var filter in filters)
+                    if (!filter(command))
                     {
-                        if (!filter(command))
-                        {
-                            return false;
-                        }
+                        return false;
                     }
+                }
 
-                    return true;
-                },
+                return true;
+            },
         };
         snapshot.EnrichWithSqlCommand = enrichWithSqlCommand;
 #endif
