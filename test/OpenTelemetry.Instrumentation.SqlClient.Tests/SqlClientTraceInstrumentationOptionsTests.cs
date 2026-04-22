@@ -61,6 +61,59 @@ public class SqlClientTraceInstrumentationOptionsTests
     }
 
 #if !NETFRAMEWORK
+    [Fact]
+    public void MultipleTracerProviders_DoNotLeakFilterConfiguration()
+    {
+        var filteredActivities = new List<Activity>();
+        var defaultActivities = new List<Activity>();
+
+        using var filteredProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation(options => options.Filter = _ => false)
+            .AddInMemoryExporter(filteredActivities)
+            .Build();
+
+        using var defaultProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(defaultActivities)
+            .Build();
+
+        MockCommandExecutor.ExecuteCommand(TestConnectionString, CommandType.Text, "SELECT * FROM Foo", false, SqlClientLibrary.MicrosoftDataSqlClient);
+
+        filteredProvider.ForceFlush();
+        defaultProvider.ForceFlush();
+
+        Assert.Empty(filteredActivities);
+        Assert.Empty(defaultActivities);
+    }
+
+    [Fact]
+    public void MultipleTracerProviders_DoNotLeakEnrichmentConfiguration()
+    {
+        var defaultActivities = new List<Activity>();
+        var enrichedActivities = new List<Activity>();
+
+        using var defaultProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(defaultActivities)
+            .Build();
+
+        using var enrichedProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation(options => options.EnrichWithSqlCommand = ActivityEnrichment)
+            .AddInMemoryExporter(enrichedActivities)
+            .Build();
+
+        MockCommandExecutor.ExecuteCommand(TestConnectionString, CommandType.Text, "SELECT * FROM Foo", false, SqlClientLibrary.MicrosoftDataSqlClient);
+
+        defaultProvider.ForceFlush();
+        enrichedProvider.ForceFlush();
+
+        var defaultActivity = Assert.Single(defaultActivities);
+        var enrichedActivity = Assert.Single(enrichedActivities);
+
+        Assert.DoesNotContain(defaultActivity.Tags, tag => tag.Key == "enriched");
+        Assert.DoesNotContain(enrichedActivity.Tags, tag => tag.Key == "enriched");
+    }
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
