@@ -223,10 +223,10 @@ The client histogram additionally includes `server.address` sourced from
 The following RPC semantic convention attributes are intentionally **not**
 populated:
 
-- **`rpc.response.status_code`** — Service Fabric Remoting has no native
+- **`rpc.response.status_code`** - Service Fabric Remoting has no native
   status-code concept; failures are serialized exceptions, and the failure
   axis is already captured via the `error.type` tag.
-- **`server.port`** — Service Fabric assigns dynamic ports that change on
+- **`server.port`** - Service Fabric assigns dynamic ports that change on
   failover or restart, and traffic typically flows through a reverse proxy
   or load balancer where the replica port is not visible to callers.
   `server.address` uses the stable logical SF service URI instead, which is
