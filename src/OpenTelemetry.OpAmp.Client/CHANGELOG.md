@@ -4,7 +4,8 @@
 
 * Enhance EffectiveConfigFile:
   * Remove `CreateFromFilePath` factory method.
-  * Add `CreateFromSteam` and `CreateFromStreamAsync` methods which enforce max size limits.
+  * Add `CreateFromSteam` and `CreateFromStreamAsync` methods which enforce max
+  size limits.
   * Content property is now `ReadOnlyMemory`.
   ([#4285](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4285))
 
