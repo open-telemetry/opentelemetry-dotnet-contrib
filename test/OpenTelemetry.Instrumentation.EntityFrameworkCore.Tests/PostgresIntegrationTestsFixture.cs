@@ -26,7 +26,12 @@ public sealed class PostgresIntegrationTestsFixture : IAsyncLifetime
         var assembly = typeof(PostgresIntegrationTestsFixture).Assembly;
 
         using var stream = assembly.GetManifestResourceStream("postgres.Dockerfile");
+
+#if NET
         using var reader = new StreamReader(stream!);
+#else
+        using var reader = new StreamReader(stream);
+#endif
 
         var raw = reader.ReadToEnd();
 

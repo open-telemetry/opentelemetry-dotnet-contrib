@@ -26,7 +26,12 @@ public sealed class MySqlIntegrationTestsFixture : IAsyncLifetime
         var assembly = typeof(MySqlIntegrationTestsFixture).Assembly;
 
         using var stream = assembly.GetManifestResourceStream("mysql.Dockerfile");
+
+#if NET
         using var reader = new StreamReader(stream!);
+#else
+        using var reader = new StreamReader(stream);
+#endif
 
         var raw = reader.ReadToEnd();
 

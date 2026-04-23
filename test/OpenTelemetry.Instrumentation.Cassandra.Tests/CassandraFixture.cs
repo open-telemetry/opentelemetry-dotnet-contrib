@@ -32,7 +32,12 @@ public sealed class CassandraFixture : IAsyncLifetime
         var assembly = typeof(CassandraFixture).Assembly;
 
         using var stream = assembly.GetManifestResourceStream("cassandra.Dockerfile");
+
+#if NET
         using var reader = new StreamReader(stream!);
+#else
+        using var reader = new StreamReader(stream);
+#endif
 
         var raw = reader.ReadToEnd();
 

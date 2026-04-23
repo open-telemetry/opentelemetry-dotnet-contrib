@@ -32,7 +32,12 @@ public sealed class KafkaFixture : IAsyncLifetime
         var assembly = typeof(KafkaFixture).Assembly;
 
         using var stream = assembly.GetManifestResourceStream("kafka.Dockerfile");
+
+#if NET
         using var reader = new StreamReader(stream!);
+#else
+        using var reader = new StreamReader(stream);
+#endif
 
         var raw = reader.ReadToEnd();
 
