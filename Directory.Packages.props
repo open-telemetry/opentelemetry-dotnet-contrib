@@ -142,6 +142,8 @@
     <!-- These WCF dependencies are pinned until we drop support for net8.0 and net9.0 -->
     <PackageVersion Include="System.ServiceModel.Http" Version="[8.1.2,)" />
     <PackageVersion Include="System.ServiceModel.NetTcp" Version="[8.1.2,)" />
+    <PackageVersion Include="Testcontainers.Cassandra" Version="4.11.0" />
+    <PackageVersion Include="Testcontainers.Kafka" Version="4.11.0" />
     <PackageVersion Include="Testcontainers.MsSql" Version="4.11.0" />
     <PackageVersion Include="Testcontainers.MySql" Version="4.11.0" />
     <PackageVersion Include="Testcontainers.PostgreSql" Version="4.11.0" />

@@ -13,11 +13,13 @@ using Xunit.Abstractions;
 
 namespace OpenTelemetry.Instrumentation.ConfluentKafka.Tests;
 
-[Collection("Kafka")]
-public class HostedTracingAndMeteringTests(ITestOutputHelper outputHelper)
+[Collection(KafkaCollection.Name)]
+[Trait("CategoryName", "KafkaIntegrationTests")]
+public class HostedTracingAndMeteringTests(KafkaFixture fixture, ITestOutputHelper outputHelper)
 {
-    [Trait("CategoryName", "KafkaIntegrationTests")]
-    [SkipUnlessEnvVarFoundTheory(KafkaHelpers.KafkaEndPointEnvVarName)]
+    private readonly string connectionString = fixture.Container.GetConnectionString();
+
+    [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
     [InlineData(true, true, true, true, true, true)]
     [InlineData(true, true, true, true, true, false)]
     [InlineData(true, true, true, true, false, true)]
@@ -96,7 +98,7 @@ public class HostedTracingAndMeteringTests(ITestOutputHelper outputHelper)
                 services.AddKeyedSingleton(producerInstrumentationName, (_, _) =>
                     new InstrumentedProducerBuilder<string, string>(new ProducerConfig()
                     {
-                        BootstrapServers = KafkaHelpers.KafkaEndPoint,
+                        BootstrapServers = this.connectionString,
                     }));
             }
             else
@@ -104,7 +106,7 @@ public class HostedTracingAndMeteringTests(ITestOutputHelper outputHelper)
                 services.AddSingleton(_ =>
                     new InstrumentedProducerBuilder<string, string>(new ProducerConfig()
                     {
-                        BootstrapServers = KafkaHelpers.KafkaEndPoint,
+                        BootstrapServers = this.connectionString,
                     }));
             }
 
@@ -113,7 +115,7 @@ public class HostedTracingAndMeteringTests(ITestOutputHelper outputHelper)
                 services.AddKeyedSingleton(consumerInstrumentationName, (_, _) =>
                     new InstrumentedConsumerBuilder<string, string>(new ConsumerConfig()
                     {
-                        BootstrapServers = KafkaHelpers.KafkaEndPoint,
+                        BootstrapServers = this.connectionString,
                         GroupId = Guid.NewGuid().ToString(),
                         AutoOffsetReset = AutoOffsetReset.Earliest,
                         EnablePartitionEof = true,
@@ -124,7 +126,7 @@ public class HostedTracingAndMeteringTests(ITestOutputHelper outputHelper)
                 services.AddSingleton(_ =>
                     new InstrumentedConsumerBuilder<string, string>(new ConsumerConfig()
                     {
-                        BootstrapServers = KafkaHelpers.KafkaEndPoint,
+                        BootstrapServers = this.connectionString,
                         GroupId = Guid.NewGuid().ToString(),
                         AutoOffsetReset = AutoOffsetReset.Earliest,
                         EnablePartitionEof = true,
