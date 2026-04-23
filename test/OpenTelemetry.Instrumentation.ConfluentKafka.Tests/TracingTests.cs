@@ -9,24 +9,18 @@ using Xunit;
 
 namespace OpenTelemetry.Instrumentation.ConfluentKafka.Tests;
 
-[Collection("Kafka")]
-public class TracingTests
+[Collection(KafkaCollection.Name)]
+[Trait("CategoryName", "KafkaIntegrationTests")]
+public class TracingTests(KafkaFixture fixture)
 {
-    /*
-        To run the integration tests, set the OTEL_KAFKAENDPOINT machine-level environment variable to a valid Kafka endpoint.
+    private readonly string connectionString = fixture.Container.GetConnectionString();
 
-        To use Docker...
-         1) Run: docker run -d --name kafka -p 9092:9092 confluentinc/confluent-local
-         2) Set OTEL_KAFKAENDPOINT as: localhost:9092
-     */
-
-    [Trait("CategoryName", "KafkaIntegrationTests")]
-    [SkipUnlessEnvVarFoundFact(KafkaHelpers.KafkaEndPointEnvVarName)]
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
     public async Task BasicProduceAsyncToTopicTest()
     {
         var producerConfig = new ProducerConfig
         {
-            BootstrapServers = KafkaHelpers.KafkaEndPoint,
+            BootstrapServers = this.connectionString,
         };
         InstrumentedProducerBuilder<string, string> producerBuilder = new(producerConfig);
         var sampler = new TestSampler();
@@ -52,13 +46,12 @@ public class TracingTests
         Assert.Equal(topic, activity.GetTagValue("messaging.destination.name"));
     }
 
-    [Trait("CategoryName", "KafkaIntegrationTests")]
-    [SkipUnlessEnvVarFoundFact(KafkaHelpers.KafkaEndPointEnvVarName)]
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
     public async Task BasicProduceAsyncToTopicPartitionTest()
     {
         var producerConfig = new ProducerConfig
         {
-            BootstrapServers = KafkaHelpers.KafkaEndPoint,
+            BootstrapServers = this.connectionString,
         };
         InstrumentedProducerBuilder<string, string> producerBuilder = new(producerConfig);
         var sampler = new TestSampler();
@@ -85,13 +78,12 @@ public class TracingTests
         Assert.Equal(0, activity.GetTagValue("messaging.kafka.destination.partition"));
     }
 
-    [Trait("CategoryName", "KafkaIntegrationTests")]
-    [SkipUnlessEnvVarFoundFact(KafkaHelpers.KafkaEndPointEnvVarName)]
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
     public void BasicProduceSyncToTopicTest()
     {
         var producerConfig = new ProducerConfig
         {
-            BootstrapServers = KafkaHelpers.KafkaEndPoint,
+            BootstrapServers = this.connectionString,
         };
         InstrumentedProducerBuilder<string, string> producerBuilder = new(producerConfig);
         var sampler = new TestSampler();
@@ -117,13 +109,12 @@ public class TracingTests
         Assert.Equal(topic, activity.GetTagValue("messaging.destination.name"));
     }
 
-    [Trait("CategoryName", "KafkaIntegrationTests")]
-    [SkipUnlessEnvVarFoundFact(KafkaHelpers.KafkaEndPointEnvVarName)]
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
     public void BasicProduceSyncToTopicPartitionTest()
     {
         var producerConfig = new ProducerConfig
         {
-            BootstrapServers = KafkaHelpers.KafkaEndPoint,
+            BootstrapServers = this.connectionString,
         };
         InstrumentedProducerBuilder<string, string> producerBuilder = new(producerConfig);
         var sampler = new TestSampler();
@@ -150,15 +141,14 @@ public class TracingTests
         Assert.Equal(0, activity.GetTagValue("messaging.kafka.destination.partition"));
     }
 
-    [Trait("CategoryName", "KafkaIntegrationTests")]
-    [SkipUnlessEnvVarFoundFact(KafkaHelpers.KafkaEndPointEnvVarName)]
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
     public async Task BasicConsumeWithCancellationTokenTest()
     {
-        var topic = await KafkaHelpers.ProduceTestMessageAsync();
+        var topic = await KafkaHelpers.ProduceTestMessageAsync(this.connectionString);
 
         var consumerConfig = new ConsumerConfig
         {
-            BootstrapServers = KafkaHelpers.KafkaEndPoint,
+            BootstrapServers = this.connectionString,
             GroupId = "test-consumer-group",
             AutoOffsetReset = AutoOffsetReset.Earliest,
             EnablePartitionEof = true,
@@ -201,15 +191,14 @@ public class TracingTests
         Assert.Equal("test-consumer-group", activity.GetTagValue("messaging.kafka.consumer.group"));
     }
 
-    [Trait("CategoryName", "KafkaIntegrationTests")]
-    [SkipUnlessEnvVarFoundFact(KafkaHelpers.KafkaEndPointEnvVarName)]
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
     public async Task BasicConsumeWithTimeoutMsTest()
     {
-        var topic = await KafkaHelpers.ProduceTestMessageAsync();
+        var topic = await KafkaHelpers.ProduceTestMessageAsync(this.connectionString);
 
         var consumerConfig = new ConsumerConfig
         {
-            BootstrapServers = KafkaHelpers.KafkaEndPoint,
+            BootstrapServers = this.connectionString,
             GroupId = "test-consumer-group",
             AutoOffsetReset = AutoOffsetReset.Earliest,
             EnablePartitionEof = true,
@@ -252,15 +241,14 @@ public class TracingTests
         Assert.Equal("test-consumer-group", activity.GetTagValue("messaging.kafka.consumer.group"));
     }
 
-    [Trait("CategoryName", "KafkaIntegrationTests")]
-    [SkipUnlessEnvVarFoundFact(KafkaHelpers.KafkaEndPointEnvVarName)]
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
     public async Task BasicConsumeWithTimeoutTimespanTest()
     {
-        var topic = await KafkaHelpers.ProduceTestMessageAsync();
+        var topic = await KafkaHelpers.ProduceTestMessageAsync(this.connectionString);
 
         var consumerConfig = new ConsumerConfig
         {
-            BootstrapServers = KafkaHelpers.KafkaEndPoint,
+            BootstrapServers = this.connectionString,
             GroupId = "test-consumer-group",
             AutoOffsetReset = AutoOffsetReset.Earliest,
             EnablePartitionEof = true,
@@ -303,15 +291,14 @@ public class TracingTests
         Assert.Equal("test-consumer-group", activity.GetTagValue("messaging.kafka.consumer.group"));
     }
 
-    [Trait("CategoryName", "KafkaIntegrationTests")]
-    [SkipUnlessEnvVarFoundFact(KafkaHelpers.KafkaEndPointEnvVarName)]
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
     public async Task ConsumeAndProcessMessageTest()
     {
-        var topic = await KafkaHelpers.ProduceTestMessageAsync();
+        var topic = await KafkaHelpers.ProduceTestMessageAsync(this.connectionString);
 
         var consumerConfig = new ConsumerConfig
         {
-            BootstrapServers = KafkaHelpers.KafkaEndPoint,
+            BootstrapServers = this.connectionString,
             GroupId = "test-consumer-group",
             AutoOffsetReset = AutoOffsetReset.Earliest,
             EnablePartitionEof = true,
@@ -362,15 +349,14 @@ public class TracingTests
         }
     }
 
-    [Trait("CategoryName", "KafkaIntegrationTests")]
-    [SkipUnlessEnvVarFoundFact(KafkaHelpers.KafkaEndPointEnvVarName)]
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
     public async Task ConsumeAndProcessMessageShouldPropagateException()
     {
-        var topic = await KafkaHelpers.ProduceTestMessageAsync();
+        var topic = await KafkaHelpers.ProduceTestMessageAsync(this.connectionString);
 
         var consumerConfig = new ConsumerConfig
         {
-            BootstrapServers = KafkaHelpers.KafkaEndPoint,
+            BootstrapServers = this.connectionString,
             GroupId = "test-consumer-group",
             AutoOffsetReset = AutoOffsetReset.Earliest,
         };
