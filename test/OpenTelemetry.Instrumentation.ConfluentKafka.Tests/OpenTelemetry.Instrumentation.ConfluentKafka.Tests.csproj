@@ -9,8 +9,10 @@
 
   <ItemGroup>
     <Compile Include="$(RepoRoot)\src\Shared\ActivityHelperExtensions.cs" Link="Includes\ActivityHelperExtensions.cs" />
-    <Compile Include="$(RepoRoot)\test\Shared\SkipUnlessEnvVarFoundTheoryAttribute.cs" Link="Includes\SkipUnlessEnvVarFoundTheoryAttribute.cs" />
-    <Compile Include="$(RepoRoot)\test\Shared\SkipUnlessEnvVarFoundFactAttribute.cs" Link="Includes\SkipUnlessEnvVarFoundFactAttribute.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\DockerHelper.cs" Link="Includes\DockerHelper.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\DockerPlatform.cs" Link="Includes\DockerPlatform.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\EnabledOnDockerPlatformFactAttribute.cs" Link="Includes\EnabledOnDockerPlatformFactAttribute.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\EnabledOnDockerPlatformTheoryAttribute.cs" Link="Includes\EnabledOnDockerPlatformTheoryAttribute.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\TestSampler.cs" Link="Includes\TestSampler.cs" />
   </ItemGroup>
 
@@ -23,6 +25,11 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" />
+    <PackageReference Include="Testcontainers.Kafka" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="*.Dockerfile" LogicalName="%(FileName)%(Extension)" />
   </ItemGroup>
 
 </Project>
