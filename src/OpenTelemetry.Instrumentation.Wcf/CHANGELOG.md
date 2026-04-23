@@ -6,6 +6,14 @@
   operation has a `null` Action (e.g., when WCF service help pages are enabled).
   ([#4026](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4026))
 
+## 1.15.1-beta.2
+
+Released 2026-Apr-22
+
+* Revert `System.Security.Cryptography.Xml` dependency version update for
+  .NET 8, 9, and 10 to `4.7.1` released in 1.15.1-beta.1 introduced in [#4103](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4103).
+  ([#4266](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4266))
+
 ## 1.15.1-beta.1
 
 Released 2026-Apr-21
