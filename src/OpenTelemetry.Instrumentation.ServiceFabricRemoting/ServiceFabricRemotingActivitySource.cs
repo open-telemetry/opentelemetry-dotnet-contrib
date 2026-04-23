@@ -9,7 +9,6 @@ namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting;
 internal class ServiceFabricRemotingActivitySource
 {
     // Version of the OpenTelemetry RPC semantic conventions this instrumentation targets for tracing.
-    // Used for the ActivitySource's TelemetrySchemaUrl (see #4064).
     internal static readonly Version SemanticConventionsVersion = new(1, 40, 0);
 
     internal static readonly ActivitySource ActivitySource = ActivitySourceFactory.Create(
