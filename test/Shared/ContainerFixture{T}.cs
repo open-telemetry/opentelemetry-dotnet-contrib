@@ -12,7 +12,13 @@ public abstract class ContainerFixture<T> : ContainerFixture
 
     protected override IContainer Container => this.TypedContainer;
 
-    public virtual Task InitializeAsync() => this.StartAsync();
+    public async virtual Task InitializeAsync()
+    {
+        if (DockerHelper.IsAvailable(DockerPlatform.Linux))
+        {
+            await this.Container.StartAsync();
+        }
+    }
 
     protected abstract T CreateContainer();
 }
