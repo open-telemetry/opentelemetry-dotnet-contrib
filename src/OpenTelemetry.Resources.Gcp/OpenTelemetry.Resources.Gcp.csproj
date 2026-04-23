@@ -20,8 +20,11 @@
 
   <ItemGroup Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETStandard'">
     <PackageReference Include="System.Text.Encodings.Web" />
-    <PackageReference Include="System.Text.Json" VersionOverride="[4.7.2,)" />
   </ItemGroup>
+
+  <ItemGroup Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net9.0'))">
+      <PackageReference Include="System.Text.Json" />
+    </ItemGroup>
 
   <ItemGroup>
     <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
