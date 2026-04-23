@@ -12,7 +12,7 @@
     <OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>1.15.2</OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>
     <OpenTelemetryInstrumentationHttpLatestStableVersion>1.15.1</OpenTelemetryInstrumentationHttpLatestStableVersion>
     <OpenTelemetryInstrumentationRuntimeLatestStableVersion>1.15.1</OpenTelemetryInstrumentationRuntimeLatestStableVersion>
-    <OpenTelemetryEnrichmentUnstableLatestVersion>1.15.0-beta.1</OpenTelemetryEnrichmentUnstableLatestVersion>
+    <OpenTelemetryExtensionsEnrichmentUnstableLatestVersion>1.15.1-beta.1</OpenTelemetryExtensionsEnrichmentUnstableLatestVersion>
   </PropertyGroup>
 
   <ItemGroup Label="OpenTelemetry packages">
@@ -25,7 +25,7 @@
     <PackageVersion Include="OpenTelemetry.Exporter.Prometheus.HttpListener" Version="[$(OpenTelemetryCoreUnstableLatestVersion),2.0)" />
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="[$(OpenTelemetryCoreLatestVersion),2.0)" />
     <PackageVersion Include="OpenTelemetry.Extensions.Propagators" Version="[$(OpenTelemetryCoreLatestVersion),2.0)" />
-    <PackageVersion Include="OpenTelemetry.Extensions.Enrichment" Version="[$(OpenTelemetryEnrichmentUnstableLatestVersion),2.0)" />
+    <PackageVersion Include="OpenTelemetry.Extensions.Enrichment" Version="[$(OpenTelemetryExtensionsEnrichmentUnstableLatestVersion),2.0)" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="[$(OpenTelemetryInstrumentationAspNetCoreLatestStableVersion),2.0)" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="[$(OpenTelemetryInstrumentationHttpLatestStableVersion),2.0)" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="[$(OpenTelemetryInstrumentationRuntimeLatestStableVersion),2.0)" />
@@ -142,6 +142,8 @@
     <!-- These WCF dependencies are pinned until we drop support for net8.0 and net9.0 -->
     <PackageVersion Include="System.ServiceModel.Http" Version="[8.1.2,)" />
     <PackageVersion Include="System.ServiceModel.NetTcp" Version="[8.1.2,)" />
+    <PackageVersion Include="Testcontainers.Cassandra" Version="4.11.0" />
+    <PackageVersion Include="Testcontainers.Kafka" Version="4.11.0" />
     <PackageVersion Include="Testcontainers.MsSql" Version="4.11.0" />
     <PackageVersion Include="Testcontainers.MySql" Version="4.11.0" />
     <PackageVersion Include="Testcontainers.PostgreSql" Version="4.11.0" />

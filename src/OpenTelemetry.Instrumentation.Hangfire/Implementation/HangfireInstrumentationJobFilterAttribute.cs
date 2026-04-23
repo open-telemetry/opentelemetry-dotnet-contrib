@@ -29,8 +29,12 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
             return;
         }
 
+        performingContext.Items[HangfireInstrumentationConstants.PreviousBaggageKey] = Baggage.Current;
+
         var activityContextData = performingContext.GetJobParameter<Dictionary<string, string>>(HangfireInstrumentationConstants.ActivityContextKey);
         ActivityContext parentContext = default;
+        Baggage.Current = default;
+
         if (activityContextData is not null)
         {
             var propagationContext = Propagators.DefaultTextMapPropagator.Extract(default, activityContextData, ExtractActivityProperties);
@@ -75,20 +79,27 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
 
     public void OnPerformed(PerformedContext performedContext)
     {
-        // Short-circuit if nobody is listening
-        if (!HangfireInstrumentation.ActivitySource.HasListeners() || !performedContext.Items.TryGetValue(HangfireInstrumentationConstants.ActivityKey, out var value))
-        {
-            return;
-        }
+        var shouldRestoreBaggage = performedContext.Items.TryGetValue(HangfireInstrumentationConstants.PreviousBaggageKey, out var previousBaggage);
 
-        if (value is Activity activity)
+        try
         {
-            if (performedContext.Exception != null)
+            if (performedContext.Items.TryGetValue(HangfireInstrumentationConstants.ActivityKey, out var value)
+                && value is Activity activity)
             {
-                this.SetStatusAndRecordException(activity, performedContext.Exception);
-            }
+                if (performedContext.Exception != null)
+                {
+                    this.SetStatusAndRecordException(activity, performedContext.Exception);
+                }
 
-            activity.Dispose();
+                activity.Dispose();
+            }
+        }
+        finally
+        {
+            if (shouldRestoreBaggage)
+            {
+                Baggage.Current = previousBaggage is Baggage baggage ? baggage : default;
+            }
         }
     }
 

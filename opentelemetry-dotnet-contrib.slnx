@@ -20,7 +20,6 @@
     <File Path=".github/workflows/Component.BuildTest.yml" />
     <File Path=".github/workflows/core-version-update.yml" />
     <File Path=".github/workflows/dotnet-format.yml" />
-    <File Path=".github/workflows/integration.yml" />
     <File Path=".github/workflows/markdownlint.yml" />
     <File Path=".github/workflows/post-release.yml" />
     <File Path=".github/workflows/prepare-release.yml" />
