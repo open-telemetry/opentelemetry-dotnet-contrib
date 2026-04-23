@@ -229,8 +229,9 @@ populated:
 - **`server.port`** - Service Fabric assigns dynamic ports that change on
   failover or restart, and traffic typically flows through a reverse proxy
   or load balancer where the replica port is not visible to callers.
-  `server.address` uses the stable logical Service Fabric service URI instead, which is
-  how Service Fabric services are actually identified in practice.
+  `server.address` uses the stable logical Service Fabric service URI
+  instead, which is how Service Fabric services are actually identified
+  in practice.
 
 The metrics instrumentation has no configuration options: metrics are emitted
 automatically for all request/response calls on both Service and Actor
