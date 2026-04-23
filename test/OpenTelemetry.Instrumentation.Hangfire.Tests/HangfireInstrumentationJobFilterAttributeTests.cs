@@ -281,7 +281,7 @@ public class HangfireInstrumentationJobFilterAttributeTests
                     ["job-key"] = "job-value",
                 })),
             activityContextData,
-            InjectActivityProperties);
+             static (jobParams, key, value) => jobParams[key] = value);
         connection.SetJobParameter(
             performingContext.BackgroundJob.Id,
             HangfireInstrumentationConstants.ActivityContextKey,
@@ -357,8 +357,6 @@ public class HangfireInstrumentationJobFilterAttributeTests
         var backgroundJob = new BackgroundJob(jobId, Job.FromExpression<TestJob>(x => x.Execute()), DateTime.UtcNow);
         return new PerformingContext(new PerformContext(storage, connection, backgroundJob, new StubJobCancellationToken()));
     }
-
-    private static void InjectActivityProperties(IDictionary<string, string> jobParams, string key, string value) => jobParams[key] = value;
 
     private class OpenTelemetryEventListener : EventListener
     {
