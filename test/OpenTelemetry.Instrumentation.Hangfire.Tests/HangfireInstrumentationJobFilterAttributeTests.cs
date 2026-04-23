@@ -355,7 +355,7 @@ public class HangfireInstrumentationJobFilterAttributeTests
         var client = new BackgroundJobClient(storage);
         var jobId = client.Create(Job.FromExpression<TestJob>(x => x.Execute()), new EnqueuedState());
         var backgroundJob = new BackgroundJob(jobId, Job.FromExpression<TestJob>(x => x.Execute()), DateTime.UtcNow);
-        return new PerformingContext(new PerformContext(storage, connection, backgroundJob, new TestJobCancellationToken()));
+        return new PerformingContext(new PerformContext(storage, connection, backgroundJob, new StubJobCancellationToken()));
     }
 
     private static void InjectActivityProperties(IDictionary<string, string> jobParams, string key, string value) => jobParams[key] = value;
@@ -415,7 +415,7 @@ public class HangfireInstrumentationJobFilterAttributeTests
         }
     }
 
-    private sealed class TestJobCancellationToken : IJobCancellationToken
+    private sealed class StubJobCancellationToken : IJobCancellationToken
     {
         public CancellationToken ShutdownToken => CancellationToken.None;
 
