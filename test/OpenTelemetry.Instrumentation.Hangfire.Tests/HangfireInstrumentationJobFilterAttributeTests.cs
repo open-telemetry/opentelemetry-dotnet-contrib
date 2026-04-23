@@ -3,6 +3,7 @@
 
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
+using System.Text.Json;
 using Hangfire;
 using Hangfire.Common;
 using Hangfire.MemoryStorage;
@@ -274,18 +275,18 @@ public class HangfireInstrumentationJobFilterAttributeTests
 
         var activityContextData = new Dictionary<string, string>();
         Propagators.DefaultTextMapPropagator.Inject(
-            new PropagationContext(
-                new ActivityContext(ActivityTraceId.CreateRandom(), ActivitySpanId.CreateRandom(), ActivityTraceFlags.Recorded),
-                Baggage.Create(new Dictionary<string, string>
-                {
-                    ["job-key"] = "job-value",
-                })),
-            activityContextData,
+             new PropagationContext(
+                 new ActivityContext(ActivityTraceId.CreateRandom(), ActivitySpanId.CreateRandom(), ActivityTraceFlags.Recorded),
+                 Baggage.Create(new Dictionary<string, string>
+                 {
+                     ["job-key"] = "job-value",
+                 })),
+             activityContextData,
              static (jobParams, key, value) => jobParams[key] = value);
         connection.SetJobParameter(
             performingContext.BackgroundJob.Id,
             HangfireInstrumentationConstants.ActivityContextKey,
-            Newtonsoft.Json.JsonConvert.SerializeObject(activityContextData));
+            JsonSerializer.Serialize(activityContextData));
 
         try
         {
