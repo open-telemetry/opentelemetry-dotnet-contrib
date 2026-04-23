@@ -358,10 +358,7 @@ public class HangfireInstrumentationJobFilterAttributeTests
         return new PerformingContext(new PerformContext(storage, connection, backgroundJob, new TestJobCancellationToken()));
     }
 
-    private static void InjectActivityProperties(IDictionary<string, string> jobParams, string key, string value)
-    {
-        jobParams[key] = value;
-    }
+    private static void InjectActivityProperties(IDictionary<string, string> jobParams, string key, string value) => jobParams[key] = value;
 
     private class OpenTelemetryEventListener : EventListener
     {
