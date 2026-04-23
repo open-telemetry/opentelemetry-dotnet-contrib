@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
@@ -14,7 +14,7 @@
     <PackageReference Include="Hangfire.MemoryStorage" />
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
-    <PackageReference Include="System.Text.Json" />
+    <PackageReference Include="System.Text.Json" Condition="'$(TargetFramework)' == '$(NetFrameworkMinimumSupportedVersion)'"/>
   </ItemGroup>
 
   <ItemGroup>
