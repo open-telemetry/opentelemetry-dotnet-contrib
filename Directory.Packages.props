@@ -157,6 +157,7 @@
     <PackageVersion Update="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="11.0.0-preview.3.26207.106" />
     <PackageVersion Update="Microsoft.AspNetCore.Mvc.Testing" Version="11.0.0-preview.3.26207.106" />
     <PackageVersion Update="Microsoft.AspNetCore.SignalR.Client" Version="11.0.0-preview.3.26207.106" />
+    <PackageVersion Update="Microsoft.AspNetCore.TestHost" Version="11.0.0-preview.3.26207.106" />
   </ItemGroup>
 
 </Project>
