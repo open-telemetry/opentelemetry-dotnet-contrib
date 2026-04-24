@@ -18,24 +18,27 @@ public class AWSMeterProviderTests
         const long ActiveHandleCount = 5;
 
         var exportedItems = new List<Metric>();
+        Amazon.Runtime.Telemetry.Metrics.Meter disposedMeter;
+        Amazon.Runtime.Telemetry.Metrics.Meter reusedMeter;
 
-        using var metricProvider = Sdk.CreateMeterProviderBuilder()
-            .AddMeter(Scope)
-            .AddInMemoryExporter(exportedItems)
-            .Build();
+        using (var metricProvider = Sdk.CreateMeterProviderBuilder()
+                   .AddMeter(Scope)
+                   .AddInMemoryExporter(exportedItems)
+                   .Build())
+        {
+            var awsMeterProvider = new AWSMeterProvider(AWSSemanticConventions.DefaultSemanticConventionVersion);
+            disposedMeter = awsMeterProvider.GetMeter(Scope);
+            var disposedCounter = disposedMeter.CreateUpDownCounter<long>(CounterName);
 
-        var awsMeterProvider = new AWSMeterProvider(AWSSemanticConventions.DefaultSemanticConventionVersion);
-        var disposedMeter = awsMeterProvider.GetMeter(Scope);
-        var disposedCounter = disposedMeter.CreateUpDownCounter<long>(CounterName);
+            disposedMeter.Dispose();
+            disposedCounter.Add(100);
 
-        disposedMeter.Dispose();
-        disposedCounter.Add(100);
+            reusedMeter = awsMeterProvider.GetMeter(Scope);
+            var reusedCounter = reusedMeter.CreateUpDownCounter<long>(CounterName);
+            reusedCounter.Add(ActiveHandleCount);
 
-        var reusedMeter = awsMeterProvider.GetMeter(Scope);
-        var reusedCounter = reusedMeter.CreateUpDownCounter<long>(CounterName);
-        reusedCounter.Add(ActiveHandleCount);
-
-        metricProvider.ForceFlush();
+            metricProvider.ForceFlush();
+        }
 
         var counterMetric = Assert.Single(exportedItems, i => i.MeterName == Scope && i.Name == CounterName);
         var metricPoints = new List<MetricPoint>();
