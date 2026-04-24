@@ -9,12 +9,12 @@ internal sealed class GetSamplingTargetsResponse
 {
     public GetSamplingTargetsResponse(
         double lastRuleModification,
-        List<SamplingTargetDocument> samplingTargetDocuments,
-        List<UnprocessedStatistic> unprocessedStatistics)
+        List<SamplingTargetDocument>? samplingTargetDocuments,
+        List<UnprocessedStatistic>? unprocessedStatistics)
     {
         this.LastRuleModification = lastRuleModification;
-        this.SamplingTargetDocuments = samplingTargetDocuments;
-        this.UnprocessedStatistics = unprocessedStatistics;
+        this.SamplingTargetDocuments = samplingTargetDocuments ?? [];
+        this.UnprocessedStatistics = unprocessedStatistics ?? [];
     }
 
     // This is actually a time in unix seconds.
@@ -22,8 +22,8 @@ internal sealed class GetSamplingTargetsResponse
     public double LastRuleModification { get; set; }
 
     [JsonPropertyName("SamplingTargetDocuments")]
-    public List<SamplingTargetDocument> SamplingTargetDocuments { get; set; }
+    public List<SamplingTargetDocument> SamplingTargetDocuments { get; set; } = [];
 
     [JsonPropertyName("UnprocessedStatistics")]
-    public List<UnprocessedStatistic> UnprocessedStatistics { get; set; }
+    public List<UnprocessedStatistic> UnprocessedStatistics { get; set; } = [];
 }
