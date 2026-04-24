@@ -29,7 +29,7 @@ internal sealed class AWSTracer : Tracer
     {
         if (this.IsDisposed())
         {
-            return new AWSTraceSpan(null);
+            return AWSTraceSpan.Noop;
         }
 
         var tags = initialAttributes != null ? new ActivityTagsCollection(initialAttributes.AllAttributes) : null;
