@@ -29,6 +29,8 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 #if NET
     private const string ContextInfoParameterName = "@opentelemetry_traceparent";
     private const string SetContextSql = $"set context_info {ContextInfoParameterName}";
+
+    private const string IL2026Justification = "Client application usage will ensure that core types from usage are preserved.";
 #endif
 
     private readonly PropertyFetcher<IDbCommand> commandFetcher = new("Command");
@@ -274,7 +276,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
     }
 
 #if NET
-    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Client application usage will ensure that core types from usage are preserved.")]
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = IL2026Justification)]
 #endif
     private static bool TryFetchCommand(
         PropertyFetcher<IDbCommand> fetcher,
@@ -283,7 +285,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
         => fetcher.TryFetch(payload, out command);
 
 #if NET
-    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Client application usage will ensure that core types from usage are preserved.")]
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = IL2026Justification)]
 #endif
     private static bool TryFetchException(
         PropertyFetcher<Exception> fetcher,
@@ -292,7 +294,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
         => fetcher.TryFetch(payload, out exception);
 
 #if NET
-    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Client application usage will ensure that core types from usage are preserved.")]
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = IL2026Justification)]
 #endif
     private static bool TryFetchExceptionNumber(
         PropertyFetcher<int> fetcher,
