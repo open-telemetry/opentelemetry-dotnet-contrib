@@ -19,7 +19,7 @@ public class AWSTracerProviderTests
         using var listener = new ActivityListener
         {
             ShouldListenTo = activitySource => activitySource.Name == Scope,
-            Sample = static (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
+            Sample = static (ref _) => ActivitySamplingResult.AllDataAndRecorded,
         };
 
         ActivitySource.AddActivityListener(listener);
