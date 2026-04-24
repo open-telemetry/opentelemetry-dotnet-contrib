@@ -25,8 +25,11 @@ public abstract class ContainerFixture : IAsyncDisposable
 
     public async Task StartAsync()
     {
-        await this.Container.StartAsync();
-        this.started = true;
+        if (!this.started)
+        {
+            await this.Container.StartAsync();
+            this.started = true;
+        }
     }
 
     public Uri GetBaseAddress(int port) =>
