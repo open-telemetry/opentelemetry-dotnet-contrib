@@ -3,7 +3,7 @@
 
 #if !NET
 
-using System.Diagnostics;
+namespace System.Diagnostics;
 
 internal static class StopwatchExtensions
 {
