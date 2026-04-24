@@ -7,13 +7,15 @@ namespace OpenTelemetry.Tests;
 
 public abstract class ContainerFixture : IAsyncDisposable
 {
+    private bool started;
+
     protected abstract IContainer Container { get; }
 
     protected abstract string DockerfileName { get; }
 
     public async ValueTask DisposeAsync()
     {
-        if (this.Container.State is not TestcontainersStates.Undefined)
+        if (this.started)
         {
             await this.Container.DisposeAsync();
         }
@@ -21,7 +23,11 @@ public abstract class ContainerFixture : IAsyncDisposable
         GC.SuppressFinalize(this);
     }
 
-    public Task StartAsync() => this.Container.StartAsync();
+    public async Task StartAsync()
+    {
+        await this.Container.StartAsync();
+        this.started = true;
+    }
 
     public Uri GetBaseAddress(int port) =>
         new UriBuilder(Uri.UriSchemeHttp, this.Container.Hostname, this.Container.GetMappedPublicPort(port)).Uri;
