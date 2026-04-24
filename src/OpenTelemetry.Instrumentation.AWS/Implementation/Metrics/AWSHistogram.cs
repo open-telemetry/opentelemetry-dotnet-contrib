@@ -34,7 +34,7 @@ internal sealed class AWSHistogram<T> : Histogram<T>
 #else
         this.histogram = HistogramsDictionary.GetOrAdd(
             name,
-            histogramName => meter.CreateHistogram<T>(histogramName, units, description));
+            (histogramName) => meter.CreateHistogram<T>(histogramName, units, description));
 #endif
     }
 
