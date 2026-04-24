@@ -4,6 +4,7 @@
 using System.Collections.Concurrent;
 using Amazon.Runtime.Telemetry;
 using Amazon.Runtime.Telemetry.Metrics;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.AWS.Implementation.Metrics;
 
@@ -22,7 +23,8 @@ internal sealed class AWSHistogram<T> : Histogram<T>
         string? units = null,
         string? description = null)
     {
-        this.isDisposed = isDisposed ?? throw new ArgumentNullException(nameof(isDisposed));
+        Guard.ThrowIfNull(isDisposed);
+        this.isDisposed = isDisposed;
 
 #if NET
         this.histogram = HistogramsDictionary.GetOrAdd(
