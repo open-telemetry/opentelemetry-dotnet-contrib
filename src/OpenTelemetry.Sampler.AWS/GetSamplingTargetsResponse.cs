@@ -22,8 +22,8 @@ internal sealed class GetSamplingTargetsResponse
     public double LastRuleModification { get; set; }
 
     [JsonPropertyName("SamplingTargetDocuments")]
-    public List<SamplingTargetDocument> SamplingTargetDocuments { get; set; } = [];
+    public List<SamplingTargetDocument> SamplingTargetDocuments { get; set; }
 
     [JsonPropertyName("UnprocessedStatistics")]
-    public List<UnprocessedStatistic> UnprocessedStatistics { get; set; } = [];
+    public List<UnprocessedStatistic> UnprocessedStatistics { get; set; }
 }
