@@ -214,6 +214,7 @@
     <File Path="src/Shared/SqlParameterProcessor.cs" />
     <File Path="src/Shared/SqlProcessor.cs" />
     <File Path="src/Shared/SqlStatementInfo.cs" />
+    <File Path="src/Shared/StopwatchExtensions.cs" />
     <File Path="src/Shared/UriHelper.cs" />
   </Folder>
   <Folder Name="/src/Shared/AWS/">
