@@ -140,7 +140,7 @@ public class TestAWSXRayRemoteSampler
         }
         finally
         {
-            sampler!.Dispose();
+            sampler.Dispose();
         }
     }
 
