@@ -121,7 +121,7 @@ public class TelemetryBindingElementForHttpTests : IDisposable
 
         var tracerProvider = builder.Build();
 
-        using var client = new ServiceClient(
+        var client = new ServiceClient(
             new BasicHttpBinding(BasicHttpSecurityMode.None),
             new EndpointAddress(new Uri(this.serviceBaseUri, "/Service")));
 
@@ -196,7 +196,7 @@ public class TelemetryBindingElementForHttpTests : IDisposable
             .AddWcfInstrumentation()
             .Build();
 
-        using var client = new ServiceClient(
+        var client = new ServiceClient(
             new BasicHttpBinding(BasicHttpSecurityMode.None),
             new EndpointAddress(new Uri(this.serviceBaseUri, "/Service")));
         try
@@ -234,7 +234,7 @@ public class TelemetryBindingElementForHttpTests : IDisposable
             .AddWcfInstrumentation()
             .Build();
 
-        using var client = new ServiceClient(
+        var client = new ServiceClient(
             new BasicHttpBinding(BasicHttpSecurityMode.None),
             new EndpointAddress(new Uri(this.serviceBaseUri, "/Service")));
 
