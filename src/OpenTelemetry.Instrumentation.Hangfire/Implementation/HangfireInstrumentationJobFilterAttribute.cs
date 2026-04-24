@@ -57,15 +57,13 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
                 {
                     if (this.options.Filter?.Invoke(performingContext.BackgroundJob) == false)
                     {
-                        activity.IsAllDataRequested = false;
-                        activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
+                        SuppressAndDisposeActivity(activity);
                         return;
                     }
                 }
                 catch (Exception)
                 {
-                    activity.IsAllDataRequested = false;
-                    activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
+                    SuppressAndDisposeActivity(activity);
                     return;
                 }
 
@@ -134,6 +132,13 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
     private static IEnumerable<string> ExtractActivityProperties(Dictionary<string, string> telemetryData, string key)
     {
         return telemetryData.TryGetValue(key, out var value) ? [value] : [];
+    }
+
+    private static void SuppressAndDisposeActivity(Activity activity)
+    {
+        activity.IsAllDataRequested = false;
+        activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
+        activity.Dispose();
     }
 
     private void SetStatusAndRecordException(Activity activity, Exception exception)
