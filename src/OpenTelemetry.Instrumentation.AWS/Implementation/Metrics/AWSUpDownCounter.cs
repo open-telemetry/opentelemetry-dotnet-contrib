@@ -34,7 +34,7 @@ internal sealed class AWSUpDownCounter<T> : UpDownCounter<T>
 #else
         this.upDownCounter = UpDownCountersDictionary.GetOrAdd(
             name,
-            counterName => meter.CreateUpDownCounter<T>(counterName, units, description));
+            (counterName) => meter.CreateUpDownCounter<T>(counterName, units, description));
 #endif
     }
 
