@@ -501,7 +501,8 @@ internal partial class AWSSemanticConventions
 
     internal static Version GetVersion(SemanticConventionVersion semanticConventionVersion) => semanticConventionVersion switch
     {
-        SemanticConventionVersion.Latest or SemanticConventionVersion.V1_29_0 => new(1, 29, 0),
+        SemanticConventionVersion.Latest or SemanticConventionVersion.V1_40_0 => new(1, 40, 0),
+        SemanticConventionVersion.V1_29_0 => new(1, 29, 0),
         SemanticConventionVersion.V1_28_0 => new(1, 28, 0),
         _ => throw new InvalidEnumArgumentException(nameof(semanticConventionVersion), (int)semanticConventionVersion, typeof(SemanticConventionVersion)),
     };
