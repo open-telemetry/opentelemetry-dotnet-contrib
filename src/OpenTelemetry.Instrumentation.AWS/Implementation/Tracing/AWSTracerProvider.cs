@@ -4,19 +4,29 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using Amazon.Runtime.Telemetry.Tracing;
+using OpenTelemetry.AWS;
 
 namespace OpenTelemetry.Instrumentation.AWS.Implementation.Tracing;
 
-internal sealed class AWSTracerProvider : TracerProvider
+internal sealed class AWSTracerProvider(SemanticConventionVersion version = AWSSemanticConventions.DefaultSemanticConventionVersion) : TracerProvider
 {
-    private static readonly ConcurrentDictionary<string, ActivitySource> TracersDictionary = new();
+    private readonly ConcurrentDictionary<string, ActivitySource> activitySources = new();
+    private readonly Version semanticConventionVersion = AWSSemanticConventions.GetVersion(version);
 
     public override Tracer GetTracer(string scope)
     {
-        var activitySource = TracersDictionary.GetOrAdd(
-            scope,
-            static scopeName => new ActivitySource(scopeName));
+        if (!this.activitySources.TryGetValue(scope, out var activitySource))
+        {
+#if NET
+            activitySource = this.activitySources.GetOrAdd(scope, static (name, version) => CreateActivitySource(name, version), this.semanticConventionVersion);
+#else
+            activitySource = this.activitySources.GetOrAdd(scope, (name) => CreateActivitySource(name, this.semanticConventionVersion));
+#endif
+        }
 
         return new AWSTracer(activitySource);
     }
+
+    private static ActivitySource CreateActivitySource(string name, Version version)
+        => Trace.ActivitySourceFactory.Create(typeof(AWSTracerProvider), version, name: name);
 }

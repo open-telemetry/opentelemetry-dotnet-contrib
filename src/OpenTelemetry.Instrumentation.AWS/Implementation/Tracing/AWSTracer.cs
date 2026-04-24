@@ -64,18 +64,15 @@ internal sealed class AWSTracer : Tracer
         return new ActivityContext(traceId, spanId, default, null, parentContext.IsRemote);
     }
 
-    private static ActivityKind ConvertToActivityKind(SpanKind spanKind)
+    private static ActivityKind ConvertToActivityKind(SpanKind spanKind) => spanKind switch
     {
-        return spanKind switch
-        {
-            SpanKind.CLIENT => ActivityKind.Client,
-            SpanKind.SERVER => ActivityKind.Server,
-            SpanKind.PRODUCER => ActivityKind.Producer,
-            SpanKind.CONSUMER => ActivityKind.Consumer,
-            SpanKind.INTERNAL => ActivityKind.Internal,
-            _ => ActivityKind.Internal,
-        };
-    }
+        SpanKind.CLIENT => ActivityKind.Client,
+        SpanKind.SERVER => ActivityKind.Server,
+        SpanKind.PRODUCER => ActivityKind.Producer,
+        SpanKind.CONSUMER => ActivityKind.Consumer,
+        SpanKind.INTERNAL => ActivityKind.Internal,
+        _ => ActivityKind.Internal,
+    };
 
     private bool IsDisposed()
         => Volatile.Read(ref this.disposed) != 0;

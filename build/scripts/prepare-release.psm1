@@ -328,6 +328,7 @@ function TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue {
     [Parameter(Mandatory=$true)][string]$requestedByUserName,
     [Parameter(Mandatory=$true)][string]$issueNumber,
     [Parameter(Mandatory=$true)][string]$issueBody,
+    [Parameter(Mandatory=$true)][string]$issueTitle,
     [Parameter()][string]$targetBranch="main",
     [Parameter()][string]$gitUserName,
     [Parameter()][string]$gitUserEmail
@@ -342,6 +343,22 @@ function TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue {
 
   $component = $match.Groups[1].Value.Trim()
 
+  # Compare the component chosen with the title and verify that they match
+  $titleMatch = [regex]::Match($issueTitle, '^\[release request\]\s+(OpenTelemetry\.[^\s]+)(?:\s+(.+))?\s*$')
+  if ($titleMatch.Success -eq $false)
+  {
+      Write-Host 'Component and version could not be parsed from title'
+      Return
+  }
+
+  $componentInTitle = $titleMatch.Groups[1].Value.Trim()
+  if ($component -ne $componentInTitle)
+  {
+      gh issue comment $issueNumber `
+        --body "The component specified in the release request title does not match the component in the body. Please create a new release request with matching components or edit the issue so they match."
+      Return
+  }
+
   $match = [regex]::Match($issueBody, '^[#]+ Version\s*(.*)$', [Text.RegularExpressions.RegexOptions]::Multiline)
   if ($match.Success -eq $false)
   {
@@ -350,6 +367,15 @@ function TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue {
   }
 
   $version = $match.Groups[1].Value.Trim()
+
+  # Compare the version chosen with the title and verify that they match
+  $versionInTitle = $titleMatch.Groups[2].Value.Trim()
+  if ($version -ne $versionInTitle)
+  {
+      gh issue comment $issueNumber `
+        --body "The version specified in the release request title does not match the version in the body. Please create a new release request with matching versions or edit the issue so they match."
+      Return
+  }
 
   $match = [regex]::Match($version, '^(\d+\.\d+\.\d+)(?:-((?:alpha)|(?:beta)|(?:rc))\.(\d+))?$')
   if ($match.Success -eq $false)
@@ -361,10 +387,13 @@ function TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue {
 
   $componentOwners = $null
 
-  FindComponentOwners `
+  if ((FindComponentOwners `
       -component $component `
       -issueNumber $issueNumber `
-      -componentOwners ([ref]$componentOwners)
+      -componentOwners ([ref]$componentOwners)) -eq $false)
+  {
+    return
+  }
 
   $requestedByUserPermission = gh api "repos/$gitRepository/collaborators/$requestedByUserName/permission" | ConvertFrom-Json
 

@@ -63,7 +63,7 @@ internal sealed class FrameDispatcher : IDisposable
         await this.DispatchFrameAsync(
             BuildDisconnectMessage,
             OpAmpClientEventSource.Log.SendingAgentDisconnectMessage,
-            OpAmpClientEventSource.Log.SendHeartbeatMessageException,
+            OpAmpClientEventSource.Log.SendAgentDisconnectMessageException,
             token).ConfigureAwait(false);
 
         static AgentToServer BuildDisconnectMessage(FrameBuilder fb)
@@ -114,10 +114,7 @@ internal sealed class FrameDispatcher : IDisposable
         }
     }
 
-    public void Dispose()
-    {
-        this.syncRoot.Dispose();
-    }
+    public void Dispose() => this.syncRoot.Dispose();
 
     private async Task DispatchFrameAsync(
         Func<FrameBuilder, AgentToServer> messageBuilder,
@@ -141,15 +138,7 @@ internal sealed class FrameDispatcher : IDisposable
         {
             // Exceptions are deliberately swallowed to prevent transport errors from crashing the
             // host application. The frame builder is reset so the next dispatch re-sends full state.
-
-            // OpAmpOversizedResponseException is already logged at the transport layer with
-            // accurate semantics (the request was delivered; only the response was discarded).
-            // Suppress the generic "Failed to send" event here to avoid a misleading duplicate.
-            if (ex is not OpAmpOversizedResponseException)
-            {
-                exceptionLogger(ex);
-            }
-
+            exceptionLogger(ex);
             this.frameBuilder.Reset();
         }
         finally

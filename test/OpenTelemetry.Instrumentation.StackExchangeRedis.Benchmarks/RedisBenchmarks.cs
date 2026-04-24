@@ -4,6 +4,7 @@
 using BenchmarkDotNet.Attributes;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using OpenTelemetry.Instrumentation.StackExchangeRedis.Tests;
 using OpenTelemetry.Trace;
 using StackExchange.Redis;
 
@@ -24,9 +25,9 @@ public class RedisBenchmarks
     public async Task GlobalSetup()
     {
         this.redis = new RedisFixture();
-        await this.redis.InitializeAsync().ConfigureAwait(false);
+        await this.redis.StartAsync().ConfigureAwait(false);
 
-        var connectionString = this.redis.DatabaseContainer.GetConnectionString();
+        var connectionString = this.redis.TypedContainer.GetConnectionString();
         this.connection = await ConnectionMultiplexer.ConnectAsync(connectionString);
         this.database = this.connection.GetDatabase();
 

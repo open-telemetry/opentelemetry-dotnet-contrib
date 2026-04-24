@@ -281,6 +281,40 @@ public class GrpcCoreClientInterceptorTests
     }
 
     /// <summary>
+    /// Validates that non protobuf payloads do not cause interceptor failures
+    /// when message event recording is enabled.
+    /// </summary>
+    [Fact]
+    public void BlockingUnaryCallWithNonProtobufPayloadDoesNotThrowWhenRecordingMessageEvents()
+    {
+        var testTags = new TestActivityTags();
+        var interceptorOptions = new ClientTracingInterceptorOptions
+        {
+            Propagator = new TraceContextPropagator(),
+            RecordMessageEvents = true,
+            AdditionalTags = testTags.Tags,
+        };
+        var interceptor = new ClientTracingInterceptor(interceptorOptions);
+        var context = new ClientInterceptorContext<NonProtobufPayload, NonProtobufPayload>(
+            NonProtobufGrpcTestHelpers.UnaryMethod,
+            "localhost",
+            default);
+
+        using var activityListener = new InterceptorActivityListener(testTags);
+
+        var response = interceptor.BlockingUnaryCall(
+            new NonProtobufPayload(),
+            context,
+            static (request, _) => request);
+
+        Assert.NotNull(response);
+
+        var activity = activityListener.Activity;
+        ValidateCommonActivityTags(activity);
+        Assert.Empty(activity!.Events);
+    }
+
+    /// <summary>
     /// Validates the common activity tags.
     /// </summary>
     /// <param name="activity">The activity.</param>

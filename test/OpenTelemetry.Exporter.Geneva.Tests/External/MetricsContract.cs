@@ -208,7 +208,7 @@ public partial class MetricsContract : KaitaiStruct
 
         /// <summary>
         /// Dimension names strings ("key" parts of key-value pairs). Must be sorted,
-        /// unless MetricsExtenion's option `enableDimensionSortingOnIngestion` is
+        /// unless MetricsExtension's option `enableDimensionSortingOnIngestion` is
         /// enabled.
         /// </summary>
         public List<LenString> DimensionsNames { get { return _dimensionsNames; } }
@@ -954,7 +954,7 @@ public partial class MetricsContract : KaitaiStruct
 
         /// <summary>
         /// Dimension names strings (&quot;key&quot; parts of key-value pairs). Must be sorted,
-        /// unless MetricsExtenion's option `enableDimensionSortingOnIngestion` is
+        /// unless MetricsExtension's option `enableDimensionSortingOnIngestion` is
         /// enabled.
         /// </summary>
         public List<LenString> DimensionsNames { get { return _dimensionsNames; } }

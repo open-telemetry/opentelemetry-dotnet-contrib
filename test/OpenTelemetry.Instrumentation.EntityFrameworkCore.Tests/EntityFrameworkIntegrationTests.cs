@@ -450,7 +450,7 @@ public sealed class EntityFrameworkIntegrationTests :
     }
 
     private string GetSqlServerConnectionString()
-        => this.sqlServerFixture.DatabaseContainer.GetConnectionString();
+        => this.sqlServerFixture.TypedContainer.GetConnectionString();
 
     private void ConfigureProvider(string provider, DbContextOptionsBuilder<ItemsContext> builder)
     {
@@ -461,12 +461,12 @@ public sealed class EntityFrameworkIntegrationTests :
         switch (provider)
         {
             case MySqlProvider:
-                var connectionString = this.mySqlFixture.DatabaseContainer.GetConnectionString();
+                var connectionString = this.mySqlFixture.TypedContainer.GetConnectionString();
                 builder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
                 break;
 
             case PostgresProvider:
-                builder.UseNpgsql(this.postgresFixture.DatabaseContainer.GetConnectionString());
+                builder.UseNpgsql(this.postgresFixture.TypedContainer.GetConnectionString());
                 break;
 
             case SqliteProvider:

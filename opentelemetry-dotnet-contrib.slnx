@@ -20,7 +20,6 @@
     <File Path=".github/workflows/Component.BuildTest.yml" />
     <File Path=".github/workflows/core-version-update.yml" />
     <File Path=".github/workflows/dotnet-format.yml" />
-    <File Path=".github/workflows/integration.yml" />
     <File Path=".github/workflows/markdownlint.yml" />
     <File Path=".github/workflows/post-release.yml" />
     <File Path=".github/workflows/prepare-release.yml" />
@@ -30,6 +29,7 @@
     <File Path=".github/workflows/verifyaotcompat.yml" />
   </Folder>
   <Folder Name="/build/">
+    <File Path="build/BannedSymbols.txt" />
     <File Path="build/Common.nonprod.props" />
     <File Path="build/Common.prod.props" />
     <File Path="build/Common.props" />
