@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using OpenTelemetry.AWS;
 using OpenTelemetry.Instrumentation.AWS.Implementation.Tracing;
 using Xunit;
 
@@ -23,7 +24,7 @@ public class AWSTracerProviderTests
 
         ActivitySource.AddActivityListener(listener);
 
-        var tracerProvider = new AWSTracerProvider();
+        var tracerProvider = new AWSTracerProvider(AWSSemanticConventions.DefaultSemanticConventionVersion);
         var disposedTracer = tracerProvider.GetTracer(Scope);
 
         disposedTracer.Dispose();

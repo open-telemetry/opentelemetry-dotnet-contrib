@@ -8,7 +8,7 @@ using OpenTelemetry.AWS;
 
 namespace OpenTelemetry.Instrumentation.AWS.Implementation.Metrics;
 
-internal sealed class AWSMeterProvider(SemanticConventionVersion version = AWSSemanticConventions.DefaultSemanticConventionVersion) : MeterProvider
+internal sealed class AWSMeterProvider(SemanticConventionVersion version) : MeterProvider
 {
     private readonly ConcurrentDictionary<string, System.Diagnostics.Metrics.Meter> meters = new();
     private readonly Version semanticConventionVersion = AWSSemanticConventions.GetVersion(version);

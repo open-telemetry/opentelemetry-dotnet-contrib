@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using OpenTelemetry.AWS;
 using OpenTelemetry.Instrumentation.AWS.Implementation.Metrics;
 using OpenTelemetry.Metrics;
 using Xunit;
@@ -23,7 +24,7 @@ public class AWSMeterProviderTests
             .AddInMemoryExporter(exportedItems)
             .Build();
 
-        var awsMeterProvider = new AWSMeterProvider();
+        var awsMeterProvider = new AWSMeterProvider(AWSSemanticConventions.DefaultSemanticConventionVersion);
         var disposedMeter = awsMeterProvider.GetMeter(Scope);
         var disposedCounter = disposedMeter.CreateUpDownCounter<long>(CounterName);
 
