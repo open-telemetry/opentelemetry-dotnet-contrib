@@ -16,7 +16,7 @@ public abstract class ContainerFixture<T> : ContainerFixture
     {
         if (DockerHelper.IsAvailable(DockerPlatform.Linux))
         {
-            await this.Container.StartAsync();
+            await this.StartAsync();
         }
     }
 

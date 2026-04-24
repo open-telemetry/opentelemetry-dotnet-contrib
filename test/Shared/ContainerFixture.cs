@@ -13,7 +13,11 @@ public abstract class ContainerFixture : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
-        await this.Container.DisposeAsync();
+        if (this.Container.State is not TestcontainersStates.Undefined)
+        {
+            await this.Container.DisposeAsync();
+        }
+
         GC.SuppressFinalize(this);
     }
 
