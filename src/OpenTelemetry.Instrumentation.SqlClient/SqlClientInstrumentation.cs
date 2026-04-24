@@ -4,9 +4,6 @@
 #if !NETFRAMEWORK
 using System.Diagnostics;
 #endif
-#if NET
-using System.Diagnostics.CodeAnalysis;
-#endif
 using OpenTelemetry.Instrumentation.SqlClient.Implementation;
 
 namespace OpenTelemetry.Instrumentation.SqlClient;
@@ -14,15 +11,10 @@ namespace OpenTelemetry.Instrumentation.SqlClient;
 /// <summary>
 /// SqlClient instrumentation.
 /// </summary>
-#if NET
-[RequiresUnreferencedCode(SqlClientTrimmingUnsupportedMessage)]
-#endif
 internal sealed class SqlClientInstrumentation : IDisposable
 {
     internal const string SqlClientDiagnosticListenerName = "SqlClientDiagnosticListener";
-#if NET
-    internal const string SqlClientTrimmingUnsupportedMessage = "Trimming is not yet supported with SqlClient instrumentation.";
-#endif
+
     internal static readonly SqlClientInstrumentation Instance = new();
 
     internal readonly InstrumentationHandleManager HandleManager = new();
@@ -44,7 +36,7 @@ internal sealed class SqlClientInstrumentation : IDisposable
 #if NETFRAMEWORK
     private readonly SqlEventSourceListener sqlEventSourceListener;
 #else
-    private readonly Func<string, object?, object?, bool> isEnabled = (eventName, _, _)
+    private readonly Func<string, object?, object?, bool> isEnabled = static (eventName, _, _)
         => DiagnosticSourceEvents.Contains(eventName);
 
     private readonly DiagnosticSourceSubscriber diagnosticSourceSubscriber;
