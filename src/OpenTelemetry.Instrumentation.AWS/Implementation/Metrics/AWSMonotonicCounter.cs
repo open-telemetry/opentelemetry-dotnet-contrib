@@ -34,7 +34,7 @@ internal sealed class AWSMonotonicCounter<T> : MonotonicCounter<T>
 #else
         this.monotonicCounter = MonotonicCountersDictionary.GetOrAdd(
             name,
-            counterName => meter.CreateCounter<T>(counterName, units, description));
+            (counterName) => meter.CreateCounter<T>(counterName, units, description));
 #endif
     }
 
