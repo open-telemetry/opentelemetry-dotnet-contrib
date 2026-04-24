@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Fix `SqlClientTraceInstrumentationOptions` leaking across multiple tracer
+  provider registrations.
+  ([#4267](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4267))
+
 ## 1.15.2
 
 Released 2026-Apr-21

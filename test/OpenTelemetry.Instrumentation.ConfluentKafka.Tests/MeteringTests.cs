@@ -8,24 +8,18 @@ using Xunit;
 
 namespace OpenTelemetry.Instrumentation.ConfluentKafka.Tests;
 
-[Collection("Kafka")]
-public class MeteringTests
+[Collection(KafkaCollection.Name)]
+[Trait("CategoryName", "KafkaIntegrationTests")]
+public class MeteringTests(KafkaFixture fixture)
 {
-    /*
-        To run the integration tests, set the OTEL_KAFKAENDPOINT machine-level environment variable to a valid Kafka endpoint.
+    private readonly string connectionString = fixture.Container.GetConnectionString();
 
-        To use Docker...
-         1) Run: docker run -d --name kafka -p 9092:9092 confluentinc/confluent-local
-         2) Set OTEL_KAFKAENDPOINT as: localhost:9092
-     */
-
-    [Trait("CategoryName", "KafkaIntegrationTests")]
-    [SkipUnlessEnvVarFoundFact(KafkaHelpers.KafkaEndPointEnvVarName)]
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
     public async Task BasicProduceToTopicTest()
     {
         var producerConfig = new ProducerConfig
         {
-            BootstrapServers = KafkaHelpers.KafkaEndPoint,
+            BootstrapServers = this.connectionString,
         };
         InstrumentedProducerBuilder<string, string> producerBuilder = new(producerConfig);
         var metrics = new List<Metric>();
@@ -51,13 +45,12 @@ public class MeteringTests
         Assert.Equal(2, groups.Length);
     }
 
-    [Trait("CategoryName", "KafkaIntegrationTests")]
-    [SkipUnlessEnvVarFoundFact(KafkaHelpers.KafkaEndPointEnvVarName)]
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
     public async Task BasicProduceAsyncToTopicTest()
     {
         var producerConfig = new ProducerConfig
         {
-            BootstrapServers = KafkaHelpers.KafkaEndPoint,
+            BootstrapServers = this.connectionString,
         };
         InstrumentedProducerBuilder<string, string> producerBuilder = new(producerConfig);
         var metrics = new List<Metric>();
@@ -83,15 +76,14 @@ public class MeteringTests
         Assert.Equal(2, groups.Length);
     }
 
-    [Trait("CategoryName", "KafkaIntegrationTests")]
-    [SkipUnlessEnvVarFoundFact(KafkaHelpers.KafkaEndPointEnvVarName)]
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
     public async Task BasicConsumeWithTimeoutTimespanTest()
     {
-        var topic = await KafkaHelpers.ProduceTestMessageAsync();
+        var topic = await KafkaHelpers.ProduceTestMessageAsync(this.connectionString);
 
         var consumerConfig = new ConsumerConfig
         {
-            BootstrapServers = KafkaHelpers.KafkaEndPoint,
+            BootstrapServers = this.connectionString,
             GroupId = "test-consumer-group",
             AutoOffsetReset = AutoOffsetReset.Earliest,
             EnablePartitionEof = true,
