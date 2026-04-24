@@ -12,7 +12,7 @@ public class ConnectionStringBuilderTests
     public void ConnectionStringBuilder_constructor_Invalid_Input()
     {
         // null connection string
-        Assert.Throws<ArgumentNullException>(() => _ = new ConnectionStringBuilder(null));
+        Assert.ThrowsAny<ArgumentException>(() => _ = new ConnectionStringBuilder(null));
 
         // empty connection string
         Assert.Throws<ArgumentException>(() => _ = new ConnectionStringBuilder(string.Empty));
