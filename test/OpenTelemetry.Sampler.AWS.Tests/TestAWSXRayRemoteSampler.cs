@@ -127,6 +127,35 @@ public class TestAWSXRayRemoteSampler
         await sampler.GetAndUpdateTargetsAsync(CancellationToken.None);
     }
 
+    [Fact]
+    public async Task ExecutePollAsyncDoesNotBlockCaller()
+    {
+        using var sampler = GetRemoteSampler(AWSXRayRemoteSampler.Builder(ResourceBuilder.CreateEmpty().Build()).Build());
+
+        var pollStarted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releasePoll = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var executePollAsyncMethod = typeof(AWSXRayRemoteSampler).GetMethod("ExecutePollAsync", BindingFlags.NonPublic | BindingFlags.Instance);
+
+        Assert.NotNull(executePollAsyncMethod);
+
+        Task PollAsync(CancellationToken cancellationToken)
+        {
+            pollStarted.TrySetResult(true);
+            cancellationToken.Register(() => releasePoll.TrySetCanceled(cancellationToken));
+            return releasePoll.Task;
+        }
+
+        var stopwatch = Stopwatch.StartNew();
+        var executePollTask = sampler.ExecutePollAsync(PollAsync);
+        stopwatch.Stop();
+
+        await pollStarted.Task;
+        Assert.True(stopwatch.Elapsed < TimeSpan.FromSeconds(1), $"Expected ExecutePollAsync to return without waiting for the poll to finish, but it took {stopwatch.Elapsed}.");
+
+        releasePoll.TrySetResult(true);
+        await executePollTask;
+    }
+
     private static AWSXRayRemoteSampler GetRemoteSampler(Trace.Sampler sampler)
     {
         var rootSamplerFieldInfo = typeof(ParentBasedSampler).GetField("rootSampler", BindingFlags.NonPublic | BindingFlags.Instance);

@@ -107,6 +107,43 @@ public sealed class AWSXRayRemoteSampler : Trace.Sampler, IDisposable
         GC.SuppressFinalize(this);
     }
 
+    internal async Task ExecutePollAsync(Func<CancellationToken, Task> pollAsync)
+    {
+        var lockTaken = false;
+
+        try
+        {
+            await this.pollerLock.WaitAsync(this.cancellationTokenSource.Token).ConfigureAwait(false);
+            lockTaken = true;
+
+            if (Volatile.Read(ref this.disposed) != 0)
+            {
+                return;
+            }
+
+            await pollAsync(this.cancellationTokenSource.Token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (this.cancellationTokenSource.IsCancellationRequested)
+        {
+            // Sampler is shutting down.
+        }
+        catch (ObjectDisposedException) when (Volatile.Read(ref this.disposed) != 0)
+        {
+            // Sampler is shutting down.
+        }
+        catch (Exception ex)
+        {
+            AWSSamplerEventSource.Log.ExceptionFromSampler(ex.Message);
+        }
+        finally
+        {
+            if (lockTaken)
+            {
+                this.pollerLock.Release();
+            }
+        }
+    }
+
     internal async Task GetAndUpdateTargetsAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -227,10 +264,10 @@ public sealed class AWSXRayRemoteSampler : Trace.Sampler, IDisposable
     }
 
     private void GetAndUpdateRules(object? state) =>
-        this.ExecutePoll(this.GetAndUpdateRulesAsync);
+        _ = this.ExecutePollAsync(this.GetAndUpdateRulesAsync);
 
     private void GetAndUpdateTargets(object? state) =>
-        this.ExecutePoll(this.GetAndUpdateTargetsAsync);
+        _ = this.ExecutePollAsync(this.GetAndUpdateTargetsAsync);
 
     private async Task GetAndUpdateRulesAsync(CancellationToken cancellationToken)
     {
@@ -246,36 +283,6 @@ public sealed class AWSXRayRemoteSampler : Trace.Sampler, IDisposable
         {
             // schedule the next rule poll.
             this.RulePollerTimer.Change(this.PollingInterval.Add(this.RulePollerJitter), Timeout.InfiniteTimeSpan);
-        }
-    }
-
-    private void ExecutePoll(Func<CancellationToken, Task> pollAsync)
-    {
-        try
-        {
-            this.pollerLock.Wait(this.cancellationTokenSource.Token);
-
-            try
-            {
-                if (Volatile.Read(ref this.disposed) != 0)
-                {
-                    return;
-                }
-
-                pollAsync(this.cancellationTokenSource.Token).GetAwaiter().GetResult();
-            }
-            finally
-            {
-                this.pollerLock.Release();
-            }
-        }
-        catch (OperationCanceledException) when (this.cancellationTokenSource.IsCancellationRequested)
-        {
-            // Sampler is shutting down.
-        }
-        catch (ObjectDisposedException) when (Volatile.Read(ref this.disposed) != 0)
-        {
-            // Sampler is shutting down.
         }
     }
 }
