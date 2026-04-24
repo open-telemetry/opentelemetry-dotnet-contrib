@@ -164,6 +164,30 @@ public class TestAWSXRaySamplerClient : IDisposable
     }
 
     [Fact]
+    public async Task TestGetSamplingTargetsWithMissingCollections()
+    {
+        var clock = new TestClock();
+        this.requestHandler.SetResponse("/SamplingTargets", "{\"LastRuleModification\":1530920505.0}");
+
+        var request = new GetSamplingTargetsRequest(
+        [
+            new(
+                "clientId",
+                "rule1",
+                100,
+                50,
+                10,
+                clock.ToDouble(clock.Now())),
+        ]);
+
+        var targetsResponse = await this.client.GetSamplingTargets(request);
+
+        Assert.NotNull(targetsResponse);
+        Assert.Empty(targetsResponse.SamplingTargetDocuments);
+        Assert.Empty(targetsResponse.UnprocessedStatistics);
+    }
+
+    [Fact]
     public async Task TestGetSamplingRulesWithOversizedResponse()
     {
         // Create a response larger than the 1 MB limit enforced by DoRequestAsync.
