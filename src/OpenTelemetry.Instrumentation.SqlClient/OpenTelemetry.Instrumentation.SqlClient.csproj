@@ -9,10 +9,8 @@
     <PackageValidationBaselineVersion>1.15.2</PackageValidationBaselineVersion>
   </PropertyGroup>
 
-  <!-- We cannot support native AoT yet, but we can enable the trim analyzer -->
   <PropertyGroup Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETCoreApp'">
-    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
-    <IsAotCompatible>false</IsAotCompatible>
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
   <PropertyGroup>

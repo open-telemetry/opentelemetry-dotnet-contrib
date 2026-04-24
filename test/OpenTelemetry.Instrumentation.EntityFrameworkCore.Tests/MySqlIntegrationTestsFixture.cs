@@ -1,41 +1,14 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using OpenTelemetry.Tests;
 using Testcontainers.MySql;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests;
 
-public sealed class MySqlIntegrationTestsFixture : IAsyncLifetime
+public sealed class MySqlIntegrationTestsFixture : XunitContainerFixture<MySqlContainer>
 {
-    private static readonly string MySqlImage = GetMySqlImage();
+    protected override string DockerfileName => "mysql.Dockerfile";
 
-    public MySqlContainer DatabaseContainer { get; } = CreateMySql();
-
-    public Task InitializeAsync()
-        => this.DatabaseContainer.StartAsync();
-
-    public Task DisposeAsync()
-        => this.DatabaseContainer.DisposeAsync().AsTask();
-
-    private static MySqlContainer CreateMySql()
-        => new MySqlBuilder(MySqlImage).Build();
-
-    private static string GetMySqlImage()
-    {
-        var assembly = typeof(MySqlIntegrationTestsFixture).Assembly;
-
-        using var stream = assembly.GetManifestResourceStream("mysql.Dockerfile");
-
-#if NET
-        using var reader = new StreamReader(stream!);
-#else
-        using var reader = new StreamReader(stream);
-#endif
-
-        var raw = reader.ReadToEnd();
-
-        // Exclude FROM
-        return raw.Substring(4).Trim();
-    }
+    protected override MySqlContainer CreateContainer() => new MySqlBuilder(this.GetImage()).Build();
 }

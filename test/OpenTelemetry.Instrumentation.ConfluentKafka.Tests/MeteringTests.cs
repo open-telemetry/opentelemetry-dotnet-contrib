@@ -12,7 +12,7 @@ namespace OpenTelemetry.Instrumentation.ConfluentKafka.Tests;
 [Trait("CategoryName", "KafkaIntegrationTests")]
 public class MeteringTests(KafkaFixture fixture)
 {
-    private readonly string connectionString = fixture.Container.GetConnectionString();
+    private readonly string connectionString = fixture.TypedContainer.GetConnectionString();
 
     [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
     public async Task BasicProduceToTopicTest()

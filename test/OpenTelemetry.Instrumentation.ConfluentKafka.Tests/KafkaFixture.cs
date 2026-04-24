@@ -3,45 +3,12 @@
 
 using OpenTelemetry.Tests;
 using Testcontainers.Kafka;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.ConfluentKafka.Tests;
 
-public sealed class KafkaFixture : IAsyncLifetime
+public sealed class KafkaFixture : XunitContainerFixture<KafkaContainer>
 {
-    private static readonly string KafkaImage = GetKafkaImage();
+    protected override string DockerfileName => "kafka.Dockerfile";
 
-    public KafkaContainer Container { get; } = CreateKafka();
-
-    public async Task InitializeAsync()
-    {
-        if (DockerHelper.IsAvailable(DockerPlatform.Linux))
-        {
-            await this.Container.StartAsync();
-        }
-    }
-
-    public Task DisposeAsync() =>
-        this.Container.DisposeAsync().AsTask();
-
-    private static KafkaContainer CreateKafka() =>
-        new KafkaBuilder(KafkaImage).Build();
-
-    private static string GetKafkaImage()
-    {
-        var assembly = typeof(KafkaFixture).Assembly;
-
-        using var stream = assembly.GetManifestResourceStream("kafka.Dockerfile");
-
-#if NET
-        using var reader = new StreamReader(stream!);
-#else
-        using var reader = new StreamReader(stream);
-#endif
-
-        var raw = reader.ReadToEnd();
-
-        // Exclude FROM
-        return raw.Substring(4).Trim();
-    }
+    protected override KafkaContainer CreateContainer() => new KafkaBuilder(this.GetImage()).Build();
 }

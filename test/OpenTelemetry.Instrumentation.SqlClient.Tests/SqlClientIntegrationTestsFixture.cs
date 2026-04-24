@@ -1,39 +1,14 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using OpenTelemetry.Tests;
 using Testcontainers.MsSql;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.SqlClient.Tests;
 
-public sealed class SqlClientIntegrationTestsFixture : IAsyncLifetime
+public sealed class SqlClientIntegrationTestsFixture : XunitContainerFixture<MsSqlContainer>
 {
-    private static readonly string SqlServerImage = GetSqlServerImage();
+    protected override string DockerfileName => "sqlserver.Dockerfile";
 
-    public MsSqlContainer DatabaseContainer { get; } = CreateMsSql();
-
-    public Task InitializeAsync() => this.DatabaseContainer.StartAsync();
-
-    public Task DisposeAsync() => this.DatabaseContainer.DisposeAsync().AsTask();
-
-    private static MsSqlContainer CreateMsSql()
-        => new MsSqlBuilder(SqlServerImage).Build();
-
-    private static string GetSqlServerImage()
-    {
-        var assembly = typeof(SqlClientIntegrationTestsFixture).Assembly;
-
-        using var stream = assembly.GetManifestResourceStream("sqlserver.Dockerfile");
-
-#if NET
-        using var reader = new StreamReader(stream!);
-#else
-        using var reader = new StreamReader(stream);
-#endif
-
-        var raw = reader.ReadToEnd();
-
-        // Exclude FROM
-        return raw.Substring(4).Trim();
-    }
+    protected override MsSqlContainer CreateContainer() => new MsSqlBuilder(this.GetImage()).Build();
 }

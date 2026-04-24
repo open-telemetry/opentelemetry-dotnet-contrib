@@ -23,27 +23,21 @@ internal sealed class AWSMeter : Meter
         string? units = null,
         string? description = null)
         where T : struct
-    {
-        return new AWSUpDownCounter<T>(this.meter, name, units, description);
-    }
+        => new AWSUpDownCounter<T>(this.meter, name, units, description);
 
     public override MonotonicCounter<T> CreateMonotonicCounter<T>(
         string name,
         string? units = null,
         string? description = null)
         where T : struct
-    {
-        return new AWSMonotonicCounter<T>(this.meter, name, units, description);
-    }
+        => new AWSMonotonicCounter<T>(this.meter, name, units, description);
 
     public override Histogram<T> CreateHistogram<T>(
         string name,
         string? units = null,
         string? description = null)
         where T : struct
-    {
-        return new AWSHistogram<T>(this.meter, name, units, description);
-    }
+        => new AWSHistogram<T>(this.meter, name, units, description);
 
     protected override void Dispose(bool disposing)
     {

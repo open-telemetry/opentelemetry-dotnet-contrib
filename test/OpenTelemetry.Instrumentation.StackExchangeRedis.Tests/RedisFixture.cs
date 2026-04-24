@@ -1,40 +1,14 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using OpenTelemetry.Tests;
 using Testcontainers.Redis;
 
 namespace OpenTelemetry.Instrumentation.StackExchangeRedis.Tests;
 
-public class RedisFixture : IAsyncDisposable
+public class RedisFixture : ContainerFixture<RedisContainer>
 {
-    private static readonly string RedisImage = GetRedisImage();
+    protected override string DockerfileName => "redis.Dockerfile";
 
-    public RedisContainer DatabaseContainer { get; } = CreateRedis();
-
-    public Task InitializeAsync() =>
-        this.DatabaseContainer.StartAsync();
-
-    public ValueTask DisposeAsync() =>
-        this.DatabaseContainer.DisposeAsync();
-
-    private static RedisContainer CreateRedis() =>
-        new RedisBuilder(RedisImage).Build();
-
-    private static string GetRedisImage()
-    {
-        var assembly = typeof(RedisFixture).Assembly;
-
-        using var stream = assembly.GetManifestResourceStream("redis.Dockerfile");
-
-#if NET
-        using var reader = new StreamReader(stream!);
-#else
-        using var reader = new StreamReader(stream);
-#endif
-
-        var raw = reader.ReadToEnd();
-
-        // Exclude FROM
-        return raw.Substring(4).Trim();
-    }
+    protected override RedisContainer CreateContainer() => new RedisBuilder(this.GetImage()).Build();
 }
