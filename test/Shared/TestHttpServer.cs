@@ -105,7 +105,7 @@ internal static class TestHttpServer
                     return true;
                 }
 
-                if (ex is HttpListenerException httpEx && (httpEx.ErrorCode is 1 or 6 or 995 or 10057))
+                if (ex is HttpListenerException httpEx && (httpEx.ErrorCode is 1 or 6 or 995 or 1229 or 10057))
                 {
                     return true;
                 }
