@@ -24,9 +24,16 @@ internal sealed class AWSHistogram<T> : Histogram<T>
     {
         this.isDisposed = isDisposed ?? throw new ArgumentNullException(nameof(isDisposed));
 
+#if NET
+        this.histogram = HistogramsDictionary.GetOrAdd(
+            name,
+            static (histogramName, state) => CreateHistogram(histogramName, state),
+            (meter, units, description));
+#else
         this.histogram = HistogramsDictionary.GetOrAdd(
             name,
             histogramName => meter.CreateHistogram<T>(histogramName, units, description));
+#endif
     }
 
     public override void Record(T value, Attributes? attributes = null)
@@ -46,4 +53,9 @@ internal sealed class AWSHistogram<T> : Histogram<T>
             this.histogram.Record(value);
         }
     }
+
+    private static System.Diagnostics.Metrics.Histogram<T> CreateHistogram(
+        string name,
+        (System.Diagnostics.Metrics.Meter Meter, string? Units, string? Description) state)
+        => state.Meter.CreateHistogram<T>(name, state.Units, state.Description);
 }

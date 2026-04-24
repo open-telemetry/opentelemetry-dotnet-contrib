@@ -24,9 +24,16 @@ internal sealed class AWSMonotonicCounter<T> : MonotonicCounter<T>
     {
         this.isDisposed = isDisposed ?? throw new ArgumentNullException(nameof(isDisposed));
 
+#if NET
+        this.monotonicCounter = MonotonicCountersDictionary.GetOrAdd(
+            name,
+            static (counterName, state) => CreateCounter(counterName, state),
+            (meter, units, description));
+#else
         this.monotonicCounter = MonotonicCountersDictionary.GetOrAdd(
             name,
             counterName => meter.CreateCounter<T>(counterName, units, description));
+#endif
     }
 
     public override void Add(T value, Attributes? attributes = null)
@@ -46,4 +53,9 @@ internal sealed class AWSMonotonicCounter<T> : MonotonicCounter<T>
             this.monotonicCounter.Add(value);
         }
     }
+
+    private static System.Diagnostics.Metrics.Counter<T> CreateCounter(
+        string name,
+        (System.Diagnostics.Metrics.Meter Meter, string? Units, string? Description) state)
+        => state.Meter.CreateCounter<T>(name, state.Units, state.Description);
 }

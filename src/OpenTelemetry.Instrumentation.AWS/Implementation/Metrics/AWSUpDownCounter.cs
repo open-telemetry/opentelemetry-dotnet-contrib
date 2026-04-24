@@ -24,9 +24,16 @@ internal sealed class AWSUpDownCounter<T> : UpDownCounter<T>
     {
         this.isDisposed = isDisposed ?? throw new ArgumentNullException(nameof(isDisposed));
 
+#if NET
+        this.upDownCounter = UpDownCountersDictionary.GetOrAdd(
+            name,
+            static (counterName, state) => CreateUpDownCounter(counterName, state),
+            (meter, units, description));
+#else
         this.upDownCounter = UpDownCountersDictionary.GetOrAdd(
             name,
             counterName => meter.CreateUpDownCounter<T>(counterName, units, description));
+#endif
     }
 
     public override void Add(T value, Attributes? attributes = null)
@@ -46,4 +53,9 @@ internal sealed class AWSUpDownCounter<T> : UpDownCounter<T>
             this.upDownCounter.Add(value);
         }
     }
+
+    private static System.Diagnostics.Metrics.UpDownCounter<T> CreateUpDownCounter(
+        string name,
+        (System.Diagnostics.Metrics.Meter Meter, string? Units, string? Description) state)
+        => state.Meter.CreateUpDownCounter<T>(name, state.Units, state.Description);
 }
