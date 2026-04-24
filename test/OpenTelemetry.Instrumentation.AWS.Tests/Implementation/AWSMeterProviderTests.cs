@@ -18,8 +18,6 @@ public class AWSMeterProviderTests
         const long ActiveHandleCount = 5;
 
         var exportedItems = new List<Metric>();
-        Amazon.Runtime.Telemetry.Metrics.Meter disposedMeter;
-        Amazon.Runtime.Telemetry.Metrics.Meter reusedMeter;
 
         using (var metricProvider = Sdk.CreateMeterProviderBuilder()
                    .AddMeter(Scope)
@@ -27,29 +25,29 @@ public class AWSMeterProviderTests
                    .Build())
         {
             var awsMeterProvider = new AWSMeterProvider(AWSSemanticConventions.DefaultSemanticConventionVersion);
-            disposedMeter = awsMeterProvider.GetMeter(Scope);
+            var disposedMeter = awsMeterProvider.GetMeter(Scope);
             var disposedCounter = disposedMeter.CreateUpDownCounter<long>(CounterName);
 
             disposedMeter.Dispose();
             disposedCounter.Add(100);
 
-            reusedMeter = awsMeterProvider.GetMeter(Scope);
+            var reusedMeter = awsMeterProvider.GetMeter(Scope);
             var reusedCounter = reusedMeter.CreateUpDownCounter<long>(CounterName);
             reusedCounter.Add(ActiveHandleCount);
 
             metricProvider.ForceFlush();
+
+            var counterMetric = Assert.Single(exportedItems, i => i.MeterName == Scope && i.Name == CounterName);
+            var metricPoints = new List<MetricPoint>();
+            foreach (var metricPoint in counterMetric.GetMetricPoints())
+            {
+                metricPoints.Add(metricPoint);
+            }
+
+            var singleMetricPoint = Assert.Single(metricPoints);
+
+            Assert.NotSame(disposedMeter, reusedMeter);
+            Assert.Equal(ActiveHandleCount, singleMetricPoint.GetSumLong());
         }
-
-        var counterMetric = Assert.Single(exportedItems, i => i.MeterName == Scope && i.Name == CounterName);
-        var metricPoints = new List<MetricPoint>();
-        foreach (var metricPoint in counterMetric.GetMetricPoints())
-        {
-            metricPoints.Add(metricPoint);
-        }
-
-        var singleMetricPoint = Assert.Single(metricPoints);
-
-        Assert.NotSame(disposedMeter, reusedMeter);
-        Assert.Equal(ActiveHandleCount, singleMetricPoint.GetSumLong());
     }
 }
