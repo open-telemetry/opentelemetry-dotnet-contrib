@@ -1,0 +1,229 @@
+header:
+  last-reviewed: '2026-04-25'
+  last-updated: '2026-04-25'
+  schema-version: 2.0.0
+  url: https://raw.githubusercontent.com/open-telemetry/opentelemetry-dotnet-contrib/main/.github/security-insights.yml
+  comment: |
+    This file contains the minimum information for https://github.com/open-telemetry/opentelemetry-dotnet-contrib.
+
+project:
+  name: OpenTelemetry .NET Contrib
+  homepage: https://opentelemetry.io/docs/languages/dotnet/
+  administrators:
+    - name: Alan West
+      affiliation: New Relic
+      social: https://github.com/alanwest
+      primary: true
+    - name: Martin Costello
+      affiliation: Grafana Labs
+      social: https://github.com/martincostello
+      primary: false
+    - name: "Piotr Kie\u0142kowicz"
+      affiliation: Splunk
+      social: https://github.com/Kielek
+      primary: false
+    - name: Rajkumar Rangaraj
+      affiliation: Microsoft
+      social: https://github.com/rajkumar-rangaraj
+      primary: false
+  documentation:
+    code-of-conduct: https://github.com/open-telemetry/.github/blob/main/CODE_OF_CONDUCT.md
+    detailed-guide: https://opentelemetry.io/docs/languages/dotnet/
+    quickstart-guide: https://opentelemetry.io/docs/languages/dotnet/getting-started/
+    release-process: https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/build/RELEASING.md
+    signature-verification: https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/README.md#attestation
+  repositories:
+    - name: opentelemetry-dotnet
+      url: https://github.com/open-telemetry/opentelemetry-dotnet
+      comment: |
+        Active primary OpenTelemetry .NET repository. It contains the API,
+        SDK, core exporters, and extensions released as NuGet packages from
+        this repository.
+    - name: opentelemetry-dotnet-contrib
+      url: https://github.com/open-telemetry/opentelemetry-dotnet-contrib
+      comment: |
+        This repository contains set of components extending functionality
+        of the OpenTelemetry .NET SDK. Instrumentation libraries, exporters,
+        and other components can find their home here.
+  vulnerability-reporting:
+    bug-bounty-available: false
+    reports-accepted: true
+    policy: https://opentelemetry.io/docs/security/security-response/
+    contact:
+      name: The OpenTelemetry security team
+      email: security@opentelemetry.io
+      primary: true
+    comment: |
+      Report security vulnerabilities via https://github.com/open-telemetry/opentelemetry-dotnet-contrib/security.
+
+repository:
+  url: https://github.com/open-telemetry/opentelemetry-dotnet-contrib
+  status: active
+  accepts-automated-change-request: true
+  accepts-change-request: true
+  bug-fixes-only: false
+  no-third-party-packages: false
+  core-team:
+    - name: Alan West
+      affiliation: New Relic
+      social: https://github.com/alanwest
+      primary: true
+    - name: Martin Costello
+      affiliation: Grafana Labs
+      social: https://github.com/martincostello
+      primary: false
+    - name: Mikel Blanchard
+      affiliation: Microsoft
+      social: https://github.com/CodeBlanch
+      primary: false
+    - name: "Piotr Kie\u0142kowicz"
+      affiliation: Splunk
+      social: https://github.com/Kielek
+      primary: false
+    - name: Rajkumar Rangaraj
+      affiliation: Microsoft
+      social: https://github.com/rajkumar-rangaraj
+      primary: false
+    - name: Timothy Mothra
+      social: https://github.com/TimothyMothra
+      primary: false
+  documentation:
+    contributing-guide: https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/CONTRIBUTING.md
+    dependency-management-policy: https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/renovate.json
+    security-policy: https://opentelemetry.io/docs/security/security-response/
+  license:
+    expression: Apache-2.0
+    url: https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/LICENSE.TXT
+  release:
+    automated-pipeline: true
+    changelog: https://github.com/open-telemetry/opentelemetry-dotnet-contrib/releases
+    distribution-points:
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Exporter.Geneva
+        comment: OpenTelemetry.Exporter.Geneva NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Exporter.InfluxDB
+        comment: OpenTelemetry.Exporter.InfluxDB NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Exporter.Instana
+        comment: OpenTelemetry.Exporter.Instana NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Exporter.OneCollector
+        comment: OpenTelemetry.Exporter.OneCollector NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Extensions
+        comment: OpenTelemetry.Extensions NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Extensions.AWS
+        comment: OpenTelemetry.Extensions.AWS NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Extensions.Enrichment
+        comment: OpenTelemetry.Extensions.Enrichment NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Extensions.Enrichment.AspNetCore
+        comment: OpenTelemetry.Extensions.Enrichment.AspNetCore NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Extensions.Enrichment.Http
+        comment: OpenTelemetry.Extensions.Enrichment.Http NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AspNet
+        comment: OpenTelemetry.Instrumentation.AspNet NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule
+        comment: OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AspNetCore
+        comment: OpenTelemetry.Instrumentation.AspNetCore NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AWS
+        comment: OpenTelemetry.Instrumentation.AWS NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AWSLambda
+        comment: OpenTelemetry.Instrumentation.AWSLambda NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Cassandra
+        comment: OpenTelemetry.Instrumentation.Cassandra NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.ConfluentKafka
+        comment: OpenTelemetry.Instrumentation.ConfluentKafka NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.ElasticsearchClient
+        comment: OpenTelemetry.Instrumentation.ElasticsearchClient NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.EntityFrameworkCore
+        comment: OpenTelemetry.Instrumentation.EntityFrameworkCore NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.EventCounters
+        comment: OpenTelemetry.Instrumentation.EventCounters NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.GrpcCore
+        comment: OpenTelemetry.Instrumentation.GrpcCore NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.GrpcNetClient
+        comment: OpenTelemetry.Instrumentation.GrpcNetClient NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Hangfire
+        comment: OpenTelemetry.Instrumentation.Hangfire NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Http
+        comment: OpenTelemetry.Instrumentation.Http NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Kusto
+        comment: OpenTelemetry.Instrumentation.Kusto NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Owin
+        comment: OpenTelemetry.Instrumentation.Owin NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Process
+        comment: OpenTelemetry.Instrumentation.Process NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Quartz
+        comment: OpenTelemetry.Instrumentation.Quartz NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Remoting
+        comment: OpenTelemetry.Instrumentation.Remoting NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Runtime
+        comment: OpenTelemetry.Instrumentation.Runtime NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.ServiceFabricRemoting
+        comment: OpenTelemetry.Instrumentation.ServiceFabricRemoting NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.SqlClient
+        comment: OpenTelemetry.Instrumentation.SqlClient NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.StackExchangeRedis
+        comment: OpenTelemetry.Instrumentation.StackExchangeRedis NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Wcf
+        comment: OpenTelemetry.Instrumentation.Wcf NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.OpAmp.Client
+        comment: OpenTelemetry.OpAmp.Client NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.PersistentStorage.Abstractions
+        comment: OpenTelemetry.PersistentStorage.Abstractions NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.PersistentStorage.FileSystem
+        comment: OpenTelemetry.PersistentStorage.FileSystem NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Resources.AWS
+        comment: OpenTelemetry.Resources.AWS NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Resources.Azure
+        comment: OpenTelemetry.Resources.Azure NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Resources.Container
+        comment: OpenTelemetry.Resources.Container NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Resources.Gcp
+        comment: OpenTelemetry.Resources.Gcp NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Resources.Host
+        comment: OpenTelemetry.Resources.Host NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Resources.OperatingSystem
+        comment: OpenTelemetry.Resources.OperatingSystem NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Resources.Process
+        comment: OpenTelemetry.Resources.Process NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Resources.ProcessRuntime
+        comment: OpenTelemetry.Resources.ProcessRuntime NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Sampler.AWS
+        comment: OpenTelemetry.Sampler.AWS NuGet package distributed from NuGet.org.
+    attestations: []
+
+  security:
+    assessments:
+      self:
+        comment: No formal self-assessment yet.
+        evidence: https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4302
+        date: '2026-04-25'
+    tools:
+      - name: CodeQL
+        comment: |
+          Static code analysis.
+        integration:
+          adhoc: true
+          ci: true
+          release: true
+        rulesets:
+          - https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/codeql-analysis.yml
+        type: SAST
+      - name: FsCheck
+        comment: |
+          FsCheck is used for fuzz testing as part of CI.
+        integration:
+          adhoc: true
+          ci: true
+          release: true
+        rulesets:
+          - default
+        type: fuzzing
+      - name: Renovate
+        comment: |
+          Automated dependency updates.
+        integration:
+          adhoc: true
+          ci: true
+          release: true
+        rulesets:
+          - https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/renovate.json
+        type: SCA
