@@ -4,6 +4,7 @@
 using System.Collections.Concurrent;
 using Amazon.Runtime.Telemetry;
 using Amazon.Runtime.Telemetry.Metrics;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.AWS.Implementation.Metrics;
 
@@ -12,26 +13,38 @@ internal sealed class AWSUpDownCounter<T> : UpDownCounter<T>
 {
     private static readonly ConcurrentDictionary<string, System.Diagnostics.Metrics.UpDownCounter<T>> UpDownCountersDictionary = new();
 
+    private readonly Func<bool> isDisposed;
     private readonly System.Diagnostics.Metrics.UpDownCounter<T> upDownCounter;
 
     public AWSUpDownCounter(
         System.Diagnostics.Metrics.Meter meter,
         string name,
+        Func<bool> isDisposed,
         string? units = null,
         string? description = null)
     {
-        if (UpDownCountersDictionary.TryGetValue(name, out var upDownCounter))
-        {
-            this.upDownCounter = upDownCounter;
-        }
+        Guard.ThrowIfNull(isDisposed);
+        this.isDisposed = isDisposed;
 
+#if NET
         this.upDownCounter = UpDownCountersDictionary.GetOrAdd(
             name,
-            meter.CreateUpDownCounter<T>(name, units, description));
+            static (counterName, state) => CreateUpDownCounter(counterName, state),
+            (meter, units, description));
+#else
+        this.upDownCounter = UpDownCountersDictionary.GetOrAdd(
+            name,
+            (counterName) => meter.CreateUpDownCounter<T>(counterName, units, description));
+#endif
     }
 
     public override void Add(T value, Attributes? attributes = null)
     {
+        if (this.isDisposed())
+        {
+            return;
+        }
+
         if (attributes != null)
         {
             // TODO: remove ToArray call and use when AttributesAsSpan expected to be added at AWS SDK v4.
@@ -42,4 +55,9 @@ internal sealed class AWSUpDownCounter<T> : UpDownCounter<T>
             this.upDownCounter.Add(value);
         }
     }
+
+    private static System.Diagnostics.Metrics.UpDownCounter<T> CreateUpDownCounter(
+        string name,
+        (System.Diagnostics.Metrics.Meter Meter, string? Units, string? Description) state)
+        => state.Meter.CreateUpDownCounter<T>(name, state.Units, state.Description);
 }

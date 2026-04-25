@@ -10,6 +10,7 @@ namespace OpenTelemetry.Instrumentation.AWS.Implementation.Tracing;
 internal sealed class AWSTracer : Tracer
 {
     private readonly ActivitySource activitySource;
+    private int disposed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AWSTracer"/> class.
@@ -26,6 +27,11 @@ internal sealed class AWSTracer : Tracer
         SpanKind spanKind = SpanKind.INTERNAL,
         SpanContext? parentContext = null)
     {
+        if (this.IsDisposed())
+        {
+            return AWSTraceSpan.Noop;
+        }
+
         var tags = initialAttributes != null ? new ActivityTagsCollection(initialAttributes.AllAttributes) : null;
         var activityKind = ConvertToActivityKind(spanKind);
 
@@ -39,7 +45,7 @@ internal sealed class AWSTracer : Tracer
     {
         if (disposing)
         {
-            this.activitySource.Dispose();
+            Interlocked.Exchange(ref this.disposed, 1);
         }
 
         base.Dispose(disposing);
@@ -67,4 +73,7 @@ internal sealed class AWSTracer : Tracer
         SpanKind.INTERNAL => ActivityKind.Internal,
         _ => ActivityKind.Internal,
     };
+
+    private bool IsDisposed()
+        => Volatile.Read(ref this.disposed) != 0;
 }

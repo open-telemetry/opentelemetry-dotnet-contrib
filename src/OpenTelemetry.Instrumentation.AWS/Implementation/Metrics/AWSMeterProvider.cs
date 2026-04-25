@@ -10,7 +10,7 @@ namespace OpenTelemetry.Instrumentation.AWS.Implementation.Metrics;
 
 internal sealed class AWSMeterProvider(SemanticConventionVersion version) : MeterProvider
 {
-    private readonly ConcurrentDictionary<string, AWSMeter> meters = new();
+    private readonly ConcurrentDictionary<string, System.Diagnostics.Metrics.Meter> meters = new();
     private readonly Version semanticConventionVersion = AWSSemanticConventions.GetVersion(version);
 
     public override Meter GetMeter(string scope, Attributes? attributes = null)
@@ -24,9 +24,9 @@ internal sealed class AWSMeterProvider(SemanticConventionVersion version) : Mete
 #endif
         }
 
-        return meter;
+        return new AWSMeter(meter);
     }
 
-    private static AWSMeter CreateMeter(string name, (Version Version, IEnumerable<KeyValuePair<string, object?>>? Attributes) state)
-        => new(OpenTelemetry.Metrics.MeterFactory.Create(typeof(AWSMeterProvider), state.Version, state.Attributes, name));
+    private static System.Diagnostics.Metrics.Meter CreateMeter(string name, (Version Version, IEnumerable<KeyValuePair<string, object?>>? Attributes) state)
+        => OpenTelemetry.Metrics.MeterFactory.Create(typeof(AWSMeterProvider), state.Version, state.Attributes, name);
 }
