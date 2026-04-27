@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Fixed `OnRequestStoppedCallback` invocation when no root `Activity` was
+  created.
+  ([#4307](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4307))
+
 ## 1.15.2
 
 Released 2026-Apr-21
