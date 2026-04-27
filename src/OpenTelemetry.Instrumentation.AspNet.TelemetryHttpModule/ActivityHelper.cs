@@ -105,7 +105,15 @@ internal static class ActivityHelper
 
             // This is the case where a start was called but no activity was
             // created due to a sampling decision.
-            onRequestStoppedCallback?.Invoke(aspNetActivity, context);
+            try
+            {
+                onRequestStoppedCallback?.Invoke(aspNetActivity, context);
+            }
+            catch (Exception callbackEx)
+            {
+                AspNetTelemetryEventSource.Log.CallbackException(aspNetActivity, "OnStopped", callbackEx);
+            }
+
             context.Items[ContextKey] = null;
             return;
         }

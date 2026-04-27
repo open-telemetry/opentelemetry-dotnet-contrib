@@ -320,6 +320,29 @@ public class ActivityHelperTest : IDisposable
     }
 
     [Fact]
+    public void Should_Not_Throw_When_Stop_Callback_Throws_Without_RootActivity()
+    {
+        var context = HttpContextHelper.GetFakeHttpContextBase();
+        using var rootActivity = ActivityHelper.StartAspNetActivity(this.noopTextMapPropagator, context, null);
+
+        Assert.Null(rootActivity);
+        Assert.Equal(ActivityHelper.StartedButNotSampledObj, context.Items[ActivityHelper.ContextKey]);
+
+        var exception = Record.Exception(() => ActivityHelper.StopAspNetActivity(
+            this.noopTextMapPropagator,
+            rootActivity,
+            context,
+            (activity, _) =>
+            {
+                Assert.Null(activity);
+                throw new InvalidOperationException("Callback failed.");
+            }));
+
+        Assert.Null(exception);
+        Assert.Null(context.Items[ActivityHelper.ContextKey]);
+    }
+
+    [Fact]
     public void Can_Create_RootActivity_From_W3C_Traceparent()
     {
         this.EnableListener();
