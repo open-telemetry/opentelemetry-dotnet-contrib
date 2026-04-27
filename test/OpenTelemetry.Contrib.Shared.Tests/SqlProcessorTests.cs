@@ -28,6 +28,17 @@ public class SqlProcessorTests
         Assert.Equal(sql, sqlStatementInfo.DbQuerySummary);
     }
 
+    [Fact]
+    public void GetSanitizedSql_SingleLineCommentWithCarriageReturnLineFeed_PreservesLineBreak()
+    {
+        var sql = "SELECT * FROM table -- comment\r\nWHERE id = 42";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        Assert.Equal("SELECT * FROM table \r\nWHERE id = ?", sqlStatementInfo.SanitizedSql);
+        Assert.Equal("SELECT table", sqlStatementInfo.DbQuerySummary);
+    }
+
     [SkippableTheory]
     [MemberData(nameof(TestData))]
     public void TestGetSanitizedSql(SqlProcessorTestCases.TestCase testCase)
