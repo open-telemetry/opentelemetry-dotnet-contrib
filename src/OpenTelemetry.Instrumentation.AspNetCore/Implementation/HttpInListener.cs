@@ -3,7 +3,6 @@
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Http;
 using OpenTelemetry.Context.Propagation;
@@ -23,12 +22,8 @@ internal class HttpInListener : ListenerHandler
     // https://github.com/dotnet/aspnetcore/blob/8d6554e655b64da75b71e0e20d6db54a3ba8d2fb/src/Hosting/Hosting/src/GenericHost/GenericWebHostBuilder.cs#L85
     internal const string AspNetCoreActivitySourceName = "Microsoft.AspNetCore";
 
-    internal static readonly AssemblyName AssemblyName = typeof(HttpInListener).Assembly.GetName();
-#pragma warning disable IDE0370 // Suppression is unnecessary
-    internal static readonly string ActivitySourceName = AssemblyName.Name!;
-    internal static readonly Version Version = AssemblyName.Version!;
-#pragma warning restore IDE0370 // Suppression is unnecessary
-    internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, Version.ToString());
+    internal static readonly Version SemanticConventionsVersion = new(1, 40, 0);
+    internal static readonly ActivitySource ActivitySource = ActivitySourceFactory.Create<HttpInListener>(SemanticConventionsVersion);
     internal static readonly bool Net7OrGreater = Environment.Version.Major >= 7;
 
     private const string DiagnosticSourceName = "Microsoft.AspNetCore";
