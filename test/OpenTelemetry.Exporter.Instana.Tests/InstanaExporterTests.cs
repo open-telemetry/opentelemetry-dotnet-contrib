@@ -348,6 +348,58 @@ public class InstanaExporterTests
         Assert.Equal(1, handler.InvocationCount);
     }
 
+    [Fact]
+    public async Task Export_EncodesJsonCorrectly()
+    {
+        // Arrange
+        var tcs = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        using var handler = new TestHttpMessageHandler(tcs);
+        using var httpClient = new HttpClient(handler);
+
+        var options = new InstanaExporterOptions()
+        {
+            AgentKey = "instana-agent-key",
+            EndpointUri = new Uri("http://localhost:42699"),
+            HttpClientFactory = () => httpClient,
+        };
+
+        var processor = DefaultActivityProcessor.CreateDefault();
+
+        using var exporter = new InstanaExporter(options, processor);
+
+        using var activity = new Activity("my \"quoted\" operation");
+        activity.SetStatus(ActivityStatusCode.Error, "line1\r\n\"line2\"");
+        activity.SetTag("http.route", "/orders/\"id\"");
+        activity.AddEvent(
+            new ActivityEvent(
+                "event \"name\"",
+                DateTimeOffset.UtcNow,
+                [new("detail", "line1\r\n\"line2\"")]));
+
+        Activity[] activities = [activity];
+        var batch = new Batch<Activity>(activities, activities.Length);
+
+        // Act
+        var result = exporter.Export(batch);
+
+        // Assert
+        Assert.Equal(ExportResult.Success, result);
+
+        var actual = await WaitForExportAsync(tcs);
+
+        using var document = JsonDocument.Parse(actual);
+        var exportedSpan = document.RootElement.GetProperty("spans").EnumerateArray().Single();
+        var data = exportedSpan.GetProperty("data");
+        var exportedEvent = data.GetProperty("events").EnumerateArray().Single();
+
+        Assert.Equal("my \"quoted\" operation", data.GetProperty("operation").GetString());
+        Assert.Equal("line1\r\n\"line2\"", data.GetProperty("error_detail").GetString());
+        Assert.Equal("/orders/\"id\"", data.GetProperty("tags").GetProperty("http.route").GetString());
+        Assert.Equal("event \"name\"", exportedEvent.GetProperty("name").GetString());
+        Assert.Equal("line1\r\n\"line2\"", exportedEvent.GetProperty("tags").GetProperty("detail").GetString());
+    }
+
     private static async Task<string> WaitForExportAsync(TaskCompletionSource<string> completionSource)
     {
         var timeout = ExportTimeout;
