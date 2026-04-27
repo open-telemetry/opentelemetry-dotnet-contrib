@@ -6,7 +6,6 @@ using System.Diagnostics.CodeAnalysis;
 #if NETFRAMEWORK
 using System.Net.Http;
 #endif
-using System.Reflection;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
@@ -19,17 +18,14 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
     internal const string HttpClientActivitySourceName = "System.Net.Http";
 #endif
 
-    internal static readonly AssemblyName AssemblyName = typeof(HttpHandlerDiagnosticListener).Assembly.GetName();
+    // https://github.com/dotnet/runtime/blob/7d034ddbbbe1f2f40c264b323b3ed3d6b3d45e9a/src/libraries/System.Net.Http/src/System/Net/Http/DiagnosticsHandler.cs#L19
+    internal const string ActivitySourceName = "OpenTelemetry.Instrumentation.Http.HttpClient";
+
     internal static readonly bool IsNet7OrGreater = Environment.Version.Major >= 7;
     internal static readonly bool IsNet9OrGreater = Environment.Version.Major >= 9;
     internal static readonly bool IsNet10OrGreater = Environment.Version.Major >= 10;
 
-    // https://github.com/dotnet/runtime/blob/7d034ddbbbe1f2f40c264b323b3ed3d6b3d45e9a/src/libraries/System.Net.Http/src/System/Net/Http/DiagnosticsHandler.cs#L19
-    internal static readonly string ActivitySourceName = AssemblyName.Name + ".HttpClient";
-#pragma warning disable IDE0370 // Suppression is unnecessary
-    internal static readonly Version Version = AssemblyName.Version!;
-#pragma warning restore IDE0370 // Suppression is unnecessary
-    internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, Version.ToString());
+    internal static readonly ActivitySource ActivitySource = ActivitySourceFactory.Create(typeof(HttpHandlerDiagnosticListener), HttpClientInstrumentation.SemanticConventionsVersion, name: ActivitySourceName);
 
     private const string OnStartEvent = "System.Net.Http.HttpRequestOut.Start";
     private const string OnStopEvent = "System.Net.Http.HttpRequestOut.Stop";
