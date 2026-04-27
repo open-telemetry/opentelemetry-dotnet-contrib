@@ -21,6 +21,8 @@ internal static class ActivityHelper
 
     internal static readonly object StartedButNotSampledObj = new();
 
+    private const string StopInstrumentationCallbackContextKey = "__AspnetOpenTelemetryInstrumentationStopCallback__";
+
     private const string BaggageSlotName = "otel.baggage";
     private static readonly Func<HttpRequestBase, string, IEnumerable<string>> HttpRequestHeaderValuesGetter = (request, name) => request.Headers.GetValues(name);
 
@@ -97,23 +99,22 @@ internal static class ActivityHelper
     /// <param name="context"><see cref="HttpContextBase"/>.</param>
     /// <param name="onRequestStoppedCallback">Callback action.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void StopAspNetActivity(TextMapPropagator textMapPropagator, Activity? aspNetActivity, HttpContextBase context, Action<Activity?, HttpContextBase>? onRequestStoppedCallback)
+    public static void StopAspNetActivity(
+        TextMapPropagator textMapPropagator,
+        Activity? aspNetActivity,
+        HttpContextBase context,
+        Action<Activity?, HttpContextBase>? onRequestStoppedCallback)
     {
+        var onRequestStoppedInstrumentationCallback = context.Items[StopInstrumentationCallbackContextKey] as Action<Activity?, HttpContextBase>;
+        context.Items[StopInstrumentationCallbackContextKey] = null;
+
         if (aspNetActivity == null)
         {
             Debug.Assert(context.Items[ContextKey] == StartedButNotSampledObj, "Context item is not StartedButNotSampledObj.");
 
             // This is the case where a start was called but no activity was
             // created due to a sampling decision.
-            try
-            {
-                onRequestStoppedCallback?.Invoke(aspNetActivity, context);
-            }
-            catch (Exception callbackEx)
-            {
-                AspNetTelemetryEventSource.Log.CallbackException(aspNetActivity, "OnStopped", callbackEx);
-            }
-
+            onRequestStoppedInstrumentationCallback?.Invoke(aspNetActivity, context);
             context.Items[ContextKey] = null;
             return;
         }
@@ -129,6 +130,8 @@ internal static class ActivityHelper
         {
             aspNetActivity.SetEndTime(ActivityDateTimeHelper.GetUtcNow());
         }
+
+        onRequestStoppedInstrumentationCallback?.Invoke(aspNetActivity, context);
 
         try
         {
