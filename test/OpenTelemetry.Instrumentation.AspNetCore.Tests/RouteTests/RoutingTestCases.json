@@ -2,6 +2,7 @@
   {
     "name": "Root path",
     "testApplicationScenario": "ConventionalRouting",
+    "maximumDotnetVersion": 10,
     "httpMethod": "GET",
     "path": "/",
     "expectedStatusCode": 200,
@@ -9,8 +10,18 @@
     "expectedHttpRoute": "ConventionalRoute/Default/{id?}"
   },
   {
+    "name": "Root path",
+    "testApplicationScenario": "ConventionalRouting",
+    "minimumDotnetVersion": 11,
+    "httpMethod": "GET",
+    "path": "/",
+    "expectedStatusCode": 200,
+    "expectedHttpRoute": "ConventionalRoute/Default/{id?}"
+  },
+  {
     "name": "Non-default action with route parameter and query string",
     "testApplicationScenario": "ConventionalRouting",
+    "maximumDotnetVersion": 10,
     "httpMethod": "GET",
     "path": "/ConventionalRoute/ActionWithStringParameter/2?num=3",
     "expectedStatusCode": 200,
@@ -18,12 +29,31 @@
     "expectedHttpRoute": "ConventionalRoute/ActionWithStringParameter/{id?}"
   },
   {
+    "name": "Non-default action with route parameter and query string",
+    "testApplicationScenario": "ConventionalRouting",
+    "minimumDotnetVersion": 11,
+    "httpMethod": "GET",
+    "path": "/ConventionalRoute/ActionWithStringParameter/2?num=3",
+    "expectedStatusCode": 200,
+    "expectedHttpRoute": "ConventionalRoute/ActionWithStringParameter/{id?}"
+  },
+  {
     "name": "Non-default action with query string",
     "testApplicationScenario": "ConventionalRouting",
+    "maximumDotnetVersion": 10,
     "httpMethod": "GET",
     "path": "/ConventionalRoute/ActionWithStringParameter?num=3",
     "expectedStatusCode": 200,
     "currentHttpRoute": "{controller=ConventionalRoute}/{action=Default}/{id?}",
+    "expectedHttpRoute": "ConventionalRoute/ActionWithStringParameter/{id?}"
+  },
+  {
+    "name": "Non-default action with query string",
+    "testApplicationScenario": "ConventionalRouting",
+    "minimumDotnetVersion": 11,
+    "httpMethod": "GET",
+    "path": "/ConventionalRoute/ActionWithStringParameter?num=3",
+    "expectedStatusCode": 200,
     "expectedHttpRoute": "ConventionalRoute/ActionWithStringParameter/{id?}"
   },
   {
@@ -56,6 +86,7 @@
   {
     "name": "Area using `area:exists`, default controller/action",
     "testApplicationScenario": "ConventionalRouting",
+    "maximumDotnetVersion": 10,
     "httpMethod": "GET",
     "path": "/MyArea",
     "expectedStatusCode": 200,
@@ -63,8 +94,19 @@
     "expectedHttpRoute": "{area:exists}/ControllerForMyArea/Default/{id?}"
   },
   {
+    "name": "Area using `area:exists`, default controller/action",
+    "testApplicationScenario": "ConventionalRouting",
+    "minimumDotnetVersion": 11,
+    "httpMethod": "GET",
+    "path": "/MyArea",
+    "expectedStatusCode": 200,
+    "currentHttpRoute": "MyArea/ControllerForMyArea/Default/{id?}",
+    "expectedHttpRoute": "{area:exists}/ControllerForMyArea/Default/{id?}"
+  },
+  {
     "name": "Area using `area:exists`, non-default action",
     "testApplicationScenario": "ConventionalRouting",
+    "maximumDotnetVersion": 10,
     "httpMethod": "GET",
     "path": "/MyArea/ControllerForMyArea/NonDefault",
     "expectedStatusCode": 200,
@@ -72,12 +114,32 @@
     "expectedHttpRoute": "{area:exists}/ControllerForMyArea/NonDefault/{id?}"
   },
   {
+    "name": "Area using `area:exists`, non-default action",
+    "testApplicationScenario": "ConventionalRouting",
+    "minimumDotnetVersion": 11,
+    "httpMethod": "GET",
+    "path": "/MyArea/ControllerForMyArea/NonDefault",
+    "expectedStatusCode": 200,
+    "currentHttpRoute": "MyArea/ControllerForMyArea/NonDefault/{id?}",
+    "expectedHttpRoute": "{area:exists}/ControllerForMyArea/NonDefault/{id?}"
+  },
+  {
     "name": "Area w/o `area:exists`, default controller/action",
     "testApplicationScenario": "ConventionalRouting",
+    "maximumDotnetVersion": 10,
     "httpMethod": "GET",
     "path": "/SomePrefix",
     "expectedStatusCode": 200,
     "currentHttpRoute": "SomePrefix/{controller=AnotherArea}/{action=Index}/{id?}",
+    "expectedHttpRoute": "SomePrefix/AnotherArea/Index/{id?}"
+  },
+  {
+    "name": "Area w/o `area:exists`, default controller/action",
+    "testApplicationScenario": "ConventionalRouting",
+    "minimumDotnetVersion": 11,
+    "httpMethod": "GET",
+    "path": "/SomePrefix",
+    "expectedStatusCode": 200,
     "expectedHttpRoute": "SomePrefix/AnotherArea/Index/{id?}"
   },
   {
@@ -128,22 +190,22 @@
   {
     "name": "Root path",
     "testApplicationScenario": "RazorPages",
-    "maximumDotnetVersion": 9,
+    "maximumDotnetVersion": 10,
     "httpMethod": "GET",
     "path": "/",
     "expectedStatusCode": 200,
+    "currentHttpRoute": "/Index",
     "expectedHttpRoute": "/Index",
-    "expectedMetricRoute": ""
+    "expectedMetricRoute": "/"
   },
   {
     "name": "Root path",
     "testApplicationScenario": "RazorPages",
-    "minimumDotnetVersion": 10,
+    "minimumDotnetVersion": 11,
     "httpMethod": "GET",
     "path": "/",
     "expectedStatusCode": 200,
-    "expectedHttpRoute": "/Index",
-    "expectedMetricRoute": "/"
+    "currentHttpRoute": "/"
   },
   {
     "name": "Index page",

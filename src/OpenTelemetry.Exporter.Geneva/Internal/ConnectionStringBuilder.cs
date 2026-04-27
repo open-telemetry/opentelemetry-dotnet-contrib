@@ -41,7 +41,12 @@ internal sealed class ConnectionStringBuilder
 #else
             var index = token.IndexOf(EqualSign);
 #endif
+
+#if NET11_0_OR_GREATER
+            if (index == -1 || index != token.LastIndexOf(EqualSign, StringComparison.Ordinal))
+#else
             if (index == -1 || index != token.LastIndexOf(EqualSign))
+#endif
             {
                 continue;
             }

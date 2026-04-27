@@ -29,7 +29,7 @@ internal sealed class AWSMonotonicCounter<T> : MonotonicCounter<T>
 #if NET
         this.monotonicCounter = MonotonicCountersDictionary.GetOrAdd(
             name,
-            static (counterName, state) => CreateCounter(counterName, state),
+            static (counterName, state) => state.meter.CreateCounter<T>(counterName, state.units, state.description),
             (meter, units, description));
 #else
         this.monotonicCounter = MonotonicCountersDictionary.GetOrAdd(
@@ -55,9 +55,4 @@ internal sealed class AWSMonotonicCounter<T> : MonotonicCounter<T>
             this.monotonicCounter.Add(value);
         }
     }
-
-    private static System.Diagnostics.Metrics.Counter<T> CreateCounter(
-        string name,
-        (System.Diagnostics.Metrics.Meter Meter, string? Units, string? Description) state)
-        => state.Meter.CreateCounter<T>(name, state.Units, state.Description);
 }
