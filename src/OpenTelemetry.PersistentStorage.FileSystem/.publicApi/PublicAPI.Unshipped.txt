@@ -1,0 +1,3 @@
+override OpenTelemetry.PersistentStorage.FileSystem.FileBlob.OnTryWriteSpan(System.ReadOnlySpan<byte> buffer, int leasePeriodMilliseconds) -> bool
+override OpenTelemetry.PersistentStorage.FileSystem.FileBlobProvider.OnTryCreateBlob(System.ReadOnlySpan<byte> buffer, int leasePeriodMilliseconds, out OpenTelemetry.PersistentStorage.Abstractions.PersistentBlob? blob) -> bool
+override OpenTelemetry.PersistentStorage.FileSystem.FileBlobProvider.OnTryCreateBlob(System.ReadOnlySpan<byte> buffer, out OpenTelemetry.PersistentStorage.Abstractions.PersistentBlob? blob) -> bool

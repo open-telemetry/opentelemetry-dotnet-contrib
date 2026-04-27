@@ -31,7 +31,7 @@ public class FileBlobProviderTests
         var data = Encoding.UTF8.GetBytes("Hello, World!");
 
         // Create blob.
-        Assert.True(blobProvider.TryCreateBlob(data, out var blob1));
+        Assert.True(blobProvider.TryCreateBlob(data.AsSpan(), out var blob1));
 
         // Get blob.
         Assert.True(blobProvider.TryGetBlob(out var blob2));
@@ -55,11 +55,11 @@ public class FileBlobProviderTests
         using var blobProvider = new FileBlobProvider(testDirectory.FullName, 100);
 
         // write a file to fill up the configured max space.
-        Assert.True(blobProvider.TryCreateBlob(new byte[100], out _));
+        Assert.True(blobProvider.TryCreateBlob(new byte[100].AsSpan(), out _));
 
         var data = Encoding.UTF8.GetBytes("Hello, World!");
 
-        Assert.False(blobProvider.TryCreateBlob(data, out var blob));
+        Assert.False(blobProvider.TryCreateBlob(data.AsSpan(), out var blob));
         Assert.Null(blob);
 
         testDirectory.Delete(true);
@@ -81,7 +81,7 @@ public class FileBlobProviderTests
             writeTimeOutInMilliseconds);
 
         var data = Encoding.UTF8.GetBytes("Hello, World!");
-        Assert.True(blobProvider.TryCreateBlob(data, out var blob));
+        Assert.True(blobProvider.TryCreateBlob(data.AsSpan(), out var blob));
 
         // Wait for retention deadline to expire
         Thread.Sleep(2000);
@@ -111,7 +111,7 @@ public class FileBlobProviderTests
 
         var data = Encoding.UTF8.GetBytes("Hello, World!");
 
-        Assert.True(blobProvider.TryCreateBlob(data, out var blob));
+        Assert.True(blobProvider.TryCreateBlob(data.AsSpan(), out var blob));
 
         // Mock write
         File.Move(((FileBlob)blob).FullPath, ((FileBlob)blob).FullPath + ".tmp");
@@ -148,7 +148,7 @@ public class FileBlobProviderTests
 
         var data = Encoding.UTF8.GetBytes("Hello, World!");
 
-        Assert.True(blobProvider.TryCreateBlob(data, out var blob));
+        Assert.True(blobProvider.TryCreateBlob(data.AsSpan(), out var blob));
         var blobPath = ((FileBlob)blob).FullPath;
 
         blob.TryLease(1000);
