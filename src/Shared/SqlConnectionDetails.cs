@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Collections.Concurrent;
+using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace OpenTelemetry.Instrumentation;
@@ -72,11 +73,11 @@ internal sealed partial class SqlConnectionDetails
                 if (match.Groups["port"].Length > 0)
                 {
                     instanceName = match.Groups["nameOrPort"].Value;
-                    port = int.TryParse(match.Groups["port"].Value, out var parsedPort)
+                    port = int.TryParse(match.Groups["port"].Value, NumberStyles.None, CultureInfo.InvariantCulture, out var parsedPort)
                         ? parsedPort == 1433 ? null : parsedPort
                         : null;
                 }
-                else if (int.TryParse(match.Groups["nameOrPort"].Value, out var parsedPort))
+                else if (int.TryParse(match.Groups["nameOrPort"].Value, NumberStyles.None, CultureInfo.InvariantCulture, out var parsedPort))
                 {
                     instanceName = null;
                     port = parsedPort == 1433 ? null : parsedPort;
