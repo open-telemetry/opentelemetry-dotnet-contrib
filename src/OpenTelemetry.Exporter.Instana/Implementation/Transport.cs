@@ -1,7 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Collections.Concurrent;
+using System.Buffers;
 using System.Globalization;
 using System.Net;
 #if NETFRAMEWORK
@@ -11,167 +11,139 @@ using System.Net.Http.Headers;
 
 namespace OpenTelemetry.Exporter.Instana.Implementation;
 
-internal static class Transport
+internal sealed class Transport : IDisposable
 {
     private const int MultiSpanBufferSize = 4096000;
     private const int MultiSpanBufferLimit = 4070000;
-    private static readonly MediaTypeHeaderValue MEDIAHEADER = new("application/json");
-    private static readonly byte[] TracesBuffer = new byte[MultiSpanBufferSize];
-    private static bool isConfigured;
-    private static int backendTimeout;
-    private static string configuredEndpoint = string.Empty;
-    private static string configuredAgentKey = string.Empty;
-    private static string bundleUrl = string.Empty;
 
-    static Transport()
+    private static readonly MediaTypeHeaderValue MediaType = new("application/json");
+
+    private readonly Uri bundleUri;
+    private readonly InstanaExporterOptions options;
+
+    private HttpClient? client;
+
+    public Transport(InstanaExporterOptions options)
     {
-        Configure();
+        this.options = options;
+        this.bundleUri = new Uri(options.EndpointUri, "bundle");
     }
 
-    internal static bool IsAvailable => isConfigured && Client != null;
-
-    internal static InstanaHttpClient? Client { get; set; }
-
-    internal static async Task SendSpansAsync(ConcurrentQueue<InstanaSpan> spanQueue)
+    public void Dispose()
     {
+        this.client?.Dispose();
+        GC.SuppressFinalize(this);
+    }
+
+    public bool Send(List<InstanaSpan> batch)
+    {
+        var buffer = ArrayPool<byte>.Shared.Rent(MultiSpanBufferSize);
+
         try
         {
-            using var sendBuffer = new MemoryStream(TracesBuffer);
+            using var sendBuffer = new MemoryStream(buffer);
             using var writer = new StreamWriter(sendBuffer);
-            await writer.WriteAsync("{\"spans\":[").ConfigureAwait(false);
-            var first = true;
+            writer.Write("{\"spans\":[");
 
-            // peek instead of dequeue, because we don't yet know whether the next span
-            // fits within our MULTI_SPAN_BUFFER_LIMIT
-            while (spanQueue.TryPeek(out var span) && sendBuffer.Position < MultiSpanBufferLimit)
+            int maxBatchSize = this.options.BatchExportProcessorOptions.MaxExportBatchSize;
+
+            using var enumerator = batch.GetEnumerator();
+
+            int written = 0;
+
+            while (sendBuffer.Position < MultiSpanBufferLimit && written < maxBatchSize && enumerator.MoveNext())
             {
-                if (!first)
+                if (written > 0)
                 {
-                    await writer.WriteAsync(",").ConfigureAwait(false);
+                    writer.Write(',');
                 }
 
-                await InstanaSpanSerializer.SerializeToStreamWriterAsync(span, writer).ConfigureAwait(false);
-                await writer.FlushAsync().ConfigureAwait(false);
+                InstanaSpanSerializer.SerializeToStreamWriter(enumerator.Current, writer);
 
-                first = false;
+                writer.Flush();
 
-                // Now we can dequeue. Note, this means we'll be giving up/losing
-                // this span if we fail to send for any reason.
-                spanQueue.TryDequeue(out _);
+                written++;
             }
 
-            await writer.WriteAsync("]}").ConfigureAwait(false);
-            await writer.FlushAsync().ConfigureAwait(false);
+            writer.Write("]}");
+            writer.Flush();
 
             var length = sendBuffer.Position;
             sendBuffer.Position = 0;
             sendBuffer.SetLength(length);
 
-            HttpContent content = new StreamContent(sendBuffer, (int)length);
-            content.Headers.ContentType = MEDIAHEADER;
-            content.Headers.Add("X-INSTANA-TIME", DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(CultureInfo.InvariantCulture));
+            using var content = new StreamContent(sendBuffer, (int)length);
+            content.Headers.ContentType = MediaType;
 
-            using var httpMsg = new HttpRequestMessage()
+            using var message = new HttpRequestMessage(HttpMethod.Post, this.bundleUri)
             {
-                Method = HttpMethod.Post,
-                RequestUri = new Uri(bundleUrl),
+                Content = content,
             };
-            httpMsg.Content = content;
-            if (Client != null)
-            {
-                await Client.SendAsync(httpMsg).ConfigureAwait(false);
-            }
+
+            message.Headers.Add("X-INSTANA-KEY", this.options.AgentKey);
+            message.Headers.Add("X-INSTANA-NOTRACE", "1");
+            message.Headers.Add("X-INSTANA-TIME", this.options.UtcNow().ToUnixTimeMilliseconds().ToString(CultureInfo.InvariantCulture));
+
+            this.client ??= this.CreateClient();
+
+#if NET
+            using var response = this.client.Send(message);
+#else
+#pragma warning disable CA2025 // Do not pass 'IDisposable' instances into unawaited tasks
+            using var response = this.client.SendAsync(message).GetAwaiter().GetResult();
+#pragma warning restore CA2025 // Do not pass 'IDisposable' instances into unawaited tasks
+#endif
+
+            response.EnsureSuccessStatusCode();
+
+            return true;
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            InstanaExporterEventSource.Log.FailedExport(e);
+            InstanaExporterEventSource.Log.FailedExport(ex);
+            return false;
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
         }
     }
 
-    private static void Configure()
+    private HttpClient CreateClient()
     {
-        if (isConfigured)
+        if (this.options.HttpClientFactory is { } factory)
         {
-            return;
+            return factory();
         }
 
-        if (string.IsNullOrEmpty(configuredEndpoint))
+#pragma warning disable CA2000 // Dispose objects before losing scope
+        var handler = new HttpClientHandler()
         {
-            configuredEndpoint = Environment.GetEnvironmentVariable(InstanaExporterConstants.ENVVAR_INSTANA_ENDPOINT_URL);
+#if !NETFRAMEWORK
+            CheckCertificateRevocationList = true,
+#endif
+        };
+#pragma warning restore CA2000 // Dispose objects before losing scope
+
+        if (this.options.ProxyUri is { } proxyAddress)
+        {
+            handler.Proxy = new WebProxy(proxyAddress, true);
+            handler.UseProxy = true;
         }
 
-        if (string.IsNullOrEmpty(configuredEndpoint))
+#pragma warning disable CA5399 // .NET Framework does not support CheckCertificateRevocationList
+        var client = new HttpClient(handler, disposeHandler: true);
+#pragma warning restore CA5399 // .NET Framework does not support CheckCertificateRevocationList
+
+        try
         {
-            return;
+            client.Timeout = TimeSpan.FromMilliseconds(this.options.BatchExportProcessorOptions.ExporterTimeoutMilliseconds);
+            return client;
         }
-
-        bundleUrl = configuredEndpoint + "/bundle";
-
-        if (string.IsNullOrEmpty(configuredAgentKey))
+        catch (Exception)
         {
-            configuredAgentKey = Environment.GetEnvironmentVariable(InstanaExporterConstants.ENVVAR_INSTANA_AGENT_KEY);
+            client.Dispose();
+            throw;
         }
-
-        if (string.IsNullOrEmpty(configuredAgentKey))
-        {
-            return;
-        }
-
-        if (backendTimeout == 0)
-        {
-            if (!int.TryParse(Environment.GetEnvironmentVariable(InstanaExporterConstants.ENVVAR_INSTANA_TIMEOUT), out backendTimeout))
-            {
-                backendTimeout = InstanaExporterConstants.BACKEND_DEFAULT_TIMEOUT;
-            }
-        }
-
-        ConfigureBackendClient();
-        isConfigured = true;
-    }
-
-    private static void ConfigureBackendClient()
-    {
-        if (Client != null)
-        {
-            return;
-        }
-
-#pragma warning disable CA2000
-        var configuredHandler = new HttpClientHandler();
-#pragma warning restore CA2000
-        var proxy = Environment.GetEnvironmentVariable(InstanaExporterConstants.ENVVAR_INSTANA_ENDPOINT_PROXY);
-        if (Uri.TryCreate(proxy, UriKind.Absolute, out var proxyAddress))
-        {
-            configuredHandler.Proxy = new WebProxy(proxyAddress, true);
-            configuredHandler.UseProxy = true;
-#pragma warning disable SA1130 // Use lambda syntax
-            configuredHandler.ServerCertificateCustomValidationCallback = delegate { return true; };
-#pragma warning restore SA1130 // Use lambda syntax
-        }
-
-#pragma warning disable CA5400
-        Client = new InstanaHttpClient(backendTimeout, configuredHandler);
-#pragma warning restore CA5400
-
-        Client.DefaultRequestHeaders.Add("X-INSTANA-KEY", configuredAgentKey);
-    }
-}
-
-#pragma warning disable SA1402 // File may only contain a single type
-internal class InstanaHttpClient : HttpClient
-#pragma warning restore SA1402 // File may only contain a single type
-{
-    public InstanaHttpClient(int timeout)
-        : base()
-    {
-        this.Timeout = TimeSpan.FromMilliseconds(timeout);
-        this.DefaultRequestHeaders.Add("X-INSTANA-NOTRACE", "1");
-    }
-
-    public InstanaHttpClient(int timeout, HttpClientHandler handler)
-        : base(handler)
-    {
-        this.Timeout = TimeSpan.FromMilliseconds(timeout);
-        this.DefaultRequestHeaders.Add("X-INSTANA-NOTRACE", "1");
     }
 }

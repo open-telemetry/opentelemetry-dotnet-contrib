@@ -1,8 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
+using System.Text.Json;
 using OpenTelemetry.Exporter.Instana.Implementation;
 using Xunit;
 
@@ -10,8 +9,13 @@ namespace OpenTelemetry.Exporter.Instana.Tests;
 
 public static class InstanaSpanSerializerTests
 {
+    private static readonly JsonSerializerOptions SerializerOptions = new()
+    {
+        NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString,
+    };
+
     [Fact]
-    public static async Task SerializeToStreamWriterAsync()
+    public static void SerializeToStreamWriterAsync()
     {
         var instanaOtelSpan = InstanaSpanFactory.CreateSpan();
         instanaOtelSpan.F = new Implementation.From { E = "12345", H = "localhost" };
@@ -24,7 +28,7 @@ public static class InstanaSpanSerializerTests
         instanaOtelSpan.Lt = "hexNumberLT1234567890123";
         instanaOtelSpan.Tp = true;
         instanaOtelSpan.Data.Tags = new Dictionary<string, string> { ["tag1Key"] = "tag1Vale", ["tag2Key"] = "tag2Vale" };
-        instanaOtelSpan.Data.data = new Dictionary<string, object> { ["data1Key"] = "data1Vale", ["data2Key"] = "data2Vale" };
+        instanaOtelSpan.Data.Values = new Dictionary<string, object> { ["data1Key"] = "data1Vale", ["data2Key"] = "data2Vale" };
         instanaOtelSpan.Data.Events =
         [
             new()
@@ -44,22 +48,17 @@ public static class InstanaSpanSerializerTests
         ];
 
         InstanaSpanTest? span;
-        using (var sendBuffer = new MemoryStream(new byte[4096000]))
+        using (var sendBuffer = new MemoryStream())
         {
             using var writer = new StreamWriter(sendBuffer);
-            await InstanaSpanSerializer.SerializeToStreamWriterAsync(instanaOtelSpan, writer);
-            await writer.FlushAsync();
+            InstanaSpanSerializer.SerializeToStreamWriter(instanaOtelSpan, writer);
+            writer.Flush();
+
             var length = sendBuffer.Position;
             sendBuffer.Position = 0;
             sendBuffer.SetLength(length);
 
-            var serializer = new JsonSerializer();
-            serializer.Converters.Add(new JavaScriptDateTimeConverter());
-            serializer.NullValueHandling = NullValueHandling.Ignore;
-
-            TextReader textReader = new StreamReader(sendBuffer);
-            JsonReader reader = new JsonTextReader(textReader);
-            span = serializer.Deserialize<InstanaSpanTest>(reader);
+            span = JsonSerializer.Deserialize<InstanaSpanTest>(sendBuffer, SerializerOptions);
         }
 
         Assert.NotNull(span);
@@ -76,9 +75,9 @@ public static class InstanaSpanSerializerTests
         Assert.NotNull(span.Data.Tags);
         Assert.Equal(instanaOtelSpan.Data.Tags["tag1Key"], span.Data.Tags["tag1Key"]);
         Assert.Equal(instanaOtelSpan.Data.Tags["tag2Key"], span.Data.Tags["tag2Key"]);
-        Assert.NotNull(span.Data.data);
-        Assert.Equal(instanaOtelSpan.Data.data["data1Key"], span.Data.data["data1Key"]);
-        Assert.Equal(instanaOtelSpan.Data.data["data2Key"], span.Data.data["data2Key"]);
+        Assert.NotNull(span.Data.Values);
+        Assert.Equal(instanaOtelSpan.Data.Values["data1Key"], span.Data.Values["data1Key"].GetString());
+        Assert.Equal(instanaOtelSpan.Data.Values["data2Key"], span.Data.Values["data2Key"].GetString());
         Assert.NotNull(span.Data.Events);
         var event0 = span.Data.Events[0];
         Assert.Equal(instanaOtelSpan.Data.Events[0].Name, event0.Name);

@@ -5,36 +5,32 @@ using System.Diagnostics;
 
 namespace OpenTelemetry.Exporter.Instana.Implementation.Processors;
 
-internal class ErrorActivityProcessor : ActivityProcessorBase, IActivityProcessor
+internal sealed class ErrorActivityProcessor : ActivityProcessorBase
 {
-    public override async Task ProcessAsync(Activity activity, InstanaSpan instanaSpan)
+    public override void Process(Activity activity, InstanaSpan instanaSpan)
     {
         this.PreProcess(activity, instanaSpan);
 
         if (activity.Status == ActivityStatusCode.Error)
         {
             instanaSpan.Ec = 1;
-            if (instanaSpan.Data.data != null)
+            if (instanaSpan.Data.Values != null)
             {
-                instanaSpan.Data.data[InstanaExporterConstants.ERROR_FIELD] = activity.Status.ToString();
+                instanaSpan.Data.Values[InstanaExporterConstants.ErrorField] = activity.Status.ToString();
                 if (activity.StatusDescription != null && !string.IsNullOrEmpty(activity.StatusDescription))
                 {
-                    instanaSpan.Data.data[InstanaExporterConstants.ERROR_DETAIL_FIELD] = activity.StatusDescription;
+                    instanaSpan.Data.Values[InstanaExporterConstants.ErrorDetailField] = activity.StatusDescription;
                 }
             }
         }
-        else if (instanaSpan.TransformInfo != null && instanaSpan.TransformInfo.HasExceptionEvent)
-        {
-            instanaSpan.Ec = 1;
-        }
         else
         {
-            instanaSpan.Ec = 0;
+            instanaSpan.Ec = instanaSpan.TransformInfo != null && instanaSpan.TransformInfo.HasExceptionEvent ? 1 : 0;
         }
 
         if (activity != null && instanaSpan != null)
         {
-            await base.ProcessAsync(activity, instanaSpan).ConfigureAwait(false);
+            base.Process(activity, instanaSpan);
         }
     }
 }

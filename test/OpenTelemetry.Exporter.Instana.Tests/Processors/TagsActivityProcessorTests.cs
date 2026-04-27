@@ -10,19 +10,22 @@ namespace OpenTelemetry.Exporter.Instana.Tests.Processors;
 
 public class TagsActivityProcessorTests
 {
-    private readonly TagsActivityProcessor tagsActivityProcessor = new();
-
     [Fact]
-    public async Task ProcessAsync_StatusTagsExist()
+    public void Process_StatusTagsExist()
     {
+        // Arrange
         var activity = new Activity("testOperationName");
         activity.AddTag("otel.status_code", "testStatusCode");
         activity.AddTag("otel.status_description", "testStatusDescription");
         activity.AddTag("otel.testTag", "testTag");
 
         var instanaSpan = new InstanaSpan();
-        await this.tagsActivityProcessor.ProcessAsync(activity, instanaSpan);
 
+        // Act
+        var processor = new TagsActivityProcessor();
+        processor.Process(activity, instanaSpan);
+
+        // Assert
         Assert.NotNull(instanaSpan.Data);
         Assert.NotNull(instanaSpan.Data.Tags);
         Assert.Contains(instanaSpan.Data.Tags, x => x.Key == "otel.testTag" && x.Value == "testTag");
@@ -31,14 +34,19 @@ public class TagsActivityProcessorTests
     }
 
     [Fact]
-    public async Task ProcessAsync_StatusTagsDoNotExist()
+    public void Process_StatusTagsDoNotExist()
     {
+        // Arrange
         var activity = new Activity("testOperationName");
         activity.AddTag("otel.testTag", "testTag");
 
         var instanaSpan = new InstanaSpan();
-        await this.tagsActivityProcessor.ProcessAsync(activity, instanaSpan);
 
+        // Act
+        var processor = new TagsActivityProcessor();
+        processor.Process(activity, instanaSpan);
+
+        // Assert
         Assert.NotNull(instanaSpan.Data);
         Assert.NotNull(instanaSpan.Data.Tags);
         Assert.Contains(instanaSpan.Data.Tags, x => x.Key == "otel.testTag" && x.Value == "testTag");
