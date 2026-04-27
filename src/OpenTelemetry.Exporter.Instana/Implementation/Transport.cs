@@ -54,12 +54,9 @@ internal sealed class Transport : IDisposable
 
             using var enumerator = batch.GetEnumerator();
 
-            while (stream.Position < MultiSpanBufferLimit && written < maxBatchSize && enumerator.MoveNext())
+            while ((writer.BytesCommitted + writer.BytesPending) < MultiSpanBufferLimit && written < maxBatchSize && enumerator.MoveNext())
             {
                 InstanaSpanSerializer.Serialize(enumerator.Current, writer);
-
-                writer.Flush();
-
                 written++;
             }
 

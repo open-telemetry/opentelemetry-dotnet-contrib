@@ -55,9 +55,7 @@ public static class InstanaSpanSerializerTests
             InstanaSpanSerializer.Serialize(instanaOtelSpan, writer);
             writer.Flush();
 
-            var length = stream.Position;
             stream.Position = 0;
-            stream.SetLength(length);
 
             span = JsonSerializer.Deserialize<InstanaSpanTest>(stream, SerializerOptions);
         }
