@@ -54,6 +54,7 @@ public class GrpcTagHelperTests
 
     [Theory]
     [InlineData(0, ActivityStatusCode.Unset)] // Ok
+    [InlineData(-1, ActivityStatusCode.Error)] // Invalid negative status code
     [InlineData(1, ActivityStatusCode.Error)] // Cancelled
     [InlineData(2, ActivityStatusCode.Error)] // Unknown
     [InlineData(3, ActivityStatusCode.Error)] // InvalidArgument
@@ -79,6 +80,7 @@ public class GrpcTagHelperTests
 
     [Theory]
     [InlineData(0, ActivityStatusCode.Unset)] // Ok
+    [InlineData(-1, ActivityStatusCode.Error)] // Invalid negative status code
     [InlineData(1, ActivityStatusCode.Unset)] // Cancelled
     [InlineData(2, ActivityStatusCode.Error)] // Unknown
     [InlineData(3, ActivityStatusCode.Unset)] // InvalidArgument
