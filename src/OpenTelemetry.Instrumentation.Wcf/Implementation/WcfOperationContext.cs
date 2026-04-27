@@ -7,7 +7,7 @@ using System.ServiceModel;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 
-internal class WcfOperationContext : IExtension<OperationContext>
+internal sealed class WcfOperationContext : IExtension<OperationContext>
 {
     public WcfOperationContext(Activity? activity)
     {
