@@ -44,7 +44,7 @@ public static class TracerProviderBuilderExtensions
             {
                 ServiceFabricRemotingActivitySource.Options = serviceProvider.GetRequiredService<IOptionsMonitor<ServiceFabricRemotingInstrumentationOptions>>().Get(name: null);
 
-                builder.AddSource(ServiceFabricRemotingActivitySource.ActivitySourceName);
+                builder.AddSource(ServiceFabricRemotingActivitySource.ActivitySource.Name);
             });
         });
     }
