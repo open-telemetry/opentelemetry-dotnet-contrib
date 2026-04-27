@@ -329,6 +329,7 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
         }
         catch (Exception)
         {
+            // Ignore
         }
         finally
         {
