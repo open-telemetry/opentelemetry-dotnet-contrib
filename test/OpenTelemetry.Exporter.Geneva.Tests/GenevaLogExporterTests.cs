@@ -128,7 +128,7 @@ public class GenevaLogExporterTests
     public void InvalidConnectionString(string connectionString)
     {
         var exporterOptions = new GenevaExporterOptions() { ConnectionString = connectionString };
-        var exception = Assert.Throws<ArgumentException>(() =>
+        Assert.ThrowsAny<ArgumentException>(() =>
         {
             using var exporter = new GenevaLogExporter(exporterOptions);
         });

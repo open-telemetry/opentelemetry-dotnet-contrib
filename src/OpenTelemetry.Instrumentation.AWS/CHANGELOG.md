@@ -8,6 +8,18 @@
 * Pass AWS attribute values to created meters as tags.
   ([#4063](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4063))
 
+* Capture SNS `TopicArn` as the `aws.sns.topic.arn` span attribute.
+  ([#4043](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4043))
+
+* Add `cloud.region` attribute to all AWS SDK client spans.
+  ([#4043](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4043))
+
+* Add messaging attributes for AWS SNS and SQS.
+  ([#4043](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4043))
+
+* BREAKING: Update latest AWS Semantic Conventions to 1.40.0.
+  ([#4043](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4043))
+
 ## 1.15.1
 
 Released 2026-Apr-21
@@ -17,6 +29,10 @@ Released 2026-Apr-21
 
 * Add the `aws.s3.bucket` and `aws.s3.key` attributes to S3 spans.
   ([#4029](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4029))
+
+* Fix lifecycle bugs when disposing cached AWS meter/tracer handles and reinitializing
+  telemetry for the same scope.
+  ([#4126](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4126))
 
 ## 1.15.0
 

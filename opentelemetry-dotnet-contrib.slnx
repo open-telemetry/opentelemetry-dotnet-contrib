@@ -221,6 +221,7 @@
     <File Path="src/Shared/AWS/AWSSemanticConventions.Legacy.cs" />
     <File Path="src/Shared/AWS/AWSSemanticConventions.v1.28.0.cs" />
     <File Path="src/Shared/AWS/AWSSemanticConventions.v1.29.0.cs" />
+    <File Path="src/Shared/AWS/AWSSemanticConventions.v1.40.0.cs" />
     <File Path="src/Shared/AWS/SemanticConventionVersion.cs" />
   </Folder>
   <Folder Name="/src/Shared/Configuration/">
