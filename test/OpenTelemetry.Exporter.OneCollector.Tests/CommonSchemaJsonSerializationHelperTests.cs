@@ -31,6 +31,15 @@ public class CommonSchemaJsonSerializationHelperTests
     [InlineData(false, "false")]
     [InlineData(null, "null")]
     [InlineData(1.01D, "1.01")]
+    [InlineData(6.0D, "6.0")]
+    [InlineData(-1e15D, "-1000000000000000.0")]
+    [InlineData(1e15D, "1000000000000000.0")]
+    [InlineData(-1e17D, "-1E+17")]
+    [InlineData(1e17D, "1E+17")]
+    [InlineData(1.0F, "1.0")]
+    [InlineData(1.5F, "1.5")]
+    [InlineData(-1e9F, "-1E+09")]
+    [InlineData(1e9F, "1E+09")]
 #if NETFRAMEWORK
     // Note: There seems to be some kind of round-tripping bug in .NET
     // Framework. See:
