@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Fixed an issue where server-side exception recording could bypass
+  `IncomingRequestFilter` for filtered faulting requests.
+  ([#4306](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4306))
+
 ## 1.15.1-beta.2
 
 Released 2026-Apr-22
