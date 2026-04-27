@@ -9,12 +9,12 @@ namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 
 internal class WcfOperationContext : IExtension<OperationContext>
 {
-    public WcfOperationContext(Activity activity)
+    public WcfOperationContext(Activity? activity)
     {
         this.Activity = activity;
     }
 
-    public Activity Activity { get; }
+    public Activity? Activity { get; }
 
     public void Attach(OperationContext owner)
     {
