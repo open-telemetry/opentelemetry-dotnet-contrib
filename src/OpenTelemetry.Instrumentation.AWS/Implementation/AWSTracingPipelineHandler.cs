@@ -32,6 +32,7 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
 
     public override void InvokeSync(IExecutionContext executionContext)
     {
+        using var scope = this.SuppressDownstreamInstrumentation();
         var activity = this.ProcessBeginRequest(executionContext);
         base.InvokeSync(executionContext);
         this.ProcessEndRequest(activity, executionContext);
@@ -39,6 +40,7 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
 
     public override async Task<T> InvokeAsync<T>(IExecutionContext executionContext)
     {
+        using var scope = this.SuppressDownstreamInstrumentation();
         var activity = this.ProcessBeginRequest(executionContext);
         var ret = await base.InvokeAsync<T>(executionContext).ConfigureAwait(false);
 
@@ -298,11 +300,6 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
 
     private Activity? ProcessBeginRequest(IExecutionContext executionContext)
     {
-        if (this.options.SuppressDownstreamInstrumentation)
-        {
-            SuppressInstrumentationScope.Enter();
-        }
-
         var currentActivity = Activity.Current;
 
         if (currentActivity == null)
@@ -322,4 +319,9 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
 
         return currentActivity;
     }
+
+    private IDisposable? SuppressDownstreamInstrumentation() =>
+        this.options.SuppressDownstreamInstrumentation
+            ? SuppressInstrumentationScope.Begin()
+            : null;
 }

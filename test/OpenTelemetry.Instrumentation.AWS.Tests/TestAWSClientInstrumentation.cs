@@ -14,12 +14,14 @@ using Amazon.BedrockRuntime.Model;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using Amazon.Runtime;
+using Amazon.Runtime.Internal;
 using Amazon.SimpleNotificationService;
 using Amazon.SQS;
 using Amazon.SQS.Model;
 using OpenTelemetry.Instrumentation.AWS.Tests.Tools;
 using OpenTelemetry.Trace;
 using Xunit;
+using AWSTracingPipelineHandler = OpenTelemetry.Instrumentation.AWS.Implementation.AWSTracingPipelineHandler;
 
 namespace OpenTelemetry.Instrumentation.AWS.Tests;
 
@@ -749,6 +751,34 @@ public class TestAWSClientInstrumentation
         Assert.Equal(extendedRequestId, Utils.GetTagValue(awssdk_activity, "aws.extended_request_id"));
     }
 
+    [Fact]
+    public async Task SuppressDownstreamInstrumentation_RestoresSuppressionScope()
+    {
+        Assert.False(Sdk.SuppressInstrumentation);
+
+        var previousActivity = Activity.Current;
+        Activity.Current = null;
+
+        try
+        {
+            var handler = new AWSTracingPipelineHandler(
+                new AWSClientInstrumentationOptions { SuppressDownstreamInstrumentation = true })
+            {
+                InnerHandler = new SuppressionAssertPipelineHandler(),
+            };
+
+            handler.InvokeSync(null!);
+            Assert.False(Sdk.SuppressInstrumentation);
+
+            await handler.InvokeAsync<AmazonWebServiceResponse>(null!);
+            Assert.False(Sdk.SuppressInstrumentation);
+        }
+        finally
+        {
+            Activity.Current = previousActivity;
+        }
+    }
+
     private void ValidateAWSActivity(Activity aws_activity, Activity parent)
     {
         Assert.Equal(parent.SpanId, aws_activity.ParentSpanId);
@@ -878,5 +908,19 @@ public class TestAWSClientInstrumentation
         Assert.Equal("aws-api", Utils.GetTagValue(s3_activity, "rpc.system"));
         Assert.Equal("S3", Utils.GetTagValue(s3_activity, "rpc.service"));
         Assert.Equal("PutObject", Utils.GetTagValue(s3_activity, "rpc.method"));
+    }
+
+    private sealed class SuppressionAssertPipelineHandler : PipelineHandler
+    {
+        public override void InvokeSync(IExecutionContext executionContext)
+        {
+            Assert.True(Sdk.SuppressInstrumentation);
+        }
+
+        public override Task<T> InvokeAsync<T>(IExecutionContext executionContext)
+        {
+            Assert.True(Sdk.SuppressInstrumentation);
+            return Task.FromResult(default(T)!);
+        }
     }
 }
