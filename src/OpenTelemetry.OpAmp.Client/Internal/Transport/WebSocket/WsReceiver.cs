@@ -133,8 +133,9 @@ internal sealed class WsReceiver : IDisposable
         var workingBuffer = this.receiveBuffer;
 
         List<byte[]>? rentalBuffers = null;
-        bool continueRead = true;
-        bool isClosed = false;
+
+        bool continueRead;
+        bool isClosed;
 
         do
         {
@@ -172,7 +173,7 @@ internal sealed class WsReceiver : IDisposable
             {
                 StopReading(out continueRead, out isClosed);
             }
-            catch (Exception ex) when (ex is WebSocketException || ex is ObjectDisposedException)
+            catch (Exception ex) when (ex is WebSocketException or ObjectDisposedException)
             {
                 StopReading(out continueRead, out isClosed);
             }
@@ -189,7 +190,7 @@ internal sealed class WsReceiver : IDisposable
                         .CloseOutputAsync(WebSocketCloseStatus.MessageTooBig, "Message too large", CancellationToken.None)
                         .ConfigureAwait(false);
                 }
-                catch (Exception ex) when (ex is WebSocketException || ex is ObjectDisposedException)
+                catch (Exception ex) when (ex is WebSocketException or ObjectDisposedException)
                 {
                     OpAmpClientEventSource.Log.TransportCloseException(ex);
                 }

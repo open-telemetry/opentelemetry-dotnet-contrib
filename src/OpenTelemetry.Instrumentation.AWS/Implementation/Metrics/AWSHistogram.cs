@@ -29,7 +29,7 @@ internal sealed class AWSHistogram<T> : Histogram<T>
 #if NET
         this.histogram = HistogramsDictionary.GetOrAdd(
             name,
-            static (histogramName, state) => CreateHistogram(histogramName, state),
+            static (histogramName, state) => state.meter.CreateHistogram<T>(histogramName, state.units, state.description),
             (meter, units, description));
 #else
         this.histogram = HistogramsDictionary.GetOrAdd(
@@ -55,9 +55,4 @@ internal sealed class AWSHistogram<T> : Histogram<T>
             this.histogram.Record(value);
         }
     }
-
-    private static System.Diagnostics.Metrics.Histogram<T> CreateHistogram(
-        string name,
-        (System.Diagnostics.Metrics.Meter Meter, string? Units, string? Description) state)
-        => state.Meter.CreateHistogram<T>(name, state.Units, state.Description);
 }

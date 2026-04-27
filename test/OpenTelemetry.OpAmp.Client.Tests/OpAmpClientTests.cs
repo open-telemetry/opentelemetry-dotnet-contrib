@@ -69,11 +69,17 @@ public class OpAmpClientTests
 
         await client.StartAsync();
 
-        var disposeTask = Task.Run(() => client.Dispose());
-        var completedTask = await Task.WhenAny(disposeTask, Task.Delay(TimeSpan.FromSeconds(5)));
+        var disposeTask = Task.Run(client.Dispose);
+        var timeout = TimeSpan.FromSeconds(5);
 
+#if NET
+        await disposeTask.WaitAsync(timeout);
+#else
+        using var cts = new CancellationTokenSource(timeout);
+        var completedTask = await Task.WhenAny(disposeTask, Task.Delay(timeout, cts.Token));
         Assert.Same(disposeTask, completedTask);
         await disposeTask;
+#endif
     }
 
     [Fact]
@@ -171,7 +177,9 @@ public class OpAmpClientTests
     }
 
     [Theory]
+#pragma warning disable xUnit1044 // Avoid using TheoryData type arguments that are not serializable
     [ClassData(typeof(CapabilityTestData))]
+#pragma warning restore xUnit1044 // Avoid using TheoryData type arguments that are not serializable
     internal async Task SendsExpectedCapabilities(
         Action<OpAmpClientSettings> configure,
         IEnumerable<AgentCapabilities> expectedCapabilities,
