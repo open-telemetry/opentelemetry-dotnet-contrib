@@ -43,11 +43,14 @@ internal class TracingErrorHandler : IErrorHandler
 
         var activity = context.Activity ?? WcfInstrumentationActivitySource.ActivitySource.StartActivity(WcfInstrumentationActivitySource.UnassociatedExceptionActivityName, ActivityKind.Internal);
 
-        activity?.AddException(error);
-
-        if (activity != context.Activity)
+        if (activity != null)
         {
-            activity?.Stop();
+            activity.AddException(error);
+
+            if (activity != context.Activity)
+            {
+                activity.Stop();
+            }
         }
     }
 }
