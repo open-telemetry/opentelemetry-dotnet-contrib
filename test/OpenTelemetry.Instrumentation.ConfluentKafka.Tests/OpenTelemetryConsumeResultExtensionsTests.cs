@@ -80,7 +80,7 @@ public class OpenTelemetryConsumeResultExtensionsTests
     {
         var consumeResult = new ConsumeResult<string, string>
         {
-            Message = new Message<string, string> { Value = "v", Headers = new Headers() },
+            Message = new Message<string, string> { Value = "v", Headers = [] },
         };
 
         var result = consumeResult.TryExtractPropagationContext(out var propagationContext);
@@ -361,11 +361,6 @@ public class OpenTelemetryConsumeResultExtensionsTests
 
         public WatermarkOffsets QueryWatermarkOffsets(TopicPartition topicPartition, TimeSpan timeout) =>
             new(Offset.Unset, Offset.Unset);
-
-        public List<TopicPartitionOffset> OffsetsForTimes(
-            IEnumerable<TopicPartitionTimestamp> timestampsToSearch,
-            TimeSpan timeout,
-            bool requireStableOffsets) => [];
 
         public void Close()
         {

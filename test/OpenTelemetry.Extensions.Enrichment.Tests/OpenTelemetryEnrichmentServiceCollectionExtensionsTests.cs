@@ -128,22 +128,20 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
 
         await host.StartAsync();
 
-        using var source1 = new ActivitySource(SourceName);
+        using var source = new ActivitySource(SourceName);
+        using var activity = source.StartActivity(SourceName);
 
-        using (var activity = source1.StartActivity(SourceName))
-        {
-            Assert.NotNull(activity);
-            activity.Stop();
+        Assert.NotNull(activity);
+        activity.Stop();
 
-            Assert.Single(exportedItems);
+        Assert.Single(exportedItems);
 
-            var tagObjects = exportedItems[0].TagObjects;
-            var tagObject1 = tagObjects.Where(tag => tag.Key == testKey1);
-            Assert.Equal(testValue1, tagObject1.Single().Value);
+        var tagObjects = exportedItems[0].TagObjects;
+        var tagObject1 = tagObjects.Where(tag => tag.Key == testKey1);
+        Assert.Equal(testValue1, tagObject1.Single().Value);
 
-            var tagObject2 = tagObjects.Where(tag => tag.Key == testKey2);
-            Assert.Equal(testValue2, tagObject2.Single().Value);
-        }
+        var tagObject2 = tagObjects.Where(tag => tag.Key == testKey2);
+        Assert.Equal(testValue2, tagObject2.Single().Value);
     }
 
     [Fact]
@@ -204,7 +202,7 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
                     .AddInMemoryExporter(exportedItems))
                 .Services
                 .AddTraceEnricher(ThrowingEnrichmentAction)
-                .AddTraceEnricher((Action<TraceEnrichmentBag>)(bag => bag.Add(testKey, testValue))))
+                .AddTraceEnricher(bag => bag.Add(testKey, testValue)))
             .Build();
 
         await host.StartAsync();
@@ -326,10 +324,17 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
 
     private static EventSource GetEnrichmentEventSource()
     {
+#if NET
         var eventSourceType = typeof(TraceEnricher).Assembly.GetType("OpenTelemetry.Extensions.Enrichment.EnrichmentEventSource", throwOnError: true)!;
         return (EventSource)eventSourceType
             .GetField("Log", BindingFlags.Public | BindingFlags.Static)!
             .GetValue(null)!;
+#else
+        var eventSourceType = typeof(TraceEnricher).Assembly.GetType("OpenTelemetry.Extensions.Enrichment.EnrichmentEventSource", throwOnError: true);
+        return (EventSource)eventSourceType
+            .GetField("Log", BindingFlags.Public | BindingFlags.Static)
+            .GetValue(null);
+#endif
     }
 
     private sealed class ThrowingOnStartTraceEnricher : TraceEnricher

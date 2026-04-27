@@ -117,8 +117,10 @@ public class WsTransportTest
         await wsTransport.StartAsync(CancellationToken.None);
         await wsTransport.SendAsync(FrameGenerator.GenerateMockAgentFrame().Frame, CancellationToken.None);
 
-        Assert.True(thresholdReached.Wait(TimeSpan.FromSeconds(5)), "The server did not send enough bytes to exceed the transport limit.");
-        Assert.True(opAmpServer.TryGetClientCloseStatus(TimeSpan.FromSeconds(5), out var closeStatus));
+        var timeout = TimeSpan.FromSeconds(5);
+
+        Assert.True(thresholdReached.Wait(timeout), "The server did not send enough bytes to exceed the transport limit.");
+        Assert.True(opAmpServer.TryGetClientCloseStatus(timeout, out var closeStatus));
         Assert.Equal(WebSocketCloseStatus.MessageTooBig, closeStatus);
     }
 
@@ -195,8 +197,10 @@ public class WsTransportTest
         await wsTransport.StartAsync(CancellationToken.None);
         await wsTransport.SendAsync(FrameGenerator.GenerateMockAgentFrame().Frame, CancellationToken.None);
 
-        Assert.True(mockListener.TryWaitForMessage(TimeSpan.FromSeconds(5)), "The client did not receive the valid response after the invalid frame.");
-        await WaitForEventAsync(eventListener, nameof(OpAmpClientEventSource.InvalidWsFrame), TimeSpan.FromSeconds(5));
+        var timeout = TimeSpan.FromSeconds(5);
+
+        Assert.True(mockListener.TryWaitForMessage(timeout), "The client did not receive the valid response after the invalid frame.");
+        await WaitForEventAsync(eventListener, nameof(OpAmpClientEventSource.InvalidWsFrame), timeout);
 
 #if NET
         var receivedTextData = Encoding.UTF8.GetString(mockListener.Messages.Single().Data);
@@ -304,6 +308,8 @@ public class WsTransportTest
     [Fact]
     public async Task WsTransport_LogsOversizedResponseWarning()
     {
+        var timeout = TimeSpan.FromSeconds(5);
+
         using var eventListener = new InMemoryEventListener(OpAmpClientEventSource.Log, EventLevel.Verbose);
 
         var oversizedFrame = FrameGenerator.GenerateMockServerFrameOfTotalSize(TransportConstants.MaxMessageSize + 1, addHeader: true);
@@ -315,10 +321,10 @@ public class WsTransportTest
         await wsTransport.StartAsync(CancellationToken.None);
         await wsTransport.SendAsync(FrameGenerator.GenerateMockAgentFrame().Frame, CancellationToken.None);
 
-        Assert.True(opAmpServer.TryGetClientCloseStatus(TimeSpan.FromSeconds(5), out var closeStatus));
+        Assert.True(opAmpServer.TryGetClientCloseStatus(timeout, out var closeStatus));
         Assert.Equal(WebSocketCloseStatus.MessageTooBig, closeStatus);
 
-        var oversizedEvent = await WaitForEventAsync(eventListener, nameof(OpAmpClientEventSource.OversizedWebSocketMessage), TimeSpan.FromSeconds(5));
+        var oversizedEvent = await WaitForEventAsync(eventListener, nameof(OpAmpClientEventSource.OversizedWebSocketMessage), timeout);
         Assert.Equal(EventLevel.Warning, oversizedEvent.Level);
         Assert.Equal(TransportConstants.MaxMessageSize + 1, Assert.IsType<int>(oversizedEvent.Payload![0]));
         Assert.Equal(TransportConstants.MaxMessageSize, Assert.IsType<int>(oversizedEvent.Payload![1]));
@@ -343,7 +349,8 @@ public class WsTransportTest
         // Use a URI that accepts the TCP connection but never completes the WebSocket handshake
         // so that ConnectAsync is still in-flight when we cancel.
         var tcpListener = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Loopback, 0);
-        Task acceptTask = Task.CompletedTask;
+        var acceptTask = Task.CompletedTask;
+
         try
         {
             tcpListener.Start();
@@ -377,7 +384,7 @@ public class WsTransportTest
             // .NET Framework throws WebSocketException instead of OperationCanceledException on cancellation.
             var startException = await Record.ExceptionAsync(() => startTask);
             Assert.True(
-                startException is OperationCanceledException || startException is WebSocketException,
+                startException is OperationCanceledException or WebSocketException,
                 $"Expected OperationCanceledException or WebSocketException, but got: {startException?.GetType().Name ?? "null"}");
 
             // After a canceled start the transport is permanently failed; a second call must
@@ -444,12 +451,18 @@ public class WsTransportTest
             await wsTransport.StartAsync(CancellationToken.None);
 
             var stopTask = wsTransport.StopAsync(CancellationToken.None);
-            var completedTask = await Task.WhenAny(stopTask, Task.Delay(TimeSpan.FromSeconds(5)));
+            var timeout = TimeSpan.FromSeconds(5);
 
-            Assert.Same(stopTask, completedTask);
+#if NET
+            await stopTask.WaitAsync(timeout);
+#else
+            using var cts = new CancellationTokenSource(timeout);
+            var completedTask = await Task.WhenAny(stopTask, Task.Delay(timeout, cts.Token));
+            Assert.Same(completedTask, completedTask);
             await stopTask;
+#endif
 
-            Assert.True(opAmpServer.TryGetClientCloseStatus(TimeSpan.FromSeconds(5), out var closeStatus), "The server did not observe the client close frame.");
+            Assert.True(opAmpServer.TryGetClientCloseStatus(timeout, out var closeStatus), "The server did not observe the client close frame.");
             Assert.Equal(WebSocketCloseStatus.NormalClosure, closeStatus);
         }
         finally
@@ -469,13 +482,19 @@ public class WsTransportTest
         var wsTransport = CreateTransport(opAmpServer.Endpoint, new FrameProcessor());
         await wsTransport.StartAsync(CancellationToken.None);
 
-        var disposeTask = Task.Run(() => wsTransport.Dispose());
-        var completedTask = await Task.WhenAny(disposeTask, Task.Delay(TimeSpan.FromSeconds(5)));
+        var disposeTask = Task.Run(wsTransport.Dispose);
+        var timeout = TimeSpan.FromSeconds(5);
 
         try
         {
-            Assert.Same(disposeTask, completedTask);
+#if NET
+            await disposeTask.WaitAsync(timeout);
+#else
+            using var cts = new CancellationTokenSource(timeout);
+            var completedTask = await Task.WhenAny(disposeTask, Task.Delay(timeout, cts.Token));
+            Assert.Same(completedTask, completedTask);
             await disposeTask;
+#endif
         }
         finally
         {
@@ -486,6 +505,8 @@ public class WsTransportTest
     [Fact]
     public async Task WsTransport_DisposeCompletesWithoutStopAfterOutstandingSend()
     {
+        var timeout = TimeSpan.FromSeconds(5);
+
         using var responseBlocked = new ManualResetEventSlim();
         using var requestSeen = new ManualResetEventSlim();
 
@@ -500,15 +521,20 @@ public class WsTransportTest
         using var wsTransport = CreateTransport(opAmpServer.Endpoint, new FrameProcessor());
         await wsTransport.StartAsync(CancellationToken.None);
         await wsTransport.SendAsync(FrameGenerator.GenerateMockAgentFrame().Frame, CancellationToken.None);
-        Assert.True(requestSeen.Wait(TimeSpan.FromSeconds(5)), "The server did not receive the client request.");
+        Assert.True(requestSeen.Wait(timeout), "The server did not receive the client request.");
 
-        var disposeTask = Task.Run(() => wsTransport.Dispose());
-        var completedTask = await Task.WhenAny(disposeTask, Task.Delay(TimeSpan.FromSeconds(5)));
+        var disposeTask = Task.Run(wsTransport.Dispose);
 
         try
         {
-            Assert.Same(disposeTask, completedTask);
+#if NET
+            await disposeTask.WaitAsync(timeout);
+#else
+            using var cts = new CancellationTokenSource(timeout);
+            var completedTask = await Task.WhenAny(disposeTask, Task.Delay(timeout, cts.Token));
+            Assert.Same(completedTask, completedTask);
             await disposeTask;
+#endif
         }
         finally
         {
@@ -589,8 +615,12 @@ public class WsTransportTest
         }
     }
 
-    private static ArraySegment<byte> Slice(ArraySegment<byte> segment, int offset, int count)
-        => new(segment.Array!, segment.Offset + offset, count);
+    private static ArraySegment<byte> Slice(ArraySegment<byte> segment, int offset, int count) =>
+#if NET
+        new(segment.Array!, segment.Offset + offset, count);
+#else
+        new(segment.Array, segment.Offset + offset, count);
+#endif
 
     private static async Task<EventWrittenEventArgs> WaitForEventAsync(InMemoryEventListener eventListener, string eventName, TimeSpan timeout)
     {
