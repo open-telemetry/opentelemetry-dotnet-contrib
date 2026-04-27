@@ -211,7 +211,11 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
 
             if (topicArn is string arn && TryGetLastSplitItem(arn, ':', out var topicName))
             {
+#if NET
+                this.awsSemanticConventions.TagBuilder.SetTagAttributeMessagingDestinationName(activity, topicName);
+#else
                 this.awsSemanticConventions.TagBuilder.SetTagAttributeMessagingDestinationName(activity, topicName!);
+#endif
             }
 
             var operationName = AWSServiceHelper.GetAWSOperationName(requestContext);
@@ -236,7 +240,11 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
 
                 if (uri.GetLeftPart(UriPartial.Path) is { Length: > 0 } path && TryGetLastSplitItem(path, '/', out var queueName))
                 {
+#if NET
+                    this.awsSemanticConventions.TagBuilder.SetTagAttributeMessagingDestinationName(activity, queueName);
+#else
                     this.awsSemanticConventions.TagBuilder.SetTagAttributeMessagingDestinationName(activity, queueName!);
+#endif
                 }
             }
 
@@ -267,9 +275,13 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
             out string? lastItem)
         {
             lastItem = null;
-            bool result = false;
+            var result = false;
 
-            int index = value.LastIndexOf(delimiter);
+#if NET11_0_OR_GREATER
+            var index = value.LastIndexOf(delimiter, StringComparison.Ordinal);
+#else
+            var index = value.LastIndexOf(delimiter);
+#endif
 
             if (index > -1 && index < value.Length - 1)
             {
