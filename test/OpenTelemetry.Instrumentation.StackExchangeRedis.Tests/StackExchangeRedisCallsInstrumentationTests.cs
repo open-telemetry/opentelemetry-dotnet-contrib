@@ -18,7 +18,7 @@ namespace OpenTelemetry.Instrumentation.StackExchangeRedis.Tests;
 [Trait("CategoryName", "RedisIntegrationTests")]
 public class StackExchangeRedisCallsInstrumentationTests(RedisXunitFixture fixture) : IClassFixture<RedisXunitFixture>
 {
-    private readonly string connectionString = fixture.DatabaseContainer.GetConnectionString();
+    private readonly string connectionString = fixture.TypedContainer.GetConnectionString();
 
     [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
     [InlineData("value1")]
@@ -157,11 +157,60 @@ public class StackExchangeRedisCallsInstrumentationTests(RedisXunitFixture fixtu
 
         if (emitNewAttributes)
         {
-            VerifyNewActivityData(exportedItems[0], true, endpoint);
-            VerifyNewActivityData(exportedItems[1], false, endpoint);
+            VerifyNewActivityData(exportedItems[0], true, endpoint, setCommandKey: false);
+            VerifyNewActivityData(exportedItems[1], false, endpoint, setCommandKey: false);
 
             // TODO VerifySamplingParameters(sampler.LatestSamplingParameters);
         }
+    }
+
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
+    public void SuccessfulCommandWithVerboseStatementsEmitsDetailedNewAttributes()
+    {
+        using var scope = SemanticConventionScope.Get(DatabaseSemanticConventionHelper.DatabaseSemanticConvention.New);
+
+        var connectionOptions = new ConfigurationOptions
+        {
+            AbortOnConnectFail = true,
+        };
+        connectionOptions.EndPoints.Add(this.connectionString);
+
+        ConnectionMultiplexer? connection = null;
+        var exportedItems = new List<Activity>();
+        using (Sdk.CreateTracerProviderBuilder()
+            .ConfigureServices(services =>
+            {
+                services.TryAddSingleton<IConnectionMultiplexer>(sp =>
+                {
+                    return connection = ConnectionMultiplexer.Connect(connectionOptions);
+                });
+            })
+            .AddInMemoryExporter(exportedItems)
+            .AddRedisInstrumentation(options =>
+            {
+                options.SetVerboseDatabaseStatements = true;
+            })
+            .Build())
+        {
+            Assert.NotNull(connection);
+
+            var db = connection.GetDatabase();
+
+            var set = db.StringSet("key1", "value1", TimeSpan.FromSeconds(60));
+
+            Assert.True(set);
+
+            var redisValue = db.StringGet("key1");
+
+            Assert.True(redisValue.HasValue);
+            Assert.Equal("value1", redisValue.ToString());
+        }
+
+        Assert.Equal(2, exportedItems.Count);
+
+        var endpoint = connection.GetEndPoints()[0];
+        VerifyNewActivityData(exportedItems[0], true, endpoint, setCommandKey: true);
+        VerifyNewActivityData(exportedItems[1], false, endpoint, setCommandKey: true);
     }
 
     [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
@@ -482,17 +531,17 @@ public class StackExchangeRedisCallsInstrumentationTests(RedisXunitFixture fixtu
         VerifyEndPoint(activity, endPoint);
     }
 
-    private static void VerifyNewActivityData(Activity activity, bool isSet, EndPoint endPoint)
+    private static void VerifyNewActivityData(Activity activity, bool isSet, EndPoint endPoint, bool setCommandKey)
     {
         var displayName = "SETEX";
         var dbOperationName = "SETEX";
-        var dbQueryText = "SETEX key1";
+        var dbQueryText = setCommandKey ? "SETEX key1" : "SETEX";
 
         if (!isSet)
         {
             displayName = "GET";
             dbOperationName = "GET";
-            dbQueryText = "GET key1";
+            dbQueryText = setCommandKey ? "GET key1" : "GET";
         }
 
         Assert.Equal(displayName, activity.DisplayName);

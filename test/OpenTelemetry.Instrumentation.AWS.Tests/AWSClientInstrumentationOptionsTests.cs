@@ -22,6 +22,35 @@ namespace OpenTelemetry.Instrumentation.AWS.Tests;
 /// </summary>
 public sealed class AWSClientInstrumentationOptionsTests
 {
+    public static TheoryData<SemanticConventionVersion> SemanticConventionVersions()
+    {
+        var testCases = new TheoryData<SemanticConventionVersion>();
+
+#if NET
+        var values = Enum.GetValues<SemanticConventionVersion>();
+#else
+        var values = Enum.GetValues(typeof(SemanticConventionVersion)).OfType<SemanticConventionVersion>();
+#endif
+
+        foreach (var value in values)
+        {
+            testCases.Add(value);
+        }
+
+        return testCases;
+    }
+
+    [Theory]
+    [MemberData(nameof(SemanticConventionVersions))]
+    public async Task CanUseSemanticConvention(SemanticConventionVersion semanticVersion)
+    {
+        // Act - Verify that when new versions are added to the enum, no exceptions are thrown
+        var exception = await Record.ExceptionAsync(async () => await this.GetActivityTagsAsync(semanticVersion));
+
+        // Assert
+        Assert.Null(exception);
+    }
+
     [Fact]
     public async Task CanUseSemanticConvention_V1_28_0()
     {
@@ -48,24 +77,22 @@ public sealed class AWSClientInstrumentationOptionsTests
     {
         var exportedItems = new List<Activity>();
 
-        var parent = new Activity("parent").Start();
+        using var parent = new Activity("parent").Start();
         var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+        var extendedRequestId = @"wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
 
         try
         {
             using (Sdk.CreateTracerProviderBuilder()
-                       .AddXRayTraceId()
-                       .SetSampler(new AlwaysOnSampler())
-                       .AddAWSInstrumentation(o =>
-                       {
-                           o.SemanticConventionVersion = semVersion;
-                       })
-                       .AddInMemoryExporter(exportedItems)
-                       .Build())
+                      .AddXRayTraceId()
+                      .SetSampler(new AlwaysOnSampler())
+                      .AddAWSInstrumentation(o => o.SemanticConventionVersion = semVersion)
+                      .AddInMemoryExporter(exportedItems)
+                      .Build())
             {
                 var client = new AmazonBedrockRuntimeClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
                 var dummyResponse = "{}";
-                CustomResponses.SetResponse(client, dummyResponse, requestId, true);
+                CustomResponses.SetResponse(client, dummyResponse, requestId, extendedRequestId, true);
                 var invokeModelRequest = new InvokeModelRequest { ModelId = "amazon.titan-text-express-v1" };
 
 #if NETFRAMEWORK

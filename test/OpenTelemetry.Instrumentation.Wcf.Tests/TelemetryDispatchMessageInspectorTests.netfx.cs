@@ -286,6 +286,64 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
             Assert.Empty(recordedExceptions);
         }
     }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task FilteredIncomingRequestDoesNotRecordException(bool throwFromFilter)
+    {
+        List<Activity> startedActivities = [];
+        List<Activity> stoppedActivities = [];
+        List<Exception> recordedExceptions = [];
+
+        using var activityListener = new ActivityListener
+        {
+            ShouldListenTo = _ => true,
+            ActivityStarted = startedActivities.Add,
+            ActivityStopped = stoppedActivities.Add,
+        };
+
+        activityListener.ExceptionRecorder += (activity, ex, ref tags) =>
+        {
+            recordedExceptions.Add(ex);
+        };
+
+        ActivitySource.AddActivityListener(activityListener);
+
+        var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddWcfInstrumentation(options =>
+            {
+                options.RecordException = true;
+                options.IncomingRequestFilter = throwFromFilter
+                    ? _ => throw new InvalidOperationException("Failure whilst filtering activity")
+                    : _ => false;
+            })
+            .Build();
+
+        var client = new ServiceClient(
+            new NetTcpBinding(),
+            new EndpointAddress(new Uri(this.serviceBaseUri, "/Service")));
+        try
+        {
+            await client.ErrorAsync();
+        }
+        catch (Exception)
+        {
+            // Ignore
+        }
+        finally
+        {
+            client.AbortOrClose();
+            tracerProvider?.Shutdown();
+            tracerProvider?.Dispose();
+
+            WcfInstrumentationActivitySource.Options = null;
+        }
+
+        Assert.Empty(startedActivities);
+        Assert.Empty(stoppedActivities);
+        Assert.Empty(recordedExceptions);
+    }
 }
 
 #endif

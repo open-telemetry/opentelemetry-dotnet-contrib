@@ -16,7 +16,7 @@ public class TestAWSXRaySamplerClient : IDisposable
     {
         this.requestHandler = new MockServerRequestHandler();
         this.mockServer = TestHttpServer.RunServer(
-            ctx => this.requestHandler.Handle(ctx),
+            this.requestHandler.Handle,
             out var host,
             out var port);
         this.client = new AWSXRaySamplerClient($"http://{host}:{port}");
@@ -161,6 +161,30 @@ public class TestAWSXRaySamplerClient : IDisposable
         var targetsResponse = await this.client.GetSamplingTargets(request);
 
         Assert.Null(targetsResponse);
+    }
+
+    [Fact]
+    public async Task TestGetSamplingTargetsWithMissingCollections()
+    {
+        var clock = new TestClock();
+        this.requestHandler.SetResponse("/SamplingTargets", "{\"LastRuleModification\":1530920505.0}");
+
+        var request = new GetSamplingTargetsRequest(
+        [
+            new(
+                "clientId",
+                "rule1",
+                100,
+                50,
+                10,
+                clock.ToDouble(clock.Now())),
+        ]);
+
+        var targetsResponse = await this.client.GetSamplingTargets(request);
+
+        Assert.NotNull(targetsResponse);
+        Assert.Empty(targetsResponse.SamplingTargetDocuments);
+        Assert.Empty(targetsResponse.UnprocessedStatistics);
     }
 
     [Fact]

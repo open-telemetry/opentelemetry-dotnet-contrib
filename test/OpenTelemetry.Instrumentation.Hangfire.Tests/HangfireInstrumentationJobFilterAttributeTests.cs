@@ -3,7 +3,15 @@
 
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
+using System.Text.Json;
 using Hangfire;
+using Hangfire.Common;
+using Hangfire.MemoryStorage;
+using Hangfire.Server;
+using Hangfire.States;
+using Hangfire.Storage;
+using OpenTelemetry.Context.Propagation;
+using OpenTelemetry.Instrumentation.Hangfire.Implementation;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -222,6 +230,57 @@ public class HangfireInstrumentationJobFilterAttributeTests
         Assert.Equal(shouldRecord, activity.ActivityTraceFlags.HasFlag(ActivityTraceFlags.Recorded));
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void OnPerforming_When_Filter_Suppresses_Activity_Should_Dispose_Activity_And_Restore_Parent(bool throwInFilter)
+    {
+        var startedActivities = 0;
+        var stoppedActivities = 0;
+
+        using var listener = new ActivityListener
+        {
+            ShouldListenTo = _ => true,
+            Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
+            SampleUsingParentId = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
+            ActivityStarted = activity =>
+            {
+                if (activity.Source.Name == HangfireInstrumentation.ActivitySourceName)
+                {
+                    startedActivities++;
+                }
+            },
+            ActivityStopped = activity =>
+            {
+                if (activity.Source.Name == HangfireInstrumentation.ActivitySourceName)
+                {
+                    stoppedActivities++;
+                }
+            },
+        };
+        ActivitySource.AddActivityListener(listener);
+
+        using var parentSource = new ActivitySource(nameof(HangfireInstrumentationJobFilterAttributeTests));
+        using var parentActivity = parentSource.StartActivity("parent");
+        Assert.NotNull(parentActivity);
+
+        var storage = new MemoryStorage();
+        using var connection = storage.GetConnection();
+
+        var filter = new HangfireInstrumentationJobFilterAttribute(new HangfireInstrumentationOptions
+        {
+            Filter = throwInFilter ? _ => throw new InvalidOperationException("Filter throws exception") : _ => false,
+        });
+        var performingContext = CreatePerformingContext(storage, connection);
+
+        filter.OnPerforming(performingContext);
+
+        Assert.Same(parentActivity, Activity.Current);
+        Assert.False(performingContext.Items.ContainsKey(HangfireInstrumentationConstants.ActivityKey));
+        Assert.Equal(1, startedActivities);
+        Assert.Equal(1, stoppedActivities);
+    }
+
     [Fact]
     public async Task Should_Not_Inject_Invalid_Context()
     {
@@ -245,6 +304,110 @@ public class HangfireInstrumentationJobFilterAttributeTests
 
         // Assert
         Assert.All(listener.Messages, args => Assert.NotEqual("FailedToInjectActivityContext", args.EventName));
+    }
+
+    [Fact]
+    public void OnPerforming_Should_Apply_Job_Baggage_And_OnPerformed_Should_Restore_Previous_Baggage()
+    {
+        using var listener = CreateHangfireActivityListener();
+        var storage = new MemoryStorage();
+        using var connection = storage.GetConnection();
+
+        var filter = new HangfireInstrumentationJobFilterAttribute(new HangfireInstrumentationOptions());
+        var performingContext = CreatePerformingContext(storage, connection);
+        var previousBaggage = Baggage.Create(new Dictionary<string, string>
+        {
+            ["previous-key"] = "previous-value",
+        });
+        var originalPropagator = Propagators.DefaultTextMapPropagator;
+
+        Baggage.Current = previousBaggage;
+        Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([new TraceContextPropagator(), new BaggagePropagator()]));
+
+        var activityContextData = new Dictionary<string, string>();
+        Propagators.DefaultTextMapPropagator.Inject(
+             new PropagationContext(
+                 new ActivityContext(ActivityTraceId.CreateRandom(), ActivitySpanId.CreateRandom(), ActivityTraceFlags.Recorded),
+                 Baggage.Create(new Dictionary<string, string>
+                 {
+                     ["job-key"] = "job-value",
+                 })),
+             activityContextData,
+             static (jobParams, key, value) => jobParams[key] = value);
+        connection.SetJobParameter(
+            performingContext.BackgroundJob.Id,
+            HangfireInstrumentationConstants.ActivityContextKey,
+            JsonSerializer.Serialize(activityContextData));
+
+        try
+        {
+            filter.OnPerforming(performingContext);
+
+            Assert.Equal("job-value", Baggage.Current.GetBaggage("job-key"));
+            Assert.Null(Baggage.Current.GetBaggage("previous-key"));
+
+            filter.OnPerformed(new PerformedContext(performingContext, null, false, null));
+
+            Assert.Equal("previous-value", Baggage.Current.GetBaggage("previous-key"));
+            Assert.Null(Baggage.Current.GetBaggage("job-key"));
+        }
+        finally
+        {
+            Baggage.Current = default;
+            Sdk.SetDefaultTextMapPropagator(originalPropagator);
+        }
+    }
+
+    [Fact]
+    public void OnPerforming_Without_Propagation_Context_Should_Clear_Baggage_During_The_Job_And_Restore_It_Afterward()
+    {
+        using var listener = CreateHangfireActivityListener();
+        var storage = new MemoryStorage();
+        using var connection = storage.GetConnection();
+
+        var filter = new HangfireInstrumentationJobFilterAttribute(new HangfireInstrumentationOptions());
+        var performingContext = CreatePerformingContext(storage, connection);
+        var previousBaggage = Baggage.Create(new Dictionary<string, string>
+        {
+            ["previous-key"] = "previous-value",
+        });
+        Baggage.Current = previousBaggage;
+
+        try
+        {
+            filter.OnPerforming(performingContext);
+
+            Assert.Equal(0, Baggage.Current.Count);
+
+            filter.OnPerformed(new PerformedContext(performingContext, null, false, null));
+
+            Assert.Equal("previous-value", Baggage.Current.GetBaggage("previous-key"));
+        }
+        finally
+        {
+            Baggage.Current = default;
+        }
+    }
+
+    private static ActivityListener CreateHangfireActivityListener()
+    {
+        var listener = new ActivityListener
+        {
+            ShouldListenTo = activitySource => activitySource.Name == HangfireInstrumentation.ActivitySourceName,
+            Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
+            SampleUsingParentId = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
+        };
+
+        ActivitySource.AddActivityListener(listener);
+        return listener;
+    }
+
+    private static PerformingContext CreatePerformingContext(JobStorage storage, IStorageConnection connection)
+    {
+        var client = new BackgroundJobClient(storage);
+        var jobId = client.Create(Job.FromExpression<TestJob>(x => x.Execute()), new EnqueuedState());
+        var backgroundJob = new BackgroundJob(jobId, Job.FromExpression<TestJob>(x => x.Execute()), DateTime.UtcNow);
+        return new PerformingContext(new PerformContext(storage, connection, backgroundJob, new StubJobCancellationToken()));
     }
 
     private class OpenTelemetryEventListener : EventListener
@@ -299,6 +462,15 @@ public class HangfireInstrumentationJobFilterAttributeTests
                 this.events.Enqueue(eventData);
                 this.eventWritten.Set();
             }
+        }
+    }
+
+    private sealed class StubJobCancellationToken : IJobCancellationToken
+    {
+        public CancellationToken ShutdownToken => CancellationToken.None;
+
+        public void ThrowIfCancellationRequested()
+        {
         }
     }
 }

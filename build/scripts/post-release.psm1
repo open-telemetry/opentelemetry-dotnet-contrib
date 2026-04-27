@@ -251,7 +251,6 @@ function CreatePackageValidationBaselineVersionUpdatePullRequest {
   UpdateCommonPropsVersion -tagPrefix $tagPrefix -version $version -propertyName 'Instrumentation.AspNetCore-' -propertyDisplayName 'OpenTelemetryInstrumentationAspNetCoreLatestStableVersion'
   UpdateCommonPropsVersion -tagPrefix $tagPrefix -version $version -propertyName 'Instrumentation.Http-' -propertyDisplayName 'OpenTelemetryInstrumentationHttpLatestStableVersion'
   UpdateCommonPropsVersion -tagPrefix $tagPrefix -version $version -propertyName 'Instrumentation.Runtime-' -propertyDisplayName 'OpenTelemetryInstrumentationRuntimeLatestStableVersion'
-  UpdateCommonPropsVersion -tagPrefix $tagPrefix -version $version -propertyName 'Extensions.Enrichment-' -propertyDisplayName 'OpenTelemetryEnrichmentUnstableLatestVersion'
 
   git push -u origin $branch 2>&1 | % ToString
   if ($LASTEXITCODE -gt 0)
