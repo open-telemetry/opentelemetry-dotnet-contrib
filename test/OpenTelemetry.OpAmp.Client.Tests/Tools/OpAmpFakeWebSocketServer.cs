@@ -3,6 +3,7 @@
 
 using System.Buffers;
 using System.Collections.Concurrent;
+using System.Collections.Specialized;
 using System.Net.WebSockets;
 using OpAmp.Proto.V1;
 using OpenTelemetry.OpAmp.Client.Internal.Utils;
@@ -14,13 +15,26 @@ internal class OpAmpFakeWebSocketServer : IDisposable
 {
     private readonly IDisposable httpServer;
     private readonly BlockingCollection<AgentToServer> frames = [];
+    private readonly BlockingCollection<NameValueCollection> requestHeaders = [];
+    private readonly BlockingCollection<WebSocketCloseStatus?> clientCloseStatuses = [];
     private readonly CancellationTokenSource cts = new();
 
     public OpAmpFakeWebSocketServer(bool useSmallPackets)
+        : this((frame, socket, token) =>
+        {
+            var response = GenerateResponse(frame, useSmallPackets);
+            return socket.SendAsync(response, WebSocketMessageType.Binary, true, token);
+        })
+    {
+    }
+
+    public OpAmpFakeWebSocketServer(Func<AgentToServer, WebSocket, CancellationToken, Task> responseHandler)
     {
         this.httpServer = TestWebSocketServer.RunServer(
-            async socket =>
+            async (context, socket) =>
             {
+                this.requestHeaders.Add(context.Request.Headers);
+
                 var buffer = new byte[8 * 1024];
                 using var ms = new MemoryStream();
 
@@ -32,7 +46,8 @@ internal class OpAmpFakeWebSocketServer : IDisposable
 
                         if (result.MessageType == WebSocketMessageType.Close)
                         {
-                            await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed by server", this.cts.Token);
+                            this.clientCloseStatuses.Add(result.CloseStatus);
+                            await socket.CloseAsync(result.CloseStatus ?? WebSocketCloseStatus.NormalClosure, result.CloseStatusDescription, this.cts.Token);
 
                             break;
                         }
@@ -47,16 +62,33 @@ internal class OpAmpFakeWebSocketServer : IDisposable
                             var frame = ProcessReceive(ms);
                             this.frames.Add(frame);
 
-                            var response = GenerateResponse(frame, useSmallPackets);
-                            await socket.SendAsync(response, WebSocketMessageType.Binary, true, this.cts.Token).ConfigureAwait(false);
+                            await responseHandler(frame, socket, this.cts.Token).ConfigureAwait(false);
                         }
                     }
+                }
+                catch (OperationCanceledException)
+                {
+                }
+                catch (WebSocketException)
+                {
+                    // The peer may abort the socket during disposal.
+                }
+                catch (ObjectDisposedException)
+                {
+                    // The peer may abort the socket during disposal.
                 }
                 finally
                 {
                     if (socket.State is WebSocketState.Open or WebSocketState.CloseReceived)
                     {
-                        await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Server disposed", this.cts.Token);
+                        try
+                        {
+                            await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Server disposed", CancellationToken.None);
+                        }
+                        catch (WebSocketException)
+                        {
+                            // The peer may have already closed or aborted the connection.
+                        }
                     }
                 }
             },
@@ -70,6 +102,12 @@ internal class OpAmpFakeWebSocketServer : IDisposable
 
     public IReadOnlyCollection<AgentToServer> GetFrames()
         => [.. this.frames];
+
+    public IReadOnlyCollection<NameValueCollection> GetRequestHeaders()
+        => [.. this.requestHeaders];
+
+    public bool TryGetClientCloseStatus(TimeSpan timeout, out WebSocketCloseStatus? closeStatus)
+        => this.clientCloseStatuses.TryTake(out closeStatus, (int)timeout.TotalMilliseconds);
 
     public void Dispose()
     {

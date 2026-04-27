@@ -84,6 +84,29 @@ permissions:
 jobs:
   automation:
     uses: ./.github/workflows/automation.yml
+
+    # Partial combination of simplified child jobs condition to avoid running jobs at all
+    if: |
+      github.event_name == 'workflow_dispatch'
+      ||
+      (
+        github.event_name == 'pull_request' &&
+        github.event.action == 'closed' &&
+        github.event.pull_request.merged == true &&
+        startsWith(github.event.pull_request.title, '[release] Prepare release ')
+      )
+      ||
+      (
+        github.event_name == 'issue_comment' &&
+        github.event.issue.pull_request &&
+        startsWith(github.event.issue.title, '[release] Prepare release ')
+      )
+      ||
+      (
+        startsWith(github.event.issue.title, '[release request] ') &&
+        github.event.issue.pull_request == null
+      )
+
     secrets:
       OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY: ${{ secrets.OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY }}
 
@@ -98,7 +121,7 @@ jobs:
     - uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
       id: otelbot-token
       with:
-        app-id: ${{ vars.OTELBOT_DOTNET_CONTRIB_APP_ID }}
+        client-id: ${{ vars.OTELBOT_DOTNET_CONTRIB_APP_ID }}
         private-key: ${{ secrets.OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY }}
         permission-contents: write
         permission-pull-requests: write
@@ -148,7 +171,7 @@ jobs:
     - uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
       id: otelbot-token
       with:
-        app-id: ${{ vars.OTELBOT_DOTNET_CONTRIB_APP_ID }}
+        client-id: ${{ vars.OTELBOT_DOTNET_CONTRIB_APP_ID }}
         private-key: ${{ secrets.OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY }}
         permission-contents: read
         permission-pull-requests: write
@@ -191,7 +214,7 @@ jobs:
     - uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
       id: otelbot-token
       with:
-        app-id: ${{ vars.OTELBOT_DOTNET_CONTRIB_APP_ID }}
+        client-id: ${{ vars.OTELBOT_DOTNET_CONTRIB_APP_ID }}
         private-key: ${{ secrets.OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY }}
         permission-contents: write
         permission-pull-requests: write
@@ -241,7 +264,7 @@ jobs:
     - uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
       id: otelbot-token
       with:
-        app-id: ${{ vars.OTELBOT_DOTNET_CONTRIB_APP_ID }}
+        client-id: ${{ vars.OTELBOT_DOTNET_CONTRIB_APP_ID }}
         private-key: ${{ secrets.OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY }}
         permission-contents: write
         permission-pull-requests: write
@@ -296,7 +319,7 @@ jobs:
     - uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
       id: otelbot-token
       with:
-        app-id: ${{ vars.OTELBOT_DOTNET_CONTRIB_APP_ID }}
+        client-id: ${{ vars.OTELBOT_DOTNET_CONTRIB_APP_ID }}
         private-key: ${{ secrets.OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY }}
         permission-contents: write
         permission-issues: write
@@ -315,6 +338,7 @@ jobs:
         BOT_USER_NAME: ${{ needs.automation.outputs.username }}
         ISSUE_BODY: ${{ github.event.issue.body }}
         ISSUE_NUMBER: ${{ github.event.issue.number }}
+        ISSUE_TITLE: ${{ github.event.issue.title }}
         REQUESTOR_USER_NAME: ${{ github.event.comment.user.login || github.event.sender.login }}
         TARGET_BRANCH: ${{ github.event.repository.default_branch }}
       run: |
@@ -328,5 +352,6 @@ jobs:
           -requestedByUserName ${env:REQUESTOR_USER_NAME} `
           -issueNumber ${env:ISSUE_NUMBER} `
           -issueBody ${env:ISSUE_BODY} `
+          -issueTitle ${env:ISSUE_TITLE} `
           -gitUserName ${env:BOT_USER_NAME} `
           -gitUserEmail ${env:BOT_USER_EMAIL}

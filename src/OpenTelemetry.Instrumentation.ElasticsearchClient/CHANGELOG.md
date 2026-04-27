@@ -2,8 +2,15 @@
 
 ## Unreleased
 
-* Updated OpenTelemetry core component version(s) to `1.15.2`.
-  ([#4080](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4080))
+* Update `System.Text.Json` for `netstandard2.0` and `net8.0` to `8.0.5`.
+  ([#4154](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4154))
+
+## 1.15.1-beta.1
+
+Released 2026-Apr-21
+
+* Updated OpenTelemetry core component version(s) to `1.15.3`.
+  ([#4166](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4166))
 
 ## 1.15.0-beta.1
 

@@ -18,8 +18,7 @@
     <PackageReference Include="OpenTelemetry" />
   </ItemGroup>
 
-  <!-- Upgrade transitive references to resolve NuGet Audit warnings -->
-  <ItemGroup>
+  <ItemGroup Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net9.0'))">
     <PackageReference Include="System.Text.Json" />
   </ItemGroup>
 

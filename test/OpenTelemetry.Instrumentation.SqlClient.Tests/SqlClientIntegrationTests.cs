@@ -275,5 +275,5 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
     }
 
     private string GetConnectionString()
-        => this.fixture.DatabaseContainer.GetConnectionString();
+        => this.fixture.TypedContainer.GetConnectionString();
 }

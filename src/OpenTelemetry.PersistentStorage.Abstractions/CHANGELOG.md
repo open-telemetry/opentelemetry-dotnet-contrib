@@ -9,6 +9,10 @@
   Obsoletes `byte[]` buffers in the API.
   ([#4128](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4128))
 
+## 1.0.3
+
+Released 2026-Apr-21
+
 ## 1.0.2
 
 Released 2025-Nov-13

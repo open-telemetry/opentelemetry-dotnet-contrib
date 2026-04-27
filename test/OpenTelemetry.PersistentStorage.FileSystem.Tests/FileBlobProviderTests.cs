@@ -83,7 +83,7 @@ public class FileBlobProviderTests
         var data = Encoding.UTF8.GetBytes("Hello, World!");
         Assert.True(blobProvider.TryCreateBlob(data.AsSpan(), out var blob));
 
-        // Wait for rentention deadline to expire
+        // Wait for retention deadline to expire
         Thread.Sleep(2000);
         var retentionDeadline = DateTime.UtcNow - TimeSpan.FromMilliseconds(retentionPeriodInMilliseconds);
         PersistentStorageHelper.RemoveExpiredBlob(retentionDeadline, ((FileBlob)blob).FullPath);
