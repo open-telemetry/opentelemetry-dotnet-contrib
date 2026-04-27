@@ -20,6 +20,10 @@
 * BREAKING: Update latest AWS Semantic Conventions to 1.40.0.
   ([#4043](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4043))
 
+* Fix suppression scope leakage when `SuppressDownstreamInstrumentation` is
+  enabled.
+  ([#4304](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4304))
+
 ## 1.15.1
 
 Released 2026-Apr-21
