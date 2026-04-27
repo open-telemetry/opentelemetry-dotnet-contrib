@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Add instrumentation scope version and schema URL to metrics.
+  ([#4088](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4088))
+
 ## 1.15.1-beta.1
 
 Released 2026-Apr-21

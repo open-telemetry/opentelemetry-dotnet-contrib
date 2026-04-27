@@ -53,6 +53,9 @@ public class ProcessMetricsTests
 
         Assert.Equal(5, exportedItemsA.Count);
         Assert.Equal(5, exportedItemsB.Count);
+
+        AssertMetrics(exportedItemsA);
+        AssertMetrics(exportedItemsB);
     }
 
     [Fact]
@@ -152,6 +155,9 @@ public class ProcessMetricsTests
         Assert.NotNull(processorCountMetricB);
         var threadMetricB = exportedItemsB.FirstOrDefault(i => i.Name == "process.thread.count");
         Assert.NotNull(threadMetricB);
+
+        AssertMetrics(exportedItemsA);
+        AssertMetrics(exportedItemsB);
     }
 
     [Fact]
@@ -220,5 +226,15 @@ public class ProcessMetricsTests
         }
 
         return sum;
+    }
+
+    private static void AssertMetrics(IEnumerable<Metric> metrics)
+    {
+        foreach (var metric in metrics)
+        {
+            Assert.NotNull(metric.MeterVersion);
+            Assert.NotEmpty(metric.MeterVersion);
+            Assert.StartsWith("https://opentelemetry.io/schemas/", metric.MeterSchemaUrl);
+        }
     }
 }
