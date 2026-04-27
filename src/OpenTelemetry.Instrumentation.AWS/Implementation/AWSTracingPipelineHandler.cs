@@ -267,9 +267,9 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
             out string? lastItem)
         {
             lastItem = null;
-            bool result = false;
+            var result = false;
 
-            int index = value.LastIndexOf(delimiter);
+            var index = value.LastIndexOf(delimiter);
 
             if (index > -1 && index < value.Length - 1)
             {
