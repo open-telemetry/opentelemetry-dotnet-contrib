@@ -34,7 +34,7 @@ public class TestAWSClientMetricsInstrumentation
                                       .Build())
         {
             var s3 = new AmazonS3Client(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            CustomResponses.SetResponse(s3, null, "test_request_id", true);
+            CustomResponses.SetResponse(s3, null, "test_request_id", "extended_request_id", true);
             var putObjectRequest = new PutObjectRequest
             {
                 BucketName = "TestBucket",
@@ -133,7 +133,7 @@ public class TestAWSClientMetricsInstrumentation
         {
             var sqs = new AmazonSQSClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
             var dummyResponse = "{}";
-            CustomResponses.SetResponse(sqs, dummyResponse, "requestId", true);
+            CustomResponses.SetResponse(sqs, dummyResponse, "requestId", "extended_request_id", true);
             var send_msg_req = new CreateQueueRequest()
             {
                 QueueName = "MyTestQueue",

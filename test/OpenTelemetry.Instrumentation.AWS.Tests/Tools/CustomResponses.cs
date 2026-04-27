@@ -15,9 +15,9 @@ internal static class CustomResponses
 {
 #if NETFRAMEWORK
     public static void SetResponse(
-        AmazonServiceClient client, string? content, string requestId, bool isOK)
+        AmazonServiceClient client, string? content, string requestId, string extendedRequestId, bool isOK)
     {
-        var response = Create(content, requestId, isOK);
+        var response = Create(content, requestId, extendedRequestId, isOK);
         SetResponse(client, response);
     }
 
@@ -37,7 +37,10 @@ internal static class CustomResponses
     }
 
     private static Func<MockHttpRequest, HttpWebResponse?> Create(
-        string? content, string requestId, bool isOK)
+        string? content,
+        string requestId,
+        string extendedRequestId,
+        bool isOK)
     {
         var status = isOK ? HttpStatusCode.OK : HttpStatusCode.NotFound;
 
@@ -49,15 +52,20 @@ internal static class CustomResponses
                 headers.Add(HeaderKeys.RequestIdHeader, requestId);
             }
 
+            if (!string.IsNullOrEmpty(extendedRequestId))
+            {
+                headers.Add(HeaderKeys.XAmzId2Header, extendedRequestId);
+            }
+
             var response = MockWebResponse.Create(status, headers, content);
 
             return isOK ? response : throw new HttpErrorResponseException(new HttpWebRequestResponseData(response));
         };
     }
 #else
-    public static void SetResponse(AmazonServiceClient client, string? content, string requestId, bool isOK)
+    public static void SetResponse(AmazonServiceClient client, string? content, string requestId, string extendedRequestId, bool isOK)
     {
-        var response = Create(content, requestId, isOK);
+        var response = Create(content, requestId, extendedRequestId, isOK);
         SetResponse(client, response);
     }
 
@@ -75,7 +83,10 @@ internal static class CustomResponses
     }
 
     private static Func<MockHttpRequest, HttpResponseMessage> Create(
-        string? content, string requestId, bool isOK)
+        string? content,
+        string requestId,
+        string extendedRequestId,
+        bool isOK)
     {
         var status = isOK ? HttpStatusCode.OK : HttpStatusCode.NotFound;
 
@@ -85,6 +96,11 @@ internal static class CustomResponses
             if (!string.IsNullOrEmpty(requestId))
             {
                 headers.Add(HeaderKeys.RequestIdHeader, requestId);
+            }
+
+            if (!string.IsNullOrEmpty(extendedRequestId))
+            {
+                headers.Add(HeaderKeys.XAmzId2Header, extendedRequestId);
             }
 
             var response = MockWebResponse.Create(status, headers, content);
