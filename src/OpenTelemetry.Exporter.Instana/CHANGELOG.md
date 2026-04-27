@@ -15,6 +15,9 @@
   `HttpClient` for the exporter to use.
   ([#4153](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4153))
 
+* Use System.Text.Json for JSON serialization.
+  ([#4293](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4293))
+
 ## 1.0.7
 
 Released 2026-Apr-21
