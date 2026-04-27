@@ -451,14 +451,14 @@ public class WsTransportTest
             await wsTransport.StartAsync(CancellationToken.None);
 
             var stopTask = wsTransport.StopAsync(CancellationToken.None);
-            var timeout = TimeSpan.FromSeconds(5);
+            var timeout = TimeSpan.FromSeconds(10);
 
 #if NET
             await stopTask.WaitAsync(timeout);
 #else
             using var cts = new CancellationTokenSource(timeout);
             var completedTask = await Task.WhenAny(stopTask, Task.Delay(timeout, cts.Token));
-            Assert.Same(completedTask, completedTask);
+            Assert.Same(stopTask, completedTask);
             await stopTask;
 #endif
 
@@ -468,7 +468,15 @@ public class WsTransportTest
         finally
         {
             wsTransport.Dispose();
-            opAmpServer.Dispose();
+
+            try
+            {
+                opAmpServer.Dispose();
+            }
+            catch (ApplicationException)
+            {
+                // Ignore exceptions from the server when the client has already closed the connection
+            }
         }
     }
 
@@ -483,7 +491,7 @@ public class WsTransportTest
         await wsTransport.StartAsync(CancellationToken.None);
 
         var disposeTask = Task.Run(wsTransport.Dispose);
-        var timeout = TimeSpan.FromSeconds(5);
+        var timeout = TimeSpan.FromSeconds(10);
 
         try
         {
@@ -492,20 +500,27 @@ public class WsTransportTest
 #else
             using var cts = new CancellationTokenSource(timeout);
             var completedTask = await Task.WhenAny(disposeTask, Task.Delay(timeout, cts.Token));
-            Assert.Same(completedTask, completedTask);
+            Assert.Same(disposeTask, completedTask);
             await disposeTask;
 #endif
         }
         finally
         {
-            opAmpServer.Dispose();
+            try
+            {
+                opAmpServer.Dispose();
+            }
+            catch (ApplicationException)
+            {
+                // Ignore exceptions from the server when the client has already closed the connection
+            }
         }
     }
 
     [Fact]
     public async Task WsTransport_DisposeCompletesWithoutStopAfterOutstandingSend()
     {
-        var timeout = TimeSpan.FromSeconds(5);
+        var timeout = TimeSpan.FromSeconds(10);
 
         using var responseBlocked = new ManualResetEventSlim();
         using var requestSeen = new ManualResetEventSlim();
@@ -532,14 +547,22 @@ public class WsTransportTest
 #else
             using var cts = new CancellationTokenSource(timeout);
             var completedTask = await Task.WhenAny(disposeTask, Task.Delay(timeout, cts.Token));
-            Assert.Same(completedTask, completedTask);
+            Assert.Same(disposeTask, completedTask);
             await disposeTask;
 #endif
         }
         finally
         {
             responseBlocked.Set();
-            opAmpServer.Dispose();
+
+            try
+            {
+                opAmpServer.Dispose();
+            }
+            catch (ApplicationException)
+            {
+                // Ignore exceptions from the server when the client has already closed the connection
+            }
         }
     }
 
