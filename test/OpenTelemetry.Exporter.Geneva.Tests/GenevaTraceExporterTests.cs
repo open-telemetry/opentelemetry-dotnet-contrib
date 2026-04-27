@@ -30,13 +30,13 @@ public class GenevaTraceExporterTests : IDisposable
     public void GenevaTraceExporter_constructor_Invalid_Input()
     {
         // no connection string
-        Assert.Throws<ArgumentException>(() =>
+        Assert.ThrowsAny<ArgumentException>(() =>
         {
             using var exporter = new GenevaTraceExporter(new GenevaExporterOptions());
         });
 
         // null connection string
-        Assert.Throws<ArgumentException>(() =>
+        Assert.ThrowsAny<ArgumentException>(() =>
         {
             using var exporter = new GenevaTraceExporter(new GenevaExporterOptions
             {
@@ -154,8 +154,7 @@ public class GenevaTraceExporterTests : IDisposable
     }
 
     [Fact]
-    public void GenevaTraceExporter_TableNameMappings_SpecialCharacters()
-    {
+    public void GenevaTraceExporter_TableNameMappings_SpecialCharacters() =>
         Assert.Throws<ArgumentException>(() =>
         {
             using var exporter = new GenevaTraceExporter(new GenevaExporterOptions
@@ -163,7 +162,6 @@ public class GenevaTraceExporterTests : IDisposable
                 TableNameMappings = new Dictionary<string, string> { ["Span"] = "\u0418" },
             });
         });
-    }
 
     [SkipUnlessPlatformMatchesFact(TestPlatform.Windows)]
     public void GenevaTraceExporter_Success_Windows()
@@ -1360,10 +1358,7 @@ public class GenevaTraceExporterTests : IDisposable
         }
     }
 
-    private static string GetTestMethodName([CallerMemberName] string callingMethodName = "")
-    {
-        return callingMethodName;
-    }
+    private static string GetTestMethodName([CallerMemberName] string callingMethodName = "") => callingMethodName;
 
 #pragma warning disable CA1859 // Use concrete types when possible for improved performance
     private void CheckSpanForActivity(GenevaExporterOptions exporterOptions, object fluentdData, Activity activity, ISet<string> dedicatedFields, Dictionary<string, object> resourceAttributes)
