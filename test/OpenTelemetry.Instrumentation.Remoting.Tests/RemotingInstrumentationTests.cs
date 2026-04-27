@@ -24,18 +24,10 @@ public class RemotingInstrumentationTests
             .AddRemotingInstrumentation(
                 options =>
                 {
-                    options.Filter = msg =>
-                    {
-                        // xUnit runner uses AppDomains to execute tests.
-                        // Without the Filter, we would start instrumenting all cross-domain messages, including the xUnit runner ones.
-                        // We don't want this obviously, instead just inspect calls to our test object only.
-                        if (msg is IMethodMessage methodMsg)
-                        {
-                            return methodMsg.TypeName.Contains("RemoteObject");
-                        }
-
-                        return false;
-                    };
+                    // xUnit runner uses AppDomains to execute tests.
+                    // Without the Filter, we would start instrumenting all cross-domain messages, including the xUnit runner ones.
+                    // We don't want this obviously, instead just inspect calls to our test object only.
+                    options.Filter = message => message is IMethodMessage methodMsg && methodMsg.TypeName.Contains("RemoteObject");
                 })
             .Build();
 
@@ -124,15 +116,7 @@ public class RemotingInstrumentationTests
 
         optionsMonitor.Set(new RemotingInstrumentationOptions
         {
-            Filter = message =>
-            {
-                if (message is IMethodMessage methodMessage)
-                {
-                    return methodMessage.TypeName.Contains("RemoteObject");
-                }
-
-                return false;
-            },
+            Filter = message => message is IMethodMessage methodMessage && methodMessage.TypeName.Contains("RemoteObject"),
         });
 
         InvokeRemoteObject();
@@ -149,15 +133,7 @@ public class RemotingInstrumentationTests
             .AddInMemoryExporter(activities)
             .AddRemotingInstrumentation(options =>
             {
-                options.Filter = message =>
-                {
-                    if (message is IMethodMessage methodMessage)
-                    {
-                        return methodMessage.TypeName.Contains("RemoteObject");
-                    }
-
-                    return false;
-                };
+                options.Filter = message => message is IMethodMessage methodMessage && methodMessage.TypeName.Contains("RemoteObject");
                 options.EnrichWithMethodMessage = (activity, message) => activity.SetTag("remoting.start.method", message.MethodName);
                 options.EnrichWithMethodReturnMessage = (activity, message) => activity.SetTag("remoting.finish.method", message.MethodName);
             })
@@ -169,6 +145,36 @@ public class RemotingInstrumentationTests
         Assert.Equal(TelemetryDynamicSinkProvider.ActivitySourceName, activity.Source.Name);
         Assert.Equal("DoStuff", activity.GetTagItem("remoting.start.method"));
         Assert.Equal("DoStuff", activity.GetTagItem("remoting.finish.method"));
+    }
+
+    [Theory]
+    [InlineData("SharedLib.IHelloServer, SharedLib, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", "SharedLib.IHelloServer")]
+    [InlineData("SharedLib.IHelloServer", "SharedLib.IHelloServer")]
+    [InlineData("Company.Division.Library.MyClass", "Company.Division.Library.MyClass")]
+    [InlineData("Company.Division.Library.MyClass, Version=1.0.0.0, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c", "Company.Division.Library.MyClass")]
+    [InlineData("Company.Division.Library.MyClass+AnotherNestedClass", "Company.Division.Library.MyClass+AnotherNestedClass")]
+    [InlineData("Company.Division.Library.MyClass+AnotherNestedClass, Company.Division.Library, Version=1.0.0.0, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c", "Company.Division.Library.MyClass+AnotherNestedClass")]
+    [InlineData("Company.Division.Library.MyClass+MyNestedClass`2+MyInnerNestedClass`2[[Company.Division.Library.MyClass, Company.Division.Library, Version=1.0.0.0, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c],[Company.Division.Library.MyClass+AnotherNestedClass, Company.Division.Library, Version=1.0.0.0, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c],[Company.Division.Library.MyClass, Company.Division.Library, Version=1.0.0.0, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c],[Company.Division.Library.MyClass, Company.Division.Library, Version=1.0.0.0, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c]]", "Company.Division.Library.MyClass+MyNestedClass`2+MyInnerNestedClass`2[[Company.Division.Library.MyClass, Company.Division.Library, Version=1.0.0.0, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c],[Company.Division.Library.MyClass+AnotherNestedClass, Company.Division.Library, Version=1.0.0.0, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c],[Company.Division.Library.MyClass, Company.Division.Library, Version=1.0.0.0, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c],[Company.Division.Library.MyClass, Company.Division.Library, Version=1.0.0.0, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c]]")]
+    [InlineData("Company.Division.Library.MyClass+MyNestedClass`2+MyInnerNestedClass`2[[Company.Division.Library.MyClass, Company.Division.Library, Version=1.0.0.0, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c],[Company.Division.Library.MyClass+AnotherNestedClass, Company.Division.Library, Version=1.0.0.0, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c],[Company.Division.Library.MyClass, Company.Division.Library, Version=1.0.0.0, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c],[Company.Division.Library.MyClass, Company.Division.Library, Version=1.0.0.0, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c]], Company.Division.Library, Version=1.0.0.0, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c", "Company.Division.Library.MyClass+MyNestedClass`2+MyInnerNestedClass`2[[Company.Division.Library.MyClass, Company.Division.Library, Version=1.0.0.0, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c],[Company.Division.Library.MyClass+AnotherNestedClass, Company.Division.Library, Version=1.0.0.0, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c],[Company.Division.Library.MyClass, Company.Division.Library, Version=1.0.0.0, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c],[Company.Division.Library.MyClass, Company.Division.Library, Version=1.0.0.0, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c]]")]
+    public void TelemetryDynamicSinkProvider_ExtractServiceName_HandlesQualifiedAndPlainTypeNames(string typeName, string expectedServiceName) =>
+        Assert.Equal(expectedServiceName, TelemetryDynamicSinkProvider.ExtractServiceName(typeName));
+
+    [Fact]
+    public void TelemetryDynamicSinkProvider_BoundsServiceNameCache()
+    {
+        using var provider = new TelemetryDynamicSinkProvider(
+            new TestOptionsMonitor<RemotingInstrumentationOptions>(
+                new RemotingInstrumentationOptions()));
+
+        string? lastResolvedServiceName = null;
+
+        for (int i = 0; i < TelemetryDynamicSinkProvider.MaxCachedServiceNames + 32; i++)
+        {
+            lastResolvedServiceName = provider.GetServiceName($"Namespace.Type{i}, Assembly{i}, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null");
+        }
+
+        Assert.Equal($"Namespace.Type{TelemetryDynamicSinkProvider.MaxCachedServiceNames + 31}", lastResolvedServiceName);
+        Assert.Equal(TelemetryDynamicSinkProvider.MaxCachedServiceNames, provider.CachedServiceNameCount);
     }
 
     private static void InvokeRemoteObject()
@@ -208,17 +214,16 @@ public class RemotingInstrumentationTests
     {
         private readonly List<Action<TOptions, string?>> listeners = [];
         private readonly bool updateCurrentValueOnSet;
-        private TOptions currentValue;
 
         public TestOptionsMonitor(TOptions currentValue, bool updateCurrentValueOnSet = true)
         {
-            this.currentValue = currentValue;
+            this.CurrentValue = currentValue;
             this.updateCurrentValueOnSet = updateCurrentValueOnSet;
         }
 
-        public TOptions CurrentValue => this.currentValue;
+        public TOptions CurrentValue { get; private set; }
 
-        public TOptions Get(string? name) => this.currentValue;
+        public TOptions Get(string? name) => this.CurrentValue;
 
         public IDisposable OnChange(Action<TOptions, string?> listener)
         {
@@ -230,7 +235,7 @@ public class RemotingInstrumentationTests
         {
             if (this.updateCurrentValueOnSet)
             {
-                this.currentValue = value;
+                this.CurrentValue = value;
             }
 
             foreach (var listener in this.listeners)
@@ -249,9 +254,6 @@ public class RemotingInstrumentationTests
             this.callback = callback;
         }
 
-        public void Dispose()
-        {
-            this.callback();
-        }
+        public void Dispose() => this.callback();
     }
 }
