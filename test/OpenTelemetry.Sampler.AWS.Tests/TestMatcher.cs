@@ -66,6 +66,17 @@ public class TestMatcher
     }
 
     [Fact]
+    public void TestAttributeMatchingWithNullRuleAttributes()
+    {
+        var tags = new List<KeyValuePair<string, object?>>
+        {
+            new("dog", "bark"),
+        };
+
+        Assert.True(Matcher.AttributeMatch(tags, null));
+    }
+
+    [Fact]
     public void TestAttributeMatchingWithoutSpanTags()
     {
         var ruleAttributes = new Dictionary<string, string>
