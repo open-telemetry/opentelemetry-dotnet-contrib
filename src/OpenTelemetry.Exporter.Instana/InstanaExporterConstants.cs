@@ -5,30 +5,26 @@ namespace OpenTelemetry.Exporter.Instana;
 
 internal class InstanaExporterConstants
 {
-#pragma warning disable SA1310 // Field names should not contain underscore
-    internal const string OTEL_SPAN_TYPE = "otel";
-    internal const string KIND_FIELD = "kind";
-    internal const string SERVER_KIND = "server";
-    internal const string CLIENT_KIND = "client";
-    internal const string PRODUCER_KIND = "producer";
-    internal const string CONSUMER_KIND = "consumer";
-    internal const string INTERNAL_KIND = "internal";
-    internal const string SERVICE_FIELD = "service";
-    internal const string OPERATION_FIELD = "operation";
-    internal const string TRACE_STATE_FIELD = "trace_state";
-    internal const string ERROR_FIELD = "error";
-    internal const string ERROR_DETAIL_FIELD = "error_detail";
-    internal const string EXCEPTION_FIELD = "exception";
-    internal const string TAGS_FIELD = "tags";
-    internal const string EVENTS_FIELD = "events";
-    internal const string EVENT_NAME_FIELD = "name";
-    internal const string EVENT_TIMESTAMP_FIELD = "ts";
+    internal const string OpenTelemetrySpanType = "otel";
+    internal const string KindField = "kind";
+    internal const string ServerKind = "server";
+    internal const string ClientKind = "client";
+    internal const string ProducerKind = "producer";
+    internal const string ConsumerKind = "consumer";
+    internal const string InternalKind = "internal";
+    internal const string ServiceField = "service";
+    internal const string OperationField = "operation";
+    internal const string TraceStateField = "trace_state";
+    internal const string ErrorField = "error";
+    internal const string ErrorDetailField = "error_detail";
+    internal const string ExceptionField = "exception";
+    internal const string TagsField = "tags";
+    internal const string EventsField = "events";
+    internal const string EventNameField = "name";
+    internal const string EventTimestampField = "ts";
 
-    internal const string ENVVAR_INSTANA_ENDPOINT_URL = "INSTANA_ENDPOINT_URL";
-    internal const string ENVVAR_INSTANA_AGENT_KEY = "INSTANA_AGENT_KEY";
-    internal const string ENVVAR_INSTANA_TIMEOUT = "INSTANA_TIMEOUT";
-    internal const int BACKEND_DEFAULT_TIMEOUT = 20000;
-    internal const string ENVVAR_INSTANA_EXTRA_HTTP_HEADERS = "INSTANA_EXTRA_HTTP_HEADERS";
-    internal const string ENVVAR_INSTANA_ENDPOINT_PROXY = "INSTANA_ENDPOINT_PROXY";
-#pragma warning restore SA1310 // Field names should not contain underscore
+    internal const string InstanaEndpointUrl = "INSTANA_ENDPOINT_URL";
+    internal const string InstanaAgentKey = "INSTANA_AGENT_KEY";
+    internal const string InstanaTimeout = "INSTANA_TIMEOUT";
+    internal const string InstanaEndpointProxy = "INSTANA_ENDPOINT_PROXY";
 }

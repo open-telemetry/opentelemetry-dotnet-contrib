@@ -133,6 +133,22 @@ namespace OpenTelemetry.Internal
         }
 
         /// <summary>
+        /// Throw an exception if the value is negative.
+        /// </summary>
+        /// <param name="value">The value to check.</param>
+        /// <param name="message">The message to use in the thrown exception.</param>
+        /// <param name="paramName">The parameter name to use in the thrown exception.</param>
+        [DebuggerHidden]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ThrowIfNegative(int value, string message = "Must not be negative", [CallerArgumentExpression(nameof(value))] string? paramName = null)
+        {
+            if (value < 0)
+            {
+                throw new ArgumentOutOfRangeException(paramName, message);
+            }
+        }
+
+        /// <summary>
         /// Throw an exception if the value is not considered a valid timeout.
         /// </summary>
         /// <param name="value">The value to check.</param>

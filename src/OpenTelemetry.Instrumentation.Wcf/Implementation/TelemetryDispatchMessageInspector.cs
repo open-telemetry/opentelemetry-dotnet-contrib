@@ -105,15 +105,15 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
                 }
             }
 
-            if (WcfInstrumentationActivitySource.Options.RecordException)
-            {
-                OperationContext.Current?.Extensions.Add(new WcfOperationContext(activity));
-            }
-
             if (textMapPropagator is not TraceContextPropagator)
             {
                 Baggage.Current = ctx.Baggage;
             }
+        }
+
+        if (WcfInstrumentationActivitySource.Options.RecordException)
+        {
+            OperationContext.Current?.Extensions.Add(new WcfOperationContext(activity));
         }
 
         return activity;
