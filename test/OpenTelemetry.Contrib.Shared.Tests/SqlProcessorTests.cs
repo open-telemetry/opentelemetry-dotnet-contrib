@@ -36,9 +36,6 @@ public class SqlProcessorTests
         var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
 
         Assert.Equal("SELECT * FROM [Orders WHERE CustomerName = ? AND Id = ? AND Token = ?", sqlStatementInfo.SanitizedSql);
-        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
-        Assert.DoesNotContain("123", sqlStatementInfo.SanitizedSql);
-        Assert.DoesNotContain("DEADBEEF", sqlStatementInfo.SanitizedSql);
     }
 
     [SkippableTheory]

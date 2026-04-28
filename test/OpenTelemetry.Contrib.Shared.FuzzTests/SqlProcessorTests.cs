@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Globalization;
 using FsCheck;
 using FsCheck.Xunit;
 using Xunit;
@@ -392,6 +393,7 @@ public static class SqlProcessorTests
         }
 
         var numericLiteral = number.Get + 100_000;
+        var numericLiteralString = numericLiteral.ToString(CultureInfo.InvariantCulture);
         var sqlPrefix = (variant.Get % 3) switch
         {
             0 => "SELECT * FROM [Orders",
@@ -399,7 +401,7 @@ public static class SqlProcessorTests
             _ => "SELECT * FROM Customers, [Orders",
         };
 
-        var sql = $"{sqlPrefix} WHERE Name = '{secret}' AND Id = {numericLiteral} AND Token = 0xDEADBEEF";
+        var sql = $"{sqlPrefix} WHERE Name = '{secret}' AND Id = {numericLiteralString} AND Token = 0xDEADBEEF";
 
         // Act
         var result = SqlProcessor.GetSanitizedSql(sql);
@@ -407,7 +409,7 @@ public static class SqlProcessorTests
         // Assert
         Assert.Contains("?", result.SanitizedSql);
         Assert.DoesNotContain(secret, result.SanitizedSql);
-        Assert.DoesNotContain(numericLiteral.ToString(), result.SanitizedSql);
+        Assert.DoesNotContain(numericLiteralString, result.SanitizedSql);
         Assert.DoesNotContain("DEADBEEF", result.SanitizedSql);
     }
 }
