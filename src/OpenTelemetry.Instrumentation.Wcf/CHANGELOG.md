@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Fixed an issue where server-side exception recording could bypass
+  `IncomingRequestFilter` for filtered faulting requests.
+  ([#4306](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4306))
+
 * Fixed `ArgumentNullException` thrown by `TelemetryEndpointBehavior` when an endpoint
   operation has a `null` Action (e.g., when WCF service help pages are enabled).
   ([#4026](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4026))

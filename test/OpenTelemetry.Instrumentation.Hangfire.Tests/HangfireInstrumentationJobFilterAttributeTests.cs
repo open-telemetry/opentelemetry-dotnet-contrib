@@ -230,6 +230,57 @@ public class HangfireInstrumentationJobFilterAttributeTests
         Assert.Equal(shouldRecord, activity.ActivityTraceFlags.HasFlag(ActivityTraceFlags.Recorded));
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void OnPerforming_When_Filter_Suppresses_Activity_Should_Dispose_Activity_And_Restore_Parent(bool throwInFilter)
+    {
+        var startedActivities = 0;
+        var stoppedActivities = 0;
+
+        using var listener = new ActivityListener
+        {
+            ShouldListenTo = _ => true,
+            Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
+            SampleUsingParentId = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
+            ActivityStarted = activity =>
+            {
+                if (activity.Source.Name == HangfireInstrumentation.ActivitySourceName)
+                {
+                    startedActivities++;
+                }
+            },
+            ActivityStopped = activity =>
+            {
+                if (activity.Source.Name == HangfireInstrumentation.ActivitySourceName)
+                {
+                    stoppedActivities++;
+                }
+            },
+        };
+        ActivitySource.AddActivityListener(listener);
+
+        using var parentSource = new ActivitySource(nameof(HangfireInstrumentationJobFilterAttributeTests));
+        using var parentActivity = parentSource.StartActivity("parent");
+        Assert.NotNull(parentActivity);
+
+        var storage = new MemoryStorage();
+        using var connection = storage.GetConnection();
+
+        var filter = new HangfireInstrumentationJobFilterAttribute(new HangfireInstrumentationOptions
+        {
+            Filter = throwInFilter ? _ => throw new InvalidOperationException("Filter throws exception") : _ => false,
+        });
+        var performingContext = CreatePerformingContext(storage, connection);
+
+        filter.OnPerforming(performingContext);
+
+        Assert.Same(parentActivity, Activity.Current);
+        Assert.False(performingContext.Items.ContainsKey(HangfireInstrumentationConstants.ActivityKey));
+        Assert.Equal(1, startedActivities);
+        Assert.Equal(1, stoppedActivities);
+    }
+
     [Fact]
     public async Task Should_Not_Inject_Invalid_Context()
     {

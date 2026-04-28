@@ -87,6 +87,56 @@ public class TestAWSXRaySamplerClient : IDisposable
     }
 
     [Fact]
+    public async Task TestGetSamplingRulesWithNullOrMissingAttributes()
+    {
+        var responseJson = """
+            {
+              "SamplingRuleRecords": [
+                {
+                  "SamplingRule": {
+                    "RuleName": "NullAttributes",
+                    "ResourceARN": "*",
+                    "Priority": 1,
+                    "FixedRate": 0.0,
+                    "ReservoirSize": 0,
+                    "ServiceName": "*",
+                    "ServiceType": "*",
+                    "Host": "*",
+                    "HTTPMethod": "*",
+                    "URLPath": "*",
+                    "Version": 1,
+                    "Attributes": null
+                  }
+                },
+                {
+                  "SamplingRule": {
+                    "RuleName": "MissingAttributes",
+                    "ResourceARN": "*",
+                    "Priority": 2,
+                    "FixedRate": 0.0,
+                    "ReservoirSize": 0,
+                    "ServiceName": "*",
+                    "ServiceType": "*",
+                    "Host": "*",
+                    "HTTPMethod": "*",
+                    "URLPath": "*",
+                    "Version": 1
+                  }
+                }
+              ]
+            }
+            """;
+
+        this.requestHandler.SetResponse("/GetSamplingRules", responseJson);
+
+        var rules = await this.client.GetSamplingRules();
+
+        Assert.Equal(2, rules.Count);
+        Assert.Empty(rules[0].Attributes);
+        Assert.Empty(rules[1].Attributes);
+    }
+
+    [Fact]
     public async Task TestGetSamplingTargets()
     {
         var clock = new TestClock();
@@ -161,6 +211,30 @@ public class TestAWSXRaySamplerClient : IDisposable
         var targetsResponse = await this.client.GetSamplingTargets(request);
 
         Assert.Null(targetsResponse);
+    }
+
+    [Fact]
+    public async Task TestGetSamplingTargetsWithMissingCollections()
+    {
+        var clock = new TestClock();
+        this.requestHandler.SetResponse("/SamplingTargets", "{\"LastRuleModification\":1530920505.0}");
+
+        var request = new GetSamplingTargetsRequest(
+        [
+            new(
+                "clientId",
+                "rule1",
+                100,
+                50,
+                10,
+                clock.ToDouble(clock.Now())),
+        ]);
+
+        var targetsResponse = await this.client.GetSamplingTargets(request);
+
+        Assert.NotNull(targetsResponse);
+        Assert.Empty(targetsResponse.SamplingTargetDocuments);
+        Assert.Empty(targetsResponse.UnprocessedStatistics);
     }
 
     [Fact]

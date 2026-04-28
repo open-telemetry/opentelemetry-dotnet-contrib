@@ -105,6 +105,45 @@ public class TestAWSXRayRemoteSampler
         Assert.Equal(expected, this.DoSample(sampler, "cat-service"));
     }
 
+    [Fact]
+    public async Task TestSamplerUpdateTargetsWithMissingTargetDocumentsDoesNotThrow()
+    {
+        var clock = new TestClock();
+        var requestHandler = new MockServerRequestHandler();
+
+        using var mockServer = TestHttpServer.RunServer(
+            requestHandler.Handle,
+            out var host,
+            out var port);
+
+        var parentBasedSampler = AWSXRayRemoteSampler.Builder(ResourceBuilder.CreateEmpty().Build())
+            .SetPollingInterval(TimeSpan.FromMilliseconds(10))
+            .SetEndpoint($"http://{host}:{port}")
+            .SetClock(clock)
+            .Build();
+
+        var rootSamplerFieldInfo = typeof(ParentBasedSampler).GetField("rootSampler", BindingFlags.NonPublic | BindingFlags.Instance);
+        var sampler = (AWSXRayRemoteSampler?)rootSamplerFieldInfo?.GetValue(parentBasedSampler);
+
+        Assert.NotNull(sampler);
+
+        requestHandler.SetResponse("/SamplingTargets", "{\"LastRuleModification\":1530920505.0}");
+
+        var getAndUpdateTargetsAsyncMethod = typeof(AWSXRayRemoteSampler).GetMethod("GetAndUpdateTargetsAsync", BindingFlags.NonPublic | BindingFlags.Instance);
+        var getAndUpdateTargetsAsyncTask = (Task?)getAndUpdateTargetsAsyncMethod?.Invoke(sampler, null);
+
+        Assert.NotNull(getAndUpdateTargetsAsyncTask);
+
+        try
+        {
+            await getAndUpdateTargetsAsyncTask!;
+        }
+        finally
+        {
+            sampler.Dispose();
+        }
+    }
+
     private SamplingDecision DoSample(Trace.Sampler sampler, string serviceName)
     {
         var samplingParams = new SamplingParameters(

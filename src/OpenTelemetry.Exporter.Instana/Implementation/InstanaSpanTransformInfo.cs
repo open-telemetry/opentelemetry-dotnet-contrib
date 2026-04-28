@@ -5,32 +5,35 @@ using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Instana.Implementation;
 
-internal class InstanaSpanTransformInfo
+internal sealed class InstanaSpanTransformInfo
 {
-    private string statusCode = string.Empty;
-    private string statusDesc = string.Empty;
+    public InstanaSpanTransformInfo()
+    {
+        this.StatusCode = string.Empty;
+        this.StatusDesc = string.Empty;
+    }
 
     public string StatusCode
     {
-        get => this.statusCode;
+        get => field;
         set
         {
             Guard.ThrowIfNull(value);
-            this.statusCode = value;
+            field = value;
         }
     }
 
     public string StatusDesc
     {
-        get => this.statusDesc;
+        get => field;
         set
         {
             Guard.ThrowIfNull(value);
-            this.statusDesc = value;
+            field = value;
         }
     }
 
-    public bool HasExceptionEvent { get; internal set; }
+    public bool HasExceptionEvent { get; set; }
 
-    public bool IsEntrySpan { get; internal set; }
+    public bool IsEntrySpan { get; set; }
 }

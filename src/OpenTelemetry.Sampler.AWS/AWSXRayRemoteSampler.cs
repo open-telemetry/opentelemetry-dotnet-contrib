@@ -143,6 +143,11 @@ public sealed class AWSXRayRemoteSampler : Trace.Sampler, IDisposable
 
     private async void GetAndUpdateTargets(object? state)
     {
+        await this.GetAndUpdateTargetsAsync().ConfigureAwait(false);
+    }
+
+    private async Task GetAndUpdateTargetsAsync()
+    {
         var statistics = this.RulesCache.Snapshot(this.Clock.Now());
 
         var request = new GetSamplingTargetsRequest(statistics);

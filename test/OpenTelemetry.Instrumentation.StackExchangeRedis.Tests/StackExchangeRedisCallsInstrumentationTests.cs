@@ -18,7 +18,7 @@ namespace OpenTelemetry.Instrumentation.StackExchangeRedis.Tests;
 [Trait("CategoryName", "RedisIntegrationTests")]
 public class StackExchangeRedisCallsInstrumentationTests(RedisXunitFixture fixture) : IClassFixture<RedisXunitFixture>
 {
-    private readonly string connectionString = fixture.DatabaseContainer.GetConnectionString();
+    private readonly string connectionString = fixture.TypedContainer.GetConnectionString();
 
     [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
     [InlineData("value1")]
