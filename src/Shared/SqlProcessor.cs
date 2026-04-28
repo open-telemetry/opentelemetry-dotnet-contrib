@@ -228,18 +228,17 @@ internal static class SqlProcessor
     {
         for (var i = start + 1; i < sql.Length; i++)
         {
-            if (sql[i] != CloseSquareBracketChar)
+            if (sql[i] == CloseSquareBracketChar)
             {
-                continue;
+                if (i + 1 < sql.Length && sql[i + 1] == CloseSquareBracketChar)
+                {
+                    i++;
+                }
+                else
+                {
+                    return true;
+                }
             }
-
-            if (i + 1 < sql.Length && sql[i + 1] == CloseSquareBracketChar)
-            {
-                i++;
-                continue;
-            }
-
-            return true;
         }
 
         return false;
