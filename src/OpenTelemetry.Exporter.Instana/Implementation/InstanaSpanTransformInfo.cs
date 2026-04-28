@@ -15,7 +15,7 @@ internal sealed class InstanaSpanTransformInfo
 
     public string StatusCode
     {
-        get => field;
+        get;
         set
         {
             Guard.ThrowIfNull(value);
@@ -25,7 +25,7 @@ internal sealed class InstanaSpanTransformInfo
 
     public string StatusDesc
     {
-        get => field;
+        get;
         set
         {
             Guard.ThrowIfNull(value);

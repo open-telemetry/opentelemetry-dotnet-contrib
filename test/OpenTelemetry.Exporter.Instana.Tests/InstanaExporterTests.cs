@@ -131,14 +131,14 @@ public class InstanaExporterTests
 #if NETFRAMEWORK
         using var process = Process.GetCurrentProcess();
 
-        string expectedPid = process.Id.ToString(CultureInfo.InvariantCulture);
-        string expectedHostId = string.Empty;
+        var expectedPid = process.Id.ToString(CultureInfo.InvariantCulture);
+        var expectedHostId = string.Empty;
 #else
-        string expectedPid = OperatingSystem.IsWindows() ?
+        var expectedPid = OperatingSystem.IsWindows() ?
             Environment.ProcessId.ToString(CultureInfo.InvariantCulture) :
             "processPid";
 
-        string expectedHostId = OperatingSystem.IsWindows() ?
+        var expectedHostId = OperatingSystem.IsWindows() ?
             string.Empty :
             "hostId";
 #endif
@@ -257,14 +257,14 @@ public class InstanaExporterTests
 #if NETFRAMEWORK
         using var process = Process.GetCurrentProcess();
 
-        string expectedPid = process.Id.ToString(CultureInfo.InvariantCulture);
-        string expectedHostId = string.Empty;
+        var expectedPid = process.Id.ToString(CultureInfo.InvariantCulture);
+        var expectedHostId = string.Empty;
 #else
-        string expectedPid = OperatingSystem.IsWindows() ?
+        var expectedPid = OperatingSystem.IsWindows() ?
             Environment.ProcessId.ToString(CultureInfo.InvariantCulture) :
             "serviceInstanceId";
 
-        string expectedHostId = OperatingSystem.IsWindows() ?
+        var expectedHostId = OperatingSystem.IsWindows() ?
             string.Empty :
             "hostId";
 #endif
@@ -441,7 +441,7 @@ public class InstanaExporterTests
             this.InvocationCount++;
 
 #if NETFRAMEWORK
-            using (var stream = await request.Content!.ReadAsStreamAsync())
+            using (var stream = await request.Content.ReadAsStreamAsync())
 #else
             using (var stream = await request.Content!.ReadAsStreamAsync(cancellationToken))
 #endif

@@ -37,7 +37,7 @@ internal sealed class InstanaSpan
 
     public InstanaSpanTransformInfo TransformInfo
     {
-        get => field;
+        get;
         set
         {
             Guard.ThrowIfNull(value);
@@ -47,7 +47,7 @@ internal sealed class InstanaSpan
 
     public string N
     {
-        get => field;
+        get;
         set
         {
             Guard.ThrowIfNull(value);
@@ -57,7 +57,7 @@ internal sealed class InstanaSpan
 
     public string T
     {
-        get => field;
+        get;
         set
         {
             Guard.ThrowIfNull(value);
@@ -67,7 +67,7 @@ internal sealed class InstanaSpan
 
     public string Lt
     {
-        get => field;
+        get;
         set
         {
             Guard.ThrowIfNull(value);
@@ -77,7 +77,7 @@ internal sealed class InstanaSpan
 
     public From F
     {
-        get => field;
+        get;
         set
         {
             Guard.ThrowIfNull(value);
@@ -87,7 +87,7 @@ internal sealed class InstanaSpan
 
     public string P
     {
-        get => field;
+        get;
         set
         {
             Guard.ThrowIfNull(value);
@@ -97,7 +97,7 @@ internal sealed class InstanaSpan
 
     public string S
     {
-        get => field;
+        get;
         set
         {
             Guard.ThrowIfNull(value);
@@ -107,7 +107,7 @@ internal sealed class InstanaSpan
 
     public SpanKind K
     {
-        get => field;
+        get;
         set
         {
             Guard.ThrowIfNull(value);
@@ -117,7 +117,7 @@ internal sealed class InstanaSpan
 
     public Data Data
     {
-        get => field;
+        get;
         set
         {
             Guard.ThrowIfNull(value);
@@ -127,7 +127,7 @@ internal sealed class InstanaSpan
 
     public long Ts
     {
-        get => field;
+        get;
         set
         {
             Guard.ThrowIfNull(value);
@@ -137,7 +137,7 @@ internal sealed class InstanaSpan
 
     public long D
     {
-        get => field;
+        get;
         set
         {
             Guard.ThrowIfNull(value);
@@ -147,7 +147,7 @@ internal sealed class InstanaSpan
 
     public bool Tp
     {
-        get => field;
+        get;
         set
         {
             Guard.ThrowIfNull(value);
@@ -157,7 +157,7 @@ internal sealed class InstanaSpan
 
     public int Ec
     {
-        get => field;
+        get;
         set
         {
             Guard.ThrowIfNull(value);
@@ -192,7 +192,7 @@ internal sealed class Data
 
     public Dictionary<string, object> Values
     {
-        get => field;
+        get;
         set
         {
             Guard.ThrowIfNull(value);
@@ -202,7 +202,7 @@ internal sealed class Data
 
     public Dictionary<string, string> Tags
     {
-        get => field;
+        get;
         set
         {
             Guard.ThrowIfNull(value);
@@ -212,7 +212,7 @@ internal sealed class Data
 
     public List<SpanEvent> Events
     {
-        get => field;
+        get;
         set
         {
             Guard.ThrowIfNull(value);
@@ -231,7 +231,7 @@ internal sealed class SpanEvent
 
     public string Name
     {
-        get => field;
+        get;
         set
         {
             Guard.ThrowIfNull(value);
@@ -243,7 +243,7 @@ internal sealed class SpanEvent
 
     public Dictionary<string, string> Tags
     {
-        get => field;
+        get;
         set
         {
             Guard.ThrowIfNull(value);
