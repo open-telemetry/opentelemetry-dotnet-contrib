@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.3.0-alpha.1
+
+Released 2026-Apr-28
+
 * Enhance EffectiveConfigFile:
   * Remove `CreateFromFilePath` factory method.
   * Add `CreateFromSteam` and `CreateFromStreamAsync` methods which enforce max
