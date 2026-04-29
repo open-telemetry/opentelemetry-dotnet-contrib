@@ -79,6 +79,7 @@ public sealed class AWSClientInstrumentationOptionsTests
 
         using var parent = new Activity("parent").Start();
         var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+        var extendedRequestId = @"wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
 
         try
         {
@@ -91,7 +92,7 @@ public sealed class AWSClientInstrumentationOptionsTests
             {
                 var client = new AmazonBedrockRuntimeClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
                 var dummyResponse = "{}";
-                CustomResponses.SetResponse(client, dummyResponse, requestId, true);
+                CustomResponses.SetResponse(client, dummyResponse, requestId, extendedRequestId, true);
                 var invokeModelRequest = new InvokeModelRequest { ModelId = "amazon.titan-text-express-v1" };
 
 #if NETFRAMEWORK

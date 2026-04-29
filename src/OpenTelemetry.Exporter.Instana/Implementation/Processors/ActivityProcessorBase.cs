@@ -9,13 +9,8 @@ internal abstract class ActivityProcessorBase : IActivityProcessor
 {
     public IActivityProcessor? NextProcessor { get; set; }
 
-    public virtual async Task ProcessAsync(Activity activity, InstanaSpan instanaSpan)
-    {
-        if (this.NextProcessor != null)
-        {
-            await this.NextProcessor.ProcessAsync(activity, instanaSpan).ConfigureAwait(false);
-        }
-    }
+    public virtual void Process(Activity activity, InstanaSpan instanaSpan)
+        => this.NextProcessor?.Process(activity, instanaSpan);
 
     protected virtual void PreProcess(Activity activity, InstanaSpan instanaSpan)
     {
@@ -23,8 +18,8 @@ internal abstract class ActivityProcessorBase : IActivityProcessor
 
         instanaSpan.Data ??= new Data()
         {
-            data = [],
-            Events = new List<SpanEvent>(8),
+            Values = [],
+            Events = new(8),
             Tags = [],
         };
     }

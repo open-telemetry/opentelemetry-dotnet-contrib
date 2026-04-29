@@ -5,8 +5,8 @@
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Condition="'$(TargetFramework)' == '$(NetFrameworkMinimumSupportedVersion)'"/>
+  <ItemGroup Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETFramework'">
+    <PackageReference Include="System.Text.Json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -15,6 +15,8 @@
 
   <ItemGroup>
     <Compile Include="$(RepoRoot)\test\Shared\EventSourceTestHelper.cs" Link="Includes\EventSourceTestHelper.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\EnvironmentVariableScope.cs" Link="Includes\EnvironmentVariableScope.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\TestHttpServer.cs" Link="Includes\TestHttpServer.cs" />
   </ItemGroup>
 
 </Project>

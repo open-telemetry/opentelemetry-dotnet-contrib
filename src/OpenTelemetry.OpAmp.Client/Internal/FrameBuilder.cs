@@ -188,6 +188,11 @@ internal sealed class FrameBuilder : IFrameBuilder
         var fileMap = new Dictionary<string, global::OpAmp.Proto.V1.AgentConfigFile>(StringComparer.Ordinal);
         foreach (var file in files)
         {
+            if (fileMap.ContainsKey(file.FileName))
+            {
+                throw new ArgumentException($"Multiple config files share the same FileName '{file.FileName}'. FileNames must be unique.", nameof(files));
+            }
+
             fileMap.Add(file.FileName, new global::OpAmp.Proto.V1.AgentConfigFile()
             {
                 Body = ByteString.CopyFrom(file.Content.Span),

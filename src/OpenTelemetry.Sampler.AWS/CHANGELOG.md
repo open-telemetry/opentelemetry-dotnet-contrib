@@ -5,6 +5,10 @@
 * Update `System.Text.Json` for `netstandard2.0` to `8.0.5`.
   ([#4154](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4154))
 
+* Fix AWS X-Ray remote sampler rule matching to handle sampling rules with
+  missing or null `Attributes`.
+  ([#4316](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4316))
+
 ## 0.1.0-alpha.9
 
 Released 2026-Apr-21
