@@ -26,7 +26,8 @@ Released 2026-Apr-21
 * Add support for sticky HTTP connections via the `OpAMP-Instance-UID` header.
   ([#3830](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3830))
 
-* Apply response size limits for oversized OpAMP responses.
+* Apply response size limits for oversized OpAMP responses to resolve
+  [GHSA-w2jh-77fq-7gp8](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/security/advisories/GHSA-w2jh-77fq-7gp8).
   ([#4116](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4116))
 
 * Harden WebSocket transport:
