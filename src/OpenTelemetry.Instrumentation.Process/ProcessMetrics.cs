@@ -48,15 +48,6 @@ internal sealed class ProcessMetrics
             description: "Total CPU seconds broken down by different states.");
 
         MeterInstance.CreateObservableUpDownCounter(
-            "process.cpu.count",
-            () =>
-            {
-                return Environment.ProcessorCount;
-            },
-            unit: "{processors}",
-            description: "The number of processors (CPU cores) available to the current process.");
-
-        MeterInstance.CreateObservableUpDownCounter(
             "process.thread.count",
             () =>
             {
