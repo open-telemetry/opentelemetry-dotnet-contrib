@@ -398,9 +398,8 @@ internal class HttpInListener : ListenerHandler
         }
     }
 
-    // ASP.NET Core 10 does not generate OpenTelemetry tags by default so we can only take the optimal
-    // path if the user has not explicitly opted into ASP.NET Core 10's native OpenTelemetry support.
-
+    // ASP.NET Core 10 does not generate OpenTelemetry tags by default so we can only take
+    // the optimal path if the user has explicitly opted-out of suppressing the OpenTelemetry data.
     private static bool AspNetCoreHasNativeOpenTelemetryTags()
     {
 #if NET10_0_OR_GREATER
