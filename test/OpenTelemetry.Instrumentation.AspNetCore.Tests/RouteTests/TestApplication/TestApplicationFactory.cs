@@ -129,11 +129,9 @@ internal class TestApplicationFactory
         app.MapGet("/MinimalApi", () => Results.Ok());
         app.MapGet("/MinimalApi/{id}", (int id) => Results.Ok());
 
-#if NET
         var api = app.MapGroup("/MinimalApiUsingMapGroup");
         api.MapGet("/", () => Results.Ok());
         api.MapGet("/{id}", (int id) => Results.Ok());
-#endif
 
         return app;
     }

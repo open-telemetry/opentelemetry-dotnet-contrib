@@ -10,5 +10,9 @@ public sealed class KafkaFixture : XunitContainerFixture<KafkaContainer>
 {
     protected override string DockerfileName => "kafka.Dockerfile";
 
-    protected override KafkaContainer CreateContainer() => new KafkaBuilder(this.GetImage()).Build();
+    protected override KafkaContainer CreateContainer() =>
+        new KafkaBuilder(this.GetImage())
+            .WithListener("127.0.0.1:19092")
+            .WithKRaft()
+            .Build();
 }

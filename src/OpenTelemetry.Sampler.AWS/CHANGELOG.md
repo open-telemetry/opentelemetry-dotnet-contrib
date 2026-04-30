@@ -23,7 +23,8 @@ Released 2026-Apr-14
 * Updated OpenTelemetry core component version(s) to `1.15.2`.
   ([#4080](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4080))
 
-* Limit the max size read for response body getting the sampling rules to 1MB.
+* Limit the max size read for response body getting the sampling rules to 1MB to
+  resolve [GHSA-28xm-prxc-5866](https://github.com/advisories/GHSA-28xm-prxc-5866).
   ([#4100](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4100))
 
 ## 0.1.0-alpha.7

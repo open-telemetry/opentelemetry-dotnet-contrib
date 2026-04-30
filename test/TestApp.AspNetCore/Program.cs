@@ -53,6 +53,8 @@ public class Program
 
         app.AddTestMiddleware();
 
+        app.MapGet("/ping", () => "pong");
+
         app.Run();
     }
 }

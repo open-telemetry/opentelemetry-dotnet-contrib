@@ -22,14 +22,12 @@ public class TestAWSXRayRemoteSampler
             .SetEndpoint(endpoint)
             .Build();
 
-        var rootSamplerFieldInfo = typeof(ParentBasedSampler).GetField("rootSampler", BindingFlags.NonPublic | BindingFlags.Instance);
+        using var xraySampler = GetRemoteSampler(parentBasedSampler);
 
-        var xraySampler = (AWSXRayRemoteSampler?)rootSamplerFieldInfo?.GetValue(parentBasedSampler);
-
-        Assert.Equal(pollingInterval, xraySampler?.PollingInterval);
-        Assert.Equal(endpoint, xraySampler?.Endpoint);
-        Assert.NotNull(xraySampler?.RulePollerTimer);
-        Assert.NotNull(xraySampler?.Client);
+        Assert.Equal(pollingInterval, xraySampler.PollingInterval);
+        Assert.Equal(endpoint, xraySampler.Endpoint);
+        Assert.NotNull(xraySampler.RulePollerTimer);
+        Assert.NotNull(xraySampler.Client);
     }
 
     [Fact]
@@ -37,14 +35,12 @@ public class TestAWSXRayRemoteSampler
     {
         var parentBasedSampler = AWSXRayRemoteSampler.Builder(ResourceBuilder.CreateEmpty().Build()).Build();
 
-        var rootSamplerFieldInfo = typeof(ParentBasedSampler).GetField("rootSampler", BindingFlags.NonPublic | BindingFlags.Instance);
+        using var xraySampler = GetRemoteSampler(parentBasedSampler);
 
-        var xraySampler = (AWSXRayRemoteSampler?)rootSamplerFieldInfo?.GetValue(parentBasedSampler);
-
-        Assert.Equal(TimeSpan.FromMinutes(5), xraySampler?.PollingInterval);
-        Assert.Equal("http://localhost:2000", xraySampler?.Endpoint);
-        Assert.NotNull(xraySampler?.RulePollerTimer);
-        Assert.NotNull(xraySampler?.Client);
+        Assert.Equal(TimeSpan.FromMinutes(5), xraySampler.PollingInterval);
+        Assert.Equal("http://localhost:2000", xraySampler.Endpoint);
+        Assert.NotNull(xraySampler.RulePollerTimer);
+        Assert.NotNull(xraySampler.Client);
     }
 
     [Fact]
@@ -65,6 +61,8 @@ public class TestAWSXRayRemoteSampler
             .SetEndpoint($"http://{host}:{port}")
             .SetClock(clock)
             .Build();
+
+        using var remoteSampler = GetRemoteSampler(sampler);
 
         // the sampler will use fallback sampler until rules are fetched.
         Assert.Equal(SamplingDecision.RecordAndSample, this.DoSample(sampler, "cat-service"));
@@ -122,26 +120,48 @@ public class TestAWSXRayRemoteSampler
             .SetClock(clock)
             .Build();
 
-        var rootSamplerFieldInfo = typeof(ParentBasedSampler).GetField("rootSampler", BindingFlags.NonPublic | BindingFlags.Instance);
-        var sampler = (AWSXRayRemoteSampler?)rootSamplerFieldInfo?.GetValue(parentBasedSampler);
-
-        Assert.NotNull(sampler);
+        using var sampler = GetRemoteSampler(parentBasedSampler);
 
         requestHandler.SetResponse("/SamplingTargets", "{\"LastRuleModification\":1530920505.0}");
 
-        var getAndUpdateTargetsAsyncMethod = typeof(AWSXRayRemoteSampler).GetMethod("GetAndUpdateTargetsAsync", BindingFlags.NonPublic | BindingFlags.Instance);
-        var getAndUpdateTargetsAsyncTask = (Task?)getAndUpdateTargetsAsyncMethod?.Invoke(sampler, null);
+        await sampler.GetAndUpdateTargetsAsync(CancellationToken.None);
+    }
 
-        Assert.NotNull(getAndUpdateTargetsAsyncTask);
+    [Fact]
+    public async Task ExecutePollAsyncDoesNotBlockCaller()
+    {
+        using var sampler = GetRemoteSampler(AWSXRayRemoteSampler.Builder(ResourceBuilder.CreateEmpty().Build()).Build());
 
-        try
+        var pollStarted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releasePoll = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var executePollAsyncMethod = typeof(AWSXRayRemoteSampler).GetMethod("ExecutePollAsync", BindingFlags.NonPublic | BindingFlags.Instance);
+
+        Assert.NotNull(executePollAsyncMethod);
+
+        Task PollAsync(CancellationToken cancellationToken)
         {
-            await getAndUpdateTargetsAsyncTask!;
+            pollStarted.TrySetResult(true);
+            cancellationToken.Register(() => releasePoll.TrySetCanceled(cancellationToken));
+            return releasePoll.Task;
         }
-        finally
-        {
-            sampler.Dispose();
-        }
+
+        var stopwatch = Stopwatch.StartNew();
+        var executePollTask = sampler.ExecutePollAsync(PollAsync);
+        stopwatch.Stop();
+
+        await pollStarted.Task;
+        Assert.True(stopwatch.Elapsed < TimeSpan.FromSeconds(1), $"Expected ExecutePollAsync to return without waiting for the poll to finish, but it took {stopwatch.Elapsed}.");
+
+        releasePoll.TrySetResult(true);
+        await executePollTask;
+    }
+
+    private static AWSXRayRemoteSampler GetRemoteSampler(Trace.Sampler sampler)
+    {
+        var rootSamplerFieldInfo = typeof(ParentBasedSampler).GetField("rootSampler", BindingFlags.NonPublic | BindingFlags.Instance);
+        var remoteSampler = (AWSXRayRemoteSampler?)rootSamplerFieldInfo?.GetValue(sampler);
+
+        return remoteSampler ?? throw new InvalidOperationException("Unable to get AWSXRayRemoteSampler from ParentBasedSampler.");
     }
 
     private SamplingDecision DoSample(Trace.Sampler sampler, string serviceName)

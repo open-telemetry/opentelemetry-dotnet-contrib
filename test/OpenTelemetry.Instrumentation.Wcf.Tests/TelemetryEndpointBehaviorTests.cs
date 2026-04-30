@@ -34,6 +34,31 @@ public class TelemetryEndpointBehaviorTests
         }
     }
 
+#if NETFRAMEWORK
+    [Fact]
+    public void ApplyDispatchBehaviorToEndpoint_WithNullActionOperation_DoesNotThrow()
+    {
+        // Arrange
+        var endpointDispatcher = new EndpointDispatcher(
+            new EndpointAddress("http://localhost/something"),
+            contractName: "Service",
+            contractNamespace: "http://opentelemetry.io/");
+
+        endpointDispatcher.DispatchRuntime.Operations.Add(
+            new DispatchOperation(
+                endpointDispatcher.DispatchRuntime,
+                name: "NullActionOperation",
+                action: null));
+
+        // Act
+        var exception = Record.Exception(() => TelemetryEndpointBehavior.ApplyDispatchBehaviorToEndpoint(endpointDispatcher));
+
+        // Assert
+        Assert.Null(exception);
+        Assert.Single(endpointDispatcher.DispatchRuntime.MessageInspectors);
+    }
+#endif
+
     private sealed class InjectNullActionOperationBehavior : IEndpointBehavior
     {
         public void AddBindingParameters(ServiceEndpoint endpoint, BindingParameterCollection bindingParameters)
