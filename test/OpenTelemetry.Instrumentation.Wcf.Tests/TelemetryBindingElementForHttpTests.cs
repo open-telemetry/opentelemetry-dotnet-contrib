@@ -15,6 +15,8 @@ public class TelemetryBindingElementForHttpTests : IDisposable
 {
     private readonly Uri serviceBaseUri;
     private readonly HttpListener listener;
+    private readonly Task listenerTask;
+    private readonly TaskCompletionSource<bool> initialized = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     public TelemetryBindingElementForHttpTests()
     {
@@ -45,79 +47,20 @@ public class TelemetryBindingElementForHttpTests : IDisposable
         }
 
         this.listener = createdListener;
-        var initializationHandle = new EventWaitHandle(false, EventResetMode.ManualReset);
-        try
-        {
-            Listener();
-
-            initializationHandle.WaitOne();
-        }
-        finally
-        {
-            initializationHandle.Dispose();
-#pragma warning disable IDE0059 // Unnecessary assignment of a value
-            initializationHandle = null;
-#pragma warning restore IDE0059 // Unnecessary assignment of a value
-        }
-
-        async void Listener()
-        {
-            while (true)
-            {
-                try
-                {
-                    var ctxTask = this.listener.GetContextAsync();
-
-                    initializationHandle?.Set();
-
-                    var ctx = await ctxTask.ConfigureAwait(false);
-
-                    using var reader = new StreamReader(ctx.Request.InputStream);
-
-                    var request = reader.ReadToEnd();
-
-                    ctx.Response.StatusCode = 200;
-                    ctx.Response.ContentType = "text/xml; charset=utf-8";
-
-                    using (var writer = new StreamWriter(ctx.Response.OutputStream))
-                    {
-                        if (request.Contains("ExecuteWithEmptyActionName"))
-                        {
-                            writer.Write(@"<s:Envelope xmlns:s=""http://schemas.xmlsoap.org/soap/envelope/""><s:Body><ExecuteWithEmptyActionNameResponse xmlns=""http://opentelemetry.io/""><ExecuteResult xmlns:a=""http://schemas.datacontract.org/2004/07/OpenTelemetry.Instrumentation.Wcf.Tests"" xmlns:i=""http://www.w3.org/2001/XMLSchema-instance""><a:Payload>RSP: Hello Open Telemetry!</a:Payload></ExecuteResult></ExecuteWithEmptyActionNameResponse></s:Body></s:Envelope>");
-                        }
-                        else if (request.Contains("ExecuteSynchronous"))
-                        {
-                            writer.Write(@"<s:Envelope xmlns:s=""http://schemas.xmlsoap.org/soap/envelope/""><s:Body><ExecuteSynchronousResponse xmlns=""http://opentelemetry.io/""><ExecuteResult xmlns:a=""http://schemas.datacontract.org/2004/07/OpenTelemetry.Instrumentation.Wcf.Tests"" xmlns:i=""http://www.w3.org/2001/XMLSchema-instance""><a:Payload>RSP: Hello Open Telemetry!</a:Payload></ExecuteResult></ExecuteSynchronousResponse></s:Body></s:Envelope>");
-                        }
-                        else
-                        {
-                            writer.Write(@"<s:Envelope xmlns:s=""http://schemas.xmlsoap.org/soap/envelope/""><s:Body><ExecuteResponse xmlns=""http://opentelemetry.io/""><ExecuteResult xmlns:a=""http://schemas.datacontract.org/2004/07/OpenTelemetry.Instrumentation.Wcf.Tests"" xmlns:i=""http://www.w3.org/2001/XMLSchema-instance""><a:Payload>RSP: Hello Open Telemetry!</a:Payload></ExecuteResult></ExecuteResponse></s:Body></s:Envelope>");
-                        }
-                    }
-
-                    ctx.Response.Close();
-                }
-                catch (Exception ex)
-                {
-                    if (ex is ObjectDisposedException
-                        || (ex is HttpListenerException httpEx && httpEx.ErrorCode == 995))
-                    {
-                        // Listener was closed before we got into GetContextAsync or
-                        // Listener was closed while we were in GetContextAsync.
-                        break;
-                    }
-
-                    throw;
-                }
-            }
-        }
+        this.listenerTask = Task.Run(this.ListenAsync);
+        this.initialized.Task.Wait();
     }
 
     public void Dispose()
     {
-        if (this.listener != null)
+        try
         {
-            (this.listener as IDisposable).Dispose();
+            this.listener.Close();
+            this.listenerTask.Wait();
+        }
+        catch (Exception ex) when (this.IsListenerShutdownException(ex))
+        {
+            // Listener was already closed as part of disposal.
         }
     }
 
@@ -181,6 +124,7 @@ public class TelemetryBindingElementForHttpTests : IDisposable
         var client = new ServiceClient(
             new BasicHttpBinding(BasicHttpSecurityMode.None),
             new EndpointAddress(new Uri(this.serviceBaseUri, "/Service")));
+
         try
         {
             client.Endpoint.EndpointBehaviors.Add(new DownstreamInstrumentationEndpointBehavior());
@@ -293,9 +237,11 @@ public class TelemetryBindingElementForHttpTests : IDisposable
         var client = new ServiceClient(
             new BasicHttpBinding(BasicHttpSecurityMode.None),
             new EndpointAddress(new Uri(this.serviceBaseUri, "/Service")));
+
         var clientBadUrl = new ServiceClient(
             new BasicHttpBinding(BasicHttpSecurityMode.None),
             new EndpointAddress(new Uri("http://localhost:1/Service")));
+
         try
         {
             client.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());
@@ -319,5 +265,72 @@ public class TelemetryBindingElementForHttpTests : IDisposable
 
         Assert.Equal(5, stoppedActivities.Count);
         WcfTestHelpers.AssertActivitiesHaveCorrectParentage(stoppedActivities);
+    }
+
+    private bool IsListenerShutdownException(Exception exception)
+    {
+        for (var ex = exception; ex is not null; ex = ex.InnerException)
+        {
+            if (ex is AggregateException aggregate)
+            {
+                ex = aggregate.Flatten();
+            }
+
+            if (ex is InvalidOperationException && !this.listener.IsListening)
+            {
+                return true;
+            }
+
+            if (ex is HttpListenerException httpEx && (httpEx.ErrorCode is 1 or 6 or 995 or 10057))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private async Task ListenAsync()
+    {
+        this.initialized.TrySetResult(true);
+
+        while (true)
+        {
+            try
+            {
+                var context = await this.listener.GetContextAsync().ConfigureAwait(false);
+
+                using var reader = new StreamReader(context.Request.InputStream);
+
+                var request = reader.ReadToEnd();
+
+                context.Response.StatusCode = 200;
+                context.Response.ContentType = "text/xml; charset=utf-8";
+
+                using (var writer = new StreamWriter(context.Response.OutputStream))
+                {
+                    if (request.Contains("ExecuteWithEmptyActionName"))
+                    {
+                        writer.Write(@"<s:Envelope xmlns:s=""http://schemas.xmlsoap.org/soap/envelope/""><s:Body><ExecuteWithEmptyActionNameResponse xmlns=""http://opentelemetry.io/""><ExecuteResult xmlns:a=""http://schemas.datacontract.org/2004/07/OpenTelemetry.Instrumentation.Wcf.Tests"" xmlns:i=""http://www.w3.org/2001/XMLSchema-instance""><a:Payload>RSP: Hello Open Telemetry!</a:Payload></ExecuteResult></ExecuteWithEmptyActionNameResponse></s:Body></s:Envelope>");
+                    }
+                    else if (request.Contains("ExecuteSynchronous"))
+                    {
+                        writer.Write(@"<s:Envelope xmlns:s=""http://schemas.xmlsoap.org/soap/envelope/""><s:Body><ExecuteSynchronousResponse xmlns=""http://opentelemetry.io/""><ExecuteResult xmlns:a=""http://schemas.datacontract.org/2004/07/OpenTelemetry.Instrumentation.Wcf.Tests"" xmlns:i=""http://www.w3.org/2001/XMLSchema-instance""><a:Payload>RSP: Hello Open Telemetry!</a:Payload></ExecuteResult></ExecuteSynchronousResponse></s:Body></s:Envelope>");
+                    }
+                    else
+                    {
+                        writer.Write(@"<s:Envelope xmlns:s=""http://schemas.xmlsoap.org/soap/envelope/""><s:Body><ExecuteResponse xmlns=""http://opentelemetry.io/""><ExecuteResult xmlns:a=""http://schemas.datacontract.org/2004/07/OpenTelemetry.Instrumentation.Wcf.Tests"" xmlns:i=""http://www.w3.org/2001/XMLSchema-instance""><a:Payload>RSP: Hello Open Telemetry!</a:Payload></ExecuteResult></ExecuteResponse></s:Body></s:Envelope>");
+                    }
+                }
+
+                context.Response.Close();
+            }
+            catch (Exception ex) when (this.IsListenerShutdownException(ex))
+            {
+                // Listener was closed before we got into GetContextAsync or
+                // Listener was closed while we were in GetContextAsync.
+                break;
+            }
+        }
     }
 }

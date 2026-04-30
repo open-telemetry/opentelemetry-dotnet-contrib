@@ -89,11 +89,10 @@ flags:
       - src/OpenTelemetry.Instrumentation.AWS
       - src/OpenTelemetry.Instrumentation.AWSLambda
 
-  # Note: No unit tests currently for Cassandra being run in CI.
-  #unittests-Instrumentation.Cassandra:
-  #  carryforward: true
-  #  paths:
-  #    - src/OpenTelemetry.Instrumentation.Cassandra
+  unittests-Instrumentation.Cassandra:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Instrumentation.Cassandra
 
   unittests-Instrumentation.ConfluentKafka:
     carryforward: true
