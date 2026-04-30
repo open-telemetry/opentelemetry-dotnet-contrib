@@ -402,10 +402,23 @@ internal class HttpInListener : ListenerHandler
     // path if the user has not explicitly opted into ASP.NET Core 10's native OpenTelemetry support.
     // https://github.com/dotnet/aspnetcore/blob/7387de91234d3ef751fa50b3d1bfede4130213ff/src/Hosting/Hosting/src/Internal/HostingApplicationDiagnostics.cs#L58-L67
 
-    private static bool IsOpenTelemetryActivityDataSuppressed() =>
-#if NET10_0
-        !AppContext.TryGetSwitch("Microsoft.AspNetCore.Hosting.SuppressActivityOpenTelemetryData", out var enabled) || enabled;
-#else
-        false;
+    private static bool IsOpenTelemetryActivityDataSuppressed()
+    {
+#if NET10_0_OR_GREATER
+        if (AppContext.TryGetSwitch("Microsoft.AspNetCore.Hosting.SuppressActivityOpenTelemetryData", out var enabled))
+        {
+            return enabled;
+        }
 #endif
+#if NET10_0
+        // In .NET 10 the switch defaults to true,
+        // see https://github.com/dotnet/aspnetcore/blob/7387de91234d3ef751fa50b3d1bfede4130213ff/src/Hosting/Hosting/src/Internal/HostingApplicationDiagnostics.cs#L59-L67.
+        return true;
+#else
+        // In .NET 11+ the switch defaults to false,
+        // see https://github.com/dotnet/aspnetcore/blob/655f41d52f2fc75992eac41496b8e9cc119e1b54/src/Hosting/Hosting/src/Internal/HostingApplicationDiagnostics.cs#L59-L67.
+        // In .NET 8 and 9 the feature switch does not exist so cannot be suppressed.
+        return false;
+#endif
+    }
 }
