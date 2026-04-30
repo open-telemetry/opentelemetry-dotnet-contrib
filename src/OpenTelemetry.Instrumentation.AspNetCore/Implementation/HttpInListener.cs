@@ -417,7 +417,7 @@ internal class HttpInListener : ListenerHandler
         // see https://github.com/dotnet/aspnetcore/blob/655f41d52f2fc75992eac41496b8e9cc119e1b54/src/Hosting/Hosting/src/Internal/HostingApplicationDiagnostics.cs#L59-L67.
         return true;
 #else
-        // In ASP.NET Core 8 and 9 the feature switch but there are no native OpenTelemetry tags
+        // In ASP.NET Core 8 and 9 the feature switch does not exist and there are no native OpenTelemetry tags
         return false;
 #endif
     }
