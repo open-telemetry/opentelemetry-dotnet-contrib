@@ -5,15 +5,15 @@ using System.Diagnostics;
 
 namespace OpenTelemetry.Exporter.Instana.Implementation.Processors;
 
-internal class EventsActivityProcessor : ActivityProcessorBase, IActivityProcessor
+internal sealed class EventsActivityProcessor : ActivityProcessorBase
 {
-    public override async Task ProcessAsync(Activity activity, InstanaSpan instanaSpan)
+    public override void Process(Activity activity, InstanaSpan instanaSpan)
     {
         this.PreProcess(activity, instanaSpan);
 
         foreach (var activityEvent in activity.Events)
         {
-            if (activityEvent.Name == InstanaExporterConstants.EXCEPTION_FIELD && instanaSpan.TransformInfo != null)
+            if (activityEvent.Name == InstanaExporterConstants.ExceptionField && instanaSpan.TransformInfo != null)
             {
                 instanaSpan.TransformInfo.HasExceptionEvent = true;
             }
@@ -29,13 +29,13 @@ internal class EventsActivityProcessor : ActivityProcessorBase, IActivityProcess
             {
                 if (eventTag.Value != null)
                 {
-                    spanEvent.Tags[eventTag.Key] = eventTag.Value.ToString();
+                    spanEvent.Tags[eventTag.Key] = eventTag.Value.ToString() ?? string.Empty;
                 }
             }
 
             instanaSpan.Data.Events.Add(spanEvent);
         }
 
-        await base.ProcessAsync(activity, instanaSpan).ConfigureAwait(false);
+        base.Process(activity, instanaSpan);
     }
 }

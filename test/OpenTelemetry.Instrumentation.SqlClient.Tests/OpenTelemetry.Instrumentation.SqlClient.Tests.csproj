@@ -8,6 +8,8 @@
 
   <ItemGroup>
     <Compile Include="$(RepoRoot)\src\Shared\ActivityHelperExtensions.cs" Link="Includes\ActivityHelperExtensions.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\ContainerFixture.cs" Link="Includes\ContainerFixture.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\ContainerFixture{T}.cs" Link="Includes\ContainerFixture{T}.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\DockerHelper.cs" Link="Includes\DockerHelper.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\DockerPlatform.cs" Link="Includes\DockerPlatform.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\EnabledOnDockerPlatformFactAttribute.cs" Link="Includes\EnabledOnDockerPlatformFactAttribute.cs" />
@@ -17,6 +19,7 @@
     <Compile Include="$(RepoRoot)\test\Shared\SkipUnlessEnvVarFoundTheoryAttribute.cs" Link="Includes\SkipUnlessEnvVarFoundTheoryAttribute.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\TestEventListener.cs" Link="Includes\TestEventListener.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\TestSampler.cs" Link="Includes\TestSampler.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\XunitContainerFixture{T}.cs" Link="Includes\XunitContainerFixture{T}.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -31,7 +34,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="SqlClientTestCases.json" LogicalName="SqlClientTestCases.json" CopyToOutputDirectory="Always" />
-    <EmbeddedResource Include="sqlserver.Dockerfile" LogicalName="sqlserver.Dockerfile" />
+    <EmbeddedResource Include="*.Dockerfile" LogicalName="%(FileName)%(Extension)" />
   </ItemGroup>
 
 </Project>

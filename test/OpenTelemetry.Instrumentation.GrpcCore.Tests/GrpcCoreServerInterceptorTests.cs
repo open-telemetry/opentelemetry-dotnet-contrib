@@ -18,80 +18,64 @@ public class GrpcCoreServerInterceptorTests
     /// </summary>
     /// <returns>A task.</returns>
     [Fact]
-    public async Task UnaryServerHandlerSuccess()
-    {
+    public async Task UnaryServerHandlerSuccess() =>
         await TestHandlerSuccess(FoobarService.MakeUnaryAsyncRequest);
-    }
 
     /// <summary>
     /// Validates a failed UnaryServerHandler call.
     /// </summary>
     /// <returns>A task.</returns>
     [Fact]
-    public async Task UnaryServerHandlerFail()
-    {
+    public async Task UnaryServerHandlerFail() =>
         await TestHandlerFailure(FoobarService.MakeUnaryAsyncRequest);
-    }
 
     /// <summary>
     /// Validates a successful ClientStreamingServerHandler call.
     /// </summary>
     /// <returns>A task.</returns>
     [Fact]
-    public async Task ClientStreamingServerHandlerSuccess()
-    {
+    public async Task ClientStreamingServerHandlerSuccess() =>
         await TestHandlerSuccess(FoobarService.MakeClientStreamingRequest);
-    }
 
     /// <summary>
     /// Validates a failed ClientStreamingServerHandler call.
     /// </summary>
     /// <returns>A task.</returns>
     [Fact]
-    public async Task ClientStreamingServerHandlerFail()
-    {
+    public async Task ClientStreamingServerHandlerFail() =>
         await TestHandlerFailure(FoobarService.MakeClientStreamingRequest);
-    }
 
     /// <summary>
     /// Validates a successful ServerStreamingServerHandler call.
     /// </summary>
     /// <returns>A task.</returns>
     [Fact]
-    public async Task ServerStreamingServerHandlerSuccess()
-    {
+    public async Task ServerStreamingServerHandlerSuccess() =>
         await TestHandlerSuccess(FoobarService.MakeServerStreamingRequest);
-    }
 
     /// <summary>
     /// Validates a failed ServerStreamingServerHandler call.
     /// </summary>
     /// <returns>A task.</returns>
     [Fact]
-    public async Task ServerStreamingServerHandlerFail()
-    {
+    public async Task ServerStreamingServerHandlerFail() =>
         await TestHandlerFailure(FoobarService.MakeServerStreamingRequest);
-    }
 
     /// <summary>
     /// Validates a successful DuplexStreamingServerHandler call.
     /// </summary>
     /// <returns>A task.</returns>
     [Fact]
-    public async Task DuplexStreamingServerHandlerSuccess()
-    {
+    public async Task DuplexStreamingServerHandlerSuccess() =>
         await TestHandlerSuccess(FoobarService.MakeDuplexStreamingRequest);
-    }
 
     /// <summary>
     /// Validates a failed DuplexStreamingServerHandler call.
     /// </summary>
     /// <returns>A task.</returns>
     [Fact]
-    public async Task DuplexStreamingServerHandlerFail()
-    {
+    public async Task DuplexStreamingServerHandlerFail() =>
         await TestHandlerFailure(FoobarService.MakeDuplexStreamingRequest);
-    }
 
     /// <summary>
     /// Validates that non protobuf payloads do not abort server RPCs when
@@ -108,8 +92,10 @@ public class GrpcCoreServerInterceptorTests
             AdditionalTags = testTags.Tags,
         };
 
-        static Task<NonProtobufPayload> HandleUnaryCall(NonProtobufPayload request, ServerCallContext context) =>
-            Task.FromResult(new NonProtobufPayload());
+        static Task<NonProtobufPayload> HandleUnaryCall(NonProtobufPayload request, ServerCallContext context)
+        {
+            return Task.FromResult(new NonProtobufPayload());
+        }
 
         var serviceDefinition = ServerServiceDefinition.CreateBuilder()
             .AddMethod(

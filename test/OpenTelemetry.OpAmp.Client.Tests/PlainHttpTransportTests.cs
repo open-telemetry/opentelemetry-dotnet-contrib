@@ -252,10 +252,17 @@ public class PlainHttpTransportTests
 
         try
         {
-            var completedTask = await Task.WhenAny(sendTask, Task.Delay(TimeSpan.FromSeconds(2)));
+            var timeout = TimeSpan.FromSeconds(2);
 
+#if NET
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await sendTask.WaitAsync(timeout));
+#else
+            using var cts = new CancellationTokenSource(timeout);
+            var completedTask = await Task.WhenAny(sendTask, Task.Delay(timeout, cts.Token));
             Assert.Same(sendTask, completedTask);
+
             await Assert.ThrowsAsync<InvalidOperationException>(async () => await sendTask);
+#endif
         }
         finally
         {
@@ -282,7 +289,7 @@ public class PlainHttpTransportTests
                     context.Response.OutputStream.WriteByte(0);
                     context.Response.OutputStream.Flush();
                 }
-                catch (Exception ex) when (ex is HttpListenerException || ex is IOException || ex is ObjectDisposedException)
+                catch (Exception ex) when (ex is HttpListenerException or IOException or ObjectDisposedException)
                 {
                     // The client may close the connection as soon as it sees the oversized Content-Length.
                 }
