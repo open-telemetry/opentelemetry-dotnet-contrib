@@ -400,12 +400,13 @@ internal class HttpInListener : ListenerHandler
         }
     }
 
-    // ASP.NET Core 10 does not generate OpenTelemetry tags by default so we can only take
-    // the optimal path if the user has explicitly opted-out of suppressing the OpenTelemetry data.
     private static bool AspNetCoreHasNativeOpenTelemetryTags()
     {
         bool? suppressed = null;
 
+        // ASP.NET Core 10 added a feature switch to specify whether to suppress OpenTelemetry
+        // tags being added natively by default, so we can take an optimal path if the user has
+        // not explicitly opted-out of suppressing the OpenTelemetry data.
         if (AppContext.TryGetSwitch("Microsoft.AspNetCore.Hosting.SuppressActivityOpenTelemetryData", out var configuredValue))
         {
             suppressed = configuredValue;
