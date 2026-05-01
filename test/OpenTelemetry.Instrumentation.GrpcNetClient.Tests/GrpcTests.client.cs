@@ -85,9 +85,7 @@ public partial class GrpcTests
         Assert.Equal("greet.Greeter", activity.GetTagValue(SemanticConventions.AttributeRpcService));
         Assert.Equal("SayHello", activity.GetTagValue(SemanticConventions.AttributeRpcMethod));
 
-        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeServerSocketAddress));
         Assert.Equal(uri.Host, activity.GetTagValue(SemanticConventions.AttributeServerAddress));
-
         Assert.Equal(uri.Port, activity.GetTagValue(SemanticConventions.AttributeServerPort));
         Assert.Equal(ActivityStatusCode.Unset, activity.Status);
 

@@ -176,7 +176,7 @@ internal class FoobarService : Foobar.FoobarBase
     }
 
     /// <inheritdoc/>
-    public async override Task<FoobarResponse> Unary(FoobarRequest request, ServerCallContext context)
+    public override async Task<FoobarResponse> Unary(FoobarRequest request, ServerCallContext context)
     {
         this.CheckForFailure(context);
 
@@ -267,8 +267,6 @@ internal class FoobarService : Foobar.FoobarBase
 
         /// <inheritdoc/>
         public void Dispose()
-        {
-            this.server.ShutdownAsync().Wait();
-        }
+            => this.server.ShutdownAsync().Wait();
     }
 }

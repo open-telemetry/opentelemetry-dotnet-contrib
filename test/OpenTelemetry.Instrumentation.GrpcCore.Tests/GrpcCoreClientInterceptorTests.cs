@@ -33,7 +33,10 @@ public class GrpcCoreClientInterceptorTests
     /// <returns>A task.</returns>
     [Fact]
     public async Task AsyncUnarySuccess() =>
-        await TestHandlerSuccess(FoobarService.MakeUnaryAsyncRequest, DefaultMetadataFunc());
+        await TestHandlerSuccess(
+            FoobarService.MakeUnaryAsyncRequest,
+            "Unary",
+            DefaultMetadataFunc());
 
     /// <summary>
     /// Validates a failed AsyncUnary call because the endpoint isn't there.
@@ -43,6 +46,7 @@ public class GrpcCoreClientInterceptorTests
     public async Task AsyncUnaryUnavailable() =>
         await TestHandlerFailure(
             FoobarService.MakeUnaryAsyncRequest,
+            "Unary",
             StatusCode.Unavailable,
             validateErrorDescription: false,
             BogusServerUri);
@@ -53,7 +57,7 @@ public class GrpcCoreClientInterceptorTests
     /// <returns>A task.</returns>
     [Fact]
     public async Task AsyncUnaryFail() =>
-        await TestHandlerFailure(FoobarService.MakeUnaryAsyncRequest);
+        await TestHandlerFailure(FoobarService.MakeUnaryAsyncRequest, "Unary");
 
     /// <summary>
     /// Validates a failed AsyncUnary call because the client is disposed before completing the RPC.
@@ -66,7 +70,7 @@ public class GrpcCoreClientInterceptorTests
             using var call = client.UnaryAsync(FoobarService.DefaultRequestMessage);
         }
 
-        this.TestActivityIsCancelledWhenHandlerDisposed(MakeRequest);
+        this.TestActivityIsCancelledWhenHandlerDisposed(MakeRequest, "Unary");
     }
 
     /// <summary>
@@ -75,7 +79,7 @@ public class GrpcCoreClientInterceptorTests
     /// <returns>A task.</returns>
     [Fact]
     public async Task ClientStreamingSuccess() =>
-        await TestHandlerSuccess(FoobarService.MakeClientStreamingRequest, DefaultMetadataFunc());
+        await TestHandlerSuccess(FoobarService.MakeClientStreamingRequest, "ClientStreaming", DefaultMetadataFunc());
 
     /// <summary>
     /// Validates a failed ClientStreaming call when the service is unavailable.
@@ -85,6 +89,7 @@ public class GrpcCoreClientInterceptorTests
     public async Task ClientStreamingUnavailable() =>
         await TestHandlerFailure(
             FoobarService.MakeClientStreamingRequest,
+            "ClientStreaming",
             StatusCode.Unavailable,
             validateErrorDescription: false,
             BogusServerUri);
@@ -95,7 +100,7 @@ public class GrpcCoreClientInterceptorTests
     /// <returns>A task.</returns>
     [Fact]
     public async Task ClientStreamingFail() =>
-        await TestHandlerFailure(FoobarService.MakeClientStreamingRequest);
+        await TestHandlerFailure(FoobarService.MakeClientStreamingRequest, "ClientStreaming");
 
     /// <summary>
     /// Validates a failed ClientStreaming call because the client is disposed before completing the RPC.
@@ -108,7 +113,7 @@ public class GrpcCoreClientInterceptorTests
             using var call = client.ClientStreaming();
         }
 
-        this.TestActivityIsCancelledWhenHandlerDisposed(MakeRequest);
+        this.TestActivityIsCancelledWhenHandlerDisposed(MakeRequest, "ClientStreaming");
     }
 
     /// <summary>
@@ -117,7 +122,7 @@ public class GrpcCoreClientInterceptorTests
     /// <returns>A task.</returns>
     [Fact]
     public async Task ServerStreamingSuccess() =>
-        await TestHandlerSuccess(FoobarService.MakeServerStreamingRequest, DefaultMetadataFunc());
+        await TestHandlerSuccess(FoobarService.MakeServerStreamingRequest, "ServerStreaming", DefaultMetadataFunc());
 
     /// <summary>
     /// Validates a failed ServerStreaming call.
@@ -125,7 +130,7 @@ public class GrpcCoreClientInterceptorTests
     /// <returns>A task.</returns>
     [Fact]
     public async Task ServerStreamingFail() =>
-        await TestHandlerFailure(FoobarService.MakeServerStreamingRequest);
+        await TestHandlerFailure(FoobarService.MakeServerStreamingRequest, "ServerStreaming");
 
     /// <summary>
     /// Validates a failed ServerStreaming call because the client is disposed before completing the RPC.
@@ -138,7 +143,7 @@ public class GrpcCoreClientInterceptorTests
             using var call = client.ServerStreaming(FoobarService.DefaultRequestMessage);
         }
 
-        this.TestActivityIsCancelledWhenHandlerDisposed(MakeRequest);
+        this.TestActivityIsCancelledWhenHandlerDisposed(MakeRequest, "ServerStreaming");
     }
 
     /// <summary>
@@ -147,7 +152,7 @@ public class GrpcCoreClientInterceptorTests
     /// <returns>A task.</returns>
     [Fact]
     public async Task DuplexStreamingSuccess() =>
-        await TestHandlerSuccess(FoobarService.MakeDuplexStreamingRequest, DefaultMetadataFunc());
+        await TestHandlerSuccess(FoobarService.MakeDuplexStreamingRequest, "DuplexStreaming", DefaultMetadataFunc());
 
     /// <summary>
     /// Validates a failed DuplexStreaming call when the service is unavailable.
@@ -157,6 +162,7 @@ public class GrpcCoreClientInterceptorTests
     public async Task DuplexStreamingUnavailable() =>
         await TestHandlerFailure(
             FoobarService.MakeDuplexStreamingRequest,
+            "DuplexStreaming",
             StatusCode.Unavailable,
             validateErrorDescription: false,
             BogusServerUri);
@@ -167,7 +173,7 @@ public class GrpcCoreClientInterceptorTests
     /// <returns>A task.</returns>
     [Fact]
     public async Task DuplexStreamingFail() =>
-        await TestHandlerFailure(FoobarService.MakeDuplexStreamingRequest);
+        await TestHandlerFailure(FoobarService.MakeDuplexStreamingRequest, "DuplexStreaming");
 
     /// <summary>
     /// Validates a failed DuplexStreaming call because the client is disposed before completing the RPC.
@@ -180,7 +186,7 @@ public class GrpcCoreClientInterceptorTests
             using var call = client.DuplexStreaming();
         }
 
-        this.TestActivityIsCancelledWhenHandlerDisposed(MakeRequest);
+        this.TestActivityIsCancelledWhenHandlerDisposed(MakeRequest, "DuplexStreaming");
     }
 
     /// <summary>
@@ -310,7 +316,7 @@ public class GrpcCoreClientInterceptorTests
         Assert.NotNull(response);
 
         var activity = activityListener.Activity;
-        ValidateCommonActivityTags(activity);
+        ValidateCommonActivityTags(activity, "Unary");
         Assert.Empty(activity!.Events);
     }
 
@@ -318,11 +324,13 @@ public class GrpcCoreClientInterceptorTests
     /// Validates the common activity tags.
     /// </summary>
     /// <param name="activity">The activity.</param>
+    /// <param name="expectedMethodName">The expected gRPC method name.</param>
     /// <param name="expectedStatusCode">The expected status code.</param>
     /// <param name="recordedMessages">if set to <c>true</c> [recorded messages].</param>
     /// <param name="recordedExceptions">if set to <c>true</c> [recorded exceptions].</param>
     internal static void ValidateCommonActivityTags(
         Activity? activity,
+        string expectedMethodName,
         StatusCode expectedStatusCode = StatusCode.OK,
         bool recordedMessages = false,
         bool recordedExceptions = false)
@@ -332,12 +340,14 @@ public class GrpcCoreClientInterceptorTests
 
         Assert.True(activity.IsStopped, "The activity has not been stopped.");
 
+        Assert.Equal(expectedMethodName, activity.DisplayName);
+
         // TagObjects contain non string values
         // Tags contains only string values
-        Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcSystem && (string?)t.Value == "grpc");
+        Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcSystemName && (string?)t.Value == "grpc");
         Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcService && (string?)t.Value == "OpenTelemetry.Instrumentation.GrpcCore.Tests.Foobar");
-        Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcMethod);
-        Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcGrpcStatusCode && (int?)t.Value == (int)expectedStatusCode);
+        Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcMethod && (string?)t.Value == expectedMethodName);
+        Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcResponseStatusCode && (int?)t.Value == (int)expectedStatusCode);
 
         // Cancelled is not an error.
         if (expectedStatusCode is not StatusCode.OK and not StatusCode.Cancelled)
@@ -388,9 +398,13 @@ public class GrpcCoreClientInterceptorTests
     /// Tests basic handler success.
     /// </summary>
     /// <param name="clientRequestFunc">The client request function.</param>
+    /// <param name="expectedMethodName">The expected gRPC method name.</param>
     /// <param name="additionalMetadata">The additional metadata, if any.</param>
     /// <returns>A Task.</returns>
-    private static async Task TestHandlerSuccess(Func<Foobar.FoobarClient, Metadata, Task> clientRequestFunc, Metadata additionalMetadata)
+    private static async Task TestHandlerSuccess(
+        Func<Foobar.FoobarClient, Metadata, Task> clientRequestFunc,
+        string expectedMethodName,
+        Metadata additionalMetadata)
     {
         var propagator = new TestTextMapPropagator();
         PropagationContext capturedPropagationContext = default;
@@ -454,7 +468,11 @@ public class GrpcCoreClientInterceptorTests
             Assert.NotNull(capturedCarrier);
             Assert.NotEmpty(capturedCarrier);
 
-            ValidateCommonActivityTags(activity, StatusCode.OK, interceptorOptions.RecordMessageEvents);
+            ValidateCommonActivityTags(
+                activity,
+                expectedMethodName,
+                StatusCode.OK,
+                interceptorOptions.RecordMessageEvents);
 
             Assert.Equal(default, activity.ParentSpanId);
         }
@@ -482,7 +500,11 @@ public class GrpcCoreClientInterceptorTests
 
             var activity = activityListener.Activity;
 
-            ValidateCommonActivityTags(activity, StatusCode.OK, interceptorOptions.RecordMessageEvents);
+            ValidateCommonActivityTags(
+                activity,
+                expectedMethodName,
+                StatusCode.OK,
+                interceptorOptions.RecordMessageEvents);
 
             Assert.NotNull(activity);
             Assert.Equal(parentActivity.Id, activity.ParentId);
@@ -493,6 +515,7 @@ public class GrpcCoreClientInterceptorTests
     /// Tests basic handler failure. Instructs the server to fail with resources exhausted and validates the created Activity.
     /// </summary>
     /// <param name="clientRequestFunc">The client request function.</param>
+    /// <param name="expectedMethodName">The expected gRPC method name.</param>
     /// <param name="statusCode">The status code to use for the failure. Defaults to ResourceExhausted.</param>
     /// <param name="validateErrorDescription">if set to <c>true</c> [validate error description].</param>
     /// <param name="serverUriString">An alternate server URI string.</param>
@@ -501,12 +524,18 @@ public class GrpcCoreClientInterceptorTests
     /// </returns>
     private static async Task TestHandlerFailure(
         Func<Foobar.FoobarClient, Metadata?, Task> clientRequestFunc,
+        string expectedMethodName,
         StatusCode statusCode = StatusCode.ResourceExhausted,
         bool validateErrorDescription = true,
         string? serverUriString = null)
     {
         var testTags = new TestActivityTags();
-        var interceptorOptions = new ClientTracingInterceptorOptions { Propagator = new TraceContextPropagator(), AdditionalTags = testTags.Tags, RecordException = true };
+        var interceptorOptions = new ClientTracingInterceptorOptions
+        {
+            Propagator = new TraceContextPropagator(),
+            AdditionalTags = testTags.Tags,
+            RecordException = true,
+        };
 
         using var activityListener = new InterceptorActivityListener(testTags);
 
@@ -525,7 +554,12 @@ public class GrpcCoreClientInterceptorTests
 
         var activity = activityListener.Activity;
 
-        ValidateCommonActivityTags(activity, statusCode, interceptorOptions.RecordMessageEvents, interceptorOptions.RecordException);
+        ValidateCommonActivityTags(
+            activity,
+            expectedMethodName,
+            statusCode,
+            interceptorOptions.RecordMessageEvents,
+            interceptorOptions.RecordException);
 
         if (validateErrorDescription)
         {
@@ -538,18 +572,30 @@ public class GrpcCoreClientInterceptorTests
     /// Tests for Activity cancellation when the handler is disposed before completing the RPC.
     /// </summary>
     /// <param name="clientRequestAction">The client request action.</param>
-    private void TestActivityIsCancelledWhenHandlerDisposed(Action<Foobar.FoobarClient> clientRequestAction)
+    /// <param name="expectedMethodName">The expected gRPC method name.</param>
+    private void TestActivityIsCancelledWhenHandlerDisposed(
+        Action<Foobar.FoobarClient> clientRequestAction,
+        string expectedMethodName)
     {
         var testTags = new TestActivityTags();
         using var activityListener = new InterceptorActivityListener(testTags);
 
         using (var server = FoobarService.Start())
         {
-            var clientInterceptorOptions = new ClientTracingInterceptorOptions { Propagator = new TraceContextPropagator(), AdditionalTags = testTags.Tags };
+            var clientInterceptorOptions = new ClientTracingInterceptorOptions
+            {
+                Propagator = new TraceContextPropagator(),
+                AdditionalTags = testTags.Tags,
+            };
+
             var client = FoobarService.ConstructRpcClient(server.UriString, new ClientTracingInterceptor(clientInterceptorOptions));
             clientRequestAction(client);
         }
 
-        ValidateCommonActivityTags(activityListener.Activity, StatusCode.Cancelled, false);
+        ValidateCommonActivityTags(
+            activityListener.Activity,
+            expectedMethodName,
+            StatusCode.Cancelled,
+            false);
     }
 }

@@ -109,10 +109,10 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
 
             var grpcMethod = GrpcTagHelper.GetGrpcMethodFromActivity(activity);
 
+            activity.DisplayName = grpcMethod?.Trim('/') ?? GrpcTagHelper.RpcSystemGrpc;
+
             if (grpcMethod != null)
             {
-                activity.DisplayName = grpcMethod.Trim('/');
-
                 if (GrpcTagHelper.TryParseRpcServiceAndRpcMethod(grpcMethod, out var rpcService, out var rpcMethod))
                 {
                     activity.SetTag(SemanticConventions.AttributeRpcService, rpcService);

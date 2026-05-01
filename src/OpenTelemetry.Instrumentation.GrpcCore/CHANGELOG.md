@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+* **BREAKING**: Update to version 1.41.0 of the Semantic Conventions.
+  ([#4338](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4338))
+
+* Add instrumentation scope version and schema URL to traces.
+  ([#4338](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4338))
+
+* Add `net10.0` target framework.
+  ([#4338](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4338))
+
 ## 1.0.0-beta.11
 
 Released 2026-Apr-21
