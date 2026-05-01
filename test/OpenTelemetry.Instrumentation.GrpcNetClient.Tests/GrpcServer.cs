@@ -19,7 +19,7 @@ internal sealed class GrpcServer<TService> : IAsyncDisposable
     public Uri Address
     {
         get => field ?? throw new InvalidOperationException("Server has not been started.");
-        set;
+        private set;
     }
 
     public async Task StartAsync()

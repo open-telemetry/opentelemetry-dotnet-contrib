@@ -198,7 +198,7 @@ public class GrpcCoreClientInterceptorTests
     public async Task DownstreamInterceptorActivityAccess()
     {
         using var server = FoobarService.Start();
-        var channel = new Channel(server.UriString, ChannelCredentials.Insecure);
+        var channel = new Channel(server.Target, ChannelCredentials.Insecure);
         var callInvoker = channel.CreateCallInvoker();
 
         // Activity has a parent
@@ -441,7 +441,10 @@ public class GrpcCoreClientInterceptorTests
         // No Activity parent
         using (var activityListener = new InterceptorActivityListener(testTags))
         {
-            var client = FoobarService.ConstructRpcClient(server.UriString, new ClientTracingInterceptor(interceptorOptions));
+            var client = FoobarService
+                .ConstructRpcClient(server.Target, new ClientTracingInterceptor(interceptorOptions))
+                .WithHost(server.Host);
+
             await clientRequestFunc(client, additionalMetadata).ConfigureAwait(false);
 
             Assert.Equal(default, Activity.Current);
@@ -475,6 +478,9 @@ public class GrpcCoreClientInterceptorTests
                 interceptorOptions.RecordMessageEvents);
 
             Assert.Equal(default, activity.ParentSpanId);
+
+            Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeServerAddress && (string?)t.Value == server.HostName);
+            Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeServerPort && (int?)t.Value == server.Port);
         }
 
         propagatorCalled = 0;
@@ -486,7 +492,11 @@ public class GrpcCoreClientInterceptorTests
             using var parentActivity = new Activity("foo");
             parentActivity.SetIdFormat(ActivityIdFormat.W3C);
             parentActivity.Start();
-            var client = FoobarService.ConstructRpcClient(server.UriString, new ClientTracingInterceptor(interceptorOptions));
+
+            var client = FoobarService
+                .ConstructRpcClient(server.Target, new ClientTracingInterceptor(interceptorOptions))
+                .WithHost(server.Host);
+
             await clientRequestFunc(client, additionalMetadata).ConfigureAwait(false);
 
             Assert.Equal(parentActivity, Activity.Current);
@@ -508,6 +518,8 @@ public class GrpcCoreClientInterceptorTests
 
             Assert.NotNull(activity);
             Assert.Equal(parentActivity.Id, activity.ParentId);
+            Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeServerAddress && (string?)t.Value == server.HostName);
+            Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeServerPort && (int?)t.Value == server.Port);
         }
     }
 
@@ -542,7 +554,7 @@ public class GrpcCoreClientInterceptorTests
         using (var server = FoobarService.Start())
         {
             var client = FoobarService.ConstructRpcClient(
-                serverUriString ?? server.UriString,
+                serverUriString ?? server.Target,
                 new ClientTracingInterceptor(interceptorOptions),
                 [
                     new(FoobarService.RequestHeaderFailWithStatusCode, statusCode.ToString()),
@@ -588,7 +600,7 @@ public class GrpcCoreClientInterceptorTests
                 AdditionalTags = testTags.Tags,
             };
 
-            var client = FoobarService.ConstructRpcClient(server.UriString, new ClientTracingInterceptor(clientInterceptorOptions));
+            var client = FoobarService.ConstructRpcClient(server.Target, new ClientTracingInterceptor(clientInterceptorOptions));
             clientRequestAction(client);
         }
 

@@ -111,7 +111,7 @@ public class GrpcCoreServerInterceptorTests
         };
 
         server.Start();
-        var serverUriString = new Uri("dns:localhost:" + server.Ports.Single().BoundPort).ToString();
+        var serverUriString = $"dns:localhost:{server.Ports.Single().BoundPort}";
 
         try
         {
@@ -159,13 +159,19 @@ public class GrpcCoreServerInterceptorTests
     {
         // starts the server with the server interceptor
         var testTags = new TestActivityTags();
-        var interceptorOptions = new ServerTracingInterceptorOptions { Propagator = new TraceContextPropagator(), RecordMessageEvents = true, AdditionalTags = testTags.Tags };
+        var interceptorOptions = new ServerTracingInterceptorOptions
+        {
+            Propagator = new TraceContextPropagator(),
+            RecordMessageEvents = true,
+            AdditionalTags = testTags.Tags,
+        };
+
         using var server = FoobarService.Start(new ServerTracingInterceptor(interceptorOptions));
 
         // No parent Activity, no context from header
         using (var activityListener = new InterceptorActivityListener(testTags))
         {
-            var client = FoobarService.ConstructRpcClient(server.UriString);
+            var client = FoobarService.ConstructRpcClient(server.Target);
             await clientRequestFunc(client, additionalMetadata);
 
             var activity = activityListener.Activity;
@@ -184,7 +190,7 @@ public class GrpcCoreServerInterceptorTests
         using (var activityListener = new InterceptorActivityListener(testTags))
         {
             var client = FoobarService.ConstructRpcClient(
-                server.UriString,
+                server.Target,
                 additionalMetadata: [new Metadata.Entry("traceparent", FoobarService.DefaultTraceparentWithSampling)]);
 
             await clientRequestFunc(client, additionalMetadata).ConfigureAwait(false);
@@ -221,7 +227,7 @@ public class GrpcCoreServerInterceptorTests
 
         using var activityListener = new InterceptorActivityListener(testTags);
         var client = FoobarService.ConstructRpcClient(
-            server.UriString,
+            server.Target,
             additionalMetadata:
             [
                 new Metadata.Entry("traceparent", FoobarService.DefaultTraceparentWithSampling),

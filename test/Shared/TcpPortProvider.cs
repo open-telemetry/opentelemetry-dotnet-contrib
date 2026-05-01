@@ -7,7 +7,7 @@ using System.Net.Sockets;
 namespace OpenTelemetry.Tests;
 
 /// <summary>
-/// Helper class that tries to provide unique ports numbers across processes and threads in the same machine.
+/// Helper class that tries to provide unique port numbers across processes and threads in the same machine.
 /// This class cannot guarantee a port is actually available, but should help avoid most conflicts.
 /// </summary>
 internal static class TcpPortProvider
