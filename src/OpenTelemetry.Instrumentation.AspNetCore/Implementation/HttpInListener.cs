@@ -404,7 +404,6 @@ internal class HttpInListener : ListenerHandler
     // the optimal path if the user has explicitly opted-out of suppressing the OpenTelemetry data.
     private static bool AspNetCoreHasNativeOpenTelemetryTags()
     {
-#if NET10_0_OR_GREATER
         bool? suppressed = null;
 
         if (AppContext.TryGetSwitch("Microsoft.AspNetCore.Hosting.SuppressActivityOpenTelemetryData", out var configuredValue))
@@ -417,14 +416,11 @@ internal class HttpInListener : ListenerHandler
             return !suppressedValue;
         }
 
+        // In ASP.NET Core 8 and 9 the feature switch does not exist and there are no native OpenTelemetry tags.
         // In ASP.NET Core 10 OpenTelemetry tags are suppressed by default,
         // see https://github.com/dotnet/aspnetcore/blob/7387de91234d3ef751fa50b3d1bfede4130213ff/src/Hosting/Hosting/src/Internal/HostingApplicationDiagnostics.cs#L59-L67.
         // In ASP.NET Core 11+ OpenTelemetry tags are emitted by default,
         // see https://github.com/dotnet/aspnetcore/blob/655f41d52f2fc75992eac41496b8e9cc119e1b54/src/Hosting/Hosting/src/Internal/HostingApplicationDiagnostics.cs#L59-L67.
         return Net11OrGreater;
-#else
-        // In ASP.NET Core 8 and 9 the feature switch does not exist and there are no native OpenTelemetry tags
-        return false;
-#endif
     }
 }
