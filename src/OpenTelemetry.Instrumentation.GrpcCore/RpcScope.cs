@@ -57,7 +57,7 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     /// <summary>
     /// Initializes a new instance of the <see cref="RpcScope{TRequest, TResponse}" /> class.
     /// </summary>
-    /// <param name="host">The host that the currect invocation will be dispatched to.</param>
+    /// <param name="host">The host that the current invocation will be dispatched to.</param>
     /// <param name="fullServiceName">Full name of the service.</param>
     /// <param name="recordMessageEvents">if set to <c>true</c> [record message events].</param>
     /// <param name="recordException">If set to <c>true</c> [record exception].</param>
