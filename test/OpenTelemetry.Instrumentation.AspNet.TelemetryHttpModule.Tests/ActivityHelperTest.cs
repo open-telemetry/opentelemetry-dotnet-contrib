@@ -16,6 +16,7 @@ public class ActivityHelperTest : IDisposable
     private const string BaggageInHeader = "TestKey1=123,TestKey2=456,TestKey1=789";
     private const string TestActivityName = "Activity.Test";
     private const string TestActivitySourceName = "TestActivitySource";
+    private const string StopInstrumentationCallbackContextKey = "__AspnetOpenTelemetryInstrumentationStopCallback__";
 
     private readonly ActivitySource testActivitySource = new(TestActivitySourceName);
     private readonly TextMapPropagator noopTextMapPropagator = new NoopTextMapPropagator();
@@ -317,6 +318,62 @@ public class ActivityHelperTest : IDisposable
 
         ActivityHelper.StopAspNetActivity(this.noopTextMapPropagator, rootActivity, context, null);
         Assert.Null(context.Items[ActivityHelper.ContextKey]);
+    }
+
+    [Fact]
+    public void Should_Not_Fire_Stop_Callback_Without_RootActivity()
+    {
+        var context = HttpContextHelper.GetFakeHttpContextBase();
+        using var rootActivity = ActivityHelper.StartAspNetActivity(this.noopTextMapPropagator, context, null);
+
+        Assert.Null(rootActivity);
+        Assert.Equal(ActivityHelper.StartedButNotSampledObj, context.Items[ActivityHelper.ContextKey]);
+
+        var instrumentationCallbackFired = false;
+        var callbackFired = false;
+        context.Items[StopInstrumentationCallbackContextKey] = (Action<Activity?, HttpContextBase>)((activity, _) =>
+        {
+            Assert.Null(activity);
+            instrumentationCallbackFired = true;
+        });
+
+        ActivityHelper.StopAspNetActivity(
+            this.noopTextMapPropagator,
+            rootActivity,
+            context,
+            (_, _) => callbackFired = true);
+
+        Assert.True(instrumentationCallbackFired);
+        Assert.False(callbackFired);
+        Assert.Null(context.Items[ActivityHelper.ContextKey]);
+        Assert.Null(context.Items[StopInstrumentationCallbackContextKey]);
+    }
+
+    [Fact]
+    public void Should_Fire_Instrumentation_Stop_Callback_Without_RootActivity()
+    {
+        var context = HttpContextHelper.GetFakeHttpContextBase();
+        using var rootActivity = ActivityHelper.StartAspNetActivity(this.noopTextMapPropagator, context, null);
+
+        Assert.Null(rootActivity);
+        Assert.Equal(ActivityHelper.StartedButNotSampledObj, context.Items[ActivityHelper.ContextKey]);
+
+        var callbackFired = false;
+        context.Items[StopInstrumentationCallbackContextKey] = (Action<Activity?, HttpContextBase>)((activity, _) =>
+        {
+            Assert.Null(activity);
+            callbackFired = true;
+        });
+
+        ActivityHelper.StopAspNetActivity(
+            this.noopTextMapPropagator,
+            rootActivity,
+            context,
+            onRequestStoppedCallback: null);
+
+        Assert.True(callbackFired);
+        Assert.Null(context.Items[ActivityHelper.ContextKey]);
+        Assert.Null(context.Items[StopInstrumentationCallbackContextKey]);
     }
 
     [Fact]

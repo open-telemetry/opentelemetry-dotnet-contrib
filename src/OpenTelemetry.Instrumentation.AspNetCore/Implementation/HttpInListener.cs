@@ -30,6 +30,7 @@ internal class HttpInListener : ListenerHandler
 #pragma warning restore IDE0370 // Suppression is unnecessary
     internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, Version.ToString());
     internal static readonly bool Net7OrGreater = Environment.Version.Major >= 7;
+    internal static readonly bool Net10OrGreater = Environment.Version.Major >= 10;
 
     private const string DiagnosticSourceName = "Microsoft.AspNetCore";
 
@@ -47,6 +48,7 @@ internal class HttpInListener : ListenerHandler
     private static readonly PropertyFetcher<Exception> ExceptionPropertyFetcher = new("Exception");
 
     private readonly AspNetCoreTraceInstrumentationOptions options;
+    private readonly bool nativeAspNetCoreOpenTelemetryEnabled;
 
     public HttpInListener(AspNetCoreTraceInstrumentationOptions options)
         : base(DiagnosticSourceName)
@@ -54,6 +56,7 @@ internal class HttpInListener : ListenerHandler
         Guard.ThrowIfNull(options);
 
         this.options = options;
+        this.nativeAspNetCoreOpenTelemetryEnabled = AspNetCoreHasNativeOpenTelemetryTags();
     }
 
     public override void OnEventWritten(string name, object? payload)
@@ -63,24 +66,18 @@ internal class HttpInListener : ListenerHandler
         switch (name)
         {
             case OnStartEvent:
-                {
-                    this.OnStartActivity(activity, payload);
-                }
-
+                this.OnStartActivity(activity, payload);
                 break;
+
             case OnStopEvent:
-                {
-                    this.OnStopActivity(activity, payload);
-                }
-
+                this.OnStopActivity(activity, payload);
                 break;
+
             case OnUnhandledHostingExceptionEvent:
             case OnUnHandledDiagnosticsExceptionEvent:
-                {
-                    this.OnException(activity, payload);
-                }
-
+                this.OnException(activity, payload);
                 break;
+
             default:
                 break;
         }
@@ -176,19 +173,38 @@ internal class HttpInListener : ListenerHandler
                 ActivityInstrumentationHelper.SetKindProperty(activity, ActivityKind.Server);
             }
 
+            // See the spec: https://github.com/open-telemetry/semantic-conventions/blob/v1.40.0/docs/http/http-spans.md
             var path = (request.PathBase.HasValue || request.Path.HasValue) ? (request.PathBase + request.Path).ToString() : "/";
+
             TelemetryHelper.RequestDataHelper.SetActivityDisplayName(activity, request.Method);
 
-            // see the spec https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/http/http-spans.md
+            // ASP.NET Core 10 does not support OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS so we
+            // still need to set the HTTP method tag so that any override by the user is honoured.
+            TelemetryHelper.RequestDataHelper.SetHttpMethodTag(activity, request.Method);
 
-            if (request.Host.HasValue)
+            if (!Net10OrGreater || !this.nativeAspNetCoreOpenTelemetryEnabled)
             {
-                activity.SetTag(SemanticConventions.AttributeServerAddress, request.Host.Host);
-
-                if (request.Host.Port.HasValue)
+                if (request.Host.HasValue)
                 {
-                    activity.SetTag(SemanticConventions.AttributeServerPort, request.Host.Port.Value);
+                    activity.SetTag(SemanticConventions.AttributeServerAddress, request.Host.Value);
+
+                    if (request.Host.Port is { } port)
+                    {
+                        activity.SetTag(SemanticConventions.AttributeServerPort, port);
+                    }
                 }
+
+                if (request.Headers.TryGetValue("User-Agent", out var values))
+                {
+                    var userAgent = values.Count > 0 ? values[0] : null;
+                    if (!string.IsNullOrEmpty(userAgent))
+                    {
+                        activity.SetTag(SemanticConventions.AttributeUserAgentOriginal, userAgent);
+                    }
+                }
+
+                activity.SetTag(SemanticConventions.AttributeUrlScheme, request.Scheme);
+                activity.SetTag(SemanticConventions.AttributeUrlPath, path);
             }
 
             if (request.QueryString.HasValue)
@@ -203,20 +219,7 @@ internal class HttpInListener : ListenerHandler
                 }
             }
 
-            TelemetryHelper.RequestDataHelper.SetHttpMethodTag(activity, request.Method);
-
-            activity.SetTag(SemanticConventions.AttributeUrlScheme, request.Scheme);
-            activity.SetTag(SemanticConventions.AttributeUrlPath, path);
             activity.SetTag(SemanticConventions.AttributeNetworkProtocolVersion, RequestDataHelper.GetHttpProtocolVersion(request.Protocol));
-
-            if (request.Headers.TryGetValue("User-Agent", out var values))
-            {
-                var userAgent = values.Count > 0 ? values[0] : null;
-                if (!string.IsNullOrEmpty(userAgent))
-                {
-                    activity.SetTag(SemanticConventions.AttributeUserAgentOriginal, userAgent);
-                }
-            }
 
             try
             {
@@ -393,5 +396,29 @@ internal class HttpInListener : ListenerHandler
                 activity.SetTag(SemanticConventions.AttributeRpcGrpcStatusCode, status);
             }
         }
+    }
+
+    // ASP.NET Core 10 does not generate OpenTelemetry tags by default so we can only take
+    // the optimal path if the user has explicitly opted-out of suppressing the OpenTelemetry data.
+    private static bool AspNetCoreHasNativeOpenTelemetryTags()
+    {
+#if NET10_0_OR_GREATER
+        if (AppContext.TryGetSwitch("Microsoft.AspNetCore.Hosting.SuppressActivityOpenTelemetryData", out var suppressed))
+        {
+            return !suppressed;
+        }
+#endif
+#if NET10_0
+        // In ASP.NET Core 10 OpenTelemetry tags are suppressed by default,
+        // see https://github.com/dotnet/aspnetcore/blob/7387de91234d3ef751fa50b3d1bfede4130213ff/src/Hosting/Hosting/src/Internal/HostingApplicationDiagnostics.cs#L59-L67.
+        return false;
+#elif NET11_0_OR_GREATER
+        // In ASP.NET Core 11+ OpenTelemetry tags are emitted by default,
+        // see https://github.com/dotnet/aspnetcore/blob/655f41d52f2fc75992eac41496b8e9cc119e1b54/src/Hosting/Hosting/src/Internal/HostingApplicationDiagnostics.cs#L59-L67.
+        return true;
+#else
+        // In ASP.NET Core 8 and 9 the feature switch does not exist and there are no native OpenTelemetry tags
+        return false;
+#endif
     }
 }

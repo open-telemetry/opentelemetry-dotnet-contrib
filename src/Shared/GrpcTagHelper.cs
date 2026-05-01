@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using System.Globalization;
 using System.Text.RegularExpressions;
 using OpenTelemetry.Trace;
 
@@ -23,7 +24,8 @@ internal static partial class GrpcTagHelper
     {
         statusCode = -1;
         var grpcStatusCodeTag = activity.GetTagValue(GrpcStatusCodeTagName);
-        return grpcStatusCodeTag != null && int.TryParse(grpcStatusCodeTag as string, out statusCode);
+        return grpcStatusCodeTag != null &&
+               int.TryParse(grpcStatusCodeTag as string, NumberStyles.None, CultureInfo.InvariantCulture, out statusCode);
     }
 
     public static bool TryParseRpcServiceAndRpcMethod(string grpcMethod, out string rpcService, out string rpcMethod)

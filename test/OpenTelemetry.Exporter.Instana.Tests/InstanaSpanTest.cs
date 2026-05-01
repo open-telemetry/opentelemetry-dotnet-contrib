@@ -1,187 +1,103 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace OpenTelemetry.Exporter.Instana.Tests;
 
-internal enum SpanKind
-{
-#pragma warning disable SA1602 // Enumeration items should be documented
-    ENTRY,
-#pragma warning restore SA1602 // Enumeration items should be documented
-#pragma warning disable SA1602 // Enumeration items should be documented
-    EXIT,
-#pragma warning restore SA1602 // Enumeration items should be documented
-#pragma warning disable SA1602 // Enumeration items should be documented
-    INTERMEDIATE,
-#pragma warning restore SA1602 // Enumeration items should be documented
-#pragma warning disable SA1602 // Enumeration items should be documented
-    NOT_SET,
-#pragma warning restore SA1602 // Enumeration items should be documented
-}
-
 #pragma warning disable SA1402 // File may only contain a single type
 #pragma warning disable SA1649 // File name should match first type name
-internal class InstanaSpanTransformInfo
-#pragma warning restore SA1649 // File name should match first type name
-#pragma warning restore SA1402 // File may only contain a single type
+
+internal enum SpanKind
 {
-    public string? StatusCode { get; internal set; }
+    ENTRY,
+    EXIT,
+    INTERMEDIATE,
+    NOT_SET,
+}
 
-    public string? StatusDesc { get; internal set; }
+internal class InstanaSpanTransformInfo
+{
+    public string? StatusCode { get; set; }
 
-    public bool HasExceptionEvent { get; internal set; }
+    public string? StatusDesc { get; set; }
 
-    public bool IsEntrySpan { get; internal set; }
+    public bool HasExceptionEvent { get; set; }
+
+    public bool IsEntrySpan { get; set; }
 }
 
 internal class InstanaSpanTest
 {
     public InstanaSpanTransformInfo? TransformInfo { get; set; }
 
-    [JsonProperty]
-    public string? N { get; internal set; }
+    [JsonPropertyName("n")]
+    public string? N { get; set; }
 
-    [JsonProperty]
-    public string? T { get; internal set; }
+    [JsonPropertyName("t")]
+    public string? T { get; set; }
 
-    [JsonProperty]
-    public string? Lt { get; internal set; }
+    [JsonPropertyName("lt")]
+    public string? Lt { get; set; }
 
-    [JsonProperty]
-    public From? F { get; internal set; }
+    [JsonPropertyName("f")]
+    public From? F { get; set; }
 
-    [JsonProperty]
-    public string? P { get; internal set; }
+    [JsonPropertyName("p")]
+    public string? P { get; set; }
 
-    [JsonProperty]
-    public string? S { get; internal set; }
+    [JsonPropertyName("s")]
+    public string? S { get; set; }
 
-    [JsonProperty]
-    public SpanKind? K { get; internal set; }
+    [JsonPropertyName("k")]
+    public SpanKind? K { get; set; }
 
-    [JsonProperty]
-    public Data? Data { get; internal set; }
+    [JsonPropertyName("data")]
+    public Data? Data { get; set; }
 
-    [JsonProperty]
-    public long Ts { get; internal set; }
+    [JsonPropertyName("ts")]
+    public long Ts { get; set; }
 
-    [JsonProperty]
-    public long D { get; internal set; }
+    [JsonPropertyName("d")]
+    public long D { get; set; }
 
-    [JsonProperty]
-    public bool Tp { get; internal set; }
+    [JsonPropertyName("tp")]
+    public string? Tp { get; set; }
 
-    [JsonProperty]
-    public int Ec { get; internal set; }
+    [JsonPropertyName("ec")]
+    public int Ec { get; set; }
 }
 
-#pragma warning disable SA1402 // File may only contain a single type
 internal class From
-#pragma warning restore SA1402 // File may only contain a single type
 {
-    [JsonProperty]
-    public string? E { get; internal set; }
+    [JsonPropertyName("e")]
+    public string? E { get; set; }
 
-    [JsonProperty]
-    public string? H { get; internal set; }
+    [JsonPropertyName("h")]
+    public string? H { get; set; }
 }
 
-[JsonConverter(typeof(DataConverter))]
-#pragma warning disable SA1402 // File may only contain a single type
 internal class Data
-#pragma warning restore SA1402 // File may only contain a single type
 {
-    [JsonProperty]
-#pragma warning disable SA1300 // Element should begin with upper-case letter
-    public Dictionary<string, string>? data { get; internal set; }
-#pragma warning restore SA1300 // Element should begin with upper-case letter
+    [JsonExtensionData]
+    public Dictionary<string, JsonElement>? Values { get; set; }
 
-    [JsonProperty]
-    public Dictionary<string, string>? Tags { get; internal set; }
+    [JsonPropertyName("tags")]
+    public Dictionary<string, string>? Tags { get; set; }
 
-    [JsonProperty]
-    public List<SpanEvent>? Events { get; internal set; }
+    [JsonPropertyName("events")]
+    public List<SpanEvent>? Events { get; set; }
 }
 
-#pragma warning disable SA1402 // File may only contain a single type
 internal class SpanEvent
-#pragma warning restore SA1402 // File may only contain a single type
 {
-    [JsonProperty]
-    public string? Name { get; internal set; }
+    [JsonPropertyName("name")]
+    public string? Name { get; set; }
 
-    [JsonProperty]
-    public long Ts { get; internal set; }
+    [JsonPropertyName("ts")]
+    public long Ts { get; set; }
 
-    [JsonProperty]
-    public Dictionary<string, string>? Tags { get; internal set; }
-}
-
-#pragma warning disable SA1402 // File may only contain a single type
-internal class DataConverter : JsonConverter
-#pragma warning restore SA1402 // File may only contain a single type
-{
-    public override bool CanWrite => false;
-
-    public override bool CanRead => true;
-
-    public override bool CanConvert(Type objectType)
-    {
-        return objectType == typeof(Data);
-    }
-
-    public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
-    {
-        if (reader.TokenType == JsonToken.Null)
-        {
-            return string.Empty;
-        }
-        else if (reader.TokenType == JsonToken.String)
-        {
-            return serializer.Deserialize(reader, objectType);
-        }
-        else
-        {
-            var obj = JObject.Load(reader);
-            var data = obj.Root;
-            if (data != null)
-            {
-                var newData = new Data();
-                foreach (var field in data)
-                {
-                    if (((JProperty)field).Name is "tags" or "events")
-                    {
-                        continue;
-                    }
-
-                    newData.data ??= [];
-
-                    newData.data[((JProperty)field).Name] = ((JProperty)field).Value.ToString();
-                }
-
-                var existingData = existingValue as Data ?? new Data();
-
-                // Populate the remaining standard properties
-                using (var subReader = data.CreateReader())
-                {
-                    serializer.Populate(subReader, existingData);
-                }
-
-                newData.Events = existingData.Events;
-                newData.Tags = existingData.Tags;
-
-                return newData;
-            }
-
-            return null;
-        }
-    }
-
-    public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
-    {
-        throw new NotImplementedException();
-    }
+    [JsonPropertyName("tags")]
+    public Dictionary<string, string>? Tags { get; set; }
 }

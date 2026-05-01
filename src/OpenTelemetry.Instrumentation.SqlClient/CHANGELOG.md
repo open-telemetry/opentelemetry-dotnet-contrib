@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+* Fix `SqlClientTraceInstrumentationOptions` leaking across multiple tracer
+  provider registrations.
+  ([#4267](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4267))
+
+* Add support for native AoT on .NET 8+.
+  ([#4062](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4062))
+
+* Fix SQL query text sanitization for malformed bracketed identifiers in `FROM`
+  clauses to avoid leaking following literal values.
+  ([#4317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4317))
+
 ## 1.15.2
 
 Released 2026-Apr-21

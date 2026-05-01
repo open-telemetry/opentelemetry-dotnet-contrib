@@ -7,5 +7,5 @@ internal interface IActivityProcessor
 {
     IActivityProcessor? NextProcessor { get; set; }
 
-    Task ProcessAsync(System.Diagnostics.Activity activity, InstanaSpan instanaSpan);
+    void Process(System.Diagnostics.Activity activity, InstanaSpan instanaSpan);
 }

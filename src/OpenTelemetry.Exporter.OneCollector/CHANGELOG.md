@@ -7,7 +7,8 @@
 Released 2026-Apr-21
 
 * Limit how much of the response body is read when export fails using the HTTP
-  JSON transport and informational logging is enabled.
+  JSON transport and informational logging is enabled to resolve
+  [GHSA-55m9-299j-53c7](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/security/advisories/GHSA-55m9-299j-53c7).
   ([#4117](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4117))
 
 * Updated OpenTelemetry core component version(s) to `1.15.3`.
