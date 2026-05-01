@@ -147,13 +147,16 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
                 }
             }
 
-            try
+            if (this.options.EnrichWithHttpRequestMessage is { } enrich)
             {
-                this.options.EnrichWithHttpRequestMessage?.Invoke(activity, request);
-            }
-            catch (Exception ex)
-            {
-                HttpInstrumentationEventSource.Log.EnrichmentException(ex);
+                try
+                {
+                    enrich(activity, request);
+                }
+                catch (Exception ex)
+                {
+                    HttpInstrumentationEventSource.Log.EnrichmentException(ex);
+                }
             }
         }
 
@@ -172,34 +175,38 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
     {
         if (activity.IsAllDataRequested)
         {
-            var requestTaskStatus = GetRequestStatus(payload);
-
             var currentStatusCode = activity.Status;
 
-            if (!IsNet10OrGreater && requestTaskStatus != TaskStatus.RanToCompletion)
+            if (!IsNet10OrGreater)
             {
-                if (requestTaskStatus == TaskStatus.Canceled)
+                var requestTaskStatus = GetRequestStatus(payload);
+
+                if (requestTaskStatus != TaskStatus.RanToCompletion)
                 {
-                    if (currentStatusCode == ActivityStatusCode.Unset)
+                    if (requestTaskStatus == TaskStatus.Canceled)
                     {
-                        // Task cancellation won't trigger the OnException so set the span error information here
-                        // This can be either TaskCanceled or OperationCanceled but there is no way to figure out which one it is,
-                        // so let's use the most common case as error type
-                        activity.SetStatus(ActivityStatusCode.Error, "Task Canceled");
-                        activity.SetTag(SemanticConventions.AttributeErrorType, typeof(TaskCanceledException).FullName);
+                        if (currentStatusCode == ActivityStatusCode.Unset)
+                        {
+                            // Task cancellation won't trigger the OnException so set the span error information here
+                            // This can be either TaskCanceled or OperationCanceled but there is no way to figure out which one it is,
+                            // so let's use the most common case as error type
+                            activity.SetStatus(ActivityStatusCode.Error, "Task Canceled");
+                            activity.SetTag(SemanticConventions.AttributeErrorType, typeof(TaskCanceledException).FullName);
+                        }
                     }
-                }
-                else if (requestTaskStatus != TaskStatus.Faulted)
-                {
-                    if (currentStatusCode == ActivityStatusCode.Unset)
+                    else if (requestTaskStatus != TaskStatus.Faulted)
                     {
-                        // Faults are handled in OnException and should already have a span.Status of Error w/ Description.
-                        activity.SetStatus(ActivityStatusCode.Error);
+                        if (currentStatusCode == ActivityStatusCode.Unset)
+                        {
+                            // Faults are handled in OnException and should already have a span.Status of Error w/ Description.
+                            activity.SetStatus(ActivityStatusCode.Error);
+                        }
                     }
                 }
             }
 
-            if (TryFetchResponse(payload, out var response))
+            if ((!IsNet9OrGreater || this.options.EnrichWithHttpResponseMessage != null) &&
+                TryFetchResponse(payload, out var response))
             {
                 if (!IsNet9OrGreater)
                 {
@@ -216,13 +223,16 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
                     }
                 }
 
-                try
+                if (this.options.EnrichWithHttpResponseMessage is { } enrich)
                 {
-                    this.options.EnrichWithHttpResponseMessage?.Invoke(activity, response);
-                }
-                catch (Exception ex)
-                {
-                    HttpInstrumentationEventSource.Log.EnrichmentException(ex);
+                    try
+                    {
+                        enrich(activity, response);
+                    }
+                    catch (Exception ex)
+                    {
+                        HttpInstrumentationEventSource.Log.EnrichmentException(ex);
+                    }
                 }
             }
 
@@ -256,13 +266,13 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
     {
         if (activity.IsAllDataRequested)
         {
-            if (!TryFetchException(payload, out var exc))
+            if (!TryFetchException(payload, out var exception))
             {
                 HttpInstrumentationEventSource.Log.NullPayload(nameof(HttpHandlerDiagnosticListener), nameof(this.OnException));
                 return;
             }
 
-            var errorType = GetErrorType(exc);
+            var errorType = GetErrorType(exception);
 
             if (!string.IsNullOrEmpty(errorType))
             {
@@ -271,21 +281,24 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
 
             if (this.options.RecordException)
             {
-                activity.AddException(exc);
+                activity.AddException(exception);
             }
 
-            if (exc is HttpRequestException)
+            if (exception is HttpRequestException)
             {
                 activity.SetStatus(ActivityStatusCode.Error);
             }
 
-            try
+            if (this.options.EnrichWithException is { } enrich)
             {
-                this.options.EnrichWithException?.Invoke(activity, exc);
-            }
-            catch (Exception ex)
-            {
-                HttpInstrumentationEventSource.Log.EnrichmentException(ex);
+                try
+                {
+                    enrich(activity, exception);
+                }
+                catch (Exception ex)
+                {
+                    HttpInstrumentationEventSource.Log.EnrichmentException(ex);
+                }
             }
         }
 
@@ -300,12 +313,12 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
         }
     }
 
-    private static string? GetErrorType(Exception exc)
+    private static string? GetErrorType(Exception exception)
     {
 #if NET
         // For .NET 8+ exception type can be found using HttpRequestError.
         // https://learn.microsoft.com/dotnet/api/system.net.http.httprequesterror
-        if (exc is HttpRequestException httpRequestException)
+        if (exception is HttpRequestException httpRequestException)
         {
             return httpRequestException.HttpRequestError switch
             {
@@ -322,10 +335,10 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
                 HttpRequestError.ConfigurationLimitExceeded => "configuration_limit_exceeded",
 
                 // Fall back to the exception type name in case of HttpRequestError.Unknown
-                HttpRequestError.Unknown or _ => exc.GetType().FullName,
+                HttpRequestError.Unknown or _ => exception.GetType().FullName,
             };
         }
 #endif
-        return exc.GetType().FullName;
+        return exception.GetType().FullName;
     }
 }

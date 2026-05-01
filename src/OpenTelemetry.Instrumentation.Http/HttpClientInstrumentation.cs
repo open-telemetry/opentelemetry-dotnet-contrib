@@ -10,7 +10,7 @@ namespace OpenTelemetry.Instrumentation.Http;
 /// </summary>
 internal sealed class HttpClientInstrumentation : IDisposable
 {
-    internal static readonly Version SemanticConventionsVersion = new(1, 40, 0);
+    internal static readonly Version SemanticConventionsVersion = new(1, 41, 0);
 
     private static readonly HashSet<string> ExcludedDiagnosticSourceEventsNet7OrGreater =
     [
