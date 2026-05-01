@@ -8,7 +8,7 @@
 * Add instrumentation scope version and schema URL to traces.
   ([#4338](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4338))
 
-* Add `net10.0` target framework.
+* Add `net8.0` and `net10.0` target frameworks.
   ([#4338](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4338))
 
 ## 1.0.0-beta.11
