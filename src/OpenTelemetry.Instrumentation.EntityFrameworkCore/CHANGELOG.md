@@ -6,6 +6,10 @@
   clauses to avoid leaking following literal values.
   ([#4317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4317))
 
+* Fix SQL query text sanitization performance for malformed `FROM` clauses with
+  repeated unterminated bracketed identifiers.
+  ([#4339](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4339))
+
 ## 1.15.1-beta.1
 
 Released 2026-Apr-21

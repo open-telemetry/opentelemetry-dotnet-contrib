@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Fixed route template token matching so short route parameters no longer throw
+  `IndexOutOfRangeException` during route extraction.
+  ([#4340](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4340))
+
 ## 1.15.2
 
 Released 2026-Apr-21

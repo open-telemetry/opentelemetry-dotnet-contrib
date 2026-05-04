@@ -51,8 +51,13 @@ internal sealed class HttpRequestRouteHelper
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool CompareStringToSubstring(string example, string target, int start)
+    private static bool CompareStringToSubstring(string example, string target, int start, int end)
     {
+        if (end - start - 1 != example.Length)
+        {
+            return false;
+        }
+
         for (var i = 0; i < example.Length; i++)
         {
             if (target[start + 1 + i] != example[i])
@@ -84,11 +89,11 @@ internal sealed class HttpRequestRouteHelper
                 var end = template.IndexOf('}', i + 1);
                 if (end != -1)
                 {
-                    if (hasController && CompareStringToSubstring(controllerToken, template, i))
+                    if (hasController && CompareStringToSubstring(controllerToken, template, i, end))
                     {
                         sb.Append(controller);
                     }
-                    else if (hasAction && CompareStringToSubstring(actionToken, template, i))
+                    else if (hasAction && CompareStringToSubstring(actionToken, template, i, end))
                     {
                         sb.Append(action);
                     }
