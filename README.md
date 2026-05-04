@@ -75,14 +75,12 @@ component's `Readme.md` file.
 
 [@open-telemetry/dotnet-contrib-triagers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-triagers):
 
-
 *Find more about the triager role in [community
 repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#triager).*
 
 ### Approvers
 
 [@open-telemetry/dotnet-contrib-approvers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-approvers):
-
 
 *Find more about the approver role in [community
 repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#approver).*
@@ -103,7 +101,7 @@ repository](https://github.com/open-telemetry/community/blob/main/guides/contrib
 
 * [Cijo Thomas](https://github.com/cijothomas), Maintainer
 * [Martin Thwaites](https://github.com/martinjt), Triager
-* [Mikel Blanchard](https://github.com/CodeBlanch), Approver
+* [Mikel Blanchard](https://github.com/CodeBlanch), Maintainer
 * [Prashant Srivastava](https://github.com/srprash), Maintainer
 * [Sergey Kanzhelev](https://github.com/SergeyKanzhelev), Maintainer
 * [Timothy "Mothra" Lee](https://github.com/TimothyMothra), Approver
