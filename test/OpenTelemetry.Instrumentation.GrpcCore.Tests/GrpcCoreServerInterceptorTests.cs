@@ -19,7 +19,7 @@ public class GrpcCoreServerInterceptorTests
     /// <returns>A task.</returns>
     [Fact]
     public async Task UnaryServerHandlerSuccess() =>
-        await TestHandlerSuccess(FoobarService.MakeUnaryAsyncRequest, "Unary");
+        await TestHandlerSuccess(FoobarService.MakeUnaryAsyncRequest, FoobarService.UnaryMethod);
 
     /// <summary>
     /// Validates a failed UnaryServerHandler call.
@@ -27,7 +27,7 @@ public class GrpcCoreServerInterceptorTests
     /// <returns>A task.</returns>
     [Fact]
     public async Task UnaryServerHandlerFail() =>
-        await TestHandlerFailure(FoobarService.MakeUnaryAsyncRequest, "Unary");
+        await TestHandlerFailure(FoobarService.MakeUnaryAsyncRequest, FoobarService.UnaryMethod);
 
     /// <summary>
     /// Validates a successful ClientStreamingServerHandler call.
@@ -35,7 +35,7 @@ public class GrpcCoreServerInterceptorTests
     /// <returns>A task.</returns>
     [Fact]
     public async Task ClientStreamingServerHandlerSuccess() =>
-        await TestHandlerSuccess(FoobarService.MakeClientStreamingRequest, "ClientStreaming");
+        await TestHandlerSuccess(FoobarService.MakeClientStreamingRequest, FoobarService.ClientStreamingMethod);
 
     /// <summary>
     /// Validates a failed ClientStreamingServerHandler call.
@@ -43,7 +43,7 @@ public class GrpcCoreServerInterceptorTests
     /// <returns>A task.</returns>
     [Fact]
     public async Task ClientStreamingServerHandlerFail() =>
-        await TestHandlerFailure(FoobarService.MakeClientStreamingRequest, "ClientStreaming");
+        await TestHandlerFailure(FoobarService.MakeClientStreamingRequest, FoobarService.ClientStreamingMethod);
 
     /// <summary>
     /// Validates a successful ServerStreamingServerHandler call.
@@ -51,7 +51,7 @@ public class GrpcCoreServerInterceptorTests
     /// <returns>A task.</returns>
     [Fact]
     public async Task ServerStreamingServerHandlerSuccess() =>
-        await TestHandlerSuccess(FoobarService.MakeServerStreamingRequest, "ServerStreaming");
+        await TestHandlerSuccess(FoobarService.MakeServerStreamingRequest, FoobarService.ServerStreamingMethod);
 
     /// <summary>
     /// Validates a failed ServerStreamingServerHandler call.
@@ -59,7 +59,7 @@ public class GrpcCoreServerInterceptorTests
     /// <returns>A task.</returns>
     [Fact]
     public async Task ServerStreamingServerHandlerFail() =>
-        await TestHandlerFailure(FoobarService.MakeServerStreamingRequest, "ServerStreaming");
+        await TestHandlerFailure(FoobarService.MakeServerStreamingRequest, FoobarService.ServerStreamingMethod);
 
     /// <summary>
     /// Validates a successful DuplexStreamingServerHandler call.
@@ -67,7 +67,7 @@ public class GrpcCoreServerInterceptorTests
     /// <returns>A task.</returns>
     [Fact]
     public async Task DuplexStreamingServerHandlerSuccess() =>
-        await TestHandlerSuccess(FoobarService.MakeDuplexStreamingRequest, "DuplexStreaming");
+        await TestHandlerSuccess(FoobarService.MakeDuplexStreamingRequest, FoobarService.DuplexStreamingMethod);
 
     /// <summary>
     /// Validates a failed DuplexStreamingServerHandler call.
@@ -75,7 +75,7 @@ public class GrpcCoreServerInterceptorTests
     /// <returns>A task.</returns>
     [Fact]
     public async Task DuplexStreamingServerHandlerFail() =>
-        await TestHandlerFailure(FoobarService.MakeDuplexStreamingRequest, "DuplexStreaming");
+        await TestHandlerFailure(FoobarService.MakeDuplexStreamingRequest, FoobarService.DuplexStreamingMethod);
 
     /// <summary>
     /// Validates that non protobuf payloads do not abort server RPCs when
@@ -130,7 +130,7 @@ public class GrpcCoreServerInterceptorTests
 
                 var activity = activityListener.Activity;
 
-                GrpcCoreClientInterceptorTests.ValidateCommonActivityTags(activity, "Unary");
+                GrpcCoreClientInterceptorTests.ValidateCommonActivityTags(activity, FoobarService.UnaryMethod);
 
                 Assert.Empty(activity!.Events);
             }

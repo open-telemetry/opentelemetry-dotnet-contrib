@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-using System.Globalization;
 using Google.Protobuf;
 using Grpc.Core;
 using OpenTelemetry.Internal;
@@ -194,21 +193,26 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
 
         if (this.host is { Length: > 0 } host)
         {
-            parts = host.Split(':');
-
-            if (parts.Length > 0)
-            {
-                this.activity.SetTag(SemanticConventions.AttributeServerAddress, parts[0]);
-
-                if (parts.Length > 1 &&
-                    int.TryParse(parts[1], NumberStyles.None, CultureInfo.InvariantCulture, out var port))
-                {
-                    this.activity.SetTag(SemanticConventions.AttributeServerPort, port);
-                }
-            }
+            TrySetServerAttributes(this.activity, host);
         }
 
         this.activity.DisplayName = rpcMethod.Trim('/');
+    }
+
+    private static void TrySetServerAttributes(Activity activity, string host)
+    {
+        // Add a placeholder for the scheme so the parse succeeds. The value is not important.
+        if (!Uri.TryCreate($"http://{host}", UriKind.Absolute, out var uri))
+        {
+            return;
+        }
+
+        activity.SetTag(SemanticConventions.AttributeServerAddress, uri.Host);
+
+        if (!uri.IsDefaultPort)
+        {
+            activity.SetTag(SemanticConventions.AttributeServerPort, uri.Port);
+        }
     }
 
     /// <summary>

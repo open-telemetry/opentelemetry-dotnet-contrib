@@ -12,6 +12,14 @@ namespace OpenTelemetry.Instrumentation.GrpcCore.Tests;
 /// </summary>
 internal class FoobarService : Foobar.FoobarBase
 {
+    public const string UnaryMethod = nameof(Foobar.FoobarClient.Unary);
+
+    public const string ClientStreamingMethod = nameof(Foobar.FoobarClient.ClientStreaming);
+
+    public const string ServerStreamingMethod = nameof(Foobar.FoobarClient.ServerStreaming);
+
+    public const string DuplexStreamingMethod = nameof(Foobar.FoobarClient.DuplexStreaming);
+
     /// <summary>
     /// Default traceparent header value with the sampling bit on.
     /// </summary>

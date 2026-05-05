@@ -35,7 +35,7 @@ public class GrpcCoreClientInterceptorTests
     public async Task AsyncUnarySuccess() =>
         await TestHandlerSuccess(
             FoobarService.MakeUnaryAsyncRequest,
-            "Unary",
+            FoobarService.UnaryMethod,
             DefaultMetadataFunc());
 
     /// <summary>
@@ -46,7 +46,7 @@ public class GrpcCoreClientInterceptorTests
     public async Task AsyncUnaryUnavailable() =>
         await TestHandlerFailure(
             FoobarService.MakeUnaryAsyncRequest,
-            "Unary",
+            FoobarService.UnaryMethod,
             StatusCode.Unavailable,
             validateErrorDescription: false,
             BogusServerUri);
@@ -57,7 +57,7 @@ public class GrpcCoreClientInterceptorTests
     /// <returns>A task.</returns>
     [Fact]
     public async Task AsyncUnaryFail() =>
-        await TestHandlerFailure(FoobarService.MakeUnaryAsyncRequest, "Unary");
+        await TestHandlerFailure(FoobarService.MakeUnaryAsyncRequest, FoobarService.UnaryMethod);
 
     /// <summary>
     /// Validates a failed AsyncUnary call because the client is disposed before completing the RPC.
@@ -70,7 +70,7 @@ public class GrpcCoreClientInterceptorTests
             using var call = client.UnaryAsync(FoobarService.DefaultRequestMessage);
         }
 
-        this.TestActivityIsCancelledWhenHandlerDisposed(MakeRequest, "Unary");
+        this.TestActivityIsCancelledWhenHandlerDisposed(MakeRequest, FoobarService.UnaryMethod);
     }
 
     /// <summary>
@@ -79,7 +79,7 @@ public class GrpcCoreClientInterceptorTests
     /// <returns>A task.</returns>
     [Fact]
     public async Task ClientStreamingSuccess() =>
-        await TestHandlerSuccess(FoobarService.MakeClientStreamingRequest, "ClientStreaming", DefaultMetadataFunc());
+        await TestHandlerSuccess(FoobarService.MakeClientStreamingRequest, FoobarService.ClientStreamingMethod, DefaultMetadataFunc());
 
     /// <summary>
     /// Validates a failed ClientStreaming call when the service is unavailable.
@@ -89,7 +89,7 @@ public class GrpcCoreClientInterceptorTests
     public async Task ClientStreamingUnavailable() =>
         await TestHandlerFailure(
             FoobarService.MakeClientStreamingRequest,
-            "ClientStreaming",
+            FoobarService.ClientStreamingMethod,
             StatusCode.Unavailable,
             validateErrorDescription: false,
             BogusServerUri);
@@ -100,7 +100,7 @@ public class GrpcCoreClientInterceptorTests
     /// <returns>A task.</returns>
     [Fact]
     public async Task ClientStreamingFail() =>
-        await TestHandlerFailure(FoobarService.MakeClientStreamingRequest, "ClientStreaming");
+        await TestHandlerFailure(FoobarService.MakeClientStreamingRequest, FoobarService.ClientStreamingMethod);
 
     /// <summary>
     /// Validates a failed ClientStreaming call because the client is disposed before completing the RPC.
@@ -113,7 +113,7 @@ public class GrpcCoreClientInterceptorTests
             using var call = client.ClientStreaming();
         }
 
-        this.TestActivityIsCancelledWhenHandlerDisposed(MakeRequest, "ClientStreaming");
+        this.TestActivityIsCancelledWhenHandlerDisposed(MakeRequest, FoobarService.ClientStreamingMethod);
     }
 
     /// <summary>
@@ -122,7 +122,7 @@ public class GrpcCoreClientInterceptorTests
     /// <returns>A task.</returns>
     [Fact]
     public async Task ServerStreamingSuccess() =>
-        await TestHandlerSuccess(FoobarService.MakeServerStreamingRequest, "ServerStreaming", DefaultMetadataFunc());
+        await TestHandlerSuccess(FoobarService.MakeServerStreamingRequest, FoobarService.ServerStreamingMethod, DefaultMetadataFunc());
 
     /// <summary>
     /// Validates a failed ServerStreaming call.
@@ -130,7 +130,7 @@ public class GrpcCoreClientInterceptorTests
     /// <returns>A task.</returns>
     [Fact]
     public async Task ServerStreamingFail() =>
-        await TestHandlerFailure(FoobarService.MakeServerStreamingRequest, "ServerStreaming");
+        await TestHandlerFailure(FoobarService.MakeServerStreamingRequest, FoobarService.ServerStreamingMethod);
 
     /// <summary>
     /// Validates a failed ServerStreaming call because the client is disposed before completing the RPC.
@@ -143,7 +143,7 @@ public class GrpcCoreClientInterceptorTests
             using var call = client.ServerStreaming(FoobarService.DefaultRequestMessage);
         }
 
-        this.TestActivityIsCancelledWhenHandlerDisposed(MakeRequest, "ServerStreaming");
+        this.TestActivityIsCancelledWhenHandlerDisposed(MakeRequest, FoobarService.ServerStreamingMethod);
     }
 
     /// <summary>
@@ -152,7 +152,7 @@ public class GrpcCoreClientInterceptorTests
     /// <returns>A task.</returns>
     [Fact]
     public async Task DuplexStreamingSuccess() =>
-        await TestHandlerSuccess(FoobarService.MakeDuplexStreamingRequest, "DuplexStreaming", DefaultMetadataFunc());
+        await TestHandlerSuccess(FoobarService.MakeDuplexStreamingRequest, FoobarService.DuplexStreamingMethod, DefaultMetadataFunc());
 
     /// <summary>
     /// Validates a failed DuplexStreaming call when the service is unavailable.
@@ -162,7 +162,7 @@ public class GrpcCoreClientInterceptorTests
     public async Task DuplexStreamingUnavailable() =>
         await TestHandlerFailure(
             FoobarService.MakeDuplexStreamingRequest,
-            "DuplexStreaming",
+            FoobarService.DuplexStreamingMethod,
             StatusCode.Unavailable,
             validateErrorDescription: false,
             BogusServerUri);
@@ -173,7 +173,7 @@ public class GrpcCoreClientInterceptorTests
     /// <returns>A task.</returns>
     [Fact]
     public async Task DuplexStreamingFail() =>
-        await TestHandlerFailure(FoobarService.MakeDuplexStreamingRequest, "DuplexStreaming");
+        await TestHandlerFailure(FoobarService.MakeDuplexStreamingRequest, FoobarService.DuplexStreamingMethod);
 
     /// <summary>
     /// Validates a failed DuplexStreaming call because the client is disposed before completing the RPC.
@@ -186,7 +186,7 @@ public class GrpcCoreClientInterceptorTests
             using var call = client.DuplexStreaming();
         }
 
-        this.TestActivityIsCancelledWhenHandlerDisposed(MakeRequest, "DuplexStreaming");
+        this.TestActivityIsCancelledWhenHandlerDisposed(MakeRequest, FoobarService.DuplexStreamingMethod);
     }
 
     /// <summary>
@@ -316,7 +316,7 @@ public class GrpcCoreClientInterceptorTests
         Assert.NotNull(response);
 
         var activity = activityListener.Activity;
-        ValidateCommonActivityTags(activity, "Unary");
+        ValidateCommonActivityTags(activity, FoobarService.UnaryMethod);
         Assert.Empty(activity!.Events);
     }
 
