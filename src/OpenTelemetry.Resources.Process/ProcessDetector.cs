@@ -43,7 +43,6 @@ internal sealed class ProcessDetector : IResourceDetector
             processId = process.Id;
 
             creationTime = SafeGet(process, (p) => p.StartTime);
-            var mainModuleFileName = SafeGet(process, (p) => p.MainModule?.FileName);
 
             static T? SafeGet<T>(CurrentProcess process, Func<CurrentProcess, T> getter)
             {
