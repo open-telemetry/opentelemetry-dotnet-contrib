@@ -14,7 +14,7 @@ internal static class NonProtobufGrpcTestHelpers
         new(
             MethodType.Unary,
             "OpenTelemetry.Instrumentation.GrpcCore.Tests.Foobar",
-            "Unary",
+            FoobarService.UnaryMethod,
             PayloadMarshaller,
             PayloadMarshaller);
 }

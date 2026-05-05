@@ -72,10 +72,6 @@ repository:
       affiliation: Grafana Labs
       social: https://github.com/martincostello
       primary: false
-    - name: Mikel Blanchard
-      affiliation: Microsoft
-      social: https://github.com/CodeBlanch
-      primary: false
     - name: "Piotr Kie\u0142kowicz"
       affiliation: Splunk
       social: https://github.com/Kielek
@@ -83,9 +79,6 @@ repository:
     - name: Rajkumar Rangaraj
       affiliation: Microsoft
       social: https://github.com/rajkumar-rangaraj
-      primary: false
-    - name: Timothy Mothra
-      social: https://github.com/TimothyMothra
       primary: false
   documentation:
     contributing-guide: https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/CONTRIBUTING.md

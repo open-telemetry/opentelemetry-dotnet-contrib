@@ -20,6 +20,11 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     where TResponse : class
 {
     /// <summary>
+    /// The host.
+    /// </summary>
+    private readonly string? host;
+
+    /// <summary>
     /// The record message events flag.
     /// </summary>
     private readonly bool recordMessageEvents;
@@ -52,11 +57,17 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     /// <summary>
     /// Initializes a new instance of the <see cref="RpcScope{TRequest, TResponse}" /> class.
     /// </summary>
+    /// <param name="host">The host that the current invocation will be dispatched to.</param>
     /// <param name="fullServiceName">Full name of the service.</param>
     /// <param name="recordMessageEvents">if set to <c>true</c> [record message events].</param>
     /// <param name="recordException">If set to <c>true</c> [record exception].</param>
-    protected RpcScope(string? fullServiceName, bool recordMessageEvents, bool recordException)
+    protected RpcScope(
+        string? host,
+        string? fullServiceName,
+        bool recordMessageEvents,
+        bool recordException)
     {
+        this.host = host;
         this.FullServiceName = fullServiceName?.TrimStart('/') ?? "unknownservice/unknownmethod";
         this.recordMessageEvents = recordMessageEvents;
         this.recordException = recordException;
@@ -164,11 +175,11 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
             return;
         }
 
-        // assign some reasonable defaults
+        // Assign some reasonable defaults
         var rpcService = this.FullServiceName;
         var rpcMethod = this.FullServiceName;
 
-        // split the full service name by the slash
+        // Split the full service name by the slash
         var parts = this.FullServiceName.Split('/');
         if (parts.Length == 2)
         {
@@ -176,9 +187,32 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
             rpcMethod = parts[1];
         }
 
-        this.activity.SetTag(SemanticConventions.AttributeRpcSystem, "grpc");
+        this.activity.SetTag(SemanticConventions.AttributeRpcSystemName, "grpc");
         this.activity.SetTag(SemanticConventions.AttributeRpcService, rpcService);
         this.activity.SetTag(SemanticConventions.AttributeRpcMethod, rpcMethod);
+
+        if (this.host is { Length: > 0 } host)
+        {
+            TrySetServerAttributes(this.activity, host);
+        }
+
+        this.activity.DisplayName = rpcMethod.Trim('/');
+    }
+
+    private static void TrySetServerAttributes(Activity activity, string host)
+    {
+        // Add a placeholder for the scheme so the parse succeeds. The value is not important.
+        if (!Uri.TryCreate($"http://{host}", UriKind.Absolute, out var uri))
+        {
+            return;
+        }
+
+        activity.SetTag(SemanticConventions.AttributeServerAddress, uri.Host);
+
+        if (!uri.IsDefaultPort)
+        {
+            activity.SetTag(SemanticConventions.AttributeServerPort, uri.Port);
+        }
     }
 
     /// <summary>
@@ -188,12 +222,12 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     /// <param name="markAsCompleted">If set to <c>true</c> [mark as completed].</param>
     private void StopActivity(int statusCode, bool markAsCompleted = true)
     {
-        if (markAsCompleted && !this.TryMarkAsCompleted())
+        if ((markAsCompleted && !this.TryMarkAsCompleted()) || this.activity is null)
         {
             return;
         }
 
-        this.activity!.SetTag(SemanticConventions.AttributeRpcGrpcStatusCode, statusCode);
+        this.activity.SetTag(SemanticConventions.AttributeRpcResponseStatusCode, statusCode);
         this.activity.Stop();
     }
 
@@ -203,7 +237,7 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     /// <param name="exception">The exception.</param>
     private void StopActivity(Exception exception)
     {
-        if (!this.TryMarkAsCompleted())
+        if (!this.TryMarkAsCompleted() || this.activity is null)
         {
             return;
         }
@@ -219,10 +253,10 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
 
         if (!string.IsNullOrEmpty(description))
         {
-            this.activity!.SetStatus(ActivityStatusCode.Error, description);
+            this.activity.SetStatus(ActivityStatusCode.Error, description);
         }
 
-        if (this.activity!.IsAllDataRequested && this.recordException)
+        if (this.activity.IsAllDataRequested && this.recordException)
         {
             this.activity.AddException(exception);
         }
@@ -235,9 +269,7 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     /// </summary>
     /// <returns>Returns <c>true</c> if marked as completed successfully.</returns>
     private bool TryMarkAsCompleted()
-    {
-        return Interlocked.CompareExchange(ref this.complete, 1, 0) == 0;
-    }
+        => Interlocked.CompareExchange(ref this.complete, 1, 0) == 0;
 
     /// <summary>
     /// Adds a message event.
@@ -247,7 +279,7 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     /// <param name="request">if true this is a request message.</param>
     private void AddMessageEvent(string eventName, IMessage? message, bool request)
     {
-        if (message == null)
+        if (message == null || this.activity is null)
         {
             return;
         }
@@ -265,6 +297,6 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
             new(SemanticConventions.AttributeMessageUncompressedSize, messageSize),
         ]);
 
-        this.activity!.AddEvent(new ActivityEvent(eventName, default, attributes));
+        this.activity.AddEvent(new ActivityEvent(eventName, default, attributes));
     }
 }

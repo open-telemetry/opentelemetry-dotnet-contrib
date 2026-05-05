@@ -56,10 +56,13 @@ public partial class GrpcTests : IAsyncLifetime
             .AddInMemoryExporter(exportedItems)
             .Build();
 
-        var clientLoopbackAddresses = new[] { IPAddress.Loopback.ToString(), IPAddress.IPv6Loopback.ToString() };
-        var uri = new Uri($"http://localhost:{this.server.Port}");
+        var clientLoopbackAddresses = new[]
+        {
+            IPAddress.Loopback.ToString(),
+            IPAddress.IPv6Loopback.ToString(),
+        };
 
-        using var channel = GrpcChannel.ForAddress(uri);
+        using var channel = GrpcChannel.ForAddress(this.server.Address);
         var client = new Greeter.GreeterClient(channel);
         var returnMsg = client.SayHello(new HelloRequest()).Message;
 
@@ -93,7 +96,7 @@ public partial class GrpcTests : IAsyncLifetime
 
         // The following are http.* attributes that are also included on the span for the gRPC invocation.
         Assert.Equal("localhost", activity.GetTagValue(SemanticConventions.AttributeServerAddress));
-        Assert.Equal(this.server.Port, activity.GetTagValue(SemanticConventions.AttributeServerPort));
+        Assert.Equal(this.server.Address.Port, activity.GetTagValue(SemanticConventions.AttributeServerPort));
         Assert.Equal("POST", activity.GetTagValue(SemanticConventions.AttributeHttpRequestMethod));
         Assert.Equal("http", activity.GetTagValue(SemanticConventions.AttributeUrlScheme));
         Assert.Equal("/greet.Greeter/SayHello", activity.GetTagValue(SemanticConventions.AttributeUrlPath));
@@ -127,10 +130,13 @@ public partial class GrpcTests : IAsyncLifetime
                 .AddInMemoryExporter(exportedItems)
                 .Build();
 
-            var clientLoopbackAddresses = new[] { IPAddress.Loopback.ToString(), IPAddress.IPv6Loopback.ToString() };
-            var uri = new Uri($"http://localhost:{this.server.Port}");
+            var clientLoopbackAddresses = new[]
+            {
+                IPAddress.Loopback.ToString(),
+                IPAddress.IPv6Loopback.ToString(),
+            };
 
-            using var channel = GrpcChannel.ForAddress(uri);
+            using var channel = GrpcChannel.ForAddress(this.server.Address);
             var client = new Greeter.GreeterClient(channel);
             var headers = new Metadata
             {
@@ -149,14 +155,14 @@ public partial class GrpcTests : IAsyncLifetime
 
             if (enableGrpcAspNetCoreSupport != null && enableGrpcAspNetCoreSupport.Equals("true", StringComparison.OrdinalIgnoreCase))
             {
-                Assert.Equal("grpc", activity.GetTagValue(SemanticConventions.AttributeRpcSystem));
+                Assert.Equal("grpc", activity.GetTagValue(SemanticConventions.AttributeRpcSystemName));
                 Assert.Equal("greet.Greeter", activity.GetTagValue(SemanticConventions.AttributeRpcService));
                 Assert.Equal("SayHello", activity.GetTagValue(SemanticConventions.AttributeRpcMethod));
                 Assert.Contains(activity.GetTagValue(SemanticConventions.AttributeNetPeerIp), clientLoopbackAddresses);
                 Assert.NotEqual(0, activity.GetTagValue(SemanticConventions.AttributeNetPeerPort));
                 Assert.Null(activity.GetTagValue(GrpcTagHelper.GrpcMethodTagName));
                 Assert.Null(activity.GetTagValue(GrpcTagHelper.GrpcStatusCodeTagName));
-                Assert.Equal(0, activity.GetTagValue(SemanticConventions.AttributeRpcGrpcStatusCode));
+                Assert.Equal(0, activity.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
             }
             else
             {
@@ -167,12 +173,13 @@ public partial class GrpcTests : IAsyncLifetime
             Assert.Equal(ActivityStatusCode.Unset, activity.Status);
 
             // The following are http.* attributes that are also included on the span for the gRPC invocation.
-            Assert.Equal("localhost", activity.GetTagValue(SemanticConventions.AttributeNetHostName));
-            Assert.Equal(this.server.Port, activity.GetTagValue(SemanticConventions.AttributeNetHostPort));
-            Assert.Equal("POST", activity.GetTagValue(SemanticConventions.AttributeHttpMethod));
-            Assert.Equal("/greet.Greeter/SayHello", activity.GetTagValue(SemanticConventions.AttributeHttpTarget));
-            Assert.Equal($"http://localhost:{this.server.Port}/greet.Greeter/SayHello", activity.GetTagValue(SemanticConventions.AttributeHttpUrl));
-            Assert.StartsWith("grpc-dotnet", activity.GetTagValue(SemanticConventions.AttributeHttpUserAgent) as string);
+            Assert.Equal("localhost", activity.GetTagValue(SemanticConventions.AttributeServerAddress));
+            Assert.Equal(this.server.Address.Port, activity.GetTagValue(SemanticConventions.AttributeServerPort));
+            Assert.Equal("POST", activity.GetTagValue(SemanticConventions.AttributeHttpRequestMethod));
+            Assert.Equal("http", activity.GetTagValue(SemanticConventions.AttributeUrlScheme));
+            Assert.Equal("/greet.Greeter/SayHello", activity.GetTagValue(SemanticConventions.AttributeUrlPath));
+            Assert.Equal("2", activity.GetTagValue(SemanticConventions.AttributeNetworkProtocolVersion));
+            Assert.StartsWith("grpc-dotnet", activity.GetTagValue(SemanticConventions.AttributeUserAgentOriginal) as string);
         }
         finally
         {

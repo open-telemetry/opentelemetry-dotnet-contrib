@@ -114,7 +114,7 @@ internal static class ActivityHelper
 
             // This is the case where a start was called but no activity was
             // created due to a sampling decision.
-            onRequestStoppedInstrumentationCallback?.Invoke(aspNetActivity, context);
+            InvokeRequestStoppedCallback(aspNetActivity, context, onRequestStoppedInstrumentationCallback, "OnInstrumentationStopped");
             context.Items[ContextKey] = null;
             return;
         }
@@ -131,16 +131,9 @@ internal static class ActivityHelper
             aspNetActivity.SetEndTime(ActivityDateTimeHelper.GetUtcNow());
         }
 
-        onRequestStoppedInstrumentationCallback?.Invoke(aspNetActivity, context);
+        InvokeRequestStoppedCallback(aspNetActivity, context, onRequestStoppedInstrumentationCallback, "OnInstrumentationStopped");
 
-        try
-        {
-            onRequestStoppedCallback?.Invoke(aspNetActivity, context);
-        }
-        catch (Exception callbackEx)
-        {
-            AspNetTelemetryEventSource.Log.CallbackException(aspNetActivity, "OnStopped", callbackEx);
-        }
+        InvokeRequestStoppedCallback(aspNetActivity, context, onRequestStoppedCallback, "OnStopped");
 
         aspNetActivity.Stop();
         AspNetTelemetryEventSource.Log.ActivityStopped(aspNetActivity);
@@ -197,6 +190,22 @@ internal static class ActivityHelper
             }
 
             AspNetTelemetryEventSource.Log.ActivityRestored(contextHolder.Activity);
+        }
+    }
+
+    private static void InvokeRequestStoppedCallback(
+        Activity? aspNetActivity,
+        HttpContextBase context,
+        Action<Activity?, HttpContextBase>? callback,
+        string eventName)
+    {
+        try
+        {
+            callback?.Invoke(aspNetActivity, context);
+        }
+        catch (Exception ex)
+        {
+            AspNetTelemetryEventSource.Log.CallbackException(aspNetActivity, eventName, ex);
         }
     }
 
