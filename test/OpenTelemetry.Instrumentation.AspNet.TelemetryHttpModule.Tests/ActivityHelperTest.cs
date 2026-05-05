@@ -377,6 +377,57 @@ public class ActivityHelperTest : IDisposable
     }
 
     [Fact]
+    public void Should_Handle_Instrumentation_Stop_Callback_Exception()
+    {
+        this.EnableListener();
+        var context = HttpContextHelper.GetFakeHttpContextBase();
+        using var rootActivity = ActivityHelper.StartAspNetActivity(this.noopTextMapPropagator, context, this.StartTestActivity)!;
+
+        var publicCallbackFired = false;
+        context.Items[StopInstrumentationCallbackContextKey] = (Action<Activity?, HttpContextBase>)((_, _) =>
+        {
+            throw new InvalidOperationException();
+        });
+
+        var exception = Record.Exception(() => ActivityHelper.StopAspNetActivity(
+            this.noopTextMapPropagator,
+            rootActivity,
+            context,
+            (_, _) => publicCallbackFired = true));
+
+        Assert.Null(exception);
+        Assert.True(publicCallbackFired);
+        Assert.True(rootActivity.Duration != TimeSpan.Zero);
+        Assert.Null(context.Items[ActivityHelper.ContextKey]);
+        Assert.Null(context.Items[StopInstrumentationCallbackContextKey]);
+    }
+
+    [Fact]
+    public void Should_Handle_Instrumentation_Stop_Callback_Exception_Without_RootActivity()
+    {
+        var context = HttpContextHelper.GetFakeHttpContextBase();
+        using var rootActivity = ActivityHelper.StartAspNetActivity(this.noopTextMapPropagator, context, null);
+
+        Assert.Null(rootActivity);
+        Assert.Equal(ActivityHelper.StartedButNotSampledObj, context.Items[ActivityHelper.ContextKey]);
+
+        context.Items[StopInstrumentationCallbackContextKey] = (Action<Activity?, HttpContextBase>)((_, _) =>
+        {
+            throw new InvalidOperationException();
+        });
+
+        var exception = Record.Exception(() => ActivityHelper.StopAspNetActivity(
+            this.noopTextMapPropagator,
+            rootActivity,
+            context,
+            onRequestStoppedCallback: null));
+
+        Assert.Null(exception);
+        Assert.Null(context.Items[ActivityHelper.ContextKey]);
+        Assert.Null(context.Items[StopInstrumentationCallbackContextKey]);
+    }
+
+    [Fact]
     public void Can_Create_RootActivity_From_W3C_Traceparent()
     {
         this.EnableListener();
