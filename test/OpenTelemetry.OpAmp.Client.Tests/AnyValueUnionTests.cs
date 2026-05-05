@@ -111,8 +111,8 @@ public class AnyValueUnionTests
 
         // different arrays are not equal
         Assert.NotEqual(arrayValue.GetHashCode(), new AnyValueUnion(AnyValueType.Array, arrayValue: [
-            new AnyValueUnion(AnyValueType.String, stringValue: "val1"),
-            new AnyValueUnion(AnyValueType.String, stringValue: "val2")
+                new AnyValueUnion(AnyValueType.String, stringValue: "val1"),
+                new AnyValueUnion(AnyValueType.String, stringValue: "val2")
             ]).GetHashCode());
 
         Assert.NotEqual(intValue.GetHashCode(), boolValue.GetHashCode());
