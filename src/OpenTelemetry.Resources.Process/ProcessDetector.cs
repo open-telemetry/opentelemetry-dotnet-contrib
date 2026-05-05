@@ -19,10 +19,9 @@ internal sealed class ProcessDetector : IResourceDetector
     {
         GetProcessAttributes(
             out int processId,
-            out DateTime? creationTime,
-            out string? processCommand);
+            out DateTime? creationTime);
 
-        var attributes = new List<KeyValuePair<string, object>>(5)
+        var attributes = new List<KeyValuePair<string, object>>(4)
         {
             new(ProcessSemanticConventions.AttributeProcessOwner, Environment.UserName),
             new(ProcessSemanticConventions.AttributeProcessPid, processId),
@@ -34,37 +33,17 @@ internal sealed class ProcessDetector : IResourceDetector
             attributes.Add(new(ProcessSemanticConventions.AttributeProcessCreationTime, startTime.ToString("O", CultureInfo.InvariantCulture)));
         }
 
-        if (processCommand is { Length: > 0 })
-        {
-            attributes.Add(new(ProcessSemanticConventions.AttributeProcessCommand, processCommand));
-        }
-
         return new Resource(attributes);
 
         static void GetProcessAttributes(
             out int processId,
-            out DateTime? creationTime,
-            out string? processCommand)
+            out DateTime? creationTime)
         {
-            processCommand = null;
-
             using var process = CurrentProcess.GetCurrentProcess();
             processId = process.Id;
 
             creationTime = SafeGet(process, (p) => p.StartTime);
             var mainModuleFileName = SafeGet(process, (p) => p.MainModule?.FileName);
-
-            if (mainModuleFileName != null)
-            {
-                try
-                {
-                    processCommand = Path.GetFileName(mainModuleFileName);
-                }
-                catch (ArgumentException)
-                {
-                    // Ignore
-                }
-            }
 
             static T? SafeGet<T>(CurrentProcess process, Func<CurrentProcess, T> getter)
             {

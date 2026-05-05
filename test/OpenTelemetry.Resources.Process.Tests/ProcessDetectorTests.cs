@@ -14,7 +14,6 @@ public class ProcessDetectorTests
 
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
 
-        Assert.IsType<string>(resourceAttributes[ProcessSemanticConventions.AttributeProcessCommand]);
         Assert.IsType<string>(resourceAttributes[ProcessSemanticConventions.AttributeProcessCreationTime]);
         Assert.IsType<string>(resourceAttributes[ProcessSemanticConventions.AttributeProcessOwner]);
         Assert.IsType<long>(resourceAttributes[ProcessSemanticConventions.AttributeProcessPid]);
