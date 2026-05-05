@@ -6,6 +6,10 @@
   `IndexOutOfRangeException` during route extraction.
   ([#4340](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4340))
 
+* Fixed route template extraction for routes with missing MVC route values or
+  `null` defaults.
+  ([#4344](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4344))
+
 ## 1.15.2
 
 Released 2026-Apr-21
