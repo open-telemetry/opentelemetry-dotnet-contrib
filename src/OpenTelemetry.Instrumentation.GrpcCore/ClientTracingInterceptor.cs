@@ -321,16 +321,24 @@ public class ClientTracingInterceptor : Interceptor
             // the callers current Activity which isn't what we want. We need to restore the original immediately after doing this.
             // If this call happened after some kind of async context await then a restore wouldn't be necessary.
             // gRPC Core just doesn't have the hooks to do this as far as I can tell.
-            var rpcActivity = GrpcCoreInstrumentation.ActivitySource.StartActivity(
+            var parentContext = this.parentActivity?.Context ?? default;
+            var rpcActivity = GrpcCoreInstrumentation.ActivitySource.CreateActivity(
                 this.FullServiceName,
                 ActivityKind.Client,
-                this.parentActivity == default ? default : this.parentActivity.Context,
+                parentContext,
                 tags: options.AdditionalTags);
 
             if (rpcActivity == null)
             {
                 return;
             }
+
+            if (!parentContext.IsValid())
+            {
+                rpcActivity.SetIdFormat(ActivityIdFormat.W3C);
+            }
+
+            rpcActivity.Start();
 
             var callOptions = context.Options;
 
