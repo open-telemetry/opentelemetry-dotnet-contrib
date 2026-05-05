@@ -102,7 +102,7 @@
     <PropertyGroup>
       <MarkdownCommentRegex>\[([^]]+?)\]\(\.(.+?)\)</MarkdownCommentRegex>
       <!-- Use the package repository URL instead of git remote origin because remotes may include credentials. -->
-      <GitHubRepoUrl>$(RepositoryUrl.Replace('.git',''))</GitHubRepoUrl>
+      <GitHubRepoUrl>$(RepositoryUrl)</GitHubRepoUrl>
       <GitHubPermalinkUrl Condition="'$(PackTag)' != ''">$(GitHubRepoUrl)/blob/$(PackTag)</GitHubPermalinkUrl>
       <GitHubPermalinkUrl Condition="'$(PackTag)' == ''">$(GitHubRepoUrl)/blob/$(GitCommitConsoleOutput)</GitHubPermalinkUrl>
     </PropertyGroup>
