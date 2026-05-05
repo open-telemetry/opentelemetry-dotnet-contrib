@@ -100,10 +100,10 @@ internal static class TestWebSocketServer
             //                                 genuine failure that happens to surface as code 1
             return ex is ObjectDisposedException
                 || (ex is HttpListenerException httpEx
-                    && (httpEx.ErrorCode == 995
-                        || httpEx.ErrorCode == 6
-                        || (httpEx.ErrorCode == 1 && !this.listener.IsListening)))
-                || (ex is InvalidOperationException && !this.listener.IsListening);
+                    && (httpEx.ErrorCode is 6 or 995 ||
+                        (httpEx.ErrorCode == 1 && !this.listener.IsListening)))
+                || (ex is InvalidOperationException && !this.listener.IsListening)
+                || (ex is ApplicationException appEx && (uint)appEx.HResult == 0x80070006); // The handle is invalid.
         }
 
         private async Task ListenAsync(Func<HttpListenerContext, WebSocket, Task> handler)
