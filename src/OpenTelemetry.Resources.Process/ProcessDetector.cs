@@ -20,10 +20,9 @@ internal sealed class ProcessDetector : IResourceDetector
         GetProcessAttributes(
             out int processId,
             out DateTime? creationTime,
-            out string? processPath,
-            out string? title);
+            out string? processCommand);
 
-        var attributes = new List<KeyValuePair<string, object>>(8)
+        var attributes = new List<KeyValuePair<string, object>>(5)
         {
             new(ProcessSemanticConventions.AttributeProcessOwner, Environment.UserName),
             new(ProcessSemanticConventions.AttributeProcessPid, processId),
@@ -35,55 +34,37 @@ internal sealed class ProcessDetector : IResourceDetector
             attributes.Add(new(ProcessSemanticConventions.AttributeProcessCreationTime, startTime.ToString("O", CultureInfo.InvariantCulture)));
         }
 
-        if (title is { Length: > 0 })
+        if (processCommand is { Length: > 0 })
         {
-            attributes.Add(new(ProcessSemanticConventions.AttributeProcessTitle, title));
-        }
-
-#if NET
-        processPath ??= Environment.ProcessPath;
-#endif
-
-        // We only set the count to avoid the need to implement redaction.
-        // See https://github.com/open-telemetry/semantic-conventions/blob/v1.40.0/docs/resource/process.md#selecting-process-attributes.
-        var commandArgs = GetCommandLineArgs();
-
-        if (commandArgs is not null)
-        {
-            attributes.Add(new(ProcessSemanticConventions.AttributeProcessArgsCount, commandArgs.Length));
-        }
-
-        if (!string.IsNullOrEmpty(processPath))
-        {
-            attributes.Add(new(ProcessSemanticConventions.AttributeProcessExecutablePath, processPath!));
+            attributes.Add(new(ProcessSemanticConventions.AttributeProcessCommand, processCommand));
         }
 
         return new Resource(attributes);
 
-        static string[]? GetCommandLineArgs()
-        {
-            try
-            {
-                return Environment.GetCommandLineArgs();
-            }
-            catch (NotSupportedException)
-            {
-                return null;
-            }
-        }
-
         static void GetProcessAttributes(
             out int processId,
             out DateTime? creationTime,
-            out string? processPath,
-            out string? title)
+            out string? processCommand)
         {
+            processCommand = null;
+
             using var process = CurrentProcess.GetCurrentProcess();
             processId = process.Id;
 
             creationTime = SafeGet(process, (p) => p.StartTime);
-            processPath = SafeGet(process, (p) => p.MainModule?.FileName);
-            title = SafeGet(process, (p) => p.MainWindowTitle);
+            var mainModuleFileName = SafeGet(process, (p) => p.MainModule?.FileName);
+
+            if (mainModuleFileName != null)
+            {
+                try
+                {
+                    processCommand = Path.GetFileName(mainModuleFileName);
+                }
+                catch (ArgumentException)
+                {
+                    // Ignore
+                }
+            }
 
             static T? SafeGet<T>(CurrentProcess process, Func<CurrentProcess, T> getter)
             {
