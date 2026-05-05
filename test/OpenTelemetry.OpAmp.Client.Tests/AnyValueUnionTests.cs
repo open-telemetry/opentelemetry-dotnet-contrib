@@ -100,8 +100,8 @@ public class AnyValueUnionTests
         var stringValue = new AnyValueUnion(AnyValueType.String, stringValue: "test");
         var doubleValue = new AnyValueUnion(AnyValueType.Double, doubleValue: 3.14);
         var arrayValue = new AnyValueUnion(AnyValueType.Array, arrayValue: [
-            new AnyValueUnion(AnyValueType.String, stringValue: "val1"),
-            new AnyValueUnion(AnyValueType.String, stringValue: "val2")
+                new AnyValueUnion(AnyValueType.String, stringValue: "val1"),
+                new AnyValueUnion(AnyValueType.String, stringValue: "val2")
             ]);
 
         Assert.Equal(intValue.GetHashCode(), new AnyValueUnion(AnyValueType.Integer, intValue: 42).GetHashCode());
