@@ -18,7 +18,7 @@ namespace OpenTelemetry.Instrumentation.StackExchangeRedis.Tests;
 [Trait("CategoryName", "RedisIntegrationTests")]
 public class StackExchangeRedisCallsInstrumentationTests(RedisXunitFixture fixture) : IClassFixture<RedisXunitFixture>
 {
-    private readonly string connectionString = fixture.DatabaseContainer.GetConnectionString();
+    private readonly string connectionString = fixture.TypedContainer.GetConnectionString();
 
     [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
     [InlineData("value1")]
@@ -161,6 +161,21 @@ public class StackExchangeRedisCallsInstrumentationTests(RedisXunitFixture fixtu
             VerifyNewActivityData(exportedItems[1], false, endpoint, setCommandKey: false);
 
             // TODO VerifySamplingParameters(sampler.LatestSamplingParameters);
+        }
+
+        string? expectedSchemaUrl = (emitOldAttributes, emitNewAttributes) switch
+        {
+            (false, true) => "https://opentelemetry.io/schemas/1.28.0",
+            (true, false) => "https://opentelemetry.io/schemas/1.23.0",
+            _ => null,
+        };
+
+        foreach (var activity in exportedItems)
+        {
+            Assert.Equal("OpenTelemetry.Instrumentation.StackExchangeRedis", activity.Source.Name);
+            Assert.NotNull(activity.Source.Version);
+            Assert.NotEmpty(activity.Source.Version);
+            Assert.Equal(expectedSchemaUrl, activity.Source.TelemetrySchemaUrl);
         }
     }
 
@@ -550,6 +565,10 @@ public class StackExchangeRedisCallsInstrumentationTests(RedisXunitFixture fixtu
         Assert.Equal("0", activity.GetTagValue(SemanticConventions.AttributeDbNamespace));
         Assert.Equal(dbOperationName, activity.GetTagValue(SemanticConventions.AttributeDbOperationName));
         Assert.Equal(dbQueryText, activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
+
+        Assert.Equal("OpenTelemetry.Instrumentation.StackExchangeRedis", activity.Source.Name);
+        Assert.NotNull(activity.Source.Version);
+        Assert.NotEmpty(activity.Source.Version);
 
         VerifyEndPoint(activity, endPoint);
     }

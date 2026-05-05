@@ -135,7 +135,7 @@ jobs:
           # renovate: datasource=nuget depName=dotnet-validate
           DOTNET_VALIDATE_VERSION: '0.0.1-preview.582'
           # renovate: datasource=nuget depName=Meziantou.Framework.NuGetPackageValidation.Tool
-          MEZIANTOU_VALIDATE_NUGET_PACKAGE_VERSION: '1.0.46'
+          MEZIANTOU_VALIDATE_NUGET_PACKAGE_VERSION: '1.0.49'
         run: |
           dotnet tool install --global dotnet-validate --version ${env:DOTNET_VALIDATE_VERSION} --allow-roll-forward
           dotnet tool install --global Meziantou.Framework.NuGetPackageValidation.Tool --version ${env:MEZIANTOU_VALIDATE_NUGET_PACKAGE_VERSION} --allow-roll-forward
@@ -179,7 +179,7 @@ jobs:
         run: dotnet nuget push *.nupkg --api-key ${env:API_KEY} --skip-duplicate --source ${env:SOURCE}
 
       - name: NuGet log in
-        uses: NuGet/login@d22cc5f58ff5b88bf9bd452535b4335137e24544 # v1.1.0
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
         env:
           NUGET_USER_EXISTS: ${{ secrets.NUGET_USER != '' }}
         id: nuget-login

@@ -75,17 +75,12 @@ component's `Readme.md` file.
 
 [@open-telemetry/dotnet-contrib-triagers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-triagers):
 
-* [Martin Thwaites](https://github.com/martinjt), Honeycomb
-
 *Find more about the triager role in [community
 repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#triager).*
 
 ### Approvers
 
 [@open-telemetry/dotnet-contrib-approvers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-approvers):
-
-* [Mikel Blanchard](https://github.com/CodeBlanch), Microsoft
-* [Timothy "Mothra" Lee](https://github.com/TimothyMothra)
 
 *Find more about the approver role in [community
 repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#approver).*
@@ -105,8 +100,11 @@ repository](https://github.com/open-telemetry/community/blob/main/guides/contrib
 ### Emeritus
 
 * [Cijo Thomas](https://github.com/cijothomas), Maintainer
+* [Martin Thwaites](https://github.com/martinjt), Triager
+* [Mikel Blanchard](https://github.com/CodeBlanch), Maintainer
 * [Prashant Srivastava](https://github.com/srprash), Maintainer
 * [Sergey Kanzhelev](https://github.com/SergeyKanzhelev), Maintainer
+* [Timothy "Mothra" Lee](https://github.com/TimothyMothra), Approver
 * [Utkarsh Umesan Pillai](https://github.com/utpilla), Maintainer
 * [Vishwesh Bankwar](https://github.com/vishweshbankwar), Maintainer
 

@@ -10,11 +10,10 @@ namespace OpenTelemetry.Exporter.Instana.Tests.Processors;
 
 public class EventsActivityProcessorTests
 {
-    private readonly EventsActivityProcessor eventsActivityProcessor = new();
-
     [Fact]
-    public async Task ProcessAsync()
+    public void Process_PopulatesSpan()
     {
+        // Arrange
         var activityTagsCollection = new ActivityTagsCollection { new KeyValuePair<string, object?>("eventTagKey", "eventTagValue") };
         var activityEvent = new ActivityEvent(
             "testActivityEvent",
@@ -31,25 +30,30 @@ public class EventsActivityProcessorTests
         activity.AddEvent(activityEvent);
         activity.AddEvent(activityEvent2);
         var instanaSpan = new InstanaSpan() { TransformInfo = new Implementation.InstanaSpanTransformInfo() };
-        if (this.eventsActivityProcessor != null)
-        {
-            await this.eventsActivityProcessor.ProcessAsync(activity, instanaSpan);
-        }
 
-        Assert.NotNull(instanaSpan.Data?.Events);
+        // Act
+        var processor = new EventsActivityProcessor();
+        processor.Process(activity, instanaSpan);
+
+        // Assert
+        Assert.NotNull(instanaSpan.Data);
+        Assert.NotNull(instanaSpan.Data.Events);
+
         Assert.Equal(0, instanaSpan.Ec);
         Assert.Equal(2, instanaSpan.Data.Events.Count);
+
         Assert.Equal("testActivityEvent", instanaSpan.Data.Events[0].Name);
         Assert.True(instanaSpan.Data.Events[0].Ts > 0);
-        Assert.NotNull(instanaSpan.Data?.Events[0]?.Tags);
-        var eventTagValue = string.Empty;
-        _ = instanaSpan.Data.Events[0].Tags?.TryGetValue("eventTagKey", out eventTagValue);
+        Assert.NotNull(instanaSpan.Data.Events[0].Tags);
+
+        Assert.True(instanaSpan.Data.Events[0].Tags.TryGetValue("eventTagKey", out var eventTagValue));
         Assert.Equal("eventTagValue", eventTagValue);
+
         Assert.Equal("testActivityEvent2", instanaSpan.Data.Events[1].Name);
         Assert.True(instanaSpan.Data.Events[1].Ts > 0);
-        Assert.NotNull(instanaSpan.Data?.Events[1]?.Tags);
-        eventTagValue = string.Empty;
-        _ = instanaSpan.Data.Events[1].Tags?.TryGetValue("eventTagKey2", out eventTagValue);
+        Assert.NotNull(instanaSpan.Data?.Events[1].Tags);
+
+        Assert.True(instanaSpan.Data.Events[1].Tags.TryGetValue("eventTagKey2", out eventTagValue));
         Assert.Equal("eventTagValue2", eventTagValue);
     }
 }
