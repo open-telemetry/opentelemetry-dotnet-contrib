@@ -203,9 +203,9 @@ internal static class ActivityHelper
         {
             callback?.Invoke(aspNetActivity, context);
         }
-        catch (Exception callbackEx)
+        catch (Exception ex)
         {
-            AspNetTelemetryEventSource.Log.CallbackException(aspNetActivity, eventName, callbackEx);
+            AspNetTelemetryEventSource.Log.CallbackException(aspNetActivity, eventName, ex);
         }
     }
 
