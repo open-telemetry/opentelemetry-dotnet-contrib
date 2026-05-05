@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.1.0
+
+Released 2026-May-05
+
 * Add `net8.0` and `net10.0` target frameworks.
   ([#4128](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4128))
 
