@@ -21,11 +21,10 @@ internal sealed class ProcessDetector : IResourceDetector
             out int processId,
             out DateTime? creationTime);
 
-        var attributes = new List<KeyValuePair<string, object>>(4)
+        var attributes = new List<KeyValuePair<string, object>>(3)
         {
             new(ProcessSemanticConventions.AttributeProcessOwner, Environment.UserName),
             new(ProcessSemanticConventions.AttributeProcessPid, processId),
-            new(ProcessSemanticConventions.AttributeProcessWorkingDirectory, Environment.CurrentDirectory),
         };
 
         if (creationTime is { } startTime)
