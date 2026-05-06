@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <RepoRoot>$([System.IO.Directory]::GetParent($(MSBuildThisFileDirectory)).Parent.Parent.FullName)</RepoRoot>
-    <MinVerTagPrefix>SemanticConventions-</MinVerTagPrefix>
   </PropertyGroup>
 
   <ItemGroup>
