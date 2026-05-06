@@ -114,14 +114,18 @@ public class FileBlobProvider : PersistentBlobProvider, IDisposable
 
     protected override bool OnTryCreateBlob(byte[] buffer, int leasePeriodMilliseconds, [NotNullWhen(true)] out PersistentBlob? blob)
     {
-        blob = this.CreateFileBlob(new ReadOnlySpan<byte>(buffer), leasePeriodMilliseconds);
+        Guard.ThrowIfNull(buffer);
+
+        blob = this.CreateFileBlob(buffer.AsSpan(), leasePeriodMilliseconds);
 
         return blob != null;
     }
 
     protected override bool OnTryCreateBlob(byte[] buffer, [NotNullWhen(true)] out PersistentBlob? blob)
     {
-        blob = this.CreateFileBlob(new ReadOnlySpan<byte>(buffer));
+        Guard.ThrowIfNull(buffer);
+
+        blob = this.CreateFileBlob(buffer.AsSpan());
 
         return blob != null;
     }
