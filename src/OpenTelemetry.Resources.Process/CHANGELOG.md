@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.15.1-beta.2
+
+Released 2026-May-06
+
 * Add new process resource attribute `process.creation.time`.
   ([#4036](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4036))
 
