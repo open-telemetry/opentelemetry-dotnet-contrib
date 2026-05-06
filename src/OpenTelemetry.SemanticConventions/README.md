@@ -1,6 +1,6 @@
 # Semantic Conventions for OpenTelemetry .NET
 
-This project contains the generated code for the [Semantic Conventions](https://github.com/open-telemetry/semantic-conventions)
+This project contains the generated stable attributes for the [Semantic Conventions](https://github.com/open-telemetry/semantic-conventions)
 defined by the OpenTelemetry specification.
 
 ## Installation
@@ -8,6 +8,9 @@ defined by the OpenTelemetry specification.
 ```shell
 dotnet add package OpenTelemetry.SemanticConventions --prerelease
 ```
+
+Experimental and deprecated attributes are generated in the
+`OpenTelemetry.SemanticConventions.Incubating` package.
 
 ## Generating the files
 

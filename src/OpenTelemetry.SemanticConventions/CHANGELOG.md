@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+* Split experimental and deprecated semantic convention attributes into the
+  `OpenTelemetry.SemanticConventions.Incubating` package. The stable package now
+  contains stable semantic convention attributes only. Applications using
+  development, alpha, beta, release candidate, or deprecated attributes should
+  reference `OpenTelemetry.SemanticConventions.Incubating` and update namespaces
+  from `OpenTelemetry.SemanticConventions` to
+  `OpenTelemetry.SemanticConventions.Incubating`.
+
 * Updated to `v1.41.0` release of OpenTelemetry Semantic Conventions.
   ([#4313](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4313))
 

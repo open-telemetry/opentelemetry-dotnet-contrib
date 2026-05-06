@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.SemanticConventions\OpenTelemetry.SemanticConventions.csproj" />
+    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.SemanticConventions.Incubating\OpenTelemetry.SemanticConventions.Incubating.csproj" />
+  </ItemGroup>
+
+</Project>

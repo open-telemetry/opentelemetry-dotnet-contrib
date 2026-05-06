@@ -592,7 +592,24 @@ jobs:
     with:
       project-name: OpenTelemetry.SemanticConventions
       code-cov-name: SemanticConventions
-      run-tests: false # Note: No test project
+
+  verify-semanticconventions-generation:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'semanticconventions')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+    runs-on: ubuntu-24.04
+    steps:
+    - name: check out code
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        fetch-depth: 0
+
+    - name: Generate semantic conventions
+      run: bash ./src/OpenTelemetry.SemanticConventions/scripts/generate.sh
+
+    - name: Verify generated semantic conventions are committed
+      run: git diff --exit-code -- src/OpenTelemetry.SemanticConventions src/OpenTelemetry.SemanticConventions.Incubating
 
   build-test-contrib-shared-tests:
     needs: detect-changes
@@ -693,6 +710,7 @@ jobs:
       build-test-resources-processruntime,
       build-test-sampler-aws,
       build-test-semanticconventions,
+      verify-semanticconventions-generation,
       verify-aot-compat
     ]
     if: always() && !cancelled()
