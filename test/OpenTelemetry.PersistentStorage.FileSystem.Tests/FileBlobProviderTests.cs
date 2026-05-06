@@ -66,16 +66,15 @@ public class FileBlobProviderTests
     }
 
     [Fact]
+    [Obsolete("Validates obsolete byte[] overload compatibility.")]
     public void FileBlobProvider_CreateBlobReturnsFalseForNullByteArray()
     {
         var testDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
         using var blobProvider = new FileBlobProvider(testDirectory.FullName);
         byte[] buffer = null!;
 
-#pragma warning disable CS0618 // Validate obsolete byte[] overload compatibility.
         Assert.False(blobProvider.TryCreateBlob(buffer, out var blob));
         Assert.False(blobProvider.TryCreateBlob(buffer, 1000, out var leasedBlob));
-#pragma warning restore CS0618
 
         Assert.Null(blob);
         Assert.Null(leasedBlob);
