@@ -50,6 +50,7 @@
     <PackageVersion Include="Microsoft.Owin" Version="[4.2.2,)" />
     <PackageVersion Include="Microsoft.Win32.Registry" Version="[5.0.0,)" />
     <PackageVersion Include="System.Drawing.Common" Version="[4.7.2,)" />
+    <PackageVersion Include="System.Memory" Version="[4.5.5,)" />
     <PackageVersion Include="System.Net.Http" Version="[4.3.4,)" />
     <PackageVersion Include="System.Private.Uri" Version="[4.3.2,)" />
     <PackageVersion Include="System.Reflection.Emit.Lightweight" Version="[4.7.0,)" />
@@ -87,27 +88,27 @@
 
   <!-- Non-production packages are kept up-to-date by dependency automation -->
   <ItemGroup Label="Non-production packages, such as for examples and tests">
-    <PackageVersion Include="AWSSDK.Bedrock" Version="4.0.25.4" />
-    <PackageVersion Include="AWSSDK.BedrockAgent" Version="4.0.8.4" />
-    <PackageVersion Include="AWSSDK.BedrockAgentRuntime" Version="4.0.8.21" />
-    <PackageVersion Include="AWSSDK.BedrockRuntime" Version="4.0.17.5" />
-    <PackageVersion Include="AWSSDK.DynamoDBv2" Version="4.0.17.11" />
-    <PackageVersion Include="AWSSDK.S3" Version="4.0.22.1" />
-    <PackageVersion Include="AWSSDK.SimpleNotificationService" Version="4.0.2.29" />
-    <PackageVersion Include="AWSSDK.SQS" Version="4.0.2.27" />
+    <PackageVersion Include="AWSSDK.Bedrock" Version="4.0.25.5" />
+    <PackageVersion Include="AWSSDK.BedrockAgent" Version="4.0.8.5" />
+    <PackageVersion Include="AWSSDK.BedrockAgentRuntime" Version="4.0.8.22" />
+    <PackageVersion Include="AWSSDK.BedrockRuntime" Version="4.0.17.6" />
+    <PackageVersion Include="AWSSDK.DynamoDBv2" Version="4.0.18.1" />
+    <PackageVersion Include="AWSSDK.S3" Version="4.0.22.2" />
+    <PackageVersion Include="AWSSDK.SimpleNotificationService" Version="4.0.2.30" />
+    <PackageVersion Include="AWSSDK.SQS" Version="4.0.2.28" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
     <PackageVersion Include="CommandLineParser" Version="2.9.1" />
     <PackageVersion Include="FsCheck.Xunit" Version="3.3.3" />
-    <PackageVersion Include="GitHubActionsTestLogger" Version="3.0.3" />
-    <PackageVersion Include="Google.Api.Gax" Version="4.13.1" />
+    <PackageVersion Include="GitHubActionsTestLogger" Version="3.0.4" />
+    <PackageVersion Include="Google.Api.Gax" Version="4.14.0" />
     <PackageVersion Include="Google.Protobuf" Version="3.34.1" />
     <PackageVersion Include="Grpc" Version="2.46.6" />
-    <PackageVersion Include="Grpc.AspNetCore.Server" Version="2.76.0" />
-    <PackageVersion Include="Grpc.Net.Client" Version="2.76.0" />
+    <PackageVersion Include="Grpc.AspNetCore.Server" Version="2.80.0" />
+    <PackageVersion Include="Grpc.Net.Client" Version="2.80.0" />
     <PackageVersion Include="Grpc.Tools" Version="2.80.0" />
     <PackageVersion Include="Hangfire.Core" Version="1.8.23" />
     <PackageVersion Include="Hangfire.MemoryStorage" Version="1.8.1.2" />
-    <PackageVersion Include="JetBrains.Profiler.Api" Version="1.4.12" />
+    <PackageVersion Include="JetBrains.Profiler.Api" Version="1.4.13" />
     <PackageVersion Include="JunitXml.TestLogger" Version="8.0.0" />
     <PackageVersion Include="Microsoft.AspNet.Mvc" Version="5.3.0" />
     <PackageVersion Include="Microsoft.AspNet.WebApi.OwinSelfHost" Version="5.3.0" />

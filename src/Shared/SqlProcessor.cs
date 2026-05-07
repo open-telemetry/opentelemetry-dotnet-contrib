@@ -229,8 +229,13 @@ internal static class SqlProcessor
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool HasTerminatingEscapedIdentifier(ReadOnlySpan<char> sql, int start)
+    private static bool HasTerminatingEscapedIdentifier(ReadOnlySpan<char> sql, int start, ref ParseState state)
     {
+        if (state.NoTerminatingEscapedIdentifierAhead)
+        {
+            return false;
+        }
+
         for (var i = start + 1; i < sql.Length; i++)
         {
             if (sql[i] == CloseSquareBracketChar)
@@ -246,6 +251,7 @@ internal static class SqlProcessor
             }
         }
 
+        state.NoTerminatingEscapedIdentifierAhead = true;
         return false;
     }
 
@@ -649,7 +655,7 @@ internal static class SqlProcessor
 
             if (state.CaptureNextNonKeywordTokenAsIdentifier
                 && currentChar is OpenSquareBracketChar
-                && HasTerminatingEscapedIdentifier(sql, state.ParsePosition))
+                && HasTerminatingEscapedIdentifier(sql, state.ParsePosition, ref state))
             {
                 state.InEscapedIdentifier = true;
                 AppendSummaryChar(OpenSquareBracketChar, ref state);
@@ -1022,6 +1028,11 @@ internal static class SqlProcessor
         /// Used to track if we are in an escaped identifier (e.g., "[table]").
         /// </summary>
         public bool InEscapedIdentifier; // 1 byte
+
+        /// <summary>
+        /// Used to avoid repeatedly scanning to the end of malformed SQL after finding an unterminated escaped identifier.
+        /// </summary>
+        public bool NoTerminatingEscapedIdentifierAhead; // 1 byte
 
         /// <summary>
         /// Used to track if we are in a FROM clause for special handling of comma-separated table lists.

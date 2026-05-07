@@ -135,7 +135,6 @@
   <Folder Name="/src/">
     <Project Path="src/OpenTelemetry.Exporter.Geneva/OpenTelemetry.Exporter.Geneva.csproj" />
     <Project Path="src/OpenTelemetry.Exporter.InfluxDB/OpenTelemetry.Exporter.InfluxDB.csproj" />
-    <Project Path="src/OpenTelemetry.Exporter.Instana/OpenTelemetry.Exporter.Instana.csproj" />
     <Project Path="src/OpenTelemetry.Exporter.OneCollector/OpenTelemetry.Exporter.OneCollector.csproj" />
     <Project Path="src/OpenTelemetry.Extensions.AWS/OpenTelemetry.Extensions.AWS.csproj" />
     <Project Path="src/OpenTelemetry.Extensions.Enrichment.AspNetCore/OpenTelemetry.Extensions.Enrichment.AspNetCore.csproj" />
@@ -249,7 +248,6 @@
     <Project Path="test/OpenTelemetry.Exporter.Geneva.Stress/OpenTelemetry.Exporter.Geneva.Stress.csproj" />
     <Project Path="test/OpenTelemetry.Exporter.Geneva.Tests/OpenTelemetry.Exporter.Geneva.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Exporter.InfluxDB.Tests/OpenTelemetry.Exporter.InfluxDB.Tests.csproj" />
-    <Project Path="test/OpenTelemetry.Exporter.Instana.Tests/OpenTelemetry.Exporter.Instana.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Exporter.OneCollector.Benchmarks/OpenTelemetry.Exporter.OneCollector.Benchmarks.csproj" />
     <Project Path="test/OpenTelemetry.Exporter.OneCollector.Tests/OpenTelemetry.Exporter.OneCollector.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Extensions.AWS.Tests/OpenTelemetry.Extensions.AWS.Tests.csproj" />

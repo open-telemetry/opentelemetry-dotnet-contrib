@@ -3,7 +3,6 @@
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Http;
 using OpenTelemetry.Context.Propagation;
@@ -23,12 +22,8 @@ internal class HttpInListener : ListenerHandler
     // https://github.com/dotnet/aspnetcore/blob/8d6554e655b64da75b71e0e20d6db54a3ba8d2fb/src/Hosting/Hosting/src/GenericHost/GenericWebHostBuilder.cs#L85
     internal const string AspNetCoreActivitySourceName = "Microsoft.AspNetCore";
 
-    internal static readonly AssemblyName AssemblyName = typeof(HttpInListener).Assembly.GetName();
-#pragma warning disable IDE0370 // Suppression is unnecessary
-    internal static readonly string ActivitySourceName = AssemblyName.Name!;
-    internal static readonly Version Version = AssemblyName.Version!;
-#pragma warning restore IDE0370 // Suppression is unnecessary
-    internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, Version.ToString());
+    internal static readonly Version SemanticConventionsVersion = new(1, 40, 0);
+    internal static readonly ActivitySource ActivitySource = ActivitySourceFactory.Create<HttpInListener>(SemanticConventionsVersion);
     internal static readonly bool Net7OrGreater = Environment.Version.Major >= 7;
     internal static readonly bool Net10OrGreater = Environment.Version.Major >= 10;
     internal static readonly bool Net11OrGreater = Environment.Version.Major >= 11;
@@ -184,14 +179,14 @@ internal class HttpInListener : ListenerHandler
                 ActivityInstrumentationHelper.SetKindProperty(activity, ActivityKind.Server);
             }
 
-            if (!Net11OrGreater || !this.nativeAspNetCoreOpenTelemetryEnabled)
-            {
-                TelemetryHelper.RequestDataHelper.SetActivityDisplayName(activity, request.Method);
-            }
-
             // ASP.NET Core does not support OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS so we
             // still need to set the display name and HTTP method tag so that any override
             // by the user is honoured. See https://github.com/dotnet/aspnetcore/issues/65873.
+            TelemetryHelper.RequestDataHelper.SetActivityDisplayName(activity, request.Method);
+
+            // ASP.NET Core 10 does not support OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS so we
+            // still need to set the HTTP method tag so that any override by the user is honoured.
+            // See https://github.com/dotnet/aspnetcore/issues/65873.
             TelemetryHelper.RequestDataHelper.SetHttpMethodTag(activity, request.Method);
 
             if (!Net10OrGreater || !this.nativeAspNetCoreOpenTelemetryEnabled)
@@ -421,13 +416,13 @@ internal class HttpInListener : ListenerHandler
         }
     }
 
-    // ASP.NET Core 10 does not generate OpenTelemetry tags by default so we can only take
-    // the optimal path if the user has explicitly opted-out of suppressing the OpenTelemetry data.
     private static bool AspNetCoreHasNativeOpenTelemetryTags()
     {
-#if NET10_0_OR_GREATER
         bool? suppressed = null;
 
+        // ASP.NET Core 10 added a feature switch to specify whether to suppress OpenTelemetry
+        // tags being added natively by default, so we can take an optimal path if the user has
+        // not explicitly opted-out of suppressing the OpenTelemetry data.
         if (AppContext.TryGetSwitch("Microsoft.AspNetCore.Hosting.SuppressActivityOpenTelemetryData", out var configuredValue))
         {
             suppressed = configuredValue;
@@ -438,14 +433,11 @@ internal class HttpInListener : ListenerHandler
             return !suppressedValue;
         }
 
+        // In ASP.NET Core 8 and 9 the feature switch does not exist and there are no native OpenTelemetry tags.
         // In ASP.NET Core 10 OpenTelemetry tags are suppressed by default,
         // see https://github.com/dotnet/aspnetcore/blob/7387de91234d3ef751fa50b3d1bfede4130213ff/src/Hosting/Hosting/src/Internal/HostingApplicationDiagnostics.cs#L59-L67.
         // In ASP.NET Core 11+ OpenTelemetry tags are emitted by default,
         // see https://github.com/dotnet/aspnetcore/blob/655f41d52f2fc75992eac41496b8e9cc119e1b54/src/Hosting/Hosting/src/Internal/HostingApplicationDiagnostics.cs#L59-L67.
         return Net11OrGreater;
-#else
-        // In ASP.NET Core 8 and 9 the feature switch does not exist and there are no native OpenTelemetry tags.
-        return false;
-#endif
     }
 }

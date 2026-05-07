@@ -12,6 +12,14 @@ namespace OpenTelemetry.Instrumentation.GrpcCore.Tests;
 /// </summary>
 internal class FoobarService : Foobar.FoobarBase
 {
+    public const string UnaryMethod = nameof(Foobar.FoobarClient.Unary);
+
+    public const string ClientStreamingMethod = nameof(Foobar.FoobarClient.ClientStreaming);
+
+    public const string ServerStreamingMethod = nameof(Foobar.FoobarClient.ServerStreaming);
+
+    public const string DuplexStreamingMethod = nameof(Foobar.FoobarClient.DuplexStreaming);
+
     /// <summary>
     /// Default traceparent header value with the sampling bit on.
     /// </summary>
@@ -73,9 +81,8 @@ internal class FoobarService : Foobar.FoobarBase
         };
 
         server.Start();
-        var serverUriString = new Uri("dns:localhost:" + server.Ports.Single().BoundPort).ToString();
 
-        return new DisposableServer(server, serverUriString);
+        return new DisposableServer(server);
     }
 
     /// <summary>
@@ -176,7 +183,7 @@ internal class FoobarService : Foobar.FoobarBase
     }
 
     /// <inheritdoc/>
-    public async override Task<FoobarResponse> Unary(FoobarRequest request, ServerCallContext context)
+    public override async Task<FoobarResponse> Unary(FoobarRequest request, ServerCallContext context)
     {
         this.CheckForFailure(context);
 
@@ -253,22 +260,25 @@ internal class FoobarService : Foobar.FoobarBase
         /// Initializes a new instance of the <see cref="DisposableServer" /> class.
         /// </summary>
         /// <param name="server">The server.</param>
-        /// <param name="uriString">The URI string.</param>
-        public DisposableServer(Server server, string uriString)
+        public DisposableServer(Server server)
         {
+            var serverPort = server.Ports.Single();
+
             this.server = server;
-            this.UriString = uriString;
+            this.HostName = serverPort.Host;
+            this.Port = serverPort.BoundPort;
         }
 
-        /// <summary>
-        /// Gets the URI string.
-        /// </summary>
-        public string UriString { get; }
+        public string Host => $"{this.HostName}:{this.Port}";
+
+        public string HostName { get; }
+
+        public int Port { get; }
+
+        public string Target => $"dns:{this.Host}";
 
         /// <inheritdoc/>
         public void Dispose()
-        {
-            this.server.ShutdownAsync().Wait();
-        }
+            => this.server.ShutdownAsync().Wait();
     }
 }
