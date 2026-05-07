@@ -37,7 +37,7 @@ public class AnyValueUnionTests
         Assert.Equal(boolValue, boolValue2);
         Assert.Equal(stringValue, stringValue2);
         Assert.Equal(doubleValue, doubleValue2);
-        Assert.Equal(arrayValue, arrayValue); // the same instance of array should be equal to itself.
+        Assert.Equal(arrayValue, arrayValue2);
 
         Assert.NotEqual(intValue, boolValue);
         Assert.NotEqual(intValue, stringValue);
@@ -49,7 +49,6 @@ public class AnyValueUnionTests
         Assert.NotEqual(stringValue, doubleValue);
         Assert.NotEqual(stringValue, arrayValue);
         Assert.NotEqual(doubleValue, arrayValue);
-        Assert.NotEqual(arrayValue, arrayValue2); // 2 same arrays but different instances are not equal by default.
 
         // Explicit equality tests
         Assert.True(intValue.Equals(intValue));
@@ -108,9 +107,7 @@ public class AnyValueUnionTests
         Assert.Equal(boolValue.GetHashCode(), new AnyValueUnion(AnyValueType.Boolean, boolValue: true).GetHashCode());
         Assert.Equal(stringValue.GetHashCode(), new AnyValueUnion(AnyValueType.String, stringValue: "test").GetHashCode());
         Assert.Equal(doubleValue.GetHashCode(), new AnyValueUnion(AnyValueType.Double, doubleValue: 3.14).GetHashCode());
-
-        // different arrays are not equal
-        Assert.NotEqual(arrayValue.GetHashCode(), new AnyValueUnion(AnyValueType.Array, arrayValue: [
+        Assert.Equal(arrayValue.GetHashCode(), new AnyValueUnion(AnyValueType.Array, arrayValue: [
                 new AnyValueUnion(AnyValueType.String, stringValue: "val1"),
                 new AnyValueUnion(AnyValueType.String, stringValue: "val2")
             ]).GetHashCode());

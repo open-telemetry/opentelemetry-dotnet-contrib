@@ -112,7 +112,7 @@ public readonly struct AnyValueUnion : IEquatable<AnyValueUnion>
         AnyValueType.Boolean => this.BoolValue == other.BoolValue,
         AnyValueType.String => string.Equals(this.StringValue, other.StringValue, StringComparison.Ordinal),
         AnyValueType.Double => this.DoubleValue == other.DoubleValue,
-        AnyValueType.Array => this.ArrayValue == other.ArrayValue,
+        AnyValueType.Array => EqualsArray(this.ArrayValue, other.ArrayValue),
         _ => false,
     };
 
@@ -130,7 +130,7 @@ public readonly struct AnyValueUnion : IEquatable<AnyValueUnion>
         AnyValueType.String => this.StringValue?.GetHashCode() ?? 0,
 #endif
         AnyValueType.Double => this.DoubleValue.GetHashCode(),
-        AnyValueType.Array => this.ArrayValue?.GetHashCode() ?? 0,
+        AnyValueType.Array => GetHashCodeArray(this.ArrayValue),
         _ => 0,
     };
 
@@ -168,5 +168,38 @@ public readonly struct AnyValueUnion : IEquatable<AnyValueUnion>
         }
 
         return new AnyValueUnion(AnyValueType.Array, arrayValue: array);
+    }
+
+    private static bool EqualsArray(ICollection<AnyValueUnion>? arrayValue1, ICollection<AnyValueUnion>? arrayValue2)
+    {
+        if (ReferenceEquals(arrayValue1, arrayValue2))
+        {
+            return true;
+        }
+
+        if (arrayValue1 == null || arrayValue2 == null)
+        {
+            return false;
+        }
+
+        return arrayValue1.SequenceEqual(arrayValue2);
+    }
+
+    private static int GetHashCodeArray(ICollection<AnyValueUnion>? arrayValue)
+    {
+        var hash = 0;
+
+        if (arrayValue == null)
+        {
+            return hash;
+        }
+
+        // Follows the same logic as Google.Protobuf.Collections.RepeatedField
+        foreach (var v in arrayValue)
+        {
+            hash = (hash * 31) + v.GetHashCode();
+        }
+
+        return hash;
     }
 }
