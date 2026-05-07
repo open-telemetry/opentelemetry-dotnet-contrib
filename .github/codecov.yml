@@ -41,11 +41,6 @@ flags:
     paths:
       - src/OpenTelemetry.Exporter.InfluxDB
 
-  unittests-Exporter.Instana:
-    carryforward: true
-    paths:
-      - src/OpenTelemetry.Exporter.Instana
-
   unittests-Exporter.OneCollector:
     carryforward: true
     paths:
