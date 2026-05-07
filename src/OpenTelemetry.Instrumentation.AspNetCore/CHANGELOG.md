@@ -19,7 +19,7 @@
 * Add support for version [1.41.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/rpc/README.md)
   of the Semantic Conventions for RPC/gRPC when the `OTEL_SEMCONV_STABILITY_OPT_IN`
   environment variable is set to `rpc` or `rpc/dup`.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#4370](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4370))
 
 ## 1.15.2
 

@@ -457,11 +457,11 @@ internal class HttpInListener : ListenerHandler
 
             activity.SetTag(SemanticConventions.AttributeRpcMethod, details.RpcMethod);
 
-            // Remove the grpc.method tag added by the gRPC .NET library
+            // See https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/non-normative/compatibility/grpc.md#attribute-mapping
             activity.SetTag(GrpcTagHelper.GrpcMethodTagName, null);
-
-            // Remove the grpc.status_code tag added by the gRPC .NET library
+            activity.SetTag(GrpcTagHelper.GrpcStatusTagName, null);
             activity.SetTag(GrpcTagHelper.GrpcStatusCodeTagName, null);
+            activity.SetTag(GrpcTagHelper.GrpcTargetTagName, null);
         }
 
         if (validStatusCode)
