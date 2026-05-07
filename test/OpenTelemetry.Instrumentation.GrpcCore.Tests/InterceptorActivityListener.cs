@@ -23,19 +23,18 @@ internal sealed class InterceptorActivityListener : IDisposable
     {
         this.activityListener = new ActivityListener
         {
-            ShouldListenTo = source => source.Name == GrpcCoreInstrumentation.ActivitySourceName,
-            ActivityStarted = activity =>
+            Sample = static (ref _) => ActivitySamplingResult.AllDataAndRecorded,
+            ShouldListenTo = static (source) => source.Name is "OpenTelemetry.Instrumentation.GrpcCore",
+            ActivityStarted = (activity) =>
             {
                 if (testTags.HasTestTags(activity))
                 {
                     this.Activity = activity;
                 }
             },
-            Sample = this.Sample,
         };
 
         ActivitySource.AddActivityListener(this.activityListener);
-        Debug.Assert(GrpcCoreInstrumentation.ActivitySource.HasListeners(), "activity source has no listeners");
     }
 
     /// <summary>
@@ -45,14 +44,5 @@ internal sealed class InterceptorActivityListener : IDisposable
 
     /// <inheritdoc/>
     public void Dispose()
-    {
-        this.activityListener.Dispose();
-    }
-
-    /// <summary>
-    /// Always sample.
-    /// </summary>
-    /// <param name="options">The options.</param>
-    /// <returns>a result.</returns>
-    private ActivitySamplingResult Sample(ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded;
+        => this.activityListener.Dispose();
 }

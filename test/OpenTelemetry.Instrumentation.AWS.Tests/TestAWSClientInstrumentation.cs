@@ -14,11 +14,14 @@ using Amazon.BedrockRuntime.Model;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using Amazon.Runtime;
+using Amazon.Runtime.Internal;
+using Amazon.SimpleNotificationService;
 using Amazon.SQS;
 using Amazon.SQS.Model;
 using OpenTelemetry.Instrumentation.AWS.Tests.Tools;
 using OpenTelemetry.Trace;
 using Xunit;
+using AWSTracingPipelineHandler = OpenTelemetry.Instrumentation.AWS.Implementation.AWSTracingPipelineHandler;
 
 namespace OpenTelemetry.Instrumentation.AWS.Tests;
 
@@ -37,6 +40,7 @@ public class TestAWSClientInstrumentation
 
         var parent = new Activity("parent").Start();
         var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+        var extendedRequestId = @"wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .SetSampler(new AlwaysOnSampler())
@@ -49,7 +53,7 @@ public class TestAWSClientInstrumentation
                    .Build())
         {
             var ddb = new AmazonDynamoDBClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            CustomResponses.SetResponse(ddb, "{}", requestId, true);
+            CustomResponses.SetResponse(ddb, "{}", requestId, extendedRequestId, true);
             var scan_request = new ScanRequest
             {
                 TableName = "SampleProduct",
@@ -85,6 +89,7 @@ public class TestAWSClientInstrumentation
 
         var parent = new Activity("parent").Start();
         var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+        var extendedRequestId = @"wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .SetSampler(new AlwaysOnSampler())
@@ -97,7 +102,7 @@ public class TestAWSClientInstrumentation
                    .Build())
         {
             var ddb = new TestAmazonDynamoDBClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            CustomResponses.SetResponse(ddb, "{}", requestId, true);
+            CustomResponses.SetResponse(ddb, "{}", requestId, extendedRequestId, true);
             var scan_request = new ScanRequest
             {
                 TableName = "SampleProduct",
@@ -120,6 +125,7 @@ public class TestAWSClientInstrumentation
 
         Assert.Equal(ActivityStatusCode.Unset, awssdk_activity.Status);
         Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
+        Assert.Equal(extendedRequestId, Utils.GetTagValue(awssdk_activity, "aws.extended_request_id"));
     }
 
     [Fact]
@@ -196,6 +202,7 @@ public class TestAWSClientInstrumentation
 
         var parent = new Activity("parent").Start();
         var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+        var extendedRequestId = @"wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
 
         SendMessageRequest send_msg_req;
 
@@ -210,8 +217,13 @@ public class TestAWSClientInstrumentation
                    .Build())
         {
             var sqs = new AmazonSQSClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            var dummyResponse = "{}";
-            CustomResponses.SetResponse(sqs, dummyResponse, requestId, true);
+            var dummyResponse =
+                """
+                {
+                  "MessageId": "567910cd-659e-55d4-bc19-f29d9g3b2378"
+                }
+                """;
+            CustomResponses.SetResponse(sqs, dummyResponse, requestId, extendedRequestId, true);
             send_msg_req = new SendMessageRequest
             {
                 QueueUrl = "https://sqs.us-east-1.amazonaws.com/123456789/MyTestQueue",
@@ -235,6 +247,7 @@ public class TestAWSClientInstrumentation
 
         Assert.Equal(ActivityStatusCode.Unset, awssdk_activity.Status);
         Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
+        Assert.Equal(extendedRequestId, Utils.GetTagValue(awssdk_activity, "aws.extended_request_id"));
 
         Assert.Equal(2, send_msg_req.MessageAttributes.Count);
         Assert.Contains(
@@ -256,6 +269,7 @@ public class TestAWSClientInstrumentation
 
         var parent = new Activity("parent").Start();
         var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+        var extendedRequestId = @"wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
 
         SendMessageRequest send_msg_req;
 
@@ -270,8 +284,13 @@ public class TestAWSClientInstrumentation
                    .Build())
         {
             var sqs = new AmazonSQSClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            var dummyResponse = "{}";
-            CustomResponses.SetResponse(sqs, dummyResponse, requestId, true);
+            var dummyResponse =
+                """
+                {
+                  "MessageId": "567910cd-659e-55d4-bc19-f29d9g3b2378"
+                }
+                """;
+            CustomResponses.SetResponse(sqs, dummyResponse, requestId, extendedRequestId, true);
             send_msg_req = new SendMessageRequest
             {
                 QueueUrl = "https://sqs.us-east-1.amazonaws.com/123456789/MyTestQueue",
@@ -299,6 +318,62 @@ public class TestAWSClientInstrumentation
 
     [Fact]
 #if NETFRAMEWORK
+    public void TestSNSPublishSuccessful()
+#else
+    public async Task TestSNSPublishSuccessful()
+#endif
+    {
+        var exportedItems = new List<Activity>();
+
+        var parent = new Activity("parent").Start();
+        var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+        var extendedRequestId = @"wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
+
+        using (Sdk.CreateTracerProviderBuilder()
+                  .AddXRayTraceId()
+                  .SetSampler(new AlwaysOnSampler())
+                  .AddAWSInstrumentation(o => o.SemanticConventionVersion = SemanticConventionVersion.Latest)
+                  .AddInMemoryExporter(exportedItems)
+                  .Build())
+        {
+            var sns = new AmazonSimpleNotificationServiceClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+            var dummyResponse = """
+                <PublishResponse xmlns="https://sns.amazonaws.com/doc/2010-03-31/">
+                  <PublishResult>
+                    <MessageId>567910cd-659e-55d4-bc19-f29d9g3b2378</MessageId>
+                  </PublishResult>
+                  <ResponseMetadata>
+                    <RequestId>fakerequ-esti-dfak-ereq-uestidfakere</RequestId>
+                  </ResponseMetadata>
+                </PublishResponse>
+                """;
+            CustomResponses.SetResponse(sns, dummyResponse, requestId, extendedRequestId, true);
+            var publishRequest = new Amazon.SimpleNotificationService.Model.PublishRequest
+            {
+                TopicArn = "arn:aws:sns:us-east-1:123456789:MyTestTopic",
+                Message = "Hello from OT",
+            };
+#if NETFRAMEWORK
+            sns.Publish(publishRequest);
+#else
+            await sns.PublishAsync(publishRequest);
+#endif
+        }
+
+        Assert.NotEmpty(exportedItems);
+
+        var activity = exportedItems.FirstOrDefault(e => e.DisplayName == "SNS.Publish");
+        Assert.NotNull(activity);
+
+        this.ValidateAWSActivity(activity, parent);
+        this.ValidateSnsActivityTags(activity);
+
+        Assert.Equal(ActivityStatusCode.Unset, activity.Status);
+        Assert.Equal(requestId, Utils.GetTagValue(activity, "aws.request_id"));
+    }
+
+    [Fact]
+#if NETFRAMEWORK
     public void TestBedrockGetGuardrailSuccessful()
 #else
     public async Task TestBedrockGetGuardrailSuccessful()
@@ -308,6 +383,7 @@ public class TestAWSClientInstrumentation
 
         var parent = new Activity("parent").Start();
         var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+        var extendedRequestId = @"wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
@@ -321,7 +397,7 @@ public class TestAWSClientInstrumentation
         {
             var bedrock = new AmazonBedrockClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
             var dummyResponse = "{\"GuardrailId\":\"123456789\"}";
-            CustomResponses.SetResponse(bedrock, dummyResponse, requestId, true);
+            CustomResponses.SetResponse(bedrock, dummyResponse, requestId, extendedRequestId, true);
             var getGuardrailRequest = new GetGuardrailRequest { GuardrailIdentifier = "123456789" };
 #if NETFRAMEWORK
             bedrock.GetGuardrail(getGuardrailRequest);
@@ -339,6 +415,7 @@ public class TestAWSClientInstrumentation
 
         Assert.Equal(ActivityStatusCode.Unset, awssdk_activity.Status);
         Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
+        Assert.Equal(extendedRequestId, Utils.GetTagValue(awssdk_activity, "aws.extended_request_id"));
     }
 
     [Fact]
@@ -352,6 +429,7 @@ public class TestAWSClientInstrumentation
 
         var parent = new Activity("parent").Start();
         var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+        var extendedRequestId = @"wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
@@ -365,7 +443,7 @@ public class TestAWSClientInstrumentation
         {
             var bedrockruntime = new AmazonBedrockRuntimeClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
             var dummyResponse = "{}";
-            CustomResponses.SetResponse(bedrockruntime, dummyResponse, requestId, true);
+            CustomResponses.SetResponse(bedrockruntime, dummyResponse, requestId, extendedRequestId, true);
             var invokeModelRequest = new InvokeModelRequest { ModelId = "amazon.titan-text-express-v1" };
 #if NETFRAMEWORK
             var response = bedrockruntime.InvokeModel(invokeModelRequest);
@@ -383,6 +461,7 @@ public class TestAWSClientInstrumentation
 
         Assert.Equal(ActivityStatusCode.Unset, awssdk_activity.Status);
         Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
+        Assert.Equal(extendedRequestId, Utils.GetTagValue(awssdk_activity, "aws.extended_request_id"));
     }
 
     [Fact]
@@ -396,6 +475,7 @@ public class TestAWSClientInstrumentation
 
         var parent = new Activity("parent").Start();
         var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+        var extendedRequestId = @"wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
@@ -409,7 +489,7 @@ public class TestAWSClientInstrumentation
         {
             var bedrockagent = new AmazonBedrockAgentClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
             var dummyResponse = "{}";
-            CustomResponses.SetResponse(bedrockagent, dummyResponse, requestId, true);
+            CustomResponses.SetResponse(bedrockagent, dummyResponse, requestId, extendedRequestId, true);
             var getAgentRequest = new GetAgentRequest { AgentId = "1234567890" };
 #if NETFRAMEWORK
             var response = bedrockagent.GetAgent(getAgentRequest);
@@ -427,6 +507,7 @@ public class TestAWSClientInstrumentation
 
         Assert.Equal(ActivityStatusCode.Unset, awssdk_activity.Status);
         Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
+        Assert.Equal(extendedRequestId, Utils.GetTagValue(awssdk_activity, "aws.extended_request_id"));
     }
 
     [Fact]
@@ -440,6 +521,7 @@ public class TestAWSClientInstrumentation
 
         var parent = new Activity("parent").Start();
         var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+        var extendedRequestId = @"wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
@@ -453,7 +535,7 @@ public class TestAWSClientInstrumentation
         {
             var bedrockagent = new AmazonBedrockAgentClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
             var dummyResponse = "{}";
-            CustomResponses.SetResponse(bedrockagent, dummyResponse, requestId, true);
+            CustomResponses.SetResponse(bedrockagent, dummyResponse, requestId, extendedRequestId, true);
             var getKnowledgeBaseRequest = new GetKnowledgeBaseRequest { KnowledgeBaseId = "1234567890" };
 #if NETFRAMEWORK
             var response = bedrockagent.GetKnowledgeBase(getKnowledgeBaseRequest);
@@ -471,6 +553,7 @@ public class TestAWSClientInstrumentation
 
         Assert.Equal(ActivityStatusCode.Unset, awssdk_activity.Status);
         Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
+        Assert.Equal(extendedRequestId, Utils.GetTagValue(awssdk_activity, "aws.extended_request_id"));
     }
 
     [Fact]
@@ -484,6 +567,7 @@ public class TestAWSClientInstrumentation
 
         var parent = new Activity("parent").Start();
         var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+        var extendedRequestId = @"wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
@@ -497,7 +581,7 @@ public class TestAWSClientInstrumentation
         {
             var bedrockagent = new AmazonBedrockAgentClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
             var dummyResponse = "{}";
-            CustomResponses.SetResponse(bedrockagent, dummyResponse, requestId, true);
+            CustomResponses.SetResponse(bedrockagent, dummyResponse, requestId, extendedRequestId, true);
             var getDataSourceRequest = new GetDataSourceRequest { DataSourceId = "1234567890", KnowledgeBaseId = "1234567890", };
 #if NETFRAMEWORK
             var response = bedrockagent.GetDataSource(getDataSourceRequest);
@@ -515,6 +599,7 @@ public class TestAWSClientInstrumentation
 
         Assert.Equal(ActivityStatusCode.Unset, awssdk_activity.Status);
         Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
+        Assert.Equal(extendedRequestId, Utils.GetTagValue(awssdk_activity, "aws.extended_request_id"));
     }
 
     [Fact]
@@ -528,6 +613,7 @@ public class TestAWSClientInstrumentation
 
         var parent = new Activity("parent").Start();
         var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+        var extendedRequestId = @"wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
@@ -541,7 +627,7 @@ public class TestAWSClientInstrumentation
         {
             var bedrockAgentRuntimeClient = new AmazonBedrockAgentRuntimeClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
             var dummyResponse = "{}";
-            CustomResponses.SetResponse(bedrockAgentRuntimeClient, dummyResponse, requestId, true);
+            CustomResponses.SetResponse(bedrockAgentRuntimeClient, dummyResponse, requestId, extendedRequestId, true);
             var invokeAgentRequest = new InvokeAgentRequest
             {
                 AgentId = "123456789",
@@ -565,6 +651,7 @@ public class TestAWSClientInstrumentation
 
         Assert.Equal(ActivityStatusCode.Unset, awssdk_activity.Status);
         Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
+        Assert.Equal(extendedRequestId, Utils.GetTagValue(awssdk_activity, "aws.extended_request_id"));
     }
 
     [Fact]
@@ -578,6 +665,7 @@ public class TestAWSClientInstrumentation
 
         var parent = new Activity("parent").Start();
         var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+        var extendedRequestId = @"wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
@@ -591,7 +679,7 @@ public class TestAWSClientInstrumentation
         {
             var bedrockagentruntime = new AmazonBedrockAgentRuntimeClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
             var dummyResponse = "{}";
-            CustomResponses.SetResponse(bedrockagentruntime, dummyResponse, requestId, true);
+            CustomResponses.SetResponse(bedrockagentruntime, dummyResponse, requestId, extendedRequestId, true);
             var retrieveRequest = new RetrieveRequest { KnowledgeBaseId = "123456789" };
 #if NETFRAMEWORK
             var response = bedrockagentruntime.Retrieve(retrieveRequest);
@@ -609,6 +697,7 @@ public class TestAWSClientInstrumentation
 
         Assert.Equal(ActivityStatusCode.Unset, awssdk_activity.Status);
         Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
+        Assert.Equal(extendedRequestId, Utils.GetTagValue(awssdk_activity, "aws.extended_request_id"));
     }
 
     [Fact]
@@ -622,6 +711,7 @@ public class TestAWSClientInstrumentation
 
         var parent = new Activity("parent").Start();
         var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+        var extendedRequestId = @"wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .SetSampler(new AlwaysOnSampler())
@@ -634,7 +724,7 @@ public class TestAWSClientInstrumentation
                    .Build())
         {
             var s3 = new Amazon.S3.AmazonS3Client(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            CustomResponses.SetResponse(s3, "{}", requestId, true);
+            CustomResponses.SetResponse(s3, "{}", requestId, extendedRequestId, true);
             var putRequest = new Amazon.S3.Model.PutObjectRequest
             {
                 BucketName = "my-test-bucket",
@@ -658,12 +748,44 @@ public class TestAWSClientInstrumentation
 
         Assert.Equal(ActivityStatusCode.Unset, awssdk_activity.Status);
         Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
+        Assert.Equal(extendedRequestId, Utils.GetTagValue(awssdk_activity, "aws.extended_request_id"));
+    }
+
+    [Fact]
+    public async Task SuppressDownstreamInstrumentation_RestoresSuppressionScope()
+    {
+        Assert.False(Sdk.SuppressInstrumentation);
+
+        var previousActivity = Activity.Current;
+        Activity.Current = null;
+
+        try
+        {
+            var handler = new AWSTracingPipelineHandler(
+                new AWSClientInstrumentationOptions { SuppressDownstreamInstrumentation = true })
+            {
+                InnerHandler = new SuppressionAssertPipelineHandler(),
+            };
+
+            handler.InvokeSync(null!);
+            Assert.False(Sdk.SuppressInstrumentation);
+
+            await handler.InvokeAsync<AmazonWebServiceResponse>(null!);
+            Assert.False(Sdk.SuppressInstrumentation);
+        }
+        finally
+        {
+            Activity.Current = previousActivity;
+        }
     }
 
     private void ValidateAWSActivity(Activity aws_activity, Activity parent)
     {
         Assert.Equal(parent.SpanId, aws_activity.ParentSpanId);
         Assert.Equal(ActivityKind.Client, aws_activity.Kind);
+        Assert.NotNull(aws_activity.Source.Version);
+        Assert.NotEmpty(aws_activity.Source.Version);
+        Assert.StartsWith("https://opentelemetry.io/schemas/", aws_activity.Source.TelemetrySchemaUrl);
     }
 
     private void ValidateDynamoActivityTags(Activity ddb_activity)
@@ -671,27 +793,50 @@ public class TestAWSClientInstrumentation
         Assert.Equal("DynamoDB.Scan", ddb_activity.DisplayName);
         Assert.Equal(ExpectedDynamoTableNames, Utils.GetTagValue(ddb_activity, "aws.dynamodb.table_names"));
         Assert.Equal("dynamodb", Utils.GetTagValue(ddb_activity, "db.system"));
-        Assert.Equal("aws-api", Utils.GetTagValue(ddb_activity, "rpc.system"));
+        Assert.Equal("aws-api", Utils.GetTagValue(ddb_activity, "rpc.system.name"));
         Assert.Equal("DynamoDB", Utils.GetTagValue(ddb_activity, "rpc.service"));
         Assert.Equal("Scan", Utils.GetTagValue(ddb_activity, "rpc.method"));
+        Assert.Equal("us-east-1", Utils.GetTagValue(ddb_activity, "cloud.region"));
     }
 
     private void ValidateSqsActivityTags(Activity sqs_activity)
     {
         Assert.Equal("SQS.SendMessage", sqs_activity.DisplayName);
-        Assert.Equal("https://sqs.us-east-1.amazonaws.com/123456789/MyTestQueue", Utils.GetTagValue(sqs_activity, "aws.queue_url"));
-        Assert.Equal("aws-api", Utils.GetTagValue(sqs_activity, "rpc.system"));
+        Assert.Equal("https://sqs.us-east-1.amazonaws.com/123456789/MyTestQueue", Utils.GetTagValue(sqs_activity, "aws.sqs.queue.url"));
+        Assert.Equal("aws-api", Utils.GetTagValue(sqs_activity, "rpc.system.name"));
         Assert.Equal("SQS", Utils.GetTagValue(sqs_activity, "rpc.service"));
         Assert.Equal("SendMessage", Utils.GetTagValue(sqs_activity, "rpc.method"));
+        Assert.Equal("us-east-1", Utils.GetTagValue(sqs_activity, "cloud.region"));
+        Assert.Equal("MyTestQueue", Utils.GetTagValue(sqs_activity, "messaging.destination.name"));
+        Assert.Equal("567910cd-659e-55d4-bc19-f29d9g3b2378", Utils.GetTagValue(sqs_activity, "messaging.message.id"));
+        Assert.Equal("SendMessage", Utils.GetTagValue(sqs_activity, "messaging.operation.name"));
+        Assert.Equal("send", Utils.GetTagValue(sqs_activity, "messaging.operation.type"));
+        Assert.Equal("sqs.us-east-1.amazonaws.com", Utils.GetTagValue(sqs_activity, "server.address"));
+        Assert.Equal("aws_sqs", Utils.GetTagValue(sqs_activity, "messaging.system"));
+    }
+
+    private void ValidateSnsActivityTags(Activity sns_activity)
+    {
+        Assert.Equal("SNS.Publish", sns_activity.DisplayName);
+        Assert.Equal("arn:aws:sns:us-east-1:123456789:MyTestTopic", Utils.GetTagValue(sns_activity, "aws.sns.topic.arn"));
+        Assert.Equal("aws-api", Utils.GetTagValue(sns_activity, "rpc.system.name"));
+        Assert.Equal("SNS", Utils.GetTagValue(sns_activity, "rpc.service"));
+        Assert.Equal("Publish", Utils.GetTagValue(sns_activity, "rpc.method"));
+        Assert.Equal("MyTestTopic", Utils.GetTagValue(sns_activity, "messaging.destination.name"));
+        Assert.Equal("567910cd-659e-55d4-bc19-f29d9g3b2378", Utils.GetTagValue(sns_activity, "messaging.message.id"));
+        Assert.Equal("Publish", Utils.GetTagValue(sns_activity, "messaging.operation.name"));
+        Assert.Equal("send", Utils.GetTagValue(sns_activity, "messaging.operation.type"));
+        Assert.Equal("aws.sns", Utils.GetTagValue(sns_activity, "messaging.system"));
     }
 
     private void ValidateBedrockActivityTags(Activity bedrock_activity)
     {
         Assert.Equal("Bedrock.GetGuardrail", bedrock_activity.DisplayName);
         Assert.Equal("123456789", Utils.GetTagValue(bedrock_activity, "aws.bedrock.guardrail.id"));
-        Assert.Equal("aws-api", Utils.GetTagValue(bedrock_activity, "rpc.system"));
+        Assert.Equal("aws-api", Utils.GetTagValue(bedrock_activity, "rpc.system.name"));
         Assert.Equal("Bedrock", Utils.GetTagValue(bedrock_activity, "rpc.service"));
         Assert.Equal("GetGuardrail", Utils.GetTagValue(bedrock_activity, "rpc.method"));
+        Assert.Equal("us-east-1", Utils.GetTagValue(bedrock_activity, "cloud.region"));
     }
 
     private void ValidateBedrockRuntimeActivityTags(Activity bedrock_activity)
@@ -699,54 +844,60 @@ public class TestAWSClientInstrumentation
         Assert.Equal("Bedrock Runtime.InvokeModel", bedrock_activity.DisplayName);
         Assert.Equal("amazon.titan-text-express-v1", Utils.GetTagValue(bedrock_activity, "gen_ai.request.model"));
         Assert.Equal("aws.bedrock", Utils.GetTagValue(bedrock_activity, "gen_ai.system"));
-        Assert.Equal("aws-api", Utils.GetTagValue(bedrock_activity, "rpc.system"));
+        Assert.Equal("aws-api", Utils.GetTagValue(bedrock_activity, "rpc.system.name"));
         Assert.Equal("Bedrock Runtime", Utils.GetTagValue(bedrock_activity, "rpc.service"));
         Assert.Equal("InvokeModel", Utils.GetTagValue(bedrock_activity, "rpc.method"));
+        Assert.Equal("us-east-1", Utils.GetTagValue(bedrock_activity, "cloud.region"));
     }
 
     private void ValidateBedrockAgentAgentOpsActivityTags(Activity bedrock_activity)
     {
         Assert.Equal("Bedrock Agent.GetAgent", bedrock_activity.DisplayName);
         Assert.Equal("1234567890", Utils.GetTagValue(bedrock_activity, "aws.bedrock.agent.id"));
-        Assert.Equal("aws-api", Utils.GetTagValue(bedrock_activity, "rpc.system"));
+        Assert.Equal("aws-api", Utils.GetTagValue(bedrock_activity, "rpc.system.name"));
         Assert.Equal("Bedrock Agent", Utils.GetTagValue(bedrock_activity, "rpc.service"));
         Assert.Equal("GetAgent", Utils.GetTagValue(bedrock_activity, "rpc.method"));
+        Assert.Equal("us-east-1", Utils.GetTagValue(bedrock_activity, "cloud.region"));
     }
 
     private void ValidateBedrockAgentKnowledgeBaseOpsActivityTags(Activity bedrock_activity)
     {
         Assert.Equal("Bedrock Agent.GetKnowledgeBase", bedrock_activity.DisplayName);
         Assert.Equal("1234567890", Utils.GetTagValue(bedrock_activity, "aws.bedrock.knowledge_base.id"));
-        Assert.Equal("aws-api", Utils.GetTagValue(bedrock_activity, "rpc.system"));
+        Assert.Equal("aws-api", Utils.GetTagValue(bedrock_activity, "rpc.system.name"));
         Assert.Equal("Bedrock Agent", Utils.GetTagValue(bedrock_activity, "rpc.service"));
         Assert.Equal("GetKnowledgeBase", Utils.GetTagValue(bedrock_activity, "rpc.method"));
+        Assert.Equal("us-east-1", Utils.GetTagValue(bedrock_activity, "cloud.region"));
     }
 
     private void ValidateBedrockAgentDataSourceOpsActivityTags(Activity bedrock_activity)
     {
         Assert.Equal("Bedrock Agent.GetDataSource", bedrock_activity.DisplayName);
         Assert.Equal("1234567890", Utils.GetTagValue(bedrock_activity, "aws.bedrock.data_source.id"));
-        Assert.Equal("aws-api", Utils.GetTagValue(bedrock_activity, "rpc.system"));
+        Assert.Equal("aws-api", Utils.GetTagValue(bedrock_activity, "rpc.system.name"));
         Assert.Equal("Bedrock Agent", Utils.GetTagValue(bedrock_activity, "rpc.service"));
         Assert.Equal("GetDataSource", Utils.GetTagValue(bedrock_activity, "rpc.method"));
+        Assert.Equal("us-east-1", Utils.GetTagValue(bedrock_activity, "cloud.region"));
     }
 
     private void ValidateBedrockAgentRuntimeAgentOpsActivityTags(Activity bedrock_activity)
     {
         Assert.Equal("Bedrock Agent Runtime.InvokeAgent", bedrock_activity.DisplayName);
         Assert.Equal("123456789", Utils.GetTagValue(bedrock_activity, "aws.bedrock.agent.id"));
-        Assert.Equal("aws-api", Utils.GetTagValue(bedrock_activity, "rpc.system"));
+        Assert.Equal("aws-api", Utils.GetTagValue(bedrock_activity, "rpc.system.name"));
         Assert.Equal("Bedrock Agent Runtime", Utils.GetTagValue(bedrock_activity, "rpc.service"));
         Assert.Equal("InvokeAgent", Utils.GetTagValue(bedrock_activity, "rpc.method"));
+        Assert.Equal("us-east-1", Utils.GetTagValue(bedrock_activity, "cloud.region"));
     }
 
     private void ValidateBedrockAgentRuntimeKnowledgeBaseOpsActivityTags(Activity bedrock_activity)
     {
         Assert.Equal("Bedrock Agent Runtime.Retrieve", bedrock_activity.DisplayName);
         Assert.Equal("123456789", Utils.GetTagValue(bedrock_activity, "aws.bedrock.knowledge_base.id"));
-        Assert.Equal("aws-api", Utils.GetTagValue(bedrock_activity, "rpc.system"));
+        Assert.Equal("aws-api", Utils.GetTagValue(bedrock_activity, "rpc.system.name"));
         Assert.Equal("Bedrock Agent Runtime", Utils.GetTagValue(bedrock_activity, "rpc.service"));
         Assert.Equal("Retrieve", Utils.GetTagValue(bedrock_activity, "rpc.method"));
+        Assert.Equal("us-east-1", Utils.GetTagValue(bedrock_activity, "cloud.region"));
     }
 
     private void ValidateS3ActivityTags(Activity s3_activity)
@@ -757,5 +908,19 @@ public class TestAWSClientInstrumentation
         Assert.Equal("aws-api", Utils.GetTagValue(s3_activity, "rpc.system"));
         Assert.Equal("S3", Utils.GetTagValue(s3_activity, "rpc.service"));
         Assert.Equal("PutObject", Utils.GetTagValue(s3_activity, "rpc.method"));
+    }
+
+    private sealed class SuppressionAssertPipelineHandler : PipelineHandler
+    {
+        public override void InvokeSync(IExecutionContext executionContext)
+        {
+            Assert.True(Sdk.SuppressInstrumentation);
+        }
+
+        public override Task<T> InvokeAsync<T>(IExecutionContext executionContext)
+        {
+            Assert.True(Sdk.SuppressInstrumentation);
+            return Task.FromResult(default(T)!);
+        }
     }
 }

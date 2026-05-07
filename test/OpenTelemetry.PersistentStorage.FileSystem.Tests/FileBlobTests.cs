@@ -16,7 +16,7 @@ public class FileBlobTests
         PersistentBlob blob = new FileBlob(testFile.FullName);
 
         var data = Encoding.UTF8.GetBytes("Hello, World!");
-        blob.TryWrite(data);
+        blob.TryWrite(data.AsSpan());
         blob.TryRead(out var blobContent);
 
         Assert.Equal(testFile.FullName, ((FileBlob)blob).FullPath);
@@ -34,7 +34,7 @@ public class FileBlobTests
 
         var data = Encoding.UTF8.GetBytes("Hello, World!");
         var leasePeriodMilliseconds = 1000;
-        blob.TryWrite(data);
+        blob.TryWrite(data.AsSpan());
         blob.TryLease(leasePeriodMilliseconds);
 
         Assert.Contains(".lock", ((FileBlob)blob).FullPath);
@@ -51,7 +51,7 @@ public class FileBlobTests
 
         var data = Encoding.UTF8.GetBytes("Hello, World!");
 
-        Assert.True(blob.TryWrite(data));
+        Assert.True(blob.TryWrite(data.AsSpan()));
         Assert.True(blob.TryDelete());
 
         // Lease should return false
@@ -66,7 +66,7 @@ public class FileBlobTests
         var blob2 = new FileBlob(testFile.FullName);
         var data = Encoding.UTF8.GetBytes("Hello, World!");
 
-        Assert.True(blob2.TryWrite(data));
+        Assert.True(blob2.TryWrite(data.AsSpan()));
 
         // Leased by another thread/process/object
         Assert.True(blob2.TryLease(10000));
@@ -87,7 +87,7 @@ public class FileBlobTests
         var blob2 = new FileBlob(testFile.FullName);
         var data = Encoding.UTF8.GetBytes("Hello, World!");
 
-        Assert.True(blob1.TryWrite(data));
+        Assert.True(blob1.TryWrite(data.AsSpan()));
 
         // Leased by another thread/process/object
         Assert.True(blob2.TryLease(10000));
@@ -107,7 +107,7 @@ public class FileBlobTests
 
         var data = Encoding.UTF8.GetBytes("Hello, World!");
 
-        Assert.True(blob.TryWrite(data));
+        Assert.True(blob.TryWrite(data.AsSpan()));
 
         // Assert
         Assert.True(blob.TryDelete());
@@ -124,7 +124,7 @@ public class FileBlobTests
 
         var data = Encoding.UTF8.GetBytes("Hello, World!");
 
-        Assert.True(storage.TryCreateBlob(data, out var blob));
+        Assert.True(storage.TryCreateBlob(data.AsSpan(), out var blob));
 
         var leasePeriodMilliseconds = 1;
 
@@ -150,7 +150,7 @@ public class FileBlobTests
         var blob = new FileBlob(testFile.FullName);
         var data = Encoding.UTF8.GetBytes("Hello, World!");
 
-        Assert.True(blob.TryWrite(data));
+        Assert.True(blob.TryWrite(data.AsSpan()));
 
         var initialLeasePeriodMilliseconds = 10_000;
         Assert.True(blob.TryLease(initialLeasePeriodMilliseconds));

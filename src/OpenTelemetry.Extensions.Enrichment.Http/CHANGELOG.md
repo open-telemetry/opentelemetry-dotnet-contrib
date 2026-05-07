@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.15.1-beta.2
+
+Released 2026-Apr-23
+
 ## 1.15.1-beta.1
 
 Released 2026-Apr-21

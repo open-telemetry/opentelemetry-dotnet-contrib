@@ -28,6 +28,40 @@ public class SqlProcessorTests
         Assert.Equal(sql, sqlStatementInfo.DbQuerySummary);
     }
 
+    [Fact]
+    public void GetSanitizedSql_SingleLineCommentWithCarriageReturnLineFeed_PreservesLineBreak()
+    {
+        var sql = "SELECT * FROM table -- comment\r\nWHERE id = 42";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        Assert.Equal("SELECT * FROM table \r\nWHERE id = ?", sqlStatementInfo.SanitizedSql);
+        Assert.Equal("SELECT table", sqlStatementInfo.DbQuerySummary);
+    }
+
+    [Fact]
+    public void GetSanitizedSql_UnterminatedEscapedIdentifierInFromClause_SanitizesLiterals()
+    {
+        var sql = "SELECT * FROM [Orders WHERE CustomerName = 'secret-name' AND Id = 123 AND Token = 0xDEADBEEF";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        Assert.Equal("SELECT * FROM [Orders WHERE CustomerName = ? AND Id = ? AND Token = ?", sqlStatementInfo.SanitizedSql);
+    }
+
+    [Fact]
+    public void GetSanitizedSql_RepeatedUnterminatedEscapedIdentifiersInFromClause_SanitizesLiterals()
+    {
+        var sql = $"SELECT * FROM {new string('[', 4096)} WHERE CustomerName = 'secret-name' AND Id = 123 AND Token = 0xDEADBEEF";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        Assert.Contains("?", sqlStatementInfo.SanitizedSql);
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.DoesNotContain("123", sqlStatementInfo.SanitizedSql);
+        Assert.DoesNotContain("DEADBEEF", sqlStatementInfo.SanitizedSql);
+    }
+
     [SkippableTheory]
     [MemberData(nameof(TestData))]
     public void TestGetSanitizedSql(SqlProcessorTestCases.TestCase testCase)

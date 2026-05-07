@@ -66,6 +66,27 @@ public class TestSamplingRuleApplier
     }
 
     [Fact]
+    public void TestRuleMatchesWithNullRuleAttributes()
+    {
+        var rule = new SamplingRule(
+            ruleName: "testRule",
+            priority: 1,
+            fixedRate: 0.05,
+            reservoirSize: 1,
+            host: "*",
+            httpMethod: "*",
+            resourceArn: "*",
+            serviceName: "myServiceName",
+            serviceType: "*",
+            urlPath: "*",
+            version: 1,
+            attributes: null);
+
+        var applier = new SamplingRuleApplier("clientId", new TestClock(), rule, new Statistics());
+        Assert.True(applier.Matches(Utils.CreateSamplingParametersWithTags([]), Utils.CreateResource("myServiceName", "aws_ec2")));
+    }
+
+    [Fact]
     public void TestRuleMatchesWithNoActivityAttributes()
     {
         var rule = new SamplingRule(
