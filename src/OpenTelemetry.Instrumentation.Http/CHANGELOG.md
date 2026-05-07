@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Fix enrich methods being called multiple times.
+  ([#4018](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4018))
+
 * Add instrumentation scope version and schema URL to metrics and traces.
   ([#4082](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4082))
 
