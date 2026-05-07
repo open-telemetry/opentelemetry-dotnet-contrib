@@ -62,6 +62,11 @@ should be reported and the component owner(s) SHOULD triage and/or resolve them
 in a timely manner. The package versions MUST follow [SemVer
 V2](https://semver.org/spec/v2.0.0.html).
 
+### Deprecated
+
+Development of this component is halted. No new package versions are planned,
+and new issues will not be worked on.
+
 ## Support
 
 This repository is maintained by [.NET Contrib maintainers](#maintainers) team

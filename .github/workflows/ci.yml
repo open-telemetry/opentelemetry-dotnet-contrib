@@ -44,7 +44,6 @@ jobs:
           aottestapp: ['test/OpenTelemetry.AotCompatibility.TestApp/**']
           exporter-geneva: ['*/OpenTelemetry.Exporter.Geneva*/**', '!**/*.md']
           exporter-influxdb: ['*/OpenTelemetry.Exporter.InfluxDB*/**', '!**/*.md']
-          exporter-instana: ['*/OpenTelemetry.Exporter.Instana*/**', '!**/*.md']
           exporter-onecollector: ['*/OpenTelemetry.Exporter.OneCollector*/**', '!**/*.md']
           extensions: ['*/OpenTelemetry.Extensions/**', '*/OpenTelemetry.Extensions.Tests/**', '!**/*.md']
           extensions-enrichment: ['*/OpenTelemetry.Extensions.Enrichment/**', '*/OpenTelemetry.Extensions.Enrichment.Tests/**', '!**/*.md']
@@ -141,17 +140,6 @@ jobs:
     with:
       project-name: OpenTelemetry.Exporter.InfluxDB
       code-cov-name: Exporter.InfluxDB
-
-  build-test-exporter-instana:
-    needs: detect-changes
-    if: |
-      contains(needs.detect-changes.outputs.changes, 'exporter-instana')
-      || contains(needs.detect-changes.outputs.changes, 'build')
-      || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
-    with:
-      project-name: Component[OpenTelemetry.Exporter.Instana]
-      code-cov-name: Exporter.Instana
 
   build-test-exporter-onecollector:
     needs: detect-changes
@@ -671,7 +659,6 @@ jobs:
       build-test-exporter-geneva,
       build-test-exporter-geneva-integration,
       build-test-exporter-influxdb,
-      build-test-exporter-instana,
       build-test-exporter-onecollector,
       build-test-extensions,
       build-test-extensions-enrichment,

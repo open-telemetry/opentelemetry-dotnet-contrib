@@ -30,14 +30,10 @@ public sealed class EndToEndTests
     [InlineData(true)]
     public async Task HttpRequestActivityIsCorrectWithFeatureSwitch(bool isEnabled)
     {
-        bool? originalValue = null;
+        const string SwitchName = "Microsoft.AspNetCore.Hosting.SuppressActivityOpenTelemetryData";
 
-        if (AppContext.TryGetSwitch("Microsoft.AspNetCore.Hosting.SuppressActivityOpenTelemetryData", out var existingValue))
-        {
-            originalValue = existingValue;
-        }
-
-        AppContext.SetSwitch("Microsoft.AspNetCore.Hosting.SuppressActivityOpenTelemetryData", isEnabled);
+        var wasConfigured = AppContext.TryGetSwitch(SwitchName, out var originalValue);
+        AppContext.SetSwitch(SwitchName, isEnabled);
 
         try
         {
@@ -58,7 +54,7 @@ public sealed class EndToEndTests
                     builder.ConfigureTestServices(ConfigureTestServices);
                     builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
                 })
-                .CreateClient();
+                .CreateClient(new() { BaseAddress = new Uri("http://localhost:12345") });
 
             client.DefaultRequestHeaders.UserAgent.Add(new("OpenTelemetry.Instrumentation.AspNetCore.Tests", "1.0"));
 
@@ -73,16 +69,15 @@ public sealed class EndToEndTests
             Assert.Equal("GET /ping", activity.DisplayName);
             Assert.Equal("GET", activity.GetTagValue(SemanticConventions.AttributeHttpRequestMethod));
             Assert.Equal("localhost", activity.GetTagValue(SemanticConventions.AttributeServerAddress));
+            Assert.Equal(12345, activity.GetTagValue(SemanticConventions.AttributeServerPort));
             Assert.Equal("OpenTelemetry.Instrumentation.AspNetCore.Tests/1.0", activity.GetTagValue(SemanticConventions.AttributeUserAgentOriginal));
             Assert.Equal("http", activity.GetTagValue(SemanticConventions.AttributeUrlScheme));
             Assert.Equal("/ping", activity.GetTagValue(SemanticConventions.AttributeUrlPath));
         }
         finally
         {
-            if (originalValue is { } previousValue)
-            {
-                AppContext.SetSwitch("Microsoft.AspNetCore.Hosting.SuppressActivityOpenTelemetryData", previousValue);
-            }
+            var resetValue = wasConfigured ? originalValue : Environment.Version.Major < 11;
+            AppContext.SetSwitch(SwitchName, resetValue);
         }
     }
 
