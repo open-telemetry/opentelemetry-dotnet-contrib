@@ -61,6 +61,24 @@ public class InstrumentedChannelAsyncCallbackTests
         Assert.Same(state, inner.LastBeginReceiveArgs[1]);
     }
 
+    [Fact]
+    public void RequestChannel_DoesNotAdvertiseSessionWhenInnerChannelDoesNotSupportIt()
+    {
+        var inner = new RecordingRequestChannel();
+        var channel = new InstrumentedRequestChannel(inner);
+
+        Assert.IsNotAssignableFrom<IRequestSessionChannel>(channel);
+    }
+
+    [Fact]
+    public void DuplexChannel_DoesNotAdvertiseSessionWhenInnerChannelDoesNotSupportIt()
+    {
+        var inner = new RecordingDuplexChannel();
+        var channel = new InstrumentedDuplexChannel(inner, TimeSpan.FromSeconds(1));
+
+        Assert.IsNotAssignableFrom<IDuplexSessionChannel>(channel);
+    }
+
     private sealed class FakeAsyncResult : IAsyncResult
     {
         public FakeAsyncResult(object? asyncState)
