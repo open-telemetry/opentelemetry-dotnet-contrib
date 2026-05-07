@@ -41,6 +41,7 @@ public static class AspNetCoreInstrumentationMeterProviderBuilderExtensions
 #endif
     }
 
+#if NET
     internal static MeterProviderBuilder ConfigureMeters(this MeterProviderBuilder builder)
     {
         // There is no cost to listen for meters that aren't used. For example, listening for Kestrel meter in an app that doesn't use Kestrel is fine.
@@ -64,4 +65,5 @@ public static class AspNetCoreInstrumentationMeterProviderBuilderExtensions
 
         return builder.AddMeter(builtInAspNetCoreMeters);
     }
+#endif
 }

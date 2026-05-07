@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if !NET
+
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Metrics;
@@ -115,19 +117,16 @@ internal sealed class HttpInMetricsListener : ListenerHandler
         {
             case OnUnhandledDiagnosticsExceptionEvent:
             case OnUnhandledHostingExceptionEvent:
-                {
-                    OnExceptionEventWritten(name, payload);
-                }
-
+                OnExceptionEventWritten(name, payload);
                 break;
+
             case OnStopEvent:
-                {
-                    OnStopEventWritten(name, payload);
-                }
-
+                OnStopEventWritten(name, payload);
                 break;
+
             default:
                 break;
         }
     }
 }
+#endif
