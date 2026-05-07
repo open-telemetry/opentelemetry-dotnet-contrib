@@ -255,7 +255,7 @@ public class WsTransportTest
         var sendException = await Record.ExceptionAsync(
             () => wsTransport.SendAsync(FrameGenerator.GenerateMockAgentFrame().Frame, CancellationToken.None));
         Assert.True(
-            sendException is null || sendException is WebSocketException || sendException is OperationCanceledException,
+            sendException is null or WebSocketException or OperationCanceledException,
             $"Unexpected exception from SendAsync: {sendException}");
 
         Assert.True(opAmpServer.TryGetClientCloseStatus(TimeSpan.FromSeconds(5), out var closeStatus));
@@ -332,7 +332,7 @@ public class WsTransportTest
         var sendException = await Record.ExceptionAsync(
             () => wsTransport.SendAsync(FrameGenerator.GenerateMockAgentFrame().Frame, CancellationToken.None));
         Assert.True(
-            sendException is null || sendException is WebSocketException || sendException is OperationCanceledException,
+            sendException is null or WebSocketException or OperationCanceledException,
             $"Unexpected exception from SendAsync: {sendException}");
 
         Assert.True(opAmpServer.TryGetClientCloseStatus(timeout, out var closeStatus));
