@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Fix enrich methods being called multiple times.
+  ([#4018](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4018))
+
 ## 1.15.1
 
 Released 2026-Apr-21
