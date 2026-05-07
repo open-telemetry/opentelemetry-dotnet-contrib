@@ -10,6 +10,11 @@ for a summary description of past meetings. To request edit access, join the
 meeting or get in touch on
 [Slack](https://cloud-native.slack.com/archives/C01N3BC2W7Q).
 
+The meeting is open for all to join. We invite everyone to join our meeting,
+regardless of your experience level. Whether you're a seasoned OpenTelemetry
+developer, just starting your journey, or simply curious about the work we do,
+you're more than welcome to participate!
+
 Anyone may contribute but there are benefits of being a member of our community.
 See the [community membership
 document](https://github.com/open-telemetry/community/blob/main/community-membership.md)
