@@ -11,10 +11,8 @@
 * Add instrumentation schema URL to traces for `netstandard2.0`.
   ([#4066](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4066))
 
-<!--
-  TODO Do we need to do this if the support is already experimental via
-  the OTEL_DOTNET_EXPERIMENTAL_ASPNETCORE_ENABLE_GRPC_INSTRUMENTATION environment variable?
--->
+* Fix enrich methods being called multiple times.
+  ([#4015](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4015))
 
 * Add support for version [1.41.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/rpc/README.md)
   of the Semantic Conventions for RPC/gRPC when the `OTEL_SEMCONV_STABILITY_OPT_IN`

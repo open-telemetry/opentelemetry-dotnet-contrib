@@ -10,6 +10,10 @@
   operation has a `null` Action (e.g., when WCF service help pages are enabled).
   ([#4026](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4026))
 
+* Fixed an issue where non-session WCF client channels could be wrapped in
+  instrumented channel types that incorrectly advertised session support.
+  ([#4368](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4368))
+
 ## 1.15.1-beta.2
 
 Released 2026-Apr-22
