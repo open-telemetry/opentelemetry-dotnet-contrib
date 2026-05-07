@@ -170,21 +170,39 @@ public readonly struct AnyValueUnion : IEquatable<AnyValueUnion>
         return new AnyValueUnion(AnyValueType.Array, arrayValue: array);
     }
 
-    private static bool EqualsArray(ICollection<AnyValueUnion>? arrayValue1, ICollection<AnyValueUnion>? arrayValue2)
+    private static bool EqualsArray(ICollection<AnyValueUnion>? left, ICollection<AnyValueUnion>? right)
     {
-        if (ReferenceEquals(arrayValue1, arrayValue2))
+        if (ReferenceEquals(left, right))
         {
             return true;
         }
 
-        if (arrayValue1 == null || arrayValue2 == null)
+        if (left == null || right == null)
         {
             return false;
         }
 
-        return arrayValue1.SequenceEqual(arrayValue2);
+        return left.SequenceEqual(right);
     }
 
+#if NET
+    private static int GetHashCodeArray(ICollection<AnyValueUnion>? arrayValue)
+    {
+        var hash = default(HashCode);
+
+        if (arrayValue == null)
+        {
+            return hash.ToHashCode();
+        }
+
+        foreach (var v in arrayValue)
+        {
+            hash.Add(v);
+        }
+
+        return hash.ToHashCode();
+    }
+#else
     private static int GetHashCodeArray(ICollection<AnyValueUnion>? arrayValue)
     {
         var hash = 0;
@@ -202,4 +220,5 @@ public readonly struct AnyValueUnion : IEquatable<AnyValueUnion>
 
         return hash;
     }
+#endif
 }
