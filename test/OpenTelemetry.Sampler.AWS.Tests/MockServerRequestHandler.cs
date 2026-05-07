@@ -28,14 +28,17 @@ internal sealed class MockServerRequestHandler
         {
             context.Response.StatusCode = 200;
             context.Response.ContentType = "application/json";
-            using var writer = new StreamWriter(context.Response.OutputStream);
+
+#if NET
+            using var writer = new StreamWriter(context.Response.OutputStream, leaveOpen: true);
+#else
+            using var writer = new StreamWriter(context.Response.OutputStream, new System.Text.UTF8Encoding(false), 4096, leaveOpen: true);
+#endif
             writer.Write(responseBody);
         }
         else
         {
             context.Response.StatusCode = 404;
         }
-
-        context.Response.Close();
     }
 }

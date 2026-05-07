@@ -19,7 +19,7 @@ internal sealed class AspNetCoreInstrumentation : IDisposable
         "Microsoft.AspNetCore.Hosting.UnhandledException"
     ];
 
-    private readonly Func<string, object?, object?, bool> isEnabled = (eventName, _, _)
+    private readonly Func<string, object?, object?, bool> isEnabled = static (eventName, _, _)
         => DiagnosticSourceEvents.Contains(eventName);
 
     private readonly DiagnosticSourceSubscriber diagnosticSourceSubscriber;
@@ -32,7 +32,5 @@ internal sealed class AspNetCoreInstrumentation : IDisposable
 
     /// <inheritdoc/>
     public void Dispose()
-    {
-        this.diagnosticSourceSubscriber?.Dispose();
-    }
+        => this.diagnosticSourceSubscriber?.Dispose();
 }
