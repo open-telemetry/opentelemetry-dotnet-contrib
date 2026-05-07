@@ -95,8 +95,6 @@ repository:
         comment: OpenTelemetry.Exporter.Geneva NuGet package distributed from NuGet.org.
       - uri: https://www.nuget.org/packages/OpenTelemetry.Exporter.InfluxDB
         comment: OpenTelemetry.Exporter.InfluxDB NuGet package distributed from NuGet.org.
-      - uri: https://www.nuget.org/packages/OpenTelemetry.Exporter.Instana
-        comment: OpenTelemetry.Exporter.Instana NuGet package distributed from NuGet.org.
       - uri: https://www.nuget.org/packages/OpenTelemetry.Exporter.OneCollector
         comment: OpenTelemetry.Exporter.OneCollector NuGet package distributed from NuGet.org.
       - uri: https://www.nuget.org/packages/OpenTelemetry.Extensions
