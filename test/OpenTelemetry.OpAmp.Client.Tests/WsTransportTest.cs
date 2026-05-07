@@ -249,7 +249,14 @@ public class WsTransportTest
 
         using var wsTransport = CreateTransport(opAmpServer.Endpoint, frameProcessor);
         await wsTransport.StartAsync(CancellationToken.None);
-        await wsTransport.SendAsync(FrameGenerator.GenerateMockAgentFrame().Frame, CancellationToken.None);
+
+        // SendAsync can race with the receiver aborting the socket after detecting the oversized response.
+        // On .NET Framework this may surface as a WebSocketException (Aborted state) or OperationCanceledException.
+        var sendException = await Record.ExceptionAsync(
+            () => wsTransport.SendAsync(FrameGenerator.GenerateMockAgentFrame().Frame, CancellationToken.None));
+        Assert.True(
+            sendException is null || sendException is WebSocketException || sendException is OperationCanceledException,
+            $"Unexpected exception from SendAsync: {sendException}");
 
         Assert.True(opAmpServer.TryGetClientCloseStatus(TimeSpan.FromSeconds(5), out var closeStatus));
         Assert.Equal(WebSocketCloseStatus.MessageTooBig, closeStatus);
@@ -319,7 +326,14 @@ public class WsTransportTest
 
         using var wsTransport = CreateTransport(opAmpServer.Endpoint, new FrameProcessor());
         await wsTransport.StartAsync(CancellationToken.None);
-        await wsTransport.SendAsync(FrameGenerator.GenerateMockAgentFrame().Frame, CancellationToken.None);
+
+        // SendAsync can race with the receiver aborting the socket after detecting the oversized response.
+        // On .NET Framework this may surface as a WebSocketException (Aborted state) or OperationCanceledException.
+        var sendException = await Record.ExceptionAsync(
+            () => wsTransport.SendAsync(FrameGenerator.GenerateMockAgentFrame().Frame, CancellationToken.None));
+        Assert.True(
+            sendException is null || sendException is WebSocketException || sendException is OperationCanceledException,
+            $"Unexpected exception from SendAsync: {sendException}");
 
         Assert.True(opAmpServer.TryGetClientCloseStatus(timeout, out var closeStatus));
         Assert.Equal(WebSocketCloseStatus.MessageTooBig, closeStatus);

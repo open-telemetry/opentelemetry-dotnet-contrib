@@ -66,6 +66,24 @@ public class FileBlobProviderTests
     }
 
     [Fact]
+    [Obsolete("Validates obsolete byte[] overload compatibility.")]
+    public void FileBlobProvider_CreateBlobReturnsFalseForNullByteArray()
+    {
+        var testDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
+        using var blobProvider = new FileBlobProvider(testDirectory.FullName);
+        byte[] buffer = null!;
+
+        Assert.False(blobProvider.TryCreateBlob(buffer, out var blob));
+        Assert.False(blobProvider.TryCreateBlob(buffer, 1000, out var leasedBlob));
+
+        Assert.Null(blob);
+        Assert.Null(leasedBlob);
+        Assert.Empty(Directory.EnumerateFiles(blobProvider.DirectoryPath));
+
+        testDirectory.Delete(true);
+    }
+
+    [Fact]
     public void FileBlobProvider_TestRetentionPeriod()
     {
         var testDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
