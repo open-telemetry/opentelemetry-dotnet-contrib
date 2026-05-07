@@ -8,57 +8,30 @@ using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Tests;
 
-public class InstrumentedChannelAsyncCallbackTests
+public class InstrumentedChannelFactoryTests
 {
     [Fact]
-    public void BeginRequest_AllowsNullAsyncCallback()
+    public void CreateChannel_ForRequestChannel_DoesNotAdvertiseSessionWhenInnerChannelDoesNotSupportIt()
     {
-        var inner = new RecordingRequestChannel();
-        var channel = (IRequestChannel)new InstrumentedRequestChannel(inner);
-        var state = new object();
+        var innerChannel = new RecordingRequestChannel();
+        var innerFactory = new RecordingChannelFactory<IRequestChannel>(innerChannel);
+        var factory = (IChannelFactory<IRequestChannel>)new InstrumentedChannelFactory<IRequestChannel>(innerFactory, new CustomBinding());
 
-        var asyncResult = channel.BeginRequest(
-            Message.CreateMessage(MessageVersion.Soap11, "urn:test"),
-            callback: null,
-            state);
+        var channel = factory.CreateChannel(new EndpointAddress("net.tcp://localhost/Service"));
 
-        Assert.NotNull(asyncResult);
-        Assert.NotNull(inner.LastBeginRequestArgs);
-        Assert.Null(inner.LastBeginRequestArgs![1]);
-        Assert.Same(state, inner.LastBeginRequestArgs[2]);
+        Assert.IsNotAssignableFrom<IRequestSessionChannel>(channel);
     }
 
     [Fact]
-    public void BeginSend_AllowsNullAsyncCallback()
+    public void CreateChannel_ForDuplexChannel_DoesNotAdvertiseSessionWhenInnerChannelDoesNotSupportIt()
     {
-        var inner = new RecordingDuplexChannel();
-        var channel = new InstrumentedDuplexChannel(inner, TimeSpan.FromSeconds(1));
-        var state = new object();
+        var innerChannel = new RecordingDuplexChannel();
+        var innerFactory = new RecordingChannelFactory<IDuplexChannel>(innerChannel);
+        var factory = (IChannelFactory<IDuplexChannel>)new InstrumentedChannelFactory<IDuplexChannel>(innerFactory, new CustomBinding());
 
-        var asyncResult = channel.BeginSend(
-            Message.CreateMessage(MessageVersion.Soap11, "urn:test"),
-            callback: null,
-            state);
+        var channel = factory.CreateChannel(new EndpointAddress("net.tcp://localhost/Service"));
 
-        Assert.NotNull(asyncResult);
-        Assert.NotNull(inner.LastBeginSendArgs);
-        Assert.Null(inner.LastBeginSendArgs![1]);
-        Assert.Same(state, inner.LastBeginSendArgs[2]);
-    }
-
-    [Fact]
-    public void BeginReceive_AllowsNullAsyncCallback()
-    {
-        var inner = new RecordingDuplexChannel();
-        var channel = new InstrumentedDuplexChannel(inner, TimeSpan.FromSeconds(1));
-        var state = new object();
-
-        var asyncResult = channel.BeginReceive(callback: null, state);
-
-        Assert.NotNull(asyncResult);
-        Assert.NotNull(inner.LastBeginReceiveArgs);
-        Assert.Null(inner.LastBeginReceiveArgs![0]);
-        Assert.Same(state, inner.LastBeginReceiveArgs[1]);
+        Assert.IsNotAssignableFrom<IDuplexSessionChannel>(channel);
     }
 
     private sealed class FakeAsyncResult : IAsyncResult
@@ -75,6 +48,124 @@ public class InstrumentedChannelAsyncCallbackTests
         public bool CompletedSynchronously => true;
 
         public bool IsCompleted => true;
+    }
+
+    private sealed class RecordingChannelFactory<TChannel> : IChannelFactory<TChannel>
+        where TChannel : IChannel
+    {
+        private readonly TChannel channel;
+
+        public RecordingChannelFactory(TChannel channel)
+        {
+            this.channel = channel;
+        }
+
+        event EventHandler ICommunicationObject.Closed
+        {
+            add
+            {
+            }
+
+            remove
+            {
+            }
+        }
+
+        event EventHandler ICommunicationObject.Closing
+        {
+            add
+            {
+            }
+
+            remove
+            {
+            }
+        }
+
+        event EventHandler ICommunicationObject.Faulted
+        {
+            add
+            {
+            }
+
+            remove
+            {
+            }
+        }
+
+        event EventHandler ICommunicationObject.Opened
+        {
+            add
+            {
+            }
+
+            remove
+            {
+            }
+        }
+
+        event EventHandler ICommunicationObject.Opening
+        {
+            add
+            {
+            }
+
+            remove
+            {
+            }
+        }
+
+        public CommunicationState State => CommunicationState.Opened;
+
+        public TChannel CreateChannel(EndpointAddress to)
+            => this.channel;
+
+        public TChannel CreateChannel(EndpointAddress to, Uri via)
+            => this.channel;
+
+        public T? GetProperty<T>()
+            where T : class
+            => default;
+
+        public void Abort()
+        {
+        }
+
+        public IAsyncResult BeginClose(AsyncCallback callback, object state)
+            => new FakeAsyncResult(state);
+
+        public IAsyncResult BeginClose(TimeSpan timeout, AsyncCallback callback, object state)
+            => new FakeAsyncResult(state);
+
+        public IAsyncResult BeginOpen(AsyncCallback callback, object state)
+            => new FakeAsyncResult(state);
+
+        public IAsyncResult BeginOpen(TimeSpan timeout, AsyncCallback callback, object state)
+            => new FakeAsyncResult(state);
+
+        public void Close()
+        {
+        }
+
+        public void Close(TimeSpan timeout)
+        {
+        }
+
+        public void EndClose(IAsyncResult result)
+        {
+        }
+
+        public void EndOpen(IAsyncResult result)
+        {
+        }
+
+        public void Open()
+        {
+        }
+
+        public void Open(TimeSpan timeout)
+        {
+        }
     }
 
     private abstract class RecordingChannel : IChannel
@@ -136,7 +227,7 @@ public class InstrumentedChannelAsyncCallbackTests
 
         public CommunicationState State => CommunicationState.Opened;
 
-        public virtual T? GetProperty<T>()
+        public T? GetProperty<T>()
             where T : class
             => default;
 
@@ -183,8 +274,6 @@ public class InstrumentedChannelAsyncCallbackTests
 
     private sealed class RecordingRequestChannel : RecordingChannel, IRequestChannel
     {
-        public object?[]? LastBeginRequestArgs { get; private set; }
-
         public EndpointAddress RemoteAddress { get; } = new("net.tcp://localhost/Service");
 
         public Uri Via { get; } = new("net.tcp://localhost/Service");
@@ -196,16 +285,10 @@ public class InstrumentedChannelAsyncCallbackTests
             => Message.CreateMessage(MessageVersion.Soap11, "urn:reply");
 
         public IAsyncResult BeginRequest(Message message, AsyncCallback callback, object state)
-        {
-            this.LastBeginRequestArgs = [message, callback, state];
-            return new FakeAsyncResult(state);
-        }
+            => new FakeAsyncResult(state);
 
         public IAsyncResult BeginRequest(Message message, TimeSpan timeout, AsyncCallback callback, object state)
-        {
-            this.LastBeginRequestArgs = [message, timeout, callback, state];
-            return new FakeAsyncResult(state);
-        }
+            => new FakeAsyncResult(state);
 
         public Message EndRequest(IAsyncResult result)
             => Message.CreateMessage(MessageVersion.Soap11, "urn:reply");
@@ -213,10 +296,6 @@ public class InstrumentedChannelAsyncCallbackTests
 
     private sealed class RecordingDuplexChannel : RecordingChannel, IDuplexChannel
     {
-        public object?[]? LastBeginReceiveArgs { get; private set; }
-
-        public object?[]? LastBeginSendArgs { get; private set; }
-
         public EndpointAddress LocalAddress { get; } = new("net.tcp://localhost/Local");
 
         public EndpointAddress RemoteAddress { get; } = new("net.tcp://localhost/Service");
@@ -232,16 +311,10 @@ public class InstrumentedChannelAsyncCallbackTests
         }
 
         public IAsyncResult BeginSend(Message message, AsyncCallback callback, object state)
-        {
-            this.LastBeginSendArgs = [message, callback, state];
-            return new FakeAsyncResult(state);
-        }
+            => new FakeAsyncResult(state);
 
         public IAsyncResult BeginSend(Message message, TimeSpan timeout, AsyncCallback callback, object state)
-        {
-            this.LastBeginSendArgs = [message, timeout, callback, state];
-            return new FakeAsyncResult(state);
-        }
+            => new FakeAsyncResult(state);
 
         public void EndSend(IAsyncResult result)
         {
@@ -254,16 +327,10 @@ public class InstrumentedChannelAsyncCallbackTests
             => Message.CreateMessage(MessageVersion.Soap11, "urn:reply");
 
         public IAsyncResult BeginReceive(AsyncCallback callback, object state)
-        {
-            this.LastBeginReceiveArgs = [callback, state];
-            return new FakeAsyncResult(state);
-        }
+            => new FakeAsyncResult(state);
 
         public IAsyncResult BeginReceive(TimeSpan timeout, AsyncCallback callback, object state)
-        {
-            this.LastBeginReceiveArgs = [timeout, callback, state];
-            return new FakeAsyncResult(state);
-        }
+            => new FakeAsyncResult(state);
 
         public Message EndReceive(IAsyncResult result)
             => Message.CreateMessage(MessageVersion.Soap11, "urn:reply");
