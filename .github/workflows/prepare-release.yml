@@ -8,7 +8,6 @@ on:
         options:
         - OpenTelemetry.Exporter.Geneva
         - OpenTelemetry.Exporter.InfluxDB
-        - OpenTelemetry.Exporter.Instana
         - OpenTelemetry.Exporter.OneCollector
         - OpenTelemetry.Extensions
         - OpenTelemetry.Extensions.AWS
@@ -30,8 +29,6 @@ on:
         - OpenTelemetry.Instrumentation.Hangfire
         - OpenTelemetry.Instrumentation.Http
         - OpenTelemetry.Instrumentation.Kusto
-        - OpenTelemetry.Instrumentation.MassTransit
-        - OpenTelemetry.Instrumentation.MySqlData
         - OpenTelemetry.Instrumentation.Owin
         - OpenTelemetry.Instrumentation.Process
         - OpenTelemetry.Instrumentation.Quartz
