@@ -2,10 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-using System.Reflection;
 using System.ServiceModel.Channels;
 using OpenTelemetry.Instrumentation.Wcf.Implementation;
-using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.Wcf;
 
@@ -14,16 +12,11 @@ namespace OpenTelemetry.Instrumentation.Wcf;
 /// </summary>
 internal static class WcfInstrumentationActivitySource
 {
-    internal static readonly Assembly Assembly = typeof(WcfInstrumentationActivitySource).Assembly;
-    internal static readonly AssemblyName AssemblyName = Assembly.GetName();
-#pragma warning disable IDE0370 // Suppression is unnecessary
-    internal static readonly string ActivitySourceName = AssemblyName.Name!;
-#pragma warning restore IDE0370 // Suppression is unnecessary
-    internal static readonly string IncomingRequestActivityName = ActivitySourceName + ".IncomingRequest";
-    internal static readonly string OutgoingRequestActivityName = ActivitySourceName + ".OutgoingRequest";
-    internal static readonly string UnassociatedExceptionActivityName = ActivitySourceName + ".Exception";
-
-    public static ActivitySource ActivitySource { get; } = new(ActivitySourceName, Assembly.GetPackageVersion());
+    internal static readonly Version SemanticConventionsVersion = new(1, 41, 0);
+    internal static readonly ActivitySource ActivitySource = Trace.ActivitySourceFactory.Create(typeof(WcfInstrumentationActivitySource), SemanticConventionsVersion);
+    internal static readonly string IncomingRequestActivityName = ActivitySource.Name + ".IncomingRequest";
+    internal static readonly string OutgoingRequestActivityName = ActivitySource.Name + ".OutgoingRequest";
+    internal static readonly string UnassociatedExceptionActivityName = ActivitySource.Name + ".Exception";
 
     public static WcfInstrumentationOptions? Options { get; set; }
 

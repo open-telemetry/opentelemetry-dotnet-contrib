@@ -32,13 +32,18 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
         Guard.ThrowIfNull(request);
         Guard.ThrowIfNull(channel);
 
+        WcfInstrumentationOptions options;
+
         try
         {
-            if (WcfInstrumentationActivitySource.Options == null || WcfInstrumentationActivitySource.Options.IncomingRequestFilter?.Invoke(request) == false)
+            if (WcfInstrumentationActivitySource.Options is not { } wcfOptions ||
+                wcfOptions.IncomingRequestFilter?.Invoke(request) == false)
             {
                 WcfInstrumentationEventSource.Log.RequestIsFilteredOut();
                 return null;
             }
+
+            options = wcfOptions;
         }
         catch (Exception ex)
         {
@@ -69,8 +74,6 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
 
             if (activity.IsAllDataRequested)
             {
-                activity.SetTag(SemanticConventions.AttributeRpcSystem, WcfInstrumentationConstants.WcfSystemValue);
-
                 if (!this.actionMappings.TryGetValue(action, out var actionMetadata))
                 {
                     actionMetadata = new ActionMetadata(
@@ -78,30 +81,68 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
                         operationName: action);
                 }
 
-                activity.SetTag(SemanticConventions.AttributeRpcService, actionMetadata.ContractName);
                 activity.SetTag(SemanticConventions.AttributeRpcMethod, actionMetadata.OperationName);
 
-                if (WcfInstrumentationActivitySource.Options.SetSoapMessageVersion)
+                if (options.EmitOldRpcAttributes)
                 {
-                    activity.SetTag(WcfInstrumentationConstants.AttributeSoapMessageVersion, request.Version.ToString());
+                    activity.SetTag(SemanticConventions.AttributeRpcSystem, WcfInstrumentationConstants.WcfSystemValue);
+                    activity.SetTag(SemanticConventions.AttributeRpcService, actionMetadata.ContractName);
+                }
+
+                if (options.EmitNewRpcAttributes)
+                {
+                    activity.SetTag(SemanticConventions.AttributeRpcSystemName, WcfInstrumentationConstants.WcfSystemValue);
                 }
 
                 var localAddressUri = channel.LocalAddress?.Uri;
                 if (localAddressUri != null)
                 {
-                    activity.SetTag(SemanticConventions.AttributeNetHostName, localAddressUri.Host);
-                    activity.SetTag(SemanticConventions.AttributeNetHostPort, localAddressUri.Port);
+                    if (options?.EmitOldRpcAttributes is true)
+                    {
+                        activity.SetTag(SemanticConventions.AttributeNetHostName, localAddressUri.Host);
+                        activity.SetTag(SemanticConventions.AttributeNetHostPort, localAddressUri.Port);
+                    }
+
+                    if (options?.EmitNewRpcAttributes is true)
+                    {
+                        activity.SetTag(SemanticConventions.AttributeServerAddress, localAddressUri.Host);
+                        activity.SetTag(SemanticConventions.AttributeServerPort, localAddressUri.Port);
+
+                        if (localAddressUri.Host is { Length: > 0 } host)
+                        {
+                            var uriHostNameType = Uri.CheckHostName(host);
+
+                            if (uriHostNameType is UriHostNameType.IPv4 or UriHostNameType.IPv6)
+                            {
+                                activity.SetTag(SemanticConventions.AttributeNetworkPeerAddress, host);
+                                activity.SetTag(SemanticConventions.AttributeNetworkPeerPort, localAddressUri.Port);
+                            }
+                        }
+                    }
+
+                    // TODO Should we continue to emit WcfInstrumentationConstants given they aren't in the Semantic Conventions?
+                    // See https://github.com/open-telemetry/semantic-conventions/issues/2741
                     activity.SetTag(WcfInstrumentationConstants.AttributeWcfChannelScheme, localAddressUri.Scheme);
                     activity.SetTag(WcfInstrumentationConstants.AttributeWcfChannelPath, localAddressUri.LocalPath);
                 }
 
-                try
+                // TODO Should we continue to emit WcfInstrumentationConstants given they aren't in the Semantic Conventions?
+                // See https://github.com/open-telemetry/semantic-conventions/issues/2741
+                if (options?.SetSoapMessageVersion == true)
                 {
-                    WcfInstrumentationActivitySource.Options.Enrich?.Invoke(activity, WcfEnrichEventNames.AfterReceiveRequest, request);
+                    activity.SetTag(WcfInstrumentationConstants.AttributeSoapMessageVersion, request.Version.ToString());
                 }
-                catch (Exception ex)
+
+                if (options?.Enrich is { } enrich)
                 {
-                    WcfInstrumentationEventSource.Log.EnrichmentException(ex);
+                    try
+                    {
+                        enrich(activity, WcfEnrichEventNames.AfterReceiveRequest, request);
+                    }
+                    catch (Exception ex)
+                    {
+                        WcfInstrumentationEventSource.Log.EnrichmentException(ex);
+                    }
                 }
             }
 
@@ -111,7 +152,7 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
             }
         }
 
-        if (WcfInstrumentationActivitySource.Options.RecordException)
+        if (options?.RecordException == true)
         {
             OperationContext.Current?.Extensions.Add(new WcfOperationContext(activity));
         }
@@ -126,19 +167,33 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
         {
             if (activity.IsAllDataRequested && reply != null)
             {
+                var options = WcfInstrumentationActivitySource.Options;
+
                 if (reply.IsFault)
                 {
                     activity.SetStatus(ActivityStatusCode.Error);
+
+                    if (options?.EmitNewRpcAttributes == true &&
+                        OperationContext.Current?.IncomingMessageProperties[HttpResponseMessageProperty.Name] is HttpResponseMessageProperty response)
+                    {
+                        activity.SetTag(SemanticConventions.AttributeRpcResponseStatusCode, response.StatusCode);
+                    }
                 }
 
+                // TODO Should we continue to emit WcfInstrumentationConstants given they aren't in the Semantic Conventions?
+                // See https://github.com/open-telemetry/semantic-conventions/issues/2741
                 activity.SetTag(WcfInstrumentationConstants.AttributeSoapReplyAction, reply.Headers.Action);
-                try
+
+                if (options?.Enrich is { } enrich)
                 {
-                    WcfInstrumentationActivitySource.Options!.Enrich?.Invoke(activity, WcfEnrichEventNames.BeforeSendReply, reply);
-                }
-                catch (Exception ex)
-                {
-                    WcfInstrumentationEventSource.Log.EnrichmentException(ex);
+                    try
+                    {
+                        enrich(activity, WcfEnrichEventNames.BeforeSendReply, reply);
+                    }
+                    catch (Exception ex)
+                    {
+                        WcfInstrumentationEventSource.Log.EnrichmentException(ex);
+                    }
                 }
             }
 

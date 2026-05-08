@@ -11,10 +11,7 @@ namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 
 internal class TracingErrorHandler : IErrorHandler
 {
-    public bool HandleError(Exception error)
-    {
-        return false;
-    }
+    public bool HandleError(Exception error) => false;
 
     public void ProvideFault(Exception error, MessageVersion version, ref Message fault)
     {

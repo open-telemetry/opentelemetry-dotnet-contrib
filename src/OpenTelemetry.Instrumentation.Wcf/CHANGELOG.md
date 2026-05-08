@@ -14,6 +14,14 @@
   instrumented channel types that incorrectly advertised session support.
   ([#4368](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4368))
 
+* Add support for version [1.41.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/rpc/README.md)
+  of the Semantic Conventions for RPC/gRPC when the `OTEL_SEMCONV_STABILITY_OPT_IN`
+  environment variable is set to `rpc` or `rpc/dup`.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
+* Add instrumentation scope version and schema URL to metrics and traces.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 1.15.1-beta.2
 
 Released 2026-Apr-22
