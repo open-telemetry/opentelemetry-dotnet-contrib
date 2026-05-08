@@ -191,7 +191,8 @@ public class DiagnosticsMiddlewareTests : IDisposable
                 var activity = Assert.Single(stoppedActivities);
 
                 Assert.Equal("OpenTelemetry.Instrumentation.Owin.IncomingRequest", activity.OperationName);
-                Assert.Equal("OpenTelemetry.Instrumentation.Owin.IncomingRequest", activity.Source.Name);
+
+                Assert.Equal("OpenTelemetry.Instrumentation.Owin", activity.Source.Name);
                 Assert.NotNull(activity.Source.Version);
                 Assert.NotEmpty(activity.Source.Version);
                 Assert.StartsWith("https://opentelemetry.io/schemas/", activity.Source.TelemetrySchemaUrl);

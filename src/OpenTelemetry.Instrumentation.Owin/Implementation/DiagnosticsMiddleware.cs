@@ -85,7 +85,7 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
         var ctx = textMapPropagator.Extract(default, owinContext.Request, OwinRequestHeaderValuesGetter);
 
         var activity = OwinInstrumentationActivitySource.ActivitySource.StartActivity(
-            OwinInstrumentationActivitySource.ActivitySource.Name,
+            OwinInstrumentationActivitySource.IncomingRequestActivityName,
             ActivityKind.Server,
             ctx.ActivityContext);
 
