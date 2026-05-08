@@ -3,9 +3,7 @@
 
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http;
-#if NET
 using Microsoft.AspNetCore.Http.Metadata;
-#endif
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Routing;
 
@@ -38,9 +36,7 @@ internal class RouteInfo
         this.Path = $"{context.Request.Path}{context.Request.QueryString}";
         var endpoint = context.GetEndpoint();
         this.RawText = (endpoint as RouteEndpoint)?.RoutePattern.RawText;
-#if NET
         this.RouteDiagnosticMetadata = endpoint?.Metadata.GetMetadata<IRouteDiagnosticsMetadata>()?.Route;
-#endif
         this.RouteData = new Dictionary<string, string?>();
         foreach (var value in context.GetRouteData().Values)
         {
@@ -48,8 +44,6 @@ internal class RouteInfo
         }
     }
 
-    public void SetValues(ActionDescriptor actionDescriptor)
-    {
+    public void SetValues(ActionDescriptor actionDescriptor) =>
         this.ActionDescriptor ??= new ActionDescriptorInfo(actionDescriptor);
-    }
 }

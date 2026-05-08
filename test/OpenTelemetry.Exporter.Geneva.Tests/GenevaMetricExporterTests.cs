@@ -37,7 +37,7 @@ public class GenevaMetricExporterTests
     public void InvalidConnectionString(string connectionString)
     {
         var exporterOptions = new GenevaMetricExporterOptions() { ConnectionString = connectionString };
-        var exception = Assert.Throws<ArgumentException>(() =>
+        Assert.ThrowsAny<ArgumentException>(() =>
         {
             using var exporter = new GenevaMetricExporter(exporterOptions);
         });

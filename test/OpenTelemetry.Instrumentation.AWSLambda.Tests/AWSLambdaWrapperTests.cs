@@ -340,6 +340,9 @@ public class AWSLambdaWrapperTests : IDisposable
         Assert.Equal(ActivityKind.Server, activity.Kind);
         Assert.Equal("testfunction", activity.DisplayName);
         Assert.Equal("OpenTelemetry.Instrumentation.AWSLambda", activity.Source.Name);
+        Assert.NotNull(activity.Source.Version);
+        Assert.NotEmpty(activity.Source.Version);
+        Assert.StartsWith("https://opentelemetry.io/schemas/", activity.Source.TelemetrySchemaUrl);
 
         // Version should consist of 3 decimals separated by dots followed by optional pre-release suffix
         Assert.Matches(@"^\d+(\.\d+){2}(-.+)?$", activity.Source.Version);
