@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Change default OpAMP port.
+  ([#4374](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4374))
+
 ## 0.3.0-alpha.1
 
 Released 2026-Apr-28
