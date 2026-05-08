@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+* Update to version 1.41.0 of the HTTP Semantic Conventions.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
+* Add instrumentation scope version and schema URL to metrics and traces.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 1.15.1-beta.1
 
 Released 2026-Apr-21
