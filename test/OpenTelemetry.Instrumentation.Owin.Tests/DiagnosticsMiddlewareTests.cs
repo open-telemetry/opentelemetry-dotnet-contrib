@@ -167,6 +167,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
         using var meterProvider = meterBuilder.Build();
 
         using var client = new HttpClient();
+        client.DefaultRequestHeaders.UserAgent.Add(new("company.client", "1.2.3"));
 
         var requestUri = generateRemoteException
             ? new Uri($"{this.serviceBaseUri}exception")
@@ -190,7 +191,6 @@ public class DiagnosticsMiddlewareTests : IDisposable
                 var activity = Assert.Single(stoppedActivities);
 
                 Assert.Equal("OpenTelemetry.Instrumentation.Owin.IncomingRequest", activity.OperationName);
-
                 Assert.Equal("OpenTelemetry.Instrumentation.Owin.IncomingRequest", activity.Source.Name);
                 Assert.NotNull(activity.Source.Version);
                 Assert.NotEmpty(activity.Source.Version);
@@ -201,6 +201,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
                 Assert.Equal("GET", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpRequestMethod).Value);
                 Assert.Equal(requestUri.AbsolutePath, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeUrlPath).Value);
                 Assert.Equal(generateRemoteException ? 500 : 200, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpResponseStatusCode).Value);
+                Assert.Equal("company.client/1.2.3", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeUserAgentOriginal).Value);
 
                 if (generateRemoteException)
                 {
