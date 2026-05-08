@@ -5,7 +5,7 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using OpenTelemetry.Instrumentation.AspNetCore.Implementation;
-using static OpenTelemetry.Instrumentation.AspNetCore.RpcSemanticConventionHelper;
+using static OpenTelemetry.Internal.RpcSemanticConventionHelper;
 
 namespace OpenTelemetry.Instrumentation.AspNetCore;
 

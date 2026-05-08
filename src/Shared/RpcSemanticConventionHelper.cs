@@ -4,7 +4,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Configuration;
 
-namespace OpenTelemetry.Instrumentation.AspNetCore;
+namespace OpenTelemetry.Internal;
 
 /// <summary>
 /// Helper class for RPC Semantic Conventions.
