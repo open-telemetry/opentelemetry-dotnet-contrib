@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-* Change default OpAMP port.
+* Change default OpAMP port from `4318` to `4320`.
   ([#4374](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4374))
 
 ## 0.3.0-alpha.1
