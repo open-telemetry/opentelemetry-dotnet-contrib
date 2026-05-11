@@ -28,7 +28,7 @@ public class RedisProfilerEntryToActivityConverterBenchmarks
         {
             Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
             SampleUsingParentId = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
-            ShouldListenTo = (source) => source.Name == StackExchangeRedisConnectionInstrumentation.ActivitySourceName,
+            ShouldListenTo = (source) => source.Name == StackExchangeRedisConnectionInstrumentation.ActivitySource.Name,
         };
 
         ActivitySource.AddActivityListener(this.activityListener);
