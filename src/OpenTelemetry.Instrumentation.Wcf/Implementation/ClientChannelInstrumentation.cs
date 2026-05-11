@@ -82,14 +82,10 @@ internal static class ClientChannelInstrumentation
                         }
                     }
 
-                    // TODO Should we continue to emit WcfInstrumentationConstants given they aren't in the Semantic Conventions?
-                    // See https://github.com/open-telemetry/semantic-conventions/issues/2741
                     activity.SetTag(WcfInstrumentationConstants.AttributeWcfChannelScheme, remoteAddressUri.Scheme);
                     activity.SetTag(WcfInstrumentationConstants.AttributeWcfChannelPath, remoteAddressUri.LocalPath);
                 }
 
-                // TODO Should we continue to emit WcfInstrumentationConstants given they aren't in the Semantic Conventions?
-                // See https://github.com/open-telemetry/semantic-conventions/issues/2741
                 if (options?.SetSoapMessageVersion == true)
                 {
                     activity.SetTag(WcfInstrumentationConstants.AttributeSoapMessageVersion, request.Version.ToString());

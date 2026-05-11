@@ -120,14 +120,10 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
                         }
                     }
 
-                    // TODO Should we continue to emit WcfInstrumentationConstants given they aren't in the Semantic Conventions?
-                    // See https://github.com/open-telemetry/semantic-conventions/issues/2741
                     activity.SetTag(WcfInstrumentationConstants.AttributeWcfChannelScheme, localAddressUri.Scheme);
                     activity.SetTag(WcfInstrumentationConstants.AttributeWcfChannelPath, localAddressUri.LocalPath);
                 }
 
-                // TODO Should we continue to emit WcfInstrumentationConstants given they aren't in the Semantic Conventions?
-                // See https://github.com/open-telemetry/semantic-conventions/issues/2741
                 if (options?.SetSoapMessageVersion == true)
                 {
                     activity.SetTag(WcfInstrumentationConstants.AttributeSoapMessageVersion, request.Version.ToString());
@@ -180,8 +176,6 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
                     }
                 }
 
-                // TODO Should we continue to emit WcfInstrumentationConstants given they aren't in the Semantic Conventions?
-                // See https://github.com/open-telemetry/semantic-conventions/issues/2741
                 activity.SetTag(WcfInstrumentationConstants.AttributeSoapReplyAction, reply.Headers.Action);
 
                 if (options?.Enrich is { } enrich)
