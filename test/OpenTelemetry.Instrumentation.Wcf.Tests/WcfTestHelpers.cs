@@ -15,14 +15,14 @@ internal static class WcfTestHelpers
 {
     internal const int MaxRetries = 5;
 
-    public static Uri GetRandomBaseUri(string scheme)
-        => new UriBuilder()
-            {
-                Scheme = scheme,
-                Host = "localhost",
-                Port = TcpPortProvider.GetOpenPort(),
-                Path = "/",
-            }.Uri;
+    public static Uri GetRandomBaseUri(string scheme) =>
+        new UriBuilder()
+        {
+            Scheme = scheme,
+            Host = "localhost",
+            Port = TcpPortProvider.GetOpenPort(),
+            Path = "/",
+        }.Uri;
 
     /// <summary>
     /// Asserts common activity properties for outgoing request instrumentation tests.
