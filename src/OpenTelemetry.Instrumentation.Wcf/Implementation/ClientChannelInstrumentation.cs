@@ -19,7 +19,8 @@ internal static class ClientChannelInstrumentation
             return new() { SuppressionScope = SuppressDownstreamInstrumentation(options) };
         }
 
-        var activity = WcfInstrumentationActivitySource.ActivitySource.StartActivity(
+        var activitySource = WcfInstrumentationActivitySource.Get(options);
+        var activity = activitySource.StartActivity(
             WcfInstrumentationActivitySource.OutgoingRequestActivityName,
             ActivityKind.Client);
 

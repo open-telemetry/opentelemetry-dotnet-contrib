@@ -54,7 +54,8 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
         var textMapPropagator = Propagators.DefaultTextMapPropagator;
         var ctx = textMapPropagator.Extract(default, request, WcfInstrumentationActivitySource.MessageHeaderValuesGetter);
 
-        var activity = WcfInstrumentationActivitySource.ActivitySource.StartActivity(
+        var activitySource = WcfInstrumentationActivitySource.Get(options);
+        var activity = activitySource.StartActivity(
             WcfInstrumentationActivitySource.IncomingRequestActivityName,
             ActivityKind.Server,
             ctx.ActivityContext);

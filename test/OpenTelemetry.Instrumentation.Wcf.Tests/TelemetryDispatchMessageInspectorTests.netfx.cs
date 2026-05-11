@@ -78,6 +78,8 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
         bool enrichmentException,
         bool emptyOrNullAction)
     {
+        _ = Assert.IsType<bool>(unused);
+
         using var scope = SemanticConventionScope.Get(emitOldAttributes, emitNewAttributes);
 
         List<Activity> stoppedActivities = [];

@@ -23,8 +23,9 @@ internal class TracingErrorHandler : IErrorHandler
         // at all.
         // Also it becomes very difficult to unit-test, because there is no easy `ErrorsHandled`
         // event to listen for before checking to see whether the error was logged.
+        var options = WcfInstrumentationActivitySource.Options;
 
-        if (WcfInstrumentationActivitySource.Options?.RecordException != true)
+        if (options?.RecordException != true)
         {
             return;
         }
@@ -38,7 +39,11 @@ internal class TracingErrorHandler : IErrorHandler
             return;
         }
 
-        var activity = context.Activity ?? WcfInstrumentationActivitySource.ActivitySource.StartActivity(WcfInstrumentationActivitySource.UnassociatedExceptionActivityName, ActivityKind.Internal);
+        var activity = context.Activity;
+
+        activity ??= WcfInstrumentationActivitySource.Get(options).StartActivity(
+            WcfInstrumentationActivitySource.UnassociatedExceptionActivityName,
+            ActivityKind.Internal);
 
         if (activity != null)
         {
