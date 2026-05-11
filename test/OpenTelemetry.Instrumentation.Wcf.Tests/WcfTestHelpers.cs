@@ -104,6 +104,26 @@ internal static class WcfTestHelpers
             Assert.Equal(WcfEnrichEventNames.BeforeSendRequest, activity.TagObjects.Single(t => t.Key == "client.beforesendrequest").Value);
             Assert.Equal(WcfEnrichEventNames.AfterReceiveReply, activity.TagObjects.Single(t => t.Key == "client.afterreceivereply").Value);
         }
+
+        Assert.Equal("OpenTelemetry.Instrumentation.Wcf", activity.Source.Name);
+        Assert.NotNull(activity.Source.Version);
+        Assert.NotEmpty(activity.Source.Version);
+
+        if (emitOldAttributes && !emitNewAttributes)
+        {
+            Assert.Same(WcfInstrumentationActivitySource.ActivitySource, activity.Source);
+            Assert.Equal("https://opentelemetry.io/schemas/1.23.0", activity.Source.TelemetrySchemaUrl);
+        }
+        else if (!emitOldAttributes && emitNewAttributes)
+        {
+            Assert.Same(WcfInstrumentationActivitySource.ActivitySourceNew, activity.Source);
+            Assert.Equal("https://opentelemetry.io/schemas/1.41.0", activity.Source.TelemetrySchemaUrl);
+        }
+        else
+        {
+            Assert.Same(WcfInstrumentationActivitySource.ActivitySourceBoth, activity.Source);
+            Assert.Null(activity.Source.TelemetrySchemaUrl);
+        }
     }
 
 #if NETFRAMEWORK
@@ -136,6 +156,22 @@ internal static class WcfTestHelpers
 
         Assert.Equal("net.tcp", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.AttributeWcfChannelScheme).Value);
         Assert.Equal("/Service", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.AttributeWcfChannelPath).Value);
+
+        if (emitOldAttributes && !emitNewAttributes)
+        {
+            Assert.Same(WcfInstrumentationActivitySource.ActivitySource, activity.Source);
+            Assert.Equal("https://opentelemetry.io/schemas/1.23.0", activity.Source.TelemetrySchemaUrl);
+        }
+        else if (!emitOldAttributes && emitNewAttributes)
+        {
+            Assert.Same(WcfInstrumentationActivitySource.ActivitySourceNew, activity.Source);
+            Assert.Equal("https://opentelemetry.io/schemas/1.41.0", activity.Source.TelemetrySchemaUrl);
+        }
+        else
+        {
+            Assert.Same(WcfInstrumentationActivitySource.ActivitySourceBoth, activity.Source);
+            Assert.Null(activity.Source.TelemetrySchemaUrl);
+        }
     }
 #endif
 
