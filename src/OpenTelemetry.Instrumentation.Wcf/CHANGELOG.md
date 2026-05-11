@@ -14,6 +14,10 @@
   instrumented channel types that incorrectly advertised session support.
   ([#4368](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4368))
 
+* Fixed an issue where async WCF client operations could throw when
+  `ExecutionContext` flow was suppressed.
+  ([#4378](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4378))
+
 * Add support for version [1.41.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/rpc/README.md)
   of the Semantic Conventions for RPC/gRPC when the `OTEL_SEMCONV_STABILITY_OPT_IN`
   environment variable is set to `rpc` or `rpc/dup`.
