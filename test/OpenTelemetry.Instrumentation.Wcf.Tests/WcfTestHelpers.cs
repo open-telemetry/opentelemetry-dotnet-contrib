@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -14,28 +15,14 @@ internal static class WcfTestHelpers
 {
     internal const int MaxRetries = 5;
 
-    private static readonly Random Random =
-#if NET
-        Random.Shared;
-#else
-        new();
-#endif
-
     public static Uri GetRandomBaseUri(string scheme)
-    {
-        const int MinPort = 2000;
-        const int MaxPort = 5000;
-
-        var port = Random.Next(MinPort, MaxPort);
-
-        return new UriBuilder()
-        {
-            Scheme = scheme,
-            Host = "localhost",
-            Port = port,
-            Path = "/",
-        }.Uri;
-    }
+        => new UriBuilder()
+            {
+                Scheme = scheme,
+                Host = "localhost",
+                Port = TcpPortProvider.GetOpenPort(),
+                Path = "/",
+            }.Uri;
 
     /// <summary>
     /// Asserts common activity properties for outgoing request instrumentation tests.
@@ -48,6 +35,8 @@ internal static class WcfTestHelpers
     /// <param name="schemeTag">The expected scheme tag value (e.g., "http" or "net.tcp").</param>
     /// <param name="enrich">Whether enrichment tags should be present.</param>
     /// <param name="enrichmentException">Whether enrichment threw an exception.</param>
+    /// <param name="emitOldAttributes">Whether old RPC attributes are being emitted.</param>
+    /// <param name="emitNewAttributes">Whether new RPC attributes are being emitted.</param>
     public static void AssertOutgoingRequestActivity(
         Activity activity,
         Uri serviceBaseUri,
@@ -56,8 +45,12 @@ internal static class WcfTestHelpers
         string? includeVersionExpected,
         string schemeTag,
         bool enrich,
-        bool enrichmentException)
+        bool enrichmentException,
+        bool emitOldAttributes,
+        bool emitNewAttributes)
     {
+        Assert.True(emitOldAttributes || emitNewAttributes, "No attributes are configured.");
+
         Assert.NotNull(activity);
 
         if (emptyOrNullAction)
@@ -72,10 +65,22 @@ internal static class WcfTestHelpers
         }
 
         Assert.Equal(WcfInstrumentationActivitySource.OutgoingRequestActivityName, activity.OperationName);
-        Assert.Equal(WcfInstrumentationConstants.WcfSystemValue, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcSystem).Value);
-        Assert.Equal("http://opentelemetry.io/Service", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcService).Value);
-        Assert.Equal(serviceBaseUri.Host, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeNetPeerName).Value);
-        Assert.Equal(serviceBaseUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeNetPeerPort).Value);
+
+        if (emitOldAttributes)
+        {
+            Assert.Equal(WcfInstrumentationConstants.WcfSystemValue, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcSystem).Value);
+            Assert.Equal("http://opentelemetry.io/Service", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcService).Value);
+            Assert.Equal(serviceBaseUri.Host, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeNetPeerName).Value);
+            Assert.Equal(serviceBaseUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeNetPeerPort).Value);
+        }
+
+        if (emitNewAttributes)
+        {
+            Assert.Equal(WcfInstrumentationConstants.WcfSystemValue, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcSystemName).Value);
+            Assert.Equal(serviceBaseUri.Host, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeServerAddress).Value);
+            Assert.Equal(serviceBaseUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeServerPort).Value);
+        }
+
         Assert.Equal(schemeTag, activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.AttributeWcfChannelScheme).Value);
         Assert.Equal("/Service", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.AttributeWcfChannelPath).Value);
 
@@ -102,15 +107,33 @@ internal static class WcfTestHelpers
     }
 
 #if NETFRAMEWORK
-    public static void AssertIncomingRequestActivityCommon(Activity activity, Uri serviceBaseUri)
+    public static void AssertIncomingRequestActivityCommon(
+        Activity activity,
+        Uri serviceBaseUri,
+        bool emitOldAttributes,
+        bool emitNewAttributes)
     {
+        Assert.True(emitOldAttributes || emitNewAttributes, "No attributes are configured.");
+
         Assert.NotNull(activity);
 
         Assert.Equal(WcfInstrumentationActivitySource.IncomingRequestActivityName, activity.OperationName);
-        Assert.Equal(WcfInstrumentationConstants.WcfSystemValue, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcSystem).Value);
-        Assert.Equal("http://opentelemetry.io/Service", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcService).Value);
-        Assert.Equal(serviceBaseUri.Host, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeNetHostName).Value);
-        Assert.Equal(serviceBaseUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeNetHostPort).Value);
+
+        if (emitOldAttributes)
+        {
+            Assert.Equal(WcfInstrumentationConstants.WcfSystemValue, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcSystem).Value);
+            Assert.Equal("http://opentelemetry.io/Service", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcService).Value);
+            Assert.Equal(serviceBaseUri.Host, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeNetHostName).Value);
+            Assert.Equal(serviceBaseUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeNetHostPort).Value);
+        }
+
+        if (emitNewAttributes)
+        {
+            Assert.Equal(WcfInstrumentationConstants.WcfSystemValue, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcSystemName).Value);
+            Assert.Equal(serviceBaseUri.Host, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeServerAddress).Value);
+            Assert.Equal(serviceBaseUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeServerPort).Value);
+        }
+
         Assert.Equal("net.tcp", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.AttributeWcfChannelScheme).Value);
         Assert.Equal("/Service", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.AttributeWcfChannelPath).Value);
     }

@@ -33,23 +33,20 @@ public class TelemetryBindingElementForTcpTests : IDisposable
         => this.serviceHost?.Close();
 
     [Theory]
-    [InlineData(true, false)]
-    [InlineData(true, true)]
-    [InlineData(true, false, false)]
-    [InlineData(false)]
-    [InlineData(true, false, true, true)]
-    [InlineData(true, false, true, true, true)]
-    [InlineData(true, false, true, true, true, true)]
-    [InlineData(true, false, true, true, true, true, true)]
+    [MemberData(nameof(TelemetryBindingElementForHttpTests.IncomingRequestTestData), MemberType = typeof(TelemetryBindingElementForHttpTests))]
     public async Task OutgoingRequestInstrumentationTest(
+        bool emitOldAttributes,
+        bool emitNewAttributes,
         bool instrument,
-        bool filter = false,
-        bool suppressDownstreamInstrumentation = true,
-        bool includeVersion = false,
-        bool enrich = false,
-        bool enrichmentException = false,
-        bool emptyOrNullAction = false)
+        bool filter,
+        bool suppressDownstreamInstrumentation,
+        bool includeVersion,
+        bool enrich,
+        bool enrichmentException,
+        bool emptyOrNullAction)
     {
+        using var scope = SemanticConventionScope.Get(emitOldAttributes, emitNewAttributes);
+
         List<Activity> stoppedActivities = [];
 
         var builder = Sdk.CreateTracerProviderBuilder()
@@ -140,7 +137,9 @@ public class TelemetryBindingElementForTcpTests : IDisposable
                         null, // TCP uses regex matching, not exact match
                         "net.tcp",
                         enrich,
-                        enrichmentException);
+                        enrichmentException,
+                        emitOldAttributes,
+                        emitNewAttributes);
                 }
                 else
                 {

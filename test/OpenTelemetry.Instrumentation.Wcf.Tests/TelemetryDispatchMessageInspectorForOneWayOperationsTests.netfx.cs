@@ -79,9 +79,16 @@ public class TelemetryDispatchMessageInspectorForOneWayOperationsTests : IDispos
         this.thrownExceptionsHandle?.Dispose();
     }
 
-    [Fact]
-    public void IncomingRequestOneWayOperationInstrumentationTest()
+    [Theory]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void IncomingRequestOneWayOperationInstrumentationTest(
+        bool emitOldAttributes,
+        bool emitNewAttributes)
     {
+        using var scope = SemanticConventionScope.Get(emitOldAttributes, emitNewAttributes);
+
         List<Activity> stoppedActivities = [];
 
         using var activityListener = new ActivityListener
@@ -122,7 +129,12 @@ public class TelemetryDispatchMessageInspectorForOneWayOperationsTests : IDispos
         Assert.Equal("http://opentelemetry.io/Service/ExecuteWithOneWay", activity.DisplayName);
         Assert.Equal("ExecuteWithOneWay", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcMethod).Value);
         Assert.DoesNotContain(activity.TagObjects, t => t.Key == WcfInstrumentationConstants.AttributeSoapReplyAction);
-        WcfTestHelpers.AssertIncomingRequestActivityCommon(activity, this.serviceBaseUri);
+
+        WcfTestHelpers.AssertIncomingRequestActivityCommon(
+            activity,
+            this.serviceBaseUri,
+            emitOldAttributes,
+            emitNewAttributes);
     }
 }
 
