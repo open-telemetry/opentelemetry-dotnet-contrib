@@ -24,7 +24,7 @@ public class InstrumentedChannelAsyncCallbackTests
 
         Assert.NotNull(asyncResult);
         Assert.NotNull(inner.LastBeginRequestArgs);
-        Assert.Null(inner.LastBeginRequestArgs![1]);
+        Assert.Null(inner.LastBeginRequestArgs[1]);
         Assert.Same(state, inner.LastBeginRequestArgs[2]);
     }
 
@@ -46,7 +46,7 @@ public class InstrumentedChannelAsyncCallbackTests
         }
 
         Assert.NotNull(inner.LastBeginRequestArgs);
-        Assert.Null(inner.LastBeginRequestArgs![1]);
+        Assert.Null(inner.LastBeginRequestArgs[1]);
         Assert.Same(state, inner.LastBeginRequestArgs[2]);
     }
 
@@ -64,7 +64,7 @@ public class InstrumentedChannelAsyncCallbackTests
 
         Assert.NotNull(asyncResult);
         Assert.NotNull(inner.LastBeginSendArgs);
-        Assert.Null(inner.LastBeginSendArgs![1]);
+        Assert.Null(inner.LastBeginSendArgs[1]);
         Assert.Same(state, inner.LastBeginSendArgs[2]);
     }
 
@@ -86,7 +86,7 @@ public class InstrumentedChannelAsyncCallbackTests
         }
 
         Assert.NotNull(inner.LastBeginSendArgs);
-        Assert.Null(inner.LastBeginSendArgs![1]);
+        Assert.Null(inner.LastBeginSendArgs[1]);
         Assert.Same(state, inner.LastBeginSendArgs[2]);
     }
 
@@ -115,7 +115,7 @@ public class InstrumentedChannelAsyncCallbackTests
 
         Assert.NotNull(asyncResult);
         Assert.NotNull(inner.LastBeginReceiveArgs);
-        Assert.Null(inner.LastBeginReceiveArgs![0]);
+        Assert.Null(inner.LastBeginReceiveArgs[0]);
         Assert.Same(state, inner.LastBeginReceiveArgs[1]);
     }
 
