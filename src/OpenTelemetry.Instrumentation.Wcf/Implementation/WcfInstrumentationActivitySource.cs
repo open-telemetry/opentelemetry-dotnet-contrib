@@ -35,5 +35,5 @@ internal static class WcfInstrumentationActivitySource
     public static ActivitySource Get(WcfInstrumentationOptions? options) =>
         options == null || !options.EmitNewRpcAttributes
         ? ActivitySource
-        : options.EmitNewRpcAttributes ? ActivitySourceNew : ActivitySourceBoth;
+        : options.EmitOldRpcAttributes ? ActivitySourceBoth : ActivitySourceNew;
 }
