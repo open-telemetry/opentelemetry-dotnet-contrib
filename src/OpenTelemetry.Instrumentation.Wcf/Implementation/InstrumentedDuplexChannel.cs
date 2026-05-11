@@ -174,15 +174,17 @@ internal class InstrumentedDuplexChannel : InstrumentedChannel<IDuplexChannel>, 
             executeSend(telemetryState);
         }
 
-        var executionContext = ExecutionContext.Capture();
-        if (executionContext == null)
-        {
-            throw new InvalidOperationException("Cannot fetch execution context");
-        }
-
         try
         {
-            ExecutionContext.Run(executionContext, ExecuteInChildContext, null);
+            var executionContext = ExecutionContext.Capture();
+            if (executionContext == null)
+            {
+                ExecuteInChildContext(null);
+            }
+            else
+            {
+                ExecutionContext.Run(executionContext, ExecuteInChildContext, null);
+            }
         }
         catch (Exception ex)
         {
