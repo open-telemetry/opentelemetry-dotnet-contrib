@@ -1,9 +1,12 @@
 file_format: definition/2
+# schema reference: https://github.com/open-telemetry/weaver/blob/v0.23.0/schemas/semconv-syntax.v2.md
 
+# import upstream db client span and associated attributes
 imports:
   spans:
     - span.db.client
 
+# define redis-specific attribute
 attributes:
   - key: db.redis.database_index
     stability: development
@@ -11,6 +14,7 @@ attributes:
     brief: Logical database index.
     examples: [0, 1]
 
+# extend db.client with new attribute
 span_refinements:
   - id: span.db.client.redis
     ref: db.client

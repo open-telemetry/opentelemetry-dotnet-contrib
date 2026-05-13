@@ -5,6 +5,7 @@ param(
 
 $scriptRoot = $PSScriptRoot
 
+# check if schema is valid
 function Invoke-WeaverCheck
 {
   docker run --rm `
@@ -18,6 +19,8 @@ function Invoke-WeaverCheck
     --v2
 }
 
+# combines jinja templates w/ resolved model
+# "markdown" is the template name
 function Invoke-WeaverGenerate
 {
   docker run --rm `
@@ -33,6 +36,7 @@ function Invoke-WeaverGenerate
     ./docs
 }
 
+# packages a schema by resolving all imports and refinements
 function Invoke-WeaverPackage
 {
   docker run --rm `
