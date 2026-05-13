@@ -106,10 +106,13 @@ internal class InstrumentedRequestChannel : InstrumentedChannel<IRequestChannel>
         var executionContext = ExecutionContext.Capture();
         if (executionContext == null)
         {
-            throw new InvalidOperationException("Cannot fetch execution context");
+            ExecuteInChildContext(null);
+        }
+        else
+        {
+            ExecutionContext.Run(executionContext, ExecuteInChildContext, null);
         }
 
-        ExecutionContext.Run(executionContext, ExecuteInChildContext, null);
         return result!;
     }
 }
