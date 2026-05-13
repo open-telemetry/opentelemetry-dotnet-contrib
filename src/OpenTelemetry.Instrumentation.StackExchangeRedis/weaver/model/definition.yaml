@@ -1,0 +1,19 @@
+file_format: definition/2
+
+imports:
+  spans:
+    - span.db.client
+
+attributes:
+  - key: db.redis.database_index
+    stability: development
+    type: int
+    brief: Logical database index.
+    examples: [0, 1]
+
+span_refinements:
+  - id: span.db.client.redis
+    ref: db.client
+    attributes:
+      - ref: db.redis.database_index
+        requirement_level: recommended
