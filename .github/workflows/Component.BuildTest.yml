@@ -145,7 +145,7 @@ jobs:
         --logger:"GitHubActions;report-warnings=false"
         --logger:"junit;LogFilePath=TestResults/junit.xml"
         --filter "${env:TEST_FILTER}"
-        -- RunConfiguration.DisableAppDomain=true
+        -- RunConfiguration.DisableAppDomain=${{ matrix.version == 'net462' && 'false' || 'true' }}
         ${{ inputs.test-require-elevated && matrix.os != 'windows-latest' && '&& sudo chmod a+rw ./TestResults' || '' }}
 
     - name: dotnet pack ${{ steps.resolve-project.outputs.title }}
