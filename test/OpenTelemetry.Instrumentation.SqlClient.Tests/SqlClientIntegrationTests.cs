@@ -137,21 +137,23 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
 
         sqlConnection.ChangeDatabase("master");
 
-        using var sqlCommand = new SqlCommand("SELECT @x + @y", sqlConnection);
+        using var sqlCommand = new SqlCommand("SELECT @x + @y + @z", sqlConnection);
 
         sqlCommand.Parameters.AddWithValue("@x", 42);
         sqlCommand.Parameters.AddWithValue("@y", 37);
+        sqlCommand.Parameters.AddWithValue("@z", 1234.56);
 
         // Act
         var result = await sqlCommand.ExecuteScalarAsync();
 
         // Assert
-        Assert.Equal(79, result);
+        Assert.Equal(1313.56, result);
 
         var activity = Assert.Single(activities);
 
-        Assert.Equal(42, activity.GetTagValue("db.query.parameter.@x"));
-        Assert.Equal(37, activity.GetTagValue("db.query.parameter.@y"));
+        Assert.Equal("42", activity.GetTagValue("db.query.parameter.@x"));
+        Assert.Equal("37", activity.GetTagValue("db.query.parameter.@y"));
+        Assert.Equal("1234.56", activity.GetTagValue("db.query.parameter.@z"));
     }
 #endif
 
