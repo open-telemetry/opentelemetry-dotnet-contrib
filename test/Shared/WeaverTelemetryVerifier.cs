@@ -203,9 +203,9 @@ public static class WeaverTelemetryVerifier
 
     private static IEnumerable<PolicyFinding> GetAdvice(LiveCheckEntity entity)
     {
-        if (entity.LiveCheckResult?.AllAdvice is { Count: > 0 } entityAdvices)
+        if (entity.LiveCheckResult?.AllAdvice is { Count: > 0 } entityAdvice)
         {
-            foreach (var advice in entityAdvices)
+            foreach (var advice in entityAdvice)
             {
                 yield return advice;
             }
@@ -215,9 +215,9 @@ public static class WeaverTelemetryVerifier
         {
             foreach (var attribute in entity.Attributes)
             {
-                if (attribute.LiveCheckResult?.AllAdvice is { Count: > 0 } attributeAdvices)
+                if (attribute.LiveCheckResult?.AllAdvice is { Count: > 0 } attributeAdvice)
                 {
-                    foreach (var advice in attributeAdvices)
+                    foreach (var advice in attributeAdvice)
                     {
                         yield return advice;
                     }
