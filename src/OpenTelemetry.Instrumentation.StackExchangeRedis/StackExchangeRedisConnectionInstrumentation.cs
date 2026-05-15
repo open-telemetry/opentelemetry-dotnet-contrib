@@ -120,15 +120,18 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
         foreach (var entry in this.Cache)
         {
             var parent = entry.Value.Activity;
-            if (parent.Duration == TimeSpan.Zero)
+            var parentCompleted = parent.Duration != TimeSpan.Zero;
+
+            if (this.options.EnableEarlyCommandDrain || parentCompleted)
             {
-                // Activity is still running, don't drain.
-                continue;
+                var session = entry.Value.Session;
+                RedisProfilerEntryToActivityConverter.DrainSession(parent, session.FinishProfiling(), this.options);
             }
 
-            var session = entry.Value.Session;
-            RedisProfilerEntryToActivityConverter.DrainSession(parent, session.FinishProfiling(), this.options);
-            this.Cache.TryRemove((entry.Key.TraceId, entry.Key.SpanId), out _);
+            if (parentCompleted)
+            {
+                this.Cache.TryRemove((entry.Key.TraceId, entry.Key.SpanId), out _);
+            }
         }
     }
 
