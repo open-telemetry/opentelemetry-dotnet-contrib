@@ -223,7 +223,7 @@ created.
 > activity completes. This can cause high memory usage for long-lived
 > or high-volume parent activities.
 
-The following code snippet shows how to conditionally filter out activties
+The following code snippet shows how to conditionally filter out activities
 using `Filter`.
 
 ```csharp
