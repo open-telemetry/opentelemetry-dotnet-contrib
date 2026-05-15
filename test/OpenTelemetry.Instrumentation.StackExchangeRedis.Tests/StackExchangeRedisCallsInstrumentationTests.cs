@@ -516,28 +516,6 @@ public class StackExchangeRedisCallsInstrumentationTests(RedisXunitFixture fixtu
         Assert.Equal("SET", exportedItems[0].DisplayName);
     }
 
-    [Fact]
-    public void EnableEarlyCommandDrain_TruthTable()
-    {
-        Assert.True(new StackExchangeRedisInstrumentationOptions().EnableEarlyCommandDrain);
-
-        Assert.False(new StackExchangeRedisInstrumentationOptions
-        {
-            Filter = _ => true,
-        }.EnableEarlyCommandDrain);
-
-        Assert.False(new StackExchangeRedisInstrumentationOptions
-        {
-            Enrich = (_, _) => { },
-        }.EnableEarlyCommandDrain);
-
-        Assert.False(new StackExchangeRedisInstrumentationOptions
-        {
-            Filter = _ => true,
-            Enrich = (_, _) => { },
-        }.EnableEarlyCommandDrain);
-    }
-
     [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
     [InlineData(false, false)] // default options = early drain enabled
     [InlineData(true, false)] // Enrich set = buffered until parent completes
