@@ -80,7 +80,11 @@ public static class AWSXRayIdGenerator
             // any other trace flags that may have been set which are not available
             // in the version of the ActivityTraceFlags enum we are compiling against
             // (e.g. ActivityTraceFlags.RandomTraceId added in .NET 11).
-            if (result != ActivitySamplingResult.AllDataAndRecorded)
+            if (result == ActivitySamplingResult.AllDataAndRecorded)
+            {
+                activity.ActivityTraceFlags |= ActivityTraceFlags.Recorded;
+            }
+            else
             {
                 activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
             }
