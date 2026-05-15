@@ -41,18 +41,19 @@ public sealed class SpecificationTests(WeaverFixture fixture, ITestOutputHelper 
                        .AddInMemoryExporter(activities);
             });
 
-        using var app = builder.Build();
-
-        app.MapGet("ping", () => "pong");
-
-        await app.StartAsync();
-
-        using (var httpClient = app.GetTestClient())
+        using (var app = builder.Build())
         {
-            _ = await httpClient.GetStringAsync(new Uri("/ping", UriKind.Relative));
-        }
+            app.MapGet("ping", () => "pong");
 
-        app.Services.GetRequiredService<MeterProvider>().ForceFlush();
+            await app.StartAsync();
+
+            using (var httpClient = app.GetTestClient())
+            {
+                _ = await httpClient.GetStringAsync(new Uri("/ping", UriKind.Relative));
+            }
+
+            app.Services.GetRequiredService<MeterProvider>().ForceFlush();
+        }
 
         // Act and Assert
         await this.AssertTelemetryConformsToSemanticConventions(
