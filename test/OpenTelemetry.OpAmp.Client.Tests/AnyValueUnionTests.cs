@@ -24,18 +24,31 @@ public class AnyValueUnionTests
         var stringValue2 = new AnyValueUnion(AnyValueType.String, stringValue: "test");
         var doubleValue = new AnyValueUnion(AnyValueType.Double, doubleValue: 3.14);
         var doubleValue2 = new AnyValueUnion(AnyValueType.Double, doubleValue: 3.14);
+        var arrayValue = new AnyValueUnion(AnyValueType.Array, arrayValue: [
+            new AnyValueUnion(AnyValueType.String, stringValue: "val1"),
+            new AnyValueUnion(AnyValueType.String, stringValue: "val2")
+            ]);
+        var arrayValue2 = new AnyValueUnion(AnyValueType.Array, arrayValue: [
+            new AnyValueUnion(AnyValueType.String, stringValue: "val1"),
+            new AnyValueUnion(AnyValueType.String, stringValue: "val2")
+            ]);
 
         Assert.Equal(intValue, intValue2);
         Assert.Equal(boolValue, boolValue2);
         Assert.Equal(stringValue, stringValue2);
         Assert.Equal(doubleValue, doubleValue2);
+        Assert.Equal(arrayValue, arrayValue2);
 
         Assert.NotEqual(intValue, boolValue);
         Assert.NotEqual(intValue, stringValue);
         Assert.NotEqual(intValue, doubleValue);
+        Assert.NotEqual(intValue, arrayValue);
         Assert.NotEqual(boolValue, stringValue);
         Assert.NotEqual(boolValue, doubleValue);
+        Assert.NotEqual(boolValue, arrayValue);
         Assert.NotEqual(stringValue, doubleValue);
+        Assert.NotEqual(stringValue, arrayValue);
+        Assert.NotEqual(doubleValue, arrayValue);
 
         // Explicit equality tests
         Assert.True(intValue.Equals(intValue));
@@ -85,18 +98,30 @@ public class AnyValueUnionTests
         var boolValue = new AnyValueUnion(AnyValueType.Boolean, boolValue: true);
         var stringValue = new AnyValueUnion(AnyValueType.String, stringValue: "test");
         var doubleValue = new AnyValueUnion(AnyValueType.Double, doubleValue: 3.14);
+        var arrayValue = new AnyValueUnion(AnyValueType.Array, arrayValue: [
+                new AnyValueUnion(AnyValueType.String, stringValue: "val1"),
+                new AnyValueUnion(AnyValueType.String, stringValue: "val2")
+            ]);
 
         Assert.Equal(intValue.GetHashCode(), new AnyValueUnion(AnyValueType.Integer, intValue: 42).GetHashCode());
         Assert.Equal(boolValue.GetHashCode(), new AnyValueUnion(AnyValueType.Boolean, boolValue: true).GetHashCode());
         Assert.Equal(stringValue.GetHashCode(), new AnyValueUnion(AnyValueType.String, stringValue: "test").GetHashCode());
         Assert.Equal(doubleValue.GetHashCode(), new AnyValueUnion(AnyValueType.Double, doubleValue: 3.14).GetHashCode());
+        Assert.Equal(arrayValue.GetHashCode(), new AnyValueUnion(AnyValueType.Array, arrayValue: [
+                new AnyValueUnion(AnyValueType.String, stringValue: "val1"),
+                new AnyValueUnion(AnyValueType.String, stringValue: "val2")
+            ]).GetHashCode());
 
         Assert.NotEqual(intValue.GetHashCode(), boolValue.GetHashCode());
         Assert.NotEqual(intValue.GetHashCode(), stringValue.GetHashCode());
         Assert.NotEqual(intValue.GetHashCode(), doubleValue.GetHashCode());
+        Assert.NotEqual(intValue.GetHashCode(), arrayValue.GetHashCode());
         Assert.NotEqual(boolValue.GetHashCode(), stringValue.GetHashCode());
         Assert.NotEqual(boolValue.GetHashCode(), doubleValue.GetHashCode());
+        Assert.NotEqual(boolValue.GetHashCode(), arrayValue.GetHashCode());
         Assert.NotEqual(stringValue.GetHashCode(), doubleValue.GetHashCode());
+        Assert.NotEqual(stringValue.GetHashCode(), arrayValue.GetHashCode());
+        Assert.NotEqual(doubleValue.GetHashCode(), arrayValue.GetHashCode());
     }
 
     [Fact]
@@ -144,6 +169,24 @@ public class AnyValueUnionTests
                 Assert.Fail($"Unhandled type {type}");
                 break;
         }
+    }
+
+    [Fact]
+    internal void AnyValueUnion_Extensions_ProtoMapTests_Array()
+    {
+        // Arrange
+        var stringValue1 = "val1";
+        var stringValue2 = "val2";
+        var value1 = new AnyValueUnion(AnyValueType.String, stringValue: stringValue1);
+        var value2 = new AnyValueUnion(AnyValueType.String, stringValue: stringValue2);
+        var anyValueUnion = new AnyValueUnion(AnyValueType.Array, arrayValue: [value1, value2]);
+
+        // Act
+        var protoValue = anyValueUnion.ToAnyValue();
+
+        // Assert
+        Assert.Equal(stringValue1, protoValue.ArrayValue.Values[0].StringValue);
+        Assert.Equal(stringValue2, protoValue.ArrayValue.Values[1].StringValue);
     }
 
     [Fact]
