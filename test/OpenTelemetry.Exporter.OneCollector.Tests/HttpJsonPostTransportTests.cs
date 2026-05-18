@@ -376,11 +376,10 @@ public class HttpJsonPostTransportTests
                     context.Response.OutputStream.Close();
                 }
             },
-            out var testServerHost,
-            out var testServerPort);
+            out var baseAddress);
 
         var transport = createTransportFunc(
-            new Uri($"http://{testServerHost}:{(transportFailure ? 0 : testServerPort)}/"));
+            transportFailure ? new Uri($"http://localhost:0/") : baseAddress);
 
         try
         {

@@ -108,12 +108,11 @@ public class PlainHttpTransportTests
                 context.Response.OutputStream.Write(oversizedBody, 0, oversizedBody.Length);
                 context.Response.Close();
             },
-            out var host,
-            out var port);
+            out var serverUrl);
 
         var settings = new OpAmpClientSettings
         {
-            ServerUrl = new Uri($"http://{host}:{port}"),
+            ServerUrl = serverUrl,
         };
 
         var frameProcessor = new FrameProcessor();
@@ -164,12 +163,11 @@ public class PlainHttpTransportTests
                 context.Response.OutputStream.Write(compressedBody, 0, compressedBody.Length);
                 context.Response.Close();
             },
-            out var host,
-            out var port);
+            out var serverUrl);
 
         var settings = new OpAmpClientSettings
         {
-            ServerUrl = new Uri($"http://{host}:{port}"),
+            ServerUrl = serverUrl,
             HttpClientFactory = () =>
             {
                 var handler = new HttpClientHandler
@@ -234,12 +232,11 @@ public class PlainHttpTransportTests
                     thresholdReached.Set();
                 }
             },
-            out var host,
-            out var port);
+            out var serverUrl);
 
         var settings = new OpAmpClientSettings
         {
-            ServerUrl = new Uri($"http://{host}:{port}"),
+            ServerUrl = serverUrl,
         };
 
         var frameProcessor = new FrameProcessor();
@@ -307,12 +304,11 @@ public class PlainHttpTransportTests
                     }
                 }
             },
-            out var host,
-            out var port);
+            out var serverUrl);
 
         var settings = new OpAmpClientSettings
         {
-            ServerUrl = new Uri($"http://{host}:{port}"),
+            ServerUrl = serverUrl,
         };
 
         var frameProcessor = new FrameProcessor();
@@ -340,12 +336,11 @@ public class PlainHttpTransportTests
                 context.Response.OutputStream.Write(body, 0, body.Length);
                 context.Response.Close();
             },
-            out var host,
-            out var port);
+            out var serverUrl);
 
         var settings = new OpAmpClientSettings
         {
-            ServerUrl = new Uri($"http://{host}:{port}"),
+            ServerUrl = serverUrl,
         };
 
         var frameProcessor = new FrameProcessor();
