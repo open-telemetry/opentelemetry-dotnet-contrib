@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Add support for multivalue identification attributes.
+  ([#4350](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4350))
+
 ## 0.3.0-alpha.1
 
 Released 2026-Apr-28

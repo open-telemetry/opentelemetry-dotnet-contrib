@@ -10,6 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="$(RepoRoot)\test\Shared\TcpPortProvider.cs" Link="/Includes/TcpPortProvider.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\TestHttpServer.cs" Link="/Includes/TestHttpServer.cs" />
   </ItemGroup>
 

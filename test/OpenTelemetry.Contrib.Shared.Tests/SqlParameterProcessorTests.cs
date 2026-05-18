@@ -50,14 +50,16 @@ public static class SqlParameterProcessorTests
 
         command.Parameters.Add(new MyDbCommandParameter(1));
         command.Parameters.Add(new MyDbCommandParameter(2));
+        command.Parameters.Add(new MyDbCommandParameter(123.4));
 
         // Act
         SqlParameterProcessor.AddQueryParameters(activity, command);
 
         // Assert
-        Assert.Equal(1, activity.GetTagValue("db.query.parameter.0"));
-        Assert.Equal(2, activity.GetTagValue("db.query.parameter.1"));
-        Assert.Equal(2, activity.TagObjects.Count());
+        Assert.Equal("1", activity.GetTagValue("db.query.parameter.0"));
+        Assert.Equal("2", activity.GetTagValue("db.query.parameter.1"));
+        Assert.Equal("123.4", activity.GetTagValue("db.query.parameter.2"));
+        Assert.Equal(3, activity.TagObjects.Count());
     }
 
     [Fact]
@@ -69,14 +71,16 @@ public static class SqlParameterProcessorTests
 
         command.Parameters.Add(new MyDbCommandParameter("foo", 1));
         command.Parameters.Add(new MyDbCommandParameter("bar", 2));
+        command.Parameters.Add(new MyDbCommandParameter("@baz", 1.23));
 
         // Act
         SqlParameterProcessor.AddQueryParameters(activity, command);
 
         // Assert
-        Assert.Equal(1, activity.GetTagValue("db.query.parameter.foo"));
-        Assert.Equal(2, activity.GetTagValue("db.query.parameter.bar"));
-        Assert.Equal(2, activity.TagObjects.Count());
+        Assert.Equal("1", activity.GetTagValue("db.query.parameter.foo"));
+        Assert.Equal("2", activity.GetTagValue("db.query.parameter.bar"));
+        Assert.Equal("1.23", activity.GetTagValue("db.query.parameter.@baz"));
+        Assert.Equal(3, activity.TagObjects.Count());
     }
 
     [Fact]
@@ -95,9 +99,9 @@ public static class SqlParameterProcessorTests
         SqlParameterProcessor.AddQueryParameters(activity, command);
 
         // Assert
-        Assert.Equal(1, activity.GetTagValue("db.query.parameter.foo"));
-        Assert.Equal(2, activity.GetTagValue("db.query.parameter.1"));
-        Assert.Equal(3, activity.GetTagValue("db.query.parameter.FOO"));
+        Assert.Equal("1", activity.GetTagValue("db.query.parameter.foo"));
+        Assert.Equal("2", activity.GetTagValue("db.query.parameter.1"));
+        Assert.Equal("3", activity.GetTagValue("db.query.parameter.FOO"));
         Assert.Equal(3, activity.TagObjects.Count());
     }
 

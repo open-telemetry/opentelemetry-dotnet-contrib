@@ -22,8 +22,7 @@ internal class HttpInListener : ListenerHandler
     // https://github.com/dotnet/aspnetcore/blob/8d6554e655b64da75b71e0e20d6db54a3ba8d2fb/src/Hosting/Hosting/src/GenericHost/GenericWebHostBuilder.cs#L85
     internal const string AspNetCoreActivitySourceName = "Microsoft.AspNetCore";
 
-    internal static readonly Version SemanticConventionsVersion = new(1, 40, 0);
-    internal static readonly ActivitySource ActivitySource = ActivitySourceFactory.Create<HttpInListener>(SemanticConventionsVersion);
+    internal static readonly ActivitySource ActivitySource = ActivitySourceFactory.Create<HttpInListener>(AspNetCoreInstrumentation.SemanticConventionsVersion);
     internal static readonly bool Net7OrGreater = Environment.Version.Major >= 7;
     internal static readonly bool Net10OrGreater = Environment.Version.Major >= 10;
     internal static readonly bool Net11OrGreater = Environment.Version.Major >= 11;
