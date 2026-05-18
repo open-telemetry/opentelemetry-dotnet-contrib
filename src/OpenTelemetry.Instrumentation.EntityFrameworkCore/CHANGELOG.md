@@ -10,6 +10,9 @@
   repeated unterminated bracketed identifiers.
   ([#4339](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4339))
 
+* Fix `db.query.parameter.<key>` attributes to always emit the value as a string.
+  ([#4395](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4395))
+
 ## 1.15.1-beta.1
 
 Released 2026-Apr-21
