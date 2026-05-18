@@ -20,10 +20,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
 {
     private static bool validateBaggage;
     private readonly IDisposable testServer;
-    private readonly string testServerHost;
-    private readonly int testServerPort;
-    private readonly string netPeerName;
-    private readonly int netPeerPort;
+    private readonly Uri uri;
 
     static HttpWebRequestActivitySourceTests()
     {
@@ -55,11 +52,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
 
         this.testServer = TestHttpServer.RunServer(
             ProcessServerRequest,
-            out this.testServerHost,
-            out this.testServerPort);
-
-        this.netPeerName = this.testServerHost;
-        this.netPeerPort = this.testServerPort;
+            out this.uri);
 
         void ProcessServerRequest(HttpListenerContext context)
         {
@@ -175,7 +168,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         // Check to make sure: The first record must be a request, the next record must be a response.
         var activity = AssertFirstEventWasStart(eventRecords);
 
-        VerifyActivityStartTags(this.netPeerName, this.netPeerPort, method, url, activity);
+        VerifyActivityStartTags(this.uri.Host, this.uri.Port, method, url, activity);
 
         Assert.True(eventRecords.Records.TryDequeue(out var stopEvent));
         Assert.Equal("Stop", stopEvent.Key);
@@ -355,7 +348,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         // Check to make sure: The first record must be a request, the next record must be a response.
         var activity = AssertFirstEventWasStart(eventRecords);
 
-        VerifyActivityStartTags(this.netPeerName, this.netPeerPort, method, url, activity);
+        VerifyActivityStartTags(this.uri.Host, this.uri.Port, method, url, activity);
 
         Assert.True(eventRecords.Records.TryDequeue(out var stopEvent));
         Assert.Equal("Stop", stopEvent.Key);
@@ -461,7 +454,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         // Check to make sure: The first record must be a request, the next record must be a response.
         var activity = AssertFirstEventWasStart(eventRecords);
 
-        VerifyActivityStartTags(this.netPeerName, this.netPeerPort, method, url, activity);
+        VerifyActivityStartTags(this.uri.Host, this.uri.Port, method, url, activity);
 
         Assert.True(eventRecords.Records.TryDequeue(out var stopEvent));
         Assert.Equal("Stop", stopEvent.Key);
@@ -565,7 +558,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         Assert.Equal(1, eventRecords.Records.Count(rec => rec.Key == "Stop"));
 
         var activity = AssertFirstEventWasStart(eventRecords);
-        VerifyActivityStartTags(this.netPeerName, this.netPeerPort, method, url, activity);
+        VerifyActivityStartTags(this.uri.Host, this.uri.Port, method, url, activity);
 
         Assert.True(eventRecords.Records.TryDequeue(out var exceptionEvent));
         Assert.Equal("Stop", exceptionEvent.Key);
@@ -646,7 +639,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         Assert.Equal(1, eventRecords.Records.Count(rec => rec.Key == "Stop"));
 
         var activity = AssertFirstEventWasStart(eventRecords);
-        VerifyActivityStartTags(this.netPeerName, this.netPeerPort, method, url, activity);
+        VerifyActivityStartTags(this.uri.Host, this.uri.Port, method, url, activity);
 
         Assert.True(eventRecords.Records.TryDequeue(out var exceptionEvent));
         Assert.Equal("Stop", exceptionEvent.Key);
@@ -783,7 +776,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
     }
 
     private string BuildRequestUrl(bool useHttps = false, string path = "echo", string queryString = null)
-        => $"{(useHttps ? "https" : "http")}://{this.testServerHost}:{this.testServerPort}/{path}{(string.IsNullOrWhiteSpace(queryString) ? string.Empty : $"?{queryString}")}";
+        => $"{(useHttps ? "https" : "http")}://{this.uri.Host}:{this.uri.Port}/{path}{(string.IsNullOrWhiteSpace(queryString) ? string.Empty : $"?{queryString}")}";
 
     private void CleanUpActivity()
     {

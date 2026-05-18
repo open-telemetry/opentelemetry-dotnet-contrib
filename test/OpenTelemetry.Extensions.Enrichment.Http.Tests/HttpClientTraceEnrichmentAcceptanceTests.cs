@@ -15,28 +15,17 @@ namespace OpenTelemetry.Extensions.Enrichment.Http.Tests;
 public class HttpClientTraceEnrichmentAcceptanceTests : IDisposable
 {
     private readonly IDisposable serverLifeTime;
-    private readonly string url;
+    private readonly Uri uri;
 
     public HttpClientTraceEnrichmentAcceptanceTests()
     {
         this.serverLifeTime = TestHttpServer.RunServer(
             ctx =>
             {
-                if (ctx.Request.Url != null && ctx.Request.Url.PathAndQuery.Contains("500"))
-                {
-                    ctx.Response.StatusCode = 500;
-                }
-                else
-                {
-                    ctx.Response.StatusCode = 200;
-                }
-
+                ctx.Response.StatusCode = ctx.Request.Url?.PathAndQuery.Contains("500") == true ? 500 : 200;
                 ctx.Response.OutputStream.Close();
             },
-            out var host,
-            out var port);
-
-        this.url = $"http://{host}:{port}/";
+            out this.uri);
     }
 
     [Fact]
@@ -55,11 +44,11 @@ public class HttpClientTraceEnrichmentAcceptanceTests : IDisposable
 
 #if NET
         using var httpClient = new HttpClient();
-        var request = new HttpRequestMessage(HttpMethod.Get, this.url);
+        var request = new HttpRequestMessage(HttpMethod.Get, this.uri);
 
         using var response = await httpClient.SendAsync(request);
 #else
-        var request = (HttpWebRequest)WebRequest.Create(new Uri(this.url));
+        var request = (HttpWebRequest)WebRequest.Create(this.uri);
         request.Method = "GET";
 
         using var response = await request.GetResponseAsync();
