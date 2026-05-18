@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using OpenTelemetry.Instrumentation.AspNetCore.Implementation;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
@@ -58,6 +57,6 @@ public sealed class SpecificationTests(WeaverFixture fixture, ITestOutputHelper 
         // Act and Assert
         await this.AssertTelemetryConformsToSemanticConventions(
             (activities, metrics),
-            HttpInListener.SemanticConventionsVersion);
+            AspNetCoreInstrumentation.SemanticConventionsVersion);
     }
 }
