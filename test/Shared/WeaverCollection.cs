@@ -5,7 +5,7 @@ using Xunit;
 
 namespace OpenTelemetry.Tests;
 
-[CollectionDefinition(Name)]
+[CollectionDefinition(Name, DisableParallelization = true)]
 #pragma warning disable CA1711 // Identifiers should not have incorrect suffix
 public sealed class WeaverCollection : ICollectionFixture<WeaverFixture>
 #pragma warning restore CA1711 // Identifiers should not have incorrect suffix
