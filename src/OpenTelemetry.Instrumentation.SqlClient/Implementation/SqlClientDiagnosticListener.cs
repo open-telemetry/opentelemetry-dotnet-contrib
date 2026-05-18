@@ -129,7 +129,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                         var parameter = setContextCommand.CreateParameter();
                         parameter.ParameterName = ContextInfoParameterName;
 
-                        var tracedflags = (activity.ActivityTraceFlags & ActivityTraceFlags.Recorded) != 0 ? "01" : "00";
+                        var tracedflags = ((byte)activity.ActivityTraceFlags).ToString("x2", CultureInfo.InvariantCulture);
                         var traceparent = $"00-{activity.TraceId.ToHexString()}-{activity.SpanId.ToHexString()}-{tracedflags}";
 
                         parameter.DbType = DbType.Binary;

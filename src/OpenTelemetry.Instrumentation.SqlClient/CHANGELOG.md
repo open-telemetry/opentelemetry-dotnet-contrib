@@ -17,6 +17,10 @@
   repeated unterminated bracketed identifiers.
   ([#4339](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4339))
 
+* Fix `SqlClientTraceInstrumentationOptions.EnableTraceContextPropagation` to behave
+  correctly when `ActivityTraceFlags.RandomTraceId` is available.
+  ([#4397](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4397))
+
 ## 1.15.2
 
 Released 2026-Apr-21
