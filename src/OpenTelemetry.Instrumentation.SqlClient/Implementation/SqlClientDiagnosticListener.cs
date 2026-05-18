@@ -306,7 +306,10 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
             return buffer.ToString();
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            static char GetHexChar(int value) => (char)(value + (value < 10 ? '0' : 'a' - 10));
+            static char GetHexChar(int value)
+            {
+                return (char)(value + (value < 10 ? '0' : 'a' - 10));
+            }
         }
     }
 
