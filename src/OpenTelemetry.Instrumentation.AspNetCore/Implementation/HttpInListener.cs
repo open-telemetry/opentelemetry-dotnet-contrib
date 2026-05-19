@@ -295,7 +295,14 @@ internal class HttpInListener : ListenerHandler
 
                 if (!string.IsNullOrEmpty(grpcMethod))
                 {
-                    AddGrpcAttributes(activity, grpcMethod!, context, grpcStatusCode, hasGrpcStatusCode);
+                    AddGrpcAttributes(
+                        activity,
+                        grpcMethod!,
+                        context,
+                        grpcStatusCode,
+                        hasGrpcStatusCode,
+                        this.options.EmitOldRpcAttributes,
+                        this.options.EmitNewRpcAttributes);
                 }
             }
 
@@ -382,7 +389,14 @@ internal class HttpInListener : ListenerHandler
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void AddGrpcAttributes(Activity activity, string grpcMethod, HttpContext context, int grpcStatusCode, bool validStatusCode)
+    private static void AddGrpcAttributes(
+        Activity activity,
+        string grpcMethod,
+        HttpContext context,
+        int grpcStatusCode,
+        bool validStatusCode,
+        bool emitOldRpcAttributes,
+        bool emitNewRpcAttributes)
     {
         var details = GrpcMethodCache.Get(grpcMethod);
 
@@ -391,16 +405,33 @@ internal class HttpInListener : ListenerHandler
         // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/rpc/rpc-spans.md#span-name
         activity.DisplayName = details.DisplayName;
 
-        activity.SetTag(SemanticConventions.AttributeRpcSystem, GrpcTagHelper.RpcSystemGrpc);
+        // See the specs for old and new semantic conventions.
+        // https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/rpc/rpc-spans.md
+        // https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/rpc/rpc-spans.md
 
-        // see the spec https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/rpc/rpc-spans.md
-
-        if (context.Connection.RemoteIpAddress != null)
+        if (emitOldRpcAttributes)
         {
-            activity.SetTag(SemanticConventions.AttributeClientAddress, context.Connection.RemoteIpAddress.ToString());
+            activity.SetTag(SemanticConventions.AttributeRpcSystem, GrpcTagHelper.RpcSystemGrpc);
+
+            if (context.Connection.RemoteIpAddress != null)
+            {
+                activity.SetTag(SemanticConventions.AttributeClientAddress, context.Connection.RemoteIpAddress.ToString());
+            }
+
+            activity.SetTag(SemanticConventions.AttributeClientPort, context.Connection.RemotePort);
         }
 
-        activity.SetTag(SemanticConventions.AttributeClientPort, context.Connection.RemotePort);
+        if (emitNewRpcAttributes)
+        {
+            activity.SetTag(SemanticConventions.AttributeRpcSystemName, GrpcTagHelper.RpcSystemGrpc);
+
+            if (context.Connection.RemoteIpAddress != null)
+            {
+                activity.SetTag(SemanticConventions.AttributeNetworkPeerAddress, context.Connection.RemoteIpAddress.ToString());
+            }
+
+            activity.SetTag(SemanticConventions.AttributeNetworkPeerPort, context.Connection.RemotePort);
+        }
 
         if (validStatusCode)
         {
@@ -409,19 +440,30 @@ internal class HttpInListener : ListenerHandler
 
         if (details.IsParsed)
         {
-            activity.SetTag(SemanticConventions.AttributeRpcService, details.RpcService);
+            if (emitOldRpcAttributes)
+            {
+                activity.SetTag(SemanticConventions.AttributeRpcService, details.RpcService);
+            }
+
             activity.SetTag(SemanticConventions.AttributeRpcMethod, details.RpcMethod);
 
-            // Remove the grpc.method tag added by the gRPC .NET library
+            // See https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/non-normative/compatibility/grpc.md#attribute-mapping
             activity.SetTag(GrpcTagHelper.GrpcMethodTagName, null);
-
-            // Remove the grpc.status_code tag added by the gRPC .NET library
+            activity.SetTag(GrpcTagHelper.GrpcStatusTagName, null);
             activity.SetTag(GrpcTagHelper.GrpcStatusCodeTagName, null);
+            activity.SetTag(GrpcTagHelper.GrpcTargetTagName, null);
+        }
 
-            if (validStatusCode)
+        if (validStatusCode)
+        {
+            if (emitOldRpcAttributes)
             {
-                // setting rpc.grpc.status_code
                 activity.SetTag(SemanticConventions.AttributeRpcGrpcStatusCode, grpcStatusCode);
+            }
+
+            if (emitNewRpcAttributes)
+            {
+                activity.SetTag(SemanticConventions.AttributeRpcResponseStatusCode, grpcStatusCode);
             }
         }
     }
