@@ -425,20 +425,12 @@ internal class HttpInListener : ListenerHandler
         {
             activity.SetTag(SemanticConventions.AttributeRpcSystemName, GrpcTagHelper.RpcSystemGrpc);
 
-            if (context.Request.Host.HasValue)
+            if (context.Connection.RemoteIpAddress != null)
             {
-                var uriHostNameType = Uri.CheckHostName(context.Request.Host.Host);
-
-                if (uriHostNameType is UriHostNameType.IPv4 or UriHostNameType.IPv6)
-                {
-                    activity.SetTag(SemanticConventions.AttributeNetworkPeerAddress, context.Request.Host.Host);
-
-                    if (context.Request.Host.Port is { } port)
-                    {
-                        activity.SetTag(SemanticConventions.AttributeNetworkPeerPort, port);
-                    }
-                }
+                activity.SetTag(SemanticConventions.AttributeNetworkPeerAddress, context.Connection.RemoteIpAddress.ToString());
             }
+
+            activity.SetTag(SemanticConventions.AttributeNetworkPeerPort, context.Connection.RemotePort);
         }
 
         if (validStatusCode)
