@@ -193,7 +193,7 @@ public class EventCountersMetricsTests
     }
 
     [Fact]
-    public async Task OnlyConfiguredEventSourcesEmitMetrics()
+    public void OnlyConfiguredEventSourcesEmitMetrics()
     {
         // Arrange
         List<Metric> metrics = [];

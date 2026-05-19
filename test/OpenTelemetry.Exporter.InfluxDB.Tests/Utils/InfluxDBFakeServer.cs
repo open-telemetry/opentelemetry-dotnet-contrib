@@ -31,23 +31,18 @@ internal class InfluxDBFakeServer : IDisposable
                 context.Response.StatusCode = (int)HttpStatusCode.OK;
                 context.Response.Close();
             },
-            out var host,
-            out var port);
-        this.Endpoint = new Uri($"http://{host}:{port}");
+            out var baseAddress);
+        this.Endpoint = baseAddress;
     }
 
     public Uri Endpoint { get; }
 
     public void Dispose()
-    {
-        this.httpServer.Dispose();
-    }
+        => this.httpServer.Dispose();
 
-    public PointData ReadPoint()
-    {
-        return this.lines.TryTake(out var line, TimeSpan.FromSeconds(5))
+    public PointData ReadPoint() =>
+        this.lines.TryTake(out var line, TimeSpan.FromSeconds(5))
             ? LineProtocolParser.ParseLine(line)
             : throw new InvalidOperationException(
                 "Failed to read a data point from the InfluxDB server within the 5-second timeout.");
-    }
 }
