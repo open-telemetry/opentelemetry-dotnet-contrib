@@ -62,7 +62,8 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         finally
         {
             var end = DateTimeOffset.UtcNow;
-            if (result is { IsPartitionEOF: false } || errorType is not null)
+            if (result is { IsPartitionEOF: false } ||
+                (result is null && errorType is not null))
             {
                 this.InstrumentConsumption(start, end, consumeResult, errorType);
             }
@@ -89,7 +90,8 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         finally
         {
             var end = DateTimeOffset.UtcNow;
-            if (result is { IsPartitionEOF: false } || errorType is not null)
+            if (result is { IsPartitionEOF: false } ||
+                (result is null && errorType is not null))
             {
                 this.InstrumentConsumption(start, end, consumeResult, errorType);
             }
@@ -116,7 +118,8 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         finally
         {
             var end = DateTimeOffset.UtcNow;
-            if (result is { IsPartitionEOF: false } || errorType is not null)
+            if (result is { IsPartitionEOF: false } ||
+                (result is null && errorType is not null))
             {
                 this.InstrumentConsumption(start, end, consumeResult, errorType);
             }
