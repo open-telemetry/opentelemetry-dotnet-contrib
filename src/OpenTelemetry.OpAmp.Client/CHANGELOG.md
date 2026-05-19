@@ -2,8 +2,14 @@
 
 ## Unreleased
 
+* Fixed System.Net.Http package version resolution issues for .NET 4.6.2.
+  ([#4402](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4402))
+
 * Add support for multivalue identification attributes.
   ([#4350](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4350))
+
+* Change default OpAMP port from `4318` to `4320`.
+  ([#4374](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4374))
 
 ## 0.3.0-alpha.1
 
