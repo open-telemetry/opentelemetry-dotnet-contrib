@@ -11,7 +11,8 @@ LF = b'\n'
 # Add paths to exclude from sanity checks here
 # Mostly used for auto-generated code
 exclude_folders = [
-    "src/OpenTelemetry.SemanticConventions/Attributes"
+    "src/OpenTelemetry.SemanticConventions/Attributes",
+    "src/OpenTelemetry.SemanticConventions.Incubating/Attributes"
 ]
 # Normalize paths so they work in windows/unix
 exclude_folders = [os.path.normpath(folder) for folder in exclude_folders]
