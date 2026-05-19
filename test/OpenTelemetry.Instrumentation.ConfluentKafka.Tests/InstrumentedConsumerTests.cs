@@ -214,7 +214,8 @@ public class InstrumentedConsumerTests
             tracerProvider.ForceFlush();
         }
 
-        var activity = activities.Single(a => a.DisplayName == "receive");
+        var activity = activities.FirstOrDefault(a => a.DisplayName == "receive");
+        Assert.NotNull(activity);
         Assert.Equal(ActivityKind.Consumer, activity.Kind);
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
         Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
@@ -269,7 +270,8 @@ public class InstrumentedConsumerTests
             tracerProvider.ForceFlush();
         }
 
-        var activity = activities.Single(a => a.DisplayName == "error-topic receive");
+        var activity = activities.FirstOrDefault(a => a.DisplayName == "error-topic receive");
+        Assert.NotNull(activity);
         Assert.Equal(ActivityKind.Consumer, activity.Kind);
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
         Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
@@ -328,7 +330,8 @@ public class InstrumentedConsumerTests
             tracerProvider.ForceFlush();
         }
 
-        var activity = activities.Single(a => a.DisplayName == "error-topic-no-headers receive");
+        var activity = activities.FirstOrDefault(a => a.DisplayName == "error-topic-no-headers receive");
+        Assert.NotNull(activity);
         Assert.Equal(ActivityKind.Consumer, activity.Kind);
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
         Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
@@ -395,7 +398,8 @@ public class InstrumentedConsumerTests
             tracerProvider.ForceFlush();
         }
 
-        var activity = activities.Single(a => a.DisplayName == "error-topic-with-headers receive");
+        var activity = activities.FirstOrDefault(a => a.DisplayName == "error-topic-with-headers receive");
+        Assert.NotNull(activity);
         Assert.NotEmpty(activity.Links);
         Assert.Equal("0af7651916cd43dd8448eb211c80319c", activity.Links.First().Context.TraceId.ToHexString());
         Assert.Equal(ActivityKind.Consumer, activity.Kind);
@@ -452,7 +456,8 @@ public class InstrumentedConsumerTests
             tracerProvider.ForceFlush();
         }
 
-        var activity = activities.Single(a => a.DisplayName == "timeout-topic receive");
+        var activity = activities.FirstOrDefault(a => a.DisplayName == "timeout-topic receive");
+        Assert.NotNull(activity);
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
         Assert.Equal("ConsumeException: Operation timed out", activity.GetTagValue(SemanticConventions.AttributeErrorType));
     }
@@ -498,7 +503,8 @@ public class InstrumentedConsumerTests
             tracerProvider.ForceFlush();
         }
 
-        var activity = activities.Single(a => a.DisplayName == "broker-error-topic receive");
+        var activity = activities.FirstOrDefault(a => a.DisplayName == "broker-error-topic receive");
+        Assert.NotNull(activity);
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
         Assert.Equal("ConsumeException: Transport error", activity.GetTagValue(SemanticConventions.AttributeErrorType));
     }
@@ -535,46 +541,22 @@ public class InstrumentedConsumerTests
         }
 
         var receiveMessagesMetric = metrics.FirstOrDefault(m => m.Name == SemanticConventions.MetricMessagingReceiveMessages);
+        AssertMetric(
+            actualMetric: receiveMessagesMetric,
+            expectedMessagingOperation: ConfluentKafkaCommon.ReceiveOperationName,
+            expectedMessagingSystem: ConfluentKafkaCommon.KafkaMessagingSystem,
+            expectedKafkaDestinationName: null,
+            expectedKafkaDestinationPartition: null,
+            expectedErrorType: "ConsumeException: Deserialization error");
+
         var receiveDurationMetric = metrics.FirstOrDefault(m => m.Name == SemanticConventions.MetricMessagingReceiveDuration);
-
-        Assert.NotNull(receiveMessagesMetric);
-        Assert.NotNull(receiveDurationMetric);
-
-        var messagesEnumerator = receiveMessagesMetric.GetMetricPoints().GetEnumerator();
-        messagesEnumerator.MoveNext();
-        var messagesMetricPoint = messagesEnumerator.Current;
-        Assert.Equal(1L, messagesMetricPoint.GetSumLong());
-
-        var expectedErrorType = "ConsumeException: Deserialization error";
-        var errorTagFound = false;
-        foreach (var tag in messagesMetricPoint.Tags)
-        {
-            if (tag.Key == SemanticConventions.AttributeErrorType)
-            {
-                Assert.Equal(expectedErrorType, tag.Value);
-                errorTagFound = true;
-                break;
-            }
-        }
-
-        Assert.True(errorTagFound, "Error type tag not found in messages metric");
-
-        var durationEnumerator = receiveDurationMetric.GetMetricPoints().GetEnumerator();
-        durationEnumerator.MoveNext();
-        var durationMetricPoint = durationEnumerator.Current;
-        Assert.True(durationMetricPoint.GetHistogramSum() > 0);
-        var durationErrorTagFound = false;
-        foreach (var tag in durationMetricPoint.Tags)
-        {
-            if (tag.Key == SemanticConventions.AttributeErrorType)
-            {
-                Assert.Equal(expectedErrorType, tag.Value);
-                durationErrorTagFound = true;
-                break;
-            }
-        }
-
-        Assert.True(durationErrorTagFound, "Error type tag not found in duration metric");
+        AssertMetric(
+            actualMetric: receiveDurationMetric,
+            expectedMessagingOperation: ConfluentKafkaCommon.ReceiveOperationName,
+            expectedMessagingSystem: ConfluentKafkaCommon.KafkaMessagingSystem,
+            expectedKafkaDestinationName: null,
+            expectedKafkaDestinationPartition: null,
+            expectedErrorType: "ConsumeException: Deserialization error");
     }
 
     [Fact]
@@ -595,7 +577,7 @@ public class InstrumentedConsumerTests
                 Message = null,
             };
 
-            var error = new Error(ErrorCode.Local_KeyDeserialization, "Key deserialization error");
+            var error = new Error(ErrorCode.Local_KeyDeserialization, "Key Deserialization error");
             var exception = new ConsumeException(consumerRecord, error);
 
             var fakeConsumer = new FakeConsumer<string, string>
@@ -616,68 +598,22 @@ public class InstrumentedConsumerTests
         }
 
         var receiveMessagesMetric = metrics.FirstOrDefault(m => m.Name == SemanticConventions.MetricMessagingReceiveMessages);
+        AssertMetric(
+            actualMetric: receiveMessagesMetric,
+            expectedMessagingOperation: ConfluentKafkaCommon.ReceiveOperationName,
+            expectedMessagingSystem: ConfluentKafkaCommon.KafkaMessagingSystem,
+            expectedKafkaDestinationName: "error-topic",
+            expectedKafkaDestinationPartition: 2,
+            expectedErrorType: "ConsumeException: Key Deserialization error");
+
         var receiveDurationMetric = metrics.FirstOrDefault(m => m.Name == SemanticConventions.MetricMessagingReceiveDuration);
-
-        Assert.NotNull(receiveMessagesMetric);
-        Assert.NotNull(receiveDurationMetric);
-
-        var messagesEnumerator = receiveMessagesMetric.GetMetricPoints().GetEnumerator();
-        messagesEnumerator.MoveNext();
-        var messagesMetricPoint = messagesEnumerator.Current;
-        Assert.Equal(1L, messagesMetricPoint.GetSumLong());
-
-        var expectedErrorType = "ConsumeException: Key deserialization error";
-        var topicFound = false;
-        var partitionFound = false;
-        var errorTypeFound = false;
-        foreach (var tag in messagesMetricPoint.Tags)
-        {
-            if (tag.Key == SemanticConventions.AttributeMessagingDestinationName)
-            {
-                Assert.Equal("error-topic", tag.Value?.ToString());
-                topicFound = true;
-            }
-            else if (tag.Key == SemanticConventions.AttributeMessagingKafkaDestinationPartition)
-            {
-                Assert.Equal(2, (int)tag.Value!);
-                partitionFound = true;
-            }
-            else if (tag.Key == SemanticConventions.AttributeErrorType)
-            {
-                Assert.Equal(expectedErrorType, tag.Value?.ToString());
-                errorTypeFound = true;
-            }
-        }
-
-        Assert.True(topicFound && partitionFound && errorTypeFound, "Expected tags not found in messages metric");
-
-        var durationEnumerator = receiveDurationMetric.GetMetricPoints().GetEnumerator();
-        durationEnumerator.MoveNext();
-        var durationMetricPoint = durationEnumerator.Current;
-        Assert.True(durationMetricPoint.GetHistogramSum() > 0);
-        var durationTopicFound = false;
-        var durationPartitionFound = false;
-        var durationErrorTypeFound = false;
-        foreach (var tag in durationMetricPoint.Tags)
-        {
-            if (tag.Key == SemanticConventions.AttributeMessagingDestinationName)
-            {
-                Assert.Equal("error-topic", tag.Value?.ToString());
-                durationTopicFound = true;
-            }
-            else if (tag.Key == SemanticConventions.AttributeMessagingKafkaDestinationPartition)
-            {
-                Assert.Equal(2, (int)tag.Value!);
-                durationPartitionFound = true;
-            }
-            else if (tag.Key == SemanticConventions.AttributeErrorType)
-            {
-                Assert.Equal(expectedErrorType, tag.Value?.ToString());
-                durationErrorTypeFound = true;
-            }
-        }
-
-        Assert.True(durationTopicFound && durationPartitionFound && durationErrorTypeFound, "Expected tags not found in duration metric");
+        AssertMetric(
+            actualMetric: receiveDurationMetric,
+            expectedMessagingOperation: ConfluentKafkaCommon.ReceiveOperationName,
+            expectedMessagingSystem: ConfluentKafkaCommon.KafkaMessagingSystem,
+            expectedKafkaDestinationName: "error-topic",
+            expectedKafkaDestinationPartition: 2,
+            expectedErrorType: "ConsumeException: Key Deserialization error");
     }
 
     [Fact]
@@ -723,68 +659,22 @@ public class InstrumentedConsumerTests
         }
 
         var receiveMessagesMetric = metrics.FirstOrDefault(m => m.Name == SemanticConventions.MetricMessagingReceiveMessages);
+        AssertMetric(
+            actualMetric: receiveMessagesMetric,
+            expectedMessagingOperation: ConfluentKafkaCommon.ReceiveOperationName,
+            expectedMessagingSystem: ConfluentKafkaCommon.KafkaMessagingSystem,
+            expectedKafkaDestinationName: "error-topic-no-headers",
+            expectedKafkaDestinationPartition: 3,
+            expectedErrorType: "ConsumeException: All brokers down");
+
         var receiveDurationMetric = metrics.FirstOrDefault(m => m.Name == SemanticConventions.MetricMessagingReceiveDuration);
-
-        Assert.NotNull(receiveMessagesMetric);
-        Assert.NotNull(receiveDurationMetric);
-
-        var messagesEnumerator = receiveMessagesMetric.GetMetricPoints().GetEnumerator();
-        messagesEnumerator.MoveNext();
-        var messagesMetricPoint = messagesEnumerator.Current;
-        Assert.Equal(1L, messagesMetricPoint.GetSumLong());
-
-        var expectedErrorType = "ConsumeException: All brokers down";
-        var topicFound = false;
-        var partitionFound = false;
-        var errorTypeFound = false;
-        foreach (var tag in messagesMetricPoint.Tags)
-        {
-            if (tag.Key == SemanticConventions.AttributeMessagingDestinationName)
-            {
-                Assert.Equal("error-topic-no-headers", tag.Value?.ToString());
-                topicFound = true;
-            }
-            else if (tag.Key == SemanticConventions.AttributeMessagingKafkaDestinationPartition)
-            {
-                Assert.Equal(3, (int)tag.Value!);
-                partitionFound = true;
-            }
-            else if (tag.Key == SemanticConventions.AttributeErrorType)
-            {
-                Assert.Equal(expectedErrorType, tag.Value?.ToString());
-                errorTypeFound = true;
-            }
-        }
-
-        Assert.True(topicFound && partitionFound && errorTypeFound, "Expected tags not found in messages metric");
-
-        var durationEnumerator = receiveDurationMetric.GetMetricPoints().GetEnumerator();
-        durationEnumerator.MoveNext();
-        var durationMetricPoint = durationEnumerator.Current;
-        Assert.True(durationMetricPoint.GetHistogramSum() > 0);
-        var durationTopicFound = false;
-        var durationPartitionFound = false;
-        var durationErrorTypeFound = false;
-        foreach (var tag in durationMetricPoint.Tags)
-        {
-            if (tag.Key == SemanticConventions.AttributeMessagingDestinationName)
-            {
-                Assert.Equal("error-topic-no-headers", tag.Value?.ToString());
-                durationTopicFound = true;
-            }
-            else if (tag.Key == SemanticConventions.AttributeMessagingKafkaDestinationPartition)
-            {
-                Assert.Equal(3, (int)tag.Value!);
-                durationPartitionFound = true;
-            }
-            else if (tag.Key == SemanticConventions.AttributeErrorType)
-            {
-                Assert.Equal(expectedErrorType, tag.Value?.ToString());
-                durationErrorTypeFound = true;
-            }
-        }
-
-        Assert.True(durationTopicFound && durationPartitionFound && durationErrorTypeFound, "Expected tags not found in duration metric");
+        AssertMetric(
+            actualMetric: receiveDurationMetric,
+            expectedMessagingOperation: ConfluentKafkaCommon.ReceiveOperationName,
+            expectedMessagingSystem: ConfluentKafkaCommon.KafkaMessagingSystem,
+            expectedKafkaDestinationName: "error-topic-no-headers",
+            expectedKafkaDestinationPartition: 3,
+            expectedErrorType: "ConsumeException: All brokers down");
     }
 
     [Fact]
@@ -840,68 +730,100 @@ public class InstrumentedConsumerTests
         }
 
         var receiveMessagesMetric = metrics.FirstOrDefault(m => m.Name == SemanticConventions.MetricMessagingReceiveMessages);
+        AssertMetric(
+            actualMetric: receiveMessagesMetric,
+            expectedMessagingOperation: ConfluentKafkaCommon.ReceiveOperationName,
+            expectedMessagingSystem: ConfluentKafkaCommon.KafkaMessagingSystem,
+            expectedKafkaDestinationName: "error-topic-with-headers",
+            expectedKafkaDestinationPartition: 5,
+            expectedErrorType: "ConsumeException: Broker not available");
+
         var receiveDurationMetric = metrics.FirstOrDefault(m => m.Name == SemanticConventions.MetricMessagingReceiveDuration);
+        AssertMetric(
+            actualMetric: receiveDurationMetric,
+            expectedMessagingOperation: ConfluentKafkaCommon.ReceiveOperationName,
+            expectedMessagingSystem: ConfluentKafkaCommon.KafkaMessagingSystem,
+            expectedKafkaDestinationName: "error-topic-with-headers",
+            expectedKafkaDestinationPartition: 5,
+            expectedErrorType: "ConsumeException: Broker not available");
+    }
 
-        Assert.NotNull(receiveMessagesMetric);
-        Assert.NotNull(receiveDurationMetric);
+    private static void AssertMetric(
+       Metric? actualMetric,
+       string? expectedMessagingOperation,
+       string? expectedMessagingSystem,
+       string? expectedKafkaDestinationName,
+       int? expectedKafkaDestinationPartition,
+       string? expectedErrorType)
+    {
+        Assert.NotNull(actualMetric);
 
-        var messagesEnumerator = receiveMessagesMetric.GetMetricPoints().GetEnumerator();
-        messagesEnumerator.MoveNext();
-        var messagesMetricPoint = messagesEnumerator.Current;
-        Assert.Equal(1L, messagesMetricPoint.GetSumLong());
+        var metricPoint = GetMetricPoint(actualMetric);
 
-        var expectedErrorType = "ConsumeException: Broker not available";
-        var topicFound = false;
-        var partitionFound = false;
+        var destinationNameFound = false;
+        var destinationPartitionFound = false;
         var errorTypeFound = false;
-        foreach (var tag in messagesMetricPoint.Tags)
+
+        foreach (var tag in metricPoint!.Value.Tags)
         {
+            if (tag.Key == SemanticConventions.AttributeMessagingOperation)
+            {
+                Assert.Equal(expectedMessagingOperation, tag.Value?.ToString());
+            }
+
+            if (tag.Key == SemanticConventions.AttributeMessagingSystem)
+            {
+                Assert.Equal(expectedMessagingSystem, tag.Value?.ToString());
+            }
+
             if (tag.Key == SemanticConventions.AttributeMessagingDestinationName)
             {
-                Assert.Equal("error-topic-with-headers", tag.Value?.ToString());
-                topicFound = true;
+                Assert.Equal(expectedKafkaDestinationName, tag.Value?.ToString());
+                destinationNameFound = true;
             }
-            else if (tag.Key == SemanticConventions.AttributeMessagingKafkaDestinationPartition)
+
+            if (tag.Key == SemanticConventions.AttributeMessagingKafkaDestinationPartition)
             {
-                Assert.Equal(5, (int)tag.Value!);
-                partitionFound = true;
+                Assert.Equal(expectedKafkaDestinationPartition, tag.Value);
+                destinationPartitionFound = true;
             }
-            else if (tag.Key == SemanticConventions.AttributeErrorType)
+
+            if (tag.Key == SemanticConventions.AttributeErrorType)
             {
                 Assert.Equal(expectedErrorType, tag.Value?.ToString());
                 errorTypeFound = true;
             }
         }
 
-        Assert.True(topicFound && partitionFound && errorTypeFound, "Expected tags not found in messages metric");
-
-        var durationEnumerator = receiveDurationMetric.GetMetricPoints().GetEnumerator();
-        durationEnumerator.MoveNext();
-        var durationMetricPoint = durationEnumerator.Current;
-        Assert.True(durationMetricPoint.GetHistogramSum() > 0);
-        var durationTopicFound = false;
-        var durationPartitionFound = false;
-        var durationErrorTypeFound = false;
-        foreach (var tag in durationMetricPoint.Tags)
+        if (expectedKafkaDestinationName is null)
         {
-            if (tag.Key == SemanticConventions.AttributeMessagingDestinationName)
-            {
-                Assert.Equal("error-topic-with-headers", tag.Value?.ToString());
-                durationTopicFound = true;
-            }
-            else if (tag.Key == SemanticConventions.AttributeMessagingKafkaDestinationPartition)
-            {
-                Assert.Equal(5, (int)tag.Value!);
-                durationPartitionFound = true;
-            }
-            else if (tag.Key == SemanticConventions.AttributeErrorType)
-            {
-                Assert.Equal(expectedErrorType, tag.Value?.ToString());
-                durationErrorTypeFound = true;
-            }
+            Assert.False(destinationNameFound);
         }
 
-        Assert.True(durationTopicFound && durationPartitionFound && durationErrorTypeFound, "Expected tags not found in duration metric");
+        if (expectedKafkaDestinationPartition is null)
+        {
+            Assert.False(destinationPartitionFound);
+        }
+
+        if (expectedErrorType is null)
+        {
+            Assert.False(errorTypeFound);
+        }
+    }
+
+    private static MetricPoint? GetMetricPoint(Metric? metric)
+    {
+        if (metric == null)
+        {
+            return null;
+        }
+
+        foreach (ref readonly var metricPoint in metric.GetMetricPoints())
+        {
+            return metricPoint;
+        }
+
+        return null;
     }
 
     private sealed class FakeConsumer<TKey, TValue> : IConsumer<TKey, TValue>
