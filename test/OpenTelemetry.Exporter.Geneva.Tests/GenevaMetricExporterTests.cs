@@ -5,6 +5,7 @@
 
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
+using System.Diagnostics.Tracing;
 using System.Globalization;
 using System.Net.Sockets;
 using System.Reflection;
@@ -1410,6 +1411,83 @@ public class GenevaMetricExporterTests
         }
 
         return result;
+    }
+
+    [Fact]
+    public void TlvMetricExporter_BufferOverflow_LogsBufferFullEvent()
+    {
+        var capturedEvents = new List<EventWrittenEventArgs>();
+        var path = string.Empty;
+        Socket server = null;
+
+        using var listener = new BufferOverflowEventListener(capturedEvents);
+        try
+        {
+            string connectionString;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                connectionString = "Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
+            }
+            else
+            {
+                path = GenerateTempFilePath();
+                connectionString = $"Endpoint=unix:{path};Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                server.Bind(endpoint);
+                server.Listen(1);
+            }
+
+            using var meter = new Meter("BufferOverflowTest", "0.0.1");
+            var counter = meter.CreateCounter<long>("overflowCounter");
+
+            using (var meterProvider = Sdk.CreateMeterProviderBuilder()
+                .AddMeter("BufferOverflowTest")
+                .AddGenevaMetricExporter(options => options.ConnectionString = connectionString)
+                .Build())
+            {
+                // Record a metric with a tag value large enough to overflow the fixed-size serialization buffer.
+                counter.Add(1, new KeyValuePair<string, object>("bigTag", new string('x', GenevaMetricExporter.BufferSize + 100)));
+            }
+
+            // Verify that the buffer overflow was logged with the dedicated event (ID 11).
+            Assert.Contains(capturedEvents, e => e.EventId == 11);
+        }
+        finally
+        {
+            server?.Dispose();
+            if (!string.IsNullOrEmpty(path))
+            {
+                try
+                {
+                    File.Delete(path);
+                }
+                catch
+                {
+                }
+            }
+        }
+    }
+
+    private sealed class BufferOverflowEventListener : EventListener
+    {
+        private readonly List<EventWrittenEventArgs> capturedEvents;
+
+        public BufferOverflowEventListener(List<EventWrittenEventArgs> capturedEvents)
+        {
+            this.capturedEvents = capturedEvents;
+        }
+
+        protected override void OnEventSourceCreated(EventSource eventSource)
+        {
+            if (eventSource.Name == "OpenTelemetry-Exporter-Geneva")
+            {
+                this.EnableEvents(eventSource, EventLevel.Error, EventKeywords.All);
+            }
+        }
+
+        protected override void OnEventWritten(EventWrittenEventArgs eventData)
+            => this.capturedEvents.Add(eventData);
     }
 }
 #pragma warning restore CA1861 // // Prefer 'static readonly' fields over constant array arguments if the called method is called repeatedly and is not mutating the passed array

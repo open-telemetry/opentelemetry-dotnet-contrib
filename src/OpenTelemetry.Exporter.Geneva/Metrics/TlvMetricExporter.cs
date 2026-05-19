@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics.Tracing;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -242,6 +243,19 @@ internal sealed class TlvMetricExporter : IDisposable
                         default:
                             break;
                     }
+                }
+                catch (Exception ex) when (ex is IndexOutOfRangeException || ex is ArgumentException)
+                {
+                    // The fixed-size serialization buffer's bounds were exceeded.
+                    // Note: SerializeByte/SerializeUInt16/etc. throw IndexOutOfRangeException when
+                    // the buffer index exceeds the array length; Encoding.UTF8.GetBytes throws
+                    // ArgumentException on .NET 5+ when the destination span is too small.
+                    if (ExporterEventSource.Log.IsEnabled(EventLevel.Error, EventKeywords.All))
+                    {
+                        ExporterEventSource.Log.MetricSerializationBufferFull(metric.Name, GenevaMetricExporter.BufferSize);
+                    }
+
+                    result = ExportResult.Failure;
                 }
                 catch (Exception ex)
                 {
