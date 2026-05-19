@@ -50,7 +50,16 @@ mkdir -p \
   "${STABLE_OUTPUT_DIR}/Attributes" \
   "${INCUBATING_OUTPUT_DIR}/Attributes"
 
+# --user "$(id -u):$(id -g)" makes the weaver container write generated files
+# as the host user. Without it, the otel/weaver image's default UID can't
+# write to the mounted host directory on Linux GitHub Actions runners (host
+# tree is owned by `runner` UID 1001) and every Attributes/*.cs / SchemaUrl.cs
+# / SchemaVersion.cs write fails with "Permission denied (os error 13)".
+# macOS Docker Desktop hides this with VirtioFS user-mapping, which is why
+# the script runs clean locally but failed in CI on the first run after the
+# Codex-fix push (see run 26090999239).
 docker run --rm \
+  --user "$(id -u):$(id -g)" \
   -v "${SEMCONV_REPO_DIR}/model:/source:ro" \
   -v "${SCRIPT_DIR}/templates:/templates:ro" \
   -v "${SRC_DIR}:/output" \
