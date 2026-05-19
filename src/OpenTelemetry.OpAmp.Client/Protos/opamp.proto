@@ -300,7 +300,7 @@ enum ServerCapabilities {
 // Status: [Beta]
 message OpAMPConnectionSettings {
     // OpAMP Server URL This MUST be a WebSocket or HTTP URL and MUST be non-empty, for
-    // example: "wss://example.com:4318/v1/opamp"
+    // example: "wss://example.com:4320/v1/opamp"
     string destination_endpoint = 1;
 
     // Optional headers to use when connecting. Typically used to set access tokens or
