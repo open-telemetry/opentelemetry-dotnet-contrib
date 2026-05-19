@@ -177,8 +177,14 @@ public class AWSXRayPropagatorTests
         {
             { AWSXRayTraceHeaderKey, "Root=1-5759e988-bd862e3fe1be46a994272793;Sampled=1" },
         };
+        var traceId = ActivityTraceId.CreateFromString(TraceId.AsSpan());
 
-        Assert.Equal(default, this.awsXRayPropagator.Extract(default, carrier, Getter));
+        var result = this.awsXRayPropagator.Extract(default, carrier, Getter);
+
+        Assert.Equal(traceId, result.ActivityContext.TraceId);
+        Assert.NotEqual(default, result.ActivityContext.SpanId); // "because a new SpanId should be generated when Parent is missing"
+        Assert.True((result.ActivityContext.TraceFlags & ActivityTraceFlags.Recorded) != 0, "because Sampled=1");
+        Assert.True(result.ActivityContext.IsRemote);
     }
 
     [Fact]
@@ -188,8 +194,29 @@ public class AWSXRayPropagatorTests
         {
             { AWSXRayTraceHeaderKey, "Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8" },
         };
+        var traceId = ActivityTraceId.CreateFromString(TraceId.AsSpan());
+        var parentId = ActivitySpanId.CreateFromString(ParentId.AsSpan());
+        var traceFlags = ActivityTraceFlags.None;
+        var activityContext = new ActivityContext(traceId, parentId, traceFlags, isRemote: true);
 
-        Assert.Equal(default, this.awsXRayPropagator.Extract(default, carrier, Getter));
+        Assert.Equal(new PropagationContext(activityContext, default), this.awsXRayPropagator.Extract(default, carrier, Getter));
+    }
+
+    [Fact]
+    public void TestExtractTraceHeaderWithoutParentIdAndSampleDecision()
+    {
+        var carrier = new Dictionary<string, string>()
+        {
+            { AWSXRayTraceHeaderKey, "Root=1-5759e988-bd862e3fe1be46a994272793" },
+        };
+        var traceId = ActivityTraceId.CreateFromString(TraceId.AsSpan());
+
+        var result = this.awsXRayPropagator.Extract(default, carrier, Getter);
+
+        Assert.Equal(traceId, result.ActivityContext.TraceId);
+        Assert.NotEqual(default, result.ActivityContext.SpanId); // "because a new SpanId should be generated when Parent is missing"
+        Assert.True((result.ActivityContext.TraceFlags & ActivityTraceFlags.None) == 0, "because Sampled is missing");
+        Assert.True(result.ActivityContext.IsRemote);
     }
 
     [Fact]

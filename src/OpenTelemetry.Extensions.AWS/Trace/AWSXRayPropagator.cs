@@ -214,13 +214,17 @@ public class AWSXRayPropagator : TextMapPropagator
             }
         }
 
-        if (traceId.IsEmpty || parentId.IsEmpty || traceOptions == default)
+        if (traceId.IsEmpty)
         {
             return false;
         }
 
         var activityTraceId = ActivityTraceId.CreateFromString(traceId);
-        var activityParentId = ActivitySpanId.CreateFromString(parentId);
+
+        // Generate a new span ID if Parent is missing (ALB generating only Root param scenario)
+        var activityParentId = parentId.IsEmpty ? ActivitySpanId.CreateRandom() : ActivitySpanId.CreateFromString(parentId);
+
+        // Default to None if not specified
         var activityTraceOptions = traceOptions == SampledValue ? ActivityTraceFlags.Recorded : ActivityTraceFlags.None;
 
         activityContext = new ActivityContext(activityTraceId, activityParentId, activityTraceOptions, isRemote: true);
