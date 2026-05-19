@@ -24,7 +24,29 @@ public class InstrumentedChannelAsyncCallbackTests
 
         Assert.NotNull(asyncResult);
         Assert.NotNull(inner.LastBeginRequestArgs);
-        Assert.Null(inner.LastBeginRequestArgs![1]);
+        Assert.Null(inner.LastBeginRequestArgs[1]);
+        Assert.Same(state, inner.LastBeginRequestArgs[2]);
+    }
+
+    [Fact]
+    public void BeginRequest_AllowsSuppressedExecutionContextFlow()
+    {
+        var inner = new RecordingRequestChannel();
+        var channel = (IRequestChannel)new InstrumentedRequestChannel(inner);
+        var state = new object();
+
+        using (ExecutionContext.SuppressFlow())
+        {
+            var asyncResult = channel.BeginRequest(
+                Message.CreateMessage(MessageVersion.Soap11, "urn:test"),
+                callback: null,
+                state);
+
+            Assert.NotNull(asyncResult);
+        }
+
+        Assert.NotNull(inner.LastBeginRequestArgs);
+        Assert.Null(inner.LastBeginRequestArgs[1]);
         Assert.Same(state, inner.LastBeginRequestArgs[2]);
     }
 
@@ -42,8 +64,44 @@ public class InstrumentedChannelAsyncCallbackTests
 
         Assert.NotNull(asyncResult);
         Assert.NotNull(inner.LastBeginSendArgs);
-        Assert.Null(inner.LastBeginSendArgs![1]);
+        Assert.Null(inner.LastBeginSendArgs[1]);
         Assert.Same(state, inner.LastBeginSendArgs[2]);
+    }
+
+    [Fact]
+    public void BeginSend_AllowsSuppressedExecutionContextFlow()
+    {
+        var inner = new RecordingDuplexChannel();
+        var channel = new InstrumentedDuplexChannel(inner, TimeSpan.FromSeconds(1));
+        var state = new object();
+
+        using (ExecutionContext.SuppressFlow())
+        {
+            var asyncResult = channel.BeginSend(
+                Message.CreateMessage(MessageVersion.Soap11, "urn:test"),
+                callback: null,
+                state);
+
+            Assert.NotNull(asyncResult);
+        }
+
+        Assert.NotNull(inner.LastBeginSendArgs);
+        Assert.Null(inner.LastBeginSendArgs[1]);
+        Assert.Same(state, inner.LastBeginSendArgs[2]);
+    }
+
+    [Fact]
+    public void Send_AllowsSuppressedExecutionContextFlow()
+    {
+        var inner = new RecordingDuplexChannel();
+        var channel = new InstrumentedDuplexChannel(inner, TimeSpan.FromSeconds(1));
+
+        using (ExecutionContext.SuppressFlow())
+        {
+            channel.Send(Message.CreateMessage(MessageVersion.Soap11, "urn:test"));
+        }
+
+        Assert.True(inner.SendCalled);
     }
 
     [Fact]
@@ -57,7 +115,7 @@ public class InstrumentedChannelAsyncCallbackTests
 
         Assert.NotNull(asyncResult);
         Assert.NotNull(inner.LastBeginReceiveArgs);
-        Assert.Null(inner.LastBeginReceiveArgs![0]);
+        Assert.Null(inner.LastBeginReceiveArgs[0]);
         Assert.Same(state, inner.LastBeginReceiveArgs[1]);
     }
 
@@ -217,6 +275,8 @@ public class InstrumentedChannelAsyncCallbackTests
 
         public object?[]? LastBeginSendArgs { get; private set; }
 
+        public bool SendCalled { get; private set; }
+
         public EndpointAddress LocalAddress { get; } = new("net.tcp://localhost/Local");
 
         public EndpointAddress RemoteAddress { get; } = new("net.tcp://localhost/Service");
@@ -225,10 +285,12 @@ public class InstrumentedChannelAsyncCallbackTests
 
         public void Send(Message message)
         {
+            this.SendCalled = true;
         }
 
         public void Send(Message message, TimeSpan timeout)
         {
+            this.SendCalled = true;
         }
 
         public IAsyncResult BeginSend(Message message, AsyncCallback callback, object state)
