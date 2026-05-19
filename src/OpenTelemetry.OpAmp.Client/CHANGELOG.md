@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Fixed System.Net.Http package version resolution issues for .NET 4.6.2.
+  ([#4402](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4402))
+
 * Add support for multivalue identification attributes.
   ([#4350](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4350))
 
