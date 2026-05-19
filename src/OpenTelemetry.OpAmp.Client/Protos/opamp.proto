@@ -834,7 +834,7 @@ message RemoteConfigStatus {
 
 // Status: [Development]
 message ConnectionSettingsStatus {
-    // The hash of the connection settings that was last recieved by this Agent
+    // The hash of the connection settings that was last received by this Agent
     // in the connection_settings.hash field. The Server SHOULD compare this
     // hash with the OfferedConnectionSettings hash it has for the Agent and if
     // the hashes are different the Server MUST include the connection_settings
