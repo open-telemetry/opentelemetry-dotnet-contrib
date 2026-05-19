@@ -9,6 +9,7 @@ using Xunit.Abstractions;
 namespace OpenTelemetry.Tests;
 
 [Collection(WeaverCollection.Name)]
+[Trait("Category", "Weaver")]
 public abstract class WeaverSpecificationTests(WeaverFixture fixture, ITestOutputHelper outputHelper) : IDisposable
 {
     ~WeaverSpecificationTests()
@@ -27,16 +28,16 @@ public abstract class WeaverSpecificationTests(WeaverFixture fixture, ITestOutpu
     }
 
     protected async Task AssertTelemetryConformsToSemanticConventions(
-        (ICollection<Activity> Traces, ICollection<Metric> Metrics) telemetry,
+        (IReadOnlyList<Activity> Traces, IReadOnlyList<Metric> Metrics) telemetry,
         Version semanticConventionsVersion,
-        IReadOnlyList<string>? suppressAdviceIds = null,
+        IReadOnlyList<KeyValuePair<string, string?>>? suppressAdvice = null,
         CancellationToken cancellationToken = default) =>
         await WeaverTelemetryVerifier.VerifyAsync(
             telemetry,
             semanticConventionsVersion,
             this.Fixture,
             this.OutputHelper,
-            suppressAdviceIds,
+            suppressAdvice,
             cancellationToken);
 
     protected virtual void Dispose(bool disposing)

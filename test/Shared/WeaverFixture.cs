@@ -22,7 +22,7 @@ public sealed class WeaverFixture : XunitContainerFixture<IContainer>
 
         if (OperatingSystem.IsLinux())
         {
-            var mode = UnixFileMode.UserWrite | UnixFileMode.GroupRead | UnixFileMode.OtherRead;
+            var mode = UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.GroupRead | UnixFileMode.OtherRead;
             File.SetUnixFileMode(this.inputFilePath, mode);
         }
 #else

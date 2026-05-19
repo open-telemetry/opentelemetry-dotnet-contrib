@@ -176,7 +176,7 @@ public sealed class SqlClientIntegrationTests :
             SqlTelemetryHelper.SemanticConventionsVersion,
             this.weaver,
             this.outputHelper,
-            ["invalid_format"]); // See https://github.com/open-telemetry/weaver/issues/1443
+            [new("invalid_format", null)]); // See https://github.com/open-telemetry/weaver/issues/1443
     }
 #endif
 

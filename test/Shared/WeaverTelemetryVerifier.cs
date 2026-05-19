@@ -19,11 +19,11 @@ public static class WeaverTelemetryVerifier
     };
 
     public static async Task VerifyAsync(
-        (ICollection<Activity> Traces, ICollection<Metric> Metrics) telemetry,
+        (IReadOnlyList<Activity> Traces, IReadOnlyList<Metric> Metrics) telemetry,
         Version semanticConventionsVersion,
         WeaverFixture weaver,
         ITestOutputHelper outputHelper,
-        IReadOnlyList<string>? suppressAdviceIds = null,
+        IReadOnlyList<KeyValuePair<string, string?>>? suppressAdvice = null,
         CancellationToken cancellationToken = default)
     {
         Assert.NotEqual(0, telemetry.Metrics.Count + telemetry.Traces.Count);
@@ -31,23 +31,13 @@ public static class WeaverTelemetryVerifier
         Assert.NotNull(weaver);
         Assert.NotNull(outputHelper);
 
-        // Exclude any non-OpenTelemetry telemetry as we have not control
-        // over whether it conforms to the Semantic Conventions or not.
-        var metrics = telemetry.Metrics
-            .Where((p) => p.MeterName.StartsWith("OpenTelemetry", StringComparison.Ordinal))
-            .ToList();
-
-        var traces = telemetry.Traces
-            .Where((p) => p.Source.Name.StartsWith("OpenTelemetry", StringComparison.Ordinal))
-            .ToList();
-
-        var json = ToWeaverJson(traces, metrics);
+        var json = ToWeaverJson(telemetry.Traces, telemetry.Metrics);
 
         // Act and Assert
         await VerifyWeaverJsonAsync(
             json,
             semanticConventionsVersion,
-            suppressAdviceIds ?? [],
+            suppressAdvice ?? [],
             weaver,
             outputHelper,
             cancellationToken);
@@ -56,7 +46,7 @@ public static class WeaverTelemetryVerifier
     private static async Task VerifyWeaverJsonAsync(
         string json,
         Version semanticConventionsVersion,
-        IReadOnlyList<string> suppressAdviceIds,
+        IReadOnlyList<KeyValuePair<string, string?>>? suppressAdvice,
         WeaverFixture weaver,
         ITestOutputHelper outputHelper,
         CancellationToken cancellationToken)
@@ -81,16 +71,16 @@ public static class WeaverTelemetryVerifier
         Assert.Equal(0, actual.ExitCode);
         Assert.NotEmpty(actual.Stdout);
 
-        var report = JsonSerializer.Deserialize<LiveCheckReport>(actual.Stdout);
+        var report = JsonSerializer.Deserialize<LiveCheckReport>(actual.Stdout, SerializerOptions);
 
         AssertReport(
             semanticConventionsVersion,
-            suppressAdviceIds,
+            suppressAdvice ?? [],
             report,
             outputHelper);
     }
 
-    private static string ToWeaverJson(List<Activity> activities, List<Metric> metrics)
+    private static string ToWeaverJson(IReadOnlyList<Activity> activities, IReadOnlyList<Metric> metrics)
     {
         JsonArray root = [];
 
@@ -153,7 +143,7 @@ public static class WeaverTelemetryVerifier
 
     private static void AssertReport(
         Version semanticConventionsVersion,
-        IReadOnlyList<string> suppressAdviceIds,
+        IReadOnlyList<KeyValuePair<string, string?>> suppressAdvice,
         LiveCheckReport? report,
         ITestOutputHelper outputHelper)
     {
@@ -167,9 +157,28 @@ public static class WeaverTelemetryVerifier
             var finding = $"[{advice.Level}] {advice.Id}: {advice.Message}";
             findings.Add(finding);
 
-            if (advice.Level is not ("improvement" or "information") && !suppressAdviceIds.Contains(advice.Id))
+            if (advice.Level is not ("improvement" or "information"))
             {
-                violations.Add(finding);
+                bool ignore = false;
+
+                if (advice.Id is { Length: > 0 } id)
+                {
+                    if (suppressAdvice.Contains(new(id, null)))
+                    {
+                        ignore = true;
+                    }
+                    else if (advice.ExtensionData.TryGetValue("signal_name", out var extensionValue) &&
+                             extensionValue.ValueKind == JsonValueKind.String &&
+                             suppressAdvice.Contains(new(id, extensionValue.GetString())))
+                    {
+                        ignore = true;
+                    }
+                }
+
+                if (!ignore)
+                {
+                    violations.Add(finding);
+                }
             }
         }
 
@@ -517,13 +526,19 @@ public static class WeaverTelemetryVerifier
 
             switch (metric.MetricType)
             {
-                case MetricType.LongSum:
                 case MetricType.LongGauge:
+                    dataPoint["value"] = point.GetGaugeLastValueLong();
+                    break;
+
+                case MetricType.LongSum:
                     dataPoint["value"] = point.GetSumLong();
                     break;
 
-                case MetricType.DoubleSum:
                 case MetricType.DoubleGauge:
+                    dataPoint["value"] = point.GetGaugeLastValueDouble();
+                    break;
+
+                case MetricType.DoubleSum:
                     dataPoint["value"] = point.GetSumDouble();
                     break;
 
@@ -603,12 +618,12 @@ public static class WeaverTelemetryVerifier
         MetricType.DoubleGauge => "gauge",
         MetricType.DoubleSum => "counter",
         MetricType.DoubleSumNonMonotonic => "updowncounter",
-        MetricType.ExponentialHistogram => "updowncounter",
+        MetricType.ExponentialHistogram => "histogram",
         MetricType.Histogram => "histogram",
         MetricType.LongGauge => "gauge",
         MetricType.LongSum => "counter",
         MetricType.LongSumNonMonotonic => "updowncounter",
-        _ => "counter",
+        _ => throw new InvalidOperationException($"Unsupported metric type for instrument conversion: {metric.MetricType}."),
     };
 
     private sealed class LiveCheckReport

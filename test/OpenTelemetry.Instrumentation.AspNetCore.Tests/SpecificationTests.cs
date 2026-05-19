@@ -9,10 +9,12 @@ using Microsoft.Extensions.Logging;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
+using Xunit;
 using Xunit.Abstractions;
 
 namespace OpenTelemetry.Instrumentation.AspNetCore.Tests;
 
+[Trait("Category", "Weaver")]
 public sealed class SpecificationTests(WeaverFixture fixture, ITestOutputHelper outputHelper)
     : WeaverSpecificationTests(fixture, outputHelper)
 {

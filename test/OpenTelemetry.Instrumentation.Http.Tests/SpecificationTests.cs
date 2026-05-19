@@ -8,10 +8,12 @@ using System.Net.Http;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
+using Xunit;
 using Xunit.Abstractions;
 
 namespace OpenTelemetry.Instrumentation.Http.Tests;
 
+[Trait("Category", "Weaver")]
 public sealed class SpecificationTests : WeaverSpecificationTests
 {
     private readonly ITestOutputHelper outputHelper;
@@ -64,12 +66,17 @@ public sealed class SpecificationTests : WeaverSpecificationTests
         // Act and Assert
         await this.AssertTelemetryConformsToSemanticConventions(
             (activities, metrics),
-            HttpClientInstrumentation.SemanticConventionsVersion);
+            HttpClientInstrumentation.SemanticConventionsVersion,
+            [new("missing_metric", "http.client.request.time_in_queue")]); // See https://github.com/open-telemetry/semantic-conventions/issues/3720
     }
 
     protected override void Dispose(bool disposing)
     {
+        if (disposing)
+        {
+            this.serverLifeTime?.Dispose();
+        }
+
         base.Dispose(disposing);
-        this.serverLifeTime?.Dispose();
     }
 }
