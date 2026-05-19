@@ -275,6 +275,7 @@ internal class HttpInListener : ListenerHandler
             }
 
             var response = context.Response;
+            var statusCodeSet = false;
 
             if (!Net11OrGreater || !this.nativeAspNetCoreOpenTelemetryEnabled)
             {
@@ -288,6 +289,7 @@ internal class HttpInListener : ListenerHandler
 #endif
 
                 activity.SetTag(SemanticConventions.AttributeHttpResponseStatusCode, TelemetryHelper.GetBoxedStatusCode(response.StatusCode));
+                statusCodeSet = true;
 
                 if (activity.Status == ActivityStatusCode.Unset)
                 {
@@ -299,7 +301,7 @@ internal class HttpInListener : ListenerHandler
             {
                 // Single pass over the tag collection to retrieve both gRPC tags,
                 // avoiding separate GetTagValue iterations.
-                int grpcStatusCode = -1;
+                var grpcStatusCode = -1;
                 var hasGrpcStatusCode = false;
 
                 var tagEnumerator = activity.EnumerateTagObjects();
@@ -321,9 +323,14 @@ internal class HttpInListener : ListenerHandler
                     }
                 }
 
-                if (!string.IsNullOrEmpty(grpcMethod))
+                if (grpcMethod is { Length: > 0 })
                 {
-                    AddGrpcAttributes(activity, grpcMethod!, context, grpcStatusCode, hasGrpcStatusCode);
+                    if (!statusCodeSet)
+                    {
+                        activity.SetTag(SemanticConventions.AttributeHttpResponseStatusCode, TelemetryHelper.GetBoxedStatusCode(response.StatusCode));
+                    }
+
+                    AddGrpcAttributes(activity, grpcMethod, context, grpcStatusCode, hasGrpcStatusCode);
                 }
             }
 
