@@ -179,6 +179,7 @@
     <Project Path="src/OpenTelemetry.Resources.ProcessRuntime/OpenTelemetry.Resources.ProcessRuntime.csproj" />
     <Project Path="src/OpenTelemetry.Sampler.AWS/OpenTelemetry.Sampler.AWS.csproj" />
     <Project Path="src/OpenTelemetry.SemanticConventions/OpenTelemetry.SemanticConventions.csproj" />
+    <Project Path="src/OpenTelemetry.SemanticConventions.Incubating/OpenTelemetry.SemanticConventions.Incubating.csproj" />
   </Folder>
   <Folder Name="/src/Shared/">
     <File Path="src/Shared/ActivityHelperExtensions.cs" />
@@ -295,6 +296,7 @@
     <Project Path="test/OpenTelemetry.Resources.Process.Tests/OpenTelemetry.Resources.Process.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Resources.ProcessRuntime.Tests/OpenTelemetry.Resources.ProcessRuntime.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Sampler.AWS.Tests/OpenTelemetry.Sampler.AWS.Tests.csproj" />
+    <Project Path="test/OpenTelemetry.SemanticConventions.Tests/OpenTelemetry.SemanticConventions.Tests.csproj" />
     <Project Path="test/TestApp.AspNetCore/TestApp.AspNetCore.csproj" />
   </Folder>
   <Folder Name="/test/Shared/">

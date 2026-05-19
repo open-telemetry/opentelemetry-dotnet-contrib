@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>$(NetStandardMinimumSupportedVersion)</TargetFramework>
-    <Description>OpenTelemetry Semantic Conventions.</Description>
+    <Description>Stable OpenTelemetry Semantic Conventions.</Description>
     <PackageTags>$(PackageTags);semantic-conventions</PackageTags>
     <MinVerTagPrefix>SemanticConventions-</MinVerTagPrefix>
   </PropertyGroup>

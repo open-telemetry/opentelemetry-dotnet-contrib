@@ -1,5 +1,9 @@
 params:
 
+  semconv_version: "1.41.0"
+  semconv_commit: "e018fe6f91862f5ed63c082f87697cddac596784"
+  schema_url: "https://opentelemetry.io/schemas/1.41.0"
+
   # excluded attributes will not be generated
   # this behavior is fully controlled by jinja templates
   excluded_attributes: ["messaging.client_id", "otel.library.name", "otel.library.version"]
@@ -31,10 +35,55 @@ templates:
         "exclude_deprecated": false,
         "exclude_stability": [],
       }) | map({
+          package_name: "OpenTelemetry.SemanticConventions",
+          namespace: "OpenTelemetry.SemanticConventions",
           root_namespace: .root_namespace,
-          attributes: .attributes,
+          attributes: (.attributes | map(select(.name as $attribute_name | (($excluded_attributes | index($attribute_name)) | not) and (.stability == "stable") and (.deprecated == null)))),
           excluded_attributes: $excluded_attributes
-      })
+      }) | map(select(.attributes | length > 0))
+    application_mode: each
+  - pattern: SemanticConventionsAttributes.cs.j2
+    filter: >
+      semconv_grouped_attributes({
+        "exclude_deprecated": false,
+        "exclude_stability": [],
+      }) | map({
+          package_name: "OpenTelemetry.SemanticConventions.Incubating",
+          namespace: "OpenTelemetry.SemanticConventions.Incubating",
+          root_namespace: .root_namespace,
+          attributes: (.attributes | map(select(.name as $attribute_name | (($excluded_attributes | index($attribute_name)) | not) and ((.stability != "stable") or (.deprecated != null))))),
+          excluded_attributes: $excluded_attributes
+      }) | map(select(.attributes | length > 0))
+    application_mode: each
+  - pattern: SchemaUrl.cs.j2
+    filter: >
+      [
+        {
+          package_name: "OpenTelemetry.SemanticConventions",
+          namespace: "OpenTelemetry.SemanticConventions",
+          schema_url: $schema_url
+        },
+        {
+          package_name: "OpenTelemetry.SemanticConventions.Incubating",
+          namespace: "OpenTelemetry.SemanticConventions.Incubating",
+          schema_url: $schema_url
+        }
+      ]
+    application_mode: each
+  - pattern: SchemaVersion.cs.j2
+    filter: >
+      [
+        {
+          package_name: "OpenTelemetry.SemanticConventions",
+          namespace: "OpenTelemetry.SemanticConventions",
+          semconv_version: $semconv_version
+        },
+        {
+          package_name: "OpenTelemetry.SemanticConventions.Incubating",
+          namespace: "OpenTelemetry.SemanticConventions.Incubating",
+          semconv_version: $semconv_version
+        }
+      ]
     application_mode: each
 
 text_maps:

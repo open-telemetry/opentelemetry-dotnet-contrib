@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>$(NetStandardMinimumSupportedVersion)</TargetFramework>
+    <Description>Incubating OpenTelemetry Semantic Conventions.</Description>
+    <PackageTags>$(PackageTags);semantic-conventions;incubating</PackageTags>
+    <MinVerTagPrefix>SemanticConventions-</MinVerTagPrefix>
+    <DisablePackageBaselineValidation>true</DisablePackageBaselineValidation>
+  </PropertyGroup>
+
+</Project>

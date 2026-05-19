@@ -2,13 +2,18 @@
 
   <PropertyGroup>
     <RepoRoot>$([System.IO.Directory]::GetParent($(MSBuildThisFileDirectory)).Parent.Parent.FullName)</RepoRoot>
-    <MinVerTagPrefix>Exporter.SemanticConventions-</MinVerTagPrefix>
+    <MinVerTagPrefix>SemanticConventions-</MinVerTagPrefix>
   </PropertyGroup>
 
   <ItemGroup>
     <SolutionProjects Include="$(RepoRoot)\src\OpenTelemetry.SemanticConventions\OpenTelemetry.SemanticConventions.csproj" />
+    <SolutionProjects Include="$(RepoRoot)\src\OpenTelemetry.SemanticConventions.Incubating\OpenTelemetry.SemanticConventions.Incubating.csproj" />
+    <SolutionProjects Include="$(RepoRoot)\test\OpenTelemetry.SemanticConventions.Tests\OpenTelemetry.SemanticConventions.Tests.csproj" />
 
     <PackProjects Include="$(RepoRoot)\src\OpenTelemetry.SemanticConventions\OpenTelemetry.SemanticConventions.csproj" />
+    <PackProjects Include="$(RepoRoot)\src\OpenTelemetry.SemanticConventions.Incubating\OpenTelemetry.SemanticConventions.Incubating.csproj" />
+
+    <TestProjects Include="$(RepoRoot)\test\OpenTelemetry.SemanticConventions.Tests\OpenTelemetry.SemanticConventions.Tests.csproj" />
   </ItemGroup>
 
   <Target Name="Build">

@@ -31,6 +31,14 @@ bld/
 [Oo]bj/
 [Ll]og/
 
+# Generated SemanticConventions/Log attribute classes — escape the broad
+# [Ll]og/ exclusion above. Without this, the OTel registry's log.* development
+# attributes (log.iostream, log.record.original, log.record.uid, ...) are
+# emitted into src/OpenTelemetry.SemanticConventions.Incubating/Attributes/Log/
+# during generation but silently dropped from the commit. Codex PR review on
+# #4362 flagged this as P2.
+!src/OpenTelemetry.SemanticConventions*/Attributes/Log/
+
 # Visual Studio 2015/2017 cache/options directory
 .vs/
 # Uncomment if you have tasks that create the project's static files in wwwroot
