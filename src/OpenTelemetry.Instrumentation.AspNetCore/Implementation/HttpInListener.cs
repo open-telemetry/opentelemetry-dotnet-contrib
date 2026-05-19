@@ -267,11 +267,10 @@ internal class HttpInListener : ListenerHandler
 
             activity.SetTag(SemanticConventions.AttributeHttpResponseStatusCode, TelemetryHelper.GetBoxedStatusCode(response.StatusCode));
 
-            if (this.options.EnableGrpcAspNetCoreSupport && IsGrpcRequestProtocol(context.Request.Protocol))
+            if (this.options.EnableGrpcAspNetCoreSupport && IsGrpcRequest(activity, out var grpcMethod))
             {
                 // Single pass over the tag collection to retrieve both gRPC tags,
-                // avoiding two separate GetTagValue iterations.
-                string? grpcMethod = null;
+                // avoiding separate GetTagValue iterations.
                 int grpcStatusCode = -1;
                 var hasGrpcStatusCode = false;
 
@@ -453,8 +452,14 @@ internal class HttpInListener : ListenerHandler
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsGrpcRequestProtocol(string protocol) =>
-        protocol == "HTTP/2" || protocol == "HTTP/3";
+    private static bool IsGrpcRequest(Activity activity, [NotNullWhen(true)] out string? grpcMethod)
+    {
+        // gRPC-Web (https://learn.microsoft.com/aspnet/core/grpc/grpcweb) allows ASP.NET Core
+        // to support using gRPC from clients that do not support HTTP/2 or HTTP/3, so we
+        // can't just look at the HTTP protocol version to attempt to shortcut the test.
+        grpcMethod = GrpcTagHelper.GetGrpcMethodFromActivity(activity);
+        return !string.IsNullOrEmpty(grpcMethod);
+    }
 
     private readonly struct GrpcMethodDetails
     {
