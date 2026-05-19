@@ -339,16 +339,18 @@ public sealed class EntityFrameworkIntegrationTests :
 
             // Act
             await context.Database.ExecuteSqlRawAsync(
-                "SELECT @x + @y",
+                "SELECT @x + @y + @z",
                 CreateParameter(provider, "@x", 42),
-                CreateParameter(provider, "@y", 37));
+                CreateParameter(provider, "@y", 37),
+                CreateParameter(provider, "@z", 1234.56));
         }
 
         // Assert
         var activity = Assert.Single(activities);
 
-        Assert.Equal(42, activity.GetTagValue("db.query.parameter.@x"));
-        Assert.Equal(37, activity.GetTagValue("db.query.parameter.@y"));
+        Assert.Equal("42", activity.GetTagValue("db.query.parameter.@x"));
+        Assert.Equal("37", activity.GetTagValue("db.query.parameter.@y"));
+        Assert.Equal("1234.56", activity.GetTagValue("db.query.parameter.@z"));
     }
 
     [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]

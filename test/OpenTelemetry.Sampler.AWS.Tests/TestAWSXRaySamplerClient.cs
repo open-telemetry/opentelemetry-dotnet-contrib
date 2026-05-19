@@ -17,9 +17,8 @@ public class TestAWSXRaySamplerClient : IDisposable
         this.requestHandler = new MockServerRequestHandler();
         this.mockServer = TestHttpServer.RunServer(
             this.requestHandler.Handle,
-            out var host,
-            out var port);
-        this.client = new AWSXRaySamplerClient($"http://{host}:{port}");
+            out var endpoint);
+        this.client = new AWSXRaySamplerClient(endpoint.ToString().TrimEnd('/'));
     }
 
     public void Dispose()

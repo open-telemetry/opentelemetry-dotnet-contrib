@@ -32,6 +32,7 @@ OpenTelemetry.OpAmp.Client.OpAmpClient.Subscribe<T>(OpenTelemetry.OpAmp.Client.L
 OpenTelemetry.OpAmp.Client.OpAmpClient.Unsubscribe<T>(OpenTelemetry.OpAmp.Client.Listeners.IOpAmpListener<T!>! listener) -> void
 OpenTelemetry.OpAmp.Client.Settings.AnyValueUnion
 OpenTelemetry.OpAmp.Client.Settings.AnyValueUnion.AnyValueUnion() -> void
+OpenTelemetry.OpAmp.Client.Settings.AnyValueUnion.ArrayValue.get -> System.Collections.Generic.ICollection<OpenTelemetry.OpAmp.Client.Settings.AnyValueUnion>?
 OpenTelemetry.OpAmp.Client.Settings.AnyValueUnion.BoolValue.get -> bool?
 OpenTelemetry.OpAmp.Client.Settings.AnyValueUnion.DoubleValue.get -> double?
 OpenTelemetry.OpAmp.Client.Settings.AnyValueUnion.Equals(OpenTelemetry.OpAmp.Client.Settings.AnyValueUnion other) -> bool
@@ -55,10 +56,18 @@ OpenTelemetry.OpAmp.Client.Settings.IdentificationSettings.AddIdentifyingAttribu
 OpenTelemetry.OpAmp.Client.Settings.IdentificationSettings.AddIdentifyingAttribute(string! key, double value) -> void
 OpenTelemetry.OpAmp.Client.Settings.IdentificationSettings.AddIdentifyingAttribute(string! key, int value) -> void
 OpenTelemetry.OpAmp.Client.Settings.IdentificationSettings.AddIdentifyingAttribute(string! key, string! value) -> void
+OpenTelemetry.OpAmp.Client.Settings.IdentificationSettings.AddIdentifyingAttribute(string! key, System.Collections.Generic.ICollection<bool>! values) -> void
+OpenTelemetry.OpAmp.Client.Settings.IdentificationSettings.AddIdentifyingAttribute(string! key, System.Collections.Generic.ICollection<double>! values) -> void
+OpenTelemetry.OpAmp.Client.Settings.IdentificationSettings.AddIdentifyingAttribute(string! key, System.Collections.Generic.ICollection<int>! values) -> void
+OpenTelemetry.OpAmp.Client.Settings.IdentificationSettings.AddIdentifyingAttribute(string! key, System.Collections.Generic.ICollection<string!>! values) -> void
 OpenTelemetry.OpAmp.Client.Settings.IdentificationSettings.AddNonIdentifyingAttribute(string! key, bool value) -> void
 OpenTelemetry.OpAmp.Client.Settings.IdentificationSettings.AddNonIdentifyingAttribute(string! key, double value) -> void
 OpenTelemetry.OpAmp.Client.Settings.IdentificationSettings.AddNonIdentifyingAttribute(string! key, int value) -> void
 OpenTelemetry.OpAmp.Client.Settings.IdentificationSettings.AddNonIdentifyingAttribute(string! key, string! value) -> void
+OpenTelemetry.OpAmp.Client.Settings.IdentificationSettings.AddNonIdentifyingAttribute(string! key, System.Collections.Generic.ICollection<bool>! values) -> void
+OpenTelemetry.OpAmp.Client.Settings.IdentificationSettings.AddNonIdentifyingAttribute(string! key, System.Collections.Generic.ICollection<double>! values) -> void
+OpenTelemetry.OpAmp.Client.Settings.IdentificationSettings.AddNonIdentifyingAttribute(string! key, System.Collections.Generic.ICollection<int>! values) -> void
+OpenTelemetry.OpAmp.Client.Settings.IdentificationSettings.AddNonIdentifyingAttribute(string! key, System.Collections.Generic.ICollection<string!>! values) -> void
 OpenTelemetry.OpAmp.Client.Settings.IdentificationSettings.IdentificationSettings() -> void
 OpenTelemetry.OpAmp.Client.Settings.IdentificationSettings.IdentifyingResources.get -> System.Collections.Generic.Dictionary<string!, OpenTelemetry.OpAmp.Client.Settings.AnyValueUnion>!
 OpenTelemetry.OpAmp.Client.Settings.IdentificationSettings.NonIdentifyingResources.get -> System.Collections.Generic.Dictionary<string!, OpenTelemetry.OpAmp.Client.Settings.AnyValueUnion>!
