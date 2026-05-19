@@ -1,0 +1,28 @@
+# Registry
+
+## Table of Contents
+
+{% if ctx.registry.spans and ctx.registry.spans | length > 0 %}
+- [Spans](#spans)
+{% for span in ctx.registry.spans %}  - [`{{ span.type }}`](#{{ span.type | replace('.', '') }})
+{% endfor %}
+{% endif %}
+
+{% if ctx.registry.spans and ctx.registry.spans | length > 0 %}
+## Spans
+
+{% for span in ctx.registry.spans %}
+### `{{ span.type }}`
+
+{% if span.brief %}{{ span.brief }}{% endif %}
+
+{% if span.attributes and span.attributes | length > 0 %}
+- Attributes:
+{% for attr in span.attributes %}  - `{{ attr.key }}`
+{% endfor %}
+{% else %}- Attributes: none
+{% endif %}
+{% endfor %}
+{% endif %}
+
+<!-- {{ debug() }} -->

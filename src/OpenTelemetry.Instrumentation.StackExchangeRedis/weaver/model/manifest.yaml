@@ -1,0 +1,6 @@
+name: OpenTelemetry.Instrumentation.StackExchangeRedis
+description: Semantic Conventions implemented by OpenTelemetry.Instrumentation.StackExchangeRedis
+schema_url: https://opentelemetry.io/schemas/dotnet-contrib/stackexchange.redis/1.0.0
+dependencies:
+  - name: otel
+    registry_path: https://github.com/open-telemetry/semantic-conventions@v1.41.0[model]
