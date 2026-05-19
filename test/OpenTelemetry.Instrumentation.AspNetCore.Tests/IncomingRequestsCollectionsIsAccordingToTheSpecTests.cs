@@ -115,9 +115,14 @@ public class IncomingRequestsCollectionsIsAccordingToTheSpecTests
             Assert.Equal(ActivityStatusCode.Unset, activity.Status);
         }
 
+        // HACK Depends on https://github.com/dotnet/aspnetcore/pull/65825
+#if NET11_0_OR_GREATER
+        Assert.Equal(statusCode is 503 ? "exception description" : null, activity.StatusDescription);
+#else
         // Instrumentation is not expected to set status description
         // as the reason can be inferred from SemanticConventions.AttributeHttpStatusCode
         Assert.Null(activity.StatusDescription);
+#endif
 
         if (recordException)
         {

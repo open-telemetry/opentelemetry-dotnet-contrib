@@ -122,7 +122,11 @@ internal class SamplingRuleApplier
             // match, assume it's bad instrumentation and ignore.
             if (schemeEndIndex > 0)
             {
+#if NET11_0_OR_GREATER
+                var pathIndex = httpUrl.IndexOf('/', schemeEndIndex + "://".Length, StringComparison.Ordinal);
+#else
                 var pathIndex = httpUrl.IndexOf('/', schemeEndIndex + "://".Length);
+#endif
                 httpTarget = pathIndex < 0 ? "/" : httpUrl.Substring(pathIndex);
             }
         }

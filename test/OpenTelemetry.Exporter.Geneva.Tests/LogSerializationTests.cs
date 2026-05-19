@@ -15,7 +15,7 @@ public class LogSerializationTests
 {
     /*
     Run from the current directory:
-    dotnet test -f net10.0 --filter FullyQualifiedName~LogSerializationTests -l "console;verbosity=detailed"
+    dotnet test -f net11.0 --filter FullyQualifiedName~LogSerializationTests -l "console;verbosity=detailed"
     */
     [Fact]
     public void SerializationTestForException()
