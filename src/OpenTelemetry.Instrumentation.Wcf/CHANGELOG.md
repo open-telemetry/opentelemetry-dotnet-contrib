@@ -18,6 +18,14 @@
   `ExecutionContext` flow was suppressed.
   ([#4378](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4378))
 
+* Add support for version [1.41.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/rpc/README.md)
+  of the Semantic Conventions for RPC/gRPC when the `OTEL_SEMCONV_STABILITY_OPT_IN`
+  environment variable is set to `rpc` or `rpc/dup`.
+  ([#4377](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4377))
+
+* Add instrumentation scope version and schema URL to metrics and traces.
+  ([#4377](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4377))
+
 ## 1.15.1-beta.2
 
 Released 2026-Apr-22

@@ -51,6 +51,35 @@ public class TelemetryBindingElementForHttpTests : IDisposable
         this.initialized.Task.Wait();
     }
 
+    public static TheoryData<bool, bool, bool, bool, bool, bool, bool, bool, bool> IncomingRequestTestData()
+    {
+        var testCases = new TheoryData<bool, bool, bool, bool, bool, bool, bool, bool, bool>();
+
+        bool[] booleans = [false, true];
+
+        foreach (var emitOldAttributes in booleans)
+        {
+            foreach (var emitNewAttributes in booleans)
+            {
+                if (!emitOldAttributes && !emitNewAttributes)
+                {
+                    // Invalid combination - at least one must be true
+                    continue;
+                }
+
+                testCases.Add(emitOldAttributes, emitNewAttributes, false, false, false, false, false, false, false);
+                testCases.Add(emitOldAttributes, emitNewAttributes, true, false, false, false, false, false, false);
+                testCases.Add(emitOldAttributes, emitNewAttributes, true, true, false, false, false, false, false);
+                testCases.Add(emitOldAttributes, emitNewAttributes, true, false, true, true, false, false, false);
+                testCases.Add(emitOldAttributes, emitNewAttributes, true, false, true, true, true, false, false);
+                testCases.Add(emitOldAttributes, emitNewAttributes, true, false, true, true, true, true, false);
+                testCases.Add(emitOldAttributes, emitNewAttributes, true, false, true, true, true, true, true);
+            }
+        }
+
+        return testCases;
+    }
+
     public void Dispose()
     {
         try
@@ -65,23 +94,20 @@ public class TelemetryBindingElementForHttpTests : IDisposable
     }
 
     [Theory]
-    [InlineData(true, false)]
-    [InlineData(true, true)]
-    [InlineData(true, false, false)]
-    [InlineData(false)]
-    [InlineData(true, false, true, true)]
-    [InlineData(true, false, true, true, true)]
-    [InlineData(true, false, true, true, true, true)]
-    [InlineData(true, false, true, true, true, true, true)]
+    [MemberData(nameof(IncomingRequestTestData))]
     public async Task OutgoingRequestInstrumentationTest(
+        bool emitOldAttributes,
+        bool emitNewAttributes,
         bool instrument,
-        bool filter = false,
-        bool suppressDownstreamInstrumentation = true,
-        bool includeVersion = false,
-        bool enrich = false,
-        bool enrichmentException = false,
-        bool emptyOrNullAction = false)
+        bool filter,
+        bool suppressDownstreamInstrumentation,
+        bool includeVersion,
+        bool enrich,
+        bool enrichmentException,
+        bool emptyOrNullAction)
     {
+        using var scope = SemanticConventionScope.Get(emitOldAttributes, emitNewAttributes);
+
         List<Activity> stoppedActivities = [];
 
         var builder = Sdk.CreateTracerProviderBuilder()
@@ -170,7 +196,9 @@ public class TelemetryBindingElementForHttpTests : IDisposable
                         "Soap11 (http://schemas.xmlsoap.org/soap/envelope/) AddressingNone (http://schemas.microsoft.com/ws/2005/05/addressing/none)",
                         "http",
                         enrich,
-                        enrichmentException);
+                        enrichmentException,
+                        emitOldAttributes,
+                        emitNewAttributes);
                 }
                 else
                 {

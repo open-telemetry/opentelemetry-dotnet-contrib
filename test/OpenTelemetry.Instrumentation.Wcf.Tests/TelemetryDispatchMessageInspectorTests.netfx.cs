@@ -66,21 +66,22 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
     public void Dispose() => this.serviceHost?.Close();
 
     [Theory]
-    [InlineData(true, false)]
-    [InlineData(true, true)]
-    [InlineData(false)]
-    [InlineData(true, false, true)]
-    [InlineData(true, false, true, true)]
-    [InlineData(true, false, true, true, true)]
-    [InlineData(true, false, true, true, true, true)]
+    [MemberData(nameof(TelemetryBindingElementForHttpTests.IncomingRequestTestData), MemberType = typeof(TelemetryBindingElementForHttpTests))]
     public async Task IncomingRequestInstrumentationTest(
+        bool emitOldAttributes,
+        bool emitNewAttributes,
         bool instrument,
-        bool filter = false,
-        bool includeVersion = false,
-        bool enrich = false,
-        bool enrichmentException = false,
-        bool emptyOrNullAction = false)
+        bool filter,
+        bool unused,
+        bool includeVersion,
+        bool enrich,
+        bool enrichmentException,
+        bool emptyOrNullAction)
     {
+        _ = Assert.IsType<bool>(unused);
+
+        using var scope = SemanticConventionScope.Get(emitOldAttributes, emitNewAttributes);
+
         List<Activity> stoppedActivities = [];
 
         using var activityListener = new ActivityListener
@@ -179,7 +180,11 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
                 Assert.Equal(WcfEnrichEventNames.BeforeSendReply, activity.TagObjects.Single(t => t.Key == "server.beforesendreply").Value);
             }
 
-            WcfTestHelpers.AssertIncomingRequestActivityCommon(activity, this.serviceBaseUri);
+            WcfTestHelpers.AssertIncomingRequestActivityCommon(
+                activity,
+                this.serviceBaseUri,
+                emitOldAttributes,
+                emitNewAttributes);
         }
         else
         {
