@@ -339,6 +339,10 @@ public class StackExchangeRedisCallsInstrumentationTests(RedisXunitFixture fixtu
             Assert.NotSame(profiler0, profiler1);
         }
 
+        var cacheKey = (rootActivity.TraceId, rootActivity.SpanId);
+        Assert.NotEmpty(instrumentation.Cache);
+        Assert.Contains(cacheKey, instrumentation.Cache);
+
         rootActivity.Stop();
         rootActivity.Dispose();
 
@@ -510,6 +514,71 @@ public class StackExchangeRedisCallsInstrumentationTests(RedisXunitFixture fixtu
 
         Assert.Single(exportedItems);
         Assert.Equal("SET", exportedItems[0].DisplayName);
+    }
+
+    [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
+    [InlineData(false, false)] // default options = early drain enabled
+    [InlineData(true, false)] // Enrich set = buffered until parent completes
+    [InlineData(false, true)] // Filter set = buffered until parent completes
+    public void DrainTiming_EarlyVsBuffered(bool setEnrich, bool setFilter)
+    {
+        var connectionOptions = new ConfigurationOptions { AbortOnConnectFail = true };
+        connectionOptions.EndPoints.Add(this.connectionString);
+        using var connection = ConnectionMultiplexer.Connect(connectionOptions);
+        var db = connection.GetDatabase();
+        db.KeyDelete("drain-timing-key");
+
+        var exportedItems = new List<Activity>();
+
+        var opts = new StackExchangeRedisInstrumentationOptions();
+        if (setEnrich)
+        {
+            opts.Enrich = (_, _) => { };
+        }
+
+        if (setFilter)
+        {
+            opts.Filter = _ => true;
+        }
+
+        var expectEarlyEmit = !setEnrich && !setFilter;
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSource(StackExchangeRedisConnectionInstrumentation.ActivitySource.Name)
+            .AddInMemoryExporter(exportedItems)
+            .Build();
+
+        using var instrumentation = new StackExchangeRedisConnectionInstrumentation(connection, name: null, opts);
+
+        using var rootActivity = new Activity("Parent")
+            .SetParentId(ActivityTraceId.CreateRandom(), ActivitySpanId.CreateRandom(), ActivityTraceFlags.Recorded)
+            .Start();
+
+        Activity.Current = rootActivity;
+        db.StringSet("drain-timing-key", "v");
+        db.StringGet("drain-timing-key");
+
+        // Flush while the parent is still running.
+        instrumentation.Flush();
+
+        var cacheKey = (rootActivity.TraceId, rootActivity.SpanId);
+
+        if (expectEarlyEmit)
+        {
+            Assert.NotEmpty(exportedItems);
+            Assert.Contains(cacheKey, instrumentation.Cache);
+        }
+        else
+        {
+            Assert.Empty(exportedItems);
+            Assert.Contains(cacheKey, instrumentation.Cache);
+        }
+
+        rootActivity.Stop();
+        instrumentation.Flush();
+
+        Assert.NotEmpty(exportedItems);
+        Assert.DoesNotContain(cacheKey, instrumentation.Cache);
     }
 
     private static void VerifyOldActivityData(Activity activity, bool isSet, EndPoint endPoint, bool setCommandKey = false)

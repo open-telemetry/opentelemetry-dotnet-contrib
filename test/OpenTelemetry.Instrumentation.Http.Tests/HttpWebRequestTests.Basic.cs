@@ -20,7 +20,7 @@ namespace OpenTelemetry.Instrumentation.Http.Tests;
 public partial class HttpWebRequestTests : IDisposable
 {
     private readonly IDisposable serverLifeTime;
-    private readonly string url;
+    private readonly Uri uri;
 
     public HttpWebRequestTests()
     {
@@ -45,10 +45,7 @@ public partial class HttpWebRequestTests : IDisposable
 
                 ctx.Response.OutputStream.Close();
             },
-            out var host,
-            out var port);
-
-        this.url = $"http://{host}:{port}/";
+            out this.uri);
     }
 
     public void Dispose()
@@ -63,7 +60,7 @@ public partial class HttpWebRequestTests : IDisposable
             .AddHttpClientInstrumentation()
             .Build();
 
-        var request = (HttpWebRequest)WebRequest.Create(new Uri(this.url));
+        var request = (HttpWebRequest)WebRequest.Create(this.uri);
 
         request.Method = "GET";
 
@@ -94,17 +91,17 @@ public partial class HttpWebRequestTests : IDisposable
                     options.FilterHttpWebRequest = req =>
                     {
                         httpWebRequestFilterApplied = true;
-                        return !req.RequestUri.OriginalString.Contains(this.url);
+                        return !req.RequestUri.OriginalString.Contains(this.uri.Host.ToString());
                     };
                     options.FilterHttpRequestMessage = req =>
                     {
                         httpRequestMessageFilterApplied = true;
-                        return req.RequestUri != null && !req.RequestUri.OriginalString.Contains(this.url);
+                        return req.RequestUri != null && !req.RequestUri.OriginalString.Contains(this.uri.ToString());
                     };
                 })
             .Build();
 
-        var request = (HttpWebRequest)WebRequest.Create(new Uri($"{this.url}?bypassHeaderCheck=true"));
+        var request = (HttpWebRequest)WebRequest.Create(new Uri($"{this.uri}?bypassHeaderCheck=true"));
 
         request.Method = "GET";
 
@@ -138,7 +135,7 @@ public partial class HttpWebRequestTests : IDisposable
 
         using (var inMemoryEventListener = new InMemoryEventListener(HttpInstrumentationEventSource.Log))
         {
-            var request = (HttpWebRequest)WebRequest.Create(new Uri($"{this.url}?bypassHeaderCheck=true"));
+            var request = (HttpWebRequest)WebRequest.Create(new Uri($"{this.uri}?bypassHeaderCheck=true"));
 
             request.Method = "GET";
 
@@ -159,7 +156,7 @@ public partial class HttpWebRequestTests : IDisposable
             .AddHttpClientInstrumentation()
             .Build();
 
-        var request = (HttpWebRequest)WebRequest.Create(new Uri(this.url));
+        var request = (HttpWebRequest)WebRequest.Create(this.uri);
 
         request.Method = "GET";
 
@@ -237,7 +234,7 @@ public partial class HttpWebRequestTests : IDisposable
 #endif
             }
 
-            var request = (HttpWebRequest)WebRequest.Create(new Uri(this.url));
+            var request = (HttpWebRequest)WebRequest.Create(this.uri);
 
             request.Method = "GET";
 
@@ -343,7 +340,7 @@ public partial class HttpWebRequestTests : IDisposable
 
         try
         {
-            var request = (HttpWebRequest)WebRequest.Create(new Uri($"{this.url}500"));
+            var request = (HttpWebRequest)WebRequest.Create(new Uri($"{this.uri}500"));
 
             request.Method = "GET";
 
@@ -396,7 +393,7 @@ public partial class HttpWebRequestTests : IDisposable
                 })
             .Build();
 
-        var request = (HttpWebRequest)WebRequest.Create(new Uri($"{this.url}?bypassHeaderCheck=true"));
+        var request = (HttpWebRequest)WebRequest.Create(new Uri($"{this.uri}?bypassHeaderCheck=true"));
 
         request.Method = "GET";
 
