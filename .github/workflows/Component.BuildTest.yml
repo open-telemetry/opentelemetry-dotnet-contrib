@@ -44,7 +44,7 @@ jobs:
   build-test:
 
     strategy:
-      fail-fast: false # ensures the entire test matrix is run, even if one permutation fails
+      fail-fast: ${{ github.event_name == 'merge_group' }}
       matrix:
         os: ${{ fromJSON(inputs.os-list) }}
         version: ${{ fromJSON(inputs.tfm-list) }}

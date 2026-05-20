@@ -10,7 +10,7 @@ jobs:
   run-verify-aot-compat:
 
     strategy:
-      fail-fast: false # ensures the entire test matrix is run, even if one permutation fails
+      fail-fast: ${{ github.event_name == 'merge_group' }}
       matrix:
         os: [ ubuntu-24.04, windows-latest ]
         version: [ net8.0, net9.0, net10.0 ]
