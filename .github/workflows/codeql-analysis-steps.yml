@@ -2,6 +2,11 @@ name: codeql-analysis-steps
 
 on:
   workflow_call:
+    inputs:
+      trigger:
+        required: false
+        type: string
+        default: ${{ github.event_name }}
 
 permissions: {}
 
@@ -14,7 +19,7 @@ jobs:
     runs-on: windows-latest
 
     strategy:
-      fail-fast: ${{ github.event_name == 'merge_group' }}
+      fail-fast: ${{ inputs.trigger == 'merge_group' }}
       matrix:
         language: ['actions', 'csharp']
 

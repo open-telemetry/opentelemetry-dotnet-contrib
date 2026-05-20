@@ -36,6 +36,10 @@ on:
         default: true
         required: false
         type: boolean
+      trigger:
+        required: false
+        type: string
+        default: ${{ github.event_name }}
 
 permissions:
   contents: read
@@ -44,7 +48,7 @@ jobs:
   build-test:
 
     strategy:
-      fail-fast: ${{ github.event_name == 'merge_group' }}
+      fail-fast: ${{ inputs.trigger == 'merge_group' }}
       matrix:
         os: ${{ fromJSON(inputs.os-list) }}
         version: ${{ fromJSON(inputs.tfm-list) }}
