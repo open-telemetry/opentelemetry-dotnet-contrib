@@ -13,7 +13,9 @@ env:
   TERM: xterm
 
 jobs:
-  lint:
+  zizmor:
+    name: zizmor
+    timeout-minutes: 20
     runs-on: ubuntu-24.04
 
     permissions:
