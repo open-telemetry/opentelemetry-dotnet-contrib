@@ -21,6 +21,8 @@ jobs:
       actions: read
       contents: read
       security-events: write
+    with:
+      trigger: ${{ github.event_name }}
 
   detect-changes:
     runs-on: windows-latest
@@ -115,6 +117,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Exporter.Geneva]
       code-cov-name: Exporter.Geneva
+      trigger: ${{ github.event_name }}
 
   build-test-exporter-geneva-integration:
     needs: detect-changes
@@ -129,6 +132,7 @@ jobs:
       test-case-filter: CategoryName=Geneva:user_events:metrics
       test-require-elevated: true
       pack: false
+      trigger: ${{ github.event_name }}
 
   build-test-exporter-influxdb:
     needs: detect-changes
@@ -140,6 +144,7 @@ jobs:
     with:
       project-name: OpenTelemetry.Exporter.InfluxDB
       code-cov-name: Exporter.InfluxDB
+      trigger: ${{ github.event_name }}
 
   build-test-exporter-onecollector:
     needs: detect-changes
@@ -151,6 +156,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Exporter.OneCollector]
       code-cov-name: Exporter.OneCollector
+      trigger: ${{ github.event_name }}
 
   build-test-extensions:
     needs: detect-changes
@@ -162,6 +168,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Extensions]
       code-cov-name: Extensions
+      trigger: ${{ github.event_name }}
 
   build-test-extensions-enrichment:
     needs: detect-changes
@@ -173,6 +180,7 @@ jobs:
     with:
       project-name: OpenTelemetry.Extensions.Enrichment
       code-cov-name: Extensions.Enrichment
+      trigger: ${{ github.event_name }}
 
   build-test-extensions-enrichment-aspnetcore:
     needs: detect-changes
@@ -184,6 +192,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Extensions.Enrichment.AspNetCore]
       code-cov-name: Extensions.Enrichment.AspNetCore
+      trigger: ${{ github.event_name }}
 
   build-test-extensions-enrichment-http:
     needs: detect-changes
@@ -195,6 +204,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Extensions.Enrichment.Http]
       code-cov-name: Extensions.Enrichment.Http
+      trigger: ${{ github.event_name }}
 
   build-test-instrumentation-aspnet:
     needs: detect-changes
@@ -208,6 +218,7 @@ jobs:
       code-cov-name: Instrumentation.AspNet
       os-list: '[ "windows-latest" ]'
       tfm-list: '[ "net462" ]'
+      trigger: ${{ github.event_name }}
 
   build-test-instrumentation-aspnetcore:
     needs: detect-changes
@@ -220,6 +231,7 @@ jobs:
       project-name: OpenTelemetry.Instrumentation.AspNetCore
       code-cov-name: Instrumentation.AspNetCore
       tfm-list: '[ "net8.0", "net9.0", "net10.0" ]'
+      trigger: ${{ github.event_name }}
 
   build-test-instrumentation-aws:
     needs: detect-changes
@@ -232,6 +244,7 @@ jobs:
       project-name: OpenTelemetry.Instrumentation.AWS
       code-cov-name: Instrumentation.AWS
       tfm-list: '[ "net472", "net8.0", "net9.0", "net10.0" ]'
+      trigger: ${{ github.event_name }}
 
   build-test-instrumentation-cassandra:
     needs: detect-changes
@@ -243,6 +256,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Instrumentation.Cassandra]
       code-cov-name: Instrumentation.Cassandra
+      trigger: ${{ github.event_name }}
 
   build-test-instrumentation-confluentkafka:
     needs: detect-changes
@@ -254,6 +268,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Instrumentation.ConfluentKafka]
       code-cov-name: Instrumentation.ConfluentKafka
+      trigger: ${{ github.event_name }}
 
   build-test-instrumentation-elasticsearchclient:
     needs: detect-changes
@@ -265,6 +280,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Instrumentation.ElasticsearchClient]
       code-cov-name: Instrumentation.ElasticsearchClient
+      trigger: ${{ github.event_name }}
 
   build-test-instrumentation-entityframeworkcore:
     needs: detect-changes
@@ -276,6 +292,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Instrumentation.EntityFrameworkCore]
       code-cov-name: Instrumentation.EntityFrameworkCore
+      trigger: ${{ github.event_name }}
 
   build-test-instrumentation-eventcounters:
     needs: detect-changes
@@ -288,6 +305,7 @@ jobs:
       project-name: OpenTelemetry.Instrumentation.EventCounters
       code-cov-name: Instrumentation.EventCounters
       tfm-list: '[ "net8.0", "net9.0", "net10.0" ]'
+      trigger: ${{ github.event_name }}
 
   build-test-instrumentation-grpccore:
     needs: detect-changes
@@ -299,6 +317,7 @@ jobs:
     with:
       project-name: OpenTelemetry.Instrumentation.GrpcCore
       code-cov-name: Instrumentation.GrpcCore
+      trigger: ${{ github.event_name }}
 
   build-test-instrumentation-grpcnetclient:
     needs: detect-changes
@@ -310,6 +329,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Instrumentation.GrpcNetClient]
       code-cov-name: Instrumentation.GrpcNetClient
+      trigger: ${{ github.event_name }}
 
   build-test-instrumentation-hangfire:
     needs: detect-changes
@@ -321,6 +341,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Instrumentation.Hangfire]
       code-cov-name: Instrumentation.Hangfire
+      trigger: ${{ github.event_name }}
 
   build-test-instrumentation-http:
     needs: detect-changes
@@ -332,6 +353,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Instrumentation.Http]
       code-cov-name: Instrumentation.Http
+      trigger: ${{ github.event_name }}
 
   build-test-instrumentation-kusto:
     needs: detect-changes
@@ -343,6 +365,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Instrumentation.Kusto]
       code-cov-name: Instrumentation.Kusto
+      trigger: ${{ github.event_name }}
 
   build-test-instrumentation-owin:
     needs: detect-changes
@@ -356,6 +379,7 @@ jobs:
       code-cov-name: Instrumentation.Owin
       os-list: '[ "windows-latest" ]'
       tfm-list: '[ "net462" ]'
+      trigger: ${{ github.event_name }}
 
   build-test-instrumentation-process:
     needs: detect-changes
@@ -367,6 +391,7 @@ jobs:
     with:
       project-name: OpenTelemetry.Instrumentation.Process
       code-cov-name: Instrumentation.Process
+      trigger: ${{ github.event_name }}
 
   build-test-instrumentation-quartz:
     needs: detect-changes
@@ -378,6 +403,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Instrumentation.Quartz]
       code-cov-name: Instrumentation.Quartz
+      trigger: ${{ github.event_name }}
 
   build-test-instrumentation-remoting:
     needs: detect-changes
@@ -391,6 +417,7 @@ jobs:
       code-cov-name: Instrumentation.Remoting
       os-list: '[ "windows-latest" ]'
       tfm-list: '[ "net462" ]'
+      trigger: ${{ github.event_name }}
 
   build-test-instrumentation-runtime:
     needs: detect-changes
@@ -402,6 +429,7 @@ jobs:
     with:
       project-name: OpenTelemetry.Instrumentation.Runtime
       code-cov-name: Instrumentation.Runtime
+      trigger: ${{ github.event_name }}
 
   build-test-instrumentation-servicefabricremoting:
     needs: detect-changes
@@ -413,6 +441,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Instrumentation.ServiceFabricRemoting]
       code-cov-name: Instrumentation.ServiceFabricRemoting
+      trigger: ${{ github.event_name }}
 
   build-test-instrumentation-sqlclient:
     needs: detect-changes
@@ -424,6 +453,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Instrumentation.SqlClient]
       code-cov-name: Instrumentation.SqlClient
+      trigger: ${{ github.event_name }}
 
   build-test-instrumentation-stackexchangeredis:
     needs: detect-changes
@@ -435,6 +465,7 @@ jobs:
     with:
       project-name: OpenTelemetry.Instrumentation.StackExchangeRedis
       code-cov-name: Instrumentation.StackExchangeRedis
+      trigger: ${{ github.event_name }}
 
   build-test-instrumentation-wcf:
     needs: detect-changes
@@ -446,6 +477,7 @@ jobs:
     with:
       project-name: OpenTelemetry.Instrumentation.Wcf
       code-cov-name: Instrumentation.Wcf
+      trigger: ${{ github.event_name }}
 
   build-test-opamp-client:
     needs: detect-changes
@@ -457,6 +489,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.OpAmp.Client]
       code-cov-name: OpAmp.Client
+      trigger: ${{ github.event_name }}
 
   build-test-persistentstorage:
     needs: detect-changes
@@ -468,6 +501,7 @@ jobs:
     with:
       project-name: OpenTelemetry.PersistentStorage
       code-cov-name: PersistentStorage
+      trigger: ${{ github.event_name }}
 
   build-test-resources-aws:
     needs: detect-changes
@@ -479,6 +513,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Resources.AWS]
       code-cov-name: Resources.AWS
+      trigger: ${{ github.event_name }}
 
   build-test-resources-azure:
     needs: detect-changes
@@ -490,6 +525,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Resources.Azure]
       code-cov-name: Resources.Azure
+      trigger: ${{ github.event_name }}
 
   build-test-resources-container:
     needs: detect-changes
@@ -501,6 +537,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Resources.Container]
       code-cov-name: Resources.Container
+      trigger: ${{ github.event_name }}
 
   build-test-resources-gcp:
     needs: detect-changes
@@ -512,6 +549,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Resources.Gcp]
       code-cov-name: Resources.Gcp
+      trigger: ${{ github.event_name }}
 
   build-test-resources-host:
     needs: detect-changes
@@ -524,6 +562,7 @@ jobs:
       project-name: Component[OpenTelemetry.Resources.Host]
       code-cov-name: Resources.Host
       os-list: '[ "windows-latest", "ubuntu-24.04", "macos-latest" ]'
+      trigger: ${{ github.event_name }}
 
   build-test-resources-operatingsystem:
     needs: detect-changes
@@ -536,6 +575,7 @@ jobs:
       project-name: Component[OpenTelemetry.Resources.OperatingSystem]
       code-cov-name: Resources.OperatingSystem
       os-list: '[ "windows-latest", "ubuntu-24.04", "macos-latest" ]'
+      trigger: ${{ github.event_name }}
 
   build-test-resources-process:
     needs: detect-changes
@@ -547,6 +587,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Resources.Process]
       code-cov-name: Resources.Process
+      trigger: ${{ github.event_name }}
 
   build-test-resources-processruntime:
     needs: detect-changes
@@ -558,6 +599,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Resources.ProcessRuntime]
       code-cov-name: Resources.ProcessRuntime
+      trigger: ${{ github.event_name }}
 
   build-test-sampler-aws:
     needs: detect-changes
@@ -569,6 +611,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Sampler.AWS]
       code-cov-name: Sampler.AWS
+      trigger: ${{ github.event_name }}
 
   build-test-semanticconventions:
     needs: detect-changes
@@ -581,6 +624,7 @@ jobs:
       project-name: OpenTelemetry.SemanticConventions
       code-cov-name: SemanticConventions
       run-tests: false # Note: No test project
+      trigger: ${{ github.event_name }}
 
   build-test-contrib-shared-tests:
     needs: detect-changes
@@ -593,6 +637,7 @@ jobs:
       project-name: OpenTelemetry.Contrib.Shared.Tests
       code-cov-name: Contrib.Shared.Tests
       pack: false # No packages produced
+      trigger: ${{ github.event_name }}
 
   verify-aot-compat:
     needs: detect-changes
@@ -629,6 +674,8 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/verifyaotcompat.yml
+    with:
+      trigger: ${{ github.event_name }}
 
   build-test:
     needs: [

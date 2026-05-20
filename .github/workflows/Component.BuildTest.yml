@@ -37,9 +37,8 @@ on:
         required: false
         type: boolean
       trigger:
-        required: false
+        required: true
         type: string
-        default: ${{ github.event_name }}
 
 permissions:
   contents: read

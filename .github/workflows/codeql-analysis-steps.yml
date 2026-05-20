@@ -4,9 +4,8 @@ on:
   workflow_call:
     inputs:
       trigger:
-        required: false
+        required: true
         type: string
-        default: ${{ github.event_name }}
 
 permissions: {}
 
