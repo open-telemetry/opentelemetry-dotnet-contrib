@@ -4,7 +4,7 @@
 
 ## 0.1.0-alpha.7
 
-* Fixed an issue on `InstrumentedConsumer` wherein no `messaging.receive.duration` and `messaging.receive.messages` metric are emitted when `ConsumeException` is thrown by the `Consume` method.
+* Fixed an issue on `InstrumentedConsumer` wherein no `messaging.receive.duration` and `messaging.receive.messages` metric are NOT emitted when `ConsumeException` is thrown by the `Consume` method.
 
 ## 0.1.0-alpha.6
 
