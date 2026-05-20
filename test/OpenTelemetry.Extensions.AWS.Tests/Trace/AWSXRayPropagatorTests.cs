@@ -182,7 +182,7 @@ public class AWSXRayPropagatorTests
         var result = this.awsXRayPropagator.Extract(default, carrier, Getter);
 
         Assert.Equal(traceId, result.ActivityContext.TraceId);
-        Assert.NotEqual(default, result.ActivityContext.SpanId); // "because a new SpanId should be generated when Parent is missing"
+        Assert.Equal(default, result.ActivityContext.SpanId);
         Assert.True((result.ActivityContext.TraceFlags & ActivityTraceFlags.Recorded) != 0, "because Sampled=1");
         Assert.True(result.ActivityContext.IsRemote);
     }
@@ -214,7 +214,7 @@ public class AWSXRayPropagatorTests
         var result = this.awsXRayPropagator.Extract(default, carrier, Getter);
 
         Assert.Equal(traceId, result.ActivityContext.TraceId);
-        Assert.NotEqual(default, result.ActivityContext.SpanId); // "because a new SpanId should be generated when Parent is missing"
+        Assert.Equal(default, result.ActivityContext.SpanId);
         Assert.True((result.ActivityContext.TraceFlags & ActivityTraceFlags.None) == 0, "because Sampled is missing");
         Assert.True(result.ActivityContext.IsRemote);
     }

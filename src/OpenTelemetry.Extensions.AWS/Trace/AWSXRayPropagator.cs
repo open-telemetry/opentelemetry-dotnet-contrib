@@ -222,7 +222,7 @@ public class AWSXRayPropagator : TextMapPropagator
         var activityTraceId = ActivityTraceId.CreateFromString(traceId);
 
         // Generate a new span ID if Parent is missing (ALB generating only Root param scenario)
-        var activityParentId = parentId.IsEmpty ? ActivitySpanId.CreateRandom() : ActivitySpanId.CreateFromString(parentId);
+        var activityParentId = parentId.IsEmpty ? default : ActivitySpanId.CreateFromString(parentId);
 
         // Default to None if not specified
         var activityTraceOptions = traceOptions == SampledValue ? ActivityTraceFlags.Recorded : ActivityTraceFlags.None;
