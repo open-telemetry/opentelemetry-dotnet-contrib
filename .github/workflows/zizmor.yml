@@ -1,6 +1,7 @@
 name: zizmor scan
 
 on:
+  pull_request:
   push:
     branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
   workflow_dispatch:
