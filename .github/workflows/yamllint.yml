@@ -2,7 +2,6 @@ name: Lint - YAML
 
 on:
   workflow_call:
-  workflow_dispatch:
 
 permissions:
   contents: read
@@ -11,10 +10,6 @@ jobs:
   run-yamllint:
     name: Run yamllint
     runs-on: ubuntu-24.04
-
-    concurrency:
-      group: ${{ github.workflow }}-${{ github.sha }}
-      cancel-in-progress: false
 
     steps:
     - name: Checkout code
