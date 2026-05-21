@@ -11,6 +11,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   automation:
     uses: ./.github/workflows/automation.yml
@@ -18,6 +22,7 @@ jobs:
       OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY: ${{ secrets.OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY }}
 
   core-version-update:
+    name: Update core package versions
     runs-on: ubuntu-24.04
 
     needs: automation
@@ -25,7 +30,8 @@ jobs:
     if: needs.automation.outputs.enabled
 
     steps:
-    - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+    - name: Generate GitHub App token
+      uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
       id: otelbot-token
       with:
         client-id: ${{ vars.OTELBOT_DOTNET_CONTRIB_APP_ID }}
@@ -33,12 +39,15 @@ jobs:
         permission-contents: write
         permission-pull-requests: write
 
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+    - name: Checkout code
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       with:
+        persist-credentials: true # zizmor: ignore[artipacked] Needed to push commits
         ref: ${{ github.event.repository.default_branch }}
+        show-progress: false
         token: ${{ steps.otelbot-token.outputs.token }}
 
-    - name: Setup dotnet
+    - name: Setup .NET
       uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5.2.0
 
     - name: Create GitHub Pull Request to update core version in props and update CHANGELOGs in projects
