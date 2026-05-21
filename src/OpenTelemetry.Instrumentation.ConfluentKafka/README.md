@@ -73,6 +73,34 @@ steps:
 This will set up OpenTelemetry instrumentation for Confluent.Kafka producers
 and consumers, allowing you to collect and export telemetry data.
 
+## Enabling traces and metrics independently
+
+The `AddKafkaProducerInstrumentation<TKey, TValue>()` and
+`AddKafkaConsumerInstrumentation<TKey, TValue>()` extension methods are
+defined on both `TracerProviderBuilder` and `MeterProviderBuilder`. Calling
+them under `WithTracing(...)` enables tracing for the registered builders;
+calling them under `WithMetrics(...)` enables metrics. You can opt in to one
+signal, both, or neither — the `InstrumentedProducerBuilder<TKey, TValue>`
+and `InstrumentedConsumerBuilder<TKey, TValue>` only emit telemetry for
+signals that were registered.
+
+```csharp
+// Traces only — no metrics will be emitted for Kafka.
+builder.Services.AddOpenTelemetry()
+    .WithTracing(tracing => tracing
+        .AddKafkaProducerInstrumentation<string, string>()
+        .AddKafkaConsumerInstrumentation<string, string>());
+```
+
+## Runnable example
+
+A complete end-to-end sample that produces and consumes messages with
+instrumentation enabled is available in
+[`examples/kafka`](../../examples/kafka). Run it against a local Kafka broker
+(for example the `confluentinc/cp-kafka` Docker image listening on
+`localhost:9092`) to see traces and metrics flowing to the configured
+exporters.
+
 ## Extending `ConsumerBuilder` or `ProducerBuilder` instances
 
 To extend an already built `ConsumerBuilder<TKey, TValue>`
