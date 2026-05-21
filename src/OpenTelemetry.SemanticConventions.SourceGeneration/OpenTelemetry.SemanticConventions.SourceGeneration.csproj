@@ -76,10 +76,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="README.md" Pack="true" PackagePath="\" Condition="Exists('README.md')"/>
-  </ItemGroup>
-
-  <ItemGroup>
     <None Include="build/OpenTelemetry.SemanticConventions.SourceGeneration.props"
           Pack="true"
           PackagePath="build/OpenTelemetry.SemanticConventions.SourceGeneration.props"/>
