@@ -1,0 +1,6 @@
+<Project>
+  <!-- No build-time properties yet. This file exists so the NuGet package
+       has a buildTransitive payload (NU5017 satisfaction); the analyzer is
+       carried under analyzers/dotnet/cs and auto-discovered by the consumer's
+       Roslyn host. -->
+</Project>

@@ -1,0 +1,94 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Roslyn IIncrementalGenerator project. Ships as a NuGet that consumers
+    reference; the marker attribute (`SemanticConventionAttributesAttribute`)
+    is generated at compile-time via RegisterPostInitializationOutput, so the
+    package needs no companion runtime library.
+
+    Single-project layout: this csproj packs the analyzer DLL under
+    analyzers/dotnet/cs/ and is itself the consumer-facing NuGet. Consumers
+    add the package and apply `[SemanticConventionAttributes("<prefix>")]` to
+    a partial static class.
+
+    Closes open-telemetry/opentelemetry-dotnet-contrib#2856 (the prior
+    implementation in #2869 was closed by stale-bot 2025-09-01). Depends on
+    #4362 (Stable/Incubating split with v1.41.0 regen) landing first so the
+    semconv-attribute classes this generator targets are stable.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>OpenTelemetry.SemanticConventions.SourceGeneration</RootNamespace>
+    <AssemblyName>OpenTelemetry.SemanticConventions.SourceGeneration</AssemblyName>
+    <MinVerTagPrefix>SemanticConventions.SourceGeneration-</MinVerTagPrefix>
+    <Description>Roslyn source generator that materialises OpenTelemetry semantic-conventions attribute keys for any prefix into a user-declared partial class. Apply `[SemanticConventionAttributes("&lt;prefix&gt;")]` to a partial static class and the generator emits the matching constants and enum-value classes for that prefix at compile time. Tracks open-telemetry/semantic-conventions v1.41.0 via Weaver v0.23.0.</Description>
+    <PackageTags>$(PackageTags);semantic-conventions;source-generator;roslyn-analyzer</PackageTags>
+
+    <IsRoslynComponent>true</IsRoslynComponent>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+
+    <!-- Cosmetic StyleCop / formatting noise from the qyl-private port — to be polished in a
+         follow-up commit before maintainer review. Real correctness diagnostics (CS*) remain
+         enabled. RS0016/RS0017 (PublicAPI tracking) and IDE0005 are deferred until the public
+         surface and using-directive layout are finalised. SA1402/SA1649 (multi-type files)
+         await structural splitting of Models.cs/Models.Activities.cs/Models.Instruments.cs. -->
+    <NoWarn>$(NoWarn);SA1025;SA1101;SA1107;SA1116;SA1118;SA1201;SA1202;SA1208;SA1210;SA1309;SA1402;SA1413;SA1501;SA1503;SA1507;SA1508;SA1513;SA1516;SA1611;SA1615;SA1633;SA1649;IDE0005;RS0016;RS0017;CS1591</NoWarn>
+
+    <!-- Pack as the analyzer NuGet. Consumers reference this package directly. -->
+    <IsPackable>true</IsPackable>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <NoPackageAnalysis>true</NoPackageAnalysis>
+
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_AddGeneratorToAnalyzersPackage</TargetsForTfmSpecificContentInPackage>
+  </PropertyGroup>
+
+  <!-- Do not run Package Baseline Validation as this package has never released a stable version.
+       Remove this property once we have released a stable version and add PackageValidationBaselineVersion. -->
+  <PropertyGroup>
+    <DisablePackageBaselineValidation>true</DisablePackageBaselineValidation>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Microsoft.CodeAnalysis.CSharp 5.3.0 — ratified Phase 3 audit.
+         PrivateAssets="contentfiles;analyzers" (deliberately NOT "all") so it
+         appears as a public NuGet dependency on the emitted package, satisfying
+         NU5017's "package has dependencies or content" check. Accurately
+         reflects that consumers' Roslyn version must be ≥5.3.0 for the
+         analyzer to load. -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp"
+                      VersionOverride="5.3.0"
+                      PrivateAssets="contentfiles;analyzers"
+                      IncludeAssets="compile"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Embedded resolved registry: a minimal projection of the
+         OTel semantic-conventions registry, emitted from a Jinja template
+         (scripts/templates/registry/resolved-registry.json.j2) pinned to
+         semconv v1.41.0 + Weaver v0.23.0. PR-A ships a 5-attribute seed
+         fixture for the build/test loop; PR-B onwards substitutes the full
+         Weaver-generated file. -->
+    <EmbeddedResource Include="Resources/resolved-registry.json"
+                      LogicalName="OpenTelemetry.SemanticConventions.SourceGeneration.resolved-registry.json"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" Condition="Exists('README.md')"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="build/OpenTelemetry.SemanticConventions.SourceGeneration.props"
+          Pack="true"
+          PackagePath="build/OpenTelemetry.SemanticConventions.SourceGeneration.props"/>
+  </ItemGroup>
+
+  <Target Name="_AddGeneratorToAnalyzersPackage" DependsOnTargets="GetTargetPath">
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="$(TargetPath)" PackagePath="analyzers/dotnet/cs"/>
+    </ItemGroup>
+  </Target>
+
+</Project>
