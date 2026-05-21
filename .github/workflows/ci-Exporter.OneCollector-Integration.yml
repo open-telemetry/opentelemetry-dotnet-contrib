@@ -3,6 +3,10 @@ name: Integration Build OpenTelemetry.Exporter.OneCollector
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
 on:
   pull_request_target: # zizmor: ignore[dangerous-triggers] Code is gated on maintainer approval for forks
     branches: [ 'main*', 'exporter*' ]
@@ -14,6 +18,7 @@ on:
 
 jobs:
   authorize:
+    name: Authorize external PR
     environment: # Run external PRs from forks on the "external" environment which requires approval
       ${{ github.event_name == 'pull_request_target' &&
       github.event.pull_request.head.repo.full_name != github.repository &&

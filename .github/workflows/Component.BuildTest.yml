@@ -132,28 +132,49 @@ jobs:
         PROJECT_PATH: ${{ steps.resolve-project.outputs.project }}
 
     - name: dotnet test ${{ steps.resolve-project.outputs.title }}
-      if: inputs.run-tests
+      if: inputs.run-tests && (!inputs.test-require-elevated || matrix.os == 'windows-2025')
       shell: pwsh
       env:
         DISABLE_APP_DOMAIN: ${{ matrix.version == 'net462' && 'false' || 'true' }}
         PROJECT_PATH: ${{ steps.resolve-project.outputs.project }}
         TARGET_FRAMEWORK: ${{ matrix.version }}
         TEST_FILTER: ${{ inputs.test-case-filter }}
-      run: >
-        ${{ inputs.test-require-elevated && matrix.os != 'windows-2025' && 'sudo -E' || '' }}
-        dotnet test ${env:PROJECT_PATH}
-        --collect:"Code Coverage"
-        --results-directory:TestResults
-        --framework ${env:TARGET_FRAMEWORK}
-        --configuration Release
-        --no-restore
-        --no-build
-        --logger:"console;verbosity=detailed"
-        --logger:"GitHubActions;report-warnings=false"
-        --logger:"junit;LogFilePath=TestResults/junit.xml"
-        --filter "${env:TEST_FILTER}"
-        -- RunConfiguration.DisableAppDomain=${env:DISABLE_APP_DOMAIN}
-        ${{ inputs.test-require-elevated && matrix.os != 'windows-2025' && '&& sudo chmod a+rw ./TestResults' || '' }}
+      run: |
+        dotnet test ${env:PROJECT_PATH} `
+          --collect:"Code Coverage" `
+          --results-directory:TestResults `
+          --framework ${env:TARGET_FRAMEWORK} `
+          --configuration Release `
+          --no-restore `
+          --no-build `
+          --logger:"console;verbosity=detailed" `
+          --logger:"GitHubActions;report-warnings=false" `
+          --logger:"junit;LogFilePath=TestResults/junit.xml" `
+          --filter "${env:TEST_FILTER}" `
+          -- RunConfiguration.DisableAppDomain=${env:DISABLE_APP_DOMAIN}
+
+    - name: dotnet test ${{ steps.resolve-project.outputs.title }} (elevated)
+      if: inputs.run-tests && inputs.test-require-elevated && matrix.os != 'windows-2025'
+      shell: pwsh
+      env:
+        DISABLE_APP_DOMAIN: ${{ matrix.version == 'net462' && 'false' || 'true' }}
+        PROJECT_PATH: ${{ steps.resolve-project.outputs.project }}
+        TARGET_FRAMEWORK: ${{ matrix.version }}
+        TEST_FILTER: ${{ inputs.test-case-filter }}
+      run: |
+        sudo -E dotnet test ${env:PROJECT_PATH} `
+          --collect:"Code Coverage" `
+          --results-directory:TestResults `
+          --framework ${env:TARGET_FRAMEWORK} `
+          --configuration Release `
+          --no-restore `
+          --no-build `
+          --logger:"console;verbosity=detailed" `
+          --logger:"GitHubActions;report-warnings=false" `
+          --logger:"junit;LogFilePath=TestResults/junit.xml" `
+          --filter "${env:TEST_FILTER}" `
+          -- RunConfiguration.DisableAppDomain=${env:DISABLE_APP_DOMAIN}
+        sudo chmod a+rw ./TestResults
 
     - name: dotnet pack ${{ steps.resolve-project.outputs.title }}
       if: matrix.os == 'windows-2025' && inputs.pack

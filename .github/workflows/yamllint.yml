@@ -7,8 +7,13 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.sha }}
+  cancel-in-progress: false
+
 jobs:
   run-yamllint:
+    name: Run yamllint
     runs-on: ubuntu-24.04
 
     steps:

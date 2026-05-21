@@ -3,6 +3,10 @@ name: Reusable Integration Test
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.sha }}-${{ inputs.component }}-${{ inputs.os }}-${{ inputs.version }}
+  cancel-in-progress: false
+
 on:
   workflow_call:
     inputs:
@@ -39,6 +43,7 @@ on:
 
 jobs:
   build-and-test:
+    name: Build and test ${{ inputs.component }} (${{ inputs.os }}, ${{ inputs.version }})
     runs-on: ${{ inputs.os }}
     env:
       BUILD_COMPONENT: ${{ inputs.component }}
