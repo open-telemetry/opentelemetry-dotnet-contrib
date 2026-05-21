@@ -696,6 +696,8 @@ jobs:
     if: always() && !cancelled()
     runs-on: ubuntu-24.04
     steps:
+    - name: Debugging failure
+      run: echo '${{ toJson(needs) }}'
     - name: Report CI status
       shell: bash
       env:
