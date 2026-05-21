@@ -46,7 +46,9 @@ internal static class ActivityExtensionsEmitter
         WriteNamespace(builder, marker.ContainingNamespace);
         WriteClass(builder, marker.ClassName, attributes, marker.Filter);
 
-        return new FileWithName($"{marker.ClassName}.g.cs", builder.ToString());
+        return new FileWithName(
+            GeneratedSourceNames.ForPartialType(marker.ContainingNamespace, marker.ClassName),
+            builder.ToString());
     }
 
     private static List<ActivityAttributeModel> FilterByPrefix(ActivityRegistryModel registry, string prefix, StabilityFilter filter)

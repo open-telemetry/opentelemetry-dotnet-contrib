@@ -42,7 +42,7 @@ internal static class EventsEmitter
         WriteNamespace(builder, marker.ContainingNamespace);
         WriteClass(builder, marker.ClassName, events);
 
-        var fileName = $"{marker.ClassName}.g.cs";
+        var fileName = GeneratedSourceNames.ForPartialType(marker.ContainingNamespace, marker.ClassName);
         return new FileWithName(fileName, builder.ToString());
     }
 

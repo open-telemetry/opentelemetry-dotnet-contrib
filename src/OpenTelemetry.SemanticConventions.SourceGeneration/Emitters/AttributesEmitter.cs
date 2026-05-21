@@ -33,7 +33,7 @@ internal static class AttributesEmitter
         WriteNamespace(builder, marker.ContainingNamespace);
         WriteClass(builder, marker.ClassName, attributes, marker.Filter);
 
-        var fileName = $"{marker.ClassName}.g.cs";
+        var fileName = GeneratedSourceNames.ForPartialType(marker.ContainingNamespace, marker.ClassName);
         return new FileWithName(fileName, builder.ToString());
     }
 

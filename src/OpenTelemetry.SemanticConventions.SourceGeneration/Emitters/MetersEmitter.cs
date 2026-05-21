@@ -42,7 +42,9 @@ internal static class MetersEmitter
         WriteNamespace(builder, marker.ContainingNamespace);
         WriteClass(builder, marker.ClassName, meters);
 
-        return new FileWithName($"{marker.ClassName}.g.cs", builder.ToString());
+        return new FileWithName(
+            GeneratedSourceNames.ForPartialType(marker.ContainingNamespace, marker.ClassName),
+            builder.ToString());
     }
 
     private static List<MetricDescriptorModel> FilterByPrefix(InstrumentRegistryModel registry, string prefix, StabilityFilter filter)
