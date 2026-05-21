@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
+    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
+    <Description>Smoke tests for the OpenTelemetry.SemanticConventions.SourceGeneration Roslyn incremental generator. Drives the generator via CSharpGeneratorDriver and verifies the Stable/Incubating projection invariants (Incubating-superset, Stable strict, mixed-stability enum members filtered).</Description>
+
+    <!-- Same cosmetic-rule suppressions as the generator project itself; this is a port-validation
+         smoke-test surface, not a public API. Real diagnostics remain enabled. -->
+    <NoWarn>$(NoWarn);SA1025;SA1101;SA1107;SA1116;SA1118;SA1201;SA1202;SA1208;SA1210;SA1309;SA1402;SA1413;SA1501;SA1503;SA1507;SA1508;SA1513;SA1515;SA1516;SA1611;SA1615;SA1633;SA1649;IDE0005;CS1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.SemanticConventions.SourceGeneration\OpenTelemetry.SemanticConventions.SourceGeneration.csproj">
+      <!-- Reference the generator as an analyzer so the consumer fixture sees emitted code,
+           AND as a normal lib so the test code can drive CSharpGeneratorDriver directly. -->
+      <OutputItemType>Analyzer</OutputItemType>
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="5.3.0" />
+  </ItemGroup>
+
+</Project>

@@ -31,24 +31,32 @@ internal readonly struct EquatableArray<T> : IEquatable<EquatableArray<T>>, IRea
         _items = items ?? Array.Empty<T>();
     }
 
-    public int Count => _items.Length;
+    // Null-safe accessor: default(EquatableArray<T>) has _items == null, which the
+    // qyl-internal ANcpLua version of this polyfill handled by treating null as empty.
+    // Mirror that behaviour here so downstream emitters never see an NRE through the
+    // record-struct positional parameters.
+    private T[] Items => _items ?? Array.Empty<T>();
 
-    public int Length => _items.Length;
+    public int Count => this.Items.Length;
 
-    public bool IsEmpty => _items.Length == 0;
+    public int Length => this.Items.Length;
 
-    public T this[int index] => _items[index];
+    public bool IsEmpty => this.Items.Length == 0;
+
+    public T this[int index] => this.Items[index];
 
     public bool Equals(EquatableArray<T> other)
     {
-        if (_items.Length != other._items.Length)
+        var left = this.Items;
+        var right = other.Items;
+        if (left.Length != right.Length)
         {
             return false;
         }
 
-        for (var i = 0; i < _items.Length; i++)
+        for (var i = 0; i < left.Length; i++)
         {
-            if (!_items[i].Equals(other._items[i]))
+            if (!left[i].Equals(right[i]))
             {
                 return false;
             }
@@ -65,7 +73,7 @@ internal readonly struct EquatableArray<T> : IEquatable<EquatableArray<T>>, IRea
         unchecked
         {
             var hash = 17;
-            foreach (var item in _items)
+            foreach (var item in this.Items)
             {
                 hash = hash * 31 + item.GetHashCode();
             }
@@ -74,9 +82,9 @@ internal readonly struct EquatableArray<T> : IEquatable<EquatableArray<T>>, IRea
         }
     }
 
-    public IEnumerator<T> GetEnumerator() => ((IEnumerable<T>)_items).GetEnumerator();
+    public IEnumerator<T> GetEnumerator() => ((IEnumerable<T>)this.Items).GetEnumerator();
 
-    IEnumerator IEnumerable.GetEnumerator() => _items.GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => this.Items.GetEnumerator();
 
     public static bool operator ==(EquatableArray<T> left, EquatableArray<T> right) =>
         left.Equals(right);
