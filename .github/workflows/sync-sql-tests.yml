@@ -7,14 +7,20 @@ on:
 
 permissions: {}
 
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
 jobs:
   sync-sql-tests:
-    runs-on: ubuntu-latest
+    name: Sync SQL tests
+    runs-on: ubuntu-24.04
     if: github.event.repository.fork == false
 
     steps:
 
-      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+      - name: Generate GitHub App token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         id: otelbot-token
         with:
           client-id: ${{ vars.OTELBOT_DOTNET_CONTRIB_APP_ID }}
@@ -26,7 +32,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           filter: 'tree:0'
-          persist-credentials: true
+          persist-credentials: true # zizmor: ignore[artipacked] Needed to push commits
           show-progress: false
           token: ${{ steps.otelbot-token.outputs.token }}
 
