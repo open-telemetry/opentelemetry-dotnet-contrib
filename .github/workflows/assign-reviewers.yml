@@ -19,7 +19,8 @@ jobs:
       pull-requests: write # Required for assigning reviewers to PRs
     runs-on: ubuntu-24.04
     steps:
-      - uses: dyladan/component-owners@7ff2b343629407c4dbe1c28ae66f55f723543d2b # v0.2.0
+      - name: Assign reviewers based on CODEOWNERS
+        uses: dyladan/component-owners@7ff2b343629407c4dbe1c28ae66f55f723543d2b # v0.2.0
         with:
           assign-owners: ${{ github.event.pull_request.draft == false }}
           request-owner-reviews: ${{ github.event.pull_request.draft == false }}
