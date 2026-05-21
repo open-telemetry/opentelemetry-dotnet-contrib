@@ -80,12 +80,12 @@ The `AddKafkaProducerInstrumentation<TKey, TValue>()` and
 defined on both `TracerProviderBuilder` and `MeterProviderBuilder`. Calling
 them under `WithTracing(...)` enables tracing for the registered builders;
 calling them under `WithMetrics(...)` enables metrics. You can opt in to one
-signal, both, or neither — the `InstrumentedProducerBuilder<TKey, TValue>`
+signal, both, or neither; the `InstrumentedProducerBuilder<TKey, TValue>`
 and `InstrumentedConsumerBuilder<TKey, TValue>` only emit telemetry for
 signals that were registered.
 
 ```csharp
-// Traces only — no metrics will be emitted for Kafka.
+// Traces only -- no metrics will be emitted for Kafka.
 builder.Services.AddOpenTelemetry()
     .WithTracing(tracing => tracing
         .AddKafkaProducerInstrumentation<string, string>()
