@@ -31,9 +31,8 @@ internal readonly struct EquatableArray<T> : IEquatable<EquatableArray<T>>, IRea
         _items = items ?? Array.Empty<T>();
     }
 
-    // Null-safe accessor: default(EquatableArray<T>) has _items == null, which the
-    // qyl-internal ANcpLua version of this polyfill handled by treating null as empty.
-    // Mirror that behaviour here so downstream emitters never see an NRE through the
+    // Null-safe accessor: default(EquatableArray<T>) has _items == null.
+    // Treat it as empty so downstream emitters never see an NRE through
     // record-struct positional parameters.
     private T[] Items => _items ?? Array.Empty<T>();
 
