@@ -149,7 +149,7 @@ jobs:
           --no-build `
           --logger:"console;verbosity=detailed" `
           --logger:"GitHubActions;report-warnings=false" `
-          --logger:"junit;LogFilePath=TestResults/junit.xml" `
+          --logger:"junit;LogFilePath=${env:GITHUB_WORKSPACE}/TestResults/junit.xml" `
           --filter "${env:TEST_FILTER}" `
           -- RunConfiguration.DisableAppDomain=${env:DISABLE_APP_DOMAIN}
 
@@ -171,7 +171,7 @@ jobs:
           --no-build `
           --logger:"console;verbosity=detailed" `
           --logger:"GitHubActions;report-warnings=false" `
-          --logger:"junit;LogFilePath=${env:GITHUB_WORKSPACE}/TestResults/junit.xml"
+          --logger:"junit;LogFilePath=${env:GITHUB_WORKSPACE}/TestResults/junit.xml" `
           --filter "${env:TEST_FILTER}" `
           -- RunConfiguration.DisableAppDomain=${env:DISABLE_APP_DOMAIN}
         sudo chmod a+rw ./TestResults
