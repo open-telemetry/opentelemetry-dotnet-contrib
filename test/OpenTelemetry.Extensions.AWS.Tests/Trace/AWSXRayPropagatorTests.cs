@@ -183,7 +183,7 @@ public class AWSXRayPropagatorTests
 
         Assert.Equal(traceId, result.ActivityContext.TraceId);
         Assert.Equal(default, result.ActivityContext.SpanId);
-        Assert.True((result.ActivityContext.TraceFlags & ActivityTraceFlags.Recorded) != 0, "because Sampled=1");
+        Assert.True((result.ActivityContext.TraceFlags & ActivityTraceFlags.Recorded) != 0, $"Expected TraceFlags check to pass because Sampled=1, but got: {result.ActivityContext.TraceFlags}");
         Assert.True(result.ActivityContext.IsRemote);
     }
 
@@ -215,7 +215,7 @@ public class AWSXRayPropagatorTests
 
         Assert.Equal(traceId, result.ActivityContext.TraceId);
         Assert.Equal(default, result.ActivityContext.SpanId);
-        Assert.True((result.ActivityContext.TraceFlags & ActivityTraceFlags.None) == 0, "because Sampled is missing");
+        Assert.True((result.ActivityContext.TraceFlags & ActivityTraceFlags.None) == 0, $"Expected TraceFlags check to pass because Sampled is missing, but got: {result.ActivityContext.TraceFlags}");
         Assert.True(result.ActivityContext.IsRemote);
     }
 

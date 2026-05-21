@@ -5,7 +5,7 @@
 * Fix sampling behaviour to be compatible with .NET 11.
   ([#4396](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4396))
 
-* Changed AWSXRayPropagator behavior to parse AWS ALB headers with only Root value in it.
+* `AWSXRayPropagator` now parses AWS ALB headers with only a Root value.
   ([#4403](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4403))
 
 ## 1.15.1
