@@ -11,6 +11,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.sha }}
+  cancel-in-progress: false
+
 jobs:
   lint-misspell-sanitycheck:
     uses: ./.github/workflows/sanitycheck.yml
@@ -18,20 +22,26 @@ jobs:
   code-ql:
     uses: ./.github/workflows/codeql-analysis-steps.yml
     permissions:
-      actions: read
-      contents: read
-      security-events: write
+      actions: read # Scan GitHub Actions workflows
+      contents: read # Checkout the repository
+      security-events: write # Store results in the Security tab
 
   detect-changes:
-    runs-on: windows-latest
+    name: Detect changes
+    runs-on: windows-2025
     outputs:
       changes: ${{ steps.changes.outputs.changes }}
     steps:
-    - name: check out code
+    - name: Checkout code
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       if: github.event_name == 'push' || github.event_name == 'merge_group'
+      with:
+        filter: 'tree:0'
+        persist-credentials: false
+        show-progress: false
 
-    - uses: AurorNZ/paths-filter@c9dd42e99db87803313ff6f4b1150cc9f6c836af # v5.0.0
+    - name: Filter paths
+      uses: AurorNZ/paths-filter@c9dd42e99db87803313ff6f4b1150cc9f6c836af # v5.0.0
       id: changes
       with:
         filters: |
@@ -206,7 +216,7 @@ jobs:
     with:
       project-name: OpenTelemetry.Instrumentation.AspNet
       code-cov-name: Instrumentation.AspNet
-      os-list: '[ "windows-latest" ]'
+      os-list: '[ "windows-2025" ]'
       tfm-list: '[ "net462" ]'
 
   build-test-instrumentation-aspnetcore:
@@ -354,7 +364,7 @@ jobs:
     with:
       project-name: OpenTelemetry.Instrumentation.Owin
       code-cov-name: Instrumentation.Owin
-      os-list: '[ "windows-latest" ]'
+      os-list: '[ "windows-2025" ]'
       tfm-list: '[ "net462" ]'
 
   build-test-instrumentation-process:
@@ -389,7 +399,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Instrumentation.Remoting]
       code-cov-name: Instrumentation.Remoting
-      os-list: '[ "windows-latest" ]'
+      os-list: '[ "windows-2025" ]'
       tfm-list: '[ "net462" ]'
 
   build-test-instrumentation-runtime:
@@ -523,7 +533,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Resources.Host]
       code-cov-name: Resources.Host
-      os-list: '[ "windows-latest", "ubuntu-24.04", "macos-latest" ]'
+      os-list: '[ "windows-2025", "ubuntu-24.04", "macos-26" ]'
 
   build-test-resources-operatingsystem:
     needs: detect-changes
@@ -535,7 +545,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Resources.OperatingSystem]
       code-cov-name: Resources.OperatingSystem
-      os-list: '[ "windows-latest", "ubuntu-24.04", "macos-latest" ]'
+      os-list: '[ "windows-2025", "ubuntu-24.04", "macos-26" ]'
 
   build-test-resources-process:
     needs: detect-changes
@@ -631,6 +641,7 @@ jobs:
     uses: ./.github/workflows/verifyaotcompat.yml
 
   build-test:
+    name: build-test
     needs: [
       lint-misspell-sanitycheck,
       code-ql,
