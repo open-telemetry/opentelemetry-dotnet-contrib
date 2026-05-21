@@ -173,6 +173,7 @@ jobs:
         FILTER: ${{ inputs.test-case-filter }}
         token: ${{ secrets.CODECOV_TOKEN }}
       with:
+        disable_search: true
         files: TestResults/Cobertura.xml
         env_vars: OS,TFM,FILTER
         flags: ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
@@ -183,7 +184,9 @@ jobs:
       if: ${{ !cancelled() && inputs.run-tests && hashFiles('./**/TestResults/junit.xml') != '' }}
       uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6.0.1
       with:
+        disable_search: true
         env_vars: OS,TFM,FILTER
+        files: TestResults/junit.xml
         flags: ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
         name: Test results for ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }} on [${{ matrix.os }}.${{ matrix.version }}]
         report_type: test_results
