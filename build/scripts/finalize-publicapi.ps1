@@ -9,7 +9,7 @@ $InformationPreference = "Continue"
 
 $projectDirs = Get-ChildItem -Path src/**/*.csproj | Select-String "<MinVerTagPrefix>$minVerTagPrefix</MinVerTagPrefix>" -List | Select-Object Path | Split-Path -Parent
 
-$path = "\.publicApi\**\PublicAPI.Shipped.txt";
+$path = ".publicApi\**\PublicAPI.Shipped.txt";
 
 foreach ($projectDir in $projectDirs) {
     $searchPath = Join-Path -Path $projectDir -ChildPath $path;

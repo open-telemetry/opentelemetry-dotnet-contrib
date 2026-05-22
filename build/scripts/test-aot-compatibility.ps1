@@ -8,6 +8,7 @@ $rootDirectory = Get-Location
 $publishOutput = dotnet publish $rootDirectory/test/OpenTelemetry.AotCompatibility.TestApp/OpenTelemetry.AotCompatibility.TestApp.csproj --framework $targetNetFramework -nodeReuse:false /p:UseSharedCompilation=false
 
 $actualWarningCount = 0
+$testPassed = 0
 
 foreach ($line in $($publishOutput -split "`r`n"))
 {
@@ -23,6 +24,7 @@ $expectedWarningCount = 0
 
 if ($LastExitCode -ne 0)
 {
+    $testPassed = 1
     Write-Information "There was an error while publishing AotCompatibility Test App. LastExitCode is: $LastExitCode"
     Write-Information $publishOutput
 }
@@ -37,12 +39,12 @@ Write-Information 'Finished executing test App'
 
 if ($LastExitCode -ne 0)
 {
-  Write-Information "There was an error while executing AotCompatibility Test App. LastExitCode is: $LastExitCode"
+    $testPassed = 1
+    Write-Information "There was an error while executing AotCompatibility Test App. LastExitCode is: $LastExitCode"
 }
 
 Pop-Location
 
-$testPassed = 0
 if ($actualWarningCount -ne $expectedWarningCount)
 {
     $testPassed = 1
