@@ -165,6 +165,7 @@ public class AnyValueUnionTests
             case AnyValueType.Double:
                 Assert.Equal(doubleValue, protoValue.DoubleValue);
                 break;
+            case AnyValueType.Array:
             default:
                 Assert.Fail($"Unhandled type {type}");
                 break;
