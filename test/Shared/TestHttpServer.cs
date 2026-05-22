@@ -1,26 +1,20 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-// Note: When implicit usings are enabled in a project this file will generate
-// warnings/errors without this suppression.
-
 using System.Net;
-#if !NETFRAMEWORK
-using System.Security.Cryptography;
-#endif
 
 namespace OpenTelemetry.Tests;
 
 internal static class TestHttpServer
 {
-#if !NET
-    private static readonly Random GlobalRandom = new();
-#endif
-
-    public static IDisposable RunServer(Action<HttpListenerContext> action, out string host, out int port)
+    public static IDisposable RunServer(Action<HttpListenerContext> action, out Uri baseAddress)
     {
-        host = "localhost";
-        port = 0;
+        var uri = new UriBuilder()
+        {
+            Host = "localhost",
+            Scheme = Uri.UriSchemeHttp,
+        };
+
         RunningServer? server = null;
 
         var retryCount = 5;
@@ -28,14 +22,8 @@ internal static class TestHttpServer
         {
             try
             {
-#if NET
-                port = RandomNumberGenerator.GetInt32(2000, 5000);
-#else
-#pragma warning disable CA5394 // Do not use insecure randomness
-                port = GlobalRandom.Next(2000, 5000);
-#pragma warning restore CA5394 // Do not use insecure randomness
-#endif
-                server = new RunningServer(action, host, port);
+                uri.Port = TcpPortProvider.GetOpenPort();
+                server = new RunningServer(action, uri.Uri);
                 server.Start();
                 break;
             }
@@ -50,6 +38,8 @@ internal static class TestHttpServer
             }
         }
 
+        baseAddress = uri.Uri;
+
         return server;
     }
 
@@ -60,11 +50,11 @@ internal static class TestHttpServer
         private readonly TaskCompletionSource<bool> initialized = new(TaskCreationOptions.RunContinuationsAsynchronously);
         private readonly CancellationTokenSource cancellationTokenSource = new();
 
-        public RunningServer(Action<HttpListenerContext> action, string host, int port)
+        public RunningServer(Action<HttpListenerContext> action, Uri baseAddress)
         {
             this.listener = new HttpListener();
 
-            this.listener.Prefixes.Add($"http://{host}:{port}/");
+            this.listener.Prefixes.Add(baseAddress.ToString());
             this.listener.Start();
 
             this.httpListenerTask = Task.Factory.StartNew(
@@ -83,7 +73,7 @@ internal static class TestHttpServer
                 this.cancellationTokenSource.Cancel();
                 this.cancellationTokenSource.Dispose();
                 this.listener.Close();
-                this.httpListenerTask.GetAwaiter().GetResult();
+                this.httpListenerTask.Wait();
             }
             catch (Exception ex) when (this.IsListenerShutdownException(ex))
             {
@@ -95,12 +85,17 @@ internal static class TestHttpServer
         {
             for (var ex = exception; ex is not null; ex = ex.InnerException)
             {
+                if (ex is AggregateException aggregate)
+                {
+                    ex = aggregate.Flatten();
+                }
+
                 if (ex is ObjectDisposedException)
                 {
                     return true;
                 }
 
-                if (ex is HttpListenerException httpEx && (httpEx.ErrorCode is 1 or 6 or 995 or 10057))
+                if (ex is HttpListenerException httpEx && (httpEx.ErrorCode is 1 or 6 or 995 or 1229 or 10057))
                 {
                     return true;
                 }
@@ -109,9 +104,28 @@ internal static class TestHttpServer
             return false;
         }
 
-        private bool IsListenerShutdownException(Exception ex) =>
-            IsResponseAlreadyClosedException(ex) ||
-            (ex is InvalidOperationException && !this.listener.IsListening);
+        private bool IsListenerShutdownException(Exception exception)
+        {
+            if (IsResponseAlreadyClosedException(exception))
+            {
+                return true;
+            }
+
+            for (var ex = exception; ex is not null; ex = ex.InnerException)
+            {
+                if (ex is AggregateException aggregate)
+                {
+                    ex = aggregate.Flatten();
+                }
+
+                if (ex is InvalidOperationException && !this.listener.IsListening)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         private async Task ListenAsync(Action<HttpListenerContext> action)
         {

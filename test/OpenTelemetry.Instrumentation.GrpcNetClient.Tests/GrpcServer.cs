@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using OpenTelemetry.Tests;
 
 namespace OpenTelemetry.Instrumentation.Grpc.Tests;
 
@@ -15,7 +16,11 @@ internal sealed class GrpcServer<TService> : IAsyncDisposable
 {
     private IHost? host;
 
-    public int Port { get; private set; }
+    public Uri Address
+    {
+        get => field ?? throw new InvalidOperationException("Server has not been started.");
+        private set;
+    }
 
     public async Task StartAsync()
     {
@@ -24,29 +29,45 @@ internal sealed class GrpcServer<TService> : IAsyncDisposable
             throw new InvalidOperationException("Server is already started.");
         }
 
-        // Allows gRPC client to call insecure gRPC services
-        // https://docs.microsoft.com/aspnet/core/grpc/troubleshoot?view=aspnetcore-3.1#call-insecure-grpc-services-with-net-core-client
-        AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
-
-        this.Port = 0;
-
         var retryCount = 5;
-        while (retryCount > 0)
+        var attemptsRemaining = retryCount;
+
+        while (attemptsRemaining > 0)
         {
             try
             {
-                this.Port = Random.Shared.Next(2000, 5000);
-                this.host = this.CreateServer();
+                var uri = new UriBuilder()
+                {
+                    Host = "localhost",
+                    Port = TcpPortProvider.GetOpenPort(),
+                    Scheme = Uri.UriSchemeHttp,
+                }.Uri;
 
-                await this.host.StartAsync();
-                break;
+                var host = this.CreateServer(uri.Port);
+
+                try
+                {
+                    await host.StartAsync();
+
+                    this.host = host;
+                    this.Address = uri;
+
+                    return;
+                }
+                catch (Exception)
+                {
+                    host.Dispose();
+                    throw;
+                }
             }
             catch (IOException)
             {
-                retryCount--;
+                attemptsRemaining--;
                 this.host?.Dispose();
             }
         }
+
+        throw new InvalidOperationException($"Failed to start server within {retryCount} attempts.");
     }
 
     public async ValueTask DisposeAsync()
@@ -60,17 +81,14 @@ internal sealed class GrpcServer<TService> : IAsyncDisposable
         GC.SuppressFinalize(this);
     }
 
-    private IHost CreateServer()
+    private IHost CreateServer(int port)
     {
         var hostBuilder = Host.CreateDefaultBuilder()
             .ConfigureWebHostDefaults(webBuilder =>
             {
+                // Setup a HTTP/2 endpoint without TLS
                 webBuilder
-                    .ConfigureKestrel(options =>
-                    {
-                        // Setup a HTTP/2 endpoint without TLS.
-                        options.ListenLocalhost(this.Port, o => o.Protocols = HttpProtocols.Http2);
-                    })
+                    .ConfigureKestrel(options => options.ListenLocalhost(port, o => o.Protocols = HttpProtocols.Http2))
                     .UseStartup<Startup>();
             });
 

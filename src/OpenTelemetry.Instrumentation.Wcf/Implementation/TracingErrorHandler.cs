@@ -27,21 +27,30 @@ internal class TracingErrorHandler : IErrorHandler
         // Also it becomes very difficult to unit-test, because there is no easy `ErrorsHandled`
         // event to listen for before checking to see whether the error was logged.
 
-        if (!WcfInstrumentationActivitySource.Options?.RecordException ?? false)
+        if (WcfInstrumentationActivitySource.Options?.RecordException != true)
         {
             return;
         }
 
-        // OperationContext.Current *should* be reliable even in async calls at .NET 4.6.2+.
-        // In older versions it may not be.
+        // TelemetryDispatchMessageInspector adds WcfOperationContext only after a request
+        // has passed filtering. Without it, exception recording must not create telemetry
+        // for requests that were intentionally filtered out.
         var context = OperationContext.Current?.Extensions.Find<WcfOperationContext>();
-        var activity = context?.Activity ?? WcfInstrumentationActivitySource.ActivitySource.StartActivity(WcfInstrumentationActivitySource.UnassociatedExceptionActivityName, ActivityKind.Internal);
-
-        activity?.AddException(error);
-
-        if (activity != context?.Activity)
+        if (context == null)
         {
-            activity?.Stop();
+            return;
+        }
+
+        var activity = context.Activity ?? WcfInstrumentationActivitySource.ActivitySource.StartActivity(WcfInstrumentationActivitySource.UnassociatedExceptionActivityName, ActivityKind.Internal);
+
+        if (activity != null)
+        {
+            activity.AddException(error);
+
+            if (activity != context.Activity)
+            {
+                activity.Stop();
+            }
         }
     }
 }

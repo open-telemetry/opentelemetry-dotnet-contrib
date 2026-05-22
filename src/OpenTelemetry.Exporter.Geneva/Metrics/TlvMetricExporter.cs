@@ -660,8 +660,8 @@ internal sealed class TlvMetricExporter : IDisposable
                 // TODO: Data Validation
             }
 
-            if (tag.Key.Equals(GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, StringComparison.OrdinalIgnoreCase) ||
-                tag.Key.Equals(GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(tag.Key, GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(tag.Key, GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, StringComparison.OrdinalIgnoreCase))
             {
                 reservedTags++;
                 continue;
@@ -681,7 +681,7 @@ internal sealed class TlvMetricExporter : IDisposable
         // Serialize MetricPoint Dimension values
         foreach (var tag in tags)
         {
-            if (tag.Key.Equals(GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, StringComparison.OrdinalIgnoreCase) && tag.Value is string metricsAccount)
+            if (string.Equals(tag.Key, GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, StringComparison.OrdinalIgnoreCase) && tag.Value is string metricsAccount)
             {
                 if (!string.IsNullOrWhiteSpace(metricsAccount))
                 {
@@ -691,7 +691,7 @@ internal sealed class TlvMetricExporter : IDisposable
                 continue;
             }
 
-            if (tag.Key.Equals(GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, StringComparison.OrdinalIgnoreCase) && tag.Value is string metricsNamespace)
+            if (string.Equals(tag.Key, GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, StringComparison.OrdinalIgnoreCase) && tag.Value is string metricsNamespace)
             {
                 if (!string.IsNullOrWhiteSpace(metricsNamespace))
                 {

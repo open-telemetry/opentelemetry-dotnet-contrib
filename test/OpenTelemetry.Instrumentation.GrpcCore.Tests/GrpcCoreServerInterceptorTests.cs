@@ -18,80 +18,64 @@ public class GrpcCoreServerInterceptorTests
     /// </summary>
     /// <returns>A task.</returns>
     [Fact]
-    public async Task UnaryServerHandlerSuccess()
-    {
-        await TestHandlerSuccess(FoobarService.MakeUnaryAsyncRequest);
-    }
+    public async Task UnaryServerHandlerSuccess() =>
+        await TestHandlerSuccess(FoobarService.MakeUnaryAsyncRequest, FoobarService.UnaryMethod);
 
     /// <summary>
     /// Validates a failed UnaryServerHandler call.
     /// </summary>
     /// <returns>A task.</returns>
     [Fact]
-    public async Task UnaryServerHandlerFail()
-    {
-        await TestHandlerFailure(FoobarService.MakeUnaryAsyncRequest);
-    }
+    public async Task UnaryServerHandlerFail() =>
+        await TestHandlerFailure(FoobarService.MakeUnaryAsyncRequest, FoobarService.UnaryMethod);
 
     /// <summary>
     /// Validates a successful ClientStreamingServerHandler call.
     /// </summary>
     /// <returns>A task.</returns>
     [Fact]
-    public async Task ClientStreamingServerHandlerSuccess()
-    {
-        await TestHandlerSuccess(FoobarService.MakeClientStreamingRequest);
-    }
+    public async Task ClientStreamingServerHandlerSuccess() =>
+        await TestHandlerSuccess(FoobarService.MakeClientStreamingRequest, FoobarService.ClientStreamingMethod);
 
     /// <summary>
     /// Validates a failed ClientStreamingServerHandler call.
     /// </summary>
     /// <returns>A task.</returns>
     [Fact]
-    public async Task ClientStreamingServerHandlerFail()
-    {
-        await TestHandlerFailure(FoobarService.MakeClientStreamingRequest);
-    }
+    public async Task ClientStreamingServerHandlerFail() =>
+        await TestHandlerFailure(FoobarService.MakeClientStreamingRequest, FoobarService.ClientStreamingMethod);
 
     /// <summary>
     /// Validates a successful ServerStreamingServerHandler call.
     /// </summary>
     /// <returns>A task.</returns>
     [Fact]
-    public async Task ServerStreamingServerHandlerSuccess()
-    {
-        await TestHandlerSuccess(FoobarService.MakeServerStreamingRequest);
-    }
+    public async Task ServerStreamingServerHandlerSuccess() =>
+        await TestHandlerSuccess(FoobarService.MakeServerStreamingRequest, FoobarService.ServerStreamingMethod);
 
     /// <summary>
     /// Validates a failed ServerStreamingServerHandler call.
     /// </summary>
     /// <returns>A task.</returns>
     [Fact]
-    public async Task ServerStreamingServerHandlerFail()
-    {
-        await TestHandlerFailure(FoobarService.MakeServerStreamingRequest);
-    }
+    public async Task ServerStreamingServerHandlerFail() =>
+        await TestHandlerFailure(FoobarService.MakeServerStreamingRequest, FoobarService.ServerStreamingMethod);
 
     /// <summary>
     /// Validates a successful DuplexStreamingServerHandler call.
     /// </summary>
     /// <returns>A task.</returns>
     [Fact]
-    public async Task DuplexStreamingServerHandlerSuccess()
-    {
-        await TestHandlerSuccess(FoobarService.MakeDuplexStreamingRequest);
-    }
+    public async Task DuplexStreamingServerHandlerSuccess() =>
+        await TestHandlerSuccess(FoobarService.MakeDuplexStreamingRequest, FoobarService.DuplexStreamingMethod);
 
     /// <summary>
     /// Validates a failed DuplexStreamingServerHandler call.
     /// </summary>
     /// <returns>A task.</returns>
     [Fact]
-    public async Task DuplexStreamingServerHandlerFail()
-    {
-        await TestHandlerFailure(FoobarService.MakeDuplexStreamingRequest);
-    }
+    public async Task DuplexStreamingServerHandlerFail() =>
+        await TestHandlerFailure(FoobarService.MakeDuplexStreamingRequest, FoobarService.DuplexStreamingMethod);
 
     /// <summary>
     /// Validates that non protobuf payloads do not abort server RPCs when
@@ -108,8 +92,10 @@ public class GrpcCoreServerInterceptorTests
             AdditionalTags = testTags.Tags,
         };
 
-        static Task<NonProtobufPayload> HandleUnaryCall(NonProtobufPayload request, ServerCallContext context) =>
-            Task.FromResult(new NonProtobufPayload());
+        static Task<NonProtobufPayload> HandleUnaryCall(NonProtobufPayload request, ServerCallContext context)
+        {
+            return Task.FromResult(new NonProtobufPayload());
+        }
 
         var serviceDefinition = ServerServiceDefinition.CreateBuilder()
             .AddMethod(
@@ -125,7 +111,7 @@ public class GrpcCoreServerInterceptorTests
         };
 
         server.Start();
-        var serverUriString = new Uri("dns:localhost:" + server.Ports.Single().BoundPort).ToString();
+        var serverUriString = $"dns:localhost:{server.Ports.Single().BoundPort}";
 
         try
         {
@@ -143,7 +129,9 @@ public class GrpcCoreServerInterceptorTests
                 Assert.NotNull(response);
 
                 var activity = activityListener.Activity;
-                GrpcCoreClientInterceptorTests.ValidateCommonActivityTags(activity);
+
+                GrpcCoreClientInterceptorTests.ValidateCommonActivityTags(activity, FoobarService.UnaryMethod);
+
                 Assert.Empty(activity!.Events);
             }
             finally
@@ -161,23 +149,39 @@ public class GrpcCoreServerInterceptorTests
     /// A common method to test server interceptor handler success.
     /// </summary>
     /// <param name="clientRequestFunc">The specific client request function.</param>
+    /// <param name="expectedMethodName">The expected gRPC method name.</param>
     /// <param name="additionalMetadata">The additional metadata, if any.</param>
     /// <returns>A Task.</returns>
-    private static async Task TestHandlerSuccess(Func<Foobar.FoobarClient, Metadata?, Task> clientRequestFunc, Metadata? additionalMetadata = null)
+    private static async Task TestHandlerSuccess(
+        Func<Foobar.FoobarClient, Metadata?, Task> clientRequestFunc,
+        string expectedMethodName,
+        Metadata? additionalMetadata = null)
     {
         // starts the server with the server interceptor
         var testTags = new TestActivityTags();
-        var interceptorOptions = new ServerTracingInterceptorOptions { Propagator = new TraceContextPropagator(), RecordMessageEvents = true, AdditionalTags = testTags.Tags };
+        var interceptorOptions = new ServerTracingInterceptorOptions
+        {
+            Propagator = new TraceContextPropagator(),
+            RecordMessageEvents = true,
+            AdditionalTags = testTags.Tags,
+        };
+
         using var server = FoobarService.Start(new ServerTracingInterceptor(interceptorOptions));
 
         // No parent Activity, no context from header
         using (var activityListener = new InterceptorActivityListener(testTags))
         {
-            var client = FoobarService.ConstructRpcClient(server.UriString);
+            var client = FoobarService.ConstructRpcClient(server.Target);
             await clientRequestFunc(client, additionalMetadata);
 
             var activity = activityListener.Activity;
-            GrpcCoreClientInterceptorTests.ValidateCommonActivityTags(activity, StatusCode.OK, interceptorOptions.RecordMessageEvents);
+
+            GrpcCoreClientInterceptorTests.ValidateCommonActivityTags(
+                activity,
+                expectedMethodName,
+                StatusCode.OK,
+                interceptorOptions.RecordMessageEvents);
+
             Assert.NotNull(activity);
             Assert.Equal(default, activity.ParentSpanId);
         }
@@ -186,13 +190,19 @@ public class GrpcCoreServerInterceptorTests
         using (var activityListener = new InterceptorActivityListener(testTags))
         {
             var client = FoobarService.ConstructRpcClient(
-                server.UriString,
+                server.Target,
                 additionalMetadata: [new Metadata.Entry("traceparent", FoobarService.DefaultTraceparentWithSampling)]);
 
             await clientRequestFunc(client, additionalMetadata).ConfigureAwait(false);
 
             var activity = activityListener.Activity;
-            GrpcCoreClientInterceptorTests.ValidateCommonActivityTags(activity, StatusCode.OK, interceptorOptions.RecordMessageEvents);
+
+            GrpcCoreClientInterceptorTests.ValidateCommonActivityTags(
+                activity,
+                expectedMethodName,
+                StatusCode.OK,
+                interceptorOptions.RecordMessageEvents);
+
             Assert.NotNull(activity);
             Assert.Equal(FoobarService.DefaultParentFromTraceparentHeader.SpanId, activity.ParentSpanId);
         }
@@ -202,9 +212,13 @@ public class GrpcCoreServerInterceptorTests
     /// A common method to test server interceptor handler failure.
     /// </summary>
     /// <param name="clientRequestFunc">The specific client request function.</param>
+    /// <param name="expectedMethodName">The expected gRPC method name.</param>
     /// <param name="additionalMetadata">The additional metadata, if any.</param>
     /// <returns>A Task.</returns>
-    private static async Task TestHandlerFailure(Func<Foobar.FoobarClient, Metadata?, Task> clientRequestFunc, Metadata? additionalMetadata = null)
+    private static async Task TestHandlerFailure(
+        Func<Foobar.FoobarClient, Metadata?, Task> clientRequestFunc,
+        string expectedMethodName,
+        Metadata? additionalMetadata = null)
     {
         // starts the server with the server interceptor
         var testTags = new TestActivityTags();
@@ -213,7 +227,7 @@ public class GrpcCoreServerInterceptorTests
 
         using var activityListener = new InterceptorActivityListener(testTags);
         var client = FoobarService.ConstructRpcClient(
-            server.UriString,
+            server.Target,
             additionalMetadata:
             [
                 new Metadata.Entry("traceparent", FoobarService.DefaultTraceparentWithSampling),
@@ -224,7 +238,14 @@ public class GrpcCoreServerInterceptorTests
         await Assert.ThrowsAsync<RpcException>(async () => await clientRequestFunc(client, additionalMetadata).ConfigureAwait(false));
 
         var activity = activityListener.Activity;
-        GrpcCoreClientInterceptorTests.ValidateCommonActivityTags(activity, StatusCode.ResourceExhausted, interceptorOptions.RecordMessageEvents, interceptorOptions.RecordException);
+
+        GrpcCoreClientInterceptorTests.ValidateCommonActivityTags(
+            activity,
+            expectedMethodName,
+            StatusCode.ResourceExhausted,
+            interceptorOptions.RecordMessageEvents,
+            interceptorOptions.RecordException);
+
         Assert.NotNull(activity);
         Assert.Equal(FoobarService.DefaultParentFromTraceparentHeader.SpanId, activity.ParentSpanId);
     }

@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Globalization;
 using FsCheck;
 using FsCheck.Xunit;
 using Xunit;
@@ -376,5 +377,39 @@ public static class SqlProcessorTests
         // IN clause optimization should replace all values with single ?
         var questionMarkCount = result.SanitizedSql.Count((p) => p == '?');
         Assert.Equal(1, questionMarkCount);
+    }
+
+    [Property(MaxTest = MaxValue)]
+    public static void GetSanitizedSql_Unterminated_Escaped_Identifier_In_From_Clause_Sanitizes_Following_Literals(
+        NonEmptyString input,
+        PositiveInt number,
+        NonNegativeInt variant)
+    {
+        // Arrange
+        var secret = "secret_" + new string([.. input.Get.Where(char.IsLetterOrDigit).Take(32)]);
+        if (secret.Length == "secret_".Length)
+        {
+            secret += "value";
+        }
+
+        var numericLiteral = number.Get + 100_000;
+        var numericLiteralString = numericLiteral.ToString(CultureInfo.InvariantCulture);
+        var sqlPrefix = (variant.Get % 3) switch
+        {
+            0 => "SELECT * FROM [Orders",
+            1 => "SELECT * FROM dbo.[Orders",
+            _ => "SELECT * FROM Customers, [Orders",
+        };
+
+        var sql = $"{sqlPrefix} WHERE Name = '{secret}' AND Id = {numericLiteralString} AND Token = 0xDEADBEEF";
+
+        // Act
+        var result = SqlProcessor.GetSanitizedSql(sql);
+
+        // Assert
+        Assert.Contains("?", result.SanitizedSql);
+        Assert.DoesNotContain(secret, result.SanitizedSql);
+        Assert.DoesNotContain(numericLiteralString, result.SanitizedSql);
+        Assert.DoesNotContain("DEADBEEF", result.SanitizedSql);
     }
 }

@@ -2,6 +2,28 @@
 
 ## Unreleased
 
+* Fix `SqlClientTraceInstrumentationOptions` leaking across multiple tracer
+  provider registrations.
+  ([#4267](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4267))
+
+* Add support for native AoT on .NET 8+.
+  ([#4062](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4062))
+
+* Fix SQL query text sanitization for malformed bracketed identifiers in `FROM`
+  clauses to avoid leaking following literal values.
+  ([#4317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4317))
+
+* Fix SQL query text sanitization performance for malformed `FROM` clauses with
+  repeated unterminated bracketed identifiers.
+  ([#4339](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4339))
+
+* Fix `SqlClientTraceInstrumentationOptions.EnableTraceContextPropagation` to behave
+  correctly when `ActivityTraceFlags.RandomTraceId` is available.
+  ([#4397](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4397))
+
+* Fix `db.query.parameter.<key>` attributes to always emit the value as a string.
+  ([#4395](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4395))
+
 ## 1.15.2
 
 Released 2026-Apr-21

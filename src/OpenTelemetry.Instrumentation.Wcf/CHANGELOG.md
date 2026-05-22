@@ -2,6 +2,30 @@
 
 ## Unreleased
 
+* Fixed an issue where server-side exception recording could bypass
+  `IncomingRequestFilter` for filtered faulting requests.
+  ([#4306](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4306))
+
+* Fixed `ArgumentNullException` thrown by `TelemetryEndpointBehavior` when an endpoint
+  operation has a `null` Action (e.g., when WCF service help pages are enabled).
+  ([#4026](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4026))
+
+* Fixed an issue where non-session WCF client channels could be wrapped in
+  instrumented channel types that incorrectly advertised session support.
+  ([#4368](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4368))
+
+* Fixed an issue where async WCF client operations could throw when
+  `ExecutionContext` flow was suppressed.
+  ([#4378](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4378))
+
+## 1.15.1-beta.2
+
+Released 2026-Apr-22
+
+* Revert `System.Security.Cryptography.Xml` dependency version update for
+  .NET 8, 9, and 10 to `4.7.1` released in 1.15.1-beta.1 introduced in [#4103](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4103).
+  ([#4266](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4266))
+
 ## 1.15.1-beta.1
 
 Released 2026-Apr-21

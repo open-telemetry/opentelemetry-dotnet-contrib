@@ -2,6 +2,29 @@
 
 ## Unreleased
 
+* Bumped OpAMP spec to v0.18.0.
+  ([#4421](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4421))
+
+* Fixed System.Net.Http package version resolution issues for .NET 4.6.2.
+  ([#4402](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4402))
+
+* Add support for multivalue identification attributes.
+  ([#4350](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4350))
+
+* Change default OpAMP port from `4318` to `4320`.
+  ([#4374](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4374))
+
+## 0.3.0-alpha.1
+
+Released 2026-Apr-28
+
+* Enhance EffectiveConfigFile:
+  * Remove `CreateFromFilePath` factory method.
+  * Add `CreateFromSteam` and `CreateFromStreamAsync` methods which enforce max
+    size limits.
+  * Content property is now `ReadOnlyMemory`.
+  ([#4285](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4285))
+
 ## 0.2.0-alpha.1
 
 Released 2026-Apr-21
@@ -15,7 +38,8 @@ Released 2026-Apr-21
 * Add support for sticky HTTP connections via the `OpAMP-Instance-UID` header.
   ([#3830](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3830))
 
-* Apply response size limits for oversized OpAMP responses.
+* Apply response size limits for oversized OpAMP responses to resolve
+  [GHSA-w2jh-77fq-7gp8](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/security/advisories/GHSA-w2jh-77fq-7gp8).
   ([#4116](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4116))
 
 * Harden WebSocket transport:

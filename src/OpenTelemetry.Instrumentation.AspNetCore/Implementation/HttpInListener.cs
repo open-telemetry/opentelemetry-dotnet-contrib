@@ -1,9 +1,10 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Http;
 using OpenTelemetry.Context.Propagation;
@@ -23,15 +24,13 @@ internal class HttpInListener : ListenerHandler
     // https://github.com/dotnet/aspnetcore/blob/8d6554e655b64da75b71e0e20d6db54a3ba8d2fb/src/Hosting/Hosting/src/GenericHost/GenericWebHostBuilder.cs#L85
     internal const string AspNetCoreActivitySourceName = "Microsoft.AspNetCore";
 
-    internal static readonly AssemblyName AssemblyName = typeof(HttpInListener).Assembly.GetName();
-#pragma warning disable IDE0370 // Suppression is unnecessary
-    internal static readonly string ActivitySourceName = AssemblyName.Name!;
-    internal static readonly Version Version = AssemblyName.Version!;
-#pragma warning restore IDE0370 // Suppression is unnecessary
-    internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, Version.ToString());
+    internal static readonly ActivitySource ActivitySource = ActivitySourceFactory.Create<HttpInListener>(AspNetCoreInstrumentation.SemanticConventionsVersion);
     internal static readonly bool Net7OrGreater = Environment.Version.Major >= 7;
+    internal static readonly bool Net10OrGreater = Environment.Version.Major >= 10;
+    internal static readonly bool Net11OrGreater = Environment.Version.Major >= 11;
 
     private const string DiagnosticSourceName = "Microsoft.AspNetCore";
+    private const string CreatedByInstrumentationPropertyName = "OpenTelemetry.AspNetCore.CreatedByInstrumentation";
 
     private static readonly Func<HttpRequest, string, IEnumerable<string>> HttpRequestHeaderValuesGetter = (request, name) =>
     {
@@ -45,8 +44,14 @@ internal class HttpInListener : ListenerHandler
     };
 
     private static readonly PropertyFetcher<Exception> ExceptionPropertyFetcher = new("Exception");
+    private static readonly object CreatedByInstrumentationMarker = new();
+
+    // Caches the display name, rpc.service, and rpc.method derived from the raw gRPC method string.
+    // The set of distinct gRPC method strings is bounded by the number of gRPC endpoints in the app.
+    private static readonly GrpcMethodDetailsCache GrpcMethodCache = new();
 
     private readonly AspNetCoreTraceInstrumentationOptions options;
+    private readonly bool nativeAspNetCoreOpenTelemetryEnabled;
 
     public HttpInListener(AspNetCoreTraceInstrumentationOptions options)
         : base(DiagnosticSourceName)
@@ -54,6 +59,7 @@ internal class HttpInListener : ListenerHandler
         Guard.ThrowIfNull(options);
 
         this.options = options;
+        this.nativeAspNetCoreOpenTelemetryEnabled = AspNetCoreHasNativeOpenTelemetryTags();
     }
 
     public override void OnEventWritten(string name, object? payload)
@@ -63,24 +69,18 @@ internal class HttpInListener : ListenerHandler
         switch (name)
         {
             case OnStartEvent:
-                {
-                    this.OnStartActivity(activity, payload);
-                }
-
+                this.OnStartActivity(activity, payload);
                 break;
+
             case OnStopEvent:
-                {
-                    this.OnStopActivity(activity, payload);
-                }
-
+                this.OnStopActivity(activity, payload);
                 break;
+
             case OnUnhandledHostingExceptionEvent:
             case OnUnHandledDiagnosticsExceptionEvent:
-                {
-                    this.OnException(activity, payload);
-                }
-
+                this.OnException(activity, payload);
                 break;
+
             default:
                 break;
         }
@@ -135,7 +135,7 @@ internal class HttpInListener : ListenerHandler
 
                 newOne!.TraceStateString = ctx.ActivityContext.TraceState;
 
-                newOne.SetTag("IsCreatedByInstrumentation", bool.TrueString);
+                newOne.SetCustomProperty(CreatedByInstrumentationPropertyName, CreatedByInstrumentationMarker);
 
                 // Starting the new activity make it the Activity.Current one.
                 newOne.Start();
@@ -152,22 +152,29 @@ internal class HttpInListener : ListenerHandler
         // is favorable.
         if (activity.IsAllDataRequested)
         {
-            try
+            if (this.options.Filter is { } filter)
             {
-                if (this.options.Filter?.Invoke(context) == false)
+                try
                 {
-                    AspNetCoreInstrumentationEventSource.Log.RequestIsFilteredOut(nameof(HttpInListener), nameof(this.OnStartActivity), activity.OperationName);
-                    activity.IsAllDataRequested = false;
-                    activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
+                    if (!filter(context))
+                    {
+                        AspNetCoreInstrumentationEventSource.Log.RequestIsFilteredOut(nameof(HttpInListener), nameof(this.OnStartActivity), activity.OperationName);
+                        DisableActivity(activity);
+                        return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    AspNetCoreInstrumentationEventSource.Log.RequestFilterException(nameof(HttpInListener), nameof(this.OnStartActivity), activity.OperationName, ex);
+                    DisableActivity(activity);
                     return;
                 }
-            }
-            catch (Exception ex)
-            {
-                AspNetCoreInstrumentationEventSource.Log.RequestFilterException(nameof(HttpInListener), nameof(this.OnStartActivity), activity.OperationName, ex);
-                activity.IsAllDataRequested = false;
-                activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
-                return;
+
+                static void DisableActivity(Activity activity)
+                {
+                    activity.IsAllDataRequested = false;
+                    activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
+                }
             }
 
             if (!Net7OrGreater)
@@ -176,19 +183,37 @@ internal class HttpInListener : ListenerHandler
                 ActivityInstrumentationHelper.SetKindProperty(activity, ActivityKind.Server);
             }
 
-            var path = (request.PathBase.HasValue || request.Path.HasValue) ? (request.PathBase + request.Path).ToString() : "/";
-            TelemetryHelper.RequestDataHelper.SetActivityDisplayName(activity, request.Method);
+            // ASP.NET Core 10 does not support OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS so we
+            // still need to set the HTTP method tag so that any override by the user is honoured.
+            // See https://github.com/dotnet/aspnetcore/issues/65873.
+            TelemetryHelper.RequestDataHelper.SetActivityDisplayNameAndHttpMethodTag(activity, request.Method);
 
-            // see the spec https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/http/http-spans.md
-
-            if (request.Host.HasValue)
+            if (!Net10OrGreater || !this.nativeAspNetCoreOpenTelemetryEnabled)
             {
-                activity.SetTag(SemanticConventions.AttributeServerAddress, request.Host.Host);
-
-                if (request.Host.Port.HasValue)
+                if (request.Host.HasValue)
                 {
-                    activity.SetTag(SemanticConventions.AttributeServerPort, request.Host.Port.Value);
+                    activity.SetTag(SemanticConventions.AttributeServerAddress, request.Host.Host);
+
+                    if (request.Host.Port is { } port)
+                    {
+                        activity.SetTag(SemanticConventions.AttributeServerPort, port);
+                    }
                 }
+
+                if (request.Headers.TryGetValue("User-Agent", out var values))
+                {
+                    var userAgent = values.Count > 0 ? values[0] : null;
+                    if (!string.IsNullOrEmpty(userAgent))
+                    {
+                        activity.SetTag(SemanticConventions.AttributeUserAgentOriginal, userAgent);
+                    }
+                }
+
+                activity.SetTag(SemanticConventions.AttributeUrlScheme, request.Scheme);
+
+                // See the spec: https://github.com/open-telemetry/semantic-conventions/blob/v1.40.0/docs/http/http-spans.md
+                var path = (request.PathBase.HasValue || request.Path.HasValue) ? (request.PathBase + request.Path).ToString() : "/";
+                activity.SetTag(SemanticConventions.AttributeUrlPath, path);
             }
 
             if (request.QueryString.HasValue)
@@ -203,28 +228,18 @@ internal class HttpInListener : ListenerHandler
                 }
             }
 
-            TelemetryHelper.RequestDataHelper.SetHttpMethodTag(activity, request.Method);
-
-            activity.SetTag(SemanticConventions.AttributeUrlScheme, request.Scheme);
-            activity.SetTag(SemanticConventions.AttributeUrlPath, path);
             activity.SetTag(SemanticConventions.AttributeNetworkProtocolVersion, RequestDataHelper.GetHttpProtocolVersion(request.Protocol));
 
-            if (request.Headers.TryGetValue("User-Agent", out var values))
+            if (this.options.EnrichWithHttpRequest is { } enricher)
             {
-                var userAgent = values.Count > 0 ? values[0] : null;
-                if (!string.IsNullOrEmpty(userAgent))
+                try
                 {
-                    activity.SetTag(SemanticConventions.AttributeUserAgentOriginal, userAgent);
+                    enricher(activity, request);
                 }
-            }
-
-            try
-            {
-                this.options.EnrichWithHttpRequest?.Invoke(activity, request);
-            }
-            catch (Exception ex)
-            {
-                AspNetCoreInstrumentationEventSource.Log.EnrichmentException(nameof(HttpInListener), nameof(this.OnStartActivity), activity.OperationName, ex);
+                catch (Exception ex)
+                {
+                    AspNetCoreInstrumentationEventSource.Log.EnrichmentException(nameof(HttpInListener), nameof(this.OnStartActivity), activity.OperationName, ex);
+                }
             }
         }
     }
@@ -252,9 +267,36 @@ internal class HttpInListener : ListenerHandler
 
             activity.SetTag(SemanticConventions.AttributeHttpResponseStatusCode, TelemetryHelper.GetBoxedStatusCode(response.StatusCode));
 
-            if (this.options.EnableGrpcAspNetCoreSupport && TryGetGrpcMethod(activity, out var grpcMethod))
+            if (this.options.EnableGrpcAspNetCoreSupport && IsGrpcRequest(activity, out var grpcMethod))
             {
-                AddGrpcAttributes(activity, grpcMethod, context);
+                // Single pass over the tag collection to retrieve both gRPC tags,
+                // avoiding separate GetTagValue iterations.
+                var grpcStatusCode = -1;
+                var hasGrpcStatusCode = false;
+
+                var tagEnumerator = activity.EnumerateTagObjects();
+                while (tagEnumerator.MoveNext())
+                {
+                    ref readonly var tag = ref tagEnumerator.Current;
+                    if (grpcMethod is null && tag.Key == GrpcTagHelper.GrpcMethodTagName)
+                    {
+                        grpcMethod = tag.Value as string;
+                    }
+                    else if (!hasGrpcStatusCode && tag.Key == GrpcTagHelper.GrpcStatusCodeTagName)
+                    {
+                        hasGrpcStatusCode = int.TryParse(tag.Value as string, NumberStyles.None, CultureInfo.InvariantCulture, out grpcStatusCode);
+                    }
+
+                    if (grpcMethod is not null && hasGrpcStatusCode)
+                    {
+                        break;
+                    }
+                }
+
+                if (grpcMethod is { Length: > 0 })
+                {
+                    AddGrpcAttributes(activity, grpcMethod, context, grpcStatusCode, hasGrpcStatusCode);
+                }
             }
 
             if (activity.Status == ActivityStatusCode.Unset)
@@ -262,31 +304,23 @@ internal class HttpInListener : ListenerHandler
                 activity.SetStatus(SpanHelper.ResolveActivityStatusForHttpStatusCode(activity.Kind, response.StatusCode));
             }
 
-            try
+            if (this.options.EnrichWithHttpResponse is { } enricher)
             {
-                this.options.EnrichWithHttpResponse?.Invoke(activity, response);
-            }
-            catch (Exception ex)
-            {
-                AspNetCoreInstrumentationEventSource.Log.EnrichmentException(nameof(HttpInListener), nameof(this.OnStopActivity), activity.OperationName, ex);
+                try
+                {
+                    enricher(activity, response);
+                }
+                catch (Exception ex)
+                {
+                    AspNetCoreInstrumentationEventSource.Log.EnrichmentException(nameof(HttpInListener), nameof(this.OnStopActivity), activity.OperationName, ex);
+                }
             }
         }
 
-        object? tagValue;
-        if (Net7OrGreater)
-        {
-            tagValue = activity.GetTagValue("IsCreatedByInstrumentation");
-        }
-        else
-        {
-            _ = activity.TryCheckFirstTag("IsCreatedByInstrumentation", out tagValue);
-        }
-
-        if (ReferenceEquals(tagValue, bool.TrueString))
+        if (ReferenceEquals(activity.GetCustomProperty(CreatedByInstrumentationPropertyName), CreatedByInstrumentationMarker))
         {
             // If instrumentation started a new Activity, it must
             // be stopped here.
-            activity.SetTag("IsCreatedByInstrumentation", null);
             activity.Stop();
 
             // After the activity.Stop() code, Activity.Current becomes null.
@@ -322,13 +356,16 @@ internal class HttpInListener : ListenerHandler
 
             activity.SetStatus(ActivityStatusCode.Error);
 
-            try
+            if (this.options.EnrichWithException is { } enricher)
             {
-                this.options.EnrichWithException?.Invoke(activity, exc);
-            }
-            catch (Exception ex)
-            {
-                AspNetCoreInstrumentationEventSource.Log.EnrichmentException(nameof(HttpInListener), nameof(this.OnException), activity.OperationName, ex);
+                try
+                {
+                    enricher(activity, exc);
+                }
+                catch (Exception ex)
+                {
+                    AspNetCoreInstrumentationEventSource.Log.EnrichmentException(nameof(HttpInListener), nameof(this.OnException), activity.OperationName, ex);
+                }
             }
         }
 
@@ -345,19 +382,14 @@ internal class HttpInListener : ListenerHandler
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool TryGetGrpcMethod(Activity activity, [NotNullWhen(true)] out string? grpcMethod)
+    private static void AddGrpcAttributes(Activity activity, string grpcMethod, HttpContext context, int grpcStatusCode, bool validStatusCode)
     {
-        grpcMethod = GrpcTagHelper.GetGrpcMethodFromActivity(activity);
-        return !string.IsNullOrEmpty(grpcMethod);
-    }
+        var details = GrpcMethodCache.Get(grpcMethod);
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void AddGrpcAttributes(Activity activity, string grpcMethod, HttpContext context)
-    {
         // The RPC semantic conventions indicate the span name
         // should not have a leading forward slash.
         // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/rpc/rpc-spans.md#span-name
-        activity.DisplayName = grpcMethod.TrimStart('/');
+        activity.DisplayName = details.DisplayName;
 
         activity.SetTag(SemanticConventions.AttributeRpcSystem, GrpcTagHelper.RpcSystemGrpc);
 
@@ -370,16 +402,15 @@ internal class HttpInListener : ListenerHandler
 
         activity.SetTag(SemanticConventions.AttributeClientPort, context.Connection.RemotePort);
 
-        var validConversion = GrpcTagHelper.TryGetGrpcStatusCodeFromActivity(activity, out var status);
-        if (validConversion)
+        if (validStatusCode)
         {
-            activity.SetStatus(GrpcTagHelper.ResolveSpanStatusForGrpcStatusCodeOnServer(status));
+            activity.SetStatus(GrpcTagHelper.ResolveSpanStatusForGrpcStatusCodeOnServer(grpcStatusCode));
         }
 
-        if (GrpcTagHelper.TryParseRpcServiceAndRpcMethod(grpcMethod, out var rpcService, out var rpcMethod))
+        if (details.IsParsed)
         {
-            activity.SetTag(SemanticConventions.AttributeRpcService, rpcService);
-            activity.SetTag(SemanticConventions.AttributeRpcMethod, rpcMethod);
+            activity.SetTag(SemanticConventions.AttributeRpcService, details.RpcService);
+            activity.SetTag(SemanticConventions.AttributeRpcMethod, details.RpcMethod);
 
             // Remove the grpc.method tag added by the gRPC .NET library
             activity.SetTag(GrpcTagHelper.GrpcMethodTagName, null);
@@ -387,11 +418,90 @@ internal class HttpInListener : ListenerHandler
             // Remove the grpc.status_code tag added by the gRPC .NET library
             activity.SetTag(GrpcTagHelper.GrpcStatusCodeTagName, null);
 
-            if (validConversion)
+            if (validStatusCode)
             {
                 // setting rpc.grpc.status_code
-                activity.SetTag(SemanticConventions.AttributeRpcGrpcStatusCode, status);
+                activity.SetTag(SemanticConventions.AttributeRpcGrpcStatusCode, grpcStatusCode);
             }
+        }
+    }
+
+    private static bool AspNetCoreHasNativeOpenTelemetryTags()
+    {
+        bool? suppressed = null;
+
+        // ASP.NET Core 10 added a feature switch to specify whether to suppress OpenTelemetry
+        // tags being added natively by default, so we can take an optimal path if the user has
+        // not explicitly opted-out of suppressing the OpenTelemetry data.
+        if (AppContext.TryGetSwitch("Microsoft.AspNetCore.Hosting.SuppressActivityOpenTelemetryData", out var configuredValue))
+        {
+            suppressed = configuredValue;
+        }
+
+        if (suppressed is { } suppressedValue)
+        {
+            return !suppressedValue;
+        }
+
+        // In ASP.NET Core 8 and 9 the feature switch does not exist and there are no native OpenTelemetry tags.
+        // In ASP.NET Core 10 OpenTelemetry tags are suppressed by default,
+        // see https://github.com/dotnet/aspnetcore/blob/7387de91234d3ef751fa50b3d1bfede4130213ff/src/Hosting/Hosting/src/Internal/HostingApplicationDiagnostics.cs#L59-L67.
+        // In ASP.NET Core 11+ OpenTelemetry tags are emitted by default,
+        // see https://github.com/dotnet/aspnetcore/blob/655f41d52f2fc75992eac41496b8e9cc119e1b54/src/Hosting/Hosting/src/Internal/HostingApplicationDiagnostics.cs#L59-L67.
+        return Net11OrGreater;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsGrpcRequest(Activity activity, [NotNullWhen(true)] out string? grpcMethod)
+    {
+        // gRPC-Web (https://learn.microsoft.com/aspnet/core/grpc/grpcweb) allows ASP.NET Core
+        // to support using gRPC from clients that do not support HTTP/2 or HTTP/3, so we
+        // can't just look at the HTTP protocol version to attempt to shortcut the test.
+        grpcMethod = GrpcTagHelper.GetGrpcMethodFromActivity(activity);
+        return !string.IsNullOrEmpty(grpcMethod);
+    }
+
+    private readonly struct GrpcMethodDetails
+    {
+        public GrpcMethodDetails(string displayName, string? rpcService, string? rpcMethod, bool isParsed)
+        {
+            this.DisplayName = displayName;
+            this.RpcService = rpcService;
+            this.RpcMethod = rpcMethod;
+            this.IsParsed = isParsed;
+        }
+
+        public readonly string DisplayName { get; }
+
+        public readonly string? RpcService { get; }
+
+        public readonly string? RpcMethod { get; }
+
+        public readonly bool IsParsed { get; }
+    }
+
+    private sealed class GrpcMethodDetailsCache
+    {
+        private const int MaxCacheSize = 512;
+        private readonly ConcurrentDictionary<string, GrpcMethodDetails> cache = new();
+
+        public GrpcMethodDetails Get(string grpcMethod)
+        {
+            if (this.cache.TryGetValue(grpcMethod, out var details))
+            {
+                return details;
+            }
+
+            // If the cache has reached its maximum size, just create a value without caching
+            return this.cache.Count >= MaxCacheSize ? Create(grpcMethod) : this.cache.GetOrAdd(grpcMethod, Create);
+        }
+
+        private static GrpcMethodDetails Create(string method)
+        {
+            var displayName = method.Length > 0 && method[0] == '/' ? method.Substring(1) : method;
+            var isParsed = GrpcTagHelper.TryParseRpcServiceAndRpcMethod(method, out var serviceName, out var methodName);
+
+            return new(displayName, isParsed ? serviceName : null, isParsed ? methodName : null, isParsed);
         }
     }
 }
