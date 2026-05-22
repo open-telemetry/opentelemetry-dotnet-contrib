@@ -295,18 +295,14 @@ internal class HttpInListener : ListenerHandler
 
                 if (grpcMethod is { Length: > 0 })
                 {
-<<<<<<< update-aspnetcore-grpc-semantic-conventions
                     AddGrpcAttributes(
                         activity,
-                        grpcMethod!,
+                        grpcMethod,
                         context,
                         grpcStatusCode,
                         hasGrpcStatusCode,
                         this.options.EmitOldRpcAttributes,
                         this.options.EmitNewRpcAttributes);
-=======
-                    AddGrpcAttributes(activity, grpcMethod, context, grpcStatusCode, hasGrpcStatusCode);
->>>>>>> main
                 }
             }
 
