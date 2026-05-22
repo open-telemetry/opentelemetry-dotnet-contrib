@@ -18,7 +18,7 @@ on:
         required: false
         type: string
       os-list:
-        default: '[ "windows-latest", "ubuntu-24.04" ]'
+        default: '[ "windows-2025", "ubuntu-24.04" ]'
         required: false
         type: string
       tfm-list:
@@ -42,6 +42,7 @@ permissions:
 
 jobs:
   build-test:
+    name: build-test
 
     strategy:
       fail-fast: false # ensures the entire test matrix is run, even if one permutation fails
@@ -49,21 +50,26 @@ jobs:
         os: ${{ fromJSON(inputs.os-list) }}
         version: ${{ fromJSON(inputs.tfm-list) }}
         exclude:
+        # renovate: datasource=github-runners depType=github-runner
         - os: ubuntu-24.04
           version: net462
-        - os: macos-latest
+        # renovate: datasource=github-runners depType=github-runner
+        - os: macos-26
           version: net462
 
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
 
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+    - name: Checkout code
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       with:
         # Note: By default GitHub only fetches 1 commit. MinVer needs to find
         # the version tag which is typically NOT on the first commit so we
         # retrieve them all.
         fetch-depth: 0
+        persist-credentials: false
+        show-progress: false
 
     - name: Resolve project
       id: resolve-project
@@ -126,46 +132,68 @@ jobs:
         PROJECT_PATH: ${{ steps.resolve-project.outputs.project }}
 
     - name: dotnet test ${{ steps.resolve-project.outputs.title }}
-      if: inputs.run-tests
+      if: inputs.run-tests && (!inputs.test-require-elevated || matrix.os == 'windows-2025')
       shell: pwsh
       env:
+        DISABLE_APP_DOMAIN: ${{ matrix.version == 'net462' && 'false' || 'true' }}
         PROJECT_PATH: ${{ steps.resolve-project.outputs.project }}
         TARGET_FRAMEWORK: ${{ matrix.version }}
         TEST_FILTER: ${{ inputs.test-case-filter }}
-      run: >
-        ${{ inputs.test-require-elevated && matrix.os != 'windows-latest' && 'sudo -E' || '' }}
-        dotnet test ${env:PROJECT_PATH}
-        --collect:"Code Coverage"
-        --results-directory:TestResults
-        --framework ${env:TARGET_FRAMEWORK}
-        --configuration Release
-        --no-restore
-        --no-build
-        --logger:"console;verbosity=detailed"
-        --logger:"GitHubActions;report-warnings=false"
-        --logger:"junit;LogFilePath=TestResults/junit.xml"
-        --filter "${env:TEST_FILTER}"
-        -- RunConfiguration.DisableAppDomain=${{ matrix.version == 'net462' && 'false' || 'true' }}
-        ${{ inputs.test-require-elevated && matrix.os != 'windows-latest' && '&& sudo chmod a+rw ./TestResults' || '' }}
+      run: |
+        dotnet test ${env:PROJECT_PATH} `
+          --collect:"Code Coverage" `
+          --results-directory:TestResults `
+          --framework ${env:TARGET_FRAMEWORK} `
+          --configuration Release `
+          --no-restore `
+          --no-build `
+          --logger:"console;verbosity=detailed" `
+          --logger:"GitHubActions;report-warnings=false" `
+          --logger:"junit;LogFilePath=${env:GITHUB_WORKSPACE}/TestResults/junit.xml" `
+          --filter "${env:TEST_FILTER}" `
+          -- RunConfiguration.DisableAppDomain=${env:DISABLE_APP_DOMAIN}
+
+    - name: dotnet test ${{ steps.resolve-project.outputs.title }} (elevated)
+      if: inputs.run-tests && inputs.test-require-elevated && matrix.os != 'windows-2025'
+      shell: pwsh
+      env:
+        DISABLE_APP_DOMAIN: ${{ matrix.version == 'net462' && 'false' || 'true' }}
+        PROJECT_PATH: ${{ steps.resolve-project.outputs.project }}
+        TARGET_FRAMEWORK: ${{ matrix.version }}
+        TEST_FILTER: ${{ inputs.test-case-filter }}
+      run: |
+        sudo -E dotnet test ${env:PROJECT_PATH} `
+          --collect:"Code Coverage" `
+          --results-directory:TestResults `
+          --framework ${env:TARGET_FRAMEWORK} `
+          --configuration Release `
+          --no-restore `
+          --no-build `
+          --logger:"console;verbosity=detailed" `
+          --logger:"GitHubActions;report-warnings=false" `
+          --logger:"junit;LogFilePath=${env:GITHUB_WORKSPACE}/TestResults/junit.xml" `
+          --filter "${env:TEST_FILTER}" `
+          -- RunConfiguration.DisableAppDomain=${env:DISABLE_APP_DOMAIN}
+        sudo chmod a+rw ./TestResults
 
     - name: dotnet pack ${{ steps.resolve-project.outputs.title }}
-      if: matrix.os == 'windows-latest' && inputs.pack
+      if: matrix.os == 'windows-2025' && inputs.pack
       run: dotnet pack ${env:PROJECT_PATH} --configuration Release --no-restore --no-build -p:EnablePackageValidation=true
       shell: pwsh
       env:
         PROJECT_PATH: ${{ steps.resolve-project.outputs.project }}
 
-    - name: Install coverage tool
+    - name: Install dotnet-coverage
       if: inputs.run-tests
       run: dotnet tool install -g dotnet-coverage
 
-    - name: Merging test results
+    - name: Merge test results
       if: inputs.run-tests && hashFiles('./TestResults/**/*.coverage') != ''
       run: dotnet-coverage merge -f cobertura -o ./TestResults/Cobertura.xml ./TestResults/**/*.coverage
 
     - name: Upload code coverage ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
       if: inputs.run-tests && hashFiles('./TestResults/Cobertura.xml') != ''
-      uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6.0.0
+      uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6.0.1
       continue-on-error: true # Note: Don't fail for upload failures
       env:
         OS: ${{ matrix.os }}
@@ -173,17 +201,20 @@ jobs:
         FILTER: ${{ inputs.test-case-filter }}
         token: ${{ secrets.CODECOV_TOKEN }}
       with:
+        disable_search: true
         files: TestResults/Cobertura.xml
         env_vars: OS,TFM,FILTER
         flags: ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
         name: Code Coverage for ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }} on [${{ matrix.os }}.${{ matrix.version }}]
         codecov_yml_path: .github/codecov.yml
 
-    - name: Upload test results  ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
-      if: ${{ !cancelled() && inputs.run-tests && hashFiles('./**/TestResults/junit.xml') != '' }}
-      uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6.0.0
+    - name: Upload test results ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
+      if: ${{ !cancelled() && inputs.run-tests && hashFiles('./TestResults/junit.xml') != '' }}
+      uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6.0.1
       with:
+        disable_search: true
         env_vars: OS,TFM,FILTER
+        files: TestResults/junit.xml
         flags: ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
         name: Test results for ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }} on [${{ matrix.os }}.${{ matrix.version }}]
         report_type: test_results
@@ -192,7 +223,7 @@ jobs:
     - name: Publish ${{ steps.resolve-project.outputs.name }} NuGet packages to Artifacts
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       # Only publish packages from the first job, which should be net462 for Windows in most cases, which is preferred for .NET Framework support
-      if: matrix.os == 'windows-latest' && inputs.pack && strategy.job-index == 0
+      if: matrix.os == 'windows-2025' && inputs.pack && strategy.job-index == 0
       with:
         name: ${{ steps.resolve-project.outputs.name }}-packages
         path: ./artifacts/package/release

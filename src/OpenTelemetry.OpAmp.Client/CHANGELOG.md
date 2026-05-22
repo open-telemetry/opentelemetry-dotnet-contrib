@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Bumped OpAMP spec to v0.18.0.
+  ([#4421](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4421))
+
 * Fixed System.Net.Http package version resolution issues for .NET 4.6.2.
   ([#4402](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4402))
 
