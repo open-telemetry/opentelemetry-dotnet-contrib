@@ -61,10 +61,9 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         }
         finally
         {
-            var end = DateTimeOffset.UtcNow;
-            if (result is { IsPartitionEOF: false } ||
-                (result is null && errorType is not null))
+            if (ShouldInstrument(result, errorType))
             {
+                var end = DateTimeOffset.UtcNow;
                 this.InstrumentConsumption(start, end, consumeResult, errorType);
             }
         }
@@ -89,10 +88,9 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         }
         finally
         {
-            var end = DateTimeOffset.UtcNow;
-            if (result is { IsPartitionEOF: false } ||
-                (result is null && errorType is not null))
+            if (ShouldInstrument(result, errorType))
             {
+                var end = DateTimeOffset.UtcNow;
                 this.InstrumentConsumption(start, end, consumeResult, errorType);
             }
         }
@@ -117,10 +115,9 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         }
         finally
         {
-            var end = DateTimeOffset.UtcNow;
-            if (result is { IsPartitionEOF: false } ||
-                (result is null && errorType is not null))
+            if (ShouldInstrument(result, errorType))
             {
+                var end = DateTimeOffset.UtcNow;
                 this.InstrumentConsumption(start, end, consumeResult, errorType);
             }
         }
@@ -202,6 +199,10 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
 
     public void Close()
         => this.consumer.Close();
+
+    private static bool ShouldInstrument(ConsumeResult<TKey, TValue>? result, string? errorType) =>
+        result is { IsPartitionEOF: false } ||
+        (result is null && errorType is not null);
 
     private static string FormatConsumeException(ConsumeException consumeException) =>
         $"ConsumeException: {consumeException.Error}";
