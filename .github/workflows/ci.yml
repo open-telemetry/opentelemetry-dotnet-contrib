@@ -656,6 +656,7 @@ jobs:
       lint-misspell-sanitycheck,
       code-ql,
       detect-changes,
+      lint-actions,
       lint-md,
       lint-yml,
       lint-dotnet-format,
