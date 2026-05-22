@@ -1,6 +1,7 @@
 param([string]$targetNetFramework)
 
 $ErrorActionPreference = "Stop"
+$WarningPreference = "Continue"
 $InformationPreference = "Continue"
 
 $rootDirectory = Get-Location
@@ -14,7 +15,7 @@ foreach ($line in $($publishOutput -split "`r`n"))
 {
     if (($line -like "*analysis warning IL*") -or ($line -like "*analysis error IL*"))
     {
-        Write-Information $line
+        Write-Warning $line
         $actualWarningCount += 1
     }
 }
@@ -25,8 +26,8 @@ $expectedWarningCount = 0
 if ($LastExitCode -ne 0)
 {
     $testPassed = 1
-    Write-Information "There was an error while publishing AotCompatibility Test App. LastExitCode is: $LastExitCode"
-    Write-Information $publishOutput
+    Write-Warning "There was an error while publishing AotCompatibility Test App. LastExitCode is: $LastExitCode"
+    Write-Warning $publishOutput
 }
 
 $app = $IsWindows ? "./OpenTelemetry.AotCompatibility.TestApp.exe" : "./OpenTelemetry.AotCompatibility.TestApp"
@@ -40,7 +41,7 @@ Write-Information 'Finished executing test App'
 if ($LastExitCode -ne 0)
 {
     $testPassed = 1
-    Write-Information "There was an error while executing AotCompatibility Test App. LastExitCode is: $LastExitCode"
+    Write-Warning "There was an error while executing AotCompatibility Test App. LastExitCode is: $LastExitCode"
 }
 
 Pop-Location
@@ -48,7 +49,7 @@ Pop-Location
 if ($actualWarningCount -ne $expectedWarningCount)
 {
     $testPassed = 1
-    Write-Information "Actual warning count: $actualWarningCount is not as expected. Expected warning count is: $expectedWarningCount"
+    Write-Warning "Actual warning count: $actualWarningCount is not as expected. Expected warning count is: $expectedWarningCount"
 }
 
 Exit $testPassed
