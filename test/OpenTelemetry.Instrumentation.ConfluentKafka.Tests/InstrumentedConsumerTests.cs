@@ -17,10 +17,7 @@ public class InstrumentedConsumerTests
     {
         var activities = new List<Activity>();
 
-        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddSource(ConfluentKafkaCommon.InstrumentationName)
-            .AddInMemoryExporter(activities)
-            .Build())
+        using (var tracerProvider = CreateTraceProvider(activities))
         {
             var fakeConsumer = new FakeConsumer<string, string>
             {
@@ -63,10 +60,7 @@ public class InstrumentedConsumerTests
     {
         var activities = new List<Activity>();
 
-        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddSource(ConfluentKafkaCommon.InstrumentationName)
-            .AddInMemoryExporter(activities)
-            .Build())
+        using (var tracerProvider = CreateTraceProvider(activities))
         {
             var fakeConsumer = new FakeConsumer<string, string>
             {
@@ -99,10 +93,7 @@ public class InstrumentedConsumerTests
     {
         var activities = new List<Activity>();
 
-        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddSource(ConfluentKafkaCommon.InstrumentationName)
-            .AddInMemoryExporter(activities)
-            .Build())
+        using (var tracerProvider = CreateTraceProvider(activities))
         {
             var fakeConsumer = new FakeConsumer<string, string>
             {
@@ -135,10 +126,7 @@ public class InstrumentedConsumerTests
     {
         var activities = new List<Activity>();
 
-        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddSource(ConfluentKafkaCommon.InstrumentationName)
-            .AddInMemoryExporter(activities)
-            .Build())
+        using (var tracerProvider = CreateTraceProvider(activities))
         {
             // A well-formed traceparent header representing a remote producer span
             const string traceparent = "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01";
@@ -185,10 +173,7 @@ public class InstrumentedConsumerTests
     {
         var activities = new List<Activity>();
 
-        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddSource(ConfluentKafkaCommon.InstrumentationName)
-            .AddInMemoryExporter(activities)
-            .Build())
+        using (var tracerProvider = CreateTraceProvider(activities))
         {
             var error = new Error(ErrorCode.Local_ValueDeserialization, "Deserialization error");
             ConsumeResult<byte[], byte[]>? nullConsumerRecord = null;
@@ -234,10 +219,7 @@ public class InstrumentedConsumerTests
     {
         var activities = new List<Activity>();
 
-        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddSource(ConfluentKafkaCommon.InstrumentationName)
-            .AddInMemoryExporter(activities)
-            .Build())
+        using (var tracerProvider = CreateTraceProvider(activities))
         {
             var consumerRecord = new ConsumeResult<byte[], byte[]>
             {
@@ -290,10 +272,7 @@ public class InstrumentedConsumerTests
     {
         var activities = new List<Activity>();
 
-        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddSource(ConfluentKafkaCommon.InstrumentationName)
-            .AddInMemoryExporter(activities)
-            .Build())
+        using (var tracerProvider = CreateTraceProvider(activities))
         {
             var consumerRecord = new ConsumeResult<byte[], byte[]>
             {
@@ -350,10 +329,7 @@ public class InstrumentedConsumerTests
     {
         var activities = new List<Activity>();
 
-        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddSource(ConfluentKafkaCommon.InstrumentationName)
-            .AddInMemoryExporter(activities)
-            .Build())
+        using (var tracerProvider = CreateTraceProvider(activities))
         {
             // A well-formed traceparent header representing a remote producer span
             const string traceparent = "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01";
@@ -420,10 +396,7 @@ public class InstrumentedConsumerTests
     {
         var activities = new List<Activity>();
 
-        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddSource(ConfluentKafkaCommon.InstrumentationName)
-            .AddInMemoryExporter(activities)
-            .Build())
+        using (var tracerProvider = CreateTraceProvider(activities))
         {
             var consumerRecord = new ConsumeResult<byte[], byte[]>
             {
@@ -467,10 +440,7 @@ public class InstrumentedConsumerTests
     {
         var activities = new List<Activity>();
 
-        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddSource(ConfluentKafkaCommon.InstrumentationName)
-            .AddInMemoryExporter(activities)
-            .Build())
+        using (var tracerProvider = CreateTraceProvider(activities))
         {
             var consumerRecord = new ConsumeResult<byte[], byte[]>
             {
@@ -514,10 +484,7 @@ public class InstrumentedConsumerTests
     {
         var metrics = new List<Metric>();
 
-        using (var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddMeter(ConfluentKafkaCommon.InstrumentationName)
-            .AddInMemoryExporter(metrics)
-            .Build())
+        using (var meterProvider = CreateMeterProvider(metrics))
         {
             var error = new Error(ErrorCode.Local_ValueDeserialization, "Deserialization error");
             ConsumeResult<byte[], byte[]>? nullConsumerRecord = null;
@@ -564,10 +531,7 @@ public class InstrumentedConsumerTests
     {
         var metrics = new List<Metric>();
 
-        using (var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddMeter(ConfluentKafkaCommon.InstrumentationName)
-            .AddInMemoryExporter(metrics)
-            .Build())
+        using (var meterProvider = CreateMeterProvider(metrics))
         {
             var consumerRecord = new ConsumeResult<byte[], byte[]>
             {
@@ -621,10 +585,7 @@ public class InstrumentedConsumerTests
     {
         var metrics = new List<Metric>();
 
-        using (var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddMeter(ConfluentKafkaCommon.InstrumentationName)
-            .AddInMemoryExporter(metrics)
-            .Build())
+        using (var meterProvider = CreateMeterProvider(metrics))
         {
             var consumerRecord = new ConsumeResult<byte[], byte[]>
             {
@@ -682,10 +643,7 @@ public class InstrumentedConsumerTests
     {
         var metrics = new List<Metric>();
 
-        using (var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddMeter(ConfluentKafkaCommon.InstrumentationName)
-            .AddInMemoryExporter(metrics)
-            .Build())
+        using (var meterProvider = CreateMeterProvider(metrics))
         {
             var headers = new Headers
             {
@@ -748,6 +706,16 @@ public class InstrumentedConsumerTests
             expectedErrorType: "ConsumeException: Broker not available");
     }
 
+    private static TracerProvider CreateTraceProvider(List<Activity> activities) => Sdk.CreateTracerProviderBuilder()
+                .AddSource(ConfluentKafkaCommon.InstrumentationName)
+                .AddInMemoryExporter(activities)
+                .Build();
+
+    private static MeterProvider CreateMeterProvider(List<Metric> metrics) => Sdk.CreateMeterProviderBuilder()
+                .AddMeter(ConfluentKafkaCommon.InstrumentationName)
+                .AddInMemoryExporter(metrics)
+                .Build();
+
     private static void AssertMetric(
        Metric? actualMetric,
        string? expectedMessagingOperation,
@@ -799,9 +767,9 @@ public class InstrumentedConsumerTests
             }
         }
 
-        static void AssertTagExist(bool tagFound, string? tagExpecedValue)
+        static void AssertTagExists(bool tagFound, string? tagExpectedValue)
         {
-            if (tagExpecedValue is null)
+            if (tagExpectedValue is null)
             {
                 Assert.False(tagFound);
             }
@@ -811,11 +779,11 @@ public class InstrumentedConsumerTests
             }
         }
 
-        AssertTagExist(messagingOperationFound, expectedMessagingOperation);
-        AssertTagExist(messagingSystemFound, expectedMessagingSystem);
-        AssertTagExist(destinationNameFound, expectedKafkaDestinationName);
-        AssertTagExist(destinationPartitionFound, expectedKafkaDestinationPartition?.ToString());
-        AssertTagExist(errorTypeFound, expectedErrorType);
+        AssertTagExists(messagingOperationFound, expectedMessagingOperation);
+        AssertTagExists(messagingSystemFound, expectedMessagingSystem);
+        AssertTagExists(destinationNameFound, expectedKafkaDestinationName);
+        AssertTagExists(destinationPartitionFound, expectedKafkaDestinationPartition?.ToString());
+        AssertTagExists(errorTypeFound, expectedErrorType);
     }
 
     private static MetricPoint? GetMetricPoint(Metric? metric)
