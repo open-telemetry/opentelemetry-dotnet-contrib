@@ -2,10 +2,6 @@
 
 ## Unreleased
 
-* Documented how to enable Kafka traces and metrics independently and linked
-  the runnable `examples/kafka` sample from the package README.
-  ([#1935](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1935))
-
 ## 0.1.0-alpha.6
 
 Released 2026-Apr-21

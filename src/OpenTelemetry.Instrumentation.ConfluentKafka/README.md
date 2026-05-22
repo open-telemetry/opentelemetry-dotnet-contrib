@@ -51,6 +51,7 @@ steps:
     builder.Services.AddOpenTelemetry()
         .WithTracing(tracing =>
         {
+            // Calls under WithTracing enable Kafka traces; omit them to skip tracing.
             tracing.AddConsoleExporter()
                 .AddOtlpExporter()
                 .AddKafkaProducerInstrumentation<string, string>()
@@ -58,6 +59,7 @@ steps:
         })
         .WithMetrics(metering =>
         {
+            // Calls under WithMetrics enable Kafka metrics; omit them to skip metrics.
             metering.AddConsoleExporter()
                 .AddOtlpExporter()
                 .AddKafkaProducerInstrumentation<string, string>()
@@ -72,25 +74,6 @@ steps:
 
 This will set up OpenTelemetry instrumentation for Confluent.Kafka producers
 and consumers, allowing you to collect and export telemetry data.
-
-## Enabling traces and metrics independently
-
-The `AddKafkaProducerInstrumentation<TKey, TValue>()` and
-`AddKafkaConsumerInstrumentation<TKey, TValue>()` extension methods are
-defined on both `TracerProviderBuilder` and `MeterProviderBuilder`. Calling
-them under `WithTracing(...)` enables tracing for the registered builders;
-calling them under `WithMetrics(...)` enables metrics. You can opt in to one
-signal, both, or neither; the `InstrumentedProducerBuilder<TKey, TValue>`
-and `InstrumentedConsumerBuilder<TKey, TValue>` only emit telemetry for
-signals that were registered.
-
-```csharp
-// Traces only -- no metrics will be emitted for Kafka.
-builder.Services.AddOpenTelemetry()
-    .WithTracing(tracing => tracing
-        .AddKafkaProducerInstrumentation<string, string>()
-        .AddKafkaConsumerInstrumentation<string, string>());
-```
 
 ## Runnable example
 
