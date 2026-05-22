@@ -167,6 +167,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
         using var meterProvider = meterBuilder.Build();
 
         using var client = new HttpClient();
+        client.DefaultRequestHeaders.UserAgent.Add(new("company.client", "1.2.3"));
 
         var requestUri = generateRemoteException
             ? new Uri($"{this.serviceBaseUri}exception")
@@ -187,16 +188,21 @@ public class DiagnosticsMiddlewareTests : IDisposable
             if (!filter)
             {
                 Assert.NotEmpty(stoppedActivities);
-                Assert.Single(stoppedActivities);
+                var activity = Assert.Single(stoppedActivities);
 
-                var activity = stoppedActivities[0];
-                Assert.Equal(OwinInstrumentationActivitySource.IncomingRequestActivityName, activity.OperationName);
+                Assert.Equal("OpenTelemetry.Instrumentation.Owin.IncomingRequest", activity.OperationName);
+
+                Assert.Equal("OpenTelemetry.Instrumentation.Owin", activity.Source.Name);
+                Assert.NotNull(activity.Source.Version);
+                Assert.NotEmpty(activity.Source.Version);
+                Assert.StartsWith("https://opentelemetry.io/schemas/", activity.Source.TelemetrySchemaUrl);
 
                 Assert.Equal(requestUri.Host, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeServerAddress).Value);
                 Assert.Equal(requestUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeServerPort).Value);
                 Assert.Equal("GET", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpRequestMethod).Value);
                 Assert.Equal(requestUri.AbsolutePath, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeUrlPath).Value);
                 Assert.Equal(generateRemoteException ? 500 : 200, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpResponseStatusCode).Value);
+                Assert.Equal("company.client/1.2.3", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeUserAgentOriginal).Value);
 
                 if (generateRemoteException)
                 {
@@ -235,16 +241,23 @@ public class DiagnosticsMiddlewareTests : IDisposable
             var metricPoints = this.GetMetricPoints(metric);
             var metricPoint = Assert.Single(metricPoints);
 
-            Assert.Equal(OwinInstrumentationMetrics.MeterName, metric.MeterName);
+            Assert.NotNull(metric.MeterVersion);
+            Assert.NotEmpty(metric.MeterVersion);
+            Assert.StartsWith("https://opentelemetry.io/schemas/", metric.MeterSchemaUrl);
+
+            Assert.Equal(OwinInstrumentationMetrics.Meter.Name, metric.MeterName);
             Assert.Equal("http.server.request.duration", metric.Name);
             Assert.Equal(MetricType.Histogram, metric.MetricType);
             Assert.Equal(1, metricPoint.GetHistogramCount());
-            Assert.Equal(3, metricPoint.Tags.Count);
+            Assert.Equal(generateRemoteException ? 4 : 3, metricPoint.Tags.Count);
 
             foreach (var tag in metricPoint.Tags)
             {
                 switch (tag.Key)
                 {
+                    case SemanticConventions.AttributeErrorType:
+                        Assert.Equal("System.InvalidOperationException", tag.Value);
+                        break;
                     case SemanticConventions.AttributeHttpRequestMethod:
                         Assert.Equal("GET", tag.Value);
                         break;
@@ -272,7 +285,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
             var metricPoint = Assert.Single(metricPoints);
 
             // metric value and span duration should match
-            // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/http/http-metrics.md#metric-httpserverrequestduration
+            // https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/http/http-metrics.md#metric-httpserverrequestduration
             Assert.Equal(activity.Duration.TotalSeconds, metricPoint.GetHistogramSum());
         }
     }
@@ -335,7 +348,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
             Assert.Single(stoppedActivities);
 
             var activity = stoppedActivities[0];
-            Assert.Equal(OwinInstrumentationActivitySource.IncomingRequestActivityName, activity.OperationName);
+            Assert.Equal("OpenTelemetry.Instrumentation.Owin.IncomingRequest", activity.OperationName);
 
             Assert.Equal(requestUri.Host, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeServerAddress).Value);
             Assert.Equal(requestUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeServerPort).Value);

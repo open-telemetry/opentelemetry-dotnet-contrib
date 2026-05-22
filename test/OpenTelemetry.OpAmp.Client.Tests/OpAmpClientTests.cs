@@ -45,7 +45,7 @@ public class OpAmpClientTests
 
         var client = new OpAmpClient(o =>
         {
-            o.ServerUrl = new Uri("http://localhost:4318");
+            o.ServerUrl = new Uri("http://localhost:4320");
             o.Heartbeat.IsEnabled = false;
             o.HttpClientFactory = () => new HttpClient(handler);
         });

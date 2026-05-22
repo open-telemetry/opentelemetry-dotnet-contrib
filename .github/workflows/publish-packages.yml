@@ -19,6 +19,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.sha }}
+  cancel-in-progress: false
+
 jobs:
   automation:
     uses: ./.github/workflows/automation.yml
@@ -26,26 +30,30 @@ jobs:
       OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY: ${{ secrets.OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY }}
 
   build-pack-publish:
+    name: Build, pack, and publish
 
     permissions:
-      artifact-metadata: write
-      attestations: write
-      contents: read
-      id-token: write
+      artifact-metadata: write # Publish artifact metadata for the uploaded packages
+      attestations: write # Create GitHub attestations for the build outputs
+      contents: read # Checkout the repository
+      id-token: write # Sign packages and attestations with GitHub OIDC
 
-    runs-on: windows-latest
+    runs-on: windows-2025
 
     outputs:
       artifact-url: ${{ steps.upload-artifacts.outputs.artifact-url }}
       artifact-id: ${{ steps.upload-artifacts.outputs.artifact-id }}
 
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           # Note: By default GitHub only fetches 1 commit. MinVer needs to find
           # the version tag which is typically NOT on the first commit so we
           # retrieve them all.
           fetch-depth: 0
+          persist-credentials: false
+          show-progress: false
 
       - name: Resolve project
         id: resolve-project
@@ -79,7 +87,7 @@ jobs:
           # used if $project ends up Component.proj.
           echo "BUILD_COMPONENT=$component" >> ${env:GITHUB_ENV}
 
-      - name: Setup dotnet
+      - name: Setup .NET
         uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5.2.0
 
       - name: dotnet restore ${{ steps.resolve-project.outputs.title }}
@@ -135,7 +143,7 @@ jobs:
           # renovate: datasource=nuget depName=dotnet-validate
           DOTNET_VALIDATE_VERSION: '0.0.1-preview.582'
           # renovate: datasource=nuget depName=Meziantou.Framework.NuGetPackageValidation.Tool
-          MEZIANTOU_VALIDATE_NUGET_PACKAGE_VERSION: '1.0.50'
+          MEZIANTOU_VALIDATE_NUGET_PACKAGE_VERSION: '1.0.51'
         run: |
           dotnet tool install --global dotnet-validate --version ${env:DOTNET_VALIDATE_VERSION} --allow-roll-forward
           dotnet tool install --global Meziantou.Framework.NuGetPackageValidation.Tool --version ${env:MEZIANTOU_VALIDATE_NUGET_PACKAGE_VERSION} --allow-roll-forward
@@ -198,6 +206,7 @@ jobs:
         run: dotnet nuget push *.nupkg --api-key ${env:API_KEY} --skip-duplicate --source ${env:SOURCE}
 
   post-build:
+    name: Post build release tasks
     runs-on: ubuntu-24.04
 
     needs:
@@ -207,7 +216,8 @@ jobs:
     if: needs.automation.outputs.enabled && github.event_name == 'push'
 
     steps:
-      - uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+      - name: Generate GitHub App token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         id: otelbot-token
         with:
           client-id: ${{ vars.OTELBOT_DOTNET_CONTRIB_APP_ID }}
@@ -215,9 +225,11 @@ jobs:
           permission-contents: write
           permission-pull-requests: write
 
-      - name: Check out code
+      - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: true # zizmor: ignore[artipacked] Needed to push commits
+          show-progress: false
           token: ${{ steps.otelbot-token.outputs.token }}
 
       - name: Download Artifacts

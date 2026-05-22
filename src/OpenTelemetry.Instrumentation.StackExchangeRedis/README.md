@@ -143,6 +143,15 @@ Connections may be added or removed at any time.
 This instrumentation can be configured to change the default behavior by using
 `StackExchangeRedisCallsInstrumentationOptions`.
 
+### Command buffering
+
+If `Enrich` and `Filter` are not configured, profiled commands are flushed
+every `FlushInterval` without waiting for the parent activity to complete.
+
+If either `Enrich` or `Filter` is configured, all commands are buffered until
+the parent activity completes. This can cause high memory usage for long-lived
+or high-volume parent activities.
+
 ### FlushInterval
 
 StackExchange.Redis has its own internal profiler. OpenTelemetry converts each
@@ -185,6 +194,11 @@ raw `IProfiledCommand` object. The `Enrich` action is called only when
 `activity.IsAllDataRequested` is `true`. It contains the activity itself (which
 can be enriched), and the source profiled command object.
 
+> [!WARNING]
+> If `Enrich` is configured, all commands are buffered until the parent
+> activity completes. This can cause high memory usage for long-lived
+> or high-volume parent activities.
+
 The following code snippet shows how to add additional tags using `Enrich`.
 
 ```csharp
@@ -195,6 +209,29 @@ using var tracerProvider = Sdk.CreateTracerProviderBuilder()
         {
             activity.SetTag("is_fast", true);
         }
+    })
+    .Build();
+```
+
+## Filter
+
+This option allows profiled Redis commands to be excluded before an Activity is
+created.
+
+> [!WARNING]
+> If `Filter` is configured, all commands are buffered until the parent
+> activity completes. This can cause high memory usage for long-lived
+> or high-volume parent activities.
+
+The following code snippet shows how to conditionally filter out activities
+using `Filter`.
+
+```csharp
+using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+    .AddRedisInstrumentation(opt => opt.Filter = (activity, command) =>
+    {
+        // only record if command took over 1s
+        return command.ElapsedTime > TimeSpan.FromMilliseconds(1000);
     })
     .Build();
 ```
