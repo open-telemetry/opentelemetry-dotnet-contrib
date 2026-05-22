@@ -100,6 +100,9 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'yml')
       || contains(needs.detect-changes.outputs.changes, 'build')
     uses: ./.github/workflows/actionlint.yml
+    permissions:
+      actions: read # Read GitHub Actions workflows
+      contents: read # Read repository contents
 
   lint-md:
     needs: detect-changes
