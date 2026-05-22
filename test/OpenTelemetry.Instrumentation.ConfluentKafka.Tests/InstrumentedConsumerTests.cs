@@ -760,6 +760,8 @@ public class InstrumentedConsumerTests
 
         var metricPoint = GetMetricPoint(actualMetric);
 
+        var messagingOperationFound = false;
+        var messagingSystemFound = false;
         var destinationNameFound = false;
         var destinationPartitionFound = false;
         var errorTypeFound = false;
@@ -769,11 +771,13 @@ public class InstrumentedConsumerTests
             if (tag.Key == SemanticConventions.AttributeMessagingOperation)
             {
                 Assert.Equal(expectedMessagingOperation, tag.Value?.ToString());
+                messagingOperationFound = true;
             }
 
             if (tag.Key == SemanticConventions.AttributeMessagingSystem)
             {
                 Assert.Equal(expectedMessagingSystem, tag.Value?.ToString());
+                messagingSystemFound = true;
             }
 
             if (tag.Key == SemanticConventions.AttributeMessagingDestinationName)
@@ -795,20 +799,23 @@ public class InstrumentedConsumerTests
             }
         }
 
-        if (expectedKafkaDestinationName is null)
+        static void AssertTagExist(bool tagFound, string? tagExpecedValue)
         {
-            Assert.False(destinationNameFound);
+            if (tagExpecedValue is null)
+            {
+                Assert.False(tagFound);
+            }
+            else
+            {
+                Assert.True(tagFound);
+            }
         }
 
-        if (expectedKafkaDestinationPartition is null)
-        {
-            Assert.False(destinationPartitionFound);
-        }
-
-        if (expectedErrorType is null)
-        {
-            Assert.False(errorTypeFound);
-        }
+        AssertTagExist(messagingOperationFound, expectedMessagingOperation);
+        AssertTagExist(messagingSystemFound, expectedMessagingSystem);
+        AssertTagExist(destinationNameFound, expectedKafkaDestinationName);
+        AssertTagExist(destinationPartitionFound, expectedKafkaDestinationPartition?.ToString());
+        AssertTagExist(errorTypeFound, expectedErrorType);
     }
 
     private static MetricPoint? GetMetricPoint(Metric? metric)
