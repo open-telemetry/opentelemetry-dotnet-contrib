@@ -6,15 +6,20 @@ on:
 
 permissions: {}
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.sha }}
+  cancel-in-progress: false
+
 jobs:
   submit-nuget:
+    name: Submit NuGet dependency snapshot
     if: github.event.repository.fork == false
-    runs-on: windows-latest
+    runs-on: windows-2025
     timeout-minutes: 10
 
     permissions:
-      contents: write
-      id-token: write
+      contents: write # Submit the generated dependency snapshot to the repository dependency graph
+      id-token: write # Authenticate the dependency submission with GitHub OIDC
 
     steps:
       - name: Update agent configuration
@@ -24,7 +29,7 @@ jobs:
           "DOTNET_ROOT=D:\tools\dotnet" >> ${env:GITHUB_ENV}
           "NUGET_PACKAGES=D:\.nuget\packages" >> ${env:GITHUB_ENV}
 
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           filter: 'tree:0'
