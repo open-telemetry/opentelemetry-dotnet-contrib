@@ -7,6 +7,7 @@ function CreateRelease {
 
   $ErrorActionPreference = "Stop"
   $InformationPreference = "Continue"
+  $WarningPreference = "Continue"
 
   $match = [regex]::Match($tag, '^(.*?-)(.*)$')
   if ($match.Success -eq $false)
@@ -159,7 +160,7 @@ Have a nice day!
     return
   }
 
-  Write-Information 'No prepare release PR found matched author and title with a valid comment'
+  Write-Warning 'No prepare release PR found matched author and title with a valid comment'
 }
 
 Export-ModuleMember -Function TryPostPackagesReadyNoticeOnPrepareReleasePullRequest

@@ -14,6 +14,7 @@ function CreatePullRequestToUpdateChangelogsAndPublicApis {
 
   $ErrorActionPreference = "Stop"
   $InformationPreference = "Continue"
+  $WarningPreference = "Continue"
 
   $match = [regex]::Match($version, '^(\d+\.\d+\.\d+)(?:-((?:alpha)|(?:beta)|(?:rc))\.(\d+))?$')
   if ($match.Success -eq $false)
@@ -340,7 +341,7 @@ function TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue {
   $match = [regex]::Match($issueBody, '^[#]+ Component\s*(OpenTelemetry\.(?:.|\w+)+)$', [Text.RegularExpressions.RegexOptions]::Multiline)
   if ($match.Success -eq $false)
   {
-      Write-Information 'Component could not be parsed from body'
+      Write-Warning 'Component could not be parsed from body'
       Return
   }
 
@@ -350,7 +351,7 @@ function TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue {
   $titleMatch = [regex]::Match($issueTitle, '^\[release request\]\s+(OpenTelemetry\.[^\s]+)(?:\s+(.+))?\s*$')
   if ($titleMatch.Success -eq $false)
   {
-      Write-Information 'Component and version could not be parsed from title'
+      Write-Warning 'Component and version could not be parsed from title'
       Return
   }
 
@@ -365,7 +366,7 @@ function TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue {
   $match = [regex]::Match($issueBody, '^[#]+ Version\s*(.*)$', [Text.RegularExpressions.RegexOptions]::Multiline)
   if ($match.Success -eq $false)
   {
-      Write-Information 'Version could not be parsed from body'
+      Write-Warning 'Version could not be parsed from body'
       Return
   }
 
