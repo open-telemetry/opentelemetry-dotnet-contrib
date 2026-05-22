@@ -2,8 +2,8 @@
 
 ## Unreleased
 
-* Fixed an issue on `InstrumentedConsumer` wherein `messaging.receive.duration`
-  and `messaging.receive.messages` metrics are not emitted when `ConsumeException`
+* Fixed an issue on `InstrumentedConsumer` where `messaging.receive.duration`
+  and `messaging.receive.messages` metrics were not emitted when `ConsumeException`
   is thrown by the `Consume` method.
   ([#4432](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4432))
 
