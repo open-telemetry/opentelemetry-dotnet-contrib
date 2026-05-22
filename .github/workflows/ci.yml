@@ -94,6 +94,13 @@ jobs:
           sampler-aws: ['*/OpenTelemetry.Sampler.AWS*/**', '!**/*.md']
           semanticconventions: ['*/OpenTelemetry.SemanticConventions*/**', '!**/*.md']
 
+  lint-actions:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'yml')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+    uses: ./.github/workflows/actionlint.yml
+
   lint-md:
     needs: detect-changes
     if: |
