@@ -49,6 +49,7 @@ jobs:
           pwsh: [ '**.ps1', '**.psm1', '**.psd1' ]
           yml: [ '**.yml', '**.yaml', '.yamllint' ]
           build: ['build/**', '.github/**/*.yml', '!.github/workflows/package-*', '**/*.targets', '**/*.props', 'global.json']
+          github: ['.github/**/*']
           shared: ['src/Shared/**', 'test/Shared/**']
           contrib-shared-tests: ['test/OpenTelemetry.Contrib.Shared.Benchmarks/**', 'test/OpenTelemetry.Contrib.Shared.FuzzTests/**', 'test/OpenTelemetry.Contrib.Shared.Tests/**']
           code: ['**.cs', '**.csproj', '.editorconfig']
@@ -94,6 +95,15 @@ jobs:
           resources-processruntime: ['*/OpenTelemetry.Resources.ProcessRuntime/**', '*/OpenTelemetry.Resources.ProcessRuntime.Tests/**', '!**/*.md']
           sampler-aws: ['*/OpenTelemetry.Sampler.AWS*/**', '!**/*.md']
           semanticconventions: ['*/OpenTelemetry.SemanticConventions*/**', '!**/*.md']
+
+  lint-actions:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'github')
+    uses: ./.github/workflows/actionlint.yml
+    permissions:
+      actions: read # Read GitHub Actions workflows
+      contents: read # Read repository contents
 
   lint-md:
     needs: detect-changes
@@ -656,6 +666,7 @@ jobs:
       lint-misspell-sanitycheck,
       code-ql,
       detect-changes,
+      lint-actions,
       lint-md,
       lint-pwsh,
       lint-yml,
