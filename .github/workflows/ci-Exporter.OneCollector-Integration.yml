@@ -3,8 +3,12 @@ name: Integration Build OpenTelemetry.Exporter.OneCollector
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
 on:
-  pull_request_target: # Allows secret access from forks see: https://github.blog/2020-08-03-github-actions-improvements-for-fork-and-pull-request-workflows/#improvements-for-public-repository-forks
+  pull_request_target: # zizmor: ignore[dangerous-triggers] Code is gated on maintainer approval for forks
     branches: [ 'main*', 'exporter*' ]
     paths:
     - '*/OpenTelemetry.Exporter.OneCollector*/**'
@@ -14,7 +18,8 @@ on:
 
 jobs:
   authorize:
-    environment: # Run external PRs from forks on the "external"" environment which requires approval
+    name: Authorize external PR
+    environment: # Run external PRs from forks on the "external" environment which requires approval
       ${{ github.event_name == 'pull_request_target' &&
       github.event.pull_request.head.repo.full_name != github.repository &&
       'external' || 'internal' }}
@@ -27,7 +32,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ windows-latest, ubuntu-24.04 ]
+        os:
+        # renovate: datasource=github-runners depType=github-runner
+        - ubuntu-24.04
+        # renovate: datasource=github-runners depType=github-runner
+        - windows-2025
         version: [ net462, net8.0, net10.0 ]
         exclude:
         - os: ubuntu-24.04

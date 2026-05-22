@@ -271,7 +271,7 @@ internal class HttpInListener : ListenerHandler
             {
                 // Single pass over the tag collection to retrieve both gRPC tags,
                 // avoiding separate GetTagValue iterations.
-                int grpcStatusCode = -1;
+                var grpcStatusCode = -1;
                 var hasGrpcStatusCode = false;
 
                 var tagEnumerator = activity.EnumerateTagObjects();
@@ -293,8 +293,9 @@ internal class HttpInListener : ListenerHandler
                     }
                 }
 
-                if (!string.IsNullOrEmpty(grpcMethod))
+                if (grpcMethod is { Length: > 0 })
                 {
+<<<<<<< update-aspnetcore-grpc-semantic-conventions
                     AddGrpcAttributes(
                         activity,
                         grpcMethod!,
@@ -303,6 +304,9 @@ internal class HttpInListener : ListenerHandler
                         hasGrpcStatusCode,
                         this.options.EmitOldRpcAttributes,
                         this.options.EmitNewRpcAttributes);
+=======
+                    AddGrpcAttributes(activity, grpcMethod, context, grpcStatusCode, hasGrpcStatusCode);
+>>>>>>> main
                 }
             }
 

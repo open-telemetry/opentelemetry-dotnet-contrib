@@ -29,7 +29,9 @@ internal static class AnyValueExtensions
 
         Debug.Assert(value.ArrayValue != null, "ArrayValue should not be null in case of AnyValueType.Array");
 
+#pragma warning disable IDE0370 // Remove unnecessary suppression
         foreach (var item in value.ArrayValue!)
+#pragma warning restore IDE0370 // Remove unnecessary suppression
         {
             anyValue.ArrayValue.Values.Add(item.ToAnyValue());
         }
