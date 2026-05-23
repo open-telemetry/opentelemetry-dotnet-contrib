@@ -116,6 +116,38 @@ public class CommonSchemaJsonSerializationStateTests
     }
 
     [Fact]
+    public void AddExtensionAttributeKeyLimitOverflowDoesNotBreakSerialization()
+    {
+        using var stream = new MemoryStream();
+        using var writer = new Utf8JsonWriter(stream);
+
+        var state = new CommonSchemaJsonSerializationState("Test", writer);
+
+        state.BeginItem();
+
+        for (var i = 0; i < CommonSchemaJsonSerializationState.MaxNumberOfExtensionKeys; i++)
+        {
+            state.AddExtensionAttribute(new KeyValuePair<string, object?>($"ext.group{i}.field1", i));
+        }
+
+        state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.overflow.field1", -1));
+        state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.group0.field2", 100));
+
+        Assert.Equal(CommonSchemaJsonSerializationState.MaxNumberOfExtensionKeys, state.ExtensionPropertyCount);
+        Assert.Equal(CommonSchemaJsonSerializationState.MaxNumberOfExtensionKeys + 1, state.ExtensionAttributeCount);
+
+        writer.WriteStartObject();
+        state.SerializeExtensionPropertiesToJson(writeExtensionObjectEnvelope: true);
+        writer.WriteEndObject();
+        writer.Flush();
+
+        var json = Encoding.UTF8.GetString(stream.ToArray());
+
+        Assert.Contains("\"group0\":{\"field1\":0,\"field2\":100}", json);
+        Assert.DoesNotContain("\"overflow\":", json);
+    }
+
+    [Fact]
     public void AddExtensionAttributeKeyValueLimitTest()
     {
         using var stream = new MemoryStream();

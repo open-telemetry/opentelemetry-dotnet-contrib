@@ -46,18 +46,30 @@ internal sealed class CommonSchemaJsonSerializationState
         Debug.Assert(fieldInformation?.FieldName != null, "fieldInformation.FieldName was null");
         Debug.Assert(fieldInformation?.EncodedFieldName.EncodedUtf8Bytes.Length > 0, "fieldInformation.EncodedFieldName was empty");
 
+        var extensionName = fieldInformation!.ExtensionName!;
+
 #if NET
-        ref var lookupIndex = ref CollectionsMarshal.GetValueRefOrAddDefault(this.keys, fieldInformation.ExtensionName, out var existed);
+        ref var lookupIndexRef = ref CollectionsMarshal.GetValueRefOrAddDefault(this.keys, extensionName, out var existed);
+        var lookupIndex = lookupIndexRef;
         if (!existed)
         {
-            this.AssignNewExtensionToLookupIndex(ref lookupIndex);
+            this.AssignNewExtensionToLookupIndex(ref lookupIndexRef);
+            lookupIndex = lookupIndexRef;
+
+            if (lookupIndex == -1)
+            {
+                this.keys.Remove(extensionName);
+            }
         }
 #else
 #pragma warning disable IDE0370 // Suppression is unnecessary
-        if (!this.keys.TryGetValue(fieldInformation!.ExtensionName!, out var lookupIndex))
+        if (!this.keys.TryGetValue(extensionName, out var lookupIndex))
         {
             this.AssignNewExtensionToLookupIndex(ref lookupIndex);
-            this.keys[fieldInformation.ExtensionName!] = lookupIndex;
+            if (lookupIndex != -1)
+            {
+                this.keys[extensionName] = lookupIndex;
+            }
         }
 #pragma warning restore IDE0370 // Suppression is unnecessary
 #endif
@@ -101,6 +113,11 @@ internal sealed class CommonSchemaJsonSerializationState
             var wroteStartObject = false;
 
             var lookupIndex = extensionPropertyKey.Value;
+            if (lookupIndex < 0)
+            {
+                continue;
+            }
+
             ref var keyLookup = ref this.keysToAllValuesLookup[lookupIndex];
             var valueIndicesOffset = lookupIndex * MaxNumberOfExtensionValuesPerKey;
 
