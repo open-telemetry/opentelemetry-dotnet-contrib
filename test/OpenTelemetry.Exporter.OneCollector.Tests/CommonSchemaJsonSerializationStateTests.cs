@@ -131,4 +131,35 @@ public class CommonSchemaJsonSerializationStateTests
         Assert.Equal(1, state.ExtensionPropertyCount);
         Assert.Equal(CommonSchemaJsonSerializationState.MaxNumberOfExtensionValuesPerKey, state.ExtensionAttributeCount);
     }
+
+    [Fact]
+    public void AddExtensionAttributeGrowthPreservesSerializedOrdering()
+    {
+        using var stream = new MemoryStream();
+        using var writer = new Utf8JsonWriter(stream);
+
+        var state = new CommonSchemaJsonSerializationState("Test", writer);
+
+        state.BeginItem();
+
+        for (var i = 0; i < 5; i++)
+        {
+            state.AddExtensionAttribute(new KeyValuePair<string, object?>($"ext.group{i}.field1", i));
+            state.AddExtensionAttribute(new KeyValuePair<string, object?>($"ext.group{i}.field2", i + 10));
+        }
+
+        Assert.Equal(5, state.ExtensionPropertyCount);
+        Assert.Equal(10, state.ExtensionAttributeCount);
+
+        writer.WriteStartObject();
+        state.SerializeExtensionPropertiesToJson(writeExtensionObjectEnvelope: true);
+        writer.WriteEndObject();
+        writer.Flush();
+
+        var json = Encoding.UTF8.GetString(stream.ToArray());
+
+        Assert.Equal(
+            """{"ext":{"group0":{"field1":0,"field2":10},"group1":{"field1":1,"field2":11},"group2":{"field1":2,"field2":12},"group3":{"field1":3,"field2":13},"group4":{"field1":4,"field2":14}}}""",
+            json);
+    }
 }
