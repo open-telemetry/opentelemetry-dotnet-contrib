@@ -17,9 +17,7 @@ internal sealed class CommonSchemaJsonSerializationState
     private readonly List<KeyValuePair<ExtensionFieldInformation, object?>> allValues = new(16);
     private string itemType;
     private KeyValueLookup[] keysToAllValuesLookup = new KeyValueLookup[4];
-#if NET || NETSTANDARD2_1
     private int[] valueIndices = new int[4 * MaxNumberOfExtensionValuesPerKey];
-#endif
 
     public CommonSchemaJsonSerializationState(string itemType, Utf8JsonWriter writer)
     {
@@ -80,14 +78,7 @@ internal sealed class CommonSchemaJsonSerializationState
 
         var index = this.allValues.Count;
         this.allValues.Add(new KeyValuePair<ExtensionFieldInformation, object?>(fieldInformation, attribute.Value));
-#if NET || NETSTANDARD2_1
         this.valueIndices[(lookupIndex * MaxNumberOfExtensionValuesPerKey) + keyLookup.Count++] = index;
-#else
-        unsafe
-        {
-            keyLookup.ValueIndices[keyLookup.Count++] = index;
-        }
-#endif
     }
 
     public void SerializeExtensionPropertiesToJson(bool writeExtensionObjectEnvelope)
@@ -109,17 +100,15 @@ internal sealed class CommonSchemaJsonSerializationState
         {
             var wroteStartObject = false;
 
-#if NET || NETSTANDARD2_1
             var lookupIndex = extensionPropertyKey.Value;
             ref var keyLookup = ref this.keysToAllValuesLookup[lookupIndex];
             var valueIndicesOffset = lookupIndex * MaxNumberOfExtensionValuesPerKey;
 
             for (var i = 0; i < keyLookup.Count; i++)
             {
-#if NET || NETSTANDARD2_1
 #if NET
                 ref var attribute = ref allValues[this.valueIndices[valueIndicesOffset + i]];
-#elif NETSTANDARD2_1
+#else
                 var attribute = allValues[this.valueIndices[valueIndicesOffset + i]];
 #endif
                 var fieldInformation = attribute.Key;
@@ -132,44 +121,7 @@ internal sealed class CommonSchemaJsonSerializationState
 
                 writer.WritePropertyName(fieldInformation.EncodedFieldName);
                 CommonSchemaJsonSerializationHelper.SerializeValueToJson(attribute.Value, writer);
-#else
-                unsafe
-                {
-                    var attribute = allValues[keyLookup.ValueIndices[i]];
-                    var fieldInformation = attribute.Key;
-
-                    if (!wroteStartObject)
-                    {
-                        writer.WriteStartObject(fieldInformation.EncodedExtensionName);
-                        wroteStartObject = true;
-                    }
-
-                    writer.WritePropertyName(fieldInformation.EncodedFieldName);
-                    CommonSchemaJsonSerializationHelper.SerializeValueToJson(attribute.Value, writer);
-                }
-#endif
             }
-#else
-            ref var keyLookup = ref this.keysToAllValuesLookup[extensionPropertyKey.Value];
-
-            for (var i = 0; i < keyLookup.Count; i++)
-            {
-                unsafe
-                {
-                    var attribute = allValues[keyLookup.ValueIndices[i]];
-                    var fieldInformation = attribute.Key;
-
-                    if (!wroteStartObject)
-                    {
-                        writer.WriteStartObject(fieldInformation.EncodedExtensionName);
-                        wroteStartObject = true;
-                    }
-
-                    writer.WritePropertyName(fieldInformation.EncodedFieldName);
-                    CommonSchemaJsonSerializationHelper.SerializeValueToJson(attribute.Value, writer);
-                }
-            }
-#endif
 
             if (wroteStartObject)
             {
@@ -221,7 +173,6 @@ internal sealed class CommonSchemaJsonSerializationState
                 return;
             }
 
-#if NET || NETSTANDARD2_1
             var newLength = this.keysToAllValuesLookup.Length * 2;
             var newKeysToAllValuesLookup = new KeyValueLookup[newLength];
             this.keysToAllValuesLookup.CopyTo(newKeysToAllValuesLookup, 0);
@@ -230,26 +181,13 @@ internal sealed class CommonSchemaJsonSerializationState
             var newValueIndices = new int[newLength * MaxNumberOfExtensionValuesPerKey];
             this.valueIndices.CopyTo(newValueIndices, 0);
             this.valueIndices = newValueIndices;
-#else
-            var newKeysToAllValuesLookup = new KeyValueLookup[this.keysToAllValuesLookup.Length * 2];
-            this.keysToAllValuesLookup.CopyTo(newKeysToAllValuesLookup, 0);
-            this.keysToAllValuesLookup = newKeysToAllValuesLookup;
-#endif
         }
 
         this.ExtensionPropertyCount++;
     }
 
-#if NET || NETSTANDARD2_1
     private struct KeyValueLookup
     {
         public int Count;
     }
-#else
-    private unsafe struct KeyValueLookup
-    {
-        public int Count;
-        public fixed int ValueIndices[MaxNumberOfExtensionValuesPerKey];
-    }
-#endif
 }
