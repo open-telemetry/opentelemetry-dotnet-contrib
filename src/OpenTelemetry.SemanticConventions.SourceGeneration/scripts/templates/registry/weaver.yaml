@@ -1,6 +1,6 @@
 # Weaver template config for the Roslyn source generator's embedded
 # resolved-registry. Emits a minimal qyl-owned JSON projection (one file)
-# that the analyzer reads at compile time via System.Text.Json.
+# that the analyzer reads at compile time.
 #
 # This is NOT the resolved-registry-v2 contract; it is the smallest projection
 # that satisfies the analyzer's needs. See README of the generator package for
