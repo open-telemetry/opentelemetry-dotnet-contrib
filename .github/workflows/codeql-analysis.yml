@@ -15,3 +15,5 @@ jobs:
       actions: read # Scan GitHub Actions workflows
       contents: read # Checkout the repository
       security-events: write # Store results in the Security tab
+    with:
+      trigger: ${{ github.event_name }}
