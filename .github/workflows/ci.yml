@@ -48,6 +48,7 @@ jobs:
       with:
         filters: |
           md: [ '**.md' ]
+          pwsh: [ '**.ps1', '**.psm1', '**.psd1' ]
           yml: [ '**.yml', '**.yaml', '.yamllint' ]
           build: ['build/**', '.github/**/*.yml', '!.github/workflows/package-*', '**/*.targets', '**/*.props', 'global.json']
           github: ['.github/**/*']
@@ -112,6 +113,15 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'md')
       || contains(needs.detect-changes.outputs.changes, 'build')
     uses: ./.github/workflows/markdownlint.yml
+
+  lint-pwsh:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'pwsh')
+      || contains(needs.detect-changes.outputs.changes, 'yml')
+    uses: ./.github/workflows/pwshlint.yml
+    permissions:
+      contents: read # To checkout the code
 
   lint-yml:
     needs: detect-changes
@@ -705,6 +715,7 @@ jobs:
       detect-changes,
       lint-actions,
       lint-md,
+      lint-pwsh,
       lint-yml,
       lint-dotnet-format,
       build-test-contrib-shared-tests,
