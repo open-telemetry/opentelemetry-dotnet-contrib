@@ -16,6 +16,7 @@ concurrency:
 
 jobs:
   analysis:
+    if: github.event_name != 'schedule' || (github.event_name == 'schedule' && github.event.repository.fork == false)
     name: Scorecard analysis
     runs-on: ubuntu-24.04
     permissions:

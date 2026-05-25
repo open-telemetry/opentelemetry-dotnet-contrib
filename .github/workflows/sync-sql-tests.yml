@@ -15,7 +15,7 @@ jobs:
   sync-sql-tests:
     name: Sync SQL tests
     runs-on: ubuntu-24.04
-    if: github.event.repository.fork == false
+    if: github.event_name != 'schedule' || (github.event_name == 'schedule' && github.event.repository.fork == false)
 
     steps:
 
