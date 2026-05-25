@@ -20,6 +20,8 @@ public class SqlConnectionDetailsTests
     [InlineData("tcp:localhost", "localhost", null, null, null)]
     [InlineData("tcp:[::1]", null, "[::1]", null, null)]
     [InlineData("tcp : localhost", "localhost", null, null, null)]
+    [InlineData("tcp://some.domain.local:5432", "some.domain.local", null, null, 5432)]
+    [InlineData("tcp://some.domain.local", "some.domain.local", null, null, null)]
     [InlineData("np : localhost", "localhost", null, null, null)]
     [InlineData("lpc:localhost", "localhost", null, null, null)]
     [InlineData("np:\\\\localhost\\pipe\\sql\\query", "localhost", null, null, null)]
