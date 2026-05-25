@@ -150,7 +150,6 @@ jobs:
           --configuration Release `
           --no-restore `
           --no-build `
-          --logger:"console;verbosity=detailed" `
           --logger:"GitHubActions;report-warnings=false" `
           --logger:"junit;LogFilePath=${env:GITHUB_WORKSPACE}/TestResults/junit.xml" `
           --filter "${env:TEST_FILTER}" `
@@ -172,7 +171,6 @@ jobs:
           --configuration Release `
           --no-restore `
           --no-build `
-          --logger:"console;verbosity=detailed" `
           --logger:"GitHubActions;report-warnings=false" `
           --logger:"junit;LogFilePath=${env:GITHUB_WORKSPACE}/TestResults/junit.xml" `
           --filter "${env:TEST_FILTER}" `
