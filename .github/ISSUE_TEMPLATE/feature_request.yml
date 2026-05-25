@@ -40,6 +40,7 @@ body:
         - OpenTelemetry.Instrumentation.GrpcNetClient
         - OpenTelemetry.Instrumentation.Hangfire
         - OpenTelemetry.Instrumentation.Http
+        - OpenTelemetry.Instrumentation.Exceptions
         - OpenTelemetry.Instrumentation.Kusto
         - OpenTelemetry.Instrumentation.Owin
         - OpenTelemetry.Instrumentation.Process

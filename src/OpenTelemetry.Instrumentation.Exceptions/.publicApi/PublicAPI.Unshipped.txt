@@ -1,0 +1,11 @@
+OpenTelemetry.Logs.ExceptionsInstrumentationOptions
+OpenTelemetry.Logs.ExceptionsInstrumentationOptions.ExceptionsInstrumentationOptions() -> void
+OpenTelemetry.Logs.ExceptionsInstrumentationOptions.CaptureUnhandledExceptions.get -> bool
+OpenTelemetry.Logs.ExceptionsInstrumentationOptions.CaptureUnhandledExceptions.set -> void
+OpenTelemetry.Logs.ExceptionsInstrumentationOptions.CaptureUnobservedTaskExceptions.get -> bool
+OpenTelemetry.Logs.ExceptionsInstrumentationOptions.CaptureUnobservedTaskExceptions.set -> void
+OpenTelemetry.Logs.ExceptionsLoggerProviderBuilderExtensions
+static OpenTelemetry.Logs.ExceptionsLoggerProviderBuilderExtensions.AddExceptionsInstrumentation(this OpenTelemetry.Logs.LoggerProviderBuilder! builder) -> OpenTelemetry.Logs.LoggerProviderBuilder!
+static OpenTelemetry.Logs.ExceptionsLoggerProviderBuilderExtensions.AddExceptionsInstrumentation(this OpenTelemetry.Logs.LoggerProviderBuilder! builder, System.Action<OpenTelemetry.Logs.ExceptionsInstrumentationOptions!>? configure) -> OpenTelemetry.Logs.LoggerProviderBuilder!
+static OpenTelemetry.Logs.ExceptionsLoggerProviderBuilderExtensions.AddExceptionsInstrumentation(this OpenTelemetry.Logs.OpenTelemetryLoggerOptions! options) -> OpenTelemetry.Logs.OpenTelemetryLoggerOptions!
+static OpenTelemetry.Logs.ExceptionsLoggerProviderBuilderExtensions.AddExceptionsInstrumentation(this OpenTelemetry.Logs.OpenTelemetryLoggerOptions! options, System.Action<OpenTelemetry.Logs.ExceptionsInstrumentationOptions!>? configure) -> OpenTelemetry.Logs.OpenTelemetryLoggerOptions!

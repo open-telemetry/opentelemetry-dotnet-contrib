@@ -44,6 +44,8 @@ components:
   src/OpenTelemetry.Instrumentation.EventCounters/:
     - hananiel
     - mic-max
+  src/OpenTelemetry.Instrumentation.Exceptions/:
+    - iblancasa
   src/OpenTelemetry.Instrumentation.GrpcCore/:
     - IliaBrahinets
     - pcwiese
@@ -144,6 +146,9 @@ components:
   test/OpenTelemetry.Instrumentation.EventCounters.Tests/:
     - hananiel
     - mic-max
+  test/OpenTelemetry.Instrumentation.Exceptions.Tests/:
+    - twenzel
+    - xiang17
   test/OpenTelemetry.Instrumentation.GrpcCore.Tests/:
     - IliaBrahinets
     - pcwiese

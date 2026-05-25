@@ -68,6 +68,7 @@ jobs:
           instrumentation-elasticsearchclient: ['*/OpenTelemetry.Instrumentation.ElasticsearchClient*/**', '!**/*.md']
           instrumentation-entityframeworkcore: ['*/OpenTelemetry.Instrumentation.EntityFrameworkCore*/**', '*/OpenTelemetry.Instrumentation.SqlClient/**', '!**/*.md']
           instrumentation-eventcounters: ['*/OpenTelemetry.Instrumentation.EventCounters*/**', 'examples/event-counters/**', '!**/*.md']
+          instrumentation-exceptions: ['*/OpenTelemetry.Instrumentation.Exceptions*/**', '!**/*.md']
           instrumentation-grpccore: ['*/OpenTelemetry.Instrumentation.GrpcCore*/**', '!**/*.md']
           instrumentation-grpcnetclient: ['*/OpenTelemetry.Instrumentation.GrpcNetClient*/**', '!**/*.md']
           instrumentation-hangfire: ['*/OpenTelemetry.Instrumentation.Hangfire*/**', '!**/*.md']
@@ -308,6 +309,17 @@ jobs:
       project-name: OpenTelemetry.Instrumentation.EventCounters
       code-cov-name: Instrumentation.EventCounters
       tfm-list: '[ "net8.0", "net9.0", "net10.0" ]'
+
+  build-test-instrumentation-exceptions:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'instrumentation-exceptions')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.Instrumentation.Exceptions
+      code-cov-name: Instrumentation.Exceptions
 
   build-test-instrumentation-grpccore:
     needs: detect-changes
@@ -627,6 +639,7 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-aws')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-confluentkafka')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-eventcounters')
+      || contains(needs.detect-changes.outputs.changes, 'instrumentation-exceptions')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-grpccore')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-grpcnetclient')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-http')
@@ -677,6 +690,7 @@ jobs:
       build-test-instrumentation-elasticsearchclient,
       build-test-instrumentation-entityframeworkcore,
       build-test-instrumentation-eventcounters,
+      build-test-instrumentation-exceptions,
       build-test-instrumentation-grpccore,
       build-test-instrumentation-grpcnetclient,
       build-test-instrumentation-hangfire,

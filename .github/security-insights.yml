@@ -135,6 +135,8 @@ repository:
         comment: OpenTelemetry.Instrumentation.Hangfire NuGet package distributed from NuGet.org.
       - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Http
         comment: OpenTelemetry.Instrumentation.Http NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Exceptions
+        comment: OpenTelemetry.Instrumentation.Exceptions NuGet package distributed from NuGet.org.
       - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Kusto
         comment: OpenTelemetry.Instrumentation.Kusto NuGet package distributed from NuGet.org.
       - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Owin
