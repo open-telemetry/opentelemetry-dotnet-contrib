@@ -2,6 +2,10 @@ name: codeql-analysis-steps
 
 on:
   workflow_call:
+    inputs:
+      trigger:
+        required: true
+        type: string
 
 permissions: {}
 
@@ -15,7 +19,7 @@ jobs:
     runs-on: windows-2025
 
     strategy:
-      fail-fast: false
+      fail-fast: ${{ inputs.trigger == 'merge_group' }}
       matrix:
         language: ['actions', 'csharp']
 

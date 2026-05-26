@@ -36,6 +36,9 @@ on:
         default: true
         required: false
         type: boolean
+      trigger:
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -45,7 +48,7 @@ jobs:
     name: build-test
 
     strategy:
-      fail-fast: false # ensures the entire test matrix is run, even if one permutation fails
+      fail-fast: ${{ inputs.trigger == 'merge_group' }}
       matrix:
         os: ${{ fromJSON(inputs.os-list) }}
         version: ${{ fromJSON(inputs.tfm-list) }}
@@ -93,8 +96,8 @@ jobs:
           -project ([ref]$project) `
           -component ([ref]$component)
 
-        echo "title=$title" >> $env:GITHUB_OUTPUT
-        echo "project=$project" >> $env:GITHUB_OUTPUT
+        Write-Output "title=$title" >> $env:GITHUB_OUTPUT
+        Write-Output "project=$project" >> $env:GITHUB_OUTPUT
 
         $artifactName = $component
         if ([string]::IsNullOrEmpty($artifactName)) {
@@ -104,11 +107,11 @@ jobs:
           }
         }
 
-        echo "name=$artifactName" >> $env:GITHUB_OUTPUT
+        Write-Output "name=$artifactName" >> $env:GITHUB_OUTPUT
 
         # Note: BUILD_COMPONENT envvar tells Component.proj what to build. Only
         # used if $project ends up Component.proj.
-        echo "BUILD_COMPONENT=$component" >> $env:GITHUB_ENV
+        Write-Output "BUILD_COMPONENT=$component" >> $env:GITHUB_ENV
 
     - name: Setup previous .NET runtimes
       uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5.2.0
@@ -147,7 +150,6 @@ jobs:
           --configuration Release `
           --no-restore `
           --no-build `
-          --logger:"console;verbosity=detailed" `
           --logger:"GitHubActions;report-warnings=false" `
           --logger:"junit;LogFilePath=${env:GITHUB_WORKSPACE}/TestResults/junit.xml" `
           --filter "${env:TEST_FILTER}" `
@@ -169,7 +171,6 @@ jobs:
           --configuration Release `
           --no-restore `
           --no-build `
-          --logger:"console;verbosity=detailed" `
           --logger:"GitHubActions;report-warnings=false" `
           --logger:"junit;LogFilePath=${env:GITHUB_WORKSPACE}/TestResults/junit.xml" `
           --filter "${env:TEST_FILTER}" `
