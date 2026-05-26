@@ -51,17 +51,19 @@ steps:
     builder.Services.AddOpenTelemetry()
         .WithTracing(tracing =>
         {
-            // Calls under WithTracing enable Kafka traces; omit them to skip tracing.
             tracing.AddConsoleExporter()
                 .AddOtlpExporter()
+                // AddKafkaProducerInstrumentation and AddKafkaConsumerInstrumentation
+                // are what enable Kafka traces.
                 .AddKafkaProducerInstrumentation<string, string>()
                 .AddKafkaConsumerInstrumentation<string, string>();
         })
         .WithMetrics(metering =>
         {
-            // Calls under WithMetrics enable Kafka metrics; omit them to skip metrics.
             metering.AddConsoleExporter()
                 .AddOtlpExporter()
+                // AddKafkaProducerInstrumentation and AddKafkaConsumerInstrumentation
+                // are what enable Kafka metrics.
                 .AddKafkaProducerInstrumentation<string, string>()
                 .AddKafkaConsumerInstrumentation<string, string>();
         });
@@ -79,10 +81,9 @@ and consumers, allowing you to collect and export telemetry data.
 
 A complete end-to-end sample that produces and consumes messages with
 instrumentation enabled is available in
-[`examples/kafka`](../../examples/kafka). Run it against a local Kafka broker
-(for example the `confluentinc/cp-kafka` Docker image listening on
-`localhost:9092`) to see traces and metrics flowing to the configured
-exporters.
+[`examples/kafka`](../../examples/kafka). Follow that example's README to
+start a local Kafka broker and see traces and metrics flowing to the
+configured exporters.
 
 ## Extending `ConsumerBuilder` or `ProducerBuilder` instances
 
