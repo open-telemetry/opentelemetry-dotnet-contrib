@@ -725,7 +725,6 @@ public sealed class BasicTests
         Assert.Equal("Microsoft.AspNetCore.Hosting.HttpRequestIn", aspnetcoreframeworkactivity.OperationName);
     }
 
-#if NET
     [Fact]
     public async Task UserRegisteredActivitySourceIsUsedForActivityCreationByAspNetCore()
     {
@@ -766,7 +765,6 @@ public sealed class BasicTests
 
         Assert.Equal("UserRegisteredActivitySource", activity.Source.Name);
     }
-#endif
 
     [Theory]
     [InlineData(1)]
@@ -1312,6 +1310,45 @@ public sealed class BasicTests
 
 #endif
 
+    [Fact]
+    public async Task EnrichCallbackNotCalledMultipleTimesWhenInstrumentationAddedTwice()
+    {
+        // When AddAspNetCoreInstrumentation is called multiple times (e.g., by a distro package
+        // and the user), enrich callbacks should only fire once per request, not once per registration.
+        var callCountDefault = 0;
+        var callCountNamed = 0;
+
+        var exportedItems = new List<Activity>();
+
+        void ConfigureTestServices(IServiceCollection services)
+        {
+            this.tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .AddAspNetCoreInstrumentation()
+                .AddAspNetCoreInstrumentation(options => options.EnrichWithHttpRequest = (activity, request) => callCountDefault++)
+                .AddAspNetCoreInstrumentation("named", options => options.EnrichWithHttpRequest = (activity, request) => callCountNamed++)
+                .AddAspNetCoreInstrumentation("named", options => options.EnrichWithHttpRequest = (activity, request) => callCountNamed++)
+                .AddInMemoryExporter(exportedItems)
+                .Build();
+        }
+
+        using (var client = this.factory
+            .WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureTestServices(ConfigureTestServices);
+                builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
+            })
+            .CreateClient())
+        {
+            using var response = await client.GetAsync(new Uri("/api/values", UriKind.Relative));
+            response.EnsureSuccessStatusCode();
+            WaitForActivityExport(exportedItems, 1);
+        }
+
+        Assert.Equal(1, callCountDefault);
+        Assert.Equal(1, callCountNamed);
+        Assert.Single(exportedItems);
+    }
+
     public void Dispose()
         => this.tracerProvider?.Dispose();
 
@@ -1326,20 +1363,15 @@ public sealed class BasicTests
                 Thread.Sleep(10);
                 return exportedItems.Count >= count;
             },
-            TimeSpan.FromSeconds(1)),
+            TimeSpan.FromSeconds(5)),
             $"Actual: {exportedItems.Count} Expected: {count}");
 
     private static void ValidateAspNetCoreActivity(Activity activityToValidate, string expectedHttpPath)
     {
         Assert.Equal(ActivityKind.Server, activityToValidate.Kind);
-#if NET
         Assert.Equal(HttpInListener.AspNetCoreActivitySourceName, activityToValidate.Source.Name);
         Assert.NotNull(activityToValidate.Source.Version);
         Assert.Empty(activityToValidate.Source.Version);
-#else
-        Assert.Equal(HttpInListener.ActivitySourceName, activityToValidate.Source.Name);
-        Assert.Equal(HttpInListener.Version.ToString(), activityToValidate.Source.Version);
-#endif
         Assert.Equal(expectedHttpPath, activityToValidate.GetTagValue(SemanticConventions.AttributeUrlPath) as string);
     }
 

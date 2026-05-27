@@ -15,7 +15,6 @@ using OpenTelemetry.Tests;
 #endif
 using OpenTelemetry.Instrumentation.Grpc.Tests.GrpcTestHelpers;
 using OpenTelemetry.Instrumentation.GrpcNetClient;
-using OpenTelemetry.Instrumentation.GrpcNetClient.Implementation;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -35,8 +34,7 @@ public partial class GrpcTests
         var enrichWithHttpRequestMessageCalled = false;
         var enrichWithHttpResponseMessageCalled = false;
 
-        var uri = new Uri($"{baseAddress}:1234");
-        var uriHostNameType = Uri.CheckHostName(uri.Host);
+        var uri = new UriBuilder(baseAddress) { Port = 1234 }.Uri;
 
         using var httpClient = ClientTestHelpers.CreateTestClient(async request =>
         {
@@ -70,7 +68,7 @@ public partial class GrpcTests
                 HttpClient = httpClient,
             });
             var client = new Greeter.GreeterClient(channel);
-            var rs = client.SayHello(new HelloRequest());
+            _ = client.SayHello(new HelloRequest());
         }
 
         Assert.Single(exportedItems);
@@ -83,28 +81,18 @@ public partial class GrpcTests
         Assert.NotEqual(default, activity.Context.SpanId);
 
         Assert.Equal($"greet.Greeter/SayHello", activity.DisplayName);
-        Assert.Equal("grpc", activity.GetTagValue(SemanticConventions.AttributeRpcSystem));
+        Assert.Equal("grpc", activity.GetTagValue(SemanticConventions.AttributeRpcSystemName));
         Assert.Equal("greet.Greeter", activity.GetTagValue(SemanticConventions.AttributeRpcService));
         Assert.Equal("SayHello", activity.GetTagValue(SemanticConventions.AttributeRpcMethod));
 
-        if (uriHostNameType is UriHostNameType.IPv4 or UriHostNameType.IPv6)
-        {
-            Assert.Equal(uri.Host, activity.GetTagValue(SemanticConventions.AttributeServerSocketAddress));
-            Assert.Null(activity.GetTagValue(SemanticConventions.AttributeServerAddress));
-        }
-        else
-        {
-            Assert.Null(activity.GetTagValue(SemanticConventions.AttributeServerSocketAddress));
-            Assert.Equal(uri.Host, activity.GetTagValue(SemanticConventions.AttributeServerAddress));
-        }
-
+        Assert.Equal(uri.Host, activity.GetTagValue(SemanticConventions.AttributeServerAddress));
         Assert.Equal(uri.Port, activity.GetTagValue(SemanticConventions.AttributeServerPort));
         Assert.Equal(ActivityStatusCode.Unset, activity.Status);
 
         // Tags added by the library then removed from the instrumentation
         Assert.Null(activity.GetTagValue(GrpcTagHelper.GrpcMethodTagName));
         Assert.Null(activity.GetTagValue(GrpcTagHelper.GrpcStatusCodeTagName));
-        Assert.Equal(0, activity.GetTagValue(SemanticConventions.AttributeRpcGrpcStatusCode));
+        Assert.Equal(0, activity.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
 
         if (shouldEnrich)
         {
@@ -119,7 +107,6 @@ public partial class GrpcTests
     [InlineData(false)]
     public void GrpcAndHttpClientInstrumentationIsInvoked(bool shouldEnrich)
     {
-        var uri = new Uri($"http://localhost:{this.server.Port}");
         var exportedItems = new List<Activity>();
 
         using var parent = new Activity("parent")
@@ -146,15 +133,13 @@ public partial class GrpcTests
                 .AddInMemoryExporter(exportedItems)
                 .Build())
         {
-            // With net5, based on the grpc changes, the quantity of default activities changed.
-            // TODO: This is a workaround. https://github.com/open-telemetry/opentelemetry-dotnet/issues/1490
-            using var channel = GrpcChannel.ForAddress(uri, new GrpcChannelOptions()
+            using var channel = GrpcChannel.ForAddress(this.server.Address, new GrpcChannelOptions()
             {
                 HttpClient = new HttpClient(),
             });
 
             var client = new Greeter.GreeterClient(channel);
-            var rs = client.SayHello(new HelloRequest());
+            _ = client.SayHello(new HelloRequest());
         }
 
         Assert.Equal(2, exportedItems.Count);
@@ -163,7 +148,7 @@ public partial class GrpcTests
 
         ValidateGrpcActivity(grpcSpan);
         Assert.Equal($"greet.Greeter/SayHello", grpcSpan.DisplayName);
-        Assert.Equal(0, grpcSpan.GetTagValue(SemanticConventions.AttributeRpcGrpcStatusCode));
+        Assert.Equal(0, grpcSpan.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
         Assert.Equal("POST", httpSpan.DisplayName);
         Assert.Equal(grpcSpan.SpanId, httpSpan.ParentSpanId);
 
@@ -179,10 +164,9 @@ public partial class GrpcTests
         }
     }
 
-    [Fact(Skip = "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1727")]
+    [Fact]
     public void GrpcAndHttpClientInstrumentationWithSuppressInstrumentation()
     {
-        var uri = new Uri($"http://localhost:{this.server.Port}");
         var exportedItems = new List<Activity>();
 
         using var parent = new Activity("parent")
@@ -203,9 +187,9 @@ public partial class GrpcTests
             },
             (value) =>
             {
-                var channel = GrpcChannel.ForAddress(uri);
+                using var channel = GrpcChannel.ForAddress(this.server.Address);
                 var client = new Greeter.GreeterClient(channel);
-                var rs = client.SayHello(new HelloRequest());
+                _ = client.SayHello(new HelloRequest());
             });
         }
 
@@ -217,27 +201,30 @@ public partial class GrpcTests
 
         ValidateGrpcActivity(grpcSpan1);
         Assert.Equal($"greet.Greeter/SayHello", grpcSpan1.DisplayName);
-        Assert.Equal(0, grpcSpan1.GetTagValue(SemanticConventions.AttributeRpcGrpcStatusCode));
+        Assert.Equal(0, grpcSpan1.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
 
         ValidateGrpcActivity(grpcSpan2);
         Assert.Equal($"greet.Greeter/SayHello", grpcSpan2.DisplayName);
-        Assert.Equal(0, grpcSpan2.GetTagValue(SemanticConventions.AttributeRpcGrpcStatusCode));
+        Assert.Equal(0, grpcSpan2.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
 
         ValidateGrpcActivity(grpcSpan3);
         Assert.Equal($"greet.Greeter/SayHello", grpcSpan3.DisplayName);
-        Assert.Equal(0, grpcSpan3.GetTagValue(SemanticConventions.AttributeRpcGrpcStatusCode));
+        Assert.Equal(0, grpcSpan3.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
 
         ValidateGrpcActivity(grpcSpan4);
         Assert.Equal($"greet.Greeter/SayHello", grpcSpan4.DisplayName);
-        Assert.Equal(0, grpcSpan4.GetTagValue(SemanticConventions.AttributeRpcGrpcStatusCode));
+        Assert.Equal(0, grpcSpan4.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
     }
 
+#if NET
     [Fact(Skip = "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1727")]
+#else
+    [Fact]
+#endif
     public void GrpcPropagatesContextWithSuppressInstrumentationOptionSetToTrue()
     {
         try
         {
-            var uri = new Uri($"http://localhost:{this.server.Port}");
             var exportedItems = new List<Activity>();
 
             using var source = new ActivitySource("test-source");
@@ -269,9 +256,10 @@ public partial class GrpcTests
             {
                 using var activity = source.StartActivity("parent");
                 Assert.NotNull(activity);
-                var channel = GrpcChannel.ForAddress(uri);
+
+                using var channel = GrpcChannel.ForAddress(this.server.Address);
                 var client = new Greeter.GreeterClient(channel);
-                var rs = client.SayHello(new HelloRequest());
+                _ = client.SayHello(new HelloRequest());
             }
 
             var serverActivity = exportedItems.Single(activity => activity.OperationName == OperationNameHttpRequestIn);
@@ -298,7 +286,6 @@ public partial class GrpcTests
     {
         try
         {
-            var uri = new Uri($"http://localhost:{this.server.Port}");
             var exportedItems = new List<Activity>();
             using var source = new ActivitySource("test-source");
 
@@ -322,9 +309,9 @@ public partial class GrpcTests
                 .Build())
             {
                 using var activity = source.StartActivity("parent");
-                var channel = GrpcChannel.ForAddress(uri);
+                using var channel = GrpcChannel.ForAddress(this.server.Address);
                 var client = new Greeter.GreeterClient(channel);
-                var rs = client.SayHello(new HelloRequest(), headers);
+                _ = client.SayHello(new HelloRequest(), headers);
             }
 
             Assert.Equal(2, exportedItems.Count);
@@ -344,12 +331,11 @@ public partial class GrpcTests
         }
     }
 
-    [Fact(Skip = "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1727")]
+    [Fact]
     public void GrpcClientInstrumentationRespectsSdkSuppressInstrumentation()
     {
         try
         {
-            var uri = new Uri($"http://localhost:{this.server.Port}");
             var exportedItems = new List<Activity>();
 
             using var source = new ActivitySource("test-source");
@@ -364,19 +350,16 @@ public partial class GrpcTests
 
             using (Sdk.CreateTracerProviderBuilder()
                 .AddSource("test-source")
-                .AddGrpcClientInstrumentation(o =>
-                {
-                    o.SuppressDownstreamInstrumentation = true;
-                })
+                .AddGrpcClientInstrumentation(o => o.SuppressDownstreamInstrumentation = true)
                 .AddInMemoryExporter(exportedItems)
                 .Build())
             {
                 using var activity = source.StartActivity("parent");
                 using (SuppressInstrumentationScope.Begin())
                 {
-                    var channel = GrpcChannel.ForAddress(uri);
+                    using var channel = GrpcChannel.ForAddress(this.server.Address);
                     var client = new Greeter.GreeterClient(channel);
-                    var rs = client.SayHello(new HelloRequest());
+                    _ = client.SayHello(new HelloRequest());
                 }
             }
 
@@ -425,8 +408,10 @@ public partial class GrpcTests
 
     private static void ValidateGrpcActivity(Activity activityToValidate)
     {
-        Assert.Equal(GrpcClientDiagnosticListener.ActivitySourceName, activityToValidate.Source.Name);
-        Assert.Equal(GrpcClientDiagnosticListener.Version, activityToValidate.Source.Version);
+        Assert.Equal("OpenTelemetry.Instrumentation.GrpcNetClient", activityToValidate.Source.Name);
+        Assert.NotNull(activityToValidate.Source.Version);
+        Assert.NotEmpty(activityToValidate.Source.Version);
         Assert.Equal(ActivityKind.Client, activityToValidate.Kind);
+        Assert.StartsWith("https://opentelemetry.io/schemas/", activityToValidate.Source.TelemetrySchemaUrl);
     }
 }

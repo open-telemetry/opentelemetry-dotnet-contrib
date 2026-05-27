@@ -3,40 +3,12 @@
 
 using OpenTelemetry.Tests;
 using Testcontainers.Cassandra;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Cassandra.Tests;
 
-public sealed class CassandraFixture : IAsyncLifetime
+public sealed class CassandraFixture : XunitContainerFixture<CassandraContainer>
 {
-    private static readonly string CassandraImage = GetCassandraImage();
+    protected override string DockerfileName => "cassandra.Dockerfile";
 
-    public CassandraContainer Container { get; } = CreateCassandra();
-
-    public async Task InitializeAsync()
-    {
-        if (DockerHelper.IsAvailable(DockerPlatform.Linux))
-        {
-            await this.Container.StartAsync();
-        }
-    }
-
-    public Task DisposeAsync() =>
-        this.Container.DisposeAsync().AsTask();
-
-    private static CassandraContainer CreateCassandra() =>
-        new CassandraBuilder(CassandraImage).Build();
-
-    private static string GetCassandraImage()
-    {
-        var assembly = typeof(CassandraFixture).Assembly;
-
-        using var stream = assembly.GetManifestResourceStream("cassandra.Dockerfile");
-        using var reader = new StreamReader(stream!);
-
-        var raw = reader.ReadToEnd();
-
-        // Exclude FROM
-        return raw.Substring(4).Trim();
-    }
+    protected override CassandraContainer CreateContainer() => new CassandraBuilder(this.GetImage()).Build();
 }

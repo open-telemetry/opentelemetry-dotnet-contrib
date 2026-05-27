@@ -13,6 +13,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.issue.number || github.ref }}
+  cancel-in-progress: false
+
 jobs:
   automation:
     uses: ./.github/workflows/automation.yml
@@ -20,6 +24,7 @@ jobs:
       OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY: ${{ secrets.OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY }}
 
   post-release:
+    name: Post-release updates
     runs-on: ubuntu-24.04
 
     needs:
@@ -28,7 +33,8 @@ jobs:
     if: needs.automation.outputs.enabled
 
     steps:
-    - uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+    - name: Generate GitHub App token
+      uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
       id: otelbot-token
       with:
         client-id: ${{ vars.OTELBOT_DOTNET_CONTRIB_APP_ID }}
@@ -36,12 +42,15 @@ jobs:
         permission-contents: write
         permission-pull-requests: write
 
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+    - name: Checkout code
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       with:
         # Note: By default GitHub only fetches 1 commit. We need all the tags
         # for this work.
         fetch-depth: 0
+        persist-credentials: true # zizmor: ignore[artipacked] Needed to push commits
         ref: ${{ github.event.repository.default_branch }}
+        show-progress: false
         token: ${{ steps.otelbot-token.outputs.token }}
 
     - name: Create GitHub Pull Request to update PackageValidationBaselineVersion in projects

@@ -17,7 +17,7 @@ public class CassandraInstrumentationTests(CassandraFixture fixture)
 {
     private const int MaxTimeToAllowForFlush = 20000;
 
-    private readonly string cassandraConnectionString = fixture.Container.GetConnectionString() + ";Default Keyspace=OT_Cassandra_Testing";
+    private readonly string cassandraConnectionString = fixture.TypedContainer.GetConnectionString() + ";Default Keyspace=OT_Cassandra_Testing";
 
     [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
     public void AddCassandraInstrumentationDoesNotThrow()

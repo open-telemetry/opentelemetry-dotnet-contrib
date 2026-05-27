@@ -2,9 +2,26 @@
 
 ## Unreleased
 
+## 1.15.1-beta.2
+
+Released 2026-May-27
+
 * Fixed `db.query.text` not respecting `SetVerboseDatabaseStatements` when
   the new database semantic conventions are enabled.
   ([#4245](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4245))
+
+* Add instrumentation scope version and schema URL to traces.
+  ([#4095](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4095))
+
+* Add optimized path to flush commands on every `FlushInterval` tick
+  regardless whether the parent `Activity` completes. Whether the new behavior
+  is used depends on instrumentation configuration:
+  * If both `Enrich` and `Filter` are not set, commands are flushed
+    eagerly each tick without waiting for the parent `Activity` to complete, reducing
+    memory pressure for long-lived or high-volume parent spans.
+  * If `Enrich` or `Filter` is set, commands are buffered until the
+    parent `Activity` completes, maintaining the previous behavior.
+    ([#4398](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4398))
 
 ## 1.15.1-beta.1
 

@@ -18,7 +18,7 @@ namespace OpenTelemetry.Instrumentation.StackExchangeRedis.Tests;
 [Trait("CategoryName", "RedisIntegrationTests")]
 public class StackExchangeRedisCallsInstrumentationTests(RedisXunitFixture fixture) : IClassFixture<RedisXunitFixture>
 {
-    private readonly string connectionString = fixture.DatabaseContainer.GetConnectionString();
+    private readonly string connectionString = fixture.TypedContainer.GetConnectionString();
 
     [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
     [InlineData("value1")]
@@ -161,6 +161,21 @@ public class StackExchangeRedisCallsInstrumentationTests(RedisXunitFixture fixtu
             VerifyNewActivityData(exportedItems[1], false, endpoint, setCommandKey: false);
 
             // TODO VerifySamplingParameters(sampler.LatestSamplingParameters);
+        }
+
+        string? expectedSchemaUrl = (emitOldAttributes, emitNewAttributes) switch
+        {
+            (false, true) => "https://opentelemetry.io/schemas/1.28.0",
+            (true, false) => "https://opentelemetry.io/schemas/1.23.0",
+            _ => null,
+        };
+
+        foreach (var activity in exportedItems)
+        {
+            Assert.Equal("OpenTelemetry.Instrumentation.StackExchangeRedis", activity.Source.Name);
+            Assert.NotNull(activity.Source.Version);
+            Assert.NotEmpty(activity.Source.Version);
+            Assert.Equal(expectedSchemaUrl, activity.Source.TelemetrySchemaUrl);
         }
     }
 
@@ -323,6 +338,10 @@ public class StackExchangeRedisCallsInstrumentationTests(RedisXunitFixture fixtu
             var profiler1 = profilerFactory();
             Assert.NotSame(profiler0, profiler1);
         }
+
+        var cacheKey = (rootActivity.TraceId, rootActivity.SpanId);
+        Assert.NotEmpty(instrumentation.Cache);
+        Assert.Contains(cacheKey, instrumentation.Cache);
 
         rootActivity.Stop();
         rootActivity.Dispose();
@@ -497,6 +516,71 @@ public class StackExchangeRedisCallsInstrumentationTests(RedisXunitFixture fixtu
         Assert.Equal("SET", exportedItems[0].DisplayName);
     }
 
+    [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
+    [InlineData(false, false)] // default options = early drain enabled
+    [InlineData(true, false)] // Enrich set = buffered until parent completes
+    [InlineData(false, true)] // Filter set = buffered until parent completes
+    public void DrainTiming_EarlyVsBuffered(bool setEnrich, bool setFilter)
+    {
+        var connectionOptions = new ConfigurationOptions { AbortOnConnectFail = true };
+        connectionOptions.EndPoints.Add(this.connectionString);
+        using var connection = ConnectionMultiplexer.Connect(connectionOptions);
+        var db = connection.GetDatabase();
+        db.KeyDelete("drain-timing-key");
+
+        var exportedItems = new List<Activity>();
+
+        var opts = new StackExchangeRedisInstrumentationOptions();
+        if (setEnrich)
+        {
+            opts.Enrich = (_, _) => { };
+        }
+
+        if (setFilter)
+        {
+            opts.Filter = _ => true;
+        }
+
+        var expectEarlyEmit = !setEnrich && !setFilter;
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSource(StackExchangeRedisConnectionInstrumentation.ActivitySource.Name)
+            .AddInMemoryExporter(exportedItems)
+            .Build();
+
+        using var instrumentation = new StackExchangeRedisConnectionInstrumentation(connection, name: null, opts);
+
+        using var rootActivity = new Activity("Parent")
+            .SetParentId(ActivityTraceId.CreateRandom(), ActivitySpanId.CreateRandom(), ActivityTraceFlags.Recorded)
+            .Start();
+
+        Activity.Current = rootActivity;
+        db.StringSet("drain-timing-key", "v");
+        db.StringGet("drain-timing-key");
+
+        // Flush while the parent is still running.
+        instrumentation.Flush();
+
+        var cacheKey = (rootActivity.TraceId, rootActivity.SpanId);
+
+        if (expectEarlyEmit)
+        {
+            Assert.NotEmpty(exportedItems);
+            Assert.Contains(cacheKey, instrumentation.Cache);
+        }
+        else
+        {
+            Assert.Empty(exportedItems);
+            Assert.Contains(cacheKey, instrumentation.Cache);
+        }
+
+        rootActivity.Stop();
+        instrumentation.Flush();
+
+        Assert.NotEmpty(exportedItems);
+        Assert.DoesNotContain(cacheKey, instrumentation.Cache);
+    }
+
     private static void VerifyOldActivityData(Activity activity, bool isSet, EndPoint endPoint, bool setCommandKey = false)
     {
         if (isSet)
@@ -550,6 +634,10 @@ public class StackExchangeRedisCallsInstrumentationTests(RedisXunitFixture fixtu
         Assert.Equal("0", activity.GetTagValue(SemanticConventions.AttributeDbNamespace));
         Assert.Equal(dbOperationName, activity.GetTagValue(SemanticConventions.AttributeDbOperationName));
         Assert.Equal(dbQueryText, activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
+
+        Assert.Equal("OpenTelemetry.Instrumentation.StackExchangeRedis", activity.Source.Name);
+        Assert.NotNull(activity.Source.Version);
+        Assert.NotEmpty(activity.Source.Version);
 
         VerifyEndPoint(activity, endPoint);
     }

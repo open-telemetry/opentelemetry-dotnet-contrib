@@ -3,6 +3,10 @@ name: Reusable Integration Test
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.sha }}-${{ inputs.component }}-${{ inputs.os }}-${{ inputs.version }}
+  cancel-in-progress: false
+
 on:
   workflow_call:
     inputs:
@@ -39,6 +43,7 @@ on:
 
 jobs:
   build-and-test:
+    name: Build and test ${{ inputs.component }} (${{ inputs.os }}, ${{ inputs.version }})
     runs-on: ${{ inputs.os }}
     env:
       BUILD_COMPONENT: ${{ inputs.component }}
@@ -47,10 +52,12 @@ jobs:
     # this checkout requires prior approval via the 'authorize' job environment.
     # The workflow has limited permissions (contents: read) and uses persist-credentials: false
     # to prevent credential theft.
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+    - name: Checkout code
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       with:
         persist-credentials: false
         ref: ${{ inputs.checkout-ref }}
+        show-progress: false
 
     - name: Setup .NET
       uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5.2.0
@@ -62,7 +69,7 @@ jobs:
       run: dotnet build build/Projects/Component.proj --configuration Release --no-restore
 
     - name: dotnet test Component.proj
-      run: dotnet test build/Projects/Component.proj --filter "CategoryName=${env:TEST_FILTER}" --framework ${env:FRAMEWORK_VERSION} --configuration Release --no-restore --no-build --logger:"console;verbosity=detailed"
+      run: dotnet test build/Projects/Component.proj --filter "CategoryName=${env:TEST_FILTER}" --framework ${env:FRAMEWORK_VERSION} --configuration Release --no-restore --no-build
       shell: pwsh
       env:
         FRAMEWORK_VERSION: ${{ inputs.version }}
