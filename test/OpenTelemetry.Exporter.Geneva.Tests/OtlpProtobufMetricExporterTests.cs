@@ -1687,11 +1687,26 @@ public abstract class OtlpProtobufMetricExporterTests
     {
         public readonly List<byte[]> ExportedItems = [];
 
+        public int FlushCount { get; private set; }
+
         public void SendOtlpProtobufEvent(byte[] body, int size)
         {
             var arr = new byte[size];
             Buffer.BlockCopy(body, 0, arr, 0, arr.Length);
             this.ExportedItems.Add(arr);
+        }
+
+        public bool TryAppendOtlpProtobufEvent(byte[] body, int size)
+        {
+            // Pass-through implementation: record one entry per metric point
+            // so existing per-event wire-format assertions keep their meaning.
+            this.SendOtlpProtobufEvent(body, size);
+            return true;
+        }
+
+        public void FlushOtlpProtobufEvents()
+        {
+            this.FlushCount++;
         }
 
         public void Send(MetricEventType eventType, byte[] body, int size)

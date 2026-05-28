@@ -59,6 +59,19 @@ internal sealed class MetricUnixUserEventsDataTransport : IMetricDataTransport
         }
     }
 
+    // user_events tracepoints are inherently per-event: each Write produces
+    // one logical event for the consumer, so we do not batch. Append simply
+    // forwards to the per-event send path.
+    public bool TryAppendOtlpProtobufEvent(byte[] body, int size)
+    {
+        this.SendOtlpProtobufEvent(body, size);
+        return true;
+    }
+
+    public void FlushOtlpProtobufEvents()
+    {
+    }
+
     public void Dispose()
     {
         this.metricsTracepoint.Dispose();

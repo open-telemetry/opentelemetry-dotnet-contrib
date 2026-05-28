@@ -737,6 +737,12 @@ public class MetricExporterBenchmarks
             // Drop
         }
 
+        public bool TryAppendOtlpProtobufEvent(byte[] body, int size) => true;
+
+        public void FlushOtlpProtobufEvents()
+        {
+        }
+
         public void Send(MetricEventType eventType, byte[] body, int size)
             => throw new NotImplementedException();
 

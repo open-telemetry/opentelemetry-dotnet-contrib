@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+* Batch OTLP-protobuf metric events into a single Unix Domain Socket `Send`
+  per export. The Geneva metric exporter previously issued one `Socket.Send`
+  syscall per metric point, which on high-cardinality scrapes dominated
+  worker CPU. Events are now accumulated in a transport-side buffer (bounded
+  by the existing 65360-byte per-event buffer size) and flushed once per
+  export. The on-the-wire format is unchanged: each event is already
+  uint32-LE length-prefixed, which the Geneva MDSD receiver uses to
+  demultiplex events from a single read. ETW and Linux `user_events`
+  transports are unaffected (per-event semantics preserved). Single events
+  larger than the accumulation buffer fall back to a standalone send for
+  back-compat.
+
 ## 1.15.2
 
 Released 2026-Apr-21

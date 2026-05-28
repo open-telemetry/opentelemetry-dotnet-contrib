@@ -208,6 +208,22 @@ internal sealed class OtlpProtobufSerializer
         // Serialize
         this.SerializeResourceMetrics(buffer, resource);
 
+        // Flush any events accumulated by the transport in one final
+        // transport write. Transports that do not batch implement this as a
+        // no-op. The OTLP wire format is unchanged: each event was already
+        // uint32-LE length-prefixed by WriteIndividualMessageTagsAndLength
+        // when prefixBufferWithUInt32LittleEndianLength is set, which the
+        // Geneva MDSD receiver uses to demultiplex events from a single read.
+        try
+        {
+            this.MetricDataTransport.FlushOtlpProtobufEvents();
+        }
+        catch (Exception ex)
+        {
+            this.metricExportResult = ExportResult.Failure;
+            ExporterEventSource.Log.ExporterException("Failed to flush batched OTLP metric events", ex);
+        }
+
         this.ClearScopeMetrics();
 
         return this.metricExportResult;
@@ -746,7 +762,27 @@ internal sealed class OtlpProtobufSerializer
     }
 
     private void SendMetricPoint(byte[] buffer, ref int cursor)
-        => this.MetricDataTransport.SendOtlpProtobufEvent(buffer, cursor);
+    {
+        // Try to append into the transport's accumulation buffer so the
+        // export does one large socket write instead of one per metric point.
+        if (this.MetricDataTransport.TryAppendOtlpProtobufEvent(buffer, cursor))
+        {
+            return;
+        }
+
+        // Accumulation buffer is full: flush what we have and retry once.
+        this.MetricDataTransport.FlushOtlpProtobufEvents();
+
+        if (this.MetricDataTransport.TryAppendOtlpProtobufEvent(buffer, cursor))
+        {
+            return;
+        }
+
+        // Single event larger than the accumulation buffer. Preserve the
+        // pre-batching behavior so back-compat is unchanged for oversize
+        // events and for external IMetricDataTransport consumers.
+        this.MetricDataTransport.SendOtlpProtobufEvent(buffer, cursor);
+    }
 
     private void SerializeResource(byte[] buffer, ref int cursor, Resource resource)
     {

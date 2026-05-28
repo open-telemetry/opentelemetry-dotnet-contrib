@@ -61,6 +61,21 @@ internal sealed class MetricWindowsEventTracingDataTransport : EventSource, IMet
         }
     }
 
+    // ETW events are inherently per-event: each WriteEventCore produces one
+    // ETW record for the consumer, so we do not batch. Append simply forwards
+    // to the per-event send path.
+    [NonEvent]
+    public bool TryAppendOtlpProtobufEvent(byte[] body, int size)
+    {
+        this.SendOtlpProtobufEvent(body, size);
+        return true;
+    }
+
+    [NonEvent]
+    public void FlushOtlpProtobufEvents()
+    {
+    }
+
 #pragma warning disable CA1822 // Mark members as static
 
     [Event(OtlpProtobufMetricEventId)]
