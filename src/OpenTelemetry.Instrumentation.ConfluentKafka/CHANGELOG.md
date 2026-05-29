@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.1.0-alpha.7
+
+Released 2026-May-29
+
 * Fixed an issue in `InstrumentedConsumer` where `messaging.receive.duration`
   and `messaging.receive.messages` metrics were not emitted when `ConsumeException`
   is thrown by the `Consume` method.
