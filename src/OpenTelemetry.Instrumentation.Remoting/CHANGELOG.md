@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.1.0-alpha.1
+
+Released 2026-May-31
+
 * This is the first release of `OpenTelemetry.Instrumentation.Remoting` package.
 
 For more details, please refer to the [README](README.md).
