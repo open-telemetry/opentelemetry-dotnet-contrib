@@ -13,7 +13,7 @@
 * Fix `db.query.parameter.<key>` attributes to always emit the value as a string.
   ([#4395](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4395))
 
-* Fix `SqlConnectionDetails` to parse also PostgreSQL data source URI correctly.
+* Fix `SqlConnectionDetails` to parse PostgreSQL data source URIs correctly.
   ([#4444](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4444))
 
 ## 1.15.1-beta.1
