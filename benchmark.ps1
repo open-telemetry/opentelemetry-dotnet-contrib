@@ -221,9 +221,7 @@ $candidateNames = @(
     $ProjectName,
     "OpenTelemetry.$ProjectName",
     "OpenTelemetry.Exporter.$ProjectName",
-    "OpenTelemetry.$ProjectName",
     "OpenTelemetry.Instrumentation.$ProjectName",
-    "OpenTelemetry.$ProjectName",
     "OpenTelemetry.Resources.$ProjectName"
 )
 
