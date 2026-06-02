@@ -209,11 +209,11 @@ $solutionPath = $PSScriptRoot
 
 $testsPath = Join-Path $solutionPath "test"
 
-if ($ProjectName.EndsWith(".csproj", [StringComparison.OrdinalIgnoreCase])) {
+if ($ProjectName.EndsWith(".csproj")) {
     $ProjectName = $ProjectName.Substring(0, $ProjectName.Length - ".csproj".Length)
 }
 
-if ($ProjectName.EndsWith(".Benchmarks", [StringComparison.OrdinalIgnoreCase])) {
+if ($ProjectName.EndsWith(".Benchmarks")) {
     $ProjectName = $ProjectName.Substring(0, $ProjectName.Length - ".Benchmarks".Length)
 }
 
