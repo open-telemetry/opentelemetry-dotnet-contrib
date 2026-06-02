@@ -56,7 +56,7 @@ Runs the matching exporter benchmarks for the my-feature branch and main using t
 #>
 
 param(
-    [Parameter(Mandatory = $true, Position = 0)][string] $Project,
+    [Parameter(Mandatory = $true, Position = 0)][string] $ProjectName,
     [Parameter(Mandatory = $true, Position = 1)][string[]] $Benchmarks,
     [Parameter(Mandatory = $false)][string] $Target,
     [Parameter(Mandatory = $false)][string] $Baseline = "main",
