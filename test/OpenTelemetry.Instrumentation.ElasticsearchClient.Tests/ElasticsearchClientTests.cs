@@ -8,7 +8,6 @@ using Nest;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.ElasticsearchClient.Tests;
 

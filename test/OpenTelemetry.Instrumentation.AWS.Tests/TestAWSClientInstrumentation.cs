@@ -20,7 +20,6 @@ using Amazon.SQS;
 using Amazon.SQS.Model;
 using OpenTelemetry.Instrumentation.AWS.Tests.Tools;
 using OpenTelemetry.Trace;
-using Xunit;
 using AWSTracingPipelineHandler = OpenTelemetry.Instrumentation.AWS.Implementation.AWSTracingPipelineHandler;
 
 namespace OpenTelemetry.Instrumentation.AWS.Tests;

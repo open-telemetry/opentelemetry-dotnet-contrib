@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Runtime.InteropServices;
-using Xunit;
 
 namespace OpenTelemetry.Resources.OperatingSystem.Tests;
 

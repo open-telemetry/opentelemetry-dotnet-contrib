@@ -3,7 +3,6 @@
 
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using Xunit;
 
 namespace OpenTelemetry.Sampler.AWS.Tests;
 

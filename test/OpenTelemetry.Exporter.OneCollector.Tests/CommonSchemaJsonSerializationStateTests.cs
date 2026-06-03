@@ -3,7 +3,6 @@
 
 using System.Text;
 using System.Text.Json;
-using Xunit;
 
 namespace OpenTelemetry.Exporter.OneCollector.Tests;
 

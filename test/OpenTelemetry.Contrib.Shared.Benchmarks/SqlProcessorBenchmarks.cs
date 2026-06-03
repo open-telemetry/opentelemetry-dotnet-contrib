@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Diagnosers;
 
 namespace OpenTelemetry.Instrumentation.Benchmarks;
 
