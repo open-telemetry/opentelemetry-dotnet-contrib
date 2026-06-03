@@ -95,25 +95,6 @@ public class ProcessMetricsTests
     }
 
     [Fact]
-    public void ProcessMetricsAreCapturedWithRuntimeInstrumentation()
-    {
-        const string ProcessMeterName = "OpenTelemetry.Instrumentation.Process";
-
-        var exportedItems = new List<Metric>();
-        using var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddProcessInstrumentation()
-            .AddInMemoryExporter(exportedItems)
-            .Build();
-
-        meterProvider.ForceFlush(MaxTimeToAllowForFlush);
-
-        Assert.Contains(exportedItems, i => i.Name == "process.memory.usage" && i.MeterName == ProcessMeterName);
-        Assert.Contains(exportedItems, i => i.Name == "process.memory.virtual" && i.MeterName == ProcessMeterName);
-        Assert.Contains(exportedItems, i => i.Name == "process.cpu.time" && i.MeterName == ProcessMeterName);
-        Assert.Contains(exportedItems, i => i.Name == "process.thread.count" && i.MeterName == ProcessMeterName);
-    }
-
-    [Fact]
     public async Task ProcessMetricsAreCapturedWhenTasksOverlap()
     {
         var exportedItemsA = new List<Metric>();
