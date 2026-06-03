@@ -8,8 +8,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;
-using Xunit;
-using Xunit.Abstractions;
 
 namespace OpenTelemetry.Instrumentation.Tests;
 

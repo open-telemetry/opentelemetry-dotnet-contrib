@@ -7,7 +7,6 @@ using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
 using OpenTelemetry.Trace;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Tests;
 

@@ -6,7 +6,6 @@ using System.Reflection;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
-using Xunit;
 
 namespace OpenTelemetry.Sampler.AWS.Tests;
 

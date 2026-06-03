@@ -18,7 +18,6 @@ using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using TestApp.AspNetCore;
 using TestApp.AspNetCore.Filters;
-using Xunit;
 using Uri = System.Uri;
 
 namespace OpenTelemetry.Instrumentation.AspNetCore.Tests;

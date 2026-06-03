@@ -11,7 +11,6 @@ using System.Net.Http;
 using OpenTelemetry.Instrumentation.Http.Implementation;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Http.Tests;
 

@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using Confluent.Kafka;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.ConfluentKafka.Tests;
 

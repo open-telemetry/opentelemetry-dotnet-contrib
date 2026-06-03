@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using OpenTelemetry.OpAmp.Client.Settings;
-using Xunit;
 
 namespace OpenTelemetry.OpAmp.Client.Tests;
 

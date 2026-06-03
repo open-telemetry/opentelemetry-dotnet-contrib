@@ -4,10 +4,8 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
-using Xunit;
 
 namespace OpenTelemetry.Extensions.Enrichment.AspNetCore.Tests;
 

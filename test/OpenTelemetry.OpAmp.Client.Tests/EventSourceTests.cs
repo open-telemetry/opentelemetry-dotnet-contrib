@@ -3,7 +3,6 @@
 
 using OpenTelemetry.OpAmp.Client.Internal;
 using OpenTelemetry.Tests;
-using Xunit;
 
 namespace OpenTelemetry.OpAmp.Client.Tests;
 

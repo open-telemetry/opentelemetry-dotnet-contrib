@@ -3,8 +3,6 @@
 
 #nullable disable
 
-using Xunit;
-
 namespace OpenTelemetry.Exporter.Geneva.Tests;
 
 public class GenevaMetricExporterOptionsTests

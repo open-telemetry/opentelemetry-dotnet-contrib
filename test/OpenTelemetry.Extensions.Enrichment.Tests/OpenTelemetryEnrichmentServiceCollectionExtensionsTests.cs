@@ -8,7 +8,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
-using Xunit;
 
 namespace OpenTelemetry.Extensions.Enrichment.Tests;
 

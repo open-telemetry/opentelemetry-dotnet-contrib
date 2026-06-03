@@ -5,7 +5,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
-using Xunit;
 
 namespace OpenTelemetry.Exporter.OneCollector.Tests;
 

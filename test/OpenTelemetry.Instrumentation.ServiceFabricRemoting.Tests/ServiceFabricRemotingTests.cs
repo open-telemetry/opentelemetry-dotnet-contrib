@@ -11,11 +11,9 @@ using Microsoft.ServiceFabric.Services.Remoting.FabricTransport.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.V2;
 using Microsoft.ServiceFabric.Services.Remoting.V2.Runtime;
 using OpenTelemetry.Context.Propagation;
-using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using ServiceFabric.Mocks;
 using ServiceFabric.Mocks.RemotingV2;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests;
 
