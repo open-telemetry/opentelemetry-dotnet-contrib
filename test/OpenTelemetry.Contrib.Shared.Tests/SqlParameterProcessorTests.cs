@@ -6,7 +6,6 @@ using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
 using OpenTelemetry.Trace;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Tests;
 

@@ -3,7 +3,6 @@
 
 using System.Text;
 using OpenTelemetry.Resources;
-using Xunit;
 
 namespace OpenTelemetry.Exporter.OneCollector.Tests;
 

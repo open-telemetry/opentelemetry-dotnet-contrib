@@ -7,7 +7,6 @@ using Grpc.Core.Interceptors;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
-using Xunit;
 using StatusCode = Grpc.Core.StatusCode;
 
 namespace OpenTelemetry.Instrumentation.GrpcCore.Tests;

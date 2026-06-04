@@ -4,7 +4,6 @@
 #if NET
 using System.Runtime.InteropServices;
 #endif
-using Xunit;
 
 namespace OpenTelemetry.Resources.Host.Tests;
 

@@ -3,7 +3,6 @@
 
 using System.Reflection;
 using System.Text.Json;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Http.Tests;
 

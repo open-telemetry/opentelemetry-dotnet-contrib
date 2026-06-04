@@ -14,8 +14,6 @@ using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Exporter.Geneva.Metrics;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Tests;
-using OpenTelemetry.Trace;
-using Xunit;
 using static OpenTelemetry.Exporter.Geneva.Tests.MetricsContract;
 
 namespace OpenTelemetry.Exporter.Geneva.Tests;

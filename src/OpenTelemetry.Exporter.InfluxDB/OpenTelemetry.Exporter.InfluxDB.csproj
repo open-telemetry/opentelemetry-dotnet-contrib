@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFrameworks>$(TargetFrameworksForLibraries)</TargetFrameworks>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Description>An OpenTelemetry .NET exporter that exports to InfluxDB.</Description>
     <MinVerTagPrefix>Exporter.InfluxDB-</MinVerTagPrefix>
   </PropertyGroup>

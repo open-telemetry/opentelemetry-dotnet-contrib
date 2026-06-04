@@ -4,7 +4,6 @@
 using System.Web;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Metrics;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.AspNet.Tests;
 

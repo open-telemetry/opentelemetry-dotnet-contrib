@@ -5,7 +5,6 @@ using System.Text;
 using OpenTelemetry.OpAmp.Client.Internal;
 using OpenTelemetry.OpAmp.Client.Tests.Mocks;
 using OpenTelemetry.OpAmp.Client.Tests.Tools;
-using Xunit;
 
 namespace OpenTelemetry.OpAmp.Client.Tests;
 

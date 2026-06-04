@@ -3,7 +3,6 @@
 
 using OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
 using OpenTelemetry.Tests;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests;
 

@@ -11,8 +11,6 @@ using Npgsql;
 using OpenTelemetry.Instrumentation.SqlClient.Tests;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
-using Xunit;
-using Xunit.Abstractions;
 
 namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests;
 
