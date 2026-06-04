@@ -6,8 +6,6 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using OpenTelemetry.Metrics;
-using Xunit;
-using Xunit.Abstractions;
 
 namespace OpenTelemetry.Tests;
 

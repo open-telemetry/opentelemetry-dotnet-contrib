@@ -3,8 +3,6 @@
 
 using System.Diagnostics;
 using OpenTelemetry.Metrics;
-using Xunit;
-using Xunit.Abstractions;
 
 namespace OpenTelemetry.Tests;
 
