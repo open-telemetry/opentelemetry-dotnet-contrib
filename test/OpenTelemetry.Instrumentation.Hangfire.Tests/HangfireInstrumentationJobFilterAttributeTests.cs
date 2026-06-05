@@ -13,7 +13,6 @@ using Hangfire.Storage;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Instrumentation.Hangfire.Implementation;
 using OpenTelemetry.Trace;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Hangfire.Tests;
 

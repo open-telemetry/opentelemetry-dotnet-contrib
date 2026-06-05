@@ -4,7 +4,6 @@
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using OpenTelemetry.Context.Propagation;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.GrpcCore.Tests;
 

@@ -3,7 +3,6 @@
 
 using OpenTelemetry.Instrumentation.Quartz.Implementation;
 using OpenTelemetry.Tests;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Quartz.Tests;
 

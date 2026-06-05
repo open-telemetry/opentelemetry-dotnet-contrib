@@ -5,7 +5,6 @@ using Hangfire;
 using OpenTelemetry.Instrumentation.Hangfire.Implementation;
 using OpenTelemetry.Instrumentation.Hangfire.Tests.Utils;
 using OpenTelemetry.Metrics;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Hangfire.Tests;
 
