@@ -55,7 +55,7 @@ internal sealed class TelemetryDynamicSinkProvider : IDynamicProperty, IContribu
 
     internal static string ExtractServiceName(string assemblyQualifiedTypeName)
     {
-        int index = FindAssemblySeparatorIndex(assemblyQualifiedTypeName);
+        var index = FindAssemblySeparatorIndex(assemblyQualifiedTypeName);
         return index >= 0 ? assemblyQualifiedTypeName.Substring(0, index) : assemblyQualifiedTypeName;
     }
 
@@ -84,11 +84,11 @@ internal sealed class TelemetryDynamicSinkProvider : IDynamicProperty, IContribu
 
     private static int FindAssemblySeparatorIndex(string assemblyQualifiedTypeName)
     {
-        int depth = 0;
+        var depth = 0;
 
-        for (int i = 0; i < assemblyQualifiedTypeName.Length; i++)
+        for (var i = 0; i < assemblyQualifiedTypeName.Length; i++)
         {
-            char c = assemblyQualifiedTypeName[i];
+            var c = assemblyQualifiedTypeName[i];
 
             if (c == '[')
             {
