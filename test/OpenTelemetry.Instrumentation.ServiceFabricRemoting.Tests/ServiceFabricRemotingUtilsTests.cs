@@ -6,7 +6,6 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using Microsoft.ServiceFabric.Services.Remoting.V2;
 using Microsoft.ServiceFabric.Services.Remoting.V2.Client;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests;
 
@@ -15,9 +14,9 @@ public class ServiceFabricRemotingUtilsTests
     [Fact]
     public void GetServerAddress_WhenResolvedServicePartitionGetterThrows_ReturnsNull()
     {
-        ThrowingPartitionClient client = new ThrowingPartitionClient();
+        var client = new ThrowingPartitionClient();
 
-        string? result = ServiceFabricRemotingUtils.GetServerAddress(client);
+        var result = ServiceFabricRemotingUtils.GetServerAddress(client);
 
         Assert.Null(result);
     }
@@ -25,9 +24,9 @@ public class ServiceFabricRemotingUtilsTests
     [Fact]
     public void GetServerAddress_WhenResolvedServicePartitionIsNull_ReturnsNull()
     {
-        NullPartitionClient client = new NullPartitionClient();
+        var client = new NullPartitionClient();
 
-        string? result = ServiceFabricRemotingUtils.GetServerAddress(client);
+        var result = ServiceFabricRemotingUtils.GetServerAddress(client);
 
         Assert.Null(result);
     }
@@ -35,11 +34,11 @@ public class ServiceFabricRemotingUtilsTests
     [Fact]
     public void GetServerAddress_WhenResolvedServicePartitionIsPopulated_ReturnsAbsoluteUri()
     {
-        Uri serviceName = new Uri("fabric:/MyApp/MyService");
-        ResolvedServicePartition partition = CreatePartitionWithServiceName(serviceName);
-        PopulatedPartitionClient client = new PopulatedPartitionClient(partition);
+        var serviceName = new Uri("fabric:/MyApp/MyService");
+        var partition = CreatePartitionWithServiceName(serviceName);
+        var client = new PopulatedPartitionClient(partition);
 
-        string? result = ServiceFabricRemotingUtils.GetServerAddress(client);
+        var result = ServiceFabricRemotingUtils.GetServerAddress(client);
 
         Assert.Equal(serviceName.AbsoluteUri, result);
     }
@@ -50,11 +49,11 @@ public class ServiceFabricRemotingUtilsTests
     private static ResolvedServicePartition CreatePartitionWithServiceName(Uri serviceName)
     {
 #pragma warning disable SYSLIB0050 // FormatterServices.GetUninitializedObject is obsolete
-        ResolvedServicePartition partition = (ResolvedServicePartition)FormatterServices.GetUninitializedObject(typeof(ResolvedServicePartition));
+        var partition = (ResolvedServicePartition)FormatterServices.GetUninitializedObject(typeof(ResolvedServicePartition));
 #pragma warning restore SYSLIB0050
 
         FieldInfo? uriField = null;
-        foreach (FieldInfo field in typeof(ResolvedServicePartition).GetFields(BindingFlags.NonPublic | BindingFlags.Instance))
+        foreach (var field in typeof(ResolvedServicePartition).GetFields(BindingFlags.NonPublic | BindingFlags.Instance))
         {
             if (field.FieldType == typeof(Uri))
             {

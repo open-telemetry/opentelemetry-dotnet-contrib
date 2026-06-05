@@ -9,7 +9,6 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using ServiceFabric.Mocks;
 using ServiceFabric.Mocks.RemotingV2;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests;
 
@@ -21,33 +20,33 @@ public class ServiceFabricRemotingMetricsTests
     public async Task ClientRequestResponseAsync_EmitsRpcClientCallDuration()
     {
         // Arrange
-        List<Metric> exportedMetrics = new List<Metric>();
-        using MeterProvider meterProvider = Sdk.CreateMeterProviderBuilder()
+        var exportedMetrics = new List<Metric>();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddServiceFabricRemotingInstrumentation()
             .AddInMemoryExporter(exportedMetrics)
             .Build();
 
-        ServiceRemotingRequestMessageHeaderMock header = new ServiceRemotingRequestMessageHeaderMock
+        var header = new ServiceRemotingRequestMessageHeaderMock
         {
             InterfaceId = 1,
             MethodId = 1,
             MethodName = "TestMethod",
         };
-        MockServiceRemotingRequestMessageBody messageBody = new MockServiceRemotingRequestMessageBody();
-        ServiceRemotingRequestMessageMock requestMessage = new ServiceRemotingRequestMessageMock(header, messageBody);
+        var messageBody = new MockServiceRemotingRequestMessageBody();
+        var requestMessage = new ServiceRemotingRequestMessageMock(header, messageBody);
 
-        ServiceRemotingClientMock innerClient = new ServiceRemotingClientMock();
-        TraceContextEnrichedServiceRemotingClientAdapter clientAdapter = new TraceContextEnrichedServiceRemotingClientAdapter(innerClient);
+        var innerClient = new ServiceRemotingClientMock();
+        var clientAdapter = new TraceContextEnrichedServiceRemotingClientAdapter(innerClient);
 
         // Act
         await clientAdapter.RequestResponseAsync(requestMessage);
         meterProvider.ForceFlush();
 
         // Assert
-        Metric metric = Assert.Single(exportedMetrics, m => m.Name == "rpc.client.call.duration");
+        var metric = Assert.Single(exportedMetrics, m => m.Name == "rpc.client.call.duration");
         Assert.Equal(MetricType.Histogram, metric.MetricType);
 
-        (Dictionary<string, object?> tags, double sum, long count) = FindHistogramPointForMethod(metric, "TestMethod");
+        (var tags, var sum, var count) = FindHistogramPointForMethod(metric, "TestMethod");
         Assert.Equal(ExpectedRpcSystemName, tags["rpc.system.name"]);
         Assert.DoesNotContain("error.type", tags.Keys);
         Assert.Equal(1, count);
@@ -59,41 +58,41 @@ public class ServiceFabricRemotingMetricsTests
     public async Task ServerHandleRequestResponseAsync_EmitsRpcServerCallDuration()
     {
         // Arrange
-        List<Metric> exportedMetrics = new List<Metric>();
-        using MeterProvider meterProvider = Sdk.CreateMeterProviderBuilder()
+        var exportedMetrics = new List<Metric>();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddServiceFabricRemotingInstrumentation()
             .AddInMemoryExporter(exportedMetrics)
             .Build();
 
         // The test service's method dereferences Activity.Current, so we also need a TracerProvider
         // so the dispatcher adapter actually creates an Activity.
-        using TracerProvider tracerProvider = Sdk.CreateTracerProviderBuilder()
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddServiceFabricRemotingInstrumentation()
             .Build();
 
-        StatefulServiceContext serviceContext = MockStatefulServiceContextFactory.Default;
-        MockReliableStateManager reliableStateManager = new MockReliableStateManager();
-        MyTestStatefulService statefulService = new MyTestStatefulService(serviceContext, reliableStateManager);
-        ServiceRemotingMessageDispatcher innerDispatcher = new ServiceRemotingMessageDispatcher(serviceContext, statefulService);
-        ServiceRemotingMessageDispatcherAdapter dispatcherAdapter = new ServiceRemotingMessageDispatcherAdapter(innerDispatcher);
+        var serviceContext = MockStatefulServiceContextFactory.Default;
+        var reliableStateManager = new MockReliableStateManager();
+        var statefulService = new MyTestStatefulService(serviceContext, reliableStateManager);
+        var innerDispatcher = new ServiceRemotingMessageDispatcher(serviceContext, statefulService);
+        var dispatcherAdapter = new ServiceRemotingMessageDispatcherAdapter(innerDispatcher);
         statefulService.SetDispatcher(dispatcherAdapter);
 
-        ServiceRemotingRequestMessageHeaderMock header = this.CreateHeaderFor(typeof(ITestMyStatefulService), nameof(ITestMyStatefulService.TestContextPropagation));
+        var header = this.CreateHeaderFor(typeof(ITestMyStatefulService), nameof(ITestMyStatefulService.TestContextPropagation));
         header.MethodName = nameof(ITestMyStatefulService.TestContextPropagation);
-        MockServiceRemotingRequestMessageBody messageBody = new MockServiceRemotingRequestMessageBody();
+        var messageBody = new MockServiceRemotingRequestMessageBody();
         messageBody.SetParameter(0, "valueToReturn", "SomeValue");
-        ServiceRemotingRequestMessageMock requestMessage = new ServiceRemotingRequestMessageMock(header, messageBody);
-        FabricTransportServiceRemotingRequestContextMock requestContext = new FabricTransportServiceRemotingRequestContextMock();
+        var requestMessage = new ServiceRemotingRequestMessageMock(header, messageBody);
+        var requestContext = new FabricTransportServiceRemotingRequestContextMock();
 
         // Act
         await dispatcherAdapter.HandleRequestResponseAsync(requestContext, requestMessage);
         meterProvider.ForceFlush();
 
         // Assert
-        Metric metric = Assert.Single(exportedMetrics, m => m.Name == "rpc.server.call.duration");
+        var metric = Assert.Single(exportedMetrics, m => m.Name == "rpc.server.call.duration");
         Assert.Equal(MetricType.Histogram, metric.MetricType);
 
-        (Dictionary<string, object?> tags, double sum, long count) = FindHistogramPointForMethod(metric, nameof(ITestMyStatefulService.TestContextPropagation));
+        (var tags, var sum, var count) = FindHistogramPointForMethod(metric, nameof(ITestMyStatefulService.TestContextPropagation));
         Assert.Equal(ExpectedRpcSystemName, tags["rpc.system.name"]);
         Assert.DoesNotContain("error.type", tags.Keys);
         Assert.Equal(1, count);
@@ -105,33 +104,33 @@ public class ServiceFabricRemotingMetricsTests
     public async Task ClientRequestResponseAsync_OnException_EmitsMetricWithErrorType()
     {
         // Arrange
-        List<Metric> exportedMetrics = new List<Metric>();
-        using MeterProvider meterProvider = Sdk.CreateMeterProviderBuilder()
+        var exportedMetrics = new List<Metric>();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddServiceFabricRemotingInstrumentation()
             .AddInMemoryExporter(exportedMetrics)
             .Build();
 
-        ServiceRemotingRequestMessageHeaderMock header = new ServiceRemotingRequestMessageHeaderMock
+        var header = new ServiceRemotingRequestMessageHeaderMock
         {
             InterfaceId = 1,
             MethodId = 1,
             MethodName = "FailingClientMethod",
         };
-        MockServiceRemotingRequestMessageBody messageBody = new MockServiceRemotingRequestMessageBody();
-        ServiceRemotingRequestMessageMock requestMessage = new ServiceRemotingRequestMessageMock(header, messageBody);
+        var messageBody = new MockServiceRemotingRequestMessageBody();
+        var requestMessage = new ServiceRemotingRequestMessageMock(header, messageBody);
 
-        InvalidOperationException expectedException = new InvalidOperationException("simulated client failure");
-        ThrowingServiceRemotingClient innerClient = new ThrowingServiceRemotingClient { ExceptionToThrow = expectedException };
-        TraceContextEnrichedServiceRemotingClientAdapter clientAdapter = new TraceContextEnrichedServiceRemotingClientAdapter(innerClient);
+        var expectedException = new InvalidOperationException("simulated client failure");
+        var innerClient = new ThrowingServiceRemotingClient { ExceptionToThrow = expectedException };
+        var clientAdapter = new TraceContextEnrichedServiceRemotingClientAdapter(innerClient);
 
         // Act
-        InvalidOperationException actual = await Assert.ThrowsAsync<InvalidOperationException>(() => clientAdapter.RequestResponseAsync(requestMessage));
+        var actual = await Assert.ThrowsAsync<InvalidOperationException>(() => clientAdapter.RequestResponseAsync(requestMessage));
         Assert.Same(expectedException, actual);
         meterProvider.ForceFlush();
 
         // Assert
-        Metric metric = Assert.Single(exportedMetrics, m => m.Name == "rpc.client.call.duration");
-        (Dictionary<string, object?> tags, double sum, long count) = FindHistogramPointForMethod(metric, "FailingClientMethod");
+        var metric = Assert.Single(exportedMetrics, m => m.Name == "rpc.client.call.duration");
+        var (tags, sum, count) = FindHistogramPointForMethod(metric, "FailingClientMethod");
         Assert.Equal(ExpectedRpcSystemName, tags["rpc.system.name"]);
         Assert.Equal(typeof(InvalidOperationException).FullName, tags["error.type"]);
         Assert.Equal(1, count);
@@ -143,34 +142,34 @@ public class ServiceFabricRemotingMetricsTests
     public async Task ServerHandleRequestResponseAsync_OnException_EmitsMetricWithErrorType()
     {
         // Arrange
-        List<Metric> exportedMetrics = new List<Metric>();
-        using MeterProvider meterProvider = Sdk.CreateMeterProviderBuilder()
+        var exportedMetrics = new List<Metric>();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddServiceFabricRemotingInstrumentation()
             .AddInMemoryExporter(exportedMetrics)
             .Build();
 
-        InvalidOperationException expectedException = new InvalidOperationException("simulated server failure");
-        ThrowingServiceRemotingMessageHandler innerDispatcher = new ThrowingServiceRemotingMessageHandler { ExceptionToThrow = expectedException };
-        ServiceRemotingMessageDispatcherAdapter dispatcherAdapter = new ServiceRemotingMessageDispatcherAdapter(innerDispatcher);
+        var expectedException = new InvalidOperationException("simulated server failure");
+        var innerDispatcher = new ThrowingServiceRemotingMessageHandler { ExceptionToThrow = expectedException };
+        var dispatcherAdapter = new ServiceRemotingMessageDispatcherAdapter(innerDispatcher);
 
-        ServiceRemotingRequestMessageHeaderMock header = new ServiceRemotingRequestMessageHeaderMock
+        var header = new ServiceRemotingRequestMessageHeaderMock
         {
             InterfaceId = 1,
             MethodId = 1,
             MethodName = "FailingServerMethod",
         };
-        MockServiceRemotingRequestMessageBody messageBody = new MockServiceRemotingRequestMessageBody();
-        ServiceRemotingRequestMessageMock requestMessage = new ServiceRemotingRequestMessageMock(header, messageBody);
-        FabricTransportServiceRemotingRequestContextMock requestContext = new FabricTransportServiceRemotingRequestContextMock();
+        var messageBody = new MockServiceRemotingRequestMessageBody();
+        var requestMessage = new ServiceRemotingRequestMessageMock(header, messageBody);
+        var requestContext = new FabricTransportServiceRemotingRequestContextMock();
 
         // Act
-        InvalidOperationException actual = await Assert.ThrowsAsync<InvalidOperationException>(() => dispatcherAdapter.HandleRequestResponseAsync(requestContext, requestMessage));
+        var actual = await Assert.ThrowsAsync<InvalidOperationException>(() => dispatcherAdapter.HandleRequestResponseAsync(requestContext, requestMessage));
         Assert.Same(expectedException, actual);
         meterProvider.ForceFlush();
 
         // Assert
-        Metric metric = Assert.Single(exportedMetrics, m => m.Name == "rpc.server.call.duration");
-        (Dictionary<string, object?> tags, double sum, long count) = FindHistogramPointForMethod(metric, "FailingServerMethod");
+        var metric = Assert.Single(exportedMetrics, m => m.Name == "rpc.server.call.duration");
+        (var tags, var sum, var count) = FindHistogramPointForMethod(metric, "FailingServerMethod");
         Assert.Equal(ExpectedRpcSystemName, tags["rpc.system.name"]);
         Assert.Equal(typeof(InvalidOperationException).FullName, tags["error.type"]);
         Assert.Equal(1, count);
@@ -186,35 +185,35 @@ public class ServiceFabricRemotingMetricsTests
         // dashboards reflect all real traffic.
 
         // Arrange
-        List<Metric> exportedMetrics = new List<Metric>();
-        using MeterProvider meterProvider = Sdk.CreateMeterProviderBuilder()
+        var exportedMetrics = new List<Metric>();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddServiceFabricRemotingInstrumentation()
             .AddInMemoryExporter(exportedMetrics)
             .Build();
 
-        using TracerProvider tracerProvider = Sdk.CreateTracerProviderBuilder()
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddServiceFabricRemotingInstrumentation(options => options.Filter = _ => false)
             .Build();
 
-        ServiceRemotingRequestMessageHeaderMock header = new ServiceRemotingRequestMessageHeaderMock
+        var header = new ServiceRemotingRequestMessageHeaderMock
         {
             InterfaceId = 1,
             MethodId = 1,
             MethodName = "FilteredMethod",
         };
-        MockServiceRemotingRequestMessageBody messageBody = new MockServiceRemotingRequestMessageBody();
-        ServiceRemotingRequestMessageMock requestMessage = new ServiceRemotingRequestMessageMock(header, messageBody);
+        var messageBody = new MockServiceRemotingRequestMessageBody();
+        var requestMessage = new ServiceRemotingRequestMessageMock(header, messageBody);
 
-        ServiceRemotingClientMock innerClient = new ServiceRemotingClientMock();
-        TraceContextEnrichedServiceRemotingClientAdapter clientAdapter = new TraceContextEnrichedServiceRemotingClientAdapter(innerClient);
+        var innerClient = new ServiceRemotingClientMock();
+        var clientAdapter = new TraceContextEnrichedServiceRemotingClientAdapter(innerClient);
 
         // Act
         await clientAdapter.RequestResponseAsync(requestMessage);
         meterProvider.ForceFlush();
 
         // Assert
-        Metric metric = Assert.Single(exportedMetrics, m => m.Name == "rpc.client.call.duration");
-        (Dictionary<string, object?> tags, _, long count) = FindHistogramPointForMethod(metric, "FilteredMethod");
+        var metric = Assert.Single(exportedMetrics, m => m.Name == "rpc.client.call.duration");
+        (var tags, _, var count) = FindHistogramPointForMethod(metric, "FilteredMethod");
         Assert.Equal(ExpectedRpcSystemName, tags["rpc.system.name"]);
         Assert.Equal(1, count);
     }
@@ -224,15 +223,15 @@ public class ServiceFabricRemotingMetricsTests
     // when running test classes in parallel.
     private static (Dictionary<string, object?> Tags, double Sum, long Count) FindHistogramPointForMethod(Metric metric, string expectedMethod)
     {
-        foreach (ref readonly MetricPoint point in metric.GetMetricPoints())
+        foreach (ref readonly var point in metric.GetMetricPoints())
         {
-            Dictionary<string, object?> tags = new Dictionary<string, object?>();
-            foreach (KeyValuePair<string, object?> tag in point.Tags)
+            var tags = new Dictionary<string, object?>();
+            foreach (var tag in point.Tags)
             {
                 tags[tag.Key] = tag.Value;
             }
 
-            if (tags.TryGetValue("rpc.method", out object? method) && string.Equals(method as string, expectedMethod, StringComparison.Ordinal))
+            if (tags.TryGetValue("rpc.method", out var method) && string.Equals(method as string, expectedMethod, StringComparison.Ordinal))
             {
                 return (tags, point.GetHistogramSum(), point.GetHistogramCount());
             }
@@ -243,10 +242,10 @@ public class ServiceFabricRemotingMetricsTests
 
     private ServiceRemotingRequestMessageHeaderMock CreateHeaderFor(Type interfaceType, string methodName)
     {
-        int interfaceId = ServiceFabricUtils.GetInterfaceId(interfaceType);
+        var interfaceId = ServiceFabricUtils.GetInterfaceId(interfaceType);
 #pragma warning disable IDE0370 // Suppression is unnecessary
-        System.Reflection.MethodInfo methodInfo = interfaceType.GetMethod(methodName)!;
-        int methodId = ServiceFabricUtils.GetMethodId(methodInfo);
+        var methodInfo = interfaceType.GetMethod(methodName)!;
+        var methodId = ServiceFabricUtils.GetMethodId(methodInfo);
 #pragma warning restore IDE0370 // Suppression is unnecessary
 
         return new ServiceRemotingRequestMessageHeaderMock

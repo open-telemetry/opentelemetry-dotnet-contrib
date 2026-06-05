@@ -47,20 +47,20 @@ internal class TraceContextEnrichedServiceRemotingClientAdapter : IServiceRemoti
     {
         Guard.ThrowIfNull(requestMessage);
 
-        IServiceRemotingRequestMessageHeader requestMessageHeader = requestMessage.GetHeader();
+        var requestMessageHeader = requestMessage.GetHeader();
         Guard.ThrowIfNull(requestMessageHeader, "requestMessage.GetHeader()");
 
-        string? serverAddress = ServiceFabricRemotingUtils.GetServerAddress(this.InnerClient);
-        long startTimestamp = Stopwatch.GetTimestamp();
+        var serverAddress = ServiceFabricRemotingUtils.GetServerAddress(this.InnerClient);
+        var startTimestamp = Stopwatch.GetTimestamp();
         string? errorType = null;
 
         // Filter only gates tracing. Metrics are always emitted so rate / error-rate dashboards
         // reflect all real traffic, not just the requests selected for tracing.
-        bool shouldTrace = ServiceFabricRemotingActivitySource.Options?.Filter?.Invoke(requestMessage) != false;
+        var shouldTrace = ServiceFabricRemotingActivitySource.Options?.Filter?.Invoke(requestMessage) != false;
 
-        string activityName = requestMessageHeader.MethodName ?? ServiceFabricRemotingActivitySource.OutgoingRequestActivityName;
+        var activityName = requestMessageHeader.MethodName ?? ServiceFabricRemotingActivitySource.OutgoingRequestActivityName;
 
-        using Activity? activity = shouldTrace
+        using var activity = shouldTrace
             ? ServiceFabricRemotingActivitySource.ActivitySource.StartActivity(activityName, ActivityKind.Client)
             : null;
 
@@ -93,7 +93,7 @@ internal class TraceContextEnrichedServiceRemotingClientAdapter : IServiceRemoti
 
         try
         {
-            IServiceRemotingResponseMessage responseMessage = await this.InnerClient.RequestResponseAsync(requestMessage).ConfigureAwait(false);
+            var responseMessage = await this.InnerClient.RequestResponseAsync(requestMessage).ConfigureAwait(false);
 
             if (activity != null)
             {
@@ -161,7 +161,7 @@ internal class TraceContextEnrichedServiceRemotingClientAdapter : IServiceRemoti
                     tags.Add(SemanticConventions.AttributeServerAddress, serverAddress);
                 }
 
-                double elapsedSeconds = ServiceFabricRemotingUtils.CalculateDurationFromTimestamp(startTimestamp);
+                var elapsedSeconds = ServiceFabricRemotingUtils.CalculateDurationFromTimestamp(startTimestamp);
                 ServiceFabricRemotingMetrics.ClientCallDuration.Record(elapsedSeconds, tags);
             }
         }

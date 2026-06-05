@@ -60,31 +60,31 @@ public sealed class ServiceRemotingMessageDispatcherAdapter : IServiceRemotingMe
     {
         Guard.ThrowIfNull(requestMessage);
 
-        IServiceRemotingRequestMessageHeader requestMessageHeader = requestMessage.GetHeader();
+        var requestMessageHeader = requestMessage.GetHeader();
         Guard.ThrowIfNull(requestMessageHeader, "requestMessage.GetHeader()");
 
-        long startTimestamp = Stopwatch.GetTimestamp();
+        var startTimestamp = Stopwatch.GetTimestamp();
         string? errorType = null;
 
         // Filter only gates tracing. Metrics are always emitted so rate / error-rate dashboards
         // reflect all real traffic, not just the requests selected for tracing.
-        bool shouldTrace = ServiceFabricRemotingActivitySource.Options?.Filter?.Invoke(requestMessage) != false;
+        var shouldTrace = ServiceFabricRemotingActivitySource.Options?.Filter?.Invoke(requestMessage) != false;
 
         Activity? activity = null;
         if (shouldTrace)
         {
             // Extract the PropagationContext of the upstream parent from the message headers.
-            PropagationContext parentContext = Propagator.Extract(default, requestMessageHeader, ServiceFabricRemotingUtils.ExtractTraceContextFromRequestMessageHeader);
+            var parentContext = Propagator.Extract(default, requestMessageHeader, ServiceFabricRemotingUtils.ExtractTraceContextFromRequestMessageHeader);
             Baggage.Current = parentContext.Baggage;
 
-            string activityName = requestMessageHeader?.MethodName ?? ServiceFabricRemotingActivitySource.IncomingRequestActivityName;
+            var activityName = requestMessageHeader?.MethodName ?? ServiceFabricRemotingActivitySource.IncomingRequestActivityName;
 
             activity = ServiceFabricRemotingActivitySource.ActivitySource.StartActivity(activityName, ActivityKind.Server, parentContext.ActivityContext);
         }
 
         try
         {
-            IServiceRemotingResponseMessage responseMessage = await this.innerDispatcher.HandleRequestResponseAsync(requestContext, requestMessage).ConfigureAwait(false);
+            var responseMessage = await this.innerDispatcher.HandleRequestResponseAsync(requestContext, requestMessage).ConfigureAwait(false);
 
             return responseMessage;
         }
@@ -122,7 +122,7 @@ public sealed class ServiceRemotingMessageDispatcherAdapter : IServiceRemotingMe
                     tags.Add(SemanticConventions.AttributeErrorType, errorType);
                 }
 
-                double elapsedSeconds = ServiceFabricRemotingUtils.CalculateDurationFromTimestamp(startTimestamp);
+                var elapsedSeconds = ServiceFabricRemotingUtils.CalculateDurationFromTimestamp(startTimestamp);
                 ServiceFabricRemotingMetrics.ServerCallDuration.Record(elapsedSeconds, tags);
             }
         }
