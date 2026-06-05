@@ -97,7 +97,7 @@ public class RenovateSchemaTests(ITestOutputHelper outputHelper)
         }
         else if (token.Type == JTokenType.Array)
         {
-            int index = 0;
+            var index = 0;
 
             foreach (var item in token.Children())
             {

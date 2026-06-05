@@ -167,7 +167,7 @@ public class RemotingInstrumentationTests
 
         string? lastResolvedServiceName = null;
 
-        for (int i = 0; i < TelemetryDynamicSinkProvider.MaxCachedServiceNames + 32; i++)
+        for (var i = 0; i < TelemetryDynamicSinkProvider.MaxCachedServiceNames + 32; i++)
         {
             lastResolvedServiceName = provider.GetServiceName($"Namespace.Type{i}, Assembly{i}, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null");
         }
