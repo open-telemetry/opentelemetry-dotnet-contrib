@@ -11,7 +11,6 @@ using OpenTelemetry.OpAmp.Client.Settings;
 using OpenTelemetry.OpAmp.Client.Tests.Mocks;
 using OpenTelemetry.OpAmp.Client.Tests.Tools;
 using OpenTelemetry.Tests;
-using Xunit;
 
 namespace OpenTelemetry.OpAmp.Client.Tests;
 

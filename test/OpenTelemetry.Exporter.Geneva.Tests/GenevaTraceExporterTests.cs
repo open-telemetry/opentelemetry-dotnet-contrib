@@ -13,7 +13,6 @@ using OpenTelemetry.Exporter.Geneva.MsgPack;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
-using Xunit;
 
 namespace OpenTelemetry.Exporter.Geneva.Tests;
 

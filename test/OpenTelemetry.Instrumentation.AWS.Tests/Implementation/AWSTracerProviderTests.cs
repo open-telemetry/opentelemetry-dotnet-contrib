@@ -4,7 +4,6 @@
 using System.Diagnostics;
 using OpenTelemetry.AWS;
 using OpenTelemetry.Instrumentation.AWS.Implementation.Tracing;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.AWS.Tests.Implementation;
 

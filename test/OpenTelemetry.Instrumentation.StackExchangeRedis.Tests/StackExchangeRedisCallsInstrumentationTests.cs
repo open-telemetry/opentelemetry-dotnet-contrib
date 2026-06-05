@@ -10,7 +10,6 @@ using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using StackExchange.Redis;
 using StackExchange.Redis.Profiling;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.StackExchangeRedis.Tests;
 

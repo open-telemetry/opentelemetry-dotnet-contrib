@@ -80,15 +80,15 @@ jobs:
             -project ([ref]$project) `
             -component ([ref]$component)
 
-          echo "title=$title" >> ${env:GITHUB_OUTPUT}
-          echo "PROJECT_PATH=$project" >> ${env:GITHUB_ENV}
+          Write-Output "title=$title" >> ${env:GITHUB_OUTPUT}
+          Write-Output "PROJECT_PATH=$project" >> ${env:GITHUB_ENV}
 
           # Note: BUILD_COMPONENT envvar tells Component.proj what to build. Only
           # used if $project ends up Component.proj.
-          echo "BUILD_COMPONENT=$component" >> ${env:GITHUB_ENV}
+          Write-Output "BUILD_COMPONENT=$component" >> ${env:GITHUB_ENV}
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5.2.0
+        uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5.3.0
 
       - name: dotnet restore ${{ steps.resolve-project.outputs.title }}
         run: dotnet restore ${env:PROJECT_PATH}
@@ -143,7 +143,7 @@ jobs:
           # renovate: datasource=nuget depName=dotnet-validate
           DOTNET_VALIDATE_VERSION: '0.0.1-preview.582'
           # renovate: datasource=nuget depName=Meziantou.Framework.NuGetPackageValidation.Tool
-          MEZIANTOU_VALIDATE_NUGET_PACKAGE_VERSION: '1.0.51'
+          MEZIANTOU_VALIDATE_NUGET_PACKAGE_VERSION: '1.0.52'
         run: |
           dotnet tool install --global dotnet-validate --version ${env:DOTNET_VALIDATE_VERSION} --allow-roll-forward
           dotnet tool install --global Meziantou.Framework.NuGetPackageValidation.Tool --version ${env:MEZIANTOU_VALIDATE_NUGET_PACKAGE_VERSION} --allow-roll-forward

@@ -4,7 +4,6 @@
 using FsCheck;
 using FsCheck.Xunit;
 using OpenTelemetry.Exporter.Geneva.MsgPack;
-using Xunit;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
