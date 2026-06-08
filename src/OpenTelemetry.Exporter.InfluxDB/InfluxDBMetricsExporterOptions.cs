@@ -11,6 +11,8 @@ namespace OpenTelemetry.Exporter.InfluxDB;
 public class InfluxDBMetricsExporterOptions
 {
     private int metricExportIntervalMilliseconds = 60000;
+    private int maxPendingExports;
+    private int timeoutMilliseconds = 10000;
 
     /// <summary>
     /// Gets or sets HTTP/S destination for line protocol.
@@ -43,6 +45,25 @@ public class InfluxDBMetricsExporterOptions
     public int FlushInterval { get; set; } = 1000;
 
     /// <summary>
+    /// Gets or sets the maximum number of exports pending write completion.
+    /// Set to <see langword="0"/> to preserve the client-managed buffered write behavior.
+    /// </summary>
+    public int MaxPendingExports
+    {
+        get => this.maxPendingExports;
+        set
+        {
+            Guard.ThrowIfNegative(value);
+            this.maxPendingExports = value;
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the behavior used when <see cref="MaxPendingExports"/> is reached.
+    /// </summary>
+    public BackpressureMode BackpressureMode { get; set; } = BackpressureMode.Wait;
+
+    /// <summary>
     /// Gets or sets the metric export interval in milliseconds. The default value is 60000.
     /// </summary>
     public int MetricExportIntervalMilliseconds
@@ -52,6 +73,19 @@ public class InfluxDBMetricsExporterOptions
         {
             Guard.ThrowIfOutOfRange(value, min: 1000);
             this.metricExportIntervalMilliseconds = value;
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the timeout in milliseconds for export-dispose operations. The default value is 10000.
+    /// </summary>
+    public int TimeoutMilliseconds
+    {
+        get => this.timeoutMilliseconds;
+        set
+        {
+            Guard.ThrowIfOutOfRange(value, min: 1000);
+            this.timeoutMilliseconds = value;
         }
     }
 }

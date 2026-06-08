@@ -39,6 +39,8 @@ package on .NET 6.0+:
             options.Token = "token";
             options.Endpoint = new Uri("http://localhost:8086");
             options.MetricsSchema = MetricsSchema.TelegrafPrometheusV2;
+            options.MaxPendingExports = 1;
+            options.BackpressureMode = BackpressureMode.Wait;
         }));
 ```
 
@@ -56,6 +58,8 @@ package on .NET 6.0+:
         options.Token = "token";
         options.Endpoint = new Uri("http://localhost:8086");
         options.MetricsSchema = MetricsSchema.TelegrafPrometheusV2;
+        options.MaxPendingExports = 1;
+        options.BackpressureMode = BackpressureMode.Wait;
     })
     .Build();
     builder.Services.AddSingleton(meterProvider);
@@ -91,6 +95,22 @@ The chosen metrics schema to write. Default value is
 
 The time to wait at most (in milliseconds) with the write. Default value
 is 1000.
+
+### MaxPendingExports
+
+The maximum number of exports that may be pending write completion at the same
+time. The default value is 0, which preserves the InfluxDB client's buffered
+write behavior. Set this to a positive value to enable exporter-managed
+backpressure with a bounded export queue.
+
+### BackpressureMode
+
+The behavior used when `MaxPendingExports` is reached:
+
+* `BackpressureMode.Wait` blocks until space becomes available.
+* `BackpressureMode.DropNewest` drops the current export.
+* `BackpressureMode.DropOldest` drops the oldest queued export when possible;
+  if only an in-flight export remains, the current export is dropped instead.
 
 ## InfluxDB 1.8 API Compatibility
 

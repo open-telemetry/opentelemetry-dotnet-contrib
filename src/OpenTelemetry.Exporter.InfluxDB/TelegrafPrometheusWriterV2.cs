@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Globalization;
-using InfluxDB.Client;
 using InfluxDB.Client.Api.Domain;
 using InfluxDB.Client.Writes;
 using OpenTelemetry.Metrics;
@@ -12,7 +11,7 @@ namespace OpenTelemetry.Exporter.InfluxDB;
 
 internal sealed class TelegrafPrometheusWriterV2 : IMetricsWriter
 {
-    public void Write(Metric metric, Resource? resource, WriteApi writeApi)
+    public void Write(Metric metric, Resource? resource, ICollection<string> lineProtocol)
     {
         var measurement = "prometheus";
         var metricName = metric.Name;
@@ -30,7 +29,7 @@ internal sealed class TelegrafPrometheusWriterV2 : IMetricsWriter
                             .Tags(metric.MeterTags)
                             .Tags(resource?.Attributes)
                             .Timestamp(metricPoint.EndTime.UtcDateTime, WritePrecision.Ns);
-                        writeApi.WritePoint(pointData);
+                        lineProtocol.Add(pointData.ToLineProtocol());
                     }
 
                     break;
@@ -47,7 +46,7 @@ internal sealed class TelegrafPrometheusWriterV2 : IMetricsWriter
                             .Tags(metric.MeterTags)
                             .Tags(resource?.Attributes)
                             .Timestamp(metricPoint.EndTime.UtcDateTime, WritePrecision.Ns);
-                        writeApi.WritePoint(pointData);
+                        lineProtocol.Add(pointData.ToLineProtocol());
                     }
 
                     break;
@@ -64,7 +63,7 @@ internal sealed class TelegrafPrometheusWriterV2 : IMetricsWriter
                             .Tags(metric.MeterTags)
                             .Tags(resource?.Attributes)
                             .Timestamp(metricPoint.EndTime.UtcDateTime, WritePrecision.Ns);
-                        writeApi.WritePoint(pointData);
+                        lineProtocol.Add(pointData.ToLineProtocol());
                     }
 
                     break;
@@ -81,7 +80,7 @@ internal sealed class TelegrafPrometheusWriterV2 : IMetricsWriter
                             .Tags(metric.MeterTags)
                             .Tags(resource?.Attributes)
                             .Timestamp(metricPoint.EndTime.UtcDateTime, WritePrecision.Ns);
-                        writeApi.WritePoint(pointData);
+                        lineProtocol.Add(pointData.ToLineProtocol());
                     }
 
                     break;
@@ -98,7 +97,7 @@ internal sealed class TelegrafPrometheusWriterV2 : IMetricsWriter
                             .Tags(metric.MeterTags)
                             .Tags(resource?.Attributes)
                             .Timestamp(dataPoint.EndTime.UtcDateTime, WritePrecision.Ns);
-                        writeApi.WritePoint(pointData);
+                        lineProtocol.Add(pointData.ToLineProtocol());
                     }
 
                     break;
@@ -115,7 +114,7 @@ internal sealed class TelegrafPrometheusWriterV2 : IMetricsWriter
                             .Tags(metric.MeterTags)
                             .Tags(resource?.Attributes)
                             .Timestamp(dataPoint.EndTime.UtcDateTime, WritePrecision.Ns);
-                        writeApi.WritePoint(pointData);
+                        lineProtocol.Add(pointData.ToLineProtocol());
                     }
 
                     break;
@@ -142,7 +141,7 @@ internal sealed class TelegrafPrometheusWriterV2 : IMetricsWriter
                             .Field($"{metricName}_max", max);
                     }
 
-                    writeApi.WritePoint(headPoint);
+                    lineProtocol.Add(headPoint.ToLineProtocol());
 
                     long cumulativeCount = 0;
 
@@ -156,7 +155,7 @@ internal sealed class TelegrafPrometheusWriterV2 : IMetricsWriter
                         var bucketPoint = basePoint
                             .Tag("le", boundFieldKey)
                             .Field($"{metricName}_bucket", cumulativeCount);
-                        writeApi.WritePoint(bucketPoint);
+                        lineProtocol.Add(bucketPoint.ToLineProtocol());
                     }
                 }
 

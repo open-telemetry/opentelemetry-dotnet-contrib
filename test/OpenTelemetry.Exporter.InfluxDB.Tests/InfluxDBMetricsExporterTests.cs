@@ -3,6 +3,7 @@
 
 using System.Diagnostics.Metrics;
 using System.Reflection;
+using InfluxDB.Client;
 using OpenTelemetry.Exporter.InfluxDB.Tests.Utils;
 using OpenTelemetry.Metrics;
 
@@ -516,6 +517,103 @@ public class InfluxDBMetricsExporterTests
         AssertUtils.HasTag("MeterTag", "MeterValue", 0, dataPoint.Tags);
     }
 
+    [Fact]
+    public void ExportMetricWhenBackpressureHandlingIsEnabled()
+    {
+        // Arrange
+        using var influxServer = new InfluxDBFakeServer();
+        var influxServerEndpoint = influxServer.Endpoint;
+
+        using var meter = new Meter("test-meter", "0.0.1");
+
+        using var provider = Sdk.CreateMeterProviderBuilder()
+            .AddMeter(meter.Name)
+            .ConfigureDefaultTestResource()
+            .AddInfluxDBMetricsExporter(options =>
+            {
+                options.WithDefaultTestConfiguration();
+                options.Endpoint = influxServerEndpoint;
+                options.MaxPendingExports = 1;
+                options.BackpressureMode = BackpressureMode.Wait;
+            })
+            .Build();
+
+        // Act
+        _ = meter.CreateObservableGauge("test-gauge", () => new[]
+        {
+            new Measurement<int>(42, new("tag_key_2", "tag_value_2"), new("tag_key_1", "tag_value_1")),
+        });
+
+        var before = DateTime.UtcNow;
+        provider.ForceFlush();
+        var after = DateTime.UtcNow;
+
+        // Assert
+        var dataPoint = influxServer.ReadPoint();
+        Assert.Equal("test-gauge", dataPoint.Measurement);
+        Assert.Single(dataPoint.Fields);
+        AssertUtils.HasField("gauge", 42L, dataPoint.Fields);
+        AssertTags(dataPoint);
+        Assert.InRange(dataPoint.Timestamp, before, after);
+    }
+
+    [Fact]
+    public async Task ExportReturnsSuccessWhenDropNewestDropsCurrentPayload()
+    {
+        using var gate = new ManualResetEventSlim(false);
+        using var payloadWriter = new BlockingPayloadWriter(gate);
+        using var batch = CreateBatchWithSingleMetric();
+
+        var options = new InfluxDBMetricsExporterOptions
+        {
+            MaxPendingExports = 1,
+            BackpressureMode = BackpressureMode.DropNewest,
+        };
+
+        using var exporter = new InfluxDBMetricsExporter(
+            new TestMetricsWriter(),
+            new InfluxDBClient(new InfluxDBClientOptions("http://localhost:8086")),
+            writeApi: null,
+            writeApiAsync: null,
+            options,
+            payloadWriter);
+
+        Assert.Equal(ExportResult.Success, exporter.Export(batch.Batch));
+        await payloadWriter.WaitForFirstWriteAsync();
+
+        Assert.Equal(ExportResult.Success, exporter.Export(batch.Batch));
+
+        gate.Set();
+        Assert.True(exporter.ForceFlush());
+    }
+
+    [Fact]
+    public async Task ForceFlushReturnsFalseWhenBackgroundWriteFails()
+    {
+        using var payloadWriter = new ThrowingPayloadWriter();
+        using var batch = CreateBatchWithSingleMetric();
+
+        var options = new InfluxDBMetricsExporterOptions
+        {
+            MaxPendingExports = 1,
+            BackpressureMode = BackpressureMode.Wait,
+        };
+
+        using var exporter = new InfluxDBMetricsExporter(
+            new TestMetricsWriter(),
+            new InfluxDBClient(new InfluxDBClientOptions("http://localhost:8086")),
+            writeApi: null,
+            writeApiAsync: null,
+            options,
+            payloadWriter);
+
+        Assert.Equal(ExportResult.Success, exporter.Export(batch.Batch));
+        await payloadWriter.WaitForWriteAttemptAsync();
+
+        Assert.False(exporter.ForceFlush());
+        Assert.True(exporter.ForceFlush());
+    }
+
     private static void AssertTags(PointData dataPoint)
     {
         Assert.Equal(9, dataPoint.Tags.Count);
@@ -528,5 +626,104 @@ public class InfluxDBMetricsExporterTests
         AssertUtils.HasTag("telemetry.sdk.language", "dotnet", 6, dataPoint.Tags);
         AssertUtils.HasTag("telemetry.sdk.name", "opentelemetry", 7, dataPoint.Tags);
         AssertUtils.HasTag("telemetry.sdk.version", OpenTelemetrySdkVersion, 8, dataPoint.Tags);
+    }
+
+    private static CapturedBatch CreateBatchWithSingleMetric()
+    {
+        var meter = new Meter("InfluxDBMetricsExporterTests.BatchGenerator", "0.0.1");
+        var counter = meter.CreateCounter<long>("test-counter");
+
+        var batchGeneratorExporter = new BatchGenerator();
+        var batchGeneratorReader = new BaseExportingMetricReader(batchGeneratorExporter);
+        var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddMeter(meter.Name)
+            .AddReader(batchGeneratorReader)
+            .Build();
+
+        counter.Add(1);
+        meterProvider.ForceFlush();
+
+        return new CapturedBatch(meter, meterProvider, batchGeneratorExporter.Batch);
+    }
+
+    private sealed class BatchGenerator : BaseExporter<Metric>
+    {
+        public Batch<Metric> Batch { get; private set; }
+
+        public override ExportResult Export(in Batch<Metric> batch)
+        {
+            this.Batch = batch;
+            return ExportResult.Success;
+        }
+    }
+
+    private sealed class CapturedBatch : IDisposable
+    {
+        private readonly Meter meter;
+        private readonly MeterProvider meterProvider;
+
+        public CapturedBatch(Meter meter, MeterProvider meterProvider, Batch<Metric> batch)
+        {
+            this.meter = meter;
+            this.meterProvider = meterProvider;
+            this.Batch = batch;
+        }
+
+        public Batch<Metric> Batch { get; }
+
+        public void Dispose()
+        {
+            this.meterProvider.Dispose();
+            this.meter.Dispose();
+        }
+    }
+
+    private sealed class TestMetricsWriter : IMetricsWriter
+    {
+        public void Write(Metric metric, OpenTelemetry.Resources.Resource? resource, ICollection<string> lineProtocol)
+        {
+            lineProtocol.Add("test-counter counter=1i");
+        }
+    }
+
+    private sealed class BlockingPayloadWriter : IInfluxDBExportPayloadWriter, IDisposable
+    {
+        private readonly ManualResetEventSlim gate;
+        private readonly TaskCompletionSource<bool> firstWriteStarted = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public BlockingPayloadWriter(ManualResetEventSlim gate)
+        {
+            this.gate = gate;
+        }
+
+        public void Dispose()
+        {
+        }
+
+        public Task WaitForFirstWriteAsync() => this.firstWriteStarted.Task;
+
+        public Task WriteAsync(IReadOnlyCollection<string> lineProtocol, CancellationToken cancellationToken)
+        {
+            this.firstWriteStarted.TrySetResult(true);
+            this.gate.Wait(cancellationToken);
+            return Task.CompletedTask;
+        }
+    }
+
+    private sealed class ThrowingPayloadWriter : IInfluxDBExportPayloadWriter, IDisposable
+    {
+        private readonly TaskCompletionSource<bool> writeAttempted = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public void Dispose()
+        {
+        }
+
+        public Task WaitForWriteAttemptAsync() => this.writeAttempted.Task;
+
+        public Task WriteAsync(IReadOnlyCollection<string> lineProtocol, CancellationToken cancellationToken)
+        {
+            this.writeAttempted.TrySetResult(true);
+            throw new InvalidOperationException("Simulated export failure.");
+        }
     }
 }

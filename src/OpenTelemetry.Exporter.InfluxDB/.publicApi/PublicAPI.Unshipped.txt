@@ -1,5 +1,11 @@
 #nullable enable
+OpenTelemetry.Exporter.InfluxDB.BackpressureMode
+OpenTelemetry.Exporter.InfluxDB.BackpressureMode.DropNewest = 1 -> OpenTelemetry.Exporter.InfluxDB.BackpressureMode
+OpenTelemetry.Exporter.InfluxDB.BackpressureMode.DropOldest = 2 -> OpenTelemetry.Exporter.InfluxDB.BackpressureMode
+OpenTelemetry.Exporter.InfluxDB.BackpressureMode.Wait = 0 -> OpenTelemetry.Exporter.InfluxDB.BackpressureMode
 OpenTelemetry.Exporter.InfluxDB.InfluxDBMetricsExporterOptions
+OpenTelemetry.Exporter.InfluxDB.InfluxDBMetricsExporterOptions.BackpressureMode.get -> OpenTelemetry.Exporter.InfluxDB.BackpressureMode
+OpenTelemetry.Exporter.InfluxDB.InfluxDBMetricsExporterOptions.BackpressureMode.set -> void
 OpenTelemetry.Exporter.InfluxDB.InfluxDBMetricsExporterOptions.Bucket.get -> string?
 OpenTelemetry.Exporter.InfluxDB.InfluxDBMetricsExporterOptions.Bucket.set -> void
 OpenTelemetry.Exporter.InfluxDB.InfluxDBMetricsExporterOptions.Endpoint.get -> System.Uri?
@@ -7,8 +13,12 @@ OpenTelemetry.Exporter.InfluxDB.InfluxDBMetricsExporterOptions.Endpoint.set -> v
 OpenTelemetry.Exporter.InfluxDB.InfluxDBMetricsExporterOptions.FlushInterval.get -> int
 OpenTelemetry.Exporter.InfluxDB.InfluxDBMetricsExporterOptions.FlushInterval.set -> void
 OpenTelemetry.Exporter.InfluxDB.InfluxDBMetricsExporterOptions.InfluxDBMetricsExporterOptions() -> void
+OpenTelemetry.Exporter.InfluxDB.InfluxDBMetricsExporterOptions.MaxPendingExports.get -> int
+OpenTelemetry.Exporter.InfluxDB.InfluxDBMetricsExporterOptions.MaxPendingExports.set -> void
 OpenTelemetry.Exporter.InfluxDB.InfluxDBMetricsExporterOptions.MetricExportIntervalMilliseconds.get -> int
 OpenTelemetry.Exporter.InfluxDB.InfluxDBMetricsExporterOptions.MetricExportIntervalMilliseconds.set -> void
+OpenTelemetry.Exporter.InfluxDB.InfluxDBMetricsExporterOptions.TimeoutMilliseconds.get -> int
+OpenTelemetry.Exporter.InfluxDB.InfluxDBMetricsExporterOptions.TimeoutMilliseconds.set -> void
 OpenTelemetry.Exporter.InfluxDB.InfluxDBMetricsExporterOptions.MetricsSchema.get -> OpenTelemetry.Exporter.InfluxDB.MetricsSchema
 OpenTelemetry.Exporter.InfluxDB.InfluxDBMetricsExporterOptions.MetricsSchema.set -> void
 OpenTelemetry.Exporter.InfluxDB.InfluxDBMetricsExporterOptions.Org.get -> string?

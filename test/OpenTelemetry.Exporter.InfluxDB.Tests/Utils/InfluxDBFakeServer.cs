@@ -13,10 +13,12 @@ internal class InfluxDBFakeServer : IDisposable
     private static readonly char[] SplitChars = Environment.NewLine.ToCharArray();
     private readonly IDisposable httpServer;
     private readonly BlockingCollection<string> lines;
+    private readonly ManualResetEventSlim? responseGate;
 
-    public InfluxDBFakeServer()
+    public InfluxDBFakeServer(ManualResetEventSlim? responseGate = null)
     {
         this.lines = [];
+        this.responseGate = responseGate;
         this.httpServer = TestHttpServer.RunServer(
             context =>
             {
@@ -28,6 +30,7 @@ internal class InfluxDBFakeServer : IDisposable
                     this.lines.Add(line);
                 }
 
+                this.responseGate?.Wait(TimeSpan.FromSeconds(10));
                 context.Response.StatusCode = (int)HttpStatusCode.OK;
                 context.Response.Close();
             },

@@ -22,4 +22,10 @@ internal sealed class InfluxDBEventSource : EventSource
     {
         this.WriteEvent(1, exception);
     }
+
+    [Event(2, Message = "Dropped '{0}' metric writes due to backpressure using mode '{1}'", Level = EventLevel.Warning)]
+    public void MetricWritesDropped(int count, string mode)
+    {
+        this.WriteEvent(2, count, mode);
+    }
 }
