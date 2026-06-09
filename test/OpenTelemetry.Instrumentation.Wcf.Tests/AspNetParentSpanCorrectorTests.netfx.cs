@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Reflection;
 using OpenTelemetry.Instrumentation.Wcf.Implementation;
 using OpenTelemetry.Trace;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Tests;
 

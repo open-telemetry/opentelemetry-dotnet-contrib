@@ -2,6 +2,10 @@ name: codeql-analysis-steps
 
 on:
   workflow_call:
+    inputs:
+      trigger:
+        required: true
+        type: string
 
 permissions: {}
 
@@ -15,7 +19,7 @@ jobs:
     runs-on: windows-2025
 
     strategy:
-      fail-fast: false
+      fail-fast: ${{ inputs.trigger == 'merge_group' }}
       matrix:
         language: ['actions', 'csharp']
 
@@ -36,7 +40,7 @@ jobs:
           show-progress: false
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@9e0d7b8d25671d64c341c19c0152d693099fb5ba # v4.35.5
+        uses: github/codeql-action/init@7211b7c8077ea37d8641b6271f6a365a22a5fbfa # v4.36.0
         with:
           build-mode: none
           config-file: ./.github/codeql/codeql-config.yml
@@ -44,7 +48,7 @@ jobs:
           queries: security-extended
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@9e0d7b8d25671d64c341c19c0152d693099fb5ba # v4.35.5
+        uses: github/codeql-action/analyze@7211b7c8077ea37d8641b6271f6a365a22a5fbfa # v4.36.0
         with:
           category: '/language:${{ matrix.language }}'
 

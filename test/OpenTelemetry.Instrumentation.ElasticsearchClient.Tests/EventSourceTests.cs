@@ -3,7 +3,6 @@
 
 using OpenTelemetry.Instrumentation.ElasticsearchClient.Implementation;
 using OpenTelemetry.Tests;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.ElasticsearchClient.Tests;
 
