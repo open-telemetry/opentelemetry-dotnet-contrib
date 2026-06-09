@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+* Added `CustomFieldsMappings` to `GenevaExporterOptions` which allows
+  configuring `CustomFields` per table. Custom fields are resolved by the final
+  (physical) table name a record is routed to (after applying
+  `TableNameMappings`), so multiple categories mapping to the same table share
+  the same custom fields. `CustomFields` continues to act as the default for
+  tables without a more specific mapping.
+
 ## 1.15.2
 
 Released 2026-Apr-21

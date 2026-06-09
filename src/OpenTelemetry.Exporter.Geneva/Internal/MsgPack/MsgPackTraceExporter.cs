@@ -163,7 +163,9 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         }
 
         // TODO: Validate custom fields (reserved name? etc).
-        if (options.CustomFields != null)
+        var customFieldsLookup = new CustomFieldsLookup(options.CustomFields, options.CustomFieldsMappings);
+        var spanCustomFields = customFieldsLookup.Resolve(this.partAName);
+        if (spanCustomFields != null)
         {
             var customFields = new HashSet<string>(StringComparer.Ordinal);
             var dedicatedFields = new HashSet<string>(StringComparer.Ordinal);
@@ -178,7 +180,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
                 dedicatedFields.Add(name);
             }
 
-            foreach (var name in options.CustomFields)
+            foreach (var name in spanCustomFields)
             {
                 customFields.Add(name);
                 dedicatedFields.Add(name);

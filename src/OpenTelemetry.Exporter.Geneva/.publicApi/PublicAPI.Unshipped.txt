@@ -1,0 +1,3 @@
+#nullable enable
+OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.CustomFieldsMappings.get -> System.Collections.Generic.IReadOnlyDictionary<string!, System.Collections.Generic.IEnumerable<string!>!>?
+OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.CustomFieldsMappings.set -> void

@@ -1824,6 +1824,332 @@ public class GenevaLogExporterTests
 #endif
     }
 
+    [Fact]
+    public void PerTableCustomFieldsAreResolvedByFinalTableName()
+    {
+        var path = string.Empty;
+        Socket server = null;
+        try
+        {
+            var exporterOptions = new GenevaExporterOptions
+            {
+                // Two categories route to the same physical table and therefore must
+                // share the same custom fields. A category without a mapping falls back
+                // to the default "Log" table (and the global CustomFields default).
+                TableNameMappings = new Dictionary<string, string>
+                {
+                    ["CategoryA1"] = "TableA",
+                    ["CategoryA2"] = "TableA",
+                    ["CategoryB"] = "TableB",
+                },
+
+                // Global default that should only apply to tables without a more specific mapping.
+                CustomFields = ["GlobalField"],
+
+                // Custom fields are keyed by the final (physical) table name, not the category.
+                CustomFieldsMappings = new Dictionary<string, IEnumerable<string>>
+                {
+                    ["TableA"] = ["FieldA"],
+                    ["TableB"] = ["FieldB"],
+                },
+            };
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+            }
+            else
+            {
+                path = GenerateTempFilePath();
+                exporterOptions.ConnectionString = "Endpoint=unix:" + path;
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                server.Bind(endpoint);
+                server.Listen(1);
+            }
+
+            var resource = ResourceBuilder.CreateEmpty().Build();
+            var logRecordList = new List<LogRecord>();
+
+            using var loggerFactory = LoggerFactory.Create(builder => builder
+                .AddOpenTelemetry(options =>
+                {
+                    options.AddInMemoryExporter(logRecordList);
+                })
+                .AddFilter("CategoryA1", LogLevel.Trace)
+                .AddFilter("CategoryA2", LogLevel.Trace)
+                .AddFilter("CategoryB", LogLevel.Trace)
+                .AddFilter("CategoryC", LogLevel.Trace));
+
+            using var exporter = new MsgPackLogExporter(exporterOptions, () => resource);
+
+            var loggerA1 = loggerFactory.CreateLogger("CategoryA1");
+            var loggerA2 = loggerFactory.CreateLogger("CategoryA2");
+            var loggerB = loggerFactory.CreateLogger("CategoryB");
+            var loggerC = loggerFactory.CreateLogger("CategoryC");
+
+            loggerA1.LogInformation("Log {FieldA} and {FieldB} and {GlobalField}.", "A", "B", "G");
+            loggerA2.LogInformation("Log {FieldA} and {FieldB} and {GlobalField}.", "A", "B", "G");
+            loggerB.LogInformation("Log {FieldA} and {FieldB} and {GlobalField}.", "A", "B", "G");
+            loggerC.LogInformation("Log {FieldA} and {FieldB} and {GlobalField}.", "A", "B", "G");
+
+            Assert.Equal(4, logRecordList.Count);
+
+            // CategoryA1 -> TableA: only fieldA is a dedicated column.
+            var mappingA1 = SerializeAndGetMapping(exporter, logRecordList[0]);
+            Assert.Equal("A", mappingA1["FieldA"]);
+            Assert.False(mappingA1.ContainsKey("FieldB"));
+            Assert.False(mappingA1.ContainsKey("GlobalField"));
+            var envA1 = mappingA1["env_properties"] as Dictionary<object, object>;
+            Assert.Equal("B", envA1["FieldB"]);
+            Assert.Equal("G", envA1["GlobalField"]);
+            Assert.False(envA1.ContainsKey("FieldA"));
+
+            // CategoryA2 -> TableA: shares the same custom fields as CategoryA1 (resolved by table, not category).
+            var mappingA2 = SerializeAndGetMapping(exporter, logRecordList[1]);
+            Assert.Equal("A", mappingA2["FieldA"]);
+            Assert.False(mappingA2.ContainsKey("FieldB"));
+            Assert.False(mappingA2.ContainsKey("GlobalField"));
+            var envA2 = mappingA2["env_properties"] as Dictionary<object, object>;
+            Assert.Equal("B", envA2["FieldB"]);
+            Assert.Equal("G", envA2["GlobalField"]);
+            Assert.False(envA2.ContainsKey("FieldA"));
+
+            // CategoryB -> TableB: only fieldB is a dedicated column.
+            var mappingB = SerializeAndGetMapping(exporter, logRecordList[2]);
+            Assert.Equal("B", mappingB["FieldB"]);
+            Assert.False(mappingB.ContainsKey("FieldA"));
+            Assert.False(mappingB.ContainsKey("GlobalField"));
+            var envB = mappingB["env_properties"] as Dictionary<object, object>;
+            Assert.Equal("A", envB["FieldA"]);
+            Assert.Equal("G", envB["GlobalField"]);
+            Assert.False(envB.ContainsKey("FieldB"));
+
+            // CategoryC -> default "Log" table: no specific mapping, so the global CustomFields default applies.
+            var mappingC = SerializeAndGetMapping(exporter, logRecordList[3]);
+            Assert.Equal("G", mappingC["GlobalField"]);
+            Assert.False(mappingC.ContainsKey("FieldA"));
+            Assert.False(mappingC.ContainsKey("FieldB"));
+            var envC = mappingC["env_properties"] as Dictionary<object, object>;
+            Assert.Equal("A", envC["FieldA"]);
+            Assert.Equal("B", envC["FieldB"]);
+            Assert.False(envC.ContainsKey("GlobalField"));
+        }
+        finally
+        {
+            server?.Dispose();
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    [Fact]
+    public void GlobalCustomFieldsAppliesToTablesWithoutMapping()
+    {
+        var path = string.Empty;
+        Socket server = null;
+        try
+        {
+            var exporterOptions = new GenevaExporterOptions
+            {
+                // The global default is configured via CustomFields (the wildcard "*"
+                // key is not supported in CustomFieldsMappings).
+                CustomFields = ["GlobalField"],
+                CustomFieldsMappings = new Dictionary<string, IEnumerable<string>>
+                {
+                    ["TableA"] = ["FieldA"],
+                },
+            };
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+            }
+            else
+            {
+                path = GenerateTempFilePath();
+                exporterOptions.ConnectionString = "Endpoint=unix:" + path;
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                server.Bind(endpoint);
+                server.Listen(1);
+            }
+
+            var resource = ResourceBuilder.CreateEmpty().Build();
+            var logRecordList = new List<LogRecord>();
+
+            using var loggerFactory = LoggerFactory.Create(builder => builder
+                .AddOpenTelemetry(options =>
+                {
+                    options.AddInMemoryExporter(logRecordList);
+                })
+                .AddFilter("AnyCategory", LogLevel.Trace));
+
+            using var exporter = new MsgPackLogExporter(exporterOptions, () => resource);
+
+            var logger = loggerFactory.CreateLogger("AnyCategory");
+            logger.LogInformation("Log {FieldA} and {GlobalField}.", "A", "G");
+
+            Assert.Single(logRecordList);
+
+            // "AnyCategory" routes to the default "Log" table, which has no dedicated
+            // mapping, so the global CustomFields default applies (only GlobalField).
+            var mapping = SerializeAndGetMapping(exporter, logRecordList[0]);
+            Assert.Equal("G", mapping["GlobalField"]);
+            Assert.False(mapping.ContainsKey("FieldA"));
+            var env = mapping["env_properties"] as Dictionary<object, object>;
+            Assert.Equal("A", env["FieldA"]);
+            Assert.False(env.ContainsKey("GlobalField"));
+        }
+        finally
+        {
+            server?.Dispose();
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    [Fact]
+    public void PerTableCustomFieldsResolvedForPassthroughTableNames()
+    {
+        var path = string.Empty;
+        Socket server = null;
+        try
+        {
+            var exporterOptions = new GenevaExporterOptions
+            {
+                // Pass-through: the final table name is the sanitized category name,
+                // which is not known at configuration time. Custom fields keyed by the
+                // resulting table name must still resolve.
+                TableNameMappings = new Dictionary<string, string>
+                {
+                    ["*"] = "*",
+                },
+                CustomFields = ["GlobalField"],
+                CustomFieldsMappings = new Dictionary<string, IEnumerable<string>>
+                {
+                    ["TableX"] = ["FieldX"],
+                },
+            };
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+            }
+            else
+            {
+                path = GenerateTempFilePath();
+                exporterOptions.ConnectionString = "Endpoint=unix:" + path;
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                server.Bind(endpoint);
+                server.Listen(1);
+            }
+
+            var resource = ResourceBuilder.CreateEmpty().Build();
+            var logRecordList = new List<LogRecord>();
+
+            using var loggerFactory = LoggerFactory.Create(builder => builder
+                .AddOpenTelemetry(options =>
+                {
+                    options.AddInMemoryExporter(logRecordList);
+                })
+                .AddFilter("TableX", LogLevel.Trace)
+                .AddFilter("TableY", LogLevel.Trace));
+
+            using var exporter = new MsgPackLogExporter(exporterOptions, () => resource);
+
+            // "TableX" sanitizes to the table "TableX" (matches the mapping);
+            // "TableY" sanitizes to "TableY" (no mapping -> global default).
+            var loggerX = loggerFactory.CreateLogger("TableX");
+            var loggerY = loggerFactory.CreateLogger("TableY");
+
+            loggerX.LogInformation("Log {FieldX} and {GlobalField}.", "X", "G");
+            loggerY.LogInformation("Log {FieldX} and {GlobalField}.", "X", "G");
+
+            Assert.Equal(2, logRecordList.Count);
+
+            var mappingX = SerializeAndGetMapping(exporter, logRecordList[0]);
+            Assert.Equal("X", mappingX["FieldX"]);
+            Assert.False(mappingX.ContainsKey("GlobalField"));
+            var envX = mappingX["env_properties"] as Dictionary<object, object>;
+            Assert.Equal("G", envX["GlobalField"]);
+            Assert.False(envX.ContainsKey("FieldX"));
+
+            var mappingY = SerializeAndGetMapping(exporter, logRecordList[1]);
+            Assert.Equal("G", mappingY["GlobalField"]);
+            Assert.False(mappingY.ContainsKey("FieldX"));
+            var envY = mappingY["env_properties"] as Dictionary<object, object>;
+            Assert.Equal("X", envY["FieldX"]);
+            Assert.False(envY.ContainsKey("GlobalField"));
+        }
+        finally
+        {
+            server?.Dispose();
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    [Fact]
+    public void CustomFieldsMappingsValidation()
+    {
+        var options = new GenevaExporterOptions();
+
+        // Null dictionary.
+        Assert.Throws<ArgumentNullException>(() => options.CustomFieldsMappings = null);
+
+        // Null, empty, or white-space key.
+        Assert.Throws<ArgumentException>(() => options.CustomFieldsMappings = new Dictionary<string, IEnumerable<string>>
+        {
+            [" "] = ["FieldA"],
+        });
+
+        // Wildcard "*" key is not supported (use CustomFields for the global default).
+        Assert.Throws<ArgumentException>(() => options.CustomFieldsMappings = new Dictionary<string, IEnumerable<string>>
+        {
+            ["*"] = ["FieldA"],
+        });
+
+        // Null value collection.
+        Assert.Throws<ArgumentException>(() => options.CustomFieldsMappings = new Dictionary<string, IEnumerable<string>>
+        {
+            ["TableA"] = null,
+        });
+
+        // Null, empty, or white-space field name.
+        Assert.Throws<ArgumentException>(() => options.CustomFieldsMappings = new Dictionary<string, IEnumerable<string>>
+        {
+            ["TableA"] = ["validField", " "],
+        });
+
+        // Valid mappings should round-trip and be defensively copied.
+        var source = new Dictionary<string, IEnumerable<string>>
+        {
+            ["TableA"] = ["FieldA"],
+        };
+        options.CustomFieldsMappings = source;
+
+        Assert.NotNull(options.CustomFieldsMappings);
+        Assert.True(options.CustomFieldsMappings.ContainsKey("TableA"));
+        Assert.NotSame(source, options.CustomFieldsMappings);
+    }
+
     private static string GenerateTempFilePath()
     {
         while (true)
@@ -1838,6 +2164,14 @@ public class GenevaLogExporterTests
 
     private static string GetTestMethodName([CallerMemberName] string callingMethodName = "")
         => callingMethodName;
+
+    private static Dictionary<object, object> SerializeAndGetMapping(MsgPackLogExporter exporter, LogRecord logRecord)
+    {
+        var serializedLog = exporter.SerializeLogRecord(logRecord);
+        var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(serializedLog, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+        var timeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
+        return (timeStampAndMappings as object[])[1] as Dictionary<object, object>;
+    }
 
     private static object GetField(object fluentdData, string key)
     {

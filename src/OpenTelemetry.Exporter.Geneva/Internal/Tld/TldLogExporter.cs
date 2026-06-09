@@ -110,19 +110,9 @@ internal sealed class TldLogExporter : TldLogCommon, IDisposable
 
         var categoryName = logRecord.CategoryName ?? this.defaultEventName;
 
-        // If user configured explicit TableName, use it.
-        if (this.tableMappings?.TryGetValue(categoryName, out var eventName) != true)
-        {
-            if (!this.shouldPassThruTableMappings)
-            {
-                eventName = this.defaultEventName;
-            }
-            else
-            {
-                // TODO: Avoid allocation
-                eventName = GetSanitizedCategoryName(categoryName);
-            }
-        }
+        var eventName = this.ResolveEventNameForCategoryName(categoryName);
+
+        var customFields = this.customFieldsLookup.Resolve(eventName);
 
         var eb = EventBuilder.Value ??= new EventBuilder(UncheckedASCIIEncoding.SharedInstance);
 
@@ -238,7 +228,7 @@ internal sealed class TldLogExporter : TldLogCommon, IDisposable
                 bodyPopulated = true;
                 continue;
             }
-            else if (this.customFields == null || this.customFields.Contains(entry.Key))
+            else if (customFields == null || customFields.Contains(entry.Key))
             {
                 // TODO: the above null check can be optimized and avoided inside foreach.
                 if (entry.Value != null)
@@ -295,6 +285,7 @@ internal sealed class TldLogExporter : TldLogCommon, IDisposable
 
         dataForScopes.HasEnvProperties = hasEnvProperties;
         dataForScopes.PartCFieldsCountFromState = partCFieldsCountFromState;
+        dataForScopes.CustomFields = customFields;
 
         logRecord.ForEachScope(ProcessScopeForIndividualColumnsAction, this);
 
@@ -355,9 +346,12 @@ internal sealed class TldLogExporter : TldLogCommon, IDisposable
 
 #pragma warning disable IDE0370 // Suppression is unnecessary
     private static void OnProcessScopeForIndividualColumns(LogRecordScope scope, TldLogExporter state)
-        => OnProcessScopeForIndividualColumns(
+    {
+        var stateData = state.serializationData.Value!;
+        OnProcessScopeForIndividualColumns(
             scope,
-            state.serializationData.Value!,
-            state.customFields);
+            stateData,
+            stateData.CustomFields);
+    }
 #pragma warning restore IDE0370 // Suppression is unnecessary
 }

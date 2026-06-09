@@ -1345,6 +1345,92 @@ public class GenevaTraceExporterTests : IDisposable
         }
     }
 
+    [Fact]
+    public void CustomFieldsMappingsForSpanTable()
+    {
+        var path = string.Empty;
+        Socket server = null;
+        try
+        {
+            var exporterOptions = new GenevaExporterOptions
+            {
+                // The Span table is renamed, so custom fields must be keyed by the
+                // final table name ("MySpanTable"), not the literal "Span".
+                TableNameMappings = new Dictionary<string, string>
+                {
+                    ["Span"] = "MySpanTable",
+                },
+
+                // Global default that should be overridden by the table-specific mapping for traces.
+                CustomFields = ["globalField"],
+                CustomFieldsMappings = new Dictionary<string, IEnumerable<string>>
+                {
+                    ["MySpanTable"] = ["spanField"],
+                },
+            };
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+            }
+            else
+            {
+                path = GetRandomFilePath();
+                exporterOptions.ConnectionString = "Endpoint=unix:" + path;
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                server.Bind(endpoint);
+                server.Listen(1);
+            }
+
+            using var exporter = new MsgPackTraceExporter(exporterOptions, () => Resource.Empty);
+            var m_buffer = exporter.Buffer;
+
+            Dictionary<object, object> mapping = null;
+
+            var sourceName = GetTestMethodName();
+
+            using var listener = new ActivityListener();
+            listener.ShouldListenTo = (activitySource) => activitySource.Name == sourceName;
+            listener.Sample = (ref options) => ActivitySamplingResult.AllDataAndRecorded;
+            listener.ActivityStopped = (activity) =>
+            {
+                _ = exporter.SerializeActivity(activity);
+                var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+                var timeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
+                mapping = (timeStampAndMappings as object[])[1] as Dictionary<object, object>;
+            };
+            ActivitySource.AddActivityListener(listener);
+
+            using var source = new ActivitySource(sourceName);
+            using (var activity = source.StartActivity("SpanActivity"))
+            {
+                activity?.SetTag("spanField", "S");
+                activity?.SetTag("globalField", "G");
+            }
+
+            Assert.NotNull(mapping);
+
+            // The table-specific mapping takes precedence over the global CustomFields, so only spanField is a dedicated column.
+            Assert.Equal("S", mapping["spanField"]);
+            Assert.False(mapping.ContainsKey("globalField"));
+            var env = mapping["env_properties"] as Dictionary<object, object>;
+            Assert.Equal("G", env["globalField"]);
+            Assert.False(env.ContainsKey("spanField"));
+        }
+        finally
+        {
+            server?.Dispose();
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
+            }
+        }
+    }
+
     private static string GetRandomFilePath()
     {
         while (true)

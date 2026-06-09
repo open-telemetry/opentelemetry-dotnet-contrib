@@ -3,6 +3,9 @@
 
 #if NET
 using System.Collections.Frozen;
+using CustomFieldSet = System.Collections.Frozen.FrozenSet<string>;
+#else
+using CustomFieldSet = System.Collections.Generic.HashSet<string>;
 #endif
 using System.Globalization;
 using System.Runtime.CompilerServices;
@@ -32,13 +35,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
     private readonly ThreadLocal<byte[]> buffer = new();
     private readonly bool shouldExportEventName;
     private readonly TableNameSerializer tableNameSerializer;
-
-#if NET
-    private readonly FrozenSet<string>? customFields;
-#else
-    private readonly HashSet<string>? customFields;
-#endif
-
+    private readonly CustomFieldsLookup customFieldsLookup;
     private readonly ExceptionStackExportMode exportExceptionStack;
     private readonly bool userProvidedPrepopulatedFields;
     private readonly IEnumerable<string>? resourceFieldNames;
@@ -134,20 +131,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         }
 
         // TODO: Validate custom fields (reserved name? etc).
-        if (options.CustomFields != null)
-        {
-            var customFields = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var name in options.CustomFields)
-            {
-                customFields.Add(name);
-            }
-
-#if NET
-            this.customFields = customFields.ToFrozenSet(StringComparer.Ordinal);
-#else
-            this.customFields = customFields;
-#endif
-        }
+        this.customFieldsLookup = new CustomFieldsLookup(options.CustomFields, options.CustomFieldsMappings);
 
         var buffer = new byte[BUFFER_SIZE];
         var cursor = MessagePackSerializer.Serialize(buffer, 0, new Dictionary<string, object> { { "TimeFormat", "DateTime" } });
@@ -352,6 +336,8 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
         cursor = this.tableNameSerializer.ResolveAndSerializeTableNameForCategoryName(buffer, cursor, categoryName, out var eventName);
 
+        var customFields = this.customFieldsLookup.Resolve(eventName);
+
         cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, 1);
         cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, 2);
         cursor = MessagePackSerializer.SerializeUtcDateTime(buffer, cursor, timestamp);
@@ -442,7 +428,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 bodyPopulated = true;
                 continue;
             }
-            else if (this.customFields == null || this.customFields.Contains(entry.Key))
+            else if (customFields == null || customFields.Contains(entry.Key))
             {
                 // TODO: the above null check can be optimized and avoided inside foreach.
                 if (entry.Value != null)
@@ -491,6 +477,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         dataForScopes.Cursor = cursor;
         dataForScopes.FieldsCount = cntFields;
         dataForScopes.HasEnvProperties = hasEnvProperties;
+        dataForScopes.CustomFields = customFields;
 
         logRecord.ForEachScope(ProcessScopeForIndividualColumnsAction, this);
 
@@ -510,7 +497,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             for (var i = 0; i < logFields!.Count; i++)
             {
                 var entry = logFields[i];
-                if (entry.Key == "{OriginalFormat}" || this.customFields!.Contains(entry.Key))
+                if (entry.Key == "{OriginalFormat}" || customFields!.Contains(entry.Key))
                 {
                     continue;
                 }
@@ -613,7 +600,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 #pragma warning disable IDE0370 // Suppression is unnecessary
         var stateData = state.serializationData.Value!;
 #pragma warning restore IDE0370 // Suppression is unnecessary
-        var customFields = state.customFields;
+        var customFields = stateData.CustomFields;
 
         foreach (var scopeItem in scope)
         {
@@ -642,7 +629,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
     private static void OnProcessScopeForEnvProperties(LogRecordScope scope, MsgPackLogExporter state)
     {
         var stateData = state.serializationData.Value!;
-        var customFields = state.customFields;
+        var customFields = stateData.CustomFields;
 
         foreach (var scopeItem in scope)
         {
@@ -673,6 +660,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         public ushort FieldsCount;
         public bool HasEnvProperties;
         public ushort EnvPropertiesCount;
+        public CustomFieldSet? CustomFields;
 
         public SerializationDataForScopes(byte[] buffer)
         {

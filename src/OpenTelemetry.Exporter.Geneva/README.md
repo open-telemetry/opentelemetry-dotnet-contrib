@@ -119,6 +119,59 @@ A list of fields which should be stored as individual table columns.
 * If non-null, only those fields named in the list will be stored as individual
   columns.
 
+`CustomFields` is applied to every table. To configure dedicated fields per
+table (for example a different set for each log category or for Traces), use
+[`CustomFieldsMappings`](#customfieldsmappings-optional) instead. `CustomFields`
+acts as the default for any table that does not have a more specific entry in
+`CustomFieldsMappings`.
+
+#### `CustomFieldsMappings` (optional)
+
+This allows configuring `CustomFields` per table. Resolution is performed against
+the **final (physical) table name** a record is routed to (ie., the table
+produced by applying [`TableNameMappings`](#tablenamemappings-optional)), not the
+incoming log category. Multiple categories that map to the same table therefore
+share the same custom fields.
+
+Each key is an exact (final) table name. The value is the list of fields which
+should be stored as individual table columns for that table.
+
+* For any table that matches an entry, the associated list of fields is used.
+* For any table that does not match an entry, the value of `CustomFields` is
+  used.
+
+The wildcard key `*` is not supported here. To configure the global default that
+applies to any table without a dedicated entry, use
+[`CustomFields`](#customfields-optional).
+
+For example, given the configuration...
+
+```csharp
+var options = new GenevaExporterOptions
+{
+    TableNameMappings = new Dictionary<string, string>()
+    {
+        ["MyCompany.Product1"] = "ProductLogs",
+        ["MyCompany.Product2"] = "ProductLogs",
+        ["Span"] = "MySpans",
+    },
+
+    // Global default applied to any table without a dedicated entry below.
+    CustomFields = new[] { "environment" },
+    CustomFieldsMappings = new Dictionary<string, IEnumerable<string>>()
+    {
+        ["ProductLogs"] = new[] { "requestId", "userId" },
+        ["MySpans"] = new[] { "clientRequestId" },
+    },
+};
+```
+
+...both the `MyCompany.Product1` and `MyCompany.Product2` categories route to the
+`ProductLogs` table and store `requestId` and `userId` as dedicated columns,
+Traces (routed to the `MySpans` table) store `clientRequestId` (in addition to
+the always-dedicated Part B fields) as a dedicated column, and everything else
+stores `environment` (the `CustomFields` default) as a dedicated column.
+
 #### `ResourceFieldNames` (optional)
 
 A list of resource attribute keys which should be sent to Geneva.

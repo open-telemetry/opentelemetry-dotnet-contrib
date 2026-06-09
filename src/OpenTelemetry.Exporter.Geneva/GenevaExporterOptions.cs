@@ -15,6 +15,8 @@ public class GenevaExporterOptions
 
     private IReadOnlyDictionary<string, string>? tableNameMappings;
 
+    private IReadOnlyDictionary<string, IEnumerable<string>>? customFieldsMappings;
+
     /// <summary>
     /// Gets or sets the connection string.
     /// </summary>
@@ -27,8 +29,69 @@ public class GenevaExporterOptions
     ///
     /// Any user-defined fields not in CustomFields are moved to the 'properties' column.
     /// If CustomFields is not provided, all user-defined fields will be made into dedicated fields.
+    ///
+    /// CustomFields acts as the default for any table that does not have a dedicated entry in
+    /// <see cref="CustomFieldsMappings"/>.
     /// </summary>
     public IEnumerable<string>? CustomFields { get; set; }
+
+    /// <summary>
+    /// Gets or sets per-table CustomFields mappings.
+    ///
+    /// CustomFieldsMappings allows specifying CustomFields per table so that each table can have its
+    /// own set of dedicated fields (table columns).
+    ///
+    /// Resolution is performed against the <b>final (physical) table name</b> a record is routed to
+    /// (ie., the table produced by applying <see cref="TableNameMappings"/>), not the incoming log
+    /// category. Multiple categories that map to the same table therefore share the same custom fields.
+    ///
+    /// Each key is an exact (final) table name. The wildcard key "*" is not supported here: use
+    /// <see cref="CustomFields"/> to configure the global default that applies to any table without
+    /// a dedicated entry.
+    /// </summary>
+    public IReadOnlyDictionary<string, IEnumerable<string>>? CustomFieldsMappings
+    {
+        get => this.customFieldsMappings;
+        set
+        {
+            Guard.ThrowIfNull(value);
+
+            var copy = new Dictionary<string, IEnumerable<string>>(value.Count, StringComparer.Ordinal);
+
+            foreach (var entry in value)
+            {
+                if (string.IsNullOrWhiteSpace(entry.Key))
+                {
+                    throw new ArgumentException("A custom fields mapping key was null, empty, or consisted only of white-space characters.", nameof(this.CustomFieldsMappings));
+                }
+
+                if (entry.Key == "*")
+                {
+                    throw new ArgumentException("The wildcard key '*' is not supported in CustomFieldsMappings. Use CustomFields to configure the global default.", nameof(this.CustomFieldsMappings));
+                }
+
+                if (entry.Value == null)
+                {
+                    throw new ArgumentException($"The custom fields collection provided for key '{entry.Key}' was null.", nameof(this.CustomFieldsMappings));
+                }
+
+                var fields = new List<string>();
+                foreach (var fieldName in entry.Value)
+                {
+                    if (string.IsNullOrWhiteSpace(fieldName))
+                    {
+                        throw new ArgumentException($"A custom field name provided for key '{entry.Key}' was null, empty, or consisted only of white-space characters.", nameof(this.CustomFieldsMappings));
+                    }
+
+                    fields.Add(fieldName);
+                }
+
+                copy[entry.Key] = fields;
+            }
+
+            this.customFieldsMappings = copy;
+        }
+    }
 
     /// <summary>
     /// Gets or sets ResourceFieldNames.

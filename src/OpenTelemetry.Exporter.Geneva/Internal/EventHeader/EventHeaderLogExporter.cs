@@ -112,19 +112,9 @@ internal class EventHeaderLogExporter : TldLogCommon, IDisposable
 
         var categoryName = logRecord.CategoryName ?? this.defaultEventName;
 
-        // If user configured explicit TableName, use it.
-        if (this.tableMappings?.TryGetValue(categoryName, out var eventName) != true)
-        {
-            if (!this.shouldPassThruTableMappings)
-            {
-                eventName = this.defaultEventName;
-            }
-            else
-            {
-                // TODO: Avoid allocation
-                eventName = GetSanitizedCategoryName(categoryName);
-            }
-        }
+        var eventName = this.ResolveEventNameForCategoryName(categoryName);
+
+        var customFields = this.customFieldsLookup.Resolve(eventName);
 
         var eb = EventBuilder.Value ??= new EventHeaderDynamicBuilder(); // TODO: make sure it can be reused with a reset
 
@@ -249,7 +239,7 @@ internal class EventHeaderLogExporter : TldLogCommon, IDisposable
                 bodyPopulated = true;
                 continue;
             }
-            else if (this.customFields == null || this.customFields.Contains(entry.Key))
+            else if (customFields == null || customFields.Contains(entry.Key))
             {
                 // TODO: the above null check can be optimized and avoided inside foreach.
                 if (entry.Value != null)
@@ -306,6 +296,7 @@ internal class EventHeaderLogExporter : TldLogCommon, IDisposable
 
         dataForScopes.HasEnvProperties = hasEnvProperties;
         dataForScopes.PartCFieldsCountFromState = partCFieldsCountFromState;
+        dataForScopes.CustomFields = customFields;
 
         logRecord.ForEachScope(ProcessScopeForIndividualColumnsAction, this);
 
@@ -341,10 +332,13 @@ internal class EventHeaderLogExporter : TldLogCommon, IDisposable
     protected override void Dispose(bool disposing) => base.Dispose(disposing);
 
     private static void OnProcessScopeForIndividualColumns(LogRecordScope scope, EventHeaderLogExporter state)
-        => OnProcessScopeForIndividualColumns(
+    {
+        var stateData = state.serializationData.Value!;
+        OnProcessScopeForIndividualColumns(
             scope,
-            state.serializationData.Value!,
-            state.customFields);
+            stateData,
+            stateData.CustomFields);
+    }
 }
 
 #endif

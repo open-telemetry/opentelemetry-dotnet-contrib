@@ -59,7 +59,9 @@ internal sealed class TldTraceExporter : IDisposable
         }
 
         // TODO: Validate custom fields (reserved name? etc).
-        if (options.CustomFields != null)
+        var customFieldsLookup = new CustomFieldsLookup(options.CustomFields, options.CustomFieldsMappings);
+        var spanCustomFields = customFieldsLookup.Resolve(this.partAName);
+        if (spanCustomFields != null)
         {
             var customFields = new HashSet<string>(StringComparer.Ordinal)
             {
@@ -72,7 +74,7 @@ internal sealed class TldTraceExporter : IDisposable
                 customFields.Add(mapping.Key);
             }
 
-            foreach (var name in options.CustomFields)
+            foreach (var name in spanCustomFields)
             {
                 customFields.Add(name);
             }

@@ -1,6 +1,11 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if NET
+using CustomFieldSet = System.Collections.Frozen.FrozenSet<string>;
+#else
+using CustomFieldSet = System.Collections.Generic.HashSet<string>;
+#endif
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
@@ -24,7 +29,7 @@ internal abstract class TldLogCommon : IDisposable
     protected readonly byte partAFieldsCount = 1; // At least one field: time
     protected readonly bool shouldPassThruTableMappings;
     protected readonly string defaultEventName = "Log";
-    protected readonly HashSet<string>? customFields;
+    protected readonly CustomFieldsLookup customFieldsLookup;
     protected readonly Dictionary<string, string>? tableMappings;
     protected readonly ExceptionStackExportMode exceptionStackExportMode;
 
@@ -61,16 +66,7 @@ internal abstract class TldLogCommon : IDisposable
         }
 
         // TODO: Validate custom fields (reserved name? etc).
-        if (options.CustomFields != null)
-        {
-            var customFields = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var name in options.CustomFields)
-            {
-                customFields.Add(name);
-            }
-
-            this.customFields = customFields;
-        }
+        this.customFieldsLookup = new CustomFieldsLookup(options.CustomFields, options.CustomFieldsMappings);
 
         if (options.PrepopulatedFields != null)
         {
@@ -155,7 +151,7 @@ internal abstract class TldLogCommon : IDisposable
     protected static void OnProcessScopeForIndividualColumns(
         LogRecordScope scope,
         SerializationDataForScopes stateDataValue,
-        HashSet<string>? customFields)
+        CustomFieldSet? customFields)
     {
         Debug.Assert(stateDataValue != null, "state.serializationData was null");
         Debug.Assert(PartCFields.Value != null, "PartCFields.Value was null");
@@ -197,6 +193,25 @@ internal abstract class TldLogCommon : IDisposable
         }
     }
 
+    protected string ResolveEventNameForCategoryName(string categoryName)
+    {
+        // If user configured explicit TableName, use it.
+        if (this.tableMappings?.TryGetValue(categoryName, out var eventName) != true)
+        {
+            if (!this.shouldPassThruTableMappings)
+            {
+                eventName = this.defaultEventName;
+            }
+            else
+            {
+                // TODO: Avoid allocation
+                eventName = GetSanitizedCategoryName(categoryName);
+            }
+        }
+
+        return eventName!;
+    }
+
     protected virtual void Dispose(bool disposing)
     {
         if (this.isDisposed)
@@ -224,5 +239,6 @@ internal abstract class TldLogCommon : IDisposable
     {
         public byte HasEnvProperties;
         public byte PartCFieldsCountFromState;
+        public CustomFieldSet? CustomFields;
     }
 }
