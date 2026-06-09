@@ -10,7 +10,6 @@ using System.Net.Sockets;
 #endif
 using OpenTelemetry.Trace;
 using StackExchange.Redis;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.StackExchangeRedis.Implementation;
 

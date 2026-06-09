@@ -9,7 +9,6 @@ using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Instrumentation.Http.Implementation;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
-using Xunit;
 
 #if !NETFRAMEWORK
 #pragma warning disable SYSLIB0014 // Type or member is obsolete

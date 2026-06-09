@@ -4,7 +4,6 @@
 using System.Diagnostics;
 using Confluent.Kafka;
 using OpenTelemetry.Trace;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.ConfluentKafka.Tests;
 

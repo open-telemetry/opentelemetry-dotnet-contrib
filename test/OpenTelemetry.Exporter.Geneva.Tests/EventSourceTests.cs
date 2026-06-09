@@ -3,7 +3,6 @@
 
 using OpenTelemetry.Exporter.Geneva.Transports;
 using OpenTelemetry.Tests;
-using Xunit;
 
 namespace OpenTelemetry.Exporter.Geneva.Tests;
 

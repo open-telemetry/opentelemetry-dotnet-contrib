@@ -5,6 +5,12 @@
 * Fix serialization of whole `float`/`double` values.
   ([#4017](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4017))
 
+* Remove all `unsafe` code paths.
+  ([#4442](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4442))
+
+* Fix `IndexOutOfRangeException` if the extension key limit is reached.
+  ([#4442](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4442))
+
 ## 1.15.1
 
 Released 2026-Apr-21

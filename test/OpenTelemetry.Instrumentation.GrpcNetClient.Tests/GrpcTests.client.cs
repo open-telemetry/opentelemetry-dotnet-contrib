@@ -16,7 +16,6 @@ using OpenTelemetry.Tests;
 using OpenTelemetry.Instrumentation.Grpc.Tests.GrpcTestHelpers;
 using OpenTelemetry.Instrumentation.GrpcNetClient;
 using OpenTelemetry.Trace;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Grpc.Tests;
 

@@ -4,7 +4,6 @@
 using System.Web;
 using System.Web.Routing;
 using OpenTelemetry.Instrumentation.AspNet.Implementation;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.AspNet.Tests;
 
