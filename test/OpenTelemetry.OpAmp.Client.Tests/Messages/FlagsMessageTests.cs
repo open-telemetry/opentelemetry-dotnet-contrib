@@ -2,17 +2,18 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using OpenTelemetry.OpAmp.Client.Messages;
+using OpAmpProto = OpAmp.Proto.V1;
 
 namespace OpenTelemetry.OpAmp.Client.Tests.Messages;
 
 public class FlagsMessageTests
 {
     [Theory]
-    [InlineData(global::OpAmp.Proto.V1.ServerToAgentFlags.Unspecified, ServerCommands.None)]
-    [InlineData(global::OpAmp.Proto.V1.ServerToAgentFlags.ReportFullState, ServerCommands.ReportFullState)]
-    [InlineData(global::OpAmp.Proto.V1.ServerToAgentFlags.ReportAvailableComponents, ServerCommands.ReportAvailableComponents)]
-    [InlineData(global::OpAmp.Proto.V1.ServerToAgentFlags.ReportFullState | global::OpAmp.Proto.V1.ServerToAgentFlags.ReportAvailableComponents, ServerCommands.ReportFullState | ServerCommands.ReportAvailableComponents)]
-    internal void Constructor_WithValidMessage_InitializesFlagsMessage(global::OpAmp.Proto.V1.ServerToAgentFlags flags, ServerCommands expectedCommands)
+    [InlineData(OpAmpProto.ServerToAgentFlags.Unspecified, ServerCommands.None)]
+    [InlineData(OpAmpProto.ServerToAgentFlags.ReportFullState, ServerCommands.ReportFullState)]
+    [InlineData(OpAmpProto.ServerToAgentFlags.ReportAvailableComponents, ServerCommands.ReportAvailableComponents)]
+    [InlineData(OpAmpProto.ServerToAgentFlags.ReportFullState | OpAmpProto.ServerToAgentFlags.ReportAvailableComponents, ServerCommands.ReportFullState | ServerCommands.ReportAvailableComponents)]
+    internal void Constructor_WithValidMessage_InitializesFlagsMessage(OpAmpProto.ServerToAgentFlags flags, ServerCommands expectedCommands)
     {
         // Act
         var flagsMessage = new FlagsMessage(flags);
