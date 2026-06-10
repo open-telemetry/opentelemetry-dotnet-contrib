@@ -16,7 +16,7 @@ OpenTelemetry.OpAmp.Client.Messages.EffectiveConfigFile.ContentType.get -> strin
 OpenTelemetry.OpAmp.Client.Messages.EffectiveConfigFile.EffectiveConfigFile(System.ReadOnlyMemory<byte> content, string! contentType, string! fileName) -> void
 OpenTelemetry.OpAmp.Client.Messages.EffectiveConfigFile.FileName.get -> string!
 OpenTelemetry.OpAmp.Client.Messages.FlagsMessage
-OpenTelemetry.OpAmp.Client.Messages.FlagsMessage.Flags.get -> OpenTelemetry.OpAmp.Client.Messages.ServerCommands
+OpenTelemetry.OpAmp.Client.Messages.FlagsMessage.Flags.get -> OpenTelemetry.OpAmp.Client.Messages.ServerSentFlags
 OpenTelemetry.OpAmp.Client.Messages.OpAmpMessage
 OpenTelemetry.OpAmp.Client.Messages.OpAmpMessage.OpAmpMessage() -> void
 OpenTelemetry.OpAmp.Client.Messages.RemoteConfigMessage
