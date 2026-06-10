@@ -5,6 +5,9 @@
 * Fix sampling behaviour to be compatible with .NET 11.
   ([#4396](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4396))
 
+* Updated OpenTelemetry core component version(s) to `1.16.0`.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 1.15.1
 
 Released 2026-Apr-21
