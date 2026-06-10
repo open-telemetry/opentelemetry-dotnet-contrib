@@ -121,8 +121,7 @@ internal class EventHeaderLogExporter : TldLogCommon, IDisposable
             }
             else
             {
-                // TODO: Avoid allocation
-                eventName = GetSanitizedCategoryName(categoryName);
+                eventName = this.GetSanitizedCategoryName(categoryName);
             }
         }
 
