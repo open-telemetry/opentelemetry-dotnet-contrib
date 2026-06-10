@@ -5,12 +5,18 @@ using OpAmpProto = OpAmp.Proto.V1;
 
 namespace OpenTelemetry.OpAmp.Client.Messages;
 
-internal class ServerCapabilitiesMessage : OpAmpMessage
+/// <summary>
+/// Server sent capabilities message.
+/// </summary>
+public class ServerCapabilitiesMessage : OpAmpMessage
 {
-    public ServerCapabilitiesMessage(OpAmpProto.ServerCapabilities capabilities)
+    internal ServerCapabilitiesMessage(OpAmpProto.ServerCapabilities capabilities)
     {
         this.Capabilities = (ServerSentCapabilities)capabilities;
     }
 
+    /// <summary>
+    /// Gets the capabilities sent by the server.
+    /// </summary>
     public ServerSentCapabilities Capabilities { get; }
 }
