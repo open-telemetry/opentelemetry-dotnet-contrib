@@ -7,7 +7,7 @@ namespace OpenTelemetry.OpAmp.Client.Messages;
 /// Represents the <c>ServerToAgentFlags</c> enumeration.
 /// </summary>
 [Flags]
-#pragma warning disable CA1028 // Enum Storage should be Int32. ServerToAgentFlags is using ulong backing type.
+#pragma warning disable CA1028 // Enum Storage should be Int32. ServerToAgent is using ulong backing type.
 #pragma warning disable CA1711 // Identifiers should not have incorrect suffix. The name is more closely related to ServerToAgentFlags.
 public enum ServerSentFlags : ulong
 #pragma warning restore CA1711 // Identifiers should not have incorrect suffix
