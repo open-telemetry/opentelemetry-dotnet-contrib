@@ -12,11 +12,11 @@ public class FlagsMessage : OpAmpMessage
 {
     internal FlagsMessage(ServerToAgentFlags flags)
     {
-        this.Flags = (ServerCommands)flags;
+        this.Flags = (ServerSentFlags)flags;
     }
 
     /// <summary>
     /// Gets the flags sent by the server.
     /// </summary>
-    public ServerCommands Flags { get; }
+    public ServerSentFlags Flags { get; }
 }
