@@ -16,7 +16,7 @@ public class FlagsMessage : OpAmpMessage
     }
 
     /// <summary>
-    /// Gets server sent flags.
+    /// Gets the flags sent by the server.
     /// </summary>
     public ServerCommands Flags { get; }
 }
