@@ -10,7 +10,7 @@
   ([#4316](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4316))
 
 * Updated OpenTelemetry core component version(s) to `1.16.0`.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#4487](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4487))
 
 ## 0.1.0-alpha.9
 
