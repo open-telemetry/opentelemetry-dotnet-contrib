@@ -8,6 +8,9 @@
 * Add instrumentation scope version and schema URL to traces.
   ([#4338](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4338))
 
+* Updated OpenTelemetry core component version(s) to `1.16.0`.
+  ([#4487](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4487))
+
 ## 1.15.1-beta.1
 
 Released 2026-Apr-21
