@@ -6,16 +6,14 @@ using Microsoft.Extensions.Configuration;
 
 #if NETFRAMEWORK
 using System.Net.Http;
-
 #endif
+
 using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Instrumentation.Http.Implementation;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
-using Xunit;
-using Xunit.Abstractions;
 
 namespace OpenTelemetry.Instrumentation.Http.Tests;
 
@@ -23,9 +21,7 @@ public partial class HttpClientTests : IDisposable
 {
     private readonly ITestOutputHelper output;
     private readonly IDisposable serverLifeTime;
-    private readonly string host;
-    private readonly int port;
-    private readonly string url;
+    private readonly Uri uri;
 
     public HttpClientTests(ITestOutputHelper output)
     {
@@ -69,14 +65,9 @@ public partial class HttpClientTests : IDisposable
 
                 ctx.Response.OutputStream.Close();
             },
-            out var host,
-            out var port);
+            out this.uri);
 
-        this.host = host;
-        this.port = port;
-        this.url = $"http://{host}:{port}/";
-
-        this.output.WriteLine($"HttpServer started: {this.url}");
+        this.output.WriteLine($"HttpServer started: {this.uri}");
     }
 
     [Fact]
@@ -116,7 +107,7 @@ public partial class HttpClientTests : IDisposable
 
         using var request = new HttpRequestMessage
         {
-            RequestUri = new Uri(this.url),
+            RequestUri = this.uri,
             Method = new HttpMethod("GET"),
         };
 
@@ -223,7 +214,7 @@ public partial class HttpClientTests : IDisposable
         var exportedItems = new List<Activity>();
 
         using var request = new HttpRequestMessage();
-        request.RequestUri = new Uri(this.url);
+        request.RequestUri = this.uri;
         request.Method = new HttpMethod("GET");
 
         using var parent = new Activity("parent")
@@ -285,7 +276,7 @@ public partial class HttpClientTests : IDisposable
             var exportedItems = new List<Activity>();
 
             using var request = new HttpRequestMessage();
-            request.RequestUri = new Uri(this.url);
+            request.RequestUri = this.uri;
             request.Method = new HttpMethod("GET");
 
             using var parent = new Activity("parent")
@@ -330,7 +321,7 @@ public partial class HttpClientTests : IDisposable
         var exportedItems = new List<Activity>();
         using var request = new HttpRequestMessage
         {
-            RequestUri = new Uri(this.url),
+            RequestUri = this.uri,
             Method = new HttpMethod("GET"),
         };
 
@@ -396,7 +387,7 @@ public partial class HttpClientTests : IDisposable
         var exportedItems = new List<Activity>();
         using var request = new HttpRequestMessage
         {
-            RequestUri = new Uri(this.url),
+            RequestUri = this.uri,
             Method = new HttpMethod(originalMethod),
         };
 
@@ -463,7 +454,7 @@ public partial class HttpClientTests : IDisposable
         var metricItems = new List<Metric>();
         using var request = new HttpRequestMessage
         {
-            RequestUri = new Uri(this.url),
+            RequestUri = this.uri,
             Method = new HttpMethod(originalMethod),
         };
 
@@ -520,7 +511,7 @@ public partial class HttpClientTests : IDisposable
             .Build())
         {
             using var c = new HttpClient();
-            await c.GetAsync(new Uri($"{this.url}redirect"));
+            await c.GetAsync(new Uri($"{this.uri}redirect"));
         }
 
 #if NETFRAMEWORK
@@ -553,19 +544,19 @@ public partial class HttpClientTests : IDisposable
                     opt.FilterHttpWebRequest = req =>
                     {
                         httpWebRequestFilterApplied = true;
-                        return !req.RequestUri.OriginalString.Contains(this.url);
+                        return !req.RequestUri.OriginalString.Contains(this.uri.ToString());
                     };
                     opt.FilterHttpRequestMessage = req =>
                     {
                         httpRequestMessageFilterApplied = true;
-                        return req.RequestUri != null && !req.RequestUri.OriginalString.Contains(this.url);
+                        return req.RequestUri != null && !req.RequestUri.OriginalString.Contains(this.uri.ToString());
                     };
                 })
             .AddInMemoryExporter(exportedItems)
             .Build())
         {
             using var c = new HttpClient();
-            await c.GetAsync(new Uri(this.url));
+            await c.GetAsync(this.uri);
         }
 
 #if NETFRAMEWORK
@@ -596,7 +587,7 @@ public partial class HttpClientTests : IDisposable
         {
             using var c = new HttpClient();
             using var inMemoryEventListener = new InMemoryEventListener(HttpInstrumentationEventSource.Log);
-            await c.GetAsync(new Uri(this.url));
+            await c.GetAsync(this.uri);
             Assert.Single(inMemoryEventListener.Events, e => e.EventId == 4);
         }
 
@@ -649,7 +640,7 @@ public partial class HttpClientTests : IDisposable
         using var c = new HttpClient();
         try
         {
-            await c.GetAsync(new Uri($"{this.url}500"));
+            await c.GetAsync(new Uri($"{this.uri}500"));
         }
         catch
         {
@@ -668,7 +659,7 @@ public partial class HttpClientTests : IDisposable
         var exceptionThrown = false;
         using var request = new HttpRequestMessage
         {
-            RequestUri = new Uri($"{this.url}500"),
+            RequestUri = new Uri($"{this.uri}500"),
             Method = new HttpMethod("GET"),
         };
 
@@ -680,7 +671,7 @@ public partial class HttpClientTests : IDisposable
         using var c = new HttpClient();
         try
         {
-            await c.GetStringAsync(new Uri($"{this.url}500"));
+            await c.GetStringAsync(new Uri($"{this.uri}500"));
         }
         catch
         {
@@ -740,7 +731,7 @@ public partial class HttpClientTests : IDisposable
         using var c = new HttpClient();
         try
         {
-            await c.GetStringAsync(new Uri($"{this.url}path{urlQuery}"));
+            await c.GetStringAsync(new Uri($"{this.uri}path{urlQuery}"));
         }
         catch
         {
@@ -749,14 +740,14 @@ public partial class HttpClientTests : IDisposable
         Assert.Single(exportedItems);
         var activity = exportedItems[0];
 
-        var expectedUrl = $"{this.url}path{expectedUrlQuery}";
+        var expectedUrl = $"{this.uri}path{expectedUrlQuery}";
 
 #if NET9_0_OR_GREATER
         // In .NET 9+ URIs are redacted by default. We could disable it with the
         // System.Net.Http.DisableUriRedaction=true AppContext switch, but as that
         // is process-wide it affects other tests. Instead, we adjust our expectations
         // here. For more information see: https://github.com/dotnet/docs/issues/42792
-        expectedUrl = $"{this.url}path?*";
+        expectedUrl = $"{this.uri}path?*";
 #endif
 
         Assert.Equal(expectedUrl, activity.GetTagValue(SemanticConventions.AttributeUrlFull));
@@ -808,7 +799,7 @@ public partial class HttpClientTests : IDisposable
             }
 
             using var request = new HttpRequestMessage();
-            request.RequestUri = new Uri(this.url);
+            request.RequestUri = this.uri;
             request.Method = new HttpMethod("GET");
 
             using var c = new HttpClient();
@@ -874,7 +865,7 @@ public partial class HttpClientTests : IDisposable
             .Build();
         {
             using var c = new HttpClient();
-            await c.GetAsync(new Uri(this.url));
+            await c.GetAsync(this.uri);
         }
 
 #if NETFRAMEWORK
@@ -926,7 +917,7 @@ public partial class HttpClientTests : IDisposable
             .Build())
         {
             using var client = new HttpClient();
-            await client.GetAsync(new Uri(this.url));
+            await client.GetAsync(this.uri);
         }
 
         Assert.Equal(1, callCountDefault);
@@ -940,7 +931,7 @@ public partial class HttpClientTests : IDisposable
     public void Dispose()
     {
         this.serverLifeTime?.Dispose();
-        this.output.WriteLine($"HttpServer stopped: {this.url}");
+        this.output.WriteLine($"HttpServer stopped: {this.uri}");
         Activity.Current = null;
         GC.SuppressFinalize(this);
     }

@@ -3,7 +3,6 @@
 
 using System.Diagnostics.Tracing;
 using OpenTelemetry.Metrics;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.EventCounters.Tests;
 
@@ -193,7 +192,7 @@ public class EventCountersMetricsTests
     }
 
     [Fact]
-    public async Task OnlyConfiguredEventSourcesEmitMetrics()
+    public void OnlyConfiguredEventSourcesEmitMetrics()
     {
         // Arrange
         List<Metric> metrics = [];

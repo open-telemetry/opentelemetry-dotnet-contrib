@@ -10,7 +10,6 @@ using System.Text.Json;
 #endif
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Http.Tests;
 
@@ -25,8 +24,8 @@ public partial class HttpClientTests
     [MemberData(nameof(HttpTestData.TestData), MemberType = typeof(HttpTestData))]
     public async Task HttpOutCallsAreCollectedSuccessfullyTracesAndMetricsSemanticConventionsAsync(HttpOutTestCase tc) =>
         await HttpOutCallsAreCollectedSuccessfullyBodyAsync(
-            this.host,
-            this.port,
+            this.uri.Host,
+            this.uri.Port,
             tc,
             enableTracing: true,
             enableMetrics: true);
@@ -35,8 +34,8 @@ public partial class HttpClientTests
     [MemberData(nameof(HttpTestData.TestData), MemberType = typeof(HttpTestData))]
     public async Task HttpOutCallsAreCollectedSuccessfullyMetricsOnlyAsync(HttpOutTestCase tc) =>
         await HttpOutCallsAreCollectedSuccessfullyBodyAsync(
-            this.host,
-            this.port,
+            this.uri.Host,
+            this.uri.Port,
             tc,
             enableTracing: false,
             enableMetrics: true);
@@ -45,8 +44,8 @@ public partial class HttpClientTests
     [MemberData(nameof(HttpTestData.TestData), MemberType = typeof(HttpTestData))]
     public async Task HttpOutCallsAreCollectedSuccessfullyTracesOnlyAsync(HttpOutTestCase tc) =>
         await HttpOutCallsAreCollectedSuccessfullyBodyAsync(
-            this.host,
-            this.port,
+            this.uri.Host,
+            this.uri.Port,
             tc,
             enableTracing: true,
             enableMetrics: false);
@@ -55,8 +54,8 @@ public partial class HttpClientTests
     [MemberData(nameof(HttpTestData.TestData), MemberType = typeof(HttpTestData))]
     public async Task HttpOutCallsAreCollectedSuccessfullyNoSignalsAsync(HttpOutTestCase tc) =>
         await HttpOutCallsAreCollectedSuccessfullyBodyAsync(
-            this.host,
-            this.port,
+            this.uri.Host,
+            this.uri.Port,
             tc,
             enableTracing: false,
             enableMetrics: false);
@@ -98,8 +97,8 @@ public partial class HttpClientTests
     [Fact]
     public async Task CheckEnrichmentWhenSampling()
     {
-        await CheckEnrichment(new AlwaysOffSampler(), false, this.url);
-        await CheckEnrichment(new AlwaysOnSampler(), true, this.url);
+        await CheckEnrichment(new AlwaysOffSampler(), false, this.uri.ToString());
+        await CheckEnrichment(new AlwaysOnSampler(), true, this.uri.ToString());
     }
 
 #if NET
@@ -113,7 +112,7 @@ public partial class HttpClientTests
             .AddInMemoryExporter(metrics)
             .Build();
 
-        var testUrl = HttpTestData.NormalizeValues(tc.Url, this.host, this.port);
+        var testUrl = HttpTestData.NormalizeValues(tc.Url, this.uri.Host, this.uri.Port);
 
         try
         {
@@ -169,7 +168,7 @@ public partial class HttpClientTests
             using var c = new HttpClient();
             using var request = new HttpRequestMessage
             {
-                RequestUri = new Uri($"{this.url}/slow"),
+                RequestUri = new Uri($"{this.uri}/slow"),
                 Method = new HttpMethod("GET"),
             };
 

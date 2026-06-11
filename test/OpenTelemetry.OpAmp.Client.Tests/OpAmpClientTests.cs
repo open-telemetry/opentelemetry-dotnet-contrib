@@ -14,7 +14,6 @@ using OpenTelemetry.OpAmp.Client.Settings;
 using OpenTelemetry.OpAmp.Client.Tests.DataGenerators;
 using OpenTelemetry.OpAmp.Client.Tests.Mocks;
 using OpenTelemetry.OpAmp.Client.Tests.Tools;
-using Xunit;
 
 namespace OpenTelemetry.OpAmp.Client.Tests;
 
@@ -45,7 +44,7 @@ public class OpAmpClientTests
 
         var client = new OpAmpClient(o =>
         {
-            o.ServerUrl = new Uri("http://localhost:4318");
+            o.ServerUrl = new Uri("http://localhost:4320");
             o.Heartbeat.IsEnabled = false;
             o.HttpClientFactory = () => new HttpClient(handler);
         });

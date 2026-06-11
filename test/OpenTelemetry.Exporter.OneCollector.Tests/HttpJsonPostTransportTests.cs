@@ -8,7 +8,6 @@ using System.Net.Http;
 #endif
 using System.Text;
 using OpenTelemetry.Tests;
-using Xunit;
 
 namespace OpenTelemetry.Exporter.OneCollector.Tests;
 
@@ -376,11 +375,10 @@ public class HttpJsonPostTransportTests
                     context.Response.OutputStream.Close();
                 }
             },
-            out var testServerHost,
-            out var testServerPort);
+            out var baseAddress);
 
         var transport = createTransportFunc(
-            new Uri($"http://{testServerHost}:{(transportFailure ? 0 : testServerPort)}/"));
+            transportFailure ? new Uri($"http://localhost:0/") : baseAddress);
 
         try
         {

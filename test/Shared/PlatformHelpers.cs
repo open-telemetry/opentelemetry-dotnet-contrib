@@ -6,7 +6,6 @@
 
 using System.Runtime.InteropServices;
 using System.Security.Principal;
-using Xunit;
 
 namespace OpenTelemetry.Tests;
 

@@ -6,7 +6,6 @@ using System.Reflection;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
-using Xunit;
 
 namespace OpenTelemetry.Sampler.AWS.Tests;
 
@@ -52,13 +51,12 @@ public class TestAWSXRayRemoteSampler
 
         using var mockServer = TestHttpServer.RunServer(
             requestHandler.Handle,
-            out var host,
-            out var port);
+            out var endpoint);
 
         // create sampler
         var sampler = AWSXRayRemoteSampler.Builder(ResourceBuilder.CreateEmpty().Build())
             .SetPollingInterval(TimeSpan.FromMilliseconds(10))
-            .SetEndpoint($"http://{host}:{port}")
+            .SetEndpoint(endpoint.ToString().TrimEnd('/'))
             .SetClock(clock)
             .Build();
 
@@ -111,12 +109,11 @@ public class TestAWSXRayRemoteSampler
 
         using var mockServer = TestHttpServer.RunServer(
             requestHandler.Handle,
-            out var host,
-            out var port);
+            out var endpoint);
 
         var parentBasedSampler = AWSXRayRemoteSampler.Builder(ResourceBuilder.CreateEmpty().Build())
             .SetPollingInterval(TimeSpan.FromMilliseconds(10))
-            .SetEndpoint($"http://{host}:{port}")
+            .SetEndpoint(endpoint.ToString().TrimEnd('/'))
             .SetClock(clock)
             .Build();
 

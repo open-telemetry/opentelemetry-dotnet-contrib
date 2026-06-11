@@ -7,7 +7,6 @@ using OpenTelemetry.OpAmp.Client.Settings;
 #if NETFRAMEWORK
 using OpenTelemetry.OpAmp.Client.Tests.Tools;
 #endif
-using Xunit;
 
 namespace OpenTelemetry.OpAmp.Client.Tests;
 
@@ -165,6 +164,7 @@ public class AnyValueUnionTests
             case AnyValueType.Double:
                 Assert.Equal(doubleValue, protoValue.DoubleValue);
                 break;
+            case AnyValueType.Array:
             default:
                 Assert.Fail($"Unhandled type {type}");
                 break;

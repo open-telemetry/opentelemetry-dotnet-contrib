@@ -6,7 +6,6 @@ using System.Net;
 using System.Text.Json;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
-using Xunit;
 
 #if !NETFRAMEWORK
 #pragma warning disable SYSLIB0014 // Type or member is obsolete
@@ -29,8 +28,7 @@ public partial class HttpWebRequestTests
                 ctx.Response.StatusCode = tc.ResponseCode == 0 ? 200 : tc.ResponseCode;
                 ctx.Response.OutputStream.Close();
             },
-            out var host,
-            out var port);
+            out var uri);
 
         var enrichWithHttpWebRequestCalled = false;
         var enrichWithHttpWebResponseCalled = false;
@@ -52,7 +50,7 @@ public partial class HttpWebRequestTests
             })
             .Build();
 
-        tc.Url = HttpTestData.NormalizeValues(tc.Url, host, port);
+        tc.Url = HttpTestData.NormalizeValues(tc.Url, uri.Host, uri.Port);
 
         try
         {
@@ -88,10 +86,7 @@ public partial class HttpWebRequestTests
 
         tc.SpanAttributes = tc.SpanAttributes.ToDictionary(
             x => x.Key,
-            x =>
-            {
-                return x.Key == "network.protocol.version" ? "1.1" : HttpTestData.NormalizeValues(x.Value, host, port);
-            });
+            x => x.Key == "network.protocol.version" ? "1.1" : HttpTestData.NormalizeValues(x.Value, uri.Host, uri.Port));
 
         foreach (var tag in activity.TagObjects)
         {
