@@ -16,8 +16,13 @@ namespace OpenTelemetry.Exporter.OneCollector.Benchmarks;
 [MemoryDiagnoser]
 public class LogRecordCommonSchemaJsonHttpPostBenchmarks
 {
-    private static readonly MethodInfo LogRecordSetScopeProviderMethodInfo = typeof(LogRecord).GetProperty("ScopeProvider", BindingFlags.Instance | BindingFlags.NonPublic)?.SetMethod
-        ?? throw new InvalidOperationException("LogRecord.ScopeProvider.Set could not be found reflectively.");
+    private static readonly FieldInfo LogRecordILoggerDataField = typeof(LogRecord).GetField("ILoggerData", BindingFlags.Instance | BindingFlags.NonPublic)
+        ?? throw new InvalidOperationException("LogRecord.ILoggerData could not be found reflectively.");
+
+    private static readonly FieldInfo LogRecordILoggerDataScopeProviderField = (typeof(LogRecord).Assembly.GetType("OpenTelemetry.Logs.LogRecord+LogRecordILoggerData")
+        ?? throw new InvalidOperationException("OpenTelemetry.Logs.LogRecord+LogRecordILoggerData could not be found reflectively."))
+        .GetField("ScopeProvider", BindingFlags.Instance | BindingFlags.Public)
+        ?? throw new InvalidOperationException("LogRecordILoggerData.ScopeProvider could not be found reflectively.");
 
     private LogRecord[]? logRecords;
     private OneCollectorExporter<LogRecord>? exporter;
@@ -119,7 +124,9 @@ public class LogRecordCommonSchemaJsonHttpPostBenchmarks
                     ],
                     [new KeyValuePair<string, object?>("scope2Key1", "scope2Value1")]);
 
-                LogRecordSetScopeProviderMethodInfo.Invoke(logRecord, [scopeProvider]);
+                var loggerData = LogRecordILoggerDataField.GetValue(logRecord);
+                LogRecordILoggerDataScopeProviderField.SetValue(loggerData, scopeProvider);
+                LogRecordILoggerDataField.SetValue(logRecord, loggerData);
             }
         }
         else

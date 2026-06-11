@@ -12,8 +12,6 @@ using Amazon.SQS;
 using Amazon.SQS.Model;
 using OpenTelemetry.Instrumentation.AWS.Tests.Tools;
 using OpenTelemetry.Metrics;
-using OpenTelemetry.Trace;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.AWS.Tests;
 

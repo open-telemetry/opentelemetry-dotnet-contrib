@@ -3,7 +3,6 @@
 
 using OpenTelemetry.Instrumentation.AspNet.Implementation;
 using OpenTelemetry.Tests;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.AspNet.Tests;
 

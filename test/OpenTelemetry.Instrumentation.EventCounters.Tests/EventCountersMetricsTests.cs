@@ -3,7 +3,6 @@
 
 using System.Diagnostics.Tracing;
 using OpenTelemetry.Metrics;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.EventCounters.Tests;
 

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.4.0-alpha.1
+
+Released 2026-May-22
+
 * Bumped OpAMP spec to v0.18.0.
   ([#4421](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4421))
 

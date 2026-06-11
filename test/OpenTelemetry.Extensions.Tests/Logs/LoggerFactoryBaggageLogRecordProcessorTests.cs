@@ -3,11 +3,8 @@
 
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
-using OpenTelemetry.Trace;
-using Xunit;
 
 namespace OpenTelemetry.Extensions.Tests.Logs;
 

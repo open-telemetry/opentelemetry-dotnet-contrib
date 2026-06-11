@@ -8,7 +8,6 @@ using System.Net.Http;
 #endif
 using System.Text;
 using OpenTelemetry.Tests;
-using Xunit;
 
 namespace OpenTelemetry.Exporter.OneCollector.Tests;
 

@@ -9,7 +9,6 @@ using Microsoft.Extensions.Logging;
 using OpenTelemetry.Exporter.Geneva.MsgPack;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Resources;
-using Xunit;
 
 namespace OpenTelemetry.Exporter.Geneva.Tests;
 

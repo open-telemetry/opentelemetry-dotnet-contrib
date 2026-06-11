@@ -5,8 +5,6 @@
 using System.Diagnostics;
 using System.ServiceModel;
 using OpenTelemetry.Trace;
-using Xunit;
-using Xunit.Abstractions;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Tests;
 

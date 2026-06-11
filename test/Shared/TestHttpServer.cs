@@ -9,7 +9,7 @@ internal static class TestHttpServer
 {
     public static IDisposable RunServer(Action<HttpListenerContext> action, out Uri baseAddress)
     {
-        var uri = new UriBuilder()
+        var uri = new UriBuilder
         {
             Host = "localhost",
             Scheme = Uri.UriSchemeHttp,

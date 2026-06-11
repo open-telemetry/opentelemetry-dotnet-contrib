@@ -11,13 +11,8 @@ using Amazon.Runtime.Internal.Util;
 
 namespace OpenTelemetry.Instrumentation.AWS.Tests;
 
-internal class TestRequest : IRequest
+internal class TestRequest(ParameterCollection? parameters = null) : IRequest
 {
-    public TestRequest(ParameterCollection? parameters = null)
-    {
-        this.ParameterCollection = parameters ?? [];
-    }
-
     public string RequestName => throw new NotImplementedException();
 
     public IDictionary<string, string> Headers => throw new NotImplementedException();
@@ -28,7 +23,7 @@ internal class TestRequest : IRequest
 
     public IDictionary<string, string> Parameters => throw new NotImplementedException();
 
-    public ParameterCollection ParameterCollection { get; }
+    public ParameterCollection ParameterCollection { get; } = parameters ?? [];
 
     public IDictionary<string, string> SubResources => throw new NotImplementedException();
 
@@ -100,43 +95,24 @@ internal class TestRequest : IRequest
 
     public IAuthSchemeOption ChosenAuthScheme { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-    public void AddPathResource(string key, string value)
+    public void AddPathResource(string key, string value) => throw new NotImplementedException();
+
+    public void AddSubResource(string subResource) => throw new NotImplementedException();
+
+    public void AddSubResource(string subResource, string value) => throw new NotImplementedException();
+
+    public string ComputeContentStreamHash() => throw new NotImplementedException();
+
+    public void Dispose()
     {
-        throw new NotImplementedException();
+        // No-op
     }
 
-    public void AddSubResource(string subResource)
-    {
-        throw new NotImplementedException();
-    }
+    public string GetHeaderValue(string headerName) => throw new NotImplementedException();
 
-    public void AddSubResource(string subResource, string value)
-    {
-        throw new NotImplementedException();
-    }
+    public bool HasRequestBody() => throw new NotImplementedException();
 
-    public string ComputeContentStreamHash()
-    {
-        throw new NotImplementedException();
-    }
+    public bool IsRequestStreamRewindable() => throw new NotImplementedException();
 
-    public string GetHeaderValue(string headerName)
-    {
-        throw new NotImplementedException();
-    }
-
-    public bool HasRequestBody()
-    {
-        throw new NotImplementedException();
-    }
-
-    public bool IsRequestStreamRewindable()
-    {
-        throw new NotImplementedException();
-    }
-
-    public bool MayContainRequestBody()
-    {
-        throw new NotImplementedException();
-    }
+    public bool MayContainRequestBody() => throw new NotImplementedException();
 }

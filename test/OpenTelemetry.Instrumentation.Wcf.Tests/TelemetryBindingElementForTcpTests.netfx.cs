@@ -10,8 +10,6 @@ using System.ServiceModel;
 using System.ServiceModel.Security;
 using OpenTelemetry.Instrumentation.Wcf.Tests.Tools;
 using OpenTelemetry.Trace;
-using Xunit;
-using Xunit.Abstractions;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Tests;
 
