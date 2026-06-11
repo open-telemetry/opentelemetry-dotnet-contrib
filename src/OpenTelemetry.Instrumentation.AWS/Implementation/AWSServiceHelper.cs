@@ -8,6 +8,11 @@ namespace OpenTelemetry.Instrumentation.AWS.Implementation;
 
 internal class AWSServiceHelper
 {
+    // Built once and cached on first use: the contents are static and this is queried
+    // per-parameter for every Bedrock Agent request and response. Lazily initialized so it
+    // does not depend on the textual order of the BedrockAgent*Ops field initializers.
+    private static IReadOnlyDictionary<string, string>? operationNameToResourceMap;
+
     public AWSServiceHelper(AWSSemanticConventions semanticConventions)
     {
         this.ParameterAttributeMap =
@@ -111,6 +116,20 @@ internal class AWSServiceHelper
     internal HashSet<string> ArrayValueAttributeNames { get; }
 
     internal static IReadOnlyDictionary<string, string> OperationNameToResourceMap()
+        => operationNameToResourceMap ??= BuildOperationNameToResourceMap();
+
+    internal static string GetAWSServiceName(IRequestContext requestContext)
+        => Utils.RemoveAmazonPrefixFromServiceName(requestContext.ServiceMetaData.ServiceId);
+
+    internal static string GetAWSOperationName(IRequestContext requestContext)
+    {
+        var completeRequestName = requestContext.OriginalRequest.GetType().Name;
+        var suffix = "Request";
+        var operationName = Utils.RemoveSuffix(completeRequestName, suffix);
+        return operationName;
+    }
+
+    private static Dictionary<string, string> BuildOperationNameToResourceMap()
     {
         var operationClassMap = new Dictionary<string, string>();
 
@@ -130,16 +149,5 @@ internal class AWSServiceHelper
         }
 
         return operationClassMap;
-    }
-
-    internal static string GetAWSServiceName(IRequestContext requestContext)
-        => Utils.RemoveAmazonPrefixFromServiceName(requestContext.ServiceMetaData.ServiceId);
-
-    internal static string GetAWSOperationName(IRequestContext requestContext)
-    {
-        var completeRequestName = requestContext.OriginalRequest.GetType().Name;
-        var suffix = "Request";
-        var operationName = Utils.RemoveSuffix(completeRequestName, suffix);
-        return operationName;
     }
 }
