@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETCoreApp'">
-    <PackageReference Include="System.Security.Cryptography.Xml" VersionOverride="10.0.8" />
+    <PackageReference Include="System.Security.Cryptography.Xml" VersionOverride="10.0.9" />
     <PackageReference Include="System.ServiceModel.Http" />
     <PackageReference Include="System.ServiceModel.NetTcp" />
   </ItemGroup>
