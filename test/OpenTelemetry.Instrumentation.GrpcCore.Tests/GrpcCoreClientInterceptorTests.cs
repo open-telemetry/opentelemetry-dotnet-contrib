@@ -66,7 +66,11 @@ public class GrpcCoreClientInterceptorTests
     {
         static void MakeRequest(Foobar.FoobarClient client)
         {
-            using var call = client.UnaryAsync(FoobarService.DefaultRequestMessage);
+            // Ask the server to keep the call in-flight until it is cancelled so that
+            // disposing the handler below reliably cancels an in-flight RPC instead of
+            // racing with the call completing successfully.
+            var headers = new Metadata { { FoobarService.RequestHeaderWaitForCancellation, bool.TrueString } };
+            using var call = client.UnaryAsync(FoobarService.DefaultRequestMessage, headers: headers);
         }
 
         this.TestActivityIsCancelledWhenHandlerDisposed(MakeRequest, FoobarService.UnaryMethod);
@@ -602,6 +606,14 @@ public class GrpcCoreClientInterceptorTests
             var client = FoobarService.ConstructRpcClient(server.Target, new ClientTracingInterceptor(clientInterceptorOptions));
             clientRequestAction(client);
         }
+
+        // The activity is stopped asynchronously once the call is cancelled, so wait
+        // for it to be stopped before validating to avoid reading it prematurely.
+        Assert.True(
+            SpinWait.SpinUntil(
+                () => activityListener.Activity?.IsStopped == true,
+                TimeSpan.FromSeconds(5)),
+            "The activity was not stopped within the timeout.");
 
         ValidateCommonActivityTags(
             activityListener.Activity,

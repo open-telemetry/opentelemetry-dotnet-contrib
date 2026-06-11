@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Updated OpenTelemetry core component version(s) to `1.16.0`.
+  ([#4487](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4487))
+
 * Log error when telemetry data exceeds the serialization buffer capacity.
   ([#4027](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4027))
 
