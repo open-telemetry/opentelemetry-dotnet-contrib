@@ -3,7 +3,6 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Trace;
-using Xunit;
 
 namespace OpenTelemetry.Extensions.Enrichment.Http.Tests;
 

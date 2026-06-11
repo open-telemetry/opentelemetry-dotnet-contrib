@@ -5,7 +5,6 @@ using System.Diagnostics.Metrics;
 using System.Reflection;
 using OpenTelemetry.Exporter.InfluxDB.Tests.Utils;
 using OpenTelemetry.Metrics;
-using Xunit;
 
 namespace OpenTelemetry.Exporter.InfluxDB.Tests;
 

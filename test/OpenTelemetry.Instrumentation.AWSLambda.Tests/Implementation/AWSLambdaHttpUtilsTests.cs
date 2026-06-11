@@ -7,7 +7,6 @@ using Amazon.Lambda.ApplicationLoadBalancerEvents;
 using OpenTelemetry.AWS;
 using OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 using OpenTelemetry.Trace;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation;
 

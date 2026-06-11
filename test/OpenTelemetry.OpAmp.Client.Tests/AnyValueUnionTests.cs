@@ -7,7 +7,6 @@ using OpenTelemetry.OpAmp.Client.Settings;
 #if NETFRAMEWORK
 using OpenTelemetry.OpAmp.Client.Tests.Tools;
 #endif
-using Xunit;
 
 namespace OpenTelemetry.OpAmp.Client.Tests;
 

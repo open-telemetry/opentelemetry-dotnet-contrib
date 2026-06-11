@@ -5,7 +5,6 @@
 
 using System.Text;
 using OpenTelemetry.Exporter.Geneva.Tld;
-using Xunit;
 
 namespace OpenTelemetry.Exporter.Geneva.Tests;
 

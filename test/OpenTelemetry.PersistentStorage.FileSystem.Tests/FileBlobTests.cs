@@ -3,7 +3,6 @@
 
 using System.Text;
 using OpenTelemetry.PersistentStorage.Abstractions;
-using Xunit;
 
 namespace OpenTelemetry.PersistentStorage.FileSystem.Tests;
 

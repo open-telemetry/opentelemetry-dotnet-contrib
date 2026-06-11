@@ -4,7 +4,6 @@
 using System.Globalization;
 using FsCheck;
 using FsCheck.Xunit;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation;
 

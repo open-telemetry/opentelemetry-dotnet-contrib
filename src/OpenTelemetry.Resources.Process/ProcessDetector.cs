@@ -18,8 +18,8 @@ internal sealed class ProcessDetector : IResourceDetector
     public Resource Detect()
     {
         GetProcessAttributes(
-            out int processId,
-            out DateTime? creationTime);
+            out var processId,
+            out var creationTime);
 
         var attributes = new List<KeyValuePair<string, object>>(3)
         {

@@ -5,7 +5,6 @@ using Hangfire;
 using Hangfire.MemoryStorage;
 using Hangfire.States;
 using Hangfire.Storage;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Hangfire.Tests;
 

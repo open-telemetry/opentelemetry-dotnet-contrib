@@ -24,6 +24,12 @@
 * Fix `db.query.parameter.<key>` attributes to always emit the value as a string.
   ([#4395](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4395))
 
+* Fix `SqlConnectionDetails` to parse PostgreSQL data source URIs correctly.
+  ([#4444](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4444))
+
+* Updated OpenTelemetry core component version(s) to `1.16.0`.
+  ([#4487](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4487))
+
 ## 1.15.2
 
 Released 2026-Apr-21
