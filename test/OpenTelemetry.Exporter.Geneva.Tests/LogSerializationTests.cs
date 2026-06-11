@@ -7,7 +7,6 @@ using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Exporter.Geneva.MsgPack;
 using OpenTelemetry.Logs;
-using Xunit;
 
 namespace OpenTelemetry.Exporter.Geneva.Tests;
 

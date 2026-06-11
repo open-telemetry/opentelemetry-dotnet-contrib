@@ -10,7 +10,6 @@ using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using StackExchange.Redis;
 using StackExchange.Redis.Profiling;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.StackExchangeRedis.Tests;
 
@@ -163,7 +162,7 @@ public class StackExchangeRedisCallsInstrumentationTests(RedisXunitFixture fixtu
             // TODO VerifySamplingParameters(sampler.LatestSamplingParameters);
         }
 
-        string? expectedSchemaUrl = (emitOldAttributes, emitNewAttributes) switch
+        var expectedSchemaUrl = (emitOldAttributes, emitNewAttributes) switch
         {
             (false, true) => "https://opentelemetry.io/schemas/1.28.0",
             (true, false) => "https://opentelemetry.io/schemas/1.23.0",

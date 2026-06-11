@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Buffers.Binary;
-using Xunit;
 
 namespace OpenTelemetry.Exporter.Geneva.Tests;
 
@@ -25,16 +24,16 @@ public class MetricSerializerTests
     public void SerializeFloat64_RoundTripsCorrectly(double expectedValue)
     {
         var buffer = new byte[16];
-        int index = 0;
+        var index = 0;
 
         MetricSerializer.SerializeFloat64(buffer, ref index, expectedValue);
 
         Assert.Equal(8, index);
 
-        long actualBits = BinaryPrimitives.ReadInt64LittleEndian(buffer.AsSpan(0, 8));
+        var actualBits = BinaryPrimitives.ReadInt64LittleEndian(buffer.AsSpan(0, 8));
         Assert.Equal(BitConverter.DoubleToInt64Bits(expectedValue), actualBits);
 
-        double actualValue = BitConverter.Int64BitsToDouble(actualBits);
+        var actualValue = BitConverter.Int64BitsToDouble(actualBits);
 
         if (double.IsNaN(expectedValue))
         {
@@ -50,12 +49,12 @@ public class MetricSerializerTests
     public void SerializeFloat64_NegativeZero_PreservesBitPattern()
     {
         var buffer = new byte[16];
-        int index = 0;
-        double negativeZero = -0.0;
+        var index = 0;
+        var negativeZero = -0.0;
 
         MetricSerializer.SerializeFloat64(buffer, ref index, negativeZero);
 
-        long actual = BinaryPrimitives.ReadInt64LittleEndian(buffer.AsSpan(0, 8));
+        var actual = BinaryPrimitives.ReadInt64LittleEndian(buffer.AsSpan(0, 8));
         Assert.Equal(BitConverter.DoubleToInt64Bits(negativeZero), actual);
 
         // -0.0 and +0.0 compare as equal but have different bit patterns
@@ -68,7 +67,7 @@ public class MetricSerializerTests
         // 1.0 has IEEE 754 bit pattern 0x3FF0000000000000
         // In little-endian: 00 00 00 00 00 00 F0 3F
         var buffer = new byte[16];
-        int index = 0;
+        var index = 0;
 
         MetricSerializer.SerializeFloat64(buffer, ref index, 1.0);
 

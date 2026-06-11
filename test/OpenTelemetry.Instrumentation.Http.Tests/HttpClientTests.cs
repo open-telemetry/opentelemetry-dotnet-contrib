@@ -10,7 +10,6 @@ using System.Text.Json;
 #endif
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Http.Tests;
 

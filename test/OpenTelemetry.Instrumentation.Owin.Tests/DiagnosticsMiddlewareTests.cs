@@ -12,7 +12,6 @@ using OpenTelemetry.Instrumentation.Owin.Implementation;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using Owin;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Owin.Tests;
 

@@ -169,7 +169,7 @@ internal static class RedisProfilerEntryToActivityConverter
 
             if (options.EmitNewAttributes)
             {
-                string? queryText = command.Command;
+                var queryText = command.Command;
                 if (options.SetVerboseDatabaseStatements && !string.IsNullOrEmpty(commandAndKey))
                 {
                     queryText = commandAndKey;

@@ -6,7 +6,6 @@ using System.Net;
 using System.Text.Json;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
-using Xunit;
 
 #if !NETFRAMEWORK
 #pragma warning disable SYSLIB0014 // Type or member is obsolete

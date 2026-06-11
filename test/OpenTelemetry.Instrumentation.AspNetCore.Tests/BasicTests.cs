@@ -18,7 +18,6 @@ using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using TestApp.AspNetCore;
 using TestApp.AspNetCore.Filters;
-using Xunit;
 using Uri = System.Uri;
 
 namespace OpenTelemetry.Instrumentation.AspNetCore.Tests;
@@ -847,6 +846,8 @@ public sealed class BasicTests
             using var response = await client.SendAsync(request);
         }
 
+        WaitForEventCount(() => numberofSubscribedEvents, 2);
+
         Assert.Equal(0, numberOfUnSubscribedEvents);
         Assert.Equal(2, numberofSubscribedEvents);
     }
@@ -920,6 +921,8 @@ public sealed class BasicTests
                 // ignore exception
             }
         }
+
+        WaitForEventCount(() => numberofSubscribedEvents, 3);
 
         Assert.Equal(1, numberOfExceptionCallbacks);
         Assert.Equal(0, numberOfUnSubscribedEvents);
@@ -1002,6 +1005,8 @@ public sealed class BasicTests
                 // ignore exception
             }
         }
+
+        WaitForEventCount(() => numberOfSubscribedEvents, 2);
 
         Assert.Equal(0, numberOfExceptionCallbacks);
         Assert.Equal(0, numberOfUnSubscribedEvents);
@@ -1150,7 +1155,7 @@ public sealed class BasicTests
             await client.StopAsync();
         }
 
-        WaitForActivityExport(exportedItems, 10);
+        WaitForActivityExportToStabilize(exportedItems);
 
         var hubActivity = exportedItems
             .Where(a => a.DisplayName.StartsWith("TestApp.AspNetCore.TestHub", StringComparison.InvariantCulture));
@@ -1205,7 +1210,7 @@ public sealed class BasicTests
             await client.StopAsync();
         }
 
-        WaitForActivityExport(exportedItems, 7);
+        WaitForActivityExportToStabilize(exportedItems);
 
         var hubActivity = exportedItems
             .Where(a => a.DisplayName.StartsWith("TestApp.AspNetCore.TestHub", StringComparison.InvariantCulture));
@@ -1368,6 +1373,47 @@ public sealed class BasicTests
             },
             TimeSpan.FromSeconds(5)),
             $"Actual: {exportedItems.Count} Expected: {count}");
+
+    private static void WaitForEventCount(Func<int> getCount, int count)
+        => Assert.True(
+            SpinWait.SpinUntil(
+            () =>
+            {
+                // The OnStop (End) callback is executed AFTER the response has been
+                // returned to the client, so the count may not have reached its final
+                // value when the request completes. Give the callback time to run.
+                Thread.Sleep(10);
+                return getCount() >= count;
+            },
+            TimeSpan.FromSeconds(5)),
+            $"Actual: {getCount()} Expected: {count}");
+
+#if NET9_0_OR_GREATER
+    private static void WaitForActivityExportToStabilize(List<Activity> exportedItems)
+    {
+        // The number of activities produced by the SignalR long-polling transport is
+        // non-deterministic, so instead of waiting for an exact count (which is flaky)
+        // we wait until no new activities have been exported for a short, quiet period.
+        var lastCount = -1;
+        var stableChecks = 0;
+
+        SpinWait.SpinUntil(
+            () =>
+            {
+                Thread.Sleep(50);
+                var currentCount = exportedItems.Count;
+                if (currentCount != lastCount)
+                {
+                    lastCount = currentCount;
+                    stableChecks = 0;
+                    return false;
+                }
+
+                return ++stableChecks >= 10;
+            },
+            TimeSpan.FromSeconds(5));
+    }
+#endif
 
     private static void ValidateAspNetCoreActivity(Activity activityToValidate, string expectedHttpPath)
     {
