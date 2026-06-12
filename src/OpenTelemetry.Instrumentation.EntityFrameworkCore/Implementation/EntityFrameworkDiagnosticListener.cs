@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Collections.Concurrent;
 using System.Data;
 using System.Diagnostics;
 using OpenTelemetry.Internal;
@@ -26,6 +27,11 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     private static readonly ActivitySource ActivitySourceBoth = ActivitySourceFactory.Create<EntityFrameworkDiagnosticListener>(null);
 
     private static readonly string ActivityName = ActivitySource.Name + ".Execute";
+
+    // Memoizes the (db.system, db.system.name) classification per provider/command name to avoid
+    // re-evaluating the large switch on every command execution. The set of provider names is small
+    // and bounded, so the cache size is naturally limited.
+    private static readonly ConcurrentDictionary<string, (string Old, string New)> DbSystemNamesCache = new(StringComparer.Ordinal);
 
     private readonly PropertyFetcher<object> commandFetcher = new("Command");
     private readonly PropertyFetcher<object> connectionFetcher = new("Connection");
@@ -288,9 +294,15 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     /// <returns>
     /// A tuple containing the respective <c>db.system</c> and <c>db.system.name</c> values.
     /// </returns>
-    internal static (string Old, string New) GetDbSystemNames(string? providerOrCommandName) =>
+    internal static (string Old, string New) GetDbSystemNames(string? providerOrCommandName)
+    {
+        if (providerOrCommandName == null)
+        {
+            return (DbSystems.OtherSql, DbSystemNames.OtherSql);
+        }
+
         //// "${Attribute} has the following list of well-known values. If one of them applies, then the respective value MUST be used"
-        providerOrCommandName switch
+        return DbSystemNamesCache.GetOrAdd(providerOrCommandName, static name => name switch
         {
             //// These names are defined in the Semantic Conventions
             "Microsoft.Data.SqlClient.SqlCommand" or
@@ -339,7 +351,8 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                 => (DbSystems.Db2, DbSystemNames.IbmDb2),
             //// Otherwise use the fallback defined in the Semantic Conventions
             _ => (DbSystems.OtherSql, DbSystemNames.OtherSql),
-        };
+        });
+    }
 
     /// <summary>
     /// Returns whether the given provider or command name is SQL-like.
