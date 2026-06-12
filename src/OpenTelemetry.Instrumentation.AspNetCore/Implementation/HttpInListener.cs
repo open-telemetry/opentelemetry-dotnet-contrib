@@ -433,9 +433,11 @@ internal class HttpInListener : ListenerHandler
             activity.SetTag(SemanticConventions.AttributeNetworkPeerPort, context.Connection.RemotePort);
         }
 
+        var spanStatus = ActivityStatusCode.Unset;
         if (validStatusCode)
         {
-            activity.SetStatus(GrpcTagHelper.ResolveSpanStatusForGrpcStatusCodeOnServer(grpcStatusCode));
+            spanStatus = GrpcTagHelper.ResolveSpanStatusForGrpcStatusCodeOnServer(grpcStatusCode);
+            activity.SetStatus(spanStatus);
         }
 
         if (details.IsParsed)
@@ -443,9 +445,15 @@ internal class HttpInListener : ListenerHandler
             if (emitOldRpcAttributes)
             {
                 activity.SetTag(SemanticConventions.AttributeRpcService, details.RpcService);
+                activity.SetTag(SemanticConventions.AttributeRpcMethod, details.RpcMethod);
             }
 
-            activity.SetTag(SemanticConventions.AttributeRpcMethod, details.RpcMethod);
+            if (emitNewRpcAttributes)
+            {
+                // rpc.method is expected to be the fully-qualified logical method name, e.g. "package.Service/Method".
+                // https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/rpc/grpc.md
+                activity.SetTag(SemanticConventions.AttributeRpcMethod, details.DisplayName);
+            }
 
             // See https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/non-normative/compatibility/grpc.md#attribute-mapping
             activity.SetTag(GrpcTagHelper.GrpcMethodTagName, null);
@@ -463,7 +471,16 @@ internal class HttpInListener : ListenerHandler
 
             if (emitNewRpcAttributes)
             {
-                activity.SetTag(SemanticConventions.AttributeRpcResponseStatusCode, grpcStatusCode);
+                // rpc.response.status_code is the string representation of the gRPC status code, e.g. "OK".
+                // https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/rpc/grpc.md
+                var grpcStatusName = GrpcTagHelper.GetGrpcStatusCodeName(grpcStatusCode);
+                activity.SetTag(SemanticConventions.AttributeRpcResponseStatusCode, grpcStatusName);
+
+                // error.type is conditionally required when the operation failed; for gRPC it is set to the status code.
+                if (spanStatus == ActivityStatusCode.Error)
+                {
+                    activity.SetTag(SemanticConventions.AttributeErrorType, grpcStatusName);
+                }
             }
         }
     }

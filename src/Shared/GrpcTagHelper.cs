@@ -121,4 +121,40 @@ internal static class GrpcTagHelper
         // Unknown status code, treat as error
         return ActivityStatusCode.Error;
     }
+
+    /// <summary>
+    /// Gets the string representation of a gRPC status code to use for the
+    /// <c>rpc.response.status_code</c> and <c>error.type</c> attributes.
+    /// </summary>
+    /// <remarks>
+    /// See https://github.com/grpc/grpc/blob/master/doc/statuscodes.md and
+    /// https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/rpc/grpc.md.
+    /// </remarks>
+    /// <param name="statusCode">The numeric gRPC status code.</param>
+    /// <returns>The canonical gRPC status code name (e.g. <c>OK</c>, <c>DEADLINE_EXCEEDED</c>),
+    /// or the numeric value as a string if the code is not recognized.</returns>
+    public static string GetGrpcStatusCodeName(int statusCode)
+    {
+        return statusCode switch
+        {
+            (int)GrpcStatusCanonicalCode.Ok => "OK",
+            (int)GrpcStatusCanonicalCode.Cancelled => "CANCELLED",
+            (int)GrpcStatusCanonicalCode.Unknown => "UNKNOWN",
+            (int)GrpcStatusCanonicalCode.InvalidArgument => "INVALID_ARGUMENT",
+            (int)GrpcStatusCanonicalCode.DeadlineExceeded => "DEADLINE_EXCEEDED",
+            (int)GrpcStatusCanonicalCode.NotFound => "NOT_FOUND",
+            (int)GrpcStatusCanonicalCode.AlreadyExists => "ALREADY_EXISTS",
+            (int)GrpcStatusCanonicalCode.PermissionDenied => "PERMISSION_DENIED",
+            (int)GrpcStatusCanonicalCode.ResourceExhausted => "RESOURCE_EXHAUSTED",
+            (int)GrpcStatusCanonicalCode.FailedPrecondition => "FAILED_PRECONDITION",
+            (int)GrpcStatusCanonicalCode.Aborted => "ABORTED",
+            (int)GrpcStatusCanonicalCode.OutOfRange => "OUT_OF_RANGE",
+            (int)GrpcStatusCanonicalCode.Unimplemented => "UNIMPLEMENTED",
+            (int)GrpcStatusCanonicalCode.Internal => "INTERNAL",
+            (int)GrpcStatusCanonicalCode.Unavailable => "UNAVAILABLE",
+            (int)GrpcStatusCanonicalCode.DataLoss => "DATA_LOSS",
+            (int)GrpcStatusCanonicalCode.Unauthenticated => "UNAUTHENTICATED",
+            _ => statusCode.ToString(CultureInfo.InvariantCulture),
+        };
+    }
 }
