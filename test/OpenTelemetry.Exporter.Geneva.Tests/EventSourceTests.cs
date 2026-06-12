@@ -185,7 +185,7 @@ public class EventSourceTests
 
         using var listener = new BufferOverflowEventListener(capturedEvents);
 
-        Assert.True(GenevaBufferOverflowExceptionHelper.TryLogLogBufferOverflow(Microsoft.LinuxTracepoints.Provider.TracepointHandle.EventTooBigError));
+        Assert.True(GenevaBufferOverflowExceptionHelper.TryReportLogBufferOverflow(Microsoft.LinuxTracepoints.Provider.TracepointHandle.EventTooBigError));
         Assert.Contains(capturedEvents, e => e.EventId == 13);
     }
 #endif
@@ -195,7 +195,7 @@ public class EventSourceTests
     {
         Assert.False(GenevaBufferOverflowExceptionHelper.IsMsgPackBufferOverflow(new ArgumentOutOfRangeException("fieldCount")));
         Assert.True(GenevaBufferOverflowExceptionHelper.IsMetricSerializerBufferOverflow(new ArgumentOutOfRangeException("bufferIndex", 1, "The buffer is too small to write a value at the specified index.")));
-        Assert.False(GenevaBufferOverflowExceptionHelper.TryLogMetricBufferOverflow("test-metric", new InvalidOperationException("boom")));
+        Assert.False(GenevaBufferOverflowExceptionHelper.TryReportMetricBufferOverflow("test-metric", new InvalidOperationException("boom")));
     }
 
     private sealed class BufferOverflowEventListener : EventListener

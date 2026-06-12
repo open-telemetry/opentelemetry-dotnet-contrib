@@ -9,9 +9,9 @@ namespace OpenTelemetry.Exporter.Geneva;
 
 internal static class GenevaBufferOverflowExceptionHelper
 {
-    private const string MetricBufferTooSmallMessage = "The buffer is too small to write a value at the specified index.";
+    internal const string MetricBufferTooSmallMessage = "The buffer is too small to write a value at the specified index.";
 
-    internal static bool TryLogTraceBufferOverflow(Exception ex)
+    internal static bool TryReportTraceBufferOverflow(Exception ex)
     {
         if (!IsTraceBufferOverflow(ex))
         {
@@ -22,7 +22,7 @@ internal static class GenevaBufferOverflowExceptionHelper
         return true;
     }
 
-    internal static bool TryLogLogBufferOverflow(Exception ex)
+    internal static bool TryReportLogBufferOverflow(Exception ex)
     {
         if (!IsLogBufferOverflow(ex))
         {
@@ -33,7 +33,7 @@ internal static class GenevaBufferOverflowExceptionHelper
         return true;
     }
 
-    internal static bool TryLogMetricBufferOverflow(string metricName, Exception ex)
+    internal static bool TryReportMetricBufferOverflow(string metricName, Exception ex)
     {
         if (!IsMetricBufferOverflow(ex))
         {
@@ -44,7 +44,7 @@ internal static class GenevaBufferOverflowExceptionHelper
         return true;
     }
 
-    internal static bool TryLogLogBufferOverflow(int errorCode)
+    internal static bool TryReportLogBufferOverflow(int errorCode)
     {
         if (!IsEventHeaderBufferOverflow(errorCode))
         {
@@ -74,12 +74,10 @@ internal static class GenevaBufferOverflowExceptionHelper
     internal static bool IsEventBuilderBufferOverflow(Exception ex) =>
         ex is InvalidOperationException { Message: "Event too large" };
 
-    internal static bool IsEventHeaderBufferOverflow(int errorCode)
-    {
+    internal static bool IsEventHeaderBufferOverflow(int errorCode) =>
 #if NET
-        return errorCode == TracepointHandle.EventTooBigError;
+        errorCode == TracepointHandle.EventTooBigError;
 #else
-        return false;
+        false;
 #endif
-    }
 }

@@ -70,7 +70,7 @@ internal class EventHeaderLogExporter : TldLogCommon, IDisposable
                     var errorCode = eventBuilder.Write(this.logsTracepoint);
                     if (errorCode != 0)
                     {
-                        if (!GenevaBufferOverflowExceptionHelper.TryLogLogBufferOverflow(errorCode))
+                        if (!GenevaBufferOverflowExceptionHelper.TryReportLogBufferOverflow(errorCode))
                         {
                             ExporterEventSource.Log.FailedToSendLogData($"EventHeader log export failed with errno {errorCode}.");
                         }

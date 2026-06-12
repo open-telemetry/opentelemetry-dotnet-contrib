@@ -29,7 +29,7 @@ internal sealed class ExporterEventSource : EventSource
     {
         if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
         {
-            if (GenevaBufferOverflowExceptionHelper.TryLogTraceBufferOverflow(ex))
+            if (GenevaBufferOverflowExceptionHelper.TryReportTraceBufferOverflow(ex))
             {
                 return;
             }
@@ -51,7 +51,7 @@ internal sealed class ExporterEventSource : EventSource
     {
         if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
         {
-            if (GenevaBufferOverflowExceptionHelper.TryLogLogBufferOverflow(ex))
+            if (GenevaBufferOverflowExceptionHelper.TryReportLogBufferOverflow(ex))
             {
                 return;
             }
@@ -66,7 +66,7 @@ internal sealed class ExporterEventSource : EventSource
     {
         if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
         {
-            if (GenevaBufferOverflowExceptionHelper.TryLogMetricBufferOverflow(metricName, ex))
+            if (GenevaBufferOverflowExceptionHelper.TryReportMetricBufferOverflow(metricName, ex))
             {
                 return;
             }
