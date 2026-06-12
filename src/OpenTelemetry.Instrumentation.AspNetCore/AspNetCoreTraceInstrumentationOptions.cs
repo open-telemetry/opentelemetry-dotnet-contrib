@@ -5,7 +5,6 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using OpenTelemetry.Instrumentation.AspNetCore.Implementation;
-using static OpenTelemetry.Internal.RpcSemanticConventionHelper;
 
 namespace OpenTelemetry.Instrumentation.AspNetCore;
 
@@ -39,10 +38,6 @@ public class AspNetCoreTraceInstrumentationOptions
         {
             this.DisableUrlQueryRedaction = disableUrlQueryRedaction;
         }
-
-        var rpcSemanticConvention = GetSemanticConventionOptIn(configuration);
-        this.EmitOldRpcAttributes = rpcSemanticConvention.HasFlag(RpcSemanticConvention.Old);
-        this.EmitNewRpcAttributes = rpcSemanticConvention.HasFlag(RpcSemanticConvention.New);
     }
 
     /// <summary>
@@ -133,14 +128,4 @@ public class AspNetCoreTraceInstrumentationOptions
     /// The redaction can be disabled by setting this property to <see langword="true" />.
     /// </remarks>
     internal bool DisableUrlQueryRedaction { get; set; }
-
-    /// <summary>
-    /// Gets or sets a value indicating whether the old RPC attributes should be emitted.
-    /// </summary>
-    internal bool EmitOldRpcAttributes { get; set; }
-
-    /// <summary>
-    /// Gets or sets a value indicating whether the new RPC attributes should be emitted.
-    /// </summary>
-    internal bool EmitNewRpcAttributes { get; set; }
 }

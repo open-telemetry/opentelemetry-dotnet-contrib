@@ -300,9 +300,7 @@ internal class HttpInListener : ListenerHandler
                         grpcMethod,
                         context,
                         grpcStatusCode,
-                        hasGrpcStatusCode,
-                        this.options.EmitOldRpcAttributes,
-                        this.options.EmitNewRpcAttributes);
+                        hasGrpcStatusCode);
                 }
             }
 
@@ -394,9 +392,7 @@ internal class HttpInListener : ListenerHandler
         string grpcMethod,
         HttpContext context,
         int grpcStatusCode,
-        bool validStatusCode,
-        bool emitOldRpcAttributes,
-        bool emitNewRpcAttributes)
+        bool validStatusCode)
     {
         var details = GrpcMethodCache.Get(grpcMethod);
 
@@ -405,33 +401,16 @@ internal class HttpInListener : ListenerHandler
         // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/rpc/rpc-spans.md#span-name
         activity.DisplayName = details.DisplayName;
 
-        // See the specs for old and new semantic conventions.
-        // https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/rpc/rpc-spans.md
+        // See the specs for semantic conventions.
         // https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/rpc/rpc-spans.md
+        activity.SetTag(SemanticConventions.AttributeRpcSystemName, GrpcTagHelper.RpcSystemGrpc);
 
-        if (emitOldRpcAttributes)
+        if (context.Connection.RemoteIpAddress != null)
         {
-            activity.SetTag(SemanticConventions.AttributeRpcSystem, GrpcTagHelper.RpcSystemGrpc);
-
-            if (context.Connection.RemoteIpAddress != null)
-            {
-                activity.SetTag(SemanticConventions.AttributeClientAddress, context.Connection.RemoteIpAddress.ToString());
-            }
-
-            activity.SetTag(SemanticConventions.AttributeClientPort, context.Connection.RemotePort);
+            activity.SetTag(SemanticConventions.AttributeNetworkPeerAddress, context.Connection.RemoteIpAddress.ToString());
         }
 
-        if (emitNewRpcAttributes)
-        {
-            activity.SetTag(SemanticConventions.AttributeRpcSystemName, GrpcTagHelper.RpcSystemGrpc);
-
-            if (context.Connection.RemoteIpAddress != null)
-            {
-                activity.SetTag(SemanticConventions.AttributeNetworkPeerAddress, context.Connection.RemoteIpAddress.ToString());
-            }
-
-            activity.SetTag(SemanticConventions.AttributeNetworkPeerPort, context.Connection.RemotePort);
-        }
+        activity.SetTag(SemanticConventions.AttributeNetworkPeerPort, context.Connection.RemotePort);
 
         var spanStatus = ActivityStatusCode.Unset;
         if (validStatusCode)
@@ -442,18 +421,9 @@ internal class HttpInListener : ListenerHandler
 
         if (details.IsParsed)
         {
-            if (emitOldRpcAttributes)
-            {
-                activity.SetTag(SemanticConventions.AttributeRpcService, details.RpcService);
-                activity.SetTag(SemanticConventions.AttributeRpcMethod, details.RpcMethod);
-            }
-
-            if (emitNewRpcAttributes)
-            {
-                // rpc.method is expected to be the fully-qualified logical method name, e.g. "package.Service/Method".
-                // https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/rpc/grpc.md
-                activity.SetTag(SemanticConventions.AttributeRpcMethod, details.DisplayName);
-            }
+            // rpc.method is expected to be the fully-qualified logical method name, e.g. "package.Service/Method".
+            // https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/rpc/grpc.md
+            activity.SetTag(SemanticConventions.AttributeRpcMethod, details.DisplayName);
 
             // See https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/non-normative/compatibility/grpc.md#attribute-mapping
             activity.SetTag(GrpcTagHelper.GrpcMethodTagName, null);
@@ -464,23 +434,15 @@ internal class HttpInListener : ListenerHandler
 
         if (validStatusCode)
         {
-            if (emitOldRpcAttributes)
-            {
-                activity.SetTag(SemanticConventions.AttributeRpcGrpcStatusCode, grpcStatusCode);
-            }
+            // rpc.response.status_code is the string representation of the gRPC status code, e.g. "OK".
+            // https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/rpc/grpc.md
+            var grpcStatusName = GrpcTagHelper.GetGrpcStatusCodeName(grpcStatusCode);
+            activity.SetTag(SemanticConventions.AttributeRpcResponseStatusCode, grpcStatusName);
 
-            if (emitNewRpcAttributes)
+            // error.type is conditionally required when the operation failed; for gRPC it is set to the status code.
+            if (spanStatus == ActivityStatusCode.Error)
             {
-                // rpc.response.status_code is the string representation of the gRPC status code, e.g. "OK".
-                // https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/rpc/grpc.md
-                var grpcStatusName = GrpcTagHelper.GetGrpcStatusCodeName(grpcStatusCode);
-                activity.SetTag(SemanticConventions.AttributeRpcResponseStatusCode, grpcStatusName);
-
-                // error.type is conditionally required when the operation failed; for gRPC it is set to the status code.
-                if (spanStatus == ActivityStatusCode.Error)
-                {
-                    activity.SetTag(SemanticConventions.AttributeErrorType, grpcStatusName);
-                }
+                activity.SetTag(SemanticConventions.AttributeErrorType, grpcStatusName);
             }
         }
     }
