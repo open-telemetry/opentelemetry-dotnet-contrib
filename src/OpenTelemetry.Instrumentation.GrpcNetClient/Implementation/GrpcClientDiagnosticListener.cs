@@ -113,14 +113,10 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
 
             if (grpcMethod != null)
             {
-                if (GrpcTagHelper.TryParseRpcServiceAndRpcMethod(grpcMethod, out var rpcService, out var rpcMethod))
-                {
-                    activity.SetTag(SemanticConventions.AttributeRpcService, rpcService);
-                    activity.SetTag(SemanticConventions.AttributeRpcMethod, rpcMethod);
+                activity.SetTag(SemanticConventions.AttributeRpcMethod, grpcMethod.Trim('/'));
 
-                    // Remove the grpc.method tag added by the gRPC .NET library
-                    activity.SetTag(GrpcTagHelper.GrpcMethodTagName, null);
-                }
+                // Remove the grpc.method tag added by the gRPC .NET library
+                activity.SetTag(GrpcTagHelper.GrpcMethodTagName, null);
             }
 
             activity.SetTag(SemanticConventions.AttributeRpcSystemName, GrpcTagHelper.RpcSystemGrpc);

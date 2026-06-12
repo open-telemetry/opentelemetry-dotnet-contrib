@@ -175,20 +175,9 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
             return;
         }
 
-        // Assign some reasonable defaults
-        var rpcService = this.FullServiceName;
-        var rpcMethod = this.FullServiceName;
-
-        // Split the full service name by the slash
-        var parts = this.FullServiceName.Split('/');
-        if (parts.Length == 2)
-        {
-            rpcService = parts[0];
-            rpcMethod = parts[1];
-        }
-
         this.activity.SetTag(SemanticConventions.AttributeRpcSystemName, "grpc");
-        this.activity.SetTag(SemanticConventions.AttributeRpcService, rpcService);
+
+        var rpcMethod = this.FullServiceName;
         this.activity.SetTag(SemanticConventions.AttributeRpcMethod, rpcMethod);
 
         if (this.host is { Length: > 0 } host)
