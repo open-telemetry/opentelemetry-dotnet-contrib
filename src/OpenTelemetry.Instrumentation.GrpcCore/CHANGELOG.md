@@ -3,7 +3,8 @@
 ## Unreleased
 
 * **BREAKING**: Update to version 1.41.0 of the Semantic Conventions.
-  ([#4338](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4338))
+  ([#4338](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4338),
+  [#4508](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4508))
 
 * Add instrumentation scope version and schema URL to traces.
   ([#4338](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4338))
