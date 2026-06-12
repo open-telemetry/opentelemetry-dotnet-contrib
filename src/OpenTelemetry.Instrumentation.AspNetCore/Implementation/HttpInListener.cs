@@ -113,7 +113,7 @@ internal class HttpInListener : ListenerHandler
             if (ctx.ActivityContext.IsValid()
                 && !((ctx.ActivityContext.TraceId == activity.TraceId)
                     && (ctx.ActivityContext.SpanId == activity.ParentSpanId)
-                    && (ctx.ActivityContext.TraceState == activity.TraceStateString)))
+                    && ((ctx.ActivityContext.TraceState ?? string.Empty) == (activity.TraceStateString ?? string.Empty))))
             {
                 // Create a new activity with its parent set from the extracted context.
                 // This makes the new activity as a "sibling" of the activity created by
