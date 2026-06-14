@@ -21,7 +21,7 @@ internal enum TransportProtocol
 
 internal sealed class ConnectionStringBuilder
 {
-    private readonly Dictionary<string, string> parts = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> parts = [with(StringComparer.Ordinal)];
 
     public ConnectionStringBuilder([NotNull] string? connectionString)
     {
