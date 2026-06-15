@@ -335,7 +335,7 @@ public class OpAmpClientTests
 
         await client.StartAsync();
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            client.SendRemoteConfigStatusAsync(new byte[] { 1, 2, 3 }, RemoteConfigStatusCode.Applied));
+            client.SendRemoteConfigStatusAsync(new RemoteConfigStatusReport(new byte[] { 1, 2, 3 }, RemoteConfigStatusCode.Applied)));
         await client.StopAsync();
     }
 
@@ -352,7 +352,7 @@ public class OpAmpClientTests
         });
 
         await client.StartAsync();
-        await client.SendRemoteConfigStatusAsync(new byte[] { 1, 2, 3 }, RemoteConfigStatusCode.Failed, "apply failed");
+        await client.SendRemoteConfigStatusAsync(new RemoteConfigStatusReport(new byte[] { 1, 2, 3 }, RemoteConfigStatusCode.Failed, "apply failed"));
         await client.StopAsync();
 
         var frames = opAmpServer.GetFrames();

@@ -162,7 +162,6 @@ public sealed class OpAmpClient : IDisposable
     /// <exception cref="InvalidOperationException">Thrown if remote configuration status reporting is not enabled in settings.</exception>
     /// <exception cref="ObjectDisposedException">Thrown if the client has already been disposed.</exception>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="statusReport"/> is null.</exception>
-#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters.
     public Task SendRemoteConfigStatusAsync(RemoteConfigStatusReport statusReport, CancellationToken cancellationToken = default)
     {
         this.ThrowIfDisposed();
@@ -175,26 +174,6 @@ public sealed class OpAmpClient : IDisposable
 
         return this.dispatcher.DispatchRemoteConfigStatusAsync(statusReport, cancellationToken);
     }
-
-    /// <summary>
-    /// Reports the status of a remote configuration previously received from the OpAMP server.
-    /// </summary>
-    /// <param name="lastRemoteConfigHash">Hash bytes from the last received remote configuration.</param>
-    /// <param name="status">The remote configuration status.</param>
-    /// <param name="errorMessage">Optional error message when <paramref name="status"/> is <see cref="RemoteConfigStatusCode.Failed"/>.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A task that represents the asynchronous send operation.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if remote configuration status reporting is not enabled in settings.</exception>
-    /// <exception cref="ObjectDisposedException">Thrown if the client has already been disposed.</exception>
-    public Task SendRemoteConfigStatusAsync(
-        ReadOnlyMemory<byte> lastRemoteConfigHash,
-        RemoteConfigStatusCode status,
-        string? errorMessage = null,
-        CancellationToken cancellationToken = default)
-        => this.SendRemoteConfigStatusAsync(
-            new RemoteConfigStatusReport(lastRemoteConfigHash, status, errorMessage),
-            cancellationToken);
-#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters.
 
     /// <summary>
     /// Reports custom capabilities supported by the agent.
