@@ -101,14 +101,17 @@ internal static class RedisProfilerEntryToActivityConverter
             StackExchangeRedisConnectionInstrumentation.ActivitySourceNew :
             StackExchangeRedisConnectionInstrumentation.ActivitySource;
 
+        var creationTags =
+            options.EmitOldAttributes && options.EmitNewAttributes ? StackExchangeRedisConnectionInstrumentation.BothCreationTags :
+            options.EmitNewAttributes ? StackExchangeRedisConnectionInstrumentation.NewCreationTags :
+            options.EmitOldAttributes ? StackExchangeRedisConnectionInstrumentation.OldCreationTags :
+            [];
+
         var activity = activitySource.StartActivity(
             name,
             ActivityKind.Client,
             parentActivity?.Context ?? default,
-            [
-                .. options.EmitOldAttributes ? StackExchangeRedisConnectionInstrumentation.OldCreationTags : [],
-                .. options.EmitNewAttributes ? StackExchangeRedisConnectionInstrumentation.NewCreationTags : [],
-            ],
+            creationTags,
             startTime: command.CommandCreated);
 
         if (activity == null)
@@ -189,9 +192,10 @@ internal static class RedisProfilerEntryToActivityConverter
             {
                 if (command.EndPoint is IPEndPoint ipEndPoint)
                 {
-                    activity.SetTag(SemanticConventions.AttributeServerAddress, ipEndPoint.Address.ToString());
+                    var address = ipEndPoint.Address.ToString();
+                    activity.SetTag(SemanticConventions.AttributeServerAddress, address);
                     activity.SetTag(SemanticConventions.AttributeServerPort, ipEndPoint.Port);
-                    activity.SetTag(SemanticConventions.AttributeNetworkPeerAddress, ipEndPoint.Address.ToString());
+                    activity.SetTag(SemanticConventions.AttributeNetworkPeerAddress, address);
                     activity.SetTag(SemanticConventions.AttributeNetworkPeerPort, ipEndPoint.Port);
                 }
                 else if (command.EndPoint is DnsEndPoint dnsEndPoint)
@@ -202,8 +206,9 @@ internal static class RedisProfilerEntryToActivityConverter
 #if NET
                 else if (command.EndPoint is UnixDomainSocketEndPoint unixDomainSocketEndPoint)
                 {
-                    activity.SetTag(SemanticConventions.AttributeServerAddress, unixDomainSocketEndPoint.ToString());
-                    activity.SetTag(SemanticConventions.AttributeNetworkPeerAddress, unixDomainSocketEndPoint.ToString());
+                    var address = unixDomainSocketEndPoint.ToString();
+                    activity.SetTag(SemanticConventions.AttributeServerAddress, address);
+                    activity.SetTag(SemanticConventions.AttributeNetworkPeerAddress, address);
                 }
 #endif
             }
