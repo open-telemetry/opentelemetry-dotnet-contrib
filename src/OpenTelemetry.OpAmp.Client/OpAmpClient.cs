@@ -168,7 +168,7 @@ public sealed class OpAmpClient : IDisposable
         this.ThrowIfDisposed();
         Guard.ThrowIfNull(statusReport);
 
-        if (!this.settings.RemoteConfiguration.ReportsRemoteConfigStatus)
+        if (!this.settings.RemoteConfiguration.ReportsRemoteConfig)
         {
             throw new InvalidOperationException("Remote configuration status reporting is not enabled in settings.");
         }
