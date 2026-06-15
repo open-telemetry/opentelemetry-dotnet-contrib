@@ -38,6 +38,12 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
         new(SemanticConventions.AttributeDbSystemName, "redis")
     ];
 
+    internal static readonly IEnumerable<KeyValuePair<string, object?>> BothCreationTags =
+    [
+        new(SemanticConventions.AttributeDbSystem, "redis"),
+        new(SemanticConventions.AttributeDbSystemName, "redis"),
+    ];
+
     internal readonly ConcurrentDictionary<(ActivityTraceId TraceId, ActivitySpanId SpanId), (Activity Activity, ProfilingSession Session)> Cache
         = new();
 
