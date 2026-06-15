@@ -11,6 +11,8 @@
   strings and HTTP url spans directly into the output buffer instead of via
   temporary arrays/strings.
   ([#4498](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4498))
+* Log error when telemetry data exceeds the serialization buffer capacity.
+  ([#4027](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4027))
 
 ## 1.15.2
 
