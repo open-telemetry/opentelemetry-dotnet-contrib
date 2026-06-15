@@ -17,6 +17,7 @@ internal sealed class FrameBuilder : IFrameBuilder
     private readonly OpAmpClientSettings settings;
 
     private AgentToServer? currentMessage;
+    private RemoteConfigStatusReport? lastRemoteConfigStatusReport;
     private ByteString instanceUid;
     private ulong sequenceNum;
 
@@ -146,6 +147,11 @@ internal sealed class FrameBuilder : IFrameBuilder
             capabilities |= AgentCapabilities.AcceptsRemoteConfig;
         }
 
+        if (this.settings.RemoteConfiguration.ReportsRemoteConfigStatus)
+        {
+            capabilities |= AgentCapabilities.ReportsRemoteConfig;
+        }
+
         if (this.settings.EffectiveConfigurationReporting.EnableReporting)
         {
             capabilities |= AgentCapabilities.ReportsEffectiveConfig;
@@ -212,6 +218,32 @@ internal sealed class FrameBuilder : IFrameBuilder
         return this;
     }
 
+    IFrameBuilder IFrameBuilder.AddRemoteConfigStatus(RemoteConfigStatusReport status)
+    {
+        this.EnsureInitialized();
+
+        if (RemoteConfigStatusReportEquals(this.lastRemoteConfigStatusReport, status))
+        {
+            return this;
+        }
+
+        var remoteConfigStatus = new RemoteConfigStatus
+        {
+            LastRemoteConfigHash = ByteString.CopyFrom(status.LastRemoteConfigHash.Span),
+            Status = MapStatus(status.Status),
+        };
+
+        if (status.ErrorMessage != null)
+        {
+            remoteConfigStatus.ErrorMessage = status.ErrorMessage;
+        }
+
+        this.currentMessage.RemoteConfigStatus = remoteConfigStatus;
+        this.lastRemoteConfigStatusReport = status;
+
+        return this;
+    }
+
     AgentToServer IFrameBuilder.Build()
     {
         this.EnsureInitialized();
@@ -225,6 +257,25 @@ internal sealed class FrameBuilder : IFrameBuilder
     public void Reset()
     {
         this.currentMessage = null;
+        this.lastRemoteConfigStatusReport = null;
+    }
+
+    private static RemoteConfigStatuses MapStatus(RemoteConfigStatusCode status)
+        => status switch
+        {
+            RemoteConfigStatusCode.Unset => RemoteConfigStatuses.Unset,
+            RemoteConfigStatusCode.Applied => RemoteConfigStatuses.Applied,
+            RemoteConfigStatusCode.Applying => RemoteConfigStatuses.Applying,
+            RemoteConfigStatusCode.Failed => RemoteConfigStatuses.Failed,
+            _ => throw new ArgumentOutOfRangeException(nameof(status), status, "Unsupported remote configuration status."),
+        };
+
+    private static bool RemoteConfigStatusReportEquals(RemoteConfigStatusReport? left, RemoteConfigStatusReport right)
+    {
+        return left != null
+            && left.Status == right.Status
+            && left.ErrorMessage == right.ErrorMessage
+            && left.LastRemoteConfigHash.Span.SequenceEqual(right.LastRemoteConfigHash.Span);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
