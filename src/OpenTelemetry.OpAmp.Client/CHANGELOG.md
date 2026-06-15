@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Add support for reporting remote configuration status.
+  ([#4509](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4509))
+
 ## 0.4.0-alpha.1
 
 Released 2026-May-22
