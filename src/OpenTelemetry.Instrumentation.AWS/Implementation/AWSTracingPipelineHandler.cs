@@ -1,7 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Reflection;
 using Amazon.Runtime;
 using Amazon.Runtime.Internal;
 using Amazon.Runtime.Telemetry;
@@ -19,6 +21,11 @@ namespace OpenTelemetry.Instrumentation.AWS.Implementation;
 /// </summary>
 internal sealed class AWSTracingPipelineHandler : PipelineHandler
 {
+    // Caches reflected properties keyed by (declaring type, property name) to avoid repeated
+    // GetType().GetProperty(...) lookups on the hot request/response tagging path. The set of
+    // AWS request/response types and parameter names is small and bounded, so growth is limited.
+    private static readonly ConcurrentDictionary<(Type Type, string PropertyName), PropertyInfo?> PropertyCache = new();
+
     private readonly AWSClientInstrumentationOptions options;
     private readonly AWSSemanticConventions awsSemanticConventions;
     private readonly AWSServiceHelper awsServiceHelper;
@@ -48,6 +55,15 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
 
         return ret;
     }
+
+#if NET
+    [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage(
+        "Trimming",
+        "IL2080",
+        Justification = "The reflected properties were already used by the AWS SDK's marshallers so the properties could not have been trimmed.")]
+#endif
+    private static PropertyInfo? GetCachedProperty(Type type, string propertyName)
+        => PropertyCache.GetOrAdd((type, propertyName), static key => key.Type.GetProperty(key.PropertyName));
 
     private static void AddPropagationDataToRequest(Activity activity, IRequestContext requestContext)
     {
@@ -84,22 +100,36 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         if (AWSServiceHelper.ServiceResponseParameterMap.TryGetValue(service, out var parameters))
         {
             var response = responseContext.Response;
+            var responseType = response.GetType();
+
+            var isBedrockAgentService = AWSServiceType.IsBedrockAgentService(service);
+            string? bedrockAgentResource = null;
+            if (isBedrockAgentService)
+            {
+                var operationName = Utils.RemoveSuffix(responseType.Name, "Response");
+                _ = AWSServiceHelper.OperationNameToResourceMap.TryGetValue(operationName, out bedrockAgentResource);
+            }
 
             foreach (var parameter in parameters)
             {
                 try
                 {
                     // for bedrock agent, extract attribute from object in response.
-                    if (AWSServiceType.IsBedrockAgentService(service))
+                    if (isBedrockAgentService)
                     {
-                        var operationName = Utils.RemoveSuffix(response.GetType().Name, "Response");
-                        if (AWSServiceHelper.OperationNameToResourceMap()[operationName] == parameter)
+                        // Skip parameters for operations that are not mapped to a resource.
+                        if (bedrockAgentResource == null)
+                        {
+                            continue;
+                        }
+
+                        if (bedrockAgentResource == parameter)
                         {
                             this.AddBedrockAgentResponseAttribute(activity, response, parameter);
                         }
                     }
 
-                    var property = response.GetType().GetProperty(parameter);
+                    var property = GetCachedProperty(responseType, parameter);
                     if (property != null)
                     {
                         if (this.awsServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out var attribute))
@@ -125,13 +155,13 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
 #endif
     private void AddBedrockAgentResponseAttribute(Activity activity, AmazonWebServiceResponse response, string parameter)
     {
-        var responseObject = response.GetType().GetProperty(Utils.RemoveSuffix(parameter, "Id"));
+        var responseObject = GetCachedProperty(response.GetType(), Utils.RemoveSuffix(parameter, "Id"));
         if (responseObject != null)
         {
             var attributeObject = responseObject.GetValue(response);
             if (attributeObject != null)
             {
-                var property = attributeObject.GetType().GetProperty(parameter);
+                var property = GetCachedProperty(attributeObject.GetType(), parameter);
                 if (property != null)
                 {
                     if (this.awsServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out var attribute))
@@ -156,21 +186,26 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         if (AWSServiceHelper.ServiceRequestParameterMap.TryGetValue(service, out var parameters))
         {
             var request = requestContext.OriginalRequest;
+            var requestType = request.GetType();
+
+            var isBedrockAgentService = AWSServiceType.IsBedrockAgentService(service);
+            string? bedrockAgentResource = null;
+            if (isBedrockAgentService)
+            {
+                AWSServiceHelper.OperationNameToResourceMap.TryGetValue(AWSServiceHelper.GetAWSOperationName(requestContext), out bedrockAgentResource);
+            }
 
             foreach (var parameter in parameters)
             {
                 try
                 {
                     // for bedrock agent, we only extract one attribute based on the operation.
-                    if (AWSServiceType.IsBedrockAgentService(service))
+                    if (isBedrockAgentService && bedrockAgentResource != parameter)
                     {
-                        if (AWSServiceHelper.OperationNameToResourceMap()[AWSServiceHelper.GetAWSOperationName(requestContext)] != parameter)
-                        {
-                            continue;
-                        }
+                        continue;
                     }
 
-                    var property = request.GetType().GetProperty(parameter);
+                    var property = GetCachedProperty(requestType, parameter);
                     if (property != null)
                     {
                         if (this.awsServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out var attribute))
