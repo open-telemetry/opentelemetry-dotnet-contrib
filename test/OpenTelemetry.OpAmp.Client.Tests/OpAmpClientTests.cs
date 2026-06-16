@@ -348,7 +348,7 @@ public class OpAmpClientTests
         using var client = new OpAmpClient(o =>
         {
             o.ServerUrl = opAmpEndpoint;
-            o.RemoteConfiguration.ReportsRemoteConfig = true;
+            o.RemoteConfiguration.ReportsRemoteConfigStatus = true;
         });
 
         await client.StartAsync();
@@ -373,7 +373,7 @@ public class OpAmpClientTests
         using var client = new OpAmpClient(o =>
         {
             o.ServerUrl = opAmpEndpoint;
-            o.RemoteConfiguration.ReportsRemoteConfig = true;
+            o.RemoteConfiguration.ReportsRemoteConfigStatus = true;
         });
 
         var status = new RemoteConfigStatusReport(new byte[] { 1, 2, 3 }, RemoteConfigStatusCode.Applied);
@@ -475,8 +475,8 @@ public class OpAmpClientTests
             this.Add(o => o.Heartbeat.IsEnabled = true, [AgentCapabilities.ReportsHeartbeat, AgentCapabilities.ReportsHealth], []);
             this.Add(o => o.RemoteConfiguration.AcceptsRemoteConfig = true, [AgentCapabilities.AcceptsRemoteConfig], []);
             this.Add(o => o.RemoteConfiguration.AcceptsRemoteConfig = false, [], [AgentCapabilities.AcceptsRemoteConfig]);
-            this.Add(o => o.RemoteConfiguration.ReportsRemoteConfig = true, [AgentCapabilities.ReportsRemoteConfig], []);
-            this.Add(o => o.RemoteConfiguration.ReportsRemoteConfig = false, [], [AgentCapabilities.ReportsRemoteConfig]);
+            this.Add(o => o.RemoteConfiguration.ReportsRemoteConfigStatus = true, [AgentCapabilities.ReportsRemoteConfig], []);
+            this.Add(o => o.RemoteConfiguration.ReportsRemoteConfigStatus = false, [], [AgentCapabilities.ReportsRemoteConfig]);
             this.Add(o => o.EffectiveConfigurationReporting.EnableReporting = true, [AgentCapabilities.ReportsEffectiveConfig], []);
             this.Add(o => o.EffectiveConfigurationReporting.EnableReporting = false, [], [AgentCapabilities.ReportsEffectiveConfig]);
         }

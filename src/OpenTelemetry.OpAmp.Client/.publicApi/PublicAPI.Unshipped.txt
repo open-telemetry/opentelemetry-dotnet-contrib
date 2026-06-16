@@ -106,8 +106,8 @@ OpenTelemetry.OpAmp.Client.Settings.RemoteConfigSettings
 OpenTelemetry.OpAmp.Client.Settings.RemoteConfigSettings.AcceptsRemoteConfig.get -> bool
 OpenTelemetry.OpAmp.Client.Settings.RemoteConfigSettings.AcceptsRemoteConfig.set -> void
 OpenTelemetry.OpAmp.Client.Settings.RemoteConfigSettings.RemoteConfigSettings() -> void
-OpenTelemetry.OpAmp.Client.Settings.RemoteConfigSettings.ReportsRemoteConfig.get -> bool
-OpenTelemetry.OpAmp.Client.Settings.RemoteConfigSettings.ReportsRemoteConfig.set -> void
+OpenTelemetry.OpAmp.Client.Settings.RemoteConfigSettings.ReportsRemoteConfigStatus.get -> bool
+OpenTelemetry.OpAmp.Client.Settings.RemoteConfigSettings.ReportsRemoteConfigStatus.set -> void
 override OpenTelemetry.OpAmp.Client.Settings.AnyValueUnion.Equals(object? obj) -> bool
 override OpenTelemetry.OpAmp.Client.Settings.AnyValueUnion.GetHashCode() -> int
 static OpenTelemetry.OpAmp.Client.Messages.EffectiveConfigFile.CreateFromStream(System.IO.Stream! stream, string! contentType, string! fileName, int maxBytes) -> OpenTelemetry.OpAmp.Client.Messages.EffectiveConfigFile!

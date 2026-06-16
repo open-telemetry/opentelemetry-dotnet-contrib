@@ -146,7 +146,7 @@ internal sealed class FrameBuilder : IFrameBuilder
             capabilities |= AgentCapabilities.AcceptsRemoteConfig;
         }
 
-        if (this.settings.RemoteConfiguration.ReportsRemoteConfig)
+        if (this.settings.RemoteConfiguration.ReportsRemoteConfigStatus)
         {
             capabilities |= AgentCapabilities.ReportsRemoteConfig;
         }

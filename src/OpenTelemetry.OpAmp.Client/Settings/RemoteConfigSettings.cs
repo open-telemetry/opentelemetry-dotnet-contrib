@@ -24,5 +24,5 @@ public sealed class RemoteConfigSettings
     /// <c>true</c> if remote configuration status should be reported to the server; otherwise, <c>false</c>.
     /// Default is <c>false</c>.
     /// </value>
-    public bool ReportsRemoteConfig { get; set; }
+    public bool ReportsRemoteConfigStatus { get; set; }
 }
