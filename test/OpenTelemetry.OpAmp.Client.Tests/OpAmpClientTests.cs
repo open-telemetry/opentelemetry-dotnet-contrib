@@ -365,7 +365,7 @@ public class OpAmpClientTests
     }
 
     [Fact]
-    internal async Task SendRemoteConfigStatus_OmitsUnchangedStatus()
+    internal async Task SendRemoteConfigStatus_SendsRepeatedStatusReports()
     {
         using var opAmpServer = new OpAmpFakeHttpServer(false);
         var opAmpEndpoint = opAmpServer.Endpoint;
@@ -385,9 +385,11 @@ public class OpAmpClientTests
 
         var frames = opAmpServer.GetFrames();
 
-        Assert.Equal(4, frames.Count); // 4 frames: 1 identification, 2 remote config status, 3 unchanged status, 4 disconnect
+        Assert.Equal(4, frames.Count); // 4 frames: 1 identification, 2 remote config status, 3 remote config status, 4 disconnect
         Assert.NotNull(frames[1].RemoteConfigStatus);
-        Assert.Null(frames[2].RemoteConfigStatus);
+        Assert.NotNull(frames[2].RemoteConfigStatus);
+        Assert.Equal(RemoteConfigStatuses.Applied, frames[1].RemoteConfigStatus.Status);
+        Assert.Equal(RemoteConfigStatuses.Applied, frames[2].RemoteConfigStatus.Status);
     }
 
     [Fact]
