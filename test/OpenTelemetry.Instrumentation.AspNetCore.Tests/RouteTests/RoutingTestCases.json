@@ -194,7 +194,6 @@
     "httpMethod": "GET",
     "path": "/",
     "expectedStatusCode": 200,
-    "currentHttpRoute": "/Index",
     "expectedHttpRoute": "/Index",
     "expectedMetricRoute": "/"
   },
