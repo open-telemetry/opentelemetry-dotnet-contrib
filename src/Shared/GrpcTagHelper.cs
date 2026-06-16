@@ -11,6 +11,11 @@ internal static class GrpcTagHelper
 {
     public const string RpcSystemGrpc = "grpc";
 
+    // The value used for rpc.method when the gRPC method cannot be recognized as a
+    // fully-qualified service/method, in which case the original value is preserved in rpc.method_original.
+    // See https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/rpc/grpc.md
+    public const string RpcMethodOther = "_OTHER";
+
     // The Grpc.Net.Client library adds its own tags to the activity.
     // These tags are used to source the tags added by the OpenTelemetry instrumentation.
     // See https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/non-normative/compatibility/grpc.md#attribute-mapping

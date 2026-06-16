@@ -34,12 +34,13 @@ public class GrpcTests
         AssertTag(activity, SemanticConventions.AttributeNetworkPeerAddress, "127.0.0.1");
         AssertTag(activity, SemanticConventions.AttributeNetworkPeerPort, 4317);
         AssertTag(activity, SemanticConventions.AttributeRpcMethod, "package.Service/Method");
+        AssertTag(activity, SemanticConventions.AttributeRpcMethodOriginal, null);
         AssertTag(activity, SemanticConventions.AttributeRpcResponseStatusCode, "INTERNAL");
         AssertTag(activity, SemanticConventions.AttributeErrorType, "INTERNAL");
     }
 
     [Fact]
-    public void OnStopActivityPreservesGrpcTagsWhenMethodCannotBeParsedAndStatusIsInvalid()
+    public void OnStopActivitySetsRpcMethodToOtherWhenMethodCannotBeParsed()
     {
         // Arrange
         var listener = CreateListener();
@@ -53,12 +54,14 @@ public class GrpcTests
         Assert.Equal("Invalid", activity.DisplayName);
         Assert.Equal(ActivityStatusCode.Unset, activity.Status);
 
-        AssertTag(activity, GrpcTagHelper.GrpcMethodTagName, "Invalid");
+        AssertTag(activity, GrpcTagHelper.GrpcMethodTagName, null);
         AssertTag(activity, GrpcTagHelper.GrpcStatusCodeTagName, "invalid");
         AssertTag(activity, SemanticConventions.AttributeNetworkPeerAddress, null);
         AssertTag(activity, SemanticConventions.AttributeNetworkPeerPort, 4317);
         AssertTag(activity, SemanticConventions.AttributeRpcGrpcStatusCode, null);
-        AssertTag(activity, SemanticConventions.AttributeRpcMethod, null);
+        AssertTag(activity, SemanticConventions.AttributeRpcMethod, "_OTHER");
+        AssertTag(activity, SemanticConventions.AttributeRpcMethodOriginal, "Invalid");
+        AssertTag(activity, SemanticConventions.AttributeRpcResponseStatusCode, null);
         AssertTag(activity, SemanticConventions.AttributeRpcService, null);
         AssertTag(activity, SemanticConventions.AttributeRpcSystemName, "grpc");
     }

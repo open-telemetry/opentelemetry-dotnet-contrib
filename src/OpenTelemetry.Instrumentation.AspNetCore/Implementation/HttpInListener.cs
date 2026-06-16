@@ -419,25 +419,35 @@ internal class HttpInListener : ListenerHandler
             activity.SetStatus(spanStatus);
         }
 
+        // https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/rpc/grpc.md
         if (details.IsParsed)
         {
-            // rpc.method is expected to be the fully-qualified logical method name, e.g. "package.Service/Method".
-            // https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/rpc/grpc.md
+            // rpc.method is the fully-qualified logical method name, e.g. "package.Service/Method".
             activity.SetTag(SemanticConventions.AttributeRpcMethod, details.DisplayName);
-
-            // See https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/non-normative/compatibility/grpc.md#attribute-mapping
-            activity.SetTag(GrpcTagHelper.GrpcMethodTagName, null);
-            activity.SetTag(GrpcTagHelper.GrpcStatusTagName, null);
-            activity.SetTag(GrpcTagHelper.GrpcStatusCodeTagName, null);
-            activity.SetTag(GrpcTagHelper.GrpcTargetTagName, null);
         }
+        else
+        {
+            // The method is not in the expected service/method form, so it is treated as unrecognized:
+            // rpc.method is set to "_OTHER" and the original value is preserved in rpc.method_original.
+            activity.SetTag(SemanticConventions.AttributeRpcMethod, GrpcTagHelper.RpcMethodOther);
+            activity.SetTag(SemanticConventions.AttributeRpcMethodOriginal, grpcMethod);
+        }
+
+        // The grpc.method tag has now been mapped to rpc.method, so the source tag can be removed.
+        // See https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/non-normative/compatibility/grpc.md#attribute-mapping
+        activity.SetTag(GrpcTagHelper.GrpcMethodTagName, null);
+        activity.SetTag(GrpcTagHelper.GrpcTargetTagName, null);
 
         if (validStatusCode)
         {
             // rpc.response.status_code is the string representation of the gRPC status code, e.g. "OK".
-            // https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/rpc/grpc.md
             var grpcStatusName = GrpcTagHelper.GetGrpcStatusCodeName(grpcStatusCode);
             activity.SetTag(SemanticConventions.AttributeRpcResponseStatusCode, grpcStatusName);
+
+            // The grpc.status/grpc.status_code tags have now been mapped to rpc.response.status_code, so they can be removed.
+            // The source tags are only removed once mapped so that an unrecognized status code is not silently dropped.
+            activity.SetTag(GrpcTagHelper.GrpcStatusTagName, null);
+            activity.SetTag(GrpcTagHelper.GrpcStatusCodeTagName, null);
 
             // error.type is conditionally required when the operation failed; for gRPC it is set to the status code.
             if (spanStatus == ActivityStatusCode.Error)
