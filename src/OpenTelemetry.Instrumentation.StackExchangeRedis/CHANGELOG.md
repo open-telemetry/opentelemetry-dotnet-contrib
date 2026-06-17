@@ -9,7 +9,7 @@
   `OTEL_SEMCONV_STABILITY_OPT_IN` is set to `database` or `database/dup` to
   [v1.42.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/db/database-spans.md)
   of the Semantic Conventions for Database Client Calls.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#4519](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4519))
 
 ## 1.15.1-beta.2
 
