@@ -104,7 +104,7 @@ public partial class GrpcTests : IAsyncLifetime
         Assert.StartsWith("grpc-dotnet", activity.GetTagValue(SemanticConventions.AttributeUserAgentOriginal) as string);
     }
 
-    [Theory(Skip = "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1778")]
+    [Theory]
     [InlineData(null)]
     [InlineData("true")]
     [InlineData("false")]

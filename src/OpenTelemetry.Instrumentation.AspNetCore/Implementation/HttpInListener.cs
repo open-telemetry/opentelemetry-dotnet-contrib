@@ -30,6 +30,19 @@ internal class HttpInListener : ListenerHandler
 
     private const string DiagnosticSourceName = "Microsoft.AspNetCore";
     private const string CreatedByInstrumentationPropertyName = "OpenTelemetry.AspNetCore.CreatedByInstrumentation";
+    private const string FrameworkActivityPropertyName = "OpenTelemetry.AspNetCore.FrameworkActivity";
+
+    // The gRPC .NET library adds these tags to the Activity created by ASP.NET Core
+    // (and not necessarily to Activity.Current). When the instrumentation creates a
+    // sibling Activity these tags must be copied from the original (framework) Activity.
+    // See https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1778
+    private static readonly string[] GrpcSourceTagNames =
+    [
+        GrpcTagHelper.GrpcMethodTagName,
+        GrpcTagHelper.GrpcStatusCodeTagName,
+        GrpcTagHelper.GrpcStatusTagName,
+        GrpcTagHelper.GrpcTargetTagName,
+    ];
 
     private static readonly Func<HttpRequest, string, IEnumerable<string>> HttpRequestHeaderValuesGetter = (request, name) =>
     {
@@ -131,6 +144,12 @@ internal class HttpInListener : ListenerHandler
                 newOne!.TraceStateString = ctx.ActivityContext.TraceState;
 
                 newOne.SetCustomProperty(CreatedByInstrumentationPropertyName, CreatedByInstrumentationMarker);
+
+                // Keep a reference to the framework Activity. The gRPC .NET library may add
+                // its tags to that Activity rather than to Activity.Current, so they need to
+                // be copied onto the sibling Activity when it is stopped.
+                // See https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1778
+                newOne.SetCustomProperty(FrameworkActivityPropertyName, activity);
 
                 // Starting the new activity make it the Activity.Current one.
                 newOne.Start();
@@ -261,6 +280,13 @@ internal class HttpInListener : ListenerHandler
 #endif
 
             activity.SetTag(SemanticConventions.AttributeHttpResponseStatusCode, TelemetryHelper.GetBoxedStatusCode(response.StatusCode));
+
+            // If the instrumentation created a sibling Activity, the gRPC .NET library may
+            // have added its grpc.* tags to the original (framework) Activity instead of to
+            // the sibling Activity that is exported. Copy them across so that gRPC requests
+            // are handled the same regardless of whether a sibling Activity was created.
+            // See https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1778
+            CopyGrpcTagsFromFrameworkActivity(activity);
 
             if (this.options.EnableGrpcAspNetCoreSupport && IsGrpcRequest(activity, out var grpcMethod))
             {
@@ -452,6 +478,23 @@ internal class HttpInListener : ListenerHandler
         // In ASP.NET Core 11+ OpenTelemetry tags are emitted by default,
         // see https://github.com/dotnet/aspnetcore/blob/655f41d52f2fc75992eac41496b8e9cc119e1b54/src/Hosting/Hosting/src/Internal/HostingApplicationDiagnostics.cs#L59-L67.
         return Net11OrGreater;
+    }
+
+    private static void CopyGrpcTagsFromFrameworkActivity(Activity activity)
+    {
+        // Only sibling activities created by the instrumentation have this property set.
+        if (activity.GetCustomProperty(FrameworkActivityPropertyName) is not Activity frameworkActivity)
+        {
+            return;
+        }
+
+        foreach (var tagName in GrpcSourceTagNames)
+        {
+            if (frameworkActivity.GetTagValue(tagName) is { } value)
+            {
+                activity.SetTag(tagName, value);
+            }
+        }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
