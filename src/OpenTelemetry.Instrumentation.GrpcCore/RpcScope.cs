@@ -68,7 +68,7 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
         bool recordException)
     {
         this.host = host;
-        this.FullServiceName = fullServiceName?.TrimStart('/') ?? "unknownservice/unknownmethod";
+        this.FullServiceName = fullServiceName?.Trim('/') ?? "unknownservice/unknownmethod";
         this.recordMessageEvents = recordMessageEvents;
         this.recordException = recordException;
     }
@@ -175,17 +175,13 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
             return;
         }
 
-        this.activity.SetTag(SemanticConventions.AttributeRpcSystemName, "grpc");
-
-        var rpcMethod = this.FullServiceName;
-        this.activity.SetTag(SemanticConventions.AttributeRpcMethod, rpcMethod);
+        GrpcTagHelper.SetGrpcSystemName(this.activity);
+        GrpcTagHelper.SetGrpcMethodAndDisplayNameFromActivity(this.activity, this.FullServiceName);
 
         if (this.host is { Length: > 0 } host)
         {
             TrySetServerAttributes(this.activity, host);
         }
-
-        this.activity.DisplayName = rpcMethod.Trim('/');
     }
 
     private static void TrySetServerAttributes(Activity activity, string host)
@@ -216,7 +212,7 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
             return;
         }
 
-        this.activity.SetTag(SemanticConventions.AttributeRpcResponseStatusCode, statusCode);
+        this.activity.SetTag(SemanticConventions.AttributeRpcResponseStatusCode, GrpcTagHelper.GetGrpcStatusCodeName(statusCode));
         this.activity.Stop();
     }
 

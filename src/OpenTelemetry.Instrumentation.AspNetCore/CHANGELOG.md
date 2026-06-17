@@ -21,6 +21,10 @@
   of the Semantic Conventions for RPC/gRPC.
   ([#4370](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4370))
 
+* Update Semantic Conventions for RPC/gRPC to version
+  [1.42.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/rpc/README.md).
+  ([#4508](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4508))
+
 ## 1.15.2
 
 Released 2026-Apr-21

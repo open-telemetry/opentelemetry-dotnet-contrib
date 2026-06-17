@@ -20,21 +20,6 @@ public class GrpcTagHelperTests
         Assert.Equal(grpcMethod, result);
     }
 
-    [Theory]
-    [InlineData("Package.Service/Method", true, "Package.Service", "Method")]
-    [InlineData("/Package.Service/Method", true, "Package.Service", "Method")]
-    [InlineData("/ServiceWithNoPackage/Method", true, "ServiceWithNoPackage", "Method")]
-    [InlineData("/Some.Package.Service/Method", true, "Some.Package.Service", "Method")]
-    [InlineData("Invalid", false, "", "")]
-    public void GrpcTagHelper_TryParseRpcServiceAndRpcMethod(string grpcMethod, bool isSuccess, string expectedRpcService, string expectedRpcMethod)
-    {
-        var success = GrpcTagHelper.TryParseRpcServiceAndRpcMethod(grpcMethod, out var rpcService, out var rpcMethod);
-
-        Assert.Equal(isSuccess, success);
-        Assert.Equal(expectedRpcService, rpcService);
-        Assert.Equal(expectedRpcMethod, rpcMethod);
-    }
-
     [Fact]
     public void GrpcTagHelper_GetGrpcStatusCodeFromActivity()
     {
@@ -112,5 +97,34 @@ public class GrpcTagHelperTests
         Assert.False(validConversion);
         Assert.Equal(-1, status);
         Assert.Null(activity.GetTagValue(SemanticConventions.AttributeRpcGrpcStatusCode));
+        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
+    }
+
+    [Theory]
+    [InlineData(int.MinValue, "-2147483648")]
+    [InlineData(-1, "-1")]
+    [InlineData(0, "OK")]
+    [InlineData(1, "CANCELLED")]
+    [InlineData(2, "UNKNOWN")]
+    [InlineData(3, "INVALID_ARGUMENT")]
+    [InlineData(4, "DEADLINE_EXCEEDED")]
+    [InlineData(5, "NOT_FOUND")]
+    [InlineData(6, "ALREADY_EXISTS")]
+    [InlineData(7, "PERMISSION_DENIED")]
+    [InlineData(8, "RESOURCE_EXHAUSTED")]
+    [InlineData(9, "FAILED_PRECONDITION")]
+    [InlineData(10, "ABORTED")]
+    [InlineData(11, "OUT_OF_RANGE")]
+    [InlineData(12, "UNIMPLEMENTED")]
+    [InlineData(13, "INTERNAL")]
+    [InlineData(14, "UNAVAILABLE")]
+    [InlineData(15, "DATA_LOSS")]
+    [InlineData(16, "UNAUTHENTICATED")]
+    [InlineData(99, "99")]
+    [InlineData(int.MaxValue, "2147483647")]
+    public void GrpcTagHelper_ConvertStatusCodeToString(int statusCode, string expected)
+    {
+        var actual = GrpcTagHelper.GetGrpcStatusCodeName(statusCode);
+        Assert.Equal(expected, actual);
     }
 }

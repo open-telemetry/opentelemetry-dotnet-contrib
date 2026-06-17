@@ -90,7 +90,7 @@ public partial class GrpcTests
         // Tags added by the library then removed from the instrumentation
         Assert.Null(activity.GetTagValue(GrpcTagHelper.GrpcMethodTagName));
         Assert.Null(activity.GetTagValue(GrpcTagHelper.GrpcStatusCodeTagName));
-        Assert.Equal(0, activity.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
+        Assert.Equal("OK", activity.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
 
         if (shouldEnrich)
         {
@@ -146,7 +146,7 @@ public partial class GrpcTests
 
         ValidateGrpcActivity(grpcSpan);
         Assert.Equal($"greet.Greeter/SayHello", grpcSpan.DisplayName);
-        Assert.Equal(0, grpcSpan.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
+        Assert.Equal("OK", grpcSpan.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
         Assert.Equal("POST", httpSpan.DisplayName);
         Assert.Equal(grpcSpan.SpanId, httpSpan.ParentSpanId);
 
@@ -199,19 +199,19 @@ public partial class GrpcTests
 
         ValidateGrpcActivity(grpcSpan1);
         Assert.Equal($"greet.Greeter/SayHello", grpcSpan1.DisplayName);
-        Assert.Equal(0, grpcSpan1.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
+        Assert.Equal("OK", grpcSpan1.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
 
         ValidateGrpcActivity(grpcSpan2);
         Assert.Equal($"greet.Greeter/SayHello", grpcSpan2.DisplayName);
-        Assert.Equal(0, grpcSpan2.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
+        Assert.Equal("OK", grpcSpan2.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
 
         ValidateGrpcActivity(grpcSpan3);
         Assert.Equal($"greet.Greeter/SayHello", grpcSpan3.DisplayName);
-        Assert.Equal(0, grpcSpan3.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
+        Assert.Equal("OK", grpcSpan3.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
 
         ValidateGrpcActivity(grpcSpan4);
         Assert.Equal($"greet.Greeter/SayHello", grpcSpan4.DisplayName);
-        Assert.Equal(0, grpcSpan4.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
+        Assert.Equal("OK", grpcSpan4.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
     }
 
 #if NET
@@ -267,7 +267,7 @@ public partial class GrpcTests
             Assert.Equal($"POST /greet.Greeter/SayHello", serverActivity.DisplayName);
             Assert.Equal(clientActivity.TraceId, serverActivity.TraceId);
             Assert.Equal(clientActivity.SpanId, serverActivity.ParentSpanId);
-            Assert.Equal(0, clientActivity.GetTagValue(SemanticConventions.AttributeRpcGrpcStatusCode));
+            Assert.Equal("OK", clientActivity.GetTagValue(SemanticConventions.AttributeRpcGrpcStatusCode));
             Assert.Equal("customValue", serverActivity.GetCustomProperty("customField") as string);
         }
         finally

@@ -10,7 +10,7 @@ namespace OpenTelemetry.Instrumentation.GrpcNetClient.Implementation;
 
 internal sealed class GrpcClientDiagnosticListener : ListenerHandler
 {
-    internal static readonly Version SemanticConventionsVersion = new(1, 41, 0);
+    internal static readonly Version SemanticConventionsVersion = new(1, 42, 0);
     internal static readonly ActivitySource ActivitySource = ActivitySourceFactory.Create<GrpcClientDiagnosticListener>(SemanticConventionsVersion);
 
     private const string OnStartEvent = "Grpc.Net.Client.GrpcOut.Start";
@@ -107,19 +107,8 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
             ActivityInstrumentationHelper.SetActivitySourceProperty(activity, ActivitySource);
             ActivityInstrumentationHelper.SetKindProperty(activity, ActivityKind.Client);
 
-            var grpcMethod = GrpcTagHelper.GetGrpcMethodFromActivity(activity);
-
-            activity.DisplayName = grpcMethod?.Trim('/') ?? GrpcTagHelper.RpcSystemGrpc;
-
-            if (grpcMethod != null)
-            {
-                activity.SetTag(SemanticConventions.AttributeRpcMethod, grpcMethod.Trim('/'));
-
-                // Remove the grpc.method tag added by the gRPC .NET library
-                activity.SetTag(GrpcTagHelper.GrpcMethodTagName, null);
-            }
-
-            activity.SetTag(SemanticConventions.AttributeRpcSystemName, GrpcTagHelper.RpcSystemGrpc);
+            GrpcTagHelper.SetGrpcSystemName(activity);
+            GrpcTagHelper.SetGrpcMethodAndDisplayNameFromActivity(activity);
 
             var requestUri = request.RequestUri;
 
@@ -176,7 +165,7 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
                 activity.SetStatus(GrpcTagHelper.ResolveSpanStatusForGrpcStatusCodeOnClient(status));
             }
 
-            activity.SetTag(SemanticConventions.AttributeRpcResponseStatusCode, status);
+            activity.SetTag(SemanticConventions.AttributeRpcResponseStatusCode, GrpcTagHelper.GetGrpcStatusCodeName(status));
         }
 
         // Remove the grpc.status_code tag added by the gRPC .NET library

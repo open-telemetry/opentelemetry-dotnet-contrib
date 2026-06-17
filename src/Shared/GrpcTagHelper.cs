@@ -13,12 +13,12 @@ internal static class GrpcTagHelper
 
     // The value used for rpc.method when the gRPC method cannot be recognized as a
     // fully-qualified service/method, in which case the original value is preserved in rpc.method_original.
-    // See https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/rpc/grpc.md
+    // See https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/rpc/grpc.md
     public const string RpcMethodOther = "_OTHER";
 
     // The Grpc.Net.Client library adds its own tags to the activity.
     // These tags are used to source the tags added by the OpenTelemetry instrumentation.
-    // See https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/non-normative/compatibility/grpc.md#attribute-mapping
+    // See https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/non-normative/compatibility/grpc.md#attribute-mapping
     public const string GrpcMethodTagName = "grpc.method";
     public const string GrpcStatusTagName = "grpc.status";
     public const string GrpcStatusCodeTagName = "grpc.status_code";
@@ -27,35 +27,45 @@ internal static class GrpcTagHelper
     public static string? GetGrpcMethodFromActivity(Activity activity)
         => activity.GetTagValue(GrpcMethodTagName) as string;
 
+    public static void SetGrpcSystemName(Activity activity)
+        => activity.SetTag(SemanticConventions.AttributeRpcSystemName, RpcSystemGrpc);
+
+    public static void SetGrpcMethodAndDisplayNameFromActivity(Activity activity, string? grpcMethod = null)
+    {
+        grpcMethod ??= activity.GetTagValue(GrpcMethodTagName) as string;
+
+        if (grpcMethod != null)
+        {
+            var trimmedMethod = grpcMethod.Trim('/');
+
+            // The RPC semantic conventions indicate the span name should be rpc.method
+            // when it is available and not "_OTHER".
+            activity.DisplayName = trimmedMethod;
+
+            activity.SetTag(SemanticConventions.AttributeRpcMethod, trimmedMethod);
+
+            // Remove the grpc.method tag added by the gRPC .NET library, if present
+            activity.SetTag(GrpcMethodTagName, null);
+        }
+        else
+        {
+            // The RPC semantic conventions indicate the span name should be rpc.system.name
+            // when rpc.method is "_OTHER".
+            activity.DisplayName = RpcSystemGrpc;
+
+            // The method is not in the expected service/method form, so it is treated as unrecognized:
+            // rpc.method is set to "_OTHER" and the original value is preserved in rpc.method_original.
+            activity.SetTag(SemanticConventions.AttributeRpcMethod, RpcMethodOther);
+            activity.SetTag(SemanticConventions.AttributeRpcMethodOriginal, grpcMethod);
+        }
+    }
+
     public static bool TryGetGrpcStatusCodeFromActivity(Activity activity, out int statusCode)
     {
         statusCode = -1;
         var grpcStatusCodeTag = activity.GetTagValue(GrpcStatusCodeTagName);
         return grpcStatusCodeTag != null &&
                int.TryParse(grpcStatusCodeTag as string, NumberStyles.None, CultureInfo.InvariantCulture, out statusCode);
-    }
-
-    public static bool TryParseRpcServiceAndRpcMethod(string grpcMethod, out string rpcService, out string rpcMethod)
-    {
-        var span = grpcMethod.AsSpan();
-
-        if (!span.IsEmpty && span[0] is '/')
-        {
-            span = span.Slice(1);
-        }
-
-        var lastSlash = span.LastIndexOf('/');
-        if (lastSlash < 0)
-        {
-            rpcService = string.Empty;
-            rpcMethod = string.Empty;
-            return false;
-        }
-
-        rpcService = span.Slice(0, lastSlash).ToString();
-        rpcMethod = span.Slice(lastSlash + 1).ToString();
-
-        return true;
     }
 
     /// <summary>
@@ -99,7 +109,7 @@ internal static class GrpcTagHelper
 
     /// <summary>
     /// Helper method that populates span properties from RPC status code according
-    /// to https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/rpc/grpc.md.
+    /// to https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/rpc/grpc.md.
     /// This method is for server spans where only specific status codes are considered errors:
     /// UNKNOWN, DEADLINE_EXCEEDED, UNIMPLEMENTED, INTERNAL, UNAVAILABLE, and DATA_LOSS.
     /// </summary>
@@ -132,34 +142,31 @@ internal static class GrpcTagHelper
     /// <c>rpc.response.status_code</c> and <c>error.type</c> attributes.
     /// </summary>
     /// <remarks>
-    /// See https://github.com/grpc/grpc/blob/master/doc/statuscodes.md and
-    /// https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/rpc/grpc.md.
+    /// See https://github.com/grpc/grpc/blob/v1.81.1/doc/statuscodes.md and
+    /// https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/rpc/grpc.md.
     /// </remarks>
     /// <param name="statusCode">The numeric gRPC status code.</param>
     /// <returns>The canonical gRPC status code name (e.g. <c>OK</c>, <c>DEADLINE_EXCEEDED</c>),
     /// or the numeric value as a string if the code is not recognized.</returns>
-    public static string GetGrpcStatusCodeName(int statusCode)
+    public static string GetGrpcStatusCodeName(int statusCode) => statusCode switch
     {
-        return statusCode switch
-        {
-            (int)GrpcStatusCanonicalCode.Ok => "OK",
-            (int)GrpcStatusCanonicalCode.Cancelled => "CANCELLED",
-            (int)GrpcStatusCanonicalCode.Unknown => "UNKNOWN",
-            (int)GrpcStatusCanonicalCode.InvalidArgument => "INVALID_ARGUMENT",
-            (int)GrpcStatusCanonicalCode.DeadlineExceeded => "DEADLINE_EXCEEDED",
-            (int)GrpcStatusCanonicalCode.NotFound => "NOT_FOUND",
-            (int)GrpcStatusCanonicalCode.AlreadyExists => "ALREADY_EXISTS",
-            (int)GrpcStatusCanonicalCode.PermissionDenied => "PERMISSION_DENIED",
-            (int)GrpcStatusCanonicalCode.ResourceExhausted => "RESOURCE_EXHAUSTED",
-            (int)GrpcStatusCanonicalCode.FailedPrecondition => "FAILED_PRECONDITION",
-            (int)GrpcStatusCanonicalCode.Aborted => "ABORTED",
-            (int)GrpcStatusCanonicalCode.OutOfRange => "OUT_OF_RANGE",
-            (int)GrpcStatusCanonicalCode.Unimplemented => "UNIMPLEMENTED",
-            (int)GrpcStatusCanonicalCode.Internal => "INTERNAL",
-            (int)GrpcStatusCanonicalCode.Unavailable => "UNAVAILABLE",
-            (int)GrpcStatusCanonicalCode.DataLoss => "DATA_LOSS",
-            (int)GrpcStatusCanonicalCode.Unauthenticated => "UNAUTHENTICATED",
-            _ => statusCode.ToString(CultureInfo.InvariantCulture),
-        };
-    }
+        (int)GrpcStatusCanonicalCode.Ok => "OK",
+        (int)GrpcStatusCanonicalCode.Cancelled => "CANCELLED",
+        (int)GrpcStatusCanonicalCode.Unknown => "UNKNOWN",
+        (int)GrpcStatusCanonicalCode.InvalidArgument => "INVALID_ARGUMENT",
+        (int)GrpcStatusCanonicalCode.DeadlineExceeded => "DEADLINE_EXCEEDED",
+        (int)GrpcStatusCanonicalCode.NotFound => "NOT_FOUND",
+        (int)GrpcStatusCanonicalCode.AlreadyExists => "ALREADY_EXISTS",
+        (int)GrpcStatusCanonicalCode.PermissionDenied => "PERMISSION_DENIED",
+        (int)GrpcStatusCanonicalCode.ResourceExhausted => "RESOURCE_EXHAUSTED",
+        (int)GrpcStatusCanonicalCode.FailedPrecondition => "FAILED_PRECONDITION",
+        (int)GrpcStatusCanonicalCode.Aborted => "ABORTED",
+        (int)GrpcStatusCanonicalCode.OutOfRange => "OUT_OF_RANGE",
+        (int)GrpcStatusCanonicalCode.Unimplemented => "UNIMPLEMENTED",
+        (int)GrpcStatusCanonicalCode.Internal => "INTERNAL",
+        (int)GrpcStatusCanonicalCode.Unavailable => "UNAVAILABLE",
+        (int)GrpcStatusCanonicalCode.DataLoss => "DATA_LOSS",
+        (int)GrpcStatusCanonicalCode.Unauthenticated => "UNAUTHENTICATED",
+        _ => statusCode.ToString(CultureInfo.InvariantCulture),
+    };
 }

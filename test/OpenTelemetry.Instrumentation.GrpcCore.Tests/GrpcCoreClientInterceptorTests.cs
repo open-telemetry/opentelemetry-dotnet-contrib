@@ -344,6 +344,7 @@ public class GrpcCoreClientInterceptorTests
         Assert.True(activity.IsStopped, "The activity has not been stopped.");
 
         var expectedRpcMethod = $"OpenTelemetry.Instrumentation.GrpcCore.Tests.Foobar/{expectedMethodName}";
+        var expectedResponseStatusCode = GrpcTagHelper.GetGrpcStatusCodeName((int)expectedStatusCode);
 
         Assert.Equal(expectedRpcMethod, activity.DisplayName);
 
@@ -352,7 +353,7 @@ public class GrpcCoreClientInterceptorTests
         Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcSystemName && (string?)t.Value == "grpc");
         Assert.DoesNotContain(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcService);
         Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcMethod && (string?)t.Value == expectedRpcMethod);
-        Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcResponseStatusCode && (int?)t.Value == (int)expectedStatusCode);
+        Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcResponseStatusCode && (string?)t.Value == expectedResponseStatusCode);
 
         // Cancelled is not an error.
         if (expectedStatusCode is not StatusCode.OK and not StatusCode.Cancelled)
