@@ -356,9 +356,8 @@ public class OpAmpClientTests
         await client.StopAsync();
 
         var frames = opAmpServer.GetFrames();
-        var actualStatus = frames[1].RemoteConfigStatus;
-
         Assert.Equal(3, frames.Count); // 3 frames: 1 identification, 2 remote config status, 3 disconnect
+        var actualStatus = frames[1].RemoteConfigStatus;
         Assert.Equal(new byte[] { 1, 2, 3 }, actualStatus.LastRemoteConfigHash.ToByteArray());
         Assert.Equal(RemoteConfigStatuses.Failed, actualStatus.Status);
         Assert.Equal("apply failed", actualStatus.ErrorMessage);
