@@ -28,17 +28,19 @@ public class GrpcTests
 
         AssertTag(activity, GrpcTagHelper.GrpcMethodTagName, null);
         AssertTag(activity, GrpcTagHelper.GrpcStatusCodeTagName, null);
-        AssertTag(activity, SemanticConventions.AttributeClientAddress, "127.0.0.1");
-        AssertTag(activity, SemanticConventions.AttributeClientPort, 4317);
         AssertTag(activity, SemanticConventions.AttributeHttpResponseStatusCode, 200);
-        AssertTag(activity, SemanticConventions.AttributeRpcGrpcStatusCode, 13);
-        AssertTag(activity, SemanticConventions.AttributeRpcMethod, "Method");
-        AssertTag(activity, SemanticConventions.AttributeRpcService, "package.Service");
-        AssertTag(activity, SemanticConventions.AttributeRpcSystem, "grpc");
+
+        AssertTag(activity, SemanticConventions.AttributeRpcSystemName, "grpc");
+        AssertTag(activity, SemanticConventions.AttributeNetworkPeerAddress, "127.0.0.1");
+        AssertTag(activity, SemanticConventions.AttributeNetworkPeerPort, 4317);
+        AssertTag(activity, SemanticConventions.AttributeRpcMethod, "package.Service/Method");
+        AssertTag(activity, SemanticConventions.AttributeRpcMethodOriginal, null);
+        AssertTag(activity, SemanticConventions.AttributeRpcResponseStatusCode, "INTERNAL");
+        AssertTag(activity, SemanticConventions.AttributeErrorType, "INTERNAL");
     }
 
     [Fact]
-    public void OnStopActivityPreservesGrpcTagsWhenMethodCannotBeParsedAndStatusIsInvalid()
+    public void OnStopActivitySetsRpcMethodToOtherWhenMethodCannotBeParsed()
     {
         // Arrange
         var listener = CreateListener();
@@ -49,17 +51,19 @@ public class GrpcTests
         listener.OnStopActivity(activity, context);
 
         // Assert
-        Assert.Equal("Invalid", activity.DisplayName);
+        Assert.Equal("grpc", activity.DisplayName);
         Assert.Equal(ActivityStatusCode.Unset, activity.Status);
 
-        AssertTag(activity, GrpcTagHelper.GrpcMethodTagName, "Invalid");
+        AssertTag(activity, GrpcTagHelper.GrpcMethodTagName, null);
         AssertTag(activity, GrpcTagHelper.GrpcStatusCodeTagName, "invalid");
-        AssertTag(activity, SemanticConventions.AttributeClientAddress, null);
-        AssertTag(activity, SemanticConventions.AttributeClientPort, 4317);
+        AssertTag(activity, SemanticConventions.AttributeNetworkPeerAddress, null);
+        AssertTag(activity, SemanticConventions.AttributeNetworkPeerPort, 4317);
         AssertTag(activity, SemanticConventions.AttributeRpcGrpcStatusCode, null);
-        AssertTag(activity, SemanticConventions.AttributeRpcMethod, null);
+        AssertTag(activity, SemanticConventions.AttributeRpcMethod, "_OTHER");
+        AssertTag(activity, SemanticConventions.AttributeRpcMethodOriginal, "Invalid");
+        AssertTag(activity, SemanticConventions.AttributeRpcResponseStatusCode, null);
         AssertTag(activity, SemanticConventions.AttributeRpcService, null);
-        AssertTag(activity, SemanticConventions.AttributeRpcSystem, "grpc");
+        AssertTag(activity, SemanticConventions.AttributeRpcSystemName, "grpc");
     }
 
     [Fact]
@@ -81,6 +85,24 @@ public class GrpcTests
         AssertTag(activity, GrpcTagHelper.GrpcStatusCodeTagName, "13");
         AssertTag(activity, SemanticConventions.AttributeRpcGrpcStatusCode, null);
         AssertTag(activity, SemanticConventions.AttributeRpcSystem, null);
+    }
+
+    [Fact]
+    public void OnStopActivityDoesNotAddErrorTypeForSuccessfulGrpcStatusCode()
+    {
+        // Arrange
+        var listener = CreateListener();
+        using var activity = CreateActivity("/package.Service/Method", "0");
+        var context = CreateContext(IPAddress.Loopback, remotePort: 4317);
+
+        // Act
+        listener.OnStopActivity(activity, context);
+
+        // Assert
+        Assert.Equal(ActivityStatusCode.Unset, activity.Status);
+
+        AssertTag(activity, SemanticConventions.AttributeRpcResponseStatusCode, "OK");
+        AssertTag(activity, SemanticConventions.AttributeErrorType, null);
     }
 
     private static void AssertTag(Activity activity, string name, object? expected) =>
