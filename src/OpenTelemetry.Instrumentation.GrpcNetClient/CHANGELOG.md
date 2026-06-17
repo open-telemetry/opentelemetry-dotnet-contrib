@@ -12,6 +12,10 @@
 * Updated OpenTelemetry core component version(s) to `1.16.0`.
   ([#4487](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4487))
 
+* Set the `error.type` attribute to the gRPC status code name on client spans when
+  the call fails.
+  ([#4508](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4508))
+
 ## 1.15.1-beta.1
 
 Released 2026-Apr-21

@@ -16,6 +16,7 @@ using OpenTelemetry.Tests;
 using OpenTelemetry.Instrumentation.Grpc.Tests.GrpcTestHelpers;
 using OpenTelemetry.Instrumentation.GrpcNetClient;
 using OpenTelemetry.Trace;
+using RpcException = Grpc.Core.RpcException;
 
 namespace OpenTelemetry.Instrumentation.Grpc.Tests;
 
@@ -97,6 +98,98 @@ public partial class GrpcTests
             Assert.True(enrichWithHttpRequestMessageCalled);
             Assert.True(enrichWithHttpResponseMessageCalled);
         }
+    }
+
+    [Fact]
+    public void GrpcClientCancelledCallIsRecordedAsErrorPerSemanticConventions()
+    {
+        // The gRPC semantic conventions specify that, for client spans, all status codes
+        // other than OK are errors. A cancelled call (status code CANCELLED) therefore has
+        // its span status set to Error and the error.type attribute set to the status code name.
+        // See https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/rpc/grpc.md
+        var uri = new UriBuilder("http://localhost") { Port = 1234 }.Uri;
+
+        using var httpClient = ClientTestHelpers.CreateTestClient(async request =>
+        {
+            var streamContent = await ClientTestHelpers.CreateResponseContent(new HelloReply());
+            return ResponseUtils.CreateResponse(HttpStatusCode.OK, streamContent, grpcStatusCode: global::Grpc.Core.StatusCode.Cancelled);
+        });
+
+        var exportedItems = new List<Activity>();
+
+        using var parent = new Activity("parent")
+            .SetIdFormat(ActivityIdFormat.W3C)
+            .Start();
+
+        using (Sdk.CreateTracerProviderBuilder()
+                  .SetSampler(new AlwaysOnSampler())
+                  .AddGrpcClientInstrumentation()
+                  .AddInMemoryExporter(exportedItems)
+                  .Build())
+        {
+            var channel = GrpcChannel.ForAddress(uri, new GrpcChannelOptions
+            {
+                HttpClient = httpClient,
+            });
+            var client = new Greeter.GreeterClient(channel);
+            Assert.Throws<RpcException>(() => client.SayHello(new HelloRequest()));
+        }
+
+        var activity = Assert.Single(exportedItems);
+
+        Assert.Equal("CANCELLED", activity.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
+        Assert.Equal(ActivityStatusCode.Error, activity.Status);
+        Assert.Equal("CANCELLED", activity.GetTagValue(SemanticConventions.AttributeErrorType));
+    }
+
+    [Fact]
+    public void GrpcClientCancellationCanBeTreatedAsNonErrorWithCustomProcessor()
+    {
+        // The gRPC semantic conventions classify all non-OK client status codes as errors.
+        // An application that deliberately cancels a call has additional context and MAY
+        // override the span status to not report the cancellation as an error. This test
+        // demonstrates how to do that using a custom processor.
+        //
+        // Note that the EnrichWithHttpResponseMessage option cannot be used for this purpose
+        // because it is not invoked when a call is cancelled (there is no response message).
+        // See https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/2066
+        var uri = new UriBuilder("http://localhost") { Port = 1234 }.Uri;
+
+        using var httpClient = ClientTestHelpers.CreateTestClient(async request =>
+        {
+            var streamContent = await ClientTestHelpers.CreateResponseContent(new HelloReply());
+            return ResponseUtils.CreateResponse(HttpStatusCode.OK, streamContent, grpcStatusCode: global::Grpc.Core.StatusCode.Cancelled);
+        });
+
+        var exportedItems = new List<Activity>();
+
+        using var parent = new Activity("parent")
+            .SetIdFormat(ActivityIdFormat.W3C)
+            .Start();
+
+        using (Sdk.CreateTracerProviderBuilder()
+                  .SetSampler(new AlwaysOnSampler())
+                  .AddGrpcClientInstrumentation()
+                  .AddProcessor(new CancelledGrpcCallStatusProcessor())
+                  .AddInMemoryExporter(exportedItems)
+                  .Build())
+        {
+            var channel = GrpcChannel.ForAddress(uri, new GrpcChannelOptions
+            {
+                HttpClient = httpClient,
+            });
+            var client = new Greeter.GreeterClient(channel);
+            Assert.Throws<RpcException>(() => client.SayHello(new HelloRequest()));
+        }
+
+        var activity = Assert.Single(exportedItems);
+
+        // The status code attribute is still recorded as required by the semantic conventions...
+        Assert.Equal("CANCELLED", activity.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
+
+        // ...but the application's processor has cleared the error signal.
+        Assert.Equal(ActivityStatusCode.Unset, activity.Status);
+        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeErrorType));
     }
 
 #if NET
@@ -411,5 +504,20 @@ public partial class GrpcTests
         Assert.NotEmpty(activityToValidate.Source.Version);
         Assert.Equal(ActivityKind.Client, activityToValidate.Kind);
         Assert.StartsWith("https://opentelemetry.io/schemas/", activityToValidate.Source.TelemetrySchemaUrl);
+    }
+
+    private sealed class CancelledGrpcCallStatusProcessor : BaseProcessor<Activity>
+    {
+        public override void OnEnd(Activity activity)
+        {
+            // The application knows a CANCELLED result is the result of a deliberate
+            // cancellation rather than a failure, so the error signal is cleared while
+            // leaving the rpc.response.status_code attribute in place.
+            if ((activity.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode) as string) == "CANCELLED")
+            {
+                activity.SetStatus(ActivityStatusCode.Unset);
+                activity.SetTag(SemanticConventions.AttributeErrorType, null);
+            }
+        }
     }
 }
