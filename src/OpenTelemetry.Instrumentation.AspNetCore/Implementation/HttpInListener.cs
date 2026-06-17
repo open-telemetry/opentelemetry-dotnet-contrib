@@ -396,11 +396,6 @@ internal class HttpInListener : ListenerHandler
     {
         var details = GrpcMethodCache.Get(grpcMethod);
 
-        // The RPC semantic conventions indicate the span name
-        // should not have a leading forward slash.
-        // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/rpc/rpc-spans.md#span-name
-        activity.DisplayName = details.DisplayName;
-
         // See the specs for semantic conventions.
         // https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/rpc/rpc-spans.md
         activity.SetTag(SemanticConventions.AttributeRpcSystemName, GrpcTagHelper.RpcSystemGrpc);
@@ -422,11 +417,19 @@ internal class HttpInListener : ListenerHandler
         // https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/rpc/grpc.md
         if (details.IsParsed)
         {
+            // The RPC semantic conventions indicate the span name should be rpc.method
+            // when it is available and not "_OTHER".
+            activity.DisplayName = details.DisplayName;
+
             // rpc.method is the fully-qualified logical method name, e.g. "package.Service/Method".
             activity.SetTag(SemanticConventions.AttributeRpcMethod, details.DisplayName);
         }
         else
         {
+            // The RPC semantic conventions indicate the span name should be rpc.system.name
+            // when rpc.method is "_OTHER".
+            activity.DisplayName = GrpcTagHelper.RpcSystemGrpc;
+
             // The method is not in the expected service/method form, so it is treated as unrecognized:
             // rpc.method is set to "_OTHER" and the original value is preserved in rpc.method_original.
             activity.SetTag(SemanticConventions.AttributeRpcMethod, GrpcTagHelper.RpcMethodOther);

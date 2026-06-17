@@ -51,7 +51,7 @@ public class GrpcTests
         listener.OnStopActivity(activity, context);
 
         // Assert
-        Assert.Equal("Invalid", activity.DisplayName);
+        Assert.Equal("grpc", activity.DisplayName);
         Assert.Equal(ActivityStatusCode.Unset, activity.Status);
 
         AssertTag(activity, GrpcTagHelper.GrpcMethodTagName, null);
