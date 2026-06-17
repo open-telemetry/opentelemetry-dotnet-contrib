@@ -77,6 +77,17 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     }
 #endif
 
+                    // Metrics-only fast path: if the ActivitySource has no listeners then StartActivity
+                    // will always return null and no trace will be produced. Skip the (relatively
+                    // expensive) connection tag derivation, query sanitization, filtering and enrichment
+                    // entirely and only capture the start timestamp needed to compute the metric duration
+                    // in the matching WriteCommandAfter/WriteCommandError event.
+                    if (!SqlTelemetryHelper.ActivitySource.HasListeners())
+                    {
+                        this.beginTimestamp.Value = Stopwatch.GetTimestamp();
+                        return;
+                    }
+
                     var connection = command.Connection;
                     var databaseName = connection?.Database;
                     var dataSource = (connection as DbConnection)?.DataSource;

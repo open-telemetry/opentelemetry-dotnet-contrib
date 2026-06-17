@@ -295,7 +295,12 @@ internal class HttpInListener : ListenerHandler
 
                 if (grpcMethod is { Length: > 0 })
                 {
-                    AddGrpcAttributes(activity, grpcMethod, context, grpcStatusCode, hasGrpcStatusCode);
+                    AddGrpcAttributes(
+                        activity,
+                        grpcMethod,
+                        context,
+                        grpcStatusCode,
+                        hasGrpcStatusCode);
                 }
             }
 
@@ -382,46 +387,75 @@ internal class HttpInListener : ListenerHandler
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void AddGrpcAttributes(Activity activity, string grpcMethod, HttpContext context, int grpcStatusCode, bool validStatusCode)
+    private static void AddGrpcAttributes(
+        Activity activity,
+        string grpcMethod,
+        HttpContext context,
+        int grpcStatusCode,
+        bool validStatusCode)
     {
         var details = GrpcMethodCache.Get(grpcMethod);
 
-        // The RPC semantic conventions indicate the span name
-        // should not have a leading forward slash.
-        // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/rpc/rpc-spans.md#span-name
-        activity.DisplayName = details.DisplayName;
-
-        activity.SetTag(SemanticConventions.AttributeRpcSystem, GrpcTagHelper.RpcSystemGrpc);
-
-        // see the spec https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/rpc/rpc-spans.md
+        // See the specs for semantic conventions.
+        // https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/rpc/rpc-spans.md
+        activity.SetTag(SemanticConventions.AttributeRpcSystemName, GrpcTagHelper.RpcSystemGrpc);
 
         if (context.Connection.RemoteIpAddress != null)
         {
-            activity.SetTag(SemanticConventions.AttributeClientAddress, context.Connection.RemoteIpAddress.ToString());
+            activity.SetTag(SemanticConventions.AttributeNetworkPeerAddress, context.Connection.RemoteIpAddress.ToString());
         }
 
-        activity.SetTag(SemanticConventions.AttributeClientPort, context.Connection.RemotePort);
+        activity.SetTag(SemanticConventions.AttributeNetworkPeerPort, context.Connection.RemotePort);
+
+        var spanStatus = ActivityStatusCode.Unset;
+        if (validStatusCode)
+        {
+            spanStatus = GrpcTagHelper.ResolveSpanStatusForGrpcStatusCodeOnServer(grpcStatusCode);
+            activity.SetStatus(spanStatus);
+        }
+
+        // https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/rpc/grpc.md
+        if (details.IsParsed)
+        {
+            // The RPC semantic conventions indicate the span name should be rpc.method
+            // when it is available and not "_OTHER".
+            activity.DisplayName = details.DisplayName;
+
+            // rpc.method is the fully-qualified logical method name, e.g. "package.Service/Method".
+            activity.SetTag(SemanticConventions.AttributeRpcMethod, details.DisplayName);
+        }
+        else
+        {
+            // The RPC semantic conventions indicate the span name should be rpc.system.name
+            // when rpc.method is "_OTHER".
+            activity.DisplayName = GrpcTagHelper.RpcSystemGrpc;
+
+            // The method is not in the expected service/method form, so it is treated as unrecognized:
+            // rpc.method is set to "_OTHER" and the original value is preserved in rpc.method_original.
+            activity.SetTag(SemanticConventions.AttributeRpcMethod, GrpcTagHelper.RpcMethodOther);
+            activity.SetTag(SemanticConventions.AttributeRpcMethodOriginal, grpcMethod);
+        }
+
+        // The grpc.method tag has now been mapped to rpc.method, so the source tag can be removed.
+        // See https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/non-normative/compatibility/grpc.md#attribute-mapping
+        activity.SetTag(GrpcTagHelper.GrpcMethodTagName, null);
+        activity.SetTag(GrpcTagHelper.GrpcTargetTagName, null);
 
         if (validStatusCode)
         {
-            activity.SetStatus(GrpcTagHelper.ResolveSpanStatusForGrpcStatusCodeOnServer(grpcStatusCode));
-        }
+            // rpc.response.status_code is the string representation of the gRPC status code, e.g. "OK".
+            var grpcStatusName = GrpcTagHelper.GetGrpcStatusCodeName(grpcStatusCode);
+            activity.SetTag(SemanticConventions.AttributeRpcResponseStatusCode, grpcStatusName);
 
-        if (details.IsParsed)
-        {
-            activity.SetTag(SemanticConventions.AttributeRpcService, details.RpcService);
-            activity.SetTag(SemanticConventions.AttributeRpcMethod, details.RpcMethod);
-
-            // Remove the grpc.method tag added by the gRPC .NET library
-            activity.SetTag(GrpcTagHelper.GrpcMethodTagName, null);
-
-            // Remove the grpc.status_code tag added by the gRPC .NET library
+            // The grpc.status/grpc.status_code tags have now been mapped to rpc.response.status_code, so they can be removed.
+            // The source tags are only removed once mapped so that an unrecognized status code is not silently dropped.
+            activity.SetTag(GrpcTagHelper.GrpcStatusTagName, null);
             activity.SetTag(GrpcTagHelper.GrpcStatusCodeTagName, null);
 
-            if (validStatusCode)
+            // error.type is conditionally required when the operation failed; for gRPC it is set to the status code.
+            if (spanStatus == ActivityStatusCode.Error)
             {
-                // setting rpc.grpc.status_code
-                activity.SetTag(SemanticConventions.AttributeRpcGrpcStatusCode, grpcStatusCode);
+                activity.SetTag(SemanticConventions.AttributeErrorType, grpcStatusName);
             }
         }
     }
