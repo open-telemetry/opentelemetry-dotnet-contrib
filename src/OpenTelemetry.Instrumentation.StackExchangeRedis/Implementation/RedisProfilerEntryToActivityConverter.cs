@@ -123,11 +123,11 @@ internal static class RedisProfilerEntryToActivityConverter
 
         if (activity.IsAllDataRequested)
         {
-            // see https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/database.md
+            // See https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/db/database-spans.md
 
             // Timing example:
-            // command.CommandCreated; //2019-01-10 22:18:28Z
 
+            // command.CommandCreated;          // 2019-01-10 22:18:28Z
             // command.CreationToEnqueued;      // 00:00:32.4571995
             // command.EnqueuedToSending;       // 00:00:00.0352838
             // command.SentToResponse;          // 00:00:00.0060586
