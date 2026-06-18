@@ -179,17 +179,17 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
                     }
                 }
 
-                if (!string.IsNullOrEmpty(info.Summarized))
+                if (info.Summarized is { Length: > 0 } summarized)
                 {
                     if (KustoInstrumentation.TraceOptions.RecordQuerySummary)
                     {
-                        activity?.AddTag(SemanticConventions.AttributeDbQuerySummary, info.Summarized);
-                        activity?.DisplayName = info.Summarized;
+                        activity?.AddTag(SemanticConventions.AttributeDbQuerySummary, summarized);
+                        activity?.DisplayName = summarized;
                     }
 
                     if (KustoInstrumentation.MeterOptions.RecordQuerySummary)
                     {
-                        meterTags.Add(SemanticConventions.AttributeDbQuerySummary, info.Summarized);
+                        meterTags.Add(SemanticConventions.AttributeDbQuerySummary, summarized);
                     }
                 }
             }
