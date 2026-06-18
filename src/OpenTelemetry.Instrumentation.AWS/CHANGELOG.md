@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.16.0
+
+Released 2026-Jun-18
+
 * Add instrumentation scope version and schema URL to metrics and traces.
   ([#4063](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4063))
 

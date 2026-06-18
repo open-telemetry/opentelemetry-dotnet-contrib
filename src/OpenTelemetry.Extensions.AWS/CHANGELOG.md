@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.16.0
+
+Released 2026-Jun-18
+
 * Fix sampling behaviour to be compatible with .NET 11.
   ([#4396](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4396))
 
