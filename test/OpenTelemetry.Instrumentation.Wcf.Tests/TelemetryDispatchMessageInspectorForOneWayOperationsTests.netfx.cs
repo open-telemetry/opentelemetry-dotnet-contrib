@@ -125,7 +125,10 @@ public class TelemetryDispatchMessageInspectorForOneWayOperationsTests : IDispos
         var activity = Assert.Single(stoppedActivities);
 
         Assert.Equal("http://opentelemetry.io/Service/ExecuteWithOneWay", activity.DisplayName);
-        Assert.Equal("ExecuteWithOneWay", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcMethod).Value);
+
+        var expectedRpcMethod = emitNewAttributes ? "http://opentelemetry.io/Service/ExecuteWithOneWay" : "ExecuteWithOneWay";
+        Assert.Equal(expectedRpcMethod, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcMethod).Value);
+
         Assert.DoesNotContain(activity.TagObjects, t => t.Key == WcfInstrumentationConstants.AttributeSoapReplyAction);
 
         WcfTestHelpers.AssertIncomingRequestActivityCommon(

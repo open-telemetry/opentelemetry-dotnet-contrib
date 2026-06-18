@@ -157,13 +157,15 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
             if (emptyOrNullAction)
             {
                 Assert.Equal(WcfInstrumentationActivitySource.IncomingRequestActivityName, activity.DisplayName);
-                Assert.Equal("ExecuteWithEmptyActionName", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcMethod).Value);
+                var expectedRpcMethod = emitNewAttributes ? "http://opentelemetry.io/Service/ExecuteWithEmptyActionName" : "ExecuteWithEmptyActionName";
+                Assert.Equal(expectedRpcMethod, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcMethod).Value);
                 Assert.Equal("http://opentelemetry.io/Service/ExecuteWithEmptyActionNameResponse", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.AttributeSoapReplyAction).Value);
             }
             else
             {
                 Assert.Equal("http://opentelemetry.io/Service/Execute", activity.DisplayName);
-                Assert.Equal("Execute", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcMethod).Value);
+                var expectedRpcMethod = emitNewAttributes ? "http://opentelemetry.io/Service/Execute" : "Execute";
+                Assert.Equal(expectedRpcMethod, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcMethod).Value);
                 Assert.Equal("http://opentelemetry.io/Service/ExecuteResponse", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.AttributeSoapReplyAction).Value);
             }
 

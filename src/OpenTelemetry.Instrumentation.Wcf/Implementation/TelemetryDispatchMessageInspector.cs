@@ -3,6 +3,7 @@
 
 #if NETFRAMEWORK
 using System.Diagnostics;
+using System.Globalization;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Dispatcher;
@@ -82,16 +83,16 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
                         operationName: action);
                 }
 
-                activity.SetTag(SemanticConventions.AttributeRpcMethod, actionMetadata.OperationName);
-
                 if (options.EmitOldRpcAttributes)
                 {
+                    activity.SetTag(SemanticConventions.AttributeRpcMethod, actionMetadata.OperationName);
                     activity.SetTag(SemanticConventions.AttributeRpcSystem, WcfInstrumentationConstants.WcfSystemValue);
                     activity.SetTag(SemanticConventions.AttributeRpcService, actionMetadata.ContractName);
                 }
 
                 if (options.EmitNewRpcAttributes)
                 {
+                    activity.SetTag(SemanticConventions.AttributeRpcMethod, WcfInstrumentationConstants.GetRpcMethod(actionMetadata.ContractName, actionMetadata.OperationName));
                     activity.SetTag(SemanticConventions.AttributeRpcSystemName, WcfInstrumentationConstants.WcfSystemValue);
                 }
 
@@ -170,10 +171,18 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
                 {
                     activity.SetStatus(ActivityStatusCode.Error);
 
-                    if (options?.EmitNewRpcAttributes == true &&
-                        OperationContext.Current?.IncomingMessageProperties[HttpResponseMessageProperty.Name] is HttpResponseMessageProperty response)
+                    if (options?.EmitNewRpcAttributes == true)
                     {
-                        activity.SetTag(SemanticConventions.AttributeRpcResponseStatusCode, response.StatusCode);
+                        string? statusCode = null;
+                        if (OperationContext.Current?.IncomingMessageProperties[HttpResponseMessageProperty.Name] is HttpResponseMessageProperty response)
+                        {
+                            statusCode = ((int)response.StatusCode).ToString(CultureInfo.InvariantCulture);
+                            activity.SetTag(SemanticConventions.AttributeRpcResponseStatusCode, statusCode);
+                        }
+
+                        // error.type is conditionally required when the operation has failed.
+                        // See https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/rpc/rpc-spans.md
+                        activity.SetTag(SemanticConventions.AttributeErrorType, statusCode ?? WcfInstrumentationConstants.ErrorTypeOther);
                     }
                 }
 

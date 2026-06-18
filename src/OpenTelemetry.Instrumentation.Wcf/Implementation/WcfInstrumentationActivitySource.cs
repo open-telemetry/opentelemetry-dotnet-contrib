@@ -15,7 +15,7 @@ internal static class WcfInstrumentationActivitySource
     internal static readonly Version SemanticConventionsVersion = new(1, 23, 0);
     internal static readonly ActivitySource ActivitySource = Trace.ActivitySourceFactory.Create(typeof(WcfInstrumentationActivitySource), SemanticConventionsVersion);
 
-    internal static readonly Version SemanticConventionsVersionNew = new(1, 41, 0);
+    internal static readonly Version SemanticConventionsVersionNew = new(1, 42, 0);
     internal static readonly ActivitySource ActivitySourceNew = Trace.ActivitySourceFactory.Create(typeof(WcfInstrumentationActivitySource), SemanticConventionsVersionNew);
 
     internal static readonly ActivitySource ActivitySourceBoth = Trace.ActivitySourceFactory.Create(typeof(WcfInstrumentationActivitySource), null);

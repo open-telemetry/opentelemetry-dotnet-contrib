@@ -73,7 +73,7 @@ public class WcfInstrumentationOptions
     /// </summary>
     /// <remarks>
     /// <para>For specification details see: <see
-    /// href="https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/exceptions/exceptions-spans.md"
+    /// href="https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/exceptions/exceptions-spans.md"
     /// />.</para>
     /// </remarks>
     public bool RecordException { get; set; }

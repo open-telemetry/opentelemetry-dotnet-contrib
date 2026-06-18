@@ -44,16 +44,16 @@ internal static class ClientChannelInstrumentation
             {
                 var actionMetadata = GetActionMetadata(request, action);
 
-                activity.SetTag(SemanticConventions.AttributeRpcMethod, actionMetadata.OperationName);
-
                 if (options?.EmitOldRpcAttributes == true)
                 {
+                    activity.SetTag(SemanticConventions.AttributeRpcMethod, actionMetadata.OperationName);
                     activity.SetTag(SemanticConventions.AttributeRpcSystem, WcfInstrumentationConstants.WcfSystemValue);
                     activity.SetTag(SemanticConventions.AttributeRpcService, actionMetadata.ContractName);
                 }
 
                 if (options?.EmitNewRpcAttributes == true)
                 {
+                    activity.SetTag(SemanticConventions.AttributeRpcMethod, WcfInstrumentationConstants.GetRpcMethod(actionMetadata.ContractName, actionMetadata.OperationName));
                     activity.SetTag(SemanticConventions.AttributeRpcSystemName, WcfInstrumentationConstants.WcfSystemValue);
                 }
 
@@ -131,12 +131,22 @@ internal static class ClientChannelInstrumentation
             {
                 if (exception is FaultException fault && options?.EmitNewRpcAttributes is true)
                 {
-                    activity.SetTag(SemanticConventions.AttributeRpcResponseStatusCode, fault.Code);
+                    activity.SetTag(SemanticConventions.AttributeRpcResponseStatusCode, fault.Code.Name);
                 }
 
                 if (reply == null || reply.IsFault)
                 {
                     activity.SetStatus(ActivityStatusCode.Error);
+
+                    if (options?.EmitNewRpcAttributes is true)
+                    {
+                        // error.type is conditionally required when the operation has failed.
+                        // See https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/rpc/rpc-spans.md
+                        var errorType = (exception as FaultException)?.Code.Name
+                            ?? exception?.GetType().FullName
+                            ?? WcfInstrumentationConstants.ErrorTypeOther;
+                        activity.SetTag(SemanticConventions.AttributeErrorType, errorType);
+                    }
 
                     if (options?.RecordException == true && exception != null)
                     {

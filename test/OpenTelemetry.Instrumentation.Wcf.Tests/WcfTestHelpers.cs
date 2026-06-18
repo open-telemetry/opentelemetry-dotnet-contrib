@@ -55,12 +55,14 @@ internal static class WcfTestHelpers
         if (emptyOrNullAction)
         {
             Assert.Equal(WcfInstrumentationActivitySource.OutgoingRequestActivityName, activity.DisplayName);
-            Assert.Equal("ExecuteWithEmptyActionName", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcMethod).Value);
+            var expectedRpcMethod = emitNewAttributes ? "http://opentelemetry.io/Service/ExecuteWithEmptyActionName" : "ExecuteWithEmptyActionName";
+            Assert.Equal(expectedRpcMethod, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcMethod).Value);
         }
         else
         {
             Assert.Equal("http://opentelemetry.io/Service/Execute", activity.DisplayName);
-            Assert.Equal("Execute", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcMethod).Value);
+            var expectedRpcMethod = emitNewAttributes ? "http://opentelemetry.io/Service/Execute" : "Execute";
+            Assert.Equal(expectedRpcMethod, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcMethod).Value);
         }
 
         Assert.Equal(WcfInstrumentationActivitySource.OutgoingRequestActivityName, activity.OperationName);
@@ -116,7 +118,7 @@ internal static class WcfTestHelpers
         else if (!emitOldAttributes && emitNewAttributes)
         {
             Assert.Same(WcfInstrumentationActivitySource.ActivitySourceNew, activity.Source);
-            Assert.Equal("https://opentelemetry.io/schemas/1.41.0", activity.Source.TelemetrySchemaUrl);
+            Assert.Equal("https://opentelemetry.io/schemas/1.42.0", activity.Source.TelemetrySchemaUrl);
         }
         else
         {
@@ -164,7 +166,7 @@ internal static class WcfTestHelpers
         else if (!emitOldAttributes && emitNewAttributes)
         {
             Assert.Same(WcfInstrumentationActivitySource.ActivitySourceNew, activity.Source);
-            Assert.Equal("https://opentelemetry.io/schemas/1.41.0", activity.Source.TelemetrySchemaUrl);
+            Assert.Equal("https://opentelemetry.io/schemas/1.42.0", activity.Source.TelemetrySchemaUrl);
         }
         else
         {
