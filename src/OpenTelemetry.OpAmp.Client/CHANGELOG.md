@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Expose public `ServerCapabilitiesMessage`.
+  ([#4485](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4485))
+
 ## 0.4.0-alpha.1
 
 Released 2026-May-22
