@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Expose public `ServerCapabilitiesMessage`.
+  ([#4485](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4485))
+
 * Serialize WebSocket writes so an outbound message no longer races the
   receiver's oversized-message close to avoid faulting the receive loop.
   ([#4532](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4532))
