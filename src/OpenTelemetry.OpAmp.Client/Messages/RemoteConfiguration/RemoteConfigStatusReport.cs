@@ -17,7 +17,7 @@ public sealed class RemoteConfigStatusReport
     /// <param name="status">The remote configuration status.</param>
     /// <param name="errorMessage">Optional error message when <paramref name="status"/> is <see cref="RemoteConfigStatusCode.Failed"/>.</param>
     public RemoteConfigStatusReport(
-        ReadOnlyMemory<byte> lastRemoteConfigHash,
+        ReadOnlySpan<byte> lastRemoteConfigHash,
         RemoteConfigStatusCode status,
         string? errorMessage = null)
     {

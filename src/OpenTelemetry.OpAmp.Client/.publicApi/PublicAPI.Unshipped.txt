@@ -28,7 +28,7 @@ OpenTelemetry.OpAmp.Client.Messages.RemoteConfigStatusCode.Unset = 0 -> OpenTele
 OpenTelemetry.OpAmp.Client.Messages.RemoteConfigStatusReport
 OpenTelemetry.OpAmp.Client.Messages.RemoteConfigStatusReport.ErrorMessage.get -> string?
 OpenTelemetry.OpAmp.Client.Messages.RemoteConfigStatusReport.LastRemoteConfigHash.get -> System.ReadOnlyMemory<byte>
-OpenTelemetry.OpAmp.Client.Messages.RemoteConfigStatusReport.RemoteConfigStatusReport(System.ReadOnlyMemory<byte> lastRemoteConfigHash, OpenTelemetry.OpAmp.Client.Messages.RemoteConfigStatusCode status, string? errorMessage = null) -> void
+OpenTelemetry.OpAmp.Client.Messages.RemoteConfigStatusReport.RemoteConfigStatusReport(System.ReadOnlySpan<byte> lastRemoteConfigHash, OpenTelemetry.OpAmp.Client.Messages.RemoteConfigStatusCode status, string? errorMessage = null) -> void
 OpenTelemetry.OpAmp.Client.Messages.RemoteConfigStatusReport.Status.get -> OpenTelemetry.OpAmp.Client.Messages.RemoteConfigStatusCode
 OpenTelemetry.OpAmp.Client.OpAmpClient
 OpenTelemetry.OpAmp.Client.OpAmpClient.Dispose() -> void
