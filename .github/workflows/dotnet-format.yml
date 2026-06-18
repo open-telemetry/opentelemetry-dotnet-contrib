@@ -23,13 +23,13 @@ jobs:
       id: check
       shell: pwsh
       run: |
-        $baseRef = if ($env:GITHUB_BASE_REF) { "origin/$env:GITHUB_BASE_REF" } else { "HEAD~1" }
+        $baseRef = if (${env:GITHUB_BASE_REF}) { "origin/${env:GITHUB_BASE_REF}" } else { "HEAD~1" }
         $changedFiles = git diff --name-only "$baseRef...HEAD"
 
         if ($changedFiles -contains 'global.json') {
           Write-Output "global.json was changed - checking all files."
-          "should-run=true" >> $env:GITHUB_OUTPUT
-          "include-args=" >> $env:GITHUB_OUTPUT
+          "run-format=true" >> ${env:GITHUB_OUTPUT}
+          "include-args=" >> ${env:GITHUB_OUTPUT}
         } else {
           $csFiles = $changedFiles | Where-Object { $_ -match '\.cs$' }
 
