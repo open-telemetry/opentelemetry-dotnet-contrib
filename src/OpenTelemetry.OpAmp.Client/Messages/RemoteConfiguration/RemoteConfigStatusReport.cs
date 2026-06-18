@@ -31,6 +31,13 @@ public sealed class RemoteConfigStatusReport
             throw new ArgumentOutOfRangeException(nameof(status), status, "Unsupported remote configuration status.");
         }
 
+        if (errorMessage != null && status != RemoteConfigStatusCode.Failed)
+        {
+            throw new ArgumentException(
+                $"{nameof(errorMessage)} should only be set when {nameof(status)} is {nameof(RemoteConfigStatusCode.Failed)}.",
+                nameof(errorMessage));
+        }
+
         this.lastRemoteConfigHash = lastRemoteConfigHash.ToArray();
         this.Status = status;
         this.ErrorMessage = errorMessage;

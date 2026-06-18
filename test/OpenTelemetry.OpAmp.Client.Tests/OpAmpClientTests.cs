@@ -403,6 +403,18 @@ public class OpAmpClientTests
         Assert.Equal("lastRemoteConfigHash", exception.ParamName);
     }
 
+    [Theory]
+    [InlineData(RemoteConfigStatusCode.Unset)]
+    [InlineData(RemoteConfigStatusCode.Applied)]
+    [InlineData(RemoteConfigStatusCode.Applying)]
+    internal void RemoteConfigStatusReport_ThrowsWhenErrorMessageIsSetForNonFailedStatus(RemoteConfigStatusCode status)
+    {
+        var exception = Assert.Throws<ArgumentException>(() =>
+            new RemoteConfigStatusReport(new byte[] { 1, 2, 3 }, status, "apply failed"));
+
+        Assert.Equal("errorMessage", exception.ParamName);
+    }
+
     [Fact]
     internal async Task SendsCustomCapabilities()
     {
