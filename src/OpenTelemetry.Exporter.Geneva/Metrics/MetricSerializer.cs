@@ -467,9 +467,6 @@ internal static class MetricSerializer
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void CheckBounds(byte[] buffer, int index, int size, [CallerArgumentExpression(nameof(index))] string? paramName = default)
-#if NET
-        => ArgumentOutOfRangeException.ThrowIfGreaterThan(index + size, buffer.Length, paramName);
-#else
     {
         if (buffer.Length < index + size)
         {
@@ -477,7 +474,8 @@ internal static class MetricSerializer
         }
     }
 
+    // Always throw with the shared message so the overflow can be detected consistently across
+    // target frameworks (ArgumentOutOfRangeException.ThrowIfGreaterThan uses a different message).
     private static void ThrowArgumentOutOfRange(object value, [CallerArgumentExpression(nameof(value))] string? paramName = default)
-        => throw new ArgumentOutOfRangeException(paramName, value, "The buffer is too small to write a value at the specified index.");
-#endif
+        => throw new ArgumentOutOfRangeException(paramName, value, GenevaBufferOverflowExceptionHelper.MetricBufferTooSmallMessage);
 }
