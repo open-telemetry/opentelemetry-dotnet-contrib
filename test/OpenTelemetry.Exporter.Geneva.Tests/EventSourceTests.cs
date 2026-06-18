@@ -201,10 +201,12 @@ public class EventSourceTests
     private sealed class BufferOverflowEventListener : EventListener
     {
         private readonly List<EventWrittenEventArgs> capturedEvents;
+        private readonly int creatingThreadId;
 
         public BufferOverflowEventListener(List<EventWrittenEventArgs> capturedEvents)
         {
             this.capturedEvents = capturedEvents;
+            this.creatingThreadId = Environment.CurrentManagedThreadId;
         }
 
         protected override void OnEventSourceCreated(EventSource eventSource)
@@ -215,7 +217,18 @@ public class EventSourceTests
             }
         }
 
-        protected override void OnEventWritten(EventWrittenEventArgs eventData) =>
-            this.capturedEvents.Add(eventData);
+        protected override void OnEventWritten(EventWrittenEventArgs eventData)
+        {
+            // The Geneva EventSource is a process-wide singleton, so this listener also receives
+            // events written by other test classes that run in parallel. EventListener callbacks
+            // run synchronously on the thread that wrote the event, so capturing only events
+            // written on the thread that created this listener keeps each test isolated to its own
+            // events. This avoids both polluting the captured list and mutating it while a test
+            // enumerates it (which otherwise throws "Collection was modified").
+            if (Environment.CurrentManagedThreadId == this.creatingThreadId)
+            {
+                this.capturedEvents.Add(eventData);
+            }
+        }
     }
 }
