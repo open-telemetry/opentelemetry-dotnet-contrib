@@ -109,8 +109,16 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
         var result = TraceRecordParser.ParseException(record.Message.AsSpan());
         if (!result.ErrorType.IsEmpty)
         {
-            activity?.SetTag(SemanticConventions.AttributeErrorType, result.ErrorType.ToString());
-            context.Value.MeterTags.Add(SemanticConventions.AttributeErrorType, result.ErrorType.ToString());
+            var errorType = result.ErrorType.ToString();
+            activity?.SetTag(SemanticConventions.AttributeErrorType, errorType);
+
+            // ContextData is a struct and MeterTags is a mutable TagList, so adding to the value fetched from
+            // the dictionary would mutate a discarded copy. Update a local copy and republish the context so
+            // the duration metric carries the error.type dimension.
+            var updated = context.Value;
+            var meterTags = updated.MeterTags;
+            meterTags.Add(SemanticConventions.AttributeErrorType, errorType);
+            this.contexts[record.Activity.ActivityId] = new ContextData(updated.BeginTimestamp, meterTags, updated.Activity);
         }
 
         if (activity is not null)
@@ -195,7 +203,7 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
             }
         }
 
-        this.contexts[record.Activity.ActivityId] = new ContextData(beginTimestamp, meterTags, activity!);
+        this.contexts[record.Activity.ActivityId] = new ContextData(beginTimestamp, meterTags, activity);
 
         this.CallEnrichment(record);
     }
@@ -245,7 +253,7 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
     /// </summary>
     private readonly struct ContextData
     {
-        public ContextData(long beginTimestamp, TagList meterTags, Activity activity)
+        public ContextData(long beginTimestamp, TagList meterTags, Activity? activity)
         {
             this.BeginTimestamp = beginTimestamp;
             this.MeterTags = meterTags;

@@ -199,6 +199,21 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
         tracerProvider.ForceFlush();
         meterProvider.ForceFlush();
 
+        // Regression guard (#3591 review): a failed query must record error.type on the duration metric,
+        // not only on the span. It was previously lost because ContextData is a struct and the tag was
+        // added to a discarded copy of its TagList.
+        var durationMetric = metrics.Single(m => m.MeterName == KustoActivitySourceHelper.MeterName && m.Name == "db.client.operation.duration");
+        var durationTags = new List<KeyValuePair<string, object?>>();
+        foreach (ref readonly var metricPoint in durationMetric.GetMetricPoints())
+        {
+            foreach (var tag in metricPoint.Tags)
+            {
+                durationTags.Add(tag);
+            }
+        }
+
+        Assert.Contains(durationTags, tag => tag.Key == "error.type");
+
         await Verify(
             new
             {
