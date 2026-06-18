@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using OpenTelemetry.Instrumentation.Kusto.Implementation;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Kusto.Tests;
 

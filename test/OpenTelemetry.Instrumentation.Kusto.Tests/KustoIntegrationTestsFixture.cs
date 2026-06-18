@@ -3,7 +3,6 @@
 
 using Kusto.Data;
 using Testcontainers.Kusto;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Kusto.Tests;
 

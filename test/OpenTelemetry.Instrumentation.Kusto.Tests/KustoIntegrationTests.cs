@@ -10,7 +10,6 @@ using OpenTelemetry.Instrumentation.Kusto.Implementation;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Kusto.Tests;
 
