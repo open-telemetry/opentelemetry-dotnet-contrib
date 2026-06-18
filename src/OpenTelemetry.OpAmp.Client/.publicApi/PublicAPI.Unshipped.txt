@@ -20,6 +20,17 @@ OpenTelemetry.OpAmp.Client.Messages.OpAmpMessage.OpAmpMessage() -> void
 OpenTelemetry.OpAmp.Client.Messages.RemoteConfigMessage
 OpenTelemetry.OpAmp.Client.Messages.RemoteConfigMessage.AgentConfigMap.get -> System.Collections.Generic.IReadOnlyDictionary<string!, OpenTelemetry.OpAmp.Client.Messages.AgentConfigFile!>!
 OpenTelemetry.OpAmp.Client.Messages.RemoteConfigMessage.ConfigHash.get -> System.ReadOnlySpan<byte>
+OpenTelemetry.OpAmp.Client.Messages.ServerCapabilitiesMessage
+OpenTelemetry.OpAmp.Client.Messages.ServerCapabilitiesMessage.Capabilities.get -> OpenTelemetry.OpAmp.Client.Messages.ServerSentCapabilities
+OpenTelemetry.OpAmp.Client.Messages.ServerSentCapabilities
+OpenTelemetry.OpAmp.Client.Messages.ServerSentCapabilities.AcceptsConnectionSettingsRequest = 64 -> OpenTelemetry.OpAmp.Client.Messages.ServerSentCapabilities
+OpenTelemetry.OpAmp.Client.Messages.ServerSentCapabilities.AcceptsEffectiveConfig = 4 -> OpenTelemetry.OpAmp.Client.Messages.ServerSentCapabilities
+OpenTelemetry.OpAmp.Client.Messages.ServerSentCapabilities.AcceptsPackagesStatus = 16 -> OpenTelemetry.OpAmp.Client.Messages.ServerSentCapabilities
+OpenTelemetry.OpAmp.Client.Messages.ServerSentCapabilities.AcceptsStatus = 1 -> OpenTelemetry.OpAmp.Client.Messages.ServerSentCapabilities
+OpenTelemetry.OpAmp.Client.Messages.ServerSentCapabilities.None = 0 -> OpenTelemetry.OpAmp.Client.Messages.ServerSentCapabilities
+OpenTelemetry.OpAmp.Client.Messages.ServerSentCapabilities.OffersConnectionSettings = 32 -> OpenTelemetry.OpAmp.Client.Messages.ServerSentCapabilities
+OpenTelemetry.OpAmp.Client.Messages.ServerSentCapabilities.OffersPackages = 8 -> OpenTelemetry.OpAmp.Client.Messages.ServerSentCapabilities
+OpenTelemetry.OpAmp.Client.Messages.ServerSentCapabilities.OffersRemoteConfig = 2 -> OpenTelemetry.OpAmp.Client.Messages.ServerSentCapabilities
 OpenTelemetry.OpAmp.Client.OpAmpClient
 OpenTelemetry.OpAmp.Client.OpAmpClient.Dispose() -> void
 OpenTelemetry.OpAmp.Client.OpAmpClient.OpAmpClient(System.Action<OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings!>? configure = null) -> void

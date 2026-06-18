@@ -395,7 +395,7 @@ public class TestAWSClientInstrumentation
                    .Build())
         {
             var bedrock = new AmazonBedrockClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            var dummyResponse = "{\"GuardrailId\":\"123456789\"}";
+            var dummyResponse = "{\"guardrailId\":\"123456789\"}";
             CustomResponses.SetResponse(bedrock, dummyResponse, requestId, extendedRequestId, true);
             var getGuardrailRequest = new GetGuardrailRequest { GuardrailIdentifier = "123456789" };
 #if NETFRAMEWORK
