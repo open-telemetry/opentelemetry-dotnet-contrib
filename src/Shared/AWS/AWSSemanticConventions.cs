@@ -68,7 +68,7 @@ internal partial class AWSSemanticConventions
     /// </remarks>
     internal const SemanticConventionVersion DefaultSemanticConventionVersion = SemanticConventionVersion.V1_28_0;
 
-    private readonly SemanticConventionVersion semanticConventionVersion;
+    private readonly AWSSemanticConventions_V1_28_0 semanticConventionVersion;
 
     /// <inheritdoc cref="AttributeBuilderImpl"/>
     public AttributeBuilderImpl AttributeBuilder { get; }
@@ -88,7 +88,7 @@ internal partial class AWSSemanticConventions
     /// </summary>
     /// <returns>A collection of attribute names that require array values.</returns>
     public IReadOnlyCollection<string> GetArrayValueAttributeNames()
-        => this.GetSemanticConventionVersion().ArrayValueAttributeNames;
+        => this.semanticConventionVersion.ArrayValueAttributeNames;
 
     /// <inheritdoc cref="AWSSemanticConventions"/>
     /// <param name="semanticConventionVersion">
@@ -96,11 +96,11 @@ internal partial class AWSSemanticConventions
     /// </param>
     public AWSSemanticConventions(SemanticConventionVersion semanticConventionVersion = DefaultSemanticConventionVersion)
     {
-        this.semanticConventionVersion = semanticConventionVersion;
+        this.semanticConventionVersion = CreateSemanticConventionVersion(semanticConventionVersion);
         this.AttributeBuilder = new(this);
         this.ParameterMappingBuilder = new(this);
         this.TagBuilder = new(this);
-        this.Version = GetVersion(this.semanticConventionVersion);
+        this.Version = GetVersion(semanticConventionVersion);
     }
 
     /// <summary>
@@ -507,14 +507,23 @@ internal partial class AWSSemanticConventions
         _ => throw new InvalidEnumArgumentException(nameof(semanticConventionVersion), (int)semanticConventionVersion, typeof(SemanticConventionVersion)),
     };
 
+    private static AWSSemanticConventions_V1_28_0 CreateSemanticConventionVersion(SemanticConventionVersion semanticConventionVersion) => semanticConventionVersion switch
+    {
+        SemanticConventionVersion.Latest or SemanticConventionVersion.V1_40_0 => new AWSSemanticConventions_V1_40_0(),
+        SemanticConventionVersion.V1_29_0 => new AWSSemanticConventions_V1_29_0(),
+        SemanticConventionVersion.V1_28_0 => new AWSSemanticConventions_V1_28_0(),
+        _ => throw new InvalidEnumArgumentException(
+                argumentName: nameof(SemanticConventionVersion),
+                (int)semanticConventionVersion,
+                typeof(SemanticConventionVersion)),
+    };
+
     private AttributeBuilderImpl Add(AttributeBuilderImpl attributes, Func<AWSSemanticConventionsBase, string> attributeNameFunc, Func<AWSSemanticConventionsBase, string> valueFunc) =>
-        this.Add(attributes, attributeNameFunc, valueFunc(this.GetSemanticConventionVersion()));
+        this.Add(attributes, attributeNameFunc, valueFunc(this.semanticConventionVersion));
 
     private AttributeBuilderImpl Add(AttributeBuilderImpl attributes, Func<AWSSemanticConventionsBase, string> attributeNameFunc, object? value, bool addIfEmpty = false)
     {
-        var semanticConventionVersionImpl = this.GetSemanticConventionVersion();
-
-        var attributeName = attributeNameFunc(semanticConventionVersionImpl);
+        var attributeName = attributeNameFunc(this.semanticConventionVersion);
 
         // if attributeName is empty or there is no value, exit
         if (string.IsNullOrEmpty(attributeName) ||
@@ -529,13 +538,11 @@ internal partial class AWSSemanticConventions
     }
 
     private Activity? SetTag(Activity? activity, Func<AWSSemanticConventionsBase, string> attributeNameFunc, Func<AWSSemanticConventionsBase, object?> valueFunc) =>
-        this.SetTag(activity, attributeNameFunc, valueFunc(this.GetSemanticConventionVersion()));
+        this.SetTag(activity, attributeNameFunc, valueFunc(this.semanticConventionVersion));
 
     private Activity? SetTag(Activity? activity, Func<AWSSemanticConventionsBase, string> attributeNameFunc, object? value)
     {
-        var semanticConventionVersionImpl = this.GetSemanticConventionVersion();
-
-        var attributeName = attributeNameFunc(semanticConventionVersionImpl);
+        var attributeName = attributeNameFunc(this.semanticConventionVersion);
 
         // if attributeName is empty, exit
         if (string.IsNullOrEmpty(attributeName))
@@ -550,9 +557,7 @@ internal partial class AWSSemanticConventions
 
     private ParameterMappingBuilderImpl AddDic(ParameterMappingBuilderImpl dict, Func<AWSSemanticConventionsBase, string> attributeNameFunc, string value)
     {
-        var semanticConventionVersionImpl = this.GetSemanticConventionVersion();
-
-        var attributeName = attributeNameFunc(semanticConventionVersionImpl);
+        var attributeName = attributeNameFunc(this.semanticConventionVersion);
 
         if (!string.IsNullOrEmpty(attributeName))
         {
@@ -561,15 +566,4 @@ internal partial class AWSSemanticConventions
 
         return dict;
     }
-
-    private AWSSemanticConventions_V1_28_0 GetSemanticConventionVersion() => this.semanticConventionVersion switch
-    {
-        SemanticConventionVersion.Latest or SemanticConventionVersion.V1_40_0 => new AWSSemanticConventions_V1_40_0(),
-        SemanticConventionVersion.V1_29_0 => new AWSSemanticConventions_V1_29_0(),
-        SemanticConventionVersion.V1_28_0 => new AWSSemanticConventions_V1_28_0(),
-        _ => throw new InvalidEnumArgumentException(
-                argumentName: nameof(SemanticConventionVersion),
-                (int)this.semanticConventionVersion,
-                typeof(SemanticConventionVersion)),
-    };
 }
