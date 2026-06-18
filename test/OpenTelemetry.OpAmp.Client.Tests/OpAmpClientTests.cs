@@ -395,6 +395,15 @@ public class OpAmpClientTests
     }
 
     [Fact]
+    internal void RemoteConfigStatusReport_ThrowsOnEmptyHash()
+    {
+        var exception = Assert.Throws<ArgumentException>(() =>
+            new RemoteConfigStatusReport(Array.Empty<byte>(), RemoteConfigStatusCode.Applied));
+
+        Assert.Equal("lastRemoteConfigHash", exception.ParamName);
+    }
+
+    [Fact]
     internal async Task SendsCustomCapabilities()
     {
         // Setup OpAMP server

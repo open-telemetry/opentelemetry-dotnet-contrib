@@ -13,7 +13,7 @@ public sealed class RemoteConfigStatusReport
     /// <summary>
     /// Initializes a new instance of the <see cref="RemoteConfigStatusReport"/> class.
     /// </summary>
-    /// <param name="lastRemoteConfigHash">Hash bytes from the last received remote configuration.</param>
+    /// <param name="lastRemoteConfigHash">Hash bytes from the last received remote configuration. Must not be empty.</param>
     /// <param name="status">The remote configuration status.</param>
     /// <param name="errorMessage">Optional error message when <paramref name="status"/> is <see cref="RemoteConfigStatusCode.Failed"/>.</param>
     public RemoteConfigStatusReport(
@@ -21,6 +21,11 @@ public sealed class RemoteConfigStatusReport
         RemoteConfigStatusCode status,
         string? errorMessage = null)
     {
+        if (lastRemoteConfigHash.IsEmpty)
+        {
+            throw new ArgumentException("Hash must not be empty.", nameof(lastRemoteConfigHash));
+        }
+
         if (status is < RemoteConfigStatusCode.Unset or > RemoteConfigStatusCode.Failed)
         {
             throw new ArgumentOutOfRangeException(nameof(status), status, "Unsupported remote configuration status.");
