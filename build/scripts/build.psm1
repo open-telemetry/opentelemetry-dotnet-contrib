@@ -131,7 +131,7 @@ function FindComponentOwners {
       foreach ($match in $ownerMatches)
       {
         $owner = $match.Groups[1].Value
-        $componentOwners.Value.Add($owner.Trim())
+        [void]$componentOwners.Value.Add($owner.Trim())
       }
     }
   }
