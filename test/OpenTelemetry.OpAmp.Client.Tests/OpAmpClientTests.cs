@@ -325,18 +325,10 @@ public class OpAmpClientTests
     [Fact]
     internal async Task SendsRemoteConfigStatus_IsDisabledAndThrows()
     {
-        using var opAmpServer = new OpAmpFakeHttpServer(false);
-        var opAmpEndpoint = opAmpServer.Endpoint;
+        using var client = new OpAmpClient(o => o.Heartbeat.IsEnabled = false);
+        var statusReport = new RemoteConfigStatusReport(new byte[] { 1, 2, 3 }, RemoteConfigStatusCode.Applied);
 
-        using var client = new OpAmpClient(o =>
-        {
-            o.ServerUrl = opAmpEndpoint;
-        });
-
-        await client.StartAsync();
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            client.SendRemoteConfigStatusAsync(new RemoteConfigStatusReport(new byte[] { 1, 2, 3 }, RemoteConfigStatusCode.Applied)));
-        await client.StopAsync();
+        await Assert.ThrowsAsync<InvalidOperationException>(() => client.SendRemoteConfigStatusAsync(statusReport));
     }
 
     [Fact]
