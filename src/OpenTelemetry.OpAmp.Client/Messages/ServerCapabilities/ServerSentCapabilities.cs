@@ -4,7 +4,7 @@
 namespace OpenTelemetry.OpAmp.Client.Messages;
 
 /// <summary>
-/// Indicates the capabilities that the server is capable of accepting.
+/// Indicates the capabilities supported by the server.
 /// </summary>
 [Flags]
 #pragma warning disable CA1028 // Enum Storage should be Int32. ServerToAgent is using ulong backing.
