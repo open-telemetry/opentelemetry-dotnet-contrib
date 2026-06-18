@@ -11,6 +11,9 @@
 * Fix `IndexOutOfRangeException` if the extension key limit is reached.
   ([#4442](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4442))
 
+* Updated OpenTelemetry core component version(s) to `1.16.0`.
+  ([#4487](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4487))
+
 ## 1.15.1
 
 Released 2026-Apr-21
