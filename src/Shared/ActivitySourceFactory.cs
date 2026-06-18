@@ -6,8 +6,6 @@ using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Trace;
 
-// TODO Temporary comment to validate this PR
-
 internal static class ActivitySourceFactory
 {
     /// <summary>
