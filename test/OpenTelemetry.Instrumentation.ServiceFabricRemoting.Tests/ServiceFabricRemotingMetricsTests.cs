@@ -12,6 +12,9 @@ using ServiceFabric.Mocks.RemotingV2;
 
 namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests;
 
+// Builds TracerProviders, so it shares the same collection as ServiceFabricRemotingTests to avoid
+// concurrent TracerProvider churn on the instrumentation's process-wide static ActivitySource.
+[Collection("TracerProviderDependent")]
 public class ServiceFabricRemotingMetricsTests
 {
     private const string ExpectedRpcSystemName = "service_fabric_remoting";
