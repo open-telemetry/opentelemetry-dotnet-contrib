@@ -54,7 +54,7 @@ public class TruncatingStringBuilderTests
 
         // Fill up to 250 characters
         var segment = new string('a', 50);
-        for (int i = 0; i < 5; i++)
+        for (var i = 0; i < 5; i++)
         {
             builder.Append(segment);
         }

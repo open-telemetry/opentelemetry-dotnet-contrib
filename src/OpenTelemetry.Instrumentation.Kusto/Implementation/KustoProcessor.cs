@@ -139,7 +139,7 @@ internal static class KustoProcessor
         {
             if (node != null)
             {
-                for (int i = 0; i < node.ChildCount; i++)
+                for (var i = 0; i < node.ChildCount; i++)
                 {
                     if (node.GetChild(i) is SyntaxNode child)
                     {
@@ -240,7 +240,7 @@ internal static class KustoProcessor
         {
             if (node != null)
             {
-                for (int i = 0; i < node.ChildCount; i++)
+                for (var i = 0; i < node.ChildCount; i++)
                 {
                     if (node.GetChild(i) is SyntaxNode child)
                     {

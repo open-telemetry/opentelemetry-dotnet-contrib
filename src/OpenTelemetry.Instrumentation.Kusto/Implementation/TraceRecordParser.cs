@@ -21,7 +21,7 @@ internal class TraceRecordParser
     public static ParsedRequestStart ParseRequestStart(ReadOnlySpan<char> message)
     {
         var uri = ExtractValueBetween(message, "Uri=").ToString();
-        _ = Uri.TryCreate(uri, UriKind.Absolute, out Uri? parsed);
+        _ = Uri.TryCreate(uri, UriKind.Absolute, out var parsed);
         var database = ExtractValueBetween(message, "DatabaseName=");
 
         // Query text may have embedded delimiters, however it is always the last field in the message
