@@ -4,6 +4,8 @@
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 
+// TODO Temporary comment to validate this PR
+
 internal class Program
 {
     public static void Main()
