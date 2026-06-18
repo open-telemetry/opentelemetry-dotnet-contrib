@@ -4,7 +4,7 @@
 
 * Serialize WebSocket writes so an outbound message no longer races the
   receiver's oversized-message close to avoid faulting the receive loop.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#4532](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4532))
 
 ## 0.4.0-alpha.1
 

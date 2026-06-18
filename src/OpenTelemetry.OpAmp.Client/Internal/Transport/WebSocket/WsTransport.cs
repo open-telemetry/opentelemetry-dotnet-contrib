@@ -127,15 +127,15 @@ internal sealed class WsTransport : IOpAmpTransport, IDisposable
     {
         this.ThrowIfDisposed();
 
-        if (this.webSocket.State is not (WebSocketState.Open or WebSocketState.CloseReceived))
-        {
-            return;
-        }
-
         await this.sendLock.WaitAsync(token).ConfigureAwait(false);
 
         try
         {
+            if (this.webSocket.State is not (WebSocketState.Open or WebSocketState.CloseReceived))
+            {
+                return;
+            }
+
             // Use CloseOutputAsync (send-only) rather than CloseAsync (send + wait for server
             // close frame). CloseAsync also calls ReceiveAsync internally, which conflicts with
             // the concurrent ReceiveAsync in WsReceiver and can hang on .NET Framework. The
