@@ -21,6 +21,8 @@ internal sealed class WsTransport : IOpAmpTransport, IDisposable
     private readonly ClientWebSocket webSocket;
     private readonly WsReceiver receiver;
     private readonly WsTransmitter transmitter;
+    private readonly SemaphoreSlim sendLock = new(1, 1);
+
     private int startState;
     private bool disposed;
 
@@ -45,8 +47,8 @@ internal sealed class WsTransport : IOpAmpTransport, IDisposable
 
         this.uri = settings.ServerUrl;
         this.webSocket = webSocket;
-        this.receiver = new WsReceiver(this.webSocket, processor);
-        this.transmitter = new WsTransmitter(this.webSocket);
+        this.receiver = new WsReceiver(this.webSocket, processor, this.sendLock);
+        this.transmitter = new WsTransmitter(this.webSocket, this.sendLock);
     }
 
     /// <summary>
@@ -130,6 +132,8 @@ internal sealed class WsTransport : IOpAmpTransport, IDisposable
             return;
         }
 
+        await this.sendLock.WaitAsync(token).ConfigureAwait(false);
+
         try
         {
             // Use CloseOutputAsync (send-only) rather than CloseAsync (send + wait for server
@@ -143,6 +147,10 @@ internal sealed class WsTransport : IOpAmpTransport, IDisposable
         catch (WebSocketException ex)
         {
             OpAmpClientEventSource.Log.TransportCloseException(ex);
+        }
+        finally
+        {
+            this.sendLock.Release();
         }
     }
 
@@ -187,6 +195,7 @@ internal sealed class WsTransport : IOpAmpTransport, IDisposable
         finally
         {
             this.webSocket.Dispose();
+            this.sendLock.Dispose();
         }
     }
 
