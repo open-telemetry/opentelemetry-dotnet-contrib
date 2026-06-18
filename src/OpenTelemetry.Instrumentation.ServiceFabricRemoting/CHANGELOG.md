@@ -8,6 +8,18 @@
   OpenTelemetry RPC metrics semantic conventions.
   ([#4163](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4163))
 
+## 1.16.0-beta.1
+
+Released 2026-Jun-16
+
+* Raised the minimum required version of `Microsoft.ServiceFabric.Actors` and
+  `Microsoft.ServiceFabric.Services.Remoting` from `7.1.2448` to `8.4.268`, as the
+  `7.1` Service Fabric runtime is going out of support.
+  ([#4510](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4510))
+
+* Updated OpenTelemetry core component version(s) to `1.16.0`.
+  ([#4487](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4487))
+
 ## 1.15.1-beta.1
 
 Released 2026-Apr-21

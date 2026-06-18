@@ -31,7 +31,7 @@ internal partial class AWSSemanticConventions
     /// to use it.  This helps ensure the attribute doesn't get used if the user has specified
     /// a specific <see cref="SemanticConventionVersion"/>.
     ///
-    /// See <see cref="GetSemanticConventionVersion"/> for details.
+    /// See <see cref="CreateSemanticConventionVersion"/> for details.
     /// </summary>
     private abstract class AWSSemanticConventionsBase
     {
