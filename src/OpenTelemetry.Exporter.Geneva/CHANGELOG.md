@@ -2,10 +2,8 @@
 
 ## Unreleased
 
-* Fixed `TlvMetricExporter` (used by the MessagePack/TLV `GenevaMetricExporter`)
-  dropping dimensions inherited from the instrumentation scope (`Meter` tags).
-  Meter-level tags are now exported as metric dimensions alongside the
-  `MetricPoint` tags and prepopulated dimensions.
+* Fixed `TlvMetricExporter` dropping dimensions inherited from the
+  instrumentation scope (`Meter` tags).
   ([#4540](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4540))
 
 * Updated OpenTelemetry core component version(s) to `1.16.0`.
