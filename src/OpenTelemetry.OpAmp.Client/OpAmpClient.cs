@@ -154,6 +154,28 @@ public sealed class OpAmpClient : IDisposable
     }
 
     /// <summary>
+    /// Reports the status of a remote configuration previously received from the OpAMP server.
+    /// </summary>
+    /// <param name="statusReport">The remote configuration status report.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A task that represents the asynchronous send operation.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if remote configuration status reporting is not enabled in settings.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown if the client has already been disposed.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="statusReport"/> is null.</exception>
+    public Task SendRemoteConfigStatusAsync(RemoteConfigStatusReport statusReport, CancellationToken cancellationToken = default)
+    {
+        this.ThrowIfDisposed();
+        Guard.ThrowIfNull(statusReport);
+
+        if (!this.settings.RemoteConfiguration.ReportsRemoteConfigStatus)
+        {
+            throw new InvalidOperationException("Remote configuration status reporting is not enabled in settings.");
+        }
+
+        return this.dispatcher.DispatchRemoteConfigStatusAsync(statusReport, cancellationToken);
+    }
+
+    /// <summary>
     /// Reports custom capabilities supported by the agent.
     /// </summary>
     /// <param name="capabilities">Capabilities list.</param>
