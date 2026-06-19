@@ -94,6 +94,18 @@ Currently, the instrumentation supports the following metric:
 This instrumentation can be configured to change the default behavior by using
 `KustoInstrumentationOptions`.
 
+### Capturing query text
+
+`RecordQueryText` and `RecordQuerySummary` rely on the Kusto client emitting the
+query text in its trace output, which it only does when the
+`KUSTO_DATA_TRACE_REQUEST_BODY` environment variable is set to `1`. The client
+reads this variable once, so it must be set before any Kusto client is created.
+The instrumentation deliberately does not set it, because doing so would enable
+query-body tracing process-wide as a side effect; that is left to the host as a
+deliberate choice. If either option is enabled without the variable set, no query
+text or summary is recorded and a warning is written to the
+`OpenTelemetry-Instrumentation-Kusto` event source.
+
 ### RecordQueryText
 
 This option can be set to instruct the instrumentation to record the sanitized

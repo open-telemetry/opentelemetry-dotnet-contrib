@@ -14,8 +14,6 @@ internal static class KustoInstrumentation
 {
     private static readonly Lazy<ITraceListener> Listener = new(() =>
     {
-        Environment.SetEnvironmentVariable("KUSTO_DATA_TRACE_REQUEST_BODY", "1");
-
         var listener = new KustoTraceRecordListener();
         TraceSourceManager.AddTraceListener(listener, startupDone: true);
 

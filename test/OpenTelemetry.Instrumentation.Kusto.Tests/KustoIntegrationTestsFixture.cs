@@ -10,6 +10,14 @@ public sealed class KustoIntegrationTestsFixture : IAsyncLifetime
 {
     private static readonly string KustoImage = GetKustoImage();
 
+    static KustoIntegrationTestsFixture()
+    {
+        // The instrumentation deliberately does not set this; query-body tracing is enabled here (by the host)
+        // so the Kusto client emits the query text the instrumentation parses. The client reads it once, so
+        // set it before any client is created.
+        Environment.SetEnvironmentVariable("KUSTO_DATA_TRACE_REQUEST_BODY", "1");
+    }
+
     public KustoContainer DatabaseContainer { get; } = CreateKusto();
 
     public KustoConnectionStringBuilder ConnectionStringBuilder => new(this.DatabaseContainer.GetConnectionString());
