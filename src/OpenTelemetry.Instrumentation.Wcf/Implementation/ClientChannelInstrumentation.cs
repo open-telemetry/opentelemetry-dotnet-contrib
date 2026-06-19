@@ -19,19 +19,25 @@ internal static class ClientChannelInstrumentation
             return new() { SuppressionScope = SuppressDownstreamInstrumentation(options) };
         }
 
+        var action = request.Headers.Action ?? string.Empty;
+        var actionMetadata = GetActionMetadata(request, action);
+        var remoteAddressUri = request.Headers.To ?? remoteChannelAddress;
+
+        // Add RPC and network tags at span creation time so that they are available for sampling decisions.
+        // See https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/rpc/rpc-spans.md.
         var activitySource = WcfInstrumentationActivitySource.Get(options);
         var activity = activitySource.StartActivity(
             WcfInstrumentationActivitySource.OutgoingRequestActivityName,
-            ActivityKind.Client);
+            ActivityKind.Client,
+            parentContext: default,
+            tags: CreateActivityTags(options, actionMetadata, remoteAddressUri));
 
         var suppressionScope = SuppressDownstreamInstrumentation(options);
 
         if (activity != null)
         {
-            var action = string.Empty;
-            if (!string.IsNullOrEmpty(request.Headers.Action))
+            if (!string.IsNullOrEmpty(action))
             {
-                action = request.Headers.Action;
                 activity.DisplayName = action;
             }
 
@@ -42,51 +48,6 @@ internal static class ClientChannelInstrumentation
 
             if (activity.IsAllDataRequested)
             {
-                var actionMetadata = GetActionMetadata(request, action);
-
-                if (options?.EmitOldRpcAttributes == true)
-                {
-                    activity.SetTag(SemanticConventions.AttributeRpcMethod, actionMetadata.OperationName);
-                    activity.SetTag(SemanticConventions.AttributeRpcSystem, WcfInstrumentationConstants.WcfSystemValue);
-                    activity.SetTag(SemanticConventions.AttributeRpcService, actionMetadata.ContractName);
-                }
-
-                if (options?.EmitNewRpcAttributes == true)
-                {
-                    activity.SetTag(SemanticConventions.AttributeRpcMethod, WcfInstrumentationConstants.GetRpcMethod(actionMetadata.ContractName, actionMetadata.OperationName));
-                    activity.SetTag(SemanticConventions.AttributeRpcSystemName, WcfInstrumentationConstants.WcfSystemValue);
-                }
-
-                var remoteAddressUri = request.Headers.To ?? remoteChannelAddress;
-                if (remoteAddressUri != null)
-                {
-                    if (options?.EmitOldRpcAttributes is true)
-                    {
-                        activity.SetTag(SemanticConventions.AttributeNetPeerName, remoteAddressUri.Host);
-                        activity.SetTag(SemanticConventions.AttributeNetPeerPort, remoteAddressUri.Port);
-                    }
-
-                    if (options?.EmitNewRpcAttributes is true)
-                    {
-                        activity.SetTag(SemanticConventions.AttributeServerAddress, remoteAddressUri.Host);
-                        activity.SetTag(SemanticConventions.AttributeServerPort, remoteAddressUri.Port);
-
-                        if (remoteAddressUri.Host is { Length: > 0 } host)
-                        {
-                            var uriHostNameType = Uri.CheckHostName(host);
-
-                            if (uriHostNameType is UriHostNameType.IPv4 or UriHostNameType.IPv6)
-                            {
-                                activity.SetTag(SemanticConventions.AttributeNetworkPeerAddress, host);
-                                activity.SetTag(SemanticConventions.AttributeNetworkPeerPort, remoteAddressUri.Port);
-                            }
-                        }
-                    }
-
-                    activity.SetTag(WcfInstrumentationConstants.AttributeWcfChannelScheme, remoteAddressUri.Scheme);
-                    activity.SetTag(WcfInstrumentationConstants.AttributeWcfChannelPath, remoteAddressUri.LocalPath);
-                }
-
                 if (options?.SetSoapMessageVersion == true)
                 {
                     activity.SetTag(WcfInstrumentationConstants.AttributeSoapMessageVersion, request.Version.ToString());
@@ -174,6 +135,62 @@ internal static class ClientChannelInstrumentation
 
             activity.Stop();
         }
+    }
+
+    private static List<KeyValuePair<string, object?>> CreateActivityTags(
+        WcfInstrumentationOptions? options,
+        ActionMetadata actionMetadata,
+        Uri? remoteAddressUri)
+    {
+        var tags = new List<KeyValuePair<string, object?>>();
+
+        if (options?.EmitOldRpcAttributes is true)
+        {
+            tags.Add(new(SemanticConventions.AttributeRpcSystem, WcfInstrumentationConstants.WcfSystemValue));
+            tags.Add(new(SemanticConventions.AttributeRpcService, actionMetadata.ContractName));
+
+            if (options.EmitNewRpcAttributes is not true)
+            {
+                tags.Add(new(SemanticConventions.AttributeRpcMethod, actionMetadata.OperationName));
+            }
+        }
+
+        if (options?.EmitNewRpcAttributes is true)
+        {
+            tags.Add(new(SemanticConventions.AttributeRpcMethod, WcfInstrumentationConstants.GetRpcMethod(actionMetadata.ContractName, actionMetadata.OperationName)));
+            tags.Add(new(SemanticConventions.AttributeRpcSystemName, WcfInstrumentationConstants.WcfSystemValue));
+        }
+
+        if (remoteAddressUri != null)
+        {
+            if (options?.EmitOldRpcAttributes is true)
+            {
+                tags.Add(new(SemanticConventions.AttributeNetPeerName, remoteAddressUri.Host));
+                tags.Add(new(SemanticConventions.AttributeNetPeerPort, remoteAddressUri.Port));
+            }
+
+            if (options?.EmitNewRpcAttributes is true)
+            {
+                tags.Add(new(SemanticConventions.AttributeServerAddress, remoteAddressUri.Host));
+                tags.Add(new(SemanticConventions.AttributeServerPort, remoteAddressUri.Port));
+
+                if (remoteAddressUri.Host is { Length: > 0 } host)
+                {
+                    var uriHostNameType = Uri.CheckHostName(host);
+
+                    if (uriHostNameType is UriHostNameType.IPv4 or UriHostNameType.IPv6)
+                    {
+                        tags.Add(new(SemanticConventions.AttributeNetworkPeerAddress, host));
+                        tags.Add(new(SemanticConventions.AttributeNetworkPeerPort, remoteAddressUri.Port));
+                    }
+                }
+            }
+
+            tags.Add(new(WcfInstrumentationConstants.AttributeWcfChannelScheme, remoteAddressUri.Scheme));
+            tags.Add(new(WcfInstrumentationConstants.AttributeWcfChannelPath, remoteAddressUri.LocalPath));
+        }
+
+        return tags;
     }
 
     private static IDisposable? SuppressDownstreamInstrumentation(WcfInstrumentationOptions? options) =>

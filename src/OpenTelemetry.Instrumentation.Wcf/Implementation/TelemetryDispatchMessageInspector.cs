@@ -55,78 +55,33 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
         var textMapPropagator = Propagators.DefaultTextMapPropagator;
         var ctx = textMapPropagator.Extract(default, request, WcfInstrumentationActivitySource.MessageHeaderValuesGetter);
 
+        var action = request.Headers.Action ?? string.Empty;
+        if (!this.actionMappings.TryGetValue(action, out var actionMetadata))
+        {
+            actionMetadata = new ActionMetadata(
+                contractName: null,
+                operationName: action);
+        }
+
+        // Add RPC and network tags at span creation time so that they are available for sampling decisions.
+        // See https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/rpc/rpc-spans.md.
         var activitySource = WcfInstrumentationActivitySource.Get(options);
         var activity = activitySource.StartActivity(
             WcfInstrumentationActivitySource.IncomingRequestActivityName,
             ActivityKind.Server,
-            ctx.ActivityContext);
+            ctx.ActivityContext,
+            CreateActivityTags(options, actionMetadata, request, channel));
 
         if (activity != null)
         {
-            string action;
-            if (!string.IsNullOrEmpty(request.Headers.Action))
+            if (!string.IsNullOrEmpty(action))
             {
-                action = request.Headers.Action;
                 activity.DisplayName = action;
-            }
-            else
-            {
-                action = string.Empty;
             }
 
             if (activity.IsAllDataRequested)
             {
-                if (!this.actionMappings.TryGetValue(action, out var actionMetadata))
-                {
-                    actionMetadata = new ActionMetadata(
-                        contractName: null,
-                        operationName: action);
-                }
-
-                if (options.EmitOldRpcAttributes)
-                {
-                    activity.SetTag(SemanticConventions.AttributeRpcMethod, actionMetadata.OperationName);
-                    activity.SetTag(SemanticConventions.AttributeRpcSystem, WcfInstrumentationConstants.WcfSystemValue);
-                    activity.SetTag(SemanticConventions.AttributeRpcService, actionMetadata.ContractName);
-                }
-
-                if (options.EmitNewRpcAttributes)
-                {
-                    activity.SetTag(SemanticConventions.AttributeRpcMethod, WcfInstrumentationConstants.GetRpcMethod(actionMetadata.ContractName, actionMetadata.OperationName));
-                    activity.SetTag(SemanticConventions.AttributeRpcSystemName, WcfInstrumentationConstants.WcfSystemValue);
-                }
-
-                var localAddressUri = channel.LocalAddress?.Uri;
-                if (localAddressUri != null)
-                {
-                    if (options?.EmitOldRpcAttributes is true)
-                    {
-                        activity.SetTag(SemanticConventions.AttributeNetHostName, localAddressUri.Host);
-                        activity.SetTag(SemanticConventions.AttributeNetHostPort, localAddressUri.Port);
-                    }
-
-                    if (options?.EmitNewRpcAttributes is true)
-                    {
-                        activity.SetTag(SemanticConventions.AttributeServerAddress, localAddressUri.Host);
-                        activity.SetTag(SemanticConventions.AttributeServerPort, localAddressUri.Port);
-
-                        if (localAddressUri.Host is { Length: > 0 } host)
-                        {
-                            var uriHostNameType = Uri.CheckHostName(host);
-
-                            if (uriHostNameType is UriHostNameType.IPv4 or UriHostNameType.IPv6)
-                            {
-                                activity.SetTag(SemanticConventions.AttributeNetworkPeerAddress, host);
-                                activity.SetTag(SemanticConventions.AttributeNetworkPeerPort, localAddressUri.Port);
-                            }
-                        }
-                    }
-
-                    activity.SetTag(WcfInstrumentationConstants.AttributeWcfChannelScheme, localAddressUri.Scheme);
-                    activity.SetTag(WcfInstrumentationConstants.AttributeWcfChannelPath, localAddressUri.LocalPath);
-                }
-
-                if (options?.SetSoapMessageVersion == true)
+                if (options.SetSoapMessageVersion)
                 {
                     activity.SetTag(WcfInstrumentationConstants.AttributeSoapMessageVersion, request.Version.ToString());
                 }
@@ -208,6 +163,64 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
                 Baggage.Current = default;
             }
         }
+    }
+
+    private static List<KeyValuePair<string, object?>> CreateActivityTags(
+        WcfInstrumentationOptions options,
+        ActionMetadata actionMetadata,
+        Message request,
+        IClientChannel channel)
+    {
+        var tags = new List<KeyValuePair<string, object?>>();
+
+        if (options.EmitOldRpcAttributes)
+        {
+            tags.Add(new(SemanticConventions.AttributeRpcSystem, WcfInstrumentationConstants.WcfSystemValue));
+            tags.Add(new(SemanticConventions.AttributeRpcService, actionMetadata.ContractName));
+
+            if (!options.EmitNewRpcAttributes)
+            {
+                tags.Add(new(SemanticConventions.AttributeRpcMethod, actionMetadata.OperationName));
+            }
+        }
+
+        if (options.EmitNewRpcAttributes)
+        {
+            tags.Add(new(SemanticConventions.AttributeRpcMethod, WcfInstrumentationConstants.GetRpcMethod(actionMetadata.ContractName, actionMetadata.OperationName)));
+            tags.Add(new(SemanticConventions.AttributeRpcSystemName, WcfInstrumentationConstants.WcfSystemValue));
+        }
+
+        var localAddressUri = channel.LocalAddress?.Uri;
+        if (localAddressUri != null)
+        {
+            if (options.EmitOldRpcAttributes)
+            {
+                tags.Add(new(SemanticConventions.AttributeNetHostName, localAddressUri.Host));
+                tags.Add(new(SemanticConventions.AttributeNetHostPort, localAddressUri.Port));
+            }
+
+            if (options.EmitNewRpcAttributes)
+            {
+                tags.Add(new(SemanticConventions.AttributeServerAddress, localAddressUri.Host));
+                tags.Add(new(SemanticConventions.AttributeServerPort, localAddressUri.Port));
+            }
+
+            tags.Add(new(WcfInstrumentationConstants.AttributeWcfChannelScheme, localAddressUri.Scheme));
+            tags.Add(new(WcfInstrumentationConstants.AttributeWcfChannelPath, localAddressUri.LocalPath));
+        }
+
+        // On a server span, network.peer.* describes the remote client peer rather than the local
+        // listen address, so it is derived from the transport's remote endpoint when available.
+        if (options.EmitNewRpcAttributes &&
+            request.Properties.TryGetValue(RemoteEndpointMessageProperty.Name, out var property) &&
+            property is RemoteEndpointMessageProperty remoteEndpoint &&
+            !string.IsNullOrEmpty(remoteEndpoint.Address))
+        {
+            tags.Add(new(SemanticConventions.AttributeNetworkPeerAddress, remoteEndpoint.Address));
+            tags.Add(new(SemanticConventions.AttributeNetworkPeerPort, remoteEndpoint.Port));
+        }
+
+        return tags;
     }
 }
 
