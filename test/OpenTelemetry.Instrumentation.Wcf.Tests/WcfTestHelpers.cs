@@ -21,9 +21,6 @@ internal static class WcfTestHelpers
         new("missing_attribute", "Attribute 'soap.reply_action' does not exist in the registry."),
         new("missing_attribute", "Attribute 'wcf.channel.path' does not exist in the registry."),
         new("missing_attribute", "Attribute 'wcf.channel.scheme' does not exist in the registry."),
-        //// Users have to opt-in to these attributes
-        new("not_stable", "Attribute 'rpc.method' is not stable; stability = release_candidate."),
-        new("not_stable", "Attribute 'rpc.system.name' is not stable; stability = release_candidate."),
         //// Custom value
         new("undefined_enum_variant", "Enum attribute 'rpc.system.name' has value 'dotnet_wcf' which is not documented."),
     ];

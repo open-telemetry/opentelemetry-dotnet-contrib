@@ -155,29 +155,32 @@ public static class WeaverTelemetryVerifier
             var finding = $"[{advice.Level}] {advice.Id}: {advice.Message}";
             findings.Add(finding);
 
-            var ignore = false;
-
-            if (advice.Id is { Length: > 0 } id)
+            if (advice.Level is not ("improvement" or "information"))
             {
-                if (suppressAdvice.Contains(new(id, null)))
-                {
-                    ignore = true;
-                }
-                else if (suppressAdvice.Contains(new(id, advice.Message)))
-                {
-                    ignore = true;
-                }
-                else if (advice.ExtensionData.TryGetValue("signal_name", out var extensionValue) &&
-                         extensionValue.ValueKind == JsonValueKind.String &&
-                         suppressAdvice.Contains(new(id, extensionValue.GetString())))
-                {
-                    ignore = true;
-                }
-            }
+                var ignore = false;
 
-            if (!ignore)
-            {
-                violations.Add(finding);
+                if (advice.Id is { Length: > 0 } id)
+                {
+                    if (suppressAdvice.Contains(new(id, null)))
+                    {
+                        ignore = true;
+                    }
+                    else if (suppressAdvice.Contains(new(id, advice.Message)))
+                    {
+                        ignore = true;
+                    }
+                    else if (advice.ExtensionData.TryGetValue("signal_name", out var extensionValue) &&
+                             extensionValue.ValueKind == JsonValueKind.String &&
+                             suppressAdvice.Contains(new(id, extensionValue.GetString())))
+                    {
+                        ignore = true;
+                    }
+                }
+
+                if (!ignore)
+                {
+                    violations.Add(finding);
+                }
             }
         }
 
