@@ -38,7 +38,7 @@ public static class TracerProviderBuilderExtensions
             builder.ConfigureServices(services => services.Configure(configure));
         }
 
-        // Eagerly register the trace listener with the Kusto client library so it is in place before any clients are created.
+        // Accessing Listener registers the trace listener with the Kusto client library, so it is in place before any clients are created.
         var listener = KustoInstrumentation.Listener;
 
         builder.AddInstrumentation(sp =>
