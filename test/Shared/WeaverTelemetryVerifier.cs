@@ -157,7 +157,7 @@ public static class WeaverTelemetryVerifier
 
             if (advice.Level is not ("improvement" or "information"))
             {
-                bool ignore = false;
+                var ignore = false;
 
                 if (advice.Id is { Length: > 0 } id)
                 {
