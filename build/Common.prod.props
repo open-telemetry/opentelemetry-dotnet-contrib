@@ -26,7 +26,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="$(AssemblyName).Tests" PublicKey="$(StrongNamePublicKey)" />
+    <!-- Strong-named (signed) assemblies require the friend assembly's public key; unsigned assemblies
+    (SignAssembly=false) must omit it, otherwise the unsigned test assembly cannot match the key. -->
+    <InternalsVisibleTo Include="$(AssemblyName).Tests" PublicKey="$(StrongNamePublicKey)" Condition=" '$(SignAssembly)' == 'true' " />
+    <InternalsVisibleTo Include="$(AssemblyName).Tests" Condition=" '$(SignAssembly)' != 'true' " />
   </ItemGroup>
 
   <Target Name="AssemblyVersionTarget" AfterTargets="MinVer" Condition="'$(MinVerVersion)'!=''">

@@ -12,10 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Override Common.prod.props InternalsVisibleTo which specifies PublicKey.
-    This assembly is unsigned (SignAssembly=false) so the test assembly has no
-    matching key. Redeclare without PublicKey to allow friend access. -->
-    <InternalsVisibleTo Include="$(AssemblyName).Tests" />
+    <!-- Unsigned package: benchmarks friend access is keyless (the .Tests IVT comes from Common.prod.props). -->
     <InternalsVisibleTo Include="$(AssemblyName).Benchmarks" />
   </ItemGroup>
 
