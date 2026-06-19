@@ -356,7 +356,7 @@ public class KustoQueryParserTests
         },
 
         // Materialized view
-        // NOTE: Ideally the summarizer would strip "Condition", but it this context it is ambiguous with a table reference. Given the prevalence of this type of query,
+        // NOTE: Ideally the summarizer would strip "Condition", but in this context it is ambiguous with a table reference. Given the prevalence of this type of query,
         // codifying the behavior for now. If this becomes a problem we can revisit.
         {
             "database('*').materialized_view('ViewName') | where Condition == 'Value'",
