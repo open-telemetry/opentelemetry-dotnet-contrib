@@ -13,14 +13,53 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       with:
-        filter: 'tree:0'
+        fetch-depth: 0
         persist-credentials: false
         show-progress: false
 
+    - name: Check changed files
+      id: check
+      shell: pwsh
+      run: |
+        $baseRef = if (${env:GITHUB_BASE_REF}) { "origin/${env:GITHUB_BASE_REF}" } else { "HEAD~1" }
+        $changedFiles = git diff --name-only "$baseRef...HEAD"
+
+        if ($changedFiles -contains 'global.json') {
+          Write-Output "global.json was changed - checking all files."
+          "run-format=true" >> ${env:GITHUB_OUTPUT}
+          "include-args=" >> ${env:GITHUB_OUTPUT}
+        } else {
+          $csFiles = $changedFiles | Where-Object { $_ -match '\.cs$' }
+
+          if (-not $csFiles) {
+            Write-Output "No C# files changed."
+            "run-format=false" >> ${env:GITHUB_OUTPUT}
+          } else {
+            Write-Output "Checking: $csFiles"
+            "run-format=true" >> ${env:GITHUB_OUTPUT}
+            "include-args=$($csFiles -join ' ')" >> ${env:GITHUB_OUTPUT}
+          }
+        }
+
     - name: Setup .NET
+      if: steps.check.outputs.run-format == 'true'
       uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5.3.0
 
     - name: dotnet format
-      run: dotnet format opentelemetry-dotnet-contrib.slnx --verify-no-changes
+      if: steps.check.outputs.run-format == 'true'
+      shell: pwsh
+      env:
+        INCLUDE_FILES: ${{ steps.check.outputs.include-args }}
+      run: |
+        $formatArgs = @(
+          'opentelemetry-dotnet-contrib.slnx',
+          '--verify-no-changes'
+        )
+
+        if (${env:INCLUDE_FILES}) {
+          $formatArgs += @('--include') + ${env:INCLUDE_FILES}.Split(' ')
+        }
+
+        dotnet format $formatArgs

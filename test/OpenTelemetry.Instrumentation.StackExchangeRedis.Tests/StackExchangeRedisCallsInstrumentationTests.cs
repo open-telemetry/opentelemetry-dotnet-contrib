@@ -162,9 +162,9 @@ public class StackExchangeRedisCallsInstrumentationTests(RedisXunitFixture fixtu
             // TODO VerifySamplingParameters(sampler.LatestSamplingParameters);
         }
 
-        string? expectedSchemaUrl = (emitOldAttributes, emitNewAttributes) switch
+        var expectedSchemaUrl = (emitOldAttributes, emitNewAttributes) switch
         {
-            (false, true) => "https://opentelemetry.io/schemas/1.28.0",
+            (false, true) => "https://opentelemetry.io/schemas/1.42.0",
             (true, false) => "https://opentelemetry.io/schemas/1.23.0",
             _ => null,
         };

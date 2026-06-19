@@ -46,7 +46,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           # Note: By default GitHub only fetches 1 commit. MinVer needs to find
           # the version tag which is typically NOT on the first commit so we
@@ -180,11 +180,11 @@ jobs:
         working-directory: ./artifacts/package/release
         env:
           MYGET_TOKEN_EXISTS: ${{ secrets.MYGET_TOKEN != '' }}
-          API_KEY: ${{ secrets.MYGET_TOKEN }}
+          NUGET_API_KEY: ${{ secrets.MYGET_TOKEN }}
           SOURCE: https://www.myget.org/F/opentelemetry/api/v3/index.json
         if: env.MYGET_TOKEN_EXISTS == 'true' # Skip MyGet publish if run on a fork without the secret
         shell: pwsh
-        run: dotnet nuget push *.nupkg --api-key ${env:API_KEY} --skip-duplicate --source ${env:SOURCE}
+        run: dotnet nuget push *.nupkg --skip-duplicate --source ${env:SOURCE}
 
       - name: NuGet log in
         uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
@@ -199,11 +199,11 @@ jobs:
         working-directory: ./artifacts/package/release
         env:
           NUGET_TOKEN_EXISTS: ${{ steps.nuget-login.outputs.NUGET_API_KEY != '' }}
-          API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
+          NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
           SOURCE: https://api.nuget.org/v3/index.json
         if: github.ref_type == 'tag' && env.NUGET_TOKEN_EXISTS == 'true' # Skip NuGet publish for scheduled nightly builds or if run on a fork without the secret
         shell: pwsh
-        run: dotnet nuget push *.nupkg --api-key ${env:API_KEY} --skip-duplicate --source ${env:SOURCE}
+        run: dotnet nuget push *.nupkg --skip-duplicate --source ${env:SOURCE}
 
   post-build:
     name: Post build release tasks
@@ -226,7 +226,7 @@ jobs:
           permission-pull-requests: write
 
       - name: Checkout code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: true # zizmor: ignore[artipacked] Needed to push commits
           show-progress: false

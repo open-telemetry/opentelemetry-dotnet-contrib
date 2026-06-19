@@ -14,6 +14,13 @@
 * Fix enrich methods being called multiple times.
   ([#4015](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4015))
 
+* Updated OpenTelemetry core component version(s) to `1.16.0`.
+  ([#4487](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4487))
+
+* Add support for version [1.41.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/rpc/README.md)
+  of the Semantic Conventions for RPC/gRPC.
+  ([#4370](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4370))
+
 ## 1.15.2
 
 Released 2026-Apr-21

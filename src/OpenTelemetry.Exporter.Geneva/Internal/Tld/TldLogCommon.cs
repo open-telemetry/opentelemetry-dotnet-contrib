@@ -1,6 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if NET
+using System.Collections.Frozen;
+#endif
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
@@ -24,8 +27,13 @@ internal abstract class TldLogCommon : IDisposable
     protected readonly byte partAFieldsCount = 1; // At least one field: time
     protected readonly bool shouldPassThruTableMappings;
     protected readonly string defaultEventName = "Log";
+#if NET
+    protected readonly FrozenSet<string>? customFields;
+    protected readonly FrozenDictionary<string, string>? tableMappings;
+#else
     protected readonly HashSet<string>? customFields;
     protected readonly Dictionary<string, string>? tableMappings;
+#endif
     protected readonly ExceptionStackExportMode exceptionStackExportMode;
 
     private bool isDisposed;
@@ -57,7 +65,12 @@ internal abstract class TldLogCommon : IDisposable
                 }
             }
 
-            this.tableMappings = tempTableMappings;
+            this.tableMappings = tempTableMappings
+#if NET
+                .ToFrozenDictionary(StringComparer.Ordinal);
+#else
+                ;
+#endif
         }
 
         // TODO: Validate custom fields (reserved name? etc).
@@ -69,7 +82,11 @@ internal abstract class TldLogCommon : IDisposable
                 customFields.Add(name);
             }
 
+#if NET
+            this.customFields = customFields.ToFrozenSet(StringComparer.Ordinal);
+#else
             this.customFields = customFields;
+#endif
         }
 
         if (options.PrepopulatedFields != null)
@@ -155,7 +172,11 @@ internal abstract class TldLogCommon : IDisposable
     protected static void OnProcessScopeForIndividualColumns(
         LogRecordScope scope,
         SerializationDataForScopes stateDataValue,
+#if NET
+        FrozenSet<string>? customFields)
+#else
         HashSet<string>? customFields)
+#endif
     {
         Debug.Assert(stateDataValue != null, "state.serializationData was null");
         Debug.Assert(PartCFields.Value != null, "PartCFields.Value was null");
