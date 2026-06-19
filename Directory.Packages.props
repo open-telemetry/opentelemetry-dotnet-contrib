@@ -123,8 +123,8 @@
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.28" />
     <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="8.0.28" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="7.0.1" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.28" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.28" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.17" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.17" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="8.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.6.0" />
@@ -135,7 +135,7 @@
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageVersion Include="Newtonsoft.Json.Schema" Version="4.0.1" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
-    <PackageVersion Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.3" />
+    <PackageVersion Include="Pomelo.EntityFrameworkCore.MySql" Version="9.0.0" />
     <PackageVersion Include="ServiceFabric.Mocks" Version="8.0.7" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.2.1" />
     <PackageVersion Include="System.Reactive.Core" Version="6.1.0" />
