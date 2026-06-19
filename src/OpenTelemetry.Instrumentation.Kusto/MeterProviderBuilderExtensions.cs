@@ -24,6 +24,10 @@ public static class MeterProviderBuilderExtensions
     /// <summary>
     /// Enables Kusto instrumentation.
     /// </summary>
+    /// <remarks>
+    /// The Kusto client uses a single, process-wide trace listener, so all providers share one set of
+    /// options. When multiple providers configure the instrumentation, the most recent call wins.
+    /// </remarks>
     /// <param name="builder"><see cref="MeterProviderBuilder"/> being configured.</param>
     /// <param name="configure">Callback action for configuring <see cref="KustoMeterInstrumentationOptions"/>.</param>
     /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>

@@ -94,6 +94,14 @@ Currently, the instrumentation supports the following metric:
 This instrumentation can be configured to change the default behavior by using
 `KustoInstrumentationOptions`.
 
+### Multiple providers
+
+The Kusto client exposes a single, process-wide trace listener, so all
+`TracerProvider`s and `MeterProvider`s in a process share one set of
+options. When more than one provider configures the instrumentation, the
+most recent `AddKustoInstrumentation` call wins, so configure the options
+consistently across providers.
+
 ### Capturing query text
 
 `RecordQueryText` and `RecordQuerySummary` rely on the Kusto client emitting the
