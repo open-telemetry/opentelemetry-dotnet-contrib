@@ -1,9 +1,8 @@
-{
+﻿{
   Activities: [
     {
       ActivitySourceName: OpenTelemetry.Instrumentation.Kusto,
       DisplayName: KD.RestClient.ExecuteQuery,
-      Status: Ok,
       TagObjects: [
         {
           azure.kusto.client_request_id: cHJpbnQgbnVtYmVyPTQy

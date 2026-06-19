@@ -31,12 +31,6 @@ internal class TraceRecordParser
         return new ParsedRequestStart(parsed?.Host, parsed?.Port, database, queryText);
     }
 
-    public static ParsedActivityComplete ParseActivityComplete(ReadOnlySpan<char> message)
-    {
-        var howEnded = ExtractValueBetween(message, "HowEnded=");
-        return new ParsedActivityComplete(howEnded);
-    }
-
     public static ParsedException ParseException(ReadOnlySpan<char> message)
     {
         var errorMessage = ExtractValueBetween(message, "ErrorMessage=");
@@ -73,16 +67,6 @@ internal class TraceRecordParser
             this.ServerPort = serverPort;
             this.Database = database;
             this.QueryText = queryText;
-        }
-    }
-
-    internal readonly ref struct ParsedActivityComplete
-    {
-        public readonly ReadOnlySpan<char> HowEnded;
-
-        public ParsedActivityComplete(ReadOnlySpan<char> howEnded)
-        {
-            this.HowEnded = howEnded;
         }
     }
 

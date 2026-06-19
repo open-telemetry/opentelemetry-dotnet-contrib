@@ -218,15 +218,8 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
 
         var activity = context.Value.Activity;
 
-        var result = TraceRecordParser.ParseActivityComplete(record.Message.AsSpan());
-
         if (activity is not null)
         {
-            if (result.HowEnded.Equals("Success".AsSpan(), StringComparison.Ordinal))
-            {
-                activity.SetStatus(ActivityStatusCode.Ok);
-            }
-
             this.CallEnrichment(record);
             activity.Stop();
         }

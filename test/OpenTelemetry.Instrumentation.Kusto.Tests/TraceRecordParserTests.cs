@@ -44,24 +44,6 @@ public class TraceRecordParserTests
     }
 
     [Fact]
-    public void ParseActivityComplete()
-    {
-        const string message = "MonitoredActivityCompletedSuccessfully: ActivityType=KD.RestClient.ExecuteQuery, Timestamp=2025-12-01T02:30:30.0211167Z, ParentActivityId=52707aa6-de7f-42dd-adb9-bc3e6d976fa6, Duration=4316.802 [ms], HowEnded=Success";
-        var result = TraceRecordParser.ParseActivityComplete(message);
-
-        Assert.Equal("Success", result.HowEnded.ToString());
-    }
-
-    [Fact]
-    public void ParseActivityCompleteFailure()
-    {
-        const string message = "MonitoredActivityCompletedSuccessfully: ActivityType=KD.RestClient.ExecuteQuery, Timestamp=2025-12-01T02:30:30.0211167Z, ParentActivityId=52707aa6-de7f-42dd-adb9-bc3e6d976fa6, Duration=4316.802 [ms]";
-        var result = TraceRecordParser.ParseActivityComplete(message);
-
-        Assert.Equal(string.Empty, result.HowEnded.ToString());
-    }
-
-    [Fact]
     public void ParseException()
     {
         const string message =
