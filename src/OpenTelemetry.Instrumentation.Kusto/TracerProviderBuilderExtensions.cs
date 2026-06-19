@@ -52,7 +52,7 @@ public static class TracerProviderBuilderExtensions
             return listener.HandleManager.AddTracingHandle();
         });
 
-        builder.AddSource(KustoActivitySourceHelper.ActivitySourceName);
+        builder.AddSource(KustoActivitySource.ActivitySourceName);
 
         return builder;
     }

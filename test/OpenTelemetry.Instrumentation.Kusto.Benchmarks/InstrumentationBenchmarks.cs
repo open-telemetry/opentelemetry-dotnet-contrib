@@ -33,12 +33,12 @@ public class InstrumentationBenchmarks
     {
         // Setup TracerProvider with the Kusto activity source
         this.tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddSource(KustoActivitySourceHelper.ActivitySourceName)
+            .AddSource(KustoActivitySource.ActivitySourceName)
             .Build();
 
         // Setup MeterProvider with the Kusto meter
         this.meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddMeter(KustoActivitySourceHelper.MeterName)
+            .AddMeter(KustoMetrics.MeterName)
             .Build();
 
         // Create single listener for both traces and metrics

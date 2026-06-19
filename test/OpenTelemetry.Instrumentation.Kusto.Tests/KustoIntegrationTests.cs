@@ -203,7 +203,7 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
         // Regression guard (#3591 review): a failed query must record error.type on the duration metric,
         // not only on the span. It was previously lost because ContextData is a struct and the tag was
         // added to a discarded copy of its TagList.
-        var durationMetric = metrics.Single(m => m.MeterName == KustoActivitySourceHelper.MeterName && m.Name == "db.client.operation.duration");
+        var durationMetric = metrics.Single(m => m.MeterName == KustoMetrics.MeterName && m.Name == "db.client.operation.duration");
         var durationTags = new List<KeyValuePair<string, object?>>();
         foreach (ref readonly var metricPoint in durationMetric.GetMetricPoints())
         {
@@ -327,7 +327,7 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
 
         // Assert
         var kustoActivities = activities
-            .Where(activity => activity.Source == KustoActivitySourceHelper.ActivitySource)
+            .Where(activity => activity.Source == KustoActivitySource.ActivitySource)
             .ToList();
 
         Assert.Single(kustoActivities);
@@ -344,7 +344,7 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
 
     private static dynamic FilterActivities(IEnumerable<Activity> activities) =>
         activities
-            .Where(activity => activity.Source == KustoActivitySourceHelper.ActivitySource)
+            .Where(activity => activity.Source == KustoActivitySource.ActivitySource)
             .Select(activity => new
             {
                 ActivitySourceName = activity.Source.Name,
@@ -358,7 +358,7 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
 
     private static dynamic FilterMetrics(IEnumerable<Metric> metrics) =>
         metrics
-            .Where(metric => metric.MeterName == KustoActivitySourceHelper.MeterName)
+            .Where(metric => metric.MeterName == KustoMetrics.MeterName)
             .Select(metric => new
             {
                 metric.MeterName,

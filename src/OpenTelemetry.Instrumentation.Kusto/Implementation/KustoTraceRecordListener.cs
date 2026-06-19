@@ -152,17 +152,17 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
         var beginTimestamp = Stopwatch.GetTimestamp();
         var operationName = record.Activity.ActivityType;
 
-        var activity = KustoActivitySourceHelper.ActivitySource.StartActivity(operationName, ActivityKind.Client);
+        var activity = KustoActivitySource.ActivitySource.StartActivity(operationName, ActivityKind.Client);
         var meterTags = default(TagList);
 
         if (this.ShouldComputeTags(activity))
         {
             activity?.DisplayName = operationName;
-            activity?.AddTag(KustoActivitySourceHelper.ClientRequestIdTagKey, record.Activity.ClientRequestId.ToString());
+            activity?.AddTag(KustoSemanticConventions.ClientRequestIdTagKey, record.Activity.ClientRequestId.ToString());
 
-            activity?.AddTag(SemanticConventions.AttributeDbSystemName, KustoActivitySourceHelper.DbSystemNameValue);
+            activity?.AddTag(SemanticConventions.AttributeDbSystemName, KustoSemanticConventions.DbSystemNameValue);
             activity?.AddTag(SemanticConventions.AttributeDbOperationName, operationName);
-            meterTags.Add(SemanticConventions.AttributeDbSystemName, KustoActivitySourceHelper.DbSystemNameValue);
+            meterTags.Add(SemanticConventions.AttributeDbSystemName, KustoSemanticConventions.DbSystemNameValue);
             meterTags.Add(SemanticConventions.AttributeDbOperationName, operationName);
 
             var result = TraceRecordParser.ParseRequestStart(record.Message.AsSpan());
@@ -242,7 +242,7 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
         }
 
         var duration = activity?.Duration.TotalSeconds ?? GetElapsedTime(context.Value.BeginTimestamp);
-        KustoActivitySourceHelper.OperationDurationHistogram.Record(duration, context.Value.MeterTags);
+        KustoMetrics.OperationDurationHistogram.Record(duration, context.Value.MeterTags);
 
         this.contexts.TryRemove(record.Activity.ActivityId, out _);
     }
