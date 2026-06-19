@@ -356,7 +356,7 @@ public class OpAmpClientTests
     }
 
     [Fact]
-    internal async Task SendRemoteConfigStatus_SendsRepeatedStatusReports()
+    internal async Task SendsRemoteConfigStatus_SendsRepeatedStatusReports()
     {
         using var opAmpServer = new OpAmpFakeHttpServer(false);
         var opAmpEndpoint = opAmpServer.Endpoint;
