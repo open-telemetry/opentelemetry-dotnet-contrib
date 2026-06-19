@@ -146,6 +146,11 @@ internal sealed class FrameBuilder : IFrameBuilder
             capabilities |= AgentCapabilities.AcceptsRemoteConfig;
         }
 
+        if (this.settings.RemoteConfiguration.ReportsRemoteConfigStatus)
+        {
+            capabilities |= AgentCapabilities.ReportsRemoteConfig;
+        }
+
         if (this.settings.EffectiveConfigurationReporting.EnableReporting)
         {
             capabilities |= AgentCapabilities.ReportsEffectiveConfig;
@@ -208,6 +213,15 @@ internal sealed class FrameBuilder : IFrameBuilder
         };
 
         this.currentMessage.EffectiveConfig = effectiveConfig;
+
+        return this;
+    }
+
+    IFrameBuilder IFrameBuilder.AddRemoteConfigStatus(RemoteConfigStatusReport status)
+    {
+        this.EnsureInitialized();
+
+        this.currentMessage.RemoteConfigStatus = status.ToRemoteConfigStatus();
 
         return this;
     }

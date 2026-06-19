@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using System.IO.Compression;
+using System.Net;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
@@ -23,7 +25,7 @@ public class OneCollectorIntegrationTests
         this.testOutputHelper = output;
     }
 
-    [SkipUnlessEnvVarFoundFact(OneCollectorInstrumentationKeyEnvName)]
+    [Fact]
     public void LogWithEventIdAndNameIntegrationTest()
     {
         this.RunIntegrationTest(
@@ -54,7 +56,7 @@ public class OneCollectorIntegrationTests
             });
     }
 
-    [SkipUnlessEnvVarFoundFact(OneCollectorInstrumentationKeyEnvName)]
+    [Fact]
     public void LogWithEventNameOnlyIntegrationTest()
     {
         this.RunIntegrationTest(
@@ -85,7 +87,7 @@ public class OneCollectorIntegrationTests
             });
     }
 
-    [SkipUnlessEnvVarFoundFact(OneCollectorInstrumentationKeyEnvName)]
+    [Fact]
     public void LogWithDataIntegrationTest()
     {
 #pragma warning disable CA1873 // Avoid potentially expensive logging
@@ -113,7 +115,7 @@ public class OneCollectorIntegrationTests
             });
     }
 
-    [SkipUnlessEnvVarFoundTheory(OneCollectorInstrumentationKeyEnvName)]
+    [Theory]
     [InlineData(false)]
     [InlineData(true)]
     public void LogWithExceptionIntegrationTest(bool includeStackTrace)
@@ -172,7 +174,7 @@ public class OneCollectorIntegrationTests
             });
     }
 
-    [SkipUnlessEnvVarFoundFact(OneCollectorInstrumentationKeyEnvName)]
+    [Fact]
     public void LogWithActivityIntegrationTest()
     {
         using var activity = new Activity("TestOperation");
@@ -262,25 +264,45 @@ public class OneCollectorIntegrationTests
     {
         var innerSucceeded = false;
         string? innerActualJson = null;
+        var instrumentationKey = Environment.GetEnvironmentVariable(OneCollectorInstrumentationKeyEnvName);
+        FakeOneCollectorEndpoint? fakeEndpoint = null;
 
-        using (var loggerFactory = LoggerFactory.Create(logging => logging
-            .AddOpenTelemetry(options =>
-            {
-                options
-                    .SetResourceBuilder(ResourceBuilder.CreateEmpty())
-                    .AddOneCollectorExporter(builder =>
-                    {
-                        builder.SetConnectionString($"InstrumentationKey={Environment.GetEnvironmentVariable(OneCollectorInstrumentationKeyEnvName)}");
-
-                        builder.ConfigureExporter(e => e.RegisterPayloadTransmittedCallback(OneCollectorExporterPayloadTransmittedCallbackAction, includeFailures: true));
-
-                        configureBuilderAction?.Invoke(builder);
-                    });
-
-                configureOptionsAction?.Invoke(options);
-            })))
+        if (string.IsNullOrWhiteSpace(instrumentationKey))
         {
+            instrumentationKey = "test-token";
+            fakeEndpoint = new();
+        }
+
+        try
+        {
+            using var loggerFactory = LoggerFactory.Create(logging => logging
+                .AddOpenTelemetry(options =>
+                {
+                    options
+                        .SetResourceBuilder(ResourceBuilder.CreateEmpty())
+                        .AddOneCollectorExporter(builder =>
+                        {
+                            builder.SetConnectionString($"InstrumentationKey={instrumentationKey}");
+
+                            if (fakeEndpoint != null)
+                            {
+                                var endpoint = fakeEndpoint.Endpoint;
+                                builder.ConfigureTransportOptions(options => options.Endpoint = endpoint);
+                            }
+
+                            builder.ConfigureExporter(e => e.RegisterPayloadTransmittedCallback(OneCollectorExporterPayloadTransmittedCallbackAction, includeFailures: true));
+
+                            configureBuilderAction?.Invoke(builder);
+                        });
+
+                    configureOptionsAction?.Invoke(options);
+                }));
+
             testAction(loggerFactory.CreateLogger(nameof(OneCollectorIntegrationTests)));
+        }
+        finally
+        {
+            fakeEndpoint?.Dispose();
         }
 
         succeeded = innerSucceeded;
@@ -295,6 +317,56 @@ public class OneCollectorIntegrationTests
             using var memoryStream = new MemoryStream();
             args.CopyPayloadToStream(memoryStream);
             innerActualJson = Encoding.UTF8.GetString(memoryStream.ToArray());
+        }
+    }
+
+    private sealed class FakeOneCollectorEndpoint : IDisposable
+    {
+        private readonly IDisposable server;
+
+        public FakeOneCollectorEndpoint()
+        {
+            this.server = TestHttpServer.RunServer(this.HandleRequest, out var endpoint);
+            this.Endpoint = endpoint;
+        }
+
+        public Uri Endpoint { get; }
+
+        public void Dispose() => this.server.Dispose();
+
+        private static int GetResponseStatusCode(string requestPayload)
+        {
+            using var document = JsonDocument.Parse(requestPayload);
+
+            return document.RootElement.TryGetProperty("ext", out var extensions)
+                && extensions.TryGetProperty("ex", out _)
+                ? 400
+                : 200;
+        }
+
+        private static string ReadRequestPayload(HttpListenerRequest request)
+        {
+            using var requestBody = new MemoryStream();
+
+            request.InputStream.CopyTo(requestBody);
+            requestBody.Position = 0;
+
+            if (string.Equals(request.Headers["Content-Encoding"], "deflate", StringComparison.OrdinalIgnoreCase))
+            {
+                using var deflateStream = new DeflateStream(requestBody, CompressionMode.Decompress);
+                using var reader = new StreamReader(deflateStream, Encoding.UTF8);
+
+                return reader.ReadToEnd();
+            }
+
+            return Encoding.UTF8.GetString(requestBody.ToArray());
+        }
+
+        private void HandleRequest(HttpListenerContext context)
+        {
+            var requestPayload = ReadRequestPayload(context.Request);
+
+            context.Response.StatusCode = GetResponseStatusCode(requestPayload);
         }
     }
 }
