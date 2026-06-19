@@ -11,16 +11,18 @@ using Grpc.Net.Client;
 using Microsoft.Extensions.DependencyInjection;
 #if !NETFRAMEWORK
 using OpenTelemetry.Context.Propagation;
-using OpenTelemetry.Tests;
 #endif
 using OpenTelemetry.Instrumentation.Grpc.Tests.GrpcTestHelpers;
 using OpenTelemetry.Instrumentation.GrpcNetClient;
+using OpenTelemetry.Instrumentation.GrpcNetClient.Implementation;
+using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using RpcException = Grpc.Core.RpcException;
 
 namespace OpenTelemetry.Instrumentation.Grpc.Tests;
 
-public partial class GrpcTests
+public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHelper)
+    : IClassFixture<WeaverFixture>
 {
     [Theory]
     [InlineData("http://localhost")]
@@ -29,7 +31,7 @@ public partial class GrpcTests
     [InlineData("http://127.0.0.1", false)]
     [InlineData("http://[::1]")]
     [InlineData("http://[::1]", false)]
-    public void GrpcClientCallsAreCollectedSuccessfully(string baseAddress, bool shouldEnrich = true)
+    public async Task GrpcClientCallsAreCollectedSuccessfully(string baseAddress, bool shouldEnrich = true)
     {
         var enrichWithHttpRequestMessageCalled = false;
         var enrichWithHttpResponseMessageCalled = false;
@@ -97,6 +99,15 @@ public partial class GrpcTests
         {
             Assert.True(enrichWithHttpRequestMessageCalled);
             Assert.True(enrichWithHttpResponseMessageCalled);
+        }
+
+        if (DockerHelper.IsAvailable(DockerPlatform.Linux))
+        {
+            await WeaverTelemetryVerifier.VerifyAsync(
+                (exportedItems, []),
+                GrpcClientDiagnosticListener.SemanticConventionsVersion,
+                weaver,
+                outputHelper);
         }
     }
 

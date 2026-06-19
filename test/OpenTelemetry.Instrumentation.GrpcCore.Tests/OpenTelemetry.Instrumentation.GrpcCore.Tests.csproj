@@ -8,6 +8,11 @@
   <ItemGroup>
     <PackageReference Include="Grpc" />
     <PackageReference Include="Grpc.Tools" />
+    <PackageReference Include="Testcontainers" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="$(RepoRoot)\test\Shared\weaver.Dockerfile" LogicalName="weaver.Dockerfile" />
   </ItemGroup>
 
   <ItemGroup>
@@ -19,7 +24,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="$(RepoRoot)\test\Shared\ContainerFixture.cs" Link="Includes\ContainerFixture.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\ContainerFixture{T}.cs" Link="Includes\ContainerFixture{T}.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\DockerHelper.cs" Link="Includes\DockerHelper.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\DockerPlatform.cs" Link="Includes\DockerPlatform.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\EnabledOnDockerPlatformFactAttribute.cs" Link="Includes\EnabledOnDockerPlatformFactAttribute.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\TestTextMapPropagator.cs" Link="Includes\TestTextMapPropagator.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\WeaverCollection.cs" Link="Includes\WeaverCollection.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\WeaverFixture.cs" Link="Includes\WeaverFixture.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\WeaverSpecificationTests.cs" Link="Includes\WeaverSpecificationTests.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\WeaverTelemetryVerifier.cs" Link="Includes\WeaverTelemetryVerifier.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\XunitContainerFixture{T}.cs" Link="Includes\XunitContainerFixture{T}.cs" />
   </ItemGroup>
 
 </Project>

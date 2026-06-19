@@ -165,6 +165,10 @@ public static class WeaverTelemetryVerifier
                     {
                         ignore = true;
                     }
+                    else if (suppressAdvice.Contains(new(id, advice.Message)))
+                    {
+                        ignore = true;
+                    }
                     else if (advice.ExtensionData.TryGetValue("signal_name", out var extensionValue) &&
                              extensionValue.ValueKind == JsonValueKind.String &&
                              suppressAdvice.Contains(new(id, extensionValue.GetString())))

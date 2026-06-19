@@ -11,6 +11,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Instrumentation.Grpc.Services.Tests;
+using OpenTelemetry.Instrumentation.GrpcNetClient.Implementation;
+using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.Grpc.Tests;
@@ -39,7 +41,7 @@ public partial class GrpcTests : IAsyncLifetime
     [InlineData("false")]
     [InlineData("True")]
     [InlineData("False")]
-    public void GrpcAspNetCoreInstrumentationAddsCorrectAttributes(string? enableGrpcAspNetCoreSupport)
+    public async Task GrpcAspNetCoreInstrumentationAddsCorrectAttributes(string? enableGrpcAspNetCoreSupport)
     {
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
@@ -74,7 +76,11 @@ public partial class GrpcTests : IAsyncLifetime
 
         Assert.Equal(ActivityKind.Server, activity.Kind);
 
-        if (enableGrpcAspNetCoreSupport != null && enableGrpcAspNetCoreSupport.Equals("true", StringComparison.OrdinalIgnoreCase))
+        var aspNetCoreSupportEnabled =
+            enableGrpcAspNetCoreSupport != null &&
+            string.Equals(enableGrpcAspNetCoreSupport, "true", StringComparison.OrdinalIgnoreCase);
+
+        if (aspNetCoreSupportEnabled)
         {
             Assert.Equal("grpc", activity.GetTagValue(SemanticConventions.AttributeRpcSystemName));
             Assert.Equal("greet.Greeter/SayHello", activity.GetTagValue(SemanticConventions.AttributeRpcMethod));
@@ -102,6 +108,15 @@ public partial class GrpcTests : IAsyncLifetime
         Assert.Equal("/greet.Greeter/SayHello", activity.GetTagValue(SemanticConventions.AttributeUrlPath));
         Assert.Equal("2", activity.GetTagValue(SemanticConventions.AttributeNetworkProtocolVersion));
         Assert.StartsWith("grpc-dotnet", activity.GetTagValue(SemanticConventions.AttributeUserAgentOriginal) as string);
+
+        if (aspNetCoreSupportEnabled && DockerHelper.IsAvailable(DockerPlatform.Linux))
+        {
+            await WeaverTelemetryVerifier.VerifyAsync(
+                (exportedItems, []),
+                GrpcClientDiagnosticListener.SemanticConventionsVersion,
+                weaver,
+                outputHelper);
+        }
     }
 
     [Theory]
