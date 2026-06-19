@@ -6,7 +6,7 @@ using KustoUtils = Kusto.Cloud.Platform.Utils;
 namespace OpenTelemetry.Instrumentation.Kusto.Implementation;
 
 /// <summary>
-/// Classifies a Kusto client <see cref="global::Kusto.Cloud.Platform.Utils.TraceRecord"/> by the markers the
+/// Classifies a Kusto client <see cref="KustoUtils.TraceRecord"/> by the markers the
 /// client writes into its trace output: RestClient2 writes "$$HTTPREQUEST[", the activity layer writes
 /// "MonitoredActivityCompleted", and exceptions are traced under the "EXC_CTOR" source id. There is no public
 /// reference to link, so they are matched by string.

@@ -66,7 +66,7 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
         await Verify(
             new
             {
-                Activities = FilterActivites(activities),
+                Activities = FilterActivities(activities),
                 Metrics = FilterMetrics(metrics),
             })
             .ScrubHostname(kcsb.Hostname)
@@ -108,7 +108,7 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
         await Verify(
             new
             {
-                Activities = FilterActivites(activities),
+                Activities = FilterActivities(activities),
             })
             .ScrubHostname(kcsb.Hostname)
             .ScrubPort(this.fixture.DatabaseContainer.GetMappedPublicPort())
@@ -218,7 +218,7 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
         await Verify(
             new
             {
-                Activities = FilterActivites(activities),
+                Activities = FilterActivities(activities),
                 Metrics = FilterMetrics(metrics),
                 Exception = new
                 {
@@ -261,7 +261,7 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
             reader.Consume();
         }
 
-        Assert.Empty(FilterActivites(activities));
+        Assert.Empty(FilterActivities(activities));
         Assert.Empty(FilterMetrics(metrics));
     }
 
@@ -342,7 +342,7 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
         Assert.Equal(summary, activity.DisplayName);
     }
 
-    private static dynamic FilterActivites(IEnumerable<Activity> activities) =>
+    private static dynamic FilterActivities(IEnumerable<Activity> activities) =>
         activities
             .Where(activity => activity.Source == KustoActivitySourceHelper.ActivitySource)
             .Select(activity => new
