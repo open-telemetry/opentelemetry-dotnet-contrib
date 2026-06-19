@@ -16,6 +16,8 @@ public sealed class RemoteConfigStatusReport
     /// <param name="lastRemoteConfigHash">Hash bytes from the last received remote configuration. Must not be empty.</param>
     /// <param name="status">The remote configuration status.</param>
     /// <param name="errorMessage">Optional error message when <paramref name="status"/> is <see cref="RemoteConfigStatusCode.Failed"/>.</param>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="lastRemoteConfigHash"/> is empty, or when <paramref name="errorMessage"/> is set and <paramref name="status"/> is not <see cref="RemoteConfigStatusCode.Failed"/>.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="status"/> is not a supported remote configuration status.</exception>
     public RemoteConfigStatusReport(
         ReadOnlySpan<byte> lastRemoteConfigHash,
         RemoteConfigStatusCode status,
