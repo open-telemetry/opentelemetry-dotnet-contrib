@@ -4,7 +4,6 @@
 using System.Data;
 using System.Diagnostics;
 using Microsoft.Data.SqlClient;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using MySqlConnector;
 using Npgsql;
@@ -22,7 +21,6 @@ public sealed class EntityFrameworkIntegrationTests :
 {
     private const string MySqlProvider = "Pomelo.EntityFrameworkCore.MySql";
     private const string PostgresProvider = "Npgsql.EntityFrameworkCore.PostgreSQL";
-    private const string SqliteProvider = "Microsoft.EntityFrameworkCore.Sqlite";
     private const string SqlServerProvider = "Microsoft.EntityFrameworkCore.SqlServer";
 
     private const string ActivitySourceName = "OpenTelemetry.Instrumentation.EntityFrameworkCore";
@@ -53,8 +51,6 @@ public sealed class EntityFrameworkIntegrationTests :
             (MySqlProvider, typeof(MySqlCommand), true, "mysql", "test"),
             (PostgresProvider, typeof(NpgsqlCommand), false, "postgresql", "postgres"),
             (PostgresProvider, typeof(NpgsqlCommand), true, "postgresql", "postgres"),
-            (SqliteProvider, typeof(SqliteCommand), false, "sqlite", "main"),
-            (SqliteProvider, typeof(SqliteCommand), true, "sqlite", "main"),
             (SqlServerProvider, typeof(SqlCommand), true, "microsoft.sql_server", "master"),
         ];
 
@@ -68,7 +64,6 @@ public sealed class EntityFrameworkIntegrationTests :
 
             testCases.Add(provider, "select 1/1", false, useNewConventions, commandType, expectedSpanName, system, database, null);
 
-            // For some reason, SQLite does not throw an exception for division by zero
             if (provider == PostgresProvider)
             {
                 testCases.Add(provider, "select 1/0", true, useNewConventions, commandType, expectedSpanName, system, database, "22012: division by zero");
@@ -88,7 +83,6 @@ public sealed class EntityFrameworkIntegrationTests :
         [
             (MySqlProvider, typeof(MySqlCommand), "mysql", "test"),
             (PostgresProvider, typeof(NpgsqlCommand), "postgresql", "postgres"),
-            (SqliteProvider, typeof(SqliteCommand), "sqlite", "main"),
             (SqlServerProvider, typeof(SqlCommand), "mssql", "master"),
         ];
 
@@ -113,7 +107,6 @@ public sealed class EntityFrameworkIntegrationTests :
         [
             MySqlProvider,
             PostgresProvider,
-            SqliteProvider,
             SqlServerProvider,
         ];
 
@@ -311,7 +304,6 @@ public sealed class EntityFrameworkIntegrationTests :
     }
 
     [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
-    [InlineData(SqliteProvider)]
     [InlineData(SqlServerProvider)]
     public async Task SuccessfulParameterizedQueryTest(string provider)
     {
@@ -401,9 +393,8 @@ public sealed class EntityFrameworkIntegrationTests :
         }
     }
 
-    private static object CreateParameter(string provider, string name, object value) => provider switch
+    private static SqlParameter CreateParameter(string provider, string name, object value) => provider switch
     {
-        SqliteProvider => new SqliteParameter(name, value),
         SqlServerProvider => new SqlParameter(name, value),
         _ => throw new NotSupportedException($"Unsupported provider: {provider}"),
     };
@@ -467,11 +458,6 @@ public sealed class EntityFrameworkIntegrationTests :
 
             case PostgresProvider:
                 builder.UseNpgsql(this.postgresFixture.TypedContainer.GetConnectionString());
-                break;
-
-            case SqliteProvider:
-                var file = Path.GetTempFileName();
-                builder.UseSqlite($"Filename={file}");
                 break;
 
             case SqlServerProvider:

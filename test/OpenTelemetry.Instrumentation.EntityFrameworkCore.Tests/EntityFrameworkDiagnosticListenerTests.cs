@@ -1,31 +1,19 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
-using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
+using System.Diagnostics.CodeAnalysis;
 using OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests;
 
-public class EntityFrameworkDiagnosticListenerTests : IDisposable
+public class EntityFrameworkDiagnosticListenerTests
 {
-    private readonly DbContextOptions<ItemsContext> contextOptions;
-    private readonly DbConnection connection;
-
-    public EntityFrameworkDiagnosticListenerTests()
-    {
-        this.contextOptions = new DbContextOptionsBuilder<ItemsContext>()
-            .UseSqlite(CreateInMemoryDatabase())
-            .Options;
-
-        this.connection = RelationalOptionsExtension.Extract(this.contextOptions).Connection!;
-
-        this.Seed();
-    }
+    // TODO This tests are relay on artificial impelemntation instead of real SQLite. It can be changed again when https://github.com/dotnet/efcore/issues/38463 is fixed
+    private const string SqliteProviderName = "Microsoft.EntityFrameworkCore.Sqlite";
 
     public static TheoryData<string, string, string> DbSystemTestCases()
     {
@@ -262,13 +250,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
                   .AddEntityFrameworkCoreInstrumentation()
                   .Build())
         {
-            using var context = new ItemsContext(this.contextOptions);
-            var items = context.Set<Item>().OrderBy(e => e.Name).ToList();
-
-            Assert.Equal(3, items.Count);
-            Assert.Equal("ItemOne", items[0].Name);
-            Assert.Equal("ItemThree", items[1].Name);
-            Assert.Equal("ItemTwo", items[2].Name);
+            EmitEntityFrameworkCommandEvents("SELECT * FROM Item ORDER BY Name");
         }
 
         Assert.Single(exportedItems);
@@ -303,13 +285,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
                   })
                   .Build())
         {
-            using var context = new ItemsContext(this.contextOptions);
-            var items = context.Set<Item>().OrderBy(e => e.Name).ToList();
-
-            Assert.Equal(3, items.Count);
-            Assert.Equal("ItemOne", items[0].Name);
-            Assert.Equal("ItemThree", items[1].Name);
-            Assert.Equal("ItemTwo", items[2].Name);
+            EmitEntityFrameworkCommandEvents("SELECT * FROM Item ORDER BY Name");
         }
 
         Assert.Single(exportedItems);
@@ -332,16 +308,9 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
                   .AddEntityFrameworkCoreInstrumentation()
                   .Build())
         {
-            using var context = new ItemsContext(this.contextOptions);
-
-            try
-            {
-                context.Database.ExecuteSqlRaw("select * from no_table");
-            }
-            catch
-            {
-                // intentional empty catch
-            }
+            EmitEntityFrameworkCommandEvents(
+                "SELECT * FROM no_table",
+                exception: new InvalidOperationException("SQLite Error 1: 'no such table: no_table'."));
         }
 
         Assert.Single(exportedItems);
@@ -360,8 +329,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
                   .AddEntityFrameworkCoreInstrumentation(options => options.Filter = (_, command) => !command.CommandText.Contains("Item", StringComparison.OrdinalIgnoreCase))
                   .Build())
         {
-            using var context = new ItemsContext(this.contextOptions);
-            _ = context.Set<Item>().OrderBy(e => e.Name).ToList();
+            EmitEntityFrameworkCommandEvents("SELECT * FROM Item ORDER BY Name");
         }
 
         Assert.Empty(exportedItems);
@@ -377,8 +345,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
                   .AddEntityFrameworkCoreInstrumentation(options => options.Filter = (_, command) => command.CommandText.Contains("Item", StringComparison.OrdinalIgnoreCase))
                   .Build())
         {
-            using var context = new ItemsContext(this.contextOptions);
-            _ = context.Set<Item>().OrderBy(e => e.Name).ToList();
+            EmitEntityFrameworkCommandEvents("SELECT * FROM Item ORDER BY Name");
         }
 
         Assert.Single(exportedItems);
@@ -417,8 +384,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
                   .AddEntityFrameworkCoreInstrumentation(options => options.Filter = (providerName, _) => providerName != null && providerName.Equals(provider, StringComparison.OrdinalIgnoreCase))
                   .Build())
         {
-            using var context = new ItemsContext(this.contextOptions);
-            _ = context.Set<Item>().OrderBy(e => e.Name).ToList();
+            EmitEntityFrameworkCommandEvents("SELECT * FROM Item ORDER BY Name");
         }
 
         Assert.Empty(exportedItems);
@@ -431,11 +397,10 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
 
         using (Sdk.CreateTracerProviderBuilder()
                   .AddInMemoryExporter(exportedItems)
-                  .AddEntityFrameworkCoreInstrumentation(options => options.Filter = (providerName, _) => providerName != null && providerName.Equals("Microsoft.EntityFrameworkCore.Sqlite", StringComparison.OrdinalIgnoreCase))
+                  .AddEntityFrameworkCoreInstrumentation(options => options.Filter = (providerName, _) => providerName != null && providerName.Equals(SqliteProviderName, StringComparison.OrdinalIgnoreCase))
                   .Build())
         {
-            using var context = new ItemsContext(this.contextOptions);
-            _ = context.Set<Item>().OrderBy(e => e.Name).ToList();
+            EmitEntityFrameworkCommandEvents("SELECT * FROM Item ORDER BY Name");
         }
 
         Assert.Single(exportedItems);
@@ -445,15 +410,34 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         Assert.True(activity.ActivityTraceFlags.HasFlag(ActivityTraceFlags.Recorded));
     }
 
-    public void Dispose() => this.connection.Dispose();
-
-    private static SqliteConnection CreateInMemoryDatabase()
+    private static void EmitEntityFrameworkCommandEvents(
+        string commandText,
+        CommandType commandType = CommandType.Text,
+        string providerName = SqliteProviderName,
+        Exception? exception = null)
     {
-        var connection = new SqliteConnection("Filename=:memory:");
+        using var diagnosticListener = new DiagnosticListener(EntityFrameworkDiagnosticListener.DiagnosticSourceName);
+        using var connection = new TestDbConnection(database: "main", dataSource: string.Empty);
+        using var command = new TestDbCommand(connection);
 
-        connection.Open();
+#pragma warning disable CA2100 // Test helper emits synthetic command diagnostic payloads.
+        command.CommandText = commandText;
+#pragma warning restore CA2100
+        command.CommandType = commandType;
 
-        return connection;
+        var payload = new CommandPayload(command, new TestDbContext(providerName));
+
+        diagnosticListener.Write(EntityFrameworkDiagnosticListener.EntityFrameworkCoreCommandCreated, payload);
+        diagnosticListener.Write(EntityFrameworkDiagnosticListener.EntityFrameworkCoreCommandExecuting, payload);
+
+        if (exception == null)
+        {
+            diagnosticListener.Write(EntityFrameworkDiagnosticListener.EntityFrameworkCoreCommandExecuted, payload);
+        }
+        else
+        {
+            diagnosticListener.Write(EntityFrameworkDiagnosticListener.EntityFrameworkCoreCommandError, new CommandErrorPayload(exception));
+        }
     }
 
     private static void VerifyActivityData(
@@ -519,21 +503,97 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         }
     }
 
-    private void Seed()
+    private sealed class CommandPayload(DbCommand command, TestDbContext context)
     {
-        using var context = new ItemsContext(this.contextOptions);
+        public DbCommand Command { get; } = command;
 
-        context.Database.EnsureDeleted();
-        context.Database.EnsureCreated();
+        public TestDbContext Context { get; } = context;
+    }
 
-        var one = new Item() { Name = "ItemOne" };
+    private sealed class CommandErrorPayload(Exception exception)
+    {
+        public Exception Exception { get; } = exception;
+    }
 
-        var two = new Item() { Name = "ItemTwo" };
+    private sealed class TestDbContext(string providerName)
+    {
+        public TestDatabaseFacade Database { get; } = new(providerName);
+    }
 
-        var three = new Item() { Name = "ItemThree" };
+    private sealed class TestDatabaseFacade(string providerName)
+    {
+        public string ProviderName { get; } = providerName;
+    }
 
-        context.AddRange(one, two, three);
+    private sealed class TestDbConnection(string database, string dataSource) : DbConnection
+    {
+        [AllowNull]
+        public override string ConnectionString { get; set; } = string.Empty;
 
-        context.SaveChanges();
+        public override string Database { get; } = database;
+
+        public override string DataSource { get; } = dataSource;
+
+        public override string ServerVersion => "1.0";
+
+        public override ConnectionState State => ConnectionState.Open;
+
+        public override void ChangeDatabase(string databaseName)
+        {
+        }
+
+        public override void Close()
+        {
+        }
+
+        public override void Open()
+        {
+        }
+
+        protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel) => throw new NotSupportedException();
+
+        protected override DbCommand CreateDbCommand() => throw new NotSupportedException();
+    }
+
+    private sealed class TestDbCommand(DbConnection initialConnection) : DbCommand
+    {
+        private DbConnection? connection = initialConnection;
+
+        [AllowNull]
+        public override string CommandText { get; set; } = string.Empty;
+
+        public override int CommandTimeout { get; set; }
+
+        public override CommandType CommandType { get; set; } = CommandType.Text;
+
+        public override bool DesignTimeVisible { get; set; }
+
+        public override UpdateRowSource UpdatedRowSource { get; set; }
+
+        protected override DbConnection? DbConnection
+        {
+            get => this.connection;
+            set => this.connection = value;
+        }
+
+        protected override DbParameterCollection DbParameterCollection => throw new NotSupportedException();
+
+        protected override DbTransaction? DbTransaction { get; set; }
+
+        public override void Cancel()
+        {
+        }
+
+        public override int ExecuteNonQuery() => throw new NotSupportedException();
+
+        public override object? ExecuteScalar() => throw new NotSupportedException();
+
+        public override void Prepare()
+        {
+        }
+
+        protected override DbParameter CreateDbParameter() => throw new NotSupportedException();
+
+        protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior) => throw new NotSupportedException();
     }
 }
