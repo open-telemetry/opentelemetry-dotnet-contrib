@@ -355,16 +355,23 @@ public class GrpcCoreClientInterceptorTests
         Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcMethod && (string?)t.Value == expectedRpcMethod);
         Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcResponseStatusCode && (string?)t.Value == expectedResponseStatusCode);
 
-        if (expectedStatusCode == StatusCode.OK)
+        // Client spans treat every non-OK status as an error, whereas server spans only treat a
+        // subset of status codes as errors.
+        // See https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/rpc/grpc.md
+        var expectedStatus = activity.Kind == ActivityKind.Client
+            ? GrpcTagHelper.ResolveSpanStatusForGrpcStatusCodeOnClient((int)expectedStatusCode)
+            : GrpcTagHelper.ResolveSpanStatusForGrpcStatusCodeOnServer((int)expectedStatusCode);
+
+        if (expectedStatus == ActivityStatusCode.Error)
         {
-            Assert.NotEqual(ActivityStatusCode.Error, activity.Status);
-            Assert.DoesNotContain(activity.TagObjects, t => t.Key == SemanticConventions.AttributeErrorType);
+            // A failed span has error.type set to the status code name.
+            Assert.Equal(ActivityStatusCode.Error, activity.Status);
+            Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeErrorType && (string?)t.Value == expectedResponseStatusCode);
         }
         else
         {
-            // Any non-OK status code results in a failed span, with error.type set to the status code name.
-            Assert.Equal(ActivityStatusCode.Error, activity.Status);
-            Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeErrorType && (string?)t.Value == expectedResponseStatusCode);
+            Assert.NotEqual(ActivityStatusCode.Error, activity.Status);
+            Assert.DoesNotContain(activity.TagObjects, t => t.Key == SemanticConventions.AttributeErrorType);
         }
 
         if (recordedMessages)
