@@ -21,8 +21,8 @@ internal class FrameBuilderTestData
 
         this.Add(fb => fb.AddCapabilities(), m => m.Capabilities);
 
-        this.Add(fb => fb.AddRemoteConfigStatus(new RemoteConfigStatusReport(new byte[] { 1, 2, 3 }, RemoteConfigStatusCode.Applied)), m => m.RemoteConfigStatus);
-        this.Add(fb => fb.AddRemoteConfigStatus(new RemoteConfigStatusReport(new byte[] { 1, 2, 3 }, RemoteConfigStatusCode.Applying)), m => m.RemoteConfigStatus);
-        this.Add(fb => fb.AddRemoteConfigStatus(new RemoteConfigStatusReport(new byte[] { 1, 2, 3 }, RemoteConfigStatusCode.Unset)), m => m.RemoteConfigStatus);
+        this.Add(fb => fb.AddRemoteConfigStatus(new RemoteConfigStatusReport([1, 2, 3], RemoteConfigStatusCode.Applied)), m => m.RemoteConfigStatus);
+        this.Add(fb => fb.AddRemoteConfigStatus(new RemoteConfigStatusReport([1, 2, 3], RemoteConfigStatusCode.Applying)), m => m.RemoteConfigStatus);
+        this.Add(fb => fb.AddRemoteConfigStatus(new RemoteConfigStatusReport([1, 2, 3], RemoteConfigStatusCode.Unset)), m => m.RemoteConfigStatus);
     }
 }

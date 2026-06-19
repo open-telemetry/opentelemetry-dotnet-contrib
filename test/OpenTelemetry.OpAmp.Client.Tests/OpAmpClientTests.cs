@@ -25,7 +25,7 @@ public class OpAmpClientTests
         using var listener = new MockListener();
         var client = new OpAmpClient(o => o.Heartbeat.IsEnabled = false);
         var configFile = new EffectiveConfigFile(Encoding.UTF8.GetBytes("test"), "plain/text", "config.txt");
-        var remoteConfigStatus = new RemoteConfigStatusReport(new byte[] { 1, 2, 3 }, RemoteConfigStatusCode.Applied);
+        var remoteConfigStatus = new RemoteConfigStatusReport([1, 2, 3], RemoteConfigStatusCode.Applied);
 
         client.Dispose();
 
@@ -326,7 +326,7 @@ public class OpAmpClientTests
     internal async Task SendsRemoteConfigStatus_IsDisabledAndThrows()
     {
         using var client = new OpAmpClient(o => o.Heartbeat.IsEnabled = false);
-        var statusReport = new RemoteConfigStatusReport(new byte[] { 1, 2, 3 }, RemoteConfigStatusCode.Applied);
+        var statusReport = new RemoteConfigStatusReport([1, 2, 3], RemoteConfigStatusCode.Applied);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => client.SendRemoteConfigStatusAsync(statusReport));
     }
@@ -344,13 +344,13 @@ public class OpAmpClientTests
         });
 
         await client.StartAsync();
-        await client.SendRemoteConfigStatusAsync(new RemoteConfigStatusReport(new byte[] { 1, 2, 3 }, RemoteConfigStatusCode.Failed, "apply failed"));
+        await client.SendRemoteConfigStatusAsync(new RemoteConfigStatusReport([1, 2, 3], RemoteConfigStatusCode.Failed, "apply failed"));
         await client.StopAsync();
 
         var frames = opAmpServer.GetFrames();
         Assert.Equal(3, frames.Count); // 3 frames: 1 identification, 2 remote config status, 3 disconnect
         var actualStatus = frames[1].RemoteConfigStatus;
-        Assert.Equal(new byte[] { 1, 2, 3 }, actualStatus.LastRemoteConfigHash.ToByteArray());
+        Assert.Equal([1, 2, 3], actualStatus.LastRemoteConfigHash.ToByteArray());
         Assert.Equal(RemoteConfigStatuses.Failed, actualStatus.Status);
         Assert.Equal("apply failed", actualStatus.ErrorMessage);
     }
@@ -367,7 +367,7 @@ public class OpAmpClientTests
             o.RemoteConfiguration.ReportsRemoteConfigStatus = true;
         });
 
-        var status = new RemoteConfigStatusReport(new byte[] { 1, 2, 3 }, RemoteConfigStatusCode.Applied);
+        var status = new RemoteConfigStatusReport([1, 2, 3], RemoteConfigStatusCode.Applied);
 
         await client.StartAsync();
         await client.SendRemoteConfigStatusAsync(status);
@@ -391,14 +391,14 @@ public class OpAmpClientTests
         var status = new RemoteConfigStatusReport(hash, RemoteConfigStatusCode.Applied);
         hash[0] = 4;
 
-        Assert.Equal(new byte[] { 1, 2, 3 }, status.LastRemoteConfigHash.ToArray());
+        Assert.Equal([1, 2, 3], status.LastRemoteConfigHash.ToArray());
     }
 
     [Fact]
     internal void RemoteConfigStatusReport_ThrowsOnEmptyHash()
     {
         var exception = Assert.Throws<ArgumentException>(() =>
-            new RemoteConfigStatusReport(Array.Empty<byte>(), RemoteConfigStatusCode.Applied));
+            new RemoteConfigStatusReport([], RemoteConfigStatusCode.Applied));
 
         Assert.Equal("lastRemoteConfigHash", exception.ParamName);
     }
@@ -410,7 +410,7 @@ public class OpAmpClientTests
     internal void RemoteConfigStatusReport_ThrowsWhenErrorMessageIsSetForNonFailedStatus(RemoteConfigStatusCode status)
     {
         var exception = Assert.Throws<ArgumentException>(() =>
-            new RemoteConfigStatusReport(new byte[] { 1, 2, 3 }, status, "apply failed"));
+            new RemoteConfigStatusReport([1, 2, 3], status, "apply failed"));
 
         Assert.Equal("errorMessage", exception.ParamName);
     }
