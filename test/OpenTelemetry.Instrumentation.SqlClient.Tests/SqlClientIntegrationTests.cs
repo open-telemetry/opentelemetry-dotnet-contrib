@@ -13,15 +13,24 @@ using OpenTelemetry.Trace;
 namespace OpenTelemetry.Instrumentation.SqlClient.Tests;
 
 [Trait("CategoryName", "SqlIntegrationTests")]
-public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrationTestsFixture>
+public sealed class SqlClientIntegrationTests :
+    IClassFixture<SqlClientIntegrationTestsFixture>,
+    IClassFixture<WeaverFixture>
 {
     private const string GetContextInfoQuery = "SELECT CONTEXT_INFO()";
 
-    private readonly SqlClientIntegrationTestsFixture fixture;
+    private readonly ITestOutputHelper outputHelper;
+    private readonly SqlClientIntegrationTestsFixture sqlServer;
+    private readonly WeaverFixture weaver;
 
-    public SqlClientIntegrationTests(SqlClientIntegrationTestsFixture fixture)
+    public SqlClientIntegrationTests(
+        SqlClientIntegrationTestsFixture sqlServer,
+        WeaverFixture weaver,
+        ITestOutputHelper outputHelper)
     {
-        this.fixture = fixture;
+        this.outputHelper = outputHelper;
+        this.sqlServer = sqlServer;
+        this.weaver = weaver;
     }
 
     [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
@@ -34,7 +43,7 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
     [InlineData(CommandType.StoredProcedure, "sp_who", "sp_who")]
 #endif
     [InlineData(CommandType.Text, "exec sp_who", "exec sp_who")]
-    public void SuccessfulCommandTest(
+    public async Task SuccessfulCommandTest(
         CommandType commandType,
         string commandText,
         string? sanitizedCommandText,
@@ -114,6 +123,12 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
             Assert.Equal("8134", activity.GetTagValue(SemanticConventions.AttributeDbResponseStatusCode));
 #endif
         }
+
+        await WeaverTelemetryVerifier.VerifyAsync(
+            (activities, []),
+            SqlTelemetryHelper.SemanticConventionsVersion,
+            this.weaver,
+            this.outputHelper);
     }
 
 #if NET
@@ -153,6 +168,13 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
         Assert.Equal("42", activity.GetTagValue("db.query.parameter.@x"));
         Assert.Equal("37", activity.GetTagValue("db.query.parameter.@y"));
         Assert.Equal("1234.56", activity.GetTagValue("db.query.parameter.@z"));
+
+        await WeaverTelemetryVerifier.VerifyAsync(
+            (activities, []),
+            SqlTelemetryHelper.SemanticConventionsVersion,
+            this.weaver,
+            this.outputHelper,
+            [new("invalid_format", null)]); // See https://github.com/open-telemetry/weaver/issues/1443
     }
 #endif
 
@@ -161,7 +183,7 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
     {
         // Arrange
         var activities = new List<Activity>();
-        var metrics = new List<MetricSnapshot>();
+        var metrics = new List<Metric>();
 
         using var listener = new ActivityListener();
         listener.ActivityStarted = activities.Add;
@@ -186,12 +208,20 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
         // Act
         var result = await sqlCommand.ExecuteScalarAsync();
 
+        meterProvider.ForceFlush();
+
         // Assert
         Assert.Equal(1, result);
 
         var activity = Assert.Single(activities);
 
         Assert.True(activity.IsStopped);
+
+        await WeaverTelemetryVerifier.VerifyAsync(
+            ([], metrics),
+            SqlTelemetryHelper.SemanticConventionsVersion,
+            this.weaver,
+            this.outputHelper);
     }
 
     private static void VerifyContextInfo(
@@ -276,5 +306,5 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
     }
 
     private string GetConnectionString()
-        => this.fixture.TypedContainer.GetConnectionString();
+        => this.sqlServer.TypedContainer.GetConnectionString();
 }
