@@ -31,11 +31,6 @@ on:
         required: false
         type: string
         default: 'INSTRUMENTATION_KEY'
-      checkout-ref:
-        description: 'Git ref to checkout'
-        required: false
-        type: string
-        default: ''
     secrets:
       instrumentation-key:
         description: 'Instrumentation key for testing'
@@ -48,15 +43,10 @@ jobs:
     env:
       BUILD_COMPONENT: ${{ inputs.component }}
     steps:
-    # Security: When called from pull_request_target with untrusted PR code,
-    # this checkout requires prior approval via the 'authorize' job environment.
-    # The workflow has limited permissions (contents: read) and uses persist-credentials: false
-    # to prevent credential theft.
     - name: Checkout code
       uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       with:
         persist-credentials: false
-        ref: ${{ inputs.checkout-ref }}
         show-progress: false
 
     - name: Setup .NET

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Add support for reporting remote configuration status.
+  ([#4509](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4509))
+
 * Expose public `ServerCapabilitiesMessage`.
   ([#4485](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4485))
 
