@@ -20,6 +20,16 @@ OpenTelemetry.OpAmp.Client.Messages.OpAmpMessage.OpAmpMessage() -> void
 OpenTelemetry.OpAmp.Client.Messages.RemoteConfigMessage
 OpenTelemetry.OpAmp.Client.Messages.RemoteConfigMessage.AgentConfigMap.get -> System.Collections.Generic.IReadOnlyDictionary<string!, OpenTelemetry.OpAmp.Client.Messages.AgentConfigFile!>!
 OpenTelemetry.OpAmp.Client.Messages.RemoteConfigMessage.ConfigHash.get -> System.ReadOnlySpan<byte>
+OpenTelemetry.OpAmp.Client.Messages.RemoteConfigStatusCode
+OpenTelemetry.OpAmp.Client.Messages.RemoteConfigStatusCode.Applied = 1 -> OpenTelemetry.OpAmp.Client.Messages.RemoteConfigStatusCode
+OpenTelemetry.OpAmp.Client.Messages.RemoteConfigStatusCode.Applying = 2 -> OpenTelemetry.OpAmp.Client.Messages.RemoteConfigStatusCode
+OpenTelemetry.OpAmp.Client.Messages.RemoteConfigStatusCode.Failed = 3 -> OpenTelemetry.OpAmp.Client.Messages.RemoteConfigStatusCode
+OpenTelemetry.OpAmp.Client.Messages.RemoteConfigStatusCode.Unset = 0 -> OpenTelemetry.OpAmp.Client.Messages.RemoteConfigStatusCode
+OpenTelemetry.OpAmp.Client.Messages.RemoteConfigStatusReport
+OpenTelemetry.OpAmp.Client.Messages.RemoteConfigStatusReport.ErrorMessage.get -> string?
+OpenTelemetry.OpAmp.Client.Messages.RemoteConfigStatusReport.LastRemoteConfigHash.get -> System.ReadOnlyMemory<byte>
+OpenTelemetry.OpAmp.Client.Messages.RemoteConfigStatusReport.RemoteConfigStatusReport(System.ReadOnlySpan<byte> lastRemoteConfigHash, OpenTelemetry.OpAmp.Client.Messages.RemoteConfigStatusCode status, string? errorMessage = null) -> void
+OpenTelemetry.OpAmp.Client.Messages.RemoteConfigStatusReport.Status.get -> OpenTelemetry.OpAmp.Client.Messages.RemoteConfigStatusCode
 OpenTelemetry.OpAmp.Client.Messages.ServerCapabilitiesMessage
 OpenTelemetry.OpAmp.Client.Messages.ServerCapabilitiesMessage.Capabilities.get -> OpenTelemetry.OpAmp.Client.Messages.ServerSentCapabilities
 OpenTelemetry.OpAmp.Client.Messages.ServerSentCapabilities
@@ -37,6 +47,7 @@ OpenTelemetry.OpAmp.Client.OpAmpClient.OpAmpClient(System.Action<OpenTelemetry.O
 OpenTelemetry.OpAmp.Client.OpAmpClient.SendCustomCapabilitiesAsync(System.Collections.Generic.IEnumerable<string!>! capabilities, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 OpenTelemetry.OpAmp.Client.OpAmpClient.SendCustomMessageAsync(string! capability, string! type, System.ReadOnlyMemory<byte> data, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 OpenTelemetry.OpAmp.Client.OpAmpClient.SendEffectiveConfigAsync(System.Collections.Generic.IEnumerable<OpenTelemetry.OpAmp.Client.Messages.EffectiveConfigFile!>! files, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+OpenTelemetry.OpAmp.Client.OpAmpClient.SendRemoteConfigStatusAsync(OpenTelemetry.OpAmp.Client.Messages.RemoteConfigStatusReport! statusReport, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 OpenTelemetry.OpAmp.Client.OpAmpClient.StartAsync(System.Threading.CancellationToken token = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 OpenTelemetry.OpAmp.Client.OpAmpClient.StopAsync(System.Threading.CancellationToken token = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 OpenTelemetry.OpAmp.Client.OpAmpClient.Subscribe<T>(OpenTelemetry.OpAmp.Client.Listeners.IOpAmpListener<T!>! listener) -> void
@@ -106,6 +117,8 @@ OpenTelemetry.OpAmp.Client.Settings.RemoteConfigSettings
 OpenTelemetry.OpAmp.Client.Settings.RemoteConfigSettings.AcceptsRemoteConfig.get -> bool
 OpenTelemetry.OpAmp.Client.Settings.RemoteConfigSettings.AcceptsRemoteConfig.set -> void
 OpenTelemetry.OpAmp.Client.Settings.RemoteConfigSettings.RemoteConfigSettings() -> void
+OpenTelemetry.OpAmp.Client.Settings.RemoteConfigSettings.ReportsRemoteConfigStatus.get -> bool
+OpenTelemetry.OpAmp.Client.Settings.RemoteConfigSettings.ReportsRemoteConfigStatus.set -> void
 override OpenTelemetry.OpAmp.Client.Settings.AnyValueUnion.Equals(object? obj) -> bool
 override OpenTelemetry.OpAmp.Client.Settings.AnyValueUnion.GetHashCode() -> int
 static OpenTelemetry.OpAmp.Client.Messages.EffectiveConfigFile.CreateFromStream(System.IO.Stream! stream, string! contentType, string! fileName, int maxBytes) -> OpenTelemetry.OpAmp.Client.Messages.EffectiveConfigFile!

@@ -392,10 +392,11 @@ function TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue {
   $componentOwners = $null
 
   if ((FindComponentOwners `
-      -component $component `
-      -issueNumber $issueNumber `
-      -componentOwners ([ref]$componentOwners)) -eq $false)
+          -component $component `
+          -issueNumber $issueNumber `
+          -componentOwners ([ref]$componentOwners)) -eq $false)
   {
+    Write-Warning 'Could not find component owners'
     return
   }
 
