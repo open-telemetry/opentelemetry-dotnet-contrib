@@ -31,38 +31,37 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
         var activities = new List<Activity>();
         var metrics = new List<Metric>();
 
-        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+        var kcsb = this.fixture.ConnectionStringBuilder;
+
+        // Dispose the providers before asserting so all telemetry is flushed first.
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddInMemoryExporter(activities)
             .AddKustoInstrumentation(options =>
             {
                 options.RecordQueryText = processQuery;
                 options.RecordQuerySummary = processQuery;
             })
-            .Build();
-
-        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .Build())
+        using (var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddInMemoryExporter(metrics)
             .AddKustoInstrumentation(options =>
             {
                 options.RecordQueryText = processQuery;
                 options.RecordQuerySummary = processQuery;
             })
-            .Build();
-
-        var kcsb = this.fixture.ConnectionStringBuilder;
-        using var queryProvider = KustoClientFactory.CreateCslQueryProvider(kcsb);
-
-        var crp = new ClientRequestProperties()
+            .Build())
         {
-            // Ensure a stable client ID for snapshots
-            ClientRequestId = Convert.ToBase64String(Encoding.UTF8.GetBytes(query)),
-        };
+            using var queryProvider = KustoClientFactory.CreateCslQueryProvider(kcsb);
 
-        using var reader = queryProvider.ExecuteQuery("NetDefaultDB", query, crp);
-        reader.Consume();
+            var crp = new ClientRequestProperties()
+            {
+                // Ensure a stable client ID for snapshots
+                ClientRequestId = Convert.ToBase64String(Encoding.UTF8.GetBytes(query)),
+            };
 
-        tracerProvider.ForceFlush();
-        meterProvider.ForceFlush();
+            using var reader = queryProvider.ExecuteQuery("NetDefaultDB", query, crp);
+            reader.Consume();
+        }
 
         await Verify(
             new
@@ -82,28 +81,29 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
     {
         var activities = new List<Activity>();
 
-        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+        var kcsb = this.fixture.ConnectionStringBuilder;
+
+        // Dispose the provider before asserting so all telemetry is flushed first.
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddInMemoryExporter(activities)
             .AddKustoInstrumentation(options =>
             {
                 options.RecordQueryText = true;
                 options.RecordQuerySummary = false;
             })
-            .Build();
-
-        var kcsb = this.fixture.ConnectionStringBuilder;
-        using var queryProvider = KustoClientFactory.CreateCslQueryProvider(kcsb);
-
-        var crp = new ClientRequestProperties()
+            .Build())
         {
-            // Ensure a stable client ID for snapshots
-            ClientRequestId = Convert.ToBase64String(Encoding.UTF8.GetBytes(query)),
-        };
+            using var queryProvider = KustoClientFactory.CreateCslQueryProvider(kcsb);
 
-        using var reader = queryProvider.ExecuteQuery("NetDefaultDB", query, crp);
-        reader.Consume();
+            var crp = new ClientRequestProperties()
+            {
+                // Ensure a stable client ID for snapshots
+                ClientRequestId = Convert.ToBase64String(Encoding.UTF8.GetBytes(query)),
+            };
 
-        tracerProvider.ForceFlush();
+            using var reader = queryProvider.ExecuteQuery("NetDefaultDB", query, crp);
+            reader.Consume();
+        }
 
         await Verify(
             new
@@ -122,24 +122,25 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
     {
         var metrics = new List<Metric>();
 
-        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+        var kcsb = this.fixture.ConnectionStringBuilder;
+
+        // Dispose the provider before asserting so all telemetry is flushed first.
+        using (var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddInMemoryExporter(metrics)
             .AddKustoInstrumentation()
-            .Build();
-
-        var kcsb = this.fixture.ConnectionStringBuilder;
-        using var queryProvider = KustoClientFactory.CreateCslQueryProvider(kcsb);
-
-        var crp = new ClientRequestProperties()
+            .Build())
         {
-            // Ensure a stable client ID for snapshots
-            ClientRequestId = Convert.ToBase64String(Encoding.UTF8.GetBytes(query)),
-        };
+            using var queryProvider = KustoClientFactory.CreateCslQueryProvider(kcsb);
 
-        using var reader = queryProvider.ExecuteQuery("NetDefaultDB", query, crp);
-        reader.Consume();
+            var crp = new ClientRequestProperties()
+            {
+                // Ensure a stable client ID for snapshots
+                ClientRequestId = Convert.ToBase64String(Encoding.UTF8.GetBytes(query)),
+            };
 
-        meterProvider.ForceFlush();
+            using var reader = queryProvider.ExecuteQuery("NetDefaultDB", query, crp);
+            reader.Consume();
+        }
 
         await Verify(
             new
@@ -160,44 +161,44 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
         var activities = new List<Activity>();
         var metrics = new List<Metric>();
 
-        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+        var kcsb = this.fixture.ConnectionStringBuilder;
+        Exception exception;
+
+        // Dispose the providers before asserting so all telemetry is flushed first.
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddInMemoryExporter(activities)
             .AddKustoInstrumentation(options =>
             {
                 options.RecordQueryText = processQuery;
                 options.RecordQuerySummary = processQuery;
             })
-            .Build();
-
-        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .Build())
+        using (var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddInMemoryExporter(metrics)
             .AddKustoInstrumentation(options =>
             {
                 options.RecordQueryText = processQuery;
                 options.RecordQuerySummary = processQuery;
             })
-            .Build();
-
-        var kcsb = this.fixture.ConnectionStringBuilder;
-        using var queryProvider = KustoClientFactory.CreateCslQueryProvider(kcsb);
-
-        var crp = new ClientRequestProperties()
+            .Build())
         {
-            // Ensure a stable client ID for snapshots
-            ClientRequestId = Convert.ToBase64String(Encoding.UTF8.GetBytes(query)),
-        };
+            using var queryProvider = KustoClientFactory.CreateCslQueryProvider(kcsb);
 
-        // Execute the query and expect an exception
-        var exception = await Assert.ThrowsAnyAsync<Exception>(async () =>
-        {
-            using var reader = queryProvider.ExecuteQuery("NetDefaultDB", query, crp);
-            reader.Consume();
+            var crp = new ClientRequestProperties()
+            {
+                // Ensure a stable client ID for snapshots
+                ClientRequestId = Convert.ToBase64String(Encoding.UTF8.GetBytes(query)),
+            };
 
-            await Task.CompletedTask;
-        });
+            // Execute the query and expect an exception
+            exception = await Assert.ThrowsAnyAsync<Exception>(async () =>
+            {
+                using var reader = queryProvider.ExecuteQuery("NetDefaultDB", query, crp);
+                reader.Consume();
 
-        tracerProvider.ForceFlush();
-        meterProvider.ForceFlush();
+                await Task.CompletedTask;
+            });
+        }
 
         // Regression guard (#3591 review): a failed query must record error.type on the duration metric,
         // not only on the span. It was previously lost because ContextData is a struct and the tag was
@@ -238,29 +239,27 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
         var activities = new List<Activity>();
         var metrics = new List<Metric>();
 
-        // Create providers WITHOUT Kusto instrumentation
-        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddInMemoryExporter(activities)
-            .Build();
-
-        using var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddInMemoryExporter(metrics)
-            .Build();
-
         var kcsb = this.fixture.ConnectionStringBuilder;
-        using var queryProvider = KustoClientFactory.CreateCslQueryProvider(kcsb);
 
-        var crp = new ClientRequestProperties()
+        // Create providers WITHOUT Kusto instrumentation, disposing them before asserting.
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddInMemoryExporter(activities)
+            .Build())
+        using (var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddInMemoryExporter(metrics)
+            .Build())
         {
-            ClientRequestId = "test-no-instrumentation",
-        };
+            using var queryProvider = KustoClientFactory.CreateCslQueryProvider(kcsb);
 
-        // Act
-        using var reader = queryProvider.ExecuteQuery("NetDefaultDB", "print number=42", crp);
-        reader.Consume();
+            var crp = new ClientRequestProperties()
+            {
+                ClientRequestId = "test-no-instrumentation",
+            };
 
-        tracerProvider.ForceFlush();
-        meterProvider.ForceFlush();
+            // Act
+            using var reader = queryProvider.ExecuteQuery("NetDefaultDB", "print number=42", crp);
+            reader.Consume();
+        }
 
         Assert.Empty(FilterActivites(activities));
         Assert.Empty(FilterMetrics(metrics));
@@ -277,7 +276,10 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
         const string summary = "MyOperation";
         var query = $"// {key}{summary}\nprint number=42";
 
-        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+        var kcsb = this.fixture.ConnectionStringBuilder;
+
+        // Dispose the provider before asserting so all telemetry is flushed first.
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddInMemoryExporter(activities)
             .AddKustoInstrumentation(options =>
             {
@@ -309,21 +311,19 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
                     activity.DisplayName = summaryString;
                 };
             })
-            .Build();
-
-        var kcsb = this.fixture.ConnectionStringBuilder;
-        using var queryProvider = KustoClientFactory.CreateCslQueryProvider(kcsb);
-
-        var crp = new ClientRequestProperties()
+            .Build())
         {
-            ClientRequestId = "test-enrich-callback",
-        };
+            using var queryProvider = KustoClientFactory.CreateCslQueryProvider(kcsb);
 
-        // Act
-        using var reader = queryProvider.ExecuteQuery("NetDefaultDB", query, crp);
-        reader.Consume();
+            var crp = new ClientRequestProperties()
+            {
+                ClientRequestId = "test-enrich-callback",
+            };
 
-        tracerProvider.ForceFlush();
+            // Act
+            using var reader = queryProvider.ExecuteQuery("NetDefaultDB", query, crp);
+            reader.Consume();
+        }
 
         // Assert
         var kustoActivities = activities
