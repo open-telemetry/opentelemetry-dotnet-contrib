@@ -143,6 +143,24 @@ public class TraceRecordParserTests
     }
 
     [Fact]
+    public void ParseExceptionErrorMessageWithCommas()
+    {
+        // Real Kusto error messages frequently contain commas; the exception payload is newline-delimited,
+        // so the comma field separator must not truncate the captured message.
+        const string message =
+            """
+            Exception object created: Kusto.Data.Exceptions.SemanticException
+            ErrorMessage=Syntax error: expected one of: 'a', 'b', 'c'
+            DataSource=http://127.0.0.1:62413/v1/rest/query
+            """;
+
+        var result = TraceRecordParser.ParseException(message);
+
+        Assert.Equal("Syntax error: expected one of: 'a', 'b', 'c'", result.ErrorMessage.ToString());
+        Assert.Equal("Kusto.Data.Exceptions.SemanticException", result.ErrorType.ToString());
+    }
+
+    [Fact]
     public void ParseExceptionFailure()
     {
         const string message = "ProcessName=testhost Timestamp=2025-12-01T02:39:36.3878585Z";

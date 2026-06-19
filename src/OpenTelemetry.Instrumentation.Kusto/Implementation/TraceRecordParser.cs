@@ -33,16 +33,18 @@ internal class TraceRecordParser
 
     public static ParsedException ParseException(ReadOnlySpan<char> message)
     {
-        var errorMessage = ExtractValueBetween(message, "ErrorMessage=");
-        var errorType = ExtractValueBetween(message, "Exception object created: ");
+        var errorMessage = ExtractValueBetween(message, "ErrorMessage=", newlineOnly: true);
+        var errorType = ExtractValueBetween(message, "Exception object created: ", newlineOnly: true);
         return new ParsedException(errorMessage, errorType);
     }
 
-    private static ReadOnlySpan<char> ExtractValueBetween(ReadOnlySpan<char> haystack, ReadOnlySpan<char> needle)
+    private static ReadOnlySpan<char> ExtractValueBetween(ReadOnlySpan<char> haystack, ReadOnlySpan<char> needle, bool newlineOnly = false)
     {
         var remaining = haystack.SliceAfter(needle);
 
-        var endIndex = remaining.IndexOfAny(Delimiters);
+        // Comma-delimited messages separate fields with commas, but newline-delimited messages (e.g. exception
+        // payloads) can have values that legitimately contain commas, so those must only be split on newline.
+        var endIndex = newlineOnly ? remaining.IndexOf('\n') : remaining.IndexOfAny(Delimiters);
         if (endIndex < 0)
         {
             endIndex = remaining.Length;
