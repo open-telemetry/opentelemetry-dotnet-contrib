@@ -584,9 +584,9 @@ public static class WeaverTelemetryVerifier
     {
         JsonArray bucketCounts = [];
 
-        foreach (var count in point.GetHistogramBuckets())
+        foreach (var bucket in point.GetHistogramBuckets())
         {
-            bucketCounts.Add(JsonValue.Create(count));
+            bucketCounts.Add(JsonValue.Create(bucket.BucketCount));
         }
 
         return bucketCounts;
