@@ -122,7 +122,12 @@ public sealed class ServiceRemotingMessageDispatcherAdapter : IServiceRemotingMe
                     tags.Add(SemanticConventions.AttributeErrorType, errorType);
                 }
 
-                var elapsedSeconds = ServiceFabricRemotingUtils.CalculateDurationFromTimestamp(startTimestamp);
+                // Prefer the span's own duration so the metric matches the RPC server span when both
+                // are emitted; fall back to the stopwatch when no Activity was created (tracing filtered
+                // or not sampled).
+                var elapsedSeconds = activity != null
+                    ? activity.Duration.TotalSeconds
+                    : ServiceFabricRemotingUtils.CalculateDurationFromTimestamp(startTimestamp);
                 ServiceFabricRemotingMetrics.ServerCallDuration.Record(elapsedSeconds, tags);
             }
         }

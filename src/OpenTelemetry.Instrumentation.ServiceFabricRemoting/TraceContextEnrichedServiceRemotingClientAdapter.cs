@@ -60,7 +60,7 @@ internal class TraceContextEnrichedServiceRemotingClientAdapter : IServiceRemoti
 
         var activityName = requestMessageHeader.MethodName ?? ServiceFabricRemotingActivitySource.OutgoingRequestActivityName;
 
-        using var activity = shouldTrace
+        var activity = shouldTrace
             ? ServiceFabricRemotingActivitySource.ActivitySource.StartActivity(activityName, ActivityKind.Client)
             : null;
 
@@ -142,6 +142,9 @@ internal class TraceContextEnrichedServiceRemotingClientAdapter : IServiceRemoti
         }
         finally
         {
+            // Stop the Activity before reading its Duration below so the metric matches the span duration.
+            activity?.Dispose();
+
             if (ServiceFabricRemotingMetrics.ClientCallDuration.Enabled)
             {
                 TagList tags = default;
@@ -161,7 +164,12 @@ internal class TraceContextEnrichedServiceRemotingClientAdapter : IServiceRemoti
                     tags.Add(SemanticConventions.AttributeServerAddress, serverAddress);
                 }
 
-                var elapsedSeconds = ServiceFabricRemotingUtils.CalculateDurationFromTimestamp(startTimestamp);
+                // Prefer the span's own duration so the metric matches the RPC client span when both
+                // are emitted; fall back to the stopwatch when no Activity was created (tracing filtered
+                // or not sampled).
+                var elapsedSeconds = activity != null
+                    ? activity.Duration.TotalSeconds
+                    : ServiceFabricRemotingUtils.CalculateDurationFromTimestamp(startTimestamp);
                 ServiceFabricRemotingMetrics.ClientCallDuration.Record(elapsedSeconds, tags);
             }
         }
