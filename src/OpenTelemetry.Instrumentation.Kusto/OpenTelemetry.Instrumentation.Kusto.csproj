@@ -12,8 +12,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Unsigned package: benchmarks friend access is keyless (the .Tests IVT comes from Common.prod.props). -->
+    <!-- Unsigned package: benchmark and fuzz-test friend access is keyless (the .Tests IVT comes from Common.prod.props). -->
     <InternalsVisibleTo Include="$(AssemblyName).Benchmarks" />
+    <InternalsVisibleTo Include="$(AssemblyName).FuzzTests" />
   </ItemGroup>
 
   <!-- Do not run Package Baseline Validation as this package has never released a stable version.
