@@ -212,7 +212,31 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
             return;
         }
 
-        this.activity.SetTag(SemanticConventions.AttributeRpcResponseStatusCode, GrpcTagHelper.GetGrpcStatusCodeName(statusCode));
+        var grpcStatusName = GrpcTagHelper.GetGrpcStatusCodeName(statusCode);
+        this.activity.SetTag(SemanticConventions.AttributeRpcResponseStatusCode, grpcStatusName);
+
+        // Resolve the span status from the gRPC status code using the rules for the span kind:
+        // client spans treat every non-OK status as an error, whereas server spans only treat a
+        // subset of status codes as errors.
+        // See https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/rpc/grpc.md
+        var spanStatus = this.activity.Kind == ActivityKind.Client
+            ? GrpcTagHelper.ResolveSpanStatusForGrpcStatusCodeOnClient(statusCode)
+            : GrpcTagHelper.ResolveSpanStatusForGrpcStatusCodeOnServer(statusCode);
+
+        // Do not overwrite a status (and its description) already set from an exception.
+        if (spanStatus == ActivityStatusCode.Error && this.activity.Status == ActivityStatusCode.Unset)
+        {
+            this.activity.SetStatus(spanStatus);
+        }
+
+        // error.type is conditionally required when the operation failed; for gRPC it is set to the
+        // status code name. The operation is considered failed when the resolved span status is an
+        // error or when the activity was already marked as failed by an exception.
+        if (spanStatus == ActivityStatusCode.Error || this.activity.Status == ActivityStatusCode.Error)
+        {
+            this.activity.SetTag(SemanticConventions.AttributeErrorType, grpcStatusName);
+        }
+
         this.activity.Stop();
     }
 

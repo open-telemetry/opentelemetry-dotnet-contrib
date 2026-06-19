@@ -355,10 +355,16 @@ public class GrpcCoreClientInterceptorTests
         Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcMethod && (string?)t.Value == expectedRpcMethod);
         Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcResponseStatusCode && (string?)t.Value == expectedResponseStatusCode);
 
-        // Cancelled is not an error.
-        if (expectedStatusCode is not StatusCode.OK and not StatusCode.Cancelled)
+        if (expectedStatusCode == StatusCode.OK)
         {
+            Assert.NotEqual(ActivityStatusCode.Error, activity.Status);
+            Assert.DoesNotContain(activity.TagObjects, t => t.Key == SemanticConventions.AttributeErrorType);
+        }
+        else
+        {
+            // Any non-OK status code results in a failed span, with error.type set to the status code name.
             Assert.Equal(ActivityStatusCode.Error, activity.Status);
+            Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeErrorType && (string?)t.Value == expectedResponseStatusCode);
         }
 
         if (recordedMessages)

@@ -20,6 +20,50 @@ public class GrpcTagHelperTests
         Assert.Equal(grpcMethod, result);
     }
 
+    [Theory]
+    [InlineData("/some.service/somemethod", "some.service/somemethod")]
+    [InlineData("some.service/somemethod", "some.service/somemethod")]
+    public void GrpcTagHelper_SetGrpcMethodAndDisplayNameFromActivity_RecognizedMethod(string grpcMethod, string expected)
+    {
+        using var activity = new Activity("operationName");
+        activity.SetTag(GrpcTagHelper.GrpcMethodTagName, grpcMethod);
+
+        GrpcTagHelper.SetGrpcMethodAndDisplayNameFromActivity(activity);
+
+        Assert.Equal(expected, activity.DisplayName);
+        Assert.Equal(expected, activity.GetTagValue(SemanticConventions.AttributeRpcMethod));
+        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeRpcMethodOriginal));
+        Assert.Null(activity.GetTagValue(GrpcTagHelper.GrpcMethodTagName));
+    }
+
+    [Theory]
+    [InlineData("other")]
+    [InlineData("/other")]
+    public void GrpcTagHelper_SetGrpcMethodAndDisplayNameFromActivity_UnrecognizedMethod(string grpcMethod)
+    {
+        using var activity = new Activity("operationName");
+        activity.SetTag(GrpcTagHelper.GrpcMethodTagName, grpcMethod);
+
+        GrpcTagHelper.SetGrpcMethodAndDisplayNameFromActivity(activity);
+
+        Assert.Equal(GrpcTagHelper.RpcSystemGrpc, activity.DisplayName);
+        Assert.Equal(GrpcTagHelper.RpcMethodOther, activity.GetTagValue(SemanticConventions.AttributeRpcMethod));
+        Assert.Equal(GrpcTagHelper.GrpcMethodOther, activity.GetTagValue(SemanticConventions.AttributeRpcMethodOriginal));
+        Assert.Null(activity.GetTagValue(GrpcTagHelper.GrpcMethodTagName));
+    }
+
+    [Fact]
+    public void GrpcTagHelper_SetGrpcMethodAndDisplayNameFromActivity_NoMethod()
+    {
+        using var activity = new Activity("operationName");
+
+        GrpcTagHelper.SetGrpcMethodAndDisplayNameFromActivity(activity);
+
+        Assert.Equal("operationName", activity.DisplayName);
+        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeRpcMethod));
+        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeRpcMethodOriginal));
+    }
+
     [Fact]
     public void GrpcTagHelper_GetGrpcStatusCodeFromActivity()
     {
