@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics.CodeAnalysis;
 using Kusto.Language;
 using Kusto.Language.Editor;
 using Kusto.Language.Symbols;
@@ -57,20 +58,23 @@ internal static class KustoProcessor
         // but we want to avoid parsing twice if both are requested.
         if (shouldSummarize)
         {
-            code ??= KustoCode.ParseAndAnalyze(query, KustoParserGlobalState);
+            code = KustoCode.ParseAndAnalyze(query, KustoParserGlobalState);
             summarized = Summarize(code);
         }
 
         if (shouldSanitize)
         {
             code ??= KustoCode.Parse(query, KustoParserGlobalState);
-            sanitized = Sanitize(code);
+            if (TrySanitize(code, out var sanitizedText))
+            {
+                sanitized = sanitizedText;
+            }
         }
 
         return new KustoStatementInfo(summarized, sanitized);
     }
 
-    private static string Sanitize(KustoCode code)
+    private static bool TrySanitize(KustoCode code, [NotNullWhen(true)] out string? sanitized)
     {
         // Collect nodes that need replacements
         var collector = new SanitizerVisitor();
@@ -78,18 +82,29 @@ internal static class KustoProcessor
 
         if (!collector.ShouldSanitize)
         {
-            return code.Text;
+            sanitized = code.Text;
+            return true;
         }
 
-        // Apply edits to text
         var edits = collector.Edits;
-        var text = new EditString(code.Text);
-        if (edits.Count == 0 || !text.CanApplyAll(edits))
+        if (edits.Count == 0)
         {
-            return code.Text;
+            // No literals were found, so the original text is already free of literal values.
+            sanitized = code.Text;
+            return true;
         }
 
-        return text.ApplyAll(edits);
+        // Literals were found; omit the query text if the redactions cannot all be applied rather than
+        // emitting it unsanitized.
+        var text = new EditString(code.Text);
+        if (!text.CanApplyAll(edits))
+        {
+            sanitized = null;
+            return false;
+        }
+
+        sanitized = text.ApplyAll(edits);
+        return true;
     }
 
     private static string Summarize(KustoCode code)
