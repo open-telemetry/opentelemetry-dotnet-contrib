@@ -618,11 +618,9 @@ internal sealed class TlvMetricExporter : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsReservedDimensionKey(string key)
-    {
-        return string.Equals(key, GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(key, GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, StringComparison.OrdinalIgnoreCase);
-    }
+    private static bool IsReservedDimensionKey(string key) =>
+        string.Equals(key, GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(key, GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, StringComparison.OrdinalIgnoreCase);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool TryApplyReservedDimensionValue(string key, object? value, ref string monitoringAccount, ref string metricNamespace)
@@ -651,7 +649,13 @@ internal sealed class TlvMetricExporter : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void SerializeDimensionsAndGetCustomAccountNamespace(in ReadOnlyTagCollection tags, IEnumerable<KeyValuePair<string, object?>>? meterTags, byte[] buffer, ref int bufferIndex, out string monitoringAccount, out string metricNamespace)
+    private void SerializeDimensionsAndGetCustomAccountNamespace(
+        in ReadOnlyTagCollection tags,
+        IEnumerable<KeyValuePair<string, object?>>? meterTags,
+        byte[] buffer,
+        ref int bufferIndex,
+        out string monitoringAccount,
+        out string metricNamespace)
     {
         monitoringAccount = this.defaultMonitoringAccount;
         metricNamespace = this.defaultMetricNamespace;
