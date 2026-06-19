@@ -57,6 +57,7 @@
     <File Path="build/Projects/OpenTelemetry.Instrumentation.AspNetCore.proj" />
     <File Path="build/Projects/OpenTelemetry.Instrumentation.AWS.proj" />
     <File Path="build/Projects/OpenTelemetry.Instrumentation.ConfluentKafka.proj" />
+    <File Path="build/Projects/OpenTelemetry.Instrumentation.Exceptions.proj" />
     <File Path="build/Projects/OpenTelemetry.Instrumentation.EventCounters.proj" />
     <File Path="build/Projects/OpenTelemetry.Instrumentation.GrpcCore.proj" />
     <File Path="build/Projects/OpenTelemetry.Instrumentation.Owin.proj" />
@@ -151,6 +152,7 @@
     <Project Path="src/OpenTelemetry.Instrumentation.ConfluentKafka/OpenTelemetry.Instrumentation.ConfluentKafka.csproj" />
     <Project Path="src/OpenTelemetry.Instrumentation.ElasticsearchClient/OpenTelemetry.Instrumentation.ElasticsearchClient.csproj" />
     <Project Path="src/OpenTelemetry.Instrumentation.EntityFrameworkCore/OpenTelemetry.Instrumentation.EntityFrameworkCore.csproj" />
+    <Project Path="src/OpenTelemetry.Instrumentation.Exceptions/OpenTelemetry.Instrumentation.Exceptions.csproj" />
     <Project Path="src/OpenTelemetry.Instrumentation.EventCounters/OpenTelemetry.Instrumentation.EventCounters.csproj" />
     <Project Path="src/OpenTelemetry.Instrumentation.GrpcCore/OpenTelemetry.Instrumentation.GrpcCore.csproj" />
     <Project Path="src/OpenTelemetry.Instrumentation.GrpcNetClient/OpenTelemetry.Instrumentation.GrpcNetClient.csproj" />
@@ -266,6 +268,7 @@
     <Project Path="test/OpenTelemetry.Instrumentation.ConfluentKafka.Tests/OpenTelemetry.Instrumentation.ConfluentKafka.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.ElasticsearchClient.Tests/OpenTelemetry.Instrumentation.ElasticsearchClient.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests/OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests.csproj" />
+    <Project Path="test/OpenTelemetry.Instrumentation.Exceptions.Tests/OpenTelemetry.Instrumentation.Exceptions.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.EventCounters.Tests/OpenTelemetry.Instrumentation.EventCounters.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.GrpcCore.Tests/OpenTelemetry.Instrumentation.GrpcCore.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.GrpcNetClient.Tests/OpenTelemetry.Instrumentation.GrpcNetClient.Tests.csproj" />

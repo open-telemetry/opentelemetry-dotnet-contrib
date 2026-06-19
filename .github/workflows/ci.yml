@@ -70,6 +70,7 @@ jobs:
           instrumentation-confluentkafka: ['*/OpenTelemetry.Instrumentation.ConfluentKafka*/**', 'examples/kafka/**', '!**/*.md']
           instrumentation-elasticsearchclient: ['*/OpenTelemetry.Instrumentation.ElasticsearchClient*/**', '!**/*.md']
           instrumentation-entityframeworkcore: ['*/OpenTelemetry.Instrumentation.EntityFrameworkCore*/**', '*/OpenTelemetry.Instrumentation.SqlClient/**', '!**/*.md']
+          instrumentation-exceptions: ['*/OpenTelemetry.Instrumentation.Exceptions*/**', '!**/*.md']
           instrumentation-eventcounters: ['*/OpenTelemetry.Instrumentation.EventCounters*/**', 'examples/event-counters/**', '!**/*.md']
           instrumentation-grpccore: ['*/OpenTelemetry.Instrumentation.GrpcCore*/**', '!**/*.md']
           instrumentation-grpcnetclient: ['*/OpenTelemetry.Instrumentation.GrpcNetClient*/**', '!**/*.md']
@@ -322,6 +323,18 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Instrumentation.EntityFrameworkCore]
       code-cov-name: Instrumentation.EntityFrameworkCore
+      trigger: ${{ github.event_name }}
+
+  build-test-instrumentation-exceptions:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'instrumentation-exceptions')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.Instrumentation.Exceptions
+      code-cov-name: Instrumentation.Exceptions
       trigger: ${{ github.event_name }}
 
   build-test-instrumentation-eventcounters:
@@ -681,6 +694,7 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-aspnetcore')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-aws')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-confluentkafka')
+      || contains(needs.detect-changes.outputs.changes, 'instrumentation-exceptions')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-eventcounters')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-grpccore')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-grpcnetclient')
@@ -734,6 +748,7 @@ jobs:
       build-test-instrumentation-confluentkafka,
       build-test-instrumentation-elasticsearchclient,
       build-test-instrumentation-entityframeworkcore,
+      build-test-instrumentation-exceptions,
       build-test-instrumentation-eventcounters,
       build-test-instrumentation-grpccore,
       build-test-instrumentation-grpcnetclient,

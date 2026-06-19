@@ -125,6 +125,8 @@ repository:
         comment: OpenTelemetry.Instrumentation.ElasticsearchClient NuGet package distributed from NuGet.org.
       - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.EntityFrameworkCore
         comment: OpenTelemetry.Instrumentation.EntityFrameworkCore NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Exceptions
+        comment: OpenTelemetry.Instrumentation.Exceptions NuGet package distributed from NuGet.org.
       - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.EventCounters
         comment: OpenTelemetry.Instrumentation.EventCounters NuGet package distributed from NuGet.org.
       - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.GrpcCore

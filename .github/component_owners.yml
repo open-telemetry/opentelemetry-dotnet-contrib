@@ -41,6 +41,8 @@ components:
   src/OpenTelemetry.Instrumentation.EntityFrameworkCore/:
     - martincostello
     - matt-hensley
+  src/OpenTelemetry.Instrumentation.Exceptions/:
+    - iblancasa
   src/OpenTelemetry.Instrumentation.EventCounters/:
     - hananiel
     - mic-max
@@ -141,6 +143,8 @@ components:
   test/OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests/:
     - martincostello
     - matt-hensley
+  test/OpenTelemetry.Instrumentation.Exceptions.Tests/:
+    - iblancasa
   test/OpenTelemetry.Instrumentation.EventCounters.Tests/:
     - hananiel
     - mic-max

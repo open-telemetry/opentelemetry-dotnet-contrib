@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>$(TargetFrameworksForLibraries);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
+    <Description>.NET unhandled exception instrumentation for OpenTelemetry .NET.</Description>
+    <PackageTags>$(PackageTags);exceptions;logs</PackageTags>
+    <MinVerTagPrefix>Instrumentation.Exceptions-</MinVerTagPrefix>
+    <AssemblyIsCLSCompliant>false</AssemblyIsCLSCompliant>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETCoreApp'">
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
+  <!-- Do not run Package Baseline Validation as this package has never released a stable version.
+  Remove this property once we have released a stable version and add PackageValidationBaselineVersion property. -->
+  <PropertyGroup>
+    <DisablePackageBaselineValidation>true</DisablePackageBaselineValidation>
+  </PropertyGroup>
+
+</Project>
