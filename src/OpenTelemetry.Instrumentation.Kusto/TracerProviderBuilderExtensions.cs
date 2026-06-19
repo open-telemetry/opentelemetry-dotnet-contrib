@@ -25,7 +25,7 @@ public static class TracerProviderBuilderExtensions
     /// Enables Kusto instrumentation.
     /// </summary>
     /// <remarks>
-    /// The Kusto client uses a single, process-wide trace listener, so all providers share one set of
+    /// The Kusto instrumentation uses a single, process-wide trace listener, so all providers share one set of
     /// options. When multiple providers configure the instrumentation, the most recent call wins.
     /// </remarks>
     /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>

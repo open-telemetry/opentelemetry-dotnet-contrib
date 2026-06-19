@@ -96,7 +96,7 @@ This instrumentation can be configured to change the default behavior by using
 
 ### Multiple providers
 
-The Kusto client exposes a single, process-wide trace listener, so all
+The Kusto instrumentation uses a single, process-wide trace listener, so all
 `TracerProvider`s and `MeterProvider`s in a process share one set of
 options. When more than one provider configures the instrumentation, the
 most recent `AddKustoInstrumentation` call wins, so configure the options
