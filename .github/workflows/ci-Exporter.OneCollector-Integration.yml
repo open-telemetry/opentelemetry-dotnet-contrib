@@ -1,34 +1,17 @@
-name: Integration Build OpenTelemetry.Exporter.OneCollector
+name: Live Integration Build OpenTelemetry.Exporter.OneCollector
 
 permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: false
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 on:
-  pull_request_target: # zizmor: ignore[dangerous-triggers] Code is gated on maintainer approval for forks
-    branches: [ 'main*', 'exporter*' ]
-    paths:
-    - '*/OpenTelemetry.Exporter.OneCollector*/**'
-    - 'src/Shared/**'
-    - 'build/**'
-    - '!**.md'
+  workflow_dispatch:
 
 jobs:
-  authorize:
-    name: Authorize external PR
-    environment: # Run external PRs from forks on the "external" environment which requires approval
-      ${{ github.event_name == 'pull_request_target' &&
-      github.event.pull_request.head.repo.full_name != github.repository &&
-      'external' || 'internal' }}
-    runs-on: ubuntu-24.04
-    steps:
-    - run: echo ✓
-
-  build-integration-test:
-    needs: authorize
+  build-live-integration-test:
     strategy:
       fail-fast: false
       matrix:
@@ -48,6 +31,5 @@ jobs:
       version: ${{ matrix.version }}
       test-filter: OneCollectorIntegrationTests
       env-var-name: OTEL_ONECOLLECTOR_INSTRUMENTATION_KEY
-      checkout-ref: ${{ github.event.pull_request.merge_commit_sha || github.event.pull_request.head.sha }}
     secrets:
       instrumentation-key: ${{ secrets.OTEL_ONECOLLECTOR_INSTRUMENTATION_KEY }}

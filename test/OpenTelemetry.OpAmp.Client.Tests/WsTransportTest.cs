@@ -583,7 +583,8 @@ public class WsTransportTest
     public void WsReceiver_StartTwiceThrows()
     {
         using var ws = new ClientWebSocket();
-        var receiver = new WsReceiver(ws, new FrameProcessor());
+        using var sendLock = new SemaphoreSlim(1, 1);
+        var receiver = new WsReceiver(ws, new FrameProcessor(), sendLock);
 
         try
         {
@@ -601,7 +602,8 @@ public class WsTransportTest
     public void WsReceiver_DisposeBeforeStartIsHarmless()
     {
         using var ws = new ClientWebSocket();
-        var receiver = new WsReceiver(ws, new FrameProcessor());
+        using var sendLock = new SemaphoreSlim(1, 1);
+        var receiver = new WsReceiver(ws, new FrameProcessor(), sendLock);
 
         receiver.Dispose();
         receiver.Dispose();
