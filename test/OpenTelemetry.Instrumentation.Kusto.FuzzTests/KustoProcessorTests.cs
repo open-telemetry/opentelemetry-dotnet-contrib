@@ -12,6 +12,8 @@ public static class KustoProcessorTests
 {
     private const int MaxTest = 500;
 
+    private static readonly string[] Shapes = ["parens", "pipes", "calls", "binary"];
+
     [Property(MaxTest = MaxTest)]
     public static void Process_Arbitrary_Input_Does_Not_Throw(NonEmptyString input)
     {
@@ -122,6 +124,69 @@ public static class KustoProcessorTests
 
         Assert.Null(exception);
     }
+
+    [Theory]
+    [InlineData("parens")]
+    [InlineData("pipes")]
+    [InlineData("calls")]
+    [InlineData("binary")]
+    public static void Process_Deeply_Nested_Query_Fails_Safe(string shape)
+    {
+        // Deeply nested KQL must not overflow the stack while the recursive visitors walk the syntax tree.
+        // The depth is well past the visitors' stack limit, so the guard must engage and the call must
+        // return a safe result instead of crashing. (The Kusto parser itself tolerates this depth.)
+        const int depth = 5_000;
+        const string secret = "secret_value_0xDEADBEEF";
+        var query = BuildNested(shape, depth, secret);
+
+        var info = KustoProcessor.Process(shouldSummarize: true, shouldSanitize: true, query);
+
+        // Fail-safe: the query text is either omitted or fully redacted, never emitted with the literal intact.
+        if (info.Sanitized is not null)
+        {
+            Assert.DoesNotContain(secret, info.Sanitized);
+        }
+
+        // The summary is always length-bounded and never crashes.
+        Assert.True(info.Summarized is null || info.Summarized.Length <= 255);
+    }
+
+    [Property(MaxTest = 10)]
+    public static void Process_Randomly_Deep_Nesting_Does_Not_Crash(PositiveInt depth, NonNegativeInt shapeIndex)
+    {
+        // Vary the shape and a depth that is always past the visitors' stack limit.
+        var d = 1_500 + (depth.Get % 3_500);
+        var shape = Shapes[shapeIndex.Get % Shapes.Length];
+        var query = BuildNested(shape, d, "secret_literal");
+
+        var exception = Record.Exception(() => KustoProcessor.Process(shouldSummarize: true, shouldSanitize: true, query));
+
+        Assert.Null(exception);
+    }
+
+    [Property(MaxTest = MaxTest)]
+    public static void Process_Unicode_Literal_Is_Sanitized_Or_Omitted(NonEmptyString input)
+    {
+        // Surrogate pairs (the emoji) exercise the char-offset edits the sanitizer applies to string literals.
+        var secret = "secret_\uD83D\uDE00_" + Alphanumeric(input.Get);
+        var query = $"StormEvents | where State == \"{secret}\"";
+
+        var info = KustoProcessor.Process(shouldSummarize: false, shouldSanitize: true, query);
+
+        if (info.Sanitized is not null)
+        {
+            Assert.DoesNotContain(secret, info.Sanitized);
+        }
+    }
+
+    private static string BuildNested(string shape, int depth, string literal) => shape switch
+    {
+        "parens" => "print x = " + new string('(', depth) + $"\"{literal}\"" + new string(')', depth),
+        "pipes" => "StormEvents" + string.Concat(Enumerable.Repeat($"\n| where State == \"{literal}\"", depth)),
+        "calls" => "print x = " + string.Concat(Enumerable.Repeat("tostring(", depth)) + $"\"{literal}\"" + new string(')', depth),
+        "binary" => $"print x = \"{literal}\"" + string.Concat(Enumerable.Repeat($" and \"{literal}\"", depth)),
+        _ => $"print x = \"{literal}\"",
+    };
 
     private static string Alphanumeric(string value)
     {

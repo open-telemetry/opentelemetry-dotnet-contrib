@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using Kusto.Language;
 using Kusto.Language.Editor;
 using Kusto.Language.Symbols;
@@ -78,7 +79,17 @@ internal static class KustoProcessor
     {
         // Collect nodes that need replacements
         var collector = new SanitizerVisitor();
-        code.Syntax.Accept(collector);
+        try
+        {
+            code.Syntax.Accept(collector);
+        }
+        catch (InsufficientExecutionStackException)
+        {
+            // The syntax tree is nested too deeply to walk without risking a stack overflow. We cannot be
+            // sure every literal was found, so omit the query text rather than emit a partially-redacted value.
+            sanitized = null;
+            return false;
+        }
 
         if (!collector.ShouldSanitize)
         {
@@ -110,7 +121,16 @@ internal static class KustoProcessor
     private static string Summarize(KustoCode code)
     {
         using var walker = new SummarizerVisitor();
-        code.Syntax.Accept(walker);
+        try
+        {
+            code.Syntax.Accept(walker);
+        }
+        catch (InsufficientExecutionStackException)
+        {
+            // The syntax tree is nested too deeply to walk without risking a stack overflow. Return the
+            // best-effort summary collected so far rather than crashing the process.
+        }
+
         return walker.GetSummary();
     }
 
@@ -148,7 +168,12 @@ internal static class KustoProcessor
 
         public override void VisitQueryParametersStatement(QueryParametersStatement node) => this.ShouldSanitize = false;
 
-        protected override void DefaultVisit(SyntaxNode node) => this.VisitChildren(node);
+        protected override void DefaultVisit(SyntaxNode node)
+        {
+            // Guard the recursive descent: deeply nested queries would otherwise overflow the stack.
+            RuntimeHelpers.EnsureSufficientExecutionStack();
+            this.VisitChildren(node);
+        }
 
         private void VisitChildren(SyntaxNode node)
         {
@@ -174,6 +199,9 @@ internal static class KustoProcessor
 
         public override void VisitPipeExpression(PipeExpression node)
         {
+            // Pipe chains nest through the left expression and bypass DefaultVisit, so guard here too.
+            RuntimeHelpers.EnsureSufficientExecutionStack();
+
             node.Expression.Accept(this);
 
             this.builder.Append(node.Bar.Text);
@@ -228,6 +256,9 @@ internal static class KustoProcessor
 
         protected override void DefaultVisit(SyntaxNode node)
         {
+            // Guard the recursive descent: deeply nested queries would otherwise overflow the stack.
+            RuntimeHelpers.EnsureSufficientExecutionStack();
+
             if (node is QueryOperator qo)
             {
                 this.VisitQueryOperator(qo);
