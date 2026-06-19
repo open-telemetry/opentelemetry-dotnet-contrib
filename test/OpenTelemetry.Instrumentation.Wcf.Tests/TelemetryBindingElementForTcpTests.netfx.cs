@@ -9,19 +9,22 @@ using System.Security.Cryptography.X509Certificates;
 using System.ServiceModel;
 using System.ServiceModel.Security;
 using OpenTelemetry.Instrumentation.Wcf.Tests.Tools;
+using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Tests;
 
 [Collection("WCF")]
-public class TelemetryBindingElementForTcpTests : IDisposable
+public class TelemetryBindingElementForTcpTests : IClassFixture<WeaverFixture>, IDisposable
 {
     private readonly ITestOutputHelper output;
     private readonly Uri serviceBaseUri;
     private readonly ServiceHost serviceHost;
+    private readonly WeaverFixture weaver;
 
-    public TelemetryBindingElementForTcpTests(ITestOutputHelper outputHelper)
+    public TelemetryBindingElementForTcpTests(WeaverFixture weaver, ITestOutputHelper outputHelper)
     {
+        this.weaver = weaver;
         this.output = outputHelper;
         this.serviceHost = this.CreateServiceHost(new NetTcpBinding(SecurityMode.None), null);
         this.serviceBaseUri = this.serviceHost.BaseAddresses[0];
@@ -138,6 +141,16 @@ public class TelemetryBindingElementForTcpTests : IDisposable
                         enrichmentException,
                         emitOldAttributes,
                         emitNewAttributes);
+
+                    if (emitNewAttributes && !emitOldAttributes && !enrich && DockerHelper.IsAvailable(DockerPlatform.Linux))
+                    {
+                        await WeaverTelemetryVerifier.VerifyAsync(
+                            (stoppedActivities, []),
+                            WcfInstrumentationActivitySource.SemanticConventionsVersionNew,
+                            this.weaver,
+                            this.output,
+                            WcfTestHelpers.WeaverSuppressions);
+                    }
                 }
                 else
                 {

@@ -5,20 +5,26 @@ using System.Diagnostics;
 using System.Net;
 using System.ServiceModel;
 using OpenTelemetry.Instrumentation.Wcf.Tests.Tools;
+using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Tests;
 
 [Collection("WCF")]
-public class TelemetryBindingElementForHttpTests : IDisposable
+public class TelemetryBindingElementForHttpTests : IClassFixture<WeaverFixture>, IDisposable
 {
     private readonly Uri serviceBaseUri;
     private readonly HttpListener listener;
     private readonly Task listenerTask;
     private readonly TaskCompletionSource<bool> initialized = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private readonly ITestOutputHelper output;
+    private readonly WeaverFixture weaver;
 
-    public TelemetryBindingElementForHttpTests()
+    public TelemetryBindingElementForHttpTests(WeaverFixture weaver, ITestOutputHelper outputHelper)
     {
+        this.output = outputHelper;
+        this.weaver = weaver;
+
         var retryCount = WcfTestHelpers.MaxRetries;
         HttpListener? createdListener = null;
         while (retryCount > 0)
@@ -198,6 +204,16 @@ public class TelemetryBindingElementForHttpTests : IDisposable
                         enrichmentException,
                         emitOldAttributes,
                         emitNewAttributes);
+
+                    if (emitNewAttributes && !emitOldAttributes && !enrich && DockerHelper.IsAvailable(DockerPlatform.Linux))
+                    {
+                        await WeaverTelemetryVerifier.VerifyAsync(
+                            (stoppedActivities, []),
+                            WcfInstrumentationActivitySource.SemanticConventionsVersionNew,
+                            this.weaver,
+                            this.output,
+                            WcfTestHelpers.WeaverSuppressions);
+                    }
                 }
                 else
                 {

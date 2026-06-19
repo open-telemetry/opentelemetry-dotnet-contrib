@@ -14,6 +14,20 @@ internal static class WcfTestHelpers
 {
     internal const int MaxRetries = 5;
 
+    public static IReadOnlyList<KeyValuePair<string, string?>> WeaverSuppressions { get; } =
+    [
+        //// Federated attributes
+        new("missing_attribute", "Attribute 'soap.message_version' does not exist in the registry."),
+        new("missing_attribute", "Attribute 'soap.reply_action' does not exist in the registry."),
+        new("missing_attribute", "Attribute 'wcf.channel.path' does not exist in the registry."),
+        new("missing_attribute", "Attribute 'wcf.channel.scheme' does not exist in the registry."),
+        //// Users have to opt-in to these attributes
+        new("not_stable", "Attribute 'rpc.method' is not stable; stability = release_candidate."),
+        new("not_stable", "Attribute 'rpc.system.name' is not stable; stability = release_candidate."),
+        //// Custom value
+        new("undefined_enum_variant", "Enum attribute 'rpc.system.name' has value 'dotnet_wcf' which is not documented."),
+    ];
+
     public static Uri GetRandomBaseUri(string scheme) =>
         new UriBuilder()
         {

@@ -4,20 +4,25 @@
 #if NETFRAMEWORK
 using System.Diagnostics;
 using System.ServiceModel;
+using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Tests;
 
 [Collection("WCF")]
-public class TelemetryDispatchMessageInspectorTests : IDisposable
+public class TelemetryDispatchMessageInspectorTests : IClassFixture<WeaverFixture>, IDisposable
 {
     private readonly ITestOutputHelper output;
     private readonly Uri serviceBaseUri;
     private readonly ServiceHost serviceHost;
+    private readonly WeaverFixture weaver;
 
-    public TelemetryDispatchMessageInspectorTests(ITestOutputHelper outputHelper)
+    public TelemetryDispatchMessageInspectorTests(
+        WeaverFixture weaver,
+        ITestOutputHelper outputHelper)
     {
         this.output = outputHelper;
+        this.weaver = weaver;
 
         var random = new Random();
         var retryCount = 5;
@@ -185,6 +190,16 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
                 this.serviceBaseUri,
                 emitOldAttributes,
                 emitNewAttributes);
+
+            if (emitNewAttributes && !emitOldAttributes && !enrich && DockerHelper.IsAvailable(DockerPlatform.Linux))
+            {
+                await WeaverTelemetryVerifier.VerifyAsync(
+                    (stoppedActivities, []),
+                    WcfInstrumentationActivitySource.SemanticConventionsVersionNew,
+                    this.weaver,
+                    this.output,
+                    WcfTestHelpers.WeaverSuppressions);
+            }
         }
         else
         {
