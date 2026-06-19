@@ -3,6 +3,7 @@
 
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using KustoUtils = Kusto.Cloud.Platform.Utils;
 
@@ -21,6 +22,22 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
     // the Activity's ActivityId (which the client guarantees will be unique) with the context data we need.
     private readonly ConcurrentDictionary<Guid, ContextData> contexts = new();
 
+    /// <summary>
+    /// Gets or sets the trace options applied when emitting spans.
+    /// </summary>
+    public KustoTraceInstrumentationOptions TraceOptions { get; set; } = new();
+
+    /// <summary>
+    /// Gets or sets the meter options applied when emitting metrics.
+    /// </summary>
+    public KustoMeterInstrumentationOptions MeterOptions { get; set; } = new();
+
+    /// <summary>
+    /// Gets the <see cref="InstrumentationHandleManager"/> that tracks whether any tracing or metrics providers
+    /// are currently active.
+    /// </summary>
+    public InstrumentationHandleManager HandleManager { get; } = new();
+
     public override string Name { get; } = nameof(KustoTraceRecordListener);
 
     public override bool IsThreadSafe => true;
@@ -37,7 +54,7 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
             return;
         }
 
-        if (!KustoInstrumentation.HandleManager.IsTracingActive() && !KustoInstrumentation.HandleManager.IsMetricsActive())
+        if (!this.HandleManager.IsTracingActive() && !this.HandleManager.IsMetricsActive())
         {
             return;
         }
@@ -78,8 +95,8 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
         return duration.TotalSeconds;
     }
 
-    private static bool ShouldComputeTags(Activity? activity) =>
-        (activity?.IsAllDataRequested is true) || KustoInstrumentation.HandleManager.IsMetricsActive();
+    private bool ShouldComputeTags(Activity? activity) =>
+        (activity?.IsAllDataRequested is true) || this.HandleManager.IsMetricsActive();
 
     private void CallEnrichment(KustoUtils.TraceRecord record)
     {
@@ -88,7 +105,7 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
             var activity = this.GetContext(record)?.Activity;
             if (activity?.IsAllDataRequested is true)
             {
-                KustoInstrumentation.TraceOptions.Enrich?.Invoke(activity, record);
+                this.TraceOptions.Enrich?.Invoke(activity, record);
             }
         }
         catch (Exception ex)
@@ -138,7 +155,7 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
         var activity = KustoActivitySourceHelper.ActivitySource.StartActivity(operationName, ActivityKind.Client);
         var meterTags = default(TagList);
 
-        if (ShouldComputeTags(activity))
+        if (this.ShouldComputeTags(activity))
         {
             activity?.DisplayName = operationName;
             activity?.AddTag(KustoActivitySourceHelper.ClientRequestIdTagKey, record.Activity.ClientRequestId.ToString());
@@ -170,18 +187,18 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
 
             if (!result.QueryText.IsEmpty)
             {
-                var shouldSummarize = KustoInstrumentation.TraceOptions.RecordQuerySummary || KustoInstrumentation.MeterOptions.RecordQuerySummary;
-                var shouldSanitize = KustoInstrumentation.TraceOptions.RecordQueryText || KustoInstrumentation.MeterOptions.RecordQueryText;
+                var shouldSummarize = this.TraceOptions.RecordQuerySummary || this.MeterOptions.RecordQuerySummary;
+                var shouldSanitize = this.TraceOptions.RecordQueryText || this.MeterOptions.RecordQueryText;
                 var info = KustoProcessor.Process(shouldSummarize, shouldSanitize, result.QueryText.ToString());
 
                 if (!string.IsNullOrEmpty(info.Sanitized))
                 {
-                    if (KustoInstrumentation.TraceOptions.RecordQueryText)
+                    if (this.TraceOptions.RecordQueryText)
                     {
                         activity?.AddTag(SemanticConventions.AttributeDbQueryText, info.Sanitized);
                     }
 
-                    if (KustoInstrumentation.MeterOptions.RecordQueryText)
+                    if (this.MeterOptions.RecordQueryText)
                     {
                         meterTags.Add(SemanticConventions.AttributeDbQueryText, info.Sanitized);
                     }
@@ -189,13 +206,13 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
 
                 if (info.Summarized is { Length: > 0 } summarized)
                 {
-                    if (KustoInstrumentation.TraceOptions.RecordQuerySummary)
+                    if (this.TraceOptions.RecordQuerySummary)
                     {
                         activity?.AddTag(SemanticConventions.AttributeDbQuerySummary, summarized);
                         activity?.DisplayName = summarized;
                     }
 
-                    if (KustoInstrumentation.MeterOptions.RecordQuerySummary)
+                    if (this.MeterOptions.RecordQuerySummary)
                     {
                         meterTags.Add(SemanticConventions.AttributeDbQuerySummary, summarized);
                     }

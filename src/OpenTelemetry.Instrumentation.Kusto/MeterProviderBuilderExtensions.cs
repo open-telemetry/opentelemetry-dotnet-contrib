@@ -39,13 +39,13 @@ public static class MeterProviderBuilderExtensions
         }
 
         // Eagerly register the trace listener with the Kusto client library so it is in place before any clients are created.
-        KustoInstrumentation.Initialize();
+        var listener = KustoInstrumentation.Listener;
 
         builder.AddInstrumentation(sp =>
         {
-            KustoInstrumentation.MeterOptions = sp.GetRequiredService<IOptionsMonitor<KustoMeterInstrumentationOptions>>().CurrentValue;
-            KustoInstrumentationEventSource.Log.WarnIfQueryTextCaptureNotEnabled(KustoInstrumentation.MeterOptions.RecordQueryText, KustoInstrumentation.MeterOptions.RecordQuerySummary);
-            return KustoInstrumentation.HandleManager.AddMetricHandle();
+            listener.MeterOptions = sp.GetRequiredService<IOptionsMonitor<KustoMeterInstrumentationOptions>>().CurrentValue;
+            KustoInstrumentationEventSource.Log.WarnIfQueryTextCaptureNotEnabled(listener.MeterOptions.RecordQueryText, listener.MeterOptions.RecordQuerySummary);
+            return listener.HandleManager.AddMetricHandle();
         });
 
         builder.AddMeter(KustoActivitySourceHelper.MeterName);

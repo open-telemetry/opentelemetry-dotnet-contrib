@@ -41,12 +41,12 @@ public class InstrumentationBenchmarks
             .AddMeter(KustoActivitySourceHelper.MeterName)
             .Build();
 
-        // Activate instrumentation handles
-        this.tracingHandle = KustoInstrumentation.HandleManager.AddTracingHandle();
-        this.metricHandle = KustoInstrumentation.HandleManager.AddMetricHandle();
-
         // Create single listener for both traces and metrics
         this.listener = new KustoTraceRecordListener();
+
+        // Activate instrumentation handles on the listener
+        this.tracingHandle = this.listener.HandleManager.AddTracingHandle();
+        this.metricHandle = this.listener.HandleManager.AddMetricHandle();
 
         // Create TraceRecord instances that simulate a query execution flow
         this.requestStartRecord = CreateRequestStartRecord(
@@ -96,7 +96,7 @@ public class InstrumentationBenchmarks
         this.metricHandle?.Dispose();
         this.listener!.Write(this.requestStartRecord);
         this.listener.Write(this.activityCompleteRecord);
-        this.metricHandle = KustoInstrumentation.HandleManager.AddMetricHandle();
+        this.metricHandle = this.listener!.HandleManager.AddMetricHandle();
     }
 
     [Benchmark]
@@ -106,7 +106,7 @@ public class InstrumentationBenchmarks
         this.tracingHandle?.Dispose();
         this.listener!.Write(this.requestStartRecord);
         this.listener.Write(this.activityCompleteRecord);
-        this.tracingHandle = KustoInstrumentation.HandleManager.AddTracingHandle();
+        this.tracingHandle = this.listener!.HandleManager.AddTracingHandle();
     }
 
     private static KustoUtils.TraceRecord CreateRequestStartRecord(Guid activityId, string clientRequestId, string queryText)

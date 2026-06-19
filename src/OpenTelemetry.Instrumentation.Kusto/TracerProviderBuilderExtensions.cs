@@ -39,13 +39,13 @@ public static class TracerProviderBuilderExtensions
         }
 
         // Eagerly register the trace listener with the Kusto client library so it is in place before any clients are created.
-        KustoInstrumentation.Initialize();
+        var listener = KustoInstrumentation.Listener;
 
         builder.AddInstrumentation(sp =>
         {
-            KustoInstrumentation.TraceOptions = sp.GetRequiredService<IOptionsMonitor<KustoTraceInstrumentationOptions>>().CurrentValue;
-            KustoInstrumentationEventSource.Log.WarnIfQueryTextCaptureNotEnabled(KustoInstrumentation.TraceOptions.RecordQueryText, KustoInstrumentation.TraceOptions.RecordQuerySummary);
-            return KustoInstrumentation.HandleManager.AddTracingHandle();
+            listener.TraceOptions = sp.GetRequiredService<IOptionsMonitor<KustoTraceInstrumentationOptions>>().CurrentValue;
+            KustoInstrumentationEventSource.Log.WarnIfQueryTextCaptureNotEnabled(listener.TraceOptions.RecordQueryText, listener.TraceOptions.RecordQuerySummary);
+            return listener.HandleManager.AddTracingHandle();
         });
 
         builder.AddSource(KustoActivitySourceHelper.ActivitySourceName);

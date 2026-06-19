@@ -12,14 +12,14 @@ public class DependencyInjectionConfigTests : IDisposable
 {
     public DependencyInjectionConfigTests()
     {
-        KustoInstrumentation.TraceOptions = new KustoTraceInstrumentationOptions();
-        KustoInstrumentation.MeterOptions = new KustoMeterInstrumentationOptions();
+        KustoInstrumentation.Listener.TraceOptions = new KustoTraceInstrumentationOptions();
+        KustoInstrumentation.Listener.MeterOptions = new KustoMeterInstrumentationOptions();
     }
 
     public void Dispose()
     {
-        KustoInstrumentation.TraceOptions = new KustoTraceInstrumentationOptions();
-        KustoInstrumentation.MeterOptions = new KustoMeterInstrumentationOptions();
+        KustoInstrumentation.Listener.TraceOptions = new KustoTraceInstrumentationOptions();
+        KustoInstrumentation.Listener.MeterOptions = new KustoMeterInstrumentationOptions();
     }
 
     [Fact]
@@ -37,12 +37,12 @@ public class DependencyInjectionConfigTests : IDisposable
             .AddKustoInstrumentation(configure: null)
             .Build();
 
-        // Assert that the options were picked up from DI and set on the static property
-        Assert.NotNull(KustoInstrumentation.TraceOptions);
-        Assert.NotNull(KustoInstrumentation.TraceOptions.Enrich);
+        // Assert that the options were picked up from DI and set on the listener instance
+        Assert.NotNull(KustoInstrumentation.Listener.TraceOptions);
+        Assert.NotNull(KustoInstrumentation.Listener.TraceOptions.Enrich);
 
         // Verify the Enrich callback works
-        KustoInstrumentation.TraceOptions.Enrich(null!, default!);
+        KustoInstrumentation.Listener.TraceOptions.Enrich(null!, default!);
         Assert.True(enrichCalled);
     }
 
@@ -61,10 +61,10 @@ public class DependencyInjectionConfigTests : IDisposable
             .AddKustoInstrumentation(configure: null)
             .Build();
 
-        // Assert that the options were picked up from DI and set on the static property
-        Assert.NotNull(KustoInstrumentation.MeterOptions);
-        Assert.True(KustoInstrumentation.MeterOptions.RecordQueryText);
-        Assert.False(KustoInstrumentation.MeterOptions.RecordQuerySummary);
+        // Assert that the options were picked up from DI and set on the listener instance
+        Assert.NotNull(KustoInstrumentation.Listener.MeterOptions);
+        Assert.True(KustoInstrumentation.Listener.MeterOptions.RecordQueryText);
+        Assert.False(KustoInstrumentation.Listener.MeterOptions.RecordQuerySummary);
     }
 
     [Fact]
@@ -94,16 +94,16 @@ public class DependencyInjectionConfigTests : IDisposable
             .AddKustoInstrumentation(configure: null)
             .Build();
 
-        // Assert that both options were picked up from DI and set on the static properties
-        Assert.NotNull(KustoInstrumentation.TraceOptions);
-        Assert.NotNull(KustoInstrumentation.TraceOptions.Enrich);
+        // Assert that both options were picked up from DI and set on the listener instance
+        Assert.NotNull(KustoInstrumentation.Listener.TraceOptions);
+        Assert.NotNull(KustoInstrumentation.Listener.TraceOptions.Enrich);
 
-        Assert.NotNull(KustoInstrumentation.MeterOptions);
-        Assert.True(KustoInstrumentation.MeterOptions.RecordQueryText);
-        Assert.False(KustoInstrumentation.MeterOptions.RecordQuerySummary);
+        Assert.NotNull(KustoInstrumentation.Listener.MeterOptions);
+        Assert.True(KustoInstrumentation.Listener.MeterOptions.RecordQueryText);
+        Assert.False(KustoInstrumentation.Listener.MeterOptions.RecordQuerySummary);
 
         // Verify the Enrich callback works
-        KustoInstrumentation.TraceOptions.Enrich(null!, default!);
+        KustoInstrumentation.Listener.TraceOptions.Enrich(null!, default!);
         Assert.True(enrichCalled);
     }
 
@@ -130,11 +130,11 @@ public class DependencyInjectionConfigTests : IDisposable
             .Build();
 
         // Assert that the callback options were used, not the DI options
-        Assert.NotNull(KustoInstrumentation.TraceOptions);
-        Assert.NotNull(KustoInstrumentation.TraceOptions.Enrich);
+        Assert.NotNull(KustoInstrumentation.Listener.TraceOptions);
+        Assert.NotNull(KustoInstrumentation.Listener.TraceOptions.Enrich);
 
         // Verify the callback version is used
-        KustoInstrumentation.TraceOptions.Enrich(null!, default!);
+        KustoInstrumentation.Listener.TraceOptions.Enrich(null!, default!);
         Assert.False(enrichFromDiCalled);
         Assert.True(enrichFromCallbackCalled);
     }
@@ -161,8 +161,8 @@ public class DependencyInjectionConfigTests : IDisposable
             .Build();
 
         // Assert that the callback options were used, not the DI options
-        Assert.NotNull(KustoInstrumentation.MeterOptions);
-        Assert.True(KustoInstrumentation.MeterOptions.RecordQueryText);
-        Assert.False(KustoInstrumentation.MeterOptions.RecordQuerySummary);
+        Assert.NotNull(KustoInstrumentation.Listener.MeterOptions);
+        Assert.True(KustoInstrumentation.Listener.MeterOptions.RecordQueryText);
+        Assert.False(KustoInstrumentation.Listener.MeterOptions.RecordQuerySummary);
     }
 }
