@@ -1,4 +1,4 @@
-{
+﻿{
   Activities: [
     {
       ActivitySourceName: OpenTelemetry.Instrumentation.Kusto,
