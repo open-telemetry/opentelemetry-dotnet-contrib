@@ -11,6 +11,32 @@ namespace Confluent.Kafka;
 public static class OpenTelemetryProducerBuilderExtensions
 {
     /// <summary>
+    /// Converts <see cref="ProducerBuilder{TKey,TValue}"/> to <see cref="InstrumentedProducerBuilder{TKey,TValue}"/>
+    /// with explicitly configured telemetry options.
+    /// </summary>
+    /// <typeparam name="TKey">Type of the key.</typeparam>
+    /// <typeparam name="TValue">Type of the value.</typeparam>
+    /// <param name="producerBuilder">The <see cref="ProducerBuilder{TKey, TValue}"/> instance.</param>
+    /// <param name="options">The <see cref="ConfluentKafkaInstrumentedProducerBuilderOptions"/> defining which telemetry features to enable.</param>
+    /// <returns>An <see cref="InstrumentedProducerBuilder{TKey, TValue}"/> instance.</returns>
+#if NET
+    [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode("Use 'InstrumentedProducerBuilder<TKey, TValue>' constructor to avoid reflection.")]
+#endif
+    public static InstrumentedProducerBuilder<TKey, TValue> AsInstrumentedProducerBuilder<TKey, TValue>(
+        this ProducerBuilder<TKey, TValue> producerBuilder,
+        ConfluentKafkaInstrumentedProducerBuilderOptions? options)
+    {
+        var instrumentedProducerBuilder = producerBuilder.AsInstrumentedProducerBuilder();
+        if (options != null)
+        {
+            instrumentedProducerBuilder.EnableMetrics = options.EnableMetrics;
+            instrumentedProducerBuilder.EnableTraces = options.EnableTraces;
+        }
+
+        return instrumentedProducerBuilder;
+    }
+
+    /// <summary>
     /// Converts <see cref="ProducerBuilder{TKey,TValue}"/> to <see cref="InstrumentedProducerBuilder{TKey,TValue}"/>.
     /// </summary>
     /// <typeparam name="TKey">Type of the key.</typeparam>

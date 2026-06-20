@@ -92,6 +92,14 @@ or `ProducerBuilder<TKey, TValue>`
 instance with OpenTelemetry instrumentation, you can use the `AsInstrumentedConsumerBuilder`
 and `AsInstrumentedProducerBuilder` extension methods.
 
+> **Important:** When you create dynamic producers or consumers outside a DI container,
+> OpenTelemetry instrumentation (metrics and traces) is **disabled by default**.
+> You must explicitly pass configuration options to enable it.
+> If you do not use the standard DI registration methods (such as `.AddKafkaProducerInstrumentation()` or `.AddKafkaConsumerInstrumentation()`),
+> you must also manually call `.AddSource("OpenTelemetry.Instrumentation.ConfluentKafka")` on your TracerProviderBuilder
+> and `.AddMeter("OpenTelemetry.Instrumentation.ConfluentKafka")` on your MeterProviderBuilder
+> so that the providers can listen to the emitted signals.
+
 ### Example for `ConsumerBuilder<TKey, TValue>`
 
 ```csharp
@@ -112,8 +120,15 @@ consumerBuilder.SetErrorHandler((consumer, error) => Console.WriteLine($"Error: 
 consumerBuilder.SetLogHandler((consumer, logMessage) => Console.WriteLine($"Log: {logMessage.Message}"));
 consumerBuilder.SetStatisticsHandler((consumer, statistics) => Console.WriteLine($"Statistics: {statistics}"));
 
-// Convert to InstrumentedConsumerBuilder
-var instrumentedConsumerBuilder = consumerBuilder.AsInstrumentedConsumerBuilder();
+// Explicitly enable OpenTelemetry features for standalone usage
+var telemetryOptions = new ConfluentKafkaInstrumentedConsumerBuilderOptions
+{
+    EnableTraces = true,
+    EnableMetrics = true,
+};
+
+// Convert to InstrumentedConsumerBuilder with options
+var instrumentedConsumerBuilder = consumerBuilder.AsInstrumentedConsumerBuilder(telemetryOptions);
 
 // Build the consumer
 var consumer = instrumentedConsumerBuilder.Build();
@@ -137,9 +152,17 @@ producerBuilder.SetErrorHandler((producer, error) => Console.WriteLine($"Error: 
 producerBuilder.SetLogHandler((producer, logMessage) => Console.WriteLine($"Log: {logMessage.Message}"));
 producerBuilder.SetStatisticsHandler((producer, statistics) => Console.WriteLine($"Statistics: {statistics}"));
 
-// Convert to InstrumentedProducerBuilder
-var instrumentedProducerBuilder = producerBuilder.AsInstrumentedProducerBuilder();
+// Explicitly enable OpenTelemetry features for standalone usage
+var telemetryOptions = new ConfluentKafkaInstrumentedProducerBuilderOptions
+{
+    EnableTraces = true,
+    EnableMetrics = true,
+};
+
+// Convert to InstrumentedProducerBuilder with options
+var instrumentedProducerBuilder = producerBuilder.AsInstrumentedProducerBuilder(telemetryOptions);
 
 // Build the producer
 var producer = instrumentedProducerBuilder.Build();
 ```
+

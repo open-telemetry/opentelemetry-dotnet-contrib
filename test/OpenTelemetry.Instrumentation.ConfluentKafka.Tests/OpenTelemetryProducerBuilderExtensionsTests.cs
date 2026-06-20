@@ -38,6 +38,8 @@ public class OpenTelemetryProducerBuilderExtensionsTests
         Assert.Equal(OAuthBearerTokenRefreshHandler, instrumentedProducerBuilder.GetInternalOAuthBearerTokenRefreshHandler());
         Assert.Equal(keySerializer, instrumentedProducerBuilder.GetInternalKeySerializer());
         Assert.Equal(valueSerializer, instrumentedProducerBuilder.GetInternalValueSerializer());
+        Assert.False(instrumentedProducerBuilder.EnableMetrics);
+        Assert.False(instrumentedProducerBuilder.EnableTraces);
         return;
 
         void ErrorHandler(IProducer<string, string> producer, Error error)
@@ -105,6 +107,46 @@ public class OpenTelemetryProducerBuilderExtensionsTests
         void OAuthBearerTokenRefreshHandler(IProducer<string, string> producer, string oauthBearerToken)
         {
         }
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void ShouldSetTracingPropertiesIfOptionsIsDefined(bool enableMetrics, bool enableTraces)
+    {
+        // Arrange
+        var config = new ProducerConfig();
+        var builder = new ProducerBuilder<string, string>(config);
+
+        var options = new ConfluentKafkaInstrumentedProducerBuilderOptions
+        {
+            EnableMetrics = enableMetrics,
+            EnableTraces = enableTraces,
+        };
+
+        // Act
+        var instrumentedBuilder = builder.AsInstrumentedProducerBuilder(options);
+
+        // Assert
+        Assert.Equal(enableMetrics, instrumentedBuilder.EnableMetrics);
+        Assert.Equal(enableTraces, instrumentedBuilder.EnableTraces);
+    }
+
+    [Fact]
+    public void ShouldNotThrowNullReferenceExceptionsIfOptionsIsNull()
+    {
+        // Arrange
+        var config = new ProducerConfig();
+        var builder = new ProducerBuilder<string, string>(config);
+
+        // Act
+        var instrumentedBuilder = builder.AsInstrumentedProducerBuilder(null);
+
+        // Assert
+        Assert.False(instrumentedBuilder.EnableMetrics);
+        Assert.False(instrumentedBuilder.EnableTraces);
     }
 
     private class CustomProducerBuilder<TKey, TValue>(IEnumerable<KeyValuePair<string, string>> config)

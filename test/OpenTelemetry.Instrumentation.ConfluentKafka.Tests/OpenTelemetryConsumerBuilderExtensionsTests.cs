@@ -46,6 +46,8 @@ public class OpenTelemetryConsumerBuilderExtensionsTests
         Assert.Equal(PartitionsLostHandler, instrumentedConsumerBuilder.GetInternalPartitionsLostHandler());
         Assert.Equal(keyDeserializer, instrumentedConsumerBuilder.GetInternalKeyDeserializer());
         Assert.Equal(valueDeserializer, instrumentedConsumerBuilder.GetInternalValueDeserializer());
+        Assert.False(instrumentedConsumerBuilder.EnableMetrics);
+        Assert.False(instrumentedConsumerBuilder.EnableTraces);
         return;
 
         void ErrorHandler(IConsumer<string, string> consumer, Error error)
@@ -159,6 +161,54 @@ public class OpenTelemetryConsumerBuilderExtensionsTests
         {
             return [];
         }
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void ShouldSetTracingPropertiesIfOptionsIsDefined(bool enableMetrics, bool enableTraces)
+    {
+        // Arrange
+        var config = new List<KeyValuePair<string, string>>
+        {
+            new("bootstrap.servers", "localhost:9092"),
+        };
+
+        var consumerBuilder = new ConsumerBuilder<string, string>(config);
+
+        var options = new ConfluentKafkaInstrumentedConsumerBuilderOptions
+        {
+            EnableMetrics = enableMetrics,
+            EnableTraces = enableTraces,
+        };
+
+        // Act
+        var instrumentedConsumerBuilder = consumerBuilder.AsInstrumentedConsumerBuilder(options);
+
+        // Assert
+        Assert.Equal(enableMetrics, instrumentedConsumerBuilder.EnableMetrics);
+        Assert.Equal(enableTraces, instrumentedConsumerBuilder.EnableTraces);
+    }
+
+    [Fact]
+    public void ShouldNotThrowNullReferenceExceptionsIfOptionsIsNull()
+    {
+        // Arrange
+        var config = new List<KeyValuePair<string, string>>
+        {
+            new("bootstrap.servers", "localhost:9092"),
+        };
+
+        var consumerBuilder = new ConsumerBuilder<string, string>(config);
+
+        // Act
+        var instrumentedBuilder = consumerBuilder.AsInstrumentedConsumerBuilder(null);
+
+        // Assert
+        Assert.False(instrumentedBuilder.EnableMetrics);
+        Assert.False(instrumentedBuilder.EnableTraces);
     }
 
     private class CustomConsumerBuilder<TKey, TValue>(IEnumerable<KeyValuePair<string, string>> config)

@@ -11,6 +11,32 @@ namespace Confluent.Kafka;
 public static class OpenTelemetryConsumerBuilderExtensions
 {
     /// <summary>
+    /// Converts a <see cref="ConsumerBuilder{TKey, TValue}"/> to an <see cref="InstrumentedConsumerBuilder{TKey,TValue}"/>
+    /// with explicitly configured telemetry options.
+    /// </summary>
+    /// <typeparam name="TKey">Type of the key.</typeparam>
+    /// <typeparam name="TValue">Type of the value.</typeparam>
+    /// <param name="consumerBuilder">The <see cref="ConsumerBuilder{TKey, TValue}"/> instance.</param>
+    /// <param name="options">The <see cref="ConfluentKafkaInstrumentedConsumerBuilderOptions"/> defining which telemetry features to enable.</param>
+    /// <returns>An <see cref="InstrumentedConsumerBuilder{TKey, TValue}"/> instance.</returns>
+#if NET
+    [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode("Use 'InstrumentedConsumerBuilder<TKey, TValue>' constructor to avoid reflection.")]
+#endif
+    public static InstrumentedConsumerBuilder<TKey, TValue> AsInstrumentedConsumerBuilder<TKey, TValue>(
+        this ConsumerBuilder<TKey, TValue> consumerBuilder,
+        ConfluentKafkaInstrumentedConsumerBuilderOptions? options)
+    {
+        var instrumentedConsumerBuilder = consumerBuilder.AsInstrumentedConsumerBuilder();
+        if (options != null)
+        {
+            instrumentedConsumerBuilder.EnableMetrics = options.EnableMetrics;
+            instrumentedConsumerBuilder.EnableTraces = options.EnableTraces;
+        }
+
+        return instrumentedConsumerBuilder;
+    }
+
+    /// <summary>
     /// Converts a <see cref="ConsumerBuilder{TKey, TValue}"/> to an <see cref="InstrumentedConsumerBuilder{TKey,TValue}"/>.
     /// </summary>
     /// <typeparam name="TKey">Type of the key.</typeparam>
