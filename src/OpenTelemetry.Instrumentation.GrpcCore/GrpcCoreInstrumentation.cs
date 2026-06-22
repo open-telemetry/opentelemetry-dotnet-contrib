@@ -14,7 +14,7 @@ internal static class GrpcCoreInstrumentation
     /// <summary>
     /// Gets the version of the RPC Semantic Conventions used by the instrumentation.
     /// </summary>
-    internal static readonly Version SemanticConventionsVersion = new(1, 41, 0);
+    internal static readonly Version SemanticConventionsVersion = new(1, 42, 0);
 
     /// <summary>
     /// Gets the activity source for the instrumentation.

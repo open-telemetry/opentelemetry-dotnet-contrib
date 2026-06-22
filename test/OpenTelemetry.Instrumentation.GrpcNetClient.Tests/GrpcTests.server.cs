@@ -11,6 +11,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Instrumentation.Grpc.Services.Tests;
+using OpenTelemetry.Instrumentation.GrpcNetClient.Implementation;
+using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.Grpc.Tests;
@@ -39,7 +41,7 @@ public partial class GrpcTests : IAsyncLifetime
     [InlineData("false")]
     [InlineData("True")]
     [InlineData("False")]
-    public void GrpcAspNetCoreInstrumentationAddsCorrectAttributes(string? enableGrpcAspNetCoreSupport)
+    public async Task GrpcAspNetCoreInstrumentationAddsCorrectAttributes(string? enableGrpcAspNetCoreSupport)
     {
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
@@ -74,19 +76,24 @@ public partial class GrpcTests : IAsyncLifetime
 
         Assert.Equal(ActivityKind.Server, activity.Kind);
 
-        if (enableGrpcAspNetCoreSupport != null && enableGrpcAspNetCoreSupport.Equals("true", StringComparison.OrdinalIgnoreCase))
+        var aspNetCoreSupportEnabled =
+            enableGrpcAspNetCoreSupport != null &&
+            string.Equals(enableGrpcAspNetCoreSupport, "true", StringComparison.OrdinalIgnoreCase);
+
+        if (aspNetCoreSupportEnabled)
         {
-            Assert.Equal("grpc", activity.GetTagValue(SemanticConventions.AttributeRpcSystem));
-            Assert.Equal("greet.Greeter", activity.GetTagValue(SemanticConventions.AttributeRpcService));
-            Assert.Equal("SayHello", activity.GetTagValue(SemanticConventions.AttributeRpcMethod));
-            Assert.Contains(activity.GetTagValue(SemanticConventions.AttributeClientAddress), clientLoopbackAddresses);
+            Assert.Equal("grpc", activity.GetTagValue(SemanticConventions.AttributeRpcSystemName));
+            Assert.Equal("greet.Greeter/SayHello", activity.GetTagValue(SemanticConventions.AttributeRpcMethod));
+            Assert.Equal("greet.Greeter/SayHello", activity.DisplayName);
+            Assert.Contains(activity.GetTagValue(SemanticConventions.AttributeNetworkPeerAddress), clientLoopbackAddresses);
             Assert.NotEqual(0, activity.GetTagValue(SemanticConventions.AttributeClientPort));
             Assert.Null(activity.GetTagValue(GrpcTagHelper.GrpcMethodTagName));
             Assert.Null(activity.GetTagValue(GrpcTagHelper.GrpcStatusCodeTagName));
-            Assert.Equal(0, activity.GetTagValue(SemanticConventions.AttributeRpcGrpcStatusCode));
+            Assert.Equal("OK", activity.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
         }
         else
         {
+            Assert.Equal("POST /greet.Greeter/SayHello", activity.DisplayName);
             Assert.NotNull(activity.GetTagValue(GrpcTagHelper.GrpcMethodTagName));
             Assert.NotNull(activity.GetTagValue(GrpcTagHelper.GrpcStatusCodeTagName));
         }
@@ -101,9 +108,18 @@ public partial class GrpcTests : IAsyncLifetime
         Assert.Equal("/greet.Greeter/SayHello", activity.GetTagValue(SemanticConventions.AttributeUrlPath));
         Assert.Equal("2", activity.GetTagValue(SemanticConventions.AttributeNetworkProtocolVersion));
         Assert.StartsWith("grpc-dotnet", activity.GetTagValue(SemanticConventions.AttributeUserAgentOriginal) as string);
+
+        if (aspNetCoreSupportEnabled && DockerHelper.IsAvailable(DockerPlatform.Linux))
+        {
+            await WeaverTelemetryVerifier.VerifyAsync(
+                (exportedItems, []),
+                GrpcClientDiagnosticListener.SemanticConventionsVersion,
+                weaver,
+                outputHelper);
+        }
     }
 
-    [Theory(Skip = "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1778")]
+    [Theory]
     [InlineData(null)]
     [InlineData("true")]
     [InlineData("false")]
@@ -152,19 +168,20 @@ public partial class GrpcTests : IAsyncLifetime
 
             Assert.Equal(ActivityKind.Server, activity.Kind);
 
-            if (enableGrpcAspNetCoreSupport != null && enableGrpcAspNetCoreSupport.Equals("true", StringComparison.OrdinalIgnoreCase))
+            if (enableGrpcAspNetCoreSupport != null && string.Equals(enableGrpcAspNetCoreSupport, "true", StringComparison.OrdinalIgnoreCase))
             {
                 Assert.Equal("grpc", activity.GetTagValue(SemanticConventions.AttributeRpcSystemName));
-                Assert.Equal("greet.Greeter", activity.GetTagValue(SemanticConventions.AttributeRpcService));
-                Assert.Equal("SayHello", activity.GetTagValue(SemanticConventions.AttributeRpcMethod));
-                Assert.Contains(activity.GetTagValue(SemanticConventions.AttributeNetPeerIp), clientLoopbackAddresses);
-                Assert.NotEqual(0, activity.GetTagValue(SemanticConventions.AttributeNetPeerPort));
+                Assert.Equal("greet.Greeter/SayHello", activity.GetTagValue(SemanticConventions.AttributeRpcMethod));
+                Assert.Equal("greet.Greeter/SayHello", activity.DisplayName);
+                Assert.Contains(activity.GetTagValue(SemanticConventions.AttributeNetworkPeerAddress), clientLoopbackAddresses);
+                Assert.NotEqual(0, activity.GetTagValue(SemanticConventions.AttributeClientPort));
                 Assert.Null(activity.GetTagValue(GrpcTagHelper.GrpcMethodTagName));
                 Assert.Null(activity.GetTagValue(GrpcTagHelper.GrpcStatusCodeTagName));
-                Assert.Equal(0, activity.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
+                Assert.Equal("OK", activity.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
             }
             else
             {
+                Assert.Equal("POST /greet.Greeter/SayHello", activity.DisplayName);
                 Assert.NotNull(activity.GetTagValue(GrpcTagHelper.GrpcMethodTagName));
                 Assert.NotNull(activity.GetTagValue(GrpcTagHelper.GrpcStatusCodeTagName));
             }

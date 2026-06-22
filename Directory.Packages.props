@@ -138,6 +138,7 @@
     <PackageVersion Include="System.Reflection.DispatchProxy" Version="4.8.2" />
     <PackageVersion Include="System.ServiceModel.Http" Version="10.0.652802" />
     <PackageVersion Include="System.ServiceModel.NetTcp" Version="10.0.652802" />
+    <PackageVersion Include="Testcontainers" Version="4.12.0" />
     <PackageVersion Include="Testcontainers.Cassandra" Version="4.12.0" />
     <PackageVersion Include="Testcontainers.Kafka" Version="4.12.0" />
     <PackageVersion Include="Testcontainers.MsSql" Version="4.12.0" />

@@ -204,6 +204,7 @@
     <File Path="src/Shared/RedactionHelper.cs" />
     <File Path="src/Shared/RequestDataHelper.cs" />
     <File Path="src/Shared/ResourceSemanticConventions.cs" />
+    <File Path="src/Shared/RpcSemanticConventionHelper.cs" />
     <File Path="src/Shared/SemanticConventions.cs" />
     <File Path="src/Shared/ServerCertificateValidationHandler.cs" />
     <File Path="src/Shared/ServerCertificateValidationProvider.cs" />
@@ -314,5 +315,10 @@
     <File Path="test/Shared/TestSampler.cs" />
     <File Path="test/Shared/TestTextMapPropagator.cs" />
     <File Path="test/Shared/TestWebSocketServer.cs" />
+    <File Path="test/Shared/weaver.Dockerfile" />
+    <File Path="test/Shared/WeaverCollection.cs" />
+    <File Path="test/Shared/WeaverFixture.cs" />
+    <File Path="test/Shared/WeaverSpecificationTests.cs" />
+    <File Path="test/Shared/WeaverTelemetryVerifier.cs" />
   </Folder>
 </Solution>
