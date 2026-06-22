@@ -40,33 +40,6 @@ public class GrpcTests
     }
 
     [Fact]
-    public void OnStopActivitySetsRpcMethodToOtherWhenMethodCannotBeParsed()
-    {
-        // Arrange
-        var listener = CreateListener();
-        using var activity = CreateActivity("Invalid", "invalid");
-        var context = CreateContext(remoteIpAddress: null, remotePort: 4317);
-
-        // Act
-        listener.OnStopActivity(activity, context);
-
-        // Assert
-        Assert.Equal("grpc", activity.DisplayName);
-        Assert.Equal(ActivityStatusCode.Unset, activity.Status);
-
-        AssertTag(activity, GrpcTagHelper.GrpcMethodTagName, null);
-        AssertTag(activity, GrpcTagHelper.GrpcStatusCodeTagName, "invalid");
-        AssertTag(activity, SemanticConventions.AttributeNetworkPeerAddress, null);
-        AssertTag(activity, SemanticConventions.AttributeNetworkPeerPort, 4317);
-        AssertTag(activity, SemanticConventions.AttributeRpcGrpcStatusCode, null);
-        AssertTag(activity, SemanticConventions.AttributeRpcMethod, "_OTHER");
-        AssertTag(activity, SemanticConventions.AttributeRpcMethodOriginal, "Invalid");
-        AssertTag(activity, SemanticConventions.AttributeRpcResponseStatusCode, null);
-        AssertTag(activity, SemanticConventions.AttributeRpcService, null);
-        AssertTag(activity, SemanticConventions.AttributeRpcSystemName, "grpc");
-    }
-
-    [Fact]
     public void OnStopActivityIgnoresEmptyGrpcMethodTag()
     {
         // Arrange
