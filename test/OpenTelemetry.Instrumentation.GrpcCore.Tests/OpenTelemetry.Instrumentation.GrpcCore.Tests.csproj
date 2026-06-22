@@ -8,6 +8,7 @@
   <ItemGroup>
     <PackageReference Include="Grpc" />
     <PackageReference Include="Grpc.Tools" />
+    <PackageReference Include="OpenTelemetry" />
     <PackageReference Include="Testcontainers" />
   </ItemGroup>
 
