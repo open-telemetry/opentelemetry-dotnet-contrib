@@ -318,11 +318,7 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
         Assert.Equal("OK", grpcSpan4.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
     }
 
-#if NET
     [Fact(Skip = "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1727")]
-#else
-    [Fact]
-#endif
     public void GrpcPropagatesContextWithSuppressInstrumentationOptionSetToTrue()
     {
         try
@@ -370,9 +366,9 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
             Assert.Equal($"greet.Greeter/SayHello", clientActivity.DisplayName);
             Assert.Equal($"POST /greet.Greeter/SayHello", serverActivity.DisplayName);
             Assert.Equal(clientActivity.TraceId, serverActivity.TraceId);
-            Assert.Equal(clientActivity.SpanId, serverActivity.ParentSpanId);
-            Assert.Equal("OK", clientActivity.GetTagValue(SemanticConventions.AttributeRpcGrpcStatusCode));
+            Assert.Equal("OK", clientActivity.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
             Assert.Equal("customValue", serverActivity.GetCustomProperty("customField") as string);
+            Assert.Equal(clientActivity.SpanId, serverActivity.ParentSpanId);
         }
         finally
         {
