@@ -3,6 +3,7 @@
 
 #if NETFRAMEWORK
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
@@ -129,7 +130,8 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
                     if (options?.EmitNewRpcAttributes == true)
                     {
                         string? statusCode = null;
-                        if (OperationContext.Current?.IncomingMessageProperties[HttpResponseMessageProperty.Name] is HttpResponseMessageProperty response)
+                        if (TryGetHttpResponseMessageProperty(OperationContext.Current?.OutgoingMessageProperties, out var response) ||
+                            TryGetHttpResponseMessageProperty(reply.Properties, out response))
                         {
                             statusCode = ((int)response.StatusCode).ToString(CultureInfo.InvariantCulture);
                             activity.SetTag(SemanticConventions.AttributeRpcResponseStatusCode, statusCode);
@@ -163,6 +165,19 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
                 Baggage.Current = default;
             }
         }
+    }
+
+    private static bool TryGetHttpResponseMessageProperty(MessageProperties? properties, [NotNullWhen(true)] out HttpResponseMessageProperty? response)
+    {
+        response = null;
+        if (properties?.TryGetValue(HttpResponseMessageProperty.Name, out var property) == true &&
+            property is HttpResponseMessageProperty httpResponse)
+        {
+            response = httpResponse;
+            return true;
+        }
+
+        return false;
     }
 
     private static List<KeyValuePair<string, object?>> CreateActivityTags(

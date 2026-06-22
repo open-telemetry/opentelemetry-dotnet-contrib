@@ -308,6 +308,63 @@ public class TelemetryDispatchMessageInspectorTests : IClassFixture<WeaverFixtur
     }
 
     [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task RecordExceptionWithNewRpcAttributesStopsFaultedActivity(bool runAsync)
+    {
+        using var scope = SemanticConventionScope.Get(emitOldAttributes: false, emitNewAttributes: true);
+
+        List<Activity> stoppedActivities = [];
+        using var activityListener = new ActivityListener
+        {
+            ShouldListenTo = _ => true,
+            ActivityStopped = stoppedActivities.Add,
+        };
+
+        ActivitySource.AddActivityListener(activityListener);
+
+        var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddWcfInstrumentation(options =>
+            {
+                options.RecordException = true;
+            })
+            .Build();
+
+        var client = new ServiceClient(
+            new NetTcpBinding(),
+            new EndpointAddress(new Uri(this.serviceBaseUri, "/Service")));
+        try
+        {
+            if (runAsync)
+            {
+                await client.ErrorAsync();
+            }
+            else
+            {
+                client.ErrorSynchronous();
+            }
+        }
+        catch (Exception)
+        {
+        }
+        finally
+        {
+            client.AbortOrClose();
+            tracerProvider?.Shutdown();
+            tracerProvider?.Dispose();
+
+            WcfInstrumentationActivitySource.Options = null;
+        }
+
+        Assert.NotEmpty(stoppedActivities);
+        var activity = Assert.Single(stoppedActivities);
+
+        Assert.Equal(ActivityStatusCode.Error, activity.Status);
+        Assert.Equal(WcfInstrumentationConstants.ErrorTypeOther, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeErrorType).Value);
+        Assert.DoesNotContain(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcResponseStatusCode);
+    }
+
+    [Theory]
     [InlineData(false)]
     [InlineData(true)]
     public async Task FilteredIncomingRequestDoesNotRecordException(bool throwFromFilter)
