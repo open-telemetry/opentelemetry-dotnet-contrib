@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
@@ -31,6 +30,19 @@ internal class HttpInListener : ListenerHandler
 
     private const string DiagnosticSourceName = "Microsoft.AspNetCore";
     private const string CreatedByInstrumentationPropertyName = "OpenTelemetry.AspNetCore.CreatedByInstrumentation";
+    private const string FrameworkActivityPropertyName = "OpenTelemetry.AspNetCore.FrameworkActivity";
+
+    // The gRPC .NET library adds these tags to the Activity created by ASP.NET Core
+    // (and not necessarily to Activity.Current). When the instrumentation creates a
+    // sibling Activity these tags must be copied from the original (framework) Activity.
+    // See https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1778
+    private static readonly string[] GrpcSourceTagNames =
+    [
+        GrpcTagHelper.GrpcMethodTagName,
+        GrpcTagHelper.GrpcStatusCodeTagName,
+        GrpcTagHelper.GrpcStatusTagName,
+        GrpcTagHelper.GrpcTargetTagName,
+    ];
 
     private static readonly Func<HttpRequest, string, IEnumerable<string>> HttpRequestHeaderValuesGetter = (request, name) =>
     {
@@ -45,10 +57,6 @@ internal class HttpInListener : ListenerHandler
 
     private static readonly PropertyFetcher<Exception> ExceptionPropertyFetcher = new("Exception");
     private static readonly object CreatedByInstrumentationMarker = new();
-
-    // Caches the display name, rpc.service, and rpc.method derived from the raw gRPC method string.
-    // The set of distinct gRPC method strings is bounded by the number of gRPC endpoints in the app.
-    private static readonly GrpcMethodDetailsCache GrpcMethodCache = new();
 
     private readonly AspNetCoreTraceInstrumentationOptions options;
     private readonly bool nativeAspNetCoreOpenTelemetryEnabled;
@@ -136,6 +144,12 @@ internal class HttpInListener : ListenerHandler
                 newOne!.TraceStateString = ctx.ActivityContext.TraceState;
 
                 newOne.SetCustomProperty(CreatedByInstrumentationPropertyName, CreatedByInstrumentationMarker);
+
+                // Keep a reference to the framework Activity. The gRPC .NET library may add
+                // its tags to that Activity rather than to Activity.Current, so they need to
+                // be copied onto the sibling Activity when it is stopped.
+                // See https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1778
+                newOne.SetCustomProperty(FrameworkActivityPropertyName, activity);
 
                 // Starting the new activity make it the Activity.Current one.
                 newOne.Start();
@@ -267,6 +281,13 @@ internal class HttpInListener : ListenerHandler
 
             activity.SetTag(SemanticConventions.AttributeHttpResponseStatusCode, TelemetryHelper.GetBoxedStatusCode(response.StatusCode));
 
+            // If the instrumentation created a sibling Activity, the gRPC .NET library may
+            // have added its grpc.* tags to the original (framework) Activity instead of to
+            // the sibling Activity that is exported. Copy them across so that gRPC requests
+            // are handled the same regardless of whether a sibling Activity was created.
+            // See https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1778
+            CopyGrpcTagsFromFrameworkActivity(activity);
+
             if (this.options.EnableGrpcAspNetCoreSupport && IsGrpcRequest(activity, out var grpcMethod))
             {
                 // Single pass over the tag collection to retrieve both gRPC tags,
@@ -293,15 +314,12 @@ internal class HttpInListener : ListenerHandler
                     }
                 }
 
-                if (grpcMethod is { Length: > 0 })
-                {
-                    AddGrpcAttributes(
-                        activity,
-                        grpcMethod,
-                        context,
-                        grpcStatusCode,
-                        hasGrpcStatusCode);
-                }
+                AddGrpcAttributes(
+                    activity,
+                    grpcMethod,
+                    context,
+                    grpcStatusCode,
+                    hasGrpcStatusCode);
             }
 
             if (activity.Status == ActivityStatusCode.Unset)
@@ -389,16 +407,15 @@ internal class HttpInListener : ListenerHandler
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void AddGrpcAttributes(
         Activity activity,
-        string grpcMethod,
+        string? grpcMethod,
         HttpContext context,
         int grpcStatusCode,
         bool validStatusCode)
     {
-        var details = GrpcMethodCache.Get(grpcMethod);
-
         // See the specs for semantic conventions.
-        // https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/rpc/rpc-spans.md
-        activity.SetTag(SemanticConventions.AttributeRpcSystemName, GrpcTagHelper.RpcSystemGrpc);
+        // https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/rpc/rpc-spans.md
+        GrpcTagHelper.SetGrpcSystemName(activity);
+        GrpcTagHelper.SetGrpcMethodAndDisplayNameFromActivity(activity, grpcMethod);
 
         if (context.Connection.RemoteIpAddress != null)
         {
@@ -414,30 +431,8 @@ internal class HttpInListener : ListenerHandler
             activity.SetStatus(spanStatus);
         }
 
-        // https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/rpc/grpc.md
-        if (details.IsParsed)
-        {
-            // The RPC semantic conventions indicate the span name should be rpc.method
-            // when it is available and not "_OTHER".
-            activity.DisplayName = details.DisplayName;
-
-            // rpc.method is the fully-qualified logical method name, e.g. "package.Service/Method".
-            activity.SetTag(SemanticConventions.AttributeRpcMethod, details.DisplayName);
-        }
-        else
-        {
-            // The RPC semantic conventions indicate the span name should be rpc.system.name
-            // when rpc.method is "_OTHER".
-            activity.DisplayName = GrpcTagHelper.RpcSystemGrpc;
-
-            // The method is not in the expected service/method form, so it is treated as unrecognized:
-            // rpc.method is set to "_OTHER" and the original value is preserved in rpc.method_original.
-            activity.SetTag(SemanticConventions.AttributeRpcMethod, GrpcTagHelper.RpcMethodOther);
-            activity.SetTag(SemanticConventions.AttributeRpcMethodOriginal, grpcMethod);
-        }
-
         // The grpc.method tag has now been mapped to rpc.method, so the source tag can be removed.
-        // See https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/non-normative/compatibility/grpc.md#attribute-mapping
+        // See https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/non-normative/compatibility/grpc.md#attribute-mapping
         activity.SetTag(GrpcTagHelper.GrpcMethodTagName, null);
         activity.SetTag(GrpcTagHelper.GrpcTargetTagName, null);
 
@@ -485,6 +480,23 @@ internal class HttpInListener : ListenerHandler
         return Net11OrGreater;
     }
 
+    private static void CopyGrpcTagsFromFrameworkActivity(Activity activity)
+    {
+        // Only sibling activities created by the instrumentation have this property set.
+        if (activity.GetCustomProperty(FrameworkActivityPropertyName) is not Activity frameworkActivity)
+        {
+            return;
+        }
+
+        foreach (var tagName in GrpcSourceTagNames)
+        {
+            if (frameworkActivity.GetTagValue(tagName) is { } value)
+            {
+                activity.SetTag(tagName, value);
+            }
+        }
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsGrpcRequest(Activity activity, [NotNullWhen(true)] out string? grpcMethod)
     {
@@ -493,49 +505,5 @@ internal class HttpInListener : ListenerHandler
         // can't just look at the HTTP protocol version to attempt to shortcut the test.
         grpcMethod = GrpcTagHelper.GetGrpcMethodFromActivity(activity);
         return !string.IsNullOrEmpty(grpcMethod);
-    }
-
-    private readonly struct GrpcMethodDetails
-    {
-        public GrpcMethodDetails(string displayName, string? rpcService, string? rpcMethod, bool isParsed)
-        {
-            this.DisplayName = displayName;
-            this.RpcService = rpcService;
-            this.RpcMethod = rpcMethod;
-            this.IsParsed = isParsed;
-        }
-
-        public readonly string DisplayName { get; }
-
-        public readonly string? RpcService { get; }
-
-        public readonly string? RpcMethod { get; }
-
-        public readonly bool IsParsed { get; }
-    }
-
-    private sealed class GrpcMethodDetailsCache
-    {
-        private const int MaxCacheSize = 512;
-        private readonly ConcurrentDictionary<string, GrpcMethodDetails> cache = new();
-
-        public GrpcMethodDetails Get(string grpcMethod)
-        {
-            if (this.cache.TryGetValue(grpcMethod, out var details))
-            {
-                return details;
-            }
-
-            // If the cache has reached its maximum size, just create a value without caching
-            return this.cache.Count >= MaxCacheSize ? Create(grpcMethod) : this.cache.GetOrAdd(grpcMethod, Create);
-        }
-
-        private static GrpcMethodDetails Create(string method)
-        {
-            var displayName = method.Length > 0 && method[0] == '/' ? method.Substring(1) : method;
-            var isParsed = GrpcTagHelper.TryParseRpcServiceAndRpcMethod(method, out var serviceName, out var methodName);
-
-            return new(displayName, isParsed ? serviceName : null, isParsed ? methodName : null, isParsed);
-        }
     }
 }

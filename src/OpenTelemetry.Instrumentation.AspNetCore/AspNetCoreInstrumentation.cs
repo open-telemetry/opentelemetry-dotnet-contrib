@@ -10,7 +10,7 @@ namespace OpenTelemetry.Instrumentation.AspNetCore;
 /// </summary>
 internal sealed class AspNetCoreInstrumentation : IDisposable
 {
-    internal static readonly Version SemanticConventionsVersion = new(1, 40, 0);
+    internal static readonly Version SemanticConventionsVersion = new(1, 42, 0);
 
     private static readonly HashSet<string> DiagnosticSourceEvents =
     [

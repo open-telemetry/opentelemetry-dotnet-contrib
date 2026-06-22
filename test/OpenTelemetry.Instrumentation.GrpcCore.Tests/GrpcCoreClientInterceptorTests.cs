@@ -14,7 +14,7 @@ namespace OpenTelemetry.Instrumentation.GrpcCore.Tests;
 /// <summary>
 /// Grpc Core client interceptor tests.
 /// </summary>
-public class GrpcCoreClientInterceptorTests
+public class GrpcCoreClientInterceptorTests(WeaverFixture weaver, ITestOutputHelper outputHelper) : IClassFixture<WeaverFixture>
 {
     /// <summary>
     /// A bogus server uri.
@@ -32,7 +32,7 @@ public class GrpcCoreClientInterceptorTests
     /// <returns>A task.</returns>
     [Fact]
     public async Task AsyncUnarySuccess() =>
-        await TestHandlerSuccess(
+        await this.TestHandlerSuccess(
             FoobarService.MakeUnaryAsyncRequest,
             FoobarService.UnaryMethod,
             DefaultMetadataFunc());
@@ -82,7 +82,7 @@ public class GrpcCoreClientInterceptorTests
     /// <returns>A task.</returns>
     [Fact]
     public async Task ClientStreamingSuccess() =>
-        await TestHandlerSuccess(FoobarService.MakeClientStreamingRequest, FoobarService.ClientStreamingMethod, DefaultMetadataFunc());
+        await this.TestHandlerSuccess(FoobarService.MakeClientStreamingRequest, FoobarService.ClientStreamingMethod, DefaultMetadataFunc());
 
     /// <summary>
     /// Validates a failed ClientStreaming call when the service is unavailable.
@@ -125,7 +125,7 @@ public class GrpcCoreClientInterceptorTests
     /// <returns>A task.</returns>
     [Fact]
     public async Task ServerStreamingSuccess() =>
-        await TestHandlerSuccess(FoobarService.MakeServerStreamingRequest, FoobarService.ServerStreamingMethod, DefaultMetadataFunc());
+        await this.TestHandlerSuccess(FoobarService.MakeServerStreamingRequest, FoobarService.ServerStreamingMethod, DefaultMetadataFunc());
 
     /// <summary>
     /// Validates a failed ServerStreaming call.
@@ -155,7 +155,7 @@ public class GrpcCoreClientInterceptorTests
     /// <returns>A task.</returns>
     [Fact]
     public async Task DuplexStreamingSuccess() =>
-        await TestHandlerSuccess(FoobarService.MakeDuplexStreamingRequest, FoobarService.DuplexStreamingMethod, DefaultMetadataFunc());
+        await this.TestHandlerSuccess(FoobarService.MakeDuplexStreamingRequest, FoobarService.DuplexStreamingMethod, DefaultMetadataFunc());
 
     /// <summary>
     /// Validates a failed DuplexStreaming call when the service is unavailable.
@@ -343,19 +343,35 @@ public class GrpcCoreClientInterceptorTests
 
         Assert.True(activity.IsStopped, "The activity has not been stopped.");
 
-        Assert.Equal(expectedMethodName, activity.DisplayName);
+        var expectedRpcMethod = $"OpenTelemetry.Instrumentation.GrpcCore.Tests.Foobar/{expectedMethodName}";
+        var expectedResponseStatusCode = GrpcTagHelper.GetGrpcStatusCodeName((int)expectedStatusCode);
+
+        Assert.Equal(expectedRpcMethod, activity.DisplayName);
 
         // TagObjects contain non string values
         // Tags contains only string values
         Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcSystemName && (string?)t.Value == "grpc");
-        Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcService && (string?)t.Value == "OpenTelemetry.Instrumentation.GrpcCore.Tests.Foobar");
-        Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcMethod && (string?)t.Value == expectedMethodName);
-        Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcResponseStatusCode && (int?)t.Value == (int)expectedStatusCode);
+        Assert.DoesNotContain(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcService);
+        Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcMethod && (string?)t.Value == expectedRpcMethod);
+        Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcResponseStatusCode && (string?)t.Value == expectedResponseStatusCode);
 
-        // Cancelled is not an error.
-        if (expectedStatusCode is not StatusCode.OK and not StatusCode.Cancelled)
+        // Client spans treat every non-OK status as an error, whereas server spans only treat a
+        // subset of status codes as errors.
+        // See https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/rpc/grpc.md
+        var expectedStatus = activity.Kind == ActivityKind.Client
+            ? GrpcTagHelper.ResolveSpanStatusForGrpcStatusCodeOnClient((int)expectedStatusCode)
+            : GrpcTagHelper.ResolveSpanStatusForGrpcStatusCodeOnServer((int)expectedStatusCode);
+
+        if (expectedStatus == ActivityStatusCode.Error)
         {
+            // A failed span has error.type set to the status code name.
             Assert.Equal(ActivityStatusCode.Error, activity.Status);
+            Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeErrorType && (string?)t.Value == expectedResponseStatusCode);
+        }
+        else
+        {
+            Assert.NotEqual(ActivityStatusCode.Error, activity.Status);
+            Assert.DoesNotContain(activity.TagObjects, t => t.Key == SemanticConventions.AttributeErrorType);
         }
 
         if (recordedMessages)
@@ -398,13 +414,109 @@ public class GrpcCoreClientInterceptorTests
     }
 
     /// <summary>
+    /// Tests basic handler failure. Instructs the server to fail with resources exhausted and validates the created Activity.
+    /// </summary>
+    /// <param name="clientRequestFunc">The client request function.</param>
+    /// <param name="expectedMethodName">The expected gRPC method name.</param>
+    /// <param name="statusCode">The status code to use for the failure. Defaults to ResourceExhausted.</param>
+    /// <param name="validateErrorDescription">if set to <c>true</c> [validate error description].</param>
+    /// <param name="serverUriString">An alternate server URI string.</param>
+    /// <returns>
+    /// A Task.
+    /// </returns>
+    private static async Task TestHandlerFailure(
+        Func<Foobar.FoobarClient, Metadata?, Task> clientRequestFunc,
+        string expectedMethodName,
+        StatusCode statusCode = StatusCode.ResourceExhausted,
+        bool validateErrorDescription = true,
+        string? serverUriString = null)
+    {
+        var testTags = new TestActivityTags();
+        var interceptorOptions = new ClientTracingInterceptorOptions
+        {
+            Propagator = new TraceContextPropagator(),
+            AdditionalTags = testTags.Tags,
+            RecordException = true,
+        };
+
+        using var activityListener = new InterceptorActivityListener(testTags);
+
+        using (var server = FoobarService.Start())
+        {
+            var client = FoobarService.ConstructRpcClient(
+                serverUriString ?? server.Target,
+                new ClientTracingInterceptor(interceptorOptions),
+                [
+                    new(FoobarService.RequestHeaderFailWithStatusCode, statusCode.ToString()),
+                    new(FoobarService.RequestHeaderErrorDescription, "fubar")
+                ]);
+
+            await Assert.ThrowsAsync<RpcException>(() => clientRequestFunc(client, null));
+        }
+
+        var activity = activityListener.Activity;
+
+        ValidateCommonActivityTags(
+            activity,
+            expectedMethodName,
+            statusCode,
+            interceptorOptions.RecordMessageEvents,
+            interceptorOptions.RecordException);
+
+        if (validateErrorDescription)
+        {
+            Assert.NotNull(activity);
+            Assert.Contains("fubar", activity.StatusDescription);
+        }
+    }
+
+    /// <summary>
+    /// Tests for Activity cancellation when the handler is disposed before completing the RPC.
+    /// </summary>
+    /// <param name="clientRequestAction">The client request action.</param>
+    /// <param name="expectedMethodName">The expected gRPC method name.</param>
+    private void TestActivityIsCancelledWhenHandlerDisposed(
+        Action<Foobar.FoobarClient> clientRequestAction,
+        string expectedMethodName)
+    {
+        var testTags = new TestActivityTags();
+        using var activityListener = new InterceptorActivityListener(testTags);
+
+        using (var server = FoobarService.Start())
+        {
+            var clientInterceptorOptions = new ClientTracingInterceptorOptions
+            {
+                Propagator = new TraceContextPropagator(),
+                AdditionalTags = testTags.Tags,
+            };
+
+            var client = FoobarService.ConstructRpcClient(server.Target, new ClientTracingInterceptor(clientInterceptorOptions));
+            clientRequestAction(client);
+        }
+
+        // The activity is stopped asynchronously once the call is cancelled, so wait
+        // for it to be stopped before validating to avoid reading it prematurely.
+        Assert.True(
+            SpinWait.SpinUntil(
+                () => activityListener.Activity?.IsStopped == true,
+                TimeSpan.FromSeconds(5)),
+            "The activity was not stopped within the timeout.");
+
+        ValidateCommonActivityTags(
+            activityListener.Activity,
+            expectedMethodName,
+            StatusCode.Cancelled,
+            false);
+    }
+
+    /// <summary>
     /// Tests basic handler success.
     /// </summary>
     /// <param name="clientRequestFunc">The client request function.</param>
     /// <param name="expectedMethodName">The expected gRPC method name.</param>
     /// <param name="additionalMetadata">The additional metadata, if any.</param>
     /// <returns>A Task.</returns>
-    private static async Task TestHandlerSuccess(
+    private async Task TestHandlerSuccess(
         Func<Foobar.FoobarClient, Metadata, Task> clientRequestFunc,
         string expectedMethodName,
         Metadata additionalMetadata)
@@ -523,102 +635,16 @@ public class GrpcCoreClientInterceptorTests
             Assert.Equal(parentActivity.Id, activity.ParentId);
             Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeServerAddress && (string?)t.Value == server.HostName);
             Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeServerPort && (int?)t.Value == server.Port);
-        }
-    }
 
-    /// <summary>
-    /// Tests basic handler failure. Instructs the server to fail with resources exhausted and validates the created Activity.
-    /// </summary>
-    /// <param name="clientRequestFunc">The client request function.</param>
-    /// <param name="expectedMethodName">The expected gRPC method name.</param>
-    /// <param name="statusCode">The status code to use for the failure. Defaults to ResourceExhausted.</param>
-    /// <param name="validateErrorDescription">if set to <c>true</c> [validate error description].</param>
-    /// <param name="serverUriString">An alternate server URI string.</param>
-    /// <returns>
-    /// A Task.
-    /// </returns>
-    private static async Task TestHandlerFailure(
-        Func<Foobar.FoobarClient, Metadata?, Task> clientRequestFunc,
-        string expectedMethodName,
-        StatusCode statusCode = StatusCode.ResourceExhausted,
-        bool validateErrorDescription = true,
-        string? serverUriString = null)
-    {
-        var testTags = new TestActivityTags();
-        var interceptorOptions = new ClientTracingInterceptorOptions
-        {
-            Propagator = new TraceContextPropagator(),
-            AdditionalTags = testTags.Tags,
-            RecordException = true,
-        };
-
-        using var activityListener = new InterceptorActivityListener(testTags);
-
-        using (var server = FoobarService.Start())
-        {
-            var client = FoobarService.ConstructRpcClient(
-                serverUriString ?? server.Target,
-                new ClientTracingInterceptor(interceptorOptions),
-                [
-                    new(FoobarService.RequestHeaderFailWithStatusCode, statusCode.ToString()),
-                    new(FoobarService.RequestHeaderErrorDescription, "fubar")
-                ]);
-
-            await Assert.ThrowsAsync<RpcException>(() => clientRequestFunc(client, null));
-        }
-
-        var activity = activityListener.Activity;
-
-        ValidateCommonActivityTags(
-            activity,
-            expectedMethodName,
-            statusCode,
-            interceptorOptions.RecordMessageEvents,
-            interceptorOptions.RecordException);
-
-        if (validateErrorDescription)
-        {
-            Assert.NotNull(activity);
-            Assert.Contains("fubar", activity.StatusDescription);
-        }
-    }
-
-    /// <summary>
-    /// Tests for Activity cancellation when the handler is disposed before completing the RPC.
-    /// </summary>
-    /// <param name="clientRequestAction">The client request action.</param>
-    /// <param name="expectedMethodName">The expected gRPC method name.</param>
-    private void TestActivityIsCancelledWhenHandlerDisposed(
-        Action<Foobar.FoobarClient> clientRequestAction,
-        string expectedMethodName)
-    {
-        var testTags = new TestActivityTags();
-        using var activityListener = new InterceptorActivityListener(testTags);
-
-        using (var server = FoobarService.Start())
-        {
-            var clientInterceptorOptions = new ClientTracingInterceptorOptions
+            if (DockerHelper.IsAvailable(DockerPlatform.Linux))
             {
-                Propagator = new TraceContextPropagator(),
-                AdditionalTags = testTags.Tags,
-            };
-
-            var client = FoobarService.ConstructRpcClient(server.Target, new ClientTracingInterceptor(clientInterceptorOptions));
-            clientRequestAction(client);
+                await WeaverTelemetryVerifier.VerifyAsync(
+                    ([activity], []),
+                    GrpcCoreInstrumentation.SemanticConventionsVersion,
+                    weaver,
+                    outputHelper,
+                    [new("missing_attribute", "Attribute 'activityidentifier' does not exist in the registry.")]);
+            }
         }
-
-        // The activity is stopped asynchronously once the call is cancelled, so wait
-        // for it to be stopped before validating to avoid reading it prematurely.
-        Assert.True(
-            SpinWait.SpinUntil(
-                () => activityListener.Activity?.IsStopped == true,
-                TimeSpan.FromSeconds(5)),
-            "The activity was not stopped within the timeout.");
-
-        ValidateCommonActivityTags(
-            activityListener.Activity,
-            expectedMethodName,
-            StatusCode.Cancelled,
-            false);
     }
 }
