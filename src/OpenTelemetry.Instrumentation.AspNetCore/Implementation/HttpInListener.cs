@@ -114,6 +114,12 @@ internal class HttpInListener : ListenerHandler
 
         string? path = null;
 
+        // Tracks whether the instrumentation created a sibling Activity. When it does,
+        // ASP.NET Core 11+ writes its native OpenTelemetry tags to the framework Activity
+        // (which is no longer sampled) rather than to the exported sibling, so the
+        // instrumentation must set those tags itself instead of deferring to the framework.
+        var createdSibling = false;
+
         // Ensure context extraction irrespective of sampling decision
         var request = context.Request;
         var textMapPropagator = Propagators.DefaultTextMapPropagator;
@@ -159,14 +165,7 @@ internal class HttpInListener : ListenerHandler
                 // Set IsAllDataRequested to false for the activity created by the framework to only export the sibling activity and not the framework activity
                 activity.IsAllDataRequested = false;
                 activity = newOne;
-
-                if (Net11OrGreater)
-                {
-                    // ASP.NET Core 11 will set the url.path attribute, but only if the
-                    // activity is sampled. As we skip setting it for ASP.NET Core 11
-                    // we need to set it here otherwise it will not get set at all.
-                    SetUrlPathAttribute(request, activity);
-                }
+                createdSibling = true;
             }
 
             Baggage.Current = ctx.Baggage;
@@ -217,7 +216,9 @@ internal class HttpInListener : ListenerHandler
             // See https://github.com/dotnet/aspnetcore/issues/65873.
             TelemetryHelper.RequestDataHelper.SetActivityDisplayNameAndHttpMethodTag(activity, request.Method);
 
-            if (!Net10OrGreater || !this.nativeAspNetCoreOpenTelemetryEnabled)
+            // When a sibling Activity was created the framework's native tags land on the
+            // (now unsampled) framework Activity, so set them here on the exported sibling.
+            if (!Net10OrGreater || !this.nativeAspNetCoreOpenTelemetryEnabled || createdSibling)
             {
                 if (request.Host.HasValue)
                 {
@@ -291,7 +292,12 @@ internal class HttpInListener : ListenerHandler
             var response = context.Response;
             var statusCodeSet = false;
 
-            if (!Net11OrGreater || !this.nativeAspNetCoreOpenTelemetryEnabled)
+            // When the instrumentation created a sibling Activity, ASP.NET Core 11+ wrote its
+            // native tags (route, display name, status code) to the unsampled framework Activity,
+            // so the instrumentation must set them on the exported sibling instead.
+            var createdSibling = ReferenceEquals(activity.GetCustomProperty(CreatedByInstrumentationPropertyName), CreatedByInstrumentationMarker);
+
+            if (!Net11OrGreater || !this.nativeAspNetCoreOpenTelemetryEnabled || createdSibling)
             {
 #if NET
                 var routePattern = context.GetHttpRoute();
