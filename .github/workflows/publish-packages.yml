@@ -55,6 +55,12 @@ jobs:
           persist-credentials: false
           show-progress: false
 
+      - name: Get Git commit timestamp
+        id: get-commit-timestamp
+        shell: pwsh
+        run: |
+          "epoch=$(git log -1 --pretty=%ct)" >> ${env:GITHUB_OUTPUT}
+
       - name: Resolve project
         id: resolve-project
         shell: pwsh
@@ -115,6 +121,8 @@ jobs:
       - name: dotnet pack ${{ steps.resolve-project.outputs.title }}
         shell: pwsh
         run: dotnet pack ${env:PROJECT_PATH} --configuration Release --no-restore --no-build  -p:"PackTag=${env:TAG}"
+        env:
+          SOURCE_DATE_EPOCH: ${{ steps.get-commit-timestamp.outputs.epoch }}
 
       - name: Generate SBOM
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0

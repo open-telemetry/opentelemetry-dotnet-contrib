@@ -46,7 +46,9 @@ internal sealed class CommonSchemaJsonSerializationState
         Debug.Assert(fieldInformation?.FieldName != null, "fieldInformation.FieldName was null");
         Debug.Assert(fieldInformation?.EncodedFieldName.EncodedUtf8Bytes.Length > 0, "fieldInformation.EncodedFieldName was empty");
 
+#pragma warning disable IDE0370 // Remove unnecessary suppression
         var extensionName = fieldInformation!.ExtensionName!;
+#pragma warning restore IDE0370 // Remove unnecessary suppression
 
 #if NET
         ref var lookupIndexRef = ref CollectionsMarshal.GetValueRefOrAddDefault(this.keys, extensionName, out var existed);

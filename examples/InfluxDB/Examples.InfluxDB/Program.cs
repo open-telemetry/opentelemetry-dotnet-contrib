@@ -6,13 +6,8 @@ using OpenTelemetry.Exporter.InfluxDB;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 
-Action<ResourceBuilder> configureResource = r => r.AddService(
-    serviceName: "influx-exporter-test",
-    serviceVersion: typeof(Program).Assembly.GetName().Version?.ToString() ?? "unknown",
-    serviceInstanceId: Environment.MachineName);
-
 using var meterProvider = Sdk.CreateMeterProviderBuilder()
-    .ConfigureResource(configureResource)
+    .ConfigureResource(ConfigureResource)
     .AddRuntimeInstrumentation()
     .AddInfluxDBMetricsExporter(options =>
     {
@@ -27,3 +22,11 @@ using var meterProvider = Sdk.CreateMeterProviderBuilder()
 meterProvider.ForceFlush();
 
 await Task.Delay(TimeSpan.FromSeconds(10));
+
+static void ConfigureResource(ResourceBuilder builder)
+{
+    builder.AddService(
+        serviceName: "influx-exporter-test",
+        serviceVersion: typeof(Program).Assembly.GetName().Version?.ToString() ?? "unknown",
+        serviceInstanceId: Environment.MachineName);
+}

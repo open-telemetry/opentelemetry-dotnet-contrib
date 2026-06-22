@@ -342,6 +342,7 @@ public static class WeaverTelemetryVerifier
         {
             ActivityStatusCode.Error => "error",
             ActivityStatusCode.Ok => "ok",
+            ActivityStatusCode.Unset => null,
             _ => null,
         };
 
@@ -557,6 +558,9 @@ public static class WeaverTelemetryVerifier
 
                     break;
 
+                case MetricType.DoubleSumNonMonotonic:
+                case MetricType.ExponentialHistogram:
+                case MetricType.LongSumNonMonotonic:
                 default:
                     if (TryGetMetricPointValue(point) is { } fallback)
                     {
