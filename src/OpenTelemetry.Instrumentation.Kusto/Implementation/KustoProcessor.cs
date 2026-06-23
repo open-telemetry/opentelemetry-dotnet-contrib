@@ -156,8 +156,6 @@ internal static class KustoProcessor
         /// </remarks>
         public bool ShouldSanitize { get; private set; } = true;
 
-        public override void VisitLiteralExpression(LiteralExpression node) => this.edits.Add(CreatePlaceholder(node));
-
         public override void VisitDynamicExpression(DynamicExpression node) => this.edits.Add(CreatePlaceholder(node));
 
         public override void VisitPrefixUnaryExpression(PrefixUnaryExpression node)
@@ -172,6 +170,14 @@ internal static class KustoProcessor
         {
             // Guard the recursive descent: deeply nested queries would otherwise overflow the stack.
             RuntimeHelpers.EnsureSufficientExecutionStack();
+
+            // Sanitize all types of literal expressions, not just simple literals.
+            if (node is Expression { IsLiteral: true } literal)
+            {
+                this.edits.Add(CreatePlaceholder(literal));
+                return;
+            }
+
             this.VisitChildren(node);
         }
 
