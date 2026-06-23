@@ -28,7 +28,7 @@ internal class TraceRecordParser
         // so we can just take everything after "text="
         var queryText = message.SliceAfter("text=");
 
-        return new ParsedRequestStart(parsed?.Host, parsed?.Port, database, queryText);
+        return new ParsedRequestStart(parsed?.DnsSafeHost, parsed?.Port, database, queryText);
     }
 
     public static ParsedException ParseException(ReadOnlySpan<char> message)

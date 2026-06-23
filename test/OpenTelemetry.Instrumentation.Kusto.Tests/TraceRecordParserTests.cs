@@ -34,8 +34,8 @@ public class TraceRecordParserTests
     [Theory]
     [InlineData("$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=https://clustername.kusto.windows.net/v1/rest/query, DatabaseName=TestDB, text=print 1", "clustername.kusto.windows.net", 443)]
     [InlineData("$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=http://localhost/v1/rest/query, DatabaseName=TestDB, text=print 1", "localhost", 80)]
-    [InlineData("$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=http://[2001:db8::1]:8080/v1/rest/query, DatabaseName=TestDB, text=print 1", "[2001:db8::1]", 8080)]
-    [InlineData("$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=https://[2001:db8::1]/v1/rest/query, DatabaseName=TestDB, text=print 1", "[2001:db8::1]", 443)]
+    [InlineData("$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=http://[2001:db8::1]:8080/v1/rest/query, DatabaseName=TestDB, text=print 1", "2001:db8::1", 8080)]
+    [InlineData("$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=https://[2001:db8::1]/v1/rest/query, DatabaseName=TestDB, text=print 1", "2001:db8::1", 443)]
     public void ParseRequestStartServerAddressAndPort(string message, string expectedAddress, int? expectedPort)
     {
         var result = TraceRecordParser.ParseRequestStart(message);
