@@ -143,6 +143,11 @@ internal static class KustoProcessor
     /// </summary>
     private sealed class SanitizerVisitor : DefaultSyntaxVisitor
     {
+        // Literal token kinds (StringLiteralToken, LongLiteralToken, ...) discovered once by name so any
+        // future literal kind is covered automatically. Used to redact literals the parser left as loose
+        // tokens inside a skipped (unparsable) region of a malformed query.
+        private static readonly HashSet<SyntaxKind> LiteralTokenKinds = BuildLiteralTokenKinds();
+
         private readonly List<TextEdit> edits = [];
 
         public IReadOnlyList<TextEdit> Edits => this.edits;
@@ -157,6 +162,8 @@ internal static class KustoProcessor
         public bool ShouldSanitize { get; private set; } = true;
 
         public override void VisitDynamicExpression(DynamicExpression node) => this.edits.Add(CreatePlaceholder(node));
+
+        public override void VisitSkippedTokens(SkippedTokens node) => this.RedactLiteralTokens(node);
 
         public override void VisitPrefixUnaryExpression(PrefixUnaryExpression node)
         {
@@ -181,6 +188,20 @@ internal static class KustoProcessor
             this.VisitChildren(node);
         }
 
+        private static HashSet<SyntaxKind> BuildLiteralTokenKinds()
+        {
+            var kinds = new HashSet<SyntaxKind>();
+            foreach (var name in Enum.GetNames(typeof(SyntaxKind)))
+            {
+                if (name.EndsWith("LiteralToken", StringComparison.Ordinal))
+                {
+                    kinds.Add((SyntaxKind)Enum.Parse(typeof(SyntaxKind), name));
+                }
+            }
+
+            return kinds;
+        }
+
         private void VisitChildren(SyntaxNode node)
         {
             if (node != null)
@@ -198,6 +219,28 @@ internal static class KustoProcessor
                         // parsed expression, so the literal visitors never see it. Redact the whole payload.
                         this.edits.Add(CreatePlaceholder(inputText));
                     }
+                }
+            }
+        }
+
+        private void RedactLiteralTokens(SyntaxNode node)
+        {
+            // Guard the recursive descent over the skipped region's tokens.
+            RuntimeHelpers.EnsureSufficientExecutionStack();
+
+            for (var i = 0; i < node.ChildCount; i++)
+            {
+                var child = node.GetChild(i);
+                if (child is SyntaxToken token)
+                {
+                    if (LiteralTokenKinds.Contains(token.Kind))
+                    {
+                        this.edits.Add(CreatePlaceholder(token));
+                    }
+                }
+                else if (child is SyntaxNode childNode)
+                {
+                    this.RedactLiteralTokens(childNode);
                 }
             }
         }

@@ -33,6 +33,14 @@ public class KustoQueryParserTests
             "StormEvents |"
         },
 
+        // Malformed query: literal values can land in skipped tokens. They must still be redacted, while the
+        // recognized structure around them is preserved.
+        {
+            "print x = {\"k\":\"SECRET\", \"n\":12345}",
+            "print",
+            "print x = {?:?, ?:?}"
+        },
+
         // Simple table reference
         {
             "StormEvents",

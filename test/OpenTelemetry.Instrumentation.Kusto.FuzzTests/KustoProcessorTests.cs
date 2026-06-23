@@ -133,6 +133,23 @@ public static class KustoProcessorTests
     }
 
     [Property(MaxTest = MaxTest)]
+    public static void Process_Malformed_Query_Literal_Is_Sanitized_Or_Omitted(NonEmptyString input)
+    {
+        var secret = "secret_" + Alphanumeric(input.Get);
+
+        // The "{...}" object syntax is not valid KQL here, so the parser drops it into a SkippedTokens
+        // region. The secret is a string literal inside that region and must still be redacted.
+        var query = $"print x = {{\"k\":\"{secret}\"}}";
+
+        var info = KustoProcessor.Process(shouldSummarize: false, shouldSanitize: true, query);
+
+        if (info.Sanitized is not null)
+        {
+            Assert.DoesNotContain(secret, info.Sanitized);
+        }
+    }
+
+    [Property(MaxTest = MaxTest)]
     public static void Process_Parameterized_Query_Is_Returned_Verbatim(PositiveInt number)
     {
         var literal = (number.Get + 100_000).ToString(CultureInfo.InvariantCulture);
