@@ -26,5 +26,10 @@ public sealed class KustoTraceInstrumentationOptions
     /// <summary>
     /// Gets or sets an action to enrich the Activity with additional information from the TraceRecord.
     /// </summary>
+    /// <remarks>
+    /// The second parameter is the raw <see cref="KustoUtils.TraceRecord"/> from the Kusto client library, exposed
+    /// directly rather than behind a wrapper. Code that reads its members is therefore coupled to the Kusto client
+    /// and may need to change if the client's tracing types change.
+    /// </remarks>
     public Action<Activity, KustoUtils.TraceRecord>? Enrich { get; set; }
 }
