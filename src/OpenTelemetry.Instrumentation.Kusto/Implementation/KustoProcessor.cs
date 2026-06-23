@@ -187,9 +187,16 @@ internal static class KustoProcessor
             {
                 for (var i = 0; i < node.ChildCount; i++)
                 {
-                    if (node.GetChild(i) is SyntaxNode child)
+                    var child = node.GetChild(i);
+                    if (child is SyntaxNode childNode)
                     {
-                        child.Accept(this);
+                        childNode.Accept(this);
+                    }
+                    else if (child is SyntaxToken { Kind: SyntaxKind.InputTextToken } inputText)
+                    {
+                        // Raw inline data after "<|" (e.g. ".ingest inline" rows) is a single token, not a
+                        // parsed expression, so the literal visitors never see it. Redact the whole payload.
+                        this.edits.Add(CreatePlaceholder(inputText));
                     }
                 }
             }

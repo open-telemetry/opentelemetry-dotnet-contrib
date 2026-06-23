@@ -112,6 +112,14 @@ public class KustoQueryParserTests
             "declare query_parameters(maxInjured:long = 90);\nStormEvents\n| where InjuriesDirect + InjuriesIndirect > maxInjured\n| where EventType = 1\n| project EpisodeId, EventType, totalInjuries = InjuriesDirect + InjuriesIndirect"
         },
 
+        // Control-command inline data islands (raw rows after "<|") must be redacted; the command
+        // structure is preserved.
+        {
+            ".ingest inline into table T <| 1,2,SECRETDATA",
+            ".ingest",
+            ".ingest inline into table T <| ?"
+        },
+
         // Nested queries
         {
             "StormEvents | union OtherEvents",
