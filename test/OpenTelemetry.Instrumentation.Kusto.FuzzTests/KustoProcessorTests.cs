@@ -101,6 +101,38 @@ public static class KustoProcessorTests
     }
 
     [Property(MaxTest = MaxTest)]
+    public static void Process_Compound_String_Literal_Is_Sanitized_Or_Omitted(NonEmptyString input)
+    {
+        var secret = "secret_" + Alphanumeric(input.Get);
+
+        // Adjacent string literals form a single CompoundStringLiteralExpression.
+        var query = $"StormEvents | where State == \"{secret}\" \"_suffix\"";
+
+        var info = KustoProcessor.Process(shouldSummarize: false, shouldSanitize: true, query);
+
+        if (info.Sanitized is not null)
+        {
+            Assert.DoesNotContain(secret, info.Sanitized);
+        }
+    }
+
+    [Property(MaxTest = MaxTest)]
+    public static void Process_Inline_Data_Island_Is_Sanitized_Or_Omitted(NonEmptyString input)
+    {
+        var secret = "secret_" + Alphanumeric(input.Get);
+
+        // Raw rows after "<|" in a control command are an InputTextToken, not parsed literals.
+        var query = $".ingest inline into table T <| 1,{secret},3";
+
+        var info = KustoProcessor.Process(shouldSummarize: false, shouldSanitize: true, query);
+
+        if (info.Sanitized is not null)
+        {
+            Assert.DoesNotContain(secret, info.Sanitized);
+        }
+    }
+
+    [Property(MaxTest = MaxTest)]
     public static void Process_Parameterized_Query_Is_Returned_Verbatim(PositiveInt number)
     {
         var literal = (number.Get + 100_000).ToString(CultureInfo.InvariantCulture);
