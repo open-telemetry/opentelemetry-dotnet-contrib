@@ -10,7 +10,7 @@ namespace OpenTelemetry.Instrumentation.Kusto.Implementation;
 /// </summary>
 internal static class KustoMetrics
 {
-    public static readonly Version SemanticConventionsVersion = new(1, 33, 0);
+    public static readonly Version SemanticConventionsVersion = new(1, 40, 0);
 
     public static readonly Meter Meter = Metrics.MeterFactory.Create(typeof(KustoMetrics), SemanticConventionsVersion);
 
