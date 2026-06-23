@@ -200,9 +200,8 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
             });
         }
 
-        // A failed query must record error.type on the duration metric, not only on the span. This is easy to
-        // get wrong because ContextData is a struct: adding the tag to a copy of its TagList leaves the metric
-        // without it.
+        // A failed query must record error.type on the duration metric, not only on the span, and exactly once
+        // even if the failure is reported more than once.
         var durationMetric = metrics.Single(m => m.MeterName == KustoMetrics.MeterName && m.Name == "db.client.operation.duration");
         var durationTags = new List<KeyValuePair<string, object?>>();
         foreach (ref readonly var metricPoint in durationMetric.GetMetricPoints())
@@ -213,7 +212,7 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
             }
         }
 
-        Assert.Contains(durationTags, tag => tag.Key == "error.type");
+        Assert.Equal(1, durationTags.Count(tag => tag.Key == "error.type"));
 
         await Verify(
             new
