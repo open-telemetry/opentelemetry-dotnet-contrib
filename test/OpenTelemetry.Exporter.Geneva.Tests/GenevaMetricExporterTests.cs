@@ -186,6 +186,7 @@ public class GenevaMetricExporterTests
                 metric.Name,
                 metricPoint.EndTime.ToFileTime(),
                 metricPoint.Tags,
+                metric.MeterTags,
                 metricData,
                 MetricType.LongSum,
                 exemplars,
@@ -557,6 +558,198 @@ public class GenevaMetricExporterTests
         finally
         {
             activity?.Dispose();
+            server?.Dispose();
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    [Fact]
+    public void SerializesInstrumentationScopeTagsAsDimensions()
+    {
+        using var meter = new Meter(new MeterOptions("SerializesInstrumentationScopeTags")
+        {
+            Tags = new[]
+            {
+                new KeyValuePair<string, object>("scopeTag1", "scopeValue1"),
+                new KeyValuePair<string, object>("scopeTag2", "scopeValue2"),
+            },
+        });
+
+        var counter = meter.CreateCounter<long>("counter");
+
+        var exportedItems = new List<Metric>();
+        using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
+        {
+            TemporalityPreference = MetricReaderTemporalityPreference.Delta,
+        };
+
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddMeter("SerializesInstrumentationScopeTags")
+            .AddReader(inMemoryReader)
+            .Build();
+
+        counter.Add(1, new KeyValuePair<string, object>("pointTag1", "pointValue1"));
+
+        var path = string.Empty;
+        Socket server = null;
+        try
+        {
+            var exporterOptions = new GenevaMetricExporterOptions
+            {
+                PrepopulatedMetricDimensions = new Dictionary<string, object>
+                {
+                    ["cloud.role"] = "BusyWorker",
+                },
+            };
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
+            }
+            else
+            {
+                path = GenerateTempFilePath();
+                exporterOptions.ConnectionString = $"Endpoint=unix:{path};Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                server.Bind(endpoint);
+                server.Listen(1);
+            }
+
+            using var exporter = new TlvMetricExporter(new ConnectionStringBuilder(exporterOptions.ConnectionString), exporterOptions.PrepopulatedMetricDimensions);
+
+            inMemoryReader.Collect();
+
+            var metric = Assert.Single(exportedItems);
+
+            var userData = GetSerializedData(metric, exporter);
+            var dimensions = userData.Fields.FirstOrDefault(field => field.Type == PayloadTypes.Dimensions).Value as Dimensions;
+
+            // Prepopulated dimension + two instrumentation scope (Meter) tags + one MetricPoint tag.
+            Assert.Equal(4, dimensions.NumDimensions);
+
+            var serializedDimensions = new Dictionary<string, string>();
+            for (var i = 0; i < dimensions.NumDimensions; i++)
+            {
+                serializedDimensions[dimensions.DimensionsNames[i].Value] = dimensions.DimensionsValues[i].Value;
+            }
+
+            Assert.Equal("BusyWorker", serializedDimensions["cloud.role"]);
+            Assert.Equal("scopeValue1", serializedDimensions["scopeTag1"]);
+            Assert.Equal("scopeValue2", serializedDimensions["scopeTag2"]);
+            Assert.Equal("pointValue1", serializedDimensions["pointTag1"]);
+        }
+        finally
+        {
+            server?.Dispose();
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    [Fact]
+    public void InstrumentationScopeReservedTagsOverrideAccountAndNamespace()
+    {
+        using var meter = new Meter(new MeterOptions("InstrumentationScopeReservedTags")
+        {
+            Tags = new[]
+            {
+                new KeyValuePair<string, object>("_microsoft_metrics_account", "ScopeAccount"),
+                new KeyValuePair<string, object>("_microsoft_metrics_namespace", "ScopeNamespace"),
+                new KeyValuePair<string, object>("scopeTag1", "scopeValue1"),
+            },
+        });
+
+        var counter = meter.CreateCounter<long>("counter");
+
+        var exportedItems = new List<Metric>();
+        using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
+        {
+            TemporalityPreference = MetricReaderTemporalityPreference.Delta,
+        };
+
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddMeter("InstrumentationScopeReservedTags")
+            .AddReader(inMemoryReader)
+            .Build();
+
+        counter.Add(1, new KeyValuePair<string, object>("pointTag1", "pointValue1"));
+
+        var path = string.Empty;
+        Socket server = null;
+        try
+        {
+            var exporterOptions = new GenevaMetricExporterOptions();
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
+            }
+            else
+            {
+                path = GenerateTempFilePath();
+                exporterOptions.ConnectionString = $"Endpoint=unix:{path};Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                server.Bind(endpoint);
+                server.Listen(1);
+            }
+
+            using var exporter = new TlvMetricExporter(new ConnectionStringBuilder(exporterOptions.ConnectionString), exporterOptions.PrepopulatedMetricDimensions);
+
+            inMemoryReader.Collect();
+
+            var metric = Assert.Single(exportedItems);
+            var metricPointsEnumerator = metric.GetMetricPoints().GetEnumerator();
+            Assert.True(metricPointsEnumerator.MoveNext());
+            var metricPoint = metricPointsEnumerator.Current;
+
+            metricPoint.TryGetExemplars(out var exemplars);
+
+            var metricData = new MetricData { UInt64Value = Convert.ToUInt64(metricPoint.GetSumLong()) };
+            exporter.SerializeMetricWithTLV(
+                MetricEventType.ULongMetric,
+                metric.Name,
+                metricPoint.EndTime.ToFileTime(),
+                metricPoint.Tags,
+                metric.MeterTags,
+                metricData,
+                metric.MetricType,
+                exemplars,
+                out var monitoringAccount,
+                out var metricNamespace);
+
+            // Reserved tags declared on the instrumentation scope (Meter) override account and namespace.
+            Assert.Equal("ScopeAccount", monitoringAccount);
+            Assert.Equal("ScopeNamespace", metricNamespace);
+
+            var buffer = typeof(TlvMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
+            var stream = new KaitaiStream(buffer);
+            var data = new MetricsContract(stream);
+            var userData = data.Body as UserdataV2;
+            var dimensions = userData.Fields.FirstOrDefault(field => field.Type == PayloadTypes.Dimensions).Value as Dimensions;
+
+            // The reserved scope tags are consumed as account/namespace and not emitted as dimensions.
+            Assert.Equal(2, dimensions.NumDimensions);
+
+            var names = dimensions.DimensionsNames.Select(dimension => dimension.Value).ToList();
+            Assert.Contains("scopeTag1", names);
+            Assert.Contains("pointTag1", names);
+            Assert.DoesNotContain("_microsoft_metrics_account", names);
+            Assert.DoesNotContain("_microsoft_metrics_namespace", names);
+        }
+        finally
+        {
             server?.Dispose();
             try
             {
@@ -966,6 +1159,7 @@ public class GenevaMetricExporterTests
                 metric.Name,
                 metricPoint.EndTime.ToFileTime(),
                 metricPoint.Tags,
+                metric.MeterTags,
                 metricData,
                 metricType,
                 exemplars,
@@ -993,6 +1187,7 @@ public class GenevaMetricExporterTests
                 metric.Name,
                 metricPoint.EndTime.ToFileTime(),
                 metricPoint.Tags,
+                metric.MeterTags,
                 metricData,
                 metricType,
                 exemplars,
@@ -1022,6 +1217,7 @@ public class GenevaMetricExporterTests
                 metric.Name,
                 metricPoint.EndTime.ToFileTime(),
                 metricPoint.Tags,
+                metric.MeterTags,
                 metricData,
                 metricType,
                 exemplars,
@@ -1051,6 +1247,7 @@ public class GenevaMetricExporterTests
                 metric.Name,
                 metricPoint.EndTime.ToFileTime(),
                 metricPoint.Tags,
+                metric.MeterTags,
                 metricData,
                 metricType,
                 exemplars,
@@ -1083,6 +1280,7 @@ public class GenevaMetricExporterTests
                 metric.Name,
                 metricPoint.EndTime.ToFileTime(),
                 metricPoint.Tags,
+                metric.MeterTags,
                 metricPoint.GetHistogramBuckets(),
                 sum,
                 count,
@@ -1303,6 +1501,7 @@ public class GenevaMetricExporterTests
                 metric.Name,
                 metricPoint.EndTime.ToFileTime(),
                 metricPoint.Tags,
+                metric.MeterTags,
                 metricData,
                 metricType,
                 exemplars,
@@ -1323,6 +1522,7 @@ public class GenevaMetricExporterTests
                 metric.Name,
                 metricPoint.EndTime.ToFileTime(),
                 metricPoint.Tags,
+                metric.MeterTags,
                 metricData,
                 metricType,
                 exemplars,
@@ -1345,6 +1545,7 @@ public class GenevaMetricExporterTests
                 metric.Name,
                 metricPoint.EndTime.ToFileTime(),
                 metricPoint.Tags,
+                metric.MeterTags,
                 metricData,
                 metricType,
                 exemplars,
@@ -1367,6 +1568,7 @@ public class GenevaMetricExporterTests
                 metric.Name,
                 metricPoint.EndTime.ToFileTime(),
                 metricPoint.Tags,
+                metric.MeterTags,
                 metricData,
                 metricType,
                 exemplars,
@@ -1392,6 +1594,7 @@ public class GenevaMetricExporterTests
                 metric.Name,
                 metricPoint.EndTime.ToFileTime(),
                 metricPoint.Tags,
+                metric.MeterTags,
                 metricPoint.GetHistogramBuckets(),
                 sum,
                 count,

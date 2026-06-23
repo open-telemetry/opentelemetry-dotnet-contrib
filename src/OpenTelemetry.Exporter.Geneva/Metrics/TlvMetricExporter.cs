@@ -122,6 +122,7 @@ internal sealed class TlvMetricExporter : IDisposable
                                     metric.Name,
                                     metricPoint.EndTime.ToFileTime(), // Using the endTime here as the timestamp as Geneva Metrics only allows for one field for timestamp
                                     metricPoint.Tags,
+                                    metric.MeterTags,
                                     metricData,
                                     metricType,
                                     exemplars,
@@ -143,6 +144,7 @@ internal sealed class TlvMetricExporter : IDisposable
                                     metric.Name,
                                     metricPoint.EndTime.ToFileTime(),
                                     metricPoint.Tags,
+                                    metric.MeterTags,
                                     metricData,
                                     metricType,
                                     exemplars,
@@ -164,6 +166,7 @@ internal sealed class TlvMetricExporter : IDisposable
                                     metric.Name,
                                     metricPoint.EndTime.ToFileTime(),
                                     metricPoint.Tags,
+                                    metric.MeterTags,
                                     metricData,
                                     metricType,
                                     exemplars,
@@ -183,6 +186,7 @@ internal sealed class TlvMetricExporter : IDisposable
                                     metric.Name,
                                     metricPoint.EndTime.ToFileTime(),
                                     metricPoint.Tags,
+                                    metric.MeterTags,
                                     metricData,
                                     metricType,
                                     exemplars,
@@ -201,6 +205,7 @@ internal sealed class TlvMetricExporter : IDisposable
                                     metric.Name,
                                     metricPoint.EndTime.ToFileTime(),
                                     metricPoint.Tags,
+                                    metric.MeterTags,
                                     metricData,
                                     metricType,
                                     exemplars,
@@ -224,6 +229,7 @@ internal sealed class TlvMetricExporter : IDisposable
                                     metric.Name,
                                     metricPoint.EndTime.ToFileTime(),
                                     metricPoint.Tags,
+                                    metric.MeterTags,
                                     metricPoint.GetHistogramBuckets(),
                                     sum,
                                     count,
@@ -259,6 +265,7 @@ internal sealed class TlvMetricExporter : IDisposable
         string metricName,
         long timestamp,
         in ReadOnlyTagCollection tags,
+        IEnumerable<KeyValuePair<string, object?>>? meterTags,
         MetricData value,
         MetricType metricType,
         ReadOnlyExemplarCollection exemplars,
@@ -283,6 +290,7 @@ internal sealed class TlvMetricExporter : IDisposable
             // if specified by adding custom tags: _microsoft_metrics_namespace and _microsoft_metrics_namespace
             this.SerializeDimensionsAndGetCustomAccountNamespace(
                 tags,
+                meterTags,
                 this.buffer,
                 ref bufferIndex,
                 out monitoringAccount,
@@ -316,6 +324,7 @@ internal sealed class TlvMetricExporter : IDisposable
         string metricName,
         long timestamp,
         in ReadOnlyTagCollection tags,
+        IEnumerable<KeyValuePair<string, object?>>? meterTags,
         HistogramBuckets buckets,
         double sum,
         uint count,
@@ -344,6 +353,7 @@ internal sealed class TlvMetricExporter : IDisposable
             // if specified by adding custom tags: _microsoft_metrics_namespace and _microsoft_metrics_namespace
             this.SerializeDimensionsAndGetCustomAccountNamespace(
                 tags,
+                meterTags,
                 this.buffer,
                 ref bufferIndex,
                 out monitoringAccount,
@@ -608,7 +618,44 @@ internal sealed class TlvMetricExporter : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void SerializeDimensionsAndGetCustomAccountNamespace(in ReadOnlyTagCollection tags, byte[] buffer, ref int bufferIndex, out string monitoringAccount, out string metricNamespace)
+    private static bool IsReservedDimensionKey(string key) =>
+        string.Equals(key, GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(key, GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, StringComparison.OrdinalIgnoreCase);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool TryApplyReservedDimensionValue(string key, object? value, ref string monitoringAccount, ref string metricNamespace)
+    {
+        if (string.Equals(key, GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, StringComparison.OrdinalIgnoreCase) && value is string metricsAccount)
+        {
+            if (!string.IsNullOrWhiteSpace(metricsAccount))
+            {
+                monitoringAccount = metricsAccount;
+            }
+
+            return true;
+        }
+
+        if (string.Equals(key, GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, StringComparison.OrdinalIgnoreCase) && value is string metricsNamespace)
+        {
+            if (!string.IsNullOrWhiteSpace(metricsNamespace))
+            {
+                metricNamespace = metricsNamespace;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void SerializeDimensionsAndGetCustomAccountNamespace(
+        in ReadOnlyTagCollection tags,
+        IEnumerable<KeyValuePair<string, object?>>? meterTags,
+        byte[] buffer,
+        ref int bufferIndex,
+        out string monitoringAccount,
+        out string metricNamespace)
     {
         monitoringAccount = this.defaultMonitoringAccount;
         metricNamespace = this.defaultMetricNamespace;
@@ -636,6 +683,30 @@ internal sealed class TlvMetricExporter : IDisposable
             dimensionsWritten += this.prepopulatedDimensionsCount;
         }
 
+        // Materialize the instrumentation scope (Meter) tags once; they are enumerated
+        // separately for keys and values below.
+        var meterTagsList = meterTags as IReadOnlyList<KeyValuePair<string, object?>> ?? meterTags?.ToArray();
+
+        // Serialize instrumentation scope (Meter) Dimension keys
+        if (meterTagsList != null)
+        {
+            foreach (var tag in meterTagsList)
+            {
+                if (tag.Key.Length > GenevaMetricExporter.MaxDimensionNameSize)
+                {
+                    // TODO: Data Validation
+                }
+
+                if (IsReservedDimensionKey(tag.Key))
+                {
+                    continue;
+                }
+
+                MetricSerializer.SerializeString(buffer, ref bufferIndex, tag.Key);
+                dimensionsWritten++;
+            }
+        }
+
         var reservedTags = 0;
 
         // Serialize MetricPoint Dimension keys
@@ -646,8 +717,7 @@ internal sealed class TlvMetricExporter : IDisposable
                 // TODO: Data Validation
             }
 
-            if (string.Equals(tag.Key, GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(tag.Key, GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, StringComparison.OrdinalIgnoreCase))
+            if (IsReservedDimensionKey(tag.Key))
             {
                 reservedTags++;
                 continue;
@@ -664,26 +734,31 @@ internal sealed class TlvMetricExporter : IDisposable
             MetricSerializer.SerializeEncodedString(buffer, ref bufferIndex, this.serializedPrepopulatedDimensionsValues![i]);
         }
 
+        // Serialize instrumentation scope (Meter) Dimension values
+        if (meterTagsList != null)
+        {
+            foreach (var tag in meterTagsList)
+            {
+                if (TryApplyReservedDimensionValue(tag.Key, tag.Value, ref monitoringAccount, ref metricNamespace))
+                {
+                    continue;
+                }
+
+                var dimensionValue = ConvertTagValueToString(tag.Value);
+                if (dimensionValue?.Length > GenevaMetricExporter.MaxDimensionValueSize)
+                {
+                    // TODO: Data Validation
+                }
+
+                MetricSerializer.SerializeString(buffer, ref bufferIndex, dimensionValue);
+            }
+        }
+
         // Serialize MetricPoint Dimension values
         foreach (var tag in tags)
         {
-            if (string.Equals(tag.Key, GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, StringComparison.OrdinalIgnoreCase) && tag.Value is string metricsAccount)
+            if (TryApplyReservedDimensionValue(tag.Key, tag.Value, ref monitoringAccount, ref metricNamespace))
             {
-                if (!string.IsNullOrWhiteSpace(metricsAccount))
-                {
-                    monitoringAccount = metricsAccount;
-                }
-
-                continue;
-            }
-
-            if (string.Equals(tag.Key, GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, StringComparison.OrdinalIgnoreCase) && tag.Value is string metricsNamespace)
-            {
-                if (!string.IsNullOrWhiteSpace(metricsNamespace))
-                {
-                    metricNamespace = metricsNamespace;
-                }
-
                 continue;
             }
 

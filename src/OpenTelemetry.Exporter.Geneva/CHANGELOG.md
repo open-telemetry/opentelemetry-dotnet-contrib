@@ -8,6 +8,10 @@
 * Log error when telemetry data exceeds the serialization buffer capacity.
   ([#4027](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4027))
 
+* Fixed `TlvMetricExporter` dropping dimensions inherited from the
+  instrumentation scope (`Meter` tags).
+  ([#4540](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4540))
+
 ## 1.15.2
 
 Released 2026-Apr-21
