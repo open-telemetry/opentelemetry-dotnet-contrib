@@ -1,8 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using KustoUtils = Kusto.Cloud.Platform.Utils;
@@ -18,9 +18,11 @@ namespace OpenTelemetry.Instrumentation.Kusto.Implementation;
 /// </remarks>
 internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
 {
-    // The client's async machinery may not call us back using the same AsyncLocal context, so we must manually track
-    // the Activity's ActivityId (which the client guarantees will be unique) with the context data we need.
-    private readonly ConcurrentDictionary<Guid, ContextData> contexts = new();
+    // record.Activity (the Kusto-side activity object) is a stable reference across the start, exception, and
+    // complete callbacks for a single operation, and the client releases it once the operation finishes. Keying a
+    // ConditionalWeakTable on it lets an operation that never reports completion be evicted automatically when the
+    // client drops its reference. No manual bookkeeping nor unbounded growth.
+    private readonly ConditionalWeakTable<object, OperationContext> contexts = new();
 
     /// <summary>
     /// Gets or sets the trace options applied when emitting spans.
@@ -117,25 +119,17 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
     private void HandleException(KustoUtils.TraceRecord record)
     {
         var context = this.GetContext(record);
-        var activity = context?.Activity;
         if (context is null)
         {
             return;
         }
 
+        var activity = context.Activity;
+
         var result = TraceRecordParser.ParseException(record.Message.AsSpan());
         if (!result.ErrorType.IsEmpty)
         {
-            var errorType = result.ErrorType.ToString();
-            activity?.SetTag(SemanticConventions.AttributeErrorType, errorType);
-
-            // ContextData is a struct and MeterTags is a mutable TagList, so adding to the value fetched from
-            // the dictionary would mutate a discarded copy. Update a local copy and republish the context so
-            // the duration metric carries the error.type dimension.
-            var updated = context.Value;
-            var meterTags = updated.MeterTags;
-            meterTags.Add(SemanticConventions.AttributeErrorType, errorType);
-            this.contexts[record.Activity.ActivityId] = new ContextData(updated.BeginTimestamp, meterTags, updated.Activity);
+            context.RecordErrorType(result.ErrorType.ToString());
         }
 
         if (activity is not null)
@@ -153,7 +147,12 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
         var operationName = record.Activity.ActivityType;
 
         var activity = KustoActivitySource.ActivitySource.StartActivity(operationName, ActivityKind.Client);
-        var meterTags = default(TagList);
+
+        var context = new OperationContext(beginTimestamp, activity);
+
+        // Store the context before computing tags so that if anything below throws, the completion handler can
+        // still find it, stop the Activity, and record the duration instead of leaking a never-stopped Activity.
+        this.StoreContext(record.Activity, context);
 
         if (this.ShouldComputeTags(activity))
         {
@@ -162,27 +161,27 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
 
             activity?.AddTag(SemanticConventions.AttributeDbSystemName, KustoSemanticConventions.DbSystemNameValue);
             activity?.AddTag(SemanticConventions.AttributeDbOperationName, operationName);
-            meterTags.Add(SemanticConventions.AttributeDbSystemName, KustoSemanticConventions.DbSystemNameValue);
-            meterTags.Add(SemanticConventions.AttributeDbOperationName, operationName);
+            context.AddMeterTag(SemanticConventions.AttributeDbSystemName, KustoSemanticConventions.DbSystemNameValue);
+            context.AddMeterTag(SemanticConventions.AttributeDbOperationName, operationName);
 
             var result = TraceRecordParser.ParseRequestStart(record.Message.AsSpan());
 
             if (!string.IsNullOrEmpty(result.ServerAddress))
             {
                 activity?.AddTag(SemanticConventions.AttributeServerAddress, result.ServerAddress);
-                meterTags.Add(SemanticConventions.AttributeServerAddress, result.ServerAddress);
+                context.AddMeterTag(SemanticConventions.AttributeServerAddress, result.ServerAddress);
             }
 
             if (result.ServerPort is not null)
             {
                 activity?.AddTag(SemanticConventions.AttributeServerPort, result.ServerPort.Value);
-                meterTags.Add(SemanticConventions.AttributeServerPort, result.ServerPort.Value);
+                context.AddMeterTag(SemanticConventions.AttributeServerPort, result.ServerPort.Value);
             }
 
             if (!result.Database.IsEmpty)
             {
                 activity?.AddTag(SemanticConventions.AttributeDbNamespace, result.Database.ToString());
-                meterTags.Add(SemanticConventions.AttributeDbNamespace, result.Database.ToString());
+                context.AddMeterTag(SemanticConventions.AttributeDbNamespace, result.Database.ToString());
             }
 
             if (!result.QueryText.IsEmpty)
@@ -200,7 +199,7 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
 
                     if (this.MeterOptions.RecordQueryText)
                     {
-                        meterTags.Add(SemanticConventions.AttributeDbQueryText, info.Sanitized);
+                        context.AddMeterTag(SemanticConventions.AttributeDbQueryText, info.Sanitized);
                     }
                 }
 
@@ -214,13 +213,11 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
 
                     if (this.MeterOptions.RecordQuerySummary)
                     {
-                        meterTags.Add(SemanticConventions.AttributeDbQuerySummary, summarized);
+                        context.AddMeterTag(SemanticConventions.AttributeDbQuerySummary, summarized);
                     }
                 }
             }
         }
-
-        this.contexts[record.Activity.ActivityId] = new ContextData(beginTimestamp, meterTags, activity);
 
         this.CallEnrichment(record);
     }
@@ -233,7 +230,7 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
             return;
         }
 
-        var activity = context.Value.Activity;
+        var activity = context.Activity;
 
         if (activity is not null)
         {
@@ -241,15 +238,30 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
             activity.Stop();
         }
 
-        var duration = activity?.Duration.TotalSeconds ?? GetElapsedTime(context.Value.BeginTimestamp);
-        KustoMetrics.OperationDurationHistogram.Record(duration, context.Value.MeterTags);
+        var duration = activity?.Duration.TotalSeconds ?? GetElapsedTime(context.BeginTimestamp);
+        KustoMetrics.OperationDurationHistogram.Record(duration, context.GetMeterTags());
 
-        this.contexts.TryRemove(record.Activity.ActivityId, out _);
+        this.contexts.Remove(record.Activity);
     }
 
-    private ContextData? GetContext(KustoUtils.TraceRecord record)
+    private void StoreContext(object key, OperationContext context)
     {
-        if (this.contexts.TryGetValue(record.Activity.ActivityId, out var context))
+        // Overwrite any existing entry for the key. The client starts a given activity once and reports its
+        // start, exception, and complete callbacks sequentially, so the same key is never accessed
+        // concurrently and this overwrite does not need to be atomic.
+#if NET
+        this.contexts.AddOrUpdate(key, context);
+#else
+        // AddOrUpdate isn't available on these targets, so Remove + Add is the (non-atomic, but per the note
+        // above that's fine) equivalent. A plain Add would throw if the key were already present.
+        this.contexts.Remove(key);
+        this.contexts.Add(key, context);
+#endif
+    }
+
+    private OperationContext? GetContext(KustoUtils.TraceRecord record)
+    {
+        if (this.contexts.TryGetValue(record.Activity, out var context))
         {
             return context;
         }
@@ -259,14 +271,18 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
     }
 
     /// <summary>
-    /// Holds context data for an ongoing operation.
+    /// Holds context data for an ongoing operation. The Kusto client can invoke the listener concurrently, so the
+    /// mutable meter tags are guarded by a lock and updated in place rather than republished.
     /// </summary>
-    private readonly struct ContextData
+    private sealed class OperationContext
     {
-        public ContextData(long beginTimestamp, TagList meterTags, Activity? activity)
+        private readonly object @lock = new();
+        private TagList meterTags;
+        private bool errorTypeRecorded;
+
+        public OperationContext(long beginTimestamp, Activity? activity)
         {
             this.BeginTimestamp = beginTimestamp;
-            this.MeterTags = meterTags;
             this.Activity = activity;
         }
 
@@ -277,16 +293,44 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
         public long BeginTimestamp { get; }
 
         /// <summary>
-        /// Gets the collection of tags associated with the operation that should be applies to metrics.
-        /// </summary>
-        public TagList MeterTags { get; }
-
-        /// <summary>
         /// Gets the current activity associated with the instance, if any.
         /// </summary>
         /// <remarks>
         /// Will be <see langword="null"/> in a metrics-only scenario.
         /// </remarks>
         public Activity? Activity { get; }
+
+        public void AddMeterTag(string key, object? value)
+        {
+            lock (this.@lock)
+            {
+                this.meterTags.Add(key, value);
+            }
+        }
+
+        public void RecordErrorType(string errorType)
+        {
+            // Tag error.type on both the span and the duration metric, in place and only once, so a duplicate
+            // exception record cannot tag twice or overwrite the span tag with a later value.
+            lock (this.@lock)
+            {
+                if (this.errorTypeRecorded)
+                {
+                    return;
+                }
+
+                this.Activity?.SetTag(SemanticConventions.AttributeErrorType, errorType);
+                this.meterTags.Add(SemanticConventions.AttributeErrorType, errorType);
+                this.errorTypeRecorded = true;
+            }
+        }
+
+        public TagList GetMeterTags()
+        {
+            lock (this.@lock)
+            {
+                return this.meterTags;
+            }
+        }
     }
 }
