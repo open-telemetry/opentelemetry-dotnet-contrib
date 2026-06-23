@@ -245,6 +245,13 @@ public class KustoQueryParserTests
             "StormEvents | where Value == ?"
         },
         {
+            // A unary operator on a non-literal operand must be preserved: only literals are redacted, so
+            // stripping the sign here would change the query's meaning in the sanitized text.
+            "StormEvents | where Value == -DeathsDirect",
+            "StormEvents | where",
+            "StormEvents | where Value == -DeathsDirect"
+        },
+        {
             "StormEvents | where Price == 123.456",
             "StormEvents | where",
             "StormEvents | where Price == ?"

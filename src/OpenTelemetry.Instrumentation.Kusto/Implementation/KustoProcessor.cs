@@ -167,7 +167,13 @@ internal static class KustoProcessor
 
         public override void VisitPrefixUnaryExpression(PrefixUnaryExpression node)
         {
-            this.edits.Add(CreateRemoval(node.Operator));
+            // Only strip the sign when it applies to a literal (e.g. -5 -> ?). For a non-literal operand
+            // (e.g. -Column) removing the operator would change the meaning of the query in the sanitized text.
+            if (node.Expression is { IsLiteral: true })
+            {
+                this.edits.Add(CreateRemoval(node.Operator));
+            }
+
             base.VisitPrefixUnaryExpression(node);
         }
 
