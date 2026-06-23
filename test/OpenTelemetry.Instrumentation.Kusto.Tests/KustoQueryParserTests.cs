@@ -105,11 +105,20 @@ public class KustoQueryParserTests
             "print x = ?"
         },
 
-        // Parameterized queries
+        // Parameterized queries are returned verbatim and NOT sanitized, per semconv [16]
+        // (https://opentelemetry.io/docs/specs/semconv/db/database-spans/#sanitization-of-dbquerytext):
+        // by parameterizing, the user signals that sensitive data is passed as parameter values, so the
+        // static query text is captured as-is. This deliberately includes any inline literals, so the
+        // mixed case below must stay verbatim even though the redaction visitors run.
         {
             "declare query_parameters(maxInjured:long = 90);\nStormEvents\n| where InjuriesDirect + InjuriesIndirect > maxInjured\n| where EventType = 1\n| project EpisodeId, EventType, totalInjuries = InjuriesDirect + InjuriesIndirect",
             "StormEvents | where | where | project",
             "declare query_parameters(maxInjured:long = 90);\nStormEvents\n| where InjuriesDirect + InjuriesIndirect > maxInjured\n| where EventType = 1\n| project EpisodeId, EventType, totalInjuries = InjuriesDirect + InjuriesIndirect"
+        },
+        {
+            "declare query_parameters(p:long);\nStormEvents | where State == \"SECRETSTATE\" and Id == 12345",
+            "StormEvents | where",
+            "declare query_parameters(p:long);\nStormEvents | where State == \"SECRETSTATE\" and Id == 12345"
         },
 
         // Control-command inline data islands (raw rows after "<|") must be redacted; the command
