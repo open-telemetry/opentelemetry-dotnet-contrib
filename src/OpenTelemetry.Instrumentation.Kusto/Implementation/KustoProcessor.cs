@@ -143,9 +143,9 @@ internal static class KustoProcessor
     /// </summary>
     private sealed class SanitizerVisitor : DefaultSyntaxVisitor
     {
-        // Literal token kinds (StringLiteralToken, LongLiteralToken, ...) discovered once by name so any
-        // future literal kind is covered automatically. Used to redact literals the parser left as loose
-        // tokens inside a skipped (unparsable) region of a malformed query.
+        // Literal token kinds (StringLiteralToken, LongLiteralToken, ...) discovered once by name so any future
+        // literal kind is covered automatically. Used (together with identifier tokens) to redact value-bearing
+        // tokens the parser left loose inside a skipped (unparsable) region of a malformed query.
         private static readonly HashSet<SyntaxKind> LiteralTokenKinds = BuildLiteralTokenKinds();
 
         private readonly List<TextEdit> edits = [];
@@ -163,7 +163,7 @@ internal static class KustoProcessor
 
         public override void VisitDynamicExpression(DynamicExpression node) => this.edits.Add(CreatePlaceholder(node));
 
-        public override void VisitSkippedTokens(SkippedTokens node) => this.RedactLiteralTokens(node);
+        public override void VisitSkippedTokens(SkippedTokens node) => this.RedactSkippedTokens(node);
 
         public override void VisitPrefixUnaryExpression(PrefixUnaryExpression node)
         {
@@ -229,7 +229,7 @@ internal static class KustoProcessor
             }
         }
 
-        private void RedactLiteralTokens(SyntaxNode node)
+        private void RedactSkippedTokens(SyntaxNode node)
         {
             // Guard the recursive descent over the skipped region's tokens.
             RuntimeHelpers.EnsureSufficientExecutionStack();
@@ -239,14 +239,16 @@ internal static class KustoProcessor
                 var child = node.GetChild(i);
                 if (child is SyntaxToken token)
                 {
-                    if (LiteralTokenKinds.Contains(token.Kind))
+                    // In an unparsable region we cannot tell a field name from a value, so redact identifiers and
+                    // barewords as well as literals. Punctuation, operators, and keywords are structural and kept.
+                    if (token.Kind == SyntaxKind.IdentifierToken || LiteralTokenKinds.Contains(token.Kind))
                     {
                         this.edits.Add(CreatePlaceholder(token));
                     }
                 }
                 else if (child is SyntaxNode childNode)
                 {
-                    this.RedactLiteralTokens(childNode);
+                    this.RedactSkippedTokens(childNode);
                 }
             }
         }

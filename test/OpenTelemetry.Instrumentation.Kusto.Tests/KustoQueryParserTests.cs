@@ -41,6 +41,14 @@ public class KustoQueryParserTests
             "print x = {?:?, ?:?}"
         },
 
+        // Malformed query with unquoted values: barewords parse as identifiers (not literals) inside the skipped
+        // region, but are indistinguishable from values there, so they must be redacted too.
+        {
+            "print x = {k:SECRET, n:12345}",
+            "print",
+            "print x = {?:?, ?:?}"
+        },
+
         // Simple table reference
         {
             "StormEvents",

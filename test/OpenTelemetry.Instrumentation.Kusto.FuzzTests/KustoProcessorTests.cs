@@ -137,9 +137,10 @@ public static class KustoProcessorTests
     {
         var secret = "secret_" + Alphanumeric(input.Get);
 
-        // The "{...}" object syntax is not valid KQL here, so the parser drops it into a SkippedTokens
-        // region. The secret is a string literal inside that region and must still be redacted.
-        var query = $"print x = {{\"k\":\"{secret}\"}}";
+        // The "{...}" object syntax is not valid KQL here, so the parser drops it into a SkippedTokens region.
+        // The secret is an unquoted bareword (an identifier, not a literal) inside that region and must still be
+        // redacted, since in an unparsable region a bareword cannot be told apart from a value.
+        var query = $"print x = {{k:{secret}}}";
 
         var info = KustoProcessor.Process(shouldSummarize: false, shouldSanitize: true, query);
 
