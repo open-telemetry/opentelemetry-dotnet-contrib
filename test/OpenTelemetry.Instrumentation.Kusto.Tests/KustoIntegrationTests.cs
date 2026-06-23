@@ -367,5 +367,26 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
                 metric.MeterTags,
                 metric.Unit,
                 metric.Temporality,
+                MetricPoints = GetMetricPointDimensions(metric),
             });
+
+    // Capture only the dimensions (tags) of each metric point, not the duration values (sum/min/max), so the
+    // snapshot locks in the metric's dimensions without being flaky on timing.
+    private static List<Dictionary<string, object?>> GetMetricPointDimensions(Metric metric)
+    {
+        var points = new List<Dictionary<string, object?>>();
+
+        foreach (ref readonly var metricPoint in metric.GetMetricPoints())
+        {
+            var dimensions = new Dictionary<string, object?>();
+            foreach (var tag in metricPoint.Tags)
+            {
+                dimensions[tag.Key] = tag.Value;
+            }
+
+            points.Add(dimensions);
+        }
+
+        return points;
+    }
 }

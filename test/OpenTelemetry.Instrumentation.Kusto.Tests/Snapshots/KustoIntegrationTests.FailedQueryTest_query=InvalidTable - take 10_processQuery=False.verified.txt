@@ -38,7 +38,17 @@
       Name: db.client.operation.duration,
       Description: Duration of database client operations,
       Unit: s,
-      Temporality: Cumulative
+      Temporality: Cumulative,
+      MetricPoints: [
+        {
+          db.namespace: NetDefaultDB,
+          db.operation.name: KD.RestClient.ExecuteQuery,
+          db.system.name: azure.kusto,
+          error.type: Kusto.Data.Exceptions.SemanticException,
+          server.address: Scrubbed,
+          server.port: {Scrubbed}
+        }
+      ]
     }
   ],
   Exception: {
