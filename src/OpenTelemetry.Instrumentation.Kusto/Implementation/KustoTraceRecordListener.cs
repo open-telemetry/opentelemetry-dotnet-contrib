@@ -232,6 +232,10 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
 
         var activity = context.Activity;
 
+        // For a single operation the client reports any exception before it reports completion, so we do not
+        // guard the window between stopping the Activity and removing the context. A late exception arriving
+        // concurrently after the Stop below could tag an already-stopped span and produce telemetry that is
+        // inconsistent between the span and the metric; this is an accepted edge case the client does not exhibit.
         if (activity is not null)
         {
             this.CallEnrichment(record);
