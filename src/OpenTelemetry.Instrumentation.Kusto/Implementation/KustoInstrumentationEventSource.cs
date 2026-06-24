@@ -12,7 +12,7 @@ namespace OpenTelemetry.Instrumentation.Kusto.Implementation;
 [EventSource(Name = "OpenTelemetry-Instrumentation-Kusto")]
 internal sealed class KustoInstrumentationEventSource : EventSource
 {
-    private const string TraceRequestBodyEnvironmentVariable = "KUSTO_DATA_TRACE_REQUEST_BODY";
+    internal const string TraceRequestBodyEnvironmentVariable = "KUSTO_DATA_TRACE_REQUEST_BODY";
 
     public static KustoInstrumentationEventSource Log { get; } = new();
 
@@ -45,16 +45,6 @@ internal sealed class KustoInstrumentationEventSource : EventSource
 
     [Event(4, Message = "Unknown error processing trace record. Exception: {0}", Level = EventLevel.Error)]
     public void UnknownErrorProcessingTraceRecord(string exception) => this.WriteEvent(4, exception);
-
-    [NonEvent]
-    public void WarnIfQueryTextCaptureNotEnabled(bool recordQueryText, bool recordQuerySummary)
-    {
-        if ((recordQueryText || recordQuerySummary)
-            && Environment.GetEnvironmentVariable(TraceRequestBodyEnvironmentVariable) != "1")
-        {
-            this.QueryTextCaptureNotEnabled();
-        }
-    }
 
     [Event(5, Message = $"Query text or summary recording is enabled, but the '{TraceRequestBodyEnvironmentVariable}' environment variable is not set to '1', so the Kusto client will not emit the query text and none will be recorded.", Level = EventLevel.Warning)]
     public void QueryTextCaptureNotEnabled() => this.WriteEvent(5);

@@ -48,7 +48,15 @@ public static class TracerProviderBuilderExtensions
         builder.AddInstrumentation(sp =>
         {
             listener.TraceOptions = sp.GetRequiredService<IOptionsMonitor<KustoTraceInstrumentationOptions>>().CurrentValue;
-            KustoInstrumentationEventSource.Log.WarnIfQueryTextCaptureNotEnabled(listener.TraceOptions.RecordQueryText, listener.TraceOptions.RecordQuerySummary);
+
+            // Read the variable directly rather than from configuration, because the Kusto client reads it the
+            // same way when it decides whether to emit the query text.
+            if ((listener.TraceOptions.RecordQueryText || listener.TraceOptions.RecordQuerySummary)
+                && Environment.GetEnvironmentVariable(KustoInstrumentationEventSource.TraceRequestBodyEnvironmentVariable) != "1")
+            {
+                KustoInstrumentationEventSource.Log.QueryTextCaptureNotEnabled();
+            }
+
             return listener.HandleManager.AddTracingHandle();
         });
 

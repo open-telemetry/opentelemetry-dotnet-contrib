@@ -48,7 +48,15 @@ public static class MeterProviderBuilderExtensions
         builder.AddInstrumentation(sp =>
         {
             listener.MeterOptions = sp.GetRequiredService<IOptionsMonitor<KustoMeterInstrumentationOptions>>().CurrentValue;
-            KustoInstrumentationEventSource.Log.WarnIfQueryTextCaptureNotEnabled(listener.MeterOptions.RecordQueryText, listener.MeterOptions.RecordQuerySummary);
+
+            // Read the variable directly rather than from configuration, because the Kusto client reads it the
+            // same way when it decides whether to emit the query text.
+            if ((listener.MeterOptions.RecordQueryText || listener.MeterOptions.RecordQuerySummary)
+                && Environment.GetEnvironmentVariable(KustoInstrumentationEventSource.TraceRequestBodyEnvironmentVariable) != "1")
+            {
+                KustoInstrumentationEventSource.Log.QueryTextCaptureNotEnabled();
+            }
+
             return listener.HandleManager.AddMetricHandle();
         });
 
