@@ -114,6 +114,14 @@ query-body tracing process-wide as a side effect; that is left to the host as a
 deliberate choice. If either option is enabled without the variable set, no query
 text or summary is recorded and a warning is written to the
 `OpenTelemetry-Instrumentation-Kusto` event source.
+The Kusto client's tracing system is described in
+[Controlling and suppressing Kusto SDK client-side tracing](https://learn.microsoft.com/kusto/api/netfx/controlling-tracing).
+
+For example, set the variable during application startup:
+
+```csharp
+Environment.SetEnvironmentVariable("KUSTO_DATA_TRACE_REQUEST_BODY", "1");
+```
 
 ### RecordQueryText
 
