@@ -85,7 +85,6 @@
     <PackageVersion Include="Grpc.Core.Api" Version="[2.46.6,)" />
     <PackageVersion Include="InfluxDB.Client" Version="[4.18.0,)" />
     <PackageVersion Include="Microsoft.Azure.Kusto.Cloud.Platform" Version="[14.0.3,)" />
-    <PackageVersion Include="Microsoft.Azure.Kusto.Data" Version="14.0.3" />
     <PackageVersion Include="Microsoft.Azure.Kusto.Language" Version="[12.3.1,)" />
     <PackageVersion Include="Microsoft.ServiceFabric.Actors" Version="[8.4.268,)" />
     <PackageVersion Include="Microsoft.ServiceFabric.Services.Remoting" Version="[8.4.268,)" />
@@ -125,6 +124,7 @@
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.28" />
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.28" />
     <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="8.0.28" />
+    <PackageVersion Include="Microsoft.Azure.Kusto.Data" Version="14.0.3" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="7.0.1" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.28" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.28" />
