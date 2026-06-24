@@ -88,14 +88,14 @@
 
   <!-- Non-production packages are kept up-to-date by dependency automation -->
   <ItemGroup Label="Non-production packages, such as for examples and tests">
-    <PackageVersion Include="AWSSDK.Bedrock" Version="4.0.30.2" />
-    <PackageVersion Include="AWSSDK.BedrockAgent" Version="4.0.9.7" />
-    <PackageVersion Include="AWSSDK.BedrockAgentRuntime" Version="4.0.9.6" />
-    <PackageVersion Include="AWSSDK.BedrockRuntime" Version="4.0.20.6" />
-    <PackageVersion Include="AWSSDK.DynamoDBv2" Version="4.0.21.3" />
-    <PackageVersion Include="AWSSDK.S3" Version="4.0.24.4" />
-    <PackageVersion Include="AWSSDK.SimpleNotificationService" Version="4.0.3.4" />
-    <PackageVersion Include="AWSSDK.SQS" Version="4.0.3.4" />
+    <PackageVersion Include="AWSSDK.Bedrock" Version="4.0.30.6" />
+    <PackageVersion Include="AWSSDK.BedrockAgent" Version="4.0.11.1" />
+    <PackageVersion Include="AWSSDK.BedrockAgentRuntime" Version="4.0.10.2" />
+    <PackageVersion Include="AWSSDK.BedrockRuntime" Version="4.0.21.3" />
+    <PackageVersion Include="AWSSDK.DynamoDBv2" Version="4.0.21.7" />
+    <PackageVersion Include="AWSSDK.S3" Version="4.0.25.3" />
+    <PackageVersion Include="AWSSDK.SimpleNotificationService" Version="4.0.3.8" />
+    <PackageVersion Include="AWSSDK.SQS" Version="4.0.3.8" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
     <PackageVersion Include="CommandLineParser" Version="2.9.1" />
     <PackageVersion Include="FsCheck.Xunit" Version="3.3.3" />
@@ -133,7 +133,7 @@
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
     <PackageVersion Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.3" />
     <PackageVersion Include="ServiceFabric.Mocks" Version="8.0.7" />
-    <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.2.1" />
+    <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.2.2" />
     <PackageVersion Include="System.Reactive.Core" Version="6.1.0" />
     <PackageVersion Include="System.Reflection.DispatchProxy" Version="4.8.2" />
     <PackageVersion Include="System.ServiceModel.Http" Version="10.0.652802" />

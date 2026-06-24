@@ -265,6 +265,7 @@
     <Project Path="test/OpenTelemetry.Instrumentation.Cassandra.Tests/OpenTelemetry.Instrumentation.Cassandra.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.ConfluentKafka.Tests/OpenTelemetry.Instrumentation.ConfluentKafka.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.ElasticsearchClient.Tests/OpenTelemetry.Instrumentation.ElasticsearchClient.Tests.csproj" />
+    <Project Path="test/OpenTelemetry.Instrumentation.EntityFrameworkCore.Benchmarks/OpenTelemetry.Instrumentation.EntityFrameworkCore.Benchmarks.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests/OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.EventCounters.Tests/OpenTelemetry.Instrumentation.EventCounters.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.GrpcCore.Tests/OpenTelemetry.Instrumentation.GrpcCore.Tests.csproj" />
