@@ -103,6 +103,9 @@ corresponding tracking issue. The comment should reference the issue number.
 
 ## OpenTelemetry Semantic Conventions
 
+[Semantic Conventions](https://github.com/open-telemetry/semantic-conventions)
+for OpenTelemetry are definitions for how telemetry should work.
+
 - Sampling-sensitive span attributes (identifiers like `rpc.method`, network
   addresses, request method, etc.) must be set **before** `Activity.Start()` is
   called so that custom samplers can observe them.
