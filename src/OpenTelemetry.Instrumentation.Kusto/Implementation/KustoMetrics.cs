@@ -12,8 +12,6 @@ internal static class KustoMetrics
 {
     public static readonly Meter Meter = Metrics.MeterFactory.Create(typeof(KustoMetrics), KustoSemanticConventions.SemanticConventionsVersion);
 
-    public static readonly string MeterName = Meter.Name;
-
     public static readonly Histogram<double> OperationDurationHistogram = Meter.CreateHistogram(
         "db.client.operation.duration",
         unit: "s",

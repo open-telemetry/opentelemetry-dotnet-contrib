@@ -12,6 +12,4 @@ namespace OpenTelemetry.Instrumentation.Kusto.Implementation;
 internal static class KustoActivitySource
 {
     public static readonly ActivitySource ActivitySource = ActivitySourceFactory.Create(typeof(KustoActivitySource), KustoSemanticConventions.SemanticConventionsVersion);
-
-    public static readonly string ActivitySourceName = ActivitySource.Name;
 }

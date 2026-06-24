@@ -202,7 +202,7 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
 
         // A failed query must record error.type on the duration metric, not only on the span, and exactly once
         // even if the failure is reported more than once.
-        var durationMetric = metrics.Single(m => m.MeterName == KustoMetrics.MeterName && m.Name == "db.client.operation.duration");
+        var durationMetric = metrics.Single(m => m.MeterName == KustoMetrics.Meter.Name && m.Name == "db.client.operation.duration");
         var durationTags = new List<KeyValuePair<string, object?>>();
         foreach (ref readonly var metricPoint in durationMetric.GetMetricPoints())
         {
@@ -357,7 +357,7 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
 
     private static dynamic FilterMetrics(IEnumerable<Metric> metrics) =>
         metrics
-            .Where(metric => metric.MeterName == KustoMetrics.MeterName)
+            .Where(metric => metric.MeterName == KustoMetrics.Meter.Name)
             .Select(metric => new
             {
                 metric.MeterName,

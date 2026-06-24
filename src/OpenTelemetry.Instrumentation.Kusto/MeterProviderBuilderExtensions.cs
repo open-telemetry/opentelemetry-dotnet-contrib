@@ -52,7 +52,7 @@ public static class MeterProviderBuilderExtensions
             return listener.HandleManager.AddMetricHandle();
         });
 
-        builder.AddMeter(KustoMetrics.MeterName);
+        builder.AddMeter(KustoMetrics.Meter.Name);
 
         return builder;
     }
