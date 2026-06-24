@@ -240,3 +240,7 @@ To maintain a high signal-to-noise ratio, **do not comment on**:
   provided that this does not introduce too much code complexity relative to the
   advantages gained by doing so. For example, Use `FrozenSet<T>` instead of `HashSet<T>`
   when targeting .NET 8 or later if the hash set's values are not changed once created.
+- Where appropriate, links to external documentation, such as for Microsoft Learn
+  and GitHub, should not include language-specific slugs (e.g. `/en/`, `/en-us/`)
+  in the URL path so that documentation is shown to the reader in their preferred
+  browser language when available.
