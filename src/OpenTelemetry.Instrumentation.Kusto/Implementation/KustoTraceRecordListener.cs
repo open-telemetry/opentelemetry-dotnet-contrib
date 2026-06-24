@@ -82,20 +82,7 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
         }
     }
 
-    private static double GetElapsedTime(long begin)
-    {
-#if NET
-        var duration = Stopwatch.GetElapsedTime(begin);
-#else
-        var end = Stopwatch.GetTimestamp();
-        var timestampToTicks = TimeSpan.TicksPerSecond / (double)Stopwatch.Frequency;
-        var delta = end - begin;
-        var ticks = (long)(timestampToTicks * delta);
-        var duration = new TimeSpan(ticks);
-#endif
-
-        return duration.TotalSeconds;
-    }
+    private static double GetElapsedTime(long begin) => Stopwatch.GetElapsedTime(begin).TotalSeconds;
 
     private bool ShouldComputeTags(Activity? activity) =>
         (activity?.IsAllDataRequested is true) || this.HandleManager.IsMetricsActive();
