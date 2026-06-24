@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.16.0-alpha.1
+
+Released 2026-Jun-24
+
 * Fixed `OnEventWritten` processing events from EventSources that were not
   configured via `AddEventSources`.
   ([#4031](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4031))
