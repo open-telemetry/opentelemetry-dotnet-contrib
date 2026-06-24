@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics.CodeAnalysis;
+#if NET
+using System.Collections.Frozen;
+#endif
 using System.Runtime.CompilerServices;
 using Kusto.Language;
 using Kusto.Language.Editor;
@@ -146,7 +149,11 @@ internal static class KustoProcessor
         // Literal token kinds (StringLiteralToken, LongLiteralToken, ...) discovered once by name so any future
         // literal kind is covered automatically. Used (together with identifier tokens) to redact value-bearing
         // tokens the parser left loose inside a skipped (unparsable) region of a malformed query.
+#if NET
+        private static readonly FrozenSet<SyntaxKind> LiteralTokenKinds = BuildLiteralTokenKinds();
+#else
         private static readonly HashSet<SyntaxKind> LiteralTokenKinds = BuildLiteralTokenKinds();
+#endif
 
         private readonly List<TextEdit> edits = [];
 
@@ -194,7 +201,11 @@ internal static class KustoProcessor
             this.VisitChildren(node);
         }
 
+#if NET
+        private static FrozenSet<SyntaxKind> BuildLiteralTokenKinds()
+#else
         private static HashSet<SyntaxKind> BuildLiteralTokenKinds()
+#endif
         {
             var kinds = new HashSet<SyntaxKind>();
             foreach (var name in Enum.GetNames(typeof(SyntaxKind)))
@@ -205,7 +216,11 @@ internal static class KustoProcessor
                 }
             }
 
+#if NET
+            return kinds.ToFrozenSet();
+#else
             return kinds;
+#endif
         }
 
         private void VisitChildren(SyntaxNode node)
