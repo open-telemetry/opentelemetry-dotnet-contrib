@@ -110,7 +110,7 @@ public class EntityFrameworkCoreBenchmarks
     }
 
     [Benchmark]
-    public int SelectItems()
+    public int Query()
     {
         using var context = new BenchmarkContext(this.contextOptions!);
         return context.Items.OrderBy((p) => p.Name).ToList().Count;
