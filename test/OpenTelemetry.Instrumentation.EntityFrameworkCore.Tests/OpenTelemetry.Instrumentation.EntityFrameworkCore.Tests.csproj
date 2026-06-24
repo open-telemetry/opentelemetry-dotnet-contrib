@@ -39,9 +39,4 @@
     <EmbeddedResource Include="*.Dockerfile" LogicalName="%(FileName)%(Extension)" />
     <EmbeddedResource Include="$(RepoRoot)\test\OpenTelemetry.Instrumentation.SqlClient.Tests\sqlserver.Dockerfile" LogicalName="sqlserver.Dockerfile" />
   </ItemGroup>
-
-  <!-- TODO remove when https://github.com/dotnet/efcore/issues/38463 is fixed by: https://github.com/dotnet/efcore/pull/38402 -->
-  <ItemGroup>
-    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-2m69-gcr7-jv3q" />
-  </ItemGroup>
 </Project>
