@@ -4,9 +4,7 @@ This file provides guidance for reviewing pull requests and local changes in thi
 repository. It also helps guide AI coding and review agents to make them more effective.
 
 > [!NOTE]
-> The primary audience for this document is Copilot for automated pull request reviews.
-
----
+> The primary audience for this document is for automated pull request reviews agents.
 
 ## CHANGELOG
 
@@ -29,23 +27,20 @@ CHANGELOG updates are one of the most frequently corrected review items.
   `CHANGELOG.md` needs its own entry with the same PR link.
 - "Breaking change" entries should be prefixed with `**Breaking Change**:`.
 
----
-
 ## NuGet Package References
 
 Instrumentation packages' source projects must reference only the minimal
 required OpenTelemetry packages:
 
 - Source packages (`src/`) should reference `OpenTelemetry.Api` or
-  `OpenTelemetry.Api.ProviderBuilderExtensions` **only**. Avoid references to
-  `OpenTelemetry` (the SDK) from a library source project.
+- `OpenTelemetry.Api.ProviderBuilderExtensions` **only**. Avoid references to
+  `OpenTelemetry` (the SDK) from a library source project when adding or editing
+  existing code.
 - All package versions are centralized in `Directory.Packages.props`. Flag any
   `Version="..."` attribute on a `<PackageReference>` in a src or test `.csproj`
   (`VersionOverride` is allowed only for intentional version-range pinning
   exceptions and should be rare).
-- Never add `<Version>` to a project file; use `Directory.Packages.props`.
-
----
+- Never add `<Version>` to a project file; use `Directory.Packages.props`
 
 ## Public API Surface
 
@@ -54,12 +49,11 @@ required OpenTelemetry packages:
   missing.
 - Flag public API changes that are not reflected in `PublicAPI.Unshipped.txt`.
 - Breaking API changes (removals, signature changes, type moves) are not allowed
-  without an explicit maintainer decision and a breaking-change CHANGELOG entry.
+  without an explicit maintainer decision and a breaking-change CHANGELOG entry
 - For a new component, `PublicAPI.Shipped.txt` should be empty (contains only
   `#nullable enable`) and all initial surface goes in `Unshipped.txt`. Entries
   are moved to `Shipped.txt` automatically during the release process.
 
----
 
 ## XML Documentation Comments
 
@@ -76,8 +70,6 @@ required OpenTelemetry packages:
 - Use `<c>TypeName</c>` for type/member references inline in text when not using
   a `<see cref="..."/>` link.
 
----
-
 ## String Comparisons and Culture-Sensitive Parsing
 
 The repository enforces these via `build/BannedSymbols.txt` (a Roslyn analyzer
@@ -90,8 +82,6 @@ will catch them, but flag them in review too):
 - **Do not use** the culture-sensitive `TryParse(string, out T)` or
   `TryParse(ReadOnlySpan<char>, out T)` overloads on numeric/date types - always
   pass `CultureInfo.InvariantCulture` (or `NumberStyles` + `IFormatProvider`).
-
----
 
 ## Code Correctness
 
@@ -112,8 +102,6 @@ code from hanging forever if an assumption is found to be invalid.
 Do not leave `// TODO` comments in code under review unless there is a
 corresponding tracking issue. The comment should reference the issue number.
 
----
-
 ## OpenTelemetry Semantic Conventions
 
 - Sampling-sensitive span attributes (identifiers like `rpc.method`, network
@@ -126,8 +114,6 @@ corresponding tracking issue. The comment should reference the issue number.
 - Links to the semantic convention specification should be added where relevant
   using permalinks (i.e. to tags or git SHAs - avoid branch names like `main`).
 
----
-
 ## Instrumentation Package Conventions
 
 - Instrumentation packages should only add tags/attributes to an activity that
@@ -139,8 +125,6 @@ corresponding tracking issue. The comment should reference the issue number.
   opt-in mode.
 - Schema URLs and instrumentation scope versions should be updated when semantic
   convention version support changes.
-
----
 
 ## Performance
 
@@ -155,8 +139,6 @@ corresponding tracking issue. The comment should reference the issue number.
   formatting call.
 - Avoid unnecessary allocations in instrumentation code that runs on every
   request.
-
----
 
 ## Testing
 
@@ -175,8 +157,6 @@ corresponding tracking issue. The comment should reference the issue number.
   that the output is correct as a whole and helps guard against unexpected changes
   to output. This is particularly important for serialization related tests.
 
----
-
 ## Line Length and Readability
 
 - Lines that wrap in the GitHub web view (roughly >120 characters) should be
@@ -184,8 +164,6 @@ corresponding tracking issue. The comment should reference the issue number.
   and CHANGELOG entries.
 - Method signatures with many parameters are easier to read when each parameter
   is on its own line.
-
----
 
 ## API Design Patterns
 
@@ -200,8 +178,6 @@ corresponding tracking issue. The comment should reference the issue number.
 - `[Flags]` enums whose name represents a set of flags should have a `Flags`
   suffix in their type name.
 
----
-
 ## New Components
 
 - A brand-new component must be introduced in at least two PRs: the first PR
@@ -215,8 +191,6 @@ corresponding tracking issue. The comment should reference the issue number.
   set in the `.csproj` (baseline can be omitted only for brand-new packages that
   have never shipped).
 
----
-
 ## Pull Request Hygiene
 
 - PRs should be focused and small. Thousands of changed lines in a single PR
@@ -226,8 +200,6 @@ corresponding tracking issue. The comment should reference the issue number.
 - All contributors must have signed the [EasyCLA](https://easycla.lfx.linuxfoundation.org/)
   agreement before a PR can be merged. Flag any PR where the CLA check has not
   passed. Maintainers will usually not review changes at all before the CLA is signed.
-
----
 
 ## PowerShell Scripts
 
@@ -240,8 +212,6 @@ corresponding tracking issue. The comment should reference the issue number.
 - Aggregate errors and report them at the end of a script (fail-at-end pattern)
   rather than stopping at the first warning, so that all issues are visible in
   one run.
-
----
 
 ## What NOT to Flag
 
@@ -257,8 +227,6 @@ To maintain a high signal-to-noise ratio, **do not comment on**:
   as part of continuous integration and this will avoid false-positive comments
   where new language features are used that AI models may not yet be aware of.
 
----
-
 ## Miscellaneous
 
 - When reviewing changes related to OpenTelemetry semantic conventions, refer to
@@ -267,3 +235,8 @@ To maintain a high signal-to-noise ratio, **do not comment on**:
   at <https://github.com/open-telemetry/semantic-conventions>. Do not provide
   speculative feedback without referencing the official specification, as it may
   lead to incorrect assumptions or misunderstandings.
+- Where possible, use more performant APIs added in newer releases of .NET and use
+  pre-processor directives to maintain compatibility with older versions of .NET,
+  provided that this does not introduce too much code complexity relative to the
+  advantages gained by doing so. For example, Use `FrozenSet<T>` instead of `HashSet<T>`
+  when targeting .NET 8 or later if the hash set's values are not changed once created.

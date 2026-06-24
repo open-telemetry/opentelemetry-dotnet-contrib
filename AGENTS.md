@@ -157,7 +157,8 @@ Every behavioural change needs a CHANGELOG entry in the affected component's
 Instrumentation `src/` projects must reference only the minimal OpenTelemetry
 packages needed:
 
-- Use `OpenTelemetry.Api` or `OpenTelemetry.Api.ProviderBuilderExtensions`.
+- Use `OpenTelemetry.Api` or `OpenTelemetry.Api.ProviderBuilderExtensions` when
+  adding or editing existing code.
 - Do **not** add new references to `OpenTelemetry` (the SDK) wherever possible.
 
 ## Code Conventions
@@ -174,7 +175,7 @@ packages needed:
 - Use `<para/>` as the paragraph break inside `///` XML doc comments - not a
   blank line.
 - For property setters, the `paramName` in any `ArgumentException` should be
-  `"value"`, not the property name.
+  `nameof(value)`, not the property name.
 
 ### Tests
 
