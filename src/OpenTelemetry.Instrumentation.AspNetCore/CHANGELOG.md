@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.16.0
+
+Released 2026-Jun-24
+
 * Avoid duplicative work to add tags to traces when they are already natively supported
   by ASP.NET Core itself. When using ASP.NET Core 10, performance can be
   improved by setting the `Microsoft.AspNetCore.Hosting.SuppressActivityOpenTelemetryData`
