@@ -2,14 +2,13 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using Kusto.Data;
+using OpenTelemetry.Tests;
 using Testcontainers.Kusto;
 
 namespace OpenTelemetry.Instrumentation.Kusto.Tests;
 
-public sealed class KustoIntegrationTestsFixture : IAsyncLifetime
+public sealed class KustoIntegrationTestsFixture : ContainerFixture<KustoContainer>, IAsyncLifetime
 {
-    private static readonly string KustoImage = GetKustoImage();
-
     private readonly IDisposable queryBodyTracing;
 
     public KustoIntegrationTestsFixture()
@@ -20,31 +19,17 @@ public sealed class KustoIntegrationTestsFixture : IAsyncLifetime
         this.queryBodyTracing = EnvironmentVariableScope.Create("KUSTO_DATA_TRACE_REQUEST_BODY", "1");
     }
 
-    public KustoContainer DatabaseContainer { get; } = CreateKusto();
+    public KustoContainer DatabaseContainer => this.TypedContainer;
 
     public KustoConnectionStringBuilder ConnectionStringBuilder => new(this.DatabaseContainer.GetConnectionString());
 
-    public Task InitializeAsync() => this.DatabaseContainer.StartAsync();
+    protected override string DockerfileName => "kusto.Dockerfile";
 
-    public async Task DisposeAsync()
+    async Task IAsyncLifetime.DisposeAsync()
     {
-        await this.DatabaseContainer.DisposeAsync();
+        await this.DisposeAsync();
         this.queryBodyTracing.Dispose();
     }
 
-    private static KustoContainer CreateKusto()
-        => new KustoBuilder(KustoImage).Build();
-
-    private static string GetKustoImage()
-    {
-        var assembly = typeof(KustoIntegrationTestsFixture).Assembly;
-
-        using var stream = assembly.GetManifestResourceStream("kusto.Dockerfile");
-        using var reader = new StreamReader(stream!);
-
-        var raw = reader.ReadToEnd();
-
-        // Exclude FROM
-        return raw.Substring(4).Trim();
-    }
+    protected override KustoContainer CreateContainer() => new KustoBuilder(this.GetImage()).Build();
 }
