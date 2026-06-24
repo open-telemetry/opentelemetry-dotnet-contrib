@@ -15,7 +15,7 @@ namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Benchmarks;
 /// </summary>
 /// <remarks>
 /// The benchmarks use an SQLite in-memory database to exercise the full
-/// diagnostic listener lifecycle (CommandCreated → CommandExecuting →
+/// diagnostic listener lifecycle (CommandCreated => CommandExecuting =>
 /// CommandExecuted) without needing an external database server.
 /// </remarks>
 [MemoryDiagnoser]
