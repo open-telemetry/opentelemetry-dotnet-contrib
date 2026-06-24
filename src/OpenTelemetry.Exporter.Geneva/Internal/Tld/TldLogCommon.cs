@@ -46,7 +46,7 @@ internal abstract class TldLogCommon : IDisposable
 #if NET
     private FrozenDictionary<string, string> sanitizedCategoryNameCache = FrozenDictionary<string, string>.Empty;
 #else
-    private Dictionary<string, string> sanitizedCategoryNameCache = new(StringComparer.Ordinal);
+    private Dictionary<string, string> sanitizedCategoryNameCache = [with(StringComparer.Ordinal)];
 #endif
     private bool isDisposed;
 
@@ -235,7 +235,7 @@ internal abstract class TldLogCommon : IDisposable
     private static bool IsAlreadySanitized(string categoryName)
     {
         var length = categoryName.Length;
-        if (length == 0 || length > MaxSanitizedEventNameLength)
+        if (length is 0 or > MaxSanitizedEventNameLength)
         {
             return false;
         }

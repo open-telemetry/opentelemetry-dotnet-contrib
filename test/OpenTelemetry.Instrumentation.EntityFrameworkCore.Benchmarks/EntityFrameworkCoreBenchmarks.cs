@@ -98,6 +98,7 @@ public class EntityFrameworkCoreBenchmarks
                     (options) => options.Filter = static (_, command) => command.CommandType == CommandType.Text)
                 .Build(),
 
+            InstrumentationScenario.None => null,
             _ => null,
         };
     }
