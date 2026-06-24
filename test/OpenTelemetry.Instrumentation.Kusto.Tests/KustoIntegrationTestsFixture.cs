@@ -10,12 +10,14 @@ public sealed class KustoIntegrationTestsFixture : IAsyncLifetime
 {
     private static readonly string KustoImage = GetKustoImage();
 
-    static KustoIntegrationTestsFixture()
+    private readonly IDisposable queryBodyTracing;
+
+    public KustoIntegrationTestsFixture()
     {
         // The instrumentation deliberately does not set this; query-body tracing is enabled here (by the host)
         // so the Kusto client emits the query text the instrumentation parses. The client reads it once, so
-        // set it before any client is created.
-        Environment.SetEnvironmentVariable("KUSTO_DATA_TRACE_REQUEST_BODY", "1");
+        // set it before any client is created and restore it when the fixture is disposed.
+        this.queryBodyTracing = EnvironmentVariableScope.Create("KUSTO_DATA_TRACE_REQUEST_BODY", "1");
     }
 
     public KustoContainer DatabaseContainer { get; } = CreateKusto();
@@ -24,7 +26,11 @@ public sealed class KustoIntegrationTestsFixture : IAsyncLifetime
 
     public Task InitializeAsync() => this.DatabaseContainer.StartAsync();
 
-    public Task DisposeAsync() => this.DatabaseContainer.DisposeAsync().AsTask();
+    public async Task DisposeAsync()
+    {
+        await this.DatabaseContainer.DisposeAsync();
+        this.queryBodyTracing.Dispose();
+    }
 
     private static KustoContainer CreateKusto()
         => new KustoBuilder(KustoImage).Build();

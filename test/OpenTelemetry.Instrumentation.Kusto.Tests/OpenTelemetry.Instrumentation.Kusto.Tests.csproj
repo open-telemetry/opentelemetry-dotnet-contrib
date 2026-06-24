@@ -25,6 +25,7 @@
     <Compile Include="$(RepoRoot)\test\Shared\DockerPlatform.cs" Link="Implementation\DockerPlatform.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\EnabledOnDockerPlatformFactAttribute.cs" Link="Implementation\EnabledOnDockerPlatformFactAttribute.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\EnabledOnDockerPlatformTheoryAttribute.cs" Link="Implementation\EnabledOnDockerPlatformTheoryAttribute.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\EnvironmentVariableScope.cs" Link="Implementation\EnvironmentVariableScope.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\SkipUnlessEnvVarFoundFactAttribute.cs" Link="Implementation\SkipUnlessEnvVarFoundFactAttribute.cs" />
   </ItemGroup>
 
