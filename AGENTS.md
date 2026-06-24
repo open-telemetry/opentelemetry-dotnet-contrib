@@ -145,7 +145,7 @@ Every behavioural change needs a CHANGELOG entry in the affected component's
 ```
 
 - New entries go at the **end** of `## Unreleased`, not the top.
-- Do **not** add a new version header — that is added automatically during
+- Do **not** add a new version header - that is added automatically during
   release.
 - No CHANGELOG entry is needed for pure infrastructure changes (CI workflows,
   Renovate config, editor config).
@@ -171,7 +171,7 @@ packages needed:
 
 ### XML Documentation
 
-- Use `<para/>` as the paragraph break inside `///` XML doc comments — not a
+- Use `<para/>` as the paragraph break inside `///` XML doc comments - not a
   blank line.
 - For property setters, the `paramName` in any `ArgumentException` should be
   `"value"`, not the property name.
