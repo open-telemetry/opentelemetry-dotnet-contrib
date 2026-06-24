@@ -267,7 +267,7 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
     /// </summary>
     private sealed class OperationContext
     {
-        private readonly object @lock = new();
+        private readonly Lock @lock = new();
         private TagList meterTags;
         private bool errorTypeRecorded;
 

@@ -38,6 +38,7 @@
     <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\InstrumentationHandleManager.cs" Link="Includes\InstrumentationHandleManager.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\IsExternalInit.cs" Link="Includes\IsExternalInit.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\Lock.cs" Link="Includes\Lock.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\MeterFactory.cs" Link="Includes\MeterFactory.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\NullableAttributes.cs" Link="Includes\NullableAttributes.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\SemanticConventions.cs" Link="Includes\SemanticConventions.cs" />
