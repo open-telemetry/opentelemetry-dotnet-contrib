@@ -23,7 +23,7 @@ Add a reference to the
 package. Also, add any other instrumentations & exporters you will need.
 
 ```shell
-dotnet add package OpenTelemetry.Instrumentation.Kusto
+dotnet add package OpenTelemetry.Instrumentation.Kusto --prerelease
 ```
 
 ### Step 2: Enable Kusto Instrumentation at application startup
