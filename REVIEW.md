@@ -54,7 +54,6 @@ required OpenTelemetry packages:
   `#nullable enable`) and all initial surface goes in `Unshipped.txt`. Entries
   are moved to `Shipped.txt` automatically during the release process.
 
-
 ## XML Documentation Comments
 
 - Use `<para/>` as the paragraph separator in XML doc comments - not a
