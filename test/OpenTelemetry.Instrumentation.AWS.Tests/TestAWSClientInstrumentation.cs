@@ -679,7 +679,7 @@ public class TestAWSClientInstrumentation
             var bedrockagentruntime = new AmazonBedrockAgentRuntimeClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
             var dummyResponse = "{}";
             CustomResponses.SetResponse(bedrockagentruntime, dummyResponse, requestId, extendedRequestId, true);
-            var retrieveRequest = new RetrieveRequest { KnowledgeBaseId = "123456789" };
+            var retrieveRequest = new RetrieveRequest { KnowledgeBaseId = "1234567890" };
 #if NETFRAMEWORK
             var response = bedrockagentruntime.Retrieve(retrieveRequest);
 #else
@@ -911,10 +911,8 @@ public class TestAWSClientInstrumentation
 
     private sealed class SuppressionAssertPipelineHandler : PipelineHandler
     {
-        public override void InvokeSync(IExecutionContext executionContext)
-        {
+        public override void InvokeSync(IExecutionContext executionContext) =>
             Assert.True(Sdk.SuppressInstrumentation);
-        }
 
         public override Task<T> InvokeAsync<T>(IExecutionContext executionContext)
         {
