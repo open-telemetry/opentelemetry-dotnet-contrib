@@ -43,8 +43,10 @@ internal abstract class TldLogCommon : IDisposable
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
 
 #endif
-#if NET
+#if NET11_0_OR_GREATER
     private FrozenDictionary<string, string> sanitizedCategoryNameCache = [];
+#elif NET
+    private FrozenDictionary<string, string> sanitizedCategoryNameCache = FrozenDictionary<string, string>.Empty;
 #else
     private Dictionary<string, string> sanitizedCategoryNameCache = [with(StringComparer.Ordinal)];
 #endif
