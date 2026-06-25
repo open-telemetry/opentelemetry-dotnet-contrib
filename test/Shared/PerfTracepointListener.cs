@@ -99,7 +99,7 @@ internal sealed partial class PerfTracepointListener : IDisposable
         }
     }
 
-    [GeneratedRegex("(\\w+?)=([\\w\\(\\) .,-]*)( |$)", RegexOptions.Compiled)]
+    [GeneratedRegex("(\\w+?)=([\\w\\(\\) .,-]*)( |$)")]
     private static partial Regex EventRegex();
 
     private void OnCatOutputReceived(string output)
