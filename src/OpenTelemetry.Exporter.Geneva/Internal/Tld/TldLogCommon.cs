@@ -235,7 +235,7 @@ internal abstract class TldLogCommon : IDisposable
     private static bool IsAlreadySanitized(string categoryName)
     {
         var length = categoryName.Length;
-        if (length == 0 || length > MaxSanitizedEventNameLength)
+        if (length is 0 or > MaxSanitizedEventNameLength)
         {
             return false;
         }
