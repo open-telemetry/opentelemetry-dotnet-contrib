@@ -123,6 +123,15 @@ jobs:
     permissions:
       contents: read # To checkout the code
 
+  test-pwsh:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'pwsh')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+    uses: ./.github/workflows/pwsh-test.yml
+    permissions:
+      contents: read # To checkout the code
+
   lint-yml:
     needs: detect-changes
     if: |
@@ -760,6 +769,7 @@ jobs:
       build-test-resources-processruntime,
       build-test-sampler-aws,
       build-test-semanticconventions,
+      test-pwsh,
       verify-aot-compat
     ]
     if: always() && !cancelled()
