@@ -44,7 +44,7 @@ internal abstract class TldLogCommon : IDisposable
 
 #endif
 #if NET
-    private FrozenDictionary<string, string> sanitizedCategoryNameCache = FrozenDictionary<string, string>.Empty;
+    private FrozenDictionary<string, string> sanitizedCategoryNameCache = [];
 #else
     private Dictionary<string, string> sanitizedCategoryNameCache = [with(StringComparer.Ordinal)];
 #endif
