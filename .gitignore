@@ -440,6 +440,10 @@ $RECYCLE.BIN/
 # Test results
 TestResults/
 
+# Pester coverage results
+build/scripts/tests/coverage.xml
+build/scripts/tests/testResults.xml
+
 # Ignore everything in BenchmarkResults (including subfolders)
 test/**/BenchmarkResults/**
 # Do NOT ignore the results directory
