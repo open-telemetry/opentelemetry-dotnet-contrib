@@ -16,7 +16,7 @@ namespace OpenTelemetry.Instrumentation.Http;
 internal sealed class HttpClientInstrumentationProvider
 {
     private readonly IOptionsMonitor<HttpClientTraceInstrumentationOptions> optionsMonitor;
-    private readonly Dictionary<string, HttpClientInstrumentation> instances = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, HttpClientInstrumentation> instances = [with(StringComparer.Ordinal)];
 
     public HttpClientInstrumentationProvider(
         IOptionsMonitor<HttpClientTraceInstrumentationOptions> optionsMonitor)

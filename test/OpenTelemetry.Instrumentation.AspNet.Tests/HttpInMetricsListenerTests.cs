@@ -108,7 +108,7 @@ public class HttpInMetricsListenerTests
         }
 
         Assert.Equal(expectedTagCount, metricPoints[0].Tags.Count);
-        Dictionary<string, object?> tags = new(metricPoint.Tags.Count);
+        var tags = new Dictionary<string, object?>(metricPoint.Tags.Count);
         foreach (var tag in metricPoint.Tags)
         {
             tags.Add(tag.Key, tag.Value);

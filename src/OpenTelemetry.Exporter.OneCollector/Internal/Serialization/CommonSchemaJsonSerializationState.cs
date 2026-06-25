@@ -14,7 +14,7 @@ internal sealed class CommonSchemaJsonSerializationState
     public const int MaxNumberOfExtensionKeys = 64;
     public const int MaxNumberOfExtensionValuesPerKey = 16;
     private readonly Dictionary<string, int> keys = new(4, StringComparer.OrdinalIgnoreCase);
-    private readonly List<KeyValuePair<ExtensionFieldInformation, object?>> allValues = new(16);
+    private readonly List<KeyValuePair<ExtensionFieldInformation, object?>> allValues = [with(16)];
     private string itemType;
     private KeyValueLookup[] keysToAllValuesLookup = new KeyValueLookup[4];
     private int[] valueIndices = new int[4 * MaxNumberOfExtensionValuesPerKey];
