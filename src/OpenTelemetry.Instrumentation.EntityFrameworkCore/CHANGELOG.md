@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.16.0-beta.1
+
+Released 2026-Jun-24
+
 * Fix SQL query text sanitization for malformed bracketed identifiers in `FROM`
   clauses to avoid leaking following literal values.
   ([#4317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4317))
