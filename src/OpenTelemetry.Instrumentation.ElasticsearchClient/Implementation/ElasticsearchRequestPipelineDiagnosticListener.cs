@@ -132,7 +132,7 @@ internal partial class ElasticsearchRequestPipelineDiagnosticListener : Listener
     }
 
 #if NET
-    [GeneratedRegex(RequestRegexPattern, RegexOptions.Compiled | RegexOptions.Singleline)]
+    [GeneratedRegex(RequestRegexPattern, RegexOptions.Singleline)]
     private static partial Regex RequestParser();
 #else
     private static Regex RequestParser() => ParseRequest;
