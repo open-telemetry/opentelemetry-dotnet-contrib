@@ -10,7 +10,7 @@ guard against changes that would only break later when other GitHub events occur
 The tests require [PowerShell Core](https://github.com/PowerShell/PowerShell)
 (`pwsh`) 7 or later.
 
-To run the tests locally run the following command:
+To run the tests locally, run the following command:
 
 ```pwsh
 ./build/scripts/tests/RunTests.ps1
