@@ -168,7 +168,14 @@ internal class HttpInListener : ListenerHandler
                 createdSibling = true;
             }
 
-            Baggage.Current = ctx.Baggage;
+            // Only set the ambient Baggage when the incoming request actually carried baggage.
+            // Assigning an empty Baggage still allocates, and there is nothing to propagate, so this
+            // avoids that work on the common path where no baggage is present. Any incoming baggage
+            // has also been made available by ASP.NET Core via Activity.Baggage (on .NET 10+).
+            if (ctx.Baggage is { Count: > 0 } baggage)
+            {
+                Baggage.Current = baggage;
+            }
         }
 
         // enrich Activity from payload only if sampling decision
@@ -206,15 +213,23 @@ internal class HttpInListener : ListenerHandler
                 ActivityInstrumentationHelper.SetKindProperty(activity, ActivityKind.Server);
             }
 
-            // ASP.NET Core does not support OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS so we
-            // still need to set the display name and HTTP method tag so that any override
-            // by the user is honoured. See https://github.com/dotnet/aspnetcore/issues/65873.
-            TelemetryHelper.RequestDataHelper.SetActivityDisplayName(activity, request.Method);
+            // ASP.NET Core sets the route-based display name natively from .NET 11, so only set the
+            // (method-based) display name ourselves when the framework will not. On earlier versions
+            // (and when a sibling Activity is created) the framework's display name is not used, so it
+            // must still be set here. It must also be set when the user supplied a custom set of known
+            // methods via OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS, as the framework does not honour that
+            // and the normalized method may differ. See https://github.com/dotnet/aspnetcore/issues/65873.
+            if (!Net11OrGreater || !this.nativeAspNetCoreOpenTelemetryEnabled || createdSibling || TelemetryHelper.RequestDataHelper.HasCustomKnownMethods)
+            {
+                TelemetryHelper.RequestDataHelper.SetActivityDisplayName(activity, request.Method);
+            }
 
-            // ASP.NET Core 10 does not support OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS so we
-            // still need to set the HTTP method tag so that any override by the user is honoured.
-            // See https://github.com/dotnet/aspnetcore/issues/65873.
-            TelemetryHelper.RequestDataHelper.SetActivityDisplayNameAndHttpMethodTag(activity, request.Method);
+            // ASP.NET Core sets http.request.method natively from .NET 10, so only set it ourselves when
+            // the framework will not, or when a custom set of known methods is in use (see above).
+            if (!Net10OrGreater || !this.nativeAspNetCoreOpenTelemetryEnabled || createdSibling || TelemetryHelper.RequestDataHelper.HasCustomKnownMethods)
+            {
+                TelemetryHelper.RequestDataHelper.SetHttpMethodTag(activity, request.Method);
+            }
 
             // When a sibling Activity was created the framework's native tags land on the
             // (now unsampled) framework Activity, so set them here on the exported sibling.
@@ -226,7 +241,7 @@ internal class HttpInListener : ListenerHandler
 
                     if (request.Host.Port is { } port)
                     {
-                        activity.SetTag(SemanticConventions.AttributeServerPort, port);
+                        activity.SetTag(SemanticConventions.AttributeServerPort, TelemetryHelper.GetBoxedPort(port));
                     }
                 }
 
