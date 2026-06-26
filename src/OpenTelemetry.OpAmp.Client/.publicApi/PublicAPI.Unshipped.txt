@@ -15,6 +15,8 @@ OpenTelemetry.OpAmp.Client.Messages.EffectiveConfigFile.Content.get -> System.Re
 OpenTelemetry.OpAmp.Client.Messages.EffectiveConfigFile.ContentType.get -> string!
 OpenTelemetry.OpAmp.Client.Messages.EffectiveConfigFile.EffectiveConfigFile(System.ReadOnlyMemory<byte> content, string! contentType, string! fileName) -> void
 OpenTelemetry.OpAmp.Client.Messages.EffectiveConfigFile.FileName.get -> string!
+OpenTelemetry.OpAmp.Client.Messages.FlagsMessage
+OpenTelemetry.OpAmp.Client.Messages.FlagsMessage.Flags.get -> OpenTelemetry.OpAmp.Client.Messages.ServerSentFlags
 OpenTelemetry.OpAmp.Client.Messages.OpAmpMessage
 OpenTelemetry.OpAmp.Client.Messages.OpAmpMessage.OpAmpMessage() -> void
 OpenTelemetry.OpAmp.Client.Messages.RemoteConfigMessage
@@ -41,6 +43,10 @@ OpenTelemetry.OpAmp.Client.Messages.ServerSentCapabilities.None = 0 -> OpenTelem
 OpenTelemetry.OpAmp.Client.Messages.ServerSentCapabilities.OffersConnectionSettings = 32 -> OpenTelemetry.OpAmp.Client.Messages.ServerSentCapabilities
 OpenTelemetry.OpAmp.Client.Messages.ServerSentCapabilities.OffersPackages = 8 -> OpenTelemetry.OpAmp.Client.Messages.ServerSentCapabilities
 OpenTelemetry.OpAmp.Client.Messages.ServerSentCapabilities.OffersRemoteConfig = 2 -> OpenTelemetry.OpAmp.Client.Messages.ServerSentCapabilities
+OpenTelemetry.OpAmp.Client.Messages.ServerSentFlags
+OpenTelemetry.OpAmp.Client.Messages.ServerSentFlags.None = 0 -> OpenTelemetry.OpAmp.Client.Messages.ServerSentFlags
+OpenTelemetry.OpAmp.Client.Messages.ServerSentFlags.ReportAvailableComponents = 2 -> OpenTelemetry.OpAmp.Client.Messages.ServerSentFlags
+OpenTelemetry.OpAmp.Client.Messages.ServerSentFlags.ReportFullState = 1 -> OpenTelemetry.OpAmp.Client.Messages.ServerSentFlags
 OpenTelemetry.OpAmp.Client.OpAmpClient
 OpenTelemetry.OpAmp.Client.OpAmpClient.Dispose() -> void
 OpenTelemetry.OpAmp.Client.OpAmpClient.OpAmpClient(System.Action<OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings!>? configure = null) -> void

@@ -12,6 +12,9 @@
   receiver's oversized-message close to avoid faulting the receive loop.
   ([#4532](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4532))
 
+* Expose public `FlagsMessage`.
+  ([#4478](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4478))
+
 ## 0.4.0-alpha.1
 
 Released 2026-May-22
