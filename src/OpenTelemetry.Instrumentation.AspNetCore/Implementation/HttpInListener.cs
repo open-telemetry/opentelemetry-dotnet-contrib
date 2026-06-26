@@ -172,10 +172,7 @@ internal class HttpInListener : ListenerHandler
             // Assigning an empty Baggage still allocates, and there is nothing to propagate, so this
             // avoids that work on the common path where no baggage is present. Any incoming baggage
             // has also been made available by ASP.NET Core via Activity.Baggage (on .NET 10+).
-            if (ctx.Baggage is { Count: > 0 } baggage)
-            {
-                Baggage.Current = baggage;
-            }
+            Baggage.Current = ctx.Baggage is { Count: > 0 } baggage ? baggage : default;
         }
 
         // enrich Activity from payload only if sampling decision
