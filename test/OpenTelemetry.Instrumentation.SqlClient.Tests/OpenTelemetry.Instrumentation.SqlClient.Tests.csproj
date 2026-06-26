@@ -19,13 +19,16 @@
     <Compile Include="$(RepoRoot)\test\Shared\SkipUnlessEnvVarFoundTheoryAttribute.cs" Link="Includes\SkipUnlessEnvVarFoundTheoryAttribute.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\TestEventListener.cs" Link="Includes\TestEventListener.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\TestSampler.cs" Link="Includes\TestSampler.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\WeaverFixture.cs" Link="Includes\WeaverFixture.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\WeaverTelemetryVerifier.cs" Link="Includes\WeaverTelemetryVerifier.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\XunitContainerFixture{T}.cs" Link="Includes\XunitContainerFixture{T}.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.SqlClient" />
-    <PackageReference Include="Testcontainers.MsSql" />
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" />
+    <PackageReference Include="Testcontainers" />
+    <PackageReference Include="Testcontainers.MsSql" />
   </ItemGroup>
 
   <ItemGroup>
@@ -35,6 +38,7 @@
   <ItemGroup>
     <EmbeddedResource Include="SqlClientTestCases.json" LogicalName="SqlClientTestCases.json" CopyToOutputDirectory="Always" />
     <EmbeddedResource Include="*.Dockerfile" LogicalName="%(FileName)%(Extension)" />
+    <EmbeddedResource Include="$(RepoRoot)\test\Shared\weaver.Dockerfile" LogicalName="weaver.Dockerfile" />
   </ItemGroup>
 
 </Project>

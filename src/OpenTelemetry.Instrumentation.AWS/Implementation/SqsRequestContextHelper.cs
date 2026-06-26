@@ -15,8 +15,7 @@ internal class SqsRequestContextHelper
 
     internal static void AddAttributes(IRequestContext context, IReadOnlyDictionary<string, string> attributes)
     {
-        var originalRequest = context.OriginalRequest as SendMessageRequest;
-        if (originalRequest == null)
+        if (context.OriginalRequest is not SendMessageRequest originalRequest)
         {
             return;
         }
@@ -27,10 +26,13 @@ internal class SqsRequestContextHelper
         }
         else
         {
-            if (attributes.Keys.Any(originalRequest.MessageAttributes.ContainsKey))
+            foreach (var key in attributes.Keys)
             {
-                // If at least one attribute is already present in the request then we skip the injection.
-                return;
+                if (originalRequest.MessageAttributes.ContainsKey(key))
+                {
+                    // If at least one attribute is already present in the request then we skip the injection.
+                    return;
+                }
             }
 
             var attributesCount = originalRequest.MessageAttributes.Count;

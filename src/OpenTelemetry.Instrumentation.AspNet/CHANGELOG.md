@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.16.0
+
+Released 2026-Jun-24
+
 * Fixed route template token matching so short route parameters no longer throw
   `IndexOutOfRangeException` during route extraction.
   ([#4340](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4340))
@@ -9,6 +13,9 @@
 * Fixed route template extraction for routes with missing MVC route values or
   `null` defaults.
   ([#4344](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4344))
+
+* Updated OpenTelemetry core component version(s) to `1.16.0`.
+  ([#4487](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4487))
 
 ## 1.15.2
 

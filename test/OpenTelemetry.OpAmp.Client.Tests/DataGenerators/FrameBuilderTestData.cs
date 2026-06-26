@@ -4,6 +4,7 @@
 using OpAmp.Proto.V1;
 using OpenTelemetry.OpAmp.Client.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Services.Heartbeat;
+using OpenTelemetry.OpAmp.Client.Messages;
 
 namespace OpenTelemetry.OpAmp.Client.Tests.DataGenerators;
 
@@ -19,5 +20,9 @@ internal class FrameBuilderTestData
         this.Add(fb => fb.AddAgentDisconnect(), m => m.AgentDisconnect);
 
         this.Add(fb => fb.AddCapabilities(), m => m.Capabilities);
+
+        this.Add(fb => fb.AddRemoteConfigStatus(new RemoteConfigStatusReport([1, 2, 3], RemoteConfigStatusCode.Applied)), m => m.RemoteConfigStatus);
+        this.Add(fb => fb.AddRemoteConfigStatus(new RemoteConfigStatusReport([1, 2, 3], RemoteConfigStatusCode.Applying)), m => m.RemoteConfigStatus);
+        this.Add(fb => fb.AddRemoteConfigStatus(new RemoteConfigStatusReport([1, 2, 3], RemoteConfigStatusCode.Unset)), m => m.RemoteConfigStatus);
     }
 }

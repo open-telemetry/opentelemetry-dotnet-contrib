@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.16.0
+
+Released 2026-Jun-18
+
 * Update `System.Text.Json` for `netstandard2.0` to `8.0.5`.
   ([#4154](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4154))
 

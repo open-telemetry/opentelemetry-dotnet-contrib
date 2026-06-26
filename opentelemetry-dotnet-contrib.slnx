@@ -205,6 +205,7 @@
     <File Path="src/Shared/RedactionHelper.cs" />
     <File Path="src/Shared/RequestDataHelper.cs" />
     <File Path="src/Shared/ResourceSemanticConventions.cs" />
+    <File Path="src/Shared/RpcSemanticConventionHelper.cs" />
     <File Path="src/Shared/SemanticConventions.cs" />
     <File Path="src/Shared/ServerCertificateValidationHandler.cs" />
     <File Path="src/Shared/ServerCertificateValidationProvider.cs" />
@@ -265,6 +266,7 @@
     <Project Path="test/OpenTelemetry.Instrumentation.Cassandra.Tests/OpenTelemetry.Instrumentation.Cassandra.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.ConfluentKafka.Tests/OpenTelemetry.Instrumentation.ConfluentKafka.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.ElasticsearchClient.Tests/OpenTelemetry.Instrumentation.ElasticsearchClient.Tests.csproj" />
+    <Project Path="test/OpenTelemetry.Instrumentation.EntityFrameworkCore.Benchmarks/OpenTelemetry.Instrumentation.EntityFrameworkCore.Benchmarks.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests/OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.EventCounters.Tests/OpenTelemetry.Instrumentation.EventCounters.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.GrpcCore.Tests/OpenTelemetry.Instrumentation.GrpcCore.Tests.csproj" />
@@ -315,5 +317,10 @@
     <File Path="test/Shared/TestSampler.cs" />
     <File Path="test/Shared/TestTextMapPropagator.cs" />
     <File Path="test/Shared/TestWebSocketServer.cs" />
+    <File Path="test/Shared/weaver.Dockerfile" />
+    <File Path="test/Shared/WeaverCollection.cs" />
+    <File Path="test/Shared/WeaverFixture.cs" />
+    <File Path="test/Shared/WeaverSpecificationTests.cs" />
+    <File Path="test/Shared/WeaverTelemetryVerifier.cs" />
   </Folder>
 </Solution>

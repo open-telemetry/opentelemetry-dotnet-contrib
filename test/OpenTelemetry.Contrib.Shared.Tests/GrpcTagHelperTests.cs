@@ -21,18 +21,47 @@ public class GrpcTagHelperTests
     }
 
     [Theory]
-    [InlineData("Package.Service/Method", true, "Package.Service", "Method")]
-    [InlineData("/Package.Service/Method", true, "Package.Service", "Method")]
-    [InlineData("/ServiceWithNoPackage/Method", true, "ServiceWithNoPackage", "Method")]
-    [InlineData("/Some.Package.Service/Method", true, "Some.Package.Service", "Method")]
-    [InlineData("Invalid", false, "", "")]
-    public void GrpcTagHelper_TryParseRpcServiceAndRpcMethod(string grpcMethod, bool isSuccess, string expectedRpcService, string expectedRpcMethod)
+    [InlineData("/some.service/somemethod", "some.service/somemethod")]
+    [InlineData("some.service/somemethod", "some.service/somemethod")]
+    public void GrpcTagHelper_SetGrpcMethodAndDisplayNameFromActivity_RecognizedMethod(string grpcMethod, string expected)
     {
-        var success = GrpcTagHelper.TryParseRpcServiceAndRpcMethod(grpcMethod, out var rpcService, out var rpcMethod);
+        using var activity = new Activity("operationName");
+        activity.SetTag(GrpcTagHelper.GrpcMethodTagName, grpcMethod);
 
-        Assert.Equal(isSuccess, success);
-        Assert.Equal(expectedRpcService, rpcService);
-        Assert.Equal(expectedRpcMethod, rpcMethod);
+        GrpcTagHelper.SetGrpcMethodAndDisplayNameFromActivity(activity);
+
+        Assert.Equal(expected, activity.DisplayName);
+        Assert.Equal(expected, activity.GetTagValue(SemanticConventions.AttributeRpcMethod));
+        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeRpcMethodOriginal));
+        Assert.Null(activity.GetTagValue(GrpcTagHelper.GrpcMethodTagName));
+    }
+
+    [Theory]
+    [InlineData("other")]
+    [InlineData("/other")]
+    public void GrpcTagHelper_SetGrpcMethodAndDisplayNameFromActivity_UnrecognizedMethod(string grpcMethod)
+    {
+        using var activity = new Activity("operationName");
+        activity.SetTag(GrpcTagHelper.GrpcMethodTagName, grpcMethod);
+
+        GrpcTagHelper.SetGrpcMethodAndDisplayNameFromActivity(activity);
+
+        Assert.Equal(GrpcTagHelper.RpcSystemGrpc, activity.DisplayName);
+        Assert.Equal(GrpcTagHelper.RpcMethodOther, activity.GetTagValue(SemanticConventions.AttributeRpcMethod));
+        Assert.Equal(GrpcTagHelper.GrpcMethodOther, activity.GetTagValue(SemanticConventions.AttributeRpcMethodOriginal));
+        Assert.Null(activity.GetTagValue(GrpcTagHelper.GrpcMethodTagName));
+    }
+
+    [Fact]
+    public void GrpcTagHelper_SetGrpcMethodAndDisplayNameFromActivity_NoMethod()
+    {
+        using var activity = new Activity("operationName");
+
+        GrpcTagHelper.SetGrpcMethodAndDisplayNameFromActivity(activity);
+
+        Assert.Equal("operationName", activity.DisplayName);
+        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeRpcMethod));
+        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeRpcMethodOriginal));
     }
 
     [Fact]
@@ -112,5 +141,34 @@ public class GrpcTagHelperTests
         Assert.False(validConversion);
         Assert.Equal(-1, status);
         Assert.Null(activity.GetTagValue(SemanticConventions.AttributeRpcGrpcStatusCode));
+        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
+    }
+
+    [Theory]
+    [InlineData(int.MinValue, "-2147483648")]
+    [InlineData(-1, "-1")]
+    [InlineData(0, "OK")]
+    [InlineData(1, "CANCELLED")]
+    [InlineData(2, "UNKNOWN")]
+    [InlineData(3, "INVALID_ARGUMENT")]
+    [InlineData(4, "DEADLINE_EXCEEDED")]
+    [InlineData(5, "NOT_FOUND")]
+    [InlineData(6, "ALREADY_EXISTS")]
+    [InlineData(7, "PERMISSION_DENIED")]
+    [InlineData(8, "RESOURCE_EXHAUSTED")]
+    [InlineData(9, "FAILED_PRECONDITION")]
+    [InlineData(10, "ABORTED")]
+    [InlineData(11, "OUT_OF_RANGE")]
+    [InlineData(12, "UNIMPLEMENTED")]
+    [InlineData(13, "INTERNAL")]
+    [InlineData(14, "UNAVAILABLE")]
+    [InlineData(15, "DATA_LOSS")]
+    [InlineData(16, "UNAUTHENTICATED")]
+    [InlineData(99, "99")]
+    [InlineData(int.MaxValue, "2147483647")]
+    public void GrpcTagHelper_ConvertStatusCodeToString(int statusCode, string expected)
+    {
+        var actual = GrpcTagHelper.GetGrpcStatusCodeName(statusCode);
+        Assert.Equal(expected, actual);
     }
 }

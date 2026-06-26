@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.16.0
+
+Released 2026-Jun-24
+
 * Fix serialization of whole `float`/`double` values.
   ([#4017](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4017))
 
@@ -10,6 +14,9 @@
 
 * Fix `IndexOutOfRangeException` if the extension key limit is reached.
   ([#4442](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4442))
+
+* Updated OpenTelemetry core component version(s) to `1.16.0`.
+  ([#4487](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4487))
 
 ## 1.15.1
 

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.16.0-beta.1
+
+Released 2026-Jun-24
+
 * Fix SQL query text sanitization for malformed bracketed identifiers in `FROM`
   clauses to avoid leaking following literal values.
   ([#4317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4317))
@@ -15,6 +19,9 @@
 
 * Fix `SqlConnectionDetails` to parse PostgreSQL data source URIs correctly.
   ([#4444](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4444))
+
+* Updated OpenTelemetry core component version(s) to `1.16.0`.
+  ([#4487](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4487))
 
 ## 1.15.1-beta.1
 

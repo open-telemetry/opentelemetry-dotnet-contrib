@@ -11,15 +11,18 @@ using Grpc.Net.Client;
 using Microsoft.Extensions.DependencyInjection;
 #if !NETFRAMEWORK
 using OpenTelemetry.Context.Propagation;
-using OpenTelemetry.Tests;
 #endif
 using OpenTelemetry.Instrumentation.Grpc.Tests.GrpcTestHelpers;
 using OpenTelemetry.Instrumentation.GrpcNetClient;
+using OpenTelemetry.Instrumentation.GrpcNetClient.Implementation;
+using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
+using RpcException = Grpc.Core.RpcException;
 
 namespace OpenTelemetry.Instrumentation.Grpc.Tests;
 
-public partial class GrpcTests
+public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHelper)
+    : IClassFixture<WeaverFixture>
 {
     [Theory]
     [InlineData("http://localhost")]
@@ -28,7 +31,7 @@ public partial class GrpcTests
     [InlineData("http://127.0.0.1", false)]
     [InlineData("http://[::1]")]
     [InlineData("http://[::1]", false)]
-    public void GrpcClientCallsAreCollectedSuccessfully(string baseAddress, bool shouldEnrich = true)
+    public async Task GrpcClientCallsAreCollectedSuccessfully(string baseAddress, bool shouldEnrich = true)
     {
         var enrichWithHttpRequestMessageCalled = false;
         var enrichWithHttpResponseMessageCalled = false;
@@ -81,8 +84,7 @@ public partial class GrpcTests
 
         Assert.Equal($"greet.Greeter/SayHello", activity.DisplayName);
         Assert.Equal("grpc", activity.GetTagValue(SemanticConventions.AttributeRpcSystemName));
-        Assert.Equal("greet.Greeter", activity.GetTagValue(SemanticConventions.AttributeRpcService));
-        Assert.Equal("SayHello", activity.GetTagValue(SemanticConventions.AttributeRpcMethod));
+        Assert.Equal("greet.Greeter/SayHello", activity.GetTagValue(SemanticConventions.AttributeRpcMethod));
 
         Assert.Equal(uri.Host, activity.GetTagValue(SemanticConventions.AttributeServerAddress));
         Assert.Equal(uri.Port, activity.GetTagValue(SemanticConventions.AttributeServerPort));
@@ -91,13 +93,114 @@ public partial class GrpcTests
         // Tags added by the library then removed from the instrumentation
         Assert.Null(activity.GetTagValue(GrpcTagHelper.GrpcMethodTagName));
         Assert.Null(activity.GetTagValue(GrpcTagHelper.GrpcStatusCodeTagName));
-        Assert.Equal(0, activity.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
+        Assert.Equal("OK", activity.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
 
         if (shouldEnrich)
         {
             Assert.True(enrichWithHttpRequestMessageCalled);
             Assert.True(enrichWithHttpResponseMessageCalled);
         }
+
+        if (DockerHelper.IsAvailable(DockerPlatform.Linux))
+        {
+            await WeaverTelemetryVerifier.VerifyAsync(
+                (exportedItems, []),
+                GrpcClientDiagnosticListener.SemanticConventionsVersion,
+                weaver,
+                outputHelper);
+        }
+    }
+
+    [Fact]
+    public void GrpcClientCancelledCallIsRecordedAsErrorPerSemanticConventions()
+    {
+        // The gRPC semantic conventions specify that, for client spans, all status codes
+        // other than OK are errors. A cancelled call (status code CANCELLED) therefore has
+        // its span status set to Error and the error.type attribute set to the status code name.
+        // See https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/rpc/grpc.md
+        var uri = new UriBuilder("http://localhost") { Port = 1234 }.Uri;
+
+        using var httpClient = ClientTestHelpers.CreateTestClient(async request =>
+        {
+            var streamContent = await ClientTestHelpers.CreateResponseContent(new HelloReply());
+            return ResponseUtils.CreateResponse(HttpStatusCode.OK, streamContent, grpcStatusCode: global::Grpc.Core.StatusCode.Cancelled);
+        });
+
+        var exportedItems = new List<Activity>();
+
+        using var parent = new Activity("parent")
+            .SetIdFormat(ActivityIdFormat.W3C)
+            .Start();
+
+        using (Sdk.CreateTracerProviderBuilder()
+                  .SetSampler(new AlwaysOnSampler())
+                  .AddGrpcClientInstrumentation()
+                  .AddInMemoryExporter(exportedItems)
+                  .Build())
+        {
+            var channel = GrpcChannel.ForAddress(uri, new GrpcChannelOptions
+            {
+                HttpClient = httpClient,
+            });
+            var client = new Greeter.GreeterClient(channel);
+            Assert.Throws<RpcException>(() => client.SayHello(new HelloRequest()));
+        }
+
+        var activity = Assert.Single(exportedItems);
+
+        Assert.Equal("CANCELLED", activity.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
+        Assert.Equal(ActivityStatusCode.Error, activity.Status);
+        Assert.Equal("CANCELLED", activity.GetTagValue(SemanticConventions.AttributeErrorType));
+    }
+
+    [Fact]
+    public void GrpcClientCancellationCanBeTreatedAsNonErrorWithCustomProcessor()
+    {
+        // The gRPC semantic conventions classify all non-OK client status codes as errors.
+        // An application that deliberately cancels a call has additional context and MAY
+        // override the span status to not report the cancellation as an error. This test
+        // demonstrates how to do that using a custom processor.
+        //
+        // Note that the EnrichWithHttpResponseMessage option cannot be used for this purpose
+        // because it is not invoked when a call is cancelled (there is no response message).
+        // See https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/2066
+        var uri = new UriBuilder("http://localhost") { Port = 1234 }.Uri;
+
+        using var httpClient = ClientTestHelpers.CreateTestClient(async request =>
+        {
+            var streamContent = await ClientTestHelpers.CreateResponseContent(new HelloReply());
+            return ResponseUtils.CreateResponse(HttpStatusCode.OK, streamContent, grpcStatusCode: global::Grpc.Core.StatusCode.Cancelled);
+        });
+
+        var exportedItems = new List<Activity>();
+
+        using var parent = new Activity("parent")
+            .SetIdFormat(ActivityIdFormat.W3C)
+            .Start();
+
+        using (Sdk.CreateTracerProviderBuilder()
+                  .SetSampler(new AlwaysOnSampler())
+                  .AddGrpcClientInstrumentation()
+                  .AddProcessor(new CancelledGrpcCallStatusProcessor())
+                  .AddInMemoryExporter(exportedItems)
+                  .Build())
+        {
+            var channel = GrpcChannel.ForAddress(uri, new GrpcChannelOptions
+            {
+                HttpClient = httpClient,
+            });
+            var client = new Greeter.GreeterClient(channel);
+            Assert.Throws<RpcException>(() => client.SayHello(new HelloRequest()));
+        }
+
+        var activity = Assert.Single(exportedItems);
+
+        // The status code attribute is still recorded as required by the semantic conventions...
+        Assert.Equal("CANCELLED", activity.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
+
+        // ...but the application's processor has cleared the error signal.
+        Assert.Equal(ActivityStatusCode.Unset, activity.Status);
+        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeErrorType));
     }
 
 #if NET
@@ -147,7 +250,7 @@ public partial class GrpcTests
 
         ValidateGrpcActivity(grpcSpan);
         Assert.Equal($"greet.Greeter/SayHello", grpcSpan.DisplayName);
-        Assert.Equal(0, grpcSpan.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
+        Assert.Equal("OK", grpcSpan.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
         Assert.Equal("POST", httpSpan.DisplayName);
         Assert.Equal(grpcSpan.SpanId, httpSpan.ParentSpanId);
 
@@ -200,26 +303,22 @@ public partial class GrpcTests
 
         ValidateGrpcActivity(grpcSpan1);
         Assert.Equal($"greet.Greeter/SayHello", grpcSpan1.DisplayName);
-        Assert.Equal(0, grpcSpan1.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
+        Assert.Equal("OK", grpcSpan1.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
 
         ValidateGrpcActivity(grpcSpan2);
         Assert.Equal($"greet.Greeter/SayHello", grpcSpan2.DisplayName);
-        Assert.Equal(0, grpcSpan2.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
+        Assert.Equal("OK", grpcSpan2.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
 
         ValidateGrpcActivity(grpcSpan3);
         Assert.Equal($"greet.Greeter/SayHello", grpcSpan3.DisplayName);
-        Assert.Equal(0, grpcSpan3.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
+        Assert.Equal("OK", grpcSpan3.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
 
         ValidateGrpcActivity(grpcSpan4);
         Assert.Equal($"greet.Greeter/SayHello", grpcSpan4.DisplayName);
-        Assert.Equal(0, grpcSpan4.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
+        Assert.Equal("OK", grpcSpan4.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
     }
 
-#if NET
     [Fact(Skip = "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1727")]
-#else
-    [Fact]
-#endif
     public void GrpcPropagatesContextWithSuppressInstrumentationOptionSetToTrue()
     {
         try
@@ -267,9 +366,9 @@ public partial class GrpcTests
             Assert.Equal($"greet.Greeter/SayHello", clientActivity.DisplayName);
             Assert.Equal($"POST /greet.Greeter/SayHello", serverActivity.DisplayName);
             Assert.Equal(clientActivity.TraceId, serverActivity.TraceId);
-            Assert.Equal(clientActivity.SpanId, serverActivity.ParentSpanId);
-            Assert.Equal(0, clientActivity.GetTagValue(SemanticConventions.AttributeRpcGrpcStatusCode));
+            Assert.Equal("OK", clientActivity.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
             Assert.Equal("customValue", serverActivity.GetCustomProperty("customField") as string);
+            Assert.Equal(clientActivity.SpanId, serverActivity.ParentSpanId);
         }
         finally
         {
@@ -412,5 +511,20 @@ public partial class GrpcTests
         Assert.NotEmpty(activityToValidate.Source.Version);
         Assert.Equal(ActivityKind.Client, activityToValidate.Kind);
         Assert.StartsWith("https://opentelemetry.io/schemas/", activityToValidate.Source.TelemetrySchemaUrl);
+    }
+
+    private sealed class CancelledGrpcCallStatusProcessor : BaseProcessor<Activity>
+    {
+        public override void OnEnd(Activity activity)
+        {
+            // The application knows a CANCELLED result is the result of a deliberate
+            // cancellation rather than a failure, so the error signal is cleared while
+            // leaving the rpc.response.status_code attribute in place.
+            if ((activity.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode) as string) == "CANCELLED")
+            {
+                activity.SetStatus(ActivityStatusCode.Unset);
+                activity.SetTag(SemanticConventions.AttributeErrorType, null);
+            }
+        }
     }
 }

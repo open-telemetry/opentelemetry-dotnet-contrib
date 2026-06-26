@@ -40,6 +40,15 @@ public class SerializationBenchmarks
     private readonly EventBuilder eventBuilder = new(UncheckedASCIIEncoding.SharedInstance);
     private readonly byte[] buffer = new byte[65360];
 
+    private readonly object?[] httpUrlParts =
+    [
+        "https",                       // url.scheme
+        "example.contoso.com",         // server.address
+        "443",                         // server.port
+        "/api/v2/items/search",        // url.path
+        "?q=opentelemetry&limit=50",   // url.query
+    ];
+
     [Benchmark]
     public void TLD_SerializeUInt8()
     {
@@ -107,5 +116,34 @@ public class SerializationBenchmarks
     public void TLD_Reset()
     {
         this.eventBuilder.Reset("test");
+    }
+
+    [Benchmark]
+    public void Metric_SerializeBase128String()
+    {
+        // Mirrors one dimension (key + value) in the TLV metric path, where
+        // SerializeBase128String is called twice per dimension/exemplar-tag,
+        // per metric data point.
+        var index = 0;
+        MetricSerializer.SerializeBase128String(this.buffer, ref index, Key);
+        MetricSerializer.SerializeBase128String(this.buffer, ref index, Value);
+    }
+
+    [Benchmark(Baseline = true)]
+    public void Trace_HttpUrl_Before()
+    {
+        // Original approach: GetHttpUrl composes the url via interpolated strings
+        // + StringBuilder + ToString(), then it is serialized into the buffer.
+        var cursor = MessagePackSerializer.SerializeAsciiString(this.buffer, 0, "httpUrl");
+        MessagePackSerializer.SerializeUnicodeString(this.buffer, cursor, MsgPackTraceExporter.GetHttpUrl(this.httpUrlParts));
+    }
+
+    [Benchmark]
+    public void Trace_HttpUrl_After()
+    {
+        // New approach: SerializeHttpUrl writes each segment directly into the
+        // buffer, avoiding the intermediate strings/StringBuilder allocations.
+        ushort cntFields = 0;
+        MsgPackTraceExporter.SerializeHttpUrl(this.buffer, 0, this.httpUrlParts, ref cntFields);
     }
 }

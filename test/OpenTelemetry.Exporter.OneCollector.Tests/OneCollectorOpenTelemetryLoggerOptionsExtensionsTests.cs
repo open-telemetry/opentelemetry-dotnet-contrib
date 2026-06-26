@@ -21,6 +21,8 @@ public class OneCollectorOpenTelemetryLoggerOptionsExtensionsTests
                     configure => configure.ConfigureExporter(exporter => exporterInstance = exporter));
             }));
 
+        _ = loggerFactory.CreateLogger("TestLogger");
+
         Assert.NotNull(exporterInstance);
 
         using var payloadTransmittedRegistration = exporterInstance.RegisterPayloadTransmittedCallback(OnPayloadTransmitted);
@@ -58,6 +60,7 @@ public class OneCollectorOpenTelemetryLoggerOptionsExtensionsTests
                 {
                     builder.AddOneCollectorExporter(configure => { });
                 }));
+            _ = loggerFactory.CreateLogger("TestLogger");
         });
 
         Assert.Throws<OneCollectorExporterValidationException>(() =>
@@ -67,6 +70,7 @@ public class OneCollectorOpenTelemetryLoggerOptionsExtensionsTests
                 {
                     builder.AddOneCollectorExporter("InstrumentationKey=invalidinstrumentationkey");
                 }));
+            _ = loggerFactory.CreateLogger("TestLogger");
         });
 
         Assert.Throws<OneCollectorExporterValidationException>(() =>
@@ -76,6 +80,7 @@ public class OneCollectorOpenTelemetryLoggerOptionsExtensionsTests
                 {
                     builder.AddOneCollectorExporter("UnknownKey=invalidinstrumentationkey");
                 }));
+            _ = loggerFactory.CreateLogger("TestLogger");
         });
     }
 }

@@ -114,4 +114,58 @@ public class MsgPackTraceExporterTests
         var url = MsgPackTraceExporter.GetHttpUrl(arr);
         Assert.Null(url);
     }
+
+    [Fact]
+    public void SerializeHttpUrl_MatchesGetHttpUrlPlusSerializer_ByteForByte()
+    {
+        var count = MsgPackTraceExporter.CS40_PART_B_HTTPURL_MAPPING.Count;
+
+        object?[] Parts(object? scheme, object? address, object? port, object? path, object? query)
+        {
+            var arr = new object?[count];
+            arr[0] = scheme;
+            arr[1] = address;
+            arr[2] = port;
+            arr[3] = path;
+            arr[4] = query;
+            return arr;
+        }
+
+        var cases = new[]
+        {
+            Parts(null, null, null, null, null),                          // no parts => nothing written
+            Parts("http", "host", null, null, null),                      // scheme + address only
+            Parts("http", "host", "8080", "/x", "y=1"),                   // query without '?'
+            Parts("http", "host", "8080", "/x", "?y=1"),                  // query with leading '?'
+            Parts("http", "host", "8080", "/x", "?"),                     // query is just '?'
+            Parts("http", "host", "8080", "/x", string.Empty),           // empty query => omitted
+            Parts("http", "host", string.Empty, "/x", "a=b"),             // port "" (non-null) => ':' still emitted
+            Parts("http", "host", 8080, "/x", "a=b"),                     // numeric (boxed) port
+            Parts("https", "\u00FCn\u00EE\u00E7\u00F8d\u00E9.example", "443", "/p\u00E2th/\u00E7", "q=\u00FC"), // unicode
+            Parts(null, "host", null, "/p", null),                        // missing scheme
+            Parts("http", null, "80", null, null),                        // missing address/path
+            Parts("http", new string('a', 20000), null, null, null),      // > 16383 chars => truncation fallback path
+        };
+
+        foreach (var parts in cases)
+        {
+            var url = MsgPackTraceExporter.GetHttpUrl(parts);
+
+            var expected = new byte[65360];
+            var expectedCursor = 0;
+            if (url != null)
+            {
+                expectedCursor = MessagePackSerializer.SerializeAsciiString(expected, expectedCursor, "httpUrl");
+                expectedCursor = MessagePackSerializer.SerializeUnicodeString(expected, expectedCursor, url);
+            }
+
+            var actual = new byte[65360];
+            ushort cntFields = 0;
+            var actualCursor = MsgPackTraceExporter.SerializeHttpUrl(actual, 0, parts, ref cntFields);
+
+            Assert.Equal(expectedCursor, actualCursor);
+            Assert.Equal(url != null ? 1 : 0, cntFields);
+            Assert.Equal(expected.AsSpan(0, expectedCursor).ToArray(), actual.AsSpan(0, actualCursor).ToArray());
+        }
+    }
 }

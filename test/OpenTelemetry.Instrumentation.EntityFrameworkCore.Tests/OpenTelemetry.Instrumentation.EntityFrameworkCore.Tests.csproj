@@ -39,5 +39,4 @@
     <EmbeddedResource Include="*.Dockerfile" LogicalName="%(FileName)%(Extension)" />
     <EmbeddedResource Include="$(RepoRoot)\test\OpenTelemetry.Instrumentation.SqlClient.Tests\sqlserver.Dockerfile" LogicalName="sqlserver.Dockerfile" />
   </ItemGroup>
-
 </Project>

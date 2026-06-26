@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.16.0
+
+Released 2026-Jun-24
+
 * Fix `SqlClientTraceInstrumentationOptions` leaking across multiple tracer
   provider registrations.
   ([#4267](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4267))
@@ -26,6 +30,9 @@
 
 * Fix `SqlConnectionDetails` to parse PostgreSQL data source URIs correctly.
   ([#4444](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4444))
+
+* Updated OpenTelemetry core component version(s) to `1.16.0`.
+  ([#4487](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4487))
 
 ## 1.15.2
 
