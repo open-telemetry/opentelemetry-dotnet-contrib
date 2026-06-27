@@ -149,7 +149,11 @@ public class InstrumentationBenchmarks
         var activity = CreateActivity(activityId, clientRequestId);
         using var context = KustoUtils.Context.PushActivityContext(activity);
 
-        return KustoUtils.TraceRecord.Create("KD.Exceptions", KustoUtils.TraceVerbosity.Error, message);
+        // The listener detects exception records by SourceId, so set it explicitly. The Create overload leaves
+        // SourceId null, which would make Write() ignore this record and skip the error path entirely.
+        var record = KustoUtils.TraceRecord.Create("KD.Exceptions", KustoUtils.TraceVerbosity.Error, message);
+        record.SourceId = "EXC_CTOR";
+        return record;
     }
 
     private static KustoUtils.Activity CreateActivity(Guid activityId, string clientRequestId)
