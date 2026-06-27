@@ -10,8 +10,8 @@ public class KustoQueryParserTests
     public static TheoryData<string, string?, string?> QuerySummaryTestCases => new()
     {
         // Null / empty / invalid
-        // NOTE: In these cases, there's no objectively correct answer, so the main goal
-        // is to ensure we handle error cases gracefully
+        // NOTE: There's no objectively correct summary here. Queries with syntax errors omit the summary
+        // (null) so we never emit unclassified tokens; sanitization still runs on the raw text.
         {
             string.Empty,
             string.Empty,
@@ -24,12 +24,12 @@ public class KustoQueryParserTests
         },
         {
             "this is not a valid query @#$%",
-            "this is a valid query",
+            null,
             "this is not a valid query @#$%"
         },
         {
             "StormEvents |",
-            "StormEvents |",
+            null,
             "StormEvents |"
         },
 
@@ -37,7 +37,7 @@ public class KustoQueryParserTests
         // recognized structure around them is preserved.
         {
             "print x = {\"k\":\"SECRET\", \"n\":12345}",
-            "print",
+            null,
             "print x = {?:?, ?:?}"
         },
 
@@ -45,7 +45,7 @@ public class KustoQueryParserTests
         // region, but are indistinguishable from values there, so they must be redacted too.
         {
             "print x = {k:SECRET, n:12345}",
-            "print",
+            null,
             "print x = {?:?, ?:?}"
         },
 

@@ -63,7 +63,15 @@ internal static class KustoProcessor
         if (shouldSummarize)
         {
             code = KustoCode.ParseAndAnalyze(query, KustoParserGlobalState);
-            summarized = Summarize(code);
+
+            // A query with syntax errors can't be confidently classified, and the summarizer would otherwise
+            // echo unrecognized tokens verbatim, producing a high-cardinality summary of arbitrary (possibly
+            // sensitive) input. Omit the summary in that case. Semantic diagnostics (e.g. unresolved table
+            // names) are expected because we parse without schema, so only syntax diagnostics disqualify it.
+            if (code.GetSyntaxDiagnostics().Count == 0)
+            {
+                summarized = Summarize(code);
+            }
         }
 
         if (shouldSanitize)
