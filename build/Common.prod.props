@@ -26,6 +26,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- StrongNamePublicKey is set in Common.targets (after the project body) so it is empty for unsigned
+    packages; items are evaluated after all properties, so this picks up that value and the friend declaration
+    is keyless when unsigned and keyed when signed. A project can still Remove or Update this item. -->
     <InternalsVisibleTo Include="$(AssemblyName).Tests" PublicKey="$(StrongNamePublicKey)" />
   </ItemGroup>
 
