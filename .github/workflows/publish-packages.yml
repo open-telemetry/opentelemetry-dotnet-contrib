@@ -239,6 +239,9 @@ jobs:
     needs: [build-pack, validate]
     runs-on: ubuntu-24.04
 
+    env:
+      MYGET_TOKEN_EXISTS: ${{ secrets.MYGET_TOKEN != '' }}
+
     permissions:
       attestations: read # Read GitHub attestations for the NuGet packages
       contents: read # Download the published artifacts
@@ -258,6 +261,7 @@ jobs:
 
       - name: Verify artifact attestations
         shell: pwsh
+        if: env.MYGET_TOKEN_EXISTS == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -275,7 +279,6 @@ jobs:
         shell: pwsh
         working-directory: ./artifacts/package/release
         env:
-          MYGET_TOKEN_EXISTS: ${{ secrets.MYGET_TOKEN != '' }}
           NUGET_API_KEY: ${{ secrets.MYGET_TOKEN }}
           SOURCE: https://www.myget.org/F/opentelemetry/api/v3/index.json
         if: env.MYGET_TOKEN_EXISTS == 'true' # Skip MyGet publish if run on a fork without the secret
