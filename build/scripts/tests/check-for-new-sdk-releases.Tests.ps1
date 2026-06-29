@@ -83,6 +83,7 @@ Describe "check-for-new-sdk-releases.ps1" {
         )
 
         Mock -CommandName "gh" -MockWith {
+            $global:LASTEXITCODE = 0
             if ($args -contains "list") { return $releasesJson }
         }
 
@@ -105,6 +106,7 @@ Describe "check-for-new-sdk-releases.ps1" {
         )
 
         Mock -CommandName "gh" -MockWith {
+            $global:LASTEXITCODE = 0
             if ($args -contains "list") { return $releasesJson }
         }
 
@@ -133,6 +135,7 @@ Describe "check-for-new-sdk-releases.ps1" {
         )
 
         Mock -CommandName "gh" -MockWith {
+            $global:LASTEXITCODE = 0
             if ($args -contains "list") { return $releasesJson }
         }
 
@@ -159,6 +162,7 @@ Describe "check-for-new-sdk-releases.ps1" {
             -Prereleases @{ "core-2.0.0" = $true }
 
         Mock -CommandName "gh" -MockWith {
+            $global:LASTEXITCODE = 0
             if ($args -contains "list") { return $releasesJson }
         }
 
@@ -179,6 +183,7 @@ Describe "check-for-new-sdk-releases.ps1" {
         $releasesJson = NewReleasesJson -Tags @("core-1.16.0")
 
         Mock -CommandName "gh" -MockWith {
+            $global:LASTEXITCODE = 0
             if ($args -contains "list") { return $releasesJson }
         }
 
@@ -203,6 +208,7 @@ Describe "check-for-new-sdk-releases.ps1" {
         $releasesJson = NewReleasesJson -Tags @("core-1.15.0")
 
         Mock -CommandName "gh" -MockWith {
+            $global:LASTEXITCODE = 0
             if ($args -contains "list") { return $releasesJson }
         }
 
@@ -223,7 +229,7 @@ Describe "check-for-new-sdk-releases.ps1" {
             -Path (Join-Path -Path $work -ChildPath "Directory.Packages.props") `
             -Value "<Project><PropertyGroup><OpenTelemetryCoreLatestVersion>1.16.0</OpenTelemetryCoreLatestVersion></PropertyGroup></Project>"
 
-        Mock -CommandName "gh" -MockWith { }
+        Mock -CommandName "gh" -MockWith { $global:LASTEXITCODE = 0 }
 
         { & $scriptPath -repoRoot $work -contribRepository "open-telemetry/opentelemetry-dotnet-contrib" 6>$null } |
             Should -Throw "*OpenTelemetryCoreLatestPrereleaseVersion*"
