@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+* Updated semantic conventions to
+  [v1.42.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/system/process-metrics.md).
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  * The `process.cpu.time` metric attribute `process.cpu.state` was renamed to `cpu.mode`.
+  * Added the `process.uptime` metric.
+  * Added the `process.windows.handle.count` metric (Windows only).
+  * Added the `process.unix.file_descriptor.count` metric (non-Windows only).
+
 ## 1.16.0-beta.1
 
 Released 2026-Jun-24
