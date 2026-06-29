@@ -117,7 +117,7 @@ jobs:
           # ── Configuration: repos and tag patterns to watch ──
           declare -A REPO_PATTERNS
           REPO_PATTERNS["open-telemetry/opentelemetry-dotnet"]="core-"
-          REPO_PATTERNS["open-telemetry/opentelemetry-dotnet-contrib"]="Instrumentation.Runtime-|Instrumentation.Http-|Instrumentation.AspNetCore-|Exporter.Geneva-|Exporter.OneCollector-"
+          REPO_PATTERNS["open-telemetry/opentelemetry-dotnet-contrib"]="Instrumentation.Runtime-|Instrumentation.Http-|Instrumentation.AspNetCore-|Exporter.Geneva-|Exporter.OneCollector-|PersistentStorage-"
 
           # ── Ensure the release-notification label exists ──
           gh api "repos/${{ github.repository }}/labels" \
