@@ -1,11 +1,11 @@
-﻿// Copyright The OpenTelemetry Authors
+// Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
 namespace Confluent.Kafka;
 
 /// <summary>
-/// Options for configuring telemetry on a <see cref="Confluent.Kafka.InstrumentedProducerBuilder{TKey, TValue}"/>
-/// when creating an instrumented producer dynamically (outside DI).
+/// Options for configuring telemetry on a <see cref="InstrumentedProducerBuilder{TKey, TValue}"/>
+/// when creating an instrumented producer in code.
 /// </summary>
 public sealed class ConfluentKafkaInstrumentedProducerBuilderOptions
 {

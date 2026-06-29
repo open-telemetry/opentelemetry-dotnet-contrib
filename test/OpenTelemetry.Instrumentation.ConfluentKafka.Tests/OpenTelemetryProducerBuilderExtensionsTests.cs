@@ -40,7 +40,6 @@ public class OpenTelemetryProducerBuilderExtensionsTests
         Assert.Equal(valueSerializer, instrumentedProducerBuilder.GetInternalValueSerializer());
         Assert.False(instrumentedProducerBuilder.EnableMetrics);
         Assert.False(instrumentedProducerBuilder.EnableTraces);
-        return;
 
         void ErrorHandler(IProducer<string, string> producer, Error error)
         {
@@ -90,7 +89,6 @@ public class OpenTelemetryProducerBuilderExtensionsTests
         Assert.Equal(OAuthBearerTokenRefreshHandler, instrumentedProducerBuilder.GetInternalOAuthBearerTokenRefreshHandler());
         Assert.Equal(keySerializer, instrumentedProducerBuilder.GetInternalKeySerializer());
         Assert.Equal(valueSerializer, instrumentedProducerBuilder.GetInternalValueSerializer());
-        return;
 
         void ErrorHandler(IProducer<string, string> producer, Error error)
         {

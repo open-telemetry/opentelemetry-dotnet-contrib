@@ -17,7 +17,7 @@ public static class OpenTelemetryProducerBuilderExtensions
     /// <typeparam name="TKey">Type of the key.</typeparam>
     /// <typeparam name="TValue">Type of the value.</typeparam>
     /// <param name="producerBuilder">The <see cref="ProducerBuilder{TKey, TValue}"/> instance.</param>
-    /// <param name="options">The <see cref="ConfluentKafkaInstrumentedProducerBuilderOptions"/> defining which telemetry features to enable.</param>
+    /// <param name="options">The <see cref="ConfluentKafkaInstrumentedProducerBuilderOptions"/> to use.</param>
     /// <returns>An <see cref="InstrumentedProducerBuilder{TKey, TValue}"/> instance.</returns>
 #if NET
     [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode("Use 'InstrumentedProducerBuilder<TKey, TValue>' constructor to avoid reflection.")]

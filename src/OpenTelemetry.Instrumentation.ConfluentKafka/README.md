@@ -89,16 +89,21 @@ configured exporters.
 
 To extend an already built `ConsumerBuilder<TKey, TValue>`
 or `ProducerBuilder<TKey, TValue>`
-instance with OpenTelemetry instrumentation, you can use the `AsInstrumentedConsumerBuilder`
+instance with OpenTelemetry instrumentation, you can use the
+`AsInstrumentedConsumerBuilder`
 and `AsInstrumentedProducerBuilder` extension methods.
 
-> **Important:** When you create dynamic producers or consumers outside a DI container,
-> OpenTelemetry instrumentation (metrics and traces) is **disabled by default**.
+> [!IMPORTANT]
+> When you create dynamic producers or consumers outside a DI container,
+> OpenTelemetry instrumentation (metrics and traces) is disabled by default.
 > You must explicitly pass configuration options to enable it.
-> If you do not use the standard DI registration methods (such as `.AddKafkaProducerInstrumentation()` or `.AddKafkaConsumerInstrumentation()`),
-> you must also manually call `.AddSource("OpenTelemetry.Instrumentation.ConfluentKafka")` on your TracerProviderBuilder
-> and `.AddMeter("OpenTelemetry.Instrumentation.ConfluentKafka")` on your MeterProviderBuilder
-> so that the providers can listen to the emitted signals.
+> If you do not use the standard DI registration methods (such as
+`.AddKafkaProducerInstrumentation()`
+> or `.AddKafkaConsumerInstrumentation()`), you must also manually call
+`.AddSource("OpenTelemetry.Instrumentation.ConfluentKafka")` on your
+> TracerProviderBuilder
+> and `.AddMeter("OpenTelemetry.Instrumentation.ConfluentKafka")` on your
+> MeterProviderBuilder so that the providers can listen to the emitted signals.
 
 ### Example for `ConsumerBuilder<TKey, TValue>`
 
@@ -165,4 +170,3 @@ var instrumentedProducerBuilder = producerBuilder.AsInstrumentedProducerBuilder(
 // Build the producer
 var producer = instrumentedProducerBuilder.Build();
 ```
-

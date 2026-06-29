@@ -48,7 +48,6 @@ public class OpenTelemetryConsumerBuilderExtensionsTests
         Assert.Equal(valueDeserializer, instrumentedConsumerBuilder.GetInternalValueDeserializer());
         Assert.False(instrumentedConsumerBuilder.EnableMetrics);
         Assert.False(instrumentedConsumerBuilder.EnableTraces);
-        return;
 
         void ErrorHandler(IConsumer<string, string> consumer, Error error)
         {
@@ -125,7 +124,6 @@ public class OpenTelemetryConsumerBuilderExtensionsTests
         Assert.Equal(PartitionsLostHandler, instrumentedConsumerBuilder.GetInternalPartitionsLostHandler());
         Assert.Equal(keyDeserializer, instrumentedConsumerBuilder.GetInternalKeyDeserializer());
         Assert.Equal(valueDeserializer, instrumentedConsumerBuilder.GetInternalValueDeserializer());
-        return;
 
         void ErrorHandler(IConsumer<string, string> consumer, Error error)
         {

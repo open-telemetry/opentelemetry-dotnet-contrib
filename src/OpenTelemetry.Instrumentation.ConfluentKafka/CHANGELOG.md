@@ -4,6 +4,7 @@
 
 * Updated OpenTelemetry core component version(s) to `1.16.0`.
   ([#4487](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4487))
+
 * Supported manual configuration of traces and metrics for Kafka consumers
   and producers created outside a DI container.
   ([#4545](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4545))
