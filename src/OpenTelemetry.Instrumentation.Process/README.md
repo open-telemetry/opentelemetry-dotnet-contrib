@@ -159,8 +159,7 @@ Gets the number of handles opened by the process.
 
 ### process.unix.file_descriptor.count
 
-Number of unix file descriptors in use by the process. Only emitted on non-Windows
-platforms.
+Number of unix file descriptors in use by the process. Only emitted on Linux.
 
 | Units               | Instrument Type         | Value Type |
 | ------------------- | ----------------------- | ---------- |

@@ -80,7 +80,7 @@ internal sealed class ProcessMetrics
                 unit: "{handle}",
                 description: "Number of handles held by the process.");
         }
-        else
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
             MeterInstance.CreateObservableUpDownCounter(
                 "process.unix.file_descriptor.count",

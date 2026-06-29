@@ -9,7 +9,10 @@ namespace OpenTelemetry.Instrumentation.Process.Tests;
 public class ProcessMetricsTests
 {
     private const int MaxTimeToAllowForFlush = 10_000;
-    private const int ExpectedMetricCount = 6;
+
+    // Windows: process.windows.handle.count; Linux: process.unix.file_descriptor.count; macOS: neither
+    private static readonly int ExpectedMetricCount =
+        RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? 6 : 5;
 
     [Fact]
     public void ProcessMetricsAreCaptured()
@@ -38,7 +41,7 @@ public class ProcessMetricsTests
             var handleCountMetric = exportedItemsA.FirstOrDefault(i => i.Name == "process.windows.handle.count");
             Assert.NotNull(handleCountMetric);
         }
-        else
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
             var fileDescriptorMetric = exportedItemsA.FirstOrDefault(i => i.Name == "process.unix.file_descriptor.count");
             Assert.NotNull(fileDescriptorMetric);

@@ -9,7 +9,7 @@
     was renamed to `cpu.mode`.
   * Added the `process.uptime` metric.
   * Added the `process.windows.handle.count` metric (Windows only).
-  * Added the `process.unix.file_descriptor.count` metric (non-Windows only).
+  * Added the `process.unix.file_descriptor.count` metric (Linux only).
 
 ## 1.16.0-beta.1
 
