@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #if !NETFRAMEWORK
+using System.Collections;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
@@ -38,6 +39,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
     private readonly PropertyFetcher<IDbCommand> commandFetcher = new("Command");
     private readonly PropertyFetcher<Exception> exceptionFetcher = new("Exception");
     private readonly PropertyFetcher<int> exceptionNumberFetcher = new("Number");
+    private readonly PropertyFetcher<IDictionary> statisticsFetcher = new("Statistics");
     private readonly AsyncLocal<long> beginTimestamp = new();
 
     public SqlClientDiagnosticListener(string sourceName)
@@ -217,6 +219,16 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                         return;
                     }
 
+                    if (options.RecordReturnedRows &&
+                        activity.IsAllDataRequested &&
+                        TryFetchStatistics(this.statisticsFetcher, payload, out var statistics))
+                    {
+                        if (GetReturnedRows(statistics) is { } returnedRows)
+                        {
+                            activity.SetTag(SemanticConventions.AttributeDbResponseReturnedRows, returnedRows);
+                        }
+                    }
+
                     activity.Stop();
                     this.RecordDuration(activity, payload);
                 }
@@ -350,6 +362,28 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
         Exception exception,
         out int number)
         => fetcher.TryFetch(exception, out number);
+
+#if NET
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = IL2026Justification)]
+#endif
+    private static bool TryFetchStatistics(
+        PropertyFetcher<IDictionary> fetcher,
+        object? payload,
+        [NotNullWhen(true)] out IDictionary? statistics)
+        => fetcher.TryFetch(payload, out statistics) && statistics != null;
+
+    // The SqlClient connection statistics report both the number of rows returned by
+    // queries (SelectRows) and the number of rows affected by data manipulation commands
+    // (IduRows). Prefer whichever is non-zero so that the same tag can be populated for
+    // both SELECT and INSERT/UPDATE/DELETE style commands.
+    private static long? GetReturnedRows(IDictionary statistics)
+    {
+        var iduRows = GetStatistic(statistics, "IduRows");
+        return iduRows != 0 ? iduRows : GetStatistic(statistics, "SelectRows");
+
+        static long? GetStatistic(IDictionary statistics, string key)
+            => statistics[key] is long value ? value : null;
+    }
 
     private void RecordDuration(Activity? activity, object? payload, bool hasError = false)
     {

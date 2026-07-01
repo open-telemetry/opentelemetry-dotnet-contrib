@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #if !NETFRAMEWORK
+using System.Collections;
 using System.Data;
 using System.Diagnostics;
 using Microsoft.Data.SqlClient;
@@ -11,7 +12,7 @@ namespace OpenTelemetry.Instrumentation.SqlClient.Tests;
 
 public class MockCommandExecutor
 {
-    public static void ExecuteCommand(string connectionString, CommandType commandType, string commandText, bool error, SqlClientLibrary library)
+    public static void ExecuteCommand(string connectionString, CommandType commandType, string commandText, bool error, SqlClientLibrary library, long? selectRows = null, long? iduRows = null)
     {
         using var fakeSqlClientDiagnosticSource = new FakeSqlClientDiagnosticSource();
 
@@ -63,10 +64,21 @@ public class MockCommandExecutor
         }
         else
         {
+            // Mirrors the connection statistics dictionary that Microsoft.Data.SqlClient /
+            // System.Data.SqlClient include on the WriteCommandAfter payload. SelectRows is the
+            // number of rows returned by queries; IduRows is the number affected by
+            // INSERT/UPDATE/DELETE commands.
+            var statistics = new Dictionary<string, object>
+            {
+                ["SelectRows"] = selectRows ?? 0L,
+                ["IduRows"] = iduRows ?? 0L,
+            };
+
             var afterExecuteEventData = new
             {
                 OperationId = operationId,
                 Command = sqlCommand,
+                Statistics = (IDictionary)statistics,
                 Timestamp = 2000000L,
             };
 

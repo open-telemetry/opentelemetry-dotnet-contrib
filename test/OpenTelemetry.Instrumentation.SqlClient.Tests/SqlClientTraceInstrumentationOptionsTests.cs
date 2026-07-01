@@ -255,6 +255,63 @@ public class SqlClientTraceInstrumentationOptionsTests
         Assert.Equal(expected, options.SetDbQueryParameters);
     }
 
+    [Fact]
+    public void ShouldNotRecordReturnedRowsByDefault()
+    {
+        var configuration = new ConfigurationBuilder().Build();
+        var options = new SqlClientTraceInstrumentationOptions(configuration);
+        Assert.False(options.RecordReturnedRows);
+    }
+
+    [Theory]
+    [InlineData("", false)]
+    [InlineData("invalid", false)]
+    [InlineData("false", false)]
+    [InlineData("true", true)]
+    public void ShouldAssignRecordReturnedRowsFromEnvironmentVariable(string value, bool expected)
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?> { ["OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_RECORD_RETURNED_ROWS"] = value })
+            .Build();
+        var options = new SqlClientTraceInstrumentationOptions(configuration);
+        Assert.Equal(expected, options.RecordReturnedRows);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void RecordReturnedRowsCollected(bool recordReturnedRows)
+    {
+        var activities = new List<Activity>();
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation(options =>
+            {
+                options.RecordReturnedRows = recordReturnedRows;
+            })
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        // A query reports rows via SelectRows, a data manipulation command via IduRows,
+        // and whichever statistic is non-zero should populate db.response.returned_rows.
+        MockCommandExecutor.ExecuteCommand(TestConnectionString, CommandType.Text, "select * from Foo", false, SqlClientLibrary.MicrosoftDataSqlClient, selectRows: 20);
+        MockCommandExecutor.ExecuteCommand(TestConnectionString, CommandType.Text, "update Foo set Bar = 1", false, SqlClientLibrary.MicrosoftDataSqlClient, iduRows: 10);
+
+        tracerProvider.ForceFlush();
+        Assert.Equal(2, activities.Count);
+
+        if (recordReturnedRows)
+        {
+            Assert.Equal(20L, activities[0].GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
+            Assert.Equal(10L, activities[1].GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
+        }
+        else
+        {
+            Assert.Null(activities[0].GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
+            Assert.Null(activities[1].GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
+        }
+    }
+
     private static void ActivityEnrichment(Activity activity, object obj)
     {
         activity.SetTag("enriched", "yes");
