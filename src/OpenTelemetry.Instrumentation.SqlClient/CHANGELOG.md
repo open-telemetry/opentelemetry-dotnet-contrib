@@ -4,13 +4,13 @@
 
 * Updated Semantic Conventions version to
   [v1.42.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/database/sql-server.md).
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#4625](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4625))
 
 * Add the `db.response.returned_rows` attribute to query spans when the
   `OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_RECORD_RETURNED_ROWS` environment
   variable is set to `true`. The value is derived from the SqlClient connection
   statistics. Not supported on .NET Framework.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#4625](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4625))
 
 ## 1.16.0
 
