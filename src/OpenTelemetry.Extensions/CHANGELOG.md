@@ -9,7 +9,7 @@
   implementing the OpenTelemetry
   [probability sampling](https://opentelemetry.io/docs/specs/otel/trace/tracestate-probability-sampling/)
   specification.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#4629](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4629))
 
 ## 1.15.0-beta.1
 
