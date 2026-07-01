@@ -84,8 +84,11 @@ public sealed class ConsistentProbabilitySampler : Sampler
             // propagate through span contexts unmodified."
             randomness = traceState.RandomValue;
         }
-        else if ((parentContext.TraceFlags & (ActivityTraceFlags)2) != 0) // https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867 use ActivityTraceFlags.RandomTraceId
+        else if ((parentContext.TraceFlags & (ActivityTraceFlags)2) != 0)
         {
+            // TODO: Use ActivityTraceFlags.RandomTraceId above once available.
+            // https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867
+
             // "Using the least-significant 56 bits of the TraceID as the source of randomness [...]
             // can be done if the root Span's Trace SDK knows that the TraceID has been generated in
             // a random or pseudo-random manner", which the random trace flag indicates.

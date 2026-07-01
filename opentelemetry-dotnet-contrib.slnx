@@ -256,6 +256,7 @@
     <Project Path="test/OpenTelemetry.Extensions.Enrichment.AspNetCore.Tests/OpenTelemetry.Extensions.Enrichment.AspNetCore.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Extensions.Enrichment.Http.Tests/OpenTelemetry.Extensions.Enrichment.Http.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Extensions.Enrichment.Tests/OpenTelemetry.Extensions.Enrichment.Tests.csproj" />
+    <Project Path="test/OpenTelemetry.Extensions.FuzzTests/OpenTelemetry.Extensions.FuzzTests.csproj" />
     <Project Path="test/OpenTelemetry.Extensions.Tests/OpenTelemetry.Extensions.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.Tests/OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.AspNet.Tests/OpenTelemetry.Instrumentation.AspNet.Tests.csproj" />
