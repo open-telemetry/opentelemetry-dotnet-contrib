@@ -174,7 +174,7 @@ foreach ($mapping in $propertyMappings) {
   # exists then an update for this version is already in progress (a pull request is
   # open or was recently closed), so skip dispatching to avoid the workflow failing to
   # push to the existing branch and to avoid dispatching the same update every hour.
-  $branch = "otelbot/post-core-$latestVersion-update"
+  $branch = "otelbot/post-$tag-update"
   if ((TestUpdateBranchExists -repository $contribRepository -branch $branch) -eq $true) {
     Write-Information "$($mapping.Property) is out of date (current: $currentVersion, latest: $latestVersion) but branch '$branch' already exists, so '$workflow' will not be triggered."
     continue

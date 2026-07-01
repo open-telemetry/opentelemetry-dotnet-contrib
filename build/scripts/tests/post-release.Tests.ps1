@@ -270,6 +270,10 @@ Released 2024-01-01
             $args -contains "pr" -and $args -contains "create" -and $args -contains "--label" -and $args -contains "release"
         } -Because "a labelled pull request should be opened for the core update"
 
+        Should -Invoke -CommandName "git" -ModuleName "post-release" -Exactly -Times 1 -ParameterFilter {
+            $args -contains "switch" -and $args -contains "otelbot/post-core-1.2.3-update"
+        } -Because "the update branch should contain the full core tag"
+
         (Get-Content -Path (Join-Path -Path $project -ChildPath "CHANGELOG.md") -Raw) |
             Should -Match "Updated OpenTelemetry core component version\(s\) to ``1\.2\.3``" -Because "the CHANGELOG of an affected project should be updated"
     }
@@ -309,6 +313,10 @@ Released 2024-01-01
         Should -Invoke -CommandName "gh" -ModuleName "post-release" -Exactly -Times 1 -ParameterFilter {
             $args -contains "pr" -and $args -contains "create" -and $args -contains "--label" -and $args -contains "release"
         } -Because "a labelled pull request should be opened for the core unstable update"
+
+        Should -Invoke -CommandName "git" -ModuleName "post-release" -Exactly -Times 1 -ParameterFilter {
+            $args -contains "switch" -and $args -contains "otelbot/post-coreunstable-1.1.0-beta.1-update"
+        } -Because "the update branch should contain the full coreunstable tag"
     }
 }
 

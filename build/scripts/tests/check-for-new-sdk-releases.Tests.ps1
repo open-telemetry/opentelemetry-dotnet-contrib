@@ -128,6 +128,42 @@ Describe "check-for-new-sdk-releases.ps1" {
         } -Because "the unstable version should be updated using the 'coreunstable-' prefixed tag"
     }
 
+    It "uses distinct update branches when core and coreunstable releases have the same version" {
+        $work = NewRepositoryFixture -StableVersion "1.8.0" -PrereleaseVersion "1.8.0-rc.1" -UnstableVersion "1.8.0-alpha.1"
+
+        # Core and coreunstable releases can share the same version, but they update
+        # different properties and therefore must not target the same remote branch.
+        $releasesJson = NewReleasesJson -Tags @(
+            "core-1.8.0",
+            "core-1.9.0-alpha.1",
+            "coreunstable-1.9.0-alpha.1"
+        )
+
+        Mock -CommandName "gh" -MockWith {
+            if ($args -contains "api") { $global:LASTEXITCODE = 1; return }
+            $global:LASTEXITCODE = 0
+            if ($args -contains "list") { return $releasesJson }
+        }
+
+        & $scriptPath -repoRoot $work -contribRepository "open-telemetry/opentelemetry-dotnet-contrib" 6>$null
+
+        Should -Invoke -CommandName "gh" -Exactly -Times 1 -ParameterFilter {
+            $args -contains "api" -and ($args -join " ") -match "branches/otelbot/post-core-1\.9\.0-alpha\.1-update"
+        } -Because "the core prerelease should use a branch containing the full core tag"
+
+        Should -Invoke -CommandName "gh" -Exactly -Times 1 -ParameterFilter {
+            $args -contains "api" -and ($args -join " ") -match "branches/otelbot/post-coreunstable-1\.9\.0-alpha\.1-update"
+        } -Because "the unstable release should use a distinct branch containing the full coreunstable tag"
+
+        Should -Invoke -CommandName "gh" -Exactly -Times 1 -ParameterFilter {
+            $args -contains "workflow" -and $args -contains "run" -and $args -contains "tag=core-1.9.0-alpha.1"
+        } -Because "the core prerelease update should be dispatched"
+
+        Should -Invoke -CommandName "gh" -Exactly -Times 1 -ParameterFilter {
+            $args -contains "workflow" -and $args -contains "run" -and $args -contains "tag=coreunstable-1.9.0-alpha.1"
+        } -Because "the unstable update should be dispatched independently"
+    }
+
     It "only triggers the update workflow for the versions that are out of date" {
         $work = NewRepositoryFixture -StableVersion "1.15.0" -PrereleaseVersion "1.16.0-rc.1" -UnstableVersion "1.16.0-beta.1"
 
