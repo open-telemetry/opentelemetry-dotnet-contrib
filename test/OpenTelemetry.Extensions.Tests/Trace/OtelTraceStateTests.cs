@@ -152,4 +152,47 @@ public class OtelTraceStateTests
     [InlineData("ot=th:fd70a4;rv:6e6d1a75832a2f")]
     public void ParseAndSerialize_RoundTrips(string traceState)
         => Assert.Equal(traceState, OtelTraceState.Parse(traceState).Serialize());
+
+    [Fact]
+    public void Parse_IgnoresEmptyMembers()
+    {
+        var state = OtelTraceState.Parse(",vendor=value");
+
+        Assert.Equal("vendor=value", state.Serialize());
+    }
+
+    [Fact]
+    public void Parse_PreservesMalformedMemberVerbatim()
+    {
+        var state = OtelTraceState.Parse("malformed,vendor=value");
+
+        Assert.Equal("malformed,vendor=value", state.Serialize());
+    }
+
+    [Fact]
+    public void Parse_IgnoresEmptyOtSubKeyPairs()
+    {
+        var state = OtelTraceState.Parse("ot=;th:8");
+
+        Assert.True(state.HasThreshold);
+        Assert.Equal("ot=th:8", state.Serialize());
+    }
+
+    [Fact]
+    public void Parse_IgnoresMalformedOtSubKeyPair()
+    {
+        var state = OtelTraceState.Parse("ot=malformed;th:8");
+
+        Assert.True(state.HasThreshold);
+        Assert.Equal("ot=th:8", state.Serialize());
+    }
+
+    [Fact]
+    public void Serialize_RemovesOtPrefixWhenOnlyOversizedSubKeysPresent()
+    {
+        var large = new string('a', OtelTraceState.TraceStateSizeLimit);
+        var state = OtelTraceState.Parse($"ot=foo:{large}");
+
+        Assert.Equal(string.Empty, state.Serialize());
+    }
 }
