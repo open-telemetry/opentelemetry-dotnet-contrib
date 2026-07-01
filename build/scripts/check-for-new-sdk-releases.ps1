@@ -90,11 +90,14 @@ function GetLatestCoreVersion {
 
     $version = $tag.Substring($tagPrefix.Length)
 
-    # A release is treated as a prerelease if either its version has a prerelease
-    # suffix (e.g. core-1.16.0-rc.1) or the GitHub release itself is flagged as a
-    # prerelease. Stable releases (e.g. core-1.16.0) have neither, whereas release
-    # candidate and unstable (beta) releases have both.
-    $isPrerelease = $version.Contains("-") -or ($release.isPrerelease -eq $true)
+    # A release is treated as a prerelease if its version has a prerelease suffix
+    # (e.g. core-1.16.0-rc.1). Stable releases (e.g. core-1.16.0) do not. The GitHub
+    # 'isPrerelease' flag is deliberately not consulted here so that this classifier
+    # matches the one used by the core-version-update workflow, which decides whether
+    # to update the stable or prerelease property based solely on the version suffix.
+    # If the two disagreed, this script could dispatch a tag as a prerelease that the
+    # target workflow would then apply to the stable property (or vice versa).
+    $isPrerelease = $version.Contains("-")
 
     $isMatch =
       ($kind -eq "stable" -and $isPrerelease -eq $false) -or
@@ -107,6 +110,22 @@ function GetLatestCoreVersion {
   }
 
   return $null
+}
+
+function TestUpdateBranchExists {
+  param(
+    [string]$repository,
+    [string]$branch
+  )
+
+  # The core-version-update workflow pushes to a fixed branch and does not force
+  # push, so if a branch (and its pull request) from a previous run still exists the
+  # workflow would fail. Query the branch directly rather than open pull requests so
+  # that a lingering branch left behind by a closed pull request is also detected,
+  # and so that only the already-granted 'contents: read' permission is required.
+  gh api "repos/$repository/branches/$branch" --silent 2>$null
+
+  return $LASTEXITCODE -eq 0
 }
 
 if ([string]::IsNullOrEmpty($contribRepository) -eq $true) {
@@ -125,7 +144,7 @@ $releasesJson = gh release list `
   --repo $coreRepository `
   --exclude-drafts `
   --limit 100 `
-  --json isPrerelease,publishedAt,tagName
+  --json publishedAt,tagName
 
 if ($LASTEXITCODE -gt 0) {
   throw "Failed to list releases for '$coreRepository'."
@@ -150,6 +169,16 @@ foreach ($mapping in $propertyMappings) {
   }
 
   $tag = "$($mapping.TagPrefix)$latestVersion"
+
+  # The core-version-update workflow creates this branch for the update. If it already
+  # exists then an update for this version is already in progress (a pull request is
+  # open or was recently closed), so skip dispatching to avoid the workflow failing to
+  # push to the existing branch and to avoid dispatching the same update every hour.
+  $branch = "otelbot/post-core-$latestVersion-update"
+  if ((TestUpdateBranchExists -repository $contribRepository -branch $branch) -eq $true) {
+    Write-Information "$($mapping.Property) is out of date (current: $currentVersion, latest: $latestVersion) but branch '$branch' already exists, so '$workflow' will not be triggered."
+    continue
+  }
 
   Write-Information "$($mapping.Property) is out of date (current: $currentVersion, latest: $latestVersion). Triggering '$workflow' for tag '$tag'."
 

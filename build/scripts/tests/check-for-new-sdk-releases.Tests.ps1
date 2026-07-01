@@ -41,8 +41,9 @@ BeforeAll {
     # increasing publishedAt timestamp so the later entries are treated as the most
     # recent releases. By default a release is flagged as a prerelease when its tag
     # has a prerelease suffix, matching how the opentelemetry-dotnet repository marks
-    # its releases; the isPrerelease flag can be overridden for a specific tag via
-    # the -Prereleases hashtable to exercise the prerelease handling explicitly.
+    # its releases; the isPrerelease flag can be overridden for a specific tag via the
+    # -Prereleases hashtable to verify that the script classifies releases by version
+    # suffix alone and deliberately ignores the GitHub prerelease flag.
     function script:NewReleasesJson {
         param(
             [string[]]$Tags,
@@ -83,6 +84,7 @@ Describe "check-for-new-sdk-releases.ps1" {
         )
 
         Mock -CommandName "gh" -MockWith {
+            if ($args -contains "api") { $global:LASTEXITCODE = 1; return }
             $global:LASTEXITCODE = 0
             if ($args -contains "list") { return $releasesJson }
         }
@@ -106,6 +108,7 @@ Describe "check-for-new-sdk-releases.ps1" {
         )
 
         Mock -CommandName "gh" -MockWith {
+            if ($args -contains "api") { $global:LASTEXITCODE = 1; return }
             $global:LASTEXITCODE = 0
             if ($args -contains "list") { return $releasesJson }
         }
@@ -135,6 +138,7 @@ Describe "check-for-new-sdk-releases.ps1" {
         )
 
         Mock -CommandName "gh" -MockWith {
+            if ($args -contains "api") { $global:LASTEXITCODE = 1; return }
             $global:LASTEXITCODE = 0
             if ($args -contains "list") { return $releasesJson }
         }
@@ -150,18 +154,22 @@ Describe "check-for-new-sdk-releases.ps1" {
         } -Because "the out-of-date stable version should be updated and not mistaken for a 'coreunstable-' release"
     }
 
-    It "treats a release flagged as a prerelease as a prerelease even without a prerelease version suffix" {
-        $work = NewRepositoryFixture -StableVersion "1.16.0" -PrereleaseVersion "1.15.0-rc.1" -UnstableVersion "1.16.0-beta.1"
+    It "classifies releases by version suffix and not the GitHub prerelease flag so it agrees with the core version update workflow" {
+        $work = NewRepositoryFixture -StableVersion "1.16.0" -PrereleaseVersion "2.1.0-rc.1" -UnstableVersion "1.16.0-beta.1"
 
-        # 'core-2.0.0' has no prerelease suffix but is flagged as a prerelease, so it
-        # must not be treated as the latest stable release. The latest stable release
-        # remains 'core-1.16.0' (which matches the props) and the prerelease lookup
-        # should instead resolve to 'core-2.0.0'.
+        # 'core-2.0.0' has no prerelease version suffix but is flagged as a prerelease
+        # by GitHub. The core-version-update workflow decides whether a tag updates the
+        # stable or prerelease property based solely on the version suffix, so this
+        # script must ignore the flag and treat 'core-2.0.0' as the latest *stable*
+        # release. If the flag were honoured instead, 'core-2.0.0' would be classified
+        # as a prerelease (which is already up to date at 'core-2.1.0-rc.1') and the
+        # stable property would be left behind at '1.16.0'.
         $releasesJson = NewReleasesJson `
-            -Tags @("core-1.16.0", "coreunstable-1.16.0-beta.1", "core-2.0.0") `
+            -Tags @("core-1.16.0", "coreunstable-1.16.0-beta.1", "core-2.0.0", "core-2.1.0-rc.1") `
             -Prereleases @{ "core-2.0.0" = $true }
 
         Mock -CommandName "gh" -MockWith {
+            if ($args -contains "api") { $global:LASTEXITCODE = 1; return }
             $global:LASTEXITCODE = 0
             if ($args -contains "list") { return $releasesJson }
         }
@@ -170,11 +178,35 @@ Describe "check-for-new-sdk-releases.ps1" {
 
         Should -Invoke -CommandName "gh" -Exactly -Times 1 -ParameterFilter {
             $args -contains "workflow" -and $args -contains "run"
-        } -Because "only the prerelease version is out of date once the prerelease flag is honoured"
+        } -Because "only the stable version is out of date once the prerelease flag is ignored"
 
         Should -Invoke -CommandName "gh" -Exactly -Times 1 -ParameterFilter {
             $args -contains "workflow" -and $args -contains "run" -and $args -contains "tag=core-2.0.0"
-        } -Because "the prerelease lookup should pick the release flagged as a prerelease"
+        } -Because "'core-2.0.0' has no version suffix so it must update the stable property despite the prerelease flag"
+    }
+
+    It "does not trigger the update workflow when the update branch already exists" {
+        $work = NewRepositoryFixture -StableVersion "1.15.0" -PrereleaseVersion "1.16.0-rc.1" -UnstableVersion "1.16.0-beta.1"
+
+        # Only the stable version is out of date; the prerelease and unstable releases
+        # match the props so the branch guard is only exercised for the stable update.
+        $releasesJson = NewReleasesJson -Tags @("core-1.16.0", "core-1.16.0-rc.1", "coreunstable-1.16.0-beta.1")
+
+        Mock -CommandName "gh" -MockWith {
+            if ($args -contains "api") { $global:LASTEXITCODE = 0; return }
+            $global:LASTEXITCODE = 0
+            if ($args -contains "list") { return $releasesJson }
+        }
+
+        & $scriptPath -repoRoot $work -contribRepository "open-telemetry/opentelemetry-dotnet-contrib" 6>$null
+
+        Should -Invoke -CommandName "gh" -Exactly -Times 1 -ParameterFilter {
+            $args -contains "api" -and ($args -join " ") -match "branches/otelbot/post-core-1\.16\.0-update"
+        } -Because "the script should check whether the update branch already exists before dispatching"
+
+        Should -Invoke -CommandName "gh" -Exactly -Times 0 -ParameterFilter {
+            $args -contains "workflow" -and $args -contains "run"
+        } -Because "an update for this version is already in progress so it should not be dispatched again"
     }
 
     It "uses the GITHUB_REPOSITORY environment variable to determine the repository to dispatch to" {
@@ -183,6 +215,7 @@ Describe "check-for-new-sdk-releases.ps1" {
         $releasesJson = NewReleasesJson -Tags @("core-1.16.0")
 
         Mock -CommandName "gh" -MockWith {
+            if ($args -contains "api") { $global:LASTEXITCODE = 1; return }
             $global:LASTEXITCODE = 0
             if ($args -contains "list") { return $releasesJson }
         }
@@ -208,6 +241,7 @@ Describe "check-for-new-sdk-releases.ps1" {
         $releasesJson = NewReleasesJson -Tags @("core-1.15.0")
 
         Mock -CommandName "gh" -MockWith {
+            if ($args -contains "api") { $global:LASTEXITCODE = 1; return }
             $global:LASTEXITCODE = 0
             if ($args -contains "list") { return $releasesJson }
         }
