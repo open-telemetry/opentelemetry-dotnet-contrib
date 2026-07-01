@@ -253,6 +253,7 @@
     <Project Path="test/OpenTelemetry.Exporter.OneCollector.Benchmarks/OpenTelemetry.Exporter.OneCollector.Benchmarks.csproj" />
     <Project Path="test/OpenTelemetry.Exporter.OneCollector.Tests/OpenTelemetry.Exporter.OneCollector.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Extensions.AWS.Tests/OpenTelemetry.Extensions.AWS.Tests.csproj" />
+    <Project Path="test/OpenTelemetry.Extensions.Benchmarks/OpenTelemetry.Extensions.Benchmarks.csproj" />
     <Project Path="test/OpenTelemetry.Extensions.Enrichment.AspNetCore.Tests/OpenTelemetry.Extensions.Enrichment.AspNetCore.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Extensions.Enrichment.Http.Tests/OpenTelemetry.Extensions.Enrichment.Http.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Extensions.Enrichment.Tests/OpenTelemetry.Extensions.Enrichment.Tests.csproj" />
