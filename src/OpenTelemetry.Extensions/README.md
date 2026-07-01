@@ -130,3 +130,28 @@ builder.Services.AddOpenTelemetry()
             .SetSampler(new ParentBasedSampler(new RateLimitingSampler(3)))
     });
 ```
+
+### ConsistentProbabilitySampler
+
+The `ConsistentProbabilitySampler` samples a configured proportion of spans and
+records the sampling probability in the `tracestate`, following the OpenTelemetry
+[probability sampling](https://opentelemetry.io/docs/specs/otel/trace/tracestate-probability-sampling/)
+specification. Because all participants in a trace share the same source of
+randomness, their sampling decisions are consistent with one another.
+
+Like the built-in `TraceIdRatioBased` sampler, it makes an independent decision,
+so combine it with a `ParentBasedSampler` to follow the parent's decision for
+non-root spans.
+
+An example of `ConsistentProbabilitySampler` usage is shown below:
+
+```cs
+builder.Services.AddOpenTelemetry()
+    .WithTracing(tracing =>
+    {
+        tracing.AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            // Sample approximately 10% of traces consistently
+            .SetSampler(new ParentBasedSampler(new ConsistentProbabilitySampler(0.1)))
+    });
+```
