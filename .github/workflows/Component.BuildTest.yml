@@ -74,6 +74,12 @@ jobs:
         persist-credentials: false
         show-progress: false
 
+    - name: Get Git commit timestamp
+      id: get-commit-timestamp
+      shell: pwsh
+      run: |
+        "epoch=$(git log -1 --pretty=%ct)" >> ${env:GITHUB_OUTPUT}
+
     - name: Resolve project
       id: resolve-project
       shell: pwsh
@@ -183,6 +189,7 @@ jobs:
       shell: pwsh
       env:
         PROJECT_PATH: ${{ steps.resolve-project.outputs.project }}
+        SOURCE_DATE_EPOCH: ${{ steps.get-commit-timestamp.outputs.epoch }}
 
     - name: Install dotnet-coverage
       if: inputs.run-tests

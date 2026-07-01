@@ -6,7 +6,7 @@
     <Description>HTTP instrumentation for OpenTelemetry .NET.</Description>
     <PackageTags>$(PackageTags);distributed-tracing</PackageTags>
     <MinVerTagPrefix>Instrumentation.Http-</MinVerTagPrefix>
-    <PackageValidationBaselineVersion>1.15.1</PackageValidationBaselineVersion>
+    <PackageValidationBaselineVersion>1.16.0</PackageValidationBaselineVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETCoreApp'">

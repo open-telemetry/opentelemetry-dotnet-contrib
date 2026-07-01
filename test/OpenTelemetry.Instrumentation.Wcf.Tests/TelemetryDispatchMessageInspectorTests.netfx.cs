@@ -4,20 +4,25 @@
 #if NETFRAMEWORK
 using System.Diagnostics;
 using System.ServiceModel;
+using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Tests;
 
 [Collection("WCF")]
-public class TelemetryDispatchMessageInspectorTests : IDisposable
+public class TelemetryDispatchMessageInspectorTests : IClassFixture<WeaverFixture>, IDisposable
 {
     private readonly ITestOutputHelper output;
     private readonly Uri serviceBaseUri;
     private readonly ServiceHost serviceHost;
+    private readonly WeaverFixture weaver;
 
-    public TelemetryDispatchMessageInspectorTests(ITestOutputHelper outputHelper)
+    public TelemetryDispatchMessageInspectorTests(
+        WeaverFixture weaver,
+        ITestOutputHelper outputHelper)
     {
         this.output = outputHelper;
+        this.weaver = weaver;
 
         var random = new Random();
         var retryCount = 5;
@@ -64,21 +69,22 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
     public void Dispose() => this.serviceHost?.Close();
 
     [Theory]
-    [InlineData(true, false)]
-    [InlineData(true, true)]
-    [InlineData(false)]
-    [InlineData(true, false, true)]
-    [InlineData(true, false, true, true)]
-    [InlineData(true, false, true, true, true)]
-    [InlineData(true, false, true, true, true, true)]
+    [MemberData(nameof(TelemetryBindingElementForHttpTests.IncomingRequestTestData), MemberType = typeof(TelemetryBindingElementForHttpTests))]
     public async Task IncomingRequestInstrumentationTest(
+        bool emitOldAttributes,
+        bool emitNewAttributes,
         bool instrument,
-        bool filter = false,
-        bool includeVersion = false,
-        bool enrich = false,
-        bool enrichmentException = false,
-        bool emptyOrNullAction = false)
+        bool filter,
+        bool unused,
+        bool includeVersion,
+        bool enrich,
+        bool enrichmentException,
+        bool emptyOrNullAction)
     {
+        _ = Assert.IsType<bool>(unused);
+
+        using var scope = SemanticConventionScope.Get(emitOldAttributes, emitNewAttributes);
+
         List<Activity> stoppedActivities = [];
 
         using var activityListener = new ActivityListener
@@ -156,13 +162,15 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
             if (emptyOrNullAction)
             {
                 Assert.Equal(WcfInstrumentationActivitySource.IncomingRequestActivityName, activity.DisplayName);
-                Assert.Equal("ExecuteWithEmptyActionName", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcMethod).Value);
+                var expectedRpcMethod = emitNewAttributes ? "http://opentelemetry.io/Service/ExecuteWithEmptyActionName" : "ExecuteWithEmptyActionName";
+                Assert.Equal(expectedRpcMethod, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcMethod).Value);
                 Assert.Equal("http://opentelemetry.io/Service/ExecuteWithEmptyActionNameResponse", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.AttributeSoapReplyAction).Value);
             }
             else
             {
                 Assert.Equal("http://opentelemetry.io/Service/Execute", activity.DisplayName);
-                Assert.Equal("Execute", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcMethod).Value);
+                var expectedRpcMethod = emitNewAttributes ? "http://opentelemetry.io/Service/Execute" : "Execute";
+                Assert.Equal(expectedRpcMethod, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcMethod).Value);
                 Assert.Equal("http://opentelemetry.io/Service/ExecuteResponse", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.AttributeSoapReplyAction).Value);
             }
 
@@ -177,7 +185,21 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
                 Assert.Equal(WcfEnrichEventNames.BeforeSendReply, activity.TagObjects.Single(t => t.Key == "server.beforesendreply").Value);
             }
 
-            WcfTestHelpers.AssertIncomingRequestActivityCommon(activity, this.serviceBaseUri);
+            WcfTestHelpers.AssertIncomingRequestActivityCommon(
+                activity,
+                this.serviceBaseUri,
+                emitOldAttributes,
+                emitNewAttributes);
+
+            if (emitNewAttributes && !emitOldAttributes && !enrich && DockerHelper.IsAvailable(DockerPlatform.Linux))
+            {
+                await WeaverTelemetryVerifier.VerifyAsync(
+                    (stoppedActivities, []),
+                    WcfInstrumentationActivitySource.SemanticConventionsVersionNew,
+                    this.weaver,
+                    this.output,
+                    WcfTestHelpers.WeaverSuppressions);
+            }
         }
         else
         {
@@ -283,6 +305,63 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
         {
             Assert.Empty(recordedExceptions);
         }
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task RecordExceptionWithNewRpcAttributesStopsFaultedActivity(bool runAsync)
+    {
+        using var scope = SemanticConventionScope.Get(emitOldAttributes: false, emitNewAttributes: true);
+
+        List<Activity> stoppedActivities = [];
+        using var activityListener = new ActivityListener
+        {
+            ShouldListenTo = _ => true,
+            ActivityStopped = stoppedActivities.Add,
+        };
+
+        ActivitySource.AddActivityListener(activityListener);
+
+        var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddWcfInstrumentation(options =>
+            {
+                options.RecordException = true;
+            })
+            .Build();
+
+        var client = new ServiceClient(
+            new NetTcpBinding(),
+            new EndpointAddress(new Uri(this.serviceBaseUri, "/Service")));
+        try
+        {
+            if (runAsync)
+            {
+                await client.ErrorAsync();
+            }
+            else
+            {
+                client.ErrorSynchronous();
+            }
+        }
+        catch (Exception)
+        {
+        }
+        finally
+        {
+            client.AbortOrClose();
+            tracerProvider?.Shutdown();
+            tracerProvider?.Dispose();
+
+            WcfInstrumentationActivitySource.Options = null;
+        }
+
+        Assert.NotEmpty(stoppedActivities);
+        var activity = Assert.Single(stoppedActivities);
+
+        Assert.Equal(ActivityStatusCode.Error, activity.Status);
+        Assert.Equal(WcfInstrumentationConstants.ErrorTypeOther, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeErrorType).Value);
+        Assert.DoesNotContain(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcResponseStatusCode);
     }
 
     [Theory]

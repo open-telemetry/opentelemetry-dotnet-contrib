@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.16.0
+
+Released 2026-Jun-24
+
 * Fix serialization of whole `float`/`double` values.
   ([#4017](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4017))
 

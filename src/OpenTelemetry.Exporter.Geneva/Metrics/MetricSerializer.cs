@@ -351,10 +351,17 @@ internal static class MetricSerializer
     {
         if (!string.IsNullOrEmpty(value))
         {
-            var encodedValue = Encoding.UTF8.GetBytes(value);
-            SerializeUInt64AsBase128(buffer, ref bufferIndex, (ulong)encodedValue.Length);
-            Array.Copy(encodedValue, 0, buffer, bufferIndex, encodedValue.Length);
-            bufferIndex += encodedValue.Length;
+#if NETSTANDARD2_1_OR_GREATER || NET
+            var byteCount = Encoding.UTF8.GetByteCount(value);
+            SerializeUInt64AsBase128(buffer, ref bufferIndex, (ulong)byteCount);
+            var lengthWritten = Encoding.UTF8.GetBytes(value, buffer.AsSpan(bufferIndex));
+            bufferIndex += lengthWritten;
+#else
+            var byteCount = Encoding.UTF8.GetByteCount(value);
+            SerializeUInt64AsBase128(buffer, ref bufferIndex, (ulong)byteCount);
+            var lengthWritten = Encoding.UTF8.GetBytes(value!, 0, value!.Length, buffer, bufferIndex);
+            bufferIndex += lengthWritten;
+#endif
         }
         else
         {

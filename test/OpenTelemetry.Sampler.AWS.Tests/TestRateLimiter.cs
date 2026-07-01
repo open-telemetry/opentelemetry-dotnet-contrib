@@ -118,7 +118,7 @@ public class TestRateLimiter
         var clock = new TestClock();
         var limiter = new RateLimiter(1, numWorkers * creditsPerWorker, clock);
         var count = 0;
-        List<Task> tasks = new(numWorkers);
+        var tasks = new List<Task>(numWorkers);
 
         for (var w = 0; w < numWorkers; ++w)
         {

@@ -15,8 +15,7 @@ internal class SqsRequestContextHelper
 
     internal static void AddAttributes(IRequestContext context, IReadOnlyDictionary<string, string> attributes)
     {
-        var originalRequest = context.OriginalRequest as SendMessageRequest;
-        if (originalRequest == null)
+        if (context.OriginalRequest is not SendMessageRequest originalRequest)
         {
             return;
         }

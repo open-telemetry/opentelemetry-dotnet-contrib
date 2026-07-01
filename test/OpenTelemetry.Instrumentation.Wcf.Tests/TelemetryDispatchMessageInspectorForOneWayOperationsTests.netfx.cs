@@ -5,23 +5,28 @@
 using System.Diagnostics;
 using System.ServiceModel;
 using OpenTelemetry.Instrumentation.Wcf.Tests.Tools;
+using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Tests;
 
 [Collection("WCF")]
-public class TelemetryDispatchMessageInspectorForOneWayOperationsTests : IDisposable
+public class TelemetryDispatchMessageInspectorForOneWayOperationsTests : IClassFixture<WeaverFixture>, IDisposable
 {
     private readonly ITestOutputHelper output;
     private readonly Uri serviceBaseUri;
     private readonly ServiceHost serviceHost;
+    private readonly WeaverFixture weaver;
 
     private readonly EventWaitHandle thrownExceptionsHandle = new(false, EventResetMode.ManualReset);
     private readonly List<Exception> thrownExceptions = [];
 
-    public TelemetryDispatchMessageInspectorForOneWayOperationsTests(ITestOutputHelper outputHelper)
+    public TelemetryDispatchMessageInspectorForOneWayOperationsTests(
+        WeaverFixture weaver,
+        ITestOutputHelper outputHelper)
     {
         this.output = outputHelper;
+        this.weaver = weaver;
 
         var random = new Random();
         var retryCount = 5;
@@ -77,9 +82,16 @@ public class TelemetryDispatchMessageInspectorForOneWayOperationsTests : IDispos
         this.thrownExceptionsHandle?.Dispose();
     }
 
-    [Fact]
-    public void IncomingRequestOneWayOperationInstrumentationTest()
+    [Theory]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task IncomingRequestOneWayOperationInstrumentationTest(
+        bool emitOldAttributes,
+        bool emitNewAttributes)
     {
+        using var scope = SemanticConventionScope.Get(emitOldAttributes, emitNewAttributes);
+
         List<Activity> stoppedActivities = [];
 
         using var activityListener = new ActivityListener
@@ -118,9 +130,27 @@ public class TelemetryDispatchMessageInspectorForOneWayOperationsTests : IDispos
         var activity = Assert.Single(stoppedActivities);
 
         Assert.Equal("http://opentelemetry.io/Service/ExecuteWithOneWay", activity.DisplayName);
-        Assert.Equal("ExecuteWithOneWay", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcMethod).Value);
+
+        var expectedRpcMethod = emitNewAttributes ? "http://opentelemetry.io/Service/ExecuteWithOneWay" : "ExecuteWithOneWay";
+        Assert.Equal(expectedRpcMethod, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeRpcMethod).Value);
+
         Assert.DoesNotContain(activity.TagObjects, t => t.Key == WcfInstrumentationConstants.AttributeSoapReplyAction);
-        WcfTestHelpers.AssertIncomingRequestActivityCommon(activity, this.serviceBaseUri);
+
+        WcfTestHelpers.AssertIncomingRequestActivityCommon(
+            activity,
+            this.serviceBaseUri,
+            emitOldAttributes,
+            emitNewAttributes);
+
+        if (emitNewAttributes && !emitOldAttributes && DockerHelper.IsAvailable(DockerPlatform.Linux))
+        {
+            await WeaverTelemetryVerifier.VerifyAsync(
+                (stoppedActivities, []),
+                WcfInstrumentationActivitySource.SemanticConventionsVersionNew,
+                this.weaver,
+                this.output,
+                WcfTestHelpers.WeaverSuppressions);
+        }
     }
 }
 

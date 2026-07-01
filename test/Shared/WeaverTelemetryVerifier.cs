@@ -165,6 +165,10 @@ public static class WeaverTelemetryVerifier
                     {
                         ignore = true;
                     }
+                    else if (suppressAdvice.Contains(new(id, advice.Message)))
+                    {
+                        ignore = true;
+                    }
                     else if (advice.ExtensionData.TryGetValue("signal_name", out var extensionValue) &&
                              extensionValue.ValueKind == JsonValueKind.String &&
                              suppressAdvice.Contains(new(id, extensionValue.GetString())))
@@ -338,6 +342,7 @@ public static class WeaverTelemetryVerifier
         {
             ActivityStatusCode.Error => "error",
             ActivityStatusCode.Ok => "ok",
+            ActivityStatusCode.Unset => null,
             _ => null,
         };
 
@@ -553,6 +558,9 @@ public static class WeaverTelemetryVerifier
 
                     break;
 
+                case MetricType.DoubleSumNonMonotonic:
+                case MetricType.ExponentialHistogram:
+                case MetricType.LongSumNonMonotonic:
                 default:
                     if (TryGetMetricPointValue(point) is { } fallback)
                     {

@@ -15,8 +15,7 @@ internal class SnsRequestContextHelper
 
     internal static void AddAttributes(IRequestContext context, IReadOnlyDictionary<string, string> attributes)
     {
-        var originalRequest = context.OriginalRequest as PublishRequest;
-        if (originalRequest == null)
+        if (context.OriginalRequest is not PublishRequest originalRequest)
         {
             return;
         }

@@ -205,6 +205,7 @@
     <File Path="src/Shared/RedactionHelper.cs" />
     <File Path="src/Shared/RequestDataHelper.cs" />
     <File Path="src/Shared/ResourceSemanticConventions.cs" />
+    <File Path="src/Shared/RpcSemanticConventionHelper.cs" />
     <File Path="src/Shared/SemanticConventions.cs" />
     <File Path="src/Shared/ServerCertificateValidationHandler.cs" />
     <File Path="src/Shared/ServerCertificateValidationProvider.cs" />
@@ -265,6 +266,7 @@
     <Project Path="test/OpenTelemetry.Instrumentation.Cassandra.Tests/OpenTelemetry.Instrumentation.Cassandra.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.ConfluentKafka.Tests/OpenTelemetry.Instrumentation.ConfluentKafka.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.ElasticsearchClient.Tests/OpenTelemetry.Instrumentation.ElasticsearchClient.Tests.csproj" />
+    <Project Path="test/OpenTelemetry.Instrumentation.EntityFrameworkCore.Benchmarks/OpenTelemetry.Instrumentation.EntityFrameworkCore.Benchmarks.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests/OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.EventCounters.Tests/OpenTelemetry.Instrumentation.EventCounters.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.GrpcCore.Tests/OpenTelemetry.Instrumentation.GrpcCore.Tests.csproj" />
@@ -272,6 +274,8 @@
     <Project Path="test/OpenTelemetry.Instrumentation.Hangfire.Tests/OpenTelemetry.Instrumentation.Hangfire.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.Http.Benchmarks/OpenTelemetry.Instrumentation.Http.Benchmarks.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.Http.Tests/OpenTelemetry.Instrumentation.Http.Tests.csproj" />
+    <Project Path="test/OpenTelemetry.Instrumentation.Kusto.Benchmarks/OpenTelemetry.Instrumentation.Kusto.Benchmarks.csproj" />
+    <Project Path="test/OpenTelemetry.Instrumentation.Kusto.FuzzTests/OpenTelemetry.Instrumentation.Kusto.FuzzTests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.Kusto.Tests/OpenTelemetry.Instrumentation.Kusto.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.Owin.Tests/OpenTelemetry.Instrumentation.Owin.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.Process.Tests/OpenTelemetry.Instrumentation.Process.Tests.csproj" />
