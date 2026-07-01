@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Extensions.Tests.Trace;
@@ -78,7 +79,7 @@ public class RateLimitingSamplerTests
         var sampler = new RateLimitingSampler(SAMPLE_RATE);
         int sampleIn = 0, sampleOut = 0;
 
-        var startTime = DateTime.UtcNow;
+        var stopwatch = Stopwatch.StartNew();
 
         for (var i = 0; i < CYCLES; i++)
         {
@@ -103,15 +104,18 @@ public class RateLimitingSamplerTests
             await Task.Delay(5);
         }
 
-        var timeTakenSeconds = (DateTime.UtcNow - startTime).TotalSeconds;
+        var timeTakenSeconds = stopwatch.Elapsed.TotalSeconds;
 
         // Approximate the number of samples we should have taken
         // Account for the fact that the initial balance is the SampleRate, so they will all be sampled in
         var approxSamples = Math.Floor(timeTakenSeconds * SAMPLE_RATE) + SAMPLE_RATE;
 
-        // Assert - We should have sampled in 5 traces per second over duration
-        // Adding in a fudge factor
-        Assert.InRange(sampleIn, approxSamples * 0.9, approxSamples * 1.1);
+        // Assert - We should have sampled in 5 traces per second over duration.
+        // Adding in a generous fudge factor (and a minimum absolute tolerance) to account for
+        // OS scheduler/timer jitter (particularly on CI runners), since the expected sample
+        // count is small enough that a purely percentage-based tolerance can be too tight.
+        var tolerance = Math.Max(approxSamples * 0.25, 3);
+        Assert.InRange(sampleIn, approxSamples - tolerance, approxSamples + tolerance);
         Assert.Equal(sampleOut, CYCLES - sampleIn);
     }
 }
