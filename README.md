@@ -94,7 +94,6 @@ repository](https://github.com/open-telemetry/community/blob/main/guides/contrib
 
 [@open-telemetry/dotnet-contrib-maintainers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-maintainers):
 
-* [Alan West](https://github.com/alanwest), New Relic
 * [Martin Costello](https://github.com/martincostello), Grafana Labs
 * [Piotr Kie&#x142;kowicz](https://github.com/Kielek), Splunk
 * [Rajkumar Rangaraj](https://github.com/rajkumar-rangaraj), Microsoft
@@ -104,6 +103,7 @@ repository](https://github.com/open-telemetry/community/blob/main/guides/contrib
 
 ### Emeritus
 
+* [Alan West](https://github.com/alanwest), Maintainer
 * [Cijo Thomas](https://github.com/cijothomas), Maintainer
 * [Martin Thwaites](https://github.com/martinjt), Triager
 * [Mikel Blanchard](https://github.com/CodeBlanch), Maintainer
