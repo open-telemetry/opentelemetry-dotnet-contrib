@@ -17,6 +17,12 @@ using ServiceFabric.Mocks.RemotingV2;
 
 namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests;
 
+// Shares the instrumentation's process-wide static ActivitySource with the other
+// TracerProvider-building test class. Serialized into one collection so a concurrent TracerProvider
+// dispose cannot leave the server activity unsampled mid-dispatch (which makes Activity.Current null
+// and the context-propagation tests flaky). The collection still runs in parallel with the rest of
+// the assembly.
+[Collection("TracerProviderDependent")]
 public class ServiceFabricRemotingTests
 {
     private const string ValueToSend = "SomeValue";

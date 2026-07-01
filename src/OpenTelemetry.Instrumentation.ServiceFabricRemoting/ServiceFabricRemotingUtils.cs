@@ -1,8 +1,10 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics;
 using System.Text;
 using Microsoft.ServiceFabric.Services.Remoting.V2;
+using Microsoft.ServiceFabric.Services.Remoting.V2.Client;
 
 namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting;
 
@@ -28,5 +30,26 @@ internal static class ServiceFabricRemotingUtils
         }
 
         return [];
+    }
+
+    // Returns the SF service URI suitable for the server.address metric tag, or null
+    // if it is not available. ResolvedServicePartition can be null or its getter can throw
+    // in some adapter states (including test doubles), so failures are swallowed.
+    internal static string? GetServerAddress(IServiceRemotingClient client)
+    {
+        try
+        {
+            return client.ResolvedServicePartition?.ServiceName?.AbsoluteUri;
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
+    internal static double CalculateDurationFromTimestamp(long begin)
+    {
+        var duration = Stopwatch.GetElapsedTime(begin);
+        return duration.TotalSeconds;
     }
 }

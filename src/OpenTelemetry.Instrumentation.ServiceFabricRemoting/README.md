@@ -9,9 +9,10 @@
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.ServiceFabricRemoting)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.ServiceFabricRemoting)
 [![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Instrumentation.ServiceFabricRemoting)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Instrumentation.ServiceFabricRemoting)
 
-This is an [Instrumentation Library](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/glossary.md#instrumentation-library),
-which instruments [Service Fabric Remoting](https://learn.microsoft.com/en-us/azure/service-fabric/service-fabric-reliable-services-communication-remoting)
-and collects telemetry about incoming requests.
+This is an [Instrumentation Library](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/glossary.md#instrumentation-library)
+that instruments [Service Fabric Remoting](https://learn.microsoft.com/azure/service-fabric/service-fabric-reliable-services-communication-remoting),
+emitting distributed traces and RPC metrics for both client (outgoing) and
+server (incoming) calls.
 
 ## Steps to enable OpenTelemetry.Instrumentation.ServiceFabricRemoting
 
@@ -25,7 +26,7 @@ package. Also, add any other instrumentations & exporters you will need.
 dotnet add package OpenTelemetry.Instrumentation.ServiceFabricRemoting
 ```
 
-### Step 2: Configure SF Remoting with Distributed Tracing instrumentation
+### Step 2: Common configuration
 
 These instructions are a modified version of the steps mentioned here:
 [`Use an assembly attribute to use the V2 stack`](https://learn.microsoft.com/en-us/azure/service-fabric/service-fabric-reliable-services-communication-remoting#use-an-assembly-attribute-to-use-the-v2-stack)
@@ -63,12 +64,10 @@ and are provided by the OpenTelemetry.Instrumentation.ServiceFabricRemoting pack
    [assembly: TraceContextEnrichedServiceRemotingProvider()]
 ```
 
-### Step 3: Enable  SF Remoting Instrumentation
-
-#### Configure OpenTelemetry TracerProvider in Program.cs
+### Step 3: Distributed tracing
 
 Call the `AddServiceFabricRemotingInstrumentation` extension method on the
-`TracerProviderBuilder` to register the OpenTelemetry instrumentation.
+`TracerProviderBuilder` to register the OpenTelemetry tracing instrumentation.
 
 ```csharp
     using TracerProvider tracerProvider = Sdk.CreateTracerProviderBuilder()
@@ -91,11 +90,12 @@ The `AddServiceFabricRemotingInstrumentation` extension method takes an optional
 configurable settings:
 
 - **Filter** - A filter function that can be used to exclude certain remoting
-calls from being instrumented.
+calls from being **traced**. Metrics are always emitted regardless of this
+filter, so rate and error-rate dashboards reflect all real traffic.
 The function takes a `ServiceRemotingRequest` and returns a boolean value.
-If the function returns `true`, the remoting call will be instrumented.
-If the function returns `false`, the remoting call will not be instrumented.
-By default, all remoting calls are instrumented.
+If the function returns `true`, the remoting call will be traced.
+If the function returns `false`, the remoting call will not be traced.
+By default, all remoting calls are traced.
 
 ```csharp
     TracerProvider tracerProvider = Sdk.CreateTracerProviderBuilder()
@@ -189,7 +189,56 @@ the exception will be recorded at the server as an `ActivityEvent` or not
         .Build();
 ```
 
+### Step 4: Metrics
+
+Call the `AddServiceFabricRemotingInstrumentation` extension method on the
+`MeterProviderBuilder` to register the OpenTelemetry metrics instrumentation.
+
+```csharp
+using MeterProvider meterProvider = Sdk.CreateMeterProviderBuilder()
+    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("ServiceFabricRemoting-Example"))
+    .AddServiceFabricRemotingInstrumentation()
+    .AddOtlpExporter()
+    .Build();
+```
+
+Two RPC duration histograms are emitted per the OpenTelemetry
+[RPC metrics semantic conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.40.0/docs/rpc/rpc-metrics.md):
+
+- `rpc.server.call.duration` - histogram of incoming remoting call durations
+  (unit: `s`)
+- `rpc.client.call.duration` - histogram of outgoing remoting call durations
+  (unit: `s`)
+
+Both histograms are tagged with:
+
+- `rpc.system.name` = `"service_fabric_remoting"`
+- `rpc.method` - the method name from the remoting request header
+- `error.type` - the exception type fully-qualified name, set only when the
+  call throws
+
+The client histogram additionally includes `server.address` sourced from
+`ResolvedServicePartition.ServiceName` (for example, `"fabric:/MyApp/MyService"`).
+
+The following RPC semantic convention attributes are intentionally **not**
+populated:
+
+- **`rpc.response.status_code`** - Service Fabric Remoting has no native
+  status-code concept; failures are serialized exceptions, and the failure
+  axis is already captured via the `error.type` tag.
+- **`server.port`** - Service Fabric assigns dynamic ports that change on
+  failover or restart, and traffic typically flows through a reverse proxy
+  or load balancer where the replica port is not visible to callers.
+  `server.address` uses the stable logical Service Fabric service URI
+  instead, which is how Service Fabric services are actually identified
+  in practice.
+
+The metrics instrumentation has no configuration options: metrics are emitted
+automatically for all request/response calls on both Service and Actor
+remoting paths. One-way calls (`SendOneWay`) are not recorded, consistent
+with the tracing instrumentation.
+
 ## References
 
-- [Azure Service Fabric documentation](https://learn.microsoft.com/en-us/azure/service-fabric/)
+- [Azure Service Fabric documentation](https://learn.microsoft.com/azure/service-fabric/)
 - [OpenTelemetry Project](https://opentelemetry.io/)
