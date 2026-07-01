@@ -3,8 +3,6 @@
 
 #if NETFRAMEWORK
 
-#nullable disable
-
 using System.Collections;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
@@ -43,32 +41,32 @@ internal static class HttpWebRequestActivitySource
         advice: new InstrumentAdvice<double> { HistogramBucketBoundaries = [0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10] });
 
     // Fields for reflection
-    private static FieldInfo connectionGroupListField;
-    private static Type connectionGroupType;
-    private static FieldInfo connectionListField;
-    private static Type connectionType;
-    private static FieldInfo writeListField;
-    private static Func<object, IAsyncResult> writeAResultAccessor;
-    private static Func<object, IAsyncResult> readAResultAccessor;
+    private static FieldInfo? connectionGroupListField;
+    private static Type? connectionGroupType;
+    private static FieldInfo? connectionListField;
+    private static Type? connectionType;
+    private static FieldInfo? writeListField;
+    private static Func<object, IAsyncResult?>? writeAResultAccessor;
+    private static Func<object, IAsyncResult?>? readAResultAccessor;
 
     // LazyAsyncResult & ContextAwareResult
-    private static Func<object, AsyncCallback> asyncCallbackAccessor;
-    private static Action<object, AsyncCallback> asyncCallbackModifier;
-    private static Func<object, object> asyncStateAccessor;
-    private static Action<object, object> asyncStateModifier;
-    private static Func<object, bool> endCalledAccessor;
-    private static Func<object, object> resultAccessor;
-    private static Func<object, bool> isContextAwareResultChecker;
+    private static Func<object, AsyncCallback?>? asyncCallbackAccessor;
+    private static Action<object, AsyncCallback?>? asyncCallbackModifier;
+    private static Func<object, object?>? asyncStateAccessor;
+    private static Action<object, object?>? asyncStateModifier;
+    private static Func<object, bool>? endCalledAccessor;
+    private static Func<object, object?>? resultAccessor;
+    private static Func<object, bool>? isContextAwareResultChecker;
 
     // HttpWebResponse
-    private static Func<object[], HttpWebResponse> httpWebResponseCtor;
-    private static Func<HttpWebResponse, Uri> uriAccessor;
-    private static Func<HttpWebResponse, object> verbAccessor;
-    private static Func<HttpWebResponse, string> mediaTypeAccessor;
-    private static Func<HttpWebResponse, bool> usesProxySemanticsAccessor;
-    private static Func<HttpWebResponse, object> coreResponseDataAccessor;
-    private static Func<HttpWebResponse, bool> isWebSocketResponseAccessor;
-    private static Func<HttpWebResponse, string> connectionGroupNameAccessor;
+    private static Func<object?[], HttpWebResponse>? httpWebResponseCtor;
+    private static Func<HttpWebResponse, Uri>? uriAccessor;
+    private static Func<HttpWebResponse, object?>? verbAccessor;
+    private static Func<HttpWebResponse, string?>? mediaTypeAccessor;
+    private static Func<HttpWebResponse, bool>? usesProxySemanticsAccessor;
+    private static Func<HttpWebResponse, object?>? coreResponseDataAccessor;
+    private static Func<HttpWebResponse, bool>? isWebSocketResponseAccessor;
+    private static Func<HttpWebResponse, string?>? connectionGroupNameAccessor;
 
     static HttpWebRequestActivitySource()
     {
@@ -76,8 +74,6 @@ internal static class HttpWebRequestActivitySource
         {
             PrepareReflectionObjects();
             PerformInjection();
-
-            TracingOptions = new HttpClientTraceInstrumentationOptions();
         }
         catch (Exception ex)
         {
@@ -86,7 +82,7 @@ internal static class HttpWebRequestActivitySource
         }
     }
 
-    internal static HttpClientTraceInstrumentationOptions TracingOptions { get; set; }
+    internal static HttpClientTraceInstrumentationOptions TracingOptions { get; set; } = new HttpClientTraceInstrumentationOptions();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void AddRequestTagsAndInstrumentRequest(HttpWebRequest request, Activity activity)
@@ -117,8 +113,6 @@ internal static class HttpWebRequestActivitySource
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void AddResponseTags(HttpWebResponse response, Activity activity)
     {
-        Debug.Assert(activity != null, "Activity must not be null");
-
         if (activity.IsAllDataRequested)
         {
             activity.SetTag(SemanticConventions.AttributeNetworkProtocolVersion, RequestDataHelper.GetHttpProtocolVersion(response.ProtocolVersion));
@@ -127,7 +121,7 @@ internal static class HttpWebRequestActivitySource
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static string GetErrorType(Exception exception)
+    private static string? GetErrorType(Exception exception)
     {
         if (exception is WebException wexc)
         {
@@ -164,8 +158,6 @@ internal static class HttpWebRequestActivitySource
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void AddExceptionEvent(Exception exception, Activity activity)
     {
-        Debug.Assert(activity != null, "Activity must not be null");
-
         if (!activity.IsAllDataRequested)
         {
             return;
@@ -229,21 +221,21 @@ internal static class HttpWebRequestActivitySource
         // Eg: Parent could be the Asp.Net activity.
         InstrumentRequest(request, activityContext);
 
-        var asyncContext = writeAResultAccessor(request);
+        var asyncContext = writeAResultAccessor!(request);
         if (asyncContext != null)
         {
             // Flow here is for [Begin]GetRequestStream[Async].
 
-            var callback = new AsyncCallbackWrapper(request, activity, asyncCallbackAccessor(asyncContext), Stopwatch.GetTimestamp());
-            asyncCallbackModifier(asyncContext, callback.AsyncCallback);
+            var callback = new AsyncCallbackWrapper(request, activity, asyncCallbackAccessor!(asyncContext), Stopwatch.GetTimestamp());
+            asyncCallbackModifier!(asyncContext, callback.AsyncCallback);
         }
         else
         {
             // Flow here is for [Begin]GetResponse[Async] without a prior call to [Begin]GetRequestStream[Async].
 
-            asyncContext = readAResultAccessor(request);
-            var callback = new AsyncCallbackWrapper(request, activity, asyncCallbackAccessor(asyncContext), Stopwatch.GetTimestamp());
-            asyncCallbackModifier(asyncContext, callback.AsyncCallback);
+            asyncContext = readAResultAccessor!(request)!;
+            var callback = new AsyncCallbackWrapper(request, activity, asyncCallbackAccessor!(asyncContext), Stopwatch.GetTimestamp());
+            asyncCallbackModifier!(asyncContext, callback.AsyncCallback);
         }
 
         if (activity != null)
@@ -254,8 +246,8 @@ internal static class HttpWebRequestActivitySource
 
     private static void HookOrProcessResult(HttpWebRequest request)
     {
-        var writeAsyncContext = writeAResultAccessor(request);
-        if (writeAsyncContext == null || asyncCallbackAccessor(writeAsyncContext)?.Target is not AsyncCallbackWrapper writeAsyncContextCallback)
+        var writeAsyncContext = writeAResultAccessor!(request);
+        if (writeAsyncContext == null || asyncCallbackAccessor!(writeAsyncContext)?.Target is not AsyncCallbackWrapper writeAsyncContextCallback)
         {
             // If we already hooked into the read result during ProcessRequest or we hooked up after the fact already we don't need to do anything here.
             return;
@@ -263,7 +255,7 @@ internal static class HttpWebRequestActivitySource
 
         // If we got here it means the user called [Begin]GetRequestStream[Async] and we have to hook the read result after the fact.
 
-        var readAsyncContext = readAResultAccessor(request);
+        var readAsyncContext = readAResultAccessor!(request);
         if (readAsyncContext == null)
         {
             // We're still trying to establish the connection (no read has started).
@@ -271,25 +263,25 @@ internal static class HttpWebRequestActivitySource
         }
 
         // Clear our saved callback so we know not to process again.
-        asyncCallbackModifier(writeAsyncContext, null);
+        asyncCallbackModifier!(writeAsyncContext, null);
 
-        if (endCalledAccessor.Invoke(readAsyncContext) || readAsyncContext.CompletedSynchronously)
+        if (endCalledAccessor!.Invoke(readAsyncContext) || readAsyncContext.CompletedSynchronously)
         {
             // We need to process the result directly because the read callback has already fired. Force a copy because response has likely already been disposed.
-            ProcessResult(readAsyncContext, null, writeAsyncContextCallback.Activity, resultAccessor(readAsyncContext), true, request, writeAsyncContextCallback.StartTimestamp);
+            ProcessResult(readAsyncContext, null, writeAsyncContextCallback.Activity, resultAccessor!(readAsyncContext)!, true, request, writeAsyncContextCallback.StartTimestamp);
             return;
         }
 
         // Hook into the result callback if it hasn't already fired.
-        var callback = new AsyncCallbackWrapper(writeAsyncContextCallback.Request, writeAsyncContextCallback.Activity, asyncCallbackAccessor(readAsyncContext), Stopwatch.GetTimestamp());
-        asyncCallbackModifier(readAsyncContext, callback.AsyncCallback);
+        var callback = new AsyncCallbackWrapper(writeAsyncContextCallback.Request, writeAsyncContextCallback.Activity, asyncCallbackAccessor!(readAsyncContext), Stopwatch.GetTimestamp());
+        asyncCallbackModifier!(readAsyncContext, callback.AsyncCallback);
     }
 
-    private static void ProcessResult(IAsyncResult asyncResult, AsyncCallback asyncCallback, Activity activity, object result, bool forceResponseCopy, HttpWebRequest request, long startTimestamp)
+    private static void ProcessResult(IAsyncResult asyncResult, AsyncCallback? asyncCallback, Activity? activity, object result, bool forceResponseCopy, HttpWebRequest request, long startTimestamp)
     {
         HttpStatusCode? httpStatusCode = null;
-        string errorType = null;
-        Version protocolVersion = null;
+        string? errorType = null;
+        Version? protocolVersion = null;
         var activityStatus = ActivityStatusCode.Unset;
 
         // Activity may be null if we are not tracing in these cases:
@@ -302,7 +294,7 @@ internal static class HttpWebRequestActivitySource
             Activity.Current = activity;
         }
 
-        HttpWebResponse response = null;
+        HttpWebResponse? response = null;
         try
         {
             if (result is Exception ex)
@@ -339,18 +331,18 @@ internal static class HttpWebRequestActivitySource
             {
                 response = (HttpWebResponse)result;
 
-                if (forceResponseCopy || (asyncCallback == null && isContextAwareResultChecker(asyncResult)))
+                if (forceResponseCopy || (asyncCallback == null && isContextAwareResultChecker!(asyncResult)))
                 {
                     // For async calls (where asyncResult is ContextAwareResult)...
                     // If no callback was set assume the user is manually calling BeginGetResponse & EndGetResponse
                     // in which case they could dispose the HttpWebResponse before our listeners have a chance to work with it.
                     // Disposed HttpWebResponse throws when accessing properties, so let's make a copy of the data to ensure that doesn't happen.
 
-                    var responseCopy = httpWebResponseCtor(
+                    var responseCopy = httpWebResponseCtor!(
                     [
-                        uriAccessor(response), verbAccessor(response), coreResponseDataAccessor(response), mediaTypeAccessor(response),
-                            usesProxySemanticsAccessor(response), DecompressionMethods.None,
-                            isWebSocketResponseAccessor(response), connectionGroupNameAccessor(response)
+                        uriAccessor!(response), verbAccessor!(response), coreResponseDataAccessor!(response), mediaTypeAccessor!(response),
+                            usesProxySemanticsAccessor!(response), DecompressionMethods.None,
+                            isWebSocketResponseAccessor!(response), connectionGroupNameAccessor!(response)
                     ]);
 
                     if (activity != null)
@@ -425,7 +417,7 @@ internal static class HttpWebRequestActivitySource
             TagList tags = default;
 
             var httpMethod = HttpTagHelper.RequestDataHelper.GetNormalizedHttpMethod(request.Method);
-            tags.Add(new KeyValuePair<string, object>(SemanticConventions.AttributeHttpRequestMethod, httpMethod));
+            tags.Add(new KeyValuePair<string, object?>(SemanticConventions.AttributeHttpRequestMethod, httpMethod));
 
             tags.Add(SemanticConventions.AttributeServerAddress, request.RequestUri.Host);
             tags.Add(SemanticConventions.AttributeUrlScheme, request.RequestUri.Scheme);
@@ -465,8 +457,8 @@ internal static class HttpWebRequestActivitySource
         connectionType = systemNetHttpAssembly?.GetType("System.Net.Connection");
         writeListField = connectionType?.GetField("m_WriteList", BindingFlags.Instance | BindingFlags.NonPublic);
 
-        writeAResultAccessor = CreateFieldGetter<IAsyncResult>(typeof(HttpWebRequest), "_WriteAResult", BindingFlags.NonPublic | BindingFlags.Instance);
-        readAResultAccessor = CreateFieldGetter<IAsyncResult>(typeof(HttpWebRequest), "_ReadAResult", BindingFlags.NonPublic | BindingFlags.Instance);
+        writeAResultAccessor = CreateFieldGetter<IAsyncResult?>(typeof(HttpWebRequest), "_WriteAResult", BindingFlags.NonPublic | BindingFlags.Instance);
+        readAResultAccessor = CreateFieldGetter<IAsyncResult?>(typeof(HttpWebRequest), "_ReadAResult", BindingFlags.NonPublic | BindingFlags.Instance);
 
         // Double checking to make sure we have all the pieces initialized
         if (connectionGroupListField == null ||
@@ -474,10 +466,8 @@ internal static class HttpWebRequestActivitySource
             connectionListField == null ||
             connectionType == null ||
             writeListField == null ||
-#pragma warning disable CA1508 // https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1693
             writeAResultAccessor == null ||
             readAResultAccessor == null ||
-#pragma warning restore CA1508 // https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1693
             !PrepareAsyncResultReflectionObjects(systemNetHttpAssembly) ||
             !PrepareHttpWebResponseReflectionObjects(systemNetHttpAssembly))
         {
@@ -486,17 +476,17 @@ internal static class HttpWebRequestActivitySource
         }
     }
 
-    private static bool PrepareAsyncResultReflectionObjects(Assembly systemNetHttpAssembly)
+    private static bool PrepareAsyncResultReflectionObjects(Assembly? systemNetHttpAssembly)
     {
         var lazyAsyncResultType = systemNetHttpAssembly?.GetType("System.Net.LazyAsyncResult");
         if (lazyAsyncResultType != null)
         {
-            asyncCallbackAccessor = CreateFieldGetter<AsyncCallback>(lazyAsyncResultType, "m_AsyncCallback", BindingFlags.NonPublic | BindingFlags.Instance);
-            asyncCallbackModifier = CreateFieldSetter<AsyncCallback>(lazyAsyncResultType, "m_AsyncCallback", BindingFlags.NonPublic | BindingFlags.Instance);
-            asyncStateAccessor = CreateFieldGetter<object>(lazyAsyncResultType, "m_AsyncState", BindingFlags.NonPublic | BindingFlags.Instance);
-            asyncStateModifier = CreateFieldSetter<object>(lazyAsyncResultType, "m_AsyncState", BindingFlags.NonPublic | BindingFlags.Instance);
+            asyncCallbackAccessor = CreateFieldGetter<AsyncCallback?>(lazyAsyncResultType, "m_AsyncCallback", BindingFlags.NonPublic | BindingFlags.Instance);
+            asyncCallbackModifier = CreateFieldSetter<AsyncCallback?>(lazyAsyncResultType, "m_AsyncCallback", BindingFlags.NonPublic | BindingFlags.Instance);
+            asyncStateAccessor = CreateFieldGetter<object?>(lazyAsyncResultType, "m_AsyncState", BindingFlags.NonPublic | BindingFlags.Instance);
+            asyncStateModifier = CreateFieldSetter<object?>(lazyAsyncResultType, "m_AsyncState", BindingFlags.NonPublic | BindingFlags.Instance);
             endCalledAccessor = CreateFieldGetter<bool>(lazyAsyncResultType, "m_EndCalled", BindingFlags.NonPublic | BindingFlags.Instance);
-            resultAccessor = CreateFieldGetter<object>(lazyAsyncResultType, "m_Result", BindingFlags.NonPublic | BindingFlags.Instance);
+            resultAccessor = CreateFieldGetter<object?>(lazyAsyncResultType, "m_Result", BindingFlags.NonPublic | BindingFlags.Instance);
         }
 
         var contextAwareResultType = systemNetHttpAssembly?.GetType("System.Net.ContextAwareResult");
@@ -514,7 +504,7 @@ internal static class HttpWebRequestActivitySource
             && isContextAwareResultChecker != null;
     }
 
-    private static bool PrepareHttpWebResponseReflectionObjects(Assembly systemNetHttpAssembly)
+    private static bool PrepareHttpWebResponseReflectionObjects(Assembly? systemNetHttpAssembly)
     {
         var knownHttpVerbType = systemNetHttpAssembly?.GetType("System.Net.KnownHttpVerb");
         var coreResponseData = systemNetHttpAssembly?.GetType("System.Net.CoreResponseData");
@@ -541,15 +531,14 @@ internal static class HttpWebRequestActivitySource
         }
 
         uriAccessor = CreateFieldGetter<HttpWebResponse, Uri>("m_Uri", BindingFlags.NonPublic | BindingFlags.Instance);
-        verbAccessor = CreateFieldGetter<HttpWebResponse, object>("m_Verb", BindingFlags.NonPublic | BindingFlags.Instance);
-        mediaTypeAccessor = CreateFieldGetter<HttpWebResponse, string>("m_MediaType", BindingFlags.NonPublic | BindingFlags.Instance);
+        verbAccessor = CreateFieldGetter<HttpWebResponse, object?>("m_Verb", BindingFlags.NonPublic | BindingFlags.Instance);
+        mediaTypeAccessor = CreateFieldGetter<HttpWebResponse, string?>("m_MediaType", BindingFlags.NonPublic | BindingFlags.Instance);
         usesProxySemanticsAccessor = CreateFieldGetter<HttpWebResponse, bool>("m_UsesProxySemantics", BindingFlags.NonPublic | BindingFlags.Instance);
-        coreResponseDataAccessor = CreateFieldGetter<HttpWebResponse, object>("m_CoreResponseData", BindingFlags.NonPublic | BindingFlags.Instance);
+        coreResponseDataAccessor = CreateFieldGetter<HttpWebResponse, object?>("m_CoreResponseData", BindingFlags.NonPublic | BindingFlags.Instance);
         isWebSocketResponseAccessor = CreateFieldGetter<HttpWebResponse, bool>("m_IsWebSocketResponse", BindingFlags.NonPublic | BindingFlags.Instance);
-        connectionGroupNameAccessor = CreateFieldGetter<HttpWebResponse, string>("m_ConnectionGroupName", BindingFlags.NonPublic | BindingFlags.Instance);
+        connectionGroupNameAccessor = CreateFieldGetter<HttpWebResponse, string?>("m_ConnectionGroupName", BindingFlags.NonPublic | BindingFlags.Instance);
 
         return httpWebResponseCtor != null
-#pragma warning disable CA1508 // https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1693
             && uriAccessor != null
             && verbAccessor != null
             && mediaTypeAccessor != null
@@ -557,7 +546,6 @@ internal static class HttpWebRequestActivitySource
             && coreResponseDataAccessor != null
             && isWebSocketResponseAccessor != null
             && connectionGroupNameAccessor != null;
-#pragma warning restore CA1508 // https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1693
     }
 
     private static void PerformInjection()
@@ -565,8 +553,8 @@ internal static class HttpWebRequestActivitySource
         var servicePointTableField = typeof(ServicePointManager).GetField("s_ServicePointTable", BindingFlags.Static | BindingFlags.NonPublic)
                                      ?? throw new InvalidOperationException("Unable to access the ServicePointTable field");
 
-        var originalTable = servicePointTableField.GetValue(null) as Hashtable;
-        var newTable = new ServicePointHashtable(originalTable ?? []);
+        var originalTable = servicePointTableField.GetValue(null) as Hashtable ?? [];
+        var newTable = new ServicePointHashtable(originalTable);
 
         foreach (DictionaryEntry existingServicePoint in originalTable)
         {
@@ -585,8 +573,8 @@ internal static class HttpWebRequestActivitySource
             // Replace the ConnectionGroup hashtable inside this ServicePoint object,
             // which allows us to intercept each new ConnectionGroup object added under
             // this ServicePoint.
-            var originalTable = connectionGroupListField.GetValue(servicePoint) as Hashtable;
-            var newTable = new ConnectionGroupHashtable(originalTable ?? []);
+            var originalTable = connectionGroupListField!.GetValue(servicePoint) as Hashtable ?? [];
+            var newTable = new ConnectionGroupHashtable(originalTable);
 
             foreach (DictionaryEntry existingConnectionGroup in originalTable)
             {
@@ -599,13 +587,13 @@ internal static class HttpWebRequestActivitySource
 
     private static void HookConnectionGroup(object value)
     {
-        if (connectionGroupType.IsInstanceOfType(value))
+        if (connectionGroupType!.IsInstanceOfType(value))
         {
             // Replace the Connection arraylist inside this ConnectionGroup object,
             // which allows us to intercept each new Connection object added under
             // this ConnectionGroup.
-            var originalArrayList = connectionListField.GetValue(value) as ArrayList;
-            var newArrayList = new ConnectionArrayList(originalArrayList ?? []);
+            var originalArrayList = connectionListField!.GetValue(value) as ArrayList ?? [];
+            var newArrayList = new ConnectionArrayList(originalArrayList);
 
             foreach (var connection in originalArrayList)
             {
@@ -618,19 +606,19 @@ internal static class HttpWebRequestActivitySource
 
     private static void HookConnection(object value)
     {
-        if (connectionType.IsInstanceOfType(value))
+        if (connectionType!.IsInstanceOfType(value))
         {
             // Replace the HttpWebRequest arraylist inside this Connection object,
             // which allows us to intercept each new HttpWebRequest object added under
             // this Connection.
-            var originalArrayList = writeListField.GetValue(value) as ArrayList;
-            var newArrayList = new HttpWebRequestArrayList(originalArrayList ?? []);
+            var originalArrayList = writeListField!.GetValue(value) as ArrayList ?? [];
+            var newArrayList = new HttpWebRequestArrayList(originalArrayList);
 
             writeListField.SetValue(value, newArrayList);
         }
     }
 
-    private static Func<TClass, TField> CreateFieldGetter<TClass, TField>(string fieldName, BindingFlags flags)
+    private static Func<TClass, TField>? CreateFieldGetter<TClass, TField>(string fieldName, BindingFlags flags)
         where TClass : class
     {
         var field = typeof(TClass).GetField(fieldName, flags);
@@ -652,7 +640,7 @@ internal static class HttpWebRequestActivitySource
     /// Creates getter for a field defined in private or internal type
     /// represented with classType variable.
     /// </summary>
-    private static Func<object, TField> CreateFieldGetter<TField>(Type classType, string fieldName, BindingFlags flags)
+    private static Func<object, TField>? CreateFieldGetter<TField>(Type classType, string fieldName, BindingFlags flags)
     {
         var field = classType.GetField(fieldName, flags);
         if (field != null)
@@ -675,7 +663,7 @@ internal static class HttpWebRequestActivitySource
     /// Creates setter for a field defined in private or internal type
     /// represented with classType variable.
     /// </summary>
-    private static Action<object, TField> CreateFieldSetter<TField>(Type classType, string fieldName, BindingFlags flags)
+    private static Action<object, TField>? CreateFieldSetter<TField>(Type classType, string fieldName, BindingFlags flags)
     {
         var field = classType.GetField(fieldName, flags);
         if (field != null)
@@ -715,7 +703,7 @@ internal static class HttpWebRequestActivitySource
     /// <summary>
     /// Creates an instance of T using a private or internal ctor.
     /// </summary>
-    private static Func<object[], T> CreateTypeInstance<T>(ConstructorInfo constructorInfo)
+    private static Func<object?[], T> CreateTypeInstance<T>(ConstructorInfo constructorInfo)
     {
         var classType = typeof(T);
         var methodName = classType.FullName + ".ctor";
@@ -748,7 +736,7 @@ internal static class HttpWebRequestActivitySource
         generator.Emit(OpCodes.Newobj, constructorInfo);
         generator.Emit(OpCodes.Ret);
 
-        return (Func<object[], T>)setterMethod.CreateDelegate(typeof(Func<object[], T>));
+        return (Func<object?[], T>)setterMethod.CreateDelegate(typeof(Func<object?[], T>));
     }
 
     private class HashtableWrapper : Hashtable, IEnumerable
@@ -1052,7 +1040,7 @@ internal static class HttpWebRequestActivitySource
     /// </summary>
     private sealed class AsyncCallbackWrapper
     {
-        public AsyncCallbackWrapper(HttpWebRequest request, Activity activity, AsyncCallback originalCallback, long startTimestamp)
+        public AsyncCallbackWrapper(HttpWebRequest request, Activity? activity, AsyncCallback? originalCallback, long startTimestamp)
         {
             this.Request = request;
             this.Activity = activity;
@@ -1062,15 +1050,15 @@ internal static class HttpWebRequestActivitySource
 
         public HttpWebRequest Request { get; }
 
-        public Activity Activity { get; }
+        public Activity? Activity { get; }
 
-        public AsyncCallback OriginalCallback { get; }
+        public AsyncCallback? OriginalCallback { get; }
 
         public long StartTimestamp { get; }
 
         public void AsyncCallback(IAsyncResult asyncResult)
         {
-            var result = resultAccessor(asyncResult);
+            var result = resultAccessor!(asyncResult);
             if (result is Exception or HttpWebResponse)
             {
                 ProcessResult(
