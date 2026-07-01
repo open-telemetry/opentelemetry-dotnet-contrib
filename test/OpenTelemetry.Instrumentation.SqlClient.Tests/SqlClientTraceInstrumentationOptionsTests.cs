@@ -312,6 +312,39 @@ public class SqlClientTraceInstrumentationOptionsTests
         }
     }
 
+    [Fact]
+    public void RecordReturnedRowsFallsBackToSelectRowsWhenIduRowsAbsent()
+    {
+        var activities = new List<Activity>();
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation(options =>
+            {
+                options.RecordReturnedRows = true;
+            })
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        var statsWithoutIduRows = new Dictionary<string, object>
+        {
+            ["SelectRows"] = 15L,
+        };
+
+        MockCommandExecutor.ExecuteCommand(
+            TestConnectionString,
+            CommandType.Text,
+            "select * from Foo",
+            false,
+            SqlClientLibrary.MicrosoftDataSqlClient,
+            statsWithoutIduRows);
+
+        tracerProvider.ForceFlush();
+
+        var activity = Assert.Single(activities);
+
+        Assert.Equal(15L, activity.GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
+    }
+
     private static void ActivityEnrichment(Activity activity, object obj)
     {
         activity.SetTag("enriched", "yes");

@@ -14,6 +14,16 @@ public class MockCommandExecutor
 {
     public static void ExecuteCommand(string connectionString, CommandType commandType, string commandText, bool error, SqlClientLibrary library, long? selectRows = null, long? iduRows = null)
     {
+        var statistics = error ? null : new Dictionary<string, object>
+        {
+            ["SelectRows"] = selectRows ?? 0L,
+            ["IduRows"] = iduRows ?? 0L,
+        };
+        ExecuteCommand(connectionString, commandType, commandText, error, library, (IDictionary?)statistics);
+    }
+
+    public static void ExecuteCommand(string connectionString, CommandType commandType, string commandText, bool error, SqlClientLibrary library, IDictionary? statistics)
+    {
         using var fakeSqlClientDiagnosticSource = new FakeSqlClientDiagnosticSource();
 
         var beforeCommand = library == SqlClientLibrary.SystemDataSqlClient
@@ -67,18 +77,14 @@ public class MockCommandExecutor
             // Mirrors the connection statistics dictionary that Microsoft.Data.SqlClient /
             // System.Data.SqlClient include on the WriteCommandAfter payload. SelectRows is the
             // number of rows returned by queries; IduRows is the number affected by
-            // INSERT/UPDATE/DELETE commands.
-            var statistics = new Dictionary<string, object>
-            {
-                ["SelectRows"] = selectRows ?? 0L,
-                ["IduRows"] = iduRows ?? 0L,
-            };
-
+            // INSERT/UPDATE/DELETE commands. The values are cumulative for the connection lifetime;
+            // callers that want to test the per-command delta behaviour should pass cumulative values
+            // that reflect all prior work on the connection plus the current command.
             var afterExecuteEventData = new
             {
                 OperationId = operationId,
                 Command = sqlCommand,
-                Statistics = (IDictionary)statistics,
+                Statistics = statistics,
                 Timestamp = 2000000L,
             };
 
