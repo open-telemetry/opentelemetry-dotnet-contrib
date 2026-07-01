@@ -22,6 +22,40 @@ public class MockCommandExecutor
         ExecuteCommand(connectionString, commandType, commandText, error, library, (IDictionary?)statistics);
     }
 
+    public static void ExecuteCommand(IDbCommand command, SqlClientLibrary library, IDictionary? statistics)
+    {
+        using var fakeSqlClientDiagnosticSource = new FakeSqlClientDiagnosticSource();
+
+        var beforeCommand = library == SqlClientLibrary.SystemDataSqlClient
+            ? SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand
+            : SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand;
+
+        var afterCommand = library == SqlClientLibrary.SystemDataSqlClient
+            ? SqlClientDiagnosticListener.SqlDataAfterExecuteCommand
+            : SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand;
+
+        var operationId = Guid.NewGuid();
+
+        fakeSqlClientDiagnosticSource.Write(
+            beforeCommand,
+            new
+            {
+                OperationId = operationId,
+                Command = command,
+                Timestamp = (long?)1000000L,
+            });
+
+        fakeSqlClientDiagnosticSource.Write(
+            afterCommand,
+            new
+            {
+                OperationId = operationId,
+                Command = command,
+                Statistics = statistics,
+                Timestamp = 2000000L,
+            });
+    }
+
     public static void ExecuteCommand(string connectionString, CommandType commandType, string commandText, bool error, SqlClientLibrary library, IDictionary? statistics)
     {
         using var fakeSqlClientDiagnosticSource = new FakeSqlClientDiagnosticSource();
