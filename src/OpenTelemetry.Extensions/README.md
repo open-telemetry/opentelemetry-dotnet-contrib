@@ -152,6 +152,6 @@ builder.Services.AddOpenTelemetry()
         tracing.AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation()
             // Sample approximately 10% of traces consistently
-            .SetSampler(new ParentBasedSampler(new ConsistentProbabilitySampler(0.1)))
+            .SetSampler(new ParentBasedSampler(new ConsistentProbabilitySampler(0.1)));
     });
 ```

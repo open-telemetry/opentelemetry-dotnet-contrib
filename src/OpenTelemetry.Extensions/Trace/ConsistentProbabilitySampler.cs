@@ -32,9 +32,11 @@ public sealed class ConsistentProbabilitySampler : Sampler
     /// <summary>
     /// Initializes a new instance of the <see cref="ConsistentProbabilitySampler"/> class.
     /// </summary>
-    /// <param name="samplingProbability">The probability with which spans are sampled, in the range (0, 1].</param>
+    /// <param name="samplingProbability">
+    /// The probability with which spans are sampled, in the range [2^-56, 1].
+    /// </param>
     /// <exception cref="ArgumentOutOfRangeException">
-    /// <paramref name="samplingProbability"/> is not a number, or is outside the range (0, 1].
+    /// <paramref name="samplingProbability"/> is not a number, or is outside the range [2^-56, 1].
     /// </exception>
     public ConsistentProbabilitySampler(double samplingProbability)
         : this(samplingProbability, null)
@@ -43,12 +45,16 @@ public sealed class ConsistentProbabilitySampler : Sampler
 
     internal ConsistentProbabilitySampler(double samplingProbability, Random? random)
     {
-        if (double.IsNaN(samplingProbability) || samplingProbability <= 0.0 || samplingProbability > 1.0)
+        // The smallest probability representable by the 56-bit randomness range used by the
+        // specification is 2^-56 (i.e. an adjusted count of 2^56).
+        const double MinProbability = 1.0 / ConsistentProbability.MaxAdjustedCount;
+
+        if (double.IsNaN(samplingProbability) || samplingProbability < MinProbability || samplingProbability > 1.0)
         {
             throw new ArgumentOutOfRangeException(
                 nameof(samplingProbability),
                 samplingProbability,
-                "Value must be in the range (0, 1].");
+                "Value must be in the range [2^-56, 1].");
         }
 
         this.injectedRandom = random;

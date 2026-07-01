@@ -85,6 +85,19 @@ public class ConsistentProbabilityTests
         Assert.Equal(expected, ConsistentProbability.EncodeThreshold(probability, 13));
     }
 
+    [Fact]
+    public void EncodeThreshold_UsesFullPrecisionOfThirteenForVerySmallProbabilities()
+    {
+        // With the effective precision incorrectly capped at 12, this probability's threshold
+        // rounds all the way down to "0" (i.e. never sampled). Allowing the specification's full
+        // range of 13 significant hexadecimal digits preserves a non-zero, sampleable threshold.
+        const double Probability = 1e-15;
+
+        var encoded = ConsistentProbability.EncodeThreshold(Probability, ConsistentProbability.DefaultPrecision);
+
+        Assert.Equal("ffffffffffffc", encoded);
+    }
+
     [Theory]
     [InlineData(1e-7)]
     [InlineData(1e-9)]
@@ -92,7 +105,7 @@ public class ConsistentProbabilityTests
     [InlineData(1.3877787807814457e-17)] // 2^-56, the smallest valid sampling probability.
     public void EncodeThreshold_ProducesValidThresholdForSmallProbabilities(double probability)
     {
-        // Very small probabilities drive the precision to its maximum (12) and the internal power-of-two
+        // Very small probabilities drive the precision to its maximum (13) and the internal power-of-two
         // calculation to its most extreme exponent, exercising those bounds.
         var encoded = ConsistentProbability.EncodeThreshold(probability, ConsistentProbability.DefaultPrecision);
 

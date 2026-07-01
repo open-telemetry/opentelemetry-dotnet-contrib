@@ -23,6 +23,14 @@ public class ConsistentProbabilitySamplerTests
         Assert.Equal("samplingProbability", exception.ParamName);
     }
 
+    [Fact]
+    public void Constructor_ThrowsArgumentOutOfRangeException_WhenProbabilityIsSmallerThanSmallestValidProbability()
+    {
+        var exception = Assert.Throws<ArgumentOutOfRangeException>(() => new ConsistentProbabilitySampler(Math.Pow(2, -57)));
+
+        Assert.Equal("samplingProbability", exception.ParamName);
+    }
+
     [Theory]
     [InlineData(1.0)]
     [InlineData(0.5)]

@@ -57,7 +57,7 @@ internal static class ConsistentProbability
 
         // Raise the precision by the number of leading 'f' digits so the configured precision
         // applies to the significant digits of the threshold for probabilities near zero.
-        precision = Math.Max(1, Math.Min(12, precision + ((-exponent) / 4)));
+        precision = Math.Max(1, Math.Min(13, precision + ((-exponent) / 4)));
 
         // Change the probability into 1 + rejection probability, mapping (0, 1] into [1, 2).
         var rejectionProbability = 2.0 - probability;
