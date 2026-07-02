@@ -128,7 +128,6 @@ internal static class SemanticConventions
     public const string AttributeMessagingConsumerGroupName = "messaging.consumer.group.name"; // replaces: "messaging.kafka.consumer.group"
     public const string AttributeMessagingDestinationName = "messaging.destination.name";
     public const string AttributeMessagingDestinationPartitionId = "messaging.destination.partition.id"; // replaces: "messaging.kafka.destination.partition"
-    public const string AttributeMessagingMessageBodySize = "messaging.message.body.size";
     public const string AttributeMessagingOperationName = "messaging.operation.name"; // replaces: "messaging.operation"
     public const string AttributeMessagingOperationType = "messaging.operation.type";
 
@@ -137,12 +136,10 @@ internal static class SemanticConventions
     public const string MetricMessagingClientOperationDuration = "messaging.client.operation.duration"; // replaces: "messaging.publish.duration" and "messaging.receive.duration"
     public const string MetricMessagingClientSentMessages = "messaging.client.sent.messages"; // replaces: "messaging.publish.messages"
     public const string MetricMessagingClientConsumedMessages = "messaging.client.consumed.messages"; // replaces: "messaging.receive.messages"
-    public const string MetricMessagingProcessDuration = "messaging.process.duration";
 
     // v1.42.0 Messaging (Kafka)
     // https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/messaging/kafka.md
     public const string AttributeMessagingKafkaMessageKey = "messaging.kafka.message.key";
-    public const string AttributeMessagingKafkaMessageTombstone = "messaging.kafka.message.tombstone";
     public const string AttributeMessagingKafkaOffset = "messaging.kafka.offset"; // replaces: "messaging.kafka.message.offset"
 
     // v1.36.0 database conventions:
