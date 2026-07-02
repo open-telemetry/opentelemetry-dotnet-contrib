@@ -145,6 +145,7 @@ internal sealed class FrameDispatcher : IDisposable
                 .AddCapabilities();
 
             // TODO: Add here features when they become available and are necessary to restore the full state in the server if requested.
+            // See https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/4634
             if (report.EffectiveConfigFiles is { } effectiveConfig)
             {
                 message.AddEffectiveConfig(effectiveConfig);
