@@ -15,7 +15,7 @@ public class InstrumentedProducerTests
         var activities = new List<Activity>();
 
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddSource(ConfluentKafkaCommon.InstrumentationName)
+            .AddSource(ConfluentKafkaCommon.ActivitySource.Name)
             .AddInMemoryExporter(activities)
             .Build())
         {
@@ -32,11 +32,13 @@ public class InstrumentedProducerTests
             tracerProvider.ForceFlush();
         }
 
-        var activity = activities.Single(a => a.DisplayName == "unit-test-topic publish");
+        var activity = activities.Single(a => a.DisplayName == "send unit-test-topic");
 
         Assert.Equal(ActivityKind.Producer, activity.Kind);
+        Assert.StartsWith("https://opentelemetry.io/schemas/", activity.Source.TelemetrySchemaUrl, StringComparison.Ordinal);
         Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
-        Assert.Equal("publish", activity.GetTagValue(SemanticConventions.AttributeMessagingOperation));
+        Assert.Equal("send", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationName));
+        Assert.Equal("send", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationType));
         Assert.Equal("unit-test-topic", activity.GetTagValue(SemanticConventions.AttributeMessagingDestinationName));
     }
 
@@ -46,7 +48,7 @@ public class InstrumentedProducerTests
         var activities = new List<Activity>();
 
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddSource(ConfluentKafkaCommon.InstrumentationName)
+            .AddSource(ConfluentKafkaCommon.ActivitySource.Name)
             .AddInMemoryExporter(activities)
             .Build())
         {
@@ -65,9 +67,37 @@ public class InstrumentedProducerTests
             tracerProvider.ForceFlush();
         }
 
-        var activity = activities.Single(a => a.DisplayName == "partition-topic publish");
-        Assert.Equal(3, activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaDestinationPartition));
+        var activity = activities.Single(a => a.DisplayName == "send partition-topic");
+        Assert.Equal("3", activity.GetTagValue(SemanticConventions.AttributeMessagingDestinationPartitionId));
         Assert.Equal("msg-key", activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaMessageKey));
+        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaMessageTombstone));
+    }
+
+    [Fact]
+    public async Task ProduceAsync_TombstoneMessage_SetsTombstoneTag()
+    {
+        var activities = new List<Activity>();
+
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSource(ConfluentKafkaCommon.ActivitySource.Name)
+            .AddInMemoryExporter(activities)
+            .Build())
+        {
+            var fakeProducer = new FakeProducer<string, string>();
+            var options = new ConfluentKafkaProducerInstrumentationOptions<string, string>
+            {
+                Traces = true,
+                Metrics = false,
+            };
+            var instrumentedProducer = new InstrumentedProducer<string, string>(fakeProducer, options);
+
+            await instrumentedProducer.ProduceAsync("tombstone-topic", new Message<string, string> { Key = "msg-key", Value = null! });
+
+            tracerProvider.ForceFlush();
+        }
+
+        var activity = activities.Single(a => a.DisplayName == "send tombstone-topic");
+        Assert.Equal(true, activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaMessageTombstone));
     }
 
     [Fact]
@@ -76,7 +106,7 @@ public class InstrumentedProducerTests
         var activities = new List<Activity>();
 
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddSource(ConfluentKafkaCommon.InstrumentationName)
+            .AddSource(ConfluentKafkaCommon.ActivitySource.Name)
             .AddInMemoryExporter(activities)
             .Build())
         {
@@ -93,7 +123,7 @@ public class InstrumentedProducerTests
             tracerProvider.ForceFlush();
         }
 
-        Assert.DoesNotContain(activities, a => a.DisplayName == "disabled-traces-topic publish");
+        Assert.DoesNotContain(activities, a => a.DisplayName == "send disabled-traces-topic");
     }
 
     [Fact]
@@ -102,7 +132,7 @@ public class InstrumentedProducerTests
         var activities = new List<Activity>();
 
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddSource(ConfluentKafkaCommon.InstrumentationName)
+            .AddSource(ConfluentKafkaCommon.ActivitySource.Name)
             .AddInMemoryExporter(activities)
             .Build())
         {
@@ -123,7 +153,7 @@ public class InstrumentedProducerTests
             tracerProvider.ForceFlush();
         }
 
-        var activity = activities.Single(a => a.DisplayName == "error-topic publish");
+        var activity = activities.Single(a => a.DisplayName == "send error-topic");
 
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
 
@@ -136,7 +166,7 @@ public class InstrumentedProducerTests
     public async Task ProduceAsync_InjectsTraceContextIntoMessageHeaders()
     {
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddSource(ConfluentKafkaCommon.InstrumentationName)
+            .AddSource(ConfluentKafkaCommon.ActivitySource.Name)
             .Build();
 
         var fakeProducer = new FakeProducer<string, string>();
@@ -162,7 +192,7 @@ public class InstrumentedProducerTests
         var activities = new List<Activity>();
 
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddSource(ConfluentKafkaCommon.InstrumentationName)
+            .AddSource(ConfluentKafkaCommon.ActivitySource.Name)
             .AddInMemoryExporter(activities)
             .Build())
         {
@@ -179,7 +209,7 @@ public class InstrumentedProducerTests
             tracerProvider.ForceFlush();
         }
 
-        Assert.Contains(activities, a => a.DisplayName == "sync-topic publish");
+        Assert.Contains(activities, a => a.DisplayName == "send sync-topic");
     }
 
     private sealed class FakeProducer<TKey, TValue> : IProducer<TKey, TValue>

@@ -242,24 +242,30 @@ public class HostedTracingAndMeteringTests(KafkaFixture fixture, ITestOutputHelp
 
         if (enableProducerMetrics)
         {
-            Assert.Contains("messaging.publish.messages", groups.Select(x => x.Key));
-            Assert.Contains("messaging.publish.duration", groups.Select(x => x.Key));
+            Assert.Contains("messaging.client.sent.messages", groups.Select(x => x.Key));
         }
         else
         {
-            Assert.DoesNotContain("messaging.publish.messages", groups.Select(x => x.Key));
-            Assert.DoesNotContain("messaging.publish.duration", groups.Select(x => x.Key));
+            Assert.DoesNotContain("messaging.client.sent.messages", groups.Select(x => x.Key));
         }
 
         if (enableConsumerMetrics)
         {
-            Assert.Contains("messaging.receive.messages", groups.Select(x => x.Key));
-            Assert.Contains("messaging.receive.duration", groups.Select(x => x.Key));
+            Assert.Contains("messaging.client.consumed.messages", groups.Select(x => x.Key));
         }
         else
         {
-            Assert.DoesNotContain("messaging.receive.messages", groups.Select(x => x.Key));
-            Assert.DoesNotContain("messaging.receive.duration", groups.Select(x => x.Key));
+            Assert.DoesNotContain("messaging.client.consumed.messages", groups.Select(x => x.Key));
+        }
+
+        // messaging.client.operation.duration is emitted by both producers (send) and consumers (poll).
+        if (enableProducerMetrics || enableConsumerMetrics)
+        {
+            Assert.Contains("messaging.client.operation.duration", groups.Select(x => x.Key));
+        }
+        else
+        {
+            Assert.DoesNotContain("messaging.client.operation.duration", groups.Select(x => x.Key));
         }
     }
 }

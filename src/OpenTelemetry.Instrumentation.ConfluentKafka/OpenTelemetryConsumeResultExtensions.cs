@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 using OpenTelemetry;
 using OpenTelemetry.Context.Propagation;
@@ -105,7 +106,7 @@ public static class OpenTelemetryConsumeResultExtensions
             return consumeResult;
         }
 
-        var processActivity = StartProcessActivity(TryExtractPropagationContext(consumeResult, out var propagationContext) ? propagationContext : default, consumeResult.TopicPartitionOffset, consumeResult.Message.Key, instrumentedConsumer.Name, instrumentedConsumer.GroupId!);
+        var processActivity = StartProcessActivity(TryExtractPropagationContext(consumeResult, out var propagationContext) ? propagationContext : default, consumeResult.TopicPartitionOffset, consumeResult.Message.Key, consumeResult.Message.Value is null, instrumentedConsumer.Name, instrumentedConsumer.GroupId!);
 
         try
         {
@@ -113,7 +114,7 @@ public static class OpenTelemetryConsumeResultExtensions
         }
         catch (Exception ex)
         {
-            processActivity?.SetStatus(ActivityStatusCode.Error);
+            processActivity?.SetStatus(ActivityStatusCode.Error, ex.Message);
             processActivity?.SetTag(SemanticConventions.AttributeErrorType, ex.GetType().FullName);
             throw;
         }
@@ -128,12 +129,12 @@ public static class OpenTelemetryConsumeResultExtensions
     internal static PropagationContext ExtractPropagationContext(Headers? headers)
         => Propagators.DefaultTextMapPropagator.Extract(default, headers, ExtractTraceContext);
 
-    private static Activity? StartProcessActivity<TKey>(PropagationContext propagationContext, TopicPartitionOffset? topicPartitionOffset, TKey? key, string clientId, string groupId)
+    private static Activity? StartProcessActivity<TKey>(PropagationContext propagationContext, TopicPartitionOffset? topicPartitionOffset, TKey? key, bool isTombstone, string clientId, string groupId)
     {
 #pragma warning disable IDE0370 // Suppression is unnecessary
         var spanName = string.IsNullOrEmpty(topicPartitionOffset?.Topic)
             ? ConfluentKafkaCommon.ProcessOperationName
-            : string.Concat(topicPartitionOffset!.Topic, " ", ConfluentKafkaCommon.ProcessOperationName);
+            : string.Concat(ConfluentKafkaCommon.ProcessOperationName, " ", topicPartitionOffset!.Topic);
 #pragma warning restore IDE0370 // Suppression is unnecessary
 
         ActivityLink[] activityLinks = propagationContext != default && propagationContext.ActivityContext.IsValid()
@@ -145,14 +146,26 @@ public static class OpenTelemetryConsumeResultExtensions
         {
             activity.SetTag(SemanticConventions.AttributeMessagingSystem, ConfluentKafkaCommon.KafkaMessagingSystem);
             activity.SetTag(SemanticConventions.AttributeMessagingClientId, clientId);
-            activity.SetTag(SemanticConventions.AttributeMessagingDestinationName, topicPartitionOffset?.Topic);
-            activity.SetTag(SemanticConventions.AttributeMessagingKafkaDestinationPartition, topicPartitionOffset?.Partition.Value);
-            activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageOffset, topicPartitionOffset?.Offset.Value);
-            activity.SetTag(SemanticConventions.AttributeMessagingKafkaConsumerGroup, groupId);
-            activity.SetTag(SemanticConventions.AttributeMessagingOperation, ConfluentKafkaCommon.ProcessOperationName);
+            activity.SetTag(SemanticConventions.AttributeMessagingOperationName, ConfluentKafkaCommon.ProcessOperationName);
+            activity.SetTag(SemanticConventions.AttributeMessagingOperationType, ConfluentKafkaCommon.ProcessOperationType);
+            activity.SetTag(SemanticConventions.AttributeMessagingConsumerGroupName, groupId);
+            activity.SetTag(SemanticConventions.AttributeMessagingKafkaOffset, topicPartitionOffset?.Offset.Value);
+
+            // messaging.destination.name is only set for actual topics; it must be omitted when unknown.
+            if (!string.IsNullOrEmpty(topicPartitionOffset?.Topic))
+            {
+                activity.SetTag(SemanticConventions.AttributeMessagingDestinationName, topicPartitionOffset!.Topic);
+                activity.SetTag(SemanticConventions.AttributeMessagingDestinationPartitionId, topicPartitionOffset.Partition.Value.ToString(CultureInfo.InvariantCulture));
+            }
+
             if (key != null)
             {
                 activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageKey, key);
+            }
+
+            if (isTombstone)
+            {
+                activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageTombstone, true);
             }
         }
 

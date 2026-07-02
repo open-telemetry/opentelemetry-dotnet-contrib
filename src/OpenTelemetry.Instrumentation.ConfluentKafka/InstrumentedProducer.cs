@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 using Confluent.Kafka;
 using OpenTelemetry.Context.Propagation;
@@ -28,14 +29,10 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
     public string Name => this.producer.Name;
 
     public int AddBrokers(string brokers)
-    {
-        return this.producer.AddBrokers(brokers);
-    }
+        => this.producer.AddBrokers(brokers);
 
     public void SetSaslCredentials(string username, string password)
-    {
-        this.producer.SetSaslCredentials(username, password);
-    }
+        => this.producer.SetSaslCredentials(username, password);
 
     public async Task<DeliveryResult<TKey, TValue>> ProduceAsync(
         string topic,
@@ -57,15 +54,17 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
         }
         catch (ProduceException<TKey, TValue> produceException)
         {
-            activity?.SetStatus(ActivityStatusCode.Error);
-            activity?.SetTag(SemanticConventions.AttributeErrorType, errorType = FormatProduceException(produceException));
+            errorType = FormatProduceException(produceException);
+            activity?.SetStatus(ActivityStatusCode.Error, produceException.Message);
+            activity?.SetTag(SemanticConventions.AttributeErrorType, errorType);
 
             throw;
         }
         catch (ArgumentException argumentException)
         {
-            activity?.SetStatus(ActivityStatusCode.Error);
-            activity?.SetTag(SemanticConventions.AttributeErrorType, errorType = FormatArgumentException(argumentException));
+            errorType = FormatArgumentException(argumentException);
+            activity?.SetStatus(ActivityStatusCode.Error, argumentException.Message);
+            activity?.SetTag(SemanticConventions.AttributeErrorType, errorType);
 
             throw;
         }
@@ -104,15 +103,17 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
         }
         catch (ProduceException<TKey, TValue> produceException)
         {
-            activity?.SetStatus(ActivityStatusCode.Error);
-            activity?.SetTag(SemanticConventions.AttributeErrorType, errorType = FormatProduceException(produceException));
+            errorType = FormatProduceException(produceException);
+            activity?.SetStatus(ActivityStatusCode.Error, produceException.Message);
+            activity?.SetTag(SemanticConventions.AttributeErrorType, errorType);
 
             throw;
         }
         catch (ArgumentException argumentException)
         {
-            activity?.SetStatus(ActivityStatusCode.Error);
-            activity?.SetTag(SemanticConventions.AttributeErrorType, errorType = FormatArgumentException(argumentException));
+            errorType = FormatArgumentException(argumentException);
+            activity?.SetStatus(ActivityStatusCode.Error, argumentException.Message);
+            activity?.SetTag(SemanticConventions.AttributeErrorType, errorType);
 
             throw;
         }
@@ -147,15 +148,17 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
         }
         catch (ProduceException<TKey, TValue> produceException)
         {
-            activity?.SetStatus(ActivityStatusCode.Error);
-            activity?.SetTag(SemanticConventions.AttributeErrorType, errorType = FormatProduceException(produceException));
+            errorType = FormatProduceException(produceException);
+            activity?.SetStatus(ActivityStatusCode.Error, produceException.Message);
+            activity?.SetTag(SemanticConventions.AttributeErrorType, errorType);
 
             throw;
         }
         catch (ArgumentException argumentException)
         {
-            activity?.SetStatus(ActivityStatusCode.Error);
-            activity?.SetTag(SemanticConventions.AttributeErrorType, errorType = FormatArgumentException(argumentException));
+            errorType = FormatArgumentException(argumentException);
+            activity?.SetStatus(ActivityStatusCode.Error, argumentException.Message);
+            activity?.SetTag(SemanticConventions.AttributeErrorType, errorType);
 
             throw;
         }
@@ -188,15 +191,17 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
         }
         catch (ProduceException<TKey, TValue> produceException)
         {
-            activity?.SetStatus(ActivityStatusCode.Error);
-            activity?.SetTag(SemanticConventions.AttributeErrorType, errorType = FormatProduceException(produceException));
+            errorType = FormatProduceException(produceException);
+            activity?.SetStatus(ActivityStatusCode.Error, produceException.Message);
+            activity?.SetTag(SemanticConventions.AttributeErrorType, errorType);
 
             throw;
         }
         catch (ArgumentException argumentException)
         {
-            activity?.SetStatus(ActivityStatusCode.Error);
-            activity?.SetTag(SemanticConventions.AttributeErrorType, errorType = FormatArgumentException(argumentException));
+            errorType = FormatArgumentException(argumentException);
+            activity?.SetStatus(ActivityStatusCode.Error, argumentException.Message);
+            activity?.SetTag(SemanticConventions.AttributeErrorType, errorType);
 
             throw;
         }
@@ -214,73 +219,54 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
     }
 
     public int Poll(TimeSpan timeout)
-    {
-        return this.producer.Poll(timeout);
-    }
+         => this.producer.Poll(timeout);
 
     public int Flush(TimeSpan timeout)
-    {
-        return this.producer.Flush(timeout);
-    }
+         => this.producer.Flush(timeout);
 
-    public void Flush(CancellationToken cancellationToken = default)
-    {
+    public void Flush(CancellationToken cancellationToken = default) =>
         this.producer.Flush(cancellationToken);
-    }
 
-    public void InitTransactions(TimeSpan timeout)
-    {
+    public void InitTransactions(TimeSpan timeout) =>
         this.producer.InitTransactions(timeout);
-    }
 
-    public void BeginTransaction()
-    {
+    public void BeginTransaction() =>
         this.producer.BeginTransaction();
-    }
 
-    public void CommitTransaction(TimeSpan timeout)
-    {
+    public void CommitTransaction(TimeSpan timeout) =>
         this.producer.CommitTransaction(timeout);
-    }
 
-    public void CommitTransaction()
-    {
+    public void CommitTransaction() =>
         this.producer.CommitTransaction();
-    }
 
-    public void AbortTransaction(TimeSpan timeout)
-    {
+    public void AbortTransaction(TimeSpan timeout) =>
         this.producer.AbortTransaction(timeout);
-    }
 
-    public void AbortTransaction()
-    {
+    public void AbortTransaction() =>
         this.producer.AbortTransaction();
-    }
 
-    public void SendOffsetsToTransaction(IEnumerable<TopicPartitionOffset> offsets, IConsumerGroupMetadata groupMetadata, TimeSpan timeout)
-    {
+    public void SendOffsetsToTransaction(IEnumerable<TopicPartitionOffset> offsets, IConsumerGroupMetadata groupMetadata, TimeSpan timeout) =>
         this.producer.SendOffsetsToTransaction(offsets, groupMetadata, timeout);
-    }
 
-    public void Dispose()
-    {
+    public void Dispose() =>
         this.producer.Dispose();
-    }
 
     private static string FormatProduceException(ProduceException<TKey, TValue> produceException) =>
-        $"ProduceException: {produceException.Error.Code}";
+        produceException.Error.Code.ToString();
 
     private static string FormatArgumentException(ArgumentException argumentException) =>
-        $"ArgumentException: {argumentException.ParamName}";
+        argumentException.GetType().FullName!;
 
     private static void GetTags(string topic, out TagList tags, int? partition = null, string? errorType = null)
     {
         tags = new TagList()
         {
             new KeyValuePair<string, object?>(
-                SemanticConventions.AttributeMessagingOperation,
-                ConfluentKafkaCommon.PublishOperationName),
+                SemanticConventions.AttributeMessagingOperationName,
+                ConfluentKafkaCommon.SendOperationName),
+            new KeyValuePair<string, object?>(
+                SemanticConventions.AttributeMessagingOperationType,
+                ConfluentKafkaCommon.SendOperationType),
             new KeyValuePair<string, object?>(
                 SemanticConventions.AttributeMessagingSystem,
                 ConfluentKafkaCommon.KafkaMessagingSystem),
@@ -293,8 +279,8 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
         {
             tags.Add(
                 new KeyValuePair<string, object?>(
-                    SemanticConventions.AttributeMessagingKafkaDestinationPartition,
-                    partition));
+                    SemanticConventions.AttributeMessagingDestinationPartitionId,
+                    partition.Value.ToString(CultureInfo.InvariantCulture)));
         }
 
         if (errorType is not null)
@@ -310,16 +296,16 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
     {
         GetTags(topic, out var tags, partition: null, errorType);
 
-        ConfluentKafkaCommon.PublishMessagesCounter.Add(1, in tags);
-        ConfluentKafkaCommon.PublishDurationHistogram.Record(duration.TotalSeconds, in tags);
+        ConfluentKafkaCommon.SentMessagesCounter.Add(1, in tags);
+        ConfluentKafkaCommon.OperationDurationHistogram.Record(duration.TotalSeconds, in tags);
     }
 
     private static void RecordPublish(TopicPartition topicPartition, TimeSpan duration, string? errorType = null)
     {
         GetTags(topicPartition.Topic, out var tags, partition: topicPartition.Partition, errorType);
 
-        ConfluentKafkaCommon.PublishMessagesCounter.Add(1, in tags);
-        ConfluentKafkaCommon.PublishDurationHistogram.Record(duration.TotalSeconds, in tags);
+        ConfluentKafkaCommon.SentMessagesCounter.Add(1, in tags);
+        ConfluentKafkaCommon.OperationDurationHistogram.Record(duration.TotalSeconds, in tags);
     }
 
     private Activity? StartPublishActivity(DateTimeOffset start, string topic, Message<TKey, TValue> message, int? partition = null)
@@ -329,7 +315,7 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
             return null;
         }
 
-        var spanName = string.Concat(topic, " ", ConfluentKafkaCommon.PublishOperationName);
+        var spanName = string.Concat(ConfluentKafkaCommon.SendOperationName, " ", topic);
         var activity = ConfluentKafkaCommon.ActivitySource.StartActivity(name: spanName, kind: ActivityKind.Producer, startTime: start);
         if (activity == null)
         {
@@ -341,26 +327,30 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
             activity.SetTag(SemanticConventions.AttributeMessagingSystem, ConfluentKafkaCommon.KafkaMessagingSystem);
             activity.SetTag(SemanticConventions.AttributeMessagingClientId, this.Name);
             activity.SetTag(SemanticConventions.AttributeMessagingDestinationName, topic);
-            activity.SetTag(SemanticConventions.AttributeMessagingOperation, ConfluentKafkaCommon.PublishOperationName);
+            activity.SetTag(SemanticConventions.AttributeMessagingOperationName, ConfluentKafkaCommon.SendOperationName);
+            activity.SetTag(SemanticConventions.AttributeMessagingOperationType, ConfluentKafkaCommon.SendOperationType);
 
             if (message.Key != null)
             {
                 activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageKey, message.Key);
             }
 
+            if (message.Value is null)
+            {
+                activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageTombstone, true);
+            }
+
             if (partition is not null)
             {
-                activity.SetTag(SemanticConventions.AttributeMessagingKafkaDestinationPartition, partition);
+                activity.SetTag(SemanticConventions.AttributeMessagingDestinationPartitionId, partition.Value.ToString(CultureInfo.InvariantCulture));
             }
         }
 
         return activity;
     }
 
-    private void InjectActivity(Activity? activity, Message<TKey, TValue> message)
-    {
+    private void InjectActivity(Activity? activity, Message<TKey, TValue> message) =>
         this.propagator.Inject(new PropagationContext(activity?.Context ?? default, Baggage.Current), message, this.InjectTraceContext);
-    }
 
     private void InjectTraceContext(Message<TKey, TValue> message, string key, string value)
     {
