@@ -26,7 +26,7 @@ public sealed class ConsistentProbabilitySampler : Sampler
     private static readonly ThreadLocal<Random> ThreadLocalRandom = new(() => new Random());
 #endif
 
-    private readonly Random? injectedRandom;
+    private readonly Random? random;
     private readonly long threshold;
 
     /// <summary>
@@ -57,7 +57,7 @@ public sealed class ConsistentProbabilitySampler : Sampler
                 "Value must be in the range [2^-56, 1].");
         }
 
-        this.injectedRandom = random;
+        this.random = random;
 
         // Round the probability to the encoded threshold once, so the sampling decision matches the
         // threshold that is propagated to downstream participants.
@@ -145,7 +145,7 @@ public sealed class ConsistentProbabilitySampler : Sampler
     private long GenerateRandomness()
     {
         // "OpenTelemetry supports a random (or pseudo-random) 56-bit value known as explicit trace randomness."
-        var random = this.injectedRandom ?? DefaultRandom;
+        var random = this.random ?? DefaultRandom;
 
 #if NET
         // The randomness is a 56-bit value, i.e. in the range [0, 2^56).
