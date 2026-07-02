@@ -6,6 +6,7 @@ using OpenTelemetry.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Services.Heartbeat;
 using OpenTelemetry.OpAmp.Client.Internal.Transport;
 using OpenTelemetry.OpAmp.Client.Messages;
+using OpenTelemetry.OpAmp.Client.Messages.Flags;
 using OpenTelemetry.OpAmp.Client.Settings;
 
 namespace OpenTelemetry.OpAmp.Client.Internal;
@@ -125,6 +126,41 @@ internal sealed class FrameDispatcher : IDisposable
         AgentToServer BuildCustomMessageMessage(FrameBuilder fb)
         {
             return fb.StartBaseMessage().AddCustomMessage(capability, type, data).Build();
+        }
+    }
+
+    public async Task DispatchFullStateReportAsync(FullStateReport report, CancellationToken token)
+    {
+        await this.DispatchFrameAsync(
+            BuildFullStateReportMessage,
+            OpAmpClientEventSource.Log.SendingFullStateReportMessage,
+            OpAmpClientEventSource.Log.SendFullStateReportMessageException,
+            token).ConfigureAwait(false);
+
+        AgentToServer BuildFullStateReportMessage(FrameBuilder fb)
+        {
+            // Start message with basic partials.
+            var message = fb.StartBaseMessage()
+                .AddAgentDescription()
+                .AddCapabilities();
+
+            // TODO: Add here features when they become available and are necessary to restore the full state in the server if requested.
+            if (report.EffectiveConfigFiles != null)
+            {
+                message.AddEffectiveConfig(report.EffectiveConfigFiles);
+            }
+
+            if (report.RemoteConfigStatus != null)
+            {
+                message.AddRemoteConfigStatus(report.RemoteConfigStatus);
+            }
+
+            if (report.CustomCapabilities != null)
+            {
+                message.AddCustomCapabilities(report.CustomCapabilities);
+            }
+
+            return message.Build();
         }
     }
 
