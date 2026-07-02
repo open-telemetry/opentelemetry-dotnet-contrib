@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.1.0-alpha.1
+
+Released 2026-Jul-02
+
 * Initial implementation.
   ([#3591](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3591))
 
