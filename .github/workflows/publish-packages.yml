@@ -123,7 +123,15 @@ jobs:
           foreach ($projectFile in $projectFiles) {
               $projectName = [System.IO.Path]::GetFileNameWithoutExtension($projectFile)
 
-              Get-ChildItem -Path artifacts/bin/$projectName/release*/$projectName.dll -File | ForEach-Object {
+              $dllSearchPath = "artifacts/bin/$projectName/release*/$projectName.dll"
+
+              # Components that were not built (e.g. in tag/component
+              # builds) will not have any output, so skip them.
+              if (-not (Test-Path -Path $dllSearchPath)) {
+                  continue
+              }
+
+              Get-ChildItem -Path $dllSearchPath -File | ForEach-Object {
                   $fileFullPath = $_.FullName
                   Write-Output "Signing $fileFullPath"
 
