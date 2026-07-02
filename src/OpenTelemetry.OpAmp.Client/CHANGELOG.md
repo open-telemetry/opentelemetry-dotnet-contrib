@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Add support for reporting full state.
+  ([#4633](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4633))
+
 ## 0.5.0-alpha.1
 
 Released 2026-Jul-01
