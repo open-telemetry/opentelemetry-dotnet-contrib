@@ -34,13 +34,16 @@ public class InstrumentedConsumerTests
             tracerProvider.ForceFlush();
         }
 
-        var activity = activities.Single(a => a.DisplayName == "consume-topic receive");
-        Assert.Equal(ActivityKind.Consumer, activity.Kind);
+        var activity = activities.Single(a => a.DisplayName == "poll consume-topic");
+        Assert.Equal(ActivityKind.Client, activity.Kind);
+        Assert.Equal("https://opentelemetry.io/schemas/1.42.0", activity.Source.TelemetrySchemaUrl);
         Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
-        Assert.Equal("receive", activity.GetTagValue(SemanticConventions.AttributeMessagingOperation));
+        Assert.Equal("poll", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationName));
+        Assert.Equal("receive", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationType));
         Assert.Equal("consume-topic", activity.GetTagValue(SemanticConventions.AttributeMessagingDestinationName));
-        Assert.Equal(42L, activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaMessageOffset));
-        Assert.Equal("test-group", activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaConsumerGroup));
+        Assert.Equal("1", activity.GetTagValue(SemanticConventions.AttributeMessagingDestinationPartitionId));
+        Assert.Equal(42L, activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaOffset));
+        Assert.Equal("test-group", activity.GetTagValue(SemanticConventions.AttributeMessagingConsumerGroupName));
         Assert.Equal("msg-key", activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaMessageKey));
     }
 
@@ -74,7 +77,7 @@ public class InstrumentedConsumerTests
             tracerProvider.ForceFlush();
         }
 
-        Assert.DoesNotContain(activities, a => a.DisplayName == "disabled-traces-topic receive");
+        Assert.DoesNotContain(activities, a => a.DisplayName == "poll disabled-traces-topic");
     }
 
     [Fact]
@@ -100,7 +103,7 @@ public class InstrumentedConsumerTests
             tracerProvider.ForceFlush();
         }
 
-        Assert.DoesNotContain(activities, a => a.DisplayName == "eof-topic receive");
+        Assert.DoesNotContain(activities, a => a.DisplayName == "poll eof-topic");
     }
 
     [Fact]
@@ -134,7 +137,7 @@ public class InstrumentedConsumerTests
         }
 
         var snapshot = activities.ToList();
-        var activity = snapshot.Single(a => a.DisplayName == "linked-topic receive");
+        var activity = snapshot.Single(a => a.DisplayName == "poll linked-topic");
 
         // The extracted producer context should be linked (not parented) per messaging conventions
         Assert.NotEmpty(activity.Links);
@@ -164,18 +167,19 @@ public class InstrumentedConsumerTests
             tracerProvider.ForceFlush();
         }
 
-        var activity = activities.FirstOrDefault(a => a.DisplayName == "receive");
+        var activity = activities.FirstOrDefault(a => a.DisplayName == "poll");
         Assert.NotNull(activity);
-        Assert.Equal(ActivityKind.Consumer, activity.Kind);
+        Assert.Equal(ActivityKind.Client, activity.Kind);
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
         Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
         Assert.Equal("fake-consumer-1", activity.GetTagValue(SemanticConventions.AttributeMessagingClientId));
-        Assert.Equal("test-group", activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaConsumerGroup));
-        Assert.Equal("receive", activity.GetTagValue(SemanticConventions.AttributeMessagingOperation));
-        Assert.Equal($"ConsumeException: {exception.Error}", activity.GetTagValue(SemanticConventions.AttributeErrorType));
+        Assert.Equal("test-group", activity.GetTagValue(SemanticConventions.AttributeMessagingConsumerGroupName));
+        Assert.Equal("poll", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationName));
+        Assert.Equal("receive", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationType));
+        Assert.Equal(exception.Error.Code.ToString(), activity.GetTagValue(SemanticConventions.AttributeErrorType));
         Assert.Null(activity.GetTagValue(SemanticConventions.AttributeMessagingDestinationName));
-        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaDestinationPartition));
-        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaMessageOffset));
+        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeMessagingDestinationPartitionId));
+        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaOffset));
         Assert.Null(activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaMessageKey));
     }
 
@@ -207,18 +211,19 @@ public class InstrumentedConsumerTests
             tracerProvider.ForceFlush();
         }
 
-        var activity = activities.FirstOrDefault(a => a.DisplayName == "error-topic receive");
+        var activity = activities.FirstOrDefault(a => a.DisplayName == "poll error-topic");
         Assert.NotNull(activity);
-        Assert.Equal(ActivityKind.Consumer, activity.Kind);
+        Assert.Equal(ActivityKind.Client, activity.Kind);
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
         Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
         Assert.Equal("fake-consumer-1", activity.GetTagValue(SemanticConventions.AttributeMessagingClientId));
-        Assert.Equal("test-group", activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaConsumerGroup));
-        Assert.Equal("receive", activity.GetTagValue(SemanticConventions.AttributeMessagingOperation));
-        Assert.Equal($"ConsumeException: {exception.Error}", activity.GetTagValue(SemanticConventions.AttributeErrorType));
+        Assert.Equal("test-group", activity.GetTagValue(SemanticConventions.AttributeMessagingConsumerGroupName));
+        Assert.Equal("poll", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationName));
+        Assert.Equal("receive", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationType));
+        Assert.Equal(exception.Error.Code.ToString(), activity.GetTagValue(SemanticConventions.AttributeErrorType));
         Assert.Equal("error-topic", activity.GetTagValue(SemanticConventions.AttributeMessagingDestinationName));
-        Assert.Equal(2, activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaDestinationPartition));
-        Assert.Equal(100L, activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaMessageOffset));
+        Assert.Equal("2", activity.GetTagValue(SemanticConventions.AttributeMessagingDestinationPartitionId));
+        Assert.Equal(100L, activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaOffset));
         Assert.Null(activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaMessageKey));
     }
 
@@ -254,18 +259,19 @@ public class InstrumentedConsumerTests
             tracerProvider.ForceFlush();
         }
 
-        var activity = activities.FirstOrDefault(a => a.DisplayName == "error-topic-no-headers receive");
+        var activity = activities.FirstOrDefault(a => a.DisplayName == "poll error-topic-no-headers");
         Assert.NotNull(activity);
-        Assert.Equal(ActivityKind.Consumer, activity.Kind);
+        Assert.Equal(ActivityKind.Client, activity.Kind);
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
         Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
         Assert.Equal("fake-consumer-1", activity.GetTagValue(SemanticConventions.AttributeMessagingClientId));
-        Assert.Equal("test-group", activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaConsumerGroup));
-        Assert.Equal("receive", activity.GetTagValue(SemanticConventions.AttributeMessagingOperation));
-        Assert.Equal($"ConsumeException: {exception.Error}", activity.GetTagValue(SemanticConventions.AttributeErrorType));
+        Assert.Equal("test-group", activity.GetTagValue(SemanticConventions.AttributeMessagingConsumerGroupName));
+        Assert.Equal("poll", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationName));
+        Assert.Equal("receive", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationType));
+        Assert.Equal(exception.Error.Code.ToString(), activity.GetTagValue(SemanticConventions.AttributeErrorType));
         Assert.Equal("error-topic-no-headers", activity.GetTagValue(SemanticConventions.AttributeMessagingDestinationName));
-        Assert.Equal(3, activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaDestinationPartition));
-        Assert.Equal(150L, activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaMessageOffset));
+        Assert.Equal("3", activity.GetTagValue(SemanticConventions.AttributeMessagingDestinationPartitionId));
+        Assert.Equal(150L, activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaOffset));
         Assert.Equal("error-key", Encoding.UTF8.GetString((byte[])activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaMessageKey)!));
     }
 
@@ -309,20 +315,21 @@ public class InstrumentedConsumerTests
             tracerProvider.ForceFlush();
         }
 
-        var activity = activities.FirstOrDefault(a => a.DisplayName == "error-topic-with-headers receive");
+        var activity = activities.FirstOrDefault(a => a.DisplayName == "poll error-topic-with-headers");
         Assert.NotNull(activity);
         Assert.NotEmpty(activity.Links);
         Assert.Equal("0af7651916cd43dd8448eb211c80319c", activity.Links.First().Context.TraceId.ToHexString());
-        Assert.Equal(ActivityKind.Consumer, activity.Kind);
+        Assert.Equal(ActivityKind.Client, activity.Kind);
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
         Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
         Assert.Equal("fake-consumer-1", activity.GetTagValue(SemanticConventions.AttributeMessagingClientId));
-        Assert.Equal("test-group", activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaConsumerGroup));
-        Assert.Equal("receive", activity.GetTagValue(SemanticConventions.AttributeMessagingOperation));
-        Assert.Equal($"ConsumeException: {exception.Error}", activity.GetTagValue(SemanticConventions.AttributeErrorType));
+        Assert.Equal("test-group", activity.GetTagValue(SemanticConventions.AttributeMessagingConsumerGroupName));
+        Assert.Equal("poll", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationName));
+        Assert.Equal("receive", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationType));
+        Assert.Equal(exception.Error.Code.ToString(), activity.GetTagValue(SemanticConventions.AttributeErrorType));
         Assert.Equal("error-topic-with-headers", activity.GetTagValue(SemanticConventions.AttributeMessagingDestinationName));
-        Assert.Equal(5, activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaDestinationPartition));
-        Assert.Equal(200L, activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaMessageOffset));
+        Assert.Equal("5", activity.GetTagValue(SemanticConventions.AttributeMessagingDestinationPartitionId));
+        Assert.Equal(200L, activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaOffset));
         Assert.Equal("error-key-with-headers", Encoding.UTF8.GetString((byte[])activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaMessageKey)!));
     }
 
@@ -364,10 +371,10 @@ public class InstrumentedConsumerTests
             tracerProvider.ForceFlush();
         }
 
-        var activity = activities.FirstOrDefault(a => a.DisplayName == "timeout-topic receive");
+        var activity = activities.FirstOrDefault(a => a.DisplayName == "poll timeout-topic");
         Assert.NotNull(activity);
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
-        Assert.Equal($"ConsumeException: {exception.Error}", activity.GetTagValue(SemanticConventions.AttributeErrorType));
+        Assert.Equal(exception.Error.Code.ToString(), activity.GetTagValue(SemanticConventions.AttributeErrorType));
     }
 
     [Fact]
@@ -408,10 +415,10 @@ public class InstrumentedConsumerTests
             tracerProvider.ForceFlush();
         }
 
-        var activity = activities.FirstOrDefault(a => a.DisplayName == "broker-error-topic receive");
+        var activity = activities.FirstOrDefault(a => a.DisplayName == "poll broker-error-topic");
         Assert.NotNull(activity);
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
-        Assert.Equal($"ConsumeException: {exception.Error}", activity.GetTagValue(SemanticConventions.AttributeErrorType));
+        Assert.Equal(exception.Error.Code.ToString(), activity.GetTagValue(SemanticConventions.AttributeErrorType));
     }
 
     [Fact]
@@ -435,23 +442,23 @@ public class InstrumentedConsumerTests
             meterProvider.EnsureMetricsAreFlushed();
         }
 
-        var receiveMessagesMetric = metrics.FirstOrDefault(m => m.Name == SemanticConventions.MetricMessagingReceiveMessages);
+        var receiveMessagesMetric = metrics.FirstOrDefault(m => m.Name == SemanticConventions.MetricMessagingClientConsumedMessages);
         AssertMetric(
             actualMetric: receiveMessagesMetric,
-            expectedMessagingOperation: ConfluentKafkaCommon.ReceiveOperationName,
+            expectedMessagingOperation: ConfluentKafkaCommon.PollOperationName,
             expectedMessagingSystem: ConfluentKafkaCommon.KafkaMessagingSystem,
             expectedKafkaDestinationName: null,
             expectedKafkaDestinationPartition: null,
-            expectedErrorType: $"ConsumeException: {exception.Error}");
+            expectedErrorType: exception.Error.Code.ToString());
 
-        var receiveDurationMetric = metrics.FirstOrDefault(m => m.Name == SemanticConventions.MetricMessagingReceiveDuration);
+        var receiveDurationMetric = metrics.FirstOrDefault(m => m.Name == SemanticConventions.MetricMessagingClientOperationDuration);
         AssertMetric(
             actualMetric: receiveDurationMetric,
-            expectedMessagingOperation: ConfluentKafkaCommon.ReceiveOperationName,
+            expectedMessagingOperation: ConfluentKafkaCommon.PollOperationName,
             expectedMessagingSystem: ConfluentKafkaCommon.KafkaMessagingSystem,
             expectedKafkaDestinationName: null,
             expectedKafkaDestinationPartition: null,
-            expectedErrorType: $"ConsumeException: {exception.Error}");
+            expectedErrorType: exception.Error.Code.ToString());
     }
 
     [Fact]
@@ -482,23 +489,23 @@ public class InstrumentedConsumerTests
             meterProvider.EnsureMetricsAreFlushed();
         }
 
-        var receiveMessagesMetric = metrics.FirstOrDefault(m => m.Name == SemanticConventions.MetricMessagingReceiveMessages);
+        var receiveMessagesMetric = metrics.FirstOrDefault(m => m.Name == SemanticConventions.MetricMessagingClientConsumedMessages);
         AssertMetric(
             actualMetric: receiveMessagesMetric,
-            expectedMessagingOperation: ConfluentKafkaCommon.ReceiveOperationName,
+            expectedMessagingOperation: ConfluentKafkaCommon.PollOperationName,
             expectedMessagingSystem: ConfluentKafkaCommon.KafkaMessagingSystem,
             expectedKafkaDestinationName: "error-topic",
-            expectedKafkaDestinationPartition: 2,
-            expectedErrorType: $"ConsumeException: {exception.Error}");
+            expectedKafkaDestinationPartition: "2",
+            expectedErrorType: exception.Error.Code.ToString());
 
-        var receiveDurationMetric = metrics.FirstOrDefault(m => m.Name == SemanticConventions.MetricMessagingReceiveDuration);
+        var receiveDurationMetric = metrics.FirstOrDefault(m => m.Name == SemanticConventions.MetricMessagingClientOperationDuration);
         AssertMetric(
             actualMetric: receiveDurationMetric,
-            expectedMessagingOperation: ConfluentKafkaCommon.ReceiveOperationName,
+            expectedMessagingOperation: ConfluentKafkaCommon.PollOperationName,
             expectedMessagingSystem: ConfluentKafkaCommon.KafkaMessagingSystem,
             expectedKafkaDestinationName: "error-topic",
-            expectedKafkaDestinationPartition: 2,
-            expectedErrorType: $"ConsumeException: {exception.Error}");
+            expectedKafkaDestinationPartition: "2",
+            expectedErrorType: exception.Error.Code.ToString());
     }
 
     [Fact]
@@ -533,23 +540,23 @@ public class InstrumentedConsumerTests
             meterProvider.EnsureMetricsAreFlushed();
         }
 
-        var receiveMessagesMetric = metrics.FirstOrDefault(m => m.Name == SemanticConventions.MetricMessagingReceiveMessages);
+        var receiveMessagesMetric = metrics.FirstOrDefault(m => m.Name == SemanticConventions.MetricMessagingClientConsumedMessages);
         AssertMetric(
             actualMetric: receiveMessagesMetric,
-            expectedMessagingOperation: ConfluentKafkaCommon.ReceiveOperationName,
+            expectedMessagingOperation: ConfluentKafkaCommon.PollOperationName,
             expectedMessagingSystem: ConfluentKafkaCommon.KafkaMessagingSystem,
             expectedKafkaDestinationName: "error-topic-no-headers",
-            expectedKafkaDestinationPartition: 3,
-            expectedErrorType: $"ConsumeException: {exception.Error}");
+            expectedKafkaDestinationPartition: "3",
+            expectedErrorType: exception.Error.Code.ToString());
 
-        var receiveDurationMetric = metrics.FirstOrDefault(m => m.Name == SemanticConventions.MetricMessagingReceiveDuration);
+        var receiveDurationMetric = metrics.FirstOrDefault(m => m.Name == SemanticConventions.MetricMessagingClientOperationDuration);
         AssertMetric(
             actualMetric: receiveDurationMetric,
-            expectedMessagingOperation: ConfluentKafkaCommon.ReceiveOperationName,
+            expectedMessagingOperation: ConfluentKafkaCommon.PollOperationName,
             expectedMessagingSystem: ConfluentKafkaCommon.KafkaMessagingSystem,
             expectedKafkaDestinationName: "error-topic-no-headers",
-            expectedKafkaDestinationPartition: 3,
-            expectedErrorType: $"ConsumeException: {exception.Error}");
+            expectedKafkaDestinationPartition: "3",
+            expectedErrorType: exception.Error.Code.ToString());
     }
 
     [Fact]
@@ -591,34 +598,34 @@ public class InstrumentedConsumerTests
             meterProvider.EnsureMetricsAreFlushed();
         }
 
-        var receiveMessagesMetric = metrics.FirstOrDefault(m => m.Name == SemanticConventions.MetricMessagingReceiveMessages);
+        var receiveMessagesMetric = metrics.FirstOrDefault(m => m.Name == SemanticConventions.MetricMessagingClientConsumedMessages);
         AssertMetric(
             actualMetric: receiveMessagesMetric,
-            expectedMessagingOperation: ConfluentKafkaCommon.ReceiveOperationName,
+            expectedMessagingOperation: ConfluentKafkaCommon.PollOperationName,
             expectedMessagingSystem: ConfluentKafkaCommon.KafkaMessagingSystem,
             expectedKafkaDestinationName: "error-topic-with-headers",
-            expectedKafkaDestinationPartition: 5,
-            expectedErrorType: $"ConsumeException: {exception.Error}");
+            expectedKafkaDestinationPartition: "5",
+            expectedErrorType: exception.Error.Code.ToString());
 
-        var receiveDurationMetric = metrics.FirstOrDefault(m => m.Name == SemanticConventions.MetricMessagingReceiveDuration);
+        var receiveDurationMetric = metrics.FirstOrDefault(m => m.Name == SemanticConventions.MetricMessagingClientOperationDuration);
         AssertMetric(
             actualMetric: receiveDurationMetric,
-            expectedMessagingOperation: ConfluentKafkaCommon.ReceiveOperationName,
+            expectedMessagingOperation: ConfluentKafkaCommon.PollOperationName,
             expectedMessagingSystem: ConfluentKafkaCommon.KafkaMessagingSystem,
             expectedKafkaDestinationName: "error-topic-with-headers",
-            expectedKafkaDestinationPartition: 5,
-            expectedErrorType: $"ConsumeException: {exception.Error}");
+            expectedKafkaDestinationPartition: "5",
+            expectedErrorType: exception.Error.Code.ToString());
     }
 
     private static TracerProvider CreateTraceProvider(List<Activity> activities) => Sdk.CreateTracerProviderBuilder()
-                .AddSource(ConfluentKafkaCommon.InstrumentationName)
-                .AddInMemoryExporter(activities)
-                .Build();
+        .AddSource(ConfluentKafkaCommon.ActivitySource.Name)
+        .AddInMemoryExporter(activities)
+        .Build();
 
     private static MeterProvider CreateMeterProvider(List<Metric> metrics) => Sdk.CreateMeterProviderBuilder()
-                .AddMeter(ConfluentKafkaCommon.InstrumentationName)
-                .AddInMemoryExporter(metrics)
-                .Build();
+        .AddMeter(ConfluentKafkaCommon.Meter.Name)
+        .AddInMemoryExporter(metrics)
+        .Build();
 
     private static void ConsumeEventAndCaptureTraces(IConsumer<string, string> fakeConsumer)
     {
@@ -657,10 +664,11 @@ public class InstrumentedConsumerTests
        string? expectedMessagingOperation,
        string? expectedMessagingSystem,
        string? expectedKafkaDestinationName,
-       int? expectedKafkaDestinationPartition,
+       string? expectedKafkaDestinationPartition,
        string? expectedErrorType)
     {
         Assert.NotNull(actualMetric);
+        Assert.StartsWith("https://opentelemetry.io/schemas/", actualMetric.MeterSchemaUrl, StringComparison.Ordinal);
 
         var metricPoint = GetMetricPoint(actualMetric);
 
@@ -672,7 +680,7 @@ public class InstrumentedConsumerTests
 
         foreach (var tag in metricPoint!.Value.Tags)
         {
-            if (tag.Key == SemanticConventions.AttributeMessagingOperation)
+            if (tag.Key == SemanticConventions.AttributeMessagingOperationName)
             {
                 Assert.Equal(expectedMessagingOperation, tag.Value?.ToString());
                 messagingOperationFound = true;
@@ -690,9 +698,9 @@ public class InstrumentedConsumerTests
                 destinationNameFound = true;
             }
 
-            if (tag.Key == SemanticConventions.AttributeMessagingKafkaDestinationPartition)
+            if (tag.Key == SemanticConventions.AttributeMessagingDestinationPartitionId)
             {
-                Assert.Equal(expectedKafkaDestinationPartition, tag.Value);
+                Assert.Equal(expectedKafkaDestinationPartition, tag.Value?.ToString());
                 destinationPartitionFound = true;
             }
 
@@ -763,34 +771,13 @@ public class InstrumentedConsumerTests
         }
 
         public ConsumeResult<TKey, TValue>? Consume(int millisecondsTimeout)
-        {
-            if (this.ConsumerExceptionToThrow != null)
-            {
-                throw this.ConsumerExceptionToThrow;
-            }
-
-            return this.ConsumeResult;
-        }
+            => this.ConsumerExceptionToThrow != null ? throw this.ConsumerExceptionToThrow : this.ConsumeResult;
 
         public ConsumeResult<TKey, TValue>? Consume(CancellationToken cancellationToken = default)
-        {
-            if (this.ConsumerExceptionToThrow != null)
-            {
-                throw this.ConsumerExceptionToThrow;
-            }
-
-            return this.ConsumeResult;
-        }
+            => this.ConsumerExceptionToThrow != null ? throw this.ConsumerExceptionToThrow : this.ConsumeResult;
 
         public ConsumeResult<TKey, TValue>? Consume(TimeSpan timeout)
-        {
-            if (this.ConsumerExceptionToThrow != null)
-            {
-                throw this.ConsumerExceptionToThrow;
-            }
-
-            return this.ConsumeResult;
-        }
+            => this.ConsumerExceptionToThrow != null ? throw this.ConsumerExceptionToThrow : this.ConsumeResult;
 
         public void Subscribe(IEnumerable<string> topics)
         {

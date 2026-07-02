@@ -63,7 +63,7 @@ public class OpenTelemetryConsumeResultExtensionsTests
 
         // TracerProvider registers the W3C TraceContext propagator as the default
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddSource(ConfluentKafkaCommon.InstrumentationName)
+            .AddSource(ConfluentKafkaCommon.ActivitySource.Name)
             .Build();
 
         var result = consumeResult.TryExtractPropagationContext(out var propagationContext);
@@ -153,7 +153,7 @@ public class OpenTelemetryConsumeResultExtensionsTests
         var activities = new List<Activity>();
 
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                                       .AddSource(ConfluentKafkaCommon.InstrumentationName)
+                                       .AddSource(ConfluentKafkaCommon.ActivitySource.Name)
                                        .AddInMemoryExporter(activities)
                                        .Build())
         {
@@ -172,7 +172,7 @@ public class OpenTelemetryConsumeResultExtensionsTests
             tracerProvider.ForceFlush();
         }
 
-        var processActivity = Assert.Single(activities, a => a.DisplayName.EndsWith("process", StringComparison.Ordinal));
+        var processActivity = Assert.Single(activities, a => a.DisplayName == "process error-topic");
         Assert.Equal(ActivityStatusCode.Error, processActivity.Status);
     }
 
@@ -182,7 +182,7 @@ public class OpenTelemetryConsumeResultExtensionsTests
         var activities = new List<Activity>();
 
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                                       .AddSource(ConfluentKafkaCommon.InstrumentationName)
+                                       .AddSource(ConfluentKafkaCommon.ActivitySource.Name)
                                        .AddInMemoryExporter(activities)
                                        .Build())
         {
@@ -199,11 +199,12 @@ public class OpenTelemetryConsumeResultExtensionsTests
             tracerProvider.ForceFlush();
         }
 
-        var processActivity = Assert.Single(activities, a => a.DisplayName == "process-topic process");
+        var processActivity = Assert.Single(activities, a => a.DisplayName == "process process-topic");
 
         Assert.Equal(ActivityKind.Consumer, processActivity.Kind);
         Assert.Equal("kafka", processActivity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
-        Assert.Equal("process", processActivity.GetTagValue(SemanticConventions.AttributeMessagingOperation));
+        Assert.Equal("process", processActivity.GetTagValue(SemanticConventions.AttributeMessagingOperationName));
+        Assert.Equal("process", processActivity.GetTagValue(SemanticConventions.AttributeMessagingOperationType));
     }
 
     private static InstrumentedConsumer<TKey, TValue> BuildInstrumentedConsumer<TKey, TValue>(
