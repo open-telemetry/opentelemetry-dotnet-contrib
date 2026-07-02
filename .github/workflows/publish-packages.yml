@@ -181,7 +181,7 @@ jobs:
   validate:
     name: Validate NuGet packages
     needs: [build-pack]
-    runs-on: ubuntu-24.04
+    runs-on: windows-2025
 
     permissions:
       attestations: read # Verify GitHub attestations for the build outputs
