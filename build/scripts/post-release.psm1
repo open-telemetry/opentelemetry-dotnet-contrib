@@ -330,7 +330,7 @@ function CreateOpenTelemetryCoreLatestVersionUpdatePullRequest {
     Return
   }
 
-  $branch="otelbot/post-core-${version}-update"
+  $branch="otelbot/post-${tag}-update"
 
   if ([string]::IsNullOrEmpty($gitUserName) -eq $false)
   {
