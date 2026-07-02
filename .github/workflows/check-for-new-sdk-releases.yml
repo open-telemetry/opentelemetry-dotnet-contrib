@@ -1,0 +1,46 @@
+name: Check for new SDK releases
+
+on:
+  schedule:
+  - cron: '0 * * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  automation:
+    uses: ./.github/workflows/automation.yml
+    permissions:
+      contents: read
+    secrets:
+      OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY: ${{ secrets.OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY }}
+
+  check-for-core-version-update:
+    name: Check for SDK releases
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    if: (github.event_name != 'schedule' || github.event.repository.fork == false) && needs.automation.outputs.enabled
+
+    needs: automation
+
+    permissions:
+      actions: write # Needed to trigger the core-version-update workflow
+      contents: read
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      with:
+        filter: 'tree:0'
+        persist-credentials: false
+        show-progress: false
+
+    - name: Check for SDK releases and trigger update workflow
+      shell: pwsh
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: .\build\scripts\check-for-new-sdk-releases.ps1

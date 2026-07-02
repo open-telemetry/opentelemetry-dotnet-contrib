@@ -8,8 +8,8 @@ namespace OpenTelemetry.Instrumentation.Kusto.Implementation;
 /// <summary>
 /// Classifies a Kusto client <see cref="KustoUtils.TraceRecord"/> by the markers the
 /// client writes into its trace output: RestClient2 writes "$$HTTPREQUEST[", the activity layer writes
-/// "MonitoredActivityCompleted", and exceptions are traced under the "EXC_CTOR" source id. There is no public
-/// reference to link, so they are matched by string.
+/// "MonitoredActivityCompleted", and exceptions are traced under a source that is "EXC_CTOR" or begins with
+/// "EXC_CTOR.". There is no public reference to link, so they are matched by string.
 /// </summary>
 internal static class TraceRecordExtensions
 {
@@ -20,7 +20,9 @@ internal static class TraceRecordExtensions
 
     public static bool IsException(this KustoUtils.TraceRecord record)
     {
-        return record.SourceId == "EXC_CTOR";
+        var sourceId = record.SourceId;
+        return sourceId == "EXC_CTOR"
+            || sourceId?.StartsWith("EXC_CTOR.", StringComparison.Ordinal) == true;
     }
 
     public static bool IsActivityComplete(this KustoUtils.TraceRecord record)
