@@ -10,7 +10,6 @@ using OpenTelemetry.OpAmp.Client.Internal.Transport.Http;
 using OpenTelemetry.OpAmp.Client.Internal.Transport.WebSocket;
 using OpenTelemetry.OpAmp.Client.Listeners;
 using OpenTelemetry.OpAmp.Client.Messages;
-using OpenTelemetry.OpAmp.Client.Messages.Flags;
 using OpenTelemetry.OpAmp.Client.Settings;
 
 namespace OpenTelemetry.OpAmp.Client;
@@ -216,6 +215,17 @@ public sealed class OpAmpClient : IDisposable
     public Task SendFullStateReportAsync(FullStateReport report, CancellationToken cancellationToken = default)
     {
         this.ThrowIfDisposed();
+        Guard.ThrowIfNull(report);
+
+        if (report.EffectiveConfigFiles != null && !this.settings.EffectiveConfigurationReporting.EnableReporting)
+        {
+            throw new InvalidOperationException("Effective configuration reporting is not enabled in settings.");
+        }
+
+        if (report.RemoteConfigStatus != null && !this.settings.RemoteConfiguration.ReportsRemoteConfigStatus)
+        {
+            throw new InvalidOperationException("Remote configuration status reporting is not enabled in settings.");
+        }
 
         return this.dispatcher.DispatchFullStateReportAsync(report, cancellationToken);
     }

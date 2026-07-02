@@ -15,16 +15,16 @@ OpenTelemetry.OpAmp.Client.Messages.EffectiveConfigFile.Content.get -> System.Re
 OpenTelemetry.OpAmp.Client.Messages.EffectiveConfigFile.ContentType.get -> string!
 OpenTelemetry.OpAmp.Client.Messages.EffectiveConfigFile.EffectiveConfigFile(System.ReadOnlyMemory<byte> content, string! contentType, string! fileName) -> void
 OpenTelemetry.OpAmp.Client.Messages.EffectiveConfigFile.FileName.get -> string!
-OpenTelemetry.OpAmp.Client.Messages.Flags.FullStateReport
-OpenTelemetry.OpAmp.Client.Messages.Flags.FullStateReport.CustomCapabilities.get -> System.Collections.Generic.IEnumerable<string!>?
-OpenTelemetry.OpAmp.Client.Messages.Flags.FullStateReport.CustomCapabilities.set -> void
-OpenTelemetry.OpAmp.Client.Messages.Flags.FullStateReport.EffectiveConfigFiles.get -> System.Collections.Generic.IEnumerable<OpenTelemetry.OpAmp.Client.Messages.EffectiveConfigFile!>?
-OpenTelemetry.OpAmp.Client.Messages.Flags.FullStateReport.EffectiveConfigFiles.set -> void
-OpenTelemetry.OpAmp.Client.Messages.Flags.FullStateReport.FullStateReport() -> void
-OpenTelemetry.OpAmp.Client.Messages.Flags.FullStateReport.RemoteConfigStatus.get -> OpenTelemetry.OpAmp.Client.Messages.RemoteConfigStatusReport?
-OpenTelemetry.OpAmp.Client.Messages.Flags.FullStateReport.RemoteConfigStatus.set -> void
 OpenTelemetry.OpAmp.Client.Messages.FlagsMessage
 OpenTelemetry.OpAmp.Client.Messages.FlagsMessage.Flags.get -> OpenTelemetry.OpAmp.Client.Messages.ServerSentFlags
+OpenTelemetry.OpAmp.Client.Messages.FullStateReport
+OpenTelemetry.OpAmp.Client.Messages.FullStateReport.CustomCapabilities.get -> System.Collections.Generic.IEnumerable<string!>?
+OpenTelemetry.OpAmp.Client.Messages.FullStateReport.CustomCapabilities.set -> void
+OpenTelemetry.OpAmp.Client.Messages.FullStateReport.EffectiveConfigFiles.get -> System.Collections.Generic.IEnumerable<OpenTelemetry.OpAmp.Client.Messages.EffectiveConfigFile!>?
+OpenTelemetry.OpAmp.Client.Messages.FullStateReport.EffectiveConfigFiles.set -> void
+OpenTelemetry.OpAmp.Client.Messages.FullStateReport.FullStateReport() -> void
+OpenTelemetry.OpAmp.Client.Messages.FullStateReport.RemoteConfigStatus.get -> OpenTelemetry.OpAmp.Client.Messages.RemoteConfigStatusReport?
+OpenTelemetry.OpAmp.Client.Messages.FullStateReport.RemoteConfigStatus.set -> void
 OpenTelemetry.OpAmp.Client.Messages.OpAmpMessage
 OpenTelemetry.OpAmp.Client.Messages.OpAmpMessage.OpAmpMessage() -> void
 OpenTelemetry.OpAmp.Client.Messages.RemoteConfigMessage
@@ -61,7 +61,7 @@ OpenTelemetry.OpAmp.Client.OpAmpClient.OpAmpClient(System.Action<OpenTelemetry.O
 OpenTelemetry.OpAmp.Client.OpAmpClient.SendCustomCapabilitiesAsync(System.Collections.Generic.IEnumerable<string!>! capabilities, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 OpenTelemetry.OpAmp.Client.OpAmpClient.SendCustomMessageAsync(string! capability, string! type, System.ReadOnlyMemory<byte> data, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 OpenTelemetry.OpAmp.Client.OpAmpClient.SendEffectiveConfigAsync(System.Collections.Generic.IEnumerable<OpenTelemetry.OpAmp.Client.Messages.EffectiveConfigFile!>! files, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
-OpenTelemetry.OpAmp.Client.OpAmpClient.SendFullStateReportAsync(OpenTelemetry.OpAmp.Client.Messages.Flags.FullStateReport! report, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+OpenTelemetry.OpAmp.Client.OpAmpClient.SendFullStateReportAsync(OpenTelemetry.OpAmp.Client.Messages.FullStateReport! report, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 OpenTelemetry.OpAmp.Client.OpAmpClient.SendRemoteConfigStatusAsync(OpenTelemetry.OpAmp.Client.Messages.RemoteConfigStatusReport! statusReport, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 OpenTelemetry.OpAmp.Client.OpAmpClient.StartAsync(System.Threading.CancellationToken token = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 OpenTelemetry.OpAmp.Client.OpAmpClient.StopAsync(System.Threading.CancellationToken token = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!

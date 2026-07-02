@@ -1,7 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-namespace OpenTelemetry.OpAmp.Client.Messages.Flags;
+namespace OpenTelemetry.OpAmp.Client.Messages;
 
 /// <summary>
 /// Contains all parts that are necessary to restore the full state in the server.

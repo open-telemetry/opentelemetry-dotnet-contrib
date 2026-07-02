@@ -6,7 +6,6 @@ using OpenTelemetry.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Services.Heartbeat;
 using OpenTelemetry.OpAmp.Client.Internal.Transport;
 using OpenTelemetry.OpAmp.Client.Messages;
-using OpenTelemetry.OpAmp.Client.Messages.Flags;
 using OpenTelemetry.OpAmp.Client.Settings;
 
 namespace OpenTelemetry.OpAmp.Client.Internal;

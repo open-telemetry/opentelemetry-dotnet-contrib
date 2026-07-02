@@ -10,7 +10,6 @@ using System.Text;
 using OpAmp.Proto.V1;
 using OpenTelemetry.OpAmp.Client.Internal.Services.Heartbeat;
 using OpenTelemetry.OpAmp.Client.Messages;
-using OpenTelemetry.OpAmp.Client.Messages.Flags;
 using OpenTelemetry.OpAmp.Client.Settings;
 using OpenTelemetry.OpAmp.Client.Tests.DataGenerators;
 using OpenTelemetry.OpAmp.Client.Tests.Mocks;
@@ -492,6 +491,8 @@ public class OpAmpClientTests
 
             o.Identification.AddIdentifyingAttribute("test", "value");
             o.RemoteConfiguration.AcceptsRemoteConfig = true;
+            o.RemoteConfiguration.ReportsRemoteConfigStatus = true;
+            o.EffectiveConfigurationReporting.EnableReporting = true;
         });
 
         // Setup content
