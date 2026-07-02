@@ -40,7 +40,7 @@
   * `http.status_code` is replaced by `db.response.status_code`.
   * `error.type` is emitted when the operation fails.
 
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#4635](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4635))
 
 ## 1.15.1-beta.1
 
