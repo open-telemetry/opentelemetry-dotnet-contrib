@@ -5,7 +5,7 @@
 * Fixed a race condition where a concurrent rule poll could discard the sampling
   targets applied by a target poll (and vice versa), causing the sampler to
   briefly revert to stale sampling decisions.
-  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+  ([#4638](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4638))
 
 ## 0.1.0-alpha.10
 
