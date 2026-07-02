@@ -15,20 +15,24 @@
   The producer `send` span (previously `publish`) and the consumer `poll`
   span (previously `receive`, and now emitted with `ActivityKind.Client`) now
   set:
-    * `messaging.operation.name` and `messaging.operation.type`
-      (replacing `messaging.operation`)
-    * `messaging.client.id` (replacing `messaging.client_id`)
-    * `messaging.consumer.group.name` (replacing
-      `messaging.kafka.consumer.group`)
-    * `messaging.destination.partition.id` (a string) (replacing
-      `messaging.kafka.destination.partition`)
-    * `messaging.kafka.offset` (replacing `messaging.kafka.message.offset`)
+
+  * `messaging.operation.name` and `messaging.operation.type`
+    (replacing `messaging.operation`)
+  * `messaging.client.id` (replacing `messaging.client_id`)
+  * `messaging.consumer.group.name` (replacing
+    `messaging.kafka.consumer.group`)
+  * `messaging.destination.partition.id` (a string) (replacing
+    `messaging.kafka.destination.partition`)
+  * `messaging.kafka.offset` (replacing `messaging.kafka.message.offset`)
+
   The metrics were renamed to:
+
     * `messaging.client.operation.duration`
       (replacing `messaging.publish.duration` and `messaging.receive.duration`)
     * `messaging.client.sent.messages` (replacing `messaging.publish.messages`)
     * `messaging.client.consumed.messages`
       (replacing `messaging.receive.messages`).
+
   `error.type` is now reported as the language-agnostic Kafka error code and
   the exception message is recorded in the span status description.
   ([#4636](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4636))
