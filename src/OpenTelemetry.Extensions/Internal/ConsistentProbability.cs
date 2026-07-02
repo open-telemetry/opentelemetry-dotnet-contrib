@@ -40,8 +40,8 @@ internal static class ConsistentProbability
     /// This is a direct port of the reference <c>probability_to_threshold_with_precision</c>
     /// algorithm from the specification.
     /// </summary>
-    /// <param name="probability">The sampling probability, in the range (0, 1].</param>
-    /// <param name="precision">The number of significant hexadecimal digits, in the range [1, 13].</param>
+    /// <param name="probability">The sampling probability, in the range <c>(0, 1]</c>.</param>
+    /// <param name="precision">The number of significant hexadecimal digits, in the range <c>[1, 13]</c>.</param>
     /// <returns>The threshold encoded with trailing zeros removed (for example <c>fd70a</c>).</returns>
     public static string EncodeThreshold(double probability, int precision)
     {
@@ -107,7 +107,7 @@ internal static class ConsistentProbability
     /// <summary>
     /// Encodes a 56-bit integer rejection threshold as a <c>th</c> value, with trailing zeros removed.
     /// </summary>
-    /// <param name="threshold">The rejection threshold, in the range [0, 2^56).</param>
+    /// <param name="threshold">The rejection threshold, in the range <c>[0, 2^56)</c>.</param>
     /// <returns>The encoded threshold (for example <c>8</c> for 50% sampling).</returns>
     public static string EncodeThresholdInteger(long threshold)
     {
@@ -137,7 +137,7 @@ internal static class ConsistentProbability
     /// trailing zeros to 14 digits and parsing the result.
     /// </summary>
     /// <param name="threshold">The encoded threshold (1 to 14 hexadecimal digits).</param>
-    /// <returns>The rejection threshold, in the range [0, 2^56).</returns>
+    /// <returns>The rejection threshold, in the range <c>[0, 2^56)</c>.</returns>
     public static long DecodeThreshold(string threshold)
     {
         _ = TryDecodeThreshold(threshold.AsSpan(), out var value);
@@ -216,9 +216,9 @@ internal static class ConsistentProbability
     /// <summary>
     /// Calculates the sampling probability represented by a rejection threshold.
     /// </summary>
-    /// <param name="threshold">The rejection threshold, in the range [0, 2^56).</param>
+    /// <param name="threshold">The rejection threshold, in the range <c>[0, 2^56)</c>.</param>
     /// <returns>
-    /// The sampling probability, in the range (0, 1].
+    /// The sampling probability, in the range <c>(0, 1]</c>.
     /// </returns>
     /// <remarks>
     /// Per the specification: <c>Probability = (MaxAdjustedCount - Threshold) / MaxAdjustedCount</c>.
@@ -229,7 +229,7 @@ internal static class ConsistentProbability
     /// <summary>
     /// Calculates the adjusted count (inverse sampling probability) for a rejection threshold.
     /// </summary>
-    /// <param name="threshold">The rejection threshold, in the range [0, 2^56).</param>
+    /// <param name="threshold">The rejection threshold, in the range <c>[0, 2^56)</c>.</param>
     /// <returns>
     /// The adjusted count.
     /// </returns>
@@ -240,7 +240,7 @@ internal static class ConsistentProbability
         => (double)MaxAdjustedCount / (MaxAdjustedCount - threshold);
 
     /// <summary>
-    /// Returns the exponent that <c>math.frexp</c> would produce for a positive value in (0, 1),
+    /// Returns the exponent that <c>math.frexp</c> would produce for a positive value in <c>(0, 1)</c>,
     /// i.e. the value <c>e</c> such that <c>value = m * 2^e</c> with <c>0.5 &lt;= m &lt; 1</c>.
     /// </summary>
     private static int FrexpExponent(double value)

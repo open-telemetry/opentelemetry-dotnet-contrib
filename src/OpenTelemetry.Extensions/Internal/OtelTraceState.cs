@@ -109,7 +109,7 @@ internal struct OtelTraceState
     /// <summary>
     /// Sets the rejection threshold.
     /// </summary>
-    /// <param name="threshold">The rejection threshold, in the range [0, 2^56).</param>
+    /// <param name="threshold">The rejection threshold, in the range <c>[0, 2^56)</c>.</param>
     public void SetThreshold(long threshold)
     {
         this.Threshold = threshold;
@@ -128,7 +128,7 @@ internal struct OtelTraceState
     /// <summary>
     /// Sets the explicit randomness value.
     /// </summary>
-    /// <param name="randomValue">The randomness value, in the range [0, 2^56).</param>
+    /// <param name="randomValue">The randomness value, in the range <c>[0, 2^56)</c>.</param>
     public void SetRandomValue(long randomValue)
     {
         this.RandomValue = randomValue;

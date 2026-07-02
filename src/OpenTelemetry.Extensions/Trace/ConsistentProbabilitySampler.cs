@@ -33,10 +33,10 @@ public sealed class ConsistentProbabilitySampler : Sampler
     /// Initializes a new instance of the <see cref="ConsistentProbabilitySampler"/> class.
     /// </summary>
     /// <param name="samplingProbability">
-    /// The probability with which spans are sampled, in the range [2^-56, 1].
+    /// The probability with which spans are sampled, in the range <c>[2^-56, 1]</c>.
     /// </param>
     /// <exception cref="ArgumentOutOfRangeException">
-    /// <paramref name="samplingProbability"/> is not a number, or is outside the range [2^-56, 1].
+    /// <paramref name="samplingProbability"/> is not a number, or is outside the range <c>[2^-56, 1]</c>.
     /// </exception>
     public ConsistentProbabilitySampler(double samplingProbability)
         : this(samplingProbability, null)
