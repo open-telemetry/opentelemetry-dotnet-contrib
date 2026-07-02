@@ -31,10 +31,10 @@
       (replacing `messaging.receive.messages`).
   `error.type` is now reported as the language-agnostic Kafka error code and
   the exception message is recorded in the span status description.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#4636](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4636))
 
 * Metrics and traces now include a telemetry schema URL.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#4636](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4636))
 
 ## 0.1.0-alpha.7
 
