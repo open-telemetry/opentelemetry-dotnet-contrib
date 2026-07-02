@@ -140,4 +140,18 @@
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)/BannedSymbols.txt" />
   </ItemGroup>
 
+  <!-- This target adds any signatures found to NuGet packages -->
+  <Target Name="IncludeSigningSignaturesInPackages" BeforeTargets="_GetTargetFrameworksOutput">
+    <ItemGroup>
+      <SigstoreBundle Include="$(ArtifactsPath)\bin\$(MSBuildProjectName)\$(Configuration.ToLower())_*\$(MSBuildProjectName).dll.sigstore.json" />
+      <!-- RecursiveDir is equal to e.g. `release_net8.0` so we need to strip it out -->
+      <SigstoreBundleWithTfm Include="@(SigstoreBundle)">
+        <TargetFramework>$([System.String]::Copy('%(RecursiveDir)').Replace(`$(Configuration.ToLower())_`, ''))</TargetFramework>
+      </SigstoreBundleWithTfm>
+      <Content Include="@(SigstoreBundleWithTfm)" Pack="True" PackagePath="lib\%(SigstoreBundleWithTfm.TargetFramework)%(Filename)%(Extension)" />
+    </ItemGroup>
+    <Message Importance="high" Text="**IncludeSignaturesInPackagesDebug** SignatureFiles: @(SignatureFilesWithTfm)" />
+    <Message Importance="high" Text="**IncludeCertificatesInPackagesDebug** CertificateFiles: @(CertificateFilesWithTfm)" />
+  </Target>
+
 </Project>
