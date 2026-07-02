@@ -143,6 +143,40 @@ Nightly builds from this repo are published to [MyGet](https://www.myget.org),
 and can be installed using the
 `https://www.myget.org/F/opentelemetry/api/v3/index.json` source.
 
+## Digital signing
+
+Starting with the `1.17.*` releases the DLLs included in the packages pushed to
+NuGet are digitally signed using [Sigstore](https://www.sigstore.dev/). Within
+each NuGet package the digital signature artifacts are placed alongside the
+shipped DLL(s) in the `/lib` folder. When a project targets multiple frameworks
+each target outputs a dedicated DLL and signing artifacts into a sub folder
+based on the [TFM](https://learn.microsoft.com/dotnet/standard/frameworks).
+
+The digital signature files share the same name prefix as the DLL to ensure
+easy identification and association.
+
+To verify the integrity of a DLL inside a NuGet package use the
+[cosign](https://github.com/sigstore/cosign) tool from Sigstore.
+
+Signatures use the bundle format known from cosign 3.0+.
+
+```bash
+$TAG="Instrumentation.AspNetCore-1.17.0"
+$PACKAGE="OpenTelemetry.Instrumentation.AspNetCore"
+cosign verify-blob \
+    --bundle "${PACKAGE}.dll.sigstore.json" \
+    --certificate-identity "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/.github/workflows/publish-packages.yml@refs/tags/${TAG}" \
+    --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+    --use-signed-timestamps \
+    "${PACKAGE}.dll"
+```
+
+> [!NOTE]
+> A successful verification outputs `Verify OK`.
+
+For more verification options please refer to the [cosign
+documentation](https://github.com/sigstore/cosign/blob/main/doc/cosign_verify-blob.md).
+
 ## Attestation
 
 Starting with the `1.14.*` releases the DLLs included in the packages pushed to
