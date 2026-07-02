@@ -145,19 +145,19 @@ internal sealed class FrameDispatcher : IDisposable
                 .AddCapabilities();
 
             // TODO: Add here features when they become available and are necessary to restore the full state in the server if requested.
-            if (report.EffectiveConfigFiles != null)
+            if (report.EffectiveConfigFiles is { } effectiveConfig)
             {
-                message.AddEffectiveConfig(report.EffectiveConfigFiles);
+                message.AddEffectiveConfig(effectiveConfig);
             }
 
-            if (report.RemoteConfigStatus != null)
+            if (report.RemoteConfigStatus is { } remoteConfigStatus)
             {
-                message.AddRemoteConfigStatus(report.RemoteConfigStatus);
+                message.AddRemoteConfigStatus(remoteConfigStatus);
             }
 
-            if (report.CustomCapabilities != null)
+            if (report.CustomCapabilities is { } customCapabilities)
             {
-                message.AddCustomCapabilities(report.CustomCapabilities);
+                message.AddCustomCapabilities(customCapabilities);
             }
 
             return message.Build();

@@ -6,7 +6,7 @@ namespace OpenTelemetry.OpAmp.Client.Messages.Flags;
 /// <summary>
 /// Contains all parts that are necessary to restore the full state in the server.
 /// </summary>
-public class FullStateReport
+public sealed class FullStateReport
 {
     /// <summary>
     /// Gets or sets the effective configuration.
