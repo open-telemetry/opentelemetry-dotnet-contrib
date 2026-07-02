@@ -8,6 +8,42 @@
 * Updated OpenTelemetry core component version(s) to `1.16.0`.
   ([#4487](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4487))
 
+* Updated the database semantic conventions to
+  [v1.42.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/db/elasticsearch.md)
+  of the Semantic Conventions for Elasticsearch client operations. The new
+  attributes can be opted in to by setting the `OTEL_SEMCONV_STABILITY_OPT_IN`
+  environment variable. This allows for a transition period for users to
+  experiment with the new semantic conventions and adapt as necessary. The
+  environment variable supports the following values:
+  * `database` - emit the new, frozen (proposed for stable) database attributes,
+  and stop emitting the old experimental database attributes that the
+  instrumentation emitted previously.
+  * `database/dup` - emit both the old and the frozen (proposed for stable)
+  database attributes, allowing for a more seamless transition.
+  * The default behavior (in the absence of one of these values) is to continue
+  emitting the same database semantic conventions that were emitted in
+  the previous version.
+  * Note: this option will be removed after the new database semantic
+  conventions are marked stable. At which time this instrumentation can receive
+  a stable release, and the old database semantic conventions will no longer be
+  supported. Refer to the
+  [specification](https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/db/elasticsearch.md)
+  for more information.
+
+  When the new attributes are emitted:
+  * `net.peer.ip` and `net.peer.name` are replaced by `server.address`.
+  * `net.peer.port` is replaced by `server.port`.
+  * `db.system` is replaced by `db.system.name`.
+  * `db.name` is replaced by `db.collection.name`.
+  * `db.method` is replaced by `http.request.method`.
+  * `db.statement` is replaced by `db.query.text`.
+  * `http.status_code` is replaced by `db.response.status_code`.
+  * `error.type` is emitted when the operation fails.
+  * `db.operation.name` is emitted, derived from the request URL.
+  * The span name is `{db.operation.name} {db.collection.name}`.
+
+  ([#4635](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4635))
+
 ## 1.15.1-beta.1
 
 Released 2026-Apr-21

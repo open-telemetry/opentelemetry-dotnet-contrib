@@ -3,6 +3,7 @@
 
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Globalization;
 #if NETFRAMEWORK
 using System.Net.Http;
 #endif
@@ -27,14 +28,57 @@ internal partial class ElasticsearchRequestPipelineDiagnosticListener : Listener
 #pragma warning disable IDE0370 // Suppression is unnecessary
     internal static readonly string ActivitySourceName = AssemblyName.Name!;
 #pragma warning restore IDE0370 // Suppression is unnecessary
-    internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, Assembly.GetPackageVersion());
+
+    internal static readonly Version SemanticConventionsVersion = new(1, 23, 0);
+    internal static readonly ActivitySource ActivitySource = ActivitySourceFactory.Create<ElasticsearchRequestPipelineDiagnosticListener>(SemanticConventionsVersion);
 
     private const string RequestRegexPattern = @"\n# Request:\r?\n(\{.*)\n# Response";
+
+    private static readonly Version SemanticConventionsVersionNew = new(1, 42, 0);
+    private static readonly ActivitySource ActivitySourceNew = ActivitySourceFactory.Create<ElasticsearchRequestPipelineDiagnosticListener>(SemanticConventionsVersionNew);
+
+    private static readonly ActivitySource ActivitySourceBoth = ActivitySourceFactory.Create<ElasticsearchRequestPipelineDiagnosticListener>(null);
 
 #if !NET
     private static readonly Regex ParseRequest = new(RequestRegexPattern, RegexOptions.Compiled | RegexOptions.Singleline);
 #endif
     private static readonly ConcurrentDictionary<object, string> MethodNameCache = new();
+
+    // Some Elasticsearch endpoints are namespaced with a fixed, low-cardinality sub-action, e.g. "_cat/aliases" or
+    // "_eql/search". Unlike e.g. "_snapshot/{repository}" or "_tasks/{task_id}", where the segment following the
+    // namespace is a user-supplied resource identifier, these sub-actions are drawn from a small known vocabulary
+    // and are safe to combine into `db.operation.name` (e.g. "cat.aliases") without risking high cardinality.
+    private static readonly Dictionary<string, HashSet<string>> NamespacedSubActions = new(StringComparer.Ordinal)
+    {
+        ["cat"] = new(StringComparer.Ordinal)
+        {
+            "aliases",
+            "allocation",
+            "component_templates",
+            "count",
+            "fielddata",
+            "health",
+            "indices",
+            "master",
+            "ml",
+            "nodeattrs",
+            "nodes",
+            "pending_tasks",
+            "plugins",
+            "recovery",
+            "repositories",
+            "segments",
+            "shards",
+            "snapshots",
+            "tasks",
+            "templates",
+            "thread_pool",
+            "transforms",
+        },
+        ["eql"] = new(StringComparer.Ordinal) { "search" },
+        ["graph"] = new(StringComparer.Ordinal) { "explore" },
+        ["sql"] = new(StringComparer.Ordinal) { "close", "delete_async", "get_async", "get_async_status", "translate" },
+    };
 
     private readonly ElasticsearchClientInstrumentationOptions options;
     private readonly MultiTypePropertyFetcher<Uri> uriFetcher = new("Uri");
@@ -68,14 +112,25 @@ internal partial class ElasticsearchRequestPipelineDiagnosticListener : Listener
         }
     }
 
-    private static string GetDisplayName(Activity activity, object? method, string? elasticType = null)
+    private static string GetDisplayName(Activity activity, object? method, string? elasticType, string? dbOperationName, bool useNewSpanNameFormat)
     {
         switch (activity.OperationName)
         {
             case "Ping":
                 return "Elasticsearch Ping";
+
             case "CallElasticsearch" when method != null:
                 {
+                    if (useNewSpanNameFormat)
+                    {
+                        // Per the stable database semantic conventions, the span name is
+                        // "{db.operation.name} {target}", falling back to just the target or operation name
+                        // when the other is not available.
+                        return dbOperationName == null
+                            ? elasticType ?? method.ToString()!
+                            : elasticType == null ? dbOperationName : $"{dbOperationName} {elasticType}";
+                    }
+
                     var methodName = MethodNameCache.GetOrAdd(method, $"Elasticsearch {method}");
                     return elasticType == null ? methodName : $"{methodName} {elasticType}";
                 }
@@ -125,6 +180,67 @@ internal partial class ElasticsearchRequestPipelineDiagnosticListener : Listener
         }
 
         return elasticType;
+    }
+
+    private static string? GetDbOperationName(Uri uri, object? method)
+    {
+        // The `_doc`/`_create` endpoints map to different logical operations depending on the HTTP method used.
+        var segments = uri.Segments;
+        string? endpoint = null;
+        string? @namespace = null;
+
+        for (var i = 1; i < segments.Length; i++)
+        {
+            var segment = Uri.UnescapeDataString(segments[i]).TrimEnd('/');
+
+            if (segment.Length == 0)
+            {
+                continue;
+            }
+
+            if (segment[0] != '_')
+            {
+                // Only combine with the following segment when it is a known, fixed sub-action for the current
+                // namespace (see NamespacedSubActions); otherwise, it is an index/id/other identifier and is
+                // ignored to avoid introducing unbounded cardinality into `db.operation.name`.
+                if (endpoint != null &&
+                    @namespace == null &&
+                    NamespacedSubActions.TryGetValue(endpoint, out var subActions) &&
+                    subActions.Contains(segment))
+                {
+                    @namespace = endpoint;
+                    endpoint = segment;
+                }
+
+                continue;
+            }
+
+            endpoint = segment.Substring(1);
+            @namespace = null;
+        }
+
+        if (endpoint == null)
+        {
+            return null;
+        }
+
+        var methodName = method?.ToString();
+
+        if (string.Equals(endpoint, "doc", StringComparison.Ordinal) ||
+            string.Equals(endpoint, "create", StringComparison.Ordinal))
+        {
+            endpoint = methodName?.ToUpperInvariant() switch
+            {
+                "GET" => "get",
+                "HEAD" => "exists",
+                "PUT" => "index",
+                "POST" => "create",
+                "DELETE" => "delete",
+                _ => endpoint,
+            };
+        }
+
+        return @namespace == null ? endpoint : $"{@namespace}.{endpoint}";
     }
 
 #if NET
@@ -195,7 +311,15 @@ internal partial class ElasticsearchRequestPipelineDiagnosticListener : Listener
             // remove sensitive information like user and password information
             uri = UriHelper.ScrubUserInfo(uri);
 
-            ActivityInstrumentationHelper.SetActivitySourceProperty(activity, ActivitySource);
+            var emitOldAttributes = this.options.EmitOldAttributes;
+            var emitNewAttributes = this.options.EmitNewAttributes;
+
+            var activitySource =
+                emitOldAttributes && emitNewAttributes ? ActivitySourceBoth :
+                emitNewAttributes ? ActivitySourceNew :
+                ActivitySource;
+
+            ActivityInstrumentationHelper.SetActivitySourceProperty(activity, activitySource);
             ActivityInstrumentationHelper.SetKindProperty(activity, ActivityKind.Client);
 
             var method = this.methodFetcher.Fetch(payload);
@@ -206,32 +330,86 @@ internal partial class ElasticsearchRequestPipelineDiagnosticListener : Listener
             }
 
             var elasticIndex = GetElasticIndex(uri);
-            activity.DisplayName = GetDisplayName(activity, method, elasticIndex);
-            activity.SetTag(SemanticConventions.AttributeDbSystem, DatabaseSystemName);
+            var dbOperationName = emitNewAttributes ? GetDbOperationName(uri, method) : null;
+            activity.DisplayName = GetDisplayName(activity, method, elasticIndex, dbOperationName, emitNewAttributes && !emitOldAttributes);
+
+            if (emitOldAttributes)
+            {
+                activity.SetTag(SemanticConventions.AttributeDbSystem, DatabaseSystemName);
+            }
+
+            if (emitNewAttributes)
+            {
+                activity.SetTag(SemanticConventions.AttributeDbSystemName, DatabaseSystemName);
+
+                if (dbOperationName != null)
+                {
+                    activity.SetTag(SemanticConventions.AttributeDbOperationName, dbOperationName);
+                }
+            }
 
             if (elasticIndex != null)
             {
-                activity.SetTag(SemanticConventions.AttributeDbName, elasticIndex);
+                if (emitOldAttributes)
+                {
+                    activity.SetTag(SemanticConventions.AttributeDbName, elasticIndex);
+                }
+
+                if (emitNewAttributes)
+                {
+                    activity.SetTag(SemanticConventions.AttributeDbCollectionName, elasticIndex);
+                }
             }
 
             var uriHostNameType = Uri.CheckHostName(uri.Host);
-            if (uriHostNameType is UriHostNameType.IPv4 or UriHostNameType.IPv6)
+            var isIpAddress = uriHostNameType is UriHostNameType.IPv4 or UriHostNameType.IPv6;
+
+            if (emitOldAttributes)
             {
-                activity.SetTag(SemanticConventions.AttributeNetPeerIp, uri.Host);
+                activity.SetTag(isIpAddress ? SemanticConventions.AttributeNetPeerIp : SemanticConventions.AttributeNetPeerName, uri.Host);
             }
-            else
+
+            if (emitNewAttributes)
             {
-                activity.SetTag(SemanticConventions.AttributeNetPeerName, uri.Host);
+                activity.SetTag(SemanticConventions.AttributeServerAddress, uri.Host);
+
+                if (isIpAddress)
+                {
+                    activity.SetTag(SemanticConventions.AttributeNetworkPeerAddress, uri.Host);
+                }
             }
 
             if (uri.Port > 0)
             {
-                activity.SetTag(SemanticConventions.AttributeNetPeerPort, uri.Port);
+                if (emitOldAttributes)
+                {
+                    activity.SetTag(SemanticConventions.AttributeNetPeerPort, uri.Port);
+                }
+
+                if (emitNewAttributes)
+                {
+                    activity.SetTag(SemanticConventions.AttributeServerPort, uri.Port);
+
+                    if (isIpAddress)
+                    {
+                        activity.SetTag(SemanticConventions.AttributeNetworkPeerPort, uri.Port);
+                    }
+                }
             }
 
             if (method != null)
             {
-                activity.SetTag(AttributeDbMethod, method.ToString());
+                var methodName = method.ToString();
+
+                if (emitOldAttributes)
+                {
+                    activity.SetTag(AttributeDbMethod, methodName);
+                }
+
+                if (emitNewAttributes)
+                {
+                    activity.SetTag(SemanticConventions.AttributeHttpRequestMethod, methodName);
+                }
             }
 
             activity.SetTag(SemanticConventions.AttributeUrlFull, uri.OriginalString);
@@ -251,12 +429,24 @@ internal partial class ElasticsearchRequestPipelineDiagnosticListener : Listener
     {
         if (activity.IsAllDataRequested)
         {
+            var emitOldAttributes = this.options.EmitOldAttributes;
+            var emitNewAttributes = this.options.EmitNewAttributes;
+
             var statusCode = this.httpStatusFetcher.Fetch(payload);
-            activity.SetStatus(SpanHelper.ResolveActivityStatusForHttpStatusCode(activity.Kind, statusCode.GetValueOrDefault()));
+            var activityStatus = SpanHelper.ResolveActivityStatusForHttpStatusCode(activity.Kind, statusCode.GetValueOrDefault());
+            activity.SetStatus(activityStatus);
 
             if (statusCode.HasValue)
             {
-                activity.SetTag(SemanticConventions.AttributeHttpStatusCode, (int)statusCode);
+                if (emitOldAttributes)
+                {
+                    activity.SetTag(SemanticConventions.AttributeHttpStatusCode, (int)statusCode);
+                }
+
+                if (emitNewAttributes)
+                {
+                    activity.SetTag(SemanticConventions.AttributeDbResponseStatusCode, statusCode.Value.ToString(CultureInfo.InvariantCulture));
+                }
             }
 
             var debugInformation = this.debugInformationFetcher.Fetch(payload);
@@ -268,13 +458,26 @@ internal partial class ElasticsearchRequestPipelineDiagnosticListener : Listener
                     dbStatement = dbStatement.Substring(0, this.options.MaxDbStatementLength);
                 }
 
-                activity.SetTag(SemanticConventions.AttributeDbStatement, dbStatement);
+                if (emitOldAttributes)
+                {
+                    activity.SetTag(SemanticConventions.AttributeDbStatement, dbStatement);
+                }
+
+                if (emitNewAttributes)
+                {
+                    activity.SetTag(SemanticConventions.AttributeDbQueryText, dbStatement);
+                }
             }
 
             var originalException = this.originalExceptionFetcher.Fetch(payload);
             if (originalException != null)
             {
                 activity.SetCustomProperty(ExceptionCustomPropertyName, originalException);
+
+                if (emitNewAttributes)
+                {
+                    activity.SetTag(SemanticConventions.AttributeErrorType, originalException.GetType().FullName);
+                }
 
                 var failureReason = this.failureReasonFetcher.Fetch(originalException);
                 if (failureReason != null)
@@ -302,6 +505,11 @@ internal partial class ElasticsearchRequestPipelineDiagnosticListener : Listener
                         activity.SetStatus(ActivityStatusCode.Error, description: originalException.Message);
                     }
                 }
+            }
+            else if (emitNewAttributes && activityStatus == ActivityStatusCode.Error && statusCode.HasValue)
+            {
+                // No exception was thrown, but the response indicates an error (4xx/5xx).
+                activity.SetTag(SemanticConventions.AttributeErrorType, statusCode.Value.ToString(CultureInfo.InvariantCulture));
             }
 
             try
