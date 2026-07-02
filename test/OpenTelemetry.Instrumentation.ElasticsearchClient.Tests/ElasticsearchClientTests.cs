@@ -44,9 +44,7 @@ public class ElasticsearchClientTests
             Assert.Empty(failed);
         }
 
-        Assert.Single(exportedItems);
-
-        var searchActivity = exportedItems[0];
+        var searchActivity = Assert.Single(exportedItems);
 
         Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
         Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
@@ -67,8 +65,6 @@ public class ElasticsearchClientTests
         Assert.Contains("Successful (200) low level call", debugInfo);
 
         Assert.Equal(ActivityStatusCode.Unset, searchActivity.Status);
-
-        // Assert.Equal(expectedResource, searchActivity.GetResource());
     }
 
     [Fact]
@@ -97,9 +93,7 @@ public class ElasticsearchClientTests
             Assert.Empty(failed);
         }
 
-        Assert.Single(exportedItems);
-
-        var searchActivity = exportedItems[0];
+        var searchActivity = Assert.Single(exportedItems);
 
         Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
         Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
@@ -120,8 +114,6 @@ public class ElasticsearchClientTests
         Assert.Contains("Successful (404) low level call", debugInfo);
 
         Assert.Equal(ActivityStatusCode.Error, searchActivity.Status);
-
-        // Assert.Equal(expectedResource, searchActivity.GetResource());
     }
 
     [Fact]
@@ -150,8 +142,7 @@ public class ElasticsearchClientTests
             Assert.Empty(failed);
         }
 
-        Assert.Single(exportedItems);
-        var searchActivity = exportedItems[0];
+        var searchActivity = Assert.Single(exportedItems);
 
         Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
         Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
@@ -172,8 +163,6 @@ public class ElasticsearchClientTests
         Assert.Contains("Successful (200) low level call", debugInfo);
 
         Assert.Equal(ActivityStatusCode.Unset, searchActivity.Status);
-
-        // Assert.Equal(expectedResource, searchActivity.GetResource());
     }
 
     [Fact]
@@ -382,8 +371,7 @@ public class ElasticsearchClientTests
             Assert.Empty(failed);
         }
 
-        Assert.Single(exportedItems);
-        var searchActivity = exportedItems[0];
+        var searchActivity = Assert.Single(exportedItems);
 
         Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
         Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
@@ -404,8 +392,6 @@ public class ElasticsearchClientTests
         Assert.Contains("Successful (200) low level call", debugInfo);
 
         Assert.Equal(ActivityStatusCode.Unset, searchActivity.Status);
-
-        // Assert.Equal(expectedResource, searchActivity.GetResource());
     }
 
     [Fact]
@@ -434,8 +420,7 @@ public class ElasticsearchClientTests
             Assert.Empty(failed);
         }
 
-        Assert.Single(exportedItems);
-        var searchActivity = exportedItems[0];
+        var searchActivity = Assert.Single(exportedItems);
 
         Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
         Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
@@ -471,8 +456,6 @@ public class ElasticsearchClientTests
             debugInfo.Replace("\r\n", "\n"));
 
         Assert.Equal(ActivityStatusCode.Unset, searchActivity.Status);
-
-        // Assert.Equal(expectedResource, searchActivity.GetResource());
     }
 
     [Fact]
@@ -501,8 +484,7 @@ public class ElasticsearchClientTests
             Assert.Empty(failed);
         }
 
-        Assert.Single(exportedItems);
-        var searchActivity = exportedItems[0];
+        var searchActivity = Assert.Single(exportedItems);
 
         Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
         Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
@@ -523,8 +505,6 @@ public class ElasticsearchClientTests
         Assert.DoesNotContain("123", debugInfo);
 
         Assert.Equal(ActivityStatusCode.Unset, searchActivity.Status);
-
-        // Assert.Equal(expectedResource, searchActivity.GetResource());
     }
 
     [Fact]
@@ -553,8 +533,7 @@ public class ElasticsearchClientTests
             Assert.Empty(failed);
         }
 
-        Assert.Single(exportedItems);
-        var searchActivity = exportedItems[0];
+        var searchActivity = Assert.Single(exportedItems);
 
         Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
         Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
@@ -575,8 +554,6 @@ public class ElasticsearchClientTests
         Assert.Contains("Successful (200) low level call", debugInfo);
 
         Assert.Equal(ActivityStatusCode.Unset, searchActivity.Status);
-
-        // Assert.Equal(expectedResource, searchActivity.GetResource());
     }
 
     [Fact]
@@ -606,8 +583,7 @@ public class ElasticsearchClientTests
             Assert.NotEmpty(failed);
         }
 
-        Assert.Single(exportedItems);
-        var searchActivity = exportedItems[0];
+        var searchActivity = Assert.Single(exportedItems);
 
         Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
         Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
@@ -628,8 +604,6 @@ public class ElasticsearchClientTests
         Assert.Contains("Unsuccessful (500) low level call", debugInfo);
 
         Assert.Equal(ActivityStatusCode.Error, searchActivity.Status);
-
-        // Assert.Equal(expectedResource, searchActivity.GetResource());
     }
 
     [Fact]
@@ -658,8 +632,7 @@ public class ElasticsearchClientTests
             Assert.Empty(failed);
         }
 
-        Assert.Single(exportedItems);
-        var searchActivity = exportedItems[0];
+        var searchActivity = Assert.Single(exportedItems);
 
         Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
         Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
@@ -680,8 +653,6 @@ public class ElasticsearchClientTests
         Assert.Contains("Successful (200) low level call", debugInfo);
 
         Assert.Equal(ActivityStatusCode.Unset, searchActivity.Status);
-
-        // Assert.Equal(expectedResource, searchActivity.GetResource());
     }
 
     [Fact]
@@ -778,8 +749,7 @@ public class ElasticsearchClientTests
             Assert.Empty(failed);
         }
 
-        Assert.Single(exportedItems);
-        var searchActivity = exportedItems[0];
+        var searchActivity = Assert.Single(exportedItems);
 
         var tags = searchActivity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
         Assert.Null(searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement));
@@ -811,8 +781,7 @@ public class ElasticsearchClientTests
             Assert.Empty(failed);
         }
 
-        Assert.Single(exportedItems);
-        var searchActivity = exportedItems[0];
+        var searchActivity = Assert.Single(exportedItems);
 
         var tags = searchActivity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
         Assert.NotNull(searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement));
@@ -845,8 +814,7 @@ public class ElasticsearchClientTests
             Assert.Empty(failed);
         }
 
-        Assert.Single(exportedItems);
-        var searchActivity = exportedItems[0];
+        var searchActivity = Assert.Single(exportedItems);
 
         var dbUrl = (string?)searchActivity.GetTagValue(SemanticConventions.AttributeUrlFull);
 
@@ -879,17 +847,20 @@ public class ElasticsearchClientTests
             Assert.True(response.ApiCall.Success);
         }
 
-        Assert.Single(exportedItems);
-        var searchActivity = exportedItems[0];
+        var searchActivity = Assert.Single(exportedItems);
 
         // New attributes are emitted.
         Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystemName));
         Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbCollectionName));
+        Assert.Equal("get", searchActivity.GetTagValue(SemanticConventions.AttributeDbOperationName));
         Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeServerAddress));
         Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeServerPort));
         Assert.Equal("GET", searchActivity.GetTagValue(SemanticConventions.AttributeHttpRequestMethod));
         Assert.NotNull(searchActivity.GetTagValue(SemanticConventions.AttributeUrlFull));
         Assert.NotNull(searchActivity.GetTagValue(SemanticConventions.AttributeDbQueryText));
+
+        // Span name follows the stable convention: "{db.operation.name} {db.collection.name}".
+        Assert.Equal("get customer", searchActivity.DisplayName);
 
         // localhost is a hostname (not an IP), so network.peer.* are not set.
         Assert.Null(searchActivity.GetTagValue(SemanticConventions.AttributeNetworkPeerAddress));
@@ -931,8 +902,7 @@ public class ElasticsearchClientTests
             Assert.True(response.ApiCall.Success);
         }
 
-        Assert.Single(exportedItems);
-        var searchActivity = exportedItems[0];
+        var searchActivity = Assert.Single(exportedItems);
 
         // Old attributes.
         Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
@@ -945,10 +915,14 @@ public class ElasticsearchClientTests
         // New attributes.
         Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystemName));
         Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbCollectionName));
+        Assert.Equal("get", searchActivity.GetTagValue(SemanticConventions.AttributeDbOperationName));
         Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeServerAddress));
         Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeServerPort));
         Assert.Equal("GET", searchActivity.GetTagValue(SemanticConventions.AttributeHttpRequestMethod));
         Assert.NotNull(searchActivity.GetTagValue(SemanticConventions.AttributeDbQueryText));
+
+        // Span name retains the legacy format while old attributes are still being emitted.
+        Assert.Equal("Elasticsearch GET customer", searchActivity.DisplayName);
     }
 
     [Fact]
@@ -977,8 +951,7 @@ public class ElasticsearchClientTests
             Assert.True(response.ApiCall.Success);
         }
 
-        Assert.Single(exportedItems);
-        var searchActivity = exportedItems[0];
+        var searchActivity = Assert.Single(exportedItems);
 
         Assert.Equal("127.0.0.1", searchActivity.GetTagValue(SemanticConventions.AttributeServerAddress));
         Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeServerPort));
@@ -1010,8 +983,7 @@ public class ElasticsearchClientTests
             Assert.NotNull(response);
         }
 
-        Assert.Single(exportedItems);
-        var searchActivity = exportedItems[0];
+        var searchActivity = Assert.Single(exportedItems);
 
         Assert.Equal(ActivityStatusCode.Error, searchActivity.Status);
         Assert.Equal("404", searchActivity.GetTagValue(SemanticConventions.AttributeDbResponseStatusCode));
@@ -1045,12 +1017,42 @@ public class ElasticsearchClientTests
             var expectedErrorType = searchResponse.ApiCall.OriginalException?.GetType().FullName;
             Assert.NotNull(expectedErrorType);
 
-            Assert.Single(exportedItems);
-            var searchActivity = exportedItems[0];
+            var searchActivity = Assert.Single(exportedItems);
 
             Assert.Equal(ActivityStatusCode.Error, searchActivity.Status);
             Assert.Equal("500", searchActivity.GetTagValue(SemanticConventions.AttributeDbResponseStatusCode));
             Assert.Equal(expectedErrorType, searchActivity.GetTagValue(SemanticConventions.AttributeErrorType));
         }
+    }
+
+    [Fact]
+    public async Task EmitsDbOperationNameForSearchWhenNewSemanticConventionsOptedIn()
+    {
+        var exportedItems = new List<Activity>();
+
+        var parent = new Activity("parent").Start();
+
+        var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer"));
+
+        using (Sdk.CreateTracerProviderBuilder()
+                  .SetSampler(new AlwaysOnSampler())
+                  .AddElasticsearchClientInstrumentation(o =>
+                  {
+                      o.EmitOldAttributes = false;
+                      o.EmitNewAttributes = true;
+                  })
+                  .AddInMemoryExporter(exportedItems)
+                  .Build())
+        {
+            var response = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
+
+            Assert.NotNull(response);
+            Assert.True(response.ApiCall.Success);
+        }
+
+        var searchActivity = Assert.Single(exportedItems);
+
+        Assert.Equal("search", searchActivity.GetTagValue(SemanticConventions.AttributeDbOperationName));
+        Assert.Equal("search customer", searchActivity.DisplayName);
     }
 }

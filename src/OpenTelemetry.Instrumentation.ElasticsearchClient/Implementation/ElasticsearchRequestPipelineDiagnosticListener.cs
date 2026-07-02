@@ -44,6 +44,42 @@ internal partial class ElasticsearchRequestPipelineDiagnosticListener : Listener
 #endif
     private static readonly ConcurrentDictionary<object, string> MethodNameCache = new();
 
+    // Some Elasticsearch endpoints are namespaced with a fixed, low-cardinality sub-action, e.g. "_cat/aliases" or
+    // "_eql/search". Unlike e.g. "_snapshot/{repository}" or "_tasks/{task_id}", where the segment following the
+    // namespace is a user-supplied resource identifier, these sub-actions are drawn from a small known vocabulary
+    // and are safe to combine into `db.operation.name` (e.g. "cat.aliases") without risking high cardinality.
+    private static readonly Dictionary<string, HashSet<string>> NamespacedSubActions = new(StringComparer.Ordinal)
+    {
+        ["cat"] = new(StringComparer.Ordinal)
+        {
+            "aliases",
+            "allocation",
+            "component_templates",
+            "count",
+            "fielddata",
+            "health",
+            "indices",
+            "master",
+            "ml",
+            "nodeattrs",
+            "nodes",
+            "pending_tasks",
+            "plugins",
+            "recovery",
+            "repositories",
+            "segments",
+            "shards",
+            "snapshots",
+            "tasks",
+            "templates",
+            "thread_pool",
+            "transforms",
+        },
+        ["eql"] = new(StringComparer.Ordinal) { "search" },
+        ["graph"] = new(StringComparer.Ordinal) { "explore" },
+        ["sql"] = new(StringComparer.Ordinal) { "close", "delete_async", "get_async", "get_async_status", "translate" },
+    };
+
     private readonly ElasticsearchClientInstrumentationOptions options;
     private readonly MultiTypePropertyFetcher<Uri> uriFetcher = new("Uri");
     private readonly MultiTypePropertyFetcher<object> methodFetcher = new("Method");
@@ -76,14 +112,25 @@ internal partial class ElasticsearchRequestPipelineDiagnosticListener : Listener
         }
     }
 
-    private static string GetDisplayName(Activity activity, object? method, string? elasticType = null)
+    private static string GetDisplayName(Activity activity, object? method, string? elasticType, string? dbOperationName, bool useNewSpanNameFormat)
     {
         switch (activity.OperationName)
         {
             case "Ping":
                 return "Elasticsearch Ping";
+
             case "CallElasticsearch" when method != null:
                 {
+                    if (useNewSpanNameFormat)
+                    {
+                        // Per the stable database semantic conventions, the span name is
+                        // "{db.operation.name} {target}", falling back to just the target or operation name
+                        // when the other is not available.
+                        return dbOperationName == null
+                            ? elasticType ?? method.ToString()!
+                            : elasticType == null ? dbOperationName : $"{dbOperationName} {elasticType}";
+                    }
+
                     var methodName = MethodNameCache.GetOrAdd(method, $"Elasticsearch {method}");
                     return elasticType == null ? methodName : $"{methodName} {elasticType}";
                 }
@@ -133,6 +180,67 @@ internal partial class ElasticsearchRequestPipelineDiagnosticListener : Listener
         }
 
         return elasticType;
+    }
+
+    private static string? GetDbOperationName(Uri uri, object? method)
+    {
+        // The `_doc`/`_create` endpoints map to different logical operations depending on the HTTP method used.
+        var segments = uri.Segments;
+        string? endpoint = null;
+        string? @namespace = null;
+
+        for (var i = 1; i < segments.Length; i++)
+        {
+            var segment = Uri.UnescapeDataString(segments[i]).TrimEnd('/');
+
+            if (segment.Length == 0)
+            {
+                continue;
+            }
+
+            if (segment[0] != '_')
+            {
+                // Only combine with the following segment when it is a known, fixed sub-action for the current
+                // namespace (see NamespacedSubActions); otherwise, it is an index/id/other identifier and is
+                // ignored to avoid introducing unbounded cardinality into `db.operation.name`.
+                if (endpoint != null &&
+                    @namespace == null &&
+                    NamespacedSubActions.TryGetValue(endpoint, out var subActions) &&
+                    subActions.Contains(segment))
+                {
+                    @namespace = endpoint;
+                    endpoint = segment;
+                }
+
+                continue;
+            }
+
+            endpoint = segment.Substring(1);
+            @namespace = null;
+        }
+
+        if (endpoint == null)
+        {
+            return null;
+        }
+
+        var methodName = method?.ToString();
+
+        if (string.Equals(endpoint, "doc", StringComparison.Ordinal) ||
+            string.Equals(endpoint, "create", StringComparison.Ordinal))
+        {
+            endpoint = methodName?.ToUpperInvariant() switch
+            {
+                "GET" => "get",
+                "HEAD" => "exists",
+                "PUT" => "index",
+                "POST" => "create",
+                "DELETE" => "delete",
+                _ => endpoint,
+            };
+        }
+
+        return @namespace == null ? endpoint : $"{@namespace}.{endpoint}";
     }
 
 #if NET
@@ -222,7 +330,8 @@ internal partial class ElasticsearchRequestPipelineDiagnosticListener : Listener
             }
 
             var elasticIndex = GetElasticIndex(uri);
-            activity.DisplayName = GetDisplayName(activity, method, elasticIndex);
+            var dbOperationName = emitNewAttributes ? GetDbOperationName(uri, method) : null;
+            activity.DisplayName = GetDisplayName(activity, method, elasticIndex, dbOperationName, emitNewAttributes && !emitOldAttributes);
 
             if (emitOldAttributes)
             {
@@ -232,6 +341,11 @@ internal partial class ElasticsearchRequestPipelineDiagnosticListener : Listener
             if (emitNewAttributes)
             {
                 activity.SetTag(SemanticConventions.AttributeDbSystemName, DatabaseSystemName);
+
+                if (dbOperationName != null)
+                {
+                    activity.SetTag(SemanticConventions.AttributeDbOperationName, dbOperationName);
+                }
             }
 
             if (elasticIndex != null)

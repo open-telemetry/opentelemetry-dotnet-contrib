@@ -39,6 +39,8 @@
   * `db.statement` is replaced by `db.query.text`.
   * `http.status_code` is replaced by `db.response.status_code`.
   * `error.type` is emitted when the operation fails.
+  * `db.operation.name` is emitted, derived from the request URL.
+  * The span name is `{db.operation.name} {db.collection.name}`.
 
   ([#4635](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4635))
 
