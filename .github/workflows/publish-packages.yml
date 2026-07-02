@@ -277,7 +277,7 @@ jobs:
 
       - name: Publish to MyGet
         shell: pwsh
-        working-directory: ./artifacts/package/release
+        working-directory: ./artifacts
         env:
           NUGET_API_KEY: ${{ secrets.MYGET_TOKEN }}
           SOURCE: https://www.myget.org/F/opentelemetry/api/v3/index.json
@@ -332,7 +332,7 @@ jobs:
           user: ${{ secrets.NUGET_USER }}
 
       - name: Publish to NuGet
-        working-directory: ./artifacts/package/release
+        working-directory: ./artifacts
         env:
           NUGET_TOKEN_EXISTS: ${{ steps.nuget-login.outputs.NUGET_API_KEY != '' }}
           NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
