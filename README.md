@@ -145,12 +145,12 @@ and can be installed using the
 
 ## Digital signing
 
-For releases published since July 3rd 2026 the DLLs included in the packages pushed to
-NuGet are digitally signed using [Sigstore](https://www.sigstore.dev/). Within
-each NuGet package the digital signature artifacts are placed alongside the
-shipped DLL(s) in the `/lib` folder. When a project targets multiple frameworks
-each target outputs a dedicated DLL and signing artifacts into a sub folder
-based on the [TFM](https://learn.microsoft.com/dotnet/standard/frameworks).
+For releases published since July 3rd 2026 the DLLs included in the packages
+pushed to NuGet are digitally signed using [Sigstore](https://www.sigstore.dev/).
+Within each NuGet package the digital signature artifacts are placed alongside
+the shipped DLL(s) in the `/lib` folder. When a project targets multiple
+frameworks each target outputs a dedicated DLL and signing artifacts into a
+sub folder based on the [TFM](https://learn.microsoft.com/dotnet/standard/frameworks).
 
 The digital signature files share the same name prefix as the DLL to ensure
 easy identification and association.
