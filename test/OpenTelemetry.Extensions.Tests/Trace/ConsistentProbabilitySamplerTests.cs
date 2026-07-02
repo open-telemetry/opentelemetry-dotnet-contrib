@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Extensions.Internal;
 using OpenTelemetry.Trace;
 
@@ -287,6 +288,104 @@ public class ConsistentProbabilitySamplerTests
             Assert.True(state.HasRandomValue);
             Assert.InRange(state.RandomValue, 0L, ConsistentProbability.MaxRandomValue);
         }
+    }
+
+    [Fact]
+    public void ShouldSample_PropagatesRandomnessConsistentlyAcrossProcesses()
+    {
+        // A fixed randomness value so the root's generated rv is deterministic and shared by the
+        // whole trace. 0x90000000000000 is ~56.25% into the 56-bit range, i.e. it is sampled at any
+        // probability >= ~0.4375.
+        const long Randomness = 0x90000000000000L;
+        const string ExpectedTraceState = "ot=th:8;rv:90000000000000";
+
+        var producerSource = nameof(this.ShouldSample_PropagatesRandomnessConsistentlyAcrossProcesses) + ".Producer";
+        var carrier = new Dictionary<string, string>();
+        ActivityContext rootContext;
+
+        // Process 1: a service starts a sampled root span at 50%.
+        using (var provider = Sdk.CreateTracerProviderBuilder()
+                                 .AddSource(producerSource)
+                                 .SetSampler(new ConsistentProbabilitySampler(0.5, new FixedRandom(Randomness)))
+                                 .Build())
+        using (var source = new ActivitySource(producerSource))
+        using (var root = source.StartActivity("root", ActivityKind.Server))
+        {
+            Assert.NotNull(root);
+            Assert.True(root.Recorded, "The root span was not recorded.");
+
+            // The sampler encoded its threshold and the generated randomness into the tracestate.
+            Assert.Equal(ExpectedTraceState, root.TraceStateString);
+
+            rootContext = root.Context;
+
+            // Serialize the span context into W3C traceparent/tracestate headers, as when sending a
+            // request to another service.
+            var outwardPropagator = new TraceContextPropagator();
+            outwardPropagator.Inject(
+                new(root.Context, Baggage.Current),
+                carrier,
+                static (headers, key, value) => headers[key] = value);
+        }
+
+        // The randomness travelled on the wire in the tracestate header.
+        Assert.Equal(ExpectedTraceState, carrier["tracestate"]);
+
+        // The wire boundary: a different process extracts the propagated context.
+        var inwardPropagator = new TraceContextPropagator();
+        var context = inwardPropagator.Extract(
+            default,
+            carrier,
+            static (headers, key) => headers.TryGetValue(key, out var value) ? [value] : []);
+
+        var remoteParent = context.ActivityContext;
+
+        Assert.True(remoteParent.IsRemote, "The extracted context is not marked as remote.");
+        Assert.Equal(rootContext.TraceId, remoteParent.TraceId);
+        Assert.Equal(rootContext.SpanId, remoteParent.SpanId);
+        Assert.Equal(ExpectedTraceState, remoteParent.TraceState);
+
+        // Process 2: a downstream service continues the trace from the received context. A real child
+        // span is created across the process boundary and joins the same trace.
+        var consumerSource = nameof(this.ShouldSample_PropagatesRandomnessConsistentlyAcrossProcesses) + ".Consumer";
+
+        using (var provider = Sdk.CreateTracerProviderBuilder()
+                                 .AddSource(consumerSource)
+                                 .SetSampler(new ConsistentProbabilitySampler(0.5))
+                                 .Build())
+        using (var source = new ActivitySource(consumerSource))
+        using (var child = source.StartActivity("child", ActivityKind.Server, remoteParent))
+        {
+            Assert.NotNull(child);
+            Assert.True(child.HasRemoteParent, "The child span does not have a remote parent.");
+            Assert.Equal(rootContext.TraceId, child.TraceId);
+            Assert.Equal(rootContext.SpanId, child.ParentSpanId);
+
+            // At the same probability the child is sampled, consistently with the root.
+            Assert.True(child.Recorded, "The child span was not recorded.");
+        }
+
+        // The sampling decision made from the received context is driven by the propagated randomness,
+        // so it is consistent with the root and reuses the rv unchanged.
+        var remoteParameters = new SamplingParameters(
+            remoteParent,
+            remoteParent.TraceId,
+            "child",
+            ActivityKind.Server);
+
+        var sampler = new ConsistentProbabilitySampler(0.5);
+        var remoteResult = sampler.ShouldSample(remoteParameters);
+
+        Assert.Equal(SamplingDecision.RecordAndSample, remoteResult.Decision);
+        Assert.Equal(ExpectedTraceState, remoteResult.TraceStateString);
+
+        // Consistency: kept at p1 implies kept at any p2 >= p1, while a lower probability
+        // that excludes this randomness consistently drops it.
+        Assert.Equal(SamplingDecision.RecordAndSample, RemoteDecision(0.75));
+        Assert.Equal(SamplingDecision.Drop, RemoteDecision(0.25));
+
+        SamplingDecision RemoteDecision(double probability)
+            => new ConsistentProbabilitySampler(probability).ShouldSample(remoteParameters).Decision;
     }
 
     private static SamplingParameters CreateRootParameters()
