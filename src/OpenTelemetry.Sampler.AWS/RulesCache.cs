@@ -54,23 +54,26 @@ internal class RulesCache : IDisposable
         // sort the new rules
         newRules.Sort((x, y) => x.CompareTo(y));
 
-        List<SamplingRuleApplier> newRuleAppliers = [];
-        foreach (var rule in newRules)
-        {
-            // If the ruleApplier already exists in the current list of appliers, then we reuse it.
-            var ruleApplier = this.RuleAppliers
-                .FirstOrDefault(currentApplier => currentApplier.RuleName == rule.RuleName) ??
-                new SamplingRuleApplier(this.ClientId, this.Clock, rule, new Statistics());
-
-            // update the rule in the applier in case rule attributes have changed
-            ruleApplier.Rule = rule;
-
-            newRuleAppliers.Add(ruleApplier);
-        }
-
+        // Build and swap the appliers under the write lock so that a concurrent
+        // UpdateTargets (target poller) cannot have its result discarded by the
+        // stale snapshot of RuleAppliers this method reuses appliers from.
         this.rwLock.EnterWriteLock();
         try
         {
+            List<SamplingRuleApplier> newRuleAppliers = [];
+            foreach (var rule in newRules)
+            {
+                // If the ruleApplier already exists in the current list of appliers, then we reuse it.
+                var ruleApplier = this.RuleAppliers
+                    .FirstOrDefault(currentApplier => currentApplier.RuleName == rule.RuleName) ??
+                    new SamplingRuleApplier(this.ClientId, this.Clock, rule, new Statistics());
+
+                // update the rule in the applier in case rule attributes have changed
+                ruleApplier.Rule = rule;
+
+                newRuleAppliers.Add(ruleApplier);
+            }
+
             this.RuleAppliers = newRuleAppliers;
             this.UpdatedAt = this.Clock.Now();
         }
@@ -115,24 +118,27 @@ internal class RulesCache : IDisposable
 
     public void UpdateTargets(Dictionary<string, SamplingTargetDocument> targets)
     {
-        List<SamplingRuleApplier> newRuleAppliers = [];
-        foreach (var ruleApplier in this.RuleAppliers)
-        {
-            targets.TryGetValue(ruleApplier.RuleName, out var target);
-            if (target != null)
-            {
-                newRuleAppliers.Add(ruleApplier.WithTarget(target, this.Clock.Now()));
-            }
-            else
-            {
-                // did not get target for this rule. Will be updated in future target poll.
-                newRuleAppliers.Add(ruleApplier);
-            }
-        }
-
+        // Build and swap the appliers under the write lock so that a concurrent
+        // UpdateRules (rule poller) cannot discard the targets applied here by
+        // swapping in a list rebuilt from a stale snapshot of RuleAppliers.
         this.rwLock.EnterWriteLock();
         try
         {
+            List<SamplingRuleApplier> newRuleAppliers = [];
+            foreach (var ruleApplier in this.RuleAppliers)
+            {
+                targets.TryGetValue(ruleApplier.RuleName, out var target);
+                if (target != null)
+                {
+                    newRuleAppliers.Add(ruleApplier.WithTarget(target, this.Clock.Now()));
+                }
+                else
+                {
+                    // did not get target for this rule. Will be updated in future target poll.
+                    newRuleAppliers.Add(ruleApplier);
+                }
+            }
+
             this.RuleAppliers = newRuleAppliers;
         }
         finally
