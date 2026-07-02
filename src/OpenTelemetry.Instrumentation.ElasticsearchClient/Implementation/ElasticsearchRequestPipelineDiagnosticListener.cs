@@ -285,14 +285,16 @@ internal partial class ElasticsearchRequestPipelineDiagnosticListener : Listener
 
             if (method != null)
             {
+                var methodName = method.ToString();
+
                 if (emitOldAttributes)
                 {
-                    activity.SetTag(AttributeDbMethod, method.ToString());
+                    activity.SetTag(AttributeDbMethod, methodName);
                 }
 
                 if (emitNewAttributes)
                 {
-                    activity.SetTag(SemanticConventions.AttributeHttpRequestMethod, method.ToString());
+                    activity.SetTag(SemanticConventions.AttributeHttpRequestMethod, methodName);
                 }
             }
 
