@@ -33,6 +33,9 @@
   the exception message is recorded in the span status description.
   ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
 
+* Metrics and traces now include a telemetry schema URL.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 0.1.0-alpha.7
 
 Released 2026-May-29
