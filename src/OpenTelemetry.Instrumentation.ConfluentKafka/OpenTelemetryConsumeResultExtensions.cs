@@ -106,7 +106,7 @@ public static class OpenTelemetryConsumeResultExtensions
             return consumeResult;
         }
 
-        var processActivity = StartProcessActivity(TryExtractPropagationContext(consumeResult, out var propagationContext) ? propagationContext : default, consumeResult.TopicPartitionOffset, consumeResult.Message.Key, instrumentedConsumer.Name, instrumentedConsumer.GroupId!);
+        var processActivity = StartProcessActivity(TryExtractPropagationContext(consumeResult, out var propagationContext) ? propagationContext : default, consumeResult.TopicPartitionOffset, consumeResult.Message.Key, consumeResult.Message.Value is null, instrumentedConsumer.Name, instrumentedConsumer.GroupId!);
 
         try
         {
@@ -129,7 +129,7 @@ public static class OpenTelemetryConsumeResultExtensions
     internal static PropagationContext ExtractPropagationContext(Headers? headers)
         => Propagators.DefaultTextMapPropagator.Extract(default, headers, ExtractTraceContext);
 
-    private static Activity? StartProcessActivity<TKey>(PropagationContext propagationContext, TopicPartitionOffset? topicPartitionOffset, TKey? key, string clientId, string groupId)
+    private static Activity? StartProcessActivity<TKey>(PropagationContext propagationContext, TopicPartitionOffset? topicPartitionOffset, TKey? key, bool isTombstone, string clientId, string groupId)
     {
 #pragma warning disable IDE0370 // Suppression is unnecessary
         var spanName = string.IsNullOrEmpty(topicPartitionOffset?.Topic)
@@ -161,6 +161,11 @@ public static class OpenTelemetryConsumeResultExtensions
             if (key != null)
             {
                 activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageKey, key);
+            }
+
+            if (isTombstone)
+            {
+                activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageTombstone, true);
             }
         }
 

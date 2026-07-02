@@ -205,6 +205,34 @@ public class OpenTelemetryConsumeResultExtensionsTests
         Assert.Equal("kafka", processActivity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
         Assert.Equal("process", processActivity.GetTagValue(SemanticConventions.AttributeMessagingOperationName));
         Assert.Equal("process", processActivity.GetTagValue(SemanticConventions.AttributeMessagingOperationType));
+        Assert.Null(processActivity.GetTagValue(SemanticConventions.AttributeMessagingKafkaMessageTombstone));
+    }
+
+    [Fact]
+    public async Task ConsumeAndProcessMessageAsync_TombstoneMessage_SetsTombstoneTag()
+    {
+        var activities = new List<Activity>();
+
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                                       .AddSource(ConfluentKafkaCommon.ActivitySource.Name)
+                                       .AddInMemoryExporter(activities)
+                                       .Build())
+        {
+            var consumer = BuildInstrumentedConsumer(new ConsumeResult<string, string>
+            {
+                Topic = "tombstone-topic",
+                Partition = new Partition(0),
+                Offset = new Offset(5),
+                Message = new Message<string, string> { Key = "msg-key", Value = null! },
+            });
+
+            await consumer.ConsumeAndProcessMessageAsync(NoOpHandler);
+
+            tracerProvider.ForceFlush();
+        }
+
+        var processActivity = Assert.Single(activities, a => a.DisplayName == "process tombstone-topic");
+        Assert.Equal(true, processActivity.GetTagValue(SemanticConventions.AttributeMessagingKafkaMessageTombstone));
     }
 
     private static InstrumentedConsumer<TKey, TValue> BuildInstrumentedConsumer<TKey, TValue>(

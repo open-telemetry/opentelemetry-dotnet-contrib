@@ -218,14 +218,14 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
     {
         null => new ConsumeResult(null, null),
         { Message: null } => new ConsumeResult(result.TopicPartitionOffset, null),
-        _ => new ConsumeResult(result.TopicPartitionOffset, result.Message.Headers, result.Message.Key),
+        _ => new ConsumeResult(result.TopicPartitionOffset, result.Message.Headers, result.Message.Key, result.Message.Value is null),
     };
 
     private static (ConsumeResult ConsumeResult, string ErrorType) ExtractConsumeResult(ConsumeException exception) => exception switch
     {
         { ConsumerRecord: null } => (new ConsumeResult(null, null), FormatConsumeException(exception)),
         { ConsumerRecord.Message: null } => (new ConsumeResult(exception.ConsumerRecord.TopicPartitionOffset, null), FormatConsumeException(exception)),
-        _ => (new ConsumeResult(exception.ConsumerRecord.TopicPartitionOffset, exception.ConsumerRecord.Message.Headers, exception.ConsumerRecord.Message.Key), FormatConsumeException(exception)),
+        _ => (new ConsumeResult(exception.ConsumerRecord.TopicPartitionOffset, exception.ConsumerRecord.Message.Headers, exception.ConsumerRecord.Message.Key, exception.ConsumerRecord.Message.Value is null), FormatConsumeException(exception)),
     };
 
     private static void GetTags(string? topic, string? groupId, out TagList tags, int? partition = null, string? errorType = null)
@@ -292,7 +292,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
                 ? OpenTelemetryConsumeResultExtensions.ExtractPropagationContext(consumeResult.Headers)
                 : default;
 
-            using var activity = this.StartReceiveActivity(propagationContext, startTime, consumeResult.TopicPartitionOffset, consumeResult.Key);
+            using var activity = this.StartReceiveActivity(propagationContext, startTime, consumeResult.TopicPartitionOffset, consumeResult.Key, consumeResult.IsTombstone);
             if (activity != null)
             {
                 if (errorType != null)
@@ -315,7 +315,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         }
     }
 
-    private Activity? StartReceiveActivity(PropagationContext propagationContext, DateTimeOffset start, TopicPartitionOffset? topicPartitionOffset, object? key)
+    private Activity? StartReceiveActivity(PropagationContext propagationContext, DateTimeOffset start, TopicPartitionOffset? topicPartitionOffset, object? key, bool isTombstone)
     {
 #pragma warning disable IDE0370 // Suppression is unnecessary
         var spanName = string.IsNullOrEmpty(topicPartitionOffset?.Topic)
@@ -350,6 +350,11 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
             {
                 activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageKey, key);
             }
+
+            if (isTombstone)
+            {
+                activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageTombstone, true);
+            }
         }
 
         return activity;
@@ -358,12 +363,15 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
     private readonly record struct ConsumeResult(
         TopicPartitionOffset? TopicPartitionOffset,
         Headers? Headers,
-        object? Key = null)
+        object? Key = null,
+        bool IsTombstone = false)
     {
         public object? Key { get; } = Key;
 
         public Headers? Headers { get; } = Headers;
 
         public TopicPartitionOffset? TopicPartitionOffset { get; } = TopicPartitionOffset;
+
+        public bool IsTombstone { get; } = IsTombstone;
     }
 }

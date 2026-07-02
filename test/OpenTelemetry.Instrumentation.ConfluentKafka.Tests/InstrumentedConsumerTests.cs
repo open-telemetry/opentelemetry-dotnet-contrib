@@ -45,6 +45,34 @@ public class InstrumentedConsumerTests
         Assert.Equal(42L, activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaOffset));
         Assert.Equal("test-group", activity.GetTagValue(SemanticConventions.AttributeMessagingConsumerGroupName));
         Assert.Equal("msg-key", activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaMessageKey));
+        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaMessageTombstone));
+    }
+
+    [Fact]
+    public void Consume_TombstoneMessage_SetsTombstoneTag()
+    {
+        var activities = new List<Activity>();
+
+        using (var tracerProvider = CreateTraceProvider(activities))
+        {
+            var fakeConsumer = new FakeConsumer<string, string>
+            {
+                ConsumeResult = new ConsumeResult<string, string>
+                {
+                    Topic = "tombstone-topic",
+                    Partition = new Partition(0),
+                    Offset = new Offset(3),
+                    Message = new Message<string, string> { Key = "msg-key", Value = null! },
+                },
+            };
+
+            ConsumeEventAndCaptureTraces(fakeConsumer);
+
+            tracerProvider.ForceFlush();
+        }
+
+        var activity = activities.Single(a => a.DisplayName == "poll tombstone-topic");
+        Assert.Equal(true, activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaMessageTombstone));
     }
 
     [Fact]

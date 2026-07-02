@@ -335,6 +335,11 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
                 activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageKey, message.Key);
             }
 
+            if (message.Value is null)
+            {
+                activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageTombstone, true);
+            }
+
             if (partition is not null)
             {
                 activity.SetTag(SemanticConventions.AttributeMessagingDestinationPartitionId, partition.Value.ToString(CultureInfo.InvariantCulture));
