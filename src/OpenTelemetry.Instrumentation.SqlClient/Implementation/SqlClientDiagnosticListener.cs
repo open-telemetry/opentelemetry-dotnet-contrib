@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #if !NETFRAMEWORK
+using System.Collections;
+using System.Collections.Concurrent;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
@@ -35,10 +37,15 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
     private const string IL2026Justification = "Client application usage will ensure that core types from usage are preserved.";
 #endif
 
+    private static ConcurrentDictionary<Type, Func<IDbConnection, IDictionary?>?>? retrieveStatisticsCache;
+
     private readonly PropertyFetcher<IDbCommand> commandFetcher = new("Command");
     private readonly PropertyFetcher<Exception> exceptionFetcher = new("Exception");
     private readonly PropertyFetcher<int> exceptionNumberFetcher = new("Number");
+    private readonly PropertyFetcher<IDictionary> statisticsFetcher = new("Statistics");
     private readonly AsyncLocal<long> beginTimestamp = new();
+    private readonly AsyncLocal<long> beginIduRows = new();
+    private readonly AsyncLocal<long> beginSelectRows = new();
 
     public SqlClientDiagnosticListener(string sourceName)
         : base(sourceName)
@@ -131,6 +138,15 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                         return;
                     }
 
+                    // Snapshot the connection's cumulative row counts before the command executes
+                    // so that the after-handler can compute the per-command delta.
+                    if (options.RecordReturnedRows)
+                    {
+                        var (idu, sel) = GetConnectionRowCounts(command);
+                        this.beginIduRows.Value = idu;
+                        this.beginSelectRows.Value = sel;
+                    }
+
 #if NET
                     if (options.EnableTraceContextPropagation &&
                         command.CommandType is CommandType.Text && connection is { State: ConnectionState.Open })
@@ -215,6 +231,16 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     {
                         this.RecordDuration(null, payload);
                         return;
+                    }
+
+                    if (options.RecordReturnedRows &&
+                        activity.IsAllDataRequested &&
+                        TryFetchStatistics(this.statisticsFetcher, payload, out var statistics))
+                    {
+                        if (this.GetReturnedRowsDelta(statistics) is { } returnedRows)
+                        {
+                            activity.SetTag(SemanticConventions.AttributeDbResponseReturnedRows, returnedRows);
+                        }
                     }
 
                     activity.Stop();
@@ -350,6 +376,83 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
         Exception exception,
         out int number)
         => fetcher.TryFetch(exception, out number);
+
+#if NET
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = IL2026Justification)]
+#endif
+    private static bool TryFetchStatistics(
+        PropertyFetcher<IDictionary> fetcher,
+        object? payload,
+        [NotNullWhen(true)] out IDictionary? statistics)
+        => fetcher.TryFetch(payload, out statistics) && statistics != null;
+
+    // Both System.Data.SqlClient.SqlConnection and Microsoft.Data.SqlClient.SqlConnection
+    // expose a public RetrieveStatistics() method that returns an IDictionary snapshot of
+    // the connection's cumulative statistics. We look the method up once per concrete
+    // connection type and cache a delegate so that subsequent calls avoid repeated
+    // reflection lookups.
+    private static (long IduRows, long SelectRows) GetConnectionRowCounts(IDbCommand command)
+    {
+        var connection = command.Connection;
+        if (connection == null)
+        {
+            return (0L, 0L);
+        }
+
+        try
+        {
+            retrieveStatisticsCache ??= [];
+            var retrieve = retrieveStatisticsCache.GetOrAdd(connection.GetType(), CreateRetrieveStatisticsDelegate);
+            if (retrieve?.Invoke(connection) is IDictionary stats)
+            {
+                return (
+                    stats["IduRows"] is long idu ? idu : 0L,
+                    stats["SelectRows"] is long sel ? sel : 0L);
+            }
+        }
+        catch
+        {
+            // Statistics not available from this connection type; baseline defaults to zero.
+        }
+
+        return (0L, 0L);
+    }
+
+#if NET
+    [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = IL2026Justification)]
+#endif
+    private static Func<IDbConnection, IDictionary?>? CreateRetrieveStatisticsDelegate(Type connectionType)
+    {
+        var method = connectionType.GetMethod("RetrieveStatistics", Type.EmptyTypes);
+        return method == null
+            ? null
+            : connection => method.Invoke(connection, null) as IDictionary;
+    }
+
+    // The SqlClient connection statistics report both the number of rows returned by
+    // queries (SelectRows) and the number of rows affected by data manipulation commands
+    // (IduRows). The statistics are cumulative for the lifetime of the connection, so we
+    // subtract the pre-command baseline (captured in WriteCommandBefore) to obtain the
+    // per-command delta. We prefer the IduRows delta when it is non-zero so that the same
+    // tag can be populated for both SELECT and INSERT/UPDATE/DELETE style commands.
+    private long? GetReturnedRowsDelta(IDictionary statistics)
+    {
+        var iduRows = GetStatistic(statistics, "IduRows");
+        var selectRows = GetStatistic(statistics, "SelectRows");
+
+        if (iduRows == null && selectRows == null)
+        {
+            return null;
+        }
+
+        var deltaIdu = (iduRows ?? 0L) - this.beginIduRows.Value;
+        var deltaSelect = (selectRows ?? 0L) - this.beginSelectRows.Value;
+
+        return deltaIdu != 0 ? deltaIdu : deltaSelect;
+
+        static long? GetStatistic(IDictionary statistics, string key)
+            => statistics[key] is long value ? value : null;
+    }
 
     private void RecordDuration(Activity? activity, object? payload, bool hasError = false)
     {

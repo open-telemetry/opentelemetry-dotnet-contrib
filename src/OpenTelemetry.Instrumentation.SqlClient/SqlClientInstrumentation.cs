@@ -85,6 +85,7 @@ internal sealed class SqlClientInstrumentation : IDisposable
 #if !NETFRAMEWORK
         snapshot.RecordException = false;
         snapshot.SetDbQueryParameters = false;
+        snapshot.RecordReturnedRows = false;
 #endif
 #if NET
         snapshot.EnableTraceContextPropagation = false;
@@ -103,6 +104,7 @@ internal sealed class SqlClientInstrumentation : IDisposable
 
         snapshot.RecordException = firstActiveTracingOption.RecordException;
         snapshot.SetDbQueryParameters = firstActiveTracingOption.SetDbQueryParameters;
+        snapshot.RecordReturnedRows = firstActiveTracingOption.RecordReturnedRows;
 #endif
 #if NET
         snapshot.EnableTraceContextPropagation = firstActiveTracingOption.EnableTraceContextPropagation;
@@ -125,6 +127,7 @@ internal sealed class SqlClientInstrumentation : IDisposable
 
             snapshot.RecordException &= options.RecordException;
             snapshot.SetDbQueryParameters &= options.SetDbQueryParameters;
+            snapshot.RecordReturnedRows &= options.RecordReturnedRows;
 #endif
 #if NET
             snapshot.EnableTraceContextPropagation &= options.EnableTraceContextPropagation;

@@ -18,7 +18,7 @@ and
 and collects traces about database operations.
 
 This component is based on
-[v1.33](https://github.com/open-telemetry/semantic-conventions/blob/v1.33.0/docs/database/README.md)
+[v1.42](https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/database/README.md)
 of database semantic conventions. For details on the default set of
 attributes that are added, check out the [Traces](#traces) and
 [Metrics](#metrics) sections below.
@@ -251,6 +251,29 @@ if your queries and/or environment are appropriate for enabling this option.
 [`db.query.parameter.<key>`](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/db/database-spans.md#span-definition)
 attributes for each of the query parameters associated with a database command.
 
+### Returned rows
+
+> [!NOTE]
+> This feature is available on .NET runtimes only.
+
+The `OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_RECORD_RETURNED_ROWS` environment
+variable controls whether the
+[`db.response.returned_rows`](https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/database/database-spans.md)
+attribute is emitted.
+
+`OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_RECORD_RETURNED_ROWS` is implicitly
+`false` by default. When set to `true`, the instrumentation records the number
+of rows returned by queries or affected by `INSERT`/`UPDATE`/`DELETE` commands,
+derived from the SqlClient connection statistics that are collected automatically
+while the instrumentation is enabled.
+
+> [!NOTE]
+> The span ends when the command finishes executing. For `ExecuteReader` this
+> happens **before** the returned rows are read by the application, so the
+> attribute reflects the rows observed at that point and may be `0` for queries
+> whose results are consumed after the command returns. The value is most
+> meaningful for `ExecuteNonQuery` (rows affected) commands.
+
 ### Trace Context Propagation
 
 > [!NOTE]
@@ -297,7 +320,7 @@ while (reader.Read())
 * [OpenTelemetry Project](https://opentelemetry.io/)
 * [Semantic conventions for database client spans][semconv-spans]
 * [Semantic conventions for database client metrics][semconv-metrics]
-* [Semantic conventions for Microsoft SQL Server client operations](https://github.com/open-telemetry/semantic-conventions/blob/v1.33.0/docs/database/sql-server.md)
+* [Semantic conventions for Microsoft SQL Server client operations](https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/database/sql-server.md)
 
-[semconv-metrics]: https://github.com/open-telemetry/semantic-conventions/blob/v1.33.0/docs/database/database-metrics.md
-[semconv-spans]: https://github.com/open-telemetry/semantic-conventions/blob/v1.33.0/docs/database/database-spans.md
+[semconv-metrics]: https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/database/database-metrics.md
+[semconv-spans]: https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/database/database-spans.md

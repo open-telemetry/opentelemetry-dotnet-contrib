@@ -176,6 +176,47 @@ public sealed class SqlClientIntegrationTests :
             this.outputHelper,
             [new("invalid_format", null)]); // See https://github.com/open-telemetry/weaver/issues/1443
     }
+
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
+    public async Task RecordsReturnedRowsWhenEnabled()
+    {
+        // Arrange
+        using var scope = EnvironmentVariableScope.Create(
+            SqlClientTraceInstrumentationOptions.RecordReturnedRowsEnvVar,
+            "true");
+
+        var activities = new List<Activity>();
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddInMemoryExporter(activities)
+            .AddSqlClientInstrumentation()
+            .Build();
+
+        using var sqlConnection = new SqlConnection(this.GetConnectionString());
+
+        await sqlConnection.OpenAsync();
+
+        sqlConnection.ChangeDatabase("master");
+
+        // A temporary table is scoped to the connection/session so the test does not
+        // depend on or mutate any shared schema in the container.
+        using (var createCommand = new SqlCommand("CREATE TABLE #returned_rows (Id int)", sqlConnection))
+        {
+            await createCommand.ExecuteNonQueryAsync();
+        }
+
+        // Ignore the activities produced while preparing the table.
+        activities.Clear();
+
+        // Act
+        using var insertCommand = new SqlCommand("INSERT INTO #returned_rows (Id) VALUES (1), (2), (3)", sqlConnection);
+        var rowsAffected = await insertCommand.ExecuteNonQueryAsync();
+
+        // Assert
+        Assert.Equal(3, rowsAffected);
+
+        var activity = Assert.Single(activities);
+        Assert.Equal(3L, activity.GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
+    }
 #endif
 
     [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
