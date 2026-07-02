@@ -10,6 +10,7 @@ using OpenTelemetry.OpAmp.Client.Internal.Transport.Http;
 using OpenTelemetry.OpAmp.Client.Internal.Transport.WebSocket;
 using OpenTelemetry.OpAmp.Client.Listeners;
 using OpenTelemetry.OpAmp.Client.Messages;
+using OpenTelemetry.OpAmp.Client.Messages.Flags;
 using OpenTelemetry.OpAmp.Client.Settings;
 
 namespace OpenTelemetry.OpAmp.Client;
@@ -203,6 +204,20 @@ public sealed class OpAmpClient : IDisposable
         this.ThrowIfDisposed();
 
         return this.dispatcher.DispatchCustomMessageAsync(capability, type, data, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a full state report message to restore the lost state in the server.
+    /// </summary>
+    /// <param name="report">Report that contains supported partials.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A task that represents the asynchronous send operation.</returns>
+    /// <exception cref="ObjectDisposedException">Thrown if the client has already been disposed.</exception>
+    public Task SendFullStateReportAsync(FullStateReport report, CancellationToken cancellationToken = default)
+    {
+        this.ThrowIfDisposed();
+
+        return this.dispatcher.DispatchFullStateReportAsync(report, cancellationToken);
     }
 
     /// <summary>

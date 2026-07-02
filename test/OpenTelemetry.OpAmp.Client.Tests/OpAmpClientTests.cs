@@ -10,6 +10,7 @@ using System.Text;
 using OpAmp.Proto.V1;
 using OpenTelemetry.OpAmp.Client.Internal.Services.Heartbeat;
 using OpenTelemetry.OpAmp.Client.Messages;
+using OpenTelemetry.OpAmp.Client.Messages.Flags;
 using OpenTelemetry.OpAmp.Client.Settings;
 using OpenTelemetry.OpAmp.Client.Tests.DataGenerators;
 using OpenTelemetry.OpAmp.Client.Tests.Mocks;
@@ -476,6 +477,46 @@ public class OpAmpClientTests
         Assert.Equal(capability, actualCapability);
         Assert.Equal(type, actualType);
         Assert.Equal(messageContent, actualMessageContent);
+    }
+
+    [Fact]
+    internal async Task SendsFullStateReport()
+    {
+        // Setup OpAMP server
+        using var opAmpServer = new OpAmpFakeHttpServer(false);
+        var opAmpEndpoint = opAmpServer.Endpoint;
+
+        using var client = new OpAmpClient(o =>
+        {
+            o.ServerUrl = opAmpEndpoint;
+
+            o.Identification.AddIdentifyingAttribute("test", "value");
+            o.RemoteConfiguration.AcceptsRemoteConfig = true;
+        });
+
+        // Setup content
+        var content = "test"u8.ToArray();
+        var report = new FullStateReport()
+        {
+            EffectiveConfigFiles = [new EffectiveConfigFile(content, "text/plain", "test")],
+            CustomCapabilities = ["test-capability"],
+            RemoteConfigStatus = new RemoteConfigStatusReport(content, RemoteConfigStatusCode.Applied),
+        };
+
+        // Act
+        await client.StartAsync();
+        await client.SendFullStateReportAsync(report);
+        await client.StopAsync();
+
+        // Assert received frames
+        var frames = opAmpServer.GetFrames();
+
+        Assert.NotNull(frames[1].AgentDescription);
+        Assert.NotNull(frames[1].EffectiveConfig);
+        Assert.NotNull(frames[1].CustomCapabilities);
+        Assert.NotNull(frames[1].RemoteConfigStatus);
+
+        Assert.True(frames[1].Capabilities > 0);
     }
 
     internal class CapabilityTestData
