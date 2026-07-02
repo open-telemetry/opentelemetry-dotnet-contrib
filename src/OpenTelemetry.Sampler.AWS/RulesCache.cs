@@ -60,13 +60,20 @@ internal class RulesCache : IDisposable
         this.rwLock.EnterWriteLock();
         try
         {
+            Dictionary<string, SamplingRuleApplier> existingAppliers = new(this.RuleAppliers.Count);
+
+            foreach (var applier in this.RuleAppliers)
+            {
+                existingAppliers[applier.RuleName] = applier;
+            }
+
             List<SamplingRuleApplier> newRuleAppliers = [];
             foreach (var rule in newRules)
             {
                 // If the ruleApplier already exists in the current list of appliers, then we reuse it.
-                var ruleApplier = this.RuleAppliers
-                    .FirstOrDefault(currentApplier => currentApplier.RuleName == rule.RuleName) ??
-                    new SamplingRuleApplier(this.ClientId, this.Clock, rule, new Statistics());
+                var ruleApplier = existingAppliers.TryGetValue(rule.RuleName, out var currentApplier)
+                    ? currentApplier
+                    : new SamplingRuleApplier(this.ClientId, this.Clock, rule, new Statistics());
 
                 // update the rule in the applier in case rule attributes have changed
                 ruleApplier.Rule = rule;
@@ -124,13 +131,15 @@ internal class RulesCache : IDisposable
         this.rwLock.EnterWriteLock();
         try
         {
+            var now = this.Clock.Now();
+
             List<SamplingRuleApplier> newRuleAppliers = [];
             foreach (var ruleApplier in this.RuleAppliers)
             {
                 targets.TryGetValue(ruleApplier.RuleName, out var target);
                 if (target != null)
                 {
-                    newRuleAppliers.Add(ruleApplier.WithTarget(target, this.Clock.Now()));
+                    newRuleAppliers.Add(ruleApplier.WithTarget(target, now));
                 }
                 else
                 {
