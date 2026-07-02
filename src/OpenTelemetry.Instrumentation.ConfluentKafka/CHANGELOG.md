@@ -27,11 +27,11 @@
 
   The metrics were renamed to:
 
-    * `messaging.client.operation.duration`
-      (replacing `messaging.publish.duration` and `messaging.receive.duration`)
-    * `messaging.client.sent.messages` (replacing `messaging.publish.messages`)
-    * `messaging.client.consumed.messages`
-      (replacing `messaging.receive.messages`).
+  * `messaging.client.operation.duration`
+    (replacing `messaging.publish.duration` and `messaging.receive.duration`)
+  * `messaging.client.sent.messages` (replacing `messaging.publish.messages`)
+  * `messaging.client.consumed.messages`
+    (replacing `messaging.receive.messages`).
 
   `error.type` is now reported as the language-agnostic Kafka error code and
   the exception message is recorded in the span status description.
