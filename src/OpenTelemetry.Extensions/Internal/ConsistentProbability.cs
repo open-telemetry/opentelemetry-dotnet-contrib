@@ -246,12 +246,16 @@ internal static class ConsistentProbability
     private static int FrexpExponent(double value)
     {
         // value is a positive, normal double less than one.
+#if NET
+        return Math.ILogB(value) + 1;
+#else
         var bits = BitConverter.DoubleToInt64Bits(value);
         var biasedExponent = (int)((bits >> 52) & 0x7FF);
 
         // frexp normalises the mantissa to [0.5, 1) rather than [1, 2), so its exponent is one
         // greater than the unbiased IEEE-754 exponent (biasedExponent - 1023).
         return biasedExponent - 1022;
+#endif
     }
 
     /// <summary>
