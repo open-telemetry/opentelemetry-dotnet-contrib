@@ -207,7 +207,7 @@ public sealed class OpAmpClient : IDisposable
     }
 
     /// <summary>
-    /// Sends full state report message to restore the lost state in the server.
+    /// Sends a full state report message to restore the lost state in the server.
     /// </summary>
     /// <param name="report">Report that contains supported partials.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
