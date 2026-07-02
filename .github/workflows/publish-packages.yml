@@ -123,7 +123,7 @@ jobs:
           foreach ($projectFile in $projectFiles) {
               $projectName = [System.IO.Path]::GetFileNameWithoutExtension($projectFile)
 
-              Get-ChildItem -Path artifacts/bin/$projectName/release_*/$projectName.dll -File | ForEach-Object {
+              Get-ChildItem -Path artifacts/bin/$projectName/release*/$projectName.dll -File | ForEach-Object {
                   $fileFullPath = $_.FullName
                   Write-Output "Signing $fileFullPath"
 
@@ -135,7 +135,7 @@ jobs:
         uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763 # v4.1.1
         with:
           subject-path: |
-            ./artifacts/bin/*/release_*/OpenTelemetry*.dll
+            ./artifacts/bin/*/release*/OpenTelemetry*.dll
             !./artifacts/bin/*/**/OpenTelemetry.dll
             !./artifacts/bin/*/**/OpenTelemetry.Api.dll
             !./artifacts/bin/*/**/OpenTelemetry.Api.ProviderBuilderExtensions.dll
