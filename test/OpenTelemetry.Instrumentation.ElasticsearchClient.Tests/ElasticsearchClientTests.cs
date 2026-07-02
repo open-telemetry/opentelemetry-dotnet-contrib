@@ -853,4 +853,204 @@ public class ElasticsearchClientTests
         Assert.DoesNotContain("sensitive", dbUrl);
         Assert.Contains("REDACTED:REDACTED", dbUrl);
     }
+
+    [Fact]
+    public async Task EmitsNewSemanticConventionsWhenOptedIn()
+    {
+        var exportedItems = new List<Activity>();
+
+        var parent = new Activity("parent").Start();
+
+        var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer"));
+
+        using (Sdk.CreateTracerProviderBuilder()
+                  .SetSampler(new AlwaysOnSampler())
+                  .AddElasticsearchClientInstrumentation(o =>
+                  {
+                      o.EmitOldAttributes = false;
+                      o.EmitNewAttributes = true;
+                  })
+                  .AddInMemoryExporter(exportedItems)
+                  .Build())
+        {
+            var response = await client.GetAsync<Customer>("123");
+
+            Assert.NotNull(response);
+            Assert.True(response.ApiCall.Success);
+        }
+
+        Assert.Single(exportedItems);
+        var searchActivity = exportedItems[0];
+
+        // New attributes are emitted.
+        Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystemName));
+        Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbCollectionName));
+        Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeServerAddress));
+        Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeServerPort));
+        Assert.Equal("GET", searchActivity.GetTagValue(SemanticConventions.AttributeHttpRequestMethod));
+        Assert.NotNull(searchActivity.GetTagValue(SemanticConventions.AttributeUrlFull));
+        Assert.NotNull(searchActivity.GetTagValue(SemanticConventions.AttributeDbQueryText));
+
+        // localhost is a hostname (not an IP), so network.peer.* are not set.
+        Assert.Null(searchActivity.GetTagValue(SemanticConventions.AttributeNetworkPeerAddress));
+        Assert.Null(searchActivity.GetTagValue(SemanticConventions.AttributeNetworkPeerPort));
+
+        // Old attributes are not emitted.
+        Assert.Null(searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
+        Assert.Null(searchActivity.GetTagValue(SemanticConventions.AttributeDbName));
+        Assert.Null(searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerName));
+        Assert.Null(searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerIp));
+        Assert.Null(searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerPort));
+        Assert.Null(searchActivity.GetTagValue("db.method"));
+        Assert.Null(searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement));
+        Assert.Null(searchActivity.GetTagValue(SemanticConventions.AttributeHttpStatusCode));
+    }
+
+    [Fact]
+    public async Task EmitsBothSemanticConventionsWhenOptedIn()
+    {
+        var exportedItems = new List<Activity>();
+
+        var parent = new Activity("parent").Start();
+
+        var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer"));
+
+        using (Sdk.CreateTracerProviderBuilder()
+                  .SetSampler(new AlwaysOnSampler())
+                  .AddElasticsearchClientInstrumentation(o =>
+                  {
+                      o.EmitOldAttributes = true;
+                      o.EmitNewAttributes = true;
+                  })
+                  .AddInMemoryExporter(exportedItems)
+                  .Build())
+        {
+            var response = await client.GetAsync<Customer>("123");
+
+            Assert.NotNull(response);
+            Assert.True(response.ApiCall.Success);
+        }
+
+        Assert.Single(exportedItems);
+        var searchActivity = exportedItems[0];
+
+        // Old attributes.
+        Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
+        Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbName));
+        Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerName));
+        Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerPort));
+        Assert.Equal("GET", searchActivity.GetTagValue("db.method"));
+        Assert.NotNull(searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement));
+
+        // New attributes.
+        Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystemName));
+        Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbCollectionName));
+        Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeServerAddress));
+        Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeServerPort));
+        Assert.Equal("GET", searchActivity.GetTagValue(SemanticConventions.AttributeHttpRequestMethod));
+        Assert.NotNull(searchActivity.GetTagValue(SemanticConventions.AttributeDbQueryText));
+    }
+
+    [Fact]
+    public async Task EmitsNetworkPeerAddressForIpAddressWhenNewSemanticConventionsOptedIn()
+    {
+        var exportedItems = new List<Activity>();
+
+        var parent = new Activity("parent").Start();
+
+        var client = new ElasticClient(new ConnectionSettings(
+            new SingleNodeConnectionPool(new Uri("http://127.0.0.1:9200")), new InMemoryConnection()).DefaultIndex("customer"));
+
+        using (Sdk.CreateTracerProviderBuilder()
+                  .SetSampler(new AlwaysOnSampler())
+                  .AddElasticsearchClientInstrumentation(o =>
+                  {
+                      o.EmitOldAttributes = false;
+                      o.EmitNewAttributes = true;
+                  })
+                  .AddInMemoryExporter(exportedItems)
+                  .Build())
+        {
+            var response = await client.GetAsync<Customer>("123");
+
+            Assert.NotNull(response);
+            Assert.True(response.ApiCall.Success);
+        }
+
+        Assert.Single(exportedItems);
+        var searchActivity = exportedItems[0];
+
+        Assert.Equal("127.0.0.1", searchActivity.GetTagValue(SemanticConventions.AttributeServerAddress));
+        Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeServerPort));
+        Assert.Equal("127.0.0.1", searchActivity.GetTagValue(SemanticConventions.AttributeNetworkPeerAddress));
+        Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeNetworkPeerPort));
+    }
+
+    [Fact]
+    public async Task EmitsErrorTypeFromStatusCodeWhenNewSemanticConventionsOptedIn()
+    {
+        var exportedItems = new List<Activity>();
+
+        var parent = new Activity("parent").Start();
+
+        var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection(null, statusCode: 404)).DefaultIndex("customer"));
+
+        using (Sdk.CreateTracerProviderBuilder()
+                  .SetSampler(new AlwaysOnSampler())
+                  .AddElasticsearchClientInstrumentation(o =>
+                  {
+                      o.EmitOldAttributes = false;
+                      o.EmitNewAttributes = true;
+                  })
+                  .AddInMemoryExporter(exportedItems)
+                  .Build())
+        {
+            var response = await client.GetAsync<Customer>("123");
+
+            Assert.NotNull(response);
+        }
+
+        Assert.Single(exportedItems);
+        var searchActivity = exportedItems[0];
+
+        Assert.Equal(ActivityStatusCode.Error, searchActivity.Status);
+        Assert.Equal("404", searchActivity.GetTagValue(SemanticConventions.AttributeDbResponseStatusCode));
+        Assert.Equal("404", searchActivity.GetTagValue(SemanticConventions.AttributeErrorType));
+    }
+
+    [Fact]
+    public async Task EmitsErrorTypeFromExceptionWhenNewSemanticConventionsOptedIn()
+    {
+        var exportedItems = new List<Activity>();
+
+        var parent = new Activity("parent").Start();
+
+        var connection = new InMemoryConnection(Encoding.UTF8.GetBytes("{}"), statusCode: 500, exception: new ElasticsearchClientException("Boom"));
+        var client = new ElasticClient(new ConnectionSettings(connection).DefaultIndex("customer").EnableDebugMode());
+
+        using (Sdk.CreateTracerProviderBuilder()
+                  .SetSampler(new AlwaysOnSampler())
+                  .AddElasticsearchClientInstrumentation(o =>
+                  {
+                      o.EmitOldAttributes = false;
+                      o.EmitNewAttributes = true;
+                  })
+                  .AddInMemoryExporter(exportedItems)
+                  .Build())
+        {
+            var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
+            Assert.NotNull(searchResponse);
+            Assert.False(searchResponse.ApiCall.Success);
+
+            var expectedErrorType = searchResponse.ApiCall.OriginalException?.GetType().FullName;
+            Assert.NotNull(expectedErrorType);
+
+            Assert.Single(exportedItems);
+            var searchActivity = exportedItems[0];
+
+            Assert.Equal(ActivityStatusCode.Error, searchActivity.Status);
+            Assert.Equal("500", searchActivity.GetTagValue(SemanticConventions.AttributeDbResponseStatusCode));
+            Assert.Equal(expectedErrorType, searchActivity.GetTagValue(SemanticConventions.AttributeErrorType));
+        }
+    }
 }

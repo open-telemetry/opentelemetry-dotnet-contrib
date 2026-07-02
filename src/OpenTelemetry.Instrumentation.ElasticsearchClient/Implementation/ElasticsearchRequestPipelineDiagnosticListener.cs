@@ -3,6 +3,7 @@
 
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Globalization;
 #if NETFRAMEWORK
 using System.Net.Http;
 #endif
@@ -27,9 +28,16 @@ internal partial class ElasticsearchRequestPipelineDiagnosticListener : Listener
 #pragma warning disable IDE0370 // Suppression is unnecessary
     internal static readonly string ActivitySourceName = AssemblyName.Name!;
 #pragma warning restore IDE0370 // Suppression is unnecessary
-    internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, Assembly.GetPackageVersion());
+
+    internal static readonly Version SemanticConventionsVersion = new(1, 23, 0);
+    internal static readonly ActivitySource ActivitySource = ActivitySourceFactory.Create<ElasticsearchRequestPipelineDiagnosticListener>(SemanticConventionsVersion);
 
     private const string RequestRegexPattern = @"\n# Request:\r?\n(\{.*)\n# Response";
+
+    private static readonly Version SemanticConventionsVersionNew = new(1, 42, 0);
+    private static readonly ActivitySource ActivitySourceNew = ActivitySourceFactory.Create<ElasticsearchRequestPipelineDiagnosticListener>(SemanticConventionsVersionNew);
+
+    private static readonly ActivitySource ActivitySourceBoth = ActivitySourceFactory.Create<ElasticsearchRequestPipelineDiagnosticListener>(null);
 
 #if !NET
     private static readonly Regex ParseRequest = new(RequestRegexPattern, RegexOptions.Compiled | RegexOptions.Singleline);
@@ -195,7 +203,15 @@ internal partial class ElasticsearchRequestPipelineDiagnosticListener : Listener
             // remove sensitive information like user and password information
             uri = UriHelper.ScrubUserInfo(uri);
 
-            ActivityInstrumentationHelper.SetActivitySourceProperty(activity, ActivitySource);
+            var emitOldAttributes = this.options.EmitOldAttributes;
+            var emitNewAttributes = this.options.EmitNewAttributes;
+
+            var activitySource =
+                emitOldAttributes && emitNewAttributes ? ActivitySourceBoth :
+                emitNewAttributes ? ActivitySourceNew :
+                ActivitySource;
+
+            ActivityInstrumentationHelper.SetActivitySourceProperty(activity, activitySource);
             ActivityInstrumentationHelper.SetKindProperty(activity, ActivityKind.Client);
 
             var method = this.methodFetcher.Fetch(payload);
@@ -207,31 +223,77 @@ internal partial class ElasticsearchRequestPipelineDiagnosticListener : Listener
 
             var elasticIndex = GetElasticIndex(uri);
             activity.DisplayName = GetDisplayName(activity, method, elasticIndex);
-            activity.SetTag(SemanticConventions.AttributeDbSystem, DatabaseSystemName);
+
+            if (emitOldAttributes)
+            {
+                activity.SetTag(SemanticConventions.AttributeDbSystem, DatabaseSystemName);
+            }
+
+            if (emitNewAttributes)
+            {
+                activity.SetTag(SemanticConventions.AttributeDbSystemName, DatabaseSystemName);
+            }
 
             if (elasticIndex != null)
             {
-                activity.SetTag(SemanticConventions.AttributeDbName, elasticIndex);
+                if (emitOldAttributes)
+                {
+                    activity.SetTag(SemanticConventions.AttributeDbName, elasticIndex);
+                }
+
+                if (emitNewAttributes)
+                {
+                    activity.SetTag(SemanticConventions.AttributeDbCollectionName, elasticIndex);
+                }
             }
 
             var uriHostNameType = Uri.CheckHostName(uri.Host);
-            if (uriHostNameType is UriHostNameType.IPv4 or UriHostNameType.IPv6)
+            var isIpAddress = uriHostNameType is UriHostNameType.IPv4 or UriHostNameType.IPv6;
+
+            if (emitOldAttributes)
             {
-                activity.SetTag(SemanticConventions.AttributeNetPeerIp, uri.Host);
+                activity.SetTag(isIpAddress ? SemanticConventions.AttributeNetPeerIp : SemanticConventions.AttributeNetPeerName, uri.Host);
             }
-            else
+
+            if (emitNewAttributes)
             {
-                activity.SetTag(SemanticConventions.AttributeNetPeerName, uri.Host);
+                activity.SetTag(SemanticConventions.AttributeServerAddress, uri.Host);
+
+                if (isIpAddress)
+                {
+                    activity.SetTag(SemanticConventions.AttributeNetworkPeerAddress, uri.Host);
+                }
             }
 
             if (uri.Port > 0)
             {
-                activity.SetTag(SemanticConventions.AttributeNetPeerPort, uri.Port);
+                if (emitOldAttributes)
+                {
+                    activity.SetTag(SemanticConventions.AttributeNetPeerPort, uri.Port);
+                }
+
+                if (emitNewAttributes)
+                {
+                    activity.SetTag(SemanticConventions.AttributeServerPort, uri.Port);
+
+                    if (isIpAddress)
+                    {
+                        activity.SetTag(SemanticConventions.AttributeNetworkPeerPort, uri.Port);
+                    }
+                }
             }
 
             if (method != null)
             {
-                activity.SetTag(AttributeDbMethod, method.ToString());
+                if (emitOldAttributes)
+                {
+                    activity.SetTag(AttributeDbMethod, method.ToString());
+                }
+
+                if (emitNewAttributes)
+                {
+                    activity.SetTag(SemanticConventions.AttributeHttpRequestMethod, method.ToString());
+                }
             }
 
             activity.SetTag(SemanticConventions.AttributeUrlFull, uri.OriginalString);
@@ -251,12 +313,24 @@ internal partial class ElasticsearchRequestPipelineDiagnosticListener : Listener
     {
         if (activity.IsAllDataRequested)
         {
+            var emitOldAttributes = this.options.EmitOldAttributes;
+            var emitNewAttributes = this.options.EmitNewAttributes;
+
             var statusCode = this.httpStatusFetcher.Fetch(payload);
-            activity.SetStatus(SpanHelper.ResolveActivityStatusForHttpStatusCode(activity.Kind, statusCode.GetValueOrDefault()));
+            var activityStatus = SpanHelper.ResolveActivityStatusForHttpStatusCode(activity.Kind, statusCode.GetValueOrDefault());
+            activity.SetStatus(activityStatus);
 
             if (statusCode.HasValue)
             {
-                activity.SetTag(SemanticConventions.AttributeHttpStatusCode, (int)statusCode);
+                if (emitOldAttributes)
+                {
+                    activity.SetTag(SemanticConventions.AttributeHttpStatusCode, (int)statusCode);
+                }
+
+                if (emitNewAttributes)
+                {
+                    activity.SetTag(SemanticConventions.AttributeDbResponseStatusCode, statusCode.Value.ToString(CultureInfo.InvariantCulture));
+                }
             }
 
             var debugInformation = this.debugInformationFetcher.Fetch(payload);
@@ -268,13 +342,26 @@ internal partial class ElasticsearchRequestPipelineDiagnosticListener : Listener
                     dbStatement = dbStatement.Substring(0, this.options.MaxDbStatementLength);
                 }
 
-                activity.SetTag(SemanticConventions.AttributeDbStatement, dbStatement);
+                if (emitOldAttributes)
+                {
+                    activity.SetTag(SemanticConventions.AttributeDbStatement, dbStatement);
+                }
+
+                if (emitNewAttributes)
+                {
+                    activity.SetTag(SemanticConventions.AttributeDbQueryText, dbStatement);
+                }
             }
 
             var originalException = this.originalExceptionFetcher.Fetch(payload);
             if (originalException != null)
             {
                 activity.SetCustomProperty(ExceptionCustomPropertyName, originalException);
+
+                if (emitNewAttributes)
+                {
+                    activity.SetTag(SemanticConventions.AttributeErrorType, originalException.GetType().FullName);
+                }
 
                 var failureReason = this.failureReasonFetcher.Fetch(originalException);
                 if (failureReason != null)
@@ -302,6 +389,11 @@ internal partial class ElasticsearchRequestPipelineDiagnosticListener : Listener
                         activity.SetStatus(ActivityStatusCode.Error, description: originalException.Message);
                     }
                 }
+            }
+            else if (emitNewAttributes && activityStatus == ActivityStatusCode.Error && statusCode.HasValue)
+            {
+                // No exception was thrown, but the response indicates an error (4xx/5xx).
+                activity.SetTag(SemanticConventions.AttributeErrorType, statusCode.Value.ToString(CultureInfo.InvariantCulture));
             }
 
             try
