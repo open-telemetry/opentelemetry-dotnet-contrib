@@ -490,6 +490,45 @@ public class SqlClientTraceInstrumentationOptionsTests
         Assert.Equal(5L, activity.GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
     }
 
+    [Fact]
+    public void RecordReturnedRowsSubtractsConnectionBaseline()
+    {
+        var activities = new List<Activity>();
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation(options =>
+            {
+                options.RecordReturnedRows = true;
+            })
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        // The connection's RetrieveStatistics() reports the cumulative SelectRows counter
+        // (50) which must be captured as the pre-command baseline. The after-command payload
+        // reports the new cumulative total (70), so the recorded value must be the per-command
+        // delta (20) rather than the raw cumulative counter. If the baseline is not captured
+        // (e.g. it silently falls back to zero) the reported value would incorrectly be 70.
+        var command = new FakeDbCommand
+        {
+            CommandType = CommandType.Text,
+            CommandText = "select * from Foo",
+            Connection = new StatisticsDbConnection(selectRows: 50L),
+        };
+
+        var statistics = new Dictionary<string, object>
+        {
+            ["SelectRows"] = 70L,
+        };
+
+        MockCommandExecutor.ExecuteCommand(command, SqlClientLibrary.MicrosoftDataSqlClient, statistics);
+
+        tracerProvider.ForceFlush();
+
+        var activity = Assert.Single(activities);
+
+        Assert.Equal(20L, activity.GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
+    }
+
     private static void ActivityEnrichment(Activity activity, object obj)
     {
         activity.SetTag("enriched", "yes");
@@ -521,6 +560,30 @@ public class SqlClientTraceInstrumentationOptionsTests
     private sealed class ThrowingStatisticsDbConnection : FakeDbConnection
     {
         public IDictionary RetrieveStatistics() => throw new InvalidOperationException("Statistics are not available.");
+    }
+
+    // A connection that exposes a RetrieveStatistics() method (as the real System.Data and
+    // Microsoft.Data SqlConnection types do) declared on the concrete connection type. This
+    // exercises the reflection path that captures the pre-command baseline row counts.
+    private sealed class StatisticsDbConnection : FakeDbConnection
+    {
+        private readonly long selectRows;
+        private readonly long iduRows;
+
+        public StatisticsDbConnection(long selectRows = 0L, long iduRows = 0L)
+        {
+            this.selectRows = selectRows;
+            this.iduRows = iduRows;
+        }
+
+        // Mirrors the real SqlConnection.RetrieveStatistics() signature (IDictionary)
+#pragma warning disable CA1859
+        public IDictionary RetrieveStatistics() => new Dictionary<string, object>
+#pragma warning restore CA1859
+        {
+            ["SelectRows"] = this.selectRows,
+            ["IduRows"] = this.iduRows,
+        };
     }
 #endif
 }

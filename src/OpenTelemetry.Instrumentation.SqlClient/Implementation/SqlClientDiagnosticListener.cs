@@ -426,7 +426,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
         var method = connectionType.GetMethod("RetrieveStatistics", Type.EmptyTypes);
         return method == null
             ? null
-            : (Func<IDbConnection, IDictionary?>)method.CreateDelegate(typeof(Func<IDbConnection, IDictionary?>), null);
+            : connection => method.Invoke(connection, null) as IDictionary;
     }
 
     // The SqlClient connection statistics report both the number of rows returned by
