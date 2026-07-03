@@ -158,16 +158,18 @@ internal class RulesCache : IDisposable
 
     public DateTimeOffset NextTargetFetchTime()
     {
-        var defaultPollingTime = this.Clock.Now().AddSeconds(AWSXRayRemoteSampler.DefaultTargetInterval.TotalSeconds);
+        var now = this.Clock.Now();
+        var defaultPollingTime = now.AddSeconds(AWSXRayRemoteSampler.DefaultTargetInterval.TotalSeconds);
+        var appliers = this.RuleAppliers;
 
-        if (this.RuleAppliers.Count == 0)
+        if (appliers.Count == 0)
         {
             return defaultPollingTime;
         }
 
-        var minPollingTime = this.RuleAppliers.Min(r => r.NextSnapshotTime);
+        var minPollingTime = appliers.Min(r => r.NextSnapshotTime);
 
-        return minPollingTime < this.Clock.Now() ? defaultPollingTime : minPollingTime;
+        return minPollingTime < now ? defaultPollingTime : minPollingTime;
     }
 
     public void Dispose()
