@@ -1,0 +1,67 @@
+// Copyright The OpenTelemetry Authors
+// SPDX-License-Identifier: Apache-2.0
+
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using OpenTelemetry.Instrumentation.Kusto.Implementation;
+using OpenTelemetry.Internal;
+
+namespace OpenTelemetry.Trace;
+
+/// <summary>
+/// Extension methods to simplify registering of Kusto instrumentation.
+/// </summary>
+public static class TracerProviderBuilderExtensions
+{
+    /// <summary>
+    /// Enables Kusto instrumentation.
+    /// </summary>
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    public static TracerProviderBuilder AddKustoInstrumentation(this TracerProviderBuilder builder) =>
+        AddKustoInstrumentation(builder, configure: null);
+
+    /// <summary>
+    /// Enables Kusto instrumentation.
+    /// </summary>
+    /// <remarks>
+    /// The Kusto instrumentation uses a single, process-wide trace listener, so all providers share one set of
+    /// options. When multiple providers configure the instrumentation, the most recent call wins.
+    /// </remarks>
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+    /// <param name="configure">Callback action for configuring <see cref="KustoTraceInstrumentationOptions"/>.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    public static TracerProviderBuilder AddKustoInstrumentation(
+        this TracerProviderBuilder builder,
+        Action<KustoTraceInstrumentationOptions>? configure)
+    {
+        Guard.ThrowIfNull(builder);
+
+        if (configure != null)
+        {
+            builder.ConfigureServices(services => services.Configure(configure));
+        }
+
+        // Accessing Listener registers the trace listener with the Kusto client library, so it is in place before any clients are created.
+        var listener = KustoInstrumentation.Listener;
+
+        builder.AddInstrumentation(sp =>
+        {
+            listener.TraceOptions = sp.GetRequiredService<IOptionsMonitor<KustoTraceInstrumentationOptions>>().CurrentValue;
+
+            // Read the variable directly rather than from configuration, because the Kusto client reads it the
+            // same way when it decides whether to emit the query text.
+            if ((listener.TraceOptions.RecordQueryText || listener.TraceOptions.RecordQuerySummary)
+                && Environment.GetEnvironmentVariable(KustoInstrumentationEventSource.TraceRequestBodyEnvironmentVariable) != "1")
+            {
+                KustoInstrumentationEventSource.Log.QueryTextCaptureNotEnabled();
+            }
+
+            return listener.HandleManager.AddTracingHandle();
+        });
+
+        builder.AddSource(KustoActivitySource.ActivitySource.Name);
+
+        return builder;
+    }
+}

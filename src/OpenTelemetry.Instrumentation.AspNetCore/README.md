@@ -334,6 +334,11 @@ The time ends when:
 * All response data has been sent.
 * The context data structures for the request are being disposed.
 
+Because this window spans the entire handler pipeline, the measurement
+includes the time spent reading the request payload (for example, model
+binding or reading a large request body via `HttpRequest.Body`) as well as the
+time spent sending the response.
+
 ## Experimental support for gRPC requests
 
 gRPC instrumentation can be enabled by setting
