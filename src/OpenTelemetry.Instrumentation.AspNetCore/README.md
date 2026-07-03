@@ -236,9 +236,10 @@ OpenTelemetry metrics separately, for example by using
 [Views](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/docs/metrics/customizing-the-sdk#drop-an-instrument)
 to drop instruments you do not need.
 
-Keep custom tag values low-cardinality. Avoid adding raw IDs, full URLs, or
-unbounded query string values because each distinct tag value can create another
-time series in downstream systems.
+> [!TIP]
+> Keep custom tag values low-cardinality. Avoid adding raw IDs, full URLs, or
+> unbounded query string values because each distinct tag value can create another
+> time series in downstream systems.
 
 ## Advanced configuration
 
