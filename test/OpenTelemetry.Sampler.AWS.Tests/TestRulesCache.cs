@@ -213,6 +213,84 @@ public class TestRulesCache
         Assert.Equal(clock.Now().AddSeconds(5), rulesCache.NextTargetFetchTime());
     }
 
+    [Fact]
+    public async Task TestConcurrentUpdateRulesAndUpdateTargetsDoesNotLoseUpdates()
+    {
+        var clock = new TestClock();
+        var rule = this.CreateRule("rule1", 0, 0.0, 1); // reservoir 0 and fixed rate 0 => drops until a target is applied
+        var rulesCache = new RulesCache(clock, "clientId", ResourceBuilder.CreateEmpty().Build(), new AlwaysOffSampler())
+        {
+            RuleAppliers = new List<SamplingRuleApplier>
+            {
+                { new("clientId", clock, rule, new Statistics()) },
+            },
+        };
+
+        // Applying this target gives the rule a 100% fixed rate. UpdateRules
+        // preserves it when it reuses the applier by name, so once a target poll
+        // has applied it the decision must never revert to Drop.
+        var targets = new Dictionary<string, SamplingTargetDocument>
+        {
+            {
+                "rule1",
+                new SamplingTargetDocument
+                {
+                    FixedRate = 1.0,
+                    RuleName = "rule1",
+                }
+            },
+        };
+
+        const int Iterations = 5000;
+        var pollersRunning = true;
+        var sawSample = false;
+        var lostUpdate = false;
+
+        // The rule poller and target poller run concurrently. Without the fix a
+        // stale rule poll can swap in a snapshot rebuilt before the target was
+        // applied, discarding it (a lost update).
+        var updateRules = Task.Run(() =>
+        {
+            for (var i = 0; i < Iterations; i++)
+            {
+                rulesCache.UpdateRules([rule]);
+            }
+        });
+        var updateTargets = Task.Run(() =>
+        {
+            for (var i = 0; i < Iterations; i++)
+            {
+                rulesCache.UpdateTargets(targets);
+            }
+        });
+
+        // Continuously sample while the pollers run. Once the target has taken
+        // effect (a sample is seen), a subsequent Drop means an update was lost.
+        var sampler = Task.Run(() =>
+        {
+            while (Volatile.Read(ref pollersRunning))
+            {
+                if (rulesCache.ShouldSample(default).Decision == SamplingDecision.RecordAndSample)
+                {
+                    Volatile.Write(ref sawSample, true);
+                }
+                else if (Volatile.Read(ref sawSample))
+                {
+                    Volatile.Write(ref lostUpdate, true);
+                }
+            }
+        });
+
+        await Task.WhenAll(updateRules, updateTargets);
+        Volatile.Write(ref pollersRunning, false);
+        await sampler;
+
+        Assert.False(lostUpdate, "A concurrent rule poll discarded the sampling target applied by a target poll.");
+        Assert.Single(rulesCache.RuleAppliers);
+        Assert.Equal("rule1", rulesCache.RuleAppliers[0].RuleName);
+        Assert.Equal(SamplingDecision.RecordAndSample, rulesCache.ShouldSample(default).Decision);
+    }
+
     private SamplingRule CreateDefaultRule(int reservoirSize, double fixedRate)
     {
         return this.CreateRule("Default", reservoirSize, fixedRate, 10000);
