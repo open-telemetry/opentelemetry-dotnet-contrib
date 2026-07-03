@@ -178,7 +178,7 @@ targeted frameworks.
 #### Enriching ASP.NET Core request duration metric
 
 For applications targeting .NET 8 or later, ASP.NET Core exposes
-[`IHttpMetricsTagsFeature`](https://learn.microsoft.com/aspnet/core/log-mon/metrics/metrics?view=aspnetcore-8.0#enrich-the-aspnet-core-request-metric)
+[`IHttpMetricsTagsFeature`](https://learn.microsoft.com/aspnet/core/log-mon/metrics/metrics#enrich-the-aspnet-core-request-metric)
 from `Microsoft.AspNetCore.Http.Features`. ASP.NET Core reads tags from this
 feature when it records the `http.server.request.duration` metric.
 
