@@ -364,7 +364,7 @@ jobs:
     permissions:
       attestations: read # Read GitHub attestations for the NuGet packages
       contents: read # Download the published artifacts
-      id-token: write # Use OIDC to authenticate with NuGet.org
+      id-token: write # Publish NuGet packages with trusted GitHub OIDC
 
     steps:
       - name: Setup .NET
