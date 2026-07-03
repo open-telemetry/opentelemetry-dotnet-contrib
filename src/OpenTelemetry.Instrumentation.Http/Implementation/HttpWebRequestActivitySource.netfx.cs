@@ -64,7 +64,7 @@ internal static class HttpWebRequestActivitySource
         }
     }
 
-    internal static HttpClientTraceInstrumentationOptions TracingOptions { get; set; } = new HttpClientTraceInstrumentationOptions();
+    internal static HttpClientTraceInstrumentationOptions TracingOptions { get; set; } = new();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void AddRequestTagsAndInstrumentRequest(HttpWebRequest request, Activity activity)
