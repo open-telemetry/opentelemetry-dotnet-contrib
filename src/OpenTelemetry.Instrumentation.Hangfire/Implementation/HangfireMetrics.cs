@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics.Metrics;
-using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
 
@@ -84,5 +83,5 @@ internal static class HangfireMetrics
     /// <summary>
     /// Gets the meter instance for all Hangfire metrics.
     /// </summary>
-    private static Meter Meter => field ??= new(typeof(HangfireMetrics).Assembly.GetName().Name, typeof(HangfireMetrics).Assembly.GetPackageVersion());
+    private static Meter Meter => field ??= Metrics.MeterFactory.Create(typeof(HangfireMetrics), null); // These metrics are not in the Semantic Conventions
 }
