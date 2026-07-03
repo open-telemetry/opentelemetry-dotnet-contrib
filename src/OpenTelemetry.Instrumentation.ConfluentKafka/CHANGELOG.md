@@ -9,6 +9,9 @@
   and producers created outside a DI container.
   ([#4545](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4545))
 
+* Assemblies are now digitally signed using cosign.
+  ([#4637](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4637))
+
 * **Breaking change**: Updated the traces and metrics emitted by the Kafka
   producer and consumer to follow the
   [v1.42.0 messaging semantic conventions](https://github.com/open-telemetry/semantic-conventions/tree/v1.42.0/docs/messaging).
