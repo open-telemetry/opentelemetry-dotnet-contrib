@@ -7,6 +7,9 @@
   briefly revert to stale sampling decisions.
   ([#4638](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4638))
 
+* Assemblies are now digitally signed using cosign.
+  ([#4637](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4637))
+
 ## 0.1.0-alpha.10
 
 Released 2026-Jun-24
