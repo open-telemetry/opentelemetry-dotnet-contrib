@@ -140,4 +140,27 @@
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)/BannedSymbols.txt" />
   </ItemGroup>
 
+  <!-- This target adds any signatures found to NuGet packages -->
+  <Target Name="IncludeSigningSignaturesInPackages" BeforeTargets="_GetTargetFrameworksOutput">
+    <ItemGroup>
+      <!-- Multi-TFM layout: ...\release_net8.0\Foo.dll.sigstore.json (the * wildcard populates RecursiveDir with the config_tfm directory) -->
+      <SigstoreBundle Include="$(ArtifactsPath)\bin\$(MSBuildProjectName)\$(Configuration.ToLower())_*\$(MSBuildProjectName).dll.sigstore.json" />
+
+      <!-- Single-TFM layout: ...\release\Foo.dll.sigstore.json. This is a literal (non-wildcard) path, so it is guarded with Exists() to avoid adding a phantom item that does not exist for multi-TFM projects. -->
+      <SigstoreBundle
+          Include="$(ArtifactsPath)\bin\$(MSBuildProjectName)\$(Configuration.ToLower())\$(MSBuildProjectName).dll.sigstore.json"
+          Condition="Exists('$(ArtifactsPath)\bin\$(MSBuildProjectName)\$(Configuration.ToLower())\$(MSBuildProjectName).dll.sigstore.json')" />
+
+      <!-- RecursiveDir is e.g. `release_net8.0\` for multi-TFM (strip the slashes and the `release_` prefix to get the TFM) or empty for single-TFM (fall back to the project TFM). -->
+      <SigstoreBundle Update="@(SigstoreBundle)">
+        <TargetFramework>$([System.String]::Copy('%(RecursiveDir)').Replace('\', '').Replace('/', '').Replace('$(Configuration.ToLower())_', ''))</TargetFramework>
+      </SigstoreBundle>
+      <SigstoreBundle Update="@(SigstoreBundle)" Condition="'%(SigstoreBundle.TargetFramework)' == ''">
+        <TargetFramework>$(TargetFramework)</TargetFramework>
+      </SigstoreBundle>
+      <Content Include="@(SigstoreBundle)" Pack="True" PackagePath="lib\%(SigstoreBundle.TargetFramework)\%(Filename)%(Extension)" />
+    </ItemGroup>
+    <Message Importance="high" Text="**IncludeSignaturesInPackagesDebug** SigstoreBundles: @(SigstoreBundle->'%(Identity) => lib\%(TargetFramework)\%(Filename)%(Extension)')" />
+  </Target>
+
 </Project>

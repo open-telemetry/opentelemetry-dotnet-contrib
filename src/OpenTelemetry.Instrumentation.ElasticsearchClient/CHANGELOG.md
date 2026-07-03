@@ -8,6 +8,9 @@
 * Updated OpenTelemetry core component version(s) to `1.16.0`.
   ([#4487](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4487))
 
+* Assemblies are now digitally signed using cosign.
+  ([#4637](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4637))
+
 * Updated the database semantic conventions to
   [v1.42.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/db/elasticsearch.md)
   of the Semantic Conventions for Elasticsearch client operations. The new

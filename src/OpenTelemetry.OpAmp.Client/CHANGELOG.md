@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Assemblies are now digitally signed using cosign.
+  ([#4637](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4637))
+
 ## 0.5.0-alpha.1
 
 Released 2026-Jul-01

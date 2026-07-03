@@ -138,6 +138,76 @@ more details.
 * `server.port`
 * `url.scheme`
 
+##### Enriching HttpClient metrics
+
+Metrics enrichment allows adding custom tags to the
+`http.client.request.duration` metric. This is useful for adding low-cardinality
+categorization to dashboards or alerts.
+
+Starting from .NET 8, use
+[`HttpMetricsEnrichmentContext`](https://learn.microsoft.com/dotnet/api/system.net.http.metrics.httpmetricsenrichmentcontext)
+to add custom tags to the built-in HttpClient metrics. Enrichment is registered
+per request by calling `HttpMetricsEnrichmentContext.AddCallback`. A common way
+to register the callback in one place is to use a custom `DelegatingHandler`
+that runs before the request is sent to the server.
+The callback can use the request, response, or exception information available
+on the `HttpMetricsEnrichmentContext` instance.
+
+```csharp
+using System.Net.Http;
+using System.Net.Http.Metrics;
+
+using HttpClient client = new(
+    new EnrichmentHandler { InnerHandler = new HttpClientHandler() });
+
+await client.GetStringAsync("https://example.com");
+
+sealed class EnrichmentHandler : DelegatingHandler
+{
+    protected override Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request,
+        CancellationToken cancellationToken)
+    {
+        HttpMetricsEnrichmentContext.AddCallback(request, static context =>
+        {
+            var requestKind = context.Request.Method == HttpMethod.Get
+                ? "read"
+                : "write";
+
+            context.AddCustomTag("request.kind", requestKind);
+        });
+
+        return base.SendAsync(request, cancellationToken);
+    }
+}
+```
+
+When using `IHttpClientFactory`, register the handler with
+`AddHttpMessageHandler`.
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using System.Net.Http;
+using System.Net.Http.Metrics;
+
+ServiceCollection services = new();
+services.AddHttpClient("enriched")
+    .AddHttpMessageHandler(() => new EnrichmentHandler());
+
+using ServiceProvider serviceProvider = services.BuildServiceProvider();
+HttpClient client = serviceProvider
+    .GetRequiredService<IHttpClientFactory>()
+    .CreateClient("enriched");
+
+await client.GetStringAsync("https://example.com");
+```
+
+> [!NOTE]
+> The enrichment callback is invoked only when the
+> `http.client.request.duration` instrument is enabled by metrics collection,
+> for example through `AddHttpClientInstrumentation()`, `AddMeter()`, or another
+> metrics listener.
+
 #### List of metrics produced
 
 When the application targets `NETFRAMEWORK`, `.NET6.0` or `.NET7.0`, the
