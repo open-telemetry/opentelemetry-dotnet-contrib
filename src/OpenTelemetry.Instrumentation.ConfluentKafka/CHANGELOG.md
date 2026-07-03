@@ -9,6 +9,9 @@
   and producers created outside a DI container.
   ([#4545](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4545))
 
+* Assemblies are now digitally signed using cosign.
+  ([#4637](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4637))
+
 ## 0.1.0-alpha.7
 
 Released 2026-May-29
