@@ -1,13 +1,18 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Runtime.InteropServices;
 using OpenTelemetry.Metrics;
 
 namespace OpenTelemetry.Instrumentation.Process.Tests;
 
 public class ProcessMetricsTests
 {
-    private const int MaxTimeToAllowForFlush = 10000;
+    private const int MaxTimeToAllowForFlush = 10_000;
+
+    // Windows: process.windows.handle.count; Linux: process.unix.file_descriptor.count; macOS: neither
+    private static readonly int ExpectedMetricCount =
+        RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? 6 : 5;
 
     [Fact]
     public void ProcessMetricsAreCaptured()
@@ -28,7 +33,21 @@ public class ProcessMetricsTests
         Assert.NotNull(cpuTimeMetric);
         var threadMetric = exportedItemsA.FirstOrDefault(i => i.Name == "process.thread.count");
         Assert.NotNull(threadMetric);
-        Assert.Equal(4, exportedItemsA.Count);
+        var uptimeMetric = exportedItemsA.FirstOrDefault(i => i.Name == "process.uptime");
+        Assert.NotNull(uptimeMetric);
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            var handleCountMetric = exportedItemsA.FirstOrDefault(i => i.Name == "process.windows.handle.count");
+            Assert.NotNull(handleCountMetric);
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            var fileDescriptorMetric = exportedItemsA.FirstOrDefault(i => i.Name == "process.unix.file_descriptor.count");
+            Assert.NotNull(fileDescriptorMetric);
+        }
+
+        Assert.Equal(ExpectedMetricCount, exportedItemsA.Count);
 
         exportedItemsA.Clear();
 
@@ -48,8 +67,8 @@ public class ProcessMetricsTests
 
         meterProviderB.ForceFlush(MaxTimeToAllowForFlush);
 
-        Assert.Equal(4, exportedItemsA.Count);
-        Assert.Equal(4, exportedItemsB.Count);
+        Assert.Equal(ExpectedMetricCount, exportedItemsA.Count);
+        Assert.Equal(ExpectedMetricCount, exportedItemsB.Count);
 
         AssertMetrics(exportedItemsA);
         AssertMetrics(exportedItemsB);
@@ -79,11 +98,11 @@ public class ProcessMetricsTests
             {
                 Assert.NotNull(tag.Value);
 
-                if (tag.Key == "process.cpu.state" && tag.Value!.ToString() == "user")
+                if (tag.Key == "cpu.mode" && tag.Value!.ToString() == "user")
                 {
                     userTimeCaptured = true;
                 }
-                else if (tag.Key == "process.cpu.state" && tag.Value!.ToString() == "system")
+                else if (tag.Key == "cpu.mode" && tag.Value!.ToString() == "system")
                 {
                     systemTimeCaptured = true;
                 }
@@ -137,7 +156,9 @@ public class ProcessMetricsTests
         Assert.NotNull(cpuTimeMetricA);
         var threadMetricA = exportedItemsA.FirstOrDefault(i => i.Name == "process.thread.count");
         Assert.NotNull(threadMetricA);
-        Assert.Equal(4, exportedItemsA.Count);
+        var uptimeMetricA = exportedItemsA.FirstOrDefault(i => i.Name == "process.uptime");
+        Assert.NotNull(uptimeMetricA);
+        Assert.Equal(ExpectedMetricCount, exportedItemsA.Count);
 
         var physicalMemoryMetricB = exportedItemsB.FirstOrDefault(i => i.Name == "process.memory.usage");
         Assert.NotNull(physicalMemoryMetricB);
@@ -147,7 +168,9 @@ public class ProcessMetricsTests
         Assert.NotNull(cpuTimeMetricB);
         var threadMetricB = exportedItemsB.FirstOrDefault(i => i.Name == "process.thread.count");
         Assert.NotNull(threadMetricB);
-        Assert.Equal(4, exportedItemsB.Count);
+        var uptimeMetricB = exportedItemsB.FirstOrDefault(i => i.Name == "process.uptime");
+        Assert.NotNull(uptimeMetricB);
+        Assert.Equal(ExpectedMetricCount, exportedItemsB.Count);
 
         AssertMetrics(exportedItemsA);
         AssertMetrics(exportedItemsB);

@@ -80,6 +80,8 @@
     <PackageVersion Include="Confluent.Kafka" Version="[2.4.0,)" />
     <PackageVersion Include="Grpc.Core.Api" Version="[2.46.6,)" />
     <PackageVersion Include="InfluxDB.Client" Version="[4.18.0,)" />
+    <PackageVersion Include="Microsoft.Azure.Kusto.Cloud.Platform" Version="[14.0.3,)" />
+    <PackageVersion Include="Microsoft.Azure.Kusto.Language" Version="[12.3.1,)" />
     <PackageVersion Include="Microsoft.ServiceFabric.Actors" Version="[8.4.268,)" />
     <PackageVersion Include="Microsoft.ServiceFabric.Services.Remoting" Version="[8.4.268,)" />
     <PackageVersion Include="Quartz" Version="[3.6.3,)" />
@@ -118,12 +120,14 @@
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.28" />
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.28" />
     <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="8.0.28" />
-    <PackageVersion Include="Microsoft.Data.SqlClient" Version="7.0.1" />
+    <PackageVersion Include="Microsoft.Azure.Kusto.Data" Version="14.2.0" />
+    <PackageVersion Include="Microsoft.Data.SqlClient" Version="7.0.2" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.28" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.28" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="8.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.6.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.7.0" />
+    <PackageVersion Include="Microsoft.VisualStudio.DiagnosticsHub.BenchmarkDotNetDiagnosers" Version="18.7.37220.1" />
     <PackageVersion Include="Microsoft.Web.Xdt" Version="3.2.9" />
     <PackageVersion Include="MinVer" Version="7.0.0" />
     <PackageVersion Include="MessagePack" Version="3.1.7" />
@@ -132,8 +136,8 @@
     <PackageVersion Include="Newtonsoft.Json.Schema" Version="4.0.1" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
     <PackageVersion Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.3" />
-    <PackageVersion Include="ServiceFabric.Mocks" Version="8.0.7" />
-    <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.2.2" />
+    <PackageVersion Include="ServiceFabric.Mocks" Version="8.0.8" />
+    <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.2.3" />
     <PackageVersion Include="System.Reactive.Core" Version="6.1.0" />
     <PackageVersion Include="System.Reflection.DispatchProxy" Version="4.8.2" />
     <PackageVersion Include="System.ServiceModel.Http" Version="10.0.652802" />
@@ -141,10 +145,12 @@
     <PackageVersion Include="Testcontainers" Version="4.12.0" />
     <PackageVersion Include="Testcontainers.Cassandra" Version="4.12.0" />
     <PackageVersion Include="Testcontainers.Kafka" Version="4.12.0" />
+    <PackageVersion Include="Testcontainers.Kusto" Version="4.12.0" />
     <PackageVersion Include="Testcontainers.MsSql" Version="4.12.0" />
     <PackageVersion Include="Testcontainers.MySql" Version="4.12.0" />
     <PackageVersion Include="Testcontainers.PostgreSql" Version="4.12.0" />
     <PackageVersion Include="Testcontainers.Redis" Version="4.12.0" />
+    <PackageVersion Include="Verify.Xunit" Version="31.12.5" />
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="[2.8.2,)" />
     <PackageVersion Include="Xunit.SkippableFact" Version="1.5.61" />

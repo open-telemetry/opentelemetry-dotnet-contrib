@@ -41,6 +41,9 @@ internal sealed class RequestDataHelper
 
         if (suppliedKnownMethods?.Length > 0)
         {
+            // The user supplied a custom set of known HTTP methods via OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS,
+            // so the normalized method/display name may differ from the framework's defaults.
+            this.HasCustomKnownMethods = true;
             knownMethodSet = suppliedKnownMethods.ToDictionary(x => x, x => x, StringComparer.OrdinalIgnoreCase);
         }
         else
@@ -74,6 +77,17 @@ internal sealed class RequestDataHelper
         this.knownHttpMethods = knownMethodSet;
 #endif
     }
+
+    /// <summary>
+    /// Gets a value indicating whether a custom set of known HTTP methods was supplied via the
+    /// <c>OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS</c> environment variable.
+    /// </summary>
+    /// <remarks>
+    /// When <see langword="true"/> the normalized method (and method-based display name) can
+    /// differ from a framework's defaults, so callers that would otherwise defer to native
+    /// framework values must not do so.
+    /// </remarks>
+    public bool HasCustomKnownMethods { get; }
 
     public void SetHttpMethodTag(Activity activity, string originalHttpMethod)
     {

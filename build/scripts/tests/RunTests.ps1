@@ -59,6 +59,7 @@ $testsDirectory = $PSScriptRoot
 $coveragePaths = @(
     "add-labels.psm1",
     "build.psm1",
+    "check-for-new-sdk-releases.ps1",
     "finalize-publicapi.ps1",
     "post-release.psm1",
     "prepare-release.psm1",

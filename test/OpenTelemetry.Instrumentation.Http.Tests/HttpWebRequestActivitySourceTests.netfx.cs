@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#nullable disable
-
 #if NETFRAMEWORK
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -145,7 +143,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
     [InlineData("GET")]
     [InlineData("POST")]
     [InlineData("POST", "skipRequestContent=1")]
-    public async Task TestBasicReceiveAndResponseEvents(string method, string queryString = null)
+    public async Task TestBasicReceiveAndResponseEvents(string method, string? queryString = null)
     {
         var url = this.BuildRequestUrl(queryString: queryString);
 
@@ -216,7 +214,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         {
             webRequest.Method = method;
 
-            Stream stream = null;
+            Stream? stream = null;
             switch (mode)
             {
                 case 0:
@@ -278,7 +276,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
             writer.WriteLine("hello world");
         }
 
-        WebResponse webResponse = null;
+        WebResponse? webResponse = null;
         switch (mode)
         {
             case 0:
@@ -680,7 +678,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         using var parentActivity = new Activity("parent").Start();
         using var eventRecords = new ActivitySourceRecorder();
 
-        Dictionary<Uri, Tuple<WebRequest, WebResponse>> requestData = [];
+        Dictionary<Uri, Tuple<WebRequest, WebResponse>?> requestData = [];
         for (var i = 0; i < 10; i++)
         {
             var uriWithRedirect = new Uri(this.BuildRequestUrl(queryString: $"q={i}&redirects=3"));
@@ -774,7 +772,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         Assert.Contains("goodkey=bad%2Fvalue", baggage);
     }
 
-    private string BuildRequestUrl(bool useHttps = false, string path = "echo", string queryString = null)
+    private string BuildRequestUrl(bool useHttps = false, string path = "echo", string? queryString = null)
         => $"{(useHttps ? "https" : "http")}://{this.uri.Host}:{this.uri.Port}/{path}{(string.IsNullOrWhiteSpace(queryString) ? string.Empty : $"?{queryString}")}";
 
     private void CleanUpActivity()
@@ -790,10 +788,10 @@ public class HttpWebRequestActivitySourceTests : IDisposable
     /// </summary>
     private class ActivitySourceRecorder : IDisposable
     {
-        private readonly Action<KeyValuePair<string, Activity>> onEvent;
+        private readonly Action<KeyValuePair<string, Activity>>? onEvent;
         private readonly ActivityListener activityListener;
 
-        public ActivitySourceRecorder(Action<KeyValuePair<string, Activity>> onEvent = null, ActivitySamplingResult activitySamplingResult = ActivitySamplingResult.AllDataAndRecorded)
+        public ActivitySourceRecorder(Action<KeyValuePair<string, Activity>>? onEvent = null, ActivitySamplingResult activitySamplingResult = ActivitySamplingResult.AllDataAndRecorded)
         {
             this.activityListener = new ActivityListener
             {

@@ -46,6 +46,68 @@ await client.StartAsync();
 await client.StopAsync();
 ```
 
+## Supported Features
+
+### Transport and Identification
+
+The client supports HTTP polling and WebSocket transport. Configure the transport
+with `ConnectionType` and `ServerUrl`; use `HttpClientFactory` or
+`ClientWebSocketFactory` when the underlying client needs custom headers,
+handlers, certificates, proxy settings, or other transport-specific options.
+
+Each client instance has an `InstanceUid` and may report identifying and
+non-identifying resource attributes through `Identification`. Attribute values
+may be strings, integers, doubles, booleans, or collections of those types.
+
+### Message Subscriptions
+
+Server-to-agent messages are delivered to typed `IOpAmpListener<TMessage>`
+instances registered with `Subscribe<T>()`. Use `Unsubscribe<T>()` when a
+listener should no longer receive messages.
+
+Public server message types include `ServerCapabilitiesMessage`, `FlagsMessage`,
+`RemoteConfigMessage`, `CustomCapabilitiesMessage`, and `CustomMessageMessage`.
+
+### Remote Configuration
+
+Enable `RemoteConfiguration.AcceptsRemoteConfig` to advertise that the client
+can receive remote configuration from the OpAMP server. Remote configuration is
+delivered as a `RemoteConfigMessage`, which contains the configuration hash and
+an `AgentConfigMap` of named `AgentConfigFile` values.
+
+Enable `RemoteConfiguration.ReportsRemoteConfigStatus` to report configuration
+processing status back to the server. Use `SendRemoteConfigStatusAsync()` with a
+`RemoteConfigStatusReport` to report `Applying`, `Applied`, or `Failed` for the
+last received configuration hash.
+
+### Effective Configuration Reports
+
+Enable `EffectiveConfigurationReporting.EnableReporting` when the client should
+report its current effective configuration to the server. Use
+`SendEffectiveConfigAsync()` with one or more `EffectiveConfigFile` values.
+
+`EffectiveConfigFile` can be created from in-memory content or from a bounded
+stream using `CreateFromStream()` or `CreateFromStreamAsync()`.
+
+### Custom Capabilities and Messages
+
+Use `SendCustomCapabilitiesAsync()` to advertise custom capability names
+supported by the client. Use `SendCustomMessageAsync()` to send a typed payload
+for one of those capabilities.
+
+Server-provided custom capabilities and custom messages are exposed through
+`CustomCapabilitiesMessage` and `CustomMessageMessage` subscriptions.
+
+### Heartbeat and Shutdown
+
+Heartbeat reporting is enabled by default. Configure it with
+`Heartbeat.IsEnabled` and `Heartbeat.Interval`.
+
+Call `StopAsync()` before disposal when the client should unregister cleanly
+from the server. `Dispose()` performs synchronous, best-effort cleanup of
+services and transport resources, but it does not send the agent disconnect
+message.
+
 ## Security Considerations
 
 ### Effective Configuration Reporting
@@ -59,11 +121,6 @@ redaction.
 - **Avoid sensitive files**: Do not report files that contain secrets such as
   passwords, API tokens, or private keys unless you fully trust the OpAMP server
   and the network path to it.
-
-Call `StopAsync()` before disposal when the client should unregister cleanly
-from the server. `Dispose()` performs synchronous, best-effort cleanup of
-services and transport resources, but it does not send the agent disconnect
-message.
 
 ## References
 

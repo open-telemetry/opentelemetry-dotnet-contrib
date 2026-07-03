@@ -175,6 +175,72 @@ has been included in OTel SDK starting version `1.6.0` which applies recommended
 buckets by default for `http.server.request.duration`. This applies to all
 targeted frameworks.
 
+#### Enriching ASP.NET Core request duration metric
+
+For applications targeting .NET 8 or later, ASP.NET Core exposes
+[`IHttpMetricsTagsFeature`](https://learn.microsoft.com/aspnet/core/log-mon/metrics/metrics#enrich-the-aspnet-core-request-metric)
+from `Microsoft.AspNetCore.Http.Features`. ASP.NET Core reads tags from this
+feature when it records the `http.server.request.duration` metric.
+
+The feature is added to `HttpContext.Features` only when ASP.NET Core HTTP
+metrics are enabled. With OpenTelemetry, that means the meter containing
+`http.server.request.duration` is collected, such as by calling
+`AddAspNetCoreInstrumentation()` or `AddMeter("Microsoft.AspNetCore.Hosting")`;
+these calls enable collection and are not a per-metric enrichment selector.
+
+```csharp
+using Microsoft.AspNetCore.Http.Features;
+using OpenTelemetry.Metrics;
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddOpenTelemetry()
+    .WithMetrics(builder => builder
+        .AddAspNetCoreInstrumentation()
+        .AddConsoleExporter());
+
+var app = builder.Build();
+
+app.Use(async (context, next) =>
+{
+    var tagsFeature = context.Features.Get<IHttpMetricsTagsFeature>();
+    if (tagsFeature != null)
+    {
+        var medium = context.Request.Query["utm_medium"].ToString() switch
+        {
+            "" => "none",
+            "social" => "social",
+            "email" => "email",
+            "organic" => "organic",
+            _ => "other",
+        };
+
+        tagsFeature.Tags.Add(
+            new KeyValuePair<string, object?>("mkt_medium", medium));
+    }
+
+    await next();
+});
+
+app.MapGet("/", () => "Hello OpenTelemetry!");
+
+app.Run();
+```
+
+`IHttpMetricsTagsFeature` does not take a metric name. The application does not
+specify that it intends to enrich only `http.server.request.duration`; that is
+defined by ASP.NET Core. Tags added to `Tags` are used when ASP.NET Core records
+the request duration metric, and they are not added to every ASP.NET Core
+metric. To decide which metrics are collected or exported, configure
+OpenTelemetry metrics separately, for example by using
+[Views](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/docs/metrics/customizing-the-sdk#drop-an-instrument)
+to drop instruments you do not need.
+
+> [!TIP]
+> Keep custom tag values low-cardinality. Avoid adding raw IDs, full URLs, or
+> unbounded query string values because each distinct tag value can create another
+> time series in downstream systems.
+
 ## Advanced configuration
 
 ### Tracing
@@ -333,6 +399,11 @@ The time ends when:
 * The ASP.NET Core handler pipeline is finished executing.
 * All response data has been sent.
 * The context data structures for the request are being disposed.
+
+Because this window spans the entire handler pipeline, the measurement
+includes the time spent reading the request payload (for example, model
+binding or reading a large request body via `HttpRequest.Body`) as well as the
+time spent sending the response.
 
 ## Experimental support for gRPC requests
 
