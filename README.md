@@ -161,8 +161,8 @@ To verify the integrity of a DLL inside a NuGet package use the
 Signatures use the bundle format known from cosign 3.0+.
 
 ```bash
-$TAG="Instrumentation.AspNetCore-1.17.0"
-$PACKAGE="OpenTelemetry.Instrumentation.AspNetCore"
+TAG="Instrumentation.AspNetCore-1.17.0"
+PACKAGE="OpenTelemetry.Instrumentation.AspNetCore"
 cosign verify-blob \
     --bundle "${PACKAGE}.dll.sigstore.json" \
     --certificate-identity "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/.github/workflows/publish-packages.yml@refs/tags/${TAG}" \
