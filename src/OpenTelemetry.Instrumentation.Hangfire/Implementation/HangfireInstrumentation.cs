@@ -4,7 +4,6 @@
 using System.Diagnostics;
 using System.Reflection;
 using Hangfire;
-using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
@@ -29,7 +28,7 @@ internal sealed class HangfireInstrumentation
     /// <summary>
     /// The activity source.
     /// </summary>
-    internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, Assembly.GetPackageVersion());
+    internal static readonly ActivitySource ActivitySource = ActivitySourceFactory.Create<HangfireInstrumentation>(null); // These traces are not in the Semantic Conventions
 
     /// <summary>
     /// The default display name delegate.
