@@ -15,6 +15,9 @@
   temporary arrays/strings.
   ([#4498](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4498))
 
+* Assemblies are now digitally signed using cosign.
+  ([#4637](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4637))
+
 ## 1.15.2
 
 Released 2026-Apr-21

@@ -16,8 +16,7 @@ on:
   schedule:
     - cron: '0 0 * * *' # once in a day at 00:00
 
-permissions:
-  contents: read
+permissions: {}
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.sha }}
@@ -26,23 +25,30 @@ concurrency:
 jobs:
   automation:
     uses: ./.github/workflows/automation.yml
+    permissions:
+      contents: read
     secrets:
       OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY: ${{ secrets.OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY }}
 
-  build-pack-publish:
-    name: Build, pack, and publish
+  build-pack:
+    name: Build and pack
+    if: github.event_name != 'schedule' || (github.event_name == 'schedule' && github.event.repository.fork == false)
+    runs-on: windows-2025
+
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      COSIGN_YES: "yes"
+
+    outputs:
+      artifact-url: ${{ steps.upload-artifacts.outputs.artifact-url }}
+      artifact-id: ${{ steps.upload-artifacts.outputs.artifact-id }}
+      dotnet-sdk-version: ${{ steps.setup-dotnet.outputs.dotnet-version }}
 
     permissions:
       artifact-metadata: write # Publish artifact metadata for the uploaded packages
       attestations: write # Create GitHub attestations for the build outputs
       contents: read # Checkout the repository
       id-token: write # Sign packages and attestations with GitHub OIDC
-
-    runs-on: windows-2025
-
-    outputs:
-      artifact-url: ${{ steps.upload-artifacts.outputs.artifact-url }}
-      artifact-id: ${{ steps.upload-artifacts.outputs.artifact-id }}
 
     steps:
       - name: Checkout code
@@ -95,6 +101,7 @@ jobs:
 
       - name: Setup .NET
         uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
+        id: setup-dotnet
 
       - name: dotnet restore ${{ steps.resolve-project.outputs.title }}
         run: dotnet restore ${env:PROJECT_PATH}
@@ -105,11 +112,38 @@ jobs:
       - name: dotnet test ${{ steps.resolve-project.outputs.title }}
         run: dotnet test ${env:PROJECT_PATH} --configuration Release --no-restore --no-build
 
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+
+      - name: Sign DLLs with Cosign Keyless
+        shell: pwsh
+        run: |
+          $projectFiles = Get-ChildItem -Path src/*/*.csproj -File
+
+          foreach ($projectFile in $projectFiles) {
+              $projectName = [System.IO.Path]::GetFileNameWithoutExtension($projectFile)
+
+              $dllSearchPath = "artifacts/bin/$projectName/release*/$projectName.dll"
+
+              # Components that were not built (e.g. in tag/component
+              # builds) will not have any output, so skip them.
+              if (-not (Test-Path -Path $dllSearchPath)) {
+                  continue
+              }
+
+              Get-ChildItem -Path $dllSearchPath -File | ForEach-Object {
+                  $fileFullPath = $_.FullName
+                  Write-Output "Signing $fileFullPath"
+
+                  cosign.exe sign-blob --yes --bundle "$fileFullPath.sigstore.json" $fileFullPath
+              }
+          }
+
       - name: Create GitHub attestations for DLLs
         uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763 # v4.1.1
         with:
           subject-path: |
-            ./artifacts/bin/*/release_*/OpenTelemetry*.dll
+            ./artifacts/bin/*/release*/OpenTelemetry*.dll
             !./artifacts/bin/*/**/OpenTelemetry.dll
             !./artifacts/bin/*/**/OpenTelemetry.Api.dll
             !./artifacts/bin/*/**/OpenTelemetry.Api.ProviderBuilderExtensions.dll
@@ -123,6 +157,12 @@ jobs:
         run: dotnet pack ${env:PROJECT_PATH} --configuration Release --no-restore --no-build  -p:"PackTag=${env:TAG}"
         env:
           SOURCE_DATE_EPOCH: ${{ steps.get-commit-timestamp.outputs.epoch }}
+
+      - name: Create GitHub attestations for NuGet packages
+        uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26 # v4.1.0
+        with:
+          subject-path: |
+            ./artifacts/package/release/OpenTelemetry*.*nupkg
 
       - name: Generate SBOM
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
@@ -146,22 +186,52 @@ jobs:
           path: ./artifacts/package/release
           if-no-files-found: error
 
+  validate:
+    name: Validate NuGet packages
+    needs: [build-pack]
+    runs-on: windows-2025
+
+    permissions:
+      attestations: read # Verify GitHub attestations for the build outputs
+      contents: read # Download the published artifacts
+
+    steps:
+      - name: Setup .NET
+        uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5.3.0
+        with:
+          dotnet-version: ${{ needs.build-pack.outputs.dotnet-sdk-version }}
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+
       - name: Install NuGet package validation tools
         env:
           # renovate: datasource=nuget depName=dotnet-validate
           DOTNET_VALIDATE_VERSION: '0.0.1-preview.582'
           # renovate: datasource=nuget depName=Meziantou.Framework.NuGetPackageValidation.Tool
           MEZIANTOU_VALIDATE_NUGET_PACKAGE_VERSION: '1.0.52'
+        shell: pwsh
         run: |
           dotnet tool install --global dotnet-validate --version ${env:DOTNET_VALIDATE_VERSION} --allow-roll-forward
           dotnet tool install --global Meziantou.Framework.NuGetPackageValidation.Tool --version ${env:MEZIANTOU_VALIDATE_NUGET_PACKAGE_VERSION} --allow-roll-forward
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          artifact-ids: ${{ needs.build-pack.outputs.artifact-id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ./artifacts
 
       - name: Validate NuGet packages
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          $packages = Get-ChildItem -Path artifacts/package/release/*.nupkg -File | ForEach-Object { $_.FullName }
+          $packages = Get-ChildItem -Path "./artifacts/*.nupkg" -File | ForEach-Object { $_.FullName }
+          if (-not $packages) {
+            Write-Output "::error::No NuGet packages were found in the downloaded artifacts."
+            exit 1
+          }
           $invalidPackages = 0
           foreach ($package in $packages) {
             $isValid = $true
@@ -184,44 +254,173 @@ jobs:
             exit 1
           }
 
-      - name: Publish to MyGet
-        working-directory: ./artifacts/package/release
+      - name: Verify package DLL Cosign Keyless signatures
+        shell: pwsh
         env:
-          MYGET_TOKEN_EXISTS: ${{ secrets.MYGET_TOKEN != '' }}
+          CERTIFICATE_IDENTITY: "${{ github.server_url }}/${{ github.repository }}/.github/workflows/publish-packages.yml@${{ github.ref }}"
+          CERTIFICATE_OIDC_ISSUER: "https://token.actions.githubusercontent.com"
+          COSIGN_YES: "yes"
+        run: |
+          $nupkgFiles = Get-ChildItem -Path "./artifacts/*.nupkg" -File
+
+          # Copy the NuGet packages to a temporary directory and extract them
+          $tempDir = New-Item -ItemType Directory -Path (Join-Path -Path ${env:RUNNER_TEMP} -ChildPath ([System.Guid]::NewGuid().ToString()))
+          foreach ($nupkgFile in $nupkgFiles) {
+              $nupkgFilePath = $nupkgFile.FullName
+              $packageName = [System.IO.Path]::GetFileNameWithoutExtension($nupkgFilePath)
+              Write-Output "Extracting $nupkgFilePath"
+              Expand-Archive -Path $nupkgFilePath -DestinationPath (Join-Path $tempDir.FullName $packageName)
+          }
+
+          # Iterate over all DLL files in the extracted packages and verify their signatures
+          $dllFiles = Get-ChildItem -Path $tempDir.FullName -Recurse -Filter *.dll -File
+          foreach ($dllFile in $dllFiles) {
+              $dllFilePath = $dllFile.FullName
+              Write-Output "Verifying $dllFilePath"
+              cosign.exe verify-blob `
+                --bundle "$dllFilePath.sigstore.json" `
+                --certificate-identity ${env:CERTIFICATE_IDENTITY} `
+                --certificate-oidc-issuer ${env:CERTIFICATE_OIDC_ISSUER} `
+                --use-signed-timestamps `
+                $dllFilePath
+              if ($LASTEXITCODE -ne 0) {
+                  Write-Output "::error::Signature verification failed for $dllFilePath."
+                  exit 1
+              }
+              Write-Output "Signature verification succeeded for $dllFilePath"
+          }
+
+      - name: Verify artifact attestations
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          Get-ChildItem -Path (Join-Path ${env:GITHUB_WORKSPACE} "artifacts") -Recurse -File | ForEach-Object {
+            $target = $_.FullName
+            gh attestation verify --repo ${env:GITHUB_REPOSITORY} $target
+            if ($LASTEXITCODE -ne 0) {
+              Write-Output "::error::Attestation verification failed for ${target}."
+              exit 1
+            }
+            Write-Output "Attestation verification succeeded for ${target}"
+          }
+
+  publish-myget:
+    name: Publish to MyGet
+    needs: [build-pack, validate]
+    runs-on: ubuntu-24.04
+
+    env:
+      MYGET_TOKEN_EXISTS: ${{ secrets.MYGET_TOKEN != '' }}
+
+    permissions:
+      attestations: read # Read GitHub attestations for the NuGet packages
+      contents: read # Download the published artifacts
+
+    steps:
+      - name: Setup .NET
+        uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5.3.0
+        with:
+          dotnet-version: ${{ needs.build-pack.outputs.dotnet-sdk-version }}
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          artifact-ids: ${{ needs.build-pack.outputs.artifact-id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ./artifacts
+
+      - name: Verify artifact attestations
+        shell: pwsh
+        if: env.MYGET_TOKEN_EXISTS == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          Get-ChildItem -Path (Join-Path ${env:GITHUB_WORKSPACE} "artifacts") -Recurse -File | ForEach-Object {
+            $target = $_.FullName
+            gh attestation verify --repo ${env:GITHUB_REPOSITORY} $target
+            if ($LASTEXITCODE -ne 0) {
+              Write-Output "::error::Attestation verification failed for ${target}."
+              exit 1
+            }
+            Write-Output "Attestation verification succeeded for ${target}"
+          }
+
+      - name: Publish to MyGet
+        shell: pwsh
+        working-directory: ./artifacts
+        env:
           NUGET_API_KEY: ${{ secrets.MYGET_TOKEN }}
           SOURCE: https://www.myget.org/F/opentelemetry/api/v3/index.json
         if: env.MYGET_TOKEN_EXISTS == 'true' # Skip MyGet publish if run on a fork without the secret
-        shell: pwsh
         run: dotnet nuget push *.nupkg --skip-duplicate --source ${env:SOURCE}
+
+  publish-nuget:
+    name: Publish to NuGet
+    needs: [build-pack, validate]
+    runs-on: ubuntu-24.04
+    if: github.ref_type == 'tag'
+
+    permissions:
+      attestations: read # Read GitHub attestations for the NuGet packages
+      contents: read # Download the published artifacts
+
+    steps:
+      - name: Setup .NET
+        uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5.3.0
+        with:
+          dotnet-version: ${{ needs.build-pack.outputs.dotnet-sdk-version }}
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          artifact-ids: ${{ needs.build-pack.outputs.artifact-id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ./artifacts
+
+      - name: Verify artifact attestations
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          Get-ChildItem -Path (Join-Path ${env:GITHUB_WORKSPACE} "artifacts") -Recurse -File | ForEach-Object {
+            $target = $_.FullName
+            gh attestation verify --repo ${env:GITHUB_REPOSITORY} $target
+            if ($LASTEXITCODE -ne 0) {
+              Write-Output "::error::Attestation verification failed for ${target}."
+              exit 1
+            }
+            Write-Output "Attestation verification succeeded for ${target}"
+          }
 
       - name: NuGet log in
         uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        id: nuget-login
         env:
           NUGET_USER_EXISTS: ${{ secrets.NUGET_USER != '' }}
-        id: nuget-login
-        if: github.ref_type == 'tag' && env.NUGET_USER_EXISTS == 'true' # Skip NuGet publish for scheduled nightly builds or if run on a fork without the secret
+        if: env.NUGET_USER_EXISTS == 'true' # Skip if run on a fork without the secret
         with:
           user: ${{ secrets.NUGET_USER }}
 
       - name: Publish to NuGet
-        working-directory: ./artifacts/package/release
+        working-directory: ./artifacts
         env:
           NUGET_TOKEN_EXISTS: ${{ steps.nuget-login.outputs.NUGET_API_KEY != '' }}
           NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
           SOURCE: https://api.nuget.org/v3/index.json
-        if: github.ref_type == 'tag' && env.NUGET_TOKEN_EXISTS == 'true' # Skip NuGet publish for scheduled nightly builds or if run on a fork without the secret
+        if: env.NUGET_TOKEN_EXISTS == 'true' # Skip if run on a fork without the secret
         shell: pwsh
         run: dotnet nuget push *.nupkg --skip-duplicate --source ${env:SOURCE}
 
   post-build:
     name: Post build release tasks
     runs-on: ubuntu-24.04
+    if: needs.automation.outputs.enabled && github.event_name == 'push'
 
     needs:
       - automation
-      - build-pack-publish
-
-    if: needs.automation.outputs.enabled && github.event_name == 'push'
+      - build-pack
+      - publish-nuget
 
     steps:
       - name: Generate GitHub App token
@@ -243,7 +442,7 @@ jobs:
       - name: Download Artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          artifact-ids: ${{ needs.build-pack-publish.outputs.artifact-id }}
+          artifact-ids: ${{ needs.build-pack.outputs.artifact-id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: ./artifacts
 
@@ -265,7 +464,7 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.otelbot-token.outputs.token }}
           EXPECTED_PR_AUTHOR_USER_NAME: ${{ needs.automation.outputs.application-name }}
-          PACKAGES_URL: ${{ needs.build-pack-publish.outputs.artifact-url }}
+          PACKAGES_URL: ${{ needs.build-pack.outputs.artifact-url }}
         run: |
           Import-Module .\build\scripts\post-release.psm1
 
