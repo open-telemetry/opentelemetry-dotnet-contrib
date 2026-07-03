@@ -168,11 +168,14 @@ internal class HttpInListener : ListenerHandler
                 createdSibling = true;
             }
 
-            // Only set the ambient Baggage when the incoming request actually carried baggage.
-            // Assigning an empty Baggage still allocates, and there is nothing to propagate, so this
-            // avoids that work on the common path where no baggage is present. Any incoming baggage
-            // has also been made available by ASP.NET Core via Activity.Baggage (on .NET 10+).
-            Baggage.Current = ctx.Baggage is { Count: > 0 } baggage ? baggage : default;
+            // Assigning Baggage.Current allocates a holder when one does not already exist, so avoid
+            // the assignment on the common path where both the incoming and ambient baggage are empty.
+            // Existing ambient baggage must still be cleared to prevent it leaking into this request.
+            var baggage = ctx.Baggage;
+            if (baggage.Count > 0 || Baggage.Current.Count > 0)
+            {
+                Baggage.Current = baggage;
+            }
         }
 
         // enrich Activity from payload only if sampling decision
