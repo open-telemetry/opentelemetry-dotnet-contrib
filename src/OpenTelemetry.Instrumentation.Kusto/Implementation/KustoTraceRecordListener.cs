@@ -22,7 +22,11 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
     // complete callbacks for a single operation, and the client releases it once the operation finishes. Keying a
     // ConditionalWeakTable on it lets an operation that never reports completion be evicted automatically when the
     // client drops its reference. No manual bookkeeping nor unbounded growth.
+#if NET
+    private readonly ConditionalWeakTable<object, OperationContext> contexts = [];
+#else
     private readonly ConditionalWeakTable<object, OperationContext> contexts = new();
+#endif
 
     /// <summary>
     /// Gets or sets the trace options applied when emitting spans.
