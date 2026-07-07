@@ -14,7 +14,7 @@
 
 * **Breaking change**: Updated the traces and metrics emitted by the Kafka
   producer and consumer to follow the
-  [v1.42.0 messaging semantic conventions](https://github.com/open-telemetry/semantic-conventions/tree/v1.42.0/docs/messaging).
+  [v1.43.0 messaging semantic conventions](https://github.com/open-telemetry/semantic-conventions/tree/v1.43.0/docs/messaging).
   The producer `send` span (previously `publish`) and the consumer `poll`
   span (previously `receive`, and now emitted with `ActivityKind.Client`) now
   set:

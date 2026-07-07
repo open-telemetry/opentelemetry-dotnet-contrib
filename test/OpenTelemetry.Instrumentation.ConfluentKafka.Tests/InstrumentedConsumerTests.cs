@@ -36,7 +36,7 @@ public class InstrumentedConsumerTests
 
         var activity = activities.Single(a => a.DisplayName == "poll consume-topic");
         Assert.Equal(ActivityKind.Client, activity.Kind);
-        Assert.Equal("https://opentelemetry.io/schemas/1.42.0", activity.Source.TelemetrySchemaUrl);
+        Assert.Equal("https://opentelemetry.io/schemas/1.43.0", activity.Source.TelemetrySchemaUrl);
         Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
         Assert.Equal("poll", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationName));
         Assert.Equal("receive", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationType));
