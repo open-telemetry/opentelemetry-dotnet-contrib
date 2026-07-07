@@ -22,13 +22,18 @@ internal class InfluxDBFakeServer : IDisposable
             {
                 var buffer = new byte[context.Request.ContentLength64];
                 _ = context.Request.InputStream.Read(buffer, 0, buffer.Length);
-                var text = Encoding.UTF8.GetString(buffer);
-                foreach (var line in text.Split(SplitChars, StringSplitOptions.RemoveEmptyEntries))
+
+                var statusCode = this.ResponseStatusCode;
+                if (statusCode == HttpStatusCode.OK)
                 {
-                    this.lines.Add(line);
+                    var text = Encoding.UTF8.GetString(buffer);
+                    foreach (var line in text.Split(SplitChars, StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        this.lines.Add(line);
+                    }
                 }
 
-                context.Response.StatusCode = (int)HttpStatusCode.OK;
+                context.Response.StatusCode = (int)statusCode;
                 context.Response.Close();
             },
             out var baseAddress);
@@ -36,6 +41,13 @@ internal class InfluxDBFakeServer : IDisposable
     }
 
     public Uri Endpoint { get; }
+
+    /// <summary>
+    /// Gets or sets the HTTP status code returned for write requests. Setting a
+    /// non-success code (for example <see cref="HttpStatusCode.BadRequest"/>)
+    /// simulates an unavailable/erroring InfluxDB backend.
+    /// </summary>
+    public HttpStatusCode ResponseStatusCode { get; set; } = HttpStatusCode.OK;
 
     public void Dispose()
         => this.httpServer.Dispose();
