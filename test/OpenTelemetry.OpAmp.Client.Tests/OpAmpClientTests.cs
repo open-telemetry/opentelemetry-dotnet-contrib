@@ -478,6 +478,48 @@ public class OpAmpClientTests
         Assert.Equal(messageContent, actualMessageContent);
     }
 
+    [Fact]
+    internal async Task SendsFullStateReport()
+    {
+        // Setup OpAMP server
+        using var opAmpServer = new OpAmpFakeHttpServer(false);
+        var opAmpEndpoint = opAmpServer.Endpoint;
+
+        using var client = new OpAmpClient(o =>
+        {
+            o.ServerUrl = opAmpEndpoint;
+
+            o.Identification.AddIdentifyingAttribute("test", "value");
+            o.RemoteConfiguration.AcceptsRemoteConfig = true;
+            o.RemoteConfiguration.ReportsRemoteConfigStatus = true;
+            o.EffectiveConfigurationReporting.EnableReporting = true;
+        });
+
+        // Setup content
+        var content = "test"u8.ToArray();
+        var report = new FullStateReport()
+        {
+            EffectiveConfigFiles = [new EffectiveConfigFile(content, "text/plain", "test")],
+            CustomCapabilities = ["test-capability"],
+            RemoteConfigStatus = new RemoteConfigStatusReport(content, RemoteConfigStatusCode.Applied),
+        };
+
+        // Act
+        await client.StartAsync();
+        await client.SendFullStateReportAsync(report);
+        await client.StopAsync();
+
+        // Assert received frames
+        var frames = opAmpServer.GetFrames();
+
+        Assert.NotNull(frames[1].AgentDescription);
+        Assert.NotNull(frames[1].EffectiveConfig);
+        Assert.NotNull(frames[1].CustomCapabilities);
+        Assert.NotNull(frames[1].RemoteConfigStatus);
+
+        Assert.True(frames[1].Capabilities > 0);
+    }
+
     internal class CapabilityTestData
         : TheoryData<Action<OpAmpClientSettings>, IEnumerable<AgentCapabilities>, IEnumerable<AgentCapabilities>>
     {
