@@ -74,6 +74,35 @@ public class InstrumentedProducerTests
     }
 
     [Fact]
+    public async Task ProduceAsync_EmptyKey_SetsKeyTag()
+    {
+        var activities = new List<Activity>();
+
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSource(ConfluentKafkaCommon.ActivitySource.Name)
+            .AddInMemoryExporter(activities)
+            .Build())
+        {
+            var fakeProducer = new FakeProducer<string, string>();
+            var options = new ConfluentKafkaProducerInstrumentationOptions<string, string>
+            {
+                Traces = true,
+                Metrics = false,
+            };
+            var instrumentedProducer = new InstrumentedProducer<string, string>(fakeProducer, options);
+
+            await instrumentedProducer.ProduceAsync(
+                "empty-key-topic",
+                new Message<string, string> { Key = string.Empty, Value = "hello" });
+
+            tracerProvider.ForceFlush();
+        }
+
+        var activity = activities.Single(a => a.DisplayName == "send empty-key-topic");
+        Assert.Equal(string.Empty, activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaMessageKey));
+    }
+
+    [Fact]
     public async Task ProduceAsync_TombstoneMessage_SetsTombstoneTag()
     {
         var activities = new List<Activity>();

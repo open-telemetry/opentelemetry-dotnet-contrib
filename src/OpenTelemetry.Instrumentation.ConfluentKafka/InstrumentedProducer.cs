@@ -348,7 +348,7 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
         {
             activity.SetTag(SemanticConventions.AttributeMessagingClientId, this.Name);
 
-            if (ConfluentKafkaCommon.FormatMessageKey(message.Key) is { Length: > 0 } messageKey)
+            if (ConfluentKafkaCommon.FormatMessageKey(message.Key) is { } messageKey)
             {
                 activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageKey, messageKey);
             }

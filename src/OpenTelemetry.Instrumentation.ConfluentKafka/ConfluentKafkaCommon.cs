@@ -53,18 +53,34 @@ internal static class ConfluentKafkaCommon
 
     /// <summary>
     /// Normalizes a Kafka message key to the string representation required by the
-    /// <c>messaging.kafka.message.key</c> attribute in the Semantic Conventions.
+    /// <see href="https://github.com/open-telemetry/semantic-conventions/blob/ae3a98640194ed405c4c797281502e4d3bd258b3/docs/messaging/kafka.md#L119"><c>messaging.kafka.message.key</c> semantic convention</see>.
     /// </summary>
     /// <param name="key">The message key, which may be <see langword="null"/>.</param>
     /// <returns>
-    /// The string representation of <paramref name="key"/>, or <see langword="null"/> when the key
-    /// is absent or has no unambiguous, canonical string form (e.g. a <see cref="byte"/> array),
-    /// in which case the attribute must be omitted.
+    /// The canonical string representation of <paramref name="key"/>, or <see langword="null"/>
+    /// when the key is absent or has no unambiguous, canonical string form (e.g. a
+    /// <see cref="byte"/> array), in which case the attribute must be omitted.
     /// </returns>
     internal static string? FormatMessageKey(object? key) => key switch
     {
         string value => value,
-        IFormattable formattable => formattable.ToString(null, CultureInfo.InvariantCulture),
+        char value => value.ToString(),
+        bool value => value.ToString(),
+        byte value => value.ToString(CultureInfo.InvariantCulture),
+        sbyte value => value.ToString(CultureInfo.InvariantCulture),
+        short value => value.ToString(CultureInfo.InvariantCulture),
+        ushort value => value.ToString(CultureInfo.InvariantCulture),
+        int value => value.ToString(CultureInfo.InvariantCulture),
+        uint value => value.ToString(CultureInfo.InvariantCulture),
+        long value => value.ToString(CultureInfo.InvariantCulture),
+        ulong value => value.ToString(CultureInfo.InvariantCulture),
+        float value when !float.IsNaN(value) => value.ToString("R", CultureInfo.InvariantCulture),
+        double value when !double.IsNaN(value) => value.ToString("R", CultureInfo.InvariantCulture),
+        decimal value => value.ToString(CultureInfo.InvariantCulture),
+        Guid value => value.ToString("D"),
+        DateTime value => value.ToString("O", CultureInfo.InvariantCulture),
+        DateTimeOffset value => value.ToString("O", CultureInfo.InvariantCulture),
+        TimeSpan value => value.ToString("c", CultureInfo.InvariantCulture),
         _ => null,
     };
 }

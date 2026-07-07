@@ -28,6 +28,9 @@
     `messaging.kafka.destination.partition`)
   * `messaging.kafka.offset` (replacing `messaging.kafka.message.offset`)
 
+  `messaging.kafka.message.key` is now emitted as a string when the key has an
+  unambiguous canonical representation; otherwise, the attribute is omitted.
+
   The metrics were renamed to:
 
   * `messaging.client.operation.duration`

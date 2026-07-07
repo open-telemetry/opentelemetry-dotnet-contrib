@@ -392,7 +392,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
             activity.SetTag(SemanticConventions.AttributeMessagingClientId, this.Name);
             activity.SetTag(SemanticConventions.AttributeMessagingKafkaOffset, topicPartitionOffset?.Offset.Value);
 
-            if (ConfluentKafkaCommon.FormatMessageKey(key) is { Length: > 0 } messageKey)
+            if (ConfluentKafkaCommon.FormatMessageKey(key) is { } messageKey)
             {
                 activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageKey, messageKey);
             }
