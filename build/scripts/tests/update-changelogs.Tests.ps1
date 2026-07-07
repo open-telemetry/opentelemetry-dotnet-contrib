@@ -44,11 +44,11 @@ Describe "update-changelogs.ps1" {
         }
 
         $matchingChangelog = Get-Content -Path (Join-Path -Path $matchingProject -ChildPath "CHANGELOG.md") -Raw
-        $matchingChangelog | Should -Match "## 1\.2\.3" -Because "the version heading should be added for a matching project"
-        $matchingChangelog | Should -BeLike "*Released $expectedReleaseDate*" -Because "a release date should be added for a matching project"
-        $matchingChangelog | Should -Match "\* Some change" -Because "existing changelog entries should be preserved"
+        $matchingChangelog | Should-MatchString "## 1\.2\.3" -Because "the version heading should be added for a matching project"
+        $matchingChangelog | Should-BeLikeString "*Released $expectedReleaseDate*" -Because "a release date should be added for a matching project"
+        $matchingChangelog | Should-MatchString "\* Some change" -Because "existing changelog entries should be preserved"
 
         $otherChangelog = Get-Content -Path (Join-Path -Path $otherProject -ChildPath "CHANGELOG.md") -Raw
-        $otherChangelog | Should -Not -Match "## 1\.2\.3" -Because "projects with a different tag prefix should not be updated"
+        $otherChangelog | Should-NotMatchString "## 1\.2\.3" -Because "projects with a different tag prefix should not be updated"
     }
 }
