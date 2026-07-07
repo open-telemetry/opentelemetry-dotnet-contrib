@@ -276,15 +276,29 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         }
     }
 
-    private static void RecordReceive(TopicPartition? topicPartition, string? groupId, TimeSpan duration, string? errorType = null)
+    private static void RecordReceive(
+        TopicPartition? topicPartition,
+        string? groupId,
+        TimeSpan duration,
+        bool messageConsumed,
+        string? errorType = null)
     {
         GetTags(topicPartition?.Topic, groupId, out var tags, partition: topicPartition?.Partition, errorType);
 
-        ConfluentKafkaCommon.ConsumedMessagesCounter.Add(1, in tags);
+        if (messageConsumed)
+        {
+            ConfluentKafkaCommon.ConsumedMessagesCounter.Add(1, in tags);
+        }
+
         ConfluentKafkaCommon.OperationDurationHistogram.Record(duration.TotalSeconds, in tags);
     }
 
-    private void InstrumentConsumption(DateTimeOffset startTime, DateTimeOffset endTime, ConsumeResult consumeResult, string? errorType, string? errorMessage)
+    private void InstrumentConsumption(
+        DateTimeOffset startTime,
+        DateTimeOffset endTime,
+        ConsumeResult consumeResult,
+        string? errorType,
+        string? errorMessage)
     {
         if (this.options.Traces)
         {
@@ -311,11 +325,23 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         if (this.options.Metrics)
         {
             var duration = endTime - startTime;
-            RecordReceive(consumeResult.TopicPartitionOffset?.TopicPartition, this.GroupId, duration, errorType);
+            var messageConsumed = consumeResult.TopicPartitionOffset is not null;
+
+            RecordReceive(
+                consumeResult.TopicPartitionOffset?.TopicPartition,
+                this.GroupId,
+                duration,
+                messageConsumed,
+                errorType);
         }
     }
 
-    private Activity? StartReceiveActivity(PropagationContext propagationContext, DateTimeOffset start, TopicPartitionOffset? topicPartitionOffset, object? key, bool isTombstone)
+    private Activity? StartReceiveActivity(
+        PropagationContext propagationContext,
+        DateTimeOffset start,
+        TopicPartitionOffset? topicPartitionOffset,
+        object? key,
+        bool isTombstone)
     {
 #pragma warning disable IDE0370 // Suppression is unnecessary
         var spanName = string.IsNullOrEmpty(topicPartitionOffset?.Topic)
@@ -327,28 +353,48 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
             ? [new ActivityLink(propagationContext.ActivityContext)]
             : [];
 
-        // Per the v1.42.0 conventions the "poll" span has a CLIENT kind (the CONSUMER kind is
-        // reserved for the "process" span that embraces message handling).
-        var activity = ConfluentKafkaCommon.ActivitySource.StartActivity(spanName, kind: ActivityKind.Client, links: activityLinks, startTime: start, parentContext: default);
+        // Provide the attributes that can influence sampling decisions at span creation time
+        var initialTags = new ActivityTagsCollection
+        {
+            [SemanticConventions.AttributeMessagingOperationName] = ConfluentKafkaCommon.PollOperationName,
+            [SemanticConventions.AttributeMessagingOperationType] = ConfluentKafkaCommon.ReceiveOperationType,
+            [SemanticConventions.AttributeMessagingSystem] = ConfluentKafkaCommon.KafkaMessagingSystem,
+        };
+
+        if (this.GroupId is { Length: > 0 } groupId)
+        {
+            initialTags.Add(SemanticConventions.AttributeMessagingConsumerGroupName, groupId);
+        }
+
+        // messaging.destination.name is only set for actual topics; it must be omitted when unknown.
+        if (topicPartitionOffset?.Topic is { Length: > 0 } topic)
+        {
+            initialTags.Add(SemanticConventions.AttributeMessagingDestinationName, topic);
+
+            if (topicPartitionOffset.Partition is { } partition)
+            {
+                initialTags.Add(SemanticConventions.AttributeMessagingDestinationPartitionId, partition.Value.ToString(CultureInfo.InvariantCulture));
+            }
+        }
+
+        // Per the Semantic Conventions the "poll" span has a CLIENT kind (the CONSUMER
+        // kind is reserved for the "process" span that embraces message handling).
+        var activity = ConfluentKafkaCommon.ActivitySource.StartActivity(
+            spanName,
+            kind: ActivityKind.Client,
+            parentContext: default,
+            tags: initialTags,
+            links: activityLinks,
+            startTime: start);
+
         if (activity?.IsAllDataRequested == true)
         {
-            activity.SetTag(SemanticConventions.AttributeMessagingSystem, ConfluentKafkaCommon.KafkaMessagingSystem);
             activity.SetTag(SemanticConventions.AttributeMessagingClientId, this.Name);
-            activity.SetTag(SemanticConventions.AttributeMessagingOperationName, ConfluentKafkaCommon.PollOperationName);
-            activity.SetTag(SemanticConventions.AttributeMessagingOperationType, ConfluentKafkaCommon.ReceiveOperationType);
-            activity.SetTag(SemanticConventions.AttributeMessagingConsumerGroupName, this.GroupId);
             activity.SetTag(SemanticConventions.AttributeMessagingKafkaOffset, topicPartitionOffset?.Offset.Value);
 
-            // messaging.destination.name is only set for actual topics; it must be omitted when unknown.
-            if (!string.IsNullOrEmpty(topicPartitionOffset?.Topic))
+            if (ConfluentKafkaCommon.FormatMessageKey(key) is { Length: > 0 } messageKey)
             {
-                activity.SetTag(SemanticConventions.AttributeMessagingDestinationName, topicPartitionOffset!.Topic);
-                activity.SetTag(SemanticConventions.AttributeMessagingDestinationPartitionId, topicPartitionOffset.Partition.Value.ToString(CultureInfo.InvariantCulture));
-            }
-
-            if (key != null)
-            {
-                activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageKey, key);
+                activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageKey, messageKey);
             }
 
             if (isTombstone)

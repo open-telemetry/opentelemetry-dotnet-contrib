@@ -316,7 +316,29 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
         }
 
         var spanName = string.Concat(ConfluentKafkaCommon.SendOperationName, " ", topic);
-        var activity = ConfluentKafkaCommon.ActivitySource.StartActivity(name: spanName, kind: ActivityKind.Producer, startTime: start);
+
+        // Provide the attributes that can influence sampling decisions at span creation time
+        var initialTags = new ActivityTagsCollection
+        {
+            [SemanticConventions.AttributeMessagingDestinationName] = topic,
+            [SemanticConventions.AttributeMessagingOperationName] = ConfluentKafkaCommon.SendOperationName,
+            [SemanticConventions.AttributeMessagingOperationType] = ConfluentKafkaCommon.SendOperationType,
+            [SemanticConventions.AttributeMessagingSystem] = ConfluentKafkaCommon.KafkaMessagingSystem,
+        };
+
+        if (partition is { } partitionValue)
+        {
+            initialTags.Add(SemanticConventions.AttributeMessagingDestinationPartitionId, partitionValue.ToString(CultureInfo.InvariantCulture));
+        }
+
+        var activity = ConfluentKafkaCommon.ActivitySource.StartActivity(
+            spanName,
+            kind: ActivityKind.Producer,
+            parentContext: default,
+            tags: initialTags,
+            links: null,
+            startTime: start);
+
         if (activity == null)
         {
             return null;
@@ -324,25 +346,16 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
 
         if (activity.IsAllDataRequested)
         {
-            activity.SetTag(SemanticConventions.AttributeMessagingSystem, ConfluentKafkaCommon.KafkaMessagingSystem);
             activity.SetTag(SemanticConventions.AttributeMessagingClientId, this.Name);
-            activity.SetTag(SemanticConventions.AttributeMessagingDestinationName, topic);
-            activity.SetTag(SemanticConventions.AttributeMessagingOperationName, ConfluentKafkaCommon.SendOperationName);
-            activity.SetTag(SemanticConventions.AttributeMessagingOperationType, ConfluentKafkaCommon.SendOperationType);
 
-            if (message.Key != null)
+            if (ConfluentKafkaCommon.FormatMessageKey(message.Key) is { Length: > 0 } messageKey)
             {
-                activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageKey, message.Key);
+                activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageKey, messageKey);
             }
 
             if (message.Value is null)
             {
                 activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageTombstone, true);
-            }
-
-            if (partition is not null)
-            {
-                activity.SetTag(SemanticConventions.AttributeMessagingDestinationPartitionId, partition.Value.ToString(CultureInfo.InvariantCulture));
             }
         }
 

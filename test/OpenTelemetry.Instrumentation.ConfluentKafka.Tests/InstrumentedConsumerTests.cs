@@ -300,7 +300,7 @@ public class InstrumentedConsumerTests
         Assert.Equal("error-topic-no-headers", activity.GetTagValue(SemanticConventions.AttributeMessagingDestinationName));
         Assert.Equal("3", activity.GetTagValue(SemanticConventions.AttributeMessagingDestinationPartitionId));
         Assert.Equal(150L, activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaOffset));
-        Assert.Equal("error-key", Encoding.UTF8.GetString((byte[])activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaMessageKey)!));
+        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaMessageKey));
     }
 
     [Fact]
@@ -358,7 +358,7 @@ public class InstrumentedConsumerTests
         Assert.Equal("error-topic-with-headers", activity.GetTagValue(SemanticConventions.AttributeMessagingDestinationName));
         Assert.Equal("5", activity.GetTagValue(SemanticConventions.AttributeMessagingDestinationPartitionId));
         Assert.Equal(200L, activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaOffset));
-        Assert.Equal("error-key-with-headers", Encoding.UTF8.GetString((byte[])activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaMessageKey)!));
+        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaMessageKey));
     }
 
     [Fact]
@@ -470,14 +470,9 @@ public class InstrumentedConsumerTests
             meterProvider.EnsureMetricsAreFlushed();
         }
 
+        // The ConsumeException carried no ConsumerRecord, so no message was pulled from the broker.
         var receiveMessagesMetric = metrics.FirstOrDefault(m => m.Name == SemanticConventions.MetricMessagingClientConsumedMessages);
-        AssertMetric(
-            actualMetric: receiveMessagesMetric,
-            expectedMessagingOperation: ConfluentKafkaCommon.PollOperationName,
-            expectedMessagingSystem: ConfluentKafkaCommon.KafkaMessagingSystem,
-            expectedKafkaDestinationName: null,
-            expectedKafkaDestinationPartition: null,
-            expectedErrorType: exception.Error.Code.ToString());
+        Assert.Null(receiveMessagesMetric);
 
         var receiveDurationMetric = metrics.FirstOrDefault(m => m.Name == SemanticConventions.MetricMessagingClientOperationDuration);
         AssertMetric(

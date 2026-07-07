@@ -141,26 +141,45 @@ public static class OpenTelemetryConsumeResultExtensions
             ? [new ActivityLink(propagationContext.ActivityContext)]
             : [];
 
-        var activity = ConfluentKafkaCommon.ActivitySource.StartActivity(spanName, kind: ActivityKind.Consumer, links: activityLinks, parentContext: default);
+        // Provide the attributes that can influence sampling decisions at span creation time
+        var initialTags = new ActivityTagsCollection
+        {
+            [SemanticConventions.AttributeMessagingOperationName] = ConfluentKafkaCommon.ProcessOperationName,
+            [SemanticConventions.AttributeMessagingOperationType] = ConfluentKafkaCommon.ProcessOperationType,
+            [SemanticConventions.AttributeMessagingSystem] = ConfluentKafkaCommon.KafkaMessagingSystem,
+        };
+
+        if (groupId is { Length: > 0 })
+        {
+            initialTags.Add(SemanticConventions.AttributeMessagingConsumerGroupName, groupId);
+        }
+
+        // messaging.destination.name is only set for actual topics; it must be omitted when unknown.
+        if (topicPartitionOffset?.Topic is { Length: > 0 } topic)
+        {
+            initialTags.Add(SemanticConventions.AttributeMessagingDestinationName, topic);
+
+            if (topicPartitionOffset?.Partition is { } partition)
+            {
+                initialTags.Add(SemanticConventions.AttributeMessagingDestinationPartitionId, partition.Value.ToString(CultureInfo.InvariantCulture));
+            }
+        }
+
+        var activity = ConfluentKafkaCommon.ActivitySource.StartActivity(
+            spanName,
+            kind: ActivityKind.Consumer,
+            parentContext: default,
+            tags: initialTags,
+            links: activityLinks);
+
         if (activity?.IsAllDataRequested == true)
         {
-            activity.SetTag(SemanticConventions.AttributeMessagingSystem, ConfluentKafkaCommon.KafkaMessagingSystem);
             activity.SetTag(SemanticConventions.AttributeMessagingClientId, clientId);
-            activity.SetTag(SemanticConventions.AttributeMessagingOperationName, ConfluentKafkaCommon.ProcessOperationName);
-            activity.SetTag(SemanticConventions.AttributeMessagingOperationType, ConfluentKafkaCommon.ProcessOperationType);
-            activity.SetTag(SemanticConventions.AttributeMessagingConsumerGroupName, groupId);
             activity.SetTag(SemanticConventions.AttributeMessagingKafkaOffset, topicPartitionOffset?.Offset.Value);
 
-            // messaging.destination.name is only set for actual topics; it must be omitted when unknown.
-            if (!string.IsNullOrEmpty(topicPartitionOffset?.Topic))
+            if (ConfluentKafkaCommon.FormatMessageKey(key) is { Length: > 0 } messageKey)
             {
-                activity.SetTag(SemanticConventions.AttributeMessagingDestinationName, topicPartitionOffset!.Topic);
-                activity.SetTag(SemanticConventions.AttributeMessagingDestinationPartitionId, topicPartitionOffset.Partition.Value.ToString(CultureInfo.InvariantCulture));
-            }
-
-            if (key != null)
-            {
-                activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageKey, key);
+                activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageKey, messageKey);
             }
 
             if (isTombstone)

@@ -3,6 +3,7 @@
 
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
+using System.Globalization;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 
@@ -49,4 +50,21 @@ internal static class ConfluentKafkaCommon
         SemanticConventions.MetricMessagingClientConsumedMessages,
         unit: "{message}",
         description: "Number of messages that were delivered to the application.");
+
+    /// <summary>
+    /// Normalizes a Kafka message key to the string representation required by the
+    /// <c>messaging.kafka.message.key</c> attribute in the Semantic Conventions.
+    /// </summary>
+    /// <param name="key">The message key, which may be <see langword="null"/>.</param>
+    /// <returns>
+    /// The string representation of <paramref name="key"/>, or <see langword="null"/> when the key
+    /// is absent or has no unambiguous, canonical string form (e.g. a <see cref="byte"/> array),
+    /// in which case the attribute must be omitted.
+    /// </returns>
+    internal static string? FormatMessageKey(object? key) => key switch
+    {
+        string value => value,
+        IFormattable formattable => formattable.ToString(null, CultureInfo.InvariantCulture),
+        _ => null,
+    };
 }
