@@ -493,6 +493,7 @@ public class OpAmpClientTests
             o.RemoteConfiguration.AcceptsRemoteConfig = true;
             o.RemoteConfiguration.ReportsRemoteConfigStatus = true;
             o.EffectiveConfigurationReporting.EnableReporting = true;
+            o.Heartbeat.IsEnabled = true;
         });
 
         // Setup content
@@ -502,6 +503,7 @@ public class OpAmpClientTests
             EffectiveConfigFiles = [new EffectiveConfigFile(content, "text/plain", "test")],
             CustomCapabilities = ["test-capability"],
             RemoteConfigStatus = new RemoteConfigStatusReport(content, RemoteConfigStatusCode.Applied),
+            HealthReport = new HealthReport() { IsHealthy = true },
         };
 
         // Act
@@ -516,6 +518,7 @@ public class OpAmpClientTests
         Assert.NotNull(frames[1].EffectiveConfig);
         Assert.NotNull(frames[1].CustomCapabilities);
         Assert.NotNull(frames[1].RemoteConfigStatus);
+        Assert.NotNull(frames[1].Health);
 
         Assert.True(frames[1].Capabilities > 0);
     }

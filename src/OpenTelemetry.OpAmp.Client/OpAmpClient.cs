@@ -227,6 +227,12 @@ public sealed class OpAmpClient : IDisposable
             throw new InvalidOperationException("Remote configuration status reporting is not enabled in settings.");
         }
 
+        if (this.settings.Heartbeat.IsEnabled)
+        {
+            var service = this.GetService<HeartbeatService>(HeartbeatService.Name);
+            report.HealthReport = service.CreateHealthReport();
+        }
+
         return this.dispatcher.DispatchFullStateReportAsync(report, cancellationToken);
     }
 
@@ -310,6 +316,8 @@ public sealed class OpAmpClient : IDisposable
             settings => settings.Heartbeat.IsEnabled,
             () => new(this.dispatcher, this.processor));
     }
+
+    private TService GetService<TService>(string serviceName) => (TService)this.services[serviceName];
 
     private void ConfigureService<T>(Predicate<OpAmpClientSettings> isEnabledCallback, Func<T> construct)
         where T : IBackgroundService

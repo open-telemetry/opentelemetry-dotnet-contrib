@@ -160,6 +160,11 @@ internal sealed class FrameDispatcher : IDisposable
                 message.AddCustomCapabilities(customCapabilities);
             }
 
+            if (report.HealthReport is { } healthReport)
+            {
+                message.AddHealth(healthReport);
+            }
+
             return message.Build();
         }
     }
