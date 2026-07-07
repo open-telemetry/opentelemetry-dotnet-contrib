@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using OpenTelemetry.OpAmp.Client.Internal.Services.Heartbeat;
+
 namespace OpenTelemetry.OpAmp.Client.Messages;
 
 /// <summary>
@@ -22,4 +24,9 @@ public sealed class FullStateReport
     /// Gets or sets the last remote config status.
     /// </summary>
     public RemoteConfigStatusReport? RemoteConfigStatus { get; set; }
+
+    /// <summary>
+    /// Gets or sets the heartbeat signal.
+    /// </summary>
+    internal HealthReport? HealthReport { get; set; }
 }
