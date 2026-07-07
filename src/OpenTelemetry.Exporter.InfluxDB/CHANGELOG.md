@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+* The metrics exporter now reports `ExportResult.Failure` when asynchronous
+  writes to InfluxDB are failing and stops enqueuing points into the unbounded
+  `WriteApi` buffer while the backend is unreachable. This prevents unbounded
+  memory growth (potential OOM) when InfluxDB is down or falling behind. Since
+  the reader uses cumulative temporality, no data is lost: the SDK retains the
+  accumulated values and the `PeriodicExportingMetricReader` retries on the next
+  export cycle.
+  ([#4474](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4474))
+
 * Updated OpenTelemetry core component version(s) to `1.16.0`.
   ([#4487](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4487))
 
