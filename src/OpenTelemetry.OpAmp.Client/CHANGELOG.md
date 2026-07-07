@@ -2,8 +2,18 @@
 
 ## Unreleased
 
+## 0.6.0-alpha.1
+
+Released 2026-Jul-07
+
 * Assemblies are now digitally signed using cosign.
   ([#4637](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4637))
+
+* Add support for reporting full state.
+  ([#4633](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4633))
+
+* Add heartbeat support to full state report.
+  ([#4653](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4653))
 
 ## 0.5.0-alpha.1
 

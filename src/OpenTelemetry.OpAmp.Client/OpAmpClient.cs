@@ -206,6 +206,37 @@ public sealed class OpAmpClient : IDisposable
     }
 
     /// <summary>
+    /// Sends a full state report message to restore the lost state in the server.
+    /// </summary>
+    /// <param name="report">Report that contains supported partials.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A task that represents the asynchronous send operation.</returns>
+    /// <exception cref="ObjectDisposedException">Thrown if the client has already been disposed.</exception>
+    public Task SendFullStateReportAsync(FullStateReport report, CancellationToken cancellationToken = default)
+    {
+        this.ThrowIfDisposed();
+        Guard.ThrowIfNull(report);
+
+        if (report.EffectiveConfigFiles != null && !this.settings.EffectiveConfigurationReporting.EnableReporting)
+        {
+            throw new InvalidOperationException("Effective configuration reporting is not enabled in settings.");
+        }
+
+        if (report.RemoteConfigStatus != null && !this.settings.RemoteConfiguration.ReportsRemoteConfigStatus)
+        {
+            throw new InvalidOperationException("Remote configuration status reporting is not enabled in settings.");
+        }
+
+        if (this.settings.Heartbeat.IsEnabled)
+        {
+            var service = this.GetService<HeartbeatService>(HeartbeatService.Name);
+            report.HealthReport = service.CreateHealthReport();
+        }
+
+        return this.dispatcher.DispatchFullStateReportAsync(report, cancellationToken);
+    }
+
+    /// <summary>
     /// Disposes the <see cref="OpAmpClient"/> instance and releases all associated resources.
     /// </summary>
     /// <remarks>
@@ -285,6 +316,8 @@ public sealed class OpAmpClient : IDisposable
             settings => settings.Heartbeat.IsEnabled,
             () => new(this.dispatcher, this.processor));
     }
+
+    private TService GetService<TService>(string serviceName) => (TService)this.services[serviceName];
 
     private void ConfigureService<T>(Predicate<OpAmpClientSettings> isEnabledCallback, Func<T> construct)
         where T : IBackgroundService
