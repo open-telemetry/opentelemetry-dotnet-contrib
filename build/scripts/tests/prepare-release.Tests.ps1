@@ -59,7 +59,7 @@ Describe "CreatePullRequestToUpdateChangelogsAndPublicApis" {
                 -component "OpenTelemetry.Instrumentation.Foo" `
                 -version $Version `
                 -requestedByUserName "someone"
-        } | Should -Throw "*did not match expected format*" -Because "'$Version' is not a valid release version"
+        } | Should-Throw -ExceptionMessage "*did not match expected format*" -Because "'$Version' is not a valid release version"
     }
 
     It "throws when the project file has no MinVerTagPrefix" {
@@ -75,7 +75,7 @@ Describe "CreatePullRequestToUpdateChangelogsAndPublicApis" {
                     -component "OpenTelemetry.Instrumentation.Foo" `
                     -version "1.2.3" `
                     -requestedByUserName "someone" 6>$null
-            } | Should -Throw "*Could not parse MinVerTagPrefix*"
+            } | Should-Throw -ExceptionMessage "*Could not parse MinVerTagPrefix*"
         }
         finally {
             Pop-Location
@@ -164,7 +164,7 @@ Describe "CreatePullRequestToUpdateChangelogsAndPublicApis" {
                     -component "OpenTelemetry.Instrumentation.Foo" `
                     -version "1.2.3" `
                     -requestedByUserName "someone" 6>$null
-            } | Should -Throw "*git switch failure*" -Because "a failure to create the branch should stop the release"
+            } | Should-Throw -ExceptionMessage "*git switch failure*" -Because "a failure to create the branch should stop the release"
         }
         finally {
             Pop-Location
@@ -184,7 +184,7 @@ Describe "CreatePullRequestToUpdateChangelogsAndPublicApis" {
                     -component "OpenTelemetry.Instrumentation.Foo" `
                     -version "1.2.3" `
                     -requestedByUserName "someone" 6>$null
-            } | Should -Throw "*git commit failure*"
+            } | Should-Throw -ExceptionMessage "*git commit failure*"
         }
         finally {
             Pop-Location
@@ -225,7 +225,7 @@ Describe "LockPullRequestAndPostNoticeToCreateReleaseTag" {
                 -gitRepository "open-telemetry/opentelemetry-dotnet-contrib" `
                 -pullRequestNumber "789" `
                 -expectedPrAuthorUserName "otelbot"
-        } | Should -Throw "*PR author was unexpected*" -Because "only pull requests opened by the expected bot should be processed"
+        } | Should-Throw -ExceptionMessage "*PR author was unexpected*" -Because "only pull requests opened by the expected bot should be processed"
     }
 }
 
@@ -307,8 +307,8 @@ Released 0000-00-00
         }
 
         $changelog = Get-Content -Path (Join-Path -Path $project -ChildPath "CHANGELOG.md") -Raw
-        $changelog | Should -BeLike "*Released $expectedReleaseDate*" -Because "the placeholder release date should be replaced with today's date"
-        $changelog | Should -Not -Match "0000-00-00" -Because "the placeholder date should no longer be present"
+        $changelog | Should-BeLikeString "*Released $expectedReleaseDate*" -Because "the placeholder release date should be replaced with today's date"
+        $changelog | Should-NotMatchString "0000-00-00" -Because "the placeholder date should no longer be present"
 
         Should -Invoke -CommandName "gh" -ModuleName "prepare-release" -Exactly -Times 1 -ParameterFilter {
             $args -contains "comment" -and (($args -join " ") -match "I updated the CHANGELOG release dates")
