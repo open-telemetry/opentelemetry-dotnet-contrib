@@ -6,7 +6,7 @@
   ([#4637](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4637))
 
 * Updated Semantic Conventions version to
-  [v1.42.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/database/sql-server.md).
+  [v1.43.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.43.0/docs/database/sql-server.md).
   ([#4625](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4625))
 
 * Add the `db.response.returned_rows` attribute to query spans when the

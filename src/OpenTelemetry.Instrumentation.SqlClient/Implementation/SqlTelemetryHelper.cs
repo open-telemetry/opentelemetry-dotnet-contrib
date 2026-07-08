@@ -15,7 +15,7 @@ internal sealed class SqlTelemetryHelper
 {
     public const string MicrosoftSqlServerDbSystemName = "microsoft.sql_server";
 
-    public static readonly Version SemanticConventionsVersion = new(1, 42, 0);
+    public static readonly Version SemanticConventionsVersion = new(1, 43, 0);
     public static readonly ActivitySource ActivitySource = ActivitySourceFactory.Create<SqlTelemetryHelper>(SemanticConventionsVersion);
     public static readonly Meter Meter = Metrics.MeterFactory.Create<SqlTelemetryHelper>(SemanticConventionsVersion);
 

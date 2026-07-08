@@ -18,7 +18,7 @@ and
 and collects traces about database operations.
 
 This component is based on
-[v1.42](https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/database/README.md)
+[v1.43](https://github.com/open-telemetry/semantic-conventions/blob/v1.43.0/docs/database/README.md)
 of database semantic conventions. For details on the default set of
 attributes that are added, check out the [Traces](#traces) and
 [Metrics](#metrics) sections below.
@@ -258,7 +258,7 @@ attributes for each of the query parameters associated with a database command.
 
 The `OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_RECORD_RETURNED_ROWS` environment
 variable controls whether the
-[`db.response.returned_rows`](https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/database/database-spans.md)
+[`db.response.returned_rows`](https://github.com/open-telemetry/semantic-conventions/blob/v1.43.0/docs/database/database-spans.md)
 attribute is emitted.
 
 `OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_RECORD_RETURNED_ROWS` is implicitly
@@ -320,7 +320,7 @@ while (reader.Read())
 * [OpenTelemetry Project](https://opentelemetry.io/)
 * [Semantic conventions for database client spans][semconv-spans]
 * [Semantic conventions for database client metrics][semconv-metrics]
-* [Semantic conventions for Microsoft SQL Server client operations](https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/database/sql-server.md)
+* [Semantic conventions for Microsoft SQL Server client operations](https://github.com/open-telemetry/semantic-conventions/blob/v1.43.0/docs/database/sql-server.md)
 
-[semconv-metrics]: https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/database/database-metrics.md
-[semconv-spans]: https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/database/database-spans.md
+[semconv-metrics]: https://github.com/open-telemetry/semantic-conventions/blob/v1.43.0/docs/database/database-metrics.md
+[semconv-spans]: https://github.com/open-telemetry/semantic-conventions/blob/v1.43.0/docs/database/database-spans.md
