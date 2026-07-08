@@ -18,9 +18,9 @@ and collects traces about outgoing requests.
 
 > [!NOTE]
 > This component is based on the OpenTelemetry semantic conventions for
-[metrics](https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/db/elasticsearch.md#metrics)
+[metrics](https://github.com/open-telemetry/semantic-conventions/blob/v1.43.0/docs/db/elasticsearch.md#metrics)
 and
-[traces](https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/db/elasticsearch.md#spans).
+[traces](https://github.com/open-telemetry/semantic-conventions/blob/v1.43.0/docs/db/elasticsearch.md#spans).
 These conventions are
 [Experimental](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/document-status.md),
 and hence, this package is a

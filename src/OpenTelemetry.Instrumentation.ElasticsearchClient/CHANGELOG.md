@@ -12,7 +12,7 @@
   ([#4637](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4637))
 
 * Updated the database semantic conventions to
-  [v1.42.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/db/elasticsearch.md)
+  [v1.43.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.43.0/docs/db/elasticsearch.md)
   of the Semantic Conventions for Elasticsearch client operations. The new
   attributes can be opted in to by setting the `OTEL_SEMCONV_STABILITY_OPT_IN`
   environment variable. This allows for a transition period for users to
@@ -30,7 +30,7 @@
   conventions are marked stable. At which time this instrumentation can receive
   a stable release, and the old database semantic conventions will no longer be
   supported. Refer to the
-  [specification](https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/db/elasticsearch.md)
+  [specification](https://github.com/open-telemetry/semantic-conventions/blob/v1.43.0/docs/db/elasticsearch.md)
   for more information.
 
   When the new attributes are emitted:
