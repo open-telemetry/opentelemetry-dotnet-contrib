@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using System.Globalization;
 using Confluent.Kafka;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Trace;
@@ -48,6 +49,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         ConsumeResult<TKey, TValue>? result = null;
         ConsumeResult consumeResult = default;
         string? errorType = null;
+        string? errorMessage = null;
         try
         {
             result = this.consumer.Consume(millisecondsTimeout);
@@ -57,6 +59,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         catch (ConsumeException e)
         {
             (consumeResult, errorType) = ExtractConsumeResult(e);
+            errorMessage = e.Message;
             throw;
         }
         finally
@@ -64,7 +67,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
             if (ShouldInstrument(result, errorType))
             {
                 var end = DateTimeOffset.UtcNow;
-                this.InstrumentConsumption(start, end, consumeResult, errorType);
+                this.InstrumentConsumption(start, end, consumeResult, errorType, errorMessage);
             }
         }
     }
@@ -75,6 +78,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         ConsumeResult<TKey, TValue>? result = null;
         ConsumeResult consumeResult = default;
         string? errorType = null;
+        string? errorMessage = null;
         try
         {
             result = this.consumer.Consume(cancellationToken);
@@ -84,6 +88,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         catch (ConsumeException e)
         {
             (consumeResult, errorType) = ExtractConsumeResult(e);
+            errorMessage = e.Message;
             throw;
         }
         finally
@@ -91,7 +96,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
             if (ShouldInstrument(result, errorType))
             {
                 var end = DateTimeOffset.UtcNow;
-                this.InstrumentConsumption(start, end, consumeResult, errorType);
+                this.InstrumentConsumption(start, end, consumeResult, errorType, errorMessage);
             }
         }
     }
@@ -102,6 +107,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         ConsumeResult<TKey, TValue>? result = null;
         ConsumeResult consumeResult = default;
         string? errorType = null;
+        string? errorMessage = null;
         try
         {
             result = this.consumer.Consume(timeout);
@@ -111,6 +117,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         catch (ConsumeException e)
         {
             (consumeResult, errorType) = ExtractConsumeResult(e);
+            errorMessage = e.Message;
             throw;
         }
         finally
@@ -118,7 +125,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
             if (ShouldInstrument(result, errorType))
             {
                 var end = DateTimeOffset.UtcNow;
-                this.InstrumentConsumption(start, end, consumeResult, errorType);
+                this.InstrumentConsumption(start, end, consumeResult, errorType, errorMessage);
             }
         }
     }
@@ -205,29 +212,32 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         (result is null && errorType is not null);
 
     private static string FormatConsumeException(ConsumeException consumeException) =>
-        $"ConsumeException: {consumeException.Error}";
+        consumeException.Error.Code.ToString();
 
     private static ConsumeResult ExtractConsumeResult(ConsumeResult<TKey, TValue> result) => result switch
     {
         null => new ConsumeResult(null, null),
         { Message: null } => new ConsumeResult(result.TopicPartitionOffset, null),
-        _ => new ConsumeResult(result.TopicPartitionOffset, result.Message.Headers, result.Message.Key),
+        _ => new ConsumeResult(result.TopicPartitionOffset, result.Message.Headers, result.Message.Key, result.Message.Value is null),
     };
 
     private static (ConsumeResult ConsumeResult, string ErrorType) ExtractConsumeResult(ConsumeException exception) => exception switch
     {
         { ConsumerRecord: null } => (new ConsumeResult(null, null), FormatConsumeException(exception)),
         { ConsumerRecord.Message: null } => (new ConsumeResult(exception.ConsumerRecord.TopicPartitionOffset, null), FormatConsumeException(exception)),
-        _ => (new ConsumeResult(exception.ConsumerRecord.TopicPartitionOffset, exception.ConsumerRecord.Message.Headers, exception.ConsumerRecord.Message.Key), FormatConsumeException(exception)),
+        _ => (new ConsumeResult(exception.ConsumerRecord.TopicPartitionOffset, exception.ConsumerRecord.Message.Headers, exception.ConsumerRecord.Message.Key, exception.ConsumerRecord.Message.Value is null), FormatConsumeException(exception)),
     };
 
-    private static void GetTags(string? topic, out TagList tags, int? partition = null, string? errorType = null)
+    private static void GetTags(string? topic, string? groupId, out TagList tags, int? partition = null, string? errorType = null)
     {
         tags = new TagList()
         {
             new KeyValuePair<string, object?>(
-                SemanticConventions.AttributeMessagingOperation,
-                ConfluentKafkaCommon.ReceiveOperationName),
+                SemanticConventions.AttributeMessagingOperationName,
+                ConfluentKafkaCommon.PollOperationName),
+            new KeyValuePair<string, object?>(
+                SemanticConventions.AttributeMessagingOperationType,
+                ConfluentKafkaCommon.ReceiveOperationType),
             new KeyValuePair<string, object?>(
                 SemanticConventions.AttributeMessagingSystem,
                 ConfluentKafkaCommon.KafkaMessagingSystem),
@@ -245,8 +255,16 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         {
             tags.Add(
                 new KeyValuePair<string, object?>(
-                    SemanticConventions.AttributeMessagingKafkaDestinationPartition,
-                    partition));
+                    SemanticConventions.AttributeMessagingDestinationPartitionId,
+                    partition.Value.ToString(CultureInfo.InvariantCulture)));
+        }
+
+        if (groupId is not null)
+        {
+            tags.Add(
+                new KeyValuePair<string, object?>(
+                    SemanticConventions.AttributeMessagingConsumerGroupName,
+                    groupId));
         }
 
         if (errorType is not null)
@@ -258,15 +276,29 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         }
     }
 
-    private static void RecordReceive(TopicPartition? topicPartition, TimeSpan duration, string? errorType = null)
+    private static void RecordReceive(
+        TopicPartition? topicPartition,
+        string? groupId,
+        TimeSpan duration,
+        bool messageConsumed,
+        string? errorType = null)
     {
-        GetTags(topicPartition?.Topic, out var tags, partition: topicPartition?.Partition, errorType);
+        GetTags(topicPartition?.Topic, groupId, out var tags, partition: topicPartition?.Partition, errorType);
 
-        ConfluentKafkaCommon.ReceiveMessagesCounter.Add(1, in tags);
-        ConfluentKafkaCommon.ReceiveDurationHistogram.Record(duration.TotalSeconds, in tags);
+        if (messageConsumed)
+        {
+            ConfluentKafkaCommon.ConsumedMessagesCounter.Add(1, in tags);
+        }
+
+        ConfluentKafkaCommon.OperationDurationHistogram.Record(duration.TotalSeconds, in tags);
     }
 
-    private void InstrumentConsumption(DateTimeOffset startTime, DateTimeOffset endTime, ConsumeResult consumeResult, string? errorType)
+    private void InstrumentConsumption(
+        DateTimeOffset startTime,
+        DateTimeOffset endTime,
+        ConsumeResult consumeResult,
+        string? errorType,
+        string? errorMessage)
     {
         if (this.options.Traces)
         {
@@ -274,12 +306,12 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
                 ? OpenTelemetryConsumeResultExtensions.ExtractPropagationContext(consumeResult.Headers)
                 : default;
 
-            using var activity = this.StartReceiveActivity(propagationContext, startTime, consumeResult.TopicPartitionOffset, consumeResult.Key);
+            using var activity = this.StartReceiveActivity(propagationContext, startTime, consumeResult.TopicPartitionOffset, consumeResult.Key, consumeResult.IsTombstone);
             if (activity != null)
             {
                 if (errorType != null)
                 {
-                    activity.SetStatus(ActivityStatusCode.Error);
+                    activity.SetStatus(ActivityStatusCode.Error, errorMessage);
                     if (activity.IsAllDataRequested)
                     {
                         activity.SetTag(SemanticConventions.AttributeErrorType, errorType);
@@ -293,35 +325,81 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         if (this.options.Metrics)
         {
             var duration = endTime - startTime;
-            RecordReceive(consumeResult.TopicPartitionOffset?.TopicPartition, duration, errorType);
+            var messageConsumed = consumeResult.TopicPartitionOffset is not null;
+
+            RecordReceive(
+                consumeResult.TopicPartitionOffset?.TopicPartition,
+                this.GroupId,
+                duration,
+                messageConsumed,
+                errorType);
         }
     }
 
-    private Activity? StartReceiveActivity(PropagationContext propagationContext, DateTimeOffset start, TopicPartitionOffset? topicPartitionOffset, object? key)
+    private Activity? StartReceiveActivity(
+        PropagationContext propagationContext,
+        DateTimeOffset start,
+        TopicPartitionOffset? topicPartitionOffset,
+        object? key,
+        bool isTombstone)
     {
 #pragma warning disable IDE0370 // Suppression is unnecessary
         var spanName = string.IsNullOrEmpty(topicPartitionOffset?.Topic)
-            ? ConfluentKafkaCommon.ReceiveOperationName
-            : string.Concat(topicPartitionOffset!.Topic, " ", ConfluentKafkaCommon.ReceiveOperationName);
+            ? ConfluentKafkaCommon.PollOperationName
+            : string.Concat(ConfluentKafkaCommon.PollOperationName, " ", topicPartitionOffset!.Topic);
 #pragma warning restore IDE0370 // Suppression is unnecessary
 
         ActivityLink[] activityLinks = propagationContext.ActivityContext.IsValid()
             ? [new ActivityLink(propagationContext.ActivityContext)]
             : [];
 
-        var activity = ConfluentKafkaCommon.ActivitySource.StartActivity(spanName, kind: ActivityKind.Consumer, links: activityLinks, startTime: start, parentContext: default);
+        // Provide the attributes that can influence sampling decisions at span creation time
+        var initialTags = new ActivityTagsCollection
+        {
+            [SemanticConventions.AttributeMessagingOperationName] = ConfluentKafkaCommon.PollOperationName,
+            [SemanticConventions.AttributeMessagingOperationType] = ConfluentKafkaCommon.ReceiveOperationType,
+            [SemanticConventions.AttributeMessagingSystem] = ConfluentKafkaCommon.KafkaMessagingSystem,
+        };
+
+        if (this.GroupId is { Length: > 0 } groupId)
+        {
+            initialTags.Add(SemanticConventions.AttributeMessagingConsumerGroupName, groupId);
+        }
+
+        // messaging.destination.name is only set for actual topics; it must be omitted when unknown.
+        if (topicPartitionOffset?.Topic is { Length: > 0 } topic)
+        {
+            initialTags.Add(SemanticConventions.AttributeMessagingDestinationName, topic);
+
+            if (topicPartitionOffset.Partition is { } partition)
+            {
+                initialTags.Add(SemanticConventions.AttributeMessagingDestinationPartitionId, partition.Value.ToString(CultureInfo.InvariantCulture));
+            }
+        }
+
+        // Per the Semantic Conventions the "poll" span has a CLIENT kind (the CONSUMER
+        // kind is reserved for the "process" span that embraces message handling).
+        var activity = ConfluentKafkaCommon.ActivitySource.StartActivity(
+            spanName,
+            kind: ActivityKind.Client,
+            parentContext: default,
+            tags: initialTags,
+            links: activityLinks,
+            startTime: start);
+
         if (activity?.IsAllDataRequested == true)
         {
-            activity.SetTag(SemanticConventions.AttributeMessagingSystem, ConfluentKafkaCommon.KafkaMessagingSystem);
             activity.SetTag(SemanticConventions.AttributeMessagingClientId, this.Name);
-            activity.SetTag(SemanticConventions.AttributeMessagingDestinationName, topicPartitionOffset?.Topic);
-            activity.SetTag(SemanticConventions.AttributeMessagingKafkaDestinationPartition, topicPartitionOffset?.Partition.Value);
-            activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageOffset, topicPartitionOffset?.Offset.Value);
-            activity.SetTag(SemanticConventions.AttributeMessagingKafkaConsumerGroup, this.GroupId);
-            activity.SetTag(SemanticConventions.AttributeMessagingOperation, ConfluentKafkaCommon.ReceiveOperationName);
-            if (key != null)
+            activity.SetTag(SemanticConventions.AttributeMessagingKafkaOffset, topicPartitionOffset?.Offset.Value);
+
+            if (ConfluentKafkaCommon.FormatMessageKey(key) is { } messageKey)
             {
-                activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageKey, key);
+                activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageKey, messageKey);
+            }
+
+            if (isTombstone)
+            {
+                activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageTombstone, true);
             }
         }
 
@@ -331,12 +409,15 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
     private readonly record struct ConsumeResult(
         TopicPartitionOffset? TopicPartitionOffset,
         Headers? Headers,
-        object? Key = null)
+        object? Key = null,
+        bool IsTombstone = false)
     {
         public object? Key { get; } = Key;
 
         public Headers? Headers { get; } = Headers;
 
         public TopicPartitionOffset? TopicPartitionOffset { get; } = TopicPartitionOffset;
+
+        public bool IsTombstone { get; } = IsTombstone;
     }
 }

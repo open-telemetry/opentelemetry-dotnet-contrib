@@ -22,7 +22,7 @@ Runs the tests using the default pinned version of Pester.
 [CmdletBinding()]
 param(
     # renovate: datasource=nuget depName=Pester
-    [string]$PesterVersion = "5.7.1",
+    [string]$PesterVersion = "6.0.0",
     [int]$MinimumCoveragePercent = 80
 )
 

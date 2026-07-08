@@ -34,6 +34,7 @@ internal sealed class OpAmpClientEventSource : EventSource
     private const int EventIdSendingCustomCapabilitiesMessage = 1_004;
     private const int EventIdSendingCustomMessageMessage = 1_005;
     private const int EventIdSendingRemoteConfigStatusMessage = 1_006;
+    private const int EventIdSendingFullStateReportMessage = 1_007;
 
     // FrameDispatcher error messages 1100-1199
     private const int EventIdFailedToSendIdentificationMessage = 1_100;
@@ -43,6 +44,7 @@ internal sealed class OpAmpClientEventSource : EventSource
     private const int EventIdFailedToSendCustomCapabilitiesMessage = 1_104;
     private const int EventIdFailedToSendCustomMessageMessage = 1_105;
     private const int EventIdFailedToSendRemoteConfigStatusMessage = 1_106;
+    private const int EventIdFailedToSendFullStateReportMessage = 1_107;
 
     [Event(EventIdInvalidWsFrame, Message = "Received invalid WebSocket frame header: {0}. Dropping the frame.", Level = EventLevel.Warning)]
     public void InvalidWsFrame(string errorMessage)
@@ -217,6 +219,12 @@ internal sealed class OpAmpClientEventSource : EventSource
         this.WriteEvent(EventIdSendingRemoteConfigStatusMessage);
     }
 
+    [Event(EventIdSendingFullStateReportMessage, Message = "Sending full state report message.", Level = EventLevel.Informational)]
+    public void SendingFullStateReportMessage()
+    {
+        this.WriteEvent(EventIdSendingFullStateReportMessage);
+    }
+
     [NonEvent]
     public void SendIdentificationMessageException(Exception ex)
     {
@@ -320,5 +328,20 @@ internal sealed class OpAmpClientEventSource : EventSource
     public void FailedToSendRemoteConfigStatusMessage(string exception)
     {
         this.WriteEvent(EventIdFailedToSendRemoteConfigStatusMessage, exception);
+    }
+
+    [NonEvent]
+    public void SendFullStateReportMessageException(Exception ex)
+    {
+        if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
+        {
+            this.FailedToSendFullStateReportMessage(ex.ToInvariantString());
+        }
+    }
+
+    [Event(EventIdFailedToSendFullStateReportMessage, Message = "Failed to send full state report message: {0}", Level = EventLevel.Error)]
+    public void FailedToSendFullStateReportMessage(string exception)
+    {
+        this.WriteEvent(EventIdFailedToSendFullStateReportMessage, exception);
     }
 }

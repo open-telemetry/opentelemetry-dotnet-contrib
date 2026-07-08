@@ -288,8 +288,8 @@ Describe "check-for-new-sdk-releases.ps1" {
             $args -contains "workflow" -and $args -contains "run"
         } -Because "no version is out of date and the missing release kinds should be skipped"
 
-        ($warnings -join "`n") | Should -Match "Could not find a prerelease release" -Because "a warning should be emitted when a matching release is missing"
-        ($warnings -join "`n") | Should -Match "Could not find an? unstable release" -Because "a warning should be emitted when a matching release is missing"
+        ($warnings -join "`n") | Should-MatchString "Could not find a prerelease release" -Because "a warning should be emitted when a matching release is missing"
+        ($warnings -join "`n") | Should-MatchString "Could not find an? unstable release" -Because "a warning should be emitted when a matching release is missing"
     }
 
     It "throws when an expected version property is missing from Directory.Packages.props" {
@@ -302,6 +302,6 @@ Describe "check-for-new-sdk-releases.ps1" {
         Mock -CommandName "gh" -MockWith { $global:LASTEXITCODE = 0 }
 
         { & $scriptPath -repoRoot $work -contribRepository "open-telemetry/opentelemetry-dotnet-contrib" 6>$null } |
-            Should -Throw "*OpenTelemetryCoreLatestPrereleaseVersion*"
+            Should-Throw -ExceptionMessage "*OpenTelemetryCoreLatestPrereleaseVersion*"
     }
 }

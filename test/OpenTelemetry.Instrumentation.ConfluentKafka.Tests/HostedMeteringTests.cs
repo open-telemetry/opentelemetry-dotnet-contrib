@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Tests;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.ConfluentKafka.Tests;
 
@@ -96,6 +97,11 @@ public class HostedMeteringTests(KafkaFixture fixture, ITestOutputHelper outputH
 
         groups = [.. metrics.GroupBy(x => x.Name)];
 
-        Assert.Equal(4, groups.Length);
+        // messaging.client.operation.duration is shared by the producer (send) and consumer (poll),
+        // so producing and consuming yields three distinct metric names.
+        Assert.Contains(SemanticConventions.MetricMessagingClientSentMessages, groups.Select(x => x.Key));
+        Assert.Contains(SemanticConventions.MetricMessagingClientConsumedMessages, groups.Select(x => x.Key));
+        Assert.Contains(SemanticConventions.MetricMessagingClientOperationDuration, groups.Select(x => x.Key));
+        Assert.Equal(3, groups.Length);
     }
 }

@@ -45,10 +45,10 @@ Released 2024-01-01
 
         $output = (& $scriptPath -repoRoot $work) -join "`n"
 
-        $output | Should -Match "# Unreleased Changes" -Because "the report should have a top-level heading"
-        $output | Should -Match ':package: Instrumentation\.Foo' -Because "the package should be listed in the summary table by its short name"
-        $output | Should -Match '## OpenTelemetry\.Instrumentation\.Foo' -Because "the package should have its own changes section"
-        $output | Should -Match '\* Added the thing\.' -Because "the unreleased changes should be included"
+        $output | Should-MatchString "# Unreleased Changes" -Because "the report should have a top-level heading"
+        $output | Should-MatchString ':package: Instrumentation\.Foo' -Because "the package should be listed in the summary table by its short name"
+        $output | Should-MatchString '## OpenTelemetry\.Instrumentation\.Foo' -Because "the package should have its own changes section"
+        $output | Should-MatchString '\* Added the thing\.' -Because "the unreleased changes should be included"
     }
 
     It "suggests next versions for packages in a range of states" {
@@ -92,11 +92,11 @@ Released 2024-01-01
 
         $output = (& $scriptPath -repoRoot $work) -join "`n"
 
-        $output | Should -Match "# Unreleased Changes"
-        $output | Should -Match '`1\.13\.0`' -Because "a package tracking the core version should follow the recorded core bump"
-        $output | Should -Match '`1\.12\.0-alpha\.1`' -Because "an unreleased package should be suggested as an initial alpha based on the core version"
-        $output | Should -Match '`1\.12\.0-beta\.2`' -Because "a package last released as a prerelease should advance the prerelease number"
-        $output | Should -Match "_All changes - this package has not yet been released._" -Because "a never-released package should be flagged as such"
+        $output | Should-MatchString "# Unreleased Changes"
+        $output | Should-MatchString '`1\.13\.0`' -Because "a package tracking the core version should follow the recorded core bump"
+        $output | Should-MatchString '`1\.12\.0-alpha\.1`' -Because "an unreleased package should be suggested as an initial alpha based on the core version"
+        $output | Should-MatchString '`1\.12\.0-beta\.2`' -Because "a package last released as a prerelease should advance the prerelease number"
+        $output | Should-MatchString "_All changes - this package has not yet been released._" -Because "a never-released package should be flagged as such"
     }
 
     It "reports that there are no unreleased changes when none are present" {
@@ -113,8 +113,8 @@ Released 2024-01-01
 
         $output = (& $scriptPath -repoRoot $work) -join "`n"
 
-        $output | Should -Match "No packages have any unreleased changes" -Because "an empty unreleased section should be treated as no changes"
-        $output | Should -Not -Match "# Unreleased Changes" -Because "the full report should not be produced when there is nothing to report"
+        $output | Should-MatchString "No packages have any unreleased changes" -Because "an empty unreleased section should be treated as no changes"
+        $output | Should-NotMatchString "# Unreleased Changes" -Because "the full report should not be produced when there is nothing to report"
     }
 
     It "ignores changelogs that have no unreleased section" {
@@ -129,7 +129,7 @@ Released 2024-01-01
 
         $output = (& $scriptPath -repoRoot $work) -join "`n"
 
-        $output | Should -Match "No packages have any unreleased changes" -Because "a changelog without an Unreleased heading contributes nothing"
+        $output | Should-MatchString "No packages have any unreleased changes" -Because "a changelog without an Unreleased heading contributes nothing"
     }
 
     It "omits packages whose unreleased section is empty" {
@@ -157,8 +157,8 @@ Released 2024-01-01
 
         $output = (& $scriptPath -repoRoot $work) -join "`n"
 
-        $output | Should -Match ':package: Instrumentation\.Foo' -Because "the package with changes should be listed"
-        $output | Should -Not -Match 'Instrumentation\.Empty' -Because "the package without changes should be omitted"
+        $output | Should-MatchString ':package: Instrumentation\.Foo' -Because "the package with changes should be listed"
+        $output | Should-NotMatchString 'Instrumentation\.Empty' -Because "the package without changes should be omitted"
     }
 
     It "does not modify the working tree" {
@@ -179,6 +179,6 @@ Released 2024-01-01
 
         & $scriptPath -repoRoot $work | Out-Null
 
-        Get-Content -Path $changelogPath -Raw | Should -Be $before -Because "the report script must only read, never modify, the changelog files"
+        Get-Content -Path $changelogPath -Raw | Should-Be $before -Because "the report script must only read, never modify, the changelog files"
     }
 }
