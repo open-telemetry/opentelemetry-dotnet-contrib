@@ -22,7 +22,7 @@ public class KustoTraceProviderBuilderTests
     {
         TracerProviderBuilder builder = null!;
 
-        Assert.Throws<ArgumentNullException>(() => builder.AddKustoInstrumentation());
+        Assert.Throws<ArgumentNullException>(builder.AddKustoInstrumentation);
     }
 
     [Fact]
