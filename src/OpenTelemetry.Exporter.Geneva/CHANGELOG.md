@@ -13,7 +13,8 @@
   valid names) and freeze the cache on .NET 8+, serialize metric base-128
   strings and HTTP url spans directly into the output buffer instead of via
   temporary arrays/strings.
-  ([#4498](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4498))
+  ([#4498](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4498),
+  [#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
 
 * Assemblies are now digitally signed using cosign.
   ([#4637](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4637))
