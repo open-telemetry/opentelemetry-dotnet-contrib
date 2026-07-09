@@ -4,6 +4,7 @@
 using Confluent.Kafka;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Tests;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.ConfluentKafka.Tests;
 
@@ -42,6 +43,9 @@ public class MeteringTests(KafkaFixture fixture)
         var groups = metrics.GroupBy(m => m.Name).ToArray();
 
         Assert.Equal(2, groups.Length);
+        Assert.Contains(SemanticConventions.MetricMessagingClientSentMessages, groups.Select(g => g.Key));
+        Assert.Contains(SemanticConventions.MetricMessagingClientOperationDuration, groups.Select(g => g.Key));
+        AssertOperation(metrics, SemanticConventions.MetricMessagingClientOperationDuration, expectedOperationName: "send", expectedOperationType: "send");
     }
 
     [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
@@ -73,6 +77,9 @@ public class MeteringTests(KafkaFixture fixture)
         var groups = metrics.GroupBy(m => m.Name).ToArray();
 
         Assert.Equal(2, groups.Length);
+        Assert.Contains(SemanticConventions.MetricMessagingClientSentMessages, groups.Select(g => g.Key));
+        Assert.Contains(SemanticConventions.MetricMessagingClientOperationDuration, groups.Select(g => g.Key));
+        AssertOperation(metrics, SemanticConventions.MetricMessagingClientOperationDuration, expectedOperationName: "send", expectedOperationType: "send");
     }
 
     [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
@@ -122,5 +129,56 @@ public class MeteringTests(KafkaFixture fixture)
         var groups = metrics.GroupBy(m => m.Name).ToArray();
 
         Assert.Equal(2, groups.Length);
+        Assert.Contains(SemanticConventions.MetricMessagingClientConsumedMessages, groups.Select(g => g.Key));
+        Assert.Contains(SemanticConventions.MetricMessagingClientOperationDuration, groups.Select(g => g.Key));
+        AssertOperation(metrics, SemanticConventions.MetricMessagingClientOperationDuration, expectedOperationName: "poll", expectedOperationType: "receive");
+    }
+
+    private static void AssertOperation(
+        IEnumerable<Metric> metrics,
+        string metricName,
+        string expectedOperationName,
+        string expectedOperationType)
+    {
+        // The in-memory exporter may emit the same instrument more than once (e.g. on flush and on
+        // dispose), so inspect every matching metric rather than expecting a single instance.
+        var matching = metrics.Where(m => m.Name == metricName).ToList();
+        Assert.NotEmpty(matching);
+        Assert.All(matching, m => Assert.StartsWith("https://opentelemetry.io/schemas/", m.MeterSchemaUrl, StringComparison.Ordinal));
+
+        string? operationName = null;
+        string? operationType = null;
+        string? system = null;
+
+        foreach (var metric in matching)
+        {
+            foreach (ref readonly var metricPoint in metric.GetMetricPoints())
+            {
+                foreach (var tag in metricPoint.Tags)
+                {
+                    switch (tag.Key)
+                    {
+                        case SemanticConventions.AttributeMessagingOperationName:
+                            operationName = tag.Value?.ToString();
+                            break;
+
+                        case SemanticConventions.AttributeMessagingOperationType:
+                            operationType = tag.Value?.ToString();
+                            break;
+
+                        case SemanticConventions.AttributeMessagingSystem:
+                            system = tag.Value?.ToString();
+                            break;
+
+                        default:
+                            break;
+                    }
+                }
+            }
+        }
+
+        Assert.Equal(expectedOperationName, operationName);
+        Assert.Equal(expectedOperationType, operationType);
+        Assert.Equal(ConfluentKafkaCommon.KafkaMessagingSystem, system);
     }
 }

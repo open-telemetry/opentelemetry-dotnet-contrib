@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.1.0-alpha.11
+
+Released 2026-Jul-08
+
 * Fixed a race condition where a concurrent rule poll could discard the sampling
   targets applied by a target poll (and vice versa), causing the sampler to
   briefly revert to stale sampling decisions.
