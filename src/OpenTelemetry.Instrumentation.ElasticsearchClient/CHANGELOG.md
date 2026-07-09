@@ -2,19 +2,6 @@
 
 ## Unreleased
 
-## 1.16.0-beta.1
-
-Released 2026-Jul-09
-
-* Update `System.Text.Json` for `netstandard2.0` and `net8.0` to `8.0.5`.
-  ([#4154](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4154))
-
-* Updated OpenTelemetry core component version(s) to `1.16.0`.
-  ([#4487](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4487))
-
-* Assemblies are now digitally signed using cosign.
-  ([#4637](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4637))
-
 * Updated the database semantic conventions to
   [v1.43.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.43.0/docs/db/elasticsearch.md)
   of the Semantic Conventions for Elasticsearch client operations. The new
@@ -50,6 +37,19 @@ Released 2026-Jul-09
   * The span name is `{db.operation.name} {db.collection.name}`.
 
   ([#4635](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4635))
+
+## 1.16.0-beta.1
+
+Released 2026-Jul-09
+
+* Update `System.Text.Json` for `netstandard2.0` and `net8.0` to `8.0.5`.
+  ([#4154](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4154))
+
+* Updated OpenTelemetry core component version(s) to `1.16.0`.
+  ([#4487](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4487))
+
+* Assemblies are now digitally signed using cosign.
+  ([#4637](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4637))
 
 ## 1.15.1-beta.1
 
