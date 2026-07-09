@@ -14,7 +14,7 @@
   strings and HTTP url spans directly into the output buffer instead of via
   temporary arrays/strings.
   ([#4498](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4498),
-  [#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  [#4684](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4684))
 
 * Assemblies are now digitally signed using cosign.
   ([#4637](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4637))
