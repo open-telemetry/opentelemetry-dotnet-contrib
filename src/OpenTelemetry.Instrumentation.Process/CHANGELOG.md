@@ -14,6 +14,11 @@
 * Assemblies are now digitally signed using cosign.
   ([#4637](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4637))
 
+* Updated semantic conventions to
+  [v1.43.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.43.0/docs/system/process-metrics.md)
+  and marked package as release candidate.
+  ([#4675](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4675))
+
 ## 1.16.0-beta.1
 
 Released 2026-Jun-24
