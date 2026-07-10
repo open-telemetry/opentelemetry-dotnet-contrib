@@ -44,8 +44,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
     private readonly PropertyFetcher<int> exceptionNumberFetcher = new("Number");
     private readonly PropertyFetcher<IDictionary> statisticsFetcher = new("Statistics");
     private readonly AsyncLocal<long> beginTimestamp = new();
-    private readonly AsyncLocal<long> beginIduRows = new();
-    private readonly AsyncLocal<long> beginSelectRows = new();
+    private readonly AsyncLocal<(long IduRows, long SelectRows)> beginRowCounts = new();
 
     public SqlClientDiagnosticListener(string sourceName)
         : base(sourceName)
@@ -140,11 +139,9 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
                     // Snapshot the connection's cumulative row counts before the command executes
                     // so that the after-handler can compute the per-command delta.
-                    if (options.RecordReturnedRows)
+                    if (options.RecordReturnedRows && activity.IsAllDataRequested)
                     {
-                        var (idu, sel) = GetConnectionRowCounts(command);
-                        this.beginIduRows.Value = idu;
-                        this.beginSelectRows.Value = sel;
+                        this.beginRowCounts.Value = GetConnectionRowCounts(command);
                     }
 
 #if NET
@@ -445,8 +442,9 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
             return null;
         }
 
-        var deltaIdu = (iduRows ?? 0L) - this.beginIduRows.Value;
-        var deltaSelect = (selectRows ?? 0L) - this.beginSelectRows.Value;
+        var baseline = this.beginRowCounts.Value;
+        var deltaIdu = (iduRows ?? 0L) - baseline.IduRows;
+        var deltaSelect = (selectRows ?? 0L) - baseline.SelectRows;
 
         return deltaIdu != 0 ? deltaIdu : deltaSelect;
 
