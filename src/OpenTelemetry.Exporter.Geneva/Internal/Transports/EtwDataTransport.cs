@@ -61,17 +61,22 @@ internal sealed class EtwDataTransport : IDataTransport, IDisposable
         /// </summary>
         /// <param name="data">
         /// Dummy placeholder for <see cref="EventSource"/> reflection-based ETW manifest generation.
-        /// Even though de-facto it's <c>byte[]</c> payload, <c>byte[]</c> when unwrapped to ETW manifest generation
-        /// is augmented with <c>size</c> metadata, and becomes two fields.
-        /// Geneva treats this only single parameter as messagepack raw blob and doesn't use manifest at all.
+        /// In the ETW manifest for .Net <c>byte[]</c> payload is always prepender with synthetic <c>length</c> field.
         /// </param>
         [Event((int)EtwEventId.TraceEvent, Version = 1, Level = EventLevel.Informational)]
         public void InformationalEvent(byte[] data)
         {
         }
-
 #pragma warning restore CA1822 // Mark members as static
 
+        /// <summary>
+        /// Writes given raw data to ETW buffer.
+        /// Two fields are written to conform .Net notation - length, and data.
+        /// Separate length fields isn't explicitly needed, since raw ETW payload always comes with buffer length data,
+        /// but convention for .Net ETW libraries require that field.
+        /// </summary>
+        /// <param name="data">Buffer with data to be sent.</param>
+        /// <param name="size">How many bytes of that buffer to send.</param>
         [NonEvent]
 #if NET
         [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2026:RequiresUnreferencedCode", Justification = "WriteEventCore is safe when eventData object is a primitive type, which it is in this case.")]
