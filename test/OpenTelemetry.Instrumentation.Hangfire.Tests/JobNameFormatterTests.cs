@@ -21,13 +21,13 @@ public class JobNameFormatterTests
     }
 
     [Fact]
-    public void FormatJobName_Does_Not_Throw_NullReferenceException_When_Job_Is_Unresolvable()
+    public void FormatJobName_Returns_Unknown_When_Job_Is_Unresolvable()
     {
         // null! mimics Hangfire's runtime state for a job whose definition failed to deserialize.
         var backgroundJob = new BackgroundJob("job-id", job: null!, DateTime.UtcNow);
 
-        var exception = Record.Exception(() => backgroundJob.FormatJobName());
+        var name = backgroundJob.FormatJobName();
 
-        Assert.False(exception is NullReferenceException, $"Expected no NullReferenceException, but got: {exception}");
+        Assert.Equal("UNKNOWN", name);
     }
 }
