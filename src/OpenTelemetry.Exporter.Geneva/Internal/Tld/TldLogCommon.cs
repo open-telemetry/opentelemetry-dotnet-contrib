@@ -15,7 +15,8 @@ namespace OpenTelemetry.Exporter.Geneva.Tld;
 internal abstract class TldLogCommon : IDisposable
 {
     protected const int MaxSanitizedEventNameLength = 50;
-    protected const int MaxCachedSanitizedCategoryNames = 10000;
+    protected const int MaxCachedSanitizedCategoryNames = 10_000;
+    protected const int MaxCachedCategoryNameLength = 512;
 
     protected static readonly ThreadLocal<List<KeyValuePair<string, object?>>> EnvProperties = new();
     protected static readonly ThreadLocal<KeyValuePair<string, object>[]> PartCFields = new(); // This is used to temporarily store the PartC fields from tags
@@ -312,6 +313,12 @@ internal abstract class TldLogCommon : IDisposable
     private string GetSanitizedCategoryNameRare(string categoryName)
     {
         var sanitized = SanitizeCategoryName(categoryName);
+
+        // Never cache pathologically long category names
+        if (categoryName.Length > MaxCachedCategoryNameLength)
+        {
+            return sanitized;
+        }
 
         // Lock-free copy-on-write update. The cache is a pure memoization of a
         // deterministic, side-effect-free function, so a lost race is harmless:
