@@ -85,6 +85,37 @@ public class TldLogCommonSanitizationTests
         Assert.Same(first, second);
     }
 
+    [Fact]
+    public void GetSanitizedCategoryName_AtMaxCachedLength_IsCached()
+    {
+        using var probe = CreateProbe();
+
+        var categoryName = "a" + new string('b', CategorySanitizerProbe.MaxCachedCategoryNameLengthValue - 1);
+        var expected = "A" + new string('b', 49);
+
+        var first = probe.Sanitize(categoryName);
+        var second = probe.Sanitize(categoryName);
+
+        Assert.Equal(expected, first);
+        Assert.Same(first, second);
+    }
+
+    [Fact]
+    public void GetSanitizedCategoryName_ExceedsMaxCachedLength_IsNotCachedButStillSanitized()
+    {
+        using var probe = CreateProbe();
+
+        var categoryName = "a" + new string('b', CategorySanitizerProbe.MaxCachedCategoryNameLengthValue);
+        var expected = "A" + new string('b', 49);
+
+        var first = probe.Sanitize(categoryName);
+        var second = probe.Sanitize(categoryName);
+
+        Assert.Equal(expected, first);
+        Assert.Equal(expected, second);
+        Assert.NotSame(first, second);
+    }
+
     private static CategorySanitizerProbe CreateProbe()
     {
         return new CategorySanitizerProbe(new GenevaExporterOptions
@@ -106,6 +137,8 @@ public class TldLogCommonSanitizationTests
             : base(options)
         {
         }
+
+        public static int MaxCachedCategoryNameLengthValue => MaxCachedCategoryNameLength;
 
         public string Sanitize(string categoryName)
             => this.GetSanitizedCategoryName(categoryName);

@@ -10,6 +10,10 @@
   accumulated values and the `PeriodicExportingMetricReader` retries on the next
   export cycle.
   ([#4474](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4474))
+  
+## 1.0.0-alpha.9
+
+Released 2026-Jul-09
 
 * Updated OpenTelemetry core component version(s) to `1.16.0`.
   ([#4487](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4487))

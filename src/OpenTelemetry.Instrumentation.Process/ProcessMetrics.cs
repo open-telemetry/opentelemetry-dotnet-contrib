@@ -9,7 +9,7 @@ namespace OpenTelemetry.Instrumentation.Process;
 
 internal sealed class ProcessMetrics
 {
-    internal static readonly Version SemanticConventionsVersion = new(1, 42, 0);
+    internal static readonly Version SemanticConventionsVersion = new(1, 43, 0);
     internal static readonly Meter MeterInstance = Metrics.MeterFactory.Create<ProcessMetrics>(SemanticConventionsVersion);
 
     static ProcessMetrics()
