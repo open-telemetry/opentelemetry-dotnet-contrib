@@ -495,6 +495,7 @@ jobs:
     needs: [automation, build-pack, publish-nuget, post-build]
     runs-on: ubuntu-24.04
     timeout-minutes: 60
+    if: needs.post-build.outputs.pr-number != ''
 
     permissions:
       contents: read # Download the published artifacts
