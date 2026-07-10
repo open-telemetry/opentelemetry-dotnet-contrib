@@ -587,6 +587,37 @@ public class InfluxDBMetricsExporterTests
         AssertUtils.HasField("counter", 100L, dataPoint.Fields);
     }
 
+    [Fact]
+    public void ExportReportsFailureWhenInfluxDBReturnsRetriableError()
+    {
+        // Arrange - the backend answers every write with a retriable status code
+        // (503), which the InfluxDB client surfaces as a WriteRetriableErrorEvent
+        // rather than the non-retriable WriteErrorEvent exercised elsewhere.
+        using var influxServer = new InfluxDBFakeServer { ResponseStatusCode = HttpStatusCode.ServiceUnavailable };
+        var influxServerEndpoint = influxServer.Endpoint;
+
+        using var meter = new Meter("MyMeter", "0.0.1");
+
+        using var provider = Sdk.CreateMeterProviderBuilder()
+            .AddMeter(meter.Name)
+            .ConfigureDefaultTestResource()
+            .AddInfluxDBMetricsExporter(options =>
+            {
+                options.WithDefaultTestConfiguration();
+                options.Endpoint = influxServerEndpoint;
+            })
+            .Build();
+
+        var counter = meter.CreateCounter<int>("test-counter");
+        counter.Add(100);
+
+        // Act & Assert - once the retriable failure is observed, Export must report
+        // Failure so the SDK applies backpressure instead of buffering unboundedly.
+        Assert.True(
+            WaitForForceFlushResult(provider, expected: false, TimeSpan.FromSeconds(10)),
+            "Export was expected to report Failure while InfluxDB returns a retriable error.");
+    }
+
     private static bool WaitForForceFlushResult(MeterProvider provider, bool expected, TimeSpan timeout)
     {
         var stopwatch = Stopwatch.StartNew();
