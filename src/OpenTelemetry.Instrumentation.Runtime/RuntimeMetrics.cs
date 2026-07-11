@@ -21,14 +21,32 @@ internal sealed class RuntimeMetrics : IDisposable
 
 #if NET
     private const long NanosecondsPerTick = 100;
+    private const long GcMemoryInfoCacheDurationMilliseconds = 10;
 #endif
     private const int NumberOfGenerations = 3;
 
     private static readonly string[] GenNames = ["gen0", "gen1", "gen2", "loh", "poh"];
     private static readonly Lock ExceptionSubscriptionSync = new();
+    private static readonly Measurement<long>[] GarbageCollectionCountMeasurements = new Measurement<long>[NumberOfGenerations];
+#if NET
+    private static readonly Lock GcMemoryInfoCacheSync = new();
+    private static readonly Measurement<long>[] GcHeapSizeMeasurementBuffer = new Measurement<long>[GenNames.Length];
+    private static readonly Measurement<long>[] GcHeapFragmentationMeasurementBuffer = new Measurement<long>[GenNames.Length];
+#endif
     private static readonly Counter<long> ExceptionCounter = MeterInstance.CreateCounter<long>(
         "process.runtime.dotnet.exceptions.count",
         description: "Count of exceptions that have been thrown in managed code, since the observation started. The value will be unavailable until an exception has been thrown after OpenTelemetry.Instrumentation.Runtime initialization.");
+
+    private static readonly AssemblyLoadEventHandler AssemblyLoadHandler = static (_, _) =>
+    {
+        lock (ExceptionSubscriptionSync)
+        {
+            if (activeRuntimeMetricsInstances > 0)
+            {
+                Interlocked.Increment(ref loadedAssemblyCount);
+            }
+        }
+    };
 
     private static readonly EventHandler<FirstChanceExceptionEventArgs> FirstChanceExceptionHandler = static (source, e) =>
     {
@@ -36,6 +54,11 @@ internal sealed class RuntimeMetrics : IDisposable
     };
 
     private static int activeRuntimeMetricsInstances;
+    private static int loadedAssemblyCount;
+#if NET
+    private static GCMemoryInfo cachedGcMemoryInfo;
+    private static long cachedGcMemoryInfoTickCount64 = long.MinValue;
+#endif
 
     private bool disposed;
 
@@ -51,6 +74,8 @@ internal sealed class RuntimeMetrics : IDisposable
         {
             if (activeRuntimeMetricsInstances++ == 0)
             {
+                loadedAssemblyCount = AppDomain.CurrentDomain.GetAssemblies().Length;
+                AppDomain.CurrentDomain.AssemblyLoad += AssemblyLoadHandler;
                 AppDomain.CurrentDomain.FirstChanceException += FirstChanceExceptionHandler;
             }
         }
@@ -101,6 +126,7 @@ internal sealed class RuntimeMetrics : IDisposable
 
             if (--activeRuntimeMetricsInstances == 0)
             {
+                AppDomain.CurrentDomain.AssemblyLoad -= AssemblyLoadHandler;
                 AppDomain.CurrentDomain.FirstChanceException -= FirstChanceExceptionHandler;
             }
         }
@@ -114,10 +140,14 @@ internal sealed class RuntimeMetrics : IDisposable
         {
             long collectionsFromThisGeneration = GC.CollectionCount(gen);
 
-            yield return new(collectionsFromThisGeneration - collectionsFromHigherGeneration, new KeyValuePair<string, object?>("generation", GenNames[gen]));
+            GarbageCollectionCountMeasurements[NumberOfGenerations - 1 - gen] = new(
+                collectionsFromThisGeneration - collectionsFromHigherGeneration,
+                new KeyValuePair<string, object?>("generation", GenNames[gen]));
 
             collectionsFromHigherGeneration = collectionsFromThisGeneration;
         }
+
+        return GarbageCollectionCountMeasurements;
     }
 
     private static Meter CreateMeterInstance()
@@ -153,45 +183,13 @@ internal sealed class RuntimeMetrics : IDisposable
 
         meter.CreateObservableUpDownCounter(
             "process.runtime.dotnet.gc.heap.size",
-            () =>
-            {
-                if (!IsGcInfoAvailable)
-                {
-                    return [];
-                }
-
-                var generationInfo = GC.GetGCMemoryInfo().GenerationInfo;
-                var measurements = new Measurement<long>[generationInfo.Length];
-                var maxSupportedLength = Math.Min(generationInfo.Length, GenNames.Length);
-                for (var i = 0; i < maxSupportedLength; ++i)
-                {
-                    measurements[i] = new(generationInfo[i].SizeAfterBytes, new KeyValuePair<string, object?>("generation", GenNames[i]));
-                }
-
-                return measurements;
-            },
+            GetGcHeapSizeMeasurements,
             unit: "bytes",
             description: "The heap size (including fragmentation), as observed during the latest garbage collection. The value will be unavailable until at least one garbage collection has occurred.");
 
         meter.CreateObservableUpDownCounter(
             "process.runtime.dotnet.gc.heap.fragmentation.size",
-            () =>
-            {
-                if (!IsGcInfoAvailable)
-                {
-                    return [];
-                }
-
-                var generationInfo = GC.GetGCMemoryInfo().GenerationInfo;
-                var measurements = new Measurement<long>[generationInfo.Length];
-                var maxSupportedLength = Math.Min(generationInfo.Length, GenNames.Length);
-                for (var i = 0; i < maxSupportedLength; ++i)
-                {
-                    measurements[i] = new(generationInfo[i].FragmentationAfterBytes, new KeyValuePair<string, object?>("generation", GenNames[i]));
-                }
-
-                return measurements;
-            },
+            GetGcHeapFragmentationMeasurements,
             unit: "bytes",
             description: "The heap fragmentation, as observed during the latest garbage collection. The value will be unavailable until at least one garbage collection has occurred.");
 
@@ -251,9 +249,80 @@ internal sealed class RuntimeMetrics : IDisposable
 
         meter.CreateObservableUpDownCounter(
             "process.runtime.dotnet.assemblies.count",
-            () => (long)AppDomain.CurrentDomain.GetAssemblies().Length,
+            GetAssemblyCount,
             description: "The number of .NET assemblies that are currently loaded.");
 
         return meter;
     }
+
+    private static long GetAssemblyCount() => Volatile.Read(ref loadedAssemblyCount);
+
+#if NET
+    private static Measurement<long>[] GetGcHeapSizeMeasurements()
+    {
+        if (!IsGcInfoAvailable)
+        {
+            return [];
+        }
+
+        var generationInfo = GetCachedGcMemoryInfo().GenerationInfo;
+        var maxSupportedLength = Math.Min(generationInfo.Length, GcHeapSizeMeasurementBuffer.Length);
+
+        for (var i = 0; i < maxSupportedLength; ++i)
+        {
+            GcHeapSizeMeasurementBuffer[i] = new(
+                generationInfo[i].SizeAfterBytes,
+                new KeyValuePair<string, object?>("generation", GenNames[i]));
+        }
+
+        return GcHeapSizeMeasurementBuffer;
+    }
+
+    private static Measurement<long>[] GetGcHeapFragmentationMeasurements()
+    {
+        if (!IsGcInfoAvailable)
+        {
+            return [];
+        }
+
+        var generationInfo = GetCachedGcMemoryInfo().GenerationInfo;
+        var maxSupportedLength = Math.Min(generationInfo.Length, GcHeapFragmentationMeasurementBuffer.Length);
+
+        for (var i = 0; i < maxSupportedLength; ++i)
+        {
+            GcHeapFragmentationMeasurementBuffer[i] = new(
+                generationInfo[i].FragmentationAfterBytes,
+                new KeyValuePair<string, object?>("generation", GenNames[i]));
+        }
+
+        return GcHeapFragmentationMeasurementBuffer;
+    }
+
+    private static GCMemoryInfo GetCachedGcMemoryInfo()
+    {
+        var now = Environment.TickCount64;
+        var cachedTickCount64 = Volatile.Read(ref cachedGcMemoryInfoTickCount64);
+
+        if (cachedTickCount64 != long.MinValue &&
+            (now - cachedTickCount64) <= GcMemoryInfoCacheDurationMilliseconds)
+        {
+            return cachedGcMemoryInfo;
+        }
+
+        lock (GcMemoryInfoCacheSync)
+        {
+            now = Environment.TickCount64;
+            cachedTickCount64 = Volatile.Read(ref cachedGcMemoryInfoTickCount64);
+
+            if (cachedTickCount64 == long.MinValue
+                || (now - cachedTickCount64) > GcMemoryInfoCacheDurationMilliseconds)
+            {
+                cachedGcMemoryInfo = GC.GetGCMemoryInfo();
+                Volatile.Write(ref cachedGcMemoryInfoTickCount64, now);
+            }
+
+            return cachedGcMemoryInfo;
+        }
+    }
+#endif
 }
