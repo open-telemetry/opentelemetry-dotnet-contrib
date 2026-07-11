@@ -116,14 +116,6 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
             {
                 activity.SetTag(SemanticConventions.AttributeServerAddress, requestUri.Host);
                 activity.SetTag(SemanticConventions.AttributeServerPort, requestUri.Port);
-
-                var uriHostNameType = Uri.CheckHostName(requestUri.Host);
-
-                if (uriHostNameType is UriHostNameType.IPv4 or UriHostNameType.IPv6)
-                {
-                    activity.SetTag(SemanticConventions.AttributeNetworkPeerAddress, requestUri.Host);
-                    activity.SetTag(SemanticConventions.AttributeNetworkPeerPort, requestUri.Port);
-                }
             }
 
             if (this.options.EnrichWithHttpRequestMessage is { } enrich)
