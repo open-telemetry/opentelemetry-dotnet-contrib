@@ -491,7 +491,7 @@ jobs:
           "pr-number=${prNumber}" >> ${env:GITHUB_OUTPUT}
 
   wait-nuget:
-    name: Wait for NuGet packages to be published
+    name: Wait for NuGet package publishing
     needs: [automation, build-pack, publish-nuget, post-build]
     runs-on: ubuntu-24.04
     timeout-minutes: 60
