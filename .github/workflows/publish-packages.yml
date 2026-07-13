@@ -553,6 +553,6 @@ jobs:
           GH_TOKEN: ${{ steps.otelbot-token.outputs.token }}
           PR_NUMBER: ${{ needs.post-build.outputs.pr-number }}
           RELEASE_TAG: ${{ github.ref_name }}
-          RELEASE_URL: ${{ format('{0}/releases/tag/{1}', github.repositoryUrl, github.ref_name) }}
+          RELEASE_URL: ${{ format('{0}/{1}/releases/tag/{2}', github.server_url, github.repository, github.ref_name) }}
         run: |
           gh pr comment ${env:PR_NUMBER} --body "The packages for the [${env:RELEASE_TAG}](${env:RELEASE_URL}) release are now available from NuGet.org :package:" --repo ${env:GITHUB_REPOSITORY}
