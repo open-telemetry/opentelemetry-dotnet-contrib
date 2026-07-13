@@ -45,6 +45,9 @@ public class TracingTests(KafkaFixture fixture)
         Assert.Equal("send", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationName));
         Assert.Equal("send", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationType));
         Assert.Equal(topic, activity.GetTagValue("messaging.destination.name"));
+        var clusterId = activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaClusterId) as string;
+        Assert.NotNull(clusterId);
+        Assert.NotEmpty(clusterId);
     }
 
     [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
@@ -195,6 +198,9 @@ public class TracingTests(KafkaFixture fixture)
         Assert.Equal("0", activity.GetTagValue("messaging.destination.partition.id"));
         Assert.Equal(0L, activity.GetTagValue("messaging.kafka.offset"));
         Assert.Equal("test-consumer-group", activity.GetTagValue("messaging.consumer.group.name"));
+        var clusterId = activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaClusterId) as string;
+        Assert.NotNull(clusterId);
+        Assert.NotEmpty(clusterId);
     }
 
     [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]

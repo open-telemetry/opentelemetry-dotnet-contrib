@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 using Confluent.Kafka;
+using Confluent.Kafka.Admin;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Trace;
 
@@ -15,6 +16,7 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
     private readonly TextMapPropagator propagator = Propagators.DefaultTextMapPropagator;
     private readonly IProducer<TKey, TValue> producer;
     private readonly ConfluentKafkaProducerInstrumentationOptions<TKey, TValue> options;
+    private readonly Task<string?>? clusterIdTask;
 
     public InstrumentedProducer(
         IProducer<TKey, TValue> producer,
@@ -22,6 +24,8 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
     {
         this.producer = producer;
         this.options = options;
+
+        this.clusterIdTask = FetchClusterIdAsync(producer.Handle);
     }
 
     public Handle Handle => this.producer.Handle;
@@ -40,6 +44,11 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
         CancellationToken cancellationToken = default)
     {
         var start = DateTimeOffset.UtcNow;
+        if (this.clusterIdTask is { IsCompleted: false })
+        {
+            await Task.WhenAny(this.clusterIdTask, Task.Delay(5_000, CancellationToken.None)).ConfigureAwait(false);
+        }
+
         using var activity = this.StartPublishActivity(start, topic, message);
         if (activity != null)
         {
@@ -89,6 +98,11 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
         CancellationToken cancellationToken = default)
     {
         var start = DateTimeOffset.UtcNow;
+        if (this.clusterIdTask is { IsCompleted: false })
+        {
+            await Task.WhenAny(this.clusterIdTask, Task.Delay(5_000, CancellationToken.None)).ConfigureAwait(false);
+        }
+
         using var activity = this.StartPublishActivity(start, topicPartition.Topic, message, topicPartition.Partition);
         if (activity != null)
         {
@@ -251,6 +265,21 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
     public void Dispose() =>
         this.producer.Dispose();
 
+    private static async Task<string?> FetchClusterIdAsync(Handle handle)
+    {
+        try
+        {
+            using var admin = new DependentAdminClientBuilder(handle).Build();
+            var result = await admin.DescribeClusterAsync(new DescribeClusterOptions { RequestTimeout = TimeSpan.FromSeconds(30) }).ConfigureAwait(false);
+            return result.ClusterId;
+        }
+        catch (Exception ex)
+        {
+            ConfluentKafkaInstrumentationEventSource.Log.FailedToFetchClusterId(ex);
+            return null;
+        }
+    }
+
     private static string FormatProduceException(ProduceException<TKey, TValue> produceException) =>
         produceException.Error.Code.ToString();
 
@@ -356,6 +385,12 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
             if (message.Value is null)
             {
                 activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageTombstone, true);
+            }
+
+            if (this.clusterIdTask?.Status == TaskStatus.RanToCompletion
+                && this.clusterIdTask.Result is { Length: > 0 } clusterId)
+            {
+                activity.SetTag(SemanticConventions.AttributeMessagingKafkaClusterId, clusterId);
             }
         }
 

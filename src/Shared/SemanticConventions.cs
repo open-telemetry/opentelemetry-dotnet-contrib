@@ -139,6 +139,7 @@ internal static class SemanticConventions
 
     // v1.42.0 Messaging (Kafka)
     // https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/messaging/kafka.md
+    public const string AttributeMessagingKafkaClusterId = "messaging.kafka.cluster.id";
     public const string AttributeMessagingKafkaMessageKey = "messaging.kafka.message.key";
     public const string AttributeMessagingKafkaMessageTombstone = "messaging.kafka.message.tombstone";
     public const string AttributeMessagingKafkaOffset = "messaging.kafka.offset"; // replaces: "messaging.kafka.message.offset"
