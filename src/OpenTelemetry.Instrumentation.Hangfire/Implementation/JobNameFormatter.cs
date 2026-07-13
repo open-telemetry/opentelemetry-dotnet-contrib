@@ -9,13 +9,11 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
 
 internal static class JobNameFormatter
 {
-    private const string UnknownJobName = "UNKNOWN";
-
     internal static string FormatJobName(this Job? job)
     {
         if (job is null)
         {
-            return UnknownJobName;
+            return "UNKNOWN";
         }
 
         var sb = new StringBuilder()

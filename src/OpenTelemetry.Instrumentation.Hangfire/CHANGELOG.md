@@ -2,11 +2,12 @@
 
 ## Unreleased
 
-* Fixed NRE in the metrics filter when a job's definition cannot be resolved.
-  ([#4731](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4731))
-
 * Assemblies are now digitally signed using cosign.
   ([#4637](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4637))
+
+* Fixed `NullReferenceException` in the metrics filter when a job's definition
+  cannot be resolved.
+  ([#4731](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4731))
 
 ## 1.16.0-beta.1
 
