@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics.Tracing;
-using System.Text;
 using OpenTelemetry.Exporter.Geneva.Transports;
 
 namespace OpenTelemetry.Exporter.Geneva.Tests.Internal.Transports;
@@ -22,9 +21,12 @@ public class EtwDataTransportTests
 
         Assert.Single(listener.Events);
         var theEvent = listener.Events[0];
+        Assert.NotNull(theEvent.Payload);
         Assert.Single(theEvent.Payload);
 
-        Assert.Equal(payload, (byte[])theEvent.Payload[0]);
+        var rawPayload = theEvent.Payload[0] as byte[];
+        Assert.NotNull(rawPayload);
+        Assert.Equal(payload, rawPayload);
     }
 
     /// <summary>

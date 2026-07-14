@@ -61,7 +61,8 @@ internal sealed class EtwDataTransport : IDataTransport, IDisposable
         /// </summary>
         /// <param name="data">
         /// Dummy placeholder for <see cref="EventSource"/> reflection-based ETW manifest generation.
-        /// In the ETW manifest for .Net <c>byte[]</c> payload is always prepender with synthetic <c>length</c> field.
+        /// In the ETW manifest for .NET, <c>byte[]</c> payload is always prepended with a synthetic <c>length</c>
+        /// field.
         /// </param>
         [Event((int)EtwEventId.TraceEvent, Version = 1, Level = EventLevel.Informational)]
         public void InformationalEvent(byte[] data)
@@ -71,9 +72,9 @@ internal sealed class EtwDataTransport : IDataTransport, IDisposable
 
         /// <summary>
         /// Writes given raw data to ETW buffer.
-        /// Two fields are written to conform .Net notation - length, and data.
-        /// Separate length fields isn't explicitly needed, since raw ETW payload always comes with buffer length data,
-        /// but convention for .Net ETW libraries require that field.
+        /// Two fields are written to conform to .NET notation: length and data.
+        /// A separate length field isn't explicitly needed, since raw ETW payload already comes with buffer length
+        /// data, but the convention for .NET ETW libraries requires that field.
         /// </summary>
         /// <param name="data">Buffer with data to be sent.</param>
         /// <param name="size">How many bytes of that buffer to send.</param>
@@ -83,7 +84,7 @@ internal sealed class EtwDataTransport : IDataTransport, IDisposable
 #endif
         public unsafe void SendEvent(byte[] data, int size)
         {
-            EventData* dataDesc = stackalloc EventData[2];
+            var dataDesc = stackalloc EventData[2];
             fixed (byte* ptr = data)
             {
                 dataDesc[0].DataPointer = (IntPtr)(&size);
