@@ -33,6 +33,11 @@ dynamic control using telemetry policies is that there is a flow consisting of:
 Message -> Provider -> Policy -> Policy Aggregator -> Implementer
 ```
 
+```mermaid
+flowchart LR
+    Message --> Provider --> Policy --> PolicyAggregator[Policy Aggregator] --> Implementer
+```
+
 ## Steps to use OpenTelemetry.DynamicControl
 
 TODO
