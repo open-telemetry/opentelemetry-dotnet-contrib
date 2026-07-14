@@ -157,6 +157,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.DynamicControl]
       code-cov-name: DynamicControl
+      trigger: ${{ github.event_name }}
 
   build-test-exporter-geneva:
     needs: detect-changes
