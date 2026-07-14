@@ -91,6 +91,8 @@ repository:
     automated-pipeline: true
     changelog: https://github.com/open-telemetry/opentelemetry-dotnet-contrib/releases
     distribution-points:
+      - uri: https://www.nuget.org/packages/OpenTelemetry.DynamicControl
+        comment: OpenTelemetry.DynamicControl NuGet package distributed from NuGet.org.
       - uri: https://www.nuget.org/packages/OpenTelemetry.Exporter.Geneva
         comment: OpenTelemetry.Exporter.Geneva NuGet package distributed from NuGet.org.
       - uri: https://www.nuget.org/packages/OpenTelemetry.Exporter.InfluxDB
