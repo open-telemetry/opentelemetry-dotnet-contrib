@@ -3,7 +3,7 @@
 ## Unreleased
 
 * Specify full path for `ioreg` command on `MacOS`.
-  ([#4746](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4746))
+  ([#4760](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4760))
 
 ## 1.16.0-beta.1
 
