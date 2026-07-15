@@ -1449,7 +1449,12 @@ public class GenevaMetricExporterTests
             }
 
             // Verify that the buffer overflow was logged with the dedicated event (ID 11).
-            Assert.Contains(capturedEvents, e => e.EventId == 11);
+            // Enumerate under the same lock the listener uses, so a concurrent write from another
+            // test class (the Geneva EventSource is a process-wide singleton) cannot throw.
+            lock (capturedEvents)
+            {
+                Assert.Contains(capturedEvents, e => e.EventId == 11);
+            }
         }
         finally
         {
@@ -1470,12 +1475,10 @@ public class GenevaMetricExporterTests
     private sealed class BufferOverflowEventListener : EventListener
     {
         private readonly List<EventWrittenEventArgs> capturedEvents;
-        private readonly int creatingThreadId;
 
         public BufferOverflowEventListener(List<EventWrittenEventArgs> capturedEvents)
         {
             this.capturedEvents = capturedEvents;
-            this.creatingThreadId = Environment.CurrentManagedThreadId;
         }
 
         protected override void OnEventSourceCreated(EventSource eventSource)
@@ -1488,9 +1491,15 @@ public class GenevaMetricExporterTests
 
         protected override void OnEventWritten(EventWrittenEventArgs eventData)
         {
-            if (Environment.CurrentManagedThreadId == this.creatingThreadId)
+            var events = this.capturedEvents;
+            if (events is null)
             {
-                this.capturedEvents.Add(eventData);
+                return;
+            }
+
+            lock (events)
+            {
+                events.Add(eventData);
             }
         }
     }
