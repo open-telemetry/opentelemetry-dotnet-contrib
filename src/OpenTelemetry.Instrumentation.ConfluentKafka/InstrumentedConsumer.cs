@@ -4,7 +4,6 @@
 using System.Diagnostics;
 using System.Globalization;
 using Confluent.Kafka;
-using Confluent.Kafka.Admin;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Trace;
 
@@ -21,7 +20,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         this.consumer = consumer;
         this.options = options;
 
-        this.clusterIdTask = FetchClusterIdAsync(consumer.Handle);
+        this.clusterIdTask = ConfluentKafkaCommon.FetchClusterIdAsync(consumer.Handle);
     }
 
     public Handle Handle => this.consumer.Handle;
@@ -211,21 +210,6 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
     public void Close()
         => this.consumer.Close();
 
-    private static async Task<string?> FetchClusterIdAsync(Handle handle)
-    {
-        try
-        {
-            using var admin = new DependentAdminClientBuilder(handle).Build();
-            var result = await admin.DescribeClusterAsync(new DescribeClusterOptions { RequestTimeout = TimeSpan.FromSeconds(30) }).ConfigureAwait(false);
-            return result.ClusterId;
-        }
-        catch (Exception ex)
-        {
-            ConfluentKafkaInstrumentationEventSource.Log.FailedToFetchClusterId(ex);
-            return null;
-        }
-    }
-
     private static bool ShouldInstrument(ConsumeResult<TKey, TValue>? result, string? errorType) =>
         result is { IsPartitionEOF: false } ||
         (result is null && errorType is not null);
@@ -319,11 +303,6 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         string? errorType,
         string? errorMessage)
     {
-        if (this.clusterIdTask is { IsCompleted: false })
-        {
-            Task.WhenAny(this.clusterIdTask, Task.Delay(5_000)).GetAwaiter().GetResult();
-        }
-
         if (this.options.Traces)
         {
             var propagationContext = consumeResult.Headers != null

@@ -4,6 +4,8 @@
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Globalization;
+using Confluent.Kafka;
+using Confluent.Kafka.Admin;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using ActivitySourceFactory = OpenTelemetry.Trace.ActivitySourceFactory;
@@ -62,6 +64,21 @@ internal static class ConfluentKafkaCommon
     /// when the key is absent or has no unambiguous, canonical string form (e.g. a
     /// <see cref="byte"/> array), in which case the attribute must be omitted.
     /// </returns>
+    internal static async Task<string?> FetchClusterIdAsync(Handle handle)
+    {
+        try
+        {
+            using var admin = new DependentAdminClientBuilder(handle).Build();
+            var result = await admin.DescribeClusterAsync(new DescribeClusterOptions { RequestTimeout = TimeSpan.FromSeconds(30) }).ConfigureAwait(false);
+            return result.ClusterId;
+        }
+        catch (Exception ex)
+        {
+            ConfluentKafkaInstrumentationEventSource.Log.FailedToFetchClusterId(ex);
+            return null;
+        }
+    }
+
     internal static string? FormatMessageKey(object? key) => key switch
     {
         string value => value,

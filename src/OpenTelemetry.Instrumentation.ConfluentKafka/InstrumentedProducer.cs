@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 using Confluent.Kafka;
-using Confluent.Kafka.Admin;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Trace;
 
@@ -25,7 +24,7 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
         this.producer = producer;
         this.options = options;
 
-        this.clusterIdTask = FetchClusterIdAsync(producer.Handle);
+        this.clusterIdTask = ConfluentKafkaCommon.FetchClusterIdAsync(producer.Handle);
     }
 
     public Handle Handle => this.producer.Handle;
@@ -264,21 +263,6 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
 
     public void Dispose() =>
         this.producer.Dispose();
-
-    private static async Task<string?> FetchClusterIdAsync(Handle handle)
-    {
-        try
-        {
-            using var admin = new DependentAdminClientBuilder(handle).Build();
-            var result = await admin.DescribeClusterAsync(new DescribeClusterOptions { RequestTimeout = TimeSpan.FromSeconds(30) }).ConfigureAwait(false);
-            return result.ClusterId;
-        }
-        catch (Exception ex)
-        {
-            ConfluentKafkaInstrumentationEventSource.Log.FailedToFetchClusterId(ex);
-            return null;
-        }
-    }
 
     private static string FormatProduceException(ProduceException<TKey, TValue> produceException) =>
         produceException.Error.Code.ToString();
