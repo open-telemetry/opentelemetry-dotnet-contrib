@@ -1470,10 +1470,12 @@ public class GenevaMetricExporterTests
     private sealed class BufferOverflowEventListener : EventListener
     {
         private readonly List<EventWrittenEventArgs> capturedEvents;
+        private readonly int creatingThreadId;
 
         public BufferOverflowEventListener(List<EventWrittenEventArgs> capturedEvents)
         {
             this.capturedEvents = capturedEvents;
+            this.creatingThreadId = Environment.CurrentManagedThreadId;
         }
 
         protected override void OnEventSourceCreated(EventSource eventSource)
@@ -1485,7 +1487,12 @@ public class GenevaMetricExporterTests
         }
 
         protected override void OnEventWritten(EventWrittenEventArgs eventData)
-            => this.capturedEvents.Add(eventData);
+        {
+            if (Environment.CurrentManagedThreadId == this.creatingThreadId)
+            {
+                this.capturedEvents.Add(eventData);
+            }
+        }
     }
 }
 #pragma warning restore CA1861 // // Prefer 'static readonly' fields over constant array arguments if the called method is called repeatedly and is not mutating the passed array
