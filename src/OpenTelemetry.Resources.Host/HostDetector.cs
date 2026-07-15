@@ -186,8 +186,8 @@ internal sealed class HostDetector : IResourceDetector
         {
             var startInfo = new ProcessStartInfo
             {
-                FileName = "sh",
-                Arguments = "-c \"/usr/sbin/ioreg -rd1 -c IOPlatformExpertDevice\"",
+                FileName = "/usr/sbin/ioreg",
+                Arguments = "-rd1 -c IOPlatformExpertDevice",
                 UseShellExecute = false,
                 CreateNoWindow = true,
                 RedirectStandardOutput = true,
