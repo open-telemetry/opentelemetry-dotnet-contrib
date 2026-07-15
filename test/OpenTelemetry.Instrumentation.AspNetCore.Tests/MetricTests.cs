@@ -234,7 +234,7 @@ public class MetricTests(WebApplicationFactory<Program> factory)
     [InlineData("Get", "GET")]
     [InlineData("POST", "POST")]
 #if NET11_0_OR_GREATER
-    [InlineData("QUERY", "QUERY", Skip = "TODO Depends on https://github.com/dotnet/aspnetcore/pull/63276")]
+    [InlineData("QUERY", "QUERY")]
 #endif
     [InlineData("TRACE", "TRACE")]
     [InlineData("CUSTOM", "_OTHER")]

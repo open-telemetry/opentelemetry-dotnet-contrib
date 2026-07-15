@@ -630,7 +630,7 @@ public sealed class BasicTests
     [InlineData("Get", "GET", "Get", "GET")]
     [InlineData("POST", "POST", null, "POST")]
 #if NET11_0_OR_GREATER
-    [InlineData("QUERY", "QUERY", null, "QUERY", Skip = "TODO Depends on https://github.com/dotnet/aspnetcore/pull/63276")]
+    [InlineData("QUERY", "QUERY", null, "QUERY")]
 #endif
     [InlineData("TRACE", "TRACE", null, "TRACE")]
     [InlineData("CUSTOM", "_OTHER", "CUSTOM", "HTTP")]
