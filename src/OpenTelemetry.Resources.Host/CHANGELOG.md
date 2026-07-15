@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 1.16.0-beta.2
+
+Released 2026-Jul-15
+
+* Specify full path for `ioreg` command on macOS.
+  ([#4760](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4760))
+
 ## 1.16.0-beta.1
 
 Released 2026-Jul-10

@@ -114,12 +114,14 @@ Describe "TryPostPackagesReadyNoticeOnPrepareReleasePullRequest" {
             return $null
         }
 
-        TryPostPackagesReadyNoticeOnPrepareReleasePullRequest `
+        $result = TryPostPackagesReadyNoticeOnPrepareReleasePullRequest `
             -gitRepository "open-telemetry/opentelemetry-dotnet-contrib" `
             -tag "foo-1.9.0" `
             -tagSha "abc123" `
             -packagesUrl "https://example.com/packages" `
             -expectedPrAuthorUserName "otelbot" 6>$null
+
+        $result | Should-Be 42 -Because "the number of the pull request the notice was posted on should be returned"
 
         Should -Invoke -CommandName "gh" -ModuleName "post-release" -Exactly -Times 1 -ParameterFilter {
             $args -contains "comment" -and (($args -join " ") -match "available on NuGet")
@@ -132,12 +134,14 @@ Describe "TryPostPackagesReadyNoticeOnPrepareReleasePullRequest" {
             return $null
         }
 
-        TryPostPackagesReadyNoticeOnPrepareReleasePullRequest `
+        $result = TryPostPackagesReadyNoticeOnPrepareReleasePullRequest `
             -gitRepository "open-telemetry/opentelemetry-dotnet-contrib" `
             -tag "foo-1.9.0" `
             -tagSha "abc123" `
             -packagesUrl "https://example.com/packages" `
             -expectedPrAuthorUserName "otelbot" 6>$null
+
+        $result | Should-BeNull -Because "no pull request number should be returned when no pull request matches the commit"
 
         Should -Invoke -CommandName "gh" -ModuleName "post-release" -Times 0 -ParameterFilter {
             $args -contains "comment"
@@ -152,12 +156,14 @@ Describe "TryPostPackagesReadyNoticeOnPrepareReleasePullRequest" {
             return $null
         }
 
-        TryPostPackagesReadyNoticeOnPrepareReleasePullRequest `
+        $result = TryPostPackagesReadyNoticeOnPrepareReleasePullRequest `
             -gitRepository "open-telemetry/opentelemetry-dotnet-contrib" `
             -tag "foo-1.9.0" `
             -tagSha "abc123" `
             -packagesUrl "https://example.com/packages" `
             -expectedPrAuthorUserName "otelbot" 6>$null
+
+        $result | Should-BeNull -Because "no pull request number should be returned when the matching pull request has no pushed-tag comment"
 
         Should -Invoke -CommandName "gh" -ModuleName "post-release" -Times 0 -ParameterFilter {
             $args -contains "comment"
