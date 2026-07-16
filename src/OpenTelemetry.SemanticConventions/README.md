@@ -14,15 +14,9 @@ dotnet add package OpenTelemetry.SemanticConventions --prerelease
 This project uses
 [Weaver](https://github.com/open-telemetry/weaver).
 The folder `scripts` at the top level of the project contains the template
-and the script files used in the process.
+and PowerShell script used in the process.
 
-To generate the code files, run:
-
-```shell
-./scripts/generate.sh
-```
-
-Or, with PowerShell:
+To generate the code files, run the PowerShell script:
 
 ```shell
 ./scripts/generate.ps1
