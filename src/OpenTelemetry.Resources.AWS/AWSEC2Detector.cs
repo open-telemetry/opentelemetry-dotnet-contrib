@@ -44,7 +44,7 @@ internal sealed class AWSEC2Detector : IResourceDetector
 
             return new Resource(
                 this.ExtractResourceAttributes(identity, hostName),
-                Internal.SchemaUrls.Get(ResourceDetectorUtils.SemanticConventionsVersion));
+                Internal.SchemaUrls.Get(this.semanticConventionBuilder.Version));
         }
         catch (Exception ex)
         {

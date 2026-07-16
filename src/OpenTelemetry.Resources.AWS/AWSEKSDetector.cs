@@ -41,7 +41,7 @@ internal sealed class AWSEKSDetector : IResourceDetector
                 this.ExtractResourceAttributes(
                     GetEKSClusterName(credentials, httpClientHandler),
                     GetEKSContainerId(AWSEKSMetadataFilePath)),
-                Internal.SchemaUrls.Get(ResourceDetectorUtils.SemanticConventionsVersion));
+                Internal.SchemaUrls.Get(this.semanticConventionBuilder.Version));
     }
 
     internal static string? GetEKSCredentials(string path)

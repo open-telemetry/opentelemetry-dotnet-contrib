@@ -64,7 +64,7 @@ internal sealed partial class AWSECSDetector : IResourceDetector
 
         return new Resource(
             resourceAttributes.Build(),
-            Internal.SchemaUrls.Get(ResourceDetectorUtils.SemanticConventionsVersion));
+            Internal.SchemaUrls.Get(this.semanticConventionBuilder.Version));
     }
 
     internal static string? GetECSContainerId(string path)

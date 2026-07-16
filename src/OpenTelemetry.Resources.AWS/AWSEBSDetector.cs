@@ -44,7 +44,7 @@ internal sealed class AWSEBSDetector : IResourceDetector
 
             return new Resource(
                 this.ExtractResourceAttributes(metadata),
-                Internal.SchemaUrls.Get(ResourceDetectorUtils.SemanticConventionsVersion));
+                Internal.SchemaUrls.Get(this.semanticConventionBuilder.Version));
         }
         catch (Exception ex)
         {

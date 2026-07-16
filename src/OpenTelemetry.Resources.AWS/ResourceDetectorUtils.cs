@@ -17,8 +17,6 @@ namespace OpenTelemetry.Resources.AWS;
 /// </summary>
 internal static class ResourceDetectorUtils
 {
-    internal static readonly Version SemanticConventionsVersion = new(1, 43, 0);
-
 #if NETFRAMEWORK
     private static readonly JsonSerializerOptions JsonSerializerOptions = new(JsonSerializerDefaults.Web);
 #endif
