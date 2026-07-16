@@ -7,7 +7,7 @@
 
 * The `cloud.region` attribute is now emitted on AWS SDK client spans for all
   `SemanticConventionVersion` values.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#4770](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4770))
 
 ## 1.16.0
 
