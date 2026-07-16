@@ -23,6 +23,11 @@ public static class BrowserAttributes
     public const string AttributeBrowserBrands = "browser.brands";
 
     /// <summary>
+    /// Absolute URL of the current browser document according to <a href="https://www.rfc-editor.org/rfc/rfc3986">RFC3986</a>.
+    /// </summary>
+    public const string AttributeBrowserDocumentUrlFull = "browser.document.url.full";
+
+    /// <summary>
     /// Preferred language of the user using the browser.
     /// </summary>
     /// <remarks>

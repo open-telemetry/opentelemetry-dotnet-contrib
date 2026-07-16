@@ -83,5 +83,10 @@ public static class ProfileAttributes
         /// <a href="https://wikipedia.org/wiki/Rust_(programming_language)">Rust</a>.
         /// </summary>
         public const string Rust = "rust";
+
+        /// <summary>
+        /// <a href="https://en.wikipedia.org/wiki/LuaJIT">LuaJIT</a>.
+        /// </summary>
+        public const string Luajit = "luajit";
     }
 }

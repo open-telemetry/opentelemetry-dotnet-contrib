@@ -17,26 +17,31 @@ public static class OpenaiAttributes
     /// <summary>
     /// The type of OpenAI API being used.
     /// </summary>
+    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
     public const string AttributeOpenaiApiType = "openai.api.type";
 
     /// <summary>
     /// The service tier requested. May be a specific tier, default, or auto.
     /// </summary>
+    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
     public const string AttributeOpenaiRequestServiceTier = "openai.request.service_tier";
 
     /// <summary>
     /// The service tier used for the response.
     /// </summary>
+    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
     public const string AttributeOpenaiResponseServiceTier = "openai.response.service_tier";
 
     /// <summary>
     /// A fingerprint to track any eventual change in the Generative AI environment.
     /// </summary>
+    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
     public const string AttributeOpenaiResponseSystemFingerprint = "openai.response.system_fingerprint";
 
     /// <summary>
     /// The type of OpenAI API being used.
     /// </summary>
+    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
     public static class OpenaiApiTypeValues
     {
         /// <summary>
@@ -53,6 +58,7 @@ public static class OpenaiAttributes
     /// <summary>
     /// The service tier requested. May be a specific tier, default, or auto.
     /// </summary>
+    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
     public static class OpenaiRequestServiceTierValues
     {
         /// <summary>
