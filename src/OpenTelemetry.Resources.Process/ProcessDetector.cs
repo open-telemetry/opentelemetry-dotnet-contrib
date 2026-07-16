@@ -31,7 +31,8 @@ internal sealed class ProcessDetector : IResourceDetector
 
         if (creationTime is { } startTime)
         {
-            attributes.Add(new(ProcessSemanticConventions.AttributeProcessCreationTime, startTime.ToString("O", CultureInfo.InvariantCulture)));
+            // The semantic conventions require an ISO 8601 timestamp; normalize to UTC so the value is unambiguous.
+            attributes.Add(new(ProcessSemanticConventions.AttributeProcessCreationTime, startTime.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture)));
         }
 
         return new Resource(attributes, Internal.SchemaUrls.Get(SemanticConventionsVersion));

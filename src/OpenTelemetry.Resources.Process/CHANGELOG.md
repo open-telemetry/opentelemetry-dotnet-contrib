@@ -8,6 +8,9 @@
 * Add schema URL to resource detector.
   ([#4775](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4775))
 
+* Fix `process.creation.time` not being emitted as UTC.
+  ([#4775](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4775))
+
 ## 1.16.0-rc.1
 
 Released 2026-Jul-09
