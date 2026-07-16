@@ -17,25 +17,25 @@ public static class GenAiAttributes
     /// <summary>
     /// Free-form description of the GenAI agent provided by the application.
     /// </summary>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiAgentDescription = "gen_ai.agent.description";
 
     /// <summary>
     /// The unique identifier of the GenAI agent.
     /// </summary>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiAgentId = "gen_ai.agent.id";
 
     /// <summary>
     /// Human-readable name of the GenAI agent provided by the application.
     /// </summary>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiAgentName = "gen_ai.agent.name";
 
     /// <summary>
     /// The version of the GenAI agent.
     /// </summary>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiAgentVersion = "gen_ai.agent.version";
 
     /// <summary>
@@ -47,7 +47,7 @@ public static class GenAiAttributes
     /// <summary>
     /// The unique identifier for a conversation (session, thread), used to store and correlate messages within this conversation.
     /// </summary>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiConversationId = "gen_ai.conversation.id";
 
     /// <summary>
@@ -56,25 +56,25 @@ public static class GenAiAttributes
     /// <remarks>
     /// Data sources are used by AI agents and RAG applications to store grounding data. A data source may be an external database, object store, document collection, website, or any other storage system used by the GenAI agent or application. The <c>gen_ai.data_source.id</c> SHOULD match the identifier used by the GenAI system rather than a name specific to the external storage, such as a database or object store. Semantic conventions referencing <c>gen_ai.data_source.id</c> MAY also leverage additional attributes, such as <c>db.*</c>, to further identify and describe the data source.
     /// </remarks>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiDataSourceId = "gen_ai.data_source.id";
 
     /// <summary>
     /// The number of dimensions the resulting output embeddings should have.
     /// </summary>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiEmbeddingsDimensionCount = "gen_ai.embeddings.dimension.count";
 
     /// <summary>
     /// A free-form explanation for the assigned score provided by the evaluator.
     /// </summary>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiEvaluationExplanation = "gen_ai.evaluation.explanation";
 
     /// <summary>
     /// The name of the evaluation metric used for the GenAI response.
     /// </summary>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiEvaluationName = "gen_ai.evaluation.name";
 
     /// <summary>
@@ -83,13 +83,13 @@ public static class GenAiAttributes
     /// <remarks>
     /// This attribute provides a human-readable interpretation of the evaluation score produced by an evaluator. For example, a score value of 1 could mean "relevant" in one evaluation system and "not relevant" in another, depending on the scoring range and evaluator. The label SHOULD have low cardinality. Possible values depend on the evaluation metric and evaluator used; implementations SHOULD document the possible values.
     /// </remarks>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiEvaluationScoreLabel = "gen_ai.evaluation.score.label";
 
     /// <summary>
     /// The evaluation score returned by the evaluator.
     /// </summary>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiEvaluationScoreValue = "gen_ai.evaluation.score.value";
 
     /// <summary>
@@ -111,37 +111,37 @@ public static class GenAiAttributes
     /// See <a href="https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/gen-ai/gen-ai-spans.md#recording-content-on-attributes">Recording content on attributes</a>
     /// section for more details.
     /// </remarks>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiInputMessages = "gen_ai.input.messages";
 
     /// <summary>
     /// Deprecated, use <c>gen_ai.output.type</c>.
     /// </summary>
-    [Obsolete("Replaced by <c>gen_ai.output.type</c>, which has moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Replaced by <c>gen_ai.output.type</c>, which has moved to the <a href=\"https://github.com/open-telemetry/semantic-conventions-genai\">OpenTelemetry GenAI semantic conventions repository</a>.")]
     public const string AttributeGenAiOpenaiRequestResponseFormat = "gen_ai.openai.request.response_format";
 
     /// <summary>
     /// Deprecated, use <c>gen_ai.request.seed</c>.
     /// </summary>
-    [Obsolete("Replaced by <c>gen_ai.request.seed</c>, which has moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Replaced by <c>gen_ai.request.seed</c>, which has moved to the <a href=\"https://github.com/open-telemetry/semantic-conventions-genai\">OpenTelemetry GenAI semantic conventions repository</a>.")]
     public const string AttributeGenAiOpenaiRequestSeed = "gen_ai.openai.request.seed";
 
     /// <summary>
     /// Deprecated, use <c>openai.request.service_tier</c>.
     /// </summary>
-    [Obsolete("Replaced by <c>openai.request.service_tier</c>, which has moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Replaced by <c>openai.request.service_tier</c>, which has moved to the <a href=\"https://github.com/open-telemetry/semantic-conventions-genai\">OpenTelemetry GenAI semantic conventions repository</a>.")]
     public const string AttributeGenAiOpenaiRequestServiceTier = "gen_ai.openai.request.service_tier";
 
     /// <summary>
     /// Deprecated, use <c>openai.response.service_tier</c>.
     /// </summary>
-    [Obsolete("Replaced by <c>openai.response.service_tier</c>, which has moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Replaced by <c>openai.response.service_tier</c>, which has moved to the <a href=\"https://github.com/open-telemetry/semantic-conventions-genai\">OpenTelemetry GenAI semantic conventions repository</a>.")]
     public const string AttributeGenAiOpenaiResponseServiceTier = "gen_ai.openai.response.service_tier";
 
     /// <summary>
     /// Deprecated, use <c>openai.response.system_fingerprint</c>.
     /// </summary>
-    [Obsolete("Replaced by <c>openai.response.system_fingerprint</c>, which has moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Replaced by <c>openai.response.system_fingerprint</c>, which has moved to the <a href=\"https://github.com/open-telemetry/semantic-conventions-genai\">OpenTelemetry GenAI semantic conventions repository</a>.")]
     public const string AttributeGenAiOpenaiResponseSystemFingerprint = "gen_ai.openai.response.system_fingerprint";
 
     /// <summary>
@@ -150,7 +150,7 @@ public static class GenAiAttributes
     /// <remarks>
     /// If one of the predefined values applies, but specific system uses a different name it's RECOMMENDED to document it in the semantic conventions for specific GenAI system and use system-specific name in the instrumentation. If a different name is not documented, instrumentation libraries SHOULD use applicable predefined value.
     /// </remarks>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiOperationName = "gen_ai.operation.name";
 
     /// <summary>
@@ -177,7 +177,7 @@ public static class GenAiAttributes
     /// See <a href="https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/gen-ai/gen-ai-spans.md#recording-content-on-attributes">Recording content on attributes</a>
     /// section for more details.
     /// </remarks>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiOutputMessages = "gen_ai.output.messages";
 
     /// <summary>
@@ -188,7 +188,7 @@ public static class GenAiAttributes
     /// This attribute specifies the output modality and not the actual output format. For example, if an image is requested, the actual output could be a URL pointing to an image file.
     /// Additional output format details may be recorded in the future in the <c>gen_ai.output.{type}.*</c> attributes.
     /// </remarks>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiOutputType = "gen_ai.output.type";
 
     /// <summary>
@@ -200,7 +200,7 @@ public static class GenAiAttributes
     /// <summary>
     /// The name of the prompt that uniquely identifies it.
     /// </summary>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiPromptName = "gen_ai.prompt.name";
 
     /// <summary>
@@ -226,13 +226,13 @@ public static class GenAiAttributes
     /// applicable <c>aws.bedrock.*</c> attributes and are not expected to include
     /// <c>openai.*</c> attributes.
     /// </remarks>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiProviderName = "gen_ai.provider.name";
 
     /// <summary>
     /// The target number of candidate completions to return.
     /// </summary>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiRequestChoiceCount = "gen_ai.request.choice.count";
 
     /// <summary>
@@ -241,91 +241,91 @@ public static class GenAiAttributes
     /// <remarks>
     /// In some GenAI systems the encoding formats are called embedding types. Also, some GenAI systems only accept a single format per request.
     /// </remarks>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiRequestEncodingFormats = "gen_ai.request.encoding_formats";
 
     /// <summary>
     /// The frequency penalty setting for the GenAI request.
     /// </summary>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiRequestFrequencyPenalty = "gen_ai.request.frequency_penalty";
 
     /// <summary>
     /// The maximum number of tokens the model generates for a request.
     /// </summary>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiRequestMaxTokens = "gen_ai.request.max_tokens";
 
     /// <summary>
     /// The name of the GenAI model a request is being made to.
     /// </summary>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiRequestModel = "gen_ai.request.model";
 
     /// <summary>
     /// The presence penalty setting for the GenAI request.
     /// </summary>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiRequestPresencePenalty = "gen_ai.request.presence_penalty";
 
     /// <summary>
     /// Requests with same seed value more likely to return same result.
     /// </summary>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiRequestSeed = "gen_ai.request.seed";
 
     /// <summary>
     /// List of sequences that the model will use to stop generating further tokens.
     /// </summary>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiRequestStopSequences = "gen_ai.request.stop_sequences";
 
     /// <summary>
     /// Indicates whether the GenAI request was made in streaming mode.
     /// </summary>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiRequestStream = "gen_ai.request.stream";
 
     /// <summary>
     /// The temperature setting for the GenAI request.
     /// </summary>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiRequestTemperature = "gen_ai.request.temperature";
 
     /// <summary>
     /// The top_k sampling setting for the GenAI request.
     /// </summary>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiRequestTopK = "gen_ai.request.top_k";
 
     /// <summary>
     /// The top_p sampling setting for the GenAI request.
     /// </summary>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiRequestTopP = "gen_ai.request.top_p";
 
     /// <summary>
     /// Array of reasons the model stopped generating tokens, corresponding to each generation received.
     /// </summary>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiResponseFinishReasons = "gen_ai.response.finish_reasons";
 
     /// <summary>
     /// The unique identifier for the completion.
     /// </summary>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiResponseId = "gen_ai.response.id";
 
     /// <summary>
     /// The name of the model that generated the response.
     /// </summary>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiResponseModel = "gen_ai.response.model";
 
     /// <summary>
     /// Time to first chunk in a streaming response, measured from request issuance, in seconds. The value is measured from when the client issues the generation request to when the first chunk is received in the response stream.
     /// </summary>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiResponseTimeToFirstChunk = "gen_ai.response.time_to_first_chunk";
 
     /// <summary>
@@ -340,7 +340,7 @@ public static class GenAiAttributes
     /// Each document object SHOULD contain at least the following properties:
     /// <c>id</c> (string): A unique identifier for the document, <c>score</c> (double): The relevance score of the document.
     /// </remarks>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiRetrievalDocuments = "gen_ai.retrieval.documents";
 
     /// <summary>
@@ -351,13 +351,13 @@ public static class GenAiAttributes
     /// [!Warning]
     /// This attribute may contain sensitive information.</blockquote>
     /// </remarks>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiRetrievalQueryText = "gen_ai.retrieval.query.text";
 
     /// <summary>
     /// Deprecated, use <c>gen_ai.provider.name</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>gen_ai.provider.name</c>, which has moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Replaced by <c>gen_ai.provider.name</c>, which has moved to the <a href=\"https://github.com/open-telemetry/semantic-conventions-genai\">OpenTelemetry GenAI semantic conventions repository</a>.")]
     public const string AttributeGenAiSystem = "gen_ai.system";
 
     /// <summary>
@@ -385,13 +385,13 @@ public static class GenAiAttributes
     /// See <a href="https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/gen-ai/gen-ai-spans.md#recording-content-on-attributes">Recording content on attributes</a>
     /// section for more details.
     /// </remarks>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiSystemInstructions = "gen_ai.system_instructions";
 
     /// <summary>
     /// The type of token being counted.
     /// </summary>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiTokenType = "gen_ai.token.type";
 
     /// <summary>
@@ -406,13 +406,13 @@ public static class GenAiAttributes
     /// to the instrumentation, the instrumentation SHOULD do the best effort to
     /// deserialize it to an object. When recorded on spans, it MAY be recorded as a JSON string if structured format is not supported and SHOULD be recorded in structured form otherwise.
     /// </remarks>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiToolCallArguments = "gen_ai.tool.call.arguments";
 
     /// <summary>
     /// The tool call identifier.
     /// </summary>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiToolCallId = "gen_ai.tool.call.id";
 
     /// <summary>
@@ -427,7 +427,7 @@ public static class GenAiAttributes
     /// to the instrumentation, the instrumentation SHOULD do the best effort to
     /// deserialize it to an object. When recorded on spans, it MAY be recorded as a JSON string if structured format is not supported and SHOULD be recorded in structured form otherwise.
     /// </remarks>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiToolCallResult = "gen_ai.tool.call.result";
 
     /// <summary>
@@ -444,19 +444,19 @@ public static class GenAiAttributes
     /// non-required properties by default. Instrumentations MAY provide a way
     /// to enable populating optional properties.
     /// </remarks>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiToolDefinitions = "gen_ai.tool.definitions";
 
     /// <summary>
     /// The tool description.
     /// </summary>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiToolDescription = "gen_ai.tool.description";
 
     /// <summary>
     /// Name of the tool utilized by the agent.
     /// </summary>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiToolName = "gen_ai.tool.name";
 
     /// <summary>
@@ -469,7 +469,7 @@ public static class GenAiAttributes
     /// Client-side operations are actions taken on the user's end or within the client application.
     /// Datastore: A tool used by the agent to access and query structured or unstructured external data for retrieval-augmented tasks or knowledge updates.
     /// </remarks>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiToolType = "gen_ai.tool.type";
 
     /// <summary>
@@ -478,7 +478,7 @@ public static class GenAiAttributes
     /// <remarks>
     /// The value SHOULD be included in <c>gen_ai.usage.input_tokens</c>.
     /// </remarks>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiUsageCacheCreationInputTokens = "gen_ai.usage.cache_creation.input_tokens";
 
     /// <summary>
@@ -487,13 +487,13 @@ public static class GenAiAttributes
     /// <remarks>
     /// The value SHOULD be included in <c>gen_ai.usage.input_tokens</c>.
     /// </remarks>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiUsageCacheReadInputTokens = "gen_ai.usage.cache_read.input_tokens";
 
     /// <summary>
     /// Deprecated, use <c>gen_ai.usage.output_tokens</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>gen_ai.usage.output_tokens</c>, which has moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Replaced by <c>gen_ai.usage.output_tokens</c>, which has moved to the <a href=\"https://github.com/open-telemetry/semantic-conventions-genai\">OpenTelemetry GenAI semantic conventions repository</a>.")]
     public const string AttributeGenAiUsageCompletionTokens = "gen_ai.usage.completion_tokens";
 
     /// <summary>
@@ -505,19 +505,19 @@ public static class GenAiAttributes
     /// provided by the provider when available or, depending on the provider API,
     /// by summing different token types parsed from the provider output.
     /// </remarks>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiUsageInputTokens = "gen_ai.usage.input_tokens";
 
     /// <summary>
     /// The number of tokens used in the GenAI response (completion).
     /// </summary>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiUsageOutputTokens = "gen_ai.usage.output_tokens";
 
     /// <summary>
     /// Deprecated, use <c>gen_ai.usage.input_tokens</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>gen_ai.usage.input_tokens</c>, which has moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Replaced by <c>gen_ai.usage.input_tokens</c>, which has moved to the <a href=\"https://github.com/open-telemetry/semantic-conventions-genai\">OpenTelemetry GenAI semantic conventions repository</a>.")]
     public const string AttributeGenAiUsagePromptTokens = "gen_ai.usage.prompt_tokens";
 
     /// <summary>
@@ -526,7 +526,7 @@ public static class GenAiAttributes
     /// <remarks>
     /// The value SHOULD be included in <c>gen_ai.usage.output_tokens</c>.
     /// </remarks>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiUsageReasoningOutputTokens = "gen_ai.usage.reasoning.output_tokens";
 
     /// <summary>
@@ -535,13 +535,13 @@ public static class GenAiAttributes
     /// <remarks>
     /// This attribute can be populated in different frameworks eg: name of the first chain in LangChain OR name of the crew in CrewAI.
     /// </remarks>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeGenAiWorkflowName = "gen_ai.workflow.name";
 
     /// <summary>
     /// Deprecated, use <c>gen_ai.output.type</c>.
     /// </summary>
-    [Obsolete("Replaced by <c>gen_ai.output.type</c>, which has moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Replaced by <c>gen_ai.output.type</c>, which has moved to the <a href=\"https://github.com/open-telemetry/semantic-conventions-genai\">OpenTelemetry GenAI semantic conventions repository</a>.")]
     public static class GenAiOpenaiRequestResponseFormatValues
     {
         /// <summary>
@@ -563,7 +563,7 @@ public static class GenAiAttributes
     /// <summary>
     /// Deprecated, use <c>openai.request.service_tier</c>.
     /// </summary>
-    [Obsolete("Replaced by <c>openai.request.service_tier</c>, which has moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Replaced by <c>openai.request.service_tier</c>, which has moved to the <a href=\"https://github.com/open-telemetry/semantic-conventions-genai\">OpenTelemetry GenAI semantic conventions repository</a>.")]
     public static class GenAiOpenaiRequestServiceTierValues
     {
         /// <summary>
@@ -580,7 +580,7 @@ public static class GenAiAttributes
     /// <summary>
     /// The name of the operation being performed.
     /// </summary>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public static class GenAiOperationNameValues
     {
         /// <summary>
@@ -632,7 +632,7 @@ public static class GenAiAttributes
     /// <summary>
     /// Represents the content type requested by the client.
     /// </summary>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public static class GenAiOutputTypeValues
     {
         /// <summary>
@@ -659,7 +659,7 @@ public static class GenAiAttributes
     /// <summary>
     /// The Generative AI provider as identified by the client or server instrumentation.
     /// </summary>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public static class GenAiProviderNameValues
     {
         /// <summary>
@@ -741,7 +741,7 @@ public static class GenAiAttributes
     /// <summary>
     /// Deprecated, use <c>gen_ai.provider.name</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>gen_ai.provider.name</c>, which has moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Replaced by <c>gen_ai.provider.name</c>, which has moved to the <a href=\"https://github.com/open-telemetry/semantic-conventions-genai\">OpenTelemetry GenAI semantic conventions repository</a>.")]
     public static class GenAiSystemValues
     {
         /// <summary>
@@ -847,7 +847,7 @@ public static class GenAiAttributes
     /// <summary>
     /// The type of token being counted.
     /// </summary>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public static class GenAiTokenTypeValues
     {
         /// <summary>

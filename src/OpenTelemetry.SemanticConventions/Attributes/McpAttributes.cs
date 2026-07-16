@@ -17,13 +17,13 @@ public static class McpAttributes
     /// <summary>
     /// The name of the request or notification method.
     /// </summary>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeMcpMethodName = "mcp.method.name";
 
     /// <summary>
     /// The <a href="https://modelcontextprotocol.io/specification/versioning">version</a> of the Model Context Protocol used.
     /// </summary>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeMcpProtocolVersion = "mcp.protocol.version";
 
     /// <summary>
@@ -32,19 +32,19 @@ public static class McpAttributes
     /// <remarks>
     /// This is a URI of the resource provided in the following requests or notifications: <c>resources/read</c>, <c>resources/subscribe</c>, <c>resources/unsubscribe</c>, or <c>notifications/resources/updated</c>.
     /// </remarks>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeMcpResourceUri = "mcp.resource.uri";
 
     /// <summary>
     /// Identifies <a href="https://modelcontextprotocol.io/specification/2025-06-18/basic/transports#session-management">MCP session</a>.
     /// </summary>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public const string AttributeMcpSessionId = "mcp.session.id";
 
     /// <summary>
     /// The name of the request or notification method.
     /// </summary>
-    [Obsolete("Moved to the <a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions repository</a>.")]
+    [Obsolete("Moved to the https://github.com/open-telemetry/semantic-conventions-genai repository.")]
     public static class McpMethodNameValues
     {
         /// <summary>

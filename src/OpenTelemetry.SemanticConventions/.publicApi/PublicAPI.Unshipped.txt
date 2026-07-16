@@ -8,6 +8,7 @@ const OpenTelemetry.SemanticConventions.AndroidAttributes.AttributeAndroidAppSta
 const OpenTelemetry.SemanticConventions.AndroidAttributes.AttributeAndroidOsApiLevel = "android.os.api_level" -> string!
 const OpenTelemetry.SemanticConventions.AndroidAttributes.AttributeAndroidState = "android.state" -> string!
 const OpenTelemetry.SemanticConventions.AppAttributes.AttributeAppBuildId = "app.build_id" -> string!
+const OpenTelemetry.SemanticConventions.AppAttributes.AttributeAppCrashId = "app.crash.id" -> string!
 const OpenTelemetry.SemanticConventions.AppAttributes.AttributeAppInstallationId = "app.installation.id" -> string!
 const OpenTelemetry.SemanticConventions.AppAttributes.AttributeAppJankFrameCount = "app.jank.frame_count" -> string!
 const OpenTelemetry.SemanticConventions.AppAttributes.AttributeAppJankPeriod = "app.jank.period" -> string!
@@ -185,6 +186,7 @@ const OpenTelemetry.SemanticConventions.AzureAttributes.AttributeAzureCosmosdbOp
 const OpenTelemetry.SemanticConventions.AzureAttributes.AttributeAzureCosmosdbOperationRequestCharge = "azure.cosmosdb.operation.request_charge" -> string!
 const OpenTelemetry.SemanticConventions.AzureAttributes.AttributeAzureCosmosdbRequestBodySize = "azure.cosmosdb.request.body.size" -> string!
 const OpenTelemetry.SemanticConventions.AzureAttributes.AttributeAzureCosmosdbResponseSubStatusCode = "azure.cosmosdb.response.sub_status_code" -> string!
+const OpenTelemetry.SemanticConventions.AzureAttributes.AttributeAzureResourceGroupName = "azure.resource_group.name" -> string!
 const OpenTelemetry.SemanticConventions.AzureAttributes.AttributeAzureResourceProviderNamespace = "azure.resource_provider.namespace" -> string!
 const OpenTelemetry.SemanticConventions.AzureAttributes.AttributeAzureServiceRequestId = "azure.service.request.id" -> string!
 const OpenTelemetry.SemanticConventions.AzureAttributes.AzureCosmosdbConnectionModeValues.Direct = "direct" -> string!
@@ -195,6 +197,7 @@ const OpenTelemetry.SemanticConventions.AzureAttributes.AzureCosmosdbConsistency
 const OpenTelemetry.SemanticConventions.AzureAttributes.AzureCosmosdbConsistencyLevelValues.Session = "Session" -> string!
 const OpenTelemetry.SemanticConventions.AzureAttributes.AzureCosmosdbConsistencyLevelValues.Strong = "Strong" -> string!
 const OpenTelemetry.SemanticConventions.BrowserAttributes.AttributeBrowserBrands = "browser.brands" -> string!
+const OpenTelemetry.SemanticConventions.BrowserAttributes.AttributeBrowserDocumentUrlFull = "browser.document.url.full" -> string!
 const OpenTelemetry.SemanticConventions.BrowserAttributes.AttributeBrowserLanguage = "browser.language" -> string!
 const OpenTelemetry.SemanticConventions.BrowserAttributes.AttributeBrowserMobile = "browser.mobile" -> string!
 const OpenTelemetry.SemanticConventions.BrowserAttributes.AttributeBrowserPlatform = "browser.platform" -> string!
@@ -659,6 +662,9 @@ const OpenTelemetry.SemanticConventions.FileAttributes.AttributeFileForkName = "
 const OpenTelemetry.SemanticConventions.FileAttributes.AttributeFileGroupId = "file.group.id" -> string!
 const OpenTelemetry.SemanticConventions.FileAttributes.AttributeFileGroupName = "file.group.name" -> string!
 const OpenTelemetry.SemanticConventions.FileAttributes.AttributeFileInode = "file.inode" -> string!
+const OpenTelemetry.SemanticConventions.FileAttributes.AttributeFileLockMechanism = "file.lock.mechanism" -> string!
+const OpenTelemetry.SemanticConventions.FileAttributes.AttributeFileLockMode = "file.lock.mode" -> string!
+const OpenTelemetry.SemanticConventions.FileAttributes.AttributeFileLockType = "file.lock.type" -> string!
 const OpenTelemetry.SemanticConventions.FileAttributes.AttributeFileMode = "file.mode" -> string!
 const OpenTelemetry.SemanticConventions.FileAttributes.AttributeFileModified = "file.modified" -> string!
 const OpenTelemetry.SemanticConventions.FileAttributes.AttributeFileName = "file.name" -> string!
@@ -667,6 +673,8 @@ const OpenTelemetry.SemanticConventions.FileAttributes.AttributeFileOwnerName = 
 const OpenTelemetry.SemanticConventions.FileAttributes.AttributeFilePath = "file.path" -> string!
 const OpenTelemetry.SemanticConventions.FileAttributes.AttributeFileSize = "file.size" -> string!
 const OpenTelemetry.SemanticConventions.FileAttributes.AttributeFileSymbolicLinkTargetPath = "file.symbolic_link.target_path" -> string!
+const OpenTelemetry.SemanticConventions.FileAttributes.FileLockTypeValues.Read = "read" -> string!
+const OpenTelemetry.SemanticConventions.FileAttributes.FileLockTypeValues.Write = "write" -> string!
 const OpenTelemetry.SemanticConventions.GcpAttributes.AttributeGcpApphubApplicationContainer = "gcp.apphub.application.container" -> string!
 const OpenTelemetry.SemanticConventions.GcpAttributes.AttributeGcpApphubApplicationId = "gcp.apphub.application.id" -> string!
 const OpenTelemetry.SemanticConventions.GcpAttributes.AttributeGcpApphubApplicationLocation = "gcp.apphub.application.location" -> string!
@@ -692,6 +700,7 @@ const OpenTelemetry.SemanticConventions.GcpAttributes.AttributeGcpGceInstanceGro
 const OpenTelemetry.SemanticConventions.GcpAttributes.AttributeGcpGceInstanceGroupManagerRegion = "gcp.gce.instance_group_manager.region" -> string!
 const OpenTelemetry.SemanticConventions.GcpAttributes.AttributeGcpGceInstanceGroupManagerZone = "gcp.gce.instance_group_manager.zone" -> string!
 const OpenTelemetry.SemanticConventions.GcpAttributes.AttributeGcpGceInstanceHostname = "gcp.gce.instance.hostname" -> string!
+const OpenTelemetry.SemanticConventions.GcpAttributes.AttributeGcpGceInstanceLabelsTemplate = "gcp.gce.instance.labels" -> string!
 const OpenTelemetry.SemanticConventions.GcpAttributes.AttributeGcpGceInstanceName = "gcp.gce.instance.name" -> string!
 const OpenTelemetry.SemanticConventions.GcpAttributes.GcpApphubDestinationServiceCriticalityTypeValues.High = "HIGH" -> string!
 const OpenTelemetry.SemanticConventions.GcpAttributes.GcpApphubDestinationServiceCriticalityTypeValues.Low = "LOW" -> string!
@@ -1039,6 +1048,7 @@ const OpenTelemetry.SemanticConventions.JvmAttributes.JvmThreadStateValues.Timed
 const OpenTelemetry.SemanticConventions.JvmAttributes.JvmThreadStateValues.Waiting = "waiting" -> string!
 const OpenTelemetry.SemanticConventions.K8sAttributes.AttributeK8sClusterName = "k8s.cluster.name" -> string!
 const OpenTelemetry.SemanticConventions.K8sAttributes.AttributeK8sClusterUid = "k8s.cluster.uid" -> string!
+const OpenTelemetry.SemanticConventions.K8sAttributes.AttributeK8sContainerEphemeralStorageFsType = "k8s.container.ephemeral_storage.fs_type" -> string!
 const OpenTelemetry.SemanticConventions.K8sAttributes.AttributeK8sContainerName = "k8s.container.name" -> string!
 const OpenTelemetry.SemanticConventions.K8sAttributes.AttributeK8sContainerRestartCount = "k8s.container.restart_count" -> string!
 const OpenTelemetry.SemanticConventions.K8sAttributes.AttributeK8sContainerStatusLastTerminatedReason = "k8s.container.status.last_terminated_reason" -> string!
@@ -1126,6 +1136,8 @@ const OpenTelemetry.SemanticConventions.K8sAttributes.AttributeK8sStatefulsetUid
 const OpenTelemetry.SemanticConventions.K8sAttributes.AttributeK8sStorageclassName = "k8s.storageclass.name" -> string!
 const OpenTelemetry.SemanticConventions.K8sAttributes.AttributeK8sVolumeName = "k8s.volume.name" -> string!
 const OpenTelemetry.SemanticConventions.K8sAttributes.AttributeK8sVolumeType = "k8s.volume.type" -> string!
+const OpenTelemetry.SemanticConventions.K8sAttributes.K8sContainerEphemeralStorageFsTypeValues.Logs = "logs" -> string!
+const OpenTelemetry.SemanticConventions.K8sAttributes.K8sContainerEphemeralStorageFsTypeValues.Rootfs = "rootfs" -> string!
 const OpenTelemetry.SemanticConventions.K8sAttributes.K8sContainerStatusReasonValues.Completed = "Completed" -> string!
 const OpenTelemetry.SemanticConventions.K8sAttributes.K8sContainerStatusReasonValues.ContainerCannotRun = "ContainerCannotRun" -> string!
 const OpenTelemetry.SemanticConventions.K8sAttributes.K8sContainerStatusReasonValues.ContainerCreating = "ContainerCreating" -> string!
@@ -1545,6 +1557,7 @@ const OpenTelemetry.SemanticConventions.ProfileAttributes.ProfileFrameTypeValues
 const OpenTelemetry.SemanticConventions.ProfileAttributes.ProfileFrameTypeValues.Go = "go" -> string!
 const OpenTelemetry.SemanticConventions.ProfileAttributes.ProfileFrameTypeValues.Jvm = "jvm" -> string!
 const OpenTelemetry.SemanticConventions.ProfileAttributes.ProfileFrameTypeValues.Kernel = "kernel" -> string!
+const OpenTelemetry.SemanticConventions.ProfileAttributes.ProfileFrameTypeValues.Luajit = "luajit" -> string!
 const OpenTelemetry.SemanticConventions.ProfileAttributes.ProfileFrameTypeValues.Native = "native" -> string!
 const OpenTelemetry.SemanticConventions.ProfileAttributes.ProfileFrameTypeValues.Perl = "perl" -> string!
 const OpenTelemetry.SemanticConventions.ProfileAttributes.ProfileFrameTypeValues.Php = "php" -> string!
@@ -1732,6 +1745,7 @@ const OpenTelemetry.SemanticConventions.TelemetryAttributes.TelemetrySdkLanguage
 const OpenTelemetry.SemanticConventions.TelemetryAttributes.TelemetrySdkLanguageValues.Erlang = "erlang" -> string!
 const OpenTelemetry.SemanticConventions.TelemetryAttributes.TelemetrySdkLanguageValues.Go = "go" -> string!
 const OpenTelemetry.SemanticConventions.TelemetryAttributes.TelemetrySdkLanguageValues.Java = "java" -> string!
+const OpenTelemetry.SemanticConventions.TelemetryAttributes.TelemetrySdkLanguageValues.Kotlin = "kotlin" -> string!
 const OpenTelemetry.SemanticConventions.TelemetryAttributes.TelemetrySdkLanguageValues.Nodejs = "nodejs" -> string!
 const OpenTelemetry.SemanticConventions.TelemetryAttributes.TelemetrySdkLanguageValues.Php = "php" -> string!
 const OpenTelemetry.SemanticConventions.TelemetryAttributes.TelemetrySdkLanguageValues.Python = "python" -> string!
@@ -1955,6 +1969,7 @@ OpenTelemetry.SemanticConventions.FeatureFlagAttributes
 OpenTelemetry.SemanticConventions.FeatureFlagAttributes.FeatureFlagEvaluationReasonValues
 OpenTelemetry.SemanticConventions.FeatureFlagAttributes.FeatureFlagResultReasonValues
 OpenTelemetry.SemanticConventions.FileAttributes
+OpenTelemetry.SemanticConventions.FileAttributes.FileLockTypeValues
 OpenTelemetry.SemanticConventions.GcpAttributes
 OpenTelemetry.SemanticConventions.GcpAttributes.GcpApphubDestinationServiceCriticalityTypeValues
 OpenTelemetry.SemanticConventions.GcpAttributes.GcpApphubDestinationServiceEnvironmentTypeValues
@@ -2003,6 +2018,7 @@ OpenTelemetry.SemanticConventions.JvmAttributes
 OpenTelemetry.SemanticConventions.JvmAttributes.JvmMemoryTypeValues
 OpenTelemetry.SemanticConventions.JvmAttributes.JvmThreadStateValues
 OpenTelemetry.SemanticConventions.K8sAttributes
+OpenTelemetry.SemanticConventions.K8sAttributes.K8sContainerEphemeralStorageFsTypeValues
 OpenTelemetry.SemanticConventions.K8sAttributes.K8sContainerStatusReasonValues
 OpenTelemetry.SemanticConventions.K8sAttributes.K8sContainerStatusStateValues
 OpenTelemetry.SemanticConventions.K8sAttributes.K8sNamespacePhaseValues
