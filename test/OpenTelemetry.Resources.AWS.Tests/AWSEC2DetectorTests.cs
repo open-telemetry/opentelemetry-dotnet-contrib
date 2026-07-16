@@ -15,6 +15,22 @@ public class AWSEC2DetectorTests
         Timeout = TimeSpan.FromSeconds(3),
     };
 
+    public static TheoryData<SemanticConventionVersion> SemanticConventionVersions()
+    {
+        var data = new TheoryData<SemanticConventionVersion>();
+
+#if NET
+        foreach (var version in Enum.GetValues<SemanticConventionVersion>())
+#else
+        foreach (var version in Enum.GetValues(typeof(SemanticConventionVersion)).Cast<SemanticConventionVersion>())
+#endif
+        {
+            data.Add(version);
+        }
+
+        return data;
+    }
+
     public static async Task<bool> IsRunningOnEC2()
     {
         try
@@ -46,12 +62,13 @@ public class AWSEC2DetectorTests
         }
     }
 
-    [Fact]
-    public void TestExtractResourceAttributes()
+    [Theory]
+    [MemberData(nameof(SemanticConventionVersions))]
+    public void TestExtractResourceAttributes(SemanticConventionVersion semanticConventionVersion)
     {
         var awsEC2Detector = new AWSEC2Detector(
             new OpenTelemetry.AWS.AWSSemanticConventions(
-                SemanticConventionVersion.Latest));
+                semanticConventionVersion));
 
         var sampleEC2IdentityDocumentModel = new SampleAWSEC2IdentityDocumentModel();
         var hostName = "Test host name";

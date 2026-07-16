@@ -5,6 +5,10 @@
 * Assemblies are now digitally signed using cosign.
   ([#4637](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4637))
 
+* The `cloud.region` attribute is now emitted on AWS SDK client spans for all
+  `SemanticConventionVersion` values.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 1.16.0
 
 Released 2026-Jun-18
