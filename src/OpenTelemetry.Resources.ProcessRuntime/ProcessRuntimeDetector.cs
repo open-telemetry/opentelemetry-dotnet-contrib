@@ -13,6 +13,8 @@ namespace OpenTelemetry.Resources.ProcessRuntime;
 /// </summary>
 internal sealed class ProcessRuntimeDetector : IResourceDetector
 {
+    private static readonly Version SemanticConventionsVersion = new(1, 43, 0);
+
     /// <summary>
     /// Detects the resource attributes from .NET runtime.
     /// </summary>
@@ -51,11 +53,12 @@ internal sealed class ProcessRuntimeDetector : IResourceDetector
         }
 
         return new Resource(
-        [
-            new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeDescription, frameworkDescription),
-            new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeName, netRuntimeName!),
-            new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeVersion, netRuntimeVersion!),
-        ]);
+            [
+                new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeDescription, frameworkDescription),
+                new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeName, netRuntimeName!),
+                new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeVersion, netRuntimeVersion!),
+            ],
+            Internal.SchemaUrls.Get(SemanticConventionsVersion));
     }
 
 #if NETFRAMEWORK || NETSTANDARD

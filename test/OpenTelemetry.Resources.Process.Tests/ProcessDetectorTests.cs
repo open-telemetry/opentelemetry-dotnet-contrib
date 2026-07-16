@@ -10,6 +10,9 @@ public class ProcessDetectorTests
     {
         var resource = ResourceBuilder.CreateEmpty().AddProcessDetector().Build();
 
+        Assert.NotNull(resource);
+        Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
+
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
 
         Assert.IsType<string>(resourceAttributes[ProcessSemanticConventions.AttributeProcessCreationTime]);

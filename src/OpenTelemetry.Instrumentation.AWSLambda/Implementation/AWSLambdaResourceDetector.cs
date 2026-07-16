@@ -32,6 +32,9 @@ internal sealed class AWSLambdaResourceDetector : IResourceDetector
                 .AddAttributeFaasMaxMemory(AWSLambdaUtils.GetFunctionMemorySize())
                 .Build();
 
-        return new Resource(resourceAttributes);
+        var version = this.semanticConventionBuilder.Version;
+        var schemaUrl = Internal.SchemaUrls.Get(version);
+
+        return new Resource(resourceAttributes, schemaUrl);
     }
 }

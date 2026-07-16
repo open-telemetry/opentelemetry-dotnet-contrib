@@ -41,7 +41,9 @@ internal sealed class AWSEC2Detector : IResourceDetector
             var identity = GetAWSEC2Identity(token);
             var hostName = GetAWSEC2HostName(token);
 
-            return new Resource(this.ExtractResourceAttributes(identity, hostName));
+            return new Resource(
+                this.ExtractResourceAttributes(identity, hostName),
+                Internal.SchemaUrls.Get(ResourceDetectorUtils.SemanticConventionsVersion));
         }
         catch (Exception ex)
         {

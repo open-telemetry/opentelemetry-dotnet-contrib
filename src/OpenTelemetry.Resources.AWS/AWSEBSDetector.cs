@@ -42,7 +42,9 @@ internal sealed class AWSEBSDetector : IResourceDetector
 
             var metadata = GetEBSMetadata(filePath);
 
-            return new Resource(this.ExtractResourceAttributes(metadata));
+            return new Resource(
+                this.ExtractResourceAttributes(metadata),
+                Internal.SchemaUrls.Get(ResourceDetectorUtils.SemanticConventionsVersion));
         }
         catch (Exception ex)
         {

@@ -56,7 +56,9 @@ internal sealed class AppServiceResourceDetector : IResourceDetector
             return Resource.Empty;
         }
 
-        return new Resource(attributeList);
+        return new Resource(
+            attributeList,
+            Internal.SchemaUrls.Get(AzureResourceBuilderExtensions.SemanticConventionsVersion));
     }
 
     private static string? GetAzureResourceURI(string websiteSiteName)

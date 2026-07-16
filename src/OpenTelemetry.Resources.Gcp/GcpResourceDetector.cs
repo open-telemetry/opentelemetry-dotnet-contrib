@@ -11,6 +11,8 @@ namespace OpenTelemetry.Resources.Gcp;
 /// </summary>
 internal sealed class GcpResourceDetector : IResourceDetector
 {
+    private static readonly Version SemanticConventionsVersion = new(1, 43, 0);
+
     /// <inheritdoc/>
     public Resource Detect()
     {
@@ -31,7 +33,7 @@ internal sealed class GcpResourceDetector : IResourceDetector
             _ => ExtractGceResourceAttributes(platform),
         };
 
-        return new Resource(attributeList);
+        return new Resource(attributeList, Internal.SchemaUrls.Get(SemanticConventionsVersion));
     }
 
     internal static List<KeyValuePair<string, object>> ExtractGkeResourceAttributes(Platform platform)

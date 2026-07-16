@@ -30,7 +30,9 @@ public class AzureResourceDetectorTests
         using (EnvironmentVariableScope.Create(environment))
         {
             var resource = ResourceBuilder.CreateEmpty().AddAzureAppServiceDetector().Build();
+
             Assert.NotNull(resource);
+            Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
 
             var expectedResourceUri = "/subscriptions/testtestSubscriptionId/resourceGroups/testResourceGroup/providers/Microsoft.Web/sites/sitename";
             Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudResourceId, expectedResourceUri), resource.Attributes);
@@ -63,7 +65,9 @@ public class AzureResourceDetectorTests
         };
 
         var resource = ResourceBuilder.CreateEmpty().AddAzureVMDetector().Build();
+
         Assert.NotNull(resource);
+        Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
 
         foreach (var field in AzureVMResourceDetector.ExpectedAzureAmsFields)
         {
@@ -94,7 +98,9 @@ public class AzureResourceDetectorTests
         using (EnvironmentVariableScope.Create(environment))
         {
             var resource = ResourceBuilder.CreateEmpty().AddAzureContainerAppsDetector().Build();
+
             Assert.NotNull(resource);
+            Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
 
             Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "containerAppName"), resource.Attributes);
 
@@ -120,7 +126,9 @@ public class AzureResourceDetectorTests
         using (EnvironmentVariableScope.Create(environment))
         {
             var resource = ResourceBuilder.CreateEmpty().AddAzureContainerAppsDetector().Build();
+
             Assert.NotNull(resource);
+            Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
 
             Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "containerAppJobName"), resource.Attributes);
 
@@ -148,6 +156,7 @@ public class AzureResourceDetectorTests
                 .Build();
 
             Assert.NotNull(resource);
+            Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
 
             // Detector is applied after AddAttributes, so detector value wins.
             Assert.Contains(
@@ -176,6 +185,7 @@ public class AzureResourceDetectorTests
                 .Build();
 
             Assert.NotNull(resource);
+            Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
 
             // AddAttributes is applied after the detector, so the custom value wins.
             Assert.Contains(

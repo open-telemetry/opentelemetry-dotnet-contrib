@@ -54,7 +54,9 @@ internal sealed class AzureVMResourceDetector : IResourceDetector
                 attributeList.Add(new KeyValuePair<string, object>(field, vmMetaDataResponse.GetValueForField(field)));
             }
 
-            vmResource = new Resource(attributeList);
+            vmResource = new Resource(
+                attributeList,
+                Internal.SchemaUrls.Get(AzureResourceBuilderExtensions.SemanticConventionsVersion));
         }
         catch
         {

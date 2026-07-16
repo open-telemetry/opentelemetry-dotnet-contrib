@@ -11,6 +11,8 @@ namespace OpenTelemetry.Resources.Process;
 /// </summary>
 internal sealed class ProcessDetector : IResourceDetector
 {
+    private static readonly Version SemanticConventionsVersion = new(1, 43, 0);
+
     /// <summary>
     ///     Detects the resource attributes for process.
     /// </summary>
@@ -32,7 +34,7 @@ internal sealed class ProcessDetector : IResourceDetector
             attributes.Add(new(ProcessSemanticConventions.AttributeProcessCreationTime, startTime.ToString("O", CultureInfo.InvariantCulture)));
         }
 
-        return new Resource(attributes);
+        return new Resource(attributes, Internal.SchemaUrls.Get(SemanticConventionsVersion));
 
         static void GetProcessAttributes(
             out int processId,

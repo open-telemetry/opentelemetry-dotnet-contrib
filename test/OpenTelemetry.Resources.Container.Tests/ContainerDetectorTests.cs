@@ -97,9 +97,13 @@ public class ContainerDetectorTests
         {
             using var tempFile = new TempFile();
             tempFile.Write(testCase.Line);
-            Assert.Equal(
-                testCase.ExpectedContainerId,
-                GetContainerId(containerDetector.BuildResource(tempFile.FilePath, testCase.CgroupVersion)));
+
+            var resource = containerDetector.BuildResource(tempFile.FilePath, testCase.CgroupVersion);
+
+            Assert.NotNull(resource);
+            Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
+
+            Assert.Equal(testCase.ExpectedContainerId, GetContainerId(resource));
         }
     }
 
