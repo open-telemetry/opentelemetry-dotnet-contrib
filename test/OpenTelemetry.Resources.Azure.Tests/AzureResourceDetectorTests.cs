@@ -83,6 +83,16 @@ public class AzureResourceDetectorTests
         }
     }
 
+    [Theory]
+    [InlineData("Linux", "linux")]
+    [InlineData("Windows", "windows")]
+    public void AzureVmResourceDetectorNormalizesOsTypeToLowercase(string osType, string expected)
+    {
+        var response = new AzureVmMetadataResponse() { OsType = osType };
+
+        Assert.Equal(expected, response.GetValueForField(ResourceSemanticConventions.AttributeOsType));
+    }
+
     [Fact]
     public void AzureContainerAppsResourceDetectorReturnsResourceWithAttributes()
     {
