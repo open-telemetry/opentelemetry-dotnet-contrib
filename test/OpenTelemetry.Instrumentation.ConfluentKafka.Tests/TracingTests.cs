@@ -202,7 +202,7 @@ public class TracingTests(KafkaFixture fixture)
         // The cluster ID is fetched in the background and is not awaited on the consume path,
         // so it may not have completed by the time this (first) span is created.
         var clusterId = activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaClusterId) as string;
-        Assert.True(clusterId is null || clusterId.Length > 0);
+        Assert.True(clusterId is null || clusterId.Length > 0, $"Expected the cluster ID tag to be absent or non-empty, but got '{clusterId}'.");
     }
 
     [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
