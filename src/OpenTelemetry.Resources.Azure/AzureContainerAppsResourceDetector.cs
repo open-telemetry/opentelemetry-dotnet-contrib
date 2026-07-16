@@ -12,14 +12,14 @@ internal sealed class AzureContainerAppsResourceDetector : IResourceDetector
 {
     internal static readonly IReadOnlyDictionary<string, string> AzureContainerAppResourceAttributes = new Dictionary<string, string>
     {
-        { ResourceSemanticConventions.AttributeServiceInstance, ResourceAttributeConstants.AzureContainerAppsReplicaNameEnvVar },
-        { ResourceSemanticConventions.AttributeServiceVersion, ResourceAttributeConstants.AzureContainerAppsRevisionEnvVar },
+        [ResourceSemanticConventions.AttributeServiceInstance] = ResourceAttributeConstants.AzureContainerAppsReplicaNameEnvVar,
+        [ResourceSemanticConventions.AttributeServiceVersion] = ResourceAttributeConstants.AzureContainerAppsRevisionEnvVar,
     };
 
     internal static readonly IReadOnlyDictionary<string, string> AzureContainerAppJobResourceAttributes = new Dictionary<string, string>
     {
-        { ResourceSemanticConventions.AttributeServiceInstance, ResourceAttributeConstants.AzureContainerAppsReplicaNameEnvVar },
-        { ResourceSemanticConventions.AttributeServiceVersion, ResourceAttributeConstants.AzureContainerAppJobExecutionNameEnvVar },
+        [ResourceSemanticConventions.AttributeServiceInstance] = ResourceAttributeConstants.AzureContainerAppsReplicaNameEnvVar,
+        [ResourceSemanticConventions.AttributeServiceVersion] = ResourceAttributeConstants.AzureContainerAppJobExecutionNameEnvVar,
     };
 
     /// <inheritdoc/>

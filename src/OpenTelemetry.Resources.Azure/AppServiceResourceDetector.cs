@@ -12,11 +12,11 @@ internal sealed class AppServiceResourceDetector : IResourceDetector
 {
     internal static readonly IReadOnlyDictionary<string, string> AppServiceResourceAttributes = new Dictionary<string, string>
     {
-        { ResourceSemanticConventions.AttributeCloudRegion, ResourceAttributeConstants.AppServiceRegionNameEnvVar },
-        { ResourceSemanticConventions.AttributeDeploymentEnvironmentName, ResourceAttributeConstants.AppServiceSlotNameEnvVar },
-        { ResourceSemanticConventions.AttributeHostId, ResourceAttributeConstants.AppServiceHostNameEnvVar },
-        { ResourceSemanticConventions.AttributeServiceInstance, ResourceAttributeConstants.AppServiceInstanceIdEnvVar },
-        { ResourceAttributeConstants.AzureAppServiceStamp, ResourceAttributeConstants.AppServiceStampNameEnvVar },
+        [ResourceSemanticConventions.AttributeCloudRegion] = ResourceAttributeConstants.AppServiceRegionNameEnvVar,
+        [ResourceSemanticConventions.AttributeDeploymentEnvironmentName] = ResourceAttributeConstants.AppServiceSlotNameEnvVar,
+        [ResourceSemanticConventions.AttributeHostId] = ResourceAttributeConstants.AppServiceHostNameEnvVar,
+        [ResourceSemanticConventions.AttributeServiceInstance] = ResourceAttributeConstants.AppServiceInstanceIdEnvVar,
+        [ResourceAttributeConstants.AzureAppServiceStamp] = ResourceAttributeConstants.AppServiceStampNameEnvVar,
     };
 
     /// <inheritdoc/>
@@ -67,11 +67,11 @@ internal sealed class AppServiceResourceDetector : IResourceDetector
         var websiteOwnerName = Environment.GetEnvironmentVariable(ResourceAttributeConstants.AppServiceOwnerNameEnvVar) ?? string.Empty;
 
 #if NET
-        var idx = websiteOwnerName.IndexOf('+', StringComparison.Ordinal);
+        var index = websiteOwnerName.IndexOf('+', StringComparison.Ordinal);
 #else
-        var idx = websiteOwnerName.IndexOf("+", StringComparison.Ordinal);
+        var index = websiteOwnerName.IndexOf("+", StringComparison.Ordinal);
 #endif
-        var subscriptionId = idx > 0 ? websiteOwnerName.Substring(0, idx) : websiteOwnerName;
+        var subscriptionId = index > 0 ? websiteOwnerName.Substring(0, index) : websiteOwnerName;
 
         return string.IsNullOrEmpty(websiteResourceGroup) || string.IsNullOrEmpty(subscriptionId)
             ? null
