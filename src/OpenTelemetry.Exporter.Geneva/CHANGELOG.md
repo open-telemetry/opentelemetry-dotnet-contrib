@@ -2,13 +2,13 @@
 
 ## Unreleased
 
-* Updated ETW manifest and payload in `EtwDataTransport`
-  Added synthetic `byte[] field` to method signature and `int size` to payload so
-  that runtime-generated .Net ETW manifest matches actual payload
-  ([#4729](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4729)
-
 * Updated OpenTelemetry core component version(s) to `1.17.0`.
   ([#4773](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4773))
+
+* Updated ETW manifest and payload in `EtwDataTransport`
+  with synthetic payload so that the runtime-generated .NET
+  ETW manifest matches the actual payload.
+  ([#4729](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4729)
 
 ## 1.16.0
 
