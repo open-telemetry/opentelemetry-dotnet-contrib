@@ -2,8 +2,17 @@
 
 ## Unreleased
 
+## 1.17.0
+
+Released 2026-Jul-17
+
 * Updated OpenTelemetry core component version(s) to `1.17.0`.
   ([#4773](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4773))
+
+* Updated ETW manifest and payload in `EtwDataTransport`
+  with synthetic payload so that the runtime-generated .NET
+  ETW manifest matches the actual payload.
+  ([#4729](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4729)
 
 ## 1.16.0
 
