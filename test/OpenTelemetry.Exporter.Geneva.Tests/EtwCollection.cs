@@ -13,5 +13,5 @@ namespace OpenTelemetry.Exporter.Geneva.Tests;
 public sealed class EtwCollection
 #pragma warning restore CA1711 // Identifiers should not have incorrect suffix
 {
-    public const string Name = "Etw collection";
+    public const string Name = "ETW collection";
 }
