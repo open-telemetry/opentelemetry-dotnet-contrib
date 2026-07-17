@@ -37,21 +37,20 @@ internal sealed class AzureVMResourceDetector : IResourceDetector
                 return vmResource;
             }
 
-            // Prevents the http operations from being instrumented.
+            // Prevents the HTTP operations from being instrumented.
             using var scope = SuppressInstrumentationScope.Begin();
 
             var vmMetaDataResponse = AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse();
             if (vmMetaDataResponse == null)
             {
                 vmResource = Resource.Empty;
-
                 return vmResource;
             }
 
             var attributeList = new List<KeyValuePair<string, object>>(ExpectedAzureAmsFields.Count);
             foreach (var field in ExpectedAzureAmsFields)
             {
-                attributeList.Add(new KeyValuePair<string, object>(field, vmMetaDataResponse.GetValueForField(field)));
+                attributeList.Add(new(field, vmMetaDataResponse.GetValueForField(field)));
             }
 
             vmResource = new Resource(

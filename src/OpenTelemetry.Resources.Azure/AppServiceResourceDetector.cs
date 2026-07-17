@@ -22,22 +22,23 @@ internal sealed class AppServiceResourceDetector : IResourceDetector
     /// <inheritdoc/>
     public Resource Detect()
     {
-        List<KeyValuePair<string, object>> attributeList = [];
-
         try
         {
             var websiteSiteName = Environment.GetEnvironmentVariable(ResourceAttributeConstants.AppServiceSiteNameEnvVar);
 
             if (websiteSiteName != null)
             {
-                attributeList.Add(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, websiteSiteName));
-                attributeList.Add(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudProvider, ResourceAttributeConstants.AzureCloudProviderValue));
-                attributeList.Add(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudPlatform, ResourceAttributeConstants.AzureAppServicePlatformValue));
+                var attributeList = new List<KeyValuePair<string, object>>
+                {
+                    new(ResourceSemanticConventions.AttributeServiceName, websiteSiteName),
+                    new(ResourceSemanticConventions.AttributeCloudProvider, ResourceAttributeConstants.AzureCloudProviderValue),
+                    new(ResourceSemanticConventions.AttributeCloudPlatform, ResourceAttributeConstants.AzureAppServicePlatformValue),
+                };
 
                 var azureResourceUri = GetAzureResourceURI(websiteSiteName);
                 if (azureResourceUri != null)
                 {
-                    attributeList.Add(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudResourceId, azureResourceUri));
+                    attributeList.Add(new(ResourceSemanticConventions.AttributeCloudResourceId, azureResourceUri));
                 }
 
                 foreach (var kvp in AppServiceResourceAttributes)
@@ -45,20 +46,21 @@ internal sealed class AppServiceResourceDetector : IResourceDetector
                     var attributeValue = Environment.GetEnvironmentVariable(kvp.Value);
                     if (attributeValue != null)
                     {
-                        attributeList.Add(new KeyValuePair<string, object>(kvp.Key, attributeValue));
+                        attributeList.Add(new(kvp.Key, attributeValue));
                     }
                 }
+
+                return new Resource(
+                    attributeList,
+                    Internal.SchemaUrls.Get(AzureResourceBuilderExtensions.SemanticConventionsVersion));
             }
         }
         catch
         {
             // TODO: log exception.
-            return Resource.Empty;
         }
 
-        return new Resource(
-            attributeList,
-            Internal.SchemaUrls.Get(AzureResourceBuilderExtensions.SemanticConventionsVersion));
+        return Resource.Empty;
     }
 
     private static string? GetAzureResourceURI(string websiteSiteName)
