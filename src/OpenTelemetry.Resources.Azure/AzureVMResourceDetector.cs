@@ -57,9 +57,9 @@ internal sealed class AzureVMResourceDetector : IResourceDetector
                 attributeList,
                 Internal.SchemaUrls.Get(AzureResourceBuilderExtensions.SemanticConventionsVersion));
         }
-        catch
+        catch (Exception ex)
         {
-            // TODO: log exception.
+            AzureResourcesEventSource.Log.FailedToDetectAzureVMResources(ex);
             vmResource = Resource.Empty;
         }
 

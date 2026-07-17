@@ -47,9 +47,9 @@ internal sealed class AzureContainerAppsResourceDetector : IResourceDetector
                 attributeList,
                 Internal.SchemaUrls.Get(AzureResourceBuilderExtensions.SemanticConventionsVersion));
         }
-        catch
+        catch (Exception ex)
         {
-            // TODO: log exception.
+            AzureResourcesEventSource.Log.FailedToDetectAzureContainerAppResources(ex);
             return Resource.Empty;
         }
     }

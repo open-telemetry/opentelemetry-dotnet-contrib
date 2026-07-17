@@ -55,9 +55,9 @@ internal sealed class AppServiceResourceDetector : IResourceDetector
                     Internal.SchemaUrls.Get(AzureResourceBuilderExtensions.SemanticConventionsVersion));
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // TODO: log exception.
+            AzureResourcesEventSource.Log.FailedToDetectAppServiceResources(ex);
         }
 
         return Resource.Empty;
