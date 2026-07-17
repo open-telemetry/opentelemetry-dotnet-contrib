@@ -4,7 +4,9 @@
 #if !NETFRAMEWORK
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+#if !NET11_0_OR_GREATER
 using System.Text;
+#endif
 #endif
 using Microsoft.Win32;
 using OpenTelemetry.Internal;
