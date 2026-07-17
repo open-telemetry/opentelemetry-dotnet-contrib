@@ -45,6 +45,8 @@ public class AzureResourceDetectorTests
     [Fact]
     public async Task AzureVMResourceDetectorDoesNotThrow()
     {
+        AzureVMResourceDetector.ClearCachedResource();
+
         var resource = ResourceBuilder.CreateEmpty()
             .AddAzureVMDetector()
             .Build();
@@ -61,8 +63,6 @@ public class AzureResourceDetectorTests
             Assert.Null(resource.SchemaUrl);
             Assert.Empty(resource.Attributes);
         }
-
-        AzureVMResourceDetector.ClearCachedResource();
     }
 
     [Fact]
@@ -132,6 +132,8 @@ public class AzureResourceDetectorTests
                 VmScaleSetName = ResourceAttributeConstants.AzureVmScaleSetName,
             };
         };
+
+        AzureVMResourceDetector.ClearCachedResource();
 
         var resource = ResourceBuilder.CreateEmpty().AddAzureVMDetector().Build();
 
