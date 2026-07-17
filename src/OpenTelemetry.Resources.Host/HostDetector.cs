@@ -184,6 +184,7 @@ internal sealed class HostDetector : IResourceDetector
     {
         try
         {
+            var timeoutMilliseconds = 5_000;
             var startInfo = new ProcessStartInfo
             {
                 FileName = "/usr/sbin/ioreg",
@@ -194,11 +195,22 @@ internal sealed class HostDetector : IResourceDetector
                 RedirectStandardError = true,
             };
 
+#if NET11_0_OR_GREATER
+            var result = Process.RunAndCaptureText(startInfo, TimeSpan.FromMilliseconds(timeoutMilliseconds));
+
+            if (!string.IsNullOrEmpty(result.StandardError) || result.ExitStatus.Canceled || result.ExitStatus.ExitCode != 0)
+            {
+                HostResourceEventSource.Log.FailedToExtractResourceAttributes(nameof(HostDetector), result.StandardError);
+                return null;
+            }
+
+            return result.StandardOutput;
+#else
             var sb = new StringBuilder();
             using var process = Process.Start(startInfo);
             if (process != null)
             {
-                var isExited = process.WaitForExit(5000);
+                var isExited = process.WaitForExit(timeoutMilliseconds);
                 if (isExited)
                 {
                     var output = process.StandardOutput.ReadToEnd();
@@ -221,6 +233,7 @@ internal sealed class HostDetector : IResourceDetector
             }
 
             return null;
+#endif
         }
         catch (Exception ex)
         {
