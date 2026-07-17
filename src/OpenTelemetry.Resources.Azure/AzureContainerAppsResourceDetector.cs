@@ -43,9 +43,11 @@ internal sealed class AzureContainerAppsResourceDetector : IResourceDetector
                 AddResourceAttributes(attributeList, AzureContainerAppJobResourceAttributes);
             }
 
-            return new Resource(
-                attributeList,
-                Internal.SchemaUrls.Get(AzureResourceBuilderExtensions.SemanticConventionsVersion));
+            return attributeList.Count == 0
+                ? Resource.Empty
+                : new Resource(
+                    attributeList,
+                    Internal.SchemaUrls.Get(AzureResourceBuilderExtensions.SemanticConventionsVersion));
         }
         catch (Exception ex)
         {

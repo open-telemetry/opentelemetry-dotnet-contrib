@@ -36,11 +36,15 @@ public class AWSEC2DetectorTests
                 SemanticConventionVersion.Latest));
 
         var resource = awsEC2Detector.Detect();
+
+        Assert.NotNull(resource);
+
         var attributes = resource.Attributes;
 
         if (!await IsRunningOnEC2())
         {
-            Assert.Empty(attributes); // Will be null as it's not in EC2 environment
+            Assert.Empty(attributes); // Will be empty as it's not in EC2 environment
+            Assert.Null(resource.SchemaUrl);
         }
         else
         {

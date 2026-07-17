@@ -27,10 +27,11 @@ public class AWSECSDetectorTests
             new OpenTelemetry.AWS.AWSSemanticConventions(
                 SemanticConventionVersion.Latest));
 
-        var resourceAttributes = ecsResourceDetector.Detect();
+        var resource = ecsResourceDetector.Detect();
 
-        Assert.NotNull(resourceAttributes);
-        Assert.Empty(resourceAttributes.Attributes);
+        Assert.NotNull(resource);
+        Assert.Null(resource.SchemaUrl);
+        Assert.Empty(resource.Attributes);
     }
 
     [Fact]
