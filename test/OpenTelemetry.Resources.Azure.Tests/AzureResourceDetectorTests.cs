@@ -1,12 +1,32 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if NETFRAMEWORK
+using System.Net.Http;
+#endif
+
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Resources.Azure.Tests;
 
 public class AzureResourceDetectorTests
 {
+    private const string AzureVmMetadataEndpointUri = "http://169.254.169.254/metadata/instance/compute";
+    private static readonly HttpClient HttpClient = new() { Timeout = TimeSpan.FromSeconds(3) };
+
+    public static async Task<bool> IsRunningOnAzureVMAsync()
+    {
+        try
+        {
+            var instanceId = await HttpClient.GetStringAsync(new Uri(AzureVmMetadataEndpointUri));
+            return !string.IsNullOrEmpty(instanceId);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     [Fact]
     public void AppServiceResourceDetectorHandlesFailure()
     {
@@ -19,8 +39,14 @@ public class AzureResourceDetectorTests
     }
 
     [Fact]
-    public void AzureVMResourceDetectorHandlesFailure()
+    public async Task AzureVMResourceDetectorHandlesFailure()
     {
+        if (await IsRunningOnAzureVMAsync())
+        {
+            // Skip if running in an actual Azure VM environment
+            return;
+        }
+
         var resource = ResourceBuilder.CreateEmpty()
             .AddAzureVMDetector()
             .Build();
