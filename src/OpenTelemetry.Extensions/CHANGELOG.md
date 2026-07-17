@@ -8,6 +8,13 @@
   specification.
   ([#4629](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4629))
 
+## 1.17.0-beta.1
+
+Released 2026-Jul-17
+
+* Updated OpenTelemetry core component version(s) to `1.17.0`.
+  ([#4773](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4773))
+
 ## 1.16.0-beta.1
 
 Released 2026-Jul-09
