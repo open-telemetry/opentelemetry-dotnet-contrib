@@ -39,20 +39,24 @@ public class AzureResourceDetectorTests
     }
 
     [Fact]
-    public async Task AzureVMResourceDetectorHandlesFailure()
+    public async Task AzureVMResourceDetectorDoesNotThrow()
     {
-        if (await IsRunningOnAzureVMAsync())
-        {
-            // Skip if running in an actual Azure VM environment
-            return;
-        }
-
         var resource = ResourceBuilder.CreateEmpty()
             .AddAzureVMDetector()
             .Build();
 
         Assert.NotNull(resource);
-        Assert.Null(resource.SchemaUrl);
+
+        if (await IsRunningOnAzureVMAsync())
+        {
+            Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
+            Assert.NotEmpty(resource.Attributes);
+        }
+        else
+        {
+            Assert.Null(resource.SchemaUrl);
+            Assert.Empty(resource.Attributes);
+        }
 
         AzureVMResourceDetector.ClearCachedResource();
     }
