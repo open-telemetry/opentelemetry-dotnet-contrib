@@ -2,7 +2,7 @@
 
 | Status | |
 | ------ | --- |
-| Stability | [Beta](../../README.md#beta) |
+| Stability | [Release candidate](../../README.md#release-candidate) |
 | Code Owners | [@Yun-Ting](https://github.com/Yun-Ting) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Process)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Process)
@@ -16,7 +16,7 @@ telemetry about process behavior.
 
 The process metric instruments being implemented are following OpenTelemetry
 [metrics semantic
-conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/system/process-metrics.md).
+conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.43.0/docs/system/process-metrics.md).
 
 ## Steps to enable OpenTelemetry.Instrumentation.Process
 

@@ -2,8 +2,23 @@
 
 ## Unreleased
 
+## 1.17.0-beta.1
+
+Released 2026-Jul-17
+
+* Updated OpenTelemetry core component version(s) to `1.17.0`.
+  ([#4773](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4773))
+
+## 1.16.0-beta.2
+
+Released 2026-Jul-13
+
 * Assemblies are now digitally signed using cosign.
   ([#4637](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4637))
+
+* Fixed `NullReferenceException` in the metrics filter when a job's definition
+  cannot be resolved.
+  ([#4731](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4731))
 
 ## 1.16.0-beta.1
 

@@ -31,9 +31,9 @@ Describe "ResolveProject" {
             -project ([ref]$project) `
             -component ([ref]$component)
 
-        $title | Should -Be "OpenTelemetry.Contrib.proj"
-        $project | Should -Be "./build/Projects/OpenTelemetry.Contrib.proj"
-        $component | Should -BeNullOrEmpty -Because "a named project is not a component build"
+        $title | Should-Be "OpenTelemetry.Contrib.proj"
+        $project | Should-Be "./build/Projects/OpenTelemetry.Contrib.proj"
+        $component | Should-BeNull -Because "a named project is not a component build"
     }
 
     It "resolves a Component[...] value to the shared component build project" {
@@ -47,9 +47,9 @@ Describe "ResolveProject" {
             -project ([ref]$project) `
             -component ([ref]$component)
 
-        $component | Should -Be "OpenTelemetry.Instrumentation.Foo"
-        $title | Should -Be "Component.proj for OpenTelemetry.Instrumentation.Foo"
-        $project | Should -Be "./build/Projects/Component.proj"
+        $component | Should-Be "OpenTelemetry.Instrumentation.Foo"
+        $title | Should-Be "Component.proj for OpenTelemetry.Instrumentation.Foo"
+        $project | Should-Be "./build/Projects/Component.proj"
     }
 }
 
@@ -62,8 +62,8 @@ Describe "ResolveProjectForTag" {
 
         ResolveProjectForTag -tag "" -title ([ref]$title) -project ([ref]$project) -component ([ref]$component)
 
-        $title | Should -Be "opentelemetry-dotnet-contrib.proj"
-        $project | Should -Be "opentelemetry-dotnet-contrib.proj"
+        $title | Should-Be "opentelemetry-dotnet-contrib.proj"
+        $project | Should-Be "opentelemetry-dotnet-contrib.proj"
     }
 
     It "resolves a tag to a matching build project file" {
@@ -86,8 +86,8 @@ Describe "ResolveProjectForTag" {
             Pop-Location
         }
 
-        $title | Should -Be "Foo.proj"
-        $project | Should -Be "./build/Projects/Foo.proj"
+        $title | Should-Be "Foo.proj"
+        $project | Should-Be "./build/Projects/Foo.proj"
     }
 
     It "falls back to the shared component build for a matching csproj" {
@@ -114,9 +114,9 @@ Describe "ResolveProjectForTag" {
             Pop-Location
         }
 
-        $component | Should -Be "OpenTelemetry.Instrumentation.Foo"
-        $title | Should -Be "Component.proj for OpenTelemetry.Instrumentation.Foo"
-        $projectPath | Should -Be "./build/Projects/Component.proj"
+        $component | Should-Be "OpenTelemetry.Instrumentation.Foo"
+        $title | Should-Be "Component.proj for OpenTelemetry.Instrumentation.Foo"
+        $projectPath | Should-Be "./build/Projects/Component.proj"
     }
 
     It "throws when the tag cannot be parsed" {
@@ -125,7 +125,7 @@ Describe "ResolveProjectForTag" {
         $component = $null
 
         { ResolveProjectForTag -tag "notag" -title ([ref]$title) -project ([ref]$project) -component ([ref]$component) } |
-            Should -Throw "*Could not parse prefix or version from tag*"
+            Should-Throw -ExceptionMessage "*Could not parse prefix or version from tag*"
     }
 
     It "throws when no project matches the tag prefix" {
@@ -145,7 +145,7 @@ Describe "ResolveProjectForTag" {
         Push-Location -Path $work -ErrorAction Stop
         try {
             { ResolveProjectForTag -tag "missing-1.0.0" -title ([ref]$title) -project ([ref]$projectPath) -component ([ref]$component) } |
-                Should -Throw "*No project file found matching tag prefix*"
+                Should-Throw -ExceptionMessage "*No project file found matching tag prefix*"
         }
         finally {
             Pop-Location
@@ -190,11 +190,11 @@ components:
         # If the [void] cast on $componentOwners.Value.Add(...) is ever removed
         # the boolean results of Add() leak into the output stream and the
         # function returns more than the single expected $true value.
-        @($result).Count | Should -Be 1 -Because "the boolean from HashSet.Add must not leak into the output"
-        $result | Should -BeTrue
+        @($result).Count | Should-Be 1 -Because "the boolean from HashSet.Add must not leak into the output"
+        $result | Should-BeTrue
 
-        $componentOwners.Contains("owner1") | Should -BeTrue
-        $componentOwners.Contains("owner2") | Should -BeTrue
+        $componentOwners.Contains("owner1") | Should-BeTrue
+        $componentOwners.Contains("owner2") | Should-BeTrue
     }
 
     It "comments and returns false when the component project file is missing" {
@@ -216,7 +216,7 @@ components:
             Pop-Location
         }
 
-        $result | Should -BeFalse
+        $result | Should-BeFalse
         Should -Invoke -CommandName "gh" -ModuleName "build" -Exactly -Times 1 -ParameterFilter {
             $args -contains "issue" -and $args -contains "comment"
         } -Because "the requester should be told the component project could not be found"
@@ -246,6 +246,6 @@ components:
             Pop-Location
         }
 
-        $result | Should -BeFalse
+        $result | Should-BeFalse
     }
 }

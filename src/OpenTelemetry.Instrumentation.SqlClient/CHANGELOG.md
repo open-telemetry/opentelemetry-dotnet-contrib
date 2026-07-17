@@ -2,9 +2,6 @@
 
 ## Unreleased
 
-* Assemblies are now digitally signed using cosign.
-  ([#4637](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4637))
-
 * Updated Semantic Conventions version to
   [v1.43.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.43.0/docs/database/sql-server.md).
   ([#4625](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4625))
@@ -14,6 +11,16 @@
   variable is set to `true`. The value is derived from the SqlClient connection
   statistics. Not supported on .NET Framework.
   ([#4625](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4625))
+
+## 1.17.0
+
+Released 2026-Jul-17
+
+* Assemblies are now digitally signed using cosign.
+  ([#4637](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4637))
+
+* Updated OpenTelemetry core component version(s) to `1.17.0`.
+  ([#4773](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4773))
 
 ## 1.16.0
 

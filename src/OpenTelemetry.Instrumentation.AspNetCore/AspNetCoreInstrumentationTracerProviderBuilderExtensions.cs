@@ -130,9 +130,10 @@ public static class AspNetCoreInstrumentationTracerProviderBuilderExtensions
         }
 
         var options = serviceProvider?.GetRequiredService<IOptionsMonitor<AspNetCoreTraceInstrumentationOptions>>().Get(optionsName);
+        var version = Environment.Version;
 
         // SignalR activities first added in .NET 9.0
-        if (Environment.Version.Major >= 9)
+        if (version.Major >= 9)
         {
             if (options is null || options.EnableAspNetCoreSignalRSupport)
             {
@@ -142,7 +143,7 @@ public static class AspNetCoreInstrumentationTracerProviderBuilderExtensions
         }
 
         // Blazor activities first added in .NET 10.0
-        if (Environment.Version.Major >= 10)
+        if (version.Major >= 10)
         {
             if (options is null || options.EnableRazorComponentsSupport)
             {

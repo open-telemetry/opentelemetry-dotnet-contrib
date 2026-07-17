@@ -22,6 +22,6 @@ public class KustoMeterProviderBuilderTests
     {
         MeterProviderBuilder builder = null!;
 
-        Assert.Throws<ArgumentNullException>(() => builder.AddKustoInstrumentation());
+        Assert.Throws<ArgumentNullException>(builder.AddKustoInstrumentation);
     }
 }

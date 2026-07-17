@@ -128,6 +128,47 @@ internal sealed class FrameDispatcher : IDisposable
         }
     }
 
+    public async Task DispatchFullStateReportAsync(FullStateReport report, CancellationToken token)
+    {
+        await this.DispatchFrameAsync(
+            BuildFullStateReportMessage,
+            OpAmpClientEventSource.Log.SendingFullStateReportMessage,
+            OpAmpClientEventSource.Log.SendFullStateReportMessageException,
+            token).ConfigureAwait(false);
+
+        AgentToServer BuildFullStateReportMessage(FrameBuilder fb)
+        {
+            // Start message with basic partials.
+            var message = fb.StartBaseMessage()
+                .AddAgentDescription()
+                .AddCapabilities();
+
+            // TODO: Add here features when they become available and are necessary to restore the full state in the server if requested.
+            // See https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/4634
+            if (report.EffectiveConfigFiles is { } effectiveConfig)
+            {
+                message.AddEffectiveConfig(effectiveConfig);
+            }
+
+            if (report.RemoteConfigStatus is { } remoteConfigStatus)
+            {
+                message.AddRemoteConfigStatus(remoteConfigStatus);
+            }
+
+            if (report.CustomCapabilities is { } customCapabilities)
+            {
+                message.AddCustomCapabilities(customCapabilities);
+            }
+
+            if (report.HealthReport is { } healthReport)
+            {
+                message.AddHealth(healthReport);
+            }
+
+            return message.Build();
+        }
+    }
+
     public void Dispose() => this.syncRoot.Dispose();
 
     private async Task DispatchFrameAsync(

@@ -100,7 +100,7 @@ Released 2024-01-01
 
     It "throws when the tag cannot be parsed" {
         { CreateRelease -gitRepository "open-telemetry/opentelemetry-dotnet-contrib" -tag "noprefix" 6>$null } |
-            Should -Throw "*Could not parse prefix or version from tag*" -Because "a tag without a prefix cannot be parsed"
+            Should-Throw -ExceptionMessage "*Could not parse prefix or version from tag*" -Because "a tag without a prefix cannot be parsed"
     }
 }
 
@@ -114,12 +114,14 @@ Describe "TryPostPackagesReadyNoticeOnPrepareReleasePullRequest" {
             return $null
         }
 
-        TryPostPackagesReadyNoticeOnPrepareReleasePullRequest `
+        $result = TryPostPackagesReadyNoticeOnPrepareReleasePullRequest `
             -gitRepository "open-telemetry/opentelemetry-dotnet-contrib" `
             -tag "foo-1.9.0" `
             -tagSha "abc123" `
             -packagesUrl "https://example.com/packages" `
             -expectedPrAuthorUserName "otelbot" 6>$null
+
+        $result | Should-Be 42 -Because "the number of the pull request the notice was posted on should be returned"
 
         Should -Invoke -CommandName "gh" -ModuleName "post-release" -Exactly -Times 1 -ParameterFilter {
             $args -contains "comment" -and (($args -join " ") -match "available on NuGet")
@@ -132,12 +134,14 @@ Describe "TryPostPackagesReadyNoticeOnPrepareReleasePullRequest" {
             return $null
         }
 
-        TryPostPackagesReadyNoticeOnPrepareReleasePullRequest `
+        $result = TryPostPackagesReadyNoticeOnPrepareReleasePullRequest `
             -gitRepository "open-telemetry/opentelemetry-dotnet-contrib" `
             -tag "foo-1.9.0" `
             -tagSha "abc123" `
             -packagesUrl "https://example.com/packages" `
             -expectedPrAuthorUserName "otelbot" 6>$null
+
+        $result | Should-BeNull -Because "no pull request number should be returned when no pull request matches the commit"
 
         Should -Invoke -CommandName "gh" -ModuleName "post-release" -Times 0 -ParameterFilter {
             $args -contains "comment"
@@ -152,12 +156,14 @@ Describe "TryPostPackagesReadyNoticeOnPrepareReleasePullRequest" {
             return $null
         }
 
-        TryPostPackagesReadyNoticeOnPrepareReleasePullRequest `
+        $result = TryPostPackagesReadyNoticeOnPrepareReleasePullRequest `
             -gitRepository "open-telemetry/opentelemetry-dotnet-contrib" `
             -tag "foo-1.9.0" `
             -tagSha "abc123" `
             -packagesUrl "https://example.com/packages" `
             -expectedPrAuthorUserName "otelbot" 6>$null
+
+        $result | Should-BeNull -Because "no pull request number should be returned when the matching pull request has no pushed-tag comment"
 
         Should -Invoke -CommandName "gh" -ModuleName "post-release" -Times 0 -ParameterFilter {
             $args -contains "comment"
@@ -192,7 +198,7 @@ Describe "CreatePackageValidationBaselineVersionUpdatePullRequest" {
         }
 
         (Get-Content -Path (Join-Path -Path $project -ChildPath "OpenTelemetry.Instrumentation.Foo.csproj") -Raw) |
-            Should -Match "<PackageValidationBaselineVersion>1\.2\.3</PackageValidationBaselineVersion>" -Because "the baseline version should be bumped to the released version"
+            Should-MatchString "<PackageValidationBaselineVersion>1\.2\.3</PackageValidationBaselineVersion>" -Because "the baseline version should be bumped to the released version"
 
         Should -Invoke -CommandName "gh" -ModuleName "post-release" -Exactly -Times 1 -ParameterFilter {
             $args -contains "pr" -and
@@ -264,7 +270,7 @@ Released 2024-01-01
         }
 
         (Get-Content -Path (Join-Path -Path $work -ChildPath "Directory.Packages.props") -Raw) |
-            Should -Match "<OpenTelemetryCoreLatestVersion>1\.2\.3</OpenTelemetryCoreLatestVersion>" -Because "the core version should be bumped in Directory.Packages.props"
+            Should-MatchString "<OpenTelemetryCoreLatestVersion>1\.2\.3</OpenTelemetryCoreLatestVersion>" -Because "the core version should be bumped in Directory.Packages.props"
 
         Should -Invoke -CommandName "gh" -ModuleName "post-release" -Exactly -Times 1 -ParameterFilter {
             $args -contains "pr" -and $args -contains "create" -and $args -contains "--label" -and $args -contains "release"
@@ -275,7 +281,7 @@ Released 2024-01-01
         } -Because "the update branch should contain the full core tag"
 
         (Get-Content -Path (Join-Path -Path $project -ChildPath "CHANGELOG.md") -Raw) |
-            Should -Match "Updated OpenTelemetry core component version\(s\) to ``1\.2\.3``" -Because "the CHANGELOG of an affected project should be updated"
+            Should-MatchString "Updated OpenTelemetry core component version\(s\) to ``1\.2\.3``" -Because "the CHANGELOG of an affected project should be updated"
     }
 
     It "updates the core unstable version for a coreunstable tag" {
@@ -308,7 +314,7 @@ Released 2024-01-01
         }
 
         (Get-Content -Path (Join-Path -Path $work -ChildPath "Directory.Packages.props") -Raw) |
-            Should -Match "<OpenTelemetryCoreUnstableLatestVersion>1\.1\.0-beta\.1</OpenTelemetryCoreUnstableLatestVersion>" -Because "the core unstable version should be bumped"
+            Should-MatchString "<OpenTelemetryCoreUnstableLatestVersion>1\.1\.0-beta\.1</OpenTelemetryCoreUnstableLatestVersion>" -Because "the core unstable version should be bumped"
 
         Should -Invoke -CommandName "gh" -ModuleName "post-release" -Exactly -Times 1 -ParameterFilter {
             $args -contains "pr" -and $args -contains "create" -and $args -contains "--label" -and $args -contains "release"
@@ -365,12 +371,12 @@ Describe "GetCoreDependenciesForProjects" {
             }
         }
 
-        @($result).Count | Should -Be 1 -Because "'dotnet restore' output must be piped to Out-Null so it does not leak into the return value"
-        $result | Should -BeOfType [hashtable] -Because "the function should return only the dependency map"
+        @($result).Count | Should-Be 1 -Because "'dotnet restore' output must be piped to Out-Null so it does not leak into the return value"
+        $result | Should-HaveType ([hashtable]) -Because "the function should return only the dependency map"
 
         $dependencies = $result.Values | Select-Object -First 1
-        $dependencies["OpenTelemetry"] | Should -Be "1.9.0" -Because "the version should be parsed from project.assets.json"
-        $dependencies.ContainsKey("Newtonsoft.Json") | Should -BeFalse -Because "only OpenTelemetry core packages should be tracked"
+        $dependencies["OpenTelemetry"] | Should-Be "1.9.0" -Because "the version should be parsed from project.assets.json"
+        $dependencies.ContainsKey("Newtonsoft.Json") | Should-BeFalse -Because "only OpenTelemetry core packages should be tracked"
     }
 }
 
@@ -406,6 +412,6 @@ Describe "UpdateCommonPropsVersion" {
         }
 
         (Get-Content -Path (Join-Path -Path $work -ChildPath "Directory.Packages.props") -Raw) |
-            Should -Match "<OpenTelemetryInstrumentationFooLatestStableVersion>1\.0\.0</OpenTelemetryInstrumentationFooLatestStableVersion>" -Because "the version should be updated in Directory.Packages.props"
+            Should-MatchString "<OpenTelemetryInstrumentationFooLatestStableVersion>1\.0\.0</OpenTelemetryInstrumentationFooLatestStableVersion>" -Because "the version should be updated in Directory.Packages.props"
     }
 }

@@ -23,16 +23,17 @@ internal sealed class ProcessRuntimeDetector : IResourceDetector
         string? netRuntimeVersion = null;
         string? netRuntimeName = null;
         var frameworkSet = false;
+        var version = Environment.Version;
 
 #if NETSTANDARD || NETFRAMEWORK
-        if (Environment.Version.Major == 4)
+        if (version.Major == 4)
         {
             var netFrameworkVersion = GetNetFrameworkVersionFromRegistry();
             netRuntimeName = ".NET Framework";
             if (netFrameworkVersion == null)
             {
                 var lastSpace = frameworkDescription.LastIndexOf(' ');
-                netRuntimeVersion = lastSpace > 0 ? frameworkDescription.Substring(lastSpace + 1) : Environment.Version.ToString();
+                netRuntimeVersion = lastSpace > 0 ? frameworkDescription.Substring(lastSpace + 1) : version.ToString();
             }
             else
             {
@@ -45,7 +46,7 @@ internal sealed class ProcessRuntimeDetector : IResourceDetector
 
         if (!frameworkSet)
         {
-            netRuntimeVersion = Environment.Version.ToString();
+            netRuntimeVersion = version.ToString();
             netRuntimeName = ".NET";
         }
 

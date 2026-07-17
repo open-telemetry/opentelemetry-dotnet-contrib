@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## 0.1.0-alpha.12
+
+Released 2026-Jul-17
+
+* Updated OpenTelemetry core component version(s) to `1.17.0`.
+  ([#4773](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4773))
+
+## 0.1.0-alpha.11
+
+Released 2026-Jul-08
+
 * Fixed a race condition where a concurrent rule poll could discard the sampling
   targets applied by a target poll (and vice versa), causing the sampler to
   briefly revert to stale sampling decisions.
