@@ -19,12 +19,12 @@ public class EtwDataTransportTests
 
         transport.Send(payload, payload.Length);
 
-        Assert.Single(listener.Events);
-        var theEvent = listener.Events[0];
-        Assert.NotNull(theEvent.Payload);
-        Assert.Single(theEvent.Payload);
+        var @event = Assert.Single(listener.Events);
 
-        var rawPayload = theEvent.Payload[0] as byte[];
+        Assert.NotNull(@event.Payload);
+        var eventPayload = Assert.Single(@event.Payload);
+
+        var rawPayload = eventPayload as byte[];
         Assert.NotNull(rawPayload);
         Assert.Equal(payload, rawPayload);
     }
@@ -51,7 +51,7 @@ public class EtwDataTransportTests
         /// <summary>
         /// Gets events emitted by ETW.
         /// </summary>
-        public List<EventWrittenEventArgs> Events { get; } = new();
+        public List<EventWrittenEventArgs> Events { get; } = [];
 
         /// <inheritdoc />
         protected override void OnEventSourceCreated(EventSource eventSource)
