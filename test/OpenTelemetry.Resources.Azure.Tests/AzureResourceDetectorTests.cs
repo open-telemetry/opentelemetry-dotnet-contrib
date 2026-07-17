@@ -8,6 +8,41 @@ namespace OpenTelemetry.Resources.Azure.Tests;
 public class AzureResourceDetectorTests
 {
     [Fact]
+    public void AppServiceResourceDetectorHandlesFailure()
+    {
+        var resource = ResourceBuilder.CreateEmpty()
+            .AddAzureAppServiceDetector()
+            .Build();
+
+        Assert.NotNull(resource);
+        Assert.Null(resource.SchemaUrl);
+    }
+
+    [Fact]
+    public void AzureVMResourceDetectorHandlesFailure()
+    {
+        var resource = ResourceBuilder.CreateEmpty()
+            .AddAzureVMDetector()
+            .Build();
+
+        Assert.NotNull(resource);
+        Assert.Null(resource.SchemaUrl);
+
+        AzureVMResourceDetector.ClearCachedResource();
+    }
+
+    [Fact]
+    public void AzureContainerAppsResourceDetectorHandlesFailure()
+    {
+        var resource = ResourceBuilder.CreateEmpty()
+            .AddAzureContainerAppsDetector()
+            .Build();
+
+        Assert.NotNull(resource);
+        Assert.Null(resource.SchemaUrl);
+    }
+
+    [Fact]
     public void AppServiceResourceDetectorReturnsResourceWithAttributes()
     {
         var environment = new Dictionary<string, string?>();

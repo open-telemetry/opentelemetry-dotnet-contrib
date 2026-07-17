@@ -9,6 +9,17 @@ namespace OpenTelemetry.Resources.Gcp.Tests;
 public class GcpResourceDetectorTests
 {
     [Fact]
+    public void GcpResourceDetectorHandlesFailure()
+    {
+        var resource = ResourceBuilder.CreateEmpty()
+            .AddGcpDetector()
+            .Build();
+
+        Assert.NotNull(resource);
+        Assert.Null(resource.SchemaUrl);
+    }
+
+    [Fact]
     public void TestExtractGkeResourceAttributes()
     {
         var details = new GkePlatformDetails(

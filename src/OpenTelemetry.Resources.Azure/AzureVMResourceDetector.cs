@@ -53,6 +53,12 @@ internal sealed class AzureVMResourceDetector : IResourceDetector
                 attributeList.Add(new(field, vmMetaDataResponse.GetValueForField(field)));
             }
 
+            if (attributeList.Count == 0)
+            {
+                vmResource = Resource.Empty;
+                return vmResource;
+            }
+
             vmResource = new Resource(
                 attributeList,
                 Internal.SchemaUrls.Get(AzureResourceBuilderExtensions.SemanticConventionsVersion));
@@ -65,4 +71,6 @@ internal sealed class AzureVMResourceDetector : IResourceDetector
 
         return vmResource;
     }
+
+    internal static void ClearCachedResource() => vmResource = null;
 }

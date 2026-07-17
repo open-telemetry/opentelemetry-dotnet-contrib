@@ -145,6 +145,17 @@ public class ContainerDetectorTests
         Assert.Equal(containerDetector.BuildResource(Path.GetTempPath(), ContainerDetector.ParseMode.V2), Resource.Empty);
     }
 
+    [Fact]
+    public void ContainerDetectorHandlesFailure()
+    {
+        var resource = ResourceBuilder.CreateEmpty()
+            .AddContainerDetector()
+            .Build();
+
+        Assert.NotNull(resource);
+        Assert.Null(resource.SchemaUrl);
+    }
+
     private static string GetContainerId(Resource resource)
     {
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
