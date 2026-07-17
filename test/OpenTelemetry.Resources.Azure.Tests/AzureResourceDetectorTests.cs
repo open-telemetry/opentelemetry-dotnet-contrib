@@ -11,15 +11,19 @@ namespace OpenTelemetry.Resources.Azure.Tests;
 
 public class AzureResourceDetectorTests
 {
-    private const string AzureVmMetadataEndpointUri = "http://169.254.169.254/metadata/instance/compute";
+    // See https://learn.microsoft.com/azure/virtual-machines/instance-metadata-service
+    private const string AzureVmMetadataEndpointUri = "http://169.254.169.254/metadata/instance?api-version=2025-04-07";
     private static readonly HttpClient HttpClient = new() { Timeout = TimeSpan.FromSeconds(3) };
 
     public static async Task<bool> IsRunningOnAzureVMAsync()
     {
         try
         {
-            var instanceId = await HttpClient.GetStringAsync(new Uri(AzureVmMetadataEndpointUri));
-            return !string.IsNullOrEmpty(instanceId);
+            using var request = new HttpRequestMessage(HttpMethod.Get, AzureVmMetadataEndpointUri);
+            request.Headers.Add("Metadata", "true");
+
+            using var response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+            return response.IsSuccessStatusCode;
         }
         catch
         {
