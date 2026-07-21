@@ -42,7 +42,7 @@ For HTTP triggered functions the request query string is supplied by the caller
 and may contain sensitive data. By default the query string values recorded in
 the `url.query` and `http.target` span attributes are redacted (replaced with
 `Redacted`), as specified by the
-[Semantic conventions for HTTP spans](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/http/http-spans.md).
+[Semantic conventions for HTTP spans](https://github.com/open-telemetry/semantic-conventions/blob/v1.40.0/docs/http/http-spans.md).
 To record the raw query string values instead, set the environment variable
 `OTEL_DOTNET_EXPERIMENTAL_AWS_LAMBDA_DISABLE_URL_QUERY_REDACTION` to `true`.
 
