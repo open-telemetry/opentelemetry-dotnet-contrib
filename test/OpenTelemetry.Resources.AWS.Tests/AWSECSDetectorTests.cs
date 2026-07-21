@@ -20,6 +20,18 @@ public class AWSECSDetectorTests
     private const string AWSECSMetadataURLKey = "ECS_CONTAINER_METADATA_URI";
     private const string AWSECSMetadataURLV4Key = "ECS_CONTAINER_METADATA_URI_V4";
 
+    public static TheoryData<SemanticConventionVersion> SemanticConventionVersions()
+    {
+        var data = new TheoryData<SemanticConventionVersion>();
+
+        foreach (var version in Enum.GetValues<SemanticConventionVersion>())
+        {
+            data.Add(version);
+        }
+
+        return data;
+    }
+
     [Fact]
     public void TestNotOnEcs()
     {
@@ -59,8 +71,9 @@ public class AWSECSDetectorTests
         }
     }
 
-    [Fact]
-    public async Task TestEcsMetadataV4Ec2()
+    [Theory]
+    [MemberData(nameof(SemanticConventionVersions))]
+    public async Task TestEcsMetadataV4Ec2(SemanticConventionVersion semanticConventionVersion)
     {
         var source = new CancellationTokenSource();
         var token = source.Token;
@@ -73,7 +86,7 @@ public class AWSECSDetectorTests
         {
             var ecsResourceDetector = new AWSECSDetector(
                 new OpenTelemetry.AWS.AWSSemanticConventions(
-                    SemanticConventionVersion.Latest));
+                    semanticConventionVersion));
 
             var resource = ecsResourceDetector.Detect();
 
@@ -108,8 +121,9 @@ public class AWSECSDetectorTests
         }
     }
 
-    [Fact]
-    public async Task TestEcsMetadataV4Fargate()
+    [Theory]
+    [MemberData(nameof(SemanticConventionVersions))]
+    public async Task TestEcsMetadataV4Fargate(SemanticConventionVersion semanticConventionVersion)
     {
         var source = new CancellationTokenSource();
         var token = source.Token;
@@ -122,7 +136,7 @@ public class AWSECSDetectorTests
         {
             var ecsResourceDetector = new AWSECSDetector(
                 new OpenTelemetry.AWS.AWSSemanticConventions(
-                    SemanticConventionVersion.Latest));
+                    semanticConventionVersion));
 
             var resource = ecsResourceDetector.Detect();
 

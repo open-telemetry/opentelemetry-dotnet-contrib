@@ -108,7 +108,7 @@ jobs:
           Write-Output "BUILD_COMPONENT=$component" >> ${env:GITHUB_ENV}
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         id: setup-dotnet
 
       - name: dotnet restore ${{ steps.resolve-project.outputs.title }}
@@ -148,7 +148,7 @@ jobs:
           }
 
       - name: Create GitHub attestations for DLLs
-        uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763 # v4.1.1
+        uses: actions/attest@f7c74d28b9d84cb8768d0b8ca14a4bac6ef463e6 # v4.2.0
         with:
           subject-path: |
             ./artifacts/bin/*/release*/OpenTelemetry*.dll
@@ -167,7 +167,7 @@ jobs:
           SOURCE_DATE_EPOCH: ${{ steps.get-commit-timestamp.outputs.epoch }}
 
       - name: Create GitHub attestations for NuGet packages
-        uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763 # v4.1.1
+        uses: actions/attest@f7c74d28b9d84cb8768d0b8ca14a4bac6ef463e6 # v4.2.0
         with:
           subject-path: |
             ./artifacts/package/release/OpenTelemetry*.*nupkg
@@ -181,7 +181,7 @@ jobs:
           upload-release-assets: false
 
       - name: Create GitHub attestation for SBOM
-        uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763 # v4.1.1
+        uses: actions/attest@f7c74d28b9d84cb8768d0b8ca14a4bac6ef463e6 # v4.2.0
         with:
           subject-path: |
             ./artifacts/package/release/sbom.spdx.json
@@ -205,7 +205,7 @@ jobs:
 
     steps:
       - name: Setup .NET
-        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: ${{ needs.build-pack.outputs.dotnet-sdk-version }}
 
@@ -327,7 +327,7 @@ jobs:
 
     steps:
       - name: Setup .NET
-        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: ${{ needs.build-pack.outputs.dotnet-sdk-version }}
 
@@ -376,7 +376,7 @@ jobs:
 
     steps:
       - name: Setup .NET
-        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: ${{ needs.build-pack.outputs.dotnet-sdk-version }}
 
@@ -502,7 +502,7 @@ jobs:
 
     steps:
       - name: Setup .NET
-        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: ${{ needs.build-pack.outputs.dotnet-sdk-version }}
 

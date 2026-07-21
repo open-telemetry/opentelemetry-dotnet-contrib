@@ -6,7 +6,7 @@
     <Description>SqlClient instrumentation for OpenTelemetry .NET.</Description>
     <PackageTags>$(PackageTags);distributed-tracing</PackageTags>
     <MinVerTagPrefix>Instrumentation.SqlClient-</MinVerTagPrefix>
-    <PackageValidationBaselineVersion>1.16.0</PackageValidationBaselineVersion>
+    <PackageValidationBaselineVersion>1.17.0</PackageValidationBaselineVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETCoreApp'">
