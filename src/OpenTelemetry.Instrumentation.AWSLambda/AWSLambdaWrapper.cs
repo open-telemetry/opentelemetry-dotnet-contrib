@@ -17,6 +17,8 @@ public static class AWSLambdaWrapper
 {
     internal const string ActivitySourceName = "OpenTelemetry.Instrumentation.AWSLambda";
 
+    internal const string DisableUrlQueryRedactionEnvVarName = "OTEL_DOTNET_EXPERIMENTAL_AWS_LAMBDA_DISABLE_URL_QUERY_REDACTION";
+
     private static readonly Lazy<ActivitySource> AWSLambdaActivitySource = new(CreateActivitySource);
 
     private static bool isColdStart = true;
@@ -25,6 +27,13 @@ public static class AWSLambdaWrapper
     /// Gets or sets a value indicating whether AWS X-Ray propagation should be ignored. Default value is false.
     /// </summary>
     internal static bool DisableAwsXRayContextExtraction { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether query string value redaction in HTTP span
+    /// attributes is disabled. Default value is false (redaction enabled). Configured from the
+    /// <see cref="DisableUrlQueryRedactionEnvVarName"/> environment variable.
+    /// </summary>
+    internal static bool DisableUrlQueryRedaction { get; set; } = IsUrlQueryRedactionDisabledFromEnvironment();
 
     internal static AWSSemanticConventions AWSSemanticConventions { get; set; } = new();
 
@@ -168,7 +177,7 @@ public static class AWSLambdaWrapper
         // No parallel invocation of the same lambda handler expected.
         var functionTags = new AWSLambdaUtils(AWSSemanticConventions).GetFunctionTags(input, context, isColdStart);
         isColdStart = false;
-        var httpTags = AWSLambdaHttpUtils.GetHttpTags(AWSSemanticConventions, input);
+        var httpTags = AWSLambdaHttpUtils.GetHttpTags(AWSSemanticConventions, input, DisableUrlQueryRedaction);
 
         // We assume that functionTags and httpTags have no intersection.
         var activityName = AWSLambdaUtils.GetFunctionName(context) ?? "AWS Lambda Invoke";
@@ -179,6 +188,12 @@ public static class AWSLambdaWrapper
 
     // Use only for testing.
     internal static void ResetColdStart() => isColdStart = true;
+
+    internal static bool IsUrlQueryRedactionDisabledFromEnvironment() =>
+        bool.TryParse(
+            Environment.GetEnvironmentVariable(DisableUrlQueryRedactionEnvVarName),
+            out var disableUrlQueryRedaction) &&
+        disableUrlQueryRedaction;
 
     private static void OnFunctionStop(Activity? activity, TracerProvider? tracerProvider)
     {
