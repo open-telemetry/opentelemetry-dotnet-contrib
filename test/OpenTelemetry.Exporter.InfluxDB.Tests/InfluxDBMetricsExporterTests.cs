@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics.Metrics;
+using System.Net;
 using System.Reflection;
 using OpenTelemetry.Exporter.InfluxDB.Tests.Utils;
 using OpenTelemetry.Metrics;
@@ -514,6 +515,75 @@ public class InfluxDBMetricsExporterTests
         Assert.Equal(measurement, dataPoint.Measurement);
         AssertUtils.HasField(valueKey, 42L, dataPoint.Fields);
         AssertUtils.HasTag("MeterTag", "MeterValue", 0, dataPoint.Tags);
+    }
+
+    [Fact]
+    public void ExportReturnsFailureWhenInfluxDBIsUnavailable()
+    {
+        // Arrange - the backend rejects every write, simulating an unavailable InfluxDB.
+        using var influxServer = new InfluxDBFakeServer { ResponseStatusCode = HttpStatusCode.BadRequest };
+        var influxServerEndpoint = influxServer.Endpoint;
+
+        using var meter = new Meter("MyMeter", "0.0.1");
+
+        using var provider = Sdk.CreateMeterProviderBuilder()
+            .AddMeter(meter.Name)
+            .ConfigureDefaultTestResource()
+            .AddInfluxDBMetricsExporter(options =>
+            {
+                options.WithDefaultTestConfiguration();
+                options.Endpoint = influxServerEndpoint;
+            })
+            .Build();
+
+        var counter = meter.CreateCounter<int>("test-counter");
+        counter.Add(100);
+
+        // Act & Assert - the write fails synchronously, so ForceFlush must report the
+        // failure back to the SDK, which applies backpressure instead of buffering.
+        Assert.False(
+            provider.ForceFlush(),
+            "Export was expected to report Failure while InfluxDB is unavailable.");
+    }
+
+    [Fact]
+    public void ExportRecoversWhenInfluxDBBecomesAvailableAgain()
+    {
+        // Arrange - start with an unavailable backend.
+        using var influxServer = new InfluxDBFakeServer { ResponseStatusCode = HttpStatusCode.BadRequest };
+        var influxServerEndpoint = influxServer.Endpoint;
+
+        using var meter = new Meter("MyMeter", "0.0.1");
+
+        using var provider = Sdk.CreateMeterProviderBuilder()
+            .AddMeter(meter.Name)
+            .ConfigureDefaultTestResource()
+            .AddInfluxDBMetricsExporter(options =>
+            {
+                options.WithDefaultTestConfiguration();
+                options.Endpoint = influxServerEndpoint;
+            })
+            .Build();
+
+        var counter = meter.CreateCounter<int>("test-counter");
+        counter.Add(100);
+
+        Assert.False(
+            provider.ForceFlush(),
+            "Export was expected to report Failure while InfluxDB is unavailable.");
+
+        // Act - the backend recovers.
+        influxServer.ResponseStatusCode = HttpStatusCode.OK;
+
+        // Assert - Export reports Success again and, because the reader uses cumulative
+        // temporality, the accumulated value is re-exported with no data loss.
+        Assert.True(
+            provider.ForceFlush(),
+            "Export was expected to recover and report Success once InfluxDB is available again.");
+
+        var dataPoint = influxServer.ReadPoint();
+        Assert.Equal("test-counter", dataPoint.Measurement);
+        AssertUtils.HasField("counter", 100L, dataPoint.Fields);
     }
 
     private static void AssertTags(PointData dataPoint)
