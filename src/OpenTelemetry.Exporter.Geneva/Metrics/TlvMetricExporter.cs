@@ -480,7 +480,6 @@ internal sealed class TlvMetricExporter : IDisposable
         byte numberOfLabels = 0;
 
         // Ensure any exemplars fit within the single-byte length/count.
-        // If the exemplar's filtered tags exceed 255 bytes, drop it.
         const int MaxExemplarLength = byte.MaxValue;
 
         foreach (var tag in exemplar.FilteredTags)
