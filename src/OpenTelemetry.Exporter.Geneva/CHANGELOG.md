@@ -4,7 +4,7 @@
 
 * Fixed a metric TLV serialization issue where an exemplar whose filtered tags
   serialized to more than 255 bytes caused the payload to be corrupted.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#4856](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4856))
 
 ## 1.17.0
 
