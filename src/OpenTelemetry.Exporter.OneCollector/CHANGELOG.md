@@ -5,7 +5,7 @@
 * Event full names supplied directly via the `{EventFullName}` log attribute are
   now validated: invalid values are now discarded and the default event full name
   is used instead.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#4857](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4857))
 
 ## 1.17.0
 
