@@ -50,6 +50,24 @@ internal sealed partial class EventNameManager
     public static bool IsEventNameValid(string eventName)
         => EventNameValidationRegex().IsMatch(eventName);
 
+    public static bool IsEventFullNameValid(string eventFullName)
+    {
+        if (string.IsNullOrEmpty(eventFullName))
+        {
+            return false;
+        }
+
+        foreach (var c in eventFullName)
+        {
+            if (c is not ((>= 'A' and <= 'Z') or (>= 'a' and <= 'z') or (>= '0' and <= '9') or '.' or '_'))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public ResolvedEventFullName ResolveEventFullName(
         string eventFullName)
     {
@@ -58,7 +76,18 @@ internal sealed partial class EventNameManager
             return cachedEventFullName;
         }
 
-        var eventFullNameBlob = BuildEventFullName(string.Empty, eventFullName);
+        byte[] eventFullNameBlob;
+
+        if (!IsEventFullNameValid(eventFullName) ||
+            eventFullName.Length is < MinimumEventFullNameLength or > MaximumEventFullNameLength)
+        {
+            OneCollectorExporterEventSource.Log.EventFullNameDiscarded(string.Empty, eventFullName);
+            eventFullNameBlob = this.defaultEventFullName.EventFullName;
+        }
+        else
+        {
+            eventFullNameBlob = BuildEventFullName(string.Empty, eventFullName);
+        }
 
         var resolvedEventFullName = new ResolvedEventFullName(
             eventFullNameBlob,
