@@ -10,7 +10,7 @@
   OpenTelemetry HTTP instrumentations. Redaction can be disabled by setting the
   `OTEL_DOTNET_EXPERIMENTAL_AWS_LAMBDA_DISABLE_URL_QUERY_REDACTION` environment
   variable to `true`.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#4859](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4859))
 
 ## 1.16.0
 
