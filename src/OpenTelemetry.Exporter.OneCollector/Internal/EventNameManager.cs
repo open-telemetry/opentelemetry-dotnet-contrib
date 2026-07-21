@@ -76,21 +76,20 @@ internal sealed partial class EventNameManager
             return cachedEventFullName;
         }
 
-        byte[] eventFullNameBlob;
-
         if (!IsEventFullNameValid(eventFullName) ||
             eventFullName.Length is < MinimumEventFullNameLength or > MaximumEventFullNameLength)
         {
-            OneCollectorExporterEventSource.Log.EventFullNameDiscarded(string.Empty, eventFullName);
-            eventFullNameBlob = this.defaultEventFullName.EventFullName;
-        }
-        else
-        {
-            eventFullNameBlob = BuildEventFullName(string.Empty, eventFullName);
+            var truncatedEventFullName = eventFullName.Length <= MaximumEventFullNameLength
+                ? eventFullName
+                : eventFullName.Substring(0, MaximumEventFullNameLength);
+
+            OneCollectorExporterEventSource.Log.EventFullNameDiscarded(string.Empty, truncatedEventFullName);
+
+            return this.defaultEventFullName;
         }
 
         var resolvedEventFullName = new ResolvedEventFullName(
-            eventFullNameBlob,
+            BuildEventFullName(string.Empty, eventFullName),
             originalEventNamespace: null,
             originalEventName: null);
 

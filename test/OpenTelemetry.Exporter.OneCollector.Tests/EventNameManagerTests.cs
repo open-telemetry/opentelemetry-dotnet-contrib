@@ -96,16 +96,17 @@ public class EventNameManagerTests
     }
 
     [Theory]
-    [InlineData(126)]
-    [InlineData(127)]
-    [InlineData(1000)]
-    public void ResolveEventFullNameSingleArgumentBoundsLength(int length)
+    [InlineData(EventNameManager.MinimumEventFullNameLength - 1, false)] // Below the minimum length is rejected.
+    [InlineData(EventNameManager.MinimumEventFullNameLength, true)]
+    [InlineData(EventNameManager.MaximumEventFullNameLength, true)]
+    [InlineData(EventNameManager.MaximumEventFullNameLength + 1, false)] // Above the maximum length is rejected.
+    public void ResolveEventFullNameSingleArgumentBoundsLength(int length, bool expectKept)
     {
         var eventNameManager = BuildEventNameManagerWithDefaultOptions();
 
         var resolved = eventNameManager.ResolveEventFullName(new string('A', length));
 
-        if (length <= EventNameManager.MaximumEventFullNameLength)
+        if (expectKept)
         {
             Assert.Equal(Encoding.ASCII.GetBytes($"\"{new string('A', length)}\""), resolved.EventFullName);
         }
