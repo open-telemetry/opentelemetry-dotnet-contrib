@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Validate `FlushInterval` to prevent out-of-range values and
+  zero-interval spin loops.
+  ([#4860](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4860))
+
 ## 1.17.0-beta.1
 
 Released 2026-Jul-17
