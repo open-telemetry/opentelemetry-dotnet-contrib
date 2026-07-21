@@ -5,6 +5,10 @@
 * Updated OpenTelemetry core component version(s) to `1.17.0`.
   ([#4773](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4773))
 
+* Fix `cloud.region` no longer being emitted by the resource detectors when using
+  the default `SemanticConventionVersion` (`V1_28_0`).
+  ([#4770](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4770))
+
 ## 1.16.0
 
 Released 2026-Jul-10
