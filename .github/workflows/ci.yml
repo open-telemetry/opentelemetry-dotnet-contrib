@@ -803,6 +803,7 @@ jobs:
       build-test-sampler-aws,
       build-test-semanticconventions,
       test-pwsh,
+      verify-semanticconventions,
       verify-aot-compat
     ]
     if: always() && !cancelled()
