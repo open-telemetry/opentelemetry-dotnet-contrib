@@ -3,6 +3,7 @@
 
 using System.Diagnostics;
 using Microsoft.Extensions.Configuration;
+using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 using static OpenTelemetry.Internal.DatabaseSemanticConventionHelper;
 
@@ -13,6 +14,8 @@ namespace OpenTelemetry.Instrumentation.StackExchangeRedis;
 /// </summary>
 public class StackExchangeRedisInstrumentationOptions
 {
+    private TimeSpan flushInterval = TimeSpan.FromSeconds(10);
+
     /// <summary>
     /// Initializes a new instance of the <see cref="StackExchangeRedisInstrumentationOptions"/> class.
     /// </summary>
@@ -31,7 +34,20 @@ public class StackExchangeRedisInstrumentationOptions
     /// <summary>
     /// Gets or sets the maximum time that should elapse between flushing the internal buffer of Redis profiling sessions and creating <see cref="Activity"/> objects. Default value: 00:00:10.
     /// </summary>
-    public TimeSpan FlushInterval { get; set; } = TimeSpan.FromSeconds(10);
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// Thrown when the value is less than one millisecond or exceeds <see cref="int.MaxValue"/> milliseconds.
+    /// </exception>
+    public TimeSpan FlushInterval
+    {
+        get => this.flushInterval;
+        set
+        {
+            var milliseconds = value.TotalMilliseconds;
+            Guard.ThrowIfOutOfRange(milliseconds, nameof(value), min: 1, max: int.MaxValue);
+
+            this.flushInterval = value;
+        }
+    }
 
     /// <summary>
     /// Gets or sets a value indicating whether the <see cref="StackExchangeRedisConnectionInstrumentation"/> should use reflection to get more detailed
