@@ -3,7 +3,7 @@
 ## Unreleased
 
 * Applied a timeout to the wildcard rule matching regular expressions.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#4858](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4858))
 
 ## 0.1.0-alpha.12
 
