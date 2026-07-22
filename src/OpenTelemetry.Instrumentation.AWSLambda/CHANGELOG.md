@@ -2,15 +2,22 @@
 
 ## Unreleased
 
-* Assemblies are now digitally signed using cosign.
-  ([#4637](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4637))
-
 * Query string values in the `url.query` and `http.target` span attributes are
   now redacted by default for HTTP triggered functions, consistent with the other
   OpenTelemetry HTTP instrumentations. Redaction can be disabled by setting the
   `OTEL_DOTNET_EXPERIMENTAL_AWS_LAMBDA_DISABLE_URL_QUERY_REDACTION` environment
   variable to `true`.
   ([#4859](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4859))
+
+## 1.17.0
+
+Released 2026-Jul-22
+
+* Assemblies are now digitally signed using cosign.
+  ([#4637](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4637))
+
+* Add schema URL to resource detector.
+  ([#4775](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4775))
 
 ## 1.16.0
 

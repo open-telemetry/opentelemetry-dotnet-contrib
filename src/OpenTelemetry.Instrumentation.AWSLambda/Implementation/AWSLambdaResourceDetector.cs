@@ -6,14 +6,9 @@ using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 
-internal sealed class AWSLambdaResourceDetector : IResourceDetector
+internal sealed class AWSLambdaResourceDetector(AWSSemanticConventions semanticConventionBuilder) : IResourceDetector
 {
-    private readonly AWSSemanticConventions semanticConventionBuilder;
-
-    public AWSLambdaResourceDetector(AWSSemanticConventions semanticConventionBuilder)
-    {
-        this.semanticConventionBuilder = semanticConventionBuilder;
-    }
+    private readonly AWSSemanticConventions semanticConventionBuilder = semanticConventionBuilder;
 
     /// <summary>
     /// Detect the resource attributes for AWS Lambda.
@@ -32,6 +27,9 @@ internal sealed class AWSLambdaResourceDetector : IResourceDetector
                 .AddAttributeFaasMaxMemory(AWSLambdaUtils.GetFunctionMemorySize())
                 .Build();
 
-        return new Resource(resourceAttributes);
+        var version = this.semanticConventionBuilder.Version;
+        var schemaUrl = Internal.SchemaUrls.Get(version);
+
+        return new Resource(resourceAttributes, schemaUrl);
     }
 }
