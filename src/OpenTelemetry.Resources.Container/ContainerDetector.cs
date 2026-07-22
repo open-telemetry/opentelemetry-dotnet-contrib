@@ -15,6 +15,8 @@ internal sealed partial class ContainerDetector : IResourceDetector
     private const string FilepathV2 = "/proc/self/mountinfo";
     private const string Hostname = "hostname";
 
+    private static readonly Version SemanticConventionsVersion = new(1, 43, 0);
+
     /// <summary>
     /// CGroup Parse Versions.
     /// </summary>
@@ -56,9 +58,9 @@ internal sealed partial class ContainerDetector : IResourceDetector
     {
         var containerId = this.ExtractContainerId(path, cgroupVersion);
 
-#pragma warning disable IDE0370 // Suppression is unnecessary
-        return string.IsNullOrEmpty(containerId) ? Resource.Empty : new Resource([new(ContainerSemanticConventions.AttributeContainerId, containerId!)]);
-#pragma warning restore IDE0370 // Suppression is unnecessary
+        return containerId is { Length: > 0 } ?
+            new Resource([new(ContainerSemanticConventions.AttributeContainerId, containerId)], Internal.SchemaUrls.Get(SemanticConventionsVersion)) :
+            Resource.Empty;
     }
 
     /// <summary>

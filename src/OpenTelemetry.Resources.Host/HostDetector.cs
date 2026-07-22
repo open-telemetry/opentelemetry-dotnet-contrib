@@ -21,6 +21,11 @@ internal sealed class HostDetector : IResourceDetector
 #if !NETFRAMEWORK
     private const string ETCMACHINEID = "/etc/machine-id";
     private const string ETCVARDBUSMACHINEID = "/var/lib/dbus/machine-id";
+#endif
+
+    private static readonly Version SemanticConventionsVersion = new(1, 43, 0);
+
+#if !NETFRAMEWORK
     private readonly Func<OSPlatform, bool> isOsPlatform;
     private readonly Func<IEnumerable<string>> getFilePaths;
     private readonly Func<string?> getMacOsMachineId;
@@ -133,7 +138,7 @@ internal sealed class HostDetector : IResourceDetector
 #error Architecture is available in .NET Framework 4.7.1+, enable it when we move to that as minimum supported version
 #endif
 
-            return new Resource(attributes);
+            return new Resource(attributes, SchemaUrls.Get(SemanticConventionsVersion));
         }
         catch (InvalidOperationException ex)
         {

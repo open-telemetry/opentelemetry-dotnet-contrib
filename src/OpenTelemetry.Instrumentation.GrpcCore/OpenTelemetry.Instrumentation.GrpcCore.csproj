@@ -30,6 +30,7 @@
     <Compile Include="$(RepoRoot)\src\Shared\GrpcStatusCanonicalCode.cs" Link="Includes\GrpcStatusCanonicalCode.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\GrpcTagHelper.cs" Link="Includes\GrpcTagHelper.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\SchemaUrls.cs" Link="Includes\SchemaUrls.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\SemanticConventions.cs" Link="Includes\SemanticConventions.cs" />
   </ItemGroup>
 

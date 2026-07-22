@@ -37,31 +37,40 @@ internal sealed class AzureVMResourceDetector : IResourceDetector
                 return vmResource;
             }
 
-            // Prevents the http operations from being instrumented.
+            // Prevents the HTTP operations from being instrumented.
             using var scope = SuppressInstrumentationScope.Begin();
 
             var vmMetaDataResponse = AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse();
             if (vmMetaDataResponse == null)
             {
                 vmResource = Resource.Empty;
-
                 return vmResource;
             }
 
             var attributeList = new List<KeyValuePair<string, object>>(ExpectedAzureAmsFields.Count);
             foreach (var field in ExpectedAzureAmsFields)
             {
-                attributeList.Add(new KeyValuePair<string, object>(field, vmMetaDataResponse.GetValueForField(field)));
+                attributeList.Add(new(field, vmMetaDataResponse.GetValueForField(field)));
             }
 
-            vmResource = new Resource(attributeList);
+            if (attributeList.Count == 0)
+            {
+                vmResource = Resource.Empty;
+                return vmResource;
+            }
+
+            vmResource = new Resource(
+                attributeList,
+                Internal.SchemaUrls.Get(AzureResourceBuilderExtensions.SemanticConventionsVersion));
         }
-        catch
+        catch (Exception ex)
         {
-            // TODO: log exception.
+            AzureResourcesEventSource.Log.FailedToDetectAzureVMResources(ex);
             vmResource = Resource.Empty;
         }
 
         return vmResource;
     }
+
+    internal static void ClearCachedResource() => vmResource = null;
 }

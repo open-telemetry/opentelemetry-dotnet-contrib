@@ -32,6 +32,8 @@ internal sealed class OperatingSystemDetector : IResourceDetector
     ];
 #endif
 
+    private static readonly Version SemanticConventionsVersion = new(1, 43, 0);
+
     private readonly string? osType;
     private readonly string? registryKey;
 #if NET
@@ -111,7 +113,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
                 break;
         }
 
-        return new Resource(attributes);
+        return new Resource(attributes, Internal.SchemaUrls.Get(SemanticConventionsVersion));
     }
 
     private static void AddAttributeIfNotNullOrEmpty(List<KeyValuePair<string, object>> attributes, string key, object? value)

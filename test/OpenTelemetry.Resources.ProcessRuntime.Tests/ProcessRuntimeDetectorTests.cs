@@ -10,6 +10,9 @@ public class ProcessRuntimeDetectorTests
     {
         var resource = ResourceBuilder.CreateEmpty().AddProcessRuntimeDetector().Build();
 
+        Assert.NotNull(resource);
+        Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
+
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
 
         Assert.Equal(3, resourceAttributes.Count);
