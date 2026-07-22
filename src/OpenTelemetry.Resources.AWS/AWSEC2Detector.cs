@@ -35,13 +35,16 @@ internal sealed class AWSEC2Detector : IResourceDetector
     {
         try
         {
-            // Prevents EC2 related http call from being instrumented.
+            // Prevents EC2 related HTTP calls from being instrumented.
             using var scope = SuppressInstrumentationScope.Begin();
+
             var token = GetAWSEC2Token();
             var identity = GetAWSEC2Identity(token);
             var hostName = GetAWSEC2HostName(token);
 
-            return new Resource(this.ExtractResourceAttributes(identity, hostName));
+            return new Resource(
+                this.ExtractResourceAttributes(identity, hostName),
+                Internal.SchemaUrls.Get(this.semanticConventionBuilder.Version));
         }
         catch (Exception ex)
         {
