@@ -5,6 +5,12 @@
 * Updated OpenTelemetry core component version(s) to `1.17.0`.
   ([#4773](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4773))
 
+* Add schema URL to resource detector.
+  ([#4775](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4775))
+
+* Fix `cloud.zone` being emitted instead of `cloud.availability_zone`.
+  ([#4775](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4775))
+
 ## 1.0.0-alpha.2
 
 Released 2026-Jul-09
