@@ -3,7 +3,6 @@
 
 using System.Diagnostics;
 using Microsoft.Extensions.Configuration;
-using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 using static OpenTelemetry.Internal.DatabaseSemanticConventionHelper;
 
@@ -14,6 +13,8 @@ namespace OpenTelemetry.Instrumentation.StackExchangeRedis;
 /// </summary>
 public class StackExchangeRedisInstrumentationOptions
 {
+    private static readonly TimeSpan MinFlushInterval = TimeSpan.FromMilliseconds(1);
+    private static readonly TimeSpan MaxFlushInterval = TimeSpan.FromMilliseconds(int.MaxValue);
     private TimeSpan flushInterval = TimeSpan.FromSeconds(10);
 
     /// <summary>
@@ -42,8 +43,13 @@ public class StackExchangeRedisInstrumentationOptions
         get => this.flushInterval;
         set
         {
-            var milliseconds = value.TotalMilliseconds;
-            Guard.ThrowIfOutOfRange(milliseconds, nameof(value), min: 1, max: int.MaxValue);
+            if (value < MinFlushInterval || value > MaxFlushInterval)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(value),
+                    value,
+                    $"The flush interval duration must be between {MinFlushInterval.TotalMilliseconds:N0} ms and {MaxFlushInterval.TotalMilliseconds:N0} ms.");
+            }
 
             this.flushInterval = value;
         }
