@@ -29,12 +29,11 @@ internal sealed class InfluxDBMetricsExporter : BaseExporter<Metric>
                 this.writer.Write(metric, this.ParentProvider?.GetResource(), lineProtocol);
             }
 
-            if (lineProtocol.Count == 0)
+            if (lineProtocol.Count > 0)
             {
-                return ExportResult.Success;
+                this.writeApiAsync.WriteRecordsAsync(lineProtocol).GetAwaiter().GetResult();
             }
 
-            this.writeApiAsync.WriteRecordsAsync(lineProtocol).GetAwaiter().GetResult();
             return ExportResult.Success;
         }
         catch (Exception exception)
