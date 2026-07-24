@@ -4,9 +4,6 @@
 using System.Diagnostics.Metrics;
 using System.Runtime.ExceptionServices;
 #if NET
-using System.Reflection;
-#endif
-#if NET
 using JitInfo = System.Runtime.JitInfo;
 #endif
 
@@ -195,16 +192,13 @@ internal sealed class RuntimeMetrics : IDisposable
             unit: "bytes",
             description: "The heap fragmentation, as observed during the latest garbage collection. The value will be unavailable until at least one garbage collection has occurred.");
 
-        var mi = typeof(GC).GetMethod("GetTotalPauseDuration", BindingFlags.Public | BindingFlags.Static);
-        var getTotalPauseDuration = mi?.CreateDelegate<Func<TimeSpan>>();
-        if (getTotalPauseDuration != null)
-        {
-            meter.CreateObservableCounter(
-                "process.runtime.dotnet.gc.duration",
-                () => getTotalPauseDuration().Ticks * NanosecondsPerTick,
-                unit: "ns",
-                description: "The total amount of time paused in GC since the process start.");
-        }
+#if NET
+        meter.CreateObservableCounter(
+            "process.runtime.dotnet.gc.duration",
+            () => GC.GetTotalPauseDuration().Ticks * NanosecondsPerTick,
+            unit: "ns",
+            description: "The total amount of time paused in GC since the process start.");
+#endif
 
         meter.CreateObservableCounter(
             "process.runtime.dotnet.jit.il_compiled.size",
