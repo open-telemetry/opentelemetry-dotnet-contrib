@@ -74,7 +74,8 @@ public class HttpClientTraceEnrichmentAcceptanceTests : IDisposable
             .AddInMemoryExporter(exportedActivities)
             .Build();
 
-        var invalidUrl = new Uri("http://nonexistent.invalid-domain-for-otel-tests-xyz/");
+        // Target a local port that nothing is listening on so the request fails deterministically
+        var invalidUrl = new Uri($"http://localhost:{TcpPortProvider.GetOpenPort()}/");
 
         Exception? thrown = null;
         try
@@ -83,7 +84,7 @@ public class HttpClientTraceEnrichmentAcceptanceTests : IDisposable
             using var httpClient = new HttpClient();
             await httpClient.GetAsync(invalidUrl);
 #else
-            var request = (HttpWebRequest)WebRequest.Create(new Uri($"{invalidUrl}500"));
+            var request = (HttpWebRequest)WebRequest.Create(invalidUrl);
             request.Method = "GET";
             using var response = await request.GetResponseAsync();
 #endif
