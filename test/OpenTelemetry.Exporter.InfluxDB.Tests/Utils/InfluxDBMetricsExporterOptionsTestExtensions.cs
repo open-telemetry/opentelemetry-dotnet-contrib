@@ -10,8 +10,5 @@ internal static class InfluxDBMetricsExporterOptionsTestExtensions
         options.Bucket = "MyBucket";
         options.Org = "MyOrg";
         options.Token = "MyToken";
-
-        // For tests, we want to flush the metrics ASAP
-        options.FlushInterval = 1;
     }
 }

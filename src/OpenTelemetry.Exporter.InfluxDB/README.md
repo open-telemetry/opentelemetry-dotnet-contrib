@@ -87,11 +87,6 @@ The authentication token for InfluxDB.
 The chosen metrics schema to write. Default value is
 `MetricsSchema.TelegrafPrometheusV1`.
 
-### FlushInterval
-
-The time to wait at most (in milliseconds) with the write. Default value
-is 1000.
-
 ## InfluxDB 1.8 API Compatibility
 
 InfluxDB 1.8.0 introduced forward compatibility APIs for InfluxDB 2.0,
