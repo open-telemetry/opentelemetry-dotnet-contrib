@@ -192,13 +192,11 @@ internal sealed class RuntimeMetrics : IDisposable
             unit: "bytes",
             description: "The heap fragmentation, as observed during the latest garbage collection. The value will be unavailable until at least one garbage collection has occurred.");
 
-#if NET
         meter.CreateObservableCounter(
             "process.runtime.dotnet.gc.duration",
             () => GC.GetTotalPauseDuration().Ticks * NanosecondsPerTick,
             unit: "ns",
             description: "The total amount of time paused in GC since the process start.");
-#endif
 
         meter.CreateObservableCounter(
             "process.runtime.dotnet.jit.il_compiled.size",
