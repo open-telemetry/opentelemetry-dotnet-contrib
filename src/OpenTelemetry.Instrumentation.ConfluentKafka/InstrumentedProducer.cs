@@ -15,6 +15,7 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
     private readonly TextMapPropagator propagator = Propagators.DefaultTextMapPropagator;
     private readonly IProducer<TKey, TValue> producer;
     private readonly ConfluentKafkaProducerInstrumentationOptions<TKey, TValue> options;
+    private readonly Task<string?>? clusterIdTask;
 
     public InstrumentedProducer(
         IProducer<TKey, TValue> producer,
@@ -22,6 +23,8 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
     {
         this.producer = producer;
         this.options = options;
+
+        this.clusterIdTask = ConfluentKafkaCommon.FetchClusterIdAsync(producer.Handle);
     }
 
     public Handle Handle => this.producer.Handle;
@@ -40,6 +43,11 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
         CancellationToken cancellationToken = default)
     {
         var start = DateTimeOffset.UtcNow;
+        if (this.clusterIdTask is { IsCompleted: false })
+        {
+            await Task.WhenAny(this.clusterIdTask, Task.Delay(5_000, CancellationToken.None)).ConfigureAwait(false);
+        }
+
         using var activity = this.StartPublishActivity(start, topic, message);
         if (activity != null)
         {
@@ -89,6 +97,11 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
         CancellationToken cancellationToken = default)
     {
         var start = DateTimeOffset.UtcNow;
+        if (this.clusterIdTask is { IsCompleted: false })
+        {
+            await Task.WhenAny(this.clusterIdTask, Task.Delay(5_000, CancellationToken.None)).ConfigureAwait(false);
+        }
+
         using var activity = this.StartPublishActivity(start, topicPartition.Topic, message, topicPartition.Partition);
         if (activity != null)
         {
@@ -356,6 +369,12 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
             if (message.Value is null)
             {
                 activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageTombstone, true);
+            }
+
+            if (this.clusterIdTask?.Status == TaskStatus.RanToCompletion
+                && this.clusterIdTask.Result is { Length: > 0 } clusterId)
+            {
+                activity.SetTag(SemanticConventions.AttributeMessagingKafkaClusterId, clusterId);
             }
         }
 

@@ -4,6 +4,8 @@
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Globalization;
+using Confluent.Kafka;
+using Confluent.Kafka.Admin;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using ActivitySourceFactory = OpenTelemetry.Trace.ActivitySourceFactory;
@@ -51,6 +53,26 @@ internal static class ConfluentKafkaCommon
         SemanticConventions.MetricMessagingClientConsumedMessages,
         unit: "{message}",
         description: "Number of messages that were delivered to the application.");
+
+    /// <summary>
+    /// Fetches the Kafka cluster ID using a dependent admin client built from the given handle.
+    /// </summary>
+    /// <param name="handle">The librdkafka client handle to build the dependent admin client from.</param>
+    /// <returns>The cluster ID, or <see langword="null"/> if it could not be fetched.</returns>
+    internal static async Task<string?> FetchClusterIdAsync(Handle handle)
+    {
+        try
+        {
+            using var admin = new DependentAdminClientBuilder(handle).Build();
+            var result = await admin.DescribeClusterAsync(new DescribeClusterOptions { RequestTimeout = TimeSpan.FromSeconds(30) }).ConfigureAwait(false);
+            return result.ClusterId;
+        }
+        catch (Exception ex)
+        {
+            ConfluentKafkaInstrumentationEventSource.Log.FailedToFetchClusterId(ex);
+            return null;
+        }
+    }
 
     /// <summary>
     /// Normalizes a Kafka message key to the string representation required by the

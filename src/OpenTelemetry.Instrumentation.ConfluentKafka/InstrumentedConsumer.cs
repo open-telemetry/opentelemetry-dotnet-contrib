@@ -13,11 +13,14 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
 {
     private readonly IConsumer<TKey, TValue> consumer;
     private readonly ConfluentKafkaConsumerInstrumentationOptions<TKey, TValue> options;
+    private readonly Task<string?>? clusterIdTask;
 
     public InstrumentedConsumer(IConsumer<TKey, TValue> consumer, ConfluentKafkaConsumerInstrumentationOptions<TKey, TValue> options)
     {
         this.consumer = consumer;
         this.options = options;
+
+        this.clusterIdTask = ConfluentKafkaCommon.FetchClusterIdAsync(consumer.Handle);
     }
 
     public Handle Handle => this.consumer.Handle;
@@ -400,6 +403,12 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
             if (isTombstone)
             {
                 activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageTombstone, true);
+            }
+
+            if (this.clusterIdTask?.Status == TaskStatus.RanToCompletion
+                && this.clusterIdTask.Result is { Length: > 0 } clusterId)
+            {
+                activity.SetTag(SemanticConventions.AttributeMessagingKafkaClusterId, clusterId);
             }
         }
 
