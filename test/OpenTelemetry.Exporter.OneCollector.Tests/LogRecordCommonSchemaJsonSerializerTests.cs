@@ -4,6 +4,7 @@
 using System.Diagnostics;
 using System.Reflection;
 using System.Text;
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Resources;
@@ -238,6 +239,26 @@ public class LogRecordCommonSchemaJsonSerializerTests
         Assert.Equal(
             """{"ver":"4.0","name":"Company_Product_EventName","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"severityText":"Trace","severityNumber":1,"stateKey1":"stateValue1","stateKey2":"stateValue2"}}""" + "\n",
             json);
+    }
+
+    [Fact]
+    public void LogRecordAttributesWithJsonEventFullNameIsNotInjected()
+    {
+        var json = GetLogRecordJson(1, (index, logRecord) =>
+        {
+            logRecord.Attributes =
+            [
+                new KeyValuePair<string, object?>("{EventFullName}", "bad\",\"injected\":\"json"),
+            ];
+        });
+
+        Assert.Equal(
+            """{"ver":"4.0","name":"Namespace.Name","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"severityText":"Trace","severityNumber":1}}""" + "\n",
+            json);
+
+        using var doc = JsonDocument.Parse(json.Trim());
+        Assert.Equal("Namespace.Name", doc.RootElement.GetProperty("name").GetString());
+        Assert.False(doc.RootElement.TryGetProperty("injected", out _));
     }
 
     [Fact]
