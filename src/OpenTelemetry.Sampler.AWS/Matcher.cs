@@ -17,6 +17,8 @@ internal static class Matcher
         { "aws_lambda", "AWS::Lambda::Function" },
     };
 
+    private static readonly TimeSpan RegexTimeout = TimeSpan.FromSeconds(1);
+
     public static bool WildcardMatch(string? text, string? globPattern)
     {
         if (globPattern == "*")
@@ -34,13 +36,20 @@ internal static class Matcher
             return text.Length == 0;
         }
 
-        // it is faster to check if we need a regex comparison than
-        // doing always regex comparison, even where we may not need it.
+        // It is faster to check if we need a regex comparison than
+        // always doing a regex comparison, even where we may not need it.
         foreach (var c in globPattern)
         {
             if (c is '*' or '?')
             {
-                return Regex.IsMatch(text, ToRegexPattern(globPattern));
+                try
+                {
+                    return Regex.IsMatch(text, ToRegexPattern(globPattern), RegexOptions.None, RegexTimeout);
+                }
+                catch (RegexMatchTimeoutException)
+                {
+                    return false;
+                }
             }
         }
 

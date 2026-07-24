@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Applied a timeout to the wildcard rule matching regular expressions.
+  ([#4858](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4858))
+
 ## 0.1.0-alpha.12
 
 Released 2026-Jul-17
