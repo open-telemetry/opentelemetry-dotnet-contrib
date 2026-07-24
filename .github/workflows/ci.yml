@@ -665,6 +665,39 @@ jobs:
       run-tests: false # Note: No test project
       trigger: ${{ github.event_name }}
 
+  verify-semanticconventions:
+    name: Verify semantic conventions generation
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'semanticconventions')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      with:
+        persist-credentials: false
+        show-progress: false
+
+    - name: Regenerate semantic conventions
+      shell: pwsh
+      run: |
+        Remove-Item -Recurse -Force ./src/OpenTelemetry.SemanticConventions/Attributes
+        New-Item -ItemType Directory ./src/OpenTelemetry.SemanticConventions/Attributes
+        ./src/OpenTelemetry.SemanticConventions/scripts/generate.ps1
+
+    - name: Verify generated files are up to date
+      shell: pwsh
+      run: |
+        $generatedFiles = git status --short --untracked-files=all -- ./src/OpenTelemetry.SemanticConventions/Attributes
+        if ($generatedFiles) {
+          $generatedFiles | Write-Output
+          Write-Output "Run ./src/OpenTelemetry.SemanticConventions/scripts/generate.ps1 and commit the results."
+          Write-Error "Generated semantic convention files are out of date."
+          exit 1
+        }
+
   build-test-contrib-shared-tests:
     needs: detect-changes
     if: |
@@ -770,6 +803,7 @@ jobs:
       build-test-sampler-aws,
       build-test-semanticconventions,
       test-pwsh,
+      verify-semanticconventions,
       verify-aot-compat
     ]
     if: always() && !cancelled()
