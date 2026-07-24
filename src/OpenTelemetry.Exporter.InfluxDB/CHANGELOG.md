@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.0-alpha.11
+
+Released 2026-Jul-24
+
 * Write metrics synchronously and report `ExportResult.Failure` when a write to
   InfluxDB fails, so the SDK applies backpressure instead of growing an unbounded
   in-memory buffer while InfluxDB is unavailable. The `FlushInterval` option is
