@@ -189,6 +189,7 @@ internal sealed class HostDetector : IResourceDetector
     {
         try
         {
+            var timeoutMilliseconds = 5_000;
             var startInfo = new ProcessStartInfo
             {
                 FileName = "/usr/sbin/ioreg",
@@ -203,7 +204,7 @@ internal sealed class HostDetector : IResourceDetector
             using var process = Process.Start(startInfo);
             if (process != null)
             {
-                var isExited = process.WaitForExit(5000);
+                var isExited = process.WaitForExit(timeoutMilliseconds);
                 if (isExited)
                 {
                     var output = process.StandardOutput.ReadToEnd();
