@@ -19,14 +19,10 @@ internal sealed class EtwDataTransport : IDataTransport, IDisposable
     }
 
     public void Send(byte[] data, int size)
-    {
-        this.eventSource.SendEvent(data, size);
-    }
+        => this.eventSource.SendEvent(data, size);
 
     public bool IsEnabled()
-    {
-        return this.eventSource.IsEnabled();
-    }
+        => this.eventSource.IsEnabled();
 
     public void Dispose()
     {
@@ -53,6 +49,7 @@ internal sealed class EtwDataTransport : IDataTransport, IDisposable
         }
 
 #pragma warning disable CA1822 // Mark members as static
+#pragma warning disable IDE0060 // Remove unused parameter
 
         /// <summary>
         /// Dummy _data_ field is present so that when <see cref="SendEvent"/> is called, the event has at least one
@@ -68,6 +65,8 @@ internal sealed class EtwDataTransport : IDataTransport, IDisposable
         public void InformationalEvent(byte[] data)
         {
         }
+
+#pragma warning restore IDE0060 // Remove unused parameter
 #pragma warning restore CA1822 // Mark members as static
 
         /// <summary>

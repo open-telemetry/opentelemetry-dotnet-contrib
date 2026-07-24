@@ -31,27 +31,15 @@ internal sealed class UncheckedASCIIEncoding : Encoding
 
     #region Required implementation of Encoding abstract methods
 
-    public override int GetMaxByteCount(int charCount)
-    {
-        return charCount;
-    }
+    public override int GetMaxByteCount(int charCount) => charCount;
 
-    public override int GetMaxCharCount(int byteCount)
-    {
-        return byteCount;
-    }
+    public override int GetMaxCharCount(int byteCount) => byteCount;
 
-    public override int GetByteCount(char[] chars, int charIndex, int charCount)
-    {
-        return charCount;
-    }
+    public override int GetByteCount(char[] chars, int charIndex, int charCount) => charCount;
 
-    public override int GetCharCount(byte[] bytes, int byteIndex, int byteCount)
-    {
-        return byteCount;
-    }
+    public override int GetCharCount(byte[] bytes, int byteIndex, int byteCount) => byteCount;
 
-    public override unsafe int GetBytes(char[] chars, int charIndex, int charCount, byte[] bytes, int byteIndex)
+    public override int GetBytes(char[] chars, int charIndex, int charCount, byte[] bytes, int byteIndex)
     {
         ValidateArgs(chars, charIndex, charCount, bytes, byteIndex, "char", "byte");
         fixed (char* charPtr = chars)
@@ -63,7 +51,7 @@ internal sealed class UncheckedASCIIEncoding : Encoding
         }
     }
 
-    public override unsafe int GetChars(byte[] bytes, int byteIndex, int byteCount, char[] chars, int charIndex)
+    public override int GetChars(byte[] bytes, int byteIndex, int byteCount, char[] chars, int charIndex)
     {
         ValidateArgs(bytes, byteIndex, byteCount, chars, charIndex, "byte", "char");
         fixed (byte* bytePtr = bytes)
@@ -127,17 +115,11 @@ internal sealed class UncheckedASCIIEncoding : Encoding
         return chars.Length;
     }
 
-    public override unsafe int GetByteCount(char* charPtr, int charCount)
-    {
-        return charCount;
-    }
+    public override int GetByteCount(char* charPtr, int charCount) => charCount;
 
-    public override unsafe int GetCharCount(byte* bytePtr, int byteCount)
-    {
-        return byteCount;
-    }
+    public override int GetCharCount(byte* bytePtr, int byteCount) => byteCount;
 
-    public override unsafe int GetBytes(string chars, int charIndex, int charCount, byte[] bytes, int byteIndex)
+    public override int GetBytes(string chars, int charIndex, int charCount, byte[] bytes, int byteIndex)
     {
         if (chars == null || bytes == null)
         {

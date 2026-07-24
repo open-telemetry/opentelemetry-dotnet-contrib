@@ -269,7 +269,7 @@ jobs:
     with:
       project-name: OpenTelemetry.Instrumentation.AspNetCore
       code-cov-name: Instrumentation.AspNetCore
-      tfm-list: '[ "net8.0", "net9.0", "net10.0" ]'
+      tfm-list: '[ "net10.0", "net11.0" ]'
       trigger: ${{ github.event_name }}
 
   build-test-instrumentation-aws:
@@ -282,7 +282,7 @@ jobs:
     with:
       project-name: OpenTelemetry.Instrumentation.AWS
       code-cov-name: Instrumentation.AWS
-      tfm-list: '[ "net472", "net8.0", "net9.0", "net10.0" ]'
+      tfm-list: '[ "net472", "net10.0", "net11.0" ]'
       trigger: ${{ github.event_name }}
 
   build-test-instrumentation-cassandra:
@@ -343,7 +343,7 @@ jobs:
     with:
       project-name: OpenTelemetry.Instrumentation.EventCounters
       code-cov-name: Instrumentation.EventCounters
-      tfm-list: '[ "net8.0", "net9.0", "net10.0" ]'
+      tfm-list: '[ "net10.0", "net11.0" ]'
       trigger: ${{ github.event_name }}
 
   build-test-instrumentation-grpccore:

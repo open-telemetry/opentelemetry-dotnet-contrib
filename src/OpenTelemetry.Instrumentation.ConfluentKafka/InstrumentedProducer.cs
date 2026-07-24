@@ -255,7 +255,11 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
         produceException.Error.Code.ToString();
 
     private static string FormatArgumentException(ArgumentException argumentException) =>
+#if NET
         argumentException.GetType().FullName!;
+#else
+        argumentException.GetType().FullName;
+#endif
 
     private static void GetTags(string topic, out TagList tags, int? partition = null, string? errorType = null)
     {

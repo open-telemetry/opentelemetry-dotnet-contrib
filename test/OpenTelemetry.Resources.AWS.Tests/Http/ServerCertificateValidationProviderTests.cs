@@ -22,7 +22,7 @@ public class ServerCertificateValidationProviderTests
 
         Assert.NotNull(serverCertificateValidationProvider);
 
-#if NET9_0_OR_GREATER
+#if NET
         var certificate = X509CertificateLoader.LoadCertificateFromFile(certificateUploader.FilePath);
 #else
         var certificate = new X509Certificate2(certificateUploader.FilePath);
@@ -68,7 +68,7 @@ public class ServerCertificateValidationProviderTests
             ServerCertificateValidationProvider.FromCertificateFile(certificateUploader.FilePath, NoopServerCertificateValidationEventSource.Instance);
 
         Assert.NotNull(serverCertificateValidationProvider);
-#if NET9_0_OR_GREATER
+#if NET
         var certificate = X509CertificateLoader.LoadCertificateFromFile(certificateUploader.FilePath);
 #else
         var certificate = new X509Certificate2(certificateUploader.FilePath);

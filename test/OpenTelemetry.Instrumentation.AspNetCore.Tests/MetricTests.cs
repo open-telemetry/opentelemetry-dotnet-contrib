@@ -233,6 +233,9 @@ public class MetricTests(WebApplicationFactory<Program> factory)
     [InlineData("PATCH", "PATCH")]
     [InlineData("Get", "GET")]
     [InlineData("POST", "POST")]
+#if NET11_0_OR_GREATER
+    [InlineData("QUERY", "QUERY")]
+#endif
     [InlineData("TRACE", "TRACE")]
     [InlineData("CUSTOM", "_OTHER")]
     public async Task HttpRequestMethodIsCapturedAsPerSpec(string originalMethod, string expectedMethod)
