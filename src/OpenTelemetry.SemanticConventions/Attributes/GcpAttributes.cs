@@ -140,6 +140,14 @@ public static class GcpAttributes
     public const string AttributeGcpGceInstanceHostname = "gcp.gce.instance.hostname";
 
     /// <summary>
+    /// GCE instance labels, <c><key></c> being the label name and the value being the label value.
+    /// </summary>
+    /// <remarks>
+    /// For example, a GCE instance label <c>team</c> with value <c>observability</c> SHOULD be recorded as the <c>gcp.gce.instance.labels.team</c> attribute with value <c>"observability"</c>. The <c><key></c> MUST be the exact GCE instance label key.
+    /// </remarks>
+    public const string AttributeGcpGceInstanceLabelsTemplate = "gcp.gce.instance.labels";
+
+    /// <summary>
     /// The instance name of a GCE instance. This is the value provided by <c>host.name</c>, the visible name of the instance in the Cloud Console UI, and the prefix for the default hostname of the instance as defined by the <a href="https://cloud.google.com/compute/docs/internal-dns#instance-fully-qualified-domain-names">default internal DNS name</a>.
     /// </summary>
     public const string AttributeGcpGceInstanceName = "gcp.gce.instance.name";

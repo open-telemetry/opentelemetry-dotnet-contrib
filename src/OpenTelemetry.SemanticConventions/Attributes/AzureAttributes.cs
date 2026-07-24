@@ -53,6 +53,11 @@ public static class AzureAttributes
     public const string AttributeAzureCosmosdbResponseSubStatusCode = "azure.cosmosdb.response.sub_status_code";
 
     /// <summary>
+    /// The name of the Azure <a href="https://learn.microsoft.com/azure/azure-resource-manager/management/manage-resource-groups-portal">resource group</a> the resource belongs to.
+    /// </summary>
+    public const string AttributeAzureResourceGroupName = "azure.resource_group.name";
+
+    /// <summary>
     /// <a href="https://learn.microsoft.com/azure/azure-resource-manager/management/azure-services-resource-providers">Azure Resource Provider Namespace</a> as recognized by the client.
     /// </summary>
     public const string AttributeAzureResourceProviderNamespace = "azure.resource_provider.namespace";

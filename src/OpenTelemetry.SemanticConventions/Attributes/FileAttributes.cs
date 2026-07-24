@@ -84,6 +84,21 @@ public static class FileAttributes
     public const string AttributeFileInode = "file.inode";
 
     /// <summary>
+    /// The lock mechanism such as noted by <a href="https://pubs.opengroup.org/onlinepubs/9699919799/functions/fcntl.html">POSIX</a>.
+    /// </summary>
+    public const string AttributeFileLockMechanism = "file.lock.mechanism";
+
+    /// <summary>
+    /// Mode of lock or operation such as documented by <a href="https://pubs.opengroup.org/onlinepubs/9699919799/functions/fcntl.html">POSIX</a>.
+    /// </summary>
+    public const string AttributeFileLockMode = "file.lock.mode";
+
+    /// <summary>
+    /// The lock type as represented by i.e. <a href="https://pubs.opengroup.org/onlinepubs/9699919799/functions/fcntl.html">POSIX</a>'s l_type.
+    /// </summary>
+    public const string AttributeFileLockType = "file.lock.type";
+
+    /// <summary>
     /// Mode of the file in octal representation.
     /// </summary>
     public const string AttributeFileMode = "file.mode";
@@ -125,4 +140,20 @@ public static class FileAttributes
     /// This attribute is only applicable to symbolic links.
     /// </remarks>
     public const string AttributeFileSymbolicLinkTargetPath = "file.symbolic_link.target_path";
+
+    /// <summary>
+    /// The lock type as represented by i.e. <a href="https://pubs.opengroup.org/onlinepubs/9699919799/functions/fcntl.html">POSIX</a>'s l_type.
+    /// </summary>
+    public static class FileLockTypeValues
+    {
+        /// <summary>
+        /// read.
+        /// </summary>
+        public const string Read = "read";
+
+        /// <summary>
+        /// write.
+        /// </summary>
+        public const string Write = "write";
+    }
 }

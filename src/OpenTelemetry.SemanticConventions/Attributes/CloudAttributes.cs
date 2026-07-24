@@ -17,6 +17,9 @@ public static class CloudAttributes
     /// <summary>
     /// The cloud account ID the resource is assigned to.
     /// </summary>
+    /// <remarks>
+    /// For Azure, this is the subscription ID.
+    /// </remarks>
     public const string AttributeCloudAccountId = "cloud.account.id";
 
     /// <summary>

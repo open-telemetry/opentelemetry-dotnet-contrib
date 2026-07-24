@@ -65,8 +65,9 @@ public static class CpuAttributes
         public const string Steal = "steal";
 
         /// <summary>
-        /// Kernel.
+        /// Deprecated. Use <c>system</c> instead.
         /// </summary>
+        [Obsolete("Replaced by <c>system</c>.")]
         public const string Kernel = "kernel";
     }
 }

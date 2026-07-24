@@ -73,22 +73,22 @@ public static class CicdAttributes
     public const string AttributeCicdPipelineTaskType = "cicd.pipeline.task.type";
 
     /// <summary>
-    /// The name of a component of the CICD system.
+    /// The name of a component of the CI/CD system.
     /// </summary>
     public const string AttributeCicdSystemComponent = "cicd.system.component";
 
     /// <summary>
-    /// The unique identifier of a worker within a CICD system.
+    /// The unique identifier of a worker within a CI/CD system.
     /// </summary>
     public const string AttributeCicdWorkerId = "cicd.worker.id";
 
     /// <summary>
-    /// The name of a worker within a CICD system.
+    /// The name of a worker within a CI/CD system.
     /// </summary>
     public const string AttributeCicdWorkerName = "cicd.worker.name";
 
     /// <summary>
-    /// The state of a CICD worker / agent.
+    /// The state of a CI/CD worker / agent.
     /// </summary>
     public const string AttributeCicdWorkerState = "cicd.worker.state";
 
@@ -134,7 +134,7 @@ public static class CicdAttributes
         public const string Failure = "failure";
 
         /// <summary>
-        /// The pipeline run failed due to an error in the CICD system, eg. due to the worker being killed.
+        /// The pipeline run failed due to an error in the CI/CD system, eg. due to the worker being killed.
         /// </summary>
         public const string Error = "error";
 
@@ -191,7 +191,7 @@ public static class CicdAttributes
         public const string Failure = "failure";
 
         /// <summary>
-        /// The task run failed due to an error in the CICD system, eg. due to the worker being killed.
+        /// The task run failed due to an error in the CI/CD system, eg. due to the worker being killed.
         /// </summary>
         public const string Error = "error";
 
@@ -233,22 +233,22 @@ public static class CicdAttributes
     }
 
     /// <summary>
-    /// The state of a CICD worker / agent.
+    /// The state of a CI/CD worker / agent.
     /// </summary>
     public static class CicdWorkerStateValues
     {
         /// <summary>
-        /// The worker is not performing work for the CICD system. It is available to the CICD system to perform work on (online / idle).
+        /// The worker is not performing work for the CI/CD system. It is available to the CI/CD system to perform work on (online / idle).
         /// </summary>
         public const string Available = "available";
 
         /// <summary>
-        /// The worker is performing work for the CICD system.
+        /// The worker is performing work for the CI/CD system.
         /// </summary>
         public const string Busy = "busy";
 
         /// <summary>
-        /// The worker is not available to the CICD system (disconnected / down).
+        /// The worker is not available to the CI/CD system (disconnected / down).
         /// </summary>
         public const string Offline = "offline";
     }

@@ -58,7 +58,7 @@ public static class NetworkAttributes
     public const string AttributeNetworkInterfaceName = "network.interface.name";
 
     /// <summary>
-    /// The network IO operation direction.
+    /// The direction of traffic from the perspective of the observing host's physical or virtual network interface. It should not be used to represent the logical direction of a stateful connection or network flow.
     /// </summary>
     public const string AttributeNetworkIoDirection = "network.io.direction";
 
@@ -322,7 +322,7 @@ public static class NetworkAttributes
     }
 
     /// <summary>
-    /// The network IO operation direction.
+    /// The direction of traffic from the perspective of the observing host's physical or virtual network interface. It should not be used to represent the logical direction of a stateful connection or network flow.
     /// </summary>
     public static class NetworkIoDirectionValues
     {
