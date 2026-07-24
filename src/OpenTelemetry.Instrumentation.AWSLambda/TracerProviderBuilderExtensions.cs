@@ -40,6 +40,7 @@ public static class TracerProviderBuilderExtensions
 
         AWSLambdaWrapper.AWSSemanticConventions = awsSemanticConventions;
         AWSLambdaWrapper.DisableAwsXRayContextExtraction = options.DisableAwsXRayContextExtraction;
+        AWSLambdaWrapper.DisableUrlQueryRedaction = AWSLambdaWrapper.IsUrlQueryRedactionDisabledFromEnvironment();
         AWSMessagingUtils.SetParentFromMessageBatch = options.SetParentFromBatch;
 
         builder.AddSource(AWSLambdaWrapper.ActivitySourceName);
