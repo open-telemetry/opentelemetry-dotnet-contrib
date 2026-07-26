@@ -4,11 +4,63 @@
 using System.Web;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.AspNet.Tests;
 
 public class HttpInMetricsListenerTests
 {
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void AspNetExceptionMetricIsRecordedOnceWithFinalResponseStatus(bool tracingEnabled)
+    {
+        HttpContext.Current = RouteTestHelper.BuildHttpContext("http://localhost/", 0, null, "GET");
+
+        var exportedItems = new List<Metric>();
+        var tracerProviderBuilder = Sdk.CreateTracerProviderBuilder();
+        if (tracingEnabled)
+        {
+            tracerProviderBuilder.AddAspNetInstrumentation();
+        }
+
+        using var tracerProvider = tracerProviderBuilder.Build();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddAspNetInstrumentation()
+            .AddInMemoryExporter(exportedItems)
+            .Build();
+
+        var context = new HttpContextWrapper(HttpContext.Current);
+        var activity = ActivityHelper.StartAspNetActivity(Propagators.DefaultTextMapPropagator, context, TelemetryHttpModule.Options.OnRequestStartedCallback);
+        Thread.Sleep(1); // Make sure duration is always greater than 0 to avoid flakiness.
+        ActivityHelper.WriteActivityException(activity, context, new InvalidOperationException(), TelemetryHttpModule.Options.OnExceptionCallback);
+        HttpContext.Current.Response.StatusCode = 500;
+        ActivityHelper.StopAspNetActivity(Propagators.DefaultTextMapPropagator, activity, context, TelemetryHttpModule.Options.OnRequestStoppedCallback);
+
+        meterProvider.ForceFlush();
+
+        var metric = Assert.Single(exportedItems);
+        var metricPoints = new List<MetricPoint>();
+        foreach (var point in metric.GetMetricPoints())
+        {
+            metricPoints.Add(point);
+        }
+
+        var metricPoint = Assert.Single(metricPoints);
+
+        Assert.Equal(1L, metricPoint.GetHistogramCount());
+        Assert.True(metricPoint.GetHistogramSum() > 0, "Metric sum (duration) should be greater than 0.");
+
+        var tags = new Dictionary<string, object?>(metricPoint.Tags.Count);
+        foreach (var tag in metricPoint.Tags)
+        {
+            tags.Add(tag.Key, tag.Value);
+        }
+
+        Assert.Equal(500, tags["http.response.status_code"]);
+        Assert.Equal("System.InvalidOperationException", tags["error.type"]);
+    }
+
     [Theory]
     [InlineData("http://localhost/", 0, null, null, "http", "localhost", null, 80, 200)]
     [InlineData("http://localhost/", 0, null, null, "http", null, null, null, 200, false)]
