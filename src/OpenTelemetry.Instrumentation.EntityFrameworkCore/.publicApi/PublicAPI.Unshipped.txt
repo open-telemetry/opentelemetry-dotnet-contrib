@@ -1,9 +1,23 @@
+OpenTelemetry.Instrumentation.EntityFrameworkCore.DbQuerySanitizationContext
+OpenTelemetry.Instrumentation.EntityFrameworkCore.DbQuerySanitizationContext.Command.get -> System.Data.IDbCommand?
+OpenTelemetry.Instrumentation.EntityFrameworkCore.DbQuerySanitizationContext.DbQuerySanitizationContext() -> void
+OpenTelemetry.Instrumentation.EntityFrameworkCore.DbQuerySanitizationContext.ProviderName.get -> string?
+OpenTelemetry.Instrumentation.EntityFrameworkCore.DbQuerySanitizationContext.QueryText.get -> string?
 OpenTelemetry.Instrumentation.EntityFrameworkCore.EntityFrameworkInstrumentationOptions
 OpenTelemetry.Instrumentation.EntityFrameworkCore.EntityFrameworkInstrumentationOptions.EntityFrameworkInstrumentationOptions() -> void
 OpenTelemetry.Instrumentation.EntityFrameworkCore.EntityFrameworkInstrumentationOptions.Filter.get -> System.Func<string?, System.Data.IDbCommand!, bool>?
 OpenTelemetry.Instrumentation.EntityFrameworkCore.EntityFrameworkInstrumentationOptions.Filter.set -> void
 OpenTelemetry.Instrumentation.EntityFrameworkCore.EntityFrameworkInstrumentationOptions.EnrichWithIDbCommand.get -> System.Action<System.Diagnostics.Activity!, System.Data.IDbCommand!>?
 OpenTelemetry.Instrumentation.EntityFrameworkCore.EntityFrameworkInstrumentationOptions.EnrichWithIDbCommand.set -> void
+OpenTelemetry.Instrumentation.EntityFrameworkCore.EntityFrameworkInstrumentationOptions.QueryTextSanitizer.get -> System.Func<OpenTelemetry.Instrumentation.EntityFrameworkCore.DbQuerySanitizationContext, OpenTelemetry.Instrumentation.EntityFrameworkCore.QueryTextSanitizationResult>?
+OpenTelemetry.Instrumentation.EntityFrameworkCore.EntityFrameworkInstrumentationOptions.QueryTextSanitizer.set -> void
+OpenTelemetry.Instrumentation.EntityFrameworkCore.QueryTextSanitizationResult
+OpenTelemetry.Instrumentation.EntityFrameworkCore.QueryTextSanitizationResult.IsSanitized.get -> bool
+OpenTelemetry.Instrumentation.EntityFrameworkCore.QueryTextSanitizationResult.QuerySummary.get -> string?
+OpenTelemetry.Instrumentation.EntityFrameworkCore.QueryTextSanitizationResult.QueryText.get -> string?
+OpenTelemetry.Instrumentation.EntityFrameworkCore.QueryTextSanitizationResult.QueryTextSanitizationResult() -> void
+static OpenTelemetry.Instrumentation.EntityFrameworkCore.QueryTextSanitizationResult.NotSanitized.get -> OpenTelemetry.Instrumentation.EntityFrameworkCore.QueryTextSanitizationResult
+static OpenTelemetry.Instrumentation.EntityFrameworkCore.QueryTextSanitizationResult.Sanitized(string? queryText, string? querySummary = null) -> OpenTelemetry.Instrumentation.EntityFrameworkCore.QueryTextSanitizationResult
 OpenTelemetry.Trace.TracerProviderBuilderExtensions
 static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddEntityFrameworkCoreInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder! builder) -> OpenTelemetry.Trace.TracerProviderBuilder!
 static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddEntityFrameworkCoreInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder! builder, string? name, System.Action<OpenTelemetry.Instrumentation.EntityFrameworkCore.EntityFrameworkInstrumentationOptions!>? configure) -> OpenTelemetry.Trace.TracerProviderBuilder!

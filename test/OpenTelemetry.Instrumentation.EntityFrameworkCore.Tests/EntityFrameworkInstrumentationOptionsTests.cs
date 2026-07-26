@@ -60,4 +60,31 @@ public class EntityFrameworkInstrumentationOptionsTests
         var options = new EntityFrameworkInstrumentationOptions(configuration);
         Assert.Equal(expected, options.SetDbQueryParameters);
     }
+
+    [Fact]
+    public void ShouldAssignQueryTextSanitizerByDefault()
+    {
+        var configuration = new ConfigurationBuilder().Build();
+        var options = new EntityFrameworkInstrumentationOptions(configuration);
+        Assert.NotNull(options.QueryTextSanitizer);
+    }
+
+    [Theory]
+    [InlineData("Microsoft.EntityFrameworkCore.Cosmos")]
+    [InlineData("MongoDB.EntityFrameworkCore")]
+    [InlineData("Contoso.BusinessLogic.DataAccess.Command")]
+    public void DefaultQueryTextSanitizerShouldNotSanitizeProvidersThatAreNotSqlLike(string providerName)
+    {
+        var options = new EntityFrameworkInstrumentationOptions(new ConfigurationBuilder().Build());
+        var context = new DbQuerySanitizationContext(
+            providerName,
+            "select * from Items where Name = 'secret'",
+            command: null);
+
+        var result = options.QueryTextSanitizer!(context);
+
+        Assert.False(result.IsSanitized);
+        Assert.Null(result.QueryText);
+        Assert.Null(result.QuerySummary);
+    }
 }
