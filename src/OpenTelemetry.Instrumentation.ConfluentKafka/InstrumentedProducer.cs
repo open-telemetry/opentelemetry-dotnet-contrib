@@ -43,11 +43,6 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
         CancellationToken cancellationToken = default)
     {
         var start = DateTimeOffset.UtcNow;
-        if (this.clusterIdTask is { IsCompleted: false })
-        {
-            await Task.WhenAny(this.clusterIdTask, Task.Delay(5_000, CancellationToken.None)).ConfigureAwait(false);
-        }
-
         using var activity = this.StartPublishActivity(start, topic, message);
         if (activity != null)
         {
@@ -97,11 +92,6 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
         CancellationToken cancellationToken = default)
     {
         var start = DateTimeOffset.UtcNow;
-        if (this.clusterIdTask is { IsCompleted: false })
-        {
-            await Task.WhenAny(this.clusterIdTask, Task.Delay(5_000, CancellationToken.None)).ConfigureAwait(false);
-        }
-
         using var activity = this.StartPublishActivity(start, topicPartition.Topic, message, topicPartition.Partition);
         if (activity != null)
         {
