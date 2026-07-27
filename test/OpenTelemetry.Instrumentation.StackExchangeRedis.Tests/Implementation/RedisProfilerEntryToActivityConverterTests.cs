@@ -135,6 +135,22 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
         Assert.Equal(dnsEndPoint.Port, result.GetTagValue(SemanticConventions.AttributeServerPort));
     }
 
+    [Fact]
+    public void ProfilerCommandToActivity_EnrichThrows_StillStopsActivity()
+    {
+        var activity = new Activity("redis-profiler");
+        var profiledCommand = new TestProfiledCommand(DateTime.UtcNow);
+        var options = new StackExchangeRedisInstrumentationOptions
+        {
+            Enrich = (_, _) => throw new InvalidOperationException("boom"),
+        };
+
+        var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand, options);
+
+        Assert.NotNull(result);
+        Assert.NotEqual(default, result.Duration);
+    }
+
 #if !NETFRAMEWORK
     [Fact]
     public void ProfilerCommandToActivity_UsesOtherEndPointAsEndPoint()
