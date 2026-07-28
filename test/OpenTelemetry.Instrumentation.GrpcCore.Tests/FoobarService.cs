@@ -36,6 +36,14 @@ internal class FoobarService : Foobar.FoobarBase
     internal const string RequestHeaderErrorDescription = "failuredescription";
 
     /// <summary>
+    /// When present on a unary request, the handler waits for the call to be
+    /// cancelled (i.e. the client disposing the handler) before completing. This
+    /// makes disposal tests deterministic by ensuring the RPC cannot complete
+    /// successfully before <see cref="IDisposable.Dispose" /> takes effect.
+    /// </summary>
+    internal const string RequestHeaderWaitForCancellation = "waitforcancellation";
+
+    /// <summary>
     /// The default parent from a traceparent header.
     /// </summary>
     internal static readonly ActivityContext DefaultParentFromTraceparentHeader = ActivityContext.Parse(DefaultTraceparentWithSampling, null);
@@ -190,6 +198,15 @@ internal class FoobarService : Foobar.FoobarBase
         // Yield to avoid race-condition where tests for disposal before the
         // request completes fail as the call is completed before Dispose() completes.
         await Task.Yield();
+
+        // For disposal tests, keep the call in-flight until the client cancels it
+        // (by disposing the handler). Without this the unary handler can complete
+        // and return a response before Dispose() takes effect, causing the activity
+        // to be recorded with a status other than Cancelled, which is flaky.
+        if (context.RequestHeaders.GetValue(RequestHeaderWaitForCancellation) != null)
+        {
+            await Task.Delay(Timeout.InfiniteTimeSpan, context.CancellationToken).ConfigureAwait(false);
+        }
 
         return DefaultResponseMessage;
     }

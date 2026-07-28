@@ -3,7 +3,6 @@
 
 using System.Text;
 using Google.Protobuf;
-using Xunit;
 
 namespace OpenTelemetry.OpAmp.Client.Tests.Messages;
 

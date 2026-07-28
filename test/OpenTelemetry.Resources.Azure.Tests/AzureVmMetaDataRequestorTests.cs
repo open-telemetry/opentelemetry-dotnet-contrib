@@ -4,7 +4,6 @@
 #if NETFRAMEWORK
 using System.Net.Http;
 #endif
-using Xunit;
 
 namespace OpenTelemetry.Resources.Azure.Tests;
 

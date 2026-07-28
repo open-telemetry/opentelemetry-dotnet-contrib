@@ -5,7 +5,6 @@ using OpAmp.Proto.V1;
 using OpenTelemetry.OpAmp.Client.Internal;
 using OpenTelemetry.OpAmp.Client.Messages;
 using OpenTelemetry.OpAmp.Client.Tests.DataGenerators;
-using Xunit;
 
 namespace OpenTelemetry.OpAmp.Client.Tests;
 

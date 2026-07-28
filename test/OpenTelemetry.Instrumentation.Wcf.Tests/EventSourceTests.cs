@@ -3,7 +3,6 @@
 
 using OpenTelemetry.Instrumentation.Wcf.Implementation;
 using OpenTelemetry.Tests;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Tests;
 

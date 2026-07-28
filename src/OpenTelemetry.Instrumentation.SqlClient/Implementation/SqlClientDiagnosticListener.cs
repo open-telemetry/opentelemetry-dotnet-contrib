@@ -7,6 +7,8 @@ using System.Data.Common;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Runtime.CompilerServices;
+
 #if NET
 using System.Text;
 #endif
@@ -75,6 +77,17 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     }
 #endif
 
+                    // Metrics-only fast path: if the ActivitySource has no listeners then StartActivity
+                    // will always return null and no trace will be produced. Skip the (relatively
+                    // expensive) connection tag derivation, query sanitization, filtering and enrichment
+                    // entirely and only capture the start timestamp needed to compute the metric duration
+                    // in the matching WriteCommandAfter/WriteCommandError event.
+                    if (!SqlTelemetryHelper.ActivitySource.HasListeners())
+                    {
+                        this.beginTimestamp.Value = Stopwatch.GetTimestamp();
+                        return;
+                    }
+
                     var connection = command.Connection;
                     var databaseName = connection?.Database;
                     var dataSource = (connection as DbConnection)?.DataSource;
@@ -129,7 +142,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                         var parameter = setContextCommand.CreateParameter();
                         parameter.ParameterName = ContextInfoParameterName;
 
-                        var tracedflags = (activity.ActivityTraceFlags & ActivityTraceFlags.Recorded) != 0 ? "01" : "00";
+                        var tracedflags = FormatActivityTraceFlags(activity.ActivityTraceFlags);
                         var traceparent = $"00-{activity.TraceId.ToHexString()}-{activity.SpanId.ToHexString()}-{tracedflags}";
 
                         parameter.DbType = DbType.Binary;
@@ -272,6 +285,42 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                 break;
             default:
                 break;
+        }
+    }
+
+    private static string FormatActivityTraceFlags(ActivityTraceFlags flags)
+    {
+        // https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867
+        // will change this code to use ActivityTraceFlags.RandomTraceId instead of 2.
+        // If new enum values are added in the future the Fallback path will ensure
+        // that the handling is functionally correct, but the switch should be updated
+        // to include the new value(s) for better readability and performance where possible.
+        return flags switch
+        {
+            ActivityTraceFlags.None => "00",
+            ActivityTraceFlags.Recorded => "01",
+            (ActivityTraceFlags)2 => "02",
+            ActivityTraceFlags.Recorded | (ActivityTraceFlags)2 => "03",
+            _ => Fallback((byte)flags),
+        };
+
+        static string Fallback(byte flags)
+        {
+            // IDE0302 suppressed as benchmarking showed that the explicitly stackalloc'd variant was more performant
+#pragma warning disable IDE0302 // Simplify collection initialization
+            Span<char> buffer = stackalloc char[2];
+#pragma warning restore IDE0302 // Simplify collection initialization
+
+            buffer[0] = GetHexChar(flags >> 4);
+            buffer[1] = GetHexChar(flags & 0xF);
+
+            return buffer.ToString();
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            static char GetHexChar(int value)
+            {
+                return (char)(value + (value < 10 ? '0' : 'a' - 10));
+            }
         }
     }
 

@@ -2,6 +2,29 @@
 
 ## Unreleased
 
+## 1.17.0
+
+Released 2026-Jul-17
+
+* Assemblies are now digitally signed using cosign.
+  ([#4637](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4637))
+
+* Updated OpenTelemetry core component version(s) to `1.17.0`.
+  ([#4773](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4773))
+
+## 1.16.0
+
+Released 2026-Jun-24
+
+* Fix enrich methods being called multiple times.
+  ([#4018](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4018))
+
+* Add instrumentation scope version and schema URL to metrics and traces.
+  ([#4082](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4082))
+
+* Updated OpenTelemetry core component version(s) to `1.16.0`.
+  ([#4487](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4487))
+
 ## 1.15.1
 
 Released 2026-Apr-21

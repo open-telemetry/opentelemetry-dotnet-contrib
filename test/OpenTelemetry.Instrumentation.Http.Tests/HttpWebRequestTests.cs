@@ -6,7 +6,6 @@ using System.Net;
 using System.Text.Json;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
-using Xunit;
 
 #if !NETFRAMEWORK
 #pragma warning disable SYSLIB0014 // Type or member is obsolete
@@ -19,10 +18,8 @@ public partial class HttpWebRequestTests
 {
     private static readonly JsonSerializerOptions JsonSerializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
-    public static IEnumerable<object[]> TestData => HttpTestData.ReadTestCases();
-
     [Theory]
-    [MemberData(nameof(TestData))]
+    [MemberData(nameof(HttpTestData.TestData), MemberType = typeof(HttpTestData))]
     public void HttpOutCallsAreCollectedSuccessfully(HttpOutTestCase tc)
     {
         using var serverLifeTime = TestHttpServer.RunServer(
@@ -31,8 +28,7 @@ public partial class HttpWebRequestTests
                 ctx.Response.StatusCode = tc.ResponseCode == 0 ? 200 : tc.ResponseCode;
                 ctx.Response.OutputStream.Close();
             },
-            out var host,
-            out var port);
+            out var uri);
 
         var enrichWithHttpWebRequestCalled = false;
         var enrichWithHttpWebResponseCalled = false;
@@ -54,7 +50,7 @@ public partial class HttpWebRequestTests
             })
             .Build();
 
-        tc.Url = HttpTestData.NormalizeValues(tc.Url, host, port);
+        tc.Url = HttpTestData.NormalizeValues(tc.Url, uri.Host, uri.Port);
 
         try
         {
@@ -90,10 +86,7 @@ public partial class HttpWebRequestTests
 
         tc.SpanAttributes = tc.SpanAttributes.ToDictionary(
             x => x.Key,
-            x =>
-            {
-                return x.Key == "network.protocol.version" ? "1.1" : HttpTestData.NormalizeValues(x.Value, host, port);
-            });
+            x => x.Key == "network.protocol.version" ? "1.1" : HttpTestData.NormalizeValues(x.Value, uri.Host, uri.Port));
 
         foreach (var tag in activity.TagObjects)
         {
@@ -151,6 +144,16 @@ public partial class HttpWebRequestTests
 #endif
             Assert.True(enrichWithExceptionCalled);
         }
+
+#if NET
+        // No assertions on Version or TelemetrySchemaUrl as the source is framework-provided
+        Assert.Equal("System.Net.Http", activity.Source.Name);
+#else
+        Assert.Equal("OpenTelemetry.Instrumentation.Http.HttpWebRequest", activity.Source.Name);
+        Assert.NotNull(activity.Source.Version);
+        Assert.NotEmpty(activity.Source.Version);
+        Assert.StartsWith("https://opentelemetry.io/schemas/", activity.Source.TelemetrySchemaUrl);
+#endif
     }
 
     [Fact]
@@ -184,8 +187,6 @@ public partial class HttpWebRequestTests
         this.HttpOutCallsAreCollectedSuccessfully(input);
     }
 
-    private static void ValidateHttpWebRequestActivity(Activity activityToValidate)
-    {
+    private static void ValidateHttpWebRequestActivity(Activity activityToValidate) =>
         Assert.Equal(ActivityKind.Client, activityToValidate.Kind);
-    }
 }

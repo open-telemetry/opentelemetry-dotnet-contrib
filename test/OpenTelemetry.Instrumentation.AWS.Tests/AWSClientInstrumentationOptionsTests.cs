@@ -10,7 +10,6 @@ using Amazon.Runtime.Internal;
 using OpenTelemetry.Instrumentation.AWS.Implementation;
 using OpenTelemetry.Instrumentation.AWS.Tests.Tools;
 using OpenTelemetry.Trace;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.AWS.Tests;
 

@@ -4,8 +4,6 @@
 using System.Buffers;
 using OpenTelemetry.OpAmp.Client.Internal.Utils;
 
-using Xunit;
-
 namespace OpenTelemetry.OpAmp.Client.Tests;
 
 public class Varint64Tests

@@ -6,15 +6,20 @@ on:
 
 permissions: {}
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.sha }}
+  cancel-in-progress: false
+
 jobs:
   submit-nuget:
+    name: Submit NuGet dependency snapshot
     if: github.event.repository.fork == false
-    runs-on: windows-latest
+    runs-on: windows-2025
     timeout-minutes: 10
 
     permissions:
-      contents: write
-      id-token: write
+      contents: write # Submit the generated dependency snapshot to the repository dependency graph
+      id-token: write # Authenticate the dependency submission with GitHub OIDC
 
     steps:
       - name: Update agent configuration
@@ -24,20 +29,20 @@ jobs:
           "DOTNET_ROOT=D:\tools\dotnet" >> ${env:GITHUB_ENV}
           "NUGET_PACKAGES=D:\.nuget\packages" >> ${env:GITHUB_ENV}
 
-      - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           filter: 'tree:0'
           persist-credentials: false
           show-progress: false
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5.2.0
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
 
       - name: Restore NuGet packages
         run: dotnet restore
 
       - name: Component detection
-        uses: advanced-security/component-detection-dependency-submission-action@b876b8cc341a53970394b33ea0ca4e86c25542de # v0.1.3
+        uses: advanced-security/component-detection-dependency-submission-action@31f25a8de68ae5ce2ca274bc28546a78683c15ce # v0.1.4
         with:
           detectorsCategories: NuGet

@@ -3,7 +3,6 @@
 
 using System.Xml.Linq;
 using Microsoft.Web.XmlTransform;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.AspNet.Tests;
 

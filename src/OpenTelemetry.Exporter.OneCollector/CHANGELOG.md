@@ -2,6 +2,32 @@
 
 ## Unreleased
 
+## 1.17.0
+
+Released 2026-Jul-17
+
+* Assemblies are now digitally signed using cosign.
+  ([#4637](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4637))
+
+* Updated OpenTelemetry core component version(s) to `1.17.0`.
+  ([#4773](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4773))
+
+## 1.16.0
+
+Released 2026-Jun-24
+
+* Fix serialization of whole `float`/`double` values.
+  ([#4017](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4017))
+
+* Remove all `unsafe` code paths.
+  ([#4442](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4442))
+
+* Fix `IndexOutOfRangeException` if the extension key limit is reached.
+  ([#4442](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4442))
+
+* Updated OpenTelemetry core component version(s) to `1.16.0`.
+  ([#4487](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4487))
+
 ## 1.15.1
 
 Released 2026-Apr-21

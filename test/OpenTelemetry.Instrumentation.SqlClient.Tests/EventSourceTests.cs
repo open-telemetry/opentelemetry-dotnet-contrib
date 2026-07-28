@@ -3,7 +3,6 @@
 
 using OpenTelemetry.Instrumentation.SqlClient.Implementation;
 using OpenTelemetry.Tests;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.SqlClient.Tests;
 

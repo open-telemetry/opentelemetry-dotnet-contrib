@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
 using Microsoft.Data.Sqlite;
@@ -9,7 +8,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
 using OpenTelemetry.Trace;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests;
 

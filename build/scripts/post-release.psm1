@@ -5,6 +5,10 @@ function CreateRelease {
     [Parameter()][string]$releaseFiles
   )
 
+  $ErrorActionPreference = "Stop"
+  $InformationPreference = "Continue"
+  $WarningPreference = "Continue"
+
   $match = [regex]::Match($tag, '^(.*?-)(.*)$')
   if ($match.Success -eq $false)
   {
@@ -14,7 +18,7 @@ function CreateRelease {
   $tagPrefix = $match.Groups[1].Value
   $version = $match.Groups[2].Value
 
-  $projects = @(Get-ChildItem -Path src/**/*.csproj | Select-String "<MinVerTagPrefix>$tagPrefix</MinVerTagPrefix>" -List | Select Path)
+  $projects = @(Get-ChildItem -Path src/**/*.csproj | Select-String "<MinVerTagPrefix>$tagPrefix</MinVerTagPrefix>" -List | Select-Object Path)
 
   $notes = ''
 
@@ -107,8 +111,8 @@ function TryPostPackagesReadyNoticeOnPrepareReleasePullRequest {
 
   if ($prListResponse.Length -eq 0)
   {
-    Write-Host 'No prepare release PR found for tag & commit skipping post notice'
-    return
+    Write-Information 'No prepare release PR found for tag & commit skipping post notice'
+    return $null
   }
 
   foreach ($pr in $prListResponse)
@@ -143,7 +147,7 @@ function TryPostPackagesReadyNoticeOnPrepareReleasePullRequest {
       continue
     }
 
-  $body =
+    $body =
 @"
 The [packages]($packagesUrl) for [$tag](https://github.com/$gitRepository/releases/tag/$tag) should be available on NuGet momentarily.
 
@@ -152,11 +156,12 @@ Have a nice day!
 
     $pullRequestNumber = $pr.number
 
-    gh pr comment $pullRequestNumber --body $body
-    return
+    gh pr comment $pullRequestNumber --body $body | Out-Null
+    return $pullRequestNumber
   }
 
-  Write-Host 'No prepare release PR found matched author and title with a valid comment'
+  Write-Warning 'No prepare release PR found matched author and title with a valid comment'
+  return $null
 }
 
 Export-ModuleMember -Function TryPostPackagesReadyNoticeOnPrepareReleasePullRequest
@@ -190,7 +195,7 @@ function CreatePackageValidationBaselineVersionUpdatePullRequest {
     git config user.email $gitUserEmail
   }
 
-  git switch --create $branch origin/$targetBranch --no-track 2>&1 | % ToString
+  git switch --create $branch origin/$targetBranch --no-track 2>&1 | ForEach-Object { $_.ToString() }
   if ($LASTEXITCODE -gt 0)
   {
       throw 'git switch failure'
@@ -199,8 +204,8 @@ function CreatePackageValidationBaselineVersionUpdatePullRequest {
   $versionTagRegex = "<PackageValidationBaselineVersion>.*</PackageValidationBaselineVersion>"
 
   $projects = Get-ChildItem -Path src/**/*.csproj |
-    where { $_ | Select-String "<MinVerTagPrefix>$tagPrefix</MinVerTagPrefix>" } |
-    where { $_ | Select-String $versionTagRegex }
+    Where-Object { $_ | Select-String "<MinVerTagPrefix>$tagPrefix</MinVerTagPrefix>" } |
+    Where-Object { $_ | Select-String $versionTagRegex }
 
   if ($projects.Length -ne 0)
   {
@@ -209,7 +214,7 @@ function CreatePackageValidationBaselineVersionUpdatePullRequest {
           -replace $versionTagRegex, "<PackageValidationBaselineVersion>$version</PackageValidationBaselineVersion>" |
         Set-Content $project
 
-      git add $project 2>&1 | % ToString
+      git add $project 2>&1 | ForEach-Object { $_.ToString() }
       if ($LASTEXITCODE -gt 0)
       {
           throw 'git add failure'
@@ -220,8 +225,8 @@ function CreatePackageValidationBaselineVersionUpdatePullRequest {
   $disabledTag = "<DisablePackageBaselineValidation>true</DisablePackageBaselineValidation>"
 
   $disabledProjects = Get-ChildItem -Path src/**/*.csproj |
-    where { $_ | Select-String "<MinVerTagPrefix>$tagPrefix</MinVerTagPrefix>" } |
-    where { $_ | Select-String $disabledTag }
+    Where-Object { $_ | Select-String "<MinVerTagPrefix>$tagPrefix</MinVerTagPrefix>" } |
+    Where-Object { $_ | Select-String $disabledTag }
 
   if ($disabledProjects.Length -ne 0)
   {
@@ -234,7 +239,7 @@ function CreatePackageValidationBaselineVersionUpdatePullRequest {
 
       Set-Content $project -Value $content.TrimEnd()
 
-      git add $project 2>&1 | % ToString
+      git add $project 2>&1 | ForEach-Object { $_.ToString() }
       if ($LASTEXITCODE -gt 0)
       {
           throw 'git add failure'
@@ -242,7 +247,7 @@ function CreatePackageValidationBaselineVersionUpdatePullRequest {
     }
   }
 
-  git commit -m "Update PackageValidationBaselineVersion in $tagPrefix projects to $version." -s 2>&1 | % ToString
+  git commit -m "Update PackageValidationBaselineVersion in $tagPrefix projects to $version." -s 2>&1 | ForEach-Object { $_.ToString() }
   if ($LASTEXITCODE -gt 0)
   {
       throw 'git commit failure'
@@ -252,7 +257,7 @@ function CreatePackageValidationBaselineVersionUpdatePullRequest {
   UpdateCommonPropsVersion -tagPrefix $tagPrefix -version $version -propertyName 'Instrumentation.Http-' -propertyDisplayName 'OpenTelemetryInstrumentationHttpLatestStableVersion'
   UpdateCommonPropsVersion -tagPrefix $tagPrefix -version $version -propertyName 'Instrumentation.Runtime-' -propertyDisplayName 'OpenTelemetryInstrumentationRuntimeLatestStableVersion'
 
-  git push -u origin $branch 2>&1 | % ToString
+  git push -u origin $branch 2>&1 | ForEach-Object { $_.ToString() }
   if ($LASTEXITCODE -gt 0)
   {
       throw 'git push failure'
@@ -326,7 +331,7 @@ function CreateOpenTelemetryCoreLatestVersionUpdatePullRequest {
     Return
   }
 
-  $branch="otelbot/post-core-${version}-update"
+  $branch="otelbot/post-${tag}-update"
 
   if ([string]::IsNullOrEmpty($gitUserName) -eq $false)
   {
@@ -337,7 +342,7 @@ function CreateOpenTelemetryCoreLatestVersionUpdatePullRequest {
     git config user.email $gitUserEmail
   }
 
-  git switch --create $branch origin/$targetBranch --no-track 2>&1 | % ToString
+  git switch --create $branch origin/$targetBranch --no-track 2>&1 | ForEach-Object { $_.ToString() }
   if ($LASTEXITCODE -gt 0)
   {
       throw 'git switch failure'
@@ -368,19 +373,19 @@ function CreateOpenTelemetryCoreLatestVersionUpdatePullRequest {
     }
   }
 
-  git add Directory.Packages.props 2>&1 | % ToString
+  git add Directory.Packages.props 2>&1 | ForEach-Object { $_.ToString() }
   if ($LASTEXITCODE -gt 0)
   {
       throw 'git add failure'
   }
 
-  git commit -m "Update $propertyName in Directory.Packages.props to $version." -s 2>&1 | % ToString
+  git commit -m "Update $propertyName in Directory.Packages.props to $version." -s 2>&1 | ForEach-Object { $_.ToString() }
   if ($LASTEXITCODE -gt 0)
   {
       throw 'git commit failure'
   }
 
-  git push -u origin $branch 2>&1 | % ToString
+  git push -u origin $branch 2>&1 | ForEach-Object { $_.ToString() }
   if ($LASTEXITCODE -gt 0)
   {
       throw 'git push failure'
@@ -404,7 +409,7 @@ Merge once packages are available on NuGet and the build passes.
     --head $branch `
     --label release
 
-  Write-Host $createPullRequestResponse
+  Write-Information $createPullRequestResponse
 
   $match = [regex]::Match($createPullRequestResponse, "\/pull\/(.*)$")
   if ($match.Success -eq $false)
@@ -435,7 +440,7 @@ $entry = @"
 
       if ([System.IO.File]::Exists($path) -eq $false)
       {
-        Write-Host "No CHANGELOG found in $projectDir"
+        Write-Information "No CHANGELOG found in $projectDir"
         continue
       }
 
@@ -507,7 +512,7 @@ $entry = @"
 
       Set-Content -Path $path -Value $content.TrimEnd()
 
-      git add $path 2>&1 | % ToString
+      git add $path 2>&1 | ForEach-Object { $_.ToString() }
       if ($LASTEXITCODE -gt 0)
       {
           throw 'git add failure'
@@ -518,13 +523,13 @@ $entry = @"
 
   if ($changelogFilesUpdated -gt 0)
   {
-    git commit -m "Update CHANGELOGs for projects using $propertyName." -s 2>&1 | % ToString
+    git commit -m "Update CHANGELOGs for projects using $propertyName." -s 2>&1 | ForEach-Object { $_.ToString() }
     if ($LASTEXITCODE -gt 0)
     {
         throw 'git commit failure'
     }
 
-    git push -u origin $branch 2>&1 | % ToString
+    git push -u origin $branch 2>&1 | ForEach-Object { $_.ToString() }
     if ($LASTEXITCODE -gt 0)
     {
         throw 'git push failure'
@@ -542,7 +547,7 @@ function GetCoreDependenciesForProjects {
     foreach ($project in $projects)
     {
         # Note: dotnet restore may fail if the core packages aren't available yet but that is fine, we just want to generate project.assets.json for these projects.
-        $output = dotnet restore $project
+        dotnet restore $project | Out-Null
 
         $projectDir = $project | Split-Path -Parent
         $projectDirName = $projectDir | Split-Path -Leaf
@@ -552,8 +557,8 @@ function GetCoreDependenciesForProjects {
 
         $projectDependencies = @{}
 
-        $matches = [regex]::Matches($content, '"(OpenTelemetry(?:.*))?": {[\S\s]*?"target": "Package",[\S\s]*?"version": "(.*)"[\S\s]*?}')
-        foreach ($match in $matches)
+        $dependencyMatches = [regex]::Matches($content, '"(OpenTelemetry(?:.*))?": {[\S\s]*?"target": "Package",[\S\s]*?"version": "(.*)"[\S\s]*?}')
+        foreach ($match in $dependencyMatches)
         {
             $packageName = $match.Groups[1].Value
             $packageVersion = $match.Groups[2].Value
@@ -590,13 +595,13 @@ function UpdateCommonPropsVersion {
                "<$propertyDisplayName>$version</$propertyDisplayName>" |
       Set-Content Directory.Packages.props -NoNewline
 
-    git add Directory.Packages.props 2>&1 | % ToString
+    git add Directory.Packages.props 2>&1 | ForEach-Object { $_.ToString() }
     if ($LASTEXITCODE -gt 0)
     {
         throw 'git add failure'
     }
 
-    git commit -m "Update $propertyDisplayName version in Directory.Packages.props to $version." -s 2>&1 | % ToString
+    git commit -m "Update $propertyDisplayName version in Directory.Packages.props to $version." -s 2>&1 | ForEach-Object { $_.ToString() }
     if ($LASTEXITCODE -gt 0)
     {
         throw 'git commit failure'

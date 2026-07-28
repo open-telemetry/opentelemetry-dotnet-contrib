@@ -3,7 +3,6 @@
 
 using Microsoft.Extensions.Configuration;
 using OpenTelemetry.Internal;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests;
 

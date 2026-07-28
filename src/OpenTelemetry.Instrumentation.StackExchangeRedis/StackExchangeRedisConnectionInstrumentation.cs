@@ -8,6 +8,7 @@ using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 using StackExchange.Redis;
 using StackExchange.Redis.Profiling;
+using ActivitySourceFactory = OpenTelemetry.Trace.ActivitySourceFactory;
 
 namespace OpenTelemetry.Instrumentation.StackExchangeRedis;
 
@@ -21,7 +22,7 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
     internal static readonly Version SemanticConventionsVersion = new(1, 23, 0);
     internal static readonly ActivitySource ActivitySource = ActivitySourceFactory.Create<StackExchangeRedisConnectionInstrumentation>(SemanticConventionsVersion);
 
-    internal static readonly Version SemanticConventionsVersionNew = new(1, 28, 0);
+    internal static readonly Version SemanticConventionsVersionNew = new(1, 42, 0);
     internal static readonly ActivitySource ActivitySourceNew = ActivitySourceFactory.Create<StackExchangeRedisConnectionInstrumentation>(SemanticConventionsVersionNew);
 
     internal static readonly ActivitySource ActivitySourceBoth = ActivitySourceFactory.Create<StackExchangeRedisConnectionInstrumentation>(null);
@@ -36,6 +37,12 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
     internal static readonly IEnumerable<KeyValuePair<string, object?>> NewCreationTags =
     [
         new(SemanticConventions.AttributeDbSystemName, "redis")
+    ];
+
+    internal static readonly IEnumerable<KeyValuePair<string, object?>> BothCreationTags =
+    [
+        new(SemanticConventions.AttributeDbSystem, "redis"),
+        new(SemanticConventions.AttributeDbSystemName, "redis"),
     ];
 
     internal readonly ConcurrentDictionary<(ActivityTraceId TraceId, ActivitySpanId SpanId), (Activity Activity, ProfilingSession Session)> Cache
@@ -120,15 +127,18 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
         foreach (var entry in this.Cache)
         {
             var parent = entry.Value.Activity;
-            if (parent.Duration == TimeSpan.Zero)
+            var parentCompleted = parent.Duration != TimeSpan.Zero;
+
+            if (this.options.EnableEarlyCommandDrain || parentCompleted)
             {
-                // Activity is still running, don't drain.
-                continue;
+                var session = entry.Value.Session;
+                RedisProfilerEntryToActivityConverter.DrainSession(parent, session.FinishProfiling(), this.options);
             }
 
-            var session = entry.Value.Session;
-            RedisProfilerEntryToActivityConverter.DrainSession(parent, session.FinishProfiling(), this.options);
-            this.Cache.TryRemove((entry.Key.TraceId, entry.Key.SpanId), out _);
+            if (parentCompleted)
+            {
+                this.Cache.TryRemove((entry.Key.TraceId, entry.Key.SpanId), out _);
+            }
         }
     }
 

@@ -2,8 +2,31 @@
 
 ## Unreleased
 
+## 1.0.0-alpha.3
+
+Released 2026-Jul-22
+
+* Updated OpenTelemetry core component version(s) to `1.17.0`.
+  ([#4773](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4773))
+
+* Add schema URL to resource detector.
+  ([#4775](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4775))
+
+* Fix `cloud.zone` being emitted instead of `cloud.availability_zone`.
+  ([#4775](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4775))
+
+## 1.0.0-alpha.2
+
+Released 2026-Jul-09
+
 * Update `System.Text.Json` for `netstandard2.0` to `8.0.5`.
   ([#4154](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4154))
+
+* Updated OpenTelemetry core component version(s) to `1.16.0`.
+  ([#4487](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4487))
+
+* Assemblies are now digitally signed using cosign.
+  ([#4637](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4637))
 
 ## 1.0.0-alpha.1
 

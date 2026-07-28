@@ -2,9 +2,34 @@
 
 ## Unreleased
 
+## 1.17.0-beta.1
+
+Released 2026-Jul-17
+
+* Updated OpenTelemetry core component version(s) to `1.17.0`.
+  ([#4773](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4773))
+
+## 1.16.0-beta.2
+
+Released 2026-Jul-13
+
+* Assemblies are now digitally signed using cosign.
+  ([#4637](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4637))
+
+* Fixed `NullReferenceException` in the metrics filter when a job's definition
+  cannot be resolved.
+  ([#4731](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4731))
+
+## 1.16.0-beta.1
+
+Released 2026-Jun-24
+
 * Fix baggage propagation cleanup so baggage extracted for one job is cleared and
   the previous ambient baggage is restored after job completion.
   ([#4288](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4288))
+
+* Updated OpenTelemetry core component version(s) to `1.16.0`.
+  ([#4487](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4487))
 
 ## 1.15.1-beta.1
 

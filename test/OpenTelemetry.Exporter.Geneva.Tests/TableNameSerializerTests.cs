@@ -4,7 +4,6 @@
 #nullable disable
 
 using System.Text;
-using Xunit;
 
 namespace OpenTelemetry.Exporter.Geneva.Tests;
 

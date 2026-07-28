@@ -8,7 +8,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using OpenTelemetry.Exporter.Geneva.MsgPack;
 using OpenTelemetry.Resources;
-using Xunit;
 
 namespace OpenTelemetry.Exporter.Geneva.Tests;
 

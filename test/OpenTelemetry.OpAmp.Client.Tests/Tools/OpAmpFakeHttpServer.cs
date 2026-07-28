@@ -40,9 +40,8 @@ internal class OpAmpFakeHttpServer : IDisposable
 #pragma warning restore IDE0370 // Suppression is unnecessary
                 context.Response.Close();
             },
-            out var host,
-            out var port);
-        this.Endpoint = new Uri($"http://{host}:{port}");
+            out var endpoint);
+        this.Endpoint = endpoint;
     }
 
     public Uri Endpoint { get; }

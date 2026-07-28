@@ -1,9 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using Xunit;
-using Xunit.Abstractions;
-
 namespace OpenTelemetry.Instrumentation.Tests;
 
 public class SqlProcessorTests

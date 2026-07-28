@@ -3,7 +3,6 @@
 
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
-using Xunit;
 
 namespace OpenTelemetry.Exporter.OneCollector.Tests;
 
@@ -21,6 +20,8 @@ public class OneCollectorOpenTelemetryLoggerOptionsExtensionsTests
                     "InstrumentationKey=token-extrainformation",
                     configure => configure.ConfigureExporter(exporter => exporterInstance = exporter));
             }));
+
+        _ = loggerFactory.CreateLogger("TestLogger");
 
         Assert.NotNull(exporterInstance);
 
@@ -59,6 +60,7 @@ public class OneCollectorOpenTelemetryLoggerOptionsExtensionsTests
                 {
                     builder.AddOneCollectorExporter(configure => { });
                 }));
+            _ = loggerFactory.CreateLogger("TestLogger");
         });
 
         Assert.Throws<OneCollectorExporterValidationException>(() =>
@@ -68,6 +70,7 @@ public class OneCollectorOpenTelemetryLoggerOptionsExtensionsTests
                 {
                     builder.AddOneCollectorExporter("InstrumentationKey=invalidinstrumentationkey");
                 }));
+            _ = loggerFactory.CreateLogger("TestLogger");
         });
 
         Assert.Throws<OneCollectorExporterValidationException>(() =>
@@ -77,6 +80,7 @@ public class OneCollectorOpenTelemetryLoggerOptionsExtensionsTests
                 {
                     builder.AddOneCollectorExporter("UnknownKey=invalidinstrumentationkey");
                 }));
+            _ = loggerFactory.CreateLogger("TestLogger");
         });
     }
 }

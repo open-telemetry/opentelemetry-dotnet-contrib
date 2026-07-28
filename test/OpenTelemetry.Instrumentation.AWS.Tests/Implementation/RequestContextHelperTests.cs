@@ -6,7 +6,6 @@ using Amazon.Runtime.Internal;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Instrumentation.AWS.Implementation;
 using OpenTelemetry.Trace;
-using Xunit;
 using SNS = Amazon.SimpleNotificationService.Model;
 using SQS = Amazon.SQS.Model;
 

@@ -7,7 +7,6 @@ using System.Text;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Resources;
-using Xunit;
 
 namespace OpenTelemetry.Exporter.OneCollector.Tests;
 

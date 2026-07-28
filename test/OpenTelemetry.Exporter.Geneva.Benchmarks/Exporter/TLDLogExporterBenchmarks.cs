@@ -7,7 +7,6 @@ using OpenTelemetry.Exporter.Geneva.MsgPack;
 using OpenTelemetry.Exporter.Geneva.Tld;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Resources;
-using OpenTelemetry.Trace;
 
 /*
 BenchmarkDotNet v0.13.10, Windows 11 (10.0.23424.1000)

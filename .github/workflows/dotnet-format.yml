@@ -8,14 +8,58 @@ permissions:
 
 jobs:
   run-dotnet-format:
-    runs-on: windows-latest
+    name: Run dotnet format
+    runs-on: windows-2025
 
     steps:
-    - name: check out code
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+    - name: Checkout code
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+        show-progress: false
+
+    - name: Check changed files
+      id: check
+      shell: pwsh
+      run: |
+        $baseRef = if (${env:GITHUB_BASE_REF}) { "origin/${env:GITHUB_BASE_REF}" } else { "HEAD~1" }
+        $changedFiles = git diff --name-only "$baseRef...HEAD"
+
+        if ($changedFiles -contains 'global.json') {
+          Write-Output "global.json was changed - checking all files."
+          "run-format=true" >> ${env:GITHUB_OUTPUT}
+          "include-args=" >> ${env:GITHUB_OUTPUT}
+        } else {
+          $csFiles = $changedFiles | Where-Object { $_ -match '\.cs$' }
+
+          if (-not $csFiles) {
+            Write-Output "No C# files changed."
+            "run-format=false" >> ${env:GITHUB_OUTPUT}
+          } else {
+            Write-Output "Checking: $csFiles"
+            "run-format=true" >> ${env:GITHUB_OUTPUT}
+            "include-args=$($csFiles -join ' ')" >> ${env:GITHUB_OUTPUT}
+          }
+        }
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5.2.0
+      if: steps.check.outputs.run-format == 'true'
+      uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
 
     - name: dotnet format
-      run: dotnet format opentelemetry-dotnet-contrib.slnx --verify-no-changes
+      if: steps.check.outputs.run-format == 'true'
+      shell: pwsh
+      env:
+        INCLUDE_FILES: ${{ steps.check.outputs.include-args }}
+      run: |
+        $formatArgs = @(
+          'opentelemetry-dotnet-contrib.slnx',
+          '--verify-no-changes'
+        )
+
+        if (${env:INCLUDE_FILES}) {
+          $formatArgs += @('--include') + ${env:INCLUDE_FILES}.Split(' ')
+        }
+
+        dotnet format $formatArgs

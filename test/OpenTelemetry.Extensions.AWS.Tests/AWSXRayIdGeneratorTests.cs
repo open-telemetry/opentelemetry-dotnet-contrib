@@ -4,7 +4,6 @@
 using System.Diagnostics;
 using System.Runtime.ExceptionServices;
 using OpenTelemetry.Trace;
-using Xunit;
 
 namespace OpenTelemetry.Extensions.AWS.Tests;
 

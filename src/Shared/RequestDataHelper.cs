@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #if NET
+using System.Collections.Concurrent;
 using System.Collections.Frozen;
 #endif
 using System.Diagnostics;
@@ -25,6 +26,12 @@ internal sealed class RequestDataHelper
     private readonly Dictionary<string, string> knownHttpMethods;
 #endif
 
+#if NET
+    // Caches the final display name string for each (namePrefix, httpRoute) pair.
+    // The number of distinct combinations is bounded by the number of (HTTP method name prefixes * routes) in the app.
+    private readonly ConcurrentDictionary<(string Method, string Route), string> displayNameCache = new();
+#endif
+
     public RequestDataHelper(bool configureByHttpKnownMethodsEnvironmentalVariable)
     {
         var suppliedKnownMethods = configureByHttpKnownMethodsEnvironmentalVariable ? Environment.GetEnvironmentVariable(KnownHttpMethodsEnvironmentVariable)
@@ -34,6 +41,9 @@ internal sealed class RequestDataHelper
 
         if (suppliedKnownMethods?.Length > 0)
         {
+            // The user supplied a custom set of known HTTP methods via OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS,
+            // so the normalized method/display name may differ from the framework's defaults.
+            this.HasCustomKnownMethods = true;
             knownMethodSet = suppliedKnownMethods.ToDictionary(x => x, x => x, StringComparer.OrdinalIgnoreCase);
         }
         else
@@ -68,9 +78,33 @@ internal sealed class RequestDataHelper
 #endif
     }
 
+    /// <summary>
+    /// Gets a value indicating whether a custom set of known HTTP methods was supplied via the
+    /// <c>OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS</c> environment variable.
+    /// </summary>
+    /// <remarks>
+    /// When <see langword="true"/> the normalized method (and method-based display name) can
+    /// differ from a framework's defaults, so callers that would otherwise defer to native
+    /// framework values must not do so.
+    /// </remarks>
+    public bool HasCustomKnownMethods { get; }
+
     public void SetHttpMethodTag(Activity activity, string originalHttpMethod)
     {
         var normalizedHttpMethod = this.GetNormalizedHttpMethod(originalHttpMethod);
+        activity.SetTag(SemanticConventions.AttributeHttpRequestMethod, normalizedHttpMethod);
+
+        if (originalHttpMethod != normalizedHttpMethod)
+        {
+            activity.SetTag(SemanticConventions.AttributeHttpRequestMethodOriginal, originalHttpMethod);
+        }
+    }
+
+    public void SetActivityDisplayNameAndHttpMethodTag(Activity activity, string originalHttpMethod)
+    {
+        var normalizedHttpMethod = this.GetNormalizedHttpMethod(originalHttpMethod);
+
+        activity.DisplayName = normalizedHttpMethod == OtherHttpMethod ? "HTTP" : normalizedHttpMethod;
         activity.SetTag(SemanticConventions.AttributeHttpRequestMethod, normalizedHttpMethod);
 
         if (originalHttpMethod != normalizedHttpMethod)
@@ -103,9 +137,18 @@ internal sealed class RequestDataHelper
         // https://github.com/open-telemetry/semantic-conventions/blob/v1.24.0/docs/http/http-spans.md#name
 
         var normalizedHttpMethod = this.GetNormalizedHttpMethod(originalHttpMethod);
-        var namePrefix = normalizedHttpMethod == "_OTHER" ? "HTTP" : normalizedHttpMethod;
+        var namePrefix = normalizedHttpMethod == OtherHttpMethod ? "HTTP" : normalizedHttpMethod;
 
-        return string.IsNullOrEmpty(httpRoute) ? namePrefix : $"{namePrefix} {httpRoute}";
+        if (string.IsNullOrEmpty(httpRoute))
+        {
+            return namePrefix;
+        }
+
+#if NET
+        return this.displayNameCache.GetOrAdd((namePrefix, httpRoute), static kv => $"{kv.Method} {kv.Route}");
+#else
+        return $"{namePrefix} {httpRoute}";
+#endif
     }
 
     internal static string GetHttpProtocolVersion(Version httpVersion) => httpVersion switch

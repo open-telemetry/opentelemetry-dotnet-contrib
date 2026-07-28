@@ -5,7 +5,6 @@ using System.Reflection;
 using System.Text;
 using Microsoft.AspNetCore.Builder;
 using RouteTests.TestApplication;
-using Xunit;
 
 namespace RouteTests;
 

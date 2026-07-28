@@ -6,7 +6,6 @@ using Cassandra.Mapping;
 using Cassandra.Metrics;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Tests;
-using Xunit;
 using CassandraData = Cassandra.Data.Linq;
 
 namespace OpenTelemetry.Instrumentation.Cassandra.Tests;

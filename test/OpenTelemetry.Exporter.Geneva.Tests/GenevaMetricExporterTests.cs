@@ -5,6 +5,7 @@
 
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
+using System.Diagnostics.Tracing;
 using System.Globalization;
 using System.Net.Sockets;
 using System.Reflection;
@@ -14,8 +15,6 @@ using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Exporter.Geneva.Metrics;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Tests;
-using OpenTelemetry.Trace;
-using Xunit;
 using static OpenTelemetry.Exporter.Geneva.Tests.MetricsContract;
 
 namespace OpenTelemetry.Exporter.Geneva.Tests;
@@ -558,6 +557,105 @@ public class GenevaMetricExporterTests
         finally
         {
             activity?.Dispose();
+            server?.Dispose();
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    [Theory]
+    [InlineData(10, true)]
+    [InlineData(300, false)]
+    public void ExemplarExceedingByteLengthDropsLabelsInsteadOfCorrupting(int filteredTagValueLength, bool expectLabelKept)
+    {
+        using var meter = new Meter("ExemplarOverflow", "0.0.1");
+        var counter = meter.CreateCounter<long>("longCounter");
+        var exportedItems = new List<Metric>();
+        using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
+        {
+            TemporalityPreference = MetricReaderTemporalityPreference.Delta,
+        };
+
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddMeter("ExemplarOverflow")
+            .SetExemplarFilter(ExemplarFilterType.AlwaysOn)
+            .AddView("*", new MetricStreamConfiguration { TagKeys = ["tag1"] })
+            .AddReader(inMemoryReader)
+            .Build();
+
+        var filteredTagValue = new string('x', filteredTagValueLength);
+        counter.Add(1, new("tag1", "keep"), new("bigFilteredTag", filteredTagValue));
+
+        inMemoryReader.Collect();
+
+        var metric = Assert.Single(exportedItems);
+        var metricPointsEnumerator = metric.GetMetricPoints().GetEnumerator();
+        Assert.True(metricPointsEnumerator.MoveNext());
+        var metricPoint = metricPointsEnumerator.Current;
+        Assert.True(metricPoint.TryGetExemplars(out var exemplars));
+
+        var path = string.Empty;
+        Socket server = null;
+        try
+        {
+            var exporterOptions = new GenevaMetricExporterOptions();
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
+            }
+            else
+            {
+                // On non-Windows the TLV exporter requires a Unix domain socket endpoint.
+                path = GenerateTempFilePath();
+                exporterOptions.ConnectionString = $"Endpoint=unix:{path};Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                server.Bind(endpoint);
+                server.Listen(1);
+            }
+
+            using var exporter = new TlvMetricExporter(
+                new ConnectionStringBuilder(exporterOptions.ConnectionString),
+                null);
+
+            var metricData = new MetricData { UInt64Value = Convert.ToUInt64(metricPoint.GetSumLong()) };
+            exporter.SerializeMetricWithTLV(
+                MetricEventType.ULongMetric,
+                metric.Name,
+                metricPoint.EndTime.ToFileTime(),
+                metricPoint.Tags,
+                metricData,
+                metric.MetricType,
+                exemplars,
+                out _,
+                out _);
+
+            var buffer = typeof(TlvMetricExporter)
+                .GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(exporter) as byte[];
+
+            var data = new MetricsContract(new KaitaiStream(buffer));
+            var fields = ((UserdataV2)data.Body).Fields;
+            var exemplarsPayload = fields.First(field => field.Type == PayloadTypes.Exemplars).Value as Exemplars;
+            var body = exemplarsPayload.ExemplarList[0].Body;
+
+            if (expectLabelKept)
+            {
+                Assert.Equal(1, body.NumberOfLabels);
+                Assert.Equal(filteredTagValue, body.Labels[0].Value.Value);
+            }
+            else
+            {
+                Assert.Equal(0, body.NumberOfLabels);
+            }
+        }
+        finally
+        {
             server?.Dispose();
             try
             {
@@ -1410,6 +1508,99 @@ public class GenevaMetricExporterTests
         }
 
         return result;
+    }
+
+    [Fact]
+    public void TlvMetricExporter_BufferOverflow_LogsBufferFullEvent()
+    {
+        var capturedEvents = new List<EventWrittenEventArgs>();
+        var path = string.Empty;
+        Socket server = null;
+
+        using var listener = new BufferOverflowEventListener(capturedEvents);
+        try
+        {
+            string connectionString;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                connectionString = "Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
+            }
+            else
+            {
+                path = GenerateTempFilePath();
+                connectionString = $"Endpoint=unix:{path};Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                server.Bind(endpoint);
+                server.Listen(1);
+            }
+
+            using var meter = new Meter("BufferOverflowTest", "0.0.1");
+            var counter = meter.CreateCounter<long>("overflowCounter");
+
+            using (var meterProvider = Sdk.CreateMeterProviderBuilder()
+                .AddMeter("BufferOverflowTest")
+                .AddGenevaMetricExporter(options => options.ConnectionString = connectionString)
+                .Build())
+            {
+                // Record a metric with a tag value large enough to overflow the fixed-size serialization buffer.
+                counter.Add(1, new KeyValuePair<string, object>("bigTag", new string('x', GenevaMetricExporter.BufferSize + 100)));
+            }
+
+            // Verify that the buffer overflow was logged with the dedicated event (ID 11).
+            // Enumerate under the same lock the listener uses, so a concurrent write from another
+            // test class (the Geneva EventSource is a process-wide singleton) cannot throw.
+            lock (capturedEvents)
+            {
+                Assert.Contains(capturedEvents, e => e.EventId == 11);
+            }
+        }
+        finally
+        {
+            server?.Dispose();
+            if (!string.IsNullOrEmpty(path))
+            {
+                try
+                {
+                    File.Delete(path);
+                }
+                catch
+                {
+                }
+            }
+        }
+    }
+
+    private sealed class BufferOverflowEventListener : EventListener
+    {
+        private readonly List<EventWrittenEventArgs> capturedEvents;
+
+        public BufferOverflowEventListener(List<EventWrittenEventArgs> capturedEvents)
+        {
+            this.capturedEvents = capturedEvents;
+        }
+
+        protected override void OnEventSourceCreated(EventSource eventSource)
+        {
+            if (eventSource.Name == "OpenTelemetry-Exporter-Geneva")
+            {
+                this.EnableEvents(eventSource, EventLevel.Error, EventKeywords.All);
+            }
+        }
+
+        protected override void OnEventWritten(EventWrittenEventArgs eventData)
+        {
+            var events = this.capturedEvents;
+            if (events is null)
+            {
+                return;
+            }
+
+            lock (events)
+            {
+                events.Add(eventData);
+            }
+        }
     }
 }
 #pragma warning restore CA1861 // // Prefer 'static readonly' fields over constant array arguments if the called method is called repeatedly and is not mutating the passed array

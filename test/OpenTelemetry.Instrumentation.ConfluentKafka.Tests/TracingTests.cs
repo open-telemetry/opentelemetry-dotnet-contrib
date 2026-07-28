@@ -5,7 +5,6 @@ using System.Diagnostics;
 using Confluent.Kafka;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.ConfluentKafka.Tests;
 
@@ -39,10 +38,12 @@ public class TracingTests(KafkaFixture fixture)
             });
         }
 
-        Assert.Contains(activities, activity => activity.DisplayName == topic + " publish");
+        Assert.Contains(activities, activity => activity.DisplayName == "send " + topic);
         var activity = Assert.Single(activities);
+        Assert.Equal(ActivityKind.Producer, activity.Kind);
         Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
-        Assert.Equal("publish", activity.GetTagValue(SemanticConventions.AttributeMessagingOperation));
+        Assert.Equal("send", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationName));
+        Assert.Equal("send", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationType));
         Assert.Equal(topic, activity.GetTagValue("messaging.destination.name"));
     }
 
@@ -70,12 +71,13 @@ public class TracingTests(KafkaFixture fixture)
             });
         }
 
-        Assert.Contains(activities, activity => activity.DisplayName == topic + " publish");
+        Assert.Contains(activities, activity => activity.DisplayName == "send " + topic);
         var activity = Assert.Single(activities);
         Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
-        Assert.Equal("publish", activity.GetTagValue(SemanticConventions.AttributeMessagingOperation));
+        Assert.Equal("send", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationName));
+        Assert.Equal("send", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationType));
         Assert.Equal(topic, activity.GetTagValue("messaging.destination.name"));
-        Assert.Equal(0, activity.GetTagValue("messaging.kafka.destination.partition"));
+        Assert.Equal("0", activity.GetTagValue("messaging.destination.partition.id"));
     }
 
     [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
@@ -102,10 +104,11 @@ public class TracingTests(KafkaFixture fixture)
             });
         }
 
-        Assert.Contains(activities, activity => activity.DisplayName == topic + " publish");
+        Assert.Contains(activities, activity => activity.DisplayName == "send " + topic);
         var activity = Assert.Single(activities);
         Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
-        Assert.Equal("publish", activity.GetTagValue(SemanticConventions.AttributeMessagingOperation));
+        Assert.Equal("send", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationName));
+        Assert.Equal("send", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationType));
         Assert.Equal(topic, activity.GetTagValue("messaging.destination.name"));
     }
 
@@ -133,12 +136,13 @@ public class TracingTests(KafkaFixture fixture)
             });
         }
 
-        Assert.Contains(activities, activity => activity.DisplayName == topic + " publish");
+        Assert.Contains(activities, activity => activity.DisplayName == "send " + topic);
         var activity = Assert.Single(activities);
         Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
-        Assert.Equal("publish", activity.GetTagValue(SemanticConventions.AttributeMessagingOperation));
+        Assert.Equal("send", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationName));
+        Assert.Equal("send", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationType));
         Assert.Equal(topic, activity.GetTagValue("messaging.destination.name"));
-        Assert.Equal(0, activity.GetTagValue("messaging.kafka.destination.partition"));
+        Assert.Equal("0", activity.GetTagValue("messaging.destination.partition.id"));
     }
 
     [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
@@ -181,14 +185,16 @@ public class TracingTests(KafkaFixture fixture)
             consumer.Close();
         }
 
-        Assert.Contains(activities, activity => activity.DisplayName == topic + " receive");
+        Assert.Contains(activities, activity => activity.DisplayName == "poll " + topic);
         var activity = Assert.Single(activities);
+        Assert.Equal(ActivityKind.Client, activity.Kind);
         Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
-        Assert.Equal("receive", activity.GetTagValue(SemanticConventions.AttributeMessagingOperation));
+        Assert.Equal("poll", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationName));
+        Assert.Equal("receive", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationType));
         Assert.Equal(topic, activity.GetTagValue("messaging.destination.name"));
-        Assert.Equal(0, activity.GetTagValue("messaging.kafka.destination.partition"));
-        Assert.Equal(0L, activity.GetTagValue("messaging.kafka.message.offset"));
-        Assert.Equal("test-consumer-group", activity.GetTagValue("messaging.kafka.consumer.group"));
+        Assert.Equal("0", activity.GetTagValue("messaging.destination.partition.id"));
+        Assert.Equal(0L, activity.GetTagValue("messaging.kafka.offset"));
+        Assert.Equal("test-consumer-group", activity.GetTagValue("messaging.consumer.group.name"));
     }
 
     [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
@@ -231,14 +237,15 @@ public class TracingTests(KafkaFixture fixture)
             consumer.Close();
         }
 
-        Assert.Contains(activities, activity => activity.DisplayName == topic + " receive");
+        Assert.Contains(activities, activity => activity.DisplayName == "poll " + topic);
         var activity = Assert.Single(activities);
         Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
-        Assert.Equal("receive", activity.GetTagValue(SemanticConventions.AttributeMessagingOperation));
+        Assert.Equal("poll", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationName));
+        Assert.Equal("receive", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationType));
         Assert.Equal(topic, activity.GetTagValue("messaging.destination.name"));
-        Assert.Equal(0, activity.GetTagValue("messaging.kafka.destination.partition"));
-        Assert.Equal(0L, activity.GetTagValue("messaging.kafka.message.offset"));
-        Assert.Equal("test-consumer-group", activity.GetTagValue("messaging.kafka.consumer.group"));
+        Assert.Equal("0", activity.GetTagValue("messaging.destination.partition.id"));
+        Assert.Equal(0L, activity.GetTagValue("messaging.kafka.offset"));
+        Assert.Equal("test-consumer-group", activity.GetTagValue("messaging.consumer.group.name"));
     }
 
     [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
@@ -281,14 +288,15 @@ public class TracingTests(KafkaFixture fixture)
             consumer.Close();
         }
 
-        Assert.Contains(activities, activity => activity.DisplayName == topic + " receive");
+        Assert.Contains(activities, activity => activity.DisplayName == "poll " + topic);
         var activity = Assert.Single(activities);
         Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
-        Assert.Equal("receive", activity.GetTagValue(SemanticConventions.AttributeMessagingOperation));
+        Assert.Equal("poll", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationName));
+        Assert.Equal("receive", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationType));
         Assert.Equal(topic, activity.GetTagValue("messaging.destination.name"));
-        Assert.Equal(0, activity.GetTagValue("messaging.kafka.destination.partition"));
-        Assert.Equal(0L, activity.GetTagValue("messaging.kafka.message.offset"));
-        Assert.Equal("test-consumer-group", activity.GetTagValue("messaging.kafka.consumer.group"));
+        Assert.Equal("0", activity.GetTagValue("messaging.destination.partition.id"));
+        Assert.Equal(0L, activity.GetTagValue("messaging.kafka.offset"));
+        Assert.Equal("test-consumer-group", activity.GetTagValue("messaging.consumer.group.name"));
     }
 
     [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
@@ -331,14 +339,16 @@ public class TracingTests(KafkaFixture fixture)
             consumer.Close();
         }
 
-        var processActivity = Assert.Single(activities, activity => activity.DisplayName == topic + " process");
+        var processActivity = Assert.Single(activities, activity => activity.DisplayName == "process " + topic);
 
+        Assert.Equal(ActivityKind.Consumer, processActivity.Kind);
         Assert.Equal("kafka", processActivity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
-        Assert.Equal("process", processActivity.GetTagValue(SemanticConventions.AttributeMessagingOperation));
+        Assert.Equal("process", processActivity.GetTagValue(SemanticConventions.AttributeMessagingOperationName));
+        Assert.Equal("process", processActivity.GetTagValue(SemanticConventions.AttributeMessagingOperationType));
         Assert.Equal(topic, processActivity.GetTagValue("messaging.destination.name"));
-        Assert.Equal(0, processActivity.GetTagValue("messaging.kafka.destination.partition"));
-        Assert.Equal(0L, processActivity.GetTagValue("messaging.kafka.message.offset"));
-        Assert.Equal("test-consumer-group", processActivity.GetTagValue("messaging.kafka.consumer.group"));
+        Assert.Equal("0", processActivity.GetTagValue("messaging.destination.partition.id"));
+        Assert.Equal(0L, processActivity.GetTagValue("messaging.kafka.offset"));
+        Assert.Equal("test-consumer-group", processActivity.GetTagValue("messaging.consumer.group.name"));
 
         static ValueTask NoOpAsync(
             ConsumeResult<string, string> consumeResult,

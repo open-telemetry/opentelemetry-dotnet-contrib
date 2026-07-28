@@ -4,7 +4,6 @@
 using System.Diagnostics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.AWSLambda.Tests;
 
@@ -351,6 +350,7 @@ public class AWSLambdaWrapperTests : IDisposable
     private void AssertResourceAttributes(Resource? resource)
     {
         Assert.NotNull(resource);
+        Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
 
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
         Assert.Equal("aws", resourceAttributes[ExpectedSemanticConventions.AttributeCloudProvider]);

@@ -132,11 +132,11 @@ internal sealed partial class SqlConnectionDetails
      *  np:\\serverName\pipe\MSSQL$instanceName\pipeName - in this case a separate regex (see NamedPipeRegex below)
      *  is used to extract instanceName
      */
-    [GeneratedRegex("^(?<protocol>[^[]*\\s*:\\s*\\\\{0,2})?(?<host>.*?)\\s*(?:[\\\\,]|$)\\s*(?<nameOrPort>.*?)\\s*(?:,|$)\\s*(?<port>.*)$", RegexOptions.None, RegexTimeoutMs)]
+    [GeneratedRegex("^(?<protocol>[^:[]*\\s*:\\s*(?:[\\\\/]{0,2})?)?(?<host>\\[[^\\]]+\\]|.*?)\\s*(?:[\\\\,:]|$)\\s*(?<nameOrPort>.*?)\\s*(?:,|$)\\s*(?<port>.*)$", RegexOptions.None, RegexTimeoutMs)]
     private static partial Regex DataSourceRegex();
 #else
 #pragma warning disable SA1201 // A field should not follow a method
-    private static readonly Regex DataSourceRegexField = new("^(?<protocol>[^[]*\\s*:\\s*\\\\{0,2})?(?<host>.*?)\\s*(?:[\\\\,]|$)\\s*(?<nameOrPort>.*?)\\s*(?:,|$)\\s*(?<port>.*)$", RegexOptions.Compiled, TimeSpan.FromMilliseconds(RegexTimeoutMs));
+    private static readonly Regex DataSourceRegexField = new("^(?<protocol>[^:[]*\\s*:\\s*(?:[\\\\/]{0,2})?)?(?<host>\\[[^\\]]+\\]|.*?)\\s*(?:[\\\\,:]|$)\\s*(?<nameOrPort>.*?)\\s*(?:,|$)\\s*(?<port>.*)$", RegexOptions.Compiled, TimeSpan.FromMilliseconds(RegexTimeoutMs));
 #pragma warning restore SA1201 // A field should not follow a method
 
     private static Regex DataSourceRegex() => DataSourceRegexField;

@@ -60,8 +60,8 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
 
         try
         {
-            IMethodMessage? methodMsg = reqMsg as IMethodMessage;
-            ActivityTagsCollection? tags = methodMsg != null
+            var methodMsg = reqMsg as IMethodMessage;
+            var tags = methodMsg != null
                 ? this.BuildSamplingTags(methodMsg)
                 : null;
 
@@ -199,8 +199,8 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
                 return;
             }
 
-            bool validClientActivity = bCliSide && activity.OperationName == this.activityOutName;
-            bool validServerActivity = !bCliSide && activity.OperationName == this.activityInName;
+            var validClientActivity = bCliSide && activity.OperationName == this.activityOutName;
+            var validServerActivity = !bCliSide && activity.OperationName == this.activityInName;
             if (validClientActivity || validServerActivity)
             {
                 if (replyMsg is IMethodReturnMessage returnMsg)
@@ -254,7 +254,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
             return false;
         }
 
-        if (!Uri.TryCreate(uri, UriKind.Absolute, out Uri? parsedUri))
+        if (!Uri.TryCreate(uri, UriKind.Absolute, out var parsedUri))
         {
             return false;
         }
@@ -292,7 +292,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
             { SemanticConventions.AttributeRpcMethod, fullyQualifiedMethod },
         };
 
-        if (TryParseUri(msg.Uri, out string? host, out int? port))
+        if (TryParseUri(msg.Uri, out var host, out var port))
         {
             tags.Add(SemanticConventions.AttributeServerAddress, host);
             if (port.HasValue)
@@ -306,8 +306,8 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
 
     private string GetFullyQualifiedMethod(IMethodMessage message)
     {
-        string serviceName = this.GetServiceName(message.TypeName);
-        string methodName = message.MethodName;
+        var serviceName = this.GetServiceName(message.TypeName);
+        var methodName = message.MethodName;
         return $"{serviceName}/{methodName}";
     }
 
@@ -326,7 +326,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
 
         var options = this.optionsProvider.Options;
 
-        string fullyQualifiedMethod = this.GetFullyQualifiedMethod(msg);
+        var fullyQualifiedMethod = this.GetFullyQualifiedMethod(msg);
 
         activity.DisplayName = fullyQualifiedMethod;
 

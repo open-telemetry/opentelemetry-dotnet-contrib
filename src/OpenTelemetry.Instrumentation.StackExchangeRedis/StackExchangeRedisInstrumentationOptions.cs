@@ -13,6 +13,10 @@ namespace OpenTelemetry.Instrumentation.StackExchangeRedis;
 /// </summary>
 public class StackExchangeRedisInstrumentationOptions
 {
+    private static readonly TimeSpan MinFlushInterval = TimeSpan.FromMilliseconds(1);
+    private static readonly TimeSpan MaxFlushInterval = TimeSpan.FromMilliseconds(int.MaxValue);
+    private TimeSpan flushInterval = TimeSpan.FromSeconds(10);
+
     /// <summary>
     /// Initializes a new instance of the <see cref="StackExchangeRedisInstrumentationOptions"/> class.
     /// </summary>
@@ -31,7 +35,25 @@ public class StackExchangeRedisInstrumentationOptions
     /// <summary>
     /// Gets or sets the maximum time that should elapse between flushing the internal buffer of Redis profiling sessions and creating <see cref="Activity"/> objects. Default value: 00:00:10.
     /// </summary>
-    public TimeSpan FlushInterval { get; set; } = TimeSpan.FromSeconds(10);
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// Thrown when the value is less than one millisecond or exceeds <see cref="int.MaxValue"/> milliseconds.
+    /// </exception>
+    public TimeSpan FlushInterval
+    {
+        get => this.flushInterval;
+        set
+        {
+            if (value < MinFlushInterval || value > MaxFlushInterval)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(value),
+                    value,
+                    $"The flush interval duration must be between {MinFlushInterval.TotalMilliseconds:N0} ms and {MaxFlushInterval.TotalMilliseconds:N0} ms.");
+            }
+
+            this.flushInterval = value;
+        }
+    }
 
     /// <summary>
     /// Gets or sets a value indicating whether the <see cref="StackExchangeRedisConnectionInstrumentation"/> should use reflection to get more detailed
@@ -76,4 +98,13 @@ public class StackExchangeRedisInstrumentationOptions
     /// Gets or sets a value indicating whether the new database attributes should be emitted.
     /// </summary>
     internal bool EmitNewAttributes { get; set; }
+
+    /// <summary>
+    /// Gets a value indicating whether commands should be drained from profiling sessions prior to parent <see cref="Activity"/> completion.
+    /// Filter and Enrich callbacks have historically been passed completed parent <see cref="Activity"/> instances.
+    /// If both callbacks are null, commands may be drained prior to the parent <see cref="Activity"/> completion,
+    /// lowering memory pressure and improving performance.
+    /// If either callback is set, the old behavior is used to ensure the callbacks are passed completed parent <see cref="Activity"/> instances.
+    /// </summary>
+    internal bool EnableEarlyCommandDrain => this.Filter == null && this.Enrich == null;
 }

@@ -5,7 +5,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
-using Xunit;
 
 namespace OpenTelemetry.Exporter.OneCollector.Tests;
 
@@ -23,6 +22,8 @@ public class OneCollectorLoggerProviderBuilderExtensionsTests
                 configure => configure.ConfigureBatchOptions(o => configurationInvocations++));
         });
 
+        _ = loggerFactory.CreateLogger("TestLogger");
+
         Assert.Equal(1, configurationInvocations);
     }
 
@@ -37,6 +38,8 @@ public class OneCollectorLoggerProviderBuilderExtensionsTests
                 "InstrumentationKey=token-extrainformation",
                 configure => configure.ConfigureExporter(exporter => exporterInstance = exporter));
         });
+
+        _ = loggerFactory.CreateLogger("TestLogger");
 
         Assert.NotNull(exporterInstance);
 
@@ -61,6 +64,8 @@ public class OneCollectorLoggerProviderBuilderExtensionsTests
                 configure => configure.ConfigureSerializationOptions(o => configurationInvocations++));
         });
 
+        _ = loggerFactory.CreateLogger("TestLogger");
+
         Assert.Equal(1, configurationInvocations);
     }
 
@@ -75,6 +80,8 @@ public class OneCollectorLoggerProviderBuilderExtensionsTests
                 "InstrumentationKey=token-extrainformation",
                 configure => configure.ConfigureTransportOptions(o => configurationInvocations++));
         });
+
+        _ = loggerFactory.CreateLogger("TestLogger");
 
         Assert.Equal(1, configurationInvocations);
     }
@@ -91,6 +98,8 @@ public class OneCollectorLoggerProviderBuilderExtensionsTests
                     configure => configure.SetConnectionString("InstrumentationKey=token-extrainformation"));
             },
             services => services.Configure<OneCollectorLogExporterOptions>(o => options = o));
+
+        _ = loggerFactory.CreateLogger("TestLogger");
 
         Assert.NotNull(options);
         Assert.Equal("InstrumentationKey=token-extrainformation", options.ConnectionString);
@@ -115,6 +124,8 @@ public class OneCollectorLoggerProviderBuilderExtensionsTests
             },
             services => services.Configure<OneCollectorLogExporterOptions>(o => options = o));
 
+        _ = loggerFactory.CreateLogger("TestLogger");
+
         Assert.NotNull(options);
         Assert.Equal(mappings, options.EventFullNameMappings);
     }
@@ -133,6 +144,8 @@ public class OneCollectorLoggerProviderBuilderExtensionsTests
             },
             services => services.Configure<OneCollectorLogExporterOptions>(o => options = o));
 
+        _ = loggerFactory.CreateLogger("TestLogger");
+
         Assert.NotNull(options);
         Assert.Equal("MyDefaultEventNamespace", options.DefaultEventNamespace);
     }
@@ -150,6 +163,8 @@ public class OneCollectorLoggerProviderBuilderExtensionsTests
                     configure => configure.SetDefaultEventName("MyDefaultEventName"));
             },
             services => services.Configure<OneCollectorLogExporterOptions>(o => options = o));
+
+        _ = loggerFactory.CreateLogger("TestLogger");
 
         Assert.NotNull(options);
         Assert.Equal("MyDefaultEventName", options.DefaultEventName);
@@ -180,6 +195,8 @@ public class OneCollectorLoggerProviderBuilderExtensionsTests
                 services.Configure<OneCollectorLogExporterOptions>(name, o => exporterOptions = o);
                 services.Configure<BatchExportLogRecordProcessorOptions>(name, o => batchOptions = o);
             });
+
+        _ = loggerFactory.CreateLogger("TestLogger");
 
         Assert.NotNull(exporterOptions);
         Assert.NotNull(batchOptions);
@@ -213,6 +230,7 @@ public class OneCollectorLoggerProviderBuilderExtensionsTests
             {
                 builder.AddOneCollectorExporter(configure => { });
             });
+            _ = loggerFactory.CreateLogger("TestLogger");
         });
 
         Assert.Throws<OneCollectorExporterValidationException>(() =>
@@ -221,6 +239,7 @@ public class OneCollectorLoggerProviderBuilderExtensionsTests
             {
                 builder.AddOneCollectorExporter("InstrumentationKey=invalidinstrumentationkey");
             });
+            _ = loggerFactory.CreateLogger("TestLogger");
         });
 
         Assert.Throws<OneCollectorExporterValidationException>(() =>
@@ -229,6 +248,7 @@ public class OneCollectorLoggerProviderBuilderExtensionsTests
             {
                 builder.AddOneCollectorExporter("UnknownKey=invalidinstrumentationkey");
             });
+            _ = loggerFactory.CreateLogger("TestLogger");
         });
     }
 
@@ -254,6 +274,8 @@ public class OneCollectorLoggerProviderBuilderExtensionsTests
                 services.Configure<BatchExportLogRecordProcessorOptions>(
                     o => configurationInvocations++);
             });
+
+        _ = loggerFactory.CreateLogger("TestLogger");
 
         Assert.Equal(2, configurationInvocations);
     }
@@ -287,14 +309,15 @@ public class OneCollectorLoggerProviderBuilderExtensionsTests
                     o => configurationInvocations++);
             });
 
+        _ = loggerFactory.CreateLogger("TestLogger");
+
         Assert.Equal(2, configurationInvocations);
     }
 
     private static ILoggerFactory CreateLoggerFactoryWithOneCollectorExporter(
         Action<LoggerProviderBuilder> configureLogging,
-        Action<IServiceCollection>? configureServices = null)
-    {
-        return LoggerFactory.Create(builder =>
+        Action<IServiceCollection>? configureServices = null) =>
+        LoggerFactory.Create(builder =>
         {
             builder.AddOpenTelemetry();
 
@@ -302,5 +325,4 @@ public class OneCollectorLoggerProviderBuilderExtensionsTests
 
             configureServices?.Invoke(builder.Services);
         });
-    }
 }

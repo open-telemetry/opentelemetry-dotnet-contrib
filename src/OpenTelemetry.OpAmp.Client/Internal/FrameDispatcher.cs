@@ -86,6 +86,20 @@ internal sealed class FrameDispatcher : IDisposable
         }
     }
 
+    public async Task DispatchRemoteConfigStatusAsync(RemoteConfigStatusReport status, CancellationToken token)
+    {
+        await this.DispatchFrameAsync(
+            BuildRemoteConfigStatusMessage,
+            OpAmpClientEventSource.Log.SendingRemoteConfigStatusMessage,
+            OpAmpClientEventSource.Log.SendRemoteConfigStatusMessageException,
+            token).ConfigureAwait(false);
+
+        AgentToServer BuildRemoteConfigStatusMessage(FrameBuilder fb)
+        {
+            return fb.StartBaseMessage().AddRemoteConfigStatus(status).Build();
+        }
+    }
+
     public async Task DispatchCustomCapabilitiesAsync(IEnumerable<string> capabilities, CancellationToken token)
     {
         await this.DispatchFrameAsync(
@@ -111,6 +125,47 @@ internal sealed class FrameDispatcher : IDisposable
         AgentToServer BuildCustomMessageMessage(FrameBuilder fb)
         {
             return fb.StartBaseMessage().AddCustomMessage(capability, type, data).Build();
+        }
+    }
+
+    public async Task DispatchFullStateReportAsync(FullStateReport report, CancellationToken token)
+    {
+        await this.DispatchFrameAsync(
+            BuildFullStateReportMessage,
+            OpAmpClientEventSource.Log.SendingFullStateReportMessage,
+            OpAmpClientEventSource.Log.SendFullStateReportMessageException,
+            token).ConfigureAwait(false);
+
+        AgentToServer BuildFullStateReportMessage(FrameBuilder fb)
+        {
+            // Start message with basic partials.
+            var message = fb.StartBaseMessage()
+                .AddAgentDescription()
+                .AddCapabilities();
+
+            // TODO: Add here features when they become available and are necessary to restore the full state in the server if requested.
+            // See https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/4634
+            if (report.EffectiveConfigFiles is { } effectiveConfig)
+            {
+                message.AddEffectiveConfig(effectiveConfig);
+            }
+
+            if (report.RemoteConfigStatus is { } remoteConfigStatus)
+            {
+                message.AddRemoteConfigStatus(remoteConfigStatus);
+            }
+
+            if (report.CustomCapabilities is { } customCapabilities)
+            {
+                message.AddCustomCapabilities(customCapabilities);
+            }
+
+            if (report.HealthReport is { } healthReport)
+            {
+                message.AddHealth(healthReport);
+            }
+
+            return message.Build();
         }
     }
 

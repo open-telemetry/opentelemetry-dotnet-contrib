@@ -37,7 +37,7 @@ public static class TraceProviderBuilderExtensions
         configure?.Invoke(options);
 
         builder.AddInstrumentation(() => new QuartzJobInstrumentation(options));
-        builder.AddSource(QuartzDiagnosticListener.ActivitySourceName);
+        builder.AddSource(QuartzDiagnosticListener.ActivitySource.Name);
 
         builder.AddLegacySource(OperationName.Job.Execute);
         builder.AddLegacySource(OperationName.Job.Veto);

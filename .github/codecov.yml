@@ -26,7 +26,7 @@ ignore:
   - "**.md"
   - "test"
   - "examples"
-  - "build"
+  - "build/Projects"
   - ".github"
   - ".vscode"
 
@@ -40,11 +40,6 @@ flags:
     carryforward: true
     paths:
       - src/OpenTelemetry.Exporter.InfluxDB
-
-  unittests-Exporter.Instana:
-    carryforward: true
-    paths:
-      - src/OpenTelemetry.Exporter.Instana
 
   unittests-Exporter.OneCollector:
     carryforward: true
@@ -250,3 +245,8 @@ flags:
     carryforward: true
     paths:
       - src/Shared
+
+  unittests-PowerShellScripts:
+    carryforward: true
+    paths:
+      - build/scripts

@@ -7,7 +7,6 @@ using System.Net;
 using System.Diagnostics;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Extensions.AWS.Trace;
-using Xunit;
 
 namespace OpenTelemetry.Extensions.AWS.Tests;
 

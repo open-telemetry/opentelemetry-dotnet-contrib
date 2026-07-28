@@ -13,6 +13,8 @@ namespace OpenTelemetry.Resources.ProcessRuntime;
 /// </summary>
 internal sealed class ProcessRuntimeDetector : IResourceDetector
 {
+    private static readonly Version SemanticConventionsVersion = new(1, 43, 0);
+
     /// <summary>
     /// Detects the resource attributes from .NET runtime.
     /// </summary>
@@ -23,16 +25,17 @@ internal sealed class ProcessRuntimeDetector : IResourceDetector
         string? netRuntimeVersion = null;
         string? netRuntimeName = null;
         var frameworkSet = false;
+        var version = Environment.Version;
 
 #if NETSTANDARD || NETFRAMEWORK
-        if (Environment.Version.Major == 4)
+        if (version.Major == 4)
         {
             var netFrameworkVersion = GetNetFrameworkVersionFromRegistry();
             netRuntimeName = ".NET Framework";
             if (netFrameworkVersion == null)
             {
                 var lastSpace = frameworkDescription.LastIndexOf(' ');
-                netRuntimeVersion = lastSpace > 0 ? frameworkDescription.Substring(lastSpace + 1) : Environment.Version.ToString();
+                netRuntimeVersion = lastSpace > 0 ? frameworkDescription.Substring(lastSpace + 1) : version.ToString();
             }
             else
             {
@@ -45,16 +48,17 @@ internal sealed class ProcessRuntimeDetector : IResourceDetector
 
         if (!frameworkSet)
         {
-            netRuntimeVersion = Environment.Version.ToString();
+            netRuntimeVersion = version.ToString();
             netRuntimeName = ".NET";
         }
 
         return new Resource(
-        [
-            new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeDescription, frameworkDescription),
-            new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeName, netRuntimeName!),
-            new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeVersion, netRuntimeVersion!),
-        ]);
+            [
+                new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeDescription, frameworkDescription),
+                new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeName, netRuntimeName!),
+                new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeVersion, netRuntimeVersion!),
+            ],
+            Internal.SchemaUrls.Get(SemanticConventionsVersion));
     }
 
 #if NETFRAMEWORK || NETSTANDARD
@@ -77,28 +81,25 @@ internal sealed class ProcessRuntimeDetector : IResourceDetector
     }
 
     // Checking the version using >= enables forward compatibility.
-    private static string? CheckFor45PlusVersion(int releaseKey)
+    private static string? CheckFor45PlusVersion(int releaseKey) => releaseKey switch
     {
-        return releaseKey switch
-        {
-            >= 533320 => "4.8.1",
-            >= 528040 => "4.8",
-            >= 461808 => "4.7.2",
-            >= 461308 => "4.7.1",
-            >= 460798 => "4.7",
-            >= 394802 => "4.6.2",
+        >= 533320 => "4.8.1",
+        >= 528040 => "4.8",
+        >= 461808 => "4.7.2",
+        >= 461308 => "4.7.1",
+        >= 460798 => "4.7",
+        >= 394802 => "4.6.2",
 
-            // Following versions are deprecated
-            // >= 394254 => "4.6.1",
-            // >= 393295 => "4.6",
-            // >= 379893 => "4.5.2",
-            // >= 378675 => "4.5.1",
-            // >= 378389 => "4.5",
+        // Following versions are deprecated
+        // >= 394254 => "4.6.1",
+        // >= 393295 => "4.6",
+        // >= 379893 => "4.5.2",
+        // >= 378675 => "4.5.1",
+        // >= 378389 => "4.5",
 
-            // This code should never execute. A non-null release key should mean
-            // that 4.5 or later is installed.
-            _ => null,
-        };
-    }
+        // This code should never execute. A non-null release key should mean
+        // that 4.5 or later is installed.
+        _ => null,
+    };
 #endif
 }

@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using OpenTelemetry.Trace;
-using Xunit;
 
 namespace OpenTelemetry.Extensions.Tests.Trace;
 

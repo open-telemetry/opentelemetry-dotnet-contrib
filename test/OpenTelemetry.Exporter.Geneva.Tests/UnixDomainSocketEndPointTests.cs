@@ -6,7 +6,6 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using Xunit;
 
 namespace OpenTelemetry.Exporter.Geneva.Tests;
 

@@ -3,6 +3,7 @@
 
 using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Instrumentation.AspNetCore;
 using OpenTelemetry.Instrumentation.AspNetCore.Implementation;
@@ -62,6 +63,13 @@ public static class AspNetCoreInstrumentationTracerProviderBuilderExtensions
             }
 
             services.RegisterOptionsFactory(configuration => new AspNetCoreTraceInstrumentationOptions(configuration));
+
+            // Guard against duplicate DiagnosticSource subscriptions when AddAspNetCoreInstrumentation
+            // is called multiple times with the same name (e.g., by a distro package and the user).
+            // AspNetCoreInstrumentationProvider is a singleton that creates at most one
+            // AspNetCoreInstrumentation per named-options name, while options configure callbacks
+            // still accumulate normally.
+            services.TryAddSingleton<AspNetCoreInstrumentationProvider>();
         });
 
         if (builder is IDeferredTracerProviderBuilder deferredTracerProviderBuilder)
@@ -73,10 +81,7 @@ public static class AspNetCoreInstrumentationTracerProviderBuilderExtensions
         }
 
         return builder.AddInstrumentation(sp =>
-        {
-            var options = sp.GetRequiredService<IOptionsMonitor<AspNetCoreTraceInstrumentationOptions>>().Get(name);
-            return new AspNetCoreInstrumentation(new HttpInListener(options));
-        });
+            sp.GetRequiredService<AspNetCoreInstrumentationProvider>().GetOrCreate(name));
     }
 
     // Note: This is used by unit tests.
@@ -125,9 +130,10 @@ public static class AspNetCoreInstrumentationTracerProviderBuilderExtensions
         }
 
         var options = serviceProvider?.GetRequiredService<IOptionsMonitor<AspNetCoreTraceInstrumentationOptions>>().Get(optionsName);
+        var version = Environment.Version;
 
         // SignalR activities first added in .NET 9.0
-        if (Environment.Version.Major >= 9)
+        if (version.Major >= 9)
         {
             if (options is null || options.EnableAspNetCoreSignalRSupport)
             {
@@ -137,7 +143,7 @@ public static class AspNetCoreInstrumentationTracerProviderBuilderExtensions
         }
 
         // Blazor activities first added in .NET 10.0
-        if (Environment.Version.Major >= 10)
+        if (version.Major >= 10)
         {
             if (options is null || options.EnableRazorComponentsSupport)
             {

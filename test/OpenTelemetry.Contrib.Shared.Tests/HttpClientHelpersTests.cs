@@ -7,7 +7,6 @@ using System.Net.Http;
 using System.IO.Compression;
 using System.Net;
 using System.Text;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Tests;
 

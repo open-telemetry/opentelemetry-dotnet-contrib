@@ -5,7 +5,6 @@ using System.Collections.Concurrent;
 using System.Diagnostics.Metrics;
 using System.Diagnostics.Tracing;
 using System.Globalization;
-using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.EventCounters;
 
@@ -31,8 +30,7 @@ internal sealed class EventCountersMetrics : EventListener
         // https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1024.
         _ = EventCountersInstrumentationEventSource.Log;
 
-        var assembly = typeof(EventCountersMetrics).Assembly;
-        MeterInstance = new Meter(assembly.GetName().Name, assembly.GetPackageVersion());
+        MeterInstance = Metrics.MeterFactory.Create<EventCountersMetrics>(null); // These metrics are not in the Semantic Conventions
     }
 
     /// <summary>
@@ -80,7 +78,7 @@ internal sealed class EventCountersMetrics : EventListener
 
             // DO NOT clear the ConcurrentDictionary instances as some other thread executing the OnEventWritten callback might be using them
             this.enabledEventSources.Clear();
-            this.options.EventSourceNames.Clear();
+            this.options.ClearEventSources();
         }
 
         base.Dispose();
@@ -117,6 +115,11 @@ internal sealed class EventCountersMetrics : EventListener
         }
 
         var eventSourceName = eventData.EventSource.Name;
+
+        if (!this.options.ShouldListenToSource(eventSourceName))
+        {
+            return;
+        }
 
         if (eventData.EventName != "EventCounters")
         {
@@ -190,9 +193,7 @@ internal sealed class EventCountersMetrics : EventListener
     }
 
     private void EnableEvents(EventSource eventSource)
-    {
-        this.EnableEvents(eventSource, EventLevel.Critical, EventKeywords.None, GetEnableEventsArguments(this.options));
-    }
+        => this.EnableEvents(eventSource, EventLevel.Critical, EventKeywords.None, GetEnableEventsArguments(this.options));
 
     private void UpdateInstrumentWithEvent(bool isGauge, string eventSourceName, string name, double value)
     {

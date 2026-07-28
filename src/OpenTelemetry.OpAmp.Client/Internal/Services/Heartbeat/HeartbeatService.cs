@@ -69,6 +69,14 @@ internal sealed class HeartbeatService : IBackgroundService, IOpAmpListener<Conn
         }
     }
 
+    public HealthReport CreateHealthReport() => new()
+    {
+        StartTime = this.startTime,
+        StatusTime = GetCurrentTimeInNanoseconds(),
+        IsHealthy = true,
+        Status = "OK",
+    };
+
     public void Dispose()
     {
         this.processor.Unsubscribe(this);
@@ -116,12 +124,4 @@ internal sealed class HeartbeatService : IBackgroundService, IOpAmpListener<Conn
             OpAmpClientEventSource.Log.HeartbeatServiceTickException(ex);
         }
     }
-
-    private HealthReport CreateHealthReport() => new()
-    {
-        StartTime = this.startTime,
-        StatusTime = GetCurrentTimeInNanoseconds(),
-        IsHealthy = true,
-        Status = "OK",
-    };
 }

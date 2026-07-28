@@ -10,7 +10,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
 using TestApp.AspNetCore;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.AspNetCore.Tests;
 

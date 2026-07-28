@@ -20,7 +20,6 @@ using Amazon.SQS;
 using Amazon.SQS.Model;
 using OpenTelemetry.Instrumentation.AWS.Tests.Tools;
 using OpenTelemetry.Trace;
-using Xunit;
 using AWSTracingPipelineHandler = OpenTelemetry.Instrumentation.AWS.Implementation.AWSTracingPipelineHandler;
 
 namespace OpenTelemetry.Instrumentation.AWS.Tests;
@@ -39,8 +38,8 @@ public class TestAWSClientInstrumentation
         var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
-        var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
-        var extendedRequestId = @"wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
+        var requestId = "fakerequ-esti-dfak-ereq-uestidfakere";
+        var extendedRequestId = "wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .SetSampler(new AlwaysOnSampler())
@@ -88,8 +87,8 @@ public class TestAWSClientInstrumentation
         var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
-        var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
-        var extendedRequestId = @"wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
+        var requestId = "fakerequ-esti-dfak-ereq-uestidfakere";
+        var extendedRequestId = "wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .SetSampler(new AlwaysOnSampler())
@@ -138,7 +137,7 @@ public class TestAWSClientInstrumentation
         var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
-        var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+        var requestId = "fakerequ-esti-dfak-ereq-uestidfakere";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .SetSampler(new AlwaysOnSampler())
@@ -201,8 +200,8 @@ public class TestAWSClientInstrumentation
         var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
-        var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
-        var extendedRequestId = @"wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
+        var requestId = "fakerequ-esti-dfak-ereq-uestidfakere";
+        var extendedRequestId = "wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
 
         SendMessageRequest send_msg_req;
 
@@ -268,8 +267,8 @@ public class TestAWSClientInstrumentation
         var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
-        var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
-        var extendedRequestId = @"wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
+        var requestId = "fakerequ-esti-dfak-ereq-uestidfakere";
+        var extendedRequestId = "wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
 
         SendMessageRequest send_msg_req;
 
@@ -326,8 +325,8 @@ public class TestAWSClientInstrumentation
         var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
-        var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
-        var extendedRequestId = @"wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
+        var requestId = "fakerequ-esti-dfak-ereq-uestidfakere";
+        var extendedRequestId = "wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
 
         using (Sdk.CreateTracerProviderBuilder()
                   .AddXRayTraceId()
@@ -382,8 +381,8 @@ public class TestAWSClientInstrumentation
         var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
-        var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
-        var extendedRequestId = @"wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
+        var requestId = "fakerequ-esti-dfak-ereq-uestidfakere";
+        var extendedRequestId = "wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
@@ -396,7 +395,7 @@ public class TestAWSClientInstrumentation
                    .Build())
         {
             var bedrock = new AmazonBedrockClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            var dummyResponse = "{\"GuardrailId\":\"123456789\"}";
+            var dummyResponse = "{\"guardrailId\":\"123456789\"}";
             CustomResponses.SetResponse(bedrock, dummyResponse, requestId, extendedRequestId, true);
             var getGuardrailRequest = new GetGuardrailRequest { GuardrailIdentifier = "123456789" };
 #if NETFRAMEWORK
@@ -428,8 +427,8 @@ public class TestAWSClientInstrumentation
         var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
-        var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
-        var extendedRequestId = @"wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
+        var requestId = "fakerequ-esti-dfak-ereq-uestidfakere";
+        var extendedRequestId = "wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
@@ -474,8 +473,8 @@ public class TestAWSClientInstrumentation
         var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
-        var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
-        var extendedRequestId = @"wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
+        var requestId = "fakerequ-esti-dfak-ereq-uestidfakere";
+        var extendedRequestId = "wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
@@ -520,8 +519,8 @@ public class TestAWSClientInstrumentation
         var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
-        var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
-        var extendedRequestId = @"wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
+        var requestId = "fakerequ-esti-dfak-ereq-uestidfakere";
+        var extendedRequestId = "wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
@@ -566,8 +565,8 @@ public class TestAWSClientInstrumentation
         var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
-        var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
-        var extendedRequestId = @"wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
+        var requestId = "fakerequ-esti-dfak-ereq-uestidfakere";
+        var extendedRequestId = "wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
@@ -612,8 +611,8 @@ public class TestAWSClientInstrumentation
         var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
-        var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
-        var extendedRequestId = @"wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
+        var requestId = "fakerequ-esti-dfak-ereq-uestidfakere";
+        var extendedRequestId = "wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
@@ -664,8 +663,8 @@ public class TestAWSClientInstrumentation
         var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
-        var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
-        var extendedRequestId = @"wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
+        var requestId = "fakerequ-esti-dfak-ereq-uestidfakere";
+        var extendedRequestId = "wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
@@ -680,7 +679,7 @@ public class TestAWSClientInstrumentation
             var bedrockagentruntime = new AmazonBedrockAgentRuntimeClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
             var dummyResponse = "{}";
             CustomResponses.SetResponse(bedrockagentruntime, dummyResponse, requestId, extendedRequestId, true);
-            var retrieveRequest = new RetrieveRequest { KnowledgeBaseId = "123456789" };
+            var retrieveRequest = new RetrieveRequest { KnowledgeBaseId = "1234567890" };
 #if NETFRAMEWORK
             var response = bedrockagentruntime.Retrieve(retrieveRequest);
 #else
@@ -710,8 +709,8 @@ public class TestAWSClientInstrumentation
         var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
-        var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
-        var extendedRequestId = @"wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
+        var requestId = "fakerequ-esti-dfak-ereq-uestidfakere";
+        var extendedRequestId = "wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .SetSampler(new AlwaysOnSampler())
@@ -893,7 +892,7 @@ public class TestAWSClientInstrumentation
     private void ValidateBedrockAgentRuntimeKnowledgeBaseOpsActivityTags(Activity bedrock_activity)
     {
         Assert.Equal("Bedrock Agent Runtime.Retrieve", bedrock_activity.DisplayName);
-        Assert.Equal("123456789", Utils.GetTagValue(bedrock_activity, "aws.bedrock.knowledge_base.id"));
+        Assert.Equal("1234567890", Utils.GetTagValue(bedrock_activity, "aws.bedrock.knowledge_base.id"));
         Assert.Equal("aws-api", Utils.GetTagValue(bedrock_activity, "rpc.system.name"));
         Assert.Equal("Bedrock Agent Runtime", Utils.GetTagValue(bedrock_activity, "rpc.service"));
         Assert.Equal("Retrieve", Utils.GetTagValue(bedrock_activity, "rpc.method"));
@@ -912,10 +911,8 @@ public class TestAWSClientInstrumentation
 
     private sealed class SuppressionAssertPipelineHandler : PipelineHandler
     {
-        public override void InvokeSync(IExecutionContext executionContext)
-        {
+        public override void InvokeSync(IExecutionContext executionContext) =>
             Assert.True(Sdk.SuppressInstrumentation);
-        }
 
         public override Task<T> InvokeAsync<T>(IExecutionContext executionContext)
         {

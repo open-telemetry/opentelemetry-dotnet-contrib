@@ -10,7 +10,6 @@ using System.Net.Sockets;
 #endif
 using OpenTelemetry.Trace;
 using StackExchange.Redis;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.StackExchangeRedis.Implementation;
 
@@ -134,6 +133,22 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
         Assert.Equal(dnsEndPoint.Host, result.GetTagValue(SemanticConventions.AttributeServerAddress));
         Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeServerPort));
         Assert.Equal(dnsEndPoint.Port, result.GetTagValue(SemanticConventions.AttributeServerPort));
+    }
+
+    [Fact]
+    public void ProfilerCommandToActivity_EnrichThrows_StillStopsActivity()
+    {
+        var activity = new Activity("redis-profiler");
+        var profiledCommand = new TestProfiledCommand(DateTime.UtcNow);
+        var options = new StackExchangeRedisInstrumentationOptions
+        {
+            Enrich = (_, _) => throw new InvalidOperationException("boom"),
+        };
+
+        var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand, options);
+
+        Assert.NotNull(result);
+        Assert.NotEqual(default, result.Duration);
     }
 
 #if !NETFRAMEWORK

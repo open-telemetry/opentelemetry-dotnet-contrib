@@ -1,9 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if !NETFRAMEWORK
-using System.Diagnostics;
-#endif
 using OpenTelemetry.Instrumentation.SqlClient.Implementation;
 
 namespace OpenTelemetry.Instrumentation.SqlClient;
@@ -102,7 +99,7 @@ internal sealed class SqlClientInstrumentation : IDisposable
 
 #if !NETFRAMEWORK
         var filters = new List<Func<object, bool>>();
-        Action<Activity, object>? enrichWithSqlCommand = firstActiveTracingOption.EnrichWithSqlCommand;
+        var enrichWithSqlCommand = firstActiveTracingOption.EnrichWithSqlCommand;
 
         snapshot.RecordException = firstActiveTracingOption.RecordException;
         snapshot.SetDbQueryParameters = firstActiveTracingOption.SetDbQueryParameters;

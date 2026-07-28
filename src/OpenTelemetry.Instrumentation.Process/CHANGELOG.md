@@ -2,6 +2,38 @@
 
 ## Unreleased
 
+## 1.17.0-rc.1
+
+Released 2026-Jul-17
+
+* Updated OpenTelemetry core component version(s) to `1.17.0`.
+  ([#4773](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4773))
+
+## 1.16.0-rc.1
+
+Released 2026-Jul-09
+
+* Updated semantic conventions to
+  [v1.42.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/system/process-metrics.md).
+  ([#4602](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4602))
+  * **Breaking Change**: The `process.cpu.time` metric attribute `process.cpu.state`
+    was renamed to `cpu.mode`.
+  * Added the `process.uptime` metric.
+  * Added the `process.windows.handle.count` metric (Windows only).
+  * Added the `process.unix.file_descriptor.count` metric (Linux only).
+
+* Assemblies are now digitally signed using cosign.
+  ([#4637](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4637))
+
+* Updated semantic conventions to
+  [v1.43.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.43.0/docs/system/process-metrics.md)
+  and marked package as release candidate.
+  ([#4675](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4675))
+
+## 1.16.0-beta.1
+
+Released 2026-Jun-24
+
 * Add instrumentation scope version and schema URL to metrics.
   ([#4088](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4088))
 
@@ -10,6 +42,9 @@
   [`dotnet.process.cpu.count`](https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/runtime/dotnet-metrics.md#metric-dotnetprocesscpucount)
   metric as an alternative.
   ([#4088](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4088))
+
+* Updated OpenTelemetry core component version(s) to `1.16.0`.
+  ([#4487](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4487))
 
 ## 1.15.1-beta.1
 

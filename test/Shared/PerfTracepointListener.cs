@@ -13,12 +13,11 @@ namespace OpenTelemetry.Tests;
 // this can be removed if/when
 // https://github.com/microsoft/LinuxTracepoints-Net/ has listening bits or
 // dotnet/runtime supports user_events (both reading & writing) directly.
-internal sealed class PerfTracepointListener : IDisposable
+internal sealed partial class PerfTracepointListener : IDisposable
 {
     private readonly string name;
     private readonly PerfTracepoint tracepoint;
     private readonly ConsoleCommand catCommand;
-    private readonly Regex eventRegex = new("(\\w+?)=([\\w\\(\\) .,-]*)( |$)", RegexOptions.Compiled);
 
     public PerfTracepointListener(string name, string nameArgs)
     {
@@ -100,6 +99,9 @@ internal sealed class PerfTracepointListener : IDisposable
         }
     }
 
+    [GeneratedRegex("(\\w+?)=([\\w\\(\\) .,-]*)( |$)")]
+    private static partial Regex EventRegex();
+
     private void OnCatOutputReceived(string output)
     {
         var name = $": {this.name}:";
@@ -112,7 +114,7 @@ internal sealed class PerfTracepointListener : IDisposable
 
         startingPosition += name.Length;
 
-        var matches = this.eventRegex.Matches(output, startingPosition);
+        var matches = EventRegex().Matches(output, startingPosition);
 
         if (matches.Count > 0)
         {

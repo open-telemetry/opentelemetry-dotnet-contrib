@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+## 1.17.0
+
+Released 2026-Jul-22
+
+* Assemblies are now digitally signed using cosign.
+  ([#4637](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4637))
+
+* Updated OpenTelemetry core component version(s) to `1.17.0`.
+  ([#4773](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4773))
+
+## 1.16.0
+
+Released 2026-Jun-18
+
+* Fix sampling behaviour to be compatible with .NET 11.
+  ([#4396](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4396))
+
+* Updated OpenTelemetry core component version(s) to `1.16.0`.
+  ([#4487](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4487))
+
 ## 1.15.1
 
 Released 2026-Apr-21

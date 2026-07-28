@@ -1,1 +1,1 @@
-FROM confluentinc/cp-kafka:8.2.0@sha256:acbbf674f2ed40e5d0a8ca51beb0f00692c866fc22b5ce06f8cadbdc54cd4436
+FROM confluentinc/cp-kafka:8.3.0@sha256:c2cedb691aec9963114fb0b4e45fa49a47bb374a89c241c4ecb68a5fc904e5e3

@@ -10,7 +10,7 @@ internal static class HttpTestData
 {
     private static readonly JsonSerializerOptions JsonSerializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
-    public static IEnumerable<object[]> ReadTestCases()
+    public static TheoryData<HttpOutTestCase> TestData()
     {
         var assembly = Assembly.GetExecutingAssembly();
 #pragma warning disable IDE0370 // Suppression is unnecessary
@@ -18,12 +18,8 @@ internal static class HttpTestData
             assembly.GetManifestResourceStream("OpenTelemetry.Instrumentation.Http.Tests.http-out-test-cases.json")!,
             JsonSerializerOptions);
 #pragma warning restore IDE0370 // Suppression is unnecessary
-        return GetArgumentsFromTestCaseObject(input);
-    }
 
-    public static IEnumerable<object[]> GetArgumentsFromTestCaseObject(IEnumerable<HttpOutTestCase>? input)
-    {
-        var result = new List<object[]>();
+        var result = new TheoryData<HttpOutTestCase>();
 
         if (input == null)
         {
@@ -32,9 +28,7 @@ internal static class HttpTestData
 
         foreach (var testCase in input)
         {
-            result.Add([
-                testCase
-            ]);
+            result.Add(testCase);
         }
 
         return result;

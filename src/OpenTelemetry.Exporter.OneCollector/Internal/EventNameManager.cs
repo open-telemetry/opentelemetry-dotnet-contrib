@@ -137,10 +137,10 @@ internal sealed partial class EventNameManager
     }
 
 #if NET
-    [GeneratedRegex(@"^[A-Za-z](?:\.?[A-Za-z0-9]+?)*$", RegexOptions.Compiled)]
+    [GeneratedRegex(@"^[A-Za-z](?:\.?[A-Za-z0-9]+?)*$")]
     private static partial Regex EventNamespaceValidationRegex();
 
-    [GeneratedRegex(@"^[A-Za-z][A-Za-z0-9]*$", RegexOptions.Compiled)]
+    [GeneratedRegex(@"^[A-Za-z][A-Za-z0-9]*$")]
 
     private static partial Regex EventNameValidationRegex();
 #else

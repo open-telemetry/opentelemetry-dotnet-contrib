@@ -7,8 +7,6 @@ using System.Globalization;
 using Microsoft.LinuxTracepoints.Provider;
 using OpenTelemetry.Exporter.Geneva.Transports;
 using OpenTelemetry.Tests;
-using Xunit;
-using Xunit.Abstractions;
 
 namespace OpenTelemetry.Exporter.Geneva.Tests;
 

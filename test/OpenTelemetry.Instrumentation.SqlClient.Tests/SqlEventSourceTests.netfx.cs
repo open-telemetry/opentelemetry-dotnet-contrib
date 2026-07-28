@@ -8,7 +8,6 @@ using System.Diagnostics.Tracing;
 using OpenTelemetry.Instrumentation.SqlClient.Implementation;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.SqlClient.Tests;
 

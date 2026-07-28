@@ -6,7 +6,6 @@ using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using RouteTests.TestApplication;
-using Xunit;
 
 namespace RouteTests;
 

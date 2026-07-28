@@ -1,3 +1,15 @@
+Confluent.Kafka.ConfluentKafkaInstrumentedConsumerBuilderOptions
+Confluent.Kafka.ConfluentKafkaInstrumentedConsumerBuilderOptions.ConfluentKafkaInstrumentedConsumerBuilderOptions() -> void
+Confluent.Kafka.ConfluentKafkaInstrumentedConsumerBuilderOptions.EnableMetrics.get -> bool
+Confluent.Kafka.ConfluentKafkaInstrumentedConsumerBuilderOptions.EnableMetrics.set -> void
+Confluent.Kafka.ConfluentKafkaInstrumentedConsumerBuilderOptions.EnableTraces.get -> bool
+Confluent.Kafka.ConfluentKafkaInstrumentedConsumerBuilderOptions.EnableTraces.set -> void
+Confluent.Kafka.ConfluentKafkaInstrumentedProducerBuilderOptions
+Confluent.Kafka.ConfluentKafkaInstrumentedProducerBuilderOptions.ConfluentKafkaInstrumentedProducerBuilderOptions() -> void
+Confluent.Kafka.ConfluentKafkaInstrumentedProducerBuilderOptions.EnableMetrics.get -> bool
+Confluent.Kafka.ConfluentKafkaInstrumentedProducerBuilderOptions.EnableMetrics.set -> void
+Confluent.Kafka.ConfluentKafkaInstrumentedProducerBuilderOptions.EnableTraces.get -> bool
+Confluent.Kafka.ConfluentKafkaInstrumentedProducerBuilderOptions.EnableTraces.set -> void
 Confluent.Kafka.InstrumentedConsumerBuilder<TKey, TValue>
 Confluent.Kafka.InstrumentedConsumerBuilder<TKey, TValue>.InstrumentedConsumerBuilder(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, string!>>! config) -> void
 Confluent.Kafka.InstrumentedProducerBuilder<TKey, TValue>
@@ -11,10 +23,12 @@ OpenTelemetry.Trace.TracerProviderBuilderExtensions
 override Confluent.Kafka.InstrumentedConsumerBuilder<TKey, TValue>.Build() -> Confluent.Kafka.IConsumer<TKey, TValue>!
 override Confluent.Kafka.InstrumentedProducerBuilder<TKey, TValue>.Build() -> Confluent.Kafka.IProducer<TKey, TValue>!
 static Confluent.Kafka.OpenTelemetryConsumerBuilderExtensions.AsInstrumentedConsumerBuilder<TKey, TValue>(this Confluent.Kafka.ConsumerBuilder<TKey, TValue>! consumerBuilder) -> Confluent.Kafka.InstrumentedConsumerBuilder<TKey, TValue>!
+static Confluent.Kafka.OpenTelemetryConsumerBuilderExtensions.AsInstrumentedConsumerBuilder<TKey, TValue>(this Confluent.Kafka.ConsumerBuilder<TKey, TValue>! consumerBuilder, Confluent.Kafka.ConfluentKafkaInstrumentedConsumerBuilderOptions? options) -> Confluent.Kafka.InstrumentedConsumerBuilder<TKey, TValue>!
 static Confluent.Kafka.OpenTelemetryConsumeResultExtensions.ConsumeAndProcessMessageAsync<TKey, TValue>(this Confluent.Kafka.IConsumer<TKey, TValue>! consumer, Confluent.Kafka.OpenTelemetryConsumeAndProcessMessageHandler<TKey, TValue>! handler) -> System.Threading.Tasks.ValueTask<Confluent.Kafka.ConsumeResult<TKey, TValue>?>
 static Confluent.Kafka.OpenTelemetryConsumeResultExtensions.ConsumeAndProcessMessageAsync<TKey, TValue>(this Confluent.Kafka.IConsumer<TKey, TValue>! consumer, Confluent.Kafka.OpenTelemetryConsumeAndProcessMessageHandler<TKey, TValue>! handler, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Confluent.Kafka.ConsumeResult<TKey, TValue>?>
 static Confluent.Kafka.OpenTelemetryConsumeResultExtensions.TryExtractPropagationContext<TKey, TValue>(this Confluent.Kafka.ConsumeResult<TKey, TValue>! consumeResult, out OpenTelemetry.Context.Propagation.PropagationContext propagationContext) -> bool
 static Confluent.Kafka.OpenTelemetryProducerBuilderExtensions.AsInstrumentedProducerBuilder<TKey, TValue>(this Confluent.Kafka.ProducerBuilder<TKey, TValue>! producerBuilder) -> Confluent.Kafka.InstrumentedProducerBuilder<TKey, TValue>!
+static Confluent.Kafka.OpenTelemetryProducerBuilderExtensions.AsInstrumentedProducerBuilder<TKey, TValue>(this Confluent.Kafka.ProducerBuilder<TKey, TValue>! producerBuilder, Confluent.Kafka.ConfluentKafkaInstrumentedProducerBuilderOptions? options) -> Confluent.Kafka.InstrumentedProducerBuilder<TKey, TValue>!
 static OpenTelemetry.Metrics.MeterProviderBuilderExtensions.AddKafkaConsumerInstrumentation<TKey, TValue>(this OpenTelemetry.Metrics.MeterProviderBuilder! builder) -> OpenTelemetry.Metrics.MeterProviderBuilder!
 static OpenTelemetry.Metrics.MeterProviderBuilderExtensions.AddKafkaConsumerInstrumentation<TKey, TValue>(this OpenTelemetry.Metrics.MeterProviderBuilder! builder, Confluent.Kafka.InstrumentedConsumerBuilder<TKey, TValue>! consumerBuilder) -> OpenTelemetry.Metrics.MeterProviderBuilder!
 static OpenTelemetry.Metrics.MeterProviderBuilderExtensions.AddKafkaConsumerInstrumentation<TKey, TValue>(this OpenTelemetry.Metrics.MeterProviderBuilder! builder, string? name) -> OpenTelemetry.Metrics.MeterProviderBuilder!

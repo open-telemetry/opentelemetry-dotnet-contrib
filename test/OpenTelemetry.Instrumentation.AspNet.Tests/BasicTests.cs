@@ -6,7 +6,6 @@ using System.Web;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.AspNet.Tests;
 

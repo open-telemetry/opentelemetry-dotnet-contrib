@@ -2,6 +2,43 @@
 
 ## Unreleased
 
+* Fixed a metric TLV serialization issue where an exemplar whose filtered tags
+  serialized to more than 255 bytes caused the payload to be corrupted.
+  ([#4856](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4856))
+
+## 1.17.0
+
+Released 2026-Jul-17
+
+* Updated OpenTelemetry core component version(s) to `1.17.0`.
+  ([#4773](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4773))
+
+* Updated ETW manifest and payload in `EtwDataTransport`
+  with synthetic payload so that the runtime-generated .NET
+  ETW manifest matches the actual payload.
+  ([#4729](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4729)
+
+## 1.16.0
+
+Released 2026-Jul-09
+
+* Updated OpenTelemetry core component version(s) to `1.16.0`.
+  ([#4487](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4487))
+
+* Log error when telemetry data exceeds the serialization buffer capacity.
+  ([#4027](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4027))
+
+* Reduced per-log-record and per-span allocations in the Geneva exporter:
+  cache sanitized logger category names (with a fast path that reuses already
+  valid names) and freeze the cache on .NET 8+, serialize metric base-128
+  strings and HTTP url spans directly into the output buffer instead of via
+  temporary arrays/strings.
+  ([#4498](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4498),
+  [#4684](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4684))
+
+* Assemblies are now digitally signed using cosign.
+  ([#4637](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4637))
+
 ## 1.15.2
 
 Released 2026-Apr-21

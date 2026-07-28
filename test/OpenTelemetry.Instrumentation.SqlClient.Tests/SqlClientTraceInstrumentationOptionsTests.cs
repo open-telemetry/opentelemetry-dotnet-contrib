@@ -9,7 +9,6 @@ using Microsoft.Extensions.Configuration;
 #endif
 using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Trace;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.SqlClient.Tests;
 

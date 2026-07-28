@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+## 1.17.0
+
+Released 2026-Jul-17
+
+* Assemblies are now digitally signed using cosign.
+  ([#4637](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4637))
+
+* Updated OpenTelemetry core component version(s) to `1.17.0`.
+  ([#4773](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4773))
+
+## 1.16.0
+
+Released 2026-Jun-24
+
 * Fix `SqlClientTraceInstrumentationOptions` leaking across multiple tracer
   provider registrations.
   ([#4267](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4267))
@@ -16,6 +30,19 @@
 * Fix SQL query text sanitization performance for malformed `FROM` clauses with
   repeated unterminated bracketed identifiers.
   ([#4339](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4339))
+
+* Fix `SqlClientTraceInstrumentationOptions.EnableTraceContextPropagation` to behave
+  correctly when `ActivityTraceFlags.RandomTraceId` is available.
+  ([#4397](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4397))
+
+* Fix `db.query.parameter.<key>` attributes to always emit the value as a string.
+  ([#4395](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4395))
+
+* Fix `SqlConnectionDetails` to parse PostgreSQL data source URIs correctly.
+  ([#4444](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4444))
+
+* Updated OpenTelemetry core component version(s) to `1.16.0`.
+  ([#4487](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4487))
 
 ## 1.15.2
 

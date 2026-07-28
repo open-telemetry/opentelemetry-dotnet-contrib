@@ -14,40 +14,57 @@ internal class InfluxDBFakeServer : IDisposable
     private readonly IDisposable httpServer;
     private readonly BlockingCollection<string> lines;
 
+    // Read on the listener thread, written from test threads; keep it volatile so a
+    // recovery (flipping the status code back to OK) is observed by the handler.
+    private volatile int responseStatusCode = (int)HttpStatusCode.OK;
+
     public InfluxDBFakeServer()
     {
         this.lines = [];
         this.httpServer = TestHttpServer.RunServer(
             context =>
             {
-                var buffer = new byte[context.Request.ContentLength64];
-                _ = context.Request.InputStream.Read(buffer, 0, buffer.Length);
-                var text = Encoding.UTF8.GetString(buffer);
-                foreach (var line in text.Split(SplitChars, StringSplitOptions.RemoveEmptyEntries))
+                // Read the whole body: Stream.Read may return fewer bytes than requested,
+                // so a single Read can truncate larger write payloads.
+                using var reader = new StreamReader(context.Request.InputStream, Encoding.UTF8);
+                var text = reader.ReadToEnd();
+
+                var statusCode = (HttpStatusCode)this.responseStatusCode;
+                if (statusCode == HttpStatusCode.OK)
                 {
-                    this.lines.Add(line);
+                    foreach (var line in text.Split(SplitChars, StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        this.lines.Add(line);
+                    }
                 }
 
-                context.Response.StatusCode = (int)HttpStatusCode.OK;
+                context.Response.StatusCode = (int)statusCode;
                 context.Response.Close();
             },
-            out var host,
-            out var port);
-        this.Endpoint = new Uri($"http://{host}:{port}");
+            out var baseAddress);
+        this.Endpoint = baseAddress;
     }
 
     public Uri Endpoint { get; }
 
-    public void Dispose()
+    /// <summary>
+    /// Gets or sets the HTTP status code returned for write requests. Setting a
+    /// non-success code (for example <see cref="HttpStatusCode.BadRequest"/>)
+    /// simulates an unavailable/erroring InfluxDB backend; write payloads received
+    /// while a non-OK code is configured are discarded.
+    /// </summary>
+    public HttpStatusCode ResponseStatusCode
     {
-        this.httpServer.Dispose();
+        get => (HttpStatusCode)this.responseStatusCode;
+        set => this.responseStatusCode = (int)value;
     }
 
-    public PointData ReadPoint()
-    {
-        return this.lines.TryTake(out var line, TimeSpan.FromSeconds(5))
+    public void Dispose()
+        => this.httpServer.Dispose();
+
+    public PointData ReadPoint() =>
+        this.lines.TryTake(out var line, TimeSpan.FromSeconds(5))
             ? LineProtocolParser.ParseLine(line)
             : throw new InvalidOperationException(
                 "Failed to read a data point from the InfluxDB server within the 5-second timeout.");
-    }
 }

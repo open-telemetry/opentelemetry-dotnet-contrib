@@ -2,6 +2,52 @@
 
 ## Unreleased
 
+## 0.6.0-alpha.1
+
+Released 2026-Jul-07
+
+* Assemblies are now digitally signed using cosign.
+  ([#4637](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4637))
+
+* Add support for reporting full state.
+  ([#4633](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4633))
+
+* Add heartbeat support to full state report.
+  ([#4653](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4653))
+
+## 0.5.0-alpha.1
+
+Released 2026-Jul-01
+
+* Add support for reporting remote configuration status.
+  ([#4509](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4509))
+
+* Expose public `ServerCapabilitiesMessage`.
+  ([#4485](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4485))
+
+* Serialize WebSocket writes so an outbound message no longer races the
+  receiver's oversized-message close to avoid faulting the receive loop.
+  ([#4532](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4532))
+
+* Expose public `FlagsMessage`.
+  ([#4478](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4478))
+
+## 0.4.0-alpha.1
+
+Released 2026-May-22
+
+* Bumped OpAMP spec to v0.18.0.
+  ([#4421](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4421))
+
+* Fixed System.Net.Http package version resolution issues for .NET 4.6.2.
+  ([#4402](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4402))
+
+* Add support for multivalue identification attributes.
+  ([#4350](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4350))
+
+* Change default OpAMP port from `4318` to `4320`.
+  ([#4374](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4374))
+
 ## 0.3.0-alpha.1
 
 Released 2026-Apr-28

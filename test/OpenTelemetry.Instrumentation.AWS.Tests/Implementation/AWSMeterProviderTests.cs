@@ -4,7 +4,6 @@
 using OpenTelemetry.AWS;
 using OpenTelemetry.Instrumentation.AWS.Implementation.Metrics;
 using OpenTelemetry.Metrics;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.AWS.Tests.Implementation;
 

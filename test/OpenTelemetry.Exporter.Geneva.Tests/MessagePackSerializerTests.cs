@@ -6,7 +6,6 @@
 using System.Globalization;
 using System.Text;
 using OpenTelemetry.Exporter.Geneva.MsgPack;
-using Xunit;
 using Xunit.Sdk;
 
 namespace OpenTelemetry.Exporter.Geneva.Tests;

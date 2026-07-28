@@ -41,15 +41,9 @@ internal class MockHttpRequest : IHttpRequest<Stream>
 
     public Version HttpProtocolVersion { get; set; }
 
-    public void ConfigureRequest(IRequestContext requestContext)
-    {
-        this.IsConfigureRequestCalled = true;
-    }
+    public void ConfigureRequest(IRequestContext requestContext) => this.IsConfigureRequestCalled = true;
 
-    public void SetRequestHeaders(IDictionary<string, string> headers)
-    {
-        this.IsSetRequestHeadersCalled = true;
-    }
+    public void SetRequestHeaders(IDictionary<string, string> headers) => this.IsSetRequestHeadersCalled = true;
 
     public Stream GetRequestContent()
     {
@@ -75,15 +69,9 @@ internal class MockHttpRequest : IHttpRequest<Stream>
     {
     }
 
-    public void Abort()
-    {
-        this.IsAborted = true;
-    }
+    public void Abort() => this.IsAborted = true;
 
-    public Task<Stream> GetRequestContentAsync()
-    {
-        return Task.FromResult<Stream>(new MemoryStream());
-    }
+    public Task<Stream> GetRequestContentAsync() => Task.FromResult<Stream>(new MemoryStream());
 
     public Task<IWebResponseData> GetResponseAsync(CancellationToken cancellationToken)
     {
@@ -93,30 +81,15 @@ internal class MockHttpRequest : IHttpRequest<Stream>
         return Task.FromResult<IWebResponseData>(new HttpWebRequestResponseData(response));
     }
 
-    public void Dispose()
-    {
-        this.IsDisposed = true;
-    }
+    public void Dispose() => this.IsDisposed = true;
 
-    public Stream SetupProgressListeners(Stream originalStream, long progressUpdateInterval, object sender, EventHandler<StreamTransferProgressArgs> callback)
-    {
-        return originalStream;
-    }
+    public Stream SetupProgressListeners(Stream originalStream, long progressUpdateInterval, object sender, EventHandler<StreamTransferProgressArgs> callback) => originalStream;
 
-    Task<Stream> IHttpRequest<Stream>.GetRequestContentAsync(CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
+    Task<Stream> IHttpRequest<Stream>.GetRequestContentAsync(CancellationToken cancellationToken) => throw new NotImplementedException();
 
-    Task IHttpRequest<Stream>.WriteToRequestBodyAsync(Stream requestContent, Stream contentStream, IDictionary<string, string> contentHeaders, IRequestContext requestContext)
-    {
-        throw new NotImplementedException();
-    }
+    Task IHttpRequest<Stream>.WriteToRequestBodyAsync(Stream requestContent, Stream contentStream, IDictionary<string, string> contentHeaders, IRequestContext requestContext) => throw new NotImplementedException();
 
-    Task IHttpRequest<Stream>.WriteToRequestBodyAsync(Stream requestContent, byte[] requestData, IDictionary<string, string> headers, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
+    Task IHttpRequest<Stream>.WriteToRequestBodyAsync(Stream requestContent, byte[] requestData, IDictionary<string, string> headers, CancellationToken cancellationToken) => throw new NotImplementedException();
 
     public IHttpRequestStreamHandle SetupHttpRequestStreamPublisher(IDictionary<string, string> contentHeaders, IHttpRequestStreamPublisher publisher) => throw new NotImplementedException();
 
@@ -161,20 +134,11 @@ internal class MockHttpRequest : IHttpRequest<HttpContent>
 
     public Version HttpProtocolVersion { get; set; }
 
-    public void Abort()
-    {
-        this.IsAborted = true;
-    }
+    public void Abort() => this.IsAborted = true;
 
-    public void ConfigureRequest(IRequestContext requestContext)
-    {
-        this.IsConfigureRequestCalled = true;
-    }
+    public void ConfigureRequest(IRequestContext requestContext) => this.IsConfigureRequestCalled = true;
 
-    public void Dispose()
-    {
-        this.IsDisposed = true;
-    }
+    public void Dispose() => this.IsDisposed = true;
 
     public HttpContent GetRequestContent()
     {
@@ -189,10 +153,7 @@ internal class MockHttpRequest : IHttpRequest<HttpContent>
         }
     }
 
-    public Task<HttpContent> GetRequestContentAsync()
-    {
-        return Task.FromResult(new HttpRequestMessage().Content!);
-    }
+    public Task<HttpContent> GetRequestContentAsync() => Task.FromResult(new HttpRequestMessage().Content!);
 
     public IWebResponseData GetResponse()
     {
@@ -209,23 +170,21 @@ internal class MockHttpRequest : IHttpRequest<HttpContent>
         return Task.FromResult(CustomWebResponse.GenerateWebResponse(response));
     }
 
-    public void SetRequestHeaders(IDictionary<string, string> headers)
-    {
-        this.IsSetRequestHeadersCalled = true;
-    }
+    public void SetRequestHeaders(IDictionary<string, string> headers) => this.IsSetRequestHeadersCalled = true;
 
     public IHttpRequestStreamHandle SetupHttpRequestStreamPublisher(IDictionary<string, string> contentHeaders, IHttpRequestStreamPublisher publisher) => throw new NotImplementedException();
 
-    public Stream SetupProgressListeners(Stream originalStream, long progressUpdateInterval, object sender, EventHandler<StreamTransferProgressArgs> callback)
-    {
-        return originalStream;
-    }
+    public Stream SetupProgressListeners(Stream originalStream, long progressUpdateInterval, object sender, EventHandler<StreamTransferProgressArgs> callback) => originalStream;
 
     public void WriteToRequestBody(HttpContent requestContent, Stream contentStream, IDictionary<string, string> contentHeaders, IRequestContext requestContext)
     {
     }
 
     public void WriteToRequestBody(HttpContent requestContent, byte[] content, IDictionary<string, string> contentHeaders)
+    {
+    }
+
+    public void WriteToRequestBody(HttpContent requestContent, ReadOnlyMemory<byte> content, IDictionary<string, string> contentHeaders)
     {
     }
 

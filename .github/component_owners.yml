@@ -8,8 +8,6 @@ components:
     - xiang17
   src/OpenTelemetry.Exporter.InfluxDB/:
     - havret
-  src/OpenTelemetry.Exporter.Instana/:
-    - zivaninstana
   src/OpenTelemetry.Exporter.OneCollector/:
     - rajkumar-rangaraj
   src/OpenTelemetry.Extensions/:
@@ -108,8 +106,6 @@ components:
     - xiang17
   test/OpenTelemetry.Exporter.InfluxDB.Tests/:
     - havret
-  test/OpenTelemetry.Exporter.Instana.Tests/:
-    - zivaninstana
   test/OpenTelemetry.Exporter.OneCollector.Benchmarks/:
     - rajkumar-rangaraj
   test/OpenTelemetry.Exporter.OneCollector.Tests/:

@@ -2,6 +2,33 @@
 
 ## Unreleased
 
+## 1.0.0-alpha.11
+
+Released 2026-Jul-24
+
+* Write metrics synchronously and report `ExportResult.Failure` when a write to
+  InfluxDB fails, so the SDK applies backpressure instead of growing an unbounded
+  in-memory buffer while InfluxDB is unavailable. The `FlushInterval` option is
+  deprecated as it no longer applies.
+  ([#4861](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4861))
+
+## 1.0.0-alpha.10
+
+Released 2026-Jul-17
+
+* Updated OpenTelemetry core component version(s) to `1.17.0`.
+  ([#4773](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4773))
+
+## 1.0.0-alpha.9
+
+Released 2026-Jul-09
+
+* Updated OpenTelemetry core component version(s) to `1.16.0`.
+  ([#4487](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4487))
+
+* Assemblies are now digitally signed using cosign.
+  ([#4637](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4637))
+
 ## 1.0.0-alpha.8
 
 Released 2026-Apr-21

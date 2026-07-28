@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#nullable disable
-
 #if NETFRAMEWORK
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -11,7 +9,6 @@ using System.Net.Http;
 using OpenTelemetry.Instrumentation.Http.Implementation;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Http.Tests;
 
@@ -20,10 +17,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
 {
     private static bool validateBaggage;
     private readonly IDisposable testServer;
-    private readonly string testServerHost;
-    private readonly int testServerPort;
-    private readonly string netPeerName;
-    private readonly int netPeerPort;
+    private readonly Uri uri;
 
     static HttpWebRequestActivitySourceTests()
     {
@@ -55,11 +49,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
 
         this.testServer = TestHttpServer.RunServer(
             ProcessServerRequest,
-            out this.testServerHost,
-            out this.testServerPort);
-
-        this.netPeerName = this.testServerHost;
-        this.netPeerPort = this.testServerPort;
+            out this.uri);
 
         void ProcessServerRequest(HttpListenerContext context)
         {
@@ -153,7 +143,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
     [InlineData("GET")]
     [InlineData("POST")]
     [InlineData("POST", "skipRequestContent=1")]
-    public async Task TestBasicReceiveAndResponseEvents(string method, string queryString = null)
+    public async Task TestBasicReceiveAndResponseEvents(string method, string? queryString = null)
     {
         var url = this.BuildRequestUrl(queryString: queryString);
 
@@ -175,7 +165,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         // Check to make sure: The first record must be a request, the next record must be a response.
         var activity = AssertFirstEventWasStart(eventRecords);
 
-        VerifyActivityStartTags(this.netPeerName, this.netPeerPort, method, url, activity);
+        VerifyActivityStartTags(this.uri.Host, this.uri.Port, method, url, activity);
 
         Assert.True(eventRecords.Records.TryDequeue(out var stopEvent));
         Assert.Equal("Stop", stopEvent.Key);
@@ -224,7 +214,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         {
             webRequest.Method = method;
 
-            Stream stream = null;
+            Stream? stream = null;
             switch (mode)
             {
                 case 0:
@@ -286,7 +276,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
             writer.WriteLine("hello world");
         }
 
-        WebResponse webResponse = null;
+        WebResponse? webResponse = null;
         switch (mode)
         {
             case 0:
@@ -355,7 +345,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         // Check to make sure: The first record must be a request, the next record must be a response.
         var activity = AssertFirstEventWasStart(eventRecords);
 
-        VerifyActivityStartTags(this.netPeerName, this.netPeerPort, method, url, activity);
+        VerifyActivityStartTags(this.uri.Host, this.uri.Port, method, url, activity);
 
         Assert.True(eventRecords.Records.TryDequeue(out var stopEvent));
         Assert.Equal("Stop", stopEvent.Key);
@@ -461,7 +451,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         // Check to make sure: The first record must be a request, the next record must be a response.
         var activity = AssertFirstEventWasStart(eventRecords);
 
-        VerifyActivityStartTags(this.netPeerName, this.netPeerPort, method, url, activity);
+        VerifyActivityStartTags(this.uri.Host, this.uri.Port, method, url, activity);
 
         Assert.True(eventRecords.Records.TryDequeue(out var stopEvent));
         Assert.Equal("Stop", stopEvent.Key);
@@ -565,7 +555,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         Assert.Equal(1, eventRecords.Records.Count(rec => rec.Key == "Stop"));
 
         var activity = AssertFirstEventWasStart(eventRecords);
-        VerifyActivityStartTags(this.netPeerName, this.netPeerPort, method, url, activity);
+        VerifyActivityStartTags(this.uri.Host, this.uri.Port, method, url, activity);
 
         Assert.True(eventRecords.Records.TryDequeue(out var exceptionEvent));
         Assert.Equal("Stop", exceptionEvent.Key);
@@ -646,7 +636,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         Assert.Equal(1, eventRecords.Records.Count(rec => rec.Key == "Stop"));
 
         var activity = AssertFirstEventWasStart(eventRecords);
-        VerifyActivityStartTags(this.netPeerName, this.netPeerPort, method, url, activity);
+        VerifyActivityStartTags(this.uri.Host, this.uri.Port, method, url, activity);
 
         Assert.True(eventRecords.Records.TryDequeue(out var exceptionEvent));
         Assert.Equal("Stop", exceptionEvent.Key);
@@ -688,7 +678,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         using var parentActivity = new Activity("parent").Start();
         using var eventRecords = new ActivitySourceRecorder();
 
-        Dictionary<Uri, Tuple<WebRequest, WebResponse>> requestData = [];
+        Dictionary<Uri, Tuple<WebRequest, WebResponse>?> requestData = [];
         for (var i = 0; i < 10; i++)
         {
             var uriWithRedirect = new Uri(this.BuildRequestUrl(queryString: $"q={i}&redirects=3"));
@@ -782,8 +772,8 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         Assert.Contains("goodkey=bad%2Fvalue", baggage);
     }
 
-    private string BuildRequestUrl(bool useHttps = false, string path = "echo", string queryString = null)
-        => $"{(useHttps ? "https" : "http")}://{this.testServerHost}:{this.testServerPort}/{path}{(string.IsNullOrWhiteSpace(queryString) ? string.Empty : $"?{queryString}")}";
+    private string BuildRequestUrl(bool useHttps = false, string path = "echo", string? queryString = null)
+        => $"{(useHttps ? "https" : "http")}://{this.uri.Host}:{this.uri.Port}/{path}{(string.IsNullOrWhiteSpace(queryString) ? string.Empty : $"?{queryString}")}";
 
     private void CleanUpActivity()
     {
@@ -798,10 +788,10 @@ public class HttpWebRequestActivitySourceTests : IDisposable
     /// </summary>
     private class ActivitySourceRecorder : IDisposable
     {
-        private readonly Action<KeyValuePair<string, Activity>> onEvent;
+        private readonly Action<KeyValuePair<string, Activity>>? onEvent;
         private readonly ActivityListener activityListener;
 
-        public ActivitySourceRecorder(Action<KeyValuePair<string, Activity>> onEvent = null, ActivitySamplingResult activitySamplingResult = ActivitySamplingResult.AllDataAndRecorded)
+        public ActivitySourceRecorder(Action<KeyValuePair<string, Activity>>? onEvent = null, ActivitySamplingResult activitySamplingResult = ActivitySamplingResult.AllDataAndRecorded)
         {
             this.activityListener = new ActivityListener
             {

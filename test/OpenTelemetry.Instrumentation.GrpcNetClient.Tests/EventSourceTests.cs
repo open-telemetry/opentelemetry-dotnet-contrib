@@ -3,7 +3,6 @@
 
 using OpenTelemetry.Instrumentation.GrpcNetClient.Implementation;
 using OpenTelemetry.Tests;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Grpc.Tests;
 

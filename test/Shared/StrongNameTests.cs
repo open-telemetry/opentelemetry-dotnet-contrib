@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using Xunit;
-
 namespace OpenTelemetry.Tests;
 
 // The tests can only be strong named if they only depend on assemblies that are strong named,

@@ -106,13 +106,26 @@ internal class AWSServiceHelper
         "UpdateDataSource"
     ];
 
+    internal static IReadOnlyDictionary<string, string> OperationNameToResourceMap { get; } = BuildOperationNameToResourceMap();
+
     internal IDictionary<string, string> ParameterAttributeMap { get; }
 
     internal HashSet<string> ArrayValueAttributeNames { get; }
 
-    internal static IReadOnlyDictionary<string, string> OperationNameToResourceMap()
+    internal static string GetAWSServiceName(IRequestContext requestContext)
+        => Utils.RemoveAmazonPrefixFromServiceName(requestContext.ServiceMetaData.ServiceId);
+
+    internal static string GetAWSOperationName(IRequestContext requestContext)
     {
-        var operationClassMap = new Dictionary<string, string>();
+        var completeRequestName = requestContext.OriginalRequest.GetType().Name;
+        var suffix = "Request";
+        var operationName = Utils.RemoveSuffix(completeRequestName, suffix);
+        return operationName;
+    }
+
+    private static Dictionary<string, string> BuildOperationNameToResourceMap()
+    {
+        var operationClassMap = new Dictionary<string, string>(StringComparer.Ordinal);
 
         foreach (var op in BedrockAgentKnowledgeBaseOps)
         {
@@ -130,16 +143,5 @@ internal class AWSServiceHelper
         }
 
         return operationClassMap;
-    }
-
-    internal static string GetAWSServiceName(IRequestContext requestContext)
-        => Utils.RemoveAmazonPrefixFromServiceName(requestContext.ServiceMetaData.ServiceId);
-
-    internal static string GetAWSOperationName(IRequestContext requestContext)
-    {
-        var completeRequestName = requestContext.OriginalRequest.GetType().Name;
-        var suffix = "Request";
-        var operationName = Utils.RemoveSuffix(completeRequestName, suffix);
-        return operationName;
     }
 }

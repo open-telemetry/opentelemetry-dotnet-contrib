@@ -3,8 +3,6 @@
 
 #if !NETFRAMEWORK
 
-using Xunit;
-
 namespace OpenTelemetry.Resources.AWS.Tests;
 
 public class AWSEKSDetectorTests

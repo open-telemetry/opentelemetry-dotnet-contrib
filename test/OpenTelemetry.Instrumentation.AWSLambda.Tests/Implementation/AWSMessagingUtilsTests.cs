@@ -4,7 +4,6 @@
 using Amazon.Lambda.SQSEvents;
 using OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 using OpenTelemetry.Trace;
-using Xunit;
 using static Amazon.Lambda.SQSEvents.SQSEvent;
 
 namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation;

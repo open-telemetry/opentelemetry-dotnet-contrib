@@ -7,7 +7,6 @@ using OpenTelemetry.OpAmp.Client.Internal.Listeners.Messages;
 using OpenTelemetry.OpAmp.Client.Internal.Services.Heartbeat;
 using OpenTelemetry.OpAmp.Client.Settings;
 using OpenTelemetry.OpAmp.Client.Tests.Mocks;
-using Xunit;
 
 namespace OpenTelemetry.OpAmp.Client.Tests;
 

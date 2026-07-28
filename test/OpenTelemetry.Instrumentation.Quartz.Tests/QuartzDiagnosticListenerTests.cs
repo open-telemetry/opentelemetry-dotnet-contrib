@@ -4,7 +4,6 @@
 using System.Diagnostics;
 using OpenTelemetry.Trace;
 using Quartz;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Quartz.Tests;
 

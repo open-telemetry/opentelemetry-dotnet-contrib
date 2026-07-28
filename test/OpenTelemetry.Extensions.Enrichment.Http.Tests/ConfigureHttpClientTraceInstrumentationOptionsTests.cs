@@ -6,7 +6,6 @@ using System.Net;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Instrumentation.Http;
-using Xunit;
 
 namespace OpenTelemetry.Extensions.Enrichment.Http.Tests;
 

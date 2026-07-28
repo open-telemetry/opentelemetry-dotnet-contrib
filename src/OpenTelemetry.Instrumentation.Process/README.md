@@ -2,7 +2,7 @@
 
 | Status | |
 | ------ | --- |
-| Stability | [Beta](../../README.md#beta) |
+| Stability | [Release candidate](../../README.md#release-candidate) |
 | Code Owners | [@Yun-Ting](https://github.com/Yun-Ting) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Process)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Process)
@@ -16,7 +16,7 @@ telemetry about process behavior.
 
 The process metric instruments being implemented are following OpenTelemetry
 [metrics semantic
-conventions](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/system/process-metrics.md).
+conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.43.0/docs/system/process-metrics.md).
 
 ## Steps to enable OpenTelemetry.Instrumentation.Process
 
@@ -104,11 +104,11 @@ process.
 
 ### process.cpu.time
 
-Total CPU seconds broken down by states.
+Total CPU seconds broken down by CPU modes.
 
-| Units | Instrument Type   | Value Type | Attribute Key(s)  | Attribute Values |
-| ----- | ----------------- | ---------- | ----------------- | ---------------- |
-|  `s`  | ObservableCounter | `Double`   | process.cpu.state | user, system     |
+| Units | Instrument Type   | Value Type | Attribute Key | Attribute Values |
+| ----- | ----------------- | ---------- | ------------- | ---------------- |
+|  `s`  | ObservableCounter | `Double`   | cpu.mode      | user, system     |
 
 The APIs used to retrieve the values are:
 
@@ -130,6 +130,45 @@ The API used to retrieve the value is:
 
 * [Process.Threads](https://learn.microsoft.com/dotnet/api/system.diagnostics.process.threads):
 Gets the set of threads that are running in the associated process.
+
+### process.uptime
+
+The time the process has been running.
+
+| Units | Instrument Type | Value Type |
+| ----- | --------------- | ---------- |
+| `s`   | ObservableGauge | `Double`   |
+
+The API used to retrieve the value is:
+
+* [Process.StartTime](https://learn.microsoft.com/dotnet/api/system.diagnostics.process.starttime):
+Gets the time that the associated process was started.
+
+### process.windows.handle.count
+
+Number of handles held by the process. Only emitted on Windows.
+
+| Units      | Instrument Type         | Value Type |
+| ---------- | ----------------------- | ---------- |
+| `{handle}` | ObservableUpDownCounter | `Int32`    |
+
+The API used to retrieve the value is:
+
+* [Process.HandleCount](https://learn.microsoft.com/dotnet/api/system.diagnostics.process.handlecount):
+Gets the number of handles opened by the process.
+
+### process.unix.file_descriptor.count
+
+Number of unix file descriptors in use by the process. Only emitted on Linux.
+
+| Units               | Instrument Type         | Value Type |
+| ------------------- | ----------------------- | ---------- |
+| `{file_descriptor}` | ObservableUpDownCounter | `Int32`    |
+
+The API used to retrieve the value is:
+
+* [Process.HandleCount](https://learn.microsoft.com/dotnet/api/system.diagnostics.process.handlecount):
+Gets the number of file descriptors opened by the process.
 
 ## References
 

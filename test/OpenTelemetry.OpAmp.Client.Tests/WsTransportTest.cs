@@ -11,7 +11,6 @@ using OpenTelemetry.OpAmp.Client.Settings;
 using OpenTelemetry.OpAmp.Client.Tests.Mocks;
 using OpenTelemetry.OpAmp.Client.Tests.Tools;
 using OpenTelemetry.Tests;
-using Xunit;
 
 namespace OpenTelemetry.OpAmp.Client.Tests;
 
@@ -249,7 +248,14 @@ public class WsTransportTest
 
         using var wsTransport = CreateTransport(opAmpServer.Endpoint, frameProcessor);
         await wsTransport.StartAsync(CancellationToken.None);
-        await wsTransport.SendAsync(FrameGenerator.GenerateMockAgentFrame().Frame, CancellationToken.None);
+
+        // SendAsync can race with the receiver aborting the socket after detecting the oversized response.
+        // On .NET Framework this may surface as a WebSocketException (Aborted state) or OperationCanceledException.
+        var sendException = await Record.ExceptionAsync(
+            () => wsTransport.SendAsync(FrameGenerator.GenerateMockAgentFrame().Frame, CancellationToken.None));
+        Assert.True(
+            sendException is null or WebSocketException or OperationCanceledException,
+            $"Unexpected exception from SendAsync: {sendException}");
 
         Assert.True(opAmpServer.TryGetClientCloseStatus(TimeSpan.FromSeconds(5), out var closeStatus));
         Assert.Equal(WebSocketCloseStatus.MessageTooBig, closeStatus);
@@ -319,7 +325,14 @@ public class WsTransportTest
 
         using var wsTransport = CreateTransport(opAmpServer.Endpoint, new FrameProcessor());
         await wsTransport.StartAsync(CancellationToken.None);
-        await wsTransport.SendAsync(FrameGenerator.GenerateMockAgentFrame().Frame, CancellationToken.None);
+
+        // SendAsync can race with the receiver aborting the socket after detecting the oversized response.
+        // On .NET Framework this may surface as a WebSocketException (Aborted state) or OperationCanceledException.
+        var sendException = await Record.ExceptionAsync(
+            () => wsTransport.SendAsync(FrameGenerator.GenerateMockAgentFrame().Frame, CancellationToken.None));
+        Assert.True(
+            sendException is null or WebSocketException or OperationCanceledException,
+            $"Unexpected exception from SendAsync: {sendException}");
 
         Assert.True(opAmpServer.TryGetClientCloseStatus(timeout, out var closeStatus));
         Assert.Equal(WebSocketCloseStatus.MessageTooBig, closeStatus);
@@ -570,7 +583,8 @@ public class WsTransportTest
     public void WsReceiver_StartTwiceThrows()
     {
         using var ws = new ClientWebSocket();
-        var receiver = new WsReceiver(ws, new FrameProcessor());
+        using var sendLock = new SemaphoreSlim(1, 1);
+        var receiver = new WsReceiver(ws, new FrameProcessor(), sendLock);
 
         try
         {
@@ -588,7 +602,8 @@ public class WsTransportTest
     public void WsReceiver_DisposeBeforeStartIsHarmless()
     {
         using var ws = new ClientWebSocket();
-        var receiver = new WsReceiver(ws, new FrameProcessor());
+        using var sendLock = new SemaphoreSlim(1, 1);
+        var receiver = new WsReceiver(ws, new FrameProcessor(), sendLock);
 
         receiver.Dispose();
         receiver.Dispose();

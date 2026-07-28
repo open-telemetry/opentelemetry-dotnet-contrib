@@ -14,7 +14,6 @@ using OpenTelemetry.OpAmp.Client.Settings;
 using OpenTelemetry.OpAmp.Client.Tests.DataGenerators;
 using OpenTelemetry.OpAmp.Client.Tests.Mocks;
 using OpenTelemetry.OpAmp.Client.Tests.Tools;
-using Xunit;
 
 namespace OpenTelemetry.OpAmp.Client.Tests;
 
@@ -26,6 +25,7 @@ public class OpAmpClientTests
         using var listener = new MockListener();
         var client = new OpAmpClient(o => o.Heartbeat.IsEnabled = false);
         var configFile = new EffectiveConfigFile(Encoding.UTF8.GetBytes("test"), "plain/text", "config.txt");
+        var remoteConfigStatus = new RemoteConfigStatusReport([1, 2, 3], RemoteConfigStatusCode.Applied);
 
         client.Dispose();
 
@@ -34,6 +34,7 @@ public class OpAmpClientTests
         await Assert.ThrowsAsync<ObjectDisposedException>(() => client.StartAsync());
         await Assert.ThrowsAsync<ObjectDisposedException>(() => client.StopAsync());
         await Assert.ThrowsAsync<ObjectDisposedException>(() => client.SendEffectiveConfigAsync([configFile]));
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => client.SendRemoteConfigStatusAsync(remoteConfigStatus));
         await Assert.ThrowsAsync<ObjectDisposedException>(() => client.SendCustomCapabilitiesAsync(["capability"]));
         await Assert.ThrowsAsync<ObjectDisposedException>(() => client.SendCustomMessageAsync("capability", "type", Encoding.UTF8.GetBytes("payload")));
     }
@@ -45,7 +46,7 @@ public class OpAmpClientTests
 
         var client = new OpAmpClient(o =>
         {
-            o.ServerUrl = new Uri("http://localhost:4318");
+            o.ServerUrl = new Uri("http://localhost:4320");
             o.Heartbeat.IsEnabled = false;
             o.HttpClientFactory = () => new HttpClient(handler);
         });
@@ -322,6 +323,99 @@ public class OpAmpClientTests
     }
 
     [Fact]
+    internal async Task SendsRemoteConfigStatus_IsDisabledAndThrows()
+    {
+        using var client = new OpAmpClient(o => o.Heartbeat.IsEnabled = false);
+        var statusReport = new RemoteConfigStatusReport([1, 2, 3], RemoteConfigStatusCode.Applied);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => client.SendRemoteConfigStatusAsync(statusReport));
+    }
+
+    [Fact]
+    internal async Task SendsRemoteConfigStatus()
+    {
+        using var opAmpServer = new OpAmpFakeHttpServer(false);
+        var opAmpEndpoint = opAmpServer.Endpoint;
+
+        using var client = new OpAmpClient(o =>
+        {
+            o.ServerUrl = opAmpEndpoint;
+            o.RemoteConfiguration.ReportsRemoteConfigStatus = true;
+        });
+
+        await client.StartAsync();
+        await client.SendRemoteConfigStatusAsync(new RemoteConfigStatusReport([1, 2, 3], RemoteConfigStatusCode.Failed, "apply failed"));
+        await client.StopAsync();
+
+        var frames = opAmpServer.GetFrames();
+        Assert.Equal(3, frames.Count); // 3 frames: 1 identification, 2 remote config status, 3 disconnect
+        var actualStatus = frames[1].RemoteConfigStatus;
+        Assert.Equal([1, 2, 3], actualStatus.LastRemoteConfigHash.ToByteArray());
+        Assert.Equal(RemoteConfigStatuses.Failed, actualStatus.Status);
+        Assert.Equal("apply failed", actualStatus.ErrorMessage);
+    }
+
+    [Fact]
+    internal async Task SendsRemoteConfigStatus_SendsRepeatedStatusReports()
+    {
+        using var opAmpServer = new OpAmpFakeHttpServer(false);
+        var opAmpEndpoint = opAmpServer.Endpoint;
+
+        using var client = new OpAmpClient(o =>
+        {
+            o.ServerUrl = opAmpEndpoint;
+            o.RemoteConfiguration.ReportsRemoteConfigStatus = true;
+        });
+
+        var status = new RemoteConfigStatusReport([1, 2, 3], RemoteConfigStatusCode.Applied);
+
+        await client.StartAsync();
+        await client.SendRemoteConfigStatusAsync(status);
+        await client.SendRemoteConfigStatusAsync(status);
+        await client.StopAsync();
+
+        var frames = opAmpServer.GetFrames();
+
+        Assert.Equal(4, frames.Count); // 4 frames: 1 identification, 2 remote config status, 3 remote config status, 4 disconnect
+        Assert.NotNull(frames[1].RemoteConfigStatus);
+        Assert.NotNull(frames[2].RemoteConfigStatus);
+        Assert.Equal(RemoteConfigStatuses.Applied, frames[1].RemoteConfigStatus.Status);
+        Assert.Equal(RemoteConfigStatuses.Applied, frames[2].RemoteConfigStatus.Status);
+    }
+
+    [Fact]
+    internal void RemoteConfigStatusReport_CopiesHash()
+    {
+        var hash = new byte[] { 1, 2, 3 };
+
+        var status = new RemoteConfigStatusReport(hash, RemoteConfigStatusCode.Applied);
+        hash[0] = 4;
+
+        Assert.Equal([1, 2, 3], status.LastRemoteConfigHash.ToArray());
+    }
+
+    [Fact]
+    internal void RemoteConfigStatusReport_ThrowsOnEmptyHash()
+    {
+        var exception = Assert.Throws<ArgumentException>(() =>
+            new RemoteConfigStatusReport([], RemoteConfigStatusCode.Applied));
+
+        Assert.Equal("lastRemoteConfigHash", exception.ParamName);
+    }
+
+    [Theory]
+    [InlineData(RemoteConfigStatusCode.Unset)]
+    [InlineData(RemoteConfigStatusCode.Applied)]
+    [InlineData(RemoteConfigStatusCode.Applying)]
+    internal void RemoteConfigStatusReport_ThrowsWhenErrorMessageIsSetForNonFailedStatus(RemoteConfigStatusCode status)
+    {
+        var exception = Assert.Throws<ArgumentException>(() =>
+            new RemoteConfigStatusReport([1, 2, 3], status, "apply failed"));
+
+        Assert.Equal("errorMessage", exception.ParamName);
+    }
+
+    [Fact]
     internal async Task SendsCustomCapabilities()
     {
         // Setup OpAMP server
@@ -384,6 +478,51 @@ public class OpAmpClientTests
         Assert.Equal(messageContent, actualMessageContent);
     }
 
+    [Fact]
+    internal async Task SendsFullStateReport()
+    {
+        // Setup OpAMP server
+        using var opAmpServer = new OpAmpFakeHttpServer(false);
+        var opAmpEndpoint = opAmpServer.Endpoint;
+
+        using var client = new OpAmpClient(o =>
+        {
+            o.ServerUrl = opAmpEndpoint;
+
+            o.Identification.AddIdentifyingAttribute("test", "value");
+            o.RemoteConfiguration.AcceptsRemoteConfig = true;
+            o.RemoteConfiguration.ReportsRemoteConfigStatus = true;
+            o.EffectiveConfigurationReporting.EnableReporting = true;
+            o.Heartbeat.IsEnabled = true;
+        });
+
+        // Setup content
+        var content = "test"u8.ToArray();
+        var report = new FullStateReport()
+        {
+            EffectiveConfigFiles = [new EffectiveConfigFile(content, "text/plain", "test")],
+            CustomCapabilities = ["test-capability"],
+            RemoteConfigStatus = new RemoteConfigStatusReport(content, RemoteConfigStatusCode.Applied),
+            HealthReport = new HealthReport() { IsHealthy = true },
+        };
+
+        // Act
+        await client.StartAsync();
+        await client.SendFullStateReportAsync(report);
+        await client.StopAsync();
+
+        // Assert received frames
+        var frames = opAmpServer.GetFrames();
+
+        Assert.NotNull(frames[1].AgentDescription);
+        Assert.NotNull(frames[1].EffectiveConfig);
+        Assert.NotNull(frames[1].CustomCapabilities);
+        Assert.NotNull(frames[1].RemoteConfigStatus);
+        Assert.NotNull(frames[1].Health);
+
+        Assert.True(frames[1].Capabilities > 0);
+    }
+
     internal class CapabilityTestData
         : TheoryData<Action<OpAmpClientSettings>, IEnumerable<AgentCapabilities>, IEnumerable<AgentCapabilities>>
     {
@@ -393,6 +532,8 @@ public class OpAmpClientTests
             this.Add(o => o.Heartbeat.IsEnabled = true, [AgentCapabilities.ReportsHeartbeat, AgentCapabilities.ReportsHealth], []);
             this.Add(o => o.RemoteConfiguration.AcceptsRemoteConfig = true, [AgentCapabilities.AcceptsRemoteConfig], []);
             this.Add(o => o.RemoteConfiguration.AcceptsRemoteConfig = false, [], [AgentCapabilities.AcceptsRemoteConfig]);
+            this.Add(o => o.RemoteConfiguration.ReportsRemoteConfigStatus = true, [AgentCapabilities.ReportsRemoteConfig], []);
+            this.Add(o => o.RemoteConfiguration.ReportsRemoteConfigStatus = false, [], [AgentCapabilities.ReportsRemoteConfig]);
             this.Add(o => o.EffectiveConfigurationReporting.EnableReporting = true, [AgentCapabilities.ReportsEffectiveConfig], []);
             this.Add(o => o.EffectiveConfigurationReporting.EnableReporting = false, [], [AgentCapabilities.ReportsEffectiveConfig]);
         }

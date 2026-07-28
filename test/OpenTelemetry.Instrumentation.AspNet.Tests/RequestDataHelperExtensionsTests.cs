@@ -4,7 +4,6 @@
 using System.Collections.Specialized;
 using System.Web;
 using OpenTelemetry.Instrumentation.AspNet.Implementation;
-using Xunit;
 
 namespace OpenTelemetry.Instrumentation.AspNet.Tests;
 
