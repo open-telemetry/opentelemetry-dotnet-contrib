@@ -228,7 +228,14 @@ internal static class RedisProfilerEntryToActivityConverter
                 activity.AddEvent(new ActivityEvent("ResponseReceived", response));
             }
 
-            options.Enrich?.Invoke(activity, new(parentActivity, command));
+            try
+            {
+                options.Enrich?.Invoke(activity, new(parentActivity, command));
+            }
+            catch
+            {
+                // exceptions in Enrich callback should not prevent the activity from being stopped.
+            }
         }
 
         activity.Stop();

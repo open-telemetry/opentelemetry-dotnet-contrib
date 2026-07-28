@@ -1,3 +1,25 @@
 {%- macro attribute_name(attribute) -%}
 {{ attribute.name | pascal_case }}{%- if "template" in attribute.type -%}Template{%- endif -%}
 {%- endmacro -%}
+
+{#- Renders a deprecation note as the message for an [Obsolete] attribute.
+
+    The note is rendered with the same comment format used for the XML documentation so
+    that inline code is emitted as <c>...</c>, then post-processed so that the result is
+    always a valid C# string literal on a single line:
+
+      1. Anchors are flattened to "text (url)" so the message stays readable and does not
+         embed quotes that would need escaping.
+      2. Paragraph tags are dropped and all whitespace is collapsed, as a note may span
+         multiple lines or paragraphs.
+      3. Any remaining quotes are escaped rather than removed, so quoted text in a note is
+         preserved instead of being silently corrupted. -#}
+{%- macro obsolete_message(note) -%}
+{{ note
+   | comment(header="", footer="", prefix="", indent=0)
+   | regex_replace('<a href="([^"]*)">(.*?)</a>', '$2 ($1)')
+   | regex_replace('</?p>', '')
+   | regex_replace('\s+', ' ')
+   | replace('"', '\\"')
+   | trim }}
+{%- endmacro -%}
