@@ -86,4 +86,21 @@ public class TestMatcher
         Assert.False(Matcher.AttributeMatch([], ruleAttributes));
         Assert.False(Matcher.AttributeMatch(null, ruleAttributes));
     }
+
+    [Fact]
+    public void WildcardMatchWithCatastrophicPatternIsBoundedByTimeout()
+    {
+        var globPattern = "*a*a*a*a*a*a*a*a*b";
+        var maliciousInput = new string('a', 100_000);
+
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+        var result = Matcher.WildcardMatch(maliciousInput, globPattern);
+        stopwatch.Stop();
+
+        Assert.False(result);
+
+        Assert.True(
+            stopwatch.Elapsed < TimeSpan.FromSeconds(5),
+            $"WildcardMatch was not bounded by the regex timeout; took {stopwatch.Elapsed}.");
+    }
 }
