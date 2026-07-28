@@ -479,10 +479,24 @@ internal sealed class TlvMetricExporter : IDisposable
 
         byte numberOfLabels = 0;
 
+        // Ensure any exemplars fit within the single-byte length/count.
+        const int MaxExemplarLength = byte.MaxValue;
+
         foreach (var tag in exemplar.FilteredTags)
         {
+            var bufferIndexBeforeLabel = bufferIndex;
+
             MetricSerializer.SerializeBase128String(buffer, ref bufferIndex, tag.Key);
             MetricSerializer.SerializeBase128String(buffer, ref bufferIndex, Convert.ToString(tag.Value, CultureInfo.InvariantCulture));
+
+            if ((bufferIndex - bufferIndexForLength + 1) > MaxExemplarLength || numberOfLabels == byte.MaxValue)
+            {
+                // Adding this label would overflow the single-byte length/count.
+                // Roll back and drop it (and any remaining labels) for this exemplar.
+                bufferIndex = bufferIndexBeforeLabel;
+                break;
+            }
+
             numberOfLabels++;
         }
 
