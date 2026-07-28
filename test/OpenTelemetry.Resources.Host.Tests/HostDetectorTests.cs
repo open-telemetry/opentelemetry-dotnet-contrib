@@ -50,6 +50,9 @@ public class HostDetectorTests
     {
         var resource = ResourceBuilder.CreateEmpty().AddHostDetector().Build();
 
+        Assert.NotNull(resource);
+        Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
+
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
 
 #if NET
@@ -113,6 +116,10 @@ public class HostDetectorTests
                 () => throw new Exception("should not be called"),
                 () => throw new Exception("should not be called"));
             var resource = ResourceBuilder.CreateEmpty().AddDetector(detector).Build();
+
+            Assert.NotNull(resource);
+            Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
+
             var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
             if (string.IsNullOrEmpty(expected))
             {
@@ -135,6 +142,10 @@ public class HostDetectorTests
             () => MacOSMachineIdOutput,
             () => throw new Exception("should not be called"));
         var resource = ResourceBuilder.CreateEmpty().AddDetector(detector).Build();
+
+        Assert.NotNull(resource);
+        Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
+
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
         Assert.NotEmpty(resourceAttributes[HostSemanticConventions.AttributeHostId]);
         Assert.Equal("1AB2345C-03E4-57D4-A375-1234D48DE123", resourceAttributes[HostSemanticConventions.AttributeHostId]);
@@ -158,6 +169,10 @@ public class HostDetectorTests
 #endif
 
         var resource = ResourceBuilder.CreateEmpty().AddDetector(detector).Build();
+
+        Assert.NotNull(resource);
+        Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
+
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
         Assert.NotEmpty(resourceAttributes[HostSemanticConventions.AttributeHostId]);
         Assert.Equal("windows-machine-id", resourceAttributes[HostSemanticConventions.AttributeHostId]);
@@ -186,7 +201,11 @@ public class HostDetectorTests
             windowsMethodCalled = true;
             return string.Empty;
         });
-        detector.Detect();
+
+        var resource = detector.Detect();
+
+        Assert.NotNull(resource);
+        Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {

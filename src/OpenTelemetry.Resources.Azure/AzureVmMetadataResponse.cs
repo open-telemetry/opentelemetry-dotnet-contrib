@@ -60,7 +60,10 @@ internal sealed class AzureVmMetadataResponse
                 amsValue = this.VmSize;
                 break;
             case ResourceSemanticConventions.AttributeOsType:
-                amsValue = this.OsType;
+#pragma warning disable CA1308 // Normalize strings to uppercase
+                // The os.type value must be lowercase per the semantic conventions.
+                amsValue = this.OsType?.ToLowerInvariant();
+#pragma warning restore CA1308 // Normalize strings to uppercase
                 break;
             case ResourceSemanticConventions.AttributeOsVersion:
                 amsValue = this.Version;

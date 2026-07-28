@@ -2,8 +2,15 @@
 
 ## Unreleased
 
+## 1.17.0
+
+Released 2026-Jul-22
+
 * Assemblies are now digitally signed using cosign.
   ([#4637](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4637))
+
+* Add schema URL to resource detector.
+  ([#4775](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4775))
 
 ## 1.16.0
 

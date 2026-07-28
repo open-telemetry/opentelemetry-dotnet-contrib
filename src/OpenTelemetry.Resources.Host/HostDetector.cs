@@ -19,6 +19,11 @@ internal sealed class HostDetector : IResourceDetector
 #if !NETFRAMEWORK
     private const string ETCMACHINEID = "/etc/machine-id";
     private const string ETCVARDBUSMACHINEID = "/var/lib/dbus/machine-id";
+#endif
+
+    private static readonly Version SemanticConventionsVersion = new(1, 43, 0);
+
+#if !NETFRAMEWORK
     private readonly Func<OSPlatform, bool> isOsPlatform;
     private readonly Func<IEnumerable<string>> getFilePaths;
     private readonly Func<string?> getMacOsMachineId;
@@ -131,7 +136,7 @@ internal sealed class HostDetector : IResourceDetector
 #error Architecture is available in .NET Framework 4.7.1+, enable it when we move to that as minimum supported version
 #endif
 
-            return new Resource(attributes);
+            return new Resource(attributes, SchemaUrls.Get(SemanticConventionsVersion));
         }
         catch (InvalidOperationException ex)
         {
@@ -186,8 +191,8 @@ internal sealed class HostDetector : IResourceDetector
         {
             var startInfo = new ProcessStartInfo
             {
-                FileName = "sh",
-                Arguments = "-c \"ioreg -rd1 -c IOPlatformExpertDevice\"",
+                FileName = "/usr/sbin/ioreg",
+                Arguments = "-rd1 -c IOPlatformExpertDevice",
                 UseShellExecute = false,
                 CreateNoWindow = true,
                 RedirectStandardOutput = true,
@@ -231,11 +236,15 @@ internal sealed class HostDetector : IResourceDetector
     }
 #endif
 
-#pragma warning disable CA1416
-    // stylecop wants this protected by System.OperatingSystem.IsWindows
-    // this type only exists in .NET 5+
     private static string? GetMachineIdWindows()
     {
+#if NET
+        if (!OperatingSystem.IsWindows())
+        {
+            return null;
+        }
+#endif
+
         try
         {
             using var subKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Cryptography", false);
@@ -248,7 +257,6 @@ internal sealed class HostDetector : IResourceDetector
 
         return null;
     }
-#pragma warning restore CA1416
 
     private string? GetMachineId() =>
 #if NETFRAMEWORK

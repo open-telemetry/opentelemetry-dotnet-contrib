@@ -5,7 +5,7 @@
     <Description>.NET runtime instrumentation for OpenTelemetry .NET.</Description>
     <PackageTags>$(PackageTags);runtime</PackageTags>
     <MinVerTagPrefix>Instrumentation.Runtime-</MinVerTagPrefix>
-    <PackageValidationBaselineVersion>1.16.0</PackageValidationBaselineVersion>
+    <PackageValidationBaselineVersion>1.17.0</PackageValidationBaselineVersion>
     <AssemblyIsCLSCompliant>false</AssemblyIsCLSCompliant>
   </PropertyGroup>
 
@@ -22,6 +22,7 @@
     <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\Lock.cs" Link="Includes\Lock.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\MeterFactory.cs" Link="Includes\MeterFactory.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\SchemaUrls.cs" Link="Includes\SchemaUrls.cs" />
   </ItemGroup>
 
 </Project>

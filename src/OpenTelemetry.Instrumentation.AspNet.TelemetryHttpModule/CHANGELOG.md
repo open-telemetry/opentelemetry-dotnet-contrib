@@ -2,8 +2,18 @@
 
 ## Unreleased
 
+* Avoid redundant `HttpContextWrapper` allocations in `TelemetryHttpModule`.
+  ([#4903](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4903))
+
+## 1.17.0
+
+Released 2026-Jul-17
+
 * Assemblies are now digitally signed using cosign.
   ([#4637](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4637))
+
+* Updated OpenTelemetry core component version(s) to `1.17.0`.
+  ([#4773](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4773))
 
 ## 1.16.0
 

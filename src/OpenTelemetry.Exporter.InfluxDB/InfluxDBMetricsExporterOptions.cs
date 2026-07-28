@@ -40,6 +40,7 @@ public class InfluxDBMetricsExporterOptions
     /// <summary>
     /// Gets or sets the time to wait at most (milliseconds) with the write.
     /// </summary>
+    [Obsolete("FlushInterval no longer has any effect. Metrics are now written synchronously and this option will be removed in a future release.")]
     public int FlushInterval { get; set; } = 1000;
 
     /// <summary>

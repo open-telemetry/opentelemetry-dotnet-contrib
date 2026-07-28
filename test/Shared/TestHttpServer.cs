@@ -95,7 +95,10 @@ internal static class TestHttpServer
                     return true;
                 }
 
-                if (ex is HttpListenerException httpEx && (httpEx.ErrorCode is 1 or 6 or 995 or 1229 or 10057))
+                // Only http.sys on Windows reports the error codes when the client disconnects,
+                // other platforms only throw a generic HttpListenerException without specific error codes.
+                if (ex is HttpListenerException httpEx &&
+                    (Environment.OSVersion.Platform != PlatformID.Win32NT || httpEx.ErrorCode is 1 or 6 or 995 or 1229 or 10057))
                 {
                     return true;
                 }

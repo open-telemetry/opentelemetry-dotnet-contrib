@@ -34,23 +34,17 @@ internal sealed class AWSEBSDetector : IResourceDetector
     {
         try
         {
-            string? filePath;
 #if NET
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                filePath = AWSEBSMetadataWindowsFilePath;
-            }
-            else
-            {
-                filePath = AWSEBSMetadataLinuxFilePath;
-            }
+            var filePath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? AWSEBSMetadataWindowsFilePath : AWSEBSMetadataLinuxFilePath;
 #else
-            filePath = AWSEBSMetadataWindowsFilePath;
+            var filePath = AWSEBSMetadataWindowsFilePath;
 #endif
 
             var metadata = GetEBSMetadata(filePath);
 
-            return new Resource(this.ExtractResourceAttributes(metadata));
+            return new Resource(
+                this.ExtractResourceAttributes(metadata),
+                Internal.SchemaUrls.Get(this.semanticConventionBuilder.Version));
         }
         catch (Exception ex)
         {
@@ -60,14 +54,12 @@ internal sealed class AWSEBSDetector : IResourceDetector
         return Resource.Empty;
     }
 
-    internal static AWSEBSMetadataModel? GetEBSMetadata(string filePath)
-    {
+    internal static AWSEBSMetadataModel? GetEBSMetadata(string filePath) =>
 #if NETFRAMEWORK
-        return ResourceDetectorUtils.DeserializeFromFile<AWSEBSMetadataModel>(filePath);
+        ResourceDetectorUtils.DeserializeFromFile<AWSEBSMetadataModel>(filePath);
 #else
-        return ResourceDetectorUtils.DeserializeFromFile(filePath, SourceGenerationContext.Default.AWSEBSMetadataModel);
+        ResourceDetectorUtils.DeserializeFromFile(filePath, SourceGenerationContext.Default.AWSEBSMetadataModel);
 #endif
-    }
 
     internal List<KeyValuePair<string, object>> ExtractResourceAttributes(AWSEBSMetadataModel? metadata)
     {

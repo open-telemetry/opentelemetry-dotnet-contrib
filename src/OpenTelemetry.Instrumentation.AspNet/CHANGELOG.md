@@ -2,8 +2,19 @@
 
 ## Unreleased
 
+* Fixed duplicate `http.server.request.duration` metric recording for requests
+  that end with an unhandled exception while tracing is disabled.
+  ([#4902](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4902))
+
+## 1.17.0
+
+Released 2026-Jul-17
+
 * Assemblies are now digitally signed using cosign.
   ([#4637](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4637))
+
+* Updated OpenTelemetry core component version(s) to `1.17.0`.
+  ([#4773](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4773))
 
 ## 1.16.0
 

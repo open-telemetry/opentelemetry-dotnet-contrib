@@ -7,6 +7,7 @@ using OpenTelemetry.AWS;
 using OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
+using ActivitySourceFactory = OpenTelemetry.Trace.ActivitySourceFactory;
 
 namespace OpenTelemetry.Instrumentation.AWSLambda;
 

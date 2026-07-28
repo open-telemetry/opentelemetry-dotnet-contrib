@@ -5,6 +5,7 @@ using System.Data;
 using System.Diagnostics;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
+using ActivitySourceFactory = OpenTelemetry.Trace.ActivitySourceFactory;
 
 namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
 

@@ -2,8 +2,23 @@
 
 ## Unreleased
 
+* Validate `FlushInterval` to prevent out-of-range values and
+  zero-interval spin loops.
+  ([#4860](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4860))
+
+* Fixed exceptions thrown from a user-supplied `Enrich`
+  callback preventing the `Activity` from being stopped.
+  ([#4900](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4900))
+
+## 1.17.0-beta.1
+
+Released 2026-Jul-17
+
 * Assemblies are now digitally signed using cosign.
   ([#4637](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4637))
+
+* Updated OpenTelemetry core component version(s) to `1.17.0`.
+  ([#4773](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4773))
 
 ## 1.16.0-beta.1
 
