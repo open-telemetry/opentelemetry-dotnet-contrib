@@ -6,6 +6,10 @@
   zero-interval spin loops.
   ([#4860](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4860))
 
+* Fixed exceptions thrown from a user-supplied `Enrich`
+  callback preventing the `Activity` from being stopped.
+  ([#4900](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4900))
+
 ## 1.17.0-beta.1
 
 Released 2026-Jul-17

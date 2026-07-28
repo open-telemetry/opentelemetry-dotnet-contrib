@@ -53,8 +53,9 @@ public static class UrlAttributes
     /// Query string values for the following keys SHOULD be redacted by default and replaced by the
     /// value <c>REDACTED</c>:
     /// <ul>
-    ///   <li><a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/RESTAuthentication.html#RESTAuthenticationQueryStringAuth"><c>AWSAccessKeyId</c></a></li>
-    ///   <li><a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/RESTAuthentication.html#RESTAuthenticationQueryStringAuth"><c>Signature</c></a></li>
+    ///   <li><a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_sigv-authentication-methods.html"><c>X-Amz-Signature</c></a></li>
+    ///   <li><a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_sigv-authentication-methods.html"><c>X-Amz-Credential</c></a></li>
+    ///   <li><a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_sigv-authentication-methods.html"><c>X-Amz-Security-Token</c></a></li>
     ///   <li><a href="https://learn.microsoft.com/azure/storage/common/storage-sas-overview#sas-token"><c>sig</c></a></li>
     ///   <li><a href="https://cloud.google.com/storage/docs/access-control/signed-urls"><c>X-Goog-Signature</c></a></li>
     /// </ul>
@@ -107,8 +108,9 @@ public static class UrlAttributes
     ///
     /// Query string values for the following keys SHOULD be redacted by default and replaced by the value <c>REDACTED</c>:
     /// <ul>
-    ///   <li><a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/RESTAuthentication.html#RESTAuthenticationQueryStringAuth"><c>AWSAccessKeyId</c></a></li>
-    ///   <li><a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/RESTAuthentication.html#RESTAuthenticationQueryStringAuth"><c>Signature</c></a></li>
+    ///   <li><a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_sigv-authentication-methods.html"><c>X-Amz-Signature</c></a></li>
+    ///   <li><a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_sigv-authentication-methods.html"><c>X-Amz-Credential</c></a></li>
+    ///   <li><a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_sigv-authentication-methods.html"><c>X-Amz-Security-Token</c></a></li>
     ///   <li><a href="https://learn.microsoft.com/azure/storage/common/storage-sas-overview#sas-token"><c>sig</c></a></li>
     ///   <li><a href="https://cloud.google.com/storage/docs/access-control/signed-urls"><c>X-Goog-Signature</c></a></li>
     /// </ul>

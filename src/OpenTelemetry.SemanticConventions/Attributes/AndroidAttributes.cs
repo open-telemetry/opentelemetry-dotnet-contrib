@@ -18,7 +18,7 @@ public static class AndroidAttributes
     /// This attribute represents the state of the application.
     /// </summary>
     /// <remarks>
-    /// The Android lifecycle states are defined in <a href="https://developer.android.com/guide/components/activities/activity-lifecycle#lc">Activity lifecycle callbacks</a>, and from which the <c>OS identifiers</c> are derived.
+    /// The Android lifecycle states are defined in <a href="https://developer.android.com/guide/components/activities/activity-lifecycle#lifecycle-callbacks">Activity lifecycle callbacks</a>, and from which the <c>OS identifiers</c> are derived.
     /// </remarks>
     public const string AttributeAndroidAppState = "android.app.state";
 
