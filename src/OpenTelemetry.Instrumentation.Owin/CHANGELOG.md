@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-*  Skip unnecessary OWIN processing when tracing is not enabled.
+* Skip unnecessary OWIN processing when tracing is not enabled.
   ([#4919](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4919))
 
 ## 1.17.0-beta.1
