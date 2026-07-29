@@ -90,24 +90,24 @@
 
   <!-- Non-production packages are kept up-to-date by dependency automation -->
   <ItemGroup Label="Non-production packages, such as for examples and tests">
-    <PackageVersion Include="AWSSDK.Bedrock" Version="4.0.100.5" />
-    <PackageVersion Include="AWSSDK.BedrockAgent" Version="4.0.100.5" />
-    <PackageVersion Include="AWSSDK.BedrockAgentRuntime" Version="4.0.100.5" />
-    <PackageVersion Include="AWSSDK.BedrockRuntime" Version="4.0.100.5" />
-    <PackageVersion Include="AWSSDK.DynamoDBv2" Version="4.0.101.3" />
-    <PackageVersion Include="AWSSDK.S3" Version="4.0.101.3" />
-    <PackageVersion Include="AWSSDK.SimpleNotificationService" Version="4.0.100.5" />
-    <PackageVersion Include="AWSSDK.SQS" Version="4.0.100.5" />
+    <PackageVersion Include="AWSSDK.Bedrock" Version="4.0.100.6" />
+    <PackageVersion Include="AWSSDK.BedrockAgent" Version="4.0.100.6" />
+    <PackageVersion Include="AWSSDK.BedrockAgentRuntime" Version="4.0.100.6" />
+    <PackageVersion Include="AWSSDK.BedrockRuntime" Version="4.0.100.6" />
+    <PackageVersion Include="AWSSDK.DynamoDBv2" Version="4.0.102" />
+    <PackageVersion Include="AWSSDK.S3" Version="4.0.101.4" />
+    <PackageVersion Include="AWSSDK.SimpleNotificationService" Version="4.0.100.6" />
+    <PackageVersion Include="AWSSDK.SQS" Version="4.0.100.6" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
     <PackageVersion Include="CommandLineParser" Version="2.9.1" />
-    <PackageVersion Include="FsCheck.Xunit" Version="3.3.3" />
-    <PackageVersion Include="GitHubActionsTestLogger" Version="3.0.4" />
+    <PackageVersion Include="FsCheck.Xunit" Version="3.3.4" />
+    <PackageVersion Include="GitHubActionsTestLogger" Version="3.0.5" />
     <PackageVersion Include="Google.Api.Gax" Version="4.14.0" />
     <PackageVersion Include="Google.Protobuf" Version="3.35.1" />
     <PackageVersion Include="Grpc" Version="2.46.6" />
     <PackageVersion Include="Grpc.AspNetCore.Server" Version="2.80.0" />
     <PackageVersion Include="Grpc.Net.Client" Version="2.80.0" />
-    <PackageVersion Include="Grpc.Tools" Version="2.82.0" />
+    <PackageVersion Include="Grpc.Tools" Version="2.83.0" />
     <PackageVersion Include="Hangfire.Core" Version="1.8.24" />
     <PackageVersion Include="Hangfire.MemoryStorage" Version="1.8.1.2" />
     <PackageVersion Include="JetBrains.Profiler.Api" Version="1.4.13" />
@@ -136,10 +136,11 @@
     <PackageVersion Include="Newtonsoft.Json.Schema" Version="4.0.1" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
     <PackageVersion Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.3" />
-    <PackageVersion Include="ServiceFabric.Mocks" Version="8.0.8" />
+    <PackageVersion Include="ServiceFabric.Mocks" Version="8.0.9" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.2.3" />
     <PackageVersion Include="System.Reactive.Core" Version="6.1.0" />
     <PackageVersion Include="System.Reflection.DispatchProxy" Version="4.8.2" />
+    <PackageVersion Include="System.Runtime.CompilerServices.Unsafe" Version="6.1.2" />
     <PackageVersion Include="System.ServiceModel.Http" Version="10.0.652802" />
     <PackageVersion Include="System.ServiceModel.NetTcp" Version="10.0.652802" />
     <PackageVersion Include="Testcontainers" Version="4.13.0" />
