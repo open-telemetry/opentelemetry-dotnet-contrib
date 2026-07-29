@@ -9,7 +9,7 @@
 * Renamed the `PrivatePreviewEnableOtlpProtobufEncoding` connection string switch
   to `EnableOtlpProtobufEncoding`. The old `PrivatePreviewEnableOtlpProtobufEncoding`
   switch is no longer supported.
-  ([#NNNN](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/NNNN))
+  ([#4920](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4920))
 
 ## 1.17.0
 
