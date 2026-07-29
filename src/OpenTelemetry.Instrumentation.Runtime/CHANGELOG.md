@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Use a direct call for GC pause duration metric, instead of reflection,
+  to improve trimming and NativeAOT compatibility.
+  ([#4904](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4904))
+
 ## 1.17.0
 
 Released 2026-Jul-17

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Avoid redundant `HttpContextWrapper` allocations in `TelemetryHttpModule`.
+  ([#4903](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4903))
+
 ## 1.17.0
 
 Released 2026-Jul-17
