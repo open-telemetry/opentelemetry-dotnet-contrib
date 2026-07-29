@@ -568,6 +568,105 @@ public class GenevaMetricExporterTests
         }
     }
 
+    [Theory]
+    [InlineData(10, true)]
+    [InlineData(300, false)]
+    public void ExemplarExceedingByteLengthDropsLabelsInsteadOfCorrupting(int filteredTagValueLength, bool expectLabelKept)
+    {
+        using var meter = new Meter("ExemplarOverflow", "0.0.1");
+        var counter = meter.CreateCounter<long>("longCounter");
+        var exportedItems = new List<Metric>();
+        using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
+        {
+            TemporalityPreference = MetricReaderTemporalityPreference.Delta,
+        };
+
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddMeter("ExemplarOverflow")
+            .SetExemplarFilter(ExemplarFilterType.AlwaysOn)
+            .AddView("*", new MetricStreamConfiguration { TagKeys = ["tag1"] })
+            .AddReader(inMemoryReader)
+            .Build();
+
+        var filteredTagValue = new string('x', filteredTagValueLength);
+        counter.Add(1, new("tag1", "keep"), new("bigFilteredTag", filteredTagValue));
+
+        inMemoryReader.Collect();
+
+        var metric = Assert.Single(exportedItems);
+        var metricPointsEnumerator = metric.GetMetricPoints().GetEnumerator();
+        Assert.True(metricPointsEnumerator.MoveNext());
+        var metricPoint = metricPointsEnumerator.Current;
+        Assert.True(metricPoint.TryGetExemplars(out var exemplars));
+
+        var path = string.Empty;
+        Socket server = null;
+        try
+        {
+            var exporterOptions = new GenevaMetricExporterOptions();
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
+            }
+            else
+            {
+                // On non-Windows the TLV exporter requires a Unix domain socket endpoint.
+                path = GenerateTempFilePath();
+                exporterOptions.ConnectionString = $"Endpoint=unix:{path};Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                server.Bind(endpoint);
+                server.Listen(1);
+            }
+
+            using var exporter = new TlvMetricExporter(
+                new ConnectionStringBuilder(exporterOptions.ConnectionString),
+                null);
+
+            var metricData = new MetricData { UInt64Value = Convert.ToUInt64(metricPoint.GetSumLong()) };
+            exporter.SerializeMetricWithTLV(
+                MetricEventType.ULongMetric,
+                metric.Name,
+                metricPoint.EndTime.ToFileTime(),
+                metricPoint.Tags,
+                metricData,
+                metric.MetricType,
+                exemplars,
+                out _,
+                out _);
+
+            var buffer = typeof(TlvMetricExporter)
+                .GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(exporter) as byte[];
+
+            var data = new MetricsContract(new KaitaiStream(buffer));
+            var fields = ((UserdataV2)data.Body).Fields;
+            var exemplarsPayload = fields.First(field => field.Type == PayloadTypes.Exemplars).Value as Exemplars;
+            var body = exemplarsPayload.ExemplarList[0].Body;
+
+            if (expectLabelKept)
+            {
+                Assert.Equal(1, body.NumberOfLabels);
+                Assert.Equal(filteredTagValue, body.Labels[0].Value.Value);
+            }
+            else
+            {
+                Assert.Equal(0, body.NumberOfLabels);
+            }
+        }
+        finally
+        {
+            server?.Dispose();
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
+            }
+        }
+    }
+
     [Fact]
     public void SuccessfulSerializationWithTLVWithViews()
     {
