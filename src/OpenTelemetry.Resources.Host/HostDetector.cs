@@ -189,6 +189,7 @@ internal sealed class HostDetector : IResourceDetector
     {
         try
         {
+            var timeoutMilliseconds = 5_000;
             var startInfo = new ProcessStartInfo
             {
                 FileName = "/usr/sbin/ioreg",
@@ -203,7 +204,7 @@ internal sealed class HostDetector : IResourceDetector
             using var process = Process.Start(startInfo);
             if (process != null)
             {
-                var isExited = process.WaitForExit(5000);
+                var isExited = process.WaitForExit(timeoutMilliseconds);
                 if (isExited)
                 {
                     var output = process.StandardOutput.ReadToEnd();
@@ -236,11 +237,15 @@ internal sealed class HostDetector : IResourceDetector
     }
 #endif
 
-#pragma warning disable CA1416
-    // stylecop wants this protected by System.OperatingSystem.IsWindows
-    // this type only exists in .NET 5+
     private static string? GetMachineIdWindows()
     {
+#if NET
+        if (!OperatingSystem.IsWindows())
+        {
+            return null;
+        }
+#endif
+
         try
         {
             using var subKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Cryptography", false);
@@ -253,7 +258,6 @@ internal sealed class HostDetector : IResourceDetector
 
         return null;
     }
-#pragma warning restore CA1416
 
     private string? GetMachineId() =>
 #if NETFRAMEWORK

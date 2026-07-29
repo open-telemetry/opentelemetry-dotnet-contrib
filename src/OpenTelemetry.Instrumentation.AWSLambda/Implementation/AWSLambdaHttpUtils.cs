@@ -8,6 +8,7 @@ using System.Web;
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.ApplicationLoadBalancerEvents;
 using OpenTelemetry.AWS;
+using OpenTelemetry.Internal;
 
 // Continue to off obsolete Semantic Convention until the next major version bump
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -20,7 +21,10 @@ internal class AWSLambdaHttpUtils
     private const string HeaderXForwardedProto = "x-forwarded-proto";
     private const string HeaderHost = "host";
 
-    internal static IEnumerable<KeyValuePair<string, object>> GetHttpTags<TInput>(AWSSemanticConventions semanticConventions, TInput input)
+    internal static IEnumerable<KeyValuePair<string, object>> GetHttpTags<TInput>(
+        AWSSemanticConventions semanticConventions,
+        TInput input,
+        bool disableUrlQueryRedaction = false)
     {
         string? httpScheme;
         string? httpTarget;
@@ -61,6 +65,15 @@ internal class AWSLambdaHttpUtils
                 break;
             default:
                 return [];
+        }
+
+        // For HTTP triggered functions the query string is caller-supplied
+        // and may contain sensitive data (e.g. API keys). Redact the values
+        // by default unless the operator has explicitly opted-out.
+        if (!disableUrlQueryRedaction && !string.IsNullOrEmpty(urlQuery))
+        {
+            urlQuery = RedactionHelper.GetRedactedQueryString(urlQuery!);
+            httpTarget = string.Concat(urlPath, urlQuery);
         }
 
         var tags = semanticConventions.AttributeBuilder;
