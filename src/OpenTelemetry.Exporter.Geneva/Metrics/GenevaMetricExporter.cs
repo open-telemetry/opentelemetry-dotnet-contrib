@@ -51,7 +51,7 @@ public partial class GenevaMetricExporter : BaseExporter<Metric>
             DisableOpenTelemetrySdkMetricNameValidation();
         }
 
-        if (connectionStringBuilder.PrivatePreviewEnableOtlpProtobufEncoding)
+        if (connectionStringBuilder.EnableOtlpProtobufEncoding)
         {
             IMetricDataTransport transport;
 
