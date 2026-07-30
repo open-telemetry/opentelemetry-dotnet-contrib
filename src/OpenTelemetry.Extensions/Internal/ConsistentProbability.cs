@@ -56,20 +56,24 @@ internal static class ConsistentProbability
             return "0";
         }
 
+        const int HexBits = 4; // 4 bits per hex digit
+
         // Raise the precision by the number of leading '0' or 'f' digits so the configured precision
         // applies to the significant digits of the threshold near both 0 and 1. frexp returns an
         // exponent <= 0; every multiple of -4 corresponds to another leading '0' or 'f' hex digit.
         var exponentFraction = FrexpExponent(probability);
         var exponentRejection = FrexpExponent(1.0 - probability);
 
-        precision = Math.Min(MaxHexDigits, Math.Max(precision + (exponentFraction / -4), precision + (exponentRejection / -4)));
+        precision = Math.Min(
+            MaxHexDigits,
+            Math.Max(precision + (exponentFraction / -HexBits), precision + (exponentRejection / -HexBits)));
 
         // Compute the rejection threshold as a 56-bit integer: T = 2^56 - round(probability * 2^56).
         var scaled = (long)Math.Round(probability * MaxAdjustedCount, MidpointRounding.AwayFromZero);
         var threshold = MaxAdjustedCount - scaled;
 
         // Round to the requested precision by dropping the low hex digits, rounding to nearest.
-        var shift = 4 * (MaxHexDigits - precision);
+        var shift = HexBits * (MaxHexDigits - precision);
 
         if (shift > 0)
         {
