@@ -344,7 +344,7 @@ To send metric data over ETW using OTLP protobuf encoding set
 
 ###### Linux
 
-As of `1.10.0` `EnableOtlpProtobufEncoding=true` is also supported
+`EnableOtlpProtobufEncoding=true` is also supported
 on Linux.
 
 ###### When using unix domain socket
