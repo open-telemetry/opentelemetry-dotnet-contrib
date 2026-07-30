@@ -16,6 +16,7 @@ namespace OpenTelemetry.Instrumentation.Http.Tests;
 public class HttpWebRequestActivitySourceTests : IDisposable
 {
     private static bool validateBaggage;
+    private readonly ConcurrentQueue<string[]?> traceparentHeaders = new();
     private readonly IDisposable testServer;
     private readonly Uri uri;
 
@@ -53,6 +54,8 @@ public class HttpWebRequestActivitySourceTests : IDisposable
 
         void ProcessServerRequest(HttpListenerContext context)
         {
+            this.traceparentHeaders.Enqueue(context.Request.Headers.GetValues("traceparent"));
+
             var redirects = context.Request.QueryString["redirects"];
             if (!string.IsNullOrWhiteSpace(redirects) && int.TryParse(redirects, out var parsedRedirects) && parsedRedirects > 0)
             {
@@ -480,6 +483,43 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         Assert.Equal(2, eventRecords.Records.Count);
         Assert.Equal(1, eventRecords.Records.Count(rec => rec.Key == "Start"));
         Assert.Equal(1, eventRecords.Records.Count(rec => rec.Key == "Stop"));
+    }
+
+    [Fact]
+    public async Task TestFilteredRedirectedRequestInjectsSingleTraceParent()
+    {
+        var originalOptions = HttpWebRequestActivitySource.TracingOptions;
+        try
+        {
+            HttpWebRequestActivitySource.TracingOptions = new HttpClientTraceInstrumentationOptions
+            {
+                FilterHttpWebRequest = _ => false,
+            };
+
+            using var parent = new Activity("parent")
+                .SetIdFormat(ActivityIdFormat.W3C)
+                .Start();
+
+            using (var client = new HttpClient())
+            using (var response = await client.GetAsync(new Uri(this.BuildRequestUrl(queryString: "redirects=1"))))
+            {
+            }
+
+            var expectedTraceParent = $"00-{parent.TraceId}-{parent.SpanId}-00";
+            var requests = this.traceparentHeaders.ToArray();
+            Assert.Equal(2, requests.Length);
+            Assert.All(requests, values =>
+            {
+                Assert.NotNull(values);
+                var value = Assert.Single(values);
+                Assert.Equal(expectedTraceParent, value);
+            });
+        }
+        finally
+        {
+            HttpWebRequestActivitySource.TracingOptions = originalOptions;
+            this.CleanUpActivity();
+        }
     }
 
     /// <summary>

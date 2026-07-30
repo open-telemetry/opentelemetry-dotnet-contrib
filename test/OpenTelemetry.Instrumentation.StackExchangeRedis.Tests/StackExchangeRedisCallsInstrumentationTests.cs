@@ -250,6 +250,31 @@ public class StackExchangeRedisCallsInstrumentationTests(RedisXunitFixture fixtu
         Assert.Equal(second, third);
     }
 
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
+    public void ProfilerSessionFactoryReturnsNullAfterInstrumentationDisposed()
+    {
+        var connectionOptions = new ConfigurationOptions
+        {
+            AbortOnConnectFail = false,
+            ConnectRetry = 0,
+            ConnectTimeout = 1_000,
+        };
+        connectionOptions.EndPoints.Add(this.connectionString);
+
+        using var connection = ConnectionMultiplexer.Connect(connectionOptions);
+        var instrumentation = new StackExchangeRedisConnectionInstrumentation(
+            connection,
+            name: null,
+            new StackExchangeRedisInstrumentationOptions());
+        var profilerFactory = instrumentation.GetProfilerSessionsFactory();
+
+        instrumentation.Dispose();
+
+        Assert.Null(profilerFactory());
+
+        instrumentation.Dispose();
+    }
+
     [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
     [InlineData("value1")]
     public void CanEnrichActivityFromCommand(string value)
