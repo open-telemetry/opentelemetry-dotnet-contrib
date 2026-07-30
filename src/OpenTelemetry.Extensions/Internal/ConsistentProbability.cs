@@ -37,12 +37,17 @@ internal static class ConsistentProbability
 
     /// <summary>
     /// Encodes a sampling probability as a <c>th</c> value using the specified precision.
-    /// This is a direct port of the reference <c>probability_to_threshold_with_precision</c>
-    /// algorithm from the specification.
     /// </summary>
     /// <param name="probability">The sampling probability, in the range <c>(0, 1]</c>.</param>
-    /// <param name="precision">The number of significant hexadecimal digits, in the range <c>[1, 13]</c>.</param>
+    /// <param name="precision">The number of significant hexadecimal digits, in the range <c>[1, 14]</c>.</param>
     /// <returns>The threshold encoded with trailing zeros removed (for example <c>fd70a</c>).</returns>
+    /// <remarks>
+    /// This computes the exact 56-bit rejection threshold directly from the probability, matching the
+    /// OpenTelemetry Collector implementation rather than the (less accurate) floating-point reference
+    /// pseudocode in the specification, so that values near <c>0</c> and <c>1</c> are encoded exactly:
+    /// <see href="https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/6d20534d0a232acaa8cf7161ddbaeab6915e0c01/pkg/sampling/probability.go#L33-L77">
+    /// ProbabilityToThresholdWithPrecision</see>.
+    /// </remarks>
     public static string EncodeThreshold(double probability, int precision)
     {
         if (probability >= 1.0)
@@ -51,57 +56,28 @@ internal static class ConsistentProbability
             return "0";
         }
 
-        // math.frexp(probability): probability is a positive value less than one, so the
-        // exponent is less than or equal to zero.
-        var exponent = FrexpExponent(probability);
+        // Raise the precision by the number of leading '0' or 'f' digits so the configured precision
+        // applies to the significant digits of the threshold near both 0 and 1. frexp returns an
+        // exponent <= 0; every multiple of -4 corresponds to another leading '0' or 'f' hex digit.
+        var exponentFraction = FrexpExponent(probability);
+        var exponentRejection = FrexpExponent(1.0 - probability);
 
-        // Raise the precision by the number of leading 'f' digits so the configured precision
-        // applies to the significant digits of the threshold for probabilities near zero.
-        precision = Math.Max(1, Math.Min(13, precision + ((-exponent) / 4)));
+        precision = Math.Min(MaxHexDigits, Math.Max(precision + (exponentFraction / -4), precision + (exponentRejection / -4)));
 
-        // Change the probability into 1 + rejection probability, mapping (0, 1] into [1, 2).
-        var rejectionProbability = 2.0 - probability;
+        // Compute the rejection threshold as a 56-bit integer: T = 2^56 - round(probability * 2^56).
+        var scaled = (long)Math.Round(probability * MaxAdjustedCount, MidpointRounding.AwayFromZero);
+        var threshold = MaxAdjustedCount - scaled;
 
-        // Add half of the final digit of precision so the truncation below rounds correctly.
-        // math.ldexp(0.5, -4 * precision) == 2^(-4 * precision - 1).
-        rejectionProbability += Exp2((-4 * precision) - 1);
+        // Round to the requested precision by dropping the low hex digits, rounding to nearest.
+        var shift = 4 * (MaxHexDigits - precision);
 
-        // The mantissa is the 13 hexadecimal digits that Python's float.hex() emits after the
-        // leading "0x1." for a value in [1, 2).
-        var mantissa = BitConverter.DoubleToInt64Bits(rejectionProbability) & 0xF_FFFF_FFFF_FFFFL;
-
-        const string Format = "x13"; // 13 hex digits, no leading "0x"
-
-#if NET
-        Span<char> digits = stackalloc char[13];
-
-        if (rejectionProbability >= 2.0)
+        if (shift > 0)
         {
-            // Compensating for leading 'f' digits can technically never
-            // produce a value >= 2.0, but guard against it for safety.
-            digits.Fill('f');
-        }
-        else
-        {
-            _ = mantissa.TryFormat(digits, out _, Format, CultureInfo.InvariantCulture);
+            var half = 1L << (shift - 1);
+            threshold = ((threshold + half) >> shift) << shift;
         }
 
-        // Keep the requested precision and drop trailing zeros.
-        var threshold = digits.Slice(0, precision).TrimEnd('0');
-
-        return threshold.IsEmpty ? "0" : new string(threshold);
-#else
-        // Compensating for leading 'f' digits can technically never
-        // produce a value >= 2.0, but guard against it for safety.
-        var digits = rejectionProbability >= 2.0
-            ? "fffffffffffff"
-            : mantissa.ToString(Format, CultureInfo.InvariantCulture);
-
-        // Keep the requested precision and drop trailing zeros.
-        var threshold = digits.Substring(0, precision).TrimEnd('0');
-
-        return threshold.Length == 0 ? "0" : threshold;
-#endif
+        return EncodeThresholdInteger(threshold);
     }
 
     /// <summary>
@@ -240,12 +216,12 @@ internal static class ConsistentProbability
         => (double)MaxAdjustedCount / (MaxAdjustedCount - threshold);
 
     /// <summary>
-    /// Returns the exponent that <c>math.frexp</c> would produce for a positive value in <c>(0, 1)</c>,
+    /// Returns the exponent that <c>math.frexp</c> would produce for a positive value in <c>(0, 1]</c>,
     /// i.e. the value <c>e</c> such that <c>value = m * 2^e</c> with <c>0.5 &lt;= m &lt; 1</c>.
     /// </summary>
     private static int FrexpExponent(double value)
     {
-        // value is a positive, normal double less than one.
+        // value is a positive, normal double in (0, 1] (1.0 arises when 1 - probability rounds up).
 #if NET
         return Math.ILogB(value) + 1;
 #else
@@ -256,16 +232,5 @@ internal static class ConsistentProbability
         // greater than the unbiased IEEE-754 exponent (biasedExponent - 1023).
         return biasedExponent - 1022;
 #endif
-    }
-
-    /// <summary>
-    /// Returns <c>2^exponent</c> exactly for the small negative exponents used when encoding
-    /// thresholds, avoiding the rounding of <see cref="Math.Pow(double, double)"/> and the
-    /// <c>Math.ScaleB</c> API which is unavailable on older target frameworks.
-    /// </summary>
-    private static double Exp2(int exponent)
-    {
-        var bits = (long)(exponent + 1023) << 52;
-        return BitConverter.Int64BitsToDouble(bits);
     }
 }

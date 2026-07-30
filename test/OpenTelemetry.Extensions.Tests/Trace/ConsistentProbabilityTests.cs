@@ -85,17 +85,42 @@ public class ConsistentProbabilityTests
         Assert.Equal(expected, ConsistentProbability.EncodeThreshold(probability, 13));
     }
 
+    // Arbitrary-fraction cases verifying exact parity with the collector, including the full-precision
+    // rounding quirk where 1/3 ends in "c" rather than a repeating "a".
+    // https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/6d20534d0a232acaa8cf7161ddbaeab6915e0c01/pkg/sampling/probability_test.go#L19-L58
+    [Theory]
+    [InlineData(2.0 / 3.0, 3, "555")]
+    [InlineData(1.0 / 3.0, 14, "aaaaaaaaaaaaac")]
+    public void EncodeThreshold_MatchesCollectorFractionExamples(double probability, int precision, string expected)
+        => Assert.Equal(expected, ConsistentProbability.EncodeThreshold(probability, precision));
+
     [Fact]
-    public void EncodeThreshold_UsesFullPrecisionOfThirteenForVerySmallProbabilities()
+    public void EncodeThreshold_EncodesVerySmallProbabilityExactly()
     {
-        // With the effective precision incorrectly capped at 12, this probability's threshold
-        // rounds all the way down to "0" (i.e. never sampled). Allowing the specification's full
-        // range of 13 significant hexadecimal digits preserves a non-zero, sampleable threshold.
+        // The exact-integer encoding preserves the precise threshold for very small probabilities,
+        // where the floating-point reference method loses precision or rounds down towards "0".
         const double Probability = 1e-15;
 
         var encoded = ConsistentProbability.EncodeThreshold(Probability, ConsistentProbability.DefaultPrecision);
 
-        Assert.Equal("ffffffffffffc", encoded);
+        // 2^56 - round(1e-15 * 2^56) = 2^56 - 72 = 0xffffffffffffb8.
+        Assert.Equal("ffffffffffffb8", encoded);
+    }
+
+    // The specification's "very small" example (precision 3), verifying exact parity with the collector.
+    // https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/6d20534d0a232acaa8cf7161ddbaeab6915e0c01/pkg/sampling/probability_test.go#L163-L188
+    [Theory]
+    [InlineData(1, "ffffffffffffff")] // Skip 1 out of 2^56.
+    [InlineData(2, "fffffffffffffe")] // Skip 2 out of 2^56.
+    [InlineData(3, "fffffffffffffd")]
+    [InlineData(4, "fffffffffffffc")]
+    [InlineData(8, "fffffffffffff8")]
+    [InlineData(16, "fffffffffffff")]
+    public void EncodeThreshold_EncodesSmallestProbabilitiesExactly(int numerator, string expected)
+    {
+        var probability = numerator * Math.Pow(2, -56);
+
+        Assert.Equal(expected, ConsistentProbability.EncodeThreshold(probability, 3));
     }
 
     [Theory]
@@ -105,8 +130,7 @@ public class ConsistentProbabilityTests
     [InlineData(1.3877787807814457e-17)] // 2^-56, the smallest valid sampling probability.
     public void EncodeThreshold_ProducesValidThresholdForSmallProbabilities(double probability)
     {
-        // Very small probabilities drive the precision to its maximum (13) and the internal power-of-two
-        // calculation to its most extreme exponent, exercising those bounds.
+        // Very small probabilities drive the precision to its maximum (14), exercising that bound.
         var encoded = ConsistentProbability.EncodeThreshold(probability, ConsistentProbability.DefaultPrecision);
 
         // A th value is 1 to 14 lowercase hexadecimal digits.
