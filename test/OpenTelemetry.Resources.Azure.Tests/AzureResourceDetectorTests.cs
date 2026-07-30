@@ -1,12 +1,81 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if NETFRAMEWORK
+using System.Net.Http;
+#endif
+
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Resources.Azure.Tests;
 
 public class AzureResourceDetectorTests
 {
+    // See https://learn.microsoft.com/azure/virtual-machines/instance-metadata-service
+    private const string AzureVmMetadataEndpointUri = "http://169.254.169.254/metadata/instance?api-version=2025-04-07";
+    private static readonly HttpClient HttpClient = new() { Timeout = TimeSpan.FromSeconds(3) };
+
+    public static async Task<bool> IsRunningOnAzureVMAsync()
+    {
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, AzureVmMetadataEndpointUri);
+            request.Headers.Add("Metadata", "true");
+
+            using var response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+            return response.IsSuccessStatusCode;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    [Fact]
+    public void AppServiceResourceDetectorHandlesFailure()
+    {
+        var resource = ResourceBuilder.CreateEmpty()
+            .AddAzureAppServiceDetector()
+            .Build();
+
+        Assert.NotNull(resource);
+        Assert.Null(resource.SchemaUrl);
+    }
+
+    [Fact]
+    public async Task AzureVMResourceDetectorDoesNotThrow()
+    {
+        AzureVMResourceDetector.ClearCachedResource();
+
+        var resource = ResourceBuilder.CreateEmpty()
+            .AddAzureVMDetector()
+            .Build();
+
+        Assert.NotNull(resource);
+
+        if (await IsRunningOnAzureVMAsync())
+        {
+            Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
+            Assert.NotEmpty(resource.Attributes);
+        }
+        else
+        {
+            Assert.Null(resource.SchemaUrl);
+            Assert.Empty(resource.Attributes);
+        }
+    }
+
+    [Fact]
+    public void AzureContainerAppsResourceDetectorHandlesFailure()
+    {
+        var resource = ResourceBuilder.CreateEmpty()
+            .AddAzureContainerAppsDetector()
+            .Build();
+
+        Assert.NotNull(resource);
+        Assert.Null(resource.SchemaUrl);
+    }
+
     [Fact]
     public void AppServiceResourceDetectorReturnsResourceWithAttributes()
     {
@@ -30,7 +99,9 @@ public class AzureResourceDetectorTests
         using (EnvironmentVariableScope.Create(environment))
         {
             var resource = ResourceBuilder.CreateEmpty().AddAzureAppServiceDetector().Build();
+
             Assert.NotNull(resource);
+            Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
 
             var expectedResourceUri = "/subscriptions/testtestSubscriptionId/resourceGroups/testResourceGroup/providers/Microsoft.Web/sites/sitename";
             Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudResourceId, expectedResourceUri), resource.Attributes);
@@ -62,8 +133,12 @@ public class AzureResourceDetectorTests
             };
         };
 
+        AzureVMResourceDetector.ClearCachedResource();
+
         var resource = ResourceBuilder.CreateEmpty().AddAzureVMDetector().Build();
+
         Assert.NotNull(resource);
+        Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
 
         foreach (var field in AzureVMResourceDetector.ExpectedAzureAmsFields)
         {
@@ -77,6 +152,16 @@ public class AzureResourceDetectorTests
 
             Assert.Contains(expectedValue, resource.Attributes);
         }
+    }
+
+    [Theory]
+    [InlineData("Linux", "linux")]
+    [InlineData("Windows", "windows")]
+    public void AzureVmResourceDetectorNormalizesOsTypeToLowercase(string osType, string expected)
+    {
+        var response = new AzureVmMetadataResponse() { OsType = osType };
+
+        Assert.Equal(expected, response.GetValueForField(ResourceSemanticConventions.AttributeOsType));
     }
 
     [Fact]
@@ -94,7 +179,9 @@ public class AzureResourceDetectorTests
         using (EnvironmentVariableScope.Create(environment))
         {
             var resource = ResourceBuilder.CreateEmpty().AddAzureContainerAppsDetector().Build();
+
             Assert.NotNull(resource);
+            Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
 
             Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "containerAppName"), resource.Attributes);
 
@@ -120,7 +207,9 @@ public class AzureResourceDetectorTests
         using (EnvironmentVariableScope.Create(environment))
         {
             var resource = ResourceBuilder.CreateEmpty().AddAzureContainerAppsDetector().Build();
+
             Assert.NotNull(resource);
+            Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
 
             Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "containerAppJobName"), resource.Attributes);
 
@@ -148,6 +237,7 @@ public class AzureResourceDetectorTests
                 .Build();
 
             Assert.NotNull(resource);
+            Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
 
             // Detector is applied after AddAttributes, so detector value wins.
             Assert.Contains(
@@ -176,6 +266,7 @@ public class AzureResourceDetectorTests
                 .Build();
 
             Assert.NotNull(resource);
+            Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
 
             // AddAttributes is applied after the detector, so the custom value wins.
             Assert.Contains(

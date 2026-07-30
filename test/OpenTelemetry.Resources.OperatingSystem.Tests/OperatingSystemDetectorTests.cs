@@ -11,6 +11,10 @@ public class OperatingSystemDetectorTests
     public void TestOperatingSystemAttributes()
     {
         var resource = ResourceBuilder.CreateEmpty().AddOperatingSystemDetector().Build();
+
+        Assert.NotNull(resource);
+        Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
+
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
 
         string expectedPlatform;
@@ -67,7 +71,13 @@ public class OperatingSystemDetectorTests
             null,
             null,
             [path]);
-        var attributes = osDetector.Detect().Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
+
+        var resource = osDetector.Detect();
+
+        Assert.NotNull(resource);
+        Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
+
+        var attributes = resource.Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
 
         Assert.Equal("Mac OS X", attributes[OperatingSystemSemanticConventions.AttributeOperatingSystemName]);
         Assert.Equal("10.6.8", attributes[OperatingSystemSemanticConventions.AttributeOperatingSystemVersion]);
@@ -85,7 +95,13 @@ public class OperatingSystemDetectorTests
             kernelPath,
             [path],
             null);
-        var attributes = osDetector.Detect().Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
+
+        var resource = osDetector.Detect();
+
+        Assert.NotNull(resource);
+        Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
+
+        var attributes = resource.Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
 
         Assert.Equal("Ubuntu", attributes[OperatingSystemSemanticConventions.AttributeOperatingSystemName]);
         Assert.Equal("22.04", attributes[OperatingSystemSemanticConventions.AttributeOperatingSystemVersion]);

@@ -4,6 +4,7 @@
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using OpenTelemetry.Trace;
+using ActivitySourceFactory = OpenTelemetry.Trace.ActivitySourceFactory;
 
 namespace OpenTelemetry.Instrumentation.SqlClient.Implementation;
 

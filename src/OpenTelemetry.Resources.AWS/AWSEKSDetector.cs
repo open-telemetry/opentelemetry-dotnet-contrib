@@ -37,9 +37,11 @@ internal sealed class AWSEKSDetector : IResourceDetector
 
         return credentials == null || !IsEKSProcess(credentials, httpClientHandler)
             ? Resource.Empty
-            : new Resource(this.ExtractResourceAttributes(
-                GetEKSClusterName(credentials, httpClientHandler),
-                GetEKSContainerId(AWSEKSMetadataFilePath)));
+            : new Resource(
+                this.ExtractResourceAttributes(
+                    GetEKSClusterName(credentials, httpClientHandler),
+                    GetEKSContainerId(AWSEKSMetadataFilePath)),
+                Internal.SchemaUrls.Get(this.semanticConventionBuilder.Version));
     }
 
     internal static string? GetEKSCredentials(string path)

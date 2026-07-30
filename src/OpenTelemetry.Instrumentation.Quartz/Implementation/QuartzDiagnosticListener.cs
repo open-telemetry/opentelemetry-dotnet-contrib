@@ -3,13 +3,12 @@
 
 using System.Diagnostics;
 using OpenTelemetry.Internal;
-using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.Quartz.Implementation;
 
 internal sealed class QuartzDiagnosticListener : ListenerHandler
 {
-    internal static readonly ActivitySource ActivitySource = ActivitySourceFactory.Create<QuartzDiagnosticListener>(null);  // These traces are not in the Semantic Conventions
+    internal static readonly ActivitySource ActivitySource = Trace.ActivitySourceFactory.Create<QuartzDiagnosticListener>(null);  // These traces are not in the Semantic Conventions
     internal readonly PropertyFetcher<object> JobDetailsPropertyFetcher = new("JobDetail");
 
     private readonly QuartzInstrumentationOptions options;
