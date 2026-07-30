@@ -10,6 +10,10 @@
   callback preventing the `Activity` from being stopped.
   ([#4900](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4900))
 
+* Fixed exceptions thrown by Redis profiler callbacks after
+  instrumentation is disposed.
+  ([#4905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4905))
+
 ## 1.17.0-beta.1
 
 Released 2026-Jul-17
