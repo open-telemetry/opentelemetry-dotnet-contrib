@@ -388,6 +388,42 @@ public class ConsistentProbabilitySamplerTests
             => new ConsistentProbabilitySampler(probability).ShouldSample(remoteParameters).Decision;
     }
 
+    [Fact]
+    public void ShouldSample_EncodesProbabilitiesNearOneExactly()
+    {
+        // 1 - 2^-8 = 0.99609375. The frexp(1 - probability) precision boost encodes this exactly as
+        // th:01 even at the default precision, where the reference float method would be coarse.
+        var parameters = CreateRootParameters();
+        var sampler = new ConsistentProbabilitySampler(1.0 - (1.0 / 256.0), new FixedRandom(0x00ffffffffffffffL));
+
+        var result = sampler.ShouldSample(in parameters);
+
+        Assert.Equal(SamplingDecision.RecordAndSample, result.Decision);
+        Assert.Equal("ot=th:01;rv:ffffffffffffff", result.TraceStateString);
+    }
+
+    [Fact]
+    public void ShouldSample_UsesTrailingBytesOfTraceIdForRandomness()
+    {
+        // The leading 18 hex digits of the TraceID are ignored; only the trailing 14 (56 bits) are
+        // the randomness value, here 0xd29d6a7215ced0.
+        // https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/6d20534d0a232acaa8cf7161ddbaeab6915e0c01/pkg/sampling/threshold_test.go#L64-L87
+        var traceId = ActivityTraceId.CreateFromString("abababababababababd29d6a7215ced0".AsSpan());
+
+        // https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867
+        // will change this code to use ActivityTraceFlags.RandomTraceId.
+        var parent = new ActivityContext(traceId, ActivitySpanId.CreateRandom(), (ActivityTraceFlags)0x2);
+        var parameters = CreateParameters(parent, traceId);
+
+        // 25% sampling has threshold "c" (0xc0000000000000); 0xd29d6a7215ced0 >= it, so sampled.
+        var sampler = new ConsistentProbabilitySampler(0.25, new FixedRandom(0L));
+
+        var result = sampler.ShouldSample(in parameters);
+
+        Assert.Equal(SamplingDecision.RecordAndSample, result.Decision);
+        Assert.Equal("ot=th:c", result.TraceStateString);
+    }
+
     private static SamplingParameters CreateRootParameters()
         => CreateParameters(default, ActivityTraceId.CreateRandom());
 

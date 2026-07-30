@@ -94,6 +94,28 @@ public class ConsistentProbabilityTests
     public void EncodeThreshold_MatchesCollectorFractionExamples(double probability, int precision, string expected)
         => Assert.Equal(expected, ConsistentProbability.EncodeThreshold(probability, precision));
 
+    // The collector's full-precision encoding examples, exercising exact encoding for probabilities
+    // near 1 (the frexp(1 - probability) precision boost) as well as near 0.
+    // https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/6d20534d0a232acaa8cf7161ddbaeab6915e0c01/pkg/sampling/encoding_test.go#L61-L69
+    [Theory]
+    [InlineData(2.0 / 3.0, 14, "55555555555558")]
+    [InlineData(1.0 - (1.0 / 256.0), 14, "01")] // 1 - 0x1p-8, near 1.
+    [InlineData(1.0 - (84.0 / 256.0), 14, "54")] // 1 - 0x54p-8.
+    [InlineData(1.0 - 2.2204460492503131e-16, 14, "0000000000001")] // 1 - 2^-52, the closest probability below 1.
+    [InlineData(256.0 * 1.3877787807814457e-17, 14, "ffffffffffff")] // 0x100 * 2^-56 = 2^-48.
+    public void EncodeThreshold_MatchesCollectorEncodingExamples(double probability, int precision, string expected)
+        => Assert.Equal(expected, ConsistentProbability.EncodeThreshold(probability, precision));
+
+    [Fact]
+    public void ThresholdToProbability_MatchesCollectorExamples()
+    {
+        // https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/6d20534d0a232acaa8cf7161ddbaeab6915e0c01/pkg/sampling/encoding_test.go#L103-L110
+        Assert.Equal(0.5, ConsistentProbability.ThresholdToProbability(ConsistentProbability.DecodeThreshold("8")));
+        Assert.Equal(1.0, ConsistentProbability.ThresholdToProbability(ConsistentProbability.DecodeThreshold("0")));
+        Assert.Equal(1.0 - (0x444 / 4096.0), ConsistentProbability.ThresholdToProbability(ConsistentProbability.DecodeThreshold("444")));
+        Assert.Equal(1.0 - (1.0 / 3.0), ConsistentProbability.ThresholdToProbability(ConsistentProbability.DecodeThreshold("55555554")), 9);
+    }
+
     [Fact]
     public void EncodeThreshold_EncodesVerySmallProbabilityExactly()
     {

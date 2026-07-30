@@ -195,4 +195,32 @@ public class OtelTraceStateTests
 
         Assert.Equal(string.Empty, state.Serialize());
     }
+
+    [Fact]
+    public void Serialize_PreservesMultipleOtherSubKeys()
+    {
+        // Any number of unrecognized ot sub-keys are preserved; th is emitted first.
+        // https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/6d20534d0a232acaa8cf7161ddbaeab6915e0c01/pkg/sampling/oteltracestate_test.go#L150-L263
+        var state = OtelTraceState.Parse("ot=e100:100;th:8;e101:101");
+
+        Assert.Equal("ot=th:8;e100:100;e101:101", state.Serialize());
+    }
+
+    [Fact]
+    public void ParseAndSerialize_PreservesUnusualSubKeyCharsetsAndEmptyValues()
+    {
+        // Sub-keys with mixed case, punctuation and empty values are preserved verbatim.
+        const string TraceState = "ot=x:0X1FFF;y:.-_-.;z:";
+
+        Assert.Equal(TraceState, OtelTraceState.Parse(TraceState).Serialize());
+    }
+
+    [Fact]
+    public void ParseAndSerialize_NormalizesThresholdTrailingZeros()
+    {
+        var state = OtelTraceState.Parse("ot=th:1000");
+
+        Assert.Equal(0x10000000000000L, state.Threshold);
+        Assert.Equal("ot=th:1", state.Serialize());
+    }
 }

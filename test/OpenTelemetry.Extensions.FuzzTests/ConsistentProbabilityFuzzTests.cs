@@ -102,7 +102,9 @@ public static class ConsistentProbabilityFuzzTests
         var flags = ActivityTraceFlags.None;
         if (mode == 1)
         {
-            flags |= (ActivityTraceFlags)0x2; // W3C "random" flag.
+            // https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867
+            // will change this code to use ActivityTraceFlags.RandomTraceId.
+            flags |= (ActivityTraceFlags)0x2;
         }
 
         if (recorded)
