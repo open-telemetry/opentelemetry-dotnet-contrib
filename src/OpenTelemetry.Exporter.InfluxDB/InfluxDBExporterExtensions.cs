@@ -42,12 +42,8 @@ public static class InfluxDBExporterExtensions
             }
 
             var influxDbClient = new InfluxDBClient(influxDbClientOptions);
-            var writeApi = influxDbClient.GetWriteApi(new WriteOptions
-            {
-                FlushInterval = options.FlushInterval,
-            });
             var metricsWriter = CreateMetricsWriter(options.MetricsSchema);
-            var exporter = new InfluxDBMetricsExporter(metricsWriter, influxDbClient, writeApi);
+            var exporter = new InfluxDBMetricsExporter(metricsWriter, influxDbClient);
             return new PeriodicExportingMetricReader(exporter, options.MetricExportIntervalMilliseconds)
             {
                 TemporalityPreference = MetricReaderTemporalityPreference.Cumulative,

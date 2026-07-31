@@ -8,6 +8,7 @@ using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 using StackExchange.Redis;
 using StackExchange.Redis.Profiling;
+using ActivitySourceFactory = OpenTelemetry.Trace.ActivitySourceFactory;
 
 namespace OpenTelemetry.Instrumentation.StackExchangeRedis;
 
@@ -50,8 +51,8 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
     private readonly StackExchangeRedisInstrumentationOptions options;
     private readonly EventWaitHandle stopHandle = new(false, EventResetMode.ManualReset);
     private readonly Thread drainThread;
-
     private readonly ProfilingSession defaultSession = new();
+    private int disposed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="StackExchangeRedisConnectionInstrumentation"/> class.
@@ -84,7 +85,7 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
     /// <returns>Session associated with the current span context to record Redis calls.</returns>
     public Func<ProfilingSession?> GetProfilerSessionsFactory() => () =>
     {
-        if (this.stopHandle.WaitOne(0))
+        if (Volatile.Read(ref this.disposed) != 0)
         {
             return null;
         }
@@ -111,6 +112,11 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
     /// <inheritdoc/>
     public void Dispose()
     {
+        if (Interlocked.Exchange(ref this.disposed, 1) != 0)
+        {
+            return;
+        }
+
         this.stopHandle.Set();
         this.drainThread.Join();
 

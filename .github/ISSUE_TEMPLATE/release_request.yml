@@ -16,6 +16,7 @@ body:
       description: Which component does this release request concern?
       multiple: false
       options:
+        - OpenTelemetry.DynamicControl
         - OpenTelemetry.Exporter.Geneva
         - OpenTelemetry.Exporter.InfluxDB
         - OpenTelemetry.Exporter.OneCollector
