@@ -45,6 +45,7 @@ public class TracingTests(KafkaFixture fixture)
         Assert.Equal("send", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationName));
         Assert.Equal("send", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationType));
         Assert.Equal(topic, activity.GetTagValue("messaging.destination.name"));
+
         // The cluster ID is fetched in the background and is not awaited on the produce path,
         // so it may not have completed by the time this (first) span is created.
         var clusterId = activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaClusterId) as string;
