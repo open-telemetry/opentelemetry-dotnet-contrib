@@ -295,7 +295,7 @@ public class GenevaMetricExporterTests
 
                         if (enableOtlpProtobufEncoding)
                         {
-                            options.ConnectionString += $";PrivatePreviewEnableOtlpProtobufEncoding={enableOtlpProtobufEncoding}";
+                            options.ConnectionString += $";EnableOtlpProtobufEncoding={enableOtlpProtobufEncoding}";
                         }
                     }
                     else

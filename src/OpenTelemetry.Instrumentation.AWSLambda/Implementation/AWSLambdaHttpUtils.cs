@@ -70,9 +70,9 @@ internal class AWSLambdaHttpUtils
         // For HTTP triggered functions the query string is caller-supplied
         // and may contain sensitive data (e.g. API keys). Redact the values
         // by default unless the operator has explicitly opted-out.
-        if (!disableUrlQueryRedaction && !string.IsNullOrEmpty(urlQuery))
+        if (!disableUrlQueryRedaction && urlQuery is { Length: > 0 })
         {
-            urlQuery = RedactionHelper.GetRedactedQueryString(urlQuery!);
+            urlQuery = RedactionHelper.GetRedactedQueryString(urlQuery);
             httpTarget = string.Concat(urlPath, urlQuery);
         }
 
