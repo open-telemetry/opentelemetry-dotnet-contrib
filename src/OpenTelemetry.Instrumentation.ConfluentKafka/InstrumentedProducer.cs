@@ -19,12 +19,13 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
 
     public InstrumentedProducer(
         IProducer<TKey, TValue> producer,
-        ConfluentKafkaProducerInstrumentationOptions<TKey, TValue> options)
+        ConfluentKafkaProducerInstrumentationOptions<TKey, TValue> options,
+        string? bootstrapServers = null)
     {
         this.producer = producer;
         this.options = options;
 
-        this.clusterIdTask = ConfluentKafkaCommon.FetchClusterIdAsync(producer.Handle);
+        this.clusterIdTask = ConfluentKafkaCommon.GetOrFetchClusterIdAsync(producer.Handle, bootstrapServers);
     }
 
     public Handle Handle => this.producer.Handle;

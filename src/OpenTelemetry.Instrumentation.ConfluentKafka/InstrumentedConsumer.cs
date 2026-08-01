@@ -15,12 +15,12 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
     private readonly ConfluentKafkaConsumerInstrumentationOptions<TKey, TValue> options;
     private readonly Task<string?>? clusterIdTask;
 
-    public InstrumentedConsumer(IConsumer<TKey, TValue> consumer, ConfluentKafkaConsumerInstrumentationOptions<TKey, TValue> options)
+    public InstrumentedConsumer(IConsumer<TKey, TValue> consumer, ConfluentKafkaConsumerInstrumentationOptions<TKey, TValue> options, string? bootstrapServers = null)
     {
         this.consumer = consumer;
         this.options = options;
 
-        this.clusterIdTask = ConfluentKafkaCommon.FetchClusterIdAsync(consumer.Handle);
+        this.clusterIdTask = ConfluentKafkaCommon.GetOrFetchClusterIdAsync(consumer.Handle, bootstrapServers);
     }
 
     public Handle Handle => this.consumer.Handle;

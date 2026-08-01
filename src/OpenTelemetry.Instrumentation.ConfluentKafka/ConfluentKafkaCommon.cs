@@ -54,17 +54,31 @@ internal static class ConfluentKafkaCommon
         unit: "{message}",
         description: "Number of messages that were delivered to the application.");
 
-    /// <summary>
-    /// Fetches the Kafka cluster ID using a dependent admin client built from the given handle.
-    /// </summary>
-    /// <param name="handle">The librdkafka client handle to build the dependent admin client from.</param>
-    /// <returns>The cluster ID, or <see langword="null"/> if it could not be fetched.</returns>
-    internal static async Task<string?> FetchClusterIdAsync(Handle handle)
+    private static readonly ConcurrentDictionary<string, Task<string?>> ClusterIdCache = new();
+
+    internal static Task<string?> GetOrFetchClusterIdAsync(Handle handle, string? bootstrapServers)
+    {
+        if (string.IsNullOrEmpty(bootstrapServers))
+        {
+            return FetchClusterIdAsync(handle);
+        }
+
+        var task = ClusterIdCache.GetOrAdd(bootstrapServers, _ => FetchClusterIdAsync(handle));
+
+        if (task.IsCompletedSuccessfully && task.Result is null)
+        {
+            ClusterIdCache.TryRemove(new KeyValuePair<string, Task<string?>>(bootstrapServers, task));
+        }
+
+        return task;
+    }
+
+    private static async Task<string?> FetchClusterIdAsync(Handle handle)
     {
         try
         {
             using var admin = new DependentAdminClientBuilder(handle).Build();
-            var result = await admin.DescribeClusterAsync(new DescribeClusterOptions { RequestTimeout = TimeSpan.FromSeconds(30) }).ConfigureAwait(false);
+            var result = await admin.DescribeClusterAsync(new DescribeClusterOptions { RequestTimeout = TimeSpan.FromSeconds(5) }).ConfigureAwait(false);
             return result.ClusterId;
         }
         catch (Exception ex)
