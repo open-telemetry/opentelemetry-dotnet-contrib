@@ -57,36 +57,23 @@ internal static class ConfluentKafkaCommon
 
     private static readonly ConcurrentDictionary<string, Task<string?>> ClusterIdCache = new();
 
-    internal static Task<string?> GetOrFetchClusterIdAsync(Handle handle, string? bootstrapServers)
+    internal static async Task<string?> GetOrFetchClusterIdAsync(Handle handle, string? bootstrapServers)
     {
         if (string.IsNullOrEmpty(bootstrapServers))
         {
-            return FetchClusterIdAsync(handle);
+            return await FetchClusterIdAsync(handle).ConfigureAwait(false);
         }
 
-        var task = ClusterIdCache.GetOrAdd(bootstrapServers, _ => FetchClusterIdAsync(handle));
+        var key = bootstrapServers!;
+        var task = ClusterIdCache.GetOrAdd(key, _ => FetchClusterIdAsync(handle));
+        var result = await task.ConfigureAwait(false);
 
-        if (task.IsCompletedSuccessfully && task.Result is null)
+        if (result == null)
         {
-            ClusterIdCache.TryRemove(new KeyValuePair<string, Task<string?>>(bootstrapServers, task));
+            ClusterIdCache.TryRemove(key, out _);
         }
 
-        return task;
-    }
-
-    private static async Task<string?> FetchClusterIdAsync(Handle handle)
-    {
-        try
-        {
-            using var admin = new DependentAdminClientBuilder(handle).Build();
-            var result = await admin.DescribeClusterAsync(new DescribeClusterOptions { RequestTimeout = TimeSpan.FromSeconds(5) }).ConfigureAwait(false);
-            return result.ClusterId;
-        }
-        catch (Exception ex)
-        {
-            ConfluentKafkaInstrumentationEventSource.Log.FailedToFetchClusterId(ex);
-            return null;
-        }
+        return result;
     }
 
     /// <summary>
@@ -121,4 +108,19 @@ internal static class ConfluentKafkaCommon
         TimeSpan value => value.ToString("c", CultureInfo.InvariantCulture),
         _ => null,
     };
+
+    private static async Task<string?> FetchClusterIdAsync(Handle handle)
+    {
+        try
+        {
+            using var admin = new DependentAdminClientBuilder(handle).Build();
+            var result = await admin.DescribeClusterAsync(new DescribeClusterOptions { RequestTimeout = TimeSpan.FromSeconds(5) }).ConfigureAwait(false);
+            return result.ClusterId;
+        }
+        catch (Exception ex)
+        {
+            ConfluentKafkaInstrumentationEventSource.Log.FailedToFetchClusterId(ex);
+            return null;
+        }
+    }
 }
