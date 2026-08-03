@@ -26,25 +26,19 @@ internal sealed class OpAmpClientEventSource : EventSource
     private const int EventIdHeartbeatServiceTimerUpdateFailure = 503;
     private const int EventIdHeartbeatServiceTimerUpdateReceived = 504;
 
-    // FrameDispatcher verbose messages 1000-1099
-    private const int EventIdSendingIdentificationMessage = 1_000;
-    private const int EventIdSendingHeartbeatMessage = 1_001;
-    private const int EventIdSendingAgentDisconnectMessage = 1_002;
-    private const int EventIdSendingEffectiveConfigMessage = 1_003;
-    private const int EventIdSendingCustomCapabilitiesMessage = 1_004;
-    private const int EventIdSendingCustomMessageMessage = 1_005;
-    private const int EventIdSendingRemoteConfigStatusMessage = 1_006;
-    private const int EventIdSendingFullStateReportMessage = 1_007;
+    // Message queue events 1000-1099
+    private const int EventIdQueueingIdentificationMessage = 1_000;
+    private const int EventIdQueueingHeartbeatMessage = 1_001;
+    private const int EventIdQueueingAgentDisconnectMessage = 1_002;
+    private const int EventIdQueueingEffectiveConfigMessage = 1_003;
+    private const int EventIdQueueingCustomCapabilitiesMessage = 1_004;
+    private const int EventIdQueueingCustomMessageMessage = 1_005;
+    private const int EventIdQueueingRemoteConfigStatusMessage = 1_006;
+    private const int EventIdQueueingFullStateReportMessage = 1_007;
 
-    // FrameDispatcher error messages 1100-1199
-    private const int EventIdFailedToSendIdentificationMessage = 1_100;
-    private const int EventIdFailedToSendHeartbeatMessage = 1_101;
-    private const int EventIdFailedToSendAgentDisconnectMessage = 1_102;
-    private const int EventIdFailedToSendEffectiveConfigMessage = 1_103;
-    private const int EventIdFailedToSendCustomCapabilitiesMessage = 1_104;
-    private const int EventIdFailedToSendCustomMessageMessage = 1_105;
-    private const int EventIdFailedToSendRemoteConfigStatusMessage = 1_106;
-    private const int EventIdFailedToSendFullStateReportMessage = 1_107;
+    // Message send events 1100-1199
+    private const int EventIdSendingMessage = 1_100;
+    private const int EventIdFailedToSendMessage = 1_101;
 
     [Event(EventIdInvalidWsFrame, Message = "Received invalid WebSocket frame header: {0}. Dropping the frame.", Level = EventLevel.Warning)]
     public void InvalidWsFrame(string errorMessage)
@@ -175,173 +169,72 @@ internal sealed class OpAmpClientEventSource : EventSource
         this.WriteEvent(EventIdHeartbeatServiceTimerUpdateReceived, seconds);
     }
 
-    /* Sending messages */
-
-    [Event(EventIdSendingIdentificationMessage, Message = "Sending identification message.", Level = EventLevel.Informational)]
-    public void SendingIdentificationMessage()
+    [Event(EventIdQueueingIdentificationMessage, Message = "Queueing identification message.", Level = EventLevel.Informational)]
+    public void QueueingIdentificationMessage()
     {
-        this.WriteEvent(EventIdSendingIdentificationMessage);
+        this.WriteEvent(EventIdQueueingIdentificationMessage);
     }
 
-    [Event(EventIdSendingHeartbeatMessage, Message = "Sending heartbeat message.", Level = EventLevel.Informational)]
-    public void SendingHeartbeatMessage()
+    [Event(EventIdQueueingHeartbeatMessage, Message = "Queueing heartbeat message.", Level = EventLevel.Informational)]
+    public void QueueingHeartbeatMessage()
     {
-        this.WriteEvent(EventIdSendingHeartbeatMessage);
+        this.WriteEvent(EventIdQueueingHeartbeatMessage);
     }
 
-    [Event(EventIdSendingAgentDisconnectMessage, Message = "Sending agent disconnect.", Level = EventLevel.Informational)]
-    public void SendingAgentDisconnectMessage()
+    [Event(EventIdQueueingAgentDisconnectMessage, Message = "Queueing agent disconnect message.", Level = EventLevel.Informational)]
+    public void QueueingAgentDisconnectMessage()
     {
-        this.WriteEvent(EventIdSendingAgentDisconnectMessage);
+        this.WriteEvent(EventIdQueueingAgentDisconnectMessage);
     }
 
-    [Event(EventIdSendingEffectiveConfigMessage, Message = "Sending effective config message.", Level = EventLevel.Informational)]
-    public void SendingEffectiveConfigMessage()
+    [Event(EventIdQueueingEffectiveConfigMessage, Message = "Queueing effective config message.", Level = EventLevel.Informational)]
+    public void QueueingEffectiveConfigMessage()
     {
-        this.WriteEvent(EventIdSendingEffectiveConfigMessage);
+        this.WriteEvent(EventIdQueueingEffectiveConfigMessage);
     }
 
-    [Event(EventIdSendingCustomCapabilitiesMessage, Message = "Sending custom capabilities message.", Level = EventLevel.Informational)]
-    public void SendingCustomCapabilitiesMessage()
+    [Event(EventIdQueueingCustomCapabilitiesMessage, Message = "Queueing custom capabilities message.", Level = EventLevel.Informational)]
+    public void QueueingCustomCapabilitiesMessage()
     {
-        this.WriteEvent(EventIdSendingCustomCapabilitiesMessage);
+        this.WriteEvent(EventIdQueueingCustomCapabilitiesMessage);
     }
 
-    [Event(EventIdSendingCustomMessageMessage, Message = "Sending custom message.", Level = EventLevel.Informational)]
-    public void SendingCustomMessageMessage()
+    [Event(EventIdQueueingCustomMessageMessage, Message = "Queueing custom message.", Level = EventLevel.Informational)]
+    public void QueueingCustomMessageMessage()
     {
-        this.WriteEvent(EventIdSendingCustomMessageMessage);
+        this.WriteEvent(EventIdQueueingCustomMessageMessage);
     }
 
-    [Event(EventIdSendingRemoteConfigStatusMessage, Message = "Sending remote config status message.", Level = EventLevel.Informational)]
-    public void SendingRemoteConfigStatusMessage()
+    [Event(EventIdQueueingRemoteConfigStatusMessage, Message = "Queueing remote config status message.", Level = EventLevel.Informational)]
+    public void QueueingRemoteConfigStatusMessage()
     {
-        this.WriteEvent(EventIdSendingRemoteConfigStatusMessage);
+        this.WriteEvent(EventIdQueueingRemoteConfigStatusMessage);
     }
 
-    [Event(EventIdSendingFullStateReportMessage, Message = "Sending full state report message.", Level = EventLevel.Informational)]
-    public void SendingFullStateReportMessage()
+    [Event(EventIdQueueingFullStateReportMessage, Message = "Queueing full state report message.", Level = EventLevel.Informational)]
+    public void QueueingFullStateReportMessage()
     {
-        this.WriteEvent(EventIdSendingFullStateReportMessage);
+        this.WriteEvent(EventIdQueueingFullStateReportMessage);
     }
 
-    [NonEvent]
-    public void SendIdentificationMessageException(Exception ex)
+    [Event(EventIdSendingMessage, Message = "Sending OpAMP message.", Level = EventLevel.Informational)]
+    public void SendingMessage()
     {
-        if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
-        {
-            this.FailedToSendIdentificationMessage(ex.ToInvariantString());
-        }
-    }
-
-    [Event(EventIdFailedToSendIdentificationMessage, Message = "Failed to send identification message: {0}", Level = EventLevel.Error)]
-    public void FailedToSendIdentificationMessage(string exception)
-    {
-        this.WriteEvent(EventIdFailedToSendIdentificationMessage, exception);
+        this.WriteEvent(EventIdSendingMessage);
     }
 
     [NonEvent]
-    public void SendHeartbeatMessageException(Exception ex)
+    public void SendMessageException(Exception ex)
     {
         if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
         {
-            this.FailedToSendHeartbeatMessage(ex.ToInvariantString());
+            this.FailedToSendMessage(ex.ToInvariantString());
         }
     }
 
-    [Event(EventIdFailedToSendHeartbeatMessage, Message = "Failed to send heartbeat message: {0}", Level = EventLevel.Error)]
-    public void FailedToSendHeartbeatMessage(string exception)
+    [Event(EventIdFailedToSendMessage, Message = "Failed to send OpAMP message: {0}", Level = EventLevel.Error)]
+    public void FailedToSendMessage(string exception)
     {
-        this.WriteEvent(EventIdFailedToSendHeartbeatMessage, exception);
-    }
-
-    [NonEvent]
-    public void SendAgentDisconnectMessageException(Exception ex)
-    {
-        if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
-        {
-            this.FailedToSendAgentDisconnectMessage(ex.ToInvariantString());
-        }
-    }
-
-    [Event(EventIdFailedToSendAgentDisconnectMessage, Message = "Failed to send agent disconnect message: {0}", Level = EventLevel.Error)]
-    public void FailedToSendAgentDisconnectMessage(string exception)
-    {
-        this.WriteEvent(EventIdFailedToSendAgentDisconnectMessage, exception);
-    }
-
-    [NonEvent]
-    public void SendEffectiveConfigMessageException(Exception ex)
-    {
-        if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
-        {
-            this.FailedToSendEffectiveConfigMessage(ex.ToInvariantString());
-        }
-    }
-
-    [Event(EventIdFailedToSendEffectiveConfigMessage, Message = "Failed to send effective config message: {0}", Level = EventLevel.Error)]
-    public void FailedToSendEffectiveConfigMessage(string exception)
-    {
-        this.WriteEvent(EventIdFailedToSendEffectiveConfigMessage, exception);
-    }
-
-    [NonEvent]
-    public void SendCustomCapabilitiesMessageException(Exception ex)
-    {
-        if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
-        {
-            this.FailedToSendCustomCapabilitiesMessage(ex.ToInvariantString());
-        }
-    }
-
-    [Event(EventIdFailedToSendCustomCapabilitiesMessage, Message = "Failed to send custom capabilities message: {0}", Level = EventLevel.Error)]
-    public void FailedToSendCustomCapabilitiesMessage(string exception)
-    {
-        this.WriteEvent(EventIdFailedToSendCustomCapabilitiesMessage, exception);
-    }
-
-    [NonEvent]
-    public void SendCustomMessageMessageException(Exception ex)
-    {
-        if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
-        {
-            this.FailedToSendCustomMessageMessage(ex.ToInvariantString());
-        }
-    }
-
-    [Event(EventIdFailedToSendCustomMessageMessage, Message = "Failed to send a custom message: {0}", Level = EventLevel.Error)]
-    public void FailedToSendCustomMessageMessage(string exception)
-    {
-        this.WriteEvent(EventIdFailedToSendCustomMessageMessage, exception);
-    }
-
-    [NonEvent]
-    public void SendRemoteConfigStatusMessageException(Exception ex)
-    {
-        if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
-        {
-            this.FailedToSendRemoteConfigStatusMessage(ex.ToInvariantString());
-        }
-    }
-
-    [Event(EventIdFailedToSendRemoteConfigStatusMessage, Message = "Failed to send remote config status message: {0}", Level = EventLevel.Error)]
-    public void FailedToSendRemoteConfigStatusMessage(string exception)
-    {
-        this.WriteEvent(EventIdFailedToSendRemoteConfigStatusMessage, exception);
-    }
-
-    [NonEvent]
-    public void SendFullStateReportMessageException(Exception ex)
-    {
-        if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
-        {
-            this.FailedToSendFullStateReportMessage(ex.ToInvariantString());
-        }
-    }
-
-    [Event(EventIdFailedToSendFullStateReportMessage, Message = "Failed to send full state report message: {0}", Level = EventLevel.Error)]
-    public void FailedToSendFullStateReportMessage(string exception)
-    {
-        this.WriteEvent(EventIdFailedToSendFullStateReportMessage, exception);
+        this.WriteEvent(EventIdFailedToSendMessage, exception);
     }
 }

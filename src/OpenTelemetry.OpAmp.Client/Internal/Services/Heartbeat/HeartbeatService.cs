@@ -112,7 +112,7 @@ internal sealed class HeartbeatService : IBackgroundService, IOpAmpListener<Conn
         {
             var report = this.CreateHealthReport();
 
-            this.pipe.AppendMessage(fb => fb.AddHealth(report));
+            this.pipe.AppendMessage(MessageBuilderHelper.AppendHeartbeat(report));
 
             await this.pipe.ForceFlushAsync()
                 .ConfigureAwait(false);

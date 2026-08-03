@@ -145,7 +145,7 @@ public sealed class OpAmpClient : IDisposable
             throw new InvalidOperationException("Effective configuration reporting is not enabled in settings.");
         }
 
-        this.pipe.AppendMessage(fb => fb.AddEffectiveConfig(files));
+        this.pipe.AppendMessage(MessageBuilderHelper.AppendEffectiveConfig(files));
     }
 
     /// <summary>
@@ -165,7 +165,7 @@ public sealed class OpAmpClient : IDisposable
             throw new InvalidOperationException("Remote configuration status reporting is not enabled in settings.");
         }
 
-        this.pipe.AppendMessage(fb => fb.AddRemoteConfigStatus(statusReport));
+        this.pipe.AppendMessage(MessageBuilderHelper.AppendRemoteConfigStatus(statusReport));
     }
 
     /// <summary>
@@ -177,7 +177,7 @@ public sealed class OpAmpClient : IDisposable
     {
         this.ThrowIfDisposed();
 
-        this.pipe.AppendMessage(fb => fb.AddCustomCapabilities(capabilities));
+        this.pipe.AppendMessage(MessageBuilderHelper.AppendCustomCapabilities(capabilities));
     }
 
     /// <summary>
@@ -191,7 +191,7 @@ public sealed class OpAmpClient : IDisposable
     {
         this.ThrowIfDisposed();
 
-        this.pipe.AppendMessage(fb => fb.AddCustomMessage(capability, type, data));
+        this.pipe.AppendMessage(MessageBuilderHelper.AppendCustomMessage(capability, type, data));
     }
 
     /// <summary>
@@ -220,7 +220,7 @@ public sealed class OpAmpClient : IDisposable
             report.HealthReport = service.CreateHealthReport();
         }
 
-        this.pipe.AppendMessage(fb => MessageBuilderHelper.AppendFullStateReport(fb, report));
+        this.pipe.AppendMessage(MessageBuilderHelper.AppendFullStateReport(report));
     }
 
     /// <summary>
@@ -267,7 +267,7 @@ public sealed class OpAmpClient : IDisposable
     {
         this.ThrowIfDisposed();
 
-        this.pipe.AppendMessage(fd => fd.AddHealth(healthReport));
+        this.pipe.AppendMessage(MessageBuilderHelper.AppendHeartbeat(healthReport));
     }
 
     private void ThrowIfDisposed()

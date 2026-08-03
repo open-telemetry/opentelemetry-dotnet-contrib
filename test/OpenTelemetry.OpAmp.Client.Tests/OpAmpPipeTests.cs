@@ -5,12 +5,14 @@
 
 using System.Buffers;
 using System.Collections.Concurrent;
+using System.Diagnostics.Tracing;
 using Google.Protobuf;
 using OpAmp.Proto.V1;
 using OpenTelemetry.OpAmp.Client.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Services.Heartbeat;
 using OpenTelemetry.OpAmp.Client.Internal.Transport;
 using OpenTelemetry.OpAmp.Client.Settings;
+using OpenTelemetry.Tests;
 
 namespace OpenTelemetry.OpAmp.Client.Tests;
 
@@ -27,12 +29,12 @@ public class OpAmpPipeTests
         using var pipe = new OpAmpPipe(settings, processor, transport);
         var serverFrame = new ServerToAgent().ToByteArray();
 
-        pipe.AppendMessage(fb => fb.AddAgentDescription());
+        AppendIdentification(pipe);
         await transport.WaitForMessagesAsync(1);
 
         await Parallel.ForEachAsync(Enumerable.Range(0, taskCount), (_, _) =>
         {
-            pipe.AppendMessage(fb => fb.AddAgentDescription());
+            AppendIdentification(pipe);
             return ValueTask.CompletedTask;
         });
 
@@ -90,10 +92,10 @@ public class OpAmpPipeTests
         var processor = new FrameProcessor();
         using var pipe = new OpAmpPipe(settings, processor, transport);
 
-        pipe.AppendMessage(fb => fb.AddAgentDescription());
+        AppendIdentification(pipe);
         await transport.WaitForMessagesAsync(1);
 
-        pipe.AppendMessage(fb => fb.AddHealth(CreateHealthReport()));
+        AppendHeartbeat(pipe);
         transport.FaultNextSend(new InvalidOperationException("send failed"));
 
         await transport.WaitForMessagesAsync(2);
@@ -106,6 +108,47 @@ public class OpAmpPipeTests
     }
 
     [Fact]
+    public async Task OpAmpPipe_LogsSendFailure_WhenCurrentSendFails()
+    {
+        using var eventListener = new InMemoryEventListener(OpAmpClientEventSource.Log, EventLevel.Verbose);
+        using var transport = new ControlledTransport();
+        var settings = new OpAmpClientSettings();
+        var processor = new FrameProcessor();
+        using var pipe = new OpAmpPipe(settings, processor, transport);
+
+        AppendHeartbeat(pipe);
+        await transport.WaitForMessagesAsync(1);
+        transport.FaultNextSend(new InvalidOperationException("send failed"));
+
+        var failedEvent = await WaitForEventAsync(
+            eventListener,
+            nameof(OpAmpClientEventSource.FailedToSendMessage),
+            TimeSpan.FromSeconds(5));
+
+        Assert.Contains("send failed", Assert.IsType<string>(failedEvent.Payload![0]));
+    }
+
+    [Fact]
+    public async Task OpAmpPipe_LogsQueueAction_WhenMessageIsAppended()
+    {
+        using var eventListener = new InMemoryEventListener(OpAmpClientEventSource.Log, EventLevel.Verbose);
+        using var transport = new ControlledTransport();
+        var settings = new OpAmpClientSettings();
+        var processor = new FrameProcessor();
+        using var pipe = new OpAmpPipe(settings, processor, transport);
+
+        AppendHeartbeat(pipe);
+
+        await WaitForEventAsync(
+            eventListener,
+            nameof(OpAmpClientEventSource.QueueingHeartbeatMessage),
+            TimeSpan.FromSeconds(5));
+
+        await transport.WaitForMessagesAsync(1);
+        transport.CompleteNextSend();
+    }
+
+    [Fact]
     public async Task OpAmpPipe_StopAsyncWaitsForAccumulatedDataBeforeSendingDisconnect()
     {
         using var transport = new ControlledTransport();
@@ -114,10 +157,10 @@ public class OpAmpPipeTests
         using var pipe = new OpAmpPipe(settings, processor, transport);
         var serverFrame = new ServerToAgent().ToByteArray();
 
-        pipe.AppendMessage(fb => fb.AddAgentDescription());
+        AppendIdentification(pipe);
         await transport.WaitForMessagesAsync(1);
 
-        pipe.AppendMessage(fb => fb.AddHealth(CreateHealthReport()));
+        AppendHeartbeat(pipe);
         var stopTask = pipe.StopAsync();
 
         transport.CompleteNextSend();
@@ -139,6 +182,32 @@ public class OpAmpPipeTests
         Assert.NotNull(messages[0].AgentDescription);
         Assert.NotNull(messages[1].Health);
         Assert.NotNull(messages[2].AgentDisconnect);
+    }
+
+    private static void AppendIdentification(OpAmpPipe pipe)
+        => pipe.AppendMessage(MessageBuilderHelper.AppendIdentification);
+
+    private static void AppendHeartbeat(OpAmpPipe pipe)
+        => pipe.AppendMessage(MessageBuilderHelper.AppendHeartbeat(CreateHealthReport()));
+
+    private static async Task<EventWrittenEventArgs> WaitForEventAsync(InMemoryEventListener eventListener, string eventName, TimeSpan timeout)
+    {
+        var deadline = DateTime.UtcNow + timeout;
+
+        while (DateTime.UtcNow < deadline)
+        {
+            while (eventListener.Events.TryDequeue(out var candidate))
+            {
+                if (candidate.EventName == eventName)
+                {
+                    return candidate;
+                }
+            }
+
+            await Task.Delay(TimeSpan.FromMilliseconds(10)).ConfigureAwait(false);
+        }
+
+        throw new TimeoutException($"Timed out waiting for event '{eventName}'.");
     }
 
     private static HealthReport CreateHealthReport() => new()

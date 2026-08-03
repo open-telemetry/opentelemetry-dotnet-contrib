@@ -58,15 +58,23 @@ internal sealed class OpAmpPipe : IDisposable
             this.isBusy = true;
             this.hasAccumulatedData = false;
 
-            this.currentFrame
-                .Clear()
-                .AddAgentDisconnect();
-
+            this.currentFrame.Clear();
+            MessageBuilderHelper.AppendAgentDisconnect(this.currentFrame);
             message = this.currentFrame.Build();
         }
 
-        await this.transport.SendAsync(message, token)
-            .ConfigureAwait(false);
+        try
+        {
+            OpAmpClientEventSource.Log.SendingMessage();
+
+            await this.transport.SendAsync(message, token)
+                .ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException || !token.IsCancellationRequested)
+        {
+            OpAmpClientEventSource.Log.SendMessageException(ex);
+            throw;
+        }
 
         if (this.transport is WsTransport wsTransport)
         {
@@ -176,19 +184,20 @@ internal sealed class OpAmpPipe : IDisposable
     {
         try
         {
+            OpAmpClientEventSource.Log.SendingMessage();
+
             await this.transport.SendAsync(message, this.tokenSource.Token)
                 .ConfigureAwait(false);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             lock (this.frameLock)
             {
                 this.isBusy = false;
             }
 
+            OpAmpClientEventSource.Log.SendMessageException(ex);
             this.TryFlush();
-
-            // TODO: log exception
         }
     }
 
