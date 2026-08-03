@@ -148,6 +148,58 @@ services.AddOpenTelemetry()
         .AddConsoleExporter());
 ```
 
+### QueryTextSanitizer
+
+This option can be used to replace the built-in sanitization of the query text
+emitted as the `db.statement` or `db.query.text` attribute, using a
+`Func<DbQuerySanitizationContext, QueryTextSanitizationResult>`. The function
+receives information about the command being executed and should return
+`QueryTextSanitizationResult.NotSanitized` to emit the query text unchanged, or
+`QueryTextSanitizationResult.Sanitized(queryText, querySummary)` to emit
+something else in its place, optionally along with a
+[`db.query.summary`](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/db/database-spans.md#span-definition).
+Passing a `queryText` of `null` means no query text is emitted.
+
+The function is only called for commands whose `CommandType` is
+`CommandType.Text`. If it throws an exception, the query text is not emitted,
+but the rest of the telemetry for the command is still collected.
+
+By default, queries from SQL-like providers are sanitized by replacing literal
+values with `?`. Queries from other providers are emitted unchanged, as their
+query dialects cannot be sanitized reliably.
+
+The default is assigned before the configuration callback runs, so it can be
+wrapped instead of replaced. The following code snippet shows how to use
+`QueryTextSanitizer` to sanitize an in-house provider and leave the rest to the
+default.
+
+```csharp
+services.AddOpenTelemetry()
+    .WithTracing(builder => builder
+        .AddEntityFrameworkCoreInstrumentation(options =>
+        {
+            var defaultSanitizer = options.QueryTextSanitizer;
+
+            options.QueryTextSanitizer = context =>
+            {
+                if (context.ProviderName == "Contoso.EntityFrameworkCore")
+                {
+                    return QueryTextSanitizationResult.Sanitized(
+                        ContosoQuerySanitizer.Sanitize(context.QueryText));
+                }
+
+                return defaultSanitizer?.Invoke(context)
+                    ?? QueryTextSanitizationResult.NotSanitized;
+            };
+        })
+        .AddConsoleExporter());
+```
+
+> [!WARNING]
+> Setting `QueryTextSanitizer` to `null` turns off sanitization and emits the
+> raw query text. Make sure your queries never contain any sensitive data
+> before doing so.
+
 ## Experimental features
 
 > [!NOTE]
