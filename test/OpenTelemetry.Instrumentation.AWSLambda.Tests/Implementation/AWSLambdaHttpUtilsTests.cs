@@ -45,7 +45,7 @@ public class AWSLambdaHttpUtilsTests
         {
             { ExpectedSemanticConventions.AttributeHttpScheme, "https" },
             { ExpectedSemanticConventions.AttributeUrlPath, "/path/test" },
-            { ExpectedSemanticConventions.AttributeUrlQuery, "?q1=value1" },
+            { ExpectedSemanticConventions.AttributeUrlQuery, "?q1=Redacted" },
             { ExpectedSemanticConventions.AttributeNetHostName, "localhost" },
             { ExpectedSemanticConventions.AttributeNetHostPort, 1234 },
             { ExpectedSemanticConventions.AttributeHttpMethod, "GET" },
@@ -78,7 +78,7 @@ public class AWSLambdaHttpUtilsTests
         {
             { ExpectedSemanticConventions.AttributeHttpScheme, "https" },
             { ExpectedSemanticConventions.AttributeUrlPath, "/path/test" },
-            { ExpectedSemanticConventions.AttributeUrlQuery, "?q1=value1" },
+            { ExpectedSemanticConventions.AttributeUrlQuery, "?q1=Redacted" },
             { ExpectedSemanticConventions.AttributeNetHostName, "localhost" },
             { ExpectedSemanticConventions.AttributeNetHostPort, 1234 },
             { ExpectedSemanticConventions.AttributeHttpMethod, "GET" },
@@ -113,7 +113,7 @@ public class AWSLambdaHttpUtilsTests
         {
             { ExpectedSemanticConventions.AttributeHttpScheme, "https" },
             { ExpectedSemanticConventions.AttributeUrlPath, "/path/test" },
-            { ExpectedSemanticConventions.AttributeUrlQuery, "?q1=value1" },
+            { ExpectedSemanticConventions.AttributeUrlQuery, "?q1=Redacted" },
             { ExpectedSemanticConventions.AttributeNetHostName, "localhost" },
             { ExpectedSemanticConventions.AttributeNetHostPort, 1234 },
             { ExpectedSemanticConventions.AttributeHttpMethod, "GET" },
@@ -246,7 +246,7 @@ public class AWSLambdaHttpUtilsTests
         {
             { ExpectedSemanticConventions.AttributeHttpMethod, "POST" },
             { ExpectedSemanticConventions.AttributeUrlPath, "/path/test" },
-            { ExpectedSemanticConventions.AttributeUrlQuery, "?q1=value1" },
+            { ExpectedSemanticConventions.AttributeUrlQuery, "?q1=Redacted" },
         };
 
         AssertTags(expectedTags, actualTags);
@@ -305,7 +305,7 @@ public class AWSLambdaHttpUtilsTests
         {
             { ExpectedSemanticConventions.AttributeHttpScheme, "https" },
             { ExpectedSemanticConventions.AttributeUrlPath, "/path/test" },
-            { ExpectedSemanticConventions.AttributeUrlQuery, "?q1=value1" },
+            { ExpectedSemanticConventions.AttributeUrlQuery, "?q1=Redacted" },
             { ExpectedSemanticConventions.AttributeNetHostName, "localhost" },
             { ExpectedSemanticConventions.AttributeNetHostPort, 1234 },
             { ExpectedSemanticConventions.AttributeHttpMethod, "GET" },
@@ -453,6 +453,67 @@ public class AWSLambdaHttpUtilsTests
         var queryString = AWSLambdaHttpUtils.GetQueryString(request);
 
         Assert.Equal(expectedQueryString, queryString);
+    }
+
+    [Fact]
+    public void GetHttpTags_QueryStringSecretsAreRedactedByDefault()
+    {
+        var request = new APIGatewayHttpApiV2ProxyRequest
+        {
+            RawPath = "/pay",
+            RawQueryString = "access_token=SECRET_TOKEN_123&card=4111111111111111",
+            RequestContext = new APIGatewayHttpApiV2ProxyRequest.ProxyRequestContext
+            {
+                Http = new APIGatewayHttpApiV2ProxyRequest.HttpDescription
+                {
+                    Method = "GET",
+                },
+            },
+        };
+
+        var actualTags = AWSLambdaHttpUtils.GetHttpTags(this.latestSemanticConventions, request)
+            .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+        // Keys are preserved, values are redacted.
+        Assert.Equal("?access_token=Redacted&card=Redacted", actualTags["url.query"]);
+        Assert.DoesNotContain("SECRET_TOKEN_123", (string)actualTags["url.query"]);
+        Assert.DoesNotContain("4111111111111111", (string)actualTags["url.query"]);
+    }
+
+    [Fact]
+    public void GetHttpTags_QueryStringCapturedRawWhenRedactionDisabled()
+    {
+        var request = new APIGatewayHttpApiV2ProxyRequest
+        {
+            RawPath = "/pay",
+            RawQueryString = "q1=value1&q2=value2",
+            RequestContext = new APIGatewayHttpApiV2ProxyRequest.ProxyRequestContext
+            {
+                Http = new APIGatewayHttpApiV2ProxyRequest.HttpDescription
+                {
+                    Method = "GET",
+                },
+            },
+        };
+
+        var actualTags = AWSLambdaHttpUtils.GetHttpTags(this.latestSemanticConventions, request, disableUrlQueryRedaction: true)
+            .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+        Assert.Equal("?q1=value1&q2=value2", actualTags["url.query"]);
+    }
+
+    [Theory]
+    [InlineData(null, false)]
+    [InlineData("true", true)]
+    [InlineData("TRUE", true)]
+    [InlineData("false", false)]
+    [InlineData("not-a-bool", false)]
+    public void UrlQueryRedactionOptOutIsReadFromEnvironmentVariable(string? envValue, bool expectedDisabled)
+    {
+        using (EnvironmentVariableScope.Create("OTEL_DOTNET_EXPERIMENTAL_AWS_LAMBDA_DISABLE_URL_QUERY_REDACTION", envValue))
+        {
+            Assert.Equal(expectedDisabled, AWSLambdaWrapper.IsUrlQueryRedactionDisabledFromEnvironment());
+        }
     }
 
     private static void AssertTags<TActualValue>(Dictionary<string, object> expectedTags, IEnumerable<KeyValuePair<string, TActualValue>>? actualTags)

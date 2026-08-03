@@ -52,7 +52,7 @@ internal static class ActivitySourceFactory
 
         if (semanticConventionsVersion is not null)
         {
-            options.TelemetrySchemaUrl = $"https://opentelemetry.io/schemas/{semanticConventionsVersion.ToString(3)}";
+            options.TelemetrySchemaUrl = SchemaUrls.Get(semanticConventionsVersion);
         }
 
         return new(options);

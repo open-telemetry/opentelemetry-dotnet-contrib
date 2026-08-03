@@ -49,6 +49,14 @@ public static class K8sAttributes
     public const string AttributeK8sClusterUid = "k8s.cluster.uid";
 
     /// <summary>
+    /// The type of file system component for ephemeral storage.
+    /// </summary>
+    /// <remarks>
+    /// Eviction decisions based on ephemeral-storage resource limits are made based on the total container usage.
+    /// </remarks>
+    public const string AttributeK8sContainerEphemeralStorageFsType = "k8s.container.ephemeral_storage.fs_type";
+
+    /// <summary>
     /// The name of the Container from Pod specification, must be unique within a Pod. Container runtime usually uses different globally unique name (<c>container.name</c>).
     /// </summary>
     public const string AttributeK8sContainerName = "k8s.container.name";
@@ -64,12 +72,12 @@ public static class K8sAttributes
     public const string AttributeK8sContainerStatusLastTerminatedReason = "k8s.container.status.last_terminated_reason";
 
     /// <summary>
-    /// The reason for the container state. Corresponds to the <c>reason</c> field of the: <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#containerstatewaiting-v1-core">K8s ContainerStateWaiting</a> or <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#containerstateterminated-v1-core">K8s ContainerStateTerminated</a>.
+    /// The reason for the container state. Corresponds to the <c>reason</c> field of the: <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#containerstatewaiting-v1-core">K8s ContainerStateWaiting</a> or <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#containerstateterminated-v1-core">K8s ContainerStateTerminated</a>.
     /// </summary>
     public const string AttributeK8sContainerStatusReason = "k8s.container.status.reason";
 
     /// <summary>
-    /// The state of the container. <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#containerstate-v1-core">K8s ContainerState</a>.
+    /// The state of the container. <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#containerstate-v1-core">K8s ContainerState</a>.
     /// </summary>
     public const string AttributeK8sContainerStatusState = "k8s.container.status.state";
 
@@ -117,9 +125,9 @@ public static class K8sAttributes
     /// <remarks>
     /// Examples:
     /// <ul>
-    ///   <li>A label <c>replicas</c> with value <c>1</c> SHOULD be recorded
+    ///   <li>An annotation <c>replicas</c> with value <c>1</c> SHOULD be recorded
     /// as the <c>k8s.daemonset.annotation.replicas</c> attribute with value <c>"1"</c>.</li>
-    ///   <li>A label <c>data</c> with empty string value SHOULD be recorded as
+    ///   <li>An annotation <c>data</c> with empty string value SHOULD be recorded as
     /// the <c>k8s.daemonset.annotation.data</c> attribute with value <c>""</c>.</li>
     /// </ul>
     /// </remarks>
@@ -133,7 +141,7 @@ public static class K8sAttributes
     /// <ul>
     ///   <li>A label <c>app</c> with value <c>guestbook</c> SHOULD be recorded
     /// as the <c>k8s.daemonset.label.app</c> attribute with value <c>"guestbook"</c>.</li>
-    ///   <li>A label <c>data</c> with empty string value SHOULD be recorded as
+    ///   <li>A label <c>injected</c> with empty string value SHOULD be recorded as
     /// the <c>k8s.daemonset.label.injected</c> attribute with value <c>""</c>.</li>
     /// </ul>
     /// </remarks>
@@ -155,9 +163,9 @@ public static class K8sAttributes
     /// <remarks>
     /// Examples:
     /// <ul>
-    ///   <li>A label <c>replicas</c> with value <c>1</c> SHOULD be recorded
+    ///   <li>An annotation <c>replicas</c> with value <c>1</c> SHOULD be recorded
     /// as the <c>k8s.deployment.annotation.replicas</c> attribute with value <c>"1"</c>.</li>
-    ///   <li>A label <c>data</c> with empty string value SHOULD be recorded as
+    ///   <li>An annotation <c>data</c> with empty string value SHOULD be recorded as
     /// the <c>k8s.deployment.annotation.data</c> attribute with value <c>""</c>.</li>
     /// </ul>
     /// </remarks>
@@ -169,7 +177,7 @@ public static class K8sAttributes
     /// <remarks>
     /// Examples:
     /// <ul>
-    ///   <li>A label <c>replicas</c> with value <c>0</c> SHOULD be recorded
+    ///   <li>A label <c>app</c> with value <c>guestbook</c> SHOULD be recorded
     /// as the <c>k8s.deployment.label.app</c> attribute with value <c>"guestbook"</c>.</li>
     ///   <li>A label <c>injected</c> with empty string value SHOULD be recorded as
     /// the <c>k8s.deployment.label.injected</c> attribute with value <c>""</c>.</li>
@@ -240,9 +248,9 @@ public static class K8sAttributes
     /// <remarks>
     /// Examples:
     /// <ul>
-    ///   <li>A label <c>number</c> with value <c>1</c> SHOULD be recorded
+    ///   <li>An annotation <c>number</c> with value <c>1</c> SHOULD be recorded
     /// as the <c>k8s.job.annotation.number</c> attribute with value <c>"1"</c>.</li>
-    ///   <li>A label <c>data</c> with empty string value SHOULD be recorded as
+    ///   <li>An annotation <c>data</c> with empty string value SHOULD be recorded as
     /// the <c>k8s.job.annotation.data</c> attribute with value <c>""</c>.</li>
     /// </ul>
     /// </remarks>
@@ -256,7 +264,7 @@ public static class K8sAttributes
     /// <ul>
     ///   <li>A label <c>jobtype</c> with value <c>ci</c> SHOULD be recorded
     /// as the <c>k8s.job.label.jobtype</c> attribute with value <c>"ci"</c>.</li>
-    ///   <li>A label <c>data</c> with empty string value SHOULD be recorded as
+    ///   <li>A label <c>automated</c> with empty string value SHOULD be recorded as
     /// the <c>k8s.job.label.automated</c> attribute with value <c>""</c>.</li>
     /// </ul>
     /// </remarks>
@@ -278,9 +286,9 @@ public static class K8sAttributes
     /// <remarks>
     /// Examples:
     /// <ul>
-    ///   <li>A label <c>ttl</c> with value <c>0</c> SHOULD be recorded
+    ///   <li>An annotation <c>ttl</c> with value <c>0</c> SHOULD be recorded
     /// as the <c>k8s.namespace.annotation.ttl</c> attribute with value <c>"0"</c>.</li>
-    ///   <li>A label <c>data</c> with empty string value SHOULD be recorded as
+    ///   <li>An annotation <c>data</c> with empty string value SHOULD be recorded as
     /// the <c>k8s.namespace.annotation.data</c> attribute with value <c>""</c>.</li>
     /// </ul>
     /// </remarks>
@@ -310,7 +318,7 @@ public static class K8sAttributes
     /// </summary>
     /// <remarks>
     /// This attribute aligns with the <c>phase</c> field of the
-    /// <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#namespacestatus-v1-core">K8s NamespaceStatus</a>.
+    /// <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#namespacestatus-v1-core">K8s NamespaceStatus</a>.
     /// </remarks>
     public const string AttributeK8sNamespacePhase = "k8s.namespace.phase";
 
@@ -333,7 +341,7 @@ public static class K8sAttributes
     /// </summary>
     /// <remarks>
     /// This attribute aligns with the <c>status</c> field of the
-    /// <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#nodecondition-v1-core">NodeCondition</a>.
+    /// <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#nodecondition-v1-core">NodeCondition</a>.
     /// </remarks>
     public const string AttributeK8sNodeConditionStatus = "k8s.node.condition.status";
 
@@ -342,10 +350,10 @@ public static class K8sAttributes
     /// </summary>
     /// <remarks>
     /// K8s Node conditions as described
-    /// by <a href="https://v1-32.docs.kubernetes.io/docs/reference/node/node-status/#condition">K8s documentation</a>.
+    /// by <a href="https://kubernetes.io/docs/reference/node/node-status/#condition">K8s documentation</a>.
     /// <p>
     /// This attribute aligns with the <c>type</c> field of the
-    /// <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#nodecondition-v1-core">NodeCondition</a>
+    /// <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#nodecondition-v1-core">NodeCondition</a>
     /// <p>
     /// The set of possible values is not limited to those listed here. Managed Kubernetes environments,
     /// or custom controllers MAY introduce additional node condition types.
@@ -584,9 +592,9 @@ public static class K8sAttributes
     /// <remarks>
     /// Examples:
     /// <ul>
-    ///   <li>A label <c>replicas</c> with value <c>0</c> SHOULD be recorded
+    ///   <li>An annotation <c>replicas</c> with value <c>0</c> SHOULD be recorded
     /// as the <c>k8s.replicaset.annotation.replicas</c> attribute with value <c>"0"</c>.</li>
-    ///   <li>A label <c>data</c> with empty string value SHOULD be recorded as
+    ///   <li>An annotation <c>data</c> with empty string value SHOULD be recorded as
     /// the <c>k8s.replicaset.annotation.data</c> attribute with value <c>""</c>.</li>
     /// </ul>
     /// </remarks>
@@ -776,9 +784,9 @@ public static class K8sAttributes
     /// <remarks>
     /// Examples:
     /// <ul>
-    ///   <li>A label <c>replicas</c> with value <c>1</c> SHOULD be recorded
+    ///   <li>An annotation <c>replicas</c> with value <c>1</c> SHOULD be recorded
     /// as the <c>k8s.statefulset.annotation.replicas</c> attribute with value <c>"1"</c>.</li>
-    ///   <li>A label <c>data</c> with empty string value SHOULD be recorded as
+    ///   <li>An annotation <c>data</c> with empty string value SHOULD be recorded as
     /// the <c>k8s.statefulset.annotation.data</c> attribute with value <c>""</c>.</li>
     /// </ul>
     /// </remarks>
@@ -790,7 +798,7 @@ public static class K8sAttributes
     /// <remarks>
     /// Examples:
     /// <ul>
-    ///   <li>A label <c>replicas</c> with value <c>0</c> SHOULD be recorded
+    ///   <li>A label <c>app</c> with value <c>guestbook</c> SHOULD be recorded
     /// as the <c>k8s.statefulset.label.app</c> attribute with value <c>"guestbook"</c>.</li>
     ///   <li>A label <c>injected</c> with empty string value SHOULD be recorded as
     /// the <c>k8s.statefulset.label.injected</c> attribute with value <c>""</c>.</li>
@@ -809,7 +817,7 @@ public static class K8sAttributes
     public const string AttributeK8sStatefulsetUid = "k8s.statefulset.uid";
 
     /// <summary>
-    /// The name of K8s <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#storageclass-v1-storage-k8s-io">StorageClass</a> object.
+    /// The name of K8s <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#storageclass-v1-storage-k8s-io">StorageClass</a> object.
     /// </summary>
     public const string AttributeK8sStorageclassName = "k8s.storageclass.name";
 
@@ -824,7 +832,23 @@ public static class K8sAttributes
     public const string AttributeK8sVolumeType = "k8s.volume.type";
 
     /// <summary>
-    /// The reason for the container state. Corresponds to the <c>reason</c> field of the: <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#containerstatewaiting-v1-core">K8s ContainerStateWaiting</a> or <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#containerstateterminated-v1-core">K8s ContainerStateTerminated</a>.
+    /// The type of file system component for ephemeral storage.
+    /// </summary>
+    public static class K8sContainerEphemeralStorageFsTypeValues
+    {
+        /// <summary>
+        /// For the container's writable layer usage.
+        /// </summary>
+        public const string Rootfs = "rootfs";
+
+        /// <summary>
+        /// For the container's log files usage (stdout/stderr).
+        /// </summary>
+        public const string Logs = "logs";
+    }
+
+    /// <summary>
+    /// The reason for the container state. Corresponds to the <c>reason</c> field of the: <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#containerstatewaiting-v1-core">K8s ContainerStateWaiting</a> or <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#containerstateterminated-v1-core">K8s ContainerStateTerminated</a>.
     /// </summary>
     public static class K8sContainerStatusReasonValues
     {
@@ -875,7 +899,7 @@ public static class K8sAttributes
     }
 
     /// <summary>
-    /// The state of the container. <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#containerstate-v1-core">K8s ContainerState</a>.
+    /// The state of the container. <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#containerstate-v1-core">K8s ContainerState</a>.
     /// </summary>
     public static class K8sContainerStatusStateValues
     {
@@ -1172,32 +1196,32 @@ public static class K8sAttributes
     public static class K8sVolumeTypeValues
     {
         /// <summary>
-        /// A <a href="https://v1-30.docs.kubernetes.io/docs/concepts/storage/volumes/#persistentvolumeclaim">persistentVolumeClaim</a> volume.
+        /// A <a href="https://kubernetes.io/docs/concepts/storage/volumes/#persistentvolumeclaim">persistentVolumeClaim</a> volume.
         /// </summary>
         public const string PersistentVolumeClaim = "persistentVolumeClaim";
 
         /// <summary>
-        /// A <a href="https://v1-30.docs.kubernetes.io/docs/concepts/storage/volumes/#configmap">configMap</a> volume.
+        /// A <a href="https://kubernetes.io/docs/concepts/storage/volumes/#configmap">configMap</a> volume.
         /// </summary>
         public const string ConfigMap = "configMap";
 
         /// <summary>
-        /// A <a href="https://v1-30.docs.kubernetes.io/docs/concepts/storage/volumes/#downwardapi">downwardAPI</a> volume.
+        /// A <a href="https://kubernetes.io/docs/concepts/storage/volumes/#downwardapi">downwardAPI</a> volume.
         /// </summary>
         public const string DownwardApi = "downwardAPI";
 
         /// <summary>
-        /// An <a href="https://v1-30.docs.kubernetes.io/docs/concepts/storage/volumes/#emptydir">emptyDir</a> volume.
+        /// An <a href="https://kubernetes.io/docs/concepts/storage/volumes/#emptydir">emptyDir</a> volume.
         /// </summary>
         public const string EmptyDir = "emptyDir";
 
         /// <summary>
-        /// A <a href="https://v1-30.docs.kubernetes.io/docs/concepts/storage/volumes/#secret">secret</a> volume.
+        /// A <a href="https://kubernetes.io/docs/concepts/storage/volumes/#secret">secret</a> volume.
         /// </summary>
         public const string Secret = "secret";
 
         /// <summary>
-        /// A <a href="https://v1-30.docs.kubernetes.io/docs/concepts/storage/volumes/#local">local</a> volume.
+        /// A <a href="https://kubernetes.io/docs/concepts/storage/volumes/#local">local</a> volume.
         /// </summary>
         public const string Local = "local";
     }

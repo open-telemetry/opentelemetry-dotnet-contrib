@@ -73,7 +73,7 @@ internal sealed class ConnectionStringBuilder
     public bool PrivatePreviewEnableTraceLoggingDynamic => this.parts.TryGetValue(nameof(this.PrivatePreviewEnableTraceLoggingDynamic), out var value)
                 && string.Equals(bool.TrueString, value, StringComparison.OrdinalIgnoreCase);
 
-    public bool PrivatePreviewEnableOtlpProtobufEncoding => this.parts.TryGetValue(nameof(this.PrivatePreviewEnableOtlpProtobufEncoding), out var value)
+    public bool EnableOtlpProtobufEncoding => this.parts.TryGetValue(nameof(this.EnableOtlpProtobufEncoding), out var value)
                 && string.Equals(bool.TrueString, value, StringComparison.OrdinalIgnoreCase);
 
     public bool PrivatePreviewEnableUserEvents => this.parts.TryGetValue(nameof(this.PrivatePreviewEnableUserEvents), out var value)

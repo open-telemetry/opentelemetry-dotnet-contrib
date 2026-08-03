@@ -20,6 +20,18 @@ public class AWSECSDetectorTests
     private const string AWSECSMetadataURLKey = "ECS_CONTAINER_METADATA_URI";
     private const string AWSECSMetadataURLV4Key = "ECS_CONTAINER_METADATA_URI_V4";
 
+    public static TheoryData<SemanticConventionVersion> SemanticConventionVersions()
+    {
+        var data = new TheoryData<SemanticConventionVersion>();
+
+        foreach (var version in Enum.GetValues<SemanticConventionVersion>())
+        {
+            data.Add(version);
+        }
+
+        return data;
+    }
+
     [Fact]
     public void TestNotOnEcs()
     {
@@ -27,10 +39,11 @@ public class AWSECSDetectorTests
             new OpenTelemetry.AWS.AWSSemanticConventions(
                 SemanticConventionVersion.Latest));
 
-        var resourceAttributes = ecsResourceDetector.Detect();
+        var resource = ecsResourceDetector.Detect();
 
-        Assert.NotNull(resourceAttributes);
-        Assert.Empty(resourceAttributes.Attributes);
+        Assert.NotNull(resource);
+        Assert.Null(resource.SchemaUrl);
+        Assert.Empty(resource.Attributes);
     }
 
     [Fact]
@@ -46,15 +59,21 @@ public class AWSECSDetectorTests
                 new OpenTelemetry.AWS.AWSSemanticConventions(
                     SemanticConventionVersion.Latest));
 
-            var resourceAttributes = ecsResourceDetector.Detect().Attributes.ToDictionary(x => x.Key, x => x.Value);
+            var resource = ecsResourceDetector.Detect();
+
+            Assert.NotNull(resource);
+            Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
+
+            var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
 
             Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeCloudProvider], "aws");
             Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeCloudPlatform], "aws_ecs");
         }
     }
 
-    [Fact]
-    public async Task TestEcsMetadataV4Ec2()
+    [Theory]
+    [MemberData(nameof(SemanticConventionVersions))]
+    public async Task TestEcsMetadataV4Ec2(SemanticConventionVersion semanticConventionVersion)
     {
         var source = new CancellationTokenSource();
         var token = source.Token;
@@ -67,9 +86,14 @@ public class AWSECSDetectorTests
         {
             var ecsResourceDetector = new AWSECSDetector(
                 new OpenTelemetry.AWS.AWSSemanticConventions(
-                    SemanticConventionVersion.Latest));
+                    semanticConventionVersion));
 
-            var resourceAttributes = ecsResourceDetector.Detect().Attributes.ToDictionary(x => x.Key, x => x.Value);
+            var resource = ecsResourceDetector.Detect();
+
+            Assert.NotNull(resource);
+            Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
+
+            var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
 
             Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeCloudProvider], "aws");
             Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeCloudPlatform], "aws_ecs");
@@ -97,8 +121,9 @@ public class AWSECSDetectorTests
         }
     }
 
-    [Fact]
-    public async Task TestEcsMetadataV4Fargate()
+    [Theory]
+    [MemberData(nameof(SemanticConventionVersions))]
+    public async Task TestEcsMetadataV4Fargate(SemanticConventionVersion semanticConventionVersion)
     {
         var source = new CancellationTokenSource();
         var token = source.Token;
@@ -111,9 +136,14 @@ public class AWSECSDetectorTests
         {
             var ecsResourceDetector = new AWSECSDetector(
                 new OpenTelemetry.AWS.AWSSemanticConventions(
-                    SemanticConventionVersion.Latest));
+                    semanticConventionVersion));
 
-            var resourceAttributes = ecsResourceDetector.Detect().Attributes.ToDictionary(x => x.Key, x => x.Value);
+            var resource = ecsResourceDetector.Detect();
+
+            Assert.NotNull(resource);
+            Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
+
+            var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
 
             Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeCloudProvider], "aws");
             Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeCloudPlatform], "aws_ecs");
@@ -154,7 +184,12 @@ public class AWSECSDetectorTests
                 new OpenTelemetry.AWS.AWSSemanticConventions(
                     SemanticConventionVersion.Latest));
 
-            var resourceAttributes = ecsResourceDetector.Detect().Attributes.ToDictionary(x => x.Key, x => x.Value);
+            var resource = ecsResourceDetector.Detect();
+
+            Assert.NotNull(resource);
+            Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
+
+            var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
 
             Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeCloudProvider], "aws");
             Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeCloudPlatform], "aws_ecs");
@@ -185,7 +220,12 @@ public class AWSECSDetectorTests
                 new OpenTelemetry.AWS.AWSSemanticConventions(
                     SemanticConventionVersion.Latest));
 
-            var resourceAttributes = ecsResourceDetector.Detect().Attributes.ToDictionary(x => x.Key, x => x.Value);
+            var resource = ecsResourceDetector.Detect();
+
+            Assert.NotNull(resource);
+            Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
+
+            var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
 
             Assert.Equal(2, resourceAttributes.Count);
             Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeCloudProvider], "aws");

@@ -82,6 +82,11 @@ public static class TelemetryAttributes
         public const string Java = "java";
 
         /// <summary>
+        /// kotlin.
+        /// </summary>
+        public const string Kotlin = "kotlin";
+
+        /// <summary>
         /// nodejs.
         /// </summary>
         public const string Nodejs = "nodejs";

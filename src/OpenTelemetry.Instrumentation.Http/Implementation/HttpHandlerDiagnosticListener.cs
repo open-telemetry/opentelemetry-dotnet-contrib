@@ -9,6 +9,7 @@ using System.Net.Http;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
+using ActivitySourceFactory = OpenTelemetry.Trace.ActivitySourceFactory;
 
 namespace OpenTelemetry.Instrumentation.Http.Implementation;
 
