@@ -18,9 +18,10 @@ public class HeartbeatServiceTests
     public void HeartbeatService_HandleMessage_OversizedInterval_DoesNotThrow(ulong intervalSeconds)
     {
         var settings = new OpAmpClientSettings();
+        var processor = new FrameProcessor();
         using var transport = new MockTransport(expectedCount: 0);
-        using var dispatcher = new FrameDispatcher(transport, settings);
-        using var service = new HeartbeatService(dispatcher, new FrameProcessor());
+        using var pipe = new OpAmpPipe(settings, processor, transport);
+        using var service = new HeartbeatService(pipe, processor);
         service.Configure(settings);
 
         var message = new ConnectionSettingsMessage(new ConnectionSettingsOffers
@@ -46,9 +47,10 @@ public class HeartbeatServiceTests
             },
         };
 
+        var processor = new FrameProcessor();
         using var transport = new MockTransport(messagesCount);
-        using var dispatcher = new FrameDispatcher(transport, settings);
-        using var service = new HeartbeatService(dispatcher, new FrameProcessor());
+        using var pipe = new OpAmpPipe(settings, processor, transport);
+        using var service = new HeartbeatService(pipe, processor);
 
         service.Configure(settings);
         service.Start();

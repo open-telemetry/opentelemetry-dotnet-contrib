@@ -33,10 +33,10 @@ public class OpAmpClientTests
         Assert.Throws<ObjectDisposedException>(() => client.Unsubscribe(listener));
         await Assert.ThrowsAsync<ObjectDisposedException>(() => client.StartAsync());
         await Assert.ThrowsAsync<ObjectDisposedException>(() => client.StopAsync());
-        await Assert.ThrowsAsync<ObjectDisposedException>(() => client.SendEffectiveConfigAsync([configFile]));
-        await Assert.ThrowsAsync<ObjectDisposedException>(() => client.SendRemoteConfigStatusAsync(remoteConfigStatus));
-        await Assert.ThrowsAsync<ObjectDisposedException>(() => client.SendCustomCapabilitiesAsync(["capability"]));
-        await Assert.ThrowsAsync<ObjectDisposedException>(() => client.SendCustomMessageAsync("capability", "type", Encoding.UTF8.GetBytes("payload")));
+        Assert.Throws<ObjectDisposedException>(() => client.SendEffectiveConfig([configFile]));
+        Assert.Throws<ObjectDisposedException>(() => client.SendRemoteConfigStatus(remoteConfigStatus));
+        Assert.Throws<ObjectDisposedException>(() => client.SendCustomCapabilities(["capability"]));
+        Assert.Throws<ObjectDisposedException>(() => client.SendCustomMessage("capability", "type", Encoding.UTF8.GetBytes("payload")));
     }
 
     [Fact]
@@ -108,7 +108,7 @@ public class OpAmpClientTests
 
         Assert.Single(mockListener.Messages);
 
-        await client.SendHeartbeatAsync(new HealthReport
+        client.SendHeartbeat(new HealthReport
         {
             StartTime = GetCurrentTimeInNanoseconds(),
             StatusTime = GetCurrentTimeInNanoseconds(),
@@ -123,7 +123,7 @@ public class OpAmpClientTests
 
         client.Unsubscribe(mockListener);
 
-        await client.SendHeartbeatAsync(new HealthReport
+        client.SendHeartbeat(new HealthReport
         {
             StartTime = GetCurrentTimeInNanoseconds(),
             StatusTime = GetCurrentTimeInNanoseconds(),
@@ -195,6 +195,7 @@ public class OpAmpClientTests
         client.Subscribe(mockListener);
 
         await client.StartAsync();
+        await client.StopAsync();
 
         var frames = opAmpServer.GetFrames();
 
@@ -212,8 +213,6 @@ public class OpAmpClientTests
         {
             Assert.False(capabilities.HasFlag(notExpectedCapability), $"Expected capabilities not to include {notExpectedCapability}.");
         }
-
-        await client.StopAsync();
     }
 
     [Fact]
@@ -234,7 +233,7 @@ public class OpAmpClientTests
 
         // Act
         await client.StartAsync();
-        await Assert.ThrowsAsync<InvalidOperationException>(() => client.SendEffectiveConfigAsync([configFile]));
+        Assert.Throws<InvalidOperationException>(() => client.SendEffectiveConfig([configFile]));
         await client.StopAsync();
     }
 
@@ -267,7 +266,7 @@ public class OpAmpClientTests
 
         // Act
         await client.StartAsync();
-        await client.SendEffectiveConfigAsync([configFile]);
+        client.SendEffectiveConfig([configFile]);
         await client.StopAsync();
 
         // Assert received frames
@@ -309,7 +308,7 @@ public class OpAmpClientTests
 
         // Act
         await client.StartAsync();
-        await client.SendEffectiveConfigAsync([configFile]);
+        client.SendEffectiveConfig([configFile]);
         await client.StopAsync();
 
         // Assert received frames
@@ -323,12 +322,12 @@ public class OpAmpClientTests
     }
 
     [Fact]
-    internal async Task SendsRemoteConfigStatus_IsDisabledAndThrows()
+    internal void SendsRemoteConfigStatus_IsDisabledAndThrows()
     {
         using var client = new OpAmpClient(o => o.Heartbeat.IsEnabled = false);
         var statusReport = new RemoteConfigStatusReport([1, 2, 3], RemoteConfigStatusCode.Applied);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => client.SendRemoteConfigStatusAsync(statusReport));
+        Assert.Throws<InvalidOperationException>(() => client.SendRemoteConfigStatus(statusReport));
     }
 
     [Fact]
@@ -344,7 +343,8 @@ public class OpAmpClientTests
         });
 
         await client.StartAsync();
-        await client.SendRemoteConfigStatusAsync(new RemoteConfigStatusReport([1, 2, 3], RemoteConfigStatusCode.Failed, "apply failed"));
+        client.SendRemoteConfigStatus(new RemoteConfigStatusReport([1, 2, 3], RemoteConfigStatusCode.Failed, "apply failed"));
+        client.SendRemoteConfigStatus(new RemoteConfigStatusReport([1, 2, 3], RemoteConfigStatusCode.Failed, "apply failed"));
         await client.StopAsync();
 
         var frames = opAmpServer.GetFrames();
@@ -370,8 +370,9 @@ public class OpAmpClientTests
         var status = new RemoteConfigStatusReport([1, 2, 3], RemoteConfigStatusCode.Applied);
 
         await client.StartAsync();
-        await client.SendRemoteConfigStatusAsync(status);
-        await client.SendRemoteConfigStatusAsync(status);
+        client.SendRemoteConfigStatus(status);
+        await client.ForceFlushAsync();
+        client.SendRemoteConfigStatus(status);
         await client.StopAsync();
 
         var frames = opAmpServer.GetFrames();
@@ -432,7 +433,7 @@ public class OpAmpClientTests
 
         // Act
         await client.StartAsync();
-        await client.SendCustomCapabilitiesAsync(capabilities);
+        client.SendCustomCapabilities(capabilities);
         await client.StopAsync();
 
         // Assert received frames
@@ -463,7 +464,7 @@ public class OpAmpClientTests
 
         // Act
         await client.StartAsync();
-        await client.SendCustomMessageAsync(capability, type, message);
+        client.SendCustomMessage(capability, type, message);
         await client.StopAsync();
 
         // Assert received frames
@@ -508,7 +509,7 @@ public class OpAmpClientTests
 
         // Act
         await client.StartAsync();
-        await client.SendFullStateReportAsync(report);
+        client.SendFullStateReport(report);
         await client.StopAsync();
 
         // Assert received frames

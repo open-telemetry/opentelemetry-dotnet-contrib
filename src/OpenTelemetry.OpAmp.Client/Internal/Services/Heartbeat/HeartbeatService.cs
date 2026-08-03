@@ -14,17 +14,17 @@ internal sealed class HeartbeatService : IBackgroundService, IOpAmpListener<Conn
     // Safe upper bound.
     private static readonly ulong MaxHeartbeatIntervalSeconds = (ulong)TimeSpan.MaxValue.TotalSeconds;
 
-    private readonly FrameDispatcher dispatcher;
     private readonly FrameProcessor processor;
+    private readonly OpAmpPipe pipe;
     private readonly CancellationTokenSource cts;
     private readonly Lock timerUpdateLock = new();
     private Timer? timer;
     private TimeSpan tickInterval;
     private ulong startTime;
 
-    public HeartbeatService(FrameDispatcher dispatcher, FrameProcessor processor)
+    public HeartbeatService(OpAmpPipe pipe, FrameProcessor processor)
     {
-        this.dispatcher = dispatcher;
+        this.pipe = pipe;
         this.processor = processor;
         this.cts = new CancellationTokenSource();
 
@@ -112,7 +112,9 @@ internal sealed class HeartbeatService : IBackgroundService, IOpAmpListener<Conn
         {
             var report = this.CreateHealthReport();
 
-            await this.dispatcher.DispatchHeartbeatAsync(report, this.cts.Token)
+            this.pipe.AppendMessage(fb => fb.AddHealth(report));
+
+            await this.pipe.ForceFlushAsync()
                 .ConfigureAwait(false);
         }
         catch (TaskCanceledException)

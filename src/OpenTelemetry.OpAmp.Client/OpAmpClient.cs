@@ -5,9 +5,6 @@ using OpenTelemetry.Internal;
 using OpenTelemetry.OpAmp.Client.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Services;
 using OpenTelemetry.OpAmp.Client.Internal.Services.Heartbeat;
-using OpenTelemetry.OpAmp.Client.Internal.Transport;
-using OpenTelemetry.OpAmp.Client.Internal.Transport.Http;
-using OpenTelemetry.OpAmp.Client.Internal.Transport.WebSocket;
 using OpenTelemetry.OpAmp.Client.Listeners;
 using OpenTelemetry.OpAmp.Client.Messages;
 using OpenTelemetry.OpAmp.Client.Settings;
@@ -20,10 +17,11 @@ namespace OpenTelemetry.OpAmp.Client;
 public sealed class OpAmpClient : IDisposable
 {
     private readonly OpAmpClientSettings settings = new();
-    private readonly FrameProcessor processor = new();
+
     private readonly Dictionary<string, IBackgroundService> services = [];
-    private readonly FrameDispatcher dispatcher;
-    private readonly IOpAmpTransport transport;
+    private readonly FrameProcessor processor = new();
+    private readonly OpAmpPipe pipe;
+
     private bool disposed;
 
     /// <summary>
@@ -34,9 +32,7 @@ public sealed class OpAmpClient : IDisposable
     {
         configure?.Invoke(this.settings);
 
-        this.transport = ConstructTransport(this.settings, this.processor);
-        this.dispatcher = new FrameDispatcher(this.transport, this.settings);
-
+        this.pipe = new OpAmpPipe(this.settings, this.processor);
         this.ConfigureServices();
     }
 
@@ -50,13 +46,7 @@ public sealed class OpAmpClient : IDisposable
     {
         this.ThrowIfDisposed();
 
-        if (this.transport is WsTransport wsTransport)
-        {
-            await wsTransport.StartAsync(token)
-                .ConfigureAwait(false);
-        }
-
-        await this.dispatcher.DispatchIdentificationAsync(token)
+        await this.pipe.StartAsync(token)
             .ConfigureAwait(false);
 
         foreach (var service in this.services.Values)
@@ -80,19 +70,25 @@ public sealed class OpAmpClient : IDisposable
     {
         this.ThrowIfDisposed();
 
-        await this.dispatcher.DispatchAgentDisconnectAsync(token)
-            .ConfigureAwait(false);
-
         foreach (var service in this.services.Values)
         {
             service.Stop();
         }
 
-        if (this.transport is WsTransport wsTransport)
-        {
-            await wsTransport.StopAsync(token)
-                .ConfigureAwait(false);
-        }
+        await this.pipe.StopAsync(token)
+            .ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
+    public async Task ForceFlushAsync()
+    {
+        this.ThrowIfDisposed();
+
+        await this.pipe.ForceFlushAsync()
+            .ConfigureAwait(false);
     }
 
     /// <summary>
@@ -141,7 +137,7 @@ public sealed class OpAmpClient : IDisposable
     /// <exception cref="InvalidOperationException">Thrown if effective configuration reporting is not enabled in settings.</exception>
     /// <exception cref="ObjectDisposedException">Thrown if the client has already been disposed.</exception>
     /// <exception cref="ArgumentException">Thrown if <paramref name="files"/> contains two or more files with the same file name.</exception>
-    public Task SendEffectiveConfigAsync(IEnumerable<EffectiveConfigFile> files, CancellationToken cancellationToken = default)
+    public void SendEffectiveConfig(IEnumerable<EffectiveConfigFile> files, CancellationToken cancellationToken = default)
     {
         this.ThrowIfDisposed();
 
@@ -150,7 +146,7 @@ public sealed class OpAmpClient : IDisposable
             throw new InvalidOperationException("Effective configuration reporting is not enabled in settings.");
         }
 
-        return this.dispatcher.DispatchEffectiveConfigAsync(files, cancellationToken);
+        this.pipe.AppendMessage(fb => fb.AddEffectiveConfig(files));
     }
 
     /// <summary>
@@ -162,7 +158,7 @@ public sealed class OpAmpClient : IDisposable
     /// <exception cref="InvalidOperationException">Thrown if remote configuration status reporting is not enabled in settings.</exception>
     /// <exception cref="ObjectDisposedException">Thrown if the client has already been disposed.</exception>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="statusReport"/> is null.</exception>
-    public Task SendRemoteConfigStatusAsync(RemoteConfigStatusReport statusReport, CancellationToken cancellationToken = default)
+    public void SendRemoteConfigStatus(RemoteConfigStatusReport statusReport, CancellationToken cancellationToken = default)
     {
         this.ThrowIfDisposed();
         Guard.ThrowIfNull(statusReport);
@@ -172,7 +168,7 @@ public sealed class OpAmpClient : IDisposable
             throw new InvalidOperationException("Remote configuration status reporting is not enabled in settings.");
         }
 
-        return this.dispatcher.DispatchRemoteConfigStatusAsync(statusReport, cancellationToken);
+        this.pipe.AppendMessage(fb => fb.AddRemoteConfigStatus(statusReport));
     }
 
     /// <summary>
@@ -182,11 +178,11 @@ public sealed class OpAmpClient : IDisposable
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A task that represents the asynchronous send operation.</returns>
     /// <exception cref="ObjectDisposedException">Thrown if the client has already been disposed.</exception>
-    public Task SendCustomCapabilitiesAsync(IEnumerable<string> capabilities, CancellationToken cancellationToken = default)
+    public void SendCustomCapabilities(IEnumerable<string> capabilities, CancellationToken cancellationToken = default)
     {
         this.ThrowIfDisposed();
 
-        return this.dispatcher.DispatchCustomCapabilitiesAsync(capabilities, cancellationToken);
+        this.pipe.AppendMessage(fb => fb.AddCustomCapabilities(capabilities));
     }
 
     /// <summary>
@@ -198,11 +194,11 @@ public sealed class OpAmpClient : IDisposable
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A task that represents the asynchronous send operation.</returns>
     /// <exception cref="ObjectDisposedException">Thrown if the client has already been disposed.</exception>
-    public Task SendCustomMessageAsync(string capability, string type, ReadOnlyMemory<byte> data, CancellationToken cancellationToken = default)
+    public void SendCustomMessage(string capability, string type, ReadOnlyMemory<byte> data, CancellationToken cancellationToken = default)
     {
         this.ThrowIfDisposed();
 
-        return this.dispatcher.DispatchCustomMessageAsync(capability, type, data, cancellationToken);
+        this.pipe.AppendMessage(fb => fb.AddCustomMessage(capability, type, data));
     }
 
     /// <summary>
@@ -212,7 +208,7 @@ public sealed class OpAmpClient : IDisposable
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A task that represents the asynchronous send operation.</returns>
     /// <exception cref="ObjectDisposedException">Thrown if the client has already been disposed.</exception>
-    public Task SendFullStateReportAsync(FullStateReport report, CancellationToken cancellationToken = default)
+    public void SendFullStateReport(FullStateReport report, CancellationToken cancellationToken = default)
     {
         this.ThrowIfDisposed();
         Guard.ThrowIfNull(report);
@@ -233,7 +229,7 @@ public sealed class OpAmpClient : IDisposable
             report.HealthReport = service.CreateHealthReport();
         }
 
-        return this.dispatcher.DispatchFullStateReportAsync(report, cancellationToken);
+        this.pipe.AppendMessage(fb => MessageBuilderHelper.AppendFullStateReport(fb, report));
     }
 
     /// <summary>
@@ -272,30 +268,15 @@ public sealed class OpAmpClient : IDisposable
             }
         }
 
-        if (this.transport is IDisposable disposableTransport)
-        {
-            disposableTransport.Dispose();
-        }
-
-        this.dispatcher.Dispose();
+        this.pipe.Dispose();
     }
 
     // Used for testing purposes only.
-    internal Task SendHeartbeatAsync(HealthReport healthReport, CancellationToken cancellationToken = default)
+    internal void SendHeartbeat(HealthReport healthReport, CancellationToken cancellationToken = default)
     {
         this.ThrowIfDisposed();
 
-        return this.dispatcher.DispatchHeartbeatAsync(healthReport, cancellationToken);
-    }
-
-    private static IOpAmpTransport ConstructTransport(OpAmpClientSettings settings, FrameProcessor processor)
-    {
-        return settings.ConnectionType switch
-        {
-            ConnectionType.WebSocket => new WsTransport(settings, processor),
-            ConnectionType.Http => new PlainHttpTransport(settings, processor),
-            _ => throw new NotSupportedException("Unsupported transport type"),
-        };
+        this.pipe.AppendMessage(fd => fd.AddHealth(healthReport));
     }
 
     private void ThrowIfDisposed()
@@ -314,7 +295,7 @@ public sealed class OpAmpClient : IDisposable
     {
         this.ConfigureService<HeartbeatService>(
             settings => settings.Heartbeat.IsEnabled,
-            () => new(this.dispatcher, this.processor));
+            () => new(this.pipe, this.processor));
     }
 
     private TService GetService<TService>(string serviceName) => (TService)this.services[serviceName];

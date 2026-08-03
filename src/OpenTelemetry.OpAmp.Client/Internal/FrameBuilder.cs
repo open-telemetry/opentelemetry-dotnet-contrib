@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
 using Google.Protobuf;
 using OpAmp.Proto.V1;
 using OpenTelemetry.OpAmp.Client.Internal.Services.Heartbeat;
@@ -16,7 +14,7 @@ internal sealed class FrameBuilder : IFrameBuilder
 {
     private readonly OpAmpClientSettings settings;
 
-    private AgentToServer? currentMessage;
+    private AgentToServer currentMessage;
     private ByteString instanceUid;
     private ulong sequenceNum;
 
@@ -24,29 +22,11 @@ internal sealed class FrameBuilder : IFrameBuilder
     {
         this.settings = settings;
         this.instanceUid = ByteString.CopyFrom(this.settings.InstanceUid.ToByteArray());
-    }
-
-    public IFrameBuilder StartBaseMessage()
-    {
-        if (this.currentMessage != null)
-        {
-            throw new InvalidOperationException("Message base is already initialized.");
-        }
-
-        var message = new AgentToServer()
-        {
-            InstanceUid = this.instanceUid,
-            SequenceNum = ++this.sequenceNum,
-        };
-
-        this.currentMessage = message;
-        return this;
+        this.currentMessage = this.NextBaseMessage();
     }
 
     IFrameBuilder IFrameBuilder.AddAgentDescription()
     {
-        this.EnsureInitialized();
-
         var resources = this.settings.Identification;
         var description = new AgentDescription();
 
@@ -75,8 +55,6 @@ internal sealed class FrameBuilder : IFrameBuilder
 
     IFrameBuilder IFrameBuilder.AddHealth(HealthReport health)
     {
-        this.EnsureInitialized();
-
         this.currentMessage.Health = new ComponentHealth()
         {
             Healthy = health.IsHealthy,
@@ -121,8 +99,6 @@ internal sealed class FrameBuilder : IFrameBuilder
 
     IFrameBuilder IFrameBuilder.AddAgentDisconnect()
     {
-        this.EnsureInitialized();
-
         this.currentMessage.AgentDisconnect = new AgentDisconnect();
 
         return this;
@@ -130,8 +106,6 @@ internal sealed class FrameBuilder : IFrameBuilder
 
     IFrameBuilder IFrameBuilder.AddCapabilities()
     {
-        this.EnsureInitialized();
-
         // TODO: Update the actual capabilities when features are implemented.
 
         var capabilities = AgentCapabilities.ReportsStatus;
@@ -163,8 +137,6 @@ internal sealed class FrameBuilder : IFrameBuilder
 
     IFrameBuilder IFrameBuilder.AddCustomCapabilities(IEnumerable<string> capabilities)
     {
-        this.EnsureInitialized();
-
         this.currentMessage.CustomCapabilities = new CustomCapabilities();
         this.currentMessage.CustomCapabilities.Capabilities.Add(capabilities);
 
@@ -173,8 +145,6 @@ internal sealed class FrameBuilder : IFrameBuilder
 
     IFrameBuilder IFrameBuilder.AddCustomMessage(string capability, string type, ReadOnlyMemory<byte> data)
     {
-        this.EnsureInitialized();
-
         this.currentMessage.CustomMessage = new CustomMessage
         {
             Capability = capability,
@@ -187,8 +157,6 @@ internal sealed class FrameBuilder : IFrameBuilder
 
     IFrameBuilder IFrameBuilder.AddEffectiveConfig(IEnumerable<EffectiveConfigFile> files)
     {
-        this.EnsureInitialized();
-
         var configMap = new AgentConfigMap();
         var fileMap = new Dictionary<string, global::OpAmp.Proto.V1.AgentConfigFile>(StringComparer.Ordinal);
         foreach (var file in files)
@@ -219,35 +187,42 @@ internal sealed class FrameBuilder : IFrameBuilder
 
     IFrameBuilder IFrameBuilder.AddRemoteConfigStatus(RemoteConfigStatusReport status)
     {
-        this.EnsureInitialized();
-
         this.currentMessage.RemoteConfigStatus = status.ToRemoteConfigStatus();
 
         return this;
     }
 
-    AgentToServer IFrameBuilder.Build()
+    public IFrameBuilder Clear()
     {
-        this.EnsureInitialized();
+        // Initializes a new clean frame with the same id
+        var message = new AgentToServer()
+        {
+            InstanceUid = this.instanceUid,
+            SequenceNum = this.sequenceNum,
+        };
 
+        this.currentMessage = message;
+
+        return this;
+    }
+
+    public AgentToServer Build()
+    {
+        // TODO fix concurrency
         var message = this.currentMessage;
-        this.currentMessage = null; // Reset for the next message
+        this.currentMessage = this.NextBaseMessage();
 
         return message;
     }
 
-    public void Reset()
+    private AgentToServer NextBaseMessage()
     {
-        this.currentMessage = null;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    [MemberNotNull(nameof(currentMessage))]
-    private void EnsureInitialized()
-    {
-        if (this.currentMessage == null)
+        var message = new AgentToServer()
         {
-            throw new InvalidOperationException("Message base is not initialized.");
-        }
+            InstanceUid = this.instanceUid,
+            SequenceNum = ++this.sequenceNum,
+        };
+
+        return message;
     }
 }

@@ -3,6 +3,9 @@
 
 #if NET
 
+using System.Buffers;
+using Google.Protobuf;
+using OpAmp.Proto.V1;
 using OpenTelemetry.OpAmp.Client.Internal;
 using OpenTelemetry.OpAmp.Client.Settings;
 using OpenTelemetry.OpAmp.Client.Tests.Mocks;
@@ -19,18 +22,14 @@ public class FrameDispatcherTests
 
         var transport = new MockTransport(taskCount);
         var settings = new OpAmpClientSettings();
-        var dispatcher = new FrameDispatcher(transport, settings);
+        var processor = new FrameProcessor();
+        var dispatcher = new OpAmpPipe(settings, processor, transport);
+        var mockAnswer = new ServerToAgent().ToByteArray();
 
         await Parallel.ForEachAsync(Enumerable.Range(0, taskCount), async (i, token) =>
         {
-            if (i % 2 == 0)
-            {
-                await dispatcher.DispatchIdentificationAsync(token);
-            }
-            else
-            {
-                await dispatcher.DispatchIdentificationAsync(token);
-            }
+            dispatcher.AppendMessage(fb => fb.AddAgentDescription());
+            processor.OnServerFrame(new ReadOnlySequence<byte>(mockAnswer));
         });
 
         // Assert that all messages were sent without exceptions
