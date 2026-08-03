@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+* Fixed query sanitization so that a `)` inside a value or a comment in an
+  `IN (...)` clause no longer causes the values which follow it to be left
+  unsanitized.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
+* Fixed query sanitization so that literals are still redacted after the
+  `db.query.summary` length limit is reached.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 1.17.0-beta.1
 
 Released 2026-Jul-17
