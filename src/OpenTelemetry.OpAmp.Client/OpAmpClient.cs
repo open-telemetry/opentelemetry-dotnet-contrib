@@ -80,9 +80,10 @@ public sealed class OpAmpClient : IDisposable
     }
 
     /// <summary>
-    /// 
+    /// Forces any queued OpAMP client messages to be sent to the server.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>A task that completes when the currently queued messages have been flushed.</returns>
+    /// <exception cref="ObjectDisposedException">Thrown if the client has already been disposed.</exception>
     public async Task ForceFlushAsync()
     {
         this.ThrowIfDisposed();
@@ -122,11 +123,9 @@ public sealed class OpAmpClient : IDisposable
     }
 
     /// <summary>
-    /// Report current effective configuration of the agent.
+    /// Queues a report containing the current effective configuration of the agent.
     /// </summary>
     /// <param name="files">Configuration files to report.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A task that represents the asynchronous send operation.</returns>
     /// <remarks>
     /// <para>
     /// File contents are transmitted verbatim to the OpAMP server with no redaction.
@@ -137,7 +136,7 @@ public sealed class OpAmpClient : IDisposable
     /// <exception cref="InvalidOperationException">Thrown if effective configuration reporting is not enabled in settings.</exception>
     /// <exception cref="ObjectDisposedException">Thrown if the client has already been disposed.</exception>
     /// <exception cref="ArgumentException">Thrown if <paramref name="files"/> contains two or more files with the same file name.</exception>
-    public void SendEffectiveConfig(IEnumerable<EffectiveConfigFile> files, CancellationToken cancellationToken = default)
+    public void SendEffectiveConfig(IEnumerable<EffectiveConfigFile> files)
     {
         this.ThrowIfDisposed();
 
@@ -150,15 +149,13 @@ public sealed class OpAmpClient : IDisposable
     }
 
     /// <summary>
-    /// Reports the status of a remote configuration previously received from the OpAMP server.
+    /// Queues the status of a remote configuration previously received from the OpAMP server.
     /// </summary>
     /// <param name="statusReport">The remote configuration status report.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A task that represents the asynchronous send operation.</returns>
     /// <exception cref="InvalidOperationException">Thrown if remote configuration status reporting is not enabled in settings.</exception>
     /// <exception cref="ObjectDisposedException">Thrown if the client has already been disposed.</exception>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="statusReport"/> is null.</exception>
-    public void SendRemoteConfigStatus(RemoteConfigStatusReport statusReport, CancellationToken cancellationToken = default)
+    public void SendRemoteConfigStatus(RemoteConfigStatusReport statusReport)
     {
         this.ThrowIfDisposed();
         Guard.ThrowIfNull(statusReport);
@@ -172,13 +169,11 @@ public sealed class OpAmpClient : IDisposable
     }
 
     /// <summary>
-    /// Reports custom capabilities supported by the agent.
+    /// Queues custom capabilities supported by the agent.
     /// </summary>
     /// <param name="capabilities">Capabilities list.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A task that represents the asynchronous send operation.</returns>
     /// <exception cref="ObjectDisposedException">Thrown if the client has already been disposed.</exception>
-    public void SendCustomCapabilities(IEnumerable<string> capabilities, CancellationToken cancellationToken = default)
+    public void SendCustomCapabilities(IEnumerable<string> capabilities)
     {
         this.ThrowIfDisposed();
 
@@ -186,15 +181,13 @@ public sealed class OpAmpClient : IDisposable
     }
 
     /// <summary>
-    /// Sends a custom message related to a supported custom capability.
+    /// Queues a custom message related to a supported custom capability.
     /// </summary>
     /// <param name="capability">Capability that matches a reported custom capability.</param>
     /// <param name="type">Type of message within the capability.</param>
     /// <param name="data">Contents of the message.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A task that represents the asynchronous send operation.</returns>
     /// <exception cref="ObjectDisposedException">Thrown if the client has already been disposed.</exception>
-    public void SendCustomMessage(string capability, string type, ReadOnlyMemory<byte> data, CancellationToken cancellationToken = default)
+    public void SendCustomMessage(string capability, string type, ReadOnlyMemory<byte> data)
     {
         this.ThrowIfDisposed();
 
@@ -202,13 +195,11 @@ public sealed class OpAmpClient : IDisposable
     }
 
     /// <summary>
-    /// Sends a full state report message to restore the lost state in the server.
+    /// Queues a full state report message to restore the lost state in the server.
     /// </summary>
     /// <param name="report">Report that contains supported partials.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A task that represents the asynchronous send operation.</returns>
     /// <exception cref="ObjectDisposedException">Thrown if the client has already been disposed.</exception>
-    public void SendFullStateReport(FullStateReport report, CancellationToken cancellationToken = default)
+    public void SendFullStateReport(FullStateReport report)
     {
         this.ThrowIfDisposed();
         Guard.ThrowIfNull(report);
@@ -272,7 +263,7 @@ public sealed class OpAmpClient : IDisposable
     }
 
     // Used for testing purposes only.
-    internal void SendHeartbeat(HealthReport healthReport, CancellationToken cancellationToken = default)
+    internal void SendHeartbeat(HealthReport healthReport)
     {
         this.ThrowIfDisposed();
 

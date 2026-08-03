@@ -76,7 +76,7 @@ delivered as a `RemoteConfigMessage`, which contains the configuration hash and
 an `AgentConfigMap` of named `AgentConfigFile` values.
 
 Enable `RemoteConfiguration.ReportsRemoteConfigStatus` to report configuration
-processing status back to the server. Use `SendRemoteConfigStatusAsync()` with a
+processing status back to the server. Use `SendRemoteConfigStatus()` with a
 `RemoteConfigStatusReport` to report `Applying`, `Applied`, or `Failed` for the
 last received configuration hash.
 
@@ -84,15 +84,16 @@ last received configuration hash.
 
 Enable `EffectiveConfigurationReporting.EnableReporting` when the client should
 report its current effective configuration to the server. Use
-`SendEffectiveConfigAsync()` with one or more `EffectiveConfigFile` values.
+`SendEffectiveConfig()` with one or more `EffectiveConfigFile` values. Call
+`ForceFlushAsync()` when the queued report must be sent before continuing.
 
 `EffectiveConfigFile` can be created from in-memory content or from a bounded
 stream using `CreateFromStream()` or `CreateFromStreamAsync()`.
 
 ### Custom Capabilities and Messages
 
-Use `SendCustomCapabilitiesAsync()` to advertise custom capability names
-supported by the client. Use `SendCustomMessageAsync()` to send a typed payload
+Use `SendCustomCapabilities()` to advertise custom capability names
+supported by the client. Use `SendCustomMessage()` to send a typed payload
 for one of those capabilities.
 
 Server-provided custom capabilities and custom messages are exposed through
