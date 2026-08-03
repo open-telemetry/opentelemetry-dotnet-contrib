@@ -262,6 +262,79 @@ public class LogRecordCommonSchemaJsonSerializerTests
     }
 
     [Fact]
+    public void LogRecordOriginalEventNamespaceWithJsonIsNotInjected()
+    {
+        // An invalid category name is replaced by the default namespace and the original is
+        // emitted as "data.namespace". It is unvalidated, so it has to be escaped.
+        var categoryName = "bad\",\"injected\":\"json";
+
+        var json = GetLogRecordJson(1, (index, logRecord) => logRecord.CategoryName = categoryName);
+
+        Assert.Equal(
+            $$$"""{"ver":"4.0","name":"Namespace.Name","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"namespace":"{{{JsonEncodedText.Encode(categoryName)}}}","severityText":"Trace","severityNumber":1}}""" + "\n",
+            json);
+
+        using var doc = JsonDocument.Parse(json.Trim());
+
+        var data = doc.RootElement.GetProperty("data");
+
+        Assert.Equal(categoryName, data.GetProperty("namespace").GetString());
+        Assert.False(data.TryGetProperty("injected", out _));
+    }
+
+    [Fact]
+    public void LogRecordOriginalEventNameWithJsonIsNotInjected()
+    {
+        // As above, but for the event name, which is emitted as "data.name".
+        var eventName = "bad\",\"injected\":\"json";
+
+        var json = GetLogRecordJson(1, (index, logRecord) =>
+        {
+            logRecord.CategoryName = "Namespace";
+            logRecord.EventId = new(0, eventName);
+        });
+
+        using var doc = JsonDocument.Parse(json.Trim());
+
+        var data = doc.RootElement.GetProperty("data");
+
+        Assert.Equal(eventName, data.GetProperty("name").GetString());
+        Assert.False(data.TryGetProperty("injected", out _));
+    }
+
+    [Theory]
+    [InlineData("Category\ud800Name")] // An unpaired surrogate cannot be encoded.
+    [InlineData("Category Name")]
+    public void LogRecordOriginalEventNamespaceWithUnencodableCharactersJsonTest(string categoryName)
+    {
+        var json = GetLogRecordJson(1, (index, logRecord) => logRecord.CategoryName = categoryName);
+
+        using var doc = JsonDocument.Parse(json.Trim());
+
+        Assert.True(doc.RootElement.GetProperty("data").TryGetProperty("namespace", out _));
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(10)]
+    public void LogRecordBatchIsNotDiscardedWhenEventFullNameIsTooLongJsonTest(int numberOfLogRecords)
+    {
+        // Neither an over long {EventFullName} attribute nor an over long invalid category
+        // name may throw while serializing: SerializeBatchOfItemsToStream has no per item
+        // error handling, so the whole batch would be dropped by OneCollectorExporter.Export.
+        var json = GetLogRecordJson(numberOfLogRecords, (index, logRecord) =>
+        {
+            logRecord.CategoryName = new string('9', 129);
+            logRecord.Attributes =
+            [
+                new KeyValuePair<string, object?>("{EventFullName}", new string('A', 129)),
+            ];
+        });
+
+        Assert.Equal(numberOfLogRecords, json.Split(['\n'], StringSplitOptions.RemoveEmptyEntries).Length);
+    }
+
+    [Fact]
     public void LogRecordTraceContextJsonTest()
     {
         var traceId = ActivityTraceId.CreateRandom();
