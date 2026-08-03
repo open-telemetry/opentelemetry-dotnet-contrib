@@ -193,7 +193,7 @@ public class EventNameManagerTests
     [InlineData("name\"with\"quotes")]
     [InlineData("name\\with\\backslashes")]
     [InlineData("name with spaces")]
-    [InlineData("nameĢwithĢnonAscii")] // Chars are truncated to bytes, and 'Ģ' truncates to '"'.
+    [InlineData("name\u0122with\u0122nonAscii")] // Chars are truncated to bytes, and U+0122 truncates to a quote.
     [InlineData("name\nwith\nnewlines")]
     [InlineData("name{with}braces")]
     public void ResolveEventFullNameSingleArgumentRejectsUnsafeCharacters(string payload)
