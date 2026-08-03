@@ -8,6 +8,7 @@ using System.Collections.Concurrent;
 using Google.Protobuf;
 using OpAmp.Proto.V1;
 using OpenTelemetry.OpAmp.Client.Internal;
+using OpenTelemetry.OpAmp.Client.Internal.Services.Heartbeat;
 using OpenTelemetry.OpAmp.Client.Internal.Transport;
 using OpenTelemetry.OpAmp.Client.Settings;
 
@@ -52,6 +53,102 @@ public class OpAmpPipeTests
         Assert.All(messages, message => Assert.NotNull(message.AgentDescription));
     }
 
+    [Fact]
+    public async Task OpAmpPipe_ForceFlushCompletes_WhenNoMessagesArePending()
+    {
+        using var transport = new ControlledTransport();
+        var settings = new OpAmpClientSettings();
+        var processor = new FrameProcessor();
+        using var pipe = new OpAmpPipe(settings, processor, transport);
+
+        await pipe.ForceFlushAsync();
+
+        Assert.Empty(transport.Messages);
+    }
+
+    [Fact]
+    public async Task OpAmpPipe_ForceFlushIsThreadSafe_WhenCalledConcurrentlyWithoutPendingMessages()
+    {
+        using var transport = new ControlledTransport();
+        var settings = new OpAmpClientSettings();
+        var processor = new FrameProcessor();
+        using var pipe = new OpAmpPipe(settings, processor, transport);
+
+        await Parallel.ForEachAsync(Enumerable.Range(0, 20), async (_, _) =>
+        {
+            await pipe.ForceFlushAsync();
+        });
+
+        Assert.Empty(transport.Messages);
+    }
+
+    [Fact]
+    public async Task OpAmpPipe_FlushesAccumulatedData_WhenCurrentSendFails()
+    {
+        using var transport = new ControlledTransport();
+        var settings = new OpAmpClientSettings();
+        var processor = new FrameProcessor();
+        using var pipe = new OpAmpPipe(settings, processor, transport);
+
+        pipe.AppendMessage(fb => fb.AddAgentDescription());
+        await transport.WaitForMessagesAsync(1);
+
+        pipe.AppendMessage(fb => fb.AddHealth(CreateHealthReport()));
+        transport.FaultNextSend(new InvalidOperationException("send failed"));
+
+        await transport.WaitForMessagesAsync(2);
+        transport.CompleteNextSend();
+
+        var messages = transport.Messages.ToArray();
+        Assert.Equal([1UL, 2UL], messages.Select(m => m.SequenceNum).ToArray());
+        Assert.NotNull(messages[0].AgentDescription);
+        Assert.NotNull(messages[1].Health);
+    }
+
+    [Fact]
+    public async Task OpAmpPipe_StopAsyncWaitsForAccumulatedDataBeforeSendingDisconnect()
+    {
+        using var transport = new ControlledTransport();
+        var settings = new OpAmpClientSettings();
+        var processor = new FrameProcessor();
+        using var pipe = new OpAmpPipe(settings, processor, transport);
+        var serverFrame = new ServerToAgent().ToByteArray();
+
+        pipe.AppendMessage(fb => fb.AddAgentDescription());
+        await transport.WaitForMessagesAsync(1);
+
+        pipe.AppendMessage(fb => fb.AddHealth(CreateHealthReport()));
+        var stopTask = pipe.StopAsync();
+
+        transport.CompleteNextSend();
+        processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+
+        await transport.WaitForMessagesAsync(2);
+        await Assert.ThrowsAsync<TimeoutException>(
+            () => transport.WaitForMessagesAsync(3, TimeSpan.FromMilliseconds(250)));
+
+        transport.CompleteNextSend();
+        processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+
+        await transport.WaitForMessagesAsync(3);
+        transport.CompleteNextSend();
+        await stopTask;
+
+        var messages = transport.Messages.ToArray();
+        Assert.Equal([1UL, 2UL, 3UL], messages.Select(m => m.SequenceNum).ToArray());
+        Assert.NotNull(messages[0].AgentDescription);
+        Assert.NotNull(messages[1].Health);
+        Assert.NotNull(messages[2].AgentDisconnect);
+    }
+
+    private static HealthReport CreateHealthReport() => new()
+    {
+        StartTime = 1,
+        StatusTime = 2,
+        IsHealthy = true,
+        Status = "OK",
+    };
+
     private sealed class ControlledTransport : IOpAmpTransport, IDisposable
     {
         private readonly ConcurrentQueue<AgentToServer> messages = [];
@@ -88,6 +185,9 @@ public class OpAmpPipeTests
         }
 
         public Task WaitForMessagesAsync(int count)
+            => this.WaitForMessagesAsync(count, TimeSpan.FromSeconds(5));
+
+        public Task WaitForMessagesAsync(int count, TimeSpan timeout)
         {
             lock (this.syncRoot)
             {
@@ -98,7 +198,7 @@ public class OpAmpPipeTests
 
                 this.waitTarget = count;
                 this.messagesReached = CreateCompletionSource();
-                return this.messagesReached.Task.WaitAsync(TimeSpan.FromSeconds(5));
+                return this.messagesReached.Task.WaitAsync(timeout);
             }
         }
 
@@ -110,6 +210,16 @@ public class OpAmpPipeTests
             }
 
             sendCompletion.SetResult();
+        }
+
+        public void FaultNextSend(Exception exception)
+        {
+            if (!this.sendCompletions.TryDequeue(out var sendCompletion))
+            {
+                throw new InvalidOperationException("No send is waiting to complete.");
+            }
+
+            sendCompletion.SetException(exception);
         }
 
         public void Dispose()

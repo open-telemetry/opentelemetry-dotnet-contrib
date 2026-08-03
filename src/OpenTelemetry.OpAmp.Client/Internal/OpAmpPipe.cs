@@ -49,20 +49,21 @@ internal sealed class OpAmpPipe : IDisposable
 
     public async Task StopAsync(CancellationToken token = default)
     {
-        this.isBusy = true;
+        await this.ForceFlushAsync().ConfigureAwait(false);
 
-        // Wait for previous send and stop after
-        if (this.flushTask != null)
+        AgentToServer message;
+
+        lock (this.frameLock)
         {
-            await this.flushTask
-                .ConfigureAwait(false);
+            this.isBusy = true;
+            this.hasAccumulatedData = false;
+
+            this.currentFrame
+                .Clear()
+                .AddAgentDisconnect();
+
+            message = this.currentFrame.Build();
         }
-
-        this.currentFrame
-            .Clear()
-            .AddAgentDisconnect();
-
-        var message = this.currentFrame.Build();
 
         await this.transport.SendAsync(message, token)
             .ConfigureAwait(false);
@@ -87,23 +88,41 @@ internal sealed class OpAmpPipe : IDisposable
 
     public async Task ForceFlushAsync()
     {
-        if (this.flushTask != null)
+        Task? taskToAwait;
+
+        lock (this.frameLock)
         {
-            await this.flushTask.ConfigureAwait(false);
+            taskToAwait = this.flushTask;
         }
 
-        this.TryFlush(force: true);
-        await this.flushTask!.ConfigureAwait(false);
+        if (taskToAwait != null)
+        {
+            await taskToAwait.ConfigureAwait(false);
+        }
+
+        lock (this.frameLock)
+        {
+            taskToAwait = this.TryStartFlushLocked(force: true) ?? this.flushTask;
+        }
+
+        if (taskToAwait != null)
+        {
+            await taskToAwait.ConfigureAwait(false);
+        }
     }
 
     public void Dispose()
     {
-        if (this.isDisposed)
+        lock (this.frameLock)
         {
-            return;
+            if (this.isDisposed)
+            {
+                return;
+            }
+
+            this.isDisposed = true;
         }
 
-        this.isDisposed = true;
         this.tokenSource.Cancel();
         this.tokenSource.Dispose();
 
@@ -115,28 +134,9 @@ internal sealed class OpAmpPipe : IDisposable
 
     internal void TryFlush(bool force = false)
     {
-        AgentToServer? message = null;
-
         lock (this.frameLock)
         {
-            // No data, don't process
-            if (!this.hasAccumulatedData)
-            {
-                return;
-            }
-
-            // Is busy but not forced
-            if (this.isBusy && !force)
-            {
-                return;
-            }
-
-            this.isBusy = true;
-
-            message = this.currentFrame.Build();
-            this.hasAccumulatedData = false;
-
-            this.flushTask = this.SendMessageAsync(message);
+            this.TryStartFlushLocked(force);
         }
     }
 
@@ -150,6 +150,28 @@ internal sealed class OpAmpPipe : IDisposable
         };
     }
 
+    private Task? TryStartFlushLocked(bool force = false)
+    {
+        if (this.isDisposed || !this.hasAccumulatedData)
+        {
+            return null;
+        }
+
+        if (this.isBusy && !force)
+        {
+            return null;
+        }
+
+        this.isBusy = true;
+
+        var message = this.currentFrame.Build();
+        this.hasAccumulatedData = false;
+
+        this.flushTask = this.SendMessageAsync(message);
+
+        return this.flushTask;
+    }
+
     private async Task SendMessageAsync(AgentToServer message)
     {
         try
@@ -159,7 +181,12 @@ internal sealed class OpAmpPipe : IDisposable
         }
         catch (Exception)
         {
-            this.isBusy = false;
+            lock (this.frameLock)
+            {
+                this.isBusy = false;
+            }
+
+            this.TryFlush();
 
             // TODO: log exception
         }
