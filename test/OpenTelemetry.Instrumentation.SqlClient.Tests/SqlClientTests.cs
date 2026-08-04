@@ -20,14 +20,11 @@ public enum SqlClientLibrary
 }
 
 [Collection("SqlClient")]
-public class SqlClientTests : IDisposable
+public class SqlClientTests
 {
     private const string TestConnectionString = "Data Source=(localdb)\\MSSQLLocalDB;Database=master;Encrypt=True;TrustServerCertificate=True";
 
     public static IEnumerable<object[]> TestData => SqlClientTestCases.GetTestCases();
-
-    public void Dispose()
-        => GC.SuppressFinalize(this); // TODO: Why is this here? Add comment explaining why.
 
     [Fact]
     public void SqlClient_BadArgs()
