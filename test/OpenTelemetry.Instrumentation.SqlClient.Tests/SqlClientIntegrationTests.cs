@@ -220,6 +220,53 @@ public sealed class SqlClientIntegrationTests :
 #endif
 
     [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
+    public async Task RecordsMetricDurationWhenNoActivityIsCreated()
+    {
+        // Arrange
+        var metrics = new List<Metric>();
+
+        // No activity listener is registered, so no activity is created for the command and the
+        // duration has to be derived from the start timestamp captured by the before event. That
+        // timestamp is correlated with the after event using the operation ID carried on the real
+        // SqlClient payloads, so this exercises that contract against the real client.
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddInMemoryExporter(metrics)
+            .AddSqlClientInstrumentation()
+            .Build();
+
+        using var sqlConnection = new SqlConnection(this.GetConnectionString());
+
+        await sqlConnection.OpenAsync();
+
+        sqlConnection.ChangeDatabase("master");
+
+        using var sqlCommand = new SqlCommand("WAITFOR DELAY '00:00:00.300'", sqlConnection);
+
+        // Act
+        await sqlCommand.ExecuteNonQueryAsync();
+
+        meterProvider.ForceFlush();
+
+        // Assert
+        var metric = Assert.Single(metrics, x => x.Name == "db.client.operation.duration");
+
+        var metricPoints = new List<MetricPoint>();
+        foreach (var metricPoint in metric.GetMetricPoints())
+        {
+            metricPoints.Add(metricPoint);
+        }
+
+        var point = Assert.Single(metricPoints);
+
+        Assert.Equal(1, point.GetHistogramCount());
+
+        // The command was deliberately made slow so that a duration derived from the wrong start
+        // timestamp (or from the process start) is distinguishable from the real one.
+        var duration = point.GetHistogramSum();
+        Assert.InRange(duration, 0.2d, 60d);
+    }
+
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
     public async Task ActivityIsStoppedWhenOnlyUsingMetrics()
     {
         // Arrange

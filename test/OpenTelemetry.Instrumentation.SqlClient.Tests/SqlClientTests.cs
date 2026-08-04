@@ -1,6 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if !NETFRAMEWORK
+using System.Collections;
+#endif
 using System.Data;
 using System.Diagnostics;
 using OpenTelemetry.Instrumentation.SqlClient.Implementation;
@@ -24,10 +27,7 @@ public class SqlClientTests : IDisposable
     public static IEnumerable<object[]> TestData => SqlClientTestCases.GetTestCases();
 
     public void Dispose()
-    {
-        // TODO: Why is this here? Add comment explaining why.
-        GC.SuppressFinalize(this);
-    }
+        => GC.SuppressFinalize(this); // TODO: Why is this here? Add comment explaining why.
 
     [Fact]
     public void SqlClient_BadArgs()
@@ -39,16 +39,12 @@ public class SqlClientTests : IDisposable
     [Theory]
     [MemberData(nameof(TestData))]
     public void TestMicrosoftDataSqlClient(SqlClientTestCase testCase)
-    {
-        this.RunSqlClientTestCase(testCase, SqlClientLibrary.MicrosoftDataSqlClient);
-    }
+        => this.RunSqlClientTestCase(testCase, SqlClientLibrary.MicrosoftDataSqlClient);
 
     [Theory]
     [MemberData(nameof(TestData))]
     public void TestSystemDataSqlClient(SqlClientTestCase testCase)
-    {
-        this.RunSqlClientTestCase(testCase, SqlClientLibrary.SystemDataSqlClient);
-    }
+        => this.RunSqlClientTestCase(testCase, SqlClientLibrary.SystemDataSqlClient);
 
     [Theory]
     [InlineData("localhost", "localhost", null, null)]
@@ -127,6 +123,159 @@ public class SqlClientTests : IDisposable
         }
     }
 
+#if !NETFRAMEWORK
+    [Fact]
+    public void MetricDurationUsesPerCommandStartTimestampForReEntrantCommands()
+    {
+        var metrics = new List<Metric>();
+
+        // Metrics only, so no activity is created for either command and the durations must come
+        // from the start timestamps captured by the before events.
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(metrics)
+            .Build();
+
+        Assert.False(SqlTelemetryHelper.ActivitySource.HasListeners());
+
+        // Stored procedures are used so that each command contributes a distinct metric point via
+        // db.stored_procedure.name, letting the two durations be told apart.
+        var outerCommand = new FakeDbCommand
+        {
+            CommandType = CommandType.StoredProcedure,
+            CommandText = "SP_Outer",
+            Connection = new FakeDbConnection(),
+        };
+
+        var innerCommand = new FakeDbCommand
+        {
+            CommandType = CommandType.StoredProcedure,
+            CommandText = "SP_Inner",
+            Connection = new FakeDbConnection(),
+        };
+
+        // The inner command starts, and both commands finish, only after the outer command has
+        // already been running for the delay below. A single shared start timestamp would be
+        // overwritten by the inner command's before event, so the outer command would report
+        // roughly the inner command's (near instant) duration instead of its own.
+        var delay = TimeSpan.FromMilliseconds(500);
+
+        MockCommandExecutor.ExecuteNestedCommands(
+            SqlClientLibrary.MicrosoftDataSqlClient,
+            outerCommand,
+            null,
+            innerCommand,
+            null,
+            afterOuterCommandStarted: () => Thread.Sleep(delay));
+
+        meterProvider.ForceFlush();
+
+        var metric = Assert.Single(metrics, m => m.Name == "db.client.operation.duration");
+
+        var metricPoints = new List<MetricPoint>();
+        foreach (var p in metric.GetMetricPoints())
+        {
+            metricPoints.Add(p);
+        }
+
+        Assert.Equal(2, metricPoints.Count);
+
+        var outerDuration = GetDurationForStoredProcedure(metricPoints, outerCommand.CommandText);
+        var innerDuration = GetDurationForStoredProcedure(metricPoints, innerCommand.CommandText);
+
+        // Half the delay is used as the threshold to keep the assertions robust on slow machines
+        // while still being far away from the near instant duration the shared slot would report.
+        Assert.True(outerDuration >= delay.TotalSeconds / 2, $"Outer duration {outerDuration}s should span the {delay.TotalSeconds}s the outer command was running.");
+        Assert.True(innerDuration < delay.TotalSeconds / 2, $"Inner duration {innerDuration}s should not include the {delay.TotalSeconds}s that elapsed before the inner command started.");
+
+        static double GetDurationForStoredProcedure(List<MetricPoint> metricPoints, string storedProcedureName)
+        {
+            foreach (var metricPoint in metricPoints)
+            {
+                foreach (var tag in metricPoint.Tags)
+                {
+                    if (tag.Key == SemanticConventions.AttributeDbStoredProcedureName &&
+                        (string?)tag.Value == storedProcedureName)
+                    {
+                        Assert.Equal(1, metricPoint.GetHistogramCount());
+                        return metricPoint.GetHistogramSum();
+                    }
+                }
+            }
+
+            Assert.Fail($"No metric point was recorded for stored procedure '{storedProcedureName}'.");
+            return 0d;
+        }
+    }
+
+    [Fact]
+    public void PendingStartTimestampIsReleasedWhenInstrumentationIsDisabledMidCommand()
+    {
+        var listener = new SqlClientDiagnosticListener(SqlClientInstrumentation.SqlClientDiagnosticListenerName);
+
+        var command = new FakeDbCommand
+        {
+            CommandType = CommandType.StoredProcedure,
+            CommandText = "SP_GetOrders",
+            Connection = new FakeDbConnection(),
+        };
+
+        var operationId = Guid.NewGuid();
+
+        using (Sdk.CreateMeterProviderBuilder().AddSqlClientInstrumentation().Build())
+        {
+            Assert.False(SqlTelemetryHelper.ActivitySource.HasListeners());
+
+            listener.OnEventWritten(
+                SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand,
+                new
+                {
+                    OperationId = operationId,
+                    Command = command,
+                    Timestamp = (long?)1000000L,
+                });
+
+            Assert.Equal(1, listener.PendingBeginTimestampCount);
+        }
+
+        listener.OnEventWritten(
+            SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand,
+            new
+            {
+                OperationId = operationId,
+                Command = command,
+                Statistics = (IDictionary?)null,
+                Timestamp = 2000000L,
+            });
+
+        Assert.Equal(0, listener.PendingBeginTimestampCount);
+    }
+
+    [Fact]
+    public void MetricDurationNotRecordedWhenCommandHasNoStartTimestamp()
+    {
+        var metrics = new List<Metric>();
+
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(metrics)
+            .Build();
+
+        MockCommandExecutor.WriteCommandAfterWithoutBefore(
+            SqlClientLibrary.MicrosoftDataSqlClient,
+            new FakeDbCommand
+            {
+                CommandType = CommandType.StoredProcedure,
+                CommandText = "SP_GetOrders",
+                Connection = new FakeDbConnection(),
+            });
+
+        meterProvider.ForceFlush();
+
+        Assert.Empty(metrics);
+    }
+#endif
+
     private static void VerifyAttributes(SqlClientTestCase testCase, Activity activity, MetricPoint metricPoint)
     {
         var metricAttributes = new Dictionary<string, object?>();
@@ -166,16 +315,16 @@ public class SqlClientTests : IDisposable
         Assert.Contains(
             samplingParameters.Tags,
             kvp => kvp.Key == SemanticConventions.AttributeDbSystemName
-                   && kvp.Value is string
-                   && (string)kvp.Value == SqlTelemetryHelper.MicrosoftSqlServerDbSystemName);
+                   && kvp.Value is string value
+                   && value == SqlTelemetryHelper.MicrosoftSqlServerDbSystemName);
 
         if (testCase.Expected.DbNamespace != null)
         {
             Assert.Contains(
                 samplingParameters.Tags,
                 kvp => kvp.Key == SemanticConventions.AttributeDbNamespace
-                       && kvp.Value is string
-                       && (string)kvp.Value == testCase.Expected.DbNamespace);
+                       && kvp.Value is string value
+                       && value == testCase.Expected.DbNamespace);
         }
 
         if (testCase.Expected.ServerAddress != null)
@@ -183,8 +332,8 @@ public class SqlClientTests : IDisposable
             Assert.Contains(
             samplingParameters.Tags,
             kvp => kvp.Key == SemanticConventions.AttributeServerAddress
-                   && kvp.Value is string
-                   && (string)kvp.Value == testCase.Expected.ServerAddress);
+                   && kvp.Value is string value
+                   && value == testCase.Expected.ServerAddress);
         }
 
         if (testCase.Expected.ServerPort.HasValue)
@@ -192,8 +341,8 @@ public class SqlClientTests : IDisposable
             Assert.Contains(
                 samplingParameters.Tags,
                 kvp => kvp.Key == SemanticConventions.AttributeServerPort
-                       && kvp.Value is int
-                       && (int)kvp.Value == testCase.Expected.ServerPort);
+                       && kvp.Value is int value
+                       && value == testCase.Expected.ServerPort);
         }
 
         if (!string.IsNullOrEmpty(testCase.Expected.DbQuerySummary))
@@ -201,8 +350,8 @@ public class SqlClientTests : IDisposable
             Assert.Contains(
                 samplingParameters.Tags,
                 kvp => kvp.Key == SemanticConventions.AttributeDbQuerySummary
-                       && kvp.Value is string
-                       && (string)kvp.Value == testCase.Expected.DbQuerySummary);
+                       && kvp.Value is string value
+                       && value == testCase.Expected.DbQuerySummary);
         }
 
         if (!string.IsNullOrEmpty(testCase.Expected.DbQueryText))
@@ -210,8 +359,8 @@ public class SqlClientTests : IDisposable
             Assert.Contains(
                 samplingParameters.Tags,
                 kvp => kvp.Key == SemanticConventions.AttributeDbQueryText
-                       && kvp.Value is string
-                       && (string)kvp.Value == testCase.Expected.DbQueryText);
+                       && kvp.Value is string value
+                       && value == testCase.Expected.DbQueryText);
         }
 
         if (!string.IsNullOrEmpty(testCase.Expected.DbOperationName))
@@ -219,8 +368,8 @@ public class SqlClientTests : IDisposable
             Assert.Contains(
                 samplingParameters.Tags,
                 kvp => kvp.Key == SemanticConventions.AttributeDbOperationName
-                       && kvp.Value is string
-                       && (string)kvp.Value == testCase.Expected.DbOperationName);
+                       && kvp.Value is string value
+                       && value == testCase.Expected.DbOperationName);
         }
 
         if (!string.IsNullOrEmpty(testCase.Expected.DbCollectionName))
@@ -228,8 +377,8 @@ public class SqlClientTests : IDisposable
             Assert.Contains(
                 samplingParameters.Tags,
                 kvp => kvp.Key == SemanticConventions.AttributeDbCollectionName
-                       && kvp.Value is string
-                       && (string)kvp.Value == testCase.Expected.DbCollectionName);
+                       && kvp.Value is string value
+                       && value == testCase.Expected.DbCollectionName);
         }
 
         if (!string.IsNullOrEmpty(testCase.Expected.DbStoredProcedureName))
@@ -237,8 +386,8 @@ public class SqlClientTests : IDisposable
             Assert.Contains(
                 samplingParameters.Tags,
                 kvp => kvp.Key == SemanticConventions.AttributeDbStoredProcedureName
-                       && kvp.Value is string
-                       && (string)kvp.Value == testCase.Expected.DbStoredProcedureName);
+                       && kvp.Value is string value
+                       && value == testCase.Expected.DbStoredProcedureName);
         }
     }
 

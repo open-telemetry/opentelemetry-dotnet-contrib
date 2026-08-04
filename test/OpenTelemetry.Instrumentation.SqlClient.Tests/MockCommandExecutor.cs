@@ -56,6 +56,97 @@ public class MockCommandExecutor
             });
     }
 
+    public static void ExecuteNestedCommands(
+        SqlClientLibrary library,
+        IDbCommand outerCommand,
+        IDictionary? outerStatistics,
+        IDbCommand innerCommand,
+        IDictionary? innerStatistics,
+        Action? afterOuterCommandStarted = null)
+    {
+        // Writes the before/after events for two commands where the inner command is executed from
+        // within the execution of the outer command, as happens when SqlClient commands are
+        // re-entrant. Both commands are written to a single DiagnosticListener instance so that they
+        // are handled by the same listener handler, and the events are interleaved
+        // (outer before, inner before, inner after, outer after) so that each command must track its
+        // own state rather than sharing a single slot on the handler.
+        using var fakeSqlClientDiagnosticSource = new FakeSqlClientDiagnosticSource();
+
+        var beforeCommand = library == SqlClientLibrary.SystemDataSqlClient
+            ? SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand
+            : SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand;
+
+        var afterCommand = library == SqlClientLibrary.SystemDataSqlClient
+            ? SqlClientDiagnosticListener.SqlDataAfterExecuteCommand
+            : SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand;
+
+        var outerOperationId = Guid.NewGuid();
+        var innerOperationId = Guid.NewGuid();
+
+        fakeSqlClientDiagnosticSource.Write(
+            beforeCommand,
+            new
+            {
+                OperationId = outerOperationId,
+                Command = outerCommand,
+                Timestamp = (long?)1000000L,
+            });
+
+        // Lets a test spend measurable wall-clock time inside the outer command's execution
+        // before the inner command starts.
+        afterOuterCommandStarted?.Invoke();
+
+        fakeSqlClientDiagnosticSource.Write(
+            beforeCommand,
+            new
+            {
+                OperationId = innerOperationId,
+                Command = innerCommand,
+                Timestamp = (long?)1100000L,
+            });
+
+        fakeSqlClientDiagnosticSource.Write(
+            afterCommand,
+            new
+            {
+                OperationId = innerOperationId,
+                Command = innerCommand,
+                Statistics = innerStatistics,
+                Timestamp = 1200000L,
+            });
+
+        fakeSqlClientDiagnosticSource.Write(
+            afterCommand,
+            new
+            {
+                OperationId = outerOperationId,
+                Command = outerCommand,
+                Statistics = outerStatistics,
+                Timestamp = 2000000L,
+            });
+    }
+
+    public static void WriteCommandAfterWithoutBefore(SqlClientLibrary library, IDbCommand command)
+    {
+        // Writes an after event whose operation ID was never announced by a before event, as happens
+        // when the instrumentation is enabled part way through a command's execution.
+        using var fakeSqlClientDiagnosticSource = new FakeSqlClientDiagnosticSource();
+
+        var afterCommand = library == SqlClientLibrary.SystemDataSqlClient
+            ? SqlClientDiagnosticListener.SqlDataAfterExecuteCommand
+            : SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand;
+
+        fakeSqlClientDiagnosticSource.Write(
+            afterCommand,
+            new
+            {
+                OperationId = Guid.NewGuid(),
+                Command = command,
+                Statistics = (IDictionary?)null,
+                Timestamp = 2000000L,
+            });
+    }
+
     public static void ExecuteCommand(string connectionString, CommandType commandType, string commandText, bool error, SqlClientLibrary library, IDictionary? statistics)
     {
         using var fakeSqlClientDiagnosticSource = new FakeSqlClientDiagnosticSource();
@@ -145,10 +236,7 @@ public class MockCommandExecutor
             }
         }
 
-        public void Dispose()
-        {
-            this.listener.Dispose();
-        }
+        public void Dispose() => this.listener.Dispose();
     }
 }
 #endif

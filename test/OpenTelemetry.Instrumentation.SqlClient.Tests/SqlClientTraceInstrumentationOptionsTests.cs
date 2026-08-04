@@ -529,6 +529,58 @@ public class SqlClientTraceInstrumentationOptionsTests
         Assert.Equal(20L, activity.GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
     }
 
+    [Fact]
+    public void RecordReturnedRowsUsesPerCommandBaselineForReEntrantCommands()
+    {
+        var activities = new List<Activity>();
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation(options =>
+            {
+                options.RecordReturnedRows = true;
+            })
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        // The inner command executes while the outer command is still in flight, so both
+        // commands must keep their own pre-command baseline. The outer command starts from a
+        // cumulative SelectRows of 50 and finishes at 70 (a delta of 20); the inner command
+        // starts from 5 and finishes at 12 (a delta of 7). If a single baseline slot were
+        // shared by the handler the inner command's baseline (5) would be used for the outer
+        // command and it would incorrectly report 65.
+        var outerCommand = new FakeDbCommand
+        {
+            CommandType = CommandType.Text,
+            CommandText = "select * from Outer",
+            Connection = new StatisticsDbConnection(selectRows: 50L),
+        };
+
+        var innerCommand = new FakeDbCommand
+        {
+            CommandType = CommandType.Text,
+            CommandText = "select * from Inner",
+            Connection = new StatisticsDbConnection(selectRows: 5L),
+        };
+
+        MockCommandExecutor.ExecuteNestedCommands(
+            SqlClientLibrary.MicrosoftDataSqlClient,
+            outerCommand,
+            new Dictionary<string, object> { ["SelectRows"] = 70L },
+            innerCommand,
+            new Dictionary<string, object> { ["SelectRows"] = 12L });
+
+        tracerProvider.ForceFlush();
+
+        Assert.Equal(2, activities.Count);
+
+        var inner = activities.Single(x => (x.GetTagValue(SemanticConventions.AttributeDbQueryText) as string) == innerCommand.CommandText);
+        var outer = activities.Single(x => (x.GetTagValue(SemanticConventions.AttributeDbQueryText) as string) == outerCommand.CommandText);
+
+        Assert.Equal(inner.ParentSpanId, outer.SpanId);
+        Assert.Equal(7L, inner.GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
+        Assert.Equal(20L, outer.GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
+    }
+
     private static void ActivityEnrichment(Activity activity, object obj)
     {
         activity.SetTag("enriched", "yes");
