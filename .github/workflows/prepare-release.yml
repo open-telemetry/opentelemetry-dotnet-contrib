@@ -6,6 +6,7 @@ on:
       component:
         type: choice
         options:
+        - OpenTelemetry.DynamicControl
         - OpenTelemetry.Exporter.Geneva
         - OpenTelemetry.Exporter.InfluxDB
         - OpenTelemetry.Exporter.OneCollector
