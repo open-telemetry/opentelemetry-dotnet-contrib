@@ -15,12 +15,16 @@ public class RedisProfilerDrainSessionBenchmarks
     private Activity? parentActivity;
     private StackExchangeRedisInstrumentationOptions? options;
     private IProfiledCommand[]? sessionCommands;
+    private Baggage baggage;
 
     [Params(false, true)]
     public bool EnrichActivityWithTimingEvents { get; set; }
 
     [Params(1, 10, 100)]
     public int CommandCount { get; set; }
+
+    [Params(0, 3)]
+    public int BaggageItemCount { get; set; }
 
     [GlobalSetup]
     public void GlobalSetup()
@@ -53,6 +57,11 @@ public class RedisProfilerDrainSessionBenchmarks
         {
             this.sessionCommands[i] = BenchmarkProfiledCommand.Create(commandCreated.AddTicks(i), i);
         }
+
+        for (var i = 0; i < this.BaggageItemCount; i++)
+        {
+            this.baggage = this.baggage.SetBaggage($"key{i}", $"value{i}");
+        }
     }
 
     [GlobalCleanup]
@@ -60,5 +69,5 @@ public class RedisProfilerDrainSessionBenchmarks
 
     [Benchmark]
     public void DrainSession() =>
-        RedisProfilerEntryToActivityConverter.DrainSession(this.parentActivity, this.sessionCommands!, this.options!);
+        RedisProfilerEntryToActivityConverter.DrainSession(this.parentActivity, this.sessionCommands!, this.baggage, this.options!);
 }
