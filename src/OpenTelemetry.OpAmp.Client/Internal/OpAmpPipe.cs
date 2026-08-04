@@ -49,32 +49,15 @@ internal sealed class OpAmpPipe : IDisposable
 
     public async Task StopAsync(CancellationToken token = default)
     {
-        await this.ForceFlushAsync().ConfigureAwait(false);
+        // Clear queue
+        await this.ForceFlushAsync()
+            .ConfigureAwait(false);
 
-        AgentToServer message;
+        this.AppendMessage(MessageBuilderHelper.AppendAgentDisconnect);
 
-        lock (this.frameLock)
-        {
-            this.isBusy = true;
-            this.hasAccumulatedData = false;
-
-            this.currentFrame.Clear();
-            MessageBuilderHelper.AppendAgentDisconnect(this.currentFrame);
-            message = this.currentFrame.Build();
-        }
-
-        try
-        {
-            OpAmpClientEventSource.Log.SendingMessage();
-
-            await this.transport.SendAsync(message, token)
-                .ConfigureAwait(false);
-        }
-        catch (Exception ex) when (ex is not OperationCanceledException || !token.IsCancellationRequested)
-        {
-            OpAmpClientEventSource.Log.SendMessageException(ex);
-            throw;
-        }
+        // Force send disconnect
+        await this.ForceFlushAsync()
+            .ConfigureAwait(false);
 
         if (this.transport is WsTransport wsTransport)
         {

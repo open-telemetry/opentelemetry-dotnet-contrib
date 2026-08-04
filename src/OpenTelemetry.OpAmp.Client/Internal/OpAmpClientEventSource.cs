@@ -26,19 +26,19 @@ internal sealed class OpAmpClientEventSource : EventSource
     private const int EventIdHeartbeatServiceTimerUpdateFailure = 503;
     private const int EventIdHeartbeatServiceTimerUpdateReceived = 504;
 
-    // Message queue events 1000-1099
-    private const int EventIdQueueingIdentificationMessage = 1_000;
-    private const int EventIdQueueingHeartbeatMessage = 1_001;
-    private const int EventIdQueueingAgentDisconnectMessage = 1_002;
-    private const int EventIdQueueingEffectiveConfigMessage = 1_003;
-    private const int EventIdQueueingCustomCapabilitiesMessage = 1_004;
-    private const int EventIdQueueingCustomMessageMessage = 1_005;
-    private const int EventIdQueueingRemoteConfigStatusMessage = 1_006;
-    private const int EventIdQueueingFullStateReportMessage = 1_007;
+    // Message events 1000-1099
+    private const int EventIdSendingMessage = 1_000;
+    private const int EventIdQueueingIdentificationMessage = 1_001;
+    private const int EventIdQueueingHeartbeatMessage = 1_002;
+    private const int EventIdQueueingAgentDisconnectMessage = 1_003;
+    private const int EventIdQueueingEffectiveConfigMessage = 1_004;
+    private const int EventIdQueueingCustomCapabilitiesMessage = 1_005;
+    private const int EventIdQueueingCustomMessageMessage = 1_006;
+    private const int EventIdQueueingRemoteConfigStatusMessage = 1_007;
+    private const int EventIdQueueingFullStateReportMessage = 1_008;
 
-    // Message send events 1100-1199
-    private const int EventIdSendingMessage = 1_100;
-    private const int EventIdFailedToSendMessage = 1_101;
+    // Message send errors 1100-1199
+    private const int EventIdFailedToSendMessage = 1_100;
 
     [Event(EventIdInvalidWsFrame, Message = "Received invalid WebSocket frame header: {0}. Dropping the frame.", Level = EventLevel.Warning)]
     public void InvalidWsFrame(string errorMessage)
