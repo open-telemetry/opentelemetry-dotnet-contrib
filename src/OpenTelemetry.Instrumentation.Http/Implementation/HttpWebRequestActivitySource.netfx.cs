@@ -175,6 +175,13 @@ internal static class HttpWebRequestActivitySource
         var enableTracing = WebRequestActivitySource.HasListeners()
             && TracingOptions.EventFilterHttpWebRequest(request);
 
+        if (IsRequestInstrumented(request))
+        {
+            // This request was instrumented by previous
+            // ProcessRequest, such is the case with redirect responses where the same request is sent again.
+            return;
+        }
+
         if (!enableTracing && !HttpClientRequestDuration.Enabled)
         {
             // Tracing and metrics are not enabled, so we can skip generating signals
@@ -182,13 +189,6 @@ internal static class HttpWebRequestActivitySource
             // downstream services to continue from parent context, if any.
             // Eg: Parent could be the Asp.Net activity.
             InstrumentRequest(request, Activity.Current?.Context ?? default);
-            return;
-        }
-
-        if (IsRequestInstrumented(request))
-        {
-            // This request was instrumented by previous
-            // ProcessRequest, such is the case with redirect responses where the same request is sent again.
             return;
         }
 

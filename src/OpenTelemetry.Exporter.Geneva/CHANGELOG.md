@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+* Fixed a metric TLV serialization issue where an exemplar whose filtered tags
+  serialized to more than 255 bytes caused the payload to be corrupted.
+  ([#4856](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4856))
+
+* Renamed the `PrivatePreviewEnableOtlpProtobufEncoding` connection string switch
+  to `EnableOtlpProtobufEncoding`. The old `PrivatePreviewEnableOtlpProtobufEncoding`
+  switch is no longer supported.
+  ([#4920](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4920))
+
 ## 1.17.0
 
 Released 2026-Jul-17
