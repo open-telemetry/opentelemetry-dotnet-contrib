@@ -8,11 +8,13 @@
   <ItemGroup>
     <SolutionProjects Include="$(RepoRoot)\src\OpenTelemetry.PersistentStorage.Abstractions\OpenTelemetry.PersistentStorage.Abstractions.csproj" />
     <SolutionProjects Include="$(RepoRoot)\src\OpenTelemetry.PersistentStorage.FileSystem\OpenTelemetry.PersistentStorage.FileSystem.csproj" />
+    <SolutionProjects Include="$(RepoRoot)\test\OpenTelemetry.PersistentStorage.Abstractions.Tests\OpenTelemetry.PersistentStorage.Abstractions.Tests.csproj" />
     <SolutionProjects Include="$(RepoRoot)\test\OpenTelemetry.PersistentStorage.FileSystem.Tests\OpenTelemetry.PersistentStorage.FileSystem.Tests.csproj" />
 
     <PackProjects Include="$(RepoRoot)\src\OpenTelemetry.PersistentStorage.Abstractions\OpenTelemetry.PersistentStorage.Abstractions.csproj" />
     <PackProjects Include="$(RepoRoot)\src\OpenTelemetry.PersistentStorage.FileSystem\OpenTelemetry.PersistentStorage.FileSystem.csproj" />
 
+    <TestProjects Include="$(RepoRoot)\test\OpenTelemetry.PersistentStorage.Abstractions.Tests\OpenTelemetry.PersistentStorage.Abstractions.Tests.csproj" />
     <TestProjects Include="$(RepoRoot)\test\OpenTelemetry.PersistentStorage.FileSystem.Tests\OpenTelemetry.PersistentStorage.FileSystem.Tests.csproj" />
   </ItemGroup>
 
