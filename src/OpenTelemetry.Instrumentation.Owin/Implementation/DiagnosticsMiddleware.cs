@@ -60,6 +60,11 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void BeginRequest(IOwinContext owinContext)
     {
+        if (!OwinInstrumentationActivitySource.ActivitySource.HasListeners())
+        {
+            return;
+        }
+
         var options = OwinInstrumentationActivitySource.Options;
 
         if (options?.Filter is { } filter)

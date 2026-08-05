@@ -70,6 +70,61 @@ public static class SqlProcessorTests
     }
 
     [Property(MaxTest = MaxValue)]
+    public static void GetSanitizedSql_In_Clause_Literals_Are_Sanitized(NonEmptyString input)
+    {
+        // Arrange
+        const string Secret = "s3cr3t-v4lu3";
+
+        if (input.Get.Contains(Secret, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        // Whatever the first value contains, no later value may survive sanitization.
+        var sql = $"SELECT * FROM table WHERE name IN ('{input.Get.Replace("'", "''")}', '{Secret}')";
+
+        // Act
+        var actual = SqlProcessor.GetSanitizedSql(sql);
+
+        // Assert
+        Assert.DoesNotContain(Secret, actual.SanitizedSql);
+    }
+
+    [Property(MaxTest = MaxValue)]
+    public static void GetSanitizedSql_Literals_Are_Sanitized_Beyond_Summary_Length_Limit(
+        PositiveInt tableCount,
+        NonNegativeInt variant)
+    {
+        // Arrange
+        const string Secret = "s3cr3t-v4lu3";
+
+        // Pad the FROM clause so that the summary reaches its maximum length, after which the
+        // remainder of the statement must still be sanitized.
+        var count = (tableCount.Get % 40) + 1;
+        var tables = string.Join(",", Enumerable.Range(0, count).Select((p) => $"CustomerOrderDetails{p}"));
+
+        // The literal is deliberately not preceded by whitespace in most variants, because that
+        // is the case a whitespace-delimited scan copies verbatim.
+        var clause = (variant.Get % 5) switch
+        {
+            0 => $"WHERE Name='{Secret}'",
+            1 => $"WHERE Name=N'{Secret}'",
+            2 => $"WHERE Name IN ('{Secret}')",
+            3 => $"WHERE Name LIKE'%{Secret}%'",
+            _ => $"WHERE Name = '{Secret}'",
+        };
+
+        var sql = $"SELECT * FROM {tables} {clause}";
+
+        // Act
+        var actual = SqlProcessor.GetSanitizedSql(sql);
+
+        // Assert
+        Assert.DoesNotContain(Secret, actual.SanitizedSql);
+        Assert.True(actual.DbQuerySummary.Length <= 255);
+    }
+
+    [Property(MaxTest = MaxValue)]
     public static void GetSanitizedSql_Hex_Literals_Are_Sanitized(NonNegativeInt number)
     {
         // Arrange

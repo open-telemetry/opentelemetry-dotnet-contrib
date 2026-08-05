@@ -289,6 +289,39 @@ public class DiagnosticsMiddlewareTests : IDisposable
         }
     }
 
+    [Fact]
+    public async Task NoListeners_FilterNotInvoked_MetricsRecorded()
+    {
+        var filterInvocationCount = 0;
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddOwinInstrumentation(options => options.Filter = _ =>
+            {
+                filterInvocationCount++;
+                return true;
+            })
+            .Build())
+        {
+        }
+
+        List<Metric> exportedMetrics = [];
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddInMemoryExporter(exportedMetrics)
+            .AddOwinInstrumentation()
+            .Build();
+
+        using var client = new HttpClient();
+        this.requestCompleteHandle.Reset();
+        using var response = await client.GetAsync(new Uri($"{this.serviceBaseUri}api/test"));
+
+        Assert.True(this.requestCompleteHandle.WaitOne(3000));
+        Assert.Equal(0, filterInvocationCount);
+
+        meterProvider.Dispose();
+        var metric = Assert.Single(exportedMetrics);
+        Assert.Equal("http.server.request.duration", metric.Name);
+        Assert.Equal(1, Assert.Single(this.GetMetricPoints(metric)).GetHistogramCount());
+    }
+
     [Theory]
     [InlineData("path?a=b&c=d", "path?a=Redacted&c=Redacted", false, false)]
     [InlineData("path?a=b&c=d", "path?a=b&c=d", true, false)]
