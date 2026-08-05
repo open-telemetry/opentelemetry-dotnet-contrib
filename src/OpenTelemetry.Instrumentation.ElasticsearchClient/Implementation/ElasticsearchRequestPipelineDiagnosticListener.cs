@@ -35,7 +35,7 @@ internal partial class ElasticsearchRequestPipelineDiagnosticListener : Listener
 
     private const string RequestRegexPattern = @"\n# Request:\r?\n(\{.*)\n# Response";
 
-    private static readonly Version SemanticConventionsVersionNew = new(1, 43, 0);
+    private static readonly Version SemanticConventionsVersionNew = new(1, 44, 0);
     private static readonly ActivitySource ActivitySourceNew = ActivitySourceFactory.Create<ElasticsearchRequestPipelineDiagnosticListener>(SemanticConventionsVersionNew);
 
     private static readonly ActivitySource ActivitySourceBoth = ActivitySourceFactory.Create<ElasticsearchRequestPipelineDiagnosticListener>(null);
