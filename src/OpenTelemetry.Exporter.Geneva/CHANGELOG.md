@@ -15,7 +15,7 @@
   synthetic 4-byte length field to the ETW payload for logs and traces, causing
   the agent to reject the data with "Bad forward protocol format". The raw
   payload is once again written as a single unframed field.
-  ([#4729](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4729))
+  ([#4941](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4941))
 
 ## 1.17.0
 
