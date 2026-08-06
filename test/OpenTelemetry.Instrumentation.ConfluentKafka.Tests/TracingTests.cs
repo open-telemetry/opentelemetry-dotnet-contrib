@@ -360,6 +360,11 @@ public class TracingTests(KafkaFixture fixture)
         Assert.Equal(0L, processActivity.GetTagValue("messaging.kafka.offset"));
         Assert.Equal("test-consumer-group", processActivity.GetTagValue("messaging.consumer.group.name"));
 
+        // The cluster ID is fetched in the background and is not awaited on the consume path,
+        // so it may not have completed by the time this (first) span is created.
+        var clusterId = processActivity.GetTagValue(SemanticConventions.AttributeMessagingKafkaClusterId) as string;
+        Assert.True(clusterId is null || clusterId.Length > 0, $"Expected the cluster ID tag to be absent or non-empty, but got '{clusterId}'.");
+
         static ValueTask NoOpAsync(
             ConsumeResult<string, string> consumeResult,
             Activity? activity,

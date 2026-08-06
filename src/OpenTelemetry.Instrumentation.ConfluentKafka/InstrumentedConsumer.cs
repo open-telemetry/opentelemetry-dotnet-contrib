@@ -37,6 +37,8 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
 
     public string? GroupId { get; internal set; }
 
+    internal Task<string?>? ClusterIdTask => this.clusterIdTask;
+
     public void Dispose()
         => this.consumer.Dispose();
 
