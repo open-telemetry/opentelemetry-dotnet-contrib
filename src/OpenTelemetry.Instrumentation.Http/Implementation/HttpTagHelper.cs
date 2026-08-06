@@ -20,9 +20,34 @@ internal static class HttpTagHelper
     /// <returns>Span uri value.</returns>
     public static string GetUriTagValueFromRequestUri(Uri uri, bool disableQueryRedaction)
     {
-        if (string.IsNullOrEmpty(uri.UserInfo) && disableQueryRedaction)
+        if (string.IsNullOrEmpty(uri.UserInfo))
         {
-            return uri.OriginalString;
+            if (disableQueryRedaction)
+            {
+                return uri.OriginalString;
+            }
+
+            // Redaction only rewrites the query when it contains a '=', so avoid
+            // recreating a string that is equivalent to the original string otherwise.
+            // Non HTTP(S) schemes with no authority behave slightly differently
+            // for AbsoluteUri so they ignore this optimization to ensure they
+            // return the right value to the caller.
+            var scheme = uri.Scheme;
+
+            if (scheme == Uri.UriSchemeHttps || scheme == Uri.UriSchemeHttp)
+            {
+                var indexOfEquals =
+#if NET
+                    uri.Query.IndexOf('=', StringComparison.Ordinal);
+#else
+                    uri.Query.IndexOf('=');
+#endif
+
+                if (indexOfEquals < 0)
+                {
+                    return uri.AbsoluteUri;
+                }
+            }
         }
 
         var query = disableQueryRedaction ? uri.Query : RedactionHelper.GetRedactedQueryString(uri.Query);
