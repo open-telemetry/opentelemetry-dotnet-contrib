@@ -152,7 +152,14 @@ internal sealed class FrameProcessor
             {
                 if (listener is IOpAmpListener<T> typedListener)
                 {
-                    typedListener.HandleMessage(message);
+                    try
+                    {
+                        typedListener.HandleMessage(message);
+                    }
+                    catch (Exception ex)
+                    {
+                        OpAmpClientEventSource.Log.FrameProcessingException(ex);
+                    }
                 }
             }
         }

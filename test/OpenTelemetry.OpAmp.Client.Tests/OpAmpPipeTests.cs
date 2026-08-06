@@ -5,12 +5,15 @@
 
 using System.Buffers;
 using System.Collections.Concurrent;
+using System.Collections.ObjectModel;
 using System.Diagnostics.Tracing;
 using Google.Protobuf;
 using OpAmp.Proto.V1;
 using OpenTelemetry.OpAmp.Client.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Services.Heartbeat;
 using OpenTelemetry.OpAmp.Client.Internal.Transport;
+using OpenTelemetry.OpAmp.Client.Listeners;
+using OpenTelemetry.OpAmp.Client.Messages;
 using OpenTelemetry.OpAmp.Client.Settings;
 using OpenTelemetry.Tests;
 
@@ -129,6 +132,37 @@ public class OpAmpPipeTests
     }
 
     [Fact]
+    public async Task OpAmpPipe_DoesNotReleaseNewerSend_WhenPublicListenerThrowsDuringHttpResponseProcessing()
+    {
+        var processor = new FrameProcessor();
+        var serverFrame = new ServerToAgent
+        {
+            CustomMessage = new CustomMessage
+            {
+                Data = ByteString.CopyFromUtf8("response"),
+                Type = "Utf8String",
+            },
+        }.ToByteArray();
+
+        using var transport = new ControlledTransport(
+            () => processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame)));
+        var settings = new OpAmpClientSettings();
+        using var pipe = new OpAmpPipe(settings, processor, transport);
+
+        processor.Subscribe(new AppendHeartbeatAndThrowListener(pipe));
+
+        AppendIdentification(pipe);
+        await transport.WaitForMessagesAsync(2);
+
+        AppendHeartbeat(pipe);
+
+        await Assert.ThrowsAsync<TimeoutException>(
+            () => transport.WaitForMessagesAsync(3, TimeSpan.FromMilliseconds(250)));
+
+        Assert.Equal(2, transport.Messages.Count);
+    }
+
+    [Fact]
     public async Task OpAmpPipe_LogsQueueAction_WhenMessageIsAppended()
     {
         using var eventListener = new InMemoryEventListener(OpAmpClientEventSource.Log, EventLevel.Verbose);
@@ -218,16 +252,38 @@ public class OpAmpPipeTests
         Status = "OK",
     };
 
+    private sealed class AppendHeartbeatAndThrowListener : IOpAmpListener<CustomMessageMessage>
+    {
+        private readonly OpAmpPipe pipe;
+
+        public AppendHeartbeatAndThrowListener(OpAmpPipe pipe)
+        {
+            this.pipe = pipe;
+        }
+
+        public void HandleMessage(CustomMessageMessage message)
+        {
+            AppendHeartbeat(this.pipe);
+            throw new InvalidOperationException("listener failed");
+        }
+    }
+
     private sealed class ControlledTransport : IOpAmpTransport, IDisposable
     {
         private readonly ConcurrentQueue<AgentToServer> messages = [];
         private readonly ConcurrentQueue<TaskCompletionSource> sendCompletions = [];
         private readonly Lock syncRoot = new();
+        private Action? firstSendCallback;
 
         private int waitTarget;
         private TaskCompletionSource messagesReached = CreateCompletionSource();
 
-        public IReadOnlyCollection<AgentToServer> Messages => this.messages.ToList().AsReadOnly();
+        public ControlledTransport(Action? firstSendCallback = null)
+        {
+            this.firstSendCallback = firstSendCallback;
+        }
+
+        public ReadOnlyCollection<AgentToServer> Messages => this.messages.ToList().AsReadOnly();
 
         public Task SendAsync<T>(T message, CancellationToken token)
             where T : IMessage<T>
@@ -238,17 +294,22 @@ public class OpAmpPipeTests
             }
 
             var sendCompletion = CreateCompletionSource();
+            Action? firstSendCallback;
 
             lock (this.syncRoot)
             {
                 this.messages.Enqueue(agentToServer);
                 this.sendCompletions.Enqueue(sendCompletion);
+                firstSendCallback = this.firstSendCallback;
+                this.firstSendCallback = null;
 
                 if (this.messages.Count >= this.waitTarget)
                 {
                     this.messagesReached.TrySetResult();
                 }
             }
+
+            firstSendCallback?.Invoke();
 
             return sendCompletion.Task;
         }
