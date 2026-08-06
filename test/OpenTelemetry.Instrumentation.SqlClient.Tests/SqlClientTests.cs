@@ -66,6 +66,58 @@ public class SqlClientTests : IDisposable
         Assert.Equal(expectedPort, tags.FirstOrDefault(x => x.Key == SemanticConventions.AttributeServerPort).Value);
     }
 
+    [Fact]
+    public void AddSharedTagsAddsEachSharedTagAtMostOnce()
+    {
+        var activity = new Activity("test");
+
+        activity.AddTag(SemanticConventions.AttributeDbSystemName, SqlTelemetryHelper.MicrosoftSqlServerDbSystemName);
+        activity.AddTag(SemanticConventions.AttributeDbNamespace, "main");
+        activity.AddTag(SemanticConventions.AttributeDbQueryText, "SELECT * FROM Orders");
+        activity.AddTag(SemanticConventions.AttributeServerAddress, "localhost");
+        activity.AddTag(SemanticConventions.AttributeServerPort, 1433);
+        activity.AddTag(SemanticConventions.AttributeErrorType, null);
+
+        // Duplicate keys, as can happen if enrichment uses Activity.AddTag()
+        // for a tag which the instrumentation has already added itself.
+        activity.AddTag(SemanticConventions.AttributeDbNamespace, "other-database");
+        activity.AddTag(SemanticConventions.AttributeServerAddress, "other-host");
+
+        TagList tags = default;
+
+        SqlTelemetryHelper.AddSharedTags(activity, ref tags);
+
+        Assert.Equal(
+            [
+                new(SemanticConventions.AttributeDbSystemName, SqlTelemetryHelper.MicrosoftSqlServerDbSystemName),
+                new(SemanticConventions.AttributeDbNamespace, "main"),
+                new(SemanticConventions.AttributeServerAddress, "localhost"),
+                new KeyValuePair<string, object?>(SemanticConventions.AttributeServerPort, 1433),
+            ],
+            tags);
+    }
+
+    [Fact]
+    public void AddSharedTagsAddsAllSharedTags()
+    {
+        var activity = new Activity("test");
+
+        foreach (var name in SqlTelemetryHelper.SharedTagNames)
+        {
+            activity.AddTag(name, name);
+        }
+
+        activity.AddTag(SemanticConventions.AttributeDbQueryText, "SELECT * FROM Orders");
+
+        TagList tags = default;
+
+        SqlTelemetryHelper.AddSharedTags(activity, ref tags);
+
+        Assert.Equal(
+            SqlTelemetryHelper.SharedTagNames.Select(name => new KeyValuePair<string, object?>(name, name)),
+            tags);
+    }
+
     [Theory]
     [InlineData(true, false)]
     [InlineData(false, false)]
