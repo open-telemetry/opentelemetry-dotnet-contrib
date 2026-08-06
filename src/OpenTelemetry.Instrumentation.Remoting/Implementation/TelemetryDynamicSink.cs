@@ -63,7 +63,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
             var methodMsg = reqMsg as IMethodMessage;
             var tags = methodMsg != null
                 ? this.BuildSamplingTags(methodMsg)
-                : null;
+                : default;
 
             // Are we executing on client?
             if (bCliSide)
@@ -282,11 +282,11 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
         return data != null ? [(string)data] : [];
     }
 
-    private ActivityTagsCollection BuildSamplingTags(IMethodMessage msg)
+    private TagList BuildSamplingTags(IMethodMessage msg)
     {
         var fullyQualifiedMethod = this.GetFullyQualifiedMethod(msg);
 
-        var tags = new ActivityTagsCollection
+        var tags = new TagList
         {
             { SemanticConventions.AttributeRpcSystemName, AttributeRpcSystemNameValue },
             { SemanticConventions.AttributeRpcMethod, fullyQualifiedMethod },
@@ -311,11 +311,9 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
         return $"{serviceName}/{methodName}";
     }
 
+    // typeName will be a full .NET type name as a string "SharedLib.IHelloServer, SharedLib, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
     private string GetServiceName(string typeName)
-    {
-        // typeName will be a full .NET type name as a string "SharedLib.IHelloServer, SharedLib, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
-        return this.optionsProvider.GetServiceName(typeName);
-    }
+        => this.optionsProvider.GetServiceName(typeName);
 
     private void SetPostCreationAttributes(Activity activity, IMethodMessage? msg)
     {
