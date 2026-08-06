@@ -1,6 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if NET
+using System.Collections.Frozen;
+#endif
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using OpenTelemetry.Trace;
@@ -39,6 +42,27 @@ internal sealed class SqlTelemetryHelper
         SemanticConventions.AttributeServerPort,
         SemanticConventions.AttributeServerAddress,
     ];
+
+#if NET
+    private static readonly FrozenSet<string> SharedTagNameSet = SharedTagNames.ToFrozenSet(StringComparer.Ordinal);
+#else
+    private static readonly HashSet<string> SharedTagNameSet = new(SharedTagNames, StringComparer.Ordinal);
+#endif
+
+    public static void AddSharedTags(Activity activity, ref TagList tags)
+    {
+        var enumerator = activity.EnumerateTagObjects();
+
+        while (enumerator.MoveNext())
+        {
+            ref readonly var tag = ref enumerator.Current;
+
+            if (tag.Value != null && SharedTagNameSet.Contains(tag.Key))
+            {
+                tags.Add(tag.Key, tag.Value);
+            }
+        }
+    }
 
     public static TagList GetTagListFromConnectionInfo(string? dataSource, string? databaseName, out string activityName)
     {
