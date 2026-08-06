@@ -52,13 +52,9 @@ internal sealed class SqlTelemetryHelper
         {
             var connectionDetails = SqlConnectionDetails.ParseFromDataSource(dataSource);
 
-            if (!string.IsNullOrEmpty(databaseName))
+            if (databaseName is { Length: > 0 })
             {
-#pragma warning disable IDE0370 // Suppression is unnecessary
-                var dbNamespace = !string.IsNullOrEmpty(connectionDetails.InstanceName)
-                    ? $"{connectionDetails.InstanceName}.{databaseName}"
-                    : databaseName!;
-#pragma warning restore IDE0370 // Suppression is unnecessary
+                var dbNamespace = connectionDetails.GetDbNamespace(databaseName);
                 tags.Add(SemanticConventions.AttributeDbNamespace, dbNamespace);
                 activityName = dbNamespace;
             }
@@ -67,27 +63,21 @@ internal sealed class SqlTelemetryHelper
             if (!string.IsNullOrEmpty(serverAddress))
             {
                 tags.Add(SemanticConventions.AttributeServerAddress, serverAddress);
-                if (connectionDetails.Port is { } port)
+                if (connectionDetails.BoxedPort is { } port)
                 {
                     tags.Add(SemanticConventions.AttributeServerPort, port);
                 }
 
                 if (activityName == MicrosoftSqlServerDbSystemName)
                 {
-#pragma warning disable IDE0370 // Suppression is unnecessary
-                    activityName = connectionDetails.Port is { } portNumber
-                        ? $"{serverAddress}:{portNumber}"
-                        : serverAddress!;
-#pragma warning restore IDE0370 // Suppression is unnecessary
+                    activityName = connectionDetails.ServerAddressAndPort!;
                 }
             }
         }
-        else if (!string.IsNullOrEmpty(databaseName))
+        else if (databaseName is { Length: > 0 })
         {
             tags.Add(SemanticConventions.AttributeDbNamespace, databaseName);
-#pragma warning disable IDE0370 // Suppression is unnecessary
-            activityName = databaseName!;
-#pragma warning restore IDE0370 // Suppression is unnecessary
+            activityName = databaseName;
         }
 
         return tags;
