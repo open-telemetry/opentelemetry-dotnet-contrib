@@ -18,6 +18,7 @@ internal sealed class ProcessMetrics : IDisposable
     private readonly DateTime processStartTimeUtc;
     private readonly Lock snapshotLock;
 
+    private bool disposed;
     private long snapshotTimestamp;
 
     public ProcessMetrics()
@@ -84,7 +85,17 @@ internal sealed class ProcessMetrics : IDisposable
         }
     }
 
-    public void Dispose() => this.currentProcess.Dispose();
+    public void Dispose()
+    {
+        lock (this.snapshotLock)
+        {
+            if (!this.disposed)
+            {
+                this.currentProcess?.Dispose();
+                this.disposed = true;
+            }
+        }
+    }
 
     private T Measure<T>(Func<Diagnostics.Process, T> func)
     {
@@ -97,6 +108,15 @@ internal sealed class ProcessMetrics : IDisposable
 
     private void RefreshSnapshotIfStale()
     {
+#if NET8_0_OR_GREATER
+        ObjectDisposedException.ThrowIf(this.disposed, this);
+#else
+        if (this.disposed)
+        {
+            throw new ObjectDisposedException(nameof(ProcessMetrics));
+        }
+#endif
+
         var now = Diagnostics.Stopwatch.GetTimestamp();
 
         if (now - this.snapshotTimestamp <= SnapshotTtlTicks)
