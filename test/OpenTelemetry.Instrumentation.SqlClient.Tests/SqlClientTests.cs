@@ -17,17 +17,11 @@ public enum SqlClientLibrary
 }
 
 [Collection("SqlClient")]
-public class SqlClientTests : IDisposable
+public class SqlClientTests
 {
-    private const string TestConnectionString = "Data Source=(localdb)\\MSSQLLocalDB;Database=master;Encrypt=True;TrustServerCertificate=True";
+    private const string TestConnectionString = "Data Source=(localdb)\\MSSQLLocalDB;Database=main;Encrypt=True;TrustServerCertificate=True";
 
     public static IEnumerable<object[]> TestData => SqlClientTestCases.GetTestCases();
-
-    public void Dispose()
-    {
-        // TODO: Why is this here? Add comment explaining why.
-        GC.SuppressFinalize(this);
-    }
 
     [Fact]
     public void SqlClient_BadArgs()
@@ -39,16 +33,12 @@ public class SqlClientTests : IDisposable
     [Theory]
     [MemberData(nameof(TestData))]
     public void TestMicrosoftDataSqlClient(SqlClientTestCase testCase)
-    {
-        this.RunSqlClientTestCase(testCase, SqlClientLibrary.MicrosoftDataSqlClient);
-    }
+        => this.RunSqlClientTestCase(testCase, SqlClientLibrary.MicrosoftDataSqlClient);
 
     [Theory]
     [MemberData(nameof(TestData))]
     public void TestSystemDataSqlClient(SqlClientTestCase testCase)
-    {
-        this.RunSqlClientTestCase(testCase, SqlClientLibrary.SystemDataSqlClient);
-    }
+        => this.RunSqlClientTestCase(testCase, SqlClientLibrary.SystemDataSqlClient);
 
     [Theory]
     [InlineData("localhost", "localhost", null, null)]
@@ -64,6 +54,36 @@ public class SqlClientTests : IDisposable
         var tags = SqlTelemetryHelper.GetTagListFromConnectionInfo(dataSource, databaseName: null, out var _);
         Assert.Equal(expectedServerHostName ?? expectedServerIpAddress, tags.FirstOrDefault(x => x.Key == SemanticConventions.AttributeServerAddress).Value);
         Assert.Equal(expectedPort, tags.FirstOrDefault(x => x.Key == SemanticConventions.AttributeServerPort).Value);
+    }
+
+    [Theory]
+    [InlineData("localhost", "main")]
+    [InlineData("localhost\\instanceName", "instanceName.main")]
+    public void SqlClientAddsDatabaseNamespaceAttribute(string dataSource, string expectedDbNamespace)
+    {
+        var tags = SqlTelemetryHelper.GetTagListFromConnectionInfo(dataSource, databaseName: "main", out var activityName);
+
+        Assert.Equal(expectedDbNamespace, activityName);
+        Assert.Equal(expectedDbNamespace, tags.FirstOrDefault(x => x.Key == SemanticConventions.AttributeDbNamespace).Value);
+    }
+
+    [Fact]
+    public void SqlClientAddsDatabaseNamespaceAttributeWhenThereIsNoDataSource()
+    {
+        var tags = SqlTelemetryHelper.GetTagListFromConnectionInfo(dataSource: null, databaseName: "main", out var activityName);
+
+        Assert.Equal("main", activityName);
+        Assert.Equal("main", tags.FirstOrDefault(x => x.Key == SemanticConventions.AttributeDbNamespace).Value);
+        Assert.DoesNotContain(tags, x => x.Key == SemanticConventions.AttributeServerAddress);
+    }
+
+    [Fact]
+    public void SqlClientDoesNotAddDatabaseNamespaceAttributeWhenThereIsNoDataSourceOrDatabase()
+    {
+        var tags = SqlTelemetryHelper.GetTagListFromConnectionInfo(dataSource: null, databaseName: null, out var activityName);
+
+        Assert.Equal(SqlTelemetryHelper.MicrosoftSqlServerDbSystemName, activityName);
+        Assert.DoesNotContain(tags, x => x.Key == SemanticConventions.AttributeDbNamespace);
     }
 
     [Theory]
@@ -166,16 +186,16 @@ public class SqlClientTests : IDisposable
         Assert.Contains(
             samplingParameters.Tags,
             kvp => kvp.Key == SemanticConventions.AttributeDbSystemName
-                   && kvp.Value is string
-                   && (string)kvp.Value == SqlTelemetryHelper.MicrosoftSqlServerDbSystemName);
+                   && kvp.Value is string value
+                   && value == SqlTelemetryHelper.MicrosoftSqlServerDbSystemName);
 
         if (testCase.Expected.DbNamespace != null)
         {
             Assert.Contains(
                 samplingParameters.Tags,
                 kvp => kvp.Key == SemanticConventions.AttributeDbNamespace
-                       && kvp.Value is string
-                       && (string)kvp.Value == testCase.Expected.DbNamespace);
+                       && kvp.Value is string value
+                       && value == testCase.Expected.DbNamespace);
         }
 
         if (testCase.Expected.ServerAddress != null)
@@ -183,8 +203,8 @@ public class SqlClientTests : IDisposable
             Assert.Contains(
             samplingParameters.Tags,
             kvp => kvp.Key == SemanticConventions.AttributeServerAddress
-                   && kvp.Value is string
-                   && (string)kvp.Value == testCase.Expected.ServerAddress);
+                   && kvp.Value is string value
+                   && value == testCase.Expected.ServerAddress);
         }
 
         if (testCase.Expected.ServerPort.HasValue)
@@ -192,8 +212,8 @@ public class SqlClientTests : IDisposable
             Assert.Contains(
                 samplingParameters.Tags,
                 kvp => kvp.Key == SemanticConventions.AttributeServerPort
-                       && kvp.Value is int
-                       && (int)kvp.Value == testCase.Expected.ServerPort);
+                       && kvp.Value is int value
+                       && value == testCase.Expected.ServerPort);
         }
 
         if (!string.IsNullOrEmpty(testCase.Expected.DbQuerySummary))
@@ -201,8 +221,8 @@ public class SqlClientTests : IDisposable
             Assert.Contains(
                 samplingParameters.Tags,
                 kvp => kvp.Key == SemanticConventions.AttributeDbQuerySummary
-                       && kvp.Value is string
-                       && (string)kvp.Value == testCase.Expected.DbQuerySummary);
+                       && kvp.Value is string value
+                       && value == testCase.Expected.DbQuerySummary);
         }
 
         if (!string.IsNullOrEmpty(testCase.Expected.DbQueryText))
@@ -210,8 +230,8 @@ public class SqlClientTests : IDisposable
             Assert.Contains(
                 samplingParameters.Tags,
                 kvp => kvp.Key == SemanticConventions.AttributeDbQueryText
-                       && kvp.Value is string
-                       && (string)kvp.Value == testCase.Expected.DbQueryText);
+                       && kvp.Value is string value
+                       && value == testCase.Expected.DbQueryText);
         }
 
         if (!string.IsNullOrEmpty(testCase.Expected.DbOperationName))
@@ -219,8 +239,8 @@ public class SqlClientTests : IDisposable
             Assert.Contains(
                 samplingParameters.Tags,
                 kvp => kvp.Key == SemanticConventions.AttributeDbOperationName
-                       && kvp.Value is string
-                       && (string)kvp.Value == testCase.Expected.DbOperationName);
+                       && kvp.Value is string value
+                       && value == testCase.Expected.DbOperationName);
         }
 
         if (!string.IsNullOrEmpty(testCase.Expected.DbCollectionName))
@@ -228,8 +248,8 @@ public class SqlClientTests : IDisposable
             Assert.Contains(
                 samplingParameters.Tags,
                 kvp => kvp.Key == SemanticConventions.AttributeDbCollectionName
-                       && kvp.Value is string
-                       && (string)kvp.Value == testCase.Expected.DbCollectionName);
+                       && kvp.Value is string value
+                       && value == testCase.Expected.DbCollectionName);
         }
 
         if (!string.IsNullOrEmpty(testCase.Expected.DbStoredProcedureName))
@@ -237,8 +257,8 @@ public class SqlClientTests : IDisposable
             Assert.Contains(
                 samplingParameters.Tags,
                 kvp => kvp.Key == SemanticConventions.AttributeDbStoredProcedureName
-                       && kvp.Value is string
-                       && (string)kvp.Value == testCase.Expected.DbStoredProcedureName);
+                       && kvp.Value is string value
+                       && value == testCase.Expected.DbStoredProcedureName);
         }
     }
 

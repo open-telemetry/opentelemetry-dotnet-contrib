@@ -221,9 +221,9 @@ public class SqlEventSourceTests
             Assert.Equal(connectionDetails.ServerIpAddress, activity.GetTagValue(SemanticConventions.AttributeServerAddress));
         }
 
-        if (connectionDetails.Port.HasValue)
+        if (connectionDetails.BoxedPort != null)
         {
-            Assert.Equal(connectionDetails.Port, activity.GetTagValue(SemanticConventions.AttributeServerPort));
+            Assert.Equal(connectionDetails.BoxedPort, activity.GetTagValue(SemanticConventions.AttributeServerPort));
         }
 
         Assert.Equal(SqlTelemetryHelper.MicrosoftSqlServerDbSystemName, activity.GetTagValue(SemanticConventions.AttributeDbSystemName));
@@ -265,15 +265,11 @@ public class SqlEventSourceTests
     {
         [Event(SqlEventSourceListener.BeginExecuteEventId)]
         public void WriteBeginExecuteEvent(int objectId, string dataSource, string databaseName, string commandText)
-        {
-            this.WriteEvent(SqlEventSourceListener.BeginExecuteEventId, objectId, dataSource, databaseName, commandText);
-        }
+            => this.WriteEvent(SqlEventSourceListener.BeginExecuteEventId, objectId, dataSource, databaseName, commandText);
 
         [Event(SqlEventSourceListener.EndExecuteEventId)]
         public void WriteEndExecuteEvent(int objectId, int compositeState, int sqlExceptionNumber)
-        {
-            this.WriteEvent(SqlEventSourceListener.EndExecuteEventId, objectId, compositeState, sqlExceptionNumber);
-        }
+            => this.WriteEvent(SqlEventSourceListener.EndExecuteEventId, objectId, compositeState, sqlExceptionNumber);
     }
 
     [EventSource(Name = SqlEventSourceListener.MdsEventSourceName + "-FakeFriendly")]
@@ -281,15 +277,11 @@ public class SqlEventSourceTests
     {
         [Event(SqlEventSourceListener.BeginExecuteEventId)]
         public void WriteBeginExecuteEvent(int objectId, string dataSource, string databaseName, string commandText)
-        {
-            this.WriteEvent(SqlEventSourceListener.BeginExecuteEventId, objectId, dataSource, databaseName, commandText);
-        }
+            => this.WriteEvent(SqlEventSourceListener.BeginExecuteEventId, objectId, dataSource, databaseName, commandText);
 
         [Event(SqlEventSourceListener.EndExecuteEventId)]
         public void WriteEndExecuteEvent(int objectId, int compositeState, int sqlExceptionNumber)
-        {
-            this.WriteEvent(SqlEventSourceListener.EndExecuteEventId, objectId, compositeState, sqlExceptionNumber);
-        }
+            => this.WriteEvent(SqlEventSourceListener.EndExecuteEventId, objectId, compositeState, sqlExceptionNumber);
     }
 
     [EventSource(Name = SqlEventSourceListener.AdoNetEventSourceName + "-FakeEvil")]
@@ -297,15 +289,11 @@ public class SqlEventSourceTests
     {
         [Event(SqlEventSourceListener.BeginExecuteEventId)]
         public void WriteBeginExecuteEvent(string arg1)
-        {
-            this.WriteEvent(SqlEventSourceListener.BeginExecuteEventId, arg1);
-        }
+            => this.WriteEvent(SqlEventSourceListener.BeginExecuteEventId, arg1);
 
         [Event(SqlEventSourceListener.EndExecuteEventId)]
         public void WriteEndExecuteEvent(string arg1, string arg2, string arg3, string arg4)
-        {
-            this.WriteEvent(SqlEventSourceListener.EndExecuteEventId, arg1, arg2, arg3, arg4);
-        }
+            => this.WriteEvent(SqlEventSourceListener.EndExecuteEventId, arg1, arg2, arg3, arg4);
 
         [Event(3)]
         public void WriteUnknownEventWithNullPayload()
@@ -321,15 +309,11 @@ public class SqlEventSourceTests
     {
         [Event(SqlEventSourceListener.BeginExecuteEventId)]
         public void WriteBeginExecuteEvent(string arg1)
-        {
-            this.WriteEvent(SqlEventSourceListener.BeginExecuteEventId, arg1);
-        }
+            => this.WriteEvent(SqlEventSourceListener.BeginExecuteEventId, arg1);
 
         [Event(SqlEventSourceListener.EndExecuteEventId)]
         public void WriteEndExecuteEvent(string arg1, string arg2, string arg3, string arg4)
-        {
-            this.WriteEvent(SqlEventSourceListener.EndExecuteEventId, arg1, arg2, arg3, arg4);
-        }
+            => this.WriteEvent(SqlEventSourceListener.EndExecuteEventId, arg1, arg2, arg3, arg4);
 
         [Event(3)]
         public void WriteUnknownEventWithNullPayload()
