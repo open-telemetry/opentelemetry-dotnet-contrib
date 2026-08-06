@@ -40,7 +40,7 @@ public class SqlConnectionDetailsTests
         Assert.Equal(expectedServerHostName, sqlConnectionDetails.ServerHostName);
         Assert.Equal(expectedServerIpAddress, sqlConnectionDetails.ServerIpAddress);
         Assert.Equal(expectedInstanceName, sqlConnectionDetails.InstanceName);
-        Assert.Equal(expectedPort, sqlConnectionDetails.Port);
+        Assert.Equal(expectedPort, sqlConnectionDetails.BoxedPort);
     }
 
     [Theory]
@@ -62,7 +62,6 @@ public class SqlConnectionDetailsTests
     {
         var sqlConnectionDetails = SqlConnectionDetails.ParseFromDataSource("boxed-port.localhost, 1818");
 
-        Assert.Equal(1818, sqlConnectionDetails.Port);
         Assert.Equal(1818, sqlConnectionDetails.BoxedPort);
 
         // The port is boxed when the data source is parsed, not every time it is used.
@@ -74,7 +73,6 @@ public class SqlConnectionDetailsTests
     {
         var sqlConnectionDetails = SqlConnectionDetails.ParseFromDataSource("default-port.localhost,1433");
 
-        Assert.Null(sqlConnectionDetails.Port);
         Assert.Null(sqlConnectionDetails.BoxedPort);
     }
 

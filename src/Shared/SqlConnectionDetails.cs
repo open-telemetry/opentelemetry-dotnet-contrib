@@ -33,8 +33,6 @@ internal sealed partial class SqlConnectionDetails
 
     public string? ServerAddressAndPort { get; private set; }
 
-    public int? Port => (int?)this.BoxedPort;
-
     public static SqlConnectionDetails ParseFromDataSource(string dataSource)
     {
         if (ConnectionDetailCache.TryGetValue(dataSource, out var connectionDetails))
