@@ -73,13 +73,14 @@ internal sealed class MockControlledTransport : IOpAmpTransport, IDisposable
         }
     }
 
-    public void CompleteNextSend()
+    public void CompleteNextSend(Action? beforeCompletion = null)
     {
         if (!this.sendCompletions.TryDequeue(out var sendCompletion))
         {
             throw new InvalidOperationException("No send is waiting to complete.");
         }
 
+        beforeCompletion?.Invoke();
         sendCompletion.SetResult(true);
     }
 

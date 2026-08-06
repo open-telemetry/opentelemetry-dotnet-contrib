@@ -161,6 +161,57 @@ public class OpAmpPipeTests
     }
 
     [Fact]
+    public async Task OpAmpPipe_FlushAsyncWaitsForResponseQueuedDataToBeSent()
+    {
+        var processor = new FrameProcessor();
+        var responseWithCustomMessage = new ServerToAgent
+        {
+            CustomMessage = new CustomMessage
+            {
+                Data = ByteString.CopyFromUtf8("response"),
+                Type = "Utf8String",
+            },
+        }.ToByteArray();
+        var emptyResponse = new ServerToAgent().ToByteArray();
+
+        using var transport = new MockControlledTransport();
+        var settings = new OpAmpClientSettings();
+        using var pipe = new OpAmpPipe(settings, processor, transport);
+
+        processor.Subscribe(new AppendHeartbeatListener(pipe));
+
+        AppendIdentification(pipe);
+        await transport.WaitForMessagesAsync(1);
+
+        AppendHeartbeat(pipe);
+        var flushTask = pipe.FlushAsync();
+
+        transport.CompleteNextSend(
+            () => processor.OnServerFrame(new ReadOnlySequence<byte>(responseWithCustomMessage)));
+
+        await transport.WaitForMessagesAsync(2);
+        await Assert.ThrowsAsync<TimeoutException>(
+            () => transport.WaitForMessagesAsync(3, TimeSpan.FromMilliseconds(250)));
+
+        transport.CompleteNextSend(
+            () => processor.OnServerFrame(new ReadOnlySequence<byte>(emptyResponse)));
+
+        await transport.WaitForMessagesAsync(3);
+        Assert.False(flushTask.IsCompleted);
+
+        transport.CompleteNextSend(
+            () => processor.OnServerFrame(new ReadOnlySequence<byte>(emptyResponse)));
+
+        await flushTask.WaitAsync(TimeSpan.FromSeconds(5));
+
+        var messages = transport.Messages.ToArray();
+        Assert.Equal([1UL, 2UL, 3UL], messages.Select(m => m.SequenceNum).ToArray());
+        Assert.NotNull(messages[0].AgentDescription);
+        Assert.NotNull(messages[1].Health);
+        Assert.NotNull(messages[2].Health);
+    }
+
+    [Fact]
     public async Task OpAmpPipe_LogsQueueAction_WhenMessageIsAppended()
     {
         using var eventListener = new InMemoryEventListener(OpAmpClientEventSource.Log, EventLevel.Verbose);
@@ -205,13 +256,17 @@ public class OpAmpPipeTests
         transport.CompleteNextSend();
         processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
 
+        await transport.WaitForMessagesAsync(3);
+        transport.CompleteNextSend();
+        processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+
         await stopTask;
 
         var messages = transport.Messages.ToArray();
-        Assert.Equal([1UL, 2UL], messages.Select(m => m.SequenceNum).ToArray());
+        Assert.Equal([1UL, 2UL, 3UL], messages.Select(m => m.SequenceNum).ToArray());
         Assert.NotNull(messages[0].AgentDescription);
         Assert.NotNull(messages[1].Health);
-        Assert.NotNull(messages[1].AgentDisconnect);
+        Assert.NotNull(messages[2].AgentDisconnect);
     }
 
     private static void AppendIdentification(OpAmpPipe pipe)
@@ -247,6 +302,19 @@ public class OpAmpPipeTests
         IsHealthy = true,
         Status = "OK",
     };
+
+    private sealed class AppendHeartbeatListener : IOpAmpListener<CustomMessageMessage>
+    {
+        private readonly OpAmpPipe pipe;
+
+        public AppendHeartbeatListener(OpAmpPipe pipe)
+        {
+            this.pipe = pipe;
+        }
+
+        public void HandleMessage(CustomMessageMessage message)
+            => AppendHeartbeat(this.pipe);
+    }
 
     private sealed class AppendHeartbeatAndThrowListener : IOpAmpListener<CustomMessageMessage>
     {

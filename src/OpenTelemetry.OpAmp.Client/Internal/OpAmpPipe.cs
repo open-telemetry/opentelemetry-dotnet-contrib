@@ -21,6 +21,7 @@ internal sealed class OpAmpPipe : IDisposable
     private bool hasAccumulatedData;
     private FrameBuilder currentFrame;
     private Task? flushTask;
+    private TaskCompletionSource<bool>? flushCompletion;
 
     public OpAmpPipe(OpAmpClientSettings settings, FrameProcessor processor)
         : this(settings, processor, ConstructTransport(settings, processor))
@@ -49,13 +50,13 @@ internal sealed class OpAmpPipe : IDisposable
 
     public async Task StopAsync(CancellationToken token = default)
     {
-        // Clear queue
+        // Drain queued data.
         await this.FlushAsync()
             .ConfigureAwait(false);
 
         this.AppendMessage(MessageBuilderHelper.AppendAgentDisconnect);
 
-        // Force send disconnect
+        // Send disconnect.
         await this.FlushAsync()
             .ConfigureAwait(false);
 
@@ -77,28 +78,19 @@ internal sealed class OpAmpPipe : IDisposable
         this.TryFlush();
     }
 
-    public async Task FlushAsync()
+    public Task FlushAsync()
     {
-        Task? taskToAwait;
-
         lock (this.frameLock)
         {
-            taskToAwait = this.flushTask;
-        }
+            this.TryStartFlushLocked();
 
-        if (taskToAwait != null)
-        {
-            await taskToAwait.ConfigureAwait(false);
-        }
+            if (this.IsFlushCompleteLocked())
+            {
+                return Task.CompletedTask;
+            }
 
-        lock (this.frameLock)
-        {
-            taskToAwait = this.TryStartFlushLocked() ?? this.flushTask;
-        }
-
-        if (taskToAwait != null)
-        {
-            await taskToAwait.ConfigureAwait(false);
+            this.flushCompletion ??= new(TaskCreationOptions.RunContinuationsAsynchronously);
+            return this.flushCompletion.Task;
         }
     }
 
@@ -112,6 +104,7 @@ internal sealed class OpAmpPipe : IDisposable
             }
 
             this.isDisposed = true;
+            this.TryCompleteFlushLocked();
         }
 
         this.tokenSource.Cancel();
@@ -128,6 +121,7 @@ internal sealed class OpAmpPipe : IDisposable
         lock (this.frameLock)
         {
             this.TryStartFlushLocked();
+            this.TryCompleteFlushLocked();
         }
     }
 
@@ -140,6 +134,9 @@ internal sealed class OpAmpPipe : IDisposable
             _ => throw new NotSupportedException("Unsupported transport type"),
         };
     }
+
+    private bool IsFlushCompleteLocked()
+        => this.isDisposed || (!this.hasAccumulatedData && !this.isBusy);
 
     private Task? TryStartFlushLocked()
     {
@@ -161,6 +158,15 @@ internal sealed class OpAmpPipe : IDisposable
         this.flushTask = this.SendMessageAsync(message);
 
         return this.flushTask;
+    }
+
+    private void TryCompleteFlushLocked()
+    {
+        if (this.IsFlushCompleteLocked())
+        {
+            this.flushCompletion?.TrySetResult(true);
+            this.flushCompletion = null;
+        }
     }
 
     private async Task SendMessageAsync(AgentToServer message)
