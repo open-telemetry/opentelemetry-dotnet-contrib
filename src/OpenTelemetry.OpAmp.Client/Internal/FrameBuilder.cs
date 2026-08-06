@@ -208,7 +208,6 @@ internal sealed class FrameBuilder : IFrameBuilder
 
     public AgentToServer Build()
     {
-        // TODO fix concurrency
         var message = this.currentMessage;
         this.currentMessage = this.NextBaseMessage();
 

@@ -344,7 +344,6 @@ public class OpAmpClientTests
 
         await client.StartAsync();
         client.SendRemoteConfigStatus(new RemoteConfigStatusReport([1, 2, 3], RemoteConfigStatusCode.Failed, "apply failed"));
-        client.SendRemoteConfigStatus(new RemoteConfigStatusReport([1, 2, 3], RemoteConfigStatusCode.Failed, "apply failed"));
         await client.StopAsync();
 
         var frames = opAmpServer.GetFrames();

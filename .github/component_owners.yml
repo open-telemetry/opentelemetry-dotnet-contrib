@@ -3,6 +3,8 @@
 # Each component identified by its path prefix has a list of users
 # Please add the entries in alphabetically sorted order
 components:
+  src/OpenTelemetry.DynamicControl/:
+    - stevejgordon
   src/OpenTelemetry.Exporter.Geneva/:
     - rajkumar-rangaraj
     - xiang17
@@ -95,6 +97,8 @@ components:
   src/OpenTelemetry.Sampler.AWS/:
     - srprash
     - normj
+  test/OpenTelemetry.DynamicControl.Tests/:
+    - stevejgordon
   test/OpenTelemetry.Exporter.Geneva.Benchmarks/:
     - rajkumar-rangaraj
     - xiang17
