@@ -61,9 +61,10 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
         try
         {
             var methodMsg = reqMsg as IMethodMessage;
-            var tags = methodMsg != null
+
+            IEnumerable<KeyValuePair<string, object?>>? tags = methodMsg != null
                 ? this.BuildSamplingTags(methodMsg)
-                : default;
+                : null;
 
             // Are we executing on client?
             if (bCliSide)
