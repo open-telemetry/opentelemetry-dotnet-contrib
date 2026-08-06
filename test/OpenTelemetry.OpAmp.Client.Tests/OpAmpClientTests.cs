@@ -370,7 +370,7 @@ public class OpAmpClientTests
 
         await client.StartAsync();
         client.SendRemoteConfigStatus(status);
-        await client.ForceFlushAsync();
+        await client.FlushAsync();
         client.SendRemoteConfigStatus(status);
         await client.StopAsync();
 

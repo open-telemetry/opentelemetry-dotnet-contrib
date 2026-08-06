@@ -84,11 +84,11 @@ public sealed class OpAmpClient : IDisposable
     /// </summary>
     /// <returns>A task that completes when the currently queued messages have been flushed.</returns>
     /// <exception cref="ObjectDisposedException">Thrown if the client has already been disposed.</exception>
-    public async Task ForceFlushAsync()
+    public async Task FlushAsync()
     {
         this.ThrowIfDisposed();
 
-        await this.pipe.ForceFlushAsync()
+        await this.pipe.FlushAsync()
             .ConfigureAwait(false);
     }
 

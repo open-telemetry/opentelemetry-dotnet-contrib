@@ -66,7 +66,7 @@ public class OpAmpPipeTests
         var processor = new FrameProcessor();
         using var pipe = new OpAmpPipe(settings, processor, transport);
 
-        await pipe.ForceFlushAsync();
+        await pipe.FlushAsync();
 
         Assert.Empty(transport.Messages);
     }
@@ -81,7 +81,7 @@ public class OpAmpPipeTests
 
         await Parallel.ForEachAsync(Enumerable.Range(0, 20), async (_, _) =>
         {
-            await pipe.ForceFlushAsync();
+            await pipe.FlushAsync();
         });
 
         Assert.Empty(transport.Messages);
@@ -207,15 +207,13 @@ public class OpAmpPipeTests
         transport.CompleteNextSend();
         processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
 
-        await transport.WaitForMessagesAsync(3);
-        transport.CompleteNextSend();
         await stopTask;
 
         var messages = transport.Messages.ToArray();
-        Assert.Equal([1UL, 2UL, 3UL], messages.Select(m => m.SequenceNum).ToArray());
+        Assert.Equal([1UL, 2UL], messages.Select(m => m.SequenceNum).ToArray());
         Assert.NotNull(messages[0].AgentDescription);
         Assert.NotNull(messages[1].Health);
-        Assert.NotNull(messages[2].AgentDisconnect);
+        Assert.NotNull(messages[1].AgentDisconnect);
     }
 
     private static void AppendIdentification(OpAmpPipe pipe)

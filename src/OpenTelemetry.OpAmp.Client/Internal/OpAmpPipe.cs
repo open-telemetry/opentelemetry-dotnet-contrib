@@ -50,13 +50,13 @@ internal sealed class OpAmpPipe : IDisposable
     public async Task StopAsync(CancellationToken token = default)
     {
         // Clear queue
-        await this.ForceFlushAsync()
+        await this.FlushAsync()
             .ConfigureAwait(false);
 
         this.AppendMessage(MessageBuilderHelper.AppendAgentDisconnect);
 
         // Force send disconnect
-        await this.ForceFlushAsync()
+        await this.FlushAsync()
             .ConfigureAwait(false);
 
         if (this.transport is WsTransport wsTransport)
@@ -77,7 +77,7 @@ internal sealed class OpAmpPipe : IDisposable
         this.TryFlush();
     }
 
-    public async Task ForceFlushAsync()
+    public async Task FlushAsync()
     {
         Task? taskToAwait;
 
@@ -93,7 +93,7 @@ internal sealed class OpAmpPipe : IDisposable
 
         lock (this.frameLock)
         {
-            taskToAwait = this.TryStartFlushLocked(force: true) ?? this.flushTask;
+            taskToAwait = this.TryStartFlushLocked() ?? this.flushTask;
         }
 
         if (taskToAwait != null)
@@ -123,11 +123,11 @@ internal sealed class OpAmpPipe : IDisposable
         }
     }
 
-    internal void TryFlush(bool force = false)
+    internal void TryFlush()
     {
         lock (this.frameLock)
         {
-            this.TryStartFlushLocked(force);
+            this.TryStartFlushLocked();
         }
     }
 
@@ -141,14 +141,14 @@ internal sealed class OpAmpPipe : IDisposable
         };
     }
 
-    private Task? TryStartFlushLocked(bool force = false)
+    private Task? TryStartFlushLocked()
     {
         if (this.isDisposed || !this.hasAccumulatedData)
         {
             return null;
         }
 
-        if (this.isBusy && !force)
+        if (this.isBusy)
         {
             return null;
         }

@@ -113,9 +113,6 @@ internal sealed class HeartbeatService : IBackgroundService, IOpAmpListener<Conn
             var report = this.CreateHealthReport();
 
             this.pipe.AppendMessage(MessageBuilderHelper.AppendHeartbeat(report));
-
-            await this.pipe.ForceFlushAsync()
-                .ConfigureAwait(false);
         }
         catch (TaskCanceledException)
         {

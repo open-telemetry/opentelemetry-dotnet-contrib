@@ -57,7 +57,7 @@ OpenTelemetry.OpAmp.Client.Messages.ServerSentFlags.ReportAvailableComponents = 
 OpenTelemetry.OpAmp.Client.Messages.ServerSentFlags.ReportFullState = 1 -> OpenTelemetry.OpAmp.Client.Messages.ServerSentFlags
 OpenTelemetry.OpAmp.Client.OpAmpClient
 OpenTelemetry.OpAmp.Client.OpAmpClient.Dispose() -> void
-OpenTelemetry.OpAmp.Client.OpAmpClient.ForceFlushAsync() -> System.Threading.Tasks.Task!
+OpenTelemetry.OpAmp.Client.OpAmpClient.FlushAsync() -> System.Threading.Tasks.Task!
 OpenTelemetry.OpAmp.Client.OpAmpClient.OpAmpClient(System.Action<OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings!>? configure = null) -> void
 OpenTelemetry.OpAmp.Client.OpAmpClient.SendCustomCapabilities(System.Collections.Generic.IEnumerable<string!>! capabilities) -> void
 OpenTelemetry.OpAmp.Client.OpAmpClient.SendCustomMessage(string! capability, string! type, System.ReadOnlyMemory<byte> data) -> void
