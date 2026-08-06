@@ -7,44 +7,39 @@ using Diagnostics = System.Diagnostics;
 
 namespace OpenTelemetry.Instrumentation.Process;
 
-internal sealed class ProcessMetrics : IDisposable
+internal sealed class ProcessMetrics
 {
     internal static readonly Version SemanticConventionsVersion = new(1, 43, 0);
     internal static readonly Meter MeterInstance = Metrics.MeterFactory.Create<ProcessMetrics>(SemanticConventionsVersion);
 
     private static readonly long SnapshotTtlTicks = Diagnostics.Stopwatch.Frequency / 100; // 10ms
 
-    private readonly Diagnostics.Process currentProcess;
-    private readonly DateTime processStartTimeUtc;
-    private readonly Lock snapshotLock;
+    private static readonly Diagnostics.Process CurrentProcess = Diagnostics.Process.GetCurrentProcess();
+    private static readonly DateTime ProcessStartTimeUtc = CurrentProcess.StartTime.ToUniversalTime();
+    private static readonly Lock SnapshotLock = new();
 
-    private bool disposed;
-    private long snapshotTimestamp;
+    private static long snapshotTimestamp;
 
-    public ProcessMetrics()
+    static ProcessMetrics()
     {
-        this.snapshotLock = new();
-        this.currentProcess = Diagnostics.Process.GetCurrentProcess();
-        this.processStartTimeUtc = this.currentProcess.StartTime.ToUniversalTime();
-
         MeterInstance.CreateObservableUpDownCounter(
             "process.memory.usage",
-            () => this.Measure((p) => p.WorkingSet64),
+            static () => Measure(static (p) => p.WorkingSet64),
             unit: "By",
             description: "The amount of physical memory in use.");
 
         MeterInstance.CreateObservableUpDownCounter(
             "process.memory.virtual",
-            () => this.Measure((p) => p.VirtualMemorySize64),
+            static () => Measure(static (p) => p.VirtualMemorySize64),
             unit: "By",
             description: "The amount of committed virtual memory.");
 
         MeterInstance.CreateObservableCounter<double>(
             "process.cpu.time",
-            () =>
+            static () =>
             {
-                (var userSeconds, var privilegedSeconds) = this.Measure(
-                    (p) => (p.UserProcessorTime.TotalSeconds, p.PrivilegedProcessorTime.TotalSeconds));
+                (var userSeconds, var privilegedSeconds) = Measure(
+                    static (p) => (p.UserProcessorTime.TotalSeconds, p.PrivilegedProcessorTime.TotalSeconds));
 
                 return
                 [
@@ -57,13 +52,13 @@ internal sealed class ProcessMetrics : IDisposable
 
         MeterInstance.CreateObservableUpDownCounter(
             "process.thread.count",
-            () => this.Measure((p) => p.Threads.Count),
+            static () => Measure(static (p) => p.Threads.Count),
             unit: "{thread}",
             description: "Process threads count.");
 
         MeterInstance.CreateObservableGauge(
             "process.uptime",
-            () => (DateTime.UtcNow - this.processStartTimeUtc).TotalSeconds,
+            static () => (DateTime.UtcNow - ProcessStartTimeUtc).TotalSeconds,
             unit: "s",
             description: "The time the process has been running.");
 
@@ -71,7 +66,7 @@ internal sealed class ProcessMetrics : IDisposable
         {
             MeterInstance.CreateObservableUpDownCounter(
                 "process.windows.handle.count",
-                () => this.Measure((p) => p.HandleCount),
+                static () => Measure(static (p) => p.HandleCount),
                 unit: "{handle}",
                 description: "Number of handles held by the process.");
         }
@@ -79,52 +74,31 @@ internal sealed class ProcessMetrics : IDisposable
         {
             MeterInstance.CreateObservableUpDownCounter(
                 "process.unix.file_descriptor.count",
-                () => this.Measure((p) => p.HandleCount),
+                static () => Measure(static (p) => p.HandleCount),
                 unit: "{file_descriptor}",
                 description: "Number of unix file descriptors in use by the process.");
         }
     }
 
-    public void Dispose()
+    private static T Measure<T>(Func<Diagnostics.Process, T> func)
     {
-        lock (this.snapshotLock)
+        lock (SnapshotLock)
         {
-            if (!this.disposed)
-            {
-                this.currentProcess?.Dispose();
-                this.disposed = true;
-            }
+            RefreshSnapshotIfStale();
+            return func(CurrentProcess);
         }
     }
 
-    private T Measure<T>(Func<Diagnostics.Process, T> func)
+    private static void RefreshSnapshotIfStale()
     {
-        lock (this.snapshotLock)
-        {
-            this.RefreshSnapshotIfStale();
-            return func(this.currentProcess);
-        }
-    }
-
-    private void RefreshSnapshotIfStale()
-    {
-#if NET8_0_OR_GREATER
-        ObjectDisposedException.ThrowIf(this.disposed, this);
-#else
-        if (this.disposed)
-        {
-            throw new ObjectDisposedException(nameof(ProcessMetrics));
-        }
-#endif
-
         var now = Diagnostics.Stopwatch.GetTimestamp();
 
-        if (now - this.snapshotTimestamp <= SnapshotTtlTicks)
+        if (now - snapshotTimestamp <= SnapshotTtlTicks)
         {
             return;
         }
 
-        this.snapshotTimestamp = now;
-        this.currentProcess.Refresh();
+        snapshotTimestamp = now;
+        CurrentProcess.Refresh();
     }
 }
