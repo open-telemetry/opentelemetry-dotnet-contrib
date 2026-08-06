@@ -80,9 +80,9 @@ public sealed class OpAmpClient : IDisposable
     }
 
     /// <summary>
-    /// Forces any queued OpAMP client messages to be sent to the server.
+    /// Flushes queued OpAMP client messages to the server.
     /// </summary>
-    /// <returns>A task that completes when the currently queued messages have been flushed.</returns>
+    /// <returns>A task that completes when the pipe has no queued data or active flush.</returns>
     /// <exception cref="ObjectDisposedException">Thrown if the client has already been disposed.</exception>
     public async Task FlushAsync()
     {

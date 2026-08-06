@@ -57,7 +57,7 @@ public class OpAmpPipeTests
     }
 
     [Fact]
-    public async Task OpAmpPipe_ForceFlushCompletes_WhenNoMessagesArePending()
+    public async Task OpAmpPipe_FlushAsyncCompletes_WhenNoMessagesArePending()
     {
         using var transport = new MockControlledTransport();
         var settings = new OpAmpClientSettings();
@@ -70,7 +70,7 @@ public class OpAmpPipeTests
     }
 
     [Fact]
-    public async Task OpAmpPipe_ForceFlushIsThreadSafe_WhenCalledConcurrentlyWithoutPendingMessages()
+    public async Task OpAmpPipe_FlushAsyncIsThreadSafe_WhenCalledConcurrentlyWithoutPendingMessages()
     {
         using var transport = new MockControlledTransport();
         var settings = new OpAmpClientSettings();
