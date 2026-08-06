@@ -20,6 +20,8 @@ internal static class HttpTagHelper
     /// <returns>Span uri value.</returns>
     public static string GetUriTagValueFromRequestUri(Uri uri, bool disableQueryRedaction)
     {
+        string? query = null;
+
         if (string.IsNullOrEmpty(uri.UserInfo))
         {
             if (disableQueryRedaction)
@@ -36,11 +38,13 @@ internal static class HttpTagHelper
 
             if (scheme == Uri.UriSchemeHttps || scheme == Uri.UriSchemeHttp)
             {
+                query = uri.Query;
+
                 var indexOfEquals =
 #if NET
-                    uri.Query.IndexOf('=', StringComparison.Ordinal);
+                    query.IndexOf('=', StringComparison.Ordinal);
 #else
-                    uri.Query.IndexOf('=');
+                    query.IndexOf('=');
 #endif
 
                 if (indexOfEquals < 0)
@@ -50,7 +54,12 @@ internal static class HttpTagHelper
             }
         }
 
-        var query = disableQueryRedaction ? uri.Query : RedactionHelper.GetRedactedQueryString(uri.Query);
+        query ??= uri.Query;
+
+        if (!disableQueryRedaction)
+        {
+            query = RedactionHelper.GetRedactedQueryString(query);
+        }
 
         return string.Concat(uri.Scheme, Uri.SchemeDelimiter, uri.Authority, uri.AbsolutePath, query, uri.Fragment);
     }
