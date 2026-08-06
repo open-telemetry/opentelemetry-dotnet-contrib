@@ -4,17 +4,15 @@
 #if NET
 
 using System.Buffers;
-using System.Collections.Concurrent;
-using System.Collections.ObjectModel;
 using System.Diagnostics.Tracing;
 using Google.Protobuf;
 using OpAmp.Proto.V1;
 using OpenTelemetry.OpAmp.Client.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Services.Heartbeat;
-using OpenTelemetry.OpAmp.Client.Internal.Transport;
 using OpenTelemetry.OpAmp.Client.Listeners;
 using OpenTelemetry.OpAmp.Client.Messages;
 using OpenTelemetry.OpAmp.Client.Settings;
+using OpenTelemetry.OpAmp.Client.Tests.Mocks;
 using OpenTelemetry.Tests;
 
 namespace OpenTelemetry.OpAmp.Client.Tests;
@@ -26,7 +24,7 @@ public class OpAmpPipeTests
     {
         var taskCount = 20;
 
-        using var transport = new ControlledTransport();
+        using var transport = new MockControlledTransport();
         var settings = new OpAmpClientSettings();
         var processor = new FrameProcessor();
         using var pipe = new OpAmpPipe(settings, processor, transport);
@@ -61,7 +59,7 @@ public class OpAmpPipeTests
     [Fact]
     public async Task OpAmpPipe_ForceFlushCompletes_WhenNoMessagesArePending()
     {
-        using var transport = new ControlledTransport();
+        using var transport = new MockControlledTransport();
         var settings = new OpAmpClientSettings();
         var processor = new FrameProcessor();
         using var pipe = new OpAmpPipe(settings, processor, transport);
@@ -74,7 +72,7 @@ public class OpAmpPipeTests
     [Fact]
     public async Task OpAmpPipe_ForceFlushIsThreadSafe_WhenCalledConcurrentlyWithoutPendingMessages()
     {
-        using var transport = new ControlledTransport();
+        using var transport = new MockControlledTransport();
         var settings = new OpAmpClientSettings();
         var processor = new FrameProcessor();
         using var pipe = new OpAmpPipe(settings, processor, transport);
@@ -90,7 +88,7 @@ public class OpAmpPipeTests
     [Fact]
     public async Task OpAmpPipe_FlushesAccumulatedData_WhenCurrentSendFails()
     {
-        using var transport = new ControlledTransport();
+        using var transport = new MockControlledTransport();
         var settings = new OpAmpClientSettings();
         var processor = new FrameProcessor();
         using var pipe = new OpAmpPipe(settings, processor, transport);
@@ -114,7 +112,7 @@ public class OpAmpPipeTests
     public async Task OpAmpPipe_LogsSendFailure_WhenCurrentSendFails()
     {
         using var eventListener = new InMemoryEventListener(OpAmpClientEventSource.Log, EventLevel.Verbose);
-        using var transport = new ControlledTransport();
+        using var transport = new MockControlledTransport();
         var settings = new OpAmpClientSettings();
         var processor = new FrameProcessor();
         using var pipe = new OpAmpPipe(settings, processor, transport);
@@ -144,7 +142,7 @@ public class OpAmpPipeTests
             },
         }.ToByteArray();
 
-        using var transport = new ControlledTransport(
+        using var transport = new MockControlledTransport(
             () => processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame)));
         var settings = new OpAmpClientSettings();
         using var pipe = new OpAmpPipe(settings, processor, transport);
@@ -166,7 +164,7 @@ public class OpAmpPipeTests
     public async Task OpAmpPipe_LogsQueueAction_WhenMessageIsAppended()
     {
         using var eventListener = new InMemoryEventListener(OpAmpClientEventSource.Log, EventLevel.Verbose);
-        using var transport = new ControlledTransport();
+        using var transport = new MockControlledTransport();
         var settings = new OpAmpClientSettings();
         var processor = new FrameProcessor();
         using var pipe = new OpAmpPipe(settings, processor, transport);
@@ -185,7 +183,7 @@ public class OpAmpPipeTests
     [Fact]
     public async Task OpAmpPipe_StopAsyncWaitsForAccumulatedDataBeforeSendingDisconnect()
     {
-        using var transport = new ControlledTransport();
+        using var transport = new MockControlledTransport();
         var settings = new OpAmpClientSettings();
         var processor = new FrameProcessor();
         using var pipe = new OpAmpPipe(settings, processor, transport);
@@ -264,102 +262,6 @@ public class OpAmpPipeTests
             AppendHeartbeat(this.pipe);
             throw new InvalidOperationException("listener failed");
         }
-    }
-
-    private sealed class ControlledTransport : IOpAmpTransport, IDisposable
-    {
-        private readonly ConcurrentQueue<AgentToServer> messages = [];
-        private readonly ConcurrentQueue<TaskCompletionSource> sendCompletions = [];
-        private readonly Lock syncRoot = new();
-        private Action? firstSendCallback;
-
-        private int waitTarget;
-        private TaskCompletionSource messagesReached = CreateCompletionSource();
-
-        public ControlledTransport(Action? firstSendCallback = null)
-        {
-            this.firstSendCallback = firstSendCallback;
-        }
-
-        public ReadOnlyCollection<AgentToServer> Messages => this.messages.ToList().AsReadOnly();
-
-        public Task SendAsync<T>(T message, CancellationToken token)
-            where T : IMessage<T>
-        {
-            if (message is not AgentToServer agentToServer)
-            {
-                throw new InvalidOperationException("Unsupported message type. Only AgentToServer messages are supported.");
-            }
-
-            var sendCompletion = CreateCompletionSource();
-            Action? firstSendCallback;
-
-            lock (this.syncRoot)
-            {
-                this.messages.Enqueue(agentToServer);
-                this.sendCompletions.Enqueue(sendCompletion);
-                firstSendCallback = this.firstSendCallback;
-                this.firstSendCallback = null;
-
-                if (this.messages.Count >= this.waitTarget)
-                {
-                    this.messagesReached.TrySetResult();
-                }
-            }
-
-            firstSendCallback?.Invoke();
-
-            return sendCompletion.Task;
-        }
-
-        public Task WaitForMessagesAsync(int count)
-            => this.WaitForMessagesAsync(count, TimeSpan.FromSeconds(5));
-
-        public Task WaitForMessagesAsync(int count, TimeSpan timeout)
-        {
-            lock (this.syncRoot)
-            {
-                if (this.messages.Count >= count)
-                {
-                    return Task.CompletedTask;
-                }
-
-                this.waitTarget = count;
-                this.messagesReached = CreateCompletionSource();
-                return this.messagesReached.Task.WaitAsync(timeout);
-            }
-        }
-
-        public void CompleteNextSend()
-        {
-            if (!this.sendCompletions.TryDequeue(out var sendCompletion))
-            {
-                throw new InvalidOperationException("No send is waiting to complete.");
-            }
-
-            sendCompletion.SetResult();
-        }
-
-        public void FaultNextSend(Exception exception)
-        {
-            if (!this.sendCompletions.TryDequeue(out var sendCompletion))
-            {
-                throw new InvalidOperationException("No send is waiting to complete.");
-            }
-
-            sendCompletion.SetException(exception);
-        }
-
-        public void Dispose()
-        {
-            while (this.sendCompletions.TryDequeue(out var sendCompletion))
-            {
-                sendCompletion.TrySetCanceled();
-            }
-        }
-
-        private static TaskCompletionSource CreateCompletionSource()
-            => new(TaskCreationOptions.RunContinuationsAsynchronously);
     }
 }
 #endif

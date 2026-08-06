@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Buffers;
+using Google.Protobuf;
 using OpAmp.Proto.V1;
 using OpenTelemetry.OpAmp.Client.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Listeners.Messages;
@@ -19,7 +21,7 @@ public class HeartbeatServiceTests
     {
         var settings = new OpAmpClientSettings();
         var processor = new FrameProcessor();
-        using var transport = new MockTransport(expectedCount: 0);
+        using var transport = new MockControlledTransport();
         using var pipe = new OpAmpPipe(settings, processor, transport);
         using var service = new HeartbeatService(pipe, processor);
         service.Configure(settings);
@@ -34,10 +36,10 @@ public class HeartbeatServiceTests
     }
 
     [Fact]
-    public void HeartbeatService_EmitsHeartbeats()
+    public async Task HeartbeatService_EmitsHeartbeats()
     {
         const int messagesCount = 3;
-        const int intervalMs = 300;
+        const int intervalMs = 50;
 
         var settings = new OpAmpClientSettings
         {
@@ -48,18 +50,31 @@ public class HeartbeatServiceTests
         };
 
         var processor = new FrameProcessor();
-        using var transport = new MockTransport(messagesCount);
+        using var transport = new MockControlledTransport();
         using var pipe = new OpAmpPipe(settings, processor, transport);
         using var service = new HeartbeatService(pipe, processor);
+
+        var serverFrame = new ServerToAgent().ToByteArray();
 
         service.Configure(settings);
         service.Start();
 
-        transport.WaitForMessages(timeout: TimeSpan.FromSeconds(5));
+        try
+        {
+            for (var i = 1; i <= messagesCount; i++)
+            {
+                await transport.WaitForMessagesAsync(i);
+                transport.CompleteNextSend();
+                processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+            }
+        }
+        finally
+        {
+            service.Stop();
+        }
 
-        service.Stop();
-
-        var count = transport.Messages.Count;
-        Assert.True(count >= messagesCount, $"Expecting at least {messagesCount} heartbeats, got {count}.");
+        var messages = transport.Messages;
+        Assert.True(messages.Count >= messagesCount, $"Expecting at least {messagesCount} heartbeats, got {messages.Count}.");
+        Assert.All(messages, message => Assert.NotNull(message.Health));
     }
 }
