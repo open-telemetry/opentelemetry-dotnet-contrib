@@ -46,6 +46,10 @@ internal sealed class OpAmpPipe : IDisposable
         }
 
         this.AppendMessage(MessageBuilderHelper.AppendIdentification);
+
+        // Ensure identification is sent.
+        await this.FlushAsync(token)
+            .ConfigureAwait(false);
     }
 
     public async Task StopAsync(CancellationToken token = default)
