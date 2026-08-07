@@ -176,7 +176,95 @@ public sealed class SqlClientIntegrationTests :
             this.outputHelper,
             [new("invalid_format", null)]); // See https://github.com/open-telemetry/weaver/issues/1443
     }
+
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
+    public async Task RecordsReturnedRowsWhenEnabled()
+    {
+        // Arrange
+        using var scope = EnvironmentVariableScope.Create(
+            SqlClientTraceInstrumentationOptions.RecordReturnedRowsEnvVar,
+            "true");
+
+        var activities = new List<Activity>();
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddInMemoryExporter(activities)
+            .AddSqlClientInstrumentation()
+            .Build();
+
+        using var sqlConnection = new SqlConnection(this.GetConnectionString());
+
+        await sqlConnection.OpenAsync();
+
+        sqlConnection.ChangeDatabase("master");
+
+        // A temporary table is scoped to the connection/session so the test does not
+        // depend on or mutate any shared schema in the container.
+        using (var createCommand = new SqlCommand("CREATE TABLE #returned_rows (Id int)", sqlConnection))
+        {
+            await createCommand.ExecuteNonQueryAsync();
+        }
+
+        // Ignore the activities produced while preparing the table.
+        activities.Clear();
+
+        // Act
+        using var insertCommand = new SqlCommand("INSERT INTO #returned_rows (Id) VALUES (1), (2), (3)", sqlConnection);
+        var rowsAffected = await insertCommand.ExecuteNonQueryAsync();
+
+        // Assert
+        Assert.Equal(3, rowsAffected);
+
+        var activity = Assert.Single(activities);
+        Assert.Equal(3L, activity.GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
+    }
 #endif
+
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
+    public async Task RecordsMetricDurationWhenNoActivityIsCreated()
+    {
+        // Arrange
+        var metrics = new List<Metric>();
+
+        // No activity listener is registered, so no activity is created for the command and the
+        // duration has to be derived from the start timestamp captured by the before event. That
+        // timestamp is correlated with the after event using the operation ID carried on the real
+        // SqlClient payloads, so this exercises that contract against the real client.
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddInMemoryExporter(metrics)
+            .AddSqlClientInstrumentation()
+            .Build();
+
+        using var sqlConnection = new SqlConnection(this.GetConnectionString());
+
+        await sqlConnection.OpenAsync();
+
+        sqlConnection.ChangeDatabase("master");
+
+        using var sqlCommand = new SqlCommand("WAITFOR DELAY '00:00:00.300'", sqlConnection);
+
+        // Act
+        await sqlCommand.ExecuteNonQueryAsync();
+
+        meterProvider.ForceFlush();
+
+        // Assert
+        var metric = Assert.Single(metrics, x => x.Name == "db.client.operation.duration");
+
+        var metricPoints = new List<MetricPoint>();
+        foreach (var metricPoint in metric.GetMetricPoints())
+        {
+            metricPoints.Add(metricPoint);
+        }
+
+        var point = Assert.Single(metricPoints);
+
+        Assert.Equal(1, point.GetHistogramCount());
+
+        // The command was deliberately made slow so that a duration derived from the wrong start
+        // timestamp (or from the process start) is distinguishable from the real one.
+        var duration = point.GetHistogramSum();
+        Assert.InRange(duration, 0.2d, 60d);
+    }
 
     [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
     public async Task ActivityIsStoppedWhenOnlyUsingMetrics()
