@@ -33,7 +33,7 @@ public class RemoteConfigMessage : OpAmpMessage
         }
         else
         {
-            this.agentConfigMap = new Dictionary<string, AgentConfigFile>(StringComparer.Ordinal);
+            this.agentConfigMap = [with(StringComparer.Ordinal)];
         }
 
         this.configHash = agentRemoteConfig.ConfigHash;
