@@ -4,6 +4,6 @@
 
 * Added internal `ITelemetryPolicy` interface and `TraceSamplingRatePolicy`
   model and validation.
-  ([#TBD](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TBD))
+  ([#4950](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4950))
 
 For more details, please refer to the [README](README.md).
