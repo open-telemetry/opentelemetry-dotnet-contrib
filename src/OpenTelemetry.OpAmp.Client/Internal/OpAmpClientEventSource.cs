@@ -37,7 +37,7 @@ internal sealed class OpAmpClientEventSource : EventSource
     private const int EventIdQueueingRemoteConfigStatusMessage = 1_007;
     private const int EventIdQueueingFullStateReportMessage = 1_008;
 
-    // Message send errors 1100-1199
+    // Message errors 1100-1199
     private const int EventIdFailedToSendMessage = 1_100;
 
     [Event(EventIdInvalidWsFrame, Message = "Received invalid WebSocket frame header: {0}. Dropping the frame.", Level = EventLevel.Warning)]

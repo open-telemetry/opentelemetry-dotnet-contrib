@@ -17,6 +17,8 @@ internal sealed partial class SqlConnectionDetails
 
     private static readonly ConcurrentDictionary<string, SqlConnectionDetails> ConnectionDetailCache = new(StringComparer.OrdinalIgnoreCase);
 
+    private DbNamespaceEntry? dbNamespace;
+
     private SqlConnectionDetails()
     {
     }
@@ -27,7 +29,9 @@ internal sealed partial class SqlConnectionDetails
 
     public string? InstanceName { get; private set; }
 
-    public int? Port { get; private set; }
+    public object? BoxedPort { get; private set; }
+
+    public string? ServerAddressAndPort { get; private set; }
 
     public static SqlConnectionDetails ParseFromDataSource(string dataSource)
     {
@@ -94,12 +98,17 @@ internal sealed partial class SqlConnectionDetails
                 }
             }
 
+            var serverAddress = serverHostName ?? serverIpAddress;
+
             connectionDetails = new SqlConnectionDetails
             {
+                BoxedPort = port,
+                InstanceName = instanceName,
                 ServerHostName = serverHostName,
                 ServerIpAddress = serverIpAddress,
-                InstanceName = instanceName,
-                Port = port,
+                ServerAddressAndPort = string.IsNullOrEmpty(serverAddress)
+                    ? null
+                    : port is { } portNumber ? $"{serverAddress}:{portNumber}" : serverAddress,
             };
         }
         catch (RegexMatchTimeoutException)
@@ -109,6 +118,39 @@ internal sealed partial class SqlConnectionDetails
 
         ConnectionDetailCache.TryAdd(dataSource, connectionDetails);
         return connectionDetails;
+    }
+
+    /// <summary>
+    /// Gets the <c>db.namespace</c> for a database reached through this data source.
+    /// </summary>
+    /// <param name="databaseName">The database name.</param>
+    /// <returns>
+    /// <paramref name="databaseName"/> qualified by the instance name, if there is one.
+    /// </returns>
+    /// <remarks>
+    /// Qualifying allocates, so the last result is kept. A data source is almost always used with
+    /// a single database, and holding one entry keeps what a data source can retain bounded.
+    /// </remarks>
+    public string GetDbNamespace(string databaseName)
+    {
+        if (string.IsNullOrEmpty(this.InstanceName))
+        {
+            return databaseName;
+        }
+
+        var lastDbNamespace = Volatile.Read(ref this.dbNamespace);
+
+        if (lastDbNamespace is not null &&
+            string.Equals(lastDbNamespace.DatabaseName, databaseName, StringComparison.Ordinal))
+        {
+            return lastDbNamespace.DbNamespace;
+        }
+
+        var value = $"{this.InstanceName}.{databaseName}";
+
+        Volatile.Write(ref this.dbNamespace, new DbNamespaceEntry(databaseName, value));
+
+        return value;
     }
 
 #if NET
@@ -158,4 +200,11 @@ internal sealed partial class SqlConnectionDetails
 
     private static Regex NamedPipeRegex() => NamedPipeRegexField;
 #endif
+
+    private sealed class DbNamespaceEntry(string databaseName, string dbNamespace)
+    {
+        public string DatabaseName { get; } = databaseName;
+
+        public string DbNamespace { get; } = dbNamespace;
+    }
 }
