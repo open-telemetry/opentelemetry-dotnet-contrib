@@ -1,6 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if NET
+using System.Collections.Frozen;
+#endif
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using OpenTelemetry.Trace;
@@ -39,6 +42,46 @@ internal sealed class SqlTelemetryHelper
         SemanticConventions.AttributeServerPort,
         SemanticConventions.AttributeServerAddress,
     ];
+
+#if NET
+    private static readonly FrozenDictionary<string, int> SharedTagNameIndexes = CreateSharedTagNameIndexes().ToFrozenDictionary(StringComparer.Ordinal);
+#else
+    private static readonly Dictionary<string, int> SharedTagNameIndexes = CreateSharedTagNameIndexes();
+#endif
+
+    private static readonly int AllSharedTagsFoundMask = (1 << SharedTagNames.Length) - 1;
+
+    public static void AddSharedTags(Activity activity, ref TagList tags)
+    {
+        var enumerator = activity.EnumerateTagObjects();
+        var found = 0;
+
+        while (enumerator.MoveNext())
+        {
+            ref readonly var tag = ref enumerator.Current;
+
+            if (tag.Value == null || !SharedTagNameIndexes.TryGetValue(tag.Key, out var index))
+            {
+                continue;
+            }
+
+            var mask = 1 << index;
+
+            if ((found & mask) != 0)
+            {
+                // A value for this tag name has already been added.
+                continue;
+            }
+
+            tags.Add(tag.Key, tag.Value);
+            found |= mask;
+
+            if (found == AllSharedTagsFoundMask)
+            {
+                break;
+            }
+        }
+    }
 
     public static TagList GetTagListFromConnectionInfo(string? dataSource, string? databaseName, out string activityName)
     {
@@ -85,4 +128,18 @@ internal sealed class SqlTelemetryHelper
 
     internal static double CalculateDurationFromTimestamp(long begin)
         => Stopwatch.GetElapsedTime(begin).TotalSeconds;
+
+    private static Dictionary<string, int> CreateSharedTagNameIndexes()
+    {
+        Debug.Assert(SharedTagNames.Length <= 32, "There are too many shared tag names to track with a 32-bit mask.");
+
+        var indexes = new Dictionary<string, int>(SharedTagNames.Length, StringComparer.Ordinal);
+
+        for (var i = 0; i < SharedTagNames.Length; i++)
+        {
+            indexes[SharedTagNames[i]] = i;
+        }
+
+        return indexes;
+    }
 }
