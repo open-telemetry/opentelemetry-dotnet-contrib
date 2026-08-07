@@ -56,20 +56,6 @@ public class FrameBuilderTests
             ((IFrameBuilder)frameBuilder).AddEffectiveConfig(files));
     }
 
-    [Fact]
-    public void FrameBuilder_Clear()
-    {
-        var frameBuilder = new FrameBuilder(new());
-
-        ((IFrameBuilder)frameBuilder).AddCustomMessage("temp-message", "temp", "temp"u8.ToArray());
-
-        frameBuilder.Clear();
-
-        var message = frameBuilder.Build();
-
-        Assert.Null(message.CustomMessage);
-    }
-
     [Theory]
     [ClassData(typeof(FrameBuilderTestData))]
     internal void FrameBuilder_AddPartial(Func<IFrameBuilder, IFrameBuilder> addMessage, Func<AgentToServer, object> propertyFetcher)

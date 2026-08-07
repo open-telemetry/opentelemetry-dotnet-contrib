@@ -23,6 +23,4 @@ internal interface IFrameBuilder
     IFrameBuilder AddRemoteConfigStatus(RemoteConfigStatusReport status);
 
     IFrameBuilder AddCustomMessage(string capability, string type, ReadOnlyMemory<byte> data);
-
-    IFrameBuilder Clear();
 }

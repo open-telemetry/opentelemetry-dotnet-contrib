@@ -120,15 +120,6 @@ internal sealed class OpAmpPipe : IDisposable
         }
     }
 
-    internal void TryFlush()
-    {
-        lock (this.frameLock)
-        {
-            this.TryStartFlushLocked();
-            this.TryCompleteFlushLocked();
-        }
-    }
-
     private static IOpAmpTransport ConstructTransport(OpAmpClientSettings settings, FrameProcessor processor)
     {
         return settings.ConnectionType switch
@@ -158,6 +149,15 @@ internal sealed class OpAmpPipe : IDisposable
         }
 
         await flushTask.ConfigureAwait(false);
+    }
+
+    private void TryFlush()
+    {
+        lock (this.frameLock)
+        {
+            this.TryStartFlushLocked();
+            this.TryCompleteFlushLocked();
+        }
     }
 
     private bool IsFlushCompleteLocked()

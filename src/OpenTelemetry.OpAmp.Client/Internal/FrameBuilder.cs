@@ -192,20 +192,6 @@ internal sealed class FrameBuilder : IFrameBuilder
         return this;
     }
 
-    public IFrameBuilder Clear()
-    {
-        // Initializes a new clean frame with the same id
-        var message = new AgentToServer()
-        {
-            InstanceUid = this.instanceUid,
-            SequenceNum = this.sequenceNum,
-        };
-
-        this.currentMessage = message;
-
-        return this;
-    }
-
     public AgentToServer Build()
     {
         var message = this.currentMessage;
