@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if NET
-
 using System.Buffers;
 using System.Diagnostics.Tracing;
 using Google.Protobuf;
@@ -33,11 +31,18 @@ public class OpAmpPipeTests
         AppendIdentification(pipe);
         await transport.WaitForMessagesAsync(1);
 
+#if NET
         await Parallel.ForEachAsync(Enumerable.Range(0, taskCount), (_, _) =>
         {
             AppendIdentification(pipe);
             return ValueTask.CompletedTask;
         });
+#else
+        Parallel.ForEach(Enumerable.Range(0, taskCount), (_, _) =>
+        {
+            AppendIdentification(pipe);
+        });
+#endif
 
         Assert.Single(transport.Messages);
 
@@ -77,10 +82,17 @@ public class OpAmpPipeTests
         var processor = new FrameProcessor();
         using var pipe = new OpAmpPipe(settings, processor, transport);
 
-        await Parallel.ForEachAsync(Enumerable.Range(0, 20), async (_, _) =>
+#if NET
+        await Parallel.ForEachAsync(Enumerable.Range(0, 20), async (_, token) =>
+        {
+            await pipe.FlushAsync(token);
+        });
+#else
+        Parallel.ForEach(Enumerable.Range(0, 20), async (_) =>
         {
             await pipe.FlushAsync();
         });
+#endif
 
         Assert.Empty(transport.Messages);
     }
@@ -202,7 +214,17 @@ public class OpAmpPipeTests
         transport.CompleteNextSend(
             () => processor.OnServerFrame(new ReadOnlySequence<byte>(emptyResponse)));
 
+#if NET
         await flushTask.WaitAsync(TimeSpan.FromSeconds(5));
+#else
+        var timeoutTask = Task.Delay(TimeSpan.FromSeconds(5));
+
+        if (await Task.WhenAny(flushTask, timeoutTask).ConfigureAwait(true)
+            == timeoutTask)
+        {
+            throw new TimeoutException("Flush did not complete within 5 seconds.");
+        }
+#endif
 
         var messages = transport.Messages.ToArray();
         Assert.Equal([1UL, 2UL, 3UL], messages.Select(m => m.SequenceNum).ToArray());
@@ -269,6 +291,55 @@ public class OpAmpPipeTests
         Assert.NotNull(messages[2].AgentDisconnect);
     }
 
+    [Fact]
+    public async Task OpAmpPipe_StopAsyncCanBeCanceledWhileDrainingQueuedData()
+    {
+        using var transport = new MockControlledTransport();
+        var settings = new OpAmpClientSettings();
+        var processor = new FrameProcessor();
+        using var pipe = new OpAmpPipe(settings, processor, transport);
+
+        AppendIdentification(pipe);
+        await transport.WaitForMessagesAsync(1);
+
+        AppendHeartbeat(pipe);
+        using var cts = new CancellationTokenSource();
+        var stopTask = pipe.StopAsync(cts.Token);
+
+        Assert.False(stopTask.IsCompleted);
+
+        cts.Cancel();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => stopTask);
+
+        Assert.Single(transport.Messages);
+    }
+
+    [Fact]
+    public async Task OpAmpPipe_StopAsyncCanBeCanceledWhileWaitingForDisconnectResponse()
+    {
+        using var transport = new MockControlledTransport();
+        var settings = new OpAmpClientSettings();
+        var processor = new FrameProcessor();
+        using var pipe = new OpAmpPipe(settings, processor, transport);
+        var serverFrame = new ServerToAgent().ToByteArray();
+
+        AppendIdentification(pipe);
+        await transport.WaitForMessagesAsync(1);
+        transport.CompleteNextSend();
+        processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+
+        using var cts = new CancellationTokenSource();
+        var stopTask = pipe.StopAsync(cts.Token);
+
+        await transport.WaitForMessagesAsync(2);
+        cts.Cancel();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => stopTask);
+
+        var messages = transport.Messages.ToArray();
+        Assert.Equal([1UL, 2UL], [.. messages.Select(m => m.SequenceNum)]);
+        Assert.NotNull(messages[1].AgentDisconnect);
+    }
+
     private static void AppendIdentification(OpAmpPipe pipe)
         => pipe.AppendMessage(MessageBuilderHelper.AppendIdentification);
 
@@ -332,4 +403,3 @@ public class OpAmpPipeTests
         }
     }
 }
-#endif

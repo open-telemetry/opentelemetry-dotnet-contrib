@@ -82,13 +82,14 @@ public sealed class OpAmpClient : IDisposable
     /// <summary>
     /// Flushes queued OpAMP client messages to the server.
     /// </summary>
+    /// <param name="token">Cancellation token.</param>
     /// <returns>A task that completes when the pipe has no queued data or active flush.</returns>
     /// <exception cref="ObjectDisposedException">Thrown if the client has already been disposed.</exception>
-    public async Task FlushAsync()
+    public async Task FlushAsync(CancellationToken token = default)
     {
         this.ThrowIfDisposed();
 
-        await this.pipe.FlushAsync()
+        await this.pipe.FlushAsync(token)
             .ConfigureAwait(false);
     }
 

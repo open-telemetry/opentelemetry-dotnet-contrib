@@ -51,13 +51,15 @@ internal sealed class OpAmpPipe : IDisposable
     public async Task StopAsync(CancellationToken token = default)
     {
         // Drain queued data.
-        await this.FlushAsync()
+        await this.FlushAsync(token)
             .ConfigureAwait(false);
+
+        token.ThrowIfCancellationRequested();
 
         this.AppendMessage(MessageBuilderHelper.AppendAgentDisconnect);
 
         // Send disconnect.
-        await this.FlushAsync()
+        await this.FlushAsync(token)
             .ConfigureAwait(false);
 
         if (this.transport is WsTransport wsTransport)
@@ -78,8 +80,10 @@ internal sealed class OpAmpPipe : IDisposable
         this.TryFlush();
     }
 
-    public Task FlushAsync()
+    public Task FlushAsync(CancellationToken token = default)
     {
+        token.ThrowIfCancellationRequested();
+
         lock (this.frameLock)
         {
             this.TryStartFlushLocked();
@@ -90,7 +94,7 @@ internal sealed class OpAmpPipe : IDisposable
             }
 
             this.flushCompletion ??= new(TaskCreationOptions.RunContinuationsAsynchronously);
-            return this.flushCompletion.Task;
+            return WaitForFlushAsync(this.flushCompletion.Task, token);
         }
     }
 
@@ -133,6 +137,27 @@ internal sealed class OpAmpPipe : IDisposable
             ConnectionType.Http => new PlainHttpTransport(settings, processor),
             _ => throw new NotSupportedException("Unsupported transport type"),
         };
+    }
+
+    private static async Task WaitForFlushAsync(Task flushTask, CancellationToken token)
+    {
+        if (flushTask.IsCompleted || !token.CanBeCanceled)
+        {
+            await flushTask.ConfigureAwait(false);
+            return;
+        }
+
+        var cancellationCompletion = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        using var registration = token.Register(
+            static state => ((TaskCompletionSource<bool>)state!).TrySetResult(true),
+            cancellationCompletion);
+
+        if (await Task.WhenAny(flushTask, cancellationCompletion.Task).ConfigureAwait(false) == cancellationCompletion.Task)
+        {
+            token.ThrowIfCancellationRequested();
+        }
+
+        await flushTask.ConfigureAwait(false);
     }
 
     private bool IsFlushCompleteLocked()
