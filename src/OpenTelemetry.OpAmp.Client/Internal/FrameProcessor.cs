@@ -15,6 +15,7 @@ namespace OpenTelemetry.OpAmp.Client.Internal;
 internal sealed class FrameProcessor
 {
     private readonly ConcurrentDictionary<Type, IReadOnlyList<object>> listeners = [];
+    private readonly ConcurrentBag<Action<ServerToAgent>> internalListeners = [];
 
     public void Subscribe<T>(IOpAmpListener<T> listener)
         where T : OpAmpMessage
@@ -71,6 +72,11 @@ internal sealed class FrameProcessor
         this.Deserialize(sequence, count, headerSize);
     }
 
+    internal void SubscribeToServerMessages(Action<ServerToAgent> listener)
+    {
+        this.internalListeners.Add(listener);
+    }
+
     private void Deserialize(ReadOnlySequence<byte> sequence, int count, int headerSize)
     {
         var dataSegment = sequence.Slice(headerSize, count - headerSize);
@@ -80,6 +86,11 @@ internal sealed class FrameProcessor
     private void Deserialize(ReadOnlySequence<byte> sequence)
     {
         var message = ServerToAgent.Parser.ParseFrom(sequence);
+
+        foreach (var listener in this.internalListeners)
+        {
+            listener.Invoke(message);
+        }
 
         if (message.ErrorResponse != null)
         {
@@ -141,7 +152,14 @@ internal sealed class FrameProcessor
             {
                 if (listener is IOpAmpListener<T> typedListener)
                 {
-                    typedListener.HandleMessage(message);
+                    try
+                    {
+                        typedListener.HandleMessage(message);
+                    }
+                    catch (Exception ex)
+                    {
+                        OpAmpClientEventSource.Log.FrameProcessingException(ex);
+                    }
                 }
             }
         }

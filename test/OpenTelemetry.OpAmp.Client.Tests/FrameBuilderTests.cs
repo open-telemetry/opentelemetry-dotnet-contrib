@@ -16,7 +16,6 @@ public class FrameBuilderTests
         var frameBuilder = new FrameBuilder(new());
 
         var frame = frameBuilder
-            .StartBaseMessage()
             .Build();
 
         Assert.NotNull(frame);
@@ -30,29 +29,17 @@ public class FrameBuilderTests
         var frameBuilder = new FrameBuilder(new());
 
         var frame1 = frameBuilder
-            .StartBaseMessage()
             .Build();
 
         var frame2 = frameBuilder
-            .StartBaseMessage()
             .Build();
 
         var frame3 = frameBuilder
-            .StartBaseMessage()
             .Build();
 
         Assert.Equal(1UL, frame1.SequenceNum);
         Assert.Equal(2UL, frame2.SequenceNum);
         Assert.Equal(3UL, frame3.SequenceNum);
-    }
-
-    [Fact]
-    public void FrameBuilder_ThrowsOnDoubleStartBaseMessage()
-    {
-        var frameBuilder = new FrameBuilder(new());
-        frameBuilder.StartBaseMessage();
-
-        Assert.Throws<InvalidOperationException>(frameBuilder.StartBaseMessage);
     }
 
     [Fact]
@@ -66,7 +53,7 @@ public class FrameBuilderTests
         };
 
         Assert.Throws<ArgumentException>(() =>
-            frameBuilder.StartBaseMessage().AddEffectiveConfig(files));
+            ((IFrameBuilder)frameBuilder).AddEffectiveConfig(files));
     }
 
     [Theory]
@@ -74,10 +61,9 @@ public class FrameBuilderTests
     internal void FrameBuilder_AddPartial(Func<IFrameBuilder, IFrameBuilder> addMessage, Func<AgentToServer, object> propertyFetcher)
     {
         var frameBuilder = new FrameBuilder(new());
-        var messageBuilder = frameBuilder.StartBaseMessage();
-        addMessage(messageBuilder);
+        addMessage(frameBuilder);
 
-        var message = messageBuilder.Build();
+        var message = frameBuilder.Build();
         var property = propertyFetcher(message);
 
         Assert.NotNull(property);
