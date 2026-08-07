@@ -26,4 +26,8 @@
     <PackageReference Include="OpenTelemetry" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="OpenTelemetry.Extensions.FuzzTests" PublicKey="$(StrongNamePublicKey)" />
+  </ItemGroup>
+
 </Project>
