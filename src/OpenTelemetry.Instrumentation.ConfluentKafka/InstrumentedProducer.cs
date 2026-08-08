@@ -322,12 +322,12 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
         var spanName = string.Concat(ConfluentKafkaCommon.SendOperationName, " ", topic);
 
         // Provide the attributes that can influence sampling decisions at span creation time
-        var initialTags = new ActivityTagsCollection
+        var initialTags = new TagList
         {
-            [SemanticConventions.AttributeMessagingDestinationName] = topic,
-            [SemanticConventions.AttributeMessagingOperationName] = ConfluentKafkaCommon.SendOperationName,
-            [SemanticConventions.AttributeMessagingOperationType] = ConfluentKafkaCommon.SendOperationType,
-            [SemanticConventions.AttributeMessagingSystem] = ConfluentKafkaCommon.KafkaMessagingSystem,
+            { SemanticConventions.AttributeMessagingDestinationName, topic },
+            { SemanticConventions.AttributeMessagingOperationName, ConfluentKafkaCommon.SendOperationName },
+            { SemanticConventions.AttributeMessagingOperationType, ConfluentKafkaCommon.SendOperationType },
+            { SemanticConventions.AttributeMessagingSystem, ConfluentKafkaCommon.KafkaMessagingSystem },
         };
 
         if (partition is { } partitionValue)
