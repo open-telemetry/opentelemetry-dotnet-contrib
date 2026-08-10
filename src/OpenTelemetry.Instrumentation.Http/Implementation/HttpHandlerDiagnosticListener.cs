@@ -144,7 +144,17 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
                 {
                     activity.SetTag(SemanticConventions.AttributeServerAddress, request.RequestUri.Host);
                     activity.SetTag(SemanticConventions.AttributeServerPort, request.RequestUri.Port);
-                    activity.SetTag(SemanticConventions.AttributeUrlFull, HttpTagHelper.GetUriTagValueFromRequestUri(request.RequestUri, this.options.DisableUrlQueryRedaction));
+                    activity.SetTag(SemanticConventions.AttributeUrlFull, HttpTagHelper.GetUriTagValueFromRequestUri(request.RequestUri, this.options.DisableUrlQueryRedaction, this.options.SensitiveQueryParameters));
+                }
+            }
+            else if (this.options.SensitiveQueryParameters != null && !this.options.DisableUrlQueryRedaction)
+            {
+                // The runtime sets url.full itself and redacts the whole query to "?*",
+                // which cannot express the parameters the user asked to keep. Overwrite
+                // just that attribute; everything else stays as the runtime set it.
+                if (request.RequestUri != null)
+                {
+                    activity.SetTag(SemanticConventions.AttributeUrlFull, HttpTagHelper.GetUriTagValueFromRequestUri(request.RequestUri, disableQueryRedaction: false, this.options.SensitiveQueryParameters));
                 }
             }
 

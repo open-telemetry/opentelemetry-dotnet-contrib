@@ -17,8 +17,9 @@ internal static class HttpTagHelper
     /// </summary>
     /// <param name="uri"><see cref="Uri"/>.</param>
     /// <param name="disableQueryRedaction">Indicates whether query parameter should be redacted or not.</param>
+    /// <param name="sensitiveQueryParameters">The query parameter names whose values are redacted, or <see langword="null" /> to redact every value.</param>
     /// <returns>Span uri value.</returns>
-    public static string GetUriTagValueFromRequestUri(Uri uri, bool disableQueryRedaction)
+    public static string GetUriTagValueFromRequestUri(Uri uri, bool disableQueryRedaction, string[]? sensitiveQueryParameters)
     {
         string? query = null;
 
@@ -58,7 +59,9 @@ internal static class HttpTagHelper
 
         if (!disableQueryRedaction)
         {
-            query = RedactionHelper.GetRedactedQueryString(query);
+            query = sensitiveQueryParameters == null
+                ? RedactionHelper.GetRedactedQueryString(query)
+                : RedactionHelper.GetRedactedQueryString(query, sensitiveQueryParameters);
         }
 
         return string.Concat(uri.Scheme, Uri.SchemeDelimiter, uri.Authority, uri.AbsolutePath, query, uri.Fragment);

@@ -18,6 +18,8 @@ namespace OpenTelemetry.Instrumentation.Http;
 /// </summary>
 public class HttpClientTraceInstrumentationOptions
 {
+    private static readonly char[] SplitChars = [','];
+
     /// <summary>
     /// Initializes a new instance of the <see cref="HttpClientTraceInstrumentationOptions"/> class.
     /// </summary>
@@ -34,6 +36,18 @@ public class HttpClientTraceInstrumentationOptions
            out var disableUrlQueryRedaction))
         {
             this.DisableUrlQueryRedaction = disableUrlQueryRedaction;
+        }
+
+        if (configuration.TryGetStringValue(
+           "OTEL_DOTNET_EXPERIMENTAL_HTTPCLIENT_SENSITIVE_QUERY_PARAMETERS",
+           out var sensitiveQueryParameters))
+        {
+            var parameters = sensitiveQueryParameters!.Split(SplitChars, StringSplitOptions.RemoveEmptyEntries);
+
+            if (parameters.Length > 0)
+            {
+                this.SensitiveQueryParameters = parameters;
+            }
         }
     }
 
@@ -155,6 +169,17 @@ public class HttpClientTraceInstrumentationOptions
     /// The redaction can be disabled by setting this property to <see langword="true" />.
     /// </remarks>
     internal bool DisableUrlQueryRedaction { get; set; }
+
+    /// <summary>
+    /// Gets or sets the query parameter names whose values are redacted.
+    /// </summary>
+    /// <remarks>
+    /// When <see langword="null" /> every query parameter value is redacted. When
+    /// set, only the values of the named parameters are redacted and every other
+    /// query parameter value is preserved. Names are matched case-sensitively, as
+    /// semantic conventions require.
+    /// </remarks>
+    internal string[]? SensitiveQueryParameters { get; set; }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal bool EventFilterHttpRequestMessage(string activityName, object arg1)

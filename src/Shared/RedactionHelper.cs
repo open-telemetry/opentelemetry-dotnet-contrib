@@ -11,6 +11,11 @@ internal sealed class RedactionHelper
 {
     private const string RedactedText = "Redacted";
 
+    // Semantic conventions spell the replacement for a named sensitive query
+    // parameter in uppercase, unlike the blanket redaction above.
+    // https://github.com/open-telemetry/semantic-conventions/blob/v1.44.0/docs/url/url.md
+    private const string SensitiveRedactedText = "REDACTED";
+
     public static string? GetRedactedQueryString(string query)
     {
         var index =
@@ -65,6 +70,94 @@ internal sealed class RedactionHelper
         }
 
         return queryBuilder.ToString();
+    }
+
+    public static string? GetRedactedQueryString(string query, string[] sensitiveQueryParameters)
+    {
+        var index =
+#if NET
+            query.IndexOf('=', StringComparison.Ordinal);
+#else
+            query.IndexOf('=');
+#endif
+
+        if (index < 0)
+        {
+            return query;
+        }
+
+        var length = query.Length;
+
+        // Preallocate some size to avoid re-sizing multiple times.
+        // Since the size will increase, allocating twice as much.
+        using ValueStringBuilder queryBuilder = new(2 * length);
+
+        var position = 0;
+
+        // The leading '?' is not part of the first parameter name.
+        if (query[0] == '?')
+        {
+            queryBuilder.Append('?');
+            position = 1;
+        }
+
+        while (position < length)
+        {
+            var remaining = query.AsSpan(position);
+
+            // A key/value pair ends at the next '&', or at the end of the query.
+            var pairLength = remaining.IndexOf('&');
+            if (pairLength < 0)
+            {
+                pairLength = remaining.Length;
+            }
+
+            var pair = remaining.Slice(0, pairLength);
+
+            // Only the first '=' separates the key from the value, so a value
+            // containing '=' (base64 padding, for example) is still redacted as one.
+            var separator = pair.IndexOf('=');
+
+            if (separator >= 0 && IsSensitive(pair.Slice(0, separator), sensitiveQueryParameters))
+            {
+                // Append the key and the '=', then the redacted value in place of the original.
+                queryBuilder.Append(pair.Slice(0, separator + 1));
+                queryBuilder.Append(SensitiveRedactedText);
+            }
+            else
+            {
+                // A pair whose key was not named, or that has no value, is preserved as is.
+                queryBuilder.Append(pair);
+            }
+
+            position += pairLength;
+
+            // End of key/value.
+            if (position < length)
+            {
+                queryBuilder.Append('&');
+                position++;
+            }
+        }
+
+        return queryBuilder.ToString();
+    }
+
+    private static bool IsSensitive(ReadOnlySpan<char> key, string[] sensitiveQueryParameters)
+    {
+        // The list holds a handful of names at most, so a linear scan beats hashing
+        // and, unlike a set lookup, needs no string allocated for the key.
+        // SequenceEqual is ordinal, as semantic conventions require the parameter
+        // names to be matched case-sensitively.
+        foreach (var sensitiveQueryParameter in sensitiveQueryParameters)
+        {
+            if (key.SequenceEqual(sensitiveQueryParameter.AsSpan()))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // Simplified version of System.Text.ValueStringBuilder from .NET runtime

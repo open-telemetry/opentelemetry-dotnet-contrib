@@ -26,4 +26,29 @@ public class RedactionHelperTest
     {
         Assert.Equal(expected, RedactionHelper.GetRedactedQueryString(input));
     }
+
+    [Theory]
+    [InlineData("sig", "?a", "?a")]
+    [InlineData("sig", "?a=b", "?a=b")]
+    [InlineData("sig", "?sig=ghgjgj", "?sig=REDACTED")]
+    [InlineData("sig", "?sig=", "?sig=REDACTED")]
+    [InlineData("sig", "?sig=ghgjgj&", "?sig=REDACTED&")]
+    [InlineData("sig", "?a=b&sig=ghgjgj", "?a=b&sig=REDACTED")]
+    [InlineData("sig", "?sig=ghgjgj&a=b", "?sig=REDACTED&a=b")]
+    [InlineData("sig", "?a=b&sig=ghgjgj&c=1123456", "?a=b&sig=REDACTED&c=1123456")]
+    [InlineData("sig", "?a&sig=ghgjgj", "?a&sig=REDACTED")]
+    [InlineData("sig", "?SIG=ghgjgj", "?SIG=ghgjgj")]
+    [InlineData("sig", "?asig=ghgjgj", "?asig=ghgjgj")]
+    [InlineData("sig", "?a=sig&c=1123456", "?a=sig&c=1123456")]
+    [InlineData("sig", "?sig=ghgjgj==&a=b", "?sig=REDACTED&a=b")]
+    [InlineData("sig", "?a=gh=jgj&sig=ghgjgj", "?a=gh=jgj&sig=REDACTED")]
+    [InlineData("sig", "?=ghgjgj", "?=ghgjgj")]
+    [InlineData("sig,c", "?a=b&sig=ghgjgj&c=1123456", "?a=b&sig=REDACTED&c=REDACTED")]
+    [InlineData("a", "?a=b&a=bdjdjh", "?a=REDACTED&a=REDACTED")]
+    public void OnlySensitiveQueryStringValuesAreRedacted(string sensitiveQueryParameters, string input, string expected)
+    {
+        var parameters = sensitiveQueryParameters.Split(',');
+
+        Assert.Equal(expected, RedactionHelper.GetRedactedQueryString(input, parameters));
+    }
 }
