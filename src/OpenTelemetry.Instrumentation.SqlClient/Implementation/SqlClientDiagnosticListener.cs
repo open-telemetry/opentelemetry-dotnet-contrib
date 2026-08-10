@@ -46,6 +46,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
     private readonly PropertyFetcher<int> exceptionNumberFetcher = new("Number");
     private readonly PropertyFetcher<IDictionary> statisticsFetcher = new("Statistics");
     private readonly PropertyFetcher<Guid> operationIdFetcher = new("OperationId");
+    private readonly PropertyFetcher<string> operationFetcher = new("Operation");
     private readonly ConcurrentDictionary<Guid, long> beginTimestamps = new();
 
     public SqlClientDiagnosticListener(string sourceName)
@@ -149,8 +150,13 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     }
 
                     // Snapshot the connection's cumulative row counts before the command executes
-                    // so that the after-handler can compute the per-command delta.
-                    if (options.RecordReturnedRows && activity.IsAllDataRequested)
+                    // so that the after-handler can compute the per-command delta. The baseline is
+                    // only captured for the executions whose row counts are complete by the time the
+                    // command finishes, which is also what makes the after-handler skip the others.
+                    if (options.RecordReturnedRows &&
+                        activity.IsAllDataRequested &&
+                        TryFetchOperation(this.operationFetcher, payload, out var operation) &&
+                        IsRowCountAvailableWhenCommandCompletes(operation))
                     {
                         activity.SetCustomProperty(RowCountBaselinePropertyName, GetConnectionRowCounts(command));
                     }
@@ -241,11 +247,14 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                         return;
                     }
 
+                    // The baseline is only present if the before-handler determined that the row
+                    // counts reported when the command completes are meaningful for this execution.
                     if (options.RecordReturnedRows &&
                         activity.IsAllDataRequested &&
+                        activity.GetCustomProperty(RowCountBaselinePropertyName) is RowCountBaseline baseline &&
                         TryFetchStatistics(this.statisticsFetcher, payload, out var statistics))
                     {
-                        if (GetReturnedRowsDelta(activity, statistics) is { } returnedRows)
+                        if (GetReturnedRowsDelta(baseline, statistics) is { } returnedRows)
                         {
                             activity.SetTag(SemanticConventions.AttributeDbResponseReturnedRows, returnedRows);
                         }
@@ -403,6 +412,31 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
         [NotNullWhen(true)] out IDictionary? statistics)
         => fetcher.TryFetch(payload, out statistics) && statistics != null;
 
+#if NET
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = IL2026Justification)]
+#endif
+    private static bool TryFetchOperation(
+        PropertyFetcher<string> fetcher,
+        object? payload,
+        [NotNullWhen(true)] out string? operation)
+        => fetcher.TryFetch(payload, out operation) && operation != null;
+
+    // The connection statistics are only updated as the response from the server is consumed, which
+    // for the reader-based executions (ExecuteReader and ExecuteXmlReader) happens once the command
+    // has completed and the activity has already been stopped. The row counts observed when those
+    // commands complete therefore do not describe the rows the operation returns, so the row counts
+    // are only used for the executions which consume the response before the command completes:
+    // ExecuteNonQuery (rows affected) and ExecuteScalar (the single row that is read).
+    //
+    // SqlClient derives the operation name from the name of the member which wrote the event (using
+    // CallerMemberName), so the members which implement the asynchronous overloads are matched by
+    // looking for the relevant substring rather than by an exact name. For example, executing a
+    // command with ExecuteNonQueryAsync() reports InternalExecuteNonQueryAsync for the before event
+    // and CleanupAfterExecuteNonQueryAsync for the after event.
+    private static bool IsRowCountAvailableWhenCommandCompletes(string operation) =>
+        operation.Contains("NonQuery", StringComparison.Ordinal) ||
+        operation.Contains("Scalar", StringComparison.Ordinal);
+
     // Both System.Data.SqlClient.SqlConnection and Microsoft.Data.SqlClient.SqlConnection
     // expose a public RetrieveStatistics() method that returns an IDictionary snapshot of
     // the connection's cumulative statistics. We look the method up once per concrete
@@ -452,7 +486,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
     // subtract the pre-command baseline to obtain the per-command delta. We prefer the
     // IduRows delta when it is non-zero so that the same tag can be populated for both
     // SELECT and INSERT/UPDATE/DELETE style commands.
-    private static long? GetReturnedRowsDelta(Activity activity, IDictionary statistics)
+    private static long? GetReturnedRowsDelta(RowCountBaseline baseline, IDictionary statistics)
     {
         var iduRows = GetStatistic(statistics, "IduRows");
         var selectRows = GetStatistic(statistics, "SelectRows");
@@ -461,10 +495,6 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
         {
             return null;
         }
-
-        var baseline =
-            activity.GetCustomProperty(RowCountBaselinePropertyName) as RowCountBaseline ??
-            RowCountBaseline.Zero;
 
         var deltaIdu = (iduRows ?? 0L) - baseline.IduRows;
         var deltaSelect = (selectRows ?? 0L) - baseline.SelectRows;

@@ -12,6 +12,8 @@ namespace OpenTelemetry.Instrumentation.SqlClient.Tests;
 
 public class MockCommandExecutor
 {
+    private const string DefaultOperation = "ExecuteNonQuery";
+
     public static void ExecuteCommand(string connectionString, CommandType commandType, string commandText, bool error, SqlClientLibrary library, long? selectRows = null, long? iduRows = null)
     {
         var statistics = error ? null : new Dictionary<string, object>
@@ -41,6 +43,7 @@ public class MockCommandExecutor
             new
             {
                 OperationId = operationId,
+                Operation = DefaultOperation,
                 Command = command,
                 Timestamp = (long?)1000000L,
             });
@@ -50,6 +53,7 @@ public class MockCommandExecutor
             new
             {
                 OperationId = operationId,
+                Operation = DefaultOperation,
                 Command = command,
                 Statistics = statistics,
                 Timestamp = 2000000L,
@@ -88,6 +92,7 @@ public class MockCommandExecutor
             new
             {
                 OperationId = outerOperationId,
+                Operation = DefaultOperation,
                 Command = outerCommand,
                 Timestamp = (long?)1000000L,
             });
@@ -101,6 +106,7 @@ public class MockCommandExecutor
             new
             {
                 OperationId = innerOperationId,
+                Operation = DefaultOperation,
                 Command = innerCommand,
                 Timestamp = (long?)1100000L,
             });
@@ -110,6 +116,7 @@ public class MockCommandExecutor
             new
             {
                 OperationId = innerOperationId,
+                Operation = DefaultOperation,
                 Command = innerCommand,
                 Statistics = innerStatistics,
                 Timestamp = 1200000L,
@@ -120,6 +127,7 @@ public class MockCommandExecutor
             new
             {
                 OperationId = outerOperationId,
+                Operation = DefaultOperation,
                 Command = outerCommand,
                 Statistics = outerStatistics,
                 Timestamp = 2000000L,
@@ -141,13 +149,22 @@ public class MockCommandExecutor
             new
             {
                 OperationId = Guid.NewGuid(),
+                Operation = DefaultOperation,
                 Command = command,
                 Statistics = (IDictionary?)null,
                 Timestamp = 2000000L,
             });
     }
 
-    public static void ExecuteCommand(string connectionString, CommandType commandType, string commandText, bool error, SqlClientLibrary library, IDictionary? statistics)
+    public static void ExecuteCommand(
+        string connectionString,
+        CommandType commandType,
+        string commandText,
+        bool error,
+        SqlClientLibrary library,
+        IDictionary? statistics,
+        string? beforeOperation = DefaultOperation,
+        string? afterOperation = null)
     {
         using var fakeSqlClientDiagnosticSource = new FakeSqlClientDiagnosticSource();
 
@@ -175,6 +192,7 @@ public class MockCommandExecutor
         var beforeExecuteEventData = new
         {
             OperationId = operationId,
+            Operation = beforeOperation,
             Command = sqlCommand,
             Timestamp = (long?)1000000L,
         };
@@ -188,6 +206,7 @@ public class MockCommandExecutor
             var commandErrorEventData = new
             {
                 OperationId = operationId,
+                Operation = afterOperation ?? beforeOperation,
                 Command = sqlCommand,
                 Exception = new Exception("Boom!"),
                 Timestamp = 2000000L,
@@ -208,6 +227,7 @@ public class MockCommandExecutor
             var afterExecuteEventData = new
             {
                 OperationId = operationId,
+                Operation = afterOperation ?? beforeOperation,
                 Command = sqlCommand,
                 Statistics = statistics,
                 Timestamp = 2000000L,

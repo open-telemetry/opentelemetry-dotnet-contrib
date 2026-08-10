@@ -15,7 +15,8 @@
   [v1.44.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.44.0/docs/db/sql-server.md).
   ([#4625](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4625))
 
-* Add the `db.response.returned_rows` attribute to query spans when the
+* Add the `db.response.returned_rows` attribute to the spans for commands
+  executed with `ExecuteNonQuery()` or `ExecuteScalar()` when the
   `OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_RECORD_RETURNED_ROWS` environment
   variable is set to `true`. The value is derived from the SqlClient connection
   statistics. Not supported on .NET Framework.

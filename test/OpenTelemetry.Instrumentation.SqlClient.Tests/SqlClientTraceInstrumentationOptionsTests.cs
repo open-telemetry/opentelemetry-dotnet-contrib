@@ -315,6 +315,52 @@ public class SqlClientTraceInstrumentationOptionsTests
         }
     }
 
+    [Theory]
+    [InlineData("ExecuteNonQuery")]
+    [InlineData("InternalExecuteNonQueryAsync")]
+    [InlineData("ExecuteScalar")]
+    [InlineData("ExecuteScalarAsyncInternal")]
+    [InlineData("ExecuteScalarBatchAsync")]
+    public void RecordReturnedRowsForOperationsWhichConsumeTheResponse(string operation)
+    {
+        var activity = ExecuteCommandForOperation(operation);
+
+        Assert.Equal(20L, activity.GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
+    }
+
+    [Theory]
+    [InlineData("ExecuteReader")]
+    [InlineData("InternalExecuteReaderAsync")]
+    [InlineData("ExecuteXmlReader")]
+    [InlineData("InternalExecuteXmlReaderAsync")]
+    public void DoesNotRecordReturnedRowsForReaderOperations(string operation)
+    {
+        var activity = ExecuteCommandForOperation(operation);
+
+        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("SomeFutureOperation")]
+    public void DoesNotRecordReturnedRowsForUnrecognizedOperations(string? operation)
+    {
+        var activity = ExecuteCommandForOperation(operation);
+
+        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
+    }
+
+    [Fact]
+    public void RecordReturnedRowsWhenBeforeAndAfterOperationsDiffer()
+    {
+        var activity = ExecuteCommandForOperation(
+            "InternalExecuteNonQueryAsync",
+            afterOperation: "CleanupAfterExecuteNonQueryAsync");
+
+        Assert.Equal(20L, activity.GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
+    }
+
     [Fact]
     public void RecordReturnedRowsFallsBackToSelectRowsWhenIduRowsAbsent()
     {
@@ -579,6 +625,33 @@ public class SqlClientTraceInstrumentationOptionsTests
         Assert.Equal(inner.ParentSpanId, outer.SpanId);
         Assert.Equal(7L, inner.GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
         Assert.Equal(20L, outer.GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
+    }
+
+    private static Activity ExecuteCommandForOperation(string? operation, string? afterOperation = null)
+    {
+        var activities = new List<Activity>();
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation(options =>
+            {
+                options.RecordReturnedRows = true;
+            })
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        MockCommandExecutor.ExecuteCommand(
+            TestConnectionString,
+            CommandType.Text,
+            "select * from Foo",
+            false,
+            SqlClientLibrary.MicrosoftDataSqlClient,
+            new Dictionary<string, object> { ["SelectRows"] = 20L },
+            operation,
+            afterOperation);
+
+        tracerProvider.ForceFlush();
+
+        return Assert.Single(activities);
     }
 
     private static void ActivityEnrichment(Activity activity, object obj)

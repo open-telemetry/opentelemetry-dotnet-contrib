@@ -217,6 +217,46 @@ public sealed class SqlClientIntegrationTests :
         var activity = Assert.Single(activities);
         Assert.Equal(3L, activity.GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
     }
+
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
+    public async Task DoesNotRecordReturnedRowsForReaderCommands()
+    {
+        // Arrange
+        using var scope = EnvironmentVariableScope.Create(
+            SqlClientTraceInstrumentationOptions.RecordReturnedRowsEnvVar,
+            "true");
+
+        var activities = new List<Activity>();
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddInMemoryExporter(activities)
+            .AddSqlClientInstrumentation()
+            .Build();
+
+        using var sqlConnection = new SqlConnection(this.GetConnectionString());
+
+        await sqlConnection.OpenAsync();
+
+        sqlConnection.ChangeDatabase("master");
+
+        using var selectCommand = new SqlCommand("SELECT * FROM (VALUES (1), (2), (3)) AS Rows(Id)", sqlConnection);
+
+        // Act
+        var rows = 0;
+
+        using (var reader = await selectCommand.ExecuteReaderAsync())
+        {
+            while (await reader.ReadAsync())
+            {
+                rows++;
+            }
+        }
+
+        // Assert
+        Assert.Equal(3, rows);
+
+        var activity = Assert.Single(activities);
+        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
+    }
 #endif
 
     [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]

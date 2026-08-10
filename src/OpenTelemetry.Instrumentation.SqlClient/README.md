@@ -268,11 +268,13 @@ derived from the SqlClient connection statistics that are collected automaticall
 while the instrumentation is enabled.
 
 > [!NOTE]
-> The span ends when the command finishes executing. For `ExecuteReader` this
-> happens **before** the returned rows are read by the application, so the
-> attribute reflects the rows observed at that point and may be `0` for queries
-> whose results are consumed after the command returns. The value is most
-> meaningful for `ExecuteNonQuery` (rows affected) commands.
+> The attribute is only recorded for commands executed with `ExecuteNonQuery()`
+> or `ExecuteScalar()`, including their asynchronous overloads. The connection
+> statistics the value is derived from are only updated as the response from the
+> server is consumed, which for `ExecuteReader()` and `ExecuteXmlReader()`
+> happens after the command has finished executing and the span has already
+> ended. No attribute is emitted for those commands, rather than one whose
+> value does not describe the rows the command returned.
 
 ### Trace Context Propagation
 
