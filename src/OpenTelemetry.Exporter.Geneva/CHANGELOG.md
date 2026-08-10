@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.18.0-beta.1
+
+Released 2026-Aug-10
+
 * Fixed a metric TLV serialization issue where an exemplar whose filtered tags
   serialized to more than 255 bytes caused the payload to be corrupted.
   ([#4856](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4856))
