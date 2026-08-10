@@ -6,6 +6,17 @@
   serialized to more than 255 bytes caused the payload to be corrupted.
   ([#4856](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4856))
 
+* Renamed the `PrivatePreviewEnableOtlpProtobufEncoding` connection string switch
+  to `EnableOtlpProtobufEncoding`. The old `PrivatePreviewEnableOtlpProtobufEncoding`
+  switch is no longer supported.
+  ([#4920](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4920))
+
+* Fixed a regression introduced in `1.17.0` where `EtwDataTransport` prepended a
+  synthetic 4-byte length field to the ETW payload for logs and traces, causing
+  the agent to reject the data with "Bad forward protocol format". The raw
+  payload is once again written as a single unframed field.
+  ([#4941](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4941))
+
 ## 1.17.0
 
 Released 2026-Jul-17

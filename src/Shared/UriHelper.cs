@@ -9,6 +9,12 @@ internal static class UriHelper
 
     public static Uri ScrubUserInfo(Uri uri)
     {
+        // Nothing to scrub, so avoid allocating a UriBuilder to parse it
+        if (string.IsNullOrEmpty(uri.UserInfo))
+        {
+            return uri;
+        }
+
         var uriBuilder = new UriBuilder(uri);
         if (!string.IsNullOrEmpty(uriBuilder.UserName))
         {
