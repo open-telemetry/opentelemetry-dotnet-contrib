@@ -141,7 +141,7 @@ internal sealed class SqlTelemetryHelper
 
     private static Dictionary<string, int> CreateSharedTagNameIndexes()
     {
-        Debug.Assert(SharedTagNames.Length <= 32, "There are too many shared tag names to track with a 32-bit mask.");
+        Debug.Assert(SharedTagNames.Length < 32, "There are too many shared tag names to track with a 32-bit mask.");
 
         var indexes = new Dictionary<string, int>(SharedTagNames.Length, StringComparer.Ordinal);
 
