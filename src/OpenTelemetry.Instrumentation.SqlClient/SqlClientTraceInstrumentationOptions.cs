@@ -130,7 +130,7 @@ public class SqlClientTraceInstrumentationOptions
 
     /// <summary>
     /// Gets or sets a value indicating whether or not the <see cref="SqlClientInstrumentation"/>
-    /// should add the number of rows returned or affected by the operation as the
+    /// should add the number of rows returned by the operation as the
     /// <c>db.response.returned_rows</c> tag. Default value: <see langword="false"/>.
     /// </summary>
     /// <remarks>
@@ -138,12 +138,14 @@ public class SqlClientTraceInstrumentationOptions
     /// <b>RecordReturnedRows is only supported on .NET runtimes.</b>
     /// </para>
     /// <para>
-    /// The value is derived from the connection statistics collected by the SqlClient
-    /// (<c>IduRows</c> for data manipulation commands and <c>SelectRows</c> for queries).
-    /// Because the span ends when the command completes executing (and, for
-    /// <c>ExecuteReader</c>, before its rows have been consumed), the value reflects
-    /// the rows observed at that point in time and may be <c>0</c> for queries whose
-    /// results are read after the command returns.
+    /// The value is derived from the <c>SelectRows</c> connection statistic collected by
+    /// the SqlClient.
+    /// </para>
+    /// <para>
+    /// Because the span ends when the command completes executing, the tag is only added
+    /// for commands executed with <c>ExecuteNonQuery</c> or <c>ExecuteScalar</c>; the rows
+    /// returned to an <c>ExecuteReader</c> command are not counted until after its span has
+    /// ended, so no tag is added for those commands.
     /// </para>
     /// </remarks>
     internal bool RecordReturnedRows { get; set; }

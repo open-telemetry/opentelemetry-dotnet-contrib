@@ -214,7 +214,20 @@ public sealed class SqlClientIntegrationTests :
         // Assert
         Assert.Equal(3, rowsAffected);
 
+        // The insert affected three rows but returned none, and rows affected are not rows
+        // returned, so the number of rows it returned is recorded as zero.
         var activity = Assert.Single(activities);
+        Assert.Equal(0L, activity.GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
+
+        activities.Clear();
+
+        // Act
+        using var selectCommand = new SqlCommand("SELECT Id FROM #returned_rows", sqlConnection);
+        await selectCommand.ExecuteNonQueryAsync();
+
+        // Assert
+        // The query returned the three rows which were inserted.
+        activity = Assert.Single(activities);
         Assert.Equal(3L, activity.GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
     }
 
@@ -256,6 +269,55 @@ public sealed class SqlClientIntegrationTests :
 
         var activity = Assert.Single(activities);
         Assert.Null(activity.GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
+    }
+
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
+    public async Task RecordsReturnedRowsRatherThanAffectedRowsWhenBothAreReported()
+    {
+        // Arrange
+        using var scope = EnvironmentVariableScope.Create(
+            SqlClientTraceInstrumentationOptions.RecordReturnedRowsEnvVar,
+            "true");
+
+        var activities = new List<Activity>();
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddInMemoryExporter(activities)
+            .AddSqlClientInstrumentation()
+            .Build();
+
+        using var sqlConnection = new SqlConnection(this.GetConnectionString());
+
+        await sqlConnection.OpenAsync();
+
+        sqlConnection.ChangeDatabase("master");
+
+        using (var createCommand = new SqlCommand("CREATE TABLE #both_rows (Id int)", sqlConnection))
+        {
+            await createCommand.ExecuteNonQueryAsync();
+        }
+
+        using (var insertCommand = new SqlCommand("INSERT INTO #both_rows (Id) VALUES (1), (2), (3)", sqlConnection))
+        {
+            await insertCommand.ExecuteNonQueryAsync();
+        }
+
+        // Ignore the activities produced while preparing the table.
+        activities.Clear();
+
+        // A batch which affects one row and then returns three. ExecuteNonQuery() consumes the
+        // whole response, so both row counts are reported by the time the command completes.
+        using var command = new SqlCommand(
+            "UPDATE #both_rows SET Id = Id WHERE Id = 1; SELECT Id FROM #both_rows",
+            sqlConnection);
+
+        // Act
+        await command.ExecuteNonQueryAsync();
+
+        // Assert
+        // db.response.returned_rows describes the rows the command returned (3), not the number
+        // of rows the update affected (1).
+        var activity = Assert.Single(activities);
+        Assert.Equal(3L, activity.GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
     }
 #endif
 

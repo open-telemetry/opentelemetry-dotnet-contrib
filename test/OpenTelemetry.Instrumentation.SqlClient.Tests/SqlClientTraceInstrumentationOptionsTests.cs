@@ -295,8 +295,8 @@ public class SqlClientTraceInstrumentationOptionsTests
             .AddInMemoryExporter(activities)
             .Build();
 
-        // A query reports rows via SelectRows, a data manipulation command via IduRows,
-        // and whichever statistic is non-zero should populate db.response.returned_rows.
+        // A query reports the rows it returned via SelectRows. A data manipulation command
+        // returns no rows, so it reports 0 regardless of the rows it affected (IduRows).
         MockCommandExecutor.ExecuteCommand(TestConnectionString, CommandType.Text, "select * from Foo", false, SqlClientLibrary.MicrosoftDataSqlClient, selectRows: 20);
         MockCommandExecutor.ExecuteCommand(TestConnectionString, CommandType.Text, "update Foo set Bar = 1", false, SqlClientLibrary.MicrosoftDataSqlClient, iduRows: 10);
 
@@ -306,7 +306,7 @@ public class SqlClientTraceInstrumentationOptionsTests
         if (recordReturnedRows)
         {
             Assert.Equal(20L, activities[0].GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
-            Assert.Equal(10L, activities[1].GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
+            Assert.Equal(0L, activities[1].GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
         }
         else
         {
@@ -362,7 +362,7 @@ public class SqlClientTraceInstrumentationOptionsTests
     }
 
     [Fact]
-    public void RecordReturnedRowsFallsBackToSelectRowsWhenIduRowsAbsent()
+    public void RecordReturnedRowsWhenIduRowsAbsent()
     {
         var activities = new List<Activity>();
 
@@ -395,6 +395,109 @@ public class SqlClientTraceInstrumentationOptionsTests
     }
 
     [Fact]
+    public void DoesNotRecordReturnedRowsFromRowsAffectedWhenSelectRowsAbsent()
+    {
+        var activities = new List<Activity>();
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation(options =>
+            {
+                options.RecordReturnedRows = true;
+            })
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        // The number of rows a command affected is never used as the number of rows it
+        // returned, so statistics which only report IduRows do not populate the tag.
+        var statsWithoutSelectRows = new Dictionary<string, object>
+        {
+            ["IduRows"] = 12L,
+        };
+
+        MockCommandExecutor.ExecuteCommand(
+            TestConnectionString,
+            CommandType.Text,
+            "update Foo set Bar = 1",
+            false,
+            SqlClientLibrary.MicrosoftDataSqlClient,
+            statsWithoutSelectRows);
+
+        tracerProvider.ForceFlush();
+
+        var activity = Assert.Single(activities);
+
+        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
+    }
+
+    [Fact]
+    public void RecordReturnedRowsIgnoresRowsAffected()
+    {
+        var activities = new List<Activity>();
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation(options =>
+            {
+                options.RecordReturnedRows = true;
+            })
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        // A batch or stored procedure which both affects and returns rows reports both
+        // statistics. db.response.returned_rows describes the rows the operation returned, so
+        // only the SelectRows value is used and the rows the update affected are ignored.
+        var statistics = new Dictionary<string, object>
+        {
+            ["IduRows"] = 7L,
+            ["SelectRows"] = 15L,
+        };
+
+        MockCommandExecutor.ExecuteCommand(
+            TestConnectionString,
+            CommandType.Text,
+            "update Foo set Bar = 1; select * from Foo",
+            false,
+            SqlClientLibrary.MicrosoftDataSqlClient,
+            statistics);
+
+        tracerProvider.ForceFlush();
+
+        var activity = Assert.Single(activities);
+
+        Assert.Equal(15L, activity.GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
+    }
+
+    [Fact]
+    public void RecordReturnedRowsNotRecordedWhenStatisticsUnavailable()
+    {
+        var activities = new List<Activity>();
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation(options =>
+            {
+                options.RecordReturnedRows = true;
+            })
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        // SqlClient only starts collecting statistics for a connection when it is opened, so a
+        // connection which was already open before the instrumentation was registered reports no
+        // statistics at all on the after-command payload. No attribute is recorded in that case.
+        MockCommandExecutor.ExecuteCommand(
+            TestConnectionString,
+            CommandType.Text,
+            "select * from Foo",
+            false,
+            SqlClientLibrary.MicrosoftDataSqlClient,
+            (IDictionary?)null);
+
+        tracerProvider.ForceFlush();
+
+        var activity = Assert.Single(activities);
+
+        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
+    }
+
+    [Fact]
     public void RecordReturnedRowsNotRecordedWhenRowStatisticsAbsent()
     {
         var activities = new List<Activity>();
@@ -407,7 +510,7 @@ public class SqlClientTraceInstrumentationOptionsTests
             .AddInMemoryExporter(activities)
             .Build();
 
-        // Statistics that contain neither IduRows nor SelectRows should not populate the tag.
+        // Statistics which do not report SelectRows at all should not populate the tag.
         var statisticsWithoutRowCounts = new Dictionary<string, object>
         {
             ["BuffersReceived"] = 1L,
@@ -518,13 +621,13 @@ public class SqlClientTraceInstrumentationOptionsTests
         var command = new FakeDbCommand
         {
             CommandType = CommandType.Text,
-            CommandText = "update Foo set Bar = 1",
+            CommandText = "select * from Foo",
             Connection = new ThrowingStatisticsDbConnection(),
         };
 
         var statistics = new Dictionary<string, object>
         {
-            ["IduRows"] = 5L,
+            ["SelectRows"] = 5L,
         };
 
         MockCommandExecutor.ExecuteCommand(command, SqlClientLibrary.MicrosoftDataSqlClient, statistics);

@@ -37,7 +37,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
     private const string IL2026Justification = "Client application usage will ensure that core types from usage are preserved.";
 #endif
 
-    private const string RowCountBaselinePropertyName = "otel.sqlclient.row_count_baseline";
+    private const string ReturnedRowsBaselinePropertyName = "otel.sqlclient.returned_rows_baseline";
 
     private static ConcurrentDictionary<Type, Func<IDbConnection, IDictionary?>?>? retrieveStatisticsCache;
 
@@ -149,16 +149,17 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                         return;
                     }
 
-                    // Snapshot the connection's cumulative row counts before the command executes
-                    // so that the after-handler can compute the per-command delta. The baseline is
-                    // only captured for the executions whose row counts are complete by the time the
-                    // command finishes, which is also what makes the after-handler skip the others.
+                    // Snapshot the connection's cumulative returned row count before the command
+                    // executes so that the after-handler can compute the per-command delta. The
+                    // baseline is only captured for the executions whose row count is complete by
+                    // the time the command finishes, which is also what makes the after-handler
+                    // skip the others.
                     if (options.RecordReturnedRows &&
                         activity.IsAllDataRequested &&
                         TryFetchOperation(this.operationFetcher, payload, out var operation) &&
                         IsRowCountAvailableWhenCommandCompletes(operation))
                     {
-                        activity.SetCustomProperty(RowCountBaselinePropertyName, GetConnectionRowCounts(command));
+                        activity.SetCustomProperty(ReturnedRowsBaselinePropertyName, GetConnectionReturnedRows(command));
                     }
 
 #if NET
@@ -248,10 +249,10 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     }
 
                     // The baseline is only present if the before-handler determined that the row
-                    // counts reported when the command completes are meaningful for this execution.
+                    // count reported when the command completes is meaningful for this execution.
                     if (options.RecordReturnedRows &&
                         activity.IsAllDataRequested &&
-                        activity.GetCustomProperty(RowCountBaselinePropertyName) is RowCountBaseline baseline &&
+                        activity.GetCustomProperty(ReturnedRowsBaselinePropertyName) is long baseline &&
                         TryFetchStatistics(this.statisticsFetcher, payload, out var statistics))
                     {
                         if (GetReturnedRowsDelta(baseline, statistics) is { } returnedRows)
@@ -442,23 +443,21 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
     // the connection's cumulative statistics. We look the method up once per concrete
     // connection type and cache a delegate so that subsequent calls avoid repeated
     // reflection lookups.
-    private static RowCountBaseline GetConnectionRowCounts(IDbCommand command)
+    private static long GetConnectionReturnedRows(IDbCommand command)
     {
         var connection = command.Connection;
         if (connection == null)
         {
-            return RowCountBaseline.Zero;
+            return 0L;
         }
 
         try
         {
             retrieveStatisticsCache ??= [];
             var retrieve = retrieveStatisticsCache.GetOrAdd(connection.GetType(), CreateRetrieveStatisticsDelegate);
-            if (retrieve?.Invoke(connection) is IDictionary stats)
+            if (retrieve?.Invoke(connection) is IDictionary stats && stats["SelectRows"] is long selectRows)
             {
-                return new RowCountBaseline(
-                    stats["IduRows"] is long idu ? idu : 0L,
-                    stats["SelectRows"] is long sel ? sel : 0L);
+                return selectRows;
             }
         }
         catch
@@ -466,7 +465,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
             // Statistics not available from this connection type; baseline defaults to zero.
         }
 
-        return RowCountBaseline.Zero;
+        return 0L;
     }
 
 #if NET
@@ -480,30 +479,16 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
             : connection => method.Invoke(connection, null) as IDictionary;
     }
 
-    // The SqlClient connection statistics report both the number of rows returned by
-    // queries (SelectRows) and the number of rows affected by data manipulation commands
-    // (IduRows). The statistics are cumulative for the lifetime of the connection, so we
-    // subtract the pre-command baseline to obtain the per-command delta. We prefer the
-    // IduRows delta when it is non-zero so that the same tag can be populated for both
-    // SELECT and INSERT/UPDATE/DELETE style commands.
-    private static long? GetReturnedRowsDelta(RowCountBaseline baseline, IDictionary statistics)
-    {
-        var iduRows = GetStatistic(statistics, "IduRows");
-        var selectRows = GetStatistic(statistics, "SelectRows");
-
-        if (iduRows == null && selectRows == null)
-        {
-            return null;
-        }
-
-        var deltaIdu = (iduRows ?? 0L) - baseline.IduRows;
-        var deltaSelect = (selectRows ?? 0L) - baseline.SelectRows;
-
-        return deltaIdu != 0 ? deltaIdu : deltaSelect;
-
-        static long? GetStatistic(IDictionary statistics, string key)
-            => statistics[key] is long value ? value : null;
-    }
+    // db.response.returned_rows describes the rows the operation returned, so only the
+    // connection's SelectRows counter is used. The statistics also report the number of rows
+    // affected by data manipulation commands (IduRows), but rows affected by an
+    // INSERT/UPDATE/DELETE are not rows returned by it, so that counter is deliberately
+    // ignored: a command which returns no rows reports 0, including when it affected rows.
+    //
+    // The counter is cumulative for the lifetime of the connection, so the pre-command
+    // baseline is subtracted to obtain the number of rows returned by this command.
+    private static long? GetReturnedRowsDelta(long baseline, IDictionary statistics)
+        => statistics["SelectRows"] is long selectRows ? selectRows - baseline : null;
 
     private void RecordBeginTimestamp(object? payload)
     {
@@ -599,15 +584,6 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
         }
 
         SqlTelemetryHelper.DbClientOperationDuration.Record(duration, tags);
-    }
-
-    private sealed class RowCountBaseline(long iduRows, long selectRows)
-    {
-        public static readonly RowCountBaseline Zero = new(0, 0);
-
-        public long IduRows { get; } = iduRows;
-
-        public long SelectRows { get; } = selectRows;
     }
 }
 #endif

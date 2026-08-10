@@ -263,9 +263,8 @@ attribute is emitted.
 
 `OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_RECORD_RETURNED_ROWS` is implicitly
 `false` by default. When set to `true`, the instrumentation records the number
-of rows returned by queries or affected by `INSERT`/`UPDATE`/`DELETE` commands,
-derived from the SqlClient connection statistics that are collected automatically
-while the instrumentation is enabled.
+of rows the command returned, derived from the SqlClient connection statistics
+that are collected automatically while the instrumentation is enabled.
 
 > [!NOTE]
 > The attribute is only recorded for commands executed with `ExecuteNonQuery()`
@@ -275,6 +274,13 @@ while the instrumentation is enabled.
 > happens after the command has finished executing and the span has already
 > ended. No attribute is emitted for those commands, rather than one whose
 > value does not describe the rows the command returned.
+
+> [!NOTE]
+> SqlClient only starts collecting the statistics that the value is derived
+> from when a connection is opened, so a connection which was already open
+> before the instrumentation was registered does not report a value. Either
+> open connections after the `TracerProvider` has been built, or set
+> `StatisticsEnabled` to `true` on such connections yourself.
 
 ### Trace Context Propagation
 
