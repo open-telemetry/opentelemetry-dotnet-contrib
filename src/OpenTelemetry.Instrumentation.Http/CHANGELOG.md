@@ -6,6 +6,13 @@
   enabled and a filtered request is redirected on .NET Framework.
   ([#4917](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4917))
 
+* Added the experimental `OTEL_DOTNET_EXPERIMENTAL_HTTPCLIENT_SENSITIVE_QUERY_PARAMETERS`
+  environment variable, which redacts only the values of the named query
+  parameters in `url.full` and preserves every other value. When it is set,
+  `url.full` is also written on .NET 9 and later, replacing the value the
+  runtime redacts to `?*`.
+  ([#4954](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4954))
+
 ## 1.17.0
 
 Released 2026-Jul-17

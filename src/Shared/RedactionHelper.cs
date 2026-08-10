@@ -11,8 +11,7 @@ internal sealed class RedactionHelper
 {
     private const string RedactedText = "Redacted";
 
-    // Semantic conventions spell the replacement for a named sensitive query
-    // parameter in uppercase, unlike the blanket redaction above.
+    // Semantic convention has the replacement for a named sensitive query parameter in uppercase.
     // https://github.com/open-telemetry/semantic-conventions/blob/v1.44.0/docs/url/url.md
     private const string SensitiveRedactedText = "REDACTED";
 
