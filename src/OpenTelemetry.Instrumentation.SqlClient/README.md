@@ -274,8 +274,7 @@ that are collected automatically while the instrumentation is enabled.
 > happens after the command has finished executing and the span has already
 > ended. No attribute is emitted for those commands, rather than one whose
 > value does not describe the rows the command returned.
-
-> [!NOTE]
+>
 > SqlClient only starts collecting the statistics that the value is derived
 > from when a connection is opened, so a connection which was already open
 > before the instrumentation was registered does not report a value. Either
