@@ -143,6 +143,12 @@ Like the built-in `TraceIdRatioBased` sampler, it makes an independent decision,
 so combine it with a `ParentBasedSampler` to follow the parent's decision for
 non-root spans.
 
+The shared randomness comes from the explicit randomness value (the `rv` sub-key
+of the `ot` `tracestate` entry) when one is present, and otherwise from the
+least-significant 56 bits of the `TraceId`. The sampler never creates or modifies
+an explicit randomness value, so every participant that observes the same context
+resolves the same randomness.
+
 An example of `ConsistentProbabilitySampler` usage is shown below:
 
 ```cs

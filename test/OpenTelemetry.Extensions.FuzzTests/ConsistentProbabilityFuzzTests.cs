@@ -90,7 +90,7 @@ public static class ConsistentProbabilityFuzzTests
         var expectedThreshold = ConsistentProbability.DecodeThreshold(
             ConsistentProbability.EncodeThreshold(probability, ConsistentProbability.DefaultPrecision));
 
-        // 0 = explicit rv, 1 = random TraceId flag, 2 = generated randomness.
+        // 0 = explicit rv, 1 = random TraceId flag, 2 = presumed TraceId randomness.
         var mode = modeSelector % 3;
         var explicitRandomness = (long)(rawRandomness % (ulong)ConsistentProbability.MaxAdjustedCount);
 
@@ -120,16 +120,13 @@ public static class ConsistentProbabilityFuzzTests
         // The output must always be parseable.
         var outgoing = OtelTraceState.Parse(result.TraceStateString);
 
-        var randomness = mode switch
-        {
-            0 => explicitRandomness,
-            1 => traceIdRandomness,
-            _ => outgoing.RandomValue,
-        };
+        var randomness = mode == 0 ? explicitRandomness : traceIdRandomness;
 
-        if (mode == 2)
+        if (mode != 0)
         {
-            Assert.True(outgoing.HasRandomValue, "Generated randomness should be recorded as rv.");
+            // Only a value propagated in the incoming context can appear in the outgoing one; the
+            // sampler never invents randomness of its own.
+            Assert.False(outgoing.HasRandomValue, "The sampler should not add an rv value.");
         }
 
         var expected = randomness >= expectedThreshold ? SamplingDecision.RecordAndSample : SamplingDecision.Drop;
@@ -145,6 +142,39 @@ public static class ConsistentProbabilityFuzzTests
         {
             Assert.False(outgoing.HasThreshold);
         }
+    }
+
+    [Property(MaxTest = MaxValue)]
+    public static void ShouldSample_IsDeterministicForTheSameContext(double rawProbability, bool randomFlag, bool recorded)
+    {
+        // Two participants that observe the same context, without an explicit rv value to share,
+        // must resolve the same randomness and therefore reach the same decision.
+        var probability = ToProbability(rawProbability);
+
+        var flags = ActivityTraceFlags.None;
+
+        if (randomFlag)
+        {
+            // https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867
+            // will change this code to use ActivityTraceFlags.RandomTraceId.
+            flags |= (ActivityTraceFlags)0x2;
+        }
+
+        if (recorded)
+        {
+            flags |= ActivityTraceFlags.Recorded;
+        }
+
+        var traceId = ActivityTraceId.CreateRandom();
+        var parent = new ActivityContext(traceId, ActivitySpanId.CreateRandom(), flags);
+        var parameters = new SamplingParameters(parent, traceId, "operation", ActivityKind.Internal, tags: null, links: null);
+
+        var first = new ConsistentProbabilitySampler(probability).ShouldSample(in parameters);
+        var second = new ConsistentProbabilitySampler(probability).ShouldSample(in parameters);
+
+        Assert.Equal(first.Decision, second.Decision);
+        Assert.Equal(first.TraceStateString, second.TraceStateString);
+        Assert.False(OtelTraceState.Parse(first.TraceStateString).HasRandomValue);
     }
 
     [Property(MaxTest = MaxValue)]

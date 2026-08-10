@@ -116,7 +116,7 @@ internal static class ConsistentProbability
     /// Decodes a <c>th</c> value into a 56-bit integer rejection threshold by extending it with
     /// trailing zeros to 14 digits and parsing the result.
     /// </summary>
-    /// <param name="threshold">The encoded threshold (1 to 14 hexadecimal digits).</param>
+    /// <param name="threshold">The encoded threshold (1 to 14 lowercase hexadecimal digits).</param>
     /// <returns>The rejection threshold, in the range <c>[0, 2^56)</c>.</returns>
     public static long DecodeThreshold(string threshold)
     {
@@ -127,7 +127,7 @@ internal static class ConsistentProbability
     /// <summary>
     /// Attempts to decode a <c>th</c> value into a 56-bit integer rejection threshold.
     /// </summary>
-    /// <param name="threshold">The encoded threshold (1 to 14 hexadecimal digits).</param>
+    /// <param name="threshold">The encoded threshold (1 to 14 lowercase hexadecimal digits).</param>
     /// <param name="value">The rejection threshold when successful; otherwise zero.</param>
     /// <returns><see langword="true"/> if the value was decoded; otherwise <see langword="false"/>.</returns>
     public static bool TryDecodeThreshold(ReadOnlySpan<char> threshold, out long value)
@@ -146,7 +146,7 @@ internal static class ConsistentProbability
     }
 
     /// <summary>
-    /// Parses a hexadecimal string of 1 to 14 digits into its integer value.
+    /// Parses a lowercase hexadecimal string of 1 to 14 digits into its integer value.
     /// </summary>
     /// <param name="value">The hexadecimal string.</param>
     /// <param name="result">The parsed value when successful; otherwise zero.</param>
@@ -155,11 +155,15 @@ internal static class ConsistentProbability
         => TryParseHex56(value.AsSpan(), out result);
 
     /// <summary>
-    /// Parses a hexadecimal span of 1 to 14 digits into its integer value.
+    /// Parses a lowercase hexadecimal span of 1 to 14 digits into its integer value.
     /// </summary>
     /// <param name="value">The hexadecimal characters.</param>
     /// <param name="result">The parsed value when successful; otherwise zero.</param>
     /// <returns><see langword="true"/> if the value was parsed; otherwise <see langword="false"/>.</returns>
+    /// <remarks>
+    /// Uppercase digits are rejected: the specification requires both <c>th</c> and <c>rv</c> to be
+    /// encoded with lowercase hexadecimal digits, the same as <see cref="System.Diagnostics.ActivityTraceId"/>.
+    /// </remarks>
     public static bool TryParseHex56(ReadOnlySpan<char> value, out long result)
     {
         result = 0;
@@ -177,7 +181,6 @@ internal static class ConsistentProbability
             {
                 >= '0' and <= '9' => ch - '0',
                 >= 'a' and <= 'f' => ch - 'a' + 10,
-                >= 'A' and <= 'F' => ch - 'A' + 10,
                 _ => -1,
             };
 

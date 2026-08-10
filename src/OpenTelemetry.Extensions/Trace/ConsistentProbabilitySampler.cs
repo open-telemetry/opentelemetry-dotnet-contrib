@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using OpenTelemetry.Extensions.Internal;
 using OpenTelemetry.Trace;
 
@@ -22,12 +21,15 @@ namespace OpenTelemetry;
 /// </remarks>
 public sealed class ConsistentProbabilitySampler : Sampler
 {
-#if !NET
-    private static readonly ThreadLocal<Random> ThreadLocalRandom = new(() => new Random());
-#endif
+    // The W3C Trace Context Level 2 "random" trace flag, which indicates that the least-significant
+    // 56 bits of the TraceID were generated in a random or pseudo-random manner.
+    // https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867
+    // will change this code to use ActivityTraceFlags.RandomTraceId.
+    private const ActivityTraceFlags RandomTraceIdFlag = (ActivityTraceFlags)0x02;
 
-    private readonly Random? random;
     private readonly long threshold;
+
+    private int hasWarnedAboutPresumedRandomness;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ConsistentProbabilitySampler"/> class.
@@ -39,11 +41,6 @@ public sealed class ConsistentProbabilitySampler : Sampler
     /// <paramref name="samplingProbability"/> is not a number, or is outside the range <c>[2^-56, 1]</c>.
     /// </exception>
     public ConsistentProbabilitySampler(double samplingProbability)
-        : this(samplingProbability, null)
-    {
-    }
-
-    internal ConsistentProbabilitySampler(double samplingProbability, Random? random)
     {
         // The smallest probability representable by the 56-bit randomness range used by the
         // specification is 2^-56 (i.e. an adjusted count of 2^56).
@@ -57,8 +54,6 @@ public sealed class ConsistentProbabilitySampler : Sampler
                 "Value must be in the range [2^-56, 1].");
         }
 
-        this.random = random;
-
         // Round the probability to the encoded threshold once, so the sampling decision matches the
         // threshold that is propagated to downstream participants.
         var encoded = ConsistentProbability.EncodeThreshold(samplingProbability, ConsistentProbability.DefaultPrecision);
@@ -66,13 +61,6 @@ public sealed class ConsistentProbabilitySampler : Sampler
 
         this.Description = FormattableString.Invariant($"ConsistentProbabilitySampler{{{samplingProbability}}}");
     }
-
-    private static Random DefaultRandom =>
-#if NET
-        Random.Shared;
-#else
-        ThreadLocalRandom.Value!;
-#endif
 
     /// <inheritdoc/>
     public override SamplingResult ShouldSample(in SamplingParameters samplingParameters)
@@ -87,26 +75,31 @@ public sealed class ConsistentProbabilitySampler : Sampler
         if (traceState.HasRandomValue)
         {
             // Prefer the explicit randomness value. "Explicit randomness values are meant to
-            // propagate through span contexts unmodified."
+            // propagate through span contexts unmodified", and "SDKs and Samplers MUST NOT
+            // overwrite explicit randomness in an OpenTelemetry TraceState value".
             randomness = traceState.RandomValue;
-        }
-        else if ((parentContext.TraceFlags & (ActivityTraceFlags)2) != 0)
-        {
-            // TODO: Use ActivityTraceFlags.RandomTraceId above once available.
-            // https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867
-
-            // "Using the least-significant 56 bits of the TraceID as the source of randomness [...]
-            // can be done if the root Span's Trace SDK knows that the TraceID has been generated in
-            // a random or pseudo-random manner", which the random trace flag indicates.
-            randomness = GetRandomnessFromTraceId(samplingParameters.TraceId);
         }
         else
         {
-            // No usable source of randomness is available, so generate one. "The Root sampling
-            // decision is the only case where it is permitted to modify the explicit trace
-            // randomness value for a Context." Record it so the rest of the trace stays consistent.
-            randomness = this.GenerateRandomness();
-            traceState.SetRandomValue(randomness);
+            // "Samplers SHOULD presume that TraceIDs meet the W3C Trace Context Level 2 randomness
+            // requirements, unless an explicit randomness value is present in the rv sub-key."
+            //
+            // Deriving the randomness from the TraceID, rather than generating a new value, is what
+            // keeps this decision consistent with every other participant that observes the same
+            // TraceID. Generating one here would be permitted for a root Context only ("The Root
+            // sampling decision is the only case where it is permitted to modify the explicit trace
+            // randomness value for a Context"), but a generated value only reaches other
+            // participants through the tracestate header, whereas the TraceID always travels with
+            // the trace.
+            if (parentContext.IsValid() && (parentContext.TraceFlags & RandomTraceIdFlag) == 0)
+            {
+                // "To assist with this migration, the TraceIdRatioBased Sampler issues a warning
+                // statement the first time it presumes TraceID randomness for a Context where the
+                // Trace random flag is not set."
+                this.WarnOncePresumingTraceIdRandomness();
+            }
+
+            randomness = GetRandomnessFromTraceId(samplingParameters.TraceId);
         }
 
         // "If R >= T, keep the span, else drop the span."
@@ -138,31 +131,14 @@ public sealed class ConsistentProbabilitySampler : Sampler
         return value;
     }
 
-    [SuppressMessage(
-        "Security",
-        "CA5394",
-        Justification = "A cryptographically secure random number generator is not required for probability sampling.")]
-    private long GenerateRandomness()
+    private void WarnOncePresumingTraceIdRandomness()
     {
-        // "OpenTelemetry supports a random (or pseudo-random) 56-bit value known as explicit trace randomness."
-        var random = this.random ?? DefaultRandom;
-
-#if NET
-        // The randomness is a 56-bit value, i.e. in the range [0, 2^56).
-        return random.NextInt64(0, ConsistentProbability.MaxAdjustedCount);
-#else
-        // Assemble a 56-bit value from the trailing 7 bytes produced by the generator.
-        var buffer = new byte[7];
-        random.NextBytes(buffer);
-
-        long value = 0;
-
-        foreach (var b in buffer)
+        // The relaxed read keeps the common case (already warned) off the interlocked path, as this
+        // runs for every span that does not carry the random trace flag.
+        if (Volatile.Read(ref this.hasWarnedAboutPresumedRandomness) == 0 &&
+            Interlocked.Exchange(ref this.hasWarnedAboutPresumedRandomness, 1) == 0)
         {
-            value = (value << 8) | b;
+            OpenTelemetryExtensionsEventSource.Log.PresumedTraceIdRandomness(this.Description);
         }
-
-        return value;
-#endif
     }
 }

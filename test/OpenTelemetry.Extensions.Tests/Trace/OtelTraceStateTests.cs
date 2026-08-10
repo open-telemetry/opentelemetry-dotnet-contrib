@@ -56,6 +56,8 @@ public class OtelTraceStateTests
     [InlineData("ot=th:")] // Empty value.
     [InlineData("ot=th:g")] // Not hexadecimal.
     [InlineData("ot=th:123456789012345")] // 15 digits, exceeds 14.
+    [InlineData("ot=th:FD70A4")] // Uppercase, which the specification does not allow.
+    [InlineData("ot=th:fd70A4")] // Mixed case.
     public void Parse_IgnoresInvalidThreshold(string traceState)
         => Assert.False(OtelTraceState.Parse(traceState).HasThreshold);
 
@@ -63,8 +65,21 @@ public class OtelTraceStateTests
     [InlineData("ot=rv:6e6d1a75832a2")] // 13 digits.
     [InlineData("ot=rv:6e6d1a75832a2ff")] // 15 digits.
     [InlineData("ot=rv:6e6d1a75832axf")] // Not hexadecimal.
+    [InlineData("ot=rv:6E6D1A75832A2F")] // Uppercase, which the specification does not allow.
+    [InlineData("ot=rv:6e6d1a75832A2f")] // Mixed case.
     public void Parse_IgnoresInvalidRandomValue(string traceState)
         => Assert.False(OtelTraceState.Parse(traceState).HasRandomValue);
+
+    [Fact]
+    public void Parse_DoesNotPreserveInvalidRandomValue()
+    {
+        // "Values of rv MUST be exactly 14 lower-case hexadecimal digits", so an uppercase value is
+        // malformed and is erased rather than propagated onwards.
+        var state = OtelTraceState.Parse("ot=th:8;rv:6E6D1A75832A2F");
+
+        Assert.False(state.HasRandomValue);
+        Assert.Equal("ot=th:8", state.Serialize());
+    }
 
     [Fact]
     public void Serialize_EmitsThresholdWithTrailingZerosRemoved()

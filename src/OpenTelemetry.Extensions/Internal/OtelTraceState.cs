@@ -222,8 +222,8 @@ internal struct OtelTraceState
 
             if (name.Equals(ThresholdSubKey, StringComparison.Ordinal))
             {
-                // A th value has 1 to 14 hexadecimal digits; it is extended with trailing zeros to
-                // 14 digits when decoded. An invalid value leaves the threshold erased.
+                // A th value has 1 to 14 lowercase hexadecimal digits; it is extended with trailing
+                // zeros to 14 digits when decoded. An invalid value leaves the threshold erased.
                 if (ConsistentProbability.TryDecodeThreshold(value, out var parsed))
                 {
                     this.Threshold = parsed;
@@ -232,7 +232,7 @@ internal struct OtelTraceState
             }
             else if (name.Equals(RandomValueSubKey, StringComparison.Ordinal))
             {
-                // An rv value must be exactly 14 hexadecimal digits.
+                // An rv value must be exactly 14 lowercase hexadecimal digits.
                 if (value.Length == ConsistentProbability.MaxHexDigits &&
                     ConsistentProbability.TryParseHex56(value, out var parsed))
                 {

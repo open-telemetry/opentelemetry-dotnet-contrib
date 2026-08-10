@@ -230,7 +230,6 @@ public class ConsistentProbabilityTests
     [InlineData("ff", 255L)]
     [InlineData("6e6d1a75832a2f", 0x6e6d1a75832a2fL)]
     [InlineData("ffffffffffffff", 0x00ffffffffffffffL)]
-    [InlineData("ABCDEF", 0xabcdefL)] // Parsing is lenient about letter case.
     public void TryParseHex56_ParsesValidValues(string value, long expected)
     {
         Assert.True(ConsistentProbability.TryParseHex56(value, out var actual));
@@ -243,6 +242,8 @@ public class ConsistentProbabilityTests
     [InlineData("g")] // Not a hexadecimal digit.
     [InlineData("12345678901234x")]
     [InlineData("123456789012345")] // 15 digits, exceeds 56 bits.
+    [InlineData("ABCDEF")] // The specification requires lowercase hexadecimal digits.
+    [InlineData("abcdeF")]
     public void TryParseHex56_RejectsInvalidValues(string? value)
     {
         Assert.False(ConsistentProbability.TryParseHex56(value, out var actual));

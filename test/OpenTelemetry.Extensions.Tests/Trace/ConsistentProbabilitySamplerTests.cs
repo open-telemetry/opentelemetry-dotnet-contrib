@@ -2,14 +2,22 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using System.Diagnostics.Tracing;
+using System.Globalization;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Extensions.Internal;
+using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Extensions.Tests.Trace;
 
 public class ConsistentProbabilitySamplerTests
 {
+    // 0x02 is the W3C Trace Context "random" flag.
+    // https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867
+    // will change this code to use ActivityTraceFlags.RandomTraceId.
+    private const ActivityTraceFlags RandomTraceIdFlag = (ActivityTraceFlags)0x02;
+
     [Theory]
     [InlineData(double.NaN)]
     [InlineData(0.0)]
@@ -68,54 +76,55 @@ public class ConsistentProbabilitySamplerTests
     [InlineData(0x00ffffffffffffffL)]
     public void ShouldSample_AlwaysSamplesWhenProbabilityIsOne(long randomness)
     {
-        var parameters = CreateRootParameters();
-        var sampler = new ConsistentProbabilitySampler(1.0, new FixedRandom(randomness));
+        var parameters = CreateRootParameters(randomness);
+        var sampler = new ConsistentProbabilitySampler(1.0);
 
         var result = sampler.ShouldSample(in parameters);
 
         Assert.Equal(SamplingDecision.RecordAndSample, result.Decision);
-        Assert.Contains("th:0", result.TraceStateString);
+        Assert.Equal("ot=th:0", result.TraceStateString);
     }
 
     [Fact]
     public void ShouldSample_SamplesWhenRandomnessEqualsThreshold()
     {
         // At 50% the rejection threshold is exactly 2^55.
-        var parameters = CreateRootParameters();
-        var sampler = new ConsistentProbabilitySampler(0.5, new FixedRandom(0x80000000000000L));
+        var parameters = CreateRootParameters(0x80000000000000L);
+        var sampler = new ConsistentProbabilitySampler(0.5);
 
         var result = sampler.ShouldSample(in parameters);
 
         Assert.Equal(SamplingDecision.RecordAndSample, result.Decision);
-        Assert.Equal("ot=th:8;rv:80000000000000", result.TraceStateString);
+        Assert.Equal("ot=th:8", result.TraceStateString);
     }
 
     [Fact]
     public void ShouldSample_DropsWhenRandomnessBelowThreshold()
     {
-        var parameters = CreateRootParameters();
-        var sampler = new ConsistentProbabilitySampler(0.5, new FixedRandom(0x7fffffffffffffL));
+        var parameters = CreateRootParameters(0x7fffffffffffffL);
+        var sampler = new ConsistentProbabilitySampler(0.5);
 
         var result = sampler.ShouldSample(in parameters);
 
         Assert.Equal(SamplingDecision.Drop, result.Decision);
 
-        // The threshold is erased for an unsampled span, but the generated randomness is retained.
-        Assert.Equal("ot=rv:7fffffffffffff", result.TraceStateString);
+        // The threshold is erased for an unsampled span, and no randomness is added to the context.
+        Assert.Equal(string.Empty, result.TraceStateString);
     }
 
     [Fact]
-    public void ShouldSample_UsesExplicitRandomValueInsteadOfGenerator()
+    public void ShouldSample_UsesExplicitRandomValueInsteadOfTraceId()
     {
-        // The generator would drop (randomness 0), but the explicit rv is the maximum value.
+        // The TraceID randomness would drop the span (0), but the explicit rv is the maximum value.
+        var traceId = CreateTraceId(0L);
         var parent = new ActivityContext(
-            ActivityTraceId.CreateRandom(),
+            traceId,
             ActivitySpanId.CreateRandom(),
             ActivityTraceFlags.None,
             traceState: "ot=rv:ffffffffffffff");
 
-        var parameters = CreateParameters(parent);
-        var sampler = new ConsistentProbabilitySampler(0.5, new FixedRandom(0L));
+        var parameters = CreateParameters(parent, traceId);
+        var sampler = new ConsistentProbabilitySampler(0.5);
 
         var result = sampler.ShouldSample(in parameters);
 
@@ -130,35 +139,146 @@ public class ConsistentProbabilitySamplerTests
     {
         var traceId = ActivityTraceId.CreateFromString((new string('f', 18) + trailing).AsSpan());
 
-        // 0x02 is the W3C Trace Context "random" flag.
-        var parent = new ActivityContext(traceId, ActivitySpanId.CreateRandom(), (ActivityTraceFlags)0x02);
+        var parent = new ActivityContext(traceId, ActivitySpanId.CreateRandom(), RandomTraceIdFlag);
         var parameters = CreateParameters(parent, traceId);
 
-        // The generator would produce the opposite decision, proving the TraceId was used.
-        var randomness = expected == SamplingDecision.RecordAndSample ? 0L : 0x00ffffffffffffffL;
-        var sampler = new ConsistentProbabilitySampler(0.5, new FixedRandom(randomness));
+        var sampler = new ConsistentProbabilitySampler(0.5);
 
         var result = sampler.ShouldSample(in parameters);
 
         Assert.Equal(expected, result.Decision);
 
-        if (expected == SamplingDecision.RecordAndSample)
-        {
-            // Randomness comes from the TraceID, so no explicit rv is added.
-            Assert.Equal("ot=th:8", result.TraceStateString);
-        }
+        // Randomness comes from the TraceID, so no explicit rv is added either way.
+        Assert.Equal(expected == SamplingDecision.RecordAndSample ? "ot=th:8" : string.Empty, result.TraceStateString);
     }
 
     [Fact]
-    public void ShouldSample_GeneratesAndRecordsRandomValueForRootSpan()
+    public void ShouldSample_UsesTraceIdForRootSpanWithoutAddingRandomValue()
     {
-        var parameters = CreateRootParameters();
-        var sampler = new ConsistentProbabilitySampler(0.5, new FixedRandom(0x90000000000000L));
+        // A root span could legitimately insert an explicit randomness value, but the TraceID travels
+        // with every participant in the trace whereas a tracestate entry may be stripped or truncated,
+        // so the TraceID is the more robust source of randomness.
+        var parameters = CreateRootParameters(0x90000000000000L);
+        var sampler = new ConsistentProbabilitySampler(0.5);
 
         var result = sampler.ShouldSample(in parameters);
 
         Assert.Equal(SamplingDecision.RecordAndSample, result.Decision);
-        Assert.Equal("ot=th:8;rv:90000000000000", result.TraceStateString);
+        Assert.Equal("ot=th:8", result.TraceStateString);
+        Assert.False(OtelTraceState.Parse(result.TraceStateString).HasRandomValue);
+    }
+
+    [Fact]
+    public void ShouldSample_DoesNotCreateRandomnessForNonRootSpanWithoutRandomFlag()
+    {
+        // "The Root sampling decision is the only case where it is permitted to modify the explicit
+        // trace randomness value for a Context." Two services that receive the same context without
+        // an rv value and without the random trace flag must therefore resolve the same randomness,
+        // otherwise their decisions for the same trace can disagree.
+        var traceId = ActivityTraceId.CreateRandom();
+        var parent = new ActivityContext(traceId, ActivitySpanId.CreateRandom(), ActivityTraceFlags.Recorded);
+        var parameters = CreateParameters(parent, traceId);
+
+        var first = new ConsistentProbabilitySampler(0.5).ShouldSample(in parameters);
+        var second = new ConsistentProbabilitySampler(0.5).ShouldSample(in parameters);
+
+        Assert.Equal(first.Decision, second.Decision);
+        Assert.Equal(first.TraceStateString, second.TraceStateString);
+
+        // The decision is the one implied by the TraceID, and no rv value was invented.
+        var expected = GetRandomness(traceId) >= 0x80000000000000L
+            ? SamplingDecision.RecordAndSample
+            : SamplingDecision.Drop;
+
+        Assert.Equal(expected, first.Decision);
+        Assert.False(OtelTraceState.Parse(first.TraceStateString).HasRandomValue);
+    }
+
+    [Fact]
+    public void ShouldSample_IgnoresUppercaseRandomValue()
+    {
+        // An rv value must be exactly 14 lower-case hexadecimal digits, so an uppercase value is not
+        // valid randomness and the TraceID is used instead.
+        var traceId = CreateTraceId(0L);
+        var parent = new ActivityContext(
+            traceId,
+            ActivitySpanId.CreateRandom(),
+            ActivityTraceFlags.None,
+            traceState: "ot=rv:FFFFFFFFFFFFFF");
+
+        var parameters = CreateParameters(parent, traceId);
+        var sampler = new ConsistentProbabilitySampler(0.5);
+
+        var result = sampler.ShouldSample(in parameters);
+
+        Assert.Equal(SamplingDecision.Drop, result.Decision);
+        Assert.Equal(string.Empty, result.TraceStateString);
+    }
+
+    [Fact]
+    public void ShouldSample_WarnsOnceWhenPresumingTraceIdRandomness()
+    {
+        // A probability that is unique to this test, so the warning can be attributed to this sampler
+        // even if another test writes the same event concurrently.
+        const double Probability = 0.123456;
+
+        using var listener = new InMemoryEventListener(OpenTelemetryExtensionsEventSource.Log, EventLevel.Warning);
+
+        var traceId = ActivityTraceId.CreateRandom();
+        var parent = new ActivityContext(traceId, ActivitySpanId.CreateRandom(), ActivityTraceFlags.Recorded);
+        var parameters = CreateParameters(parent, traceId);
+
+        var sampler = new ConsistentProbabilitySampler(Probability);
+
+        _ = sampler.ShouldSample(in parameters);
+        _ = sampler.ShouldSample(in parameters);
+
+        var warnings = listener.Events.Where(
+            p => p.EventId == 5 && p.Payload?.Count == 1 && Equals(p.Payload[0], sampler.Description));
+
+        // "To assist with this migration, the TraceIdRatioBased Sampler issues a warning statement
+        // the first time it presumes TraceID randomness for a Context where the Trace random flag is
+        // not set." Only the first of the two decisions warns.
+        Assert.Single(warnings);
+    }
+
+    [Fact]
+    public void ShouldSample_DoesNotWarnWhenRandomFlagIsSet()
+    {
+        const double Probability = 0.234567;
+
+        using var listener = new InMemoryEventListener(OpenTelemetryExtensionsEventSource.Log, EventLevel.Warning);
+
+        var traceId = ActivityTraceId.CreateRandom();
+        var parent = new ActivityContext(traceId, ActivitySpanId.CreateRandom(), RandomTraceIdFlag);
+        var parameters = CreateParameters(parent, traceId);
+
+        var sampler = new ConsistentProbabilitySampler(Probability);
+
+        _ = sampler.ShouldSample(in parameters);
+
+        Assert.DoesNotContain(
+            listener.Events,
+            p => p.EventId == 5 && p.Payload?.Count == 1 && Equals(p.Payload[0], sampler.Description));
+    }
+
+    [Fact]
+    public void ShouldSample_DoesNotWarnForRootSpan()
+    {
+        // A root span has no incoming context whose randomness could be in doubt: the TraceID was
+        // generated by this SDK.
+        const double Probability = 0.345678;
+
+        using var listener = new InMemoryEventListener(OpenTelemetryExtensionsEventSource.Log, EventLevel.Warning);
+
+        var parameters = CreateRootParameters();
+        var sampler = new ConsistentProbabilitySampler(Probability);
+
+        _ = sampler.ShouldSample(in parameters);
+
+        Assert.DoesNotContain(
+            listener.Events,
+            p => p.EventId == 5 && p.Payload?.Count == 1 && Equals(p.Payload[0], sampler.Description));
     }
 
     [Fact]
@@ -171,7 +291,7 @@ public class ConsistentProbabilitySamplerTests
             traceState: "ot=rv:ffffffffffffff,vendor=abc");
 
         var parameters = CreateParameters(parent);
-        var sampler = new ConsistentProbabilitySampler(0.5, new FixedRandom(0L));
+        var sampler = new ConsistentProbabilitySampler(0.5);
 
         var result = sampler.ShouldSample(in parameters);
 
@@ -190,7 +310,7 @@ public class ConsistentProbabilitySamplerTests
             traceState: "ot=th:8;rv:ffffffffffffff");
 
         var parameters = CreateParameters(parent);
-        var sampler = new ConsistentProbabilitySampler(0.25, new FixedRandom(0L));
+        var sampler = new ConsistentProbabilitySampler(0.25);
 
         var result = sampler.ShouldSample(in parameters);
 
@@ -212,7 +332,7 @@ public class ConsistentProbabilitySamplerTests
             traceState: "ot=th:0;rv:00000000000000");
 
         var parameters = CreateParameters(parent);
-        var sampler = new ConsistentProbabilitySampler(0.5, new FixedRandom(0x00ffffffffffffffL));
+        var sampler = new ConsistentProbabilitySampler(0.5);
 
         var result = sampler.ShouldSample(in parameters);
 
@@ -236,7 +356,6 @@ public class ConsistentProbabilitySamplerTests
 
         var parameters = CreateParameters(parent);
 
-        // The randomness comes from rv, so the generator value is irrelevant.
         Assert.Equal(SamplingDecision.RecordAndSample, Sample(0.5));
         Assert.Equal(SamplingDecision.RecordAndSample, Sample(0.75));
         Assert.Equal(SamplingDecision.RecordAndSample, Sample(1.0));
@@ -245,21 +364,24 @@ public class ConsistentProbabilitySamplerTests
         Assert.Equal(SamplingDecision.Drop, Sample(0.1));
 
         SamplingDecision Sample(double probability)
-            => new ConsistentProbabilitySampler(probability, new FixedRandom(0L)).ShouldSample(in parameters).Decision;
+            => new ConsistentProbabilitySampler(probability).ShouldSample(in parameters).Decision;
     }
 
     [Fact]
-    public void ShouldSample_ApproximatesConfiguredProbabilityWithDefaultGenerator()
+    public void ShouldSample_ApproximatesConfiguredProbabilityAcrossRandomTraceIds()
     {
         const int Iterations = 100_000;
         const double Probability = 0.25;
 
-        var parameters = CreateRootParameters();
-        var sampler = new ConsistentProbabilitySampler(Probability, new Random(12345));
+        var sampler = new ConsistentProbabilitySampler(Probability);
 
         var sampled = 0;
         for (var i = 0; i < Iterations; i++)
         {
+            // Each iteration is a new root span, whose randomness is the trailing 56 bits of a newly
+            // generated (random) TraceID.
+            var parameters = CreateRootParameters();
+
             if (sampler.ShouldSample(in parameters).Decision == SamplingDecision.RecordAndSample)
             {
                 sampled++;
@@ -272,50 +394,43 @@ public class ConsistentProbabilitySamplerTests
     }
 
     [Fact]
-    public void ShouldSample_GeneratesRandomnessWithinValidRange()
-    {
-        var parameters = CreateRootParameters();
-        var sampler = new ConsistentProbabilitySampler(0.5, new Random(98765));
-
-        for (var i = 0; i < 10_000; i++)
-        {
-            var result = sampler.ShouldSample(in parameters);
-
-            // The generated randomness is recorded as rv, which the parser only accepts when it is
-            // exactly 14 hexadecimal digits, i.e. a valid 56-bit value in [0, 2^56).
-            var state = OtelTraceState.Parse(result.TraceStateString);
-
-            Assert.True(state.HasRandomValue);
-            Assert.InRange(state.RandomValue, 0L, ConsistentProbability.MaxRandomValue);
-        }
-    }
-
-    [Fact]
     public void ShouldSample_PropagatesRandomnessConsistentlyAcrossProcesses()
     {
-        // A fixed randomness value so the root's generated rv is deterministic and shared by the
-        // whole trace. 0x90000000000000 is ~56.25% into the 56-bit range, i.e. it is sampled at any
-        // probability >= ~0.4375.
-        const long Randomness = 0x90000000000000L;
-        const string ExpectedTraceState = "ot=th:8;rv:90000000000000";
+        const double Probability = 0.5;
 
         var producerSource = nameof(this.ShouldSample_PropagatesRandomnessConsistentlyAcrossProcesses) + ".Producer";
         var carrier = new Dictionary<string, string>();
         ActivityContext rootContext;
+        long randomness;
+        bool expectedSampled;
+        string expectedTraceState;
 
-        // Process 1: a service starts a sampled root span at 50%.
+        // Process 1: a service starts a root span at 50%.
         using (var provider = Sdk.CreateTracerProviderBuilder()
                                  .AddSource(producerSource)
-                                 .SetSampler(new ConsistentProbabilitySampler(0.5, new FixedRandom(Randomness)))
+                                 .SetSampler(new ConsistentProbabilitySampler(Probability))
                                  .Build())
         using (var source = new ActivitySource(producerSource))
         using (var root = source.StartActivity("root", ActivityKind.Server))
         {
             Assert.NotNull(root);
-            Assert.True(root.Recorded, "The root span was not recorded.");
 
-            // The sampler encoded its threshold and the generated randomness into the tracestate.
-            Assert.Equal(ExpectedTraceState, root.TraceStateString);
+            // The randomness of the whole trace is the trailing 56 bits of the TraceID the SDK
+            // generated for the root span, so the expected decision follows from it.
+            randomness = GetRandomness(root.TraceId);
+            expectedSampled = IsSampled(Probability, randomness);
+            expectedTraceState = expectedSampled ? "ot=th:8" : string.Empty;
+
+            // The sampler encoded its threshold, and left the randomness to the TraceID rather than
+            // adding an rv sub-key. The tracestate, rather than Activity.Recorded, is what reflects
+            // this sampler's decision: any other ActivityListener in the process can record the
+            // Activity as well.
+            Assert.Equal(expectedTraceState, root.TraceStateString ?? string.Empty);
+
+            if (expectedSampled)
+            {
+                Assert.True(root.Recorded, "The root span was not recorded.");
+            }
 
             rootContext = root.Context;
 
@@ -328,8 +443,17 @@ public class ConsistentProbabilitySamplerTests
                 static (headers, key, value) => headers[key] = value);
         }
 
-        // The randomness travelled on the wire in the tracestate header.
-        Assert.Equal(ExpectedTraceState, carrier["tracestate"]);
+        // The randomness travelled on the wire in the traceparent header.
+        Assert.Equal(rootContext.TraceId.ToHexString(), carrier["traceparent"].Split('-')[1]);
+
+        if (expectedSampled)
+        {
+            Assert.Equal(expectedTraceState, carrier["tracestate"]);
+        }
+        else
+        {
+            Assert.False(carrier.ContainsKey("tracestate"), "An unsampled span should not emit a tracestate.");
+        }
 
         // The wire boundary: a different process extracts the propagated context.
         var inwardPropagator = new TraceContextPropagator();
@@ -343,7 +467,6 @@ public class ConsistentProbabilitySamplerTests
         Assert.True(remoteParent.IsRemote, "The extracted context is not marked as remote.");
         Assert.Equal(rootContext.TraceId, remoteParent.TraceId);
         Assert.Equal(rootContext.SpanId, remoteParent.SpanId);
-        Assert.Equal(ExpectedTraceState, remoteParent.TraceState);
 
         // Process 2: a downstream service continues the trace from the received context. A real child
         // span is created across the process boundary and joins the same trace.
@@ -351,7 +474,7 @@ public class ConsistentProbabilitySamplerTests
 
         using (var provider = Sdk.CreateTracerProviderBuilder()
                                  .AddSource(consumerSource)
-                                 .SetSampler(new ConsistentProbabilitySampler(0.5))
+                                 .SetSampler(new ConsistentProbabilitySampler(Probability))
                                  .Build())
         using (var source = new ActivitySource(consumerSource))
         using (var child = source.StartActivity("child", ActivityKind.Server, remoteParent))
@@ -361,28 +484,37 @@ public class ConsistentProbabilitySamplerTests
             Assert.Equal(rootContext.TraceId, child.TraceId);
             Assert.Equal(rootContext.SpanId, child.ParentSpanId);
 
-            // At the same probability the child is sampled, consistently with the root.
-            Assert.True(child.Recorded, "The child span was not recorded.");
+            // At the same probability the child decides consistently with the root, using the
+            // randomness that travelled in the TraceID.
+            Assert.Equal(expectedTraceState, child.TraceStateString ?? string.Empty);
+
+            if (expectedSampled)
+            {
+                Assert.True(child.Recorded, "The child span was not recorded.");
+            }
         }
 
-        // The sampling decision made from the received context is driven by the propagated randomness,
-        // so it is consistent with the root and reuses the rv unchanged.
+        // The sampling decision made from the received context is driven by the propagated TraceID,
+        // and does not add randomness of its own.
         var remoteParameters = new SamplingParameters(
             remoteParent,
             remoteParent.TraceId,
             "child",
             ActivityKind.Server);
 
-        var sampler = new ConsistentProbabilitySampler(0.5);
+        var sampler = new ConsistentProbabilitySampler(Probability);
         var remoteResult = sampler.ShouldSample(remoteParameters);
 
-        Assert.Equal(SamplingDecision.RecordAndSample, remoteResult.Decision);
-        Assert.Equal(ExpectedTraceState, remoteResult.TraceStateString);
+        Assert.Equal(expectedSampled ? SamplingDecision.RecordAndSample : SamplingDecision.Drop, remoteResult.Decision);
+        Assert.Equal(expectedTraceState, remoteResult.TraceStateString);
 
         // Consistency: kept at p1 implies kept at any p2 >= p1, while a lower probability
         // that excludes this randomness consistently drops it.
-        Assert.Equal(SamplingDecision.RecordAndSample, RemoteDecision(0.75));
-        Assert.Equal(SamplingDecision.Drop, RemoteDecision(0.25));
+        Assert.Equal(ExpectedDecision(0.75), RemoteDecision(0.75));
+        Assert.Equal(ExpectedDecision(0.25), RemoteDecision(0.25));
+
+        SamplingDecision ExpectedDecision(double probability)
+            => IsSampled(probability, randomness) ? SamplingDecision.RecordAndSample : SamplingDecision.Drop;
 
         SamplingDecision RemoteDecision(double probability)
             => new ConsistentProbabilitySampler(probability).ShouldSample(remoteParameters).Decision;
@@ -393,13 +525,13 @@ public class ConsistentProbabilitySamplerTests
     {
         // 1 - 2^-8 = 0.99609375. The frexp(1 - probability) precision boost encodes this exactly as
         // th:01 even at the default precision, where the reference float method would be coarse.
-        var parameters = CreateRootParameters();
-        var sampler = new ConsistentProbabilitySampler(1.0 - (1.0 / 256.0), new FixedRandom(0x00ffffffffffffffL));
+        var parameters = CreateRootParameters(ConsistentProbability.MaxRandomValue);
+        var sampler = new ConsistentProbabilitySampler(1.0 - (1.0 / 256.0));
 
         var result = sampler.ShouldSample(in parameters);
 
         Assert.Equal(SamplingDecision.RecordAndSample, result.Decision);
-        Assert.Equal("ot=th:01;rv:ffffffffffffff", result.TraceStateString);
+        Assert.Equal("ot=th:01", result.TraceStateString);
     }
 
     [Fact]
@@ -410,13 +542,11 @@ public class ConsistentProbabilitySamplerTests
         // https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/6d20534d0a232acaa8cf7161ddbaeab6915e0c01/pkg/sampling/threshold_test.go#L64-L87
         var traceId = ActivityTraceId.CreateFromString("abababababababababd29d6a7215ced0".AsSpan());
 
-        // https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867
-        // will change this code to use ActivityTraceFlags.RandomTraceId.
-        var parent = new ActivityContext(traceId, ActivitySpanId.CreateRandom(), (ActivityTraceFlags)0x2);
+        var parent = new ActivityContext(traceId, ActivitySpanId.CreateRandom(), RandomTraceIdFlag);
         var parameters = CreateParameters(parent, traceId);
 
         // 25% sampling has threshold "c" (0xc0000000000000); 0xd29d6a7215ced0 >= it, so sampled.
-        var sampler = new ConsistentProbabilitySampler(0.25, new FixedRandom(0L));
+        var sampler = new ConsistentProbabilitySampler(0.25);
 
         var result = sampler.ShouldSample(in parameters);
 
@@ -424,44 +554,40 @@ public class ConsistentProbabilitySamplerTests
         Assert.Equal("ot=th:c", result.TraceStateString);
     }
 
+    private static bool IsSampled(double probability, long randomness)
+    {
+        var threshold = ConsistentProbability.DecodeThreshold(
+            ConsistentProbability.EncodeThreshold(probability, ConsistentProbability.DefaultPrecision));
+
+        return randomness >= threshold;
+    }
+
+    private static long GetRandomness(ActivityTraceId traceId)
+    {
+        var hex = traceId.ToHexString();
+
+        Assert.True(ConsistentProbability.TryParseHex56(hex.AsSpan(hex.Length - ConsistentProbability.MaxHexDigits), out var value));
+
+        return value;
+    }
+
+    private static ActivityTraceId CreateTraceId(long randomness)
+    {
+        var hex = new string('a', 32 - ConsistentProbability.MaxHexDigits) +
+                  randomness.ToString("x14", CultureInfo.InvariantCulture);
+
+        return ActivityTraceId.CreateFromString(hex.AsSpan());
+    }
+
     private static SamplingParameters CreateRootParameters()
         => CreateParameters(default, ActivityTraceId.CreateRandom());
+
+    private static SamplingParameters CreateRootParameters(long randomness)
+        => CreateParameters(default, CreateTraceId(randomness));
 
     private static SamplingParameters CreateParameters(ActivityContext parentContext)
         => CreateParameters(parentContext, ActivityTraceId.CreateRandom());
 
     private static SamplingParameters CreateParameters(ActivityContext parentContext, ActivityTraceId traceId)
         => new(parentContext, traceId, "TestOperation", ActivityKind.Internal, tags: null, links: null);
-
-    private sealed class FixedRandom : Random
-    {
-        private readonly long value;
-
-        public FixedRandom(long value)
-        {
-            this.value = value;
-        }
-
-        public override void NextBytes(byte[] buffer) => this.Fill(buffer);
-
-#if NET
-        public override long NextInt64(long minValue, long maxValue) => this.value;
-
-        public override void NextBytes(Span<byte> buffer)
-        {
-            for (var i = 0; i < buffer.Length; i++)
-            {
-                buffer[i] = i < 7 ? (byte)((this.value >> (8 * (6 - i))) & 0xFF) : (byte)0;
-            }
-        }
-#endif
-
-        private void Fill(byte[] buffer)
-        {
-            for (var i = 0; i < buffer.Length; i++)
-            {
-                buffer[i] = i < 7 ? (byte)((this.value >> (8 * (6 - i))) & 0xFF) : (byte)0;
-            }
-        }
-    }
 }

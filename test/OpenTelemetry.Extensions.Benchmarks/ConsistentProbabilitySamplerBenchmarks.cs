@@ -27,7 +27,7 @@ public class ConsistentProbabilitySamplerBenchmarks
         var traceId = ActivityTraceId.CreateRandom();
         var spanId = ActivitySpanId.CreateRandom();
 
-        // A root span with no incoming tracestate, so the randomness is generated and recorded.
+        // A root span with no incoming tracestate, so the randomness comes from the TraceId.
         this.rootSpan = CreateParameters(default, traceId);
 
         // A child that inherits an explicit rv value from its parent.
