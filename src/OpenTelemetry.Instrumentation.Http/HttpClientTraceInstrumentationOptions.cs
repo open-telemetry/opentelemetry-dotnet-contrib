@@ -176,8 +176,7 @@ public class HttpClientTraceInstrumentationOptions
     /// <remarks>
     /// When <see langword="null" /> every query parameter value is redacted. When
     /// set, only the values of the named parameters are redacted and every other
-    /// query parameter value is preserved. Names are matched case-sensitively, as
-    /// semantic conventions require.
+    /// query parameter value is preserved.
     /// </remarks>
     internal string[]? SensitiveQueryParameters { get; set; }
 
