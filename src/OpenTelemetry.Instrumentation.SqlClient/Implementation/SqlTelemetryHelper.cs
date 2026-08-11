@@ -60,7 +60,9 @@ internal sealed class SqlTelemetryHelper
         {
             ref readonly var tag = ref enumerator.Current;
 
-            if (tag.Value == null || !SharedTagNameIndexes.TryGetValue(tag.Key, out var index))
+            if (tag.Key is null ||
+                tag.Value is null ||
+                !SharedTagNameIndexes.TryGetValue(tag.Key, out var index))
             {
                 continue;
             }
