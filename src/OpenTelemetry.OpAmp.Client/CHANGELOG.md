@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+* **Breaking Change**: Changed communication behavior to accumulate messages when
+  the channel is blocked. This removes the need for explicit asynchronous message
+  sending, as the accumultor message is now automatically dispatched in the
+  background once communication is restored.
+  ([#4930](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4930))
+
 ## 0.6.0-alpha.1
 
 Released 2026-Jul-07
