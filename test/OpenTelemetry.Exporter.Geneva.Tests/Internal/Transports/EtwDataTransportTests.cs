@@ -1,16 +1,36 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Collections.Concurrent;
 using System.Diagnostics.Tracing;
+using System.Globalization;
+using System.Xml.Linq;
 using OpenTelemetry.Exporter.Geneva.Transports;
 
 namespace OpenTelemetry.Exporter.Geneva.Tests.Internal.Transports;
 
-[Collection(EtwCollection.Name)]
 public class EtwDataTransportTests
 {
+    // The agent parses the raw ETW user-data blob as the forward protocol buffer. .NET prepends a synthetic 4-byte
+    // length to every field declared in the manifest, so the event must declare none. Declaring a single byte[] field
+    // shifted the whole payload by 4 bytes and the agent rejected it with "Bad forward protocol format".
     [Fact]
-    public void TestEtwMessageRoundtrip()
+    public void TraceEventManifestDeclaresNoPayloadTemplate()
+    {
+        var manifest = EventSource.GenerateManifest(typeof(EtwDataTransport.EtwEventSource), null);
+
+        Assert.NotNull(manifest);
+
+        var eventId = ((int)EtwDataTransport.EtwEventSource.EtwEventId.TraceEvent).ToString(CultureInfo.InvariantCulture);
+        var traceEvent = Assert.Single(
+            XDocument.Parse(manifest).Descendants(),
+            e => e.Name.LocalName == "event" && e.Attribute("value")?.Value == eventId);
+
+        Assert.Null(traceEvent.Attribute("template"));
+    }
+
+    [Fact]
+    public void SendEventWritesRawPayloadWithoutDeclaredFields()
     {
         var randomProviderName = "x" + Guid.NewGuid().ToString("N");
         using var listener = new TestEventSourceListener(randomProviderName);
@@ -19,14 +39,12 @@ public class EtwDataTransportTests
 
         transport.Send(payload, payload.Length);
 
-        var @event = Assert.Single(listener.Events);
+        var @event = Assert.Single(
+            listener.Events,
+            e => e.EventId == (int)EtwDataTransport.EtwEventSource.EtwEventId.TraceEvent);
 
-        Assert.NotNull(@event.Payload);
-        var eventPayload = Assert.Single(@event.Payload);
-
-        var rawPayload = eventPayload as byte[];
-        Assert.NotNull(rawPayload);
-        Assert.Equal(payload, rawPayload);
+        var payloadFieldCount = @event.Payload?.Count ?? 0;
+        Assert.Equal(0, payloadFieldCount);
     }
 
     /// <summary>
@@ -50,8 +68,11 @@ public class EtwDataTransportTests
 
         /// <summary>
         /// Gets events emitted by ETW.
+        /// <para/>
+        /// Concurrent because <see cref="OnEventWritten"/> may be called from any thread, including while a test
+        /// enumerates this collection.
         /// </summary>
-        public List<EventWrittenEventArgs> Events { get; } = [];
+        public ConcurrentQueue<EventWrittenEventArgs> Events { get; } = new();
 
         /// <inheritdoc />
         protected override void OnEventSourceCreated(EventSource eventSource)
@@ -64,6 +85,6 @@ public class EtwDataTransportTests
         }
 
         /// <inheritdoc/>
-        protected override void OnEventWritten(EventWrittenEventArgs eventData) => this.Events.Add(eventData);
+        protected override void OnEventWritten(EventWrittenEventArgs eventData) => this.Events.Enqueue(eventData);
     }
 }

@@ -22,7 +22,7 @@ public enum SqlClientLibrary
 [Collection("SqlClient")]
 public class SqlClientTests
 {
-    private const string TestConnectionString = "Data Source=(localdb)\\MSSQLLocalDB;Database=master;Encrypt=True;TrustServerCertificate=True";
+    private const string TestConnectionString = "Data Source=(localdb)\\MSSQLLocalDB;Database=main;Encrypt=True;TrustServerCertificate=True";
 
     public static IEnumerable<object[]> TestData => SqlClientTestCases.GetTestCases();
 
@@ -57,6 +57,88 @@ public class SqlClientTests
         var tags = SqlTelemetryHelper.GetTagListFromConnectionInfo(dataSource, databaseName: null, out var _);
         Assert.Equal(expectedServerHostName ?? expectedServerIpAddress, tags.FirstOrDefault(x => x.Key == SemanticConventions.AttributeServerAddress).Value);
         Assert.Equal(expectedPort, tags.FirstOrDefault(x => x.Key == SemanticConventions.AttributeServerPort).Value);
+    }
+
+    [Fact]
+    public void AddSharedTagsAddsEachSharedTagAtMostOnce()
+    {
+        var activity = new Activity("test");
+
+        activity.AddTag(SemanticConventions.AttributeDbSystemName, SqlTelemetryHelper.MicrosoftSqlServerDbSystemName);
+        activity.AddTag(SemanticConventions.AttributeDbNamespace, "main");
+        activity.AddTag(SemanticConventions.AttributeDbQueryText, "SELECT * FROM Orders");
+        activity.AddTag(SemanticConventions.AttributeServerAddress, "localhost");
+        activity.AddTag(SemanticConventions.AttributeServerPort, 1433);
+        activity.AddTag(SemanticConventions.AttributeErrorType, null);
+
+        // Duplicate keys, as can happen if enrichment uses Activity.AddTag()
+        // for a tag which the instrumentation has already added itself.
+        activity.AddTag(SemanticConventions.AttributeDbNamespace, "other-database");
+        activity.AddTag(SemanticConventions.AttributeServerAddress, "other-host");
+
+        TagList tags = default;
+
+        SqlTelemetryHelper.AddSharedTags(activity, ref tags);
+
+        Assert.Equal(
+            [
+                new(SemanticConventions.AttributeDbSystemName, SqlTelemetryHelper.MicrosoftSqlServerDbSystemName),
+                new(SemanticConventions.AttributeDbNamespace, "main"),
+                new(SemanticConventions.AttributeServerAddress, "localhost"),
+                new KeyValuePair<string, object?>(SemanticConventions.AttributeServerPort, 1433),
+            ],
+            tags);
+    }
+
+    [Fact]
+    public void AddSharedTagsAddsAllSharedTags()
+    {
+        var activity = new Activity("test");
+
+        foreach (var name in SqlTelemetryHelper.SharedTagNames)
+        {
+            activity.AddTag(name, name);
+        }
+
+        activity.AddTag(SemanticConventions.AttributeDbQueryText, "SELECT * FROM Orders");
+
+        TagList tags = default;
+
+        SqlTelemetryHelper.AddSharedTags(activity, ref tags);
+
+        Assert.Equal(
+            SqlTelemetryHelper.SharedTagNames.Select(name => new KeyValuePair<string, object?>(name, name)),
+            tags);
+    }
+
+    [Theory]
+    [InlineData("localhost", "main")]
+    [InlineData("localhost\\instanceName", "instanceName.main")]
+    public void SqlClientAddsDatabaseNamespaceAttribute(string dataSource, string expectedDbNamespace)
+    {
+        var tags = SqlTelemetryHelper.GetTagListFromConnectionInfo(dataSource, databaseName: "main", out var activityName);
+
+        Assert.Equal(expectedDbNamespace, activityName);
+        Assert.Equal(expectedDbNamespace, tags.FirstOrDefault(x => x.Key == SemanticConventions.AttributeDbNamespace).Value);
+    }
+
+    [Fact]
+    public void SqlClientAddsDatabaseNamespaceAttributeWhenThereIsNoDataSource()
+    {
+        var tags = SqlTelemetryHelper.GetTagListFromConnectionInfo(dataSource: null, databaseName: "main", out var activityName);
+
+        Assert.Equal("main", activityName);
+        Assert.Equal("main", tags.FirstOrDefault(x => x.Key == SemanticConventions.AttributeDbNamespace).Value);
+        Assert.DoesNotContain(tags, x => x.Key == SemanticConventions.AttributeServerAddress);
+    }
+
+    [Fact]
+    public void SqlClientDoesNotAddDatabaseNamespaceAttributeWhenThereIsNoDataSourceOrDatabase()
+    {
+        var tags = SqlTelemetryHelper.GetTagListFromConnectionInfo(dataSource: null, databaseName: null, out var activityName);
+
+        Assert.Equal(SqlTelemetryHelper.MicrosoftSqlServerDbSystemName, activityName);
+        Assert.DoesNotContain(tags, x => x.Key == SemanticConventions.AttributeDbNamespace);
     }
 
     [Theory]

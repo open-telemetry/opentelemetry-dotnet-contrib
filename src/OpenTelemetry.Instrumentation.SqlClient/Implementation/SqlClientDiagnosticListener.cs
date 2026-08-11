@@ -536,14 +536,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
         if (activity != null && activity.IsAllDataRequested)
         {
-            foreach (var name in SqlTelemetryHelper.SharedTagNames)
-            {
-                var value = activity.GetTagItem(name);
-                if (value != null)
-                {
-                    tags.Add(name, value);
-                }
-            }
+            SqlTelemetryHelper.AddSharedTags(activity, ref tags);
         }
         else if (payload != null)
         {
