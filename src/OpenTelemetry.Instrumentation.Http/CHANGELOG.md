@@ -8,9 +8,8 @@
 
 * Added the experimental `OTEL_DOTNET_EXPERIMENTAL_HTTPCLIENT_SENSITIVE_QUERY_PARAMETERS`
   environment variable, which redacts only the values of the named query
-  parameters in `url.full` and preserves every other value. When it is set,
-  `url.full` is also written on .NET 9 and later, replacing the value the
-  runtime redacts to `?*`.
+  parameters in `url.full` and preserves every other value. It has no effect on
+  .NET 9 and later, where the runtime sets `url.full` itself.
   ([#4954](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4954))
 
 ## 1.17.0

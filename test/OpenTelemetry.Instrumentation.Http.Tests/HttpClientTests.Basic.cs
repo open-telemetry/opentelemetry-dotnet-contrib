@@ -782,52 +782,17 @@ public partial class HttpClientTests : IDisposable
         Assert.Single(exportedItems);
         var activity = exportedItems[0];
 
-        // Unlike ValidateUrlQueryRedaction above, the expectation is not adjusted for
-        // .NET 9+. Opting in overwrites the url.full the runtime redacted to "?*", so
-        // the same value is expected on every runtime.
-        Assert.Equal($"{this.uri}path?a=b&sig=REDACTED", activity.GetTagValue(SemanticConventions.AttributeUrlFull));
-    }
+        var expectedUrl = $"{this.uri}path?a=b&sig=REDACTED";
 
 #if NET9_0_OR_GREATER
-    [Fact]
-    public async Task ValidateDisableUrlQueryRedactionTakesPrecedenceOverSensitiveQueryParameters()
-    {
-        var exportedItems = new List<Activity>();
-
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["OTEL_DOTNET_EXPERIMENTAL_HTTPCLIENT_SENSITIVE_QUERY_PARAMETERS"] = "sig",
-                ["OTEL_DOTNET_EXPERIMENTAL_HTTPCLIENT_DISABLE_URL_QUERY_REDACTION"] = "true",
-            })
-            .Build();
-
-        // Arrange
-        using var traceprovider = Sdk.CreateTracerProviderBuilder()
-            .ConfigureServices(services => services.AddSingleton<IConfiguration>(configuration))
-            .AddHttpClientInstrumentation()
-            .AddInMemoryExporter(exportedItems)
-            .Build();
-
-        using var c = new HttpClient();
-        try
-        {
-            await c.GetStringAsync(new Uri($"{this.uri}path?a=b&sig=ghgjgj"));
-        }
-        catch
-        {
-            // ignore error.
-        }
-
-        Assert.Single(exportedItems);
-        var activity = exportedItems[0];
-
-        // Disabling redaction opts out of rewriting url.full at all, so the "?*" the
-        // .NET 9+ runtime redacted it to is left alone. Naming sensitive parameters
-        // must not bring selective redaction back.
-        Assert.Equal($"{this.uri}path?*", activity.GetTagValue(SemanticConventions.AttributeUrlFull));
-    }
+        // On .NET 9+ the runtime sets url.full and redacts the query to "?*". This
+        // instrumentation does not add/change/override any attribute set by the native
+        // instrumentation, so the environment variable has no effect on those runtimes.
+        expectedUrl = $"{this.uri}path?*";
 #endif
+
+        Assert.Equal(expectedUrl, activity.GetTagValue(SemanticConventions.AttributeUrlFull));
+    }
 
     [Theory]
     [InlineData(true, true)]

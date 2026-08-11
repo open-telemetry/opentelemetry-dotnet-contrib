@@ -44,11 +44,9 @@ Starting with .NET 9, trace instrumentation is natively implemented, and the
 HttpClient library emits attributes defined in the
 [OpenTelemetry Specification](https://github.com/open-telemetry/semantic-conventions/blob/v1.40.0/docs/http/http-spans.md).
 When running on .NET 9+ this instrumentation library will not add/change/override
-any attributes set by the native instrumentation, except for `url.full` when
-`OTEL_DOTNET_EXPERIMENTAL_HTTPCLIENT_SENSITIVE_QUERY_PARAMETERS` is set, but it
-is still required for performing context propagation using the OpenTelemetry SDK
-and supports additional features not available in runtime (enrichment,
-filtering, etc.).
+any attributes set by the native instrumentation but it is still required for
+performing context propagation using the OpenTelemetry SDK and supports additional
+features not available in runtime (enrichment, filtering, etc.).
 
 The following example demonstrates adding `HttpClient` instrumentation with the
 extension method `.AddHttpClientInstrumentation()` on `TracerProviderBuilder` to
@@ -98,7 +96,10 @@ for more details about each individual attribute:
   the commas. An empty value is treated as if the variable was not set; use
   `OTEL_DOTNET_EXPERIMENTAL_HTTPCLIENT_DISABLE_URL_QUERY_REDACTION` to turn
   redaction off entirely. `OTEL_DOTNET_EXPERIMENTAL_HTTPCLIENT_DISABLE_URL_QUERY_REDACTION`
-  takes precedence when both are set.
+  takes precedence when both are set. On .NET 9 and later neither variable has
+  any effect: the runtime sets `url.full` itself and redacts the query to `?*`,
+  and this instrumentation does not override attributes set by the native
+  instrumentation.
 
 [Enrich Api](#enrich-httpclient-api) can be used if any additional attributes are
 required on activity.
