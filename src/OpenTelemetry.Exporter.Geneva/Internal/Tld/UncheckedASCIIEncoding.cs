@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics;
 using System.Text;
 using OpenTelemetry.Internal;
 
@@ -31,25 +32,13 @@ internal sealed class UncheckedASCIIEncoding : Encoding
 
     #region Required implementation of Encoding abstract methods
 
-    public override int GetMaxByteCount(int charCount)
-    {
-        return charCount;
-    }
+    public override int GetMaxByteCount(int charCount) => charCount;
 
-    public override int GetMaxCharCount(int byteCount)
-    {
-        return byteCount;
-    }
+    public override int GetMaxCharCount(int byteCount) => byteCount;
 
-    public override int GetByteCount(char[] chars, int charIndex, int charCount)
-    {
-        return charCount;
-    }
+    public override int GetByteCount(char[] chars, int charIndex, int charCount) => charCount;
 
-    public override int GetCharCount(byte[] bytes, int byteIndex, int byteCount)
-    {
-        return byteCount;
-    }
+    public override int GetCharCount(byte[] bytes, int byteIndex, int byteCount) => byteCount;
 
     public override unsafe int GetBytes(char[] chars, int charIndex, int charCount, byte[] bytes, int byteIndex)
     {
@@ -127,15 +116,76 @@ internal sealed class UncheckedASCIIEncoding : Encoding
         return chars.Length;
     }
 
-    public override unsafe int GetByteCount(char* charPtr, int charCount)
+    public override unsafe int GetByteCount(char* charPtr, int charCount) => charCount;
+
+    public override unsafe int GetCharCount(byte* bytePtr, int byteCount) => byteCount;
+
+    public override int GetByteCount(char[] chars)
     {
-        return charCount;
+        Guard.ThrowIfNull(chars);
+        return chars.Length;
     }
 
-    public override unsafe int GetCharCount(byte* bytePtr, int byteCount)
+    public override int GetCharCount(byte[] bytes)
     {
-        return byteCount;
+        Guard.ThrowIfNull(bytes);
+        return bytes.Length;
     }
+
+    public override byte[] GetBytes(char[] chars, int index, int count)
+    {
+        var result = new byte[count];
+        this.GetBytes(chars, index, count, result, 0);
+        return result;
+    }
+
+    public override byte[] GetBytes(string s)
+    {
+        Guard.ThrowIfNull(s);
+
+        var bytes = new byte[s.Length];
+        var bytesReceived = this.GetBytes(s, 0, s.Length, bytes, 0);
+        Debug.Assert(s.Length == bytesReceived, "The number of bytes received does not match the string length.");
+        return bytes;
+    }
+
+    public override char[] GetChars(byte[] bytes, int index, int count)
+    {
+        Guard.ThrowIfNull(bytes);
+        var result = new char[bytes.Length];
+        this.GetChars(bytes, index, count, result, 0);
+        return result;
+    }
+
+#if NET
+    public override int GetByteCount(ReadOnlySpan<char> chars) => chars.Length;
+
+    public override int GetCharCount(ReadOnlySpan<byte> bytes) => bytes.Length;
+
+    public override bool TryGetBytes(ReadOnlySpan<char> chars, Span<byte> bytes, out int bytesWritten)
+    {
+        if (chars.Length <= bytes.Length)
+        {
+            bytesWritten = this.GetBytes(chars, bytes);
+            return true;
+        }
+
+        bytesWritten = 0;
+        return false;
+    }
+
+    public override bool TryGetChars(ReadOnlySpan<byte> bytes, Span<char> chars, out int charsWritten)
+    {
+        if (bytes.Length <= chars.Length)
+        {
+            charsWritten = this.GetChars(bytes, chars);
+            return true;
+        }
+
+        charsWritten = 0;
+        return false;
+    }
+#endif
 
     public override unsafe int GetBytes(string chars, int charIndex, int charCount, byte[] bytes, int byteIndex)
     {
