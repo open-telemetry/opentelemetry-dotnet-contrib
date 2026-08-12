@@ -42,11 +42,14 @@ internal sealed class UncheckedASCIIEncoding : Encoding
     public override int GetBytes(char[] chars, int charIndex, int charCount, byte[] bytes, int byteIndex)
     {
         ValidateArgs(chars, charIndex, charCount, bytes, byteIndex, "char", "byte");
-        fixed (char* charPtr = chars)
+        unsafe
         {
-            fixed (byte* bytePtr = bytes)
+            fixed (char* charPtr = chars)
             {
-                return this.GetBytes(charPtr + charIndex, charCount, bytePtr + byteIndex, bytes.Length - byteIndex);
+                fixed (byte* bytePtr = bytes)
+                {
+                    return this.GetBytes(charPtr + charIndex, charCount, bytePtr + byteIndex, bytes.Length - byteIndex);
+                }
             }
         }
     }
@@ -54,11 +57,14 @@ internal sealed class UncheckedASCIIEncoding : Encoding
     public override int GetChars(byte[] bytes, int byteIndex, int byteCount, char[] chars, int charIndex)
     {
         ValidateArgs(bytes, byteIndex, byteCount, chars, charIndex, "byte", "char");
-        fixed (byte* bytePtr = bytes)
+        unsafe
         {
-            fixed (char* charPtr = chars)
+            fixed (byte* bytePtr = bytes)
             {
-                return this.GetChars(bytePtr + byteIndex, byteCount, charPtr + charIndex, chars.Length - charIndex);
+                fixed (char* charPtr = chars)
+                {
+                    return this.GetChars(bytePtr + byteIndex, byteCount, charPtr + charIndex, chars.Length - charIndex);
+                }
             }
         }
     }
@@ -138,11 +144,14 @@ internal sealed class UncheckedASCIIEncoding : Encoding
             throw new ArgumentOutOfRangeException(nameof(byteIndex));
         }
 
-        fixed (char* charPtr = chars)
+        unsafe
         {
-            fixed (byte* bytePtr = bytes)
+            fixed (char* charPtr = chars)
             {
-                return this.GetBytes(charPtr + charIndex, charCount, bytePtr + byteIndex, bytes.Length - byteIndex);
+                fixed (byte* bytePtr = bytes)
+                {
+                    return this.GetBytes(charPtr + charIndex, charCount, bytePtr + byteIndex, bytes.Length - byteIndex);
+                }
             }
         }
     }
