@@ -23,6 +23,7 @@
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" />
     <PackageReference Include="OpenTelemetry.Extensions.Propagators" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Http" />
+    <PackageReference Include="SSH.NET" />
     <PackageReference Include="Testcontainers" />
   </ItemGroup>
 

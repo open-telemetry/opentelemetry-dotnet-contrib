@@ -9,6 +9,7 @@
     <PackageReference Include="Grpc" />
     <PackageReference Include="Grpc.Tools" />
     <PackageReference Include="OpenTelemetry" />
+    <PackageReference Include="SSH.NET" />
     <PackageReference Include="Testcontainers" />
   </ItemGroup>
 
