@@ -111,7 +111,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                             {
                                 this.AddTag(activity, ("peer.service", SemanticConventions.AttributeServerAddress), serverAddress);
 
-                                if (this.options.EmitNewAttributes && connectionDetails.Port is { } port)
+                                if (this.options.EmitNewAttributes && connectionDetails.BoxedPort is { } port)
                                 {
                                     activity.AddTag(SemanticConventions.AttributeServerPort, port);
                                 }

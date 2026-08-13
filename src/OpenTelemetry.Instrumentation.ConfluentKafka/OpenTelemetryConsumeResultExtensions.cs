@@ -142,11 +142,11 @@ public static class OpenTelemetryConsumeResultExtensions
             : [];
 
         // Provide the attributes that can influence sampling decisions at span creation time
-        var initialTags = new ActivityTagsCollection
+        var initialTags = new TagList
         {
-            [SemanticConventions.AttributeMessagingOperationName] = ConfluentKafkaCommon.ProcessOperationName,
-            [SemanticConventions.AttributeMessagingOperationType] = ConfluentKafkaCommon.ProcessOperationType,
-            [SemanticConventions.AttributeMessagingSystem] = ConfluentKafkaCommon.KafkaMessagingSystem,
+            { SemanticConventions.AttributeMessagingOperationName, ConfluentKafkaCommon.ProcessOperationName },
+            { SemanticConventions.AttributeMessagingOperationType, ConfluentKafkaCommon.ProcessOperationType },
+            { SemanticConventions.AttributeMessagingSystem, ConfluentKafkaCommon.KafkaMessagingSystem },
         };
 
         if (groupId is { Length: > 0 })

@@ -29,6 +29,7 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" />
+    <PackageReference Include="SSH.NET" />
     <PackageReference Include="Testcontainers.Kafka" />
   </ItemGroup>
 

@@ -3,6 +3,7 @@
 
 using System.Diagnostics;
 using System.Net;
+using System.Runtime.ExceptionServices;
 using OpenTelemetry.Instrumentation.StackExchangeRedis.Tests;
 
 #if !NETFRAMEWORK
@@ -135,6 +136,22 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
         Assert.Equal(dnsEndPoint.Port, result.GetTagValue(SemanticConventions.AttributeServerPort));
     }
 
+    [Fact]
+    public void ProfilerCommandToActivity_EnrichThrows_StillStopsActivity()
+    {
+        var activity = new Activity("redis-profiler");
+        var profiledCommand = new TestProfiledCommand(DateTime.UtcNow);
+        var options = new StackExchangeRedisInstrumentationOptions
+        {
+            Enrich = (_, _) => throw new InvalidOperationException("boom"),
+        };
+
+        var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand, options);
+
+        Assert.NotNull(result);
+        Assert.NotEqual(default, result.Duration);
+    }
+
 #if !NETFRAMEWORK
     [Fact]
     public void ProfilerCommandToActivity_UsesOtherEndPointAsEndPoint()
@@ -152,4 +169,93 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
         Assert.Equal(unixEndPoint.ToString(), result.GetTagValue(SemanticConventions.AttributeNetworkPeerAddress));
     }
 #endif
+
+    [Fact]
+    public void DrainSession_UsesCapturedBaggage()
+    {
+        var recorded = new List<Baggage>();
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSource(StackExchangeRedisConnectionInstrumentation.ActivitySource.Name)
+            .AddProcessor(new BaggageRecordingProcessor(recorded))
+            .Build();
+
+        var activity = new Activity("redis-profiler");
+        var commands = new[] { new TestProfiledCommand(DateTime.UtcNow) };
+        var captured = default(Baggage).SetBaggage("user.id", "u-42");
+
+        DrainOnIsolatedThread(() =>
+        {
+            Baggage.SetBaggage("user.id", "stale-from-construction");
+
+            RedisProfilerEntryToActivityConverter.DrainSession(activity, commands, captured, new StackExchangeRedisInstrumentationOptions());
+        });
+
+        Assert.Equal("u-42", Assert.Single(recorded).GetBaggage("user.id"));
+    }
+
+    [Fact]
+    public void DrainSession_RestoresPreviousBaggage()
+    {
+        var activity = new Activity("redis-profiler");
+        var commands = new[] { new TestProfiledCommand(DateTime.UtcNow) };
+        var captured = default(Baggage).SetBaggage("user.id", "u-42");
+
+        DrainOnIsolatedThread(() =>
+        {
+            Baggage.SetBaggage("owner", "draining-thread");
+
+            RedisProfilerEntryToActivityConverter.DrainSession(activity, commands, captured, new StackExchangeRedisInstrumentationOptions());
+
+            Assert.Equal("draining-thread", Baggage.Current.GetBaggage("owner"));
+            Assert.Null(Baggage.Current.GetBaggage("user.id"));
+        });
+    }
+
+    // Runs on a thread that does not inherit this execution context, the way the real
+    // drain thread is started. Baggage set inside is not visible to the test thread.
+    private static void DrainOnIsolatedThread(Action action)
+    {
+        ExceptionDispatchInfo? failure = null;
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                action();
+            }
+            catch (Exception ex)
+            {
+                failure = ExceptionDispatchInfo.Capture(ex);
+            }
+        })
+        {
+            IsBackground = true,
+        };
+
+        var restoreFlow = !ExecutionContext.IsFlowSuppressed();
+        if (restoreFlow)
+        {
+            ExecutionContext.SuppressFlow();
+        }
+
+        try
+        {
+            thread.Start();
+        }
+        finally
+        {
+            if (restoreFlow)
+            {
+                ExecutionContext.RestoreFlow();
+            }
+        }
+
+        thread.Join();
+        failure?.Throw();
+    }
+
+    private sealed class BaggageRecordingProcessor(List<Baggage> recorded) : BaseProcessor<Activity>
+    {
+        public override void OnEnd(Activity data) => recorded.Add(Baggage.Current);
+    }
 }

@@ -62,7 +62,7 @@ public class TelemetryHttpModule : IHttpModule
     private void OnExecuteRequestStep(HttpContextBase context, Action step)
     {
         // Called only on 4.7.1+ runtimes
-        ActivityHelper.RestoreContextIfNeeded(new HttpContextWrapper(context.ApplicationInstance.Context));
+        ActivityHelper.RestoreContextIfNeeded(context);
         step();
     }
 
