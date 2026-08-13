@@ -184,22 +184,22 @@ public class OtelTraceStateTests
         Assert.Equal("malformed,vendor=value", state.Serialize());
     }
 
-    [Fact]
-    public void Parse_IgnoresEmptyOtSubKeyPairs()
+    [Theory]
+    [InlineData("ot=;th:8")]
+    [InlineData("ot=malformed;th:8")]
+    [InlineData("ot=th:8;")]
+    [InlineData("ot=th:8;th:c")]
+    [InlineData("ot=rv:ffffffffffffff;rv:00000000000000")]
+    [InlineData("ot=foo:one;foo:two")]
+    [InlineData("ot=TH:8")]
+    [InlineData("ot=th:8;foo:contains spaces")]
+    public void Parse_DiscardsStructurallyInvalidOtEntry(string traceState)
     {
-        var state = OtelTraceState.Parse("ot=;th:8");
+        var state = OtelTraceState.Parse($"{traceState},vendor=value");
 
-        Assert.True(state.HasThreshold);
-        Assert.Equal("ot=th:8", state.Serialize());
-    }
-
-    [Fact]
-    public void Parse_IgnoresMalformedOtSubKeyPair()
-    {
-        var state = OtelTraceState.Parse("ot=malformed;th:8");
-
-        Assert.True(state.HasThreshold);
-        Assert.Equal("ot=th:8", state.Serialize());
+        Assert.False(state.HasThreshold);
+        Assert.False(state.HasRandomValue);
+        Assert.Equal("vendor=value", state.Serialize());
     }
 
     [Fact]

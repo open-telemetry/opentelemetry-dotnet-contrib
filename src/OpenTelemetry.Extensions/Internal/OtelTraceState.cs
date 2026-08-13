@@ -94,7 +94,11 @@ internal struct OtelTraceState
 
             if (member.Slice(0, separator).Equals(TraceStateKey, StringComparison.Ordinal))
             {
-                state.ParseOtValue(member.Slice(separator + 1));
+                var parsedOtValue = default(OtelTraceState);
+                if (parsedOtValue.TryParseOtValue(member.Slice(separator + 1)))
+                {
+                    state.MergeOtValue(in parsedOtValue);
+                }
             }
             else
             {
@@ -198,30 +202,122 @@ internal struct OtelTraceState
 #endif
     }
 
-    private void ParseOtValue(ReadOnlySpan<char> otValue)
+    private static bool IsValidOtSubKey(ReadOnlySpan<char> name)
     {
-        while (!otValue.IsEmpty)
+        if (name.IsEmpty || name[0] is < 'a' or > 'z')
+        {
+            return false;
+        }
+
+        foreach (var ch in name.Slice(1))
+        {
+            if (ch is not (>= 'a' and <= 'z') and not (>= '0' and <= '9'))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool IsValidOtSubValue(ReadOnlySpan<char> value)
+    {
+        foreach (var ch in value)
+        {
+            if (ch is not (>= 'A' and <= 'Z') and
+                not (>= 'a' and <= 'z') and
+                not (>= '0' and <= '9') and
+                not '.' and not '_' and not '-')
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private readonly bool ContainsOtherSubKey(ReadOnlySpan<char> name)
+    {
+        if (this.otherSubKeys is not { Count: > 0 } other)
+        {
+            return false;
+        }
+
+        foreach (var subKey in other)
+        {
+            if (name.Equals(subKey.Key, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void MergeOtValue(in OtelTraceState parsed)
+    {
+        if (parsed.HasThreshold)
+        {
+            this.Threshold = parsed.Threshold;
+            this.HasThreshold = true;
+        }
+
+        if (parsed.HasRandomValue)
+        {
+            this.RandomValue = parsed.RandomValue;
+            this.HasRandomValue = true;
+        }
+
+        if (parsed.otherSubKeys is { Count: > 0 } other)
+        {
+            this.otherSubKeys ??= [];
+            this.otherSubKeys.AddRange(other);
+        }
+    }
+
+    private bool TryParseOtValue(ReadOnlySpan<char> otValue)
+    {
+        if (otValue.IsEmpty)
+        {
+            return false;
+        }
+
+        var hasThreshold = false;
+        var hasRandomValue = false;
+
+        while (true)
         {
             var semicolon = otValue.IndexOf(';');
-            var pair = (semicolon < 0 ? otValue : otValue.Slice(0, semicolon)).Trim();
-            otValue = semicolon < 0 ? default : otValue.Slice(semicolon + 1);
+            var pair = semicolon < 0 ? otValue : otValue.Slice(0, semicolon);
 
             if (pair.IsEmpty)
             {
-                continue;
+                return false;
             }
 
             var separator = pair.IndexOf(':');
             if (separator <= 0)
             {
-                continue;
+                return false;
             }
 
             var name = pair.Slice(0, separator);
             var value = pair.Slice(separator + 1);
 
+            if (!IsValidOtSubKey(name) || !IsValidOtSubValue(value))
+            {
+                return false;
+            }
+
             if (name.Equals(ThresholdSubKey, StringComparison.Ordinal))
             {
+                if (hasThreshold)
+                {
+                    return false;
+                }
+
+                hasThreshold = true;
+
                 // A th value has 1 to 14 lowercase hexadecimal digits; it is extended with trailing
                 // zeros to 14 digits when decoded. An invalid value leaves the threshold erased.
                 if (ConsistentProbability.TryDecodeThreshold(value, out var parsed))
@@ -232,6 +328,13 @@ internal struct OtelTraceState
             }
             else if (name.Equals(RandomValueSubKey, StringComparison.Ordinal))
             {
+                if (hasRandomValue)
+                {
+                    return false;
+                }
+
+                hasRandomValue = true;
+
                 // An rv value must be exactly 14 lowercase hexadecimal digits.
                 if (value.Length == ConsistentProbability.MaxHexDigits &&
                     ConsistentProbability.TryParseHex56(value, out var parsed))
@@ -242,9 +345,21 @@ internal struct OtelTraceState
             }
             else
             {
+                if (this.ContainsOtherSubKey(name))
+                {
+                    return false;
+                }
+
                 this.otherSubKeys ??= [];
                 this.otherSubKeys.Add(new(name.ToString(), value.ToString()));
             }
+
+            if (semicolon < 0)
+            {
+                return true;
+            }
+
+            otValue = otValue.Slice(semicolon + 1);
         }
     }
 

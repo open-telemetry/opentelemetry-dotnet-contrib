@@ -132,6 +132,27 @@ public class ConsistentProbabilitySamplerTests
         Assert.Equal("ot=th:8;rv:ffffffffffffff", result.TraceStateString);
     }
 
+    [Fact]
+    public void ShouldSample_DoesNotUseRandomValueFromMalformedOtEntry()
+    {
+        // The malformed pair invalidates the ot entry, so the zero-valued TraceID randomness is used
+        // instead of the otherwise valid-looking rv value.
+        var traceId = CreateTraceId(0L);
+        var parent = new ActivityContext(
+            traceId,
+            ActivitySpanId.CreateRandom(),
+            RandomTraceIdFlag,
+            traceState: "ot=rv:ffffffffffffff;malformed");
+
+        var parameters = CreateParameters(parent, traceId);
+        var sampler = new ConsistentProbabilitySampler(0.5);
+
+        var result = sampler.ShouldSample(in parameters);
+
+        Assert.Equal(SamplingDecision.Drop, result.Decision);
+        Assert.Equal(string.Empty, result.TraceStateString);
+    }
+
     [Theory]
     [InlineData("ffffffffffffff", SamplingDecision.RecordAndSample)]
     [InlineData("00000000000000", SamplingDecision.Drop)]
