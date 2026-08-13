@@ -137,8 +137,8 @@ internal static class SemanticConventions
     public const string MetricMessagingClientSentMessages = "messaging.client.sent.messages"; // replaces: "messaging.publish.messages"
     public const string MetricMessagingClientConsumedMessages = "messaging.client.consumed.messages"; // replaces: "messaging.receive.messages"
 
-    // v1.42.0 Messaging (Kafka)
-    // https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/messaging/kafka.md
+    // v1.44.0 Messaging (Kafka)
+    // https://github.com/open-telemetry/semantic-conventions/blob/v1.44.0/docs/messaging/kafka.md
     public const string AttributeMessagingKafkaMessageKey = "messaging.kafka.message.key";
     public const string AttributeMessagingKafkaMessageTombstone = "messaging.kafka.message.tombstone";
     public const string AttributeMessagingKafkaOffset = "messaging.kafka.offset"; // replaces: "messaging.kafka.message.offset"
