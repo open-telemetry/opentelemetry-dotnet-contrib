@@ -186,6 +186,7 @@
     <File Path="src/Shared/ActivityInstrumentationHelper.cs" />
     <File Path="src/Shared/ActivitySourceFactory.cs" />
     <File Path="src/Shared/AssemblyVersionExtensions.cs" />
+    <File Path="src/Shared/CharExtensions.cs" />
     <File Path="src/Shared/DatabaseSemanticConventionHelper.cs" />
     <File Path="src/Shared/DiagnosticSourceListener.cs" />
     <File Path="src/Shared/DiagnosticSourceSubscriber.cs" />

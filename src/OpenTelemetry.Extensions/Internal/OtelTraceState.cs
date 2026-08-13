@@ -131,6 +131,7 @@ internal struct OtelTraceState
     {
         var encodedThreshold = ConsistentProbability.EncodeThresholdInteger(threshold);
         var lengthWithoutThreshold = this.GetOtValueLengthWithoutThreshold();
+
         var lengthWithThreshold = GetLengthWithSubKey(
             lengthWithoutThreshold,
             ThresholdSubKey.Length,
@@ -145,6 +146,7 @@ internal struct OtelTraceState
         this.Threshold = threshold;
         this.HasThreshold = true;
         this.encodedThreshold = encodedThreshold;
+
         return true;
     }
 
@@ -244,14 +246,14 @@ internal struct OtelTraceState
 
     private static bool IsValidOtSubKey(ReadOnlySpan<char> name)
     {
-        if (name.IsEmpty || name[0] is < 'a' or > 'z')
+        if (name.IsEmpty || !char.IsAsciiLetterLower(name[0]))
         {
             return false;
         }
 
         foreach (var ch in name.Slice(1))
         {
-            if (ch is not (>= 'a' and <= 'z') and not (>= '0' and <= '9'))
+            if (!char.IsAsciiDigit(ch) && !char.IsAsciiLetterLower(ch))
             {
                 return false;
             }
@@ -264,10 +266,8 @@ internal struct OtelTraceState
     {
         foreach (var ch in value)
         {
-            if (ch is not (>= 'A' and <= 'Z') and
-                not (>= 'a' and <= 'z') and
-                not (>= '0' and <= '9') and
-                not '.' and not '_' and not '-')
+            if (!char.IsAsciiLetterOrDigit(ch) &&
+                ch is not '.' and not '_' and not '-')
             {
                 return false;
             }
