@@ -26,6 +26,14 @@ internal static class CharExtensions
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static bool IsAsciiLetterUpper(char value) =>
             value is >= 'A' and <= 'Z';
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static bool IsAsciiLetter(char value) =>
+            value is (>= 'A' and <= 'Z') or (>= 'a' and <= 'z');
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static bool IsAsciiHexDigit(char value) =>
+            value is (>= '0' and <= '9') or (>= 'a' and <= 'f') or (>= 'A' and <= 'F');
     }
 }
 
