@@ -7,7 +7,7 @@ namespace OpenTelemetry.DynamicControl.Internal.Policies;
 /// Represents a resolved telemetry policy as defined by the Telemetry Policy OTEP.
 /// A policy carries an identity (<see cref="Id"/>, <see cref="Name"/>) and a
 /// <see cref="PolicyType"/> discriminator that determines which concrete
-/// implementation handles it (e.g. trace-sampling).
+/// implementation handles it (e.g. <c>trace-sampling</c>).
 /// </summary>
 internal interface ITelemetryPolicy
 {
