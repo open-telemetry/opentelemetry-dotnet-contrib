@@ -85,7 +85,7 @@ public class OtelTraceStateTests
     public void Serialize_EmitsThresholdWithTrailingZerosRemoved()
     {
         var state = default(OtelTraceState);
-        state.SetThreshold(0xfd70a400000000L);
+        Assert.True(state.TrySetThreshold(0xfd70a400000000L));
 
         Assert.Equal("ot=th:fd70a4", state.Serialize());
     }
@@ -103,7 +103,7 @@ public class OtelTraceStateTests
     public void Serialize_EmitsThresholdBeforeRandomValue()
     {
         var state = default(OtelTraceState);
-        state.SetThreshold(0x80000000000000L);
+        Assert.True(state.TrySetThreshold(0x80000000000000L));
         state.SetRandomValue(0x6e6d1a75832a2fL);
 
         Assert.Equal("ot=th:8;rv:6e6d1a75832a2f", state.Serialize());
@@ -146,7 +146,7 @@ public class OtelTraceStateTests
                                         .Select(static index => $"vendor{index}=value")
                                         .ToArray();
         var state = OtelTraceState.Parse(string.Join(",", incomingMembers));
-        state.SetThreshold(0x80000000000000L);
+        Assert.True(state.TrySetThreshold(0x80000000000000L));
 
         var outgoingMembers = state.Serialize().Split(',');
 
@@ -160,22 +160,19 @@ public class OtelTraceStateTests
     public void Serialize_WithoutOtEntry_PreservesOtherMembers()
     {
         var state = OtelTraceState.Parse("vendor=value");
-        state.SetThreshold(0x80000000000000L);
+        Assert.True(state.TrySetThreshold(0x80000000000000L));
 
         Assert.Equal("ot=th:8,vendor=value", state.Serialize());
     }
 
     [Fact]
-    public void Serialize_DropsSubKeysThatWouldExceedTheSizeLimit()
+    public void Parse_DiscardsOtEntryThatExceedsTheSizeLimit()
     {
         var large = new string('a', OtelTraceState.TraceStateSizeLimit);
-        var state = OtelTraceState.Parse($"ot=th:8;foo:{large}");
+        var state = OtelTraceState.Parse($"ot=th:8;foo:{large},vendor=value");
 
-        var serialized = state.Serialize();
-
-        // The essential th sub-key is kept, the oversized foo sub-key is dropped.
-        Assert.Equal("ot=th:8", serialized);
-        Assert.True(serialized.Length <= OtelTraceState.TraceStateSizeLimit);
+        Assert.False(state.HasThreshold);
+        Assert.Equal("vendor=value", state.Serialize());
     }
 
     [Theory]
@@ -220,12 +217,26 @@ public class OtelTraceStateTests
     }
 
     [Fact]
-    public void Serialize_RemovesOtPrefixWhenOnlyOversizedSubKeysPresent()
+    public void TrySetThreshold_WhenOtValueIsAtSizeLimit_PreservesOtherSubKeys()
     {
-        var large = new string('a', OtelTraceState.TraceStateSizeLimit);
-        var state = OtelTraceState.Parse($"ot=foo:{large}");
+        var value = new string('a', OtelTraceState.TraceStateSizeLimit - "foo:".Length);
+        var traceState = $"ot=foo:{value}";
+        var state = OtelTraceState.Parse(traceState);
 
-        Assert.Equal(string.Empty, state.Serialize());
+        Assert.False(state.TrySetThreshold(0x80000000000000L));
+        Assert.False(state.HasThreshold);
+        Assert.Equal(traceState, state.Serialize());
+    }
+
+    [Fact]
+    public void TrySetThreshold_WhenReplacementWouldExceedSizeLimit_ErasesOldThreshold()
+    {
+        var value = new string('a', OtelTraceState.TraceStateSizeLimit - "th:0;foo:".Length);
+        var state = OtelTraceState.Parse($"ot=th:0;foo:{value}");
+
+        Assert.False(state.TrySetThreshold(ConsistentProbability.MaxRandomValue));
+        Assert.False(state.HasThreshold);
+        Assert.Equal($"ot=foo:{value}", state.Serialize());
     }
 
     [Fact]

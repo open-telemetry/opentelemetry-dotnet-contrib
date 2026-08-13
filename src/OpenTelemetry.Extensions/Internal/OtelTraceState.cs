@@ -39,6 +39,7 @@ internal struct OtelTraceState
     /// </summary>
     public const int TraceStateMemberLimit = 32;
 
+    private string? encodedThreshold;
     private List<KeyValuePair<string, string>>? otherSubKeys;
     private List<string>? otherMembers;
 
@@ -116,13 +117,35 @@ internal struct OtelTraceState
     }
 
     /// <summary>
-    /// Sets the rejection threshold.
+    /// Attempts to set the rejection threshold without exceeding the <c>ot</c> value size limit.
     /// </summary>
     /// <param name="threshold">The rejection threshold, in the range <c>[0, 2^56)</c>.</param>
-    public void SetThreshold(long threshold)
+    /// <returns>
+    /// <see langword="true"/> if the threshold was set; otherwise <see langword="false"/>.
+    /// </returns>
+    /// <remarks>
+    /// If the threshold does not fit, any existing threshold is erased so the outgoing sampling
+    /// probability is unknown, while all other <c>ot</c> values remain unchanged.
+    /// </remarks>
+    public bool TrySetThreshold(long threshold)
     {
+        var encodedThreshold = ConsistentProbability.EncodeThresholdInteger(threshold);
+        var lengthWithoutThreshold = this.GetOtValueLengthWithoutThreshold();
+        var lengthWithThreshold = GetLengthWithSubKey(
+            lengthWithoutThreshold,
+            ThresholdSubKey.Length,
+            encodedThreshold.Length);
+
+        if (lengthWithThreshold > TraceStateSizeLimit)
+        {
+            this.ClearThreshold();
+            return false;
+        }
+
         this.Threshold = threshold;
         this.HasThreshold = true;
+        this.encodedThreshold = encodedThreshold;
+        return true;
     }
 
     /// <summary>
@@ -132,6 +155,7 @@ internal struct OtelTraceState
     {
         this.Threshold = 0;
         this.HasThreshold = false;
+        this.encodedThreshold = null;
     }
 
     /// <summary>
@@ -215,6 +239,9 @@ internal struct OtelTraceState
 #endif
     }
 
+    private static int GetLengthWithSubKey(int currentLength, int nameLength, int valueLength)
+        => currentLength + (currentLength > 0 ? 1 : 0) + nameLength + 1 + valueLength;
+
     private static bool IsValidOtSubKey(ReadOnlySpan<char> name)
     {
         if (name.IsEmpty || name[0] is < 'a' or > 'z')
@@ -273,6 +300,7 @@ internal struct OtelTraceState
         {
             this.Threshold = parsed.Threshold;
             this.HasThreshold = true;
+            this.encodedThreshold = parsed.encodedThreshold;
         }
 
         if (parsed.HasRandomValue)
@@ -290,7 +318,7 @@ internal struct OtelTraceState
 
     private bool TryParseOtValue(ReadOnlySpan<char> otValue)
     {
-        if (otValue.IsEmpty)
+        if (otValue.IsEmpty || otValue.Length > TraceStateSizeLimit)
         {
             return false;
         }
@@ -337,6 +365,7 @@ internal struct OtelTraceState
                 {
                     this.Threshold = parsed;
                     this.HasThreshold = true;
+                    this.encodedThreshold = ConsistentProbability.EncodeThresholdInteger(parsed);
                 }
             }
             else if (name.Equals(RandomValueSubKey, StringComparison.Ordinal))
@@ -376,6 +405,26 @@ internal struct OtelTraceState
         }
     }
 
+    private readonly int GetOtValueLengthWithoutThreshold()
+    {
+        var length = 0;
+
+        if (this.HasRandomValue)
+        {
+            length = GetLengthWithSubKey(length, RandomValueSubKey.Length, ConsistentProbability.MaxHexDigits);
+        }
+
+        if (this.otherSubKeys is { Count: > 0 } other)
+        {
+            foreach (var subKey in other)
+            {
+                length = GetLengthWithSubKey(length, subKey.Key.Length, subKey.Value.Length);
+            }
+        }
+
+        return length;
+    }
+
     private readonly void AppendOtEntry(StringBuilder builder)
     {
         var prefixIndex = builder.Length;
@@ -391,7 +440,7 @@ internal struct OtelTraceState
                 builder,
                 valueIndex,
                 ThresholdSubKey,
-                ConsistentProbability.EncodeThresholdInteger(this.Threshold));
+                this.encodedThreshold ?? ConsistentProbability.EncodeThresholdInteger(this.Threshold));
         }
 
         if (this.HasRandomValue)
@@ -413,9 +462,9 @@ internal struct OtelTraceState
             {
                 // Preserve additional sub-keys only while the ot value stays within the size limit.
                 var otValueLength = builder.Length - valueIndex;
-                var addedLength = (otValueLength > 0 ? 1 : 0) + subKey.Key.Length + 1 + subKey.Value.Length;
+                var lengthWithSubKey = GetLengthWithSubKey(otValueLength, subKey.Key.Length, subKey.Value.Length);
 
-                if (otValueLength + addedLength > TraceStateSizeLimit)
+                if (lengthWithSubKey > TraceStateSizeLimit)
                 {
                     continue;
                 }

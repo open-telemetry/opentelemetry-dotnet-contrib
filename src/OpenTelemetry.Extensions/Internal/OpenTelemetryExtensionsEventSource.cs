@@ -50,4 +50,8 @@ internal sealed class OpenTelemetryExtensionsEventSource : EventSource
     [Event(5, Message = "Sampler '{0}' presumed the TraceID to be random for a context where the W3C trace random flag is not set. Sampling decisions may be inconsistent with other participants in the trace until every SDK in the system implements the W3C Trace Context Level 2 randomness requirements. This warning is reported once per sampler.", Level = EventLevel.Warning)]
     public void PresumedTraceIdRandomness(string sampler)
         => this.WriteEvent(5, sampler);
+
+    [Event(6, Message = "Sampler '{0}' could not add its sampling threshold to the OpenTelemetry tracestate because the ot value would exceed 256 characters. Existing OpenTelemetry tracestate values were preserved and the outgoing sampling probability is unknown. This warning is reported once per sampler.", Level = EventLevel.Warning)]
+    public void TraceStateSizeLimitExceeded(string sampler)
+        => this.WriteEvent(6, sampler);
 }

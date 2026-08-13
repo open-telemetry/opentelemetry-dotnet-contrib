@@ -303,6 +303,37 @@ public class ConsistentProbabilitySamplerTests
     }
 
     [Fact]
+    public void ShouldSample_WarnsOnceWhenThresholdDoesNotFitInTraceState()
+    {
+        const double Probability = 0.456789;
+
+        using var listener = new InMemoryEventListener(OpenTelemetryExtensionsEventSource.Log, EventLevel.Warning);
+
+        var value = new string('a', OtelTraceState.TraceStateSizeLimit - "foo:".Length);
+        var traceState = $"ot=foo:{value}";
+        var traceId = CreateTraceId(ConsistentProbability.MaxRandomValue);
+        var parent = new ActivityContext(
+            traceId,
+            ActivitySpanId.CreateRandom(),
+            RandomTraceIdFlag,
+            traceState: traceState);
+        var parameters = CreateParameters(parent, traceId);
+        var sampler = new ConsistentProbabilitySampler(Probability);
+
+        var first = sampler.ShouldSample(in parameters);
+        var second = sampler.ShouldSample(in parameters);
+
+        Assert.Equal(SamplingDecision.RecordAndSample, first.Decision);
+        Assert.Equal(traceState, first.TraceStateString);
+        Assert.Equal(traceState, second.TraceStateString);
+
+        var warnings = listener.Events.Where(
+            p => p.EventId == 6 && p.Payload?.Count == 1 && Equals(p.Payload[0], sampler.Description));
+
+        Assert.Single(warnings);
+    }
+
+    [Fact]
     public void ShouldSample_PreservesOtherTraceStateMembers()
     {
         var parent = new ActivityContext(

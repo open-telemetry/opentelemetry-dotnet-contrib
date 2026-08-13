@@ -30,6 +30,7 @@ public sealed class ConsistentProbabilitySampler : Sampler
     private readonly long threshold;
 
     private int hasWarnedAboutPresumedRandomness;
+    private int hasWarnedAboutTraceStateSizeLimit;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ConsistentProbabilitySampler"/> class.
@@ -109,7 +110,10 @@ public sealed class ConsistentProbabilitySampler : Sampler
         {
             // "When a Span or Context is sampled, the sampler's effective T is encoded in the
             // OpenTelemetry TraceState th sub-key to indicate its sampling probability."
-            traceState.SetThreshold(this.threshold);
+            if (!traceState.TrySetThreshold(this.threshold))
+            {
+                this.WarnOnceTraceStateSizeLimitExceeded();
+            }
         }
         else
         {
@@ -139,6 +143,15 @@ public sealed class ConsistentProbabilitySampler : Sampler
             Interlocked.Exchange(ref this.hasWarnedAboutPresumedRandomness, 1) == 0)
         {
             OpenTelemetryExtensionsEventSource.Log.PresumedTraceIdRandomness(this.Description);
+        }
+    }
+
+    private void WarnOnceTraceStateSizeLimitExceeded()
+    {
+        if (Volatile.Read(ref this.hasWarnedAboutTraceStateSizeLimit) == 0 &&
+            Interlocked.Exchange(ref this.hasWarnedAboutTraceStateSizeLimit, 1) == 0)
+        {
+            OpenTelemetryExtensionsEventSource.Log.TraceStateSizeLimitExceeded(this.Description);
         }
     }
 }
