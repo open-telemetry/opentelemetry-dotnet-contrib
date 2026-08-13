@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.17.0-beta.2
+
+Released 2026-Aug-13
+
 * Added `ConsistentProbabilitySampler`, a consistent probability based sampler
   implementing the OpenTelemetry
   [probability sampling](https://opentelemetry.io/docs/specs/otel/trace/tracestate-probability-sampling/)
