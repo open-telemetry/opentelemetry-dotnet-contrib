@@ -13,10 +13,11 @@ namespace OpenTelemetry.Extensions.Tests.Trace;
 
 public class ConsistentProbabilitySamplerTests
 {
-    // 0x02 is the W3C Trace Context "random" flag.
-    // https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867
-    // will change this code to use ActivityTraceFlags.RandomTraceId.
+#if NET11_0_OR_GREATER
+    private const ActivityTraceFlags RandomTraceIdFlag = ActivityTraceFlags.RandomTraceId;
+#else
     private const ActivityTraceFlags RandomTraceIdFlag = (ActivityTraceFlags)0x02;
+#endif
 
     [Theory]
     [InlineData(double.NaN)]
@@ -416,7 +417,9 @@ public class ConsistentProbabilitySamplerTests
         Assert.Equal(SamplingDecision.Drop, Sample(0.1));
 
         SamplingDecision Sample(double probability)
-            => new ConsistentProbabilitySampler(probability).ShouldSample(in parameters).Decision;
+        {
+            return new ConsistentProbabilitySampler(probability).ShouldSample(in parameters).Decision;
+        }
     }
 
     [Fact]
@@ -566,10 +569,14 @@ public class ConsistentProbabilitySamplerTests
         Assert.Equal(ExpectedDecision(0.25), RemoteDecision(0.25));
 
         SamplingDecision ExpectedDecision(double probability)
-            => IsSampled(probability, randomness) ? SamplingDecision.RecordAndSample : SamplingDecision.Drop;
+        {
+            return IsSampled(probability, randomness) ? SamplingDecision.RecordAndSample : SamplingDecision.Drop;
+        }
 
         SamplingDecision RemoteDecision(double probability)
-            => new ConsistentProbabilitySampler(probability).ShouldSample(remoteParameters).Decision;
+        {
+            return new ConsistentProbabilitySampler(probability).ShouldSample(remoteParameters).Decision;
+        }
     }
 
     [Fact]
