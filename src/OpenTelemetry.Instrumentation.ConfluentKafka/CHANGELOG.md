@@ -5,6 +5,9 @@
 * Updated Semantic Conventions to [v1.44.0](https://github.com/open-telemetry/semantic-conventions/releases/tag/v1.44.0).
   ([#4976](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4976))
 
+* Added `messaging.kafka.cluster.id` span attribute.
+  ([#4739](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4739))
+
 ## 0.2.0-alpha.2
 
 Released 2026-Jul-17
