@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics.Metrics;
 using System.Runtime.InteropServices;
 using OpenTelemetry.Metrics;
 
@@ -227,6 +228,68 @@ public class ProcessMetricsTests
 
         Assert.NotEmpty(exportedItemsA);
         Assert.Empty(exportedItemsB);
+    }
+
+    [Fact]
+    public void ProcessMetricsAreCapturedAfterAnotherMeterProviderIsDisposed()
+    {
+        var exportedItemsA = new List<Metric>();
+        var exportedItemsB = new List<Metric>();
+
+        var meterProviderA = Sdk.CreateMeterProviderBuilder()
+            .AddProcessInstrumentation()
+            .AddInMemoryExporter(exportedItemsA)
+            .Build();
+
+        using var meterProviderB = Sdk.CreateMeterProviderBuilder()
+            .AddProcessInstrumentation()
+            .AddInMemoryExporter(exportedItemsB)
+            .Build();
+
+        meterProviderA.Dispose();
+
+        meterProviderB.ForceFlush(MaxTimeToAllowForFlush);
+
+        Assert.Equal(ExpectedMetricCount, exportedItemsB.Count);
+
+        var physicalMemoryMetric = exportedItemsB.FirstOrDefault(i => i.Name == "process.memory.usage");
+        Assert.NotNull(physicalMemoryMetric);
+        Assert.True(GetValue(physicalMemoryMetric) > 0, "No memory usage reported.");
+    }
+
+    [Fact]
+    public void ProcessInstrumentsAreOnlyCreatedOnce()
+    {
+        using var meterProviderA = Sdk.CreateMeterProviderBuilder()
+            .AddProcessInstrumentation()
+            .Build();
+
+        using (var meterProviderB = Sdk.CreateMeterProviderBuilder()
+            .AddProcessInstrumentation()
+            .Build())
+        {
+            // Enabling process instrumentation more than once must not create a second
+            // set of instruments, otherwise the callbacks and the instances they capture
+            // are leaked for the lifetime of the process.
+        }
+
+        var instrumentNames = new List<string>();
+
+        using var listener = new MeterListener()
+        {
+            InstrumentPublished = (instrument, _) =>
+            {
+                if (instrument.Meter.Name == "OpenTelemetry.Instrumentation.Process")
+                {
+                    instrumentNames.Add(instrument.Name);
+                }
+            },
+        };
+
+        listener.Start();
+
+        Assert.Equal(ExpectedMetricCount, instrumentNames.Count);
+        Assert.Equal(instrumentNames.Count, instrumentNames.Distinct().Count());
     }
 
     private static double GetValue(Metric metric)
