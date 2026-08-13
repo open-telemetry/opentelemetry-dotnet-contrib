@@ -24,10 +24,7 @@ internal sealed class OpenTelemetryExtensionsEventSource : EventSource
     }
 
     [Event(1, Message = "Unknown error in LogProcessor event '{0}': '{1}'.", Level = EventLevel.Error)]
-    public void LogProcessorException(string @event, string exception)
-    {
-        this.WriteEvent(1, @event, exception);
-    }
+    public void LogProcessorException(string @event, string exception) => this.WriteEvent(1, @event, exception);
 
     [NonEvent]
     public void LogRecordFilterException(string? categoryName, Exception ex)
@@ -40,19 +37,21 @@ internal sealed class OpenTelemetryExtensionsEventSource : EventSource
 
     [Event(2, Message = "Filter threw an exception, log record will not be attached to an activity, the log record would flow to its pipeline unaffected. CategoryName: '{0}', Exception: {1}.", Level = EventLevel.Warning)]
     public void LogRecordFilterException(string? categoryName, string exception)
-    {
-        this.WriteEvent(2, categoryName, exception);
-    }
+        => this.WriteEvent(2, categoryName, exception);
 
     [Event(3, Message = "Baggage key predicate threw exception when trying to add baggage entry with key '{0}'. Baggage entry will not be added to the activity. Exception: '{1}'", Level = EventLevel.Warning)]
     public void BaggageKeyActivityPredicateException(string baggageKey, string exception)
-    {
-        this.WriteEvent(3, baggageKey, exception);
-    }
+        => this.WriteEvent(3, baggageKey, exception);
 
     [Event(4, Message = "Baggage key predicate threw exception when trying to add baggage entry with key '{0}'. Baggage entry will not be added to the log record. Exception: '{1}'", Level = EventLevel.Warning)]
     public void BaggageKeyLogRecordPredicateException(string baggageKey, string exception)
-    {
-        this.WriteEvent(4, baggageKey, exception);
-    }
+        => this.WriteEvent(4, baggageKey, exception);
+
+    [Event(5, Message = "Sampler '{0}' presumed the TraceID to be random for a context where the W3C trace random flag is not set. Sampling decisions may be inconsistent with other participants in the trace until every SDK in the system implements the W3C Trace Context Level 2 randomness requirements. This warning is reported once per sampler.", Level = EventLevel.Warning)]
+    public void PresumedTraceIdRandomness(string sampler)
+        => this.WriteEvent(5, sampler);
+
+    [Event(6, Message = "Sampler '{0}' could not add its sampling threshold to the OpenTelemetry tracestate because the ot value would exceed 256 characters. Existing OpenTelemetry tracestate values were preserved and the outgoing sampling probability is unknown. This warning is reported once per sampler.", Level = EventLevel.Warning)]
+    public void TraceStateSizeLimitExceeded(string sampler)
+        => this.WriteEvent(6, sampler);
 }
