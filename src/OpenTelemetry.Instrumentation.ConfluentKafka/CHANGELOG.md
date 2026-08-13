@@ -3,7 +3,7 @@
 ## Unreleased
 
 * Updated Semantic Conventions to [v1.44.0](https://github.com/open-telemetry/semantic-conventions/releases/tag/v1.44.0).
-  ([#PRA](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/PRA))
+  ([#4976](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4976))
 
 ## 0.2.0-alpha.2
 
