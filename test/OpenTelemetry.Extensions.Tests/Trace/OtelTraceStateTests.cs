@@ -140,6 +140,23 @@ public class OtelTraceStateTests
     }
 
     [Fact]
+    public void Serialize_WhenAddingOtEntryAtMemberLimit_DropsRightmostMember()
+    {
+        var incomingMembers = Enumerable.Range(0, OtelTraceState.TraceStateMemberLimit)
+                                        .Select(static index => $"vendor{index}=value")
+                                        .ToArray();
+        var state = OtelTraceState.Parse(string.Join(",", incomingMembers));
+        state.SetThreshold(0x80000000000000L);
+
+        var outgoingMembers = state.Serialize().Split(',');
+
+        Assert.Equal(OtelTraceState.TraceStateMemberLimit, outgoingMembers.Length);
+        Assert.Equal("ot=th:8", outgoingMembers[0]);
+        Assert.Equal(incomingMembers.Take(OtelTraceState.TraceStateMemberLimit - 1), outgoingMembers.Skip(1));
+        Assert.DoesNotContain(incomingMembers[incomingMembers.Length - 1], outgoingMembers);
+    }
+
+    [Fact]
     public void Serialize_WithoutOtEntry_PreservesOtherMembers()
     {
         var state = OtelTraceState.Parse("vendor=value");

@@ -34,6 +34,11 @@ internal struct OtelTraceState
     /// </summary>
     public const int TraceStateSizeLimit = 256;
 
+    /// <summary>
+    /// The maximum number of members in a W3C <c>tracestate</c> value.
+    /// </summary>
+    public const int TraceStateMemberLimit = 32;
+
     private List<KeyValuePair<string, string>>? otherSubKeys;
     private List<string>? otherMembers;
 
@@ -155,22 +160,30 @@ internal struct OtelTraceState
         }
 
         var builder = new StringBuilder();
+        var memberCount = 0;
 
         if (hasOtContent)
         {
             this.AppendOtEntry(builder);
+            memberCount = builder.Length > 0 ? 1 : 0;
         }
 
         if (this.otherMembers is { Count: > 0 } other)
         {
             foreach (var member in other)
             {
+                if (memberCount == TraceStateMemberLimit)
+                {
+                    break;
+                }
+
                 if (builder.Length > 0)
                 {
                     builder.Append(',');
                 }
 
                 builder.Append(member);
+                memberCount++;
             }
         }
 
