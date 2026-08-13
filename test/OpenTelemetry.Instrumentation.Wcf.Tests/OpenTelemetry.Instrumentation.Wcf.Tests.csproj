@@ -27,6 +27,7 @@
 
   <ItemGroup>
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" />
+    <PackageReference Include="SSH.NET" />
     <PackageReference Include="Testcontainers" />
   </ItemGroup>
 
