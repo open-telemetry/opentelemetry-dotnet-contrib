@@ -1,9 +1,12 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Globalization;
+using Confluent.Kafka;
+using Confluent.Kafka.Admin;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using ActivitySourceFactory = OpenTelemetry.Trace.ActivitySourceFactory;
@@ -52,6 +55,27 @@ internal static class ConfluentKafkaCommon
         unit: "{message}",
         description: "Number of messages that were delivered to the application.");
 
+    private static readonly ConcurrentDictionary<string, Task<string?>> ClusterIdCache = new();
+
+    internal static async Task<string?> GetOrFetchClusterIdAsync(Handle handle, string? bootstrapServers)
+    {
+        if (string.IsNullOrEmpty(bootstrapServers))
+        {
+            return await FetchClusterIdAsync(handle).ConfigureAwait(false);
+        }
+
+        var key = bootstrapServers!;
+        var task = ClusterIdCache.GetOrAdd(key, _ => FetchClusterIdAsync(handle));
+        var result = await task.ConfigureAwait(false);
+
+        if (result == null)
+        {
+            ClusterIdCache.TryRemove(key, out _);
+        }
+
+        return result;
+    }
+
     /// <summary>
     /// Normalizes a Kafka message key to the string representation required by the
     /// <see href="https://github.com/open-telemetry/semantic-conventions/blob/89aae438b3b3b0a8dd33003c9d70592baf7dbd0d/docs/messaging/kafka.md#L119"><c>messaging.kafka.message.key</c> semantic convention</see>.
@@ -84,4 +108,19 @@ internal static class ConfluentKafkaCommon
         TimeSpan value => value.ToString("c", CultureInfo.InvariantCulture),
         _ => null,
     };
+
+    private static async Task<string?> FetchClusterIdAsync(Handle handle)
+    {
+        try
+        {
+            using var admin = new DependentAdminClientBuilder(handle).Build();
+            var result = await admin.DescribeClusterAsync(new DescribeClusterOptions { RequestTimeout = TimeSpan.FromSeconds(5) }).ConfigureAwait(false);
+            return result.ClusterId;
+        }
+        catch (Exception ex)
+        {
+            ConfluentKafkaInstrumentationEventSource.Log.FailedToFetchClusterId(ex);
+            return null;
+        }
+    }
 }
