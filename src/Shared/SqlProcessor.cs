@@ -174,30 +174,9 @@ internal static class SqlProcessor
         return Cache.TryGetValue(sql, out var existing) ? existing : sqlStatementInfo;
     }
 
-#if !NET
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsAsciiLetter(char c)
-    {
-        var lower = (char)(c | 0x20);
-        return lower is >= 'a' and <= 'z';
-    }
-#endif
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsAsciiDigit(char c) =>
-#if NET
-        char.IsAsciiDigit(c);
-#else
-        c is >= '0' and <= '9';
-#endif
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsUnescapedIdentifierChar(char c) =>
-#if NET
         char.IsLetter(c) || char.IsAsciiDigit(c) || c == UnderscoreChar || c == DotChar;
-#else
-        char.IsLetter(c) || IsAsciiDigit(c) || c == UnderscoreChar || c == DotChar;
-#endif
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsValidTokenCharacter(ReadOnlySpan<char> sql, int currentPosition, int indexInToken, in ParseState state)
@@ -403,11 +382,7 @@ internal static class SqlProcessor
         // Quick first-character filter: only attempt keyword matching if the current char is an ASCII letter.
         // NOTE: We don't check CaptureNextNonKeywordTokenAsIdentifier here because we want to capture and handle keywords
         // first, before considering identifiers.
-#if NET
         var mayBeKeyword = !state.InEscapedIdentifier && char.IsAsciiLetter(currentChar);
-#else
-        var mayBeKeyword = !state.InEscapedIdentifier && IsAsciiLetter(currentChar);
-#endif
 
         if (mayBeKeyword)
         {
@@ -429,11 +404,7 @@ internal static class SqlProcessor
             while (asciiLetterLength < remaining)
             {
                 var ch = sql[start + asciiLetterLength];
-#if NET
                 if (!char.IsAsciiLetter(ch))
-#else
-                if (!IsAsciiLetter(ch))
-#endif
                 {
                     break;
                 }
@@ -839,23 +810,10 @@ internal static class SqlProcessor
             for (i += 2; i < length; ++i)
             {
                 ch = sql[i];
-#if NET
                 if (char.IsAsciiHexDigit(ch))
                 {
                     continue;
                 }
-#else
-                if (IsAsciiDigit(ch) ||
-                    ch == 'A' || ch == 'a' ||
-                    ch == 'B' || ch == 'b' ||
-                    ch == 'C' || ch == 'c' ||
-                    ch == 'D' || ch == 'd' ||
-                    ch == 'E' || ch == 'e' ||
-                    ch == 'F' || ch == 'f')
-                {
-                    continue;
-                }
-#endif
 
                 i -= 1;
                 break;
@@ -878,7 +836,7 @@ internal static class SqlProcessor
         var iPlusOne = i + 1;
 
         // Scan past leading sign
-        if ((currentChar == '-' || currentChar == '+') && iPlusOne < length && (IsAsciiDigit(sql[iPlusOne]) || sql[iPlusOne] == DotChar))
+        if ((currentChar == '-' || currentChar == '+') && iPlusOne < length && (char.IsAsciiDigit(sql[iPlusOne]) || sql[iPlusOne] == DotChar))
         {
             i += 1;
             iPlusOne = i + 1;
@@ -887,14 +845,14 @@ internal static class SqlProcessor
 
         // Scan past leading decimal point
         var periodMatched = false;
-        if (currentChar == '.' && iPlusOne < length && IsAsciiDigit(sql[iPlusOne]))
+        if (currentChar == '.' && iPlusOne < length && char.IsAsciiDigit(sql[iPlusOne]))
         {
             periodMatched = true;
             i += 1;
             currentChar = sql[i];
         }
 
-        if (IsAsciiDigit(currentChar))
+        if (char.IsAsciiDigit(currentChar))
         {
             if (TrySanitizeLiteralsForInClause(sql, buffer, ref state, i))
             {
@@ -905,7 +863,7 @@ internal static class SqlProcessor
             for (i += 1; i < length; ++i)
             {
                 currentChar = sql[i];
-                if (IsAsciiDigit(currentChar))
+                if (char.IsAsciiDigit(currentChar))
                 {
                     continue;
                 }

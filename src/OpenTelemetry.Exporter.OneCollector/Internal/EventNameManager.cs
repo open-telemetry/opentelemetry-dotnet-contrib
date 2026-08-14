@@ -180,7 +180,7 @@ internal sealed partial class EventNameManager
     private static void WriteEventFullNameComponent(string component, Span<byte> destination, ref int cursor)
     {
         var firstChar = component[0];
-        if (firstChar is >= 'a' and <= 'z')
+        if (char.IsAsciiLetterLower(firstChar))
         {
             firstChar -= (char)32;
         }

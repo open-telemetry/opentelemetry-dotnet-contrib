@@ -43,7 +43,7 @@ public sealed class InstrumentedConsumerBuilder<TKey, TValue> : ConsumerBuilder<
     {
         var config = (ConsumerConfig)this.Config;
 
-        var consumer = new InstrumentedConsumer<TKey, TValue>(base.Build(), this.options)
+        var consumer = new InstrumentedConsumer<TKey, TValue>(base.Build(), this.options, config.BootstrapServers)
         {
             GroupId = config.GroupId,
         };
