@@ -64,7 +64,7 @@ internal static class ConfluentKafkaCommon
             return await FetchClusterIdAsync(handle).ConfigureAwait(false);
         }
 
-        var key = bootstrapServers!;
+        var key = bootstrapServers;
         var task = ClusterIdCache.GetOrAdd(key, _ => FetchClusterIdAsync(handle));
         var result = await task.ConfigureAwait(false);
 
