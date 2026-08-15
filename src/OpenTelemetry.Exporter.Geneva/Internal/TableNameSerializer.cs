@@ -130,12 +130,12 @@ internal sealed class TableNameSerializer
 
         // Special treatment for the first character.
         var firstChar = categoryName[0];
-        if (firstChar is >= 'A' and <= 'Z')
+        if (char.IsAsciiLetterUpper(firstChar))
         {
             buffer[cursor++] = (byte)firstChar;
             ++validNameLength;
         }
-        else if (firstChar is >= 'a' and <= 'z')
+        else if (char.IsAsciiLetterLower(firstChar))
         {
             // If the first character in the resulting string is a lower-case alphabet,
             // it will be converted to the corresponding upper-case.
@@ -156,7 +156,7 @@ internal sealed class TableNameSerializer
             }
 
             var cur = categoryName[i];
-            if (cur is (>= 'a' and <= 'z') or (>= 'A' and <= 'Z') or (>= '0' and <= '9'))
+            if (char.IsAsciiLetterOrDigit(cur))
             {
                 buffer[cursor++] = (byte)cur;
                 ++validNameLength;

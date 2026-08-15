@@ -13,11 +13,14 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
 {
     private readonly IConsumer<TKey, TValue> consumer;
     private readonly ConfluentKafkaConsumerInstrumentationOptions<TKey, TValue> options;
+    private readonly Task<string?>? clusterIdTask;
 
-    public InstrumentedConsumer(IConsumer<TKey, TValue> consumer, ConfluentKafkaConsumerInstrumentationOptions<TKey, TValue> options)
+    public InstrumentedConsumer(IConsumer<TKey, TValue> consumer, ConfluentKafkaConsumerInstrumentationOptions<TKey, TValue> options, string? bootstrapServers = null)
     {
         this.consumer = consumer;
         this.options = options;
+
+        this.clusterIdTask = ConfluentKafkaCommon.GetOrFetchClusterIdAsync(consumer.Handle, bootstrapServers);
     }
 
     public Handle Handle => this.consumer.Handle;
@@ -33,6 +36,8 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
     public IConsumerGroupMetadata ConsumerGroupMetadata => this.consumer.ConsumerGroupMetadata;
 
     public string? GroupId { get; internal set; }
+
+    internal Task<string?>? ClusterIdTask => this.clusterIdTask;
 
     public void Dispose()
         => this.consumer.Dispose();
@@ -354,11 +359,11 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
             : [];
 
         // Provide the attributes that can influence sampling decisions at span creation time
-        var initialTags = new ActivityTagsCollection
+        var initialTags = new TagList
         {
-            [SemanticConventions.AttributeMessagingOperationName] = ConfluentKafkaCommon.PollOperationName,
-            [SemanticConventions.AttributeMessagingOperationType] = ConfluentKafkaCommon.ReceiveOperationType,
-            [SemanticConventions.AttributeMessagingSystem] = ConfluentKafkaCommon.KafkaMessagingSystem,
+            { SemanticConventions.AttributeMessagingOperationName, ConfluentKafkaCommon.PollOperationName },
+            { SemanticConventions.AttributeMessagingOperationType, ConfluentKafkaCommon.ReceiveOperationType },
+            { SemanticConventions.AttributeMessagingSystem, ConfluentKafkaCommon.KafkaMessagingSystem },
         };
 
         if (this.GroupId is { Length: > 0 } groupId)
@@ -400,6 +405,12 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
             if (isTombstone)
             {
                 activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageTombstone, true);
+            }
+
+            if (this.clusterIdTask?.Status == TaskStatus.RanToCompletion
+                && this.clusterIdTask.Result is { Length: > 0 } clusterId)
+            {
+                activity.SetTag(SemanticConventions.AttributeMessagingKafkaClusterId, clusterId);
             }
         }
 

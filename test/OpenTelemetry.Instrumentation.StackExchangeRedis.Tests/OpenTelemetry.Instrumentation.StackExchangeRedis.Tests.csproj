@@ -28,7 +28,8 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" />
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
-    <PackageReference Include="StackExchange.Redis" VersionOverride="3.0.25" />
+    <PackageReference Include="SSH.NET" />
+    <PackageReference Include="StackExchange.Redis" VersionOverride="3.1.13" />
     <PackageReference Include="Testcontainers.Redis" />
   </ItemGroup>
 
