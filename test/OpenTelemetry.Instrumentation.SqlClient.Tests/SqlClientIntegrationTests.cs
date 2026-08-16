@@ -288,7 +288,8 @@ public sealed class SqlClientIntegrationTests :
 
         // The stopped activity is left as Activity.Current by the async command, which would
         // make the stored procedure a child of it. Clear it so the two commands belong to
-        // unrelated traces, which is the case the stale value actually mis-attributes.
+        // unrelated traces, which is the case where the stale value attributes the stored
+        // procedure to the wrong trace.
         Activity.Current = null;
 
         var sessionState = await ReadSessionStateAsync(sqlConnection);
