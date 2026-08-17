@@ -12,7 +12,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.Kusto.Data" />
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" />
-    <PackageReference Include="SSH.NET" />
     <PackageReference Include="Testcontainers.Kusto" />
     <PackageReference Include="Verify.Xunit" />
   </ItemGroup>
