@@ -132,7 +132,7 @@ internal partial class ElasticsearchRequestPipelineDiagnosticListener : Listener
                             : elasticType == null ? dbOperationName : $"{dbOperationName} {elasticType}";
                     }
 
-                    var methodName = MethodNameCache.GetOrAdd(method, $"Elasticsearch {method}");
+                    var methodName = MethodNameCache.GetOrAdd(method, static (m) => $"Elasticsearch {m}");
                     return elasticType == null ? methodName : $"{methodName} {elasticType}";
                 }
 
