@@ -795,7 +795,7 @@ internal static class SqlProcessor
                 // NO_BACKSLASH_ESCAPES disabled) treat a backslash as a string escape
                 // character, so a quote preceded by an odd number of backslashes does
                 // not terminate the literal. Without this a value such as 'a\'secret'
-                // would be mis-parsed and the trailing "secret" copied into the sanitized
+                // would be incorrectly parsed and the trailing "secret" copied into the sanitized
                 // SQL verbatim. This is gated on the dialect because '\' is not an escape
                 // in the other engines, where treating it as one would instead cause
                 // a '' -escaped literal to be incorrectly parsed.
