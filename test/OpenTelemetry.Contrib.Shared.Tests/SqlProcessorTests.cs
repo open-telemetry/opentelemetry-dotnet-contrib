@@ -109,6 +109,93 @@ public class SqlProcessorTests
     }
 
     [Fact]
+    public void GetSanitizedSql_BackslashEscapedQuoteWithBackslashDialect_SanitizesLiteral()
+    {
+        var sql = "SELECT * FROM Users WHERE Password = 'a\\'secret-name'";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes: true);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.Equal("SELECT * FROM Users WHERE Password = ?", sqlStatementInfo.SanitizedSql);
+    }
+
+    [Fact]
+    public void GetSanitizedSql_BackslashEscapedQuoteInInClauseWithBackslashDialect_SanitizesLiterals()
+    {
+        var sql = "SELECT * FROM Users WHERE Name IN ('a\\'secret-name', 'b')";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes: true);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.Equal("SELECT * FROM Users WHERE Name IN (?)", sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void GetSanitizedSql_DoubledQuoteEscape_SanitizesLiteralInEitherDialect(bool useBackslashEscapes)
+    {
+        var sql = "SELECT * FROM Users WHERE Password = 'a''secret-name'";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes);
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.Equal("SELECT * FROM Users WHERE Password = ?", sqlStatementInfo.SanitizedSql);
+    }
+
+    [Fact]
+    public void GetSanitizedSql_BackslashBeforeDoubledQuoteWithoutBackslashDialect_DoesNotLeak()
+    {
+        var sql = "SELECT * FROM Users WHERE Password = 'a\\''secret-name'";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes: false);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.Equal("SELECT * FROM Users WHERE Password = ?", sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData("SELECT * FROM t WHERE c = $$secret-name$$")]
+    [InlineData("SELECT * FROM t WHERE c = $tag$se'cret-'name$tag$")] // Body may contain quotes/dollars.
+    public void GetSanitizedSql_DollarQuotedString_SanitizesLiteral(string sql)
+    {
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret", sqlStatementInfo.SanitizedSql);
+        Assert.Equal("SELECT * FROM t WHERE c = ?", sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData("SELECT $IDENTITY FROM t", "SELECT $IDENTITY FROM t")] // SQL Server pseudo-column.
+    [InlineData("SELECT a WHERE b = $1", "SELECT a WHERE b = $?")] // PostgreSQL positional parameter.
+    public void GetSanitizedSql_LoneDollarSign_IsNotTreatedAsDollarQuote(string sql, string expected)
+    {
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Fact]
+    public void GetSanitizedSql_DoubleQuotedString_IsPreservedAsIdentifier()
+    {
+        var sql = "SELECT * FROM t WHERE c = \"identifier_or_mysql_string\"";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        Assert.Contains("identifier_or_mysql_string", sqlStatementInfo.SanitizedSql);
+    }
+
+    [Fact]
     public void GetSanitizedSql_UnterminatedInClauseStringLiteral_SanitizesLiteral()
     {
         var sql = "SELECT * FROM Users WHERE Name IN ('secret-name";

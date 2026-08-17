@@ -22,6 +22,8 @@ internal static class SqlProcessor
     private const char DashChar = '-';
     private const char ForwardSlashChar = '/';
     private const char SingleQuoteChar = '\'';
+    private const char BackslashChar = '\\';
+    private const char DollarChar = '$';
     private const char AsteriskChar = '*';
     private const char UnderscoreChar = '_';
     private const char DotChar = '.';
@@ -31,6 +33,7 @@ internal static class SqlProcessor
     private const char UnicodePrefixChar = 'N';
 
     private static readonly ConcurrentDictionary<string, SqlStatementInfo> Cache = new();
+    private static readonly ConcurrentDictionary<string, SqlStatementInfo> BackslashEscapeCache = new();
 
     private static readonly char[] WhitespaceChars = [SpaceChar, TabChar, CarriageReturnChar, NewLineChar];
 #if !NET
@@ -93,6 +96,7 @@ internal static class SqlProcessor
     // We only increment on successful TryAdd. This may result in a slightly oversized cache
     // under high concurrency but this is acceptable for this scenario.
     private static int approxCacheCount;
+    private static int approxBackslashEscapeCacheCount;
 
     private enum SqlKeyword
     {
@@ -143,35 +147,52 @@ internal static class SqlProcessor
         View,
     }
 
-    public static SqlStatementInfo GetSanitizedSql(string? sql)
-    {
-        if (sql == null)
-        {
-            return default;
-        }
+    /// <summary>
+    /// Sanitizes a SQL statement by replacing its literal values with placeholders and computes the
+    /// corresponding <c>db.query.summary</c>. Results are cached per statement and dialect.
+    /// </summary>
+    /// <param name="sql">The SQL statement to sanitize.</param>
+    /// <param name="useBackslashEscapes">
+    /// <see langword="true"/> if the source database treats a backslash as a string-literal escape
+    /// character (MySQL and MariaDB with the default <c>NO_BACKSLASH_ESCAPES</c> mode disabled);
+    /// otherwise <see langword="false"/>.
+    /// </param>
+    /// <returns>The sanitized SQL and query summary.</returns>
+    public static SqlStatementInfo GetSanitizedSql(string? sql, bool useBackslashEscapes = false) =>
+        sql != null
+        ? useBackslashEscapes
+        ? GetSanitizedSql(sql, BackslashEscapeCache, ref approxBackslashEscapeCacheCount, useBackslashEscapes: true)
+        : GetSanitizedSql(sql, Cache, ref approxCacheCount, useBackslashEscapes: false)
+        : default;
 
-        if (Cache.TryGetValue(sql, out var sqlStatementInfo))
+    private static SqlStatementInfo GetSanitizedSql(
+        string sql,
+        ConcurrentDictionary<string, SqlStatementInfo> cache,
+        ref int approxCount,
+        bool useBackslashEscapes)
+    {
+        if (cache.TryGetValue(sql, out var sqlStatementInfo))
         {
             return sqlStatementInfo;
         }
 
-        sqlStatementInfo = SanitizeSql(sql);
+        sqlStatementInfo = SanitizeSql(sql, useBackslashEscapes);
 
         // Fast-path capacity check using our own approximate count to avoid ConcurrentDictionary.Count cost.
-        if (Volatile.Read(ref approxCacheCount) >= CacheCapacity)
+        if (Volatile.Read(ref approxCount) >= CacheCapacity)
         {
             return sqlStatementInfo;
         }
 
         // Attempt to add when under capacity. Increment our count only on successful add.
-        if (Cache.TryAdd(sql, sqlStatementInfo))
+        if (cache.TryAdd(sql, sqlStatementInfo))
         {
-            Interlocked.Increment(ref approxCacheCount);
+            Interlocked.Increment(ref approxCount);
             return sqlStatementInfo;
         }
 
         // If another thread added meanwhile, return the cached value if available.
-        return Cache.TryGetValue(sql, out var existing) ? existing : sqlStatementInfo;
+        return cache.TryGetValue(sql, out var existing) ? existing : sqlStatementInfo;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -239,7 +260,7 @@ internal static class SqlProcessor
         return false;
     }
 
-    private static SqlStatementInfo SanitizeSql(string sql)
+    private static SqlStatementInfo SanitizeSql(string sql, bool useBackslashEscapes)
     {
         var sqlSpan = sql.AsSpan();
 
@@ -252,6 +273,7 @@ internal static class SqlProcessor
         var buffer = rentedBuffer.AsSpan();
 
         ParseState state = default;
+        state.UseBackslashEscapes = useBackslashEscapes;
 
         // Precompute the summary buffer slice once and carry it via state to avoid repeated Span.Slice calls.
         state.SummaryBuffer = buffer.Slice(rentedBuffer.Length / 2);
@@ -264,6 +286,7 @@ internal static class SqlProcessor
             }
 
             if (SanitizeStringLiteral(sqlSpan, buffer, ref state) ||
+                SanitizeDollarQuotedLiteral(sqlSpan, buffer, ref state) ||
                 SanitizeHexLiteral(sqlSpan, buffer, ref state) ||
                 SanitizeNumericLiteral(sqlSpan, buffer, ref state))
             {
@@ -756,6 +779,7 @@ internal static class SqlProcessor
             // If so, we want to skip the Unicode prefix when sanitizing.
             var isUnicode = state.ParsePosition >= 1 && sql[state.ParsePosition - 1] is UnicodePrefixChar;
 
+            var literalStart = state.ParsePosition;
             var searchPos = state.ParsePosition + 1;
             while (searchPos < sql.Length)
             {
@@ -766,6 +790,21 @@ internal static class SqlProcessor
                 }
 
                 searchPos += quoteIndex;
+
+                // Skip a backslash-escaped quote (\'). MySQL/MariaDB (with the default
+                // NO_BACKSLASH_ESCAPES disabled) treat a backslash as a string escape
+                // character, so a quote preceded by an odd number of backslashes does
+                // not terminate the literal. Without this a value such as 'a\'secret'
+                // would be mis-parsed and the trailing "secret" copied into the sanitized
+                // SQL verbatim. This is gated on the dialect because '\' is not an escape
+                // in the other engines, where treating it as one would instead cause
+                // a '' -escaped literal to be incorrectly parsed.
+                if (state.UseBackslashEscapes && IsBackslashEscaped(sql, searchPos, literalStart))
+                {
+                    searchPos += 1;
+                    continue;
+                }
+
                 if (searchPos + 1 < sql.Length && sql[searchPos + 1] == SingleQuoteChar)
                 {
                     // Skip escaped quote ('')
@@ -791,6 +830,57 @@ internal static class SqlProcessor
         }
 
         return false;
+    }
+
+    private static bool IsBackslashEscaped(ReadOnlySpan<char> sql, int quoteIndex, int literalStart)
+    {
+        var backslashes = 0;
+        for (var i = quoteIndex - 1; i > literalStart && sql[i] == BackslashChar; i--)
+        {
+            backslashes++;
+        }
+
+        return (backslashes & 1) == 1;
+    }
+
+    private static bool SanitizeDollarQuotedLiteral(ReadOnlySpan<char> sql, Span<char> buffer, ref ParseState state)
+    {
+        // PostgreSQL dollar-quoted string: $tag$...$tag$ (the tag is optional, so $$...$$ is valid).
+        // The body between the delimiters is a literal with no escaping, so it must be redacted.
+        // This syntax is unambiguous across the SQL dialects handled here, so it is safe to apply.
+        var start = state.ParsePosition;
+        if (sql[start] != DollarChar)
+        {
+            return false;
+        }
+
+        // Parse the opening delimiter: a dollar sign, an optional tag, then a closing dollar sign.
+        var tagEnd = start + 1;
+        while (tagEnd < sql.Length && IsDollarQuoteTagChar(sql[tagEnd]))
+        {
+            tagEnd++;
+        }
+
+        if (tagEnd >= sql.Length || sql[tagEnd] != DollarChar)
+        {
+            return false;
+        }
+
+        var delimiter = sql.Slice(start, tagEnd - start + 1);
+        var bodyStart = tagEnd + 1;
+
+        var closeOffset = sql.Slice(bodyStart).IndexOf(delimiter);
+        if (closeOffset < 0)
+        {
+            return false;
+        }
+
+        state.ParsePosition = bodyStart + closeOffset + delimiter.Length;
+        buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
+        return true;
+
+        static bool IsDollarQuoteTagChar(char c)
+            => char.IsAsciiLetterOrDigit(c) || c == UnderscoreChar;
     }
 
     private static bool SanitizeHexLiteral(ReadOnlySpan<char> sql, Span<char> buffer, ref ParseState state)
@@ -922,7 +1012,7 @@ internal static class SqlProcessor
             // "IN ('a)b', 'secret')"), which would leave the parser positioned in the middle of
             // that literal. Every subsequent quote would then be mismatched and the remaining
             // values would be copied into the sanitized SQL verbatim instead of being replaced.
-            if (TryFindEndOfInClause(sql, parsePosition, out var closeParenIndex))
+            if (TryFindEndOfInClause(sql, parsePosition, state.UseBackslashEscapes, out var closeParenIndex))
             {
                 state.ParsePosition = closeParenIndex;
                 buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
@@ -943,7 +1033,7 @@ internal static class SqlProcessor
     /// <see langword="false"/> if the clause is not terminated, in which case the caller
     /// falls back to sanitizing each value individually.
     /// </returns>
-    private static bool TryFindEndOfInClause(ReadOnlySpan<char> sql, int start, out int closeParenIndex)
+    private static bool TryFindEndOfInClause(ReadOnlySpan<char> sql, int start, bool useBackslashEscapes, out int closeParenIndex)
     {
         var length = sql.Length;
         var i = start;
@@ -970,7 +1060,7 @@ internal static class SqlProcessor
                     return true;
 
                 case SingleQuoteChar:
-                    i = SkipStringLiteral(sql, i);
+                    i = SkipStringLiteral(sql, i, useBackslashEscapes);
                     break;
 
                 case DashChar:
@@ -993,7 +1083,7 @@ internal static class SqlProcessor
 
         // Returns the index after the closing quote, or the end of the input if the
         // literal is not terminated.
-        static int SkipStringLiteral(ReadOnlySpan<char> sql, int quotePosition)
+        static int SkipStringLiteral(ReadOnlySpan<char> sql, int quotePosition, bool useBackslashEscapes)
         {
             var length = sql.Length;
             var i = quotePosition + 1;
@@ -1007,6 +1097,14 @@ internal static class SqlProcessor
                 }
 
                 i += quoteIndex;
+
+                // A backslash-escaped quote (\') does not terminate the literal in dialects that use
+                // backslash escapes. See the note in SanitizeStringLiteral.
+                if (useBackslashEscapes && IsBackslashEscaped(sql, i, quotePosition))
+                {
+                    i += 1;
+                    continue;
+                }
 
                 // A doubled quote ('') is an escaped quote within the literal.
                 if (i + 1 < length && sql[i + 1] == SingleQuoteChar)
@@ -1099,6 +1197,12 @@ internal static class SqlProcessor
         public bool CaptureNextNonKeywordTokenAsIdentifier; // 1 byte
 
         public bool SanitizeNextNonKeywordToken; // 1 byte
+
+        /// <summary>
+        /// Whether the source dialect treats a backslash as a string-literal escape character
+        /// (MySQL/MariaDB). Controls whether <c>\'</c> is recognized as an escaped quote.
+        /// </summary>
+        public bool UseBackslashEscapes; // 1 byte
 
         /// <summary>
         /// Used to track if we are in an escaped identifier (e.g., "[table]").

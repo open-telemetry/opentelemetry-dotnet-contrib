@@ -189,12 +189,18 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                     // able to sanitize arbitrary commands for other query dialects.
                                     var sanitizeQuery = IsSqlLikeProvider(providerName);
 
+                                    // MySQL/MariaDB treat a backslash as a string-literal escape
+                                    // character by default, which the sanitizer must honor to avoid
+                                    // leaking literal content into the query text.
+                                    var useBackslashEscapes = IsBackslashEscapeProvider(providerName);
+
                                     DatabaseSemanticConventionHelper.ApplyConventionsForQueryText(
                                         activity,
                                         commandText,
                                         this.options.EmitOldAttributes,
                                         this.options.EmitNewAttributes,
-                                        sanitizeQuery);
+                                        sanitizeQuery,
+                                        useBackslashEscapes);
                                     break;
 
                                 case CommandType.TableDirect:
@@ -367,6 +373,16 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
               => true,
             _ => false,
         };
+    }
+
+    internal static bool IsBackslashEscapeProvider(string? providerOrCommandName)
+    {
+        // MySQL and MariaDB (which use the MySQL providers) treat a backslash as a
+        // string-literal escape character unless the NO_BACKSLASH_ESCAPES SQL mode
+        // is enabled. The other supported engines follow the SQL standard where
+        // only a doubled quote ('') escapes a quote.
+        (_, var dbSystemName) = GetDbSystemNames(providerOrCommandName);
+        return dbSystemName == DbSystemNames.Mysql;
     }
 
     private void AddTag(Activity activity, (string Old, string New) attributes, string? value)
