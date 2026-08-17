@@ -856,9 +856,18 @@ internal static class SqlProcessor
 
         // Parse the opening delimiter: a dollar sign, an optional tag, then a closing dollar sign.
         var tagEnd = start + 1;
-        while (tagEnd < sql.Length && IsDollarQuoteTagChar(sql[tagEnd]))
+        if (tagEnd < sql.Length && sql[tagEnd] != DollarChar)
         {
+            if (!IsDollarQuoteTagStartChar(sql[tagEnd]))
+            {
+                return false;
+            }
+
             tagEnd++;
+            while (tagEnd < sql.Length && IsDollarQuoteTagChar(sql[tagEnd]))
+            {
+                tagEnd++;
+            }
         }
 
         if (tagEnd >= sql.Length || sql[tagEnd] != DollarChar)
@@ -878,6 +887,9 @@ internal static class SqlProcessor
         state.ParsePosition = bodyStart + closeOffset + delimiter.Length;
         buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
         return true;
+
+        static bool IsDollarQuoteTagStartChar(char c)
+            => char.IsAsciiLetter(c) || c == UnderscoreChar;
 
         static bool IsDollarQuoteTagChar(char c)
             => char.IsAsciiLetterOrDigit(c) || c == UnderscoreChar;

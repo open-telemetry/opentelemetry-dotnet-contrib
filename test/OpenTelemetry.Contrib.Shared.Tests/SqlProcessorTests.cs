@@ -186,6 +186,18 @@ public class SqlProcessorTests
     }
 
     [Fact]
+    public void GetSanitizedSql_DollarQuoteTagStartingWithDigit_IsNotTreatedAsDollarQuote()
+    {
+        var sql = "SELECT a WHERE b = $1$not-a-secret$1$";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.Contains("not-a-secret", sqlStatementInfo.SanitizedSql);
+    }
+
+    [Fact]
     public void GetSanitizedSql_DoubleQuotedString_IsPreservedAsIdentifier()
     {
         var sql = "SELECT * FROM t WHERE c = \"identifier_or_mysql_string\"";
