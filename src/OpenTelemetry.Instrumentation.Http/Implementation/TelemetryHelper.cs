@@ -10,6 +10,12 @@ internal static class TelemetryHelper
 {
     public static readonly (object, string)[] BoxedStatusCodes = InitializeBoxedStatusCodes();
 
+    private static readonly object Port80 = 80;
+    private static readonly object Port443 = 443;
+    private static readonly object Port8080 = 8080;
+
+    private static object? lastBoxedPort;
+
     public static object GetBoxedStatusCode(HttpStatusCode statusCode)
     {
         var intStatusCode = (int)statusCode;
@@ -20,6 +26,33 @@ internal static class TelemetryHelper
     {
         var intStatusCode = (int)statusCode;
         return intStatusCode is >= 100 and < 600 ? BoxedStatusCodes[intStatusCode - 100].Item2 : statusCode.ToString();
+    }
+
+    public static object GetBoxedPort(int port)
+    {
+        var common = port switch
+        {
+            80 => Port80,
+            443 => Port443,
+            8080 => Port8080,
+            _ => null,
+        };
+
+        if (common is not null)
+        {
+            return common;
+        }
+
+        var last = lastBoxedPort;
+        if (last is not null && (int)last == port)
+        {
+            return last;
+        }
+
+        object boxed = port;
+        lastBoxedPort = boxed;
+
+        return boxed;
     }
 
     private static (object, string)[] InitializeBoxedStatusCodes()
