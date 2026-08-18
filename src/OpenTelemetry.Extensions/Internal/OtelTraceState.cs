@@ -93,8 +93,7 @@ internal struct OtelTraceState
             if (separator <= 0)
             {
                 // Malformed member: preserve it verbatim rather than discarding data.
-                state.otherMembers ??= [];
-                state.otherMembers.Add(member.ToString());
+                state.AddOtherMember(member);
                 continue;
             }
 
@@ -108,8 +107,7 @@ internal struct OtelTraceState
             }
             else
             {
-                state.otherMembers ??= [];
-                state.otherMembers.Add(member.ToString());
+                state.AddOtherMember(member);
             }
         }
 
@@ -478,5 +476,20 @@ internal struct OtelTraceState
             // Only oversized sub-keys were present, so remove the empty "ot=" prefix.
             builder.Length = prefixIndex;
         }
+    }
+
+    /// <summary>
+    /// Records a non-<c>ot</c> or malformed <c>tracestate</c> member for verbatim round-tripping,
+    /// bounding the number retained to <see cref="TraceStateMemberLimit"/>.
+    /// </summary>
+    private void AddOtherMember(ReadOnlySpan<char> member)
+    {
+        if (this.otherMembers is { Count: >= TraceStateMemberLimit })
+        {
+            return;
+        }
+
+        this.otherMembers ??= [];
+        this.otherMembers.Add(member.ToString());
     }
 }

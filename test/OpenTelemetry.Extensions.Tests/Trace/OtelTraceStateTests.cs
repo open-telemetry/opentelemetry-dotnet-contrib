@@ -166,6 +166,43 @@ public class OtelTraceStateTests
     }
 
     [Fact]
+    public void ParseAndSerialize_WithManyMembers_KeepsAtMostMemberLimit()
+    {
+        var incomingMembers = Enumerable.Range(0, OtelTraceState.TraceStateMemberLimit * 100)
+                                        .Select(static index => $"vendor{index}=value")
+                                        .ToArray();
+
+        var outgoingMembers = OtelTraceState.Parse(string.Join(",", incomingMembers)).Serialize().Split(',');
+
+        Assert.Equal(OtelTraceState.TraceStateMemberLimit, outgoingMembers.Length);
+        Assert.Equal(incomingMembers.Take(OtelTraceState.TraceStateMemberLimit), outgoingMembers);
+    }
+
+    [Fact]
+    public void ParseAndSerialize_WithManyMalformedMembers_KeepsAtMostMemberLimit()
+    {
+        var incomingMembers = Enumerable.Range(0, OtelTraceState.TraceStateMemberLimit * 100)
+                                        .Select(static index => $"malformed{index}")
+                                        .ToArray();
+
+        var outgoingMembers = OtelTraceState.Parse(string.Join(",", incomingMembers)).Serialize().Split(',');
+
+        Assert.Equal(OtelTraceState.TraceStateMemberLimit, outgoingMembers.Length);
+        Assert.Equal(incomingMembers.Take(OtelTraceState.TraceStateMemberLimit), outgoingMembers);
+    }
+
+    [Fact]
+    public void ParseAndSerialize_AtMemberLimit_RoundTripsAllMembers()
+    {
+        var members = Enumerable.Range(0, OtelTraceState.TraceStateMemberLimit)
+                                .Select(static index => $"vendor{index}=value")
+                                .ToArray();
+        var traceState = string.Join(",", members);
+
+        Assert.Equal(traceState, OtelTraceState.Parse(traceState).Serialize());
+    }
+
+    [Fact]
     public void Parse_DiscardsOtEntryThatExceedsTheSizeLimit()
     {
         var large = new string('a', OtelTraceState.TraceStateSizeLimit);
