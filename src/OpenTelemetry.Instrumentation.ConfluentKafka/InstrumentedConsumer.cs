@@ -58,7 +58,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         try
         {
             result = this.consumer.Consume(millisecondsTimeout);
-            consumeResult = ExtractConsumeResult(result);
+            consumeResult = ExtractConsumeResult(result, this.options.Traces);
             return result;
         }
         catch (ConsumeException e)
@@ -87,7 +87,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         try
         {
             result = this.consumer.Consume(cancellationToken);
-            consumeResult = ExtractConsumeResult(result);
+            consumeResult = ExtractConsumeResult(result, this.options.Traces);
             return result;
         }
         catch (ConsumeException e)
@@ -116,7 +116,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         try
         {
             result = this.consumer.Consume(timeout);
-            consumeResult = ExtractConsumeResult(result);
+            consumeResult = ExtractConsumeResult(result, this.options.Traces);
             return result;
         }
         catch (ConsumeException e)
@@ -219,11 +219,11 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
     private static string FormatConsumeException(ConsumeException consumeException) =>
         consumeException.Error.Code.ToString();
 
-    private static ConsumeResult ExtractConsumeResult(ConsumeResult<TKey, TValue> result) => result switch
+    private static ConsumeResult ExtractConsumeResult(ConsumeResult<TKey, TValue> result, bool includeKey) => result switch
     {
         null => new ConsumeResult(null, null),
         { Message: null } => new ConsumeResult(result.TopicPartitionOffset, null),
-        _ => new ConsumeResult(result.TopicPartitionOffset, result.Message.Headers, result.Message.Key, result.Message.Value is null),
+        _ => new ConsumeResult(result.TopicPartitionOffset, result.Message.Headers, includeKey ? result.Message.Key : null, result.Message.Value is null),
     };
 
     private static (ConsumeResult ConsumeResult, string ErrorType) ExtractConsumeResult(ConsumeException exception) => exception switch
