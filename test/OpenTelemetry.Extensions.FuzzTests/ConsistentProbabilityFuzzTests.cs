@@ -39,7 +39,7 @@ public static class ConsistentProbabilityFuzzTests
     [Property(MaxTest = MaxValue)]
     public static void EncodeThresholdInteger_And_DecodeThreshold_RoundTrip(ulong rawThreshold)
     {
-        var threshold = (long)(rawThreshold % (ulong)ConsistentProbability.MaxAdjustedCount); // [0, 2^56).
+        var threshold = (long)(rawThreshold % ConsistentProbability.MaxAdjustedCount); // [0, 2^56).
 
         var encoded = ConsistentProbability.EncodeThresholdInteger(threshold);
 
@@ -92,7 +92,7 @@ public static class ConsistentProbabilityFuzzTests
 
         // 0 = explicit rv, 1 = random TraceId flag, 2 = presumed TraceId randomness.
         var mode = modeSelector % 3;
-        var explicitRandomness = (long)(rawRandomness % (ulong)ConsistentProbability.MaxAdjustedCount);
+        var explicitRandomness = (long)(rawRandomness % ConsistentProbability.MaxAdjustedCount);
 
         var traceId = ActivityTraceId.CreateRandom();
         _ = ConsistentProbability.TryParseHex56(traceId.ToHexString().AsSpan(18), out var traceIdRandomness);
@@ -184,7 +184,7 @@ public static class ConsistentProbabilityFuzzTests
         var higher = Math.Max(ToProbability(rawProbabilityA), ToProbability(rawProbabilityB));
 
         // A fixed, shared randomness value makes the decisions comparable across probabilities.
-        var randomness = (long)(rawRandomness % (ulong)ConsistentProbability.MaxAdjustedCount);
+        var randomness = (long)(rawRandomness % ConsistentProbability.MaxAdjustedCount);
         var traceState = "ot=rv:" + Hex14(randomness);
         var parent = new ActivityContext(ActivityTraceId.CreateRandom(), ActivitySpanId.CreateRandom(), ActivityTraceFlags.None, traceState);
         var parameters = new SamplingParameters(parent, ActivityTraceId.CreateRandom(), "operation", ActivityKind.Internal, tags: null, links: null);
