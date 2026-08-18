@@ -121,9 +121,9 @@ internal sealed class UncheckedASCIIEncoding : Encoding
         return chars.Length;
     }
 
-    public override unsafe int GetByteCount(char* charPtr, int charCount) => charCount;
+    public override int GetByteCount(char* charPtr, int charCount) => charCount;
 
-    public override unsafe int GetCharCount(byte* bytePtr, int byteCount) => byteCount;
+    public override int GetCharCount(byte* bytePtr, int byteCount) => byteCount;
 
     public override int GetBytes(string chars, int charIndex, int charCount, byte[] bytes, int byteIndex)
     {
@@ -137,7 +137,7 @@ internal sealed class UncheckedASCIIEncoding : Encoding
         }
         else if (chars.Length - charIndex < charCount)
         {
-            throw new ArgumentOutOfRangeException(chars);
+            throw new ArgumentOutOfRangeException(nameof(chars));
         }
         else if (byteIndex < 0 || byteIndex > bytes.Length)
         {
