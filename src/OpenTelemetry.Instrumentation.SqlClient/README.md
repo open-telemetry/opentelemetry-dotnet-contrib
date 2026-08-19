@@ -286,6 +286,9 @@ that are collected automatically while the instrumentation is enabled.
 > [!NOTE]
 > Only `CommandType.Text` commands are supported for trace context propagation.
 > Only .NET runtimes are supported.
+>
+> Other command types do not get their own trace context. They observe whatever
+> was last set on the connection. See below.
 
 Database trace context propagation can be enabled by setting
 `OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_TRACE_CONTEXT_PROPAGATION`
@@ -294,6 +297,34 @@ This uses the [SET CONTEXT_INFO](https://learn.microsoft.com/en-us/sql/t-sql/sta
 command to set [traceparent](https://www.w3.org/TR/trace-context/#traceparent-header)
 information for the current connection, which results in
 **an additional round-trip to the database**.
+
+`CONTEXT_INFO` is session state. It is scoped to the connection rather than to
+the command that set it, and the instrumentation only ever overwrites it, never
+clears it. This has a few consequences worth understanding before enabling the
+feature.
+
+* Commands other than `CommandType.Text` run with the `traceparent` of the most
+  recent text command on the same connection, if any, which may belong to an
+  unrelated trace. A stored procedure is therefore not merely missing its own
+  trace context, it can be attributed server-side to a different one.
+* With `MultipleActiveResultSets=true`, a command interleaved on the same
+  connection overwrites `CONTEXT_INFO` while an earlier reader is still
+  streaming, so the still-running query is re-attributed server-side to the
+  trace of the interleaved command.
+* Connection pooling does not carry the value across connections. A pooled
+  connection is reset before it is reused, and that reset clears
+  `CONTEXT_INFO`, so the first command on the reused connection does not
+  observe the previous one's `traceparent`. The reset is deferred until the
+  connection is next used, so an idle pooled connection still reports the
+  previous `traceparent` in `sys.dm_exec_sessions`.
+* The additional round-trip is paid for nearly every text command, not only for
+  the sampled ones. A command whose span is dropped by the sampler generally
+  still sets `CONTEXT_INFO`, with the sampled flag of the `traceparent`
+  cleared.
+* `Filter` does not suppress propagation. It is evaluated after `CONTEXT_INFO`
+  has been set, so a command excluded from telemetry still writes its
+  `traceparent` to the database, where it refers to a span that is never
+  exported.
 
 ## Activity Duration calculation
 
