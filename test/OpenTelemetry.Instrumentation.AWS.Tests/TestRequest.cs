@@ -95,6 +95,8 @@ internal class TestRequest(ParameterCollection? parameters = null) : IRequest
 
     public IAuthSchemeOption ChosenAuthScheme { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
+    public string PrecomputedContentSha256 { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
     public void AddPathResource(string key, string value) => throw new NotImplementedException();
 
     public void AddSubResource(string subResource) => throw new NotImplementedException();
