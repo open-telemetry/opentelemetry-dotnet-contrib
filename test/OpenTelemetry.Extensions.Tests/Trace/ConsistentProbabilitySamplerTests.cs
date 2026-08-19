@@ -416,7 +416,9 @@ public class ConsistentProbabilitySamplerTests
         Assert.Equal(SamplingDecision.Drop, Sample(0.1));
 
         SamplingDecision Sample(double probability)
-            => new ConsistentProbabilitySampler(probability).ShouldSample(in parameters).Decision;
+        {
+            return new ConsistentProbabilitySampler(probability).ShouldSample(in parameters).Decision;
+        }
     }
 
     [Fact]
@@ -566,10 +568,14 @@ public class ConsistentProbabilitySamplerTests
         Assert.Equal(ExpectedDecision(0.25), RemoteDecision(0.25));
 
         SamplingDecision ExpectedDecision(double probability)
-            => IsSampled(probability, randomness) ? SamplingDecision.RecordAndSample : SamplingDecision.Drop;
+        {
+            return IsSampled(probability, randomness) ? SamplingDecision.RecordAndSample : SamplingDecision.Drop;
+        }
 
         SamplingDecision RemoteDecision(double probability)
-            => new ConsistentProbabilitySampler(probability).ShouldSample(remoteParameters).Decision;
+        {
+            return new ConsistentProbabilitySampler(probability).ShouldSample(remoteParameters).Decision;
+        }
     }
 
     [Fact]
