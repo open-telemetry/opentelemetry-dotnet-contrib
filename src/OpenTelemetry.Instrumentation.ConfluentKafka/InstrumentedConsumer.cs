@@ -13,11 +13,14 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
 {
     private readonly IConsumer<TKey, TValue> consumer;
     private readonly ConfluentKafkaConsumerInstrumentationOptions<TKey, TValue> options;
+    private readonly Task<string?>? clusterIdTask;
 
-    public InstrumentedConsumer(IConsumer<TKey, TValue> consumer, ConfluentKafkaConsumerInstrumentationOptions<TKey, TValue> options)
+    public InstrumentedConsumer(IConsumer<TKey, TValue> consumer, ConfluentKafkaConsumerInstrumentationOptions<TKey, TValue> options, string? bootstrapServers = null)
     {
         this.consumer = consumer;
         this.options = options;
+
+        this.clusterIdTask = ConfluentKafkaCommon.GetOrFetchClusterIdAsync(consumer.Handle, bootstrapServers);
     }
 
     public Handle Handle => this.consumer.Handle;
@@ -33,6 +36,8 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
     public IConsumerGroupMetadata ConsumerGroupMetadata => this.consumer.ConsumerGroupMetadata;
 
     public string? GroupId { get; internal set; }
+
+    internal Task<string?>? ClusterIdTask => this.clusterIdTask;
 
     public void Dispose()
         => this.consumer.Dispose();
@@ -53,7 +58,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         try
         {
             result = this.consumer.Consume(millisecondsTimeout);
-            consumeResult = ExtractConsumeResult(result);
+            consumeResult = ExtractConsumeResult(result, this.options.Traces);
             return result;
         }
         catch (ConsumeException e)
@@ -82,7 +87,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         try
         {
             result = this.consumer.Consume(cancellationToken);
-            consumeResult = ExtractConsumeResult(result);
+            consumeResult = ExtractConsumeResult(result, this.options.Traces);
             return result;
         }
         catch (ConsumeException e)
@@ -111,7 +116,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         try
         {
             result = this.consumer.Consume(timeout);
-            consumeResult = ExtractConsumeResult(result);
+            consumeResult = ExtractConsumeResult(result, this.options.Traces);
             return result;
         }
         catch (ConsumeException e)
@@ -214,11 +219,11 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
     private static string FormatConsumeException(ConsumeException consumeException) =>
         consumeException.Error.Code.ToString();
 
-    private static ConsumeResult ExtractConsumeResult(ConsumeResult<TKey, TValue> result) => result switch
+    private static ConsumeResult ExtractConsumeResult(ConsumeResult<TKey, TValue> result, bool includeKey) => result switch
     {
         null => new ConsumeResult(null, null),
         { Message: null } => new ConsumeResult(result.TopicPartitionOffset, null),
-        _ => new ConsumeResult(result.TopicPartitionOffset, result.Message.Headers, result.Message.Key, result.Message.Value is null),
+        _ => new ConsumeResult(result.TopicPartitionOffset, result.Message.Headers, includeKey ? result.Message.Key : null, result.Message.Value is null),
     };
 
     private static (ConsumeResult ConsumeResult, string ErrorType) ExtractConsumeResult(ConsumeException exception) => exception switch
@@ -400,6 +405,12 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
             if (isTombstone)
             {
                 activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageTombstone, true);
+            }
+
+            if (this.clusterIdTask?.Status == TaskStatus.RanToCompletion
+                && this.clusterIdTask.Result is { Length: > 0 } clusterId)
+            {
+                activity.SetTag(SemanticConventions.AttributeMessagingKafkaClusterId, clusterId);
             }
         }
 

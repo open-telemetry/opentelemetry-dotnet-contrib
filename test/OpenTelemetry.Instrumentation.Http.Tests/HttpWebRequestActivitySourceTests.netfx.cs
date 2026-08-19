@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
 using OpenTelemetry.Instrumentation.Http.Implementation;
+using OpenTelemetry.Metrics;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 
@@ -354,6 +355,46 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         Assert.Equal("Stop", stopEvent.Key);
 
         VerifyActivityStopTags(200, activity);
+    }
+
+    [Fact]
+    public async Task TestAsyncWebRequestDurationIncludesTimeBetweenRequestAndResponse()
+    {
+        var metrics = new List<Metric>();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddHttpClientInstrumentation()
+            .AddInMemoryExporter(metrics)
+            .Build();
+
+        var webRequest = (HttpWebRequest)WebRequest.Create(new Uri(this.BuildRequestUrl()));
+        webRequest.Method = "POST";
+
+        using (var stream = await webRequest.GetRequestStreamAsync())
+        using (var writer = new StreamWriter(stream))
+        {
+            await writer.WriteAsync("hello world");
+        }
+
+        await Task.Delay(TimeSpan.FromMilliseconds(100));
+
+        using (var webResponse = (HttpWebResponse)await webRequest.GetResponseAsync())
+        using (var reader = new StreamReader(webResponse.GetResponseStream()))
+        {
+            await reader.ReadToEndAsync();
+        }
+
+        meterProvider.ForceFlush();
+
+        var metric = Assert.Single(metrics, metric => metric.Name == "http.client.request.duration");
+        var metricPoints = new List<MetricPoint>();
+        foreach (var point in metric.GetMetricPoints())
+        {
+            metricPoints.Add(point);
+        }
+
+        var metricPoint = Assert.Single(metricPoints);
+
+        Assert.True(metricPoint.GetHistogramSum() >= 0.05, $"Expected duration to include the delay, but was {metricPoint.GetHistogramSum()} seconds.");
     }
 
     [Fact]

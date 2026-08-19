@@ -116,14 +116,15 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
             if (requestUri != null)
             {
                 activity.SetTag(SemanticConventions.AttributeServerAddress, requestUri.Host);
-                activity.SetTag(SemanticConventions.AttributeServerPort, requestUri.Port);
+                var boxedPort = GrpcTagHelper.GetBoxedPort(requestUri.Port);
+                activity.SetTag(SemanticConventions.AttributeServerPort, boxedPort);
 
                 var uriHostNameType = Uri.CheckHostName(requestUri.Host);
 
                 if (uriHostNameType is UriHostNameType.IPv4 or UriHostNameType.IPv6)
                 {
                     activity.SetTag(SemanticConventions.AttributeNetworkPeerAddress, requestUri.Host);
-                    activity.SetTag(SemanticConventions.AttributeNetworkPeerPort, requestUri.Port);
+                    activity.SetTag(SemanticConventions.AttributeNetworkPeerPort, boxedPort);
                 }
             }
 
@@ -192,7 +193,7 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
                 if (uriHostNameType is UriHostNameType.IPv4 or UriHostNameType.IPv6)
                 {
                     activity.SetTag(SemanticConventions.AttributeNetworkPeerAddress, requestUri.Host);
-                    activity.SetTag(SemanticConventions.AttributeNetworkPeerPort, requestUri.Port);
+                    activity.SetTag(SemanticConventions.AttributeNetworkPeerPort, GrpcTagHelper.GetBoxedPort(requestUri.Port));
                 }
             }
 

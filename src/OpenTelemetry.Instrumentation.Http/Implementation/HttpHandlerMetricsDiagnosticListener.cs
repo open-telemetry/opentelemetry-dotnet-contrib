@@ -55,7 +55,7 @@ internal sealed class HttpHandlerMetricsDiagnosticListener : ListenerHandler
 
                 if (!request.RequestUri.IsDefaultPort)
                 {
-                    tags.Add(new KeyValuePair<string, object?>(SemanticConventions.AttributeServerPort, request.RequestUri.Port));
+                    tags.Add(new KeyValuePair<string, object?>(SemanticConventions.AttributeServerPort, TelemetryHelper.GetBoxedPort(request.RequestUri.Port)));
                 }
             }
 
