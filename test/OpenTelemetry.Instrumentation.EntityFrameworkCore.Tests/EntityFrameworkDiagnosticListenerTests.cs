@@ -351,6 +351,36 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     }
 
     [Fact]
+    public async Task EntityFrameworkContextCommandCanceledEventStopsActivity()
+    {
+        var exportedItems = new List<Activity>();
+
+        using (Sdk.CreateTracerProviderBuilder()
+                  .AddInMemoryExporter(exportedItems)
+                  .AddEntityFrameworkCoreInstrumentation()
+                  .Build())
+        {
+            using var context = new ItemsContext(this.contextOptions);
+            using var cts = new CancellationTokenSource();
+            cts.Cancel();
+
+            try
+            {
+                await context.Database.ExecuteSqlRawAsync("select * from Item", cts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                // intentional empty catch
+            }
+        }
+
+        Assert.Single(exportedItems);
+        var activity = exportedItems[0];
+
+        Assert.Equal(ActivityStatusCode.Unset, activity.Status);
+    }
+
+    [Fact]
     public void ShouldNotCollectTelemetryWhenFilterEvaluatesToFalseByDbCommand()
     {
         var exportedItems = new List<Activity>();
