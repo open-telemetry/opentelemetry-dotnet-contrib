@@ -6,12 +6,12 @@ using OpenTelemetry.OpAmp.Client.Messages;
 
 namespace OpenTelemetry.OpAmp.Client.Internal.Messages;
 
-internal sealed class CommandMessage : OpAmpMessage
+internal sealed class ServerToAgentMessage : OpAmpMessage
 {
-    public CommandMessage(ServerToAgentCommand command)
+    public ServerToAgentMessage(ServerToAgent message)
     {
-        this.Command = command;
+        this.Message = message;
     }
 
-    public ServerToAgentCommand Command { get; }
+    public ServerToAgent Message { get; }
 }

@@ -5,7 +5,7 @@ using System.Buffers;
 using System.Collections.Concurrent;
 using OpAmp.Proto.V1;
 using OpenTelemetry.Internal;
-using OpenTelemetry.OpAmp.Client.Internal.Listeners.Messages;
+using OpenTelemetry.OpAmp.Client.Internal.Messages;
 using OpenTelemetry.OpAmp.Client.Internal.Utils;
 using OpenTelemetry.OpAmp.Client.Listeners;
 using OpenTelemetry.OpAmp.Client.Messages;
@@ -15,7 +15,6 @@ namespace OpenTelemetry.OpAmp.Client.Internal;
 internal sealed class FrameProcessor
 {
     private readonly ConcurrentDictionary<Type, IReadOnlyList<object>> listeners = [];
-    private readonly ConcurrentBag<Action<ServerToAgent>> internalListeners = [];
 
     public void Subscribe<T>(IOpAmpListener<T> listener)
         where T : OpAmpMessage
@@ -72,11 +71,6 @@ internal sealed class FrameProcessor
         this.Deserialize(sequence, count, headerSize);
     }
 
-    internal void SubscribeToServerMessages(Action<ServerToAgent> listener)
-    {
-        this.internalListeners.Add(listener);
-    }
-
     private void Deserialize(ReadOnlySequence<byte> sequence, int count, int headerSize)
     {
         var dataSegment = sequence.Slice(headerSize, count - headerSize);
@@ -87,10 +81,7 @@ internal sealed class FrameProcessor
     {
         var message = ServerToAgent.Parser.ParseFrom(sequence);
 
-        foreach (var listener in this.internalListeners)
-        {
-            listener.Invoke(message);
-        }
+        this.Dispatch(new ServerToAgentMessage(message));
 
         if (message.ErrorResponse != null)
         {

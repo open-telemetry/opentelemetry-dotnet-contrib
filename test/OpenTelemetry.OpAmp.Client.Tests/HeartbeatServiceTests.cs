@@ -5,7 +5,7 @@ using System.Buffers;
 using Google.Protobuf;
 using OpAmp.Proto.V1;
 using OpenTelemetry.OpAmp.Client.Internal;
-using OpenTelemetry.OpAmp.Client.Internal.Listeners.Messages;
+using OpenTelemetry.OpAmp.Client.Internal.Messages;
 using OpenTelemetry.OpAmp.Client.Internal.Services.Heartbeat;
 using OpenTelemetry.OpAmp.Client.Settings;
 using OpenTelemetry.OpAmp.Client.Tests.Mocks;

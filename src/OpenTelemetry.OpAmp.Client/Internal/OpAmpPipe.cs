@@ -2,9 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using OpAmp.Proto.V1;
+using OpenTelemetry.OpAmp.Client.Internal.Messages;
 using OpenTelemetry.OpAmp.Client.Internal.Transport;
 using OpenTelemetry.OpAmp.Client.Internal.Transport.Http;
 using OpenTelemetry.OpAmp.Client.Internal.Transport.WebSocket;
+using OpenTelemetry.OpAmp.Client.Listeners;
 using OpenTelemetry.OpAmp.Client.Settings;
 
 namespace OpenTelemetry.OpAmp.Client.Internal;
@@ -15,6 +17,7 @@ internal sealed class OpAmpPipe : IDisposable
     private readonly FrameProcessor processor;
     private readonly Lock frameLock = new();
     private readonly CancellationTokenSource tokenSource = new();
+    private readonly ServerFrameHandler frameHandler;
 
     private bool isDisposed;
     private bool isBusy;
@@ -34,7 +37,8 @@ internal sealed class OpAmpPipe : IDisposable
         this.transport = transport;
         this.currentFrame = new FrameBuilder(settings);
 
-        this.processor.SubscribeToServerMessages(this.OnServerFrameReceived);
+        this.frameHandler = new(this.OnServerFrameReceived);
+        this.processor.Subscribe(this.frameHandler);
     }
 
     public async Task StartAsync(CancellationToken token = default)
@@ -117,6 +121,7 @@ internal sealed class OpAmpPipe : IDisposable
 
         this.tokenSource.Cancel();
         this.tokenSource.Dispose();
+        this.processor.Unsubscribe(this.frameHandler);
 
         if (this.transport is IDisposable disposableTransport)
         {
@@ -227,5 +232,17 @@ internal sealed class OpAmpPipe : IDisposable
         }
 
         this.TryFlush();
+    }
+
+    private sealed class ServerFrameHandler : IOpAmpListener<ServerToAgentMessage>
+    {
+        public ServerFrameHandler(Action<ServerToAgent> callback)
+        {
+            this.Callback = callback;
+        }
+
+        public Action<ServerToAgent> Callback { get; }
+
+        public void HandleMessage(ServerToAgentMessage message) => this.Callback(message.Message);
     }
 }
