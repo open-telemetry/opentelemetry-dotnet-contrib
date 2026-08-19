@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
 using OpenTelemetry.Instrumentation.Http.Implementation;
+using OpenTelemetry.Metrics;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 
@@ -16,6 +17,7 @@ namespace OpenTelemetry.Instrumentation.Http.Tests;
 public class HttpWebRequestActivitySourceTests : IDisposable
 {
     private static bool validateBaggage;
+    private readonly ConcurrentQueue<string[]?> traceparentHeaders = new();
     private readonly IDisposable testServer;
     private readonly Uri uri;
 
@@ -53,6 +55,8 @@ public class HttpWebRequestActivitySourceTests : IDisposable
 
         void ProcessServerRequest(HttpListenerContext context)
         {
+            this.traceparentHeaders.Enqueue(context.Request.Headers.GetValues("traceparent"));
+
             var redirects = context.Request.QueryString["redirects"];
             if (!string.IsNullOrWhiteSpace(redirects) && int.TryParse(redirects, out var parsedRedirects) && parsedRedirects > 0)
             {
@@ -354,6 +358,46 @@ public class HttpWebRequestActivitySourceTests : IDisposable
     }
 
     [Fact]
+    public async Task TestAsyncWebRequestDurationIncludesTimeBetweenRequestAndResponse()
+    {
+        var metrics = new List<Metric>();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddHttpClientInstrumentation()
+            .AddInMemoryExporter(metrics)
+            .Build();
+
+        var webRequest = (HttpWebRequest)WebRequest.Create(new Uri(this.BuildRequestUrl()));
+        webRequest.Method = "POST";
+
+        using (var stream = await webRequest.GetRequestStreamAsync())
+        using (var writer = new StreamWriter(stream))
+        {
+            await writer.WriteAsync("hello world");
+        }
+
+        await Task.Delay(TimeSpan.FromMilliseconds(100));
+
+        using (var webResponse = (HttpWebResponse)await webRequest.GetResponseAsync())
+        using (var reader = new StreamReader(webResponse.GetResponseStream()))
+        {
+            await reader.ReadToEndAsync();
+        }
+
+        meterProvider.ForceFlush();
+
+        var metric = Assert.Single(metrics, metric => metric.Name == "http.client.request.duration");
+        var metricPoints = new List<MetricPoint>();
+        foreach (var point in metric.GetMetricPoints())
+        {
+            metricPoints.Add(point);
+        }
+
+        var metricPoint = Assert.Single(metricPoints);
+
+        Assert.True(metricPoint.GetHistogramSum() >= 0.05, $"Expected duration to include the delay, but was {metricPoint.GetHistogramSum()} seconds.");
+    }
+
+    [Fact]
     public async Task TestTraceStateAndBaggage()
     {
         try
@@ -480,6 +524,43 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         Assert.Equal(2, eventRecords.Records.Count);
         Assert.Equal(1, eventRecords.Records.Count(rec => rec.Key == "Start"));
         Assert.Equal(1, eventRecords.Records.Count(rec => rec.Key == "Stop"));
+    }
+
+    [Fact]
+    public async Task TestFilteredRedirectedRequestInjectsSingleTraceParent()
+    {
+        var originalOptions = HttpWebRequestActivitySource.TracingOptions;
+        try
+        {
+            HttpWebRequestActivitySource.TracingOptions = new HttpClientTraceInstrumentationOptions
+            {
+                FilterHttpWebRequest = _ => false,
+            };
+
+            using var parent = new Activity("parent")
+                .SetIdFormat(ActivityIdFormat.W3C)
+                .Start();
+
+            using (var client = new HttpClient())
+            using (var response = await client.GetAsync(new Uri(this.BuildRequestUrl(queryString: "redirects=1"))))
+            {
+            }
+
+            var expectedTraceParent = $"00-{parent.TraceId}-{parent.SpanId}-00";
+            var requests = this.traceparentHeaders.ToArray();
+            Assert.Equal(2, requests.Length);
+            Assert.All(requests, values =>
+            {
+                Assert.NotNull(values);
+                var value = Assert.Single(values);
+                Assert.Equal(expectedTraceParent, value);
+            });
+        }
+        finally
+        {
+            HttpWebRequestActivitySource.TracingOptions = originalOptions;
+            this.CleanUpActivity();
+        }
     }
 
     /// <summary>

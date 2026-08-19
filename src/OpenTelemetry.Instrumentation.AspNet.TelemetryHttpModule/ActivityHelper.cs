@@ -116,6 +116,12 @@ internal static class ActivityHelper
             // created due to a sampling decision.
             InvokeRequestStoppedCallback(aspNetActivity, context, onRequestStoppedInstrumentationCallback, "OnInstrumentationStopped");
             context.Items[ContextKey] = null;
+
+            if (textMapPropagator is not TraceContextPropagator)
+            {
+                Baggage.Current = default;
+            }
+
             return;
         }
 

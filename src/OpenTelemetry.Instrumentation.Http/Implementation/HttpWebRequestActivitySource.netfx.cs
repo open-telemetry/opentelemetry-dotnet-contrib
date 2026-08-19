@@ -77,7 +77,7 @@ internal static class HttpWebRequestActivitySource
             HttpTagHelper.RequestDataHelper.SetHttpMethodTag(activity, request.Method);
 
             activity.SetTag(SemanticConventions.AttributeServerAddress, request.RequestUri.Host);
-            activity.SetTag(SemanticConventions.AttributeServerPort, request.RequestUri.Port);
+            activity.SetTag(SemanticConventions.AttributeServerPort, TelemetryHelper.GetBoxedPort(request.RequestUri.Port));
 
             activity.SetTag(SemanticConventions.AttributeUrlFull, HttpTagHelper.GetUriTagValueFromRequestUri(request.RequestUri, TracingOptions.DisableUrlQueryRedaction));
 
@@ -175,6 +175,13 @@ internal static class HttpWebRequestActivitySource
         var enableTracing = WebRequestActivitySource.HasListeners()
             && TracingOptions.EventFilterHttpWebRequest(request);
 
+        if (IsRequestInstrumented(request))
+        {
+            // This request was instrumented by previous
+            // ProcessRequest, such is the case with redirect responses where the same request is sent again.
+            return;
+        }
+
         if (!enableTracing && !HttpClientRequestDuration.Enabled)
         {
             // Tracing and metrics are not enabled, so we can skip generating signals
@@ -182,13 +189,6 @@ internal static class HttpWebRequestActivitySource
             // downstream services to continue from parent context, if any.
             // Eg: Parent could be the Asp.Net activity.
             InstrumentRequest(request, Activity.Current?.Context ?? default);
-            return;
-        }
-
-        if (IsRequestInstrumented(request))
-        {
-            // This request was instrumented by previous
-            // ProcessRequest, such is the case with redirect responses where the same request is sent again.
             return;
         }
 
@@ -267,7 +267,7 @@ internal static class HttpWebRequestActivitySource
         }
 
         // Hook into the result callback if it hasn't already fired.
-        var callback = new AsyncCallbackWrapper(writeAsyncContextCallback.Request, writeAsyncContextCallback.Activity, reflection.AsyncCallbackAccessor(readAsyncContext), Stopwatch.GetTimestamp());
+        var callback = new AsyncCallbackWrapper(writeAsyncContextCallback.Request, writeAsyncContextCallback.Activity, reflection.AsyncCallbackAccessor(readAsyncContext), writeAsyncContextCallback.StartTimestamp);
         reflection.AsyncCallbackModifier(readAsyncContext, callback.AsyncCallback);
     }
 
@@ -422,12 +422,12 @@ internal static class HttpWebRequestActivitySource
 
             if (!request.RequestUri.IsDefaultPort)
             {
-                tags.Add(SemanticConventions.AttributeServerPort, request.RequestUri.Port);
+                tags.Add(SemanticConventions.AttributeServerPort, TelemetryHelper.GetBoxedPort(request.RequestUri.Port));
             }
 
-            if (httpStatusCode.HasValue)
+            if (httpStatusCode is { } statusCode)
             {
-                tags.Add(SemanticConventions.AttributeHttpResponseStatusCode, (int)httpStatusCode.Value);
+                tags.Add(SemanticConventions.AttributeHttpResponseStatusCode, TelemetryHelper.GetBoxedStatusCode(statusCode));
             }
 
             if (errorType != null)

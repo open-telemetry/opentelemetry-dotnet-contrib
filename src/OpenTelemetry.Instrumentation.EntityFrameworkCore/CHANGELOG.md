@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+* Fixed query sanitization so that a `)` inside a value or a comment in an
+  `IN (...)` clause no longer causes the values which follow it to be left
+  unsanitized.
+  ([#4929](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4929))
+
+* Fixed query sanitization so that literals are still redacted after the
+  `db.query.summary` length limit is reached.
+  ([#4929](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4929))
+
 * Handle `CommandCanceled` to properly stop the `Activity`.
   ([#5015](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5015))
 

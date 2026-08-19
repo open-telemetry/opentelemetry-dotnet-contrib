@@ -60,6 +60,11 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void BeginRequest(IOwinContext owinContext)
     {
+        if (!OwinInstrumentationActivitySource.ActivitySource.HasListeners())
+        {
+            return;
+        }
+
         var options = OwinInstrumentationActivitySource.Options;
 
         if (options?.Filter is { } filter)
@@ -107,7 +112,9 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
                 RequestDataHelper.SetHttpMethodTag(activity, request.Method);
                 activity.SetTag(SemanticConventions.AttributeServerAddress, request.Uri.Host);
                 activity.SetTag(SemanticConventions.AttributeServerPort, request.Uri.Port);
-                activity.SetTag(SemanticConventions.AttributeNetworkProtocolVersion, request.Protocol);
+                activity.SetTag(
+                    SemanticConventions.AttributeNetworkProtocolVersion,
+                    RequestDataHelper.GetHttpProtocolVersion(request.Protocol));
 
                 activity.SetTag(SemanticConventions.AttributeUrlPath, request.Uri.AbsolutePath);
                 activity.SetTag(SemanticConventions.AttributeUrlQuery, queryString);

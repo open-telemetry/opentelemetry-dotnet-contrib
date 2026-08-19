@@ -12,12 +12,18 @@ using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.SqlClient.Tests;
 
+[Collection("SqlClient")]
 [Trait("CategoryName", "SqlIntegrationTests")]
 public sealed class SqlClientIntegrationTests :
     IClassFixture<SqlClientIntegrationTestsFixture>,
     IClassFixture<WeaverFixture>
 {
     private const string GetContextInfoQuery = "SELECT CONTEXT_INFO()";
+
+#if NET
+    private const string ReadSessionStateProcedureName = "dbo.otel_read_session_state";
+    private const string CreateReadSessionStateProcedureQuery = "CREATE OR ALTER PROCEDURE " + ReadSessionStateProcedureName + " AS SELECT TOP 1 c.connection_id, CONTEXT_INFO() FROM sys.dm_exec_connections AS c WHERE c.session_id = @@SPID";
+#endif
 
     private readonly ITestOutputHelper outputHelper;
     private readonly SqlClientIntegrationTestsFixture sqlServer;
@@ -176,6 +182,133 @@ public sealed class SqlClientIntegrationTests :
             this.outputHelper,
             [new("invalid_format", null)]); // See https://github.com/open-telemetry/weaver/issues/1443
     }
+
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
+    public async Task ContextInfoIsClearedWhenPooledConnectionIsReused()
+    {
+        // Arrange
+        using var scope = EnvironmentVariableScope.Create(
+            SqlClientTraceInstrumentationOptions.ContextPropagationLevelEnvVar,
+            "true");
+
+        await this.CreateReadSessionStateProcedureAsync();
+
+        var activities = new List<Activity>();
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddInMemoryExporter(activities)
+            .AddSqlClientInstrumentation()
+            .Build();
+
+        // A distinct connection string is a distinct pool key, so this gives the test a pool
+        // that can hold exactly one physical connection. The reuse below is then guaranteed
+        // rather than dependent on the order the driver pops connections off its own pool.
+        var connectionStringBuilder = new SqlConnectionStringBuilder(this.GetConnectionString())
+        {
+            MaxPoolSize = 1,
+        };
+
+        Guid connectionId;
+
+        // Act
+        using (var sqlConnection = new SqlConnection(connectionStringBuilder.ConnectionString))
+        {
+            await sqlConnection.OpenAsync();
+
+            sqlConnection.ChangeDatabase("master");
+
+            using (var sqlCommand = new SqlCommand("select 1", sqlConnection))
+            {
+                await sqlCommand.ExecuteScalarAsync();
+            }
+
+            var textActivity = Assert.Single(activities);
+
+            var sessionState = await ReadSessionStateAsync(sqlConnection);
+
+            connectionId = sessionState.ConnectionId;
+
+            // The text command wrote its traceparent, so the assertion after the pooled
+            // reuse below is about the reset and not about propagation never having run.
+            Assert.Equal(textActivity.Id, sessionState.ContextInfo);
+        }
+
+        using (var sqlConnection = new SqlConnection(connectionStringBuilder.ConnectionString))
+        {
+            await sqlConnection.OpenAsync();
+
+            sqlConnection.ChangeDatabase("master");
+
+            var sessionState = await ReadSessionStateAsync(sqlConnection);
+
+            // Assert
+            Assert.Equal(connectionId, sessionState.ConnectionId);
+            Assert.Null(sessionState.ContextInfo);
+        }
+
+        Assert.Equal(3, activities.Count);
+
+        await WeaverTelemetryVerifier.VerifyAsync(
+            (activities, []),
+            SqlTelemetryHelper.SemanticConventionsVersion,
+            this.weaver,
+            this.outputHelper);
+    }
+
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
+    public async Task StoredProcedureObservesContextInfoOfPrecedingTextCommand()
+    {
+        // Arrange
+        using var scope = EnvironmentVariableScope.Create(
+            SqlClientTraceInstrumentationOptions.ContextPropagationLevelEnvVar,
+            "true");
+
+        await this.CreateReadSessionStateProcedureAsync();
+
+        var activities = new List<Activity>();
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddInMemoryExporter(activities)
+            .AddSqlClientInstrumentation()
+            .Build();
+
+        using var sqlConnection = new SqlConnection(this.GetConnectionString());
+
+        await sqlConnection.OpenAsync();
+
+        sqlConnection.ChangeDatabase("master");
+
+        // Act
+        using (var sqlCommand = new SqlCommand("select 1", sqlConnection))
+        {
+            await sqlCommand.ExecuteScalarAsync();
+        }
+
+        var textActivity = Assert.Single(activities);
+
+        // The stopped activity is left as Activity.Current by the async command, which would
+        // make the stored procedure a child of it. Clear it so the two commands belong to
+        // unrelated traces, which is the case where the stale value attributes the stored
+        // procedure to the wrong trace.
+        Activity.Current = null;
+
+        var sessionState = await ReadSessionStateAsync(sqlConnection);
+
+        // Assert
+        Assert.Equal(2, activities.Count);
+
+        var storedProcedureActivity = activities[1];
+
+        Assert.NotEqual(textActivity.TraceId, storedProcedureActivity.TraceId);
+        Assert.Equal(textActivity.Id, sessionState.ContextInfo);
+        Assert.NotEqual(storedProcedureActivity.Id, sessionState.ContextInfo);
+
+        await WeaverTelemetryVerifier.VerifyAsync(
+            (activities, []),
+            SqlTelemetryHelper.SemanticConventionsVersion,
+            this.weaver,
+            this.outputHelper);
+    }
 #endif
 
     [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
@@ -305,6 +438,51 @@ public sealed class SqlClientIntegrationTests :
                    && (string)kvp.Value == SqlTelemetryHelper.MicrosoftSqlServerDbSystemName);
     }
 
+#if NET
+    private static async Task<(Guid ConnectionId, string? ContextInfo)> ReadSessionStateAsync(SqlConnection sqlConnection)
+    {
+        // The read has to be a stored procedure: propagation only fires for CommandType.Text,
+        // so a text command would overwrite CONTEXT_INFO before it could be read back.
+        using var sqlCommand = new SqlCommand(ReadSessionStateProcedureName, sqlConnection)
+        {
+            CommandType = CommandType.StoredProcedure,
+        };
+
+        using var reader = await sqlCommand.ExecuteReaderAsync();
+
+        Assert.True(await reader.ReadAsync());
+
+        var connectionId = reader.GetGuid(0);
+        var contextInfo = reader.IsDBNull(1)
+            ? null
+            : Encoding.ASCII.GetString((byte[])reader[1]).TrimEnd('\0');
+
+        return (connectionId, contextInfo);
+    }
+#endif
+
     private string GetConnectionString()
         => this.sqlServer.TypedContainer.GetConnectionString();
+
+#if NET
+    private async Task CreateReadSessionStateProcedureAsync()
+    {
+        // Pooling is disabled so that the setup connection cannot be the one the pool
+        // hands back to the test, which asserts on a specific physical connection.
+        var connectionStringBuilder = new SqlConnectionStringBuilder(this.GetConnectionString())
+        {
+            Pooling = false,
+        };
+
+        using var sqlConnection = new SqlConnection(connectionStringBuilder.ConnectionString);
+
+        await sqlConnection.OpenAsync();
+
+        sqlConnection.ChangeDatabase("master");
+
+        using var sqlCommand = new SqlCommand(CreateReadSessionStateProcedureQuery, sqlConnection);
+
+        await sqlCommand.ExecuteNonQueryAsync();
+    }
+#endif
 }

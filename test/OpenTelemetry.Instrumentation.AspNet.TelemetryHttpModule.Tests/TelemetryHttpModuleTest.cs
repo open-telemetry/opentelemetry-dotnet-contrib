@@ -23,11 +23,16 @@ public class TelemetryHttpModuleTest
         var method = typeof(TelemetryHttpModule).GetMethod("OnExecuteRequestStep", BindingFlags.Instance | BindingFlags.NonPublic);
         Assert.NotNull(method);
 
-        method!.Invoke(new TelemetryHttpModule(), [context, (Action)(() =>
-        {
-            stepCalled = true;
-            activityInStep = Activity.Current;
-        })]);
+        method!.Invoke(
+            new TelemetryHttpModule(),
+            [
+                context,
+                () =>
+                {
+                    stepCalled = true;
+                    activityInStep = Activity.Current;
+                }
+            ]);
 
         Assert.True(stepCalled);
         Assert.Same(activity, activityInStep);
