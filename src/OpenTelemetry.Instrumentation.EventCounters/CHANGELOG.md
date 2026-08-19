@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Added argument validation for EventCounter source names and refresh intervals.
+  ([#5012](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5012))
+
 ## 1.17.0-alpha.1
 
 Released 2026-Jul-17
