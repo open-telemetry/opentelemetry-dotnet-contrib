@@ -33,6 +33,7 @@ public class EventCountersInstrumentationOptions
     /// <exception cref="NotSupportedException">Thrown if <paramref name="names"/> contains the <c>System.Runtime"</c> EventSource.</exception>"
     public void AddEventSources(params string[] names)
     {
+        Guard.ThrowIfNull(names);
         if (names.Contains("System.Runtime"))
         {
             throw new NotSupportedException("Use the `OpenTelemetry.Instrumentation.Runtime` or `OpenTelemetry.Instrumentation.Process` instrumentations.");
