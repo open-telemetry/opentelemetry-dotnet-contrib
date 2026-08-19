@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Handle `CommandCanceled` to properly stop the `Activity`.
+  ([#5015](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5015))
+
 ## 1.17.0-beta.1
 
 Released 2026-Jul-17
