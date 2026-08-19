@@ -320,6 +320,35 @@ public class ActivityHelperTest : IDisposable
     }
 
     [Fact]
+    public void Clears_Baggage_When_RootActivity_Is_Not_Created()
+    {
+        var previousBaggage = Baggage.Current;
+        try
+        {
+            Baggage.Current = default;
+
+            var propagator = new CompositeTextMapPropagator([new TraceContextPropagator(), new BaggagePropagator()]);
+            var requestHeaders = new Dictionary<string, string>
+            {
+                { BaggageHeaderName, BaggageInHeader },
+            };
+            var context = HttpContextHelper.GetFakeHttpContextBase(headers: requestHeaders);
+            using var rootActivity = ActivityHelper.StartAspNetActivity(propagator, context, null);
+
+            Assert.Null(rootActivity);
+            Assert.Equal(2, Baggage.Current.Count);
+
+            ActivityHelper.StopAspNetActivity(propagator, rootActivity, context, null);
+
+            Assert.Equal(0, Baggage.Current.Count);
+        }
+        finally
+        {
+            Baggage.Current = previousBaggage;
+        }
+    }
+
+    [Fact]
     public void Should_Not_Fire_Stop_Callback_Without_RootActivity()
     {
         var context = HttpContextHelper.GetFakeHttpContextBase();
