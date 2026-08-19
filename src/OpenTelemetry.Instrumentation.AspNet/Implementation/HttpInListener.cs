@@ -45,7 +45,7 @@ internal sealed class HttpInListener : IDisposable
         return duration.TotalSeconds;
     }
 
-    private void RecordDuration(Activity? activity, HttpContextBase context)
+    private void RecordDuration(Activity? activity, HttpContextBase context, string? routeTemplate = null)
     {
         if (AspNetInstrumentation.Instance.HandleManager.MetricHandles == 0)
         {
@@ -91,7 +91,7 @@ internal sealed class HttpInListener : IDisposable
             tags.Add(SemanticConventions.AttributeNetworkProtocolVersion, protocolVersion);
         }
 
-        var template = this.routeHelper.GetRouteTemplate(request);
+        var template = routeTemplate ?? this.routeHelper.GetRouteTemplate(request);
         if (!string.IsNullOrEmpty(template))
         {
             tags.Add(SemanticConventions.AttributeHttpRoute, template);
@@ -228,6 +228,7 @@ internal sealed class HttpInListener : IDisposable
         }
 
         var options = AspNetInstrumentation.Instance.TraceOptions;
+        string? template = null;
 
         if (activity.IsAllDataRequested)
         {
@@ -240,7 +241,7 @@ internal sealed class HttpInListener : IDisposable
                 activity.SetStatus(SpanHelper.ResolveActivityStatusForHttpStatusCode(activity.Kind, response.StatusCode));
             }
 
-            var template = this.routeHelper.GetRouteTemplate(context.Request);
+            template = this.routeHelper.GetRouteTemplate(context.Request);
 
             if (!string.IsNullOrEmpty(template))
             {
@@ -259,7 +260,7 @@ internal sealed class HttpInListener : IDisposable
             }
         }
 
-        this.RecordDuration(activity, context);
+        this.RecordDuration(activity, context, template);
     }
 
     private void OnException(Activity? activity, HttpContextBase context, Exception exception)

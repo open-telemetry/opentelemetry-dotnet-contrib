@@ -45,14 +45,15 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
         new(SemanticConventions.AttributeDbSystemName, "redis"),
     ];
 
-    internal readonly ConcurrentDictionary<(ActivityTraceId TraceId, ActivitySpanId SpanId), (Activity Activity, ProfilingSession Session)> Cache
-        = new();
+    internal readonly ConcurrentDictionary<
+        (ActivityTraceId TraceId, ActivitySpanId SpanId),
+        (Activity Activity, ProfilingSession Session, Baggage Baggage)> Cache = new();
 
     private readonly StackExchangeRedisInstrumentationOptions options;
     private readonly EventWaitHandle stopHandle = new(false, EventResetMode.ManualReset);
     private readonly Thread drainThread;
-
     private readonly ProfilingSession defaultSession = new();
+    private int disposed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="StackExchangeRedisConnectionInstrumentation"/> class.
@@ -74,7 +75,26 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
             Name = string.IsNullOrWhiteSpace(name) ? "OpenTelemetry.Redis" : $"OpenTelemetry.Redis{{{name}}}",
             IsBackground = true,
         };
-        this.drainThread.Start();
+
+        // Thread.Start() would hand the drain thread this execution context, and with it
+        // this thread's BaggageHolder, which draining would then write straight through.
+        var restoreFlow = !ExecutionContext.IsFlowSuppressed();
+        if (restoreFlow)
+        {
+            ExecutionContext.SuppressFlow();
+        }
+
+        try
+        {
+            this.drainThread.Start();
+        }
+        finally
+        {
+            if (restoreFlow)
+            {
+                ExecutionContext.RestoreFlow();
+            }
+        }
 
         connection.RegisterProfiler(this.GetProfilerSessionsFactory());
     }
@@ -85,7 +105,7 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
     /// <returns>Session associated with the current span context to record Redis calls.</returns>
     public Func<ProfilingSession?> GetProfilerSessionsFactory() => () =>
     {
-        if (this.stopHandle.WaitOne(0))
+        if (Volatile.Read(ref this.disposed) != 0)
         {
             return null;
         }
@@ -102,7 +122,9 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
         var cacheKey = (parent.TraceId, parent.SpanId);
         if (!this.Cache.TryGetValue(cacheKey, out var session))
         {
-            session = (parent, new ProfilingSession());
+            // This runs on the thread that issued the command, the only point at which
+            // the caller's Baggage is still reachable. Draining happens elsewhere.
+            session = (parent, new ProfilingSession(), Baggage.Current);
             this.Cache.TryAdd(cacheKey, session);
         }
 
@@ -112,6 +134,11 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
     /// <inheritdoc/>
     public void Dispose()
     {
+        if (Interlocked.Exchange(ref this.disposed, 1) != 0)
+        {
+            return;
+        }
+
         this.stopHandle.Set();
         this.drainThread.Join();
 
@@ -122,7 +149,9 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
 
     internal void Flush()
     {
-        RedisProfilerEntryToActivityConverter.DrainSession(null, this.defaultSession.FinishProfiling(), this.options);
+        // Commands with no parent Activity share defaultSession, so there is no single
+        // caller to attribute baggage to.
+        RedisProfilerEntryToActivityConverter.DrainSession(null, this.defaultSession.FinishProfiling(), default, this.options);
 
         foreach (var entry in this.Cache)
         {
@@ -132,7 +161,7 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
             if (this.options.EnableEarlyCommandDrain || parentCompleted)
             {
                 var session = entry.Value.Session;
-                RedisProfilerEntryToActivityConverter.DrainSession(parent, session.FinishProfiling(), this.options);
+                RedisProfilerEntryToActivityConverter.DrainSession(parent, session.FinishProfiling(), entry.Value.Baggage, this.options);
             }
 
             if (parentCompleted)

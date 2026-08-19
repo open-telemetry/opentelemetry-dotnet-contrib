@@ -5,6 +5,12 @@ namespace OpenTelemetry.Instrumentation.Tests;
 
 public class SqlProcessorTests
 {
+    /// <summary>
+    /// A table name long enough that the query summary reaches its maximum length of 255
+    /// characters once it has been captured.
+    /// </summary>
+    private static readonly string LongCapturedIdentifier = new('T', 260);
+
     private readonly ITestOutputHelper output;
 
     public SqlProcessorTests(ITestOutputHelper output)
@@ -57,6 +63,141 @@ public class SqlProcessorTests
         Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
         Assert.DoesNotContain("123", sqlStatementInfo.SanitizedSql);
         Assert.DoesNotContain("DEADBEEF", sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData("SELECT * FROM Users WHERE Name IN ('a)b', 'secret-name')")]
+    [InlineData("SELECT * FROM Users WHERE Name IN ('a)b', 'secret-name', 'another)one')")]
+    [InlineData("SELECT * FROM Users WHERE Name IN ('O''Brien)', 'secret-name')")]
+    [InlineData("SELECT * FROM Users WHERE Name IN ('))', 'secret-name')")]
+    [InlineData("SELECT * FROM Users WHERE Name IN (1 /* don't */, 'a)b', 'secret-name')")]
+    [InlineData("SELECT * FROM Users WHERE Name IN (1 /* ) */, 'secret-name')")]
+    [InlineData("SELECT * FROM Users WHERE Name IN (1, -- don't )\n'secret-name')")]
+    public void GetSanitizedSql_InClauseLiteralOrCommentContainingCloseParen_SanitizesAllLiterals(string sql)
+    {
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.Equal("SELECT * FROM Users WHERE Name IN (?)", sqlStatementInfo.SanitizedSql);
+        Assert.Equal("SELECT Users", sqlStatementInfo.DbQuerySummary);
+    }
+
+    [Fact]
+    public void GetSanitizedSql_InClauseLiteralContainingCloseParen_DoesNotLeakPersonalData()
+    {
+        var sql = "SELECT Id FROM Users WHERE Email IN ('x)', 'user@example.com')";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        Assert.DoesNotContain("user@example.com", sqlStatementInfo.SanitizedSql);
+        Assert.Equal("SELECT Id FROM Users WHERE Email IN (?)", sqlStatementInfo.SanitizedSql);
+    }
+
+    [Fact]
+    public void GetSanitizedSql_UnterminatedInClauseLiteralContainingCloseParen_SanitizesAllLiterals()
+    {
+        // Without a closing parenthesis outside of the literals there is no clause to collapse,
+        // so each value is sanitized individually instead.
+        var sql = "SELECT * FROM Users WHERE Name IN ('a)b', 'secret-name'";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.Equal("SELECT * FROM Users WHERE Name IN (?, ?", sqlStatementInfo.SanitizedSql);
+    }
+
+    [Fact]
+    public void GetSanitizedSql_UnterminatedInClauseStringLiteral_SanitizesLiteral()
+    {
+        var sql = "SELECT * FROM Users WHERE Name IN ('secret-name";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.Equal("SELECT * FROM Users WHERE Name IN (?", sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData("WHERE Password='secret-name'")]
+    [InlineData("WHERE Password=N'secret-name'")]
+    [InlineData("WHERE Password = 'secret-name'")]
+    [InlineData("WHERE Email IN ('secret-name','other')")]
+    [InlineData("WHERE Email LIKE'%secret-name%'")]
+    [InlineData("INSERT INTO Credentials (User, Password) VALUES ('admin','secret-name')")]
+    public void GetSanitizedSql_StringLiteralAfterSummaryLengthLimitReached_SanitizesLiteral(string clause)
+    {
+        var sql = $"SELECT * FROM {LongCapturedIdentifier} {clause}";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData("WHERE SocialSecurityNumber=123456789", "123456789")]
+    [InlineData("WHERE SocialSecurityNumber = 123456789", "123456789")]
+    [InlineData("WHERE ApiToken=0xDEADBEEF", "DEADBEEF")]
+    [InlineData("WHERE ApiToken = 0xDEADBEEF", "DEADBEEF")]
+    public void GetSanitizedSql_NumericOrHexLiteralAfterSummaryLengthLimitReached_SanitizesLiteral(string clause, string literal)
+    {
+        var sql = $"SELECT * FROM {LongCapturedIdentifier} {clause}";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain(literal, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Fact]
+    public void GetSanitizedSql_ManyJoinsExceedingSummaryLengthLimit_SanitizesLiteral()
+    {
+        var joins = string.Join(
+            " ",
+            Enumerable.Range(0, 12).Select(i =>
+                $"INNER JOIN CustomerOrderDetails{i} AS d{i} ON d{i}.OrderId = o.OrderId"));
+
+        var sql = $"SELECT o.OrderId, c.Email FROM Orders AS o {joins} WHERE c.Email='user@example.com'";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("user@example.com", sqlStatementInfo.SanitizedSql);
+        Assert.True(sqlStatementInfo.DbQuerySummary.Length <= 255);
+    }
+
+    [Fact]
+    public void GetSanitizedSql_ManyTablesExceedingSummaryLengthLimit_SanitizesLiteral()
+    {
+        var tables = string.Join(",", Enumerable.Range(0, 12).Select(i => $"CustomerOrderDetails{i}"));
+
+        var sql = $"SELECT * FROM {tables} WHERE Email='user@example.com'";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("user@example.com", sqlStatementInfo.SanitizedSql);
+        Assert.True(sqlStatementInfo.DbQuerySummary.Length <= 255);
+    }
+
+    [Fact]
+    public void GetSanitizedSql_SummaryLengthLimitReached_DoesNotChangeSanitizedSql()
+    {
+        const string Clause = "WHERE Password='secret-name' AND Id=123 AND Token=0xDEADBEEF";
+
+        var shortSummary = SqlProcessor.GetSanitizedSql($"SELECT * FROM Orders {Clause}");
+        var fullSummary = SqlProcessor.GetSanitizedSql($"SELECT * FROM {LongCapturedIdentifier} {Clause}");
+
+        var expected = "WHERE Password=? AND Id=? AND Token=?";
+
+        Assert.EndsWith(expected, shortSummary.SanitizedSql, StringComparison.Ordinal);
+        Assert.EndsWith(expected, fullSummary.SanitizedSql, StringComparison.Ordinal);
     }
 
     [SkippableTheory]

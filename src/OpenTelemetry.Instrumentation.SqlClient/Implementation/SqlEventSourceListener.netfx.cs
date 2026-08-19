@@ -136,6 +136,14 @@ internal sealed class SqlEventSourceListener : EventListener
             return;
         }
 
+        // Metrics-only fast path: if the ActivitySource has no listeners then StartActivity
+        // will always return null and no trace will be produced, so skip redundant work.
+        if (!SqlTelemetryHelper.ActivitySource.HasListeners())
+        {
+            this.beginTimestamp.Value = Stopwatch.GetTimestamp();
+            return;
+        }
+
         var dataSource = (string)eventData.Payload[1];
         var databaseName = (string)eventData.Payload[2];
         var startTags = SqlTelemetryHelper.GetTagListFromConnectionInfo(dataSource, databaseName, out var activityName);
@@ -240,14 +248,7 @@ internal sealed class SqlEventSourceListener : EventListener
 
         if (activity != null && activity.IsAllDataRequested)
         {
-            foreach (var name in SqlTelemetryHelper.SharedTagNames)
-            {
-                var value = activity.GetTagItem(name);
-                if (value != null)
-                {
-                    tags.Add(name, value);
-                }
-            }
+            SqlTelemetryHelper.AddSharedTags(activity, ref tags);
         }
         else
         {

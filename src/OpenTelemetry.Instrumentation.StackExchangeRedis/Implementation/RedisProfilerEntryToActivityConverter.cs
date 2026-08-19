@@ -243,11 +243,34 @@ internal static class RedisProfilerEntryToActivityConverter
         return activity;
     }
 
-    public static void DrainSession(Activity? parentActivity, IEnumerable<IProfiledCommand> sessionCommands, StackExchangeRedisInstrumentationOptions options)
+    public static void DrainSession(
+        Activity? parentActivity,
+        IEnumerable<IProfiledCommand> sessionCommands,
+        Baggage baggage,
+        StackExchangeRedisInstrumentationOptions options)
     {
-        foreach (var command in sessionCommands)
+        // Whoever issued the commands isn't the one draining them, so their baggage has
+        // to be put back by hand. Skipped when empty, or every Activity below pays for it.
+        var previousBaggage = Baggage.Current;
+        var applyBaggage = baggage.Count != 0;
+        if (applyBaggage)
         {
-            ProfilerCommandToActivity(parentActivity, command, options);
+            Baggage.Current = baggage;
+        }
+
+        try
+        {
+            foreach (var command in sessionCommands)
+            {
+                ProfilerCommandToActivity(parentActivity, command, options);
+            }
+        }
+        finally
+        {
+            if (applyBaggage)
+            {
+                Baggage.Current = previousBaggage;
+            }
         }
     }
 

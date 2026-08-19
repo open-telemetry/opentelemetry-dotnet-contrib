@@ -37,10 +37,15 @@ internal static class SqlProcessor
     private static readonly char[] LineBreakChars = [CarriageReturnChar, NewLineChar];
 #endif
 
+    // The characters which can start a construct that a ')' may legitimately appear inside
+    // (a string literal or a comment), plus ')' itself. Used to find the end of an IN clause.
+    private static readonly char[] InClauseScanChars = [CloseParenChar, SingleQuoteChar, DashChar, ForwardSlashChar];
+
 #if NET
     private static readonly SearchValues<char> AsciiLetterSearchValues = SearchValues.Create("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
     private static readonly SearchValues<char> LineBreakSearchValues = SearchValues.Create("\n\r");
     private static readonly SearchValues<char> WhitespaceSearchValues = SearchValues.Create(WhitespaceChars);
+    private static readonly SearchValues<char> InClauseScanSearchValues = SearchValues.Create(InClauseScanChars);
 #endif
 
     // This is not an exhaustive list but covers the majority of common reserved SQL keywords that may follow a FROM clause.
@@ -169,30 +174,9 @@ internal static class SqlProcessor
         return Cache.TryGetValue(sql, out var existing) ? existing : sqlStatementInfo;
     }
 
-#if !NET
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsAsciiLetter(char c)
-    {
-        var lower = (char)(c | 0x20);
-        return lower is >= 'a' and <= 'z';
-    }
-#endif
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsAsciiDigit(char c) =>
-#if NET
-        char.IsAsciiDigit(c);
-#else
-        c is >= '0' and <= '9';
-#endif
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsUnescapedIdentifierChar(char c) =>
-#if NET
         char.IsLetter(c) || char.IsAsciiDigit(c) || c == UnderscoreChar || c == DotChar;
-#else
-        char.IsLetter(c) || IsAsciiDigit(c) || c == UnderscoreChar || c == DotChar;
-#endif
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsValidTokenCharacter(ReadOnlySpan<char> sql, int currentPosition, int indexInToken, in ParseState state)
@@ -291,14 +275,10 @@ internal static class SqlProcessor
                 continue;
             }
 
-            if (state.SummaryPosition >= MaxSummaryLength)
-            {
-                ParseNextTokenFast(sqlSpan, buffer, ref state);
-            }
-            else
-            {
-                ParseNextToken(sqlSpan, buffer, ref state);
-            }
+            // Reaching the summary length limit must not change how the statement itself is
+            // parsed. Tokenization continues unchanged and only the accumulation of the summary
+            // stops, which ParseNextToken handles via SummaryIsComplete.
+            ParseNextToken(sqlSpan, buffer, ref state);
         }
 
         var summary = state.SummaryBuffer.Slice(0, state.SummaryPosition);
@@ -391,30 +371,6 @@ internal static class SqlProcessor
         state.SummaryBuffer = newBuffer.AsSpan();
     }
 
-    private static void ParseNextTokenFast(
-        ReadOnlySpan<char> sql,
-        Span<char> buffer,
-        ref ParseState state)
-    {
-        var start = state.ParsePosition;
-        var remaining = sql.Length - start;
-
-#if NET
-        var indexOfNextWhitespace = sql.Slice(start).IndexOfAny(WhitespaceSearchValues);
-#else
-        var indexOfNextWhitespace = sql.Slice(start).IndexOfAny(WhitespaceChars);
-#endif
-
-        var length = indexOfNextWhitespace >= 0 ? indexOfNextWhitespace : remaining;
-
-        sql.Slice(start, length).CopyTo(buffer.Slice(state.SanitizedPosition));
-        state.SanitizedPosition += length;
-        state.ParsePosition += length;
-
-        // Note, for efficiency, we do not attempt to update the previous token start/end positions
-        // We no longer use these when in fast path mode.
-    }
-
     private static void ParseNextToken(
         ReadOnlySpan<char> sql,
         Span<char> buffer,
@@ -426,11 +382,7 @@ internal static class SqlProcessor
         // Quick first-character filter: only attempt keyword matching if the current char is an ASCII letter.
         // NOTE: We don't check CaptureNextNonKeywordTokenAsIdentifier here because we want to capture and handle keywords
         // first, before considering identifiers.
-#if NET
         var mayBeKeyword = !state.InEscapedIdentifier && char.IsAsciiLetter(currentChar);
-#else
-        var mayBeKeyword = !state.InEscapedIdentifier && IsAsciiLetter(currentChar);
-#endif
 
         if (mayBeKeyword)
         {
@@ -452,11 +404,7 @@ internal static class SqlProcessor
             while (asciiLetterLength < remaining)
             {
                 var ch = sql[start + asciiLetterLength];
-#if NET
                 if (!char.IsAsciiLetter(ch))
-#else
-                if (!IsAsciiLetter(ch))
-#endif
                 {
                     break;
                 }
@@ -518,7 +466,7 @@ internal static class SqlProcessor
                     state.SanitizedPosition += keywordLength;
 
                     // Potentially copy the keyword to the summary buffer.
-                    if (SqlKeywordInfo.CaptureInSummary(in state, potentialKeywordInfo))
+                    if (!state.SummaryIsComplete && SqlKeywordInfo.CaptureInSummary(in state, potentialKeywordInfo))
                     {
                         if (state.SummaryPosition == 0)
                         {
@@ -607,7 +555,7 @@ internal static class SqlProcessor
                 }
 
                 // Optionally copy to summary buffer.
-                if (state.CaptureNextNonKeywordTokenAsIdentifier)
+                if (state.CaptureNextNonKeywordTokenAsIdentifier && !state.SummaryIsComplete)
                 {
                     AppendSummaryToken(sql.Slice(start, length), ref state);
 
@@ -632,19 +580,22 @@ internal static class SqlProcessor
             {
                 state.InEscapedIdentifier = false;
 
-                // Remove the space we added after the identifier in the summary buffer before we write the closing bracket.
-                state.SummaryPosition--;
-
-                AppendSummaryChar(CloseSquareBracketChar, ref state);
-
-                var nextPos = state.ParsePosition + 1;
-                if (nextPos >= sql.Length || sql[nextPos] != DotChar)
+                if (!state.SummaryIsComplete)
                 {
-                    AppendSummaryChar(SpaceChar, ref state);
-                }
-                else
-                {
-                    AppendSummaryChar(DotChar, ref state); // write the dot to summary
+                    // Remove the space we added after the identifier in the summary buffer before we write the closing bracket.
+                    state.SummaryPosition--;
+
+                    AppendSummaryChar(CloseSquareBracketChar, ref state);
+
+                    var nextPos = state.ParsePosition + 1;
+                    if (nextPos >= sql.Length || sql[nextPos] != DotChar)
+                    {
+                        AppendSummaryChar(SpaceChar, ref state);
+                    }
+                    else
+                    {
+                        AppendSummaryChar(DotChar, ref state); // write the dot to summary
+                    }
                 }
             }
 
@@ -658,7 +609,11 @@ internal static class SqlProcessor
                 && HasTerminatingEscapedIdentifier(sql, state.ParsePosition, ref state))
             {
                 state.InEscapedIdentifier = true;
-                AppendSummaryChar(OpenSquareBracketChar, ref state);
+
+                if (!state.SummaryIsComplete)
+                {
+                    AppendSummaryChar(OpenSquareBracketChar, ref state);
+                }
             }
 
             buffer[state.SanitizedPosition++] = currentChar;
@@ -855,23 +810,10 @@ internal static class SqlProcessor
             for (i += 2; i < length; ++i)
             {
                 ch = sql[i];
-#if NET
                 if (char.IsAsciiHexDigit(ch))
                 {
                     continue;
                 }
-#else
-                if (IsAsciiDigit(ch) ||
-                    ch == 'A' || ch == 'a' ||
-                    ch == 'B' || ch == 'b' ||
-                    ch == 'C' || ch == 'c' ||
-                    ch == 'D' || ch == 'd' ||
-                    ch == 'E' || ch == 'e' ||
-                    ch == 'F' || ch == 'f')
-                {
-                    continue;
-                }
-#endif
 
                 i -= 1;
                 break;
@@ -894,7 +836,7 @@ internal static class SqlProcessor
         var iPlusOne = i + 1;
 
         // Scan past leading sign
-        if ((currentChar == '-' || currentChar == '+') && iPlusOne < length && (IsAsciiDigit(sql[iPlusOne]) || sql[iPlusOne] == DotChar))
+        if ((currentChar == '-' || currentChar == '+') && iPlusOne < length && (char.IsAsciiDigit(sql[iPlusOne]) || sql[iPlusOne] == DotChar))
         {
             i += 1;
             iPlusOne = i + 1;
@@ -903,14 +845,14 @@ internal static class SqlProcessor
 
         // Scan past leading decimal point
         var periodMatched = false;
-        if (currentChar == '.' && iPlusOne < length && IsAsciiDigit(sql[iPlusOne]))
+        if (currentChar == '.' && iPlusOne < length && char.IsAsciiDigit(sql[iPlusOne]))
         {
             periodMatched = true;
             i += 1;
             currentChar = sql[i];
         }
 
-        if (IsAsciiDigit(currentChar))
+        if (char.IsAsciiDigit(currentChar))
         {
             if (TrySanitizeLiteralsForInClause(sql, buffer, ref state, i))
             {
@@ -921,7 +863,7 @@ internal static class SqlProcessor
             for (i += 1; i < length; ++i)
             {
                 currentChar = sql[i];
-                if (IsAsciiDigit(currentChar))
+                if (char.IsAsciiDigit(currentChar))
                 {
                     continue;
                 }
@@ -975,16 +917,150 @@ internal static class SqlProcessor
                 return false;
             }
 
-            var closeParenIndex = sql.Slice(parsePosition).IndexOf(CloseParenChar);
-            if (closeParenIndex >= 0)
+            // The closing parenthesis has to be located with a literal- and comment-aware
+            // scan. A plain IndexOf(')') can match a ')' inside a value (for example
+            // "IN ('a)b', 'secret')"), which would leave the parser positioned in the middle of
+            // that literal. Every subsequent quote would then be mismatched and the remaining
+            // values would be copied into the sanitized SQL verbatim instead of being replaced.
+            if (TryFindEndOfInClause(sql, parsePosition, out var closeParenIndex))
             {
-                state.ParsePosition = parsePosition + closeParenIndex;
+                state.ParsePosition = closeParenIndex;
                 buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
                 return true;
             }
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Finds the index of the parenthesis which closes an <c>IN (</c> clause, ignoring any
+    /// parenthesis which appears inside a string literal or a comment.
+    /// </summary>
+    /// <returns>
+    /// <see langword="true"/> if a closing parenthesis was found, in which case
+    /// <paramref name="closeParenIndex"/> is its index in <paramref name="sql"/>.
+    /// <see langword="false"/> if the clause is not terminated, in which case the caller
+    /// falls back to sanitizing each value individually.
+    /// </returns>
+    private static bool TryFindEndOfInClause(ReadOnlySpan<char> sql, int start, out int closeParenIndex)
+    {
+        var length = sql.Length;
+        var i = start;
+
+        while (i < length)
+        {
+#if NET
+            var offset = sql.Slice(i).IndexOfAny(InClauseScanSearchValues);
+#else
+            var offset = sql.Slice(i).IndexOfAny(InClauseScanChars);
+#endif
+
+            if (offset < 0)
+            {
+                break;
+            }
+
+            i += offset;
+
+            switch (sql[i])
+            {
+                case CloseParenChar:
+                    closeParenIndex = i;
+                    return true;
+
+                case SingleQuoteChar:
+                    i = SkipStringLiteral(sql, i);
+                    break;
+
+                case DashChar:
+                    i = i + 1 < length && sql[i + 1] == DashChar
+                        ? SkipSingleLineComment(sql, i)
+                        : i + 1;
+                    break;
+
+                // ForwardSlashChar
+                default:
+                    i = i + 1 < length && sql[i + 1] == AsteriskChar
+                        ? SkipMultiLineComment(sql, i)
+                        : i + 1;
+                    break;
+            }
+        }
+
+        closeParenIndex = -1;
+        return false;
+
+        // Returns the index after the closing quote, or the end of the input if the
+        // literal is not terminated.
+        static int SkipStringLiteral(ReadOnlySpan<char> sql, int quotePosition)
+        {
+            var length = sql.Length;
+            var i = quotePosition + 1;
+
+            while (i < length)
+            {
+                var quoteIndex = sql.Slice(i).IndexOf(SingleQuoteChar);
+                if (quoteIndex < 0)
+                {
+                    break;
+                }
+
+                i += quoteIndex;
+
+                // A doubled quote ('') is an escaped quote within the literal.
+                if (i + 1 < length && sql[i + 1] == SingleQuoteChar)
+                {
+                    i += 2;
+                    continue;
+                }
+
+                return i + 1;
+            }
+
+            return length;
+        }
+
+        // Returns the index of the line break which ends the comment, or the end of the
+        // input if there is none.
+        static int SkipSingleLineComment(ReadOnlySpan<char> sql, int dashPosition)
+        {
+#if NET
+            var lineBreakIndex = sql.Slice(dashPosition + 2).IndexOfAny(LineBreakSearchValues);
+#else
+            var lineBreakIndex = sql.Slice(dashPosition + 2).IndexOfAny(LineBreakChars);
+#endif
+
+            return lineBreakIndex < 0 ? sql.Length : dashPosition + 2 + lineBreakIndex;
+        }
+
+        // Returns the index after the closing "*/", or the end of the input if the comment
+        // is not terminated.
+        static int SkipMultiLineComment(ReadOnlySpan<char> sql, int slashPosition)
+        {
+            var length = sql.Length;
+            var i = slashPosition + 2;
+
+            while (i < length)
+            {
+                var asteriskIndex = sql.Slice(i).IndexOf(AsteriskChar);
+                if (asteriskIndex < 0)
+                {
+                    break;
+                }
+
+                i += asteriskIndex;
+
+                if (i + 1 < length && sql[i + 1] == ForwardSlashChar)
+                {
+                    return i + 2;
+                }
+
+                i++;
+            }
+
+            return length;
+        }
     }
 
     private ref struct ParseState
@@ -1040,6 +1116,12 @@ internal static class SqlProcessor
         /// As soon as we match a reserved keyword, we exit the FROM clause state.
         /// </summary>
         public bool InFromClause; // 1 byte
+
+        /// <summary>
+        /// Gets a value indicating whether the summary has reached its maximum length, after which
+        /// nothing further is appended to it.
+        /// </summary>
+        public readonly bool SummaryIsComplete => this.SummaryPosition >= MaxSummaryLength;
     }
 
     private sealed class SqlKeywordInfo

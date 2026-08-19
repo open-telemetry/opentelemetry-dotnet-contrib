@@ -14,6 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="$(RepoRoot)\src\Shared\CharExtensions.cs" Link="Includes\CharExtensions.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\SqlProcessor.cs" Link="Includes\SqlProcessor.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\SqlStatementInfo.cs" Link="Includes\SqlStatementInfo.cs" />
   </ItemGroup>
