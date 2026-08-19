@@ -127,6 +127,26 @@ public class EventCountersMetricsTests
         Assert.Equal("Use the `OpenTelemetry.Instrumentation.Runtime` or `OpenTelemetry.Instrumentation.Process` instrumentations.", ex.Message);
     }
 
+    [Fact]
+    public void AddEventSourcesThrowsForNull()
+    {
+        var options = new EventCountersInstrumentationOptions();
+
+        var ex = Assert.Throws<ArgumentNullException>(() => options.AddEventSources(null!));
+
+        Assert.Equal("names", ex.ParamName);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void RefreshIntervalSecsMustBePositive(int value)
+    {
+        var options = new EventCountersInstrumentationOptions();
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => options.RefreshIntervalSecs = value);
+    }
+
     [Theory]
     [InlineData("Microsoft-AspNetCore-Server-Kestrel-1", "tls-handshakes-per-second", "ec.Microsoft-AspNetCore-Server-Kestre.tls-handshakes-per-second")]
     [InlineData("Microsoft-AspNetCore-Server-Kestrel-1", "tls-handshakes-per-sec", "ec.Microsoft-AspNetCore-Server-Kestrel-1.tls-handshakes-per-sec")]
