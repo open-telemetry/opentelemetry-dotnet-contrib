@@ -179,32 +179,38 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
             {
                 var shouldSummarize = this.TraceOptions.RecordQuerySummary || this.MeterOptions.RecordQuerySummary;
                 var shouldSanitize = this.TraceOptions.RecordQueryText || this.MeterOptions.RecordQueryText;
-                var info = KustoProcessor.Process(shouldSummarize, shouldSanitize, result.QueryText.ToString());
 
-                if (!string.IsNullOrEmpty(info.Sanitized))
+                // Avoid materializing the (potentially large) query text into a string when
+                // neither summarization nor sanitization is enabled for traces or metrics.
+                if (shouldSummarize || shouldSanitize)
                 {
-                    if (this.TraceOptions.RecordQueryText)
+                    var info = KustoProcessor.Process(shouldSummarize, shouldSanitize, result.QueryText.ToString());
+
+                    if (!string.IsNullOrEmpty(info.Sanitized))
                     {
-                        activity?.AddTag(SemanticConventions.AttributeDbQueryText, info.Sanitized);
+                        if (this.TraceOptions.RecordQueryText)
+                        {
+                            activity?.AddTag(SemanticConventions.AttributeDbQueryText, info.Sanitized);
+                        }
+
+                        if (this.MeterOptions.RecordQueryText)
+                        {
+                            context.AddMeterTag(SemanticConventions.AttributeDbQueryText, info.Sanitized);
+                        }
                     }
 
-                    if (this.MeterOptions.RecordQueryText)
+                    if (info.Summarized is { Length: > 0 } summarized)
                     {
-                        context.AddMeterTag(SemanticConventions.AttributeDbQueryText, info.Sanitized);
-                    }
-                }
+                        if (this.TraceOptions.RecordQuerySummary)
+                        {
+                            activity?.AddTag(SemanticConventions.AttributeDbQuerySummary, summarized);
+                            activity?.DisplayName = summarized;
+                        }
 
-                if (info.Summarized is { Length: > 0 } summarized)
-                {
-                    if (this.TraceOptions.RecordQuerySummary)
-                    {
-                        activity?.AddTag(SemanticConventions.AttributeDbQuerySummary, summarized);
-                        activity?.DisplayName = summarized;
-                    }
-
-                    if (this.MeterOptions.RecordQuerySummary)
-                    {
-                        context.AddMeterTag(SemanticConventions.AttributeDbQuerySummary, summarized);
+                        if (this.MeterOptions.RecordQuerySummary)
+                        {
+                            context.AddMeterTag(SemanticConventions.AttributeDbQuerySummary, summarized);
+                        }
                     }
                 }
             }
