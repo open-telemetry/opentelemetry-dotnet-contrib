@@ -13,8 +13,7 @@ namespace OpenTelemetry.DynamicControl.Internal.Sources;
 internal enum PolicySourceKind
 {
     /// <summary>
-    /// The kind is unspecified. This is the <see langword="default"/> value and is not a
-    /// valid kind for a configured source.
+    /// The kind is unspecified. This is not a valid kind for a configured source.
     /// </summary>
     Unknown = 0,
 
@@ -27,4 +26,15 @@ internal enum PolicySourceKind
     /// The source receives policies over OpAMP.
     /// </summary>
     OpAmp = 2,
+
+    /// <summary>
+    /// The source receives policies over HTTP.
+    /// </summary>
+    Http = 3,
+
+    /// <summary>
+    /// The source is a user-defined or third-party provider not covered by the
+    /// other named kinds.
+    /// </summary>
+    Custom = 4,
 }

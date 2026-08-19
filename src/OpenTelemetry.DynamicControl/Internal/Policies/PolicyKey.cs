@@ -101,11 +101,17 @@ internal readonly struct PolicyKey : IEquatable<PolicyKey>
     /// <inheritdoc/>
     public override int GetHashCode()
     {
+#if NET || NETSTANDARD2_1_OR_GREATER
+        return HashCode.Combine(
+            StringComparer.Ordinal.GetHashCode(this.PolicyType),
+            StringComparer.Ordinal.GetHashCode(this.PolicyId));
+#else
         unchecked
         {
             var hash = (17 * 31) + StringComparer.Ordinal.GetHashCode(this.PolicyType);
             return (hash * 31) + StringComparer.Ordinal.GetHashCode(this.PolicyId);
         }
+#endif
     }
 
     /// <summary>

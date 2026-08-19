@@ -35,26 +35,21 @@ internal readonly struct PolicySourceMetadata : IEquatable<PolicySourceMetadata>
     /// non-negative.
     /// </param>
     /// <exception cref="ArgumentException">
-    /// Thrown when <paramref name="registrationId"/> is <see langword="default"/>, or when
-    /// <paramref name="kind"/> is <see cref="PolicySourceKind.Unknown"/>.
+    /// Thrown when <paramref name="registrationId"/> is <see langword="default"/>.
     /// </exception>
     /// <exception cref="ArgumentOutOfRangeException">
-    /// Thrown when <paramref name="priority"/> is negative.
+    /// Thrown when <paramref name="kind"/> is <see cref="PolicySourceKind.Unknown"/> or is
+    /// not a defined <see cref="PolicySourceKind"/> value, or when <paramref name="priority"/>
+    /// is negative.
     /// </exception>
     public PolicySourceMetadata(
         SourceRegistrationId registrationId,
         PolicySourceKind kind,
         int priority = DefaultPriority)
     {
-        if (registrationId == default)
-        {
-            throw new ArgumentException("The source registration ID is required.", nameof(registrationId));
-        }
+        Guard.ThrowIfDefault(registrationId);
 
-        if (kind == PolicySourceKind.Unknown)
-        {
-            throw new ArgumentException("The source kind is required.", nameof(kind));
-        }
+        Guard.ThrowIfUndefinedOrDefault(kind);
 
         Guard.ThrowIfNegative(
             priority,
@@ -119,12 +114,16 @@ internal readonly struct PolicySourceMetadata : IEquatable<PolicySourceMetadata>
     /// <inheritdoc/>
     public override int GetHashCode()
     {
+#if NET || NETSTANDARD2_1_OR_GREATER
+        return HashCode.Combine(this.RegistrationId, this.Kind, this.Priority);
+#else
         unchecked
         {
             var hash = (17 * 31) + this.RegistrationId.GetHashCode();
             hash = (hash * 31) + (int)this.Kind;
             return (hash * 31) + this.Priority;
         }
+#endif
     }
 
     /// <summary>

@@ -33,11 +33,13 @@ public class PolicySourceMetadataTests
             "registrationId",
             () => _ = new PolicySourceMetadata(default, PolicySourceKind.OpAmp));
 
-    [Fact]
-    public void Constructor_WithUnknownKind_Throws() =>
-        Assert.Throws<ArgumentException>(
+    [Theory]
+    [InlineData(0)] // The zero/default sentinel
+    [InlineData(99)] // undefined integer cast
+    public void Constructor_WithInvalidKind_Throws(int kindValue) =>
+        Assert.Throws<ArgumentOutOfRangeException>(
             "kind",
-            () => _ = new PolicySourceMetadata(new SourceRegistrationId("opamp-1"), PolicySourceKind.Unknown));
+            () => _ = new PolicySourceMetadata(new SourceRegistrationId("opamp-1"), (PolicySourceKind)kindValue));
 
     [Theory]
     [InlineData(0)]
