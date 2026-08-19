@@ -199,6 +199,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
                 Assert.Equal(requestUri.Host, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeServerAddress).Value);
                 Assert.Equal(requestUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeServerPort).Value);
                 Assert.Equal("GET", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpRequestMethod).Value);
+                Assert.Equal("1.1", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeNetworkProtocolVersion).Value);
                 Assert.Equal(requestUri.AbsolutePath, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeUrlPath).Value);
                 Assert.Equal(generateRemoteException ? 500 : 200, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpResponseStatusCode).Value);
                 Assert.Equal("company.client/1.2.3", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeUserAgentOriginal).Value);
