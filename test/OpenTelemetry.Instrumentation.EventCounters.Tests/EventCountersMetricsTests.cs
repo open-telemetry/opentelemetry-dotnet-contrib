@@ -132,9 +132,7 @@ public class EventCountersMetricsTests
     {
         var options = new EventCountersInstrumentationOptions();
 
-        var ex = Assert.Throws<ArgumentNullException>(() => options.AddEventSources(null!));
-
-        Assert.Equal("names", ex.ParamName);
+        Assert.Throws<ArgumentNullException>("names", () => options.AddEventSources(null!));
     }
 
     [Theory]
