@@ -79,13 +79,18 @@ internal sealed class OpAmpPipe : IDisposable
 
     public void AppendMessage(Action<IFrameBuilder> messageRequest)
     {
+        if (this.tokenSource.IsCancellationRequested)
+        {
+            return;
+        }
+
         lock (this.frameLock)
         {
             messageRequest(this.currentFrame);
             this.hasAccumulatedData = true;
         }
 
-        this.TryFlush();
+        this.TryFlush(this.tokenSource.Token);
     }
 
     public Task FlushAsync(CancellationToken token = default)
@@ -94,7 +99,7 @@ internal sealed class OpAmpPipe : IDisposable
 
         lock (this.frameLock)
         {
-            this.TryStartFlushLocked();
+            this.TryStartFlushLocked(token);
 
             if (this.IsFlushCompleteLocked())
             {
@@ -160,11 +165,11 @@ internal sealed class OpAmpPipe : IDisposable
         await flushTask.ConfigureAwait(false);
     }
 
-    private void TryFlush()
+    private void TryFlush(CancellationToken token)
     {
         lock (this.frameLock)
         {
-            this.TryStartFlushLocked();
+            this.TryStartFlushLocked(token);
             this.TryCompleteFlushLocked();
         }
     }
@@ -172,7 +177,7 @@ internal sealed class OpAmpPipe : IDisposable
     private bool IsFlushCompleteLocked()
         => this.isDisposed || (!this.hasAccumulatedData && !this.isBusy);
 
-    private Task? TryStartFlushLocked()
+    private Task? TryStartFlushLocked(CancellationToken token)
     {
         if (this.isDisposed || !this.hasAccumulatedData)
         {
@@ -189,7 +194,7 @@ internal sealed class OpAmpPipe : IDisposable
         var message = this.currentFrame.Build();
         this.hasAccumulatedData = false;
 
-        this.flushTask = this.SendMessageAsync(message);
+        this.flushTask = this.SendMessageAsync(message, token);
 
         return this.flushTask;
     }
@@ -203,13 +208,13 @@ internal sealed class OpAmpPipe : IDisposable
         }
     }
 
-    private async Task SendMessageAsync(AgentToServer message)
+    private async Task SendMessageAsync(AgentToServer message, CancellationToken token)
     {
         try
         {
             OpAmpClientEventSource.Log.SendingMessage();
 
-            await this.transport.SendAsync(message, this.tokenSource.Token)
+            await this.transport.SendAsync(message, token)
                 .ConfigureAwait(false);
         }
         catch (Exception ex)
@@ -220,7 +225,7 @@ internal sealed class OpAmpPipe : IDisposable
             }
 
             OpAmpClientEventSource.Log.SendMessageException(ex);
-            this.TryFlush();
+            this.TryFlush(token);
         }
     }
 
@@ -231,7 +236,7 @@ internal sealed class OpAmpPipe : IDisposable
             this.isBusy = false;
         }
 
-        this.TryFlush();
+        this.TryFlush(this.tokenSource.Token);
     }
 
     private sealed class ServerFrameHandler : IOpAmpListener<ServerToAgentMessage>
