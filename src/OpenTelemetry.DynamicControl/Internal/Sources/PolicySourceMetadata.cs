@@ -20,7 +20,7 @@ internal readonly struct PolicySourceMetadata : IEquatable<PolicySourceMetadata>
     /// <summary>
     /// Initializes a new instance of the <see cref="PolicySourceMetadata"/> struct.
     /// </summary>
-    /// <param name="registrationId">The identity of the configured source. Must not be <see cref="SourceRegistrationId.None"/>.</param>
+    /// <param name="registrationId">The identity of the configured source. Must not be <see cref="SourceRegistrationId.Empty"/>.</param>
     /// <param name="kind">The kind of source. Must not be <see cref="PolicySourceKind.Unknown"/>.</param>
     /// <param name="priority">
     /// The aggregation precedence. Lower values win, matching the provider-priority
@@ -28,7 +28,7 @@ internal readonly struct PolicySourceMetadata : IEquatable<PolicySourceMetadata>
     /// non-negative.
     /// </param>
     /// <exception cref="ArgumentException">
-    /// Thrown when <paramref name="registrationId"/> is <see cref="SourceRegistrationId.None"/>.
+    /// Thrown when <paramref name="registrationId"/> is <see cref="SourceRegistrationId.Empty"/>.
     /// </exception>
     /// <exception cref="ArgumentOutOfRangeException">
     /// Thrown when <paramref name="kind"/> is <see cref="PolicySourceKind.Unknown"/> or is

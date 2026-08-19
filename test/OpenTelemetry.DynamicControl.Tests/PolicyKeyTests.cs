@@ -103,7 +103,7 @@ public class PolicyKeyTests
         Assert.Equal(string.Empty, key.PolicyType);
         Assert.Equal(string.Empty, key.PolicyId);
         Assert.Equal(default, key);
-        Assert.Equal(PolicyKey.None, key);
+        Assert.Equal(PolicyKey.Empty, key);
         Assert.Equal(default(PolicyKey).GetHashCode(), key.GetHashCode());
         Assert.NotEqual(new PolicyKey("trace-sampling", "policy-id"), key);
     }

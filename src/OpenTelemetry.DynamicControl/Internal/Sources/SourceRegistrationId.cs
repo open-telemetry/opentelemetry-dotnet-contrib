@@ -16,10 +16,10 @@ namespace OpenTelemetry.DynamicControl.Internal.Sources;
 internal readonly struct SourceRegistrationId : IEquatable<SourceRegistrationId>
 {
     /// <summary>
-    /// A read-only instance of the <see cref="SourceRegistrationId"/> structure whose values
-    /// are all <see langword="default"/>.
+    /// A read-only instance of the <see cref="SourceRegistrationId"/> structure whose field
+    /// values are all <see langword="default"/>.
     /// </summary>
-    public static readonly SourceRegistrationId None;
+    public static readonly SourceRegistrationId Empty;
 
     private readonly string? value;
 

@@ -17,10 +17,10 @@ namespace OpenTelemetry.DynamicControl.Internal.Policies;
 internal readonly struct PolicyKey : IEquatable<PolicyKey>
 {
     /// <summary>
-    /// A read-only instance of the <see cref="PolicyKey"/> structure whose values
+    /// A read-only instance of the <see cref="PolicyKey"/> structure whose field values
     /// are all <see langword="default"/>.
     /// </summary>
-    public static readonly PolicyKey None;
+    public static readonly PolicyKey Empty;
 
     private readonly string? policyType;
     private readonly string? policyId;

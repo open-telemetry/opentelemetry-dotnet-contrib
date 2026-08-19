@@ -31,7 +31,7 @@ public class PolicySourceMetadataTests
     public void Constructor_WithDefaultRegistrationId_Throws() =>
         Assert.Throws<ArgumentException>(
             "registrationId",
-            () => _ = new PolicySourceMetadata(SourceRegistrationId.None, PolicySourceKind.OpAmp));
+            () => _ = new PolicySourceMetadata(SourceRegistrationId.Empty, PolicySourceKind.OpAmp));
 
     [Theory]
     [InlineData(0)] // The zero/default sentinel
@@ -131,7 +131,7 @@ public class PolicySourceMetadataTests
         var metadata = default(PolicySourceMetadata);
 
         Assert.Equal(default, metadata.RegistrationId);
-        Assert.Equal(SourceRegistrationId.None, metadata.RegistrationId);
+        Assert.Equal(SourceRegistrationId.Empty, metadata.RegistrationId);
         Assert.Equal(PolicySourceKind.Unknown, metadata.Kind);
         Assert.Equal(0, metadata.Priority);
         Assert.Equal(default(PolicySourceMetadata).GetHashCode(), metadata.GetHashCode());

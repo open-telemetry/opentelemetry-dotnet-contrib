@@ -73,7 +73,7 @@ public class SourceRegistrationIdTests
 
         Assert.Equal(string.Empty, id.Value);
         Assert.Equal(default, id);
-        Assert.Equal(SourceRegistrationId.None, id);
+        Assert.Equal(SourceRegistrationId.Empty, id);
         Assert.Equal(default(SourceRegistrationId).GetHashCode(), id.GetHashCode());
         Assert.NotEqual(new SourceRegistrationId("opamp-1"), id);
     }
