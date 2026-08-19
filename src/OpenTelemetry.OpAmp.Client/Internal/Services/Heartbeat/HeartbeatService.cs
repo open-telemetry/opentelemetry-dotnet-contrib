@@ -108,6 +108,11 @@ internal sealed class HeartbeatService : IBackgroundService, IOpAmpListener<Conn
 
     private async Task HeartbeatTickAsync()
     {
+        if (this.cts.IsCancellationRequested)
+        {
+            return;
+        }
+
         try
         {
             var report = this.CreateHealthReport();
