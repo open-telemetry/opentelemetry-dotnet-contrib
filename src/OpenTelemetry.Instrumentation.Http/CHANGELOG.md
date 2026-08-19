@@ -6,6 +6,11 @@
   enabled and a filtered request is redirected on .NET Framework.
   ([#4917](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4917))
 
+* Preserve the original request start timestamp when recording
+  `http.client.request.duration` for asynchronous .NET Framework
+  `HttpWebRequest` calls.
+  ([#5000](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5000))
+
 ## 1.17.0
 
 Released 2026-Jul-17

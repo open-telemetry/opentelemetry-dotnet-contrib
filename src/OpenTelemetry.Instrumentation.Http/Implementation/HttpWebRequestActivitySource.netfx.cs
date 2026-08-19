@@ -267,7 +267,7 @@ internal static class HttpWebRequestActivitySource
         }
 
         // Hook into the result callback if it hasn't already fired.
-        var callback = new AsyncCallbackWrapper(writeAsyncContextCallback.Request, writeAsyncContextCallback.Activity, reflection.AsyncCallbackAccessor(readAsyncContext), Stopwatch.GetTimestamp());
+        var callback = new AsyncCallbackWrapper(writeAsyncContextCallback.Request, writeAsyncContextCallback.Activity, reflection.AsyncCallbackAccessor(readAsyncContext), writeAsyncContextCallback.StartTimestamp);
         reflection.AsyncCallbackModifier(readAsyncContext, callback.AsyncCallback);
     }
 
