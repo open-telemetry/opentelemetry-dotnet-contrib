@@ -14,7 +14,17 @@ public class EventCountersInstrumentationOptions
     /// Gets or sets the subscription interval in seconds for reading values
     /// from the configured EventCounters.
     /// </summary>
-    public int RefreshIntervalSecs { get; set; } = 1;
+    public int RefreshIntervalSecs
+    {
+        get;
+        set
+        {
+            Guard.ThrowIfOutOfRange(value, min: 1);
+            field = value;
+        }
+#pragma warning disable SA1500, SA1513
+    } = 1;
+#pragma warning restore SA1500, SA1513
 
     /// <summary>
     /// Listens to EventCounters from the given EventSource name.
