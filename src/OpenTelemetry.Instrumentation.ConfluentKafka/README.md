@@ -80,7 +80,7 @@ and consumers, allowing you to collect and export telemetry data.
 ## Metrics
 
 The instrumentation is implemented based on the [messaging metrics semantic
-conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.43.0/docs/messaging/messaging-metrics.md).
+conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.44.0/docs/messaging/messaging-metrics.md).
 The following metrics are produced:
 
 | Name | Instrument Type | Unit | Description | Attributes |

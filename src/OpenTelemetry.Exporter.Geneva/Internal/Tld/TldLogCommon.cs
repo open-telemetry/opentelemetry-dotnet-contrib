@@ -243,7 +243,7 @@ internal abstract class TldLogCommon : IDisposable
 
         // The first character must already be an upper-case letter (a lower-case
         // first character would be up-cased by sanitization, changing the string).
-        if (categoryName[0] is not (>= 'A' and <= 'Z'))
+        if (!char.IsAsciiLetterUpper(categoryName[0]))
         {
             return false;
         }
@@ -253,8 +253,7 @@ internal abstract class TldLogCommon : IDisposable
 #else
         for (var i = 1; i < length; i++)
         {
-            var cur = categoryName[i];
-            if (cur is not ((>= 'a' and <= 'z') or (>= 'A' and <= 'Z') or (>= '0' and <= '9')))
+            if (!char.IsAsciiLetterOrDigit(categoryName[i]))
             {
                 return false;
             }
@@ -271,12 +270,12 @@ internal abstract class TldLogCommon : IDisposable
 
         // Special treatment for the first character.
         var firstChar = categoryName[0];
-        if (firstChar is >= 'A' and <= 'Z')
+        if (char.IsAsciiLetterUpper(firstChar))
         {
             result[0] = firstChar;
             ++validNameLength;
         }
-        else if (firstChar is >= 'a' and <= 'z')
+        else if (char.IsAsciiLetterLower(firstChar))
         {
             // If the first character in the resulting string is a lower-case alphabet,
             // it will be converted to the corresponding upper-case.
@@ -297,7 +296,7 @@ internal abstract class TldLogCommon : IDisposable
             }
 
             var cur = categoryName[i];
-            if (cur is (>= 'a' and <= 'z') or (>= 'A' and <= 'Z') or (>= '0' and <= '9'))
+            if (char.IsAsciiLetterOrDigit(cur))
             {
                 result[validNameLength] = cur;
                 ++validNameLength;
