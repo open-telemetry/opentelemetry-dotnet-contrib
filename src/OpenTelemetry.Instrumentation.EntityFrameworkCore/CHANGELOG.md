@@ -14,7 +14,7 @@
 * Fixed query sanitization so that backslash-escaped quotes (`'a\'b'`) in
   MySQL/MariaDB string literals and PostgreSQL dollar-quoted strings
   (`$$...$$`) are correctly redacted.
-  ([#4985](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4985))
+  ([#4986](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4986))
 
 ## 1.17.0-beta.1
 

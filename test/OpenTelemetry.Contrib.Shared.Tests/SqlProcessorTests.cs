@@ -198,6 +198,19 @@ public class SqlProcessorTests
     }
 
     [Fact]
+    public void GetSanitizedSql_UnterminatedDollarQuotedString_SanitizesLiteral()
+    {
+        var sql = "SELECT * FROM t WHERE c = $$secret-name";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.Equal("SELECT * FROM t WHERE c = ?", sqlStatementInfo.SanitizedSql);
+    }
+
+    [Fact]
     public void GetSanitizedSql_DoubleQuotedString_IsPreservedAsIdentifier()
     {
         var sql = "SELECT * FROM t WHERE c = \"identifier_or_mysql_string\"";

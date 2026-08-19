@@ -159,11 +159,11 @@ internal static class SqlProcessor
     /// </param>
     /// <returns>The sanitized SQL and query summary.</returns>
     public static SqlStatementInfo GetSanitizedSql(string? sql, bool useBackslashEscapes = false) =>
-        sql != null
-        ? useBackslashEscapes
+        sql == null
+        ? default
+        : useBackslashEscapes
         ? GetSanitizedSql(sql, BackslashEscapeCache, ref approxBackslashEscapeCacheCount, useBackslashEscapes: true)
-        : GetSanitizedSql(sql, Cache, ref approxCacheCount, useBackslashEscapes: false)
-        : default;
+        : GetSanitizedSql(sql, Cache, ref approxCacheCount, useBackslashEscapes: false);
 
     private static SqlStatementInfo GetSanitizedSql(
         string sql,
@@ -881,7 +881,9 @@ internal static class SqlProcessor
         var closeOffset = sql.Slice(bodyStart).IndexOf(delimiter);
         if (closeOffset < 0)
         {
-            return false;
+            state.ParsePosition = sql.Length;
+            buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
+            return true;
         }
 
         state.ParsePosition = bodyStart + closeOffset + delimiter.Length;

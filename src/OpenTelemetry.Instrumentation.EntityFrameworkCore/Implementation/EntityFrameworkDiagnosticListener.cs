@@ -381,6 +381,11 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
         // string-literal escape character unless the NO_BACKSLASH_ESCAPES SQL mode
         // is enabled. The other supported engines follow the SQL standard where
         // only a doubled quote ('') escapes a quote.
+        //
+        // This assumes the default (NO_BACKSLASH_ESCAPES disabled) behaviour: there is
+        // no way to detect the session SQL mode from the provider/command name alone,
+        // so if an application has enabled NO_BACKSLASH_ESCAPES the sanitizer will still
+        // treat '\' as an escape character for that connection.
         (_, var dbSystemName) = GetDbSystemNames(providerOrCommandName);
         return dbSystemName == DbSystemNames.Mysql;
     }
