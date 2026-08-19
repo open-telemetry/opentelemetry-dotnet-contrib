@@ -31,7 +31,9 @@ public class SourceRegistrationIdTests
         Assert.True(left.Equals(right), "Typed Equals should be true");
         Assert.True(left.Equals((object)right), "Object Equals should be true");
         Assert.True(left == right, "Equals (==) operator should be true");
+        Assert.True(right == left, "Equals (==) operator should be true for swapped operands");
         Assert.False(left != right, "Not equals (!=) operator should be false");
+        Assert.False(right != left, "Not equals (!=) operator should be false for swapped operands");
         Assert.Equal(left.GetHashCode(), right.GetHashCode());
     }
 
@@ -71,6 +73,7 @@ public class SourceRegistrationIdTests
 
         Assert.Equal(string.Empty, id.Value);
         Assert.Equal(default, id);
+        Assert.Equal(SourceRegistrationId.None, id);
         Assert.Equal(default(SourceRegistrationId).GetHashCode(), id.GetHashCode());
         Assert.NotEqual(new SourceRegistrationId("opamp-1"), id);
     }

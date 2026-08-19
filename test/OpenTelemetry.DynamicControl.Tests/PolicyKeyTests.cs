@@ -38,8 +38,10 @@ public class PolicyKeyTests
 
         Assert.True(left.Equals(right), "Typed Equals should be true");
         Assert.True(left.Equals((object)right), "Object Equals should be true");
-        Assert.True(left == right, "Equals (==) operator should be true");
-        Assert.False(left != right, "Not equals (!=) operator should be false");
+        Assert.True(left == right, "== operator should be true");
+        Assert.True(right == left, "== operator should be symmetric");
+        Assert.False(left != right, "!= operator should be false");
+        Assert.False(right != left, "!= operator should be symmetric");
         Assert.Equal(left.GetHashCode(), right.GetHashCode());
     }
 
@@ -101,6 +103,7 @@ public class PolicyKeyTests
         Assert.Equal(string.Empty, key.PolicyType);
         Assert.Equal(string.Empty, key.PolicyId);
         Assert.Equal(default, key);
+        Assert.Equal(PolicyKey.None, key);
         Assert.Equal(default(PolicyKey).GetHashCode(), key.GetHashCode());
         Assert.NotEqual(new PolicyKey("trace-sampling", "policy-id"), key);
     }

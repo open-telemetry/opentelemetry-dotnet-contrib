@@ -15,6 +15,12 @@ namespace OpenTelemetry.DynamicControl.Internal.Sources;
 /// </remarks>
 internal readonly struct SourceRegistrationId : IEquatable<SourceRegistrationId>
 {
+    /// <summary>
+    /// A read-only instance of the <see cref="SourceRegistrationId"/> structure whose values
+    /// are all <see langword="default"/>.
+    /// </summary>
+    public static readonly SourceRegistrationId None;
+
     private readonly string? value;
 
     /// <summary>
@@ -34,10 +40,6 @@ internal readonly struct SourceRegistrationId : IEquatable<SourceRegistrationId>
     /// <summary>
     /// Gets the opaque registration value.
     /// </summary>
-    /// <remarks>
-    /// The constructor rejects a blank value. <see langword="default"/> instances bypass
-    /// every constructor, so they report an empty value rather than <see langword="null"/>.
-    /// </remarks>
     public string Value => this.value ?? string.Empty;
 
     /// <summary>

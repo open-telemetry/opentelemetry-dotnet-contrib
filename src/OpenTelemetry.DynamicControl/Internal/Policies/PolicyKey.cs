@@ -16,6 +16,12 @@ namespace OpenTelemetry.DynamicControl.Internal.Policies;
 /// </remarks>
 internal readonly struct PolicyKey : IEquatable<PolicyKey>
 {
+    /// <summary>
+    /// A read-only instance of the <see cref="PolicyKey"/> structure whose values
+    /// are all <see langword="default"/>.
+    /// </summary>
+    public static readonly PolicyKey None;
+
     private readonly string? policyType;
     private readonly string? policyId;
 
@@ -37,20 +43,11 @@ internal readonly struct PolicyKey : IEquatable<PolicyKey>
     /// <summary>
     /// Gets the policy type discriminator (e.g. <c>trace-sampling</c>).
     /// </summary>
-    /// <remarks>
-    /// The constructor rejects a blank type. <see langword="default"/> instances bypass
-    /// every constructor, so they report an empty value rather than <see langword="null"/>.
-    /// </remarks>
     public string PolicyType => this.policyType ?? string.Empty;
 
     /// <summary>
     /// Gets the opaque, provider-assigned policy identifier.
     /// </summary>
-    /// <remarks>
-    /// The constructor rejects a blank identifier. <see langword="default"/> instances
-    /// bypass every constructor, so they report an empty value rather than
-    /// <see langword="null"/>.
-    /// </remarks>
     public string PolicyId => this.policyId ?? string.Empty;
 
     /// <summary>

@@ -24,14 +24,14 @@ public class PolicySourceMetadataTests
     {
         var metadata = new PolicySourceMetadata(new SourceRegistrationId("file-1"), PolicySourceKind.File);
 
-        Assert.Equal(PolicySourceMetadata.DefaultPriority, metadata.Priority);
+        Assert.Equal(int.MaxValue, metadata.Priority);
     }
 
     [Fact]
     public void Constructor_WithDefaultRegistrationId_Throws() =>
         Assert.Throws<ArgumentException>(
             "registrationId",
-            () => _ = new PolicySourceMetadata(default, PolicySourceKind.OpAmp));
+            () => _ = new PolicySourceMetadata(SourceRegistrationId.None, PolicySourceKind.OpAmp));
 
     [Theory]
     [InlineData(0)] // The zero/default sentinel
@@ -69,7 +69,9 @@ public class PolicySourceMetadataTests
         Assert.True(left.Equals(right), "Typed Equals should be true");
         Assert.True(left.Equals((object)right), "Object Equals should be true");
         Assert.True(left == right, "Equals (==) operator should be true");
+        Assert.True(right == left, "Equals (==) operator should be true for swapped operands");
         Assert.False(left != right, "Not equals (!=) operator should be false");
+        Assert.False(right != left, "Not equals (!=) operator should be false for swapped operands");
         Assert.Equal(left.GetHashCode(), right.GetHashCode());
     }
 
@@ -126,12 +128,10 @@ public class PolicySourceMetadataTests
     [Fact]
     public void Default_HasEmptyRegistrationIdUnknownKindAndZeroPriority()
     {
-        // default(PolicySourceMetadata) bypasses the constructor, so Priority is the
-        // zero-initialized struct value, not the DefaultPriority constant applied when a
-        // constructor call omits the priority argument.
         var metadata = default(PolicySourceMetadata);
 
         Assert.Equal(default, metadata.RegistrationId);
+        Assert.Equal(SourceRegistrationId.None, metadata.RegistrationId);
         Assert.Equal(PolicySourceKind.Unknown, metadata.Kind);
         Assert.Equal(0, metadata.Priority);
         Assert.Equal(default(PolicySourceMetadata).GetHashCode(), metadata.GetHashCode());

@@ -11,23 +11,16 @@ namespace OpenTelemetry.DynamicControl.Internal.Sources;
 /// </summary>
 internal readonly struct PolicySourceMetadata : IEquatable<PolicySourceMetadata>
 {
-    /// <summary>
-    /// The precedence applied to a source that does not specify one.
-    /// </summary>
-    /// <remarks>
-    /// Because a lower value wins, the default is the lowest possible precedence
-    /// (<see cref="int.MaxValue"/>) rather than zero. A source that does not opt into
-    /// explicit ordering must not automatically outrank one that does. This constant only
-    /// applies when a constructor call omits the priority argument; a
-    /// <see langword="default"/> instance bypasses the constructor entirely and reports a
-    /// <see cref="Priority"/> of zero instead. See <see cref="Priority"/> for details.
-    /// </remarks>
-    public const int DefaultPriority = int.MaxValue;
+    // The precedence applied to a source that does not specify one.
+    // Lower values represent higher precedence, so a source that does not opt into
+    // explicit ordering is assigned the numerically highest value,
+    // ensuring it cannot outrank any explicitly prioritized source.
+    private const int DefaultPriority = int.MaxValue;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PolicySourceMetadata"/> struct.
     /// </summary>
-    /// <param name="registrationId">The identity of the configured source. Must not be <see langword="default"/>.</param>
+    /// <param name="registrationId">The identity of the configured source. Must not be <see cref="SourceRegistrationId.None"/>.</param>
     /// <param name="kind">The kind of source. Must not be <see cref="PolicySourceKind.Unknown"/>.</param>
     /// <param name="priority">
     /// The aggregation precedence. Lower values win, matching the provider-priority
@@ -35,7 +28,7 @@ internal readonly struct PolicySourceMetadata : IEquatable<PolicySourceMetadata>
     /// non-negative.
     /// </param>
     /// <exception cref="ArgumentException">
-    /// Thrown when <paramref name="registrationId"/> is <see langword="default"/>.
+    /// Thrown when <paramref name="registrationId"/> is <see cref="SourceRegistrationId.None"/>.
     /// </exception>
     /// <exception cref="ArgumentOutOfRangeException">
     /// Thrown when <paramref name="kind"/> is <see cref="PolicySourceKind.Unknown"/> or is
@@ -78,10 +71,7 @@ internal readonly struct PolicySourceMetadata : IEquatable<PolicySourceMetadata>
     /// A lower value takes precedence over a higher one, matching the provider-priority
     /// convention from the Telemetry Policy OTEP (e.g. OpAmp=1, Http=2, File=3). Aggregation
     /// resolves equal priorities deterministically rather than by update order; those rules
-    /// are defined with aggregation itself, not here. A constructor call that omits the
-    /// priority argument reports <see cref="DefaultPriority"/>; a <see langword="default"/>
-    /// instance bypasses every constructor, so it reports zero instead, the same as any
-    /// other field on a zero-initialized struct.
+    /// are defined with aggregation itself, not here.
     /// </remarks>
     public int Priority { get; }
 
