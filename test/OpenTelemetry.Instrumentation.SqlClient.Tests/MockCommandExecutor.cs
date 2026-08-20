@@ -21,7 +21,7 @@ public class MockCommandExecutor
             ["SelectRows"] = selectRows ?? 0L,
             ["IduRows"] = iduRows ?? 0L,
         };
-        ExecuteCommand(connectionString, commandType, commandText, error, library, (IDictionary?)statistics);
+        ExecuteCommand(connectionString, commandType, commandText, error, library, statistics);
     }
 
     public static void ExecuteCommand(IDbCommand command, SqlClientLibrary library, IDictionary? statistics)
