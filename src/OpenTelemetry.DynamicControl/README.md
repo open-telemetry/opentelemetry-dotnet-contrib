@@ -15,37 +15,31 @@
 
 ## Introduction
 
-Dynamic Control for OpenTelemetry .NET is a library that provides the ability to
-dynamically control the behavior of some specific features of the OpenTelemetry
-SDK and instrumentation at runtime.
+Dynamic Control for OpenTelemetry .NET is an experimental implementation of
+runtime control based on telemetry policies. It is intended to help validate the
+emerging OpenTelemetry design and is expected to evolve as that design matures.
 
 Current plans and progress are tracked in this
-[meta issue](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/4742)
+[meta issue](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/4742).
 
-## Telemetry Policy
+## Current status
 
-Dynamic control is implemented using
-[Telemetry Policy OTEP](https://github.com/open-telemetry/opentelemetry-specification/blob/main/oteps/4738-telemetry-policy.md)
-which is still being developed and is subject to change. An abstract outline of
-dynamic control using telemetry policies is that there is a flow consisting of:
+The package currently contains only an internal trace sampling-rate policy model
+and its validation. It does not yet provide public configuration APIs, policy
+sources, runtime policy application, or a usable dynamic sampler.
 
-```text
-Message -> Provider -> Policy -> Policy Aggregator -> Implementer
-```
+The intended architecture is being developed incrementally:
 
 ```mermaid
 flowchart LR
-    Message --> Provider --> Policy --> PolicyAggregator[Policy Aggregator] --> Implementer
+    Source --> Provider --> PolicyStore[Policy Store] --> Aggregator --> Implementer
 ```
 
-## Steps to use OpenTelemetry.DynamicControl
-
-TODO
-
-## Supported Features
-
-TODO
+The current sampling-rate model is deliberately a small Java-parity proof of
+concept. It must not be interpreted as the final OpenTelemetry trace policy
+shape described by the Telemetry Policy OTEP.
 
 ## References
 
 * [Telemetry Policy OTEP](https://github.com/open-telemetry/opentelemetry-specification/blob/main/oteps/4738-telemetry-policy.md)
+* [OpenTelemetry Java Contrib dynamic control](https://github.com/open-telemetry/opentelemetry-java-contrib/tree/main/dynamic-control)
