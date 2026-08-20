@@ -7,21 +7,21 @@ namespace OpenTelemetry.DynamicControl.Tests;
 
 public class TraceSamplingRatePolicyTests
 {
-    public static TheoryData<double> ValidSamplingProbabilities => new()
-    {
+    public static TheoryData<double> ValidSamplingProbabilities =>
+    [
         0,
         0.5,
         1,
-    };
+    ];
 
-    public static TheoryData<double> InvalidSamplingProbabilities => new()
-    {
+    public static TheoryData<double> InvalidSamplingProbabilities =>
+    [
         -double.Epsilon,
         1.0000000000000002,
         double.NaN,
         double.NegativeInfinity,
         double.PositiveInfinity,
-    };
+    ];
 
     [Theory]
     [MemberData(nameof(ValidSamplingProbabilities))]
