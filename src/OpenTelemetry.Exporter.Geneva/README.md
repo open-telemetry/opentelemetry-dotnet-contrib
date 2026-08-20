@@ -372,6 +372,30 @@ the `ConnectionString`.
 Set the exporter's periodic time interval to export Metrics. The default value
 is 60000 milliseconds.
 
+#### `NullDimensionExportMode` (optional)
+
+Controls how metric dimensions whose value is `null` are exported. This applies
+only when OTLP protobuf encoding is enabled; the TLV encoding always exports a
+`null` dimension value as an empty string.
+
+| Value | Behavior |
+| ----- | -------- |
+| `Drop` (default) | The dimension is omitted from the exported data point. |
+| `ExportAsEmptyString` | The dimension is exported with an empty string value, matching the TLV encoding. Geneva Metrics (MDM) records it as `__Empty`. |
+
+Because `Drop` omits the dimension name entirely, any MDM pre-aggregate which
+includes that dimension will not match the emitted time series. Set
+`ExportAsEmptyString` to keep such pre-aggregates working when migrating from
+the TLV encoding to OTLP protobuf encoding:
+
+```csharp
+.AddGenevaMetricExporter(options =>
+{
+    options.ConnectionString = "EnableOtlpProtobufEncoding=true";
+    options.NullDimensionExportMode = NullDimensionExportMode.ExportAsEmptyString;
+})
+```
+
 #### `PrepopulatedMetricDimensions` (optional)
 
 This is a collection of the dimensions that will be applied to _every_ metric

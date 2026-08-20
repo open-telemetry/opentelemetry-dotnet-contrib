@@ -1,0 +1,5 @@
+OpenTelemetry.Exporter.Geneva.GenevaMetricExporterOptions.NullDimensionExportMode.get -> OpenTelemetry.Exporter.Geneva.NullDimensionExportMode
+OpenTelemetry.Exporter.Geneva.GenevaMetricExporterOptions.NullDimensionExportMode.set -> void
+OpenTelemetry.Exporter.Geneva.NullDimensionExportMode
+OpenTelemetry.Exporter.Geneva.NullDimensionExportMode.Drop = 0 -> OpenTelemetry.Exporter.Geneva.NullDimensionExportMode
+OpenTelemetry.Exporter.Geneva.NullDimensionExportMode.ExportAsEmptyString = 1 -> OpenTelemetry.Exporter.Geneva.NullDimensionExportMode

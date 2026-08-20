@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+* Added `NullDimensionExportMode` option to `GenevaMetricExporterOptions` for
+  controlling how metric dimensions with a `null` value are exported when OTLP
+  protobuf encoding is used. The default (`Drop`) keeps the existing behavior of
+  omitting the dimension. Setting `ExportAsEmptyString` exports the dimension
+  with an empty string value, matching the TLV encoding, so that Geneva Metrics
+  (MDM) pre-aggregates which include optional dimensions keep working when
+  migrating from TLV to OTLP protobuf encoding.
+
 ## 1.18.0-beta.1
 
 Released 2026-Aug-10

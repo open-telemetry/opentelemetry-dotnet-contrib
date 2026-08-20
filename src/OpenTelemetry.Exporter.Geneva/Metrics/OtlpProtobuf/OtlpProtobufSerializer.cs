@@ -19,6 +19,7 @@ internal sealed class OtlpProtobufSerializer
     private readonly string? metricNamespace;
     private readonly string? metricAccount;
     private readonly bool prefixBufferWithUInt32LittleEndianLength;
+    private readonly bool exportNullDimensionsAsEmptyString;
     private readonly byte[]? prepopulatedNumberDataPointAttributes;
     private readonly int prepopulatedNumberDataPointAttributesLength;
     private readonly byte[]? prepopulatedHistogramDataPointAttributes;
@@ -42,7 +43,8 @@ internal sealed class OtlpProtobufSerializer
         string? metricsAccount,
         string? metricsNamespace,
         IReadOnlyDictionary<string, object>? prepopulatedMetricDimensions,
-        bool prefixBufferWithUInt32LittleEndianLength = false)
+        bool prefixBufferWithUInt32LittleEndianLength = false,
+        NullDimensionExportMode nullDimensionExportMode = NullDimensionExportMode.Drop)
     {
         Debug.Assert(metricDataTransport != null, "metricDataTransport was null");
 
@@ -50,6 +52,7 @@ internal sealed class OtlpProtobufSerializer
         this.metricAccount = metricsAccount;
         this.metricNamespace = metricsNamespace;
         this.prefixBufferWithUInt32LittleEndianLength = prefixBufferWithUInt32LittleEndianLength;
+        this.exportNullDimensionsAsEmptyString = nullDimensionExportMode == NullDimensionExportMode.ExportAsEmptyString;
 
         // Taking a arbitrary number here for writing attributes.
         var temp = new byte[20000];
@@ -110,13 +113,17 @@ internal sealed class OtlpProtobufSerializer
         ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref tagAndLengthIndex, cursor - valueIndex, FieldNumberConstants.ScopeMetrics_scope, WireType.LEN);
     }
 
-    internal static void SerializeTags(byte[] buffer, ref int cursor, ReadOnlyTagCollection tags, int fieldNumber)
+    internal static void SerializeTags(byte[] buffer, ref int cursor, ReadOnlyTagCollection tags, int fieldNumber, bool exportNullDimensionsAsEmptyString = false)
     {
         foreach (var tag in tags)
         {
             if (tag.Value != null)
             {
                 SerializeTag(buffer, ref cursor, tag.Key, tag.Value, fieldNumber);
+            }
+            else if (exportNullDimensionsAsEmptyString)
+            {
+                SerializeTag(buffer, ref cursor, tag.Key, string.Empty, fieldNumber);
             }
         }
     }
@@ -333,7 +340,7 @@ internal sealed class OtlpProtobufSerializer
         }
     }
 
-    private static void SerializeTags(byte[] buffer, ref int cursor, IEnumerable<KeyValuePair<string, object?>>? attributes, int fieldNumber)
+    private static void SerializeTags(byte[] buffer, ref int cursor, IEnumerable<KeyValuePair<string, object?>>? attributes, int fieldNumber, bool exportNullDimensionsAsEmptyString = false)
     {
         if (attributes != null)
         {
@@ -342,6 +349,10 @@ internal sealed class OtlpProtobufSerializer
                 if (tag.Value != null)
                 {
                     SerializeTag(buffer, ref cursor, tag.Key, tag.Value, fieldNumber);
+                }
+                else if (exportNullDimensionsAsEmptyString)
+                {
+                    SerializeTag(buffer, ref cursor, tag.Key, string.Empty, fieldNumber);
                 }
             }
         }
@@ -519,7 +530,7 @@ internal sealed class OtlpProtobufSerializer
                             var endTime = (ulong)metricPoint.EndTime.ToUnixTimeNanoseconds();
                             ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.HistogramDataPoint_time_unix_nano, endTime);
 
-                            SerializeTags(buffer, ref cursor, metricPoint.Tags, FieldNumberConstants.HistogramDataPoint_attributes);
+                            SerializeTags(buffer, ref cursor, metricPoint.Tags, FieldNumberConstants.HistogramDataPoint_attributes, this.exportNullDimensionsAsEmptyString);
 
                             if (this.prepopulatedHistogramDataPointAttributes != null)
                             {
@@ -601,7 +612,7 @@ internal sealed class OtlpProtobufSerializer
                             var endTime = (ulong)metricPoint.EndTime.ToUnixTimeNanoseconds();
                             ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.ExponentialHistogramDataPoint_time_unix_nano, endTime);
 
-                            SerializeTags(buffer, ref cursor, metricPoint.Tags, FieldNumberConstants.ExponentialHistogramDataPoint_attributes);
+                            SerializeTags(buffer, ref cursor, metricPoint.Tags, FieldNumberConstants.ExponentialHistogramDataPoint_attributes, this.exportNullDimensionsAsEmptyString);
 
                             if (this.prepopulatedExponentialHistogramDataPointAttributes != null)
                             {
@@ -694,7 +705,7 @@ internal sealed class OtlpProtobufSerializer
         var endTime = (ulong)metricPoint.EndTime.ToUnixTimeNanoseconds();
         ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.NumberDataPoint_time_unix_nano, endTime);
 
-        SerializeTags(buffer, ref cursor, metricPoint.Tags, FieldNumberConstants.NumberDataPoint_attributes);
+        SerializeTags(buffer, ref cursor, metricPoint.Tags, FieldNumberConstants.NumberDataPoint_attributes, this.exportNullDimensionsAsEmptyString);
 
         if (this.prepopulatedNumberDataPointAttributes != null)
         {

@@ -36,6 +36,17 @@ public class GenevaMetricExporterOptions
     }
 
     /// <summary>
+    /// Gets or sets the mode used to export metric dimensions whose value is <see langword="null"/>.
+    /// The default value is <see cref="NullDimensionExportMode.Drop"/>.
+    /// </summary>
+    /// <remarks>
+    /// This setting only applies when OTLP protobuf encoding is enabled via the
+    /// <c>EnableOtlpProtobufEncoding=true</c> connection string switch. The TLV encoding
+    /// always exports <see langword="null"/> dimension values as an empty string.
+    /// </remarks>
+    public NullDimensionExportMode NullDimensionExportMode { get; set; }
+
+    /// <summary>
     /// Gets or sets the pre-populated dimensions for all the metrics exported by the exporter.
     /// </summary>
     public IReadOnlyDictionary<string, object>? PrepopulatedMetricDimensions

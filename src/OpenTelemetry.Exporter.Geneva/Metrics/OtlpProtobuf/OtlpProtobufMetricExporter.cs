@@ -19,7 +19,8 @@ internal sealed class OtlpProtobufMetricExporter : IDisposable
         IMetricDataTransport transport,
         string? metricsAccount,
         string? metricsNamespace,
-        IReadOnlyDictionary<string, object>? prepopulatedMetricDimensions)
+        IReadOnlyDictionary<string, object>? prepopulatedMetricDimensions,
+        NullDimensionExportMode nullDimensionExportMode = NullDimensionExportMode.Drop)
     {
         this.getResource = getResource;
 
@@ -28,7 +29,8 @@ internal sealed class OtlpProtobufMetricExporter : IDisposable
             metricsAccount,
             metricsNamespace,
             prepopulatedMetricDimensions,
-            prefixBufferWithUInt32LittleEndianLength: transport is MetricUnixDomainSocketDataTransport);
+            prefixBufferWithUInt32LittleEndianLength: transport is MetricUnixDomainSocketDataTransport,
+            nullDimensionExportMode: nullDimensionExportMode);
     }
 
     public ExportResult Export(in Batch<Metric> batch)

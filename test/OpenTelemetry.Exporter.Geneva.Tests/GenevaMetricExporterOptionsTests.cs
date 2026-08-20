@@ -76,4 +76,12 @@ public class GenevaMetricExporterOptionsTests
 
         Assert.Null(exception);
     }
+
+    [Fact]
+    public void NullDimensionExportModeDefaultsToDrop()
+    {
+        var exporterOptions = new GenevaMetricExporterOptions();
+
+        Assert.Equal(NullDimensionExportMode.Drop, exporterOptions.NullDimensionExportMode);
+    }
 }

@@ -1605,6 +1605,148 @@ public abstract class OtlpProtobufMetricExporterTests
         }
     }
 
+    [Theory]
+    [InlineData(NullDimensionExportMode.Drop)]
+    [InlineData(NullDimensionExportMode.ExportAsEmptyString)]
+    [InlineData(null)]
+    public void CounterSerializationWithNullDimensionValue(NullDimensionExportMode? nullDimensionExportMode)
+    {
+        using var meter = new Meter(nameof(this.CounterSerializationWithNullDimensionValue), "0.0.1");
+
+        var exportedItems = new List<Metric>();
+        using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
+        {
+            TemporalityPreference = MetricReaderTemporalityPreference.Delta,
+        };
+
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddMeter(nameof(this.CounterSerializationWithNullDimensionValue))
+            .AddReader(inMemoryReader)
+            .Build();
+
+        var tags = new TagList
+        {
+            { "presentKey", "presentValue" },
+            { "nullKey", null },
+        };
+
+        meter.CreateCounter<long>("TestCounter").Add(18, tags);
+
+        meterProvider.ForceFlush();
+
+        var buffer = new byte[65360];
+
+        var testTransport = new TestTransport();
+
+        // Omitting the argument must behave exactly like Drop so that upgrading does
+        // not silently change the emitted payload.
+        var otlpProtobufSerializer = nullDimensionExportMode == null
+            ? new OtlpProtobufSerializer(
+                testTransport,
+                null,
+                null,
+                null,
+                prefixBufferWithUInt32LittleEndianLength: this.PrefixBufferWithUInt32LittleEndianLength)
+            : new OtlpProtobufSerializer(
+                testTransport,
+                null,
+                null,
+                null,
+                prefixBufferWithUInt32LittleEndianLength: this.PrefixBufferWithUInt32LittleEndianLength,
+                nullDimensionExportMode: nullDimensionExportMode.Value);
+
+        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>([.. exportedItems], exportedItems.Count));
+
+        Assert.Single(testTransport.ExportedItems);
+
+        var request = this.AssertAndConvertExportedBlobToRequest(testTransport.ExportedItems[0]);
+
+        var dataPoint = request.ResourceMetrics[0].ScopeMetrics[0].Metrics[0].Sum.DataPoints[0];
+
+        if (nullDimensionExportMode == NullDimensionExportMode.ExportAsEmptyString)
+        {
+            // Note: the SDK sorts tag keys, so "nullKey" is emitted before "presentKey".
+            AssertOtlpAttributes(
+                [
+                    new KeyValuePair<string, object>("nullKey", string.Empty),
+                    new KeyValuePair<string, object>("presentKey", "presentValue"),
+                ],
+                dataPoint.Attributes);
+        }
+        else
+        {
+            AssertOtlpAttributes(
+                [new KeyValuePair<string, object>("presentKey", "presentValue")],
+                dataPoint.Attributes);
+        }
+    }
+
+    [Theory]
+    [InlineData(NullDimensionExportMode.Drop)]
+    [InlineData(NullDimensionExportMode.ExportAsEmptyString)]
+    public void HistogramSerializationWithNullDimensionValue(NullDimensionExportMode nullDimensionExportMode)
+    {
+        using var meter = new Meter(nameof(this.HistogramSerializationWithNullDimensionValue), "0.0.1");
+
+        var exportedItems = new List<Metric>();
+        using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
+        {
+            TemporalityPreference = MetricReaderTemporalityPreference.Delta,
+        };
+
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddMeter(nameof(this.HistogramSerializationWithNullDimensionValue))
+            .AddReader(inMemoryReader)
+            .Build();
+
+        var tags = new TagList
+        {
+            { "presentKey", "presentValue" },
+            { "nullKey", null },
+        };
+
+        meter.CreateHistogram<double>("TestHistogram").Record(1.5, tags);
+
+        meterProvider.ForceFlush();
+
+        var buffer = new byte[65360];
+
+        var testTransport = new TestTransport();
+
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(
+            testTransport,
+            null,
+            null,
+            null,
+            prefixBufferWithUInt32LittleEndianLength: this.PrefixBufferWithUInt32LittleEndianLength,
+            nullDimensionExportMode: nullDimensionExportMode);
+
+        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>([.. exportedItems], exportedItems.Count));
+
+        Assert.Single(testTransport.ExportedItems);
+
+        var request = this.AssertAndConvertExportedBlobToRequest(testTransport.ExportedItems[0]);
+
+        var dataPoint = request.ResourceMetrics[0].ScopeMetrics[0].Metrics[0].Histogram.DataPoints[0];
+
+        if (nullDimensionExportMode == NullDimensionExportMode.ExportAsEmptyString)
+        {
+            // Note: the SDK sorts tag keys, so "nullKey" is emitted before "presentKey".
+            AssertOtlpAttributes(
+                [
+                    new KeyValuePair<string, object>("nullKey", string.Empty),
+                    new KeyValuePair<string, object>("presentKey", "presentValue"),
+                ],
+                dataPoint.Attributes);
+        }
+        else
+        {
+            AssertOtlpAttributes(
+                [new KeyValuePair<string, object>("presentKey", "presentValue")],
+                dataPoint.Attributes);
+        }
+    }
+
     internal static void AssertOtlpAttributes(
         IEnumerable<KeyValuePair<string, object>> expected,
         RepeatedField<OtlpCommon.KeyValue> actual)

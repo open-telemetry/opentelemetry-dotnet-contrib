@@ -91,7 +91,8 @@ public partial class GenevaMetricExporter : BaseExporter<Metric>
                 transport,
                 metricsAccount,
                 metricsNamespace,
-                options.PrepopulatedMetricDimensions);
+                options.PrepopulatedMetricDimensions,
+                options.NullDimensionExportMode);
 
             this.exportMetrics = otlpProtobufExporter.Export;
 
