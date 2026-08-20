@@ -64,14 +64,14 @@ internal sealed class TraceSamplingRatePolicy : ITelemetryPolicy
         [NotNullWhen(true)] out TraceSamplingRatePolicy? policy,
         [NotNullWhen(false)] out string? error)
     {
-        if (string.IsNullOrWhiteSpace(id))
+        if (id is not { Length: > 0 } || string.IsNullOrWhiteSpace(id))
         {
             policy = null;
             error = "The policy ID is required.";
             return false;
         }
 
-        if (string.IsNullOrWhiteSpace(name))
+        if (name is not { Length: > 0 } || string.IsNullOrWhiteSpace(name))
         {
             policy = null;
             error = "The policy name is required.";
@@ -95,7 +95,7 @@ internal sealed class TraceSamplingRatePolicy : ITelemetryPolicy
             samplingProbability = 0.0;
         }
 
-        policy = new TraceSamplingRatePolicy(id!, name!, samplingProbability);
+        policy = new TraceSamplingRatePolicy(id, name, samplingProbability);
         error = null;
         return true;
     }
