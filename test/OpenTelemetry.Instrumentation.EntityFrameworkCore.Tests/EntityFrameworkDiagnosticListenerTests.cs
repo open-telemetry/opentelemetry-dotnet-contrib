@@ -374,8 +374,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             }
         }
 
-        Assert.Single(exportedItems);
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
 
         Assert.Equal(ActivityStatusCode.Unset, activity.Status);
     }
