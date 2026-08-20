@@ -18,19 +18,19 @@ internal enum PolicySourceKind
     Unknown = 0,
 
     /// <summary>
-    /// The source reads policies from the local file system.
-    /// </summary>
-    File = 1,
-
-    /// <summary>
     /// The source receives policies over OpAMP.
     /// </summary>
-    OpAmp = 2,
+    OpAmp = 1,
 
     /// <summary>
     /// The source receives policies over HTTP.
     /// </summary>
-    Http = 3,
+    Http = 2,
+
+    /// <summary>
+    /// The source reads policies from the local file system.
+    /// </summary>
+    File = 3,
 
     /// <summary>
     /// The source is a user-defined or third-party provider not covered by the

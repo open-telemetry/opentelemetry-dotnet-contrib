@@ -27,7 +27,7 @@ internal readonly struct SourceRegistrationId : IEquatable<SourceRegistrationId>
     /// Initializes a new instance of the <see cref="SourceRegistrationId"/> struct.
     /// </summary>
     /// <param name="value">
-    /// The opaque registration value. Must not be null or whitespace, and must be unique
+    /// The registration value. Must not be null or whitespace, and must be unique
     /// among the configured sources.
     /// </param>
     /// <exception cref="ArgumentException">Thrown when <paramref name="value"/> is null, empty, or whitespace.</exception>
@@ -38,7 +38,7 @@ internal readonly struct SourceRegistrationId : IEquatable<SourceRegistrationId>
     }
 
     /// <summary>
-    /// Gets the opaque registration value.
+    /// Gets the registration value.
     /// </summary>
     public string Value => this.value ?? string.Empty;
 

@@ -11,12 +11,6 @@ namespace OpenTelemetry.DynamicControl.Internal.Sources;
 /// </summary>
 internal readonly struct PolicySourceMetadata : IEquatable<PolicySourceMetadata>
 {
-    // The precedence applied to a source that does not specify one.
-    // Lower values represent higher precedence, so a source that does not opt into
-    // explicit ordering is assigned the numerically highest value,
-    // ensuring it cannot outrank any explicitly prioritized source.
-    private const int DefaultPriority = int.MaxValue;
-
     /// <summary>
     /// Initializes a new instance of the <see cref="PolicySourceMetadata"/> struct.
     /// </summary>
@@ -24,8 +18,8 @@ internal readonly struct PolicySourceMetadata : IEquatable<PolicySourceMetadata>
     /// <param name="kind">The kind of source. Must not be <see cref="PolicySourceKind.Unknown"/>.</param>
     /// <param name="priority">
     /// The aggregation precedence. Lower values win, matching the provider-priority
-    /// convention from the Telemetry Policy OTEP (e.g. OpAmp=1, Http=2, File=3). Must be
-    /// non-negative.
+    /// convention from the Telemetry Policy OTEP (OpAmp=1, Http=2, File=3, Custom=1000).
+    /// When omitted, the kind-derived default is used. Must be non-negative when supplied.
     /// </param>
     /// <exception cref="ArgumentException">
     /// Thrown when <paramref name="registrationId"/> is <see cref="SourceRegistrationId.Empty"/>.
@@ -38,20 +32,23 @@ internal readonly struct PolicySourceMetadata : IEquatable<PolicySourceMetadata>
     public PolicySourceMetadata(
         SourceRegistrationId registrationId,
         PolicySourceKind kind,
-        int priority = DefaultPriority)
+        int? priority = null)
     {
         Guard.ThrowIfDefault(registrationId);
 
         Guard.ThrowIfUndefinedOrDefault(kind);
 
-        Guard.ThrowIfNegative(
-            priority,
-            "The priority must be non-negative. Per the Telemetry Policy OTEP, lower values represent higher precedence (e.g. OpAmp=1, Http=2, File=3).",
-            nameof(priority));
+        if (priority.HasValue)
+        {
+            Guard.ThrowIfNegative(
+                priority.Value,
+                "The priority must be non-negative. Per the Telemetry Policy OTEP, lower values represent higher precedence (e.g. OpAmp=1, Http=2, File=3).",
+                nameof(priority));
+        }
 
         this.RegistrationId = registrationId;
         this.Kind = kind;
-        this.Priority = priority;
+        this.Priority = priority ?? KindDefaultPriority(kind);
     }
 
     /// <summary>
@@ -122,4 +119,13 @@ internal readonly struct PolicySourceMetadata : IEquatable<PolicySourceMetadata>
     /// <returns>The registration ID, kind, and priority, separated by forward slashes.</returns>
     public override string ToString()
         => this.RegistrationId.Value + "/" + this.Kind + "/" + this.Priority;
+
+    private static int KindDefaultPriority(PolicySourceKind kind) => kind switch
+    {
+        PolicySourceKind.OpAmp => 1,
+        PolicySourceKind.Http => 2,
+        PolicySourceKind.File => 3,
+        PolicySourceKind.Custom => 1000,
+        _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
+    };
 }
