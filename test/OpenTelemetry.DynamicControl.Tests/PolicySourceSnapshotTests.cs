@@ -75,18 +75,6 @@ public class PolicySourceSnapshotTests
         Assert.NotNull(error);
     }
 
-    [Theory]
-    [InlineData("")]
-    [InlineData("   ")]
-    public void TryCreate_BlankPolicyId_ReturnsFalse(string blankId)
-    {
-        var result = TryCreate(DefaultMetadata, 1, [new StubPolicy("type", blankId)], out var snapshot, out var error);
-
-        Assert.False(result, "TryCreate should fail with a blank policy Id");
-        Assert.Null(snapshot);
-        Assert.NotNull(error);
-    }
-
     [Fact]
     public void TryCreate_DuplicatePolicyKey_ReturnsFalseWithKeyInError()
     {

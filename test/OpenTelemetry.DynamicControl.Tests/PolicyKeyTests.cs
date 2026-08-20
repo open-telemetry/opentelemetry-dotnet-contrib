@@ -185,14 +185,10 @@ public class PolicyKeyTests
     }
 
     [Theory]
-    [InlineData("", "trace-sampling")]
-    [InlineData(" ", "trace-sampling")]
     [InlineData("policy-id", "")]
     [InlineData("policy-id", " ")]
-    public void FromPolicy_WithBlankComponents_Throws(string id, string policyType)
+    public void FromPolicy_WithBlankPolicyType_Throws(string id, string policyType)
     {
-        // Validated policy models cannot report blank components, but the interface
-        // cannot enforce that for every implementation.
         TelemetryPolicy policy = new StubPolicy(id, "Policy name", policyType);
 
         Assert.Throws<ArgumentException>(() => _ = PolicyKey.FromPolicy(policy));

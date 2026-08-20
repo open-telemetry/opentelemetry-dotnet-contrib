@@ -31,8 +31,6 @@ internal sealed class PolicyStoreSnapshot
     /// </summary>
     public static readonly PolicyStoreSnapshot Empty = new(0, []);
 
-    private static readonly Dictionary<SourceRegistrationId, PolicySourceSnapshot> EmptyLookup = [];
-
     private readonly Dictionary<SourceRegistrationId, PolicySourceSnapshot> lookup;
 
     internal PolicyStoreSnapshot(long revision, Dictionary<SourceRegistrationId, PolicySourceSnapshot> sources)
@@ -43,7 +41,7 @@ internal sealed class PolicyStoreSnapshot
         if (count == 0)
         {
             this.Sources = [];
-            this.lookup = EmptyLookup;
+            this.lookup = [];
             return;
         }
 
