@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.18.0-beta.1
+
+Released 2026-Aug-21
+
 * Skip unnecessary OWIN processing when tracing is not enabled.
   ([#4919](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4919))
 
