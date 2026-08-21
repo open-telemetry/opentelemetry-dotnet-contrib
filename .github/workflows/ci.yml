@@ -96,6 +96,7 @@ jobs:
           resources-process: ['*/OpenTelemetry.Resources.Process/**', '*/OpenTelemetry.Resources.Process.Tests/**', '!**/*.md']
           resources-processruntime: ['*/OpenTelemetry.Resources.ProcessRuntime/**', '*/OpenTelemetry.Resources.ProcessRuntime.Tests/**', '!**/*.md']
           sampler-aws: ['*/OpenTelemetry.Sampler.AWS*/**', '!**/*.md']
+          sampler-bottomfloor: ['*/OpenTelemetry.Sampler.BottomFloor*/**', 'examples/bottom-floor/**', '!**/*.md', 'src/OpenTelemetry.Sampler.BottomFloor/README.md']
           semanticconventions: ['*/OpenTelemetry.SemanticConventions*/**', '!**/*.md']
 
   lint-actions:
@@ -652,6 +653,18 @@ jobs:
       code-cov-name: Sampler.AWS
       trigger: ${{ github.event_name }}
 
+  build-test-sampler-bottomfloor:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'sampler-bottomfloor')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: Component[OpenTelemetry.Sampler.BottomFloor]
+      code-cov-name: Sampler.BottomFloor
+      trigger: ${{ github.event_name }}
+
   build-test-semanticconventions:
     needs: detect-changes
     if: |
@@ -768,6 +781,7 @@ jobs:
       build-test-resources-process,
       build-test-resources-processruntime,
       build-test-sampler-aws,
+      build-test-sampler-bottomfloor,
       build-test-semanticconventions,
       test-pwsh,
       verify-aot-compat
