@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* Added `QueryTextSanitizer` to `EntityFrameworkInstrumentationOptions` to allow
+  the query text emitted as the `db.query.text` and `db.statement` attributes to
+  be customized.
+  ([#4901](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4901))
+
 * Fixed query sanitization so that a `)` inside a value or a comment in an
   `IN (...)` clause no longer causes the values which follow it to be left
   unsanitized.

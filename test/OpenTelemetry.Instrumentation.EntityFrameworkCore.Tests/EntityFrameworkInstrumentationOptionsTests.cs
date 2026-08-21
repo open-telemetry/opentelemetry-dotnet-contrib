@@ -60,4 +60,29 @@ public class EntityFrameworkInstrumentationOptionsTests
         var options = new EntityFrameworkInstrumentationOptions(configuration);
         Assert.Equal(expected, options.SetDbQueryParameters);
     }
+
+    [Fact]
+    public void ShouldAssignQueryTextSanitizerByDefault()
+    {
+        var configuration = new ConfigurationBuilder().Build();
+        var options = new EntityFrameworkInstrumentationOptions(configuration);
+        Assert.NotNull(options.QueryTextSanitizer);
+    }
+
+    // Sanitization is decided by the provider, not by what the command text looks
+    // like. Cosmos is the interesting case: its queries are SQL-like, but it is not
+    // in the allow list, so it is left alone along with every other dialect.
+    [Theory]
+    [InlineData("Microsoft.EntityFrameworkCore.Cosmos", "SELECT * FROM c WHERE c.Name = 'secret'")]
+    [InlineData("MongoDB.EntityFrameworkCore", "{ \"find\": \"Items\", \"filter\": { \"Name\": \"secret\" } }")]
+    [InlineData("Contoso.BusinessLogic.DataAccess.Command", "FETCH Items MATCHING Name 'secret'")]
+    public void DefaultQueryTextSanitizerShouldNotSanitizeProvidersThatAreNotSqlLike(string providerName, string commandText)
+    {
+        var options = new EntityFrameworkInstrumentationOptions(new ConfigurationBuilder().Build());
+        var context = new DbQuerySanitizationContext(providerName, commandText, command: null);
+
+        var result = options.QueryTextSanitizer!(context);
+
+        Assert.False(result.IsSanitized);
+    }
 }

@@ -474,6 +474,220 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         Assert.True(activity.ActivityTraceFlags.HasFlag(ActivityTraceFlags.Recorded));
     }
 
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public void ShouldSanitizeQueryTextWithTheDefaultQueryTextSanitizer(
+        bool emitOldAttributes,
+        bool emitNewAttributes)
+    {
+        var activity = this.ExecuteQuery(
+            "select * from Items where Name = 'ItemOne'",
+            emitOldAttributes,
+            emitNewAttributes,
+            configure: null);
+
+        var expectedQueryText = "select * from Items where Name = ?";
+
+        if (emitOldAttributes)
+        {
+            Assert.Equal(expectedQueryText, activity.GetTagValue(SemanticConventions.AttributeDbStatement));
+        }
+
+        if (emitNewAttributes)
+        {
+            Assert.Equal(expectedQueryText, activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
+
+            var querySummary = activity.GetTagValue(SemanticConventions.AttributeDbQuerySummary);
+            Assert.NotNull(querySummary);
+            Assert.NotEmpty((string)querySummary);
+            Assert.Equal(querySummary, activity.DisplayName);
+        }
+        else
+        {
+            Assert.DoesNotContain(activity.TagObjects, t => t.Key == SemanticConventions.AttributeDbQuerySummary);
+            Assert.Equal("main", activity.DisplayName);
+        }
+    }
+
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public void ShouldUseQueryTextFromQueryTextSanitizer(
+        bool emitOldAttributes,
+        bool emitNewAttributes)
+    {
+        var activity = this.ExecuteQuery(
+            "select * from Items where Name = 'ItemOne'",
+            emitOldAttributes,
+            emitNewAttributes,
+            options => options.QueryTextSanitizer = context =>
+            {
+                Assert.Equal("Microsoft.EntityFrameworkCore.Sqlite", context.ProviderName);
+                Assert.Equal("select * from Items where Name = 'ItemOne'", context.QueryText);
+                Assert.NotNull(context.Command);
+
+                return QueryTextSanitizationResult.Sanitized("[redacted]");
+            });
+
+        if (emitOldAttributes)
+        {
+            Assert.Equal("[redacted]", activity.GetTagValue(SemanticConventions.AttributeDbStatement));
+        }
+
+        if (emitNewAttributes)
+        {
+            Assert.Equal("[redacted]", activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
+        }
+
+        // No summary was supplied, so neither the summary nor the display name is set.
+        Assert.DoesNotContain(activity.TagObjects, t => t.Key == SemanticConventions.AttributeDbQuerySummary);
+        Assert.Equal("main", activity.DisplayName);
+    }
+
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public void ShouldUseQuerySummaryFromQueryTextSanitizer(
+        bool emitOldAttributes,
+        bool emitNewAttributes)
+    {
+        var activity = this.ExecuteQuery(
+            "select * from Items where Name = 'ItemOne'",
+            emitOldAttributes,
+            emitNewAttributes,
+            options => options.QueryTextSanitizer = _ => QueryTextSanitizationResult.Sanitized("[redacted]", "SELECT Items"));
+
+        if (emitOldAttributes)
+        {
+            Assert.Equal("[redacted]", activity.GetTagValue(SemanticConventions.AttributeDbStatement));
+        }
+
+        if (emitNewAttributes)
+        {
+            Assert.Equal("[redacted]", activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
+            Assert.Equal("SELECT Items", activity.GetTagValue(SemanticConventions.AttributeDbQuerySummary));
+            Assert.Equal("SELECT Items", activity.DisplayName);
+        }
+        else
+        {
+            // The summary and the display name are only set by the new conventions.
+            Assert.DoesNotContain(activity.TagObjects, t => t.Key == SemanticConventions.AttributeDbQuerySummary);
+            Assert.Equal("main", activity.DisplayName);
+        }
+    }
+
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public void ShouldEmitOriginalQueryTextWhenQueryTextSanitizerReturnsNotSanitized(
+        bool emitOldAttributes,
+        bool emitNewAttributes)
+    {
+        var commandText = "select * from Items where Name = 'ItemOne'";
+
+        var activity = this.ExecuteQuery(
+            commandText,
+            emitOldAttributes,
+            emitNewAttributes,
+            options => options.QueryTextSanitizer = _ => QueryTextSanitizationResult.NotSanitized);
+
+        if (emitOldAttributes)
+        {
+            Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbStatement));
+        }
+
+        if (emitNewAttributes)
+        {
+            Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
+        }
+
+        Assert.DoesNotContain(activity.TagObjects, t => t.Key == SemanticConventions.AttributeDbQuerySummary);
+        Assert.Equal("main", activity.DisplayName);
+    }
+
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public void ShouldNotEmitQueryTextWhenQueryTextSanitizerReturnsNull(
+        bool emitOldAttributes,
+        bool emitNewAttributes)
+    {
+        var activity = this.ExecuteQuery(
+            "select * from Items where Name = 'ItemOne'",
+            emitOldAttributes,
+            emitNewAttributes,
+            options => options.QueryTextSanitizer = _ => QueryTextSanitizationResult.Sanitized(null, "SELECT Items"));
+
+        Assert.DoesNotContain(activity.TagObjects, t => t.Key == SemanticConventions.AttributeDbStatement);
+        Assert.DoesNotContain(activity.TagObjects, t => t.Key == SemanticConventions.AttributeDbQueryText);
+
+        if (emitNewAttributes)
+        {
+            Assert.Equal("SELECT Items", activity.GetTagValue(SemanticConventions.AttributeDbQuerySummary));
+        }
+    }
+
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public void ShouldEmitRawQueryTextWhenQueryTextSanitizerIsNull(
+        bool emitOldAttributes,
+        bool emitNewAttributes)
+    {
+        var commandText = "select * from Items where Name = 'ItemOne'";
+
+        var activity = this.ExecuteQuery(
+            commandText,
+            emitOldAttributes,
+            emitNewAttributes,
+            options => options.QueryTextSanitizer = null);
+
+        if (emitOldAttributes)
+        {
+            Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbStatement));
+        }
+
+        if (emitNewAttributes)
+        {
+            Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
+        }
+
+        Assert.DoesNotContain(activity.TagObjects, t => t.Key == SemanticConventions.AttributeDbQuerySummary);
+        Assert.Equal("main", activity.DisplayName);
+    }
+
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public void ShouldNotEmitQueryTextWhenQueryTextSanitizerThrows(
+        bool emitOldAttributes,
+        bool emitNewAttributes)
+    {
+        var activity = this.ExecuteQuery(
+            "select * from Items where Name = 'ItemOne'",
+            emitOldAttributes,
+            emitNewAttributes,
+            options => options.QueryTextSanitizer = _ => throw new InvalidOperationException("Sanitization failed."));
+
+        // The exception is swallowed and the command is still collected, but the
+        // potentially sensitive query text is not emitted.
+        Assert.DoesNotContain(activity.TagObjects, t => t.Key == SemanticConventions.AttributeDbStatement);
+        Assert.DoesNotContain(activity.TagObjects, t => t.Key == SemanticConventions.AttributeDbQueryText);
+        Assert.DoesNotContain(activity.TagObjects, t => t.Key == SemanticConventions.AttributeDbQuerySummary);
+
+        Assert.True(activity.IsAllDataRequested);
+        Assert.True(activity.ActivityTraceFlags.HasFlag(ActivityTraceFlags.Recorded));
+        Assert.Equal("main", activity.DisplayName);
+    }
+
     public void Dispose() => this.connection.Dispose();
 
     private static SqliteConnection CreateInMemoryDatabase()
@@ -546,6 +760,31 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             Assert.Equal(ActivityStatusCode.Error, activity.Status);
             Assert.Equal("SQLite Error 1: 'no such table: no_table'.", activity.StatusDescription);
         }
+    }
+
+    private Activity ExecuteQuery(
+        string commandText,
+        bool emitOldAttributes,
+        bool emitNewAttributes,
+        Action<EntityFrameworkInstrumentationOptions>? configure)
+    {
+        var exportedItems = new List<Activity>();
+
+        using (Sdk.CreateTracerProviderBuilder()
+                  .AddInMemoryExporter(exportedItems)
+                  .AddEntityFrameworkCoreInstrumentation(options =>
+                  {
+                      configure?.Invoke(options);
+                      options.EmitOldAttributes = emitOldAttributes;
+                      options.EmitNewAttributes = emitNewAttributes;
+                  })
+                  .Build())
+        {
+            using var context = new ItemsContext(this.contextOptions);
+            context.Database.ExecuteSqlRaw(commandText);
+        }
+
+        return Assert.Single(exportedItems);
     }
 
     private void Seed()

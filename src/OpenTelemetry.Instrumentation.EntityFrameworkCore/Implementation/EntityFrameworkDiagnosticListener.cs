@@ -186,16 +186,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                     break;
 
                                 case CommandType.Text:
-                                    // Only SQL-like providers support sanitization as we are not
-                                    // able to sanitize arbitrary commands for other query dialects.
-                                    var sanitizeQuery = IsSqlLikeProvider(providerName);
-
-                                    DatabaseSemanticConventionHelper.ApplyConventionsForQueryText(
-                                        activity,
-                                        commandText,
-                                        this.options.EmitOldAttributes,
-                                        this.options.EmitNewAttributes,
-                                        sanitizeQuery);
+                                    this.ApplyConventionsForQueryText(activity, command, commandText, providerName);
                                     break;
 
                                 case CommandType.TableDirect:
@@ -369,6 +360,47 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
               => true,
             _ => false,
         };
+    }
+
+    private void ApplyConventionsForQueryText(Activity activity, object? command, string? commandText, string? providerName)
+    {
+        if (this.options.QueryTextSanitizer is { } sanitizer)
+        {
+            QueryTextSanitizationResult result;
+
+            try
+            {
+                result = sanitizer(new DbQuerySanitizationContext(
+                    providerName,
+                    commandText,
+                    command as IDbCommand));
+            }
+            catch (Exception ex)
+            {
+                // Fail closed so that potentially sensitive query text is not emitted.
+                EntityFrameworkInstrumentationEventSource.Log.QueryTextSanitizerException(ex);
+                return;
+            }
+
+            if (result.IsSanitized)
+            {
+                DatabaseSemanticConventionHelper.ApplyConventionsForSanitizedQueryText(
+                    activity,
+                    result.QueryText,
+                    result.QuerySummary,
+                    this.options.EmitOldAttributes,
+                    this.options.EmitNewAttributes);
+                return;
+            }
+        }
+
+        // The query text was not sanitized, so emit the command text unchanged.
+        DatabaseSemanticConventionHelper.ApplyConventionsForSanitizedQueryText(
+            activity,
+            commandText ?? string.Empty,
+            querySummary: null,
+            this.options.EmitOldAttributes,
+            this.options.EmitNewAttributes);
     }
 
     private void AddTag(Activity activity, (string Old, string New) attributes, string? value)

@@ -4,6 +4,7 @@
 using System.Data;
 using System.Diagnostics;
 using Microsoft.Extensions.Configuration;
+using OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
 using static OpenTelemetry.Internal.DatabaseSemanticConventionHelper;
 
 namespace OpenTelemetry.Instrumentation.EntityFrameworkCore;
@@ -32,6 +33,8 @@ public class EntityFrameworkInstrumentationOptions
         {
             this.SetDbQueryParameters = setDbQueryParameters;
         }
+
+        this.QueryTextSanitizer = SanitizeQueryText;
     }
 
     /// <summary>
@@ -65,6 +68,42 @@ public class EntityFrameworkInstrumentationOptions
     public Func<string?, IDbCommand, bool>? Filter { get; set; }
 
     /// <summary>
+    /// Gets or sets a function that sanitizes the text of a command before it is
+    /// emitted as the <c>db.statement</c> or <c>db.query.text</c> tag.
+    /// </summary>
+    /// <remarks>
+    /// <b>Notes:</b>
+    /// <list type="bullet">
+    /// <item>The parameter passed to the function is a <see cref="DbQuerySanitizationContext"/>
+    /// describing the query being executed.</item>
+    /// <item>The function is only invoked for commands whose <see cref="IDbCommand.CommandType"/>
+    /// is <see cref="CommandType.Text"/>.</item>
+    /// <item>The return value for the function:
+    /// <list type="number">
+    /// <item>If the function returns <see cref="QueryTextSanitizationResult.NotSanitized"/>,
+    /// the original command text is emitted unchanged.</item>
+    /// <item>If the function returns <see cref="QueryTextSanitizationResult.Sanitized(string, string)"/>,
+    /// the supplied query text and optional query summary are emitted instead. See
+    /// <see cref="QueryTextSanitizationResult"/> for the full contract.</item>
+    /// <item>If the function throws an exception, the command text is <b>NOT</b> emitted, but
+    /// the rest of the telemetry for the command is still collected.</item>
+    /// </list></item>
+    /// <item>
+    /// <b>WARNING: Setting this property to <see langword="null"/> disables sanitization
+    /// entirely and emits the raw command text at your own risk. The raw command text may
+    /// contain sensitive data such as literal values embedded in the query.</b>
+    /// </item>
+    /// </list>
+    /// <para>
+    /// By default, commands from SQL-like providers are sanitized by replacing literal values
+    /// with <c>?</c>, and commands from all other providers are emitted unchanged because their
+    /// query dialects cannot be sanitized reliably. The default is assigned before the
+    /// configuration callback runs, so it can be captured and wrapped rather than replaced.
+    /// </para>
+    /// </remarks>
+    public Func<DbQuerySanitizationContext, QueryTextSanitizationResult>? QueryTextSanitizer { get; set; }
+
+    /// <summary>
     /// Gets or sets a value indicating whether or not the <see cref="EntityFrameworkInstrumentation"/>
     /// should add the names and values of query parameters as the <c>db.query.parameter.{key}</c> tag.
     /// Default value: <see langword="false"/>.
@@ -87,4 +126,18 @@ public class EntityFrameworkInstrumentationOptions
     /// Gets or sets a value indicating whether the new database attributes should be emitted.
     /// </summary>
     internal bool EmitNewAttributes { get; set; }
+
+    private static QueryTextSanitizationResult SanitizeQueryText(DbQuerySanitizationContext context)
+    {
+        // Only SQL-like providers support sanitization as we are not
+        // able to sanitize arbitrary commands for other query dialects.
+        if (!EntityFrameworkDiagnosticListener.IsSqlLikeProvider(context.ProviderName))
+        {
+            return QueryTextSanitizationResult.NotSanitized;
+        }
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(context.QueryText);
+
+        return QueryTextSanitizationResult.Sanitized(sqlStatementInfo.SanitizedSql, sqlStatementInfo.DbQuerySummary);
+    }
 }
