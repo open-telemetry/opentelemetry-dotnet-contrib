@@ -255,6 +255,8 @@ public abstract class OpAmpPipeTests
     internal static void AppendHeartbeat(OpAmpPipe pipe)
         => pipe.AppendMessage(MessageBuilderHelper.AppendHeartbeat(CreateHealthReport()));
 
+    internal abstract MockControlledTransport GetTransport(Action? firstSendCallback = null);
+
     private static async Task<EventWrittenEventArgs> WaitForEventAsync(
         InMemoryEventListener eventListener,
         Func<EventWrittenEventArgs, bool> predicate,
