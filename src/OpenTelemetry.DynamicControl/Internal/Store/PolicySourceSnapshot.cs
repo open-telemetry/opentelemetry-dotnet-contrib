@@ -169,7 +169,10 @@ internal sealed class PolicySourceSnapshot
 #else
             var added = !policyMap.ContainsKey(key);
             if (added)
+            {
                 policyMap[key] = policy;
+            }
+
 #endif
             if (!added)
             {
