@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.18.0
+
+Released 2026-Aug-21
+
 * Fixed query sanitization so that a `)` inside a value or a comment in an
   `IN (...)` clause no longer causes the values which follow it to be left
   unsanitized.
