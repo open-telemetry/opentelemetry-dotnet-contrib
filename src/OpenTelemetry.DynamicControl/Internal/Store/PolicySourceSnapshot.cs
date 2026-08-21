@@ -15,7 +15,6 @@ namespace OpenTelemetry.DynamicControl.Internal.Store;
 /// </summary>
 /// <remarks>
 /// Once published by <see cref="PolicyStore"/>, this instance is read-only.
-/// The <c>lookup</c> dictionary is populated once during construction and never modified.
 /// Concurrent reads of a published snapshot are safe without any additional locking.
 /// </remarks>
 internal sealed class PolicySourceSnapshot
@@ -33,7 +32,7 @@ internal sealed class PolicySourceSnapshot
         this.Sequence = sequence;
         this.Version = version;
         this.Policies = ImmutableCollectionsMarshal.AsImmutableArray(policies);
-        this.lookup = lookup;
+        this.lookup = new Dictionary<PolicyKey, TelemetryPolicy>(lookup);
     }
 
     /// <summary>
@@ -121,8 +120,7 @@ internal sealed class PolicySourceSnapshot
         if (metadata.Equals(default))
         {
             snapshot = null;
-            error = "The metadata must not be a default PolicySourceMetadata instance. " +
-                    "A default value bypasses constructor validation and would assign this snapshot top precedence.";
+            error = "The metadata must not be a default PolicySourceMetadata instance.";
             return false;
         }
 
