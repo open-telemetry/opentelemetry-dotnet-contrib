@@ -10,6 +10,7 @@ namespace OpenTelemetry.Instrumentation.AspNet.Tests;
 public class RequestDataHelperExtensionsTests
 {
     [InlineData("1.1", "HTTP/1.1")]
+    [InlineData("1.0", "HTTP/1.0")]
     [InlineData("2", "2")]
     [InlineData("3", "3")]
     [InlineData("NotKnownVersion", "NotKnownVersion")]
