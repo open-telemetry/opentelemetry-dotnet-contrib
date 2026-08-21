@@ -142,9 +142,9 @@ internal sealed class FrameProcessor
         }
 
         if (message.AgentIdentification is { } agentIdentification &&
-            this.TryGetListeners<AgentIdentificationMessage>(out var agetIdentificationListeners))
+            this.TryGetListeners<AgentIdentificationMessage>(out var agentIdentificationListeners))
         {
-            Dispatch(new AgentIdentificationMessage(message.AgentIdentification), agetIdentificationListeners);
+            Dispatch(new AgentIdentificationMessage(agentIdentification), agentIdentificationListeners);
         }
 
         if (message.Command is { } command &&
