@@ -17,12 +17,12 @@ internal sealed class OpAmpPipe : IDisposable
     private readonly FrameProcessor processor;
     private readonly Lock frameLock = new();
     private readonly CancellationTokenSource tokenSource = new();
-    private readonly ServerFrameHandler frameHandler;
+    private readonly ServerFrameHandler? frameHandler;
+    private readonly FrameBuilder currentFrame;
 
     private bool isDisposed;
     private bool isBusy;
     private bool hasAccumulatedData;
-    private FrameBuilder currentFrame;
     private Task? flushTask;
     private TaskCompletionSource<bool>? flushCompletion;
 
@@ -37,8 +37,11 @@ internal sealed class OpAmpPipe : IDisposable
         this.transport = transport;
         this.currentFrame = new FrameBuilder(settings);
 
-        this.frameHandler = new(this.OnServerFrameReceived);
-        this.processor.Subscribe(this.frameHandler);
+        if (transport.RequiresResponseBeforeNextSend)
+        {
+            this.frameHandler = new(this.OnServerFrameReceived);
+            this.processor.Subscribe(this.frameHandler);
+        }
     }
 
     public async Task StartAsync(CancellationToken token = default)
@@ -126,7 +129,11 @@ internal sealed class OpAmpPipe : IDisposable
 
         this.tokenSource.Cancel();
         this.tokenSource.Dispose();
-        this.processor.Unsubscribe(this.frameHandler);
+
+        if (this.frameHandler != null)
+        {
+            this.processor.Unsubscribe(this.frameHandler);
+        }
 
         if (this.transport is IDisposable disposableTransport)
         {
@@ -216,13 +223,16 @@ internal sealed class OpAmpPipe : IDisposable
 
             await this.transport.SendAsync(message, token)
                 .ConfigureAwait(false);
+
+            if (!this.transport.RequiresResponseBeforeNextSend)
+            {
+                this.ReleaseBusy();
+                this.TryFlush(token);
+            }
         }
         catch (Exception ex)
         {
-            lock (this.frameLock)
-            {
-                this.isBusy = false;
-            }
+            this.ReleaseBusy();
 
             OpAmpClientEventSource.Log.SendMessageException(ex);
             this.TryFlush(token);
@@ -231,12 +241,16 @@ internal sealed class OpAmpPipe : IDisposable
 
     private void OnServerFrameReceived(ServerToAgent message)
     {
+        this.ReleaseBusy();
+        this.TryFlush(this.tokenSource.Token);
+    }
+
+    private void ReleaseBusy()
+    {
         lock (this.frameLock)
         {
             this.isBusy = false;
         }
-
-        this.TryFlush(this.tokenSource.Token);
     }
 
     private sealed class ServerFrameHandler : IOpAmpListener<ServerToAgentMessage>

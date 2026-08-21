@@ -9,7 +9,7 @@ using OpenTelemetry.OpAmp.Client.Internal.Transport;
 
 namespace OpenTelemetry.OpAmp.Client.Tests.Mocks;
 
-internal sealed class MockControlledTransport : IOpAmpTransport, IDisposable
+internal abstract class MockControlledTransport : IOpAmpTransport, IDisposable
 {
     private readonly ConcurrentQueue<AgentToServer> messages = [];
     private readonly ConcurrentQueue<TaskCompletionSource<bool>> sendCompletions = [];
@@ -25,6 +25,8 @@ internal sealed class MockControlledTransport : IOpAmpTransport, IDisposable
     }
 
     public ReadOnlyCollection<AgentToServer> Messages => this.messages.ToList().AsReadOnly();
+
+    public abstract bool RequiresResponseBeforeNextSend { get; }
 
     public Task SendAsync<T>(T message, CancellationToken token)
         where T : IMessage<T>

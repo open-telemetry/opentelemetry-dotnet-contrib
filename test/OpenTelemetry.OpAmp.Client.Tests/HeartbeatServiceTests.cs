@@ -21,7 +21,7 @@ public class HeartbeatServiceTests
     {
         var settings = new OpAmpClientSettings();
         var processor = new FrameProcessor();
-        using var transport = new MockControlledTransport();
+        using var transport = new MockControlledHttpTransport();
         using var pipe = new OpAmpPipe(settings, processor, transport);
         using var service = new HeartbeatService(pipe, processor);
         service.Configure(settings);
@@ -50,7 +50,7 @@ public class HeartbeatServiceTests
         };
 
         var processor = new FrameProcessor();
-        using var transport = new MockControlledTransport();
+        using var transport = new MockControlledHttpTransport();
         using var pipe = new OpAmpPipe(settings, processor, transport);
         using var service = new HeartbeatService(pipe, processor);
 
