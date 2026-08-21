@@ -141,15 +141,12 @@ internal sealed class OpAmpPipe : IDisposable
         }
     }
 
-    private static IOpAmpTransport ConstructTransport(OpAmpClientSettings settings, FrameProcessor processor)
+    private static IOpAmpTransport ConstructTransport(OpAmpClientSettings settings, FrameProcessor processor) => settings.ConnectionType switch
     {
-        return settings.ConnectionType switch
-        {
-            ConnectionType.WebSocket => new WsTransport(settings, processor),
-            ConnectionType.Http => new PlainHttpTransport(settings, processor),
-            _ => throw new NotSupportedException("Unsupported transport type"),
-        };
-    }
+        ConnectionType.WebSocket => new WsTransport(settings, processor),
+        ConnectionType.Http => new PlainHttpTransport(settings, processor),
+        _ => throw new NotSupportedException("Unsupported transport type"),
+    };
 
     private static async Task WaitForFlushAsync(Task flushTask, CancellationToken token)
     {

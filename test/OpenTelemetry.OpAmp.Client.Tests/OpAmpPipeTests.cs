@@ -9,6 +9,7 @@ using OpenTelemetry.OpAmp.Client.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Services.Heartbeat;
 using OpenTelemetry.OpAmp.Client.Settings;
 using OpenTelemetry.OpAmp.Client.Tests.Mocks;
+using OpenTelemetry.OpAmp.Client.Tests.Tools;
 using OpenTelemetry.Tests;
 
 namespace OpenTelemetry.OpAmp.Client.Tests;
@@ -113,7 +114,7 @@ public abstract class OpAmpPipeTests
         transport.CompleteNextSend();
 
         var messages = transport.Messages.ToArray();
-        Assert.Equal([1UL, 2UL], messages.Select(m => m.SequenceNum).ToArray());
+        Assert.Equal([1UL, 2UL], [.. messages.Select(m => m.SequenceNum)]);
         Assert.NotNull(messages[0].AgentDescription);
         Assert.NotNull(messages[1].Health);
     }
@@ -132,8 +133,7 @@ public abstract class OpAmpPipeTests
         await transport.WaitForMessagesAsync(1);
         transport.FaultNextSend(new InvalidOperationException(failureMessage));
 
-        await WaitForEventAsync(
-            eventListener,
+        await eventListener.WaitForEventAsync(
             e => e.EventName == nameof(OpAmpClientEventSource.FailedToSendMessage)
                 && e.Payload![0] is string exception
                 && exception.Contains(failureMessage),
@@ -152,8 +152,7 @@ public abstract class OpAmpPipeTests
 
         AppendHeartbeat(pipe);
 
-        await WaitForEventAsync(
-            eventListener,
+        await eventListener.WaitForEventAsync(
             e => e.EventName == nameof(OpAmpClientEventSource.QueueingHeartbeatMessage),
             nameof(OpAmpClientEventSource.QueueingHeartbeatMessage),
             TimeSpan.FromSeconds(5));
@@ -194,7 +193,7 @@ public abstract class OpAmpPipeTests
         await stopTask;
 
         var messages = transport.Messages.ToArray();
-        Assert.Equal([1UL, 2UL, 3UL], messages.Select(m => m.SequenceNum).ToArray());
+        Assert.Equal([1UL, 2UL, 3UL], [.. messages.Select(m => m.SequenceNum)]);
         Assert.NotNull(messages[0].AgentDescription);
         Assert.NotNull(messages[1].Health);
         Assert.NotNull(messages[2].AgentDisconnect);
@@ -256,30 +255,6 @@ public abstract class OpAmpPipeTests
         => pipe.AppendMessage(MessageBuilderHelper.AppendHeartbeat(CreateHealthReport()));
 
     internal abstract MockControlledTransport GetTransport(Action? firstSendCallback = null);
-
-    private static async Task<EventWrittenEventArgs> WaitForEventAsync(
-        InMemoryEventListener eventListener,
-        Func<EventWrittenEventArgs, bool> predicate,
-        string eventDescription,
-        TimeSpan timeout)
-    {
-        var deadline = DateTime.UtcNow + timeout;
-
-        while (DateTime.UtcNow < deadline)
-        {
-            while (eventListener.Events.TryDequeue(out var candidate))
-            {
-                if (predicate(candidate))
-                {
-                    return candidate;
-                }
-            }
-
-            await Task.Delay(TimeSpan.FromMilliseconds(10)).ConfigureAwait(false);
-        }
-
-        throw new TimeoutException($"Timed out waiting for event '{eventDescription}'.");
-    }
 
     private static HealthReport CreateHealthReport() => new()
     {

@@ -100,7 +100,7 @@ public class OpAmpHttpPipeTests : OpAmpPipeTests
 #endif
 
         var messages = transport.Messages.ToArray();
-        Assert.Equal([1UL, 2UL, 3UL], messages.Select(m => m.SequenceNum).ToArray());
+        Assert.Equal([1UL, 2UL, 3UL], [.. messages.Select(m => m.SequenceNum)]);
         Assert.NotNull(messages[0].AgentDescription);
         Assert.NotNull(messages[1].Health);
         Assert.NotNull(messages[2].Health);
