@@ -26,6 +26,9 @@
   for commands which are not recorded as spans.
   ([#4625](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4625))
 
+* Updated OpenTelemetry core component version(s) to `1.18.0`.
+  ([#5022](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5022))
+
 ## 1.17.0
 
 Released 2026-Jul-17
