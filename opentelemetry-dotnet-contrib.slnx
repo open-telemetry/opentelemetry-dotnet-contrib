@@ -93,6 +93,10 @@
   <Folder Name="/examples/AspNet/">
     <Project Path="examples/AspNet/Examples.AspNet.csproj" />
   </Folder>
+  <Folder Name="/examples/bottom-floor/">
+    <File Path="examples/bottom-floor/README.md" />
+    <Project Path="examples/bottom-floor/Examples.BottomFloor.csproj" />
+  </Folder>
   <Folder Name="/examples/enrichment/">
     <Project Path="examples/enrichment/Examples.Enrichment/Examples.Enrichment.csproj" />
   </Folder>
@@ -179,6 +183,7 @@
     <Project Path="src/OpenTelemetry.Resources.Process/OpenTelemetry.Resources.Process.csproj" />
     <Project Path="src/OpenTelemetry.Resources.ProcessRuntime/OpenTelemetry.Resources.ProcessRuntime.csproj" />
     <Project Path="src/OpenTelemetry.Sampler.AWS/OpenTelemetry.Sampler.AWS.csproj" />
+    <Project Path="src/OpenTelemetry.Sampler.BottomFloor/OpenTelemetry.Sampler.BottomFloor.csproj" />
     <Project Path="src/OpenTelemetry.SemanticConventions/OpenTelemetry.SemanticConventions.csproj" />
   </Folder>
   <Folder Name="/src/Shared/">
@@ -305,6 +310,7 @@
     <Project Path="test/OpenTelemetry.Resources.Process.Tests/OpenTelemetry.Resources.Process.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Resources.ProcessRuntime.Tests/OpenTelemetry.Resources.ProcessRuntime.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Sampler.AWS.Tests/OpenTelemetry.Sampler.AWS.Tests.csproj" />
+    <Project Path="test/OpenTelemetry.Sampler.BottomFloor.Tests/OpenTelemetry.Sampler.BottomFloor.Tests.csproj" />
     <Project Path="test/TestApp.AspNetCore/TestApp.AspNetCore.csproj" />
   </Folder>
   <Folder Name="/test/Shared/">
