@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>net10.0;$(NetMinimumSupportedVersion)</TargetFrameworks>
-    <Description>OpenTelemetry Bottom-Floor sampler: fixed-memory, self-calibrating callsite sampling for logs and spans.</Description>
+    <Description>OpenTelemetry Bottom-Floor sampler: fixed-memory, self-calibrating callsite sampling for log records.</Description>
     <MinVerTagPrefix>Sampler.BottomFloor-</MinVerTagPrefix>
   </PropertyGroup>
 
