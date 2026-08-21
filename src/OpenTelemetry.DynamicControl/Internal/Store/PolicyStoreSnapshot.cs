@@ -87,8 +87,8 @@ internal sealed class PolicyStoreSnapshot
     /// </summary>
     /// <remarks>
     /// Ordering is by identity, not by <see cref="PolicySourceMetadata.Priority"/>. Priority
-    /// ordering is an aggregation decision reserved for Phase 6; identity ordering is
-    /// neutral and stable, giving Phase 6 a deterministic starting order to sort from.
+    /// ordering is an aggregation concern; identity ordering is neutral and stable,
+    /// giving any priority-aware consumer a deterministic baseline to sort from.
     /// </remarks>
     public ImmutableArray<PolicySourceSnapshot> Sources { get; }
 

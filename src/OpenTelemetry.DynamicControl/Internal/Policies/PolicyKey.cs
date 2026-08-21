@@ -14,7 +14,7 @@ namespace OpenTelemetry.DynamicControl.Internal.Policies;
 /// provider-assigned policy identifier, rather than the identifier alone.
 /// </para>
 /// </remarks>
-internal readonly struct PolicyKey : IEquatable<PolicyKey>
+internal readonly struct PolicyKey : IEquatable<PolicyKey>, IComparable<PolicyKey>
 {
     /// <summary>
     /// A read-only instance of the <see cref="PolicyKey"/> structure whose field values
@@ -85,6 +85,13 @@ internal readonly struct PolicyKey : IEquatable<PolicyKey>
         Guard.ThrowIfNull(policy);
 
         return new PolicyKey(policy.PolicyType, policy.Id);
+    }
+
+    /// <inheritdoc/>
+    public int CompareTo(PolicyKey other)
+    {
+        var typeComparison = string.CompareOrdinal(this.policyType ?? string.Empty, other.policyType ?? string.Empty);
+        return typeComparison != 0 ? typeComparison : string.CompareOrdinal(this.policyId ?? string.Empty, other.policyId ?? string.Empty);
     }
 
     /// <inheritdoc/>

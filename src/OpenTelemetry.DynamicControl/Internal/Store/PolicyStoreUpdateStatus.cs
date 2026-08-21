@@ -11,6 +11,11 @@ namespace OpenTelemetry.DynamicControl.Internal.Store;
 internal enum PolicyStoreUpdateStatus
 {
     /// <summary>
+    /// Default/uninitialized value. This member should not appear in production paths.
+    /// </summary>
+    None = 0,
+
+    /// <summary>
     /// The submission was accepted. The store's revision has advanced by one and a new
     /// <see cref="PolicyStoreSnapshot"/> has been published.
     /// </summary>

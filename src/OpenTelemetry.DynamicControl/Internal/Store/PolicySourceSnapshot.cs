@@ -13,6 +13,11 @@ namespace OpenTelemetry.DynamicControl.Internal.Store;
 /// <summary>
 /// One policy source's complete, validated, immutable policy set at a single point in time.
 /// </summary>
+/// <remarks>
+/// Once published by <see cref="PolicyStore"/>, this instance is read-only.
+/// The <c>lookup</c> dictionary is populated once during construction and never modified.
+/// Concurrent reads of a published snapshot are safe without any additional locking.
+/// </remarks>
 internal sealed class PolicySourceSnapshot
 {
     private readonly Dictionary<PolicyKey, TelemetryPolicy> lookup;
@@ -37,7 +42,7 @@ internal sealed class PolicySourceSnapshot
     public PolicySourceMetadata Metadata { get; }
 
     /// <summary>
-    /// Gets the registration identity of the source. Equivalent to <see cref="Metadata"/>.RegistrationId.
+    /// Gets the registration identity of the source. Equivalent to <see cref="PolicySourceMetadata.RegistrationId"/>.
     /// </summary>
     public SourceRegistrationId RegistrationId => this.Metadata.RegistrationId;
 
@@ -79,8 +84,7 @@ internal sealed class PolicySourceSnapshot
     /// Attempts to create a new <see cref="PolicySourceSnapshot"/> from the supplied inputs.
     /// </summary>
     /// <param name="metadata">
-    /// The metadata of the source. Must not be <see langword="default"/>; a default value
-    /// would bypass all constructor validation and could assign this snapshot top precedence.
+    /// The metadata of the source. Must not be <see langword="default"/>.
     /// </param>
     /// <param name="sequence">The caller-assigned submission stamp. Must be greater than or equal to 1.</param>
     /// <param name="version">The change-detection token for this submission.</param>
@@ -103,7 +107,7 @@ internal sealed class PolicySourceSnapshot
     /// <see langword="true"/> if the snapshot was created successfully; <see langword="false"/>
     /// if validation failed.
     /// </returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="policies"/> is null.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="policies"/> is null.</exception>
     public static bool TryCreate(
         PolicySourceMetadata metadata,
         long sequence,
@@ -132,7 +136,7 @@ internal sealed class PolicySourceSnapshot
         var count = policies.Count;
         var keys = new PolicyKey[count];
         var policyItems = new TelemetryPolicy[count];
-        var lookupDict = new Dictionary<PolicyKey, TelemetryPolicy>(count);
+        var policyMap = new Dictionary<PolicyKey, TelemetryPolicy>(count);
 
         for (var i = 0; i < count; i++)
         {
@@ -160,21 +164,27 @@ internal sealed class PolicySourceSnapshot
             }
 
             var key = new PolicyKey(policy.PolicyType, policy.Id);
-            if (lookupDict.ContainsKey(key))
+#if NET || NETSTANDARD2_1_OR_GREATER
+            var added = policyMap.TryAdd(key, policy);
+#else
+            var added = !policyMap.ContainsKey(key);
+            if (added)
+                policyMap[key] = policy;
+#endif
+            if (!added)
             {
                 snapshot = null;
                 error = $"Duplicate policy key: {key}. A policy snapshot must not contain two policies with the same PolicyType and Id.";
                 return false;
             }
 
-            lookupDict[key] = policy;
             keys[i] = key;
             policyItems[i] = policy;
         }
 
-        Array.Sort(keys, policyItems, PolicyKeyComparer.Instance);
+        Array.Sort(keys, policyItems, PolicyKeyComparer.Default);
 
-        snapshot = new PolicySourceSnapshot(metadata, sequence, version, policyItems, lookupDict);
+        snapshot = new PolicySourceSnapshot(metadata, sequence, version, policyItems, policyMap);
         error = null;
         return true;
     }

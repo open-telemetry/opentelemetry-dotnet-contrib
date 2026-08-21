@@ -4,27 +4,26 @@
 namespace OpenTelemetry.DynamicControl.Internal.Policies;
 
 /// <summary>
-/// Compares <see cref="PolicyKey"/> instances by type then ID.
+/// Compares <see cref="PolicyKey"/> instances by type then ID, and provides
+/// equality and hash-code implementations following the same ordinal rules.
 /// </summary>
-internal sealed class PolicyKeyComparer : IComparer<PolicyKey>
+internal sealed class PolicyKeyComparer : IComparer<PolicyKey>, IEqualityComparer<PolicyKey>
 {
-    // Expressed as an IComparer<PolicyKey> rather than IComparable<PolicyKey> to avoid
-    // implying general ordering semantics for policy identity. The comparer expresses
-    // "a deterministic order for processing", not "one policy key is less than another".
-
     private PolicyKeyComparer()
     {
     }
 
     /// <summary>
-    /// Gets the singleton instance of <see cref="PolicyKeyComparer"/>.
+    /// Gets the default instance of <see cref="PolicyKeyComparer"/>.
     /// </summary>
-    public static PolicyKeyComparer Instance { get; } = new();
+    public static PolicyKeyComparer Default { get; } = new();
 
     /// <inheritdoc/>
-    public int Compare(PolicyKey x, PolicyKey y)
-    {
-        var typeComparison = string.CompareOrdinal(x.PolicyType, y.PolicyType);
-        return typeComparison != 0 ? typeComparison : string.CompareOrdinal(x.PolicyId, y.PolicyId);
-    }
+    public int Compare(PolicyKey x, PolicyKey y) => x.CompareTo(y);
+
+    /// <inheritdoc/>
+    public bool Equals(PolicyKey x, PolicyKey y) => x.Equals(y);
+
+    /// <inheritdoc/>
+    public int GetHashCode(PolicyKey obj) => obj.GetHashCode();
 }

@@ -53,9 +53,9 @@ internal sealed class PolicyStore
     /// The submission is evaluated against metadata consistency, sequence staleness, and
     /// version suppression gates before being applied.
     /// </summary>
-    /// <param name="snapshot">The new snapshot to commit. Must not be null.</param>
+    /// <param name="snapshot">The new snapshot to commit.</param>
     /// <returns>The outcome of the submission and the current (resulting or unchanged) snapshot.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="snapshot"/> is null.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="snapshot"/> is null.</exception>
     public PolicyStoreUpdateResult ReplaceSource(PolicySourceSnapshot snapshot)
     {
         Guard.ThrowIfNull(snapshot);
@@ -85,6 +85,7 @@ internal sealed class PolicyStore
                 && existing != null
                 && snapshot.Version.Equals(existing.Version))
             {
+                // Gate 2 above guarantees snapshot.Sequence > maxSeq; this assignment always increases the value.
                 this.maxSequence[id] = snapshot.Sequence;
                 return new PolicyStoreUpdateResult(PolicyStoreUpdateStatus.SuppressedUnchangedVersion, this.current);
             }
@@ -112,9 +113,9 @@ internal sealed class PolicyStore
     /// and leave downstream samplers without configuration until the next connection.
     /// </para>
     /// <para>
-    /// After removal, no tombstone is retained. Re-adding the same
-    /// <see cref="SourceRegistrationId"/> accepts any sequence greater than or equal to 1,
-    /// including one lower than a previously accepted value.
+    /// After removal, no deletion record is retained. Re-adding the same
+    /// <see cref="SourceRegistrationId"/> starts fresh and accepts any sequence
+    /// greater than or equal to 1, including one lower than a previously accepted value.
     /// </para>
     /// </remarks>
     /// <param name="registrationId">The identity of the source to remove. Must not be <see cref="SourceRegistrationId.Empty"/>.</param>
@@ -126,12 +127,11 @@ internal sealed class PolicyStore
 
         lock (this.updateLock)
         {
-            if (!this.sources.ContainsKey(registrationId))
+            if (!this.sources.Remove(registrationId))
             {
                 return new PolicyStoreUpdateResult(PolicyStoreUpdateStatus.SourceNotFound, this.current);
             }
 
-            this.sources.Remove(registrationId);
             this.maxSequence.Remove(registrationId);
 
             var newSnapshot = new PolicyStoreSnapshot(this.current.Revision + 1, this.sources);

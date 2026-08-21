@@ -7,7 +7,7 @@ namespace OpenTelemetry.DynamicControl.Tests;
 
 public class PolicyKeyComparerTests
 {
-    private static readonly PolicyKeyComparer Comparer = PolicyKeyComparer.Instance;
+    private static readonly PolicyKeyComparer Comparer = PolicyKeyComparer.Default;
 
     [Fact]
     public void Compare_DifferingType_OrderedByOrdinalType()
@@ -66,5 +66,5 @@ public class PolicyKeyComparerTests
 
     [Fact]
     public void Instance_IsSingleton() =>
-        Assert.Same(PolicyKeyComparer.Instance, PolicyKeyComparer.Instance);
+        Assert.Same(PolicyKeyComparer.Default, PolicyKeyComparer.Default);
 }

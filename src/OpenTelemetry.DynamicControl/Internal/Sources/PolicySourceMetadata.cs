@@ -38,10 +38,10 @@ internal readonly struct PolicySourceMetadata : IEquatable<PolicySourceMetadata>
 
         Guard.ThrowIfUndefinedOrDefault(kind);
 
-        if (priority.HasValue)
+        if (priority is { } priorityValue)
         {
             Guard.ThrowIfNegative(
-                priority.Value,
+                priorityValue,
                 "The priority must be non-negative. Per the Telemetry Policy OTEP, lower values represent higher precedence (e.g. OpAmp=1, Http=2, File=3).",
                 nameof(priority));
         }
@@ -126,6 +126,11 @@ internal readonly struct PolicySourceMetadata : IEquatable<PolicySourceMetadata>
         PolicySourceKind.Http => 2,
         PolicySourceKind.File => 3,
         PolicySourceKind.Custom => 1000,
-        _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
+        _ =>
+#if NET
+            throw new System.Diagnostics.UnreachableException($"Unhandled {nameof(PolicySourceKind)}: {kind}"),
+#else
+            throw new InvalidOperationException($"Unhandled {nameof(PolicySourceKind)}: {kind}"),
+#endif
     };
 }
