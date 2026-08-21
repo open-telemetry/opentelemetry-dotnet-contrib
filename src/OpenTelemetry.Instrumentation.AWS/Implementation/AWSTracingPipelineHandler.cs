@@ -314,7 +314,11 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
             lastItem = null;
             var result = false;
 
+#if NET11_0_OR_GREATER
+            var index = value.LastIndexOf(delimiter, StringComparison.Ordinal);
+#else
             var index = value.LastIndexOf(delimiter);
+#endif
 
             if (index > -1 && index < value.Length - 1)
             {

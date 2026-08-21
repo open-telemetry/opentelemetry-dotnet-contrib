@@ -4,7 +4,9 @@
 #if !NETFRAMEWORK
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+#if !NET11_0_OR_GREATER
 using System.Text;
+#endif
 #endif
 using Microsoft.Win32;
 using OpenTelemetry.Internal;
@@ -200,6 +202,17 @@ internal sealed class HostDetector : IResourceDetector
                 RedirectStandardError = true,
             };
 
+#if NET11_0_OR_GREATER
+            var result = Process.RunAndCaptureText(startInfo, TimeSpan.FromMilliseconds(timeoutMilliseconds));
+
+            if (!string.IsNullOrEmpty(result.StandardError) || result.ExitStatus.Canceled || result.ExitStatus.ExitCode != 0)
+            {
+                HostResourceEventSource.Log.FailedToExtractResourceAttributes(nameof(HostDetector), result.StandardError);
+                return null;
+            }
+
+            return result.StandardOutput;
+#else
             var sb = new StringBuilder();
             using var process = Process.Start(startInfo);
             if (process != null)
@@ -227,6 +240,7 @@ internal sealed class HostDetector : IResourceDetector
             }
 
             return null;
+#endif
         }
         catch (Exception ex)
         {

@@ -180,11 +180,11 @@ internal partial class AWSSemanticConventions
     public class AttributeBuilderImpl
     {
         private readonly AWSSemanticConventions awsSemanticConventions;
-        private List<KeyValuePair<string, object>> state = new(
 
-            // set initial capacity to prevent array resizing
-            // and prevent #2652 - possible race condition when running from unit tests
-            capacity: 16);
+        // Set initial capacity to prevent array resizing
+        // and prevent https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/265
+        // possible race condition when running from unit tests
+        private List<KeyValuePair<string, object>> state = [with(capacity: 16)];
 
         public AttributeBuilderImpl(AWSSemanticConventions semanticConventions)
         {
