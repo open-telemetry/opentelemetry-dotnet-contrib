@@ -106,6 +106,8 @@ public class OpAmpHttpPipeTests : OpAmpPipeTests
         Assert.NotNull(messages[2].Health);
     }
 
+    internal override MockControlledTransport GetTransport(Action? firstSendCallback = null) => new MockControlledHttpTransport(firstSendCallback);
+
     private sealed class AppendHeartbeatListener : IOpAmpListener<CustomMessageMessage>
     {
         private readonly OpAmpPipe pipe;
@@ -134,6 +136,4 @@ public class OpAmpHttpPipeTests : OpAmpPipeTests
             throw new InvalidOperationException("listener failed");
         }
     }
-
-    internal override MockControlledTransport GetTransport(Action? firstSendCallback = null) => new MockControlledHttpTransport(firstSendCallback);
 }
