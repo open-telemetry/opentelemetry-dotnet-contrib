@@ -249,10 +249,8 @@ public abstract class OpAmpPipeTests
         Assert.NotNull(messages[1].AgentDisconnect);
     }
 
-    internal abstract MockControlledTransport GetTransport(Action? firstSendCallback = null);
-
     internal static void AppendIdentification(OpAmpPipe pipe)
-        => pipe.AppendMessage(MessageBuilderHelper.AppendIdentification);
+    => pipe.AppendMessage(MessageBuilderHelper.AppendIdentification);
 
     internal static void AppendHeartbeat(OpAmpPipe pipe)
         => pipe.AppendMessage(MessageBuilderHelper.AppendHeartbeat(CreateHealthReport()));
