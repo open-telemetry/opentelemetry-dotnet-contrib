@@ -14,7 +14,7 @@ namespace OpenTelemetry.DynamicControl.Internal.Policies;
 /// provider-assigned policy identifier, rather than the identifier alone.
 /// </para>
 /// </remarks>
-internal readonly struct PolicyKey : IEquatable<PolicyKey>
+internal readonly struct PolicyKey : IEquatable<PolicyKey>, IComparable<PolicyKey>
 {
     /// <summary>
     /// A read-only instance of the <see cref="PolicyKey"/> structure whose field values
@@ -46,7 +46,7 @@ internal readonly struct PolicyKey : IEquatable<PolicyKey>
     public string PolicyType => this.policyType ?? string.Empty;
 
     /// <summary>
-    /// Gets the opaque, provider-assigned policy identifier.
+    /// Gets the provider-assigned policy identifier.
     /// </summary>
     public string PolicyId => this.policyId ?? string.Empty;
 
@@ -78,13 +78,20 @@ internal readonly struct PolicyKey : IEquatable<PolicyKey>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="policy"/> is null.</exception>
     /// <exception cref="ArgumentException">
     /// Thrown when the policy reports a blank type or identifier. Validated policy models
-    /// cannot, so this indicates a faulty <see cref="ITelemetryPolicy"/> implementation.
+    /// cannot, so this indicates a faulty <see cref="TelemetryPolicy"/> implementation.
     /// </exception>
-    public static PolicyKey FromPolicy(ITelemetryPolicy policy)
+    public static PolicyKey FromPolicy(TelemetryPolicy policy)
     {
         Guard.ThrowIfNull(policy);
 
         return new PolicyKey(policy.PolicyType, policy.Id);
+    }
+
+    /// <inheritdoc/>
+    public int CompareTo(PolicyKey other)
+    {
+        var typeComparison = string.CompareOrdinal(this.policyType ?? string.Empty, other.policyType ?? string.Empty);
+        return typeComparison != 0 ? typeComparison : string.CompareOrdinal(this.policyId ?? string.Empty, other.policyId ?? string.Empty);
     }
 
     /// <inheritdoc/>
