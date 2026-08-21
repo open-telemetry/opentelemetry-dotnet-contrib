@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.18.0
+
+Released 2026-Aug-21
+
 * Fixes duplicate `traceparent` header injection when only propagation is
   enabled and a filtered request is redirected on .NET Framework.
   ([#4917](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4917))
