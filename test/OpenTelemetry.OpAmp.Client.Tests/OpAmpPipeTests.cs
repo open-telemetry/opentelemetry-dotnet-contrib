@@ -126,17 +126,19 @@ public abstract class OpAmpPipeTests
         var settings = new OpAmpClientSettings();
         var processor = new FrameProcessor();
         using var pipe = new OpAmpPipe(settings, processor, transport);
+        var failureMessage = $"send failed {Guid.NewGuid():N}";
 
         AppendHeartbeat(pipe);
         await transport.WaitForMessagesAsync(1);
-        transport.FaultNextSend(new InvalidOperationException("send failed"));
+        transport.FaultNextSend(new InvalidOperationException(failureMessage));
 
-        var failedEvent = await WaitForEventAsync(
+        await WaitForEventAsync(
             eventListener,
-            nameof(OpAmpClientEventSource.FailedToSendMessage),
+            e => e.EventName == nameof(OpAmpClientEventSource.FailedToSendMessage)
+                && e.Payload![0] is string exception
+                && exception.Contains(failureMessage),
+            $"{nameof(OpAmpClientEventSource.FailedToSendMessage)} containing '{failureMessage}'",
             TimeSpan.FromSeconds(5));
-
-        Assert.Contains("send failed", Assert.IsType<string>(failedEvent.Payload![0]));
     }
 
     [Fact]
@@ -152,6 +154,7 @@ public abstract class OpAmpPipeTests
 
         await WaitForEventAsync(
             eventListener,
+            e => e.EventName == nameof(OpAmpClientEventSource.QueueingHeartbeatMessage),
             nameof(OpAmpClientEventSource.QueueingHeartbeatMessage),
             TimeSpan.FromSeconds(5));
 
@@ -254,7 +257,11 @@ public abstract class OpAmpPipeTests
     internal static void AppendHeartbeat(OpAmpPipe pipe)
         => pipe.AppendMessage(MessageBuilderHelper.AppendHeartbeat(CreateHealthReport()));
 
-    private static async Task<EventWrittenEventArgs> WaitForEventAsync(InMemoryEventListener eventListener, string eventName, TimeSpan timeout)
+    private static async Task<EventWrittenEventArgs> WaitForEventAsync(
+        InMemoryEventListener eventListener,
+        Func<EventWrittenEventArgs, bool> predicate,
+        string eventDescription,
+        TimeSpan timeout)
     {
         var deadline = DateTime.UtcNow + timeout;
 
@@ -262,7 +269,7 @@ public abstract class OpAmpPipeTests
         {
             while (eventListener.Events.TryDequeue(out var candidate))
             {
-                if (candidate.EventName == eventName)
+                if (predicate(candidate))
                 {
                     return candidate;
                 }
@@ -271,7 +278,7 @@ public abstract class OpAmpPipeTests
             await Task.Delay(TimeSpan.FromMilliseconds(10)).ConfigureAwait(false);
         }
 
-        throw new TimeoutException($"Timed out waiting for event '{eventName}'.");
+        throw new TimeoutException($"Timed out waiting for event '{eventDescription}'.");
     }
 
     private static HealthReport CreateHealthReport() => new()

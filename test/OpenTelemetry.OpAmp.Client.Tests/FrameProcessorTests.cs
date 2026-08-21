@@ -59,8 +59,9 @@ public class FrameProcessorTests
         using var listener = new MockListener();
         var processor = new FrameProcessor();
         var mockFrame = FrameGenerator.GenerateMockServerFrame();
+        var failureMessage = $"listener failed {Guid.NewGuid():N}";
 
-        processor.Subscribe(new ThrowingCustomMessageListener());
+        processor.Subscribe(new ThrowingCustomMessageListener(failureMessage));
         processor.Subscribe(listener);
 
         processor.OnServerFrame(mockFrame.Frame.ToSequence());
@@ -71,7 +72,7 @@ public class FrameProcessorTests
             eventListener.Events,
             e => e.EventName == nameof(OpAmpClientEventSource.FrameProcessingFailure)
                 && e.Payload![0] is string exception
-                && exception.Contains("listener failed"));
+                && exception.Contains(failureMessage));
     }
 
     [Fact]
@@ -119,7 +120,14 @@ public class FrameProcessorTests
 
     private sealed class ThrowingCustomMessageListener : IOpAmpListener<CustomMessageMessage>
     {
+        private readonly string failureMessage;
+
+        public ThrowingCustomMessageListener(string failureMessage)
+        {
+            this.failureMessage = failureMessage;
+        }
+
         public void HandleMessage(CustomMessageMessage message)
-            => throw new InvalidOperationException("listener failed");
+            => throw new InvalidOperationException(this.failureMessage);
     }
 }
