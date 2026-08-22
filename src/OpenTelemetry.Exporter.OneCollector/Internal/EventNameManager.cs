@@ -2,9 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Collections;
-#if NET
 using System.Diagnostics;
-#endif
 using System.Text.RegularExpressions;
 
 namespace OpenTelemetry.Exporter.OneCollector;
@@ -15,10 +13,18 @@ internal sealed partial class EventNameManager
     internal const int MinimumEventFullNameLength = 4;
     internal const int MaximumEventFullNameLength = 100;
 
+    internal const int MaxNumberOfCachedEventFullNames = 2048;
+    internal const int MaxNumberOfCachedEventNamespaces = 1024;
+    internal const int MaxNumberOfCachedEventNames = 2048;
+
+    private const int MaximumStackAllocLengthInBytes = 128;
+
     private readonly string defaultEventNamespace;
     private readonly string defaultEventName;
     private readonly IReadOnlyDictionary<string, EventFullName>? eventFullNameMappings;
     private readonly ResolvedEventFullName defaultEventFullName;
+
+    private int cachedEventNameCount;
 
     public EventNameManager(
         string defaultEventNamespace,
@@ -44,11 +50,31 @@ internal sealed partial class EventNameManager
 
     internal Hashtable EventFullNameCache { get; } = new(StringComparer.OrdinalIgnoreCase);
 
+    internal int CachedEventNameCount => Volatile.Read(ref this.cachedEventNameCount);
+
     public static bool IsEventNamespaceValid(string eventNamespace)
         => EventNamespaceValidationRegex().IsMatch(eventNamespace);
 
     public static bool IsEventNameValid(string eventName)
         => EventNameValidationRegex().IsMatch(eventName);
+
+    public static bool IsEventFullNameValid(string eventFullName)
+    {
+        if (string.IsNullOrEmpty(eventFullName))
+        {
+            return false;
+        }
+
+        foreach (var c in eventFullName)
+        {
+            if (c is not ((>= 'A' and <= 'Z') or (>= 'a' and <= 'z') or (>= '0' and <= '9') or '.' or '_'))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     public ResolvedEventFullName ResolveEventFullName(
         string eventFullName)
@@ -58,18 +84,32 @@ internal sealed partial class EventNameManager
             return cachedEventFullName;
         }
 
-        var eventFullNameBlob = BuildEventFullName(string.Empty, eventFullName);
+        if (!IsEventFullNameValid(eventFullName) ||
+            eventFullName.Length is < MinimumEventFullNameLength or > MaximumEventFullNameLength)
+        {
+            var truncatedEventFullName = eventFullName.Length <= MaximumEventFullNameLength
+                ? eventFullName
+                : eventFullName.Substring(0, MaximumEventFullNameLength);
+
+            OneCollectorExporterEventSource.Log.EventFullNameDiscarded(string.Empty, truncatedEventFullName);
+
+            return this.defaultEventFullName;
+        }
 
         var resolvedEventFullName = new ResolvedEventFullName(
-            eventFullNameBlob,
+            BuildEventFullName(string.Empty, eventFullName),
             originalEventNamespace: null,
             originalEventName: null);
 
-        lock (this.EventFullNameCache)
+        if (this.EventFullNameCache.Count < MaxNumberOfCachedEventFullNames)
         {
-            if (this.EventFullNameCache[eventFullName] is null)
+            lock (this.EventFullNameCache)
             {
-                this.EventFullNameCache[eventFullName] = resolvedEventFullName;
+                if (this.EventFullNameCache.Count < MaxNumberOfCachedEventFullNames
+                    && this.EventFullNameCache[eventFullName] is null)
+                {
+                    this.EventFullNameCache[eventFullName] = resolvedEventFullName;
+                }
             }
         }
 
@@ -101,7 +141,7 @@ internal sealed partial class EventNameManager
 
         var eventNameCache = this.GetEventNameCacheForEventNamespace(eventNamespace!);
 
-        if (eventNameCache[eventName!] is ResolvedEventFullName cachedEventFullName)
+        if (eventNameCache?[eventName!] is ResolvedEventFullName cachedEventFullName)
         {
             return cachedEventFullName;
         }
@@ -110,26 +150,35 @@ internal sealed partial class EventNameManager
             ref eventNamespace!,
             ref eventName!);
 
-        var originalEventNamespaceBlob = !string.IsNullOrEmpty(originalEventNamespace)
-                                         && originalEventNamespace != eventNamespace
-            ? BuildEventFullName(string.Empty, originalEventNamespace!)
+        // Note: These are the values supplied by the caller, so they are reported as-is
+        // (they are only set when they differ from the resolved value, which is typically
+        // because they failed validation). They are written as JSON strings by the
+        // serializer so that they are escaped - they must NOT be turned into raw JSON.
+        var originalEventNamespaceValue =
+            !string.IsNullOrEmpty(originalEventNamespace) && originalEventNamespace != eventNamespace
+            ? originalEventNamespace
             : null;
 
-        var originalEventNameBlob = !string.IsNullOrEmpty(originalEventName)
-                                    && originalEventName != eventName
-            ? BuildEventFullName(string.Empty, originalEventName!)
+        var originalEventNameValue = !string.IsNullOrEmpty(originalEventName)
+                                     && originalEventName != eventName
+            ? originalEventName
             : null;
 
         var resolvedEventFullName = new ResolvedEventFullName(
             eventFullNameBlob,
-            originalEventNamespaceBlob,
-            originalEventNameBlob);
+            originalEventNamespaceValue,
+            originalEventNameValue);
 
-        lock (eventNameCache)
+        if (eventNameCache != null
+            && Volatile.Read(ref this.cachedEventNameCount) < MaxNumberOfCachedEventNames)
         {
-            if (eventNameCache[eventName!] is null)
+            lock (eventNameCache)
             {
-                eventNameCache[eventName!] = resolvedEventFullName;
+                if (eventNameCache[eventName!] is null)
+                {
+                    eventNameCache[eventName!] = resolvedEventFullName;
+                    Interlocked.Increment(ref this.cachedEventNameCount);
+                }
             }
         }
 
@@ -157,7 +206,25 @@ internal sealed partial class EventNameManager
 
     private static byte[] BuildEventFullName(string eventNamespace, string eventName)
     {
-        Span<byte> destination = stackalloc byte[128];
+        // The result is written into the payload as raw JSON, so every caller must have
+        // validated both components first: they may only contain characters which do not
+        // require JSON escaping, and their combined length may not exceed MaximumEventFullNameLength.
+        // The buffer is still sized from the input rather than being a fixed size so that
+        // an unvalidated caller cannot walk off the end of it.
+        Debug.Assert(
+            IsEventFullNameValid(eventNamespace.Length > 0 ? $"{eventNamespace}.{eventName}" : eventName),
+            "eventNamespace and/or eventName contained characters which require JSON escaping");
+
+        // 2 for the surrounding quotes and 1 for the '.' separator.
+        var requiredLength = eventNamespace.Length + eventName.Length + (eventNamespace.Length > 0 ? 1 : 0) + 2;
+
+        Debug.Assert(
+            requiredLength <= MaximumEventFullNameLength + 2,
+            "eventNamespace and eventName combined exceeded MaximumEventFullNameLength");
+
+        var destination = requiredLength <= MaximumStackAllocLengthInBytes
+            ? stackalloc byte[MaximumStackAllocLengthInBytes]
+            : new byte[requiredLength];
 
         destination[0] = (byte)'\"';
 
@@ -193,17 +260,32 @@ internal sealed partial class EventNameManager
         }
     }
 
-    private Hashtable GetEventNameCacheForEventNamespace(string eventNamespace)
+    /// <summary>
+    /// Gets the cache of event names for an event namespace, or <see langword="null"/> if the
+    /// namespace is not cached and <see cref="MaxNumberOfCachedEventNamespaces"/> has been
+    /// reached, in which case the caller has to resolve the event full name every time.
+    /// </summary>
+    private Hashtable? GetEventNameCacheForEventNamespace(string eventNamespace)
     {
         var eventNamespaceCache = this.EventNamespaceCache;
 
         if (eventNamespaceCache[eventNamespace] is not Hashtable eventNameCacheForNamespace)
         {
+            if (eventNamespaceCache.Count >= MaxNumberOfCachedEventNamespaces)
+            {
+                return null;
+            }
+
             lock (eventNamespaceCache)
             {
                 eventNameCacheForNamespace = (eventNamespaceCache[eventNamespace] as Hashtable)!;
                 if (eventNameCacheForNamespace == null)
                 {
+                    if (eventNamespaceCache.Count >= MaxNumberOfCachedEventNamespaces)
+                    {
+                        return null;
+                    }
+
                     eventNameCacheForNamespace = new Hashtable(StringComparer.OrdinalIgnoreCase);
                     eventNamespaceCache[eventNamespace] = eventNameCacheForNamespace;
                 }
@@ -312,18 +394,30 @@ internal sealed partial class EventNameManager
     {
         public ResolvedEventFullName(
             byte[] eventFullName,
-            byte[]? originalEventNamespace,
-            byte[]? originalEventName)
+            string? originalEventNamespace,
+            string? originalEventName)
         {
             this.EventFullName = eventFullName;
             this.OriginalEventNamespace = originalEventNamespace;
             this.OriginalEventName = originalEventName;
         }
 
+        /// <summary>
+        /// Gets the resolved event full name as raw JSON, including the surrounding quotes.
+        /// Only ever built from validated components.
+        /// </summary>
         public byte[] EventFullName { get; }
 
-        public byte[]? OriginalEventNamespace { get; }
+        /// <summary>
+        /// Gets the unvalidated event namespace supplied by the caller, if it differs from the
+        /// resolved one. This has to be written as a JSON string so that it is escaped.
+        /// </summary>
+        public string? OriginalEventNamespace { get; }
 
-        public byte[]? OriginalEventName { get; }
+        /// <summary>
+        /// Gets the unvalidated event name supplied by the caller, if it differs from the
+        /// resolved one. This has to be written as a JSON string so that it is escaped.
+        /// </summary>
+        public string? OriginalEventName { get; }
     }
 }
