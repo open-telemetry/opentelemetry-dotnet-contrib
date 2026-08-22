@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* Fixed `AddWcfInstrumentation` so it no longer throws `NotSupportedException`
+  when called again after any previously created `TracerProvider` has been
+  disposed of.
+  ([#5109](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5109))
+
 ## 1.18.0-beta.1
 
 Released 2026-Aug-21
