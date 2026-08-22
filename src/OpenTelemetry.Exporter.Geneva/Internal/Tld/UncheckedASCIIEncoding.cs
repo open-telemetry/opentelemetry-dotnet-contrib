@@ -131,7 +131,7 @@ internal sealed class UncheckedASCIIEncoding : Encoding
         }
         else if (chars.Length - charIndex < charCount)
         {
-            throw new ArgumentOutOfRangeException(chars);
+            throw new ArgumentOutOfRangeException(nameof(chars));
         }
         else if (byteIndex < 0 || byteIndex > bytes.Length)
         {

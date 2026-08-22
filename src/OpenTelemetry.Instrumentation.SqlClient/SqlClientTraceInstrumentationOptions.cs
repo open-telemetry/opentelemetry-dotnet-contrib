@@ -21,6 +21,7 @@ public class SqlClientTraceInstrumentationOptions
 {
     internal const string ContextPropagationLevelEnvVar = "OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_TRACE_CONTEXT_PROPAGATION";
     internal const string SetDbQueryParametersEnvVar = "OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_TRACE_DB_QUERY_PARAMETERS";
+    internal const string RecordReturnedRowsEnvVar = "OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_RECORD_RETURNED_ROWS";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SqlClientTraceInstrumentationOptions"/> class.
@@ -47,6 +48,14 @@ public class SqlClientTraceInstrumentationOptions
                 out var setDbQueryParameters))
         {
             this.SetDbQueryParameters = setDbQueryParameters;
+        }
+
+        if (configuration.TryGetBoolValue(
+                SqlClientInstrumentationEventSource.Log,
+                RecordReturnedRowsEnvVar,
+                out var recordReturnedRows))
+        {
+            this.RecordReturnedRows = recordReturnedRows;
         }
 #endif
     }
@@ -118,6 +127,28 @@ public class SqlClientTraceInstrumentationOptions
     /// </para>
     /// </remarks>
     internal bool SetDbQueryParameters { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether or not the <see cref="SqlClientInstrumentation"/>
+    /// should add the number of rows returned by the operation as the
+    /// <c>db.response.returned_rows</c> tag. Default value: <see langword="false"/>.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>RecordReturnedRows is only supported on .NET runtimes.</b>
+    /// </para>
+    /// <para>
+    /// The value is derived from the <c>SelectRows</c> connection statistic collected by
+    /// the SqlClient.
+    /// </para>
+    /// <para>
+    /// Because the span ends when the command completes executing, the tag is only added
+    /// for commands executed with <c>ExecuteNonQuery</c> or <c>ExecuteScalar</c>; the rows
+    /// returned to an <c>ExecuteReader</c> command are not counted until after its span has
+    /// ended, so no tag is added for those commands.
+    /// </para>
+    /// </remarks>
+    internal bool RecordReturnedRows { get; set; }
 #endif
 
 #if NET
