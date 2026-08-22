@@ -341,6 +341,10 @@ internal partial class AWSSemanticConventions
         public AttributeBuilderImpl AddAttributeHostName(object? value, bool addIfEmpty = false) =>
             this.awsSemanticConventions.Add(this, x => x.AttributeHostName, value, addIfEmpty);
 
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeHostImageId"/>
+        public AttributeBuilderImpl AddAttributeHostImageId(object? value, bool addIfEmpty = false) =>
+            this.awsSemanticConventions.Add(this, x => x.AttributeHostImageId, value, addIfEmpty);
+
         #endregion
 
         #region Http
