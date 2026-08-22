@@ -114,6 +114,12 @@ Add your custom enricher class to the `TracerProviderBuilder` by calling the
 `TryAddTraceEnricher<T>()` method. Configure other services via
 `ConfigureServices()`, add `ActivitySource` and an exporter as usual:
 
+When using dependency injection, `TraceEnricher` instances are registered as
+singletons. A single instance of each enricher is created per service provider
+and reused for all activities. This means you should inject only singleton or
+transient services into your enricher constructor. Injecting scoped services
+into a singleton enricher may cause issues with service lifetime management.
+
 ```csharp
 using var MyActivitySource = new ActivitySource("MyCompany.MyProduct.MyLibrary");
 using var tracerProvider = Sdk.CreateTracerProviderBuilder()
