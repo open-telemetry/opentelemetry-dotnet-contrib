@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## 1.18.0-alpha.1
+
+Released 2026-Aug-21
+
+* Added argument validation for EventCounter source names and refresh intervals.
+  ([#5012](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5012))
+
+* Updated OpenTelemetry core component version(s) to `1.18.0`.
+  ([#5022](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5022))
+
 ## 1.17.0-alpha.1
 
 Released 2026-Jul-17

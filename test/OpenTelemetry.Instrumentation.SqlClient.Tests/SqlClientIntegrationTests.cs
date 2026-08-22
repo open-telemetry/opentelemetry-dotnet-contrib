@@ -12,12 +12,18 @@ using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.SqlClient.Tests;
 
+[Collection("SqlClient")]
 [Trait("CategoryName", "SqlIntegrationTests")]
 public sealed class SqlClientIntegrationTests :
     IClassFixture<SqlClientIntegrationTestsFixture>,
     IClassFixture<WeaverFixture>
 {
     private const string GetContextInfoQuery = "SELECT CONTEXT_INFO()";
+
+#if NET
+    private const string ReadSessionStateProcedureName = "dbo.otel_read_session_state";
+    private const string CreateReadSessionStateProcedureQuery = "CREATE OR ALTER PROCEDURE " + ReadSessionStateProcedureName + " AS SELECT TOP 1 c.connection_id, CONTEXT_INFO() FROM sys.dm_exec_connections AS c WHERE c.session_id = @@SPID";
+#endif
 
     private readonly ITestOutputHelper outputHelper;
     private readonly SqlClientIntegrationTestsFixture sqlServer;
@@ -176,7 +182,322 @@ public sealed class SqlClientIntegrationTests :
             this.outputHelper,
             [new("invalid_format", null)]); // See https://github.com/open-telemetry/weaver/issues/1443
     }
+
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
+    public async Task ContextInfoIsClearedWhenPooledConnectionIsReused()
+    {
+        // Arrange
+        using var scope = EnvironmentVariableScope.Create(
+            SqlClientTraceInstrumentationOptions.ContextPropagationLevelEnvVar,
+            "true");
+
+        await this.CreateReadSessionStateProcedureAsync();
+
+        var activities = new List<Activity>();
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddInMemoryExporter(activities)
+            .AddSqlClientInstrumentation()
+            .Build();
+
+        // A distinct connection string is a distinct pool key, so this gives the test a pool
+        // that can hold exactly one physical connection. The reuse below is then guaranteed
+        // rather than dependent on the order the driver pops connections off its own pool.
+        var connectionStringBuilder = new SqlConnectionStringBuilder(this.GetConnectionString())
+        {
+            MaxPoolSize = 1,
+        };
+
+        Guid connectionId;
+
+        // Act
+        using (var sqlConnection = new SqlConnection(connectionStringBuilder.ConnectionString))
+        {
+            await sqlConnection.OpenAsync();
+
+            sqlConnection.ChangeDatabase("master");
+
+            using (var sqlCommand = new SqlCommand("select 1", sqlConnection))
+            {
+                await sqlCommand.ExecuteScalarAsync();
+            }
+
+            var textActivity = Assert.Single(activities);
+
+            (connectionId, var contextInfo) = await ReadSessionStateAsync(sqlConnection);
+
+            // The text command wrote its traceparent, so the assertion after the pooled
+            // reuse below is about the reset and not about propagation never having run.
+            Assert.Equal(textActivity.Id, contextInfo);
+        }
+
+        using (var sqlConnection = new SqlConnection(connectionStringBuilder.ConnectionString))
+        {
+            await sqlConnection.OpenAsync();
+
+            sqlConnection.ChangeDatabase("master");
+
+            var (actualConnectionId, contextInfo) = await ReadSessionStateAsync(sqlConnection);
+
+            // Assert
+            Assert.Equal(connectionId, actualConnectionId);
+            Assert.Null(contextInfo);
+        }
+
+        Assert.Equal(3, activities.Count);
+
+        await WeaverTelemetryVerifier.VerifyAsync(
+            (activities, []),
+            SqlTelemetryHelper.SemanticConventionsVersion,
+            this.weaver,
+            this.outputHelper);
+    }
+
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
+    public async Task StoredProcedureObservesContextInfoOfPrecedingTextCommand()
+    {
+        // Arrange
+        using var scope = EnvironmentVariableScope.Create(
+            SqlClientTraceInstrumentationOptions.ContextPropagationLevelEnvVar,
+            "true");
+
+        await this.CreateReadSessionStateProcedureAsync();
+
+        var activities = new List<Activity>();
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddInMemoryExporter(activities)
+            .AddSqlClientInstrumentation()
+            .Build();
+
+        using var sqlConnection = new SqlConnection(this.GetConnectionString());
+
+        await sqlConnection.OpenAsync();
+
+        sqlConnection.ChangeDatabase("master");
+
+        // Act
+        using (var sqlCommand = new SqlCommand("select 1", sqlConnection))
+        {
+            await sqlCommand.ExecuteScalarAsync();
+        }
+
+        var textActivity = Assert.Single(activities);
+
+        // The stopped activity is left as Activity.Current by the async command, which would
+        // make the stored procedure a child of it. Clear it so the two commands belong to
+        // unrelated traces, which is the case where the stale value attributes the stored
+        // procedure to the wrong trace.
+        Activity.Current = null;
+
+        var (connectionId, contextInfo) = await ReadSessionStateAsync(sqlConnection);
+
+        // Assert
+        Assert.Equal(2, activities.Count);
+
+        var storedProcedureActivity = activities[1];
+
+        Assert.NotEqual(textActivity.TraceId, storedProcedureActivity.TraceId);
+        Assert.Equal(textActivity.Id, contextInfo);
+        Assert.NotEqual(storedProcedureActivity.Id, contextInfo);
+
+        await WeaverTelemetryVerifier.VerifyAsync(
+            (activities, []),
+            SqlTelemetryHelper.SemanticConventionsVersion,
+            this.weaver,
+            this.outputHelper);
+    }
+
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
+    public async Task RecordsReturnedRowsWhenEnabled()
+    {
+        // Arrange
+        using var scope = EnvironmentVariableScope.Create(
+            SqlClientTraceInstrumentationOptions.RecordReturnedRowsEnvVar,
+            "true");
+
+        var activities = new List<Activity>();
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddInMemoryExporter(activities)
+            .AddSqlClientInstrumentation()
+            .Build();
+
+        using var sqlConnection = new SqlConnection(this.GetConnectionString());
+
+        await sqlConnection.OpenAsync();
+
+        sqlConnection.ChangeDatabase("master");
+
+        // A temporary table is scoped to the connection/session so the test does not
+        // depend on or mutate any shared schema in the container.
+        using (var createCommand = new SqlCommand("CREATE TABLE #returned_rows (Id int)", sqlConnection))
+        {
+            await createCommand.ExecuteNonQueryAsync();
+        }
+
+        // Ignore the activities produced while preparing the table.
+        activities.Clear();
+
+        // Act
+        using var insertCommand = new SqlCommand("INSERT INTO #returned_rows (Id) VALUES (1), (2), (3)", sqlConnection);
+        var rowsAffected = await insertCommand.ExecuteNonQueryAsync();
+
+        // Assert
+        Assert.Equal(3, rowsAffected);
+
+        // The insert affected three rows but returned none, and rows affected are not rows
+        // returned, so the number of rows it returned is recorded as zero.
+        var activity = Assert.Single(activities);
+        Assert.Equal(0L, activity.GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
+
+        activities.Clear();
+
+        // Act
+        using var selectCommand = new SqlCommand("SELECT Id FROM #returned_rows", sqlConnection);
+        await selectCommand.ExecuteNonQueryAsync();
+
+        // Assert
+        // The query returned the three rows which were inserted.
+        activity = Assert.Single(activities);
+        Assert.Equal(3L, activity.GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
+    }
+
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
+    public async Task DoesNotRecordReturnedRowsForReaderCommands()
+    {
+        // Arrange
+        using var scope = EnvironmentVariableScope.Create(
+            SqlClientTraceInstrumentationOptions.RecordReturnedRowsEnvVar,
+            "true");
+
+        var activities = new List<Activity>();
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddInMemoryExporter(activities)
+            .AddSqlClientInstrumentation()
+            .Build();
+
+        using var sqlConnection = new SqlConnection(this.GetConnectionString());
+
+        await sqlConnection.OpenAsync();
+
+        sqlConnection.ChangeDatabase("master");
+
+        using var selectCommand = new SqlCommand("SELECT * FROM (VALUES (1), (2), (3)) AS Rows(Id)", sqlConnection);
+
+        // Act
+        var rows = 0;
+
+        using (var reader = await selectCommand.ExecuteReaderAsync())
+        {
+            while (await reader.ReadAsync())
+            {
+                rows++;
+            }
+        }
+
+        // Assert
+        Assert.Equal(3, rows);
+
+        var activity = Assert.Single(activities);
+        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
+    }
+
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
+    public async Task RecordsReturnedRowsRatherThanAffectedRowsWhenBothAreReported()
+    {
+        // Arrange
+        using var scope = EnvironmentVariableScope.Create(
+            SqlClientTraceInstrumentationOptions.RecordReturnedRowsEnvVar,
+            "true");
+
+        var activities = new List<Activity>();
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddInMemoryExporter(activities)
+            .AddSqlClientInstrumentation()
+            .Build();
+
+        using var sqlConnection = new SqlConnection(this.GetConnectionString());
+
+        await sqlConnection.OpenAsync();
+
+        sqlConnection.ChangeDatabase("master");
+
+        using (var createCommand = new SqlCommand("CREATE TABLE #both_rows (Id int)", sqlConnection))
+        {
+            await createCommand.ExecuteNonQueryAsync();
+        }
+
+        using (var insertCommand = new SqlCommand("INSERT INTO #both_rows (Id) VALUES (1), (2), (3)", sqlConnection))
+        {
+            await insertCommand.ExecuteNonQueryAsync();
+        }
+
+        // Ignore the activities produced while preparing the table.
+        activities.Clear();
+
+        // A batch which affects one row and then returns three. ExecuteNonQuery() consumes the
+        // whole response, so both row counts are reported by the time the command completes.
+        using var command = new SqlCommand(
+            "UPDATE #both_rows SET Id = Id WHERE Id = 1; SELECT Id FROM #both_rows",
+            sqlConnection);
+
+        // Act
+        await command.ExecuteNonQueryAsync();
+
+        // Assert
+        // db.response.returned_rows describes the rows the command returned (3), not the number
+        // of rows the update affected (1).
+        var activity = Assert.Single(activities);
+        Assert.Equal(3L, activity.GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
+    }
 #endif
+
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
+    public async Task RecordsMetricDurationWhenNoActivityIsCreated()
+    {
+        // Arrange
+        var metrics = new List<Metric>();
+
+        // No activity listener is registered, so no activity is created for the command and the
+        // duration has to be derived from the start timestamp captured by the before event. That
+        // timestamp is correlated with the after event using the operation ID carried on the real
+        // SqlClient payloads, so this exercises that contract against the real client.
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddInMemoryExporter(metrics)
+            .AddSqlClientInstrumentation()
+            .Build();
+
+        using var sqlConnection = new SqlConnection(this.GetConnectionString());
+
+        await sqlConnection.OpenAsync();
+
+        sqlConnection.ChangeDatabase("master");
+
+        using var sqlCommand = new SqlCommand("WAITFOR DELAY '00:00:00.300'", sqlConnection);
+
+        // Act
+        await sqlCommand.ExecuteNonQueryAsync();
+
+        meterProvider.ForceFlush();
+
+        // Assert
+        var metric = Assert.Single(metrics, x => x.Name == "db.client.operation.duration");
+
+        var metricPoints = new List<MetricPoint>();
+        foreach (var metricPoint in metric.GetMetricPoints())
+        {
+            metricPoints.Add(metricPoint);
+        }
+
+        var point = Assert.Single(metricPoints);
+
+        Assert.Equal(1, point.GetHistogramCount());
+
+        // The command was deliberately made slow so that a duration derived from the wrong start
+        // timestamp (or from the process start) is distinguishable from the real one.
+        var duration = point.GetHistogramSum();
+        Assert.InRange(duration, 0.2d, 60d);
+    }
 
     [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
     public async Task ActivityIsStoppedWhenOnlyUsingMetrics()
@@ -304,6 +625,49 @@ public sealed class SqlClientIntegrationTests :
                    && kvp.Value != null
                    && (string)kvp.Value == SqlTelemetryHelper.MicrosoftSqlServerDbSystemName);
     }
+
+#if NET
+    private static async Task<(Guid ConnectionId, string? ContextInfo)> ReadSessionStateAsync(SqlConnection sqlConnection)
+    {
+        // The read has to be a stored procedure: propagation only fires for CommandType.Text,
+        // so a text command would overwrite CONTEXT_INFO before it could be read back.
+        using var sqlCommand = new SqlCommand(ReadSessionStateProcedureName, sqlConnection)
+        {
+            CommandType = CommandType.StoredProcedure,
+        };
+
+        using var reader = await sqlCommand.ExecuteReaderAsync();
+
+        Assert.True(await reader.ReadAsync());
+
+        var connectionId = reader.GetGuid(0);
+        var contextInfo = reader.IsDBNull(1)
+            ? null
+            : Encoding.ASCII.GetString((byte[])reader[1]).TrimEnd('\0');
+
+        return (connectionId, contextInfo);
+    }
+
+    private async Task CreateReadSessionStateProcedureAsync()
+    {
+        // Pooling is disabled so that the setup connection cannot be the one the pool
+        // hands back to the test, which asserts on a specific physical connection.
+        var connectionStringBuilder = new SqlConnectionStringBuilder(this.GetConnectionString())
+        {
+            Pooling = false,
+        };
+
+        using var sqlConnection = new SqlConnection(connectionStringBuilder.ConnectionString);
+
+        await sqlConnection.OpenAsync();
+
+        sqlConnection.ChangeDatabase("master");
+
+        using var sqlCommand = new SqlCommand(CreateReadSessionStateProcedureQuery, sqlConnection);
+
+        await sqlCommand.ExecuteNonQueryAsync();
+    }
+#endif
 
     private string GetConnectionString()
         => this.sqlServer.TypedContainer.GetConnectionString();
