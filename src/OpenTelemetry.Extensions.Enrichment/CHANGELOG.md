@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Added documentation clarifying that TraceEnricher instances are registered as singletons when using dependency injection.
+  ([#2551](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/2551))
+
 ## 1.18.0-beta.1
 
 Released 2026-Aug-21

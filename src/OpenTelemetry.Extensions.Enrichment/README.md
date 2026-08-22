@@ -50,6 +50,12 @@ The `TraceEnrichmentBag` is a lightweight `readonly struct` passed by reference
 that wraps the underlying `Activity` and exposes a single
 `Add(string key, object? value)` method for adding tags.
 
+When using dependency injection, `TraceEnricher` instances are registered as
+singletons. A single instance of each enricher is created per application and
+reused for all activities. This means you should inject only singleton or
+transient services into your enricher constructor. Injecting scoped services
+into a singleton enricher may cause issues with service lifetime management.
+
 Optionally, inject other services your enricher class depends on:
 
 ```csharp
