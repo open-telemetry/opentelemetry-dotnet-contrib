@@ -2,9 +2,16 @@
 
 ## Unreleased
 
+## 1.18.0
+
+Released 2026-Aug-21
+
 * Fixed duplicate `http.server.request.duration` metric recording for requests
   that end with an unhandled exception while tracing is disabled.
   ([#4902](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4902))
+
+* Updated OpenTelemetry core component version(s) to `1.18.0`.
+  ([#5022](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5022))
 
 ## 1.17.0
 
