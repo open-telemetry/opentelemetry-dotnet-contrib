@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Add a `Filter` option to exclude gRPC client requests from instrumentation.
+  ([#5112](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5112))
+
 ## 1.18.0-beta.1
 
 Released 2026-Aug-21

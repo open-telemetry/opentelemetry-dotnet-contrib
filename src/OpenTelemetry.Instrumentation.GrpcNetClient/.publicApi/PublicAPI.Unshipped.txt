@@ -1,4 +1,6 @@
 OpenTelemetry.Instrumentation.GrpcNetClient.GrpcClientTraceInstrumentationOptions
+OpenTelemetry.Instrumentation.GrpcNetClient.GrpcClientTraceInstrumentationOptions.Filter.get -> System.Func<System.Net.Http.HttpRequestMessage!, bool>?
+OpenTelemetry.Instrumentation.GrpcNetClient.GrpcClientTraceInstrumentationOptions.Filter.set -> void
 OpenTelemetry.Instrumentation.GrpcNetClient.GrpcClientTraceInstrumentationOptions.EnrichWithHttpRequestMessage.get -> System.Action<System.Diagnostics.Activity!, System.Net.Http.HttpRequestMessage!>?
 OpenTelemetry.Instrumentation.GrpcNetClient.GrpcClientTraceInstrumentationOptions.EnrichWithHttpRequestMessage.set -> void
 OpenTelemetry.Instrumentation.GrpcNetClient.GrpcClientTraceInstrumentationOptions.EnrichWithHttpResponseMessage.get -> System.Action<System.Diagnostics.Activity!, System.Net.Http.HttpResponseMessage!>?

@@ -11,6 +11,19 @@ namespace OpenTelemetry.Instrumentation.GrpcNetClient;
 public class GrpcClientTraceInstrumentationOptions
 {
     /// <summary>
+    /// Gets or sets a filter function that determines whether or not to
+    /// collect telemetry on a per request basis.
+    /// </summary>
+    /// <remarks>
+    /// <para>The return value for the filter function is interpreted as:</para>
+    /// <list type="bullet">
+    /// <item>If the filter returns <see langword="true" />, the request is collected.</item>
+    /// <item>If the filter returns <see langword="false" /> or throws an exception, the request is not collected.</item>
+    /// </list>
+    /// </remarks>
+    public Func<HttpRequestMessage, bool>? Filter { get; set; }
+
+    /// <summary>
     /// Gets or sets a value indicating whether down stream instrumentation is suppressed (disabled).
     /// </summary>
     public bool SuppressDownstreamInstrumentation { get; set; }

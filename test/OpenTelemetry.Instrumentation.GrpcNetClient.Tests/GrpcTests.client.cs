@@ -111,6 +111,83 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
         }
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void GrpcClientFilterControlsCollection(bool filterResult)
+    {
+        var filterCalled = false;
+        var uri = new UriBuilder("http://localhost") { Port = 1234 }.Uri;
+
+        using var httpClient = ClientTestHelpers.CreateTestClient(async request =>
+        {
+            var streamContent = await ClientTestHelpers.CreateResponseContent(new HelloReply());
+            return ResponseUtils.CreateResponse(HttpStatusCode.OK, streamContent, grpcStatusCode: global::Grpc.Core.StatusCode.OK);
+        });
+
+        var exportedItems = new List<Activity>();
+
+        using (Sdk.CreateTracerProviderBuilder()
+            .SetSampler(new AlwaysOnSampler())
+            .AddGrpcClientInstrumentation(options => options.Filter = request =>
+            {
+                filterCalled = true;
+                Assert.Equal(uri.Host, request.RequestUri?.Host);
+                Assert.Equal(uri.Port, request.RequestUri?.Port);
+                return filterResult;
+            })
+            .AddInMemoryExporter(exportedItems)
+            .Build())
+        {
+            var channel = GrpcChannel.ForAddress(uri, new GrpcChannelOptions
+            {
+                HttpClient = httpClient,
+            });
+            var client = new Greeter.GreeterClient(channel);
+            _ = client.SayHello(new HelloRequest());
+        }
+
+        Assert.True(filterCalled);
+        if (filterResult)
+        {
+            Assert.Single(exportedItems);
+        }
+        else
+        {
+            Assert.Empty(exportedItems);
+        }
+    }
+
+    [Fact]
+    public void GrpcClientFilterExceptionsPreventCollection()
+    {
+        var uri = new UriBuilder("http://localhost") { Port = 1234 }.Uri;
+
+        using var httpClient = ClientTestHelpers.CreateTestClient(async request =>
+        {
+            var streamContent = await ClientTestHelpers.CreateResponseContent(new HelloReply());
+            return ResponseUtils.CreateResponse(HttpStatusCode.OK, streamContent, grpcStatusCode: global::Grpc.Core.StatusCode.OK);
+        });
+
+        var exportedItems = new List<Activity>();
+
+        using (Sdk.CreateTracerProviderBuilder()
+            .SetSampler(new AlwaysOnSampler())
+            .AddGrpcClientInstrumentation(options => options.Filter = _ => throw new InvalidOperationException("filter failure"))
+            .AddInMemoryExporter(exportedItems)
+            .Build())
+        {
+            var channel = GrpcChannel.ForAddress(uri, new GrpcChannelOptions
+            {
+                HttpClient = httpClient,
+            });
+            var client = new Greeter.GreeterClient(channel);
+            _ = client.SayHello(new HelloRequest());
+        }
+
+        Assert.Empty(exportedItems);
+    }
+
     [Fact]
     public void GrpcClientCancelledCallIsRecordedAsErrorPerSemanticConventions()
     {
