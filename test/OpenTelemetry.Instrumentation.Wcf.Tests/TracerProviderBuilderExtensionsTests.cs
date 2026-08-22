@@ -5,6 +5,7 @@ using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Tests;
 
+[Collection("WCF")]
 public class TracerProviderBuilderExtensionsTests
 {
     [Fact]
