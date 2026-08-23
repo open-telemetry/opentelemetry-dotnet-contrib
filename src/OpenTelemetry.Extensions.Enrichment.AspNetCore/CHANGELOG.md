@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Documented the "Steps to enable" section of the README, covering enricher
+  class creation and registration.
+  ([#TODO-PR-NUMBER](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO-PR-NUMBER))
+
 ## 1.17.0-beta.1
 
 Released 2026-Jul-17
