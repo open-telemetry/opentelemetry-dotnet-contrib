@@ -51,9 +51,7 @@ class and override one or more of the following virtual methods, as needed:
 
 Each method receives a `TraceEnrichmentBag`, the same lightweight `readonly struct`
 used by `OpenTelemetry.Extensions.Enrichment`, which exposes a single
-`Add(string key, object? value)` method for adding tags. All three methods have
-a default no-op implementation, so you only need to override the ones relevant
-to your scenario.
+`Add(string key, object? value)` method for adding tags.
 
 ```csharp
 internal sealed class MyAspNetCoreTraceEnricher : AspNetCoreTraceEnricher
@@ -83,37 +81,47 @@ for an example).
 ### Step 3: Register enricher class
 
 Add your custom enricher class to the `TracerProviderBuilder` by calling the
-`TryAddAspNetCoreTraceEnricher<T>()` method, alongside ASP.NET Core instrumentation
-and an exporter as usual:
+`TryAddAspNetCoreTraceEnricher<T>()` method:
 
 ```csharp
-services.AddOpenTelemetry()
-    .WithTracing(builder => builder
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddOpenTelemetry()
+    .WithTracing(tracing => tracing
         .AddAspNetCoreInstrumentation()
         .TryAddAspNetCoreTraceEnricher<MyAspNetCoreTraceEnricher>()
         .AddConsoleExporter());
+
+var app = builder.Build();
+
+app.MapGet("/", () => "Hello OpenTelemetry!");
+
+app.Run();
 ```
 
 Alternatively, you can add your custom enricher to the `IServiceCollection`
-directly, typically inside the
-[ConfigureServices()](https://learn.microsoft.com/dotnet/api/microsoft.aspnetcore.hosting.startupbase.configureservices)
-method:
+directly:
 
 ```csharp
-public void ConfigureServices(IServiceCollection services)
-{
-    services.TryAddAspNetCoreTraceEnricher<MyAspNetCoreTraceEnricher>();
+var builder = WebApplication.CreateBuilder(args);
 
-    services.AddOpenTelemetry()
-        .WithTracing(builder => builder
-            .AddAspNetCoreInstrumentation()
-            .AddConsoleExporter());
-}
+builder.Services.TryAddAspNetCoreTraceEnricher<MyAspNetCoreTraceEnricher>();
+
+builder.Services.AddOpenTelemetry()
+    .WithTracing(tracing => tracing
+        .AddAspNetCoreInstrumentation()
+        .AddConsoleExporter());
+
+var app = builder.Build();
+
+app.MapGet("/", () => "Hello OpenTelemetry!");
+
+app.Run();
 ```
 
 > [!NOTE]
 > The `TryAddAspNetCoreTraceEnricher()` call should be done *before* exporter
-related Activity processors are added.
+> related Activity processors are added.
 
 ### Step 4: Usage
 
