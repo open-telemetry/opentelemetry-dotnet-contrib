@@ -161,3 +161,41 @@ builder.Services.AddOpenTelemetry()
             .SetSampler(new ParentBasedSampler(new ConsistentProbabilitySampler(0.1)));
     });
 ```
+
+### W3CTraceState
+
+`W3CTraceState` is an immutable, parsed view of a W3C
+[`tracestate`](https://www.w3.org/TR/2021/REC-trace-context-1-20211123/#tracestate-header)
+header. It exposes the get, add, update and delete operations the OpenTelemetry
+[tracing API](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.60.0/specification/trace/api.md#tracestate)
+specification defines for `TraceState`, which .NET otherwise surfaces only as the
+raw `ActivityContext.TraceState` string. Custom samplers and propagators that
+edit that string by hand have to re-implement the W3C mutation rules, and the
+obvious hand-rolled version gets several of them wrong.
+
+Parsing always succeeds, mutating operations return a new instance, and neither
+throws: an invalid key or value leaves the receiver's contents unchanged. Members
+this instance did not generate are preserved verbatim, including malformed ones,
+so that an arbitrary sequence of mutations does not erode another vendor's
+entries.
+
+Example of `W3CTraceState` usage in a custom sampler:
+
+```cs
+public override SamplingResult ShouldSample(in SamplingParameters samplingParameters)
+{
+    var traceState = W3CTraceState.Parse(samplingParameters.ParentContext.TraceState)
+                                  .Set("mykey", "myvalue")
+                                  .ToString();
+
+    return new SamplingResult(SamplingDecision.RecordAndSample, traceState);
+}
+```
+
+The modified key is placed first and every other member keeps its relative
+position, as the specification requires. At most 32 members are kept, which is
+all the header grammar allows, and the right-most ones are dropped as they
+arrive rather than at serialization, so a wire-supplied header is never retained
+in full. No length limit is imposed: the 512 characters vendors should be able
+to propagate is a floor on capability rather than a ceiling on output, so
+truncating to fit a transport limit stays the caller's decision.
