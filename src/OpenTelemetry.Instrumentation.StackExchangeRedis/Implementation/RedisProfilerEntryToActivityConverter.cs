@@ -20,6 +20,12 @@ namespace OpenTelemetry.Instrumentation.StackExchangeRedis.Implementation;
 
 internal static class RedisProfilerEntryToActivityConverter
 {
+    private static readonly string[] CachedDatabaseNames =
+    [
+        "0", "1", "2", "3", "4", "5", "6", "7",
+        "8", "9", "10", "11", "12", "13", "14", "15",
+    ];
+
     private static readonly Lazy<Func<object, (string?, string?)>> MessageDataGetter = new(() =>
     {
 #pragma warning disable IDE0370 // Suppression is unnecessary
@@ -172,7 +178,7 @@ internal static class RedisProfilerEntryToActivityConverter
                     ? CachedDatabaseNames[db]
                     : db.ToString(CultureInfo.InvariantCulture);
                 activity.SetTag(SemanticConventions.AttributeDbOperationName, command.Command);
-                activity.SetTag(SemanticConventions.AttributeDbNamespace, command.Db.ToString(CultureInfo.InvariantCulture));
+                activity.SetTag(SemanticConventions.AttributeDbNamespace, dbNamespace);
                 activity.SetTag(SemanticConventions.AttributeDbQueryText, queryText);
             }
 
