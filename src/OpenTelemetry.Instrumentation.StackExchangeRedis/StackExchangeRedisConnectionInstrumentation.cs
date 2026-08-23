@@ -120,13 +120,7 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
 
         // Try to reuse a session for all activities created under the same TraceId+SpanId.
         var cacheKey = (parent.TraceId, parent.SpanId);
-        if (!this.Cache.TryGetValue(cacheKey, out var session))
-        {
-            // This runs on the thread that issued the command, the only point at which
-            // the caller's Baggage is still reachable. Draining happens elsewhere.
-            session = (parent, new ProfilingSession(), Baggage.Current);
-            this.Cache.TryAdd(cacheKey, session);
-        }
+        var session = this.Cache.GetOrAdd(cacheKey, _ => (parent, new(), Baggage.Current));
 
         return session.Session;
     };
