@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.18.0
+
+Released 2026-Aug-21
+
 * Fixed query sanitization so that a `)` inside a value or a comment in an
   `IN (...)` clause no longer causes the values which follow it to be left
   unsanitized.
@@ -25,6 +29,9 @@
 * Fixed the `db.client.operation.duration` metric reporting an incorrect duration
   for commands which are not recorded as spans.
   ([#4625](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4625))
+
+* Updated OpenTelemetry core component version(s) to `1.18.0`.
+  ([#5022](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5022))
 
 ## 1.17.0
 

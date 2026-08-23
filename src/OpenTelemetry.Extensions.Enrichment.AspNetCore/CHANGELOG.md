@@ -6,6 +6,10 @@
   class creation and registration.
   ([#5114](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5114))
 
+## 1.18.0-beta.1
+
+Released 2026-Aug-21
+
 ## 1.17.0-beta.1
 
 Released 2026-Jul-17
