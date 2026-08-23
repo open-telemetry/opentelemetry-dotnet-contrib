@@ -4,7 +4,7 @@
 
 * Documented the "Steps to enable" section of the README, covering enricher
   class creation and registration.
-  ([#TODO-PR-NUMBER](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO-PR-NUMBER))
+  ([#5114](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5114))
 
 ## 1.17.0-beta.1
 
