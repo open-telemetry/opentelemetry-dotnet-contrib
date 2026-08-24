@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Diagnostics;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
@@ -22,19 +21,6 @@ namespace OpenTelemetry.Sampler.BottomFloor;
 /// per-window feedback that drives the sampler toward equal coverage persists in
 /// the exporter across batches.
 /// <para/>
-/// When span coverage is enabled, each in-span record is additionally offered to
-/// a small ephemeral Bottom-Floor sampler for its span, so a span keeps at most
-/// <see cref="BottomFloorLogSamplerOptions.MaxLogsPerSpanPerWindow"/> records per
-/// window. Those per-span samplers are keyed by span id alone and seeded from the
-/// weights the whole-stream sampler has already learned, so they hold no state of
-/// their own beyond the window. Their kept records carry a separate per-span
-/// adjusted count.
-/// <para/>
-/// With span coverage enabled the forwarded record count is bounded by
-/// <see cref="BottomFloorLogSamplerOptions.Budget"/> plus
-/// <see cref="BottomFloorLogSamplerOptions.MaxLogsPerSpanPerWindow"/> for each
-/// distinct span in the window, not by the budget alone.
-/// <para/>
 /// Because a record delivered to a batch exporter is rented from the shared pool
 /// and reclaimed as the batch is enumerated, each selected record is retained as
 /// a self-contained copy through <see cref="LogRecordRetention"/> before it is
@@ -48,11 +34,8 @@ public sealed class BottomFloorLogExporter : BaseExporter<LogRecord>
 {
     private readonly BaseExporter<LogRecord> innerExporter;
     private readonly BottomFloorSampler<long> sampler;
-    private readonly Random? random;
     private readonly string adjustedCountAttribute;
     private readonly string squaredCvAttribute;
-    private readonly int maxLogsPerSpan;
-    private readonly string spanAdjustedCountAttribute;
     private readonly Dictionary<long, LogRecord> buffer = new();
     private bool parentProviderPropagated;
 
@@ -90,22 +73,9 @@ public sealed class BottomFloorLogExporter : BaseExporter<LogRecord>
             throw new ArgumentException("SquaredCoefficientOfVariationAttribute must not be null or empty.", nameof(options));
         }
 
-        if (options.MaxLogsPerSpanPerWindow < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(options), options.MaxLogsPerSpanPerWindow, "MaxLogsPerSpanPerWindow must not be negative.");
-        }
-
-        if (options.MaxLogsPerSpanPerWindow > 0 && string.IsNullOrEmpty(options.SpanAdjustedCountAttribute))
-        {
-            throw new ArgumentException("SpanAdjustedCountAttribute must not be null or empty.", nameof(options));
-        }
-
-        this.random = random;
         this.sampler = new BottomFloorSampler<long>(options.Budget, random);
         this.adjustedCountAttribute = options.AdjustedCountAttribute;
         this.squaredCvAttribute = options.SquaredCoefficientOfVariationAttribute;
-        this.maxLogsPerSpan = options.MaxLogsPerSpanPerWindow;
-        this.spanAdjustedCountAttribute = options.SpanAdjustedCountAttribute;
     }
 
     /// <inheritdoc/>
@@ -122,64 +92,29 @@ public sealed class BottomFloorLogExporter : BaseExporter<LogRecord>
             return this.innerExporter.Export(batch);
         }
 
-        var spans = this.maxLogsPerSpan > 0 ? new Dictionary<ActivitySpanId, SpanCoverage>() : null;
-
-        // Retained copies of in-span records that were forwarded, whether the span
-        // reservoir kept them or not. A forwarded in-span record the span sample
-        // did not keep must still carry a per-span count of zero so it does not
-        // bias per-span aggregation.
-        var spanCandidates = spans != null ? new HashSet<LogRecord>() : null;
-
         foreach (var record in batch)
         {
             var callsite = ComputeCallsiteId(record.CategoryName, record.EventId);
 
-            // The pooled record is cleared and reclaimed the moment the enumerator
-            // advances past it, so any record either reservoir keeps must be
-            // retained now as a self-contained copy. One copy per source record is
-            // shared by both reservoirs so a record kept by both maps to a single
-            // forwarded record carrying both counts.
-            LogRecord? retained = null;
-
             var outcome = this.sampler.Offer(callsite);
             if (outcome.Admitted)
             {
-                retained = LogRecordRetention.Retain(record);
                 if (outcome.Evicted)
                 {
                     this.buffer.Remove(outcome.EvictedToken);
                 }
 
-                this.buffer[outcome.Token] = retained;
-            }
-
-            if (spans != null && record.SpanId != default)
-            {
-                var coverage = this.GetOrCreateSpanCoverage(spans, record.SpanId);
-                var spanOutcome = coverage.Sampler.Offer(callsite);
-                if (spanOutcome.Admitted)
-                {
-                    retained ??= LogRecordRetention.Retain(record);
-                    if (spanOutcome.Evicted)
-                    {
-                        coverage.Buffer.Remove(spanOutcome.EvictedToken);
-                    }
-
-                    coverage.Buffer[spanOutcome.Token] = retained;
-                }
-
-                if (retained != null)
-                {
-                    spanCandidates!.Add(retained);
-                }
+                // The pooled record is cleared and reclaimed the moment the
+                // enumerator advances past it, so a record the reservoir keeps must
+                // be retained now as a self-contained copy.
+                this.buffer[outcome.Token] = LogRecordRetention.Retain(record);
             }
         }
 
         var summary = this.sampler.CloseWindow();
 
-        // Reference equality is intended: LogRecord does not override equality, so
-        // a record selected by both reservoirs maps to a single stamp.
-        var keeps = new Dictionary<LogRecord, RecordStamp>();
+        var kept = new LogRecord[summary.KeptItems.Count];
+        var count = 0;
         foreach (var item in summary.KeptItems)
         {
             if (!this.buffer.TryGetValue(item.Token, out var record))
@@ -188,44 +123,20 @@ public sealed class BottomFloorLogExporter : BaseExporter<LogRecord>
             }
 
             var estimate = summary.Estimates[item.Callsite];
-            keeps[record] = new RecordStamp
+            this.Stamp(record, new RecordStamp
             {
                 StreamAdjustedCount = 1.0 / estimate.InclusionProbability,
                 SquaredCoefficientOfVariation = estimate.SquaredCoefficientOfVariation,
-                SpanAdjustedCount = double.NaN,
-            };
+            });
+
+            kept[count++] = record;
         }
 
         this.buffer.Clear();
 
-        if (spans != null)
-        {
-            CloseSpans(spans, keeps);
-
-            // Any forwarded in-span record the span sample did not keep contributes
-            // zero to its span's estimate; a missing count would otherwise read as
-            // one and inflate the per-span aggregation.
-            foreach (var candidate in spanCandidates!)
-            {
-                if (keeps.TryGetValue(candidate, out var stamp) && double.IsNaN(stamp.SpanAdjustedCount))
-                {
-                    stamp.SpanAdjustedCount = 0.0;
-                    keeps[candidate] = stamp;
-                }
-            }
-        }
-
-        if (keeps.Count == 0)
+        if (count == 0)
         {
             return ExportResult.Success;
-        }
-
-        var kept = new LogRecord[keeps.Count];
-        var count = 0;
-        foreach (var pair in keeps)
-        {
-            this.Stamp(pair.Key, pair.Value);
-            kept[count++] = pair.Key;
         }
 
         return this.innerExporter.Export(new Batch<LogRecord>(kept, count));
@@ -293,38 +204,6 @@ public sealed class BottomFloorLogExporter : BaseExporter<LogRecord>
         base.Dispose(disposing);
     }
 
-    private static void CloseSpans(Dictionary<ActivitySpanId, SpanCoverage> spans, Dictionary<LogRecord, RecordStamp> keeps)
-    {
-        foreach (var coverage in spans.Values)
-        {
-            var summary = coverage.Sampler.CloseWindow();
-
-            foreach (var item in summary.KeptItems)
-            {
-                if (!coverage.Buffer.TryGetValue(item.Token, out var record))
-                {
-                    continue;
-                }
-
-                var spanAdjusted = 1.0 / summary.Estimates[item.Callsite].InclusionProbability;
-                if (keeps.TryGetValue(record, out var existing))
-                {
-                    existing.SpanAdjustedCount = spanAdjusted;
-                    keeps[record] = existing;
-                }
-                else
-                {
-                    keeps[record] = new RecordStamp
-                    {
-                        StreamAdjustedCount = 0.0,
-                        SquaredCoefficientOfVariation = double.NaN,
-                        SpanAdjustedCount = spanAdjusted,
-                    };
-                }
-            }
-        }
-    }
-
     private void PropagateParentProvider()
     {
         if (this.parentProviderPropagated)
@@ -344,55 +223,25 @@ public sealed class BottomFloorLogExporter : BaseExporter<LogRecord>
         }
     }
 
-    private SpanCoverage GetOrCreateSpanCoverage(Dictionary<ActivitySpanId, SpanCoverage> spans, ActivitySpanId spanId)
-    {
-        if (spans.TryGetValue(spanId, out var coverage))
-        {
-            return coverage;
-        }
-
-        // Seed the span's reservoir from the weights the whole-stream sampler has
-        // already learned, so a callsite that floods the stream does not also
-        // crowd out rarer callsites inside the span. The weight table is shared
-        // rather than copied, which keeps this cheap no matter how many distinct
-        // spans a single window holds.
-        var spanSampler = new BottomFloorSampler<long>(this.maxLogsPerSpan, this.random);
-        spanSampler.SeedWeights(this.sampler.CurrentWeights, this.sampler.UnseenWeight);
-
-        coverage = new SpanCoverage(spanSampler);
-        spans[spanId] = coverage;
-        return coverage;
-    }
-
     private void Stamp(LogRecord record, in RecordStamp stamp)
     {
         var existing = record.Attributes;
-        var attributes = new List<KeyValuePair<string, object?>>((existing?.Count ?? 0) + 3);
+        var attributes = new List<KeyValuePair<string, object?>>((existing?.Count ?? 0) + 2);
         if (existing != null)
         {
             attributes.AddRange(existing);
         }
 
-        // The stream estimator's count is one exactly when the record was fully
-        // included, so that carries no information and is omitted; a count of zero
-        // marks a span-only record that must not bias whole-stream aggregation and
-        // is always emitted. The variance companion is only meaningful when the
-        // record was actually subsampled.
-        if (!double.IsNaN(stamp.StreamAdjustedCount) && stamp.StreamAdjustedCount != 1.0)
+        // An adjusted count of one means the record was fully included, so it
+        // carries no information and is omitted. The variance companion is only
+        // meaningful when the record was actually subsampled.
+        if (stamp.StreamAdjustedCount != 1.0)
         {
             attributes.Add(new KeyValuePair<string, object?>(this.adjustedCountAttribute, stamp.StreamAdjustedCount));
             if (stamp.StreamAdjustedCount > 1.0)
             {
                 attributes.Add(new KeyValuePair<string, object?>(this.squaredCvAttribute, stamp.SquaredCoefficientOfVariation));
             }
-        }
-
-        // The per-span estimator follows the same convention: omit a count of one,
-        // emit a count of zero for an in-span record the span sample did not keep,
-        // and omit entirely when the record is out of span or span coverage is off.
-        if (!double.IsNaN(stamp.SpanAdjustedCount) && stamp.SpanAdjustedCount != 1.0)
-        {
-            attributes.Add(new KeyValuePair<string, object?>(this.spanAdjustedCountAttribute, stamp.SpanAdjustedCount));
         }
 
         record.Attributes = attributes;
@@ -402,19 +251,5 @@ public sealed class BottomFloorLogExporter : BaseExporter<LogRecord>
     {
         public double StreamAdjustedCount;
         public double SquaredCoefficientOfVariation;
-        public double SpanAdjustedCount;
-    }
-
-    private sealed class SpanCoverage
-    {
-        public SpanCoverage(BottomFloorSampler<long> sampler)
-        {
-            this.Sampler = sampler;
-            this.Buffer = new Dictionary<long, LogRecord>();
-        }
-
-        public BottomFloorSampler<long> Sampler { get; }
-
-        public Dictionary<long, LogRecord> Buffer { get; }
     }
 }

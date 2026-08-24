@@ -107,14 +107,6 @@ public class BottomFloorLogRecordProcessorTests
     }
 
     [Fact]
-    public void PerSpanCoverage_IsDisabledByDefault()
-    {
-        // Per-span coverage forwards records in addition to the stream sample, so
-        // it must be opt-in for the budget alone to bound the output.
-        Assert.Equal(0, new BottomFloorLogSamplerOptions().MaxLogsPerSpanPerWindow);
-    }
-
-    [Fact]
     public void ForwardedRecords_KeepApplicationAttributesAndSeeTheParentProvider()
     {
         // Records are pooled and recycled as the batch is enumerated, so a

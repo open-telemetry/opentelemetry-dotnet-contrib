@@ -11,7 +11,7 @@ namespace OpenTelemetry.Sampler.BottomFloor;
 /// add on admission, and remove on eviction. The set of tokens still buffered at
 /// <see cref="BottomFloorSampler{TCallsite}.CloseWindow"/> is the window's kept sample.
 /// </summary>
-public readonly struct OfferOutcome : IEquatable<OfferOutcome>
+internal readonly struct OfferOutcome
 {
     private OfferOutcome(bool admitted, long token, bool evicted, long evictedToken)
     {
@@ -44,31 +44,6 @@ public readonly struct OfferOutcome : IEquatable<OfferOutcome>
     /// <see cref="Evicted"/> is <see langword="true"/>.
     /// </summary>
     public long EvictedToken { get; }
-
-    /// <summary>Determines whether two outcomes are equal.</summary>
-    /// <param name="left">The left outcome.</param>
-    /// <param name="right">The right outcome.</param>
-    /// <returns><see langword="true"/> if the outcomes are equal.</returns>
-    public static bool operator ==(OfferOutcome left, OfferOutcome right) => left.Equals(right);
-
-    /// <summary>Determines whether two outcomes are unequal.</summary>
-    /// <param name="left">The left outcome.</param>
-    /// <param name="right">The right outcome.</param>
-    /// <returns><see langword="true"/> if the outcomes are unequal.</returns>
-    public static bool operator !=(OfferOutcome left, OfferOutcome right) => !left.Equals(right);
-
-    /// <inheritdoc/>
-    public bool Equals(OfferOutcome other) =>
-        this.Admitted == other.Admitted &&
-        this.Token == other.Token &&
-        this.Evicted == other.Evicted &&
-        this.EvictedToken == other.EvictedToken;
-
-    /// <inheritdoc/>
-    public override bool Equals(object? obj) => obj is OfferOutcome other && this.Equals(other);
-
-    /// <inheritdoc/>
-    public override int GetHashCode() => HashCode.Combine(this.Admitted, this.Token, this.Evicted, this.EvictedToken);
 
     internal static OfferOutcome Admit(long token) => new(true, token, false, 0L);
 

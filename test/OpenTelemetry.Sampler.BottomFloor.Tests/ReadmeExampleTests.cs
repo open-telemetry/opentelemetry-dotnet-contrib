@@ -4,8 +4,6 @@
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Logs;
-using CapturedRecord = OpenTelemetry.Sampler.BottomFloor.Tests.BottomFloorLogExporterTests.CapturedRecord;
-using CapturingExporter = OpenTelemetry.Sampler.BottomFloor.Tests.BottomFloorLogExporterTests.CapturingExporter;
 
 namespace OpenTelemetry.Sampler.BottomFloor.Tests;
 
@@ -20,8 +18,6 @@ namespace OpenTelemetry.Sampler.BottomFloor.Tests;
 public class ReadmeExampleTests
 {
     private const string ProcessorHeading = "## Sampling OpenTelemetry logs";
-    private const string SpanCoverageHeading = "## Per-span log coverage";
-    private const string SamplerHeading = "## Using the sampling algorithm directly";
 
     [Fact]
     public void DocumentedProcessorExample_BuildsAWorkingPipeline()
@@ -54,143 +50,14 @@ public class ReadmeExampleTests
         logger.LogInformation("message");
     }
 
-    [Fact]
-    public void DocumentedSpanCoverageExample_EnablesPerSpanCoverage()
-    {
-        // <readme:span-coverage>
-        var options = new BottomFloorLogSamplerOptions
-        {
-            Budget = 100,
-            MaxLogsPerSpanPerWindow = 5,
-        };
-
-        // </readme:span-coverage>
-        Assert.Equal(100, options.Budget);
-        Assert.Equal(5, options.MaxLogsPerSpanPerWindow);
-
-        // The snippet's purpose is to turn on a feature that is off by default.
-        Assert.NotEqual(new BottomFloorLogSamplerOptions().MaxLogsPerSpanPerWindow, options.MaxLogsPerSpanPerWindow);
-
-        // And the documented values must be a configuration the pipeline accepts.
-        var innerExporter = new CapturingExporter(new List<CapturedRecord>());
-        using var processor = new BottomFloorLogRecordProcessor(innerExporter, options, maxExportBatchSize: 2048);
-    }
-
-    [Fact]
-    public void DocumentedSamplerExample_RecoversTheArrivalCount()
-    {
-        // Scaffolding the snippet refers to but does not define.
-        var rng = new Random(17);
-        var callsites = Enumerable.Range(1, 12).Select(i => ($"App.Callsite{i:00}", i)).ToArray();
-        var cdf = BuildZipfCdf(callsites.Length);
-
-        var windows = new List<List<MyEvent>>();
-        var arrivals = 0L;
-        for (var w = 0; w < 200; w++)
-        {
-            var window = new List<MyEvent>();
-            for (var n = 0; n < 1000; n++)
-            {
-                var u = rng.NextDouble();
-                var index = Array.FindIndex(cdf, x => u <= x);
-                var (category, eventId) = callsites[index < 0 ? cdf.Length - 1 : index];
-                window.Add(new MyEvent(category, eventId));
-                arrivals++;
-            }
-
-            windows.Add(window);
-        }
-
-        var estimated = 0.0;
-        var exported = 0L;
-
-        void Export(MyEvent item, double adjustedCount)
-        {
-            estimated += adjustedCount;
-            exported++;
-        }
-
-        // <readme:sampler>
-        var sampler = new BottomFloorSampler<(string Category, int EventId)>(budget: 100);
-        var buffered = new Dictionary<long, MyEvent>();
-
-        foreach (var window in windows)
-        {
-            foreach (var item in window)
-            {
-                var outcome = sampler.Offer((item.Category, item.EventId));
-                if (!outcome.Admitted)
-                {
-                    continue;
-                }
-
-                // Honour the eviction, so the buffer holds exactly the reservoir.
-                if (outcome.Evicted)
-                {
-                    buffered.Remove(outcome.EvictedToken);
-                }
-
-                buffered[outcome.Token] = item;
-            }
-
-            var summary = sampler.CloseWindow();
-            foreach (var kept in summary.KeptItems)
-            {
-                var estimate = summary.Estimates[kept.Callsite];
-
-                // The per-record adjusted count is 1 / inclusion probability. Summed
-                // over a callsite's kept records it reproduces estimate.EstimatedCount,
-                // that callsite's estimated arrival count for the window.
-                Export(buffered[kept.Token], 1.0 / estimate.InclusionProbability);
-            }
-
-            // The next window starts from an empty reservoir, so nothing carries over.
-            buffered.Clear();
-        }
-
-        // </readme:sampler>
-
-        // The snippet must actually subsample, or it proves nothing.
-        Assert.True(exported < arrivals / 5, $"expected heavy subsampling, exported {exported} of {arrivals}");
-
-        // And its adjusted counts must recover what was thrown away. Stamping
-        // EstimatedCount per record instead would overshoot by roughly ninefold
-        // here, so this tolerance is far tighter than that failure mode.
-        var relativeError = Math.Abs(estimated - arrivals) / arrivals;
-        Assert.True(relativeError < 0.05, $"relative error {relativeError:P2} exceeded 5% (estimated {estimated:F0}, arrivals {arrivals})");
-
-        // The buffer is drained every window, so nothing accumulates across them.
-        Assert.Empty(buffered);
-    }
-
     [Theory]
     [InlineData(ProcessorHeading, "processor")]
-    [InlineData(SpanCoverageHeading, "span-coverage")]
-    [InlineData(SamplerHeading, "sampler")]
     public void Readme_MatchesTheCompiledExample(string heading, string marker)
     {
         var documented = ReadDocumentedSnippet(heading);
         var compiled = ReadCompiledSnippet(marker);
 
         Assert.Equal(compiled, documented);
-    }
-
-    private static double[] BuildZipfCdf(int count)
-    {
-        var cdf = new double[count];
-        var total = 0.0;
-        for (var i = 0; i < count; i++)
-        {
-            total += 1.0 / (i + 1);
-            cdf[i] = total;
-        }
-
-        for (var i = 0; i < count; i++)
-        {
-            cdf[i] /= total;
-        }
-
-        return cdf;
     }
 
     private static string ReadDocumentedSnippet(string heading)
@@ -258,18 +125,5 @@ public class ReadmeExampleTests
             .Min();
 
         return string.Join("\n", trimmed.Select(l => l.Length == 0 ? l : l[indent..]));
-    }
-
-    private sealed class MyEvent
-    {
-        public MyEvent(string category, int eventId)
-        {
-            this.Category = category;
-            this.EventId = eventId;
-        }
-
-        public string Category { get; }
-
-        public int EventId { get; }
     }
 }

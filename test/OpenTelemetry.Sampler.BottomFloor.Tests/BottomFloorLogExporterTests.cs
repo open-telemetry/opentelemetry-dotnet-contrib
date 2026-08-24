@@ -33,6 +33,54 @@ public class BottomFloorLogExporterTests
         Assert.Throws<ArgumentOutOfRangeException>(() => new BottomFloorLogExporter(inner, options));
     }
 
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public void Constructor_RejectsMissingAdjustedCountAttribute(string? attribute)
+    {
+        using var inner = new CapturingExporter(new List<CapturedRecord>());
+        var options = new BottomFloorLogSamplerOptions { AdjustedCountAttribute = attribute! };
+        Assert.Throws<ArgumentException>(() => new BottomFloorLogExporter(inner, options));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public void Constructor_RejectsMissingSquaredCoefficientOfVariationAttribute(string? attribute)
+    {
+        using var inner = new CapturingExporter(new List<CapturedRecord>());
+        var options = new BottomFloorLogSamplerOptions { SquaredCoefficientOfVariationAttribute = attribute! };
+        Assert.Throws<ArgumentException>(() => new BottomFloorLogExporter(inner, options));
+    }
+
+    [Fact]
+    public void EmptyWindow_SucceedsWithoutInvokingTheInnerExporter()
+    {
+        using var inner = new LifecycleExporter();
+        using var exporter = new BottomFloorLogExporter(inner, new BottomFloorLogSamplerOptions { Budget = 4 });
+
+        // A window with no arrivals must still close cleanly. Forwarding an empty
+        // batch would make a downstream exporter do useless work, so the exporter
+        // reports success without calling it at all.
+        var result = exporter.Export(new Batch<LogRecord>(Array.Empty<LogRecord>(), 0));
+
+        Assert.Equal(ExportResult.Success, result);
+        Assert.Equal(0, inner.ExportCalls);
+    }
+
+    [Fact]
+    public void ForceFlushAndShutdown_AreDelegatedToTheInnerExporter()
+    {
+        using var inner = new LifecycleExporter();
+        using var exporter = new BottomFloorLogExporter(inner, new BottomFloorLogSamplerOptions { Budget = 4 });
+
+        Assert.True(exporter.ForceFlush());
+        Assert.Equal(1, inner.ForceFlushCalls);
+
+        Assert.True(exporter.Shutdown());
+        Assert.Equal(1, inner.ShutdownCalls);
+    }
+
     [Fact]
     public void UnderFullWindow_OmitsTheAdjustedCountForFullyIncludedRecords()
     {
@@ -189,6 +237,33 @@ public class BottomFloorLogExporterTests
                 logging.AddProcessor(capturedProcessor);
             });
         });
+    }
+
+    internal sealed class LifecycleExporter : BaseExporter<LogRecord>
+    {
+        public int ExportCalls { get; private set; }
+
+        public int ForceFlushCalls { get; private set; }
+
+        public int ShutdownCalls { get; private set; }
+
+        public override ExportResult Export(in Batch<LogRecord> batch)
+        {
+            this.ExportCalls++;
+            return ExportResult.Success;
+        }
+
+        protected override bool OnForceFlush(int timeoutMilliseconds)
+        {
+            this.ForceFlushCalls++;
+            return true;
+        }
+
+        protected override bool OnShutdown(int timeoutMilliseconds)
+        {
+            this.ShutdownCalls++;
+            return true;
+        }
     }
 
     internal sealed class CapturedRecord

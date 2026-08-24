@@ -8,7 +8,7 @@ namespace OpenTelemetry.Sampler.BottomFloor;
 /// quantities behind it, including the self-reported adequacy signal <c>cv2</c>.
 /// </summary>
 /// <typeparam name="TCallsite">The callsite key type.</typeparam>
-public readonly struct CallsiteEstimate<TCallsite> : IEquatable<CallsiteEstimate<TCallsite>>
+internal readonly struct CallsiteEstimate<TCallsite>
     where TCallsite : notnull
 {
     internal CallsiteEstimate(
@@ -65,37 +65,4 @@ public readonly struct CallsiteEstimate<TCallsite> : IEquatable<CallsiteEstimate
     /// operator's target <c>1 / m*</c> means the budget, not the estimator, is the limit.
     /// </summary>
     public double SquaredCoefficientOfVariation { get; }
-
-    /// <summary>Determines whether two estimates are equal.</summary>
-    /// <param name="left">The left estimate.</param>
-    /// <param name="right">The right estimate.</param>
-    /// <returns><see langword="true"/> if the estimates are equal.</returns>
-    public static bool operator ==(CallsiteEstimate<TCallsite> left, CallsiteEstimate<TCallsite> right) => left.Equals(right);
-
-    /// <summary>Determines whether two estimates are unequal.</summary>
-    /// <param name="left">The left estimate.</param>
-    /// <param name="right">The right estimate.</param>
-    /// <returns><see langword="true"/> if the estimates are unequal.</returns>
-    public static bool operator !=(CallsiteEstimate<TCallsite> left, CallsiteEstimate<TCallsite> right) => !left.Equals(right);
-
-    /// <inheritdoc/>
-    public bool Equals(CallsiteEstimate<TCallsite> other) =>
-        EqualityComparer<TCallsite>.Default.Equals(this.Callsite, other.Callsite) &&
-        this.KeptCount == other.KeptCount &&
-        this.Weight.Equals(other.Weight) &&
-        this.InclusionProbability.Equals(other.InclusionProbability) &&
-        this.EstimatedCount.Equals(other.EstimatedCount) &&
-        this.SquaredCoefficientOfVariation.Equals(other.SquaredCoefficientOfVariation);
-
-    /// <inheritdoc/>
-    public override bool Equals(object? obj) => obj is CallsiteEstimate<TCallsite> other && this.Equals(other);
-
-    /// <inheritdoc/>
-    public override int GetHashCode() => HashCode.Combine(
-        this.Callsite,
-        this.KeptCount,
-        this.Weight,
-        this.InclusionProbability,
-        this.EstimatedCount,
-        this.SquaredCoefficientOfVariation);
 }

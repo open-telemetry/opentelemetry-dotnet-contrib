@@ -27,7 +27,7 @@ namespace OpenTelemetry.Sampler.BottomFloor;
 /// Instances are not thread-safe. A caller that samples a concurrent stream
 /// must serialize calls to <see cref="Offer"/> and <see cref="CloseWindow"/>.
 /// </remarks>
-public sealed class BottomFloorSampler<TCallsite>
+internal sealed class BottomFloorSampler<TCallsite>
     where TCallsite : notnull
 {
     // A uniform draw resolves probabilities no finer than one part in 2^31: the
@@ -89,15 +89,6 @@ public sealed class BottomFloorSampler<TCallsite>
     /// puts a lower bound on the inclusion probability of newly appearing callsites.
     /// </summary>
     public double UnseenWeight => this.unseenWeight;
-
-    /// <summary>
-    /// Gets the weights learned by the previous window, keyed by callsite.
-    /// <para/>
-    /// <see cref="CloseWindow"/> replaces this dictionary wholesale rather than
-    /// mutating it, and <see cref="Offer"/> only reads it, so the instance may be
-    /// handed to a short-lived sampler that seeds itself from it without copying.
-    /// </summary>
-    internal Dictionary<TCallsite, double> CurrentWeights => this.weights;
 
     /// <summary>
     /// Offers one arrival of <paramref name="callsite"/> to the current window's
@@ -212,34 +203,7 @@ public sealed class BottomFloorSampler<TCallsite>
         return new WindowSummary<TCallsite>(threshold, keptItems, estimates);
     }
 
-    /// <summary>
-    /// Seeds this sampler's starting weights from a table another sampler has
-    /// already learned, giving an ephemeral per-span sampler the same
-    /// equal-coverage bias the whole-stream sampler has converged on.
-    /// <para/>
-    /// The dictionary is shared, not copied: a per-span sampler is created for
-    /// every span in a window, so copying the stream's weight table into each one
-    /// would cost far more than the sampling it performs. Sharing is safe because
-    /// neither sampler ever mutates the table in place.
-    /// <para/>
-    /// Weights only steer which arrivals are kept. The Horvitz-Thompson estimate
-    /// divides by an inclusion probability derived from these same weights, so
-    /// the seed changes variance, never unbiasedness.
-    /// </summary>
-    /// <param name="initialWeights">The per-callsite starting weights to share.</param>
-    /// <param name="initialUnseenWeight">The starting rarest-seen floor weight.</param>
-    internal void SeedWeights(Dictionary<TCallsite, double> initialWeights, double initialUnseenWeight)
-    {
-        this.weights = initialWeights;
-
-        // The priority key divides by the weight, so a non-positive or
-        // non-finite floor would poison every unseen callsite.
-        this.unseenWeight = initialUnseenWeight > 0.0 && double.IsFinite(initialUnseenWeight)
-            ? initialUnseenWeight
-            : 1.0;
-    }
-
-    private static double InclusionProbability(double theta)
+    internal static double InclusionProbability(double theta)
     {
         if (double.IsPositiveInfinity(theta))
         {

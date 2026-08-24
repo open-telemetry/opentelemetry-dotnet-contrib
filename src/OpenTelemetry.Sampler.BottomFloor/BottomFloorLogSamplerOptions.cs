@@ -26,9 +26,7 @@ public sealed class BottomFloorLogSamplerOptions
     /// so that summing the adjusted counts of a callsite's kept records recovers
     /// the callsite's unbiased arrival count. The count is omitted when it equals
     /// one, since a fully included record carries no correction; a missing count
-    /// therefore reads as one. A count of zero marks a record forwarded only for
-    /// span coverage, which must not contribute to whole-stream aggregation. The
-    /// default is <c>otel.logs.adjusted_count</c>.
+    /// therefore reads as one. The default is <c>otel.logs.adjusted_count</c>.
     /// </summary>
     public string AdjustedCountAttribute { get; set; } = "otel.logs.adjusted_count";
 
@@ -41,35 +39,4 @@ public sealed class BottomFloorLogSamplerOptions
     /// <c>otel.logs.cv2</c>.
     /// </summary>
     public string SquaredCoefficientOfVariationAttribute { get; set; } = "otel.logs.cv2";
-
-    /// <summary>
-    /// Gets or sets the per-span coverage budget: the maximum number of log
-    /// records kept for each span per window by the span-coverage reservoir, on
-    /// top of the whole-stream sample. Within a window each in-span record is
-    /// offered to both the stream sample and a small ephemeral Bottom-Floor
-    /// sampler for its span, seeded from the weights the stream sampler has
-    /// already learned, so a span's logs stay retrievable together while a chatty
-    /// span cannot exceed this bound. The default is <c>0</c>, which disables
-    /// span coverage and samples the stream only.
-    /// <para/>
-    /// Setting this above zero means <see cref="Budget"/> no longer bounds the
-    /// output on its own: a window may forward up to <see cref="Budget"/> records
-    /// plus this many for each distinct span it contains. Size it against the
-    /// number of spans a window is expected to hold.
-    /// </summary>
-    public int MaxLogsPerSpanPerWindow { get; set; }
-
-    /// <summary>
-    /// Gets or sets the attribute name under which a record kept for span
-    /// coverage carries its per-span adjusted count: the reciprocal of its
-    /// inclusion probability within its span, a separate estimator from the
-    /// stream <see cref="AdjustedCountAttribute"/>. The count is omitted when it
-    /// equals one; a count of zero marks an in-span record the span sample did not
-    /// keep, so per-span aggregation stays unbiased; the count is absent entirely
-    /// for records out of span or when span coverage is disabled. A record kept
-    /// only for span coverage carries a stream count of zero and this per-span
-    /// count, so it does not bias the whole-stream estimate. The default is
-    /// <c>otel.span_logs.adjusted_count</c>.
-    /// </summary>
-    public string SpanAdjustedCountAttribute { get; set; } = "otel.span_logs.adjusted_count";
 }

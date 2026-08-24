@@ -9,10 +9,8 @@ for usage.
 The component provides:
 
 * a fixed-memory, per-window sampler for callsite-labelled events;
-* an OpenTelemetry log exporter that applies the sampler to export batches;
-* a batching log processor that captures the context needed by the exporter;
-  and
-* an optional bounded sample of logs from each recording span.
+* an OpenTelemetry log exporter that applies the sampler to export batches; and
+* a batching log processor that captures the context needed by the exporter.
 
 The component samples logs and estimates log counts. It does not make tracing
 sampling decisions, export spans, coordinate sampling across processes, or
@@ -20,8 +18,8 @@ transport sampling feedback.
 
 ## Local sampler
 
-`BottomFloorSampler<TCallsite>` is independent of OpenTelemetry types. Its only
-required setting is the per-window budget `k`.
+The internal `BottomFloorSampler<TCallsite>` is independent of OpenTelemetry
+types. Its only required setting is the per-window budget `k`.
 
 For each arrival of callsite `c`, `Offer` draws a uniform random value `u` and
 computes an exponential priority:
@@ -95,8 +93,7 @@ otel.logs.adjusted_count = 1 / inclusion probability
 
 Summing this value for the retained records of a callsite estimates that
 callsite's original arrival count. A value of one is omitted because the record
-was fully included. When a record was retained only by per-span coverage, the
-stream adjusted count is zero so it does not inflate the stream estimate.
+was fully included.
 
 For records that were subsampled, `otel.logs.cv2` contains the squared
 coefficient of variation of the callsite estimate.
@@ -108,9 +105,8 @@ Both attribute names are configurable through
 
 Log records delivered by the batching pipeline may be pooled and reclaimed as
 the input batch is enumerated. The exporter therefore creates a self-contained
-copy when either the stream sampler or a per-span sampler admits a record.
+copy when the sampler admits a record.
 
-When both samplers admit the same source record, they share one retained copy.
 The copied record preserves the data needed by the inner exporter, including
 attributes and instrumentation scope.
 
@@ -167,46 +163,3 @@ component internals-free, because retention still depends on the internal
 `LogRecord.Copy()` and no public equivalent exists. The coupling is therefore
 kept, but confined to one class, degraded to a no-op on failure, and covered by
 a test that fails if the member can no longer be reached.
-
-## Per-span log coverage
-
-When `MaxLogsPerSpanPerWindow` is greater than zero, an in-span record is
-offered to both:
-
-* the whole-stream sampler; and
-* an ephemeral sampler for its span, with
-  `MaxLogsPerSpanPerWindow` as its budget.
-
-The option defaults to zero, so per-span coverage is opt-in. When it is enabled
-the whole-stream budget no longer bounds the number of forwarded records,
-because span-only survivors are forwarded in addition to the stream sample.
-
-This bounds the number of selected logs from a chatty span while allowing a
-record rejected by the stream sampler to be retained for span-local analysis.
-The exporter forwards the union of both samples.
-
-Per-span samplers are keyed by span id and live only for the window in which
-their span emits. Rather than starting from no knowledge, each is seeded with a
-shared reference to the whole-stream sampler's converged weights, so a rare
-callsite is favoured within the span from its first record. Sharing is safe
-because the stream sampler replaces its weight table wholesale when a window
-closes and never mutates a published one. Seeding affects only variance:
-Horvitz-Thompson estimation stays unbiased for any positive weights, because
-the inclusion probability is derived from the same weights used for admission.
-
-Per-span records use the separate estimator:
-
-```text
-otel.span_logs.adjusted_count = 1 / per-span inclusion probability
-```
-
-As with the stream count, a value of one is omitted. A forwarded in-span record
-that was not selected by its span sampler receives a per-span count of zero so
-it does not inflate the per-span estimate.
-
-Per-span coverage groups records by the span id already carried on the record,
-so it works with `BottomFloorLogExporter` behind any batch processor.
-
-This feature covers logs associated with an activity that is already
-recording. It does not cause an activity to be recorded or sampled and does not
-retain or export the span itself.

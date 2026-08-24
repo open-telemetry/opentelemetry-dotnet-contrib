@@ -8,7 +8,7 @@ namespace OpenTelemetry.Sampler.BottomFloor;
 /// kept, and the per-callsite estimates.
 /// </summary>
 /// <typeparam name="TCallsite">The callsite key type.</typeparam>
-public sealed class WindowSummary<TCallsite>
+internal sealed class WindowSummary<TCallsite>
     where TCallsite : notnull
 {
     internal WindowSummary(

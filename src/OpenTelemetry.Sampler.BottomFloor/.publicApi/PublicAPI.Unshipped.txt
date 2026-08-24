@@ -9,53 +9,6 @@ OpenTelemetry.Sampler.BottomFloor.BottomFloorLogSamplerOptions.AdjustedCountAttr
 OpenTelemetry.Sampler.BottomFloor.BottomFloorLogSamplerOptions.BottomFloorLogSamplerOptions() -> void
 OpenTelemetry.Sampler.BottomFloor.BottomFloorLogSamplerOptions.Budget.get -> int
 OpenTelemetry.Sampler.BottomFloor.BottomFloorLogSamplerOptions.Budget.set -> void
-OpenTelemetry.Sampler.BottomFloor.BottomFloorLogSamplerOptions.MaxLogsPerSpanPerWindow.get -> int
-OpenTelemetry.Sampler.BottomFloor.BottomFloorLogSamplerOptions.MaxLogsPerSpanPerWindow.set -> void
-OpenTelemetry.Sampler.BottomFloor.BottomFloorLogSamplerOptions.SpanAdjustedCountAttribute.get -> string!
-OpenTelemetry.Sampler.BottomFloor.BottomFloorLogSamplerOptions.SpanAdjustedCountAttribute.set -> void
 OpenTelemetry.Sampler.BottomFloor.BottomFloorLogSamplerOptions.SquaredCoefficientOfVariationAttribute.get -> string!
 OpenTelemetry.Sampler.BottomFloor.BottomFloorLogSamplerOptions.SquaredCoefficientOfVariationAttribute.set -> void
-OpenTelemetry.Sampler.BottomFloor.BottomFloorSampler<TCallsite>
-OpenTelemetry.Sampler.BottomFloor.BottomFloorSampler<TCallsite>.BottomFloorSampler(int budget, System.Random? random = null) -> void
-OpenTelemetry.Sampler.BottomFloor.BottomFloorSampler<TCallsite>.Budget.get -> int
-OpenTelemetry.Sampler.BottomFloor.BottomFloorSampler<TCallsite>.CloseWindow() -> OpenTelemetry.Sampler.BottomFloor.WindowSummary<TCallsite>!
-OpenTelemetry.Sampler.BottomFloor.BottomFloorSampler<TCallsite>.Offer(TCallsite callsite) -> OpenTelemetry.Sampler.BottomFloor.OfferOutcome
-OpenTelemetry.Sampler.BottomFloor.BottomFloorSampler<TCallsite>.UnseenWeight.get -> double
-OpenTelemetry.Sampler.BottomFloor.CallsiteEstimate<TCallsite>
-OpenTelemetry.Sampler.BottomFloor.CallsiteEstimate<TCallsite>.Callsite.get -> TCallsite
-OpenTelemetry.Sampler.BottomFloor.CallsiteEstimate<TCallsite>.CallsiteEstimate() -> void
-OpenTelemetry.Sampler.BottomFloor.CallsiteEstimate<TCallsite>.Equals(OpenTelemetry.Sampler.BottomFloor.CallsiteEstimate<TCallsite> other) -> bool
-OpenTelemetry.Sampler.BottomFloor.CallsiteEstimate<TCallsite>.EstimatedCount.get -> double
-OpenTelemetry.Sampler.BottomFloor.CallsiteEstimate<TCallsite>.InclusionProbability.get -> double
-OpenTelemetry.Sampler.BottomFloor.CallsiteEstimate<TCallsite>.KeptCount.get -> long
-OpenTelemetry.Sampler.BottomFloor.CallsiteEstimate<TCallsite>.SquaredCoefficientOfVariation.get -> double
-OpenTelemetry.Sampler.BottomFloor.CallsiteEstimate<TCallsite>.Weight.get -> double
-OpenTelemetry.Sampler.BottomFloor.KeptItem<TCallsite>
-OpenTelemetry.Sampler.BottomFloor.KeptItem<TCallsite>.Callsite.get -> TCallsite
-OpenTelemetry.Sampler.BottomFloor.KeptItem<TCallsite>.Equals(OpenTelemetry.Sampler.BottomFloor.KeptItem<TCallsite> other) -> bool
-OpenTelemetry.Sampler.BottomFloor.KeptItem<TCallsite>.KeptItem() -> void
-OpenTelemetry.Sampler.BottomFloor.KeptItem<TCallsite>.Token.get -> long
-OpenTelemetry.Sampler.BottomFloor.OfferOutcome
-OpenTelemetry.Sampler.BottomFloor.OfferOutcome.Admitted.get -> bool
-OpenTelemetry.Sampler.BottomFloor.OfferOutcome.Equals(OpenTelemetry.Sampler.BottomFloor.OfferOutcome other) -> bool
-OpenTelemetry.Sampler.BottomFloor.OfferOutcome.Evicted.get -> bool
-OpenTelemetry.Sampler.BottomFloor.OfferOutcome.EvictedToken.get -> long
-OpenTelemetry.Sampler.BottomFloor.OfferOutcome.OfferOutcome() -> void
-OpenTelemetry.Sampler.BottomFloor.OfferOutcome.Token.get -> long
-OpenTelemetry.Sampler.BottomFloor.WindowSummary<TCallsite>
-OpenTelemetry.Sampler.BottomFloor.WindowSummary<TCallsite>.Estimates.get -> System.Collections.Generic.IReadOnlyDictionary<TCallsite, OpenTelemetry.Sampler.BottomFloor.CallsiteEstimate<TCallsite>>!
-OpenTelemetry.Sampler.BottomFloor.WindowSummary<TCallsite>.KeptItems.get -> System.Collections.Generic.IReadOnlyList<OpenTelemetry.Sampler.BottomFloor.KeptItem<TCallsite>>!
-OpenTelemetry.Sampler.BottomFloor.WindowSummary<TCallsite>.Threshold.get -> double
 override OpenTelemetry.Sampler.BottomFloor.BottomFloorLogExporter.Export(in OpenTelemetry.Batch<OpenTelemetry.Logs.LogRecord!> batch) -> OpenTelemetry.ExportResult
-override OpenTelemetry.Sampler.BottomFloor.CallsiteEstimate<TCallsite>.Equals(object? obj) -> bool
-override OpenTelemetry.Sampler.BottomFloor.CallsiteEstimate<TCallsite>.GetHashCode() -> int
-override OpenTelemetry.Sampler.BottomFloor.KeptItem<TCallsite>.Equals(object? obj) -> bool
-override OpenTelemetry.Sampler.BottomFloor.KeptItem<TCallsite>.GetHashCode() -> int
-override OpenTelemetry.Sampler.BottomFloor.OfferOutcome.Equals(object? obj) -> bool
-override OpenTelemetry.Sampler.BottomFloor.OfferOutcome.GetHashCode() -> int
-static OpenTelemetry.Sampler.BottomFloor.CallsiteEstimate<TCallsite>.operator !=(OpenTelemetry.Sampler.BottomFloor.CallsiteEstimate<TCallsite> left, OpenTelemetry.Sampler.BottomFloor.CallsiteEstimate<TCallsite> right) -> bool
-static OpenTelemetry.Sampler.BottomFloor.CallsiteEstimate<TCallsite>.operator ==(OpenTelemetry.Sampler.BottomFloor.CallsiteEstimate<TCallsite> left, OpenTelemetry.Sampler.BottomFloor.CallsiteEstimate<TCallsite> right) -> bool
-static OpenTelemetry.Sampler.BottomFloor.KeptItem<TCallsite>.operator !=(OpenTelemetry.Sampler.BottomFloor.KeptItem<TCallsite> left, OpenTelemetry.Sampler.BottomFloor.KeptItem<TCallsite> right) -> bool
-static OpenTelemetry.Sampler.BottomFloor.KeptItem<TCallsite>.operator ==(OpenTelemetry.Sampler.BottomFloor.KeptItem<TCallsite> left, OpenTelemetry.Sampler.BottomFloor.KeptItem<TCallsite> right) -> bool
-static OpenTelemetry.Sampler.BottomFloor.OfferOutcome.operator !=(OpenTelemetry.Sampler.BottomFloor.OfferOutcome left, OpenTelemetry.Sampler.BottomFloor.OfferOutcome right) -> bool
-static OpenTelemetry.Sampler.BottomFloor.OfferOutcome.operator ==(OpenTelemetry.Sampler.BottomFloor.OfferOutcome left, OpenTelemetry.Sampler.BottomFloor.OfferOutcome right) -> bool

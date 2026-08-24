@@ -14,6 +14,38 @@ public class BottomFloorSamplerTests
     }
 
     [Fact]
+    public void InclusionProbability_StaysAccurateAndPositiveForATinyTheta()
+    {
+        // 1 - exp(-theta) underflows to exactly zero once theta drops below the
+        // double epsilon, and the adjusted count divides by this value. A zero
+        // would produce an infinite count estimate for the heaviest hitters,
+        // which are exactly the callsites with the smallest theta.
+        Assert.Equal(0.0, 1.0 - Math.Exp(-1e-20));
+
+        foreach (var theta in new[] { 1e-20, 1e-12, 1e-8, 1e-5 })
+        {
+            var p = BottomFloorSampler<string>.InclusionProbability(theta);
+
+            Assert.True(p > 0.0, FormattableString.Invariant($"theta={theta} produced {p}"));
+
+            // The series is accurate to O(theta^4), far tighter than this bound.
+            Assert.InRange(p / theta, 1.0 - (theta * 0.51), 1.0);
+        }
+    }
+
+    [Fact]
+    public void InclusionProbability_IsContinuousAcrossTheSeriesCutoff()
+    {
+        const double Cutoff = 1e-4;
+        var below = BottomFloorSampler<string>.InclusionProbability(Math.BitDecrement(Cutoff));
+        var above = BottomFloorSampler<string>.InclusionProbability(Cutoff);
+
+        // Both forms must agree where they meet, otherwise the estimator would
+        // step discontinuously as a callsite's weight crosses the cutoff.
+        Assert.Equal(above, below, 15);
+    }
+
+    [Fact]
     public void UnderFullWindow_KeepsEverythingWithExactCounts()
     {
         var sampler = new BottomFloorSampler<string>(budget: 10, random: new Random(1));
@@ -252,8 +284,117 @@ public class BottomFloorSamplerTests
         Assert.True(recall > 0.3, $"rare recall was {recall:F3}");
     }
 
+    [Fact]
+    public void AdjustedCounts_RecoverTheArrivalCountAcrossManyWindows()
+    {
+        var rng = new Random(17);
+        var callsites = Enumerable.Range(1, 12).Select(i => ($"App.Callsite{i:00}", i)).ToArray();
+        var cdf = BuildZipfCdf(callsites.Length);
+
+        var windows = new List<List<MyEvent>>();
+        var arrivals = 0L;
+        for (var w = 0; w < 200; w++)
+        {
+            var window = new List<MyEvent>();
+            for (var n = 0; n < 1000; n++)
+            {
+                var u = rng.NextDouble();
+                var index = Array.FindIndex(cdf, x => u <= x);
+                var (category, eventId) = callsites[index < 0 ? cdf.Length - 1 : index];
+                window.Add(new MyEvent(category, eventId));
+                arrivals++;
+            }
+
+            windows.Add(window);
+        }
+
+        var estimated = 0.0;
+        var exported = 0L;
+
+        var sampler = new BottomFloorSampler<(string Category, int EventId)>(budget: 100);
+        var buffered = new Dictionary<long, MyEvent>();
+
+        foreach (var window in windows)
+        {
+            foreach (var item in window)
+            {
+                var outcome = sampler.Offer((item.Category, item.EventId));
+                if (!outcome.Admitted)
+                {
+                    continue;
+                }
+
+                // Honour the eviction, so the buffer holds exactly the reservoir.
+                if (outcome.Evicted)
+                {
+                    buffered.Remove(outcome.EvictedToken);
+                }
+
+                buffered[outcome.Token] = item;
+            }
+
+            var summary = sampler.CloseWindow();
+            foreach (var kept in summary.KeptItems)
+            {
+                var estimate = summary.Estimates[kept.Callsite];
+
+                // The per-record adjusted count is 1 / inclusion probability. Summed
+                // over a callsite's kept records it reproduces estimate.EstimatedCount,
+                // that callsite's estimated arrival count for the window.
+                estimated += 1.0 / estimate.InclusionProbability;
+                exported++;
+            }
+
+            // The next window starts from an empty reservoir, so nothing carries over.
+            buffered.Clear();
+        }
+
+        // The run must actually subsample, or it proves nothing.
+        Assert.True(exported < arrivals / 5, $"expected heavy subsampling, exported {exported} of {arrivals}");
+
+        // And its adjusted counts must recover what was thrown away. Stamping
+        // EstimatedCount per record instead would overshoot by roughly ninefold
+        // here, so this tolerance is far tighter than that failure mode.
+        var relativeError = Math.Abs(estimated - arrivals) / arrivals;
+        Assert.True(relativeError < 0.05, $"relative error {relativeError:P2} exceeded 5% (estimated {estimated:F0}, arrivals {arrivals})");
+
+        // The buffer is drained every window, so nothing accumulates across them.
+        Assert.Empty(buffered);
+    }
+
+    private static double[] BuildZipfCdf(int count)
+    {
+        var cdf = new double[count];
+        var total = 0.0;
+        for (var i = 0; i < count; i++)
+        {
+            total += 1.0 / (i + 1);
+            cdf[i] = total;
+        }
+
+        for (var i = 0; i < count; i++)
+        {
+            cdf[i] /= total;
+        }
+
+        return cdf;
+    }
+
     private sealed class AlmostOne : Random
     {
         public override double NextDouble() => 1.0 - 1e-12;
+    }
+
+    private sealed class MyEvent
+    {
+        public MyEvent(string category, int eventId)
+        {
+            this.Category = category;
+            this.EventId = eventId;
+        }
+
+        public string Category { get; }
+
+        public int EventId { get; }
     }
 }
