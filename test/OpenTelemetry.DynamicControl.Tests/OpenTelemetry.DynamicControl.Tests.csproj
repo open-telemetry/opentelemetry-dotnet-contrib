@@ -10,4 +10,8 @@
     <ProjectReference Include="..\..\src\OpenTelemetry.DynamicControl\OpenTelemetry.DynamicControl.csproj" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETFramework'">
+    <PackageReference Include="System.Memory" VersionOverride="4.6.3" />
+  </ItemGroup>
+
 </Project>

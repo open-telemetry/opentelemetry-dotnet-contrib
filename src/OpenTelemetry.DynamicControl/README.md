@@ -24,9 +24,11 @@ Current plans and progress are tracked in this
 
 ## Current status
 
-The package currently contains only an internal trace sampling-rate policy model
-and its validation. It does not yet provide public configuration APIs, policy
-sources, runtime policy application, or a usable dynamic sampler.
+The package currently contains internal policy models (including a
+trace sampling-rate proof of concept), source identity/metadata types, and a
+copy-on-write policy store with immutable snapshots. It does not yet provide
+public configuration APIs, policy sources, runtime policy application, or a
+usable dynamic sampler.
 
 The intended architecture is being developed incrementally:
 
