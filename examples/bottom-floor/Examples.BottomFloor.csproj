@@ -1,8 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!-- net10.0 is listed first so the example runs on the current SDK's runtime;
-         the minimum example target is kept for convention. -->
+    <!--
+      net10.0 is listed first so the example runs on the current SDK's runtime;
+      the minimum example target is kept for convention.
+    -->
     <TargetFrameworks>net10.0;$(DefaultTargetFrameworkForExampleApps)</TargetFrameworks>
     <OutputType>Exe</OutputType>
   </PropertyGroup>

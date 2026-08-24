@@ -118,8 +118,8 @@ On .NET 8 and later, the copy is created by calling the SDK's internal
 `LogRecord.Copy()` through `UnsafeAccessor`. Older targets use a reflection
 fallback because `UnsafeAccessor` is unavailable.
 
-If neither mechanism can be bound — for example because a future SDK renames or
-removes the method — the exporter degrades to forwarding every batch unsampled
+If neither mechanism can be bound - for example because a future SDK renames or
+removes the method - the exporter degrades to forwarding every batch unsampled
 rather than emitting records whose contents have been recycled. Correctness is
 preserved at the cost of the sampling benefit.
 
@@ -154,7 +154,7 @@ would not help either, because a decorator has to set the property on a
 
 There is one supported alternative, and it was rejected on cost. The SDK does
 wire every processor it owns, and `CompositeProcessor<T>` is public and forwards
-`SetParentProvider` to its children — including from a subclass in another
+`SetParentProvider` to its children - including from a subclass in another
 assembly. So a component that wrapped a `BaseProcessor<T>` instead of a
 `BaseExporter<T>` would have the inner exporter wired by the SDK, with no
 internals access at all.
