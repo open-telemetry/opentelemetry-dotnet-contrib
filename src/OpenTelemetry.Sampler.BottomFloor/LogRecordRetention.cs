@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Reflection;
+#if NET8_0_OR_GREATER
 using System.Runtime.CompilerServices;
+#endif
 using OpenTelemetry.Logs;
 
 namespace OpenTelemetry.Sampler.BottomFloor;
@@ -20,10 +22,9 @@ namespace OpenTelemetry.Sampler.BottomFloor;
 /// The SDK's own retaining components take a self-contained copy through the
 /// internal <c>LogRecord.Copy()</c>, which returns a manually created record the
 /// pool never reclaims. That method is not part of the public surface, so this
-/// helper reaches it with an <c>UnsafeAccessor</c>. That attribute requires
-/// .NET 8 or later, which every target framework of this package satisfies
-/// (<c>net8.0</c> and <c>net10.0</c>); adding a <c>netstandard2.0</c> target
-/// would require reintroducing a reflection fallback.
+/// helper reaches it with an <c>UnsafeAccessor</c> on .NET 8 and later, and with
+/// a reflected delegate on the targets that predate that attribute. The
+/// delegate is built once and cached, so neither path pays a per-record cost.
 /// <para/>
 /// The binding may fail against a future SDK, so support is probed
 /// once up front and reported through <see cref="CanClone"/>. A caller must check
@@ -32,7 +33,12 @@ namespace OpenTelemetry.Sampler.BottomFloor;
 /// </summary>
 internal static class LogRecordRetention
 {
+#if NET8_0_OR_GREATER
     private static readonly bool CopySupported = FindCopyMethod() != null;
+#else
+    private static readonly Func<LogRecord, LogRecord>? CopyAccessor = CreateCopyAccessor();
+    private static readonly bool CopySupported = CopyAccessor != null;
+#endif
 
     /// <summary>
     /// Gets a value indicating whether a safe, self-contained copy can be taken.
@@ -50,10 +56,42 @@ internal static class LogRecordRetention
     /// </summary>
     /// <param name="record">The pooled record to retain.</param>
     /// <returns>A retained copy of the record.</returns>
-    public static LogRecord Retain(LogRecord record) => CopySupported ? Copy(record) : record;
+    public static LogRecord Retain(LogRecord record)
+    {
+#if NET8_0_OR_GREATER
+        return CopySupported ? Copy(record) : record;
+#else
+        return CopyAccessor != null ? CopyAccessor(record) : record;
+#endif
+    }
 
+#if NET8_0_OR_GREATER
     [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "Copy")]
     private static extern LogRecord Copy(LogRecord record);
+#else
+    private static Func<LogRecord, LogRecord>? CreateCopyAccessor()
+    {
+        var method = FindCopyMethod();
+        if (method == null)
+        {
+            return null;
+        }
+
+        try
+        {
+            return (Func<LogRecord, LogRecord>)method.CreateDelegate(typeof(Func<LogRecord, LogRecord>));
+        }
+        catch (ArgumentException)
+        {
+            return null;
+        }
+        catch (MethodAccessException)
+        {
+            // Binding a non-public member is refused under restricted trust.
+            return null;
+        }
+    }
+#endif
 
     private static MethodInfo? FindCopyMethod()
     {

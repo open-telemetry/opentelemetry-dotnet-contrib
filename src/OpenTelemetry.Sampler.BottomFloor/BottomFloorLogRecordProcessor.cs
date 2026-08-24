@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using OpenTelemetry.Internal;
 using OpenTelemetry.Logs;
 
 namespace OpenTelemetry.Sampler.BottomFloor;
@@ -81,7 +82,7 @@ public sealed class BottomFloorLogRecordProcessor : BatchLogRecordExportProcesso
         BottomFloorLogSamplerOptions options,
         int maxExportBatchSize)
     {
-        ArgumentNullException.ThrowIfNull(options);
+        Guard.ThrowIfNull(options);
 
         // One export batch is one sampling window. A window no larger than the
         // budget keeps every record it holds, so this combination would forward

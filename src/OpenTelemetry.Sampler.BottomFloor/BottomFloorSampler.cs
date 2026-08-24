@@ -58,7 +58,7 @@ internal sealed class BottomFloorSampler<TCallsite>
     /// </param>
     /// <param name="random">
     /// The random source for the per-arrival draw. When <see langword="null"/>
-    /// the shared <see cref="Random.Shared"/> instance is used. The sampler is
+    /// a shared thread-safe instance is used. The sampler is
     /// not thread-safe regardless of the source, so a caller must still serialize
     /// <see cref="Offer"/> and <see cref="CloseWindow"/>; pass a seeded instance
     /// for reproducible sampling in tests.
@@ -72,7 +72,7 @@ internal sealed class BottomFloorSampler<TCallsite>
 
         this.budget = budget;
         this.capacity = budget + 1;
-        this.random = random ?? Random.Shared;
+        this.random = random ?? SharedRandom.Instance;
         this.heap = new Entry[this.capacity];
         this.weights = new Dictionary<TCallsite, double>(budget);
         this.unseenWeight = 1.0;

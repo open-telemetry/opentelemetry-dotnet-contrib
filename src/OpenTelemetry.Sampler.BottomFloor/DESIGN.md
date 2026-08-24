@@ -110,12 +110,11 @@ copy when the sampler admits a record.
 The copied record preserves the data needed by the inner exporter, including
 attributes and instrumentation scope.
 
-The copy is created by calling the SDK's internal `LogRecord.Copy()` through
-`UnsafeAccessor`. That attribute requires .NET 8 or later, and this package
-targets only `net8.0` and `net10.0`, so it is always available. A reflection
-fallback would have to be reintroduced alongside any `netstandard2.0` target, as
-`UnsafeAccessor` does not exist there; the absence of the attribute is a compile
-error rather than a silent failure, so this cannot regress unnoticed.
+The copy is created by calling the SDK's internal `LogRecord.Copy()`. That
+method is reached through `UnsafeAccessor` on `net8.0` and later, and through a
+reflected delegate on `netstandard2.0` and `net462`, where that attribute does
+not exist. The delegate is created once and cached, so the downlevel path costs
+no more per record than the accessor does.
 
 If it cannot be bound - for example because a future SDK renames or
 removes the method - the exporter degrades to forwarding every batch unsampled

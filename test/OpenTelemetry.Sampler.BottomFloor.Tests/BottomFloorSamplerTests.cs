@@ -37,7 +37,7 @@ public class BottomFloorSamplerTests
     public void InclusionProbability_IsContinuousAcrossTheSeriesCutoff()
     {
         const double Cutoff = 1e-4;
-        var below = BottomFloorSampler<string>.InclusionProbability(Math.BitDecrement(Cutoff));
+        var below = BottomFloorSampler<string>.InclusionProbability(Numeric.BitDecrement(Cutoff));
         var above = BottomFloorSampler<string>.InclusionProbability(Cutoff);
 
         // Both forms must agree where they meet, otherwise the estimator would
@@ -80,7 +80,7 @@ public class BottomFloorSamplerTests
         var summary = sampler.CloseWindow();
 
         Assert.Equal(32, summary.KeptItems.Count);
-        Assert.True(summary.Threshold > 0.0 && double.IsFinite(summary.Threshold));
+        Assert.True(summary.Threshold > 0.0 && Numeric.IsFinite(summary.Threshold));
     }
 
     [Fact]
@@ -109,7 +109,7 @@ public class BottomFloorSamplerTests
 
         // The boundary item (the (k+1)-th key) is dropped at window close, so the
         // kept set is the live set minus exactly one token.
-        var kept = summary.KeptItems.Select(k => k.Token).ToHashSet();
+        var kept = new HashSet<long>(summary.KeptItems.Select(k => k.Token));
         Assert.Equal(sampler.Budget, kept.Count);
         Assert.True(kept.IsSubsetOf(live));
         Assert.Equal(1, live.Count - kept.Count);
@@ -196,10 +196,10 @@ public class BottomFloorSamplerTests
         }
 
         var summary = sampler.CloseWindow();
-        Assert.True(double.IsFinite(summary.Threshold));
+        Assert.True(Numeric.IsFinite(summary.Threshold));
         Assert.All(summary.Estimates.Values, e =>
         {
-            Assert.True(double.IsFinite(e.EstimatedCount));
+            Assert.True(Numeric.IsFinite(e.EstimatedCount));
             Assert.True(e.EstimatedCount > 0.0);
         });
     }
@@ -243,7 +243,7 @@ public class BottomFloorSamplerTests
         // Each callsite's mean estimated count should recover its true count.
         foreach (var pair in trueCounts)
         {
-            var mean = totalEstimated.GetValueOrDefault(pair.Key) / windows;
+            var mean = (totalEstimated.TryGetValue(pair.Key, out var estimated) ? estimated : 0.0) / windows;
             var relativeError = Math.Abs(mean - pair.Value) / pair.Value;
             Assert.True(relativeError < 0.10, $"{pair.Key}: mean={mean}, true={pair.Value}, relErr={relativeError:F3}");
         }

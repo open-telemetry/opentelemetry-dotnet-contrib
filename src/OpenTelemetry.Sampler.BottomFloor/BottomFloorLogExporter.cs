@@ -3,6 +3,7 @@
 
 using System.Text;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry.Internal;
 using OpenTelemetry.Logs;
 
 namespace OpenTelemetry.Sampler.BottomFloor;
@@ -56,7 +57,7 @@ public sealed class BottomFloorLogExporter : BaseExporter<LogRecord>
     {
         this.innerExporter = innerExporter ?? throw new ArgumentNullException(nameof(innerExporter));
 
-        ArgumentNullException.ThrowIfNull(options);
+        Guard.ThrowIfNull(options);
 
         if (options.Budget < 1)
         {

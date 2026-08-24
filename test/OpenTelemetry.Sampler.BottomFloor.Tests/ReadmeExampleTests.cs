@@ -77,8 +77,8 @@ public class ReadmeExampleTests
 
         // The snippets open with using directives the test file declares elsewhere.
         // A `using var` statement is code, not a directive, so it must be kept.
-        var body = lines[(open + 1)..close]
-            .Where(l => !(l.TrimStart().StartsWith("using ", StringComparison.Ordinal) && !l.Contains('=', StringComparison.Ordinal)));
+        var body = lines.Skip(open + 1).Take(close - open - 1)
+            .Where(l => !(l.TrimStart().StartsWith("using ", StringComparison.Ordinal) && l.IndexOf('=') < 0));
         return Normalize(body);
     }
 
@@ -95,7 +95,7 @@ public class ReadmeExampleTests
         var endIndex = Array.FindIndex(lines, l => string.Equals(l.Trim(), end, StringComparison.Ordinal));
         Assert.True(beginIndex >= 0 && endIndex > beginIndex, $"The '{marker}' snippet markers are missing from the test source.");
 
-        return Normalize(lines[(beginIndex + 1)..endIndex]);
+        return Normalize(lines.Skip(beginIndex + 1).Take(endIndex - beginIndex - 1));
     }
 
     /// <summary>
@@ -113,7 +113,7 @@ public class ReadmeExampleTests
             trimmed.RemoveAt(0);
         }
 
-        while (trimmed.Count > 0 && trimmed[^1].Length == 0)
+        while (trimmed.Count > 0 && trimmed[trimmed.Count - 1].Length == 0)
         {
             trimmed.RemoveAt(trimmed.Count - 1);
         }
@@ -124,6 +124,6 @@ public class ReadmeExampleTests
             .DefaultIfEmpty(0)
             .Min();
 
-        return string.Join("\n", trimmed.Select(l => l.Length == 0 ? l : l[indent..]));
+        return string.Join("\n", trimmed.Select(l => l.Length == 0 ? l : l.Substring(indent)));
     }
 }
