@@ -126,6 +126,6 @@ app.Run();
 ### Step 4: Usage
 
 Once registered, the enrichment methods of your class are called automatically
-for every incoming HTTP request handled by ASP.NET Core — no additional code is
+for every incoming HTTP request handled by ASP.NET Core - no additional code is
 required at the request-handling site. Run your application and issue a request;
 the tags added in your enricher will appear on the resulting `Activity`.
