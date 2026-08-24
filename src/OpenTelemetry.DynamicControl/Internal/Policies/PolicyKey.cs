@@ -76,10 +76,7 @@ internal readonly struct PolicyKey : IEquatable<PolicyKey>, IComparable<PolicyKe
     /// value for the same policy resolves to the same slot.
     /// </remarks>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="policy"/> is null.</exception>
-    /// <exception cref="ArgumentException">
-    /// Thrown when the policy reports a blank type or identifier. Validated policy models
-    /// cannot, so this indicates a faulty <see cref="TelemetryPolicy"/> implementation.
-    /// </exception>
+    /// <exception cref="ArgumentException">Thrown when the policy reports a blank type.</exception>
     public static PolicyKey FromPolicy(TelemetryPolicy policy)
     {
         Guard.ThrowIfNull(policy);
