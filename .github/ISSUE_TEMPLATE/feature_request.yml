@@ -63,6 +63,7 @@ body:
         - OpenTelemetry.Resources.Process
         - OpenTelemetry.Resources.ProcessRuntime
         - OpenTelemetry.Sampler.AWS
+        - OpenTelemetry.Sampler.BottomFloor
         - OpenTelemetry.SemanticConventions
 
   - type: textarea

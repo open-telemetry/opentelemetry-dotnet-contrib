@@ -2,9 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Reflection;
-#if NET8_0_OR_GREATER
 using System.Runtime.CompilerServices;
-#endif
 using OpenTelemetry.Logs;
 
 namespace OpenTelemetry.Sampler.BottomFloor;
@@ -22,17 +20,18 @@ namespace OpenTelemetry.Sampler.BottomFloor;
 /// The SDK's own retaining components take a self-contained copy through the
 /// internal <c>LogRecord.Copy()</c>, which returns a manually created record the
 /// pool never reclaims. That method is not part of the public surface, so this
-/// helper uses <c>UnsafeAccessor</c> on .NET 8 and later and binds it
-/// reflectively on older targets.
+/// helper reaches it with an <c>UnsafeAccessor</c>. That attribute requires
+/// .NET 8 or later, which every target framework of this package satisfies
+/// (<c>net8.0</c> and <c>net10.0</c>); adding a <c>netstandard2.0</c> target
+/// would require reintroducing a reflection fallback.
 /// <para/>
-/// Either way the binding may fail against a future SDK, so support is probed
+/// The binding may fail against a future SDK, so support is probed
 /// once up front and reported through <see cref="CanClone"/>. A caller must check
 /// it before sampling: <c>UnsafeAccessor</c> resolves lazily and would otherwise
 /// throw <see cref="MissingMethodException"/> from inside the export path.
 /// </summary>
 internal static class LogRecordRetention
 {
-#if NET8_0_OR_GREATER
     private static readonly bool CopySupported = FindCopyMethod() != null;
 
     /// <summary>
@@ -55,50 +54,6 @@ internal static class LogRecordRetention
 
     [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "Copy")]
     private static extern LogRecord Copy(LogRecord record);
-#else
-    private static readonly Func<LogRecord, LogRecord>? CopyDelegate = TryBindCopy();
-
-    /// <summary>
-    /// Gets a value indicating whether a safe, self-contained copy can be taken.
-    /// When <see langword="false"/> the SDK's copy primitive could not be bound
-    /// and <see cref="Retain"/> falls back to returning the pooled record.
-    /// </summary>
-    public static bool CanClone => CopyDelegate != null;
-
-    /// <summary>
-    /// Returns a self-contained copy of <paramref name="record"/> that the log
-    /// record pool never reclaims, safe to hold and mutate until the window
-    /// closes. Falls back to the original record when <see cref="CanClone"/> is
-    /// <see langword="false"/>. Must be called while the record is still valid,
-    /// during the enumeration visit that delivers it.
-    /// </summary>
-    /// <param name="record">The pooled record to retain.</param>
-    /// <returns>A retained copy, or the original record on the fallback path.</returns>
-    public static LogRecord Retain(LogRecord record)
-    {
-        var copy = CopyDelegate;
-        return copy != null ? copy(record) : record;
-    }
-
-    private static Func<LogRecord, LogRecord>? TryBindCopy()
-    {
-        try
-        {
-            var method = FindCopyMethod();
-            if (method == null)
-            {
-                return null;
-            }
-
-            return (Func<LogRecord, LogRecord>)Delegate.CreateDelegate(
-                typeof(Func<LogRecord, LogRecord>), method);
-        }
-        catch (Exception ex) when (ex is MissingMethodException or ArgumentException or MethodAccessException)
-        {
-            return null;
-        }
-    }
-#endif
 
     private static MethodInfo? FindCopyMethod()
     {

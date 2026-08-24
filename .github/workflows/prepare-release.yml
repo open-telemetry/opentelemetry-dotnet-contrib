@@ -51,6 +51,7 @@ on:
         - OpenTelemetry.Resources.Process
         - OpenTelemetry.Resources.ProcessRuntime
         - OpenTelemetry.Sampler.AWS
+        - OpenTelemetry.Sampler.BottomFloor
         - OpenTelemetry.SemanticConventions
         description: 'Release component'
         required: true

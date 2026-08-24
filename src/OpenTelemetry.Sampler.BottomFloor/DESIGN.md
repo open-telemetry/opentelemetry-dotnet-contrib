@@ -110,11 +110,14 @@ copy when the sampler admits a record.
 The copied record preserves the data needed by the inner exporter, including
 attributes and instrumentation scope.
 
-On .NET 8 and later, the copy is created by calling the SDK's internal
-`LogRecord.Copy()` through `UnsafeAccessor`. Older targets use a reflection
-fallback because `UnsafeAccessor` is unavailable.
+The copy is created by calling the SDK's internal `LogRecord.Copy()` through
+`UnsafeAccessor`. That attribute requires .NET 8 or later, and this package
+targets only `net8.0` and `net10.0`, so it is always available. A reflection
+fallback would have to be reintroduced alongside any `netstandard2.0` target, as
+`UnsafeAccessor` does not exist there; the absence of the attribute is a compile
+error rather than a silent failure, so this cannot regress unnoticed.
 
-If neither mechanism can be bound - for example because a future SDK renames or
+If it cannot be bound - for example because a future SDK renames or
 removes the method - the exporter degrades to forwarding every batch unsampled
 rather than emitting records whose contents have been recycled. Correctness is
 preserved at the cost of the sampling benefit.
@@ -136,9 +139,13 @@ generic *type* whose parameters match the declaring type's; writing it as a
 generic *method* that takes a `BaseExporter<T>` compiles but throws
 `MissingMethodException` at run time.
 
-As with the record copy, both mechanisms depend on an SDK implementation detail,
-so both degrade to a no-op if the setter cannot be reached. The wrapped exporter
-then keeps whatever provider it already had instead of the export failing.
+Unlike the record copy, this mechanism has no safe fallback. If the setter
+cannot be reached, the wrapped exporter is left with the `ParentProvider` it
+already had, which for a decorated exporter is none at all: the SDK only ever
+assigns the property to the decorator. A resource-aware exporter such as OTLP
+dereferences that provider when it resolves its `Resource`, so a failure to bind
+surfaces as an error at export time rather than as a silent degradation. This is
+the stronger of the two reasons to prefer a supported upstream API.
 
 ### Alternatives considered
 

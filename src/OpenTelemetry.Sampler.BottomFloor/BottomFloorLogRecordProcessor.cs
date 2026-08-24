@@ -13,10 +13,11 @@ namespace OpenTelemetry.Sampler.BottomFloor;
 /// of wrapping the exporter in a <see cref="BatchLogRecordExportProcessor"/> by
 /// hand.
 /// <para/>
-/// It derives from <see cref="BatchLogRecordExportProcessor"/>, so the SDK
-/// enables the reference-counted shared log-record pool and the records handed
-/// to the sampler stay valid for the whole export; the sampler itself runs on
-/// the single background export thread and needs no synchronization.
+/// It derives from <see cref="BatchLogRecordExportProcessor"/>, so the sampler
+/// runs on the single background export thread and needs no synchronization.
+/// Note that the pooled records it is handed are reclaimed as the batch
+/// enumerator advances past them, so any record the sampler retains past its
+/// visit must first be copied; that is what the exporter does.
 /// <para/>
 /// One export is one sampling window. The window closes at the earlier of two
 /// bounds: it holds <c>maxExportBatchSize</c> records (the export size) or

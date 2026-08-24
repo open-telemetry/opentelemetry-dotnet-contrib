@@ -27,9 +27,12 @@ namespace OpenTelemetry.Sampler.BottomFloor;
 /// <c>BaseExporter&lt;T&gt;</c>. Earlier targets use reflection. Either way the
 /// cost is paid once per exporter, never on the per-record path.
 /// <para/>
-/// Both mechanisms depend on an SDK implementation detail, so both degrade to a
-/// no-op if the member cannot be reached: the wrapped exporter then keeps
-/// whatever provider it already had rather than the export failing.
+/// Both mechanisms depend on an SDK implementation detail. If neither can be
+/// reached the wrapped exporter keeps the provider it already has, which for a
+/// decorated exporter is none: the SDK assigns the property only to the
+/// decorator. A resource-aware exporter that dereferences its provider will
+/// therefore fail at export time, so a binding failure is a real degradation
+/// rather than a benign one.
 /// </summary>
 internal static class ParentProviderPropagation
 {

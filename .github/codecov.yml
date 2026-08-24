@@ -240,6 +240,11 @@ flags:
     paths:
       - src/OpenTelemetry.Sampler.AWS
 
+  unittests-Sampler.BottomFloor:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Sampler.BottomFloor
+
   # Note: No unit tests currently for SemanticConventions being run in CI.
   #unittests-SemanticConventions:
   #  carryforward: true

@@ -82,6 +82,17 @@ public class BottomFloorLogExporterTests
     }
 
     [Fact]
+    public void Retention_CanBindTheSdkCopyPrimitive()
+    {
+        // The sampler can only hold a record past its enumeration visit by
+        // copying it through the SDK's internal LogRecord.Copy(). If a future SDK
+        // removes or renames that member the component degrades to forwarding
+        // everything unsampled, which is safe but silent, so assert the binding
+        // directly instead of relying on a budget test to notice.
+        Assert.True(LogRecordRetention.CanClone);
+    }
+
+    [Fact]
     public void UnderFullWindow_OmitsTheAdjustedCountForFullyIncludedRecords()
     {
         var captured = new List<CapturedRecord>();
