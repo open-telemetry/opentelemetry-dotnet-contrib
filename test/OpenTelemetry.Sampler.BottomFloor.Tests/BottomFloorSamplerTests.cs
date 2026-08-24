@@ -205,6 +205,55 @@ public class BottomFloorSamplerTests
     }
 
     [Fact]
+    public void EstimatedCounts_AreUnbiasedAcrossSeeds()
+    {
+        // A single run only shows that one draw landed close. Unbiasedness is a
+        // claim about the average over draws, so average the *signed* error over
+        // many seeds: the individual errors are several percent and must cancel,
+        // rather than merely being small. A biased estimator would hold its sign
+        // here no matter how many seeds were added.
+        const int seeds = 50;
+        const int windows = 60;
+        const int perWindow = 1000;
+        const double expected = (double)windows * perWindow;
+
+        var signedErrors = new List<double>(seeds);
+        for (var seed = 1; seed <= seeds; seed++)
+        {
+            var sampler = new BottomFloorSampler<string>(budget: 50, random: new Random(seed));
+            var total = 0.0;
+
+            for (var w = 0; w < windows; w++)
+            {
+                for (var i = 0; i < perWindow; i++)
+                {
+                    sampler.Offer("callsite");
+                }
+
+                foreach (var estimate in sampler.CloseWindow().Estimates)
+                {
+                    total += estimate.Value.EstimatedCount;
+                }
+            }
+
+            signedErrors.Add((total - expected) / expected);
+        }
+
+        var meanSignedError = signedErrors.Average();
+        var meanAbsoluteError = signedErrors.Select(Math.Abs).Average();
+
+        // The individual draws really do scatter, so the cancellation below is
+        // meaningful rather than an artefact of every run being near-exact.
+        Assert.True(
+            meanAbsoluteError > 0.002,
+            $"expected the per-seed errors to scatter, but the mean absolute error was only {meanAbsoluteError:F4}");
+
+        Assert.True(
+            Math.Abs(meanSignedError) < 0.005,
+            $"mean signed error {meanSignedError:F4} over {seeds} seeds indicates bias (mean absolute error {meanAbsoluteError:F4})");
+    }
+
+    [Fact]
     public void CountEstimates_AreUnbiased_AcrossManyWindows()
     {
         var sampler = new BottomFloorSampler<string>(budget: 50, random: new Random(12345));

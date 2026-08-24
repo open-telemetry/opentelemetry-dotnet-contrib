@@ -67,9 +67,17 @@ public class BottomFloorLogRecordProcessorTests
         var options = new BottomFloorLogSamplerOptions { Budget = 50 };
 
         using var inner = new CapturingExporter(captured);
+
+        // The draw is seeded so this assertion is deterministic. Left unseeded it
+        // failed in CI roughly once in every 130 runs: sampling 50 of 1000 per
+        // window leaves the 60-window total with a spread whose 99th percentile
+        // sits just under the 5% tolerance, so a red build said nothing about
+        // correctness. Unbiasedness is asserted separately, over many seeds, by
+        // BottomFloorSamplerTests.EstimatedCounts_AreUnbiasedAcrossSeeds.
         using (var processor = new BottomFloorLogRecordProcessor(
             inner,
             options,
+            new Random(1),
             maxExportBatchSize: 4096,
             scheduledDelayMilliseconds: 600000,
             maxQueueSize: 8192))

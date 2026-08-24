@@ -68,7 +68,41 @@ public sealed class BottomFloorLogRecordProcessor : BatchLogRecordExportProcesso
         // processor, which disposes it; the analyzer cannot see that transfer.
 #pragma warning disable CA2000 // Dispose objects before losing scope
         : base(
-            CreateSamplingExporter(exporter, options, maxExportBatchSize),
+            CreateSamplingExporter(exporter, options, maxExportBatchSize, random: null),
+            maxQueueSize,
+            scheduledDelayMilliseconds,
+            exporterTimeoutMilliseconds,
+            maxExportBatchSize)
+#pragma warning restore CA2000 // Dispose objects before losing scope
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BottomFloorLogRecordProcessor"/>
+    /// class with an explicit random source, so that tests can make the
+    /// per-arrival draw deterministic.
+    /// </summary>
+    /// <param name="exporter">The exporter that receives the kept sample.</param>
+    /// <param name="options">The sampling options.</param>
+    /// <param name="random">The random source for the per-arrival draw.</param>
+    /// <param name="maxExportBatchSize">The window size.</param>
+    /// <param name="scheduledDelayMilliseconds">The window interval.</param>
+    /// <param name="maxQueueSize">The queue bound.</param>
+    /// <param name="exporterTimeoutMilliseconds">The export timeout.</param>
+    internal BottomFloorLogRecordProcessor(
+        BaseExporter<LogRecord> exporter,
+        BottomFloorLogSamplerOptions options,
+        Random? random,
+        int maxExportBatchSize = 2048,
+        int scheduledDelayMilliseconds = 5000,
+        int maxQueueSize = 4096,
+        int exporterTimeoutMilliseconds = 30000)
+
+        // Ownership of the wrapping exporter transfers to the base batch
+        // processor, which disposes it; the analyzer cannot see that transfer.
+#pragma warning disable CA2000 // Dispose objects before losing scope
+        : base(
+            CreateSamplingExporter(exporter, options, maxExportBatchSize, random),
             maxQueueSize,
             scheduledDelayMilliseconds,
             exporterTimeoutMilliseconds,
@@ -80,7 +114,8 @@ public sealed class BottomFloorLogRecordProcessor : BatchLogRecordExportProcesso
     private static BottomFloorLogExporter CreateSamplingExporter(
         BaseExporter<LogRecord> exporter,
         BottomFloorLogSamplerOptions options,
-        int maxExportBatchSize)
+        int maxExportBatchSize,
+        Random? random)
     {
         Guard.ThrowIfNull(options);
 
@@ -97,6 +132,6 @@ public sealed class BottomFloorLogRecordProcessor : BatchLogRecordExportProcesso
                     $"The export batch size must be greater than the sampling budget ({options.Budget}); otherwise a window keeps every record it holds and no sampling occurs."));
         }
 
-        return new BottomFloorLogExporter(exporter, options);
+        return new BottomFloorLogExporter(exporter, options, random);
     }
 }
