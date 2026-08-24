@@ -12,6 +12,7 @@ namespace OpenTelemetry.Instrumentation.AspNet.Implementation;
 internal sealed class HttpInListener : IDisposable
 {
     private const string StopInstrumentationCallbackContextKey = "__AspnetOpenTelemetryInstrumentationStopCallback__";
+    private static readonly object ErrorTypeHttpContextItemsKey = new();
     private static readonly double TimestampToTicks = TimeSpan.TicksPerSecond / (double)Stopwatch.Frequency;
 
     private readonly HttpRequestRouteHelper routeHelper = new();
@@ -44,7 +45,7 @@ internal sealed class HttpInListener : IDisposable
         return duration.TotalSeconds;
     }
 
-    private void RecordDuration(Activity? activity, HttpContextBase context, Exception? exception = null)
+    private void RecordDuration(Activity? activity, HttpContextBase context, string? routeTemplate = null)
     {
         if (AspNetInstrumentation.Instance.HandleManager.MetricHandles == 0)
         {
@@ -60,10 +61,9 @@ internal sealed class HttpInListener : IDisposable
             { SemanticConventions.AttributeHttpResponseStatusCode, context.Response.StatusCode },
         };
 
-        // Add exception-related tags for metrics when an exception occurred
-        if (exception != null)
+        if (context.Items[ErrorTypeHttpContextItemsKey] is string errorType)
         {
-            tags.Add(SemanticConventions.AttributeErrorType, exception.GetType().FullName);
+            tags.Add(SemanticConventions.AttributeErrorType, errorType);
         }
 
         var normalizedMethod = this.requestDataHelper.GetNormalizedHttpMethod(request.HttpMethod);
@@ -91,7 +91,7 @@ internal sealed class HttpInListener : IDisposable
             tags.Add(SemanticConventions.AttributeNetworkProtocolVersion, protocolVersion);
         }
 
-        var template = this.routeHelper.GetRouteTemplate(request);
+        var template = routeTemplate ?? this.routeHelper.GetRouteTemplate(request);
         if (!string.IsNullOrEmpty(template))
         {
             tags.Add(SemanticConventions.AttributeHttpRoute, template);
@@ -228,6 +228,7 @@ internal sealed class HttpInListener : IDisposable
         }
 
         var options = AspNetInstrumentation.Instance.TraceOptions;
+        string? template = null;
 
         if (activity.IsAllDataRequested)
         {
@@ -240,7 +241,7 @@ internal sealed class HttpInListener : IDisposable
                 activity.SetStatus(SpanHelper.ResolveActivityStatusForHttpStatusCode(activity.Kind, response.StatusCode));
             }
 
-            var template = this.routeHelper.GetRouteTemplate(context.Request);
+            template = this.routeHelper.GetRouteTemplate(context.Request);
 
             if (!string.IsNullOrEmpty(template))
             {
@@ -259,21 +260,21 @@ internal sealed class HttpInListener : IDisposable
             }
         }
 
-        this.RecordDuration(activity, context);
+        this.RecordDuration(activity, context, template);
     }
 
     private void OnException(Activity? activity, HttpContextBase context, Exception exception)
     {
+        context.Items[ErrorTypeHttpContextItemsKey] = exception.GetType().FullName;
+
         if (AspNetInstrumentation.Instance.HandleManager.TracingHandles == 0)
         {
-            this.RecordDuration(activity, context, exception);
             return;
         }
 
         if (activity == null)
         {
             AspNetInstrumentationEventSource.Log.NullActivity(nameof(this.OnException));
-            this.RecordDuration(activity, context, exception);
             return;
         }
 
@@ -298,7 +299,5 @@ internal sealed class HttpInListener : IDisposable
                 AspNetInstrumentationEventSource.Log.EnrichmentException("OnException", ex);
             }
         }
-
-        this.RecordDuration(activity, context, exception);
     }
 }

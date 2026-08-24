@@ -19,14 +19,10 @@ internal sealed class EtwDataTransport : IDataTransport, IDisposable
     }
 
     public void Send(byte[] data, int size)
-    {
-        this.eventSource.SendEvent(data, size);
-    }
+        => this.eventSource.SendEvent((int)EtwEventSource.EtwEventId.TraceEvent, data, size);
 
     public bool IsEnabled()
-    {
-        return this.eventSource.IsEnabled();
-    }
+        => this.eventSource.IsEnabled();
 
     public void Dispose()
     {
@@ -54,44 +50,26 @@ internal sealed class EtwDataTransport : IDataTransport, IDisposable
 
 #pragma warning disable CA1822 // Mark members as static
 
-        /// <summary>
-        /// Dummy _data_ field is present so that when <see cref="SendEvent"/> is called, the event has at least one
-        /// parameter with <see cref="EtwEventId.TraceEvent"/> and single data object, it matches the runtime metadata
-        /// in ETW manifest.
-        /// </summary>
-        /// <param name="data">
-        /// Dummy placeholder for <see cref="EventSource"/> reflection-based ETW manifest generation.
-        /// In the ETW manifest for .NET, <c>byte[]</c> payload is always prepended with a synthetic <c>length</c>
-        /// field.
-        /// </param>
+        // Must stay parameterless: the agent reads the raw ETW blob, and .NET prepends a 4-byte length to any
+        // declared field, which the agent rejects with "Bad forward protocol format".
         [Event((int)EtwEventId.TraceEvent, Version = 1, Level = EventLevel.Informational)]
-        public void InformationalEvent(byte[] data)
+        public void InformationalEvent()
         {
         }
-#pragma warning restore CA1822 // Mark members as static
 
-        /// <summary>
-        /// Writes given raw data to ETW buffer.
-        /// Two fields are written to conform to .NET notation: length and data.
-        /// A separate length field isn't explicitly needed, since raw ETW payload already comes with buffer length
-        /// data, but the convention for .NET ETW libraries requires that field.
-        /// </summary>
-        /// <param name="data">Buffer with data to be sent.</param>
-        /// <param name="size">How many bytes of that buffer to send.</param>
+#pragma warning restore CA1822 // Mark members as static
         [NonEvent]
 #if NET
         [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2026:RequiresUnreferencedCode", Justification = "WriteEventCore is safe when eventData object is a primitive type, which it is in this case.")]
 #endif
-        public unsafe void SendEvent(byte[] data, int size)
+        public unsafe void SendEvent(int eventId, byte[] data, int size)
         {
-            var dataDesc = stackalloc EventData[2];
+            var dataDesc = stackalloc EventData[1];
             fixed (byte* ptr = data)
             {
-                dataDesc[0].DataPointer = (IntPtr)(&size);
-                dataDesc[0].Size = 4;
-                dataDesc[1].DataPointer = (IntPtr)ptr;
-                dataDesc[1].Size = size;
-                this.WriteEventCore((int)EtwEventId.TraceEvent, 2, dataDesc);
+                dataDesc[0].DataPointer = (IntPtr)ptr;
+                dataDesc[0].Size = size;
+                this.WriteEventCore(eventId, 1, dataDesc);
             }
         }
     }

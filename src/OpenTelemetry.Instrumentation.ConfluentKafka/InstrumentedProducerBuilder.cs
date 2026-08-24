@@ -41,6 +41,6 @@ public sealed class InstrumentedProducerBuilder<TKey, TValue> : ProducerBuilder<
     /// <returns>an <see cref="IProducer{TKey,TValue}"/>.</returns>
     public override IProducer<TKey, TValue> Build()
     {
-        return new InstrumentedProducer<TKey, TValue>(base.Build(), this.options);
+        return new InstrumentedProducer<TKey, TValue>(base.Build(), this.options, ((ClientConfig)this.Config).BootstrapServers);
     }
 }

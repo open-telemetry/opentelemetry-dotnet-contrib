@@ -138,6 +138,7 @@
     <File Path="README.md" />
   </Folder>
   <Folder Name="/src/">
+    <Project Path="src/OpenTelemetry.DynamicControl/OpenTelemetry.DynamicControl.csproj" />
     <Project Path="src/OpenTelemetry.Exporter.Geneva/OpenTelemetry.Exporter.Geneva.csproj" />
     <Project Path="src/OpenTelemetry.Exporter.InfluxDB/OpenTelemetry.Exporter.InfluxDB.csproj" />
     <Project Path="src/OpenTelemetry.Exporter.OneCollector/OpenTelemetry.Exporter.OneCollector.csproj" />
@@ -190,6 +191,7 @@
     <File Path="src/Shared/ActivityInstrumentationHelper.cs" />
     <File Path="src/Shared/ActivitySourceFactory.cs" />
     <File Path="src/Shared/AssemblyVersionExtensions.cs" />
+    <File Path="src/Shared/CharExtensions.cs" />
     <File Path="src/Shared/DatabaseSemanticConventionHelper.cs" />
     <File Path="src/Shared/DiagnosticSourceListener.cs" />
     <File Path="src/Shared/DiagnosticSourceSubscriber.cs" />
@@ -251,6 +253,7 @@
     <Project Path="test/OpenTelemetry.Contrib.Shared.Benchmarks/OpenTelemetry.Contrib.Shared.Benchmarks.csproj" />
     <Project Path="test/OpenTelemetry.Contrib.Shared.FuzzTests/OpenTelemetry.Contrib.Shared.FuzzTests.csproj" />
     <Project Path="test/OpenTelemetry.Contrib.Shared.Tests/OpenTelemetry.Contrib.Shared.Tests.csproj" />
+    <Project Path="test/OpenTelemetry.DynamicControl.Tests/OpenTelemetry.DynamicControl.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Exporter.Geneva.Benchmarks/OpenTelemetry.Exporter.Geneva.Benchmarks.csproj" />
     <Project Path="test/OpenTelemetry.Exporter.Geneva.FuzzTests/OpenTelemetry.Exporter.Geneva.FuzzTests.csproj" />
     <Project Path="test/OpenTelemetry.Exporter.Geneva.Stress/OpenTelemetry.Exporter.Geneva.Stress.csproj" />
@@ -259,9 +262,11 @@
     <Project Path="test/OpenTelemetry.Exporter.OneCollector.Benchmarks/OpenTelemetry.Exporter.OneCollector.Benchmarks.csproj" />
     <Project Path="test/OpenTelemetry.Exporter.OneCollector.Tests/OpenTelemetry.Exporter.OneCollector.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Extensions.AWS.Tests/OpenTelemetry.Extensions.AWS.Tests.csproj" />
+    <Project Path="test/OpenTelemetry.Extensions.Benchmarks/OpenTelemetry.Extensions.Benchmarks.csproj" />
     <Project Path="test/OpenTelemetry.Extensions.Enrichment.AspNetCore.Tests/OpenTelemetry.Extensions.Enrichment.AspNetCore.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Extensions.Enrichment.Http.Tests/OpenTelemetry.Extensions.Enrichment.Http.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Extensions.Enrichment.Tests/OpenTelemetry.Extensions.Enrichment.Tests.csproj" />
+    <Project Path="test/OpenTelemetry.Extensions.FuzzTests/OpenTelemetry.Extensions.FuzzTests.csproj" />
     <Project Path="test/OpenTelemetry.Extensions.Tests/OpenTelemetry.Extensions.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.Tests/OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.AspNet.Tests/OpenTelemetry.Instrumentation.AspNet.Tests.csproj" />

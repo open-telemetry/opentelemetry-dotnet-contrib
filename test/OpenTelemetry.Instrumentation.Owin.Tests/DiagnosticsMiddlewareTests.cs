@@ -199,6 +199,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
                 Assert.Equal(requestUri.Host, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeServerAddress).Value);
                 Assert.Equal(requestUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeServerPort).Value);
                 Assert.Equal("GET", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpRequestMethod).Value);
+                Assert.Equal("1.1", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeNetworkProtocolVersion).Value);
                 Assert.Equal(requestUri.AbsolutePath, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeUrlPath).Value);
                 Assert.Equal(generateRemoteException ? 500 : 200, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpResponseStatusCode).Value);
                 Assert.Equal("company.client/1.2.3", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeUserAgentOriginal).Value);
@@ -287,6 +288,39 @@ public class DiagnosticsMiddlewareTests : IDisposable
             // https://github.com/open-telemetry/semantic-conventions/blob/v1.41.0/docs/http/http-metrics.md#metric-httpserverrequestduration
             Assert.Equal(activity.Duration.TotalSeconds, metricPoint.GetHistogramSum());
         }
+    }
+
+    [Fact]
+    public async Task NoListeners_FilterNotInvoked_MetricsRecorded()
+    {
+        var filterInvocationCount = 0;
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddOwinInstrumentation(options => options.Filter = _ =>
+            {
+                filterInvocationCount++;
+                return true;
+            })
+            .Build())
+        {
+        }
+
+        List<Metric> exportedMetrics = [];
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddInMemoryExporter(exportedMetrics)
+            .AddOwinInstrumentation()
+            .Build();
+
+        using var client = new HttpClient();
+        this.requestCompleteHandle.Reset();
+        using var response = await client.GetAsync(new Uri($"{this.serviceBaseUri}api/test"));
+
+        Assert.True(this.requestCompleteHandle.WaitOne(3000));
+        Assert.Equal(0, filterInvocationCount);
+
+        meterProvider.Dispose();
+        var metric = Assert.Single(exportedMetrics);
+        Assert.Equal("http.server.request.duration", metric.Name);
+        Assert.Equal(1, Assert.Single(this.GetMetricPoints(metric)).GetHistogramCount());
     }
 
     [Theory]

@@ -118,6 +118,7 @@ public class RequestDataHelperTests
 #endif
 
     [Theory]
+    [InlineData("HTTP/1.0", "1.0")]
     [InlineData("HTTP/1.1", "1.1")]
     [InlineData("HTTP/2", "2")]
     [InlineData("HTTP/3", "3")]

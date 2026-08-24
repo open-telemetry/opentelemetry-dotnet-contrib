@@ -241,6 +241,19 @@ public class ConnectionStringBuilderTests
     }
 
     [Fact]
+    public void ConnectionStringBuilder_EnableOtlpProtobufEncoding_No_Default_Value()
+    {
+        var builder = new ConnectionStringBuilder("key1=value1");
+        Assert.False(builder.EnableOtlpProtobufEncoding);
+        builder = new ConnectionStringBuilder("EnableOtlpProtobufEncoding=true");
+        Assert.True(builder.EnableOtlpProtobufEncoding);
+        builder = new ConnectionStringBuilder("EnableOtlpProtobufEncoding=tRue");
+        Assert.True(builder.EnableOtlpProtobufEncoding);
+        builder = new ConnectionStringBuilder("EnableOtlpProtobufEncoding=false");
+        Assert.False(builder.EnableOtlpProtobufEncoding);
+    }
+
+    [Fact]
     public void ConnectionStringBuilder_PrivatePreviewLogMessagePackStringSizeLimit()
     {
         var builder = new ConnectionStringBuilder("key1=value1");

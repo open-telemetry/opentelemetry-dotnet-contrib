@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## 0.1.0-alpha.13
+
+Released 2026-Aug-21
+
+* Applied a timeout to the wildcard rule matching regular expressions.
+  ([#4858](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4858))
+
+* Updated OpenTelemetry core component version(s) to `1.18.0`.
+  ([#5022](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5022))
+
 ## 0.1.0-alpha.12
 
 Released 2026-Jul-17

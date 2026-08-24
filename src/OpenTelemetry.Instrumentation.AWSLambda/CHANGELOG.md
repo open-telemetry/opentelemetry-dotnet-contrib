@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## 1.18.0
+
+Released 2026-Aug-21
+
+* Query string values in the `url.query` and `http.target` span attributes are
+  now redacted by default for HTTP triggered functions, consistent with the other
+  OpenTelemetry HTTP instrumentations. Redaction can be disabled by setting the
+  `OTEL_DOTNET_EXPERIMENTAL_AWS_LAMBDA_DISABLE_URL_QUERY_REDACTION` environment
+  variable to `true`.
+  ([#4859](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4859))
+
 ## 1.17.0
 
 Released 2026-Jul-22

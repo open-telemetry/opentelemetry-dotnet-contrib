@@ -1,6 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if NET
+using System.Collections.Frozen;
+#endif
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using OpenTelemetry.Trace;
@@ -16,7 +19,7 @@ internal sealed class SqlTelemetryHelper
 {
     public const string MicrosoftSqlServerDbSystemName = "microsoft.sql_server";
 
-    public static readonly Version SemanticConventionsVersion = new(1, 33, 0);
+    public static readonly Version SemanticConventionsVersion = new(1, 44, 0);
     public static readonly ActivitySource ActivitySource = ActivitySourceFactory.Create<SqlTelemetryHelper>(SemanticConventionsVersion);
     public static readonly Meter Meter = Metrics.MeterFactory.Create<SqlTelemetryHelper>(SemanticConventionsVersion);
 
@@ -40,6 +43,48 @@ internal sealed class SqlTelemetryHelper
         SemanticConventions.AttributeServerAddress,
     ];
 
+#if NET
+    private static readonly FrozenDictionary<string, int> SharedTagNameIndexes = CreateSharedTagNameIndexes().ToFrozenDictionary(StringComparer.Ordinal);
+#else
+    private static readonly Dictionary<string, int> SharedTagNameIndexes = CreateSharedTagNameIndexes();
+#endif
+
+    private static readonly int AllSharedTagsFoundMask = (1 << SharedTagNames.Length) - 1;
+
+    public static void AddSharedTags(Activity activity, ref TagList tags)
+    {
+        var enumerator = activity.EnumerateTagObjects();
+        var found = 0;
+
+        while (enumerator.MoveNext())
+        {
+            ref readonly var tag = ref enumerator.Current;
+
+            if (tag.Key is null ||
+                tag.Value is null ||
+                !SharedTagNameIndexes.TryGetValue(tag.Key, out var index))
+            {
+                continue;
+            }
+
+            var mask = 1 << index;
+
+            if ((found & mask) != 0)
+            {
+                // A value for this tag name has already been added.
+                continue;
+            }
+
+            tags.Add(tag.Key, tag.Value);
+            found |= mask;
+
+            if (found == AllSharedTagsFoundMask)
+            {
+                break;
+            }
+        }
+    }
+
     public static TagList GetTagListFromConnectionInfo(string? dataSource, string? databaseName, out string activityName)
     {
         activityName = MicrosoftSqlServerDbSystemName;
@@ -52,13 +97,9 @@ internal sealed class SqlTelemetryHelper
         {
             var connectionDetails = SqlConnectionDetails.ParseFromDataSource(dataSource);
 
-            if (!string.IsNullOrEmpty(databaseName))
+            if (databaseName is { Length: > 0 })
             {
-#pragma warning disable IDE0370 // Suppression is unnecessary
-                var dbNamespace = !string.IsNullOrEmpty(connectionDetails.InstanceName)
-                    ? $"{connectionDetails.InstanceName}.{databaseName}"
-                    : databaseName!;
-#pragma warning restore IDE0370 // Suppression is unnecessary
+                var dbNamespace = connectionDetails.GetDbNamespace(databaseName);
                 tags.Add(SemanticConventions.AttributeDbNamespace, dbNamespace);
                 activityName = dbNamespace;
             }
@@ -67,27 +108,21 @@ internal sealed class SqlTelemetryHelper
             if (!string.IsNullOrEmpty(serverAddress))
             {
                 tags.Add(SemanticConventions.AttributeServerAddress, serverAddress);
-                if (connectionDetails.Port is { } port)
+                if (connectionDetails.BoxedPort is { } port)
                 {
                     tags.Add(SemanticConventions.AttributeServerPort, port);
                 }
 
                 if (activityName == MicrosoftSqlServerDbSystemName)
                 {
-#pragma warning disable IDE0370 // Suppression is unnecessary
-                    activityName = connectionDetails.Port is { } portNumber
-                        ? $"{serverAddress}:{portNumber}"
-                        : serverAddress!;
-#pragma warning restore IDE0370 // Suppression is unnecessary
+                    activityName = connectionDetails.ServerAddressAndPort!;
                 }
             }
         }
-        else if (!string.IsNullOrEmpty(databaseName))
+        else if (databaseName is { Length: > 0 })
         {
             tags.Add(SemanticConventions.AttributeDbNamespace, databaseName);
-#pragma warning disable IDE0370 // Suppression is unnecessary
-            activityName = databaseName!;
-#pragma warning restore IDE0370 // Suppression is unnecessary
+            activityName = databaseName;
         }
 
         return tags;
@@ -95,4 +130,18 @@ internal sealed class SqlTelemetryHelper
 
     internal static double CalculateDurationFromTimestamp(long begin)
         => Stopwatch.GetElapsedTime(begin).TotalSeconds;
+
+    private static Dictionary<string, int> CreateSharedTagNameIndexes()
+    {
+        Debug.Assert(SharedTagNames.Length < 32, "There are too many shared tag names to track with a 32-bit mask.");
+
+        var indexes = new Dictionary<string, int>(SharedTagNames.Length, StringComparer.Ordinal);
+
+        for (var i = 0; i < SharedTagNames.Length; i++)
+        {
+            indexes[SharedTagNames[i]] = i;
+        }
+
+        return indexes;
+    }
 }
