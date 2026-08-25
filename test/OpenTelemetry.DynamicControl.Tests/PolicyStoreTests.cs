@@ -469,11 +469,11 @@ public class PolicyStoreTests
     private sealed class StubPolicy : TelemetryPolicy
     {
         public StubPolicy(string policyType, string id)
-            : base(id, $"{policyType}/{id}")
+            : base(new PolicyId(id), $"{policyType}/{id}")
         {
-            this.PolicyType = policyType;
+            this.PolicyType = new PolicyType(policyType);
         }
 
-        public override string PolicyType { get; }
+        public override PolicyType PolicyType { get; }
     }
 }

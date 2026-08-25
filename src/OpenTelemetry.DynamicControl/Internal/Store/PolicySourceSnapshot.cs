@@ -89,7 +89,7 @@ internal sealed class PolicySourceSnapshot
     /// <param name="version">The change-detection token for this submission.</param>
     /// <param name="policies">
     /// The complete, validated policy set for this source. Must not be null. Elements must
-    /// not be null, must have non-blank <see cref="TelemetryPolicy.PolicyType"/> and
+    /// not be null, must have non-empty <see cref="TelemetryPolicy.PolicyType"/> and
     /// <see cref="TelemetryPolicy.Id"/>, and no two elements may resolve to the same
     /// <see cref="PolicyKey"/>. The caller's list is defensively copied; subsequent
     /// mutations do not affect the snapshot.
@@ -149,8 +149,8 @@ internal sealed class PolicySourceSnapshot
 
             var policyError = policy switch
             {
-                { PolicyType: var pt } when string.IsNullOrWhiteSpace(pt) => $"The policy at index {i} has a blank PolicyType.",
-                { Id: var id } when string.IsNullOrWhiteSpace(id) => $"The policy at index {i} has a blank Id.",
+                { PolicyType.IsEmpty: true } => $"The policy at index {i} has an empty PolicyType.",
+                { Id.IsEmpty: true } => $"The policy at index {i} has an empty Id.",
                 _ => null,
             };
 

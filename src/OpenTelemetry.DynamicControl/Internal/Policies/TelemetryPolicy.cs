@@ -26,9 +26,9 @@ namespace OpenTelemetry.DynamicControl.Internal.Policies;
 /// </remarks>
 internal abstract class TelemetryPolicy
 {
-    protected TelemetryPolicy(string id, string name)
+    protected TelemetryPolicy(PolicyId id, string name)
     {
-        Guard.ThrowIfNullOrWhitespace(id);
+        Guard.ThrowIfDefault(id);
         this.Id = id;
         this.Name = name;
     }
@@ -36,7 +36,7 @@ internal abstract class TelemetryPolicy
     /// <summary>
     /// Gets the provider-assigned identifier for this policy instance.
     /// </summary>
-    public string Id { get; }
+    public PolicyId Id { get; }
 
     /// <summary>
     /// Gets the human-readable display name for this policy instance.
@@ -47,5 +47,5 @@ internal abstract class TelemetryPolicy
     /// Gets the policy type discriminator (e.g. <c>trace-sampling</c>).
     /// Implementers register against this string to receive matching policies.
     /// </summary>
-    public abstract string PolicyType { get; }
+    public abstract PolicyType PolicyType { get; }
 }

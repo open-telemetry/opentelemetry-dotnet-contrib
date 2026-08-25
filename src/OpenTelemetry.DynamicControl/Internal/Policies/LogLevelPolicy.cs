@@ -6,38 +6,37 @@ using System.Diagnostics.CodeAnalysis;
 namespace OpenTelemetry.DynamicControl.Internal.Policies;
 
 /// <summary>
-/// Represents a validated trace-sampling-rate policy.
-/// Corresponds to the <c>trace-sampling</c> policy type in the Telemetry Policy OTEP.
+/// Represents a validated policy setting the severity threshold for the SDK's own
+/// diagnostic logs.
 /// </summary>
-internal sealed class TraceSamplingRatePolicy : TelemetryPolicy
+internal sealed class LogLevelPolicy : TelemetryPolicy
 {
     /// <summary>
     /// The <see cref="TelemetryPolicy.PolicyType"/> value for this policy type.
     /// </summary>
-    internal static readonly PolicyType PolicyTypeValue = new("trace-sampling");
+    internal static readonly PolicyType PolicyTypeValue = new("log-level");
 
-    private TraceSamplingRatePolicy(PolicyId id, string name, double samplingProbability)
+    private LogLevelPolicy(PolicyId id, string name, DiagnosticLogLevel minimumLevel)
         : base(id, name)
     {
-        this.SamplingProbability = samplingProbability;
+        this.MinimumLevel = minimumLevel;
     }
 
     /// <inheritdoc/>
     public override PolicyType PolicyType => PolicyTypeValue;
 
     /// <summary>
-    /// Gets the desired sampling probability in the range [0, 1] inclusive,
-    /// where 0 means drop all spans and 1 means record all spans.
+    /// Gets the severity at or above which diagnostic logs are emitted.
     /// </summary>
-    public double SamplingProbability { get; }
+    public DiagnosticLogLevel MinimumLevel { get; }
 
     /// <summary>
-    /// Attempts to create a validated <see cref="TraceSamplingRatePolicy"/>.
+    /// Attempts to create a validated <see cref="LogLevelPolicy"/>.
     /// </summary>
     /// <param name="id">The provider-assigned policy identifier. Must not be <see cref="PolicyId.Empty"/>.</param>
     /// <param name="name">The human-readable policy name. Must not be null or whitespace.</param>
-    /// <param name="samplingProbability">
-    /// The desired sampling probability. Must be a finite value in [0, 1] inclusive.
+    /// <param name="minimumLevel">
+    /// The severity threshold. Must be a usable <see cref="DiagnosticLogLevel"/> member.
     /// </param>
     /// <param name="policy">
     /// When this method returns <see langword="true"/>, the newly created policy; otherwise <see langword="null"/>.
@@ -53,8 +52,8 @@ internal sealed class TraceSamplingRatePolicy : TelemetryPolicy
     public static bool TryCreate(
         PolicyId id,
         string name,
-        double samplingProbability,
-        [NotNullWhen(true)] out TraceSamplingRatePolicy? policy,
+        DiagnosticLogLevel minimumLevel,
+        [NotNullWhen(true)] out LogLevelPolicy? policy,
         [NotNullWhen(false)] out string? error)
     {
         if (id.IsEmpty)
@@ -71,25 +70,23 @@ internal sealed class TraceSamplingRatePolicy : TelemetryPolicy
             return false;
         }
 
-        if (double.IsNaN(samplingProbability)
-            || double.IsInfinity(samplingProbability)
-            || samplingProbability < 0
-            || samplingProbability > 1)
+        if (!IsSupported(minimumLevel))
         {
             policy = null;
-            error = "The sampling probability must be a finite value from 0 through 1, inclusive.";
+            error = "The log level must be a supported severity.";
             return false;
         }
 
-        // Normalize -0.0 to +0.0. Both are equal by IEEE 754 value, but distinct by
-        // bit representation. Normalizing ensures a canonical representation.
-        if (double.IsNegative(samplingProbability))
-        {
-            samplingProbability = 0.0;
-        }
-
-        policy = new TraceSamplingRatePolicy(id, name, samplingProbability);
+        policy = new LogLevelPolicy(id, name, minimumLevel);
         error = null;
         return true;
     }
+
+    private static bool IsSupported(DiagnosticLogLevel level)
+        => level is DiagnosticLogLevel.Trace
+            or DiagnosticLogLevel.Debug
+            or DiagnosticLogLevel.Information
+            or DiagnosticLogLevel.Warning
+            or DiagnosticLogLevel.Error
+            or DiagnosticLogLevel.None;
 }
