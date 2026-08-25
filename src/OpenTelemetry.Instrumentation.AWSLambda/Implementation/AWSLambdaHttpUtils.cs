@@ -104,8 +104,12 @@ internal class AWSLambdaHttpUtils
             tags.AddAttributeServerAddress(hostName, addIfEmpty: true);
         }
 
-        tags.AddAttributeNetHostPort(hostPort);
-        tags.AddAttributeServerPort(hostPort);
+        if (hostPort is { } port)
+        {
+            var boxedHostPort = PortTelemetryHelper.GetBoxedPort(port);
+            tags.AddAttributeNetHostPort(boxedHostPort);
+            tags.AddAttributeServerPort(boxedHostPort);
+        }
 
         return tags.Build();
     }
