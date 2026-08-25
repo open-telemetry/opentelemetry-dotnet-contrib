@@ -15,7 +15,7 @@ namespace OpenTelemetry.SemanticConventions;
 public static class ServerAttributes
 {
     /// <summary>
-    /// Server domain name if available without reverse DNS lookup; otherwise, IP address or Unix domain socket name.
+    /// Server domain name if available without reverse DNS lookup; otherwise, IP address or UNIX domain socket name.
     /// </summary>
     /// <remarks>
     /// When observed from the client side, and when communicating through an intermediary, <c>server.address</c> SHOULD represent the server address behind any intermediaries, for example proxies, if it's available.

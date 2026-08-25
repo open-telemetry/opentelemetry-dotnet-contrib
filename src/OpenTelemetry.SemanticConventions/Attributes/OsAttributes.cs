@@ -80,7 +80,7 @@ public static class OsAttributes
         public const string Dragonflybsd = "dragonflybsd";
 
         /// <summary>
-        /// HP-UX (Hewlett Packard Unix).
+        /// HP-UX (Hewlett Packard UNIX).
         /// </summary>
         public const string Hpux = "hpux";
 
