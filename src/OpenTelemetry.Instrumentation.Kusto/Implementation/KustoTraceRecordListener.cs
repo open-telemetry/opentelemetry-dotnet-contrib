@@ -163,10 +163,11 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
                 context.AddMeterTag(SemanticConventions.AttributeServerAddress, result.ServerAddress);
             }
 
-            if (result.ServerPort is not null)
+            if (result.ServerPort is { } serverPort)
             {
-                activity?.AddTag(SemanticConventions.AttributeServerPort, result.ServerPort.Value);
-                context.AddMeterTag(SemanticConventions.AttributeServerPort, result.ServerPort.Value);
+                var boxedServerPort = PortTelemetryHelper.GetBoxedPort(serverPort);
+                activity?.AddTag(SemanticConventions.AttributeServerPort, boxedServerPort);
+                context.AddMeterTag(SemanticConventions.AttributeServerPort, boxedServerPort);
             }
 
             if (!result.Database.IsEmpty)

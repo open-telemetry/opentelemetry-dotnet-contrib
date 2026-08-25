@@ -226,7 +226,7 @@ internal partial class ElasticsearchRequestPipelineDiagnosticListener : Listener
 
             if (uri.Port > 0)
             {
-                activity.SetTag(SemanticConventions.AttributeNetPeerPort, uri.Port);
+                activity.SetTag(SemanticConventions.AttributeNetPeerPort, PortTelemetryHelper.GetBoxedPort(uri.Port));
             }
 
             if (method != null)

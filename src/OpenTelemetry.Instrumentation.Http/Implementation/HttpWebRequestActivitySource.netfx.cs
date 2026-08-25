@@ -77,7 +77,7 @@ internal static class HttpWebRequestActivitySource
             HttpTagHelper.RequestDataHelper.SetHttpMethodTag(activity, request.Method);
 
             activity.SetTag(SemanticConventions.AttributeServerAddress, request.RequestUri.Host);
-            activity.SetTag(SemanticConventions.AttributeServerPort, TelemetryHelper.GetBoxedPort(request.RequestUri.Port));
+            activity.SetTag(SemanticConventions.AttributeServerPort, PortTelemetryHelper.GetBoxedPort(request.RequestUri.Port));
 
             activity.SetTag(SemanticConventions.AttributeUrlFull, HttpTagHelper.GetUriTagValueFromRequestUri(request.RequestUri, TracingOptions.DisableUrlQueryRedaction));
 
@@ -422,7 +422,7 @@ internal static class HttpWebRequestActivitySource
 
             if (!request.RequestUri.IsDefaultPort)
             {
-                tags.Add(SemanticConventions.AttributeServerPort, TelemetryHelper.GetBoxedPort(request.RequestUri.Port));
+                tags.Add(SemanticConventions.AttributeServerPort, PortTelemetryHelper.GetBoxedPort(request.RequestUri.Port));
             }
 
             if (httpStatusCode is { } statusCode)

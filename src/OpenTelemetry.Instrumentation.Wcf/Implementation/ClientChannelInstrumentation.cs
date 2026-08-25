@@ -166,13 +166,13 @@ internal static class ClientChannelInstrumentation
             if (options?.EmitOldRpcAttributes is true)
             {
                 tags.Add(new(SemanticConventions.AttributeNetPeerName, remoteAddressUri.Host));
-                tags.Add(new(SemanticConventions.AttributeNetPeerPort, remoteAddressUri.Port));
+                tags.Add(new(SemanticConventions.AttributeNetPeerPort, PortTelemetryHelper.GetBoxedPort(remoteAddressUri.Port)));
             }
 
             if (options?.EmitNewRpcAttributes is true)
             {
                 tags.Add(new(SemanticConventions.AttributeServerAddress, remoteAddressUri.Host));
-                tags.Add(new(SemanticConventions.AttributeServerPort, remoteAddressUri.Port));
+                tags.Add(new(SemanticConventions.AttributeServerPort, PortTelemetryHelper.GetBoxedPort(remoteAddressUri.Port)));
 
                 if (remoteAddressUri.Host is { Length: > 0 } host)
                 {
@@ -181,7 +181,7 @@ internal static class ClientChannelInstrumentation
                     if (uriHostNameType is UriHostNameType.IPv4 or UriHostNameType.IPv6)
                     {
                         tags.Add(new(SemanticConventions.AttributeNetworkPeerAddress, host));
-                        tags.Add(new(SemanticConventions.AttributeNetworkPeerPort, remoteAddressUri.Port));
+                        tags.Add(new(SemanticConventions.AttributeNetworkPeerPort, PortTelemetryHelper.GetBoxedPort(remoteAddressUri.Port)));
                     }
                 }
             }

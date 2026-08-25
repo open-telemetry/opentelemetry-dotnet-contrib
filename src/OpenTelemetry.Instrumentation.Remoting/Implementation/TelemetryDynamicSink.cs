@@ -298,7 +298,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
             tags.Add(SemanticConventions.AttributeServerAddress, host);
             if (port.HasValue)
             {
-                tags.Add(SemanticConventions.AttributeServerPort, port.Value);
+                tags.Add(SemanticConventions.AttributeServerPort, PortTelemetryHelper.GetBoxedPort(port.Value));
             }
         }
 

@@ -211,13 +211,13 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
             if (options.EmitOldRpcAttributes)
             {
                 tags.Add(new(SemanticConventions.AttributeNetHostName, localAddressUri.Host));
-                tags.Add(new(SemanticConventions.AttributeNetHostPort, localAddressUri.Port));
+                tags.Add(new(SemanticConventions.AttributeNetHostPort, PortTelemetryHelper.GetBoxedPort(localAddressUri.Port)));
             }
 
             if (options.EmitNewRpcAttributes)
             {
                 tags.Add(new(SemanticConventions.AttributeServerAddress, localAddressUri.Host));
-                tags.Add(new(SemanticConventions.AttributeServerPort, localAddressUri.Port));
+                tags.Add(new(SemanticConventions.AttributeServerPort, PortTelemetryHelper.GetBoxedPort(localAddressUri.Port)));
             }
 
             tags.Add(new(WcfInstrumentationConstants.AttributeWcfChannelScheme, localAddressUri.Scheme));
@@ -232,7 +232,7 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
             !string.IsNullOrEmpty(remoteEndpoint.Address))
         {
             tags.Add(new(SemanticConventions.AttributeNetworkPeerAddress, remoteEndpoint.Address));
-            tags.Add(new(SemanticConventions.AttributeNetworkPeerPort, remoteEndpoint.Port));
+            tags.Add(new(SemanticConventions.AttributeNetworkPeerPort, PortTelemetryHelper.GetBoxedPort(remoteEndpoint.Port)));
         }
 
         return tags;

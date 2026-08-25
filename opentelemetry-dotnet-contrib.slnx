@@ -203,6 +203,7 @@
     <File Path="src/Shared/MeterFactory.cs" />
     <File Path="src/Shared/MultiTypePropertyFetcher.cs" />
     <File Path="src/Shared/NullableAttributes.cs" />
+    <File Path="src/Shared/PortTelemetryHelper.cs" />
     <File Path="src/Shared/PropertyFetcher.cs" />
     <File Path="src/Shared/RedactionHelper.cs" />
     <File Path="src/Shared/RequestDataHelper.cs" />
