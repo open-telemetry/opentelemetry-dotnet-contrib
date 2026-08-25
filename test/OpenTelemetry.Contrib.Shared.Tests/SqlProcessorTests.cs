@@ -221,6 +221,58 @@ public class SqlProcessorTests
     }
 
     [Fact]
+    public void GetSanitizedSql_DoubleQuotedStringWithBackslashDialect_SanitizesLiteral()
+    {
+        var sql = "SELECT * FROM Users WHERE Name = \"secret-value\" AND Id = 1";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes: true);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-value", sqlStatementInfo.SanitizedSql);
+        Assert.Equal("SELECT * FROM Users WHERE Name = ? AND Id = ?", sqlStatementInfo.SanitizedSql);
+    }
+
+    [Fact]
+    public void GetSanitizedSql_DoubledDoubleQuoteEscapeWithBackslashDialect_SanitizesLiteral()
+    {
+        var sql = "SELECT * FROM Users WHERE Name = \"a\"\"secret-value\"";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes: true);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-value", sqlStatementInfo.SanitizedSql);
+        Assert.Equal("SELECT * FROM Users WHERE Name = ?", sqlStatementInfo.SanitizedSql);
+    }
+
+    [Fact]
+    public void GetSanitizedSql_BackslashEscapedDoubleQuoteWithBackslashDialect_SanitizesLiteral()
+    {
+        var sql = "SELECT * FROM Users WHERE Name = \"a\\\"secret-value\"";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes: true);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-value", sqlStatementInfo.SanitizedSql);
+        Assert.Equal("SELECT * FROM Users WHERE Name = ?", sqlStatementInfo.SanitizedSql);
+    }
+
+    [Fact]
+    public void GetSanitizedSql_UnterminatedDoubleQuotedStringWithBackslashDialect_SanitizesLiteral()
+    {
+        var sql = "SELECT * FROM Users WHERE Name = \"secret-value";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes: true);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-value", sqlStatementInfo.SanitizedSql);
+        Assert.Equal("SELECT * FROM Users WHERE Name = ?", sqlStatementInfo.SanitizedSql);
+    }
+
+    [Fact]
     public void GetSanitizedSql_UnterminatedInClauseStringLiteral_SanitizesLiteral()
     {
         var sql = "SELECT * FROM Users WHERE Name IN ('secret-name";

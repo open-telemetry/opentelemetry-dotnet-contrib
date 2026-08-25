@@ -22,6 +22,7 @@ internal static class SqlProcessor
     private const char DashChar = '-';
     private const char ForwardSlashChar = '/';
     private const char SingleQuoteChar = '\'';
+    private const char DoubleQuoteChar = '"';
     private const char BackslashChar = '\\';
     private const char DollarChar = '$';
     private const char AsteriskChar = '*';
@@ -153,9 +154,10 @@ internal static class SqlProcessor
     /// </summary>
     /// <param name="sql">The SQL statement to sanitize.</param>
     /// <param name="useBackslashEscapes">
-    /// <see langword="true"/> if the source database treats a backslash as a string-literal escape
-    /// character (MySQL and MariaDB with the default <c>NO_BACKSLASH_ESCAPES</c> mode disabled);
-    /// otherwise <see langword="false"/>.
+    /// <see langword="true"/> if the source database is MySQL or MariaDB with their default SQL modes
+    /// (<c>NO_BACKSLASH_ESCAPES</c> and <c>ANSI_QUOTES</c> disabled), in which case a backslash is
+    /// treated as a string-literal escape character and a double-quoted (<c>"..."</c>) value is treated
+    /// as a string literal rather than a quoted identifier; otherwise <see langword="false"/>.
     /// </param>
     /// <returns>The sanitized SQL and query summary.</returns>
     public static SqlStatementInfo GetSanitizedSql(string? sql, bool useBackslashEscapes = false) =>
@@ -770,66 +772,76 @@ internal static class SqlProcessor
         var currentChar = sql[state.ParsePosition];
         if (currentChar == SingleQuoteChar)
         {
-            if (TrySanitizeLiteralsForInClause(sql, buffer, ref state, state.ParsePosition))
+            return TrySanitizeLiteralsForInClause(sql, buffer, ref state, state.ParsePosition) ||
+                   SanitizeQuotedLiteral(sql, buffer, ref state, SingleQuoteChar, allowUnicodePrefix: true);
+        }
+
+        // MySQL/MariaDB (the same dialects for which useBackslashEscapes is set) also treat a
+        // double-quoted value as a string literal unless the ANSI_QUOTES sql_mode is enabled.
+        // The other dialects supported here use '"' exclusively to delimit a quoted identifier
+        // (e.g. "columnName"), so this must remain gated on the dialect flag: otherwise a quoted
+        // identifier in those dialects would be misidentified as a literal and redacted, and
+        // conversely a MySQL/MariaDB double-quoted literal would leak into the sanitized SQL
+        // verbatim (it is never recognized as an identifier or literal by any other check here).
+        return currentChar == DoubleQuoteChar &&
+               state.UseBackslashEscapes &&
+               SanitizeQuotedLiteral(sql, buffer, ref state, DoubleQuoteChar, allowUnicodePrefix: false);
+    }
+
+    private static bool SanitizeQuotedLiteral(ReadOnlySpan<char> sql, Span<char> buffer, ref ParseState state, char delimiter, bool allowUnicodePrefix)
+    {
+        // Is the string literal of the form `N'foo'` (i.e. a Unicode literal)?
+        // If so, we want to skip the Unicode prefix when sanitizing.
+        var isUnicode = allowUnicodePrefix && state.ParsePosition >= 1 && sql[state.ParsePosition - 1] is UnicodePrefixChar;
+
+        var literalStart = state.ParsePosition;
+        var searchPos = state.ParsePosition + 1;
+        while (searchPos < sql.Length)
+        {
+            var quoteIndex = sql.Slice(searchPos).IndexOf(delimiter);
+            if (quoteIndex < 0)
             {
-                return true;
+                break;
             }
 
-            // Is the string literal of the form `N'foo'` (i.e. a Unicode literal)?
-            // If so, we want to skip the Unicode prefix when sanitizing.
-            var isUnicode = state.ParsePosition >= 1 && sql[state.ParsePosition - 1] is UnicodePrefixChar;
+            searchPos += quoteIndex;
 
-            var literalStart = state.ParsePosition;
-            var searchPos = state.ParsePosition + 1;
-            while (searchPos < sql.Length)
+            // Skip a backslash-escaped delimiter (\' or \"). MySQL/MariaDB (with the default
+            // NO_BACKSLASH_ESCAPES disabled) treat a backslash as a string escape character in
+            // both single- and double-quoted literals, so a delimiter preceded by an odd number
+            // of backslashes does not terminate the literal. Without this a value such as
+            // 'a\'secret' would be incorrectly parsed and the trailing "secret" copied into the
+            // sanitized SQL verbatim. This is gated on the dialect because '\' is not an escape
+            // in the other engines, where treating it as one would instead cause a doubled-quote
+            // -escaped literal to be incorrectly parsed.
+            if (state.UseBackslashEscapes && IsBackslashEscaped(sql, searchPos, literalStart))
             {
-                var quoteIndex = sql.Slice(searchPos).IndexOf(SingleQuoteChar);
-                if (quoteIndex < 0)
-                {
-                    break;
-                }
-
-                searchPos += quoteIndex;
-
-                // Skip a backslash-escaped quote (\'). MySQL/MariaDB (with the default
-                // NO_BACKSLASH_ESCAPES disabled) treat a backslash as a string escape
-                // character, so a quote preceded by an odd number of backslashes does
-                // not terminate the literal. Without this a value such as 'a\'secret'
-                // would be incorrectly parsed and the trailing "secret" copied into the sanitized
-                // SQL verbatim. This is gated on the dialect because '\' is not an escape
-                // in the other engines, where treating it as one would instead cause
-                // a '' -escaped literal to be incorrectly parsed.
-                if (state.UseBackslashEscapes && IsBackslashEscaped(sql, searchPos, literalStart))
-                {
-                    searchPos += 1;
-                    continue;
-                }
-
-                if (searchPos + 1 < sql.Length && sql[searchPos + 1] == SingleQuoteChar)
-                {
-                    // Skip escaped quote ('')
-                    searchPos += 2;
-                    continue;
-                }
-
-                // Found terminating quote
-                if (isUnicode)
-                {
-                    // Skip the Unicode prefix by overwriting the previous position instead
-                    state.SanitizedPosition--;
-                }
-
-                state.ParsePosition = searchPos + 1;
-                buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
-                return true;
+                searchPos += 1;
+                continue;
             }
 
-            state.ParsePosition = sql.Length;
+            if (searchPos + 1 < sql.Length && sql[searchPos + 1] == delimiter)
+            {
+                // Skip escaped delimiter ('' or "")
+                searchPos += 2;
+                continue;
+            }
+
+            // Found terminating delimiter
+            if (isUnicode)
+            {
+                // Skip the Unicode prefix by overwriting the previous position instead
+                state.SanitizedPosition--;
+            }
+
+            state.ParsePosition = searchPos + 1;
             buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
             return true;
         }
 
-        return false;
+        state.ParsePosition = sql.Length;
+        buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
+        return true;
     }
 
     private static bool IsBackslashEscaped(ReadOnlySpan<char> sql, int quoteIndex, int literalStart)
