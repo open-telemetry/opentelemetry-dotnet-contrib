@@ -26,11 +26,13 @@ internal static class ClientChannelInstrumentation
         // Add RPC and network tags at span creation time so that they are available for sampling decisions.
         // See https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/rpc/rpc-spans.md.
         var activitySource = WcfInstrumentationActivitySource.Get(options);
-        var activity = activitySource.StartActivity(
-            WcfInstrumentationActivitySource.OutgoingRequestActivityName,
-            ActivityKind.Client,
-            parentContext: default,
-            tags: CreateActivityTags(options, actionMetadata, remoteAddressUri));
+        var activity = activitySource.HasListeners()
+            ? activitySource.StartActivity(
+                WcfInstrumentationActivitySource.OutgoingRequestActivityName,
+                ActivityKind.Client,
+                parentContext: default,
+                tags: CreateActivityTags(options, actionMetadata, remoteAddressUri))
+            : null;
 
         var suppressionScope = SuppressDownstreamInstrumentation(options);
 
