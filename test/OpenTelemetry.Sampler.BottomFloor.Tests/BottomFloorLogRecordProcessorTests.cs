@@ -55,7 +55,12 @@ public class BottomFloorLogRecordProcessorTests
         }
 
         Assert.Equal(budget, captured.Count);
-        Assert.All(captured, r => Assert.True(r.AdjustedCount > 0.0 && Numeric.IsFinite(r.AdjustedCount)));
+        Assert.All(
+            captured,
+            r => Assert.True(
+                r.AdjustedCount > 0.0 &&
+                !double.IsNaN(r.AdjustedCount) &&
+                !double.IsInfinity(r.AdjustedCount)));
     }
 
     [Fact]

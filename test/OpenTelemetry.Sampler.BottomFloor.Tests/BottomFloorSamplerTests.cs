@@ -37,7 +37,8 @@ public class BottomFloorSamplerTests
     public void InclusionProbability_IsContinuousAcrossTheSeriesCutoff()
     {
         const double Cutoff = 1e-4;
-        var below = BottomFloorSampler<string>.InclusionProbability(Numeric.BitDecrement(Cutoff));
+        var belowCutoff = BitConverter.Int64BitsToDouble(BitConverter.DoubleToInt64Bits(Cutoff) - 1);
+        var below = BottomFloorSampler<string>.InclusionProbability(belowCutoff);
         var above = BottomFloorSampler<string>.InclusionProbability(Cutoff);
 
         // Both forms must agree where they meet, otherwise the estimator would
@@ -80,7 +81,10 @@ public class BottomFloorSamplerTests
         var summary = sampler.CloseWindow();
 
         Assert.Equal(32, summary.KeptItems.Count);
-        Assert.True(summary.Threshold > 0.0 && Numeric.IsFinite(summary.Threshold));
+        Assert.True(
+            summary.Threshold > 0.0 &&
+            !double.IsNaN(summary.Threshold) &&
+            !double.IsInfinity(summary.Threshold));
     }
 
     [Fact]
@@ -196,10 +200,12 @@ public class BottomFloorSamplerTests
         }
 
         var summary = sampler.CloseWindow();
-        Assert.True(Numeric.IsFinite(summary.Threshold));
+        Assert.False(double.IsNaN(summary.Threshold));
+        Assert.False(double.IsInfinity(summary.Threshold));
         Assert.All(summary.Estimates.Values, e =>
         {
-            Assert.True(Numeric.IsFinite(e.EstimatedCount));
+            Assert.False(double.IsNaN(e.EstimatedCount));
+            Assert.False(double.IsInfinity(e.EstimatedCount));
             Assert.True(e.EstimatedCount > 0.0);
         });
     }

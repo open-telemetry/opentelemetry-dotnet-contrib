@@ -122,7 +122,12 @@ public class BottomFloorLogExporterTests
             arrivals: Enumerable.Repeat("cat", 500).ToArray());
 
         Assert.Equal(10, captured.Count);
-        Assert.All(captured, r => Assert.True(r.AdjustedCount > 0.0 && Numeric.IsFinite(r.AdjustedCount)));
+        Assert.All(
+            captured,
+            r => Assert.True(
+                r.AdjustedCount > 0.0 &&
+                !double.IsNaN(r.AdjustedCount) &&
+                !double.IsInfinity(r.AdjustedCount)));
         Assert.All(captured, r => Assert.True(r.SquaredCoefficientOfVariation >= 0.0));
     }
 
