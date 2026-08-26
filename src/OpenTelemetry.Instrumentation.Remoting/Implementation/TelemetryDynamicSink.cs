@@ -298,7 +298,9 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
             tags.Add(SemanticConventions.AttributeServerAddress, host);
             if (port.HasValue)
             {
-                tags.Add(SemanticConventions.AttributeServerPort, PortTelemetryHelper.GetBoxedPort(port.Value, cacheValue: true));
+                // Not opting into the single-value cache: this is the target remote object's port,
+                // which can vary per call for a client that talks to multiple remote endpoints.
+                tags.Add(SemanticConventions.AttributeServerPort, PortTelemetryHelper.GetBoxedPort(port.Value));
             }
         }
 

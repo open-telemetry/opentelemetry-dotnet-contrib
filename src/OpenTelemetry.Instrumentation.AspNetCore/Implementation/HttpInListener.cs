@@ -484,7 +484,7 @@ internal class HttpInListener : ListenerHandler
 
         // Intentionally not using PortTelemetryHelper here: this is the client's ephemeral
         // TCP source port, which is different on essentially every connection.
-        activity.SetTag(SemanticConventions.AttributeNetworkPeerPort, context.Connection.RemotePort);
+        activity.SetTag(SemanticConventions.AttributeNetworkPeerPort, PortTelemetryHelper.GetBoxedPort(context.Connection.RemotePort));
 
         var spanStatus = ActivityStatusCode.Unset;
         if (validStatusCode)

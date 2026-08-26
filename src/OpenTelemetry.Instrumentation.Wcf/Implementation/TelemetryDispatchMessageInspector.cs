@@ -232,7 +232,10 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
             !string.IsNullOrEmpty(remoteEndpoint.Address))
         {
             tags.Add(new(SemanticConventions.AttributeNetworkPeerAddress, remoteEndpoint.Address));
-            tags.Add(new(SemanticConventions.AttributeNetworkPeerPort, PortTelemetryHelper.GetBoxedPort(remoteEndpoint.Port, cacheValue: true)));
+
+            // Intentionally not using PortTelemetryHelper here: this is the client's
+            // ephemeral source port, which is different on essentially every connection.
+            tags.Add(new(SemanticConventions.AttributeNetworkPeerPort, PortTelemetryHelper.GetBoxedPort(remoteEndpoint.Port)));
         }
 
         return tags;
