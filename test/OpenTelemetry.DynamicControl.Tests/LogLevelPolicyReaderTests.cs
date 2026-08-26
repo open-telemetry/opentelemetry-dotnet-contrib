@@ -88,12 +88,12 @@ public class LogLevelPolicyReaderTests
     [Theory]
     [MemberData(nameof(InvalidShapes))]
     public void Read_WithInvalidShape_ReportsShapeFailure(string json) =>
-        AssertRejected(json, PolicyRejectionReason.InvalidPayloadShape);
+        AssertRejected(json, PolicyRejectionReason.SchemaMismatch);
 
     [Theory]
     [MemberData(nameof(InvalidValues))]
     public void Read_WithInvalidValue_ReportsValueFailure(string json) =>
-        AssertRejected(json, PolicyRejectionReason.InvalidPolicyValue);
+        AssertRejected(json, PolicyRejectionReason.InvalidValue);
 
     [Fact]
     public void Read_WithTurkishCurrentCulture_MatchesTokensOrdinally()

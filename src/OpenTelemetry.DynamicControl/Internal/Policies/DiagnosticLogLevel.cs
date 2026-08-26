@@ -4,7 +4,8 @@
 namespace OpenTelemetry.DynamicControl.Internal.Policies;
 
 /// <summary>
-/// The severity threshold at or above which the SDK emits its own diagnostic logs.
+/// The severity threshold at or above which the OpenTelemetry SDK emits its own
+/// diagnostic logs.
 /// </summary>
 internal enum DiagnosticLogLevel
 {

@@ -14,15 +14,15 @@ internal enum PolicyRejectionReason
     None = 0,
 
     /// <summary>
-    /// The entry was not in a shape the payload format accepts, such as an unusable value
-    /// kind or a missing required member.
+    /// The entry does not conform to the structure the payload format expects,
+    /// such as an unusable value kind or a missing required member.
     /// </summary>
-    InvalidPayloadShape = 1,
+    SchemaMismatch = 1,
 
     /// <summary>
-    /// The entry had an accepted shape, but its value could not be parsed or validated.
+    /// The entry had the expected structure, but its value could not be parsed or validated.
     /// </summary>
-    InvalidPolicyValue = 2,
+    InvalidValue = 2,
 
     /// <summary>
     /// The payload declares a recognized key more than once.

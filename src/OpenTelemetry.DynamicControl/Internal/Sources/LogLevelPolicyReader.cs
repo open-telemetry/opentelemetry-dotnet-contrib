@@ -50,11 +50,11 @@ internal sealed class LogLevelPolicyReader : PolicyReader
                 JsonMemberLookup.Found => this.ReadLevel(member, "The 'level' member must be a string."),
 
                 JsonMemberLookup.Missing => PolicyReadResult.Reject(
-                    PolicyRejectionReason.InvalidPayloadShape,
+                    PolicyRejectionReason.SchemaMismatch,
                     "The log level object does not declare a 'level' member."),
 
                 JsonMemberLookup.Repeated => PolicyReadResult.Reject(
-                    PolicyRejectionReason.InvalidPayloadShape,
+                    PolicyRejectionReason.SchemaMismatch,
                     "The log level object declares 'level' more than once."),
 
                 var lookup => throw new InvalidOperationException($"Unhandled {nameof(JsonMemberLookup)}: {lookup}"),
@@ -63,18 +63,18 @@ internal sealed class LogLevelPolicyReader : PolicyReader
     private PolicyReadResult ReadLevel(in JsonElement value, string shapeError) =>
         value.ValueKind is JsonValueKind.String
             ? this.ReadLevelValue(value)
-            : PolicyReadResult.Reject(PolicyRejectionReason.InvalidPayloadShape, shapeError);
+            : PolicyReadResult.Reject(PolicyRejectionReason.SchemaMismatch, shapeError);
 
     private PolicyReadResult ReadLevelValue(in JsonElement value) =>
         JsonValueReader.TryGetText(value, out var text)
             && DiagnosticLogLevelParser.TryParse(text, out var level)
             ? this.CreatePolicy(level)
             : PolicyReadResult.Reject(
-                PolicyRejectionReason.InvalidPolicyValue,
+                PolicyRejectionReason.InvalidValue,
                 $"The log level must be one of {DiagnosticLogLevelParser.AcceptedTokens}.");
 
     private PolicyReadResult CreatePolicy(DiagnosticLogLevel level) =>
         LogLevelPolicy.TryCreate(this.PolicyId, this.PolicyName, level, out var policy, out var createError)
             ? PolicyReadResult.Success(policy)
-            : PolicyReadResult.Reject(PolicyRejectionReason.InvalidPolicyValue, createError);
+            : PolicyReadResult.Reject(PolicyRejectionReason.InvalidValue, createError);
 }

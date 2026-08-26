@@ -34,7 +34,7 @@ internal sealed class PolicyReadResult
     /// <summary>
     /// Creates a successful result.
     /// </summary>
-    /// <param name="policy">The validated policy. Must not be null.</param>
+    /// <param name="policy">The validated policy.</param>
     /// <returns>A successful result.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="policy"/> is null.</exception>
     public static PolicyReadResult Success(TelemetryPolicy policy)
@@ -58,7 +58,7 @@ internal sealed class PolicyReadResult
     {
         if (reason == PolicyRejectionReason.None)
         {
-            throw new ArgumentException("A rejection must state a reason.", nameof(reason));
+            throw new ArgumentException("A rejection must state a reason other than 'None'.", nameof(reason));
         }
 
         Guard.ThrowIfNullOrWhitespace(error);

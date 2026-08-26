@@ -88,6 +88,28 @@ public class DiagnosticLogLevelParserTests
     }
 
     [Fact]
+    public void TryParse_AcceptsATokenForEveryDefinedLevel()
+    {
+        var named = new HashSet<DiagnosticLogLevel>();
+
+        foreach (var token in DiagnosticLogLevelParser.AcceptedTokenValues)
+        {
+            Assert.True(DiagnosticLogLevelParser.TryParse(token, out var level));
+            named.Add(level);
+        }
+
+        foreach (var level in EnumTestHelper.Values<DiagnosticLogLevel>())
+        {
+            if (level == DiagnosticLogLevel.Unspecified)
+            {
+                continue;
+            }
+
+            Assert.True(named.Contains(level), $"No accepted token names '{level}'.");
+        }
+    }
+
+    [Fact]
     public void TryParse_ProducesMemberTheModelAccepts()
     {
         foreach (var entry in AcceptedTokens)

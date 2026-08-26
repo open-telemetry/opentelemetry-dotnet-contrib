@@ -40,7 +40,7 @@ internal abstract class PolicyReader
     /// A result containing either the validated policy or its rejection.
     /// </returns>
     /// <remarks>
-    /// Implementations report unusable values as rejections instead of throwing.
+    /// Implementations should report unusable values as rejections rather than throwing.
     /// </remarks>
     public abstract PolicyReadResult Read(in JsonElement value);
 }

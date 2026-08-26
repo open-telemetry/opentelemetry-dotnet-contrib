@@ -103,14 +103,14 @@ public class TraceSamplingRatePolicyReaderTests
     [MemberData(nameof(InvalidShapes))]
     public void Read_WithInvalidShape_ReportsShapeFailure(string json)
     {
-        AssertRejected(json, PolicyRejectionReason.InvalidPayloadShape);
+        AssertRejected(json, PolicyRejectionReason.SchemaMismatch);
     }
 
     [Theory]
     [MemberData(nameof(InvalidValues))]
     public void Read_WithInvalidValue_ReportsValueFailure(string json)
     {
-        AssertRejected(json, PolicyRejectionReason.InvalidPolicyValue);
+        AssertRejected(json, PolicyRejectionReason.InvalidValue);
     }
 
     [Fact]
@@ -133,19 +133,19 @@ public class TraceSamplingRatePolicyReaderTests
     [Fact]
     public void Read_WithCommaDecimalString_IsRejected()
     {
-        AssertRejected("\"0,5\"", PolicyRejectionReason.InvalidPolicyValue);
+        AssertRejected("\"0,5\"", PolicyRejectionReason.InvalidValue);
     }
 
     [Fact]
     public void Read_WithUnreadableEscapedString_ReportsValueFailure()
     {
-        AssertRejected("\"\\uD800\"", PolicyRejectionReason.InvalidPolicyValue);
+        AssertRejected("\"\\uD800\"", PolicyRejectionReason.InvalidValue);
     }
 
     [Fact]
     public void Read_WithUnreadableEscapedProbabilityString_ReportsValueFailure()
     {
-        AssertRejected("{\"probability\": \"\\uD800\"}", PolicyRejectionReason.InvalidPolicyValue);
+        AssertRejected("{\"probability\": \"\\uD800\"}", PolicyRejectionReason.InvalidValue);
     }
 
     private static TraceSamplingRatePolicy ReadPolicy(string json)

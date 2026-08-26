@@ -10,18 +10,16 @@ public class LogLevelPolicyTests
     [Fact]
     public void TryCreate_WithSupportedLevel_Succeeds()
     {
-        DiagnosticLogLevel[] supportedLevels =
-        [
-            DiagnosticLogLevel.Trace,
-            DiagnosticLogLevel.Debug,
-            DiagnosticLogLevel.Information,
-            DiagnosticLogLevel.Warning,
-            DiagnosticLogLevel.Error,
-            DiagnosticLogLevel.None,
-        ];
-
-        foreach (var level in supportedLevels)
+        // Driven off the enum rather than a literal list: every member but the
+        // Unspecified sentinel is expected to be a usable policy value, so adding a
+        // member without teaching LogLevelPolicy.IsSupported about it fails here.
+        foreach (var level in EnumTestHelper.Values<DiagnosticLogLevel>())
         {
+            if (level == DiagnosticLogLevel.Unspecified)
+            {
+                continue;
+            }
+
             Assert.True(LogLevelPolicy.TryCreate(new PolicyId("policy-1"), "Policy one", level, out var policy, out var error));
             Assert.Null(error);
             Assert.NotNull(policy);

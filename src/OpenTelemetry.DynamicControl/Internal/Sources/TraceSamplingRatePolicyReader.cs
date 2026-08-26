@@ -54,11 +54,11 @@ internal sealed class TraceSamplingRatePolicyReader : PolicyReader
                     "The 'probability' member must be a number or a numeric string."),
 
                 JsonMemberLookup.Missing => PolicyReadResult.Reject(
-                    PolicyRejectionReason.InvalidPayloadShape,
+                    PolicyRejectionReason.SchemaMismatch,
                     "The sampling rate object does not declare a 'probability' member."),
 
                 JsonMemberLookup.Repeated => PolicyReadResult.Reject(
-                    PolicyRejectionReason.InvalidPayloadShape,
+                    PolicyRejectionReason.SchemaMismatch,
                     "The sampling rate object declares 'probability' more than once."),
 
                 var lookup => throw new InvalidOperationException($"Unhandled {nameof(JsonMemberLookup)}: {lookup}"),
@@ -93,17 +93,17 @@ internal sealed class TraceSamplingRatePolicyReader : PolicyReader
     private PolicyReadResult ReadProbability(in JsonElement value, string shapeError) =>
         value.ValueKind is JsonValueKind.Number or JsonValueKind.String
             ? this.ReadProbabilityValue(value)
-            : PolicyReadResult.Reject(PolicyRejectionReason.InvalidPayloadShape, shapeError);
+            : PolicyReadResult.Reject(PolicyRejectionReason.SchemaMismatch, shapeError);
 
     private PolicyReadResult ReadProbabilityValue(in JsonElement value) =>
         TryGetProbability(value, out var probability)
             ? this.CreatePolicy(probability)
             : PolicyReadResult.Reject(
-                PolicyRejectionReason.InvalidPolicyValue,
+                PolicyRejectionReason.InvalidValue,
                 "The sampling rate must be a supported non-negative number.");
 
     private PolicyReadResult CreatePolicy(double probability) =>
         TraceSamplingRatePolicy.TryCreate(this.PolicyId, this.PolicyName, probability, out var policy, out var createError)
             ? PolicyReadResult.Success(policy)
-            : PolicyReadResult.Reject(PolicyRejectionReason.InvalidPolicyValue, createError);
+            : PolicyReadResult.Reject(PolicyRejectionReason.InvalidValue, createError);
 }

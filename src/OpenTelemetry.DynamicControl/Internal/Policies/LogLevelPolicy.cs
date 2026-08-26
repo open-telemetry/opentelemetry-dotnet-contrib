@@ -6,8 +6,8 @@ using System.Diagnostics.CodeAnalysis;
 namespace OpenTelemetry.DynamicControl.Internal.Policies;
 
 /// <summary>
-/// Represents a validated policy setting the severity threshold for the SDK's own
-/// diagnostic logs.
+/// Represents a validated policy setting the severity threshold for the OpenTelemetry
+/// SDK's own diagnostic logs.
 /// </summary>
 internal sealed class LogLevelPolicy : TelemetryPolicy
 {

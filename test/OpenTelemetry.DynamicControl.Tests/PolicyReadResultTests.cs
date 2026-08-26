@@ -24,11 +24,11 @@ public class PolicyReadResultTests
     [Fact]
     public void Reject_CarriesTheFailureAndNoPolicy()
     {
-        var result = PolicyReadResult.Reject(PolicyRejectionReason.InvalidPolicyValue, "Nope.");
+        var result = PolicyReadResult.Reject(PolicyRejectionReason.InvalidValue, "Nope.");
 
         Assert.False(result.TryGetPolicy(out var read));
         Assert.Null(read);
-        Assert.Equal(PolicyRejectionReason.InvalidPolicyValue, result.Reason);
+        Assert.Equal(PolicyRejectionReason.InvalidValue, result.Reason);
         Assert.Equal("Nope.", result.Error);
     }
 
@@ -41,7 +41,7 @@ public class PolicyReadResultTests
     [InlineData("")]
     [InlineData(" ")]
     public void Reject_WithBlankError_Throws(string? error) =>
-        Assert.ThrowsAny<ArgumentException>(() => PolicyReadResult.Reject(PolicyRejectionReason.InvalidPolicyValue, error!));
+        Assert.ThrowsAny<ArgumentException>(() => PolicyReadResult.Reject(PolicyRejectionReason.InvalidValue, error!));
 
     [Fact]
     public void Reject_WithoutAReason_Throws() =>

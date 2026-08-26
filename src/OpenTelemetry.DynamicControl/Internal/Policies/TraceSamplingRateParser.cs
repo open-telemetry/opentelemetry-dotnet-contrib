@@ -9,11 +9,17 @@ namespace OpenTelemetry.DynamicControl.Internal.Policies;
 /// Parses the textual form of a trace sampling probability.
 /// </summary>
 /// <remarks>
-/// Parsing uses the invariant culture, permits surrounding white space and exponents, and
-/// rejects negative values, group separators, and values that underflow to zero.
+/// Parsing uses the invariant culture and rejects values that underflow to zero.
 /// </remarks>
 internal static class TraceSamplingRateParser
 {
+    // NumberStyles.Float without AllowLeadingSign.
+    private const NumberStyles ProbabilityStyles =
+        NumberStyles.AllowLeadingWhite
+        | NumberStyles.AllowTrailingWhite
+        | NumberStyles.AllowDecimalPoint
+        | NumberStyles.AllowExponent;
+
     /// <summary>
     /// Attempts to convert the textual form of a sampling probability into a number.
     /// </summary>
@@ -25,8 +31,8 @@ internal static class TraceSamplingRateParser
     /// When this method returns <see langword="true"/>, the parsed value; otherwise zero.
     /// </param>
     /// <returns>
-    /// <see langword="true"/> if the text represents a supported non-negative number; otherwise
-    /// <see langword="false"/>.
+    /// <see langword="true"/> if the text represents a finite, non-negative number that does
+    /// not underflow to zero; otherwise <see langword="false"/>.
     /// </returns>
     public static bool TryParse(string? text, out double probability)
     {
@@ -37,17 +43,15 @@ internal static class TraceSamplingRateParser
             return false;
         }
 
-        if (!double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out probability))
+        if (!double.TryParse(text, ProbabilityStyles, CultureInfo.InvariantCulture, out probability))
         {
             return false;
         }
 
+        // The NaN and infinity symbols are recognized whatever the number styles, and an
+        // overflowing exponent yields infinity rather than a failed parse.
         if (double.IsNaN(probability)
             || double.IsInfinity(probability)
-            || double.IsNegative(probability)
-#if !NET && !NETSTANDARD2_1_OR_GREATER
-            || (probability == 0 && HasNegativeSign(text))
-#endif
             || (probability == 0 && HasNonZeroSignificand(text)))
         {
             probability = default;
@@ -56,21 +60,6 @@ internal static class TraceSamplingRateParser
 
         return true;
     }
-
-#if !NET && !NETSTANDARD2_1_OR_GREATER
-    private static bool HasNegativeSign(string text)
-    {
-        foreach (var character in text)
-        {
-            if (!char.IsWhiteSpace(character))
-            {
-                return character == '-';
-            }
-        }
-
-        return false;
-    }
-#endif
 
     private static bool HasNonZeroSignificand(string text)
     {

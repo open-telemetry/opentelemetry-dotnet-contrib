@@ -16,9 +16,10 @@ public class TraceSamplingRateParserTests
             { "0.5", 0.5d },
             { ".5", 0.5d },
             { "0.25", 0.25d },
+
+            // The styles omit AllowLeadingSign, but an exponent carries its own sign.
             { "1e-3", 0.001d },
             { "1E-3", 0.001d },
-            { "+0.5", 0.5d },
 
             // Upper-bound validation remains the policy model's responsibility.
             { "2", 2d },
@@ -41,11 +42,17 @@ public class TraceSamplingRateParserTests
         "1e400",
         "NaN",
         "Infinity",
+        "-Infinity",
+
+        // A leading sign is not part of the wire form, even where it is redundant.
+        "+0",
+        "+0.5",
+        "+1",
 
         // Invariant rules only: a decimal comma is a display convention, not a wire form.
         "0,5",
 
-        // Grouping is a presentation device that NumberStyles.Float excludes.
+        // Grouping is a presentation device the accepted styles exclude.
         "1,000",
     ];
 

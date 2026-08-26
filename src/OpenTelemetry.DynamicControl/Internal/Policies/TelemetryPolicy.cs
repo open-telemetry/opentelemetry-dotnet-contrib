@@ -45,7 +45,7 @@ internal abstract class TelemetryPolicy
 
     /// <summary>
     /// Gets the policy type discriminator (e.g. <c>trace-sampling</c>).
-    /// Implementers register against this string to receive matching policies.
+    /// Implementers register against this type to receive matching policies.
     /// </summary>
     public abstract PolicyType PolicyType { get; }
 }
