@@ -13,12 +13,7 @@ namespace OpenTelemetry.DynamicControl.Internal.Policies;
 /// </remarks>
 internal static class TraceSamplingRateParser
 {
-    // NumberStyles.Float without AllowLeadingSign.
-    private const NumberStyles ProbabilityStyles =
-        NumberStyles.AllowLeadingWhite
-        | NumberStyles.AllowTrailingWhite
-        | NumberStyles.AllowDecimalPoint
-        | NumberStyles.AllowExponent;
+    private const NumberStyles ProbabilityStyles = NumberStyles.Float & ~NumberStyles.AllowLeadingSign;
 
     /// <summary>
     /// Attempts to convert the textual form of a sampling probability into a number.
