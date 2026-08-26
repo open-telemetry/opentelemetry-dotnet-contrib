@@ -7,33 +7,21 @@ using StackExchange.Redis.Profiling;
 
 namespace OpenTelemetry.Instrumentation.StackExchangeRedis.Tests;
 
-internal class TestProfiledCommand(DateTime commandCreated) : IProfiledCommand
+internal class TestProfiledCommand(
+    DateTime commandCreated,
+    CommandFlags flags = CommandFlags.None,
+    EndPoint? endpoint = null,
+    TimeSpan elapsedTime = default) : IProfiledCommand
 {
-    private readonly DateTime commandCreated = commandCreated;
-    private readonly CommandFlags flags = CommandFlags.None;
-    private readonly EndPoint endPoint = new IPEndPoint(0, 0);
-
-    public TestProfiledCommand(DateTime commandCreated, CommandFlags flags)
-        : this(commandCreated)
-    {
-        this.flags = flags;
-    }
-
-    public TestProfiledCommand(DateTime commandCreated, EndPoint endpoint)
-        : this(commandCreated)
-    {
-        this.endPoint = endpoint;
-    }
-
-    public EndPoint EndPoint => this.endPoint;
+    public EndPoint EndPoint { get; } = endpoint ?? new IPEndPoint(0, 0);
 
     public int Db => 0;
 
     public string Command => "SET";
 
-    public CommandFlags Flags => this.flags;
+    public CommandFlags Flags { get; } = flags;
 
-    public DateTime CommandCreated => this.commandCreated;
+    public DateTime CommandCreated { get; } = commandCreated;
 
     public TimeSpan CreationToEnqueued => default;
 
@@ -43,7 +31,7 @@ internal class TestProfiledCommand(DateTime commandCreated) : IProfiledCommand
 
     public TimeSpan ResponseToCompletion => default;
 
-    public TimeSpan ElapsedTime => default;
+    public TimeSpan ElapsedTime { get; } = elapsedTime;
 
     public IProfiledCommand RetransmissionOf => throw new NotImplementedException();
 

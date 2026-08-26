@@ -430,6 +430,59 @@ public class StackExchangeRedisCallsInstrumentationTests(RedisXunitFixture fixtu
     }
 
     [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
+    public async Task ProfilerSessionFactoryReturnsCacheWinnerUnderContention()
+    {
+        var connectionOptions = new ConfigurationOptions
+        {
+            AbortOnConnectFail = false,
+            ConnectRetry = 0,
+            ConnectTimeout = 1_000,
+        };
+        connectionOptions.EndPoints.Add("localhost:6379");
+
+        using var connection = ConnectionMultiplexer.Connect(connectionOptions);
+        using var instrumentation = new StackExchangeRedisConnectionInstrumentation(connection, name: null, new StackExchangeRedisInstrumentationOptions());
+        var profilerFactory = instrumentation.GetProfilerSessionsFactory();
+
+        using var rootActivity = new Activity("Parent")
+            .SetParentId(ActivityTraceId.CreateRandom(), ActivitySpanId.CreateRandom(), ActivityTraceFlags.Recorded)
+            .Start();
+
+        var cacheKey = (rootActivity.TraceId, rootActivity.SpanId);
+        var workerCount = Math.Max(8, Environment.ProcessorCount * 2);
+
+        using var startGate = new ManualResetEventSlim(false);
+        var tasks = new Task<ProfilingSession>[workerCount];
+
+        for (var i = 0; i < workerCount; i++)
+        {
+            tasks[i] = Task.Run(() =>
+            {
+                Activity.Current = rootActivity;
+
+                startGate.Wait();
+
+                var session = profilerFactory();
+                Assert.NotNull(session);
+                Assert.True(instrumentation.Cache.TryGetValue(cacheKey, out var cached));
+                Assert.Same(cached.Session, session);
+
+                return session;
+            });
+        }
+
+        startGate.Set();
+
+        var sessions = await Task.WhenAll(tasks);
+
+        Assert.True(instrumentation.Cache.TryGetValue(cacheKey, out var winner));
+        foreach (var session in sessions)
+        {
+            Assert.Same(winner.Session, session);
+        }
+    }
+
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
     public void StackExchangeRedis_DependencyInjection_Success()
     {
         var connectionMultiplexerPickedFromDI = false;
