@@ -145,7 +145,7 @@ public class W3CTraceStateTests
         // verbatim path, so this also covers the limit being applied to members that never parsed.
         var incomingMembers = Enumerable.Range(0, MemberLimit)
                                         .Select(static index => $"malformed{index}")
-                                        .Append("vendora=1")
+                                        .Concat(["vendora=1"])
                                         .ToArray();
 
         Assert.False(W3CTraceState.TryParse(string.Join(",", incomingMembers), out var state));
