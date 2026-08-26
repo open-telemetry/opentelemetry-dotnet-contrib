@@ -45,7 +45,6 @@ public class MockCommandExecutor
                 OperationId = operationId,
                 Operation = DefaultOperation,
                 Command = command,
-                Timestamp = (long?)1000000L,
             });
 
         fakeSqlClientDiagnosticSource.Write(
@@ -56,7 +55,59 @@ public class MockCommandExecutor
                 Operation = DefaultOperation,
                 Command = command,
                 Statistics = statistics,
-                Timestamp = 2000000L,
+            });
+    }
+
+    public static void ExecuteCommandWithAmbientChange(
+        IDbCommand command,
+        SqlClientLibrary library,
+        Action afterBegin)
+    {
+        using var fakeSqlClientDiagnosticSource = new FakeSqlClientDiagnosticSource();
+
+        var beforeCommand = library == SqlClientLibrary.SystemDataSqlClient
+            ? SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand
+            : SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand;
+
+        var afterCommand = library == SqlClientLibrary.SystemDataSqlClient
+            ? SqlClientDiagnosticListener.SqlDataAfterExecuteCommand
+            : SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand;
+
+        var operationId = Guid.NewGuid();
+
+        fakeSqlClientDiagnosticSource.Write(
+            beforeCommand,
+            new
+            {
+                OperationId = operationId,
+                Operation = DefaultOperation,
+                Command = command,
+            });
+
+        afterBegin();
+
+        fakeSqlClientDiagnosticSource.Write(
+            afterCommand,
+            new
+            {
+                OperationId = operationId,
+                Operation = DefaultOperation,
+                Command = command,
+                Statistics = (IDictionary?)null,
+            });
+
+        // Models a ExecuteReaderAsync bug in Microsoft.Data.SqlClient < 5.1.0.
+        // An extra CleanupExecuteReaderAsync WriteCommandAfter arrives after
+        // the real completion with an OperationId set to Guid.Empty.
+        // Listener must ignore the extra event.
+        fakeSqlClientDiagnosticSource.Write(
+            afterCommand,
+            new
+            {
+                OperationId = Guid.Empty,
+                Operation = DefaultOperation,
+                Command = command,
+                Statistics = (IDictionary?)null,
             });
     }
 
@@ -94,7 +145,6 @@ public class MockCommandExecutor
                 OperationId = outerOperationId,
                 Operation = DefaultOperation,
                 Command = outerCommand,
-                Timestamp = (long?)1000000L,
             });
 
         // Lets a test spend measurable wall-clock time inside the outer command's execution
@@ -108,7 +158,6 @@ public class MockCommandExecutor
                 OperationId = innerOperationId,
                 Operation = DefaultOperation,
                 Command = innerCommand,
-                Timestamp = (long?)1100000L,
             });
 
         fakeSqlClientDiagnosticSource.Write(
@@ -119,7 +168,6 @@ public class MockCommandExecutor
                 Operation = DefaultOperation,
                 Command = innerCommand,
                 Statistics = innerStatistics,
-                Timestamp = 1200000L,
             });
 
         fakeSqlClientDiagnosticSource.Write(
@@ -130,7 +178,6 @@ public class MockCommandExecutor
                 Operation = DefaultOperation,
                 Command = outerCommand,
                 Statistics = outerStatistics,
-                Timestamp = 2000000L,
             });
     }
 
@@ -152,7 +199,6 @@ public class MockCommandExecutor
                 Operation = DefaultOperation,
                 Command = command,
                 Statistics = (IDictionary?)null,
-                Timestamp = 2000000L,
             });
     }
 
@@ -194,7 +240,6 @@ public class MockCommandExecutor
             OperationId = operationId,
             Operation = beforeOperation,
             Command = sqlCommand,
-            Timestamp = (long?)1000000L,
         };
 
         fakeSqlClientDiagnosticSource.Write(
@@ -209,7 +254,6 @@ public class MockCommandExecutor
                 Operation = afterOperation ?? beforeOperation,
                 Command = sqlCommand,
                 Exception = new Exception("Boom!"),
-                Timestamp = 2000000L,
             };
 
             fakeSqlClientDiagnosticSource.Write(
@@ -230,7 +274,6 @@ public class MockCommandExecutor
                 Operation = afterOperation ?? beforeOperation,
                 Command = sqlCommand,
                 Statistics = statistics,
-                Timestamp = 2000000L,
             };
 
             fakeSqlClientDiagnosticSource.Write(
