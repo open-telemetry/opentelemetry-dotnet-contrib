@@ -18,8 +18,9 @@ namespace OpenTelemetry.Trace;
 /// Members this instance did not write are handed back exactly as they arrived, malformed ones
 /// included, so that a long chain of edits never erodes another vendor's entries.
 /// <para/>
-/// Nothing here mutates and nothing here throws: an edit returns a new instance, and an edit naming
-/// an invalid key or value returns one carrying the receiver's contents unchanged.
+/// Nothing here mutates and nothing here throws: an edit that changes something returns a new
+/// instance, while an operation that changes nothing, such as one naming an invalid key or value,
+/// hands back the receiver itself rather than a copy.
 /// <para/>
 /// At most 32 members are kept, which is all the header grammar allows; anything past that is
 /// dropped from the right as it arrives.
@@ -45,12 +46,13 @@ public sealed class W3CTraceState
 
     private static readonly W3CTraceState Empty = new([]);
 
-    // Never longer than MemberLimit: Parse and Set both stop growing it there, and Remove only ever
+    // Never longer than MemberLimit: Parse and Set both stop filling it there, and Remove only ever
     // shrinks it. Bounding it here rather than at serialization keeps a wire-supplied header from
-    // being retained in full.
-    private readonly List<Member> members;
+    // being retained in full. It is sized exactly at every allocation, because nothing is ever
+    // appended to an instance once it exists.
+    private readonly Member[] members;
 
-    private W3CTraceState(List<Member> members)
+    private W3CTraceState(Member[] members)
     {
         this.members = members;
     }
@@ -68,39 +70,46 @@ public sealed class W3CTraceState
     /// The first 32 members are kept and the rest of the header is discarded, matching the limit
     /// the grammar puts on a <c>tracestate</c> list.
     /// </remarks>
-    public static W3CTraceState Parse(string? tracestate)
+    public static W3CTraceState Parse(string? tracestate) => ParseCore(tracestate, out _);
+
+    /// <summary>
+    /// Reads a W3C <c>tracestate</c> value into a state that can be queried and edited, and reports
+    /// whether the header carried anything this type could make sense of.
+    /// </summary>
+    /// <param name="tracestate">
+    /// The <c>tracestate</c> value, which may be <see langword="null"/> or empty.
+    /// </param>
+    /// <param name="state">
+    /// When this method returns, the parsed <see cref="W3CTraceState"/>. It is populated the same
+    /// way whichever value is returned, so <see langword="false"/> never yields less than
+    /// <see langword="true"/> would. It is not necessarily everything the header carried: as with
+    /// <c>Parse</c>, only the first 32 members are kept, and the rest are discarded on both
+    /// branches.
+    /// </param>
+    /// <returns>
+    /// <see langword="false"/> when members were retained and not one of them matched the
+    /// <c>list-member</c> grammar; otherwise <see langword="true"/>.
+    /// </returns>
+    /// <remarks>
+    /// The value reports on the members retained, not on the header as it arrived. A header of 32
+    /// unusable members followed by a well-formed pair reports <see langword="false"/>, because the
+    /// pair sits past the 32-member limit and was never taken on. Answering otherwise would mean
+    /// reading past the bound that limit exists to enforce.
+    /// <para/>
+    /// Discarding well-formed members to stay inside that limit is not itself a failure: a header
+    /// of 40 valid pairs keeps the first 32 and reports <see langword="true"/>.
+    /// <para/>
+    /// A header that is absent, empty or carries nothing but empty members reports
+    /// <see langword="true"/>: there is nothing there to be wrong.
+    /// <para/>
+    /// A header with a mix of pairs and text kept verbatim also reports <see langword="true"/>. The
+    /// signal is reserved for a value that is unusable end to end, which is the case a caller can
+    /// act on; anything less would report on another vendor's spelling.
+    /// </remarks>
+    public static bool TryParse(string? tracestate, out W3CTraceState state)
     {
-        if (string.IsNullOrEmpty(tracestate))
-        {
-            return Empty;
-        }
-
-        List<Member>? members = null;
-
-        var remaining = tracestate.AsSpan();
-        while (!remaining.IsEmpty)
-        {
-            var comma = remaining.IndexOf(',');
-            var member = (comma < 0 ? remaining : remaining.Slice(0, comma)).Trim();
-            remaining = comma < 0 ? default : remaining.Slice(comma + 1);
-
-            // Empty members are accepted but never re-emitted.
-            if (member.IsEmpty)
-            {
-                continue;
-            }
-
-            if (members is { Count: >= MemberLimit })
-            {
-                // The list holds at most 32 members, so the right-most ones are never taken on.
-                break;
-            }
-
-            members ??= [];
-            members.Add(CreateMember(member));
-        }
-
-        return members is null ? Empty : new W3CTraceState(members);
+        state = ParseCore(tracestate, out var understood);
+        return understood;
     }
 
     /// <summary>Looks up the value a key carries.</summary>
@@ -138,8 +147,8 @@ public sealed class W3CTraceState
     /// <param name="key">The key to add or update.</param>
     /// <param name="value">The value to associate with <paramref name="key"/>.</param>
     /// <returns>
-    /// A new <see cref="W3CTraceState"/> with the modification applied, or one with the receiver's
-    /// contents when <paramref name="key"/> or <paramref name="value"/> is invalid.
+    /// A new <see cref="W3CTraceState"/> with the modification applied, or the receiver itself when
+    /// <paramref name="key"/> or <paramref name="value"/> is invalid.
     /// </returns>
     /// <remarks>
     /// The member written here is placed first, and every other member keeps its relative position.
@@ -161,19 +170,31 @@ public sealed class W3CTraceState
             return this;
         }
 
-        var members = new List<Member>(Math.Min(this.members.Count + 1, MemberLimit)) { new(key, value) };
+        // Count what survives first, so the store is sized exactly and never trimmed afterwards.
+        var kept = 0;
+        foreach (var member in this.members)
+        {
+            if (!string.Equals(member.Key, key, StringComparison.Ordinal))
+            {
+                kept++;
+            }
+        }
+
+        // The member written here takes the first slot, so a full list loses its last one.
+        var members = new Member[Math.Min(kept + 1, MemberLimit)];
+        members[0] = new Member(key, value);
+        var written = 1;
 
         foreach (var member in this.members)
         {
-            if (members.Count == MemberLimit)
+            if (written == members.Length)
             {
-                // The member written here took the first slot, so a full list loses its last one.
                 break;
             }
 
             if (!string.Equals(member.Key, key, StringComparison.Ordinal))
             {
-                members.Add(member);
+                members[written++] = member;
             }
         }
 
@@ -183,8 +204,8 @@ public sealed class W3CTraceState
     /// <summary>Deletes the pair a key carries, when there is one.</summary>
     /// <param name="key">The key to delete.</param>
     /// <returns>
-    /// A new <see cref="W3CTraceState"/> without <paramref name="key"/>, or one with the receiver's
-    /// contents when the key is absent or invalid.
+    /// A new <see cref="W3CTraceState"/> without <paramref name="key"/>, or the receiver itself when
+    /// the key is absent or invalid.
     /// </returns>
     /// <remarks>
     /// Only members that match the <c>list-member</c> grammar can be addressed by key, so a member
@@ -197,17 +218,34 @@ public sealed class W3CTraceState
             return this;
         }
 
-        var members = new List<Member>(this.members.Count);
+        // Count first: deleting a key that is not there then allocates nothing at all, which is what
+        // a sampler asking on every span does.
+        var matches = 0;
+        foreach (var member in this.members)
+        {
+            if (string.Equals(member.Key, key, StringComparison.Ordinal))
+            {
+                matches++;
+            }
+        }
+
+        if (matches == 0)
+        {
+            return this;
+        }
+
+        var members = new Member[this.members.Length - matches];
+        var written = 0;
 
         foreach (var member in this.members)
         {
             if (!string.Equals(member.Key, key, StringComparison.Ordinal))
             {
-                members.Add(member);
+                members[written++] = member;
             }
         }
 
-        return members.Count == this.members.Count ? this : new W3CTraceState(members);
+        return new W3CTraceState(members);
     }
 
     /// <summary>Writes the state back out as a W3C <c>tracestate</c> value.</summary>
@@ -221,7 +259,7 @@ public sealed class W3CTraceState
     /// </remarks>
     public override string ToString()
     {
-        if (this.members.Count == 0)
+        if (this.members.Length == 0)
         {
             return string.Empty;
         }
@@ -245,6 +283,77 @@ public sealed class W3CTraceState
         }
 
         return builder.ToString();
+    }
+
+    // The single parsing path, so that Parse and TryParse can never come to disagree about what a
+    // header holds. The header is walked twice, once to size the store and once to fill it: an
+    // instance never grows after construction, so paying for the count is what keeps the store from
+    // carrying growth slack it will never use.
+    private static W3CTraceState ParseCore(string? tracestate, out bool understood)
+    {
+        // Nothing arrived, so there is nothing here that could be wrong.
+        understood = true;
+
+        if (string.IsNullOrEmpty(tracestate))
+        {
+            return Empty;
+        }
+
+        var count = CountMembers(tracestate.AsSpan());
+        if (count == 0)
+        {
+            return Empty;
+        }
+
+        var members = new Member[count];
+        var written = 0;
+        understood = false;
+
+        var remaining = tracestate.AsSpan();
+        while (!remaining.IsEmpty && written < count)
+        {
+            var comma = remaining.IndexOf(',');
+            var member = (comma < 0 ? remaining : remaining.Slice(0, comma)).Trim();
+            remaining = comma < 0 ? default : remaining.Slice(comma + 1);
+
+            // Empty members are accepted but never re-emitted.
+            if (member.IsEmpty)
+            {
+                continue;
+            }
+
+            var created = CreateMember(member);
+
+            // One member matching the grammar is enough for the header to have been understood: a
+            // vendor's malformed entry is that vendor's business, not a fault in this header.
+            understood |= created.Key is not null;
+
+            members[written++] = created;
+        }
+
+        return new W3CTraceState(members);
+    }
+
+    // Counts the members a header yields, stopping at MemberLimit so that the right-most ones are
+    // never taken on. Empty members are dropped rather than counted.
+    private static int CountMembers(ReadOnlySpan<char> tracestate)
+    {
+        var count = 0;
+
+        var remaining = tracestate;
+        while (!remaining.IsEmpty && count < MemberLimit)
+        {
+            var comma = remaining.IndexOf(',');
+            var member = (comma < 0 ? remaining : remaining.Slice(0, comma)).Trim();
+            remaining = comma < 0 ? default : remaining.Slice(comma + 1);
+
+            if (!member.IsEmpty)
+            {
+                count++;
+            }
+        }
+
+        return count;
     }
 
     private static Member CreateMember(ReadOnlySpan<char> member)

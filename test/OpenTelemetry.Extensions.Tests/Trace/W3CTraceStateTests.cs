@@ -82,6 +82,80 @@ public class W3CTraceStateTests
         Assert.Equal(tracestate, W3CTraceState.Parse(tracestate).ToString());
     }
 
+    [Theory]
+    [InlineData(null, true)]
+    [InlineData("", true)]
+    [InlineData("   ", true)]
+    [InlineData(",,,", true)]
+    [InlineData("vendora=1", true)]
+    [InlineData("vendora=1,malformed", true)]
+    [InlineData("malformed,vendora=1", true)]
+    [InlineData("malformed", false)]
+    [InlineData("VENDORA=1", false)]
+    [InlineData("=novalue", false)]
+    [InlineData("vendora=", false)]
+    [InlineData("malformed,alsomalformed", false)]
+    public void TryParse_ReturnsFalseOnlyWhenNoRetainedMemberMatchesTheGrammar(string? tracestate, bool expected)
+        => Assert.Equal(expected, W3CTraceState.TryParse(tracestate, out _));
+
+    [Theory]
+    [InlineData("malformed")]
+    [InlineData("VENDORA=1")]
+    [InlineData("=novalue")]
+    [InlineData("malformed,alsomalformed")]
+    public void TryParse_WhenNoMemberMatchesTheGrammar_StillYieldsEveryMemberVerbatim(string tracestate)
+    {
+        // The result reports that nothing was understood; it never withholds what arrived, or a
+        // caller acting on the report would drop keys it did not generate.
+        Assert.False(W3CTraceState.TryParse(tracestate, out var state));
+
+        Assert.Equal(tracestate, state.ToString());
+    }
+
+    [Fact]
+    public void TryParse_WhenSomeMembersMatchTheGrammar_StillYieldsTheOthersVerbatim()
+    {
+        const string TraceState = "vendora=1,malformed,vendorb=2";
+
+        Assert.True(W3CTraceState.TryParse(TraceState, out var state));
+
+        Assert.Equal(TraceState, state.ToString());
+    }
+
+    [Fact]
+    public void TryParse_WithMoreMembersThanTheLimit_KeepsAtMostTheLimit()
+    {
+        var incomingMembers = Enumerable.Range(0, MemberLimit * 2)
+                                        .Select(static index => $"vendor{index}=value")
+                                        .ToArray();
+
+        Assert.True(W3CTraceState.TryParse(string.Join(",", incomingMembers), out var state));
+
+        var outgoingMembers = state.ToString().Split(',');
+
+        Assert.Equal(MemberLimit, outgoingMembers.Length);
+        Assert.Equal(incomingMembers.Take(MemberLimit), outgoingMembers);
+    }
+
+    [Fact]
+    public void TryParse_WhenAValidPairSitsPastTheMemberLimit_ReportsFalseAndDropsIt()
+    {
+        // The report covers the members retained, not the header as it arrived: reaching the pair
+        // would mean reading past the bound the limit exists to enforce. Malformed members take the
+        // verbatim path, so this also covers the limit being applied to members that never parsed.
+        var incomingMembers = Enumerable.Range(0, MemberLimit)
+                                        .Select(static index => $"malformed{index}")
+                                        .Append("vendora=1")
+                                        .ToArray();
+
+        Assert.False(W3CTraceState.TryParse(string.Join(",", incomingMembers), out var state));
+
+        var outgoingMembers = state.ToString().Split(',');
+
+        Assert.Equal(MemberLimit, outgoingMembers.Length);
+        Assert.Equal(incomingMembers.Take(MemberLimit), outgoingMembers);
+    }
+
     [Fact]
     public void Set_WhenKeyExists_MovesItToTheFrontAndPreservesTheOtherOrder()
     {
@@ -104,6 +178,27 @@ public class W3CTraceStateTests
         var state = W3CTraceState.Parse("vendora=1, mykey=old");
 
         Assert.Equal("mykey=new,vendora=1", state.Set("mykey", "new").ToString());
+    }
+
+    [Fact]
+    public void Set_WhenTheIncomingHeaderCarriesTheKeyTwice_CollapsesBoth()
+    {
+        // An incoming header may legitimately carry a key twice, and adding a pair must not leave it
+        // present three times. The key is by then one this instance generated, so collapsing every
+        // occurrence is not deleting another vendor's data.
+        var state = W3CTraceState.Parse("vendora=1,vendorb=2,vendora=3");
+
+        Assert.Equal("vendora=9,vendorb=2", state.Set("vendora", "9").ToString());
+    }
+
+    [Fact]
+    public void Set_WithAMemberThatHasAnEmptyValue_AddsBesideIt()
+    {
+        // A member carrying no value is not a valid pair, so it is opaque text rather than a key.
+        // Collapsing it would delete a member this instance never generated.
+        var state = W3CTraceState.Parse("vendora=");
+
+        Assert.Equal("vendora=1,vendora=", state.Set("vendora", "1").ToString());
     }
 
     [Fact]
@@ -155,6 +250,17 @@ public class W3CTraceStateTests
         Assert.Equal(incomingMembers.Take(MemberLimit), outgoingMembers);
     }
 
+    [Fact]
+    public void ParseAndToString_AtTheMemberLimit_RoundTripsAllMembers()
+    {
+        // The boundary the cap sits on: a header holding exactly the limit loses nothing.
+        var tracestate = string.Join(
+            ",",
+            Enumerable.Range(0, MemberLimit).Select(static index => $"vendor{index}=value"));
+
+        Assert.Equal(tracestate, W3CTraceState.Parse(tracestate).ToString());
+    }
+
     [Theory]
     [InlineData("1abc")] // A leading digit, which only the flattened grammar allows.
     [InlineData("a@b@c")] // Several @ characters, which only the flattened grammar allows.
@@ -177,7 +283,10 @@ public class W3CTraceStateTests
     {
         var state = W3CTraceState.Parse("vendora=1");
 
-        Assert.Equal("vendora=1", state.Set(key, "v").ToString());
+        var updated = state.Set(key, "v");
+
+        Assert.Same(state, updated);
+        Assert.Equal("vendora=1", updated.ToString());
     }
 
     [Fact]
@@ -257,11 +366,31 @@ public class W3CTraceStateTests
     }
 
     [Fact]
+    public void Remove_WhenTheIncomingHeaderCarriesTheKeyTwice_DeletesEveryOccurrence()
+    {
+        // An incoming header may legitimately carry a key twice, and deleting one occurrence would
+        // leave the key still present. The survivor count sizes the store, so both must go.
+        var state = W3CTraceState.Parse("vendora=1,vendorb=2,vendora=3");
+
+        Assert.Equal("vendorb=2", state.Remove("vendora").ToString());
+    }
+
+    [Fact]
     public void Remove_WhenKeyIsAbsent_KeepsTheReceiverContents()
     {
         var state = W3CTraceState.Parse("vendora=1,vendorb=2");
 
         Assert.Equal("vendora=1,vendorb=2", state.Remove("mykey").ToString());
+    }
+
+    [Fact]
+    public void Remove_WhenKeyIsAbsent_ReturnsTheReceiverItself()
+    {
+        // Deleting a key that is not there is what a sampler does on every span, so the receiver is
+        // handed straight back rather than rebuilt into an equal instance.
+        var state = W3CTraceState.Parse("vendora=1,vendorb=2");
+
+        Assert.Same(state, state.Remove("mykey"));
     }
 
     [Fact]
@@ -280,7 +409,10 @@ public class W3CTraceStateTests
     {
         var state = W3CTraceState.Parse("vendora=1");
 
-        Assert.Equal("vendora=1", state.Remove(null!).ToString());
+        var updated = state.Remove(null!);
+
+        Assert.Same(state, updated);
+        Assert.Equal("vendora=1", updated.ToString());
     }
 
     [Fact]

@@ -173,11 +173,25 @@ raw `ActivityContext.TraceState` string. Custom samplers and propagators that
 edit that string by hand have to re-implement the W3C mutation rules, and the
 obvious hand-rolled version gets several of them wrong.
 
-Parsing always succeeds, mutating operations return a new instance, and neither
-throws: an invalid key or value leaves the receiver's contents unchanged. Members
-this instance did not generate are preserved verbatim, including malformed ones,
-so that an arbitrary sequence of mutations does not erode another vendor's
-entries.
+Parsing always succeeds, a mutating operation that changes something returns a
+new instance, and neither throws: an operation that changes nothing, such as one
+naming an invalid key or value, hands back the receiver itself. Members this
+instance did not generate are preserved verbatim, including malformed ones, so
+that an arbitrary sequence of mutations does not erode another vendor's entries.
+
+`TryParse` is available where a caller wants to know that a header was unusable.
+It returns `false` when members were retained and not one of them matched the
+`list-member` grammar, and `true` otherwise, including for an absent or empty
+header and for a header mixing valid pairs with text kept verbatim. The state is
+populated the same way whichever value is returned, so `false` never yields less
+than `true` would.
+
+The value reports on the members retained, not on the header as it arrived. At
+most 32 members are kept either way, so a header of 32 unusable members followed
+by a well-formed pair reports `false`, because the pair sits past the limit and
+was never taken on. Discarding well-formed members to stay inside that limit is
+not itself a failure: a header of 40 valid pairs keeps the first 32 and reports
+`true`.
 
 Example of `W3CTraceState` usage in a custom sampler:
 
