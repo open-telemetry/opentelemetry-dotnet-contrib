@@ -112,6 +112,40 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
     }
 
     [Fact]
+    public void GrpcClientCallToIpLiteralSetsNetworkPeerTagsOnStop()
+    {
+        var uri = new UriBuilder("http://127.0.0.1") { Port = 1234 }.Uri;
+
+        using var httpClient = ClientTestHelpers.CreateTestClient(async request =>
+        {
+            var streamContent = await ClientTestHelpers.CreateResponseContent(new HelloReply());
+            var response = ResponseUtils.CreateResponse(HttpStatusCode.OK, streamContent, grpcStatusCode: global::Grpc.Core.StatusCode.OK);
+            response.RequestMessage = request;
+            return response;
+        });
+
+        var exportedItems = new List<Activity>();
+
+        using (Sdk.CreateTracerProviderBuilder()
+                .SetSampler(new AlwaysOnSampler())
+                .AddGrpcClientInstrumentation()
+                .AddInMemoryExporter(exportedItems)
+                .Build())
+        {
+            var channel = GrpcChannel.ForAddress(uri, new GrpcChannelOptions
+            {
+                HttpClient = httpClient,
+            });
+            var client = new Greeter.GreeterClient(channel);
+            _ = client.SayHello(new HelloRequest());
+        }
+
+        var activity = Assert.Single(exportedItems);
+        Assert.Equal("127.0.0.1", activity.GetTagValue(SemanticConventions.AttributeNetworkPeerAddress));
+        Assert.Equal(1234, activity.GetTagValue(SemanticConventions.AttributeNetworkPeerPort));
+    }
+
+    [Fact]
     public void GrpcClientCancelledCallIsRecordedAsErrorPerSemanticConventions()
     {
         // The gRPC semantic conventions specify that, for client spans, all status codes
