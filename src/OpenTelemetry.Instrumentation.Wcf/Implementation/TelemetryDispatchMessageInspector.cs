@@ -208,16 +208,18 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
         var localAddressUri = channel.LocalAddress?.Uri;
         if (localAddressUri != null)
         {
+            var port = PortTelemetryHelper.GetBoxedPort(localAddressUri.Port, cacheValue: true);
+
             if (options.EmitOldRpcAttributes)
             {
                 tags.Add(new(SemanticConventions.AttributeNetHostName, localAddressUri.Host));
-                tags.Add(new(SemanticConventions.AttributeNetHostPort, PortTelemetryHelper.GetBoxedPort(localAddressUri.Port, cacheValue: true)));
+                tags.Add(new(SemanticConventions.AttributeNetHostPort, port));
             }
 
             if (options.EmitNewRpcAttributes)
             {
                 tags.Add(new(SemanticConventions.AttributeServerAddress, localAddressUri.Host));
-                tags.Add(new(SemanticConventions.AttributeServerPort, PortTelemetryHelper.GetBoxedPort(localAddressUri.Port, cacheValue: true)));
+                tags.Add(new(SemanticConventions.AttributeServerPort, port));
             }
 
             tags.Add(new(WcfInstrumentationConstants.AttributeWcfChannelScheme, localAddressUri.Scheme));
@@ -233,7 +235,7 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
         {
             tags.Add(new(SemanticConventions.AttributeNetworkPeerAddress, remoteEndpoint.Address));
 
-            // Intentionally not using PortTelemetryHelper here: this is the client's
+            // Intentionally not caching the port value here: this is the client's
             // ephemeral source port, which is different on essentially every connection.
             tags.Add(new(SemanticConventions.AttributeNetworkPeerPort, PortTelemetryHelper.GetBoxedPort(remoteEndpoint.Port)));
         }

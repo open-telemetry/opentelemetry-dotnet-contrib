@@ -482,7 +482,7 @@ internal class HttpInListener : ListenerHandler
             activity.SetTag(SemanticConventions.AttributeNetworkPeerAddress, context.Connection.RemoteIpAddress.ToString());
         }
 
-        // Intentionally not using PortTelemetryHelper here: this is the client's ephemeral
+        // Intentionally not caching the port value here: this is the client's ephemeral
         // TCP source port, which is different on essentially every connection.
         activity.SetTag(SemanticConventions.AttributeNetworkPeerPort, PortTelemetryHelper.GetBoxedPort(context.Connection.RemotePort));
 
