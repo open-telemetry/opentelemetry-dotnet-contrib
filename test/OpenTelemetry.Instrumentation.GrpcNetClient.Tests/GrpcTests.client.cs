@@ -120,7 +120,7 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
         {
             var streamContent = await ClientTestHelpers.CreateResponseContent(new HelloReply());
             var response = ResponseUtils.CreateResponse(HttpStatusCode.OK, streamContent, grpcStatusCode: global::Grpc.Core.StatusCode.OK);
-            response.RequestMessage = request;
+            response.RequestMessage!.RequestUri = request.RequestUri;
             return response;
         });
 
