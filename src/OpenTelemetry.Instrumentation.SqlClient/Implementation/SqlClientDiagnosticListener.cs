@@ -264,12 +264,6 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                         return;
                     }
 
-                    if (activity.Source != SqlTelemetryHelper.ActivitySource)
-                    {
-                        this.RecordDuration(null, payload);
-                        return;
-                    }
-
                     // The baseline is only present if the before-handler determined that the row
                     // count reported when the command completes is meaningful for this execution.
                     if (options.RecordReturnedRows &&
@@ -315,12 +309,6 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     if (activity == null)
                     {
                         SqlClientInstrumentationEventSource.Log.NullActivity(name);
-                        this.RecordDuration(null, payload);
-                        return;
-                    }
-
-                    if (activity.Source != SqlTelemetryHelper.ActivitySource)
-                    {
                         this.RecordDuration(null, payload);
                         return;
                     }
