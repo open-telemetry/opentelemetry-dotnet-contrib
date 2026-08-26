@@ -165,7 +165,7 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
 
             if (result.ServerPort is { } serverPort)
             {
-                var boxedServerPort = PortTelemetryHelper.GetBoxedPort(serverPort);
+                var boxedServerPort = PortTelemetryHelper.GetBoxedPort(serverPort, cacheValue: true);
                 activity?.AddTag(SemanticConventions.AttributeServerPort, boxedServerPort);
                 context.AddMeterTag(SemanticConventions.AttributeServerPort, boxedServerPort);
             }

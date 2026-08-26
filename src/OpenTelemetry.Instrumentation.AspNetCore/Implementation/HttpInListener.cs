@@ -242,7 +242,7 @@ internal class HttpInListener : ListenerHandler
 
                     if (request.Host.Port is { } port)
                     {
-                        activity.SetTag(SemanticConventions.AttributeServerPort, PortTelemetryHelper.GetBoxedPort(port));
+                        activity.SetTag(SemanticConventions.AttributeServerPort, PortTelemetryHelper.GetBoxedPort(port, cacheValue: true));
                     }
                 }
 
@@ -482,7 +482,9 @@ internal class HttpInListener : ListenerHandler
             activity.SetTag(SemanticConventions.AttributeNetworkPeerAddress, context.Connection.RemoteIpAddress.ToString());
         }
 
-        activity.SetTag(SemanticConventions.AttributeNetworkPeerPort, PortTelemetryHelper.GetBoxedPort(context.Connection.RemotePort));
+        // Intentionally not using PortTelemetryHelper here: this is the client's ephemeral
+        // TCP source port, which is different on essentially every connection.
+        activity.SetTag(SemanticConventions.AttributeNetworkPeerPort, context.Connection.RemotePort);
 
         var spanStatus = ActivityStatusCode.Unset;
         if (validStatusCode)

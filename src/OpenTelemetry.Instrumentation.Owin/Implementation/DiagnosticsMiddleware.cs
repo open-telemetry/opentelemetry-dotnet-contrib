@@ -111,7 +111,7 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
 
                 RequestDataHelper.SetHttpMethodTag(activity, request.Method);
                 activity.SetTag(SemanticConventions.AttributeServerAddress, request.Uri.Host);
-                activity.SetTag(SemanticConventions.AttributeServerPort, PortTelemetryHelper.GetBoxedPort(request.Uri.Port));
+                activity.SetTag(SemanticConventions.AttributeServerPort, PortTelemetryHelper.GetBoxedPort(request.Uri.Port, cacheValue: true));
                 activity.SetTag(
                     SemanticConventions.AttributeNetworkProtocolVersion,
                     RequestDataHelper.GetHttpProtocolVersion(request.Protocol));

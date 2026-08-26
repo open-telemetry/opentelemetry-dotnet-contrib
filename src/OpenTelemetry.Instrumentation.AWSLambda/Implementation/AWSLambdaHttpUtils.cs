@@ -106,7 +106,7 @@ internal class AWSLambdaHttpUtils
 
         if (hostPort is { } port)
         {
-            var boxedHostPort = PortTelemetryHelper.GetBoxedPort(port);
+            var boxedHostPort = PortTelemetryHelper.GetBoxedPort(port, cacheValue: true);
             tags.AddAttributeNetHostPort(boxedHostPort);
             tags.AddAttributeServerPort(boxedHostPort);
         }

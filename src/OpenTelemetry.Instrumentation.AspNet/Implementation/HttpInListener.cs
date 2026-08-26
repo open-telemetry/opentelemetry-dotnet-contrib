@@ -72,7 +72,7 @@ internal sealed class HttpInListener : IDisposable
         if (options.EnableServerAttributesForRequestDuration)
         {
             tags.Add(SemanticConventions.AttributeServerAddress, url.Host);
-            tags.Add(SemanticConventions.AttributeServerPort, PortTelemetryHelper.GetBoxedPort(url.Port));
+            tags.Add(SemanticConventions.AttributeServerPort, PortTelemetryHelper.GetBoxedPort(url.Port, cacheValue: true));
         }
 
         var protocolVersion = RequestDataHelperExtensions.GetHttpProtocolVersion(request);
@@ -137,7 +137,7 @@ internal sealed class HttpInListener : IDisposable
 
         var url = request.Url;
         tags.Add(SemanticConventions.AttributeServerAddress, url.Host);
-        tags.Add(SemanticConventions.AttributeServerPort, PortTelemetryHelper.GetBoxedPort(url.Port));
+        tags.Add(SemanticConventions.AttributeServerPort, PortTelemetryHelper.GetBoxedPort(url.Port, cacheValue: true));
         tags.Add(SemanticConventions.AttributeUrlScheme, url.Scheme);
 
         if (context.Request.Unvalidated?.Path is string path)

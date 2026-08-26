@@ -196,7 +196,7 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
 
         if (!uri.IsDefaultPort)
         {
-            activity.SetTag(SemanticConventions.AttributeServerPort, PortTelemetryHelper.GetBoxedPort(uri.Port));
+            activity.SetTag(SemanticConventions.AttributeServerPort, PortTelemetryHelper.GetBoxedPort(uri.Port, cacheValue: true));
         }
     }
 
