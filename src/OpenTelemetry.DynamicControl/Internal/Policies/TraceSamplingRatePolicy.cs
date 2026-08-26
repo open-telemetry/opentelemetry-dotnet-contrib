@@ -9,28 +9,21 @@ namespace OpenTelemetry.DynamicControl.Internal.Policies;
 /// Represents a validated trace-sampling-rate policy.
 /// Corresponds to the <c>trace-sampling</c> policy type in the Telemetry Policy OTEP.
 /// </summary>
-internal sealed class TraceSamplingRatePolicy : ITelemetryPolicy
+internal sealed class TraceSamplingRatePolicy : TelemetryPolicy
 {
     /// <summary>
-    /// The <see cref="ITelemetryPolicy.PolicyType"/> value for this policy type.
+    /// The <see cref="TelemetryPolicy.PolicyType"/> value for this policy type.
     /// </summary>
     internal const string PolicyTypeName = "trace-sampling";
 
     private TraceSamplingRatePolicy(string id, string name, double samplingProbability)
+        : base(id, name)
     {
-        this.Id = id;
-        this.Name = name;
         this.SamplingProbability = samplingProbability;
     }
 
     /// <inheritdoc/>
-    public string Id { get; }
-
-    /// <inheritdoc/>
-    public string Name { get; }
-
-    /// <inheritdoc/>
-    public string PolicyType => PolicyTypeName;
+    public override string PolicyType => PolicyTypeName;
 
     /// <summary>
     /// Gets the desired sampling probability in the range [0, 1] inclusive,
@@ -41,7 +34,7 @@ internal sealed class TraceSamplingRatePolicy : ITelemetryPolicy
     /// <summary>
     /// Attempts to create a validated <see cref="TraceSamplingRatePolicy"/>.
     /// </summary>
-    /// <param name="id">The opaque provider-assigned policy identifier. Must not be null or whitespace.</param>
+    /// <param name="id">The provider-assigned policy identifier. Must not be null or whitespace.</param>
     /// <param name="name">The human-readable policy name. Must not be null or whitespace.</param>
     /// <param name="samplingProbability">
     /// The desired sampling probability. Must be a finite value in [0, 1] inclusive.

@@ -153,8 +153,8 @@ public class PolicyKeyTests
     {
         // The reason identity is composite: one provider may reuse an identifier for
         // policies of different types.
-        ITelemetryPolicy samplingPolicy = CreatePolicy("shared-id");
-        ITelemetryPolicy otherPolicy = new StubPolicy("shared-id", "Policy name", "log-level");
+        TelemetryPolicy samplingPolicy = CreatePolicy("shared-id");
+        TelemetryPolicy otherPolicy = new StubPolicy("shared-id", "Policy name", "log-level");
 
         var samplingKey = PolicyKey.FromPolicy(samplingPolicy);
         var otherKey = PolicyKey.FromPolicy(otherPolicy);
@@ -173,7 +173,7 @@ public class PolicyKeyTests
 
         Assert.Equal(PolicyKey.FromPolicy(original), PolicyKey.FromPolicy(updated));
 
-        var policies = new Dictionary<PolicyKey, ITelemetryPolicy>
+        var policies = new Dictionary<PolicyKey, TelemetryPolicy>
         {
             [PolicyKey.FromPolicy(original)] = original,
         };
@@ -185,15 +185,11 @@ public class PolicyKeyTests
     }
 
     [Theory]
-    [InlineData("", "trace-sampling")]
-    [InlineData(" ", "trace-sampling")]
     [InlineData("policy-id", "")]
     [InlineData("policy-id", " ")]
-    public void FromPolicy_WithBlankComponents_Throws(string id, string policyType)
+    public void FromPolicy_WithBlankPolicyType_Throws(string id, string policyType)
     {
-        // Validated policy models cannot report blank components, but the interface
-        // cannot enforce that for every implementation.
-        ITelemetryPolicy policy = new StubPolicy(id, "Policy name", policyType);
+        TelemetryPolicy policy = new StubPolicy(id, "Policy name", policyType);
 
         Assert.Throws<ArgumentException>(() => _ = PolicyKey.FromPolicy(policy));
     }
@@ -210,12 +206,14 @@ public class PolicyKeyTests
         return policy;
     }
 
-    private sealed class StubPolicy(string id, string name, string policyType) : ITelemetryPolicy
+    private sealed class StubPolicy : TelemetryPolicy
     {
-        public string Id { get; } = id;
+        public StubPolicy(string id, string name, string policyType)
+            : base(id, name)
+        {
+            this.PolicyType = policyType;
+        }
 
-        public string Name { get; } = name;
-
-        public string PolicyType { get; } = policyType;
+        public override string PolicyType { get; }
     }
 }

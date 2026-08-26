@@ -19,12 +19,17 @@ public class PolicySourceMetadataTests
         Assert.Equal(10, metadata.Priority);
     }
 
-    [Fact]
-    public void Constructor_WithoutPriority_UsesDefaultPriority()
+    [Theory]
+    [InlineData((int)PolicySourceKind.OpAmp, 1)]
+    [InlineData((int)PolicySourceKind.Http, 2)]
+    [InlineData((int)PolicySourceKind.File, 3)]
+    [InlineData((int)PolicySourceKind.Custom, 1000)]
+    public void Constructor_WithoutPriority_UsesKindDerivedDefault(int kindValue, int expectedPriority)
     {
-        var metadata = new PolicySourceMetadata(new SourceRegistrationId("file-1"), PolicySourceKind.File);
+        var kind = (PolicySourceKind)kindValue;
+        var metadata = new PolicySourceMetadata(new SourceRegistrationId("source-1"), kind);
 
-        Assert.Equal(int.MaxValue, metadata.Priority);
+        Assert.Equal(expectedPriority, metadata.Priority);
     }
 
     [Fact]
@@ -113,16 +118,27 @@ public class PolicySourceMetadataTests
     }
 
     [Fact]
-    public void Priority_IsLowerForExplicitlyPrioritizedSource()
+    public void Priority_DefaultedOpAmpOutranksDefaultedFile()
     {
-        // Per the Telemetry Policy OTEP's provider-priority convention, a lower value wins
-        // (e.g. OpAmp=1 outranks a File source using the default, unprioritized value).
-        // Aggregation rules are defined with aggregation itself; this only pins the
-        // direction of the ordering that metadata expresses.
-        var opAmp = new PolicySourceMetadata(new SourceRegistrationId("opamp-1"), PolicySourceKind.OpAmp, 1);
+        // Per the Telemetry Policy OTEP, a defaulted OpAmp source (priority 1) outranks a
+        // defaulted File source (priority 3) without either caller specifying a priority
+        // explicitly. This is the conformance test for kind-derived defaults.
+        var opAmp = new PolicySourceMetadata(new SourceRegistrationId("opamp-1"), PolicySourceKind.OpAmp);
         var file = new PolicySourceMetadata(new SourceRegistrationId("file-1"), PolicySourceKind.File);
 
-        Assert.True(opAmp.Priority < file.Priority, "OpAmp source should have a lower (higher-precedence) priority value than the default-priority File source");
+        Assert.True(opAmp.Priority < file.Priority, "A defaulted OpAmp source should have a lower (higher-precedence) priority value than a defaulted File source");
+    }
+
+    [Fact]
+    public void Constructor_ExplicitPriorityEqualToKindDerivedDefault_EqualsDefaulted()
+    {
+        // OpAmp's kind-derived default is 1. An explicit priority=1 and the defaulted
+        // form must compare equal, because they express the same thing.
+        var explicit1 = new PolicySourceMetadata(new SourceRegistrationId("opamp-1"), PolicySourceKind.OpAmp, 1);
+        var defaulted = new PolicySourceMetadata(new SourceRegistrationId("opamp-1"), PolicySourceKind.OpAmp);
+
+        Assert.Equal(explicit1, defaulted);
+        Assert.Equal(explicit1.GetHashCode(), defaulted.GetHashCode());
     }
 
     [Fact]

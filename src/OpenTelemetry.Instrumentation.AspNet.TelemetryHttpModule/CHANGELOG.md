@@ -2,12 +2,19 @@
 
 ## Unreleased
 
+## 1.18.0
+
+Released 2026-Aug-21
+
 * Avoid redundant `HttpContextWrapper` allocations in `TelemetryHttpModule`.
   ([#4903](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4903))
 
 * Fix baggage leaking when an incoming ASP.NET request does not create
   an `Activity`.
   ([#5001](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5001))
+
+* Updated OpenTelemetry core component version(s) to `1.18.0`.
+  ([#5022](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5022))
 
 ## 1.17.0
 

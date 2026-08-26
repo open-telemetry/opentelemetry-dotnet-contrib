@@ -70,6 +70,20 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
     }
 
     [Fact]
+    public void ProfilerCommandToActivity_UsesDurationFromElapsedTime()
+    {
+        var elapsed = TimeSpan.FromMilliseconds(42);
+        var start = DateTime.UtcNow;
+        var activity = new Activity("redis-profiler");
+        var profiledCommand = new TestProfiledCommand(start, elapsedTime: elapsed);
+
+        var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand, new StackExchangeRedisInstrumentationOptions());
+
+        Assert.NotNull(result);
+        Assert.Equal(elapsed, result.Duration);
+    }
+
+    [Fact]
     public void ProfilerCommandToActivity_SetsDbTypeAttributeAsRedis()
     {
         var activity = new Activity("redis-profiler");
@@ -104,7 +118,7 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
 
         var activity = new Activity("redis-profiler");
         var ipLocalEndPoint = new IPEndPoint(address, port);
-        var profiledCommand = new TestProfiledCommand(DateTime.UtcNow, ipLocalEndPoint);
+        var profiledCommand = new TestProfiledCommand(DateTime.UtcNow, endpoint: ipLocalEndPoint);
 
         var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand, new StackExchangeRedisInstrumentationOptions());
 
@@ -125,7 +139,7 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
         var dnsEndPoint = new DnsEndPoint("https://opentelemetry.io/", 443);
 
         var activity = new Activity("redis-profiler");
-        var profiledCommand = new TestProfiledCommand(DateTime.UtcNow, dnsEndPoint);
+        var profiledCommand = new TestProfiledCommand(DateTime.UtcNow, endpoint: dnsEndPoint);
 
         var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand, new StackExchangeRedisInstrumentationOptions());
 
@@ -158,7 +172,7 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
     {
         var unixEndPoint = new UnixDomainSocketEndPoint("https://opentelemetry.io/");
         var activity = new Activity("redis-profiler");
-        var profiledCommand = new TestProfiledCommand(DateTime.UtcNow, unixEndPoint);
+        var profiledCommand = new TestProfiledCommand(DateTime.UtcNow, endpoint: unixEndPoint);
 
         var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand, new StackExchangeRedisInstrumentationOptions());
 
