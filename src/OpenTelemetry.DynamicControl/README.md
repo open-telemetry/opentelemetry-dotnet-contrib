@@ -24,11 +24,11 @@ Current plans and progress are tracked in this
 
 ## Current status
 
-The package currently contains internal policy models (including a
-trace sampling-rate proof of concept), source identity/metadata types, and a
-copy-on-write policy store with immutable snapshots. It does not yet provide
-public configuration APIs, policy sources, runtime policy application, or a
-usable dynamic sampler.
+The package currently contains internal policy models, source identity/metadata
+types, a copy-on-write policy store with immutable snapshots, and readers that
+turn a single policy payload value into a validated policy model. It does not
+yet provide public configuration APIs, policy sources, runtime policy
+application, or a usable dynamic sampler.
 
 The intended architecture is being developed incrementally:
 
@@ -39,7 +39,9 @@ flowchart LR
 
 The current sampling-rate model is deliberately a small Java-parity proof of
 concept. It must not be interpreted as the final OpenTelemetry trace policy
-shape described by the Telemetry Policy OTEP.
+shape described by the Telemetry Policy OTEP. The JSON key-value payload the
+readers decode is likewise an interim format: the OTEP makes no requirement on
+how policies are encoded, and its own trace target is still unsettled.
 
 ## References
 

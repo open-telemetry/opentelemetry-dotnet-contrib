@@ -4,6 +4,7 @@
 using OpenTelemetry.DynamicControl.Internal.Policies;
 using OpenTelemetry.DynamicControl.Internal.Sources;
 using OpenTelemetry.DynamicControl.Internal.Store;
+using static OpenTelemetry.DynamicControl.Tests.PolicyKeyTestHelper;
 
 namespace OpenTelemetry.DynamicControl.Tests;
 
@@ -47,11 +48,9 @@ public class PolicySourceSnapshotTests
     }
 
     [Fact]
-    public void TryCreate_NullPoliciesList_Throws()
-    {
+    public void TryCreate_NullPoliciesList_Throws() =>
         Assert.Throws<ArgumentNullException>(() =>
             PolicySourceSnapshot.TryCreate(DefaultMetadata, 1, PolicySourceVersion.Empty, null!, out _, out _));
-    }
 
     [Fact]
     public void TryCreate_NullElement_ReturnsFalse()
@@ -63,14 +62,17 @@ public class PolicySourceSnapshotTests
         Assert.NotNull(error);
     }
 
-    [Theory]
-    [InlineData("")]
-    [InlineData("   ")]
-    public void TryCreate_BlankPolicyType_ReturnsFalse(string blankType)
+    [Fact]
+    public void TryCreate_EmptyPolicyType_ReturnsFalse()
     {
-        var result = TryCreate(DefaultMetadata, 1, [new StubPolicy(blankType, "id-1")], out var snapshot, out var error);
+        var result = TryCreate(
+            DefaultMetadata,
+            1,
+            [new StubPolicy(PolicyType.Empty, "id-1")],
+            out var snapshot,
+            out var error);
 
-        Assert.False(result, "TryCreate should fail with a blank PolicyType");
+        Assert.False(result, "TryCreate should fail with an empty PolicyType");
         Assert.Null(snapshot);
         Assert.NotNull(error);
     }
@@ -137,12 +139,12 @@ public class PolicySourceSnapshotTests
         TryCreate(DefaultMetadata, 1, [p1, p2, p3], out var snapshot, out _);
 
         Assert.NotNull(snapshot);
-        Assert.Equal("a-type", snapshot.Policies[0].PolicyType);
-        Assert.Equal("a-id", snapshot.Policies[0].Id);
-        Assert.Equal("a-type", snapshot.Policies[1].PolicyType);
-        Assert.Equal("z-id", snapshot.Policies[1].Id);
-        Assert.Equal("b-type", snapshot.Policies[2].PolicyType);
-        Assert.Equal("a-id", snapshot.Policies[2].Id);
+        Assert.Equal(Type("a-type"), snapshot.Policies[0].PolicyType);
+        Assert.Equal(Id("a-id"), snapshot.Policies[0].Id);
+        Assert.Equal(Type("a-type"), snapshot.Policies[1].PolicyType);
+        Assert.Equal(Id("z-id"), snapshot.Policies[1].Id);
+        Assert.Equal(Type("b-type"), snapshot.Policies[2].PolicyType);
+        Assert.Equal(Id("a-id"), snapshot.Policies[2].Id);
     }
 
     [Fact]
@@ -170,7 +172,7 @@ public class PolicySourceSnapshotTests
         var policy = new StubPolicy("trace-sampling", "policy-1");
         TryCreate(DefaultMetadata, 1, [policy], out var snapshot, out _);
 
-        var found = snapshot!.TryGetPolicy(new PolicyKey("trace-sampling", "policy-1"), out var result);
+        var found = snapshot!.TryGetPolicy(Key("trace-sampling", "policy-1"), out var result);
 
         Assert.True(found, "TryGetPolicy should find a policy that was created");
         Assert.Same(policy, result);
@@ -181,7 +183,7 @@ public class PolicySourceSnapshotTests
     {
         TryCreate(DefaultMetadata, 1, [], out var snapshot, out _);
 
-        var found = snapshot!.TryGetPolicy(new PolicyKey("trace-sampling", "missing"), out var result);
+        var found = snapshot!.TryGetPolicy(Key("trace-sampling", "missing"), out var result);
 
         Assert.False(found, "TryGetPolicy should return false for a missing policy key");
         Assert.Null(result);
@@ -219,7 +221,7 @@ public class PolicySourceSnapshotTests
     {
         TryCreate(DefaultMetadata, 1, [], out var snapshot, out _);
 
-        var asList = Assert.IsAssignableFrom<IList<TelemetryPolicy>>(snapshot!.Policies);
+        var asList = Assert.IsType<IList<TelemetryPolicy>>(snapshot!.Policies, exactMatch: false);
         Assert.True(asList.IsReadOnly, "empty snapshot's Policies must also be read-only");
     }
 
@@ -234,11 +236,16 @@ public class PolicySourceSnapshotTests
     private sealed class StubPolicy : TelemetryPolicy
     {
         public StubPolicy(string policyType, string id)
-            : base(id, $"{policyType}/{id}")
+            : this(new PolicyType(policyType), id)
+        {
+        }
+
+        public StubPolicy(PolicyType policyType, string id)
+            : base(new PolicyId(id), $"{policyType.Value}/{id}")
         {
             this.PolicyType = policyType;
         }
 
-        public override string PolicyType { get; }
+        public override PolicyType PolicyType { get; }
     }
 }
