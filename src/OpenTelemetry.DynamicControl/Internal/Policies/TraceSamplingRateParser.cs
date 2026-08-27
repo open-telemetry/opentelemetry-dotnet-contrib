@@ -13,7 +13,7 @@ namespace OpenTelemetry.DynamicControl.Internal.Policies;
 /// </remarks>
 internal static class TraceSamplingRateParser
 {
-    private const NumberStyles ProbabilityStyles = NumberStyles.Float & ~NumberStyles.AllowLeadingSign;
+    private const NumberStyles ProbabilityStyles = NumberStyles.Float;
 
     /// <summary>
     /// Attempts to convert the textual form of a sampling probability into a number.
@@ -47,6 +47,7 @@ internal static class TraceSamplingRateParser
         // overflowing exponent yields infinity rather than a failed parse.
         if (double.IsNaN(probability)
             || double.IsInfinity(probability)
+            || probability < 0
             || (probability == 0 && HasNonZeroSignificand(text)))
         {
             probability = default;

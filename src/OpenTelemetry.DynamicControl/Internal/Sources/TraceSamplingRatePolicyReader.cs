@@ -71,7 +71,7 @@ internal sealed class TraceSamplingRatePolicyReader : PolicyReader
             if (!value.TryGetDouble(out probability)
                 || double.IsNaN(probability)
                 || double.IsInfinity(probability)
-                || double.IsNegative(probability))
+                || probability < 0)
             {
                 probability = default;
                 return false;

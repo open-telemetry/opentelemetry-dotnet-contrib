@@ -12,12 +12,15 @@ public class TraceSamplingRateParserTests
         new()
         {
             { "0", 0d },
+            { "-0", 0d },
+            { "-0.0", 0d },
+            { "+0", 0d },
             { "1", 1d },
+            { "+1", 1d },
             { "0.5", 0.5d },
+            { "+0.5", 0.5d },
             { ".5", 0.5d },
             { "0.25", 0.25d },
-
-            // The styles omit AllowLeadingSign, but an exponent carries its own sign.
             { "1e-3", 0.001d },
             { "1E-3", 0.001d },
 
@@ -34,8 +37,6 @@ public class TraceSamplingRateParserTests
         "1/2",
         "50%",
         "0x1",
-        "-0",
-        "-0.0",
         "-1",
         "-1e-4000",
         "1e-4000",
@@ -43,11 +44,6 @@ public class TraceSamplingRateParserTests
         "NaN",
         "Infinity",
         "-Infinity",
-
-        // A leading sign is not part of the wire form, even where it is redundant.
-        "+0",
-        "+0.5",
-        "+1",
 
         // Invariant rules only: a decimal comma is a display convention, not a wire form.
         "0,5",

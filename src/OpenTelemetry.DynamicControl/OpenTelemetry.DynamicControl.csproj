@@ -33,4 +33,8 @@
     <PackageReference Include="System.Collections.Immutable" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="$(AssemblyName).FuzzTests" PublicKey="$(StrongNamePublicKey)" />
+  </ItemGroup>
+
 </Project>
