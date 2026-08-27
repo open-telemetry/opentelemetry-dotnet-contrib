@@ -19,6 +19,6 @@
 
 * Added ordered, store-change subscriptions to the internal `PolicyStore` via a
   new `PolicyChangeNotifier`/`PolicyChangeSubscription` pair.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#5135](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5135))
 
 For more details, please refer to the [README](README.md).
