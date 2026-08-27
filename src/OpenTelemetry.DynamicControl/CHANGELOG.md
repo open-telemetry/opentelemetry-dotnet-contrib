@@ -23,4 +23,8 @@
   policy type rather than by each source that carries it.
   ([#5122](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5122))
 
+* Added ordered, store-change subscriptions to the internal `PolicyStore` via a
+  new `PolicyChangeNotifier`/`PolicyChangeSubscription` pair.
+  ([#5135](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5135))
+
 For more details, please refer to the [README](README.md).
