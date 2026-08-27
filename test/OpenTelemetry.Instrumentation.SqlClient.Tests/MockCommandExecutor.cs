@@ -202,6 +202,25 @@ public class MockCommandExecutor
             });
     }
 
+    public static void WriteCommandErrorWithoutBefore(SqlClientLibrary library, IDbCommand command)
+    {
+        using var fakeSqlClientDiagnosticSource = new FakeSqlClientDiagnosticSource();
+
+        var errorCommand = library == SqlClientLibrary.SystemDataSqlClient
+            ? SqlClientDiagnosticListener.SqlDataWriteCommandError
+            : SqlClientDiagnosticListener.SqlMicrosoftWriteCommandError;
+
+        fakeSqlClientDiagnosticSource.Write(
+            errorCommand,
+            new
+            {
+                OperationId = Guid.NewGuid(),
+                Operation = DefaultOperation,
+                Command = command,
+                Exception = new Exception(nameof(WriteCommandErrorWithoutBefore)),
+            });
+    }
+
     public static void ExecuteCommand(
         string connectionString,
         CommandType commandType,

@@ -243,6 +243,27 @@ public class SqlEventSourceTests
         Assert.Equal(0, listener.PendingBeginStateCount);
     }
 
+    [Theory]
+    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource))]
+    [InlineData(typeof(FakeBehavingMdsSqlEventSource))]
+    public void EventSourceUnknownCompletionDoesNotRecordMetric(Type eventSourceType)
+    {
+        using var listener = new SqlEventSourceListener();
+        using var fakeSqlEventSource = (IFakeBehavingSqlEventSource)Activator.CreateInstance(eventSourceType)!;
+        var metrics = new List<Metric>();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddInMemoryExporter(metrics)
+            .AddSqlClientInstrumentation()
+            .Build();
+
+        fakeSqlEventSource.WriteEndExecuteEvent(Guid.NewGuid().GetHashCode(), compositeState: 1, sqlExceptionNumber: 0);
+
+        meterProvider.ForceFlush();
+
+        Assert.Equal(0, listener.PendingBeginStateCount);
+        Assert.Empty(metrics);
+    }
+
     private static void VerifyActivityData(
         string commandText,
         bool isFailure,

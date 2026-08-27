@@ -411,6 +411,30 @@ public class SqlClientTests
     }
 
     [Fact]
+    public void MetricDurationNotRecordedForUnknownOperationIdError()
+    {
+        var metrics = new List<Metric>();
+
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(metrics)
+            .Build();
+
+        MockCommandExecutor.WriteCommandErrorWithoutBefore(
+            SqlClientLibrary.MicrosoftDataSqlClient,
+            new FakeDbCommand
+            {
+                CommandType = CommandType.StoredProcedure,
+                CommandText = "SP_GetOrders",
+                Connection = new FakeDbConnection(),
+            });
+
+        meterProvider.ForceFlush();
+
+        Assert.Empty(metrics);
+    }
+
+    [Fact]
     public void MalformedBeginDoesNotLeaveActivityOrPendingState()
     {
         var listener = new SqlClientDiagnosticListener(SqlClientInstrumentation.SqlClientDiagnosticListenerName);
