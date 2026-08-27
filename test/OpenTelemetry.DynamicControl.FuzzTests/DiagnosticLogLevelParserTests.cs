@@ -14,15 +14,14 @@ public static class DiagnosticLogLevelParserTests
     public static void TryParse_WithArbitraryText_UpholdsItsContract(string? text) =>
         AssertContract(text);
 
-    [Property(MaxTest = MaxTest)]
-    public static void TryParse_WithNumericLookingText_UpholdsItsContract(string? seed) =>
-        AssertContract(FuzzInput.MapIntoNumericPool(seed));
+    [Property(MaxTest = MaxTest, Arbitrary = [typeof(Generators)])]
+    public static void TryParse_WithNumericLookingText_UpholdsItsContract(NumericLookingText text) =>
+        AssertContract(text.Text);
 
-    [Property(MaxTest = MaxTest)]
-    public static void TryParse_AcceptsEveryAcceptedTokenWhateverItsCase(byte selector, int caseMask, bool padded)
+    [Property(MaxTest = MaxTest, Arbitrary = [typeof(Generators)])]
+    public static void TryParse_AcceptsEveryAcceptedTokenWhateverItsCase(AcceptedLogLevelToken token, bool padded)
     {
-        var token = FuzzInput.MutateCase(FuzzInput.AcceptedLogLevelToken(selector), caseMask);
-        var text = padded ? " " + token + "\t" : token;
+        var text = padded ? " " + token.Token + "\t" : token.Token;
 
         Assert.True(DiagnosticLogLevelParser.TryParse(text, out _), FuzzInput.Describe(text));
         AssertContract(text);

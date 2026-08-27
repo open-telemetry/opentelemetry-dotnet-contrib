@@ -221,7 +221,7 @@ public class PolicySourceSnapshotTests
     {
         TryCreate(DefaultMetadata, 1, [], out var snapshot, out _);
 
-        var asList = Assert.IsAssignableFrom<IList<TelemetryPolicy>>(snapshot!.Policies);
+        var asList = Assert.IsType<IList<TelemetryPolicy>>(snapshot!.Policies, exactMatch: false);
         Assert.True(asList.IsReadOnly, "empty snapshot's Policies must also be read-only");
     }
 

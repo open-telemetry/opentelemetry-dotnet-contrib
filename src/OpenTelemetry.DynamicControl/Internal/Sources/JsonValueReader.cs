@@ -88,4 +88,7 @@ internal static class JsonValueReader
 
         return found ? JsonMemberLookup.Found : JsonMemberLookup.Missing;
     }
+
+    internal static InvalidOperationException UnhandledLookup(JsonMemberLookup lookup) =>
+        new($"Unhandled {nameof(JsonMemberLookup)}: {lookup}");
 }

@@ -15,14 +15,14 @@ public static class TraceSamplingRateParserTests
     public static void TryParse_WithArbitraryText_UpholdsItsContract(string? text) =>
         AssertContract(text);
 
-    [Property(MaxTest = MaxTest)]
-    public static void TryParse_WithNumericLookingText_UpholdsItsContract(string? seed) =>
-        AssertContract(FuzzInput.MapIntoNumericPool(seed));
+    [Property(MaxTest = MaxTest, Arbitrary = [typeof(Generators)])]
+    public static void TryParse_WithNumericLookingText_UpholdsItsContract(NumericLookingText text) =>
+        AssertContract(text.Text);
 
-    [Property(MaxTest = MaxTest)]
-    public static void TryParse_ReadsBackAnyNonNegativeNumberItCanSpell(double raw)
+    [Property(MaxTest = MaxTest, Arbitrary = [typeof(Generators)])]
+    public static void TryParse_ReadsBackAnyNonNegativeNumberItCanSpell(NonNegativeFiniteDouble raw)
     {
-        var expected = Math.Abs(FuzzInput.ToFinite(raw));
+        var expected = raw.Value;
         var text = expected.ToString("G17", CultureInfo.InvariantCulture);
 
         Assert.True(TraceSamplingRateParser.TryParse(text, out var probability), text);

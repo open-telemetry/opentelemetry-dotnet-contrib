@@ -49,6 +49,18 @@ public class PolicyIdentityValueTests
     }
 
     [Fact]
+    public void PolicyType_EqualsObject_ComparesByValue()
+    {
+        var first = new PolicyType("trace-sampling");
+        var equal = new PolicyType("trace-sampling");
+
+        Assert.True(first.Equals((object)equal));
+        Assert.False(first.Equals((object)new PolicyType("other")));
+        Assert.False(first.Equals((object?)null));
+        Assert.False(first.Equals("trace-sampling"));
+    }
+
+    [Fact]
     public void PolicyId_WithValidValue_PreservesValue()
     {
         var policyId = new PolicyId("policy-1");
@@ -87,5 +99,17 @@ public class PolicyIdentityValueTests
         Assert.Equal(first.GetHashCode(), equal.GetHashCode());
         Assert.NotEqual(first, differentCase);
         Assert.True(first.CompareTo(differentCase) > 0);
+    }
+
+    [Fact]
+    public void PolicyId_EqualsObject_ComparesByValue()
+    {
+        var first = new PolicyId("policy-1");
+        var equal = new PolicyId("policy-1");
+
+        Assert.True(first.Equals((object)equal));
+        Assert.False(first.Equals((object)new PolicyId("policy-2")));
+        Assert.False(first.Equals((object?)null));
+        Assert.False(first.Equals("policy-1"));
     }
 }

@@ -84,6 +84,10 @@ public class TraceSamplingRatePolicyReaderTests
     }
 
     [Fact]
+    public void PayloadKey_IsSamplingRate() =>
+        Assert.Equal("sampling_rate", TraceSamplingRatePolicyReader.Instance.PayloadKey);
+
+    [Fact]
     public void Read_SynthesizesIdentityFromThePolicyType()
     {
         var policy = ReadPolicy("0.5");

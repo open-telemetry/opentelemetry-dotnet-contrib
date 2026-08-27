@@ -40,10 +40,10 @@ public static class PolicyReaderTests
         }
     }
 
-    [Property(MaxTest = MaxTest)]
-    public static void TraceSamplingRatePolicyReader_ReadsAnyProbabilityInRange(double raw, bool quoted, bool wrapped)
+    [Property(MaxTest = MaxTest, Arbitrary = [typeof(Generators)])]
+    public static void TraceSamplingRatePolicyReader_ReadsAnyProbabilityInRange(FuzzedProbability raw, bool quoted, bool wrapped)
     {
-        var probability = FuzzInput.ToProbability(raw);
+        var probability = raw.Value;
         var literal = probability.ToString("G17", CultureInfo.InvariantCulture);
         var json = Compose(quoted ? Quote(literal) : literal, wrapped ? "probability" : null);
 
@@ -55,11 +55,10 @@ public static class PolicyReaderTests
         Assert.Equal(probability, Assert.IsType<TraceSamplingRatePolicy>(policy).SamplingProbability);
     }
 
-    [Property(MaxTest = MaxTest)]
-    public static void LogLevelPolicyReader_ReadsAnyAcceptedToken(byte selector, int caseMask, bool wrapped)
+    [Property(MaxTest = MaxTest, Arbitrary = [typeof(Generators)])]
+    public static void LogLevelPolicyReader_ReadsAnyAcceptedToken(AcceptedLogLevelToken raw, bool wrapped)
     {
-        var token = FuzzInput.MutateCase(FuzzInput.AcceptedLogLevelToken(selector), caseMask);
-        var json = Compose(Quote(token), wrapped ? "level" : null);
+        var json = Compose(Quote(raw.Token), wrapped ? "level" : null);
 
         using var document = JsonDocument.Parse(json);
 

@@ -73,6 +73,10 @@ public class LogLevelPolicyReaderTests
     }
 
     [Fact]
+    public void PayloadKey_IsLogLevel() =>
+        Assert.Equal("log_level", LogLevelPolicyReader.Instance.PayloadKey);
+
+    [Fact]
     public void Read_SynthesizesIdentityFromThePolicyType()
     {
         var policy = ReadPolicy("\"warn\"");
