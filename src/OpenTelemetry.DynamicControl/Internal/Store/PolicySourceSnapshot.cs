@@ -88,11 +88,7 @@ internal sealed class PolicySourceSnapshot
     /// <param name="sequence">The caller-assigned submission stamp. Must be greater than or equal to 1.</param>
     /// <param name="version">The change-detection token for this submission.</param>
     /// <param name="policies">
-    /// The complete, validated policy set for this source. Must not be null. Elements must
-    /// not be null, must have non-blank <see cref="TelemetryPolicy.PolicyType"/> and
-    /// <see cref="TelemetryPolicy.Id"/>, and no two elements may resolve to the same
-    /// <see cref="PolicyKey"/>. The caller's list is defensively copied; subsequent
-    /// mutations do not affect the snapshot.
+    /// The complete, validated policy set for this source.
     /// </param>
     /// <param name="snapshot">
     /// When this method returns <see langword="true"/>, the new snapshot; otherwise <see langword="null"/>.
@@ -147,17 +143,13 @@ internal sealed class PolicySourceSnapshot
                 return false;
             }
 
-            var policyError = policy switch
-            {
-                { PolicyType: var pt } when string.IsNullOrWhiteSpace(pt) => $"The policy at index {i} has a blank PolicyType.",
-                { Id: var id } when string.IsNullOrWhiteSpace(id) => $"The policy at index {i} has a blank Id.",
-                _ => null,
-            };
-
-            if (policyError is not null)
+            // An empty Id is unrepresentable: the TelemetryPolicy constructor rejects a
+            // default PolicyId, and a non-default PolicyId cannot be blank. PolicyType is
+            // abstract, so a derived type could still return an empty value.
+            if (policy.PolicyType.IsEmpty)
             {
                 snapshot = null;
-                error = policyError;
+                error = $"The policy at index {i} has an empty PolicyType.";
                 return false;
             }
 

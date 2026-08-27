@@ -6,7 +6,7 @@ using OpenTelemetry.DynamicControl.Internal.Policies;
 
 namespace OpenTelemetry.DynamicControl.Tests;
 
-public class TelemetryPolicyImmutabilityTests
+public class TelemetryPolicyContractTests
 {
     private const BindingFlags DeclaredInstance =
         BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly;
@@ -18,6 +18,7 @@ public class TelemetryPolicyImmutabilityTests
 
         Assert.Contains(typeof(TelemetryPolicy), types);
         Assert.Contains(typeof(TraceSamplingRatePolicy), types);
+        Assert.Contains(typeof(LogLevelPolicy), types);
     }
 
     [Fact]
@@ -92,8 +93,8 @@ public class TelemetryPolicyImmutabilityTests
     [Fact]
     public void PoliciesWithIdenticalContent_AreNotEqual()
     {
-        Assert.True(TraceSamplingRatePolicy.TryCreate("policy-1", "Policy one", 0.25, out var first, out _), "TryCreate should succeed for first policy");
-        Assert.True(TraceSamplingRatePolicy.TryCreate("policy-1", "Policy one", 0.25, out var second, out _), "TryCreate should succeed for second policy");
+        Assert.True(TraceSamplingRatePolicy.TryCreate(new PolicyId("policy-1"), "Policy one", 0.25, out var first, out _), "TryCreate should succeed for first policy");
+        Assert.True(TraceSamplingRatePolicy.TryCreate(new PolicyId("policy-1"), "Policy one", 0.25, out var second, out _), "TryCreate should succeed for second policy");
         Assert.NotSame(first, second);
         Assert.False(first!.Equals(second), "Policies with identical content should not be equal. Identity is by reference");
         Assert.False(second!.Equals(first), "Policies with identical content should not be equal. Identity is by reference");
