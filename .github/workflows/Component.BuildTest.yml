@@ -152,9 +152,9 @@ jobs:
       run: |
         dotnet test ${env:PROJECT_PATH} `
           --collect:"Code Coverage" `
-          --diag:"TestResults/diag/log.txt;tracelevel=info"
+          --diag:"TestResults/diag/log.txt;tracelevel=info" `
           --results-directory:TestResults `
-          --settings:"${env:GITHUB_WORKSPACE}/build/CodeCoverage.runsettings"
+          --settings:"${env:GITHUB_WORKSPACE}/build/CodeCoverage.runsettings" `
           --framework ${env:TARGET_FRAMEWORK} `
           --configuration Release `
           --no-restore `
@@ -178,9 +178,9 @@ jobs:
       run: |
         sudo -E dotnet test ${env:PROJECT_PATH} `
           --collect:"Code Coverage" `
-          --diag:"TestResults/diag/log.txt;tracelevel=info"
+          --diag:"TestResults/diag/log.txt;tracelevel=info" `
           --results-directory:TestResults `
-          --settings:"${env:GITHUB_WORKSPACE}/build/CodeCoverage.runsettings"
+          --settings:"${env:GITHUB_WORKSPACE}/build/CodeCoverage.runsettings" `
           --framework ${env:TARGET_FRAMEWORK} `
           --configuration Release `
           --no-restore `
