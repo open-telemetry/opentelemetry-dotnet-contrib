@@ -19,7 +19,7 @@ public class PolicyChangeSubscriptionTests
 
         subscription.Enqueue(SnapshotAtRevision(1));
 
-        await WaitUntil(() => delivered.Count == 1);
+        await WaitHelper.WaitUntil(() => delivered.Count == 1);
         Assert.Equal(1, delivered.Single().Revision);
     }
 
@@ -55,7 +55,7 @@ public class PolicyChangeSubscriptionTests
 
         releaseCallback.Release();
 
-        await WaitUntil(() => delivered.Count == 2);
+        await WaitHelper.WaitUntil(() => delivered.Count == 2);
 
         var results = delivered.ToArray();
         Assert.Equal(1, results[0].Revision);
@@ -85,7 +85,7 @@ public class PolicyChangeSubscriptionTests
             subscription.Enqueue(SnapshotAtRevision(i));
         }
 
-        await WaitUntil(() => Volatile.Read(ref concurrentCount) == 0, 5000);
+        await WaitHelper.WaitUntil(() => Volatile.Read(ref concurrentCount) == 0, 5000);
         Assert.False(overlapDetected, "Callback invocations for one subscription must never overlap");
     }
 
@@ -107,10 +107,10 @@ public class PolicyChangeSubscriptionTests
         });
 
         subscription.Enqueue(SnapshotAtRevision(1));
-        await WaitUntil(() => listener.Events.Any(e => e.EventId == 1));
+        await WaitHelper.WaitUntil(() => listener.Events.Any(e => e.EventId == 1));
 
         subscription.Enqueue(SnapshotAtRevision(2));
-        await WaitUntil(() => delivered.Count == 1);
+        await WaitHelper.WaitUntil(() => delivered.Count == 1);
 
         Assert.Equal(2, delivered.Single().Revision);
         Assert.Contains(listener.Events, e => e.EventId == 1 && e.Payload!.Single() is string message && message.Contains("boom"));
@@ -124,7 +124,7 @@ public class PolicyChangeSubscriptionTests
         var subscription = notifier.Add(s => delivered.Enqueue(s));
 
         subscription.Enqueue(SnapshotAtRevision(1));
-        await WaitUntil(() => delivered.Count == 1);
+        await WaitHelper.WaitUntil(() => delivered.Count == 1);
 
         subscription.Dispose();
         subscription.Enqueue(SnapshotAtRevision(2));
@@ -179,7 +179,7 @@ public class PolicyChangeSubscriptionTests
         subscription.Dispose();
         releaseCallback.Release();
 
-        await WaitUntil(() => delivered.Count == 1);
+        await WaitHelper.WaitUntil(() => delivered.Count == 1);
         await Task.Delay(50);
 
         Assert.Equal([1], delivered);
@@ -200,18 +200,4 @@ public class PolicyChangeSubscriptionTests
 
     private static PolicyStoreSnapshot SnapshotAtRevision(long revision)
         => new(revision, []);
-
-    private static async Task WaitUntil(Func<bool> condition, int timeoutMilliseconds = 5000)
-    {
-        var sw = System.Diagnostics.Stopwatch.StartNew();
-        while (!condition())
-        {
-            if (sw.ElapsedMilliseconds > timeoutMilliseconds)
-            {
-                Assert.Fail("Timed out waiting for condition.");
-            }
-
-            await Task.Delay(5);
-        }
-    }
 }

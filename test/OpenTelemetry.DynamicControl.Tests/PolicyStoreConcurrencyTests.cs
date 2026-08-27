@@ -44,7 +44,7 @@ public class PolicyStoreConcurrencyTests
             Assert.NotNull(subscription);
             using (subscription)
             {
-                await WaitUntil(() => !delivered.IsEmpty && delivered.Last() == store.Current.Revision);
+                await WaitHelper.WaitUntil(() => !delivered.IsEmpty && delivered.Last() == store.Current.Revision);
                 Assert.Equal(1, store.Current.Revision);
             }
         }
@@ -99,8 +99,8 @@ public class PolicyStoreConcurrencyTests
         var finalRevision = store.Current.Revision;
         Assert.Equal(producerCount * commitsPerProducer, finalRevision);
 
-        await WaitUntil(() => !deliveredA.IsEmpty && deliveredA.Last() == finalRevision);
-        await WaitUntil(() => !deliveredB.IsEmpty && deliveredB.Last() == finalRevision);
+        await WaitHelper.WaitUntil(() => !deliveredA.IsEmpty && deliveredA.Last() == finalRevision);
+        await WaitHelper.WaitUntil(() => !deliveredB.IsEmpty && deliveredB.Last() == finalRevision);
 
         Assert.False(overlapDetected, "Callback invocations for one subscription must never overlap");
         AssertNonDecreasing(deliveredA.ToArray());
@@ -150,20 +150,6 @@ public class PolicyStoreConcurrencyTests
         for (var i = 1; i < revisions.Length; i++)
         {
             Assert.True(revisions[i] >= revisions[i - 1], "Delivered revisions must never run backwards");
-        }
-    }
-
-    private static async Task WaitUntil(Func<bool> condition, int timeoutMilliseconds = 10_000)
-    {
-        var sw = System.Diagnostics.Stopwatch.StartNew();
-        while (!condition())
-        {
-            if (sw.ElapsedMilliseconds > timeoutMilliseconds)
-            {
-                Assert.Fail("Timed out waiting for condition.");
-            }
-
-            await Task.Delay(10);
         }
     }
 }

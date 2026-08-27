@@ -16,7 +16,7 @@ public class PolicyStoreSubscriptionTests
 
         using var subscription = store.Subscribe(s => delivered.Enqueue(s));
 
-        await WaitUntil(() => !delivered.IsEmpty);
+        await WaitHelper.WaitUntil(() => !delivered.IsEmpty);
         Assert.Same(PolicyStoreSnapshot.Empty, delivered.Single());
     }
 
@@ -31,7 +31,7 @@ public class PolicyStoreSubscriptionTests
         var delivered = new System.Collections.Concurrent.ConcurrentQueue<PolicyStoreSnapshot>();
         using var subscription = store.Subscribe(s => delivered.Enqueue(s));
 
-        await WaitUntil(() => !delivered.IsEmpty);
+        await WaitHelper.WaitUntil(() => !delivered.IsEmpty);
         Assert.Same(expected, delivered.First());
     }
 
@@ -41,11 +41,11 @@ public class PolicyStoreSubscriptionTests
         var store = new PolicyStore();
         var delivered = new System.Collections.Concurrent.ConcurrentQueue<PolicyStoreSnapshot>();
         using var subscription = store.Subscribe(s => delivered.Enqueue(s));
-        await WaitUntil(() => !delivered.IsEmpty); // initial replay
+        await WaitHelper.WaitUntil(() => !delivered.IsEmpty); // initial replay
 
         Replace(store, "source-a", sequence: 1);
 
-        await WaitUntil(() => delivered.Count >= 2);
+        await WaitHelper.WaitUntil(() => delivered.Count >= 2);
         Assert.Equal(store.Current.Revision, delivered.Last().Revision);
     }
 
@@ -64,8 +64,8 @@ public class PolicyStoreSubscriptionTests
             Replace(store, "source-a", sequence: i);
         }
 
-        await WaitUntil(() => !deliveredA.IsEmpty && deliveredA.Last() == 5);
-        await WaitUntil(() => !deliveredB.IsEmpty && deliveredB.Last() == 5);
+        await WaitHelper.WaitUntil(() => !deliveredA.IsEmpty && deliveredA.Last() == 5);
+        await WaitHelper.WaitUntil(() => !deliveredB.IsEmpty && deliveredB.Last() == 5);
 
         AssertNonDecreasing(deliveredA.ToArray());
         AssertNonDecreasing(deliveredB.ToArray());
@@ -113,19 +113,5 @@ public class PolicyStoreSubscriptionTests
         var meta = new PolicySourceMetadata(new SourceRegistrationId(idValue), PolicySourceKind.File);
         PolicySourceSnapshot.TryCreate(meta, sequence, PolicySourceVersion.Empty, [], out var snapshot, out _);
         store.ReplaceSource(snapshot!);
-    }
-
-    private static async Task WaitUntil(Func<bool> condition, int timeoutMilliseconds = 5000)
-    {
-        var sw = System.Diagnostics.Stopwatch.StartNew();
-        while (!condition())
-        {
-            if (sw.ElapsedMilliseconds > timeoutMilliseconds)
-            {
-                Assert.Fail("Timed out waiting for condition.");
-            }
-
-            await Task.Delay(5);
-        }
     }
 }
