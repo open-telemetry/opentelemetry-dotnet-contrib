@@ -1605,6 +1605,92 @@ public abstract class OtlpProtobufMetricExporterTests
         }
     }
 
+    [Theory]
+    [InlineData("Counter")]
+    [InlineData("Histogram")]
+    [InlineData("ExponentialHistogram")]
+    public void NullMetricDimensionIsSerializedAsEmptyString(string metricType)
+    {
+        using var meter = new Meter(nameof(this.NullMetricDimensionIsSerializedAsEmptyString), "0.0.1");
+
+        var exportedItems = new List<Metric>();
+        using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
+        {
+            TemporalityPreference = MetricReaderTemporalityPreference.Delta,
+        };
+
+        var meterProviderBuilder = Sdk.CreateMeterProviderBuilder()
+            .AddMeter(nameof(this.NullMetricDimensionIsSerializedAsEmptyString))
+            .AddReader(inMemoryReader);
+
+        if (metricType == "ExponentialHistogram")
+        {
+            meterProviderBuilder.AddView(
+                "TestMetric",
+                new Base2ExponentialBucketHistogramConfiguration());
+        }
+
+        using var meterProvider = meterProviderBuilder.Build();
+
+        var tags = new TagList
+        {
+            { "emptyKey", string.Empty },
+            { "nullKey", null },
+            { "presentKey", "presentValue" },
+        };
+
+        switch (metricType)
+        {
+            case "Counter":
+                meter.CreateCounter<long>("TestMetric").Add(1, tags);
+                break;
+            case "Histogram":
+            case "ExponentialHistogram":
+                meter.CreateHistogram<double>("TestMetric").Record(1.5, tags);
+                break;
+            default:
+                throw new InvalidOperationException($"Unexpected metric type: {metricType}");
+        }
+
+        meterProvider.ForceFlush();
+
+        var testTransport = new TestTransport();
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(
+            testTransport,
+            null,
+            null,
+            null,
+            prefixBufferWithUInt32LittleEndianLength: this.PrefixBufferWithUInt32LittleEndianLength);
+
+        otlpProtobufSerializer.SerializeAndSendMetrics(
+            new byte[65360],
+            meterProvider.GetResource(),
+            new Batch<Metric>([.. exportedItems], exportedItems.Count));
+
+        Assert.Single(testTransport.ExportedItems);
+
+        var metric = this.AssertAndConvertExportedBlobToRequest(testTransport.ExportedItems[0])
+            .ResourceMetrics[0]
+            .ScopeMetrics[0]
+            .Metrics[0];
+
+        var attributes = metricType switch
+        {
+            "Counter" => metric.Sum.DataPoints[0].Attributes,
+            "Histogram" => metric.Histogram.DataPoints[0].Attributes,
+            "ExponentialHistogram" => metric.ExponentialHistogram.DataPoints[0].Attributes,
+            _ => throw new InvalidOperationException($"Unexpected metric type: {metricType}"),
+        };
+
+        AssertOtlpAttributes(
+            [
+                new KeyValuePair<string, object>("emptyKey", string.Empty),
+                new KeyValuePair<string, object>("nullKey", string.Empty),
+                new KeyValuePair<string, object>("presentKey", "presentValue"),
+            ],
+            attributes);
+    }
+
     internal static void AssertOtlpAttributes(
         IEnumerable<KeyValuePair<string, object>> expected,
         RepeatedField<OtlpCommon.KeyValue> actual)
