@@ -104,7 +104,9 @@ public class AzureResourceDetectorTests
             Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
 
             var expectedResourceUri = "/subscriptions/testtestSubscriptionId/resourceGroups/testResourceGroup/providers/Microsoft.Web/sites/sitename";
+            Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudAccount, "testtestSubscriptionId"), resource.Attributes);
             Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudResourceId, expectedResourceUri), resource.Attributes);
+            Assert.Contains(new KeyValuePair<string, object>(ResourceAttributeConstants.AzureResourceGroupName, "testResourceGroup"), resource.Attributes);
             Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "sitename"), resource.Attributes);
 
             foreach (var kvp in AppServiceResourceDetector.AppServiceResourceAttributes)

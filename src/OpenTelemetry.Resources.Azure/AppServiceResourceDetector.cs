@@ -35,7 +35,20 @@ internal sealed class AppServiceResourceDetector : IResourceDetector
                     new(ResourceSemanticConventions.AttributeCloudPlatform, ResourceAttributeConstants.AzureAppServicePlatformValue),
                 };
 
-                var azureResourceUri = GetAzureResourceURI(websiteSiteName);
+                var websiteResourceGroup = Environment.GetEnvironmentVariable(ResourceAttributeConstants.AppServiceResourceGroupEnvVar);
+                if (!string.IsNullOrEmpty(websiteResourceGroup))
+                {
+                    attributeList.Add(new(ResourceAttributeConstants.AzureResourceGroupName, websiteResourceGroup));
+                }
+
+                var websiteOwnerName = Environment.GetEnvironmentVariable(ResourceAttributeConstants.AppServiceOwnerNameEnvVar);
+                var subscriptionId = GetSubscriptionId(websiteOwnerName);
+                if (!string.IsNullOrEmpty(subscriptionId))
+                {
+                    attributeList.Add(new(ResourceSemanticConventions.AttributeCloudAccount, subscriptionId));
+                }
+
+                var azureResourceUri = GetAzureResourceURI(websiteSiteName, websiteResourceGroup, subscriptionId);
                 if (azureResourceUri != null)
                 {
                     attributeList.Add(new(ResourceSemanticConventions.AttributeCloudResourceId, azureResourceUri));
@@ -63,20 +76,25 @@ internal sealed class AppServiceResourceDetector : IResourceDetector
         return Resource.Empty;
     }
 
-    private static string? GetAzureResourceURI(string websiteSiteName)
+    private static string? GetAzureResourceURI(string websiteSiteName, string? websiteResourceGroup, string? subscriptionId)
     {
-        var websiteResourceGroup = Environment.GetEnvironmentVariable(ResourceAttributeConstants.AppServiceResourceGroupEnvVar);
-        var websiteOwnerName = Environment.GetEnvironmentVariable(ResourceAttributeConstants.AppServiceOwnerNameEnvVar) ?? string.Empty;
+        return string.IsNullOrEmpty(websiteResourceGroup) || string.IsNullOrEmpty(subscriptionId)
+            ? null
+            : $"/subscriptions/{subscriptionId}/resourceGroups/{websiteResourceGroup}/providers/Microsoft.Web/sites/{websiteSiteName}";
+    }
+
+    private static string? GetSubscriptionId(string? websiteOwnerName)
+    {
+        if (websiteOwnerName == null)
+        {
+            return null;
+        }
 
 #if NET
         var index = websiteOwnerName.IndexOf('+', StringComparison.Ordinal);
 #else
         var index = websiteOwnerName.IndexOf("+", StringComparison.Ordinal);
 #endif
-        var subscriptionId = index > 0 ? websiteOwnerName.Substring(0, index) : websiteOwnerName;
-
-        return string.IsNullOrEmpty(websiteResourceGroup) || string.IsNullOrEmpty(subscriptionId)
-            ? null
-            : $"/subscriptions/{subscriptionId}/resourceGroups/{websiteResourceGroup}/providers/Microsoft.Web/sites/{websiteSiteName}";
+        return index > 0 ? websiteOwnerName.Substring(0, index) : websiteOwnerName;
     }
 }

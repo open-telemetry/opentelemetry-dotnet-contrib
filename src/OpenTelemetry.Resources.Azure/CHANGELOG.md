@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Add `cloud.account.id` and `azure.resource_group.name` attributes to the Azure
+  App Service resource detector.
+  ([#5138](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5138))
+
 ## 1.18.0-beta.1
 
 Released 2026-Aug-21
