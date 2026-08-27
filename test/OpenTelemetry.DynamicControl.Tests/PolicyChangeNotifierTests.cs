@@ -99,6 +99,27 @@ public class PolicyChangeNotifierTests
         Assert.True(notifier.Subscribers.IsEmpty);
     }
 
+    [Theory]
+    [InlineData(2, 0)] // 2 elements, remove first
+    [InlineData(2, 1)] // 2 elements, remove last
+    [InlineData(3, 0)] // 3 elements, remove first
+    [InlineData(3, 1)] // 3 elements, remove middle
+    [InlineData(3, 2)] // 3 elements, remove last
+    public void Remove_BoundaryIndex_KeepsRemainingInOrder(int subscriberCount, int indexToRemove)
+    {
+        var notifier = new PolicyChangeNotifier();
+        var subscriptions = new PolicyChangeSubscription[subscriberCount];
+        for (var i = 0; i < subscriberCount; i++)
+        {
+            subscriptions[i] = notifier.Add(_ => { });
+        }
+
+        subscriptions[indexToRemove].Dispose();
+
+        var expected = subscriptions.Where((_, i) => i != indexToRemove).ToArray();
+        Assert.Equal(expected, notifier.Subscribers.ToArray());
+    }
+
     [Fact]
     public async Task Add_ConcurrentWithRemove_SubscribersNeverTorn()
     {

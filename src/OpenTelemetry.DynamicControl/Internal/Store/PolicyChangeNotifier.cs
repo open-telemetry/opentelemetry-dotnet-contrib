@@ -69,7 +69,7 @@ internal sealed class PolicyChangeNotifier : IDisposable
             var current = this.subscribers;
             var updated = new PolicyChangeSubscription[current.Length + 1];
             Array.Copy(current, updated, current.Length);
-            updated[current.Length] = subscription;
+            updated[updated.Length - 1] = subscription;
             Volatile.Write(ref this.subscribers, updated);
 
             return subscription;
@@ -77,7 +77,7 @@ internal sealed class PolicyChangeNotifier : IDisposable
     }
 
     /// <summary>
-    /// Removes a subscription. Called by <see cref="PolicyChangeSubscription.Dispose"/>.
+    /// Removes a subscription.
     /// </summary>
     /// <param name="subscription">The subscription to remove.</param>
     internal void Remove(PolicyChangeSubscription subscription)

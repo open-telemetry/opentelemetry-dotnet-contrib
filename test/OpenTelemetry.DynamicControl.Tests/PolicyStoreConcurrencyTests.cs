@@ -22,7 +22,7 @@ public class PolicyStoreConcurrencyTests
         {
             var store = new PolicyStore();
             var delivered = new ConcurrentQueue<long>();
-            var meta = new PolicySourceMetadata(new SourceRegistrationId($"source-{attempt}"), PolicySourceKind.File);
+            var sourceId = $"source-{attempt}";
             using var start = new ManualResetEventSlim();
             IDisposable? subscription = null;
 
@@ -35,8 +35,7 @@ public class PolicyStoreConcurrencyTests
             var commitTask = Task.Run(() =>
             {
                 start.Wait();
-                PolicySourceSnapshot.TryCreate(meta, sequence: 1, PolicySourceVersion.Empty, [], out var snapshot, out _);
-                store.ReplaceSource(snapshot!);
+                store.ReplaceSource(CreateSnapshot(sourceId, sequence: 1));
             });
 
             start.Set();
@@ -88,11 +87,10 @@ public class PolicyStoreConcurrencyTests
 
         var producers = Enumerable.Range(0, producerCount).Select(p => Task.Run(() =>
         {
-            var meta = new PolicySourceMetadata(new SourceRegistrationId($"source-{p}"), PolicySourceKind.File);
+            var sourceId = $"source-{p}";
             for (var seq = 1L; seq <= commitsPerProducer; seq++)
             {
-                PolicySourceSnapshot.TryCreate(meta, seq, PolicySourceVersion.Empty, [], out var snapshot, out _);
-                store.ReplaceSource(snapshot!);
+                store.ReplaceSource(CreateSnapshot(sourceId, seq));
             }
         }));
 
@@ -116,14 +114,13 @@ public class PolicyStoreConcurrencyTests
         var store = new PolicyStore();
         var delivered = new ConcurrentQueue<long>();
         var subscription = store.Subscribe(s => delivered.Enqueue(s.Revision));
-        var meta = new PolicySourceMetadata(new SourceRegistrationId("source-a"), PolicySourceKind.File);
+        var sourceId = "source-a";
 
         var producer = Task.Run(() =>
         {
             for (var seq = 1L; seq <= commitCount; seq++)
             {
-                PolicySourceSnapshot.TryCreate(meta, seq, PolicySourceVersion.Empty, [], out var snapshot, out _);
-                store.ReplaceSource(snapshot!);
+                store.ReplaceSource(CreateSnapshot(sourceId, seq));
 
                 if (seq == commitCount / 2)
                 {
@@ -139,6 +136,13 @@ public class PolicyStoreConcurrencyTests
         await Task.Delay(50);
 
         Assert.Equal(countAfterDisposal, delivered.Count);
+    }
+
+    private static PolicySourceSnapshot CreateSnapshot(string sourceId, long sequence)
+    {
+        var meta = new PolicySourceMetadata(new SourceRegistrationId(sourceId), PolicySourceKind.File);
+        PolicySourceSnapshot.TryCreate(meta, sequence, PolicySourceVersion.Empty, [], out var snapshot, out _);
+        return snapshot!;
     }
 
     private static void AssertNonDecreasing(long[] revisions)

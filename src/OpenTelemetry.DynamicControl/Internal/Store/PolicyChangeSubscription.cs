@@ -72,6 +72,10 @@ internal sealed class PolicyChangeSubscription : IDisposable
             }
 
             this.lastSeenRevision = snapshot.Revision;
+
+            // Coalesce rather than queue every revision or block the committer: the
+            // telemetry-policy OTEP requires async, fail-open updates, so dropping a
+            // superseded revision here is intentional, not a bug.
             this.pending = snapshot;
 
             if (this.dispatching)
