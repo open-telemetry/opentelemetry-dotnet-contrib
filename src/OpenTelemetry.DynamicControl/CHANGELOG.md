@@ -17,6 +17,12 @@
   policy/source ordering via `PolicyKeyComparer`.
   ([#5017](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5017))
 
+* Added internal `PolicyType` and `PolicyId` identity value types and policy
+  readers, which turn a value carried in a policy payload into a validated
+  policy model, so that how a policy type is decoded is defined once by that
+  policy type rather than by each source that carries it.
+  ([#5122](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5122))
+
 * Added ordered, store-change subscriptions to the internal `PolicyStore` via a
   new `PolicyChangeNotifier`/`PolicyChangeSubscription` pair.
   ([#5135](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5135))
