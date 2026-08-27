@@ -9,13 +9,13 @@ public class W3CTraceStateTests
 {
     // "There can be a maximum of 32 list-members in a list."
     // https://www.w3.org/TR/2021/REC-trace-context-1-20211123/#tracestate-header
-    private const int MemberLimit = 32;
+    private const int MaxMembers = 32;
 
     // key = ( lcalpha / DIGIT ) 0*255 ( keychar ), so 256 characters is the maximum.
-    private const int KeyLengthLimit = 256;
+    private const int MaxKeyLength = 256;
 
     // value = 0*255(chr) nblk-chr, so 256 characters is the maximum.
-    private const int ValueLengthLimit = 256;
+    private const int MaxValueLength = 256;
 
     [Theory]
     [InlineData(null)]
@@ -123,9 +123,9 @@ public class W3CTraceStateTests
     }
 
     [Fact]
-    public void TryParse_WithMoreMembersThanTheLimit_KeepsAtMostTheLimit()
+    public void TryParse_WithMoreMembersThanTheMax_KeepsAtMostTheMax()
     {
-        var incomingMembers = Enumerable.Range(0, MemberLimit * 2)
+        var incomingMembers = Enumerable.Range(0, MaxMembers * 2)
                                         .Select(static index => $"vendor{index}=value")
                                         .ToArray();
 
@@ -133,17 +133,17 @@ public class W3CTraceStateTests
 
         var outgoingMembers = state.ToString().Split(',');
 
-        Assert.Equal(MemberLimit, outgoingMembers.Length);
-        Assert.Equal(incomingMembers.Take(MemberLimit), outgoingMembers);
+        Assert.Equal(MaxMembers, outgoingMembers.Length);
+        Assert.Equal(incomingMembers.Take(MaxMembers), outgoingMembers);
     }
 
     [Fact]
-    public void TryParse_WhenAValidPairSitsPastTheMemberLimit_ReportsFalseAndDropsIt()
+    public void TryParse_WhenAValidPairSitsPastMaxMembers_ReportsFalseAndDropsIt()
     {
         // The report covers the members retained, not the header as it arrived: reaching the pair
         // would mean reading past the bound the limit exists to enforce. Malformed members take the
         // verbatim path, so this also covers the limit being applied to members that never parsed.
-        var incomingMembers = Enumerable.Range(0, MemberLimit)
+        var incomingMembers = Enumerable.Range(0, MaxMembers)
                                         .Select(static index => $"malformed{index}")
                                         .Concat(["vendora=1"])
                                         .ToArray();
@@ -152,8 +152,8 @@ public class W3CTraceStateTests
 
         var outgoingMembers = state.ToString().Split(',');
 
-        Assert.Equal(MemberLimit, outgoingMembers.Length);
-        Assert.Equal(incomingMembers.Take(MemberLimit), outgoingMembers);
+        Assert.Equal(MaxMembers, outgoingMembers.Length);
+        Assert.Equal(incomingMembers.Take(MaxMembers), outgoingMembers);
     }
 
     [Fact]
@@ -223,40 +223,40 @@ public class W3CTraceStateTests
     }
 
     [Fact]
-    public void Set_WhenAtTheMemberLimit_DropsTheRightmostMember()
+    public void Set_WhenAtMaxMembers_DropsTheRightmostMember()
     {
-        var incomingMembers = Enumerable.Range(0, MemberLimit)
+        var incomingMembers = Enumerable.Range(0, MaxMembers)
                                         .Select(static index => $"vendor{index}=value")
                                         .ToArray();
         var state = W3CTraceState.Parse(string.Join(",", incomingMembers));
 
         var outgoingMembers = state.Set("mykey", "v").ToString().Split(',');
 
-        Assert.Equal(MemberLimit, outgoingMembers.Length);
+        Assert.Equal(MaxMembers, outgoingMembers.Length);
         Assert.Equal("mykey=v", outgoingMembers[0]);
-        Assert.Equal(incomingMembers.Take(MemberLimit - 1), outgoingMembers.Skip(1));
+        Assert.Equal(incomingMembers.Take(MaxMembers - 1), outgoingMembers.Skip(1));
     }
 
     [Fact]
-    public void ParseAndToString_WithMoreMembersThanTheLimit_KeepsAtMostTheLimit()
+    public void ParseAndToString_WithMoreMembersThanTheMax_KeepsAtMostTheMax()
     {
-        var incomingMembers = Enumerable.Range(0, MemberLimit * 2)
+        var incomingMembers = Enumerable.Range(0, MaxMembers * 2)
                                         .Select(static index => $"vendor{index}=value")
                                         .ToArray();
 
         var outgoingMembers = W3CTraceState.Parse(string.Join(",", incomingMembers)).ToString().Split(',');
 
-        Assert.Equal(MemberLimit, outgoingMembers.Length);
-        Assert.Equal(incomingMembers.Take(MemberLimit), outgoingMembers);
+        Assert.Equal(MaxMembers, outgoingMembers.Length);
+        Assert.Equal(incomingMembers.Take(MaxMembers), outgoingMembers);
     }
 
     [Fact]
-    public void ParseAndToString_AtTheMemberLimit_RoundTripsAllMembers()
+    public void ParseAndToString_AtMaxMembers_RoundTripsAllMembers()
     {
         // The boundary the cap sits on: a header holding exactly the limit loses nothing.
         var tracestate = string.Join(
             ",",
-            Enumerable.Range(0, MemberLimit).Select(static index => $"vendor{index}=value"));
+            Enumerable.Range(0, MaxMembers).Select(static index => $"vendor{index}=value"));
 
         Assert.Equal(tracestate, W3CTraceState.Parse(tracestate).ToString());
     }
@@ -290,18 +290,18 @@ public class W3CTraceStateTests
     }
 
     [Fact]
-    public void Set_WithKeyAtTheLengthLimit_AddsTheMember()
+    public void Set_WithKeyAtMaxLength_AddsTheMember()
     {
-        var key = new string('a', KeyLengthLimit);
+        var key = new string('a', MaxKeyLength);
         var state = W3CTraceState.Parse("vendora=1");
 
         Assert.Equal($"{key}=v,vendora=1", state.Set(key, "v").ToString());
     }
 
     [Fact]
-    public void Set_WithKeyLongerThanTheLengthLimit_KeepsTheReceiverContents()
+    public void Set_WithKeyLongerThanMaxLength_KeepsTheReceiverContents()
     {
-        var key = new string('a', KeyLengthLimit + 1);
+        var key = new string('a', MaxKeyLength + 1);
         var state = W3CTraceState.Parse("vendora=1");
 
         Assert.Equal("vendora=1", state.Set(key, "v").ToString());
@@ -330,18 +330,18 @@ public class W3CTraceStateTests
     }
 
     [Fact]
-    public void Set_WithValueAtTheLengthLimit_AddsTheMember()
+    public void Set_WithValueAtMaxLength_AddsTheMember()
     {
-        var value = new string('a', ValueLengthLimit);
+        var value = new string('a', MaxValueLength);
         var state = W3CTraceState.Parse("vendora=1");
 
         Assert.Equal($"mykey={value},vendora=1", state.Set("mykey", value).ToString());
     }
 
     [Fact]
-    public void Set_WithValueLongerThanTheLengthLimit_KeepsTheReceiverContents()
+    public void Set_WithValueLongerThanMaxLength_KeepsTheReceiverContents()
     {
-        var value = new string('a', ValueLengthLimit + 1);
+        var value = new string('a', MaxValueLength + 1);
         var state = W3CTraceState.Parse("vendora=1");
 
         Assert.Equal("vendora=1", state.Set("mykey", value).ToString());

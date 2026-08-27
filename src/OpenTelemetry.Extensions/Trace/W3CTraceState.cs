@@ -31,25 +31,21 @@ public sealed class W3CTraceState
     /// The maximum number of members in a W3C <c>tracestate</c> value, and so the most this type
     /// ever retains.
     /// </summary>
-    private const int MemberLimit = 32;
+    private const int MaxMembers = 32;
 
     /// <summary>
     /// The maximum length of a key, per the <c>key = ( lcalpha / DIGIT ) 0*255 ( keychar )</c>
     /// production.
     /// </summary>
-    private const int KeyLengthLimit = 256;
+    private const int MaxKeyLength = 256;
 
     /// <summary>
     /// The maximum length of a value, per the <c>value = 0*255(chr) nblk-chr</c> production.
     /// </summary>
-    private const int ValueLengthLimit = 256;
+    private const int MaxValueLength = 256;
 
     private static readonly W3CTraceState Empty = new([]);
 
-    // Never longer than MemberLimit: Parse and Set both stop filling it there, and Remove only ever
-    // shrinks it. Bounding it here rather than at serialization keeps a wire-supplied header from
-    // being retained in full. It is sized exactly at every allocation, because nothing is ever
-    // appended to an instance once it exists.
     private readonly Member[] members;
 
     private W3CTraceState(Member[] members)
@@ -57,9 +53,11 @@ public sealed class W3CTraceState
         this.members = members;
     }
 
-    /// <summary>Reads a W3C <c>tracestate</c> value into a state that can be queried and edited.</summary>
+    /// <summary>
+    /// Parses a W3C <c>tracestate</c> value.
+    /// </summary>
     /// <param name="tracestate">
-    /// The <c>tracestate</c> value, which may be <see langword="null"/> or empty.
+    /// The <c>tracestate</c> value.
     /// </param>
     /// <returns>The parsed <see cref="W3CTraceState"/>. Parsing always succeeds.</returns>
     /// <remarks>
@@ -73,11 +71,10 @@ public sealed class W3CTraceState
     public static W3CTraceState Parse(string? tracestate) => ParseCore(tracestate, out _);
 
     /// <summary>
-    /// Reads a W3C <c>tracestate</c> value into a state that can be queried and edited, and reports
-    /// whether the header carried anything this type could make sense of.
+    /// Parses a W3C <c>tracestate</c> value.
     /// </summary>
     /// <param name="tracestate">
-    /// The <c>tracestate</c> value, which may be <see langword="null"/> or empty.
+    /// The <c>tracestate</c> value.
     /// </param>
     /// <param name="state">
     /// When this method returns, the parsed <see cref="W3CTraceState"/>. It is populated the same
@@ -108,8 +105,8 @@ public sealed class W3CTraceState
     /// </remarks>
     public static bool TryParse(string? tracestate, out W3CTraceState state)
     {
-        state = ParseCore(tracestate, out var understood);
-        return understood;
+        state = ParseCore(tracestate, out var isValid);
+        return isValid;
     }
 
     /// <summary>Looks up the value a key carries.</summary>
@@ -153,18 +150,13 @@ public sealed class W3CTraceState
     /// <remarks>
     /// The member written here is placed first, and every other member keeps its relative position.
     /// <para/>
-    /// An incoming header may legitimately carry the same key more than once. Every such member is
-    /// collapsed into the single one written here, so that the add does not leave the key present
-    /// multiple times; the key is by then one this instance generated. Members kept verbatim are
-    /// opaque and so are never collapsed, which means a member such as <c>vendora=</c>, carrying no
-    /// value and therefore not a valid pair, survives alongside a <c>vendora</c> pair added later.
+    /// Every existing member carrying the key is collapsed into the one written here, so a header
+    /// that arrived with the key twice comes back with it once.
     /// <para/>
-    /// The new member counts towards the 32 an instance keeps, so setting a key on a state that is
-    /// already full drops the right-most member.
+    /// If setting the value would exceed the maximum of 32 members, the right-most value is dropped.
     /// </remarks>
     public W3CTraceState Set(string key, string value)
     {
-        // A null key or value is simply invalid: this is validated but never thrown for.
         if (!IsValidKey(key.AsSpan()) || !IsValidValue(value.AsSpan()))
         {
             return this;
@@ -181,7 +173,7 @@ public sealed class W3CTraceState
         }
 
         // The member written here takes the first slot, so a full list loses its last one.
-        var members = new Member[Math.Min(kept + 1, MemberLimit)];
+        var members = new Member[Math.Min(kept + 1, MaxMembers)];
         members[0] = new Member(key, value);
         var written = 1;
 
@@ -201,7 +193,9 @@ public sealed class W3CTraceState
         return new W3CTraceState(members);
     }
 
-    /// <summary>Deletes the pair a key carries, when there is one.</summary>
+    /// <summary>
+    /// Deletes the pair a key carries, if found.
+    /// </summary>
     /// <param name="key">The key to delete.</param>
     /// <returns>
     /// A new <see cref="W3CTraceState"/> without <paramref name="key"/>, or the receiver itself when
@@ -248,7 +242,9 @@ public sealed class W3CTraceState
         return new W3CTraceState(members);
     }
 
-    /// <summary>Writes the state back out as a W3C <c>tracestate</c> value.</summary>
+    /// <summary>
+    /// Returns a string containing the W3C <c>tracestate</c> representation of the current instance.
+    /// </summary>
     /// <returns>
     /// The serialized <c>tracestate</c>, or an empty string when there is nothing to emit.
     /// </returns>
@@ -285,21 +281,18 @@ public sealed class W3CTraceState
         return builder.ToString();
     }
 
-    // The single parsing path, so that Parse and TryParse can never come to disagree about what a
-    // header holds. The header is walked twice, once to size the store and once to fill it: an
-    // instance never grows after construction, so paying for the count is what keeps the store from
-    // carrying growth slack it will never use.
-    private static W3CTraceState ParseCore(string? tracestate, out bool understood)
+    private static W3CTraceState ParseCore(string? tracestate, out bool isValid)
     {
         // Nothing arrived, so there is nothing here that could be wrong.
-        understood = true;
+        isValid = true;
 
         if (string.IsNullOrEmpty(tracestate))
         {
             return Empty;
         }
 
-        var count = CountMembers(tracestate.AsSpan());
+        var remaining = tracestate.AsSpan();
+        var count = CountMembers(remaining);
         if (count == 0)
         {
             return Empty;
@@ -307,14 +300,24 @@ public sealed class W3CTraceState
 
         var members = new Member[count];
         var written = 0;
-        understood = false;
+        isValid = false;
 
-        var remaining = tracestate.AsSpan();
         while (!remaining.IsEmpty && written < count)
         {
             var comma = remaining.IndexOf(',');
-            var member = (comma < 0 ? remaining : remaining.Slice(0, comma)).Trim();
-            remaining = comma < 0 ? default : remaining.Slice(comma + 1);
+            var member = remaining;
+
+            if (comma >= 0)
+            {
+                member = member.Slice(0, comma);
+                remaining = remaining.Slice(comma + 1);
+            }
+            else
+            {
+                remaining = default;
+            }
+
+            member = member.Trim();
 
             // Empty members are accepted but never re-emitted.
             if (member.IsEmpty)
@@ -324,36 +327,44 @@ public sealed class W3CTraceState
 
             var created = CreateMember(member);
 
-            // One member matching the grammar is enough for the header to have been understood: a
-            // vendor's malformed entry is that vendor's business, not a fault in this header.
-            understood |= created.Key is not null;
+            // One member matching the grammar is enough for the header to be valid: a vendor's
+            // malformed entry is that vendor's business, not a fault in this header.
+            isValid |= created.Key is not null;
 
             members[written++] = created;
         }
 
         return new W3CTraceState(members);
-    }
 
-    // Counts the members a header yields, stopping at MemberLimit so that the right-most ones are
-    // never taken on. Empty members are dropped rather than counted.
-    private static int CountMembers(ReadOnlySpan<char> tracestate)
-    {
-        var count = 0;
-
-        var remaining = tracestate;
-        while (!remaining.IsEmpty && count < MemberLimit)
+        static int CountMembers(ReadOnlySpan<char> header)
         {
-            var comma = remaining.IndexOf(',');
-            var member = (comma < 0 ? remaining : remaining.Slice(0, comma)).Trim();
-            remaining = comma < 0 ? default : remaining.Slice(comma + 1);
+            var count = 0;
 
-            if (!member.IsEmpty)
+            while (!header.IsEmpty && count < MaxMembers)
             {
-                count++;
-            }
-        }
+                var comma = header.IndexOf(',');
+                var member = header;
 
-        return count;
+                if (comma >= 0)
+                {
+                    member = member.Slice(0, comma);
+                    header = header.Slice(comma + 1);
+                }
+                else
+                {
+                    header = default;
+                }
+
+                member = member.Trim();
+
+                if (!member.IsEmpty)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
     }
 
     private static Member CreateMember(ReadOnlySpan<char> member)
@@ -379,7 +390,7 @@ public sealed class W3CTraceState
         // The flattened grammar of the later trace context levels is used, not the simple-key and
         // multi-tenant-key productions of level 1: it is a superset, and rejecting a key a level 1
         // parser would reject means deleting a key another vendor legitimately generated.
-        if (key.IsEmpty || key.Length > KeyLengthLimit)
+        if (key.IsEmpty || key.Length > MaxKeyLength)
         {
             return false;
         }
@@ -403,7 +414,7 @@ public sealed class W3CTraceState
 
     private static bool IsValidValue(ReadOnlySpan<char> value)
     {
-        if (value.IsEmpty || value.Length > ValueLengthLimit)
+        if (value.IsEmpty || value.Length > MaxValueLength)
         {
             return false;
         }
@@ -426,24 +437,15 @@ public sealed class W3CTraceState
     /// One member of a <c>tracestate</c> list: either a key and its value, or a run of text kept
     /// verbatim because it did not match the grammar.
     /// </summary>
-    private readonly struct Member
+    /// <param name="key">The key, or <see langword="null"/> for a member preserved verbatim.</param>
+    /// <param name="value">
+    /// The value when <paramref name="key"/> is non-<see langword="null"/>; otherwise the verbatim
+    /// text of the member.
+    /// </param>
+    private readonly struct Member(string? key, string value)
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Member"/> struct.
-        /// </summary>
-        /// <param name="key">The key, or <see langword="null"/> for a member preserved verbatim.</param>
-        /// <param name="value">
-        /// The value when <paramref name="key"/> is non-<see langword="null"/>; otherwise the
-        /// verbatim text of the member.
-        /// </param>
-        public Member(string? key, string value)
-        {
-            this.Key = key;
-            this.Value = value;
-        }
+        public string? Key { get; } = key;
 
-        public string? Key { get; }
-
-        public string Value { get; }
+        public string Value { get; } = value;
     }
 }

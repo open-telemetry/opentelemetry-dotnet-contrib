@@ -179,19 +179,9 @@ naming an invalid key or value, hands back the receiver itself. Members this
 instance did not generate are preserved verbatim, including malformed ones, so
 that an arbitrary sequence of mutations does not erode another vendor's entries.
 
-`TryParse` is available where a caller wants to know that a header was unusable.
-It returns `false` when members were retained and not one of them matched the
-`list-member` grammar, and `true` otherwise, including for an absent or empty
-header and for a header mixing valid pairs with text kept verbatim. The state is
-populated the same way whichever value is returned, so `false` never yields less
-than `true` would.
-
-The value reports on the members retained, not on the header as it arrived. At
-most 32 members are kept either way, so a header of 32 unusable members followed
-by a well-formed pair reports `false`, because the pair sits past the limit and
-was never taken on. Discarding well-formed members to stay inside that limit is
-not itself a failure: a header of 40 valid pairs keeps the first 32 and reports
-`true`.
+Use `TryParse` where a caller wants to know that a header was unusable: it
+returns `false` when members were retained and not one of them matched the
+`list-member` grammar.
 
 Example of `W3CTraceState` usage in a custom sampler:
 
@@ -205,11 +195,3 @@ public override SamplingResult ShouldSample(in SamplingParameters samplingParame
     return new SamplingResult(SamplingDecision.RecordAndSample, traceState);
 }
 ```
-
-The modified key is placed first and every other member keeps its relative
-position, as the specification requires. At most 32 members are kept, which is
-all the header grammar allows, and the right-most ones are dropped as they
-arrive rather than at serialization, so a wire-supplied header is never retained
-in full. No length limit is imposed: the 512 characters vendors should be able
-to propagate is a floor on capability rather than a ceiling on output, so
-truncating to fit a transport limit stays the caller's decision.
