@@ -10,6 +10,10 @@
     <ProjectReference Include="..\..\src\OpenTelemetry.DynamicControl\OpenTelemetry.DynamicControl.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="$(RepoRoot)\src\Shared\EnumExtensions.cs" Link="Includes\EnumExtensions.cs" />
+  </ItemGroup>
+
   <ItemGroup Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETFramework'">
     <PackageReference Include="System.Memory" VersionOverride="4.6.3" />
   </ItemGroup>

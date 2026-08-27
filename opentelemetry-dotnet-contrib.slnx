@@ -190,6 +190,7 @@
     <File Path="src/Shared/DatabaseSemanticConventionHelper.cs" />
     <File Path="src/Shared/DiagnosticSourceListener.cs" />
     <File Path="src/Shared/DiagnosticSourceSubscriber.cs" />
+    <File Path="src/Shared/EnumExtensions.cs" />
     <File Path="src/Shared/ExceptionExtensions.cs" />
     <File Path="src/Shared/GrpcStatusCanonicalCode.cs" />
     <File Path="src/Shared/GrpcTagHelper.cs" />
