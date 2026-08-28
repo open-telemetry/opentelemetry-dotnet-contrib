@@ -4,7 +4,7 @@
 
 * Added the `container.runtime.name` attribute, detected from the Docker
   (`/.dockerenv`) or Podman (`/run/.containerenv`) marker files.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#5144](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5144))
 
 ## 1.18.0-beta.1
 
