@@ -206,13 +206,13 @@ public class PolicySourceSnapshotTests
         var policy = new StubPolicy("trace-sampling", "a");
         TryCreate(DefaultMetadata, 1, [policy], out var snapshot, out _);
 
-        var asList = Assert.IsAssignableFrom<IList<TelemetryPolicy>>(snapshot!.Policies);
+        var asList = Assert.IsType<IList<TelemetryPolicy>>(snapshot!.Policies, exactMatch: false);
 
         Assert.True(asList.IsReadOnly, "Policies list must be read-only");
         Assert.Throws<NotSupportedException>(() => { asList[0] = new StubPolicy("trace-sampling", "b"); });
         Assert.Throws<NotSupportedException>(() => asList.Add(new StubPolicy("trace-sampling", "c")));
         Assert.Throws<NotSupportedException>(() => asList.RemoveAt(0));
-        Assert.Throws<NotSupportedException>(() => asList.Clear());
+        Assert.Throws<NotSupportedException>(asList.Clear);
         Assert.Same(policy, snapshot.Policies[0]);
     }
 
