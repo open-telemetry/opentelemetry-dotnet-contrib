@@ -51,8 +51,8 @@ The resource detectors will record the following metadata based on where
 your application is running:
 
 - **ContainerDetector**:
-    - `container.id`
-    - `container.runtime.name` (when the container runtime is Docker or Podman).
+  - `container.id`
+  - `container.runtime.name` (when the container runtime is Docker or Podman).
 
 ## References
 
