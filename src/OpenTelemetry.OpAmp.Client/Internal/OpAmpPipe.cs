@@ -62,13 +62,14 @@ internal sealed class OpAmpPipe : IDisposable
 
     public async Task StopAsync(CancellationToken token = default)
     {
+        // Set the pipe to stopped state. New data should not accumulate.
         lock (this.frameLock)
         {
             this.isStopped = true;
         }
 
-        // Drain queued data.
-        await this.FlushAsync(token)
+        // Drain all accumulated data.
+        await this.FlushAsyncCore(force: true, token)
             .ConfigureAwait(false);
 
         token.ThrowIfCancellationRequested();
@@ -79,8 +80,8 @@ internal sealed class OpAmpPipe : IDisposable
         // Mark the stop frame is available.
         this.hasAccumulatedData = true;
 
-        // Send disconnect.
-        await this.FlushAsync(token)
+        // Do final flush and send disconnect
+        await this.FlushAsyncCore(force: true, token)
             .ConfigureAwait(false);
 
         if (this.transport is WsTransport wsTransport)
@@ -108,23 +109,8 @@ internal sealed class OpAmpPipe : IDisposable
         this.TryFlush(this.tokenSource.Token);
     }
 
-    public Task FlushAsync(CancellationToken token = default)
-    {
-        token.ThrowIfCancellationRequested();
-
-        lock (this.frameLock)
-        {
-            this.TryStartFlushLocked(token);
-
-            if (this.IsFlushCompleteLocked())
-            {
-                return Task.CompletedTask;
-            }
-
-            this.flushCompletion ??= new(TaskCreationOptions.RunContinuationsAsynchronously);
-            return WaitForFlushAsync(this.flushCompletion.Task, token);
-        }
-    }
+    public Task FlushAsync(CancellationToken token = default) =>
+        this.FlushAsyncCore(force: false, token);
 
     public void Dispose()
     {
@@ -179,6 +165,31 @@ internal sealed class OpAmpPipe : IDisposable
         }
 
         await flushTask.ConfigureAwait(false);
+    }
+
+    private Task FlushAsyncCore(bool force, CancellationToken token)
+    {
+        token.ThrowIfCancellationRequested();
+
+        lock (this.frameLock)
+        {
+            if (!force && (this.isStopped ||
+                this.isDisposed ||
+                this.tokenSource.IsCancellationRequested))
+            {
+                return Task.CompletedTask;
+            }
+
+            this.TryStartFlushLocked(token);
+
+            if (this.IsFlushCompleteLocked())
+            {
+                return Task.CompletedTask;
+            }
+
+            this.flushCompletion ??= new(TaskCreationOptions.RunContinuationsAsynchronously);
+            return WaitForFlushAsync(this.flushCompletion.Task, token);
+        }
     }
 
     private void TryFlush(CancellationToken token)
