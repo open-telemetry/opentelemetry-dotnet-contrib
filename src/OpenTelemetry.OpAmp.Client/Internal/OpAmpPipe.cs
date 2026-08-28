@@ -20,8 +20,9 @@ internal sealed class OpAmpPipe : IDisposable
     private readonly ServerFrameHandler? frameHandler;
     private readonly FrameBuilder currentFrame;
 
-    private bool isDisposed;
     private bool isBusy;
+    private bool isDisposed;
+    private bool isStopped;
     private bool hasAccumulatedData;
     private Task? flushTask;
     private TaskCompletionSource<bool>? flushCompletion;
@@ -61,13 +62,22 @@ internal sealed class OpAmpPipe : IDisposable
 
     public async Task StopAsync(CancellationToken token = default)
     {
+        lock (this.frameLock)
+        {
+            this.isStopped = true;
+        }
+
         // Drain queued data.
         await this.FlushAsync(token)
             .ConfigureAwait(false);
 
         token.ThrowIfCancellationRequested();
 
-        this.AppendMessage(MessageBuilderHelper.AppendAgentDisconnect);
+        // Do not use AppendMessage(), it is already locked for closure and does extra flush attempt.
+        MessageBuilderHelper.AppendAgentDisconnect(this.currentFrame);
+
+        // Mark the stop frame is available.
+        this.hasAccumulatedData = true;
 
         // Send disconnect.
         await this.FlushAsync(token)
@@ -82,13 +92,15 @@ internal sealed class OpAmpPipe : IDisposable
 
     public void AppendMessage(Action<IFrameBuilder> messageRequest)
     {
-        if (this.tokenSource.IsCancellationRequested)
-        {
-            return;
-        }
-
         lock (this.frameLock)
         {
+            if (this.isStopped ||
+                this.isDisposed ||
+                this.tokenSource.IsCancellationRequested)
+            {
+                return; // Discard any new messages
+            }
+
             messageRequest(this.currentFrame);
             this.hasAccumulatedData = true;
         }
