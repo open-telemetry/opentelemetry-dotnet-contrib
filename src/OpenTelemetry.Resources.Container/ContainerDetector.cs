@@ -14,6 +14,8 @@ internal sealed partial class ContainerDetector : IResourceDetector
     private const string Filepath = "/proc/self/cgroup";
     private const string FilepathV2 = "/proc/self/mountinfo";
     private const string Hostname = "hostname";
+    private const string DockerEnvFilePath = "/.dockerenv";
+    private const string PodmanEnvFilePath = "/run/.containerenv";
 
     private static readonly Version SemanticConventionsVersion = new(1, 43, 0);
 
@@ -49,6 +51,15 @@ internal sealed partial class ContainerDetector : IResourceDetector
     }
 
     /// <summary>
+    /// Detects the container runtime from well-known marker files created by the runtime itself.
+    /// </summary>
+    /// <param name="dockerEnvPath">Path to the Docker marker file. Overridable for testing.</param>
+    /// <param name="podmanEnvPath">Path to the Podman marker file. Overridable for testing.</param>
+    /// <returns>The detected runtime name, or <see langword="null"/> if no known marker file is present.</returns>
+    internal static string? DetectContainerRuntimeName(string dockerEnvPath = DockerEnvFilePath, string podmanEnvPath = PodmanEnvFilePath)
+        => File.Exists(dockerEnvPath) ? "docker" : File.Exists(podmanEnvPath) ? "podman" : null;
+
+    /// <summary>
     /// Builds the resource attributes from Container Id in file path.
     /// </summary>
     /// <param name="path">File path where container id exists.</param>
@@ -58,9 +69,22 @@ internal sealed partial class ContainerDetector : IResourceDetector
     {
         var containerId = this.ExtractContainerId(path, cgroupVersion);
 
-        return containerId is { Length: > 0 } ?
-            new Resource([new(ContainerSemanticConventions.AttributeContainerId, containerId)], Internal.SchemaUrls.Get(SemanticConventionsVersion)) :
-            Resource.Empty;
+        if (containerId is not { Length: > 0 })
+        {
+            return Resource.Empty;
+        }
+
+        var attributeList = new List<KeyValuePair<string, object>>
+        {
+            new(ContainerSemanticConventions.AttributeContainerId, containerId),
+        };
+
+        if (DetectContainerRuntimeName() is { } runtimeName)
+        {
+            attributeList.Add(new(ContainerSemanticConventions.AttributeContainerRuntimeName, runtimeName));
+        }
+
+        return new Resource(attributeList, Internal.SchemaUrls.Get(SemanticConventionsVersion));
     }
 
     /// <summary>

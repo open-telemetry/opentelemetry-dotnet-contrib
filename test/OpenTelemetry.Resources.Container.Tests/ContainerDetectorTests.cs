@@ -156,6 +156,41 @@ public class ContainerDetectorTests
         Assert.Null(resource.SchemaUrl);
     }
 
+    [Fact]
+    public void DetectContainerRuntimeNamePrefersDockerOverPodman()
+    {
+        using var dockerEnvFile = new TempFile();
+        using var podmanEnvFile = new TempFile();
+
+        var runtimeName = ContainerDetector.DetectContainerRuntimeName(dockerEnvFile.FilePath, podmanEnvFile.FilePath);
+
+        Assert.Equal("docker", runtimeName);
+    }
+
+    [Fact]
+    public void DetectContainerRuntimeNameReturnsPodmanWhenOnlyPodmanEnvFileExists()
+    {
+        var missingDockerEnvPath = GetNonExistentFilePath();
+        using var podmanEnvFile = new TempFile();
+
+        var runtimeName = ContainerDetector.DetectContainerRuntimeName(missingDockerEnvPath, podmanEnvFile.FilePath);
+
+        Assert.Equal("podman", runtimeName);
+    }
+
+    [Fact]
+    public void DetectContainerRuntimeNameReturnsNullWhenNoMarkerFilesExist()
+    {
+        var missingDockerEnvPath = GetNonExistentFilePath();
+        var missingPodmanEnvPath = GetNonExistentFilePath();
+
+        var runtimeName = ContainerDetector.DetectContainerRuntimeName(missingDockerEnvPath, missingPodmanEnvPath);
+
+        Assert.Null(runtimeName);
+    }
+
+    private static string GetNonExistentFilePath() => Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+
     private static string GetContainerId(Resource resource)
     {
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
