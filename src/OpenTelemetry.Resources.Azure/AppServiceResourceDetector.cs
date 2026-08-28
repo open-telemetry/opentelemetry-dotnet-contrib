@@ -43,7 +43,7 @@ internal sealed class AppServiceResourceDetector : IResourceDetector
 
                 var websiteOwnerName = Environment.GetEnvironmentVariable(ResourceAttributeConstants.AppServiceOwnerNameEnvVar);
                 var subscriptionId = GetSubscriptionId(websiteOwnerName);
-                if (!string.IsNullOrEmpty(subscriptionId))
+                if (subscriptionId is { Length: > 0 })
                 {
                     attributeList.Add(new(ResourceSemanticConventions.AttributeCloudAccount, subscriptionId));
                 }
