@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using Amazon.Lambda.SNSEvents;
+using Amazon.Lambda.SQSEvents;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
@@ -322,6 +324,86 @@ public class AWSLambdaWrapperTests : IDisposable
 
         Assert.True(attrs.TryGetValue("env", out actual), "Resource attribute 'env' is missing");
         Assert.Equal("prod", actual);
+    }
+
+    [Fact]
+    public void TraceSyncSqsEventSetsPubSubTrigger()
+    {
+        var exportedItems = new List<Activity>();
+
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                   .AddAWSLambdaConfigurations(opt =>
+                   {
+                       opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
+                   .AddInMemoryExporter(exportedItems)
+                   .Build()!)
+        {
+            AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncSqsEvent, new SQSEvent(), this.sampleLambdaContext);
+        }
+
+        Assert.Single(exportedItems);
+        Assert.Equal("pubsub", exportedItems[0].GetTagValue(ExpectedSemanticConventions.AttributeFaasTrigger));
+    }
+
+    [Fact]
+    public void TraceSyncSnsEventSetsPubSubTrigger()
+    {
+        var exportedItems = new List<Activity>();
+
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                   .AddAWSLambdaConfigurations(opt =>
+                   {
+                       opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
+                   .AddInMemoryExporter(exportedItems)
+                   .Build()!)
+        {
+            AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncSnsEvent, new SNSEvent(), this.sampleLambdaContext);
+        }
+
+        Assert.Single(exportedItems);
+        Assert.Equal("pubsub", exportedItems[0].GetTagValue(ExpectedSemanticConventions.AttributeFaasTrigger));
+    }
+
+    [Fact]
+    public void TraceSyncSqsMessageSetsPubSubTrigger()
+    {
+        var exportedItems = new List<Activity>();
+
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                   .AddAWSLambdaConfigurations(opt =>
+                   {
+                       opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
+                   .AddInMemoryExporter(exportedItems)
+                   .Build()!)
+        {
+            AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncSqsMessage, new SQSEvent.SQSMessage(), this.sampleLambdaContext);
+        }
+
+        Assert.Single(exportedItems);
+        Assert.Equal("pubsub", exportedItems[0].GetTagValue(ExpectedSemanticConventions.AttributeFaasTrigger));
+    }
+
+    [Fact]
+    public void TraceSyncSnsRecordSetsPubSubTrigger()
+    {
+        var exportedItems = new List<Activity>();
+
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                   .AddAWSLambdaConfigurations(opt =>
+                   {
+                       opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
+                   .AddInMemoryExporter(exportedItems)
+                   .Build()!)
+        {
+            AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncSnsRecord, new SNSEvent.SNSRecord(), this.sampleLambdaContext);
+        }
+
+        Assert.Single(exportedItems);
+        Assert.Equal("pubsub", exportedItems[0].GetTagValue(ExpectedSemanticConventions.AttributeFaasTrigger));
     }
 
     private static ActivityContext CreateParentContext()

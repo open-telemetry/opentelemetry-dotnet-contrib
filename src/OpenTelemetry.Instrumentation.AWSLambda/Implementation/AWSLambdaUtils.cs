@@ -242,11 +242,23 @@ internal class AWSLambdaUtils
         return faasId;
     }
 
-    private static string GetFaasTrigger<TInput>(TInput input) =>
-        IsHttpRequest(input) ? "http" : "other";
+    private static string GetFaasTrigger<TInput>(TInput input)
+    {
+        if (IsHttpRequest(input))
+        {
+            return "http";
+        }
+
+        return IsPubSubRequest(input) ? "pubsub" : "other";
+    }
 
     private static bool IsHttpRequest<TInput>(TInput input) =>
         input is APIGatewayProxyRequest or APIGatewayHttpApiV2ProxyRequest or ApplicationLoadBalancerRequest;
+
+    // SQS and SNS deliver messages published to a queue or topic, which the
+    // semantic conventions describe as the "pubsub" trigger type.
+    private static bool IsPubSubRequest<TInput>(TInput input) =>
+        input is SQSEvent or SQSEvent.SQSMessage or SNSEvent or SNSEvent.SNSRecord;
 
     private static ActivityContext ParseXRayTraceHeader(string rawHeader)
     {
