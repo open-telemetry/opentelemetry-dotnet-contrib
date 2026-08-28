@@ -14,7 +14,7 @@ namespace OpenTelemetry.DynamicControl.Internal.Policies;
 /// provider-assigned policy identifier, rather than the identifier alone.
 /// </para>
 /// </remarks>
-internal readonly struct PolicyKey : IEquatable<PolicyKey>
+internal readonly struct PolicyKey : IEquatable<PolicyKey>, IComparable<PolicyKey>
 {
     /// <summary>
     /// A read-only instance of the <see cref="PolicyKey"/> structure whose field values
@@ -22,33 +22,30 @@ internal readonly struct PolicyKey : IEquatable<PolicyKey>
     /// </summary>
     public static readonly PolicyKey Empty;
 
-    private readonly string? policyType;
-    private readonly string? policyId;
-
     /// <summary>
     /// Initializes a new instance of the <see cref="PolicyKey"/> struct.
     /// </summary>
-    /// <param name="policyType">The policy type discriminator. Must not be null or whitespace.</param>
-    /// <param name="policyId">The provider-assigned policy identifier. Must not be null or whitespace.</param>
-    /// <exception cref="ArgumentException">Thrown when either component is null, empty, or whitespace.</exception>
-    public PolicyKey(string policyType, string policyId)
+    /// <param name="policyType">The policy type discriminator. Must not be <see cref="PolicyType.Empty"/>.</param>
+    /// <param name="policyId">The provider-assigned policy identifier. Must not be <see cref="PolicyId.Empty"/>.</param>
+    /// <exception cref="ArgumentException">Thrown when either component is its default value.</exception>
+    public PolicyKey(PolicyType policyType, PolicyId policyId)
     {
-        Guard.ThrowIfNullOrWhitespace(policyType, nameof(policyType));
-        Guard.ThrowIfNullOrWhitespace(policyId, nameof(policyId));
+        Guard.ThrowIfDefault(policyType, nameof(policyType));
+        Guard.ThrowIfDefault(policyId, nameof(policyId));
 
-        this.policyType = policyType;
-        this.policyId = policyId;
+        this.PolicyType = policyType;
+        this.PolicyId = policyId;
     }
 
     /// <summary>
     /// Gets the policy type discriminator (e.g. <c>trace-sampling</c>).
     /// </summary>
-    public string PolicyType => this.policyType ?? string.Empty;
+    public PolicyType PolicyType { get; }
 
     /// <summary>
-    /// Gets the opaque, provider-assigned policy identifier.
+    /// Gets the provider-assigned policy identifier.
     /// </summary>
-    public string PolicyId => this.policyId ?? string.Empty;
+    public PolicyId PolicyId { get; }
 
     /// <summary>
     /// Determines whether two <see cref="PolicyKey"/> instances identify the same policy.
@@ -76,11 +73,8 @@ internal readonly struct PolicyKey : IEquatable<PolicyKey>
     /// value for the same policy resolves to the same slot.
     /// </remarks>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="policy"/> is null.</exception>
-    /// <exception cref="ArgumentException">
-    /// Thrown when the policy reports a blank type or identifier. Validated policy models
-    /// cannot, so this indicates a faulty <see cref="ITelemetryPolicy"/> implementation.
-    /// </exception>
-    public static PolicyKey FromPolicy(ITelemetryPolicy policy)
+    /// <exception cref="ArgumentException">Thrown when the policy reports a blank type.</exception>
+    public static PolicyKey FromPolicy(TelemetryPolicy policy)
     {
         Guard.ThrowIfNull(policy);
 
@@ -88,9 +82,16 @@ internal readonly struct PolicyKey : IEquatable<PolicyKey>
     }
 
     /// <inheritdoc/>
+    public int CompareTo(PolicyKey other)
+    {
+        var typeComparison = this.PolicyType.CompareTo(other.PolicyType);
+        return typeComparison != 0 ? typeComparison : this.PolicyId.CompareTo(other.PolicyId);
+    }
+
+    /// <inheritdoc/>
     public bool Equals(PolicyKey other)
-        => string.Equals(this.policyType ?? string.Empty, other.policyType ?? string.Empty, StringComparison.Ordinal)
-            && string.Equals(this.policyId ?? string.Empty, other.policyId ?? string.Empty, StringComparison.Ordinal);
+        => this.PolicyType.Equals(other.PolicyType)
+            && this.PolicyId.Equals(other.PolicyId);
 
     /// <inheritdoc/>
     public override bool Equals(object? obj) => obj is PolicyKey other && this.Equals(other);
@@ -100,13 +101,13 @@ internal readonly struct PolicyKey : IEquatable<PolicyKey>
     {
 #if NET || NETSTANDARD2_1_OR_GREATER
         return HashCode.Combine(
-            StringComparer.Ordinal.GetHashCode(this.PolicyType),
-            StringComparer.Ordinal.GetHashCode(this.PolicyId));
+            this.PolicyType,
+            this.PolicyId);
 #else
         unchecked
         {
-            var hash = (17 * 31) + StringComparer.Ordinal.GetHashCode(this.PolicyType);
-            return (hash * 31) + StringComparer.Ordinal.GetHashCode(this.PolicyId);
+            var hash = (17 * 31) + this.PolicyType.GetHashCode();
+            return (hash * 31) + this.PolicyId.GetHashCode();
         }
 #endif
     }
@@ -115,5 +116,5 @@ internal readonly struct PolicyKey : IEquatable<PolicyKey>
     /// Returns a diagnostic representation of the key.
     /// </summary>
     /// <returns>The policy type and identifier, separated by a forward slash.</returns>
-    public override string ToString() => this.PolicyType + "/" + this.PolicyId;
+    public override string ToString() => this.PolicyType.Value + "/" + this.PolicyId.Value;
 }

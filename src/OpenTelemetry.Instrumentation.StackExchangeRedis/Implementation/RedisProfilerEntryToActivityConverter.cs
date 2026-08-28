@@ -20,6 +20,12 @@ namespace OpenTelemetry.Instrumentation.StackExchangeRedis.Implementation;
 
 internal static class RedisProfilerEntryToActivityConverter
 {
+    private static readonly string[] CachedDatabaseNames =
+    [
+        "0", "1", "2", "3", "4", "5", "6", "7",
+        "8", "9", "10", "11", "12", "13", "14", "15",
+    ];
+
     private static readonly Lazy<Func<object, (string?, string?)>> MessageDataGetter = new(() =>
     {
 #pragma warning disable IDE0370 // Suppression is unnecessary
@@ -138,31 +144,25 @@ internal static class RedisProfilerEntryToActivityConverter
 
             string? commandAndKey = null;
             string? script = null;
+            string? verboseStatement = null;
             if (options.SetVerboseDatabaseStatements)
             {
                 (commandAndKey, script) = MessageDataGetter.Value.Invoke(command);
+
+                if (!string.IsNullOrEmpty(commandAndKey))
+                {
+                    verboseStatement = string.IsNullOrEmpty(script)
+                        ? commandAndKey
+                        : string.Concat(commandAndKey, " ", script);
+                }
             }
 
             if (options.EmitOldAttributes)
             {
                 activity.SetTag(StackExchangeRedisConnectionInstrumentation.RedisDatabaseIndexKeyName, command.Db);
-                string? statement = null;
-
-                if (options.SetVerboseDatabaseStatements)
-                {
-                    if (!string.IsNullOrEmpty(commandAndKey))
-                    {
-                        statement = commandAndKey;
-
-                        if (!string.IsNullOrEmpty(script))
-                        {
-                            statement += " " + script;
-                        }
-                    }
-                }
 
                 // Example: "db.statement": SET;
-                statement ??= command.Command;
+                var statement = verboseStatement ?? command.Command;
 
                 if (statement != null)
                 {
@@ -172,19 +172,13 @@ internal static class RedisProfilerEntryToActivityConverter
 
             if (options.EmitNewAttributes)
             {
-                var queryText = command.Command;
-                if (options.SetVerboseDatabaseStatements && !string.IsNullOrEmpty(commandAndKey))
-                {
-                    queryText = commandAndKey;
-
-                    if (!string.IsNullOrEmpty(script))
-                    {
-                        queryText += " " + script;
-                    }
-                }
-
+                var queryText = verboseStatement ?? command.Command;
+                var db = command.Db;
+                var dbNamespace = (uint)db < (uint)CachedDatabaseNames.Length
+                    ? CachedDatabaseNames[db]
+                    : db.ToString(CultureInfo.InvariantCulture);
                 activity.SetTag(SemanticConventions.AttributeDbOperationName, command.Command);
-                activity.SetTag(SemanticConventions.AttributeDbNamespace, command.Db.ToString(CultureInfo.InvariantCulture));
+                activity.SetTag(SemanticConventions.AttributeDbNamespace, dbNamespace);
                 activity.SetTag(SemanticConventions.AttributeDbQueryText, queryText);
             }
 

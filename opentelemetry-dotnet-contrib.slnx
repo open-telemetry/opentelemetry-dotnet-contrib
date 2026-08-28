@@ -247,6 +247,7 @@
     <Project Path="test/OpenTelemetry.Contrib.Shared.Benchmarks/OpenTelemetry.Contrib.Shared.Benchmarks.csproj" />
     <Project Path="test/OpenTelemetry.Contrib.Shared.FuzzTests/OpenTelemetry.Contrib.Shared.FuzzTests.csproj" />
     <Project Path="test/OpenTelemetry.Contrib.Shared.Tests/OpenTelemetry.Contrib.Shared.Tests.csproj" />
+    <Project Path="test/OpenTelemetry.DynamicControl.FuzzTests/OpenTelemetry.DynamicControl.FuzzTests.csproj" />
     <Project Path="test/OpenTelemetry.DynamicControl.Tests/OpenTelemetry.DynamicControl.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Exporter.Geneva.Benchmarks/OpenTelemetry.Exporter.Geneva.Benchmarks.csproj" />
     <Project Path="test/OpenTelemetry.Exporter.Geneva.FuzzTests/OpenTelemetry.Exporter.Geneva.FuzzTests.csproj" />
