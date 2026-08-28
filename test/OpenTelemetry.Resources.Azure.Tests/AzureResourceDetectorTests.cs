@@ -106,6 +106,7 @@ public class AzureResourceDetectorTests
             var expectedResourceUri = "/subscriptions/testtestSubscriptionId/resourceGroups/testResourceGroup/providers/Microsoft.Web/sites/sitename";
             Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudResourceId, expectedResourceUri), resource.Attributes);
             Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "sitename"), resource.Attributes);
+            Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudPlatform, "azure.app_service"), resource.Attributes);
 
             foreach (var kvp in AppServiceResourceDetector.AppServiceResourceAttributes)
             {
@@ -145,7 +146,7 @@ public class AzureResourceDetectorTests
             var expectedValue = field switch
             {
                 ResourceSemanticConventions.AttributeServiceInstance => new KeyValuePair<string, object>(field, ResourceSemanticConventions.AttributeHostId),
-                ResourceSemanticConventions.AttributeCloudPlatform => new KeyValuePair<string, object>(field, ResourceAttributeConstants.AzureVmCloudPlatformValue),
+                ResourceSemanticConventions.AttributeCloudPlatform => new KeyValuePair<string, object>(field, "azure.vm"),
                 ResourceSemanticConventions.AttributeCloudProvider => new KeyValuePair<string, object>(field, ResourceAttributeConstants.AzureCloudProviderValue),
                 _ => new KeyValuePair<string, object>(field, field),
             };
@@ -184,6 +185,7 @@ public class AzureResourceDetectorTests
             Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
 
             Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "containerAppName"), resource.Attributes);
+            Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudPlatform, "azure.container_apps"), resource.Attributes);
 
             foreach (var kvp in AzureContainerAppsResourceDetector.AzureContainerAppResourceAttributes)
             {
@@ -212,6 +214,7 @@ public class AzureResourceDetectorTests
             Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
 
             Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "containerAppJobName"), resource.Attributes);
+            Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudPlatform, "azure.container_apps"), resource.Attributes);
 
             foreach (var kvp in AzureContainerAppsResourceDetector.AzureContainerAppJobResourceAttributes)
             {
