@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Numerics;
 using OpAmp.Proto.V1;
 using OpenTelemetry.OpAmp.Client.Internal.Messages;
 using OpenTelemetry.OpAmp.Client.Internal.Transport;
@@ -74,11 +75,14 @@ internal sealed class OpAmpPipe : IDisposable
 
         token.ThrowIfCancellationRequested();
 
-        // Do not use AppendMessage(), it is already locked for closure and does extra flush attempt.
-        MessageBuilderHelper.AppendAgentDisconnect(this.currentFrame);
+        lock (this.frameLock)
+        {
+            // Do not use AppendMessage(), it is already locked for closure and does extra flush attempt.
+            MessageBuilderHelper.AppendAgentDisconnect(this.currentFrame);
 
-        // Mark the stop frame is available.
-        this.hasAccumulatedData = true;
+            // Mark the stop frame is available.
+            this.hasAccumulatedData = true;
+        }
 
         // Do final flush and send disconnect
         await this.FlushAsyncCore(force: true, token)
