@@ -6,6 +6,13 @@
   App Service resource detector.
   ([#5138](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5138))
 
+* Updated the following values for the `cloud.platform` attribute to
+  comply with v1.43.0 of the OpenTelemetry Semantic Conventions:
+  * `azure_app_service` to `azure.app_service`
+  * `azure_container_apps` to `azure.container_apps`
+  * `azure_vm` to `azure.vm`
+  ([#5143](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5143))
+
 ## 1.18.0-beta.1
 
 Released 2026-Aug-21
