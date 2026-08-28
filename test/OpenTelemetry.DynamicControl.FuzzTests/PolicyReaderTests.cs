@@ -25,7 +25,7 @@ public static class PolicyReaderTests
 
         foreach (var reader in Readers)
         {
-            AssertWellFormed(reader, document.RootElement, json);
+            AssertWellFormed(reader, document.RootElement);
         }
     }
 
@@ -38,7 +38,7 @@ public static class PolicyReaderTests
 
         using var document = JsonDocument.Parse(json);
 
-        var policy = AssertWellFormed(TraceSamplingRatePolicyReader.Instance, document.RootElement, json);
+        var policy = AssertWellFormed(TraceSamplingRatePolicyReader.Instance, document.RootElement);
 
         Assert.NotNull(policy);
         Assert.Equal(probability, Assert.IsType<TraceSamplingRatePolicy>(policy).SamplingProbability);
@@ -51,13 +51,13 @@ public static class PolicyReaderTests
 
         using var document = JsonDocument.Parse(json);
 
-        var policy = AssertWellFormed(LogLevelPolicyReader.Instance, document.RootElement, json);
+        var policy = AssertWellFormed(LogLevelPolicyReader.Instance, document.RootElement);
 
         Assert.NotNull(policy);
         Assert.NotEqual(DiagnosticLogLevel.Unspecified, Assert.IsType<LogLevelPolicy>(policy).MinimumLevel);
     }
 
-    private static TelemetryPolicy? AssertWellFormed(PolicyReader reader, in JsonElement value, string json)
+    private static TelemetryPolicy? AssertWellFormed(PolicyReader reader, in JsonElement value)
     {
         var result = reader.Read(value);
 

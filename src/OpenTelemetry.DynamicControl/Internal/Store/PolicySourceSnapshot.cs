@@ -32,7 +32,7 @@ internal sealed class PolicySourceSnapshot
         this.Sequence = sequence;
         this.Version = version;
         this.Policies = ImmutableCollectionsMarshal.AsImmutableArray(policies);
-        this.lookup = new Dictionary<PolicyKey, TelemetryPolicy>(lookup);
+        this.lookup = [with(lookup)];
     }
 
     /// <summary>

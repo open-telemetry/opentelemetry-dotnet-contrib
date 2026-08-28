@@ -103,8 +103,8 @@ public class PolicyStoreConcurrencyTests
         await WaitHelper.WaitUntil(() => !deliveredB.IsEmpty && deliveredB.Last() == finalRevision);
 
         Assert.False(overlapDetected, "Callback invocations for one subscription must never overlap");
-        AssertNonDecreasing(deliveredA.ToArray());
-        AssertNonDecreasing(deliveredB.ToArray());
+        AssertNonDecreasing([.. deliveredA]);
+        AssertNonDecreasing([.. deliveredB]);
     }
 
     [Fact]
