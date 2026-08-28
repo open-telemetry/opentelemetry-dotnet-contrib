@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+* Updated the following attributes values for the `cloud.platform` attribute to
+  comply with v1.43 of the OpenTelemetry Semantic Conventions:
+  * `azure_app_service` to `azure.app_service`
+  * `azure_container_apps` to `azure.container_apps`
+  * `azure_vm` to `azure.vm`
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 1.18.0-beta.1
 
 Released 2026-Aug-21
