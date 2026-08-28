@@ -85,6 +85,9 @@ internal sealed class AppServiceResourceDetector : IResourceDetector
 
     private static string? GetSubscriptionId(string? websiteOwnerName)
     {
+        // WEBSITE_OWNER_NAME typically has the form
+        // "<subscription-id>+<resource-group>-<region>webspace".
+        // See https://learn.microsoft.com/azure/app-service/reference-app-settings#app-environment
         if (websiteOwnerName == null)
         {
             return null;
