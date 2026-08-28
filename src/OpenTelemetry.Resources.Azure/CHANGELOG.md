@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Add `cloud.account.id` and `azure.resource_group.name` attributes to the Azure
+  App Service resource detector.
+  ([#5138](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5138))
+
 * Updated the following values for the `cloud.platform` attribute to
   comply with v1.43.0 of the OpenTelemetry Semantic Conventions:
   * `azure_app_service` to `azure.app_service`
