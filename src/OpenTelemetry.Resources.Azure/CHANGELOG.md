@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-* Updated the following attributes values for the `cloud.platform` attribute to
+* Updated the following values for the `cloud.platform` attribute to
   comply with v1.43.0 of the OpenTelemetry Semantic Conventions:
   * `azure_app_service` to `azure.app_service`
   * `azure_container_apps` to `azure.container_apps`
