@@ -342,8 +342,8 @@ public class AWSLambdaWrapperTests : IDisposable
             AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncSqsEvent, new SQSEvent(), this.sampleLambdaContext);
         }
 
-        Assert.Single(exportedItems);
-        Assert.Equal("pubsub", exportedItems[0].GetTagValue(ExpectedSemanticConventions.AttributeFaasTrigger));
+        var item = Assert.Single(exportedItems);
+        Assert.Equal("pubsub", item.GetTagValue(ExpectedSemanticConventions.AttributeFaasTrigger));
     }
 
     [Fact]
@@ -362,8 +362,8 @@ public class AWSLambdaWrapperTests : IDisposable
             AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncSnsEvent, new SNSEvent(), this.sampleLambdaContext);
         }
 
-        Assert.Single(exportedItems);
-        Assert.Equal("pubsub", exportedItems[0].GetTagValue(ExpectedSemanticConventions.AttributeFaasTrigger));
+        var item = Assert.Single(exportedItems);
+        Assert.Equal("pubsub", item.GetTagValue(ExpectedSemanticConventions.AttributeFaasTrigger));
     }
 
     [Fact]
@@ -382,8 +382,8 @@ public class AWSLambdaWrapperTests : IDisposable
             AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncSqsMessage, new SQSEvent.SQSMessage(), this.sampleLambdaContext);
         }
 
-        Assert.Single(exportedItems);
-        Assert.Equal("pubsub", exportedItems[0].GetTagValue(ExpectedSemanticConventions.AttributeFaasTrigger));
+        var item = Assert.Single(exportedItems);
+        Assert.Equal("pubsub", item.GetTagValue(ExpectedSemanticConventions.AttributeFaasTrigger));
     }
 
     [Fact]
@@ -402,8 +402,8 @@ public class AWSLambdaWrapperTests : IDisposable
             AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncSnsRecord, new SNSEvent.SNSRecord(), this.sampleLambdaContext);
         }
 
-        Assert.Single(exportedItems);
-        Assert.Equal("pubsub", exportedItems[0].GetTagValue(ExpectedSemanticConventions.AttributeFaasTrigger));
+        var item = Assert.Single(exportedItems);
+        Assert.Equal("pubsub", item.GetTagValue(ExpectedSemanticConventions.AttributeFaasTrigger));
     }
 
     private static ActivityContext CreateParentContext()

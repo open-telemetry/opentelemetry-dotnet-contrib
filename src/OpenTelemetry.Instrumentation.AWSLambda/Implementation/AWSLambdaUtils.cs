@@ -255,8 +255,6 @@ internal class AWSLambdaUtils
     private static bool IsHttpRequest<TInput>(TInput input) =>
         input is APIGatewayProxyRequest or APIGatewayHttpApiV2ProxyRequest or ApplicationLoadBalancerRequest;
 
-    // SQS and SNS deliver messages published to a queue or topic, which the
-    // semantic conventions describe as the "pubsub" trigger type.
     private static bool IsPubSubRequest<TInput>(TInput input) =>
         input is SQSEvent or SQSEvent.SQSMessage or SNSEvent or SNSEvent.SNSRecord;
 
