@@ -43,7 +43,7 @@ public static class NetworkAttributes
     public const string AttributeNetworkConnectionState = "network.connection.state";
 
     /// <summary>
-    /// This describes more details regarding the connection.type. It may be the type of cell technology connection, but it could be used for describing details about a wifi connection.
+    /// This describes more details regarding the connection.type. It may be the type of cell technology connection, but it could be used for describing details about a Wi-Fi connection.
     /// </summary>
     public const string AttributeNetworkConnectionSubtype = "network.connection.subtype";
 
@@ -63,7 +63,7 @@ public static class NetworkAttributes
     public const string AttributeNetworkIoDirection = "network.io.direction";
 
     /// <summary>
-    /// Local address of the network connection - IP address or Unix domain socket name.
+    /// Local address of the network connection - IP address or UNIX domain socket name.
     /// </summary>
     public const string AttributeNetworkLocalAddress = "network.local.address";
 
@@ -73,7 +73,7 @@ public static class NetworkAttributes
     public const string AttributeNetworkLocalPort = "network.local.port";
 
     /// <summary>
-    /// Peer address of the network connection - IP address or Unix domain socket name.
+    /// Peer address of the network connection - IP address or UNIX domain socket name.
     /// </summary>
     public const string AttributeNetworkPeerAddress = "network.peer.address";
 
@@ -180,7 +180,7 @@ public static class NetworkAttributes
     }
 
     /// <summary>
-    /// This describes more details regarding the connection.type. It may be the type of cell technology connection, but it could be used for describing details about a wifi connection.
+    /// This describes more details regarding the connection.type. It may be the type of cell technology connection, but it could be used for describing details about a Wi-Fi connection.
     /// </summary>
     public static class NetworkConnectionSubtypeValues
     {
@@ -296,7 +296,7 @@ public static class NetworkAttributes
     public static class NetworkConnectionTypeValues
     {
         /// <summary>
-        /// wifi.
+        /// Wi-Fi.
         /// </summary>
         public const string Wifi = "wifi";
 
@@ -358,7 +358,7 @@ public static class NetworkAttributes
         public const string Pipe = "pipe";
 
         /// <summary>
-        /// Unix domain socket.
+        /// UNIX domain socket.
         /// </summary>
         public const string Unix = "unix";
 

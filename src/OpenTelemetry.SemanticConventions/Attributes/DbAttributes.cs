@@ -297,7 +297,12 @@ public static class DbAttributes
     /// up with the parameterized placeholders present in <c>db.query.text</c>.
     /// <p>
     /// It is RECOMMENDED to capture the value as provided by the application
-    /// without attempting to do any case normalization.
+    /// without attempting to do any case normalization or sanitization.
+    /// <p>
+    /// Instrumentations SHOULD NOT capture <c>db.query.parameter.<key></c> by default
+    /// since values may contain PII or sensitive details.
+    /// Application operators are expected to enable specific keys depending
+    /// on their privacy and security considerations.
     /// <p>
     /// <c>db.query.parameter.<key></c> SHOULD NOT be captured on batch operations.
     /// <p>
@@ -345,7 +350,7 @@ public static class DbAttributes
     /// <summary>
     /// Deprecated, use <c>db.namespace</c> instead.
     /// </summary>
-    [Obsolete("Uncategorized.")]
+    [Obsolete("Replaced by <c>db.namespace</c> (string).")]
     public const string AttributeDbRedisDatabaseIndex = "db.redis.database_index";
 
     /// <summary>

@@ -44,8 +44,8 @@ public static class MessagingAttributes
     /// The message destination name.
     /// </summary>
     /// <remarks>
-    /// Destination name SHOULD uniquely identify a specific queue, topic or other entity within the broker. If
-    /// the broker doesn't have such notion, the destination name SHOULD uniquely identify the broker.
+    /// SHOULD uniquely identify a specific queue, topic or other entity within the broker. If
+    /// the broker doesn't have such notion, it SHOULD uniquely identify the broker.
     /// </remarks>
     public const string AttributeMessagingDestinationName = "messaging.destination.name";
 
@@ -66,7 +66,7 @@ public static class MessagingAttributes
     /// Low cardinality representation of the messaging destination name.
     /// </summary>
     /// <remarks>
-    /// Destination names could be constructed from templates. An example would be a destination name involving a user name or product id. Although the destination name in this case is of high cardinality, the underlying template is of low cardinality and can be effectively used for grouping and aggregation.
+    /// Destination names could be constructed from templates. An example would be a destination name involving a username or product ID. Although the destination name in this case is of high cardinality, the underlying template is of low cardinality and can be effectively used for grouping and aggregation.
     /// </remarks>
     public const string AttributeMessagingDestinationTemplate = "messaging.destination.template";
 
@@ -104,7 +104,7 @@ public static class MessagingAttributes
     public const string AttributeMessagingGcpPubsubMessageAckDeadline = "messaging.gcp_pubsub.message.ack_deadline";
 
     /// <summary>
-    /// The ack id for a given message.
+    /// The ack ID for a given message.
     /// </summary>
     public const string AttributeMessagingGcpPubsubMessageAckId = "messaging.gcp_pubsub.message.ack_id";
 
@@ -119,6 +119,14 @@ public static class MessagingAttributes
     public const string AttributeMessagingGcpPubsubMessageOrderingKey = "messaging.gcp_pubsub.message.ordering_key";
 
     /// <summary>
+    /// The Kafka cluster ID, obtained from the broker metadata exposed through the Kafka client (or AdminClient) API.
+    /// </summary>
+    /// <remarks>
+    /// The cluster ID is a unique identifier reported by the Kafka broker. It identifies the cluster independently of the individual brokers the client is configured to connect to, and remains stable even if broker hostnames, IP addresses, or ports change.
+    /// </remarks>
+    public const string AttributeMessagingKafkaClusterId = "messaging.kafka.cluster.id";
+
+    /// <summary>
     /// Deprecated, use <c>messaging.consumer.group.name</c> instead.
     /// </summary>
     [Obsolete("Replaced by <c>messaging.consumer.group.name</c>.")]
@@ -127,7 +135,7 @@ public static class MessagingAttributes
     /// <summary>
     /// Deprecated, use <c>messaging.destination.partition.id</c> instead.
     /// </summary>
-    [Obsolete("Record string representation of the partition id in <c>messaging.destination.partition.id</c> attribute.")]
+    [Obsolete("Record string representation of the partition ID in <c>messaging.destination.partition.id</c> attribute.")]
     public const string AttributeMessagingKafkaDestinationPartition = "messaging.kafka.destination.partition";
 
     /// <summary>
@@ -238,7 +246,7 @@ public static class MessagingAttributes
     public const string AttributeMessagingRocketmqMessageGroup = "messaging.rocketmq.message.group";
 
     /// <summary>
-    /// Key(s) of message, another way to mark message besides message id.
+    /// Key(s) of message, another way to mark message besides message ID.
     /// </summary>
     public const string AttributeMessagingRocketmqMessageKeys = "messaging.rocketmq.message.keys";
 
