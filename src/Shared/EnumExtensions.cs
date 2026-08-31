@@ -4,6 +4,7 @@
 #if !NET
 
 namespace System;
+
 internal static class EnumExtensions
 {
     extension(Enum)
