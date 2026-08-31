@@ -1,10 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-namespace System;
-
 #if !NET
 
+namespace System;
 internal static class EnumExtensions
 {
     extension(Enum)
