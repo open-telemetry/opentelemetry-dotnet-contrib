@@ -76,7 +76,7 @@ public class PolicyStoreSnapshotTests
         Assert.True(asList.IsReadOnly, "Sources list must be read-only");
         Assert.Throws<NotSupportedException>(() => { asList[0] = snapshot.Sources[1]; });
         Assert.Throws<NotSupportedException>(() => asList.RemoveAt(0));
-        Assert.Throws<NotSupportedException>(() => asList.Clear());
+        Assert.Throws<NotSupportedException>(asList.Clear);
         Assert.Same(first, snapshot.Sources[0]);
     }
 

@@ -15,7 +15,7 @@ public class PolicyChangeSubscriptionTests
     {
         var notifier = new PolicyChangeNotifier();
         var delivered = new System.Collections.Concurrent.ConcurrentQueue<PolicyStoreSnapshot>();
-        var subscription = notifier.Add(s => delivered.Enqueue(s));
+        var subscription = notifier.Add(delivered.Enqueue);
 
         subscription.Enqueue(SnapshotAtRevision(1));
 
@@ -121,7 +121,7 @@ public class PolicyChangeSubscriptionTests
     {
         var notifier = new PolicyChangeNotifier();
         var delivered = new System.Collections.Concurrent.ConcurrentQueue<PolicyStoreSnapshot>();
-        var subscription = notifier.Add(s => delivered.Enqueue(s));
+        var subscription = notifier.Add(delivered.Enqueue);
 
         subscription.Enqueue(SnapshotAtRevision(1));
         await WaitHelper.WaitUntil(() => delivered.Count == 1);

@@ -14,7 +14,7 @@ public class PolicyStoreSubscriptionTests
         var store = new PolicyStore();
         var delivered = new System.Collections.Concurrent.ConcurrentQueue<PolicyStoreSnapshot>();
 
-        using var subscription = store.Subscribe(s => delivered.Enqueue(s));
+        using var subscription = store.Subscribe(delivered.Enqueue);
 
         await WaitHelper.WaitUntil(() => !delivered.IsEmpty);
         Assert.Same(PolicyStoreSnapshot.Empty, delivered.Single());
@@ -29,7 +29,7 @@ public class PolicyStoreSubscriptionTests
         var expected = store.Current;
 
         var delivered = new System.Collections.Concurrent.ConcurrentQueue<PolicyStoreSnapshot>();
-        using var subscription = store.Subscribe(s => delivered.Enqueue(s));
+        using var subscription = store.Subscribe(delivered.Enqueue);
 
         await WaitHelper.WaitUntil(() => !delivered.IsEmpty);
         Assert.Same(expected, delivered.First());
@@ -40,7 +40,7 @@ public class PolicyStoreSubscriptionTests
     {
         var store = new PolicyStore();
         var delivered = new System.Collections.Concurrent.ConcurrentQueue<PolicyStoreSnapshot>();
-        using var subscription = store.Subscribe(s => delivered.Enqueue(s));
+        using var subscription = store.Subscribe(delivered.Enqueue);
         await WaitHelper.WaitUntil(() => !delivered.IsEmpty); // initial replay
 
         Replace(store, "source-a", sequence: 1);
@@ -67,8 +67,8 @@ public class PolicyStoreSubscriptionTests
         await WaitHelper.WaitUntil(() => !deliveredA.IsEmpty && deliveredA.Last() == 5);
         await WaitHelper.WaitUntil(() => !deliveredB.IsEmpty && deliveredB.Last() == 5);
 
-        AssertNonDecreasing(deliveredA.ToArray());
-        AssertNonDecreasing(deliveredB.ToArray());
+        AssertNonDecreasing([.. deliveredA]);
+        AssertNonDecreasing([.. deliveredB]);
     }
 
     [Fact]
@@ -76,7 +76,7 @@ public class PolicyStoreSubscriptionTests
     {
         var store = new PolicyStore();
         var delivered = new System.Collections.Concurrent.ConcurrentQueue<PolicyStoreSnapshot>();
-        var subscription = store.Subscribe(s => delivered.Enqueue(s));
+        var subscription = store.Subscribe(delivered.Enqueue);
 
         store.Dispose();
 

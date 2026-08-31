@@ -195,7 +195,7 @@ public class PolicyStoreTests
         var id = new SourceRegistrationId("source-a");
         var meta1 = new PolicySourceMetadata(id, PolicySourceKind.File, 5);
         var meta2 = new PolicySourceMetadata(id, PolicySourceKind.File, 99);
-        var before = store.Current;
+        _ = store.Current;
 
         ReplaceEmpty(store, meta1, sequence: 1);
         var result = ReplaceEmpty(store, meta2, sequence: 2);
