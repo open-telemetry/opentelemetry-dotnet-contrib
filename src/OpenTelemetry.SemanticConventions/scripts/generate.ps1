@@ -1,3 +1,5 @@
+#!/usr/bin/env pwsh
+
 $SCRIPT_DIR = $PSScriptRoot
 $ROOT_DIR = "${SCRIPT_DIR}/../"
 
