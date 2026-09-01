@@ -22,6 +22,11 @@ internal sealed class ResourceAttributeConstants
     internal const string AppServiceSlotNameEnvVar = "WEBSITE_SLOT_NAME";
     internal const string AppServiceStampNameEnvVar = "WEBSITE_HOME_STAMPNAME";
 
+    // Azure Functions environment variables
+    internal const string AzureFunctionsContainerNameEnvVar = "CONTAINER_NAME";
+    internal const string AzureFunctionsPodNameEnvVar = "WEBSITE_POD_NAME";
+    internal const string AzureFunctionsWorkerRuntimeEnvVar = "FUNCTIONS_WORKER_RUNTIME";
+
     // Azure Container Apps environment variables
     internal const string AzureContainerAppsNameEnvVar = "CONTAINER_APP_NAME";
     internal const string AzureContainerAppsReplicaNameEnvVar = "CONTAINER_APP_REPLICA_NAME";
@@ -34,6 +39,15 @@ internal sealed class ResourceAttributeConstants
     // Azure resource attributes constant values
     internal const string AzureAppServicePlatformValue = "azure.app_service";
     internal const string AzureCloudProviderValue = "azure";
+    internal const string AzureFunctionsPlatformValue = "azure.functions";
     internal const string AzureVmCloudPlatformValue = "azure.vm";
     internal const string AzureContainerAppsPlatformValue = "azure.container_apps";
+
+    // Match the Azure Functions host's instance ID precedence across hosting plans.
+    internal static readonly string[] AzureFunctionsInstanceIdEnvVars =
+    [
+        AppServiceInstanceIdEnvVar,
+        AzureFunctionsPodNameEnvVar,
+        AzureFunctionsContainerNameEnvVar,
+    ];
 }

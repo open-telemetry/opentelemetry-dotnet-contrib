@@ -15,6 +15,7 @@ internal sealed class AzureResourcesEventSource : EventSource
     private const int EventIdFailedToDetectAzureContainerAppResources = 2;
     private const int EventIdFailedToDetectAzureVMResources = 3;
     private const int EventIdResourceDetectorSkipped = 4;
+    private const int EventIdFailedToDetectAzureFunctionsResources = 5;
 
     [NonEvent]
     public void FailedToDetectAppServiceResources(Exception ex)
@@ -43,6 +44,15 @@ internal sealed class AzureResourcesEventSource : EventSource
         }
     }
 
+    [NonEvent]
+    public void FailedToDetectAzureFunctionsResources(Exception ex)
+    {
+        if (this.IsEnabled(EventLevel.Warning, EventKeywords.All))
+        {
+            this.FailedToDetectAzureFunctionsResources(ex.ToInvariantString());
+        }
+    }
+
     [Event(EventIdFailedToDetectAppServiceResources, Message = "Failed to detect Azure App Service resources. Exception: {0}", Level = EventLevel.Warning)]
     public void FailedToDetectAppServiceResources(string exception)
         => this.WriteEvent(EventIdFailedToDetectAppServiceResources, exception);
@@ -58,4 +68,8 @@ internal sealed class AzureResourcesEventSource : EventSource
     [Event(EventIdResourceDetectorSkipped, Message = "Resource detector '{0}' did not detect any attributes because no environment variable named {1} is set.", Level = EventLevel.Verbose)]
     public void ResourceDetectorSkipped(string detector, string environmentVariable)
         => this.WriteEvent(EventIdResourceDetectorSkipped, detector, environmentVariable);
+
+    [Event(EventIdFailedToDetectAzureFunctionsResources, Message = "Failed to detect Azure Functions resources. Exception: {0}", Level = EventLevel.Warning)]
+    public void FailedToDetectAzureFunctionsResources(string exception)
+        => this.WriteEvent(EventIdFailedToDetectAzureFunctionsResources, exception);
 }
