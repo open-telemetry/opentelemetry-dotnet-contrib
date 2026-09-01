@@ -960,6 +960,50 @@ public abstract class OtlpProtobufMetricExporterTests
         }
     }
 
+    [Fact]
+    public void LargeExplicitHistogramSerialization()
+    {
+        const int BoundaryCount = 1000;
+
+        using var meter = new Meter(nameof(this.LargeExplicitHistogramSerialization));
+
+        var exportedItems = new List<Metric>();
+        using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems));
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddMeter(meter.Name)
+            .AddView(
+                "TestHistogram",
+                new ExplicitBucketHistogramConfiguration
+                {
+                    Boundaries = Enumerable.Range(0, BoundaryCount).Select(i => (double)i).ToArray(),
+                })
+            .AddReader(inMemoryReader)
+            .Build();
+
+        meter.CreateHistogram<double>("TestHistogram").Record(BoundaryCount / 2);
+        meterProvider.ForceFlush();
+
+        var buffer = new byte[65360];
+        var testTransport = new TestTransport();
+        var serializer = new OtlpProtobufSerializer(
+            testTransport,
+            metricsAccount: null,
+            metricsNamespace: null,
+            prepopulatedMetricDimensions: null,
+            prefixBufferWithUInt32LittleEndianLength: this.PrefixBufferWithUInt32LittleEndianLength);
+
+        serializer.SerializeAndSendMetrics(
+            buffer,
+            meterProvider.GetResource(),
+            new Batch<Metric>([.. exportedItems], exportedItems.Count));
+
+        var request = this.AssertAndConvertExportedBlobToRequest(Assert.Single(testTransport.ExportedItems));
+        var dataPoint = Assert.Single(Assert.Single(Assert.Single(request.ResourceMetrics).ScopeMetrics).Metrics).Histogram.DataPoints.Single();
+
+        Assert.Equal(BoundaryCount, dataPoint.ExplicitBounds.Count);
+        Assert.Equal(BoundaryCount + 1, dataPoint.BucketCounts.Count);
+    }
+
     [Theory]
     [InlineData(new[] { -123.45, 23, .05, 100 })]
     public void HistogramSerializationMultipleMetricPoints(double[] doubleValues)
