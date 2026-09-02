@@ -323,6 +323,29 @@ public class ServiceFabricRemotingTests
         Assert.False(clientConvertor.TryConvertFromServiceException(unrelated, out _));
     }
 
+    [Fact]
+    public void ActorRemotingProvider_ExceptionConvertorsAreNotRegisteredByDefault()
+    {
+        var provider = new ActorExceptionConvertorProbeAttribute();
+
+        Assert.Null(provider.GetServiceConvertors());
+        Assert.Null(provider.GetClientConvertors());
+        Assert.Equal(0, provider.RemotingExceptionDepth);
+    }
+
+    [Fact]
+    public void ActorRemotingProvider_DerivedTypeCanRegisterCustomExceptionConvertors()
+    {
+        var provider = new ActorCustomConvertorProviderAttribute
+        {
+            RemotingExceptionDepth = 7,
+        };
+
+        Assert.IsType<CustomTestExceptionConvertorService>(Assert.Single(provider.GetServiceConvertors()!));
+        Assert.IsType<CustomTestExceptionConvertorClient>(Assert.Single(provider.GetClientConvertors()!));
+        Assert.Equal(7, provider.RemotingExceptionDepth);
+    }
+
     private ServiceRemotingRequestMessageHeaderMock CreateServiceRemotingRequestMessageHeader(Type interfaceType, string methodName)
     {
         var interfaceId = ServiceFabricUtils.GetInterfaceId(interfaceType);
@@ -360,6 +383,24 @@ public class ServiceFabricRemotingTests
         public IEnumerable<ClientExceptionConvertor>? GetClientConvertors() => this.GetClientExceptionConvertors();
     }
 
+    private sealed class ActorExceptionConvertorProbeAttribute : TraceContextEnrichedActorRemotingProviderAttribute
+    {
+        public IEnumerable<RuntimeExceptionConvertor>? GetServiceConvertors() => this.GetServiceExceptionConvertors();
+
+        public IEnumerable<ClientExceptionConvertor>? GetClientConvertors() => this.GetClientExceptionConvertors();
+    }
+
+    private sealed class ActorCustomConvertorProviderAttribute : TraceContextEnrichedActorRemotingProviderAttribute
+    {
+        public IEnumerable<RuntimeExceptionConvertor>? GetServiceConvertors() => this.GetServiceExceptionConvertors();
+
+        public IEnumerable<ClientExceptionConvertor>? GetClientConvertors() => this.GetClientExceptionConvertors();
+
+        protected override IEnumerable<RuntimeExceptionConvertor> GetServiceExceptionConvertors() => [new CustomTestExceptionConvertorService()];
+
+        protected override IEnumerable<ClientExceptionConvertor> GetClientExceptionConvertors() => [new CustomTestExceptionConvertorClient()];
+    }
+
     private sealed class CustomConvertorProviderAttribute : TraceContextEnrichedServiceRemotingProviderAttribute
     {
         public IEnumerable<RuntimeExceptionConvertor>? GetServiceConvertors() => this.GetServiceExceptionConvertors();
@@ -372,8 +413,7 @@ public class ServiceFabricRemotingTests
     }
 
     private sealed class CustomTestException : Exception
-    {
-        public CustomTestException(string message, string detail)
+    {        public CustomTestException(string message, string detail)
             : base(message)
         {
             this.Detail = detail;
