@@ -11,7 +11,9 @@ internal static class ProtobufSerializerHelper
 {
     private const int Fixed64Size = 8;
 
-    private const int MaxCustomLength = 0x1FFFFF;
+    private const int FixedLengthPrefixSize = 3;
+
+    private const int MaxCustomLength = (1 << (7 * FixedLengthPrefixSize)) - 1;
 
     private const ulong Ulong128 = 128;
 
@@ -84,9 +86,15 @@ internal static class ProtobufSerializerHelper
     {
         if ((uint)length > MaxCustomLength)
         {
-            throw new ArgumentOutOfRangeException(nameof(length), length, "Length must fit in a three-byte varint.");
+            throw new ArgumentOutOfRangeException(nameof(length), length, GenevaBufferOverflowExceptionHelper.MetricBufferTooSmallMessage);
         }
 
+        if (cursor < 0 || cursor > buffer.Length - FixedLengthPrefixSize)
+        {
+            throw new ArgumentOutOfRangeException(nameof(cursor), cursor, GenevaBufferOverflowExceptionHelper.MetricBufferTooSmallMessage);
+        }
+
+        // OtlpProtobufSerializer reserves exactly three bytes for this intentionally fixed-width length.
         buffer[cursor++] = (byte)(0x80 | (length & 0x7F));
         buffer[cursor++] = (byte)(0x80 | ((length >> 7) & 0x7F));
         buffer[cursor++] = (byte)((length >> 14) & 0x7F);

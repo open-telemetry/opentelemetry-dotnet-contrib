@@ -36,6 +36,22 @@ public class ProtobufSerializerHelperTests
             () => ProtobufSerializerHelper.WriteLengthCustom(buffer, ref cursor, length));
 
         Assert.Equal(nameof(length), exception.ParamName);
+        Assert.True(GenevaBufferOverflowExceptionHelper.IsMetricSerializerBufferOverflow(exception));
         Assert.Equal(0, cursor);
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(1)]
+    public void WriteLengthCustomRejectsInvalidCursor(int cursor)
+    {
+        var buffer = new byte[3];
+
+        var exception = Assert.Throws<ArgumentOutOfRangeException>(
+            () => ProtobufSerializerHelper.WriteLengthCustom(buffer, ref cursor, 0));
+
+        Assert.Equal(nameof(cursor), exception.ParamName);
+        Assert.True(GenevaBufferOverflowExceptionHelper.IsMetricSerializerBufferOverflow(exception));
+        Assert.Equal([0, 0, 0], buffer);
     }
 }
