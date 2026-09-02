@@ -13,7 +13,7 @@ public class LogLevelPolicyTests
         // Driven off the enum rather than a literal list: every member but the
         // Unspecified sentinel is expected to be a usable policy value, so adding a
         // member without teaching LogLevelPolicy.IsSupported about it fails here.
-        foreach (var level in EnumTestHelper.Values<DiagnosticLogLevel>())
+        foreach (var level in Enum.GetValues<DiagnosticLogLevel>())
         {
             if (level == DiagnosticLogLevel.Unspecified)
             {

@@ -101,16 +101,20 @@ internal readonly struct PolicySourceMetadata : IEquatable<PolicySourceMetadata>
     /// <inheritdoc/>
     public override int GetHashCode()
     {
+        int hash;
+
 #if NET || NETSTANDARD2_1_OR_GREATER
-        return HashCode.Combine(this.RegistrationId, this.Kind, this.Priority);
+        hash = HashCode.Combine(this.RegistrationId, this.Kind, this.Priority);
 #else
         unchecked
         {
-            var hash = (17 * 31) + this.RegistrationId.GetHashCode();
+            hash = (17 * 31) + this.RegistrationId.GetHashCode();
             hash = (hash * 31) + (int)this.Kind;
-            return (hash * 31) + this.Priority;
+            hash = (hash * 31) + this.Priority;
         }
 #endif
+
+        return hash;
     }
 
     /// <summary>
@@ -126,7 +130,7 @@ internal readonly struct PolicySourceMetadata : IEquatable<PolicySourceMetadata>
         PolicySourceKind.Http => 2,
         PolicySourceKind.File => 3,
         PolicySourceKind.Custom => 1000,
-        _ =>
+        PolicySourceKind.Unknown or _ =>
 #if NET
             throw new System.Diagnostics.UnreachableException($"Unhandled {nameof(PolicySourceKind)}: {kind}"),
 #else

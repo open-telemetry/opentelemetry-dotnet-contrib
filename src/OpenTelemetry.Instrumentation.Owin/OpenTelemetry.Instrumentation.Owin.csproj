@@ -23,6 +23,7 @@
     <Compile Include="$(RepoRoot)\src\Shared\Options\*.cs" Link="Includes\Options\%(Filename).cs" />
     <Compile Include="$(RepoRoot)\src\Shared\MeterFactory.cs" Link="Includes\MeterFactory.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\RedactionHelper.cs" Link="Includes\RedactionHelper.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\PortTelemetryHelper.cs" Link="Includes\PortTelemetryHelper.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\RequestDataHelper.cs" Link="Includes\RequestDataHelper.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\SchemaUrls.cs" Link="Includes\SchemaUrls.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\SemanticConventions.cs" Link="Includes\SemanticConventions.cs"/>

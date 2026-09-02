@@ -51,4 +51,128 @@ public static class BrowserAttributes
     /// The list of possible values is defined in the <a href="https://wicg.github.io/ua-client-hints/#sec-ch-ua-platform">W3C User-Agent Client Hints specification</a>. Note that some (but not all) of these values can overlap with values in the <a href="./os.md"><c>os.type</c> and <c>os.name</c> attributes</a>. However, for consistency, the values in the <c>browser.platform</c> attribute should capture the exact value that the user agent provides.
     /// </remarks>
     public const string AttributeBrowserPlatform = "browser.platform";
+
+    /// <summary>
+    /// The delta between the current value and the last-reported value. See <a href="https://github.com/GoogleChrome/web-vitals?tab=readme-ov-file#report-only-the-delta-of-changes">delta</a>.
+    /// </summary>
+    public const string AttributeBrowserWebVitalDelta = "browser.web_vital.delta";
+
+    /// <summary>
+    /// A unique ID representing this particular metric instance.
+    /// </summary>
+    public const string AttributeBrowserWebVitalId = "browser.web_vital.id";
+
+    /// <summary>
+    /// Name of the web vital.
+    /// </summary>
+    public const string AttributeBrowserWebVitalName = "browser.web_vital.name";
+
+    /// <summary>
+    /// The type of navigation, as reported by the <a href="https://developer.mozilla.org/docs/Web/API/PerformanceNavigationTiming/type">Navigation Timing API</a>, with additional values reported by the web-vitals library.
+    /// </summary>
+    public const string AttributeBrowserWebVitalNavigationType = "browser.web_vital.navigation_type";
+
+    /// <summary>
+    /// The rating of the web vital value against the "good", "needs improvement", and "poor" thresholds defined for the metric.
+    /// </summary>
+    public const string AttributeBrowserWebVitalRating = "browser.web_vital.rating";
+
+    /// <summary>
+    /// Value of the web vital.
+    /// </summary>
+    public const string AttributeBrowserWebVitalValue = "browser.web_vital.value";
+
+    /// <summary>
+    /// Name of the web vital.
+    /// </summary>
+    public static class BrowserWebVitalNameValues
+    {
+        /// <summary>
+        /// Cumulative Layout Shift. See <a href="https://web.dev/articles/cls">cls</a>.
+        /// </summary>
+        public const string Cls = "cls";
+
+        /// <summary>
+        /// Largest Contentful Paint. See <a href="https://web.dev/articles/lcp">lcp</a>.
+        /// </summary>
+        public const string Lcp = "lcp";
+
+        /// <summary>
+        /// First Contentful Paint. See <a href="https://web.dev/articles/fcp">fcp</a>.
+        /// </summary>
+        public const string Fcp = "fcp";
+
+        /// <summary>
+        /// Interaction to Next Paint. See <a href="https://web.dev/articles/inp">inp</a>.
+        /// </summary>
+        public const string Inp = "inp";
+
+        /// <summary>
+        /// Time to First Byte. See <a href="https://web.dev/articles/ttfb">ttfb</a>.
+        /// </summary>
+        public const string Ttfb = "ttfb";
+
+        /// <summary>
+        /// First Input Delay. See <a href="https://web.dev/articles/fid">fid</a>.
+        /// </summary>
+        [Obsolete("Replaced by Interaction to Next Paint (<c>inp</c>), which became a Core Web Vital in March 2024. See inp (https://web.dev/articles/inp).")]
+        public const string Fid = "fid";
+    }
+
+    /// <summary>
+    /// The type of navigation, as reported by the <a href="https://developer.mozilla.org/docs/Web/API/PerformanceNavigationTiming/type">Navigation Timing API</a>, with additional values reported by the web-vitals library.
+    /// </summary>
+    public static class BrowserWebVitalNavigationTypeValues
+    {
+        /// <summary>
+        /// Navigation started by clicking a link, entering a URL, form submission, or a script operation.
+        /// </summary>
+        public const string Navigate = "navigate";
+
+        /// <summary>
+        /// Navigation through a reload operation or a <c>Location.reload()</c> call.
+        /// </summary>
+        public const string Reload = "reload";
+
+        /// <summary>
+        /// Navigation through the browser's history traversal (e.g. back/forward buttons).
+        /// </summary>
+        public const string BackForward = "back-forward";
+
+        /// <summary>
+        /// Navigation restoring a page from the back/forward cache (bfcache).
+        /// </summary>
+        public const string BackForwardCache = "back-forward-cache";
+
+        /// <summary>
+        /// Navigation to a page that was prerendered.
+        /// </summary>
+        public const string Prerender = "prerender";
+
+        /// <summary>
+        /// Navigation restoring a page that was previously discarded by the browser.
+        /// </summary>
+        public const string Restore = "restore";
+    }
+
+    /// <summary>
+    /// The rating of the web vital value against the "good", "needs improvement", and "poor" thresholds defined for the metric.
+    /// </summary>
+    public static class BrowserWebVitalRatingValues
+    {
+        /// <summary>
+        /// The metric value is within the "good" threshold.
+        /// </summary>
+        public const string Good = "good";
+
+        /// <summary>
+        /// The metric value is within the "needs improvement" threshold.
+        /// </summary>
+        public const string NeedsImprovement = "needs-improvement";
+
+        /// <summary>
+        /// The metric value is within the "poor" threshold.
+        /// </summary>
+        public const string Poor = "poor";
+    }
 }

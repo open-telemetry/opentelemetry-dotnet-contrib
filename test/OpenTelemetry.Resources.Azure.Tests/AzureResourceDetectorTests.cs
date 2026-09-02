@@ -104,14 +104,53 @@ public class AzureResourceDetectorTests
             Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
 
             var expectedResourceUri = "/subscriptions/testtestSubscriptionId/resourceGroups/testResourceGroup/providers/Microsoft.Web/sites/sitename";
+            Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudAccount, "testtestSubscriptionId"), resource.Attributes);
             Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudResourceId, expectedResourceUri), resource.Attributes);
+            Assert.Contains(new KeyValuePair<string, object>(ResourceAttributeConstants.AzureResourceGroupName, "testResourceGroup"), resource.Attributes);
             Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "sitename"), resource.Attributes);
+            Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudPlatform, "azure.app_service"), resource.Attributes);
 
             foreach (var kvp in AppServiceResourceDetector.AppServiceResourceAttributes)
             {
                 Assert.Contains(new KeyValuePair<string, object>(kvp.Key, kvp.Key), resource.Attributes);
             }
         }
+    }
+
+    [Fact]
+    public void AppServiceResourceDetectorUsesUnseparatedOwnerNameAsCloudAccount()
+    {
+        var resource = DetectAppServiceResource("subscription-without-separator", null);
+
+        Assert.Contains(
+            new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudAccount, "subscription-without-separator"),
+            resource.Attributes);
+        Assert.DoesNotContain(resource.Attributes, attribute => attribute.Key == ResourceAttributeConstants.AzureResourceGroupName);
+        Assert.DoesNotContain(resource.Attributes, attribute => attribute.Key == ResourceSemanticConventions.AttributeCloudResourceId);
+    }
+
+    [Fact]
+    public void AppServiceResourceDetectorEmitsResourceGroupWithoutCloudAccount()
+    {
+        var resource = DetectAppServiceResource(null, "testResourceGroup");
+
+        Assert.Contains(
+            new KeyValuePair<string, object>(ResourceAttributeConstants.AzureResourceGroupName, "testResourceGroup"),
+            resource.Attributes);
+        Assert.DoesNotContain(resource.Attributes, attribute => attribute.Key == ResourceSemanticConventions.AttributeCloudAccount);
+        Assert.DoesNotContain(resource.Attributes, attribute => attribute.Key == ResourceSemanticConventions.AttributeCloudResourceId);
+    }
+
+    [Theory]
+    [InlineData("", null)]
+    [InlineData(null, "")]
+    public void AppServiceResourceDetectorSuppressesEmptyIdentityAttributes(string? websiteOwnerName, string? websiteResourceGroup)
+    {
+        var resource = DetectAppServiceResource(websiteOwnerName, websiteResourceGroup);
+
+        Assert.DoesNotContain(resource.Attributes, attribute => attribute.Key == ResourceSemanticConventions.AttributeCloudAccount);
+        Assert.DoesNotContain(resource.Attributes, attribute => attribute.Key == ResourceAttributeConstants.AzureResourceGroupName);
+        Assert.DoesNotContain(resource.Attributes, attribute => attribute.Key == ResourceSemanticConventions.AttributeCloudResourceId);
     }
 
     [Fact]
@@ -145,7 +184,7 @@ public class AzureResourceDetectorTests
             var expectedValue = field switch
             {
                 ResourceSemanticConventions.AttributeServiceInstance => new KeyValuePair<string, object>(field, ResourceSemanticConventions.AttributeHostId),
-                ResourceSemanticConventions.AttributeCloudPlatform => new KeyValuePair<string, object>(field, ResourceAttributeConstants.AzureVmCloudPlatformValue),
+                ResourceSemanticConventions.AttributeCloudPlatform => new KeyValuePair<string, object>(field, "azure.vm"),
                 ResourceSemanticConventions.AttributeCloudProvider => new KeyValuePair<string, object>(field, ResourceAttributeConstants.AzureCloudProviderValue),
                 _ => new KeyValuePair<string, object>(field, field),
             };
@@ -184,6 +223,7 @@ public class AzureResourceDetectorTests
             Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
 
             Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "containerAppName"), resource.Attributes);
+            Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudPlatform, "azure.container_apps"), resource.Attributes);
 
             foreach (var kvp in AzureContainerAppsResourceDetector.AzureContainerAppResourceAttributes)
             {
@@ -212,6 +252,7 @@ public class AzureResourceDetectorTests
             Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
 
             Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "containerAppJobName"), resource.Attributes);
+            Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudPlatform, "azure.container_apps"), resource.Attributes);
 
             foreach (var kvp in AzureContainerAppsResourceDetector.AzureContainerAppJobResourceAttributes)
             {
@@ -275,6 +316,21 @@ public class AzureResourceDetectorTests
             Assert.DoesNotContain(
                 new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "my-app-service"),
                 resource.Attributes);
+        }
+    }
+
+    private static Resource DetectAppServiceResource(string? websiteOwnerName, string? websiteResourceGroup)
+    {
+        var environment = new Dictionary<string, string?>
+        {
+            [ResourceAttributeConstants.AppServiceSiteNameEnvVar] = "sitename",
+            [ResourceAttributeConstants.AppServiceOwnerNameEnvVar] = websiteOwnerName,
+            [ResourceAttributeConstants.AppServiceResourceGroupEnvVar] = websiteResourceGroup,
+        };
+
+        using (EnvironmentVariableScope.Create(environment))
+        {
+            return ResourceBuilder.CreateEmpty().AddAzureAppServiceDetector().Build();
         }
     }
 }

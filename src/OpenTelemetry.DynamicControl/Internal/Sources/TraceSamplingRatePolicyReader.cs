@@ -61,6 +61,7 @@ internal sealed class TraceSamplingRatePolicyReader : PolicyReader
                     PolicyRejectionReason.SchemaMismatch,
                     "The sampling rate object declares 'probability' more than once."),
 
+                JsonMemberLookup.Unspecified => throw JsonValueReader.UnhandledLookup(JsonMemberLookup.Unspecified),
                 var lookup => throw JsonValueReader.UnhandledLookup(lookup),
             };
 

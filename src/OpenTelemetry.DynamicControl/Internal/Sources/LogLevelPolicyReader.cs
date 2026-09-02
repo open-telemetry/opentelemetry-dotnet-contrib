@@ -57,6 +57,7 @@ internal sealed class LogLevelPolicyReader : PolicyReader
                     PolicyRejectionReason.SchemaMismatch,
                     "The log level object declares 'level' more than once."),
 
+                JsonMemberLookup.Unspecified => throw JsonValueReader.UnhandledLookup(JsonMemberLookup.Unspecified),
                 var lookup => throw JsonValueReader.UnhandledLookup(lookup),
             };
 

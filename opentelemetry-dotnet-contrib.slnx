@@ -190,6 +190,7 @@
     <File Path="src/Shared/DatabaseSemanticConventionHelper.cs" />
     <File Path="src/Shared/DiagnosticSourceListener.cs" />
     <File Path="src/Shared/DiagnosticSourceSubscriber.cs" />
+    <File Path="src/Shared/EnumExtensions.cs" />
     <File Path="src/Shared/ExceptionExtensions.cs" />
     <File Path="src/Shared/GrpcStatusCanonicalCode.cs" />
     <File Path="src/Shared/GrpcTagHelper.cs" />
@@ -203,6 +204,7 @@
     <File Path="src/Shared/MeterFactory.cs" />
     <File Path="src/Shared/MultiTypePropertyFetcher.cs" />
     <File Path="src/Shared/NullableAttributes.cs" />
+    <File Path="src/Shared/PortTelemetryHelper.cs" />
     <File Path="src/Shared/PropertyFetcher.cs" />
     <File Path="src/Shared/RedactionHelper.cs" />
     <File Path="src/Shared/RequestDataHelper.cs" />

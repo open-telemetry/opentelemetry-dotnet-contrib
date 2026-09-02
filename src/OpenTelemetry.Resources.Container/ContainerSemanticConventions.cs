@@ -6,4 +6,5 @@ namespace OpenTelemetry.Resources.Container;
 internal static class ContainerSemanticConventions
 {
     public const string AttributeContainerId = "container.id";
+    public const string AttributeContainerRuntimeName = "container.runtime.name";
 }

@@ -163,16 +163,20 @@ internal static class ClientChannelInstrumentation
 
         if (remoteAddressUri != null)
         {
+            // Not opting into the single-value cache: this is the target WCF service's port,
+            // which can vary per call for a client that talks to multiple downstream services.
+            var port = PortTelemetryHelper.GetBoxedPort(remoteAddressUri.Port);
+
             if (options?.EmitOldRpcAttributes is true)
             {
                 tags.Add(new(SemanticConventions.AttributeNetPeerName, remoteAddressUri.Host));
-                tags.Add(new(SemanticConventions.AttributeNetPeerPort, remoteAddressUri.Port));
+                tags.Add(new(SemanticConventions.AttributeNetPeerPort, port));
             }
 
             if (options?.EmitNewRpcAttributes is true)
             {
                 tags.Add(new(SemanticConventions.AttributeServerAddress, remoteAddressUri.Host));
-                tags.Add(new(SemanticConventions.AttributeServerPort, remoteAddressUri.Port));
+                tags.Add(new(SemanticConventions.AttributeServerPort, port));
 
                 if (remoteAddressUri.Host is { Length: > 0 } host)
                 {
@@ -181,7 +185,7 @@ internal static class ClientChannelInstrumentation
                     if (uriHostNameType is UriHostNameType.IPv4 or UriHostNameType.IPv6)
                     {
                         tags.Add(new(SemanticConventions.AttributeNetworkPeerAddress, host));
-                        tags.Add(new(SemanticConventions.AttributeNetworkPeerPort, remoteAddressUri.Port));
+                        tags.Add(new(SemanticConventions.AttributeNetworkPeerPort, port));
                     }
                 }
             }

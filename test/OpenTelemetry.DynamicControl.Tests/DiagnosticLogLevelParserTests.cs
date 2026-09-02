@@ -98,7 +98,7 @@ public class DiagnosticLogLevelParserTests
             named.Add(level);
         }
 
-        foreach (var level in EnumTestHelper.Values<DiagnosticLogLevel>())
+        foreach (var level in Enum.GetValues<DiagnosticLogLevel>())
         {
             if (level == DiagnosticLogLevel.Unspecified)
             {
