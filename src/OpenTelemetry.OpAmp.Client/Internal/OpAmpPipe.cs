@@ -13,12 +13,15 @@ namespace OpenTelemetry.OpAmp.Client.Internal;
 
 internal sealed class OpAmpPipe : IDisposable
 {
+    internal const int MaxPendingCustomMessages = 2048;
+
     private readonly IOpAmpTransport transport;
     private readonly FrameProcessor processor;
     private readonly Lock frameLock = new();
     private readonly CancellationTokenSource tokenSource = new();
     private readonly ServerFrameHandler? frameHandler;
     private readonly FrameBuilder currentFrame;
+    private readonly Queue<AgentToServer> pendingFrames = [];
 
     private bool isBusy;
     private bool isDisposed;
@@ -95,22 +98,12 @@ internal sealed class OpAmpPipe : IDisposable
     }
 
     public void AppendMessage(Action<IFrameBuilder> messageRequest)
-    {
-        lock (this.frameLock)
-        {
-            if (this.isStopped ||
-                this.isDisposed ||
-                this.tokenSource.IsCancellationRequested)
-            {
-                return; // Discard any new messages
-            }
+        => this.AppendMessage(messageRequest, queueFrame: false);
 
-            messageRequest(this.currentFrame);
-            this.hasAccumulatedData = true;
-        }
-
-        this.TryFlush(this.tokenSource.Token);
-    }
+    public void AppendCustomMessage(string capability, string type, ReadOnlyMemory<byte> data)
+        => this.AppendMessage(
+            MessageBuilderHelper.AppendCustomMessage(capability, type, data),
+            queueFrame: true);
 
     public Task FlushAsync(CancellationToken token = default) =>
         this.FlushAsyncCore(force: false, token);
@@ -125,6 +118,7 @@ internal sealed class OpAmpPipe : IDisposable
             }
 
             this.isDisposed = true;
+            this.pendingFrames.Clear();
             this.TryCompleteFlushLocked();
         }
 
@@ -170,6 +164,39 @@ internal sealed class OpAmpPipe : IDisposable
         await flushTask.ConfigureAwait(false);
     }
 
+    private void AppendMessage(Action<IFrameBuilder> messageRequest, bool queueFrame)
+    {
+        lock (this.frameLock)
+        {
+            if (this.isStopped ||
+                this.isDisposed ||
+                this.tokenSource.IsCancellationRequested)
+            {
+                return; // Discard any new messages
+            }
+
+            if (queueFrame && this.pendingFrames.Count >= MaxPendingCustomMessages)
+            {
+                throw new InvalidOperationException(
+                    $"The custom message queue has reached its limit of {MaxPendingCustomMessages} pending messages.");
+            }
+
+            messageRequest(this.currentFrame);
+
+            if (queueFrame)
+            {
+                this.pendingFrames.Enqueue(this.currentFrame.Build());
+                this.hasAccumulatedData = false;
+            }
+            else
+            {
+                this.hasAccumulatedData = true;
+            }
+        }
+
+        this.TryFlush(this.tokenSource.Token);
+    }
+
     private Task FlushAsyncCore(bool force, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
@@ -205,11 +232,12 @@ internal sealed class OpAmpPipe : IDisposable
     }
 
     private bool IsFlushCompleteLocked()
-        => this.isDisposed || (!this.hasAccumulatedData && !this.isBusy);
+        => this.isDisposed ||
+            (!this.hasAccumulatedData && this.pendingFrames.Count == 0 && !this.isBusy);
 
     private Task? TryStartFlushLocked(CancellationToken token)
     {
-        if (this.isDisposed || !this.hasAccumulatedData)
+        if (this.isDisposed || (!this.hasAccumulatedData && this.pendingFrames.Count == 0))
         {
             return null;
         }
@@ -221,10 +249,23 @@ internal sealed class OpAmpPipe : IDisposable
 
         this.isBusy = true;
 
-        var message = this.currentFrame.Build();
-        this.hasAccumulatedData = false;
+        AgentToServer message;
+        if (this.pendingFrames.Count > 0)
+        {
+            message = this.pendingFrames.Dequeue();
+        }
+        else
+        {
+            message = this.currentFrame.Build();
+            this.hasAccumulatedData = false;
+        }
 
-        this.flushTask = this.SendMessageAsync(message, token);
+        // Always dispatch asynchronously so a synchronously completing transport cannot
+        // recursively drain the queue and eventually overflow the call stack. The send task
+        // must start even when token is canceled so SendMessageAsync can release the busy state.
+        this.flushTask = Task.Run(
+            () => this.SendMessageAsync(message, token),
+            CancellationToken.None);
 
         return this.flushTask;
     }
