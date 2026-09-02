@@ -304,6 +304,10 @@ A feature flag is available to opt-into changing the underlying
 serialization format to binary protobuf following the schema defined in [OTLP
 specification](https://github.com/open-telemetry/opentelemetry-proto/blob/v1.1.0/opentelemetry/proto/metrics/v1/metrics.proto).
 
+Metric dimensions with `null` values are exported as empty strings, matching
+the TLV serialization behavior. Geneva Metrics (MDM) records these dimension
+values as `__Empty`.
+
 When using OTLP protobuf encoding `Account` and `Namespace` are **NOT** required
 to be set on the `ConnectionString`. The recommended approach is to use
 OpenTelemetry Resource instead:

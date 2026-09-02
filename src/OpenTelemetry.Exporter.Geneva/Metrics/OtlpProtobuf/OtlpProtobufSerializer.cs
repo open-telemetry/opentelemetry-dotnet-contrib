@@ -285,6 +285,14 @@ internal sealed class OtlpProtobufSerializer
         // TODO: Serialize schema_url field.
     }
 
+    private static void SerializeMetricPointTags(byte[] buffer, ref int cursor, ReadOnlyTagCollection tags, int fieldNumber)
+    {
+        foreach (var tag in tags)
+        {
+            SerializeTag(buffer, ref cursor, tag.Key, tag.Value ?? string.Empty, fieldNumber);
+        }
+    }
+
     private static void SerializeExemplar<T>(byte[] buffer, ref int cursor, in Exemplar exemplar, T value, int fieldNumber)
     {
         var exemplarTagAndLengthIndex = cursor;
@@ -519,7 +527,7 @@ internal sealed class OtlpProtobufSerializer
                             var endTime = (ulong)metricPoint.EndTime.ToUnixTimeNanoseconds();
                             ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.HistogramDataPoint_time_unix_nano, endTime);
 
-                            SerializeTags(buffer, ref cursor, metricPoint.Tags, FieldNumberConstants.HistogramDataPoint_attributes);
+                            SerializeMetricPointTags(buffer, ref cursor, metricPoint.Tags, FieldNumberConstants.HistogramDataPoint_attributes);
 
                             if (this.prepopulatedHistogramDataPointAttributes != null)
                             {
@@ -601,7 +609,7 @@ internal sealed class OtlpProtobufSerializer
                             var endTime = (ulong)metricPoint.EndTime.ToUnixTimeNanoseconds();
                             ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.ExponentialHistogramDataPoint_time_unix_nano, endTime);
 
-                            SerializeTags(buffer, ref cursor, metricPoint.Tags, FieldNumberConstants.ExponentialHistogramDataPoint_attributes);
+                            SerializeMetricPointTags(buffer, ref cursor, metricPoint.Tags, FieldNumberConstants.ExponentialHistogramDataPoint_attributes);
 
                             if (this.prepopulatedExponentialHistogramDataPointAttributes != null)
                             {
@@ -694,7 +702,7 @@ internal sealed class OtlpProtobufSerializer
         var endTime = (ulong)metricPoint.EndTime.ToUnixTimeNanoseconds();
         ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.NumberDataPoint_time_unix_nano, endTime);
 
-        SerializeTags(buffer, ref cursor, metricPoint.Tags, FieldNumberConstants.NumberDataPoint_attributes);
+        SerializeMetricPointTags(buffer, ref cursor, metricPoint.Tags, FieldNumberConstants.NumberDataPoint_attributes);
 
         if (this.prepopulatedNumberDataPointAttributes != null)
         {

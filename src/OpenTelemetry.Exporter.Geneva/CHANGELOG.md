@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Changed OTLP protobuf metric serialization to export dimensions with `null`
+  values as empty strings, matching TLV serialization.
+  Fixes issue: ([#5020](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/5020)).
+
 ## 1.18.0-beta.2
 
 Released 2026-Aug-21
