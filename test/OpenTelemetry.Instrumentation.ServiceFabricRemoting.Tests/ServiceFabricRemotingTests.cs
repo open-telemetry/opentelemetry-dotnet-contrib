@@ -413,7 +413,8 @@ public class ServiceFabricRemotingTests
     }
 
     private sealed class CustomTestException : Exception
-    {        public CustomTestException(string message, string detail)
+    {
+        public CustomTestException(string message, string detail)
             : base(message)
         {
             this.Detail = detail;
