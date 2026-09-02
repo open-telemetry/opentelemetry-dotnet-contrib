@@ -1,11 +1,11 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using OpenTelemetry.DynamicControl.Internal.Sources;
+using OpenTelemetry.DynamicControl.Internal.Providers;
 
 namespace OpenTelemetry.DynamicControl.Tests;
 
-public class PolicySourceVersionTests
+public class PolicyProviderVersionTests
 {
     [Theory]
     [InlineData(null)]
@@ -13,28 +13,28 @@ public class PolicySourceVersionTests
     [InlineData("   ")]
     [InlineData("\t")]
     public void Constructor_WithNullEmptyOrWhitespace_Throws(string? value) =>
-        Assert.ThrowsAny<ArgumentException>(() => _ = new PolicySourceVersion(value!));
+        Assert.ThrowsAny<ArgumentException>(() => _ = new PolicyProviderVersion(value!));
 
     [Fact]
-    public void Empty_IsEmpty_True() => Assert.True(PolicySourceVersion.Empty.IsEmpty, "Empty.IsEmpty should be true");
+    public void Empty_IsEmpty_True() => Assert.True(PolicyProviderVersion.Empty.IsEmpty, "Empty.IsEmpty should be true");
 
     [Fact]
-    public void Empty_Value_ReturnsEmptyString() => Assert.Equal(string.Empty, PolicySourceVersion.Empty.Value);
+    public void Empty_Value_ReturnsEmptyString() => Assert.Equal(string.Empty, PolicyProviderVersion.Empty.Value);
 
     [Fact]
-    public void Empty_IsDefaultStruct() => Assert.Equal(default, PolicySourceVersion.Empty);
+    public void Empty_IsDefaultStruct() => Assert.Equal(default, PolicyProviderVersion.Empty);
 
     [Fact]
     public void Constructor_IsEmpty_False()
     {
-        var version = new PolicySourceVersion("abc");
+        var version = new PolicyProviderVersion("abc");
         Assert.False(version.IsEmpty, "a constructed version should not be empty");
     }
 
     [Fact]
     public void Constructor_Value_ReturnsSuppliedValue()
     {
-        var version = new PolicySourceVersion("etag-123");
+        var version = new PolicyProviderVersion("etag-123");
         Assert.Equal("etag-123", version.Value);
     }
 
@@ -43,8 +43,8 @@ public class PolicySourceVersionTests
     [InlineData("hash-xyz-456")]
     public void EqualValues_AreEqual_WithSameHashCode(string raw)
     {
-        var x = new PolicySourceVersion(raw);
-        var y = new PolicySourceVersion(raw);
+        var x = new PolicyProviderVersion(raw);
+        var y = new PolicyProviderVersion(raw);
 
         Assert.True(x.Equals(y), "Typed Equals should be true");
         Assert.True(x.Equals((object)y), "Object Equals should be true");
@@ -56,8 +56,8 @@ public class PolicySourceVersionTests
     [Fact]
     public void DifferentCase_NotEqual_OrdinalCaseSensitive()
     {
-        var lower = new PolicySourceVersion("abc");
-        var upper = new PolicySourceVersion("ABC");
+        var lower = new PolicyProviderVersion("abc");
+        var upper = new PolicyProviderVersion("ABC");
 
         Assert.False(lower.Equals(upper), "'abc' and 'ABC' should not be equal");
         Assert.True(lower != upper, "!= operator should be true");
@@ -66,19 +66,19 @@ public class PolicySourceVersionTests
     [Fact]
     public void Empty_NotEqualToConstructed()
     {
-        var version = new PolicySourceVersion("anything");
-        Assert.False(PolicySourceVersion.Empty.Equals(version), "Empty should not equal a constructed version");
-        Assert.False(version.Equals(PolicySourceVersion.Empty), "a constructed version should not equal Empty");
-        Assert.True(version != PolicySourceVersion.Empty, "!= operator should be true for non-equal versions");
+        var version = new PolicyProviderVersion("anything");
+        Assert.False(PolicyProviderVersion.Empty.Equals(version), "Empty should not equal a constructed version");
+        Assert.False(version.Equals(PolicyProviderVersion.Empty), "a constructed version should not equal Empty");
+        Assert.True(version != PolicyProviderVersion.Empty, "!= operator should be true for non-equal versions");
     }
 
     [Fact]
     public void ToString_ReturnsValue()
     {
-        var version = new PolicySourceVersion("etag-abc");
+        var version = new PolicyProviderVersion("etag-abc");
         Assert.Equal("etag-abc", version.ToString());
     }
 
     [Fact]
-    public void Empty_ToString_ReturnsEmptyString() => Assert.Equal(string.Empty, PolicySourceVersion.Empty.ToString());
+    public void Empty_ToString_ReturnsEmptyString() => Assert.Equal(string.Empty, PolicyProviderVersion.Empty.ToString());
 }

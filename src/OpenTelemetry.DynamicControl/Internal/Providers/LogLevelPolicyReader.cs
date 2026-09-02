@@ -4,7 +4,7 @@
 using System.Text.Json;
 using OpenTelemetry.DynamicControl.Internal.Policies;
 
-namespace OpenTelemetry.DynamicControl.Internal.Sources;
+namespace OpenTelemetry.DynamicControl.Internal.Providers;
 
 /// <summary>
 /// Builds a validated <see cref="LogLevelPolicy"/> from a single policy payload value.
