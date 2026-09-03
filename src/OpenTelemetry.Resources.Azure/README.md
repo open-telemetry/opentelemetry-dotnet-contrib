@@ -48,19 +48,19 @@ using var loggerFactory = LoggerFactory.Create(builder =>
 });
 ```
 
-| Attribute                   | Description                                                                                                                                                                                               |
-| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| azure.app.service.stamp     | The specific "stamp" cluster within Azure where the App Service is running, e.g., "waws-prod-sn1-001".                                                                                                    |
-| azure.resource_group.name   | The Azure resource group from `WEBSITE_RESOURCE_GROUP`. Emitted when the environment variable is non-empty.                                                                                               |
-| cloud.account.id            | The Azure subscription ID parsed from `WEBSITE_OWNER_NAME`. Emitted when the environment variable is non-empty.                                                                                           |
-| cloud.platform              | The cloud platform. Here, it's always "azure.app_service".                                                                                                                                                |
-| cloud.provider              | The cloud service provider. In this context, it's always "azure".                                                                                                                                         |
-| cloud.resource_id           | The Azure Resource Manager URI uniquely identifying the Azure App Service. Typically in the format "/subscriptions/{subscriptionId}/resourceGroups/{groupName}/providers/Microsoft.Web/sites/{siteName}". |
-| cloud.region                | The Azure region where the App Service is hosted, e.g., "East US", "West Europe", etc.                                                                                                                    |
-| deployment.environment.name | The deployment slot where the Azure App Service is running, such as "staging", "production", etc.                                                                                                         |
-| host.id                     | The primary hostname for the app, excluding any custom hostnames.                                                                                                                                         |
-| service.instance.id         | The specific instance of the Azure App Service, useful in a scaled-out configuration.                                                                                                                     |
-| service.name                | The name of the Azure App Service.                                                                                                                                                                        |
+| Attribute                   | Description                                                                                                                                                                                                                                                                                  |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| azure.app.service.stamp     | The specific "stamp" cluster within Azure where the App Service is running, from `WEBSITE_HOME_STAMPNAME`, e.g., "waws-prod-sn1-001".                                                                                                                                                        |
+| azure.resource_group.name   | The Azure resource group from `WEBSITE_RESOURCE_GROUP`. Emitted when the environment variable is non-empty.                                                                                                                                                                                  |
+| cloud.account.id            | The Azure subscription ID parsed from `WEBSITE_OWNER_NAME`. Emitted when the environment variable is non-empty.                                                                                                                                                                              |
+| cloud.platform              | The cloud platform. Here, it's always "azure.app_service".                                                                                                                                                                                                                                   |
+| cloud.provider              | The cloud service provider. In this context, it's always "azure".                                                                                                                                                                                                                            |
+| cloud.resource_id           | The Azure Resource Manager URI uniquely identifying the Azure App Service, built from `WEBSITE_SITE_NAME`, `WEBSITE_RESOURCE_GROUP` and `WEBSITE_OWNER_NAME`. Typically in the format "/subscriptions/{subscriptionId}/resourceGroups/{groupName}/providers/Microsoft.Web/sites/{siteName}". |
+| cloud.region                | The Azure region where the App Service is hosted, from `REGION_NAME`, e.g., "East US", "West Europe", etc.                                                                                                                                                                                   |
+| deployment.environment.name | The deployment slot where the Azure App Service is running, from `WEBSITE_SLOT_NAME`, such as "staging", "production", etc.                                                                                                                                                                  |
+| host.id                     | The primary hostname for the app from `WEBSITE_HOSTNAME`, excluding any custom hostnames.                                                                                                                                                                                                    |
+| service.instance.id         | The specific instance of the Azure App Service from `WEBSITE_INSTANCE_ID`, useful in a scaled-out configuration.                                                                                                                                                                             |
+| service.name                | The name of the Azure App Service from `WEBSITE_SITE_NAME`.                                                                                                                                                                                                                                  |
 
 ## VM Resource Detector
 
@@ -82,6 +82,11 @@ using var meterProvider = Sdk.CreateMeterProviderBuilder()
     // other configurations
     .Build();
 ```
+
+Unlike the other detectors in this package, the VM detector reads these values
+from the [Azure Instance Metadata
+Service](https://learn.microsoft.com/azure/virtual-machines/instance-metadata-service)
+rather than from environment variables.
 
 | Attribute              | Description                                                                                                                                                                                                                         |
 | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -118,10 +123,23 @@ using var meterProvider = Sdk.CreateMeterProviderBuilder()
     .Build();
 ```
 
-| Attribute           | Description                                                                                                                 |
-| ------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| cloud.platform      | The cloud platform. Here, it's always "azure.container_apps".                                                               |
-| cloud.provider      | The cloud service provider. In this context, it's always "azure".                                                           |
-| service.instance.id | Represents the specific instance ID of Azure Container Apps, useful in scaled-out configurations.                           |
-| service.name        | The name of the Azure Container Apps or Azure Container Apps job.                                                           |
-| service.version     | The current revision or version of Azure Container Apps, or in case of a Azure Container Apps job - the job execution name. |
+| Attribute           | Description                                                                                                                                                                                                 |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| cloud.platform      | The cloud platform. Here, it's always "azure.container_apps".                                                                                                                                               |
+| cloud.provider      | The cloud service provider. In this context, it's always "azure".                                                                                                                                           |
+| service.instance.id | Represents the specific instance ID of Azure Container Apps from `CONTAINER_APP_REPLICA_NAME`, useful in scaled-out configurations.                                                                         |
+| service.name        | The name of the Azure Container Apps from `CONTAINER_APP_NAME`, or of the Azure Container Apps job from `CONTAINER_APP_JOB_NAME`.                                                                           |
+| service.version     | The current revision or version of Azure Container Apps from `CONTAINER_APP_REVISION`, or in case of a Azure Container Apps job - the job execution name from `CONTAINER_APP_JOB_EXECUTION_NAME`.           |
+
+## Troubleshooting
+
+This component uses an
+[EventSource](https://docs.microsoft.com/dotnet/api/system.diagnostics.tracing.eventsource)
+with the name "OpenTelemetry-Resources-Azure" for its internal logging.
+Please refer to [SDK
+troubleshooting](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry/README.md#troubleshooting)
+for instructions on seeing these internal logs.
+
+A detector writes a `Verbose` event naming itself and the environment variable
+it looked for when that variable is absent and it therefore contributes no
+attributes.

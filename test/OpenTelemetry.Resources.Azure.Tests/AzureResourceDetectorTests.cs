@@ -1,10 +1,12 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics.Tracing;
 #if NETFRAMEWORK
 using System.Net.Http;
 #endif
 
+using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Resources.Azure.Tests;
@@ -318,6 +320,104 @@ public class AzureResourceDetectorTests
                 resource.Attributes);
         }
     }
+
+    [Fact]
+    public void AppServiceResourceDetectorLogsSkippedEventWhenSiteNameIsNotSet()
+    {
+        using var listener = new InMemoryEventListener(AzureResourcesEventSource.Log);
+
+        var environment = new Dictionary<string, string?>
+        {
+            [ResourceAttributeConstants.AppServiceSiteNameEnvVar] = null,
+        };
+
+        using (EnvironmentVariableScope.Create(environment))
+        {
+            var resource = ResourceBuilder.CreateEmpty().AddAzureAppServiceDetector().Build();
+
+            Assert.Empty(resource.Attributes);
+            Assert.Null(resource.SchemaUrl);
+        }
+
+        var skipped = Assert.Single(listener.Events, e => e.EventName == nameof(AzureResourcesEventSource.ResourceDetectorSkipped));
+
+        Assert.Equal(EventLevel.Verbose, skipped.Level);
+        Assert.Contains(nameof(AppServiceResourceDetector), GetPayloadText(skipped), StringComparison.Ordinal);
+        Assert.Contains(ResourceAttributeConstants.AppServiceSiteNameEnvVar, GetPayloadText(skipped), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AppServiceResourceDetectorDoesNotLogSkippedEventWhenSiteNameIsSet()
+    {
+        using var listener = new InMemoryEventListener(AzureResourcesEventSource.Log);
+
+        var environment = new Dictionary<string, string?>
+        {
+            [ResourceAttributeConstants.AppServiceSiteNameEnvVar] = "sitename",
+        };
+
+        using (EnvironmentVariableScope.Create(environment))
+        {
+            var resource = ResourceBuilder.CreateEmpty().AddAzureAppServiceDetector().Build();
+
+            Assert.NotEmpty(resource.Attributes);
+        }
+
+        Assert.DoesNotContain(listener.Events, e => e.EventName == nameof(AzureResourcesEventSource.ResourceDetectorSkipped));
+    }
+
+    [Fact]
+    public void AzureContainerAppsResourceDetectorLogsSkippedEventWhenNoContainerAppVariableIsSet()
+    {
+        using var listener = new InMemoryEventListener(AzureResourcesEventSource.Log);
+
+        var environment = new Dictionary<string, string?>
+        {
+            [ResourceAttributeConstants.AzureContainerAppsNameEnvVar] = null,
+            [ResourceAttributeConstants.AzureContainerAppJobNameEnvVar] = null,
+        };
+
+        using (EnvironmentVariableScope.Create(environment))
+        {
+            var resource = ResourceBuilder.CreateEmpty().AddAzureContainerAppsDetector().Build();
+
+            Assert.Empty(resource.Attributes);
+            Assert.Null(resource.SchemaUrl);
+        }
+
+        var skipped = Assert.Single(listener.Events, e => e.EventName == nameof(AzureResourcesEventSource.ResourceDetectorSkipped));
+
+        Assert.Equal(EventLevel.Verbose, skipped.Level);
+        Assert.Contains(nameof(AzureContainerAppsResourceDetector), GetPayloadText(skipped), StringComparison.Ordinal);
+        Assert.Contains(ResourceAttributeConstants.AzureContainerAppsNameEnvVar, GetPayloadText(skipped), StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData(ResourceAttributeConstants.AzureContainerAppsNameEnvVar, "containerAppName")]
+    [InlineData(ResourceAttributeConstants.AzureContainerAppJobNameEnvVar, "containerAppJobName")]
+    public void AzureContainerAppsResourceDetectorDoesNotLogSkippedEventWhenDetectionSucceeds(string environmentVariableName, string environmentVariableValue)
+    {
+        using var listener = new InMemoryEventListener(AzureResourcesEventSource.Log);
+
+        var environment = new Dictionary<string, string?>
+        {
+            [ResourceAttributeConstants.AzureContainerAppsNameEnvVar] = null,
+            [ResourceAttributeConstants.AzureContainerAppJobNameEnvVar] = null,
+            [environmentVariableName] = environmentVariableValue,
+        };
+
+        using (EnvironmentVariableScope.Create(environment))
+        {
+            var resource = ResourceBuilder.CreateEmpty().AddAzureContainerAppsDetector().Build();
+
+            Assert.NotEmpty(resource.Attributes);
+        }
+
+        Assert.DoesNotContain(listener.Events, e => e.EventName == nameof(AzureResourcesEventSource.ResourceDetectorSkipped));
+    }
+
+    private static string GetPayloadText(EventWrittenEventArgs eventData)
+        => string.Join(" ", eventData.Payload!);
 
     private static Resource DetectAppServiceResource(string? websiteOwnerName, string? websiteResourceGroup)
     {
