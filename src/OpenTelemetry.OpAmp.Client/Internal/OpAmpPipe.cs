@@ -14,6 +14,7 @@ namespace OpenTelemetry.OpAmp.Client.Internal;
 internal sealed class OpAmpPipe : IDisposable
 {
     internal const int MaxPendingCustomMessages = 2048;
+    internal const int MaxPendingCustomMessageBytes = 64 * 1024 * 1024;
 
     private readonly IOpAmpTransport transport;
     private readonly FrameProcessor processor;
@@ -27,6 +28,7 @@ internal sealed class OpAmpPipe : IDisposable
     private bool isDisposed;
     private bool isStopped;
     private bool hasAccumulatedData;
+    private long pendingCustomMessageBytes;
     private Task? flushTask;
     private TaskCompletionSource<bool>? flushCompletion;
 
@@ -98,12 +100,12 @@ internal sealed class OpAmpPipe : IDisposable
     }
 
     public void AppendMessage(Action<IFrameBuilder> messageRequest)
-        => this.AppendMessage(messageRequest, queueFrame: false);
+        => this.AppendMessage(messageRequest, customMessagePayloadBytes: null);
 
     public void AppendCustomMessage(string capability, string type, ReadOnlyMemory<byte> data)
         => this.AppendMessage(
             MessageBuilderHelper.AppendCustomMessage(capability, type, data),
-            queueFrame: true);
+            data.Length);
 
     public Task FlushAsync(CancellationToken token = default) =>
         this.FlushAsyncCore(force: false, token);
@@ -119,6 +121,7 @@ internal sealed class OpAmpPipe : IDisposable
 
             this.isDisposed = true;
             this.pendingFrames.Clear();
+            this.pendingCustomMessageBytes = 0;
             this.TryCompleteFlushLocked();
         }
 
@@ -164,7 +167,7 @@ internal sealed class OpAmpPipe : IDisposable
         await flushTask.ConfigureAwait(false);
     }
 
-    private void AppendMessage(Action<IFrameBuilder> messageRequest, bool queueFrame)
+    private void AppendMessage(Action<IFrameBuilder> messageRequest, int? customMessagePayloadBytes)
     {
         lock (this.frameLock)
         {
@@ -175,17 +178,27 @@ internal sealed class OpAmpPipe : IDisposable
                 return; // Discard any new messages
             }
 
-            if (queueFrame && this.pendingFrames.Count >= MaxPendingCustomMessages)
+            if (customMessagePayloadBytes.HasValue &&
+                this.pendingFrames.Count >= MaxPendingCustomMessages)
             {
                 throw new InvalidOperationException(
                     $"The custom message queue has reached its limit of {MaxPendingCustomMessages} pending messages.");
             }
 
+            if (customMessagePayloadBytes is { } payloadBytes &&
+                payloadBytes > MaxPendingCustomMessageBytes - this.pendingCustomMessageBytes)
+            {
+                throw new InvalidOperationException(
+                    $"The custom message queue would exceed its limit of " +
+                    $"{MaxPendingCustomMessageBytes} pending payload bytes.");
+            }
+
             messageRequest(this.currentFrame);
 
-            if (queueFrame)
+            if (customMessagePayloadBytes is { } queuedPayloadBytes)
             {
                 this.pendingFrames.Enqueue(this.currentFrame.Build());
+                this.pendingCustomMessageBytes += queuedPayloadBytes;
                 this.hasAccumulatedData = false;
             }
             else
@@ -255,6 +268,7 @@ internal sealed class OpAmpPipe : IDisposable
         if (this.pendingFrames.Count > 0)
         {
             message = this.pendingFrames.Dequeue();
+            this.pendingCustomMessageBytes -= message.CustomMessage.Data.Length;
         }
         else
         {
