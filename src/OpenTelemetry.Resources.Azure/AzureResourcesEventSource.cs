@@ -14,6 +14,7 @@ internal sealed class AzureResourcesEventSource : EventSource
     private const int EventIdFailedToDetectAppServiceResources = 1;
     private const int EventIdFailedToDetectAzureContainerAppResources = 2;
     private const int EventIdFailedToDetectAzureVMResources = 3;
+    private const int EventIdResourceDetectorSkipped = 5;
 
     [NonEvent]
     public void FailedToDetectAppServiceResources(Exception ex)
@@ -53,4 +54,8 @@ internal sealed class AzureResourcesEventSource : EventSource
     [Event(EventIdFailedToDetectAzureVMResources, Message = "Failed to detect Azure VM resources. Exception: {0}", Level = EventLevel.Warning)]
     public void FailedToDetectAzureVMResources(string exception)
         => this.WriteEvent(EventIdFailedToDetectAzureVMResources, exception);
+
+    [Event(EventIdResourceDetectorSkipped, Message = "Resource detector '{0}' did not detect any attributes because the environment variable '{1}' is not set.", Level = EventLevel.Verbose)]
+    public void ResourceDetectorSkipped(string detector, string environmentVariable)
+        => this.WriteEvent(EventIdResourceDetectorSkipped, detector, environmentVariable);
 }
