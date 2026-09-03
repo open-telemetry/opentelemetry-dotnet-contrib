@@ -231,13 +231,15 @@ internal sealed class OpAmpPipe : IDisposable
         }
     }
 
+    private bool HasDataToSendLocked()
+        => this.hasAccumulatedData || this.pendingFrames.Count > 0;
+
     private bool IsFlushCompleteLocked()
-        => this.isDisposed ||
-            (!this.hasAccumulatedData && this.pendingFrames.Count == 0 && !this.isBusy);
+        => this.isDisposed || (!this.HasDataToSendLocked() && !this.isBusy);
 
     private Task? TryStartFlushLocked(CancellationToken token)
     {
-        if (this.isDisposed || (!this.hasAccumulatedData && this.pendingFrames.Count == 0))
+        if (this.isDisposed || !this.HasDataToSendLocked())
         {
             return null;
         }
