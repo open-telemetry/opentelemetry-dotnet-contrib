@@ -66,6 +66,49 @@ public class AzureResourceDetectorTests
     }
 
     [Fact]
+    public void AzureVMResourceDetectorDoesNotRequestMetadataOnAppService()
+    {
+        var metadataWasRequested = false;
+        var originalRequestor =
+            AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse;
+
+        try
+        {
+            AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse = () =>
+            {
+                metadataWasRequested = true;
+                return null;
+            };
+
+            AzureVMResourceDetector.ClearCachedResource();
+
+            var environment = new Dictionary<string, string?>
+            {
+                [ResourceAttributeConstants.AppServiceSiteNameEnvVar] =
+                    "test-app-service",
+            };
+
+            using (EnvironmentVariableScope.Create(environment))
+            {
+                var resource = ResourceBuilder.CreateEmpty()
+                    .AddAzureVMDetector()
+                    .Build();
+
+                Assert.NotNull(resource);
+                Assert.Empty(resource.Attributes);
+                Assert.False(metadataWasRequested);
+            }
+        }
+        finally
+        {
+            AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse =
+                originalRequestor;
+
+            AzureVMResourceDetector.ClearCachedResource();
+        }
+    }
+
+    [Fact]
     public void AzureContainerAppsResourceDetectorHandlesFailure()
     {
         var resource = ResourceBuilder.CreateEmpty()
