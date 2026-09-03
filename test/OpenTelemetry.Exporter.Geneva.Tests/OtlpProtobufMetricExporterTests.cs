@@ -960,6 +960,64 @@ public abstract class OtlpProtobufMetricExporterTests
         }
     }
 
+    [Fact]
+    public void LargeExplicitHistogramSerialization()
+    {
+        const int boundaryCount = 1000;
+
+        using var meter = new Meter(nameof(this.LargeExplicitHistogramSerialization));
+
+        var exportedItems = new List<Metric>();
+        var boundaries = Enumerable.Range(0, boundaryCount).Select(i => (double)i).ToArray();
+        using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems));
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddMeter(meter.Name)
+            .AddView(
+                "TestHistogram",
+                new ExplicitBucketHistogramConfiguration
+                {
+                    Boundaries = boundaries,
+                })
+            .AddReader(inMemoryReader)
+            .Build();
+
+        meter.CreateHistogram<double>("TestHistogram").Record(boundaryCount / 2);
+        meterProvider.ForceFlush();
+
+        var buffer = new byte[65360];
+        var testTransport = new TestTransport();
+        var serializer = new OtlpProtobufSerializer(
+            testTransport,
+            metricsAccount: null,
+            metricsNamespace: null,
+            prepopulatedMetricDimensions: null,
+            prefixBufferWithUInt32LittleEndianLength: this.PrefixBufferWithUInt32LittleEndianLength);
+
+        serializer.SerializeAndSendMetrics(
+            buffer,
+            meterProvider.GetResource(),
+            new Batch<Metric>([.. exportedItems], exportedItems.Count));
+
+        // Verify the ResourceMetrics payload requires three significant varint bytes.
+        var blob = Assert.Single(testTransport.ExportedItems);
+        var payloadOffset = this.PrefixBufferWithUInt32LittleEndianLength ? 4 : 0;
+        var resourceMetricsLength =
+            (blob[payloadOffset + 1] & 0x7F) |
+            ((blob[payloadOffset + 2] & 0x7F) << 7) |
+            ((blob[payloadOffset + 3] & 0x7F) << 14);
+
+        Assert.Equal(0x0A, blob[payloadOffset]);
+        Assert.True(resourceMetricsLength > 0x3FFF, $"Fixture must exercise a three-byte length prefix but encoded {resourceMetricsLength} bytes.");
+
+        var request = this.AssertAndConvertExportedBlobToRequest(blob);
+        var dataPoint = Assert.Single(Assert.Single(Assert.Single(request.ResourceMetrics).ScopeMetrics).Metrics).Histogram.DataPoints.Single();
+        var expectedBucketCounts = new ulong[boundaryCount + 1];
+        expectedBucketCounts[boundaryCount / 2] = 1;
+
+        Assert.Equal(boundaries, dataPoint.ExplicitBounds.ToArray());
+        Assert.Equal(expectedBucketCounts, dataPoint.BucketCounts.ToArray());
+    }
+
     [Theory]
     [InlineData(new[] { -123.45, 23, .05, 100 })]
     public void HistogramSerializationMultipleMetricPoints(double[] doubleValues)
