@@ -67,11 +67,13 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
         // Add RPC and network tags at span creation time so that they are available for sampling decisions.
         // See https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/rpc/rpc-spans.md.
         var activitySource = WcfInstrumentationActivitySource.Get(options);
-        var activity = activitySource.StartActivity(
-            WcfInstrumentationActivitySource.IncomingRequestActivityName,
-            ActivityKind.Server,
-            ctx.ActivityContext,
-            CreateActivityTags(options, actionMetadata, request, channel));
+        var activity = activitySource.HasListeners()
+            ? activitySource.StartActivity(
+                WcfInstrumentationActivitySource.IncomingRequestActivityName,
+                ActivityKind.Server,
+                ctx.ActivityContext,
+                CreateActivityTags(options, actionMetadata, request, channel))
+            : null;
 
         if (activity != null)
         {
