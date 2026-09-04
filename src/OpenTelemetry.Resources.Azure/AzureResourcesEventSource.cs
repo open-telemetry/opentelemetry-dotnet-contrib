@@ -14,6 +14,7 @@ internal sealed class AzureResourcesEventSource : EventSource
     private const int EventIdFailedToDetectAppServiceResources = 1;
     private const int EventIdFailedToDetectAzureContainerAppResources = 2;
     private const int EventIdFailedToDetectAzureVMResources = 3;
+    private const int EventIdFailedToDetectAzureFunctionsResources = 4;
 
     [NonEvent]
     public void FailedToDetectAppServiceResources(Exception ex)
@@ -42,6 +43,15 @@ internal sealed class AzureResourcesEventSource : EventSource
         }
     }
 
+    [NonEvent]
+    public void FailedToDetectAzureFunctionsResources(Exception ex)
+    {
+        if (this.IsEnabled(EventLevel.Warning, EventKeywords.All))
+        {
+            this.FailedToDetectAzureFunctionsResources(ex.ToInvariantString());
+        }
+    }
+
     [Event(EventIdFailedToDetectAppServiceResources, Message = "Failed to detect Azure App Service resources. Exception: {0}", Level = EventLevel.Warning)]
     public void FailedToDetectAppServiceResources(string exception)
         => this.WriteEvent(EventIdFailedToDetectAppServiceResources, exception);
@@ -53,4 +63,8 @@ internal sealed class AzureResourcesEventSource : EventSource
     [Event(EventIdFailedToDetectAzureVMResources, Message = "Failed to detect Azure VM resources. Exception: {0}", Level = EventLevel.Warning)]
     public void FailedToDetectAzureVMResources(string exception)
         => this.WriteEvent(EventIdFailedToDetectAzureVMResources, exception);
+
+    [Event(EventIdFailedToDetectAzureFunctionsResources, Message = "Failed to detect Azure Functions resources. Exception: {0}", Level = EventLevel.Warning)]
+    public void FailedToDetectAzureFunctionsResources(string exception)
+        => this.WriteEvent(EventIdFailedToDetectAzureFunctionsResources, exception);
 }

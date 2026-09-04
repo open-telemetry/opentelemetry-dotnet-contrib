@@ -13,6 +13,7 @@ public class AzureResourceDetectorTests
 {
     // See https://learn.microsoft.com/azure/virtual-machines/instance-metadata-service
     private const string AzureVmMetadataEndpointUri = "http://169.254.169.254/metadata/instance?api-version=2025-04-07";
+    private const string FunctionsExtensionVersionEnvVar = "FUNCTIONS_EXTENSION_VERSION";
     private static readonly HttpClient HttpClient = new() { Timeout = TimeSpan.FromSeconds(3) };
 
     public static async Task<bool> IsRunningOnAzureVMAsync()
@@ -114,6 +115,93 @@ public class AzureResourceDetectorTests
             {
                 Assert.Contains(new KeyValuePair<string, object>(kvp.Key, kvp.Key), resource.Attributes);
             }
+        }
+    }
+
+    [Fact]
+    public void AzureFunctionsResourceDetectorTakesPriorityOverAppService()
+    {
+        var environment = CreateAzureFunctionsEnvironment();
+        environment[ResourceAttributeConstants.AzureFunctionsWorkerRuntimeEnvVar] = "dotnet-isolated";
+        environment[FunctionsExtensionVersionEnvVar] = "~4";
+        environment[ResourceAttributeConstants.AppServiceSiteNameEnvVar] = "function-app";
+        environment[ResourceAttributeConstants.AppServiceRegionNameEnvVar] = "eastus";
+        environment[ResourceAttributeConstants.AppServiceResourceGroupEnvVar] = "function-rg";
+        environment[ResourceAttributeConstants.AppServiceOwnerNameEnvVar] = "subscription-id+function-rg-EastUSwebspace";
+        environment[ResourceAttributeConstants.AppServiceInstanceIdEnvVar] = "function-instance";
+        environment[ResourceAttributeConstants.AppServiceSlotNameEnvVar] = "staging";
+        environment[ResourceAttributeConstants.AppServiceHostNameEnvVar] = "function-app.azurewebsites.net";
+        environment[ResourceAttributeConstants.AppServiceStampNameEnvVar] = "waws-prod-test";
+
+        using (EnvironmentVariableScope.Create(environment))
+        {
+            var resource = ResourceBuilder.CreateEmpty().AddAzureAppServiceDetector().Build();
+
+            Assert.NotNull(resource);
+            Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
+            Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "function-app"), resource.Attributes);
+            Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudProvider, "azure"), resource.Attributes);
+            Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudPlatform, "azure.functions"), resource.Attributes);
+            Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudRegion, "eastus"), resource.Attributes);
+            Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudAccount, "subscription-id"), resource.Attributes);
+            Assert.Contains(new KeyValuePair<string, object>(ResourceAttributeConstants.AzureResourceGroupName, "function-rg"), resource.Attributes);
+            Assert.Contains(
+                new KeyValuePair<string, object>(
+                    ResourceSemanticConventions.AttributeCloudResourceId,
+                    "/subscriptions/subscription-id/resourceGroups/function-rg/providers/Microsoft.Web/sites/function-app"),
+                resource.Attributes);
+            Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeFaasInstance, "function-instance"), resource.Attributes);
+            Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeDeploymentEnvironmentName, "staging"), resource.Attributes);
+            Assert.DoesNotContain(resource.Attributes, attribute => attribute.Key == ResourceSemanticConventions.AttributeFaasVersion);
+            Assert.DoesNotContain(resource.Attributes, attribute => attribute.Key == ResourceSemanticConventions.AttributeServiceInstance);
+            Assert.DoesNotContain(resource.Attributes, attribute => attribute.Key == ResourceSemanticConventions.AttributeHostId);
+            Assert.DoesNotContain(resource.Attributes, attribute => attribute.Key == ResourceAttributeConstants.AzureAppServiceStamp);
+        }
+    }
+
+    [Fact]
+    public void AzureFunctionsResourceDetectorOmitsMissingOptionalAttributes()
+    {
+        var environment = CreateAzureFunctionsEnvironment();
+        environment[ResourceAttributeConstants.AzureFunctionsWorkerRuntimeEnvVar] = "dotnet-isolated";
+        environment[FunctionsExtensionVersionEnvVar] = "~4";
+
+        using (EnvironmentVariableScope.Create(environment))
+        {
+            var resource = ResourceBuilder.CreateEmpty().AddAzureAppServiceDetector().Build();
+
+            Assert.NotNull(resource);
+            Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
+            Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudProvider, "azure"), resource.Attributes);
+            Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudPlatform, "azure.functions"), resource.Attributes);
+            Assert.Equal(2, resource.Attributes.Count());
+            Assert.DoesNotContain(resource.Attributes, attribute => attribute.Key == ResourceSemanticConventions.AttributeFaasVersion);
+        }
+    }
+
+    [Theory]
+    [InlineData("website-instance", "pod-instance", "container-instance", "website-instance")]
+    [InlineData(null, "pod-instance", "container-instance", "pod-instance")]
+    [InlineData(null, null, "container-instance", "container-instance")]
+    public void AzureFunctionsResourceDetectorSelectsAuthoritativeInstanceId(
+        string? websiteInstanceId,
+        string? websitePodName,
+        string? containerName,
+        string expectedInstanceId)
+    {
+        var environment = CreateAzureFunctionsEnvironment();
+        environment[ResourceAttributeConstants.AzureFunctionsWorkerRuntimeEnvVar] = "dotnet-isolated";
+        environment[ResourceAttributeConstants.AppServiceInstanceIdEnvVar] = websiteInstanceId;
+        environment[ResourceAttributeConstants.AzureFunctionsPodNameEnvVar] = websitePodName;
+        environment[ResourceAttributeConstants.AzureFunctionsContainerNameEnvVar] = containerName;
+
+        using (EnvironmentVariableScope.Create(environment))
+        {
+            var resource = ResourceBuilder.CreateEmpty().AddAzureAppServiceDetector().Build();
+
+            Assert.Contains(
+                new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeFaasInstance, expectedInstanceId),
+                resource.Attributes);
         }
     }
 
@@ -317,6 +405,25 @@ public class AzureResourceDetectorTests
                 new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "my-app-service"),
                 resource.Attributes);
         }
+    }
+
+    private static Dictionary<string, string?> CreateAzureFunctionsEnvironment()
+    {
+        return new Dictionary<string, string?>
+        {
+            [ResourceAttributeConstants.AzureFunctionsWorkerRuntimeEnvVar] = null,
+            [FunctionsExtensionVersionEnvVar] = null,
+            [ResourceAttributeConstants.AppServiceSiteNameEnvVar] = null,
+            [ResourceAttributeConstants.AppServiceRegionNameEnvVar] = null,
+            [ResourceAttributeConstants.AppServiceResourceGroupEnvVar] = null,
+            [ResourceAttributeConstants.AppServiceOwnerNameEnvVar] = null,
+            [ResourceAttributeConstants.AppServiceInstanceIdEnvVar] = null,
+            [ResourceAttributeConstants.AzureFunctionsPodNameEnvVar] = null,
+            [ResourceAttributeConstants.AzureFunctionsContainerNameEnvVar] = null,
+            [ResourceAttributeConstants.AppServiceSlotNameEnvVar] = null,
+            [ResourceAttributeConstants.AppServiceHostNameEnvVar] = null,
+            [ResourceAttributeConstants.AppServiceStampNameEnvVar] = null,
+        };
     }
 
     private static Resource DetectAppServiceResource(string? websiteOwnerName, string? websiteResourceGroup)
