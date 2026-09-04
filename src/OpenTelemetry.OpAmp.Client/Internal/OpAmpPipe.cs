@@ -100,12 +100,52 @@ internal sealed class OpAmpPipe : IDisposable
     }
 
     public void AppendMessage(Action<IFrameBuilder> messageRequest)
-        => this.AppendMessage(messageRequest, customMessagePayloadBytes: null);
+    {
+        lock (this.frameLock)
+        {
+            if (!this.IsAcceptingMessagesLocked())
+            {
+                return; // Discard any new messages
+            }
+
+            messageRequest(this.currentFrame);
+            this.hasAccumulatedData = true;
+        }
+
+        this.TryFlush(this.tokenSource.Token);
+    }
 
     public void AppendCustomMessage(string capability, string type, ReadOnlyMemory<byte> data)
-        => this.AppendMessage(
-            MessageBuilderHelper.AppendCustomMessage(capability, type, data),
-            data.Length);
+    {
+        lock (this.frameLock)
+        {
+            if (!this.IsAcceptingMessagesLocked())
+            {
+                return; // Discard any new messages
+            }
+
+            if (this.pendingFrames.Count >= MaxPendingCustomMessages)
+            {
+                throw new InvalidOperationException(
+                    $"The custom message queue has reached its limit of {MaxPendingCustomMessages} pending messages.");
+            }
+
+            if (data.Length > MaxPendingCustomMessageBytes - this.pendingCustomMessageBytes)
+            {
+                throw new InvalidOperationException(
+                    $"The custom message queue would exceed its limit of " +
+                    $"{MaxPendingCustomMessageBytes} pending payload bytes.");
+            }
+
+            MessageBuilderHelper.AppendCustomMessage(this.currentFrame, capability, type, data);
+
+            this.pendingFrames.Enqueue(this.currentFrame.Build());
+            this.pendingCustomMessageBytes += data.Length;
+            this.hasAccumulatedData = false;
+        }
+
+        this.TryFlush(this.tokenSource.Token);
+    }
 
     public Task FlushAsync(CancellationToken token = default) =>
         this.FlushAsyncCore(force: false, token);
@@ -167,48 +207,10 @@ internal sealed class OpAmpPipe : IDisposable
         await flushTask.ConfigureAwait(false);
     }
 
-    private void AppendMessage(Action<IFrameBuilder> messageRequest, int? customMessagePayloadBytes)
-    {
-        lock (this.frameLock)
-        {
-            if (this.isStopped ||
-                this.isDisposed ||
-                this.tokenSource.IsCancellationRequested)
-            {
-                return; // Discard any new messages
-            }
-
-            if (customMessagePayloadBytes.HasValue &&
-                this.pendingFrames.Count >= MaxPendingCustomMessages)
-            {
-                throw new InvalidOperationException(
-                    $"The custom message queue has reached its limit of {MaxPendingCustomMessages} pending messages.");
-            }
-
-            if (customMessagePayloadBytes is { } payloadBytes &&
-                payloadBytes > MaxPendingCustomMessageBytes - this.pendingCustomMessageBytes)
-            {
-                throw new InvalidOperationException(
-                    $"The custom message queue would exceed its limit of " +
-                    $"{MaxPendingCustomMessageBytes} pending payload bytes.");
-            }
-
-            messageRequest(this.currentFrame);
-
-            if (customMessagePayloadBytes is { } queuedPayloadBytes)
-            {
-                this.pendingFrames.Enqueue(this.currentFrame.Build());
-                this.pendingCustomMessageBytes += queuedPayloadBytes;
-                this.hasAccumulatedData = false;
-            }
-            else
-            {
-                this.hasAccumulatedData = true;
-            }
-        }
-
-        this.TryFlush(this.tokenSource.Token);
-    }
+    private bool IsAcceptingMessagesLocked()
+        => !this.isStopped &&
+            !this.isDisposed &&
+            !this.tokenSource.IsCancellationRequested;
 
     private Task FlushAsyncCore(bool force, CancellationToken token)
     {
