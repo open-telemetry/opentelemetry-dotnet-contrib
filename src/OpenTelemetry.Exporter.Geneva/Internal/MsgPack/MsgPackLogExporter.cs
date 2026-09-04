@@ -216,7 +216,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
         var tempPrepopulatedFields = this.prepopulatedFields != null
             ? new Dictionary<string, object>(this.prepopulatedFields, StringComparer.Ordinal)
-            : new Dictionary<string, object>(StringComparer.Ordinal);
+            : [with(StringComparer.Ordinal)];
         foreach (var resourceAttribute in resourceAttributes)
         {
             var key = resourceAttribute.Key;

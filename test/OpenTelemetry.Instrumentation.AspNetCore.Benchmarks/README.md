@@ -4,5 +4,5 @@ Navigate to the `./test/OpenTelemetry.Instrumentation.AspNetCore.Benchmarks`
 directory and run the following command to run all of the benchmarks:
 
 ```sh
-dotnet run --configuration Release --framework net10.0 -- --filter "*"
+dotnet run --configuration Release --framework net11.0 -- --filter "*"
 ```
