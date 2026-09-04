@@ -13,17 +13,22 @@ namespace OpenTelemetry.OpAmp.Client.Internal;
 
 internal sealed class OpAmpPipe : IDisposable
 {
+    internal const int MaxPendingCustomMessages = 2048;
+    internal const int MaxPendingCustomMessageBytes = 64 * 1024 * 1024;
+
     private readonly IOpAmpTransport transport;
     private readonly FrameProcessor processor;
     private readonly Lock frameLock = new();
     private readonly CancellationTokenSource tokenSource = new();
     private readonly ServerFrameHandler? frameHandler;
     private readonly FrameBuilder currentFrame;
+    private readonly Queue<AgentToServer> pendingFrames = [];
 
     private bool isBusy;
     private bool isDisposed;
     private bool isStopped;
     private bool hasAccumulatedData;
+    private long pendingCustomMessageBytes;
     private Task? flushTask;
     private TaskCompletionSource<bool>? flushCompletion;
 
@@ -98,15 +103,45 @@ internal sealed class OpAmpPipe : IDisposable
     {
         lock (this.frameLock)
         {
-            if (this.isStopped ||
-                this.isDisposed ||
-                this.tokenSource.IsCancellationRequested)
+            if (!this.IsAcceptingMessagesLocked())
             {
                 return; // Discard any new messages
             }
 
             messageRequest(this.currentFrame);
             this.hasAccumulatedData = true;
+        }
+
+        this.TryFlush(this.tokenSource.Token);
+    }
+
+    public void AppendCustomMessage(string capability, string type, ReadOnlyMemory<byte> data)
+    {
+        lock (this.frameLock)
+        {
+            if (!this.IsAcceptingMessagesLocked())
+            {
+                return; // Discard any new messages
+            }
+
+            if (this.pendingFrames.Count >= MaxPendingCustomMessages)
+            {
+                throw new InvalidOperationException(
+                    $"The custom message queue has reached its limit of {MaxPendingCustomMessages} pending messages.");
+            }
+
+            if (data.Length > MaxPendingCustomMessageBytes - this.pendingCustomMessageBytes)
+            {
+                throw new InvalidOperationException(
+                    $"The custom message queue would exceed its limit of " +
+                    $"{MaxPendingCustomMessageBytes} pending payload bytes.");
+            }
+
+            MessageBuilderHelper.AppendCustomMessage(this.currentFrame, capability, type, data);
+
+            this.pendingFrames.Enqueue(this.currentFrame.Build());
+            this.pendingCustomMessageBytes += data.Length;
+            this.hasAccumulatedData = false;
         }
 
         this.TryFlush(this.tokenSource.Token);
@@ -125,6 +160,8 @@ internal sealed class OpAmpPipe : IDisposable
             }
 
             this.isDisposed = true;
+            this.pendingFrames.Clear();
+            this.pendingCustomMessageBytes = 0;
             this.TryCompleteFlushLocked();
         }
 
@@ -170,6 +207,11 @@ internal sealed class OpAmpPipe : IDisposable
         await flushTask.ConfigureAwait(false);
     }
 
+    private bool IsAcceptingMessagesLocked()
+        => !this.isStopped &&
+            !this.isDisposed &&
+            !this.tokenSource.IsCancellationRequested;
+
     private Task FlushAsyncCore(bool force, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
@@ -204,12 +246,15 @@ internal sealed class OpAmpPipe : IDisposable
         }
     }
 
+    private bool HasDataToSendLocked()
+        => this.hasAccumulatedData || this.pendingFrames.Count > 0;
+
     private bool IsFlushCompleteLocked()
-        => this.isDisposed || (!this.hasAccumulatedData && !this.isBusy);
+        => this.isDisposed || (!this.HasDataToSendLocked() && !this.isBusy);
 
     private Task? TryStartFlushLocked(CancellationToken token)
     {
-        if (this.isDisposed || !this.hasAccumulatedData)
+        if (this.isDisposed || !this.HasDataToSendLocked())
         {
             return null;
         }
@@ -221,10 +266,24 @@ internal sealed class OpAmpPipe : IDisposable
 
         this.isBusy = true;
 
-        var message = this.currentFrame.Build();
-        this.hasAccumulatedData = false;
+        AgentToServer message;
+        if (this.pendingFrames.Count > 0)
+        {
+            message = this.pendingFrames.Dequeue();
+            this.pendingCustomMessageBytes -= message.CustomMessage.Data.Length;
+        }
+        else
+        {
+            message = this.currentFrame.Build();
+            this.hasAccumulatedData = false;
+        }
 
-        this.flushTask = this.SendMessageAsync(message, token);
+        // Always dispatch asynchronously so a synchronously completing transport cannot
+        // recursively drain the queue and eventually overflow the call stack. The send task
+        // must start even when token is canceled so SendMessageAsync can release the busy state.
+        this.flushTask = Task.Run(
+            () => this.SendMessageAsync(message, token),
+            CancellationToken.None);
 
         return this.flushTask;
     }

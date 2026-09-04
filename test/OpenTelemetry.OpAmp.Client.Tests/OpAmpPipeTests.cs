@@ -61,6 +61,127 @@ public abstract class OpAmpPipeTests
     }
 
     [Fact]
+    public async Task OpAmpPipe_PreservesAccumulatedCustomMessages()
+    {
+        const int customMessageCount = 3;
+
+        using var transport = this.GetTransport();
+        var settings = new OpAmpClientSettings();
+        var processor = new FrameProcessor();
+        using var pipe = new OpAmpPipe(settings, processor, transport);
+        var serverFrame = new ServerToAgent().ToByteArray();
+
+        AppendIdentification(pipe);
+        await transport.WaitForMessagesAsync(1);
+
+        for (var i = 0; i < customMessageCount; i++)
+        {
+            AppendCustomMessage(pipe, i);
+        }
+
+        Assert.Single(transport.Messages);
+        using var flushCancellation = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var flushTask = pipe.FlushAsync(flushCancellation.Token);
+        Assert.False(flushTask.IsCompleted);
+
+        for (var expectedMessageCount = 2;
+            expectedMessageCount <= customMessageCount + 1;
+            expectedMessageCount++)
+        {
+            transport.CompleteNextSend();
+            processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+            await transport.WaitForMessagesAsync(expectedMessageCount);
+        }
+
+        transport.CompleteNextSend();
+        processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+        await flushTask;
+
+        var messages = transport.Messages.ToArray();
+        Assert.Equal([1UL, 2UL, 3UL, 4UL], [.. messages.Select(m => m.SequenceNum)]);
+
+        for (var i = 0; i < customMessageCount; i++)
+        {
+            var customMessage = messages[i + 1].CustomMessage;
+            Assert.NotNull(customMessage);
+            Assert.Equal($"capability-{i}", customMessage.Capability);
+            Assert.Equal($"type-{i}", customMessage.Type);
+            Assert.Equal([(byte)i], customMessage.Data.ToByteArray());
+        }
+    }
+
+    [Fact]
+    public async Task OpAmpPipe_RejectsCustomMessagesBeyondQueueLimit()
+    {
+        using var transport = this.GetTransport();
+        var settings = new OpAmpClientSettings();
+        var processor = new FrameProcessor();
+        using var pipe = new OpAmpPipe(settings, processor, transport);
+        var serverFrame = new ServerToAgent().ToByteArray();
+
+        AppendIdentification(pipe);
+        await transport.WaitForMessagesAsync(1);
+
+        for (var i = 0; i < OpAmpPipe.MaxPendingCustomMessages; i++)
+        {
+            AppendCustomMessage(pipe, i);
+        }
+
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => AppendCustomMessage(pipe, OpAmpPipe.MaxPendingCustomMessages));
+
+        Assert.Contains(OpAmpPipe.MaxPendingCustomMessages.ToString(), exception.Message);
+        Assert.Single(transport.Messages);
+
+        transport.CompleteNextSend();
+        processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+        await transport.WaitForMessagesAsync(2);
+
+        // Dequeueing a pending frame must make capacity available immediately.
+        AppendCustomMessage(pipe, OpAmpPipe.MaxPendingCustomMessages);
+    }
+
+    [Fact]
+    public async Task OpAmpPipe_RejectsCustomMessagesBeyondQueuePayloadByteLimit()
+    {
+        const int payloadSize = 1024 * 1024;
+        const int messagesAtLimit = OpAmpPipe.MaxPendingCustomMessageBytes / payloadSize;
+
+        using var transport = this.GetTransport();
+        var settings = new OpAmpClientSettings();
+        var processor = new FrameProcessor();
+        using var pipe = new OpAmpPipe(settings, processor, transport);
+        var serverFrame = new ServerToAgent().ToByteArray();
+        var payload = new byte[payloadSize];
+
+        AppendIdentification(pipe);
+        await transport.WaitForMessagesAsync(1);
+
+        for (var i = 0; i < messagesAtLimit; i++)
+        {
+            AppendCustomMessage(pipe, i, payload);
+        }
+
+        var fullQueueException = Assert.Throws<InvalidOperationException>(
+            () => AppendCustomMessage(pipe, messagesAtLimit, new byte[1]));
+        Assert.Contains(OpAmpPipe.MaxPendingCustomMessageBytes.ToString(), fullQueueException.Message);
+        Assert.Single(transport.Messages);
+
+        transport.CompleteNextSend();
+        processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+        await transport.WaitForMessagesAsync(2);
+
+        var firstCustomMessage = transport.Messages[1];
+        Assert.Equal(2UL, firstCustomMessage.SequenceNum);
+        Assert.Equal("type-0", firstCustomMessage.CustomMessage.Type);
+
+        // Dequeueing a pending frame must make its payload-byte capacity available immediately.
+        AppendCustomMessage(pipe, messagesAtLimit + 1, payload);
+        Assert.Throws<InvalidOperationException>(
+            () => AppendCustomMessage(pipe, messagesAtLimit + 2, new byte[1]));
+    }
+
+    [Fact]
     public async Task OpAmpPipe_FlushAsyncCompletes_WhenNoMessagesArePending()
     {
         using var transport = this.GetTransport();
@@ -253,6 +374,18 @@ public abstract class OpAmpPipeTests
 
     internal static void AppendHeartbeat(OpAmpPipe pipe)
         => pipe.AppendMessage(MessageBuilderHelper.AppendHeartbeat(CreateHealthReport()));
+
+    internal static void AppendCustomMessage(OpAmpPipe pipe, int index)
+        => pipe.AppendCustomMessage(
+            $"capability-{index}",
+            $"type-{index}",
+            new byte[] { (byte)index });
+
+    internal static void AppendCustomMessage(OpAmpPipe pipe, int index, ReadOnlyMemory<byte> payload)
+        => pipe.AppendCustomMessage(
+            $"capability-{index}",
+            $"type-{index}",
+            payload);
 
     internal abstract MockControlledTransport GetTransport(Action? firstSendCallback = null);
 

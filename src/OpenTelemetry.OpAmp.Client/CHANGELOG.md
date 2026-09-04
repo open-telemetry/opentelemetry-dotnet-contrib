@@ -8,6 +8,11 @@
   background once communication is restored.
   ([#4930](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4930))
 
+* Preserve custom messages queued while the communication channel is blocked
+  and reject new messages when the queue's message-count or payload-byte limit
+  is reached.
+  ([#5161](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5161))
+
 ## 0.6.0-alpha.1
 
 Released 2026-Jul-07

@@ -96,6 +96,11 @@ Use `SendCustomCapabilities()` to advertise custom capability names
 supported by the client. Use `SendCustomMessage()` to send a typed payload
 for one of those capabilities.
 
+The client retains up to 2,048 custom messages with up to 64 MiB of aggregate
+payload data while another message is being sent. `SendCustomMessage()` throws
+`InvalidOperationException` when either queue limit would be exceeded. Await
+`FlushAsync()` before retrying the rejected message.
+
 Server-provided custom capabilities and custom messages are exposed through
 `CustomCapabilitiesMessage` and `CustomMessageMessage` subscriptions.
 
