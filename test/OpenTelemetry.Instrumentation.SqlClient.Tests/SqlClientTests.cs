@@ -288,7 +288,65 @@ public class SqlClientTests
     }
 
     [Fact]
-    public void PendingStartTimestampIsReleasedWhenInstrumentationIsDisabledMidCommand()
+    public void ActivityDurationUsesCommandActivityWhenAmbientActivityChanges()
+    {
+        var activities = new List<Activity>();
+        var metrics = new List<Metric>();
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(activities)
+            .Build();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(metrics)
+            .Build();
+
+        var command = new FakeDbCommand
+        {
+            CommandType = CommandType.StoredProcedure,
+            CommandText = "SP_GetOrders",
+            Connection = new FakeDbConnection(),
+        };
+
+        var parentActivity = SqlTelemetryHelper.ActivitySource.StartActivity("parent");
+        Assert.NotNull(parentActivity);
+
+        Activity? ambientActivity = null;
+        try
+        {
+            MockCommandExecutor.ExecuteCommandWithAmbientChange(
+                command,
+                SqlClientLibrary.MicrosoftDataSqlClient,
+                afterBegin: () => ambientActivity = SqlTelemetryHelper.ActivitySource.StartActivity("ambient"));
+
+            Assert.Same(ambientActivity, Activity.Current);
+            Assert.Equal(TimeSpan.Zero, parentActivity!.Duration);
+        }
+        finally
+        {
+            ambientActivity?.Stop();
+            parentActivity?.Stop();
+        }
+
+        tracerProvider.ForceFlush();
+        meterProvider.ForceFlush();
+
+        Assert.Contains(activities, activity => activity.DisplayName == "EXECUTE SP_GetOrders");
+        var metric = Assert.Single(metrics, m => m.Name == "db.client.operation.duration");
+        var metricPoints = new List<MetricPoint>();
+        foreach (var point in metric.GetMetricPoints())
+        {
+            metricPoints.Add(point);
+        }
+
+        var metricPoint = Assert.Single(metricPoints);
+        Assert.Equal(1, metricPoint.GetHistogramCount());
+        Assert.True(metricPoint.GetHistogramSum() > 0d);
+    }
+
+    [Fact]
+    public void PendingBeginStateIsReleasedWhenInstrumentationIsDisabledMidCommand()
     {
         var listener = new SqlClientDiagnosticListener(SqlClientInstrumentation.SqlClientDiagnosticListenerName);
 
@@ -311,10 +369,9 @@ public class SqlClientTests
                 {
                     OperationId = operationId,
                     Command = command,
-                    Timestamp = (long?)1000000L,
                 });
 
-            Assert.Equal(1, listener.PendingBeginTimestampCount);
+            Assert.Equal(1, listener.PendingBeginStateCount);
         }
 
         listener.OnEventWritten(
@@ -324,14 +381,13 @@ public class SqlClientTests
                 OperationId = operationId,
                 Command = command,
                 Statistics = (IDictionary?)null,
-                Timestamp = 2000000L,
             });
 
-        Assert.Equal(0, listener.PendingBeginTimestampCount);
+        Assert.Equal(0, listener.PendingBeginStateCount);
     }
 
     [Fact]
-    public void MetricDurationNotRecordedWhenCommandHasNoStartTimestamp()
+    public void MetricDurationNotRecordedForUnknownOperationIdCompletion()
     {
         var metrics = new List<Metric>();
 
@@ -352,6 +408,53 @@ public class SqlClientTests
         meterProvider.ForceFlush();
 
         Assert.Empty(metrics);
+    }
+
+    [Fact]
+    public void MalformedBeginDoesNotLeaveActivityOrPendingState()
+    {
+        var listener = new SqlClientDiagnosticListener(SqlClientInstrumentation.SqlClientDiagnosticListenerName);
+        var activities = new List<Activity>();
+        using var ambientActivity = new Activity("ambient").Start();
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddInMemoryExporter(activities)
+            .AddSqlClientInstrumentation()
+            .Build();
+
+        listener.OnEventWritten(
+            SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand,
+            new
+            {
+                OperationId = "not-a-guid",
+                Command = new FakeDbCommand
+                {
+                    CommandType = CommandType.StoredProcedure,
+                    CommandText = "SP_GetOrders",
+                    Connection = new FakeDbConnection(),
+                },
+            });
+
+        Assert.Same(ambientActivity, Activity.Current);
+        Assert.Equal(0, listener.PendingBeginStateCount);
+        tracerProvider.ForceFlush();
+        Assert.Empty(activities);
+    }
+
+    [Fact]
+    public void MalformedCompletionDoesNotStopForeignAmbientActivity()
+    {
+        var listener = new SqlClientDiagnosticListener(SqlClientInstrumentation.SqlClientDiagnosticListenerName);
+        using var ambientActivity = new Activity("ambient").Start();
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .Build();
+
+        listener.OnEventWritten(
+            SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand,
+            new { Command = new FakeDbCommand() });
+
+        Assert.Same(ambientActivity, Activity.Current);
+        Assert.Equal(0, listener.PendingBeginStateCount);
     }
 #endif
 

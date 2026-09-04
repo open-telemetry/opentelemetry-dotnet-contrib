@@ -47,7 +47,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
     private readonly PropertyFetcher<IDictionary> statisticsFetcher = new("Statistics");
     private readonly PropertyFetcher<Guid> operationIdFetcher = new("OperationId");
     private readonly PropertyFetcher<string> operationFetcher = new("Operation");
-    private readonly ConcurrentDictionary<Guid, long> beginTimestamps = new();
+    private readonly ConcurrentDictionary<Guid, BeginState> beginStates = new();
 
     public SqlClientDiagnosticListener(string sourceName)
         : base(sourceName)
@@ -56,7 +56,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
     public override bool SupportsNullActivity => true;
 
-    internal int PendingBeginTimestampCount => this.beginTimestamps.Count;
+    internal int PendingBeginStateCount => this.beginStates.Count;
 
     public override void OnEventWritten(string name, object? payload)
     {
@@ -65,9 +65,9 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
         {
             // The instrumentation may have been disabled part way through a command's
             // execution, so make sure any timestamp entry is cleaned up.
-            if (!this.beginTimestamps.IsEmpty)
+            if (!this.beginStates.IsEmpty)
             {
-                _ = this.TakeBeginTimestamp(payload);
+                _ = this.TakeBeginState(payload);
             }
 
             return;
@@ -102,7 +102,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     // in the matching WriteCommandAfter/WriteCommandError event.
                     if (!SqlTelemetryHelper.ActivitySource.HasListeners())
                     {
-                        this.RecordBeginTimestamp(payload);
+                        this.RecordBeginState(payload);
                         return;
                     }
 
@@ -145,9 +145,21 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     if (activity == null)
                     {
                         // There is no listener or it decided not to sample the current request.
-                        this.RecordBeginTimestamp(payload);
+                        this.RecordBeginState(payload);
                         return;
                     }
+
+                    if (!TryFetchOperationId(this.operationIdFetcher, payload, out _))
+                    {
+                        // Correlation is keyed by OperationId. A malformed Begin cannot be
+                        // safely matched later, so do not leave the newly-created activity
+                        // current and untracked.
+                        StopActivity(activity);
+                        SqlClientInstrumentationEventSource.Log.NullActivity(name);
+                        return;
+                    }
+
+                    this.RecordBeginState(payload, activity);
 
                     // Snapshot the connection's cumulative returned row count before the command
                     // executes so that the after-handler can compute the per-command delta. The
@@ -235,15 +247,19 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     }
 #endif
 
+                    var hasOperationId = TryFetchOperationId(this.operationIdFetcher, payload, out _);
+                    if (hasOperationId && this.TryGetBeginState(payload, out var beginState))
+                    {
+                        activity = beginState.Activity;
+                    }
+                    else
+                    {
+                        activity = null;
+                    }
+
                     if (activity == null)
                     {
                         SqlClientInstrumentationEventSource.Log.NullActivity(name);
-                        this.RecordDuration(null, payload);
-                        return;
-                    }
-
-                    if (activity.Source != SqlTelemetryHelper.ActivitySource)
-                    {
                         this.RecordDuration(null, payload);
                         return;
                     }
@@ -261,7 +277,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                         }
                     }
 
-                    activity.Stop();
+                    StopActivity(activity);
                     this.RecordDuration(activity, payload);
                 }
 
@@ -280,15 +296,19 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     }
 #endif
 
+                    var hasOperationId = TryFetchOperationId(this.operationIdFetcher, payload, out _);
+                    if (hasOperationId && this.TryGetBeginState(payload, out var beginState))
+                    {
+                        activity = beginState.Activity;
+                    }
+                    else
+                    {
+                        activity = null;
+                    }
+
                     if (activity == null)
                     {
                         SqlClientInstrumentationEventSource.Log.NullActivity(name);
-                        this.RecordDuration(null, payload);
-                        return;
-                    }
-
-                    if (activity.Source != SqlTelemetryHelper.ActivitySource)
-                    {
                         this.RecordDuration(null, payload);
                         return;
                     }
@@ -321,7 +341,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     }
                     finally
                     {
-                        activity.Stop();
+                        StopActivity(activity);
                         this.RecordDuration(activity, payload, hasError: true);
                     }
                 }
@@ -490,25 +510,46 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
     private static long? GetReturnedRowsDelta(long baseline, IDictionary statistics)
         => statistics["SelectRows"] is long selectRows ? selectRows - baseline : null;
 
-    private void RecordBeginTimestamp(object? payload)
+    private static void StopActivity(Activity activity)
     {
-        if (TryFetchOperationId(this.operationIdFetcher, payload, out var operationId))
+        var currentActivity = Activity.Current;
+        activity.Stop();
+        if (!ReferenceEquals(currentActivity, activity))
         {
-            this.beginTimestamps[operationId] = Stopwatch.GetTimestamp();
+            Activity.Current = currentActivity;
         }
     }
 
-    private long? TakeBeginTimestamp(object? payload) =>
+    private void RecordBeginState(object? payload, Activity? activity = null)
+    {
+        if (TryFetchOperationId(this.operationIdFetcher, payload, out var operationId))
+        {
+            this.beginStates[operationId] = new(Stopwatch.GetTimestamp(), activity);
+        }
+    }
+
+    private BeginState? TakeBeginState(object? payload) =>
         TryFetchOperationId(this.operationIdFetcher, payload, out var operationId)
-            && this.beginTimestamps.TryRemove(operationId, out var timestamp)
-                ? timestamp
+            && this.beginStates.TryRemove(operationId, out var state)
+                ? state
                 : null;
+
+    private bool TryGetBeginState(object? payload, out BeginState state)
+    {
+        if (TryFetchOperationId(this.operationIdFetcher, payload, out var operationId))
+        {
+            return this.beginStates.TryGetValue(operationId, out state);
+        }
+
+        state = default;
+        return false;
+    }
 
     private void RecordDuration(Activity? activity, object? payload, bool hasError = false)
     {
         // The pending start timestamp is always consumed, even when metrics are disabled, so that
         // entries cannot accumulate for the lifetime of the listener.
-        var beginTimestamp = this.TakeBeginTimestamp(payload);
+        var beginState = this.TakeBeginState(payload);
 
         if (SqlClientInstrumentation.Instance.HandleManager.MetricHandles == 0)
         {
@@ -520,9 +561,9 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
         {
             duration = activity.Duration.TotalSeconds;
         }
-        else if (beginTimestamp is { } begin)
+        else if (beginState is { } state)
         {
-            duration = SqlTelemetryHelper.CalculateDurationFromTimestamp(begin);
+            duration = SqlTelemetryHelper.CalculateDurationFromTimestamp(state.StartTimestamp);
         }
         else
         {
@@ -577,6 +618,13 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
         }
 
         SqlTelemetryHelper.DbClientOperationDuration.Record(duration, tags);
+    }
+
+    private readonly struct BeginState(long startTimestamp, Activity? activity)
+    {
+        public long StartTimestamp { get; } = startTimestamp;
+
+        public Activity? Activity { get; } = activity;
     }
 }
 #endif
