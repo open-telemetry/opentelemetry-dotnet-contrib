@@ -5,7 +5,7 @@ using System.Globalization;
 using System.Text.Json;
 using FsCheck.Xunit;
 using OpenTelemetry.DynamicControl.Internal.Policies;
-using OpenTelemetry.DynamicControl.Internal.Sources;
+using OpenTelemetry.DynamicControl.Internal.Providers;
 
 namespace OpenTelemetry.DynamicControl.FuzzTests;
 
