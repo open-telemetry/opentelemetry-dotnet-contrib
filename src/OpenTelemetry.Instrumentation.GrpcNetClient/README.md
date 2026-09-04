@@ -83,6 +83,22 @@ the `ConfigureServices` of your `Startup` class. Refer to documentation for
 This instrumentation can be configured to change the default behavior by using
 `GrpcClientInstrumentationOptions`.
 
+### Filter
+
+The `Filter` option can be used to exclude gRPC client requests from
+instrumentation. The filter receives the underlying `HttpRequestMessage` and
+returns `true` to collect the request or `false` to exclude it. Requests are
+excluded when the filter throws an exception.
+
+```csharp
+using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+    .AddGrpcClientInstrumentation(options =>
+    {
+        options.Filter = request => request.RequestUri?.Host != "internal.example.com";
+    })
+    .Build();
+```
+
 ### SuppressDownstreamInstrumentation
 
 > [!CAUTION]

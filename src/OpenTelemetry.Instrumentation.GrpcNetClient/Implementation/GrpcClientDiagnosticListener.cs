@@ -105,6 +105,25 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
 
         if (activity.IsAllDataRequested)
         {
+            if (this.options.Filter is { } filter)
+            {
+                try
+                {
+                    if (!filter(request))
+                    {
+                        GrpcInstrumentationEventSource.Log.RequestIsFilteredOut(nameof(GrpcClientDiagnosticListener), nameof(this.OnStartActivity), activity.OperationName);
+                        DisableActivity(activity);
+                        return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    GrpcInstrumentationEventSource.Log.RequestFilterException(nameof(GrpcClientDiagnosticListener), nameof(this.OnStartActivity), activity.OperationName, ex);
+                    DisableActivity(activity);
+                    return;
+                }
+            }
+
             ActivityInstrumentationHelper.SetActivitySourceProperty(activity, ActivitySource);
             ActivityInstrumentationHelper.SetKindProperty(activity, ActivityKind.Client);
 
@@ -139,6 +158,12 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
                     GrpcInstrumentationEventSource.Log.EnrichmentException(ex);
                 }
             }
+        }
+
+        static void DisableActivity(Activity activity)
+        {
+            activity.IsAllDataRequested = false;
+            activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
         }
 
         // See https://github.com/grpc/grpc-dotnet/blob/ff1a07b90c498f259e6d9f4a50cdad7c89ecd3c0/src/Grpc.Net.Client/Internal/GrpcCall.cs#L1180-L1183
