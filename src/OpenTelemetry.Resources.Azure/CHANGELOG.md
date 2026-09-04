@@ -13,6 +13,10 @@
   * `azure_vm` to `azure.vm`
   ([#5143](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5143))
 
+* Skip Azure VM resource detection on Azure App Service to prevent unnecessary
+  requests to the Azure Instance Metadata Service.
+  ([#5167](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5167))
+
 ## 1.18.0-beta.1
 
 Released 2026-Aug-21
