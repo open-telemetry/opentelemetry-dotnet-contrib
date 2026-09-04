@@ -13,11 +13,10 @@ namespace OpenTelemetry.OpAmp.Client.Internal;
 
 internal sealed class OpAmpPipe : IDisposable
 {
-    internal const int MaxPendingCustomMessages = 2048;
-    internal const int MaxPendingCustomMessageBytes = 64 * 1024 * 1024;
-
     private readonly IOpAmpTransport transport;
     private readonly FrameProcessor processor;
+    private readonly int maxPendingCustomMessages;
+    private readonly int maxPendingCustomMessageBytes;
     private readonly Lock frameLock = new();
     private readonly CancellationTokenSource tokenSource = new();
     private readonly ServerFrameHandler? frameHandler;
@@ -42,6 +41,8 @@ internal sealed class OpAmpPipe : IDisposable
         this.processor = processor;
         this.transport = transport;
         this.currentFrame = new FrameBuilder(settings);
+        this.maxPendingCustomMessages = settings.MaxPendingCustomMessages;
+        this.maxPendingCustomMessageBytes = settings.MaxPendingCustomMessageBytes;
 
         if (transport.RequiresResponseBeforeNextSend)
         {
@@ -124,17 +125,17 @@ internal sealed class OpAmpPipe : IDisposable
                 return; // Discard any new messages
             }
 
-            if (this.pendingFrames.Count >= MaxPendingCustomMessages)
+            if (this.pendingFrames.Count >= this.maxPendingCustomMessages)
             {
                 throw new InvalidOperationException(
-                    $"The custom message queue has reached its limit of {MaxPendingCustomMessages} pending messages.");
+                    $"The custom message queue has reached its limit of {this.maxPendingCustomMessages} pending messages.");
             }
 
-            if (data.Length > MaxPendingCustomMessageBytes - this.pendingCustomMessageBytes)
+            if (data.Length > this.maxPendingCustomMessageBytes - this.pendingCustomMessageBytes)
             {
                 throw new InvalidOperationException(
                     $"The custom message queue would exceed its limit of " +
-                    $"{MaxPendingCustomMessageBytes} pending payload bytes.");
+                    $"{this.maxPendingCustomMessageBytes} pending payload bytes.");
             }
 
             MessageBuilderHelper.AppendCustomMessage(this.currentFrame, capability, type, data);

@@ -13,6 +13,10 @@
   is reached.
   ([#5161](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5161))
 
+* Make the custom message queue count and aggregate payload-byte limits
+  configurable through `OpAmpClientSettings`.
+  ([#5171](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5171))
+
 ## 0.6.0-alpha.1
 
 Released 2026-Jul-07

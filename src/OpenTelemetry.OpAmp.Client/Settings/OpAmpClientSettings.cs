@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Net.WebSockets;
 
 using OpenTelemetry.Internal;
+using OpenTelemetry.OpAmp.Client.Internal;
 
 namespace OpenTelemetry.OpAmp.Client.Settings;
 
@@ -17,6 +18,9 @@ public sealed class OpAmpClientSettings
 {
     private static readonly Func<ClientWebSocket> DefaultClientWebSocketFactory = static () => new();
     private static readonly Func<HttpClient> DefaultHttpClientFactory = static () => new();
+
+    private int maxPendingCustomMessages = OpAmpClientDefaults.MaxPendingCustomMessages;
+    private int maxPendingCustomMessageBytes = OpAmpClientDefaults.MaxPendingCustomMessageBytes;
 
     /// <summary>
     /// Gets or sets the unique identifier for the current client instance.
@@ -77,6 +81,45 @@ public sealed class OpAmpClientSettings
             _ => throw new InvalidOperationException("Unknown connection type"),
         };
         set;
+    }
+
+    /// <summary>
+    /// Gets or sets the maximum number of custom messages that may wait to be sent.
+    /// </summary>
+    /// <value>
+    /// The maximum number of pending custom messages. The default is <c>2,048</c>.
+    /// </value>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// Thrown when the value is less than <c>1</c>.
+    /// </exception>
+    public int MaxPendingCustomMessages
+    {
+        get => this.maxPendingCustomMessages;
+        set
+        {
+            Guard.ThrowIfOutOfRange(value, min: 1);
+            this.maxPendingCustomMessages = value;
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the maximum aggregate payload size of custom messages that may wait to be sent.
+    /// </summary>
+    /// <value>
+    /// The maximum aggregate size, in bytes, of the <c>Data</c> payloads of pending
+    /// custom messages. The default is 64 MiB (<c>67,108,864</c> bytes).
+    /// </value>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// Thrown when the value is less than <c>1</c>.
+    /// </exception>
+    public int MaxPendingCustomMessageBytes
+    {
+        get => this.maxPendingCustomMessageBytes;
+        set
+        {
+            Guard.ThrowIfOutOfRange(value, min: 1);
+            this.maxPendingCustomMessageBytes = value;
+        }
     }
 
     /// <summary>

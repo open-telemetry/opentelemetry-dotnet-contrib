@@ -113,8 +113,13 @@ public abstract class OpAmpPipeTests
     [Fact]
     public async Task OpAmpPipe_RejectsCustomMessagesBeyondQueueLimit()
     {
+        const int maxPendingCustomMessages = 2;
+
         using var transport = this.GetTransport();
-        var settings = new OpAmpClientSettings();
+        var settings = new OpAmpClientSettings
+        {
+            MaxPendingCustomMessages = maxPendingCustomMessages,
+        };
         var processor = new FrameProcessor();
         using var pipe = new OpAmpPipe(settings, processor, transport);
         var serverFrame = new ServerToAgent().ToByteArray();
@@ -122,15 +127,15 @@ public abstract class OpAmpPipeTests
         AppendIdentification(pipe);
         await transport.WaitForMessagesAsync(1);
 
-        for (var i = 0; i < OpAmpPipe.MaxPendingCustomMessages; i++)
+        for (var i = 0; i < maxPendingCustomMessages; i++)
         {
             AppendCustomMessage(pipe, i);
         }
 
         var exception = Assert.Throws<InvalidOperationException>(
-            () => AppendCustomMessage(pipe, OpAmpPipe.MaxPendingCustomMessages));
+            () => AppendCustomMessage(pipe, maxPendingCustomMessages));
 
-        Assert.Contains(OpAmpPipe.MaxPendingCustomMessages.ToString(), exception.Message);
+        Assert.Contains(maxPendingCustomMessages.ToString(), exception.Message);
         Assert.Single(transport.Messages);
 
         transport.CompleteNextSend();
@@ -138,17 +143,21 @@ public abstract class OpAmpPipeTests
         await transport.WaitForMessagesAsync(2);
 
         // Dequeueing a pending frame must make capacity available immediately.
-        AppendCustomMessage(pipe, OpAmpPipe.MaxPendingCustomMessages);
+        AppendCustomMessage(pipe, maxPendingCustomMessages);
     }
 
     [Fact]
     public async Task OpAmpPipe_RejectsCustomMessagesBeyondQueuePayloadByteLimit()
     {
-        const int payloadSize = 1024 * 1024;
-        const int messagesAtLimit = OpAmpPipe.MaxPendingCustomMessageBytes / payloadSize;
+        const int payloadSize = 4;
+        const int maxPendingCustomMessageBytes = 8;
+        const int messagesAtLimit = maxPendingCustomMessageBytes / payloadSize;
 
         using var transport = this.GetTransport();
-        var settings = new OpAmpClientSettings();
+        var settings = new OpAmpClientSettings
+        {
+            MaxPendingCustomMessageBytes = maxPendingCustomMessageBytes,
+        };
         var processor = new FrameProcessor();
         using var pipe = new OpAmpPipe(settings, processor, transport);
         var serverFrame = new ServerToAgent().ToByteArray();
@@ -164,7 +173,7 @@ public abstract class OpAmpPipeTests
 
         var fullQueueException = Assert.Throws<InvalidOperationException>(
             () => AppendCustomMessage(pipe, messagesAtLimit, new byte[1]));
-        Assert.Contains(OpAmpPipe.MaxPendingCustomMessageBytes.ToString(), fullQueueException.Message);
+        Assert.Contains(maxPendingCustomMessageBytes.ToString(), fullQueueException.Message);
         Assert.Single(transport.Messages);
 
         transport.CompleteNextSend();
