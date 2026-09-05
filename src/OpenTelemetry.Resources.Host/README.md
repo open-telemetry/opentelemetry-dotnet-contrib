@@ -10,7 +10,7 @@
 [![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Resources.Host)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Resources.Host)
 
 > [!IMPORTANT]
-> Resources detected by this packages are defined by [experimental semantic convention](https://github.com/open-telemetry/semantic-conventions/blob/v1.24.0/docs/resource/host.md).
+> Resources detected by this packages are defined by [experimental semantic convention](https://github.com/open-telemetry/semantic-conventions/blob/v1.44.0/docs/resource/host.md).
 > These resources can be changed without prior notification.
 
 ## Getting Started
@@ -57,7 +57,29 @@ your application is running:
 - **HostDetector**:
   - `host.arch` (supported only on .NET),
   - `host.id` (when running on non-containerized systems),
+  - `host.ip` and `host.mac` (opt-in, see
+    [Network addresses](#network-addresses)),
   - `host.name`.
+
+## Experimental features
+
+> [!NOTE]
+> Experimental features are off by default and are turned on through
+> environment variables. They may change or be removed in a future release.
+
+### Network addresses
+
+`host.ip` and `host.mac` are
+[opt-in](https://github.com/open-telemetry/semantic-conventions/blob/v1.44.0/docs/resource/host.md)
+attributes and identify the machine, so they are not emitted by default. Set
+`OTEL_DOTNET_EXPERIMENTAL_HOST_RESOURCE_ENABLE_NETWORK_ADDRESSES` to `true` to
+emit them.
+
+Both attributes are read from network interfaces that are up, skipping
+loopback interfaces. `host.ip` also leaves out link-local addresses, and
+`host.mac` only includes interfaces that have a physical address. The values
+are captured once, when the resource is built, so addresses assigned after
+startup are not picked up.
 
 ## References
 

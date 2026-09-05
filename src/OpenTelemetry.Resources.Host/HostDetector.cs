@@ -6,6 +6,9 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 #endif
+using System.Net;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
 using Microsoft.Win32;
 using OpenTelemetry.Internal;
 
@@ -16,6 +19,8 @@ namespace OpenTelemetry.Resources.Host;
 /// </summary>
 internal sealed class HostDetector : IResourceDetector
 {
+    internal const string EnableNetworkAddressesEnvVarName = "OTEL_DOTNET_EXPERIMENTAL_HOST_RESOURCE_ENABLE_NETWORK_ADDRESSES";
+
 #if !NETFRAMEWORK
     private const string ETCMACHINEID = "/etc/machine-id";
     private const string ETCVARDBUSMACHINEID = "/var/lib/dbus/machine-id";
@@ -113,7 +118,9 @@ internal sealed class HostDetector : IResourceDetector
     {
         try
         {
-            var attributes = new List<KeyValuePair<string, object>>(3)
+            var networkAddressesEnabled = IsNetworkAddressesEnabled();
+
+            var attributes = new List<KeyValuePair<string, object>>(networkAddressesEnabled ? 5 : 3)
             {
                 new(HostSemanticConventions.AttributeHostName, Environment.MachineName),
             };
@@ -136,6 +143,11 @@ internal sealed class HostDetector : IResourceDetector
 #error Architecture is available in .NET Framework 4.7.1+, enable it when we move to that as minimum supported version
 #endif
 
+            if (networkAddressesEnabled)
+            {
+                AddNetworkAddresses(attributes);
+            }
+
             return new Resource(attributes, SchemaUrls.Get(SemanticConventionsVersion));
         }
         catch (InvalidOperationException ex)
@@ -145,6 +157,35 @@ internal sealed class HostDetector : IResourceDetector
         }
 
         return Resource.Empty;
+    }
+
+    internal static bool ShouldIncludeNetworkInterface(OperationalStatus operationalStatus, NetworkInterfaceType networkInterfaceType) =>
+        operationalStatus == OperationalStatus.Up && networkInterfaceType != NetworkInterfaceType.Loopback;
+
+    internal static bool ShouldIncludeIpAddress(IPAddress address)
+    {
+        if (IPAddress.IsLoopback(address) || address.IsIPv6LinkLocal)
+        {
+            return false;
+        }
+
+        if (address.AddressFamily == AddressFamily.InterNetwork)
+        {
+            // 169.254.0.0/16 has no BCL predicate, unlike its IPv6 counterpart.
+            var addressBytes = address.GetAddressBytes();
+            return addressBytes[0] != 169 || addressBytes[1] != 254;
+        }
+
+        return true;
+    }
+
+    internal static string? FormatPhysicalAddress(PhysicalAddress physicalAddress)
+    {
+        var addressBytes = physicalAddress.GetAddressBytes();
+
+        // BitConverter renders the IEEE RA format the specification requires, which
+        // PhysicalAddress.ToString does not.
+        return addressBytes.Length == 0 ? null : BitConverter.ToString(addressBytes);
     }
 
 #if !NETFRAMEWORK
@@ -183,6 +224,55 @@ internal sealed class HostDetector : IResourceDetector
         yield return ETCVARDBUSMACHINEID;
     }
 #endif
+
+    private static bool IsNetworkAddressesEnabled() =>
+        bool.TryParse(Environment.GetEnvironmentVariable(EnableNetworkAddressesEnvVarName), out var enabled) && enabled;
+
+    private static void AddNetworkAddresses(List<KeyValuePair<string, object>> attributes)
+    {
+        var ipAddresses = new List<string>();
+        var macAddresses = new List<string>();
+
+        try
+        {
+            foreach (var networkInterface in NetworkInterface.GetAllNetworkInterfaces())
+            {
+                if (!ShouldIncludeNetworkInterface(networkInterface.OperationalStatus, networkInterface.NetworkInterfaceType))
+                {
+                    continue;
+                }
+
+                foreach (var unicastAddress in networkInterface.GetIPProperties().UnicastAddresses)
+                {
+                    if (ShouldIncludeIpAddress(unicastAddress.Address))
+                    {
+                        ipAddresses.Add(unicastAddress.Address.ToString());
+                    }
+                }
+
+                var macAddress = FormatPhysicalAddress(networkInterface.GetPhysicalAddress());
+                if (macAddress != null)
+                {
+                    macAddresses.Add(macAddress);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            HostResourceEventSource.Log.ResourceAttributesExtractException(nameof(HostDetector), ex);
+            return;
+        }
+
+        if (ipAddresses.Count > 0)
+        {
+            attributes.Add(new(HostSemanticConventions.AttributeHostIp, ipAddresses.ToArray()));
+        }
+
+        if (macAddresses.Count > 0)
+        {
+            attributes.Add(new(HostSemanticConventions.AttributeHostMac, macAddresses.ToArray()));
+        }
+    }
 
 #if !NETFRAMEWORK
     private static string? GetMachineIdMacOs()
