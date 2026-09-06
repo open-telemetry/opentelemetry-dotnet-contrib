@@ -10,6 +10,10 @@
   [v1.44.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.44.0/docs/resource/host.md).
   ([#5172](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5172))
 
+* Added the `host.cpu.*` resource attributes, emitted when
+  `OTEL_DOTNET_EXPERIMENTAL_HOST_RESOURCE_ENABLE_CPU_INFO` is `true`.
+  ([#5173](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5173))
+
 ## 1.18.0-beta.1
 
 Released 2026-Aug-21
