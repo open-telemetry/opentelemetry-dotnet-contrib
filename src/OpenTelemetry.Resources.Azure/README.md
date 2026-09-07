@@ -141,4 +141,4 @@ troubleshooting](https://github.com/open-telemetry/opentelemetry-dotnet/blob/mai
 for instructions on seeing these internal logs.
 
 A detector writes a `Verbose` event naming itself and the environment variables
-it looked for when none is set and it therefore contributes no attributes.
+it looked for when none are set and it therefore contributes no attributes.
