@@ -26,7 +26,7 @@ internal sealed class HostDetector : IResourceDetector
     private const string ETCVARDBUSMACHINEID = "/var/lib/dbus/machine-id";
 #endif
 
-    private static readonly Version SemanticConventionsVersion = new(1, 43, 0);
+    private static readonly Version SemanticConventionsVersion = new(1, 44, 0);
 
 #if !NETFRAMEWORK
     private readonly Func<OSPlatform, bool> isOsPlatform;
