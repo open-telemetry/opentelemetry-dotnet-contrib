@@ -9,28 +9,21 @@ namespace OpenTelemetry.DynamicControl.Internal.Policies;
 /// Represents a validated trace-sampling-rate policy.
 /// Corresponds to the <c>trace-sampling</c> policy type in the Telemetry Policy OTEP.
 /// </summary>
-internal sealed class TraceSamplingRatePolicy : ITelemetryPolicy
+internal sealed class TraceSamplingRatePolicy : TelemetryPolicy
 {
     /// <summary>
-    /// The <see cref="ITelemetryPolicy.PolicyType"/> value for this policy type.
+    /// The <see cref="TelemetryPolicy.PolicyType"/> value for this policy type.
     /// </summary>
-    internal const string PolicyTypeName = "trace-sampling";
+    internal static readonly PolicyType PolicyTypeValue = new("trace-sampling");
 
-    private TraceSamplingRatePolicy(string id, string name, double samplingProbability)
+    private TraceSamplingRatePolicy(PolicyId id, string name, double samplingProbability)
+        : base(id, name)
     {
-        this.Id = id;
-        this.Name = name;
         this.SamplingProbability = samplingProbability;
     }
 
     /// <inheritdoc/>
-    public string Id { get; }
-
-    /// <inheritdoc/>
-    public string Name { get; }
-
-    /// <inheritdoc/>
-    public string PolicyType => PolicyTypeName;
+    public override PolicyType PolicyType => PolicyTypeValue;
 
     /// <summary>
     /// Gets the desired sampling probability in the range [0, 1] inclusive,
@@ -41,7 +34,7 @@ internal sealed class TraceSamplingRatePolicy : ITelemetryPolicy
     /// <summary>
     /// Attempts to create a validated <see cref="TraceSamplingRatePolicy"/>.
     /// </summary>
-    /// <param name="id">The opaque provider-assigned policy identifier. Must not be null or whitespace.</param>
+    /// <param name="id">The provider-assigned policy identifier. Must not be <see cref="PolicyId.Empty"/>.</param>
     /// <param name="name">The human-readable policy name. Must not be null or whitespace.</param>
     /// <param name="samplingProbability">
     /// The desired sampling probability. Must be a finite value in [0, 1] inclusive.
@@ -58,20 +51,20 @@ internal sealed class TraceSamplingRatePolicy : ITelemetryPolicy
     /// <see langword="false"/> otherwise.
     /// </returns>
     public static bool TryCreate(
-        string? id,
-        string? name,
+        PolicyId id,
+        string name,
         double samplingProbability,
         [NotNullWhen(true)] out TraceSamplingRatePolicy? policy,
         [NotNullWhen(false)] out string? error)
     {
-        if (id is not { Length: > 0 } || string.IsNullOrWhiteSpace(id))
+        if (id.IsEmpty)
         {
             policy = null;
             error = "The policy ID is required.";
             return false;
         }
 
-        if (name is not { Length: > 0 } || string.IsNullOrWhiteSpace(name))
+        if (string.IsNullOrWhiteSpace(name))
         {
             policy = null;
             error = "The policy name is required.";
@@ -90,7 +83,7 @@ internal sealed class TraceSamplingRatePolicy : ITelemetryPolicy
 
         // Normalize -0.0 to +0.0. Both are equal by IEEE 754 value, but distinct by
         // bit representation. Normalizing ensures a canonical representation.
-        if (BitConverter.DoubleToInt64Bits(samplingProbability) < 0)
+        if (double.IsNegative(samplingProbability))
         {
             samplingProbability = 0.0;
         }

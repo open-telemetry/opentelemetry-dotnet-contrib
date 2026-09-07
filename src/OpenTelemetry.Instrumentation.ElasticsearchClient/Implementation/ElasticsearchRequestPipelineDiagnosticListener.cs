@@ -382,18 +382,20 @@ internal partial class ElasticsearchRequestPipelineDiagnosticListener : Listener
 
             if (uri.Port > 0)
             {
+                var port = PortTelemetryHelper.GetBoxedPort(uri.Port, cacheValue: true);
+
                 if (emitOldAttributes)
                 {
-                    activity.SetTag(SemanticConventions.AttributeNetPeerPort, uri.Port);
+                    activity.SetTag(SemanticConventions.AttributeNetPeerPort, port);
                 }
 
                 if (emitNewAttributes)
                 {
-                    activity.SetTag(SemanticConventions.AttributeServerPort, uri.Port);
+                    activity.SetTag(SemanticConventions.AttributeServerPort, port);
 
                     if (isIpAddress)
                     {
-                        activity.SetTag(SemanticConventions.AttributeNetworkPeerPort, uri.Port);
+                        activity.SetTag(SemanticConventions.AttributeNetworkPeerPort, port);
                     }
                 }
             }

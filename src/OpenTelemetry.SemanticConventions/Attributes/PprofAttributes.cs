@@ -53,12 +53,12 @@ public static class PprofAttributes
     public const string AttributePprofProfileDocUrl = "pprof.profile.doc_url";
 
     /// <summary>
-    /// Frames with Function.function_name fully matching the regexp will be dropped from the samples, along with their successors.
+    /// Frames with Function.function_name fully matching the regular expression will be dropped from the samples, along with their successors.
     /// </summary>
     public const string AttributePprofProfileDropFrames = "pprof.profile.drop_frames";
 
     /// <summary>
-    /// Frames with Function.function_name fully matching the regexp will be kept, even if it matches drop_frames.
+    /// Frames with Function.function_name fully matching the regular expression will be kept, even if it matches drop_frames.
     /// </summary>
     public const string AttributePprofProfileKeepFrames = "pprof.profile.keep_frames";
 

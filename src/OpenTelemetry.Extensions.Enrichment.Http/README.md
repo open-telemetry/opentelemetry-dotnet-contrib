@@ -32,4 +32,93 @@ Currently this package supports trace enrichment only.
 
 ### Steps to enable OpenTelemetry.Extensions.Enrichment.Http
 
-TBD
+### Step 1: Install package
+
+Download the `OpenTelemetry.Extensions.Enrichment.Http` package:
+
+```shell
+dotnet add package OpenTelemetry.Extensions.Enrichment.Http --prerelease
+```
+
+### Step 2: Create enricher class
+
+Create your custom enricher class that inherits from the `HttpClientTraceEnricher`
+class and override one or more of the following virtual methods, as needed:
+
+* `EnrichWithRequest(in TraceEnrichmentBag bag, HttpRequestMessage request)`
+* `EnrichWithResponse(in TraceEnrichmentBag bag, HttpResponseMessage response)`
+* `EnrichWithException(in TraceEnrichmentBag bag, Exception exception)`
+
+> [!NOTE]
+> On .NET Framework targets, `EnrichWithRequest` and `EnrichWithResponse` instead
+> take an `HttpWebRequest` and `HttpWebResponse` respectively.
+
+Each method receives a `TraceEnrichmentBag`, the same lightweight `readonly struct`
+used by `OpenTelemetry.Extensions.Enrichment`, which exposes a single
+`Add(string key, object? value)` method for adding tags.
+
+```csharp
+internal sealed class MyHttpClientTraceEnricher : HttpClientTraceEnricher
+{
+    public override void EnrichWithRequest(in TraceEnrichmentBag bag, HttpRequestMessage request)
+    {
+        if (request.Headers.TryGetValues("x-my-custom-header", out var values))
+        {
+            bag.Add("http.request.header.x-my-custom-header", string.Join(",", values));
+        }
+    }
+
+    public override void EnrichWithResponse(in TraceEnrichmentBag bag, HttpResponseMessage response)
+    {
+        bag.Add("http.response.content-length", response.Content.Headers.ContentLength);
+    }
+
+    public override void EnrichWithException(in TraceEnrichmentBag bag, Exception exception)
+    {
+        bag.Add("exception.source", exception.Source);
+    }
+}
+```
+
+Optionally, inject other services your enricher class depends on via its constructor,
+the same way you would with `TraceEnricher` (see the
+[OpenTelemetry.Extensions.Enrichment README](../OpenTelemetry.Extensions.Enrichment/README.md#step-2-create-enricher-class)
+for an example).
+
+### Step 3: Register enricher class
+
+Add your custom enricher class to the `TracerProviderBuilder` by calling the
+`TryAddHttpClientTraceEnricher<T>()` method:
+
+```csharp
+using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+    .AddHttpClientInstrumentation()
+    .TryAddHttpClientTraceEnricher<MyHttpClientTraceEnricher>()
+    .AddConsoleExporter()
+    .Build();
+```
+
+Alternatively, you can add your custom enricher to the `IServiceCollection`
+directly:
+
+```csharp
+var builder = Host.CreateApplicationBuilder(args);
+
+builder.Services.TryAddHttpClientTraceEnricher<MyHttpClientTraceEnricher>();
+
+builder.Services.AddOpenTelemetry()
+    .WithTracing(tracing => tracing
+        .AddHttpClientInstrumentation()
+        .AddConsoleExporter());
+
+var app = builder.Build();
+
+app.Run();
+```
+
+### Step 4: Usage
+
+Once registered, the enrichment methods of your class are called automatically
+for every outgoing HTTP request made through an instrumented `HttpClient` -
+no additional code is required at the call site. Issue an outgoing request and
+the tags added in your enricher will appear on the resulting `Activity`.

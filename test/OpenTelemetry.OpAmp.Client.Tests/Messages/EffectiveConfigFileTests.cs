@@ -228,8 +228,11 @@ public class EffectiveConfigFileTests
         Assert.Throws<InvalidDataException>(() =>
             EffectiveConfigFile.CreateFromStream(stream, "application/octet-stream", "filename.yml", 3));
 
-        var @event = Assert.Single(listener.Events, e => e.EventName == "EffectiveConfigSizeLimitViolation");
-        Assert.Equal(3, (int)@event.Payload![0]!);
+        Assert.Contains(
+            listener.Events,
+            e => e.EventName == nameof(OpAmpClientEventSource.EffectiveConfigSizeLimitViolation)
+                && e.Payload![0] is int maxBytes
+                && maxBytes == 3);
     }
 #endif
 
@@ -457,8 +460,11 @@ public class EffectiveConfigFileTests
         await Assert.ThrowsAsync<InvalidDataException>(() =>
             EffectiveConfigFile.CreateFromStreamAsync(stream, "application/octet-stream", "filename.yml", 3));
 
-        var @event = Assert.Single(listener.Events, e => e.EventName == "EffectiveConfigSizeLimitViolation");
-        Assert.Equal(3, (int)@event.Payload![0]!);
+        Assert.Contains(
+            listener.Events,
+            e => e.EventName == nameof(OpAmpClientEventSource.EffectiveConfigSizeLimitViolation)
+                && e.Payload![0] is int maxBytes
+                && maxBytes == 3);
     }
 #endif
 

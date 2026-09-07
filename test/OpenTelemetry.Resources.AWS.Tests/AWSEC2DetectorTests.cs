@@ -19,11 +19,7 @@ public class AWSEC2DetectorTests
     {
         var data = new TheoryData<SemanticConventionVersion>();
 
-#if NET
         foreach (var version in Enum.GetValues<SemanticConventionVersion>())
-#else
-        foreach (var version in Enum.GetValues(typeof(SemanticConventionVersion)).Cast<SemanticConventionVersion>())
-#endif
         {
             data.Add(version);
         }

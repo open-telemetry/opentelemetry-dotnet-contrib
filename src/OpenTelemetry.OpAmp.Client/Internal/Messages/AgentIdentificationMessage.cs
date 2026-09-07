@@ -4,14 +4,14 @@
 using OpAmp.Proto.V1;
 using OpenTelemetry.OpAmp.Client.Messages;
 
-namespace OpenTelemetry.OpAmp.Client.Internal.Listeners.Messages;
+namespace OpenTelemetry.OpAmp.Client.Internal.Messages;
 
-internal class AgentIdentificationMessage : OpAmpMessage
+internal sealed class AgentIdentificationMessage : OpAmpMessage
 {
     public AgentIdentificationMessage(AgentIdentification agentIdentification)
     {
         this.AgentIdentification = agentIdentification;
     }
 
-    public AgentIdentification AgentIdentification { get; set; }
+    public AgentIdentification AgentIdentification { get; }
 }

@@ -1,7 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Collections;
 using System.Diagnostics;
+using System.Reflection;
 using System.Runtime.Remoting.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -159,6 +161,29 @@ public class RemotingInstrumentationTests
         Assert.Equal(expectedServiceName, TelemetryDynamicSinkProvider.ExtractServiceName(typeName));
 
     [Fact]
+    public void TelemetryDynamicSink_SetsServerAddressAndPortWhenUriIsAbsoluteWithNonDefaultPort()
+    {
+        var activities = new List<Activity>();
+        using var provider = new TelemetryDynamicSinkProvider(
+            new TestOptionsMonitor<RemotingInstrumentationOptions>(new RemotingInstrumentationOptions()));
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSource(TelemetryDynamicSinkProvider.ActivitySourceName)
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        var sink = provider.GetDynamicSink();
+        var message = new FakeMethodMessage("tcp://remote-host:8080/RemoteObject.rem", typeof(RemoteObject).AssemblyQualifiedName!, "DoStuff");
+
+        sink.ProcessMessageStart(message, bCliSide: true, bAsync: false);
+        sink.ProcessMessageFinish(message, bCliSide: true, bAsync: false);
+
+        var activity = Assert.Single(activities);
+        Assert.Equal("remote-host", activity.GetTagItem(SemanticConventions.AttributeServerAddress));
+        Assert.Equal(8080, activity.GetTagItem(SemanticConventions.AttributeServerPort));
+    }
+
+    [Fact]
     public void TelemetryDynamicSinkProvider_BoundsServiceNameCache()
     {
         using var provider = new TelemetryDynamicSinkProvider(
@@ -207,6 +232,45 @@ public class RemotingInstrumentationTests
                 throw new Exception(exceptionMessage);
             }
         }
+    }
+
+    private sealed class FakeMethodMessage : IMethodMessage
+    {
+        public FakeMethodMessage(string uri, string typeName, string methodName)
+        {
+            this.Uri = uri;
+            this.TypeName = typeName;
+            this.MethodName = methodName;
+
+            // LogicalCallContext has no accessible constructor; the runtime only ever hands out
+            // instances it creates itself, so one is created reflectively for this fake message.
+            this.LogicalCallContext = (LogicalCallContext)Activator.CreateInstance(typeof(LogicalCallContext), nonPublic: true)!;
+            this.Properties = new Hashtable { ["__CallContext"] = this.LogicalCallContext };
+        }
+
+        public string Uri { get; }
+
+        public string MethodName { get; }
+
+        public string TypeName { get; }
+
+        public object MethodSignature => Array.Empty<Type>();
+
+        public MethodBase MethodBase => null!;
+
+        public int ArgCount => 0;
+
+        public object[] Args => [];
+
+        public bool HasVarArgs => false;
+
+        public LogicalCallContext LogicalCallContext { get; }
+
+        public IDictionary Properties { get; }
+
+        public object GetArg(int argNum) => throw new NotSupportedException();
+
+        public string GetArgName(int index) => throw new NotSupportedException();
     }
 
     private sealed class TestOptionsMonitor<TOptions> : IOptionsMonitor<TOptions>

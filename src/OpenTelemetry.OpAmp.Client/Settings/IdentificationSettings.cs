@@ -11,17 +11,17 @@ namespace OpenTelemetry.OpAmp.Client.Settings;
 public sealed class IdentificationSettings
 {
     /// <summary>
-    /// Gets the collection of resources associated with the current instance.
+    /// Gets the collection of identifying resource attributes associated with the current instance.
     /// </summary>
     public Dictionary<string, AnyValueUnion> IdentifyingResources { get; } = [];
 
     /// <summary>
-    /// Gets the collection of resources associated with the current instance.
+    /// Gets the collection of non-identifying resource attributes associated with the current instance.
     /// </summary>
     public Dictionary<string, AnyValueUnion> NonIdentifyingResources { get; } = [];
 
     /// <summary>
-    /// Adds an itentifying attribute to the resources collection.
+    /// Adds an identifying attribute to the resources collection.
     /// </summary>
     /// <param name="key">The unique key associated with the resource.</param>
     /// <param name="value">The value of the resource to be added.</param>
@@ -33,7 +33,7 @@ public sealed class IdentificationSettings
     }
 
     /// <summary>
-    /// Adds an itentifying attributes list to the resources collection.
+    /// Adds an identifying attribute list to the resources collection.
     /// </summary>
     /// <param name="key">The unique key associated with the resource.</param>
     /// <param name="values">The collection of values of the resource to be added.</param>
@@ -45,7 +45,7 @@ public sealed class IdentificationSettings
     }
 
     /// <summary>
-    /// Adds an itentifying attribute to the resources collection.
+    /// Adds an identifying attribute to the resources collection.
     /// </summary>
     /// <param name="key">The unique key associated with the resource.</param>
     /// <param name="value">The value of the resource to be added.</param>
@@ -57,7 +57,7 @@ public sealed class IdentificationSettings
     }
 
     /// <summary>
-    /// Adds an itentifying attributes list to the resources collection.
+    /// Adds an identifying attribute list to the resources collection.
     /// </summary>
     /// <param name="key">The unique key associated with the resource.</param>
     /// <param name="values">The collection of values of the resource to be added.</param>
@@ -69,7 +69,7 @@ public sealed class IdentificationSettings
     }
 
     /// <summary>
-    /// Adds an itentifying attribute to the resources collection.
+    /// Adds an identifying attribute to the resources collection.
     /// </summary>
     /// <param name="key">The unique key associated with the resource.</param>
     /// <param name="value">The value of the resource to be added.</param>
@@ -81,7 +81,7 @@ public sealed class IdentificationSettings
     }
 
     /// <summary>
-    /// Adds an itentifying attributes list to the resources collection.
+    /// Adds an identifying attribute list to the resources collection.
     /// </summary>
     /// <param name="key">The unique key associated with the resource.</param>
     /// <param name="values">The collection of values of the resource to be added.</param>
@@ -93,7 +93,7 @@ public sealed class IdentificationSettings
     }
 
     /// <summary>
-    /// Adds an itentifying attribute to the resources collection.
+    /// Adds an identifying attribute to the resources collection.
     /// </summary>
     /// <param name="key">The unique key associated with the resource.</param>
     /// <param name="value">The value of the resource to be added.</param>
@@ -105,7 +105,7 @@ public sealed class IdentificationSettings
     }
 
     /// <summary>
-    /// Adds an itentifying attributes list to the resources collection.
+    /// Adds an identifying attribute list to the resources collection.
     /// </summary>
     /// <param name="key">The unique key associated with the resource.</param>
     /// <param name="values">The collection of values of the resource to be added.</param>
@@ -117,7 +117,7 @@ public sealed class IdentificationSettings
     }
 
     /// <summary>
-    /// Adds a non itentifying attribute to the resources collection.
+    /// Adds a non-identifying attribute to the resources collection.
     /// </summary>
     /// <param name="key">The unique key associated with the resource.</param>
     /// <param name="value">The value of the resource to be added.</param>
@@ -129,7 +129,7 @@ public sealed class IdentificationSettings
     }
 
     /// <summary>
-    /// Adds a non itentifying attributes list to the resources collection.
+    /// Adds a non-identifying attribute list to the resources collection.
     /// </summary>
     /// <param name="key">The unique key associated with the resource.</param>
     /// <param name="values">The collection of values of the resource to be added.</param>
@@ -141,7 +141,7 @@ public sealed class IdentificationSettings
     }
 
     /// <summary>
-    /// Adds a non itentifying attribute to the resources collection.
+    /// Adds a non-identifying attribute to the resources collection.
     /// </summary>
     /// <param name="key">The unique key associated with the resource.</param>
     /// <param name="value">The value of the resource to be added.</param>
@@ -153,7 +153,7 @@ public sealed class IdentificationSettings
     }
 
     /// <summary>
-    /// Adds a non itentifying attributes list to the resources collection.
+    /// Adds a non-identifying attribute list to the resources collection.
     /// </summary>
     /// <param name="key">The unique key associated with the resource.</param>
     /// <param name="values">The collection of values of the resource to be added.</param>
@@ -165,7 +165,7 @@ public sealed class IdentificationSettings
     }
 
     /// <summary>
-    /// Adds a non itentifying attribute to the resources collection.
+    /// Adds a non-identifying attribute to the resources collection.
     /// </summary>
     /// <param name="key">The unique key associated with the resource.</param>
     /// <param name="value">The value of the resource to be added.</param>
@@ -177,7 +177,7 @@ public sealed class IdentificationSettings
     }
 
     /// <summary>
-    /// Adds a non itentifying attributes list to the resources collection.
+    /// Adds a non-identifying attribute list to the resources collection.
     /// </summary>
     /// <param name="key">The unique key associated with the resource.</param>
     /// <param name="values">The collection of values of the resource to be added.</param>
@@ -189,7 +189,7 @@ public sealed class IdentificationSettings
     }
 
     /// <summary>
-    /// Adds a non itentifying attribute to the resources collection.
+    /// Adds a non-identifying attribute to the resources collection.
     /// </summary>
     /// <param name="key">The unique key associated with the resource.</param>
     /// <param name="value">The value of the resource to be added.</param>
@@ -201,7 +201,7 @@ public sealed class IdentificationSettings
     }
 
     /// <summary>
-    /// Adds a non itentifying attributes list to the resources collection.
+    /// Adds a non-identifying attribute list to the resources collection.
     /// </summary>
     /// <param name="key">The unique key associated with the resource.</param>
     /// <param name="values">The collection of values of the resource to be added.</param>

@@ -27,7 +27,7 @@ public static class McpAttributes
     public const string AttributeMcpProtocolVersion = "mcp.protocol.version";
 
     /// <summary>
-    /// The value of the resource uri.
+    /// The value of the resource URI.
     /// </summary>
     /// <remarks>
     /// This is a URI of the resource provided in the following requests or notifications: <c>resources/read</c>, <c>resources/subscribe</c>, <c>resources/unsubscribe</c>, or <c>notifications/resources/updated</c>.

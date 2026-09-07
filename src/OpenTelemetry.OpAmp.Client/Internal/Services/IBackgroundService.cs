@@ -23,8 +23,8 @@ internal interface IBackgroundService
     void Stop();
 
     /// <summary>
-    /// Configures the service using the specified OpenAMP settings.
+    /// Configures the service using the specified OpAMP settings.
     /// </summary>
-    /// <param name="settings">The OpenAMP settings to apply.</param>
+    /// <param name="settings">The OpAMP settings to apply.</param>
     void Configure(OpAmpClientSettings settings);
 }

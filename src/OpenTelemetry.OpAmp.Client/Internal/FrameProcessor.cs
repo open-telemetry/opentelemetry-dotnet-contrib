@@ -5,7 +5,7 @@ using System.Buffers;
 using System.Collections.Concurrent;
 using OpAmp.Proto.V1;
 using OpenTelemetry.Internal;
-using OpenTelemetry.OpAmp.Client.Internal.Listeners.Messages;
+using OpenTelemetry.OpAmp.Client.Internal.Messages;
 using OpenTelemetry.OpAmp.Client.Internal.Utils;
 using OpenTelemetry.OpAmp.Client.Listeners;
 using OpenTelemetry.OpAmp.Client.Messages;
@@ -71,6 +71,25 @@ internal sealed class FrameProcessor
         this.Deserialize(sequence, count, headerSize);
     }
 
+    private static void Dispatch<T>(T message, IReadOnlyList<object> listeners)
+        where T : OpAmpMessage
+    {
+        foreach (var listener in listeners)
+        {
+            if (listener is IOpAmpListener<T> typedListener)
+            {
+                try
+                {
+                    typedListener.HandleMessage(message);
+                }
+                catch (Exception ex)
+                {
+                    OpAmpClientEventSource.Log.FrameProcessingException(ex);
+                }
+            }
+        }
+    }
+
     private void Deserialize(ReadOnlySequence<byte> sequence, int count, int headerSize)
     {
         var dataSegment = sequence.Slice(headerSize, count - headerSize);
@@ -81,69 +100,83 @@ internal sealed class FrameProcessor
     {
         var message = ServerToAgent.Parser.ParseFrom(sequence);
 
-        if (message.ErrorResponse != null)
+        if (this.TryGetListeners<ServerToAgentMessage>(out var listeners))
         {
-            this.Dispatch(new ErrorResponseMessage(message.ErrorResponse));
+            Dispatch(new ServerToAgentMessage(message), listeners);
         }
 
-        if (message.RemoteConfig != null)
+        if (message.ErrorResponse is { } errorResponse &&
+            this.TryGetListeners<ErrorResponseMessage>(out var errorListeners))
         {
-            this.Dispatch(new RemoteConfigMessage(message.RemoteConfig));
+            Dispatch(new ErrorResponseMessage(errorResponse), errorListeners);
         }
 
-        if (message.ConnectionSettings != null)
+        if (message.RemoteConfig is { } remoteConfig &&
+            this.TryGetListeners<RemoteConfigMessage>(out var remoteConfigListeners))
         {
-            this.Dispatch(new ConnectionSettingsMessage(message.ConnectionSettings));
+            Dispatch(new RemoteConfigMessage(remoteConfig), remoteConfigListeners);
         }
 
-        if (message.PackagesAvailable != null)
+        if (message.ConnectionSettings is { } connectionSettings &&
+            this.TryGetListeners<ConnectionSettingsMessage>(out var connectionSettingsListeners))
         {
-            this.Dispatch(new PackagesAvailableMessage(message.PackagesAvailable));
+            Dispatch(new ConnectionSettingsMessage(connectionSettings), connectionSettingsListeners);
         }
 
-        if (message.Flags != 0)
+        if (message.PackagesAvailable is { } packagesAvailable &&
+            this.TryGetListeners<PackagesAvailableMessage>(out var packagesListeners))
         {
-            this.Dispatch(new FlagsMessage((ServerToAgentFlags)message.Flags));
+            Dispatch(new PackagesAvailableMessage(packagesAvailable), packagesListeners);
         }
 
-        if (message.Capabilities != 0)
+        if (message.Flags is var flags and not 0 &&
+            this.TryGetListeners<FlagsMessage>(out var flagsListeners))
         {
-            this.Dispatch(new ServerCapabilitiesMessage((ServerCapabilities)message.Capabilities));
+            Dispatch(new FlagsMessage((ServerToAgentFlags)flags), flagsListeners);
         }
 
-        if (message.AgentIdentification != null)
+        if (message.Capabilities is var capabilities and not 0 &&
+            this.TryGetListeners<ServerCapabilitiesMessage>(out var capabilitiesListeners))
         {
-            this.Dispatch(new AgentIdentificationMessage(message.AgentIdentification));
+            Dispatch(new ServerCapabilitiesMessage((ServerCapabilities)capabilities), capabilitiesListeners);
         }
 
-        if (message.Command != null)
+        if (message.AgentIdentification is { } agentIdentification &&
+            this.TryGetListeners<AgentIdentificationMessage>(out var agentIdentificationListeners))
         {
-            this.Dispatch(new CommandMessage(message.Command));
+            Dispatch(new AgentIdentificationMessage(agentIdentification), agentIdentificationListeners);
         }
 
-        if (message.CustomCapabilities != null)
+        if (message.Command is { } command &&
+            this.TryGetListeners<CommandMessage>(out var commandListeners))
         {
-            this.Dispatch(new CustomCapabilitiesMessage(message.CustomCapabilities));
+            Dispatch(new CommandMessage(command), commandListeners);
         }
 
-        if (message.CustomMessage != null)
+        if (message.CustomCapabilities is { } customCapabilities &&
+            this.TryGetListeners<CustomCapabilitiesMessage>(out var customCapabilitiesListeners))
         {
-            this.Dispatch(new CustomMessageMessage(message.CustomMessage));
+            Dispatch(new CustomCapabilitiesMessage(customCapabilities), customCapabilitiesListeners);
+        }
+
+        if (message.CustomMessage is { } customMessage &&
+            this.TryGetListeners<CustomMessageMessage>(out var customMessageListeners))
+        {
+            Dispatch(new CustomMessageMessage(customMessage), customMessageListeners);
         }
     }
 
-    private void Dispatch<T>(T message)
+    private bool TryGetListeners<T>(out IReadOnlyList<object> result)
         where T : OpAmpMessage
     {
-        if (this.listeners.TryGetValue(typeof(T), out var list))
+        if (this.listeners.TryGetValue(typeof(T), out var listeners) &&
+            listeners.Count != 0)
         {
-            foreach (var listener in list)
-            {
-                if (listener is IOpAmpListener<T> typedListener)
-                {
-                    typedListener.HandleMessage(message);
-                }
-            }
+            result = listeners;
+            return true;
         }
+
+        result = Array.Empty<object>();
+        return false;
     }
 }

@@ -15,7 +15,7 @@ namespace OpenTelemetry.SemanticConventions;
 public static class SessionAttributes
 {
     /// <summary>
-    /// A unique id to identify a session.
+    /// A unique ID to identify a session.
     /// </summary>
     public const string AttributeSessionId = "session.id";
 

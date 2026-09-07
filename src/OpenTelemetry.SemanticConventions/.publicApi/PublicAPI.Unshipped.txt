@@ -201,6 +201,27 @@ const OpenTelemetry.SemanticConventions.BrowserAttributes.AttributeBrowserDocume
 const OpenTelemetry.SemanticConventions.BrowserAttributes.AttributeBrowserLanguage = "browser.language" -> string!
 const OpenTelemetry.SemanticConventions.BrowserAttributes.AttributeBrowserMobile = "browser.mobile" -> string!
 const OpenTelemetry.SemanticConventions.BrowserAttributes.AttributeBrowserPlatform = "browser.platform" -> string!
+const OpenTelemetry.SemanticConventions.BrowserAttributes.AttributeBrowserWebVitalDelta = "browser.web_vital.delta" -> string!
+const OpenTelemetry.SemanticConventions.BrowserAttributes.AttributeBrowserWebVitalId = "browser.web_vital.id" -> string!
+const OpenTelemetry.SemanticConventions.BrowserAttributes.AttributeBrowserWebVitalName = "browser.web_vital.name" -> string!
+const OpenTelemetry.SemanticConventions.BrowserAttributes.AttributeBrowserWebVitalNavigationType = "browser.web_vital.navigation_type" -> string!
+const OpenTelemetry.SemanticConventions.BrowserAttributes.AttributeBrowserWebVitalRating = "browser.web_vital.rating" -> string!
+const OpenTelemetry.SemanticConventions.BrowserAttributes.AttributeBrowserWebVitalValue = "browser.web_vital.value" -> string!
+const OpenTelemetry.SemanticConventions.BrowserAttributes.BrowserWebVitalNameValues.Cls = "cls" -> string!
+const OpenTelemetry.SemanticConventions.BrowserAttributes.BrowserWebVitalNameValues.Fcp = "fcp" -> string!
+const OpenTelemetry.SemanticConventions.BrowserAttributes.BrowserWebVitalNameValues.Fid = "fid" -> string!
+const OpenTelemetry.SemanticConventions.BrowserAttributes.BrowserWebVitalNameValues.Inp = "inp" -> string!
+const OpenTelemetry.SemanticConventions.BrowserAttributes.BrowserWebVitalNameValues.Lcp = "lcp" -> string!
+const OpenTelemetry.SemanticConventions.BrowserAttributes.BrowserWebVitalNameValues.Ttfb = "ttfb" -> string!
+const OpenTelemetry.SemanticConventions.BrowserAttributes.BrowserWebVitalNavigationTypeValues.BackForward = "back-forward" -> string!
+const OpenTelemetry.SemanticConventions.BrowserAttributes.BrowserWebVitalNavigationTypeValues.BackForwardCache = "back-forward-cache" -> string!
+const OpenTelemetry.SemanticConventions.BrowserAttributes.BrowserWebVitalNavigationTypeValues.Navigate = "navigate" -> string!
+const OpenTelemetry.SemanticConventions.BrowserAttributes.BrowserWebVitalNavigationTypeValues.Prerender = "prerender" -> string!
+const OpenTelemetry.SemanticConventions.BrowserAttributes.BrowserWebVitalNavigationTypeValues.Reload = "reload" -> string!
+const OpenTelemetry.SemanticConventions.BrowserAttributes.BrowserWebVitalNavigationTypeValues.Restore = "restore" -> string!
+const OpenTelemetry.SemanticConventions.BrowserAttributes.BrowserWebVitalRatingValues.Good = "good" -> string!
+const OpenTelemetry.SemanticConventions.BrowserAttributes.BrowserWebVitalRatingValues.NeedsImprovement = "needs-improvement" -> string!
+const OpenTelemetry.SemanticConventions.BrowserAttributes.BrowserWebVitalRatingValues.Poor = "poor" -> string!
 const OpenTelemetry.SemanticConventions.CassandraAttributes.AttributeCassandraConsistencyLevel = "cassandra.consistency.level" -> string!
 const OpenTelemetry.SemanticConventions.CassandraAttributes.AttributeCassandraCoordinatorDc = "cassandra.coordinator.dc" -> string!
 const OpenTelemetry.SemanticConventions.CassandraAttributes.AttributeCassandraCoordinatorId = "cassandra.coordinator.id" -> string!
@@ -296,6 +317,7 @@ const OpenTelemetry.SemanticConventions.CloudAttributes.CloudPlatformValues.Hetz
 const OpenTelemetry.SemanticConventions.CloudAttributes.CloudPlatformValues.IbmCloudOpenshift = "ibm_cloud_openshift" -> string!
 const OpenTelemetry.SemanticConventions.CloudAttributes.CloudPlatformValues.OracleCloudCompute = "oracle_cloud_compute" -> string!
 const OpenTelemetry.SemanticConventions.CloudAttributes.CloudPlatformValues.OracleCloudOke = "oracle_cloud_oke" -> string!
+const OpenTelemetry.SemanticConventions.CloudAttributes.CloudPlatformValues.ScalewayCloudCompute = "scaleway_cloud_compute" -> string!
 const OpenTelemetry.SemanticConventions.CloudAttributes.CloudPlatformValues.TencentCloudCvm = "tencent_cloud_cvm" -> string!
 const OpenTelemetry.SemanticConventions.CloudAttributes.CloudPlatformValues.TencentCloudEks = "tencent_cloud_eks" -> string!
 const OpenTelemetry.SemanticConventions.CloudAttributes.CloudPlatformValues.TencentCloudScf = "tencent_cloud_scf" -> string!
@@ -309,6 +331,7 @@ const OpenTelemetry.SemanticConventions.CloudAttributes.CloudProviderValues.Hero
 const OpenTelemetry.SemanticConventions.CloudAttributes.CloudProviderValues.Hetzner = "hetzner" -> string!
 const OpenTelemetry.SemanticConventions.CloudAttributes.CloudProviderValues.IbmCloud = "ibm_cloud" -> string!
 const OpenTelemetry.SemanticConventions.CloudAttributes.CloudProviderValues.OracleCloud = "oracle_cloud" -> string!
+const OpenTelemetry.SemanticConventions.CloudAttributes.CloudProviderValues.ScalewayCloud = "scaleway_cloud" -> string!
 const OpenTelemetry.SemanticConventions.CloudAttributes.CloudProviderValues.TencentCloud = "tencent_cloud" -> string!
 const OpenTelemetry.SemanticConventions.CloudAttributes.CloudProviderValues.Vultr = "vultr" -> string!
 const OpenTelemetry.SemanticConventions.CloudeventsAttributes.AttributeCloudeventsEventId = "cloudevents.event_id" -> string!
@@ -1262,6 +1285,7 @@ const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingGc
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingGcpPubsubMessageAckId = "messaging.gcp_pubsub.message.ack_id" -> string!
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingGcpPubsubMessageDeliveryAttempt = "messaging.gcp_pubsub.message.delivery_attempt" -> string!
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingGcpPubsubMessageOrderingKey = "messaging.gcp_pubsub.message.ordering_key" -> string!
+const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingKafkaClusterId = "messaging.kafka.cluster.id" -> string!
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingKafkaConsumerGroup = "messaging.kafka.consumer.group" -> string!
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingKafkaDestinationPartition = "messaging.kafka.destination.partition" -> string!
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingKafkaMessageKey = "messaging.kafka.message.key" -> string!
@@ -1914,6 +1938,9 @@ OpenTelemetry.SemanticConventions.AzureAttributes
 OpenTelemetry.SemanticConventions.AzureAttributes.AzureCosmosdbConnectionModeValues
 OpenTelemetry.SemanticConventions.AzureAttributes.AzureCosmosdbConsistencyLevelValues
 OpenTelemetry.SemanticConventions.BrowserAttributes
+OpenTelemetry.SemanticConventions.BrowserAttributes.BrowserWebVitalNameValues
+OpenTelemetry.SemanticConventions.BrowserAttributes.BrowserWebVitalNavigationTypeValues
+OpenTelemetry.SemanticConventions.BrowserAttributes.BrowserWebVitalRatingValues
 OpenTelemetry.SemanticConventions.CassandraAttributes
 OpenTelemetry.SemanticConventions.CassandraAttributes.CassandraConsistencyLevelValues
 OpenTelemetry.SemanticConventions.CicdAttributes
