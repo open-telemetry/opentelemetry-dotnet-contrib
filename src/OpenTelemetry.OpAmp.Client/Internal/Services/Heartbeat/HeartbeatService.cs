@@ -104,9 +104,9 @@ internal sealed class HeartbeatService : IBackgroundService, IOpAmpListener<Conn
         }
     }
 
-    private void HeartbeatTick(object? state) => _ = this.HeartbeatTickAsync();
+    private void HeartbeatTick(object? state) => this.HeartbeatTick();
 
-    private async Task HeartbeatTickAsync()
+    private void HeartbeatTick()
     {
         if (this.cts.IsCancellationRequested)
         {

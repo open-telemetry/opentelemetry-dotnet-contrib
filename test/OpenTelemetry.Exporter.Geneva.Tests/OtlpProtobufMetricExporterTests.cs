@@ -1014,8 +1014,8 @@ public abstract class OtlpProtobufMetricExporterTests
         var expectedBucketCounts = new ulong[boundaryCount + 1];
         expectedBucketCounts[boundaryCount / 2] = 1;
 
-        Assert.Equal(boundaries, dataPoint.ExplicitBounds.ToArray());
-        Assert.Equal(expectedBucketCounts, dataPoint.BucketCounts.ToArray());
+        Assert.Equal(boundaries, dataPoint.ExplicitBounds.ToList());
+        Assert.Equal(expectedBucketCounts, dataPoint.BucketCounts.ToList());
     }
 
     [Theory]
