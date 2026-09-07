@@ -44,7 +44,7 @@ internal sealed class AzureContainerAppsResourceDetector : IResourceDetector
             }
             else
             {
-                AzureResourcesEventSource.Log.ResourceDetectorSkipped(nameof(AzureContainerAppsResourceDetector), ResourceAttributeConstants.AzureContainerAppsNameEnvVar);
+                AzureResourcesEventSource.Log.ResourceDetectorSkipped(nameof(AzureContainerAppsResourceDetector), $"{ResourceAttributeConstants.AzureContainerAppsNameEnvVar} or {ResourceAttributeConstants.AzureContainerAppJobNameEnvVar}");
             }
 
             return attributeList.Count == 0

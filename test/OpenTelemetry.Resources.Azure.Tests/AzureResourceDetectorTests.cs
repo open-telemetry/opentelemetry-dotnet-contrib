@@ -390,6 +390,7 @@ public class AzureResourceDetectorTests
         Assert.Equal(EventLevel.Verbose, skipped.Level);
         Assert.Contains(nameof(AzureContainerAppsResourceDetector), GetPayloadText(skipped), StringComparison.Ordinal);
         Assert.Contains(ResourceAttributeConstants.AzureContainerAppsNameEnvVar, GetPayloadText(skipped), StringComparison.Ordinal);
+        Assert.Contains(ResourceAttributeConstants.AzureContainerAppJobNameEnvVar, GetPayloadText(skipped), StringComparison.Ordinal);
     }
 
     [Theory]

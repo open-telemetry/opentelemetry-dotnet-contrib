@@ -55,7 +55,7 @@ internal sealed class AzureResourcesEventSource : EventSource
     public void FailedToDetectAzureVMResources(string exception)
         => this.WriteEvent(EventIdFailedToDetectAzureVMResources, exception);
 
-    [Event(EventIdResourceDetectorSkipped, Message = "Resource detector '{0}' did not detect any attributes because the environment variable '{1}' is not set.", Level = EventLevel.Verbose)]
+    [Event(EventIdResourceDetectorSkipped, Message = "Resource detector '{0}' did not detect any attributes because no environment variable named {1} is set.", Level = EventLevel.Verbose)]
     public void ResourceDetectorSkipped(string detector, string environmentVariable)
         => this.WriteEvent(EventIdResourceDetectorSkipped, detector, environmentVariable);
 }

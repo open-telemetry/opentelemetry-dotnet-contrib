@@ -140,6 +140,5 @@ Please refer to [SDK
 troubleshooting](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry/README.md#troubleshooting)
 for instructions on seeing these internal logs.
 
-A detector writes a `Verbose` event naming itself and the environment variable
-it looked for when that variable is absent and it therefore contributes no
-attributes.
+A detector writes a `Verbose` event naming itself and the environment variables
+it looked for when none is set and it therefore contributes no attributes.
