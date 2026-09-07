@@ -221,6 +221,8 @@ public abstract class OpAmpPipeTests
         {
             await pipe.FlushAsync();
         });
+
+        await Task.CompletedTask;
 #endif
 
         Assert.Empty(transport.Messages);

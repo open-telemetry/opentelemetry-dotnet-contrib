@@ -197,7 +197,7 @@ internal sealed class OpAmpPipe : IDisposable
 
         var cancellationCompletion = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         using var registration = token.Register(
-            static state => ((TaskCompletionSource<bool>)state!).TrySetResult(true),
+            static state => ((TaskCompletionSource<bool>?)state)?.TrySetResult(true),
             cancellationCompletion);
 
         if (await Task.WhenAny(flushTask, cancellationCompletion.Task).ConfigureAwait(false) == cancellationCompletion.Task)
