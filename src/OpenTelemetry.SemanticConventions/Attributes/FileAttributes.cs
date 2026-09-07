@@ -55,7 +55,7 @@ public static class FileAttributes
     /// File extension, excluding the leading dot.
     /// </summary>
     /// <remarks>
-    /// When the file name has multiple extensions (example.tar.gz), only the last one should be captured ("gz", not "tar.gz").
+    /// When the filename has multiple extensions (example.tar.gz), only the last one should be captured ("gz", not "tar.gz").
     /// </remarks>
     public const string AttributeFileExtension = "file.extension";
 
@@ -64,7 +64,7 @@ public static class FileAttributes
     /// </summary>
     /// <remarks>
     /// On Linux, a resource fork is used to store additional data with a filesystem object. A file always has at least one fork for the data portion, and additional forks may exist.
-    /// On NTFS, this is analogous to an Alternate Data Stream (ADS), and the default data stream for a file is just called $DATA. Zone.Identifier is commonly used by Windows to track contents downloaded from the Internet. An ADS is typically of the form: C:\path\to\filename.extension:some_fork_name, and some_fork_name is the value that should populate <c>fork_name</c>. <c>filename.extension</c> should populate <c>file.name</c>, and <c>extension</c> should populate <c>file.extension</c>. The full path, <c>file.path</c>, will include the fork name.
+    /// On NTFS, this is analogous to an Alternate Data Stream (ADS), and the default data stream for a file is just called $DATA. Zone.Identifier is commonly used by Windows to track contents downloaded from the internet. An ADS is typically of the form: C:\path\to\filename.extension:some_fork_name, and some_fork_name is the value that should populate <c>fork_name</c>. <c>filename.extension</c> should populate <c>file.name</c>, and <c>extension</c> should populate <c>file.extension</c>. The full path, <c>file.path</c>, will include the fork name.
     /// </remarks>
     public const string AttributeFileForkName = "file.fork_name";
 
@@ -124,7 +124,7 @@ public static class FileAttributes
     public const string AttributeFileOwnerName = "file.owner.name";
 
     /// <summary>
-    /// Full path to the file, including the file name. It should include the drive letter, when appropriate.
+    /// Full path to the file, including the filename. It should include the drive letter, when appropriate.
     /// </summary>
     public const string AttributeFilePath = "file.path";
 

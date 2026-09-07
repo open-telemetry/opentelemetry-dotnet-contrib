@@ -232,6 +232,11 @@ public static class CloudAttributes
         public const string OracleCloudOke = "oracle_cloud_oke";
 
         /// <summary>
+        /// Compute on Scaleway Cloud.
+        /// </summary>
+        public const string ScalewayCloudCompute = "scaleway_cloud_compute";
+
+        /// <summary>
         /// Tencent Cloud Cloud Virtual Machine (CVM).
         /// </summary>
         public const string TencentCloudCvm = "tencent_cloud_cvm";
@@ -301,6 +306,11 @@ public static class CloudAttributes
         /// Oracle Cloud Infrastructure (OCI).
         /// </summary>
         public const string OracleCloud = "oracle_cloud";
+
+        /// <summary>
+        /// Scaleway Cloud.
+        /// </summary>
+        public const string ScalewayCloud = "scaleway_cloud";
 
         /// <summary>
         /// Tencent Cloud.

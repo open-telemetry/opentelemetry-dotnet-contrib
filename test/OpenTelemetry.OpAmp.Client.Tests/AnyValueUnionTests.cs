@@ -4,9 +4,6 @@
 using OpenTelemetry.OpAmp.Client.Internal.Settings;
 using OpenTelemetry.OpAmp.Client.Internal.Utils;
 using OpenTelemetry.OpAmp.Client.Settings;
-#if NETFRAMEWORK
-using OpenTelemetry.OpAmp.Client.Tests.Tools;
-#endif
 
 namespace OpenTelemetry.OpAmp.Client.Tests;
 
@@ -67,14 +64,7 @@ public class AnyValueUnionTests
     [Fact]
     public void AnyValueUnion_EqualityTests_NullTests()
     {
-        var enumValues
-#if NET
-            = Enum.GetValues<AnyValueType>();
-#else
-            = EnumPolyfill.GetValues<AnyValueType>();
-#endif
-
-        foreach (var type in enumValues)
+        foreach (var type in Enum.GetValues<AnyValueType>())
         {
             Assert.Throws<ArgumentNullException>(() => new AnyValueUnion(type));
         }

@@ -4,14 +4,14 @@
 using OpAmp.Proto.V1;
 using OpenTelemetry.OpAmp.Client.Messages;
 
-namespace OpenTelemetry.OpAmp.Client.Internal.Listeners.Messages;
+namespace OpenTelemetry.OpAmp.Client.Internal.Messages;
 
-internal class PackagesAvailableMessage : OpAmpMessage
+internal sealed class PackagesAvailableMessage : OpAmpMessage
 {
     public PackagesAvailableMessage(PackagesAvailable packageAvailable)
     {
         this.PackagesAvailable = packageAvailable;
     }
 
-    public PackagesAvailable PackagesAvailable { get; set; }
+    public PackagesAvailable PackagesAvailable { get; }
 }

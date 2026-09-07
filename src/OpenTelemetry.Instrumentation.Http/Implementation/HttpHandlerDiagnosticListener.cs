@@ -143,7 +143,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
                 if (request.RequestUri != null)
                 {
                     activity.SetTag(SemanticConventions.AttributeServerAddress, request.RequestUri.Host);
-                    activity.SetTag(SemanticConventions.AttributeServerPort, TelemetryHelper.GetBoxedPort(request.RequestUri.Port));
+                    activity.SetTag(SemanticConventions.AttributeServerPort, PortTelemetryHelper.GetBoxedPort(request.RequestUri.Port, cacheValue: true));
                     activity.SetTag(SemanticConventions.AttributeUrlFull, HttpTagHelper.GetUriTagValueFromRequestUri(request.RequestUri, this.options.DisableUrlQueryRedaction));
                 }
             }

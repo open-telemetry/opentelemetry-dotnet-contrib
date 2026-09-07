@@ -187,15 +187,16 @@ internal static class RedisProfilerEntryToActivityConverter
                 if (command.EndPoint is IPEndPoint ipEndPoint)
                 {
                     var address = ipEndPoint.Address.ToString();
+                    var port = PortTelemetryHelper.GetBoxedPort(ipEndPoint.Port, cacheValue: true);
                     activity.SetTag(SemanticConventions.AttributeServerAddress, address);
-                    activity.SetTag(SemanticConventions.AttributeServerPort, ipEndPoint.Port);
+                    activity.SetTag(SemanticConventions.AttributeServerPort, port);
                     activity.SetTag(SemanticConventions.AttributeNetworkPeerAddress, address);
-                    activity.SetTag(SemanticConventions.AttributeNetworkPeerPort, ipEndPoint.Port);
+                    activity.SetTag(SemanticConventions.AttributeNetworkPeerPort, port);
                 }
                 else if (command.EndPoint is DnsEndPoint dnsEndPoint)
                 {
                     activity.SetTag(SemanticConventions.AttributeServerAddress, dnsEndPoint.Host);
-                    activity.SetTag(SemanticConventions.AttributeServerPort, dnsEndPoint.Port);
+                    activity.SetTag(SemanticConventions.AttributeServerPort, PortTelemetryHelper.GetBoxedPort(dnsEndPoint.Port, cacheValue: true));
                 }
 #if NET
                 else if (command.EndPoint is UnixDomainSocketEndPoint unixDomainSocketEndPoint)
