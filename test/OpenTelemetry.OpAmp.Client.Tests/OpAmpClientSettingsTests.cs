@@ -23,10 +23,9 @@ public class OpAmpClientSettingsTests
     {
         var settings = new OpAmpClientSettings();
 
-        var exception = Assert.Throws<ArgumentOutOfRangeException>(
+        Assert.Throws<ArgumentOutOfRangeException>(
+            nameof(value),
             () => settings.MaxPendingCustomMessages = value);
-
-        Assert.Equal(nameof(value), exception.ParamName);
     }
 
     [Theory]
@@ -36,9 +35,8 @@ public class OpAmpClientSettingsTests
     {
         var settings = new OpAmpClientSettings();
 
-        var exception = Assert.Throws<ArgumentOutOfRangeException>(
+        Assert.Throws<ArgumentOutOfRangeException>(
+            nameof(value),
             () => settings.MaxPendingCustomMessageBytes = value);
-
-        Assert.Equal(nameof(value), exception.ParamName);
     }
 }

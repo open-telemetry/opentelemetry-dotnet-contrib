@@ -85,10 +85,8 @@ public sealed class OpAmpClientSettings
 
     /// <summary>
     /// Gets or sets the maximum number of custom messages that may wait to be sent.
+    /// The default is <c>2,048</c>.
     /// </summary>
-    /// <value>
-    /// The maximum number of pending custom messages. The default is <c>2,048</c>.
-    /// </value>
     /// <exception cref="ArgumentOutOfRangeException">
     /// Thrown when the value is less than <c>1</c>.
     /// </exception>
@@ -103,12 +101,10 @@ public sealed class OpAmpClientSettings
     }
 
     /// <summary>
-    /// Gets or sets the maximum aggregate payload size of custom messages that may wait to be sent.
+    /// Gets or sets the maximum aggregate size, in bytes, of the <c>Data</c>
+    /// payloads of custom messages that may wait to be sent. The default is
+    /// 64 MiB (<c>67,108,864</c> bytes).
     /// </summary>
-    /// <value>
-    /// The maximum aggregate size, in bytes, of the <c>Data</c> payloads of pending
-    /// custom messages. The default is 64 MiB (<c>67,108,864</c> bytes).
-    /// </value>
     /// <exception cref="ArgumentOutOfRangeException">
     /// Thrown when the value is less than <c>1</c>.
     /// </exception>
