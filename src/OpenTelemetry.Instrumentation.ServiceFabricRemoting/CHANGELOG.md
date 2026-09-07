@@ -14,10 +14,6 @@
   for this purpose. A `RemotingExceptionDepth` property was also added to
   control how many levels of inner exceptions are serialized.
 
-* Documented how to compose the instrumentation adapters manually, for
-  applications that need to configure the Service Fabric listener or client
-  factory directly instead of using the provider attributes.
-
 ## 1.18.0-beta.1
 
 Released 2026-Aug-21

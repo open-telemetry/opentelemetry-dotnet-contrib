@@ -233,8 +233,11 @@ exception types need to be returned.
 Then apply the derived attribute instead of the built-in one:
 
 ```csharp
-   [assembly: MyRemotingProvider()]
+   [assembly: MyRemotingProvider]
 ```
+
+The derived attribute continues to accept the Service Fabric settings inherited
+from the base attribute, such as `MaxMessageSize` and the timeout properties.
 
 The same pattern applies to
 `TraceContextEnrichedActorRemotingProviderAttribute`.
