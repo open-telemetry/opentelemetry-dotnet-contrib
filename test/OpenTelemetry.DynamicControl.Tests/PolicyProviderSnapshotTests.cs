@@ -2,16 +2,16 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using OpenTelemetry.DynamicControl.Internal.Policies;
-using OpenTelemetry.DynamicControl.Internal.Sources;
+using OpenTelemetry.DynamicControl.Internal.Providers;
 using OpenTelemetry.DynamicControl.Internal.Store;
 using static OpenTelemetry.DynamicControl.Tests.PolicyKeyTestHelper;
 
 namespace OpenTelemetry.DynamicControl.Tests;
 
-public class PolicySourceSnapshotTests
+public class PolicyProviderSnapshotTests
 {
-    private static readonly PolicySourceMetadata DefaultMetadata =
-        new(new SourceRegistrationId("source-1"), PolicySourceKind.File);
+    private static readonly PolicyProviderMetadata DefaultMetadata =
+        new(new ProviderRegistrationId("provider-1"), PolicyProviderKind.File);
 
     [Fact]
     public void TryCreate_ZeroPolicies_SucceedsAndIsEmpty()
@@ -50,7 +50,7 @@ public class PolicySourceSnapshotTests
     [Fact]
     public void TryCreate_NullPoliciesList_Throws() =>
         Assert.Throws<ArgumentNullException>(() =>
-            PolicySourceSnapshot.TryCreate(DefaultMetadata, 1, PolicySourceVersion.Empty, null!, out _, out _));
+            PolicyProviderSnapshot.TryCreate(DefaultMetadata, 1, PolicyProviderVersion.Empty, null!, out _, out _));
 
     [Fact]
     public void TryCreate_NullElement_ReturnsFalse()
@@ -106,14 +106,14 @@ public class PolicySourceSnapshotTests
     }
 
     [Fact]
-    public void TryCreate_PolicySourceVersionEmpty_Succeeds()
+    public void TryCreate_PolicyProviderVersionEmpty_Succeeds()
     {
-        var result = PolicySourceSnapshot.TryCreate(
-            DefaultMetadata, 1, PolicySourceVersion.Empty, [], out var snapshot, out _);
+        var result = PolicyProviderSnapshot.TryCreate(
+            DefaultMetadata, 1, PolicyProviderVersion.Empty, [], out var snapshot, out _);
 
-        Assert.True(result, "TryCreate with PolicySourceVersion.Empty should succeed");
+        Assert.True(result, "TryCreate with PolicyProviderVersion.Empty should succeed");
         Assert.NotNull(snapshot);
-        Assert.True(snapshot.Version.IsEmpty, "Snapshot version should be empty when PolicySourceVersion.Empty was passed");
+        Assert.True(snapshot.Version.IsEmpty, "Snapshot version should be empty when PolicyProviderVersion.Empty was passed");
     }
 
     [Fact]
@@ -192,8 +192,8 @@ public class PolicySourceSnapshotTests
     [Fact]
     public void RegistrationId_MatchesMetadataRegistrationId()
     {
-        var id = new SourceRegistrationId("my-source");
-        var metadata = new PolicySourceMetadata(id, PolicySourceKind.OpAmp);
+        var id = new ProviderRegistrationId("my-provider");
+        var metadata = new PolicyProviderMetadata(id, PolicyProviderKind.OpAmp);
         TryCreate(metadata, 1, [], out var snapshot, out _);
 
         Assert.Equal(id, snapshot!.RegistrationId);
@@ -226,12 +226,12 @@ public class PolicySourceSnapshotTests
     }
 
     private static bool TryCreate(
-        PolicySourceMetadata metadata,
+        PolicyProviderMetadata metadata,
         long sequence,
         IReadOnlyList<TelemetryPolicy?> policies,
-        out PolicySourceSnapshot? snapshot,
+        out PolicyProviderSnapshot? snapshot,
         out string? error)
-        => PolicySourceSnapshot.TryCreate(metadata, sequence, PolicySourceVersion.Empty, policies, out snapshot, out error);
+        => PolicyProviderSnapshot.TryCreate(metadata, sequence, PolicyProviderVersion.Empty, policies, out snapshot, out error);
 
     private sealed class StubPolicy : TelemetryPolicy
     {
