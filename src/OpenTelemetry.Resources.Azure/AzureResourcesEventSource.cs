@@ -14,7 +14,7 @@ internal sealed class AzureResourcesEventSource : EventSource
     private const int EventIdFailedToDetectAppServiceResources = 1;
     private const int EventIdFailedToDetectAzureContainerAppResources = 2;
     private const int EventIdFailedToDetectAzureVMResources = 3;
-    private const int EventIdResourceDetectorSkipped = 5;
+    private const int EventIdResourceDetectorSkipped = 4;
 
     [NonEvent]
     public void FailedToDetectAppServiceResources(Exception ex)
