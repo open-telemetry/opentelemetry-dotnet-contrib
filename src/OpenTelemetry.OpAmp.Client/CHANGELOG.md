@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.7.0-alpha.1
+
+Released 2026-Sep-07
+
 * **Breaking Change**: Changed communication behavior to accumulate messages when
   the channel is blocked. This removes the need for explicit asynchronous message
   sending, as the accumultor message is now automatically dispatched in the
