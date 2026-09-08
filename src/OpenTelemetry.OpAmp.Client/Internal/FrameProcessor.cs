@@ -176,7 +176,7 @@ internal sealed class FrameProcessor
             return true;
         }
 
-        result = Array.Empty<object>();
+        result = [];
         return false;
     }
 }
