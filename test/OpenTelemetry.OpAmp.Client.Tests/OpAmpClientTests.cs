@@ -444,7 +444,7 @@ public class OpAmpClientTests
     }
 
     [Fact]
-    internal async Task SendsCustomMessage()
+    internal async Task SendsCustomMessages()
     {
         // Setup OpAMP server
         using var opAmpServer = new OpAmpFakeHttpServer(false);
@@ -455,27 +455,32 @@ public class OpAmpClientTests
             o.ServerUrl = opAmpEndpoint;
         });
 
-        // Setup content
-        const string capability = "custom-c1";
-        const string type = "custom-type-1";
-        const string messageContent = "a custom message contents";
-        var message = Encoding.UTF8.GetBytes(messageContent);
-
         // Act
         await client.StartAsync();
-        client.SendCustomMessage(capability, type, message);
+        for (var i = 0; i < 3; i++)
+        {
+            client.SendCustomMessage(
+                $"custom-c{i}",
+                $"custom-type-{i}",
+                Encoding.UTF8.GetBytes($"custom message contents {i}"));
+        }
+
         await client.StopAsync();
 
         // Assert received frames
         var frames = opAmpServer.GetFrames();
-        var actualCapability = frames[1].CustomMessage.Capability;
-        var actualType = frames[1].CustomMessage.Type;
-        var actualMessageContent = frames[1].CustomMessage.Data.ToStringUtf8();
+        Assert.Equal(5, frames.Count);
 
-        Assert.Equal(3, frames.Count); // 3 frames: 1 identification, 2 custom message, 3 disconnect
-        Assert.Equal(capability, actualCapability);
-        Assert.Equal(type, actualType);
-        Assert.Equal(messageContent, actualMessageContent);
+        for (var i = 0; i < 3; i++)
+        {
+            var customMessage = frames[i + 1].CustomMessage;
+            Assert.NotNull(customMessage);
+            Assert.Equal($"custom-c{i}", customMessage.Capability);
+            Assert.Equal($"custom-type-{i}", customMessage.Type);
+            Assert.Equal($"custom message contents {i}", customMessage.Data.ToStringUtf8());
+        }
+
+        Assert.NotNull(frames[4].AgentDisconnect);
     }
 
     [Fact]

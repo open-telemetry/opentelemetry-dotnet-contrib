@@ -6,11 +6,11 @@ using OpenTelemetry.Internal;
 namespace OpenTelemetry.DynamicControl.Internal.Policies;
 
 /// <summary>
-/// Identifies the slot that a telemetry policy occupies, across all configured sources.
+/// Identifies the slot that a telemetry policy occupies, across all configured providers.
 /// </summary>
 /// <remarks>
 /// <para>
-/// Cross-source policy identity is the composite of the policy type and the
+/// Cross-provider policy identity is the composite of the policy type and the
 /// provider-assigned policy identifier, rather than the identifier alone.
 /// </para>
 /// </remarks>

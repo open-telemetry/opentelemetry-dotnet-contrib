@@ -44,11 +44,15 @@ internal static class MessageBuilderHelper
         OpAmpClientEventSource.Log.QueueingCustomCapabilitiesMessage();
     };
 
-    public static Action<IFrameBuilder> AppendCustomMessage(string capability, string type, ReadOnlyMemory<byte> data) => fb =>
+    public static void AppendCustomMessage(
+        IFrameBuilder fb,
+        string capability,
+        string type,
+        ReadOnlyMemory<byte> data)
     {
         fb.AddCustomMessage(capability, type, data);
         OpAmpClientEventSource.Log.QueueingCustomMessageMessage();
-    };
+    }
 
     public static Action<IFrameBuilder> AppendFullStateReport(FullStateReport report) => fb => AppendFullStateReport(fb, report);
 
