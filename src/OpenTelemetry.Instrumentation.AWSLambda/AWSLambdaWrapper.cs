@@ -38,6 +38,8 @@ public static class AWSLambdaWrapper
 
     internal static AWSSemanticConventions AWSSemanticConventions { get; set; } = new();
 
+    internal static Action<Activity, object?>? EnrichWithInput { get; set; }
+
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
 
     /// <summary>
@@ -183,6 +185,19 @@ public static class AWSLambdaWrapper
         // We assume that functionTags and httpTags have no intersection.
         var activityName = AWSLambdaUtils.GetFunctionName(context) ?? "AWS Lambda Invoke";
         var activity = AWSLambdaActivitySource.Value.StartActivity(activityName, ActivityKind.Server, parentContext, functionTags.Concat(httpTags)!, links);
+
+        if (activity is { IsAllDataRequested: true } && EnrichWithInput is { } enrich)
+        {
+            try
+            {
+                enrich(activity, input);
+            }
+            catch
+            {
+                // A failure in the caller's action must not fail the invocation. It is not
+                // reported, so the action should be defensive or handle its own errors.
+            }
+        }
 
         return activity;
     }

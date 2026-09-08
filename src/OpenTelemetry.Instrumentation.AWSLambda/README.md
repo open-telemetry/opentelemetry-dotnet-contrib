@@ -35,6 +35,48 @@ AWS lambda instrumentation:
 
 * [`DisableAwsXRayContextExtraction`](/src/OpenTelemetry.Instrumentation.AWSLambda/AWSLambdaInstrumentationOptions.cs)
 * [`SetParentFromBatch`](/src/OpenTelemetry.Instrumentation.AWSLambda/AWSLambdaInstrumentationOptions.cs)
+* [`EnrichWithInput`](/src/OpenTelemetry.Instrumentation.AWSLambda/AWSLambdaInstrumentationOptions.cs)
+
+### Enriching the invocation span
+
+`faas.trigger` is set to `http` for API Gateway and Application Load Balancer
+requests and to `pubsub` for SQS and SNS events. Other event sources report
+`other`, because classifying them would require this package to depend on their
+event packages.
+
+`EnrichWithInput` lets a function describe its own trigger. The action receives
+the invocation `Activity` and the function input, and runs after the activity is
+created. For example, for an S3 triggered function:
+
+```csharp
+using System.Net;
+using Amazon.Lambda.S3Events;
+
+TracerProvider tracerProvider = Sdk.CreateTracerProviderBuilder()
+    .AddAWSLambdaConfigurations(options => options.EnrichWithInput = (activity, input) =>
+    {
+        // S3 sends one event entry per notification.
+        if (input is S3Event { Records.Count: 1 } s3Event)
+        {
+            var record = s3Event.Records[0];
+
+            activity.SetTag("faas.trigger", "datasource");
+            activity.SetTag("faas.document.collection", record.S3.Bucket.Name);
+            activity.SetTag("faas.document.operation", "insert");
+
+            // S3 URL encodes the object key in the notification.
+            activity.SetTag("faas.document.name", WebUtility.UrlDecode(record.S3.Object.Key));
+            activity.SetTag("faas.document.time", record.EventTime.ToUniversalTime().ToString("o"));
+        }
+    })
+    .Build();
+```
+
+> [!NOTE]
+> The action runs after the activity is created, so attributes it sets are not
+> visible to samplers. Exceptions thrown by the action are caught so that they
+> cannot fail the invocation, and are not reported; keep the action defensive, or
+> handle errors within it if you need them logged.
 
 ### Query string redaction
 

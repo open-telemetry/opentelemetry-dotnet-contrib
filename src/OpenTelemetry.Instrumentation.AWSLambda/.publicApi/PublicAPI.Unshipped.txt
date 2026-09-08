@@ -1,0 +1,2 @@
+OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions.EnrichWithInput.get -> System.Action<System.Diagnostics.Activity!, object?>?
+OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions.EnrichWithInput.set -> void
