@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Added `host.image.id` resource attribute to `AWSEC2Detector`, populated from
+  the EC2 instance identity document's `imageId` (AMI ID).
+  ([#5110](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5110))
+
 ## 1.18.0
 
 Released 2026-Aug-21
