@@ -453,7 +453,6 @@ public class AWSLambdaWrapperTests : IDisposable
     [Fact]
     public void EnrichWithInputCanOverrideFaasTrigger()
     {
-        // This is what the datasource trigger types need.
         var exportedItems = new List<Activity>();
 
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
