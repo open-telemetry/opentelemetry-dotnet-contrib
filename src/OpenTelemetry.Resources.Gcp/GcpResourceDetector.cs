@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Text.Json;
 using Google.Api.Gax;
 using OpenTelemetry.Trace;
 
@@ -11,7 +12,7 @@ namespace OpenTelemetry.Resources.Gcp;
 /// </summary>
 internal sealed class GcpResourceDetector : IResourceDetector
 {
-    private static readonly Version SemanticConventionsVersion = new(1, 43, 0);
+    private static readonly Version SemanticConventionsVersion = new(1, 44, 0);
 
     /// <inheritdoc/>
     public Resource Detect()
@@ -98,6 +99,50 @@ internal sealed class GcpResourceDetector : IResourceDetector
             new(ResourceSemanticConventions.AttributeCloudAvailabilityZone, platform.GceDetails.Location)
         ];
 
+        AddGceInstanceAttributes(attributeList, platform.GceDetails.MetadataJson);
+
         return attributeList;
+    }
+
+    private static void AddGceInstanceAttributes(List<KeyValuePair<string, object>> attributeList, string? metadataJson)
+    {
+        if (metadataJson is not { Length: > 0 })
+        {
+            return;
+        }
+
+        try
+        {
+            using var metadata = JsonDocument.Parse(metadataJson);
+            if (metadata.RootElement.ValueKind != JsonValueKind.Object
+                || !metadata.RootElement.TryGetProperty("instance", out var instance)
+                || instance.ValueKind != JsonValueKind.Object)
+            {
+                return;
+            }
+
+            if (instance.TryGetProperty("machineType", out var machineTypeElement)
+                && machineTypeElement.ValueKind == JsonValueKind.String
+                && machineTypeElement.GetString() is { Length: > 0 } machineType)
+            {
+                attributeList.Add(new(ResourceSemanticConventions.AttributeHostType, machineType));
+            }
+
+            // The image is a resource path such as "projects/debian-cloud/global/images/debian-12-bookworm-v20240110".
+            if (instance.TryGetProperty("image", out var imageElement)
+                && imageElement.ValueKind == JsonValueKind.String
+                && imageElement.GetString() is { Length: > 0 } image)
+            {
+                var imageName = image.Substring(image.LastIndexOf('/') + 1);
+                if (imageName.Length > 0)
+                {
+                    attributeList.Add(new(ResourceSemanticConventions.AttributeHostImageName, imageName));
+                }
+            }
+        }
+        catch (JsonException)
+        {
+            // Malformed metadata: keep the five attributes the detector already emitted.
+        }
     }
 }

@@ -21,6 +21,14 @@
   requests to the Azure Instance Metadata Service.
   ([#5167](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5167))
 
+* Add `host.image.id`, `host.image.name` and `host.image.version` attributes to
+  the Azure VM resource detector.
+  ([#PLACEHOLDER](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/PLACEHOLDER))
+
+* Updated semantic conventions to
+  [v1.44.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.44.0/docs/resource/host.md).
+  ([#PLACEHOLDER](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/PLACEHOLDER))
+
 ## 1.18.0-beta.1
 
 Released 2026-Aug-21
