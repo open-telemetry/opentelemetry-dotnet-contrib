@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Collections.Concurrent;
-using OpenTelemetry.DynamicControl.Internal.Sources;
+using OpenTelemetry.DynamicControl.Internal.Providers;
 using OpenTelemetry.DynamicControl.Internal.Store;
 
 namespace OpenTelemetry.DynamicControl.Tests;
@@ -22,7 +22,7 @@ public class PolicyStoreConcurrencyTests
         {
             var store = new PolicyStore();
             var delivered = new ConcurrentQueue<long>();
-            var sourceId = $"source-{attempt}";
+            var providerId = $"provider-{attempt}";
             using var start = new ManualResetEventSlim();
             IDisposable? subscription = null;
 
@@ -35,7 +35,7 @@ public class PolicyStoreConcurrencyTests
             var commitTask = Task.Run(() =>
             {
                 start.Wait();
-                store.ReplaceSource(CreateSnapshot(sourceId, sequence: 1));
+                store.ReplaceProvider(CreateSnapshot(providerId, sequence: 1));
             });
 
             start.Set();
@@ -87,10 +87,10 @@ public class PolicyStoreConcurrencyTests
 
         var producers = Enumerable.Range(0, producerCount).Select(p => Task.Run(() =>
         {
-            var sourceId = $"source-{p}";
+            var providerId = $"provider-{p}";
             for (var seq = 1L; seq <= commitsPerProducer; seq++)
             {
-                store.ReplaceSource(CreateSnapshot(sourceId, seq));
+                store.ReplaceProvider(CreateSnapshot(providerId, seq));
             }
         }));
 
@@ -114,13 +114,13 @@ public class PolicyStoreConcurrencyTests
         var store = new PolicyStore();
         var delivered = new ConcurrentQueue<long>();
         var subscription = store.Subscribe(s => delivered.Enqueue(s.Revision));
-        var sourceId = "source-a";
+        var providerId = "provider-a";
 
         var producer = Task.Run(() =>
         {
             for (var seq = 1L; seq <= commitCount; seq++)
             {
-                store.ReplaceSource(CreateSnapshot(sourceId, seq));
+                store.ReplaceProvider(CreateSnapshot(providerId, seq));
 
                 if (seq == commitCount / 2)
                 {
@@ -138,10 +138,10 @@ public class PolicyStoreConcurrencyTests
         Assert.Equal(countAfterDisposal, delivered.Count);
     }
 
-    private static PolicySourceSnapshot CreateSnapshot(string sourceId, long sequence)
+    private static PolicyProviderSnapshot CreateSnapshot(string providerId, long sequence)
     {
-        var meta = new PolicySourceMetadata(new SourceRegistrationId(sourceId), PolicySourceKind.File);
-        PolicySourceSnapshot.TryCreate(meta, sequence, PolicySourceVersion.Empty, [], out var snapshot, out _);
+        var meta = new PolicyProviderMetadata(new ProviderRegistrationId(providerId), PolicyProviderKind.File);
+        PolicyProviderSnapshot.TryCreate(meta, sequence, PolicyProviderVersion.Empty, [], out var snapshot, out _);
         return snapshot!;
     }
 

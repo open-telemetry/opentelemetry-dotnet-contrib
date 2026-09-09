@@ -6,6 +6,7 @@ using System.Fabric;
 using System.Text;
 using Microsoft.ServiceFabric.Actors;
 using Microsoft.ServiceFabric.Actors.Runtime;
+using Microsoft.ServiceFabric.Services.Communication;
 using Microsoft.ServiceFabric.Services.Remoting.FabricTransport;
 using Microsoft.ServiceFabric.Services.Remoting.FabricTransport.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.V2;
@@ -14,6 +15,8 @@ using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Trace;
 using ServiceFabric.Mocks;
 using ServiceFabric.Mocks.RemotingV2;
+using ClientExceptionConvertor = Microsoft.ServiceFabric.Services.Remoting.V2.Client.IExceptionConvertor;
+using RuntimeExceptionConvertor = Microsoft.ServiceFabric.Services.Remoting.V2.Runtime.IExceptionConvertor;
 
 namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests;
 
@@ -214,6 +217,135 @@ public class ServiceFabricRemotingTests
         }
     }
 
+    [Fact]
+    public void ServiceRemotingProviderListenerSettings_RemotingExceptionDepthOverridesConfiguredValue()
+    {
+        lock (TransportSettingsLock)
+        {
+            var originalLoader = TraceContextEnrichedServiceRemotingProviderAttribute.ListenerSettingsLoader;
+
+            try
+            {
+                TraceContextEnrichedServiceRemotingProviderAttribute.ListenerSettingsLoader = () => new FabricTransportRemotingListenerSettings
+                {
+                    RemotingExceptionDepth = 3,
+                };
+
+                var provider = new TraceContextEnrichedServiceRemotingProviderAttribute
+                {
+                    RemotingExceptionDepth = 5,
+                };
+
+                var actual = provider.GetListenerSettings();
+
+                Assert.Equal(5, actual.RemotingExceptionDepth);
+            }
+            finally
+            {
+                TraceContextEnrichedServiceRemotingProviderAttribute.ListenerSettingsLoader = originalLoader;
+            }
+        }
+    }
+
+    [Fact]
+    public void ServiceRemotingProviderListenerSettings_RemotingExceptionDepthKeepsConfiguredValueWhenNotSet()
+    {
+        lock (TransportSettingsLock)
+        {
+            var originalLoader = TraceContextEnrichedServiceRemotingProviderAttribute.ListenerSettingsLoader;
+
+            try
+            {
+                TraceContextEnrichedServiceRemotingProviderAttribute.ListenerSettingsLoader = () => new FabricTransportRemotingListenerSettings
+                {
+                    RemotingExceptionDepth = 3,
+                };
+
+                var provider = new TraceContextEnrichedServiceRemotingProviderAttribute();
+
+                var actual = provider.GetListenerSettings();
+
+                Assert.Equal(3, actual.RemotingExceptionDepth);
+            }
+            finally
+            {
+                TraceContextEnrichedServiceRemotingProviderAttribute.ListenerSettingsLoader = originalLoader;
+            }
+        }
+    }
+
+    [Fact]
+    public void ServiceRemotingProvider_ExceptionConvertorsAreNotRegisteredByDefault()
+    {
+        var provider = new ExceptionConvertorProbeAttribute();
+
+        Assert.Null(provider.GetServiceConvertors());
+        Assert.Null(provider.GetClientConvertors());
+    }
+
+    [Fact]
+    public void ServiceRemotingProvider_DerivedTypeCanRegisterCustomExceptionConvertors()
+    {
+        var provider = new CustomConvertorProviderAttribute();
+
+        Assert.Single(provider.GetServiceConvertors()!);
+        Assert.IsType<CustomTestExceptionConvertorService>(Assert.Single(provider.GetServiceConvertors()!));
+        Assert.IsType<CustomTestExceptionConvertorClient>(Assert.Single(provider.GetClientConvertors()!));
+    }
+
+    [Fact]
+    public void ExceptionConvertors_RoundTripPreservesTheCustomExceptionType()
+    {
+        var serviceConvertor = new CustomTestExceptionConvertorService();
+        var clientConvertor = new CustomTestExceptionConvertorClient();
+        var originalException = new CustomTestException("Something failed", "SomeDetail");
+
+        Assert.True(serviceConvertor.TryConvertToServiceException(originalException, out var serviceException));
+        Assert.Equal(typeof(CustomTestException).FullName, serviceException.ActualExceptionType);
+        Assert.Equal("SomeDetail", serviceException.ActualExceptionData["Detail"]);
+
+        Assert.True(clientConvertor.TryConvertFromServiceException(serviceException, out var actualException));
+
+        var roundTripped = Assert.IsType<CustomTestException>(actualException);
+        Assert.Equal("Something failed", roundTripped.Message);
+        Assert.Equal("SomeDetail", roundTripped.Detail);
+    }
+
+    [Fact]
+    public void ExceptionConvertors_UnrelatedExceptionTypesAreNotConverted()
+    {
+        var serviceConvertor = new CustomTestExceptionConvertorService();
+        var clientConvertor = new CustomTestExceptionConvertorClient();
+
+        Assert.False(serviceConvertor.TryConvertToServiceException(new InvalidOperationException("Nope"), out _));
+
+        var unrelated = new ServiceException(typeof(InvalidOperationException).FullName, "Nope");
+        Assert.False(clientConvertor.TryConvertFromServiceException(unrelated, out _));
+    }
+
+    [Fact]
+    public void ActorRemotingProvider_ExceptionConvertorsAreNotRegisteredByDefault()
+    {
+        var provider = new ActorExceptionConvertorProbeAttribute();
+
+        Assert.Null(provider.GetServiceConvertors());
+        Assert.Null(provider.GetClientConvertors());
+        Assert.Equal(0, provider.RemotingExceptionDepth);
+    }
+
+    [Fact]
+    public void ActorRemotingProvider_DerivedTypeCanRegisterCustomExceptionConvertors()
+    {
+        var provider = new ActorCustomConvertorProviderAttribute
+        {
+            RemotingExceptionDepth = 7,
+        };
+
+        Assert.IsType<CustomTestExceptionConvertorService>(Assert.Single(provider.GetServiceConvertors()!));
+        Assert.IsType<CustomTestExceptionConvertorClient>(Assert.Single(provider.GetClientConvertors()!));
+        Assert.Equal(7, provider.RemotingExceptionDepth);
+    }
+
     private ServiceRemotingRequestMessageHeaderMock CreateServiceRemotingRequestMessageHeader(Type interfaceType, string methodName)
     {
         var interfaceId = ServiceFabricUtils.GetInterfaceId(interfaceType);
@@ -242,5 +374,107 @@ public class ServiceFabricRemotingTests
         }
 
         return [];
+    }
+
+    private sealed class ExceptionConvertorProbeAttribute : TraceContextEnrichedServiceRemotingProviderAttribute
+    {
+        public IEnumerable<RuntimeExceptionConvertor>? GetServiceConvertors() => this.GetServiceExceptionConvertors();
+
+        public IEnumerable<ClientExceptionConvertor>? GetClientConvertors() => this.GetClientExceptionConvertors();
+    }
+
+    private sealed class ActorExceptionConvertorProbeAttribute : TraceContextEnrichedActorRemotingProviderAttribute
+    {
+        public IEnumerable<RuntimeExceptionConvertor>? GetServiceConvertors() => this.GetServiceExceptionConvertors();
+
+        public IEnumerable<ClientExceptionConvertor>? GetClientConvertors() => this.GetClientExceptionConvertors();
+    }
+
+    private sealed class ActorCustomConvertorProviderAttribute : TraceContextEnrichedActorRemotingProviderAttribute
+    {
+        public IEnumerable<RuntimeExceptionConvertor>? GetServiceConvertors() => this.GetServiceExceptionConvertors();
+
+        public IEnumerable<ClientExceptionConvertor>? GetClientConvertors() => this.GetClientExceptionConvertors();
+
+        protected override IEnumerable<RuntimeExceptionConvertor> GetServiceExceptionConvertors() => [new CustomTestExceptionConvertorService()];
+
+        protected override IEnumerable<ClientExceptionConvertor> GetClientExceptionConvertors() => [new CustomTestExceptionConvertorClient()];
+    }
+
+    private sealed class CustomConvertorProviderAttribute : TraceContextEnrichedServiceRemotingProviderAttribute
+    {
+        public IEnumerable<RuntimeExceptionConvertor>? GetServiceConvertors() => this.GetServiceExceptionConvertors();
+
+        public IEnumerable<ClientExceptionConvertor>? GetClientConvertors() => this.GetClientExceptionConvertors();
+
+        protected override IEnumerable<RuntimeExceptionConvertor> GetServiceExceptionConvertors() => [new CustomTestExceptionConvertorService()];
+
+        protected override IEnumerable<ClientExceptionConvertor> GetClientExceptionConvertors() => [new CustomTestExceptionConvertorClient()];
+    }
+
+    private sealed class CustomTestException : Exception
+    {
+        public CustomTestException(string message, string detail)
+            : base(message)
+        {
+            this.Detail = detail;
+        }
+
+        public CustomTestException(string message, Exception? innerException, string detail)
+            : base(message, innerException)
+        {
+            this.Detail = detail;
+        }
+
+        public string Detail { get; }
+    }
+
+    private sealed class CustomTestExceptionConvertorService : RuntimeExceptionConvertor
+    {
+        public Exception[] GetInnerExceptions(Exception exception)
+            => exception?.InnerException == null ? [] : [exception.InnerException];
+
+        public bool TryConvertToServiceException(Exception originalException, out ServiceException serviceException)
+        {
+            if (originalException is CustomTestException customException)
+            {
+                serviceException = new ServiceException(typeof(CustomTestException).FullName, customException.Message)
+                {
+                    ActualExceptionStackTrace = customException.StackTrace,
+                    ActualExceptionData = new Dictionary<string, string> { ["Detail"] = customException.Detail },
+                };
+
+                return true;
+            }
+
+            serviceException = null!;
+
+            return false;
+        }
+    }
+
+    private sealed class CustomTestExceptionConvertorClient : ClientExceptionConvertor
+    {
+        public bool TryConvertFromServiceException(ServiceException serviceException, out Exception actualException)
+            => this.TryConvertFromServiceException(serviceException, (Exception)null!, out actualException);
+
+        public bool TryConvertFromServiceException(ServiceException serviceException, Exception innerException, out Exception actualException)
+        {
+            var expectedExceptionType = typeof(CustomTestException).FullName!;
+
+            if (serviceException?.ActualExceptionType == expectedExceptionType)
+            {
+                actualException = new CustomTestException(serviceException.Message, innerException, serviceException.ActualExceptionData["Detail"]);
+
+                return true;
+            }
+
+            actualException = null!;
+
+            return false;
+        }
+
+        public bool TryConvertFromServiceException(ServiceException serviceException, Exception[] innerExceptions, out Exception actualException)
+            => this.TryConvertFromServiceException(serviceException, innerExceptions?.Length > 0 ? innerExceptions[0] : (Exception)null!, out actualException);
     }
 }
