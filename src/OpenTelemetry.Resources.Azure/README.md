@@ -21,9 +21,10 @@ dotnet add package --prerelease OpenTelemetry.Resources.Azure
 
 ## App Service Resource Detector
 
-Adds resource attributes for the applications running in Azure App Service.
-The following example shows how to add `AppServiceResourceDetector` to
-the `ResourceBuilder`.
+Adds resource attributes for applications running in Azure App Service. When
+`FUNCTIONS_WORKER_RUNTIME` is present, the detector identifies the environment
+as Azure Functions instead of Azure App Service. The following example shows
+how to add `AppServiceResourceDetector` to the `ResourceBuilder`.
 
 ```csharp
 using OpenTelemetry;
@@ -61,6 +62,25 @@ using var loggerFactory = LoggerFactory.Create(builder =>
 | host.id                     | The primary hostname for the app, excluding any custom hostnames.                                                                                                                                         |
 | service.instance.id         | The specific instance of the Azure App Service, useful in a scaled-out configuration.                                                                                                                     |
 | service.name                | The name of the Azure App Service.                                                                                                                                                                        |
+
+## Azure Functions Resource Detector
+
+The App Service resource detector automatically detects Azure Functions when
+`FUNCTIONS_WORKER_RUNTIME` is present and emits the following attributes. It
+does not emit `faas.version` because `FUNCTIONS_EXTENSION_VERSION` identifies
+the Functions host runtime, not the function application version.
+
+| Attribute                   | Description                                                                                                                                                    |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| azure.resource_group.name   | The Azure resource group from `WEBSITE_RESOURCE_GROUP`. Emitted when the environment variable is non-empty.                                                    |
+| cloud.account.id            | The Azure subscription ID parsed from `WEBSITE_OWNER_NAME`. Emitted when the environment variable is non-empty.                                                |
+| cloud.platform              | The cloud platform. Here, it is always "azure.functions".                                                                                                      |
+| cloud.provider              | The cloud service provider. In this context, it is always "azure".                                                                                             |
+| cloud.region                | The Azure region from `REGION_NAME`.                                                                                                                           |
+| cloud.resource_id           | The Azure Resource Manager URI identifying the function app. Emitted when the site name, resource group, and subscription ID are available.                    |
+| deployment.environment.name | The deployment slot from `WEBSITE_SLOT_NAME`.                                                                                                                  |
+| faas.instance               | The platform instance ID from `WEBSITE_INSTANCE_ID`, falling back to `WEBSITE_POD_NAME` and then `CONTAINER_NAME` for Linux and Flex Consumption environments. |
+| service.name                | The function app name from `WEBSITE_SITE_NAME`.                                                                                                                |
 
 ## VM Resource Detector
 

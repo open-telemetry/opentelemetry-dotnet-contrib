@@ -13,6 +13,9 @@
   * `azure_vm` to `azure.vm`
   ([#5143](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5143))
 
+* Detect Azure Functions environments before Azure App Service and emit Azure
+  Functions resource attributes.
+
 ## 1.18.0-beta.1
 
 Released 2026-Aug-21

@@ -24,6 +24,11 @@ internal sealed class AppServiceResourceDetector : IResourceDetector
     {
         try
         {
+            if (Environment.GetEnvironmentVariable(ResourceAttributeConstants.AzureFunctionsWorkerRuntimeEnvVar) != null)
+            {
+                return new AzureFunctionsResourceDetector().Detect();
+            }
+
             var websiteSiteName = Environment.GetEnvironmentVariable(ResourceAttributeConstants.AppServiceSiteNameEnvVar);
 
             if (websiteSiteName != null)
@@ -76,14 +81,14 @@ internal sealed class AppServiceResourceDetector : IResourceDetector
         return Resource.Empty;
     }
 
-    private static string? GetAzureResourceURI(string websiteSiteName, string? websiteResourceGroup, string? subscriptionId)
+    internal static string? GetAzureResourceURI(string websiteSiteName, string? websiteResourceGroup, string? subscriptionId)
     {
         return string.IsNullOrEmpty(websiteResourceGroup) || string.IsNullOrEmpty(subscriptionId)
             ? null
             : $"/subscriptions/{subscriptionId}/resourceGroups/{websiteResourceGroup}/providers/Microsoft.Web/sites/{websiteSiteName}";
     }
 
-    private static string? GetSubscriptionId(string? websiteOwnerName)
+    internal static string? GetSubscriptionId(string? websiteOwnerName)
     {
         // WEBSITE_OWNER_NAME typically has the form
         // "<subscription-id>+<resource-group>-<region>webspace".

@@ -14,7 +14,7 @@ public static class AzureResourceBuilderExtensions
     internal static readonly Version SemanticConventionsVersion = new(1, 43, 0);
 
     /// <summary>
-    /// Enables Azure App Service resource detector.
+    /// Enables Azure App Service and Azure Functions resource detection.
     /// </summary>
     /// <param name="builder">The <see cref="ResourceBuilder"/> being configured.</param>
     /// <returns>The instance of <see cref="ResourceBuilder"/> being configured.</returns>
