@@ -190,8 +190,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
                     if (requestTaskStatus == TaskStatus.Canceled)
                     {
                         if (currentStatusCode == ActivityStatusCode.Unset)
-                        {
-                            
+                        {               
                             activity.SetStatus(ActivityStatusCode.Error, "Task Canceled");
                             activity.SetTag(SemanticConventions.AttributeErrorType, typeof(TaskCanceledException).FullName);
                         }
