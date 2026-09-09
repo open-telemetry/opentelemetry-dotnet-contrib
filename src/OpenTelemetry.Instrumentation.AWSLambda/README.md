@@ -41,8 +41,7 @@ AWS lambda instrumentation:
 
 `faas.trigger` is set to `http` for API Gateway and Application Load Balancer
 requests and to `pubsub` for SQS and SNS events. Other event sources report
-`other`, because classifying them would require this package to depend on their
-event packages.
+`other`.
 
 `EnrichWithInput` lets a function describe its own trigger. The action receives
 the invocation `Activity` and the function input, and runs after the activity is
