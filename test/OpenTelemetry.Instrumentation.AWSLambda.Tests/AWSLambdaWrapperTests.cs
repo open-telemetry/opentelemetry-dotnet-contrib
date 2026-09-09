@@ -483,12 +483,17 @@ public class AWSLambdaWrapperTests : IDisposable
     {
         var exportedItems = new List<Activity>();
         var handlerRan = false;
+        var enricherRan = false;
 
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
                    .AddAWSLambdaConfigurations(opt =>
                    {
                        opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
-                       opt.EnrichWithInput = (_, _) => throw new InvalidOperationException("enrichment failure");
+                       opt.EnrichWithInput = (_, _) =>
+                       {
+                           enricherRan = true;
+                           throw new InvalidOperationException("enrichment failure");
+                       };
                    })
                    .AddInMemoryExporter(exportedItems)
                    .Build()!)
@@ -500,6 +505,7 @@ public class AWSLambdaWrapperTests : IDisposable
                 this.sampleLambdaContext);
         }
 
+        Assert.True(enricherRan);
         Assert.True(handlerRan);
         var item = Assert.Single(exportedItems);
         Assert.Equal(ActivityStatusCode.Unset, item.Status);
