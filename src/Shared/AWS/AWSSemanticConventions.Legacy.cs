@@ -83,6 +83,7 @@ internal partial class AWSSemanticConventions
         public override string AttributeHostID => "host.id";
         public override string AttributeHostType => "host.type";
         public override string AttributeHostName => "host.name";
+        public override string AttributeHostImageId => "host.image.id";
 
         // HTTP Attributes
         [Obsolete("Replaced by <c>http.response.status_code</c>.")]

@@ -5,6 +5,8 @@ using System.Text.Json.Serialization;
 
 namespace OpenTelemetry.Resources.AWS.Models;
 
+// See https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-identity-documents.html
+
 internal class AWSEC2IdentityDocumentModel
 {
     [JsonPropertyName("accountId")]
@@ -21,4 +23,7 @@ internal class AWSEC2IdentityDocumentModel
 
     [JsonPropertyName("instanceType")]
     public string? InstanceType { get; set; }
+
+    [JsonPropertyName("imageId")]
+    public string? ImageId { get; set; }
 }
