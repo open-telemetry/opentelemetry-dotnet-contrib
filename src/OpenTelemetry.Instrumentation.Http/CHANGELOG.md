@@ -4,7 +4,7 @@
 
 * Fix `EnrichWithException` not being invoked for canceled HTTP client
   requests on target frameworks prior to .NET 10.
-  ([#1793](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1793))
+  ([#5177](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5177))
 
 ## 1.18.0
 
@@ -694,3 +694,4 @@ Released 2020-08-28
 Released 2020-07-23
 
 * Initial release
+
