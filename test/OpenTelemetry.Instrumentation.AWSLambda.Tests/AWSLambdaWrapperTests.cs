@@ -529,7 +529,6 @@ public class AWSLambdaWrapperTests : IDisposable
     [Fact]
     public void EnrichWithInputIsNotInvokedWhenTheActivityIsNotRecorded()
     {
-        // Attributes on a non-recording activity are discarded, so the action is skipped.
         var invoked = false;
 
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
