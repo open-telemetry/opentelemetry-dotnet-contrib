@@ -209,7 +209,8 @@ public partial class HttpClientTests
         // Prior to .NET 10, task cancellation does not raise the diagnostic
         // "Exception" event, so OnException (and therefore EnrichWithException)
         // is never invoked for canceled requests unless the cancellation branch
-        // in OnStopActivity invokes it directly. See issue #1793.
+        // in OnStopActivity invokes it directly. See issue https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1793
+
         Exception? enrichedException = null;
 
         var activities = new List<Activity>();

@@ -184,25 +184,23 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
 
                 if (requestTaskStatus != TaskStatus.RanToCompletion)
                 {
+                    // Task cancellation won't trigger the OnException so set the span error information here
+                    // This can be either TaskCanceled or OperationCanceled but there is no way to figure out which one it is,
+                    // so let's use the most common case as error type
                     if (requestTaskStatus == TaskStatus.Canceled)
                     {
                         if (currentStatusCode == ActivityStatusCode.Unset)
                         {
-                            // Task cancellation won't trigger the OnException so set the span error information here
-                            // This can be either TaskCanceled or OperationCanceled but there is no way to figure out which one it is,
-                            // so let's use the most common case as error type
+                            
                             activity.SetStatus(ActivityStatusCode.Error, "Task Canceled");
                             activity.SetTag(SemanticConventions.AttributeErrorType, typeof(TaskCanceledException).FullName);
                         }
 
-                        // Task cancellation won't trigger OnException, so EnrichWithException is
-                        // never invoked for canceled requests on this code path. Invoke it here so
-                        // that callers get the same enrichment opportunity they get for other errors.
-                        if (this.options.EnrichWithException is { } enrichOnCancellation)
+                        if (this.options.EnrichWithException is { } enrich)
                         {
                             try
                             {
-                                enrichOnCancellation(activity, new TaskCanceledException());
+                                enrich(activity, new TaskCanceledException());
                             }
                             catch (Exception ex)
                             {
