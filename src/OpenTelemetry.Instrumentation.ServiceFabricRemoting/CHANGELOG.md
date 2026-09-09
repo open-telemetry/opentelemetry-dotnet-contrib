@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+* Added support for registering custom Service Fabric exception convertors, so
+  that applications can propagate their own exception types across remoting
+  calls while still being instrumented. Service Fabric SDK 8 (runtime 11) no
+  longer enables the `BinaryFormatter` fallback for exception serialization by
+  default, and SDK 9 removes it altogether, so an exception without a
+  registered convertor reaches the client as a `ServiceException`.
+  `TraceContextEnrichedServiceRemotingProviderAttribute` and
+  `TraceContextEnrichedActorRemotingProviderAttribute` are no longer sealed and
+  expose `GetServiceExceptionConvertors()` / `GetClientExceptionConvertors()`
+  for this purpose. A `RemotingExceptionDepth` property was also added to
+  control how many levels of inner exceptions are serialized.
+
 ## 1.18.0-beta.1
 
 Released 2026-Aug-21
