@@ -460,8 +460,12 @@ public class AzureResourceDetectorTests
         Assert.DoesNotContain(listener.Events, e => e.EventName == nameof(AzureResourcesEventSource.ResourceDetectorSkipped));
     }
 
-    private static string GetPayloadText(EventWrittenEventArgs eventData)
-        => string.Join(" ", eventData.Payload!);
+    private static string GetPayloadText(EventWrittenEventArgs eventData) =>
+#if NET
+        string.Join(" ", eventData.Payload!);
+#else
+        string.Join(" ", eventData.Payload);
+#endif
 
     private static Resource DetectAppServiceResource(string? websiteOwnerName, string? websiteResourceGroup)
     {
