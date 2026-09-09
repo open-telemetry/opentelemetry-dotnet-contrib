@@ -6,8 +6,7 @@
   the invocation `Activity` and the function input. This allows a function to
   describe a trigger the instrumentation does not classify itself, such as setting
   `faas.trigger` and the `faas.document.*` attributes for an Amazon S3 or Amazon
-  DynamoDB event, without this package taking a dependency on those event
-  packages.
+  DynamoDB event.
   ([#5180](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5180))
 
 * The `faas.trigger` span attribute is now set to `pubsub` for functions
