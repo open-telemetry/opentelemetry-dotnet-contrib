@@ -17,6 +17,10 @@
   none of the environment variables that identify the platform are set.
   ([#5169](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5169))
 
+* Skip Azure VM resource detection on Azure App Service to prevent unnecessary
+  requests to the Azure Instance Metadata Service.
+  ([#5167](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5167))
+
 ## 1.18.0-beta.1
 
 Released 2026-Aug-21
