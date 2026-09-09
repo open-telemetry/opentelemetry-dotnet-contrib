@@ -73,9 +73,7 @@ TracerProvider tracerProvider = Sdk.CreateTracerProviderBuilder()
 
 > [!NOTE]
 > The action runs after the activity is created, so attributes it sets are not
-> visible to samplers. Exceptions thrown by the action are caught so that they
-> cannot fail the invocation, and are not reported; keep the action defensive, or
-> handle errors within it if you need them logged.
+> visible to samplers.
 
 ### Query string redaction
 
