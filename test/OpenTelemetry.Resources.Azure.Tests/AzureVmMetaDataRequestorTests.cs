@@ -126,6 +126,8 @@ public class AzureVmMetaDataRequestorTests
         // Assert
         Assert.NotNull(actual);
         Assert.Equal("Standard_D2s_v5", actual.VmSize);
+        Assert.Equal("rg-demo", actual.ResourceGroupName);
+        Assert.Equal("11111111-2222-3333-4444-555555555555", actual.SubscriptionId);
     }
 
     [Theory]

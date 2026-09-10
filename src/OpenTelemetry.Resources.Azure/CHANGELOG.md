@@ -21,6 +21,10 @@
   requests to the Azure Instance Metadata Service.
   ([#5167](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5167))
 
+* Add `cloud.account.id` and `azure.resource_group.name` attributes to the Azure
+  VM resource detector.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 1.18.0-beta.1
 
 Released 2026-Aug-21

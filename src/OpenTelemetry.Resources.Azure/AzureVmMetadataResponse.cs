@@ -17,8 +17,14 @@ internal sealed class AzureVmMetadataResponse
     [JsonPropertyName("osType")]
     public string? OsType { get; set; }
 
+    [JsonPropertyName("resourceGroupName")]
+    public string? ResourceGroupName { get; set; }
+
     [JsonPropertyName("resourceId")]
     public string? ResourceId { get; set; }
+
+    [JsonPropertyName("subscriptionId")]
+    public string? SubscriptionId { get; set; }
 
     [JsonPropertyName("version")]
     public string? Version { get; set; }
@@ -37,6 +43,9 @@ internal sealed class AzureVmMetadataResponse
         string? amsValue = null;
         switch (fieldName)
         {
+            case ResourceSemanticConventions.AttributeCloudAccount:
+                amsValue = this.SubscriptionId;
+                break;
             case ResourceSemanticConventions.AttributeCloudPlatform:
                 amsValue = ResourceAttributeConstants.AzureVmCloudPlatformValue;
                 break;
@@ -67,6 +76,9 @@ internal sealed class AzureVmMetadataResponse
                 break;
             case ResourceSemanticConventions.AttributeOsVersion:
                 amsValue = this.Version;
+                break;
+            case ResourceAttributeConstants.AzureResourceGroupName:
+                amsValue = this.ResourceGroupName;
                 break;
             case ResourceAttributeConstants.AzureVmScaleSetName:
                 amsValue = this.VmScaleSetName;
