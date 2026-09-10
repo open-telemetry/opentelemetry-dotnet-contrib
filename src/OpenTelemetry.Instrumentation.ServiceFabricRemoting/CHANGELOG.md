@@ -17,6 +17,7 @@ Released 2026-Sep-10
   expose `GetServiceExceptionConvertors()` / `GetClientExceptionConvertors()`
   for this purpose. A `RemotingExceptionDepth` property was also added to
   control how many levels of inner exceptions are serialized.
+  ([#5166](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5166))
 
 ## 1.18.0-beta.1
 
