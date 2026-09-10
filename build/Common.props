@@ -23,6 +23,7 @@
   <PropertyGroup>
     <ContinuousIntegrationBuild>$([MSBuild]::ValueOrDefault('$(CI)', 'false'))</ContinuousIntegrationBuild>
     <Deterministic>$([MSBuild]::ValueOrDefault('$(Deterministic)', 'true'))</Deterministic>
+    <DeterministicTimestamp>$([MSBuild]::ValueOrDefault('$(DeterministicTimestamp)', 'true'))</DeterministicTimestamp>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(AssemblyIsCLSCompliant)' != '' ">
