@@ -44,15 +44,15 @@ requests and to `pubsub` for SQS and SNS events. Other event sources report
 `other`.
 
 `EnrichWithInput` lets a function describe its own trigger. The action receives
-the invocation `Activity` and the function input, and runs after the activity is
-created. For example, for an S3 triggered function:
+the invocation `Activity`, the function input and the `ILambdaContext`, and runs
+after the activity is created. For example, for an S3 triggered function:
 
 ```csharp
 using System.Net;
 using Amazon.Lambda.S3Events;
 
 TracerProvider tracerProvider = Sdk.CreateTracerProviderBuilder()
-    .AddAWSLambdaConfigurations(options => options.EnrichWithInput = (activity, input) =>
+    .AddAWSLambdaConfigurations(options => options.EnrichWithInput = (activity, input, context) =>
     {
         // S3 sends one event entry per notification.
         if (input is S3Event { Records.Count: 1 } s3Event)
@@ -67,6 +67,8 @@ TracerProvider tracerProvider = Sdk.CreateTracerProviderBuilder()
             activity.SetTag("faas.document.name", WebUtility.UrlDecode(record.S3.Object.Key));
             activity.SetTag("faas.document.time", record.EventTime.ToUniversalTime().ToString("o"));
         }
+
+        activity.SetTag("aws.lambda.log_stream", context.LogStreamName);
     })
     .Build();
 ```

@@ -408,16 +408,21 @@ public class AWSLambdaWrapperTests : IDisposable
     }
 
     [Fact]
-    public void EnrichWithInputIsInvokedWithTheFunctionInput()
+    public void EnrichWithInputIsInvokedWithTheFunctionInputAndLambdaContext()
     {
         var exportedItems = new List<Activity>();
         object? observedInput = null;
+        ILambdaContext? observedContext = null;
 
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
                    .AddAWSLambdaConfigurations(opt =>
                    {
                        opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
-                       opt.EnrichWithInput = (_, input) => observedInput = input;
+                       opt.EnrichWithInput = (_, input, context) =>
+                       {
+                           observedInput = input;
+                           observedContext = context;
+                       };
                    })
                    .AddInMemoryExporter(exportedItems)
                    .Build()!)
@@ -427,6 +432,7 @@ public class AWSLambdaWrapperTests : IDisposable
 
         Assert.Single(exportedItems);
         Assert.Equal("TestStream", observedInput);
+        Assert.Same(this.sampleLambdaContext, observedContext);
     }
 
     [Fact]
@@ -438,7 +444,7 @@ public class AWSLambdaWrapperTests : IDisposable
                    .AddAWSLambdaConfigurations(opt =>
                    {
                        opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
-                       opt.EnrichWithInput = (activity, _) => activity.SetTag("custom.attribute", "value");
+                       opt.EnrichWithInput = (activity, _, _) => activity.SetTag("custom.attribute", "value");
                    })
                    .AddInMemoryExporter(exportedItems)
                    .Build()!)
@@ -459,7 +465,7 @@ public class AWSLambdaWrapperTests : IDisposable
                    .AddAWSLambdaConfigurations(opt =>
                    {
                        opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
-                       opt.EnrichWithInput = (activity, _) =>
+                       opt.EnrichWithInput = (activity, _, _) =>
                        {
                            activity.SetTag(ExpectedSemanticConventions.AttributeFaasTrigger, "datasource");
                            activity.SetTag("faas.document.collection", "my-bucket");
@@ -489,7 +495,7 @@ public class AWSLambdaWrapperTests : IDisposable
                    .AddAWSLambdaConfigurations(opt =>
                    {
                        opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
-                       opt.EnrichWithInput = (_, _) =>
+                       opt.EnrichWithInput = (_, _, _) =>
                        {
                            enricherRan = true;
                            throw new InvalidOperationException("enrichment failure");
@@ -520,7 +526,7 @@ public class AWSLambdaWrapperTests : IDisposable
                    .AddAWSLambdaConfigurations(opt =>
                    {
                        opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
-                       opt.EnrichWithInput = (activity, _) => activity.SetTag("custom.attribute", "async");
+                       opt.EnrichWithInput = (activity, _, _) => activity.SetTag("custom.attribute", "async");
                    })
                    .AddInMemoryExporter(exportedItems)
                    .Build()!)
@@ -541,7 +547,7 @@ public class AWSLambdaWrapperTests : IDisposable
                    .AddAWSLambdaConfigurations(opt =>
                    {
                        opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
-                       opt.EnrichWithInput = (_, _) => invoked = true;
+                       opt.EnrichWithInput = (_, _, _) => invoked = true;
                    })
                    .SetSampler(new AlwaysOffSampler())
                    .Build()!)

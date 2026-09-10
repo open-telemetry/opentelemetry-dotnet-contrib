@@ -38,7 +38,7 @@ public static class AWSLambdaWrapper
 
     internal static AWSSemanticConventions AWSSemanticConventions { get; set; } = new();
 
-    internal static Action<Activity, object?>? EnrichWithInput { get; set; }
+    internal static Action<Activity, object?, ILambdaContext>? EnrichWithInput { get; set; }
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
 
@@ -190,7 +190,7 @@ public static class AWSLambdaWrapper
         {
             try
             {
-                enrich(activity, input);
+                enrich(activity, input, context);
             }
             catch
             {
