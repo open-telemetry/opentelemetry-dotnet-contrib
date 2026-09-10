@@ -23,7 +23,7 @@
 
 * Add `cloud.account.id` and `azure.resource_group.name` attributes to the Azure
   VM resource detector.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#5195](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5195))
 
 ## 1.18.0-beta.1
 
