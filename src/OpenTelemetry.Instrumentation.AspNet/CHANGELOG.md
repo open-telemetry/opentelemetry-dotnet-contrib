@@ -6,6 +6,10 @@
   that end with an unhandled exception while tracing is disabled.
   ([#4902](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4902))
 
+* Fixed incorrect `http.server.request.duration` metric values for requests that
+  cross between IIS native and managed modules.
+  ([#5206](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5206))
+
 ## 1.17.0
 
 Released 2026-Jul-17
