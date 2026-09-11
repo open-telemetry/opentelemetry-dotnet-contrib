@@ -2,6 +2,36 @@
 
 ## Unreleased
 
+## 1.18.0-beta.2
+
+Released 2026-Sep-10
+
+* Add `cloud.account.id` and `azure.resource_group.name` attributes to the Azure
+  App Service resource detector.
+  ([#5138](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5138))
+
+* Updated the following values for the `cloud.platform` attribute to
+  comply with v1.43.0 of the OpenTelemetry Semantic Conventions:
+  * `azure_app_service` to `azure.app_service`
+  * `azure_container_apps` to `azure.container_apps`
+  * `azure_vm` to `azure.vm`
+  ([#5143](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5143))
+
+* Log an event when a resource detector does not detect any attributes because
+  none of the environment variables that identify the platform are set.
+  ([#5169](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5169))
+
+* Skip Azure VM resource detection on Azure App Service to prevent unnecessary
+  requests to the Azure Instance Metadata Service.
+  ([#5167](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5167))
+
+## 1.18.0-beta.1
+
+Released 2026-Aug-21
+
+* Updated OpenTelemetry core component version(s) to `1.18.0`.
+  ([#5022](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5022))
+
 ## 1.17.0-beta.1
 
 Released 2026-Jul-22

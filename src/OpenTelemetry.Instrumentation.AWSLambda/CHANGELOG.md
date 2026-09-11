@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+* The `faas.trigger` span attribute is now set to `pubsub` for functions
+  triggered by SQS or SNS events, instead of `other`.
+  ([#5146](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5146))
+
+* Added `AWSLambdaInstrumentationOptions.EnrichWithInput`, an action invoked with
+  the invocation `Activity`, the function input and the `ILambdaContext`. This
+  allows a function to describe a trigger the instrumentation does not classify
+  itself, such as setting `faas.trigger` and the `faas.document.*` attributes for
+  an Amazon S3 or Amazon DynamoDB event.
+  ([#5180](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5180))
+
+## 1.18.0
+
+Released 2026-Aug-21
+
 * Query string values in the `url.query` and `http.target` span attributes are
   now redacted by default for HTTP triggered functions, consistent with the other
   OpenTelemetry HTTP instrumentations. Redaction can be disabled by setting the

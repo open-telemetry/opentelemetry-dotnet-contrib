@@ -18,7 +18,7 @@ and
 and collects traces about database operations.
 
 This component is based on
-[v1.33](https://github.com/open-telemetry/semantic-conventions/blob/v1.33.0/docs/database/README.md)
+[v1.44](https://github.com/open-telemetry/semantic-conventions/blob/v1.44.0/docs/db/README.md)
 of database semantic conventions. For details on the default set of
 attributes that are added, check out the [Traces](#traces) and
 [Metrics](#metrics) sections below.
@@ -251,6 +251,36 @@ if your queries and/or environment are appropriate for enabling this option.
 [`db.query.parameter.<key>`](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/db/database-spans.md#span-definition)
 attributes for each of the query parameters associated with a database command.
 
+### Returned rows
+
+> [!NOTE]
+> This feature is available on .NET runtimes only.
+
+The `OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_RECORD_RETURNED_ROWS` environment
+variable controls whether the
+[`db.response.returned_rows`](https://github.com/open-telemetry/semantic-conventions/blob/v1.44.0/docs/db/database-spans.md)
+attribute is emitted.
+
+`OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_RECORD_RETURNED_ROWS` is implicitly
+`false` by default. When set to `true`, the instrumentation records the number
+of rows the command returned, derived from the SqlClient connection statistics
+that are collected automatically while the instrumentation is enabled.
+
+> [!NOTE]
+> The attribute is only recorded for commands executed with `ExecuteNonQuery()`
+> or `ExecuteScalar()`, including their asynchronous overloads. The connection
+> statistics the value is derived from are only updated as the response from the
+> server is consumed, which for `ExecuteReader()` and `ExecuteXmlReader()`
+> happens after the command has finished executing and the span has already
+> ended. No attribute is emitted for those commands, rather than one whose
+> value does not describe the rows the command returned.
+>
+> SqlClient only starts collecting the statistics that the value is derived
+> from when a connection is opened, so a connection which was already open
+> before the instrumentation was registered does not report a value. Either
+> open connections after the `TracerProvider` has been built, or set
+> `StatisticsEnabled` to `true` on such connections yourself.
+
 ### Trace Context Propagation
 
 > [!NOTE]
@@ -328,7 +358,7 @@ while (reader.Read())
 * [OpenTelemetry Project](https://opentelemetry.io/)
 * [Semantic conventions for database client spans][semconv-spans]
 * [Semantic conventions for database client metrics][semconv-metrics]
-* [Semantic conventions for Microsoft SQL Server client operations](https://github.com/open-telemetry/semantic-conventions/blob/v1.33.0/docs/database/sql-server.md)
+* [Semantic conventions for Microsoft SQL Server client operations](https://github.com/open-telemetry/semantic-conventions/blob/v1.44.0/docs/db/sql-server.md)
 
-[semconv-metrics]: https://github.com/open-telemetry/semantic-conventions/blob/v1.33.0/docs/database/database-metrics.md
-[semconv-spans]: https://github.com/open-telemetry/semantic-conventions/blob/v1.33.0/docs/database/database-spans.md
+[semconv-metrics]: https://github.com/open-telemetry/semantic-conventions/blob/v1.44.0/docs/db/database-metrics.md
+[semconv-spans]: https://github.com/open-telemetry/semantic-conventions/blob/v1.44.0/docs/db/database-spans.md

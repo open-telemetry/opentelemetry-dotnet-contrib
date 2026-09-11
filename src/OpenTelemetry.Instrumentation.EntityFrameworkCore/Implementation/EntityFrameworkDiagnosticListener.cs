@@ -16,6 +16,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     internal const string EntityFrameworkCoreCommandCreated = "Microsoft.EntityFrameworkCore.Database.Command.CommandCreated";
     internal const string EntityFrameworkCoreCommandExecuting = "Microsoft.EntityFrameworkCore.Database.Command.CommandExecuting";
     internal const string EntityFrameworkCoreCommandExecuted = "Microsoft.EntityFrameworkCore.Database.Command.CommandExecuted";
+    internal const string EntityFrameworkCoreCommandCanceled = "Microsoft.EntityFrameworkCore.Database.Command.CommandCanceled";
     internal const string EntityFrameworkCoreCommandError = "Microsoft.EntityFrameworkCore.Database.Command.CommandError";
 
     internal static readonly Version SemanticConventionsVersion = new(1, 24, 0);
@@ -220,6 +221,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                 break;
 
             case EntityFrameworkCoreCommandExecuted:
+            case EntityFrameworkCoreCommandCanceled:
                 {
                     if (activity == null)
                     {

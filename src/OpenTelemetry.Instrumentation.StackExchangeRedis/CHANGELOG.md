@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## 1.18.0-beta.2
+
+Released 2026-Sep-10
+
+* Fixed race condition that could orphan `ProfilingSession` when instantiated
+  for the same trace concurrently.
+  ([#5117](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5117))
+
+## 1.18.0-beta.1
+
+Released 2026-Aug-21
+
 * Validate `FlushInterval` to prevent out-of-range values and
   zero-interval spin loops.
   ([#4860](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4860))
@@ -22,6 +34,9 @@
   thread that created the instrumentation, which leaked that context's baggage
   onto every Redis command activity.
   ([#4927](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4927))
+
+* Updated OpenTelemetry core component version(s) to `1.18.0`.
+  ([#5022](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5022))
 
 ## 1.17.0-beta.1
 

@@ -111,6 +111,8 @@ public class ContainerDetectorTests
     public void TestInvalidContainer()
     {
         var containerDetector = new ContainerDetector();
+        var missingDockerEnvPath = GetNonExistentFilePath();
+        var missingPodmanEnvPath = GetNonExistentFilePath();
 
         // Valid in cgroupv1 is not valid in cgroupv2
         foreach (var testCase in this.testValidCasesV1)
@@ -118,7 +120,7 @@ public class ContainerDetectorTests
             using var tempFile = new TempFile();
             tempFile.Write(testCase.Line);
             Assert.Equal(
-                containerDetector.BuildResource(tempFile.FilePath, ContainerDetector.ParseMode.V2),
+                containerDetector.BuildResource(tempFile.FilePath, ContainerDetector.ParseMode.V2, missingDockerEnvPath, missingPodmanEnvPath),
                 Resource.Empty);
         }
 
@@ -128,7 +130,7 @@ public class ContainerDetectorTests
             using var tempFile = new TempFile();
             tempFile.Write(testCase.Line);
             Assert.Equal(
-                containerDetector.BuildResource(tempFile.FilePath, ContainerDetector.ParseMode.V1),
+                containerDetector.BuildResource(tempFile.FilePath, ContainerDetector.ParseMode.V1, missingDockerEnvPath, missingPodmanEnvPath),
                 Resource.Empty);
         }
 
@@ -137,12 +139,58 @@ public class ContainerDetectorTests
         {
             using var tempFile = new TempFile();
             tempFile.Write(testCase.Line);
-            Assert.Equal(containerDetector.BuildResource(tempFile.FilePath, testCase.CgroupVersion), Resource.Empty);
+            Assert.Equal(containerDetector.BuildResource(tempFile.FilePath, testCase.CgroupVersion, missingDockerEnvPath, missingPodmanEnvPath), Resource.Empty);
         }
 
         // test invalid file
-        Assert.Equal(containerDetector.BuildResource(Path.GetTempPath(), ContainerDetector.ParseMode.V1), Resource.Empty);
-        Assert.Equal(containerDetector.BuildResource(Path.GetTempPath(), ContainerDetector.ParseMode.V2), Resource.Empty);
+        Assert.Equal(containerDetector.BuildResource(Path.GetTempPath(), ContainerDetector.ParseMode.V1, missingDockerEnvPath, missingPodmanEnvPath), Resource.Empty);
+        Assert.Equal(containerDetector.BuildResource(Path.GetTempPath(), ContainerDetector.ParseMode.V2, missingDockerEnvPath, missingPodmanEnvPath), Resource.Empty);
+    }
+
+    [Fact]
+    public void BuildResourceIncludesRuntimeNameWhenContainerIdIsExtractable()
+    {
+        var containerDetector = new ContainerDetector();
+        var testCase = this.testValidCasesV1[0];
+        using var tempFile = new TempFile();
+        tempFile.Write(testCase.Line);
+        using var dockerEnvFile = new TempFile();
+        var missingPodmanEnvPath = GetNonExistentFilePath();
+
+        var resource = containerDetector.BuildResource(tempFile.FilePath, testCase.CgroupVersion, dockerEnvFile.FilePath, missingPodmanEnvPath);
+
+        Assert.NotEqual(Resource.Empty, resource);
+        Assert.Equal(testCase.ExpectedContainerId, GetContainerId(resource));
+        Assert.Equal("docker", GetContainerRuntimeName(resource));
+    }
+
+    [Fact]
+    public void BuildResourceIncludesRuntimeNameWhenContainerIdIsNotExtractable()
+    {
+        var containerDetector = new ContainerDetector();
+        var testCase = this.testInvalidCases[0];
+        using var tempFile = new TempFile();
+        tempFile.Write(testCase.Line);
+        using var podmanEnvFile = new TempFile();
+        var missingDockerEnvPath = GetNonExistentFilePath();
+
+        var resource = containerDetector.BuildResource(tempFile.FilePath, testCase.CgroupVersion, missingDockerEnvPath, podmanEnvFile.FilePath);
+
+        Assert.NotEqual(Resource.Empty, resource);
+        Assert.DoesNotContain(resource.Attributes, x => x.Key == ContainerSemanticConventions.AttributeContainerId);
+        Assert.Equal("podman", GetContainerRuntimeName(resource));
+    }
+
+    [Fact]
+    public void BuildResourceReturnsEmptyWhenNoContainerIdOrRuntimeIsDetected()
+    {
+        var containerDetector = new ContainerDetector();
+        var missingDockerEnvPath = GetNonExistentFilePath();
+        var missingPodmanEnvPath = GetNonExistentFilePath();
+
+        var resource = containerDetector.BuildResource(Path.GetTempPath(), ContainerDetector.ParseMode.V1, missingDockerEnvPath, missingPodmanEnvPath);
+
+        Assert.Equal(Resource.Empty, resource);
     }
 
     [Fact]
@@ -156,10 +204,51 @@ public class ContainerDetectorTests
         Assert.Null(resource.SchemaUrl);
     }
 
+    [Fact]
+    public void DetectContainerRuntimeNamePrefersDockerOverPodman()
+    {
+        using var dockerEnvFile = new TempFile();
+        using var podmanEnvFile = new TempFile();
+
+        var runtimeName = ContainerDetector.DetectContainerRuntimeName(dockerEnvFile.FilePath, podmanEnvFile.FilePath);
+
+        Assert.Equal("docker", runtimeName);
+    }
+
+    [Fact]
+    public void DetectContainerRuntimeNameReturnsPodmanWhenOnlyPodmanEnvFileExists()
+    {
+        var missingDockerEnvPath = GetNonExistentFilePath();
+        using var podmanEnvFile = new TempFile();
+
+        var runtimeName = ContainerDetector.DetectContainerRuntimeName(missingDockerEnvPath, podmanEnvFile.FilePath);
+
+        Assert.Equal("podman", runtimeName);
+    }
+
+    [Fact]
+    public void DetectContainerRuntimeNameReturnsNullWhenNoMarkerFilesExist()
+    {
+        var missingDockerEnvPath = GetNonExistentFilePath();
+        var missingPodmanEnvPath = GetNonExistentFilePath();
+
+        var runtimeName = ContainerDetector.DetectContainerRuntimeName(missingDockerEnvPath, missingPodmanEnvPath);
+
+        Assert.Null(runtimeName);
+    }
+
+    private static string GetNonExistentFilePath() => Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+
     private static string GetContainerId(Resource resource)
     {
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
         return resourceAttributes[ContainerSemanticConventions.AttributeContainerId].ToString()!;
+    }
+
+    private static string GetContainerRuntimeName(Resource resource)
+    {
+        var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
+        return resourceAttributes[ContainerSemanticConventions.AttributeContainerRuntimeName].ToString()!;
     }
 
     private sealed class TestCase

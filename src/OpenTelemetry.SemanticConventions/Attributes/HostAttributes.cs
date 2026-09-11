@@ -89,7 +89,7 @@ public static class HostAttributes
     public const string AttributeHostMac = "host.mac";
 
     /// <summary>
-    /// Name of the host. On Unix systems, it may contain what the hostname command returns, or the fully qualified hostname, or another name specified by the user.
+    /// Name of the host. On UNIX systems, it may contain what the hostname command returns, or the fully qualified hostname, or another name specified by the user.
     /// </summary>
     public const string AttributeHostName = "host.name";
 

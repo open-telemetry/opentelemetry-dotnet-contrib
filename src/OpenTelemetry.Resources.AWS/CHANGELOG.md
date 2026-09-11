@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+## 1.18.1
+
+Released 2026-Sep-10
+
+* Added `host.image.id` resource attribute to `AWSEC2Detector`, populated from
+  the EC2 instance identity document's `imageId` (AMI ID).
+  ([#5110](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5110))
+
+## 1.18.0
+
+Released 2026-Aug-21
+
+* Updated OpenTelemetry core component version(s) to `1.18.0`.
+  ([#5022](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5022))
+
 ## 1.17.0
 
 Released 2026-Jul-22

@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #if !NETFRAMEWORK
+using System.Collections;
+using System.Collections.Concurrent;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
@@ -35,10 +37,17 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
     private const string IL2026Justification = "Client application usage will ensure that core types from usage are preserved.";
 #endif
 
+    private const string ReturnedRowsBaselinePropertyName = "otel.sqlclient.returned_rows_baseline";
+
+    private static ConcurrentDictionary<Type, Func<IDbConnection, IDictionary?>?>? retrieveStatisticsCache;
+
     private readonly PropertyFetcher<IDbCommand> commandFetcher = new("Command");
     private readonly PropertyFetcher<Exception> exceptionFetcher = new("Exception");
     private readonly PropertyFetcher<int> exceptionNumberFetcher = new("Number");
-    private readonly AsyncLocal<long> beginTimestamp = new();
+    private readonly PropertyFetcher<IDictionary> statisticsFetcher = new("Statistics");
+    private readonly PropertyFetcher<Guid> operationIdFetcher = new("OperationId");
+    private readonly PropertyFetcher<string> operationFetcher = new("Operation");
+    private readonly ConcurrentDictionary<Guid, long> beginTimestamps = new();
 
     public SqlClientDiagnosticListener(string sourceName)
         : base(sourceName)
@@ -47,11 +56,20 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
     public override bool SupportsNullActivity => true;
 
+    internal int PendingBeginTimestampCount => this.beginTimestamps.Count;
+
     public override void OnEventWritten(string name, object? payload)
     {
         if (SqlClientInstrumentation.Instance.HandleManager.TracingHandles == 0
             && SqlClientInstrumentation.Instance.HandleManager.MetricHandles == 0)
         {
+            // The instrumentation may have been disabled part way through a command's
+            // execution, so make sure any timestamp entry is cleaned up.
+            if (!this.beginTimestamps.IsEmpty)
+            {
+                _ = this.TakeBeginTimestamp(payload);
+            }
+
             return;
         }
 
@@ -84,7 +102,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     // in the matching WriteCommandAfter/WriteCommandError event.
                     if (!SqlTelemetryHelper.ActivitySource.HasListeners())
                     {
-                        this.beginTimestamp.Value = Stopwatch.GetTimestamp();
+                        this.RecordBeginTimestamp(payload);
                         return;
                     }
 
@@ -127,8 +145,21 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     if (activity == null)
                     {
                         // There is no listener or it decided not to sample the current request.
-                        this.beginTimestamp.Value = Stopwatch.GetTimestamp();
+                        this.RecordBeginTimestamp(payload);
                         return;
+                    }
+
+                    // Snapshot the connection's cumulative returned row count before the command
+                    // executes so that the after-handler can compute the per-command delta. The
+                    // baseline is only captured for the executions whose row count is complete by
+                    // the time the command finishes, which is also what makes the after-handler
+                    // skip the others.
+                    if (options.RecordReturnedRows &&
+                        activity.IsAllDataRequested &&
+                        TryFetchOperation(this.operationFetcher, payload, out var operation) &&
+                        IsRowCountAvailableWhenCommandCompletes(operation))
+                    {
+                        activity.SetCustomProperty(ReturnedRowsBaselinePropertyName, GetConnectionReturnedRows(command));
                     }
 
 #if NET
@@ -215,6 +246,19 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     {
                         this.RecordDuration(null, payload);
                         return;
+                    }
+
+                    // The baseline is only present if the before-handler determined that the row
+                    // count reported when the command completes is meaningful for this execution.
+                    if (options.RecordReturnedRows &&
+                        activity.IsAllDataRequested &&
+                        activity.GetCustomProperty(ReturnedRowsBaselinePropertyName) is long baseline &&
+                        TryFetchStatistics(this.statisticsFetcher, payload, out var statistics))
+                    {
+                        if (GetReturnedRowsDelta(baseline, statistics) is { } returnedRows)
+                        {
+                            activity.SetTag(SemanticConventions.AttributeDbResponseReturnedRows, returnedRows);
+                        }
                     }
 
                     activity.Stop();
@@ -351,10 +395,140 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
         out int number)
         => fetcher.TryFetch(exception, out number);
 
+#if NET
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = IL2026Justification)]
+#endif
+    private static bool TryFetchOperationId(
+        PropertyFetcher<Guid> fetcher,
+        object? payload,
+        out Guid operationId)
+        => fetcher.TryFetch(payload, out operationId) && operationId != Guid.Empty;
+
+#if NET
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = IL2026Justification)]
+#endif
+    private static bool TryFetchStatistics(
+        PropertyFetcher<IDictionary> fetcher,
+        object? payload,
+        [NotNullWhen(true)] out IDictionary? statistics)
+        => fetcher.TryFetch(payload, out statistics) && statistics != null;
+
+#if NET
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = IL2026Justification)]
+#endif
+    private static bool TryFetchOperation(
+        PropertyFetcher<string> fetcher,
+        object? payload,
+        [NotNullWhen(true)] out string? operation)
+        => fetcher.TryFetch(payload, out operation) && operation != null;
+
+    // The connection statistics are only updated as the response from the server is consumed, which
+    // for the reader-based executions (ExecuteReader and ExecuteXmlReader) happens once the command
+    // has completed and the activity has already been stopped. The row counts observed when those
+    // commands complete therefore do not describe the rows the operation returns, so the row counts
+    // are only used for the executions which consume the response before the command completes:
+    // ExecuteNonQuery (rows affected) and ExecuteScalar (the single row that is read).
+    //
+    // SqlClient derives the operation name from the name of the member which wrote the event (using
+    // CallerMemberName), so the members which implement the asynchronous overloads are matched by
+    // looking for the relevant substring rather than by an exact name. For example, executing a
+    // command with ExecuteNonQueryAsync() reports InternalExecuteNonQueryAsync for the before event
+    // and CleanupAfterExecuteNonQueryAsync for the after event.
+    private static bool IsRowCountAvailableWhenCommandCompletes(string operation) =>
+        operation.Contains("NonQuery", StringComparison.Ordinal) ||
+        operation.Contains("Scalar", StringComparison.Ordinal);
+
+    // Both System.Data.SqlClient.SqlConnection and Microsoft.Data.SqlClient.SqlConnection
+    // expose a public RetrieveStatistics() method that returns an IDictionary snapshot of
+    // the connection's cumulative statistics. We look the method up once per concrete
+    // connection type and cache a delegate so that subsequent calls avoid repeated
+    // reflection lookups.
+    private static long GetConnectionReturnedRows(IDbCommand command)
+    {
+        var connection = command.Connection;
+        if (connection == null)
+        {
+            return 0L;
+        }
+
+        try
+        {
+            retrieveStatisticsCache ??= [];
+            var retrieve = retrieveStatisticsCache.GetOrAdd(connection.GetType(), CreateRetrieveStatisticsDelegate);
+            if (retrieve?.Invoke(connection) is IDictionary stats && stats["SelectRows"] is long selectRows)
+            {
+                return selectRows;
+            }
+        }
+        catch
+        {
+            // Statistics not available from this connection type; baseline defaults to zero.
+        }
+
+        return 0L;
+    }
+
+#if NET
+    [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = IL2026Justification)]
+#endif
+    private static Func<IDbConnection, IDictionary?>? CreateRetrieveStatisticsDelegate(Type connectionType)
+    {
+        var method = connectionType.GetMethod("RetrieveStatistics", Type.EmptyTypes);
+        return method == null
+            ? null
+            : connection => method.Invoke(connection, null) as IDictionary;
+    }
+
+    // db.response.returned_rows describes the rows the operation returned, so only the
+    // connection's SelectRows counter is used. The statistics also report the number of rows
+    // affected by data manipulation commands (IduRows), but rows affected by an
+    // INSERT/UPDATE/DELETE are not rows returned by it, so that counter is deliberately
+    // ignored: a command which returns no rows reports 0, including when it affected rows.
+    //
+    // The counter is cumulative for the lifetime of the connection, so the pre-command
+    // baseline is subtracted to obtain the number of rows returned by this command.
+    private static long? GetReturnedRowsDelta(long baseline, IDictionary statistics)
+        => statistics["SelectRows"] is long selectRows ? selectRows - baseline : null;
+
+    private void RecordBeginTimestamp(object? payload)
+    {
+        if (TryFetchOperationId(this.operationIdFetcher, payload, out var operationId))
+        {
+            this.beginTimestamps[operationId] = Stopwatch.GetTimestamp();
+        }
+    }
+
+    private long? TakeBeginTimestamp(object? payload) =>
+        TryFetchOperationId(this.operationIdFetcher, payload, out var operationId)
+            && this.beginTimestamps.TryRemove(operationId, out var timestamp)
+                ? timestamp
+                : null;
+
     private void RecordDuration(Activity? activity, object? payload, bool hasError = false)
     {
+        // The pending start timestamp is always consumed, even when metrics are disabled, so that
+        // entries cannot accumulate for the lifetime of the listener.
+        var beginTimestamp = this.TakeBeginTimestamp(payload);
+
         if (SqlClientInstrumentation.Instance.HandleManager.MetricHandles == 0)
         {
+            return;
+        }
+
+        double duration;
+        if (activity != null)
+        {
+            duration = activity.Duration.TotalSeconds;
+        }
+        else if (beginTimestamp is { } begin)
+        {
+            duration = SqlTelemetryHelper.CalculateDurationFromTimestamp(begin);
+        }
+        else
+        {
+            // No start timestamp was captured for this command (for example the before event was
+            // never seen because the instrumentation was enabled part way through the command), so
+            // a duration cannot be computed. Recording an arbitrary value would skew the histogram.
             return;
         }
 
@@ -402,8 +576,6 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
             }
         }
 
-        var duration = activity?.Duration.TotalSeconds
-            ?? SqlTelemetryHelper.CalculateDurationFromTimestamp(this.beginTimestamp.Value);
         SqlTelemetryHelper.DbClientOperationDuration.Record(duration, tags);
     }
 }

@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using Amazon.Lambda.Core;
+using Amazon.Lambda.SNSEvents;
+using Amazon.Lambda.SQSEvents;
 
 namespace OpenTelemetry.Instrumentation.AWSLambda.Tests;
 
@@ -17,6 +19,26 @@ internal class SampleHandlers
     public string SampleHandlerSyncInputAndReturn(string str, ILambdaContext _2)
     {
         return str;
+    }
+
+    // Action<TInput, ILambdaContext> for an SQS event source.
+    public void SampleHandlerSyncSqsEvent(SQSEvent _1, ILambdaContext _2)
+    {
+    }
+
+    // Action<TInput, ILambdaContext> for a single SQS message.
+    public void SampleHandlerSyncSqsMessage(SQSEvent.SQSMessage _1, ILambdaContext _2)
+    {
+    }
+
+    // Action<TInput, ILambdaContext> for an SNS event source.
+    public void SampleHandlerSyncSnsEvent(SNSEvent _1, ILambdaContext _2)
+    {
+    }
+
+    // Action<TInput, ILambdaContext> for a single SNS record.
+    public void SampleHandlerSyncSnsRecord(SNSEvent.SNSRecord _1, ILambdaContext _2)
+    {
     }
 
     // Func<TInput, ILambdaContext, Task>

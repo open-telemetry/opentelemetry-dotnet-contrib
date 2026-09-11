@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.18.0
+
+Released 2026-Aug-21
+
 * Fixes duplicate `traceparent` header injection when only propagation is
   enabled and a filtered request is redirected on .NET Framework.
   ([#4917](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4917))
@@ -10,6 +14,9 @@
   `http.client.request.duration` for asynchronous .NET Framework
   `HttpWebRequest` calls.
   ([#5000](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5000))
+
+* Updated OpenTelemetry core component version(s) to `1.18.0`.
+  ([#5022](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5022))
 
 ## 1.17.0
 

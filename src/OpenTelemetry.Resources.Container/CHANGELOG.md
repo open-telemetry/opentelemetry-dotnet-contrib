@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+* Added the `container.runtime.name` attribute, detected from the Docker
+  (`/.dockerenv`) or Podman (`/run/.containerenv`) marker files.
+  ([#5144](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5144))
+
+## 1.18.0-beta.1
+
+Released 2026-Aug-21
+
+* Updated OpenTelemetry core component version(s) to `1.18.0`.
+  ([#5022](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5022))
+
 ## 1.17.0-beta.1
 
 Released 2026-Jul-22

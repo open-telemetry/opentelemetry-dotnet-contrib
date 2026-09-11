@@ -33,6 +33,8 @@ internal sealed class PlainHttpTransport : IOpAmpTransport, IDisposable
         this.settings = settings;
     }
 
+    public bool RequiresResponseBeforeNextSend => true;
+
     public async Task SendAsync<T>(T message, CancellationToken token)
         where T : IMessage<T>
     {
