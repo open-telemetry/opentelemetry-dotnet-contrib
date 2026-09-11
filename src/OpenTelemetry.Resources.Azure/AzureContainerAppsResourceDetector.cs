@@ -42,6 +42,10 @@ internal sealed class AzureContainerAppsResourceDetector : IResourceDetector
                 AddBaseAttributes(attributeList, containerAppJobName);
                 AddResourceAttributes(attributeList, AzureContainerAppJobResourceAttributes);
             }
+            else
+            {
+                AzureResourcesEventSource.Log.ResourceDetectorSkipped(nameof(AzureContainerAppsResourceDetector), $"{ResourceAttributeConstants.AzureContainerAppsNameEnvVar} or {ResourceAttributeConstants.AzureContainerAppJobNameEnvVar}");
+            }
 
             return attributeList.Count == 0
                 ? Resource.Empty

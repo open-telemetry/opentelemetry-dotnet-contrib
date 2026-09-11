@@ -51,6 +51,8 @@ internal sealed class WsTransport : IOpAmpTransport, IDisposable
         this.transmitter = new WsTransmitter(this.webSocket, this.sendLock);
     }
 
+    public bool RequiresResponseBeforeNextSend => false;
+
     /// <summary>
     /// Connects the WebSocket and starts receiving server frames.
     /// </summary>

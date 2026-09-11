@@ -121,7 +121,7 @@ public static class NetAttributes
         public const string Inet6 = "inet6";
 
         /// <summary>
-        /// Unix domain socket path.
+        /// UNIX domain socket path.
         /// </summary>
         public const string Unix = "unix";
     }

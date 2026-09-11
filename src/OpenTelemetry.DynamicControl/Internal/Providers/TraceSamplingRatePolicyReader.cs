@@ -4,7 +4,7 @@
 using System.Text.Json;
 using OpenTelemetry.DynamicControl.Internal.Policies;
 
-namespace OpenTelemetry.DynamicControl.Internal.Sources;
+namespace OpenTelemetry.DynamicControl.Internal.Providers;
 
 /// <summary>
 /// Builds a validated <see cref="TraceSamplingRatePolicy"/> from a single policy payload
@@ -61,6 +61,7 @@ internal sealed class TraceSamplingRatePolicyReader : PolicyReader
                     PolicyRejectionReason.SchemaMismatch,
                     "The sampling rate object declares 'probability' more than once."),
 
+                JsonMemberLookup.Unspecified => throw JsonValueReader.UnhandledLookup(JsonMemberLookup.Unspecified),
                 var lookup => throw JsonValueReader.UnhandledLookup(lookup),
             };
 

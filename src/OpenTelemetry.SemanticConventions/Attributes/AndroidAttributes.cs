@@ -23,7 +23,7 @@ public static class AndroidAttributes
     public const string AttributeAndroidAppState = "android.app.state";
 
     /// <summary>
-    /// Uniquely identifies the framework API revision offered by a version (<c>os.version</c>) of the android operating system. More information can be found in the <a href="https://developer.android.com/guide/topics/manifest/uses-sdk-element#ApiLevels">Android API levels documentation</a>.
+    /// Uniquely identifies the framework API revision offered by a version (<c>os.version</c>) of the Android operating system. More information can be found in the <a href="https://developer.android.com/guide/topics/manifest/uses-sdk-element#ApiLevels">Android API levels documentation</a>.
     /// </summary>
     public const string AttributeAndroidOsApiLevel = "android.os.api_level";
 

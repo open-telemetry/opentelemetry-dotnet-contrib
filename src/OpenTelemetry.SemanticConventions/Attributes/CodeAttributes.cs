@@ -26,7 +26,7 @@ public static class CodeAttributes
     public const string AttributeCodeColumnNumber = "code.column.number";
 
     /// <summary>
-    /// The source code file name that identifies the code unit as uniquely as possible (preferably an absolute file path). This attribute MUST NOT be used on the Profile signal since the data is already captured in 'message Function'. This constraint is imposed to prevent redundancy and maintain data integrity.
+    /// The source code filename that identifies the code unit as uniquely as possible (preferably an absolute file path). This attribute MUST NOT be used on the Profile signal since the data is already captured in 'message Function'. This constraint is imposed to prevent redundancy and maintain data integrity.
     /// </summary>
     public const string AttributeCodeFilePath = "code.file.path";
 

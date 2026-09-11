@@ -19,11 +19,7 @@ public class AWSEC2DetectorTests
     {
         var data = new TheoryData<SemanticConventionVersion>();
 
-#if NET
         foreach (var version in Enum.GetValues<SemanticConventionVersion>())
-#else
-        foreach (var version in Enum.GetValues(typeof(SemanticConventionVersion)).Cast<SemanticConventionVersion>())
-#endif
         {
             data.Add(version);
         }
@@ -87,6 +83,7 @@ public class AWSEC2DetectorTests
         Assert.Equal("Test availability zone", resourceAttributes[ExpectedSemanticConventions.AttributeCloudAvailabilityZone]);
         Assert.Equal("Test instance id", resourceAttributes[ExpectedSemanticConventions.AttributeHostID]);
         Assert.Equal("Test instance type", resourceAttributes[ExpectedSemanticConventions.AttributeHostType]);
+        Assert.Equal("Test image id", resourceAttributes[ExpectedSemanticConventions.AttributeHostImageId]);
         Assert.Equal("Test aws region", resourceAttributes[ExpectedSemanticConventions.AttributeCloudRegion]);
         Assert.Equal("Test host name", resourceAttributes[ExpectedSemanticConventions.AttributeHostName]);
     }
@@ -103,6 +100,7 @@ public class AWSEC2DetectorTests
         Assert.Equal("us-east-1a", ec2IdentityDocumentModel.AvailabilityZone);
         Assert.Equal("i-12345678901234567", ec2IdentityDocumentModel.InstanceId);
         Assert.Equal("t2.micro", ec2IdentityDocumentModel.InstanceType);
+        Assert.Equal("ami-12345678901234567", ec2IdentityDocumentModel.ImageId);
         Assert.Equal("us-east-1", ec2IdentityDocumentModel.Region);
     }
 
@@ -114,6 +112,7 @@ public class AWSEC2DetectorTests
         public const string AttributeCloudAvailabilityZone = "cloud.availability_zone";
         public const string AttributeCloudRegion = "cloud.region";
         public const string AttributeHostID = "host.id";
+        public const string AttributeHostImageId = "host.image.id";
         public const string AttributeHostType = "host.type";
         public const string AttributeHostName = "host.name";
     }
