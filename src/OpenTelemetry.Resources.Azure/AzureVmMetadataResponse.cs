@@ -69,6 +69,10 @@ internal sealed class AzureVmMetadataResponse
                 }
 
                 break;
+            case ResourceSemanticConventions.AttributeHostImageVersion:
+            case ResourceSemanticConventions.AttributeOsVersion:
+                amsValue = this.Version;
+                break;
             case ResourceSemanticConventions.AttributeHostName:
                 amsValue = this.Name;
                 break;
@@ -80,10 +84,6 @@ internal sealed class AzureVmMetadataResponse
                 // The os.type value must be lowercase per the semantic conventions.
                 amsValue = this.OsType?.ToLowerInvariant();
 #pragma warning restore CA1308 // Normalize strings to uppercase
-                break;
-            case ResourceSemanticConventions.AttributeOsVersion:
-            case ResourceSemanticConventions.AttributeHostImageVersion:
-                amsValue = this.Version;
                 break;
             case ResourceAttributeConstants.AzureVmScaleSetName:
                 amsValue = this.VmScaleSetName;

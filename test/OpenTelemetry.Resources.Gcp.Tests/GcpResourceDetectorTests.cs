@@ -1,7 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics.Tracing;
 using Google.Api.Gax;
+using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Resources.Gcp.Tests;
@@ -196,6 +198,45 @@ public class GcpResourceDetectorTests
         Assert.Equal(5, attrs.Count);
         Assert.DoesNotContain(ResourceSemanticConventions.AttributeHostType, attrs.Keys);
         Assert.DoesNotContain(ResourceSemanticConventions.AttributeHostImageName, attrs.Keys);
+    }
+
+    [Fact]
+    public void TestExtractGceResourceAttributesLogsMalformedMetadata()
+    {
+        using var listener = new InMemoryEventListener(GcpResourcesEventSource.Log);
+
+        var details = new GcePlatformDetails(
+            metadataJson: "json",
+            projectId: "projectId",
+            instanceId: "instanceId",
+            zoneName: "projects/12345/zones/us-central1-a");
+        var platform = new Platform(details);
+        var attrs = GcpResourceDetector.ExtractGceResourceAttributes(platform).ToDictionary(x => x.Key, x => x.Value);
+        Assert.NotNull(attrs);
+        Assert.Equal(5, attrs.Count);
+
+        var failed = Assert.Single(listener.Events, e => e.EventName == nameof(GcpResourcesEventSource.FailedToExtractResourceAttributes));
+
+        Assert.Equal(EventLevel.Warning, failed.Level);
+        Assert.Contains(nameof(GcpResourceDetector), failed.Payload!);
+    }
+
+    [Fact]
+    public void TestExtractGceResourceAttributesDoesNotLogForValidMetadata()
+    {
+        using var listener = new InMemoryEventListener(GcpResourcesEventSource.Log);
+
+        var details = new GcePlatformDetails(
+            metadataJson: "{}",
+            projectId: "projectId",
+            instanceId: "instanceId",
+            zoneName: "projects/12345/zones/us-central1-a");
+        var platform = new Platform(details);
+        var attrs = GcpResourceDetector.ExtractGceResourceAttributes(platform).ToDictionary(x => x.Key, x => x.Value);
+        Assert.NotNull(attrs);
+        Assert.Equal(5, attrs.Count);
+
+        Assert.DoesNotContain(listener.Events, e => e.EventName == nameof(GcpResourcesEventSource.FailedToExtractResourceAttributes));
     }
 
     // Test method to extract Cloud Run resource attributes with sample GCE details

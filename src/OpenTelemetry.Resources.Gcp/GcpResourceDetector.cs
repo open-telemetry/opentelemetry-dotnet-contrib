@@ -140,9 +140,9 @@ internal sealed class GcpResourceDetector : IResourceDetector
                 }
             }
         }
-        catch (JsonException)
+        catch (JsonException ex)
         {
-            // Malformed metadata: keep the five attributes the detector already emitted.
+            GcpResourcesEventSource.Log.ResourceAttributesExtractException(nameof(GcpResourceDetector), ex);
         }
     }
 }

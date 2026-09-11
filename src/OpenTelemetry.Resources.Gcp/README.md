@@ -98,6 +98,3 @@ which Google Cloud Platform environment an application is running in.
 | host.id                 | auto               |
 | host.image.name         | auto               |
 | host.type               | auto               |
-
-`host.image.id` and `host.image.version` are not available from the instance
-metadata server and are not emitted.
