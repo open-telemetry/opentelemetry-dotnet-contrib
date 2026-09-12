@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.18.0-beta.2
+
+Released 2026-Sep-10
+
 * Add `cloud.account.id` and `azure.resource_group.name` attributes to the Azure
   App Service resource detector.
   ([#5138](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5138))
@@ -20,6 +24,14 @@
 * Skip Azure VM resource detection on Azure App Service to prevent unnecessary
   requests to the Azure Instance Metadata Service.
   ([#5167](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5167))
+
+* Add `host.image.id`, `host.image.name` and `host.image.version` attributes to
+  the Azure VM resource detector.
+  ([#5194](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5194))
+
+* Updated semantic conventions to
+  [v1.44.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.44.0/docs/resource/host.md).
+  ([#5194](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5194))
 
 ## 1.18.0-beta.1
 
