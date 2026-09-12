@@ -23,7 +23,8 @@ Released 2026-Jul-22
 
 Released 2026-Jul-15
 
-* Specify full path for `ioreg` command on macOS.
+* Specify full path for `ioreg` command on macOS to resolve
+  [GHSA-v8pv-4842-x354](https://github.com/advisories/GHSA-v8pv-4842-x354).
   ([#4760](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4760))
 
 ## 1.16.0-beta.1
