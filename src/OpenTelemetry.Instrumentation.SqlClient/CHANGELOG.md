@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* Fixed SQL client command activities and `db.client.operation.duration`
+  recording an incorrect duration when `Activity.Current` changed before
+  command completion.
+  ([#5134](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5134))
+
 ## 1.18.0
 
 Released 2026-Aug-21

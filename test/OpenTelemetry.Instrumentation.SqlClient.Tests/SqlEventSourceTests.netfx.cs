@@ -200,6 +200,49 @@ public class SqlEventSourceTests
         Assert.Empty(exportedItems);
     }
 
+    [Theory]
+    [InlineData(typeof(FakeMisbehavingAdoNetSqlEventSource))]
+    [InlineData(typeof(FakeMisbehavingMdsSqlEventSource))]
+    public void EventSourceMalformedBeginDoesNotLeaveActivity(Type eventSourceType)
+    {
+        using var listener = new SqlEventSourceListener();
+        using var fakeSqlEventSource = (IFakeMisbehavingSqlEventSourceWithMalformedBegin)Activator.CreateInstance(eventSourceType)!;
+        var exportedItems = new List<Activity>();
+        using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
+            .AddInMemoryExporter(exportedItems)
+            .AddSqlClientInstrumentation()
+            .Build();
+        using var ambientActivity = new Activity("ambient").Start();
+
+        fakeSqlEventSource.WriteMalformedBeginExecuteEvent("not-an-object-id", "server", "database", "select 1");
+
+        Assert.Same(ambientActivity, Activity.Current);
+        Assert.Equal(0, listener.PendingBeginStateCount);
+        shutdownSignal.Dispose();
+        Assert.Empty(exportedItems);
+    }
+
+    [Theory]
+    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource))]
+    [InlineData(typeof(FakeBehavingMdsSqlEventSource))]
+    public void EventSourceMalformedCompletionCleansMatchingActivity(Type eventSourceType)
+    {
+        using var listener = new SqlEventSourceListener();
+        using var fakeSqlEventSource = (IFakeBehavingSqlEventSource)Activator.CreateInstance(eventSourceType)!;
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .Build();
+        using var ambientActivity = new Activity("ambient").Start();
+        var objectId = Guid.NewGuid().GetHashCode();
+
+        fakeSqlEventSource.WriteBeginExecuteEvent(objectId, "server", "database", "select 1");
+        Assert.Equal(1, listener.PendingBeginStateCount);
+        fakeSqlEventSource.WriteMalformedEndExecuteEvent(objectId);
+
+        Assert.Same(ambientActivity, Activity.Current);
+        Assert.Equal(0, listener.PendingBeginStateCount);
+    }
+
     private static void VerifyActivityData(
         string commandText,
         bool isFailure,
@@ -249,6 +292,8 @@ public class SqlEventSourceTests
         void WriteBeginExecuteEvent(int objectId, string dataSource, string databaseName, string commandText);
 
         void WriteEndExecuteEvent(int objectId, int compositeState, int sqlExceptionNumber);
+
+        void WriteMalformedEndExecuteEvent(int objectId);
     }
 
     private interface IFakeMisbehavingSqlEventSource : IDisposable
@@ -258,6 +303,11 @@ public class SqlEventSourceTests
         void WriteEndExecuteEvent(string arg1, string arg2, string arg3, string arg4);
 
         void WriteUnknownEventWithNullPayload();
+    }
+
+    private interface IFakeMisbehavingSqlEventSourceWithMalformedBegin : IDisposable
+    {
+        void WriteMalformedBeginExecuteEvent(string objectId, string dataSource, string databaseName, string commandText);
     }
 
     [EventSource(Name = SqlEventSourceListener.AdoNetEventSourceName + "-FakeFriendly")]
@@ -270,6 +320,9 @@ public class SqlEventSourceTests
         [Event(SqlEventSourceListener.EndExecuteEventId)]
         public void WriteEndExecuteEvent(int objectId, int compositeState, int sqlExceptionNumber)
             => this.WriteEvent(SqlEventSourceListener.EndExecuteEventId, objectId, compositeState, sqlExceptionNumber);
+
+        public void WriteMalformedEndExecuteEvent(int objectId)
+            => this.WriteEvent(SqlEventSourceListener.EndExecuteEventId, objectId);
     }
 
     [EventSource(Name = SqlEventSourceListener.MdsEventSourceName + "-FakeFriendly")]
@@ -282,14 +335,21 @@ public class SqlEventSourceTests
         [Event(SqlEventSourceListener.EndExecuteEventId)]
         public void WriteEndExecuteEvent(int objectId, int compositeState, int sqlExceptionNumber)
             => this.WriteEvent(SqlEventSourceListener.EndExecuteEventId, objectId, compositeState, sqlExceptionNumber);
+
+        public void WriteMalformedEndExecuteEvent(int objectId)
+            => this.WriteEvent(SqlEventSourceListener.EndExecuteEventId, objectId);
     }
 
     [EventSource(Name = SqlEventSourceListener.AdoNetEventSourceName + "-FakeEvil")]
-    private class FakeMisbehavingAdoNetSqlEventSource : EventSource, IFakeMisbehavingSqlEventSource
+    private class FakeMisbehavingAdoNetSqlEventSource : EventSource, IFakeMisbehavingSqlEventSource, IFakeMisbehavingSqlEventSourceWithMalformedBegin
     {
         [Event(SqlEventSourceListener.BeginExecuteEventId)]
         public void WriteBeginExecuteEvent(string arg1)
             => this.WriteEvent(SqlEventSourceListener.BeginExecuteEventId, arg1);
+
+        [Event(SqlEventSourceListener.BeginExecuteEventId)]
+        public void WriteMalformedBeginExecuteEvent(string objectId, string dataSource, string databaseName, string commandText)
+            => this.WriteEvent(SqlEventSourceListener.BeginExecuteEventId, objectId, dataSource, databaseName, commandText);
 
         [Event(SqlEventSourceListener.EndExecuteEventId)]
         public void WriteEndExecuteEvent(string arg1, string arg2, string arg3, string arg4)
@@ -305,11 +365,15 @@ public class SqlEventSourceTests
     }
 
     [EventSource(Name = SqlEventSourceListener.MdsEventSourceName + "-FakeEvil")]
-    private class FakeMisbehavingMdsSqlEventSource : EventSource, IFakeMisbehavingSqlEventSource
+    private class FakeMisbehavingMdsSqlEventSource : EventSource, IFakeMisbehavingSqlEventSource, IFakeMisbehavingSqlEventSourceWithMalformedBegin
     {
         [Event(SqlEventSourceListener.BeginExecuteEventId)]
         public void WriteBeginExecuteEvent(string arg1)
             => this.WriteEvent(SqlEventSourceListener.BeginExecuteEventId, arg1);
+
+        [Event(SqlEventSourceListener.BeginExecuteEventId)]
+        public void WriteMalformedBeginExecuteEvent(string objectId, string dataSource, string databaseName, string commandText)
+            => this.WriteEvent(SqlEventSourceListener.BeginExecuteEventId, objectId, dataSource, databaseName, commandText);
 
         [Event(SqlEventSourceListener.EndExecuteEventId)]
         public void WriteEndExecuteEvent(string arg1, string arg2, string arg3, string arg4)

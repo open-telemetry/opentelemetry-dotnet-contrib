@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #if NETFRAMEWORK
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using OpenTelemetry.Trace;
@@ -29,9 +30,11 @@ internal sealed class SqlEventSourceListener : EventListener
     internal const int BeginExecuteEventId = 1;
     internal const int EndExecuteEventId = 2;
 
-    private readonly AsyncLocal<long> beginTimestamp = new();
+    private readonly ConcurrentDictionary<int, BeginState> beginStates = new();
     private EventSource? adoNetEventSource;
     private EventSource? mdsEventSource;
+
+    internal int PendingBeginStateCount => this.beginStates.Count;
 
     public override void Dispose()
     {
@@ -106,6 +109,28 @@ internal sealed class SqlEventSourceListener : EventListener
         return (false, null, null);
     }
 
+    private static bool TryGetObjectId(EventWrittenEventArgs eventData, out int objectId)
+    {
+        if (eventData.Payload.Count > 0 && eventData.Payload[0] is int value)
+        {
+            objectId = value;
+            return true;
+        }
+
+        objectId = default;
+        return false;
+    }
+
+    private static void StopActivity(Activity activity)
+    {
+        var currentActivity = Activity.Current;
+        activity.Stop();
+        if (!ReferenceEquals(currentActivity, activity))
+        {
+            Activity.Current = currentActivity;
+        }
+    }
+
     private void OnBeginExecute(EventWrittenEventArgs eventData)
     {
         /*
@@ -140,7 +165,7 @@ internal sealed class SqlEventSourceListener : EventListener
         // will always return null and no trace will be produced, so skip redundant work.
         if (!SqlTelemetryHelper.ActivitySource.HasListeners())
         {
-            this.beginTimestamp.Value = Stopwatch.GetTimestamp();
+            this.RecordBeginState(eventData);
             return;
         }
 
@@ -168,9 +193,19 @@ internal sealed class SqlEventSourceListener : EventListener
         if (activity == null)
         {
             // There is no listener or it decided not to sample the current request.
-            this.beginTimestamp.Value = Stopwatch.GetTimestamp();
+            this.RecordBeginState(eventData);
             return;
         }
+
+        if (!TryGetObjectId(eventData, out _))
+        {
+            // Correlation is keyed by ObjectId. A malformed Begin cannot be safely matched
+            // later, so do not leave the newly-created activity current and untracked.
+            StopActivity(activity);
+            return;
+        }
+
+        this.RecordBeginState(eventData, activity);
     }
 
     private void OnEndExecute(EventWrittenEventArgs eventData)
@@ -186,21 +221,40 @@ internal sealed class SqlEventSourceListener : EventListener
 
         if (handleManager.TracingHandles == 0 && handleManager.MetricHandles == 0)
         {
+            if (eventData.Payload.Count > 0)
+            {
+                _ = this.TakeBeginState(eventData);
+            }
+
             return;
         }
 
         if (eventData.Payload.Count < 3)
         {
+            if (eventData.Payload.Count > 0)
+            {
+                // A valid ObjectId lets us clean up the matching state. If identity itself is
+                // malformed, retain any other commands because guessing would risk stopping a
+                // concurrent command's activity.
+                var beginState = this.TakeBeginState(eventData);
+                if (beginState?.Activity is { } activity)
+                {
+                    StopActivity(activity);
+                }
+            }
+
             SqlClientInstrumentationEventSource.Log.InvalidPayload(nameof(SqlEventSourceListener), nameof(this.OnEndExecute));
             return;
         }
 
-        var currentActivity = Activity.Current;
+        var hasTrackedState = this.TryGetBeginState(eventData, out var trackedState);
 
         // Ensure any activity that may exist due to ActivitySource.AddActivityListener()
         // is stopped regardless of whether we're doing metrics and/or tracing.
         // See https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/3033.
-        var sqlActivity = currentActivity?.Source == SqlTelemetryHelper.ActivitySource ? currentActivity : null;
+        var sqlActivity = hasTrackedState
+            ? trackedState.Activity
+            : null;
 
         // If we're only collecting metrics, then we don't want to modify the activity
         var traceActivity =
@@ -232,13 +286,19 @@ internal sealed class SqlEventSourceListener : EventListener
         finally
         {
             // If there's a SQL activity, stop it before recording the duration.
-            sqlActivity?.Stop();
-            this.RecordDuration(traceActivity, eventData);
+            if (sqlActivity != null)
+            {
+                StopActivity(sqlActivity);
+            }
+
+            this.RecordDuration(sqlActivity, eventData);
         }
     }
 
     private void RecordDuration(Activity? activity, EventWrittenEventArgs eventData)
     {
+        var beginState = this.TakeBeginState(eventData);
+
         if (SqlClientInstrumentation.Instance.HandleManager.MetricHandles == 0)
         {
             return;
@@ -266,9 +326,53 @@ internal sealed class SqlEventSourceListener : EventListener
             }
         }
 
-        var duration = activity?.Duration.TotalSeconds
-            ?? SqlTelemetryHelper.CalculateDurationFromTimestamp(this.beginTimestamp.Value);
+        double duration;
+        if (activity != null)
+        {
+            duration = activity.Duration.TotalSeconds;
+        }
+        else if (beginState is { } state)
+        {
+            duration = SqlTelemetryHelper.CalculateDurationFromTimestamp(state.StartTimestamp);
+        }
+        else
+        {
+            return;
+        }
+
         SqlTelemetryHelper.DbClientOperationDuration.Record(duration, tags);
+    }
+
+    private void RecordBeginState(EventWrittenEventArgs eventData, Activity? activity = null)
+    {
+        if (TryGetObjectId(eventData, out var objectId))
+        {
+            this.beginStates[objectId] = new(Stopwatch.GetTimestamp(), activity);
+        }
+    }
+
+    private BeginState? TakeBeginState(EventWrittenEventArgs eventData) =>
+        TryGetObjectId(eventData, out var objectId)
+            && this.beginStates.TryRemove(objectId, out var state)
+                ? state
+                : null;
+
+    private bool TryGetBeginState(EventWrittenEventArgs eventData, out BeginState state)
+    {
+        if (TryGetObjectId(eventData, out var objectId))
+        {
+            return this.beginStates.TryGetValue(objectId, out state);
+        }
+
+        state = default;
+        return false;
+    }
+
+    private readonly struct BeginState(long startTimestamp, Activity? activity)
+    {
+        public long StartTimestamp { get; } = startTimestamp;
+
+        public Activity? Activity { get; } = activity;
     }
 }
 #endif
