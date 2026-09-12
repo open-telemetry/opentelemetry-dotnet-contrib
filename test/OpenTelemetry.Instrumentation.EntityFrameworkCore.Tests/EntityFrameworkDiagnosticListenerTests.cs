@@ -233,6 +233,35 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         return testCases;
     }
 
+    public static TheoryData<string, bool> IsBackslashEscapeProviderTestCases()
+    {
+        var values = DbSystemTestCases().ToDictionary((k) => (string)k[0], (v) => false);
+
+        string[] backslashEscapeProviders =
+        [
+            "Devart.Data.MySql.Entity.EFCore",
+            "Devart.Data.MySql.MySqlCommand",
+            "MySql.Data.EntityFrameworkCore",
+            "MySql.Data.MySqlClient.MySqlCommand",
+            "MySql.EntityFrameworkCore",
+            "Pomelo.EntityFrameworkCore.MySql",
+        ];
+
+        foreach (var name in backslashEscapeProviders)
+        {
+            values[name] = true;
+        }
+
+        var testCases = new TheoryData<string, bool>();
+
+        foreach ((var name, var expected) in values)
+        {
+            testCases.Add(name, expected);
+        }
+
+        return testCases;
+    }
+
     [Theory]
     [MemberData(nameof(DbSystemTestCases))]
     public void ShouldReturnCorrectAttributeValuesProviderOrCommandName(string name, string expectedDbSystem, string expectedDbSystemName)
@@ -248,6 +277,15 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     public void ShouldReturnCorrectValueForSqlLikeProviderOrCommandName(string name, bool expected)
     {
         var actual = EntityFrameworkDiagnosticListener.IsSqlLikeProvider(name);
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Theory]
+    [MemberData(nameof(IsBackslashEscapeProviderTestCases))]
+    public void ShouldReturnCorrectValueForBackslashEscapeProviderOrCommandName(string name, bool expected)
+    {
+        var actual = EntityFrameworkDiagnosticListener.IsBackslashEscapeProvider(name);
 
         Assert.Equal(expected, actual);
     }
