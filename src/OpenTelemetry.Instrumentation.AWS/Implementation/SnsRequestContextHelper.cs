@@ -22,7 +22,7 @@ internal class SnsRequestContextHelper
 
         if (originalRequest.MessageAttributes == null)
         {
-            originalRequest.MessageAttributes = new Dictionary<string, MessageAttributeValue>(attributes.Count);
+            originalRequest.MessageAttributes = [with(attributes.Count)];
         }
         else
         {

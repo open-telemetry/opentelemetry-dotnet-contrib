@@ -21,11 +21,11 @@ namespace OpenTelemetry;
 /// </remarks>
 public sealed class ConsistentProbabilitySampler : Sampler
 {
-    // The W3C Trace Context Level 2 "random" trace flag, which indicates that the least-significant
-    // 56 bits of the TraceID were generated in a random or pseudo-random manner.
-    // https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867
-    // will change this code to use ActivityTraceFlags.RandomTraceId.
+#if NET11_0_OR_GREATER
+    private const ActivityTraceFlags RandomTraceIdFlag = ActivityTraceFlags.RandomTraceId;
+#else
     private const ActivityTraceFlags RandomTraceIdFlag = (ActivityTraceFlags)0x02;
+#endif
 
     private readonly long threshold;
 

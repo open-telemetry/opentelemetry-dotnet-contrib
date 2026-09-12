@@ -106,7 +106,11 @@ internal class AWSMessagingUtils
         var body = sqsMessage.Body;
         if (body != null &&
 #if NET
+#if NET11_0_OR_GREATER
+            body.TrimStart().StartsWith('{', StringComparison.Ordinal) &&
+#else
             body.TrimStart().StartsWith('{') &&
+#endif
             body.Contains(SnsMessageAttributes, StringComparison.Ordinal))
 #else
             body.TrimStart().StartsWith("{", StringComparison.Ordinal) &&

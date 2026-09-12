@@ -6,14 +6,15 @@
     <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)debug.snk</AssemblyOriginatorKeyFile>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <NetFrameworkMinimumSupportedVersion>net462</NetFrameworkMinimumSupportedVersion>
-    <NetMinimumSupportedVersion>net8.0</NetMinimumSupportedVersion>
+    <NetMinimumSupportedVersion>net10.0</NetMinimumSupportedVersion>
     <NetStandardMinimumSupportedVersion>netstandard2.0</NetStandardMinimumSupportedVersion>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <TargetFrameworksForLibraries>net10.0;$(NetMinimumSupportedVersion);$(NetStandardMinimumSupportedVersion)</TargetFrameworksForLibraries>
+    <TargetFrameworksForLibraries>net11.0;$(NetMinimumSupportedVersion);$(NetStandardMinimumSupportedVersion)</TargetFrameworksForLibraries>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AnalysisLevel>latest-all</AnalysisLevel>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <CheckSdkVulnerabilities>true</CheckSdkVulnerabilities>
     <NuGetAudit>true</NuGetAudit>
     <NuGetAuditMode>all</NuGetAuditMode>
     <NuGetAuditLevel>low</NuGetAuditLevel>
@@ -23,6 +24,7 @@
   <PropertyGroup>
     <ContinuousIntegrationBuild>$([MSBuild]::ValueOrDefault('$(CI)', 'false'))</ContinuousIntegrationBuild>
     <Deterministic>$([MSBuild]::ValueOrDefault('$(Deterministic)', 'true'))</Deterministic>
+    <DeterministicTimestamp>$([MSBuild]::ValueOrDefault('$(DeterministicTimestamp)', 'true'))</DeterministicTimestamp>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(AssemblyIsCLSCompliant)' != '' ">

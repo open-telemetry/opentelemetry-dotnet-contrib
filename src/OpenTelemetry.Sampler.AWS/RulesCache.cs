@@ -60,7 +60,7 @@ internal class RulesCache : IDisposable
         this.rwLock.EnterWriteLock();
         try
         {
-            Dictionary<string, SamplingRuleApplier> existingAppliers = new(this.RuleAppliers.Count);
+            Dictionary<string, SamplingRuleApplier> existingAppliers = [with(this.RuleAppliers.Count)];
 
             foreach (var applier in this.RuleAppliers)
             {
