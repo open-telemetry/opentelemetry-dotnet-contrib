@@ -1,7 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics.Tracing;
 using Google.Api.Gax;
+using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Resources.Gcp.Tests;
@@ -126,6 +128,115 @@ public class GcpResourceDetectorTests
         Assert.Equal("projectId", attrs[ResourceSemanticConventions.AttributeCloudAccount]);
         Assert.Equal(ResourceAttributeConstants.GcpGcePlatformValue, attrs[ResourceSemanticConventions.AttributeCloudPlatform]);
         Assert.Equal("instanceId", attrs[ResourceSemanticConventions.AttributeHostId]);
+    }
+
+    [Fact]
+    public void TestExtractGceResourceAttributesWithMachineTypeAndImage()
+    {
+        var details = new GcePlatformDetails(
+            metadataJson: """{"instance":{"machineType":"projects/12345/machineTypes/n1-standard-1","image":"projects/12345/global/images/imageName"}}""",
+            projectId: "projectId",
+            instanceId: "instanceId",
+            zoneName: "projects/12345/zones/us-central1-a");
+        var platform = new Platform(details);
+        var attrs = GcpResourceDetector.ExtractGceResourceAttributes(platform).ToDictionary(x => x.Key, x => x.Value);
+        Assert.NotNull(attrs);
+        Assert.Equal(7, attrs.Count);
+        Assert.Equal("projects/12345/machineTypes/n1-standard-1", attrs[ResourceSemanticConventions.AttributeHostType]);
+        Assert.Equal("imageName", attrs[ResourceSemanticConventions.AttributeHostImageName]);
+    }
+
+    [Fact]
+    public void TestExtractGceResourceAttributesWithMachineTypeOnly()
+    {
+        var details = new GcePlatformDetails(
+            metadataJson: """{"instance":{"machineType":"projects/12345/machineTypes/n1-standard-1"}}""",
+            projectId: "projectId",
+            instanceId: "instanceId",
+            zoneName: "projects/12345/zones/us-central1-a");
+        var platform = new Platform(details);
+        var attrs = GcpResourceDetector.ExtractGceResourceAttributes(platform).ToDictionary(x => x.Key, x => x.Value);
+        Assert.NotNull(attrs);
+        Assert.Equal(6, attrs.Count);
+        Assert.Equal("projects/12345/machineTypes/n1-standard-1", attrs[ResourceSemanticConventions.AttributeHostType]);
+        Assert.DoesNotContain(ResourceSemanticConventions.AttributeHostImageName, attrs.Keys);
+    }
+
+    [Fact]
+    public void TestExtractGceResourceAttributesWithImageOnly()
+    {
+        var details = new GcePlatformDetails(
+            metadataJson: """{"instance":{"image":"projects/12345/global/images/imageName"}}""",
+            projectId: "projectId",
+            instanceId: "instanceId",
+            zoneName: "projects/12345/zones/us-central1-a");
+        var platform = new Platform(details);
+        var attrs = GcpResourceDetector.ExtractGceResourceAttributes(platform).ToDictionary(x => x.Key, x => x.Value);
+        Assert.NotNull(attrs);
+        Assert.Equal(6, attrs.Count);
+        Assert.Equal("imageName", attrs[ResourceSemanticConventions.AttributeHostImageName]);
+        Assert.DoesNotContain(ResourceSemanticConventions.AttributeHostType, attrs.Keys);
+    }
+
+    [Theory]
+    [InlineData("{}")]
+    [InlineData("""{"instance":"instance"}""")]
+    [InlineData("""{"instance":{}}""")]
+    [InlineData("""{"instance":{"machineType":null,"image":null}}""")]
+    [InlineData("""{"instance":{"machineType":"","image":""}}""")]
+    [InlineData("""{"instance":{"machineType":1,"image":1}}""")]
+    public void TestExtractGceResourceAttributesWithoutMachineTypeAndImage(string metadataJson)
+    {
+        var details = new GcePlatformDetails(
+            metadataJson: metadataJson,
+            projectId: "projectId",
+            instanceId: "instanceId",
+            zoneName: "projects/12345/zones/us-central1-a");
+        var platform = new Platform(details);
+        var attrs = GcpResourceDetector.ExtractGceResourceAttributes(platform).ToDictionary(x => x.Key, x => x.Value);
+        Assert.NotNull(attrs);
+        Assert.Equal(5, attrs.Count);
+        Assert.DoesNotContain(ResourceSemanticConventions.AttributeHostType, attrs.Keys);
+        Assert.DoesNotContain(ResourceSemanticConventions.AttributeHostImageName, attrs.Keys);
+    }
+
+    [Fact]
+    public void TestExtractGceResourceAttributesLogsMalformedMetadata()
+    {
+        using var listener = new InMemoryEventListener(GcpResourcesEventSource.Log);
+
+        var details = new GcePlatformDetails(
+            metadataJson: "json",
+            projectId: "projectId",
+            instanceId: "instanceId",
+            zoneName: "projects/12345/zones/us-central1-a");
+        var platform = new Platform(details);
+        var attrs = GcpResourceDetector.ExtractGceResourceAttributes(platform).ToDictionary(x => x.Key, x => x.Value);
+        Assert.NotNull(attrs);
+        Assert.Equal(5, attrs.Count);
+
+        var failed = Assert.Single(listener.Events, e => e.EventName == nameof(GcpResourcesEventSource.FailedToExtractResourceAttributes));
+
+        Assert.Equal(EventLevel.Warning, failed.Level);
+        Assert.Contains(nameof(GcpResourceDetector), failed.Payload!);
+    }
+
+    [Fact]
+    public void TestExtractGceResourceAttributesDoesNotLogForValidMetadata()
+    {
+        using var listener = new InMemoryEventListener(GcpResourcesEventSource.Log);
+
+        var details = new GcePlatformDetails(
+            metadataJson: "{}",
+            projectId: "projectId",
+            instanceId: "instanceId",
+            zoneName: "projects/12345/zones/us-central1-a");
+        var platform = new Platform(details);
+        var attrs = GcpResourceDetector.ExtractGceResourceAttributes(platform).ToDictionary(x => x.Key, x => x.Value);
+        Assert.NotNull(attrs);
+        Assert.Equal(5, attrs.Count);
+
+        Assert.DoesNotContain(listener.Events, e => e.EventName == nameof(GcpResourcesEventSource.FailedToExtractResourceAttributes));
     }
 
     // Test method to extract Cloud Run resource attributes with sample GCE details
