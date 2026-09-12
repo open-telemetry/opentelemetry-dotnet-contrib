@@ -137,17 +137,22 @@ public partial class HttpClientTests
         }
 
         var requestMetrics = metrics
-            .Where(metric => metric.Name is "http.client.request.duration" or "http.client.active_requests" or "http.client.request.time_in_queue" or "http.client.connection.duration" or "http.client.open_connections" or "dns.lookup.duration")
+            .Where(IsKnownMetric)
             .ToArray();
 
-        if (tc.ResponseExpected)
+        // http.client.connection.duration and http.client.open_connections will not be emitted.
+        var expectedCount = tc.ResponseExpected ? 6 : 4;
+
+        Assert.Equal(expectedCount, requestMetrics.Length);
+
+        static bool IsKnownMetric(Metric metric)
         {
-            Assert.Equal(6, requestMetrics.Length);
-        }
-        else
-        {
-            // http.client.connection.duration and http.client.open_connections will not be emitted.
-            Assert.Equal(4, requestMetrics.Length);
+            return metric.Name is "http.client.request.duration" or
+                                  "http.client.active_requests" or
+                                  "http.client.open_connections" or
+                                  "http.client.request.time_in_queue" or
+                                  "http.client.connection.duration" or
+                                  "dns.lookup.duration";
         }
     }
 #endif
