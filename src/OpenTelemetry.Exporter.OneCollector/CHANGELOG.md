@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+* Event full names supplied directly via the `{EventFullName}` log attribute are
+  now validated: invalid values are now discarded and the default event full name
+  is used instead.
+  ([#4857](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4857))
+
+* Fixed serialization of the original event namespace and event name (emitted as
+  `data.namespace` and `data.name` when a log category name or event name is
+  remapped or fails validation). These values are now written as escaped JSON
+  strings, so a value containing characters which require escaping no longer
+  corrupt the payload.
+  ([#4857](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4857))
+
+* The caches used to resolve event full names are now bounded.
+  ([#4857](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4857))
+
 ## 1.18.0
 
 Released 2026-Aug-21
