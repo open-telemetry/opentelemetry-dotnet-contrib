@@ -210,7 +210,9 @@ public class AzureResourceDetectorTests
                 Location = ResourceSemanticConventions.AttributeCloudRegion,
                 Name = ResourceSemanticConventions.AttributeHostName,
                 OsType = ResourceSemanticConventions.AttributeOsType,
+                ResourceGroupName = ResourceAttributeConstants.AzureResourceGroupName,
                 ResourceId = ResourceSemanticConventions.AttributeCloudResourceId,
+                SubscriptionId = ResourceSemanticConventions.AttributeCloudAccount,
                 Version = ResourceSemanticConventions.AttributeOsVersion,
                 VmSize = ResourceSemanticConventions.AttributeHostType,
                 VmScaleSetName = ResourceAttributeConstants.AzureVmScaleSetName,
@@ -236,6 +238,44 @@ public class AzureResourceDetectorTests
 
             Assert.Contains(expectedValue, resource.Attributes);
         }
+
+        Assert.Contains(new KeyValuePair<string, object>(ResourceAttributeConstants.AzureResourceGroupName, ResourceAttributeConstants.AzureResourceGroupName), resource.Attributes);
+        Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudAccount, ResourceSemanticConventions.AttributeCloudAccount), resource.Attributes);
+    }
+
+    [Theory]
+    [InlineData(null, null)]
+    [InlineData("", "")]
+    [InlineData(null, "")]
+    [InlineData("", null)]
+    public void AzureVmResourceDetectorSuppressesEmptyIdentityAttributes(string? resourceGroupName, string? subscriptionId)
+    {
+        var originalRequestor = AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse;
+
+        try
+        {
+            AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse = () =>
+            {
+                return new AzureVmMetadataResponse()
+                {
+                    ResourceGroupName = resourceGroupName,
+                    SubscriptionId = subscriptionId,
+                };
+            };
+
+            AzureVMResourceDetector.ClearCachedResource();
+
+            var resource = ResourceBuilder.CreateEmpty().AddAzureVMDetector().Build();
+
+            Assert.NotNull(resource);
+            Assert.DoesNotContain(resource.Attributes, attribute => attribute.Key == ResourceAttributeConstants.AzureResourceGroupName);
+            Assert.DoesNotContain(resource.Attributes, attribute => attribute.Key == ResourceSemanticConventions.AttributeCloudAccount);
+        }
+        finally
+        {
+            AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse = originalRequestor;
+            AzureVMResourceDetector.ClearCachedResource();
+        }
     }
 
     [Theory]
@@ -246,6 +286,19 @@ public class AzureResourceDetectorTests
         var response = new AzureVmMetadataResponse() { OsType = osType };
 
         Assert.Equal(expected, response.GetValueForField(ResourceSemanticConventions.AttributeOsType));
+    }
+
+    [Fact]
+    public void AzureVmResourceDetectorMapsSubscriptionIdAndResourceGroupName()
+    {
+        var response = new AzureVmMetadataResponse()
+        {
+            ResourceGroupName = "rg-demo",
+            SubscriptionId = "11111111-2222-3333-4444-555555555555",
+        };
+
+        Assert.Equal("rg-demo", response.GetValueForField(ResourceAttributeConstants.AzureResourceGroupName));
+        Assert.Equal("11111111-2222-3333-4444-555555555555", response.GetValueForField(ResourceSemanticConventions.AttributeCloudAccount));
     }
 
     [Fact]
