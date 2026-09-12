@@ -202,6 +202,53 @@ public partial class HttpClientTests
     }
 #endif
 
+#if NET && !NET10_0_OR_GREATER
+    [Fact]
+    public async Task HttpCancellationInvokesEnrichWithException()
+    {
+        // Prior to .NET 10, task cancellation does not raise the diagnostic
+        // "Exception" event, so OnException (and therefore EnrichWithException)
+        // is never invoked for canceled requests unless the cancellation branch
+        // in OnStopActivity invokes it directly. See issue https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1793
+
+        Exception? enrichedException = null;
+
+        var activities = new List<Activity>();
+
+        var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddHttpClientInstrumentation(opt =>
+            {
+                opt.EnrichWithException = (_, exception) => { enrichedException = exception; };
+            })
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        try
+        {
+            using var c = new HttpClient();
+            using var request = new HttpRequestMessage
+            {
+                RequestUri = new Uri($"{this.uri}/slow"),
+                Method = new HttpMethod("GET"),
+            };
+
+            var cancellationTokenSource = new CancellationTokenSource(100);
+            await c.SendAsync(request, cancellationTokenSource.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            // we expect this to be thrown here
+        }
+        finally
+        {
+            tracerProvider.Dispose();
+        }
+
+        Assert.Single(activities);
+        Assert.IsType<TaskCanceledException>(enrichedException);
+    }
+#endif
+
     private static async Task HttpOutCallsAreCollectedSuccessfullyBodyAsync(
         string host,
         int port,
