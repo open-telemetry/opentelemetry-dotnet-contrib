@@ -506,7 +506,7 @@ public class AWSLambdaWrapperTests : IDisposable
         {
             AWSLambdaWrapper.Trace(
                 tracerProvider,
-                (string _, ILambdaContext _) => handlerRan = true,
+                (_, _) => handlerRan = true,
                 "TestStream",
                 this.sampleLambdaContext);
         }
