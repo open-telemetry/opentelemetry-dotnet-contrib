@@ -249,6 +249,107 @@ public class AzureResourceDetectorTests
     }
 
     [Fact]
+    public void AzureVmResourceDetectorEmitsHostImageAttributes()
+    {
+        var resource = DetectAzureVmResource(new AzureVmMetadataResponse()
+        {
+            Version = "imageVersion",
+            StorageProfile = new AzureVmStorageProfile()
+            {
+                ImageReference = new AzureVmImageReference() { Id = "imageId", Publisher = "publisher", Offer = "offer", Sku = "sku" },
+            },
+        });
+
+        Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeHostImageId, "imageId"), resource.Attributes);
+        Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeHostImageName, "publisher:offer:sku"), resource.Attributes);
+        Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeHostImageVersion, "imageVersion"), resource.Attributes);
+    }
+
+    [Fact]
+    public void AzureVmResourceDetectorOmitsHostImageAttributesWhenMetadataHasNoImageFields()
+    {
+        var resource = DetectAzureVmResource(new AzureVmMetadataResponse());
+
+        Assert.DoesNotContain(resource.Attributes, attribute => attribute.Key == ResourceSemanticConventions.AttributeHostImageId);
+        Assert.DoesNotContain(resource.Attributes, attribute => attribute.Key == ResourceSemanticConventions.AttributeHostImageName);
+        Assert.DoesNotContain(resource.Attributes, attribute => attribute.Key == ResourceSemanticConventions.AttributeHostImageVersion);
+    }
+
+    [Fact]
+    public void AzureVmResourceDetectorOmitsHostImageIdWhenImageReferenceIdIsEmpty()
+    {
+        var resource = DetectAzureVmResource(new AzureVmMetadataResponse()
+        {
+            Version = "imageVersion",
+            StorageProfile = new AzureVmStorageProfile()
+            {
+                ImageReference = new AzureVmImageReference() { Id = string.Empty, Publisher = "publisher", Offer = "offer", Sku = "sku" },
+            },
+        });
+
+        Assert.DoesNotContain(resource.Attributes, attribute => attribute.Key == ResourceSemanticConventions.AttributeHostImageId);
+    }
+
+    [Theory]
+    [InlineData(null, "offer", "sku")]
+    [InlineData("publisher", null, "sku")]
+    [InlineData("publisher", "offer", null)]
+    [InlineData("", "offer", "sku")]
+    [InlineData("publisher", "", "sku")]
+    [InlineData("publisher", "offer", "")]
+    public void AzureVmResourceDetectorOmitsHostImageNameWhenAnyPartIsMissing(string? publisher, string? offer, string? sku)
+    {
+        var resource = DetectAzureVmResource(new AzureVmMetadataResponse()
+        {
+            StorageProfile = new AzureVmStorageProfile()
+            {
+                ImageReference = new AzureVmImageReference() { Publisher = publisher, Offer = offer, Sku = sku },
+            },
+        });
+
+        Assert.DoesNotContain(resource.Attributes, attribute => attribute.Key == ResourceSemanticConventions.AttributeHostImageName);
+    }
+
+    [Fact]
+    public void AzureVmResourceDetectorKeepsEmptyValuesForExistingFields()
+    {
+        var resource = DetectAzureVmResource(new AzureVmMetadataResponse());
+
+        Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeOsVersion, string.Empty), resource.Attributes);
+        Assert.Contains(new KeyValuePair<string, object>(ResourceAttributeConstants.AzureVmScaleSetName, string.Empty), resource.Attributes);
+    }
+
+    [Fact]
+    public void AzureVmMetadataResponseBuildsHostImageNameFromPublisherOfferAndSku()
+    {
+        var response = new AzureVmMetadataResponse()
+        {
+            StorageProfile = new AzureVmStorageProfile()
+            {
+                ImageReference = new AzureVmImageReference() { Publisher = "publisher", Offer = "offer", Sku = "sku" },
+            },
+        };
+
+        Assert.Equal("publisher:offer:sku", response.GetValueForField(ResourceSemanticConventions.AttributeHostImageName));
+    }
+
+    [Fact]
+    public void AzureVmMetadataResponseReadsHostImageIdFromImageReference()
+    {
+        var response = new AzureVmMetadataResponse() { StorageProfile = new AzureVmStorageProfile() { ImageReference = new AzureVmImageReference() { Id = "imageId" } } };
+
+        Assert.Equal("imageId", response.GetValueForField(ResourceSemanticConventions.AttributeHostImageId));
+    }
+
+    [Fact]
+    public void AzureVmMetadataResponseReadsHostImageVersionFromVersion()
+    {
+        var response = new AzureVmMetadataResponse() { Version = "imageVersion" };
+
+        Assert.Equal("imageVersion", response.GetValueForField(ResourceSemanticConventions.AttributeHostImageVersion));
+    }
+
+    [Fact]
     public void AzureContainerAppsResourceDetectorReturnsResourceWithAttributes()
     {
         var environment = new Dictionary<string, string?>();
@@ -462,6 +563,24 @@ public class AzureResourceDetectorTests
 
     private static string GetPayloadText(EventWrittenEventArgs eventData)
         => string.Join(" ", eventData.Payload!);
+
+    private static Resource DetectAzureVmResource(AzureVmMetadataResponse response)
+    {
+        var originalRequestor = AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse;
+
+        try
+        {
+            AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse = () => response;
+            AzureVMResourceDetector.ClearCachedResource();
+
+            return ResourceBuilder.CreateEmpty().AddAzureVMDetector().Build();
+        }
+        finally
+        {
+            AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse = originalRequestor;
+            AzureVMResourceDetector.ClearCachedResource();
+        }
+    }
 
     private static Resource DetectAppServiceResource(string? websiteOwnerName, string? websiteResourceGroup)
     {

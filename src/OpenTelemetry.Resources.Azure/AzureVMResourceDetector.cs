@@ -25,6 +25,13 @@ internal sealed class AzureVMResourceDetector : IResourceDetector
         ResourceSemanticConventions.AttributeServiceInstance
     ];
 
+    private static readonly IReadOnlyCollection<string> OmitWhenEmptyAzureAmsFields =
+    [
+        ResourceSemanticConventions.AttributeHostImageId,
+        ResourceSemanticConventions.AttributeHostImageName,
+        ResourceSemanticConventions.AttributeHostImageVersion
+    ];
+
     private static Resource? vmResource;
 
     /// <inheritdoc/>
@@ -52,10 +59,20 @@ internal sealed class AzureVMResourceDetector : IResourceDetector
                 return vmResource;
             }
 
-            var attributeList = new List<KeyValuePair<string, object>>(ExpectedAzureAmsFields.Count);
+            var attributeList = new List<KeyValuePair<string, object>>(
+                ExpectedAzureAmsFields.Count + OmitWhenEmptyAzureAmsFields.Count);
             foreach (var field in ExpectedAzureAmsFields)
             {
                 attributeList.Add(new(field, vmMetaDataResponse.GetValueForField(field)));
+            }
+
+            foreach (var field in OmitWhenEmptyAzureAmsFields)
+            {
+                var value = vmMetaDataResponse.GetValueForField(field);
+                if (value.Length > 0)
+                {
+                    attributeList.Add(new(field, value));
+                }
             }
 
             if (attributeList.Count == 0)
