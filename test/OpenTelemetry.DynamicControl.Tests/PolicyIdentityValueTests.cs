@@ -56,7 +56,7 @@ public class PolicyIdentityValueTests
 
         Assert.True(first.Equals((object)equal));
         Assert.False(first.Equals((object)new PolicyType("other")));
-        Assert.False(first.Equals((object?)null));
+        Assert.False(first.Equals(null));
         Assert.False(first.Equals("trace-sampling"));
     }
 
@@ -109,7 +109,7 @@ public class PolicyIdentityValueTests
 
         Assert.True(first.Equals((object)equal));
         Assert.False(first.Equals((object)new PolicyId("policy-2")));
-        Assert.False(first.Equals((object?)null));
+        Assert.False(first.Equals(null));
         Assert.False(first.Equals("policy-1"));
     }
 }

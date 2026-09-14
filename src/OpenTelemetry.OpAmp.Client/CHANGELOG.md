@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+## 0.7.0-alpha.1
+
+Released 2026-Sep-07
+
+* **Breaking Change**: Changed communication behavior to accumulate messages when
+  the channel is blocked. This removes the need for explicit asynchronous message
+  sending, as the accumultor message is now automatically dispatched in the
+  background once communication is restored.
+  ([#4930](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4930))
+
+* Preserve custom messages queued while the communication channel is blocked
+  and reject new messages when the queue's message-count or payload-byte limit
+  is reached.
+  ([#5161](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5161))
+
+* Make the custom message queue count and aggregate payload-byte limits
+  configurable through `OpAmpClientSettings`.
+  ([#5171](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5171))
+
 ## 0.6.0-alpha.1
 
 Released 2026-Jul-07

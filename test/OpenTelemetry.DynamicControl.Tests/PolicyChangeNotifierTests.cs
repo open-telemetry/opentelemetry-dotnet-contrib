@@ -69,8 +69,8 @@ public class PolicyChangeNotifierTests
     {
         var notifier = new PolicyChangeNotifier();
         var deliveries = new List<PolicyStoreSnapshot>();
-        notifier.Add(s => deliveries.Add(s));
-        notifier.Add(s => deliveries.Add(s));
+        notifier.Add(deliveries.Add);
+        notifier.Add(deliveries.Add);
 
         notifier.Dispose();
 

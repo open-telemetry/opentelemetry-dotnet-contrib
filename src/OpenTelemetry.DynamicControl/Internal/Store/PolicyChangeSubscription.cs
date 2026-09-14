@@ -86,7 +86,7 @@ internal sealed class PolicyChangeSubscription : IDisposable
             this.dispatching = true;
         }
 
-        ThreadPool.UnsafeQueueUserWorkItem(static state => ((PolicyChangeSubscription)state!).Drain(), this);
+        ThreadPool.UnsafeQueueUserWorkItem(static state => ((PolicyChangeSubscription?)state!).Drain(), this);
     }
 
     private void Drain()

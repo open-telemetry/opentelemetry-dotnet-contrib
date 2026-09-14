@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <NetFrameworkMinimumSupportedVersion>net472</NetFrameworkMinimumSupportedVersion>
-    <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
     <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <Description>Unit test project for AWS client instrumentation for OpenTelemetry.</Description>
@@ -18,6 +17,10 @@
     <PackageReference Include="AWSSDK.SimpleNotificationService" />
     <PackageReference Include="AWSSDK.SQS" />
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="$(RepoRoot)\src\Shared\EnumExtensions.cs" Link="Includes\EnumExtensions.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -21,7 +21,7 @@ namespace OpenTelemetry.DynamicControl.Internal.Policies;
 /// <para>
 /// This type deliberately does not override <see cref="object.Equals(object?)"/> or
 /// <see cref="object.GetHashCode()"/>. Policies compare by reference. The store detects
-/// change through <c>PolicySourceVersion</c> and never compares policy content.
+/// change through <c>PolicyProviderVersion</c> and never compares policy content.
 /// </para>
 /// </remarks>
 internal abstract class TelemetryPolicy
