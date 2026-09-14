@@ -475,6 +475,6 @@ public class ServiceFabricRemotingTests
         }
 
         public bool TryConvertFromServiceException(ServiceException serviceException, Exception[] innerExceptions, out Exception actualException)
-            => this.TryConvertFromServiceException(serviceException, innerExceptions?.Length > 0 ? innerExceptions[0] : (Exception)null!, out actualException);
+            => this.TryConvertFromServiceException(serviceException, innerExceptions?.Length > 0 ? innerExceptions[0] : null!, out actualException);
     }
 }
