@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+* Add `host.type` and `host.image.name` attributes to the Google Compute Engine
+  resource detector.
+  ([#5194](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5194))
+
+* Updated semantic conventions to
+  [v1.44.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.44.0/docs/resource/host.md).
+  ([#5194](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5194))
+
 ## 1.0.0-alpha.4
 
 Released 2026-Aug-21

@@ -44,19 +44,19 @@ internal sealed class ProcessDetector : IResourceDetector
             using var process = CurrentProcess.GetCurrentProcess();
             processId = process.Id;
 
-            creationTime = SafeGet(process, (p) => p.StartTime);
+            creationTime = SafeGet<DateTime?>(process, (p) => p.StartTime);
+        }
+    }
 
-            static T? SafeGet<T>(CurrentProcess process, Func<CurrentProcess, T> getter)
-            {
-                try
-                {
-                    return getter(process);
-                }
-                catch (Exception)
-                {
-                    return default;
-                }
-            }
+    internal static T? SafeGet<T>(CurrentProcess process, Func<CurrentProcess, T> getter)
+    {
+        try
+        {
+            return getter(process);
+        }
+        catch (Exception)
+        {
+            return default;
         }
     }
 }
