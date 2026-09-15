@@ -27,4 +27,11 @@ public class ProcessDetectorTests
         Assert.True(DateTime.TryParse(creationTime, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var parsed), $"Failed to parse creation time '{creationTime}'.");
         Assert.Equal(DateTimeKind.Utc, parsed.Kind);
     }
+
+    [Fact]
+    public void TestProcessCreationTimeWhenStartTimeUnavailable()
+    {
+        Assert.Null(ProcessDetector.GetProcessCreationTime(
+            () => throw new InvalidOperationException()));
+    }
 }
