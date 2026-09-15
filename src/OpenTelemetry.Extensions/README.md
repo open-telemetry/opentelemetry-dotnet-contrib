@@ -175,13 +175,14 @@ obvious hand-rolled version gets several of them wrong.
 
 Parsing always succeeds, a mutating operation that changes something returns a
 new instance, and neither throws: an operation that changes nothing, such as one
-naming an invalid key or value, hands back the receiver itself. Members this
-instance did not generate are preserved verbatim, including malformed ones, so
-that an arbitrary sequence of mutations does not erode another vendor's entries.
+naming an invalid key or value, hands back the receiver itself. A member that
+is malformed, or is a repeated key, is dropped as the header is parsed,
+so the state is always a valid `tracestate`. Valid members this instance
+did not generate are kept in place.
 
-Use `TryParse` where a caller wants to know that a header was unusable: it
-returns `false` when members were retained and not one of them matched the
-`list-member` grammar.
+Use `TryParse` where a caller wants to know that the header was not fully
+valid: it returns `false` only when an invalid or repeated member was dropped,
+with the valid remainder in the `out` parameter.
 
 Example of `W3CTraceState` usage in a custom sampler:
 

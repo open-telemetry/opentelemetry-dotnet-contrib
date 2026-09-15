@@ -15,8 +15,8 @@ namespace OpenTelemetry.Trace;
 /// Tracing API</see> specification defines for <c>TraceState</c>.
 /// </summary>
 /// <remarks>
-/// Members this instance did not write are handed back exactly as they arrived, malformed ones
-/// included, so that a long chain of edits never erodes another vendor's entries.
+/// The instance is always a valid <c>tracestate</c>: a member that is malformed, or is a repeated
+/// key, is discarded as the header is parsed.
 /// <para/>
 /// Nothing here mutates and nothing here throws: an edit that changes something returns a new
 /// instance, while an operation that changes nothing, such as one naming an invalid key or value,
@@ -44,6 +44,11 @@ public sealed class W3CTraceState
     /// </summary>
     private const int MaxValueLength = 256;
 
+    /// <summary>
+    /// The characters ignored around a member, per <c>OWS = *( SP / HTAB )</c>.
+    /// </summary>
+    private const string OptionalWhitespace = " \t";
+
     private static readonly W3CTraceState Empty = new([]);
 
     private readonly Member[] members;
@@ -61,47 +66,31 @@ public sealed class W3CTraceState
     /// </param>
     /// <returns>The parsed <see cref="W3CTraceState"/>. Parsing always succeeds.</returns>
     /// <remarks>
-    /// A member that does not match the <c>list-member</c> grammar is kept as opaque text rather
-    /// than reported as a failure: a caller handed a parse error would drop the whole header, and
-    /// with it keys it never generated.
-    /// <para/>
-    /// The first 32 members are kept and the rest of the header is discarded, matching the limit
-    /// the grammar puts on a <c>tracestate</c> list.
+    /// A member that is not a well-formed key-value pair, or that repeats a key, is discarded; use
+    /// <see cref="TryParse(string, out W3CTraceState)"/> to learn whether that happened. Once 32
+    /// members are kept, the rest of the header is dropped.
     /// </remarks>
     public static W3CTraceState Parse(string? tracestate) => ParseCore(tracestate, out _);
 
     /// <summary>
-    /// Parses a W3C <c>tracestate</c> value.
+    /// Parses a W3C <c>tracestate</c> value and reports whether an invalid or repeated member was
+    /// discarded.
     /// </summary>
     /// <param name="tracestate">
     /// The <c>tracestate</c> value.
     /// </param>
     /// <param name="state">
-    /// When this method returns, the parsed <see cref="W3CTraceState"/>. It is populated the same
-    /// way whichever value is returned, so <see langword="false"/> never yields less than
-    /// <see langword="true"/> would. It is not necessarily everything the header carried: as with
-    /// <c>Parse</c>, only the first 32 members are kept, and the rest are discarded on both
-    /// branches.
+    /// When this method returns, the parsed <see cref="W3CTraceState"/>, populated the same way
+    /// whichever value is returned.
     /// </param>
     /// <returns>
-    /// <see langword="false"/> when members were retained and not one of them matched the
-    /// <c>list-member</c> grammar; otherwise <see langword="true"/>.
+    /// <see langword="false"/> when a member was discarded because it was not a well-formed
+    /// key-value pair or repeated a key; otherwise <see langword="true"/>.
     /// </returns>
     /// <remarks>
-    /// The value reports on the members retained, not on the header as it arrived. A header of 32
-    /// unusable members followed by a well-formed pair reports <see langword="false"/>, because the
-    /// pair sits past the 32-member limit and was never taken on. Answering otherwise would mean
-    /// reading past the bound that limit exists to enforce.
-    /// <para/>
-    /// Discarding well-formed members to stay inside that limit is not itself a failure: a header
-    /// of 40 valid pairs keeps the first 32 and reports <see langword="true"/>.
-    /// <para/>
-    /// A header that is absent, empty or carries nothing but empty members reports
-    /// <see langword="true"/>: there is nothing there to be wrong.
-    /// <para/>
-    /// A header with a mix of pairs and text kept verbatim also reports <see langword="true"/>. The
-    /// signal is reserved for a value that is unusable end to end, which is the case a caller can
-    /// act on; anything less would report on another vendor's spelling.
+    /// Once 32 members are kept the rest of the header is dropped without being examined, so a
+    /// header of 40 valid pairs keeps the first 32 and reports <see langword="true"/>. A header that
+    /// is absent, empty or carries only empty members also reports <see langword="true"/>.
     /// </remarks>
     public static bool TryParse(string? tracestate, out W3CTraceState state)
     {
@@ -118,10 +107,6 @@ public sealed class W3CTraceState
     /// <returns>
     /// <see langword="true"/> if the key is present; otherwise <see langword="false"/>.
     /// </returns>
-    /// <remarks>
-    /// Only members that match the <c>list-member</c> grammar can be addressed by key. A member
-    /// kept verbatim is opaque text and is never returned, however it happens to be spelled.
-    /// </remarks>
     public bool TryGetValue(string key, out string? value)
     {
         if (key is not null)
@@ -149,9 +134,6 @@ public sealed class W3CTraceState
     /// </returns>
     /// <remarks>
     /// The member written here is placed first, and every other member keeps its relative position.
-    /// <para/>
-    /// Every existing member carrying the key is collapsed into the one written here, so a header
-    /// that arrived with the key twice comes back with it once.
     /// <para/>
     /// If setting the value would exceed the maximum of 32 members, the right-most value is dropped.
     /// </remarks>
@@ -201,10 +183,6 @@ public sealed class W3CTraceState
     /// A new <see cref="W3CTraceState"/> without <paramref name="key"/>, or the receiver itself when
     /// the key is absent or invalid.
     /// </returns>
-    /// <remarks>
-    /// Only members that match the <c>list-member</c> grammar can be addressed by key, so a member
-    /// kept verbatim is never deleted.
-    /// </remarks>
     public W3CTraceState Remove(string key)
     {
         if (!IsValidKey(key.AsSpan()))
@@ -269,13 +247,9 @@ public sealed class W3CTraceState
                 builder.Append(',');
             }
 
-            if (member.Key is not null)
-            {
-                builder.Append(member.Key)
-                       .Append('=');
-            }
-
-            builder.Append(member.Value);
+            builder.Append(member.Key)
+                   .Append('=')
+                   .Append(member.Value);
         }
 
         return builder.ToString();
@@ -283,7 +257,6 @@ public sealed class W3CTraceState
 
     private static W3CTraceState ParseCore(string? tracestate, out bool isValid)
     {
-        // Nothing arrived, so there is nothing here that could be wrong.
         isValid = true;
 
         if (string.IsNullOrEmpty(tracestate))
@@ -293,31 +266,12 @@ public sealed class W3CTraceState
 
         var remaining = tracestate.AsSpan();
         var count = CountMembers(remaining);
-        if (count == 0)
-        {
-            return Empty;
-        }
-
-        var members = new Member[count];
+        var members = count == 0 ? [] : new Member[count];
         var written = 0;
-        isValid = false;
 
-        while (!remaining.IsEmpty && written < count)
+        while (!remaining.IsEmpty && written < MaxMembers)
         {
-            var comma = remaining.IndexOf(',');
-            var member = remaining;
-
-            if (comma >= 0)
-            {
-                member = member.Slice(0, comma);
-                remaining = remaining.Slice(comma + 1);
-            }
-            else
-            {
-                remaining = default;
-            }
-
-            member = member.Trim();
+            var member = NextMember(ref remaining);
 
             // Empty members are accepted but never re-emitted.
             if (member.IsEmpty)
@@ -325,13 +279,24 @@ public sealed class W3CTraceState
                 continue;
             }
 
-            var created = CreateMember(member);
+            if (!TryParseMember(member, out var key, out var value) || ContainsKey(members.AsSpan(0, written), key))
+            {
+                isValid = false;
+                continue;
+            }
 
-            // One member matching the grammar is enough for the header to be valid: a vendor's
-            // malformed entry is that vendor's business, not a fault in this header.
-            isValid |= created.Key is not null;
+            members[written++] = new Member(key.ToString(), value.ToString());
+        }
 
-            members[written++] = created;
+        if (written == 0)
+        {
+            return Empty;
+        }
+
+        // A repeated key was counted but not kept, so the store is longer than the list.
+        if (written < members.Length)
+        {
+            Array.Resize(ref members, written);
         }
 
         return new W3CTraceState(members);
@@ -342,22 +307,7 @@ public sealed class W3CTraceState
 
             while (!header.IsEmpty && count < MaxMembers)
             {
-                var comma = header.IndexOf(',');
-                var member = header;
-
-                if (comma >= 0)
-                {
-                    member = member.Slice(0, comma);
-                    header = header.Slice(comma + 1);
-                }
-                else
-                {
-                    header = default;
-                }
-
-                member = member.Trim();
-
-                if (!member.IsEmpty)
+                if (TryParseMember(NextMember(ref header), out _, out _))
                 {
                     count++;
                 }
@@ -365,24 +315,55 @@ public sealed class W3CTraceState
 
             return count;
         }
+
+        static ReadOnlySpan<char> NextMember(ref ReadOnlySpan<char> header)
+        {
+            var comma = header.IndexOf(',');
+            var member = header;
+
+            if (comma >= 0)
+            {
+                member = member.Slice(0, comma);
+                header = header.Slice(comma + 1);
+            }
+            else
+            {
+                header = default;
+            }
+
+            return member.Trim(OptionalWhitespace.AsSpan());
+        }
+
+        static bool ContainsKey(ReadOnlySpan<Member> members, ReadOnlySpan<char> key)
+        {
+            foreach (var member in members)
+            {
+                if (key.Equals(member.Key.AsSpan(), StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 
-    private static Member CreateMember(ReadOnlySpan<char> member)
+    private static bool TryParseMember(
+        ReadOnlySpan<char> member,
+        out ReadOnlySpan<char> key,
+        out ReadOnlySpan<char> value)
     {
         var separator = member.IndexOf('=');
         if (separator > 0)
         {
-            var key = member.Slice(0, separator);
-            var value = member.Slice(separator + 1);
-
-            if (IsValidKey(key) && IsValidValue(value))
-            {
-                return new Member(key.ToString(), value.ToString());
-            }
+            key = member.Slice(0, separator);
+            value = member.Slice(separator + 1);
+            return IsValidKey(key) && IsValidValue(value);
         }
 
-        // Malformed member: preserve it verbatim rather than discarding another vendor's data.
-        return new Member(null, member.ToString());
+        key = default;
+        value = default;
+        return false;
     }
 
     private static bool IsValidKey(ReadOnlySpan<char> key)
@@ -433,18 +414,10 @@ public sealed class W3CTraceState
         return value[value.Length - 1] != ' ';
     }
 
-    /// <summary>
-    /// One member of a <c>tracestate</c> list: either a key and its value, or a run of text kept
-    /// verbatim because it did not match the grammar.
-    /// </summary>
-    /// <param name="key">The key, or <see langword="null"/> for a member preserved verbatim.</param>
-    /// <param name="value">
-    /// The value when <paramref name="key"/> is non-<see langword="null"/>; otherwise the verbatim
-    /// text of the member.
-    /// </param>
-    private readonly struct Member(string? key, string value)
+    /// <summary>One key-value pair of a <c>tracestate</c> list.</summary>
+    private readonly struct Member(string key, string value)
     {
-        public string? Key { get; } = key;
+        public string Key { get; } = key;
 
         public string Value { get; } = value;
     }
