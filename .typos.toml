@@ -16,7 +16,7 @@ vertica = "vertica"
 WRONLY = "WRONLY"
 # PowerShell -Force abbreviation
 fo = "fo"
-# Part of "café" (caf\u00e9)
+# Part of "café" (café)
 caf = "caf"
 # Hex substring (e.g. 0ba902b7)
 ba = "ba"
@@ -27,3 +27,4 @@ DELET = "DELET"
 INSER = "INSER"
 SELEC = "SELEC"
 UPDAT = "UPDAT"
+probabilit = "probabilit"
