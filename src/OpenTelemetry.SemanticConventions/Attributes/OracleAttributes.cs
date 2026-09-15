@@ -60,7 +60,7 @@ public static class OracleAttributes
     /// </summary>
     /// <remarks>
     /// The effective service name for a connection can change during its lifetime,
-    /// for example after executing sql, <c>ALTER SESSION</c>. If an instrumentation cannot reliably
+    /// for example after executing SQL, <c>ALTER SESSION</c>. If an instrumentation cannot reliably
     /// obtain the current service name for each operation without issuing an additional
     /// query (such as <c>SELECT SYS_CONTEXT</c>), it is RECOMMENDED to fall back to the
     /// service name originally provided at connection establishment.

@@ -1,143 +1,181 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using OpenTelemetry.DynamicControl.Internal.Sources;
+using OpenTelemetry.DynamicControl.Internal.Providers;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.DynamicControl.Internal.Store;
 
 /// <summary>
-/// A copy-on-write holder for the complete set of per-source policy snapshots.
+/// Stores the current set of per-provider policy snapshots.
 /// </summary>
 /// <remarks>
 /// <para>
-/// Reads are lock-free: <see cref="Current"/> reads via <see cref="Volatile.Read{T}"/>
-/// and returns a point-in-time value. Callers must capture <see cref="Current"/> once
+/// Reads are lock-free. Callers must capture <see cref="Current"/> once
 /// and work from that instance; re-reading mid-operation can observe a newer revision
 /// and produce incorrect results.
 /// </para>
 /// <para>
 /// Updates are serialized under a single lock. Each accepted change builds and publishes
-/// a new <see cref="PolicyStoreSnapshot"/>, reusing unchanged
-/// <see cref="PolicySourceSnapshot"/> instances by reference. The cost of a commit is
-/// proportional to the number of sources, not the number of policies.
+/// a new <see cref="PolicyStoreSnapshot"/>.
 /// </para>
 /// </remarks>
-internal sealed class PolicyStore
+internal sealed class PolicyStore : IDisposable
 {
     private readonly Lock updateLock = new();
 
-    // Mutable working set.
-    private readonly Dictionary<SourceRegistrationId, PolicySourceSnapshot> sources = [];
+    private readonly Dictionary<ProviderRegistrationId, PolicyProviderSnapshot> providers = [];
 
-    // Maximum sequence seen per source. Governs staleness for both Applied and
-    // SuppressedUnchangedVersion outcomes. Separate from the snapshot so suppression
-    // can advance the sequence without altering the published state.
-    private readonly Dictionary<SourceRegistrationId, long> maxSequence = [];
+    // Suppressed submissions still advance the sequence used for staleness checks.
+    private readonly Dictionary<ProviderRegistrationId, long> maxSequence = [];
 
-    // The currently published snapshot.
+    private readonly PolicyChangeNotifier notifier = new();
+
     private PolicyStoreSnapshot current = PolicyStoreSnapshot.Empty;
 
     /// <summary>
     /// Gets the current store snapshot.
     /// </summary>
     /// <remarks>
-    /// This is a point-in-time value. Capture it once and work from that instance;
-    /// re-reading this property mid-operation can observe a newer revision published
-    /// by a concurrent update and produce incorrect results.
+    /// Capture the snapshot once per operation to avoid mixing revisions.
     /// </remarks>
     public PolicyStoreSnapshot Current => Volatile.Read(ref this.current);
 
     /// <summary>
-    /// Replaces the policy set for the source described by <paramref name="snapshot"/>.
-    /// The submission is evaluated against metadata consistency, sequence staleness, and
-    /// version suppression gates before being applied.
+    /// Subscribes to policy changes, starting with the current snapshot.
+    /// </summary>
+    /// <remarks>
+    /// Registration does not miss concurrent updates. Delivery follows the guarantees
+    /// documented by <see cref="PolicyChangeSubscription"/>.
+    /// </remarks>
+    /// <param name="onChanged">The callback to invoke with each delivered snapshot.</param>
+    /// <returns>A handle that stops delivery when disposed.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="onChanged"/> is null.</exception>
+    /// <exception cref="ObjectDisposedException">The store has been disposed.</exception>
+    public IDisposable Subscribe(Action<PolicyStoreSnapshot> onChanged)
+    {
+        Guard.ThrowIfNull(onChanged);
+
+        PolicyChangeSubscription subscription;
+        PolicyStoreSnapshot initialSnapshot;
+
+        lock (this.updateLock)
+        {
+            // Registration and snapshot capture must be atomic with respect to publication.
+            subscription = this.notifier.Add(onChanged);
+            initialSnapshot = this.current;
+        }
+
+        subscription.Enqueue(initialSnapshot);
+        return subscription;
+    }
+
+    /// <summary>
+    /// Stops all subscriptions without waiting for callbacks already in progress.
+    /// </summary>
+    public void Dispose() => this.notifier.Dispose();
+
+    /// <summary>
+    /// Replaces the policy set for the provider described by <paramref name="snapshot"/>.
     /// </summary>
     /// <param name="snapshot">The new snapshot to commit.</param>
     /// <returns>The outcome of the submission and the current (resulting or unchanged) snapshot.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="snapshot"/> is null.</exception>
-    public PolicyStoreUpdateResult ReplaceSource(PolicySourceSnapshot snapshot)
+    public PolicyStoreUpdateResult ReplaceProvider(PolicyProviderSnapshot snapshot)
     {
         Guard.ThrowIfNull(snapshot);
 
         var id = snapshot.RegistrationId;
+        PolicyStoreSnapshot newSnapshot;
+        ReadOnlySpan<PolicyChangeSubscription> subscribers;
 
         lock (this.updateLock)
         {
-            // Gate 1: metadata mismatch. Checked before staleness so a configuration
-            // defect surfaces even when the offending submission is also stale.
-            if (this.sources.TryGetValue(id, out var existing)
+            if (this.providers.TryGetValue(id, out var existing)
                 && !existing.Metadata.Equals(snapshot.Metadata))
             {
                 return new PolicyStoreUpdateResult(PolicyStoreUpdateStatus.RejectedMetadataMismatch, this.current);
             }
 
-            // Gate 2: staleness.
             if (this.maxSequence.TryGetValue(id, out var maxSeq)
                 && snapshot.Sequence <= maxSeq)
             {
                 return new PolicyStoreUpdateResult(PolicyStoreUpdateStatus.RejectedStaleSequence, this.current);
             }
 
-            // Gate 3: version suppression. Advance the maximum sequence even on
-            // suppression to prevent a lower-sequence later submission from winning.
             if (!snapshot.Version.IsEmpty
                 && existing != null
                 && snapshot.Version.Equals(existing.Version))
             {
-                // Gate 2 above guarantees snapshot.Sequence > maxSeq; this assignment always increases the value.
                 this.maxSequence[id] = snapshot.Sequence;
                 return new PolicyStoreUpdateResult(PolicyStoreUpdateStatus.SuppressedUnchangedVersion, this.current);
             }
 
-            // Apply: replace the source entry, advance the maximum sequence, and
-            // publish a new snapshot.
-            this.sources[id] = snapshot;
+            this.providers[id] = snapshot;
             this.maxSequence[id] = snapshot.Sequence;
 
-            var newSnapshot = new PolicyStoreSnapshot(this.current.Revision + 1, this.sources);
+            newSnapshot = new PolicyStoreSnapshot(this.current.Revision + 1, this.providers);
             Volatile.Write(ref this.current, newSnapshot);
 
-            return new PolicyStoreUpdateResult(PolicyStoreUpdateStatus.Applied, newSnapshot);
+            subscribers = this.notifier.Subscribers;
         }
+
+        Notify(subscribers, newSnapshot);
+
+        return new PolicyStoreUpdateResult(PolicyStoreUpdateStatus.Applied, newSnapshot);
     }
 
     /// <summary>
-    /// Removes the source identified by <paramref name="registrationId"/> from the store.
+    /// Removes the provider identified by <paramref name="registrationId"/> from the store.
     /// </summary>
     /// <remarks>
     /// <para>
     /// This is a configuration lifecycle operation. It must not be called in response to
     /// a transport disconnect; a disconnect is not a retraction, and calling
-    /// <see cref="RemoveSource"/> in response to one would clear the effective policies
+    /// <see cref="RemoveProvider"/> in response to one would clear the effective policies
     /// and leave downstream samplers without configuration until the next connection.
     /// </para>
     /// <para>
     /// After removal, no deletion record is retained. Re-adding the same
-    /// <see cref="SourceRegistrationId"/> starts fresh and accepts any sequence
+    /// <see cref="ProviderRegistrationId"/> starts fresh and accepts any sequence
     /// greater than or equal to 1, including one lower than a previously accepted value.
     /// </para>
     /// </remarks>
-    /// <param name="registrationId">The identity of the source to remove. Must not be <see cref="SourceRegistrationId.Empty"/>.</param>
+    /// <param name="registrationId">The identity of the provider to remove. Must not be <see cref="ProviderRegistrationId.Empty"/>.</param>
     /// <returns>The outcome of the removal and the current (resulting or unchanged) snapshot.</returns>
     /// <exception cref="ArgumentException">Thrown when <paramref name="registrationId"/> is the default value.</exception>
-    public PolicyStoreUpdateResult RemoveSource(SourceRegistrationId registrationId)
+    public PolicyStoreUpdateResult RemoveProvider(ProviderRegistrationId registrationId)
     {
         Guard.ThrowIfDefault(registrationId);
 
+        PolicyStoreSnapshot newSnapshot;
+        ReadOnlySpan<PolicyChangeSubscription> subscribers;
+
         lock (this.updateLock)
         {
-            if (!this.sources.Remove(registrationId))
+            if (!this.providers.Remove(registrationId))
             {
-                return new PolicyStoreUpdateResult(PolicyStoreUpdateStatus.SourceNotFound, this.current);
+                return new PolicyStoreUpdateResult(PolicyStoreUpdateStatus.ProviderNotFound, this.current);
             }
 
             this.maxSequence.Remove(registrationId);
 
-            var newSnapshot = new PolicyStoreSnapshot(this.current.Revision + 1, this.sources);
+            newSnapshot = new PolicyStoreSnapshot(this.current.Revision + 1, this.providers);
             Volatile.Write(ref this.current, newSnapshot);
 
-            return new PolicyStoreUpdateResult(PolicyStoreUpdateStatus.Applied, newSnapshot);
+            subscribers = this.notifier.Subscribers;
+        }
+
+        Notify(subscribers, newSnapshot);
+
+        return new PolicyStoreUpdateResult(PolicyStoreUpdateStatus.Applied, newSnapshot);
+    }
+
+    private static void Notify(ReadOnlySpan<PolicyChangeSubscription> subscribers, PolicyStoreSnapshot snapshot)
+    {
+        foreach (var subscription in subscribers)
+        {
+            subscription.Enqueue(snapshot);
         }
     }
 }

@@ -1,7 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-namespace OpenTelemetry.DynamicControl.Internal.Sources;
+namespace OpenTelemetry.DynamicControl.Internal.Providers;
 
 /// <summary>
 /// The outcome of looking for a single named member of a JSON object.

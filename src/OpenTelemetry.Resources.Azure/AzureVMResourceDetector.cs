@@ -32,6 +32,11 @@ internal sealed class AzureVMResourceDetector : IResourceDetector
     {
         try
         {
+            if (Environment.GetEnvironmentVariable(ResourceAttributeConstants.AppServiceSiteNameEnvVar) != null)
+            {
+                return Resource.Empty;
+            }
+
             if (vmResource != null)
             {
                 return vmResource;

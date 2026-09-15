@@ -12,12 +12,12 @@ internal static class FuzzInput
 
     public static string MapIntoNumericPool(string? text)
     {
-        if (string.IsNullOrEmpty(text))
+        if (text is not { Length: > 0 })
         {
             return string.Empty;
         }
 
-        var chars = new char[text!.Length];
+        var chars = new char[text.Length];
 
         for (var i = 0; i < text.Length; i++)
         {

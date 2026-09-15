@@ -169,12 +169,12 @@ public static class TlsAttributes
     public static class TlsProtocolNameValues
     {
         /// <summary>
-        /// ssl.
+        /// SSL.
         /// </summary>
         public const string Ssl = "ssl";
 
         /// <summary>
-        /// tls.
+        /// TLS.
         /// </summary>
         public const string Tls = "tls";
     }

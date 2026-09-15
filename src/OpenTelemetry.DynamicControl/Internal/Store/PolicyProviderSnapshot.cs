@@ -5,26 +5,26 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using OpenTelemetry.DynamicControl.Internal.Policies;
-using OpenTelemetry.DynamicControl.Internal.Sources;
+using OpenTelemetry.DynamicControl.Internal.Providers;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.DynamicControl.Internal.Store;
 
 /// <summary>
-/// One policy source's complete, validated, immutable policy set at a single point in time.
+/// One policy provider's complete, validated, immutable policy set at a single point in time.
 /// </summary>
 /// <remarks>
 /// Once published by <see cref="PolicyStore"/>, this instance is read-only.
 /// Concurrent reads of a published snapshot are safe without any additional locking.
 /// </remarks>
-internal sealed class PolicySourceSnapshot
+internal sealed class PolicyProviderSnapshot
 {
     private readonly Dictionary<PolicyKey, TelemetryPolicy> lookup;
 
-    private PolicySourceSnapshot(
-        PolicySourceMetadata metadata,
+    private PolicyProviderSnapshot(
+        PolicyProviderMetadata metadata,
         long sequence,
-        PolicySourceVersion version,
+        PolicyProviderVersion version,
         TelemetryPolicy[] policies,
         Dictionary<PolicyKey, TelemetryPolicy> lookup)
     {
@@ -36,24 +36,24 @@ internal sealed class PolicySourceSnapshot
     }
 
     /// <summary>
-    /// Gets the metadata that fully describes the source that produced this snapshot.
+    /// Gets the metadata that fully describes the provider that produced this snapshot.
     /// </summary>
-    public PolicySourceMetadata Metadata { get; }
+    public PolicyProviderMetadata Metadata { get; }
 
     /// <summary>
-    /// Gets the registration identity of the source. Equivalent to <see cref="PolicySourceMetadata.RegistrationId"/>.
+    /// Gets the registration identity of the provider. Equivalent to <see cref="PolicyProviderMetadata.RegistrationId"/>.
     /// </summary>
-    public SourceRegistrationId RegistrationId => this.Metadata.RegistrationId;
+    public ProviderRegistrationId RegistrationId => this.Metadata.RegistrationId;
 
     /// <summary>
     /// Gets the monotonically increasing, caller-assigned stamp that orders submissions
-    /// from this source.
+    /// from this provider.
     /// </summary>
     /// <remarks>
     /// This is the sequence number of the submission that produced this effective set.
-    /// It may be lower than the highest sequence the store has seen for this source, because
+    /// It may be lower than the highest sequence the store has seen for this provider, because
     /// a later submission may have been suppressed (version unchanged) rather than applied.
-    /// The store's maximum sequence seen for this source, which governs staleness, is maintained
+    /// The store's maximum sequence seen for this provider, which governs staleness, is maintained
     /// separately and is not available from the snapshot.
     /// </remarks>
     public long Sequence { get; }
@@ -61,7 +61,7 @@ internal sealed class PolicySourceSnapshot
     /// <summary>
     /// Gets the change-detection token carried by this snapshot.
     /// </summary>
-    public PolicySourceVersion Version { get; }
+    public PolicyProviderVersion Version { get; }
 
     /// <summary>
     /// Gets the policies in this snapshot, sorted by <see cref="PolicyKeyComparer"/> order.
@@ -72,23 +72,23 @@ internal sealed class PolicySourceSnapshot
     /// Gets a value indicating whether this snapshot contains no policies.
     /// </summary>
     /// <remarks>
-    /// A valid empty snapshot is a retraction: the source is live and intentionally
-    /// supplying nothing. This is distinct from the source not having submitted at all
+    /// A valid empty snapshot is a retraction: the provider is live and intentionally
+    /// supplying nothing. This is distinct from the provider not having submitted at all
     /// (absent from the store) or having been removed (also absent, but a configuration
     /// lifecycle event).
     /// </remarks>
     public bool IsEmpty => this.Policies.IsEmpty;
 
     /// <summary>
-    /// Attempts to create a new <see cref="PolicySourceSnapshot"/> from the supplied inputs.
+    /// Attempts to create a new <see cref="PolicyProviderSnapshot"/> from the supplied inputs.
     /// </summary>
     /// <param name="metadata">
-    /// The metadata of the source. Must not be <see langword="default"/>.
+    /// The metadata of the provider. Must not be <see langword="default"/>.
     /// </param>
     /// <param name="sequence">The caller-assigned submission stamp. Must be greater than or equal to 1.</param>
     /// <param name="version">The change-detection token for this submission.</param>
     /// <param name="policies">
-    /// The complete, validated policy set for this source.
+    /// The complete, validated policy set for this provider.
     /// </param>
     /// <param name="snapshot">
     /// When this method returns <see langword="true"/>, the new snapshot; otherwise <see langword="null"/>.
@@ -104,11 +104,11 @@ internal sealed class PolicySourceSnapshot
     /// </returns>
     /// <exception cref="ArgumentNullException"><paramref name="policies"/> is null.</exception>
     public static bool TryCreate(
-        PolicySourceMetadata metadata,
+        PolicyProviderMetadata metadata,
         long sequence,
-        PolicySourceVersion version,
+        PolicyProviderVersion version,
         IReadOnlyList<TelemetryPolicy?> policies,
-        [NotNullWhen(true)] out PolicySourceSnapshot? snapshot,
+        [NotNullWhen(true)] out PolicyProviderSnapshot? snapshot,
         [NotNullWhen(false)] out string? error)
     {
         Guard.ThrowIfNull(policies);
@@ -116,7 +116,7 @@ internal sealed class PolicySourceSnapshot
         if (metadata.Equals(default))
         {
             snapshot = null;
-            error = "The metadata must not be a default PolicySourceMetadata instance.";
+            error = "The metadata must not be a default PolicyProviderMetadata instance.";
             return false;
         }
 
@@ -177,7 +177,7 @@ internal sealed class PolicySourceSnapshot
 
         Array.Sort(keys, policyItems, PolicyKeyComparer.Default);
 
-        snapshot = new PolicySourceSnapshot(metadata, sequence, version, policyItems, policyMap);
+        snapshot = new PolicyProviderSnapshot(metadata, sequence, version, policyItems, policyMap);
         error = null;
         return true;
     }

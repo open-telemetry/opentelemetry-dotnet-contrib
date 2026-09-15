@@ -72,6 +72,7 @@ internal sealed class AWSEC2Detector : IResourceDetector
                 .AddAttributeCloudAccountID(identity?.AccountId)
                 .AddAttributeCloudAvailabilityZone(identity?.AvailabilityZone)
                 .AddAttributeHostID(identity?.InstanceId)
+                .AddAttributeHostImageId(identity?.ImageId)
                 .AddAttributeHostType(identity?.InstanceType)
                 .AddAttributeCloudRegion(identity?.Region)
                 .Build();
