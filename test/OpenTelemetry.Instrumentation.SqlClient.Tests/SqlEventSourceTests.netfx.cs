@@ -15,6 +15,8 @@ namespace OpenTelemetry.Instrumentation.SqlClient.Tests;
 [Collection("SqlClient")]
 public class SqlEventSourceTests
 {
+    private static readonly string[] ExpectedQuerySummaries = ["select first_table", "select second_table"];
+
     public static TheoryData<Type, CommandType, string, bool, int, bool, bool> EventSourceFakeTestCases()
     {
         /* netfx driver can't capture queries, only stored procedure names */
@@ -281,7 +283,7 @@ public class SqlEventSourceTests
             }
         }
 
-        Assert.Equal(new[] { "select first_table", "select second_table" }, querySummaries.OrderBy(value => value));
+        Assert.Equal(ExpectedQuerySummaries, querySummaries.OrderBy(value => value));
     }
 
     [Theory]
