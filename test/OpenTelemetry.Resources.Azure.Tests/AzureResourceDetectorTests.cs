@@ -1,10 +1,12 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics.Tracing;
 #if NETFRAMEWORK
 using System.Net.Http;
 #endif
 
+using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Resources.Azure.Tests;
@@ -66,6 +68,49 @@ public class AzureResourceDetectorTests
     }
 
     [Fact]
+    public void AzureVMResourceDetectorDoesNotRequestMetadataOnAppService()
+    {
+        var metadataWasRequested = false;
+        var originalRequestor =
+            AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse;
+
+        try
+        {
+            AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse = () =>
+            {
+                metadataWasRequested = true;
+                return null;
+            };
+
+            AzureVMResourceDetector.ClearCachedResource();
+
+            var environment = new Dictionary<string, string?>
+            {
+                [ResourceAttributeConstants.AppServiceSiteNameEnvVar] =
+                    "test-app-service",
+            };
+
+            using (EnvironmentVariableScope.Create(environment))
+            {
+                var resource = ResourceBuilder.CreateEmpty()
+                    .AddAzureVMDetector()
+                    .Build();
+
+                Assert.NotNull(resource);
+                Assert.Empty(resource.Attributes);
+                Assert.False(metadataWasRequested);
+            }
+        }
+        finally
+        {
+            AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse =
+                originalRequestor;
+
+            AzureVMResourceDetector.ClearCachedResource();
+        }
+    }
+
+    [Fact]
     public void AzureContainerAppsResourceDetectorHandlesFailure()
     {
         var resource = ResourceBuilder.CreateEmpty()
@@ -104,14 +149,53 @@ public class AzureResourceDetectorTests
             Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
 
             var expectedResourceUri = "/subscriptions/testtestSubscriptionId/resourceGroups/testResourceGroup/providers/Microsoft.Web/sites/sitename";
+            Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudAccount, "testtestSubscriptionId"), resource.Attributes);
             Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudResourceId, expectedResourceUri), resource.Attributes);
+            Assert.Contains(new KeyValuePair<string, object>(ResourceAttributeConstants.AzureResourceGroupName, "testResourceGroup"), resource.Attributes);
             Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "sitename"), resource.Attributes);
+            Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudPlatform, "azure.app_service"), resource.Attributes);
 
             foreach (var kvp in AppServiceResourceDetector.AppServiceResourceAttributes)
             {
                 Assert.Contains(new KeyValuePair<string, object>(kvp.Key, kvp.Key), resource.Attributes);
             }
         }
+    }
+
+    [Fact]
+    public void AppServiceResourceDetectorUsesUnseparatedOwnerNameAsCloudAccount()
+    {
+        var resource = DetectAppServiceResource("subscription-without-separator", null);
+
+        Assert.Contains(
+            new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudAccount, "subscription-without-separator"),
+            resource.Attributes);
+        Assert.DoesNotContain(resource.Attributes, attribute => attribute.Key == ResourceAttributeConstants.AzureResourceGroupName);
+        Assert.DoesNotContain(resource.Attributes, attribute => attribute.Key == ResourceSemanticConventions.AttributeCloudResourceId);
+    }
+
+    [Fact]
+    public void AppServiceResourceDetectorEmitsResourceGroupWithoutCloudAccount()
+    {
+        var resource = DetectAppServiceResource(null, "testResourceGroup");
+
+        Assert.Contains(
+            new KeyValuePair<string, object>(ResourceAttributeConstants.AzureResourceGroupName, "testResourceGroup"),
+            resource.Attributes);
+        Assert.DoesNotContain(resource.Attributes, attribute => attribute.Key == ResourceSemanticConventions.AttributeCloudAccount);
+        Assert.DoesNotContain(resource.Attributes, attribute => attribute.Key == ResourceSemanticConventions.AttributeCloudResourceId);
+    }
+
+    [Theory]
+    [InlineData("", null)]
+    [InlineData(null, "")]
+    public void AppServiceResourceDetectorSuppressesEmptyIdentityAttributes(string? websiteOwnerName, string? websiteResourceGroup)
+    {
+        var resource = DetectAppServiceResource(websiteOwnerName, websiteResourceGroup);
+
+        Assert.DoesNotContain(resource.Attributes, attribute => attribute.Key == ResourceSemanticConventions.AttributeCloudAccount);
+        Assert.DoesNotContain(resource.Attributes, attribute => attribute.Key == ResourceAttributeConstants.AzureResourceGroupName);
+        Assert.DoesNotContain(resource.Attributes, attribute => attribute.Key == ResourceSemanticConventions.AttributeCloudResourceId);
     }
 
     [Fact]
@@ -145,7 +229,7 @@ public class AzureResourceDetectorTests
             var expectedValue = field switch
             {
                 ResourceSemanticConventions.AttributeServiceInstance => new KeyValuePair<string, object>(field, ResourceSemanticConventions.AttributeHostId),
-                ResourceSemanticConventions.AttributeCloudPlatform => new KeyValuePair<string, object>(field, ResourceAttributeConstants.AzureVmCloudPlatformValue),
+                ResourceSemanticConventions.AttributeCloudPlatform => new KeyValuePair<string, object>(field, "azure.vm"),
                 ResourceSemanticConventions.AttributeCloudProvider => new KeyValuePair<string, object>(field, ResourceAttributeConstants.AzureCloudProviderValue),
                 _ => new KeyValuePair<string, object>(field, field),
             };
@@ -162,6 +246,107 @@ public class AzureResourceDetectorTests
         var response = new AzureVmMetadataResponse() { OsType = osType };
 
         Assert.Equal(expected, response.GetValueForField(ResourceSemanticConventions.AttributeOsType));
+    }
+
+    [Fact]
+    public void AzureVmResourceDetectorEmitsHostImageAttributes()
+    {
+        var resource = DetectAzureVmResource(new AzureVmMetadataResponse()
+        {
+            Version = "imageVersion",
+            StorageProfile = new AzureVmStorageProfile()
+            {
+                ImageReference = new AzureVmImageReference() { Id = "imageId", Publisher = "publisher", Offer = "offer", Sku = "sku" },
+            },
+        });
+
+        Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeHostImageId, "imageId"), resource.Attributes);
+        Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeHostImageName, "publisher:offer:sku"), resource.Attributes);
+        Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeHostImageVersion, "imageVersion"), resource.Attributes);
+    }
+
+    [Fact]
+    public void AzureVmResourceDetectorOmitsHostImageAttributesWhenMetadataHasNoImageFields()
+    {
+        var resource = DetectAzureVmResource(new AzureVmMetadataResponse());
+
+        Assert.DoesNotContain(resource.Attributes, attribute => attribute.Key == ResourceSemanticConventions.AttributeHostImageId);
+        Assert.DoesNotContain(resource.Attributes, attribute => attribute.Key == ResourceSemanticConventions.AttributeHostImageName);
+        Assert.DoesNotContain(resource.Attributes, attribute => attribute.Key == ResourceSemanticConventions.AttributeHostImageVersion);
+    }
+
+    [Fact]
+    public void AzureVmResourceDetectorOmitsHostImageIdWhenImageReferenceIdIsEmpty()
+    {
+        var resource = DetectAzureVmResource(new AzureVmMetadataResponse()
+        {
+            Version = "imageVersion",
+            StorageProfile = new AzureVmStorageProfile()
+            {
+                ImageReference = new AzureVmImageReference() { Id = string.Empty, Publisher = "publisher", Offer = "offer", Sku = "sku" },
+            },
+        });
+
+        Assert.DoesNotContain(resource.Attributes, attribute => attribute.Key == ResourceSemanticConventions.AttributeHostImageId);
+    }
+
+    [Theory]
+    [InlineData(null, "offer", "sku")]
+    [InlineData("publisher", null, "sku")]
+    [InlineData("publisher", "offer", null)]
+    [InlineData("", "offer", "sku")]
+    [InlineData("publisher", "", "sku")]
+    [InlineData("publisher", "offer", "")]
+    public void AzureVmResourceDetectorOmitsHostImageNameWhenAnyPartIsMissing(string? publisher, string? offer, string? sku)
+    {
+        var resource = DetectAzureVmResource(new AzureVmMetadataResponse()
+        {
+            StorageProfile = new AzureVmStorageProfile()
+            {
+                ImageReference = new AzureVmImageReference() { Publisher = publisher, Offer = offer, Sku = sku },
+            },
+        });
+
+        Assert.DoesNotContain(resource.Attributes, attribute => attribute.Key == ResourceSemanticConventions.AttributeHostImageName);
+    }
+
+    [Fact]
+    public void AzureVmResourceDetectorKeepsEmptyValuesForExistingFields()
+    {
+        var resource = DetectAzureVmResource(new AzureVmMetadataResponse());
+
+        Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeOsVersion, string.Empty), resource.Attributes);
+        Assert.Contains(new KeyValuePair<string, object>(ResourceAttributeConstants.AzureVmScaleSetName, string.Empty), resource.Attributes);
+    }
+
+    [Fact]
+    public void AzureVmMetadataResponseBuildsHostImageNameFromPublisherOfferAndSku()
+    {
+        var response = new AzureVmMetadataResponse()
+        {
+            StorageProfile = new AzureVmStorageProfile()
+            {
+                ImageReference = new AzureVmImageReference() { Publisher = "publisher", Offer = "offer", Sku = "sku" },
+            },
+        };
+
+        Assert.Equal("publisher:offer:sku", response.GetValueForField(ResourceSemanticConventions.AttributeHostImageName));
+    }
+
+    [Fact]
+    public void AzureVmMetadataResponseReadsHostImageIdFromImageReference()
+    {
+        var response = new AzureVmMetadataResponse() { StorageProfile = new AzureVmStorageProfile() { ImageReference = new AzureVmImageReference() { Id = "imageId" } } };
+
+        Assert.Equal("imageId", response.GetValueForField(ResourceSemanticConventions.AttributeHostImageId));
+    }
+
+    [Fact]
+    public void AzureVmMetadataResponseReadsHostImageVersionFromVersion()
+    {
+        var response = new AzureVmMetadataResponse() { Version = "imageVersion" };
+
+        Assert.Equal("imageVersion", response.GetValueForField(ResourceSemanticConventions.AttributeHostImageVersion));
     }
 
     [Fact]
@@ -184,6 +369,7 @@ public class AzureResourceDetectorTests
             Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
 
             Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "containerAppName"), resource.Attributes);
+            Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudPlatform, "azure.container_apps"), resource.Attributes);
 
             foreach (var kvp in AzureContainerAppsResourceDetector.AzureContainerAppResourceAttributes)
             {
@@ -212,6 +398,7 @@ public class AzureResourceDetectorTests
             Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
 
             Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "containerAppJobName"), resource.Attributes);
+            Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudPlatform, "azure.container_apps"), resource.Attributes);
 
             foreach (var kvp in AzureContainerAppsResourceDetector.AzureContainerAppJobResourceAttributes)
             {
@@ -275,6 +462,142 @@ public class AzureResourceDetectorTests
             Assert.DoesNotContain(
                 new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "my-app-service"),
                 resource.Attributes);
+        }
+    }
+
+    [Fact]
+    public void AppServiceResourceDetectorLogsSkippedEventWhenSiteNameIsNotSet()
+    {
+        using var listener = new InMemoryEventListener(AzureResourcesEventSource.Log);
+
+        var environment = new Dictionary<string, string?>
+        {
+            [ResourceAttributeConstants.AppServiceSiteNameEnvVar] = null,
+        };
+
+        using (EnvironmentVariableScope.Create(environment))
+        {
+            var resource = ResourceBuilder.CreateEmpty().AddAzureAppServiceDetector().Build();
+
+            Assert.Empty(resource.Attributes);
+            Assert.Null(resource.SchemaUrl);
+        }
+
+        var skipped = Assert.Single(listener.Events, e => e.EventName == nameof(AzureResourcesEventSource.ResourceDetectorSkipped));
+
+        Assert.Equal(EventLevel.Verbose, skipped.Level);
+        Assert.Contains(nameof(AppServiceResourceDetector), GetPayloadText(skipped), StringComparison.Ordinal);
+        Assert.Contains(ResourceAttributeConstants.AppServiceSiteNameEnvVar, GetPayloadText(skipped), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AppServiceResourceDetectorDoesNotLogSkippedEventWhenSiteNameIsSet()
+    {
+        using var listener = new InMemoryEventListener(AzureResourcesEventSource.Log);
+
+        var environment = new Dictionary<string, string?>
+        {
+            [ResourceAttributeConstants.AppServiceSiteNameEnvVar] = "sitename",
+        };
+
+        using (EnvironmentVariableScope.Create(environment))
+        {
+            var resource = ResourceBuilder.CreateEmpty().AddAzureAppServiceDetector().Build();
+
+            Assert.NotEmpty(resource.Attributes);
+        }
+
+        Assert.DoesNotContain(listener.Events, e => e.EventName == nameof(AzureResourcesEventSource.ResourceDetectorSkipped));
+    }
+
+    [Fact]
+    public void AzureContainerAppsResourceDetectorLogsSkippedEventWhenNoContainerAppVariableIsSet()
+    {
+        using var listener = new InMemoryEventListener(AzureResourcesEventSource.Log);
+
+        var environment = new Dictionary<string, string?>
+        {
+            [ResourceAttributeConstants.AzureContainerAppsNameEnvVar] = null,
+            [ResourceAttributeConstants.AzureContainerAppJobNameEnvVar] = null,
+        };
+
+        using (EnvironmentVariableScope.Create(environment))
+        {
+            var resource = ResourceBuilder.CreateEmpty().AddAzureContainerAppsDetector().Build();
+
+            Assert.Empty(resource.Attributes);
+            Assert.Null(resource.SchemaUrl);
+        }
+
+        var skipped = Assert.Single(listener.Events, e => e.EventName == nameof(AzureResourcesEventSource.ResourceDetectorSkipped));
+
+        Assert.Equal(EventLevel.Verbose, skipped.Level);
+        Assert.Contains(nameof(AzureContainerAppsResourceDetector), GetPayloadText(skipped), StringComparison.Ordinal);
+        Assert.Contains(ResourceAttributeConstants.AzureContainerAppsNameEnvVar, GetPayloadText(skipped), StringComparison.Ordinal);
+        Assert.Contains(ResourceAttributeConstants.AzureContainerAppJobNameEnvVar, GetPayloadText(skipped), StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData(ResourceAttributeConstants.AzureContainerAppsNameEnvVar, "containerAppName")]
+    [InlineData(ResourceAttributeConstants.AzureContainerAppJobNameEnvVar, "containerAppJobName")]
+    public void AzureContainerAppsResourceDetectorDoesNotLogSkippedEventWhenDetectionSucceeds(string environmentVariableName, string environmentVariableValue)
+    {
+        using var listener = new InMemoryEventListener(AzureResourcesEventSource.Log);
+
+        var environment = new Dictionary<string, string?>
+        {
+            [ResourceAttributeConstants.AzureContainerAppsNameEnvVar] = null,
+            [ResourceAttributeConstants.AzureContainerAppJobNameEnvVar] = null,
+            [environmentVariableName] = environmentVariableValue,
+        };
+
+        using (EnvironmentVariableScope.Create(environment))
+        {
+            var resource = ResourceBuilder.CreateEmpty().AddAzureContainerAppsDetector().Build();
+
+            Assert.NotEmpty(resource.Attributes);
+        }
+
+        Assert.DoesNotContain(listener.Events, e => e.EventName == nameof(AzureResourcesEventSource.ResourceDetectorSkipped));
+    }
+
+    private static string GetPayloadText(EventWrittenEventArgs eventData) =>
+#if NET
+        string.Join(" ", eventData.Payload!);
+#else
+        string.Join(" ", eventData.Payload);
+#endif
+
+    private static Resource DetectAzureVmResource(AzureVmMetadataResponse response)
+    {
+        var originalRequestor = AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse;
+
+        try
+        {
+            AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse = () => response;
+            AzureVMResourceDetector.ClearCachedResource();
+
+            return ResourceBuilder.CreateEmpty().AddAzureVMDetector().Build();
+        }
+        finally
+        {
+            AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse = originalRequestor;
+            AzureVMResourceDetector.ClearCachedResource();
+        }
+    }
+
+    private static Resource DetectAppServiceResource(string? websiteOwnerName, string? websiteResourceGroup)
+    {
+        var environment = new Dictionary<string, string?>
+        {
+            [ResourceAttributeConstants.AppServiceSiteNameEnvVar] = "sitename",
+            [ResourceAttributeConstants.AppServiceOwnerNameEnvVar] = websiteOwnerName,
+            [ResourceAttributeConstants.AppServiceResourceGroupEnvVar] = websiteResourceGroup,
+        };
+
+        using (EnvironmentVariableScope.Create(environment))
+        {
+            return ResourceBuilder.CreateEmpty().AddAzureAppServiceDetector().Build();
         }
     }
 }

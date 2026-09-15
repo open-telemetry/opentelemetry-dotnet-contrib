@@ -36,7 +36,7 @@ public static class DeploymentAttributes
     public const string AttributeDeploymentEnvironmentName = "deployment.environment.name";
 
     /// <summary>
-    /// The id of the deployment.
+    /// The ID of the deployment.
     /// </summary>
     public const string AttributeDeploymentId = "deployment.id";
 

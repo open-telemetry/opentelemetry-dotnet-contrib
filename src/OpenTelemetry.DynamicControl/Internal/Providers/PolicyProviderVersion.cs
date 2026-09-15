@@ -3,10 +3,10 @@
 
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.DynamicControl.Internal.Sources;
+namespace OpenTelemetry.DynamicControl.Internal.Providers;
 
 /// <summary>
-/// A change-detection token supplied by a policy source and compared only for equality.
+/// A change-detection token supplied by a policy provider and compared only for equality.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -20,28 +20,28 @@ namespace OpenTelemetry.DynamicControl.Internal.Sources;
 /// tokens.
 /// </para>
 /// </remarks>
-internal readonly struct PolicySourceVersion : IEquatable<PolicySourceVersion>
+internal readonly struct PolicyProviderVersion : IEquatable<PolicyProviderVersion>
 {
     /// <summary>
-    /// A read-only instance of the <see cref="PolicySourceVersion"/> structure whose field
+    /// A read-only instance of the <see cref="PolicyProviderVersion"/> structure whose field
     /// values are all <see langword="default"/>.
     /// </summary>
     /// <remarks>
     /// When the effective version of a snapshot is <see cref="Empty"/>, suppression is
-    /// not possible: every submission from that source is applied regardless of content.
+    /// not possible: every submission from that provider is applied regardless of content.
     /// </remarks>
-    public static readonly PolicySourceVersion Empty;
+    public static readonly PolicyProviderVersion Empty;
 
     private readonly string? value;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="PolicySourceVersion"/> struct.
+    /// Initializes a new instance of the <see cref="PolicyProviderVersion"/> struct.
     /// </summary>
     /// <param name="value">The version token. Must not be null, empty, or whitespace.</param>
     /// <exception cref="ArgumentException">
     /// Thrown when <paramref name="value"/> is null, empty, or whitespace.
     /// </exception>
-    public PolicySourceVersion(string value)
+    public PolicyProviderVersion(string value)
     {
         Guard.ThrowIfNullOrWhitespace(value, nameof(value));
         this.value = value;
@@ -59,27 +59,27 @@ internal readonly struct PolicySourceVersion : IEquatable<PolicySourceVersion>
     public bool IsEmpty => this.value is null;
 
     /// <summary>
-    /// Determines whether two <see cref="PolicySourceVersion"/> instances represent the same token.
+    /// Determines whether two <see cref="PolicyProviderVersion"/> instances represent the same token.
     /// </summary>
     /// <param name="left">The first version to compare.</param>
     /// <param name="right">The second version to compare.</param>
     /// <returns><see langword="true"/> if equal; otherwise, <see langword="false"/>.</returns>
-    public static bool operator ==(PolicySourceVersion left, PolicySourceVersion right) => left.Equals(right);
+    public static bool operator ==(PolicyProviderVersion left, PolicyProviderVersion right) => left.Equals(right);
 
     /// <summary>
-    /// Determines whether two <see cref="PolicySourceVersion"/> instances represent different tokens.
+    /// Determines whether two <see cref="PolicyProviderVersion"/> instances represent different tokens.
     /// </summary>
     /// <param name="left">The first version to compare.</param>
     /// <param name="right">The second version to compare.</param>
     /// <returns><see langword="true"/> if not equal; otherwise, <see langword="false"/>.</returns>
-    public static bool operator !=(PolicySourceVersion left, PolicySourceVersion right) => !left.Equals(right);
+    public static bool operator !=(PolicyProviderVersion left, PolicyProviderVersion right) => !left.Equals(right);
 
     /// <inheritdoc/>
-    public bool Equals(PolicySourceVersion other)
+    public bool Equals(PolicyProviderVersion other)
         => string.Equals(this.Value, other.Value, StringComparison.Ordinal);
 
     /// <inheritdoc/>
-    public override bool Equals(object? obj) => obj is PolicySourceVersion other && this.Equals(other);
+    public override bool Equals(object? obj) => obj is PolicyProviderVersion other && this.Equals(other);
 
     /// <inheritdoc/>
     public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(this.Value);

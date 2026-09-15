@@ -57,67 +57,67 @@ public static class TelemetryAttributes
     public static class TelemetrySdkLanguageValues
     {
         /// <summary>
-        /// cpp.
+        /// <a href="https://opentelemetry.io/docs/languages/cpp/">C++</a>.
         /// </summary>
         public const string Cpp = "cpp";
 
         /// <summary>
-        /// dotnet.
+        /// <a href="https://opentelemetry.io/docs/languages/dotnet/">.NET</a>.
         /// </summary>
         public const string Dotnet = "dotnet";
 
         /// <summary>
-        /// erlang.
+        /// <a href="https://opentelemetry.io/docs/languages/erlang/">Erlang/Elixir</a>.
         /// </summary>
         public const string Erlang = "erlang";
 
         /// <summary>
-        /// go.
+        /// <a href="https://opentelemetry.io/docs/languages/go/">Go</a>.
         /// </summary>
         public const string Go = "go";
 
         /// <summary>
-        /// java.
+        /// <a href="https://opentelemetry.io/docs/languages/java/">Java</a>.
         /// </summary>
         public const string Java = "java";
 
         /// <summary>
-        /// kotlin.
+        /// <a href="https://opentelemetry.io/docs/languages/kotlin/">Kotlin</a>.
         /// </summary>
         public const string Kotlin = "kotlin";
 
         /// <summary>
-        /// nodejs.
+        /// <a href="https://opentelemetry.io/docs/languages/js/">Node.js</a>.
         /// </summary>
         public const string Nodejs = "nodejs";
 
         /// <summary>
-        /// php.
+        /// <a href="https://opentelemetry.io/docs/languages/php/">PHP</a>.
         /// </summary>
         public const string Php = "php";
 
         /// <summary>
-        /// python.
+        /// <a href="https://opentelemetry.io/docs/languages/python/">Python</a>.
         /// </summary>
         public const string Python = "python";
 
         /// <summary>
-        /// ruby.
+        /// <a href="https://opentelemetry.io/docs/languages/ruby/">Ruby</a>.
         /// </summary>
         public const string Ruby = "ruby";
 
         /// <summary>
-        /// rust.
+        /// <a href="https://opentelemetry.io/docs/languages/rust/">Rust</a>.
         /// </summary>
         public const string Rust = "rust";
 
         /// <summary>
-        /// swift.
+        /// <a href="https://opentelemetry.io/docs/languages/swift/">Swift</a>.
         /// </summary>
         public const string Swift = "swift";
 
         /// <summary>
-        /// webjs.
+        /// <a href="https://opentelemetry.io/docs/languages/js/">Browser</a>.
         /// </summary>
         public const string Webjs = "webjs";
     }

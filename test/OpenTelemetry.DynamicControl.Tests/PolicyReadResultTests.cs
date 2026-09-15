@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using OpenTelemetry.DynamicControl.Internal.Policies;
-using OpenTelemetry.DynamicControl.Internal.Sources;
+using OpenTelemetry.DynamicControl.Internal.Providers;
 
 namespace OpenTelemetry.DynamicControl.Tests;
 

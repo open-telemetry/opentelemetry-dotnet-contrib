@@ -5,7 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using OpenTelemetry.DynamicControl.Internal.Policies;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.DynamicControl.Internal.Sources;
+namespace OpenTelemetry.DynamicControl.Internal.Providers;
 
 /// <summary>
 /// Represents either a validated policy or a policy-value rejection.

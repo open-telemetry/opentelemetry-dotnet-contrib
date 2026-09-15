@@ -4,7 +4,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
-namespace OpenTelemetry.DynamicControl.Internal.Sources;
+namespace OpenTelemetry.DynamicControl.Internal.Providers;
 
 /// <summary>
 /// Provides non-throwing helpers for reading policy values from JSON.

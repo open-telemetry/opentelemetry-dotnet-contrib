@@ -4,7 +4,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
-using OpenTelemetry.DynamicControl.Internal.Sources;
+using OpenTelemetry.DynamicControl.Internal.Providers;
 
 namespace OpenTelemetry.DynamicControl.Internal.Store;
 
@@ -14,11 +14,11 @@ namespace OpenTelemetry.DynamicControl.Internal.Store;
 /// <remarks>
 /// <para>
 /// Every accepted change to the store produces a new <see cref="PolicyStoreSnapshot"/>
-/// instance. Unchanged <see cref="PolicySourceSnapshot"/> instances are reused by reference,
-/// so consumers can use reference identity to detect whether a particular source changed.
+/// instance. Unchanged <see cref="PolicyProviderSnapshot"/> instances are reused by reference,
+/// so consumers can use reference identity to detect whether a particular provider changed.
 /// </para>
 /// <para>
-/// Neither this type nor <see cref="PolicySourceSnapshot"/> overrides
+/// Neither this type nor <see cref="PolicyProviderSnapshot"/> overrides
 /// <see cref="object.Equals(object?)"/> or <see cref="object.GetHashCode()"/>: reference
 /// identity is the meaningful comparison for published snapshots.
 /// </para>
@@ -31,24 +31,24 @@ internal sealed class PolicyStoreSnapshot
     /// </summary>
     public static readonly PolicyStoreSnapshot Empty = new(0, []);
 
-    private readonly Dictionary<SourceRegistrationId, PolicySourceSnapshot> lookup;
+    private readonly Dictionary<ProviderRegistrationId, PolicyProviderSnapshot> lookup;
 
-    internal PolicyStoreSnapshot(long revision, Dictionary<SourceRegistrationId, PolicySourceSnapshot> sources)
+    internal PolicyStoreSnapshot(long revision, Dictionary<ProviderRegistrationId, PolicyProviderSnapshot> providers)
     {
         this.Revision = revision;
 
-        var count = sources.Count;
+        var count = providers.Count;
         if (count == 0)
         {
-            this.Sources = [];
+            this.Providers = [];
             this.lookup = [];
             return;
         }
 
         var ids = new string[count];
-        var snapshots = new PolicySourceSnapshot[count];
+        var snapshots = new PolicyProviderSnapshot[count];
         var i = 0;
-        foreach (var kvp in sources)
+        foreach (var kvp in providers)
         {
             ids[i] = kvp.Key.Value;
             snapshots[i] = kvp.Value;
@@ -57,9 +57,9 @@ internal sealed class PolicyStoreSnapshot
 
         Array.Sort(ids, snapshots, StringComparer.Ordinal);
 
-        this.Sources = ImmutableCollectionsMarshal.AsImmutableArray(snapshots);
+        this.Providers = ImmutableCollectionsMarshal.AsImmutableArray(snapshots);
 
-        var lookupDictionary = new Dictionary<SourceRegistrationId, PolicySourceSnapshot>(count);
+        var lookupDictionary = new Dictionary<ProviderRegistrationId, PolicyProviderSnapshot>(count);
         foreach (var snapshot in snapshots)
         {
             lookupDictionary[snapshot.RegistrationId] = snapshot;
@@ -75,35 +75,35 @@ internal sealed class PolicyStoreSnapshot
     /// <para>
     /// Starts at <c>0</c> for <see cref="Empty"/> and increments by exactly one for each
     /// accepted change (a <see cref="PolicyStoreUpdateStatus.Applied"/> result from either
-    /// <see cref="PolicyStore.ReplaceSource"/> or <see cref="PolicyStore.RemoveSource"/>).
+    /// <see cref="PolicyStore.ReplaceProvider"/> or <see cref="PolicyStore.RemoveProvider"/>).
     /// Rejected and suppressed submissions never move it, and it never resets, even when
-    /// all sources are removed.
+    /// all providers are removed.
     /// </para>
     /// </remarks>
     public long Revision { get; }
 
     /// <summary>
-    /// Gets the current source snapshots, sorted by ordinal <see cref="SourceRegistrationId.Value"/>.
+    /// Gets the current provider snapshots, sorted by ordinal <see cref="ProviderRegistrationId.Value"/>.
     /// </summary>
     /// <remarks>
-    /// Ordering is by identity, not by <see cref="PolicySourceMetadata.Priority"/>. Priority
+    /// Ordering is by identity, not by <see cref="PolicyProviderMetadata.Priority"/>. Priority
     /// ordering is an aggregation concern; identity ordering is neutral and stable,
     /// giving any priority-aware consumer a deterministic baseline to sort from.
     /// </remarks>
-    public ImmutableArray<PolicySourceSnapshot> Sources { get; }
+    public ImmutableArray<PolicyProviderSnapshot> Providers { get; }
 
     /// <summary>
-    /// Looks up the snapshot for the given source.
+    /// Looks up the snapshot for the given provider.
     /// </summary>
     /// <param name="registrationId">The registration identity to look up.</param>
-    /// <param name="source">
+    /// <param name="provider">
     /// When this method returns <see langword="true"/>, the snapshot; otherwise <see langword="null"/>.
     /// </param>
     /// <returns>
-    /// <see langword="true"/> if the source is present; otherwise <see langword="false"/>.
+    /// <see langword="true"/> if the provider is present; otherwise <see langword="false"/>.
     /// </returns>
-    public bool TryGetSource(
-        SourceRegistrationId registrationId,
-        [NotNullWhen(true)] out PolicySourceSnapshot? source)
-        => this.lookup.TryGetValue(registrationId, out source);
+    public bool TryGetProvider(
+        ProviderRegistrationId registrationId,
+        [NotNullWhen(true)] out PolicyProviderSnapshot? provider)
+        => this.lookup.TryGetValue(registrationId, out provider);
 }
