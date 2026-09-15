@@ -31,7 +31,10 @@ public class ProcessDetectorTests
     [Fact]
     public void TestProcessCreationTimeWhenStartTimeUnavailable()
     {
-        Assert.Null(ProcessDetector.GetProcessCreationTime(
-            () => throw new InvalidOperationException()));
+        using var process = new System.Diagnostics.Process();
+
+        Assert.Null(ProcessDetector.SafeGet<DateTime?>(
+            process,
+            _ => throw new InvalidOperationException()));
     }
 }
