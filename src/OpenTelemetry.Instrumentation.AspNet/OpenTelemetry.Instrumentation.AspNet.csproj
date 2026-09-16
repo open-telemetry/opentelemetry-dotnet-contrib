@@ -35,6 +35,7 @@
     <Compile Include="$(RepoRoot)\src\Shared\SchemaUrls.cs" Link="Includes\SchemaUrls.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\SemanticConventions.cs" Link="Includes\SemanticConventions.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\SpanHelper.cs" Link="Includes\SpanHelper.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\StopwatchExtensions.cs" Link="Includes\StopwatchExtensions.cs" />
   </ItemGroup>
 
   <ItemGroup>

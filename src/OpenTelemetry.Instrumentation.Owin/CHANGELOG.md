@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Fixed 'Activity' leak if exception was thrown during initial
+  request processing.
+  ([#5208](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5208))
+
 ## 1.18.0-beta.1
 
 Released 2026-Aug-21

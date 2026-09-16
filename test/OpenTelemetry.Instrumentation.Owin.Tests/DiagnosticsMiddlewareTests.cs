@@ -291,6 +291,50 @@ public class DiagnosticsMiddlewareTests : IDisposable
     }
 
     [Fact]
+    public async Task BeginRequestThrowsAfterActivityStarted_ActivityIsStopped()
+    {
+        var startedCount = 0;
+        var stoppedCount = 0;
+
+        // Force OwinInstrumentationActivitySource's static ctor to run before AddActivityListener,
+        // so ShouldListenTo below doesn't reenter it mid-construction (which would see a not-yet-assigned
+        // ActivitySource field and NRE) if this is the first test in the process to touch this type.
+        var activitySourceName = OwinInstrumentationActivitySource.ActivitySource.Name;
+
+        using ActivityListener listener = new()
+        {
+            ShouldListenTo = source => source.Name == activitySourceName,
+            Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
+            ActivityStarted = _ => Interlocked.Increment(ref startedCount),
+            ActivityStopped = _ => Interlocked.Increment(ref stoppedCount),
+        };
+        ActivitySource.AddActivityListener(listener);
+
+        OwinInstrumentationActivitySource.Options = null;
+
+        try
+        {
+            OwinContext owinContext = new();
+            owinContext.Request.Method = "GET";
+            owinContext.Request.Scheme = "http";
+            owinContext.Request.Path = new("/test");
+            owinContext.Request.QueryString = QueryString.Empty;
+            owinContext.Request.Headers["Host"] = "example.com:not-a-port";
+
+            DiagnosticsMiddleware middleware = new(new DelegateMiddleware(_ => Task.CompletedTask));
+
+            await Assert.ThrowsAsync<UriFormatException>(() => middleware.Invoke(owinContext));
+
+            Assert.True(startedCount > 0);
+            Assert.Equal(startedCount, stoppedCount);
+        }
+        finally
+        {
+            OwinInstrumentationActivitySource.Options = null;
+        }
+    }
+
+    [Fact]
     public async Task NoListeners_FilterNotInvoked_MetricsRecorded()
     {
         var filterInvocationCount = 0;
@@ -411,5 +455,15 @@ public class DiagnosticsMiddlewareTests : IDisposable
         }
 
         return metricPoints;
+    }
+
+    /// <summary>
+    /// A stand-in "next" middleware for tests that drive <see cref="DiagnosticsMiddleware"/>
+    /// directly and need to run arbitrary code at that point in the pipeline.
+    /// </summary>
+    private sealed class DelegateMiddleware(Func<IOwinContext, Task> invoke)
+        : OwinMiddleware(null)
+    {
+        public override Task Invoke(IOwinContext context) => invoke(context);
     }
 }

@@ -185,6 +185,7 @@ public class InstrumentedProducerTests
         var activity = activities.Single(a => a.DisplayName == "send error-topic");
 
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
+        Assert.Null(activity.StatusDescription);
 
         var errorType = activity.GetTagValue(SemanticConventions.AttributeErrorType)?.ToString();
         Assert.NotNull(errorType);
