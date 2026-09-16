@@ -21,7 +21,7 @@ internal sealed class PolicyPayloadRejection
     /// <param name="reason">The category of failure.</param>
     /// <param name="message">A description of the failure. Must not be null or whitespace.</param>
     /// <exception cref="ArgumentException">
-    /// Thrown when <paramref name="message"/> is null, empty, or whitespace.
+    /// <paramref name="message"/> is null, empty, or whitespace.
     /// </exception>
     public PolicyPayloadRejection(PayloadEntryLocation location, PolicyRejectionReason reason, string message)
     {
@@ -38,7 +38,7 @@ internal sealed class PolicyPayloadRejection
     public PayloadEntryLocation Location { get; }
 
     /// <summary>
-    /// Gets the category of failure.
+    /// Gets the reason for failure, if any.
     /// </summary>
     public PolicyRejectionReason Reason { get; }
 

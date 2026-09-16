@@ -49,7 +49,7 @@ internal sealed class PolicyPayloadParseResult
 
     /// <summary>
     /// Gets a description of why the payload could not be decoded, or <see langword="null"/>
-    /// when it was decoded.
+    /// when it was decoded successfully.
     /// </summary>
     public string? Error { get; }
 
@@ -94,9 +94,9 @@ internal sealed class PolicyPayloadParseResult
     /// <summary>
     /// Creates a result carrying the complete policy set a payload declared.
     /// </summary>
-    /// <param name="policies">The policies the payload declared. May be empty.</param>
-    /// <param name="rejections">The entries that could not be used. May be empty.</param>
-    /// <param name="ignoredKeys">The distinct unrecognized keys the payload carried. May be empty.</param>
+    /// <param name="policies">The policies the payload declared, if any.</param>
+    /// <param name="rejections">The entries that could not be used, if any.</param>
+    /// <param name="ignoredKeys">The distinct unrecognized keys the payload carried, if any.</param>
     /// <returns>A decoded result.</returns>
     public static PolicyPayloadParseResult Decoded(
         ImmutableArray<TelemetryPolicy> policies,

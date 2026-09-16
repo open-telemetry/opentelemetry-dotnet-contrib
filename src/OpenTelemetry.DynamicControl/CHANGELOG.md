@@ -27,11 +27,8 @@
   new `PolicyChangeNotifier`/`PolicyChangeSubscription` pair.
   ([#5135](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5135))
 
-* Added an internal `JsonKeyValuePolicyParser` that decodes a complete UTF-8
-  JSON key-value policy payload into validated policy models, distinguishing a
-  payload that could not be decoded from one that decoded into an empty or
-  partially usable set via `PolicyPayloadParseResult`,
-  `PolicyPayloadRejection`, and `PayloadEntryLocation`.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+* Added an internal `JsonKeyValuePolicyParser` that decodes a complete JSON
+  policy payload into validated policy models.
+  ([#5213](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5213))
 
 For more details, please refer to the [README](README.md).

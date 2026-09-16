@@ -116,7 +116,7 @@ internal static class JsonKeyValuePolicyParser
 
     private static List<PayloadEntry> CollectArrayEntries(in JsonElement root)
     {
-        List<PayloadEntry> entries = [];
+        List<PayloadEntry> entries = new(root.GetArrayLength());
         var index = 0;
 
         foreach (var element in root.EnumerateArray())
@@ -147,12 +147,12 @@ internal static class JsonKeyValuePolicyParser
 
     private static bool TryGetKey(in JsonProperty property, [NotNullWhen(true)] out string? key)
     {
-        // NameEquals compares against the encoded name, which avoids an allocation for the
-        // common case. A name with no string equivalent cannot match a readable payload key.
         try
         {
             foreach (var reader in Readers)
             {
+                // NameEquals compares against the encoded name, which avoids an allocation for the
+                // common case. A name with no string equivalent cannot match a readable payload key.
                 if (property.NameEquals(reader.PayloadKey))
                 {
                     key = reader.PayloadKey;
@@ -196,10 +196,11 @@ internal static class JsonKeyValuePolicyParser
     {
         var duplicateKeys = FindDuplicateKeys(entries);
 
-        List<TelemetryPolicy> policies = [];
-        List<PolicyPayloadRejection> rejections = [];
+        // The list here preserves first-seen order for the ignored keys.
         List<string> ignoredKeys = [];
         HashSet<string> seenIgnoredKeys = new(StringComparer.Ordinal);
+        List<TelemetryPolicy> policies = [];
+        List<PolicyPayloadRejection> rejections = [];
 
         foreach (var entry in entries)
         {
@@ -248,12 +249,13 @@ internal static class JsonKeyValuePolicyParser
             [.. ignoredKeys]);
     }
 
-    // A recognized key maps to exactly one policy type, and identity is derived from that
-    // type, so a key repeated anywhere in the payload would otherwise yield two policies
-    // occupying one PolicyKey. Rejecting every occurrence is what prevents that; resolving
-    // to the last would make the committed set depend on the order the payload was written.
     private static HashSet<string>? FindDuplicateKeys(List<PayloadEntry> entries)
     {
+        // A recognized key maps to exactly one policy type, and identity is derived from that
+        // type, so a key repeated anywhere in the payload would otherwise yield two policies
+        // occupying one PolicyKey. Rejecting every occurrence is what prevents that; resolving
+        // to the last would make the committed set depend on the order the payload was written.
+
         HashSet<string>? seen = null;
         HashSet<string>? duplicates = null;
 

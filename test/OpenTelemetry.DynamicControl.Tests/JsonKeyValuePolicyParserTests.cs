@@ -565,17 +565,14 @@ public class JsonKeyValuePolicyParserTests
     private static string CreateNestedArrays(int depth)
         => new string('[', depth) + "0.5" + new string(']', depth);
 
-    // The parser reads UTF-8 because that is the form every transport delivers a payload in.
-    // Tests state their payloads as source text and encode them here, so that each case
-    // remains readable and the encoding step is not repeated in every one.
     private static PolicyPayloadParseResult ParseUtf8(string payload) =>
         JsonKeyValuePolicyParser.Parse(Encoding.UTF8.GetBytes(payload));
 
-    // Encoding a string cannot produce invalid UTF-8, so the bytes are assembled directly.
-    // 0xC3 opens a two-byte sequence and 0x28 is not a continuation byte, which System.Text.Json
-    // accepts while parsing and only fails on when the text it encodes is read.
     private static ReadOnlyMemory<byte> CreatePayloadWithInvalidUtf8(string before, string after)
     {
+        // Encoding a string cannot produce invalid UTF-8, so the bytes are assembled directly.
+        // 0xC3 opens a two-byte sequence and 0x28 is not a continuation byte, which System.Text.Json
+        // accepts while parsing and only fails on when the text it encodes is read.
         byte[] payload = [.. Encoding.UTF8.GetBytes(before), 0xC3, 0x28, .. Encoding.UTF8.GetBytes(after)];
         return payload;
     }

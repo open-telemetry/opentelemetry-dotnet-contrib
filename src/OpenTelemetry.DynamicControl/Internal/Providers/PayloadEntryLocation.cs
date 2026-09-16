@@ -27,8 +27,7 @@ internal readonly struct PayloadEntryLocation : IEquatable<PayloadEntryLocation>
 
     // Held separately rather than encoded into the index, so that a default instance
     // identifies no location while every int, including int.MaxValue, remains a usable
-    // position. An earlier revision stored the index offset by one, which silently
-    // discarded the location of the last representable position.
+    // position.
     private readonly bool hasIndex;
 
     private PayloadEntryLocation(string? key, int index, bool hasIndex)
@@ -60,7 +59,7 @@ internal readonly struct PayloadEntryLocation : IEquatable<PayloadEntryLocation>
     /// <param name="key">The key the entry declared. Must not be null or whitespace.</param>
     /// <returns>A location identified by key.</returns>
     /// <exception cref="ArgumentException">
-    /// Thrown when <paramref name="key"/> is null, empty, or whitespace.
+    /// <paramref name="key"/> is null, empty, or whitespace.
     /// </exception>
     public static PayloadEntryLocation ForKey(string key)
     {
@@ -75,7 +74,7 @@ internal readonly struct PayloadEntryLocation : IEquatable<PayloadEntryLocation>
     /// <param name="index">The zero-based position of the entry. Must be non-negative.</param>
     /// <returns>A location identified by position.</returns>
     /// <exception cref="ArgumentOutOfRangeException">
-    /// Thrown when <paramref name="index"/> is negative.
+    /// <paramref name="index"/> is negative.
     /// </exception>
     public static PayloadEntryLocation ForIndex(int index)
     {

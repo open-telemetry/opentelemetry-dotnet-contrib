@@ -16,7 +16,7 @@ vertica = "vertica"
 WRONLY = "WRONLY"
 # PowerShell -Force abbreviation
 fo = "fo"
-# Part of "café" (café)
+# Part of "café" (caf\u00e9)
 caf = "caf"
 # Hex substring (e.g. 0ba902b7)
 ba = "ba"
