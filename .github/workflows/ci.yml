@@ -780,6 +780,7 @@ jobs:
       build-test-resources-container,
       build-test-resources-gcp,
       build-test-resources-host,
+      build-test-resources-operatingsystem,
       build-test-resources-process,
       build-test-resources-processruntime,
       build-test-sampler-aws,
