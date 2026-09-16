@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* Fixed Kafka spans exporting unsanitized exception messages as status descriptions.
+
 ## 0.3.0-alpha.1
 
 Released 2026-Aug-21
