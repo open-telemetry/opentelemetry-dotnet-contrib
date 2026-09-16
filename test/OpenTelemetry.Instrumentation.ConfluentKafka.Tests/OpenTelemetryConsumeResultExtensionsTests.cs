@@ -174,6 +174,7 @@ public class OpenTelemetryConsumeResultExtensionsTests
 
         var processActivity = Assert.Single(activities, a => a.DisplayName == "process error-topic");
         Assert.Equal(ActivityStatusCode.Error, processActivity.Status);
+        Assert.Null(processActivity.StatusDescription);
     }
 
     [Fact]
