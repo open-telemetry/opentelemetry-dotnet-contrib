@@ -76,10 +76,10 @@ attributes and identify the machine, so they are not emitted by default. Set
 emit them.
 
 Both attributes are read from network interfaces that are up, skipping
-loopback interfaces. `host.ip` also leaves out link-local addresses, and
-`host.mac` only includes interfaces that have a physical address. The values
-are read when the resource is built, so addresses assigned afterwards are
-only picked up if the resource is built again.
+loopback interfaces, and duplicate values are left out. `host.mac` only
+includes interfaces that have a physical address. The values are read when the
+resource is built, so addresses assigned afterwards are only picked up if the
+resource is built again.
 
 ## References
 

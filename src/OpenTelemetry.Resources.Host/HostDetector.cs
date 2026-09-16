@@ -8,7 +8,6 @@ using System.Text;
 #endif
 using System.Net;
 using System.Net.NetworkInformation;
-using System.Net.Sockets;
 using Microsoft.Win32;
 using OpenTelemetry.Internal;
 
@@ -162,22 +161,8 @@ internal sealed class HostDetector : IResourceDetector
     internal static bool ShouldIncludeNetworkInterface(OperationalStatus operationalStatus, NetworkInterfaceType networkInterfaceType) =>
         operationalStatus == OperationalStatus.Up && networkInterfaceType != NetworkInterfaceType.Loopback;
 
-    internal static bool ShouldIncludeIpAddress(IPAddress address)
-    {
-        if (IPAddress.IsLoopback(address) || address.IsIPv6LinkLocal)
-        {
-            return false;
-        }
-
-        if (address.AddressFamily == AddressFamily.InterNetwork)
-        {
-            // 169.254.0.0/16 has no BCL predicate, unlike its IPv6 counterpart.
-            var addressBytes = address.GetAddressBytes();
-            return addressBytes[0] != 169 || addressBytes[1] != 254;
-        }
-
-        return true;
-    }
+    internal static bool ShouldIncludeIpAddress(IPAddress address) =>
+        !IPAddress.IsLoopback(address);
 
     internal static string? FormatPhysicalAddress(PhysicalAddress physicalAddress)
     {
@@ -187,6 +172,13 @@ internal sealed class HostDetector : IResourceDetector
         // PhysicalAddress.ToString does not.
         return addressBytes.Length == 0 ? null : BitConverter.ToString(addressBytes);
     }
+
+    // A copy built from the address bytes drops the IPv6 zone (%N) without changing the original.
+    internal static string[] FormatIpAddresses(IEnumerable<IPAddress> addresses) =>
+        RemoveDuplicates(addresses.Select(address => new IPAddress(address.GetAddressBytes()).ToString()));
+
+    internal static string[] RemoveDuplicates(IEnumerable<string> values) =>
+        values.Distinct().ToArray();
 
 #if !NETFRAMEWORK
     internal static string? ParseMacOsOutput(string? output)
@@ -230,7 +222,7 @@ internal sealed class HostDetector : IResourceDetector
 
     private static void AddNetworkAddresses(List<KeyValuePair<string, object>> attributes)
     {
-        var ipAddresses = new List<string>();
+        var ipAddresses = new List<IPAddress>();
         var macAddresses = new List<string>();
 
         try
@@ -246,7 +238,7 @@ internal sealed class HostDetector : IResourceDetector
                 {
                     if (ShouldIncludeIpAddress(unicastAddress.Address))
                     {
-                        ipAddresses.Add(unicastAddress.Address.ToString());
+                        ipAddresses.Add(unicastAddress.Address);
                     }
                 }
 
@@ -265,12 +257,12 @@ internal sealed class HostDetector : IResourceDetector
 
         if (ipAddresses.Count > 0)
         {
-            attributes.Add(new(HostSemanticConventions.AttributeHostIp, ipAddresses.ToArray()));
+            attributes.Add(new(HostSemanticConventions.AttributeHostIp, FormatIpAddresses(ipAddresses)));
         }
 
         if (macAddresses.Count > 0)
         {
-            attributes.Add(new(HostSemanticConventions.AttributeHostMac, macAddresses.ToArray()));
+            attributes.Add(new(HostSemanticConventions.AttributeHostMac, RemoveDuplicates(macAddresses)));
         }
     }
 

@@ -289,13 +289,22 @@ public class HostDetectorTests
     [InlineData("192.0.2.1", true)]
     [InlineData("2001:db8::1", true)]
     [InlineData("10.0.0.4", true)]
-    [InlineData("169.255.0.1", true)]
     [InlineData("127.0.0.1", false)]
     [InlineData("::1", false)]
-    [InlineData("169.254.0.1", false)]
-    [InlineData("fe80::1", false)]
+    [InlineData("169.254.0.1", true)]
+    [InlineData("fe80::1", true)]
     public void TestShouldIncludeIpAddress(string address, bool expected) =>
         Assert.Equal(expected, HostDetector.ShouldIncludeIpAddress(IPAddress.Parse(address)));
+
+    [Theory]
+    [InlineData(new[] { "fe80::1%14" }, new[] { "fe80::1" })]
+    [InlineData(new[] { "fe80::abc2:4a28:737a:609e%14" }, new[] { "fe80::abc2:4a28:737a:609e" })]
+    [InlineData(new[] { "2001:db8::1" }, new[] { "2001:db8::1" })]
+    [InlineData(new[] { "192.0.2.1" }, new[] { "192.0.2.1" })]
+    [InlineData(new[] { "fe80::1", "192.0.2.1", "fe80::1" }, new[] { "fe80::1", "192.0.2.1" })]
+    [InlineData(new[] { "fe80::1%14", "fe80::1%15" }, new[] { "fe80::1" })]
+    public void TestFormatIpAddresses(string[] addresses, string[] expected) =>
+        Assert.Equal(expected, HostDetector.FormatIpAddresses(addresses.Select(IPAddress.Parse)));
 
     [Theory]
     [InlineData(new byte[] { 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF }, "AA-BB-CC-DD-EE-FF")]
