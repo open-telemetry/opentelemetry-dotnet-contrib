@@ -19,7 +19,7 @@ concurrency:
 
 jobs:
   automation:
-    uses: ./.github/workflows/automation.yml
+    uses: $/.github/workflows/automation.yml
     secrets:
       OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY: ${{ secrets.OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY }}
 

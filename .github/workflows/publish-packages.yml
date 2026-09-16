@@ -32,7 +32,7 @@ env:
 
 jobs:
   automation:
-    uses: ./.github/workflows/automation.yml
+    uses: $/.github/workflows/automation.yml
     permissions:
       contents: read
     secrets:
