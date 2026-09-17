@@ -41,7 +41,9 @@ internal static class RedisProfilerEntryToActivityConverter
         var scriptEvaluateMessageType = Type.GetType("StackExchange.Redis.RedisDatabase+ScriptEvaluateMessage, StackExchange.Redis", throwOnError: false);
 #pragma warning restore IDE0370 // Suppression is unnecessary
 
-        var messageDelegate = CreateFieldGetter<object>(profiledCommandType, "Message", BindingFlags.NonPublic | BindingFlags.Instance);
+        var bindingFlags = BindingFlags.NonPublic | BindingFlags.Instance;
+
+        var messageDelegate = CreateFieldGetter<object>(profiledCommandType, "Message", bindingFlags);
         var commandAndKeyFetcher = new PropertyFetcher<string>("CommandAndKey");
 
         var scriptDelegatesByType = new Dictionary<Type, Func<object, string?>>();
@@ -49,8 +51,8 @@ internal static class RedisProfilerEntryToActivityConverter
         if (scriptEvalMessageType != null)
         {
             var getter =
-                CreateFieldGetter<string>(scriptEvalMessageType, "script", BindingFlags.NonPublic | BindingFlags.Instance) ??
-                CreateFieldGetter<string>(scriptEvalMessageType, "_script", BindingFlags.NonPublic | BindingFlags.Instance);
+                CreateFieldGetter<string>(scriptEvalMessageType, "script", bindingFlags) ??
+                CreateFieldGetter<string>(scriptEvalMessageType, "_script", bindingFlags);
 
             if (getter != null)
             {
@@ -61,8 +63,8 @@ internal static class RedisProfilerEntryToActivityConverter
         if (scriptEvaluateMessageType != null)
         {
             var getter =
-                CreateFieldGetter<string>(scriptEvaluateMessageType, "script", BindingFlags.NonPublic | BindingFlags.Instance) ??
-                CreateFieldGetter<string>(scriptEvaluateMessageType, "_script", BindingFlags.NonPublic | BindingFlags.Instance);
+                CreateFieldGetter<string>(scriptEvaluateMessageType, "script", bindingFlags) ??
+                CreateFieldGetter<string>(scriptEvaluateMessageType, "_script", bindingFlags);
 
             if (getter != null)
             {
