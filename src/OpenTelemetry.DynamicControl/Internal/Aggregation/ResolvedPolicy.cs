@@ -12,8 +12,8 @@ namespace OpenTelemetry.DynamicControl.Internal.Aggregation;
 /// </summary>
 internal sealed class ResolvedPolicy(
     PolicyKey key,
-    ProviderRegistrationId provider,
     TelemetryPolicy policy,
+    ProviderRegistrationId provider,
     ImmutableArray<OutrankedPolicy> outrankedPolicies)
 {
     /// <summary>
