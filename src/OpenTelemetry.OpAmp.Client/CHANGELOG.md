@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* Dispatch server capabilities before flags received in the same frame.
+
 ## 0.7.0-alpha.1
 
 Released 2026-Sep-07
