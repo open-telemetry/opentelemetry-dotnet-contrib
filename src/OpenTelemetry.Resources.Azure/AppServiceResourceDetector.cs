@@ -26,7 +26,7 @@ internal sealed class AppServiceResourceDetector : IResourceDetector
         {
             if (Environment.GetEnvironmentVariable(ResourceAttributeConstants.AzureFunctionsWorkerRuntimeEnvVar) != null)
             {
-                return new AzureFunctionsResourceDetector().Detect();
+                return Resource.Empty;
             }
 
             var websiteSiteName = Environment.GetEnvironmentVariable(ResourceAttributeConstants.AppServiceSiteNameEnvVar);

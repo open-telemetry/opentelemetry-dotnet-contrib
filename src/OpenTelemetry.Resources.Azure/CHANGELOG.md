@@ -17,8 +17,12 @@ Released 2026-Sep-10
   * `azure_vm` to `azure.vm`
   ([#5143](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5143))
 
-* Detect Azure Functions environments before Azure App Service and emit Azure
-  Functions resource attributes.
+* **Breaking change**: Detect Azure Functions environments before Azure App
+  Service and emit Azure Functions resource attributes. When
+  `FUNCTIONS_WORKER_RUNTIME` is set, the detector no longer emits the App
+  Service-specific `azure.app.service.stamp`, `host.id`, or
+  `service.instance.id` attributes.
+  ([#5165](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5165))
 
 * Log an event when a resource detector does not detect any attributes because
   none of the environment variables that identify the platform are set.

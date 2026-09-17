@@ -21,7 +21,9 @@ public static class AzureResourceBuilderExtensions
     public static ResourceBuilder AddAzureAppServiceDetector(this ResourceBuilder builder)
     {
         Guard.ThrowIfNull(builder);
-        return builder.AddDetector(new AppServiceResourceDetector());
+        return builder
+            .AddDetector(new AzureFunctionsResourceDetector())
+            .AddDetector(new AppServiceResourceDetector());
     }
 
     /// <summary>

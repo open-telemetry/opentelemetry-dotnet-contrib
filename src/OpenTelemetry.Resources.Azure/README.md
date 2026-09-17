@@ -65,10 +65,17 @@ using var loggerFactory = LoggerFactory.Create(builder =>
 
 ## Azure Functions Resource Detector
 
-The App Service resource detector automatically detects Azure Functions when
-`FUNCTIONS_WORKER_RUNTIME` is present and emits the following attributes. It
-does not emit `faas.version` because `FUNCTIONS_EXTENSION_VERSION` identifies
-the Functions host runtime, not the function application version.
+`AddAzureAppServiceDetector` registers both the Azure Functions and App Service
+resource detectors. When `FUNCTIONS_WORKER_RUNTIME` is present, only the Azure
+Functions detector emits attributes. Azure Functions Core Tools also sets this
+environment variable during local development, including when no Azure
+subscription is involved. In that case, `cloud.provider` and `cloud.platform`
+are still emitted, while attributes that require Azure environment variables,
+such as the region, account, and resource ID, are omitted.
+
+The detector does not emit `faas.version` because
+`FUNCTIONS_EXTENSION_VERSION` identifies the Functions host runtime, not the
+function application version.
 
 | Attribute                   | Description                                                                                                                                                    |
 | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |

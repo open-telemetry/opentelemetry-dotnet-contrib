@@ -1,6 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if NET
+using System.Collections.Frozen;
+#endif
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Resources.Azure;
@@ -10,17 +13,22 @@ namespace OpenTelemetry.Resources.Azure;
 /// </summary>
 internal sealed class AzureFunctionsResourceDetector : IResourceDetector
 {
-    internal static readonly IReadOnlyDictionary<string, string> AzureFunctionsResourceAttributes = new Dictionary<string, string>
-    {
-        [ResourceSemanticConventions.AttributeCloudRegion] = ResourceAttributeConstants.AppServiceRegionNameEnvVar,
-        [ResourceSemanticConventions.AttributeDeploymentEnvironmentName] = ResourceAttributeConstants.AppServiceSlotNameEnvVar,
-    };
+#if NET
+    internal static readonly FrozenDictionary<string, string> AzureFunctionsResourceAttributes = CreateAzureFunctionsResourceAttributes().ToFrozenDictionary();
+#else
+    internal static readonly Dictionary<string, string> AzureFunctionsResourceAttributes = CreateAzureFunctionsResourceAttributes();
+#endif
 
     /// <inheritdoc/>
     public Resource Detect()
     {
         try
         {
+            if (Environment.GetEnvironmentVariable(ResourceAttributeConstants.AzureFunctionsWorkerRuntimeEnvVar) == null)
+            {
+                return Resource.Empty;
+            }
+
             var attributeList = new List<KeyValuePair<string, object>>
             {
                 new(ResourceSemanticConventions.AttributeCloudProvider, ResourceAttributeConstants.AzureCloudProviderValue),
@@ -75,6 +83,15 @@ internal sealed class AzureFunctionsResourceDetector : IResourceDetector
             AzureResourcesEventSource.Log.FailedToDetectAzureFunctionsResources(ex);
             return Resource.Empty;
         }
+    }
+
+    private static Dictionary<string, string> CreateAzureFunctionsResourceAttributes()
+    {
+        return new Dictionary<string, string>
+        {
+            [ResourceSemanticConventions.AttributeCloudRegion] = ResourceAttributeConstants.AppServiceRegionNameEnvVar,
+            [ResourceSemanticConventions.AttributeDeploymentEnvironmentName] = ResourceAttributeConstants.AppServiceSlotNameEnvVar,
+        };
     }
 
     private static string? GetFunctionsInstanceId()

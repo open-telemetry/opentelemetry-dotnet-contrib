@@ -164,6 +164,37 @@ public class AzureResourceDetectorTests
     }
 
     [Fact]
+    public void AzureFunctionsResourceDetectorSkipsAppServiceEnvironment()
+    {
+        var environment = CreateAzureFunctionsEnvironment();
+        environment[ResourceAttributeConstants.AppServiceSiteNameEnvVar] = "app-service";
+
+        using (EnvironmentVariableScope.Create(environment))
+        {
+            var resource = new AzureFunctionsResourceDetector().Detect();
+
+            Assert.Empty(resource.Attributes);
+            Assert.Null(resource.SchemaUrl);
+        }
+    }
+
+    [Fact]
+    public void AppServiceResourceDetectorSkipsAzureFunctionsEnvironment()
+    {
+        var environment = CreateAzureFunctionsEnvironment();
+        environment[ResourceAttributeConstants.AzureFunctionsWorkerRuntimeEnvVar] = "dotnet-isolated";
+        environment[ResourceAttributeConstants.AppServiceSiteNameEnvVar] = "function-app";
+
+        using (EnvironmentVariableScope.Create(environment))
+        {
+            var resource = new AppServiceResourceDetector().Detect();
+
+            Assert.Empty(resource.Attributes);
+            Assert.Null(resource.SchemaUrl);
+        }
+    }
+
+    [Fact]
     public void AzureFunctionsResourceDetectorTakesPriorityOverAppService()
     {
         var environment = CreateAzureFunctionsEnvironment();
@@ -228,11 +259,12 @@ public class AzureResourceDetectorTests
     [InlineData("website-instance", "pod-instance", "container-instance", "website-instance")]
     [InlineData(null, "pod-instance", "container-instance", "pod-instance")]
     [InlineData(null, null, "container-instance", "container-instance")]
+    [InlineData(null, null, null, null)]
     public void AzureFunctionsResourceDetectorSelectsAuthoritativeInstanceId(
         string? websiteInstanceId,
         string? websitePodName,
         string? containerName,
-        string expectedInstanceId)
+        string? expectedInstanceId)
     {
         var environment = CreateAzureFunctionsEnvironment();
         environment[ResourceAttributeConstants.AzureFunctionsWorkerRuntimeEnvVar] = "dotnet-isolated";
@@ -244,9 +276,16 @@ public class AzureResourceDetectorTests
         {
             var resource = ResourceBuilder.CreateEmpty().AddAzureAppServiceDetector().Build();
 
-            Assert.Contains(
-                new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeFaasInstance, expectedInstanceId),
-                resource.Attributes);
+            if (expectedInstanceId == null)
+            {
+                Assert.DoesNotContain(resource.Attributes, attribute => attribute.Key == ResourceSemanticConventions.AttributeFaasInstance);
+            }
+            else
+            {
+                Assert.Contains(
+                    new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeFaasInstance, expectedInstanceId),
+                    resource.Attributes);
+            }
         }
     }
 
