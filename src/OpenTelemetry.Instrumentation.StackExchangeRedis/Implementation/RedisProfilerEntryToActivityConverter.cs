@@ -30,12 +30,45 @@ internal static class RedisProfilerEntryToActivityConverter
     {
 #pragma warning disable IDE0370 // Suppression is unnecessary
         var profiledCommandType = Type.GetType("StackExchange.Redis.Profiling.ProfiledCommand, StackExchange.Redis", throwOnError: true)!;
-        var scriptMessageType = Type.GetType("StackExchange.Redis.RedisDatabase+ScriptEvalMessage, StackExchange.Redis", throwOnError: true)!;
+
+        // StackExchange.Redis 3.2.0 (StackExchange/StackExchange.Redis#3211) renamed the private,
+        // array-based message type behind ScriptEvaluate(string, RedisKey[], RedisValue[]) from
+        // "ScriptEvalMessage" to "ScriptEvaluateMessage" (its "script" field is unchanged), and
+        // reused the "ScriptEvalMessage" name for a new pooled-buffer type (field "_script") behind
+        // the new ScriptEvaluateResp* APIs. Both type names and both field names are resolved below
+        // so the script text is reported regardless of which StackExchange.Redis version is loaded.
+        var scriptEvalMessageType = Type.GetType("StackExchange.Redis.RedisDatabase+ScriptEvalMessage, StackExchange.Redis", throwOnError: false);
+        var scriptEvaluateMessageType = Type.GetType("StackExchange.Redis.RedisDatabase+ScriptEvaluateMessage, StackExchange.Redis", throwOnError: false);
 #pragma warning restore IDE0370 // Suppression is unnecessary
 
         var messageDelegate = CreateFieldGetter<object>(profiledCommandType, "Message", BindingFlags.NonPublic | BindingFlags.Instance);
-        var scriptDelegate = CreateFieldGetter<string>(scriptMessageType, "script", BindingFlags.NonPublic | BindingFlags.Instance);
         var commandAndKeyFetcher = new PropertyFetcher<string>("CommandAndKey");
+
+        var scriptDelegatesByType = new Dictionary<Type, Func<object, string?>>();
+
+        if (scriptEvalMessageType != null)
+        {
+            var getter =
+                CreateFieldGetter<string>(scriptEvalMessageType, "script", BindingFlags.NonPublic | BindingFlags.Instance) ??
+                CreateFieldGetter<string>(scriptEvalMessageType, "_script", BindingFlags.NonPublic | BindingFlags.Instance);
+
+            if (getter != null)
+            {
+                scriptDelegatesByType[scriptEvalMessageType] = getter;
+            }
+        }
+
+        if (scriptEvaluateMessageType != null)
+        {
+            var getter =
+                CreateFieldGetter<string>(scriptEvaluateMessageType, "script", BindingFlags.NonPublic | BindingFlags.Instance) ??
+                CreateFieldGetter<string>(scriptEvaluateMessageType, "_script", BindingFlags.NonPublic | BindingFlags.Instance);
+
+            if (getter != null)
+            {
+                scriptDelegatesByType[scriptEvaluateMessageType] = getter;
+            }
+        }
 
         if (messageDelegate == null)
         {
@@ -55,11 +88,9 @@ internal static class RedisProfilerEntryToActivityConverter
                 return (null, null);
             }
 
-            string? script = null;
-            if (message.GetType() == scriptMessageType)
-            {
-                script = scriptDelegate?.Invoke(message);
-            }
+            var script = scriptDelegatesByType.TryGetValue(message.GetType(), out var scriptDelegate)
+                ? scriptDelegate(message)
+                : null;
 
             return GetCommandAndKey(commandAndKeyFetcher, message, out var value) ? (value, script) : (null, script);
 
