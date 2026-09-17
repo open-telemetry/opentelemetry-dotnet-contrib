@@ -62,8 +62,8 @@ public class FrameProcessorTests
         var processor = new FrameProcessor();
         var serverToAgent = new ServerToAgent
         {
-            Capabilities = (ulong)(ServerCapabilities.AcceptsEffectiveConfig | ServerCapabilities.OffersRemoteConfig),
-            Flags = (ulong)(ServerToAgentFlags.ReportFullState | ServerToAgentFlags.ReportAvailableComponents),
+            Capabilities = (ulong)ServerCapabilities.AcceptsEffectiveConfig,
+            Flags = (ulong)ServerToAgentFlags.ReportFullState,
         };
 
         processor.Subscribe(new RecordingListener<FlagsMessage>("flags", callbacks));
