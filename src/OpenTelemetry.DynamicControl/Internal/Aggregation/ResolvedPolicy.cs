@@ -10,29 +10,21 @@ namespace OpenTelemetry.DynamicControl.Internal.Aggregation;
 /// <summary>
 /// The effective policy for one policy key, together with the policies it outranks.
 /// </summary>
-internal sealed class ResolvedPolicy
+internal sealed class ResolvedPolicy(
+    PolicyKey key,
+    ProviderRegistrationId provider,
+    TelemetryPolicy policy,
+    ImmutableArray<OutrankedPolicy> outrankedPolicies)
 {
-    internal ResolvedPolicy(
-        PolicyKey key,
-        TelemetryPolicy policy,
-        ProviderRegistrationId winningProvider,
-        ImmutableArray<OutrankedPolicy> outranked)
-    {
-        this.Key = key;
-        this.Policy = policy;
-        this.Provider = winningProvider;
-        this.OutrankedPolicies = outranked;
-    }
-
     /// <summary>
     /// Gets the key this resolution describes.
     /// </summary>
-    public PolicyKey Key { get; }
+    public PolicyKey Key { get; } = key;
 
     /// <summary>
     /// Gets the registration identity of the provider that supplied <see cref="Policy"/>.
     /// </summary>
-    public ProviderRegistrationId Provider { get; }
+    public ProviderRegistrationId Provider { get; } = provider;
 
     /// <summary>
     /// Gets the effective policy for <see cref="Key"/>.
@@ -41,14 +33,14 @@ internal sealed class ResolvedPolicy
     /// This is the effective provider's own instance, shared by reference. <see cref="TelemetryPolicy"/>
     /// is immutable, so consumers may hold it for as long as they need it.
     /// </remarks>
-    public TelemetryPolicy Policy { get; }
+    public TelemetryPolicy Policy { get; } = policy;
 
     /// <summary>
     /// Gets the retained but outranked policies for <see cref="Key"/> that are not effective,
     /// in precedence order, so the first element is the one that becomes effective if the
     /// effective provider stops supplying the key. Empty when only one provider supplied the key.
     /// </summary>
-    public ImmutableArray<OutrankedPolicy> OutrankedPolicies { get; }
+    public ImmutableArray<OutrankedPolicy> OutrankedPolicies { get; } = outrankedPolicies;
 
     /// <summary>
     /// Returns a diagnostic representation of the resolution.

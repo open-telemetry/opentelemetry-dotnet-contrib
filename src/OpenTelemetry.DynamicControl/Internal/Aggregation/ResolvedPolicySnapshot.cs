@@ -26,8 +26,8 @@ internal sealed class ResolvedPolicySnapshot
     /// </summary>
     public static readonly ResolvedPolicySnapshot Empty = new(0, []);
 
-    // Note using FrozenDictionary here. Each snapshot receives few update-time lookups, so freezing would
-    // not amortize its higher construction cost
+    // Not using FrozenDictionary here. Each snapshot receives few update-time lookups, so freezing would
+    // likely not amortize its higher construction cost.
     private readonly Dictionary<PolicyKey, ResolvedPolicy> lookup;
 
     /// <summary>
