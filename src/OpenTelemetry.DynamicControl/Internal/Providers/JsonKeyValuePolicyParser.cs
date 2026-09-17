@@ -43,7 +43,11 @@ internal static class JsonKeyValuePolicyParser
         MaxDepth = 64,
     };
 
+#if NET
+    private static ReadOnlySpan<byte> Utf8ByteOrderMark => System.Text.Encoding.UTF8.Preamble;
+#else
     private static ReadOnlySpan<byte> Utf8ByteOrderMark => [0xEF, 0xBB, 0xBF];
+#endif
 
     /// <summary>
     /// Decodes one complete policy payload.
@@ -82,18 +86,15 @@ internal static class JsonKeyValuePolicyParser
             return PolicyPayloadParseResult.Malformed("The payload could not be decoded as JSON. " + ex.Message);
         }
 
-        // Every policy is built before the document is disposed, so nothing that outlives
-        // this scope holds a JsonElement into the document's pooled buffers.
         using (document)
         {
             var root = document.RootElement;
 
-            return root.ValueKind switch
-            {
-                JsonValueKind.Array => BuildResult(CollectArrayEntries(root)),
-                JsonValueKind.Object => BuildResult(CollectObjectEntries(root)),
-                _ => PolicyPayloadParseResult.Malformed("The payload root must be a JSON object or array."),
-            };
+            return root.ValueKind == JsonValueKind.Array
+                ? BuildResult(CollectArrayEntries(root))
+                : root.ValueKind == JsonValueKind.Object
+                    ? BuildResult(CollectObjectEntries(root))
+                    : PolicyPayloadParseResult.Malformed("The payload root must be a JSON object or array.");
         }
     }
 
