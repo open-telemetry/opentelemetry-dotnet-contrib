@@ -562,6 +562,14 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                 {
                     tags.Add(SemanticConventions.AttributeDbStoredProcedureName, command.CommandText);
                 }
+                else if (command.CommandType is CommandType.Text)
+                {
+                    var querySummary = SqlProcessor.GetSanitizedSql(command.CommandText).DbQuerySummary;
+                    if (!string.IsNullOrEmpty(querySummary))
+                    {
+                        tags.Add(SemanticConventions.AttributeDbQuerySummary, querySummary);
+                    }
+                }
             }
 
             if (hasError)
