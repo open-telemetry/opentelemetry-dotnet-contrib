@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.19.0
+
+Released 2026-Sep-18
+
 * Fixed .NET Framework `db.client.operation.duration` metrics to consistently
   include the `db.query.summary` attribute, regardless of sampling decision,
   preventing the same query from being split across inconsistent metric series.
