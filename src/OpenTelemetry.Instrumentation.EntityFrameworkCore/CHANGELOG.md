@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* Fixed `db.query.summary` so that a delimited identifier containing an escaped
+  closing bracket, such as `[Tab]]le]`, is captured whole instead of being
+  truncated at the escape.
+  ([#5237](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5237))
+
 ## 1.18.0-beta.1
 
 Released 2026-Aug-21

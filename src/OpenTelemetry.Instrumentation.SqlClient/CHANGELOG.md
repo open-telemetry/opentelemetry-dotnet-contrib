@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* Fixed `db.query.summary` so that a delimited identifier containing an escaped
+  closing bracket, such as `[Tab]]le]`, is captured whole instead of being
+  truncated at the escape.
+  ([#5237](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5237))
+
 * Fixed .NET Framework `db.client.operation.duration` metrics to consistently
   include the `db.query.summary` attribute, regardless of sampling decision,
   preventing the same query from being split across inconsistent metric series.
