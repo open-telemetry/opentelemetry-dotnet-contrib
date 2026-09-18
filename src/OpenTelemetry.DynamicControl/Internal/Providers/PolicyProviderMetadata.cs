@@ -3,35 +3,35 @@
 
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.DynamicControl.Internal.Sources;
+namespace OpenTelemetry.DynamicControl.Internal.Providers;
 
 /// <summary>
-/// Describes one configured policy source: its identity, its kind, and its precedence
+/// Describes one configured policy provider: its identity, its kind, and its precedence
 /// during aggregation.
 /// </summary>
-internal readonly struct PolicySourceMetadata : IEquatable<PolicySourceMetadata>
+internal readonly struct PolicyProviderMetadata : IEquatable<PolicyProviderMetadata>
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="PolicySourceMetadata"/> struct.
+    /// Initializes a new instance of the <see cref="PolicyProviderMetadata"/> struct.
     /// </summary>
-    /// <param name="registrationId">The identity of the configured source. Must not be <see cref="SourceRegistrationId.Empty"/>.</param>
-    /// <param name="kind">The kind of source. Must not be <see cref="PolicySourceKind.Unknown"/>.</param>
+    /// <param name="registrationId">The identity of the configured provider. Must not be <see cref="ProviderRegistrationId.Empty"/>.</param>
+    /// <param name="kind">The kind of provider. Must not be <see cref="PolicyProviderKind.Unknown"/>.</param>
     /// <param name="priority">
     /// The aggregation precedence. Lower values win, matching the provider-priority
     /// convention from the Telemetry Policy OTEP (OpAmp=1, Http=2, File=3, Custom=1000).
     /// When omitted, the kind-derived default is used. Must be non-negative when supplied.
     /// </param>
     /// <exception cref="ArgumentException">
-    /// Thrown when <paramref name="registrationId"/> is <see cref="SourceRegistrationId.Empty"/>.
+    /// Thrown when <paramref name="registrationId"/> is <see cref="ProviderRegistrationId.Empty"/>.
     /// </exception>
     /// <exception cref="ArgumentOutOfRangeException">
-    /// Thrown when <paramref name="kind"/> is <see cref="PolicySourceKind.Unknown"/> or is
-    /// not a defined <see cref="PolicySourceKind"/> value, or when <paramref name="priority"/>
+    /// Thrown when <paramref name="kind"/> is <see cref="PolicyProviderKind.Unknown"/> or is
+    /// not a defined <see cref="PolicyProviderKind"/> value, or when <paramref name="priority"/>
     /// is negative.
     /// </exception>
-    public PolicySourceMetadata(
-        SourceRegistrationId registrationId,
-        PolicySourceKind kind,
+    public PolicyProviderMetadata(
+        ProviderRegistrationId registrationId,
+        PolicyProviderKind kind,
         int? priority = null)
     {
         Guard.ThrowIfDefault(registrationId);
@@ -52,17 +52,17 @@ internal readonly struct PolicySourceMetadata : IEquatable<PolicySourceMetadata>
     }
 
     /// <summary>
-    /// Gets the identity of the configured source.
+    /// Gets the identity of the configured provider.
     /// </summary>
-    public SourceRegistrationId RegistrationId { get; }
+    public ProviderRegistrationId RegistrationId { get; }
 
     /// <summary>
-    /// Gets the kind of source.
+    /// Gets the kind of provider.
     /// </summary>
-    public PolicySourceKind Kind { get; }
+    public PolicyProviderKind Kind { get; }
 
     /// <summary>
-    /// Gets the precedence applied when several sources supply the same policy identity.
+    /// Gets the precedence applied when several providers supply the same policy identity.
     /// </summary>
     /// <remarks>
     /// A lower value takes precedence over a higher one, matching the provider-priority
@@ -73,30 +73,30 @@ internal readonly struct PolicySourceMetadata : IEquatable<PolicySourceMetadata>
     public int Priority { get; }
 
     /// <summary>
-    /// Determines whether two <see cref="PolicySourceMetadata"/> instances describe the
-    /// same source in the same way.
+    /// Determines whether two <see cref="PolicyProviderMetadata"/> instances describe the
+    /// same provider in the same way.
     /// </summary>
     /// <param name="left">The first value to compare.</param>
     /// <param name="right">The second value to compare.</param>
     /// <returns><see langword="true"/> if the values are equal; otherwise, <see langword="false"/>.</returns>
-    public static bool operator ==(PolicySourceMetadata left, PolicySourceMetadata right) => left.Equals(right);
+    public static bool operator ==(PolicyProviderMetadata left, PolicyProviderMetadata right) => left.Equals(right);
 
     /// <summary>
-    /// Determines whether two <see cref="PolicySourceMetadata"/> instances differ.
+    /// Determines whether two <see cref="PolicyProviderMetadata"/> instances differ.
     /// </summary>
     /// <param name="left">The first value to compare.</param>
     /// <param name="right">The second value to compare.</param>
     /// <returns><see langword="true"/> if the values are not equal; otherwise, <see langword="false"/>.</returns>
-    public static bool operator !=(PolicySourceMetadata left, PolicySourceMetadata right) => !left.Equals(right);
+    public static bool operator !=(PolicyProviderMetadata left, PolicyProviderMetadata right) => !left.Equals(right);
 
     /// <inheritdoc/>
-    public bool Equals(PolicySourceMetadata other)
+    public bool Equals(PolicyProviderMetadata other)
         => this.RegistrationId.Equals(other.RegistrationId)
             && this.Kind == other.Kind
             && this.Priority == other.Priority;
 
     /// <inheritdoc/>
-    public override bool Equals(object? obj) => obj is PolicySourceMetadata other && this.Equals(other);
+    public override bool Equals(object? obj) => obj is PolicyProviderMetadata other && this.Equals(other);
 
     /// <inheritdoc/>
     public override int GetHashCode()
@@ -118,23 +118,23 @@ internal readonly struct PolicySourceMetadata : IEquatable<PolicySourceMetadata>
     }
 
     /// <summary>
-    /// Returns a diagnostic representation of the source metadata.
+    /// Returns a diagnostic representation of the provider metadata.
     /// </summary>
     /// <returns>The registration ID, kind, and priority, separated by forward slashes.</returns>
     public override string ToString()
         => this.RegistrationId.Value + "/" + this.Kind + "/" + this.Priority;
 
-    private static int KindDefaultPriority(PolicySourceKind kind) => kind switch
+    private static int KindDefaultPriority(PolicyProviderKind kind) => kind switch
     {
-        PolicySourceKind.OpAmp => 1,
-        PolicySourceKind.Http => 2,
-        PolicySourceKind.File => 3,
-        PolicySourceKind.Custom => 1000,
-        PolicySourceKind.Unknown or _ =>
+        PolicyProviderKind.Custom => 1000,
+        PolicyProviderKind.File => 3,
+        PolicyProviderKind.Http => 2,
+        PolicyProviderKind.OpAmp => 1,
+        PolicyProviderKind.Unknown or _ =>
 #if NET
-            throw new System.Diagnostics.UnreachableException($"Unhandled {nameof(PolicySourceKind)}: {kind}"),
+            throw new System.Diagnostics.UnreachableException($"Unhandled {nameof(PolicyProviderKind)}: {kind}"),
 #else
-            throw new InvalidOperationException($"Unhandled {nameof(PolicySourceKind)}: {kind}"),
+            throw new InvalidOperationException($"Unhandled {nameof(PolicyProviderKind)}: {kind}"),
 #endif
     };
 }

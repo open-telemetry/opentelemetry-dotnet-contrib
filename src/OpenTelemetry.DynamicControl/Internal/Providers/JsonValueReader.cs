@@ -4,7 +4,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
-namespace OpenTelemetry.DynamicControl.Internal.Sources;
+namespace OpenTelemetry.DynamicControl.Internal.Providers;
 
 /// <summary>
 /// Provides non-throwing helpers for reading policy values from JSON.
@@ -71,7 +71,18 @@ internal static class JsonValueReader
 
         foreach (var candidate in value.EnumerateObject())
         {
-            if (!candidate.NameEquals(utf8MemberName))
+            bool matches;
+
+            try
+            {
+                matches = candidate.NameEquals(utf8MemberName);
+            }
+            catch (InvalidOperationException)
+            {
+                matches = false;
+            }
+
+            if (!matches)
             {
                 continue;
             }

@@ -67,6 +67,8 @@ internal sealed class AppServiceResourceDetector : IResourceDetector
                     attributeList,
                     Internal.SchemaUrls.Get(AzureResourceBuilderExtensions.SemanticConventionsVersion));
             }
+
+            AzureResourcesEventSource.Log.ResourceDetectorSkipped(nameof(AppServiceResourceDetector), ResourceAttributeConstants.AppServiceSiteNameEnvVar);
         }
         catch (Exception ex)
         {

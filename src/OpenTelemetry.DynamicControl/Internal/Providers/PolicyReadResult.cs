@@ -5,11 +5,17 @@ using System.Diagnostics.CodeAnalysis;
 using OpenTelemetry.DynamicControl.Internal.Policies;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.DynamicControl.Internal.Sources;
+namespace OpenTelemetry.DynamicControl.Internal.Providers;
 
 /// <summary>
 /// Represents either a validated policy or a policy-value rejection.
 /// </summary>
+/// <remarks>
+/// The two states are mutually exclusive. A successful result carries a policy and no
+/// failure; a rejected result carries a categorized failure and no policy. The location of
+/// the value is deliberately absent: a reader is given a value, not a position, so the
+/// caller that knows the position attaches it via <see cref="ToRejection"/>.
+/// </remarks>
 internal sealed class PolicyReadResult
 {
     private readonly TelemetryPolicy? policy;
@@ -81,4 +87,17 @@ internal sealed class PolicyReadResult
         policy = this.policy;
         return policy is not null;
     }
+
+    /// <summary>
+    /// Describes this rejection as it appeared in a payload.
+    /// </summary>
+    /// <param name="location">Where in the payload the rejected value appeared.</param>
+    /// <returns>The rejection, located.</returns>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when this result is successful and therefore describes no rejection.
+    /// </exception>
+    public PolicyPayloadRejection ToRejection(PayloadEntryLocation location) =>
+        this.Error is not { } failureMessage
+            ? throw new InvalidOperationException("A successful result describes no rejection.")
+            : new(location, this.Reason, failureMessage);
 }

@@ -4,7 +4,7 @@
 using System.Text.Json;
 using OpenTelemetry.DynamicControl.Internal.Policies;
 
-namespace OpenTelemetry.DynamicControl.Internal.Sources;
+namespace OpenTelemetry.DynamicControl.Internal.Providers;
 
 /// <summary>
 /// Reads a policy payload value into a validated policy.

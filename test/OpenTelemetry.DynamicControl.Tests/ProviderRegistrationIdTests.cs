@@ -1,16 +1,16 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using OpenTelemetry.DynamicControl.Internal.Sources;
+using OpenTelemetry.DynamicControl.Internal.Providers;
 
 namespace OpenTelemetry.DynamicControl.Tests;
 
-public class SourceRegistrationIdTests
+public class ProviderRegistrationIdTests
 {
     [Fact]
     public void Constructor_WithValidValue_SetsValue()
     {
-        var id = new SourceRegistrationId("opamp-1");
+        var id = new ProviderRegistrationId("opamp-1");
 
         Assert.Equal("opamp-1", id.Value);
     }
@@ -20,13 +20,13 @@ public class SourceRegistrationIdTests
     [InlineData("")]
     [InlineData(" ")]
     public void Constructor_WithBlankValue_Throws(string? value) =>
-        Assert.ThrowsAny<ArgumentException>(() => _ = new SourceRegistrationId(value!));
+        Assert.ThrowsAny<ArgumentException>(() => _ = new ProviderRegistrationId(value!));
 
     [Fact]
     public void Equals_WithSameValue_ReturnsTrue()
     {
-        var left = new SourceRegistrationId("opamp-1");
-        var right = new SourceRegistrationId("opamp-1");
+        var left = new ProviderRegistrationId("opamp-1");
+        var right = new ProviderRegistrationId("opamp-1");
 
         Assert.True(left.Equals(right), "Typed Equals should be true");
         Assert.True(left.Equals((object)right), "Object Equals should be true");
@@ -40,8 +40,8 @@ public class SourceRegistrationIdTests
     [Fact]
     public void Equals_WithDifferentValue_ReturnsFalse()
     {
-        var left = new SourceRegistrationId("opamp-1");
-        var right = new SourceRegistrationId("opamp-2");
+        var left = new ProviderRegistrationId("opamp-1");
+        var right = new ProviderRegistrationId("opamp-2");
 
         Assert.False(left.Equals(right), "Typed Equals should be false");
         Assert.True(left != right, "Not equals (!=) operator should be true");
@@ -51,8 +51,8 @@ public class SourceRegistrationIdTests
     [Fact]
     public void Equals_WithValueDifferingOnlyByCase_ReturnsFalse()
     {
-        var left = new SourceRegistrationId("opamp-1");
-        var right = new SourceRegistrationId("OpAmp-1");
+        var left = new ProviderRegistrationId("opamp-1");
+        var right = new ProviderRegistrationId("OpAmp-1");
 
         Assert.False(left.Equals(right));
     }
@@ -60,7 +60,7 @@ public class SourceRegistrationIdTests
     [Fact]
     public void Equals_WithOtherType_ReturnsFalse()
     {
-        var id = new SourceRegistrationId("opamp-1");
+        var id = new ProviderRegistrationId("opamp-1");
 
         Assert.False(id.Equals("opamp-1"), "Should not be equal to a string");
         Assert.False(id.Equals(null), "Should not be equal to null");
@@ -69,35 +69,35 @@ public class SourceRegistrationIdTests
     [Fact]
     public void Default_HasEmptyValueAndIsUsableWithoutThrowing()
     {
-        var id = default(SourceRegistrationId);
+        var id = default(ProviderRegistrationId);
 
         Assert.Equal(string.Empty, id.Value);
         Assert.Equal(default, id);
-        Assert.Equal(SourceRegistrationId.Empty, id);
-        Assert.Equal(default(SourceRegistrationId).GetHashCode(), id.GetHashCode());
-        Assert.NotEqual(new SourceRegistrationId("opamp-1"), id);
+        Assert.Equal(ProviderRegistrationId.Empty, id);
+        Assert.Equal(default(ProviderRegistrationId).GetHashCode(), id.GetHashCode());
+        Assert.NotEqual(new ProviderRegistrationId("opamp-1"), id);
     }
 
     [Fact]
     public void CanBeUsedAsDictionaryKey()
     {
-        var snapshots = new Dictionary<SourceRegistrationId, string>
+        var snapshots = new Dictionary<ProviderRegistrationId, string>
         {
-            [new SourceRegistrationId("opamp-1")] = "first",
-            [new SourceRegistrationId("opamp-2")] = "second",
+            [new ProviderRegistrationId("opamp-1")] = "first",
+            [new ProviderRegistrationId("opamp-2")] = "second",
         };
 
-        snapshots[new SourceRegistrationId("opamp-1")] = "replacement";
+        snapshots[new ProviderRegistrationId("opamp-1")] = "replacement";
 
         Assert.Equal(2, snapshots.Count);
-        Assert.Equal("replacement", snapshots[new SourceRegistrationId("opamp-1")]);
-        Assert.Equal("second", snapshots[new SourceRegistrationId("opamp-2")]);
+        Assert.Equal("replacement", snapshots[new ProviderRegistrationId("opamp-1")]);
+        Assert.Equal("second", snapshots[new ProviderRegistrationId("opamp-2")]);
     }
 
     [Fact]
     public void ToString_ReturnsValue()
     {
-        var id = new SourceRegistrationId("opamp-1");
+        var id = new ProviderRegistrationId("opamp-1");
         Assert.Equal("opamp-1", id.ToString());
     }
 }

@@ -1,33 +1,33 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using OpenTelemetry.DynamicControl.Internal.Sources;
+using OpenTelemetry.DynamicControl.Internal.Providers;
 
 namespace OpenTelemetry.DynamicControl.Tests;
 
-public class PolicySourceMetadataTests
+public class PolicyProviderMetadataTests
 {
     [Fact]
     public void Constructor_WithValidArguments_SetsProperties()
     {
-        var registrationId = new SourceRegistrationId("opamp-1");
+        var registrationId = new ProviderRegistrationId("opamp-1");
 
-        var metadata = new PolicySourceMetadata(registrationId, PolicySourceKind.OpAmp, 10);
+        var metadata = new PolicyProviderMetadata(registrationId, PolicyProviderKind.OpAmp, 10);
 
         Assert.Equal(registrationId, metadata.RegistrationId);
-        Assert.Equal(PolicySourceKind.OpAmp, metadata.Kind);
+        Assert.Equal(PolicyProviderKind.OpAmp, metadata.Kind);
         Assert.Equal(10, metadata.Priority);
     }
 
     [Theory]
-    [InlineData((int)PolicySourceKind.OpAmp, 1)]
-    [InlineData((int)PolicySourceKind.Http, 2)]
-    [InlineData((int)PolicySourceKind.File, 3)]
-    [InlineData((int)PolicySourceKind.Custom, 1000)]
+    [InlineData((int)PolicyProviderKind.OpAmp, 1)]
+    [InlineData((int)PolicyProviderKind.Http, 2)]
+    [InlineData((int)PolicyProviderKind.File, 3)]
+    [InlineData((int)PolicyProviderKind.Custom, 1000)]
     public void Constructor_WithoutPriority_UsesKindDerivedDefault(int kindValue, int expectedPriority)
     {
-        var kind = (PolicySourceKind)kindValue;
-        var metadata = new PolicySourceMetadata(new SourceRegistrationId("source-1"), kind);
+        var kind = (PolicyProviderKind)kindValue;
+        var metadata = new PolicyProviderMetadata(new ProviderRegistrationId("provider-1"), kind);
 
         Assert.Equal(expectedPriority, metadata.Priority);
     }
@@ -36,7 +36,7 @@ public class PolicySourceMetadataTests
     public void Constructor_WithDefaultRegistrationId_Throws() =>
         Assert.Throws<ArgumentException>(
             "registrationId",
-            () => _ = new PolicySourceMetadata(SourceRegistrationId.Empty, PolicySourceKind.OpAmp));
+            () => _ = new PolicyProviderMetadata(ProviderRegistrationId.Empty, PolicyProviderKind.OpAmp));
 
     [Theory]
     [InlineData(0)] // The zero/default sentinel
@@ -44,7 +44,7 @@ public class PolicySourceMetadataTests
     public void Constructor_WithInvalidKind_Throws(int kindValue) =>
         Assert.Throws<ArgumentOutOfRangeException>(
             "kind",
-            () => _ = new PolicySourceMetadata(new SourceRegistrationId("opamp-1"), (PolicySourceKind)kindValue));
+            () => _ = new PolicyProviderMetadata(new ProviderRegistrationId("opamp-1"), (PolicyProviderKind)kindValue));
 
     [Theory]
     [InlineData(0)]
@@ -52,7 +52,7 @@ public class PolicySourceMetadataTests
     [InlineData(int.MaxValue)]
     public void Constructor_WithNonNegativePriority_IsAllowed(int priority)
     {
-        var metadata = new PolicySourceMetadata(new SourceRegistrationId("file-1"), PolicySourceKind.File, priority);
+        var metadata = new PolicyProviderMetadata(new ProviderRegistrationId("file-1"), PolicyProviderKind.File, priority);
 
         Assert.Equal(priority, metadata.Priority);
     }
@@ -63,13 +63,13 @@ public class PolicySourceMetadataTests
     public void Constructor_WithNegativePriority_Throws(int priority) =>
         Assert.Throws<ArgumentOutOfRangeException>(
             nameof(priority),
-            () => _ = new PolicySourceMetadata(new SourceRegistrationId("file-1"), PolicySourceKind.File, priority));
+            () => _ = new PolicyProviderMetadata(new ProviderRegistrationId("file-1"), PolicyProviderKind.File, priority));
 
     [Fact]
     public void Equals_WithSameValues_ReturnsTrue()
     {
-        var left = new PolicySourceMetadata(new SourceRegistrationId("opamp-1"), PolicySourceKind.OpAmp, 10);
-        var right = new PolicySourceMetadata(new SourceRegistrationId("opamp-1"), PolicySourceKind.OpAmp, 10);
+        var left = new PolicyProviderMetadata(new ProviderRegistrationId("opamp-1"), PolicyProviderKind.OpAmp, 10);
+        var right = new PolicyProviderMetadata(new ProviderRegistrationId("opamp-1"), PolicyProviderKind.OpAmp, 10);
 
         Assert.True(left.Equals(right), "Typed Equals should be true");
         Assert.True(left.Equals((object)right), "Object Equals should be true");
@@ -83,8 +83,8 @@ public class PolicySourceMetadataTests
     [Fact]
     public void Equals_WithDifferentRegistrationId_ReturnsFalse()
     {
-        var left = new PolicySourceMetadata(new SourceRegistrationId("opamp-1"), PolicySourceKind.OpAmp, 10);
-        var right = new PolicySourceMetadata(new SourceRegistrationId("opamp-2"), PolicySourceKind.OpAmp, 10);
+        var left = new PolicyProviderMetadata(new ProviderRegistrationId("opamp-1"), PolicyProviderKind.OpAmp, 10);
+        var right = new PolicyProviderMetadata(new ProviderRegistrationId("opamp-2"), PolicyProviderKind.OpAmp, 10);
 
         Assert.False(left.Equals(right), "Equals should be false");
         Assert.True(left != right, "Not equals (!=) operator should be true");
@@ -93,8 +93,8 @@ public class PolicySourceMetadataTests
     [Fact]
     public void Equals_WithDifferentKind_ReturnsFalse()
     {
-        var left = new PolicySourceMetadata(new SourceRegistrationId("source-1"), PolicySourceKind.OpAmp, 10);
-        var right = new PolicySourceMetadata(new SourceRegistrationId("source-1"), PolicySourceKind.File, 10);
+        var left = new PolicyProviderMetadata(new ProviderRegistrationId("provider-1"), PolicyProviderKind.OpAmp, 10);
+        var right = new PolicyProviderMetadata(new ProviderRegistrationId("provider-1"), PolicyProviderKind.File, 10);
 
         Assert.False(left.Equals(right), "Equals should be false");
     }
@@ -102,8 +102,8 @@ public class PolicySourceMetadataTests
     [Fact]
     public void Equals_WithDifferentPriority_ReturnsFalse()
     {
-        var left = new PolicySourceMetadata(new SourceRegistrationId("opamp-1"), PolicySourceKind.OpAmp, 10);
-        var right = new PolicySourceMetadata(new SourceRegistrationId("opamp-1"), PolicySourceKind.OpAmp, 20);
+        var left = new PolicyProviderMetadata(new ProviderRegistrationId("opamp-1"), PolicyProviderKind.OpAmp, 10);
+        var right = new PolicyProviderMetadata(new ProviderRegistrationId("opamp-1"), PolicyProviderKind.OpAmp, 20);
 
         Assert.False(left.Equals(right), "Equals should be false");
     }
@@ -111,22 +111,22 @@ public class PolicySourceMetadataTests
     [Fact]
     public void Equals_WithOtherType_ReturnsFalse()
     {
-        var metadata = new PolicySourceMetadata(new SourceRegistrationId("opamp-1"), PolicySourceKind.OpAmp);
+        var metadata = new PolicyProviderMetadata(new ProviderRegistrationId("opamp-1"), PolicyProviderKind.OpAmp);
 
-        Assert.False(metadata.Equals(metadata.RegistrationId), "Should not be equal to a SourceRegistrationId");
+        Assert.False(metadata.Equals(metadata.RegistrationId), "Should not be equal to a ProviderRegistrationId");
         Assert.False(metadata.Equals(null), "Should not be equal to null");
     }
 
     [Fact]
     public void Priority_DefaultedOpAmpOutranksDefaultedFile()
     {
-        // Per the Telemetry Policy OTEP, a defaulted OpAmp source (priority 1) outranks a
-        // defaulted File source (priority 3) without either caller specifying a priority
+        // Per the Telemetry Policy OTEP, a defaulted OpAmp provider (priority 1) outranks a
+        // defaulted File provider (priority 3) without either caller specifying a priority
         // explicitly. This is the conformance test for kind-derived defaults.
-        var opAmp = new PolicySourceMetadata(new SourceRegistrationId("opamp-1"), PolicySourceKind.OpAmp);
-        var file = new PolicySourceMetadata(new SourceRegistrationId("file-1"), PolicySourceKind.File);
+        var opAmp = new PolicyProviderMetadata(new ProviderRegistrationId("opamp-1"), PolicyProviderKind.OpAmp);
+        var file = new PolicyProviderMetadata(new ProviderRegistrationId("file-1"), PolicyProviderKind.File);
 
-        Assert.True(opAmp.Priority < file.Priority, "A defaulted OpAmp source should have a lower (higher-precedence) priority value than a defaulted File source");
+        Assert.True(opAmp.Priority < file.Priority, "A defaulted OpAmp provider should have a lower (higher-precedence) priority value than a defaulted File provider");
     }
 
     [Fact]
@@ -134,8 +134,8 @@ public class PolicySourceMetadataTests
     {
         // OpAmp's kind-derived default is 1. An explicit priority=1 and the defaulted
         // form must compare equal, because they express the same thing.
-        var explicit1 = new PolicySourceMetadata(new SourceRegistrationId("opamp-1"), PolicySourceKind.OpAmp, 1);
-        var defaulted = new PolicySourceMetadata(new SourceRegistrationId("opamp-1"), PolicySourceKind.OpAmp);
+        var explicit1 = new PolicyProviderMetadata(new ProviderRegistrationId("opamp-1"), PolicyProviderKind.OpAmp, 1);
+        var defaulted = new PolicyProviderMetadata(new ProviderRegistrationId("opamp-1"), PolicyProviderKind.OpAmp);
 
         Assert.Equal(explicit1, defaulted);
         Assert.Equal(explicit1.GetHashCode(), defaulted.GetHashCode());
@@ -144,22 +144,22 @@ public class PolicySourceMetadataTests
     [Fact]
     public void Default_HasEmptyRegistrationIdUnknownKindAndZeroPriority()
     {
-        var metadata = default(PolicySourceMetadata);
+        var metadata = default(PolicyProviderMetadata);
 
         Assert.Equal(default, metadata.RegistrationId);
-        Assert.Equal(SourceRegistrationId.Empty, metadata.RegistrationId);
-        Assert.Equal(PolicySourceKind.Unknown, metadata.Kind);
+        Assert.Equal(ProviderRegistrationId.Empty, metadata.RegistrationId);
+        Assert.Equal(PolicyProviderKind.Unknown, metadata.Kind);
         Assert.Equal(0, metadata.Priority);
-        Assert.Equal(default(PolicySourceMetadata).GetHashCode(), metadata.GetHashCode());
+        Assert.Equal(default(PolicyProviderMetadata).GetHashCode(), metadata.GetHashCode());
         Assert.NotEqual(
-            new PolicySourceMetadata(new SourceRegistrationId("opamp-1"), PolicySourceKind.OpAmp),
+            new PolicyProviderMetadata(new ProviderRegistrationId("opamp-1"), PolicyProviderKind.OpAmp),
             metadata);
     }
 
     [Fact]
     public void ToString_ReturnsRegistrationIdKindAndPriority()
     {
-        var metadata = new PolicySourceMetadata(new SourceRegistrationId("opamp-1"), PolicySourceKind.OpAmp, 10);
+        var metadata = new PolicyProviderMetadata(new ProviderRegistrationId("opamp-1"), PolicyProviderKind.OpAmp, 10);
 
         Assert.Equal("opamp-1/OpAmp/10", metadata.ToString());
     }
