@@ -6,6 +6,9 @@
   (`/.dockerenv`) or Podman (`/run/.containerenv`) marker files.
   ([#5144](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5144))
 
+* Updated OpenTelemetry core component version(s) to `1.19.0`.
+  ([#5240](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5240))
+
 ## 1.18.0-beta.1
 
 Released 2026-Aug-21
