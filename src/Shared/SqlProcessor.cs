@@ -201,6 +201,23 @@ internal static class SqlProcessor
 
             if (currentChar == CloseSquareBracketChar)
             {
+                // Whether this bracket opens an escape pair or closes one depends on how many
+                // brackets immediately precede it within the token. An even run means this
+                // bracket is the first of a potential pair, so the next character decides. An
+                // odd run means it completes a pair and the identifier continues past it,
+                // which is what makes [Tab]]le] a single identifier named Tab]le.
+                var tokenStart = currentPosition - indexInToken;
+                var precedingBrackets = 0;
+                for (var i = currentPosition - 1; i >= tokenStart && sql[i] == CloseSquareBracketChar; i--)
+                {
+                    precedingBrackets++;
+                }
+
+                if ((precedingBrackets & 1) == 1)
+                {
+                    return true;
+                }
+
                 var nextPosition = currentPosition + 1;
                 return nextPosition < sql.Length && sql[nextPosition] == CloseSquareBracketChar;
             }
