@@ -3,15 +3,55 @@
 
 using System.Net;
 using System.Net.NetworkInformation;
-#if NET
 using System.Runtime.InteropServices;
-#endif
 
 namespace OpenTelemetry.Resources.Host.Tests;
 
 public class HostDetectorTests
 {
     private const string EnableNetworkAddressesEnvVarName = "OTEL_DOTNET_EXPERIMENTAL_HOST_RESOURCE_ENABLE_NETWORK_ADDRESSES";
+    private const string EnableCpuInfoEnvVarName = "OTEL_DOTNET_EXPERIMENTAL_HOST_RESOURCE_ENABLE_CPU_INFO";
+
+    private const string WindowsCpuIdentifier = "AMD64 Family 25 Model 1 Stepping 1";
+
+    private const string LinuxCpuInfoOutput =
+        "processor\t: 0\n" +
+        "vendor_id\t: AuthenticAMD\n" +
+        "cpu family\t: 25\n" +
+        "model\t\t: 17\n" +
+        "model name\t: AMD EPYC 9V74 80-Core Processor\n" +
+        "stepping\t: 1\n" +
+        "cache size\t: 1024 KB\n" +
+        "\n" +
+        "processor\t: 1\n" +
+        "vendor_id\t: AuthenticAMD\n" +
+        "cpu family\t: 25\n" +
+        "model\t\t: 99\n" +
+        "model name\t: AMD EPYC 9V74 80-Core Processor\n" +
+        "stepping\t: 9\n" +
+        "cache size\t: 1024 KB\n";
+
+    private const string Arm64CpuInfoOutput =
+        "processor\t: 0\n" +
+        "BogoMIPS\t: 48.00\n" +
+        "Features\t: fp asimd evtstrm aes pmull sha1 sha2 crc32\n" +
+        "CPU implementer\t: 0x41\n" +
+        "CPU architecture: 8\n" +
+        "CPU variant\t: 0x0\n" +
+        "CPU part\t: 0xd0c\n" +
+        "CPU revision\t: 1\n";
+
+    private const string SysctlOutput =
+        "machdep.cpu.brand_string: Apple M5\n" +
+        "hw.l2cachesize: 6291456\n";
+
+    private const string IntelSysctlOutput =
+        "machdep.cpu.vendor: GenuineIntel\n" +
+        "machdep.cpu.family: 6\n" +
+        "machdep.cpu.model: 6\n" +
+        "machdep.cpu.stepping: 1\n" +
+        "machdep.cpu.brand_string: 11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz\n" +
+        "hw.l2cachesize: 12288000\n";
 
 #if !NETFRAMEWORK
     private const string MacOSMachineIdOutput = @"+-o J293AP  <class IOPlatformExpertDevice, id 0x100000227, registered, matched,$
@@ -52,7 +92,8 @@ public class HostDetectorTests
     [Fact]
     public void TestHostAttributes()
     {
-        using var environment = EnvironmentVariableScope.Create(EnableNetworkAddressesEnvVarName, null);
+        using var networkAddressesEnvironment = EnvironmentVariableScope.Create(EnableNetworkAddressesEnvVarName, null);
+        using var cpuInfoEnvironment = EnvironmentVariableScope.Create(EnableCpuInfoEnvVarName, null);
 
         var resource = ResourceBuilder.CreateEmpty().AddHostDetector().Build();
 
@@ -316,4 +357,210 @@ public class HostDetectorTests
     [Fact]
     public void TestFormatPhysicalAddressWithEmptyAddress() =>
         Assert.Null(HostDetector.FormatPhysicalAddress(PhysicalAddress.None));
+
+    [Theory]
+    [InlineData("true")]
+    [InlineData("True")]
+    [InlineData("TRUE")]
+    public void TestHostCpuInfoEnabled(string value)
+    {
+        using var cpuInfoEnvironment = EnvironmentVariableScope.Create(EnableCpuInfoEnvVarName, value);
+        using var networkAddressesEnvironment = EnvironmentVariableScope.Create(EnableNetworkAddressesEnvVarName, null);
+
+        var resource = ResourceBuilder.CreateEmpty().AddHostDetector().Build();
+
+        var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
+
+#if NETFRAMEWORK
+        var isWindows = true;
+        var isArmLinux = false;
+#else
+        var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+        var isArmLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+            && RuntimeInformation.ProcessArchitecture is Architecture.Arm or Architecture.Arm64;
+#endif
+
+        if (isArmLinux)
+        {
+            // Arm /proc/cpuinfo carries CPU implementer, part, architecture and revision instead
+            // of the five fields read here; reading those is a follow-up, not a settled omission.
+            Assert.False(
+                resourceAttributes.ContainsKey("host.cpu.model.name"),
+                "host.cpu.model.name has no /proc/cpuinfo source on Arm Linux; reading the Arm fields is a follow-up.");
+        }
+        else
+        {
+            Assert.True(
+                resourceAttributes.ContainsKey("host.cpu.model.name"),
+                "host.cpu.model.name should be detected when the flag is set on Windows, x86 Linux and macOS.");
+            Assert.NotEmpty(Assert.IsType<string>(resourceAttributes["host.cpu.model.name"]));
+        }
+
+        if (isWindows)
+        {
+            Assert.True(
+                resourceAttributes.ContainsKey("host.cpu.cache.l2.size"),
+                "host.cpu.cache.l2.size should be detected on Windows; its source is kernel32, not the registry.");
+        }
+
+        Assert.False(resourceAttributes.ContainsKey("host.ip"), "host.ip should not be detected when only the CPU flag is set.");
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData(" ")]
+    [InlineData("false")]
+    [InlineData("1")]
+    public void TestHostCpuInfoNotEnabled(string? value)
+    {
+        using var cpuInfoEnvironment = EnvironmentVariableScope.Create(EnableCpuInfoEnvVarName, value);
+
+        var resource = ResourceBuilder.CreateEmpty().AddHostDetector().Build();
+
+        Assert.False(resource.Attributes.Any(x => x.Key.StartsWith("host.cpu.", StringComparison.Ordinal)), "No host.cpu.* attribute should be detected when the flag is not set.");
+    }
+
+    [Theory]
+    [InlineData("AuthenticAMD", "AuthenticAMD")]
+    [InlineData("AMD EPYC 7763 64-Core Processor                ", "AMD EPYC 7763 64-Core Processor")]
+    [InlineData("   ", null)]
+    [InlineData("", null)]
+    [InlineData(null, null)]
+    public void TestNormalizeCpuValue(string? value, string? expected) =>
+        Assert.Equal(expected, HostDetector.NormalizeCpuValue(value));
+
+    [Theory]
+    [InlineData(LinuxCpuInfoOutput, "vendor_id", "AuthenticAMD")]
+    [InlineData(LinuxCpuInfoOutput, "cpu family", "25")]
+    [InlineData(LinuxCpuInfoOutput, "model", "17")]
+    [InlineData(LinuxCpuInfoOutput, "model name", "AMD EPYC 9V74 80-Core Processor")]
+    [InlineData(LinuxCpuInfoOutput, "stepping", "1")]
+    [InlineData(LinuxCpuInfoOutput, "cache size", "1024 KB")]
+    [InlineData(LinuxCpuInfoOutput, "flags", null)]
+    [InlineData(Arm64CpuInfoOutput, "model name", null)]
+    [InlineData(null, "vendor_id", null)]
+    public void TestParseCpuInfoField(string? cpuInfo, string fieldName, string? expected) =>
+        Assert.Equal(expected, HostDetector.ParseCpuInfoField(cpuInfo, fieldName));
+
+    [Theory]
+    [InlineData(WindowsCpuIdentifier, "Family", "25")]
+    [InlineData(WindowsCpuIdentifier, "Model", "1")]
+    [InlineData(WindowsCpuIdentifier, "Stepping", "1")]
+    [InlineData(WindowsCpuIdentifier, "Vendor", null)]
+    [InlineData("AMD64 Family", "Family", null)]
+    [InlineData(null, "Family", null)]
+    public void TestParseCpuIdentifierToken(string? identifier, string keyword, string? expected) =>
+        Assert.Equal(expected, HostDetector.ParseCpuIdentifierToken(identifier, keyword));
+
+    [Theory]
+    [InlineData(SysctlOutput, "machdep.cpu.brand_string", "Apple M5")]
+    [InlineData(SysctlOutput, "hw.l2cachesize", "6291456")]
+    [InlineData(SysctlOutput, "machdep.cpu.vendor", null)]
+    [InlineData(SysctlOutput, "machdep.cpu.brand", null)]
+    [InlineData(IntelSysctlOutput, "machdep.cpu.vendor", "GenuineIntel")]
+    [InlineData(IntelSysctlOutput, "machdep.cpu.family", "6")]
+    [InlineData(IntelSysctlOutput, "machdep.cpu.model", "6")]
+    [InlineData(IntelSysctlOutput, "machdep.cpu.stepping", "1")]
+    [InlineData(IntelSysctlOutput, "machdep.cpu.brand_string", "11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz")]
+    [InlineData(IntelSysctlOutput, "hw.l2cachesize", "12288000")]
+    [InlineData(null, "hw.l2cachesize", null)]
+    public void TestParseSysctlField(string? output, string key, string? expected) =>
+        Assert.Equal(expected, HostDetector.ParseSysctlField(output, key));
+
+    [Theory]
+    [InlineData("1024 KB", 1048576)]
+    [InlineData("6144 KB", 6291456)]
+    [InlineData("6291456", 6291456)]
+    [InlineData("12288000", 12288000)]
+    [InlineData("1024K", 1048576)]
+    [InlineData("unknown", null)]
+    [InlineData("   ", null)]
+    [InlineData(null, null)]
+    public void TestParseCacheSize(string? value, int? expected) =>
+        Assert.Equal(expected, HostDetector.ParseCacheSize(value));
+
+    [Fact]
+    public void TestSystemLogicalProcessorInformationCacheLayout()
+    {
+        // The union's ULONGLONG Reserved[2] aligns it to 8, so Relationship is followed by padding.
+        var dataOffset = IntPtr.Size == 8 ? 16 : 8;
+        var entrySize = dataOffset + 16;
+        var buffer = Marshal.AllocHGlobal(entrySize);
+
+        try
+        {
+            for (var i = 0; i < entrySize; i++)
+            {
+                Marshal.WriteByte(buffer, i, 0);
+            }
+
+            Marshal.WriteInt32(buffer, IntPtr.Size, 2);
+            Marshal.WriteByte(buffer, dataOffset, 2);
+            Marshal.WriteByte(buffer, dataOffset + 1, 8);
+            Marshal.WriteInt16(buffer, dataOffset + 2, 64);
+            Marshal.WriteInt32(buffer, dataOffset + 4, 524288);
+
+            var entry = Marshal.PtrToStructure<HostDetector.NativeMethods.SystemLogicalProcessorInformation>(buffer);
+
+            Assert.Equal(HostDetector.NativeMethods.RelationCache, entry.Relationship);
+            Assert.Equal((byte)2, entry.Data.Cache.Level);
+            Assert.Equal(524288u, entry.Data.Cache.Size);
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(buffer);
+        }
+    }
+
+    [Fact]
+    public void TestAddCpuInfoWindowsReadsEveryRegistryValue()
+    {
+        var attributes = new List<KeyValuePair<string, object>>();
+
+        HostDetector.AddCpuInfoWindows(attributes, ReadWindowsCpuRegistryValue, () => 524288);
+
+        var resourceAttributes = attributes.ToDictionary(x => x.Key, x => x.Value);
+
+        Assert.Equal("AuthenticAMD", resourceAttributes["host.cpu.vendor.id"]);
+        Assert.Equal("AMD EPYC 7763 64-Core Processor", resourceAttributes["host.cpu.model.name"]);
+        Assert.Equal("25", resourceAttributes["host.cpu.family"]);
+        Assert.Equal("1", resourceAttributes["host.cpu.model.id"]);
+        Assert.Equal("1", resourceAttributes["host.cpu.stepping"]);
+        Assert.Equal(524288, Assert.IsType<int>(resourceAttributes["host.cpu.cache.l2.size"]));
+        Assert.Equal(6, resourceAttributes.Count);
+    }
+
+    [Fact]
+    public void TestAddCpuInfoWindowsEmitsCacheSizeWhenRegistryKeyIsMissing()
+    {
+        var attributes = new List<KeyValuePair<string, object>>();
+
+        HostDetector.AddCpuInfoWindows(attributes, null, () => 524288);
+
+        var attribute = Assert.Single(attributes);
+
+        Assert.Equal("host.cpu.cache.l2.size", attribute.Key);
+        Assert.Equal(524288, Assert.IsType<int>(attribute.Value));
+    }
+
+    [Fact]
+    public void TestAddCpuInfoWindowsEmitsCacheSizeWhenRegistryReadThrows()
+    {
+        var attributes = new List<KeyValuePair<string, object>>();
+
+        HostDetector.AddCpuInfoWindows(attributes, _ => throw new InvalidOperationException(), () => 524288);
+
+        var attribute = Assert.Single(attributes);
+
+        Assert.Equal("host.cpu.cache.l2.size", attribute.Key);
+        Assert.Equal(524288, Assert.IsType<int>(attribute.Value));
+    }
+
+    private static string? ReadWindowsCpuRegistryValue(string name) => name switch
+    {
+        "VendorIdentifier" => "AuthenticAMD",
+        "ProcessorNameString" => "AMD EPYC 7763 64-Core Processor                ",
+        "Identifier" => WindowsCpuIdentifier,
+        _ => null,
+    };
 }

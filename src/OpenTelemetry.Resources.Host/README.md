@@ -56,6 +56,7 @@ your application is running:
 
 - **HostDetector**:
   - `host.arch` (supported only on .NET),
+  - `host.cpu.*` (opt-in, see [CPU information](#cpu-information)),
   - `host.id` (when running on non-containerized systems),
   - `host.ip` and `host.mac` (opt-in, see
     [Network addresses](#network-addresses)),
@@ -80,6 +81,24 @@ loopback interfaces, and duplicate values are left out. `host.mac` only
 includes interfaces that have a physical address. The values are read when the
 resource is built, so addresses assigned afterwards are only picked up if the
 resource is built again.
+
+### CPU information
+
+`host.cpu.vendor.id`, `host.cpu.family`, `host.cpu.model.id`,
+`host.cpu.model.name`, `host.cpu.stepping` and `host.cpu.cache.l2.size` are
+[opt-in](https://github.com/open-telemetry/semantic-conventions/blob/v1.44.0/docs/resource/host.md)
+attributes, so they are not emitted by default. Set
+`OTEL_DOTNET_EXPERIMENTAL_HOST_RESOURCE_ENABLE_CPU_INFO` to `true` to emit them.
+
+Which attributes are available depends on the CPU architecture rather than
+the operating system, and an attribute whose source is missing is left out.
+
+| Attribute | Windows | Linux | macOS |
+| --- | --- | --- | --- |
+| `host.cpu.vendor.id` | registry `VendorIdentifier` | `/proc/cpuinfo` `vendor_id` (x86) | `sysctl machdep.cpu.vendor` (Intel) |
+| `host.cpu.family`, `host.cpu.model.id`, `host.cpu.stepping` | registry `Identifier` | `/proc/cpuinfo` (x86) | `sysctl machdep.cpu.{family,model,stepping}` (Intel) |
+| `host.cpu.model.name` | registry `ProcessorNameString` | `/proc/cpuinfo` `model name` (x86) | `sysctl machdep.cpu.brand_string` |
+| `host.cpu.cache.l2.size` | `GetLogicalProcessorInformation` | `/sys/devices/system/cpu/cpu0/cache` | `sysctl hw.l2cachesize` |
 
 ## References
 
