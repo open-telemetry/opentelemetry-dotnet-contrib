@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.3.0-alpha.2
+
+Released 2026-Sep-18
+
 * Fixed Kafka spans exporting unsanitized exception messages as status descriptions.
   ([#5214](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5214))
 
