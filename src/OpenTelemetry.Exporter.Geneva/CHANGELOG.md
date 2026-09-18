@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.19.0-beta.1
+
+Released 2026-Sep-18
+
 * Fixed OTLP protobuf serialization for nested messages with lengths at or
   above 16 KiB.
   ([#5147](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5147))
