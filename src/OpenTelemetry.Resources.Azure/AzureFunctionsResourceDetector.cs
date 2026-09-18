@@ -54,12 +54,6 @@ internal sealed class AzureFunctionsResourceDetector : IResourceDetector
                 attributeList.Add(new(ResourceSemanticConventions.AttributeCloudAccount, subscriptionId));
             }
 
-            if (websiteSiteName is { Length: > 0 }
-                && AppServiceResourceDetector.GetAzureResourceURI(websiteSiteName, websiteResourceGroup, subscriptionId) is { } azureResourceUri)
-            {
-                attributeList.Add(new(ResourceSemanticConventions.AttributeCloudResourceId, azureResourceUri));
-            }
-
             foreach (var kvp in AzureFunctionsResourceAttributes)
             {
                 var attributeValue = Environment.GetEnvironmentVariable(kvp.Value);

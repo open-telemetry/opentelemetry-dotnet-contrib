@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+* Omit `cloud.resource_id` from the Azure Functions resource detector. The
+  [FaaS resource convention](https://opentelemetry.io/docs/specs/semconv/resource/faas/#faas-resource-attributes)
+  requires the invoked function's ID on the span, not the function app's ID on
+  the resource.
+  ([#5165](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5165))
+
 ## 1.18.0-beta.2
 
 Released 2026-Sep-10

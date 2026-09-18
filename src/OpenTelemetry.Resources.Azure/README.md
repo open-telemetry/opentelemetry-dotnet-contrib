@@ -71,7 +71,12 @@ Functions detector emits attributes. Azure Functions Core Tools also sets this
 environment variable during local development, including when no Azure
 subscription is involved. In that case, `cloud.provider` and `cloud.platform`
 are still emitted, while attributes that require Azure environment variables,
-such as the region, account, and resource ID, are omitted.
+such as the region, account, and resource group, are omitted.
+
+The detector does not emit `cloud.resource_id`. The
+[FaaS resource convention](https://opentelemetry.io/docs/specs/semconv/resource/faas/#faas-resource-attributes)
+requires this attribute to identify the invoked function, not the function app,
+and to be set on the span because multiple functions can share a `TracerProvider`.
 
 The detector does not emit `faas.version` because
 `FUNCTIONS_EXTENSION_VERSION` identifies the Functions host runtime, not the
@@ -84,7 +89,6 @@ function application version.
 | cloud.platform              | The cloud platform. Here, it is always "azure.functions".                                                                                                      |
 | cloud.provider              | The cloud service provider. In this context, it is always "azure".                                                                                             |
 | cloud.region                | The Azure region from `REGION_NAME`.                                                                                                                           |
-| cloud.resource_id           | The Azure Resource Manager URI identifying the function app. Emitted when the site name, resource group, and subscription ID are available.                    |
 | deployment.environment.name | The deployment slot from `WEBSITE_SLOT_NAME`.                                                                                                                  |
 | faas.instance               | The platform instance ID from `WEBSITE_INSTANCE_ID`, falling back to `WEBSITE_POD_NAME` and then `CONTAINER_NAME` for Linux and Flex Consumption environments. |
 | service.name                | The function app name from `WEBSITE_SITE_NAME`.                                                                                                                |

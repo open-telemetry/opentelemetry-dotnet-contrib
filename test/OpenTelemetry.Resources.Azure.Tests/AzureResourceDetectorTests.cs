@@ -221,11 +221,7 @@ public class AzureResourceDetectorTests
             Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudRegion, "eastus"), resource.Attributes);
             Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudAccount, "subscription-id"), resource.Attributes);
             Assert.Contains(new KeyValuePair<string, object>(ResourceAttributeConstants.AzureResourceGroupName, "function-rg"), resource.Attributes);
-            Assert.Contains(
-                new KeyValuePair<string, object>(
-                    ResourceSemanticConventions.AttributeCloudResourceId,
-                    "/subscriptions/subscription-id/resourceGroups/function-rg/providers/Microsoft.Web/sites/function-app"),
-                resource.Attributes);
+            Assert.DoesNotContain(resource.Attributes, attribute => attribute.Key == ResourceSemanticConventions.AttributeCloudResourceId);
             Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeFaasInstance, "function-instance"), resource.Attributes);
             Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeDeploymentEnvironmentName, "staging"), resource.Attributes);
             Assert.DoesNotContain(resource.Attributes, attribute => attribute.Key == ResourceSemanticConventions.AttributeFaasVersion);
