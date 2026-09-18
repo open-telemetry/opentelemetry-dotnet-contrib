@@ -9,6 +9,9 @@ using System.Globalization;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
+#if NET
+using System.Runtime.Versioning;
+#endif
 using Microsoft.Win32;
 using OpenTelemetry.Internal;
 
@@ -22,13 +25,14 @@ internal sealed class HostDetector : IResourceDetector
     internal const string EnableNetworkAddressesEnvVarName = "OTEL_DOTNET_EXPERIMENTAL_HOST_RESOURCE_ENABLE_NETWORK_ADDRESSES";
     internal const string EnableCpuInfoEnvVarName = "OTEL_DOTNET_EXPERIMENTAL_HOST_RESOURCE_ENABLE_CPU_INFO";
 
-    private const string WINDOWSCPUREGISTRYKEY = @"HARDWARE\DESCRIPTION\System\CentralProcessor\0";
+    private const string WindowsCpuRegistryKey = @"HARDWARE\DESCRIPTION\System\CentralProcessor\0";
 
 #if !NETFRAMEWORK
     private const string ETCMACHINEID = "/etc/machine-id";
     private const string ETCVARDBUSMACHINEID = "/var/lib/dbus/machine-id";
-    private const string PROCCPUINFO = "/proc/cpuinfo";
-    private const string SYSFSCPUCACHE = "/sys/devices/system/cpu/cpu0/cache";
+    private const string ProcCpuInfo = "/proc/cpuinfo";
+    private const string SysfsCpuCache = "/sys/devices/system/cpu/cpu0/cache";
+    private const string MacOsCacheSizeKey = "hw.l2cachesize";
 #endif
 
     private const int MaxBaseAttributeCount = 3;
@@ -38,6 +42,20 @@ internal sealed class HostDetector : IResourceDetector
     private static readonly Version SemanticConventionsVersion = new(1, 44, 0);
 
 #if !NETFRAMEWORK
+    // The sysctl arguments are built from this map, so an attribute can never read a key the
+    // command did not ask for.
+    private static readonly KeyValuePair<string, string>[] MacOsCpuAttributes =
+    [
+        new("machdep.cpu.vendor", HostSemanticConventions.AttributeHostCpuVendorId),
+        new("machdep.cpu.family", HostSemanticConventions.AttributeHostCpuFamily),
+        new("machdep.cpu.model", HostSemanticConventions.AttributeHostCpuModelId),
+        new("machdep.cpu.brand_string", HostSemanticConventions.AttributeHostCpuModelName),
+        new("machdep.cpu.stepping", HostSemanticConventions.AttributeHostCpuStepping),
+    ];
+
+    private static readonly string MacOsCpuSysctlArguments =
+        string.Join(" ", MacOsCpuAttributes.Select(attribute => attribute.Key)) + " " + MacOsCacheSizeKey;
+
     private readonly Func<OSPlatform, bool> isOsPlatform;
     private readonly Func<IEnumerable<string>> getFilePaths;
     private readonly Func<string?> getMacOsMachineId;
@@ -278,6 +296,34 @@ internal sealed class HostDetector : IResourceDetector
         return size <= int.MaxValue ? (int?)size : null;
     }
 
+    internal static void AddCpuInfoWindows(List<KeyValuePair<string, object>> attributes, Func<string, string?>? getRegistryValue, Func<int?> getL2CacheSize)
+    {
+        if (getRegistryValue != null)
+        {
+            try
+            {
+                AddCpuAttribute(attributes, HostSemanticConventions.AttributeHostCpuVendorId, NormalizeCpuValue(getRegistryValue("VendorIdentifier")));
+                AddCpuAttribute(attributes, HostSemanticConventions.AttributeHostCpuModelName, NormalizeCpuValue(getRegistryValue("ProcessorNameString")));
+
+                // Family, model and stepping have no registry value of their own; they are only
+                // available inside "AMD64 Family 25 Model 1 Stepping 1", whose leading token is the
+                // architecture rather than the vendor.
+                var identifier = getRegistryValue("Identifier");
+                AddCpuAttribute(attributes, HostSemanticConventions.AttributeHostCpuFamily, ParseCpuIdentifierToken(identifier, "Family"));
+                AddCpuAttribute(attributes, HostSemanticConventions.AttributeHostCpuModelId, ParseCpuIdentifierToken(identifier, "Model"));
+                AddCpuAttribute(attributes, HostSemanticConventions.AttributeHostCpuStepping, ParseCpuIdentifierToken(identifier, "Stepping"));
+            }
+            catch (Exception ex)
+            {
+                HostResourceEventSource.Log.ResourceAttributesExtractException(nameof(HostDetector), ex);
+            }
+        }
+
+        // The cache size comes from kernel32, so neither a missing registry key nor a failed
+        // read may skip it.
+        AddCpuAttribute(attributes, HostSemanticConventions.AttributeHostCpuCacheL2Size, getL2CacheSize());
+    }
+
 #if !NETFRAMEWORK
     internal static string? ParseMacOsOutput(string? output)
     {
@@ -401,32 +447,28 @@ internal sealed class HostDetector : IResourceDetector
         }
 #endif
 
+        RegistryKey? subKey = null;
+
         try
         {
-            using var subKey = Registry.LocalMachine.OpenSubKey(WINDOWSCPUREGISTRYKEY, false);
-            if (subKey == null)
-            {
-                return;
-            }
-
-            AddCpuAttribute(attributes, HostSemanticConventions.AttributeHostCpuVendorId, NormalizeCpuValue(subKey.GetValue("VendorIdentifier") as string));
-            AddCpuAttribute(attributes, HostSemanticConventions.AttributeHostCpuModelName, NormalizeCpuValue(subKey.GetValue("ProcessorNameString") as string));
-
-            // Family, model and stepping have no registry value of their own; they are only
-            // available inside "AMD64 Family 25 Model 1 Stepping 1", whose leading token is the
-            // architecture rather than the vendor.
-            var identifier = subKey.GetValue("Identifier") as string;
-            AddCpuAttribute(attributes, HostSemanticConventions.AttributeHostCpuFamily, ParseCpuIdentifierToken(identifier, "Family"));
-            AddCpuAttribute(attributes, HostSemanticConventions.AttributeHostCpuModelId, ParseCpuIdentifierToken(identifier, "Model"));
-            AddCpuAttribute(attributes, HostSemanticConventions.AttributeHostCpuStepping, ParseCpuIdentifierToken(identifier, "Stepping"));
+            subKey = Registry.LocalMachine.OpenSubKey(WindowsCpuRegistryKey, false);
         }
         catch (Exception ex)
         {
             HostResourceEventSource.Log.ResourceAttributesExtractException(nameof(HostDetector), ex);
         }
 
-        AddCpuAttribute(attributes, HostSemanticConventions.AttributeHostCpuCacheL2Size, GetL2CacheSizeWindows());
+        using (subKey)
+        {
+            AddCpuInfoWindows(attributes, subKey == null ? null : CreateRegistryValueReader(subKey), GetL2CacheSizeWindows);
+        }
     }
+
+#if NET
+    [SupportedOSPlatform("windows")]
+#endif
+    private static Func<string, string?> CreateRegistryValueReader(RegistryKey subKey) =>
+        name => subKey.GetValue(name) as string;
 
     private static int? GetL2CacheSizeWindows()
     {
@@ -454,7 +496,7 @@ internal sealed class HostDetector : IResourceDetector
 
                 // The registry carries no cache value, and this API states the level rather
                 // than leaving it to be inferred.
-                if (entry.Relationship == NativeMethods.RELATIONCACHE && entry.Data.Cache.Level == 2)
+                if (entry.Relationship == NativeMethods.RelationCache && entry.Data.Cache.Level == 2)
                 {
                     return entry.Data.Cache.Size <= int.MaxValue ? (int?)entry.Data.Cache.Size : null;
                 }
@@ -478,7 +520,7 @@ internal sealed class HostDetector : IResourceDetector
 #if !NETFRAMEWORK
     private static void AddCpuInfoLinux(List<KeyValuePair<string, object>> attributes)
     {
-        var cpuInfo = ReadCpuFile(PROCCPUINFO);
+        var cpuInfo = ReadCpuFile(ProcCpuInfo);
 
         AddCpuAttribute(attributes, HostSemanticConventions.AttributeHostCpuVendorId, ParseCpuInfoField(cpuInfo, "vendor_id"));
         AddCpuAttribute(attributes, HostSemanticConventions.AttributeHostCpuFamily, ParseCpuInfoField(cpuInfo, "cpu family"));
@@ -492,12 +534,12 @@ internal sealed class HostDetector : IResourceDetector
     {
         try
         {
-            if (!Directory.Exists(SYSFSCPUCACHE))
+            if (!Directory.Exists(SysfsCpuCache))
             {
                 return null;
             }
 
-            foreach (var cacheDirectory in Directory.GetDirectories(SYSFSCPUCACHE, "index*"))
+            foreach (var cacheDirectory in Directory.GetDirectories(SysfsCpuCache, "index*"))
             {
                 // sysfs states the level, which /proc/cpuinfo's "cache size" leaves to be
                 // guessed at: it is the last-level cache on some vendors and L2 on others.
@@ -534,8 +576,12 @@ internal sealed class HostDetector : IResourceDetector
     {
         var output = GetCpuInfoMacOs();
 
-        AddCpuAttribute(attributes, HostSemanticConventions.AttributeHostCpuModelName, ParseSysctlField(output, "machdep.cpu.brand_string"));
-        AddCpuAttribute(attributes, HostSemanticConventions.AttributeHostCpuCacheL2Size, ParseCacheSize(ParseSysctlField(output, "hw.l2cachesize")));
+        foreach (var attribute in MacOsCpuAttributes)
+        {
+            AddCpuAttribute(attributes, attribute.Value, ParseSysctlField(output, attribute.Key));
+        }
+
+        AddCpuAttribute(attributes, HostSemanticConventions.AttributeHostCpuCacheL2Size, ParseCacheSize(ParseSysctlField(output, MacOsCacheSizeKey)));
     }
 
     private static string? GetCpuInfoMacOs()
@@ -546,7 +592,7 @@ internal sealed class HostDetector : IResourceDetector
             var startInfo = new ProcessStartInfo
             {
                 FileName = "/usr/sbin/sysctl",
-                Arguments = "machdep.cpu.brand_string hw.l2cachesize",
+                Arguments = MacOsCpuSysctlArguments,
                 UseShellExecute = false,
                 CreateNoWindow = true,
                 RedirectStandardOutput = true,
@@ -730,7 +776,7 @@ internal sealed class HostDetector : IResourceDetector
 
     internal static class NativeMethods
     {
-        internal const int RELATIONCACHE = 2;
+        internal const int RelationCache = 2;
 
         [DllImport("kernel32.dll", SetLastError = true)]
         [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]

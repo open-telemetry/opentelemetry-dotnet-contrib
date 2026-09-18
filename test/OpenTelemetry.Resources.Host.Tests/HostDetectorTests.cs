@@ -45,6 +45,14 @@ public class HostDetectorTests
         "machdep.cpu.brand_string: Apple M5\n" +
         "hw.l2cachesize: 6291456\n";
 
+    private const string IntelSysctlOutput =
+        "machdep.cpu.vendor: GenuineIntel\n" +
+        "machdep.cpu.family: 6\n" +
+        "machdep.cpu.model: 6\n" +
+        "machdep.cpu.stepping: 1\n" +
+        "machdep.cpu.brand_string: 11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz\n" +
+        "hw.l2cachesize: 12288000\n";
+
 #if !NETFRAMEWORK
     private const string MacOSMachineIdOutput = @"+-o J293AP  <class IOPlatformExpertDevice, id 0x100000227, registered, matched,$
         {
@@ -363,8 +371,38 @@ public class HostDetectorTests
 
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
 
-        Assert.True(resourceAttributes.ContainsKey("host.cpu.model.name"), "host.cpu.model.name should be detected when the flag is set; it is the only host.cpu.* attribute whose source exists on every platform this suite runs on.");
-        Assert.NotEmpty(Assert.IsType<string>(resourceAttributes["host.cpu.model.name"]));
+#if NETFRAMEWORK
+        var isWindows = true;
+        var isArmLinux = false;
+#else
+        var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+        var isArmLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+            && RuntimeInformation.ProcessArchitecture is Architecture.Arm or Architecture.Arm64;
+#endif
+
+        if (isArmLinux)
+        {
+            // Arm /proc/cpuinfo carries CPU implementer, part, architecture and revision instead
+            // of the five fields read here; reading those is a follow-up, not a settled omission.
+            Assert.False(
+                resourceAttributes.ContainsKey("host.cpu.model.name"),
+                "host.cpu.model.name has no /proc/cpuinfo source on Arm Linux; reading the Arm fields is a follow-up.");
+        }
+        else
+        {
+            Assert.True(
+                resourceAttributes.ContainsKey("host.cpu.model.name"),
+                "host.cpu.model.name should be detected when the flag is set on Windows, x86 Linux and macOS.");
+            Assert.NotEmpty(Assert.IsType<string>(resourceAttributes["host.cpu.model.name"]));
+        }
+
+        if (isWindows)
+        {
+            Assert.True(
+                resourceAttributes.ContainsKey("host.cpu.cache.l2.size"),
+                "host.cpu.cache.l2.size should be detected on Windows; its source is kernel32, not the registry.");
+        }
+
         Assert.False(resourceAttributes.ContainsKey("host.ip"), "host.ip should not be detected when only the CPU flag is set.");
     }
 
@@ -419,6 +457,12 @@ public class HostDetectorTests
     [InlineData(SysctlOutput, "hw.l2cachesize", "6291456")]
     [InlineData(SysctlOutput, "machdep.cpu.vendor", null)]
     [InlineData(SysctlOutput, "machdep.cpu.brand", null)]
+    [InlineData(IntelSysctlOutput, "machdep.cpu.vendor", "GenuineIntel")]
+    [InlineData(IntelSysctlOutput, "machdep.cpu.family", "6")]
+    [InlineData(IntelSysctlOutput, "machdep.cpu.model", "6")]
+    [InlineData(IntelSysctlOutput, "machdep.cpu.stepping", "1")]
+    [InlineData(IntelSysctlOutput, "machdep.cpu.brand_string", "11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz")]
+    [InlineData(IntelSysctlOutput, "hw.l2cachesize", "12288000")]
     [InlineData(null, "hw.l2cachesize", null)]
     public void TestParseSysctlField(string? output, string key, string? expected) =>
         Assert.Equal(expected, HostDetector.ParseSysctlField(output, key));
@@ -427,6 +471,7 @@ public class HostDetectorTests
     [InlineData("1024 KB", 1048576)]
     [InlineData("6144 KB", 6291456)]
     [InlineData("6291456", 6291456)]
+    [InlineData("12288000", 12288000)]
     [InlineData("1024K", 1048576)]
     [InlineData("unknown", null)]
     [InlineData("   ", null)]
@@ -457,7 +502,7 @@ public class HostDetectorTests
 
             var entry = Marshal.PtrToStructure<HostDetector.NativeMethods.SystemLogicalProcessorInformation>(buffer);
 
-            Assert.Equal(HostDetector.NativeMethods.RELATIONCACHE, entry.Relationship);
+            Assert.Equal(HostDetector.NativeMethods.RelationCache, entry.Relationship);
             Assert.Equal((byte)2, entry.Data.Cache.Level);
             Assert.Equal(524288u, entry.Data.Cache.Size);
         }
@@ -466,4 +511,56 @@ public class HostDetectorTests
             Marshal.FreeHGlobal(buffer);
         }
     }
+
+    [Fact]
+    public void TestAddCpuInfoWindowsReadsEveryRegistryValue()
+    {
+        var attributes = new List<KeyValuePair<string, object>>();
+
+        HostDetector.AddCpuInfoWindows(attributes, ReadWindowsCpuRegistryValue, () => 524288);
+
+        var resourceAttributes = attributes.ToDictionary(x => x.Key, x => x.Value);
+
+        Assert.Equal("AuthenticAMD", resourceAttributes["host.cpu.vendor.id"]);
+        Assert.Equal("AMD EPYC 7763 64-Core Processor", resourceAttributes["host.cpu.model.name"]);
+        Assert.Equal("25", resourceAttributes["host.cpu.family"]);
+        Assert.Equal("1", resourceAttributes["host.cpu.model.id"]);
+        Assert.Equal("1", resourceAttributes["host.cpu.stepping"]);
+        Assert.Equal(524288, Assert.IsType<int>(resourceAttributes["host.cpu.cache.l2.size"]));
+        Assert.Equal(6, resourceAttributes.Count);
+    }
+
+    [Fact]
+    public void TestAddCpuInfoWindowsEmitsCacheSizeWhenRegistryKeyIsMissing()
+    {
+        var attributes = new List<KeyValuePair<string, object>>();
+
+        HostDetector.AddCpuInfoWindows(attributes, null, () => 524288);
+
+        var attribute = Assert.Single(attributes);
+
+        Assert.Equal("host.cpu.cache.l2.size", attribute.Key);
+        Assert.Equal(524288, Assert.IsType<int>(attribute.Value));
+    }
+
+    [Fact]
+    public void TestAddCpuInfoWindowsEmitsCacheSizeWhenRegistryReadThrows()
+    {
+        var attributes = new List<KeyValuePair<string, object>>();
+
+        HostDetector.AddCpuInfoWindows(attributes, _ => throw new InvalidOperationException(), () => 524288);
+
+        var attribute = Assert.Single(attributes);
+
+        Assert.Equal("host.cpu.cache.l2.size", attribute.Key);
+        Assert.Equal(524288, Assert.IsType<int>(attribute.Value));
+    }
+
+    private static string? ReadWindowsCpuRegistryValue(string name) => name switch
+    {
+        "VendorIdentifier" => "AuthenticAMD",
+        "ProcessorNameString" => "AMD EPYC 7763 64-Core Processor                ",
+        "Identifier" => WindowsCpuIdentifier,
+        _ => null,
+    };
 }
