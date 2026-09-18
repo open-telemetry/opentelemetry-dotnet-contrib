@@ -1364,5 +1364,44 @@
       ],
       "db.query.summary": "SELECT [dbo].[Person] [dbo].[Address]"
     }
+  },
+  {
+    "name": "delimited_identifier_with_escaped_closing_bracket",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "SELECT * FROM [Tab]]le]"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT * FROM [Tab]]le]"
+      ],
+      "db.query.summary": "SELECT [Tab]]le]"
+    }
+  },
+  {
+    "name": "schema_qualified_delimited_identifier_with_escaped_closing_bracket",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "SELECT * FROM [dbo].[Order]]s] WHERE Id = 1"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT * FROM [dbo].[Order]]s] WHERE Id = ?"
+      ],
+      "db.query.summary": "SELECT [dbo].[Order]]s]"
+    }
+  },
+  {
+    "name": "delimited_identifier_with_consecutive_escaped_closing_brackets",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "SELECT * FROM [A]]]]B]"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT * FROM [A]]]]B]"
+      ],
+      "db.query.summary": "SELECT [A]]]]B]"
+    }
   }
 ]
