@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Updated OpenTelemetry core component version(s) to `1.19.0`.
+  ([#5240](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5240))
+
 * Omit `cloud.resource_id` from the Azure Functions resource detector. The
   [FaaS resource convention](https://opentelemetry.io/docs/specs/semconv/resource/faas/#faas-resource-attributes)
   requires the invoked function's ID on the span, not the function app's ID on
