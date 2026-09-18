@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.19.0
+
+Released 2026-Sep-18
+
 * Fixed incorrect `http.server.request.duration` metric values for requests that
   cross between IIS native and managed modules.
   ([#5206](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5206))
