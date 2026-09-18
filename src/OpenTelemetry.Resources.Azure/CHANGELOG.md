@@ -5,10 +5,11 @@
 * Updated OpenTelemetry core component version(s) to `1.19.0`.
   ([#5240](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5240))
 
-* Omit `cloud.resource_id` from the Azure Functions resource detector. The
-  [FaaS resource convention](https://opentelemetry.io/docs/specs/semconv/resource/faas/#faas-resource-attributes)
-  requires the invoked function's ID on the span, not the function app's ID on
-  the resource.
+* **Breaking change**: Detect Azure Functions environments before Azure App
+  Service and emit Azure Functions resource attributes. When
+  `FUNCTIONS_WORKER_RUNTIME` is set, the detector no longer emits the App
+  Service-specific `azure.app.service.stamp`, `host.id`, or
+  `service.instance.id` attributes.
   ([#5165](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5165))
 
 ## 1.18.0-beta.2
@@ -25,13 +26,6 @@ Released 2026-Sep-10
   * `azure_container_apps` to `azure.container_apps`
   * `azure_vm` to `azure.vm`
   ([#5143](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5143))
-
-* **Breaking change**: Detect Azure Functions environments before Azure App
-  Service and emit Azure Functions resource attributes. When
-  `FUNCTIONS_WORKER_RUNTIME` is set, the detector no longer emits the App
-  Service-specific `azure.app.service.stamp`, `host.id`, or
-  `service.instance.id` attributes.
-  ([#5165](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5165))
 
 * Log an event when a resource detector does not detect any attributes because
   none of the environment variables that identify the platform are set.
