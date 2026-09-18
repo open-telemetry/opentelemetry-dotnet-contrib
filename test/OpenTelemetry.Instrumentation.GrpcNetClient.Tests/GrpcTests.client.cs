@@ -146,6 +146,80 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
     }
 
     [Fact]
+    public void GrpcClientCallsAreNotCollectedWhenFilterApplied()
+    {
+        var uri = new UriBuilder("http://localhost") { Port = 1234 }.Uri;
+
+        using var httpClient = ClientTestHelpers.CreateTestClient(async request =>
+        {
+            var streamContent = await ClientTestHelpers.CreateResponseContent(new HelloReply());
+            var response = ResponseUtils.CreateResponse(HttpStatusCode.OK, streamContent, grpcStatusCode: global::Grpc.Core.StatusCode.OK);
+            return response;
+        });
+
+        var exportedItems = new List<Activity>();
+        var filterApplied = false;
+
+        using (Sdk.CreateTracerProviderBuilder()
+                .SetSampler(new AlwaysOnSampler())
+                .AddGrpcClientInstrumentation(options =>
+                {
+                    options.Filter = req =>
+                    {
+                        filterApplied = true;
+                        return !req.RequestUri!.OriginalString.Contains(uri.ToString());
+                    };
+                })
+                .AddInMemoryExporter(exportedItems)
+                .Build())
+        {
+            var channel = GrpcChannel.ForAddress(uri, new GrpcChannelOptions
+            {
+                HttpClient = httpClient,
+            });
+            var client = new Greeter.GreeterClient(channel);
+            _ = client.SayHello(new HelloRequest());
+        }
+
+        Assert.True(filterApplied);
+        Assert.Empty(exportedItems);
+    }
+
+    [Fact]
+    public void GrpcClientCallsAreNotCollectedWhenFilterThrows()
+    {
+        var uri = new UriBuilder("http://localhost") { Port = 1234 }.Uri;
+
+        using var httpClient = ClientTestHelpers.CreateTestClient(async request =>
+        {
+            var streamContent = await ClientTestHelpers.CreateResponseContent(new HelloReply());
+            var response = ResponseUtils.CreateResponse(HttpStatusCode.OK, streamContent, grpcStatusCode: global::Grpc.Core.StatusCode.OK);
+            return response;
+        });
+
+        var exportedItems = new List<Activity>();
+
+        using (Sdk.CreateTracerProviderBuilder()
+                .SetSampler(new AlwaysOnSampler())
+                .AddGrpcClientInstrumentation(options =>
+                {
+                    options.Filter = _ => throw new Exception("From Filter");
+                })
+                .AddInMemoryExporter(exportedItems)
+                .Build())
+        {
+            var channel = GrpcChannel.ForAddress(uri, new GrpcChannelOptions
+            {
+                HttpClient = httpClient,
+            });
+            var client = new Greeter.GreeterClient(channel);
+            _ = client.SayHello(new HelloRequest());
+        }
+
+        Assert.Empty(exportedItems);
+    }
+
+    [Fact]
     public void GrpcClientCancelledCallIsRecordedAsErrorPerSemanticConventions()
     {
         // The gRPC semantic conventions specify that, for client spans, all status codes
