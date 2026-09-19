@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+* The minimum supported version of `Google.Api.Gax` is now `4.14.0`.
+  ([#5212](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5212))
+
+* Fixed a `NullReferenceException` thrown by the resource detector, which
+  caused provider construction to fail when running as a Google Cloud Run job
+  with `Google.Api.Gax` 4.14.0 or later. Cloud Run jobs are now detected
+  (`cloud.platform` is `gcp_cloud_run`) with the `faas.name`,
+  `gcp.cloud_run.job.execution` and `gcp.cloud_run.job.task_index` attributes.
+  ([#5212](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5212))
+
+* The detector now catches and logs an exception and returns an empty resource.
+  ([#5212](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5212))
+
 ## 1.0.0-alpha.5
 
 Released 2026-Sep-18
