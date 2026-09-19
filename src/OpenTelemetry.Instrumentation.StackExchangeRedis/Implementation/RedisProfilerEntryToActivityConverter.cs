@@ -20,16 +20,57 @@ namespace OpenTelemetry.Instrumentation.StackExchangeRedis.Implementation;
 
 internal static class RedisProfilerEntryToActivityConverter
 {
+    private static readonly string[] CachedDatabaseNames =
+    [
+        "0", "1", "2", "3", "4", "5", "6", "7",
+        "8", "9", "10", "11", "12", "13", "14", "15",
+    ];
+
     private static readonly Lazy<Func<object, (string?, string?)>> MessageDataGetter = new(() =>
     {
 #pragma warning disable IDE0370 // Suppression is unnecessary
         var profiledCommandType = Type.GetType("StackExchange.Redis.Profiling.ProfiledCommand, StackExchange.Redis", throwOnError: true)!;
-        var scriptMessageType = Type.GetType("StackExchange.Redis.RedisDatabase+ScriptEvalMessage, StackExchange.Redis", throwOnError: true)!;
+
+        // StackExchange.Redis 3.2.0 (StackExchange/StackExchange.Redis#3211) renamed the private,
+        // array-based message type behind ScriptEvaluate(string, RedisKey[], RedisValue[]) from
+        // "ScriptEvalMessage" to "ScriptEvaluateMessage" (its "script" field is unchanged), and
+        // reused the "ScriptEvalMessage" name for a new pooled-buffer type (field "_script") behind
+        // the new ScriptEvaluateResp* APIs. Both type names and both field names are resolved below
+        // so the script text is reported regardless of which StackExchange.Redis version is loaded.
+        var scriptEvalMessageType = Type.GetType("StackExchange.Redis.RedisDatabase+ScriptEvalMessage, StackExchange.Redis", throwOnError: false);
+        var scriptEvaluateMessageType = Type.GetType("StackExchange.Redis.RedisDatabase+ScriptEvaluateMessage, StackExchange.Redis", throwOnError: false);
 #pragma warning restore IDE0370 // Suppression is unnecessary
 
-        var messageDelegate = CreateFieldGetter<object>(profiledCommandType, "Message", BindingFlags.NonPublic | BindingFlags.Instance);
-        var scriptDelegate = CreateFieldGetter<string>(scriptMessageType, "script", BindingFlags.NonPublic | BindingFlags.Instance);
+        var bindingFlags = BindingFlags.NonPublic | BindingFlags.Instance;
+
+        var messageDelegate = CreateFieldGetter<object>(profiledCommandType, "Message", bindingFlags);
         var commandAndKeyFetcher = new PropertyFetcher<string>("CommandAndKey");
+
+        var scriptDelegatesByType = new Dictionary<Type, Func<object, string?>>();
+
+        if (scriptEvalMessageType != null)
+        {
+            var getter =
+                CreateFieldGetter<string>(scriptEvalMessageType, "script", bindingFlags) ??
+                CreateFieldGetter<string>(scriptEvalMessageType, "_script", bindingFlags);
+
+            if (getter != null)
+            {
+                scriptDelegatesByType[scriptEvalMessageType] = getter;
+            }
+        }
+
+        if (scriptEvaluateMessageType != null)
+        {
+            var getter =
+                CreateFieldGetter<string>(scriptEvaluateMessageType, "script", bindingFlags) ??
+                CreateFieldGetter<string>(scriptEvaluateMessageType, "_script", bindingFlags);
+
+            if (getter != null)
+            {
+                scriptDelegatesByType[scriptEvaluateMessageType] = getter;
+            }
+        }
 
         if (messageDelegate == null)
         {
@@ -49,11 +90,9 @@ internal static class RedisProfilerEntryToActivityConverter
                 return (null, null);
             }
 
-            string? script = null;
-            if (message.GetType() == scriptMessageType)
-            {
-                script = scriptDelegate?.Invoke(message);
-            }
+            var script = scriptDelegatesByType.TryGetValue(message.GetType(), out var scriptDelegate)
+                ? scriptDelegate(message)
+                : null;
 
             return GetCommandAndKey(commandAndKeyFetcher, message, out var value) ? (value, script) : (null, script);
 
@@ -138,31 +177,25 @@ internal static class RedisProfilerEntryToActivityConverter
 
             string? commandAndKey = null;
             string? script = null;
+            string? verboseStatement = null;
             if (options.SetVerboseDatabaseStatements)
             {
                 (commandAndKey, script) = MessageDataGetter.Value.Invoke(command);
+
+                if (!string.IsNullOrEmpty(commandAndKey))
+                {
+                    verboseStatement = string.IsNullOrEmpty(script)
+                        ? commandAndKey
+                        : string.Concat(commandAndKey, " ", script);
+                }
             }
 
             if (options.EmitOldAttributes)
             {
                 activity.SetTag(StackExchangeRedisConnectionInstrumentation.RedisDatabaseIndexKeyName, command.Db);
-                string? statement = null;
-
-                if (options.SetVerboseDatabaseStatements)
-                {
-                    if (!string.IsNullOrEmpty(commandAndKey))
-                    {
-                        statement = commandAndKey;
-
-                        if (!string.IsNullOrEmpty(script))
-                        {
-                            statement += " " + script;
-                        }
-                    }
-                }
 
                 // Example: "db.statement": SET;
-                statement ??= command.Command;
+                var statement = verboseStatement ?? command.Command;
 
                 if (statement != null)
                 {
@@ -172,19 +205,13 @@ internal static class RedisProfilerEntryToActivityConverter
 
             if (options.EmitNewAttributes)
             {
-                var queryText = command.Command;
-                if (options.SetVerboseDatabaseStatements && !string.IsNullOrEmpty(commandAndKey))
-                {
-                    queryText = commandAndKey;
-
-                    if (!string.IsNullOrEmpty(script))
-                    {
-                        queryText += " " + script;
-                    }
-                }
-
+                var queryText = verboseStatement ?? command.Command;
+                var db = command.Db;
+                var dbNamespace = (uint)db < (uint)CachedDatabaseNames.Length
+                    ? CachedDatabaseNames[db]
+                    : db.ToString(CultureInfo.InvariantCulture);
                 activity.SetTag(SemanticConventions.AttributeDbOperationName, command.Command);
-                activity.SetTag(SemanticConventions.AttributeDbNamespace, command.Db.ToString(CultureInfo.InvariantCulture));
+                activity.SetTag(SemanticConventions.AttributeDbNamespace, dbNamespace);
                 activity.SetTag(SemanticConventions.AttributeDbQueryText, queryText);
             }
 
@@ -193,15 +220,16 @@ internal static class RedisProfilerEntryToActivityConverter
                 if (command.EndPoint is IPEndPoint ipEndPoint)
                 {
                     var address = ipEndPoint.Address.ToString();
+                    var port = PortTelemetryHelper.GetBoxedPort(ipEndPoint.Port, cacheValue: true);
                     activity.SetTag(SemanticConventions.AttributeServerAddress, address);
-                    activity.SetTag(SemanticConventions.AttributeServerPort, ipEndPoint.Port);
+                    activity.SetTag(SemanticConventions.AttributeServerPort, port);
                     activity.SetTag(SemanticConventions.AttributeNetworkPeerAddress, address);
-                    activity.SetTag(SemanticConventions.AttributeNetworkPeerPort, ipEndPoint.Port);
+                    activity.SetTag(SemanticConventions.AttributeNetworkPeerPort, port);
                 }
                 else if (command.EndPoint is DnsEndPoint dnsEndPoint)
                 {
                     activity.SetTag(SemanticConventions.AttributeServerAddress, dnsEndPoint.Host);
-                    activity.SetTag(SemanticConventions.AttributeServerPort, dnsEndPoint.Port);
+                    activity.SetTag(SemanticConventions.AttributeServerPort, PortTelemetryHelper.GetBoxedPort(dnsEndPoint.Port, cacheValue: true));
                 }
 #if NET
                 else if (command.EndPoint is UnixDomainSocketEndPoint unixDomainSocketEndPoint)

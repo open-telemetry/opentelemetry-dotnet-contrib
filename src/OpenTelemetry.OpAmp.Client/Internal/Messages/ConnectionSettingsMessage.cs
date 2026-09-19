@@ -4,14 +4,14 @@
 using OpAmp.Proto.V1;
 using OpenTelemetry.OpAmp.Client.Messages;
 
-namespace OpenTelemetry.OpAmp.Client.Internal.Listeners.Messages;
+namespace OpenTelemetry.OpAmp.Client.Internal.Messages;
 
-internal class ConnectionSettingsMessage : OpAmpMessage
+internal sealed class ConnectionSettingsMessage : OpAmpMessage
 {
     public ConnectionSettingsMessage(ConnectionSettingsOffers connectionSettingsOffers)
     {
         this.ConnectionSettings = connectionSettingsOffers;
     }
 
-    public ConnectionSettingsOffers ConnectionSettings { get; set; }
+    public ConnectionSettingsOffers ConnectionSettings { get; }
 }

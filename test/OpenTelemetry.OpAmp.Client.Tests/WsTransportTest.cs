@@ -171,14 +171,20 @@ public class WsTransportTest
 
         Assert.False(mockListener.TryWaitForMessage(TimeSpan.FromMilliseconds(500)));
         Assert.Empty(mockListener.Messages);
-        await WaitForEventAsync(eventListener, nameof(OpAmpClientEventSource.InvalidWsFrame), TimeSpan.FromSeconds(5));
+
+        await eventListener.WaitForEventAsync(
+            e => e.EventName == nameof(OpAmpClientEventSource.InvalidWsFrame)
+                && e.Payload![0] is string errorMessage
+                && string.Equals(errorMessage, "Invalid OpAmp WebSocket header: 1.", StringComparison.Ordinal),
+            $"{nameof(OpAmpClientEventSource.InvalidWsFrame)} for header 1",
+            TimeSpan.FromSeconds(5));
     }
 
     [Fact]
     public async Task WsTransport_ContinuesAfterInvalidBinaryFrame()
     {
         using var eventListener = new InMemoryEventListener(OpAmpClientEventSource.Log, EventLevel.Verbose);
-        var invalidFrame = new ArraySegment<byte>([0x01]);
+        var invalidFrame = new ArraySegment<byte>([0x02]);
         var validFrame = FrameGenerator.GenerateMockServerFrame(addHeader: true);
 
         using var opAmpServer = new OpAmpFakeWebSocketServer(
@@ -199,7 +205,13 @@ public class WsTransportTest
         var timeout = TimeSpan.FromSeconds(5);
 
         Assert.True(mockListener.TryWaitForMessage(timeout), "The client did not receive the valid response after the invalid frame.");
-        await WaitForEventAsync(eventListener, nameof(OpAmpClientEventSource.InvalidWsFrame), timeout);
+
+        await eventListener.WaitForEventAsync(
+            e => e.EventName == nameof(OpAmpClientEventSource.InvalidWsFrame)
+                && e.Payload![0] is string errorMessage
+                && string.Equals(errorMessage, "Invalid OpAmp WebSocket header: 2.", StringComparison.Ordinal),
+            $"{nameof(OpAmpClientEventSource.InvalidWsFrame)} for header 2",
+            timeout);
 
 #if NET
         var receivedTextData = Encoding.UTF8.GetString(mockListener.Messages.Single().Data);
@@ -308,7 +320,13 @@ public class WsTransportTest
 
         Assert.False(mockListener.TryWaitForMessage(TimeSpan.FromMilliseconds(500)));
         Assert.Empty(mockListener.Messages);
-        await WaitForEventAsync(eventListener, nameof(OpAmpClientEventSource.InvalidWsFrame), TimeSpan.FromSeconds(5));
+
+        await eventListener.WaitForEventAsync(
+            e => e.EventName == nameof(OpAmpClientEventSource.InvalidWsFrame)
+                && e.Payload![0] is string errorMessage
+                && string.Equals(errorMessage, "Invalid OpAmp WebSocket header: 110.", StringComparison.Ordinal),
+            $"{nameof(OpAmpClientEventSource.InvalidWsFrame)} for header 110",
+            TimeSpan.FromSeconds(5));
     }
 
     [Fact]
@@ -337,7 +355,15 @@ public class WsTransportTest
         Assert.True(opAmpServer.TryGetClientCloseStatus(timeout, out var closeStatus));
         Assert.Equal(WebSocketCloseStatus.MessageTooBig, closeStatus);
 
-        var oversizedEvent = await WaitForEventAsync(eventListener, nameof(OpAmpClientEventSource.OversizedWebSocketMessage), timeout);
+        var oversizedEvent = await eventListener.WaitForEventAsync(
+            e => e.EventName == nameof(OpAmpClientEventSource.OversizedWebSocketMessage)
+                && e.Payload![0] is int minimumBytes
+                && minimumBytes == TransportConstants.MaxMessageSize + 1
+                && e.Payload[1] is int limitBytes
+                && limitBytes == TransportConstants.MaxMessageSize,
+            $"{nameof(OpAmpClientEventSource.OversizedWebSocketMessage)} for {TransportConstants.MaxMessageSize + 1} bytes",
+            timeout);
+
         Assert.Equal(EventLevel.Warning, oversizedEvent.Level);
         Assert.Equal(TransportConstants.MaxMessageSize + 1, Assert.IsType<int>(oversizedEvent.Payload![0]));
         Assert.Equal(TransportConstants.MaxMessageSize, Assert.IsType<int>(oversizedEvent.Payload![1]));
@@ -659,24 +685,4 @@ public class WsTransportTest
 #else
         new(segment.Array, segment.Offset + offset, count);
 #endif
-
-    private static async Task<EventWrittenEventArgs> WaitForEventAsync(InMemoryEventListener eventListener, string eventName, TimeSpan timeout)
-    {
-        var deadline = DateTime.UtcNow + timeout;
-
-        while (DateTime.UtcNow < deadline)
-        {
-            while (eventListener.Events.TryDequeue(out var candidate))
-            {
-                if (candidate.EventName == eventName)
-                {
-                    return candidate;
-                }
-            }
-
-            await Task.Delay(TimeSpan.FromMilliseconds(10)).ConfigureAwait(false);
-        }
-
-        throw new TimeoutException($"Timed out waiting for event '{eventName}'.");
-    }
 }

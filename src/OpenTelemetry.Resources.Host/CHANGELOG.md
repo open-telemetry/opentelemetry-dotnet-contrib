@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+## 1.19.0-beta.1
+
+Released 2026-Sep-18
+
+* Added the `host.ip` and `host.mac` resource attributes, emitted when
+  `OTEL_DOTNET_EXPERIMENTAL_HOST_RESOURCE_ENABLE_NETWORK_ADDRESSES` is `true`.
+  ([#5172](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5172))
+
+* Updated semantic conventions to
+  [v1.44.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.44.0/docs/resource/host.md).
+  ([#5172](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5172))
+
+* Updated OpenTelemetry core component version(s) to `1.19.0`.
+  ([#5240](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5240))
+
 ## 1.18.0-beta.1
 
 Released 2026-Aug-21
@@ -23,7 +38,8 @@ Released 2026-Jul-22
 
 Released 2026-Jul-15
 
-* Specify full path for `ioreg` command on macOS.
+* Specify full path for `ioreg` command on macOS to resolve
+  [GHSA-v8pv-4842-x354](https://github.com/advisories/GHSA-v8pv-4842-x354).
   ([#4760](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4760))
 
 ## 1.16.0-beta.1

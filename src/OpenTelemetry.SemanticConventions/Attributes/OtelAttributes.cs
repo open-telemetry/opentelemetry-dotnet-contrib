@@ -92,22 +92,22 @@ public static class OtelAttributes
     public static class OtelComponentTypeValues
     {
         /// <summary>
-        /// The builtin SDK batching span processor.
+        /// The built-in SDK batching span processor.
         /// </summary>
         public const string BatchingSpanProcessor = "batching_span_processor";
 
         /// <summary>
-        /// The builtin SDK simple span processor.
+        /// The built-in SDK simple span processor.
         /// </summary>
         public const string SimpleSpanProcessor = "simple_span_processor";
 
         /// <summary>
-        /// The builtin SDK batching log record processor.
+        /// The built-in SDK batching log record processor.
         /// </summary>
         public const string BatchingLogProcessor = "batching_log_processor";
 
         /// <summary>
-        /// The builtin SDK simple log record processor.
+        /// The built-in SDK simple log record processor.
         /// </summary>
         public const string SimpleLogProcessor = "simple_log_processor";
 
@@ -147,7 +147,7 @@ public static class OtelAttributes
         public const string OtlpHttpJsonLogExporter = "otlp_http_json_log_exporter";
 
         /// <summary>
-        /// The builtin SDK periodically exporting metric reader.
+        /// The built-in SDK periodically exporting metric reader.
         /// </summary>
         public const string PeriodicMetricReader = "periodic_metric_reader";
 

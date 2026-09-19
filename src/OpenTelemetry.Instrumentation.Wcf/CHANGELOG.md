@@ -7,6 +7,13 @@
   disposed of.
   ([#5109](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5109))
 
+## 1.19.0-beta.1
+
+Released 2026-Sep-18
+
+* Updated OpenTelemetry core component version(s) to `1.19.0`.
+  ([#5240](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5240))
+
 ## 1.18.0-beta.1
 
 Released 2026-Aug-21

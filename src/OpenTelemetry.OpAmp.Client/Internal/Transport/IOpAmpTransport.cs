@@ -7,6 +7,8 @@ namespace OpenTelemetry.OpAmp.Client.Internal.Transport;
 
 internal interface IOpAmpTransport
 {
+    bool RequiresResponseBeforeNextSend { get; }
+
     Task SendAsync<T>(T message, CancellationToken token)
         where T : IMessage<T>;
 }

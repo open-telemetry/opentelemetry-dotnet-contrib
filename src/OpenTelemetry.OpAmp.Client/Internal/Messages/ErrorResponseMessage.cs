@@ -4,14 +4,14 @@
 using OpAmp.Proto.V1;
 using OpenTelemetry.OpAmp.Client.Messages;
 
-namespace OpenTelemetry.OpAmp.Client.Internal.Listeners.Messages;
+namespace OpenTelemetry.OpAmp.Client.Internal.Messages;
 
-internal class ErrorResponseMessage : OpAmpMessage
+internal sealed class ErrorResponseMessage : OpAmpMessage
 {
     public ErrorResponseMessage(ServerErrorResponse serverErrorResponse)
     {
         this.ErrorResponse = serverErrorResponse;
     }
 
-    public ServerErrorResponse ErrorResponse { get; set; }
+    public ServerErrorResponse ErrorResponse { get; }
 }

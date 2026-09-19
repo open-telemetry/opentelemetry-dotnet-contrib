@@ -32,7 +32,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
     ];
 #endif
 
-    private static readonly Version SemanticConventionsVersion = new(1, 43, 0);
+    private static readonly Version SemanticConventionsVersion = new(1, 44, 0);
 
     private readonly string? osType;
     private readonly string? registryKey;

@@ -11,6 +11,10 @@ internal static class ProtobufSerializerHelper
 {
     private const int Fixed64Size = 8;
 
+    private const int FixedLengthPrefixSize = 3;
+
+    private const int MaxCustomLength = (1 << (7 * FixedLengthPrefixSize)) - 1;
+
     private const ulong Ulong128 = 128;
 
     private const uint Uint128 = 128;
@@ -79,46 +83,26 @@ internal static class ProtobufSerializerHelper
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void WriteLengthCustom(byte[] buffer, ref int cursor, int length)
-        => WriteVarintCustom(buffer, ref cursor, (uint)length);
+    {
+        if ((uint)length > MaxCustomLength)
+        {
+            throw new ArgumentOutOfRangeException(nameof(length), length, GenevaBufferOverflowExceptionHelper.MetricBufferTooSmallMessage);
+        }
+
+        if (cursor < 0 || cursor > buffer.Length - FixedLengthPrefixSize)
+        {
+            throw new ArgumentOutOfRangeException(nameof(cursor), cursor, GenevaBufferOverflowExceptionHelper.MetricBufferTooSmallMessage);
+        }
+
+        // OtlpProtobufSerializer reserves exactly three bytes for this intentionally fixed-width length.
+        buffer[cursor++] = (byte)(0x80 | (length & 0x7F));
+        buffer[cursor++] = (byte)(0x80 | ((length >> 7) & 0x7F));
+        buffer[cursor++] = (byte)((length >> 14) & 0x7F);
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void WriteLength(byte[] buffer, ref int cursor, int length)
         => WriteVarint32(buffer, ref cursor, (uint)length);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static void WriteVarintCustom(byte[] buffer, ref int cursor, uint value)
-    {
-        var index = 0;
-
-        // Loop until all 7 bits from the integer value have been encoded
-        while (value > 0)
-        {
-            var chunk = (byte)(value & 0x7F); // Extract the least significant 7 bits
-            value >>= 7; // Right shift the value by 7 bits to process the next chunk
-
-            // If there are more bits to encode, set the most significant bit to 1
-            if (index < 3)
-            {
-                chunk |= 0x80;
-            }
-
-            buffer[cursor++] = chunk; // Store the encoded chunk
-            index++;
-        }
-
-        // If fewer than 3 bytes were used, pad with zeros
-        while (index < 2)
-        {
-            buffer[cursor++] = 0x80;
-            index++;
-        }
-
-        while (index < 3)
-        {
-            buffer[cursor++] = 0x00;
-            index++;
-        }
-    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void WriteVarint32(byte[] buffer, ref int cursor, uint value)
