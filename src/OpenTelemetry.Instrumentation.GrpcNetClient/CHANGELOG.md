@@ -3,10 +3,8 @@
 ## Unreleased
 
 * Added `Filter` option to `GrpcClientTraceInstrumentationOptions`, allowing
-  telemetry collection to be filtered on a per-request basis, matching the
-  existing filtering capability in other instrumentation libraries such as
-  `OpenTelemetry.Instrumentation.Http`.
-  ([#1781](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1781))
+  telemetry collection to be filtered on a per-request basis.
+  ([#5236](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5236))
 
 ## 1.18.0-beta.1
 

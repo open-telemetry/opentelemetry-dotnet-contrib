@@ -17,18 +17,18 @@ public class GrpcClientTraceInstrumentationOptions
     public bool SuppressDownstreamInstrumentation { get; set; }
 
     /// <summary>
-    /// Gets or sets a filter function that determines whether or not to
+    /// Gets or sets a filter delegate that determines whether or not to
     /// collect telemetry on a per request basis.
     /// </summary>
     /// <remarks>
     /// Notes:
     /// <list type="bullet">
-    /// <item>The return value for the filter function is interpreted as:
+    /// <item>The return value for the filter is interpreted as:
     /// <list type="bullet">
-    /// <item>If filter returns <see langword="true" />, the request is
+    /// <item>If the filter returns <see langword="true" />, the request is
     /// collected.</item>
-    /// <item>If filter returns <see langword="false" /> or throws an
-    /// exception the request is NOT collected.</item>
+    /// <item>If the filter returns <see langword="false" /> or throws an
+    /// exception the request is not collected.</item>
     /// </list></item>
     /// </list>
     /// </remarks>
