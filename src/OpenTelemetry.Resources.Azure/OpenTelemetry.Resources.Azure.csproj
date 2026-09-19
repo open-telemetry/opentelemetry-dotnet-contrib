@@ -25,6 +25,10 @@
     <PackageReference Include="System.Text.Json" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' Or '$(TargetFramework)' == 'net462'">
+    <PackageReference Include="System.Collections.Immutable" />
+  </ItemGroup>
+
   <ItemGroup>
     <Compile Include="$(RepoRoot)\src\Shared\ExceptionExtensions.cs" Link="Includes\ExceptionExtensions.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />

@@ -21,9 +21,10 @@ dotnet add package --prerelease OpenTelemetry.Resources.Azure
 
 ## App Service Resource Detector
 
-Adds resource attributes for the applications running in Azure App Service.
-The following example shows how to add `AppServiceResourceDetector` to
-the `ResourceBuilder`.
+Adds resource attributes for applications running in Azure App Service. When
+`FUNCTIONS_WORKER_RUNTIME` is present, the detector identifies the environment
+as Azure Functions instead of Azure App Service. The following example shows
+how to add `AppServiceResourceDetector` to the `ResourceBuilder`.
 
 ```csharp
 using OpenTelemetry;
@@ -61,6 +62,36 @@ using var loggerFactory = LoggerFactory.Create(builder =>
 | host.id                     | The primary hostname for the app from `WEBSITE_HOSTNAME`, excluding any custom hostnames.                                                                                                                                                                                                    |
 | service.instance.id         | The specific instance of the Azure App Service from `WEBSITE_INSTANCE_ID`, useful in a scaled-out configuration.                                                                                                                                                                             |
 | service.name                | The name of the Azure App Service from `WEBSITE_SITE_NAME`.                                                                                                                                                                                                                                  |
+
+## Azure Functions Resource Detector
+
+`AddAzureAppServiceDetector` registers both the Azure Functions and App Service
+resource detectors. When `FUNCTIONS_WORKER_RUNTIME` is present, only the Azure
+Functions detector emits attributes. Azure Functions Core Tools also sets this
+environment variable during local development, including when no Azure
+subscription is involved. In that case, `cloud.provider` and `cloud.platform`
+are still emitted, while attributes that require Azure environment variables,
+such as the region, account, and resource group, are omitted.
+
+The detector does not emit `cloud.resource_id`. The
+[FaaS resource convention](https://opentelemetry.io/docs/specs/semconv/resource/faas/#faas-resource-attributes)
+requires this attribute to identify the invoked function, not the function app,
+and to be set on the span because multiple functions can share a `TracerProvider`.
+
+The detector does not emit `faas.version` because
+`FUNCTIONS_EXTENSION_VERSION` identifies the Functions host runtime, not the
+function application version.
+
+| Attribute                   | Description                                                                                                                                                    |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| azure.resource_group.name   | The Azure resource group from `WEBSITE_RESOURCE_GROUP`. Emitted when the environment variable is non-empty.                                                    |
+| cloud.account.id            | The Azure subscription ID parsed from `WEBSITE_OWNER_NAME`. Emitted when the environment variable is non-empty.                                                |
+| cloud.platform              | The cloud platform. Here, it is always "azure.functions".                                                                                                      |
+| cloud.provider              | The cloud service provider. In this context, it is always "azure".                                                                                             |
+| cloud.region                | The Azure region from `REGION_NAME`.                                                                                                                           |
+| deployment.environment.name | The deployment slot from `WEBSITE_SLOT_NAME`.                                                                                                                  |
+| faas.instance               | The platform instance ID from `WEBSITE_INSTANCE_ID`, falling back to `WEBSITE_POD_NAME` and then `CONTAINER_NAME` for Linux and Flex Consumption environments. |
+| service.name                | The function app name from `WEBSITE_SITE_NAME`.                                                                                                                |
 
 ## VM Resource Detector
 

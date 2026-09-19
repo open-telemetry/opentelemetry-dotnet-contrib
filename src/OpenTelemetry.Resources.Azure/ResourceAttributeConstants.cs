@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Collections.Immutable;
+
 namespace OpenTelemetry.Resources.Azure;
 
 internal sealed class ResourceAttributeConstants
@@ -34,6 +36,20 @@ internal sealed class ResourceAttributeConstants
     // Azure resource attributes constant values
     internal const string AzureAppServicePlatformValue = "azure.app_service";
     internal const string AzureCloudProviderValue = "azure";
+    internal const string AzureFunctionsPlatformValue = "azure.functions";
     internal const string AzureVmCloudPlatformValue = "azure.vm";
     internal const string AzureContainerAppsPlatformValue = "azure.container_apps";
+
+    // Azure Functions environment variables
+    internal const string AzureFunctionsContainerNameEnvVar = "CONTAINER_NAME";
+    internal const string AzureFunctionsPodNameEnvVar = "WEBSITE_POD_NAME";
+    internal const string AzureFunctionsWorkerRuntimeEnvVar = "FUNCTIONS_WORKER_RUNTIME";
+
+    // Match the Azure Functions host's instance ID precedence across hosting plans.
+    internal static readonly ImmutableArray<string> AzureFunctionsInstanceIdEnvVars =
+    [
+        AppServiceInstanceIdEnvVar,
+        AzureFunctionsPodNameEnvVar,
+        AzureFunctionsContainerNameEnvVar,
+    ];
 }

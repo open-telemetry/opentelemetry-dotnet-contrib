@@ -9,6 +9,13 @@ Released 2026-Sep-18
 * Updated OpenTelemetry core component version(s) to `1.19.0`.
   ([#5240](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5240))
 
+* **Breaking change**: Detect Azure Functions environments before Azure App
+  Service and emit Azure Functions resource attributes. When
+  `FUNCTIONS_WORKER_RUNTIME` is set, the detector no longer emits the App
+  Service-specific `azure.app.service.stamp`, `host.id`, or
+  `service.instance.id` attributes.
+  ([#5165](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5165))
+
 ## 1.18.0-beta.2
 
 Released 2026-Sep-10
