@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using OpAmp.Proto.V1;
 using OpenTelemetry.OpAmp.Client.Internal.Services.Heartbeat;
 using OpenTelemetry.OpAmp.Client.Messages;
 
@@ -24,6 +23,4 @@ internal interface IFrameBuilder
     IFrameBuilder AddRemoteConfigStatus(RemoteConfigStatusReport status);
 
     IFrameBuilder AddCustomMessage(string capability, string type, ReadOnlyMemory<byte> data);
-
-    AgentToServer Build();
 }

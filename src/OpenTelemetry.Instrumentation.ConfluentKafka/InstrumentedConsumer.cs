@@ -54,7 +54,6 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         ConsumeResult<TKey, TValue>? result = null;
         ConsumeResult consumeResult = default;
         string? errorType = null;
-        string? errorMessage = null;
         try
         {
             result = this.consumer.Consume(millisecondsTimeout);
@@ -64,7 +63,6 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         catch (ConsumeException e)
         {
             (consumeResult, errorType) = ExtractConsumeResult(e);
-            errorMessage = e.Message;
             throw;
         }
         finally
@@ -72,7 +70,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
             if (ShouldInstrument(result, errorType))
             {
                 var end = DateTimeOffset.UtcNow;
-                this.InstrumentConsumption(start, end, consumeResult, errorType, errorMessage);
+                this.InstrumentConsumption(start, end, consumeResult, errorType);
             }
         }
     }
@@ -83,7 +81,6 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         ConsumeResult<TKey, TValue>? result = null;
         ConsumeResult consumeResult = default;
         string? errorType = null;
-        string? errorMessage = null;
         try
         {
             result = this.consumer.Consume(cancellationToken);
@@ -93,7 +90,6 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         catch (ConsumeException e)
         {
             (consumeResult, errorType) = ExtractConsumeResult(e);
-            errorMessage = e.Message;
             throw;
         }
         finally
@@ -101,7 +97,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
             if (ShouldInstrument(result, errorType))
             {
                 var end = DateTimeOffset.UtcNow;
-                this.InstrumentConsumption(start, end, consumeResult, errorType, errorMessage);
+                this.InstrumentConsumption(start, end, consumeResult, errorType);
             }
         }
     }
@@ -112,7 +108,6 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         ConsumeResult<TKey, TValue>? result = null;
         ConsumeResult consumeResult = default;
         string? errorType = null;
-        string? errorMessage = null;
         try
         {
             result = this.consumer.Consume(timeout);
@@ -122,7 +117,6 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         catch (ConsumeException e)
         {
             (consumeResult, errorType) = ExtractConsumeResult(e);
-            errorMessage = e.Message;
             throw;
         }
         finally
@@ -130,7 +124,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
             if (ShouldInstrument(result, errorType))
             {
                 var end = DateTimeOffset.UtcNow;
-                this.InstrumentConsumption(start, end, consumeResult, errorType, errorMessage);
+                this.InstrumentConsumption(start, end, consumeResult, errorType);
             }
         }
     }
@@ -302,8 +296,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         DateTimeOffset startTime,
         DateTimeOffset endTime,
         ConsumeResult consumeResult,
-        string? errorType,
-        string? errorMessage)
+        string? errorType)
     {
         if (this.options.Traces)
         {
@@ -316,7 +309,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
             {
                 if (errorType != null)
                 {
-                    activity.SetStatus(ActivityStatusCode.Error, errorMessage);
+                    activity.SetStatus(ActivityStatusCode.Error);
                     if (activity.IsAllDataRequested)
                     {
                         activity.SetTag(SemanticConventions.AttributeErrorType, errorType);

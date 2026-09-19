@@ -6,6 +6,8 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 #endif
+using System.Net;
+using System.Net.NetworkInformation;
 using Microsoft.Win32;
 using OpenTelemetry.Internal;
 
@@ -16,12 +18,14 @@ namespace OpenTelemetry.Resources.Host;
 /// </summary>
 internal sealed class HostDetector : IResourceDetector
 {
+    internal const string EnableNetworkAddressesEnvVarName = "OTEL_DOTNET_EXPERIMENTAL_HOST_RESOURCE_ENABLE_NETWORK_ADDRESSES";
+
 #if !NETFRAMEWORK
     private const string ETCMACHINEID = "/etc/machine-id";
     private const string ETCVARDBUSMACHINEID = "/var/lib/dbus/machine-id";
 #endif
 
-    private static readonly Version SemanticConventionsVersion = new(1, 43, 0);
+    private static readonly Version SemanticConventionsVersion = new(1, 44, 0);
 
 #if !NETFRAMEWORK
     private readonly Func<OSPlatform, bool> isOsPlatform;
@@ -113,7 +117,9 @@ internal sealed class HostDetector : IResourceDetector
     {
         try
         {
-            var attributes = new List<KeyValuePair<string, object>>(3)
+            var networkAddressesEnabled = IsNetworkAddressesEnabled();
+
+            var attributes = new List<KeyValuePair<string, object>>(networkAddressesEnabled ? 5 : 3)
             {
                 new(HostSemanticConventions.AttributeHostName, Environment.MachineName),
             };
@@ -136,6 +142,11 @@ internal sealed class HostDetector : IResourceDetector
 #error Architecture is available in .NET Framework 4.7.1+, enable it when we move to that as minimum supported version
 #endif
 
+            if (networkAddressesEnabled)
+            {
+                AddNetworkAddresses(attributes);
+            }
+
             return new Resource(attributes, SchemaUrls.Get(SemanticConventionsVersion));
         }
         catch (InvalidOperationException ex)
@@ -146,6 +157,28 @@ internal sealed class HostDetector : IResourceDetector
 
         return Resource.Empty;
     }
+
+    internal static bool ShouldIncludeNetworkInterface(OperationalStatus operationalStatus, NetworkInterfaceType networkInterfaceType) =>
+        operationalStatus == OperationalStatus.Up && networkInterfaceType != NetworkInterfaceType.Loopback;
+
+    internal static bool ShouldIncludeIpAddress(IPAddress address) =>
+        !IPAddress.IsLoopback(address);
+
+    internal static string? FormatPhysicalAddress(PhysicalAddress physicalAddress)
+    {
+        var addressBytes = physicalAddress.GetAddressBytes();
+
+        // BitConverter renders the IEEE RA format the specification requires, which
+        // PhysicalAddress.ToString does not.
+        return addressBytes.Length == 0 ? null : BitConverter.ToString(addressBytes);
+    }
+
+    // A copy built from the address bytes drops the IPv6 zone (%N) without changing the original.
+    internal static string[] FormatIpAddresses(IEnumerable<IPAddress> addresses) =>
+        RemoveDuplicates(addresses.Select(address => new IPAddress(address.GetAddressBytes()).ToString()));
+
+    internal static string[] RemoveDuplicates(IEnumerable<string> values) =>
+        values.Distinct().ToArray();
 
 #if !NETFRAMEWORK
     internal static string? ParseMacOsOutput(string? output)
@@ -183,6 +216,55 @@ internal sealed class HostDetector : IResourceDetector
         yield return ETCVARDBUSMACHINEID;
     }
 #endif
+
+    private static bool IsNetworkAddressesEnabled() =>
+        bool.TryParse(Environment.GetEnvironmentVariable(EnableNetworkAddressesEnvVarName), out var enabled) && enabled;
+
+    private static void AddNetworkAddresses(List<KeyValuePair<string, object>> attributes)
+    {
+        var ipAddresses = new List<IPAddress>();
+        var macAddresses = new List<string>();
+
+        try
+        {
+            foreach (var networkInterface in NetworkInterface.GetAllNetworkInterfaces())
+            {
+                if (!ShouldIncludeNetworkInterface(networkInterface.OperationalStatus, networkInterface.NetworkInterfaceType))
+                {
+                    continue;
+                }
+
+                foreach (var unicastAddress in networkInterface.GetIPProperties().UnicastAddresses)
+                {
+                    if (ShouldIncludeIpAddress(unicastAddress.Address))
+                    {
+                        ipAddresses.Add(unicastAddress.Address);
+                    }
+                }
+
+                var macAddress = FormatPhysicalAddress(networkInterface.GetPhysicalAddress());
+                if (macAddress != null)
+                {
+                    macAddresses.Add(macAddress);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            HostResourceEventSource.Log.ResourceAttributesExtractException(nameof(HostDetector), ex);
+            return;
+        }
+
+        if (ipAddresses.Count > 0)
+        {
+            attributes.Add(new(HostSemanticConventions.AttributeHostIp, FormatIpAddresses(ipAddresses)));
+        }
+
+        if (macAddresses.Count > 0)
+        {
+            attributes.Add(new(HostSemanticConventions.AttributeHostMac, RemoveDuplicates(macAddresses)));
+        }
+    }
 
 #if !NETFRAMEWORK
     private static string? GetMachineIdMacOs()

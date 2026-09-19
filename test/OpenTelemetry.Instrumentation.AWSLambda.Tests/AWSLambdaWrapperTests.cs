@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using Amazon.Lambda.Core;
+using Amazon.Lambda.SNSEvents;
+using Amazon.Lambda.SQSEvents;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
@@ -324,6 +327,258 @@ public class AWSLambdaWrapperTests : IDisposable
         Assert.Equal("prod", actual);
     }
 
+    [Fact]
+    public void TraceSyncSqsEventSetsPubSubTrigger()
+    {
+        var exportedItems = new List<Activity>();
+
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                   .AddAWSLambdaConfigurations(opt =>
+                   {
+                       opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
+                   .AddInMemoryExporter(exportedItems)
+                   .Build()!)
+        {
+            AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncSqsEvent, new SQSEvent(), this.sampleLambdaContext);
+        }
+
+        var item = Assert.Single(exportedItems);
+        Assert.Equal("pubsub", item.GetTagValue(ExpectedSemanticConventions.AttributeFaasTrigger));
+    }
+
+    [Fact]
+    public void TraceSyncSnsEventSetsPubSubTrigger()
+    {
+        var exportedItems = new List<Activity>();
+
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                   .AddAWSLambdaConfigurations(opt =>
+                   {
+                       opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
+                   .AddInMemoryExporter(exportedItems)
+                   .Build()!)
+        {
+            AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncSnsEvent, new SNSEvent(), this.sampleLambdaContext);
+        }
+
+        var item = Assert.Single(exportedItems);
+        Assert.Equal("pubsub", item.GetTagValue(ExpectedSemanticConventions.AttributeFaasTrigger));
+    }
+
+    [Fact]
+    public void TraceSyncSqsMessageSetsPubSubTrigger()
+    {
+        var exportedItems = new List<Activity>();
+
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                   .AddAWSLambdaConfigurations(opt =>
+                   {
+                       opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
+                   .AddInMemoryExporter(exportedItems)
+                   .Build()!)
+        {
+            AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncSqsMessage, new SQSEvent.SQSMessage(), this.sampleLambdaContext);
+        }
+
+        var item = Assert.Single(exportedItems);
+        Assert.Equal("pubsub", item.GetTagValue(ExpectedSemanticConventions.AttributeFaasTrigger));
+    }
+
+    [Fact]
+    public void TraceSyncSnsRecordSetsPubSubTrigger()
+    {
+        var exportedItems = new List<Activity>();
+
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                   .AddAWSLambdaConfigurations(opt =>
+                   {
+                       opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
+                   .AddInMemoryExporter(exportedItems)
+                   .Build()!)
+        {
+            AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncSnsRecord, new SNSEvent.SNSRecord(), this.sampleLambdaContext);
+        }
+
+        var item = Assert.Single(exportedItems);
+        Assert.Equal("pubsub", item.GetTagValue(ExpectedSemanticConventions.AttributeFaasTrigger));
+    }
+
+    [Fact]
+    public void EnrichWithInputIsInvokedWithTheFunctionInputAndLambdaContext()
+    {
+        var exportedItems = new List<Activity>();
+        object? observedInput = null;
+        ILambdaContext? observedContext = null;
+
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                   .AddAWSLambdaConfigurations(opt =>
+                   {
+                       opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                       opt.EnrichWithInput = (_, input, context) =>
+                       {
+                           observedInput = input;
+                           observedContext = context;
+                       };
+                   })
+                   .AddInMemoryExporter(exportedItems)
+                   .Build()!)
+        {
+            AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncInputAndNoReturn, "TestStream", this.sampleLambdaContext);
+        }
+
+        Assert.Single(exportedItems);
+        Assert.Equal("TestStream", observedInput);
+        Assert.Same(this.sampleLambdaContext, observedContext);
+    }
+
+    [Fact]
+    public void EnrichWithInputCanAddAttributes()
+    {
+        var exportedItems = new List<Activity>();
+
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                   .AddAWSLambdaConfigurations(opt =>
+                   {
+                       opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                       opt.EnrichWithInput = (activity, _, _) => activity.SetTag("custom.attribute", "value");
+                   })
+                   .AddInMemoryExporter(exportedItems)
+                   .Build()!)
+        {
+            AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncInputAndNoReturn, "TestStream", this.sampleLambdaContext);
+        }
+
+        var item = Assert.Single(exportedItems);
+        Assert.Equal("value", item.GetTagValue("custom.attribute"));
+    }
+
+    [Fact]
+    public void EnrichWithInputCanOverrideFaasTrigger()
+    {
+        var exportedItems = new List<Activity>();
+
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                   .AddAWSLambdaConfigurations(opt =>
+                   {
+                       opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                       opt.EnrichWithInput = (activity, _, _) =>
+                       {
+                           activity.SetTag(ExpectedSemanticConventions.AttributeFaasTrigger, "datasource");
+                           activity.SetTag("faas.document.collection", "my-bucket");
+                           activity.SetTag("faas.document.operation", "insert");
+                       };
+                   })
+                   .AddInMemoryExporter(exportedItems)
+                   .Build()!)
+        {
+            AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncInputAndNoReturn, "TestStream", this.sampleLambdaContext);
+        }
+
+        var item = Assert.Single(exportedItems);
+        Assert.Equal("datasource", item.GetTagValue(ExpectedSemanticConventions.AttributeFaasTrigger));
+        Assert.Equal("my-bucket", item.GetTagValue("faas.document.collection"));
+        Assert.Equal("insert", item.GetTagValue("faas.document.operation"));
+    }
+
+    [Fact]
+    public void EnrichWithInputExceptionDoesNotFailTheInvocation()
+    {
+        var exportedItems = new List<Activity>();
+        var handlerRan = false;
+        var enricherRan = false;
+
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                   .AddAWSLambdaConfigurations(opt =>
+                   {
+                       opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                       opt.EnrichWithInput = (_, _, _) =>
+                       {
+                           enricherRan = true;
+                           throw new InvalidOperationException("enrichment failure");
+                       };
+                   })
+                   .AddInMemoryExporter(exportedItems)
+                   .Build()!)
+        {
+            AWSLambdaWrapper.Trace(
+                tracerProvider,
+                (_, _) => handlerRan = true,
+                "TestStream",
+                this.sampleLambdaContext);
+        }
+
+        Assert.True(enricherRan);
+        Assert.True(handlerRan);
+        var item = Assert.Single(exportedItems);
+        Assert.Equal(ActivityStatusCode.Unset, item.Status);
+    }
+
+    [Fact]
+    public async Task EnrichWithInputIsInvokedForAsyncHandlers()
+    {
+        var exportedItems = new List<Activity>();
+
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                   .AddAWSLambdaConfigurations(opt =>
+                   {
+                       opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                       opt.EnrichWithInput = (activity, _, _) => activity.SetTag("custom.attribute", "async");
+                   })
+                   .AddInMemoryExporter(exportedItems)
+                   .Build()!)
+        {
+            await AWSLambdaWrapper.TraceAsync(tracerProvider, this.sampleHandlers.SampleHandlerAsyncInputAndNoReturn, "TestStream", this.sampleLambdaContext);
+        }
+
+        var item = Assert.Single(exportedItems);
+        Assert.Equal("async", item.GetTagValue("custom.attribute"));
+    }
+
+    [Fact]
+    public void EnrichWithInputIsNotInvokedWhenTheActivityIsNotRecorded()
+    {
+        var invoked = false;
+
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                   .AddAWSLambdaConfigurations(opt =>
+                   {
+                       opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                       opt.EnrichWithInput = (_, _, _) => invoked = true;
+                   })
+                   .SetSampler(new AlwaysOffSampler())
+                   .Build()!)
+        {
+            AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncInputAndNoReturn, "TestStream", this.sampleLambdaContext);
+        }
+
+        Assert.False(invoked);
+    }
+
+    [Fact]
+    public void NoEnrichWithInputLeavesTheActivityUnchanged()
+    {
+        var exportedItems = new List<Activity>();
+
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                   .AddAWSLambdaConfigurations(opt =>
+                   {
+                       opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
+                   .AddInMemoryExporter(exportedItems)
+                   .Build()!)
+        {
+            AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncInputAndNoReturn, "TestStream", this.sampleLambdaContext);
+        }
+
+        var item = Assert.Single(exportedItems);
+        Assert.Equal("other", item.GetTagValue(ExpectedSemanticConventions.AttributeFaasTrigger));
+        Assert.Null(item.GetTagValue("custom.attribute"));
+    }
+
     private static ActivityContext CreateParentContext()
     {
         var traceId = ActivityTraceId.CreateFromString(TraceId.AsSpan());
@@ -350,7 +605,7 @@ public class AWSLambdaWrapperTests : IDisposable
     private void AssertResourceAttributes(Resource? resource)
     {
         Assert.NotNull(resource);
-        Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
+        Assert.Null(resource.SchemaUrl);
 
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
         Assert.Equal("aws", resourceAttributes[ExpectedSemanticConventions.AttributeCloudProvider]);

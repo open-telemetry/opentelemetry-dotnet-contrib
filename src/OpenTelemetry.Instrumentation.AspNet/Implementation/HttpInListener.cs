@@ -13,11 +13,10 @@ internal sealed class HttpInListener : IDisposable
 {
     private const string StopInstrumentationCallbackContextKey = "__AspnetOpenTelemetryInstrumentationStopCallback__";
     private static readonly object ErrorTypeHttpContextItemsKey = new();
-    private static readonly double TimestampToTicks = TimeSpan.TicksPerSecond / (double)Stopwatch.Frequency;
+    private static readonly object MetricStartTimestampHttpContextItemsKey = new();
 
     private readonly HttpRequestRouteHelper routeHelper = new();
     private readonly RequestDataHelper requestDataHelper = new(configureByHttpKnownMethodsEnvironmentalVariable: true);
-    private readonly AsyncLocal<long> beginTimestamp = new();
     private readonly Action<Activity?, HttpContextBase> onStopActivityCallback;
 
     public HttpInListener()
@@ -36,18 +35,26 @@ internal sealed class HttpInListener : IDisposable
         TelemetryHttpModule.Options.OnExceptionCallback -= this.OnException;
     }
 
-    private static double CalculateDurationFromTimestamp(long begin)
-    {
-        var end = Stopwatch.GetTimestamp();
-        var delta = end - begin;
-        var ticks = (long)(TimestampToTicks * delta);
-        var duration = new TimeSpan(ticks);
-        return duration.TotalSeconds;
-    }
-
     private void RecordDuration(Activity? activity, HttpContextBase context, string? routeTemplate = null)
     {
+        var metricStartTimestamp = context.Items[MetricStartTimestampHttpContextItemsKey];
+        context.Items.Remove(MetricStartTimestampHttpContextItemsKey);
+
         if (AspNetInstrumentation.Instance.HandleManager.MetricHandles == 0)
+        {
+            return;
+        }
+
+        double duration;
+        if (activity is not null)
+        {
+            duration = activity.Duration.TotalSeconds;
+        }
+        else if (metricStartTimestamp is long beginTimestamp)
+        {
+            duration = Stopwatch.GetElapsedTime(beginTimestamp).TotalSeconds;
+        }
+        else
         {
             return;
         }
@@ -72,7 +79,7 @@ internal sealed class HttpInListener : IDisposable
         if (options.EnableServerAttributesForRequestDuration)
         {
             tags.Add(SemanticConventions.AttributeServerAddress, url.Host);
-            tags.Add(SemanticConventions.AttributeServerPort, url.Port);
+            tags.Add(SemanticConventions.AttributeServerPort, PortTelemetryHelper.GetBoxedPort(url.Port, cacheValue: true));
         }
 
         var protocolVersion = RequestDataHelperExtensions.GetHttpProtocolVersion(request);
@@ -109,8 +116,6 @@ internal sealed class HttpInListener : IDisposable
             }
         }
 
-        var duration = activity?.Duration.TotalSeconds ??
-            CalculateDurationFromTimestamp(this.beginTimestamp.Value);
         AspNetInstrumentation.HttpServerDuration.Record(duration, tags);
     }
 
@@ -120,7 +125,7 @@ internal sealed class HttpInListener : IDisposable
 
         if (AspNetInstrumentation.Instance.HandleManager.MetricHandles > 0)
         {
-            this.beginTimestamp.Value = Stopwatch.GetTimestamp();
+            context.Items[MetricStartTimestampHttpContextItemsKey] = Stopwatch.GetTimestamp();
         }
 
         if (AspNetInstrumentation.Instance.HandleManager.TracingHandles == 0)
@@ -137,7 +142,7 @@ internal sealed class HttpInListener : IDisposable
 
         var url = request.Url;
         tags.Add(SemanticConventions.AttributeServerAddress, url.Host);
-        tags.Add(SemanticConventions.AttributeServerPort, url.Port);
+        tags.Add(SemanticConventions.AttributeServerPort, PortTelemetryHelper.GetBoxedPort(url.Port, cacheValue: true));
         tags.Add(SemanticConventions.AttributeUrlScheme, url.Scheme);
 
         if (context.Request.Unvalidated?.Path is string path)

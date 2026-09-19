@@ -25,13 +25,7 @@ public sealed class AWSClientInstrumentationOptionsTests
     {
         var testCases = new TheoryData<SemanticConventionVersion>();
 
-#if NET
-        var values = Enum.GetValues<SemanticConventionVersion>();
-#else
-        var values = Enum.GetValues(typeof(SemanticConventionVersion)).OfType<SemanticConventionVersion>();
-#endif
-
-        foreach (var value in values)
+        foreach (var value in Enum.GetValues<SemanticConventionVersion>())
         {
             testCases.Add(value);
         }

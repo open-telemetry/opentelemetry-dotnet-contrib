@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #if NETFRAMEWORK
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using OpenTelemetry.Trace;
@@ -29,7 +30,7 @@ internal sealed class SqlEventSourceListener : EventListener
     internal const int BeginExecuteEventId = 1;
     internal const int EndExecuteEventId = 2;
 
-    private readonly AsyncLocal<long> beginTimestamp = new();
+    private readonly ConcurrentDictionary<(EventSource EventSource, int ObjectId), PendingCommand> pendingCommands = new();
     private EventSource? adoNetEventSource;
     private EventSource? mdsEventSource;
 
@@ -106,6 +107,60 @@ internal sealed class SqlEventSourceListener : EventListener
         return (false, null, null);
     }
 
+    private static void RecordDuration(Activity? activity, EventWrittenEventArgs eventData, string? querySummary, long? beginTimestamp)
+    {
+        if (SqlClientInstrumentation.Instance.HandleManager.MetricHandles == 0)
+        {
+            return;
+        }
+
+        double duration;
+        if (activity != null)
+        {
+            duration = activity.Duration.TotalSeconds;
+        }
+        else if (beginTimestamp is { } begin)
+        {
+            duration = SqlTelemetryHelper.CalculateDurationFromTimestamp(begin);
+        }
+        else
+        {
+            // No start timestamp was captured for this command (for example the before event was
+            // never seen because the instrumentation was enabled part way through the command),
+            // so a duration cannot be computed. Recording an arbitrary value would skew the histogram.
+            return;
+        }
+
+        var tags = default(TagList);
+
+        if (activity != null && activity.IsAllDataRequested)
+        {
+            SqlTelemetryHelper.AddSharedTags(activity, ref tags);
+        }
+        else
+        {
+            tags.Add(SemanticConventions.AttributeDbSystemName, SqlTelemetryHelper.MicrosoftSqlServerDbSystemName);
+
+            var (hasError, errorNumber, exceptionType) = ExtractErrorFromEvent(eventData);
+
+            if (hasError)
+            {
+                if (errorNumber != null && exceptionType != null)
+                {
+                    tags.Add(SemanticConventions.AttributeDbResponseStatusCode, errorNumber);
+                    tags.Add(SemanticConventions.AttributeErrorType, exceptionType);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(querySummary))
+            {
+                tags.Add(SemanticConventions.AttributeDbQuerySummary, querySummary);
+            }
+        }
+
+        SqlTelemetryHelper.DbClientOperationDuration.Record(duration, tags);
+    }
+
     private void OnBeginExecute(EventWrittenEventArgs eventData)
     {
         /*
@@ -136,21 +191,28 @@ internal sealed class SqlEventSourceListener : EventListener
             return;
         }
 
+        var correlationKey = (eventData.EventSource, ObjectId: (int)eventData.Payload[0]);
+        _ = this.pendingCommands.TryRemove(correlationKey, out _);
+        var commandText = (string)eventData.Payload[3];
+        SqlStatementInfo sqlStatementInfo = default;
+        if (!string.IsNullOrEmpty(commandText))
+        {
+            sqlStatementInfo = SqlProcessor.GetSanitizedSql(commandText);
+        }
+
         // Metrics-only fast path: if the ActivitySource has no listeners then StartActivity
-        // will always return null and no trace will be produced, so skip redundant work.
+        // will always return null and no trace will be produced, so skip connection tag derivation.
         if (!SqlTelemetryHelper.ActivitySource.HasListeners())
         {
-            this.beginTimestamp.Value = Stopwatch.GetTimestamp();
+            this.pendingCommands[correlationKey] = new(Stopwatch.GetTimestamp(), sqlStatementInfo.DbQuerySummary);
             return;
         }
 
         var dataSource = (string)eventData.Payload[1];
         var databaseName = (string)eventData.Payload[2];
         var startTags = SqlTelemetryHelper.GetTagListFromConnectionInfo(dataSource, databaseName, out var activityName);
-        var commandText = (string)eventData.Payload[3];
         if (!string.IsNullOrEmpty(commandText))
         {
-            var sqlStatementInfo = SqlProcessor.GetSanitizedSql(commandText);
             startTags.Add(SemanticConventions.AttributeDbQueryText, sqlStatementInfo.SanitizedSql);
             if (!string.IsNullOrEmpty(sqlStatementInfo.DbQuerySummary))
             {
@@ -168,8 +230,11 @@ internal sealed class SqlEventSourceListener : EventListener
         if (activity == null)
         {
             // There is no listener or it decided not to sample the current request.
-            this.beginTimestamp.Value = Stopwatch.GetTimestamp();
-            return;
+            this.pendingCommands[correlationKey] = new(Stopwatch.GetTimestamp(), sqlStatementInfo.DbQuerySummary);
+        }
+        else if (!string.IsNullOrEmpty(sqlStatementInfo.DbQuerySummary))
+        {
+            this.pendingCommands[correlationKey] = new(null, sqlStatementInfo.DbQuerySummary);
         }
     }
 
@@ -182,16 +247,25 @@ internal sealed class SqlEventSourceListener : EventListener
             [2] -> SqlExceptionNumber
          */
 
+        if (eventData.Payload.Count < 3)
+        {
+            SqlClientInstrumentationEventSource.Log.InvalidPayload(nameof(SqlEventSourceListener), nameof(this.OnEndExecute));
+            return;
+        }
+
+        var correlationKey = (eventData.EventSource, ObjectId: (int)eventData.Payload[0]);
+        string? querySummary = null;
+        long? beginTimestamp = null;
+        if (this.pendingCommands.TryRemove(correlationKey, out var pendingCommand))
+        {
+            querySummary = pendingCommand.QuerySummary;
+            beginTimestamp = pendingCommand.BeginTimestamp;
+        }
+
         var handleManager = SqlClientInstrumentation.Instance.HandleManager;
 
         if (handleManager.TracingHandles == 0 && handleManager.MetricHandles == 0)
         {
-            return;
-        }
-
-        if (eventData.Payload.Count < 3)
-        {
-            SqlClientInstrumentationEventSource.Log.InvalidPayload(nameof(SqlEventSourceListener), nameof(this.OnEndExecute));
             return;
         }
 
@@ -233,42 +307,15 @@ internal sealed class SqlEventSourceListener : EventListener
         {
             // If there's a SQL activity, stop it before recording the duration.
             sqlActivity?.Stop();
-            this.RecordDuration(traceActivity, eventData);
+            RecordDuration(traceActivity, eventData, querySummary, beginTimestamp);
         }
     }
 
-    private void RecordDuration(Activity? activity, EventWrittenEventArgs eventData)
+    private readonly struct PendingCommand(long? beginTimestamp, string? querySummary)
     {
-        if (SqlClientInstrumentation.Instance.HandleManager.MetricHandles == 0)
-        {
-            return;
-        }
+        public long? BeginTimestamp { get; } = beginTimestamp;
 
-        var tags = default(TagList);
-
-        if (activity != null && activity.IsAllDataRequested)
-        {
-            SqlTelemetryHelper.AddSharedTags(activity, ref tags);
-        }
-        else
-        {
-            tags.Add(SemanticConventions.AttributeDbSystemName, SqlTelemetryHelper.MicrosoftSqlServerDbSystemName);
-
-            var (hasError, errorNumber, exceptionType) = ExtractErrorFromEvent(eventData);
-
-            if (hasError)
-            {
-                if (errorNumber != null && exceptionType != null)
-                {
-                    tags.Add(SemanticConventions.AttributeDbResponseStatusCode, errorNumber);
-                    tags.Add(SemanticConventions.AttributeErrorType, exceptionType);
-                }
-            }
-        }
-
-        var duration = activity?.Duration.TotalSeconds
-            ?? SqlTelemetryHelper.CalculateDurationFromTimestamp(this.beginTimestamp.Value);
-        SqlTelemetryHelper.DbClientOperationDuration.Record(duration, tags);
+        public string? QuerySummary { get; } = querySummary;
     }
 }
 #endif

@@ -20,7 +20,7 @@ public static class AppAttributes
     public const string AttributeAppBuildId = "app.build_id";
 
     /// <summary>
-    /// A unique identifier representing an instance of an end-user facing app crash.
+    /// A unique identifier representing an instance of an end user facing app crash.
     /// </summary>
     /// <remarks>
     /// Its value MAY be meaningful and be used as a reference for telemetry and metadata recorded by
