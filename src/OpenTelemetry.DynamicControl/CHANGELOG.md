@@ -31,4 +31,10 @@
   policy payload into validated policy models.
   ([#5213](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5213))
 
+* Added internal policy aggregation, which resolves the effective policy for
+  each policy key by provider priority with a deterministic tie-break between
+  equal priorities, and retains outranked policies with a superseded or
+  conflicting outcome.
+  ([#5235](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5235))
+
 For more details, please refer to the [README](README.md).
