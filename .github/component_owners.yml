@@ -194,3 +194,9 @@ components:
   test/OpenTelemetry.Sampler.AWS.Tests/:
     - srprash
     - normj
+  src/OpenTelemetry.Sampler.BottomFloor/:
+    - jmacd
+    - Yun-Ting
+  test/OpenTelemetry.Sampler.BottomFloor.Tests/:
+    - jmacd
+    - Yun-Ting

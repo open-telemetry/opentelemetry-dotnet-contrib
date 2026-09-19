@@ -1,0 +1,14 @@
+#nullable enable
+OpenTelemetry.Sampler.BottomFloor.BottomFloorLogExporter
+OpenTelemetry.Sampler.BottomFloor.BottomFloorLogExporter.BottomFloorLogExporter(OpenTelemetry.BaseExporter<OpenTelemetry.Logs.LogRecord!>! innerExporter, OpenTelemetry.Sampler.BottomFloor.BottomFloorLogSamplerOptions! options) -> void
+OpenTelemetry.Sampler.BottomFloor.BottomFloorLogRecordProcessor
+OpenTelemetry.Sampler.BottomFloor.BottomFloorLogRecordProcessor.BottomFloorLogRecordProcessor(OpenTelemetry.BaseExporter<OpenTelemetry.Logs.LogRecord!>! exporter, OpenTelemetry.Sampler.BottomFloor.BottomFloorLogSamplerOptions! options, int maxExportBatchSize = 2048, int scheduledDelayMilliseconds = 5000, int maxQueueSize = 4096, int exporterTimeoutMilliseconds = 30000) -> void
+OpenTelemetry.Sampler.BottomFloor.BottomFloorLogSamplerOptions
+OpenTelemetry.Sampler.BottomFloor.BottomFloorLogSamplerOptions.AdjustedCountAttribute.get -> string!
+OpenTelemetry.Sampler.BottomFloor.BottomFloorLogSamplerOptions.AdjustedCountAttribute.set -> void
+OpenTelemetry.Sampler.BottomFloor.BottomFloorLogSamplerOptions.BottomFloorLogSamplerOptions() -> void
+OpenTelemetry.Sampler.BottomFloor.BottomFloorLogSamplerOptions.Budget.get -> int
+OpenTelemetry.Sampler.BottomFloor.BottomFloorLogSamplerOptions.Budget.set -> void
+OpenTelemetry.Sampler.BottomFloor.BottomFloorLogSamplerOptions.SquaredCoefficientOfVariationAttribute.get -> string!
+OpenTelemetry.Sampler.BottomFloor.BottomFloorLogSamplerOptions.SquaredCoefficientOfVariationAttribute.set -> void
+override OpenTelemetry.Sampler.BottomFloor.BottomFloorLogExporter.Export(in OpenTelemetry.Batch<OpenTelemetry.Logs.LogRecord!> batch) -> OpenTelemetry.ExportResult

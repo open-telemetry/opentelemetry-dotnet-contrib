@@ -181,6 +181,8 @@ repository:
         comment: OpenTelemetry.Resources.ProcessRuntime NuGet package distributed from NuGet.org.
       - uri: https://www.nuget.org/packages/OpenTelemetry.Sampler.AWS
         comment: OpenTelemetry.Sampler.AWS NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Sampler.BottomFloor
+        comment: OpenTelemetry.Sampler.BottomFloor NuGet package distributed from NuGet.org.
     attestations: []
 
   security:

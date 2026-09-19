@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
+    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Sampler.BottomFloor\OpenTelemetry.Sampler.BottomFloor.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OpenTelemetry.Exporter.Console" />
+    <PackageReference Include="OpenTelemetry.Exporter.InMemory" />
+  </ItemGroup>
+
+  <!--
+    ReadmeExampleTests compiles and runs the README's usage snippet, then asserts
+    the README still matches it. Both files must be readable at test time.
+  -->
+  <ItemGroup>
+    <None Include="$(RepoRoot)\src\OpenTelemetry.Sampler.BottomFloor\README.md" Link="README.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="ReadmeExampleTests.cs" Link="ReadmeExampleTests.cs" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>
