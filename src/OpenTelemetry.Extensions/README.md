@@ -161,3 +161,38 @@ builder.Services.AddOpenTelemetry()
             .SetSampler(new ParentBasedSampler(new ConsistentProbabilitySampler(0.1)));
     });
 ```
+
+### W3CTraceState
+
+`W3CTraceState` is an immutable, parsed view of a W3C
+[`tracestate`](https://www.w3.org/TR/2021/REC-trace-context-1-20211123/#tracestate-header)
+header. It exposes the get, add, update and delete operations the OpenTelemetry
+[tracing API](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.60.0/specification/trace/api.md#tracestate)
+specification defines for `TraceState`, which .NET otherwise surfaces only as the
+raw `ActivityContext.TraceState` string. Custom samplers and propagators that
+edit that string by hand have to re-implement the W3C mutation rules, and the
+obvious hand-rolled version gets several of them wrong.
+
+Parsing always succeeds, a mutating operation that changes something returns a
+new instance, and neither throws: an operation that changes nothing, such as one
+naming an invalid key or value, hands back the receiver itself. A member that
+is malformed, or is a repeated key, is dropped as the header is parsed,
+so the state is always a valid `tracestate`. Valid members this instance
+did not generate are kept in place.
+
+Use `TryParse` where a caller wants to know that the header was not fully
+valid: it returns `false` only when an invalid or repeated member was dropped,
+with the valid remainder in the `out` parameter.
+
+Example of `W3CTraceState` usage in a custom sampler:
+
+```cs
+public override SamplingResult ShouldSample(in SamplingParameters samplingParameters)
+{
+    var traceState = W3CTraceState.Parse(samplingParameters.ParentContext.TraceState)
+                                  .Set("mykey", "myvalue")
+                                  .ToString();
+
+    return new SamplingResult(SamplingDecision.RecordAndSample, traceState);
+}
+```

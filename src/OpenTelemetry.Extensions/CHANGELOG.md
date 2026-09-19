@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+* Added `W3CTraceState`, an immutable parsed view of a W3C `tracestate` header
+  exposing the get, add, update and delete operations the OpenTelemetry
+  [tracing API](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.60.0/specification/trace/api.md#tracestate)
+  specification defines, and preserving the valid members it did not generate.
+  ([#5115](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5115))
+
 ## 1.19.0-beta.1
 
 Released 2026-Sep-18
