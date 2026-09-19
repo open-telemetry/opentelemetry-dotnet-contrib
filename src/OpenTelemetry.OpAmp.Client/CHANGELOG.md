@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.7.0-alpha.2
+
+Released 2026-Sep-17
+
+* Dispatch server capabilities before flags received in the same frame.
+  ([#5231](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5231))
+
 ## 0.7.0-alpha.1
 
 Released 2026-Sep-07

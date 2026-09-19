@@ -2,14 +2,6 @@
 
 ## Unreleased
 
-* Add `host.type` and `host.image.name` attributes to the Google Compute Engine
-  resource detector.
-  ([#5194](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5194))
-
-* Updated semantic conventions to
-  [v1.44.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.44.0/docs/resource/host.md).
-  ([#5194](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5194))
-
 * The minimum supported version of `Google.Api.Gax` is now `4.14.0`.
   ([#5212](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5212))
 
@@ -22,6 +14,21 @@
 
 * The detector now catches and logs an exception and returns an empty resource.
   ([#5212](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5212))
+
+## 1.0.0-alpha.5
+
+Released 2026-Sep-18
+
+* Add `host.type` and `host.image.name` attributes to the Google Compute Engine
+  resource detector.
+  ([#5194](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5194))
+
+* Updated semantic conventions to
+  [v1.44.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.44.0/docs/resource/host.md).
+  ([#5194](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5194))
+
+* Updated OpenTelemetry core component version(s) to `1.19.0`.
+  ([#5240](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5240))
 
 ## 1.0.0-alpha.4
 

@@ -96,6 +96,8 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
 
         if (activity != null)
         {
+            owinContext.Environment[ContextKey] = activity;
+
             var request = owinContext.Request;
 
             // Note: Display name is intentionally set to a low cardinality
@@ -148,8 +150,6 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
             {
                 Baggage.Current = ctx.Baggage;
             }
-
-            owinContext.Environment[ContextKey] = activity;
         }
     }
 
