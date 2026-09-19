@@ -13,7 +13,7 @@ internal abstract class MockControlledTransport : IOpAmpTransport, IDisposable
 {
     private readonly ConcurrentQueue<AgentToServer> messages = [];
     private readonly ConcurrentQueue<TaskCompletionSource<bool>> sendCompletions = [];
-    private readonly object syncRoot = new();
+    private readonly Lock syncRoot = new();
     private Action? firstSendCallback;
 
     private int waitTarget;

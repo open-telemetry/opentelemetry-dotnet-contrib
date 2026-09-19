@@ -124,6 +124,10 @@ OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.Identification.get -> Op
 OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.Identification.set -> void
 OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.InstanceUid.get -> System.Guid
 OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.InstanceUid.set -> void
+OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.MaxPendingCustomMessageBytes.get -> int
+OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.MaxPendingCustomMessageBytes.set -> void
+OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.MaxPendingCustomMessages.get -> int
+OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.MaxPendingCustomMessages.set -> void
 OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.OpAmpClientSettings() -> void
 OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.RemoteConfiguration.get -> OpenTelemetry.OpAmp.Client.Settings.RemoteConfigSettings!
 OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.RemoteConfiguration.set -> void

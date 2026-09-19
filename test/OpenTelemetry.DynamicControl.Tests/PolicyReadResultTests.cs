@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using OpenTelemetry.DynamicControl.Internal.Policies;
-using OpenTelemetry.DynamicControl.Internal.Sources;
+using OpenTelemetry.DynamicControl.Internal.Providers;
 
 namespace OpenTelemetry.DynamicControl.Tests;
 
@@ -57,6 +57,27 @@ public class PolicyReadResultTests
             () => PolicyReadResult.Reject(PolicyRejectionReason.None, error!));
 
         Assert.Equal("reason", exception.ParamName);
+    }
+
+    [Fact]
+    public void ToRejection_LocatesTheFailure()
+    {
+        var result = PolicyReadResult.Reject(PolicyRejectionReason.SchemaMismatch, "Nope.");
+
+        var rejection = result.ToRejection(PayloadEntryLocation.ForKey("sampling_rate"));
+
+        Assert.Equal(PayloadEntryLocation.ForKey("sampling_rate"), rejection.Location);
+        Assert.Equal(PolicyRejectionReason.SchemaMismatch, rejection.Reason);
+        Assert.Equal("Nope.", rejection.Message);
+    }
+
+    [Fact]
+    public void ToRejection_OnSuccess_Throws()
+    {
+        var result = PolicyReadResult.Success(CreatePolicy());
+
+        Assert.Throws<InvalidOperationException>(
+            () => result.ToRejection(PayloadEntryLocation.ForKey("sampling_rate")));
     }
 
     private static TraceSamplingRatePolicy CreatePolicy()

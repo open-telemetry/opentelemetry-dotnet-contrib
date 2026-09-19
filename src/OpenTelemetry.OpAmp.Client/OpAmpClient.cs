@@ -188,11 +188,15 @@ public sealed class OpAmpClient : IDisposable
     /// <param name="type">Type of message within the capability.</param>
     /// <param name="data">Contents of the message.</param>
     /// <exception cref="ObjectDisposedException">Thrown if the client has already been disposed.</exception>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when the pending custom message queue has reached its message-count
+    /// limit or would exceed its aggregate payload-byte limit.
+    /// </exception>
     public void SendCustomMessage(string capability, string type, ReadOnlyMemory<byte> data)
     {
         this.ThrowIfDisposed();
 
-        this.pipe.AppendMessage(MessageBuilderHelper.AppendCustomMessage(capability, type, data));
+        this.pipe.AppendCustomMessage(capability, type, data);
     }
 
     /// <summary>

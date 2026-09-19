@@ -1,7 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using OpenTelemetry.DynamicControl.Internal.Sources;
+using OpenTelemetry.DynamicControl.Internal.Providers;
 using OpenTelemetry.DynamicControl.Internal.Store;
 
 namespace OpenTelemetry.DynamicControl.Tests;
@@ -24,8 +24,8 @@ public class PolicyStoreSubscriptionTests
     public async Task Subscribe_AfterCommits_ReplaysCurrentSnapshot_NotEarlierOnes()
     {
         var store = new PolicyStore();
-        Replace(store, "source-a", sequence: 1);
-        Replace(store, "source-a", sequence: 2);
+        Replace(store, "provider-a", sequence: 1);
+        Replace(store, "provider-a", sequence: 2);
         var expected = store.Current;
 
         var delivered = new System.Collections.Concurrent.ConcurrentQueue<PolicyStoreSnapshot>();
@@ -43,7 +43,7 @@ public class PolicyStoreSubscriptionTests
         using var subscription = store.Subscribe(delivered.Enqueue);
         await WaitHelper.WaitUntil(() => !delivered.IsEmpty); // initial replay
 
-        Replace(store, "source-a", sequence: 1);
+        Replace(store, "provider-a", sequence: 1);
 
         await WaitHelper.WaitUntil(() => delivered.Count >= 2);
         Assert.Equal(store.Current.Revision, delivered.Last().Revision);
@@ -61,7 +61,7 @@ public class PolicyStoreSubscriptionTests
 
         for (var i = 1; i <= 5; i++)
         {
-            Replace(store, "source-a", sequence: i);
+            Replace(store, "provider-a", sequence: i);
         }
 
         await WaitHelper.WaitUntil(() => !deliveredA.IsEmpty && deliveredA.Last() == 5);
@@ -81,7 +81,7 @@ public class PolicyStoreSubscriptionTests
         store.Dispose();
 
         // Further commits after disposal must not deliver to the now-disposed subscription.
-        Replace(store, "source-a", sequence: 1);
+        Replace(store, "provider-a", sequence: 1);
     }
 
     [Fact]
@@ -110,8 +110,8 @@ public class PolicyStoreSubscriptionTests
 
     private static void Replace(PolicyStore store, string idValue, long sequence)
     {
-        var meta = new PolicySourceMetadata(new SourceRegistrationId(idValue), PolicySourceKind.File);
-        PolicySourceSnapshot.TryCreate(meta, sequence, PolicySourceVersion.Empty, [], out var snapshot, out _);
-        store.ReplaceSource(snapshot!);
+        var meta = new PolicyProviderMetadata(new ProviderRegistrationId(idValue), PolicyProviderKind.File);
+        PolicyProviderSnapshot.TryCreate(meta, sequence, PolicyProviderVersion.Empty, [], out var snapshot, out _);
+        store.ReplaceProvider(snapshot!);
     }
 }

@@ -20,6 +20,9 @@ internal sealed class AzureVmMetadataResponse
     [JsonPropertyName("resourceId")]
     public string? ResourceId { get; set; }
 
+    [JsonPropertyName("storageProfile")]
+    public AzureVmStorageProfile? StorageProfile { get; set; }
+
     [JsonPropertyName("version")]
     public string? Version { get; set; }
 
@@ -53,6 +56,23 @@ internal sealed class AzureVmMetadataResponse
             case ResourceSemanticConventions.AttributeServiceInstance:
                 amsValue = this.VmId;
                 break;
+            case ResourceSemanticConventions.AttributeHostImageId:
+                amsValue = this.StorageProfile?.ImageReference?.Id;
+                break;
+            case ResourceSemanticConventions.AttributeHostImageName:
+                if (this.StorageProfile?.ImageReference is { } imageReference
+                    && !string.IsNullOrEmpty(imageReference.Publisher)
+                    && !string.IsNullOrEmpty(imageReference.Offer)
+                    && !string.IsNullOrEmpty(imageReference.Sku))
+                {
+                    amsValue = $"{imageReference.Publisher}:{imageReference.Offer}:{imageReference.Sku}";
+                }
+
+                break;
+            case ResourceSemanticConventions.AttributeHostImageVersion:
+            case ResourceSemanticConventions.AttributeOsVersion:
+                amsValue = this.Version;
+                break;
             case ResourceSemanticConventions.AttributeHostName:
                 amsValue = this.Name;
                 break;
@@ -64,9 +84,6 @@ internal sealed class AzureVmMetadataResponse
                 // The os.type value must be lowercase per the semantic conventions.
                 amsValue = this.OsType?.ToLowerInvariant();
 #pragma warning restore CA1308 // Normalize strings to uppercase
-                break;
-            case ResourceSemanticConventions.AttributeOsVersion:
-                amsValue = this.Version;
                 break;
             case ResourceAttributeConstants.AzureVmScaleSetName:
                 amsValue = this.VmScaleSetName;

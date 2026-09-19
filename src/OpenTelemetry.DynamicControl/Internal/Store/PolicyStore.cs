@@ -1,13 +1,13 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using OpenTelemetry.DynamicControl.Internal.Sources;
+using OpenTelemetry.DynamicControl.Internal.Providers;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.DynamicControl.Internal.Store;
 
 /// <summary>
-/// Stores the current set of per-source policy snapshots.
+/// Stores the current set of per-provider policy snapshots.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -24,10 +24,10 @@ internal sealed class PolicyStore : IDisposable
 {
     private readonly Lock updateLock = new();
 
-    private readonly Dictionary<SourceRegistrationId, PolicySourceSnapshot> sources = [];
+    private readonly Dictionary<ProviderRegistrationId, PolicyProviderSnapshot> providers = [];
 
     // Suppressed submissions still advance the sequence used for staleness checks.
-    private readonly Dictionary<SourceRegistrationId, long> maxSequence = [];
+    private readonly Dictionary<ProviderRegistrationId, long> maxSequence = [];
 
     private readonly PolicyChangeNotifier notifier = new();
 
@@ -76,12 +76,12 @@ internal sealed class PolicyStore : IDisposable
     public void Dispose() => this.notifier.Dispose();
 
     /// <summary>
-    /// Replaces the policy set for the source described by <paramref name="snapshot"/>.
+    /// Replaces the policy set for the provider described by <paramref name="snapshot"/>.
     /// </summary>
     /// <param name="snapshot">The new snapshot to commit.</param>
     /// <returns>The outcome of the submission and the current (resulting or unchanged) snapshot.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="snapshot"/> is null.</exception>
-    public PolicyStoreUpdateResult ReplaceSource(PolicySourceSnapshot snapshot)
+    public PolicyStoreUpdateResult ReplaceProvider(PolicyProviderSnapshot snapshot)
     {
         Guard.ThrowIfNull(snapshot);
 
@@ -91,7 +91,7 @@ internal sealed class PolicyStore : IDisposable
 
         lock (this.updateLock)
         {
-            if (this.sources.TryGetValue(id, out var existing)
+            if (this.providers.TryGetValue(id, out var existing)
                 && !existing.Metadata.Equals(snapshot.Metadata))
             {
                 return new PolicyStoreUpdateResult(PolicyStoreUpdateStatus.RejectedMetadataMismatch, this.current);
@@ -111,10 +111,10 @@ internal sealed class PolicyStore : IDisposable
                 return new PolicyStoreUpdateResult(PolicyStoreUpdateStatus.SuppressedUnchangedVersion, this.current);
             }
 
-            this.sources[id] = snapshot;
+            this.providers[id] = snapshot;
             this.maxSequence[id] = snapshot.Sequence;
 
-            newSnapshot = new PolicyStoreSnapshot(this.current.Revision + 1, this.sources);
+            newSnapshot = new PolicyStoreSnapshot(this.current.Revision + 1, this.providers);
             Volatile.Write(ref this.current, newSnapshot);
 
             subscribers = this.notifier.Subscribers;
@@ -126,25 +126,25 @@ internal sealed class PolicyStore : IDisposable
     }
 
     /// <summary>
-    /// Removes the source identified by <paramref name="registrationId"/> from the store.
+    /// Removes the provider identified by <paramref name="registrationId"/> from the store.
     /// </summary>
     /// <remarks>
     /// <para>
     /// This is a configuration lifecycle operation. It must not be called in response to
     /// a transport disconnect; a disconnect is not a retraction, and calling
-    /// <see cref="RemoveSource"/> in response to one would clear the effective policies
+    /// <see cref="RemoveProvider"/> in response to one would clear the effective policies
     /// and leave downstream samplers without configuration until the next connection.
     /// </para>
     /// <para>
     /// After removal, no deletion record is retained. Re-adding the same
-    /// <see cref="SourceRegistrationId"/> starts fresh and accepts any sequence
+    /// <see cref="ProviderRegistrationId"/> starts fresh and accepts any sequence
     /// greater than or equal to 1, including one lower than a previously accepted value.
     /// </para>
     /// </remarks>
-    /// <param name="registrationId">The identity of the source to remove. Must not be <see cref="SourceRegistrationId.Empty"/>.</param>
+    /// <param name="registrationId">The identity of the provider to remove. Must not be <see cref="ProviderRegistrationId.Empty"/>.</param>
     /// <returns>The outcome of the removal and the current (resulting or unchanged) snapshot.</returns>
     /// <exception cref="ArgumentException">Thrown when <paramref name="registrationId"/> is the default value.</exception>
-    public PolicyStoreUpdateResult RemoveSource(SourceRegistrationId registrationId)
+    public PolicyStoreUpdateResult RemoveProvider(ProviderRegistrationId registrationId)
     {
         Guard.ThrowIfDefault(registrationId);
 
@@ -153,14 +153,14 @@ internal sealed class PolicyStore : IDisposable
 
         lock (this.updateLock)
         {
-            if (!this.sources.Remove(registrationId))
+            if (!this.providers.Remove(registrationId))
             {
-                return new PolicyStoreUpdateResult(PolicyStoreUpdateStatus.SourceNotFound, this.current);
+                return new PolicyStoreUpdateResult(PolicyStoreUpdateStatus.ProviderNotFound, this.current);
             }
 
             this.maxSequence.Remove(registrationId);
 
-            newSnapshot = new PolicyStoreSnapshot(this.current.Revision + 1, this.sources);
+            newSnapshot = new PolicyStoreSnapshot(this.current.Revision + 1, this.providers);
             Volatile.Write(ref this.current, newSnapshot);
 
             subscribers = this.notifier.Subscribers;

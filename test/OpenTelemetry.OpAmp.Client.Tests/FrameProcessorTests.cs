@@ -3,7 +3,10 @@
 
 using System.Diagnostics.Tracing;
 using System.Text;
+using Google.Protobuf;
+using OpAmp.Proto.V1;
 using OpenTelemetry.OpAmp.Client.Internal;
+using OpenTelemetry.OpAmp.Client.Internal.Messages;
 using OpenTelemetry.OpAmp.Client.Listeners;
 using OpenTelemetry.OpAmp.Client.Messages;
 using OpenTelemetry.OpAmp.Client.Tests.Mocks;
@@ -50,6 +53,26 @@ public class FrameProcessorTests
         processor.Unsubscribe(listener);
         processor.OnServerFrame(mockFrame.Frame.ToSequence());
         Assert.Single(listener.Messages);
+    }
+
+    [Fact]
+    public void FrameProcessor_DispatchesCapabilitiesBeforeFlags_FromSameFrame()
+    {
+        var callbacks = new List<string>();
+        var processor = new FrameProcessor();
+        var serverToAgent = new ServerToAgent
+        {
+            Capabilities = (ulong)ServerCapabilities.AcceptsEffectiveConfig,
+            Flags = (ulong)ServerToAgentFlags.ReportFullState,
+        };
+
+        processor.Subscribe(new RecordingListener<FlagsMessage>("flags", callbacks));
+        processor.Subscribe(new RecordingListener<ServerCapabilitiesMessage>("capabilities", callbacks));
+        processor.Subscribe(new RecordingListener<ServerToAgentMessage>("envelope", callbacks));
+
+        processor.OnServerFrame(new ArraySegment<byte>(serverToAgent.ToByteArray()).ToSequence());
+
+        Assert.Equal(["envelope", "capabilities", "flags"], callbacks);
     }
 
     [Fact]
@@ -116,6 +139,21 @@ public class FrameProcessorTests
 
         // After all operations, ensure no exceptions and listener.Messages is in a valid state
         Assert.True(listener.Messages.Count >= 0);
+    }
+
+    private sealed class RecordingListener<T> : IOpAmpListener<T>
+        where T : OpAmpMessage
+    {
+        private readonly string marker;
+        private readonly List<string> callbacks;
+
+        public RecordingListener(string marker, List<string> callbacks)
+        {
+            this.marker = marker;
+            this.callbacks = callbacks;
+        }
+
+        public void HandleMessage(T message) => this.callbacks.Add(this.marker);
     }
 
     private sealed class ThrowingCustomMessageListener : IOpAmpListener<CustomMessageMessage>
