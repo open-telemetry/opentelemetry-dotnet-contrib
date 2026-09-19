@@ -3,6 +3,7 @@
 
 using System.Collections;
 using System.Text;
+using System.Text.Json;
 
 namespace OpenTelemetry.Exporter.OneCollector.Tests;
 
@@ -15,9 +16,7 @@ public class EventNameManagerTests
     [InlineData("company99.1product")]
     [InlineData("c")]
     public void ValidEventNamespaceTest(string eventNamespace)
-    {
-        Assert.True(EventNameManager.IsEventNamespaceValid(eventNamespace));
-    }
+        => Assert.True(EventNameManager.IsEventNamespaceValid(eventNamespace));
 
     [Theory]
     [InlineData("9")]
@@ -26,9 +25,7 @@ public class EventNameManagerTests
     [InlineData(".Company")]
     [InlineData("")]
     public void InvalidEventNamespaceTest(string eventNamespace)
-    {
-        Assert.False(EventNameManager.IsEventNamespaceValid(eventNamespace));
-    }
+        => Assert.False(EventNameManager.IsEventNamespaceValid(eventNamespace));
 
     [Theory]
     [InlineData("Opened")]
@@ -36,9 +33,7 @@ public class EventNameManagerTests
     [InlineData("c")]
     [InlineData("event9")]
     public void ValidEventNameTest(string eventNamespace)
-    {
-        Assert.True(EventNameManager.IsEventNameValid(eventNamespace));
-    }
+        => Assert.True(EventNameManager.IsEventNameValid(eventNamespace));
 
     [Theory]
     [InlineData("9")]
@@ -47,9 +42,7 @@ public class EventNameManagerTests
     [InlineData(".Event")]
     [InlineData("")]
     public void InvalidEventNameTest(string eventNamespace)
-    {
-        Assert.False(EventNameManager.IsEventNameValid(eventNamespace));
-    }
+        => Assert.False(EventNameManager.IsEventNameValid(eventNamespace));
 
     [Theory]
     [InlineData(null, null, "DefaultNamespace.DefaultName")]
@@ -100,6 +93,178 @@ public class EventNameManagerTests
 
         Assert.Single(eventNameManager.EventNamespaceCache);
         Assert.Single((eventNameManager.EventNamespaceCache["Test"] as Hashtable)!);
+    }
+
+    [Fact]
+    public void EventFullNameCacheIsBoundedTest()
+    {
+        var eventNameManager = BuildEventNameManagerWithDefaultOptions();
+
+        var numberOfNames = EventNameManager.MaxNumberOfCachedEventFullNames + 100;
+
+        for (var i = 0; i < numberOfNames; i++)
+        {
+            var eventFullName = $"Event_{i}";
+
+            var resolved = eventNameManager.ResolveEventFullName(eventFullName);
+
+            // Resolution keeps working correctly once the cache is full, it is just no
+            // longer memoized.
+            Assert.Equal(
+                Encoding.ASCII.GetBytes($"\"{eventFullName}\""),
+                resolved.EventFullName);
+        }
+
+        Assert.Equal(EventNameManager.MaxNumberOfCachedEventFullNames, eventNameManager.EventFullNameCache.Count);
+    }
+
+    [Fact]
+    public void EventNamespaceCacheIsBoundedTest()
+    {
+        var eventNameManager = BuildEventNameManagerWithDefaultOptions();
+
+        var numberOfNamespaces = EventNameManager.MaxNumberOfCachedEventNamespaces + 100;
+
+        for (var i = 0; i < numberOfNamespaces; i++)
+        {
+            var resolved = eventNameManager.ResolveEventFullName($"Namespace{i}", "MyEvent");
+
+            Assert.Equal(
+                Encoding.ASCII.GetBytes($"\"Namespace{i}.MyEvent\""),
+                resolved.EventFullName);
+        }
+
+        Assert.Equal(EventNameManager.MaxNumberOfCachedEventNamespaces, eventNameManager.EventNamespaceCache.Count);
+    }
+
+    [Fact]
+    public void EventNameCacheIsBoundedAcrossNamespacesTest()
+    {
+        var eventNameManager = BuildEventNameManagerWithDefaultOptions();
+
+        // Spread the names over a handful of namespaces so that the limit has to be applied
+        // across all of them rather than per namespace.
+        var numberOfNames = EventNameManager.MaxNumberOfCachedEventNames + 100;
+
+        for (var i = 0; i < numberOfNames; i++)
+        {
+            var resolved = eventNameManager.ResolveEventFullName($"Namespace{i % 4}", $"Event{i}");
+
+            Assert.Equal(
+                Encoding.ASCII.GetBytes($"\"Namespace{i % 4}.Event{i}\""),
+                resolved.EventFullName);
+        }
+
+        Assert.Equal(EventNameManager.MaxNumberOfCachedEventNames, eventNameManager.CachedEventNameCount);
+
+        var cachedEventNames = 0;
+        foreach (Hashtable eventNameCache in eventNameManager.EventNamespaceCache.Values)
+        {
+            cachedEventNames += eventNameCache.Count;
+        }
+
+        Assert.Equal(EventNameManager.MaxNumberOfCachedEventNames, cachedEventNames);
+    }
+
+    [Theory]
+    [InlineData(EventNameManager.MinimumEventFullNameLength - 1, false)] // Below the minimum length is rejected.
+    [InlineData(EventNameManager.MinimumEventFullNameLength, true)]
+    [InlineData(EventNameManager.MaximumEventFullNameLength, true)]
+    [InlineData(EventNameManager.MaximumEventFullNameLength + 1, false)] // Above the maximum length is rejected.
+    [InlineData(129, false)] // Longer than the buffer BuildEventFullName writes into.
+    public void ResolveEventFullNameSingleArgumentBoundsLength(int length, bool expectKept)
+    {
+        var eventNameManager = BuildEventNameManagerWithDefaultOptions();
+
+        var resolved = eventNameManager.ResolveEventFullName(new string('A', length));
+
+        if (expectKept)
+        {
+            Assert.Equal(Encoding.ASCII.GetBytes($"\"{new string('A', length)}\""), resolved.EventFullName);
+        }
+        else
+        {
+            Assert.Equal(Encoding.ASCII.GetBytes("\"DefaultNamespace.DefaultName\""), resolved.EventFullName);
+        }
+    }
+
+    [Theory]
+    [InlineData("A\",\"injected\":\"value")]
+    [InlineData("name\"with\"quotes")]
+    [InlineData("name\\with\\backslashes")]
+    [InlineData("name with spaces")]
+    [InlineData("name\u0122with\u0122nonAscii")] // Chars are truncated to bytes, and U+0122 truncates to a quote.
+    [InlineData("name\nwith\nnewlines")]
+    [InlineData("name{with}braces")]
+    public void ResolveEventFullNameSingleArgumentRejectsUnsafeCharacters(string payload)
+    {
+        var eventNameManager = BuildEventNameManagerWithDefaultOptions();
+
+        var resolved = eventNameManager.ResolveEventFullName(payload);
+
+        Assert.Equal(
+            Encoding.ASCII.GetBytes("\"DefaultNamespace.DefaultName\""),
+            resolved.EventFullName);
+
+        using var stream = new MemoryStream();
+        using (var writer = new Utf8JsonWriter(stream))
+        {
+            writer.WriteStartObject();
+            writer.WritePropertyName("name");
+            writer.WriteRawValue(resolved.EventFullName, skipInputValidation: true);
+            writer.WriteEndObject();
+        }
+
+        var json = Encoding.UTF8.GetString(stream.ToArray());
+        using var doc = JsonDocument.Parse(json);
+        Assert.Equal("DefaultNamespace.DefaultName", doc.RootElement.GetProperty("name").GetString());
+    }
+
+    [Fact]
+    public void ResolveEventFullNameSingleArgumentAllowsSafeCharacters()
+    {
+        var eventNameManager = BuildEventNameManagerWithDefaultOptions();
+
+        var resolved = eventNameManager.ResolveEventFullName("Company_Product_EventName");
+
+        Assert.Equal(
+            Encoding.ASCII.GetBytes("\"Company_Product_EventName\""),
+            resolved.EventFullName);
+    }
+
+    [Fact]
+    public void ResolveEventFullNameReportsUnvalidatedOriginalEventNamespace()
+    {
+        var eventNameManager = BuildEventNameManagerWithDefaultOptions();
+
+        // An invalid event namespace is replaced by the default one and the original is
+        // reported separately, unvalidated and without a length limit. "9..." is invalid
+        // because a namespace has to start with a letter; in practice any category name
+        // containing a character outside [A-Za-z0-9.] (for example the '+' in a nested type
+        // name) is enough.
+        var invalidEventNamespace = new string('9', 129);
+
+        Assert.False(EventNameManager.IsEventNamespaceValid(invalidEventNamespace));
+
+        var resolved = eventNameManager.ResolveEventFullName(invalidEventNamespace, "MyEvent");
+
+        Assert.Equal(Encoding.ASCII.GetBytes("\"DefaultNamespace.MyEvent\""), resolved.EventFullName);
+        Assert.Equal(invalidEventNamespace, resolved.OriginalEventNamespace);
+    }
+
+    [Fact]
+    public void ResolveEventFullNameReportsUnvalidatedOriginalEventName()
+    {
+        var eventNameManager = BuildEventNameManagerWithDefaultOptions();
+
+        var invalidEventName = new string('9', 129);
+
+        Assert.False(EventNameManager.IsEventNameValid(invalidEventName));
+
+        var resolved = eventNameManager.ResolveEventFullName("MyNamespace", invalidEventName);
+
+        Assert.Equal(Encoding.ASCII.GetBytes("\"MyNamespace.DefaultName\""), resolved.EventFullName);
+        Assert.Equal(invalidEventName, resolved.OriginalEventName);
     }
 
     [Fact]
@@ -190,17 +355,13 @@ public class EventNameManagerTests
     }
 
     private static EventNameManager BuildEventNameManagerWithDefaultOptions()
-    {
-        return new EventNameManager("defaultNamespace", "defaultName");
-    }
+        => new("defaultNamespace", "defaultName");
 
     private static EventNameManager BuildEventNameManagerWithEventFullNameMappings(
-        params KeyValuePair<string, string>[] mappings)
-    {
-        return BuildEventNameManagerWithEventFullNameMappings(
+        params KeyValuePair<string, string>[] mappings) =>
+        BuildEventNameManagerWithEventFullNameMappings(
             "defaultNamespace",
             mappings);
-    }
 
     private static EventNameManager BuildEventNameManagerWithEventFullNameMappings(
         string defaultNamespace,

@@ -122,24 +122,16 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
             writer.WriteNumber(EventIdProperty, item.EventId.Id);
         }
 
+        // These are unvalidated values supplied by the caller so they are written as JSON
+        // strings, which escapes them. They must not be written as raw JSON.
         if (resolvedEventFullName.OriginalEventNamespace != null)
         {
-            writer.WritePropertyName(NamespaceProperty);
-#if DEBUG
-            writer.WriteRawValue(resolvedEventFullName.OriginalEventNamespace, skipInputValidation: false);
-#else
-            writer.WriteRawValue(resolvedEventFullName.OriginalEventNamespace, skipInputValidation: true);
-#endif
+            writer.WriteString(NamespaceProperty, resolvedEventFullName.OriginalEventNamespace);
         }
 
         if (resolvedEventFullName.OriginalEventName != null)
         {
-            writer.WritePropertyName(CommonSchemaJsonSerializationHelper.NameProperty);
-#if DEBUG
-            writer.WriteRawValue(resolvedEventFullName.OriginalEventName, skipInputValidation: false);
-#else
-            writer.WriteRawValue(resolvedEventFullName.OriginalEventName, skipInputValidation: true);
-#endif
+            writer.WriteString(CommonSchemaJsonSerializationHelper.NameProperty, resolvedEventFullName.OriginalEventName);
         }
 
 #if EXPOSE_EXPERIMENTAL_FEATURES
