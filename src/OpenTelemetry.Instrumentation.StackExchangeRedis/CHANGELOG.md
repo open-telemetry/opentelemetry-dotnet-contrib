@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+## 1.19.0-beta.1
+
+Released 2026-Sep-18
+
+* Updated OpenTelemetry core component version(s) to `1.19.0`.
+  ([#5240](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5240))
+
+## 1.18.0-beta.3
+
+Released 2026-Sep-17
+
+* Fixed `SetVerboseDatabaseStatements` losing the script text for `EVAL`/`EVALSHA`
+  commands with StackExchange.Redis 3.2.0+.
+  ([#5223](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5223))
+
 ## 1.18.0-beta.2
 
 Released 2026-Sep-10

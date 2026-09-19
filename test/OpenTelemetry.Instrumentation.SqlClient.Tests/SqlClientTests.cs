@@ -355,6 +355,57 @@ public class SqlClientTests
     }
 #endif
 
+    [Theory]
+    [InlineData(SqlClientLibrary.SystemDataSqlClient)]
+    [InlineData(SqlClientLibrary.MicrosoftDataSqlClient)]
+    public void UnsampledTextCommandMetricIncludesQuerySummary(SqlClientLibrary library)
+    {
+        var metrics = new List<Metric>();
+
+        using var traceProvider = Sdk.CreateTracerProviderBuilder()
+            .SetSampler(new TestSampler
+            {
+                SamplingAction = _ => new SamplingResult(SamplingDecision.Drop),
+            })
+            .AddSqlClientInstrumentation()
+            .Build();
+
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(metrics)
+            .Build();
+
+        MockCommandExecutor.ExecuteCommand(
+            TestConnectionString,
+            CommandType.Text,
+            "select * from sys.databases",
+            error: false,
+            library);
+
+        traceProvider.ForceFlush();
+        meterProvider.ForceFlush();
+
+        var metric = Assert.Single(metrics, m => m.Name == "db.client.operation.duration");
+        var metricPoints = new List<MetricPoint>();
+        foreach (var point in metric.GetMetricPoints())
+        {
+            metricPoints.Add(point);
+        }
+
+        var metricPoint = Assert.Single(metricPoints);
+        object? querySummary = null;
+        foreach (var tag in metricPoint.Tags)
+        {
+            if (tag.Key == SemanticConventions.AttributeDbQuerySummary)
+            {
+                querySummary = tag.Value;
+                break;
+            }
+        }
+
+        Assert.Equal("select sys.databases", querySummary);
+    }
+
     private static void VerifyAttributes(SqlClientTestCase testCase, Activity activity, MetricPoint metricPoint)
     {
         var metricAttributes = new Dictionary<string, object?>();
