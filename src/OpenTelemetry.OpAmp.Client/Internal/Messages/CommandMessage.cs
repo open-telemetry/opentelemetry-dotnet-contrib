@@ -4,14 +4,14 @@
 using OpAmp.Proto.V1;
 using OpenTelemetry.OpAmp.Client.Messages;
 
-namespace OpenTelemetry.OpAmp.Client.Internal.Listeners.Messages;
+namespace OpenTelemetry.OpAmp.Client.Internal.Messages;
 
-internal class CommandMessage : OpAmpMessage
+internal sealed class CommandMessage : OpAmpMessage
 {
     public CommandMessage(ServerToAgentCommand command)
     {
         this.Command = command;
     }
 
-    public ServerToAgentCommand Command { get; set; }
+    public ServerToAgentCommand Command { get; }
 }

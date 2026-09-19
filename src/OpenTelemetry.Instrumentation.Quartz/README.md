@@ -12,6 +12,25 @@
 Automatically instruments the Quartz jobs from
 [Quartz](https://www.nuget.org/packages/Quartz/).
 
+## Supported versions
+
+> [!IMPORTANT]
+> This package supports Quartz v3.4.0 through v3.x. It does not support Quartz
+> v4.0.0 or later, which provides built-in OpenTelemetry support through an
+> `ActivitySource` and a `Meter`.
+
+To instrument Quartz v4.0.0 or later, configure the OpenTelemetry SDK to
+subscribe to Quartz's activity source and meter:
+
+```csharp
+services.AddOpenTelemetry()
+    .WithTracing(tracing => tracing.AddSource("Quartz"))
+    .WithMetrics(metrics => metrics.AddMeter("Quartz"));
+```
+
+See [Quartz's observability documentation](https://www.quartz-scheduler.net/documentation/quartz-4.x/packages/opentelemetry-integration)
+for more information.
+
 ## Supported Frameworks
 
 QuartzNET Instrumentation is only supported when using .NET Framework >=

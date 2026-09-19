@@ -199,6 +199,7 @@ public class InstrumentedConsumerTests
         Assert.NotNull(activity);
         Assert.Equal(ActivityKind.Client, activity.Kind);
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
+        Assert.Null(activity.StatusDescription);
         Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
         Assert.Equal("fake-consumer-1", activity.GetTagValue(SemanticConventions.AttributeMessagingClientId));
         Assert.Equal("test-group", activity.GetTagValue(SemanticConventions.AttributeMessagingConsumerGroupName));

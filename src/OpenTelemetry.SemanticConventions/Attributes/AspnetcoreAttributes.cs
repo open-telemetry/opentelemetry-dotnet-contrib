@@ -369,7 +369,7 @@ public static class AspnetcoreAttributes
         public const string Update = "update";
 
         /// <summary>
-        /// Identity user name updated.
+        /// Identity username updated.
         /// </summary>
         public const string UserName = "user_name";
 

@@ -96,6 +96,8 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
 
         if (activity != null)
         {
+            owinContext.Environment[ContextKey] = activity;
+
             var request = owinContext.Request;
 
             // Note: Display name is intentionally set to a low cardinality
@@ -111,7 +113,7 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
 
                 RequestDataHelper.SetHttpMethodTag(activity, request.Method);
                 activity.SetTag(SemanticConventions.AttributeServerAddress, request.Uri.Host);
-                activity.SetTag(SemanticConventions.AttributeServerPort, request.Uri.Port);
+                activity.SetTag(SemanticConventions.AttributeServerPort, PortTelemetryHelper.GetBoxedPort(request.Uri.Port, cacheValue: true));
                 activity.SetTag(
                     SemanticConventions.AttributeNetworkProtocolVersion,
                     RequestDataHelper.GetHttpProtocolVersion(request.Protocol));
@@ -148,8 +150,6 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
             {
                 Baggage.Current = ctx.Baggage;
             }
-
-            owinContext.Environment[ContextKey] = activity;
         }
     }
 

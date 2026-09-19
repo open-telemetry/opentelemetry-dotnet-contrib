@@ -17,6 +17,13 @@
 * The caches used to resolve event full names are now bounded.
   ([#4857](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/4857))
 
+## 1.19.0
+
+Released 2026-Sep-18
+
+* Updated OpenTelemetry core component version(s) to `1.19.0`.
+  ([#5240](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5240))
+
 ## 1.18.0
 
 Released 2026-Aug-21
