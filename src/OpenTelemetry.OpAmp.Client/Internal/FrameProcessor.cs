@@ -129,16 +129,16 @@ internal sealed class FrameProcessor
             Dispatch(new PackagesAvailableMessage(packagesAvailable), packagesListeners);
         }
 
-        if (message.Flags is var flags and not 0 &&
-            this.TryGetListeners<FlagsMessage>(out var flagsListeners))
-        {
-            Dispatch(new FlagsMessage((ServerToAgentFlags)flags), flagsListeners);
-        }
-
         if (message.Capabilities is var capabilities and not 0 &&
             this.TryGetListeners<ServerCapabilitiesMessage>(out var capabilitiesListeners))
         {
             Dispatch(new ServerCapabilitiesMessage((ServerCapabilities)capabilities), capabilitiesListeners);
+        }
+
+        if (message.Flags is var flags and not 0 &&
+            this.TryGetListeners<FlagsMessage>(out var flagsListeners))
+        {
+            Dispatch(new FlagsMessage((ServerToAgentFlags)flags), flagsListeners);
         }
 
         if (message.AgentIdentification is { } agentIdentification &&
@@ -176,7 +176,7 @@ internal sealed class FrameProcessor
             return true;
         }
 
-        result = Array.Empty<object>();
+        result = [];
         return false;
     }
 }

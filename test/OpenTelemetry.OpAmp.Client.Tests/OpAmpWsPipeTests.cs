@@ -50,7 +50,7 @@ public class OpAmpWsPipeTests : OpAmpPipeTests
         // Hold the first send while the queue fills; every later send completes synchronously.
         private readonly TaskCompletionSource<bool> firstSendCompletion = new();
         private readonly ManualResetEventSlim firstSendStarted = new();
-        private readonly object stackDepthLock = new();
+        private readonly Lock stackDepthLock = new();
         private int maximumStackDepth;
         private int minimumStackDepth = int.MaxValue;
         private int sendCount;

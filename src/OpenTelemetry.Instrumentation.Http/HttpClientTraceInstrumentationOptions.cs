@@ -173,6 +173,7 @@ public class HttpClientTraceInstrumentationOptions
         }
     }
 
+#if NETFRAMEWORK
     internal bool EventFilterHttpWebRequest(HttpWebRequest request)
     {
         try
@@ -185,6 +186,7 @@ public class HttpClientTraceInstrumentationOptions
             return false;
         }
     }
+#endif
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool TryParseHttpRequestMessage(string activityName, object arg1, [NotNullWhen(true)] out HttpRequestMessage? requestMessage)

@@ -14,5 +14,6 @@ internal class SampleAWSEC2IdentityDocumentModel : AWSEC2IdentityDocumentModel
         this.Region = "Test aws region";
         this.InstanceId = "Test instance id";
         this.InstanceType = "Test instance type";
+        this.ImageId = "Test image id";
     }
 }

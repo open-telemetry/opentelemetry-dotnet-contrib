@@ -244,7 +244,7 @@ public class RemotingInstrumentationTests
 
             // LogicalCallContext has no accessible constructor; the runtime only ever hands out
             // instances it creates itself, so one is created reflectively for this fake message.
-            this.LogicalCallContext = (LogicalCallContext)Activator.CreateInstance(typeof(LogicalCallContext), nonPublic: true)!;
+            this.LogicalCallContext = (LogicalCallContext)Activator.CreateInstance(typeof(LogicalCallContext), nonPublic: true);
             this.Properties = new Hashtable { ["__CallContext"] = this.LogicalCallContext };
         }
 

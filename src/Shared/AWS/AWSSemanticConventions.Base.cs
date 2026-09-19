@@ -545,6 +545,14 @@ internal partial class AWSSemanticConventions
         public virtual string AttributeHostType => string.Empty;
 
         /// <summary>
+        /// VM image ID or host OS image ID. For Cloud, this value is from the provider.
+        /// </summary>
+        /// <remarks>
+        /// HostAttributes.AttributeHostImageId
+        /// </remarks>
+        public virtual string AttributeHostImageId => string.Empty;
+
+        /// <summary>
         /// Name of the host. On Unix systems, it may contain what the hostname command returns, or the fully qualified hostname, or another name specified by the user.
         /// </summary>
         /// <remarks>

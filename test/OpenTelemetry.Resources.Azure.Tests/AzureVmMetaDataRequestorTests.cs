@@ -151,6 +151,50 @@ public class AzureVmMetaDataRequestorTests
     }
 
     [Fact]
+    public void GetAzureVmMetaData_ImageFields_AreDeserialized()
+    {
+        // Arrange
+        var json =
+            """
+            {
+              "offer": "otherOffer",
+              "publisher": "otherPublisher",
+              "sku": "otherSku",
+              "storageProfile": {
+                "imageReference": {
+                  "id": "imageId",
+                  "offer": "offer",
+                  "publisher": "publisher",
+                  "sku": "sku",
+                  "version": "latest"
+                }
+              },
+              "version": "imageVersion"
+            }
+            """;
+
+        var cancellationToken = CancellationToken.None;
+
+        using var httpResponse = new HttpResponseMessage()
+        {
+            Content = new StringContent(json),
+        };
+
+        using var handler = new StubHttpMessageHandler(httpResponse);
+        using var httpClient = new HttpClient(handler);
+
+        // Act
+        var actual = AzureVmMetaDataRequestor.GetAzureVmMetaData(httpClient, cancellationToken);
+
+        // Assert
+        Assert.NotNull(actual);
+        Assert.Equal("imageId", actual.StorageProfile?.ImageReference?.Id);
+        Assert.Equal("publisher", actual.StorageProfile?.ImageReference?.Publisher);
+        Assert.Equal("offer", actual.StorageProfile?.ImageReference?.Offer);
+        Assert.Equal("sku", actual.StorageProfile?.ImageReference?.Sku);
+    }
+
+    [Fact]
     public void GetAzureVmMetaData_EmptyDocument_ReturnsResponse()
     {
         // Arrange
