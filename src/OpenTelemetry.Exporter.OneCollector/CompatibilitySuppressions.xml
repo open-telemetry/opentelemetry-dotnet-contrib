@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Suppressions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <Suppression>
+        <DiagnosticId>CP0008</DiagnosticId>
+        <Target>T:OpenTelemetry.Exporter.OneCollector.OneCollectorExporterSerializationExceptionStackTraceHandlingType</Target>
+        <Left>lib/net8.0/OpenTelemetry.Exporter.OneCollector.dll</Left>
+        <Right>lib/netstandard2.1/OpenTelemetry.Exporter.OneCollector.dll</Right>
+        <IsBaselineSuppression>true</IsBaselineSuppression>
+    </Suppression>
+</Suppressions>

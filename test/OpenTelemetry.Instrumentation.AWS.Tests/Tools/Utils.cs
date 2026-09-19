@@ -9,12 +9,16 @@ internal static class Utils
 {
     public static Stream CreateStreamFromString(string s)
     {
+#if NET11_0_OR_GREATER
+        return new StringStream(s, System.Text.Encoding.UTF8);
+#else
         var stream = new MemoryStream();
         var writer = new StreamWriter(stream);
         writer.Write(s);
         writer.Flush();
         stream.Position = 0;
         return stream;
+#endif
     }
 
     public static Stream? GetResourceStream(string resourceName)

@@ -118,7 +118,7 @@ internal sealed partial class PerfTracepointListener : IDisposable
 
         if (matches.Count > 0)
         {
-            Dictionary<string, string> eventData = new(matches.Count);
+            Dictionary<string, string> eventData = [with(matches.Count)];
 
             foreach (Match match in matches)
             {

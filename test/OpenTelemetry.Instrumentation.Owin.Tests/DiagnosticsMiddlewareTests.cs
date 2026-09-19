@@ -304,7 +304,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
         using ActivityListener listener = new()
         {
             ShouldListenTo = source => source.Name == activitySourceName,
-            Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
+            Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
             ActivityStarted = _ => Interlocked.Increment(ref startedCount),
             ActivityStopped = _ => Interlocked.Increment(ref stoppedCount),
         };

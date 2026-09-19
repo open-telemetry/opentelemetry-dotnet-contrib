@@ -133,7 +133,11 @@ internal sealed class GcpResourceDetector : IResourceDetector
                 && imageElement.ValueKind == JsonValueKind.String
                 && imageElement.GetString() is { Length: > 0 } image)
             {
+#if NET11_0_OR_GREATER
+                var imageName = image.Substring(image.LastIndexOf('/', StringComparison.Ordinal) + 1);
+#else
                 var imageName = image.Substring(image.LastIndexOf('/') + 1);
+#endif
                 if (imageName.Length > 0)
                 {
                     attributeList.Add(new(ResourceSemanticConventions.AttributeHostImageName, imageName));

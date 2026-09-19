@@ -94,7 +94,9 @@ internal partial class ElasticsearchRequestPipelineDiagnosticListener : Listener
         }
 
         // operations starting with _ are not indices (_cat, _search, etc.)
-#if NET
+#if NET11_0_OR_GREATER
+        if (uri.Segments[1].StartsWith('_', StringComparison.Ordinal))
+#elif NET
         if (uri.Segments[1].StartsWith('_'))
 #else
         if (uri.Segments[1].StartsWith("_", StringComparison.Ordinal))
@@ -115,7 +117,9 @@ internal partial class ElasticsearchRequestPipelineDiagnosticListener : Listener
             return null;
         }
 
-#if NET
+#if NET11_0_OR_GREATER
+        if (elasticType.EndsWith('/', StringComparison.Ordinal))
+#elif NET
         if (elasticType.EndsWith('/'))
 #else
         if (elasticType.EndsWith("/", StringComparison.Ordinal))
