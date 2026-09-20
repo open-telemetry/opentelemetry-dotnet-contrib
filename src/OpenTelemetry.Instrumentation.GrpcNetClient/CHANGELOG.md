@@ -12,7 +12,7 @@
   propagated. With HttpClient instrumentation and only `TraceContextPropagator`,
   downstream spans are parented to the gRPC client span instead of the
   HttpClient span.
-  ([#PLACEHOLDER](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/PLACEHOLDER))
+  ([#5327](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5327))
 
 ## 1.19.0-beta.1
 
