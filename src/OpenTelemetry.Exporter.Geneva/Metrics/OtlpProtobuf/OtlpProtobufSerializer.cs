@@ -698,7 +698,7 @@ internal sealed class OtlpProtobufSerializer
 
         if (this.prepopulatedNumberDataPointAttributes != null)
         {
-            Array.Copy(this.prepopulatedNumberDataPointAttributes, 0, buffer, cursor, this.prepopulatedHistogramDataPointAttributesLength);
+            Array.Copy(this.prepopulatedNumberDataPointAttributes, 0, buffer, cursor, this.prepopulatedNumberDataPointAttributesLength);
             cursor += this.prepopulatedNumberDataPointAttributesLength;
         }
 
