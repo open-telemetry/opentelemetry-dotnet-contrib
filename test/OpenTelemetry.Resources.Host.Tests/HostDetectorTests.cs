@@ -476,6 +476,10 @@ public class HostDetectorTests
     [InlineData("unknown", null)]
     [InlineData("   ", null)]
     [InlineData(null, null)]
+    [InlineData("9223372036854775807 K", null)]
+    [InlineData("18014398509481985 K", null)]
+    [InlineData("2097151 K", 2147482624)]
+    [InlineData("2097152 K", null)]
     public void TestParseCacheSize(string? value, int? expected) =>
         Assert.Equal(expected, HostDetector.ParseCacheSize(value));
 

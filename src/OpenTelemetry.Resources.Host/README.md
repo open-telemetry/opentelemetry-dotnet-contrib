@@ -90,8 +90,8 @@ resource is built again.
 attributes, so they are not emitted by default. Set
 `OTEL_DOTNET_EXPERIMENTAL_HOST_RESOURCE_ENABLE_CPU_INFO` to `true` to emit them.
 
-Which attributes are available depends on the CPU architecture rather than
-the operating system, and an attribute whose source is missing is left out.
+Which attributes are available depends on the operating system and the CPU
+architecture, and an attribute whose source is missing is left out.
 
 | Attribute | Windows | Linux | macOS |
 | --- | --- | --- | --- |

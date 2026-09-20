@@ -292,8 +292,13 @@ internal sealed class HostDetector : IResourceDetector
             return null;
         }
 
-        size *= multiplier;
-        return size <= int.MaxValue ? (int?)size : null;
+        // Checked before the multiply, which would otherwise wrap into an in-range value.
+        if (size > int.MaxValue / multiplier)
+        {
+            return null;
+        }
+
+        return (int)(size * multiplier);
     }
 
     internal static void AddCpuInfoWindows(List<KeyValuePair<string, object>> attributes, Func<string, string?>? getRegistryValue, Func<int?> getL2CacheSize)
@@ -605,6 +610,17 @@ internal sealed class HostDetector : IResourceDetector
                 if (!process.WaitForExit(timeoutMilliseconds))
                 {
                     HostResourceEventSource.Log.ProcessTimeout("Process did not exit within the given timeout");
+
+                    try
+                    {
+                        // Disposing the wrapper leaves the child running.
+                        process.Kill();
+                    }
+                    catch (Exception ex)
+                    {
+                        HostResourceEventSource.Log.ResourceAttributesExtractException(nameof(HostDetector), ex);
+                    }
+
                     return null;
                 }
 
