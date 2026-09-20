@@ -4,9 +4,6 @@
 using System.Diagnostics;
 using System.Net;
 using Greet;
-#if !NETFRAMEWORK
-using Grpc.Core;
-#endif
 using Grpc.Net.Client;
 using Microsoft.Extensions.DependencyInjection;
 #if !NETFRAMEWORK
@@ -257,6 +254,52 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
         }
 
         Assert.Empty(exportedItems);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void GrpcClientPropagatesContextWithSampledFlagMatchingFilterDecision(bool filterMatches)
+    {
+        var uri = new UriBuilder("http://localhost") { Port = 1234 }.Uri;
+
+        string? traceparent = null;
+
+        using var httpClient = ClientTestHelpers.CreateTestClient(async request =>
+        {
+            traceparent = request.Headers.TryGetValues("traceparent", out var values) ? values.Single() : null;
+            var streamContent = await ClientTestHelpers.CreateResponseContent(new HelloReply());
+            var response = ResponseUtils.CreateResponse(HttpStatusCode.OK, streamContent, grpcStatusCode: global::Grpc.Core.StatusCode.OK);
+            return response;
+        });
+
+        var exportedItems = new List<Activity>();
+        Activity? clientActivity = null;
+
+        using (Sdk.CreateTracerProviderBuilder()
+                .SetSampler(new AlwaysOnSampler())
+                .AddGrpcClientInstrumentation(options =>
+                {
+                    options.Filter = _ =>
+                    {
+                        clientActivity = Activity.Current;
+                        return filterMatches;
+                    };
+                })
+                .AddInMemoryExporter(exportedItems)
+                .Build())
+        {
+            var channel = GrpcChannel.ForAddress(uri, new GrpcChannelOptions
+            {
+                HttpClient = httpClient,
+            });
+            var client = new Greeter.GreeterClient(channel);
+            _ = client.SayHello(new HelloRequest());
+        }
+
+        Assert.NotNull(clientActivity);
+        var expectedSampledFlag = filterMatches ? "01" : "00";
+        Assert.Equal($"00-{clientActivity.TraceId}-{clientActivity.SpanId}-{expectedSampledFlag}", traceparent);
     }
 
     [Fact]
@@ -527,46 +570,56 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
         }
     }
 
-    [Fact]
-    public void GrpcDoesNotPropagateContextWithSuppressInstrumentationOptionSetToFalse()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void GrpcPropagatesContextWithoutHttpClientInstrumentation(bool suppressDownstreamInstrumentation)
     {
         try
         {
             var exportedItems = new List<Activity>();
+
             using var source = new ActivitySource("test-source");
 
-            var isPropagatorCalled = false;
-            var propagator = new CustomTextMapPropagator
-            {
-                Injected = (context) => isPropagatorCalled = true,
-            };
+            var propagator = new CustomTextMapPropagator();
+            propagator.InjectValues.Add("customField", context => "customValue");
 
-            Sdk.SetDefaultTextMapPropagator(propagator);
-
-            var headers = new Metadata();
+            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([
+                new TraceContextPropagator(),
+                propagator
+            ]));
 
             using (Sdk.CreateTracerProviderBuilder()
                 .AddSource("test-source")
                 .AddGrpcClientInstrumentation(o =>
                 {
-                    o.SuppressDownstreamInstrumentation = false;
+                    o.SuppressDownstreamInstrumentation = suppressDownstreamInstrumentation;
                 })
+                .AddAspNetCoreInstrumentation(options =>
+                {
+                    options.EnrichWithHttpRequest = (activity, request) =>
+                    {
+                        activity.SetCustomProperty("customField", request.Headers["customField"].ToString());
+                    };
+                }) // Instrumenting the server side as well
                 .AddInMemoryExporter(exportedItems)
                 .Build())
             {
                 using var activity = source.StartActivity("parent");
+                Assert.NotNull(activity);
+
                 using var channel = GrpcChannel.ForAddress(this.server.Address);
                 var client = new Greeter.GreeterClient(channel);
-                _ = client.SayHello(new HelloRequest(), headers);
+                _ = client.SayHello(new HelloRequest());
+
+                WaitForExporterToReceiveItems(exportedItems, 2);
             }
 
-            Assert.Equal(2, exportedItems.Count);
-
-            var parentActivity = exportedItems.Single(activity => activity.OperationName == "parent");
+            var serverActivity = exportedItems.Single(activity => activity.OperationName == OperationNameHttpRequestIn);
             var clientActivity = exportedItems.Single(activity => activity.OperationName == OperationNameGrpcOut);
 
-            Assert.Equal(clientActivity.ParentSpanId, parentActivity.SpanId);
-            Assert.False(isPropagatorCalled, "Propagator was called.");
+            Assert.Equal("customValue", serverActivity.GetCustomProperty("customField") as string);
+            Assert.Equal(clientActivity.SpanId, serverActivity.ParentSpanId);
         }
         finally
         {
@@ -575,6 +628,80 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
                 new BaggagePropagator()
             ]));
         }
+    }
+
+    [Fact]
+    public void GrpcAndHttpClientInstrumentationPropagatesGrpcContextWithTraceContextPropagator()
+    {
+        try
+        {
+            var exportedItems = new List<Activity>();
+
+            using var source = new ActivitySource("test-source");
+
+            Sdk.SetDefaultTextMapPropagator(new TraceContextPropagator());
+
+            using (Sdk.CreateTracerProviderBuilder()
+                .AddSource("test-source")
+                .AddGrpcClientInstrumentation()
+                .AddHttpClientInstrumentation()
+                .AddAspNetCoreInstrumentation() // Instrumenting the server side as well
+                .AddInMemoryExporter(exportedItems)
+                .Build())
+            {
+                using var activity = source.StartActivity("parent");
+                Assert.NotNull(activity);
+
+                using var channel = GrpcChannel.ForAddress(this.server.Address);
+                var client = new Greeter.GreeterClient(channel);
+                _ = client.SayHello(new HelloRequest());
+
+                WaitForExporterToReceiveItems(exportedItems, 3);
+            }
+
+            var serverActivity = exportedItems.Single(activity => activity.OperationName == OperationNameHttpRequestIn);
+            var clientActivity = exportedItems.Single(activity => activity.OperationName == OperationNameGrpcOut);
+
+            Assert.Equal(clientActivity.SpanId, serverActivity.ParentSpanId);
+        }
+        finally
+        {
+            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([
+                new TraceContextPropagator(),
+                new BaggagePropagator()
+            ]));
+        }
+    }
+
+    [Fact]
+    public void GrpcAndHttpClientInstrumentationPropagatesHttpClientContextWithDefaultPropagator()
+    {
+        var exportedItems = new List<Activity>();
+
+        using var source = new ActivitySource("test-source");
+
+        using (Sdk.CreateTracerProviderBuilder()
+            .AddSource("test-source")
+            .AddGrpcClientInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddAspNetCoreInstrumentation() // Instrumenting the server side as well
+            .AddInMemoryExporter(exportedItems)
+            .Build())
+        {
+            using var activity = source.StartActivity("parent");
+            Assert.NotNull(activity);
+
+            using var channel = GrpcChannel.ForAddress(this.server.Address);
+            var client = new Greeter.GreeterClient(channel);
+            _ = client.SayHello(new HelloRequest());
+
+            WaitForExporterToReceiveItems(exportedItems, 3);
+        }
+
+        var serverActivity = exportedItems.Single(activity => activity.OperationName == OperationNameHttpRequestIn);
+        var httpClientActivity = exportedItems.Single(activity => activity.OperationName == OperationNameHttpOut);
+
+        Assert.Equal(httpClientActivity.SpanId, serverActivity.ParentSpanId);
     }
 
     [Fact]
