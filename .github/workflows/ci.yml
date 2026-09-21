@@ -613,7 +613,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Resources.Host]
       code-cov-name: Resources.Host
-      os-list: '[ "windows-2025", "ubuntu-24.04", "macos-26" ]'
+      os-list: '[ "windows-2025", "ubuntu-26.04", "macos-26" ]'
       trigger: ${{ github.event_name }}
 
   build-test-resources-operatingsystem:
@@ -626,7 +626,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Resources.OperatingSystem]
       code-cov-name: Resources.OperatingSystem
-      os-list: '[ "windows-2025", "ubuntu-24.04", "macos-26" ]'
+      os-list: '[ "windows-2025", "ubuntu-26.04", "macos-26" ]'
       trigger: ${{ github.event_name }}
 
   build-test-resources-process:
@@ -789,7 +789,7 @@ jobs:
       verify-aot-compat
     ]
     if: always()
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
     - name: Report CI status
       shell: bash
