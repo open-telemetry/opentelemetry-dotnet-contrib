@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Updated OpenTelemetry core component version(s) to `1.19.1`.
+  ([#5329](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5329))
+
 * Fixed query sanitization so that backslash-escaped quotes (`'a\'b'`) in
   MySQL/MariaDB string literals and PostgreSQL dollar-quoted strings
   (`$$...$$`) are correctly redacted.
