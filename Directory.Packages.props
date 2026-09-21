@@ -6,7 +6,7 @@
 
   <!-- OpenTelemetry packages -->
   <PropertyGroup>
-    <OpenTelemetryCoreLatestVersion>1.19.0</OpenTelemetryCoreLatestVersion>
+    <OpenTelemetryCoreLatestVersion>1.19.1</OpenTelemetryCoreLatestVersion>
     <OpenTelemetryCoreUnstableLatestVersion>1.19.0-beta.1</OpenTelemetryCoreUnstableLatestVersion>
     <OpenTelemetryCoreLatestPrereleaseVersion>1.19.1-rc.1</OpenTelemetryCoreLatestPrereleaseVersion>
     <OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>1.19.0</OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>
