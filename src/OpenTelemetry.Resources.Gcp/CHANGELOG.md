@@ -15,6 +15,13 @@
 * The detector now catches and logs an exception and returns an empty resource.
   ([#5212](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5212))
 
+## 1.0.0-alpha.6
+
+Released 2026-Sep-21
+
+* Updated OpenTelemetry core component version(s) to `1.19.1`.
+  ([#5329](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5329))
+
 ## 1.0.0-alpha.5
 
 Released 2026-Sep-18

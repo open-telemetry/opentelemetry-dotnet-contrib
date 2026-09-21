@@ -43,6 +43,18 @@ public static class TracerProviderBuilderExtensions
         Instrumentation.Wcf.Implementation.AspNetParentSpanCorrector.Register();
 #endif
 
+        builder.AddInstrumentation(() => new WcfInstrumentation());
+
         return builder.AddSource(WcfInstrumentationActivitySource.ActivitySource.Name);
+    }
+
+    /// <summary>
+    /// Tracks the lifetime of a WCF instrumentation registration so that the
+    /// static <see cref="WcfInstrumentationActivitySource.Options"/> can be
+    /// cleared when the owning <see cref="TracerProvider"/> is disposed.
+    /// </summary>
+    private sealed class WcfInstrumentation : IDisposable
+    {
+        public void Dispose() => WcfInstrumentationActivitySource.Options = null;
     }
 }
