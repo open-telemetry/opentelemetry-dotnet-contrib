@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using OpenTelemetry.DynamicControl.Internal.Diagnostics;
 using OpenTelemetry.DynamicControl.Internal.Providers;
@@ -72,7 +73,7 @@ internal sealed class PolicyCoordinator
 
             if (metadata == default)
             {
-                throw new ArgumentException("A provider must not have default metadata.", nameof(providers));
+                throw new ArgumentException($"The provider at index {i} must not have default metadata.", nameof(providers));
             }
 
             if (!seenIds.Add(metadata.RegistrationId))
@@ -121,6 +122,8 @@ internal sealed class PolicyCoordinator
 
         try
         {
+            var stopwatch = Stopwatch.StartNew();
+
             for (var i = 0; i < this.providers.Length; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -220,6 +223,8 @@ internal sealed class PolicyCoordinator
                         break;
                 }
             }
+
+            DynamicControlEventSource.Log.PolicyRefreshCompleted(this.providers.Length, stopwatch.ElapsedMilliseconds);
         }
         finally
         {

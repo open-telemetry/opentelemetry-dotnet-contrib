@@ -22,6 +22,7 @@ internal sealed class DynamicControlEventSource : EventSource
     private const int EventIdPolicyProviderSubmissionRejected = 6;
     private const int EventIdPolicyProviderSubmissionApplied = 7;
     private const int EventIdPolicyProviderSubmissionSuppressed = 8;
+    private const int EventIdPolicyRefreshCompleted = 9;
 
     /// <summary>
     /// Records that a policy change subscriber's callback threw an exception. The
@@ -43,8 +44,7 @@ internal sealed class DynamicControlEventSource : EventSource
         this.WriteEvent(EventIdPolicyChangeSubscriberFailure, exception);
 
     /// <summary>
-    /// Records that a policy provider's fetch threw an unexpected exception. The provider
-    /// is skipped for the current refresh; its previously accepted snapshot remains in place.
+    /// Records that a policy provider's fetch threw an unexpected exception.
     /// </summary>
     /// <param name="registrationId">The identity of the provider that failed.</param>
     /// <param name="exception">The exception thrown by the provider.</param>
@@ -89,7 +89,7 @@ internal sealed class DynamicControlEventSource : EventSource
     /// </summary>
     /// <param name="registrationId">The identity of the provider that supplied the payload.</param>
     /// <param name="ignoredKeyCount">The number of distinct unrecognized keys.</param>
-    [Event(EventIdPolicyPayloadKeysIgnored, Message = "Policy payload from '{0}' contained {1} unrecognized key(s).", Level = EventLevel.Informational)]
+    [Event(EventIdPolicyPayloadKeysIgnored, Message = "Policy payload from '{0}' contained {1} unrecognized key(s).", Level = EventLevel.Verbose)]
     public void PolicyPayloadKeysIgnored(string registrationId, int ignoredKeyCount) =>
         this.WriteEvent(EventIdPolicyPayloadKeysIgnored, registrationId, ignoredKeyCount);
 
@@ -122,4 +122,13 @@ internal sealed class DynamicControlEventSource : EventSource
     [Event(EventIdPolicyProviderSubmissionSuppressed, Message = "Policy provider submission suppressed for '{0}': version unchanged, sequence={1}", Level = EventLevel.Verbose)]
     public void PolicyProviderSubmissionSuppressed(string registrationId, long sequence) =>
         this.WriteEvent(EventIdPolicyProviderSubmissionSuppressed, registrationId, sequence);
+
+    /// <summary>
+    /// Records that a full refresh cycle completed normally.
+    /// </summary>
+    /// <param name="providerCount">The number of providers iterated during the refresh.</param>
+    /// <param name="elapsedMilliseconds">The elapsed time in milliseconds for the full refresh.</param>
+    [Event(EventIdPolicyRefreshCompleted, Message = "Policy refresh completed: providers={0}, elapsed={1}ms", Level = EventLevel.Verbose)]
+    public void PolicyRefreshCompleted(int providerCount, long elapsedMilliseconds) =>
+        this.WriteEvent(EventIdPolicyRefreshCompleted, providerCount, elapsedMilliseconds);
 }

@@ -473,8 +473,7 @@ public class PolicyCoordinatorTests
         await coordinator.RefreshAsync();
 
         Assert.Equal(revisionAfterFirst, store.Current.Revision);
-        var suppressed = Assert.Single(listener.Events);
-        Assert.Equal(8, suppressed.EventId);
+        var suppressed = listener.Events.Single(e => e.EventId == 8);
         Assert.Equal(EventLevel.Verbose, suppressed.Level);
         Assert.Equal("p1", suppressed.Payload![0]);
         Assert.Equal(2L, suppressed.Payload[1]);
@@ -734,6 +733,38 @@ public class PolicyCoordinatorTests
         Assert.True((long)applied.Payload[1]! >= 1, "Sequence must be >= 1.");
         Assert.Equal(1L, (long)applied.Payload[2]!);
         Assert.Equal(1, (int)applied.Payload[3]!);
+    }
+
+    [Fact]
+    public async Task RefreshAsync_Completes_EmitsRefreshCompletedEvent()
+    {
+        using var store = new PolicyStore();
+        using var listener = new InMemoryEventListener(DynamicControlEventSource.Log);
+        var provider = new FakeProvider("p1", PolicyProviderKind.File, Json("""{"sampling_rate": 0.5}"""));
+        var coordinator = new PolicyCoordinator(store, [provider]);
+
+        await coordinator.RefreshAsync();
+
+        var completed = listener.Events.Single(e => e.EventId == 9);
+        Assert.Equal(EventLevel.Verbose, completed.Level);
+        Assert.Equal(1, (int)completed.Payload![0]!);
+        Assert.True((long)completed.Payload![1]! >= 0, "Elapsed milliseconds must be non-negative.");
+    }
+
+    [Fact]
+    public async Task RefreshAsync_Cancelled_DoesNotEmitRefreshCompletedEvent()
+    {
+        using var store = new PolicyStore();
+        using var cts = new CancellationTokenSource();
+        using var listener = new InMemoryEventListener(DynamicControlEventSource.Log);
+        var p1 = new FakeProvider("p1", PolicyProviderKind.OpAmp, Json("""{"sampling_rate": 0.5}"""));
+        var p2 = new FakeProvider("p2", PolicyProviderKind.Http) { OnFetch = () => cts.Cancel() };
+        var coordinator = new PolicyCoordinator(store, [p1, p2]);
+
+        await Assert.ThrowsAsync<OperationCanceledException>(() =>
+            coordinator.RefreshAsync(cts.Token));
+
+        Assert.DoesNotContain(listener.Events, e => e.EventId == 9);
     }
 
     [Fact]

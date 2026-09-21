@@ -40,10 +40,6 @@ internal interface ITelemetryPolicyProvider
     /// this provider, so throwing must not be used to signal that no payload is
     /// available.
     /// </para>
-    /// <para>
-    /// Constructing <see cref="PolicyProviderPayload"/> copies the supplied bytes.
-    /// The source buffer may be reused or released once construction completes.
-    /// </para>
     /// </remarks>
     /// <param name="cancellationToken">
     /// A token that can interrupt an in-flight fetch. When cancelled, this method
