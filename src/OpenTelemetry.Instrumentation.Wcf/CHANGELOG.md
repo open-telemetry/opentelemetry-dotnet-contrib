@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.19.1-beta.1
+
+Released 2026-Sep-21
+
 * Fixed `AddWcfInstrumentation` so it no longer throws `NotSupportedException`
   when called again after any previously created `TracerProvider` has been
   disposed of.
