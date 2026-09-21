@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using System.Globalization;
 using System.Net;
 using Greet;
 using Grpc.Net.Client;
@@ -298,8 +299,15 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
         }
 
         Assert.NotNull(clientActivity);
-        var expectedSampledFlag = filterMatches ? "01" : "00";
-        Assert.Equal($"00-{clientActivity.TraceId}-{clientActivity.SpanId}-{expectedSampledFlag}", traceparent);
+
+        // The filter decides only the sampled bit; the other trace flags come from the activity.
+        var expectedTraceFlags = filterMatches
+            ? clientActivity.ActivityTraceFlags | ActivityTraceFlags.Recorded
+            : clientActivity.ActivityTraceFlags & ~ActivityTraceFlags.Recorded;
+
+        Assert.Equal(
+            $"00-{clientActivity.TraceId}-{clientActivity.SpanId}-{((byte)expectedTraceFlags).ToString("x2", CultureInfo.InvariantCulture)}",
+            traceparent);
     }
 
     [Fact]

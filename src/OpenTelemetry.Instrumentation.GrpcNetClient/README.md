@@ -108,8 +108,8 @@ using var tracerProvider = Sdk.CreateTracerProviderBuilder()
 
 ### Context propagation
 
-Grpc.Net.Client instrumentation propagates context (ActivityContext and
-Baggage) to downstream services using the configured propagator, so the
+Grpc.Net.Client instrumentation propagates context (`ActivityContext` and
+`Baggage`) to downstream services using the configured propagator, so the
 downstream span is parented to the gRPC client span. When HttpClient
 instrumentation is also enabled, the downstream span is parented to the
 HttpClient span with the default propagator, and to the gRPC client span when
