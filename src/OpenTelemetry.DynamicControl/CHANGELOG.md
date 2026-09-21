@@ -40,6 +40,6 @@
 * Added an internal `PolicyCoordinator` that periodically pulls the latest
   policies from each configured provider, parses and validates them, and
   applies the result to the policy store.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#5330](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5330))
 
 For more details, please refer to the [README](README.md).
