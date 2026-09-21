@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+* Updated OpenTelemetry core component version(s) to `1.19.1`.
+  ([#5329](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5329))
+
+## 1.19.0
+
+Released 2026-Sep-18
+
 * Fixed .NET Framework `db.client.operation.duration` metrics to consistently
   include the `db.query.summary` attribute, regardless of sampling decision,
   preventing the same query from being split across inconsistent metric series.

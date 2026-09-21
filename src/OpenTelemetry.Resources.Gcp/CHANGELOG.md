@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## 1.0.0-alpha.6
+
+Released 2026-Sep-21
+
+* Updated OpenTelemetry core component version(s) to `1.19.1`.
+  ([#5329](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5329))
+
+## 1.0.0-alpha.5
+
+Released 2026-Sep-18
+
 * Add `host.type` and `host.image.name` attributes to the Google Compute Engine
   resource detector.
   ([#5194](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5194))
