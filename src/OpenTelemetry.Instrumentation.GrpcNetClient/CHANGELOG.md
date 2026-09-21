@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.19.1-beta.1
+
+Released 2026-Sep-21
+
 * Added `Filter` option to `GrpcClientTraceInstrumentationOptions`, allowing
   telemetry collection to be filtered on a per-request basis.
   ([#5236](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5236))
