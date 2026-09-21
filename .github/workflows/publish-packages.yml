@@ -320,7 +320,7 @@ jobs:
   publish-myget:
     name: Publish to MyGet
     needs: [build-pack, validate]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
 
     env:
       MYGET_TOKEN_EXISTS: ${{ secrets.MYGET_TOKEN != '' }}
@@ -370,7 +370,7 @@ jobs:
   publish-nuget:
     name: Publish to NuGet
     needs: [build-pack, validate]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     if: github.ref_type == 'tag'
 
     permissions:
@@ -427,7 +427,7 @@ jobs:
 
   post-build:
     name: Post build release tasks
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     if: needs.automation.outputs.enabled && github.event_name == 'push'
 
     needs:
@@ -497,7 +497,7 @@ jobs:
   wait-nuget:
     name: Wait for NuGet package publishing
     needs: [automation, build-pack, publish-nuget, post-build]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 60
     if: needs.post-build.outputs.pr-number != ''
 
