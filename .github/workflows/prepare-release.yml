@@ -114,7 +114,7 @@ jobs:
 
   prepare-release-pr:
     name: Prepare release pull request
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
 
     needs: automation
 
@@ -162,7 +162,7 @@ jobs:
 
   lock-pr-and-post-notice-to-create-release-tag:
     name: Lock pull request and post release tag notice
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
 
     needs: automation
 
@@ -207,7 +207,7 @@ jobs:
 
   create-release-tag-unlock-pr-post-notice:
     name: Create release tag and post notice
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
 
     needs: automation
 
@@ -261,7 +261,7 @@ jobs:
 
   update-changelog-release-dates-on-prepare-pr-post-notice:
     name: Update changelog release dates and post notice
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
 
     needs: automation
 
@@ -317,7 +317,7 @@ jobs:
 
   process-release-request-issue:
     name: Process release request issue
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
 
     needs: automation
 
