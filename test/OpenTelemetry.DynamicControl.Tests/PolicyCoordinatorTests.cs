@@ -736,6 +736,54 @@ public class PolicyCoordinatorTests
         Assert.Equal(1, (int)applied.Payload[3]!);
     }
 
+    [Fact]
+    public async Task RefreshAsync_SharedStore_MetadataMismatch_EmitsSubmissionRejectedEvent()
+    {
+        // Two coordinators share a store. Coordinator A commits provider "p1" with File
+        // metadata. Coordinator B then tries to submit the same ID with OpAmp metadata.
+        // The store rejects it with RejectedMetadataMismatch, hitting the default switch case.
+        using var store = new PolicyStore();
+        var providerA = new FakeProvider("p1", PolicyProviderKind.File, Json("""{"sampling_rate": 0.5}"""));
+        var coordinatorA = new PolicyCoordinator(store, [providerA]);
+        var providerB = new FakeProvider("p1", PolicyProviderKind.OpAmp, Json("""{"sampling_rate": 0.7}"""));
+        var coordinatorB = new PolicyCoordinator(store, [providerB]);
+
+        await coordinatorA.RefreshAsync();
+        var revisionAfterA = store.Current.Revision;
+        using var listener = new InMemoryEventListener(DynamicControlEventSource.Log);
+
+        await coordinatorB.RefreshAsync();
+
+        Assert.Equal(revisionAfterA, store.Current.Revision);
+        var rejected = Assert.Single(listener.Events, e => e.EventId == 6);
+        Assert.Equal("p1", rejected.Payload![0]);
+        Assert.Contains("RejectedMetadataMismatch", Assert.IsType<string>(rejected.Payload[1]));
+    }
+
+    [Fact]
+    public async Task RefreshAsync_SharedStore_StaleSequence_EmitsSubmissionRejectedEvent()
+    {
+        // Two coordinators share a store and register the same provider ID with identical
+        // metadata. Coordinator A's first refresh commits sequence 1. Coordinator B's first
+        // refresh also produces sequence 1, which the store rejects as stale.
+        using var store = new PolicyStore();
+        var providerA = new FakeProvider("p1", PolicyProviderKind.File, Json("""{"sampling_rate": 0.5}"""));
+        var coordinatorA = new PolicyCoordinator(store, [providerA]);
+        var providerB = new FakeProvider("p1", PolicyProviderKind.File, Json("""{"sampling_rate": 0.7}"""));
+        var coordinatorB = new PolicyCoordinator(store, [providerB]);
+
+        await coordinatorA.RefreshAsync();
+        var revisionAfterA = store.Current.Revision;
+        using var listener = new InMemoryEventListener(DynamicControlEventSource.Log);
+
+        await coordinatorB.RefreshAsync();
+
+        Assert.Equal(revisionAfterA, store.Current.Revision);
+        var rejected = Assert.Single(listener.Events, e => e.EventId == 6);
+        Assert.Equal("p1", rejected.Payload![0]);
+        Assert.Contains("RejectedStaleSequence", Assert.IsType<string>(rejected.Payload[1]));
+    }
+
     private static byte[] Utf8Bytes(string json)
         => Encoding.UTF8.GetBytes(json);
 
