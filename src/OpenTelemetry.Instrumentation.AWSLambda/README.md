@@ -36,6 +36,9 @@ AWS lambda instrumentation:
 * [`DisableAwsXRayContextExtraction`](/src/OpenTelemetry.Instrumentation.AWSLambda/AWSLambdaInstrumentationOptions.cs)
 * [`SetParentFromBatch`](/src/OpenTelemetry.Instrumentation.AWSLambda/AWSLambdaInstrumentationOptions.cs)
 * [`EnrichWithInput`](/src/OpenTelemetry.Instrumentation.AWSLambda/AWSLambdaInstrumentationOptions.cs)
+* [`LoggerProvider`](/src/OpenTelemetry.Instrumentation.AWSLambda/AWSLambdaInstrumentationOptions.cs)
+* [`MeterProvider`](/src/OpenTelemetry.Instrumentation.AWSLambda/AWSLambdaInstrumentationOptions.cs)
+* [`FlushTimeoutMilliseconds`](/src/OpenTelemetry.Instrumentation.AWSLambda/AWSLambdaInstrumentationOptions.cs)
 
 ### Enriching the invocation span
 
@@ -190,6 +193,96 @@ public class Function
     }
 }
 ```
+
+## Flushing telemetry
+
+AWS Lambda freezes the execution environment once the runtime and every
+registered extension report completion, so background threads and non-blocking
+I/O are paused until the next invocation, or permanently if the environment is
+reclaimed while frozen. Telemetry still held in a buffer is therefore delivered
+late or lost entirely: as the
+[execution environment lifecycle](https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtime-environment.html)
+puts it, background work that did not finish before the function ended only
+resumes if Lambda reuses the environment.
+
+The wrapper always flushes the `TracerProvider` passed to `Trace`/`TraceAsync`.
+Logs and metrics are only flushed when you provide their providers, because the
+wrapper has no other way to reach them:
+
+```csharp
+public class Function
+{
+    private static readonly OpenTelemetrySdk Sdk;
+    private static readonly MeterProvider MeterProvider;
+    private static readonly TracerProvider TracerProvider;
+
+    static Function()
+    {
+        // Built before the TracerProvider so they can be assigned to its options.
+        Sdk = OpenTelemetrySdk.Create(builder => builder
+            .WithLogging(logging => logging.AddOtlpExporter()));
+
+        MeterProvider = OpenTelemetry.Sdk.CreateMeterProviderBuilder()
+            .AddMeter("MyLambdaMeter")
+            .AddOtlpExporter((exporterOptions, readerOptions) =>
+            {
+                // Prefer delta temporality when flushing every invocation.
+                readerOptions.TemporalityPreference = MetricReaderTemporalityPreference.Delta;
+            })
+            .Build();
+
+        TracerProvider = OpenTelemetry.Sdk.CreateTracerProviderBuilder()
+            .AddAWSLambdaConfigurations(options =>
+            {
+                options.LoggerProvider = Sdk.LoggerProvider;
+                options.MeterProvider = MeterProvider;
+            })
+            .AddOtlpExporter()
+            .Build();
+    }
+
+    // The TracerProvider is still passed as an argument.
+    public string TracingFunctionHandler(string input, ILambdaContext context) =>
+        AWSLambdaWrapper.Trace(TracerProvider, this.FunctionHandler, input, context);
+
+    public string FunctionHandler(string input, ILambdaContext context) => input;
+}
+```
+
+Metrics benefit the most: `PeriodicExportingMetricReader` exports on a 60 second
+interval by default, which a short-lived function rarely reaches, so without an
+end-of-invocation flush its measurements are usually never exported at all.
+
+`FlushTimeoutMilliseconds` bounds the flush, defaulting to 10000. The providers
+are flushed concurrently, so an invocation waits for the slowest one rather than
+the sum of all three. The timeout is passed to each provider and also applied to
+the wait, because a provider may ignore the timeout it is given. Set it to
+`Timeout.Infinite` (-1) to wait indefinitely.
+
+> [!NOTE]
+> A provider that fails or exceeds the timeout is abandoned, and the failure is
+> not reported, so a flush that drops telemetry looks the same as one that
+> succeeded. Workloads that cannot tolerate loss should run a collector as a
+> [Lambda extension](https://docs.aws.amazon.com/lambda/latest/dg/lambda-extensions.html):
+> the freeze waits for extensions to report completion, so one can keep shipping
+> after the response has been returned instead of holding the invocation.
+
+### Metric temporality
+
+Prefer **delta** temporality for Lambda. Delta exports only the changes recorded
+since the previous flush, which avoids re-sending each instrument's
+accumulated running total on every invocation and prevents unbounded
+time-series accumulation when attributes have high cardinality. The SDK default
+is cumulative.
+
+* Code-based, and portable across exporters: set
+  `readerOptions.TemporalityPreference` to
+  `MetricReaderTemporalityPreference.Delta`
+* Environment variable, OTLP exporter only:
+  `OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE=Delta`
+
+`UpDownCounter` and `ObservableUpDownCounter` stay cumulative under the delta
+preference; it does not turn every instrument into a delta one.
 
 ## Semantic Conventions
 
