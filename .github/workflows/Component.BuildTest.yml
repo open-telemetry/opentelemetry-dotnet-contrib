@@ -176,7 +176,9 @@ jobs:
         TARGET_FRAMEWORK: ${{ matrix.version }}
         TEST_FILTER: ${{ inputs.test-case-filter }}
       run: |
-        sudo -E dotnet test ${env:PROJECT_PATH} `
+        sudo `
+          "BUILD_COMPONENT=${env:BUILD_COMPONENT}" `
+          dotnet test ${env:PROJECT_PATH} `
           --collect:"Code Coverage" `
           --diag:"TestResults/diag/log.txt;tracelevel=info" `
           --results-directory:TestResults `
