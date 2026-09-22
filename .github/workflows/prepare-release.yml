@@ -85,7 +85,7 @@ concurrency:
 
 jobs:
   automation:
-    uses: ./.github/workflows/automation.yml
+    uses: $/.github/workflows/automation.yml
 
     # Partial combination of simplified child jobs condition to avoid running jobs at all
     if: |
