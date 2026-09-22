@@ -2,9 +2,19 @@
 
 ## Unreleased
 
+* Updated OpenTelemetry core component version(s) to `1.19.1`.
+  ([#5329](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5329))
+
+## 1.19.0-beta.1
+
+Released 2026-Sep-18
+
 * Fixed 'Activity' leak if exception was thrown during initial
   request processing.
   ([#5208](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5208))
+
+* Updated OpenTelemetry core component version(s) to `1.19.0`.
+  ([#5240](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5240))
 
 ## 1.18.0-beta.1
 
