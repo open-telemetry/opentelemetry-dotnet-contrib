@@ -2,10 +2,19 @@
 
 ## Unreleased
 
+
 * Fixed OTLP protobuf metric serialization to use the number data point
   attributes length, rather than the histogram data point attributes length,
   when copying prepopulated number data point attributes.
   ([#5019](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/5019))
+
+## 1.19.1-beta.1
+
+Released 2026-Sep-21
+
+* Updated OpenTelemetry core component version(s) to `1.19.1`.
+  ([#5329](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5329))
+
 
 ## 1.19.0-beta.1
 
