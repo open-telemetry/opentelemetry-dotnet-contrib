@@ -20,7 +20,7 @@ namespace OpenTelemetry.Resources.Host;
 /// <summary>
 /// Host detector.
 /// </summary>
-internal sealed class HostDetector : IResourceDetector
+internal sealed partial class HostDetector : IResourceDetector
 {
     internal const string EnableNetworkAddressesEnvVarName = "OTEL_DOTNET_EXPERIMENTAL_HOST_RESOURCE_ENABLE_NETWORK_ADDRESSES";
     internal const string EnableCpuInfoEnvVarName = "OTEL_DOTNET_EXPERIMENTAL_HOST_RESOURCE_ENABLE_CPU_INFO";
@@ -31,7 +31,6 @@ internal sealed class HostDetector : IResourceDetector
     private const string ETCMACHINEID = "/etc/machine-id";
     private const string ETCVARDBUSMACHINEID = "/var/lib/dbus/machine-id";
     private const string ProcCpuInfo = "/proc/cpuinfo";
-    private const string SysfsCpuCache = "/sys/devices/system/cpu/cpu0/cache";
     private const string MacOsCacheSizeKey = "hw.l2cachesize";
 #endif
 
@@ -52,9 +51,6 @@ internal sealed class HostDetector : IResourceDetector
         new("machdep.cpu.brand_string", HostSemanticConventions.AttributeHostCpuModelName),
         new("machdep.cpu.stepping", HostSemanticConventions.AttributeHostCpuStepping),
     ];
-
-    private static readonly string MacOsCpuSysctlArguments =
-        string.Join(" ", MacOsCpuAttributes.Select(attribute => attribute.Key)) + " " + MacOsCacheSizeKey;
 
     private readonly Func<OSPlatform, bool> isOsPlatform;
     private readonly Func<IEnumerable<string>> getFilePaths;
@@ -147,7 +143,9 @@ internal sealed class HostDetector : IResourceDetector
         {
             var networkAddressesEnabled = IsNetworkAddressesEnabled();
             var cpuInfoEnabled = IsCpuInfoEnabled();
-            var capacity = GetAttributeCapacity(networkAddressesEnabled, cpuInfoEnabled);
+            var capacity = MaxBaseAttributeCount
+                + (networkAddressesEnabled ? MaxNetworkAddressAttributeCount : 0)
+                + (cpuInfoEnabled ? MaxCpuInfoAttributeCount : 0);
 
             var attributes = new List<KeyValuePair<string, object>>(capacity)
             {
@@ -215,7 +213,7 @@ internal sealed class HostDetector : IResourceDetector
     internal static string[] RemoveDuplicates(IEnumerable<string> values) =>
         values.Distinct().ToArray();
 
-    internal static string? NormalizeCpuValue(string? value)
+    internal static string? TrimToNull(string? value)
     {
         if (value == null)
         {
@@ -226,37 +224,57 @@ internal sealed class HostDetector : IResourceDetector
         return trimmed.Length == 0 ? null : trimmed;
     }
 
-    // The processor blocks after the first repeat these fields for the other cores, so the
-    // first match is the one to report.
-    internal static string? ParseCpuInfoField(string? cpuInfo, string fieldName) =>
-        ParseFieldValue(cpuInfo, fieldName);
-
-    internal static string? ParseCpuIdentifierToken(string? identifier, string keyword)
+    internal static string? GetTokenAfter(string? text, string keyword)
     {
-        if (identifier == null)
+        if (text == null)
         {
             return null;
         }
 
-        var tokens = identifier.Split([' '], StringSplitOptions.RemoveEmptyEntries);
+        var tokens = text.Split([' '], StringSplitOptions.RemoveEmptyEntries);
 
         for (var i = 0; i < tokens.Length - 1; i++)
         {
             if (string.Equals(tokens[i], keyword, StringComparison.Ordinal))
             {
-                return NormalizeCpuValue(tokens[i + 1]);
+                return TrimToNull(tokens[i + 1]);
             }
         }
 
         return null;
     }
 
-    internal static string? ParseSysctlField(string? output, string key) =>
-        ParseFieldValue(output, key);
+    internal static string? ParseFieldValue(string? text, string key)
+    {
+        if (text == null)
+        {
+            return null;
+        }
+
+        foreach (var line in text.Split('\n'))
+        {
+#if NET
+            var separator = line.IndexOf(':', StringComparison.Ordinal);
+#else
+            var separator = line.IndexOf(':');
+#endif
+            if (separator < 0)
+            {
+                continue;
+            }
+
+            if (string.Equals(line.Substring(0, separator).Trim(), key, StringComparison.Ordinal))
+            {
+                return TrimToNull(line.Substring(separator + 1));
+            }
+        }
+
+        return null;
+    }
 
     internal static int? ParseCacheSize(string? value)
     {
-        var normalized = NormalizeCpuValue(value);
+        var normalized = TrimToNull(value);
         if (normalized == null)
         {
             return null;
@@ -307,16 +325,16 @@ internal sealed class HostDetector : IResourceDetector
         {
             try
             {
-                AddCpuAttribute(attributes, HostSemanticConventions.AttributeHostCpuVendorId, NormalizeCpuValue(getRegistryValue("VendorIdentifier")));
-                AddCpuAttribute(attributes, HostSemanticConventions.AttributeHostCpuModelName, NormalizeCpuValue(getRegistryValue("ProcessorNameString")));
+                AddIfNotNull(attributes, HostSemanticConventions.AttributeHostCpuVendorId, TrimToNull(getRegistryValue("VendorIdentifier")));
+                AddIfNotNull(attributes, HostSemanticConventions.AttributeHostCpuModelName, TrimToNull(getRegistryValue("ProcessorNameString")));
 
                 // Family, model and stepping have no registry value of their own; they are only
                 // available inside "AMD64 Family 25 Model 1 Stepping 1", whose leading token is the
                 // architecture rather than the vendor.
                 var identifier = getRegistryValue("Identifier");
-                AddCpuAttribute(attributes, HostSemanticConventions.AttributeHostCpuFamily, ParseCpuIdentifierToken(identifier, "Family"));
-                AddCpuAttribute(attributes, HostSemanticConventions.AttributeHostCpuModelId, ParseCpuIdentifierToken(identifier, "Model"));
-                AddCpuAttribute(attributes, HostSemanticConventions.AttributeHostCpuStepping, ParseCpuIdentifierToken(identifier, "Stepping"));
+                AddIfNotNull(attributes, HostSemanticConventions.AttributeHostCpuFamily, GetTokenAfter(identifier, "Family"));
+                AddIfNotNull(attributes, HostSemanticConventions.AttributeHostCpuModelId, GetTokenAfter(identifier, "Model"));
+                AddIfNotNull(attributes, HostSemanticConventions.AttributeHostCpuStepping, GetTokenAfter(identifier, "Stepping"));
             }
             catch (Exception ex)
             {
@@ -324,9 +342,7 @@ internal sealed class HostDetector : IResourceDetector
             }
         }
 
-        // The cache size comes from kernel32, so neither a missing registry key nor a failed
-        // read may skip it.
-        AddCpuAttribute(attributes, HostSemanticConventions.AttributeHostCpuCacheL2Size, getL2CacheSize());
+        AddIfNotNull(attributes, HostSemanticConventions.AttributeHostCpuCacheL2Size, getL2CacheSize());
     }
 
 #if !NETFRAMEWORK
@@ -371,11 +387,6 @@ internal sealed class HostDetector : IResourceDetector
 
     private static bool IsCpuInfoEnabled() =>
         bool.TryParse(Environment.GetEnvironmentVariable(EnableCpuInfoEnvVarName), out var enabled) && enabled;
-
-    private static int GetAttributeCapacity(bool networkAddressesEnabled, bool cpuInfoEnabled) =>
-        MaxBaseAttributeCount
-            + (networkAddressesEnabled ? MaxNetworkAddressAttributeCount : 0)
-            + (cpuInfoEnabled ? MaxCpuInfoAttributeCount : 0);
 
     private static void AddNetworkAddresses(List<KeyValuePair<string, object>> attributes)
     {
@@ -443,15 +454,11 @@ internal sealed class HostDetector : IResourceDetector
 #endif
     }
 
+#if NET
+    [SupportedOSPlatform("windows")]
+#endif
     private static void AddCpuInfoWindows(List<KeyValuePair<string, object>> attributes)
     {
-#if NET
-        if (!OperatingSystem.IsWindows())
-        {
-            return;
-        }
-#endif
-
         RegistryKey? subKey = null;
 
         try
@@ -465,15 +472,9 @@ internal sealed class HostDetector : IResourceDetector
 
         using (subKey)
         {
-            AddCpuInfoWindows(attributes, subKey == null ? null : CreateRegistryValueReader(subKey), GetL2CacheSizeWindows);
+            AddCpuInfoWindows(attributes, subKey == null ? null : name => subKey.GetValue(name) as string, GetL2CacheSizeWindows);
         }
     }
-
-#if NET
-    [SupportedOSPlatform("windows")]
-#endif
-    private static Func<string, string?> CreateRegistryValueReader(RegistryKey subKey) =>
-        name => subKey.GetValue(name) as string;
 
     private static int? GetL2CacheSizeWindows()
     {
@@ -527,16 +528,20 @@ internal sealed class HostDetector : IResourceDetector
     {
         var cpuInfo = ReadCpuFile(ProcCpuInfo);
 
-        AddCpuAttribute(attributes, HostSemanticConventions.AttributeHostCpuVendorId, ParseCpuInfoField(cpuInfo, "vendor_id"));
-        AddCpuAttribute(attributes, HostSemanticConventions.AttributeHostCpuFamily, ParseCpuInfoField(cpuInfo, "cpu family"));
-        AddCpuAttribute(attributes, HostSemanticConventions.AttributeHostCpuModelId, ParseCpuInfoField(cpuInfo, "model"));
-        AddCpuAttribute(attributes, HostSemanticConventions.AttributeHostCpuModelName, ParseCpuInfoField(cpuInfo, "model name"));
-        AddCpuAttribute(attributes, HostSemanticConventions.AttributeHostCpuStepping, ParseCpuInfoField(cpuInfo, "stepping"));
-        AddCpuAttribute(attributes, HostSemanticConventions.AttributeHostCpuCacheL2Size, GetL2CacheSizeLinux());
+        // The processor blocks after the first repeat these fields for the other cores, so the
+        // first match is the one to report.
+        AddIfNotNull(attributes, HostSemanticConventions.AttributeHostCpuVendorId, ParseFieldValue(cpuInfo, "vendor_id"));
+        AddIfNotNull(attributes, HostSemanticConventions.AttributeHostCpuFamily, ParseFieldValue(cpuInfo, "cpu family"));
+        AddIfNotNull(attributes, HostSemanticConventions.AttributeHostCpuModelId, ParseFieldValue(cpuInfo, "model"));
+        AddIfNotNull(attributes, HostSemanticConventions.AttributeHostCpuModelName, ParseFieldValue(cpuInfo, "model name"));
+        AddIfNotNull(attributes, HostSemanticConventions.AttributeHostCpuStepping, ParseFieldValue(cpuInfo, "stepping"));
+        AddIfNotNull(attributes, HostSemanticConventions.AttributeHostCpuCacheL2Size, GetL2CacheSizeLinux());
     }
 
     private static int? GetL2CacheSizeLinux()
     {
+        const string SysfsCpuCache = "/sys/devices/system/cpu/cpu0/cache";
+
         try
         {
             if (!Directory.Exists(SysfsCpuCache))
@@ -548,7 +553,7 @@ internal sealed class HostDetector : IResourceDetector
             {
                 // sysfs states the level, which /proc/cpuinfo's "cache size" leaves to be
                 // guessed at: it is the last-level cache on some vendors and L2 on others.
-                var level = NormalizeCpuValue(ReadCpuFile(Path.Combine(cacheDirectory, "level")));
+                var level = TrimToNull(ReadCpuFile(Path.Combine(cacheDirectory, "level")));
                 if (string.Equals(level, "2", StringComparison.Ordinal))
                 {
                     return ParseCacheSize(ReadCpuFile(Path.Combine(cacheDirectory, "size")));
@@ -583,10 +588,10 @@ internal sealed class HostDetector : IResourceDetector
 
         foreach (var attribute in MacOsCpuAttributes)
         {
-            AddCpuAttribute(attributes, attribute.Value, ParseSysctlField(output, attribute.Key));
+            AddIfNotNull(attributes, attribute.Value, ParseFieldValue(output, attribute.Key));
         }
 
-        AddCpuAttribute(attributes, HostSemanticConventions.AttributeHostCpuCacheL2Size, ParseCacheSize(ParseSysctlField(output, MacOsCacheSizeKey)));
+        AddIfNotNull(attributes, HostSemanticConventions.AttributeHostCpuCacheL2Size, ParseCacheSize(ParseFieldValue(output, MacOsCacheSizeKey)));
     }
 
     private static string? GetCpuInfoMacOs()
@@ -597,19 +602,30 @@ internal sealed class HostDetector : IResourceDetector
             var startInfo = new ProcessStartInfo
             {
                 FileName = "/usr/sbin/sysctl",
-                Arguments = MacOsCpuSysctlArguments,
+#if !NET
+                Arguments = string.Join(" ", MacOsCpuAttributes.Select(attribute => attribute.Key)) + " " + MacOsCacheSizeKey,
+#endif
                 UseShellExecute = false,
                 CreateNoWindow = true,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
             };
 
+#if NET
+            foreach (var attribute in MacOsCpuAttributes)
+            {
+                startInfo.ArgumentList.Add(attribute.Key);
+            }
+
+            startInfo.ArgumentList.Add(MacOsCacheSizeKey);
+#endif
+
             using var process = Process.Start(startInfo);
             if (process != null)
             {
                 if (!process.WaitForExit(timeoutMilliseconds))
                 {
-                    HostResourceEventSource.Log.ProcessTimeout("Process did not exit within the given timeout");
+                    HostResourceEventSource.Log.ProcessTimeout($"Process did not exit within {timeoutMilliseconds} ms");
 
                     try
                     {
@@ -638,7 +654,7 @@ internal sealed class HostDetector : IResourceDetector
     }
 #endif
 
-    private static void AddCpuAttribute(List<KeyValuePair<string, object>> attributes, string key, string? value)
+    private static void AddIfNotNull(List<KeyValuePair<string, object>> attributes, string key, string? value)
     {
         if (value != null)
         {
@@ -646,40 +662,12 @@ internal sealed class HostDetector : IResourceDetector
         }
     }
 
-    private static void AddCpuAttribute(List<KeyValuePair<string, object>> attributes, string key, int? value)
+    private static void AddIfNotNull(List<KeyValuePair<string, object>> attributes, string key, int? value)
     {
         if (value != null)
         {
             attributes.Add(new(key, value.Value));
         }
-    }
-
-    private static string? ParseFieldValue(string? text, string key)
-    {
-        if (text == null)
-        {
-            return null;
-        }
-
-        foreach (var line in text.Split('\n'))
-        {
-#if NET
-            var separator = line.IndexOf(':', StringComparison.Ordinal);
-#else
-            var separator = line.IndexOf(':');
-#endif
-            if (separator < 0)
-            {
-                continue;
-            }
-
-            if (string.Equals(line.Substring(0, separator).Trim(), key, StringComparison.Ordinal))
-            {
-                return NormalizeCpuValue(line.Substring(separator + 1));
-            }
-        }
-
-        return null;
     }
 
 #if !NETFRAMEWORK
@@ -790,14 +778,21 @@ internal sealed class HostDetector : IResourceDetector
     }
 #endif
 
-    internal static class NativeMethods
+    internal static partial class NativeMethods
     {
         internal const int RelationCache = 2;
 
+#if NET
+        [LibraryImport("kernel32.dll", SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static partial bool GetLogicalProcessorInformation(IntPtr buffer, ref uint returnLength);
+#else
         [DllImport("kernel32.dll", SetLastError = true)]
         [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         [return: MarshalAs(UnmanagedType.Bool)]
         internal static extern bool GetLogicalProcessorInformation(IntPtr buffer, ref uint returnLength);
+#endif
 
         [StructLayout(LayoutKind.Sequential)]
         internal struct CacheDescriptor

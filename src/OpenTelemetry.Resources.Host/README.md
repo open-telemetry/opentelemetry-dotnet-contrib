@@ -84,11 +84,17 @@ resource is built again.
 
 ### CPU information
 
-`host.cpu.vendor.id`, `host.cpu.family`, `host.cpu.model.id`,
-`host.cpu.model.name`, `host.cpu.stepping` and `host.cpu.cache.l2.size` are
+The following
 [opt-in](https://github.com/open-telemetry/semantic-conventions/blob/v1.44.0/docs/resource/host.md)
-attributes, so they are not emitted by default. Set
-`OTEL_DOTNET_EXPERIMENTAL_HOST_RESOURCE_ENABLE_CPU_INFO` to `true` to emit them.
+attributes are not emitted by default. Set
+`OTEL_DOTNET_EXPERIMENTAL_HOST_RESOURCE_ENABLE_CPU_INFO` to `true` to emit them:
+
+- `host.cpu.vendor.id`,
+- `host.cpu.family`,
+- `host.cpu.model.id`,
+- `host.cpu.model.name`,
+- `host.cpu.stepping`,
+- `host.cpu.cache.l2.size`.
 
 Which attributes are available depends on the operating system and the CPU
 architecture, and an attribute whose source is missing is left out.

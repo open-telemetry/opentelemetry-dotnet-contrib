@@ -358,12 +358,16 @@ public class HostDetectorTests
     public void TestFormatPhysicalAddressWithEmptyAddress() =>
         Assert.Null(HostDetector.FormatPhysicalAddress(PhysicalAddress.None));
 
-    [Theory]
+    [SkippableTheory]
     [InlineData("true")]
     [InlineData("True")]
     [InlineData("TRUE")]
-    public void TestHostCpuInfoEnabled(string value)
+    public void TestHostCpuInfoEnabledWindows(string value)
     {
+#if NET
+        Skip.IfNot(RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
+#endif
+
         using var cpuInfoEnvironment = EnvironmentVariableScope.Create(EnableCpuInfoEnvVarName, value);
         using var networkAddressesEnvironment = EnvironmentVariableScope.Create(EnableNetworkAddressesEnvVarName, null);
 
@@ -371,40 +375,86 @@ public class HostDetectorTests
 
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
 
-#if NETFRAMEWORK
-        var isWindows = true;
-        var isArmLinux = false;
-#else
-        var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-        var isArmLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
-            && RuntimeInformation.ProcessArchitecture is Architecture.Arm or Architecture.Arm64;
-#endif
-
-        if (isArmLinux)
-        {
-            // Arm /proc/cpuinfo carries CPU implementer, part, architecture and revision instead
-            // of the five fields read here; reading those is a follow-up, not a settled omission.
-            Assert.False(
-                resourceAttributes.ContainsKey("host.cpu.model.name"),
-                "host.cpu.model.name has no /proc/cpuinfo source on Arm Linux; reading the Arm fields is a follow-up.");
-        }
-        else
-        {
-            Assert.True(
-                resourceAttributes.ContainsKey("host.cpu.model.name"),
-                "host.cpu.model.name should be detected when the flag is set on Windows, x86 Linux and macOS.");
-            Assert.NotEmpty(Assert.IsType<string>(resourceAttributes["host.cpu.model.name"]));
-        }
-
-        if (isWindows)
-        {
-            Assert.True(
-                resourceAttributes.ContainsKey("host.cpu.cache.l2.size"),
-                "host.cpu.cache.l2.size should be detected on Windows; its source is kernel32, not the registry.");
-        }
-
+        Assert.True(
+            resourceAttributes.ContainsKey("host.cpu.model.name"),
+            "host.cpu.model.name should be detected when the flag is set on Windows.");
+        Assert.NotEmpty(Assert.IsType<string>(resourceAttributes["host.cpu.model.name"]));
+        Assert.True(
+            resourceAttributes.ContainsKey("host.cpu.cache.l2.size"),
+            "host.cpu.cache.l2.size should be detected on Windows; its source is kernel32, not the registry.");
         Assert.False(resourceAttributes.ContainsKey("host.ip"), "host.ip should not be detected when only the CPU flag is set.");
     }
+
+#if NET
+    [SkippableTheory]
+    [InlineData("true")]
+    [InlineData("True")]
+    [InlineData("TRUE")]
+    public void TestHostCpuInfoEnabledLinux(string value)
+    {
+        Skip.IfNot(RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+            && RuntimeInformation.ProcessArchitecture is not (Architecture.Arm or Architecture.Arm64));
+
+        using var cpuInfoEnvironment = EnvironmentVariableScope.Create(EnableCpuInfoEnvVarName, value);
+        using var networkAddressesEnvironment = EnvironmentVariableScope.Create(EnableNetworkAddressesEnvVarName, null);
+
+        var resource = ResourceBuilder.CreateEmpty().AddHostDetector().Build();
+
+        var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
+
+        Assert.True(
+            resourceAttributes.ContainsKey("host.cpu.model.name"),
+            "host.cpu.model.name should be detected when the flag is set on x86 Linux.");
+        Assert.NotEmpty(Assert.IsType<string>(resourceAttributes["host.cpu.model.name"]));
+        Assert.False(resourceAttributes.ContainsKey("host.ip"), "host.ip should not be detected when only the CPU flag is set.");
+    }
+
+    [SkippableTheory]
+    [InlineData("true")]
+    [InlineData("True")]
+    [InlineData("TRUE")]
+    public void TestHostCpuInfoEnabledArmLinux(string value)
+    {
+        Skip.IfNot(RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+            && RuntimeInformation.ProcessArchitecture is Architecture.Arm or Architecture.Arm64);
+
+        using var cpuInfoEnvironment = EnvironmentVariableScope.Create(EnableCpuInfoEnvVarName, value);
+        using var networkAddressesEnvironment = EnvironmentVariableScope.Create(EnableNetworkAddressesEnvVarName, null);
+
+        var resource = ResourceBuilder.CreateEmpty().AddHostDetector().Build();
+
+        var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
+
+        // Arm /proc/cpuinfo carries CPU implementer, part, architecture and revision instead
+        // of the five fields read here; reading those is a follow-up, not a settled omission.
+        Assert.False(
+            resourceAttributes.ContainsKey("host.cpu.model.name"),
+            "host.cpu.model.name has no /proc/cpuinfo source on Arm Linux; reading the Arm fields is a follow-up.");
+        Assert.False(resourceAttributes.ContainsKey("host.ip"), "host.ip should not be detected when only the CPU flag is set.");
+    }
+
+    [SkippableTheory]
+    [InlineData("true")]
+    [InlineData("True")]
+    [InlineData("TRUE")]
+    public void TestHostCpuInfoEnabledMacOs(string value)
+    {
+        Skip.IfNot(RuntimeInformation.IsOSPlatform(OSPlatform.OSX));
+
+        using var cpuInfoEnvironment = EnvironmentVariableScope.Create(EnableCpuInfoEnvVarName, value);
+        using var networkAddressesEnvironment = EnvironmentVariableScope.Create(EnableNetworkAddressesEnvVarName, null);
+
+        var resource = ResourceBuilder.CreateEmpty().AddHostDetector().Build();
+
+        var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
+
+        Assert.True(
+            resourceAttributes.ContainsKey("host.cpu.model.name"),
+            "host.cpu.model.name should be detected when the flag is set on macOS.");
+        Assert.NotEmpty(Assert.IsType<string>(resourceAttributes["host.cpu.model.name"]));
+        Assert.False(resourceAttributes.ContainsKey("host.ip"), "host.ip should not be detected when only the CPU flag is set.");
+    }
+#endif
 
     [Theory]
     [InlineData(null)]
@@ -426,8 +476,8 @@ public class HostDetectorTests
     [InlineData("   ", null)]
     [InlineData("", null)]
     [InlineData(null, null)]
-    public void TestNormalizeCpuValue(string? value, string? expected) =>
-        Assert.Equal(expected, HostDetector.NormalizeCpuValue(value));
+    public void TestTrimToNull(string? value, string? expected) =>
+        Assert.Equal(expected, HostDetector.TrimToNull(value));
 
     [Theory]
     [InlineData(LinuxCpuInfoOutput, "vendor_id", "AuthenticAMD")]
@@ -439,8 +489,8 @@ public class HostDetectorTests
     [InlineData(LinuxCpuInfoOutput, "flags", null)]
     [InlineData(Arm64CpuInfoOutput, "model name", null)]
     [InlineData(null, "vendor_id", null)]
-    public void TestParseCpuInfoField(string? cpuInfo, string fieldName, string? expected) =>
-        Assert.Equal(expected, HostDetector.ParseCpuInfoField(cpuInfo, fieldName));
+    public void TestParseFieldValueProcCpuInfo(string? cpuInfo, string fieldName, string? expected) =>
+        Assert.Equal(expected, HostDetector.ParseFieldValue(cpuInfo, fieldName));
 
     [Theory]
     [InlineData(WindowsCpuIdentifier, "Family", "25")]
@@ -449,8 +499,8 @@ public class HostDetectorTests
     [InlineData(WindowsCpuIdentifier, "Vendor", null)]
     [InlineData("AMD64 Family", "Family", null)]
     [InlineData(null, "Family", null)]
-    public void TestParseCpuIdentifierToken(string? identifier, string keyword, string? expected) =>
-        Assert.Equal(expected, HostDetector.ParseCpuIdentifierToken(identifier, keyword));
+    public void TestGetTokenAfter(string? text, string keyword, string? expected) =>
+        Assert.Equal(expected, HostDetector.GetTokenAfter(text, keyword));
 
     [Theory]
     [InlineData(SysctlOutput, "machdep.cpu.brand_string", "Apple M5")]
@@ -464,8 +514,8 @@ public class HostDetectorTests
     [InlineData(IntelSysctlOutput, "machdep.cpu.brand_string", "11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz")]
     [InlineData(IntelSysctlOutput, "hw.l2cachesize", "12288000")]
     [InlineData(null, "hw.l2cachesize", null)]
-    public void TestParseSysctlField(string? output, string key, string? expected) =>
-        Assert.Equal(expected, HostDetector.ParseSysctlField(output, key));
+    public void TestParseFieldValueSysctl(string? output, string key, string? expected) =>
+        Assert.Equal(expected, HostDetector.ParseFieldValue(output, key));
 
     [Theory]
     [InlineData("1024 KB", 1048576)]
