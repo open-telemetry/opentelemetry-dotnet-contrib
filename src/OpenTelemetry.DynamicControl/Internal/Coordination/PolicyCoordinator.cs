@@ -224,7 +224,7 @@ internal sealed class PolicyCoordinator
                 }
             }
 
-            DynamicControlEventSource.Log.PolicyRefreshCompleted(this.providers.Length, stopwatch.ElapsedMilliseconds);
+            DynamicControlEventSource.Log.PolicyRefreshCompleted(this.providers.Length, stopwatch.Elapsed);
         }
         finally
         {

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics.Tracing;
+using System.Globalization;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.DynamicControl.Internal.Diagnostics;
@@ -127,8 +128,17 @@ internal sealed class DynamicControlEventSource : EventSource
     /// Records that a full refresh cycle completed normally.
     /// </summary>
     /// <param name="providerCount">The number of providers iterated during the refresh.</param>
-    /// <param name="elapsedMilliseconds">The elapsed time in milliseconds for the full refresh.</param>
-    [Event(EventIdPolicyRefreshCompleted, Message = "Policy refresh completed: providers={0}, elapsed={1}ms", Level = EventLevel.Verbose)]
-    public void PolicyRefreshCompleted(int providerCount, long elapsedMilliseconds) =>
-        this.WriteEvent(EventIdPolicyRefreshCompleted, providerCount, elapsedMilliseconds);
+    /// <param name="elapsed">The elapsed time for the full refresh.</param>
+    [NonEvent]
+    public void PolicyRefreshCompleted(int providerCount, TimeSpan elapsed)
+    {
+        if (this.IsEnabled(EventLevel.Verbose, EventKeywords.All))
+        {
+            this.PolicyRefreshCompleted(providerCount, elapsed.TotalMilliseconds.ToString("F2", CultureInfo.InvariantCulture) + "ms");
+        }
+    }
+
+    [Event(EventIdPolicyRefreshCompleted, Message = "Policy refresh completed: providers={0}, elapsed={1}", Level = EventLevel.Verbose)]
+    public void PolicyRefreshCompleted(int providerCount, string elapsed) =>
+        this.WriteEvent(EventIdPolicyRefreshCompleted, providerCount, elapsed);
 }

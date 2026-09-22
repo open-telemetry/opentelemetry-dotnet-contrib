@@ -748,7 +748,8 @@ public class PolicyCoordinatorTests
         var completed = listener.Events.Single(e => e.EventId == 9);
         Assert.Equal(EventLevel.Verbose, completed.Level);
         Assert.Equal(1, (int)completed.Payload![0]!);
-        Assert.True((long)completed.Payload![1]! >= 0, "Elapsed milliseconds must be non-negative.");
+        var elapsed = Assert.IsType<string>(completed.Payload[1]);
+        Assert.Matches(@"^\d+\.\d{2}ms$", elapsed);
     }
 
     [Fact]
