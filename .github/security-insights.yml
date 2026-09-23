@@ -80,6 +80,10 @@ repository:
       affiliation: Microsoft
       social: https://github.com/rajkumar-rangaraj
       primary: false
+    - name: Steve Gordon
+      affiliation: Elastic
+      social: https://github.com/stevejgordon
+      primary: false
   documentation:
     contributing-guide: https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/CONTRIBUTING.md
     dependency-management-policy: https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/renovate.json
