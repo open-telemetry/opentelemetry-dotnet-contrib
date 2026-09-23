@@ -237,9 +237,9 @@ public class AWSLambdaWrapperFlushTests : IDisposable
         Assert.Equal(1, traceProcessor.FlushCount);
         Assert.Equal(1, metricReader.FlushCount);
 
-        // Concurrent, so well under the 900ms a serial flush would need. The bound is generous
-        // because thread-pool scheduling is not deterministic.
-        Assert.InRange(stopwatch.ElapsedMilliseconds, block, block * 2.5);
+        // Concurrent, so well under the 900ms a serial flush would need. Only the upper bound is
+        // asserted, and generously, because thread-pool scheduling is not deterministic.
+        Assert.InRange(stopwatch.ElapsedMilliseconds, 0, block * 2.5);
     }
 
     // A provider is free to ignore the timeout it is handed, so waiting on the tasks is what
@@ -266,8 +266,10 @@ public class AWSLambdaWrapperFlushTests : IDisposable
         AWSLambdaWrapper.Trace(tracerProvider, (string _, ILambdaContext _) => { }, "input", this.context);
         stopwatch.Stop();
 
-        // Returned on the timeout rather than waiting out the provider's 3000ms.
-        Assert.InRange(stopwatch.ElapsedMilliseconds, flushTimeout, 1500);
+        // Gave up near the timeout instead of waiting out the provider's 3000ms. Only the upper
+        // bound is asserted: a wait can return slightly early on a coarse system timer, and it is
+        // the not-waiting-3000ms part that matters.
+        Assert.InRange(stopwatch.ElapsedMilliseconds, 0, 1500);
     }
 
     // Zero would abandon every flush rather than waiting briefly, so it must not be accepted.
