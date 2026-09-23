@@ -5,6 +5,7 @@
 
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
+using System.Reflection;
 using Google.Protobuf;
 using Google.Protobuf.Collections;
 using OpenTelemetry.Metrics;
@@ -1661,6 +1662,73 @@ public abstract class OtlpProtobufMetricExporterTests
         {
             Assert.Empty(dataPoint.Exemplars);
         }
+    }
+
+    [Fact]
+    public void WriteNumberDataPointUsesItsOwnPrepopulatedAttributesLength()
+    {
+        // Regression test for the WriteNumberDataPoint bug where the number
+        // data point's prepopulated attributes were copied using the
+        // histogram data point's attributes length instead of its own.
+        //
+        // Today the number and histogram attributes field numbers (7 and 9)
+        // both encode to a 1-byte protobuf tag, so the two lengths always
+        // happen to match and the bug has no observable effect. To make this
+        // test meaningful regardless of that coincidence, the histogram
+        // length field is deliberately corrupted (via reflection) so it no
+        // longer matches the number length. If WriteNumberDataPoint ever
+        // regresses to reading the histogram length again, this corrupted
+        // value would cause the prepopulated attributes to be truncated (or
+        // an out-of-range Array.Copy), and the assertion below would fail.
+        using var meter = new Meter(nameof(this.WriteNumberDataPointUsesItsOwnPrepopulatedAttributesLength), "0.0.1");
+
+        var exportedItems = new List<Metric>();
+        using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
+        {
+            TemporalityPreference = MetricReaderTemporalityPreference.Delta,
+        };
+
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddMeter(meter.Name)
+            .AddReader(inMemoryReader)
+            .Build();
+
+        var counter = meter.CreateCounter<long>("counter");
+        counter.Add(1, this.TagList);
+
+        meterProvider.ForceFlush();
+
+        var buffer = new byte[65360];
+        var testTransport = new TestTransport();
+
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(
+            testTransport,
+            metricsAccount: null,
+            metricsNamespace: null,
+            prepopulatedMetricDimensions: prepopulatedMetricDimensions,
+            prefixBufferWithUInt32LittleEndianLength: this.PrefixBufferWithUInt32LittleEndianLength);
+
+        var numberLengthField = typeof(OtlpProtobufSerializer).GetField(
+            "prepopulatedNumberDataPointAttributesLength", BindingFlags.NonPublic | BindingFlags.Instance);
+        var histogramLengthField = typeof(OtlpProtobufSerializer).GetField(
+            "prepopulatedHistogramDataPointAttributesLength", BindingFlags.NonPublic | BindingFlags.Instance);
+
+        var numberLength = (int)numberLengthField.GetValue(otlpProtobufSerializer);
+        Assert.True(numberLength > 0);
+
+        // Force a mismatch: the histogram length is now shorter than the
+        // number length, but must not influence WriteNumberDataPoint.
+        histogramLengthField.SetValue(otlpProtobufSerializer, numberLength - 1);
+
+        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>([.. exportedItems], exportedItems.Count));
+
+        Assert.Single(testTransport.ExportedItems);
+
+        var request = this.AssertAndConvertExportedBlobToRequest(testTransport.ExportedItems[0]);
+
+        var dataPoint = request.ResourceMetrics[0].ScopeMetrics[0].Metrics[0].Sum.DataPoints[0];
+
+        AssertOtlpAttributes(this.TagList.Concat(prepopulatedMetricDimensions), dataPoint.Attributes);
     }
 
     internal static void AssertOtlpAttributes(
