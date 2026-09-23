@@ -52,7 +52,7 @@ Runs the matching benchmarks for the current branch only.
 ./benchmark.ps1 "Contrib.Shared" @("*SQL*") -Target my-feature -Job Short -Runtimes @("net10.0", "net472")
 
 Runs the matching exporter benchmarks for the my-feature branch and main using the
-"Short" job for .NET 10 and .NET Framework 4.6.2.
+"Short" job for .NET 10 and .NET Framework 4.7.2.
 #>
 
 param(
