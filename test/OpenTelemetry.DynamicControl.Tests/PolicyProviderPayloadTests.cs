@@ -19,7 +19,7 @@ public class PolicyProviderPayloadTests
     [Fact]
     public void Content_EmptyIsLegal()
     {
-        var payload = new PolicyProviderPayload(ReadOnlySpan<byte>.Empty);
+        var payload = new PolicyProviderPayload([]);
 
         Assert.True(payload.Content.IsEmpty, "Content should be empty when constructed from an empty span.");
     }
@@ -27,7 +27,7 @@ public class PolicyProviderPayloadTests
     [Fact]
     public void Version_DefaultsToEmpty()
     {
-        var payload = new PolicyProviderPayload(ReadOnlySpan<byte>.Empty);
+        var payload = new PolicyProviderPayload([]);
 
         Assert.True(payload.Version.IsEmpty, "Version should default to empty when not specified.");
         Assert.Equal(PolicyProviderVersion.Empty, payload.Version);
@@ -37,7 +37,7 @@ public class PolicyProviderPayloadTests
     public void Version_ExplicitVersionIsPreserved()
     {
         var version = new PolicyProviderVersion("v1.2.3");
-        var payload = new PolicyProviderPayload(ReadOnlySpan<byte>.Empty, version);
+        var payload = new PolicyProviderPayload([], version);
 
         Assert.Equal(version, payload.Version);
         Assert.Equal("v1.2.3", payload.Version.Value);
@@ -51,7 +51,7 @@ public class PolicyProviderPayloadTests
 
         bytes[0] = 99;
 
-        Assert.Equal(new byte[] { 1, 2, 3 }, payload.Content.ToArray());
+        Assert.Equal([1, 2, 3], payload.Content.ToArray());
     }
 
     [Fact]
@@ -62,7 +62,7 @@ public class PolicyProviderPayloadTests
 
         Array.Clear(bytes, 0, bytes.Length);
 
-        Assert.Equal(new byte[] { 0xC3, 0x28 }, payload.Content.ToArray());
+        Assert.Equal([0xC3, 0x28], payload.Content.ToArray());
     }
 
     [Fact]
@@ -89,7 +89,7 @@ public class PolicyProviderPayloadTests
     [Fact]
     public void Dispose_EmptyContent_DoesNotThrow()
     {
-        var payload = new PolicyProviderPayload(ReadOnlySpan<byte>.Empty);
+        var payload = new PolicyProviderPayload([]);
 
         var exception = Record.Exception(payload.Dispose);
 
