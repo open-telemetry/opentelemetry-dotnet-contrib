@@ -121,7 +121,7 @@ touched by a PR get built and tested. The reusable workflow `Component.BuildTest
 runs a matrix across:
 
 - OS: Windows, Ubuntu
-- TFM: Each supported .NET version (e.g. `net10.0`) and `net462` (Windows only)
+- TFM: Each supported .NET version (e.g. `net10.0`) and `net472` (Windows only)
 
 Component owners are defined in `.github/component_owners.yml` (not `CODEOWNERS`).
 
