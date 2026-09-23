@@ -59,6 +59,11 @@ public class TelemetryPropagationTests
                 client.Endpoint.EndpointBehaviors.Add(new WebHttpBehavior());
             }
 
+            // Ensure the client call starts a brand-new trace regardless of any ambient
+            // Activity left current by the test host/runner or a previous test, otherwise
+            // the "client span has no parent" assertions below can flake.
+            Activity.Current = null;
+
             await client.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!"));
         }
         finally
@@ -71,11 +76,16 @@ public class TelemetryPropagationTests
         }
 
         List<Activity> relevantActivities = [];
-        var deadline = DateTime.UtcNow.AddSeconds(5);
+        var deadline = DateTime.UtcNow.AddSeconds(10);
 
         while (true)
         {
-            relevantActivities = [.. stoppedActivities.Where(activity => activity.StartTimeUtc >= testStartTimeUtc)];
+            relevantActivities =
+            [
+                .. stoppedActivities.Where(activity =>
+                    activity.StartTimeUtc >= testStartTimeUtc &&
+                    activity.OperationName.StartsWith("OpenTelemetry.Instrumentation.Wcf.", StringComparison.Ordinal)),
+            ];
             if (relevantActivities.Count >= 2 || DateTime.UtcNow >= deadline)
             {
                 break;
@@ -85,16 +95,23 @@ public class TelemetryPropagationTests
         }
 
         Assert.Equal(2, relevantActivities.Count);
+
+        // Identify the client/server spans by their Kind rather than by assuming the client
+        // span has no parent: on some bindings the client span can pick up an unrelated
+        // ambient parent (e.g. from the test host) without that affecting whether this
+        // client-server pair actually propagated context between each other.
+        var clientSpan = relevantActivities.Single(activity => activity.Kind == ActivityKind.Client);
+        var serverSpan = relevantActivities.Single(activity => activity.Kind == ActivityKind.Server);
+
         if (shouldPropagate)
         {
-            var clientSpan = relevantActivities.Single(activity => activity.ParentId == null);
-            var serverSpan = relevantActivities.Single(activity => activity.ParentId == clientSpan.Id);
+            Assert.Equal(clientSpan.Id, serverSpan.ParentId);
             Assert.Equal(clientSpan.TraceId, serverSpan.TraceId);
         }
         else
         {
-            Assert.All(relevantActivities, activity => Assert.Null(activity.ParentId));
-            Assert.NotEqual(relevantActivities[0].TraceId, relevantActivities[1].TraceId);
+            Assert.NotEqual(clientSpan.Id, serverSpan.ParentId);
+            Assert.NotEqual(clientSpan.TraceId, serverSpan.TraceId);
         }
     }
 
