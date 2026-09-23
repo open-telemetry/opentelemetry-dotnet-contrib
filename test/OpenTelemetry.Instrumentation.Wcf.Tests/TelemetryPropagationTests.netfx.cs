@@ -95,16 +95,23 @@ public class TelemetryPropagationTests
         }
 
         Assert.Equal(2, relevantActivities.Count);
+
+        // Identify the client/server spans by their Kind rather than by assuming the client
+        // span has no parent: on some bindings the client span can pick up an unrelated
+        // ambient parent (e.g. from the test host) without that affecting whether this
+        // client-server pair actually propagated context between each other.
+        var clientSpan = relevantActivities.Single(activity => activity.Kind == ActivityKind.Client);
+        var serverSpan = relevantActivities.Single(activity => activity.Kind == ActivityKind.Server);
+
         if (shouldPropagate)
         {
-            var clientSpan = relevantActivities.Single(activity => activity.ParentId == null);
-            var serverSpan = relevantActivities.Single(activity => activity.ParentId == clientSpan.Id);
+            Assert.Equal(clientSpan.Id, serverSpan.ParentId);
             Assert.Equal(clientSpan.TraceId, serverSpan.TraceId);
         }
         else
         {
-            Assert.All(relevantActivities, activity => Assert.Null(activity.ParentId));
-            Assert.NotEqual(relevantActivities[0].TraceId, relevantActivities[1].TraceId);
+            Assert.NotEqual(clientSpan.Id, serverSpan.ParentId);
+            Assert.NotEqual(clientSpan.TraceId, serverSpan.TraceId);
         }
     }
 
