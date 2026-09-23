@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+* Logs and metrics are now flushed at the end of an invocation, not only traces,
+  so they are no longer delivered late or lost when AWS Lambda freezes the
+  execution environment. Set `AWSLambdaInstrumentationOptions.LoggerProvider` and
+  `AWSLambdaInstrumentationOptions.MeterProvider`, built beforehand, to have them
+  flushed.
+  ([#5405](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5405))
+
+* The flush is now bounded by
+  `AWSLambdaInstrumentationOptions.FlushTimeoutMilliseconds`, defaulting to 10000
+  where it previously waited indefinitely. This affects existing callers of
+  `AddAWSLambdaConfigurations`; set `Timeout.Infinite` (-1) to restore the
+  unbounded wait.
+  ([#5405](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5405))
+
 ## 1.19.1
 
 Released 2026-Sep-21
