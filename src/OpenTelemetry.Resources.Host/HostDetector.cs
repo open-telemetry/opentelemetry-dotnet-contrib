@@ -524,6 +524,9 @@ internal sealed partial class HostDetector : IResourceDetector
     }
 
 #if !NETFRAMEWORK
+#if NET
+    [SupportedOSPlatform("linux")]
+#endif
     private static void AddCpuInfoLinux(List<KeyValuePair<string, object>> attributes)
     {
         var cpuInfo = ReadCpuFile(ProcCpuInfo);
@@ -582,6 +585,9 @@ internal sealed partial class HostDetector : IResourceDetector
         return null;
     }
 
+#if NET
+    [SupportedOSPlatform("macos")]
+#endif
     private static void AddCpuInfoMacOs(List<KeyValuePair<string, object>> attributes)
     {
         var output = GetCpuInfoMacOs();

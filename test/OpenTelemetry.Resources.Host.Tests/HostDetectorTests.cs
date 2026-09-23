@@ -14,45 +14,6 @@ public class HostDetectorTests
 
     private const string WindowsCpuIdentifier = "AMD64 Family 25 Model 1 Stepping 1";
 
-    private const string LinuxCpuInfoOutput =
-        "processor\t: 0\n" +
-        "vendor_id\t: AuthenticAMD\n" +
-        "cpu family\t: 25\n" +
-        "model\t\t: 17\n" +
-        "model name\t: AMD EPYC 9V74 80-Core Processor\n" +
-        "stepping\t: 1\n" +
-        "cache size\t: 1024 KB\n" +
-        "\n" +
-        "processor\t: 1\n" +
-        "vendor_id\t: AuthenticAMD\n" +
-        "cpu family\t: 25\n" +
-        "model\t\t: 99\n" +
-        "model name\t: AMD EPYC 9V74 80-Core Processor\n" +
-        "stepping\t: 9\n" +
-        "cache size\t: 1024 KB\n";
-
-    private const string Arm64CpuInfoOutput =
-        "processor\t: 0\n" +
-        "BogoMIPS\t: 48.00\n" +
-        "Features\t: fp asimd evtstrm aes pmull sha1 sha2 crc32\n" +
-        "CPU implementer\t: 0x41\n" +
-        "CPU architecture: 8\n" +
-        "CPU variant\t: 0x0\n" +
-        "CPU part\t: 0xd0c\n" +
-        "CPU revision\t: 1\n";
-
-    private const string SysctlOutput =
-        "machdep.cpu.brand_string: Apple M5\n" +
-        "hw.l2cachesize: 6291456\n";
-
-    private const string IntelSysctlOutput =
-        "machdep.cpu.vendor: GenuineIntel\n" +
-        "machdep.cpu.family: 6\n" +
-        "machdep.cpu.model: 6\n" +
-        "machdep.cpu.stepping: 1\n" +
-        "machdep.cpu.brand_string: 11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz\n" +
-        "hw.l2cachesize: 12288000\n";
-
 #if !NETFRAMEWORK
     private const string MacOSMachineIdOutput = @"+-o J293AP  <class IOPlatformExpertDevice, id 0x100000227, registered, matched,$
         {
@@ -84,10 +45,85 @@ public class HostDetectorTests
         }";
 #endif
 
+    private static readonly string LinuxCpuInfoOutput = string.Join(
+        "\n",
+        "processor\t: 0",
+        "vendor_id\t: AuthenticAMD",
+        "cpu family\t: 25",
+        "model\t\t: 17",
+        "model name\t: AMD EPYC 9V74 80-Core Processor",
+        "stepping\t: 1",
+        "cache size\t: 1024 KB",
+        string.Empty,
+        "processor\t: 1",
+        "vendor_id\t: AuthenticAMD",
+        "cpu family\t: 25",
+        "model\t\t: 99",
+        "model name\t: AMD EPYC 9V74 80-Core Processor",
+        "stepping\t: 9",
+        "cache size\t: 1024 KB",
+        string.Empty);
+
+    private static readonly string Arm64CpuInfoOutput = string.Join(
+        "\n",
+        "processor\t: 0",
+        "BogoMIPS\t: 48.00",
+        "Features\t: fp asimd evtstrm aes pmull sha1 sha2 crc32",
+        "CPU implementer\t: 0x41",
+        "CPU architecture: 8",
+        "CPU variant\t: 0x0",
+        "CPU part\t: 0xd0c",
+        "CPU revision\t: 1",
+        string.Empty);
+
+    private static readonly string SysctlOutput = string.Join(
+        "\n",
+        "machdep.cpu.brand_string: Apple M5",
+        "hw.l2cachesize: 6291456",
+        string.Empty);
+
+    private static readonly string IntelSysctlOutput = string.Join(
+        "\n",
+        "machdep.cpu.vendor: GenuineIntel",
+        "machdep.cpu.family: 6",
+        "machdep.cpu.model: 6",
+        "machdep.cpu.stepping: 1",
+        "machdep.cpu.brand_string: 11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz",
+        "hw.l2cachesize: 12288000",
+        string.Empty);
+
 #if NET
     private static readonly IEnumerable<string> ETCMACHINEID = ["Samples/etc_machineid"];
     private static readonly IEnumerable<string> ETCVARDBUSMACHINEID = ["Samples/etc_var_dbus_machineid"];
 #endif
+
+    public static TheoryData<string?, string, string?> ParseFieldValueProcCpuInfoTestCases() => new()
+    {
+        { LinuxCpuInfoOutput, "vendor_id", "AuthenticAMD" },
+        { LinuxCpuInfoOutput, "cpu family", "25" },
+        { LinuxCpuInfoOutput, "model", "17" },
+        { LinuxCpuInfoOutput, "model name", "AMD EPYC 9V74 80-Core Processor" },
+        { LinuxCpuInfoOutput, "stepping", "1" },
+        { LinuxCpuInfoOutput, "cache size", "1024 KB" },
+        { LinuxCpuInfoOutput, "flags", null },
+        { Arm64CpuInfoOutput, "model name", null },
+        { null, "vendor_id", null },
+    };
+
+    public static TheoryData<string?, string, string?> ParseFieldValueSysctlTestCases() => new()
+    {
+        { SysctlOutput, "machdep.cpu.brand_string", "Apple M5" },
+        { SysctlOutput, "hw.l2cachesize", "6291456" },
+        { SysctlOutput, "machdep.cpu.vendor", null },
+        { SysctlOutput, "machdep.cpu.brand", null },
+        { IntelSysctlOutput, "machdep.cpu.vendor", "GenuineIntel" },
+        { IntelSysctlOutput, "machdep.cpu.family", "6" },
+        { IntelSysctlOutput, "machdep.cpu.model", "6" },
+        { IntelSysctlOutput, "machdep.cpu.stepping", "1" },
+        { IntelSysctlOutput, "machdep.cpu.brand_string", "11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz" },
+        { IntelSysctlOutput, "hw.l2cachesize", "12288000" },
+        { null, "hw.l2cachesize", null },
+    };
 
     [Fact]
     public void TestHostAttributes()
@@ -480,15 +516,7 @@ public class HostDetectorTests
         Assert.Equal(expected, HostDetector.TrimToNull(value));
 
     [Theory]
-    [InlineData(LinuxCpuInfoOutput, "vendor_id", "AuthenticAMD")]
-    [InlineData(LinuxCpuInfoOutput, "cpu family", "25")]
-    [InlineData(LinuxCpuInfoOutput, "model", "17")]
-    [InlineData(LinuxCpuInfoOutput, "model name", "AMD EPYC 9V74 80-Core Processor")]
-    [InlineData(LinuxCpuInfoOutput, "stepping", "1")]
-    [InlineData(LinuxCpuInfoOutput, "cache size", "1024 KB")]
-    [InlineData(LinuxCpuInfoOutput, "flags", null)]
-    [InlineData(Arm64CpuInfoOutput, "model name", null)]
-    [InlineData(null, "vendor_id", null)]
+    [MemberData(nameof(ParseFieldValueProcCpuInfoTestCases))]
     public void TestParseFieldValueProcCpuInfo(string? cpuInfo, string fieldName, string? expected) =>
         Assert.Equal(expected, HostDetector.ParseFieldValue(cpuInfo, fieldName));
 
@@ -503,17 +531,7 @@ public class HostDetectorTests
         Assert.Equal(expected, HostDetector.GetTokenAfter(text, keyword));
 
     [Theory]
-    [InlineData(SysctlOutput, "machdep.cpu.brand_string", "Apple M5")]
-    [InlineData(SysctlOutput, "hw.l2cachesize", "6291456")]
-    [InlineData(SysctlOutput, "machdep.cpu.vendor", null)]
-    [InlineData(SysctlOutput, "machdep.cpu.brand", null)]
-    [InlineData(IntelSysctlOutput, "machdep.cpu.vendor", "GenuineIntel")]
-    [InlineData(IntelSysctlOutput, "machdep.cpu.family", "6")]
-    [InlineData(IntelSysctlOutput, "machdep.cpu.model", "6")]
-    [InlineData(IntelSysctlOutput, "machdep.cpu.stepping", "1")]
-    [InlineData(IntelSysctlOutput, "machdep.cpu.brand_string", "11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz")]
-    [InlineData(IntelSysctlOutput, "hw.l2cachesize", "12288000")]
-    [InlineData(null, "hw.l2cachesize", null)]
+    [MemberData(nameof(ParseFieldValueSysctlTestCases))]
     public void TestParseFieldValueSysctl(string? output, string key, string? expected) =>
         Assert.Equal(expected, HostDetector.ParseFieldValue(output, key));
 
