@@ -45,7 +45,7 @@ public class HttpClientTraceEnrichmentAcceptanceTests : IDisposable
         using var httpClient = new HttpClient();
         var request = new HttpRequestMessage(HttpMethod.Get, this.uri);
 
-        using var response = await httpClient.SendAsync(request);
+        using var response = await httpClient.SendAsync(request, TestContext.Current.CancellationToken);
 #else
         var request = (HttpWebRequest)WebRequest.Create(this.uri);
         request.Method = "GET";
@@ -82,7 +82,7 @@ public class HttpClientTraceEnrichmentAcceptanceTests : IDisposable
         {
 #if NET
             using var httpClient = new HttpClient();
-            await httpClient.GetAsync(invalidUrl);
+            await httpClient.GetAsync(invalidUrl, TestContext.Current.CancellationToken);
 #else
             var request = (HttpWebRequest)WebRequest.Create(invalidUrl);
             request.Method = "GET";

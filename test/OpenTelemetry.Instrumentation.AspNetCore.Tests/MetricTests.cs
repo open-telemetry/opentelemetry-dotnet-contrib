@@ -49,13 +49,13 @@ public class MetricTests(WebApplicationFactory<Program> factory)
         var portNumber = url.Substring(url.LastIndexOf(':') + 1);
 
         using var client = new HttpClient();
-        var res = await client.GetAsync(new Uri($"http://localhost:{portNumber}/"));
+        var res = await client.GetAsync(new Uri($"http://localhost:{portNumber}/"), TestContext.Current.CancellationToken);
         Assert.True(res.IsSuccessStatusCode);
 
         // We need to let metric callback execute as it is executed AFTER response was returned.
         // In unit tests environment there may be a lot of parallel unit tests executed, so
         // giving some breezing room for the callbacks to complete
-        await Task.Delay(TimeSpan.FromSeconds(1));
+        await Task.Delay(TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken);
 
         this.meterProvider.Dispose();
 
@@ -135,13 +135,13 @@ public class MetricTests(WebApplicationFactory<Program> factory)
         var portNumber = url.Substring(url.LastIndexOf(':') + 1);
 
         using var client = new HttpClient();
-        var res = await client.GetAsync(new Uri($"http://localhost:{portNumber}/"));
+        var res = await client.GetAsync(new Uri($"http://localhost:{portNumber}/"), TestContext.Current.CancellationToken);
         Assert.NotNull(res);
 
         // We need to let metric callback execute as it is executed AFTER response was returned.
         // In unit tests environment there may be a lot of parallel unit tests executed, so
         // giving some breezing room for the callbacks to complete
-        await Task.Delay(TimeSpan.FromSeconds(1));
+        await Task.Delay(TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken);
 
         this.meterProvider?.Dispose();
 
@@ -189,7 +189,7 @@ public class MetricTests(WebApplicationFactory<Program> factory)
         {
             try
             {
-                using var response = await client.GetAsync(new Uri(api, UriKind.Relative));
+                using var response = await client.GetAsync(new Uri(api, UriKind.Relative), TestContext.Current.CancellationToken);
                 response.EnsureSuccessStatusCode();
             }
             catch
@@ -201,7 +201,7 @@ public class MetricTests(WebApplicationFactory<Program> factory)
         // We need to let End callback execute as it is executed AFTER response was returned.
         // In unit tests environment there may be a lot of parallel unit tests executed, so
         // giving some breezing room for the End callback to complete
-        await Task.Delay(TimeSpan.FromSeconds(1));
+        await Task.Delay(TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken);
 
         this.meterProvider.Dispose();
 
@@ -258,7 +258,7 @@ public class MetricTests(WebApplicationFactory<Program> factory)
 
         try
         {
-            using var response = await client.SendAsync(message);
+            using var response = await client.SendAsync(message, TestContext.Current.CancellationToken);
         }
         catch
         {
@@ -268,7 +268,7 @@ public class MetricTests(WebApplicationFactory<Program> factory)
         // We need to let End callback execute as it is executed AFTER response was returned.
         // In unit tests environment there may be a lot of parallel unit tests executed, so
         // giving some breezing room for the End callback to complete
-        await Task.Delay(TimeSpan.FromSeconds(1));
+        await Task.Delay(TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken);
 
         this.meterProvider.Dispose();
 
@@ -280,9 +280,7 @@ public class MetricTests(WebApplicationFactory<Program> factory)
 
         Assert.Equal("s", metric.Unit);
         var metricPoints = GetMetricPoints(metric);
-        Assert.Single(metricPoints);
-
-        var mp = metricPoints[0];
+        var mp = Assert.Single(metricPoints);
 
         // Inspect Metric Attributes
         var attributes = new Dictionary<string, object?>();

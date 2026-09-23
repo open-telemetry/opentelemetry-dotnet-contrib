@@ -65,7 +65,7 @@ public partial class GrpcTests : IAsyncLifetime
 
         using var channel = GrpcChannel.ForAddress(this.server.Address);
         var client = new Greeter.GreeterClient(channel);
-        var returnMsg = client.SayHello(new HelloRequest()).Message;
+        var returnMsg = client.SayHello(new HelloRequest(), cancellationToken: TestContext.Current.CancellationToken).Message;
 
         Assert.NotNull(returnMsg);
         Assert.NotEmpty(returnMsg);
@@ -115,7 +115,8 @@ public partial class GrpcTests : IAsyncLifetime
                 (exportedItems, []),
                 GrpcClientDiagnosticListener.SemanticConventionsVersion,
                 weaver,
-                outputHelper);
+                outputHelper,
+                cancellationToken: TestContext.Current.CancellationToken);
         }
     }
 
@@ -160,7 +161,7 @@ public partial class GrpcTests : IAsyncLifetime
                 { "x-b3-spanid", "b0966f651b9e0126" },
                 { "x-b3-sampled", "1" },
             };
-            client.SayHello(new HelloRequest(), headers);
+            client.SayHello(new HelloRequest(), headers, cancellationToken: TestContext.Current.CancellationToken);
 
             WaitForExporterToReceiveItems(exportedItems, 1);
 

@@ -101,7 +101,7 @@ public class RateLimitingSamplerTests
             }
 
             // Task.Delay is limited by the OS Scheduler, so we can't guarantee the exact time
-            await Task.Delay(5);
+            await Task.Delay(5, TestContext.Current.CancellationToken);
         }
 
         var timeTakenSeconds = stopwatch.Elapsed.TotalSeconds;

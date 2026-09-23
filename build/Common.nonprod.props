@@ -41,6 +41,11 @@
     <Compile Include="$(RepoRoot)\test\Shared\StrongNameTests.cs" Link="StrongNameTests.cs" />
   </ItemGroup>
 
+  <!-- This class is a temporary shim until https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5379 is merged -->
+  <ItemGroup Condition="'$(IsTestProject)' == 'true'">
+    <Compile Include="$(RepoRoot)\test\Shared\TestContext.cs" Link="TestContext.cs" />
+  </ItemGroup>
+
   <Target Name="SkipVSTestForInvalidTargetFramework" BeforeTargets="VSTest" Condition="'$(IsTestProject)' == 'true'">
     <!-- Note: When running dotnet test from CLI with the framework parameter
     errors will be generated for projects which do not implement the requested

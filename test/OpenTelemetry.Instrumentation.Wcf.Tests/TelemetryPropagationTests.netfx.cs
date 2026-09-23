@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #if NETFRAMEWORK
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
@@ -14,26 +15,28 @@ namespace OpenTelemetry.Instrumentation.Wcf.Tests;
 public class TelemetryPropagationTests
 {
     [RunAsAdminTheory]
-    [InlineData("tcp")]
-    [InlineData("http")]
-    [InlineData("rest")]
+    [InlineData("tcp", true, true)]
+    [InlineData("http", true, true)]
+    [InlineData("rest", true, true)]
     [InlineData("http", false, true)]
     [InlineData("tcp", false, true)]
     [InlineData("rest", false, false)]
     public async Task TelemetryContextPropagatesTest(
         string endpoint,
-        bool suppressDownstreamInstrumentation = true,
-        bool shouldPropagate = true)
+        bool suppressDownstreamInstrumentation,
+        bool shouldPropagate)
     {
         using var context = new ServiceHostContext();
 
-        List<Activity> stoppedActivities = [];
+        var stoppedActivities = new ConcurrentBag<Activity>();
         using var activityListener = new ActivityListener
         {
             ShouldListenTo = _ => true,
             ActivityStopped = stoppedActivities.Add,
         };
         ActivitySource.AddActivityListener(activityListener);
+
+        var testStartTimeUtc = DateTime.UtcNow;
 
         var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddWcfInstrumentation(options => options.SuppressDownstreamInstrumentation = suppressDownstreamInstrumentation)
@@ -67,17 +70,31 @@ public class TelemetryPropagationTests
             WcfInstrumentationActivitySource.Options = null;
         }
 
-        Assert.Equal(2, stoppedActivities.Count);
+        List<Activity> relevantActivities = [];
+        var deadline = DateTime.UtcNow.AddSeconds(5);
+
+        while (true)
+        {
+            relevantActivities = [.. stoppedActivities.Where(activity => activity.StartTimeUtc >= testStartTimeUtc)];
+            if (relevantActivities.Count >= 2 || DateTime.UtcNow >= deadline)
+            {
+                break;
+            }
+
+            await Task.Delay(50, TestContext.Current.CancellationToken);
+        }
+
+        Assert.Equal(2, relevantActivities.Count);
         if (shouldPropagate)
         {
-            var clientSpan = stoppedActivities.Single(activity => activity.ParentId == null);
-            var serverSpan = stoppedActivities.Single(activity => activity.ParentId == clientSpan.Id);
+            var clientSpan = relevantActivities.Single(activity => activity.ParentId == null);
+            var serverSpan = relevantActivities.Single(activity => activity.ParentId == clientSpan.Id);
             Assert.Equal(clientSpan.TraceId, serverSpan.TraceId);
         }
         else
         {
-            Assert.All(stoppedActivities, activity => Assert.Null(activity.ParentId));
-            Assert.NotEqual(stoppedActivities[0].TraceId, stoppedActivities[1].TraceId);
+            Assert.All(relevantActivities, activity => Assert.Null(activity.ParentId));
+            Assert.NotEqual(relevantActivities[0].TraceId, relevantActivities[1].TraceId);
         }
     }
 

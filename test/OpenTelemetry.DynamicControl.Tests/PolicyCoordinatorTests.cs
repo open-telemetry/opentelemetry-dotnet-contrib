@@ -67,7 +67,7 @@ public class PolicyCoordinatorTests
         var coordinator = new PolicyCoordinator(store, [first, second]);
         second.CurrentMetadata = first.CurrentMetadata;
 
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
 
         Assert.True(store.Current.TryGetProvider(new ProviderRegistrationId("first"), out var firstSnapshot), "Provider 'first' should be present in the store.");
         Assert.True(store.Current.TryGetProvider(new ProviderRegistrationId("second"), out var secondSnapshot), "Provider 'second' should be present in the store.");
@@ -93,7 +93,7 @@ public class PolicyCoordinatorTests
         var healthy = new FakeProvider("healthy", PolicyProviderKind.File, Json("""{"sampling_rate": 0.5}"""));
         var coordinator = new PolicyCoordinator(store, [failed, healthy]);
 
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
 
         Assert.True(store.Current.TryGetProvider(new ProviderRegistrationId("healthy"), out _), "Provider 'healthy' should be present in the store.");
         var fetchFailed = Assert.Single(listener.Events, e => e.EventId == 2);
@@ -103,7 +103,7 @@ public class PolicyCoordinatorTests
 
         failed.FetchAsyncCallback = null;
         failed.NextPayload = Json("""{"sampling_rate": 0.8}""");
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
 
         Assert.True(store.Current.TryGetProvider(new ProviderRegistrationId("failed"), out _), "Provider 'failed' should be present in the store after recovering.");
         Assert.Equal(1, failed.MetadataReads);
@@ -115,7 +115,7 @@ public class PolicyCoordinatorTests
         using var store = new PolicyStore();
         var coordinator = new PolicyCoordinator(store, []);
 
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
 
         Assert.Same(PolicyStoreSnapshot.Empty, store.Current);
     }
@@ -130,7 +130,7 @@ public class PolicyCoordinatorTests
             Json("""{"sampling_rate": 0.5}"""));
         var coordinator = new PolicyCoordinator(store, [provider]);
 
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(1, store.Current.Revision);
         var found = store.Current.TryGetProvider(new ProviderRegistrationId("p1"), out var snapshot);
@@ -147,13 +147,13 @@ public class PolicyCoordinatorTests
             PolicyProviderKind.File,
             Json("""{"sampling_rate": 0.5}"""));
         var coordinator = new PolicyCoordinator(store, [provider]);
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
 
         var revisionAfterFirst = store.Current.Revision;
 
         // Corrupt bytes cannot be decoded. The first snapshot must survive.
         provider.NextPayload = new PolicyProviderPayload([0xFF, 0xFE, 0x00]);
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(revisionAfterFirst, store.Current.Revision);
         store.Current.TryGetProvider(new ProviderRegistrationId("p1"), out var snapshot);
@@ -170,12 +170,12 @@ public class PolicyCoordinatorTests
             PolicyProviderKind.File,
             Json("""{"sampling_rate": 0.5, "log_level": "Information"}"""));
         var coordinator = new PolicyCoordinator(store, [provider]);
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
         store.Current.TryGetProvider(new ProviderRegistrationId("p1"), out var snap1);
         Assert.Equal(2, snap1!.Policies.Length);
 
         provider.NextPayload = Json("""{"sampling_rate": "not-a-number", "log_level": "Error"}""");
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
 
         store.Current.TryGetProvider(new ProviderRegistrationId("p1"), out var snap2);
         Assert.NotNull(snap2);
@@ -192,12 +192,12 @@ public class PolicyCoordinatorTests
             PolicyProviderKind.File,
             Json("""{"sampling_rate": 0.5, "log_level": "Information"}"""));
         var coordinator = new PolicyCoordinator(store, [provider]);
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
         Assert.True(store.Current.TryGetProvider(new ProviderRegistrationId("p1"), out var before), "Provider 'p1' should be present in the store before the update.");
         Assert.Equal(2, before.Policies.Length);
 
         provider.NextPayload = Json("""{"log_level": "Error"}""");
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
 
         Assert.True(store.Current.TryGetProvider(new ProviderRegistrationId("p1"), out var after), "Provider 'p1' should be present in the store after the update.");
         var logLevel = Assert.IsType<LogLevelPolicy>(Assert.Single(after.Policies));
@@ -210,7 +210,7 @@ public class PolicyCoordinatorTests
         using var store = new PolicyStore();
         var provider = new FakeProvider("p1", PolicyProviderKind.File, Json("""{"sampling_rate": 0.5}"""));
         var coordinator = new PolicyCoordinator(store, [provider]);
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
         var previousRevision = store.Current.Revision;
         byte[] content =
         [
@@ -220,7 +220,7 @@ public class PolicyCoordinatorTests
         ];
         provider.NextPayload = new PolicyProviderPayload(content);
 
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(previousRevision + 1, store.Current.Revision);
         Assert.True(store.Current.TryGetProvider(new ProviderRegistrationId("p1"), out var snapshot), "Provider 'p1' should be present in the store.");
@@ -238,12 +238,12 @@ public class PolicyCoordinatorTests
             PolicyProviderKind.File,
             Json("""{"sampling_rate": 0.5}"""));
         var coordinator = new PolicyCoordinator(store, [provider]);
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
 
         var revisionAfterFirst = store.Current.Revision;
 
         provider.NextPayload = Json("""{"sampling_rate": "bad-value"}""");
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(revisionAfterFirst + 1, store.Current.Revision);
         store.Current.TryGetProvider(new ProviderRegistrationId("p1"), out var snapshot);
@@ -262,7 +262,7 @@ public class PolicyCoordinatorTests
             Json("""{"sampling_rate": 0.5, "unknown-key": "ignored"}"""));
         var coordinator = new PolicyCoordinator(store, [provider]);
 
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(1, store.Current.Revision);
 
@@ -281,11 +281,11 @@ public class PolicyCoordinatorTests
             PolicyProviderKind.File,
             Json("""{"sampling_rate": 0.5}"""));
         var coordinator = new PolicyCoordinator(store, [provider]);
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
         var revisionAfterFirst = store.Current.Revision;
 
         provider.NextPayload = null;
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(revisionAfterFirst, store.Current.Revision);
         store.Current.TryGetProvider(new ProviderRegistrationId("p1"), out var snapshot);
@@ -302,11 +302,11 @@ public class PolicyCoordinatorTests
             PolicyProviderKind.File,
             Json("""{"sampling_rate": 0.5}"""));
         var coordinator = new PolicyCoordinator(store, [provider]);
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
         var revisionAfterFirst = store.Current.Revision;
 
         provider.ThrowOnFetch = new InvalidOperationException("transport failure");
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(revisionAfterFirst, store.Current.Revision);
         var fetchFailed = listener.Events.FirstOrDefault(e => e.EventId == 2);
@@ -326,13 +326,13 @@ public class PolicyCoordinatorTests
             Json("""{"sampling_rate": 0.0}"""));
         var coordinator = new PolicyCoordinator(store, [provider]);
 
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
 
         store.Current.TryGetProvider(new ProviderRegistrationId("p1"), out var snapshot);
         Assert.NotNull(snapshot);
         Assert.False(snapshot!.IsEmpty, "A sampling rate of 0 is an active policy, not a retraction.");
-        Assert.Single(snapshot.Policies);
-        var samplingPolicy = Assert.IsType<TraceSamplingRatePolicy>(snapshot.Policies[0]);
+        var policy = Assert.Single(snapshot.Policies);
+        var samplingPolicy = Assert.IsType<TraceSamplingRatePolicy>(policy);
         Assert.Equal(0.0, samplingPolicy.SamplingProbability);
     }
 
@@ -350,7 +350,7 @@ public class PolicyCoordinatorTests
             Json("""{"sampling_rate": 0.7}"""));
         var coordinator = new PolicyCoordinator(store, [p1, p2]);
 
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
 
         store.Current.TryGetProvider(new ProviderRegistrationId("p1"), out var snap1);
         store.Current.TryGetProvider(new ProviderRegistrationId("p2"), out var snap2);
@@ -370,12 +370,12 @@ public class PolicyCoordinatorTests
             Json("""{"sampling_rate": 0.5}"""));
         var coordinator = new PolicyCoordinator(store, [provider]);
 
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
         store.Current.TryGetProvider(new ProviderRegistrationId("p1"), out var after1);
         var seqAfterFirst = after1!.Sequence;
 
         provider.NextPayload = Json("""{"sampling_rate": 0.8}""");
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
         store.Current.TryGetProvider(new ProviderRegistrationId("p1"), out var after2);
 
         Assert.True(after2!.Sequence > seqAfterFirst, "Sequence issued by the second refresh must be higher than the first.");
@@ -399,7 +399,7 @@ public class PolicyCoordinatorTests
         var noPayload = new FakeProvider("no-payload", PolicyProviderKind.File);
         var coordinator = new PolicyCoordinator(store, [throwing, noPayload, returning]);
 
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
 
         store.Current.TryGetProvider(new ProviderRegistrationId("returning"), out var snap);
         Assert.Equal(1, snap!.Sequence);
@@ -423,7 +423,7 @@ public class PolicyCoordinatorTests
             Json("""{"log_level": "Warning"}"""));
         var coordinator = new PolicyCoordinator(store, [p1, p2, p3]);
 
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
 
         var found2 = store.Current.TryGetProvider(new ProviderRegistrationId("p2"), out var snap2);
         var found3 = store.Current.TryGetProvider(new ProviderRegistrationId("p3"), out var snap3);
@@ -443,12 +443,12 @@ public class PolicyCoordinatorTests
         };
         var coordinator = new PolicyCoordinator(store, [provider]);
 
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
         Assert.Same(PolicyStoreSnapshot.Empty, store.Current);
 
         provider.ThrowOnFetch = null;
         provider.NextPayload = Json("""{"sampling_rate": 0.5}""");
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(1, store.Current.Revision);
     }
@@ -465,12 +465,12 @@ public class PolicyCoordinatorTests
             new PolicyProviderPayload(content, version));
         var coordinator = new PolicyCoordinator(store, [provider]);
 
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
         var revisionAfterFirst = store.Current.Revision;
         using var listener = new InMemoryEventListener(DynamicControlEventSource.Log);
 
         provider.NextPayload = new PolicyProviderPayload(content, version);
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(revisionAfterFirst, store.Current.Revision);
         var suppressed = listener.Events.Single(e => e.EventId == 8);
@@ -490,11 +490,11 @@ public class PolicyCoordinatorTests
             new PolicyProviderPayload(content));
         var coordinator = new PolicyCoordinator(store, [provider]);
 
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
         var revisionAfterFirst = store.Current.Revision;
 
         provider.NextPayload = new PolicyProviderPayload(content);
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
 
         // Empty version means no change detection; the second submission is applied.
         Assert.Equal(revisionAfterFirst + 1, store.Current.Revision);
@@ -510,15 +510,15 @@ public class PolicyCoordinatorTests
             FetchAsyncCallback = _ => completion.Task,
         };
         var coordinator = new PolicyCoordinator(store, [provider]);
-        var activeRefresh = coordinator.RefreshAsync();
+        var activeRefresh = coordinator.RefreshAsync(TestContext.Current.CancellationToken);
 
         try
         {
             Assert.False(activeRefresh.IsCompleted);
-            var overlappingRefresh = coordinator.RefreshAsync();
+            var overlappingRefresh = coordinator.RefreshAsync(TestContext.Current.CancellationToken);
             await WaitHelper.WaitUntil(() => overlappingRefresh.IsCompleted);
             await Assert.ThrowsAsync<InvalidOperationException>(() => overlappingRefresh);
-            var anotherOverlappingRefresh = coordinator.RefreshAsync();
+            var anotherOverlappingRefresh = coordinator.RefreshAsync(TestContext.Current.CancellationToken);
             await WaitHelper.WaitUntil(() => anotherOverlappingRefresh.IsCompleted);
             await Assert.ThrowsAsync<InvalidOperationException>(() => anotherOverlappingRefresh);
             Assert.Equal(1, provider.FetchCount);
@@ -534,7 +534,7 @@ public class PolicyCoordinatorTests
         // refresh must fetch its own, fresh payload rather than reusing that instance.
         provider.FetchAsyncCallback = null;
         provider.NextPayload = Json("""{"sampling_rate": 0.5}""");
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(2, provider.FetchCount);
         Assert.Equal(2, store.Current.Revision);
@@ -558,7 +558,7 @@ public class PolicyCoordinatorTests
             return Json("""{"sampling_rate": 0.5}""");
         };
 
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(1, provider.FetchCount);
         Assert.Equal(1, store.Current.Revision);
@@ -589,7 +589,7 @@ public class PolicyCoordinatorTests
 
         provider.FetchAsyncCallback = null;
         provider.NextPayload = Json("""{"sampling_rate": 0.5}""");
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(2, provider.FetchCount);
         Assert.Equal(1, store.Current.Revision);
@@ -604,7 +604,7 @@ public class PolicyCoordinatorTests
         var coordinator = new PolicyCoordinator(store, []);
 
         await Assert.ThrowsAsync<OperationCanceledException>(() => coordinator.RefreshAsync(cts.Token));
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
 
         Assert.Same(PolicyStoreSnapshot.Empty, store.Current);
     }
@@ -690,7 +690,7 @@ public class PolicyCoordinatorTests
             new PolicyProviderPayload([0xFF, 0xFE]));
         var coordinator = new PolicyCoordinator(store, [provider]);
 
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
 
         var malformed = listener.Events.FirstOrDefault(e => e.EventId == 3);
         Assert.NotNull(malformed);
@@ -708,7 +708,7 @@ public class PolicyCoordinatorTests
             Json("""{"sampling_rate": "not-valid"}"""));
         var coordinator = new PolicyCoordinator(store, [provider]);
 
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
 
         var rejected = listener.Events.FirstOrDefault(e => e.EventId == 4);
         Assert.NotNull(rejected);
@@ -726,7 +726,7 @@ public class PolicyCoordinatorTests
             Json("""{"sampling_rate": 0.5}"""));
         var coordinator = new PolicyCoordinator(store, [provider]);
 
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
 
         var applied = listener.Events.Single(e => e.EventId == 7);
         Assert.Equal("p1", applied.Payload![0]);
@@ -743,7 +743,7 @@ public class PolicyCoordinatorTests
         var provider = new FakeProvider("p1", PolicyProviderKind.File, Json("""{"sampling_rate": 0.5}"""));
         var coordinator = new PolicyCoordinator(store, [provider]);
 
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
 
         var completed = listener.Events.Single(e => e.EventId == 9);
         Assert.Equal(EventLevel.Verbose, completed.Level);
@@ -780,11 +780,11 @@ public class PolicyCoordinatorTests
         var providerB = new FakeProvider("p1", PolicyProviderKind.OpAmp, Json("""{"sampling_rate": 0.7}"""));
         var coordinatorB = new PolicyCoordinator(store, [providerB]);
 
-        await coordinatorA.RefreshAsync();
+        await coordinatorA.RefreshAsync(TestContext.Current.CancellationToken);
         var revisionAfterA = store.Current.Revision;
         using var listener = new InMemoryEventListener(DynamicControlEventSource.Log);
 
-        await coordinatorB.RefreshAsync();
+        await coordinatorB.RefreshAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(revisionAfterA, store.Current.Revision);
         var rejected = Assert.Single(listener.Events, e => e.EventId == 6);
@@ -804,11 +804,11 @@ public class PolicyCoordinatorTests
         var providerB = new FakeProvider("p1", PolicyProviderKind.File, Json("""{"sampling_rate": 0.7}"""));
         var coordinatorB = new PolicyCoordinator(store, [providerB]);
 
-        await coordinatorA.RefreshAsync();
+        await coordinatorA.RefreshAsync(TestContext.Current.CancellationToken);
         var revisionAfterA = store.Current.Revision;
         using var listener = new InMemoryEventListener(DynamicControlEventSource.Log);
 
-        await coordinatorB.RefreshAsync();
+        await coordinatorB.RefreshAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(revisionAfterA, store.Current.Revision);
         var rejected = Assert.Single(listener.Events, e => e.EventId == 6);
@@ -868,12 +868,9 @@ public class PolicyCoordinatorTests
             this.OnFetch?.Invoke();
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (this.ThrowOnFetch is { } ex)
-            {
-                throw ex;
-            }
-
-            return this.FetchAsyncCallback?.Invoke(cancellationToken) ?? Task.FromResult(this.NextPayload);
+            return this.ThrowOnFetch is { } ex
+                ? throw ex
+                : this.FetchAsyncCallback?.Invoke(cancellationToken) ?? Task.FromResult(this.NextPayload);
         }
     }
 }
