@@ -123,8 +123,6 @@ repository:
         comment: OpenTelemetry.Instrumentation.Cassandra NuGet package distributed from NuGet.org.
       - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.ConfluentKafka
         comment: OpenTelemetry.Instrumentation.ConfluentKafka NuGet package distributed from NuGet.org.
-      - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.ElasticsearchClient
-        comment: OpenTelemetry.Instrumentation.ElasticsearchClient NuGet package distributed from NuGet.org.
       - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.EntityFrameworkCore
         comment: OpenTelemetry.Instrumentation.EntityFrameworkCore NuGet package distributed from NuGet.org.
       - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.EventCounters

@@ -2,8 +2,7 @@
 
 | Status | |
 | ------ | --- |
-| Stability | [Beta](../../README.md#beta) |
-| Code Owners | [@ejsmith](https://github.com/ejsmith) |
+| Stability | [Deprecated](../../README.md#deprecated) |
 
 ## NEST/Elasticsearch.Net
 
@@ -28,6 +27,12 @@ and hence, this package is a
 Until a [stable
 version](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/telemetry-stability.md)
 is released, there can be [breaking changes](./CHANGELOG.md).
+
+## Deprecated
+
+> [!IMPORTANT]
+> Development of this component has halted. No new package versions
+> are planned, and new issues will not be worked on.
 
 ## Steps to enable OpenTelemetry.Instrumentation.ElasticsearchClient
 
