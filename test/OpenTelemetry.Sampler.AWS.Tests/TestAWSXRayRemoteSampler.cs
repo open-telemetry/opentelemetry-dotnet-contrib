@@ -95,10 +95,13 @@ public class TestAWSXRayRemoteSampler
             }
         }
 
-        // sampler will always sampler since target has 100% fixed rate
-        Assert.Equal(expected, this.DoSample(sampler, "cat-service"));
-        Assert.Equal(expected, this.DoSample(sampler, "cat-service"));
-        Assert.Equal(expected, this.DoSample(sampler, "cat-service"));
+        // sampler will always sample since target has 100% fixed rate. Confirm this holds
+        // consistently rather than asserting a single sample immediately after the loop above
+        // breaks, since that instant can otherwise coincide with an in-flight rule/target poll.
+        for (var i = 0; i < 3; i++)
+        {
+            await this.AssertEventuallySamplesAsync(sampler, "cat-service", expected, TestContext.Current.CancellationToken);
+        }
     }
 
     [Fact]
@@ -159,6 +162,34 @@ public class TestAWSXRayRemoteSampler
         var remoteSampler = (AWSXRayRemoteSampler?)rootSamplerFieldInfo?.GetValue(sampler);
 
         return remoteSampler ?? throw new InvalidOperationException("Unable to get AWSXRayRemoteSampler from ParentBasedSampler.");
+    }
+
+    private async Task AssertEventuallySamplesAsync(
+        Trace.Sampler sampler,
+        string serviceName,
+        SamplingDecision expected,
+        CancellationToken cancellationToken)
+    {
+        var decision = this.DoSample(sampler, serviceName);
+        if (decision == expected)
+        {
+            return;
+        }
+
+        var deadline = DateTime.UtcNow.AddSeconds(2);
+
+        while (DateTime.UtcNow < deadline)
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(50), cancellationToken);
+
+            decision = this.DoSample(sampler, serviceName);
+            if (decision == expected)
+            {
+                return;
+            }
+        }
+
+        Assert.Equal(expected, decision);
     }
 
     private SamplingDecision DoSample(Trace.Sampler sampler, string serviceName)

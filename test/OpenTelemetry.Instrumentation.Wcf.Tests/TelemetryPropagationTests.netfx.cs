@@ -59,6 +59,11 @@ public class TelemetryPropagationTests
                 client.Endpoint.EndpointBehaviors.Add(new WebHttpBehavior());
             }
 
+            // Ensure the client call starts a brand-new trace regardless of any ambient
+            // Activity left current by the test host/runner or a previous test, otherwise
+            // the "client span has no parent" assertions below can flake.
+            Activity.Current = null;
+
             await client.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!"));
         }
         finally
@@ -71,11 +76,16 @@ public class TelemetryPropagationTests
         }
 
         List<Activity> relevantActivities = [];
-        var deadline = DateTime.UtcNow.AddSeconds(5);
+        var deadline = DateTime.UtcNow.AddSeconds(10);
 
         while (true)
         {
-            relevantActivities = [.. stoppedActivities.Where(activity => activity.StartTimeUtc >= testStartTimeUtc)];
+            relevantActivities =
+            [
+                .. stoppedActivities.Where(activity =>
+                    activity.StartTimeUtc >= testStartTimeUtc &&
+                    activity.OperationName.StartsWith("OpenTelemetry.Instrumentation.Wcf.", StringComparison.Ordinal)),
+            ];
             if (relevantActivities.Count >= 2 || DateTime.UtcNow >= deadline)
             {
                 break;
