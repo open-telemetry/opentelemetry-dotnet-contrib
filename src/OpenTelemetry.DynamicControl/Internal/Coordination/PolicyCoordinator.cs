@@ -215,9 +215,15 @@ internal sealed class PolicyCoordinator
                             update.Revision,
                             snapshot.Policies.Length);
                         break;
+
                     case PolicyStoreUpdateStatus.SuppressedUnchangedVersion:
                         DynamicControlEventSource.Log.PolicyProviderSubmissionSuppressed(registrationId, snapshot.Sequence);
                         break;
+
+                    case PolicyStoreUpdateStatus.None:
+                    case PolicyStoreUpdateStatus.ProviderNotFound:
+                    case PolicyStoreUpdateStatus.RejectedMetadataMismatch:
+                    case PolicyStoreUpdateStatus.RejectedStaleSequence:
                     default:
                         DynamicControlEventSource.Log.PolicyProviderSubmissionRejected(registrationId, update.Status.ToString());
                         break;

@@ -126,17 +126,17 @@
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.31" />
     <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="8.0.31" />
     <PackageVersion Include="Microsoft.Azure.Kusto.Data" Version="14.2.2" />
-    <PackageVersion Include="Microsoft.Data.SqlClient" Version="7.0.3" />
+    <PackageVersion Include="Microsoft.Data.SqlClient" Version="7.1.0" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.31" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.31" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="8.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.10.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
     <PackageVersion Include="Microsoft.Testing.Platform" Version="2.4.1" />
     <PackageVersion Include="Microsoft.VisualStudio.DiagnosticsHub.BenchmarkDotNetDiagnosers" Version="18.7.37220.1" />
     <PackageVersion Include="Microsoft.Web.Xdt" Version="3.2.12" />
     <PackageVersion Include="MinVer" Version="8.0.0" />
-    <PackageVersion Include="MessagePack" Version="3.1.8" />
+    <PackageVersion Include="MessagePack" Version="3.1.9" />
     <PackageVersion Include="NEST" Version="7.9.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageVersion Include="Newtonsoft.Json.Schema" Version="4.0.1" />
