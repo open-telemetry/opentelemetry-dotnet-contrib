@@ -45,7 +45,7 @@ public class PolicyChangeSubscriptionTests
         });
 
         subscription.Enqueue(SnapshotAtRevision(1));
-        await callbackStarted.WaitAsync(TimeSpan.FromSeconds(10));
+        await callbackStarted.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
 
         // Enqueue several more snapshots while the first callback is still blocked.
         // Only the newest should ever be delivered next.
@@ -129,7 +129,7 @@ public class PolicyChangeSubscriptionTests
         subscription.Dispose();
         subscription.Enqueue(SnapshotAtRevision(2));
 
-        await Task.Delay(50);
+        await Task.Delay(50, TestContext.Current.CancellationToken);
         Assert.Single(delivered);
     }
 
@@ -147,7 +147,7 @@ public class PolicyChangeSubscriptionTests
         });
 
         subscription.Enqueue(SnapshotAtRevision(1));
-        Assert.True(callbackStarted.Wait(TimeSpan.FromSeconds(10)));
+        Assert.True(callbackStarted.Wait(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken));
 
         var sw = System.Diagnostics.Stopwatch.StartNew();
         subscription.Dispose();
@@ -173,14 +173,14 @@ public class PolicyChangeSubscriptionTests
         });
 
         subscription.Enqueue(SnapshotAtRevision(1));
-        await callbackStarted.WaitAsync(TimeSpan.FromSeconds(10));
+        await callbackStarted.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
 
         subscription.Enqueue(SnapshotAtRevision(2));
         subscription.Dispose();
         releaseCallback.Release();
 
         await WaitHelper.WaitUntil(() => delivered.Count == 1);
-        await Task.Delay(50);
+        await Task.Delay(50, TestContext.Current.CancellationToken);
 
         Assert.Equal([1], delivered);
         Assert.True(notifier.Subscribers.IsEmpty);

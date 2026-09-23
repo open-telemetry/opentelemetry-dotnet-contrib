@@ -76,16 +76,18 @@ public class ActivityHelperTest : IDisposable
         Task testTask;
         using (ExecutionContext.SuppressFlow())
         {
-            testTask = Task.Run(() =>
-            {
-                Task.Yield();
+            testTask = Task.Run(
+                () =>
+                {
+                    Task.Yield();
 
-                Assert.Null(Activity.Current);
+                    Assert.Null(Activity.Current);
 
-                ActivityHelper.RestoreContextIfNeeded(context);
+                    ActivityHelper.RestoreContextIfNeeded(context);
 
-                Assert.Same(Activity.Current, rootActivity);
-            });
+                    Assert.Same(Activity.Current, rootActivity);
+                },
+                TestContext.Current.CancellationToken);
         }
 
         await testTask;
@@ -111,22 +113,24 @@ public class ActivityHelperTest : IDisposable
         Task testTask;
         using (ExecutionContext.SuppressFlow())
         {
-            testTask = Task.Run(() =>
-            {
-                Task.Yield();
+            testTask = Task.Run(
+                () =>
+                {
+                    Task.Yield();
 
-                Assert.Null(Activity.Current);
-                Assert.Equal(0, Baggage.Current.Count);
+                    Assert.Null(Activity.Current);
+                    Assert.Equal(0, Baggage.Current.Count);
 
-                ActivityHelper.RestoreContextIfNeeded(context);
+                    ActivityHelper.RestoreContextIfNeeded(context);
 
-                Assert.Same(Activity.Current, rootActivity);
-                Assert.Empty(rootActivity.Baggage);
+                    Assert.Same(Activity.Current, rootActivity);
+                    Assert.Empty(rootActivity.Baggage);
 
-                Assert.Equal(2, Baggage.Current.Count);
-                Assert.Equal("789", Baggage.Current.GetBaggage("TestKey1"));
-                Assert.Equal("456", Baggage.Current.GetBaggage("TestKey2"));
-            });
+                    Assert.Equal(2, Baggage.Current.Count);
+                    Assert.Equal("789", Baggage.Current.GetBaggage("TestKey1"));
+                    Assert.Equal("456", Baggage.Current.GetBaggage("TestKey2"));
+                },
+                TestContext.Current.CancellationToken);
         }
 
         await testTask;
@@ -252,13 +256,15 @@ public class ActivityHelperTest : IDisposable
 
         for (var i = 0; i < 2; i++)
         {
-            await Task.Run(() =>
-            {
-                // when we enter this method, Current is 'child' activity
-                Activity.Current!.Stop();
+            await Task.Run(
+                () =>
+                {
+                    // when we enter this method, Current is 'child' activity
+                    Activity.Current!.Stop();
 
-                // here Current is 'parent', but only in this execution context
-            });
+                    // here Current is 'parent', but only in this execution context
+                },
+                TestContext.Current.CancellationToken);
         }
 
         // when we return back here, in the 'parent' execution context

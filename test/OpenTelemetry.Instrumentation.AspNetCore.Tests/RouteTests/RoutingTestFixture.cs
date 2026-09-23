@@ -34,9 +34,7 @@ public class RoutingTestFixture : IAsyncLifetime
     }
 
     public Task InitializeAsync()
-    {
-        return Task.CompletedTask;
-    }
+        => Task.CompletedTask;
 
     public async Task DisposeAsync()
     {
@@ -60,14 +58,10 @@ public class RoutingTestFixture : IAsyncLifetime
     }
 
     internal void AddActivityTestResult(ActivityRoutingTestResult result)
-    {
-        this.activityTestResults.Add(result);
-    }
+        => this.activityTestResults.Add(result);
 
     internal void AddMetricsTestResult(MetricRoutingTestResult result)
-    {
-        this.metricsTestResults.Add(result);
-    }
+        => this.metricsTestResults.Add(result);
 
     private void GenerateReadme()
     {

@@ -178,7 +178,7 @@ internal sealed class HostDetector : IResourceDetector
         RemoveDuplicates(addresses.Select(address => new IPAddress(address.GetAddressBytes()).ToString()));
 
     internal static string[] RemoveDuplicates(IEnumerable<string> values) =>
-        values.Distinct().ToArray();
+        [.. values.Distinct()];
 
 #if !NETFRAMEWORK
     internal static string? ParseMacOsOutput(string? output)

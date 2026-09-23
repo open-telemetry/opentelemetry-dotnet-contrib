@@ -68,7 +68,7 @@ public class TestAWSXRayRemoteSampler
         // GetSamplingRules mock response
         requestHandler.SetResponse("/GetSamplingRules", File.ReadAllText("Data/GetSamplingRulesResponseOptionalFields.json"));
 
-        await Task.Delay(TimeSpan.FromSeconds(2));
+        await Task.Delay(TimeSpan.FromSeconds(2), TestContext.Current.CancellationToken);
 
         // sampler will drop because rule has 0 reservoir and 0 fixed rate
         Assert.Equal(SamplingDecision.Drop, this.DoSample(sampler, "cat-service"));

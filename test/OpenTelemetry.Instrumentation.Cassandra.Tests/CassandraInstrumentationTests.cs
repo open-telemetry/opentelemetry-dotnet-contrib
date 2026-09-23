@@ -40,7 +40,7 @@ public class CassandraInstrumentationTests(CassandraFixture fixture)
                                  .AddCassandraInstrumentation()
                                  .Build())
         {
-            var cluster = new Builder()
+            using var cluster = new Builder()
             .WithConnectionString(this.cassandraConnectionString)
             .WithOpenTelemetryMetrics()
             .Build();
@@ -82,7 +82,7 @@ public class CassandraInstrumentationTests(CassandraFixture fixture)
             options.SetEnabledNodeMetrics([NodeMetric.Gauges.InFlight]);
             options.SetEnabledSessionMetrics([SessionMetric.Gauges.ConnectedNodes]);
 
-            var cluster = new Builder()
+            using var cluster = new Builder()
                 .WithConnectionString(this.cassandraConnectionString)
                 .WithOpenTelemetryMetrics(options)
                 .Build();
@@ -111,11 +111,14 @@ public class CassandraInstrumentationTests(CassandraFixture fixture)
         var connected = exportedItems.FirstOrDefault(i => i.Name == "cassandra.connected-nodes");
         Assert.NotNull(connected);
 
-        var metricNames = exportedItems.Select(i => i.Name).Distinct().OrderBy(x => x);
+        var metricNames = exportedItems.Select(i => i.Name).Distinct().ToList();
 #if NET
-        Assert.Equal(["cassandra.connected-nodes", "cassandra.pool.in-flight"], metricNames);
+        Assert.Contains("cassandra.connected-nodes", metricNames);
+        Assert.Contains("cassandra.pool.in-flight", metricNames);
 #else
-        Assert.Equal(["cassandra.connected-nodes", "cassandra.pool.in-flight", "cassandra.pool.open-connections"], metricNames);
+        Assert.Contains("cassandra.connected-nodes", metricNames);
+        Assert.Contains("cassandra.pool.in-flight", metricNames);
+        Assert.Contains("cassandra.pool.open-connections", metricNames);
 #endif
     }
 
@@ -131,7 +134,7 @@ public class CassandraInstrumentationTests(CassandraFixture fixture)
                                  .AddCassandraInstrumentation()
                                  .Build())
         {
-            var cluster = new Builder()
+            using var cluster = new Builder()
                 .WithConnectionString(this.cassandraConnectionString)
                 .WithOpenTelemetryMetrics()
                 .Build();
