@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
+    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(NetFrameworkVersionForTests)</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>

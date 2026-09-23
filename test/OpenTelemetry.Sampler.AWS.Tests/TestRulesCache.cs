@@ -46,8 +46,7 @@ public class TestRulesCache
         cache.UpdateRules([newDefaultRule]);
 
         // asserts
-        Assert.Single(cache.RuleAppliers);
-        var rule = cache.RuleAppliers[0];
+        var rule = Assert.Single(cache.RuleAppliers);
         Assert.Equal("Default", rule.RuleName);
 
         // assert that the statistics has been copied over to new rule
@@ -76,9 +75,8 @@ public class TestRulesCache
         rulesCache.UpdateRules([newDefaultRule]);
 
         // assert that Rule1 doesn't exist in rules cache
-        Assert.Single(rulesCache.RuleAppliers);
-        Assert.Single(rulesCache.RuleAppliers);
-        Assert.Equal("Default", rulesCache.RuleAppliers[0].RuleName);
+        var applier = Assert.Single(rulesCache.RuleAppliers);
+        Assert.Equal("Default", applier.RuleName);
     }
 
     [Fact]
@@ -249,56 +247,60 @@ public class TestRulesCache
         // The rule poller and target poller run concurrently. Without the fix a
         // stale rule poll can swap in a snapshot rebuilt before the target was
         // applied, discarding it (a lost update).
-        var updateRules = Task.Run(() =>
-        {
-            for (var i = 0; i < Iterations; i++)
+        var updateRules = Task.Run(
+            () =>
             {
-                rulesCache.UpdateRules([rule]);
-            }
-        });
-        var updateTargets = Task.Run(() =>
-        {
-            for (var i = 0; i < Iterations; i++)
+                for (var i = 0; i < Iterations; i++)
+                {
+                    rulesCache.UpdateRules([rule]);
+                }
+            },
+            TestContext.Current.CancellationToken);
+
+        var updateTargets = Task.Run(
+            () =>
             {
-                rulesCache.UpdateTargets(targets);
-            }
-        });
+                for (var i = 0; i < Iterations; i++)
+                {
+                    rulesCache.UpdateTargets(targets);
+                }
+            },
+            TestContext.Current.CancellationToken);
 
         // Continuously sample while the pollers run. Once the target has taken
         // effect (a sample is seen), a subsequent Drop means an update was lost.
-        var sampler = Task.Run(() =>
-        {
-            while (Volatile.Read(ref pollersRunning))
+        var sampler = Task.Run(
+            () =>
             {
-                if (rulesCache.ShouldSample(default).Decision == SamplingDecision.RecordAndSample)
+                while (Volatile.Read(ref pollersRunning))
                 {
-                    Volatile.Write(ref sawSample, true);
+                    if (rulesCache.ShouldSample(default).Decision == SamplingDecision.RecordAndSample)
+                    {
+                        Volatile.Write(ref sawSample, true);
+                    }
+                    else if (Volatile.Read(ref sawSample))
+                    {
+                        Volatile.Write(ref lostUpdate, true);
+                    }
                 }
-                else if (Volatile.Read(ref sawSample))
-                {
-                    Volatile.Write(ref lostUpdate, true);
-                }
-            }
-        });
+            },
+            TestContext.Current.CancellationToken);
 
         await Task.WhenAll(updateRules, updateTargets);
         Volatile.Write(ref pollersRunning, false);
         await sampler;
 
         Assert.False(lostUpdate, "A concurrent rule poll discarded the sampling target applied by a target poll.");
-        Assert.Single(rulesCache.RuleAppliers);
-        Assert.Equal("rule1", rulesCache.RuleAppliers[0].RuleName);
+        var applier = Assert.Single(rulesCache.RuleAppliers);
+        Assert.Equal("rule1", applier.RuleName);
         Assert.Equal(SamplingDecision.RecordAndSample, rulesCache.ShouldSample(default).Decision);
     }
 
     private SamplingRule CreateDefaultRule(int reservoirSize, double fixedRate)
-    {
-        return this.CreateRule("Default", reservoirSize, fixedRate, 10000);
-    }
+        => this.CreateRule("Default", reservoirSize, fixedRate, 10000);
 
-    private SamplingRule CreateRule(string name, int reservoirSize, double fixedRate, int priority)
-    {
-        return new SamplingRule(
+    private SamplingRule CreateRule(string name, int reservoirSize, double fixedRate, int priority) =>
+        new(
            ruleName: name,
            priority: priority,
            fixedRate: fixedRate,
@@ -311,5 +313,4 @@ public class TestRulesCache
            urlPath: "*",
            version: 1,
            attributes: []);
-    }
 }

@@ -24,7 +24,7 @@ jobs:
         exclude:
         - os: ubuntu-26.04
           version: net462
-    uses: ./.github/workflows/integration-test-reusable.yml
+    uses: $/.github/workflows/integration-test-reusable.yml
     with:
       component: OpenTelemetry.Exporter.OneCollector
       os: ${{ matrix.os }}

@@ -45,7 +45,7 @@ public static class SqlProcessorTestCases
 
         // Reintroduce "alter_table" with a revised expected output.
         // We don't expect the number '255' to be redacted when defining the size of a column.
-        data.Add(new()
+        data.Add(new TestCase()
         {
             Name = "alter_table",
             Input = new()

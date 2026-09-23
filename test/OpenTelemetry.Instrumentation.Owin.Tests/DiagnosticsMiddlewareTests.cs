@@ -174,7 +174,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
 
         this.requestCompleteHandle.Reset();
 
-        using var response = await client.GetAsync(requestUri);
+        using var response = await client.GetAsync(requestUri, TestContext.Current.CancellationToken);
 
         /* Note: This code will continue executing as soon as the response
         is available but Owin could still be working. We need to wait until
@@ -356,7 +356,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
 
         using var client = new HttpClient();
         this.requestCompleteHandle.Reset();
-        using var response = await client.GetAsync(new Uri($"{this.serviceBaseUri}api/test"));
+        using var response = await client.GetAsync(new Uri($"{this.serviceBaseUri}api/test"), TestContext.Current.CancellationToken);
 
         Assert.True(this.requestCompleteHandle.WaitOne(3000));
         Assert.Equal(0, filterInvocationCount);
@@ -409,7 +409,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
 
             try
             {
-                using var response = await client.GetAsync(requestUri);
+                using var response = await client.GetAsync(requestUri, TestContext.Current.CancellationToken);
             }
             catch
             {
@@ -422,9 +422,8 @@ public class DiagnosticsMiddlewareTests : IDisposable
             Assert.True(this.requestCompleteHandle.WaitOne(3000));
 
             Assert.NotEmpty(stoppedActivities);
-            Assert.Single(stoppedActivities);
+            var activity = Assert.Single(stoppedActivities);
 
-            var activity = stoppedActivities[0];
             Assert.Equal("OpenTelemetry.Instrumentation.Owin.IncomingRequest", activity.OperationName);
 
             Assert.Equal(requestUri.Host, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeServerAddress).Value);

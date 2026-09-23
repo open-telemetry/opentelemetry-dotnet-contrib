@@ -149,7 +149,8 @@ public class TelemetryBindingElementForTcpTests : IClassFixture<WeaverFixture>, 
                             WcfInstrumentationActivitySource.SemanticConventionsVersionNew,
                             this.weaver,
                             this.output,
-                            WcfTestHelpers.WeaverSuppressions);
+                            WcfTestHelpers.WeaverSuppressions,
+                            cancellationToken: TestContext.Current.CancellationToken);
                     }
                 }
                 else
@@ -280,7 +281,7 @@ public class TelemetryBindingElementForTcpTests : IClassFixture<WeaverFixture>, 
                     break;
                 }
 
-                await Task.Delay(100);
+                await Task.Delay(100, TestContext.Current.CancellationToken);
             }
 
             Assert.Single(stoppedActivities);
@@ -324,7 +325,7 @@ public class TelemetryBindingElementForTcpTests : IClassFixture<WeaverFixture>, 
                     break;
                 }
 
-                await Task.Delay(100);
+                await Task.Delay(100, TestContext.Current.CancellationToken);
             }
 
             Assert.True(DateTime.UtcNow - startedWaiting < TimeSpan.FromSeconds(10));

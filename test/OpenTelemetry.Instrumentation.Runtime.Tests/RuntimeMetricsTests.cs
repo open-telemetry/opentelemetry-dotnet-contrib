@@ -125,7 +125,7 @@ public class RuntimeMetricsTests
         var tasks = new List<Task>();
         for (var i = 0; i < taskCount; i++)
         {
-            tasks.Add(Task.Run(() => { }));
+            tasks.Add(Task.Run(() => { }, TestContext.Current.CancellationToken));
         }
 
         await Task.WhenAll(tasks);
