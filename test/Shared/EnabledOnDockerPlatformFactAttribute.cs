@@ -6,7 +6,7 @@ namespace OpenTelemetry.Tests;
 /// <summary>
 /// This <see cref="FactAttribute" /> skips tests if the required Docker engine is not available.
 /// </summary>
-internal class EnabledOnDockerPlatformFactAttribute : FactAttribute
+internal sealed class EnabledOnDockerPlatformFactAttribute : FactAttribute
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="EnabledOnDockerPlatformFactAttribute" /> class.

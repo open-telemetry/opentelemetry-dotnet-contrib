@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
+    <TargetFrameworks>$(NetFrameworkVersionForTests)</TargetFrameworks>
     <Description>Unit test project for ASP.NET HttpModule.</Description>
   </PropertyGroup>
 

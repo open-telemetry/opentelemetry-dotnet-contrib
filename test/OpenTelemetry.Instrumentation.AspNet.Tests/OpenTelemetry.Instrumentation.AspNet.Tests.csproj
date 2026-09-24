@@ -1,8 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <TargetFrameworks>$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
+    <TargetFrameworks>$(NetFrameworkVersionForTests)</TargetFrameworks>
     <Description>Unit test project for OpenTelemetry ASP.NET instrumentation.</Description>
   </PropertyGroup>
 

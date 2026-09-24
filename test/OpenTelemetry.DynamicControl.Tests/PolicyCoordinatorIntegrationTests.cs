@@ -29,7 +29,7 @@ public class PolicyCoordinatorIntegrationTests
             Json("""{"sampling_rate": 0.75}"""));
         var coordinator = new PolicyCoordinator(store, [provider]);
 
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
 
         var resolved = PolicyAggregator.Aggregate(store.Current);
 
@@ -58,7 +58,7 @@ public class PolicyCoordinatorIntegrationTests
             Json("""{"sampling_rate": 0.1}"""));
         var coordinator = new PolicyCoordinator(store, [opAmp, file]);
 
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
 
         var resolved = PolicyAggregator.Aggregate(store.Current);
 
@@ -70,9 +70,9 @@ public class PolicyCoordinatorIntegrationTests
         Assert.Equal(0.9, samplingPolicy.SamplingProbability);
         Assert.Equal("opamp", effective.Provider.Value);
 
-        Assert.Single(effective.OutrankedPolicies);
-        Assert.Equal(PolicyAggregationReason.Superseded, effective.OutrankedPolicies[0].Reason);
-        Assert.Equal("file", effective.OutrankedPolicies[0].Provider.Value);
+        var policy = Assert.Single(effective.OutrankedPolicies);
+        Assert.Equal(PolicyAggregationReason.Superseded, policy.Reason);
+        Assert.Equal("file", policy.Provider.Value);
     }
 
     [Fact]
@@ -92,7 +92,7 @@ public class PolicyCoordinatorIntegrationTests
             Json("""{"sampling_rate": 0.1}"""));
         var coordinator = new PolicyCoordinator(store, [opAmp, file]);
 
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
 
         var samplingKey = new PolicyKey(
             TraceSamplingRatePolicy.PolicyTypeValue,
@@ -106,7 +106,7 @@ public class PolicyCoordinatorIntegrationTests
         // File provider returns null - it doesn't need to resubmit for its value to resolve.
         file.NextPayload = null;
 
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
 
         var resolved = PolicyAggregator.Aggregate(store.Current);
         Assert.True(resolved.TryGetPolicy(samplingKey, out var after), "The lower-priority provider's sampling rate policy should resolve as effective after the higher-priority provider retracts.");
@@ -134,7 +134,7 @@ public class PolicyCoordinatorIntegrationTests
             Json("""{"sampling_rate": 0.8}"""));
         var coordinator = new PolicyCoordinator(store, [alpha, beta]);
 
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
 
         var resolved = PolicyAggregator.Aggregate(store.Current);
         var samplingKey = new PolicyKey(
@@ -142,8 +142,8 @@ public class PolicyCoordinatorIntegrationTests
             new PolicyId(TraceSamplingRatePolicy.PolicyTypeValue.Value));
         Assert.True(resolved.TryGetPolicy(samplingKey, out var effective), "The sampling rate policy should resolve as effective after the ordinal RegistrationId tie-break.");
         Assert.Equal("alpha", effective!.Provider.Value);
-        Assert.Single(effective.OutrankedPolicies);
-        Assert.Equal(PolicyAggregationReason.Conflicting, effective.OutrankedPolicies[0].Reason);
+        var policy = Assert.Single(effective.OutrankedPolicies);
+        Assert.Equal(PolicyAggregationReason.Conflicting, policy.Reason);
     }
 
     [Fact]
@@ -165,15 +165,15 @@ public class PolicyCoordinatorIntegrationTests
         var coordinator = new PolicyCoordinator(store, [provider]);
 
         // First refresh: applied, subscription should fire.
-        await coordinator.RefreshAsync();
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
         await WaitHelper.WaitUntil(() => delivered.Count >= 2);
 
         var countAfterFirst = delivered.Count;
 
         // Second refresh: same version - suppressed, subscription should NOT fire again.
         provider.NextPayload = new PolicyProviderPayload(content, version);
-        await coordinator.RefreshAsync();
-        await Task.Delay(50);
+        await coordinator.RefreshAsync(TestContext.Current.CancellationToken);
+        await Task.Delay(50, TestContext.Current.CancellationToken);
 
         Assert.Equal(countAfterFirst, delivered.Count);
     }

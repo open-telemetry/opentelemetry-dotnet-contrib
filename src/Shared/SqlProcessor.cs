@@ -903,10 +903,14 @@ internal static class SqlProcessor
         return true;
 
         static bool IsDollarQuoteTagStartChar(char c)
-            => char.IsAsciiLetter(c) || c == UnderscoreChar;
+        {
+            return char.IsAsciiLetter(c) || c == UnderscoreChar;
+        }
 
         static bool IsDollarQuoteTagChar(char c)
-            => char.IsAsciiLetterOrDigit(c) || c == UnderscoreChar;
+        {
+            return char.IsAsciiLetterOrDigit(c) || c == UnderscoreChar;
+        }
     }
 
     private static bool SanitizeHexLiteral(ReadOnlySpan<char> sql, Span<char> buffer, ref ParseState state)

@@ -35,7 +35,7 @@ public class ElasticsearchClientTests
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
-            var getResponse = await client.GetAsync<Customer>("123");
+            var getResponse = await client.GetAsync<Customer>("123", ct: TestContext.Current.CancellationToken);
             Assert.NotNull(getResponse);
             Assert.True(getResponse.ApiCall.Success);
             Assert.NotEmpty(getResponse.ApiCall.AuditTrail);
@@ -44,9 +44,7 @@ public class ElasticsearchClientTests
             Assert.Empty(failed);
         }
 
-        Assert.Single(exportedItems);
-
-        var searchActivity = exportedItems[0];
+        var searchActivity = Assert.Single(exportedItems);
 
         Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
         Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
@@ -88,7 +86,7 @@ public class ElasticsearchClientTests
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
-            var getResponse = await client.GetAsync<Customer>("123");
+            var getResponse = await client.GetAsync<Customer>("123", ct: TestContext.Current.CancellationToken);
             Assert.NotNull(getResponse);
             Assert.True(getResponse.ApiCall.Success);
             Assert.NotEmpty(getResponse.ApiCall.AuditTrail);
@@ -97,9 +95,7 @@ public class ElasticsearchClientTests
             Assert.Empty(failed);
         }
 
-        Assert.Single(exportedItems);
-
-        var searchActivity = exportedItems[0];
+        var searchActivity = Assert.Single(exportedItems);
 
         Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
         Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
@@ -141,7 +137,10 @@ public class ElasticsearchClientTests
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
-            var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
+            var searchResponse = await client.SearchAsync<Customer>(
+                s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))),
+                ct: TestContext.Current.CancellationToken);
+
             Assert.NotNull(searchResponse);
             Assert.True(searchResponse.ApiCall.Success);
             Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
@@ -150,8 +149,7 @@ public class ElasticsearchClientTests
             Assert.Empty(failed);
         }
 
-        Assert.Single(exportedItems);
-        var searchActivity = exportedItems[0];
+        var searchActivity = Assert.Single(exportedItems);
 
         Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
         Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
@@ -223,7 +221,10 @@ public class ElasticsearchClientTests
                    .AddProcessor(testActivityProcessor)
                    .Build())
         {
-            var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
+            var searchResponse = await client.SearchAsync<Customer>(
+                s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))),
+                ct: TestContext.Current.CancellationToken);
+
             Assert.NotNull(searchResponse);
             Assert.True(searchResponse.ApiCall.Success);
             Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
@@ -283,7 +284,10 @@ public class ElasticsearchClientTests
                    .AddProcessor(testActivityProcessor)
                    .Build())
         {
-            var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
+            var searchResponse = await client.SearchAsync<Customer>(
+                s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))),
+                ct: TestContext.Current.CancellationToken);
+
             Assert.NotNull(searchResponse);
             Assert.True(searchResponse.ApiCall.Success);
             Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
@@ -343,7 +347,10 @@ public class ElasticsearchClientTests
                    .AddProcessor(testActivityProcessor)
                    .Build())
         {
-            var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
+            var searchResponse = await client.SearchAsync<Customer>(
+                s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))),
+                ct: TestContext.Current.CancellationToken);
+
             Assert.NotNull(searchResponse);
             Assert.True(searchResponse.ApiCall.Success);
             Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
@@ -373,7 +380,10 @@ public class ElasticsearchClientTests
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
-            var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
+            var searchResponse = await client.SearchAsync<Customer>(
+                s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))),
+                ct: TestContext.Current.CancellationToken);
+
             Assert.NotNull(searchResponse);
             Assert.True(searchResponse.ApiCall.Success);
             Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
@@ -382,8 +392,7 @@ public class ElasticsearchClientTests
             Assert.Empty(failed);
         }
 
-        Assert.Single(exportedItems);
-        var searchActivity = exportedItems[0];
+        var searchActivity = Assert.Single(exportedItems);
 
         Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
         Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
@@ -425,7 +434,10 @@ public class ElasticsearchClientTests
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
-            var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
+            var searchResponse = await client.SearchAsync<Customer>(
+                s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))),
+                ct: TestContext.Current.CancellationToken);
+
             Assert.NotNull(searchResponse);
             Assert.True(searchResponse.ApiCall.Success);
             Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
@@ -434,8 +446,7 @@ public class ElasticsearchClientTests
             Assert.Empty(failed);
         }
 
-        Assert.Single(exportedItems);
-        var searchActivity = exportedItems[0];
+        var searchActivity = Assert.Single(exportedItems);
 
         Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
         Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
@@ -492,7 +503,10 @@ public class ElasticsearchClientTests
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
-            var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
+            var searchResponse = await client.SearchAsync<Customer>(
+                s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))),
+                ct: TestContext.Current.CancellationToken);
+
             Assert.NotNull(searchResponse);
             Assert.True(searchResponse.ApiCall.Success);
             Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
@@ -501,8 +515,7 @@ public class ElasticsearchClientTests
             Assert.Empty(failed);
         }
 
-        Assert.Single(exportedItems);
-        var searchActivity = exportedItems[0];
+        var searchActivity = Assert.Single(exportedItems);
 
         Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
         Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
@@ -544,7 +557,10 @@ public class ElasticsearchClientTests
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
-            var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
+            var searchResponse = await client.SearchAsync<Customer>(
+                s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))),
+                ct: TestContext.Current.CancellationToken);
+
             Assert.NotNull(searchResponse);
             Assert.True(searchResponse.ApiCall.Success);
             Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
@@ -553,8 +569,7 @@ public class ElasticsearchClientTests
             Assert.Empty(failed);
         }
 
-        Assert.Single(exportedItems);
-        var searchActivity = exportedItems[0];
+        var searchActivity = Assert.Single(exportedItems);
 
         Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
         Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
@@ -597,7 +612,10 @@ public class ElasticsearchClientTests
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
-            var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
+            var searchResponse = await client.SearchAsync<Customer>(
+                s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))),
+                ct: TestContext.Current.CancellationToken);
+
             Assert.NotNull(searchResponse);
             Assert.False(searchResponse.ApiCall.Success);
             Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
@@ -606,8 +624,7 @@ public class ElasticsearchClientTests
             Assert.NotEmpty(failed);
         }
 
-        Assert.Single(exportedItems);
-        var searchActivity = exportedItems[0];
+        var searchActivity = Assert.Single(exportedItems);
 
         Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
         Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
@@ -649,7 +666,7 @@ public class ElasticsearchClientTests
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
-            var getResponse = await client.Cat.IndicesAsync();
+            var getResponse = await client.Cat.IndicesAsync(ct: TestContext.Current.CancellationToken);
             Assert.NotNull(getResponse);
             Assert.True(getResponse.ApiCall.Success);
             Assert.NotEmpty(getResponse.ApiCall.AuditTrail);
@@ -658,8 +675,7 @@ public class ElasticsearchClientTests
             Assert.Empty(failed);
         }
 
-        Assert.Single(exportedItems);
-        var searchActivity = exportedItems[0];
+        var searchActivity = Assert.Single(exportedItems);
 
         Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
         Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
@@ -702,7 +718,8 @@ public class ElasticsearchClientTests
                    .Build())
         {
             using var scope = SuppressInstrumentationScope.Begin();
-            var getResponse = await client.GetAsync<Customer>("123");
+            var getResponse = await client.GetAsync<Customer>("123", ct: TestContext.Current.CancellationToken);
+
             Assert.NotNull(getResponse);
             Assert.True(getResponse.ApiCall.Success);
             Assert.NotEmpty(getResponse.ApiCall.AuditTrail);
@@ -739,7 +756,8 @@ public class ElasticsearchClientTests
                    .AddProcessor(processor)
                    .Build())
         {
-            var getResponse = await client.GetAsync<Customer>("123");
+            var getResponse = await client.GetAsync<Customer>("123", ct: TestContext.Current.CancellationToken);
+
             Assert.NotNull(getResponse);
             Assert.True(getResponse.ApiCall.Success);
             Assert.NotEmpty(getResponse.ApiCall.AuditTrail);
@@ -769,7 +787,10 @@ public class ElasticsearchClientTests
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
-            var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
+            var searchResponse = await client.SearchAsync<Customer>(
+                s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))),
+                ct: TestContext.Current.CancellationToken);
+
             Assert.NotNull(searchResponse);
             Assert.True(searchResponse.ApiCall.Success);
             Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
@@ -778,8 +799,7 @@ public class ElasticsearchClientTests
             Assert.Empty(failed);
         }
 
-        Assert.Single(exportedItems);
-        var searchActivity = exportedItems[0];
+        var searchActivity = Assert.Single(exportedItems);
 
         var tags = searchActivity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
         Assert.Null(searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement));
@@ -802,7 +822,10 @@ public class ElasticsearchClientTests
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
-            var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
+            var searchResponse = await client.SearchAsync<Customer>(
+                s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))),
+                ct: TestContext.Current.CancellationToken);
+
             Assert.NotNull(searchResponse);
             Assert.True(searchResponse.ApiCall.Success);
             Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
@@ -811,8 +834,7 @@ public class ElasticsearchClientTests
             Assert.Empty(failed);
         }
 
-        Assert.Single(exportedItems);
-        var searchActivity = exportedItems[0];
+        var searchActivity = Assert.Single(exportedItems);
 
         var tags = searchActivity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
         Assert.NotNull(searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement));
@@ -836,7 +858,10 @@ public class ElasticsearchClientTests
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
-            var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
+            var searchResponse = await client.SearchAsync<Customer>(
+                s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))),
+                ct: TestContext.Current.CancellationToken);
+
             Assert.NotNull(searchResponse);
             Assert.True(searchResponse.ApiCall.Success);
             Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
@@ -845,8 +870,7 @@ public class ElasticsearchClientTests
             Assert.Empty(failed);
         }
 
-        Assert.Single(exportedItems);
-        var searchActivity = exportedItems[0];
+        var searchActivity = Assert.Single(exportedItems);
 
         var dbUrl = (string?)searchActivity.GetTagValue(SemanticConventions.AttributeUrlFull);
 
