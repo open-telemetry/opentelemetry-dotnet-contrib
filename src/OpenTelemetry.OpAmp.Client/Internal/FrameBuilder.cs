@@ -192,12 +192,6 @@ internal sealed class FrameBuilder : IFrameBuilder
         return this;
     }
 
-    public void SetInstanceUid(ByteString instanceUid)
-    {
-        this.instanceUid = instanceUid;
-        this.currentMessage.InstanceUid = instanceUid;
-    }
-
     public AgentToServer Build()
     {
         var message = this.currentMessage;

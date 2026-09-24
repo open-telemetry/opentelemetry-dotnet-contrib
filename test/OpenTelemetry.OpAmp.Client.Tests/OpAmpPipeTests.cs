@@ -136,8 +136,10 @@ public abstract class OpAmpPipeTests
         });
     }
 
-    [Fact]
-    public async Task OpAmpPipe_IgnoresServerAssignedInstanceUid_WithInvalidLength()
+    [Theory]
+    [InlineData(3, "expected 16 bytes, received 3")]
+    [InlineData(16, "all bytes are zero")]
+    public async Task OpAmpPipe_IgnoresInvalidServerAssignedInstanceUid(int length, string reason)
     {
         using var eventListener = new InMemoryEventListener(OpAmpClientEventSource.Log, EventLevel.Verbose);
         using var transport = this.GetTransport();
@@ -146,7 +148,7 @@ public abstract class OpAmpPipeTests
         using var pipe = new OpAmpPipe(settings, processor, transport);
         var serverFrame = new ServerToAgent
         {
-            AgentIdentification = new AgentIdentification { NewInstanceUid = ByteString.CopyFrom(1, 2, 3) },
+            AgentIdentification = new AgentIdentification { NewInstanceUid = ByteString.CopyFrom(new byte[length]) },
         }.ToByteArray();
 
         AppendIdentification(pipe);
@@ -162,7 +164,7 @@ public abstract class OpAmpPipeTests
         Assert.Contains(
             eventListener.Events,
             e => e.EventName == nameof(OpAmpClientEventSource.InvalidInstanceUid)
-                && e.Payload![0] is 3);
+                && (string?)e.Payload![0] == reason);
     }
 
     [Fact]

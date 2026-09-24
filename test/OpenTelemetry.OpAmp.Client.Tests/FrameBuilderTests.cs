@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using Google.Protobuf;
 using OpAmp.Proto.V1;
 using OpenTelemetry.OpAmp.Client.Internal;
 using OpenTelemetry.OpAmp.Client.Messages;
@@ -61,18 +60,6 @@ public class FrameBuilderTests
             0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
         ];
         Assert.Equal(expected, frame.InstanceUid.ToByteArray());
-    }
-
-    [Fact]
-    public void FrameBuilder_SetInstanceUid_AppliesToNextFrames()
-    {
-        var frameBuilder = new FrameBuilder(new());
-        var instanceUid = ByteString.CopyFrom(new byte[16]);
-
-        frameBuilder.SetInstanceUid(instanceUid);
-
-        Assert.Equal(instanceUid, frameBuilder.Build().InstanceUid);
-        Assert.Equal(instanceUid, frameBuilder.Build().InstanceUid);
     }
 
     [Fact]

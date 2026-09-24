@@ -14,6 +14,8 @@ namespace OpenTelemetry.OpAmp.Client.Internal;
 
 internal sealed class OpAmpPipe : IDisposable
 {
+    private static readonly byte[] EmptyInstanceUid = new byte[16];
+
     private readonly IOpAmpTransport transport;
     private readonly FrameProcessor processor;
     private readonly int maxPendingCustomMessages;
@@ -29,6 +31,7 @@ internal sealed class OpAmpPipe : IDisposable
     private bool isStopped;
     private bool hasAccumulatedData;
     private long pendingCustomMessageBytes;
+    private ByteString? assignedInstanceUid;
     private Task? flushTask;
     private TaskCompletionSource<bool>? flushCompletion;
 
@@ -297,6 +300,16 @@ internal sealed class OpAmpPipe : IDisposable
     {
         try
         {
+            // Applied at send time so frames queued or dequeued before the server
+            // assigned a new UID are still sent with it.
+            lock (this.frameLock)
+            {
+                if (this.assignedInstanceUid is { } instanceUid)
+                {
+                    message.InstanceUid = instanceUid;
+                }
+            }
+
             OpAmpClientEventSource.Log.SendingMessage();
 
             await this.transport.SendAsync(message, token)
@@ -337,18 +350,19 @@ internal sealed class OpAmpPipe : IDisposable
     {
         if (instanceUid.Length != 16)
         {
-            OpAmpClientEventSource.Log.InvalidInstanceUid(instanceUid.Length);
+            OpAmpClientEventSource.Log.InvalidInstanceUid($"expected 16 bytes, received {instanceUid.Length}");
+            return;
+        }
+
+        if (instanceUid.Span.SequenceEqual(EmptyInstanceUid))
+        {
+            OpAmpClientEventSource.Log.InvalidInstanceUid("all bytes are zero");
             return;
         }
 
         lock (this.frameLock)
         {
-            this.currentFrame.SetInstanceUid(instanceUid);
-
-            foreach (var frame in this.pendingFrames)
-            {
-                frame.InstanceUid = instanceUid;
-            }
+            this.assignedInstanceUid = instanceUid;
         }
     }
 

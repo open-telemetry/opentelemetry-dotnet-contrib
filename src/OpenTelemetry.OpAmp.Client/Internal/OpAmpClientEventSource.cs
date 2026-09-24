@@ -47,10 +47,10 @@ internal sealed class OpAmpClientEventSource : EventSource
         this.WriteEvent(EventIdInvalidWsFrame, errorMessage);
     }
 
-    [Event(EventIdInvalidInstanceUid, Message = "Ignoring server-assigned instance UID: expected 16 bytes, received {0}.", Level = EventLevel.Warning)]
-    public void InvalidInstanceUid(int length)
+    [Event(EventIdInvalidInstanceUid, Message = "Ignoring server-assigned instance UID: {0}.", Level = EventLevel.Warning)]
+    public void InvalidInstanceUid(string reason)
     {
-        this.WriteEvent(EventIdInvalidInstanceUid, length);
+        this.WriteEvent(EventIdInvalidInstanceUid, reason);
     }
 
     [NonEvent]
