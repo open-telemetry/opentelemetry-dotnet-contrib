@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.0-alpha.7
+
+Released 2026-Sep-24
+
 * The minimum supported version of `Google.Api.Gax` is now `4.14.0`.
   ([#5212](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5212))
 
