@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* `AutoFlushActivityProcessor` now logs a warning when
+  `TracerProvider.ForceFlush` does not complete within
+  its configured timeout.
+  ([#2721](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/2721))
+
 ## 1.19.1-beta.1
 
 Released 2026-Sep-21
