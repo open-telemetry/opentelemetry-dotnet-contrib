@@ -78,7 +78,7 @@ internal sealed class AutoFlushActivityProcessor : BaseProcessor<Activity>
         {
             if (!this.tracerProvider!.ForceFlush(this.timeoutMilliseconds))
             {
-                OpenTelemetryExtensionsEventSource.Log.ForceFlushFailed(this.timeoutMilliseconds);
+                OpenTelemetryExtensionsEventSource.Log.AutoFlushActivityProcessorForceFlushFailed(this.timeoutMilliseconds);
             }
         }
     }

@@ -149,11 +149,6 @@ public class AutoFlushActivityProcessorTests
 
         protected override void OnEventWritten(EventWrittenEventArgs eventData)
         {
-            // OpenTelemetryExtensionsEventSource is a process-wide singleton, so this listener also
-            // receives events written by other test classes that run in parallel. EventListener
-            // callbacks run synchronously on the thread that wrote the event, so capturing only
-            // events written on the thread that created this listener keeps each test isolated to
-            // its own events.
             if (Environment.CurrentManagedThreadId == this.creatingThreadId)
             {
                 this.capturedEvents.Add(eventData);

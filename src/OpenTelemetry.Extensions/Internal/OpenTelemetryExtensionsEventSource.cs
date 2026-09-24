@@ -56,6 +56,6 @@ internal sealed class OpenTelemetryExtensionsEventSource : EventSource
         => this.WriteEvent(6, sampler);
 
     [Event(7, Message = "AutoFlushActivityProcessor called ForceFlush on the TracerProvider, but the call did not complete within the {0} millisecond timeout.", Level = EventLevel.Warning)]
-    public void ForceFlushFailed(int timeoutMilliseconds)
+    public void AutoFlushActivityProcessorForceFlushFailed(int timeoutMilliseconds)
         => this.WriteEvent(7, timeoutMilliseconds);
 }
