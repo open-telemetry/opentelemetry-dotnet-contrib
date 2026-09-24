@@ -87,6 +87,7 @@ repository](https://github.com/open-telemetry/community/blob/main/guides/contrib
 
 [@open-telemetry/dotnet-contrib-approvers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-approvers):
 
+* [Matthew Hensley](https://github.com/matt-hensley), Grafana Labs
 * [Steve Gordon](https://github.com/stevejgordon), Elastic
 
 *Find more about the approver role in [community
