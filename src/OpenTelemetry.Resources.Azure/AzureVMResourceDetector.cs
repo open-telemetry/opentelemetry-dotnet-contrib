@@ -66,6 +66,18 @@ internal sealed class AzureVMResourceDetector : IResourceDetector
                 attributeList.Add(new(field, vmMetaDataResponse.GetValueForField(field)));
             }
 
+            var resourceGroupName = vmMetaDataResponse.GetValueForField(ResourceAttributeConstants.AzureResourceGroupName);
+            if (resourceGroupName is { Length: > 0 })
+            {
+                attributeList.Add(new(ResourceAttributeConstants.AzureResourceGroupName, resourceGroupName));
+            }
+
+            var subscriptionId = vmMetaDataResponse.GetValueForField(ResourceSemanticConventions.AttributeCloudAccount);
+            if (subscriptionId is { Length: > 0 })
+            {
+                attributeList.Add(new(ResourceSemanticConventions.AttributeCloudAccount, subscriptionId));
+            }
+
             foreach (var field in OmitWhenEmptyAzureAmsFields)
             {
                 var value = vmMetaDataResponse.GetValueForField(field);
