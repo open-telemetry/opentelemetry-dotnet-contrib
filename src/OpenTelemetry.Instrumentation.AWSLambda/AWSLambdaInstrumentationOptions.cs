@@ -68,7 +68,7 @@ public class AWSLambdaInstrumentationOptions
     /// Applied to each provider, which are flushed concurrently, and to the overall wait.
     /// </remarks>
     /// <exception cref="ArgumentOutOfRangeException">
-    /// Thrown when the value is zero, or negative and not <see cref="Timeout.Infinite"/>.
+    /// <paramref name="value"/> is zero, or negative and not <see cref="Timeout.Infinite"/>.
     /// </exception>
     public int FlushTimeoutMilliseconds
     {
