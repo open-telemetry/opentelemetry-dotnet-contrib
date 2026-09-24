@@ -54,4 +54,8 @@ internal sealed class OpenTelemetryExtensionsEventSource : EventSource
     [Event(6, Message = "Sampler '{0}' could not add its sampling threshold to the OpenTelemetry tracestate because the ot value would exceed 256 characters. Existing OpenTelemetry tracestate values were preserved and the outgoing sampling probability is unknown. This warning is reported once per sampler.", Level = EventLevel.Warning)]
     public void TraceStateSizeLimitExceeded(string sampler)
         => this.WriteEvent(6, sampler);
+
+    [Event(7, Message = "AutoFlushActivityProcessor called ForceFlush on the TracerProvider, but the call did not complete within the {0} millisecond timeout.", Level = EventLevel.Warning)]
+    public void AutoFlushActivityProcessorForceFlushFailed(int timeoutMilliseconds)
+        => this.WriteEvent(7, timeoutMilliseconds);
 }

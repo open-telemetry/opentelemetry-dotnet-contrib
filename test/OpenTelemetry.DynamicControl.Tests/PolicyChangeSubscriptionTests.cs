@@ -8,6 +8,7 @@ using OpenTelemetry.Tests;
 
 namespace OpenTelemetry.DynamicControl.Tests;
 
+[Collection(DynamicControlEventSourceCollectionDefinition.Name)]
 public class PolicyChangeSubscriptionTests
 {
     [Fact]
