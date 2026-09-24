@@ -222,7 +222,6 @@ public static class AWSLambdaWrapper
 
         var options = Options;
 
-        // Unconfigured functions keep the unbounded flush they had before.
         var timeout = options?.FlushTimeoutMilliseconds ?? Timeout.Infinite;
 
         // force flush before function quit in case of Lambda freeze. Concurrent, so the invocation
