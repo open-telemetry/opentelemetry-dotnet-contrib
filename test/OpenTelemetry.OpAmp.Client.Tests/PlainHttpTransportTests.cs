@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.IO.Compression;
 using System.Net;
 using System.Text;
+using Google.Protobuf;
 using OpenTelemetry.OpAmp.Client.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Transport;
 using OpenTelemetry.OpAmp.Client.Internal.Transport.Http;
@@ -368,11 +369,9 @@ public class PlainHttpTransportTests
         // Arrange
         using var opAmpServer = new OpAmpFakeHttpServer(false);
 
-        var uuid = Guid.NewGuid();
         var settings = new OpAmpClientSettings
         {
             ServerUrl = opAmpServer.Endpoint,
-            InstanceUid = uuid,
         };
 
         using var mockListener = new MockListener();
@@ -380,13 +379,19 @@ public class PlainHttpTransportTests
         frameProcessor.Subscribe(mockListener);
 
         using var httpTransport = new PlainHttpTransport(settings, frameProcessor);
+        byte[] instanceUid =
+        [
+            0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
+            0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
+        ];
         var mockFrame = FrameGenerator.GenerateMockAgentFrame(false);
+        mockFrame.Frame.InstanceUid = ByteString.CopyFrom(instanceUid);
 
         // Act
         await httpTransport.SendAsync(mockFrame.Frame, CancellationToken.None);
 
         // Assert
         var serverReceivedHeaders = opAmpServer.GetHeaders();
-        Assert.Contains(serverReceivedHeaders, headers => headers["OpAMP-Instance-UID"] == uuid.ToString());
+        Assert.Contains(serverReceivedHeaders, headers => headers["OpAMP-Instance-UID"] == "01234567-89ab-cdef-0123-456789abcdef");
     }
 }

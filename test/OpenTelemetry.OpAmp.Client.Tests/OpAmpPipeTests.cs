@@ -89,6 +89,7 @@ public abstract class OpAmpPipeTests
     [Fact]
     public async Task OpAmpPipe_IgnoresServerAssignedInstanceUid_WithInvalidLength()
     {
+        using var eventListener = new InMemoryEventListener(OpAmpClientEventSource.Log, EventLevel.Verbose);
         using var transport = this.GetTransport();
         var settings = new OpAmpClientSettings();
         var processor = new FrameProcessor();
@@ -108,6 +109,10 @@ public abstract class OpAmpPipeTests
         transport.CompleteNextSend();
 
         Assert.Equal(transport.Messages[0].InstanceUid, transport.Messages[1].InstanceUid);
+        Assert.Contains(
+            eventListener.Events,
+            e => e.EventName == nameof(OpAmpClientEventSource.InvalidInstanceUid)
+                && e.Payload![0] is 3);
     }
 
     [Fact]

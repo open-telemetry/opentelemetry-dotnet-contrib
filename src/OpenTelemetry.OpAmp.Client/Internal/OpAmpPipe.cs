@@ -319,7 +319,8 @@ internal sealed class OpAmpPipe : IDisposable
 
     private void OnServerFrameReceived(ServerToAgent message)
     {
-        // Apply a server-assigned instance UID before the next frame can be sent.
+        // Handled here rather than by an AgentIdentificationMessage listener so the
+        // new UID is applied before the HTTP transport releases the next frame.
         if (message.AgentIdentification is { } agentIdentification)
         {
             this.SetInstanceUid(agentIdentification.NewInstanceUid);
