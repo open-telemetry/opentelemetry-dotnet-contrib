@@ -69,7 +69,6 @@ jobs:
           instrumentation-aws: ['*/OpenTelemetry.Extensions.AWS*/**', '*/OpenTelemetry.Instrumentation.AWS*/**', '!**/*.md']
           instrumentation-cassandra: ['*/OpenTelemetry.Instrumentation.Cassandra*/**', '!**/*.md']
           instrumentation-confluentkafka: ['*/OpenTelemetry.Instrumentation.ConfluentKafka*/**', 'examples/kafka/**', '!**/*.md']
-          instrumentation-elasticsearchclient: ['*/OpenTelemetry.Instrumentation.ElasticsearchClient*/**', '!**/*.md']
           instrumentation-entityframeworkcore: ['*/OpenTelemetry.Instrumentation.EntityFrameworkCore*/**', '*/OpenTelemetry.Instrumentation.SqlClient/**', '!**/*.md']
           instrumentation-eventcounters: ['*/OpenTelemetry.Instrumentation.EventCounters*/**', 'examples/event-counters/**', '!**/*.md']
           instrumentation-grpccore: ['*/OpenTelemetry.Instrumentation.GrpcCore*/**', '!**/*.md']
@@ -320,18 +319,6 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Instrumentation.ConfluentKafka]
       code-cov-name: Instrumentation.ConfluentKafka
-      trigger: ${{ github.event_name }}
-
-  build-test-instrumentation-elasticsearchclient:
-    needs: detect-changes
-    if: |
-      contains(needs.detect-changes.outputs.changes, 'instrumentation-elasticsearchclient')
-      || contains(needs.detect-changes.outputs.changes, 'build')
-      || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: $/.github/workflows/Component.BuildTest.yml
-    with:
-      project-name: Component[OpenTelemetry.Instrumentation.ElasticsearchClient]
-      code-cov-name: Instrumentation.ElasticsearchClient
       trigger: ${{ github.event_name }}
 
   build-test-instrumentation-entityframeworkcore:
@@ -756,7 +743,6 @@ jobs:
       build-test-instrumentation-aws,
       build-test-instrumentation-cassandra,
       build-test-instrumentation-confluentkafka,
-      build-test-instrumentation-elasticsearchclient,
       build-test-instrumentation-entityframeworkcore,
       build-test-instrumentation-eventcounters,
       build-test-instrumentation-grpccore,
