@@ -18,6 +18,7 @@ internal sealed class OpAmpClientEventSource : EventSource
     private const int EventIdOversizedWebSocketMessage = 4;
     private const int EventIdFrameProcessingFailure = 5;
     private const int EventIdEffectiveConfigSizeLimitViolation = 6;
+    private const int EventIdInvalidInstanceUid = 7;
 
     // Service events 500-999
     private const int EventIdHeartbeatServiceStart = 500;
@@ -44,6 +45,12 @@ internal sealed class OpAmpClientEventSource : EventSource
     public void InvalidWsFrame(string errorMessage)
     {
         this.WriteEvent(EventIdInvalidWsFrame, errorMessage);
+    }
+
+    [Event(EventIdInvalidInstanceUid, Message = "Ignoring server-assigned instance UID: expected 16 bytes, received {0}.", Level = EventLevel.Warning)]
+    public void InvalidInstanceUid(int length)
+    {
+        this.WriteEvent(EventIdInvalidInstanceUid, length);
     }
 
     [NonEvent]

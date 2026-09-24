@@ -21,7 +21,7 @@ internal sealed class FrameBuilder : IFrameBuilder
     public FrameBuilder(OpAmpClientSettings settings)
     {
         this.settings = settings;
-        this.instanceUid = ByteString.CopyFrom(this.settings.InstanceUid.ToByteArray());
+        this.instanceUid = ByteString.CopyFrom(this.settings.InstanceUid.ToBigEndianByteArray());
         this.currentMessage = this.NextBaseMessage();
     }
 
@@ -190,6 +190,12 @@ internal sealed class FrameBuilder : IFrameBuilder
         this.currentMessage.RemoteConfigStatus = status.ToRemoteConfigStatus();
 
         return this;
+    }
+
+    public void SetInstanceUid(ByteString instanceUid)
+    {
+        this.instanceUid = instanceUid;
+        this.currentMessage.InstanceUid = instanceUid;
     }
 
     public AgentToServer Build()

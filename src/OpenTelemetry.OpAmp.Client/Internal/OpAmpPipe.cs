@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using Google.Protobuf;
 using OpAmp.Proto.V1;
 using OpenTelemetry.OpAmp.Client.Internal.Messages;
 using OpenTelemetry.OpAmp.Client.Internal.Transport;
@@ -19,7 +20,7 @@ internal sealed class OpAmpPipe : IDisposable
     private readonly int maxPendingCustomMessageBytes;
     private readonly Lock frameLock = new();
     private readonly CancellationTokenSource tokenSource = new();
-    private readonly ServerFrameHandler? frameHandler;
+    private readonly ServerFrameHandler frameHandler;
     private readonly FrameBuilder currentFrame;
     private readonly Queue<AgentToServer> pendingFrames = [];
 
@@ -44,11 +45,8 @@ internal sealed class OpAmpPipe : IDisposable
         this.maxPendingCustomMessages = settings.MaxPendingCustomMessages;
         this.maxPendingCustomMessageBytes = settings.MaxPendingCustomMessageBytes;
 
-        if (transport.RequiresResponseBeforeNextSend)
-        {
-            this.frameHandler = new(this.OnServerFrameReceived);
-            this.processor.Subscribe(this.frameHandler);
-        }
+        this.frameHandler = new(this.OnServerFrameReceived);
+        this.processor.Subscribe(this.frameHandler);
     }
 
     public async Task StartAsync(CancellationToken token = default)
@@ -169,10 +167,7 @@ internal sealed class OpAmpPipe : IDisposable
         this.tokenSource.Cancel();
         this.tokenSource.Dispose();
 
-        if (this.frameHandler != null)
-        {
-            this.processor.Unsubscribe(this.frameHandler);
-        }
+        this.processor.Unsubscribe(this.frameHandler);
 
         if (this.transport is IDisposable disposableTransport)
         {
@@ -324,8 +319,36 @@ internal sealed class OpAmpPipe : IDisposable
 
     private void OnServerFrameReceived(ServerToAgent message)
     {
-        this.ReleaseBusy();
-        this.TryFlush(this.tokenSource.Token);
+        // Apply a server-assigned instance UID before the next frame can be sent.
+        if (message.AgentIdentification is { } agentIdentification)
+        {
+            this.SetInstanceUid(agentIdentification.NewInstanceUid);
+        }
+
+        if (this.transport.RequiresResponseBeforeNextSend)
+        {
+            this.ReleaseBusy();
+            this.TryFlush(this.tokenSource.Token);
+        }
+    }
+
+    private void SetInstanceUid(ByteString instanceUid)
+    {
+        if (instanceUid.Length != 16)
+        {
+            OpAmpClientEventSource.Log.InvalidInstanceUid(instanceUid.Length);
+            return;
+        }
+
+        lock (this.frameLock)
+        {
+            this.currentFrame.SetInstanceUid(instanceUid);
+
+            foreach (var frame in this.pendingFrames)
+            {
+                frame.InstanceUid = instanceUid;
+            }
+        }
     }
 
     private void ReleaseBusy()
