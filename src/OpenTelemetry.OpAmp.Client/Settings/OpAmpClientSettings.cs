@@ -37,6 +37,10 @@ public sealed class OpAmpClientSettings
     ///   </item>
     /// </list>
     /// </value>
+    /// <remarks>
+    /// If the server assigns a new instance UID, the client uses it for all further
+    /// communication. This property keeps the configured value.
+    /// </remarks>
     public Guid InstanceUid { get; set; }
 #if NET9_0_OR_GREATER
         = Guid.CreateVersion7();
