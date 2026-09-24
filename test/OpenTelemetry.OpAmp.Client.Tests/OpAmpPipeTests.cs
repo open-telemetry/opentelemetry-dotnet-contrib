@@ -87,6 +87,56 @@ public abstract class OpAmpPipeTests
     }
 
     [Fact]
+    public async Task OpAmpPipe_UsesServerAssignedInstanceUid_ForQueuedFrames()
+    {
+        const int customMessageCount = 3;
+
+        using var transport = this.GetTransport();
+        var settings = new OpAmpClientSettings();
+        var processor = new FrameProcessor();
+        using var pipe = new OpAmpPipe(settings, processor, transport);
+        var newInstanceUid = ByteString.CopyFrom(Enumerable.Range(1, 16).Select(i => (byte)i).ToArray());
+        var assignmentFrame = new ServerToAgent
+        {
+            AgentIdentification = new AgentIdentification { NewInstanceUid = newInstanceUid },
+        }.ToByteArray();
+        var serverFrame = new ServerToAgent().ToByteArray();
+
+        AppendIdentification(pipe);
+        await transport.WaitForMessagesAsync(1);
+
+        for (var i = 0; i < customMessageCount; i++)
+        {
+            AppendCustomMessage(pipe, i);
+        }
+
+        processor.OnServerFrame(new ReadOnlySequence<byte>(assignmentFrame));
+        transport.CompleteNextSend();
+        await transport.WaitForMessagesAsync(2);
+
+        for (var expectedMessageCount = 3;
+            expectedMessageCount <= customMessageCount + 1;
+            expectedMessageCount++)
+        {
+            transport.CompleteNextSend();
+            processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+            await transport.WaitForMessagesAsync(expectedMessageCount);
+        }
+
+        transport.CompleteNextSend();
+        processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+
+        var messages = transport.Messages;
+        Assert.Equal(customMessageCount + 1, messages.Count);
+        Assert.NotEqual(newInstanceUid, messages[0].InstanceUid);
+        Assert.All(messages.Skip(1), message =>
+        {
+            Assert.NotNull(message.CustomMessage);
+            Assert.Equal(newInstanceUid, message.InstanceUid);
+        });
+    }
+
+    [Fact]
     public async Task OpAmpPipe_IgnoresServerAssignedInstanceUid_WithInvalidLength()
     {
         using var eventListener = new InMemoryEventListener(OpAmpClientEventSource.Log, EventLevel.Verbose);
