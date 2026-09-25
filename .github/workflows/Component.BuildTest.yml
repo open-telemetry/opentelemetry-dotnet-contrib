@@ -47,6 +47,13 @@ jobs:
   build-test:
     name: build-test
 
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION: 1
+      FORCE_COLOR: 3
+      NUGET_XMLDOC_MODE: skip
+      TERM: xterm
+
     strategy:
       fail-fast: ${{ inputs.trigger == 'merge_group' }}
       matrix:
