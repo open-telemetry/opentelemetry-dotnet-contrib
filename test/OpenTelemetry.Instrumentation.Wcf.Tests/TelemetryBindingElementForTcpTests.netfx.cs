@@ -271,8 +271,9 @@ public class TelemetryBindingElementForTcpTests : IClassFixture<WeaverFixture>, 
         {
             client.Endpoint.EndpointBehaviors.Add(new DownstreamInstrumentationEndpointBehavior());
             client.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());
-            DownstreamInstrumentationChannel.FailNextReceive();
-            await Assert.ThrowsAnyAsync<Exception>(() => client.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!")));
+            await ExecuteExpectingInjectedFailureAsync(
+                () => client.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!")),
+                stoppedActivities);
 
             for (var i = 0; i < 50; i++)
             {
@@ -314,8 +315,9 @@ public class TelemetryBindingElementForTcpTests : IClassFixture<WeaverFixture>, 
             client.Endpoint.EndpointBehaviors.Add(new DownstreamInstrumentationEndpointBehavior());
             client.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());
             client.InnerChannel.OperationTimeout = TimeSpan.FromMilliseconds(1000);
-            DownstreamInstrumentationChannel.FailNextReceive();
-            await Assert.ThrowsAnyAsync<Exception>(() => client.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!")));
+            await ExecuteExpectingInjectedFailureAsync(
+                () => client.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!")),
+                stoppedActivities);
 
             var startedWaiting = DateTime.UtcNow;
             for (var i = 0; i < 200; i++)
@@ -383,6 +385,33 @@ public class TelemetryBindingElementForTcpTests : IClassFixture<WeaverFixture>, 
         Assert.NotEmpty(stoppedActivities);
         Assert.Equal(WcfInstrumentationActivitySource.OutgoingRequestActivityName, stoppedActivities[0].OperationName);
         Assert.Equal("http://opentelemetry.io/Service/ExecuteSynchronous", stoppedActivities[0].DisplayName);
+    }
+
+    private static async Task ExecuteExpectingInjectedFailureAsync(Func<Task> operation, List<Activity> stoppedActivities)
+    {
+        const int maxAttempts = 3;
+
+        for (var attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+            stoppedActivities.Clear();
+            DownstreamInstrumentationChannel.FailNextReceive();
+
+            try
+            {
+                await operation();
+            }
+            catch (Exception)
+            {
+                return;
+            }
+
+            // The injected fault is a process-wide flag consumed by the next receive-family
+            // call on any channel. It can occasionally be stolen by a background receive left
+            // over from a previous test's channel teardown instead of by this call, in which
+            // case the operation above succeeds normally. Re-arm and retry rather than flake.
+        }
+
+        throw new InvalidOperationException($"Expected the downstream call to fail after {maxAttempts} attempts, but it always succeeded.");
     }
 
     private static X509Certificate2 LoadCertificate()

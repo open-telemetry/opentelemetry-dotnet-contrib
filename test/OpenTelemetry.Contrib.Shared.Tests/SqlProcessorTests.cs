@@ -364,11 +364,11 @@ public class SqlProcessorTests
         Assert.EndsWith(expected, fullSummary.SanitizedSql, StringComparison.Ordinal);
     }
 
-    [SkippableTheory]
+    [Theory]
     [MemberData(nameof(TestData))]
     public void TestGetSanitizedSql(SqlProcessorTestCases.TestCase testCase)
     {
-        Skip.IfNot(string.IsNullOrWhiteSpace(testCase.Skip), testCase.Skip);
+        Assert.SkipUnless(string.IsNullOrWhiteSpace(testCase.Skip), testCase.Skip ?? string.Empty);
 
         this.output.WriteLine($"Input: {testCase.Input.Query}");
 
