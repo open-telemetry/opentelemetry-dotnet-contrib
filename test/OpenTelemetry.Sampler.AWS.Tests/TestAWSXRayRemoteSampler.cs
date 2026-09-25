@@ -62,6 +62,9 @@ public class TestAWSXRayRemoteSampler
 
         using var remoteSampler = GetRemoteSampler(sampler);
 
+        // Disable internal jitter for deterministic testing.
+        remoteSampler.RulePollerJitter = TimeSpan.Zero;
+
         // the sampler will use fallback sampler until rules are fetched.
         Assert.Equal(SamplingDecision.RecordAndSample, this.DoSample(sampler, "cat-service"));
 
