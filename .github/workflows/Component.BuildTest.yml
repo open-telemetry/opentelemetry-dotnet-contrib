@@ -159,7 +159,11 @@ jobs:
         TEST_FILTER: ${{ inputs.test-case-filter }}
       run: |
         sudo "BUILD_COMPONENT=${env:BUILD_COMPONENT}" dotnet build ${env:PROJECT_PATH} -t:Test -p:Configuration=Release -p:TargetFramework=${env:TARGET_FRAMEWORK} "-p:TestFilter=${env:TEST_FILTER}"
+        $testExitCode = $LASTEXITCODE
         sudo chmod a+rw ./TestResults
+        if ($testExitCode -ne 0) {
+          exit $testExitCode
+        }
 
     - name: Upload hang dumps and test platform logs
       if: ${{ failure() || cancelled() }}
