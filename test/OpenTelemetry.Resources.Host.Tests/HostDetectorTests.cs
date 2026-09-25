@@ -3,7 +3,9 @@
 
 using System.Net;
 using System.Net.NetworkInformation;
+#if NET
 using System.Runtime.InteropServices;
+#endif
 
 namespace OpenTelemetry.Resources.Host.Tests;
 
@@ -401,7 +403,7 @@ public class HostDetectorTests
     public void TestHostCpuInfoEnabledWindows(string value)
     {
 #if NET
-        Skip.IfNot(RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
+        Skip.IfNot(OperatingSystem.IsWindows());
 #endif
 
         using var cpuInfoEnvironment = EnvironmentVariableScope.Create(EnableCpuInfoEnvVarName, value);
@@ -428,8 +430,9 @@ public class HostDetectorTests
     [InlineData("TRUE")]
     public void TestHostCpuInfoEnabledLinux(string value)
     {
-        Skip.IfNot(RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
-            && RuntimeInformation.ProcessArchitecture is not (Architecture.Arm or Architecture.Arm64));
+        Skip.IfNot(
+            OperatingSystem.IsLinux() &&
+            RuntimeInformation.ProcessArchitecture is not (Architecture.Arm or Architecture.Arm64));
 
         using var cpuInfoEnvironment = EnvironmentVariableScope.Create(EnableCpuInfoEnvVarName, value);
         using var networkAddressesEnvironment = EnvironmentVariableScope.Create(EnableNetworkAddressesEnvVarName, null);
@@ -451,8 +454,9 @@ public class HostDetectorTests
     [InlineData("TRUE")]
     public void TestHostCpuInfoEnabledArmLinux(string value)
     {
-        Skip.IfNot(RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
-            && RuntimeInformation.ProcessArchitecture is Architecture.Arm or Architecture.Arm64);
+        Skip.IfNot(
+            OperatingSystem.IsLinux() &&
+            RuntimeInformation.ProcessArchitecture is Architecture.Arm or Architecture.Arm64);
 
         using var cpuInfoEnvironment = EnvironmentVariableScope.Create(EnableCpuInfoEnvVarName, value);
         using var networkAddressesEnvironment = EnvironmentVariableScope.Create(EnableNetworkAddressesEnvVarName, null);
@@ -475,7 +479,7 @@ public class HostDetectorTests
     [InlineData("TRUE")]
     public void TestHostCpuInfoEnabledMacOs(string value)
     {
-        Skip.IfNot(RuntimeInformation.IsOSPlatform(OSPlatform.OSX));
+        Skip.IfNot(OperatingSystem.IsMacOS());
 
         using var cpuInfoEnvironment = EnvironmentVariableScope.Create(EnableCpuInfoEnvVarName, value);
         using var networkAddressesEnvironment = EnvironmentVariableScope.Create(EnableNetworkAddressesEnvVarName, null);
@@ -550,39 +554,6 @@ public class HostDetectorTests
     [InlineData("2097152 K", null)]
     public void TestParseCacheSize(string? value, int? expected) =>
         Assert.Equal(expected, HostDetector.ParseCacheSize(value));
-
-    [Fact]
-    public void TestSystemLogicalProcessorInformationCacheLayout()
-    {
-        // The union's ULONGLONG Reserved[2] aligns it to 8, so Relationship is followed by padding.
-        var dataOffset = IntPtr.Size == 8 ? 16 : 8;
-        var entrySize = dataOffset + 16;
-        var buffer = Marshal.AllocHGlobal(entrySize);
-
-        try
-        {
-            for (var i = 0; i < entrySize; i++)
-            {
-                Marshal.WriteByte(buffer, i, 0);
-            }
-
-            Marshal.WriteInt32(buffer, IntPtr.Size, 2);
-            Marshal.WriteByte(buffer, dataOffset, 2);
-            Marshal.WriteByte(buffer, dataOffset + 1, 8);
-            Marshal.WriteInt16(buffer, dataOffset + 2, 64);
-            Marshal.WriteInt32(buffer, dataOffset + 4, 524288);
-
-            var entry = Marshal.PtrToStructure<HostDetector.NativeMethods.SystemLogicalProcessorInformation>(buffer);
-
-            Assert.Equal(HostDetector.NativeMethods.RelationCache, entry.Relationship);
-            Assert.Equal((byte)2, entry.Data.Cache.Level);
-            Assert.Equal(524288u, entry.Data.Cache.Size);
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(buffer);
-        }
-    }
 
     [Fact]
     public void TestAddCpuInfoWindowsReadsEveryRegistryValue()

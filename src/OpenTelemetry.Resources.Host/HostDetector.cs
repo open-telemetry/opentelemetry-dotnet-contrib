@@ -20,7 +20,7 @@ namespace OpenTelemetry.Resources.Host;
 /// <summary>
 /// Host detector.
 /// </summary>
-internal sealed partial class HostDetector : IResourceDetector
+internal sealed class HostDetector : IResourceDetector
 {
     internal const string EnableNetworkAddressesEnvVarName = "OTEL_DOTNET_EXPERIMENTAL_HOST_RESOURCE_ENABLE_NETWORK_ADDRESSES";
     internal const string EnableCpuInfoEnvVarName = "OTEL_DOTNET_EXPERIMENTAL_HOST_RESOURCE_ENABLE_CPU_INFO";
@@ -30,7 +30,6 @@ internal sealed partial class HostDetector : IResourceDetector
 #if !NETFRAMEWORK
     private const string ETCMACHINEID = "/etc/machine-id";
     private const string ETCVARDBUSMACHINEID = "/var/lib/dbus/machine-id";
-    private const string ProcCpuInfo = "/proc/cpuinfo";
     private const string MacOsCacheSizeKey = "hw.l2cachesize";
 #endif
 
@@ -529,6 +528,8 @@ internal sealed partial class HostDetector : IResourceDetector
 #endif
     private static void AddCpuInfoLinux(List<KeyValuePair<string, object>> attributes)
     {
+        const string ProcCpuInfo = "/proc/cpuinfo";
+
         var cpuInfo = ReadCpuFile(ProcCpuInfo);
 
         // The processor blocks after the first repeat these fields for the other cores, so the
@@ -784,21 +785,14 @@ internal sealed partial class HostDetector : IResourceDetector
     }
 #endif
 
-    internal static partial class NativeMethods
+    private static class NativeMethods
     {
         internal const int RelationCache = 2;
 
-#if NET
-        [LibraryImport("kernel32.dll", SetLastError = true)]
-        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        internal static partial bool GetLogicalProcessorInformation(IntPtr buffer, ref uint returnLength);
-#else
         [DllImport("kernel32.dll", SetLastError = true)]
         [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         [return: MarshalAs(UnmanagedType.Bool)]
         internal static extern bool GetLogicalProcessorInformation(IntPtr buffer, ref uint returnLength);
-#endif
 
         [StructLayout(LayoutKind.Sequential)]
         internal struct CacheDescriptor
