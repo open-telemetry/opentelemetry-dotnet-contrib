@@ -121,7 +121,7 @@ internal static class TestHttpServer
                     ex = aggregate.Flatten();
                 }
 
-                if (ex is InvalidOperationException && !this.listener.IsListening)
+                if ((ex is ApplicationException or InvalidOperationException) && !this.listener.IsListening)
                 {
                     return true;
                 }
