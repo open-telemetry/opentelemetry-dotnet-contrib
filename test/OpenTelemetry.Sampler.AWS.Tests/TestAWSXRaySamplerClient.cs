@@ -86,6 +86,16 @@ public class TestAWSXRaySamplerClient : IDisposable
     }
 
     [Fact]
+    public async Task TestGetSamplingRulesWithNullJsonBodyReturnsNull()
+    {
+        this.requestHandler.SetResponse("/GetSamplingRules", "null");
+
+        var rules = await this.client.GetSamplingRules(TestContext.Current.CancellationToken);
+
+        Assert.Null(rules);
+    }
+
+    [Fact]
     public async Task TestGetSamplingRulesWithNullOrMissingAttributes()
     {
         var responseJson = """

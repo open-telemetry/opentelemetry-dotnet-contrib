@@ -42,18 +42,20 @@ internal class AWSXRaySamplerClient : IDisposable
                     .Deserialize<GetSamplingRulesResponse>(responseJson);
 #endif
 
+                if (getSamplingRulesResponse is null)
+                {
+                    return null;
+                }
+
                 List<SamplingRule> samplingRules = [];
 
-                if (getSamplingRulesResponse is not null)
+                if (getSamplingRulesResponse.SamplingRuleRecords is not null)
                 {
-                    if (getSamplingRulesResponse.SamplingRuleRecords is not null)
+                    foreach (var samplingRuleRecord in getSamplingRulesResponse.SamplingRuleRecords)
                     {
-                        foreach (var samplingRuleRecord in getSamplingRulesResponse.SamplingRuleRecords)
+                        if (samplingRuleRecord.SamplingRule is not null)
                         {
-                            if (samplingRuleRecord.SamplingRule is not null)
-                            {
-                                samplingRules.Add(samplingRuleRecord.SamplingRule);
-                            }
+                            samplingRules.Add(samplingRuleRecord.SamplingRule);
                         }
                     }
                 }
