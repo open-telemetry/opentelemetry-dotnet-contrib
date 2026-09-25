@@ -2,7 +2,6 @@
 
 ## Unreleased
 
-
 * Fixed OTLP protobuf metric serialization to use the number data point
   attributes length, rather than the histogram data point attributes length,
   when copying prepopulated number data point attributes.
