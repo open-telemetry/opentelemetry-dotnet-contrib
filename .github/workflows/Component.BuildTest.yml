@@ -115,6 +115,7 @@ jobs:
 
         Write-Output "name=$artifactName" >> $env:GITHUB_OUTPUT
         Write-Output "build-component=$component" >> $env:GITHUB_OUTPUT
+        Write-Output "BUILD_COMPONENT=$component" >> $env:GITHUB_ENV
 
     - name: Setup previous .NET runtimes
       uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
