@@ -124,7 +124,8 @@ or stash changes first.
 The selected benchmark must exist with the same name in both refs. For a new
 benchmark, place the benchmark in a benchmark-only commit and use that commit
 for `-Baseline`; comparing directly with `main` cannot produce a baseline
-result for a benchmark that is not yet present in that branch.
+result for a benchmark that is not yet present in that branch. Be careful to
+commit only the benchmark change(s) and not the change to the main code itself.
 
 ```powershell
 # Compare the current branch against main for a specific filter
