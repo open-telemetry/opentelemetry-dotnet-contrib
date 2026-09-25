@@ -8,8 +8,8 @@ namespace OpenTelemetry.Instrumentation.AspNet.Tests;
 
 public class WebConfigTransformTest
 {
-    private const string InstallConfigTransformationResourceName = "OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.Tests.Resources.web.config.install.xdt";
-    private const string UninstallConfigTransformationResourceName = "OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.Tests.Resources.web.config.uninstall.xdt";
+    private const string InstallConfigTransformationResourceName = "OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModuleTests.Resources.web.config.install.xdt";
+    private const string UninstallConfigTransformationResourceName = "OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModuleTests.Resources.web.config.uninstall.xdt";
 
     [Fact]
     public void VerifyInstallationToBasicWebConfig()
