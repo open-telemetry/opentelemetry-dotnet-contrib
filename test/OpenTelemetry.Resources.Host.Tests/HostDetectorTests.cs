@@ -396,14 +396,14 @@ public class HostDetectorTests
     public void TestFormatPhysicalAddressWithEmptyAddress() =>
         Assert.Null(HostDetector.FormatPhysicalAddress(PhysicalAddress.None));
 
-    [SkippableTheory]
+    [Theory]
     [InlineData("true")]
     [InlineData("True")]
     [InlineData("TRUE")]
     public void TestHostCpuInfoEnabledWindows(string value)
     {
 #if NET
-        Skip.IfNot(OperatingSystem.IsWindows());
+        Assert.SkipUnless(OperatingSystem.IsWindows(), "Skipped because current platform is not Windows.");
 #endif
 
         using var cpuInfoEnvironment = EnvironmentVariableScope.Create(EnableCpuInfoEnvVarName, value);
@@ -424,15 +424,16 @@ public class HostDetectorTests
     }
 
 #if NET
-    [SkippableTheory]
+    [Theory]
     [InlineData("true")]
     [InlineData("True")]
     [InlineData("TRUE")]
     public void TestHostCpuInfoEnabledLinux(string value)
     {
-        Skip.IfNot(
+        Assert.SkipUnless(
             OperatingSystem.IsLinux() &&
-            RuntimeInformation.ProcessArchitecture is not (Architecture.Arm or Architecture.Arm64));
+            RuntimeInformation.ProcessArchitecture is not (Architecture.Arm or Architecture.Arm64),
+            "Skipped because current platform is not x86 Linux.");
 
         using var cpuInfoEnvironment = EnvironmentVariableScope.Create(EnableCpuInfoEnvVarName, value);
         using var networkAddressesEnvironment = EnvironmentVariableScope.Create(EnableNetworkAddressesEnvVarName, null);
@@ -448,15 +449,16 @@ public class HostDetectorTests
         Assert.False(resourceAttributes.ContainsKey("host.ip"), "host.ip should not be detected when only the CPU flag is set.");
     }
 
-    [SkippableTheory]
+    [Theory]
     [InlineData("true")]
     [InlineData("True")]
     [InlineData("TRUE")]
     public void TestHostCpuInfoEnabledArmLinux(string value)
     {
-        Skip.IfNot(
+        Assert.SkipUnless(
             OperatingSystem.IsLinux() &&
-            RuntimeInformation.ProcessArchitecture is Architecture.Arm or Architecture.Arm64);
+            RuntimeInformation.ProcessArchitecture is Architecture.Arm or Architecture.Arm64,
+            "Skipped because current platform is not Arm Linux.");
 
         using var cpuInfoEnvironment = EnvironmentVariableScope.Create(EnableCpuInfoEnvVarName, value);
         using var networkAddressesEnvironment = EnvironmentVariableScope.Create(EnableNetworkAddressesEnvVarName, null);
@@ -473,13 +475,13 @@ public class HostDetectorTests
         Assert.False(resourceAttributes.ContainsKey("host.ip"), "host.ip should not be detected when only the CPU flag is set.");
     }
 
-    [SkippableTheory]
+    [Theory]
     [InlineData("true")]
     [InlineData("True")]
     [InlineData("TRUE")]
     public void TestHostCpuInfoEnabledMacOs(string value)
     {
-        Skip.IfNot(OperatingSystem.IsMacOS());
+        Assert.SkipUnless(OperatingSystem.IsMacOS(), "Skipped because current platform is not macOS.");
 
         using var cpuInfoEnvironment = EnvironmentVariableScope.Create(EnableCpuInfoEnvVarName, value);
         using var networkAddressesEnvironment = EnvironmentVariableScope.Create(EnableNetworkAddressesEnvVarName, null);
