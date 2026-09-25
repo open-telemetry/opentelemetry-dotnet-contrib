@@ -24,7 +24,7 @@ using AWSTracingPipelineHandler = OpenTelemetry.Instrumentation.AWS.Implementati
 
 namespace OpenTelemetry.Instrumentation.AWS.Tests;
 
-public class TestAWSClientInstrumentation
+public class TestAWSClientInstrumentation : IDisposable
 {
     private static readonly string[] ExpectedDynamoTableNames = ["SampleProduct"];
 
@@ -61,7 +61,7 @@ public class TestAWSClientInstrumentation
 #if NETFRAMEWORK
             ddb.Scan(scan_request);
 #else
-            await ddb.ScanAsync(scan_request);
+            await ddb.ScanAsync(scan_request, TestContext.Current.CancellationToken);
 #endif
         }
 
@@ -110,7 +110,7 @@ public class TestAWSClientInstrumentation
 #if NETFRAMEWORK
             ddb.Scan(scan_request);
 #else
-            await ddb.ScanAsync(scan_request);
+            await ddb.ScanAsync(scan_request, TestContext.Current.CancellationToken);
 #endif
         }
 
@@ -167,7 +167,7 @@ public class TestAWSClientInstrumentation
 #if NETFRAMEWORK
                 ddb.Scan(scan_request);
 #else
-                await ddb.ScanAsync(scan_request);
+                await ddb.ScanAsync(scan_request, TestContext.Current.CancellationToken);
 #endif
             }
             catch (AmazonServiceException ex)
@@ -233,7 +233,7 @@ public class TestAWSClientInstrumentation
 #if NETFRAMEWORK
             sqs.SendMessage(send_msg_req);
 #else
-            await sqs.SendMessageAsync(send_msg_req);
+            await sqs.SendMessageAsync(send_msg_req, TestContext.Current.CancellationToken);
 #endif
         }
 
@@ -300,7 +300,7 @@ public class TestAWSClientInstrumentation
 #if NETFRAMEWORK
             sqs.SendMessage(send_msg_req);
 #else
-            await sqs.SendMessageAsync(send_msg_req);
+            await sqs.SendMessageAsync(send_msg_req, TestContext.Current.CancellationToken);
 #endif
         }
 
@@ -355,7 +355,7 @@ public class TestAWSClientInstrumentation
 #if NETFRAMEWORK
             sns.Publish(publishRequest);
 #else
-            await sns.PublishAsync(publishRequest);
+            await sns.PublishAsync(publishRequest, TestContext.Current.CancellationToken);
 #endif
         }
 
@@ -401,7 +401,7 @@ public class TestAWSClientInstrumentation
 #if NETFRAMEWORK
             bedrock.GetGuardrail(getGuardrailRequest);
 #else
-            await bedrock.GetGuardrailAsync(getGuardrailRequest);
+            await bedrock.GetGuardrailAsync(getGuardrailRequest, TestContext.Current.CancellationToken);
 #endif
         }
 
@@ -447,7 +447,7 @@ public class TestAWSClientInstrumentation
 #if NETFRAMEWORK
             var response = bedrockruntime.InvokeModel(invokeModelRequest);
 #else
-            var response = await bedrockruntime.InvokeModelAsync(invokeModelRequest);
+            var response = await bedrockruntime.InvokeModelAsync(invokeModelRequest, TestContext.Current.CancellationToken);
 #endif
         }
 
@@ -493,7 +493,7 @@ public class TestAWSClientInstrumentation
 #if NETFRAMEWORK
             var response = bedrockagent.GetAgent(getAgentRequest);
 #else
-            var response = await bedrockagent.GetAgentAsync(getAgentRequest);
+            var response = await bedrockagent.GetAgentAsync(getAgentRequest, TestContext.Current.CancellationToken);
 #endif
         }
 
@@ -539,7 +539,7 @@ public class TestAWSClientInstrumentation
 #if NETFRAMEWORK
             var response = bedrockagent.GetKnowledgeBase(getKnowledgeBaseRequest);
 #else
-            var response = await bedrockagent.GetKnowledgeBaseAsync(getKnowledgeBaseRequest);
+            var response = await bedrockagent.GetKnowledgeBaseAsync(getKnowledgeBaseRequest, TestContext.Current.CancellationToken);
 #endif
         }
 
@@ -585,7 +585,7 @@ public class TestAWSClientInstrumentation
 #if NETFRAMEWORK
             var response = bedrockagent.GetDataSource(getDataSourceRequest);
 #else
-            var response = await bedrockagent.GetDataSourceAsync(getDataSourceRequest);
+            var response = await bedrockagent.GetDataSourceAsync(getDataSourceRequest, TestContext.Current.CancellationToken);
 #endif
         }
 
@@ -637,7 +637,7 @@ public class TestAWSClientInstrumentation
 #if NETFRAMEWORK
             var response = bedrockAgentRuntimeClient.InvokeAgent(invokeAgentRequest);
 #else
-            var response = await bedrockAgentRuntimeClient.InvokeAgentAsync(invokeAgentRequest);
+            var response = await bedrockAgentRuntimeClient.InvokeAgentAsync(invokeAgentRequest, TestContext.Current.CancellationToken);
 #endif
         }
 
@@ -683,7 +683,7 @@ public class TestAWSClientInstrumentation
 #if NETFRAMEWORK
             var response = bedrockagentruntime.Retrieve(retrieveRequest);
 #else
-            var response = await bedrockagentruntime.RetrieveAsync(retrieveRequest);
+            var response = await bedrockagentruntime.RetrieveAsync(retrieveRequest, TestContext.Current.CancellationToken);
 #endif
         }
 
@@ -733,7 +733,7 @@ public class TestAWSClientInstrumentation
 #if NETFRAMEWORK
             s3.PutObject(putRequest);
 #else
-            await s3.PutObjectAsync(putRequest);
+            await s3.PutObjectAsync(putRequest, TestContext.Current.CancellationToken);
 #endif
         }
 
@@ -777,6 +777,9 @@ public class TestAWSClientInstrumentation
             Activity.Current = previousActivity;
         }
     }
+
+    public void Dispose() =>
+        RuntimePipelineCustomizerRegistry.Instance.Deregister(AWS.Implementation.AWSTracingPipelineCustomizer.UniqueName);
 
     private void ValidateAWSActivity(Activity aws_activity, Activity parent)
     {

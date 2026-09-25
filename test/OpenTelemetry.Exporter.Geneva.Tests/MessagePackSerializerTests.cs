@@ -132,9 +132,7 @@ public class MessagePackSerializerTests
 
     [Fact]
     public void MessagePackSerializer_Null()
-    {
-        this.MessagePackSerializer_TestSerialization<object>(null);
-    }
+        => this.MessagePackSerializer_TestSerialization<object>(null);
 
     [Fact]
     public void MessagePackSerializer_Boolean()
@@ -356,7 +354,11 @@ public class MessagePackSerializerTests
 
         var buffer = new byte[64 * 1024];
         _ = MessagePackSerializer.Serialize(buffer, 0, objectArrayWithString);
-        var objectArrayWithStringDeserialized = MessagePack.MessagePackSerializer.Deserialize<object[]>(buffer);
+
+        var objectArrayWithStringDeserialized = MessagePack.MessagePackSerializer.Deserialize<object[]>(
+            buffer,
+            cancellationToken: TestContext.Current.CancellationToken);
+
         Assert.Equal(objectArrayWithString.Length, objectArrayWithStringDeserialized.Length);
         Assert.Equal(objectArrayWithString[0], objectArrayWithStringDeserialized[0]);
         Assert.Equal(objectArrayWithString[1], Convert.ToInt32(objectArrayWithStringDeserialized[1]));
@@ -380,7 +382,11 @@ public class MessagePackSerializerTests
         };
         var buffer = new byte[64 * 1024];
         _ = MessagePackSerializer.Serialize(buffer, 0, dictionaryWithStrings);
-        var dictionaryWithStringsDeserialized = MessagePack.MessagePackSerializer.Deserialize<Dictionary<string, object>>(buffer);
+
+        var dictionaryWithStringsDeserialized = MessagePack.MessagePackSerializer.Deserialize<Dictionary<string, object>>(
+            buffer,
+            cancellationToken: TestContext.Current.CancellationToken);
+
         Assert.Equal(dictionaryWithStrings.Count, dictionaryWithStringsDeserialized.Count);
         Assert.Equal(dictionaryWithStrings["foo"], Convert.ToInt32(dictionaryWithStringsDeserialized["foo"], CultureInfo.InvariantCulture));
         Assert.Equal(dictionaryWithStrings["bar"], dictionaryWithStringsDeserialized["bar"]);

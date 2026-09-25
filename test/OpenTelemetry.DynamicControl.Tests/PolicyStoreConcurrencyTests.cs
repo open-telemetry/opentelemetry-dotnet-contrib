@@ -26,17 +26,21 @@ public class PolicyStoreConcurrencyTests
             using var start = new ManualResetEventSlim();
             IDisposable? subscription = null;
 
-            var subscribeTask = Task.Run(() =>
-            {
-                start.Wait();
-                subscription = store.Subscribe(snapshot => delivered.Enqueue(snapshot.Revision));
-            });
+            var subscribeTask = Task.Run(
+                () =>
+                {
+                    start.Wait();
+                    subscription = store.Subscribe(snapshot => delivered.Enqueue(snapshot.Revision));
+                },
+                TestContext.Current.CancellationToken);
 
-            var commitTask = Task.Run(() =>
-            {
-                start.Wait();
-                store.ReplaceProvider(CreateSnapshot(providerId, sequence: 1));
-            });
+            var commitTask = Task.Run(
+                () =>
+                {
+                    start.Wait();
+                    store.ReplaceProvider(CreateSnapshot(providerId, sequence: 1));
+                },
+                TestContext.Current.CancellationToken);
 
             start.Set();
             await Task.WhenAll(subscribeTask, commitTask);
@@ -116,24 +120,26 @@ public class PolicyStoreConcurrencyTests
         var subscription = store.Subscribe(s => delivered.Enqueue(s.Revision));
         var providerId = "provider-a";
 
-        var producer = Task.Run(() =>
-        {
-            for (var seq = 1L; seq <= commitCount; seq++)
+        var producer = Task.Run(
+            () =>
             {
-                store.ReplaceProvider(CreateSnapshot(providerId, seq));
-
-                if (seq == commitCount / 2)
+                for (var seq = 1L; seq <= commitCount; seq++)
                 {
-                    subscription.Dispose();
+                    store.ReplaceProvider(CreateSnapshot(providerId, seq));
+
+                    if (seq == commitCount / 2)
+                    {
+                        subscription.Dispose();
+                    }
                 }
-            }
-        });
+            },
+            TestContext.Current.CancellationToken);
 
         await producer;
-        await Task.Delay(50); // allow any in-flight delivery to finish
+        await Task.Delay(50, TestContext.Current.CancellationToken); // allow any in-flight delivery to finish
 
         var countAfterDisposal = delivered.Count;
-        await Task.Delay(50);
+        await Task.Delay(50, TestContext.Current.CancellationToken);
 
         Assert.Equal(countAfterDisposal, delivered.Count);
     }

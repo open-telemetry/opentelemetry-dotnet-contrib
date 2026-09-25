@@ -122,16 +122,18 @@ public class TestRateLimiter
 
         for (var w = 0; w < numWorkers; ++w)
         {
-            var task = Task.Run(() =>
-            {
-                for (var i = 0; i < creditsPerWorker * 2; ++i)
+            var task = Task.Run(
+                () =>
                 {
-                    if (limiter.TrySpend(1))
+                    for (var i = 0; i < creditsPerWorker * 2; ++i)
                     {
-                        Interlocked.Increment(ref count); // count allowed operations
+                        if (limiter.TrySpend(1))
+                        {
+                            Interlocked.Increment(ref count); // count allowed operations
+                        }
                     }
-                }
-            });
+                },
+                TestContext.Current.CancellationToken);
 
             tasks.Add(task);
         }

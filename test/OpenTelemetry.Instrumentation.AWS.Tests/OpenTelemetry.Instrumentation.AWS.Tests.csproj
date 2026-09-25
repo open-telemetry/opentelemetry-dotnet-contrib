@@ -1,9 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <NetFrameworkMinimumSupportedVersion>net472</NetFrameworkMinimumSupportedVersion>
     <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
-    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
+    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkVersionForTests)</TargetFrameworks>
     <Description>Unit test project for AWS client instrumentation for OpenTelemetry.</Description>
   </PropertyGroup>
 

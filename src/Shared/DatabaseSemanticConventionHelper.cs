@@ -69,14 +69,15 @@ internal static class DatabaseSemanticConventionHelper
         string? commandText,
         bool emitOldAttributes,
         bool emitNewAttributes,
-        bool sanitizeQuery = true)
+        bool sanitizeQuery = true,
+        bool useBackslashEscapes = false)
     {
         var queryText = commandText ?? string.Empty;
         var querySummary = string.Empty;
 
         if (sanitizeQuery)
         {
-            var sqlStatementInfo = SqlProcessor.GetSanitizedSql(commandText);
+            var sqlStatementInfo = SqlProcessor.GetSanitizedSql(commandText, useBackslashEscapes);
 
             queryText = sqlStatementInfo.SanitizedSql;
             querySummary = sqlStatementInfo.DbQuerySummary;

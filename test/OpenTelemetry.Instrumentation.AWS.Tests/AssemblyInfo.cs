@@ -2,4 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 // Avoid mutations to RuntimePipelineCustomizerRegistry.Instance causing flaky tests
-[assembly: CollectionBehavior(DisableTestParallelization = true)]
+using Xunit.v3;
+
+[assembly: Parallelization(Mode = Xunit.Sdk.ParallelMode.None)]
