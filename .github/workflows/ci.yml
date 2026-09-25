@@ -268,7 +268,7 @@ jobs:
       project-name: OpenTelemetry.Instrumentation.AspNet
       code-cov-name: Instrumentation.AspNet
       os-list: '[ "windows-2025" ]'
-      tfm-list: '[ "net462" ]'
+      tfm-list: '[ "net472" ]'
       trigger: ${{ github.event_name }}
 
   build-test-instrumentation-aspnetcore:
@@ -417,7 +417,7 @@ jobs:
       project-name: OpenTelemetry.Instrumentation.Owin
       code-cov-name: Instrumentation.Owin
       os-list: '[ "windows-2025" ]'
-      tfm-list: '[ "net462" ]'
+      tfm-list: '[ "net472" ]'
       trigger: ${{ github.event_name }}
 
   build-test-instrumentation-process:
@@ -455,7 +455,7 @@ jobs:
       project-name: Component[OpenTelemetry.Instrumentation.Remoting]
       code-cov-name: Instrumentation.Remoting
       os-list: '[ "windows-2025" ]'
-      tfm-list: '[ "net462" ]'
+      tfm-list: '[ "net472" ]'
       trigger: ${{ github.event_name }}
 
   build-test-instrumentation-runtime:

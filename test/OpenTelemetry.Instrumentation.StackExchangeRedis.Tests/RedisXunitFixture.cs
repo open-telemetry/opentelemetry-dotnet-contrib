@@ -3,7 +3,4 @@
 
 namespace OpenTelemetry.Instrumentation.StackExchangeRedis.Tests;
 
-public class RedisXunitFixture : RedisFixture, IAsyncLifetime
-{
-    Task IAsyncLifetime.DisposeAsync() => this.DisposeAsync().AsTask();
-}
+public class RedisXunitFixture : RedisFixture, IAsyncLifetime;

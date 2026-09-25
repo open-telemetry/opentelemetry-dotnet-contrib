@@ -25,9 +25,9 @@ public partial class GrpcTests : IAsyncLifetime
 
     private readonly GrpcServer<GreeterService> server = new();
 
-    public async Task InitializeAsync() => await this.server.StartAsync();
+    public async ValueTask InitializeAsync() => await this.server.StartAsync();
 
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         if (this.server != null)
         {
