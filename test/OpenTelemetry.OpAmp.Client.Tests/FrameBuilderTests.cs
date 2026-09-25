@@ -4,6 +4,7 @@
 using OpAmp.Proto.V1;
 using OpenTelemetry.OpAmp.Client.Internal;
 using OpenTelemetry.OpAmp.Client.Messages;
+using OpenTelemetry.OpAmp.Client.Settings;
 using OpenTelemetry.OpAmp.Client.Tests.DataGenerators;
 
 namespace OpenTelemetry.OpAmp.Client.Tests;
@@ -40,6 +41,25 @@ public class FrameBuilderTests
         Assert.Equal(1UL, frame1.SequenceNum);
         Assert.Equal(2UL, frame2.SequenceNum);
         Assert.Equal(3UL, frame3.SequenceNum);
+    }
+
+    [Fact]
+    public void FrameBuilder_InstanceUid_IsBigEndian()
+    {
+        var settings = new OpAmpClientSettings
+        {
+            InstanceUid = new Guid("01234567-89ab-cdef-0123-456789abcdef"),
+        };
+        var frameBuilder = new FrameBuilder(settings);
+
+        var frame = frameBuilder.Build();
+
+        byte[] expected =
+        [
+            0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
+            0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
+        ];
+        Assert.Equal(expected, frame.InstanceUid.ToByteArray());
     }
 
     [Fact]

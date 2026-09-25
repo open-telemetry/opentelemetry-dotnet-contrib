@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+* **Breaking Change**: Send `InstanceUid` in RFC 9562 (big-endian) byte
+  order. Previously the first three fields were sent little-endian, so the
+  bytes on the wire did not match the GUID's string form. A server that
+  stored the old bytes will see a new instance UID after upgrading.
+  ([#5420](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5420))
+
+* Adopt the instance UID assigned by the server in `AgentIdentification`.
+  ([#5420](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5420))
+
 ## 0.7.0-alpha.2
 
 Released 2026-Sep-17
