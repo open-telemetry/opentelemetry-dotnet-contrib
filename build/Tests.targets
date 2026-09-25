@@ -20,9 +20,9 @@
     </ItemGroup>
 
     <MSBuild Projects="$(MSBuildProjectFullPath)"
-             Targets="Test"
-             Properties="TargetFramework=%(_DistinctTestProjectTargetFramework.Identity);Configuration=$(Configuration);BUILD_COMPONENT=$(BUILD_COMPONENT)"
-             Condition="'$(TargetFramework)' == '' AND '@(_DistinctTestProjectTargetFramework)' != ''" />
+      Targets="Test"
+      Properties="TargetFramework=%(_DistinctTestProjectTargetFramework.Identity);Configuration=$(Configuration);BUILD_COMPONENT=$(BUILD_COMPONENT)"
+      Condition="'$(TargetFramework)' == '' AND '@(_DistinctTestProjectTargetFramework)' != ''" />
 
     <ItemGroup Condition="'$(TargetFramework)' != ''">
       <_MatchingTestProjectTargetFramework Include="@(_AllTestProjectTargetFrameworks)" Condition="'%(Identity)' == '$(TargetFramework)'" />
@@ -41,16 +41,16 @@
       rather than trying to write to the same one file.
     -->
     <MSBuild Projects="@(_SupportedTestProjects)"
-             Targets="Build;InvokeTestingPlatform"
-             Properties="TestingPlatformCommandLineArguments=%22--results-directory:$(TestResultsDirectory)%22 --diagnostic %22--diagnostic-output-directory:$(TestResultsDirectory)\diag%22 --report-github --report-github-summary-include-passed false --report-xunit-junit --report-xunit-junit-filename %22junit-%(_SupportedTestProjects.Filename).xml%22 --coverage --coverage-output-format cobertura --coverage-output %22Cobertura-%(_SupportedTestProjects.Filename).xml%22 $(_TestFilterArgument)"
-             ContinueOnError="ErrorAndStop"
-             Condition="'$(TargetFramework)' != '' AND '@(_SupportedTestProjects)' != ''" />
+      Targets="Build;InvokeTestingPlatform"
+      Properties="TestingPlatformCommandLineArguments=%22--results-directory:$(TestResultsDirectory)%22 --diagnostic %22--diagnostic-output-directory:$(TestResultsDirectory)\diag%22 --report-github --report-github-summary-include-passed false --report-xunit-junit --report-xunit-junit-filename %22junit-%(_SupportedTestProjects.Filename).xml%22 --coverage --coverage-output-format cobertura --coverage-output %22Cobertura-%(_SupportedTestProjects.Filename).xml%22 $(_TestFilterArgument)"
+      ContinueOnError="ErrorAndStop"
+      Condition="'$(TargetFramework)' != '' AND '@(_SupportedTestProjects)' != ''" />
   </Target>
 
   <Target Name="_GetAllTestProjectTargetFrameworks" Returns="@(_AllTestProjectTargetFrameworks)">
     <MSBuild Projects="@(TestProjects)"
-             Targets="GetTestProjectTargetFrameworks"
-             Properties="TargetFramework=;Configuration=$(Configuration)">
+      Targets="GetTestProjectTargetFrameworks"
+      Properties="TargetFramework=;Configuration=$(Configuration)">
       <Output TaskParameter="TargetOutputs" ItemName="_AllTestProjectTargetFrameworks" />
     </MSBuild>
   </Target>
