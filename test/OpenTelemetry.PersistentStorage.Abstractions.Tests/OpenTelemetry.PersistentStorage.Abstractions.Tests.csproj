@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
-    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
+    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkVersionForTests)</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,7 +14,7 @@
     <Compile Include="$(RepoRoot)\test\Shared\TestEventListener.cs" Link="Includes\TestEventListener.cs" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
+  <ItemGroup Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETFramework'">
     <PackageReference Include="System.Memory" VersionOverride="4.6.3" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" />
   </ItemGroup>

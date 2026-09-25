@@ -543,7 +543,10 @@ public class GenevaTraceExporterTests : IDisposable
             }
 
             var exportedData = (exporter.Exporter as MsgPackTraceExporter).Buffer.Value;
-            var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(exportedData, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+            var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(
+                exportedData,
+                MessagePack.Resolvers.ContractlessStandardResolver.Options,
+                TestContext.Current.CancellationToken);
 
             var signal = (fluentdData as object[])[0] as string;
             var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
@@ -608,7 +611,11 @@ public class GenevaTraceExporterTests : IDisposable
             }
 
             var exportedData = (exporter.Exporter as MsgPackTraceExporter).Buffer.Value;
-            var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(exportedData, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+
+            var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(
+                exportedData,
+                MessagePack.Resolvers.ContractlessStandardResolver.Options,
+                TestContext.Current.CancellationToken);
 
             var signal = (fluentdData as object[])[0] as string;
             var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];

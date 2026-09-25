@@ -7,6 +7,8 @@ internal sealed class ResourceAttributeConstants
 {
     // AppService resource attributes
     internal const string AzureAppServiceStamp = "azure.app.service.stamp";
+
+    // Shared Azure resource attributes
     internal const string AzureResourceGroupName = "azure.resource_group.name";
 
     // Azure VM resource attributes

@@ -40,7 +40,7 @@ public sealed class EnrichmentTests : IClassFixture<WebApplicationFactory<Progra
         {
             try
             {
-                using var response = await client.GetAsync(new Uri(path, UriKind.Relative));
+                using var response = await client.GetAsync(new Uri(path, UriKind.Relative), TestContext.Current.CancellationToken);
             }
             catch (Exception)
             {
@@ -50,8 +50,7 @@ public sealed class EnrichmentTests : IClassFixture<WebApplicationFactory<Progra
             WaitForActivityExport(exportedItems, 1);
         }
 
-        Assert.Single(exportedItems);
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
 
         // Assert enrichment tags from MyAspNetCoreTraceEnricher
         var tags = activity.TagObjects.ToDictionary(t => t.Key, t => t.Value);
@@ -61,11 +60,11 @@ public sealed class EnrichmentTests : IClassFixture<WebApplicationFactory<Progra
         Assert.Equal(1, (int)tags[MyAspNetCoreTraceEnricher.Key + ".response"]!);
     }
 
-    private static void WaitForActivityExport(List<Activity> exportedItems, int count)
-    {
-        // We need to let End callback execute as it is executed AFTER response was returned.
-        // In unit tests environment there may be a lot of parallel unit tests executed, so
-        // giving some breezing room for the End callback to complete
+    // We need to let End callback execute as it is executed AFTER response was returned.
+    // In unit tests environment there may be a lot of parallel unit tests executed, so
+    // giving some breezing room for the End callback to complete
+
+    private static void WaitForActivityExport(List<Activity> exportedItems, int count) =>
         Assert.True(
             SpinWait.SpinUntil(
             () =>
@@ -75,5 +74,4 @@ public sealed class EnrichmentTests : IClassFixture<WebApplicationFactory<Progra
             },
             TimeSpan.FromSeconds(1)),
             $"Actual: {exportedItems.Count} Expected: {count}");
-    }
 }

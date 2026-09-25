@@ -240,7 +240,7 @@ public class GrpcCoreClientInterceptorTests(WeaverFixture weaver, ITestOutputHel
         using (var activityListener = new InterceptorActivityListener(testTags))
         {
             Assert.Equal(parentActivity, Activity.Current);
-            var response = client.Unary(FoobarService.DefaultRequestMessage);
+            var response = client.Unary(FoobarService.DefaultRequestMessage, cancellationToken: TestContext.Current.CancellationToken);
 
             Assert.Equal(parentActivity, Activity.Current);
 
@@ -251,7 +251,7 @@ public class GrpcCoreClientInterceptorTests(WeaverFixture weaver, ITestOutputHel
         using (var activityListener = new InterceptorActivityListener(testTags))
         {
             Assert.Equal(parentActivity, Activity.Current);
-            using var call = client.UnaryAsync(FoobarService.DefaultRequestMessage);
+            using var call = client.UnaryAsync(FoobarService.DefaultRequestMessage, cancellationToken: TestContext.Current.CancellationToken);
 
             Assert.Equal(parentActivity, Activity.Current);
 
@@ -266,11 +266,15 @@ public class GrpcCoreClientInterceptorTests(WeaverFixture weaver, ITestOutputHel
         using (var activityListener = new InterceptorActivityListener(testTags))
         {
             Assert.Equal(parentActivity, Activity.Current);
-            using var call = client.DuplexStreaming();
+            using var call = client.DuplexStreaming(cancellationToken: TestContext.Current.CancellationToken);
 
             Assert.Equal(parentActivity, Activity.Current);
 
+#if NET
+            await call.RequestStream.WriteAsync(FoobarService.DefaultRequestMessage, CancellationToken.None);
+#else
             await call.RequestStream.WriteAsync(FoobarService.DefaultRequestMessage);
+#endif
 
             Assert.Equal(parentActivity, Activity.Current);
 
