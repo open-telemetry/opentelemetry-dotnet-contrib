@@ -114,10 +114,7 @@ jobs:
         }
 
         Write-Output "name=$artifactName" >> $env:GITHUB_OUTPUT
-
-        # Note: BUILD_COMPONENT envvar tells Component.proj what to build. Only
-        # used if $project ends up Component.proj.
-        Write-Output "BUILD_COMPONENT=$component" >> $env:GITHUB_ENV
+        Write-Output "build-component=$component" >> $env:GITHUB_OUTPUT
 
     - name: Setup previous .NET runtimes
       uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
@@ -142,61 +139,25 @@ jobs:
 
     - name: dotnet test ${{ steps.resolve-project.outputs.title }}
       if: inputs.run-tests && (!inputs.test-require-elevated || matrix.os == 'windows-2025')
+      run: dotnet build ${env:PROJECT_PATH} -t:Test -p:Configuration=Release -p:TargetFramework=${env:TARGET_FRAMEWORK} "-p:TestFilter=${env:TEST_FILTER}"
       shell: pwsh
       timeout-minutes: 20
       env:
-        DISABLE_APP_DOMAIN: ${{ matrix.version == 'net472' && 'false' || 'true' }}
         PROJECT_PATH: ${{ steps.resolve-project.outputs.project }}
         TARGET_FRAMEWORK: ${{ matrix.version }}
         TEST_FILTER: ${{ inputs.test-case-filter }}
-      run: |
-        dotnet test ${env:PROJECT_PATH} `
-          --collect:"Code Coverage" `
-          --diag:"TestResults/diag/log.txt;tracelevel=info" `
-          --results-directory:TestResults `
-          --settings:"${env:GITHUB_WORKSPACE}/build/CodeCoverage.runsettings" `
-          --framework ${env:TARGET_FRAMEWORK} `
-          --configuration Release `
-          --no-restore `
-          --no-build `
-          --report-github `
-          --report-github-summary-include-passed false `
-          --report-xunit-junit `
-          --report-xunit-junit-filename (Join-Path ${env:GITHUB_WORKSPACE} "TestResults" "junit.xml") `
-          --filter "${env:TEST_FILTER}" `
-          -- `
-          RunConfiguration.DisableAppDomain=${env:DISABLE_APP_DOMAIN} `
-          RunConfiguration.TestSessionTimeout=900000
 
     - name: dotnet test ${{ steps.resolve-project.outputs.title }} (elevated)
       if: inputs.run-tests && inputs.test-require-elevated && matrix.os != 'windows-2025'
       shell: pwsh
       timeout-minutes: 20
       env:
-        DISABLE_APP_DOMAIN: ${{ matrix.version == 'net472' && 'false' || 'true' }}
+        BUILD_COMPONENT: ${{ steps.resolve-project.outputs.build-component }}
         PROJECT_PATH: ${{ steps.resolve-project.outputs.project }}
         TARGET_FRAMEWORK: ${{ matrix.version }}
         TEST_FILTER: ${{ inputs.test-case-filter }}
       run: |
-        sudo `
-          "BUILD_COMPONENT=${env:BUILD_COMPONENT}" `
-          dotnet test ${env:PROJECT_PATH} `
-          --collect:"Code Coverage" `
-          --diag:"TestResults/diag/log.txt;tracelevel=info" `
-          --results-directory:TestResults `
-          --settings:"${env:GITHUB_WORKSPACE}/build/CodeCoverage.runsettings" `
-          --framework ${env:TARGET_FRAMEWORK} `
-          --configuration Release `
-          --no-restore `
-          --no-build `
-          --report-github `
-          --report-github-summary-include-passed false `
-          --report-xunit-junit `
-          --report-xunit-junit-filename (Join-Path ${env:GITHUB_WORKSPACE} "TestResults" "junit.xml") `
-          --filter "${env:TEST_FILTER}" `
-          -- `
-          RunConfiguration.DisableAppDomain=${env:DISABLE_APP_DOMAIN} `
-          RunConfiguration.TestSessionTimeout=900000
+        sudo dotnet build ${env:PROJECT_PATH} -t:Test -p:Configuration=Release -p:TargetFramework=${env:TARGET_FRAMEWORK} "-p:TestFilter=${env:TEST_FILTER}"
         sudo chmod a+rw ./TestResults
 
     - name: Upload hang dumps and test platform logs
@@ -219,16 +180,8 @@ jobs:
         PROJECT_PATH: ${{ steps.resolve-project.outputs.project }}
         SOURCE_DATE_EPOCH: ${{ steps.get-commit-timestamp.outputs.epoch }}
 
-    - name: Install dotnet-coverage
-      if: inputs.run-tests
-      run: dotnet tool install -g dotnet-coverage
-
-    - name: Merge test results
-      if: inputs.run-tests && hashFiles('./TestResults/**/*.coverage') != ''
-      run: dotnet-coverage merge -f cobertura -o ./TestResults/Cobertura.xml ./TestResults/**/*.coverage
-
     - name: Upload code coverage ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
-      if: inputs.run-tests && hashFiles('./TestResults/Cobertura.xml') != ''
+      if: inputs.run-tests && hashFiles('./TestResults/Cobertura-*.xml') != ''
       uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
       continue-on-error: true # Note: Don't fail for upload failures
       timeout-minutes: 5
@@ -240,14 +193,14 @@ jobs:
       with:
         disable_search: true
         disable_telem: true
-        files: TestResults/Cobertura.xml
+        files: TestResults/Cobertura-*.xml
         env_vars: OS,TFM,FILTER
         flags: ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
         name: Code Coverage for ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }} on [${{ matrix.os }}.${{ matrix.version }}]
         codecov_yml_path: .github/codecov.yml
 
     - name: Upload test results ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
-      if: ${{ !cancelled() && inputs.run-tests && hashFiles('./TestResults/junit.xml') != '' }}
+      if: ${{ !cancelled() && inputs.run-tests && hashFiles('./TestResults/junit-*.xml') != '' }}
       uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
       continue-on-error: true # Note: Don't fail for upload failures
       timeout-minutes: 5
@@ -255,7 +208,7 @@ jobs:
         disable_search: true
         disable_telem: true
         env_vars: OS,TFM,FILTER
-        files: TestResults/junit.xml
+        files: TestResults/junit-*.xml
         flags: ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
         name: Test results for ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }} on [${{ matrix.os }}.${{ matrix.version }}]
         report_type: test_results
