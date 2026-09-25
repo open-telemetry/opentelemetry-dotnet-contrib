@@ -40,7 +40,11 @@ internal static class PersistentStorageHelper
             var fileDateTime = GetDateTimeFromLeaseName(filePath);
             if (fileDateTime < leaseDeadline)
             {
+#if NET11_0_OR_GREATER
+                var atSignIndex = filePath.LastIndexOf('@', StringComparison.Ordinal);
+#else
                 var atSignIndex = filePath.LastIndexOf('@');
+#endif
                 if (atSignIndex == -1)
                 {
                     return false;
@@ -148,7 +152,13 @@ internal static class PersistentStorageHelper
     internal static DateTime GetDateTimeFromBlobName(string filePath)
     {
         var fileName = GetFileNameWithoutExtension(filePath);
+
+#if NET11_0_OR_GREATER
+        var dashIndex = fileName.LastIndexOf('-', StringComparison.Ordinal);
+#else
         var dashIndex = fileName.LastIndexOf('-');
+#endif
+
         if (dashIndex == -1)
         {
             return DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc);
@@ -162,7 +172,13 @@ internal static class PersistentStorageHelper
     internal static DateTime GetDateTimeFromLeaseName(string filePath)
     {
         var fileName = GetFileNameWithoutExtension(filePath);
+
+#if NET11_0_OR_GREATER
+        var startIndex = fileName.LastIndexOf('@', StringComparison.Ordinal) + 1;
+#else
         var startIndex = fileName.LastIndexOf('@') + 1;
+#endif
+
         var timestamp = fileName.Substring(startIndex);
 
         return Parse(timestamp);
@@ -177,7 +193,12 @@ internal static class PersistentStorageHelper
         {
             // Non-Windows platforms will treat the entire path as the file name if it contains Windows
             // path separators, so we need to extract the file name manually from after the last \ character.
+#if NET11_0_OR_GREATER
+            var startIndex = fileName.LastIndexOf('\\', StringComparison.Ordinal);
+#else
             var startIndex = fileName.LastIndexOf('\\');
+#endif
+
             if (startIndex > -1)
             {
                 fileName = fileName.Substring(startIndex + 1);

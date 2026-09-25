@@ -37,10 +37,14 @@ public class ConsistentProbabilitySamplerBenchmarks
 
         // A child whose parent sets the W3C "random" trace flag (0x2) but no explicit rv, so the
         // randomness is taken from the TraceId.
-        // https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867
-        // will change this code to use ActivityTraceFlags.RandomTraceId.
+#if NET11_0_OR_GREATER
+        var flags = ActivityTraceFlags.Recorded | ActivityTraceFlags.RandomTraceId;
+#else
+        var flags = ActivityTraceFlags.Recorded | (ActivityTraceFlags)0x2;
+#endif
+
         this.randomTraceId = CreateParameters(
-            new ActivityContext(traceId, spanId, (ActivityTraceFlags)0x3),
+            new ActivityContext(traceId, spanId, flags),
             traceId);
 
         // A child with an explicit rv value alongside other tracestate members that must be preserved.
