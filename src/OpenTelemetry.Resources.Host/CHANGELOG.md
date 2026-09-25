@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## 1.19.1-beta.1
+
+Released 2026-Sep-21
+
+* Updated OpenTelemetry core component version(s) to `1.19.1`.
+  ([#5329](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5329))
+
+## 1.19.0-beta.1
+
+Released 2026-Sep-18
+
 * Added the `host.ip` and `host.mac` resource attributes, emitted when
   `OTEL_DOTNET_EXPERIMENTAL_HOST_RESOURCE_ENABLE_NETWORK_ADDRESSES` is `true`.
   ([#5172](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5172))

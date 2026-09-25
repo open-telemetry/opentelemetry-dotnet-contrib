@@ -10,6 +10,9 @@ namespace OpenTelemetry.Resources.Gcp.Tests;
 
 public class GcpResourceDetectorTests
 {
+    private const string ExecutionEnvVar = "CLOUD_RUN_EXECUTION";
+    private const string TaskIndexEnvVar = "CLOUD_RUN_TASK_INDEX";
+
     [Fact]
     public void GcpResourceDetectorHandlesFailure()
     {
@@ -220,6 +223,80 @@ public class GcpResourceDetectorTests
         Assert.Equal(EventLevel.Warning, failed.Level);
         Assert.Contains(nameof(GcpResourceDetector), failed.Payload!);
     }
+
+    [Fact]
+    public void DetectCloudRunJobPlatformDoesNotThrow()
+    {
+        var platform = new Platform(new CloudRunJobPlatformDetails("{}", "projectId", "us-central1-a", "jobName"));
+        Assert.Null(platform.GceDetails);
+
+        var resource = GcpResourceDetector.Detect(platform);
+
+        Assert.NotNull(resource);
+        Assert.NotNull(resource.SchemaUrl);
+
+        var actual = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
+        Assert.Equal(ResourceAttributeConstants.GcpCloudRunPlatformValue, actual[ResourceSemanticConventions.AttributeCloudPlatform]);
+    }
+
+    [Fact]
+    public void TestExtractCloudRunJobResourceAttributes()
+    {
+        using var scope = EnvironmentVariableScope.Create(
+            (ExecutionEnvVar, "jobName-abcde"),
+            (TaskIndexEnvVar, "3"));
+
+        var platform = new Platform(new CloudRunJobPlatformDetails("{}", "projectId", "us-central1-a", "jobName"));
+
+        var actual = GcpResourceDetector.ExtractCloudRunJobResourceAttributes(platform).ToDictionary(x => x.Key, x => x.Value);
+
+        Assert.Equal(8, actual.Count);
+        Assert.Equal(ResourceAttributeConstants.GcpCloudProviderValue, actual[ResourceSemanticConventions.AttributeCloudProvider]);
+        Assert.Equal("projectId", actual[ResourceSemanticConventions.AttributeCloudAccount]);
+        Assert.Equal(ResourceAttributeConstants.GcpCloudRunPlatformValue, actual[ResourceSemanticConventions.AttributeCloudPlatform]);
+        Assert.Equal("us-central1-a", actual[ResourceSemanticConventions.AttributeCloudAvailabilityZone]);
+        Assert.Equal("us-central1", actual[ResourceSemanticConventions.AttributeCloudRegion]);
+        Assert.Equal("jobName", actual[ResourceSemanticConventions.AttributeFaasName]);
+        Assert.Equal("jobName-abcde", actual[ResourceAttributeConstants.AttributeGcpCloudRunJobExecution]);
+        Assert.Equal(3, actual[ResourceAttributeConstants.AttributeGcpCloudRunJobTaskIndex]);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("not-a-number")]
+    public void TestExtractCloudRunJobResourceAttributesWithoutJobEnvironment(string? taskIndex)
+    {
+        using var scope = EnvironmentVariableScope.Create(
+            (ExecutionEnvVar, null),
+            (TaskIndexEnvVar, taskIndex));
+
+        var platform = new Platform(new CloudRunJobPlatformDetails("{}", "projectId", "us-central1-a", "jobName"));
+
+        var actual = GcpResourceDetector.ExtractCloudRunJobResourceAttributes(platform).ToDictionary(x => x.Key, x => x.Value);
+
+        Assert.Equal(6, actual.Count);
+        Assert.DoesNotContain(ResourceAttributeConstants.AttributeGcpCloudRunJobExecution, actual.Keys);
+        Assert.DoesNotContain(ResourceAttributeConstants.AttributeGcpCloudRunJobTaskIndex, actual.Keys);
+    }
+
+    [Fact]
+    public void TestExtractGceResourceAttributesWithoutGceDetails()
+    {
+        var platform = new Platform(new CloudRunJobPlatformDetails("{}", "projectId", "us-central1-a", "jobName"));
+        Assert.Null(platform.GceDetails);
+
+        var actual = GcpResourceDetector.ExtractGceResourceAttributes(platform).ToDictionary(x => x.Key, x => x.Value);
+
+        Assert.Equal(2, actual.Count);
+        Assert.Equal(ResourceAttributeConstants.GcpCloudProviderValue, actual[ResourceSemanticConventions.AttributeCloudProvider]);
+        Assert.Equal("projectId", actual[ResourceSemanticConventions.AttributeCloudAccount]);
+        Assert.DoesNotContain(ResourceSemanticConventions.AttributeCloudPlatform, actual.Keys);
+    }
+
+    [Fact]
+    public void DetectReturnsEmptyResourceForNullPlatform()
+        => Assert.Equal(Resource.Empty, GcpResourceDetector.Detect(null));
 
     [Fact]
     public void TestExtractGceResourceAttributesDoesNotLogForValidMetadata()

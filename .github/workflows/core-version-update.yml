@@ -17,13 +17,13 @@ concurrency:
 
 jobs:
   automation:
-    uses: ./.github/workflows/automation.yml
+    uses: $/.github/workflows/automation.yml
     secrets:
       OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY: ${{ secrets.OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY }}
 
   core-version-update:
     name: Update core package versions
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
 
     needs: automation
 

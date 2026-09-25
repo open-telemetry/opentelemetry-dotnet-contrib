@@ -4,6 +4,7 @@
 #pragma warning disable SA1649 // File name should match first type name
 #pragma warning disable SA1402 // File may only contain a single type
 
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 
@@ -58,7 +59,12 @@ internal sealed class TestPlatformHelpers
 
 internal sealed class SkipUnlessPlatformMatchesFactAttribute : FactAttribute
 {
-    public SkipUnlessPlatformMatchesFactAttribute(TestPlatform platform, bool requireElevatedProcess = false)
+    public SkipUnlessPlatformMatchesFactAttribute(
+        TestPlatform platform,
+        bool requireElevatedProcess = false,
+        [CallerFilePath] string? sourceFilePath = null,
+        [CallerLineNumber] int sourceLineNumber = -1)
+        : base(sourceFilePath, sourceLineNumber)
     {
         var osPlatform = platform switch
         {
@@ -86,7 +92,12 @@ internal sealed class SkipUnlessPlatformMatchesFactAttribute : FactAttribute
 
 internal sealed class SkipUnlessPlatformMatchesTheoryAttribute : TheoryAttribute
 {
-    public SkipUnlessPlatformMatchesTheoryAttribute(TestPlatform platform, bool requireElevatedProcess = false)
+    public SkipUnlessPlatformMatchesTheoryAttribute(
+        TestPlatform platform,
+        bool requireElevatedProcess = false,
+        [CallerFilePath] string? sourceFilePath = null,
+        [CallerLineNumber] int sourceLineNumber = -1)
+        : base(sourceFilePath, sourceLineNumber)
     {
         var osPlatform = platform switch
         {

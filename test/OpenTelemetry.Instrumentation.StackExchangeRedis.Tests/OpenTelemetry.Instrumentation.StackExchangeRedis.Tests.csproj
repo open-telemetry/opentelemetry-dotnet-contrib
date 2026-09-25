@@ -1,9 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
     <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
-    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
+    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkVersionForTests)</TargetFrameworks>
     <Description>Unit test project for OpenTelemetry StackExchangeRedis instrumentation.</Description>
   </PropertyGroup>
 
@@ -28,7 +27,7 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" />
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
-    <PackageReference Include="StackExchange.Redis" VersionOverride="3.2.1" />
+    <PackageReference Include="StackExchange.Redis" VersionOverride="3.3.0" />
     <PackageReference Include="Testcontainers.Redis" />
   </ItemGroup>
 
