@@ -17,10 +17,10 @@ concurrency:
 
 jobs:
   lint-misspell-sanitycheck:
-    uses: ./.github/workflows/sanitycheck.yml
+    uses: $/.github/workflows/sanitycheck.yml
 
   code-ql:
-    uses: ./.github/workflows/codeql-analysis-steps.yml
+    uses: $/.github/workflows/codeql-analysis-steps.yml
     permissions:
       actions: read # Scan GitHub Actions workflows
       contents: read # Checkout the repository
@@ -69,7 +69,6 @@ jobs:
           instrumentation-aws: ['*/OpenTelemetry.Extensions.AWS*/**', '*/OpenTelemetry.Instrumentation.AWS*/**', '!**/*.md']
           instrumentation-cassandra: ['*/OpenTelemetry.Instrumentation.Cassandra*/**', '!**/*.md']
           instrumentation-confluentkafka: ['*/OpenTelemetry.Instrumentation.ConfluentKafka*/**', 'examples/kafka/**', '!**/*.md']
-          instrumentation-elasticsearchclient: ['*/OpenTelemetry.Instrumentation.ElasticsearchClient*/**', '!**/*.md']
           instrumentation-entityframeworkcore: ['*/OpenTelemetry.Instrumentation.EntityFrameworkCore*/**', '*/OpenTelemetry.Instrumentation.SqlClient/**', '!**/*.md']
           instrumentation-eventcounters: ['*/OpenTelemetry.Instrumentation.EventCounters*/**', 'examples/event-counters/**', '!**/*.md']
           instrumentation-grpccore: ['*/OpenTelemetry.Instrumentation.GrpcCore*/**', '!**/*.md']
@@ -103,7 +102,7 @@ jobs:
     needs: detect-changes
     if: |
       contains(needs.detect-changes.outputs.changes, 'github')
-    uses: ./.github/workflows/actionlint.yml
+    uses: $/.github/workflows/actionlint.yml
     permissions:
       actions: read # Read GitHub Actions workflows
       contents: read # Read repository contents
@@ -113,14 +112,14 @@ jobs:
     if: |
       contains(needs.detect-changes.outputs.changes, 'md')
       || contains(needs.detect-changes.outputs.changes, 'build')
-    uses: ./.github/workflows/markdownlint.yml
+    uses: $/.github/workflows/markdownlint.yml
 
   lint-pwsh:
     needs: detect-changes
     if: |
       contains(needs.detect-changes.outputs.changes, 'pwsh')
       || contains(needs.detect-changes.outputs.changes, 'yml')
-    uses: ./.github/workflows/pwshlint.yml
+    uses: $/.github/workflows/pwshlint.yml
     permissions:
       contents: read # To checkout the code
 
@@ -129,7 +128,7 @@ jobs:
     if: |
       contains(needs.detect-changes.outputs.changes, 'pwsh')
       || contains(needs.detect-changes.outputs.changes, 'build')
-    uses: ./.github/workflows/pwsh-test.yml
+    uses: $/.github/workflows/pwsh-test.yml
     permissions:
       contents: read # To checkout the code
 
@@ -138,14 +137,14 @@ jobs:
     if: |
       contains(needs.detect-changes.outputs.changes, 'yml')
       || contains(needs.detect-changes.outputs.changes, 'build')
-    uses: ./.github/workflows/yamllint.yml
+    uses: $/.github/workflows/yamllint.yml
 
   lint-dotnet-format:
     needs: detect-changes
     if: |
       contains(needs.detect-changes.outputs.changes, 'code')
       || contains(needs.detect-changes.outputs.changes, 'build')
-    uses: ./.github/workflows/dotnet-format.yml
+    uses: $/.github/workflows/dotnet-format.yml
 
   build-test-dynamic-control:
     needs: detect-changes
@@ -153,7 +152,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'dynamic-control')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: Component[OpenTelemetry.DynamicControl]
       code-cov-name: DynamicControl
@@ -165,7 +164,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'exporter-geneva')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: Component[OpenTelemetry.Exporter.Geneva]
       code-cov-name: Exporter.Geneva
@@ -177,7 +176,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'exporter-geneva')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: Component[OpenTelemetry.Exporter.Geneva]
       code-cov-name: Exporter.Geneva
@@ -192,7 +191,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'exporter-influxdb')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: OpenTelemetry.Exporter.InfluxDB
       code-cov-name: Exporter.InfluxDB
@@ -204,7 +203,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'exporter-onecollector')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: Component[OpenTelemetry.Exporter.OneCollector]
       code-cov-name: Exporter.OneCollector
@@ -216,7 +215,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'extensions')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: Component[OpenTelemetry.Extensions]
       code-cov-name: Extensions
@@ -228,7 +227,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'extensions-enrichment')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: OpenTelemetry.Extensions.Enrichment
       code-cov-name: Extensions.Enrichment
@@ -240,7 +239,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'extensions-enrichment-aspnetcore')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: Component[OpenTelemetry.Extensions.Enrichment.AspNetCore]
       code-cov-name: Extensions.Enrichment.AspNetCore
@@ -252,7 +251,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'extensions-enrichment-http')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: Component[OpenTelemetry.Extensions.Enrichment.Http]
       code-cov-name: Extensions.Enrichment.Http
@@ -264,12 +263,12 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'instrumentation-aspnet')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: OpenTelemetry.Instrumentation.AspNet
       code-cov-name: Instrumentation.AspNet
       os-list: '[ "windows-2025" ]'
-      tfm-list: '[ "net462" ]'
+      tfm-list: '[ "net472" ]'
       trigger: ${{ github.event_name }}
 
   build-test-instrumentation-aspnetcore:
@@ -278,7 +277,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'instrumentation-aspnetcore')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: OpenTelemetry.Instrumentation.AspNetCore
       code-cov-name: Instrumentation.AspNetCore
@@ -291,7 +290,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'instrumentation-aws')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: OpenTelemetry.Instrumentation.AWS
       code-cov-name: Instrumentation.AWS
@@ -304,7 +303,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'instrumentation-cassandra')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: Component[OpenTelemetry.Instrumentation.Cassandra]
       code-cov-name: Instrumentation.Cassandra
@@ -316,22 +315,10 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'instrumentation-confluentkafka')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: Component[OpenTelemetry.Instrumentation.ConfluentKafka]
       code-cov-name: Instrumentation.ConfluentKafka
-      trigger: ${{ github.event_name }}
-
-  build-test-instrumentation-elasticsearchclient:
-    needs: detect-changes
-    if: |
-      contains(needs.detect-changes.outputs.changes, 'instrumentation-elasticsearchclient')
-      || contains(needs.detect-changes.outputs.changes, 'build')
-      || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
-    with:
-      project-name: Component[OpenTelemetry.Instrumentation.ElasticsearchClient]
-      code-cov-name: Instrumentation.ElasticsearchClient
       trigger: ${{ github.event_name }}
 
   build-test-instrumentation-entityframeworkcore:
@@ -340,7 +327,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'instrumentation-entityframeworkcore')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: Component[OpenTelemetry.Instrumentation.EntityFrameworkCore]
       code-cov-name: Instrumentation.EntityFrameworkCore
@@ -352,7 +339,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'instrumentation-eventcounters')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: OpenTelemetry.Instrumentation.EventCounters
       code-cov-name: Instrumentation.EventCounters
@@ -365,7 +352,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'instrumentation-grpccore')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: OpenTelemetry.Instrumentation.GrpcCore
       code-cov-name: Instrumentation.GrpcCore
@@ -377,7 +364,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'instrumentation-grpcnetclient')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: Component[OpenTelemetry.Instrumentation.GrpcNetClient]
       code-cov-name: Instrumentation.GrpcNetClient
@@ -389,7 +376,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'instrumentation-hangfire')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: Component[OpenTelemetry.Instrumentation.Hangfire]
       code-cov-name: Instrumentation.Hangfire
@@ -401,7 +388,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'instrumentation-http')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: Component[OpenTelemetry.Instrumentation.Http]
       code-cov-name: Instrumentation.Http
@@ -413,7 +400,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'instrumentation-kusto')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: Component[OpenTelemetry.Instrumentation.Kusto]
       code-cov-name: Instrumentation.Kusto
@@ -425,12 +412,12 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'instrumentation-owin')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: OpenTelemetry.Instrumentation.Owin
       code-cov-name: Instrumentation.Owin
       os-list: '[ "windows-2025" ]'
-      tfm-list: '[ "net462" ]'
+      tfm-list: '[ "net472" ]'
       trigger: ${{ github.event_name }}
 
   build-test-instrumentation-process:
@@ -439,7 +426,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'instrumentation-process')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: OpenTelemetry.Instrumentation.Process
       code-cov-name: Instrumentation.Process
@@ -451,7 +438,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'instrumentation-quartz')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: Component[OpenTelemetry.Instrumentation.Quartz]
       code-cov-name: Instrumentation.Quartz
@@ -463,12 +450,12 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'instrumentation-remoting')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: Component[OpenTelemetry.Instrumentation.Remoting]
       code-cov-name: Instrumentation.Remoting
       os-list: '[ "windows-2025" ]'
-      tfm-list: '[ "net462" ]'
+      tfm-list: '[ "net472" ]'
       trigger: ${{ github.event_name }}
 
   build-test-instrumentation-runtime:
@@ -477,7 +464,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'instrumentation-runtime')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: OpenTelemetry.Instrumentation.Runtime
       code-cov-name: Instrumentation.Runtime
@@ -489,7 +476,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'instrumentation-servicefabricremoting')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: Component[OpenTelemetry.Instrumentation.ServiceFabricRemoting]
       code-cov-name: Instrumentation.ServiceFabricRemoting
@@ -501,7 +488,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'instrumentation-sqlclient')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: Component[OpenTelemetry.Instrumentation.SqlClient]
       code-cov-name: Instrumentation.SqlClient
@@ -513,7 +500,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'instrumentation-stackexchangeredis')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: OpenTelemetry.Instrumentation.StackExchangeRedis
       code-cov-name: Instrumentation.StackExchangeRedis
@@ -525,7 +512,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'instrumentation-wcf')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: OpenTelemetry.Instrumentation.Wcf
       code-cov-name: Instrumentation.Wcf
@@ -537,7 +524,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'opamp-client')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: Component[OpenTelemetry.OpAmp.Client]
       code-cov-name: OpAmp.Client
@@ -549,7 +536,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'persistentstorage')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: OpenTelemetry.PersistentStorage
       code-cov-name: PersistentStorage
@@ -561,7 +548,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'resources-aws')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: Component[OpenTelemetry.Resources.AWS]
       code-cov-name: Resources.AWS
@@ -573,7 +560,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'resources-azure')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: Component[OpenTelemetry.Resources.Azure]
       code-cov-name: Resources.Azure
@@ -585,7 +572,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'resources-container')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: Component[OpenTelemetry.Resources.Container]
       code-cov-name: Resources.Container
@@ -597,7 +584,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'resources-gcp')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: Component[OpenTelemetry.Resources.Gcp]
       code-cov-name: Resources.Gcp
@@ -609,7 +596,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'resources-host')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: Component[OpenTelemetry.Resources.Host]
       code-cov-name: Resources.Host
@@ -622,7 +609,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'resources-operatingsystem')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: Component[OpenTelemetry.Resources.OperatingSystem]
       code-cov-name: Resources.OperatingSystem
@@ -635,7 +622,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'resources-process')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: Component[OpenTelemetry.Resources.Process]
       code-cov-name: Resources.Process
@@ -647,7 +634,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'resources-processruntime')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: Component[OpenTelemetry.Resources.ProcessRuntime]
       code-cov-name: Resources.ProcessRuntime
@@ -659,7 +646,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'sampler-aws')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: Component[OpenTelemetry.Sampler.AWS]
       code-cov-name: Sampler.AWS
@@ -671,7 +658,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'semanticconventions')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: OpenTelemetry.SemanticConventions
       code-cov-name: SemanticConventions
@@ -684,7 +671,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'contrib-shared-tests')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
+    uses: $/.github/workflows/Component.BuildTest.yml
     with:
       project-name: OpenTelemetry.Contrib.Shared.Tests
       code-cov-name: Contrib.Shared.Tests
@@ -726,7 +713,7 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'aottestapp')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/verifyaotcompat.yml
+    uses: $/.github/workflows/verifyaotcompat.yml
     with:
       trigger: ${{ github.event_name }}
 
@@ -756,7 +743,6 @@ jobs:
       build-test-instrumentation-aws,
       build-test-instrumentation-cassandra,
       build-test-instrumentation-confluentkafka,
-      build-test-instrumentation-elasticsearchclient,
       build-test-instrumentation-entityframeworkcore,
       build-test-instrumentation-eventcounters,
       build-test-instrumentation-grpccore,

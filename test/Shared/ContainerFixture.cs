@@ -25,11 +25,30 @@ public abstract class ContainerFixture : IAsyncDisposable
 
     public async Task StartAsync()
     {
-        if (!this.started)
+        if (this.started)
         {
-            await this.Container.StartAsync();
-            this.started = true;
+            return;
         }
+
+        const int MaxAttempts = 3;
+
+        for (var attempt = 1; attempt <= MaxAttempts; attempt++)
+        {
+            try
+            {
+                await this.Container.StartAsync();
+                break;
+            }
+            catch when (attempt < MaxAttempts)
+            {
+                // Some container images (e.g. SQL Server on Linux) can crash on startup
+                // under CI resource pressure; restarting is the common workaround for
+                // this failure mode. See https://github.com/microsoft/aspire/issues/5055.
+                await Task.Delay(TimeSpan.FromSeconds(5));
+            }
+        }
+
+        this.started = true;
     }
 
     public Uri GetBaseAddress(int port) =>

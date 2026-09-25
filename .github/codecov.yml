@@ -99,11 +99,6 @@ flags:
     paths:
       - src/OpenTelemetry.Instrumentation.ConfluentKafka
 
-  unittests-Instrumentation.ElasticsearchClient:
-    carryforward: true
-    paths:
-      - src/OpenTelemetry.Instrumentation.ElasticsearchClient
-
   unittests-Instrumentation.EntityFrameworkCore:
     carryforward: true
     paths:

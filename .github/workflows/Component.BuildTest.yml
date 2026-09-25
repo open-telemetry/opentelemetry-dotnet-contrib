@@ -22,7 +22,7 @@ on:
         required: false
         type: string
       tfm-list:
-        default: '[ "net462", "net8.0", "net9.0", "net10.0" ]'
+        default: '[ "net472", "net8.0", "net9.0", "net10.0" ]'
         required: false
         type: string
       test-case-filter:
@@ -55,10 +55,10 @@ jobs:
         exclude:
         # renovate: datasource=github-runners depType=github-runner
         - os: ubuntu-26.04
-          version: net462
+          version: net472
         # renovate: datasource=github-runners depType=github-runner
         - os: macos-26
-          version: net462
+          version: net472
 
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
@@ -145,7 +145,7 @@ jobs:
       shell: pwsh
       timeout-minutes: 20
       env:
-        DISABLE_APP_DOMAIN: ${{ matrix.version == 'net462' && 'false' || 'true' }}
+        DISABLE_APP_DOMAIN: ${{ matrix.version == 'net472' && 'false' || 'true' }}
         PROJECT_PATH: ${{ steps.resolve-project.outputs.project }}
         TARGET_FRAMEWORK: ${{ matrix.version }}
         TEST_FILTER: ${{ inputs.test-case-filter }}
@@ -171,7 +171,7 @@ jobs:
       shell: pwsh
       timeout-minutes: 20
       env:
-        DISABLE_APP_DOMAIN: ${{ matrix.version == 'net462' && 'false' || 'true' }}
+        DISABLE_APP_DOMAIN: ${{ matrix.version == 'net472' && 'false' || 'true' }}
         PROJECT_PATH: ${{ steps.resolve-project.outputs.project }}
         TARGET_FRAMEWORK: ${{ matrix.version }}
         TEST_FILTER: ${{ inputs.test-case-filter }}
@@ -225,7 +225,7 @@ jobs:
 
     - name: Upload code coverage ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
       if: inputs.run-tests && hashFiles('./TestResults/Cobertura.xml') != ''
-      uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+      uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
       continue-on-error: true # Note: Don't fail for upload failures
       timeout-minutes: 5
       env:
@@ -244,7 +244,7 @@ jobs:
 
     - name: Upload test results ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
       if: ${{ !cancelled() && inputs.run-tests && hashFiles('./TestResults/junit.xml') != '' }}
-      uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+      uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
       continue-on-error: true # Note: Don't fail for upload failures
       timeout-minutes: 5
       with:
@@ -259,7 +259,7 @@ jobs:
 
     - name: Publish ${{ steps.resolve-project.outputs.name }} NuGet packages to Artifacts
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-      # Only publish packages from the first job, which should be net462 for Windows in most cases, which is preferred for .NET Framework support
+      # Only publish packages from the first job, which should be net472 for Windows in most cases, which is preferred for .NET Framework support
       if: matrix.os == 'windows-2025' && inputs.pack && strategy.job-index == 0
       with:
         name: ${{ steps.resolve-project.outputs.name }}-packages

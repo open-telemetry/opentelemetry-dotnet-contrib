@@ -33,12 +33,10 @@ public class RoutingTestFixture : IAsyncLifetime
         }
     }
 
-    public Task InitializeAsync()
-    {
-        return Task.CompletedTask;
-    }
+    public ValueTask InitializeAsync()
+        => ValueTask.CompletedTask;
 
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         foreach (var app in this.apps)
         {
@@ -60,14 +58,10 @@ public class RoutingTestFixture : IAsyncLifetime
     }
 
     internal void AddActivityTestResult(ActivityRoutingTestResult result)
-    {
-        this.activityTestResults.Add(result);
-    }
+        => this.activityTestResults.Add(result);
 
     internal void AddMetricsTestResult(MetricRoutingTestResult result)
-    {
-        this.metricsTestResults.Add(result);
-    }
+        => this.metricsTestResults.Add(result);
 
     private void GenerateReadme()
     {

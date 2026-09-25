@@ -71,7 +71,7 @@ public class IncomingRequestsCollectionsIsAccordingToTheSpecTests
                     path += query;
                 }
 
-                using var response = await client.GetAsync(new Uri(path, UriKind.Relative));
+                using var response = await client.GetAsync(new Uri(path, UriKind.Relative), TestContext.Current.CancellationToken);
             }
             catch (Exception)
             {
@@ -88,12 +88,11 @@ public class IncomingRequestsCollectionsIsAccordingToTheSpecTests
                 // We need to let End callback execute as it is executed AFTER response was returned.
                 // In unit tests environment there may be a lot of parallel unit tests executed, so
                 // giving some breezing room for the End callback to complete
-                await Task.Delay(TimeSpan.FromSeconds(1));
+                await Task.Delay(TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken);
             }
         }
 
-        Assert.Single(exportedItems);
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
 
         Assert.Equal(ActivityKind.Server, activity.Kind);
         Assert.Equal("localhost", activity.GetTagValue(SemanticConventions.AttributeServerAddress));
@@ -120,8 +119,8 @@ public class IncomingRequestsCollectionsIsAccordingToTheSpecTests
 
         if (recordException)
         {
-            Assert.Single(activity.Events);
-            Assert.Equal("exception", activity.Events.First().Name);
+            var exceptionEvent = Assert.Single(activity.Events);
+            Assert.Equal("exception", exceptionEvent.Name);
         }
 
         ValidateTagValue(activity, SemanticConventions.AttributeUserAgentOriginal, userAgent);

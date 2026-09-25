@@ -150,7 +150,6 @@
     <Project Path="src/OpenTelemetry.Instrumentation.AWSLambda/OpenTelemetry.Instrumentation.AWSLambda.csproj" />
     <Project Path="src/OpenTelemetry.Instrumentation.Cassandra/OpenTelemetry.Instrumentation.Cassandra.csproj" />
     <Project Path="src/OpenTelemetry.Instrumentation.ConfluentKafka/OpenTelemetry.Instrumentation.ConfluentKafka.csproj" />
-    <Project Path="src/OpenTelemetry.Instrumentation.ElasticsearchClient/OpenTelemetry.Instrumentation.ElasticsearchClient.csproj" />
     <Project Path="src/OpenTelemetry.Instrumentation.EntityFrameworkCore/OpenTelemetry.Instrumentation.EntityFrameworkCore.csproj" />
     <Project Path="src/OpenTelemetry.Instrumentation.EventCounters/OpenTelemetry.Instrumentation.EventCounters.csproj" />
     <Project Path="src/OpenTelemetry.Instrumentation.GrpcCore/OpenTelemetry.Instrumentation.GrpcCore.csproj" />
@@ -274,7 +273,6 @@
     <Project Path="test/OpenTelemetry.Instrumentation.AWSLambda.Tests/OpenTelemetry.Instrumentation.AWSLambda.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.Cassandra.Tests/OpenTelemetry.Instrumentation.Cassandra.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.ConfluentKafka.Tests/OpenTelemetry.Instrumentation.ConfluentKafka.Tests.csproj" />
-    <Project Path="test/OpenTelemetry.Instrumentation.ElasticsearchClient.Tests/OpenTelemetry.Instrumentation.ElasticsearchClient.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.EntityFrameworkCore.Benchmarks/OpenTelemetry.Instrumentation.EntityFrameworkCore.Benchmarks.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests/OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.EventCounters.Tests/OpenTelemetry.Instrumentation.EventCounters.Tests.csproj" />

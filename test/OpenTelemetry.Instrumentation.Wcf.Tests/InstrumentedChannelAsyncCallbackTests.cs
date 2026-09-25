@@ -1,14 +1,50 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using OpenTelemetry.Instrumentation.Wcf.Implementation;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Tests;
 
+[Collection("WCF")]
 public class InstrumentedChannelAsyncCallbackTests
 {
+    [Fact]
+    public void BeginRequest_CleansUpTelemetryWhenInnerBeginRequestThrows()
+    {
+        var stoppedActivities = new List<Activity>();
+        using var activityListener = new ActivityListener
+        {
+            ShouldListenTo = _ => true,
+            Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
+            ActivityStopped = stoppedActivities.Add,
+        };
+        ActivitySource.AddActivityListener(activityListener);
+
+        WcfInstrumentationActivitySource.Options = new WcfInstrumentationOptions();
+
+        try
+        {
+            var inner = new RecordingRequestChannel
+            {
+                BeginRequestException = new InvalidOperationException("BeginRequest failed."),
+            };
+            var channel = (IRequestChannel)new InstrumentedRequestChannel(inner);
+
+            using var message = Message.CreateMessage(MessageVersion.Soap11, "urn:test");
+            var exception = Assert.Throws<InvalidOperationException>(() => channel.BeginRequest(message, callback: null, state: null));
+
+            Assert.Same(inner.BeginRequestException, exception);
+            Assert.Equal(ActivityStatusCode.Error, Assert.Single(stoppedActivities).Status);
+        }
+        finally
+        {
+            WcfInstrumentationActivitySource.Options = null;
+        }
+    }
+
     [Fact]
     public void BeginRequest_AllowsNullAsyncCallback()
     {
@@ -240,6 +276,8 @@ public class InstrumentedChannelAsyncCallbackTests
 
     private sealed class RecordingRequestChannel : RecordingChannel, IRequestChannel
     {
+        public Exception? BeginRequestException { get; init; }
+
         public object?[]? LastBeginRequestArgs { get; private set; }
 
         public EndpointAddress RemoteAddress { get; } = new("net.tcp://localhost/Service");
@@ -254,12 +292,22 @@ public class InstrumentedChannelAsyncCallbackTests
 
         public IAsyncResult BeginRequest(Message message, AsyncCallback callback, object state)
         {
+            if (this.BeginRequestException != null)
+            {
+                throw this.BeginRequestException;
+            }
+
             this.LastBeginRequestArgs = [message, callback, state];
             return new FakeAsyncResult(state);
         }
 
         public IAsyncResult BeginRequest(Message message, TimeSpan timeout, AsyncCallback callback, object state)
         {
+            if (this.BeginRequestException != null)
+            {
+                throw this.BeginRequestException;
+            }
+
             this.LastBeginRequestArgs = [message, timeout, callback, state];
             return new FakeAsyncResult(state);
         }

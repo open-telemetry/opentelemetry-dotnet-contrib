@@ -24,6 +24,7 @@ public static class AWSXRayIdGenerator
     private static readonly long UnixEpochMicroseconds = EpochStart.Ticks / TicksPerMicrosecond;
     private static readonly Random Global = new();
     private static readonly Lock RandLock = new();
+    private static ActivityListener? currentListener;
 
     internal static void ReplaceTraceId(Sampler? sampler = null)
     {
@@ -52,6 +53,9 @@ public static class AWSXRayIdGenerator
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
         ActivitySource.AddActivityListener(awsXRayActivityListener);
+
+        var previousListener = Interlocked.Exchange(ref currentListener, awsXRayActivityListener);
+        previousListener?.Dispose();
     }
 
     internal static ActivityTraceId GenerateAWSXRayCompatibleTraceId()

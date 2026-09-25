@@ -125,7 +125,7 @@ public partial class HttpClientTests
 
             request.Headers.Add("contextRequired", "false");
             request.Headers.Add("responseCode", (tc.ResponseCode == 0 ? 200 : tc.ResponseCode).ToString());
-            await c.SendAsync(request);
+            await c.SendAsync(request, TestContext.Current.CancellationToken);
         }
         catch (Exception)
         {
@@ -415,8 +415,7 @@ public partial class HttpClientTests
                 metricPoints.Add(p);
             }
 
-            Assert.Single(metricPoints);
-            var metricPoint = metricPoints[0];
+            var metricPoint = Assert.Single(metricPoints);
 
             var count = metricPoint.GetHistogramCount();
             var sum = metricPoint.GetHistogramSum();

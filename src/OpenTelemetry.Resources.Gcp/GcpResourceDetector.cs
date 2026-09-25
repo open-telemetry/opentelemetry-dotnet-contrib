@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Globalization;
 using System.Text.Json;
 using Google.Api.Gax;
 using OpenTelemetry.Trace;
@@ -17,8 +18,19 @@ internal sealed class GcpResourceDetector : IResourceDetector
     /// <inheritdoc/>
     public Resource Detect()
     {
-        var platform = Platform.Instance();
+        try
+        {
+            return Detect(Platform.Instance());
+        }
+        catch (Exception ex)
+        {
+            GcpResourcesEventSource.Log.ResourceAttributesExtractException(nameof(GcpResourceDetector), ex);
+            return Resource.Empty;
+        }
+    }
 
+    internal static Resource Detect(Platform? platform)
+    {
         if (platform == null || platform.ProjectId == null)
         {
             return Resource.Empty;
@@ -28,6 +40,7 @@ internal sealed class GcpResourceDetector : IResourceDetector
         {
             PlatformType.Gke => ExtractGkeResourceAttributes(platform),
             PlatformType.CloudRun => ExtractCloudRunResourceAttributes(platform),
+            PlatformType.CloudRunJob => ExtractCloudRunJobResourceAttributes(platform),
             PlatformType.Gae => ExtractGaeResourceAttributes(platform),
             PlatformType.Gce => ExtractGceResourceAttributes(platform),
             PlatformType.Unknown => ExtractGceResourceAttributes(platform),
@@ -77,6 +90,49 @@ internal sealed class GcpResourceDetector : IResourceDetector
         return attributeList;
     }
 
+    internal static List<KeyValuePair<string, object>> ExtractCloudRunJobResourceAttributes(Platform platform)
+    {
+        List<KeyValuePair<string, object>> attributeList =
+        [
+            new(ResourceSemanticConventions.AttributeCloudAccount, platform.ProjectId),
+            new(ResourceSemanticConventions.AttributeCloudPlatform, ResourceAttributeConstants.GcpCloudRunPlatformValue),
+            new(ResourceSemanticConventions.AttributeCloudProvider, ResourceAttributeConstants.GcpCloudProviderValue),
+        ];
+
+        // Google.Api.Gax reports CloudRunJobDetails for this platform type; GceDetails is null.
+        if (platform.CloudRunJobDetails is { } details)
+        {
+            if (details.Zone is { Length: > 0 } zone)
+            {
+                attributeList.Add(new(ResourceSemanticConventions.AttributeCloudAvailabilityZone, zone));
+            }
+
+            if (details.Region is { Length: > 0 } region)
+            {
+                attributeList.Add(new(ResourceSemanticConventions.AttributeCloudRegion, region));
+            }
+
+            if (details.JobName is { Length: > 0 } jobName)
+            {
+                attributeList.Add(new(ResourceSemanticConventions.AttributeFaasName, jobName));
+            }
+        }
+
+        // https://github.com/open-telemetry/semantic-conventions/blob/v1.44.0/docs/resource/cloud-provider/gcp/cloud-run.md
+        if (Environment.GetEnvironmentVariable(ResourceAttributeConstants.CloudRunExecutionEnvVar) is { Length: > 0 } execution)
+        {
+            attributeList.Add(new(ResourceAttributeConstants.AttributeGcpCloudRunJobExecution, execution));
+        }
+
+        if (Environment.GetEnvironmentVariable(ResourceAttributeConstants.CloudRunTaskIndexEnvVar) is { Length: > 0 } taskIndex &&
+            int.TryParse(taskIndex, NumberStyles.Integer, CultureInfo.InvariantCulture, out var taskIndexValue))
+        {
+            attributeList.Add(new(ResourceAttributeConstants.AttributeGcpCloudRunJobTaskIndex, taskIndexValue));
+        }
+
+        return attributeList;
+    }
+
     internal static List<KeyValuePair<string, object>> ExtractGaeResourceAttributes(Platform platform)
     {
         List<KeyValuePair<string, object>> attributeList =
@@ -93,13 +149,17 @@ internal sealed class GcpResourceDetector : IResourceDetector
         List<KeyValuePair<string, object>> attributeList =
         [
             new(ResourceSemanticConventions.AttributeCloudProvider, ResourceAttributeConstants.GcpCloudProviderValue),
-            new(ResourceSemanticConventions.AttributeCloudAccount, platform.ProjectId),
-            new(ResourceSemanticConventions.AttributeCloudPlatform, ResourceAttributeConstants.GcpGcePlatformValue),
-            new(ResourceSemanticConventions.AttributeHostId, platform.GceDetails.InstanceId),
-            new(ResourceSemanticConventions.AttributeCloudAvailabilityZone, platform.GceDetails.Location)
+            new(ResourceSemanticConventions.AttributeCloudAccount, platform.ProjectId)
         ];
 
-        AddGceInstanceAttributes(attributeList, platform.GceDetails.MetadataJson);
+        if (platform.GceDetails is { } details)
+        {
+            attributeList.Add(new(ResourceSemanticConventions.AttributeCloudPlatform, ResourceAttributeConstants.GcpGcePlatformValue));
+            attributeList.Add(new(ResourceSemanticConventions.AttributeHostId, details.InstanceId));
+            attributeList.Add(new(ResourceSemanticConventions.AttributeCloudAvailabilityZone, details.Location));
+
+            AddGceInstanceAttributes(attributeList, details.MetadataJson);
+        }
 
         return attributeList;
     }

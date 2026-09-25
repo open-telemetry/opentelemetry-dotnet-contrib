@@ -31,7 +31,7 @@ public class TestAWSXRaySamplerClient : IDisposable
     {
         this.CreateResponse("/GetSamplingRules", "Data/GetSamplingRulesResponse.json");
 
-        var rules = await this.client.GetSamplingRules();
+        var rules = await this.client.GetSamplingRules(TestContext.Current.CancellationToken);
 
         Assert.Equal(3, rules.Count);
 
@@ -79,7 +79,7 @@ public class TestAWSXRaySamplerClient : IDisposable
     {
         this.requestHandler.SetResponse("/GetSamplingRules", "notJson");
 
-        var rules = await this.client.GetSamplingRules();
+        var rules = await this.client.GetSamplingRules(TestContext.Current.CancellationToken);
 
         Assert.Empty(rules);
     }
@@ -127,7 +127,7 @@ public class TestAWSXRaySamplerClient : IDisposable
 
         this.requestHandler.SetResponse("/GetSamplingRules", responseJson);
 
-        var rules = await this.client.GetSamplingRules();
+        var rules = await this.client.GetSamplingRules(TestContext.Current.CancellationToken);
 
         Assert.Equal(2, rules.Count);
         Assert.Empty(rules[0].Attributes);
@@ -166,11 +166,11 @@ public class TestAWSXRaySamplerClient : IDisposable
                 clock.ToDouble(clock.Now())),
         ]);
 
-        var targetsResponse = await this.client.GetSamplingTargets(request);
+        var targetsResponse = await this.client.GetSamplingTargets(request, TestContext.Current.CancellationToken);
         Assert.NotNull(targetsResponse);
 
         Assert.Equal(2, targetsResponse.SamplingTargetDocuments.Count);
-        Assert.Single(targetsResponse.UnprocessedStatistics);
+        var unprocessed = Assert.Single(targetsResponse.UnprocessedStatistics);
 
         Assert.Equal("rule1", targetsResponse.SamplingTargetDocuments[0].RuleName);
         Assert.Equal(0.1, targetsResponse.SamplingTargetDocuments[0].FixedRate);
@@ -184,9 +184,9 @@ public class TestAWSXRaySamplerClient : IDisposable
         Assert.Null(targetsResponse.SamplingTargetDocuments[1].ReservoirQuotaTTL);
         Assert.Null(targetsResponse.SamplingTargetDocuments[1].Interval);
 
-        Assert.Equal("rule2", targetsResponse.UnprocessedStatistics[0].RuleName);
-        Assert.Equal("400", targetsResponse.UnprocessedStatistics[0].ErrorCode);
-        Assert.Equal("Unknown rule", targetsResponse.UnprocessedStatistics[0].Message);
+        Assert.Equal("rule2", unprocessed.RuleName);
+        Assert.Equal("400", unprocessed.ErrorCode);
+        Assert.Equal("Unknown rule", unprocessed.Message);
     }
 
     [Fact]
@@ -206,7 +206,7 @@ public class TestAWSXRaySamplerClient : IDisposable
                 clock.ToDouble(clock.Now())),
         ]);
 
-        var targetsResponse = await this.client.GetSamplingTargets(request);
+        var targetsResponse = await this.client.GetSamplingTargets(request, TestContext.Current.CancellationToken);
 
         Assert.Null(targetsResponse);
     }
@@ -228,7 +228,7 @@ public class TestAWSXRaySamplerClient : IDisposable
                 clock.ToDouble(clock.Now())),
         ]);
 
-        var targetsResponse = await this.client.GetSamplingTargets(request);
+        var targetsResponse = await this.client.GetSamplingTargets(request, TestContext.Current.CancellationToken);
 
         Assert.NotNull(targetsResponse);
         Assert.Empty(targetsResponse.SamplingTargetDocuments);
@@ -242,7 +242,7 @@ public class TestAWSXRaySamplerClient : IDisposable
         var oversizedPayload = new string('x', (1024 * 1024) + 1);
         this.requestHandler.SetResponse("/GetSamplingRules", oversizedPayload);
 
-        var rules = await this.client.GetSamplingRules();
+        var rules = await this.client.GetSamplingRules(TestContext.Current.CancellationToken);
 
         Assert.Empty(rules);
     }

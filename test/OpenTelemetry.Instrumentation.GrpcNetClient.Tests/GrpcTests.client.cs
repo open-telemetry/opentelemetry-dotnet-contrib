@@ -70,11 +70,10 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
                 HttpClient = httpClient,
             });
             var client = new Greeter.GreeterClient(channel);
-            _ = client.SayHello(new HelloRequest());
+            _ = client.SayHello(new HelloRequest(), cancellationToken: TestContext.Current.CancellationToken);
         }
 
-        Assert.Single(exportedItems);
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
 
         ValidateGrpcActivity(activity);
         Assert.Equal(parent.TraceId, activity.Context.TraceId);
@@ -107,7 +106,8 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
                 (exportedItems, []),
                 GrpcClientDiagnosticListener.SemanticConventionsVersion,
                 weaver,
-                outputHelper);
+                outputHelper,
+                cancellationToken: TestContext.Current.CancellationToken);
         }
     }
 
@@ -137,7 +137,7 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
                 HttpClient = httpClient,
             });
             var client = new Greeter.GreeterClient(channel);
-            _ = client.SayHello(new HelloRequest());
+            _ = client.SayHello(new HelloRequest(), cancellationToken: TestContext.Current.CancellationToken);
         }
 
         var activity = Assert.Single(exportedItems);
@@ -178,7 +178,7 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
                 HttpClient = httpClient,
             });
             var client = new Greeter.GreeterClient(channel);
-            _ = client.SayHello(new HelloRequest());
+            _ = client.SayHello(new HelloRequest(), cancellationToken: TestContext.Current.CancellationToken);
         }
 
         Assert.True(filterApplied);
@@ -218,7 +218,7 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
                 HttpClient = httpClient,
             });
             var client = new Greeter.GreeterClient(channel);
-            _ = client.SayHello(new HelloRequest());
+            _ = client.SayHello(new HelloRequest(), cancellationToken: TestContext.Current.CancellationToken);
         }
 
         Assert.True(filterApplied);
@@ -253,7 +253,7 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
                 HttpClient = httpClient,
             });
             var client = new Greeter.GreeterClient(channel);
-            _ = client.SayHello(new HelloRequest());
+            _ = client.SayHello(new HelloRequest(), cancellationToken: TestContext.Current.CancellationToken);
         }
 
         Assert.Empty(exportedItems);
@@ -291,7 +291,7 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
                 HttpClient = httpClient,
             });
             var client = new Greeter.GreeterClient(channel);
-            Assert.Throws<RpcException>(() => client.SayHello(new HelloRequest()));
+            Assert.Throws<RpcException>(() => client.SayHello(new HelloRequest(), cancellationToken: TestContext.Current.CancellationToken));
         }
 
         var activity = Assert.Single(exportedItems);
@@ -338,7 +338,7 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
                 HttpClient = httpClient,
             });
             var client = new Greeter.GreeterClient(channel);
-            Assert.Throws<RpcException>(() => client.SayHello(new HelloRequest()));
+            Assert.Throws<RpcException>(() => client.SayHello(new HelloRequest(), cancellationToken: TestContext.Current.CancellationToken));
         }
 
         var activity = Assert.Single(exportedItems);
@@ -389,7 +389,7 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
             });
 
             var client = new Greeter.GreeterClient(channel);
-            _ = client.SayHello(new HelloRequest());
+            _ = client.SayHello(new HelloRequest(), cancellationToken: TestContext.Current.CancellationToken);
         }
 
         Assert.Equal(2, exportedItems.Count);
@@ -505,7 +505,7 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
 
                 using var channel = GrpcChannel.ForAddress(this.server.Address);
                 var client = new Greeter.GreeterClient(channel);
-                _ = client.SayHello(new HelloRequest());
+                _ = client.SayHello(new HelloRequest(), cancellationToken: TestContext.Current.CancellationToken);
             }
 
             var serverActivity = exportedItems.Single(activity => activity.OperationName == OperationNameHttpRequestIn);
@@ -557,7 +557,7 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
                 using var activity = source.StartActivity("parent");
                 using var channel = GrpcChannel.ForAddress(this.server.Address);
                 var client = new Greeter.GreeterClient(channel);
-                _ = client.SayHello(new HelloRequest(), headers);
+                _ = client.SayHello(new HelloRequest(), headers, cancellationToken: TestContext.Current.CancellationToken);
             }
 
             Assert.Equal(2, exportedItems.Count);
@@ -605,7 +605,7 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
                 {
                     using var channel = GrpcChannel.ForAddress(this.server.Address);
                     var client = new Greeter.GreeterClient(channel);
-                    _ = client.SayHello(new HelloRequest());
+                    _ = client.SayHello(new HelloRequest(), cancellationToken: TestContext.Current.CancellationToken);
                 }
             }
 
