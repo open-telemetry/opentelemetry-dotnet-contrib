@@ -69,6 +69,14 @@ required OpenTelemetry packages:
 - Use `<c>TypeName</c>` for type/member references inline in text when not using
   a `<see cref="..."/>` link.
 
+## Banned APIs
+
+The repository bans several APIs via `build/BannedSymbols.txt`.
+These banned APIs must not be used in the production codebase.
+Some banned APIs may still appear in test code or examples, but they should not
+be introduced into the main production code. A Roslyn analyzer catches them at
+build time.
+
 ## String Comparisons and Culture-Sensitive Parsing
 
 The repository enforces these via `build/BannedSymbols.txt` (a Roslyn analyzer
