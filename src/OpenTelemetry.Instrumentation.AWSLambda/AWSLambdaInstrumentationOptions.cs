@@ -4,6 +4,9 @@
 using System.Diagnostics;
 using Amazon.Lambda.Core;
 using OpenTelemetry.AWS;
+using OpenTelemetry.Internal;
+using OpenTelemetry.Logs;
+using OpenTelemetry.Metrics;
 
 namespace OpenTelemetry.Instrumentation.AWSLambda;
 
@@ -37,6 +40,52 @@ public class AWSLambdaInstrumentationOptions
     /// and it applies process-wide rather than per-provider.
     /// </remarks>
     public Action<Activity, object?, ILambdaContext>? EnrichWithInput { get; set; }
+
+    /// <summary>
+    /// Gets or sets the <see cref="Logs.LoggerProvider"/> to flush at the end of each
+    /// invocation. Log records are not flushed when it is not set.
+    /// </summary>
+    /// <remarks>
+    /// Must be built and set before the first invocation.
+    /// </remarks>
+    public LoggerProvider? LoggerProvider { get; set; }
+
+    /// <summary>
+    /// Gets or sets the <see cref="Metrics.MeterProvider"/> to flush at the end of each
+    /// invocation. Metrics are not flushed when it is not set.
+    /// </summary>
+    /// <remarks>
+    /// Must be built and set before the first invocation. Prefer delta temporality, since every
+    /// invocation flushes.
+    /// </remarks>
+    public MeterProvider? MeterProvider { get; set; }
+
+    /// <summary>
+    /// Gets or sets the timeout, in milliseconds, for flushing at the end of an invocation.
+    /// Default value is 10000. Set to <see cref="Timeout.Infinite"/> to wait indefinitely.
+    /// </summary>
+    /// <remarks>
+    /// Applied to each provider, which are flushed concurrently, and to the overall wait.
+    /// </remarks>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// <paramref name="value"/> is zero, or negative and not <see cref="Timeout.Infinite"/>.
+    /// </exception>
+    public int FlushTimeoutMilliseconds
+    {
+        get;
+        set
+        {
+            // Zero is rejected because it would abandon every flush rather than wait briefly.
+            if (value != Timeout.Infinite)
+            {
+                Guard.ThrowIfOutOfRange(value, min: 1);
+            }
+
+            field = value;
+        }
+#pragma warning disable SA1500, SA1513
+    } = 10000;
+#pragma warning restore SA1500, SA1513
 
     /// <inheritdoc cref="AWSLambda.SemanticConventionVersion"/>
     public SemanticConventionVersion SemanticConventionVersion { get; set; } = AWSSemanticConventions.DefaultSemanticConventionVersion;

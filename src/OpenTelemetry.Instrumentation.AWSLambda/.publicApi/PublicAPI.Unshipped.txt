@@ -1,0 +1,6 @@
+OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions.FlushTimeoutMilliseconds.get -> int
+OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions.FlushTimeoutMilliseconds.set -> void
+OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions.LoggerProvider.get -> OpenTelemetry.Logs.LoggerProvider?
+OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions.LoggerProvider.set -> void
+OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions.MeterProvider.get -> OpenTelemetry.Metrics.MeterProvider?
+OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions.MeterProvider.set -> void

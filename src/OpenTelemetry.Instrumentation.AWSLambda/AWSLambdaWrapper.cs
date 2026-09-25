@@ -6,6 +6,8 @@ using Amazon.Lambda.Core;
 using OpenTelemetry.AWS;
 using OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 using OpenTelemetry.Internal;
+using OpenTelemetry.Logs;
+using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using ActivitySourceFactory = OpenTelemetry.Trace.ActivitySourceFactory;
 
@@ -39,6 +41,9 @@ public static class AWSLambdaWrapper
     internal static AWSSemanticConventions AWSSemanticConventions { get; set; } = new();
 
     internal static Action<Activity, object?, ILambdaContext>? EnrichWithInput { get; set; }
+
+    // Held rather than copied so providers assigned to it are visible at flush time.
+    internal static AWSLambdaInstrumentationOptions? Options { get; set; }
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
 
@@ -215,8 +220,52 @@ public static class AWSLambdaWrapper
     {
         activity?.Stop();
 
-        // force flush before function quit in case of Lambda freeze.
-        tracerProvider?.ForceFlush();
+        var options = Options;
+
+        var timeout = options?.FlushTimeoutMilliseconds ?? Timeout.Infinite;
+
+        // force flush before function quit in case of Lambda freeze. Concurrent, so the invocation
+        // is billed for the slowest provider rather than the sum of all three.
+        List<Task>? flushes = null;
+
+        StartFlush(ref flushes, tracerProvider, static (provider, timeout) => provider.ForceFlush(timeout), timeout);
+        StartFlush(ref flushes, options?.LoggerProvider, static (provider, timeout) => provider.ForceFlush(timeout), timeout);
+        StartFlush(ref flushes, options?.MeterProvider, static (provider, timeout) => provider.ForceFlush(timeout), timeout);
+
+        if (flushes == null)
+        {
+            return;
+        }
+
+        try
+        {
+            // A provider may ignore the timeout it was given, so this wait is what bounds the
+            // invocation. Flushes still running are abandoned to the freeze.
+            Task.WaitAll([.. flushes], timeout);
+        }
+        catch
+        {
+            // Runs in a finally block, where throwing would replace the handler's own exception.
+        }
+    }
+
+    // Generic because the three providers share no flush interface. The list is created on first
+    // use, so the common tracer-only case allocates nothing.
+    private static void StartFlush<TProvider>(
+        ref List<Task>? flushes,
+        TProvider? provider,
+        Action<TProvider, int> forceFlush,
+        int timeoutMilliseconds)
+        where TProvider : class
+    {
+        if (provider == null)
+        {
+            return;
+        }
+
+        // Faults are left for the caller's wait to surface, so one failing provider does not stop
+        // the others from being waited on.
+        (flushes ??= []).Add(Task.Run(() => forceFlush(provider, timeoutMilliseconds)));
     }
 
     private static void OnException(Activity? activity, Exception exception)
