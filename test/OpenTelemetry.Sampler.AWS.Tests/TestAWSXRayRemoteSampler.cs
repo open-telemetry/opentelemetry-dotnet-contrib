@@ -62,16 +62,29 @@ public class TestAWSXRayRemoteSampler
 
         using var remoteSampler = GetRemoteSampler(sampler);
 
+        // Disable internal jitter for deterministic testing.
+        remoteSampler.RulePollerJitter = TimeSpan.Zero;
+
         // the sampler will use fallback sampler until rules are fetched.
         Assert.Equal(SamplingDecision.RecordAndSample, this.DoSample(sampler, "cat-service"));
 
         // GetSamplingRules mock response
         requestHandler.SetResponse("/GetSamplingRules", File.ReadAllText("Data/GetSamplingRulesResponseOptionalFields.json"));
 
-        await Task.Delay(TimeSpan.FromSeconds(2), TestContext.Current.CancellationToken);
+        // Wait until the rules have genuinely been loaded (rather than polling for a Drop decision):
+        // while no rules are loaded yet, ShouldSample falls back to FallbackSampler, whose fixed-rate
+        // component (5%) can also legitimately return Drop most of the time. That makes "decision ==
+        // Drop" an unreliable signal for "the new rule has been applied" - it can pass by coincidence
+        // via the fallback sampler before the rule poll has completed even once, and this ambiguity
+        // can then also make the very next while-loop iteration succeed on a similarly spurious
+        // fallback-based RecordAndSample instead of a genuine target update.
+        await this.AssertRulesLoadedAsync(remoteSampler, TestContext.Current.CancellationToken);
 
-        // sampler will drop because rule has 0 reservoir and 0 fixed rate
-        Assert.Equal(SamplingDecision.Drop, this.DoSample(sampler, "cat-service"));
+        // sampler will drop because rule has 0 reservoir and 0 fixed rate. Poll for the updated
+        // decision instead of asserting immediately after a fixed delay, since the sampler's
+        // background polling task (every 10ms) may not have picked up the new rule within a fixed
+        // time window under CI load.
+        await this.AssertEventuallySamplesAsync(sampler, "cat-service", SamplingDecision.Drop, TestContext.Current.CancellationToken);
 
         // GetSamplingTargets mock response
         requestHandler.SetResponse("/SamplingTargets", File.ReadAllText("Data/GetSamplingTargetsResponseOptionalFields.json"));
@@ -128,6 +141,58 @@ public class TestAWSXRayRemoteSampler
     }
 
     [Fact]
+    public async Task TestFailedRulesPollDoesNotWipeCachedRules()
+    {
+        var clock = new TestClock();
+        var requestHandler = new MockServerRequestHandler();
+
+        using var mockServer = TestHttpServer.RunServer(
+            requestHandler.Handle,
+            out var endpoint);
+
+        var parentBasedSampler = AWSXRayRemoteSampler.Builder(ResourceBuilder.CreateEmpty().Build())
+            .SetPollingInterval(TimeSpan.FromMilliseconds(10))
+            .SetEndpoint(endpoint.ToString().TrimEnd('/'))
+            .SetClock(clock)
+            .Build();
+
+        using var sampler = GetRemoteSampler(parentBasedSampler);
+
+        // First poll succeeds and loads two real rules.
+        requestHandler.SetResponse("/GetSamplingRules", File.ReadAllText("Data/GetSamplingRulesResponseOptionalFields.json"));
+        await sampler.GetAndUpdateRulesAsync(CancellationToken.None);
+
+        Assert.Equal(2, sampler.RulesCache.RuleAppliers.Count);
+
+        // Apply a target to one of the rules, as a real target poll would.
+        var targets = new Dictionary<string, SamplingTargetDocument>
+        {
+            {
+                "Test",
+                new SamplingTargetDocument
+                {
+                    FixedRate = 1.0,
+                    RuleName = "Test",
+                }
+            },
+        };
+        sampler.RulesCache.UpdateTargets(targets);
+
+        var appliedApplier = sampler.RulesCache.RuleAppliers.Single(r => r.RuleName == "Test");
+        Assert.Equal("TraceIdRatioBasedSampler{1.000000}", appliedApplier.FixedRateSampler.Description);
+
+        // Simulate a transient failure on the next rules poll: an unparsable response.
+        requestHandler.SetResponse("/GetSamplingRules", "notJson");
+        await sampler.GetAndUpdateRulesAsync(CancellationToken.None);
+
+        // The cache must retain the previously loaded rules, including the applied
+        // target, rather than being wiped to zero rules by the failed poll.
+        Assert.Equal(2, sampler.RulesCache.RuleAppliers.Count);
+        var applierAfterFailedPoll = sampler.RulesCache.RuleAppliers.Single(r => r.RuleName == "Test");
+        Assert.Equal("TraceIdRatioBasedSampler{1.000000}", applierAfterFailedPoll.FixedRateSampler.Description);
+    }
+
+    [Fact]
     public async Task ExecutePollAsyncDoesNotBlockCaller()
     {
         using var sampler = GetRemoteSampler(AWSXRayRemoteSampler.Builder(ResourceBuilder.CreateEmpty().Build()).Build());
@@ -176,7 +241,7 @@ public class TestAWSXRayRemoteSampler
             return;
         }
 
-        var deadline = DateTime.UtcNow.AddSeconds(2);
+        var deadline = DateTime.UtcNow.AddSeconds(5);
 
         while (DateTime.UtcNow < deadline)
         {
@@ -190,6 +255,28 @@ public class TestAWSXRayRemoteSampler
         }
 
         Assert.Equal(expected, decision);
+    }
+
+    private async Task AssertRulesLoadedAsync(AWSXRayRemoteSampler remoteSampler, CancellationToken cancellationToken)
+    {
+        if (remoteSampler.RulesCache.RuleAppliers.Count > 0)
+        {
+            return;
+        }
+
+        var deadline = DateTime.UtcNow.AddSeconds(5);
+
+        while (DateTime.UtcNow < deadline)
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(50), cancellationToken);
+
+            if (remoteSampler.RulesCache.RuleAppliers.Count > 0)
+            {
+                return;
+            }
+        }
+
+        Assert.NotEmpty(remoteSampler.RulesCache.RuleAppliers);
     }
 
     private SamplingDecision DoSample(Trace.Sampler sampler, string serviceName)
