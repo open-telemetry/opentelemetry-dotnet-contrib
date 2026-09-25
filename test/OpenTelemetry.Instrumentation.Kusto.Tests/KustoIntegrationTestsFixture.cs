@@ -25,7 +25,7 @@ public sealed class KustoIntegrationTestsFixture : ContainerFixture<KustoContain
 
     protected override string DockerfileName => "kusto.Dockerfile";
 
-    async Task IAsyncLifetime.DisposeAsync()
+    async ValueTask IAsyncDisposable.DisposeAsync()
     {
         await this.DisposeAsync();
         this.queryBodyTracing.Dispose();

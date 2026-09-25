@@ -183,7 +183,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     public static TheoryData<string, bool> IsSqlLikeProviderTestCases()
     {
         // Get all the possible names and assume they are false
-        var values = DbSystemTestCases().ToDictionary((k) => (string)k[0], (v) => false);
+        var values = DbSystemTestCases().ToDictionary((k) => (string)k.Data.Item1, (v) => false);
 
         // Override specific entries to be true
         string[] supported =
@@ -235,7 +235,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
 
     public static TheoryData<string, bool> IsBackslashEscapeProviderTestCases()
     {
-        var values = DbSystemTestCases().ToDictionary((k) => (string)k[0], (v) => false);
+        var values = DbSystemTestCases().ToDictionary((k) => (string)k.Data.Item1, (v) => false);
 
         string[] backslashEscapeProviders =
         [

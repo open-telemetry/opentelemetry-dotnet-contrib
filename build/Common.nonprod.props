@@ -17,6 +17,7 @@
 
   <PropertyGroup Condition="$(MSBuildProjectName.Contains('.Tests')) OR $(MSBuildProjectName.EndsWith('.FuzzTests'))">
     <IsTestProject>true</IsTestProject>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
 
   <PropertyGroup Label="Target frameworks used in by test projects">
@@ -29,21 +30,16 @@
     <PackageReference Include="JunitXml.TestLogger" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="Microsoft.Testing.Platform" Condition="'$(EnableMSTestRunner)' != 'true'" ExcludeAssets="build;buildMultiTargeting;buildTransitive" />
-    <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="All" />
+    <PackageReference Include="xunit.v3.mtp-off" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(IsTestProject)' == 'true' AND $(MSBuildProjectName.EndsWith('.FuzzTests'))">
-    <PackageReference Include="FsCheck.Xunit" />
+    <PackageReference Include="FsCheck.Xunit.v3" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(IsTestProject)' == 'true' AND '$(SkipStrongNameValidation)' != 'true'">
     <Compile Include="$(RepoRoot)\test\Shared\StrongNameTests.cs" Link="StrongNameTests.cs" />
-  </ItemGroup>
-
-  <!-- This class is a temporary shim until https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5379 is merged -->
-  <ItemGroup Condition="'$(IsTestProject)' == 'true'">
-    <Compile Include="$(RepoRoot)\test\Shared\TestContext.cs" Link="TestContext.cs" />
   </ItemGroup>
 
   <Target Name="SkipVSTestForInvalidTargetFramework" BeforeTargets="VSTest" Condition="'$(IsTestProject)' == 'true'">
@@ -51,7 +47,7 @@
     errors will be generated for projects which do not implement the requested
     target. In order to enable running tests for a given framework across a
     solution/project with mixed targets (eg: dotnet test
-    opentelemetry-dotnet-contrib.slnx -f net462) we convert this into a skip
+    opentelemetry-dotnet-contrib.slnx -f net472) we convert this into a skip
     message only. -->
     <PropertyGroup Condition="$(TargetFrameworks.Contains($(TargetFramework))) != 'true'">
       <_SkipTests>true</_SkipTests>

@@ -33,10 +33,10 @@ public class RoutingTestFixture : IAsyncLifetime
         }
     }
 
-    public Task InitializeAsync()
-        => Task.CompletedTask;
+    public ValueTask InitializeAsync()
+        => ValueTask.CompletedTask;
 
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         foreach (var app in this.apps)
         {
