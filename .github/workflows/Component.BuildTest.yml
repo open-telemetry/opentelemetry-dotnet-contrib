@@ -169,6 +169,7 @@ jobs:
         name: hang-dumps-${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}-${{ matrix.os }}-${{ matrix.version }}-attempt-${{ github.run_attempt }}
         retention-days: 7
         path: |
+          **/TestResults/**/*.log
           **/TestResults/**/*hangdump*.dmp
           **/TestResults/**/Sequence_*.xml
           **/TestResults/diag/*
