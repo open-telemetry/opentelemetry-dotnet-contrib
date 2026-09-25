@@ -32,14 +32,19 @@ Use this skill when:
 
 ### Step 0: Load the Rules
 
-Read `AGENTS.md` and `REVIEW.md` in full. Between them they cover: build/test
-commands, the three-layer architecture (API / SDK / Exporters), package and
-versioning rules, `.publicApi/` tracking, the experimental API process, banned
-APIs (`build/BannedSymbols.txt`), CHANGELOG format, and the "What NOT to Flag"
-list. Cite the specific rule a finding violates rather than restating the rule
-set in your output. Also load `.github/skills/code-review/pr-assessment.md` -
-the criteria for whether the PR is justified, well-scoped, and a net positive.
-This is **not** covered in `AGENTS.md` or `REVIEW.md`; always load it.
+Read `AGENTS.md` and `REVIEW.md` in full, and load `build/BannedSymbols.txt`
+directly rather than relying on `REVIEW.md`'s summary of it - `REVIEW.md`
+"String Comparisons and Culture-Sensitive Parsing" only calls out the
+`string.Equals`/`TryParse` bans as examples, but the file itself is the
+authoritative list and also bans the `ActivitySource`/`Meter` string
+constructors and several `HttpClient`/`HttpContent` convenience methods.
+Between `AGENTS.md` and `REVIEW.md`, the areas covered are: build/test
+commands, package and versioning rules, `.publicApi/` tracking, CHANGELOG
+format, and the "What NOT to Flag" list. Cite the specific rule a finding
+violates rather than restating the rule set in your output. Also load
+`.github/skills/code-review/pr-assessment.md` - the criteria for whether the
+PR is justified, well-scoped, and a net positive. This is **not** covered in
+`AGENTS.md` or `REVIEW.md`; always load it.
 
 If any of these files cannot be loaded, say so explicitly and fall back to a
 first-principles review, noting the gap in the output.
@@ -133,21 +138,23 @@ comments. Treat these as **claims to verify**, not facts to accept.
 
 ### Step 5: Detailed Analysis
 
-Apply every rule in `REVIEW.md` that is relevant to the diff's paths and content
-- it is the authoritative, maintained rule set for this repository and is not
-repeated here. Pay particular attention to the sections most often missed by
-contributors: CHANGELOG, Public API Surface, Semantic Conventions, and
-Instrumentation Package Conventions.
+Apply every rule in `REVIEW.md` that is relevant to the diff's paths and
+content; it is the authoritative, maintained rule set for this repository and
+is not repeated here. Pay particular attention to the sections most often
+missed by contributors: CHANGELOG, Public API Surface, Semantic Conventions,
+and Instrumentation Package Conventions.
 
 1. **Focus on what matters.** Prioritize correctness bugs, semantic-convention
    violations, missing/incorrect CHANGELOG or public API entries, thread-safety,
    allocation regressions in code that runs on every request and resource lifetime
    (`IDisposable`). Do not comment on trivial style issues unless they violate
    an explicit `REVIEW.md` rule.
-2. **Consider collateral damage.** For every changed code path, consider what
-   other callers, signals (traces/metrics/logs), or semantic-convention opt-in
-   modes (`OTEL_SEMCONV_STABILITY_OPT_IN`) flow through it. Surface plausible
-   risks even if unconfirmed. The surface may differ for different TFMs.
+2. **Consider collateral damage.** For every changed code path, investigate
+   what other callers, signals (traces/metrics/logs), or semantic-convention
+   opt-in modes (`OTEL_SEMCONV_STABILITY_OPT_IN`) flow through it, and whether
+   the surface differs across TFMs. Only report a collateral risk once you
+   have confirmed it against the actual code - per item 3 below, an
+   unconfirmed guess is not an actionable finding.
 3. **Be specific and actionable.** Reference the specific
    `REVIEW.md`/`AGENTS.md` rule by file and line, and show how you verified
    the issue (e.g. "checked the other opt-in branch and it doesn't set this
@@ -181,7 +188,7 @@ Instrumentation Package Conventions.
 
 **Motivation**: <1-2 sentences on whether the problem is real and the PR is justified>
 
-**Approach**: <1-2 sentences on whether the approach fits the three-layer architecture and existing conventions>
+**Approach**: <1-2 sentences on whether the approach fits this component's existing conventions>
 
 **Summary**: <:white_check_mark: LGTM / :warning: Needs Human Review / :warning: Needs Changes / :x: Reject>. <2-3 sentence summary>
 
@@ -234,9 +241,9 @@ Instrumentation Package Conventions.
   performance claim that needs validating, or when `REVIEW.md` "Performance"
   requires benchmark evidence.
 
-If a rule in `REVIEW.md` conflicts with something in this file, `REVIEW.md` wins
-- it is the single source of truth for review rules and is expected to change
-independently of this skill.
+If a rule in `REVIEW.md` conflicts with something in this file, `REVIEW.md`
+wins; it is the single source of truth for review rules and is expected to
+change independently of this skill.
 
 ## Multi-Model Review (Optional)
 

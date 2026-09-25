@@ -32,9 +32,13 @@ one such as `test/OpenTelemetry.Instrumentation.Http.Benchmarks/`:
   `BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args)`.
 - Reference `BenchmarkDotNet` via `Directory.Packages.props` (do not pin a
   version in the project file - see `AGENTS.md` "Package Management").
-- Add a `<ProjectReference>` to the component under test (benchmark projects are
-  the one exception to referencing the shipping assembly directly rather than
-  linking Shared source).
+- Add a `<ProjectReference>` to the component under test - like an ordinary
+  test project, a benchmark project references the shipping component's
+  `.csproj` rather than linking its source. The exception is `src/Shared`
+  code, which has no shipping project to reference: link the Shared file
+  directly instead, following the
+  `<Compile Include="$(RepoRoot)\src\Shared\...\" Link="Includes\...\" />`
+  pattern used by `test/OpenTelemetry.Contrib.Shared.Benchmarks`.
 - Follow the same folder convention as tests when there are multiple benchmark
   classes (e.g. `Instrumentation/`, `Exporter/`).
 
@@ -118,14 +122,17 @@ consistent input data across runs.
 The repository root has a `benchmark.ps1` script that checks out a target ref
 and an optional baseline ref (default `main`), builds, and runs the benchmark
 for each, writing artifacts to `BenchmarkDotNet.Artifacts/<ref-name>/`. **It
-requires a clean working tree** because it switches refs while running - commit
-or stash changes first.
+requires a clean working tree** because it switches refs while running.
+Commit the benchmark itself and the change under test before running it -
+stashing either one makes it absent from every ref the script checks out, so
+the run can silently benchmark the old code or fail to find the benchmark at
+all. Only stash unrelated, unfinished work that isn't part of this benchmark.
 
 The selected benchmark must exist with the same name in both refs. For a new
-benchmark, place the benchmark in a benchmark-only commit and use that commit
-for `-Baseline`; comparing directly with `main` cannot produce a baseline
-result for a benchmark that is not yet present in that branch. Be careful to
-commit only the benchmark change(s) and not the change to the main code itself.
+benchmark, place the benchmark in its own commit (separate from the change
+under test) and use that commit for `-Baseline`; comparing directly with
+`main` cannot produce a baseline result for a benchmark that is not yet
+present in that branch.
 
 ```powershell
 # Compare the current branch against main for a specific filter
@@ -192,6 +199,7 @@ for the raw CLI form used by both invocations.
 
 Build/test commands and general conventions are in
 [`AGENTS.md`](../../../AGENTS.md); performance-specific review rules
-(allocation guidance, `FrozenSet<T>` usage, `stackalloc` limits, benchmark
-baseline marking) are in [`REVIEW.md`](../../../REVIEW.md). This skill only
-covers how to produce the benchmark evidence those rules ask for.
+(measuring before/after, avoiding unnecessary allocations on the hot path,
+and preferring `FrozenSet<T>` where applicable) are in
+[`REVIEW.md`](../../../REVIEW.md) "Performance" and "Miscellaneous". This
+skill only covers how to produce the benchmark evidence those rules ask for.
