@@ -1,13 +1,14 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Collections.Concurrent;
 using System.Net;
 
 namespace OpenTelemetry.Sampler.AWS.Tests;
 
 internal sealed class MockServerRequestHandler
 {
-    private readonly Dictionary<string, string> responses = [];
+    private readonly ConcurrentDictionary<string, string> responses = new();
 
     public MockServerRequestHandler()
     {

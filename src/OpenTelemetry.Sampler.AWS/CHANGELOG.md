@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+* Fixed a bug where a transient failure fetching sampling rules from the
+  X-Ray daemon/collector (e.g. a network error or an unparsable response)
+  would wipe out the previously cached rules instead of being ignored. This
+  could cause the sampler to temporarily fall back to a low-fidelity default
+  sampling strategy, discard any sampling targets already applied, and
+  recreate rule appliers from scratch on the next successful poll.
+  ([#5422](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5422))
+
+* Fixed a bug where the remote sampler's target poller could busy-loop
+  when a rule applier had never received a sampling target and the clock's
+  "now" landed exactly on that applier's initial snapshot time.
+  ([#5422](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5422))
+
 ## 0.1.0-alpha.15
 
 Released 2026-Sep-21
