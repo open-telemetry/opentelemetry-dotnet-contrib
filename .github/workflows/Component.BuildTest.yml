@@ -159,8 +159,10 @@ jobs:
           --configuration Release `
           --no-restore `
           --no-build `
-          --logger:"GitHubActions;report-warnings=false" `
-          --logger:"junit;LogFilePath=${env:GITHUB_WORKSPACE}/TestResults/junit.xml" `
+          --report-github `
+          --report-github-summary-include-passed false `
+          --report-xunit-junit `
+          --report-xunit-junit-filename (Join-Path ${env:GITHUB_WORKSPACE} "TestResults" "junit.xml") `
           --filter "${env:TEST_FILTER}" `
           -- `
           RunConfiguration.DisableAppDomain=${env:DISABLE_APP_DOMAIN} `
@@ -187,8 +189,10 @@ jobs:
           --configuration Release `
           --no-restore `
           --no-build `
-          --logger:"GitHubActions;report-warnings=false" `
-          --logger:"junit;LogFilePath=${env:GITHUB_WORKSPACE}/TestResults/junit.xml" `
+          --report-github `
+          --report-github-summary-include-passed false `
+          --report-xunit-junit `
+          --report-xunit-junit-filename (Join-Path ${env:GITHUB_WORKSPACE} "TestResults" "junit.xml") `
           --filter "${env:TEST_FILTER}" `
           -- `
           RunConfiguration.DisableAppDomain=${env:DISABLE_APP_DOMAIN} `
