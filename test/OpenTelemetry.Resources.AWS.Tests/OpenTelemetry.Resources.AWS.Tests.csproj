@@ -16,6 +16,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="System.Net.Http" Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETFramework'" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="SampleMetadataFiles\**\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 

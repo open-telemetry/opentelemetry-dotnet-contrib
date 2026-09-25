@@ -10,7 +10,10 @@
     <PackageReference Include="Newtonsoft.Json.Schema" />
     <PackageReference Include="OpenTelemetry.Api" />
     <PackageReference Include="System.Text.Json" VersionOverride="8.0.6" Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETFramework'" />
-    <PackageReference Include="Xunit.SkippableFact" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Net.Http" Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETFramework'" />
   </ItemGroup>
 
   <ItemGroup>
