@@ -158,7 +158,7 @@ jobs:
         TARGET_FRAMEWORK: ${{ matrix.version }}
         TEST_FILTER: ${{ inputs.test-case-filter }}
       run: |
-        sudo dotnet build ${env:PROJECT_PATH} -t:Test -p:Configuration=Release -p:TargetFramework=${env:TARGET_FRAMEWORK} "-p:TestFilter=${env:TEST_FILTER}"
+        sudo "BUILD_COMPONENT=${env:BUILD_COMPONENT}" dotnet build ${env:PROJECT_PATH} -t:Test -p:Configuration=Release -p:TargetFramework=${env:TARGET_FRAMEWORK} "-p:TestFilter=${env:TEST_FILTER}"
         sudo chmod a+rw ./TestResults
 
     - name: Upload hang dumps and test platform logs
