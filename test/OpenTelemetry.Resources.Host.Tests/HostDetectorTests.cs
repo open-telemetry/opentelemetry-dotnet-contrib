@@ -432,7 +432,7 @@ public class HostDetectorTests
     {
         Assert.SkipUnless(
             OperatingSystem.IsLinux() &&
-            RuntimeInformation.ProcessArchitecture is not (Architecture.Arm or Architecture.Arm64),
+            RuntimeInformation.ProcessArchitecture is Architecture.X86 or Architecture.X64,
             "Skipped because current platform is not x86 Linux.");
 
         using var cpuInfoEnvironment = EnvironmentVariableScope.Create(EnableCpuInfoEnvVarName, value);
