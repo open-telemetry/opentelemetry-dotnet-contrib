@@ -24,10 +24,8 @@ internal class AWSXRaySamplerClient : IDisposable
         this.httpClient = new HttpClient();
     }
 
-    public async Task<List<SamplingRule>> GetSamplingRules(CancellationToken cancellationToken = default)
+    public async Task<List<SamplingRule>?> GetSamplingRules(CancellationToken cancellationToken = default)
     {
-        List<SamplingRule> samplingRules = [];
-
         using (var request = new HttpRequestMessage(HttpMethod.Post, this.getSamplingRulesEndpoint)
         {
             Content = new StringContent(string.Empty, Encoding.UTF8, this.jsonContentType),
@@ -44,6 +42,8 @@ internal class AWSXRaySamplerClient : IDisposable
                     .Deserialize<GetSamplingRulesResponse>(responseJson);
 #endif
 
+                List<SamplingRule> samplingRules = [];
+
                 if (getSamplingRulesResponse is not null)
                 {
                     if (getSamplingRulesResponse.SamplingRuleRecords is not null)
@@ -57,16 +57,23 @@ internal class AWSXRaySamplerClient : IDisposable
                         }
                     }
                 }
+
+                return samplingRules;
             }
             catch (Exception ex)
             {
                 AWSSamplerEventSource.Log.FailedToDeserializeResponse(
                     nameof(this.GetSamplingRules),
                     ex.Message);
+
+                // Returning null signals to the caller that this poll failed to retrieve
+                // rules (e.g. a transient HTTP failure, or an empty/invalid response body
+                // that could not be parsed), instead of the server legitimately returning
+                // zero rules. The caller must not treat this the same as a real "zero rules"
+                // response, or it would wipe out the previously cached, working rule set.
+                return null;
             }
         }
-
-        return samplingRules;
     }
 
     public async Task<GetSamplingTargetsResponse?> GetSamplingTargets(

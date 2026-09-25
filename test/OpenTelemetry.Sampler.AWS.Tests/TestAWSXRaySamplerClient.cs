@@ -33,6 +33,7 @@ public class TestAWSXRaySamplerClient : IDisposable
 
         var rules = await this.client.GetSamplingRules(TestContext.Current.CancellationToken);
 
+        Assert.NotNull(rules);
         Assert.Equal(3, rules.Count);
 
         Assert.Equal("Rule1", rules[0].RuleName);
@@ -81,7 +82,7 @@ public class TestAWSXRaySamplerClient : IDisposable
 
         var rules = await this.client.GetSamplingRules(TestContext.Current.CancellationToken);
 
-        Assert.Empty(rules);
+        Assert.Null(rules);
     }
 
     [Fact]
@@ -129,6 +130,7 @@ public class TestAWSXRaySamplerClient : IDisposable
 
         var rules = await this.client.GetSamplingRules(TestContext.Current.CancellationToken);
 
+        Assert.NotNull(rules);
         Assert.Equal(2, rules.Count);
         Assert.Empty(rules[0].Attributes);
         Assert.Empty(rules[1].Attributes);
@@ -244,7 +246,7 @@ public class TestAWSXRaySamplerClient : IDisposable
 
         var rules = await this.client.GetSamplingRules(TestContext.Current.CancellationToken);
 
-        Assert.Empty(rules);
+        Assert.Null(rules);
     }
 
     private void CreateResponse(string endpoint, string filePath)

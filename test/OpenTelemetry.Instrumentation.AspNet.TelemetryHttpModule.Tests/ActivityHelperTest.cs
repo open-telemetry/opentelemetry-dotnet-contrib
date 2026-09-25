@@ -76,7 +76,7 @@ public class ActivityHelperTest : IDisposable
         Task testTask;
         using (ExecutionContext.SuppressFlow())
         {
-            testTask = Task.Run(
+            testTask = Task.Factory.StartNew(
                 () =>
                 {
                     Task.Yield();
@@ -87,7 +87,9 @@ public class ActivityHelperTest : IDisposable
 
                     Assert.Same(Activity.Current, rootActivity);
                 },
-                TestContext.Current.CancellationToken);
+                TestContext.Current.CancellationToken,
+                TaskCreationOptions.LongRunning,
+                TaskScheduler.Default);
         }
 
         await testTask;
@@ -113,7 +115,7 @@ public class ActivityHelperTest : IDisposable
         Task testTask;
         using (ExecutionContext.SuppressFlow())
         {
-            testTask = Task.Run(
+            testTask = Task.Factory.StartNew(
                 () =>
                 {
                     Task.Yield();
@@ -130,7 +132,9 @@ public class ActivityHelperTest : IDisposable
                     Assert.Equal("789", Baggage.Current.GetBaggage("TestKey1"));
                     Assert.Equal("456", Baggage.Current.GetBaggage("TestKey2"));
                 },
-                TestContext.Current.CancellationToken);
+                TestContext.Current.CancellationToken,
+                TaskCreationOptions.LongRunning,
+                TaskScheduler.Default);
         }
 
         await testTask;

@@ -1,0 +1,61 @@
+<Project>
+
+  <PropertyGroup>
+    <RepoRoot Condition="'$(RepoRoot)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..'))</RepoRoot>
+    <TestResultsDirectory Condition="'$(TestResultsDirectory)' == ''">$(RepoRoot)\TestResults</TestResultsDirectory>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TestFilter)' != ''">
+    <!--
+      Ignoring exit code 8 stops dotnet test failing if a filter does not match any tests.
+    -->
+    <_TestFilterArgument>--filter &quot;$(TestFilter)&quot; --ignore-exit-code 8</_TestFilterArgument>
+  </PropertyGroup>
+
+  <Target Name="Test" DependsOnTargets="_GetAllTestProjectTargetFrameworks">
+    <!--
+      No TargetFramework requested: run every distinct TFM found across
+      @(TestProjects), each as its own nested build so the single-TFM logic
+      below still applies per iteration.
+    -->
+    <ItemGroup Condition="'$(TargetFramework)' == ''">
+      <_DistinctTestProjectTargetFramework Include="@(_AllTestProjectTargetFrameworks->Distinct())" />
+    </ItemGroup>
+
+    <MSBuild Projects="$(MSBuildProjectFullPath)"
+      Targets="Test"
+      Properties="TargetFramework=%(_DistinctTestProjectTargetFramework.Identity);Configuration=$(Configuration);BUILD_COMPONENT=$(BUILD_COMPONENT)"
+      Condition="'$(TargetFramework)' == '' AND '@(_DistinctTestProjectTargetFramework)' != ''" />
+
+    <ItemGroup Condition="'$(TargetFramework)' != ''">
+      <_MatchingTestProjectTargetFramework Include="@(_AllTestProjectTargetFrameworks)" Condition="'%(Identity)' == '$(TargetFramework)'" />
+      <_SupportedTestProjects Include="@(_MatchingTestProjectTargetFramework->'%(MSBuildSourceProjectFile)')" />
+      <_SkippedTestProjects Include="@(TestProjects)" Exclude="@(_SupportedTestProjects)" />
+    </ItemGroup>
+
+    <Message Importance="high"
+              Text="Skipping test execution for '%(_SkippedTestProjects.Identity)' because it does not contain the '$(TargetFramework)' target."
+              Condition="'$(TargetFramework)' != '' AND '@(_SkippedTestProjects)' != ''" />
+
+    <!--
+      %(_SupportedTestProjects.Filename) below triggers MSBuild task
+      batching - one MSBuild task invocation per project - so each test project
+      in a multi-test-project component gets its own report/coverage filename,
+      rather than trying to write to the same one file.
+    -->
+    <MSBuild Projects="@(_SupportedTestProjects)"
+      Targets="Build;InvokeTestingPlatform"
+      Properties="TestingPlatformCommandLineArguments=%22--results-directory:$(TestResultsDirectory)%22 --diagnostic %22--diagnostic-output-directory:$(TestResultsDirectory)\diag%22 --report-github --report-github-summary-include-passed false --report-xunit-junit --report-xunit-junit-filename %22junit-%(_SupportedTestProjects.Filename).xml%22 --coverage --coverage-output-format cobertura --coverage-output %22Cobertura-%(_SupportedTestProjects.Filename).xml%22 $(_TestFilterArgument)"
+      ContinueOnError="ErrorAndStop"
+      Condition="'$(TargetFramework)' != '' AND '@(_SupportedTestProjects)' != ''" />
+  </Target>
+
+  <Target Name="_GetAllTestProjectTargetFrameworks" Returns="@(_AllTestProjectTargetFrameworks)">
+    <MSBuild Projects="@(TestProjects)"
+      Targets="GetTestProjectTargetFrameworks"
+      Properties="TargetFramework=;Configuration=$(Configuration)">
+      <Output TaskParameter="TargetOutputs" ItemName="_AllTestProjectTargetFrameworks" />
+    </MSBuild>
+  </Target>
+
+</Project>

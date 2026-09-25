@@ -3,6 +3,8 @@
   <PropertyGroup>
     <TargetFrameworks>$(NetFrameworkVersionForTests)</TargetFrameworks>
     <Description>Unit test project for ASP.NET HttpModule.</Description>
+    <!-- Avoids namespace conflict with TelemetryHttpModule type in xunit-generated code -->
+    <RootNamespace>OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModuleTests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

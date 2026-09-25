@@ -295,13 +295,22 @@ public partial class HttpClientTests
 
         var normalizedAttributesTestCase = tc.SpanAttributes.ToDictionary(x => x.Key, x => HttpTestData.NormalizeValues(x.Value, host, port));
 
+        // AddHttpClientInstrumentation() subscribes to the process-wide, statically-named
+        // "System.Net.Http" ActivitySource. If another test elsewhere in the process happens
+        // to make an HttpClient call around the same time, its activity can also be captured
+        // here. Restrict to activities for this test's own target host to avoid picking up
+        // unrelated, concurrently-captured activities.
+        var testActivities = activities
+            .Where(activity => string.Equals(activity.GetTagItem("server.address") as string, new Uri(testUrl).Host, StringComparison.Ordinal))
+            .ToList();
+
         if (!enableTracing)
         {
-            Assert.Empty(activities);
+            Assert.Empty(testActivities);
         }
         else
         {
-            var activity = Assert.Single(activities);
+            var activity = Assert.Single(testActivities);
 
             Assert.Equal(ActivityKind.Client, activity.Kind);
             Assert.Equal(tc.SpanName, activity.DisplayName);
@@ -424,7 +433,7 @@ public partial class HttpClientTests
 
             if (enableTracing)
             {
-                var activity = Assert.Single(activities);
+                var activity = Assert.Single(testActivities);
 #if !NET
                 Assert.Equal(activity.Duration.TotalSeconds, sum);
 #endif

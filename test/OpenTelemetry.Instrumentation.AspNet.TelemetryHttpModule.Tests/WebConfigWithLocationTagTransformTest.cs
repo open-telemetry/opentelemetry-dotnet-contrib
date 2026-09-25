@@ -8,7 +8,7 @@ namespace OpenTelemetry.Instrumentation.AspNet.Tests;
 
 public class WebConfigWithLocationTagTransformTest
 {
-    private const string InstallConfigTransformationResourceName = "OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.Tests.Resources.web.config.install.xdt";
+    private const string InstallConfigTransformationResourceName = "OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModuleTests.Resources.web.config.install.xdt";
 
     [Fact]
     public void VerifyInstallationWhenNonGlobalLocationTagExists()
