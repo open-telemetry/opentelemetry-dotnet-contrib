@@ -6,7 +6,10 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TestFilter)' != ''">
-    <_TestFilterArgument>--filter &quot;$(TestFilter)&quot;</_TestFilterArgument>
+    <!--
+      Ignoring exit code 8 stops dotnet test failing if a filter does not match any tests.
+    -->
+    <_TestFilterArgument>--filter &quot;$(TestFilter)&quot; --ignore-exit-code 8</_TestFilterArgument>
   </PropertyGroup>
 
   <Target Name="Test" DependsOnTargets="_GetAllTestProjectTargetFrameworks">
