@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Fixed an issue where synchronous exceptions from async WCF client requests
+  could leave activities running and downstream instrumentation suppressed.
+  ([#5402](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5402))
+
 ## 1.19.1-beta.1
 
 Released 2026-Sep-21

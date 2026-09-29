@@ -212,6 +212,23 @@ public class TestRulesCache
     }
 
     [Fact]
+    public void TestNextTargetFetchTimeWhenExactlyDueDoesNotBusyLoop()
+    {
+        var clock = new TestClock();
+        var rulesCache = new RulesCache(clock, "clientId", ResourceBuilder.CreateEmpty().Build(), new AlwaysOffSampler())
+        {
+            RuleAppliers = new List<SamplingRuleApplier>
+            {
+                { new("clientId", clock, this.CreateRule("rule1", 1, 0.0, 1), new Statistics()) },
+            },
+        };
+
+        var nextFetchTime = rulesCache.NextTargetFetchTime();
+
+        Assert.Equal(clock.Now().Add(AWSXRayRemoteSampler.DefaultTargetInterval), nextFetchTime);
+    }
+
+    [Fact]
     public async Task TestConcurrentUpdateRulesAndUpdateTargetsDoesNotLoseUpdates()
     {
         var clock = new TestClock();
