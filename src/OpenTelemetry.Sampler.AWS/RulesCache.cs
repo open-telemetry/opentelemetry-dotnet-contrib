@@ -169,7 +169,7 @@ internal class RulesCache : IDisposable
 
         var minPollingTime = appliers.Min(r => r.NextSnapshotTime);
 
-        return minPollingTime < now ? defaultPollingTime : minPollingTime;
+        return minPollingTime <= now ? defaultPollingTime : minPollingTime;
     }
 
     public void Dispose()
