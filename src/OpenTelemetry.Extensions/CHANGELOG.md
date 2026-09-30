@@ -13,7 +13,7 @@
   an attribute of the log record could shadow the application's value. The
   log record's own attributes now come first and baggage entries whose keys
   are already present are skipped.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#5431](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5431))
 
 ## 1.19.1-beta.1
 
