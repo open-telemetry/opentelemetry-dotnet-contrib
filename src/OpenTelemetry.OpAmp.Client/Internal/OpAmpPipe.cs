@@ -23,6 +23,7 @@ internal sealed class OpAmpPipe : IDisposable
     private readonly Lock frameLock = new();
     private readonly CancellationTokenSource tokenSource = new();
     private readonly ServerFrameHandler frameHandler;
+    private readonly Action<AgentToServer> applyAssignedInstanceUid;
     private readonly FrameBuilder currentFrame;
     private readonly Queue<AgentToServer> pendingFrames = [];
 
@@ -50,6 +51,7 @@ internal sealed class OpAmpPipe : IDisposable
 
         this.frameHandler = new(this.OnServerFrameReceived);
         this.processor.Subscribe(this.frameHandler);
+        this.applyAssignedInstanceUid = this.ApplyAssignedInstanceUid;
     }
 
     public async Task StartAsync(CancellationToken token = default)
@@ -300,19 +302,9 @@ internal sealed class OpAmpPipe : IDisposable
     {
         try
         {
-            // Applied at send time so frames queued or dequeued before the server
-            // assigned a new UID are still sent with it.
-            lock (this.frameLock)
-            {
-                if (this.assignedInstanceUid is { } instanceUid)
-                {
-                    message.InstanceUid = instanceUid;
-                }
-            }
-
             OpAmpClientEventSource.Log.SendingMessage();
 
-            await this.transport.SendAsync(message, token)
+            await this.transport.SendAsync(message, token, this.applyAssignedInstanceUid)
                 .ConfigureAwait(false);
 
             if (!this.transport.RequiresResponseBeforeNextSend)
@@ -327,6 +319,19 @@ internal sealed class OpAmpPipe : IDisposable
 
             OpAmpClientEventSource.Log.SendMessageException(ex);
             this.TryFlush(token);
+        }
+    }
+
+    // The transport calls this right before it serializes the frame, so frames queued or
+    // waiting to be sent when the server assigned a new UID are still sent with it.
+    private void ApplyAssignedInstanceUid(AgentToServer message)
+    {
+        lock (this.frameLock)
+        {
+            if (this.assignedInstanceUid is { } instanceUid)
+            {
+                message.InstanceUid = instanceUid;
+            }
         }
     }
 

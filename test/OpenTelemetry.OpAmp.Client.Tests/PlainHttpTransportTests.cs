@@ -394,4 +394,36 @@ public class PlainHttpTransportTests
         var serverReceivedHeaders = opAmpServer.GetHeaders();
         Assert.Contains(serverReceivedHeaders, headers => headers["OpAMP-Instance-UID"] == "01234567-89ab-cdef-0123-456789abcdef");
     }
+
+    [Fact]
+    public async Task PlainHttpTransport_CallsBeforeSerializeBeforeSendingTheMessage()
+    {
+        using var opAmpServer = new OpAmpFakeHttpServer(false);
+
+        var settings = new OpAmpClientSettings
+        {
+            ServerUrl = opAmpServer.Endpoint,
+        };
+
+        using var mockListener = new MockListener();
+        var frameProcessor = new FrameProcessor();
+        frameProcessor.Subscribe(mockListener);
+
+        using var httpTransport = new PlainHttpTransport(settings, frameProcessor);
+        byte[] instanceUid =
+        [
+            0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
+            0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
+        ];
+        var mockFrame = FrameGenerator.GenerateMockAgentFrame(false);
+
+        await httpTransport.SendAsync(
+            mockFrame.Frame,
+            CancellationToken.None,
+            message => message.InstanceUid = ByteString.CopyFrom(instanceUid));
+
+        var frame = Assert.Single(opAmpServer.GetFrames());
+        Assert.Equal(instanceUid, frame.InstanceUid.ToByteArray());
+        Assert.Contains(opAmpServer.GetHeaders(), headers => headers["OpAMP-Instance-UID"] == "01234567-89ab-cdef-0123-456789abcdef");
+    }
 }

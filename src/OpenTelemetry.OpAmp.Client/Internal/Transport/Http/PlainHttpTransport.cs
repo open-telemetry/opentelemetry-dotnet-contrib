@@ -34,9 +34,11 @@ internal sealed class PlainHttpTransport : IOpAmpTransport, IDisposable
 
     public bool RequiresResponseBeforeNextSend => true;
 
-    public async Task SendAsync<T>(T message, CancellationToken token)
+    public async Task SendAsync<T>(T message, CancellationToken token, Action<T>? beforeSerialize = null)
         where T : IMessage<T>
     {
+        beforeSerialize?.Invoke(message);
+
         var content = message.ToByteArray();
 
         using var byteContent = new ByteArrayContent(content);
