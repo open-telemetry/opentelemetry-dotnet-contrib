@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+* Fixed `container.id` being reported for processes that are not running in a
+  container on hosts that use systemd, where the name of the unit the process
+  runs in (for example `session-2.scope` or `db.service`) was mistaken for a
+  container id. A systemd unit is now only treated as a container when it was
+  created by a container runtime (for example `docker-<id>.scope`).
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 1.19.1-beta.1
 
 Released 2026-Sep-21

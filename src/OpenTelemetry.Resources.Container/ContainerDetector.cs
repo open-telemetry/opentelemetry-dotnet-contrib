@@ -19,6 +19,12 @@ internal sealed partial class ContainerDetector : IResourceDetector
 
     private static readonly Version SemanticConventionsVersion = new(1, 44, 0);
 
+    // The systemd unit types whose cgroups can contain processes.
+    private static readonly string[] SystemdUnitSuffixes = [".scope", ".service", ".slice", ".socket", ".mount", ".swap"];
+
+    // The prefixes of the systemd units that container runtimes create for containers when they use the systemd cgroup driver.
+    private static readonly string[] ContainerRuntimeUnitPrefixes = ["docker-", "cri-containerd-", "crio-", "libpod-"];
+
     /// <summary>
     /// CGroup Parse Versions.
     /// </summary>
@@ -117,6 +123,12 @@ internal sealed partial class ContainerDetector : IResourceDetector
         }
 
         var lastSection = line.Substring(lastSlashIndex + 1);
+
+        if (IsNonContainerSystemdUnit(lastSection))
+        {
+            return null;
+        }
+
         var startIndex = lastSection.LastIndexOf('-');
         var endIndex = lastSection.LastIndexOf('.');
 
@@ -154,6 +166,38 @@ internal sealed partial class ContainerDetector : IResourceDetector
 
     private static Regex IdFromLineV2Regex() => IdFromLineV2RegexField;
 #endif
+
+    /// <summary>
+    /// Determines whether a cgroup name is a systemd unit that was not created by a container runtime.
+    /// </summary>
+    /// <remarks>
+    /// Processes that are not in a container still run in systemd units, such as a login session (<c>session-2.scope</c>)
+    /// or a service (<c>db.service</c>), whose names can happen to look like a (short) hexadecimal container id once the
+    /// usual prefix and suffix are removed. A unit only represents a container when it was created by a container runtime,
+    /// for example <c>docker-&lt;id&gt;.scope</c>.
+    /// </remarks>
+    /// <param name="cgroupName">The last segment of the cgroup path.</param>
+    /// <returns><see langword="true"/> if the cgroup is a systemd unit that does not belong to a container.</returns>
+    private static bool IsNonContainerSystemdUnit(string cgroupName)
+    {
+        foreach (var suffix in SystemdUnitSuffixes)
+        {
+            if (cgroupName.EndsWith(suffix, StringComparison.Ordinal))
+            {
+                foreach (var prefix in ContainerRuntimeUnitPrefixes)
+                {
+                    if (cgroupName.StartsWith(prefix, StringComparison.Ordinal))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     private static string RemovePrefixAndSuffixIfNeeded(string input, int startIndex, int endIndex)
     {
