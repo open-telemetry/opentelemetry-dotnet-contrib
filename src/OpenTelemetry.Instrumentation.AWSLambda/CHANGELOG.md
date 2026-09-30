@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Fixed multiple invocations that start concurrently in a new execution
+  environment being recorded as `faas.coldstart` as `true`.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 1.19.1
 
 Released 2026-Sep-21
