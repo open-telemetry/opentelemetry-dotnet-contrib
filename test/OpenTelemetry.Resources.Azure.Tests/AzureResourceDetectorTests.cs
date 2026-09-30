@@ -201,6 +201,8 @@ public class AzureResourceDetectorTests
     [Fact]
     public void TestAzureVmResourceDetector()
     {
+        var originalRequestor = AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse;
+
         AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse = () =>
         {
             return new AzureVmMetadataResponse()
@@ -221,7 +223,17 @@ public class AzureResourceDetectorTests
 
         AzureVMResourceDetector.ClearCachedResource();
 
-        var resource = ResourceBuilder.CreateEmpty().AddAzureVMDetector().Build();
+        Resource resource;
+
+        try
+        {
+            resource = ResourceBuilder.CreateEmpty().AddAzureVMDetector().Build();
+        }
+        finally
+        {
+            AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse = originalRequestor;
+            AzureVMResourceDetector.ClearCachedResource();
+        }
 
         Assert.NotNull(resource);
         Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);

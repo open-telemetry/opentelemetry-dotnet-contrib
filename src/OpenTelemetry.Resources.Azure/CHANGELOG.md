@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+* Fixed the Azure VM resource detector's two second timeout not applying to
+  reading the body of the response from the Azure Instance Metadata Service.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
+* A failure of the Azure VM resource detector is now only remembered for one
+  minute instead of for the lifetime of the process, so that a transient
+  failure no longer prevents providers built later from detecting the Azure VM
+  resource attributes.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 1.19.1-beta.2
 
 Released 2026-Sep-24
