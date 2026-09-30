@@ -5,6 +5,11 @@
 * Updated OpenTelemetry core component version(s) to `1.19.1`.
   ([#5329](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5329))
 
+* Fixed the messages of unhandled exceptions being exported as the span status
+  description. Exception messages are now only exported if the `RecordException`
+  option is enabled.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 1.19.0
 
 Released 2026-Sep-18
