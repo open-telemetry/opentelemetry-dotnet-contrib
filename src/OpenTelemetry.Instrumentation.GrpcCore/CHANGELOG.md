@@ -7,7 +7,7 @@
 
 * Fixed failed calls exporting the exception message as the span status
   description. The message is now only recorded when `RecordException` is enabled.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#5448](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5448))
 
 ## 1.0.0-beta.16
 
