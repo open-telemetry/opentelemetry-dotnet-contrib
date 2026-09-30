@@ -7,7 +7,7 @@
   runs in (for example `session-2.scope` or `db.service`) was mistaken for a
   container id. A systemd unit is now only treated as a container when it was
   created by a container runtime (for example `docker-<id>.scope`).
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#5454](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5454))
 
 ## 1.19.1-beta.1
 
