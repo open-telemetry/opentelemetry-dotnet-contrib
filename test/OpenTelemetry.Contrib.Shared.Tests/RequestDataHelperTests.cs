@@ -115,6 +115,29 @@ public class RequestDataHelperTests
 
         Assert.Same(first, second);
     }
+
+    [Fact]
+    public void GetActivityDisplayNameDoesNotCacheMoreThanMaximumNumberOfDisplayNames()
+    {
+        var requestHelper = new RequestDataHelper(configureByHttpKnownMethodsEnvironmentalVariable: false);
+
+        for (var i = 0; i < RequestDataHelper.MaxCachedDisplayNames; i++)
+        {
+            var route = $"/orders/{i}";
+            Assert.Same(requestHelper.GetActivityDisplayName("GET", route), requestHelper.GetActivityDisplayName("GET", route));
+        }
+
+        // Once the cache is full, display names are still returned but are no longer cached.
+        var first = requestHelper.GetActivityDisplayName("GET", "/customers/{id}");
+        var second = requestHelper.GetActivityDisplayName("GET", "/customers/{id}");
+
+        Assert.Equal("GET /customers/{id}", first);
+        Assert.Equal(first, second);
+        Assert.NotSame(first, second);
+
+        // Display names cached before the cache was full are still returned from the cache.
+        Assert.Same(requestHelper.GetActivityDisplayName("GET", "/orders/0"), requestHelper.GetActivityDisplayName("GET", "/orders/0"));
+    }
 #endif
 
     [Theory]
