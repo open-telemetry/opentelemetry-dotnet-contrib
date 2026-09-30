@@ -15,7 +15,19 @@ internal sealed partial class SqlConnectionDetails
     /// </summary>
     private const int RegexTimeoutMs = 1_000;
 
+    /// <summary>
+    /// The maximum number of data sources to cache the details of, so that an application which
+    /// uses many distinct data sources (for example a SQLite database file per tenant) cannot
+    /// cause the cache to grow without bound. Beyond this, data sources are parsed every time.
+    /// </summary>
+    private const int CacheCapacity = 1_000;
+
     private static readonly ConcurrentDictionary<string, SqlConnectionDetails> ConnectionDetailCache = new(StringComparer.OrdinalIgnoreCase);
+
+    // Maintain our own approximate count to avoid ConcurrentDictionary.Count on hot path.
+    // We only increment on successful TryAdd. This may result in a slightly oversized cache
+    // under high concurrency but this is acceptable for this scenario.
+    private static int approxCacheCount;
 
     private DbNamespaceEntry? dbNamespace;
 
@@ -116,8 +128,21 @@ internal sealed partial class SqlConnectionDetails
             connectionDetails = new SqlConnectionDetails();
         }
 
-        ConnectionDetailCache.TryAdd(dataSource, connectionDetails);
-        return connectionDetails;
+        // Fast-path capacity check using our own approximate count to avoid ConcurrentDictionary.Count cost.
+        if (Volatile.Read(ref approxCacheCount) >= CacheCapacity)
+        {
+            return connectionDetails;
+        }
+
+        // Attempt to add when under capacity. Increment our count only on successful add.
+        if (ConnectionDetailCache.TryAdd(dataSource, connectionDetails))
+        {
+            Interlocked.Increment(ref approxCacheCount);
+            return connectionDetails;
+        }
+
+        // If another thread added meanwhile, return the cached value if available.
+        return ConnectionDetailCache.TryGetValue(dataSource, out var existing) ? existing : connectionDetails;
     }
 
     /// <summary>

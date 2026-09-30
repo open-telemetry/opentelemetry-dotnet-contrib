@@ -342,6 +342,68 @@ public class SqlEventSourceTests
         Assert.DoesNotContain(metrics, metric => metric.Name == "db.client.operation.duration");
     }
 
+    [Theory]
+    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource))]
+    [InlineData(typeof(FakeBehavingMdsSqlEventSource))]
+    public void EventSourceMetricsOnlyRecordsDurationWhenActivityIsSampledByAnotherListener(Type eventSourceType)
+    {
+        using var fakeSqlEventSource = (IFakeBehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
+
+        var sourceName = typeof(SqlTelemetryHelper).Assembly.GetName().Name;
+
+        var activities = new List<Activity>();
+        using var listener = new ActivityListener
+        {
+            ActivityStarted = activities.Add,
+            Sample = (ref _) => ActivitySamplingResult.AllData,
+            ShouldListenTo = source => source.Name == sourceName,
+        };
+
+        ActivitySource.AddActivityListener(listener);
+
+        var metrics = new List<Metric>();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(metrics)
+            .Build();
+
+        var dataSource = "127.0.0.1\\instanceName,port";
+        var stopwatch = Stopwatch.StartNew();
+
+        fakeSqlEventSource.WriteBeginExecuteEvent(1, dataSource, "master", "select * from first_table");
+        fakeSqlEventSource.WriteEndExecuteEvent(1, compositeState: 1, sqlExceptionNumber: 0);
+
+        stopwatch.Stop();
+
+        Assert.True(meterProvider.ForceFlush());
+
+        var activity = Assert.Single(activities);
+        Assert.True(activity.IsStopped);
+
+        var metric = Assert.Single(metrics, m => m.Name == "db.client.operation.duration");
+
+        var metricPoints = new List<MetricPoint>();
+        foreach (var metricPoint in metric.GetMetricPoints())
+        {
+            metricPoints.Add(metricPoint);
+        }
+
+        var point = Assert.Single(metricPoints);
+        Assert.Equal(1, point.GetHistogramCount());
+        Assert.InRange(point.GetHistogramSum(), 0, stopwatch.Elapsed.TotalSeconds);
+
+        string? querySummary = null;
+        foreach (var tag in point.Tags)
+        {
+            if (tag.Key == SemanticConventions.AttributeDbQuerySummary)
+            {
+                querySummary = tag.Value as string;
+            }
+        }
+
+        Assert.Equal("select first_table", querySummary);
+    }
+
     private static void VerifyActivityData(
         string commandText,
         bool isFailure,

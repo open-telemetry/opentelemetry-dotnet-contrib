@@ -5,6 +5,38 @@
 * Updated OpenTelemetry core component version(s) to `1.19.1`.
   ([#5329](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5329))
 
+* Fixed exception messages being exported as the span status description on .NET.
+  The message is still recorded when `RecordException` is enabled.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
+* Fixed query sanitization so that literals are no longer left unsanitized in
+  `db.statement`, `db.query.text` and `db.query.summary` after a quote inside a
+  quoted identifier or inside an array in a `FROM` clause.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
+* Fixed query sanitization of nested block comments, PostgreSQL escape strings
+  (`E'...'`), Oracle alternative quoting (`q'[...]'`), MySQL/MariaDB `#`
+  comments, and of MySQL/MariaDB double-quoted strings, quoted identifiers and
+  dollar-quoted strings inside `IN (...)` lists.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
+* Fixed query sanitization so that the whole of a quoted login or user name
+  (for example `CREATE LOGIN [COMPANY\name]`) is redacted.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
+* Fixed `db.query.summary` treating a word which only differs from a keyword
+  by its first character (for example `Xrom`) as that keyword.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
+* Fixed the cache of parsed data sources growing without bound when many
+  distinct data sources are used.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
+* Fixed .NET Framework `db.client.operation.duration` metrics not being
+  recorded when only metrics are enabled and another `ActivityListener` samples
+  the command's activity.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 1.19.0
 
 Released 2026-Sep-18

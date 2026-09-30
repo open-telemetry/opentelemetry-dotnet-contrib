@@ -268,9 +268,10 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                     {
                         if (activity.IsAllDataRequested)
                         {
-                            if (this.exceptionFetcher.Fetch(payload) is Exception exception)
+                            if (this.exceptionFetcher.Fetch(payload) is { } exception)
                             {
-                                activity.SetStatus(ActivityStatusCode.Error, exception.Message);
+                                activity.SetStatus(ActivityStatusCode.Error);
+                                activity.SetTag(SemanticConventions.AttributeErrorType, exception.GetType().FullName);
                             }
                             else
                             {
