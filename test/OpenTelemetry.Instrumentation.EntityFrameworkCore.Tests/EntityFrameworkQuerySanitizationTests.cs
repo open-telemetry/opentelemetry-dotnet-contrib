@@ -58,8 +58,8 @@ public sealed class EntityFrameworkQuerySanitizationTests : IDisposable
         var queryText = this.GetQueryText(exported[0]);
         var control = this.GetQueryText(exported[1]);
 
-        // The query executed against SQLite contains the column "Nom de l'entreprise"...
-        Assert.Contains("\"a\".\"Nom de l'entreprise\"", queryText, StringComparison.Ordinal);
+        // The query executed against SQLite contains the column "Nom de l'enterprise"...
+        Assert.Contains("\"a\".\"Nom de l'enterprise\"", queryText, StringComparison.Ordinal);
 
         // ...and the API key literal is replaced by the placeholder.
         Assert.DoesNotContain(ApiKey, queryText, StringComparison.Ordinal);
@@ -93,7 +93,7 @@ public sealed class EntityFrameworkQuerySanitizationTests : IDisposable
         var control = this.GetQueryText(exported[1]);
 
         Assert.Equal("mysql", exported[0].GetTagValue(SemanticConventions.AttributeDbSystem));
-        Assert.Contains("`a`.`Nom de l'entreprise`", queryText, StringComparison.Ordinal);
+        Assert.Contains("`a`.`Nom de l'enterprise`", queryText, StringComparison.Ordinal);
         Assert.DoesNotContain("@example.com", queryText, StringComparison.Ordinal);
         Assert.Contains("IN (?)", queryText, StringComparison.Ordinal);
 
@@ -228,7 +228,7 @@ public sealed class EntityFrameworkQuerySanitizationTests : IDisposable
     {
         public int Id { get; set; }
 
-        [Column("Nom de l'entreprise")]
+        [Column("Nom de l'enterprise")]
         public string Company { get; set; } = default!;
 
         public string OwnerEmail { get; set; } = "owner@example.com";

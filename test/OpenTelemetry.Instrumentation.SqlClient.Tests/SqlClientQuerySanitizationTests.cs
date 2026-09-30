@@ -46,13 +46,13 @@ public class SqlClientQuerySanitizationTests(ITestOutputHelper output)
 
         foreach (var customer in Customers)
         {
-            Execute(Statement("Nom de l'entreprise", customer));
+            Execute(Statement("Nom de l'enterprise", customer));
         }
 
         // Control: the same statements with an apostrophe-free column name.
         foreach (var customer in Customers)
         {
-            Execute(Statement("NomEntreprise", customer));
+            Execute(Statement("NomEnterprise", customer));
         }
 
         tracerProvider.ForceFlush();
@@ -72,7 +72,7 @@ public class SqlClientQuerySanitizationTests(ITestOutputHelper output)
 
             // The literal is sanitized, and the span name is derived from the table name only.
             Assert.DoesNotContain(Customers[i], queryText, StringComparison.Ordinal);
-            Assert.Equal("SELECT [a].[Id], [a].[Nom de l'entreprise] FROM [Accounts] AS [a] WHERE [a].[Note] = ?", queryText);
+            Assert.Equal("SELECT [a].[Id], [a].[Nom de l'enterprise] FROM [Accounts] AS [a] WHERE [a].[Note] = ?", queryText);
             Assert.Equal("SELECT [Accounts]", activity.DisplayName);
             Assert.Equal("SELECT [Accounts]", activity.GetTagValue(SemanticConventions.AttributeDbQuerySummary));
 
