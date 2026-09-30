@@ -32,7 +32,7 @@ internal static class ServiceFabricRemotingUtils
         {
             return null;
         }
-        catch (TypeInitializationException ex) when (ex.InnerException is DllNotFoundException)
+        catch (TypeInitializationException ex) when (IsServiceFabricRuntimeUnavailable(ex))
         {
             return null;
         }
@@ -58,5 +58,21 @@ internal static class ServiceFabricRemotingUtils
         }
 
         return [];
+    }
+
+    private static bool IsServiceFabricRuntimeUnavailable(TypeInitializationException exception)
+    {
+        // How a missing runtime surfaces depends on the platform: on Windows the native library is not
+        // found, but on Linux the interop module's type initializer fails to load a type it depends on,
+        // and either may be wrapped in several type initialization exceptions.
+        for (var inner = exception.InnerException; inner != null; inner = inner.InnerException)
+        {
+            if (inner is DllNotFoundException or TypeLoadException)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
