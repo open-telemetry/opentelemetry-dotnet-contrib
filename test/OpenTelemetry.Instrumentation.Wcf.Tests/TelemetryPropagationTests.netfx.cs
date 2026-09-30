@@ -28,15 +28,15 @@ public class TelemetryPropagationTests
     {
         using var context = new ServiceHostContext();
 
+        var startedActivities = new ConcurrentDictionary<Activity, bool>();
         var stoppedActivities = new ConcurrentBag<Activity>();
         using var activityListener = new ActivityListener
         {
             ShouldListenTo = _ => true,
+            ActivityStarted = activity => startedActivities.TryAdd(activity, true),
             ActivityStopped = stoppedActivities.Add,
         };
         ActivitySource.AddActivityListener(activityListener);
-
-        var testStartTimeUtc = DateTime.UtcNow;
 
         var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddWcfInstrumentation(options => options.SuppressDownstreamInstrumentation = suppressDownstreamInstrumentation)
@@ -83,7 +83,7 @@ public class TelemetryPropagationTests
             relevantActivities =
             [
                 .. stoppedActivities.Where(activity =>
-                    activity.StartTimeUtc >= testStartTimeUtc &&
+                    startedActivities.ContainsKey(activity) &&
                     activity.OperationName.StartsWith("OpenTelemetry.Instrumentation.Wcf.", StringComparison.Ordinal)),
             ];
             if (relevantActivities.Count >= 2 || DateTime.UtcNow >= deadline)
