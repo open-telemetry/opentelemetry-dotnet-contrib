@@ -424,10 +424,20 @@ public partial class HttpClientTests
             Assert.Equal("s", metric.Unit);
             Assert.Equal(MetricType.Histogram, metric.MetricType);
 
+            // As for activities, restrict to metric points for this test's own target host.
+            var testHost = new Uri(testUrl).Host;
             var metricPoints = new List<MetricPoint>();
             foreach (var p in metric.GetMetricPoints())
             {
-                metricPoints.Add(p);
+                foreach (var tag in p.Tags)
+                {
+                    if (tag.Key == SemanticConventions.AttributeServerAddress &&
+                        string.Equals(tag.Value as string, testHost, StringComparison.Ordinal))
+                    {
+                        metricPoints.Add(p);
+                        break;
+                    }
+                }
             }
 
             var metricPoint = Assert.Single(metricPoints);

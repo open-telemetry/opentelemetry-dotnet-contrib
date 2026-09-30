@@ -79,8 +79,11 @@ public partial class HttpWebRequestTests
             tc.ResponseExpected = false;
         }
 
-        Assert.Single(exportedItems);
-        var activity = exportedItems[0];
+        // The HTTP instrumentation observes every outgoing request in the process, so restrict
+        // to activities for this test's own target host to avoid picking up unrelated requests.
+        var activity = Assert.Single(
+            exportedItems,
+            candidate => string.Equals(candidate.GetTagItem(SemanticConventions.AttributeServerAddress) as string, new Uri(tc.Url).Host, StringComparison.Ordinal));
         ValidateHttpWebRequestActivity(activity);
         Assert.Equal(tc.SpanName, activity.DisplayName);
 
