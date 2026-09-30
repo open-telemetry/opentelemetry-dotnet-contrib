@@ -8,7 +8,7 @@
 * Fixed the messages of unhandled exceptions being exported as the span status
   description. Exception messages are now only exported if the `RecordException`
   option is enabled.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#5432](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5432))
 
 ## 1.19.0
 
