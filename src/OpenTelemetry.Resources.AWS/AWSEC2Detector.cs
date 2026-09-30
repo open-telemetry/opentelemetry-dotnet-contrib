@@ -20,6 +20,8 @@ internal sealed class AWSEC2Detector : IResourceDetector
     private const string AWSEC2HostNameUrl = "http://169.254.169.254/latest/meta-data/hostname";
     private const string AWSEC2IdentityDocumentUrl = "http://169.254.169.254/latest/dynamic/instance-identity/document";
 
+    private static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(1);
+
     private readonly AWSSemanticConventions semanticConventionBuilder;
 
     public AWSEC2Detector(AWSSemanticConventions semanticConventionBuilder)
@@ -81,7 +83,7 @@ internal sealed class AWSEC2Detector : IResourceDetector
     }
 
     private static string GetAWSEC2Token()
-        => ResourceDetectorUtils.SendOutRequest(AWSEC2MetadataTokenUrl, HttpMethod.Put, new KeyValuePair<string, string>(AWSEC2MetadataTokenTTLHeader, "60"));
+        => ResourceDetectorUtils.SendOutRequest(AWSEC2MetadataTokenUrl, HttpMethod.Put, new KeyValuePair<string, string>(AWSEC2MetadataTokenTTLHeader, "60"), RequestTimeout);
 
     private static AWSEC2IdentityDocumentModel? GetAWSEC2Identity(string token)
     {
@@ -92,8 +94,8 @@ internal sealed class AWSEC2Detector : IResourceDetector
     }
 
     private static string GetIdentityResponse(string token)
-        => ResourceDetectorUtils.SendOutRequest(AWSEC2IdentityDocumentUrl, HttpMethod.Get, new KeyValuePair<string, string>(AWSEC2MetadataTokenHeader, token));
+        => ResourceDetectorUtils.SendOutRequest(AWSEC2IdentityDocumentUrl, HttpMethod.Get, new KeyValuePair<string, string>(AWSEC2MetadataTokenHeader, token), RequestTimeout);
 
     private static string GetAWSEC2HostName(string token)
-        => ResourceDetectorUtils.SendOutRequest(AWSEC2HostNameUrl, HttpMethod.Get, new KeyValuePair<string, string>(AWSEC2MetadataTokenHeader, token));
+        => ResourceDetectorUtils.SendOutRequest(AWSEC2HostNameUrl, HttpMethod.Get, new KeyValuePair<string, string>(AWSEC2MetadataTokenHeader, token), RequestTimeout);
 }
