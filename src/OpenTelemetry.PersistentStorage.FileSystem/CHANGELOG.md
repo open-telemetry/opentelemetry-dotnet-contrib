@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+* Fixed `FileBlobProvider` deleting or renaming files with a `.blob`, `.tmp`
+  or `.lock` extension that it did not create when its storage directory is
+  shared with other files. Only files named the way `FileBlobProvider` names
+  its blobs, and the temporary and lease files derived from them, are now
+  removed or renamed when the storage is maintained.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 1.1.1
 
 Released 2026-Jul-17

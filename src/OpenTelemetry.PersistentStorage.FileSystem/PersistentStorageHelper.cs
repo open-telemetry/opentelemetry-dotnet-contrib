@@ -11,9 +11,12 @@ namespace OpenTelemetry.PersistentStorage.FileSystem;
 
 internal static class PersistentStorageHelper
 {
+    private const string BlobExtension = ".blob";
+    private const string TimestampFormat = "yyyy-MM-ddTHHmmss.fffffffZ";
+
     internal static void RemoveExpiredBlob(DateTime retentionDeadline, string filePath)
     {
-        if (filePath.EndsWith(".blob", StringComparison.OrdinalIgnoreCase))
+        if (filePath.EndsWith(BlobExtension, StringComparison.OrdinalIgnoreCase) && IsBlobFileName(GetFileName(filePath)))
         {
             var fileDateTime = GetDateTimeFromBlobName(filePath);
             if (fileDateTime < retentionDeadline)
@@ -35,7 +38,7 @@ internal static class PersistentStorageHelper
     {
         var success = false;
 
-        if (filePath.EndsWith(".lock", StringComparison.OrdinalIgnoreCase))
+        if (filePath.EndsWith(".lock", StringComparison.OrdinalIgnoreCase) && IsLeaseFileName(GetFileName(filePath)))
         {
             var fileDateTime = GetDateTimeFromLeaseName(filePath);
             if (fileDateTime < leaseDeadline)
@@ -66,7 +69,7 @@ internal static class PersistentStorageHelper
     {
         var success = false;
 
-        if (filePath.EndsWith(".tmp", StringComparison.OrdinalIgnoreCase))
+        if (filePath.EndsWith(".tmp", StringComparison.OrdinalIgnoreCase) && IsTemporaryFileName(GetFileName(filePath)))
         {
             var fileDateTime = GetDateTimeFromBlobName(filePath);
             if (fileDateTime < timeoutDeadline)
@@ -139,6 +142,31 @@ internal static class PersistentStorageHelper
     internal static string GetUniqueFileName(string extension)
         => string.Format(CultureInfo.InvariantCulture, $"{DateTime.UtcNow:yyyy-MM-ddTHHmmss.fffffffZ}-{Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture)}{extension}");
 
+    /// <summary>
+    /// Determines whether a file name is the name of a blob created by <see cref="FileBlobProvider"/>.
+    /// </summary>
+    /// <remarks>
+    /// The storage directory can be shared with files that were not created by this component. Only files with the names
+    /// this component gives its blobs (<c>{timestamp}-{guid}.blob</c>), and the temporary and lease files derived from them,
+    /// may be removed or renamed when the storage is maintained.
+    /// </remarks>
+    /// <param name="fileName">The file name, without any directory.</param>
+    /// <returns><see langword="true"/> if the file name is the name of a blob; otherwise <see langword="false"/>.</returns>
+    internal static bool IsBlobFileName(string fileName)
+    {
+        if (!fileName.EndsWith(BlobExtension, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var name = fileName.Substring(0, fileName.Length - BlobExtension.Length);
+        var dashIndex = name.LastIndexOf('-');
+
+        return dashIndex > 0
+            && Guid.TryParseExact(name.Substring(dashIndex + 1), "N", out _)
+            && DateTime.TryParseExact(name.Substring(0, dashIndex), TimestampFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out _);
+    }
+
     internal static string CreateSubdirectory(string path)
     {
         Directory.CreateDirectory(path);
@@ -168,10 +196,23 @@ internal static class PersistentStorageHelper
         return Parse(timestamp);
     }
 
-    private static string GetFileNameWithoutExtension(string filePath)
-    {
-        var fileName = Path.GetFileNameWithoutExtension(filePath);
+    private static bool IsTemporaryFileName(string fileName)
+        => IsBlobFileName(Path.GetFileNameWithoutExtension(fileName));
 
+    private static bool IsLeaseFileName(string fileName)
+    {
+        var atSignIndex = fileName.LastIndexOf('@');
+        return atSignIndex > 0 && IsBlobFileName(fileName.Substring(0, atSignIndex));
+    }
+
+    private static string GetFileName(string filePath)
+        => RemoveWindowsDirectory(Path.GetFileName(filePath));
+
+    private static string GetFileNameWithoutExtension(string filePath)
+        => RemoveWindowsDirectory(Path.GetFileNameWithoutExtension(filePath));
+
+    private static string RemoveWindowsDirectory(string fileName)
+    {
 #if !NETFRAMEWORK
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
@@ -190,7 +231,7 @@ internal static class PersistentStorageHelper
 
     private static DateTime Parse(string timestamp)
     {
-        if (!DateTime.TryParseExact(timestamp, "yyyy-MM-ddTHHmmss.fffffffZ", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var dateTime))
+        if (!DateTime.TryParseExact(timestamp, TimestampFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var dateTime))
         {
             // In case of failure, return DateTime.MinValue so that the lease file can be removed as expired
             return DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc);
