@@ -5,6 +5,12 @@
 * Updated OpenTelemetry core component version(s) to `1.19.1`.
   ([#5329](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5329))
 
+* Fixed `error.type` not being set to the response status code on server spans
+  and on the `http.server.request.duration` metric (.NET Framework and
+  .NET Standard only) when a request completes with a 5xx status code without
+  an unhandled exception.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 1.19.0
 
 Released 2026-Sep-18
