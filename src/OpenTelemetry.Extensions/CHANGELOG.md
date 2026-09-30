@@ -7,6 +7,14 @@
   its configured timeout.
   ([#2721](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/2721))
 
+* Fixed the log record processor added by `AddBaggageProcessor()` adding
+  baggage entries ahead of, and with the same keys as, the attributes of the
+  log record. Baggage can be set by callers, so an entry with the same key as
+  an attribute of the log record could shadow the application's value. The
+  log record's own attributes now come first and baggage entries whose keys
+  are already present are skipped.
+  ([#5431](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5431))
+
 * Added `W3CTraceState`, an immutable parsed view of a W3C `tracestate` header
   exposing the get, add, update and delete operations the OpenTelemetry
   [tracing API](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.60.0/specification/trace/api.md#tracestate)

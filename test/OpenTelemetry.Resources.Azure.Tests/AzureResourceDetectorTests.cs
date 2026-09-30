@@ -11,6 +11,8 @@ using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Resources.Azure.Tests;
 
+[Collection(nameof(AzureResourceDetectorTests))]
+[CollectionDefinition(nameof(AzureResourceDetectorTests), DisableParallelization = true)]
 public class AzureResourceDetectorTests
 {
     // See https://learn.microsoft.com/azure/virtual-machines/instance-metadata-service

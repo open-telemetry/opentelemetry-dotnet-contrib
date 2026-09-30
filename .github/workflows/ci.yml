@@ -180,7 +180,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Exporter.Geneva]
       code-cov-name: Exporter.Geneva
-      test-case-filter: CategoryName=Geneva:user_events:metrics
+      test-case-filter: CategoryName=Geneva:user_events
       test-require-elevated: true
       pack: false
       trigger: ${{ github.event_name }}
