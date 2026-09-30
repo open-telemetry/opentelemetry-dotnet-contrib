@@ -7,7 +7,7 @@ namespace OpenTelemetry.Trace;
 
 /// <summary>
 /// Holds a W3C
-/// <see href="https://www.w3.org/TR/2021/REC-trace-context-1-20211123/#tracestate-header">
+/// <see href="https://www.w3.org/TR/2024/CRD-trace-context-2-20240328/#tracestate-header">
 /// <c>tracestate</c></see> header in parsed form, so that a sampler or a propagator can read and
 /// change one entry without hand-writing the syntax rules that come with the header. Those are the
 /// get, add, update and delete operations the OpenTelemetry
@@ -73,8 +73,7 @@ public sealed class W3CTraceState
     public static W3CTraceState Parse(string? tracestate) => ParseCore(tracestate, out _);
 
     /// <summary>
-    /// Parses a W3C <c>tracestate</c> value and reports whether an invalid or repeated member was
-    /// discarded.
+    /// Parses a W3C <c>tracestate</c> value.
     /// </summary>
     /// <param name="tracestate">
     /// The <c>tracestate</c> value.
@@ -85,13 +84,9 @@ public sealed class W3CTraceState
     /// </param>
     /// <returns>
     /// <see langword="false"/> when a member was discarded because it was not a well-formed
-    /// key-value pair or repeated a key; otherwise <see langword="true"/>.
+    /// key-value pair or repeated a key, or when the header has more than 32 members, empty ones
+    /// included; otherwise <see langword="true"/>.
     /// </returns>
-    /// <remarks>
-    /// Once 32 members are kept the rest of the header is dropped without being examined, so a
-    /// header of 40 valid pairs keeps the first 32 and reports <see langword="true"/>. A header that
-    /// is absent, empty or carries only empty members also reports <see langword="true"/>.
-    /// </remarks>
     public static bool TryParse(string? tracestate, out W3CTraceState state)
     {
         state = ParseCore(tracestate, out var isValid);
@@ -265,6 +260,18 @@ public sealed class W3CTraceState
         }
 
         var remaining = tracestate.AsSpan();
+
+        // list = list-member 0*31( OWS "," OWS list-member ), and an empty list-member counts too.
+        var separators = 0;
+        foreach (var ch in remaining)
+        {
+            if (ch == ',' && ++separators == MaxMembers)
+            {
+                isValid = false;
+                break;
+            }
+        }
+
         var count = CountMembers(remaining);
         var members = count == 0 ? [] : new Member[count];
         var written = 0;

@@ -8,7 +8,7 @@ namespace OpenTelemetry.Extensions.Tests.Trace;
 public class W3CTraceStateTests
 {
     // "There can be a maximum of 32 list-members in a list."
-    // https://www.w3.org/TR/2021/REC-trace-context-1-20211123/#tracestate-header
+    // https://www.w3.org/TR/2024/CRD-trace-context-2-20240328/#tracestate-header
     private const int MaxMembers = 32;
 
     // key = ( lcalpha / DIGIT ) 0*255 ( keychar ), so 256 characters is the maximum.
@@ -137,12 +137,47 @@ public class W3CTraceStateTests
                                         .Select(static index => $"vendor{index}=value")
                                         .ToArray();
 
-        Assert.True(W3CTraceState.TryParse(string.Join(",", incomingMembers), out var state));
+        Assert.False(W3CTraceState.TryParse(string.Join(",", incomingMembers), out var state));
 
         var outgoingMembers = state.ToString().Split(',');
 
         Assert.Equal(MaxMembers, outgoingMembers.Length);
         Assert.Equal(incomingMembers.Take(MaxMembers), outgoingMembers);
+    }
+
+    [Fact]
+    public void TryParse_WithMoreEmptyMembersThanTheMax_ReturnsFalse()
+    {
+        // list-member = (key "=" value) / OWS, so empty members count toward the maximum.
+        Assert.False(W3CTraceState.TryParse(new string(',', MaxMembers), out var state));
+
+        Assert.Equal(string.Empty, state.ToString());
+    }
+
+    [Fact]
+    public void TryParse_WithAMalformedMemberPastTheMax_ReturnsFalse()
+    {
+        var incomingMembers = Enumerable.Range(0, MaxMembers)
+                                        .Select(static index => $"vendor{index}=value")
+                                        .Concat(["malformed"])
+                                        .ToArray();
+
+        Assert.False(W3CTraceState.TryParse(string.Join(",", incomingMembers), out var state));
+
+        Assert.Equal(incomingMembers.Take(MaxMembers), state.ToString().Split(','));
+    }
+
+    [Fact]
+    public void TryParse_AtMaxMembersWithAnEmptyOne_ReturnsTrue()
+    {
+        var incomingMembers = Enumerable.Range(0, MaxMembers - 1)
+                                        .Select(static index => $"vendor{index}=value")
+                                        .Concat([string.Empty])
+                                        .ToArray();
+
+        Assert.True(W3CTraceState.TryParse(string.Join(",", incomingMembers), out var state));
+
+        Assert.Equal(incomingMembers.Take(MaxMembers - 1), state.ToString().Split(','));
     }
 
     [Fact]

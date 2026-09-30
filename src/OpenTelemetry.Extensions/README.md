@@ -165,7 +165,7 @@ builder.Services.AddOpenTelemetry()
 ### W3CTraceState
 
 `W3CTraceState` is an immutable, parsed view of a W3C
-[`tracestate`](https://www.w3.org/TR/2021/REC-trace-context-1-20211123/#tracestate-header)
+[`tracestate`](https://www.w3.org/TR/2024/CRD-trace-context-2-20240328/#tracestate-header)
 header. It exposes the get, add, update and delete operations the OpenTelemetry
 [tracing API](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.60.0/specification/trace/api.md#tracestate)
 specification defines for `TraceState`, which .NET otherwise surfaces only as the
@@ -180,9 +180,8 @@ is malformed, or is a repeated key, is dropped as the header is parsed,
 so the state is always a valid `tracestate`. Valid members this instance
 did not generate are kept in place.
 
-Use `TryParse` where a caller wants to know that the header was not fully
-valid: it returns `false` only when an invalid or repeated member was dropped,
-with the valid remainder in the `out` parameter.
+Use `TryParse` where a caller wants to know whether the header was valid; the
+`out` parameter holds the valid members either way.
 
 Example of `W3CTraceState` usage in a custom sampler:
 
