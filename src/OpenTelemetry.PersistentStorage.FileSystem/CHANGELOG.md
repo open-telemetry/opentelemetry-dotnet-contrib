@@ -7,7 +7,7 @@
   shared with other files. Only files named the way `FileBlobProvider` names
   its blobs, and the temporary and lease files derived from them, are now
   removed or renamed when the storage is maintained.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#5451](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5451))
 
 ## 1.1.1
 
