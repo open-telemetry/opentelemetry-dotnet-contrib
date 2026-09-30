@@ -258,22 +258,27 @@ internal static class SqlProcessor
 
         while (state.ParsePosition < sqlSpan.Length)
         {
-            if (SkipComment(sqlSpan, ref state))
+            // Most tokens are keywords or identifiers, and a token which starts with an ASCII letter
+            // cannot be a comment, a literal or whitespace, so those checks are skipped for it.
+            if (!char.IsAsciiLetter(sqlSpan[state.ParsePosition]))
             {
-                continue;
-            }
+                if (SkipComment(sqlSpan, ref state))
+                {
+                    continue;
+                }
 
-            if (SanitizeStringLiteral(sqlSpan, buffer, ref state) ||
-                SanitizeDollarQuotedLiteral(sqlSpan, buffer, ref state) ||
-                SanitizeHexLiteral(sqlSpan, buffer, ref state) ||
-                SanitizeNumericLiteral(sqlSpan, buffer, ref state))
-            {
-                continue;
-            }
+                if (SanitizeStringLiteral(sqlSpan, buffer, ref state) ||
+                    SanitizeDollarQuotedLiteral(sqlSpan, buffer, ref state) ||
+                    SanitizeHexLiteral(sqlSpan, buffer, ref state) ||
+                    SanitizeNumericLiteral(sqlSpan, buffer, ref state))
+                {
+                    continue;
+                }
 
-            if (ParseWhitespace(sqlSpan, buffer, ref state))
-            {
-                continue;
+                if (ParseWhitespace(sqlSpan, buffer, ref state))
+                {
+                    continue;
+                }
             }
 
             // Reaching the summary length limit must not change how the statement itself is
@@ -717,41 +722,26 @@ internal static class SqlProcessor
 
     private static int FindBracketedIdentifierEnd(ReadOnlySpan<char> sql, int start, ref ParseState state)
     {
-        if (state.NoTerminatingEscapedIdentifierAhead || IsArraySubscriptOrConstructor(sql, start, in state))
+        // SQL Server limits identifiers to 128 characters, so the closing bracket must be within that length.
+        var searchEnd = Math.Min(sql.Length, start + MaxBracketedIdentifierLength + 2);
+        var i = FindNextCloseSquareBracket(sql, start + 1, ref state);
+
+        if (i >= searchEnd || IsArraySubscriptOrConstructor(sql, start, in state))
         {
             return -1;
         }
 
-        // SQL Server limits identifiers to 128 characters, so the closing bracket is only searched for
-        // that far. This also bounds the search for each bracket which does not start an identifier.
-        var searchEnd = Math.Min(sql.Length, start + MaxBracketedIdentifierLength + 2);
-        var i = start + 1;
-
         while (i < searchEnd)
         {
-            var index = sql.Slice(i, searchEnd - i).IndexOf(CloseSquareBracketChar);
-            if (index < 0)
-            {
-                break;
-            }
-
-            i += index;
-
             // A doubled closing bracket (]]) is an escaped bracket within the identifier.
             if (i + 1 < sql.Length && sql[i + 1] == CloseSquareBracketChar)
             {
-                i += 2;
+                i = FindNextCloseSquareBracket(sql, i + 2, ref state);
                 continue;
             }
 
             // A name which is going to be redacted is always treated as an identifier, as none of it is copied.
             return (state.SanitizeNextNonKeywordToken || IsBracketedIdentifier(sql.Slice(start + 1, i - start - 1))) ? i : -1;
-        }
-
-        if (searchEnd == sql.Length)
-        {
-            // Avoid searching to the end of the input again for any later bracket.
-            state.NoTerminatingEscapedIdentifierAhead = true;
         }
 
         return -1;
@@ -789,6 +779,26 @@ internal static class SqlProcessor
                 ? !StartsWithNumber(content)
                 : (singleQuotes & 1) == 1 && content[0] != SingleQuoteChar;
         }
+    }
+
+    /// <summary>
+    /// Finds the first <c>]</c> at or after <paramref name="from"/>, or returns the length of the input if there is none.
+    /// </summary>
+    /// <remarks>
+    /// The result is cached, so that a run of brackets which do not start an identifier (e.g. <c>[[[[</c>) does not
+    /// search the same characters again. It is only reused for a position between the one it was found from and
+    /// the bracket it found, so it remains correct if a caller searches from an earlier position.
+    /// </remarks>
+    private static int FindNextCloseSquareBracket(ReadOnlySpan<char> sql, int from, ref ParseState state)
+    {
+        if (from < state.CloseSquareBracketSearchStart || from > state.NextCloseSquareBracket)
+        {
+            var index = from < sql.Length ? sql.Slice(from).IndexOf(CloseSquareBracketChar) : -1;
+            state.CloseSquareBracketSearchStart = from;
+            state.NextCloseSquareBracket = index < 0 ? sql.Length : from + index;
+        }
+
+        return state.NextCloseSquareBracket;
     }
 
     private static bool StartsWithNumber(ReadOnlySpan<char> value)
@@ -1390,7 +1400,7 @@ internal static class SqlProcessor
             // (for example "IN ('a)b', 'secret')"), which would leave the parser positioned in the
             // middle of that literal. Every subsequent quote would then be mismatched and the
             // remaining values would be copied into the sanitized SQL verbatim instead of being replaced.
-            if (TryFindEndOfInClause(sql, parsePosition, ref state, out var closeParenIndex))
+            if (TryFindEndOfInClause(sql, parsePosition, in state, out var closeParenIndex))
             {
                 state.ParsePosition = closeParenIndex;
                 buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
@@ -1411,8 +1421,12 @@ internal static class SqlProcessor
     /// <see langword="false"/> if the clause is not terminated, in which case the caller
     /// falls back to sanitizing each value individually.
     /// </returns>
-    private static bool TryFindEndOfInClause(ReadOnlySpan<char> sql, int start, ref ParseState state, out int closeParenIndex)
+    private static bool TryFindEndOfInClause(ReadOnlySpan<char> sql, int start, in ParseState state, out int closeParenIndex)
     {
+        // The list is scanned ahead of the parser, which continues from its start if it is not
+        // terminated, so anything the scan records about later positions (such as there being no
+        // closing delimiter ahead) is kept in a copy of the state rather than the parser's own.
+        var scanState = state;
         var length = sql.Length;
         var i = start;
 
@@ -1454,7 +1468,7 @@ internal static class SqlProcessor
                 case BacktickChar:
                 case OpenSquareBracketChar:
                     // A delimiter which does not start a quoted identifier is parsed as a single character.
-                    end = FindQuotedIdentifierEnd(sql, i, ref state);
+                    end = FindQuotedIdentifierEnd(sql, i, ref scanState);
                     i = end < 0 ? i + 1 : end + 1;
                     break;
 
@@ -1508,6 +1522,10 @@ internal static class SqlProcessor
         // This tracks the end position of the previous keyword matched by the parser.
         public int PreviousKeywordEndPosition; // 4 bytes
 
+        // The first ']' found at or after CloseSquareBracketSearchStart, or the length of the input if there is none.
+        public int CloseSquareBracketSearchStart; // 4 bytes
+        public int NextCloseSquareBracket; // 4 bytes
+
         // NOTE: If the number of bool fields increases significantly, consider combining into a bitfield.
 
         public bool CaptureNextNonKeywordTokenAsIdentifier; // 1 byte
@@ -1520,11 +1538,6 @@ internal static class SqlProcessor
         /// other dialect differences described by <see cref="GetSanitizedSql(string?, bool)"/>.
         /// </summary>
         public bool UseBackslashEscapes; // 1 byte
-
-        /// <summary>
-        /// Used to avoid repeatedly scanning to the end of malformed SQL after finding an unterminated escaped identifier.
-        /// </summary>
-        public bool NoTerminatingEscapedIdentifierAhead; // 1 byte
 
         /// <summary>
         /// Used to avoid repeatedly scanning to the end of malformed SQL after finding an unterminated double-quoted identifier.

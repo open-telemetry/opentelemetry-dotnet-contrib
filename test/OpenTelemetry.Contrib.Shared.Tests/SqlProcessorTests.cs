@@ -106,6 +106,20 @@ public class SqlProcessorTests(ITestOutputHelper output)
         Assert.Equal("SELECT * FROM Users WHERE Name IN (?)", control.SanitizedSql);
     }
 
+    [Theory]
+    [InlineData("SELECT * FROM Users WHERE Id IN (1, [Manager's Approval] = 'secret-name' AND Name = [", "[Manager's Approval]")]
+    [InlineData("SELECT * FROM Users WHERE Id IN (1, \"Manager's Approval\" = 'secret-name' AND Name = \"", "\"Manager's Approval\"")]
+    [InlineData("SELECT * FROM Users WHERE Id IN (1, `Manager's Approval` = 'secret-name' AND Name = `", "`Manager's Approval`")]
+    public void GetSanitizedSql_UnterminatedInClause_QuotedIdentifiersInItAreStillParsedAsIdentifiers(string sql, string identifier)
+    {
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.Contains($"{identifier} = ? AND Name = ", sqlStatementInfo.SanitizedSql);
+    }
+
     [Fact]
     public void GetSanitizedSql_InClauseLiteralContainingCloseParen_DoesNotLeakPersonalData()
     {
