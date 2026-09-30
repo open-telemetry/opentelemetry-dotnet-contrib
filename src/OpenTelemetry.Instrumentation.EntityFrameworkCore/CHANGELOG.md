@@ -4,30 +4,30 @@
 
 * Fixed exception messages being exported as the span status description.
   The `error.type` attribute is now set to the type of the exception instead.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#5447](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5447))
 
 * Fixed query sanitization so that literals are no longer left unsanitized in
   `db.statement`, `db.query.text` and `db.query.summary` after a quote inside a
   quoted identifier or inside an array in a `FROM` clause.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#5447](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5447))
 
 * Fixed query sanitization of nested block comments, PostgreSQL escape strings
   (`E'...'`), Oracle alternative quoting (`q'[...]'`), MySQL/MariaDB `#`
   comments, and of MySQL/MariaDB double-quoted strings, quoted identifiers and
   dollar-quoted strings inside `IN (...)` lists.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#5447](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5447))
 
 * Fixed query sanitization so that the whole of a quoted login or user name
   (for example `CREATE LOGIN [COMPANY\name]`) is redacted.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#5447](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5447))
 
 * Fixed `db.query.summary` treating a word which only differs from a keyword
   by its first character (for example `Xrom`) as that keyword.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#5447](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5447))
 
 * Fixed the cache of parsed data sources growing without bound when many
   distinct data sources are used.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#5447](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5447))
 
 ## 1.19.1-beta.1
 

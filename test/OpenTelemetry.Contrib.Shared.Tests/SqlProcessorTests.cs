@@ -321,21 +321,21 @@ public class SqlProcessorTests(ITestOutputHelper output)
 
     [Theory]
     [InlineData(
-        "SELECT [a].[Id], [a].[Nom de l'entreprise], [a].[Token] FROM [Accounts] AS [a] WHERE [a].[Token] = N'secret-name'",
+        "SELECT [a].[Id], [a].[Nom de l'enterprise], [a].[Token] FROM [Accounts] AS [a] WHERE [a].[Token] = N'secret-name'",
         false,
-        "SELECT [a].[Id], [a].[Nom de l'entreprise], [a].[Token] FROM [Accounts] AS [a] WHERE [a].[Token] = ?")]
+        "SELECT [a].[Id], [a].[Nom de l'enterprise], [a].[Token] FROM [Accounts] AS [a] WHERE [a].[Token] = ?")]
     [InlineData(
-        "SELECT \"a\".\"Id\", \"a\".\"Nom de l'entreprise\", \"a\".\"Token\" FROM \"Accounts\" AS \"a\" WHERE \"a\".\"Token\" = 'secret-name'",
+        "SELECT \"a\".\"Id\", \"a\".\"Nom de l'enterprise\", \"a\".\"Token\" FROM \"Accounts\" AS \"a\" WHERE \"a\".\"Token\" = 'secret-name'",
         false,
-        "SELECT \"a\".\"Id\", \"a\".\"Nom de l'entreprise\", \"a\".\"Token\" FROM \"Accounts\" AS \"a\" WHERE \"a\".\"Token\" = ?")]
+        "SELECT \"a\".\"Id\", \"a\".\"Nom de l'enterprise\", \"a\".\"Token\" FROM \"Accounts\" AS \"a\" WHERE \"a\".\"Token\" = ?")]
     [InlineData(
-        "SELECT `a`.`Id`, `a`.`Nom de l'entreprise`, `a`.`Token` FROM `Accounts` AS `a` WHERE `a`.`Token` = 'secret-name'",
+        "SELECT `a`.`Id`, `a`.`Nom de l'enterprise`, `a`.`Token` FROM `Accounts` AS `a` WHERE `a`.`Token` = 'secret-name'",
         true,
-        "SELECT `a`.`Id`, `a`.`Nom de l'entreprise`, `a`.`Token` FROM `Accounts` AS `a` WHERE `a`.`Token` = ?")]
+        "SELECT `a`.`Id`, `a`.`Nom de l'enterprise`, `a`.`Token` FROM `Accounts` AS `a` WHERE `a`.`Token` = ?")]
     [InlineData(
-        "SELECT [a].[Nom de l'entreprise] FROM [Accounts] AS [a] WHERE [a].[Token] = N'secret-name' AND [a].[Nom de l'entreprise] = N'Contoso'",
+        "SELECT [a].[Nom de l'enterprise] FROM [Accounts] AS [a] WHERE [a].[Token] = N'secret-name' AND [a].[Nom de l'enterprise] = N'Contoso'",
         false,
-        "SELECT [a].[Nom de l'entreprise] FROM [Accounts] AS [a] WHERE [a].[Token] = ? AND [a].[Nom de l'entreprise] = ?")]
+        "SELECT [a].[Nom de l'enterprise] FROM [Accounts] AS [a] WHERE [a].[Token] = ? AND [a].[Nom de l'enterprise] = ?")]
     public void GetSanitizedSql_QuoteInQuotedIdentifier_SanitizesLiterals(string sql, bool useBackslashEscapes, string expected)
     {
         var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes);
@@ -354,14 +354,14 @@ public class SqlProcessorTests(ITestOutputHelper output)
     [Fact]
     public void GetSanitizedSql_QuoteInQuotedIdentifier_DoesNotChangeQuerySummary()
     {
-        var sql = "SELECT [a].[Nom de l'entreprise] FROM [Accounts] AS [a] WHERE [a].[Note] = N'Transfer from Contoso4471 approved'";
+        var sql = "SELECT [a].[Nom de l'enterprise] FROM [Accounts] AS [a] WHERE [a].[Note] = N'Transfer from Contoso4471 approved'";
 
         var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
 
         this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
         this.output.WriteLine($"Summary: {sqlStatementInfo.DbQuerySummary}");
 
-        Assert.Equal("SELECT [a].[Nom de l'entreprise] FROM [Accounts] AS [a] WHERE [a].[Note] = ?", sqlStatementInfo.SanitizedSql);
+        Assert.Equal("SELECT [a].[Nom de l'enterprise] FROM [Accounts] AS [a] WHERE [a].[Note] = ?", sqlStatementInfo.SanitizedSql);
         Assert.Equal("SELECT [Accounts]", sqlStatementInfo.DbQuerySummary);
 
         // Control: the same statement without a quote in the identifier has the same summary.
@@ -652,8 +652,8 @@ public class SqlProcessorTests(ITestOutputHelper output)
 
     private static string WithoutApostrophe(string sql)
 #if NET
-        => sql.Replace("Nom de l'entreprise", "NomEntreprise", StringComparison.Ordinal);
+        => sql.Replace("Nom de l'enterprise", "NomEnterprise", StringComparison.Ordinal);
 #else
-        => sql.Replace("Nom de l'entreprise", "NomEntreprise");
+        => sql.Replace("Nom de l'enterprise", "NomEnterprise");
 #endif
 }
