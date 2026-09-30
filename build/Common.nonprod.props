@@ -7,6 +7,12 @@
     <NoWarn>$(NoWarn),1574,1591;CA1515</NoWarn>
   </PropertyGroup>
 
+  <!-- Verify Open Source Maintenance Fee (OSMF) exemption for Open Source projects -->
+  <PropertyGroup>
+    <Verify_SponsorshipExemption>OpenSource</Verify_SponsorshipExemption>
+    <Verify_SponsorshipExemptionUntil>$([System.DateTime]::UtcNow.AddMonths(12).ToString("yyyy-MM"))</Verify_SponsorshipExemptionUntil>
+  </PropertyGroup>
+
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
