@@ -1,10 +1,14 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if !NET
+#if NET
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+#else
 using OpenTelemetry.Instrumentation.AspNetCore;
-using OpenTelemetry.Instrumentation.AspNetCore.Implementation;
 #endif
+using OpenTelemetry.Instrumentation.AspNetCore.Implementation;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Metrics;
@@ -25,6 +29,15 @@ public static class AspNetCoreInstrumentationMeterProviderBuilderExtensions
         Guard.ThrowIfNull(builder);
 
 #if NET
+        if (Environment.Version.Major < 11)
+        {
+            // ASP.NET Core 11+ natively sets error.type for 5xx responses. For earlier versions it is
+            // added via middleware. This only takes effect when the MeterProvider is registered in the
+            // application's IServiceCollection (for example via AddOpenTelemetry().WithMetrics(...)).
+            builder.ConfigureServices(services =>
+                services.TryAddEnumerable(ServiceDescriptor.Singleton<IStartupFilter, HttpServerErrorTypeStartupFilter>()));
+        }
+
         return builder.ConfigureMeters();
 #else
         // Note: Warm-up the status code and method mapping.
