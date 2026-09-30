@@ -10,7 +10,7 @@
   settings from `TransportSettings`, and actor remoting listeners fall back to
   `TransportSettings` when no actor-specific section is configured, matching the
   behaviour of Service Fabric's `FabricTransportActorRemotingProviderAttribute`.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#5450](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5450))
 
 ## 1.19.0-beta.1
 
