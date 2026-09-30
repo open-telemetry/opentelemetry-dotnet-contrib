@@ -59,7 +59,7 @@ jobs:
       run: dotnet build build/Projects/Component.proj --configuration Release --no-restore
 
     - name: dotnet test Component.proj
-      run: dotnet test build/Projects/Component.proj --filter "CategoryName=${env:TEST_FILTER}" --framework ${env:FRAMEWORK_VERSION} --configuration Release --no-restore --no-build
+      run: dotnet build build/Projects/Component.proj -t:Test -p:Configuration=Release -p:TargetFramework=${env:FRAMEWORK_VERSION} "-p:TestFilter=CategoryName=${env:TEST_FILTER}"
       shell: pwsh
       env:
         FRAMEWORK_VERSION: ${{ inputs.version }}
