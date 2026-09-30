@@ -13,6 +13,7 @@ namespace OpenTelemetry.Sampler.AWS;
 public sealed class AWSXRayRemoteSampler : Trace.Sampler, IDisposable
 {
     internal static readonly TimeSpan DefaultTargetInterval = TimeSpan.FromSeconds(10);
+    internal static readonly TimeSpan MaxTargetInterval = TimeSpan.FromMinutes(5);
 
     private const string ClientIdCharacters = "0123456789abcdef";
 
@@ -146,75 +147,104 @@ public sealed class AWSXRayRemoteSampler : Trace.Sampler, IDisposable
 
     internal async Task GetAndUpdateTargetsAsync(CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var statistics = this.RulesCache.Snapshot(this.Clock.Now());
-
-        var request = new GetSamplingTargetsRequest(statistics);
-        var response = await this.Client.GetSamplingTargets(request, cancellationToken).ConfigureAwait(false);
-
-        cancellationToken.ThrowIfCancellationRequested();
-
-        if (response != null)
+        // The timer only fires once, so the next poll is scheduled in the finally block: a poll
+        // that fails, for whatever reason, must not stop the target poller indefinitely.
+        try
         {
-            Dictionary<string, SamplingTargetDocument> targets = [];
-            foreach (var target in response.SamplingTargetDocuments)
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var statistics = this.RulesCache.Snapshot(this.Clock.Now());
+
+            var request = new GetSamplingTargetsRequest(statistics);
+            var response = await this.Client.GetSamplingTargets(request, cancellationToken).ConfigureAwait(false);
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (response != null)
             {
-                if (target.RuleName != null)
+                Dictionary<string, SamplingTargetDocument> targets = [];
+                foreach (var target in response.SamplingTargetDocuments)
                 {
-                    targets[target.RuleName] = target;
+                    // Skip targets that cannot be applied, rather than failing the whole poll.
+                    if (target?.RuleName is not { Length: > 0 } ruleName)
+                    {
+                        AWSSamplerEventSource.Log.InvalidSamplingTarget(string.Empty, "It has no RuleName.");
+                    }
+                    else if (SamplingRuleApplier.ValidateTarget(target) is { } reason)
+                    {
+                        AWSSamplerEventSource.Log.InvalidSamplingTarget(ruleName, reason);
+                    }
+                    else
+                    {
+                        targets[ruleName] = target;
+                    }
                 }
-            }
 
-            this.RulesCache.UpdateTargets(targets);
+                this.RulesCache.UpdateTargets(targets);
 
-            if (response.LastRuleModification > 0)
-            {
-                var lastRuleModificationTime = this.Clock.ToDateTime(response.LastRuleModification);
-
-                if (!cancellationToken.IsCancellationRequested &&
-                    lastRuleModificationTime > this.RulesCache.GetUpdatedAt())
+                if (response.LastRuleModification > 0)
                 {
-                    // rules have been updated. fetch the new ones right away.
-                    this.RulePollerTimer.Change(TimeSpan.Zero, Timeout.InfiniteTimeSpan);
+                    if (!Clock.IsValidUnixTime(response.LastRuleModification))
+                    {
+                        AWSSamplerEventSource.Log.InvalidLastRuleModification();
+                    }
+                    else if (!cancellationToken.IsCancellationRequested &&
+                        this.Clock.ToDateTime(response.LastRuleModification) > this.RulesCache.GetUpdatedAt())
+                    {
+                        // rules have been updated. fetch the new ones right away.
+                        this.RulePollerTimer.Change(TimeSpan.Zero, Timeout.InfiniteTimeSpan);
+                    }
                 }
             }
         }
-
-        // schedule next target poll
-        var nextTargetFetchTime = this.RulesCache.NextTargetFetchTime();
-        var nextTargetFetchInterval = nextTargetFetchTime.Subtract(this.Clock.Now());
-        if (nextTargetFetchInterval < TimeSpan.Zero)
+        finally
         {
-            nextTargetFetchInterval = DefaultTargetInterval;
-        }
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                // schedule next target poll
+                var nextTargetFetchTime = this.RulesCache.NextTargetFetchTime();
+                var nextTargetFetchInterval = nextTargetFetchTime.Subtract(this.Clock.Now());
+                if (nextTargetFetchInterval < TimeSpan.Zero)
+                {
+                    nextTargetFetchInterval = DefaultTargetInterval;
+                }
+                else if (nextTargetFetchInterval > MaxTargetInterval)
+                {
+                    nextTargetFetchInterval = MaxTargetInterval;
+                }
 
-        if (!cancellationToken.IsCancellationRequested)
-        {
-            this.TargetPollerTimer.Change(nextTargetFetchInterval.Add(this.TargetPollerJitter), Timeout.InfiniteTimeSpan);
+                this.TargetPollerTimer.Change(nextTargetFetchInterval.Add(this.TargetPollerJitter), Timeout.InfiniteTimeSpan);
+            }
         }
     }
 
     internal async Task GetAndUpdateRulesAsync(CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var rules = await this.Client.GetSamplingRules(cancellationToken).ConfigureAwait(false);
-
-        cancellationToken.ThrowIfCancellationRequested();
-
-        // A null result means the poll failed (transient HTTP error or an unparsable response); in
-        // that case we keep the previously cached rules (and any sampling targets already applied
-        // to them) rather than wiping the cache with an artificial "zero rules" update.
-        if (rules != null)
+        // The timer only fires once, so the next poll is scheduled in the finally block: a poll
+        // that fails, for whatever reason, must not stop the target poller indefinitely.
+        try
         {
-            this.RulesCache.UpdateRules(rules);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var rules = await this.Client.GetSamplingRules(cancellationToken).ConfigureAwait(false);
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // A null result means the poll failed (transient HTTP error or an unparsable response); in
+            // that case we keep the previously cached rules (and any sampling targets already applied
+            // to them) rather than wiping the cache with an artificial "zero rules" update.
+            if (rules != null)
+            {
+                this.RulesCache.UpdateRules(rules);
+            }
         }
-
-        if (!cancellationToken.IsCancellationRequested)
+        finally
         {
-            // schedule the next rule poll.
-            this.RulePollerTimer.Change(this.PollingInterval.Add(this.RulePollerJitter), Timeout.InfiniteTimeSpan);
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                // schedule the next rule poll.
+                this.RulePollerTimer.Change(this.PollingInterval.Add(this.RulePollerJitter), Timeout.InfiniteTimeSpan);
+            }
         }
     }
 

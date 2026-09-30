@@ -82,6 +82,30 @@ internal class SamplingRuleApplier
 
     internal DateTimeOffset NextSnapshotTime { get; set; }
 
+    public static string? ValidateRule(SamplingRule rule)
+    {
+        // Returns why a rule from the sampling endpoint cannot be applied, or null if it can.
+        if (string.IsNullOrEmpty(rule.RuleName))
+        {
+            return "It has no RuleName.";
+        }
+
+        return !IsValidRate(rule.FixedRate) ? "Its FixedRate is not between 0 and 1." : null;
+    }
+
+    public static string? ValidateTarget(SamplingTargetDocument target)
+    {
+        // Returns why a sampling target from the sampling endpoint cannot be applied, or null if it can.
+        if (target.FixedRate is { } fixedRate && !IsValidRate(fixedRate))
+        {
+            return "Its FixedRate is not between 0 and 1.";
+        }
+
+        return target.ReservoirQuotaTTL is { } reservoirQuotaTTL && !Clock.IsValidUnixTime(reservoirQuotaTTL)
+            ? "Its ReservoirQuotaTTL is not a valid time."
+            : null;
+    }
+
     // check if this rule applier matches the request
     public bool Matches(SamplingParameters samplingParameters, Resource resource)
     {
@@ -205,8 +229,9 @@ internal class SamplingRuleApplier
             newReservoirEndTime = this.Clock.ToDateTime(target.ReservoirQuotaTTL.Value);
         }
 
-        var newNextSnapshotTime = target.Interval != null
-            ? now.AddSeconds(target.Interval.Value)
+        // Limit the interval, so that a malformed target cannot postpone the next target poll indefinitely.
+        var newNextSnapshotTime = target.Interval is { } interval
+            ? now.AddSeconds(Math.Min(Math.Max(interval, 0), AWSXRayRemoteSampler.MaxTargetInterval.TotalSeconds))
             : now.Add(AWSXRayRemoteSampler.DefaultTargetInterval);
 
         return new SamplingRuleApplier(
@@ -220,6 +245,8 @@ internal class SamplingRuleApplier
             newReservoirEndTime,
             newNextSnapshotTime);
     }
+
+    private static bool IsValidRate(double rate) => rate is >= 0 and <= 1;
 
     private static string GetServiceType(Resource resource)
     {

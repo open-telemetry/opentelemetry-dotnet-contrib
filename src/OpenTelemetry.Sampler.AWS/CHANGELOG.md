@@ -15,6 +15,19 @@
   "now" landed exactly on that applier's initial snapshot time.
   ([#5424](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5424))
 
+* The globs of sampling rules (such as a `URLPath` of `/health*`) must now match
+  the whole attribute value instead of matching wherever they occur in the value.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
+* Fixed the rule and target pollers stopping indefinitely after a response they
+  could not apply. Invalid rules and targets are now skipped and logged, only the
+  first of several rules with the same `RuleName` is used, the `Interval` of a target
+  is limited to 5 minutes, and the next poll is scheduled even if a poll fails.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
+* Requests to the sampling endpoint now time out after 10 seconds.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 0.1.0-alpha.15
 
 Released 2026-Sep-21
