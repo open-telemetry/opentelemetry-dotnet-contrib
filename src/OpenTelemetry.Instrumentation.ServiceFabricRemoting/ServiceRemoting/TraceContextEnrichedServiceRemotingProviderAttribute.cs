@@ -28,7 +28,6 @@ namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting;
 public class TraceContextEnrichedServiceRemotingProviderAttribute : FabricTransportServiceRemotingProviderAttribute
 {
     private const string DefaultV2listenerName = "V2Listener";
-    private const string DefaultTransportSettingsSectionName = "TransportSettings";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TraceContextEnrichedServiceRemotingProviderAttribute"/> class.
@@ -149,33 +148,16 @@ public class TraceContextEnrichedServiceRemotingProviderAttribute : FabricTransp
     protected virtual IEnumerable<ClientExceptionConvertor>? GetClientExceptionConvertors() => null;
 
     private static FabricTransportRemotingSettings? LoadRemotingSettings() =>
-        TryLoadSettings(() =>
-            FabricTransportRemotingSettings.TryLoadFrom(DefaultTransportSettingsSectionName, out var settings, filepath: null, configPackageName: null)
+        ServiceFabricRemotingUtils.TryLoadTransportSettings(() =>
+            FabricTransportRemotingSettings.TryLoadFrom(ServiceFabricRemotingUtils.DefaultTransportSettingsSectionName, out var settings, filepath: null, configPackageName: null)
                 ? settings
                 : null);
 
     private static FabricTransportRemotingListenerSettings? LoadListenerSettings() =>
-        TryLoadSettings(() =>
-            FabricTransportRemotingListenerSettings.TryLoadFrom(DefaultTransportSettingsSectionName, out var settings, configPackageName: null)
+        ServiceFabricRemotingUtils.TryLoadTransportSettings(() =>
+            FabricTransportRemotingListenerSettings.TryLoadFrom(ServiceFabricRemotingUtils.DefaultTransportSettingsSectionName, out var settings, configPackageName: null)
                 ? settings
                 : null);
-
-    private static T? TryLoadSettings<T>(Func<T?> loader)
-        where T : class
-    {
-        try
-        {
-            return loader();
-        }
-        catch (DllNotFoundException)
-        {
-            return null;
-        }
-        catch (TypeInitializationException ex) when (ex.InnerException is DllNotFoundException)
-        {
-            return null;
-        }
-    }
 
     private long GetAndValidateMaxMessageSize(long maxMessageSizeDefault)
         => (this.MaxMessageSize > 0) ? this.MaxMessageSize : maxMessageSizeDefault;
