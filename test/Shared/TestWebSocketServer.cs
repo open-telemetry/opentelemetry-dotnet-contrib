@@ -101,11 +101,7 @@ internal static class TestWebSocketServer
             //   1   ERROR_INVALID_FUNCTION  - .NET Framework raises this instead of 995 for WebSocket
             //                                 contexts; guarded by !IsListening to avoid swallowing a
             //                                 genuine failure that happens to surface as code 1
-            // Once disposal has started any HttpListenerException is treated as shutdown noise, as when
-            // GetContextAsync races Close() other codes can be surfaced (e.g. 87 ERROR_INVALID_PARAMETER)
-            // and IsListening cannot be relied upon to have been updated yet.
             return ex is ObjectDisposedException
-                || (ex is HttpListenerException && this.disposing)
                 || (ex is HttpListenerException httpEx
                     && (httpEx.ErrorCode is 6 or 995 ||
                         (httpEx.ErrorCode == 1 && !this.listener.IsListening)))
@@ -119,10 +115,26 @@ internal static class TestWebSocketServer
 
             while (true)
             {
+                HttpListenerContext ctx;
+
                 try
                 {
-                    var ctx = await this.listener.GetContextAsync().ConfigureAwait(false);
+                    ctx = await this.listener.GetContextAsync().ConfigureAwait(false);
+                }
+                catch (HttpListenerException) when (this.disposing)
+                {
+                    // When a pending GetContextAsync races Close() during disposal other
+                    // error codes can be surfaced and IsListening cannot be relied upon
+                    // to have been updated yet, so treat any HttpListenerException as shutdown.
+                    break;
+                }
+                catch (Exception ex) when (this.IsListenerShutdownException(ex))
+                {
+                    break;
+                }
 
+                try
+                {
                     if (ctx.Request.IsWebSocketRequest)
                     {
                         var wsContext = await ctx.AcceptWebSocketAsync(null).ConfigureAwait(false);
