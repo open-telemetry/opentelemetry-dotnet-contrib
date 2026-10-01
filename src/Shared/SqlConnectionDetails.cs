@@ -10,17 +10,17 @@ namespace OpenTelemetry.Instrumentation;
 internal sealed partial class SqlConnectionDetails
 {
     /// <summary>
-    /// Timeout in milliseconds for regex operations to mitigate potential ReDoS
-    /// attacks when the data source string contains unexpected input.
-    /// </summary>
-    private const int RegexTimeoutMs = 1_000;
-
-    /// <summary>
     /// The maximum number of data sources to cache the details of, so that an application which
     /// uses many distinct data sources (for example a SQLite database file per tenant) cannot
     /// cause the cache to grow without bound. Beyond this, data sources are parsed every time.
     /// </summary>
-    private const int CacheCapacity = 1_000;
+    internal const int CacheCapacity = 1_000;
+
+    /// <summary>
+    /// Timeout in milliseconds for regex operations to mitigate potential ReDoS
+    /// attacks when the data source string contains unexpected input.
+    /// </summary>
+    private const int RegexTimeoutMs = 1_000;
 
     private static readonly ConcurrentDictionary<string, SqlConnectionDetails> ConnectionDetailCache = new(StringComparer.OrdinalIgnoreCase);
 

@@ -723,6 +723,7 @@ internal static class SqlProcessor
     private static int FindBracketedIdentifierEnd(ReadOnlySpan<char> sql, int start, ref ParseState state)
     {
         // SQL Server limits identifiers to 128 characters, so the closing bracket must be within that length.
+        // Each escaped bracket (]]) is one character of the identifier, so extends the search by one.
         var searchEnd = Math.Min(sql.Length, start + MaxBracketedIdentifierLength + 2);
         var i = FindNextCloseSquareBracket(sql, start + 1, ref state);
 
@@ -736,6 +737,7 @@ internal static class SqlProcessor
             // A doubled closing bracket (]]) is an escaped bracket within the identifier.
             if (i + 1 < sql.Length && sql[i + 1] == CloseSquareBracketChar)
             {
+                searchEnd = Math.Min(sql.Length, searchEnd + 1);
                 i = FindNextCloseSquareBracket(sql, i + 2, ref state);
                 continue;
             }

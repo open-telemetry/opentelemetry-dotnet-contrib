@@ -573,11 +573,13 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         if (!isError)
         {
             Assert.Equal(ActivityStatusCode.Unset, activity.Status);
+            Assert.Null(activity.GetTagValue(SemanticConventions.AttributeErrorType));
         }
         else
         {
             Assert.Equal(ActivityStatusCode.Error, activity.Status);
             Assert.Null(activity.StatusDescription);
+            Assert.Equal(typeof(SqliteException).FullName, activity.GetTagValue(SemanticConventions.AttributeErrorType));
         }
     }
 

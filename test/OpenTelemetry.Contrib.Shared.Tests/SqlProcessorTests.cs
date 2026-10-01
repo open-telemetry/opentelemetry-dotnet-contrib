@@ -525,6 +525,24 @@ public class SqlProcessorTests(ITestOutputHelper output)
     }
 
     [Theory]
+    [InlineData(1)]
+    [InlineData(64)]
+    [InlineData(128)]
+    public void GetSanitizedSql_LoginOrUserNameWithEscapedBracketsAtMaximumLength_IsSanitized(int escapedBrackets)
+    {
+        // Each escaped bracket (]]) is one character of the 128 character maximum length of an identifier.
+        var name = new string('a', 128 - escapedBrackets) + string.Concat(Enumerable.Repeat("]]", escapedBrackets));
+        var sql = $"CREATE USER [{name}] WITHOUT LOGIN";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.Equal("CREATE USER [?] WITHOUT LOGIN", sqlStatementInfo.SanitizedSql);
+        Assert.Equal("CREATE USER", sqlStatementInfo.DbQuerySummary);
+    }
+
+    [Theory]
     [InlineData("SELECT a Xrom b", "SELECT")]
     [InlineData("SELECT Prom FROM Events", "SELECT Events")]
     [InlineData("SELECT * FROM Orders Xoin Customers", "SELECT Orders")]
