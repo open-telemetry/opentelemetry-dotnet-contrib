@@ -138,6 +138,41 @@ public class RequestDataHelperTests
         // Display names cached before the cache was full are still returned from the cache.
         Assert.Same(requestHelper.GetActivityDisplayName("GET", "/orders/0"), requestHelper.GetActivityDisplayName("GET", "/orders/0"));
     }
+
+    [Fact]
+    public async Task GetActivityDisplayNameDoesNotCacheMoreThanMaximumNumberOfDisplayNamesWhenCalledConcurrently()
+    {
+        var requestHelper = new RequestDataHelper(configureByHttpKnownMethodsEnvironmentalVariable: false);
+
+        var threadCount = Math.Max(4, Environment.ProcessorCount);
+        var routes = Enumerable.Range(0, RequestDataHelper.MaxCachedDisplayNames * 2)
+            .Select(i => $"/orders/{i}")
+            .ToArray();
+
+        using var barrier = new Barrier(threadCount);
+
+        // Every thread requests the same routes in the same order so that concurrent
+        // misses race both on distinct keys near the limit and on adding the same key.
+        var workers = Enumerable.Range(0, threadCount)
+            .Select(_ => Task.Factory.StartNew(
+                () =>
+                {
+                    barrier.SignalAndWait();
+
+                    foreach (var route in routes)
+                    {
+                        Assert.Equal($"GET {route}", requestHelper.GetActivityDisplayName("GET", route));
+                    }
+                },
+                CancellationToken.None,
+                TaskCreationOptions.LongRunning,
+                TaskScheduler.Default))
+            .ToArray();
+
+        await Task.WhenAll(workers);
+
+        Assert.Equal(RequestDataHelper.MaxCachedDisplayNames, requestHelper.CachedDisplayNameCount);
+    }
 #endif
 
     [Theory]
