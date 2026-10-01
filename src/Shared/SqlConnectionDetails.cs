@@ -24,10 +24,10 @@ internal sealed partial class SqlConnectionDetails
 
     private static readonly ConcurrentDictionary<string, SqlConnectionDetails> ConnectionDetailCache = new(StringComparer.OrdinalIgnoreCase);
 
-    // Maintain our own approximate count to avoid ConcurrentDictionary.Count on hot path.
-    // We only increment on successful TryAdd. This may result in a slightly oversized cache
-    // under high concurrency but this is acceptable for this scenario.
-    private static int approxCacheCount;
+    // The number of entries in the cache, plus any being added, to avoid ConcurrentDictionary.Count
+    // on the hot path. A slot is reserved before an entry is added and released if it is not, so
+    // that concurrent callers cannot grow the cache beyond its capacity.
+    private static int reservedCacheSlots;
 
     private DbNamespaceEntry? dbNamespace;
 
@@ -44,6 +44,11 @@ internal sealed partial class SqlConnectionDetails
     public object? BoxedPort { get; private set; }
 
     public string? ServerAddressAndPort { get; private set; }
+
+    /// <summary>
+    /// Gets the number of data sources whose details are cached.
+    /// </summary>
+    internal static int CacheCount => ConnectionDetailCache.Count;
 
     public static SqlConnectionDetails ParseFromDataSource(string dataSource)
     {
@@ -128,20 +133,26 @@ internal sealed partial class SqlConnectionDetails
             connectionDetails = new SqlConnectionDetails();
         }
 
-        // Fast-path capacity check using our own approximate count to avoid ConcurrentDictionary.Count cost.
-        if (Volatile.Read(ref approxCacheCount) >= CacheCapacity)
+        // Fast-path capacity check using our own count to avoid ConcurrentDictionary.Count cost.
+        if (Volatile.Read(ref reservedCacheSlots) >= CacheCapacity)
         {
             return connectionDetails;
         }
 
-        // Attempt to add when under capacity. Increment our count only on successful add.
+        // Reserve a slot before adding, so that concurrent callers cannot add more entries than the capacity.
+        if (Interlocked.Increment(ref reservedCacheSlots) > CacheCapacity)
+        {
+            Interlocked.Decrement(ref reservedCacheSlots);
+            return connectionDetails;
+        }
+
         if (ConnectionDetailCache.TryAdd(dataSource, connectionDetails))
         {
-            Interlocked.Increment(ref approxCacheCount);
             return connectionDetails;
         }
 
-        // If another thread added meanwhile, return the cached value if available.
+        // Another thread added the data source meanwhile, so release the slot and return the cached value.
+        Interlocked.Decrement(ref reservedCacheSlots);
         return ConnectionDetailCache.TryGetValue(dataSource, out var existing) ? existing : connectionDetails;
     }
 

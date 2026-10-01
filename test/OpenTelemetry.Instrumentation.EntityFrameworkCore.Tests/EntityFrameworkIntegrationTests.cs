@@ -201,8 +201,20 @@ public sealed class EntityFrameworkIntegrationTests :
 
         if (isFailure)
         {
+            var expectedErrorType = provider switch
+            {
+                PostgresProvider => typeof(PostgresException),
+                SqlServerProvider => typeof(SqlException),
+                _ => throw new NotSupportedException($"Unsupported provider: {provider}"),
+            };
+
             Assert.Equal(ActivityStatusCode.Error, activity.Status);
             Assert.Null(activity.StatusDescription);
+            Assert.Equal(expectedErrorType.FullName, activity.GetTagValue("error.type"));
+        }
+        else
+        {
+            Assert.Null(activity.GetTagValue("error.type"));
         }
 
         Assert.True(filtered);

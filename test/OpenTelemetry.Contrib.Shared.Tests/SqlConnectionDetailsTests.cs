@@ -87,18 +87,32 @@ public class SqlConnectionDetailsTests
 
         Assert.Same(cached, SqlConnectionDetails.ParseFromDataSource(CachedDataSource));
 
-        // Concurrently parse enough distinct data sources to fill the cache.
+        // Concurrently parse enough distinct data sources to fill the cache, each of them
+        // several times so that callers also race to add the same data source, which must
+        // not grow the cache beyond its capacity.
         Parallel.For(
             0,
-            SqlConnectionDetails.CacheCapacity,
-            new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount },
+            SqlConnectionDetails.CacheCapacity * 4,
+            new ParallelOptions { MaxDegreeOfParallelism = Math.Max(4, Environment.ProcessorCount) },
             i =>
             {
-                var details = SqlConnectionDetails.ParseFromDataSource($"capacity-{i}.localhost, 1818");
+                var id = i % SqlConnectionDetails.CacheCapacity;
+                var details = SqlConnectionDetails.ParseFromDataSource($"capacity-{id}.localhost, 1818");
 
-                Assert.Equal($"capacity-{i}.localhost", details.ServerHostName);
-                Assert.Equal($"capacity-{i}.localhost:1818", details.ServerAddressAndPort);
+                Assert.Equal($"capacity-{id}.localhost", details.ServerHostName);
+                Assert.Equal($"capacity-{id}.localhost:1818", details.ServerAddressAndPort);
             });
+
+        Assert.InRange(SqlConnectionDetails.CacheCount, 1, SqlConnectionDetails.CacheCapacity);
+
+        // A caller may not cache a data source while a slot is briefly reserved by another caller
+        // which then releases it, so fill any slots which are left to make the cache full.
+        for (var i = 0; i < SqlConnectionDetails.CacheCapacity; i++)
+        {
+            SqlConnectionDetails.ParseFromDataSource($"fill-{i}.localhost, 1818");
+        }
+
+        Assert.Equal(SqlConnectionDetails.CacheCapacity, SqlConnectionDetails.CacheCount);
 
         // A data source beyond the capacity is parsed every time, rather than retained...
         var first = SqlConnectionDetails.ParseFromDataSource(UncachedDataSource);
