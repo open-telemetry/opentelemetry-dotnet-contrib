@@ -331,6 +331,14 @@ internal class HttpInListener : ListenerHandler
                 {
                     activity.SetStatus(SpanHelper.ResolveActivityStatusForHttpStatusCode(activity.Kind, response.StatusCode));
                 }
+
+                // See https://github.com/open-telemetry/semantic-conventions/blob/v1.40.0/docs/http/http-spans.md#http-server-span.
+                // If an exception was observed, error.type has already been set to its type.
+                if (SpanHelper.ResolveActivityStatusForHttpStatusCode(activity.Kind, response.StatusCode) == ActivityStatusCode.Error &&
+                    activity.GetTagItem(SemanticConventions.AttributeErrorType) is null)
+                {
+                    activity.SetTag(SemanticConventions.AttributeErrorType, TelemetryHelper.GetStatusCodeString(response.StatusCode));
+                }
             }
 
             // If the instrumentation created a sibling Activity, the gRPC .NET library may
