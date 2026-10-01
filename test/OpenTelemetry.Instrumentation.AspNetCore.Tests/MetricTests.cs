@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics.Metrics;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -267,6 +268,27 @@ public class MetricTests(WebApplicationFactory<Program> factory)
 
             await app.StartAsync(TestContext.Current.CancellationToken);
 
+            // TestServer returns the response to the client before the hosting layer
+            // records http.server.request.duration, so wait for the measurement to be
+            // recorded before stopping the host and disposing the MeterProvider.
+            // This listener is started after the host so that it is notified after
+            // the OpenTelemetry SDK's own listener has recorded the measurement.
+            var meterFactory = app.Services.GetRequiredService<IMeterFactory>();
+            var durationRecorded = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            using var listener = new MeterListener();
+            listener.InstrumentPublished = (instrument, listener) =>
+            {
+                if (instrument.Meter.Scope == meterFactory &&
+                    instrument.Meter.Name == "Microsoft.AspNetCore.Hosting" &&
+                    instrument.Name == "http.server.request.duration")
+                {
+                    listener.EnableMeasurementEvents(instrument);
+                }
+            };
+            listener.SetMeasurementEventCallback<double>((_, _, _, _) => durationRecorded.TrySetResult());
+            listener.Start();
+
             using (var client = app.GetTestClient())
             {
                 try
@@ -278,6 +300,8 @@ public class MetricTests(WebApplicationFactory<Program> factory)
                     // TestServer rethrows unhandled exceptions to the client.
                 }
             }
+
+            await durationRecorded.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
 
             await app.StopAsync(TestContext.Current.CancellationToken);
         }
