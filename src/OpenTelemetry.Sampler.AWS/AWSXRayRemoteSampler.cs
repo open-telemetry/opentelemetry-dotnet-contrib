@@ -221,7 +221,7 @@ public sealed class AWSXRayRemoteSampler : Trace.Sampler, IDisposable
     internal async Task GetAndUpdateRulesAsync(CancellationToken cancellationToken)
     {
         // The timer only fires once, so the next poll is scheduled in the finally block: a poll
-        // that fails, for whatever reason, must not stop the target poller indefinitely.
+        // that fails, for whatever reason, must not stop the rule poller indefinitely.
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
