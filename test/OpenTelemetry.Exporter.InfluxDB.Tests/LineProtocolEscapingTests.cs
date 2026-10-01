@@ -15,12 +15,13 @@ public class LineProtocolEscapingTests
 {
     [Theory]
     [InlineData(@"evil\", @"evil\\")]
-    [InlineData(@"evil\\\", @"evil\\\\")]
+    [InlineData(@"evil\\", @"evil\\\\")]
+    [InlineData(@"evil\\\", @"evil\\\\\\")]
     [InlineData(@"a\,b", @"a\\\,b")]
     [InlineData(@"a\ b", @"a\\\ b")]
     [InlineData(@"a\=b", @"a\\\=b")]
-    [InlineData(@"evil\\", @"evil\\")]
-    [InlineData(@"C:\Program Files\dotnet", @"C:\Program\ Files\dotnet")]
+    [InlineData(@"a\b", @"a\\b")]
+    [InlineData(@"C:\Program Files\dotnet", @"C:\\Program\ Files\\dotnet")]
     [InlineData("safe", "safe")]
     public void TagValueBackslashesDoNotCorruptTheRecord(string tagValue, string expectedEscapedValue)
     {
@@ -39,6 +40,33 @@ public class LineProtocolEscapingTests
 
         var tags = SplitUnescaped(sections[0], ',');
         Assert.Contains($"zzz={expectedEscapedValue}", tags);
+        Assert.Equal(tagValue, Unescape(expectedEscapedValue));
+    }
+
+    [Fact]
+    public void TagValuesWithDifferentBackslashRunsRemainDistinct()
+    {
+        string[] values = [@"evil\", @"evil\\", @"evil\\\"];
+
+        var body = ExportAndCaptureBody(meter =>
+        {
+            var counter = meter.CreateCounter<long>("counter");
+
+            foreach (var value in values)
+            {
+                counter.Add(1, new KeyValuePair<string, object?>("zzz", value));
+            }
+        });
+
+        var actual = body.Split(['\n'], StringSplitOptions.RemoveEmptyEntries)
+            .SelectMany(line => SplitUnescaped(SplitUnescaped(line, ' ')[0], ','))
+            .Where(tag => tag.StartsWith("zzz=", StringComparison.Ordinal))
+            .Select(tag => Unescape(tag.Substring("zzz=".Length)))
+            .Distinct()
+            .OrderBy(value => value.Length)
+            .ToArray();
+
+        Assert.Equal(values, actual);
     }
 
     [Fact]
@@ -79,6 +107,23 @@ public class LineProtocolEscapingTests
         var dropped = listener.Events.Where(e => e.EventName == nameof(InfluxDBEventSource.DataPointDropped)).ToList();
         Assert.NotEmpty(dropped);
         Assert.All(dropped, e => Assert.Equal("g", e.Payload?[0]));
+    }
+
+    private static string Unescape(string value)
+    {
+        var builder = new StringBuilder(value.Length);
+
+        for (var i = 0; i < value.Length; i++)
+        {
+            if (value[i] == '\\' && i + 1 < value.Length && value[i + 1] is '\\' or ' ' or ',' or '=')
+            {
+                i++;
+            }
+
+            builder.Append(value[i]);
+        }
+
+        return builder.ToString();
     }
 
     private static List<string> SplitUnescaped(string value, char separator)

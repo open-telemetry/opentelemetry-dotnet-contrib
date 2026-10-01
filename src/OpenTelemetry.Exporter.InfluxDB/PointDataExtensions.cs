@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Text;
 using InfluxDB.Client.Writes;
 
 namespace OpenTelemetry.Exporter.InfluxDB;
@@ -50,53 +49,20 @@ internal static class PointDataExtensions
     /// <summary>
     /// Escapes the backslashes in a tag key or value that InfluxDB.Client would
     /// otherwise emit in a way that corrupts the line protocol record.
+    /// <para/>
+    /// Line protocol parsers interpret two contiguous backslashes as a single
+    /// literal backslash, so every backslash is doubled to preserve the original
+    /// value. This also ensures a trailing backslash, or one preceding a space,
+    /// comma or equals sign that InfluxDB.Client escapes, cannot escape the delimiter.
     /// </summary>
     /// <param name="value">The tag key or value.</param>
     /// <returns>The escaped key or value.</returns>
     internal static string EscapeTagComponent(string value)
-    {
-        var index =
 #if NET
-            value.IndexOf('\\', StringComparison.Ordinal);
+        => value.Contains('\\', StringComparison.Ordinal) ? value.Replace(@"\", @"\\", StringComparison.Ordinal) : value;
 #else
-            value.IndexOf('\\');
+        => value.IndexOf('\\') < 0 ? value : value.Replace(@"\", @"\\");
 #endif
-
-        if (index < 0)
-        {
-            return value;
-        }
-
-        StringBuilder? builder = null;
-        var copiedUpTo = 0;
-
-        while (index < value.Length)
-        {
-            if (value[index] != '\\')
-            {
-                index++;
-                continue;
-            }
-
-            var runStart = index;
-            while (index < value.Length && value[index] == '\\')
-            {
-                index++;
-            }
-
-            var isOddRun = ((index - runStart) & 1) == 1;
-            var isFollowedByEscapedCharacter = index == value.Length || value[index] is ' ' or ',' or '=';
-
-            if (isOddRun && isFollowedByEscapedCharacter)
-            {
-                builder ??= new(value.Length + 4);
-                builder.Append(value, copiedUpTo, index - copiedUpTo).Append('\\');
-                copiedUpTo = index;
-            }
-        }
-
-        return builder == null ? value : builder.Append(value, copiedUpTo, value.Length - copiedUpTo).ToString();
-    }
 
     private static PointData EscapedTag(this PointData pointData, string key, string? value)
         => pointData.Tag(EscapeTagComponent(key), value == null ? null : EscapeTagComponent(value));
