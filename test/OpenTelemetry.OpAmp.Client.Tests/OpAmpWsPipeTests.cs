@@ -46,7 +46,7 @@ public class OpAmpWsPipeTests : OpAmpPipeTests
     }
 
     [Fact]
-    public async Task OpAmpPipe_UsesServerAssignedInstanceUid_AssignedWhileWaitingForTheSocket()
+    public void OpAmpPipe_UsesServerAssignedInstanceUid_AssignedWhileWaitingForTheSocket()
     {
         using var transport = new WaitingForSocketTransport();
         var settings = new OpAmpClientSettings();
@@ -66,8 +66,10 @@ public class OpAmpWsPipeTests : OpAmpPipeTests
         processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
         transport.FreeSocket();
 
-        var sentInstanceUid = await transport.SentInstanceUid.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
-        Assert.Equal(newInstanceUid, sentInstanceUid);
+        Assert.True(
+            transport.WaitForSent(TimeSpan.FromSeconds(5)),
+            "The message was not sent within 5 seconds.");
+        Assert.Equal(newInstanceUid, transport.SentInstanceUid);
     }
 
     internal override MockControlledTransport GetTransport(Action? firstSendCallback = null) => new MockControlledWsTransport(firstSendCallback);
@@ -127,12 +129,12 @@ public class OpAmpWsPipeTests : OpAmpPipeTests
     {
         // Like WsTransmitter waiting for its send lock, a send waits for the socket before it serializes the message.
         private readonly TaskCompletionSource<bool> socketFree = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        private readonly TaskCompletionSource<ByteString> sentInstanceUid = new(TaskCreationOptions.RunContinuationsAsynchronously);
         private readonly ManualResetEventSlim sendStarted = new();
+        private readonly ManualResetEventSlim sent = new();
 
         public bool RequiresResponseBeforeNextSend => false;
 
-        public Task<ByteString> SentInstanceUid => this.sentInstanceUid.Task;
+        public ByteString? SentInstanceUid { get; private set; }
 
         public async Task SendAsync<T>(T message, CancellationToken token, Action<T>? beforeSerialize = null)
             where T : IMessage<T>
@@ -141,13 +143,20 @@ public class OpAmpWsPipeTests : OpAmpPipeTests
             await this.socketFree.Task.ConfigureAwait(false);
 
             beforeSerialize?.Invoke(message);
-            this.sentInstanceUid.TrySetResult(((AgentToServer)(object)message).InstanceUid);
+            this.SentInstanceUid = ((AgentToServer)(object)message).InstanceUid;
+            this.sent.Set();
         }
 
         public bool WaitForSendStarted(TimeSpan timeout) => this.sendStarted.Wait(timeout);
 
+        public bool WaitForSent(TimeSpan timeout) => this.sent.Wait(timeout);
+
         public void FreeSocket() => this.socketFree.SetResult(true);
 
-        public void Dispose() => this.sendStarted.Dispose();
+        public void Dispose()
+        {
+            this.sendStarted.Dispose();
+            this.sent.Dispose();
+        }
     }
 }
