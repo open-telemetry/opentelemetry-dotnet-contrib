@@ -61,6 +61,7 @@ internal static class TestWebSocketServer
         private readonly Task listenerTask;
         private readonly HttpListener listener;
         private readonly TaskCompletionSource<bool> initialized = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private volatile bool disposing;
 
         public RunningServer(Func<HttpListenerContext, WebSocket, Task> handler, string host, int port)
         {
@@ -78,6 +79,8 @@ internal static class TestWebSocketServer
 
         public void Dispose()
         {
+            this.disposing = true;
+
             try
             {
                 this.listener.Close();
@@ -98,7 +101,11 @@ internal static class TestWebSocketServer
             //   1   ERROR_INVALID_FUNCTION  - .NET Framework raises this instead of 995 for WebSocket
             //                                 contexts; guarded by !IsListening to avoid swallowing a
             //                                 genuine failure that happens to surface as code 1
+            // Once disposal has started any HttpListenerException is treated as shutdown noise, as when
+            // GetContextAsync races Close() other codes can be surfaced (e.g. 87 ERROR_INVALID_PARAMETER)
+            // and IsListening cannot be relied upon to have been updated yet.
             return ex is ObjectDisposedException
+                || (ex is HttpListenerException && this.disposing)
                 || (ex is HttpListenerException httpEx
                     && (httpEx.ErrorCode is 6 or 995 ||
                         (httpEx.ErrorCode == 1 && !this.listener.IsListening)))
