@@ -26,6 +26,8 @@ public sealed class StorageMaintenanceTests : IDisposable
     [InlineData("2020-01-01T000000.0000000Z-notaguid.blob.tmp")]
     [InlineData("database.lock")]
     [InlineData("backup@2020-01-01T000000.0000000Z.lock")]
+    [InlineData("2020-01-01T000000.0000000Z-0123456789abcdef0123456789abcdef.blob@notes.lock")]
+    [InlineData("2020-01-01T000000.0000000Z-0123456789abcdef0123456789abcdef.blob@.lock")]
     public void MaintenanceDoesNotRemoveFilesItDidNotCreate(string fileName)
     {
         var foreignFile = this.CreateFile(fileName);
@@ -45,8 +47,8 @@ public sealed class StorageMaintenanceTests : IDisposable
         var leasedBlob = Path.Combine(this.directory, OwnBlobName(DateTime.UtcNow));
         var expiredLease = this.CreateFile(Path.GetFileName(leasedBlob) + "@2020-01-01T000000.0000000Z.lock");
 
-        var blobWithCorruptLease = Path.Combine(this.directory, OwnBlobName(DateTime.UtcNow));
-        var corruptLease = this.CreateFile(Path.GetFileName(blobWithCorruptLease) + "@not-a-timestamp.lock");
+        var blobWithMalformedLease = Path.Combine(this.directory, OwnBlobName(DateTime.UtcNow));
+        var malformedLease = this.CreateFile(Path.GetFileName(blobWithMalformedLease) + "@not-a-timestamp.lock");
 
         PersistentStorageHelper.RemoveExpiredBlobs(this.directory, DefaultRetentionMs, DefaultWriteTimeoutMs);
 
@@ -54,11 +56,13 @@ public sealed class StorageMaintenanceTests : IDisposable
         Assert.False(File.Exists(expiredBlob));
         Assert.False(File.Exists(timedOutTemporaryFile));
 
-        // Expired leases, including a lease whose timestamp cannot be parsed, are released.
+        // Expired leases are released.
         Assert.False(File.Exists(expiredLease));
         Assert.True(File.Exists(leasedBlob));
-        Assert.False(File.Exists(corruptLease));
-        Assert.True(File.Exists(blobWithCorruptLease));
+
+        // A lease whose timestamp is not in the format the component uses was not created by it, so is left alone.
+        Assert.True(File.Exists(malformedLease));
+        Assert.False(File.Exists(blobWithMalformedLease));
     }
 
     [Fact]

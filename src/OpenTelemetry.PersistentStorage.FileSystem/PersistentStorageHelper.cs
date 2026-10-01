@@ -164,7 +164,7 @@ internal static class PersistentStorageHelper
 
         return dashIndex > 0
             && Guid.TryParseExact(name.Substring(dashIndex + 1), "N", out _)
-            && DateTime.TryParseExact(name.Substring(0, dashIndex), TimestampFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out _);
+            && TryParseTimestamp(name.Substring(0, dashIndex), out _);
     }
 
     internal static string CreateSubdirectory(string path)
@@ -201,8 +201,13 @@ internal static class PersistentStorageHelper
 
     private static bool IsLeaseFileName(string fileName)
     {
-        var atSignIndex = fileName.LastIndexOf('@');
-        return atSignIndex > 0 && IsBlobFileName(fileName.Substring(0, atSignIndex));
+        // Lease files are named {blob}@{timestamp}.lock
+        var name = Path.GetFileNameWithoutExtension(fileName);
+        var atSignIndex = name.LastIndexOf('@');
+
+        return atSignIndex > 0
+            && IsBlobFileName(name.Substring(0, atSignIndex))
+            && TryParseTimestamp(name.Substring(atSignIndex + 1), out _);
     }
 
     private static string GetFileName(string filePath)
@@ -229,9 +234,12 @@ internal static class PersistentStorageHelper
         return fileName;
     }
 
+    private static bool TryParseTimestamp(string timestamp, out DateTime dateTime)
+        => DateTime.TryParseExact(timestamp, TimestampFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out dateTime);
+
     private static DateTime Parse(string timestamp)
     {
-        if (!DateTime.TryParseExact(timestamp, TimestampFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var dateTime))
+        if (!TryParseTimestamp(timestamp, out var dateTime))
         {
             // In case of failure, return DateTime.MinValue so that the lease file can be removed as expired
             return DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc);
