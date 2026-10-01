@@ -76,7 +76,9 @@ internal sealed class HttpInMetricsListener : ListenerHandler
         // See the spec https://github.com/open-telemetry/semantic-conventions/blob/v1.40.0/docs/http/http-metrics.md
         tags.Add(new(SemanticConventions.AttributeNetworkProtocolVersion, RequestDataHelper.GetHttpProtocolVersion(context.Request.Protocol)));
         tags.Add(new(SemanticConventions.AttributeUrlScheme, context.Request.Scheme));
-        tags.Add(new(SemanticConventions.AttributeHttpResponseStatusCode, TelemetryHelper.GetBoxedStatusCode(context.Response.StatusCode)));
+
+        var statusCode = context.Response.StatusCode;
+        tags.Add(new(SemanticConventions.AttributeHttpResponseStatusCode, TelemetryHelper.GetBoxedStatusCode(statusCode)));
 
         var httpMethod = TelemetryHelper.RequestDataHelper.GetNormalizedHttpMethod(context.Request.Method);
         tags.Add(new(SemanticConventions.AttributeHttpRequestMethod, httpMethod));
@@ -84,6 +86,11 @@ internal sealed class HttpInMetricsListener : ListenerHandler
         if (context.Items.TryGetValue(ErrorTypeHttpContextItemsKey, out var errorType))
         {
             tags.Add(new(SemanticConventions.AttributeErrorType, errorType));
+        }
+        else if (SpanHelper.ResolveActivityStatusForHttpStatusCode(ActivityKind.Server, statusCode) == ActivityStatusCode.Error)
+        {
+            // See https://github.com/open-telemetry/semantic-conventions/blob/v1.40.0/docs/http/http-metrics.md#metric-httpserverrequestduration
+            tags.Add(new(SemanticConventions.AttributeErrorType, TelemetryHelper.GetStatusCodeString(statusCode)));
         }
 
         // We are relying here on ASP.NET Core to set duration before writing the stop event.
