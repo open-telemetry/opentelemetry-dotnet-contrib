@@ -6,7 +6,9 @@
   container on hosts that use systemd, where the name of the unit the process
   runs in (for example `session-2.scope` or `db.service`) was mistaken for a
   container id. A systemd unit is now only treated as a container when it was
-  created by a container runtime (for example `docker-<id>.scope`).
+  created by a well-known container runtime (for example `docker-<id>.scope` or
+  `runc-<id>.scope`) or its name contains a full-length (64 character)
+  container id.
   ([#5454](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5454))
 
 ## 1.19.1-beta.1

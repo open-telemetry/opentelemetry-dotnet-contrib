@@ -20,6 +20,9 @@ public class ContainerIdSystemdUnitTests
         //// Processes started from desktop applications.
         "0::/user.slice/user-1000.slice/user@1000.service/app.slice/app-org.gnome.Terminal.slice/vte-spawn-2c4a7f5e-3b1d-4e8a-9f6c-0d1e2f3a4b5c.scope",
         "0::/user.slice/user-1000.slice/user@1000.service/app.slice/app-gnome-code-4521.scope",
+
+        //// A unit with an unknown prefix whose name does not contain a full-length container id.
+        "0::/system.slice/custom-abc123.scope",
     ];
 
     public static TheoryData<string> ContainerCgroupLines() =>
@@ -28,6 +31,13 @@ public class ContainerIdSystemdUnitTests
         $"0::/kubepods.slice/kubepods-besteffort.slice/kubepods-besteffort-pod1a2b3c4d.slice/cri-containerd-{Id}.scope",
         $"0::/kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod1a2b3c4d.slice/crio-{Id}.scope",
         $"0::/machine.slice/libpod-{Id}.scope",
+
+        //// runc's default cgroup path when using the systemd cgroup driver (":runc:<id>").
+        $"0::/system.slice/runc-{Id}.scope",
+        $"0::/user.slice/user-1000.slice/user@1000.service/user.slice/runc-{Id}.scope",
+
+        //// A runtime configured with a custom prefix ("<parent>:<prefix>:<id>").
+        $"0::/system.slice/my-runtime-{Id}.scope",
     ];
 
     [Theory]
