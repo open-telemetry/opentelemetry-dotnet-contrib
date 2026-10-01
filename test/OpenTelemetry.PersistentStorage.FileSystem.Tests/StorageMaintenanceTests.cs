@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Runtime.InteropServices;
+
 namespace OpenTelemetry.PersistentStorage.FileSystem.Tests;
 
 public sealed class StorageMaintenanceTests : IDisposable
@@ -30,6 +32,22 @@ public sealed class StorageMaintenanceTests : IDisposable
     [InlineData("2020-01-01T000000.0000000Z-0123456789abcdef0123456789abcdef.blob@.lock")]
     public void MaintenanceDoesNotRemoveFilesItDidNotCreate(string fileName)
     {
+        var foreignFile = this.CreateFile(fileName);
+
+        PersistentStorageHelper.RemoveExpiredBlobs(this.directory, DefaultRetentionMs, DefaultWriteTimeoutMs);
+
+        Assert.True(File.Exists(foreignFile), $"{fileName} was removed.");
+    }
+
+    [Theory]
+    [InlineData("foreign\\2020-01-01T000000.0000000Z-0123456789abcdef0123456789abcdef.blob")]
+    [InlineData("foreign\\2020-01-01T000000.0000000Z-0123456789abcdef0123456789abcdef.blob.tmp")]
+    [InlineData("foreign\\2020-01-01T000000.0000000Z-0123456789abcdef0123456789abcdef.blob@2020-01-01T000000.0000000Z.lock")]
+    public void MaintenanceDoesNotRemoveFilesWithBackslashesInTheirNameItDidNotCreate(string fileName)
+    {
+        // A backslash is a valid file name character on non-Windows platforms, so must not be treated as a directory separator.
+        Assert.SkipWhen(RuntimeInformation.IsOSPlatform(OSPlatform.Windows), "Backslash is not a valid file name character on Windows.");
+
         var foreignFile = this.CreateFile(fileName);
 
         PersistentStorageHelper.RemoveExpiredBlobs(this.directory, DefaultRetentionMs, DefaultWriteTimeoutMs);

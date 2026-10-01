@@ -16,7 +16,7 @@ internal static class PersistentStorageHelper
 
     internal static void RemoveExpiredBlob(DateTime retentionDeadline, string filePath)
     {
-        if (filePath.EndsWith(BlobExtension, StringComparison.OrdinalIgnoreCase) && IsBlobFileName(GetFileName(filePath)))
+        if (filePath.EndsWith(BlobExtension, StringComparison.OrdinalIgnoreCase) && IsBlobFileName(Path.GetFileName(filePath)))
         {
             var fileDateTime = GetDateTimeFromBlobName(filePath);
             if (fileDateTime < retentionDeadline)
@@ -38,7 +38,7 @@ internal static class PersistentStorageHelper
     {
         var success = false;
 
-        if (filePath.EndsWith(".lock", StringComparison.OrdinalIgnoreCase) && IsLeaseFileName(GetFileName(filePath)))
+        if (filePath.EndsWith(".lock", StringComparison.OrdinalIgnoreCase) && IsLeaseFileName(Path.GetFileName(filePath)))
         {
             var fileDateTime = GetDateTimeFromLeaseName(filePath);
             if (fileDateTime < leaseDeadline)
@@ -69,7 +69,7 @@ internal static class PersistentStorageHelper
     {
         var success = false;
 
-        if (filePath.EndsWith(".tmp", StringComparison.OrdinalIgnoreCase) && IsTemporaryFileName(GetFileName(filePath)))
+        if (filePath.EndsWith(".tmp", StringComparison.OrdinalIgnoreCase) && IsTemporaryFileName(Path.GetFileName(filePath)))
         {
             var fileDateTime = GetDateTimeFromBlobName(filePath);
             if (fileDateTime < timeoutDeadline)
@@ -210,14 +210,10 @@ internal static class PersistentStorageHelper
             && TryParseTimestamp(name.Substring(atSignIndex + 1), out _);
     }
 
-    private static string GetFileName(string filePath)
-        => RemoveWindowsDirectory(Path.GetFileName(filePath));
-
     private static string GetFileNameWithoutExtension(string filePath)
-        => RemoveWindowsDirectory(Path.GetFileNameWithoutExtension(filePath));
-
-    private static string RemoveWindowsDirectory(string fileName)
     {
+        var fileName = Path.GetFileNameWithoutExtension(filePath);
+
 #if !NETFRAMEWORK
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
