@@ -135,10 +135,6 @@ internal static class PersistentStorageHelper
         }
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static void WriteAllBytes(string path, byte[] buffer)
-        => File.WriteAllBytes(path, buffer);
-
     internal static void WriteAllBytes(string path, ReadOnlySpan<byte> buffer)
     {
 #if NET
@@ -170,6 +166,36 @@ internal static class PersistentStorageHelper
     }
 
     /// <summary>
+    /// Removes the file of a blob.
+    /// </summary>
+    /// <remarks>
+    /// The file is claimed by atomically moving it to a new name before it is measured and removed. Otherwise the storage
+    /// maintenance could release its lease between it being measured and removed, and as removing a file that does not
+    /// exist succeeds, it would be reported as removed while still being left behind under its name without the lease.
+    /// The new name is that of a temporary file, so if it cannot be removed the storage maintenance will remove it later.
+    /// </remarks>
+    /// <param name="filePath">The path of the file to remove.</param>
+    /// <returns>The size of the file that was removed, or zero if it was claimed but could not be removed.</returns>
+    /// <exception cref="FileNotFoundException">The file does not exist.</exception>
+    internal static long RemoveClaimedFile(string filePath)
+    {
+        var claimedPath = GetUniqueFilePath(filePath, ".blob.tmp");
+
+        File.Move(filePath, claimedPath);
+
+        try
+        {
+            RemoveFile(claimedPath, out var fileSize);
+            return fileSize;
+        }
+        catch (Exception ex)
+        {
+            PersistentStorageEventSource.Log.CouldNotDeleteFileBlob(claimedPath, ex);
+            return 0;
+        }
+    }
+
+    /// <summary>
     /// Removes the file of a blob whose content has been replaced by a file with a different name.
     /// </summary>
     /// <param name="filePath">The path of the file that was replaced.</param>
@@ -179,8 +205,7 @@ internal static class PersistentStorageHelper
     {
         try
         {
-            RemoveFile(filePath, out var fileSize);
-            return fileSize;
+            return RemoveClaimedFile(filePath);
         }
         catch (FileNotFoundException)
         {
@@ -199,8 +224,7 @@ internal static class PersistentStorageHelper
 
                 try
                 {
-                    RemoveFile(releasedPath, out var fileSize);
-                    return fileSize;
+                    return RemoveClaimedFile(releasedPath);
                 }
                 catch (FileNotFoundException)
                 {
@@ -225,6 +249,15 @@ internal static class PersistentStorageHelper
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static string GetUniqueFileName(string extension)
         => $"{FormatTimestamp(DateTime.UtcNow)}-{Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture)}{extension}";
+
+    /// <summary>
+    /// Gets a path for a new file in the same directory as the specified file that is named the way temporary files are.
+    /// </summary>
+    /// <param name="filePath">The path of a file in the directory.</param>
+    /// <param name="extension">The extension of the new file.</param>
+    /// <returns>The path of the new file.</returns>
+    internal static string GetUniqueFilePath(string filePath, string extension)
+        => Path.Combine(Path.GetDirectoryName(filePath) ?? string.Empty, GetUniqueFileName(extension));
 
     /// <summary>
     /// Formats a timestamp for use in the name of a file created by <see cref="FileBlobProvider"/>.
@@ -379,9 +412,10 @@ internal static class PersistentStorageHelper
 
     private static DateTime GetDateTimeFromTemporaryFileName(string filePath)
     {
-        // Temporary files are named {blob}.tmp, or {blob}@{timestamp}.lock.tmp when a leased blob is written to.
-        // The write to a leased blob may still be in progress while the lease is held, so the temporary file is
-        // timed out relative to when the lease expires rather than when the blob was created.
+        // Temporary files are given a new name with the time they were created, but previous versions named them after
+        // the blob ({blob}.tmp), or after its lease ({blob}@{timestamp}.lock.tmp) when a leased blob was written to. The
+        // write to a leased blob may still be in progress while the lease is held, so those temporary files are timed
+        // out relative to when the lease expires rather than when the blob was created.
         var fileName = GetFileNameWithoutExtension(filePath);
 
         var timestamp = fileName.EndsWith(LeaseExtension, StringComparison.Ordinal)
@@ -515,14 +549,7 @@ internal static class PersistentStorageHelper
 
     private static DateTime Parse(string timestamp)
     {
-        var parsed = TryParseTimestamp(timestamp, out var dateTime);
-
-        if (parsed && !IsFarFutureTimestamp(dateTime))
-        {
-            return dateTime.ToUniversalTime();
-        }
-
-        if (parsed)
+        if (TryParseTimestamp(timestamp, out var dateTime))
         {
             return dateTime.ToUniversalTime();
         }

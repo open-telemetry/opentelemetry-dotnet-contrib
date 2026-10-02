@@ -68,13 +68,11 @@ public class FileBlob : PersistentBlob
         var released = PersistentStorageHelper.RemoveLeases(this.FullPath);
         var destination = released;
 
-        // The temporary file of a new blob is named after the blob. When an existing blob is written to again, the
-        // temporary file is instead given a new name, as one named after the blob would be timed out by the storage
-        // maintenance as soon as it was created if the blob was created, or its lease expired, before the write timeout.
-        var isNew = string.Equals(released, this.FullPath, StringComparison.Ordinal) && !File.Exists(this.FullPath);
-        var path = isNew
-            ? this.FullPath + ".tmp"
-            : Path.Combine(Path.GetDirectoryName(this.FullPath) ?? string.Empty, PersistentStorageHelper.GetUniqueFileName(".blob.tmp"));
+        // The temporary file is given a new name with the current time, rather than being named after the blob, as the
+        // storage maintenance times temporary files out using the timestamp in their name. A temporary file named after
+        // a blob that was created, or whose lease expired, before the write timeout could otherwise be removed while it
+        // is still being written to, such as when an existing blob is written to again.
+        var path = PersistentStorageHelper.GetUniqueFilePath(this.FullPath, ".blob.tmp");
         long replacedSize;
 
         try
@@ -139,7 +137,10 @@ public class FileBlob : PersistentBlob
     {
         try
         {
-            PersistentStorageHelper.RemoveFile(this.FullPath, out var fileSize);
+            // If the lease has expired and the blob has been released by the storage maintenance, it is no longer
+            // removed, as it may now be leased by another reader, and the file is claimed before it is removed so
+            // that the blob cannot be released between it being found and removed and then be left behind.
+            var fileSize = PersistentStorageHelper.RemoveClaimedFile(this.FullPath);
             this.directorySizeTracker?.FileRemoved(fileSize);
         }
         catch (Exception ex)
