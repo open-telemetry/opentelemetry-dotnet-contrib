@@ -81,9 +81,12 @@ public class RateLimitingSamplerTests
                 case SamplingDecision.RecordAndSample:
                     sampleIn++;
                     break;
+
                 case SamplingDecision.Drop:
                     sampleOut++;
                     break;
+
+                case SamplingDecision.RecordOnly:
                 default:
                     Assert.Fail("Unexpected decision");
                     break;
