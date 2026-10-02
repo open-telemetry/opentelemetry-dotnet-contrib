@@ -311,6 +311,7 @@
   </Folder>
   <Folder Name="/test/Shared/">
     <File Path="test/Shared/ConsoleCommand.cs" />
+    <File Path="test/Shared/CultureSwitcher.cs" />
     <File Path="test/Shared/CustomTextMapPropagator.cs" />
     <File Path="test/Shared/EnabledOnDockerPlatformTheoryAttribute.cs" />
     <File Path="test/Shared/EnvironmentVariableScope.cs" />

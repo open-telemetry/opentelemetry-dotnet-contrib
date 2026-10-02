@@ -17,6 +17,12 @@
     a symbolic-link/junction walk.
   * Expired lease-file cleanup now correctly locates the lease timestamp
     delimiter within the file name rather than the whole path.
+  * Timestamps in blob and lease file names are now always written using the
+    Gregorian calendar. Previously, when the current culture used a different
+    calendar, files were given timestamps that caused  them never to be
+    removed or released when the storage was maintained.
+  * Temporary files left behind by a failed write to a leased blob are now
+    removed once the lease has expired for longer than the write timeout.
   ([#5451](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5451))
 
 ## 1.1.1

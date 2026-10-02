@@ -72,7 +72,7 @@ public class FileBlob : PersistentBlob
             if (leasePeriodMilliseconds > 0)
             {
                 var timestamp = DateTime.UtcNow + TimeSpan.FromMilliseconds(leasePeriodMilliseconds);
-                this.FullPath += $"@{timestamp:yyyy-MM-ddTHHmmss.fffffffZ}.lock";
+                this.FullPath += $"@{PersistentStorageHelper.FormatTimestamp(timestamp)}.lock";
             }
 
             File.Move(path, this.FullPath);
@@ -96,7 +96,7 @@ public class FileBlob : PersistentBlob
             path = path.Substring(0, path.LastIndexOf('@'));
         }
 
-        path += $"@{leaseTimestamp:yyyy-MM-ddTHHmmss.fffffffZ}.lock";
+        path += $"@{PersistentStorageHelper.FormatTimestamp(leaseTimestamp)}.lock";
 
         try
         {

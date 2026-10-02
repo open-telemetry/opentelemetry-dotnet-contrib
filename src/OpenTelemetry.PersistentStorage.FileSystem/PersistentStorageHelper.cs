@@ -11,13 +11,17 @@ namespace OpenTelemetry.PersistentStorage.FileSystem;
 
 internal static class PersistentStorageHelper
 {
+    // The component only creates files with these lowercase extensions, so they are compared ordinally so that
+    // files that only differ by case, which are distinct files on case-sensitive file systems, are left alone.
     private const string BlobExtension = ".blob";
+    private const string LeaseExtension = ".lock";
+    private const string TemporaryExtension = ".tmp";
     private const string TimestampFormat = "yyyy-MM-ddTHHmmss.fffffffZ";
     private const int GuidLength = 32;
 
     internal static void RemoveExpiredBlob(DateTime retentionDeadline, string filePath)
     {
-        if (filePath.EndsWith(BlobExtension, StringComparison.OrdinalIgnoreCase) && IsBlobFileName(Path.GetFileName(filePath)))
+        if (filePath.EndsWith(BlobExtension, StringComparison.Ordinal) && IsBlobFileName(Path.GetFileName(filePath)))
         {
             var fileDateTime = GetDateTimeFromBlobName(filePath);
             if (fileDateTime < retentionDeadline)
@@ -39,7 +43,7 @@ internal static class PersistentStorageHelper
     {
         var success = false;
 
-        if (filePath.EndsWith(".lock", StringComparison.OrdinalIgnoreCase) && IsLeaseFileName(Path.GetFileName(filePath)))
+        if (filePath.EndsWith(LeaseExtension, StringComparison.Ordinal) && IsLeaseFileName(Path.GetFileName(filePath)))
         {
             var fileDateTime = GetDateTimeFromLeaseName(filePath);
             if (fileDateTime < leaseDeadline)
@@ -77,9 +81,9 @@ internal static class PersistentStorageHelper
     {
         var success = false;
 
-        if (filePath.EndsWith(".tmp", StringComparison.OrdinalIgnoreCase) && IsTemporaryFileName(Path.GetFileName(filePath)))
+        if (filePath.EndsWith(TemporaryExtension, StringComparison.Ordinal) && IsTemporaryFileName(Path.GetFileName(filePath)))
         {
-            var fileDateTime = GetDateTimeFromBlobName(filePath);
+            var fileDateTime = GetDateTimeFromTemporaryFileName(filePath);
             if (fileDateTime < timeoutDeadline)
             {
                 try
@@ -160,7 +164,16 @@ internal static class PersistentStorageHelper
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static string GetUniqueFileName(string extension)
-        => string.Format(CultureInfo.InvariantCulture, $"{DateTime.UtcNow:yyyy-MM-ddTHHmmss.fffffffZ}-{Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture)}{extension}");
+        => $"{FormatTimestamp(DateTime.UtcNow)}-{Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture)}{extension}";
+
+    /// <summary>
+    /// Formats a timestamp for use in the name of a file created by <see cref="FileBlobProvider"/>.
+    /// </summary>
+    /// <param name="timestamp">The UTC timestamp to format.</param>
+    /// <returns>The formatted timestamp.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static string FormatTimestamp(DateTime timestamp)
+        => timestamp.ToString(TimestampFormat, CultureInfo.InvariantCulture);
 
     /// <summary>
     /// Determines whether a file name is the name of a blob created by <see cref="FileBlobProvider"/>.
@@ -174,7 +187,7 @@ internal static class PersistentStorageHelper
     /// <returns><see langword="true"/> if the file name is the name of a blob; otherwise <see langword="false"/>.</returns>
     internal static bool IsBlobFileName(string fileName)
     {
-        if (!fileName.EndsWith(BlobExtension, StringComparison.OrdinalIgnoreCase))
+        if (!fileName.EndsWith(BlobExtension, StringComparison.Ordinal))
         {
             return false;
         }
@@ -246,13 +259,39 @@ internal static class PersistentStorageHelper
         return Parse(timestamp);
     }
 
+    private static DateTime GetDateTimeFromTemporaryFileName(string filePath)
+    {
+        // Temporary files are named {blob}.tmp, or {blob}@{timestamp}.lock.tmp when a leased blob is written to.
+        // The write to a leased blob may still be in progress while the lease is held, so the temporary file is
+        // timed out relative to when the lease expires rather than when the blob was created.
+        var fileName = GetFileNameWithoutExtension(filePath);
+
+        return fileName.EndsWith(LeaseExtension, StringComparison.Ordinal)
+            ? GetDateTimeFromLeaseName(fileName)
+            : GetDateTimeFromBlobName(fileName);
+    }
+
     private static bool IsTemporaryFileName(string fileName)
-        => IsBlobFileName(Path.GetFileNameWithoutExtension(fileName));
+    {
+        if (!fileName.EndsWith(TemporaryExtension, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        var name = fileName.Substring(0, fileName.Length - TemporaryExtension.Length);
+
+        return IsBlobFileName(name) || IsLeaseFileName(name);
+    }
 
     private static bool IsLeaseFileName(string fileName)
     {
         // Lease files are named {blob}@{timestamp}.lock
-        var name = Path.GetFileNameWithoutExtension(fileName);
+        if (!fileName.EndsWith(LeaseExtension, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        var name = fileName.Substring(0, fileName.Length - LeaseExtension.Length);
         var atSignIndex = name.LastIndexOf('@');
 
         return atSignIndex > 0

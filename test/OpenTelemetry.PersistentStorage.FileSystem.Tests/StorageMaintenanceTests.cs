@@ -1,7 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Globalization;
 using System.Runtime.InteropServices;
+using OpenTelemetry.Tests;
 
 namespace OpenTelemetry.PersistentStorage.FileSystem.Tests;
 
@@ -37,6 +39,114 @@ public sealed class StorageMaintenanceTests : IDisposable
         PersistentStorageHelper.RemoveExpiredBlobs(this.directory, DefaultRetentionMs, DefaultWriteTimeoutMs);
 
         Assert.True(File.Exists(foreignFile), $"{fileName} was removed.");
+    }
+
+    [Theory]
+    [InlineData("2020-01-01T000000.0000000Z-0123456789abcdef0123456789abcdef.BLOB")]
+    [InlineData("2020-01-01T000000.0000000Z-0123456789abcdef0123456789abcdef.Blob")]
+    [InlineData("2020-01-01T000000.0000000Z-0123456789abcdef0123456789abcdef.blob.TMP")]
+    [InlineData("2020-01-01T000000.0000000Z-0123456789abcdef0123456789abcdef.BLOB.tmp")]
+    [InlineData("2020-01-01T000000.0000000Z-0123456789abcdef0123456789abcdef.blob@2020-01-01T000000.0000000Z.LOCK")]
+    [InlineData("2020-01-01T000000.0000000Z-0123456789abcdef0123456789abcdef.BLOB@2020-01-01T000000.0000000Z.lock")]
+    [InlineData("2020-01-01T000000.0000000Z-0123456789abcdef0123456789abcdef.blob@2020-01-01T000000.0000000Z.lock.TMP")]
+    [InlineData("2020-01-01T000000.0000000Z-0123456789abcdef0123456789abcdef.blob@2020-01-01T000000.0000000Z.LOCK.tmp")]
+    public void MaintenanceDoesNotRemoveFilesWithDifferentlyCasedExtensionsItDidNotCreate(string fileName)
+    {
+        // The component only creates files with lowercase extensions.
+        var foreignFile = this.CreateFile(fileName);
+
+        PersistentStorageHelper.RemoveExpiredBlobs(this.directory, DefaultRetentionMs, DefaultWriteTimeoutMs);
+
+        Assert.True(File.Exists(foreignFile), $"{fileName} was removed or renamed.");
+    }
+
+    [Theory]
+    [InlineData("2020-01-01T000000.0000000Z-0123456789abcdef0123456789abcdef.BLOB")]
+    [InlineData("2020-01-01T000000.0000000Z-0123456789abcdef0123456789abcdef.Blob")]
+    public void IsBlobFileNameRequiresLowercaseExtension(string fileName)
+        => Assert.False(PersistentStorageHelper.IsBlobFileName(fileName));
+
+    [Fact]
+    public void MaintenanceRemovesTimedOutTemporaryFilesOfLeasedBlobs()
+    {
+        // A temporary file of a leased blob is named {blob}@{timestamp}.lock.tmp, and is only abandoned
+        // once the lease has expired, regardless of when the blob itself was created.
+        var expiredLease = this.CreateFile(OwnBlobName(DateTime.UtcNow) + "@2020-01-01T000000.0000000Z.lock.tmp");
+        var activeLease = this.CreateFile(OwnBlobName(new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc)) + $"@{FormatTimestamp(DateTime.UtcNow.AddHours(1))}.lock.tmp");
+
+        PersistentStorageHelper.RemoveExpiredBlobs(this.directory, DefaultRetentionMs, DefaultWriteTimeoutMs);
+
+        Assert.False(File.Exists(expiredLease), "The temporary file of an expired lease was not removed.");
+        Assert.True(File.Exists(activeLease), "The temporary file of an active lease was removed.");
+    }
+
+    [Fact]
+    public void MaintenanceRemovesTemporaryFileLeftByFailedWriteToLeasedBlob()
+    {
+        using var provider = new FileBlobProvider(this.directory);
+
+        Assert.True(provider.TryCreateBlob([1, 2, 3], out var blob));
+        Assert.True(blob.TryLease(1_000));
+
+        var leasePath = ((FileBlob)blob).FullPath;
+        var temporaryFile = leasePath + ".tmp";
+
+        // Moving the temporary file over the existing leased blob fails, so the temporary file is left behind.
+        Assert.False(blob.TryWrite([4, 5, 6]));
+        Assert.True(File.Exists(temporaryFile));
+
+        // The temporary file is kept while the lease is held...
+        Assert.False(PersistentStorageHelper.RemoveTimedOutTmpFiles(DateTime.UtcNow, temporaryFile));
+        Assert.True(File.Exists(temporaryFile));
+
+        // ...and removed once the lease has expired for longer than the write timeout.
+        Assert.True(PersistentStorageHelper.RemoveTimedOutTmpFiles(DateTime.UtcNow.AddMinutes(5), temporaryFile));
+        Assert.False(File.Exists(temporaryFile));
+        Assert.True(File.Exists(leasePath));
+    }
+
+    [Fact]
+    public void GetUniqueFileNameUsesInvariantCalendar()
+    {
+        string fileName = null!;
+        DateTime before = default;
+        DateTime after = default;
+
+        using (CultureSwitcher.UseCulture("th-TH"))
+        {
+            before = DateTime.UtcNow;
+            fileName = PersistentStorageHelper.GetUniqueFileName(".blob");
+            after = DateTime.UtcNow;
+        }
+
+        Assert.True(PersistentStorageHelper.IsBlobFileName(fileName), $"{fileName} is not a valid blob name.");
+        Assert.InRange(PersistentStorageHelper.GetDateTimeFromBlobName(fileName), before, after);
+    }
+
+    [Fact]
+    public void LeaseFileNamesUseInvariantCalendar()
+    {
+        using var provider = new FileBlobProvider(this.directory);
+
+        using (CultureSwitcher.UseCulture("th-TH"))
+        {
+            var before = DateTime.UtcNow;
+            Assert.True(provider.TryCreateBlob([1, 2, 3], 60_000, out var blob));
+            var after = DateTime.UtcNow;
+
+            var leasePath = ((FileBlob)blob).FullPath;
+            Assert.InRange(PersistentStorageHelper.GetDateTimeFromLeaseName(leasePath), before.AddMinutes(1), after.AddMinutes(1));
+
+            before = DateTime.UtcNow;
+            Assert.True(blob.TryLease(120_000));
+            after = DateTime.UtcNow;
+
+            leasePath = ((FileBlob)blob).FullPath;
+            Assert.InRange(PersistentStorageHelper.GetDateTimeFromLeaseName(leasePath), before.AddMinutes(2), after.AddMinutes(2));
+
+            // The lease is recognized as one created by the component, so is released once expired.
+            Assert.True(PersistentStorageHelper.RemoveExpiredLease(DateTime.UtcNow.AddHours(1), leasePath));
+        }
     }
 
     [Theory]
@@ -140,7 +250,10 @@ public sealed class StorageMaintenanceTests : IDisposable
     }
 
     private static string OwnBlobName(DateTime timestamp)
-        => $"{timestamp:yyyy-MM-ddTHHmmss.fffffffZ}-{Guid.NewGuid():N}.blob";
+        => $"{FormatTimestamp(timestamp)}-{Guid.NewGuid():N}.blob";
+
+    private static string FormatTimestamp(DateTime timestamp)
+        => timestamp.ToString("yyyy-MM-ddTHHmmss.fffffffZ", CultureInfo.InvariantCulture);
 
     private string CreateFile(string fileName)
     {
