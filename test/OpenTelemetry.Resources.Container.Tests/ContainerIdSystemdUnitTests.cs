@@ -23,6 +23,11 @@ public class ContainerIdSystemdUnitTests
 
         //// A unit with an unknown prefix whose name does not contain a full-length container id.
         "0::/system.slice/custom-abc123.scope",
+
+        //// Non-systemd cgroups whose names happen to be (short) hexadecimal.
+        "0::/system.slice/cafe",
+        "0::/kubepods/besteffort/pod1/abc",
+        "4:cpu:/lxc/123",
     ];
 
     public static TheoryData<string> ContainerCgroupLines() =>

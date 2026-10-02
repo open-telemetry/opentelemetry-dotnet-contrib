@@ -3,12 +3,7 @@
 ## Unreleased
 
 * Fixed `container.id` being reported for processes that are not running in a
-  container on hosts that use systemd, where the name of the unit the process
-  runs in (for example `session-2.scope` or `db.service`) was mistaken for a
-  container id. A systemd unit is now only treated as a container when it was
-  created by a well-known container runtime (for example `docker-<id>.scope` or
-  `runc-<id>.scope`) or its name contains a full-length (64 character)
-  container id.
+  container on hosts that use systemd.
   ([#5454](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5454))
 
 ## 1.19.1-beta.1
