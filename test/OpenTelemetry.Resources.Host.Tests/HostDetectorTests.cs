@@ -354,6 +354,61 @@ public class HostDetectorTests
     }
 
     [Theory]
+    [InlineData(null)]
+    [InlineData("false")]
+    public void TestHostOptionsEnableOverridesEnvironmentVariables(string? envValue)
+    {
+        using var networkAddressesEnvironment = EnvironmentVariableScope.Create(EnableNetworkAddressesEnvVarName, envValue);
+        using var cpuInfoEnvironment = EnvironmentVariableScope.Create(EnableCpuInfoEnvVarName, envValue);
+
+        var resource = ResourceBuilder.CreateEmpty()
+            .AddHostDetector(options =>
+            {
+                options.EnableNetworkAddresses = true;
+                options.EnableCpuInfo = true;
+            })
+            .Build();
+
+        var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
+
+        Assert.True(resourceAttributes.ContainsKey("host.ip"));
+        Assert.True(resourceAttributes.ContainsKey("host.mac"));
+    }
+
+    [Fact]
+    public void TestHostOptionsDisableOverridesEnvironmentVariables()
+    {
+        using var networkAddressesEnvironment = EnvironmentVariableScope.Create(EnableNetworkAddressesEnvVarName, "true");
+        using var cpuInfoEnvironment = EnvironmentVariableScope.Create(EnableCpuInfoEnvVarName, "true");
+
+        var resource = ResourceBuilder.CreateEmpty()
+            .AddHostDetector(options =>
+            {
+                options.EnableNetworkAddresses = false;
+                options.EnableCpuInfo = false;
+            })
+            .Build();
+
+        var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
+
+        Assert.False(resourceAttributes.ContainsKey("host.ip"));
+        Assert.False(resourceAttributes.ContainsKey("host.mac"));
+        Assert.DoesNotContain(resourceAttributes.Keys, key => key.StartsWith("host.cpu.", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void TestHostOptionsDefaultFromEnvironmentVariables()
+    {
+        using var networkAddressesEnvironment = EnvironmentVariableScope.Create(EnableNetworkAddressesEnvVarName, "true");
+        using var cpuInfoEnvironment = EnvironmentVariableScope.Create(EnableCpuInfoEnvVarName, null);
+
+        var options = new HostDetectorOptions();
+
+        Assert.True(options.EnableNetworkAddresses);
+        Assert.False(options.EnableCpuInfo);
+    }
+
+    [Theory]
     [InlineData(OperationalStatus.Up, NetworkInterfaceType.Ethernet, true)]
     [InlineData(OperationalStatus.Up, NetworkInterfaceType.Wireless80211, true)]
     [InlineData(OperationalStatus.Up, NetworkInterfaceType.Unknown, true)]
