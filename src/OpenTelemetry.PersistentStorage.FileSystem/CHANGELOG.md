@@ -9,6 +9,16 @@
   removed or renamed when the storage is maintained.
   ([#5451](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5451))
 
+* Hardened `FileBlobProvider`.
+  * When running on .NET on non-Windows platforms, the storage directory and
+    the blob files within it are now created accessible to the current user
+    only, including when the directory is recreated after being deleted.
+  * Directory size accounting no longer follows subdirectories, avoiding
+    a symbolic-link/junction walk.
+  * Expired lease-file cleanup now correctly locates the lease timestamp
+    delimiter within the file name rather than the whole path.
+  ([#5451](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5451))
+
 ## 1.1.1
 
 Released 2026-Jul-17

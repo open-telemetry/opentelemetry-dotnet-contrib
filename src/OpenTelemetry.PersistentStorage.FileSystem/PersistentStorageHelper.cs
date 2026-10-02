@@ -43,13 +43,20 @@ internal static class PersistentStorageHelper
             var fileDateTime = GetDateTimeFromLeaseName(filePath);
             if (fileDateTime < leaseDeadline)
             {
-                var atSignIndex = filePath.LastIndexOf('@');
+                var directory = Path.GetDirectoryName(filePath);
+                var fileName = Path.GetFileName(filePath);
+
+                var atSignIndex = fileName.LastIndexOf('@');
                 if (atSignIndex == -1)
                 {
                     return false;
                 }
 
-                var newFilePath = filePath.Substring(0, atSignIndex);
+                var newFileName = fileName.Substring(0, atSignIndex);
+                var newFilePath = string.IsNullOrEmpty(directory)
+                    ? newFileName
+                    : Path.Combine(directory, newFileName);
+
                 try
                 {
                     File.Move(filePath, newFilePath);
@@ -123,7 +130,19 @@ internal static class PersistentStorageHelper
     internal static void WriteAllBytes(string path, ReadOnlySpan<byte> buffer)
     {
 #if NET
-        using var stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
+        var options = new FileStreamOptions
+        {
+            Access = FileAccess.Write,
+            Mode = FileMode.Create,
+            Share = FileShare.None,
+        };
+
+        if (!OperatingSystem.IsWindows())
+        {
+            options.UnixCreateMode = UnixFileMode.UserRead | UnixFileMode.UserWrite;
+        }
+
+        using var stream = new FileStream(path, options);
         stream.Write(buffer);
 #else
         File.WriteAllBytes(path, buffer.ToArray());
@@ -169,7 +188,35 @@ internal static class PersistentStorageHelper
 
     internal static string CreateSubdirectory(string path)
     {
-        Directory.CreateDirectory(path);
+        try
+        {
+#if NET
+            // The storage directory holds serialized telemetry that is later replayed by the exporter
+            // with its own credentials. Restrict it to the current user so other local users cannot
+            // read the stored telemetry or plant blobs that would be sent on the application's behalf.
+            // The mode is applied atomically when the directory is created, and the permissions of a
+            // directory that already exists (for example one an operator has deliberately configured
+            // and shared) are left unchanged. On Windows the created directory inherits the parent ACL.
+            if (OperatingSystem.IsWindows())
+            {
+                Directory.CreateDirectory(path);
+            }
+            else
+            {
+                Directory.CreateDirectory(
+                    path,
+                    UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+            }
+#else
+            Directory.CreateDirectory(path);
+#endif
+        }
+        catch (Exception ex)
+        {
+            PersistentStorageEventSource.Log.PersistentStorageException(nameof(PersistentStorageHelper), $"Could not create directory {path}", ex);
+            throw;
+        }
+
         return path;
     }
 

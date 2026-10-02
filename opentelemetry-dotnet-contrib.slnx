@@ -220,6 +220,7 @@
     <File Path="src/Shared/SqlStatementInfo.cs" />
     <File Path="src/Shared/StopwatchExtensions.cs" />
     <File Path="src/Shared/UriHelper.cs" />
+    <File Path="test/Shared/TemporaryDirectory.cs" />
   </Folder>
   <Folder Name="/src/Shared/AWS/">
     <File Path="src/Shared/AWS/AWSSemanticConventions.Base.cs" />
