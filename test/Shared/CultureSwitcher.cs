@@ -25,7 +25,7 @@ internal sealed class CultureSwitcher : IDisposable
     private static bool IsGlobalizationInvariant()
     {
         // Based on https://www.meziantou.net/detect-globalization-invariant-mode-in-dotnet.htm
-        if (AppContext.TryGetSwitch("System.Globalization.Invariant", out bool isEnabled) && isEnabled)
+        if (AppContext.TryGetSwitch("System.Globalization.Invariant", out var isEnabled) && isEnabled)
         {
             return true;
         }
