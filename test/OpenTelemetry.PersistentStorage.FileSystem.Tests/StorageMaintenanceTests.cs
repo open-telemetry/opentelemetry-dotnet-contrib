@@ -66,6 +66,104 @@ public sealed class StorageMaintenanceTests : IDisposable
     public void IsBlobFileNameRequiresLowercaseExtension(string fileName)
         => Assert.False(PersistentStorageHelper.IsBlobFileName(fileName));
 
+    [Theory]
+    [InlineData("2020-01-01T000000.0000000Z-0123456789ABCDEF0123456789ABCDEF.blob")]
+    [InlineData("2020-01-01T000000.0000000Z-0123456789abcdef0123456789abcdeF.blob")]
+    [InlineData("2020-01-01T000000.0000000Z-0123456789ABCDEF0123456789ABCDEF.blob.tmp")]
+    [InlineData("2020-01-01T000000.0000000Z-0123456789ABCDEF0123456789ABCDEF.blob@2020-01-01T000000.0000000Z.lock")]
+    [InlineData("2020-01-01T000000.0000000Z-0123456789ABCDEF0123456789ABCDEF.blob@2020-01-01T000000.0000000Z.lock.tmp")]
+    [InlineData("2020-01-01T000000.0000000Z-0123456789ABCDEF0123456789ABCDEF.blob@2020-01-01T000000.0000000Z.lock@2020-01-01T000000.0000000Z.lock")]
+    public void MaintenanceDoesNotRemoveFilesWithUppercaseGuidsItDidNotCreate(string fileName)
+    {
+        // The component only creates files with GUIDs formatted as lowercase hexadecimal digits.
+        var foreignFile = this.CreateFile(fileName);
+
+        PersistentStorageHelper.RemoveExpiredBlobs(this.directory, DefaultRetentionMs, DefaultWriteTimeoutMs);
+
+        Assert.True(File.Exists(foreignFile), $"{fileName} was removed or renamed.");
+    }
+
+    [Theory]
+    [InlineData("2020-01-01T000000.0000000Z-0123456789ABCDEF0123456789ABCDEF.blob")]
+    [InlineData("2020-01-01T000000.0000000Z-0123456789abcdef0123456789abcdeF.blob")]
+    [InlineData("2020-01-01T000000.0000000Z-0123456789abcdef0123456789abcdeg.blob")]
+    [InlineData("2020-01-01T000000.0000000Z-{0123456789abcdef0123456789abcde}.blob")]
+    public void IsBlobFileNameRequiresLowercaseHexadecimalGuid(string fileName)
+        => Assert.False(PersistentStorageHelper.IsBlobFileName(fileName));
+
+    [Theory]
+    [InlineData("2020-01-01T000000.0000000Z-0123456789abcdef0123456789abcdef.blob@2020-01-01T000000.0000000Z.lock@notes.lock")]
+    [InlineData("2020-01-01T000000.0000000Z-0123456789abcdef0123456789abcdef.blob@notes.lock@2020-01-01T000000.0000000Z.lock")]
+    [InlineData("2020-01-01T000000.0000000Z-0123456789abcdef0123456789abcdef.blob@2020-01-01T000000.0000000Z.LOCK@2020-01-01T000000.0000000Z.lock")]
+    [InlineData("2020-01-01T000000.0000000Z-0123456789abcdef0123456789abcdef.blob@2020-01-01T000000.0000000Z.lock@.lock")]
+    [InlineData("2020-01-01T000000.0000000Z-0123456789abcdef0123456789abcdef.blob@@2020-01-01T000000.0000000Z.lock")]
+    [InlineData("2020-01-01T000000.0000000Z-0123456789abcdef0123456789abcdef.blob@2020-01-01T000000.0000000Z.lock@2020-01-01T000000.0000000Z.lock.TMP")]
+    [InlineData("worldmap.blob@2020-01-01T000000.0000000Z.lock@2020-01-01T000000.0000000Z.lock")]
+    [InlineData("2020-01-01T000000.0000000Z-notaguid.blob@2020-01-01T000000.0000000Z.lock@2020-01-01T000000.0000000Z.lock.tmp")]
+    public void MaintenanceDoesNotRemoveNestedLeasesItDidNotCreate(string fileName)
+    {
+        var foreignFile = this.CreateFile(fileName);
+
+        PersistentStorageHelper.RemoveExpiredBlobs(this.directory, DefaultRetentionMs, DefaultWriteTimeoutMs);
+
+        Assert.True(File.Exists(foreignFile), $"{fileName} was removed or renamed.");
+    }
+
+    [Fact]
+    public void MaintenanceReleasesExpiredNestedLeases()
+    {
+        // Writing to a blob that is already leased with a new lease appends a further lease to its name: {blob}@{timestamp}.lock@{timestamp}.lock
+        var blob = OwnBlobName(DateTime.UtcNow);
+        var expiredLease = this.CreateFile($"{blob}@2020-01-01T000000.0000000Z.lock@2020-01-01T000500.0000000Z.lock");
+        var activeLease = this.CreateFile($"{blob}@2020-01-01T000000.0000000Z.lock@{FormatTimestamp(DateTime.UtcNow.AddHours(1))}.lock");
+
+        PersistentStorageHelper.RemoveExpiredBlobs(this.directory, DefaultRetentionMs, DefaultWriteTimeoutMs);
+
+        Assert.False(File.Exists(expiredLease), "The expired nested lease was not released.");
+        Assert.True(File.Exists(Path.Combine(this.directory, $"{blob}@2020-01-01T000000.0000000Z.lock")), "The expired nested lease was not released to the lease it was derived from.");
+        Assert.True(File.Exists(activeLease), "The active nested lease was released.");
+    }
+
+    [Fact]
+    public void MaintenanceRemovesTimedOutTemporaryFilesOfNestedLeases()
+    {
+        var expiredLease = this.CreateFile(OwnBlobName(DateTime.UtcNow) + "@2020-01-01T000000.0000000Z.lock@2020-01-01T000500.0000000Z.lock.tmp");
+        var activeLease = this.CreateFile(OwnBlobName(DateTime.UtcNow) + $"@2020-01-01T000000.0000000Z.lock@{FormatTimestamp(DateTime.UtcNow.AddHours(1))}.lock.tmp");
+
+        PersistentStorageHelper.RemoveExpiredBlobs(this.directory, DefaultRetentionMs, DefaultWriteTimeoutMs);
+
+        Assert.False(File.Exists(expiredLease), "The temporary file of an expired nested lease was not removed.");
+        Assert.True(File.Exists(activeLease), "The temporary file of an active nested lease was removed.");
+    }
+
+    [Fact]
+    public void MaintenanceReleasesLeaseCreatedByWritingToLeasedBlob()
+    {
+        using var provider = new FileBlobProvider(this.directory);
+
+        Assert.True(provider.TryCreateBlob([1, 2, 3], 60_000, out var blob));
+        var leasePath = ((FileBlob)blob).FullPath;
+
+        Assert.True(blob.TryWrite([4, 5, 6], 60_000));
+        var nestedLeasePath = ((FileBlob)blob).FullPath;
+
+        Assert.StartsWith(leasePath + "@", nestedLeasePath, StringComparison.Ordinal);
+
+        // The leases are kept while they are held...
+        Assert.False(PersistentStorageHelper.RemoveExpiredLease(DateTime.UtcNow, nestedLeasePath));
+        Assert.False(PersistentStorageHelper.RemoveExpiredLease(DateTime.UtcNow, leasePath));
+
+        // ...and released once they have expired. The write leaves the original lease in place, which
+        // needs to be released first so that the nested lease can be released to the name it was derived from.
+        var deadline = DateTime.UtcNow.AddMinutes(5);
+
+        Assert.True(PersistentStorageHelper.RemoveExpiredLease(deadline, leasePath));
+        Assert.True(PersistentStorageHelper.RemoveExpiredLease(deadline, nestedLeasePath));
+
+        Assert.False(File.Exists(nestedLeasePath));
+        Assert.Equal([4, 5, 6], File.ReadAllBytes(leasePath));
+    }
+
     [Fact]
     public void MaintenanceRemovesTimedOutTemporaryFilesOfLeasedBlobs()
     {

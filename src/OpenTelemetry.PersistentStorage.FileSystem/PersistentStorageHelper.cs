@@ -195,10 +195,11 @@ internal static class PersistentStorageHelper
         var name = fileName.Substring(0, fileName.Length - BlobExtension.Length);
         var dashIndex = name.LastIndexOf('-');
 
-        // Guid.TryParseExact() ignores leading and trailing whitespace, so check the length first
+        // Guid.TryParseExact() ignores leading and trailing whitespace and accepts uppercase hexadecimal digits,
+        // so the GUID is matched exactly against the lowercase format that GetUniqueFileName() uses instead.
         return dashIndex > 0
             && name.Length - dashIndex - 1 == GuidLength
-            && Guid.TryParseExact(name.Substring(dashIndex + 1), "N", out _)
+            && IsLowercaseHexadecimal(name, dashIndex + 1)
             && TryParseTimestamp(name.Substring(0, dashIndex), out _);
     }
 
@@ -285,18 +286,40 @@ internal static class PersistentStorageHelper
 
     private static bool IsLeaseFileName(string fileName)
     {
-        // Lease files are named {blob}@{timestamp}.lock
-        if (!fileName.EndsWith(LeaseExtension, StringComparison.Ordinal))
+        // Lease files are named {blob}@{timestamp}.lock. Writing to a blob that is already leased with
+        // a new lease appends a further lease to its name, such as {blob}@{timestamp}.lock@{timestamp}.lock,
+        // so every lease is validated back to the name of the blob that the leases were derived from.
+        var name = fileName;
+        var leases = 0;
+
+        while (name.EndsWith(LeaseExtension, StringComparison.Ordinal))
         {
-            return false;
+            name = name.Substring(0, name.Length - LeaseExtension.Length);
+            var atSignIndex = name.LastIndexOf('@');
+
+            if (atSignIndex <= 0 || !TryParseTimestamp(name.Substring(atSignIndex + 1), out _))
+            {
+                return false;
+            }
+
+            name = name.Substring(0, atSignIndex);
+            leases++;
         }
 
-        var name = fileName.Substring(0, fileName.Length - LeaseExtension.Length);
-        var atSignIndex = name.LastIndexOf('@');
+        return leases > 0 && IsBlobFileName(name);
+    }
 
-        return atSignIndex > 0
-            && IsBlobFileName(name.Substring(0, atSignIndex))
-            && TryParseTimestamp(name.Substring(atSignIndex + 1), out _);
+    private static bool IsLowercaseHexadecimal(string value, int startIndex)
+    {
+        for (var i = startIndex; i < value.Length; i++)
+        {
+            if (!char.IsAsciiHexDigitLower(value[i]))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private static string GetFileNameWithoutExtension(string filePath)
