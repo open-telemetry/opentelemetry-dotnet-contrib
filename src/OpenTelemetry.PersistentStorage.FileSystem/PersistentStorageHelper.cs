@@ -13,6 +13,7 @@ internal static class PersistentStorageHelper
 {
     private const string BlobExtension = ".blob";
     private const string TimestampFormat = "yyyy-MM-ddTHHmmss.fffffffZ";
+    private const int GuidLength = 32;
 
     internal static void RemoveExpiredBlob(DateTime retentionDeadline, string filePath)
     {
@@ -181,7 +182,9 @@ internal static class PersistentStorageHelper
         var name = fileName.Substring(0, fileName.Length - BlobExtension.Length);
         var dashIndex = name.LastIndexOf('-');
 
+        // Guid.TryParseExact() ignores leading and trailing whitespace, so check the length first
         return dashIndex > 0
+            && name.Length - dashIndex - 1 == GuidLength
             && Guid.TryParseExact(name.Substring(dashIndex + 1), "N", out _)
             && TryParseTimestamp(name.Substring(0, dashIndex), out _);
     }
