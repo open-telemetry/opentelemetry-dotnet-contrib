@@ -1,2 +1,9 @@
 OpenTelemetry.Resources.HostResourceBuilderExtensions
 static OpenTelemetry.Resources.HostResourceBuilderExtensions.AddHostDetector(this OpenTelemetry.Resources.ResourceBuilder! builder) -> OpenTelemetry.Resources.ResourceBuilder!
+OpenTelemetry.Resources.Host.HostDetectorOptions
+OpenTelemetry.Resources.Host.HostDetectorOptions.EnableCpuInfo.get -> bool
+OpenTelemetry.Resources.Host.HostDetectorOptions.EnableCpuInfo.set -> void
+OpenTelemetry.Resources.Host.HostDetectorOptions.EnableNetworkAddresses.get -> bool
+OpenTelemetry.Resources.Host.HostDetectorOptions.EnableNetworkAddresses.set -> void
+OpenTelemetry.Resources.Host.HostDetectorOptions.HostDetectorOptions() -> void
+static OpenTelemetry.Resources.HostResourceBuilderExtensions.AddHostDetector(this OpenTelemetry.Resources.ResourceBuilder! builder, System.Action<OpenTelemetry.Resources.Host.HostDetectorOptions!>? configure) -> OpenTelemetry.Resources.ResourceBuilder!
