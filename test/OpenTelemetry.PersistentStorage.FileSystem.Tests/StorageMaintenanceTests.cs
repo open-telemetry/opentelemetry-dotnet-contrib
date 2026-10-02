@@ -137,31 +137,202 @@ public sealed class StorageMaintenanceTests : IDisposable
     }
 
     [Fact]
-    public void MaintenanceReleasesLeaseCreatedByWritingToLeasedBlob()
+    public void WritingToLeasedBlobWithLeaseReplacesLease()
     {
         using var provider = new FileBlobProvider(this.directory);
 
         Assert.True(provider.TryCreateBlob([1, 2, 3], 60_000, out var blob));
         var leasePath = ((FileBlob)blob).FullPath;
+        var blobPath = leasePath.Substring(0, leasePath.LastIndexOf('@'));
 
         Assert.True(blob.TryWrite([4, 5, 6], 60_000));
-        var nestedLeasePath = ((FileBlob)blob).FullPath;
+        var newLeasePath = ((FileBlob)blob).FullPath;
 
-        Assert.StartsWith(leasePath + "@", nestedLeasePath, StringComparison.Ordinal);
+        // The blob is leased again from its original name, rather than the previous lease being extended,
+        // and the previous lease is replaced rather than left alongside the newly written blob.
+        Assert.StartsWith(blobPath + "@", newLeasePath, StringComparison.Ordinal);
+        Assert.DoesNotContain(".lock@", newLeasePath, StringComparison.Ordinal);
+        Assert.Equal([newLeasePath], Directory.GetFiles(this.directory));
+        Assert.Equal([4, 5, 6], File.ReadAllBytes(newLeasePath));
 
-        // The leases are kept while they are held...
-        Assert.False(PersistentStorageHelper.RemoveExpiredLease(DateTime.UtcNow, nestedLeasePath));
-        Assert.False(PersistentStorageHelper.RemoveExpiredLease(DateTime.UtcNow, leasePath));
+        // The lease is kept while it is held, and released to the original name once it has expired.
+        Assert.False(PersistentStorageHelper.RemoveExpiredLease(DateTime.UtcNow, newLeasePath));
+        Assert.True(PersistentStorageHelper.RemoveExpiredLease(DateTime.UtcNow.AddMinutes(5), newLeasePath));
 
-        // ...and released once they have expired. The write leaves the original lease in place, which
-        // needs to be released first so that the nested lease can be released to the name it was derived from.
-        var deadline = DateTime.UtcNow.AddMinutes(5);
+        Assert.Equal([blobPath], Directory.GetFiles(this.directory));
+        Assert.Equal([4, 5, 6], File.ReadAllBytes(blobPath));
+    }
 
-        Assert.True(PersistentStorageHelper.RemoveExpiredLease(deadline, leasePath));
-        Assert.True(PersistentStorageHelper.RemoveExpiredLease(deadline, nestedLeasePath));
+    [Fact]
+    public void WritingToLeasedBlobWithoutLeaseReleasesLease()
+    {
+        using var provider = new FileBlobProvider(this.directory);
 
-        Assert.False(File.Exists(nestedLeasePath));
+        Assert.True(provider.TryCreateBlob([1, 2, 3], 60_000, out var blob));
+        var leasePath = ((FileBlob)blob).FullPath;
+        var blobPath = leasePath.Substring(0, leasePath.LastIndexOf('@'));
+
+        Assert.True(blob.TryWrite([4, 5, 6]));
+
+        Assert.Equal(blobPath, ((FileBlob)blob).FullPath);
+        Assert.Equal([blobPath], Directory.GetFiles(this.directory));
+        Assert.Equal([4, 5, 6], File.ReadAllBytes(blobPath));
+    }
+
+    [Fact]
+    public void WritingToBlobWithoutLeaseReplacesBlob()
+    {
+        using var provider = new FileBlobProvider(this.directory);
+
+        Assert.True(provider.TryCreateBlob([1, 2, 3], out var blob));
+        var blobPath = ((FileBlob)blob).FullPath;
+
+        Assert.True(blob.TryWrite([4, 5, 6]));
+
+        Assert.Equal(blobPath, ((FileBlob)blob).FullPath);
+        Assert.Equal([blobPath], Directory.GetFiles(this.directory));
+        Assert.Equal([4, 5, 6], File.ReadAllBytes(blobPath));
+    }
+
+    [Fact]
+    public void WritingToBlobWithLeaseReplacesBlob()
+    {
+        using var provider = new FileBlobProvider(this.directory);
+
+        Assert.True(provider.TryCreateBlob([1, 2, 3], out var blob));
+        var blobPath = ((FileBlob)blob).FullPath;
+
+        Assert.True(blob.TryWrite([4, 5, 6], 60_000));
+        var leasePath = ((FileBlob)blob).FullPath;
+
+        Assert.StartsWith(blobPath + "@", leasePath, StringComparison.Ordinal);
+        Assert.Equal([leasePath], Directory.GetFiles(this.directory));
         Assert.Equal([4, 5, 6], File.ReadAllBytes(leasePath));
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(60_000)]
+    public void WritingToBlobWhoseLeaseWasReleasedReplacesBlob(int leasePeriodMilliseconds)
+    {
+        using var provider = new FileBlobProvider(this.directory, maxSizeInBytes: 10);
+
+        Assert.True(provider.TryCreateBlob([1, 2, 3, 4], 60_000, out var blob));
+        var leasePath = ((FileBlob)blob).FullPath;
+        var blobPath = leasePath.Substring(0, leasePath.LastIndexOf('@'));
+
+        // The lease expires and is released by the storage maintenance before the blob is written to again.
+        Assert.True(PersistentStorageHelper.RemoveExpiredLease(DateTime.UtcNow.AddMinutes(5), leasePath));
+        Assert.Equal([blobPath], Directory.GetFiles(this.directory));
+
+        Assert.True(blob.TryWrite([5, 6, 7, 8], leasePeriodMilliseconds));
+
+        var path = ((FileBlob)blob).FullPath;
+
+        if (leasePeriodMilliseconds > 0)
+        {
+            Assert.StartsWith(blobPath + "@", path, StringComparison.Ordinal);
+        }
+        else
+        {
+            Assert.Equal(blobPath, path);
+        }
+
+        Assert.Equal([path], Directory.GetFiles(this.directory));
+        Assert.Equal([5, 6, 7, 8], File.ReadAllBytes(path));
+        Assert.False(File.Exists(leasePath + ".tmp"));
+
+        // Only the 4 bytes of the blob's current content are stored, so there is still space for another blob.
+        Assert.True(provider.TryCreateBlob([9, 10, 11, 12], out _));
+    }
+
+    [Fact]
+    public void RemoveReplacedFileRemovesLeasedFile()
+    {
+        var blobPath = Path.Combine(this.directory, OwnBlobName(DateTime.UtcNow));
+        var leasePath = this.CreateFile($"{Path.GetFileName(blobPath)}@{FormatTimestamp(DateTime.UtcNow.AddMinutes(1))}.lock");
+
+        Assert.Equal(4, PersistentStorageHelper.RemoveReplacedFile(leasePath, $"{blobPath}@{FormatTimestamp(DateTime.UtcNow.AddMinutes(2))}.lock"));
+        Assert.Empty(Directory.GetFiles(this.directory));
+    }
+
+    [Fact]
+    public void RemoveReplacedFileRemovesFileWhoseLeaseWasReleased()
+    {
+        // The lease expired and was released by the storage maintenance after the blob's new content was moved into place.
+        var blobPath = this.CreateFile(OwnBlobName(DateTime.UtcNow));
+        var leasePath = $"{blobPath}@{FormatTimestamp(DateTime.UtcNow.AddMinutes(1))}.lock";
+
+        Assert.Equal(4, PersistentStorageHelper.RemoveReplacedFile(leasePath, $"{blobPath}@{FormatTimestamp(DateTime.UtcNow.AddMinutes(2))}.lock"));
+        Assert.Empty(Directory.GetFiles(this.directory));
+    }
+
+    [Fact]
+    public void RemoveReplacedFileRemovesFileWhoseNestedLeaseWasPartiallyReleased()
+    {
+        // Previous versions nested leases when a leased blob was written to with a new lease, and the storage
+        // maintenance releases the leases one at a time, so the file may have had only its last lease released.
+        var blobPath = Path.Combine(this.directory, OwnBlobName(DateTime.UtcNow));
+        var partiallyReleasedPath = this.CreateFile($"{Path.GetFileName(blobPath)}@2020-01-01T000000.0000000Z.lock");
+        var nestedLeasePath = $"{partiallyReleasedPath}@2020-01-01T000500.0000000Z.lock";
+
+        Assert.Equal(4, PersistentStorageHelper.RemoveReplacedFile(nestedLeasePath, $"{blobPath}@{FormatTimestamp(DateTime.UtcNow.AddMinutes(2))}.lock"));
+        Assert.Empty(Directory.GetFiles(this.directory));
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(60_000)]
+    public void WritingToBlobWhoseNestedLeaseWasPartiallyReleasedReplacesBlob(int leasePeriodMilliseconds)
+    {
+        var blobPath = Path.Combine(this.directory, OwnBlobName(DateTime.UtcNow));
+        var partiallyReleasedPath = this.CreateFile($"{Path.GetFileName(blobPath)}@2020-01-01T000000.0000000Z.lock");
+        var nestedLeasePath = $"{partiallyReleasedPath}@2020-01-01T000500.0000000Z.lock";
+
+        var blob = new FileBlob(nestedLeasePath);
+
+        Assert.True(blob.TryWrite([5, 6, 7, 8], leasePeriodMilliseconds));
+
+        var path = ((FileBlob)blob).FullPath;
+
+        Assert.Equal([path], Directory.GetFiles(this.directory));
+        Assert.Equal([5, 6, 7, 8], File.ReadAllBytes(path));
+    }
+
+    [Fact]
+    public void RemoveReplacedFileDoesNotRemoveNewContentIfReplacedFileWasRemoved()
+    {
+        // A leased blob was written to without a lease, so its new content was moved to its name without the lease.
+        // If the leased file has since been removed, it cannot have been released to that name as the new content
+        // was already there, so the file at that name must not be removed as it is the content that was just written.
+        var blobPath = this.CreateFile(OwnBlobName(DateTime.UtcNow));
+        var leasePath = $"{blobPath}@{FormatTimestamp(DateTime.UtcNow.AddMinutes(1))}.lock";
+
+        Assert.Equal(0, PersistentStorageHelper.RemoveReplacedFile(leasePath, blobPath));
+        Assert.Equal([blobPath], Directory.GetFiles(this.directory));
+    }
+
+    [Fact]
+    public void RemoveReplacedFileReturnsZeroIfFileDoesNotExist()
+    {
+        var blobPath = Path.Combine(this.directory, OwnBlobName(DateTime.UtcNow));
+        var leasePath = $"{blobPath}@{FormatTimestamp(DateTime.UtcNow.AddMinutes(1))}.lock";
+
+        Assert.Equal(0, PersistentStorageHelper.RemoveReplacedFile(leasePath, $"{blobPath}@{FormatTimestamp(DateTime.UtcNow.AddMinutes(2))}.lock"));
+        Assert.Equal(0, PersistentStorageHelper.RemoveReplacedFile(blobPath, $"{blobPath}@{FormatTimestamp(DateTime.UtcNow.AddMinutes(2))}.lock"));
+    }
+
+    [Fact]
+    public void WritingToExistingBlobDoesNotCountReplacedContentTowardsStorageLimit()
+    {
+        using var provider = new FileBlobProvider(this.directory, maxSizeInBytes: 10);
+
+        Assert.True(provider.TryCreateBlob([1, 2, 3, 4], 60_000, out var blob));
+        Assert.True(blob.TryWrite([5, 6, 7, 8], 60_000));
+        Assert.True(blob.TryWrite([9, 10, 11, 12], 60_000));
+
+        // Only the 4 bytes of the blob's current content are stored, so there is still space for another blob.
+        Assert.True(provider.TryCreateBlob([13, 14, 15, 16], out _));
     }
 
     [Fact]
@@ -179,28 +350,82 @@ public sealed class StorageMaintenanceTests : IDisposable
     }
 
     [Fact]
-    public void MaintenanceRemovesTemporaryFileLeftByFailedWriteToLeasedBlob()
+    public void MaintenanceRemovesTemporaryFileLeftByFailedWriteToExistingBlob()
     {
-        using var provider = new FileBlobProvider(this.directory);
+        // A blob created a long time ago, whose lease has also long since expired
+        var blobPath = Path.Combine(this.directory, OwnBlobName(new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc)));
+        var leasePath = this.CreateFile($"{Path.GetFileName(blobPath)}@2020-01-01T000500.0000000Z.lock");
 
-        Assert.True(provider.TryCreateBlob([1, 2, 3], out var blob));
-        Assert.True(blob.TryLease(1_000));
+        var blob = new FileBlob(leasePath);
 
-        var leasePath = ((FileBlob)blob).FullPath;
-        var temporaryFile = leasePath + ".tmp";
-
-        // Moving the temporary file over the existing leased blob fails, so the temporary file is left behind.
+        // Writing to the leased blob without a lease moves it back to its original name. If a file with that name
+        // has since been created, the move fails, so the temporary file is left behind.
+        File.WriteAllBytes(blobPath, [7, 8, 9]);
         Assert.False(blob.TryWrite([4, 5, 6]));
+
+        var temporaryFile = Assert.Single(Directory.GetFiles(this.directory, "*.tmp"));
+
+        // The temporary file is not timed out until the write timeout has elapsed since it was written, regardless of
+        // when the blob was created or its lease expired, so that it is not removed while the write is in progress...
+        var timeoutDeadline = DateTime.UtcNow - TimeSpan.FromMilliseconds(DefaultWriteTimeoutMs);
+        Assert.False(PersistentStorageHelper.RemoveTimedOutTmpFiles(timeoutDeadline, temporaryFile));
         Assert.True(File.Exists(temporaryFile));
 
-        // The temporary file is kept while the lease is held...
-        Assert.False(PersistentStorageHelper.RemoveTimedOutTmpFiles(DateTime.UtcNow, temporaryFile));
-        Assert.True(File.Exists(temporaryFile));
-
-        // ...and removed once the lease has expired for longer than the write timeout.
+        // ...and it is removed once it has.
         Assert.True(PersistentStorageHelper.RemoveTimedOutTmpFiles(DateTime.UtcNow.AddMinutes(5), temporaryFile));
         Assert.False(File.Exists(temporaryFile));
+
+        Assert.Equal("data", File.ReadAllText(leasePath));
+        Assert.Equal([7, 8, 9], File.ReadAllBytes(blobPath));
+    }
+
+    [Fact]
+    public void LeasesBeforeTheYear2000AreNotTreatedAsLegacy()
+    {
+        // Devices without a real-time clock may start with a clock in the past, such as 1970, until it is synchronized.
+        var leasePath = this.CreateFile($"{OwnBlobName(new DateTime(1999, 1, 1, 0, 0, 0, DateTimeKind.Utc))}@1999-01-01T000500.0000000Z.lock");
+
+        Assert.False(PersistentStorageHelper.RemoveExpiredLease(new DateTime(1999, 1, 1, 0, 1, 0, DateTimeKind.Utc), leasePath));
         Assert.True(File.Exists(leasePath));
+    }
+
+    [Theory]
+    [InlineData("2567-02-29T000000.000000Z-0123456789abcdef0123456789abcdef.blob", false)]
+    [InlineData("2567-02-29 000000.0000000Z-0123456789abcdef0123456789abcdef.blob", false)]
+    [InlineData("2567-02-29T00:00:00.0000000Z-0123456789abcdef0123456789abcdef.blob", false)]
+    [InlineData("2567-O2-29T000000.0000000Z-0123456789abcdef0123456789abcdef.blob", false)]
+    [InlineData("\u0662\u0665\u0666\u0667-02-29T000000.0000000Z-0123456789abcdef0123456789abcdef.blob", false)]
+    public void IsBlobFileNameAcceptsLegacyTimestampsWithTheSameFormat(string fileName, bool expected)
+        => Assert.Equal(expected, PersistentStorageHelper.IsBlobFileName(fileName));
+
+    [Fact]
+    public void GetBlobsDoesNotReturnFilesItDidNotCreate()
+    {
+        var timestamp = FormatTimestamp(DateTime.UtcNow);
+
+        this.CreateFile($"{timestamp}-report.blob");
+        this.CreateFile($"{timestamp}-0123456789ABCDEF0123456789ABCDEF.blob");
+        this.CreateFile($"{timestamp}- 0123456789abcdef0123456789abcdef.blob");
+
+        this.CreateFile($"{timestamp}-00112233445566778899aabbccddeeff.BLOB");
+
+        var ownBlob = this.CreateFile($"{timestamp}-fedcba9876543210fedcba9876543210.blob");
+
+        using var provider = new FileBlobProvider(this.directory);
+
+        var blob = Assert.Single(provider.GetBlobs());
+        Assert.Equal(ownBlob, ((FileBlob)blob).FullPath);
+    }
+
+    [Fact]
+    public void GetBlobsDoesNotReturnFilesWithDifferentlyCasedExtensionItDidNotCreate()
+    {
+        // On Windows, enumerating *.blob also matches files with differently cased extensions
+        this.CreateFile($"{FormatTimestamp(DateTime.UtcNow)}-0123456789abcdef0123456789abcdef.BLOB");
+
+        using var provider = new FileBlobProvider(this.directory);
+
+        Assert.Empty(provider.GetBlobs());
     }
 
     [Fact]

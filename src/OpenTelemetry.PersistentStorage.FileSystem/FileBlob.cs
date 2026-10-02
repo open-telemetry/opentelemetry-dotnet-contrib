@@ -63,7 +63,19 @@ public class FileBlob : PersistentBlob
 
     protected override bool OnTryWriteSpan(ReadOnlySpan<byte> buffer, int leasePeriodMilliseconds)
     {
-        var path = this.FullPath + ".tmp";
+        // If the blob has already been written, its content is replaced. Any leases are removed from its name
+        // first, so that leases are never nested and the existing blob is not left behind alongside the new one.
+        var released = PersistentStorageHelper.RemoveLeases(this.FullPath);
+        var destination = released;
+
+        // The temporary file of a new blob is named after the blob. When an existing blob is written to again, the
+        // temporary file is instead given a new name, as one named after the blob would be timed out by the storage
+        // maintenance as soon as it was created if the blob was created, or its lease expired, before the write timeout.
+        var isNew = string.Equals(released, this.FullPath, StringComparison.Ordinal) && !File.Exists(this.FullPath);
+        var path = isNew
+            ? this.FullPath + ".tmp"
+            : Path.Combine(Path.GetDirectoryName(this.FullPath) ?? string.Empty, PersistentStorageHelper.GetUniqueFileName(".blob.tmp"));
+        long replacedSize;
 
         try
         {
@@ -72,10 +84,19 @@ public class FileBlob : PersistentBlob
             if (leasePeriodMilliseconds > 0)
             {
                 var timestamp = DateTime.UtcNow + TimeSpan.FromMilliseconds(leasePeriodMilliseconds);
-                this.FullPath += $"@{PersistentStorageHelper.FormatTimestamp(timestamp)}.lock";
+                destination += $"@{PersistentStorageHelper.FormatTimestamp(timestamp)}.lock";
             }
 
-            File.Move(path, this.FullPath);
+            try
+            {
+                replacedSize = this.MoveIntoPlace(path, destination);
+            }
+            catch (IOException)
+            {
+                // The lease may have expired and been released by the storage maintenance while the blob was
+                // being moved into place, so try again now that the blob's existing file has been moved.
+                replacedSize = this.MoveIntoPlace(path, destination);
+            }
         }
         catch (Exception ex)
         {
@@ -83,20 +104,21 @@ public class FileBlob : PersistentBlob
             return false;
         }
 
+        this.FullPath = destination;
         this.directorySizeTracker?.FileAdded(buffer.Length);
+
+        if (replacedSize > 0)
+        {
+            this.directorySizeTracker?.FileRemoved(replacedSize);
+        }
+
         return true;
     }
 
     protected override bool OnTryLease(int leasePeriodMilliseconds)
     {
-        var path = this.FullPath;
         var leaseTimestamp = DateTime.UtcNow + TimeSpan.FromMilliseconds(leasePeriodMilliseconds);
-        if (path.EndsWith(".lock", StringComparison.OrdinalIgnoreCase))
-        {
-            path = path.Substring(0, path.LastIndexOf('@'));
-        }
-
-        path += $"@{PersistentStorageHelper.FormatTimestamp(leaseTimestamp)}.lock";
+        var path = PersistentStorageHelper.RemoveLeases(this.FullPath) + $"@{PersistentStorageHelper.FormatTimestamp(leaseTimestamp)}.lock";
 
         try
         {
@@ -127,5 +149,44 @@ public class FileBlob : PersistentBlob
         }
 
         return true;
+    }
+
+    private long MoveIntoPlace(string path, string destination)
+    {
+        // The blob's existing file, if any, is either at its current path or, if its lease has expired and been
+        // released by the storage maintenance since it was leased, at its name with one or more of its leases removed.
+        var existing = new FileInfo(this.FullPath);
+
+        if (!existing.Exists)
+        {
+            foreach (var releasedPath in PersistentStorageHelper.GetReleasedPaths(this.FullPath))
+            {
+                var released = new FileInfo(releasedPath);
+
+                if (released.Exists)
+                {
+                    existing = released;
+                    break;
+                }
+            }
+        }
+
+        if (!existing.Exists)
+        {
+            File.Move(path, destination);
+            return 0;
+        }
+
+        var replacedSize = existing.Length;
+
+        if (string.Equals(existing.FullName, Path.GetFullPath(destination), StringComparison.Ordinal))
+        {
+            File.Replace(path, destination, destinationBackupFileName: null);
+            return replacedSize;
+        }
+
+        File.Move(path, destination);
+
+        return PersistentStorageHelper.RemoveReplacedFile(existing.FullName, destination);
     }
 }

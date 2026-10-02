@@ -19,11 +19,14 @@ internal static class PersistentStorageHelper
     private const string TimestampFormat = "yyyy-MM-ddTHHmmss.fffffffZ";
     private const int GuidLength = 32;
 
+    private static readonly TimeSpan MaximumPastTimestampOffset = TimeSpan.FromDays(100 * 365);
+    private static readonly TimeSpan MaximumFutureTimestampOffset = TimeSpan.FromDays(365);
+
     internal static void RemoveExpiredBlob(DateTime retentionDeadline, string filePath)
     {
         if (filePath.EndsWith(BlobExtension, StringComparison.Ordinal) && IsBlobFileName(Path.GetFileName(filePath)))
         {
-            var fileDateTime = GetDateTimeFromBlobName(filePath);
+            var fileDateTime = GetBlobCreationTime(filePath);
             if (fileDateTime < retentionDeadline)
             {
                 try
@@ -46,7 +49,11 @@ internal static class PersistentStorageHelper
         if (filePath.EndsWith(LeaseExtension, StringComparison.Ordinal) && IsLeaseFileName(Path.GetFileName(filePath)))
         {
             var fileDateTime = GetDateTimeFromLeaseName(filePath);
-            if (fileDateTime < leaseDeadline)
+
+            // A lease can be held for at most int.MaxValue milliseconds (just under 25 days), so a lease that expires
+            // further in the future than a legacy timestamp, such as because the clock has since been changed, has been
+            // abandoned. Leases with legacy timestamps in the past have already expired.
+            if (fileDateTime < leaseDeadline || IsFarFutureTimestamp(fileDateTime))
             {
                 var directory = Path.GetDirectoryName(filePath);
                 var fileName = Path.GetFileName(filePath);
@@ -162,6 +169,59 @@ internal static class PersistentStorageHelper
         fileInfo.Delete();
     }
 
+    /// <summary>
+    /// Removes the file of a blob whose content has been replaced by a file with a different name.
+    /// </summary>
+    /// <param name="filePath">The path of the file that was replaced.</param>
+    /// <param name="destinationFilePath">The path of the file that replaced it.</param>
+    /// <returns>The size of the file that was removed, or zero if no file was removed.</returns>
+    internal static long RemoveReplacedFile(string filePath, string destinationFilePath)
+    {
+        try
+        {
+            RemoveFile(filePath, out var fileSize);
+            return fileSize;
+        }
+        catch (FileNotFoundException)
+        {
+            // The lease may have expired and been released by the storage maintenance since the file was found, in which
+            // case it needs to be removed using its name with one or more leases removed so that it is not left behind.
+            // The leases are released one at a time and an existing file is never replaced when a lease is released,
+            // so the file cannot have been released to or beyond the name that the new content was moved to.
+            var destination = Path.GetFullPath(destinationFilePath);
+
+            foreach (var releasedPath in GetReleasedPaths(filePath))
+            {
+                if (string.Equals(Path.GetFullPath(releasedPath), destination, StringComparison.Ordinal))
+                {
+                    break;
+                }
+
+                try
+                {
+                    RemoveFile(releasedPath, out var fileSize);
+                    return fileSize;
+                }
+                catch (FileNotFoundException)
+                {
+                    // Try the name with the next lease removed
+                }
+                catch (Exception ex)
+                {
+                    PersistentStorageEventSource.Log.CouldNotDeleteFileBlob(releasedPath, ex);
+                    return 0;
+                }
+            }
+
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            PersistentStorageEventSource.Log.CouldNotDeleteFileBlob(filePath, ex);
+            return 0;
+        }
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static string GetUniqueFileName(string extension)
         => $"{FormatTimestamp(DateTime.UtcNow)}-{Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture)}{extension}";
@@ -200,7 +260,7 @@ internal static class PersistentStorageHelper
         return dashIndex > 0
             && name.Length - dashIndex - 1 == GuidLength
             && IsLowercaseHexadecimal(name, dashIndex + 1)
-            && TryParseTimestamp(name.Substring(0, dashIndex), out _);
+            && IsTimestamp(name.Substring(0, dashIndex));
     }
 
     internal static string CreateSubdirectory(string path)
@@ -251,6 +311,63 @@ internal static class PersistentStorageHelper
         return Parse(timestamp);
     }
 
+    /// <summary>
+    /// Gets when a blob was created.
+    /// </summary>
+    /// <remarks>
+    /// The creation time is determined from the blob's name, unless the name contains a legacy timestamp, in which
+    /// case the time that the blob was last written to is used instead.
+    /// </remarks>
+    /// <param name="filePath">The path of the blob.</param>
+    /// <returns>The UTC time that the blob was created.</returns>
+    internal static DateTime GetBlobCreationTime(string filePath)
+        => GetLastWriteTimeIfLegacy(filePath, GetDateTimeFromBlobName(filePath));
+
+    /// <summary>
+    /// Removes any leases from the name of a blob.
+    /// </summary>
+    /// <param name="filePath">The path of the blob, which may be leased.</param>
+    /// <returns>The path of the blob without any leases.</returns>
+    internal static string RemoveLeases(string filePath)
+    {
+        var fileName = Path.GetFileName(filePath);
+        var name = fileName;
+
+        while (TryRemoveLease(name, out var withoutLease))
+        {
+            name = withoutLease;
+        }
+
+        if (string.Equals(name, fileName, StringComparison.Ordinal))
+        {
+            return filePath;
+        }
+
+        var directory = Path.GetDirectoryName(filePath);
+
+        return string.IsNullOrEmpty(directory) ? name : Path.Combine(directory, name);
+    }
+
+    /// <summary>
+    /// Gets the paths that a leased blob would have as each of its leases are released, from the last lease to the first.
+    /// </summary>
+    /// <param name="filePath">The path of the blob, which may be leased.</param>
+    /// <returns>The paths of the blob with one or more of its leases removed, ending with its path without any leases.</returns>
+    internal static List<string> GetReleasedPaths(string filePath)
+    {
+        var paths = new List<string>();
+        var directory = Path.GetDirectoryName(filePath);
+        var name = Path.GetFileName(filePath);
+
+        while (TryRemoveLease(name, out var withoutLease))
+        {
+            name = withoutLease;
+            paths.Add(string.IsNullOrEmpty(directory) ? name : Path.Combine(directory, name));
+        }
+
+        return paths;
+    }
+
     internal static DateTime GetDateTimeFromLeaseName(string filePath)
     {
         var fileName = GetFileNameWithoutExtension(filePath);
@@ -267,9 +384,44 @@ internal static class PersistentStorageHelper
         // timed out relative to when the lease expires rather than when the blob was created.
         var fileName = GetFileNameWithoutExtension(filePath);
 
-        return fileName.EndsWith(LeaseExtension, StringComparison.Ordinal)
+        var timestamp = fileName.EndsWith(LeaseExtension, StringComparison.Ordinal)
             ? GetDateTimeFromLeaseName(fileName)
             : GetDateTimeFromBlobName(fileName);
+
+        return GetLastWriteTimeIfLegacy(filePath, timestamp);
+    }
+
+    private static DateTime GetLastWriteTimeIfLegacy(string filePath, DateTime timestamp)
+    {
+        // DateTime.MinValue indicates that the name does not contain a timestamp at all
+        if (timestamp == DateTime.MinValue || !IsLegacyTimestamp(timestamp))
+        {
+            return timestamp;
+        }
+
+        try
+        {
+            return File.GetLastWriteTimeUtc(filePath);
+        }
+        catch (Exception)
+        {
+            return timestamp;
+        }
+    }
+
+    private static bool IsLegacyTimestamp(DateTime timestamp)
+        => IsFarPastTimestamp(timestamp) || IsFarFutureTimestamp(timestamp);
+
+    private static bool IsFarPastTimestamp(DateTime timestamp)
+    {
+        var now = DateTime.UtcNow;
+        return now.Ticks > MaximumPastTimestampOffset.Ticks && timestamp < now - MaximumPastTimestampOffset;
+    }
+
+    private static bool IsFarFutureTimestamp(DateTime timestamp)
+    {
+        var now = DateTime.UtcNow;
+        return now < DateTime.MaxValue - MaximumFutureTimestampOffset && timestamp > now + MaximumFutureTimestampOffset;
     }
 
     private static bool IsTemporaryFileName(string fileName)
@@ -292,21 +444,34 @@ internal static class PersistentStorageHelper
         var name = fileName;
         var leases = 0;
 
-        while (name.EndsWith(LeaseExtension, StringComparison.Ordinal))
+        while (TryRemoveLease(name, out var withoutLease))
         {
-            name = name.Substring(0, name.Length - LeaseExtension.Length);
-            var atSignIndex = name.LastIndexOf('@');
-
-            if (atSignIndex <= 0 || !TryParseTimestamp(name.Substring(atSignIndex + 1), out _))
-            {
-                return false;
-            }
-
-            name = name.Substring(0, atSignIndex);
+            name = withoutLease;
             leases++;
         }
 
         return leases > 0 && IsBlobFileName(name);
+    }
+
+    private static bool TryRemoveLease(string fileName, out string withoutLease)
+    {
+        withoutLease = fileName;
+
+        if (!fileName.EndsWith(LeaseExtension, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        var name = fileName.Substring(0, fileName.Length - LeaseExtension.Length);
+        var atSignIndex = name.LastIndexOf('@');
+
+        if (atSignIndex <= 0 || !IsTimestamp(name.Substring(atSignIndex + 1)))
+        {
+            return false;
+        }
+
+        withoutLease = name.Substring(0, atSignIndex);
+        return true;
     }
 
     private static bool IsLowercaseHexadecimal(string value, int startIndex)
@@ -345,14 +510,24 @@ internal static class PersistentStorageHelper
     private static bool TryParseTimestamp(string timestamp, out DateTime dateTime)
         => DateTime.TryParseExact(timestamp, TimestampFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out dateTime);
 
+    private static bool IsTimestamp(string timestamp)
+        => TryParseTimestamp(timestamp, out _);
+
     private static DateTime Parse(string timestamp)
     {
-        if (!TryParseTimestamp(timestamp, out var dateTime))
+        var parsed = TryParseTimestamp(timestamp, out var dateTime);
+
+        if (parsed && !IsFarFutureTimestamp(dateTime))
         {
-            // In case of failure, return DateTime.MinValue so that the lease file can be removed as expired
-            return DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc);
+            return dateTime.ToUniversalTime();
         }
 
-        return dateTime.ToUniversalTime();
+        if (parsed)
+        {
+            return dateTime.ToUniversalTime();
+        }
+
+        // In case of failure, return DateTime.MinValue so that the lease file can be removed as expired
+        return DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc);
     }
 }
