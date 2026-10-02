@@ -9,7 +9,7 @@
 * Added `HostDetectorOptions` and an `AddHostDetector` overload that accepts it,
   to enable `host.ip`, `host.mac` and `host.cpu.*` programmatically.
   The environment variables remain the defaults and values set in code override them.
-  ([#NNNN](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/NNNN))
+  ([#5464](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5464))
 
 ## 1.19.1-beta.1
 
