@@ -5,6 +5,11 @@
 * Updated OpenTelemetry core component version(s) to `1.19.1`.
   ([#5329](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5329))
 
+* Fixed `db.query.summary` so that a delimited identifier containing an escaped
+  closing bracket, such as `[Tab]]le]`, is captured whole instead of being
+  truncated at the escape.
+  ([#5237](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5237))
+
 * Fixed exception messages being exported as the span status description on .NET.
   The message is still recorded when `RecordException` is enabled.
   ([#5447](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5447))

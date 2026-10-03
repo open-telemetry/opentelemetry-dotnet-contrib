@@ -1,7 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Diagnostics;
+using OpenTelemetry.Extensions.Internal;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Extensions.Tests.Trace;
@@ -64,11 +64,83 @@ public class RateLimitingSamplerTests
     }
 
     [Fact]
-    public async Task ShouldFilter_WhenAboveRateLimit()
+    public void ShouldFilter_WhenAboveRateLimit()
     {
-        const int SAMPLE_RATE = 5; // 5 trace per second
-        const int CYCLES = 500;
+        const int SampleRate = 5; // 5 traces per second
+        const int Cycles = 500;
+        const long IntervalMilliseconds = 5;
 
+        var clock = new FakeClock();
+        var sampler = CreateSampler(SampleRate, clock);
+        int sampleIn = 0, sampleOut = 0;
+
+        for (var i = 0; i < Cycles; i++)
+        {
+            switch (ShouldSample(sampler))
+            {
+                case SamplingDecision.RecordAndSample:
+                    sampleIn++;
+                    break;
+                case SamplingDecision.Drop:
+                    sampleOut++;
+                    break;
+                default:
+                    Assert.Fail("Unexpected decision");
+                    break;
+            }
+
+            clock.Advance(IntervalMilliseconds);
+        }
+
+        // The initial balance of SampleRate traces are all sampled in, then one more
+        // trace is sampled in for every 1/SampleRate seconds that elapse between the
+        // first and last sampling decision ((Cycles - 1) * 5ms = 2.495s => 12 traces).
+        var expected = SampleRate + (int)((Cycles - 1) * IntervalMilliseconds * SampleRate / 1000);
+
+        Assert.Equal(expected, sampleIn);
+        Assert.Equal(Cycles - sampleIn, sampleOut);
+    }
+
+    [Fact]
+    public void ShouldNotAccumulateBalanceAboveRateLimit_WhenIdle()
+    {
+        const int SampleRate = 5; // 5 traces per second
+
+        var clock = new FakeClock();
+        var sampler = CreateSampler(SampleRate, clock);
+
+        // Spend the initial balance
+        for (var i = 0; i < SampleRate; i++)
+        {
+            Assert.Equal(SamplingDecision.RecordAndSample, ShouldSample(sampler));
+        }
+
+        Assert.Equal(SamplingDecision.Drop, ShouldSample(sampler));
+
+        // Being idle for longer than one second only replenishes the maximum balance
+        clock.Advance(10_000);
+
+        for (var i = 0; i < SampleRate; i++)
+        {
+            Assert.Equal(SamplingDecision.RecordAndSample, ShouldSample(sampler));
+        }
+
+        Assert.Equal(SamplingDecision.Drop, ShouldSample(sampler));
+
+        // One more trace is allowed once 1/SampleRate seconds have elapsed
+        clock.Advance((1000 / SampleRate) - 1);
+        Assert.Equal(SamplingDecision.Drop, ShouldSample(sampler));
+
+        clock.Advance(1);
+        Assert.Equal(SamplingDecision.RecordAndSample, ShouldSample(sampler));
+        Assert.Equal(SamplingDecision.Drop, ShouldSample(sampler));
+    }
+
+    private static RateLimitingSampler CreateSampler(int maxTracesPerSecond, FakeClock clock)
+        => new(maxTracesPerSecond, (creditsPerSecond, maxBalance) => new RateLimiter(creditsPerSecond, maxBalance, clock.GetElapsedTicks, FakeClock.TicksPerSecond));
+
+    private static SamplingDecision ShouldSample(RateLimitingSampler sampler)
+    {
         var samplingParameters = new SamplingParameters(
             parentContext: default,
             traceId: default,
@@ -76,46 +148,18 @@ public class RateLimitingSamplerTests
             kind: default,
             tags: null,
             links: null);
-        var sampler = new RateLimitingSampler(SAMPLE_RATE);
-        int sampleIn = 0, sampleOut = 0;
 
-        var stopwatch = Stopwatch.StartNew();
+        return sampler.ShouldSample(in samplingParameters).Decision;
+    }
 
-        for (var i = 0; i < CYCLES; i++)
-        {
-            var result = sampler.ShouldSample(in samplingParameters);
-            switch (result.Decision)
-            {
-                case SamplingDecision.RecordAndSample:
-                    sampleIn++;
-                    break;
-                case SamplingDecision.RecordOnly:
-                    Assert.Fail("Unexpected decision");
-                    break;
-                case SamplingDecision.Drop:
-                    sampleOut++;
-                    break;
-                default:
-                    Assert.Fail("Unexpected value");
-                    break;
-            }
+    private sealed class FakeClock
+    {
+        public const long TicksPerSecond = 1000; // 1 tick = 1 millisecond
 
-            // Task.Delay is limited by the OS Scheduler, so we can't guarantee the exact time
-            await Task.Delay(5, TestContext.Current.CancellationToken);
-        }
+        private long elapsedTicks;
 
-        var timeTakenSeconds = stopwatch.Elapsed.TotalSeconds;
+        public long GetElapsedTicks() => this.elapsedTicks;
 
-        // Approximate the number of samples we should have taken
-        // Account for the fact that the initial balance is the SampleRate, so they will all be sampled in
-        var approxSamples = Math.Floor(timeTakenSeconds * SAMPLE_RATE) + SAMPLE_RATE;
-
-        // Assert - We should have sampled in 5 traces per second over duration.
-        // Adding in a generous fudge factor (and a minimum absolute tolerance) to account for
-        // OS scheduler/timer jitter (particularly on CI runners), since the expected sample
-        // count is small enough that a purely percentage-based tolerance can be too tight.
-        var tolerance = Math.Max(approxSamples * 0.25, 3);
-        Assert.InRange(sampleIn, approxSamples - tolerance, approxSamples + tolerance);
-        Assert.Equal(sampleOut, CYCLES - sampleIn);
+        public void Advance(long milliseconds) => this.elapsedTicks += milliseconds;
     }
 }

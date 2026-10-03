@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* Fixed `db.query.summary` so that a delimited identifier containing an escaped
+  closing bracket, such as `[Tab]]le]`, is captured whole instead of being
+  truncated at the escape.
+  ([#5237](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5237))
+
 * Fixed exception messages being exported as the span status description.
   The `error.type` attribute is now set to the type of the exception instead.
   ([#5447](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5447))
