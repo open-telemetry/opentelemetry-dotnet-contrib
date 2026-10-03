@@ -5,6 +5,13 @@
 * Updated OpenTelemetry core component version(s) to `1.19.1`.
   ([#5329](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5329))
 
+* Fixed `TraceContextEnrichedActorRemotingProviderAttribute` ignoring the
+  `TransportSettings` configuration section. Actor remoting clients now load their
+  settings from `TransportSettings`, and actor remoting listeners fall back to
+  `TransportSettings` when no actor-specific section is configured, matching the
+  behaviour of Service Fabric's `FabricTransportActorRemotingProviderAttribute`.
+  ([#5450](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5450))
+
 ## 1.19.0-beta.1
 
 Released 2026-Sep-18
