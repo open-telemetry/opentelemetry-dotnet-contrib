@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using Amazon.Lambda.APIGatewayEvents;
+using Amazon.Lambda.ApplicationLoadBalancerEvents;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.SNSEvents;
 using Amazon.Lambda.SQSEvents;
@@ -38,6 +40,21 @@ internal class SampleHandlers
 
     // Action<TInput, ILambdaContext> for a single SNS record.
     public void SampleHandlerSyncSnsRecord(SNSEvent.SNSRecord _1, ILambdaContext _2)
+    {
+    }
+
+    // Action<TInput, ILambdaContext> for an API Gateway REST API request.
+    public void SampleHandlerSyncApiGatewayProxyRequest(APIGatewayProxyRequest _1, ILambdaContext _2)
+    {
+    }
+
+    // Action<TInput, ILambdaContext> for an API Gateway HTTP API request.
+    public void SampleHandlerSyncApiGatewayHttpApiV2ProxyRequest(APIGatewayHttpApiV2ProxyRequest _1, ILambdaContext _2)
+    {
+    }
+
+    // Action<TInput, ILambdaContext> for an Application Load Balancer request.
+    public void SampleHandlerSyncApplicationLoadBalancerRequest(ApplicationLoadBalancerRequest _1, ILambdaContext _2)
     {
     }
 
