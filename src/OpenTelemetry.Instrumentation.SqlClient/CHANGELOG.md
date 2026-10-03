@@ -5,6 +5,18 @@
 * Updated OpenTelemetry core component version(s) to `1.19.1`.
   ([#5329](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5329))
 
+* Fixed `db.client.operation.duration` metrics on .NET having different
+  attributes depending on whether the command was sampled. When not sampled,
+  the `db.operation.name` and `db.query.summary` attributes were missing for
+  stored procedures, and the `error.type` and `db.response.status_code`
+  attributes were missing for commands which failed.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
+* Fixed `db.client.operation.duration` metrics on .NET Framework not including
+  the `db.namespace`, `server.address` and `server.port` attributes for commands
+  which are not sampled.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 1.19.0
 
 Released 2026-Sep-18
