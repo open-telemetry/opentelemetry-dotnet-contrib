@@ -12,6 +12,11 @@ namespace OpenTelemetry.Internal;
 
 internal sealed class RequestDataHelper
 {
+#if NET
+    // The maximum number of display names to cache. Beyond this, display names are created without being cached.
+    internal const int MaxCachedDisplayNames = 1000;
+#endif
+
     private const string KnownHttpMethodsEnvironmentVariable = "OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS";
 
     // The value "_OTHER" is used for non-standard HTTP methods.
@@ -28,8 +33,10 @@ internal sealed class RequestDataHelper
 
 #if NET
     // Caches the final display name string for each (namePrefix, httpRoute) pair.
-    // The number of distinct combinations is bounded by the number of (HTTP method name prefixes * routes) in the app.
+    // The number of distinct combinations should be bounded by the number of (HTTP method name prefixes * routes)
+    // in the app, but the size of the cache is also limited in case a caller supplies a route derived from the request.
     private readonly ConcurrentDictionary<(string Method, string Route), string> displayNameCache = new();
+    private int displayNameCacheCount;
 #endif
 
     public RequestDataHelper(bool configureByHttpKnownMethodsEnvironmentalVariable)
@@ -89,6 +96,10 @@ internal sealed class RequestDataHelper
     /// </remarks>
     public bool HasCustomKnownMethods { get; }
 
+#if NET
+    internal int CachedDisplayNameCount => this.displayNameCache.Count;
+#endif
+
     public void SetHttpMethodTag(Activity activity, string originalHttpMethod)
     {
         var normalizedHttpMethod = this.GetNormalizedHttpMethod(originalHttpMethod);
@@ -145,7 +156,28 @@ internal sealed class RequestDataHelper
         }
 
 #if NET
-        return this.displayNameCache.GetOrAdd((namePrefix, httpRoute), static kv => $"{kv.Method} {kv.Route}");
+        var key = (namePrefix, httpRoute);
+
+        if (this.displayNameCache.TryGetValue(key, out var displayName))
+        {
+            return displayName;
+        }
+
+        displayName = $"{namePrefix} {httpRoute}";
+
+        // Track the count separately to avoid the cost of ConcurrentDictionary.Count. A slot is
+        // reserved before adding so that concurrent cache misses cannot exceed the limit, and the
+        // reservation is released if the cache is full or another thread added the same key first.
+        if (Volatile.Read(ref this.displayNameCacheCount) < MaxCachedDisplayNames)
+        {
+            if (Interlocked.Increment(ref this.displayNameCacheCount) > MaxCachedDisplayNames ||
+                !this.displayNameCache.TryAdd(key, displayName))
+            {
+                Interlocked.Decrement(ref this.displayNameCacheCount);
+            }
+        }
+
+        return displayName;
 #else
         return $"{namePrefix} {httpRoute}";
 #endif
