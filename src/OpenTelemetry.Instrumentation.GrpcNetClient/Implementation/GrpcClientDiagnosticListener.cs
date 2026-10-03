@@ -3,6 +3,9 @@
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+#if NET
+using System.Runtime.CompilerServices;
+#endif
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Trace;
 using ActivitySourceFactory = OpenTelemetry.Trace.ActivitySourceFactory;
@@ -17,8 +20,17 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
     private const string OnStartEvent = "Grpc.Net.Client.GrpcOut.Start";
     private const string OnStopEvent = "Grpc.Net.Client.GrpcOut.Stop";
 
+#if NET
+    private const int MaxTrimmedGrpcMethods = 1024;
+#endif
+
     private static readonly PropertyFetcher<HttpRequestMessage> StartRequestFetcher = new("Request");
     private static readonly PropertyFetcher<HttpResponseMessage> StopResponseFetcher = new("Response");
+
+#if NET
+    private static readonly ConditionalWeakTable<string, string> TrimmedGrpcMethods = [];
+    private static int trimmedGrpcMethodsAdded;
+#endif
 
     private readonly GrpcClientTraceInstrumentationOptions options;
 
@@ -117,7 +129,11 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
             ActivityInstrumentationHelper.SetKindProperty(activity, ActivityKind.Client);
 
             GrpcTagHelper.SetGrpcSystemName(activity);
-            GrpcTagHelper.SetGrpcMethodAndDisplayNameFromActivity(activity);
+
+            if (GrpcTagHelper.GetGrpcMethodFromActivity(activity) is { } grpcMethod)
+            {
+                GrpcTagHelper.SetTrimmedGrpcMethodAndDisplayName(activity, GetTrimmedGrpcMethod(grpcMethod));
+            }
 
             var requestUri = request.RequestUri;
 
@@ -127,9 +143,7 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
                 var boxedPort = PortTelemetryHelper.GetBoxedPort(requestUri.Port, cacheValue: true);
                 activity.SetTag(SemanticConventions.AttributeServerPort, boxedPort);
 
-                var uriHostNameType = Uri.CheckHostName(requestUri.Host);
-
-                if (uriHostNameType is UriHostNameType.IPv4 or UriHostNameType.IPv6)
+                if (IsIPAddress(requestUri))
                 {
                     activity.SetTag(SemanticConventions.AttributeNetworkPeerAddress, requestUri.Host);
                     activity.SetTag(SemanticConventions.AttributeNetworkPeerPort, boxedPort);
@@ -196,9 +210,7 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
         {
             if (response.RequestMessage?.RequestUri is { } requestUri)
             {
-                var uriHostNameType = Uri.CheckHostName(requestUri.Host);
-
-                if (uriHostNameType is UriHostNameType.IPv4 or UriHostNameType.IPv6)
+                if (IsIPAddress(requestUri))
                 {
                     activity.SetTag(SemanticConventions.AttributeNetworkPeerAddress, requestUri.Host);
                     activity.SetTag(SemanticConventions.AttributeNetworkPeerPort, PortTelemetryHelper.GetBoxedPort(requestUri.Port, cacheValue: true));
@@ -228,4 +240,51 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
             return StopResponseFetcher.TryFetch(payload, out response) && response != null;
         }
     }
+
+    internal static bool IsIPAddress(Uri uri)
+        => uri.HostNameType is UriHostNameType.IPv4 or UriHostNameType.IPv6;
+
+    internal static string GetTrimmedGrpcMethod(string grpcMethod)
+    {
+#if NET
+        if (TrimmedGrpcMethods.TryGetValue(grpcMethod, out var trimmedMethod))
+        {
+            return trimmedMethod;
+        }
+
+        trimmedMethod = GrpcTagHelper.TrimGrpcMethod(grpcMethod);
+
+        if (TryReserveTrimmedGrpcMethodSlot() &&
+            !TrimmedGrpcMethods.TryAdd(grpcMethod, trimmedMethod))
+        {
+            // Another thread added the same method first, so release the slot
+            Interlocked.Decrement(ref trimmedGrpcMethodsAdded);
+        }
+
+        return trimmedMethod;
+#else
+        return GrpcTagHelper.TrimGrpcMethod(grpcMethod);
+#endif
+    }
+
+#if NET
+    private static bool TryReserveTrimmedGrpcMethodSlot()
+    {
+        var added = Volatile.Read(ref trimmedGrpcMethodsAdded);
+
+        while (added < MaxTrimmedGrpcMethods)
+        {
+            var current = Interlocked.CompareExchange(ref trimmedGrpcMethodsAdded, added + 1, added);
+
+            if (current == added)
+            {
+                return true;
+            }
+
+            added = current;
+        }
+
+        return false;
+    }
+#endif
 }
