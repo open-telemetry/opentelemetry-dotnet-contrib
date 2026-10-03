@@ -254,10 +254,11 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
 
         trimmedMethod = GrpcTagHelper.TrimGrpcMethod(grpcMethod);
 
-        if (Volatile.Read(ref trimmedGrpcMethodsAdded) < MaxTrimmedGrpcMethods &&
-            TrimmedGrpcMethods.TryAdd(grpcMethod, trimmedMethod))
+        if (TryReserveTrimmedGrpcMethodSlot() &&
+            !TrimmedGrpcMethods.TryAdd(grpcMethod, trimmedMethod))
         {
-            Interlocked.Increment(ref trimmedGrpcMethodsAdded);
+            // Another thread added the same method first, so release the slot
+            Interlocked.Decrement(ref trimmedGrpcMethodsAdded);
         }
 
         return trimmedMethod;
@@ -265,4 +266,25 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
         return GrpcTagHelper.TrimGrpcMethod(grpcMethod);
 #endif
     }
+
+#if NET
+    private static bool TryReserveTrimmedGrpcMethodSlot()
+    {
+        var added = Volatile.Read(ref trimmedGrpcMethodsAdded);
+
+        while (added < MaxTrimmedGrpcMethods)
+        {
+            var current = Interlocked.CompareExchange(ref trimmedGrpcMethodsAdded, added + 1, added);
+
+            if (current == added)
+            {
+                return true;
+            }
+
+            added = current;
+        }
+
+        return false;
+    }
+#endif
 }
