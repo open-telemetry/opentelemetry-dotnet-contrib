@@ -67,6 +67,77 @@ internal sealed class RedactionHelper
         return queryBuilder.ToString();
     }
 
+    /// <summary>
+    /// Redacts the values of the query string found between <paramref name="queryStart"/>
+    /// (inclusive) and <paramref name="queryEnd"/> (exclusive) in <paramref name="value"/>.
+    /// Any characters before or after the query string are copied verbatim.
+    /// <para/>
+    /// The query string is redacted in the same way as <see cref="GetRedactedQueryString(string)"/>,
+    /// but without having to allocate a substring for it first.
+    /// </summary>
+    /// <param name="value">The string containing the query string, such as an absolute URI.</param>
+    /// <param name="queryStart">The index of the first character of the query string.</param>
+    /// <param name="queryEnd">The index of the first character after the end of the query string.</param>
+    /// <returns>
+    /// <paramref name="value"/> with the query string values redacted, or <paramref name="value"/>
+    /// itself if the query string does not contain any values to redact.
+    /// </returns>
+    public static string GetRedactedQueryString(string value, int queryStart, int queryEnd)
+    {
+        Debug.Assert(queryStart >= 0 && queryStart <= queryEnd && queryEnd <= value.Length, "The query string bounds must be within the value.");
+
+        var query = value.AsSpan(queryStart, queryEnd - queryStart);
+        var index = query.IndexOf('=');
+
+        if (index == -1)
+        {
+            return value;
+        }
+
+        var length = query.Length;
+
+        // Preallocate some size to avoid re-sizing multiple times.
+        // Since the size of the query string will increase, allocating twice as much for it.
+        using ValueStringBuilder queryBuilder = new(value.Length + length);
+        queryBuilder.Append(value.AsSpan(0, queryStart + index));
+        while (index < query.Length)
+        {
+            // Check if the character is = for redacting value.
+            if (query[index] == '=')
+            {
+                // Append =
+                queryBuilder.Append('=');
+                index++;
+
+                // Append redactedText in place of original value.
+                queryBuilder.Append(RedactedText);
+
+                // Move until end of this key/value pair.
+                while (index < length && query[index] != '&')
+                {
+                    index++;
+                }
+
+                // End of key/value.
+                if (index < length && query[index] == '&')
+                {
+                    queryBuilder.Append(query[index]);
+                }
+            }
+            else
+            {
+                // Keep adding to the result
+                queryBuilder.Append(query[index]);
+            }
+
+            index++;
+        }
+
+        queryBuilder.Append(value.AsSpan(queryEnd));
+
+        return queryBuilder.ToString();
+    }
+
     // Simplified version of System.Text.ValueStringBuilder from .NET runtime
     // https://github.com/dotnet/runtime/blob/7db43828cc273aa164f2247744a43f70555f780f/src/libraries/Common/src/System/Text/ValueStringBuilder.cs,
     // keeping only the members this type actually uses, to avoid the heap
