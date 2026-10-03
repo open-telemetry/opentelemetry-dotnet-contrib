@@ -23,7 +23,7 @@ public class GrpcClientDiagnosticListenerTests
         "http://my-service:5000/",
         "http://my_service:5000/",
         "http://xn--bcher-kva.example/",
-        "http://bücher.example/",
+        "http://b\u00FCcher.example/",
         "http://127.0.0.1:1234/greet.Greeter/SayHello",
         "http://10.0.0.5:8080/",
         "http://0.0.0.0/",
