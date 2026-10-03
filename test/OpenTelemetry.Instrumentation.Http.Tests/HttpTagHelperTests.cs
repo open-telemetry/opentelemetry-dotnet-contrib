@@ -36,7 +36,7 @@ public class HttpTagHelperTests
         "?%3D=1&b=%3D",
         "?q=a%20b&r=%26",
         "?a= b",
-        "?a=é&b=ü",
+        "?a=é&b=\u00FC",
         "?a=1?b=2",
         "?api-version=2023-01-01",
         "?query=shoes&page=2&size=50&sort=price",
@@ -67,8 +67,8 @@ public class HttpTagHelperTests
         "http://[fe80::1%25eth0]:8080/p?q=1",
         "http://[::ffff:127.0.0.1]/p?q=1",
         "https://xn--bcher-kva.example/p?q=1",
-        "https://bücher.example/p?q=1",
-        "https://bücher.example/bücher?bücher=bücher#bücher",
+        "https://b\u00FCcher.example/p?q=1",
+        "https://b\u00FCcher.example/b\u00FCcher?b\u00FCcher=b\u00FCcher#b\u00FCcher",
         "http://example.com:80/p?q=1",
         "https://example.com:443/p?q=1",
         "http://example.com:443/p?q=1",
@@ -128,7 +128,7 @@ public class HttpTagHelperTests
     [Fact]
     public void GetUriTagValueFromRequestUriMatchesUriComponentsForRandomUrls()
     {
-        const string Alphabet = "ab1=&?#%/ é";
+        const string Alphabet = "ab1=&?#%/ \u00E9";
 
         var random = new Random(20261002);
         var builder = new StringBuilder();
