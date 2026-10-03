@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using OpenTelemetry.Tests;
+
 namespace OpenTelemetry.PersistentStorage.FileSystem.Tests;
 
 public class DirectorySizeTrackerTests
@@ -40,5 +42,19 @@ public class DirectorySizeTrackerTests
 
         // cleanup
         testDirectory.Delete();
+    }
+
+    [Fact]
+    public void CalculateFolderSize_IgnoresFilesInSubdirectories()
+    {
+        using var temp = new TemporaryDirectory();
+
+        File.WriteAllBytes(Path.Combine(temp.Path, "top.bin"), new byte[3]);
+
+        var nested = Path.Combine(temp.Path, "nested");
+        Directory.CreateDirectory(nested);
+        File.WriteAllBytes(Path.Combine(nested, "large.bin"), new byte[1024]);
+
+        Assert.Equal(3, DirectorySizeTracker.CalculateFolderSize(temp.Path));
     }
 }
