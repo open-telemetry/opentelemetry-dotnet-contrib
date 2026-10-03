@@ -126,7 +126,7 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
 #else
         if (!this.Cache.TryGetValue(cacheKey, out var session))
         {
-            session = this.GetOrAddSession(cacheKey, parent);
+            session = GetOrAddSession(cacheKey, parent);
 
             (Activity Activity, ProfilingSession Session, Baggage Baggage) GetOrAddSession(
                 (ActivityTraceId TraceId, ActivitySpanId SpanId) cacheKey,
