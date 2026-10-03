@@ -16,7 +16,7 @@
   cost of filtering diagnostic events, caching the parsed `server.address` and
   `server.port` values for recently seen `Host` header values and making
   route-based span display name lookups cheaper.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#5467](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5467))
 
 ## 1.19.0
 
