@@ -7,6 +7,33 @@
   truncated at the escape.
   ([#5237](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5237))
 
+* Fixed exception messages being exported as the span status description.
+  The `error.type` attribute is now set to the type of the exception instead.
+  ([#5447](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5447))
+
+* Fixed query sanitization so that literals are no longer left unsanitized in
+  `db.statement`, `db.query.text` and `db.query.summary` after a quote inside a
+  quoted identifier or inside an array in a `FROM` clause.
+  ([#5447](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5447))
+
+* Fixed query sanitization of nested block comments, PostgreSQL escape strings
+  (`E'...'`), Oracle alternative quoting (`q'[...]'`), MySQL/MariaDB `#`
+  comments, and of MySQL/MariaDB double-quoted strings, quoted identifiers and
+  dollar-quoted strings inside `IN (...)` lists.
+  ([#5447](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5447))
+
+* Fixed query sanitization so that the whole of a quoted login or user name
+  (for example `CREATE LOGIN [COMPANY\name]`) is redacted.
+  ([#5447](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5447))
+
+* Fixed `db.query.summary` treating a word which only differs from a keyword
+  by its first character (for example `Xrom`) as that keyword.
+  ([#5447](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5447))
+
+* Fixed the cache of parsed data sources growing without bound when many
+  distinct data sources are used.
+  ([#5447](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5447))
+
 ## 1.19.1-beta.1
 
 Released 2026-Sep-24

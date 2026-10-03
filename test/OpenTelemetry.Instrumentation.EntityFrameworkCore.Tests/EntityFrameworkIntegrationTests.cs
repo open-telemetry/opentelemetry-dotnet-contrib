@@ -45,7 +45,7 @@ public sealed class EntityFrameworkIntegrationTests :
         this.outputHelper = outputHelper;
     }
 
-    public static TheoryData<string, string, bool, bool, Type, string, string, string, string?> RawSqlTestCases()
+    public static TheoryData<string, string, bool, bool, Type, string, string, string> RawSqlTestCases()
     {
         (string, Type, bool, string, string)[] providers =
         [
@@ -58,7 +58,7 @@ public sealed class EntityFrameworkIntegrationTests :
             (SqlServerProvider, typeof(SqlCommand), true, "microsoft.sql_server", "master"),
         ];
 
-        var testCases = new TheoryData<string, string, bool, bool, Type, string, string, string, string?>();
+        var testCases = new TheoryData<string, string, bool, bool, Type, string, string, string>();
 
         foreach ((var provider, var commandType, var useNewConventions, var system, var database) in providers)
         {
@@ -66,16 +66,12 @@ public sealed class EntityFrameworkIntegrationTests :
                 ? "select"
                 : database;
 
-            testCases.Add(provider, "select 1/1", false, useNewConventions, commandType, expectedSpanName, system, database, null);
+            testCases.Add(provider, "select 1/1", false, useNewConventions, commandType, expectedSpanName, system, database);
 
             // For some reason, SQLite does not throw an exception for division by zero
-            if (provider == PostgresProvider)
+            if (provider is PostgresProvider or SqlServerProvider)
             {
-                testCases.Add(provider, "select 1/0", true, useNewConventions, commandType, expectedSpanName, system, database, "22012: division by zero");
-            }
-            else if (provider == SqlServerProvider)
-            {
-                testCases.Add(provider, "select 1/0", true, useNewConventions, commandType, expectedSpanName, system, database, "Divide by zero error encountered.");
+                testCases.Add(provider, "select 1/0", true, useNewConventions, commandType, expectedSpanName, system, database);
             }
         }
 
@@ -138,8 +134,7 @@ public sealed class EntityFrameworkIntegrationTests :
         Type expectedCommandType,
         string expectedSpanName,
         string expectedSystemName,
-        string expectedDatabaseName,
-        string? expectedStatusDescription)
+        string expectedDatabaseName)
     {
         var conventions = useNewConventions ? SemanticConvention.New : SemanticConvention.Old;
 
@@ -206,8 +201,20 @@ public sealed class EntityFrameworkIntegrationTests :
 
         if (isFailure)
         {
+            var expectedErrorType = provider switch
+            {
+                PostgresProvider => typeof(PostgresException),
+                SqlServerProvider => typeof(SqlException),
+                _ => throw new NotSupportedException($"Unsupported provider: {provider}"),
+            };
+
             Assert.Equal(ActivityStatusCode.Error, activity.Status);
-            Assert.Equal(expectedStatusDescription, activity.StatusDescription);
+            Assert.Null(activity.StatusDescription);
+            Assert.Equal(expectedErrorType.FullName, activity.GetTagValue("error.type"));
+        }
+        else
+        {
+            Assert.Null(activity.GetTagValue("error.type"));
         }
 
         Assert.True(filtered);
@@ -427,7 +434,7 @@ public sealed class EntityFrameworkIntegrationTests :
         else
         {
             Assert.Equal(ActivityStatusCode.Error, activity.Status);
-            Assert.NotNull(activity.StatusDescription);
+            Assert.Null(activity.StatusDescription);
             Assert.Empty(activity.Events);
         }
 

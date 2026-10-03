@@ -227,9 +227,11 @@ internal sealed class SqlEventSourceListener : EventListener
             default(ActivityContext),
             startTags);
 
-        if (activity == null)
+        if (activity == null || SqlClientInstrumentation.Instance.HandleManager.TracingHandles == 0)
         {
-            // There is no listener or it decided not to sample the current request.
+            // There is no listener or it decided not to sample the current request, or the activity was
+            // only started for another listener while only metrics are being collected. Either way the
+            // activity will not be used to calculate the duration, so the start time needs to be tracked.
             this.pendingCommands[correlationKey] = new(Stopwatch.GetTimestamp(), sqlStatementInfo.DbQuerySummary);
         }
         else if (!string.IsNullOrEmpty(sqlStatementInfo.DbQuerySummary))
