@@ -47,17 +47,6 @@ internal static class ServerHostCache
         return created;
     }
 
-    /// <summary>
-    /// Clears the cache. Intended for use by tests.
-    /// </summary>
-    internal static void Clear()
-    {
-        for (var i = 0; i < Entries.Length; i++)
-        {
-            Volatile.Write(ref Entries[i], null);
-        }
-    }
-
     internal sealed class Entry(string value, string address, object? port)
     {
         /// <summary>
