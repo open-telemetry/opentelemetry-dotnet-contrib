@@ -43,6 +43,15 @@ public class AWSXRayPropagatorTests
 #endif
 
     [Fact]
+    public void FieldsContainsTraceHeaderKey()
+    {
+        var field = Assert.Single(this.awsXRayPropagator.Fields);
+        Assert.Equal(AWSXRayTraceHeaderKey, field);
+
+        Assert.Same(this.awsXRayPropagator.Fields, this.awsXRayPropagator.Fields);
+    }
+
+    [Fact]
     public void TestInjectTraceHeader()
     {
         var carrier = new Dictionary<string, string>();
@@ -269,6 +278,11 @@ public class AWSXRayPropagatorTests
     [InlineData("Root=1-5759e98g-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1")]
     [InlineData("Root=1-5759e988-bd862e3fe1be46a99427279g;Parent=53995c3f42cd8ad8;Sampled=1")]
     [InlineData("Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8adg;Sampled=1")]
+    [InlineData("Root=1-g759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1")]
+    [InlineData("Root=1-5759e988-gd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1")]
+    [InlineData("Root=1-5759e988-bd862e3fe1be46a994272793;Parent=g3995c3f42cd8ad8;Sampled=1")]
+    [InlineData("Root=1-        -bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1")]
+    [InlineData("Root=1-5759e98 -bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1")]
     [InlineData("Root=1-5759e988-bd862e3fe1be46a994272793;Parent=                ;Sampled=1")]
     [InlineData("Root=1-00000000-000000000000000000000000;Parent=53995c3f42cd8ad8;Sampled=1")]
     [InlineData("Root=1-5759e988-bd862e3fe1be46a994272793;Parent=0000000000000000;Sampled=1")]
