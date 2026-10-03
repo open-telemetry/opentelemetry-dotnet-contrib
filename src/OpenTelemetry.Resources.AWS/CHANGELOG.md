@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* The metadata requests that `AWSEC2Detector`, `AWSECSDetector` and
+  `AWSEKSDetector` make while the resource is built, including reading the
+  response, now time out after 1, 2 and 5 seconds respectively.
+  ([#5452](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5452))
+
 ## 1.19.1
 
 Released 2026-Sep-21
