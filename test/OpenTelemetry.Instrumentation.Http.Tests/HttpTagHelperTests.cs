@@ -36,7 +36,7 @@ public class HttpTagHelperTests
         "?%3D=1&b=%3D",
         "?q=a%20b&r=%26",
         "?a= b",
-        "?a=é&b=\u00FC",
+        "?a=\u00E9&b=\u00FC",
         "?a=1?b=2",
         "?api-version=2023-01-01",
         "?query=shoes&page=2&size=50&sort=price",
