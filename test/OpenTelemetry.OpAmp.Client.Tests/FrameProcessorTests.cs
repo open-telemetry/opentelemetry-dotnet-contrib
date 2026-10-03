@@ -108,31 +108,48 @@ public class FrameProcessorTests
         var tasks = new List<Task>
         {
             // Task to repeatedly call OnServerFrame
-            Task.Run(() =>
-            {
-                Parallel.For(0, iterations, i =>
+            Task.Run(
+                () =>
                 {
-                    processor.OnServerFrame(mockFrame.Frame.ToSequence());
-                });
-            }),
+                    Parallel.For(0, iterations, i =>
+                    {
+                        processor.OnServerFrame(mockFrame.Frame.ToSequence());
+                    });
+                },
+                TestContext.Current.CancellationToken),
 
             // Task to repeatedly subscribe
-            Task.Run(() =>
-            {
-                Parallel.For(0, iterations, i =>
+            Task.Run(
+                () =>
                 {
-                    processor.Subscribe(listener);
-                });
-            }),
+                    Parallel.For(0, iterations, i =>
+                    {
+                        processor.Subscribe(listener);
+                    });
+                },
+                TestContext.Current.CancellationToken),
+
+            // Task to repeatedly subscribe
+            Task.Run(
+                () =>
+                {
+                    Parallel.For(0, iterations, i =>
+                    {
+                        processor.Subscribe(listener);
+                    });
+                },
+                TestContext.Current.CancellationToken),
 
             // Task to repeatedly unsubscribe
-            Task.Run(() =>
-            {
-                Parallel.For(0, iterations, i =>
+            Task.Run(
+                () =>
                 {
-                    processor.Unsubscribe(listener);
-                });
-            }),
+                    Parallel.For(0, iterations, i =>
+                    {
+                        processor.Unsubscribe(listener);
+                    });
+                },
+                TestContext.Current.CancellationToken),
         };
 
         await Task.WhenAll(tasks);

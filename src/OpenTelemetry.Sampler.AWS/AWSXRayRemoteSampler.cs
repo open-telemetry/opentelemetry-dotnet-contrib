@@ -195,6 +195,29 @@ public sealed class AWSXRayRemoteSampler : Trace.Sampler, IDisposable
         }
     }
 
+    internal async Task GetAndUpdateRulesAsync(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var rules = await this.Client.GetSamplingRules(cancellationToken).ConfigureAwait(false);
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        // A null result means the poll failed (transient HTTP error or an unparsable response); in
+        // that case we keep the previously cached rules (and any sampling targets already applied
+        // to them) rather than wiping the cache with an artificial "zero rules" update.
+        if (rules != null)
+        {
+            this.RulesCache.UpdateRules(rules);
+        }
+
+        if (!cancellationToken.IsCancellationRequested)
+        {
+            // schedule the next rule poll.
+            this.RulePollerTimer.Change(this.PollingInterval.Add(this.RulePollerJitter), Timeout.InfiniteTimeSpan);
+        }
+    }
+
     [SuppressMessage(
         "Usage",
         "CA5394: Do not use insecure randomness",
@@ -268,21 +291,4 @@ public sealed class AWSXRayRemoteSampler : Trace.Sampler, IDisposable
 
     private void GetAndUpdateTargets(object? state) =>
         _ = this.ExecutePollAsync(this.GetAndUpdateTargetsAsync);
-
-    private async Task GetAndUpdateRulesAsync(CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var rules = await this.Client.GetSamplingRules(cancellationToken).ConfigureAwait(false);
-
-        cancellationToken.ThrowIfCancellationRequested();
-
-        this.RulesCache.UpdateRules(rules);
-
-        if (!cancellationToken.IsCancellationRequested)
-        {
-            // schedule the next rule poll.
-            this.RulePollerTimer.Change(this.PollingInterval.Add(this.RulePollerJitter), Timeout.InfiniteTimeSpan);
-        }
-    }
 }

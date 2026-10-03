@@ -198,7 +198,7 @@ public abstract class OpAmpPipeTests
         var processor = new FrameProcessor();
         using var pipe = new OpAmpPipe(settings, processor, transport);
 
-        await pipe.FlushAsync();
+        await pipe.FlushAsync(TestContext.Current.CancellationToken);
 
         Assert.Empty(transport.Messages);
     }
@@ -306,7 +306,7 @@ public abstract class OpAmpPipeTests
         await transport.WaitForMessagesAsync(1);
 
         AppendHeartbeat(pipe);
-        var stopTask = pipe.StopAsync();
+        var stopTask = pipe.StopAsync(TestContext.Current.CancellationToken);
 
         transport.CompleteNextSend();
         processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));

@@ -3,6 +3,8 @@ OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions
 OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions.AWSLambdaInstrumentationOptions() -> void
 OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions.DisableAwsXRayContextExtraction.get -> bool
 OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions.DisableAwsXRayContextExtraction.set -> void
+OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions.EnrichWithInput.get -> System.Action<System.Diagnostics.Activity!, object?, Amazon.Lambda.Core.ILambdaContext!>?
+OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions.EnrichWithInput.set -> void
 OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions.SemanticConventionVersion.get -> OpenTelemetry.Instrumentation.AWSLambda.SemanticConventionVersion
 OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions.SemanticConventionVersion.set -> void
 OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions.SetParentFromBatch.get -> bool

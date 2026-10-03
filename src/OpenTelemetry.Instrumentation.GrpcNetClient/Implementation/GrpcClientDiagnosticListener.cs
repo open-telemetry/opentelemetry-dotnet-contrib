@@ -105,6 +105,14 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
 
         if (activity.IsAllDataRequested)
         {
+            if (!this.options.EventFilter(request))
+            {
+                GrpcInstrumentationEventSource.Log.RequestIsFilteredOut(activity.OperationName);
+                activity.IsAllDataRequested = false;
+                activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
+                return;
+            }
+
             ActivityInstrumentationHelper.SetActivitySourceProperty(activity, ActivitySource);
             ActivityInstrumentationHelper.SetKindProperty(activity, ActivityKind.Client);
 

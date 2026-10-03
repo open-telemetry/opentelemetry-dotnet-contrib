@@ -34,6 +34,9 @@ The BenchmarkDotNet job to use (e.g. "Short"). Defaults to "Default".
 .PARAMETER Runtimes
 One or more target frameworks to benchmark. Defaults to "net10.0".
 
+.PARAMETER Affinity
+The BenchmarkDotNet affinity mask to set for the benchmark process. Defaults to none.
+
 .PARAMETER EnableMemoryDiagnoser
 Enables the BenchmarkDotNet memory diagnoser.
 
@@ -49,10 +52,10 @@ Runs only the target benchmark and skips the baseline ref.
 Runs the matching benchmarks for the current branch only.
 
 .EXAMPLE
-./benchmark.ps1 "Contrib.Shared" @("*SQL*") -Target my-feature -Job Short -Runtimes @("net10.0", "net462")
+./benchmark.ps1 "Contrib.Shared" @("*SQL*") -Target my-feature -Job Short -Runtimes @("net10.0", "net472")
 
 Runs the matching exporter benchmarks for the my-feature branch and main using the
-"Short" job for .NET 10 and .NET Framework 4.6.2.
+"Short" job for .NET 10 and .NET Framework 4.7.2.
 #>
 
 param(
@@ -62,6 +65,7 @@ param(
     [Parameter(Mandatory = $false)][string] $Baseline = "main",
     [Parameter(Mandatory = $false)][string] $Job = "Default",
     [Parameter(Mandatory = $false)][string[]] $Runtimes = @("net10.0"),
+    [Parameter(Mandatory = $false)][string] $Affinity = "",
     [Parameter(Mandatory = $false)][switch] $EnableMemoryDiagnoser,
     [Parameter(Mandatory = $false)][switch] $EnableEventPipeProfiler,
     [Parameter(Mandatory = $false)][switch] $SkipBaseline
@@ -278,6 +282,11 @@ try {
 
         $additionalArgs += "--filter"
         $additionalArgs += $Benchmarks
+
+        if (-Not [string]::IsNullOrEmpty($Affinity)) {
+            $additionalArgs += "--affinity"
+            $additionalArgs += $Affinity
+        }
 
         if (-Not [string]::IsNullOrEmpty($Job)) {
             $additionalArgs += "--job"

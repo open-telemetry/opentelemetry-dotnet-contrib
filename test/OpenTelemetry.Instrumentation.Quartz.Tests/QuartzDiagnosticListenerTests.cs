@@ -35,7 +35,7 @@ public class QuartzDiagnosticListenerTests
 
         scheduler.Context.Put("BARRIER", barrier);
         scheduler.Context.Put("DATESTAMPS", jobExecTimestamps);
-        await scheduler.Start();
+        await scheduler.Start(TestContext.Current.CancellationToken);
 
         var jobDataMap = new JobDataMap { { "A", "B" } };
 
@@ -51,15 +51,14 @@ public class QuartzDiagnosticListenerTests
             .Build();
 
         // Act
-        await scheduler.ScheduleJob(job, trigger);
+        await scheduler.ScheduleJob(job, trigger, TestContext.Current.CancellationToken);
 
-        barrier.SignalAndWait(TestTimeout);
+        barrier.SignalAndWait(TestTimeout, TestContext.Current.CancellationToken);
 
-        await scheduler.Shutdown(true);
+        await scheduler.Shutdown(true, TestContext.Current.CancellationToken);
 
         // Assert
-        Assert.Single(exportedItems);
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
 
         Assert.Contains("execute ", activity.DisplayName);
         Assert.Equal("Quartz.Job.Execute", activity.OperationName);
@@ -101,7 +100,7 @@ public class QuartzDiagnosticListenerTests
 
         scheduler.Context.Put("BARRIER", barrier);
         scheduler.Context.Put("DATESTAMPS", jobExecTimestamps);
-        await scheduler.Start();
+        await scheduler.Start(TestContext.Current.CancellationToken);
 
         var testId = Guid.NewGuid().ToString();
         var jobDataMap = new JobDataMap { { "TestId", testId } };
@@ -118,15 +117,14 @@ public class QuartzDiagnosticListenerTests
             .Build();
 
         // Act
-        await scheduler.ScheduleJob(job, trigger);
+        await scheduler.ScheduleJob(job, trigger, TestContext.Current.CancellationToken);
 
-        barrier.SignalAndWait(TestTimeout);
+        barrier.SignalAndWait(TestTimeout, TestContext.Current.CancellationToken);
 
-        await scheduler.Shutdown(true);
+        await scheduler.Shutdown(true, TestContext.Current.CancellationToken);
 
         // Assert
-        Assert.Single(exportedItems);
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
 
         Assert.Equal("Quartz.Job.Execute", activity.OperationName);
         Assert.Equal(ActivityKind.Internal, activity.Kind);
@@ -158,7 +156,7 @@ public class QuartzDiagnosticListenerTests
 
         scheduler.Context.Put("BARRIER", barrier);
         scheduler.Context.Put("DATESTAMPS", jobExecTimestamps);
-        await scheduler.Start();
+        await scheduler.Start(TestContext.Current.CancellationToken);
 
         var testId = Guid.NewGuid().ToString();
         var jobDataMap = new JobDataMap { { "TestId", testId } };
@@ -175,15 +173,14 @@ public class QuartzDiagnosticListenerTests
             .Build();
 
         // Act
-        await scheduler.ScheduleJob(job, trigger);
+        await scheduler.ScheduleJob(job, trigger, TestContext.Current.CancellationToken);
 
-        barrier.SignalAndWait(TimeSpan.FromSeconds(1));
+        barrier.SignalAndWait(TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken);
 
-        await scheduler.Shutdown(true);
+        await scheduler.Shutdown(true, TestContext.Current.CancellationToken);
 
         // Assert
-        Assert.Single(exportedItems);
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
 
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
         var exception = Assert.Single(activity.Events);
@@ -226,7 +223,7 @@ public class QuartzDiagnosticListenerTests
 
         scheduler.Context.Put("BARRIER", barrier);
         scheduler.Context.Put("DATESTAMPS", jobExecTimestamps);
-        await scheduler.Start();
+        await scheduler.Start(TestContext.Current.CancellationToken);
 
         var testId = Guid.NewGuid().ToString();
         var jobDataMap = new JobDataMap { { "TestId", testId } };
@@ -243,15 +240,14 @@ public class QuartzDiagnosticListenerTests
             .Build();
 
         // Act
-        await scheduler.ScheduleJob(job, trigger);
+        await scheduler.ScheduleJob(job, trigger, TestContext.Current.CancellationToken);
 
-        barrier.SignalAndWait(TimeSpan.FromSeconds(1));
+        barrier.SignalAndWait(TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken);
 
-        await scheduler.Shutdown(true);
+        await scheduler.Shutdown(true, TestContext.Current.CancellationToken);
 
         // Assert
-        Assert.Single(exportedItems);
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
 
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
         var exception = Assert.Single(activity.Events);
@@ -290,7 +286,7 @@ public class QuartzDiagnosticListenerTests
 
         scheduler.Context.Put("BARRIER", barrier);
         scheduler.Context.Put("DATESTAMPS", jobExecTimestamps);
-        await scheduler.Start();
+        await scheduler.Start(TestContext.Current.CancellationToken);
 
         var testId = Guid.NewGuid().ToString();
         var jobDataMap = new JobDataMap { { "TestId", testId } };
@@ -307,15 +303,14 @@ public class QuartzDiagnosticListenerTests
             .Build();
 
         // Act
-        await scheduler.ScheduleJob(job, trigger);
+        await scheduler.ScheduleJob(job, trigger, TestContext.Current.CancellationToken);
 
-        barrier.SignalAndWait(TimeSpan.FromSeconds(1));
+        barrier.SignalAndWait(TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken);
 
-        await scheduler.Shutdown(true);
+        await scheduler.Shutdown(true, TestContext.Current.CancellationToken);
 
         // Assert
-        Assert.Single(exportedItems);
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
         Assert.Equal("exception", activity.Events.First().Name);
         Assert.Equal("Quartz.JobExecutionException", activity.Events.First().Tags.SingleOrDefault(t => t.Key.Equals(SemanticConventions.AttributeExceptionType)).Value);
         Assert.Equal("Catch me if you can!", activity.Events.First().Tags.SingleOrDefault(t => t.Key.Equals(SemanticConventions.AttributeExceptionMessage)).Value);
@@ -345,7 +340,7 @@ public class QuartzDiagnosticListenerTests
 
         scheduler.Context.Put("BARRIER", barrier);
         scheduler.Context.Put("DATESTAMPS", jobExecTimestamps);
-        await scheduler.Start();
+        await scheduler.Start(TestContext.Current.CancellationToken);
 
         var testId = Guid.NewGuid().ToString();
         var jobDataMap = new JobDataMap { { "TestId", testId } };
@@ -362,11 +357,11 @@ public class QuartzDiagnosticListenerTests
             .Build();
 
         // Act
-        await scheduler.ScheduleJob(job, trigger);
+        await scheduler.ScheduleJob(job, trigger, TestContext.Current.CancellationToken);
 
-        barrier.SignalAndWait(TestTimeout);
+        barrier.SignalAndWait(TestTimeout, TestContext.Current.CancellationToken);
 
-        await scheduler.Shutdown(true);
+        await scheduler.Shutdown(true, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Empty(exportedItems);

@@ -17,7 +17,7 @@ internal sealed partial class ContainerDetector : IResourceDetector
     private const string DockerEnvFilePath = "/.dockerenv";
     private const string PodmanEnvFilePath = "/run/.containerenv";
 
-    private static readonly Version SemanticConventionsVersion = new(1, 43, 0);
+    private static readonly Version SemanticConventionsVersion = new(1, 44, 0);
 
     /// <summary>
     /// CGroup Parse Versions.

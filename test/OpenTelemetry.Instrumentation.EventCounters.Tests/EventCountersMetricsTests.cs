@@ -197,7 +197,7 @@ public class EventCountersMetricsTests
             // Act
             connections.Increment(1);
 
-            await Task.Delay(1800);
+            await Task.Delay(1800, TestContext.Current.CancellationToken);
             meterProvider.ForceFlush();
         }
 

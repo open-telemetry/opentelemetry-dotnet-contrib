@@ -20,7 +20,7 @@ dotnet test --no-build
 dotnet test test/OpenTelemetry.Instrumentation.AspNetCore.Tests/ --no-build
 
 # Run a filtered subset of tests
-dotnet test test/OpenTelemetry.Exporter.Geneva.Tests/ --no-build --filter "CategoryName=Geneva"
+dotnet test test/OpenTelemetry.Exporter.Geneva.Tests/ --no-build --filter "CategoryName=Geneva:user_events"
 
 # Pack NuGet packages
 dotnet pack --no-build
@@ -121,7 +121,7 @@ touched by a PR get built and tested. The reusable workflow `Component.BuildTest
 runs a matrix across:
 
 - OS: Windows, Ubuntu
-- TFM: Each supported .NET version (e.g. `net10.0`) and `net462` (Windows only)
+- TFM: Each supported .NET version (e.g. `net10.0`) and `net472` (Windows only)
 
 Component owners are defined in `.github/component_owners.yml` (not `CODEOWNERS`).
 

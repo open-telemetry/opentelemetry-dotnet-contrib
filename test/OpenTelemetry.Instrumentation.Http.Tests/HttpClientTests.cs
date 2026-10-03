@@ -125,7 +125,7 @@ public partial class HttpClientTests
 
             request.Headers.Add("contextRequired", "false");
             request.Headers.Add("responseCode", (tc.ResponseCode == 0 ? 200 : tc.ResponseCode).ToString());
-            await c.SendAsync(request);
+            await c.SendAsync(request, TestContext.Current.CancellationToken);
         }
         catch (Exception)
         {
@@ -295,13 +295,22 @@ public partial class HttpClientTests
 
         var normalizedAttributesTestCase = tc.SpanAttributes.ToDictionary(x => x.Key, x => HttpTestData.NormalizeValues(x.Value, host, port));
 
+        // AddHttpClientInstrumentation() subscribes to the process-wide, statically-named
+        // "System.Net.Http" ActivitySource. If another test elsewhere in the process happens
+        // to make an HttpClient call around the same time, its activity can also be captured
+        // here. Restrict to activities for this test's own target host to avoid picking up
+        // unrelated, concurrently-captured activities.
+        var testActivities = activities
+            .Where(activity => string.Equals(activity.GetTagItem("server.address") as string, new Uri(testUrl).Host, StringComparison.Ordinal))
+            .ToList();
+
         if (!enableTracing)
         {
-            Assert.Empty(activities);
+            Assert.Empty(testActivities);
         }
         else
         {
-            var activity = Assert.Single(activities);
+            var activity = Assert.Single(testActivities);
 
             Assert.Equal(ActivityKind.Client, activity.Kind);
             Assert.Equal(tc.SpanName, activity.DisplayName);
@@ -409,14 +418,23 @@ public partial class HttpClientTests
             Assert.Equal("s", metric.Unit);
             Assert.Equal(MetricType.Histogram, metric.MetricType);
 
+            // As for activities, restrict to metric points for this test's own target host.
+            var testHost = new Uri(testUrl).Host;
             var metricPoints = new List<MetricPoint>();
             foreach (var p in metric.GetMetricPoints())
             {
-                metricPoints.Add(p);
+                foreach (var tag in p.Tags)
+                {
+                    if (tag.Key == SemanticConventions.AttributeServerAddress &&
+                        string.Equals(tag.Value as string, testHost, StringComparison.Ordinal))
+                    {
+                        metricPoints.Add(p);
+                        break;
+                    }
+                }
             }
 
-            Assert.Single(metricPoints);
-            var metricPoint = metricPoints[0];
+            var metricPoint = Assert.Single(metricPoints);
 
             var count = metricPoint.GetHistogramCount();
             var sum = metricPoint.GetHistogramSum();
@@ -425,7 +443,7 @@ public partial class HttpClientTests
 
             if (enableTracing)
             {
-                var activity = Assert.Single(activities);
+                var activity = Assert.Single(testActivities);
 #if !NET
                 Assert.Equal(activity.Duration.TotalSeconds, sum);
 #endif

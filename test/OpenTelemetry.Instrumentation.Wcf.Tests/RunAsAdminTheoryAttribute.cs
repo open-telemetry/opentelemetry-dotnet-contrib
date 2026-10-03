@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Runtime.CompilerServices;
 using System.Security.Principal;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Tests;
@@ -12,8 +13,10 @@ namespace OpenTelemetry.Instrumentation.Wcf.Tests;
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
 public sealed class RunAsAdminTheoryAttribute : TheoryAttribute
 {
-    public RunAsAdminTheoryAttribute()
-        : base()
+    public RunAsAdminTheoryAttribute(
+        [CallerFilePath] string? sourceFilePath = null,
+        [CallerLineNumber] int sourceLineNumber = -1)
+        : base(sourceFilePath, sourceLineNumber)
     {
         this.Skip = IsCurrentUserAdmin(out var name) ? null : $"The current user '{name}' does not have administrative privileges.";
     }

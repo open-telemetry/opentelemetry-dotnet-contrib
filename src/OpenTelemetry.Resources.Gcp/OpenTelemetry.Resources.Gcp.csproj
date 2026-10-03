@@ -14,7 +14,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Google.Api.Gax" VersionOverride="[4.8.0,)" />
+    <PackageReference Include="Google.Api.Gax" VersionOverride="[4.14.0,)" />
     <PackageReference Include="OpenTelemetry" />
   </ItemGroup>
 

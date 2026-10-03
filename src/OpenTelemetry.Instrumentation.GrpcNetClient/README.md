@@ -108,6 +108,28 @@ using var tracerProvider = Sdk.CreateTracerProviderBuilder()
     .Build();
 ```
 
+### Filter
+
+This instrumentation library provides a `Filter` option that can be used to
+filter out activities based on the raw `HttpRequestMessage` object. The
+filter function should return `true` if the telemetry is to be collected,
+and `false` or throw an exception if the telemetry is not to be collected.
+
+The following code snippet shows how to use `Filter` to filter out requests
+sent to `/health`.
+
+```csharp
+services.AddOpenTelemetry()
+    .WithTracing(builder => builder
+        .AddGrpcClientInstrumentation(options =>
+        {
+            options.Filter = httpRequestMessage =>
+            {
+                return httpRequestMessage.RequestUri?.AbsolutePath != "/health";
+            };
+        });
+```
+
 ### Enrich
 
 This instrumentation library provides `EnrichWithHttpRequestMessage` and

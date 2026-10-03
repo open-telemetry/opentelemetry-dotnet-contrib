@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using System.Globalization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -27,6 +28,9 @@ public class IncomingRequestsCollectionsIsAccordingToTheSpecTests
     [Theory]
     [InlineData("/api/values", null, "user-agent", 200)]
     [InlineData("/api/values", null, null, 200)]
+    [InlineData("/api/values", null, null, 404)]
+    [InlineData("/api/values", null, null, 500)]
+    [InlineData("/api/values", null, null, 503)]
     [InlineData("/api/exception", null, null, 503)]
     [InlineData("/api/exception", null, null, 503, true)]
     public async Task SuccessfulTemplateControllerCallGeneratesASpan_New(
@@ -71,7 +75,7 @@ public class IncomingRequestsCollectionsIsAccordingToTheSpecTests
                     path += query;
                 }
 
-                using var response = await client.GetAsync(new Uri(path, UriKind.Relative));
+                using var response = await client.GetAsync(new Uri(path, UriKind.Relative), TestContext.Current.CancellationToken);
             }
             catch (Exception)
             {
@@ -88,12 +92,11 @@ public class IncomingRequestsCollectionsIsAccordingToTheSpecTests
                 // We need to let End callback execute as it is executed AFTER response was returned.
                 // In unit tests environment there may be a lot of parallel unit tests executed, so
                 // giving some breezing room for the End callback to complete
-                await Task.Delay(TimeSpan.FromSeconds(1));
+                await Task.Delay(TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken);
             }
         }
 
-        Assert.Single(exportedItems);
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
 
         Assert.Equal(ActivityKind.Server, activity.Kind);
         Assert.Equal("localhost", activity.GetTagValue(SemanticConventions.AttributeServerAddress));
@@ -104,14 +107,20 @@ public class IncomingRequestsCollectionsIsAccordingToTheSpecTests
         Assert.Equal(query, activity.GetTagValue(SemanticConventions.AttributeUrlQuery));
         Assert.Equal(statusCode, activity.GetTagValue(SemanticConventions.AttributeHttpResponseStatusCode));
 
-        if (statusCode == 503)
+        if (urlPath.EndsWith("exception", StringComparison.Ordinal))
         {
             Assert.Equal(ActivityStatusCode.Error, activity.Status);
             Assert.Equal("System.Exception", activity.GetTagValue(SemanticConventions.AttributeErrorType));
         }
+        else if (statusCode >= 500)
+        {
+            Assert.Equal(ActivityStatusCode.Error, activity.Status);
+            Assert.Equal(statusCode.ToString(CultureInfo.InvariantCulture), activity.GetTagValue(SemanticConventions.AttributeErrorType));
+        }
         else
         {
             Assert.Equal(ActivityStatusCode.Unset, activity.Status);
+            Assert.Null(activity.GetTagValue(SemanticConventions.AttributeErrorType));
         }
 
         // Instrumentation is not expected to set status description
@@ -120,8 +129,8 @@ public class IncomingRequestsCollectionsIsAccordingToTheSpecTests
 
         if (recordException)
         {
-            Assert.Single(activity.Events);
-            Assert.Equal("exception", activity.Events.First().Name);
+            var exceptionEvent = Assert.Single(activity.Events);
+            Assert.Equal("exception", exceptionEvent.Name);
         }
 
         ValidateTagValue(activity, SemanticConventions.AttributeUserAgentOriginal, userAgent);

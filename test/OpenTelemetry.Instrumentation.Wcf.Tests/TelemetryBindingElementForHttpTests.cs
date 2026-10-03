@@ -212,7 +212,8 @@ public class TelemetryBindingElementForHttpTests : IClassFixture<WeaverFixture>,
                             WcfInstrumentationActivitySource.SemanticConventionsVersionNew,
                             this.weaver,
                             this.output,
-                            WcfTestHelpers.WeaverSuppressions);
+                            WcfTestHelpers.WeaverSuppressions,
+                            cancellationToken: TestContext.Current.CancellationToken);
                     }
                 }
                 else

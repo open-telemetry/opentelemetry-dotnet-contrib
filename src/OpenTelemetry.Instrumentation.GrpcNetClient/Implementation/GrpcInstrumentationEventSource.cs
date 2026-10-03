@@ -49,4 +49,25 @@ internal sealed class GrpcInstrumentationEventSource : EventSource
     {
         this.WriteEvent(3, handlerName, eventName, ex);
     }
+
+    [NonEvent]
+    public void RequestFilterException(Exception ex)
+    {
+        if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
+        {
+            this.RequestFilterException(ex.ToInvariantString());
+        }
+    }
+
+    [Event(4, Message = "Filter threw exception. Request will not be collected. Exception {0}.", Level = EventLevel.Error)]
+    public void RequestFilterException(string exception)
+    {
+        this.WriteEvent(4, exception);
+    }
+
+    [Event(5, Message = "Request is filtered out from event '{0}'.", Level = EventLevel.Verbose)]
+    public void RequestIsFilteredOut(string eventName)
+    {
+        this.WriteEvent(5, eventName);
+    }
 }

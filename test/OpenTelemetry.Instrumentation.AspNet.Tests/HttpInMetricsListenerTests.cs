@@ -36,11 +36,13 @@ public class HttpInMetricsListenerTests
         // HttpContext.Items instead of context being maintained.
         using (ExecutionContext.SuppressFlow())
         {
-            stopTask = Task.Run(() => ActivityHelper.StopAspNetActivity(
-                Propagators.DefaultTextMapPropagator,
-                activity,
-                context,
-                TelemetryHttpModule.Options.OnRequestStoppedCallback));
+            stopTask = Task.Run(
+                () => ActivityHelper.StopAspNetActivity(
+                    Propagators.DefaultTextMapPropagator,
+                    activity,
+                    context,
+                    TelemetryHttpModule.Options.OnRequestStoppedCallback),
+                TestContext.Current.CancellationToken);
         }
 
         await stopTask;
@@ -170,17 +172,15 @@ public class HttpInMetricsListenerTests
 
         meterProvider.ForceFlush();
 
-        Assert.Single(exportedItems);
+        var item = Assert.Single(exportedItems);
 
         var metricPoints = new List<MetricPoint>();
-        foreach (var p in exportedItems[0].GetMetricPoints())
+        foreach (var p in item.GetMetricPoints())
         {
             metricPoints.Add(p);
         }
 
-        Assert.Single(metricPoints);
-
-        var metricPoint = metricPoints[0];
+        var metricPoint = Assert.Single(metricPoints);
 
         var count = metricPoint.GetHistogramCount();
         var sum = metricPoint.GetHistogramSum();

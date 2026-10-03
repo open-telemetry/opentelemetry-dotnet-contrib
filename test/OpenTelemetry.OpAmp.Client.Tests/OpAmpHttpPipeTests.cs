@@ -69,7 +69,7 @@ public class OpAmpHttpPipeTests : OpAmpPipeTests
         await transport.WaitForMessagesAsync(1);
 
         AppendHeartbeat(pipe);
-        var flushTask = pipe.FlushAsync();
+        var flushTask = pipe.FlushAsync(TestContext.Current.CancellationToken);
 
         transport.CompleteNextSend(
             () => processor.OnServerFrame(new ReadOnlySequence<byte>(responseWithCustomMessage)));
@@ -88,9 +88,9 @@ public class OpAmpHttpPipeTests : OpAmpPipeTests
             () => processor.OnServerFrame(new ReadOnlySequence<byte>(emptyResponse)));
 
 #if NET
-        await flushTask.WaitAsync(TimeSpan.FromSeconds(5));
+        await flushTask.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
 #else
-        var timeoutTask = Task.Delay(TimeSpan.FromSeconds(5));
+        var timeoutTask = Task.Delay(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
 
         if (await Task.WhenAny(flushTask, timeoutTask).ConfigureAwait(true)
             == timeoutTask)

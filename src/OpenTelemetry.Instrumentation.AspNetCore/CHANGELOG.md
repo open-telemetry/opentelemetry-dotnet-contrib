@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+* Updated OpenTelemetry core component version(s) to `1.19.1`.
+  ([#5329](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5329))
+
+* Fixed `error.type` not being set to the response status code on server spans
+  and on the `http.server.request.duration` metric when a request completes
+  with a 5xx status code without an unhandled exception. For ASP.NET Core 8.0-10.0
+  the metric is only fixed when the `MeterProvider` is registered with the
+  application's service collection.
+  ([#5458](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5458))
+
+## 1.19.0
+
+Released 2026-Sep-18
+
+* Updated OpenTelemetry core component version(s) to `1.19.0`.
+  ([#5240](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5240))
+
 ## 1.18.0
 
 Released 2026-Aug-21

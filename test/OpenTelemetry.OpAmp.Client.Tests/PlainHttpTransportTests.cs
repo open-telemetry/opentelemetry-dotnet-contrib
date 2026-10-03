@@ -125,7 +125,7 @@ public class PlainHttpTransportTests
 
     [Fact]
 #if NETFRAMEWORK
-    [SuppressMessage("Security", "CA5399:Enable HttpClient certificate revocation list check", Justification = "Causes PlatformNotSupportedException at runtime on net462")]
+    [SuppressMessage("Security", "CA5399:Enable HttpClient certificate revocation list check", Justification = "Causes PlatformNotSupportedException at runtime on .NET Framework")]
 #endif
     public async Task PlainHttpTransport_RejectsOversizedCompressedResponse()
     {
@@ -244,17 +244,21 @@ public class PlainHttpTransportTests
 
         var sendTask = httpTransport.SendAsync(mockFrame.Frame, CancellationToken.None);
 
-        Assert.True(thresholdReached.Wait(TimeSpan.FromSeconds(5)), "The server did not send enough bytes to exceed the transport limit.");
+        Assert.True(
+            thresholdReached.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken),
+            "The server did not send enough bytes to exceed the transport limit.");
 
         try
         {
             var timeout = TimeSpan.FromSeconds(2);
 
 #if NET
-            await Assert.ThrowsAsync<InvalidOperationException>(async () => await sendTask.WaitAsync(timeout));
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                async () => await sendTask.WaitAsync(timeout, TestContext.Current.CancellationToken));
 #else
             using var cts = new CancellationTokenSource(timeout);
-            var completedTask = await Task.WhenAny(sendTask, Task.Delay(timeout, cts.Token));
+            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, TestContext.Current.CancellationToken);
+            var completedTask = await Task.WhenAny(sendTask, Task.Delay(timeout, linkedCts.Token));
             Assert.Same(sendTask, completedTask);
 
             await Assert.ThrowsAsync<InvalidOperationException>(async () => await sendTask);

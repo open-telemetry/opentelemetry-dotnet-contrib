@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Collections.Immutable;
 using OpenTelemetry.DynamicControl.Internal.Aggregation;
 using OpenTelemetry.DynamicControl.Internal.Policies;
 using OpenTelemetry.DynamicControl.Internal.Providers;
@@ -117,6 +116,6 @@ public class ResolvedPolicySnapshotTests
             PolicyKey.FromPolicy(policy),
             policy,
             new ProviderRegistrationId(winningProvider),
-            ImmutableArray<OutrankedPolicy>.Empty);
+            []);
     }
 }

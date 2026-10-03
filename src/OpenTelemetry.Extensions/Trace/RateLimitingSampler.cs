@@ -27,6 +27,11 @@ public class RateLimitingSampler : Sampler
     /// </summary>
     /// <param name="maxTracesPerSecond">The maximum number of traces that will be emitted each second.</param>
     public RateLimitingSampler(int maxTracesPerSecond)
+        : this(maxTracesPerSecond, rateLimiterFactory: null)
+    {
+    }
+
+    internal RateLimitingSampler(int maxTracesPerSecond, Func<double, double, RateLimiter>? rateLimiterFactory)
     {
 #if NET
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(maxTracesPerSecond, 0, nameof(maxTracesPerSecond));
@@ -38,7 +43,7 @@ public class RateLimitingSampler : Sampler
 #endif
 
         var maxBalance = maxTracesPerSecond < 1.0 ? 1.0 : maxTracesPerSecond;
-        this.rateLimiter = new RateLimiter(maxTracesPerSecond, maxBalance);
+        this.rateLimiter = rateLimiterFactory?.Invoke(maxTracesPerSecond, maxBalance) ?? new RateLimiter(maxTracesPerSecond, maxBalance);
         var attributes = new Dictionary<string, object>()
         {
             { SAMPLERTYPEKEY, SAMPLERTYPE },

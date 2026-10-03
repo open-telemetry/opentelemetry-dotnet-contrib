@@ -1,6 +1,23 @@
 # Changelog
 
-## Unreleased
+## Deprecated
+
+* This package is deprecated. Please check [README.md](README.md#deprecated)
+  for more details.
+
+## 1.19.1-beta.1
+
+Released 2026-Sep-21
+
+* Updated OpenTelemetry core component version(s) to `1.19.1`.
+  ([#5329](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5329))
+
+## 1.19.0-beta.1
+
+Released 2026-Sep-18
+
+* Updated OpenTelemetry core component version(s) to `1.19.0`.
+  ([#5240](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5240))
 
 ## 1.18.0-beta.1
 

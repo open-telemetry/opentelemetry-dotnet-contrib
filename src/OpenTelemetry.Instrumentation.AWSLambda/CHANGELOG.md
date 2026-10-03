@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 1.19.1
+
+Released 2026-Sep-21
+
+## 1.19.0
+
+Released 2026-Sep-18
+
 * The `faas.trigger` span attribute is now set to `pubsub` for functions
   triggered by SQS or SNS events, instead of `other`.
   ([#5146](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5146))

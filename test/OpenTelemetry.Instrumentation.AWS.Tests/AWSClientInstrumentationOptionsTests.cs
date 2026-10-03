@@ -19,6 +19,8 @@ namespace OpenTelemetry.Instrumentation.AWS.Tests;
 /// These tests verify that the switching mechanism works rather than
 /// explicitly verifying what the semantic convention should be.
 /// </summary>
+[Collection(nameof(AWSClientInstrumentationOptionsTests))]
+[CollectionDefinition(nameof(AWSClientInstrumentationOptionsTests), DisableParallelization = true)]
 public sealed class AWSClientInstrumentationOptionsTests
 {
     public static TheoryData<SemanticConventionVersion> SemanticConventionVersions()

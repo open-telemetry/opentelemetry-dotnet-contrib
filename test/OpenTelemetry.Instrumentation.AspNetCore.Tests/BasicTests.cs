@@ -28,6 +28,7 @@ public sealed class BasicTests
     : IClassFixture<WebApplicationFactory<Program>>, IDisposable
 {
     private readonly WebApplicationFactory<Program> factory;
+    private readonly List<WebApplicationFactory<Program>> derivedFactories = [];
     private TracerProvider? tracerProvider;
 
     public BasicTests(WebApplicationFactory<Program> factory)
@@ -57,19 +58,17 @@ public sealed class BasicTests
         }
 
         // Arrange
-        using (var client = this.factory
-            .WithWebHostBuilder(builder =>
+        using (var client = this.CreateClient(builder =>
             {
                 builder.ConfigureTestServices(ConfigureTestServices);
                 if (disableLogging)
                 {
                     builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
                 }
-            })
-            .CreateClient())
+            }))
         {
             // Act
-            using var response = await client.GetAsync(new Uri("/api/values", UriKind.Relative));
+            using var response = await client.GetAsync(new Uri("/api/values", UriKind.Relative), TestContext.Current.CancellationToken);
 
             // Assert
             response.EnsureSuccessStatusCode(); // Status Code 200-299
@@ -77,8 +76,7 @@ public sealed class BasicTests
             WaitForActivityExport(exportedItems, 1);
         }
 
-        Assert.Single(exportedItems);
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
 
         Assert.Equal(200, activity.GetTagValue(SemanticConventions.AttributeHttpResponseStatusCode));
         Assert.Equal(ActivityStatusCode.Unset, activity.Status);
@@ -107,16 +105,14 @@ public sealed class BasicTests
         }
 
         // Arrange
-        using (var client = this.factory
-            .WithWebHostBuilder(builder =>
+        using (var client = this.CreateClient(builder =>
             {
                 builder.ConfigureTestServices(ConfigureTestServices);
                 builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
-            })
-            .CreateClient())
+            }))
         {
             // Act
-            using var response = await client.GetAsync(new Uri("/api/values", UriKind.Relative));
+            using var response = await client.GetAsync(new Uri("/api/values", UriKind.Relative), TestContext.Current.CancellationToken);
 
             // Assert
             response.EnsureSuccessStatusCode(); // Status Code 200-299
@@ -124,8 +120,7 @@ public sealed class BasicTests
             WaitForActivityExport(exportedItems, 1);
         }
 
-        Assert.Single(exportedItems);
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
 
         if (shouldEnrich)
         {
@@ -163,7 +158,7 @@ public sealed class BasicTests
             request.Headers.Add("traceparent", $"00-{expectedTraceId}-{expectedSpanId}-01");
 
             // Act
-            var response = await client.SendAsync(request);
+            var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
             // Assert
             response.EnsureSuccessStatusCode(); // Status Code 200-299
@@ -171,8 +166,7 @@ public sealed class BasicTests
             WaitForActivityExport(exportedItems, 1);
         }
 
-        Assert.Single(exportedItems);
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
 
         Assert.Equal("Microsoft.AspNetCore.Hosting.HttpRequestIn", activity.OperationName);
 
@@ -223,14 +217,13 @@ public sealed class BasicTests
                     }))
             {
                 using var client = testFactory.CreateClient();
-                using var response = await client.GetAsync(new Uri("/api/values/2", UriKind.Relative));
+                using var response = await client.GetAsync(new Uri("/api/values/2", UriKind.Relative), TestContext.Current.CancellationToken);
                 response.EnsureSuccessStatusCode(); // Status Code 200-299
 
                 WaitForActivityExport(exportedItems, 1);
             }
 
-            Assert.Single(exportedItems);
-            var activity = exportedItems[0];
+            var activity = Assert.Single(exportedItems);
 
             Assert.True(activity.Duration != TimeSpan.Zero);
 
@@ -269,8 +262,8 @@ public sealed class BasicTests
             using var client = testFactory.CreateClient();
 
             // Act
-            using var response1 = await client.GetAsync(new Uri("/api/values", UriKind.Relative));
-            using var response2 = await client.GetAsync(new Uri("/api/values/2", UriKind.Relative));
+            using var response1 = await client.GetAsync(new Uri("/api/values", UriKind.Relative), TestContext.Current.CancellationToken);
+            using var response2 = await client.GetAsync(new Uri("/api/values/2", UriKind.Relative), TestContext.Current.CancellationToken);
 
             // Assert
             response1.EnsureSuccessStatusCode(); // Status Code 200-299
@@ -279,8 +272,7 @@ public sealed class BasicTests
             WaitForActivityExport(exportedItems, 1);
         }
 
-        Assert.Single(exportedItems);
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
 
         ValidateAspNetCoreActivity(activity, "/api/values");
     }
@@ -316,8 +308,8 @@ public sealed class BasicTests
             // Act
             using (var inMemoryEventListener = new InMemoryEventListener(AspNetCoreInstrumentationEventSource.Log))
             {
-                using var response1 = await client.GetAsync(new Uri("/api/values", UriKind.Relative));
-                using var response2 = await client.GetAsync(new Uri("/api/values/2", UriKind.Relative));
+                using var response1 = await client.GetAsync(new Uri("/api/values", UriKind.Relative), TestContext.Current.CancellationToken);
+                using var response2 = await client.GetAsync(new Uri("/api/values/2", UriKind.Relative), TestContext.Current.CancellationToken);
 
                 response1.EnsureSuccessStatusCode(); // Status Code 200-299
                 response2.EnsureSuccessStatusCode(); // Status Code 200-299
@@ -330,8 +322,7 @@ public sealed class BasicTests
         // As InstrumentationFilter threw, we continue as if the
         // InstrumentationFilter did not exist.
 
-        Assert.Single(exportedItems);
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
         ValidateAspNetCoreActivity(activity, "/api/values");
     }
 
@@ -361,8 +352,9 @@ public sealed class BasicTests
 
             // Test TraceContext Propagation
             var request = new HttpRequestMessage(HttpMethod.Get, "/api/GetChildActivityTraceContext");
-            var response = await client.SendAsync(request);
-            var childActivityTraceContext = JsonSerializer.Deserialize<Dictionary<string, string>>(await response.Content.ReadAsStringAsync());
+            var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+            var childActivityTraceContext = JsonSerializer.Deserialize<Dictionary<string, string>>(
+                await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
 
             response.EnsureSuccessStatusCode();
 
@@ -374,8 +366,9 @@ public sealed class BasicTests
             // Test Baggage Context Propagation
             request = new HttpRequestMessage(HttpMethod.Get, "/api/GetChildActivityBaggageContext");
 
-            response = await client.SendAsync(request);
-            var childActivityBaggageContext = JsonSerializer.Deserialize<IReadOnlyDictionary<string, string>>(await response.Content.ReadAsStringAsync());
+            response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+            var childActivityBaggageContext = JsonSerializer.Deserialize<IReadOnlyDictionary<string, string>>(
+                await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
 
             response.EnsureSuccessStatusCode();
 
@@ -425,12 +418,13 @@ public sealed class BasicTests
 
             // Test TraceContext Propagation
             var request = new HttpRequestMessage(HttpMethod.Get, "/api/GetChildActivityTraceContext");
-            var response = await client.SendAsync(request);
+            var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
             // Ensure that filter was called
             Assert.True(isFilterCalled);
 
-            var childActivityTraceContext = JsonSerializer.Deserialize<Dictionary<string, string>>(await response.Content.ReadAsStringAsync());
+            var childActivityTraceContext = JsonSerializer.Deserialize<Dictionary<string, string>>(
+                await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
 
             response.EnsureSuccessStatusCode();
 
@@ -442,8 +436,9 @@ public sealed class BasicTests
             // Test Baggage Context Propagation
             request = new HttpRequestMessage(HttpMethod.Get, "/api/GetChildActivityBaggageContext");
 
-            response = await client.SendAsync(request);
-            var childActivityBaggageContext = JsonSerializer.Deserialize<IReadOnlyDictionary<string, string>>(await response.Content.ReadAsStringAsync());
+            response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+            var childActivityBaggageContext = JsonSerializer.Deserialize<IReadOnlyDictionary<string, string>>(
+                await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
 
             response.EnsureSuccessStatusCode();
 
@@ -496,20 +491,18 @@ public sealed class BasicTests
         }
 
         // Arrange
-        using (var client = this.factory
-            .WithWebHostBuilder(builder =>
+        using (var client = this.CreateClient(builder =>
             {
                 builder.ConfigureTestServices(ConfigureTestServices);
                 builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
-            })
-            .CreateClient())
+            }))
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, "/api/values");
 
             request.Headers.TryAddWithoutValidation("baggage", "TestKey1=123,TestKey2=456");
 
             // Act
-            using var response = await client.SendAsync(request);
+            using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
         }
 
         stopSignal.WaitOne(5000);
@@ -530,40 +523,55 @@ public sealed class BasicTests
         var filterCalled = false;
         var enrichWithHttpRequestCalled = false;
         var enrichWithHttpResponseCalled = false;
+        using var stopSignal = new EventWaitHandle(false, EventResetMode.ManualReset);
+
         void ConfigureTestServices(IServiceCollection services)
         {
+            var options = new AspNetCoreTraceInstrumentationOptions
+            {
+                Filter = (context) =>
+                {
+                    filterCalled = true;
+                    return true;
+                },
+                EnrichWithHttpRequest = (activity, request) =>
+                {
+                    enrichWithHttpRequestCalled = true;
+                },
+                EnrichWithHttpResponse = (activity, request) =>
+                {
+                    enrichWithHttpResponseCalled = true;
+                },
+            };
+
             this.tracerProvider = Sdk.CreateTracerProviderBuilder()
                 .SetSampler(new TestSampler(samplingDecision))
-                .AddAspNetCoreInstrumentation(options =>
-                {
-                    options.Filter = (context) =>
+                .AddAspNetCoreInstrumentation(
+                    new TestHttpInListener(options)
                     {
-                        filterCalled = true;
-                        return true;
-                    };
-                    options.EnrichWithHttpRequest = (activity, request) =>
-                    {
-                        enrichWithHttpRequestCalled = true;
-                    };
-                    options.EnrichWithHttpResponse = (activity, request) =>
-                    {
-                        enrichWithHttpResponseCalled = true;
-                    };
-                })
+                        OnEventWrittenCallback = (name, payload) =>
+                        {
+                            if (name == HttpInListener.OnStopEvent)
+                            {
+                                stopSignal.Set();
+                            }
+                        },
+                    })
                 .Build();
         }
 
         // Arrange
-        using var client = this.factory
-            .WithWebHostBuilder(builder =>
+        using (var client = this.CreateClient(builder =>
             {
                 builder.ConfigureTestServices(ConfigureTestServices);
                 builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
-            })
-            .CreateClient();
+            }))
+        {
+            // Act
+            using var response = await client.GetAsync(new Uri("/api/values", UriKind.Relative), TestContext.Current.CancellationToken);
+        }
 
-        // Act
-        using var response = await client.GetAsync(new Uri("/api/values", UriKind.Relative));
+        Assert.True(stopSignal.WaitOne(TimeSpan.FromSeconds(5)));
 
         // Assert
         Assert.Equal(shouldFilterBeCalled, filterCalled);
@@ -590,15 +598,13 @@ public sealed class BasicTests
         }
 
         // Arrange
-        using (var client = this.factory
-            .WithWebHostBuilder(builder =>
+        using (var client = this.CreateClient(builder =>
             {
                 builder.ConfigureTestServices(ConfigureTestServices);
                 builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
-            })
-            .CreateClient())
+            }))
         {
-            using var response = await client.GetAsync(new Uri("/api/values/2", UriKind.Relative));
+            using var response = await client.GetAsync(new Uri("/api/values/2", UriKind.Relative), TestContext.Current.CancellationToken);
             response.EnsureSuccessStatusCode();
             WaitForActivityExport(exportedItems, 2);
         }
@@ -644,13 +650,11 @@ public sealed class BasicTests
         }
 
         // Arrange
-        using var client = this.factory
-            .WithWebHostBuilder(builder =>
+        using var client = this.CreateClient(builder =>
             {
                 builder.ConfigureTestServices(ConfigureTestServices);
                 builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
-            })
-            .CreateClient();
+            });
 
         var message = new HttpRequestMessage
         {
@@ -659,7 +663,7 @@ public sealed class BasicTests
 
         try
         {
-            using var response = await client.SendAsync(message);
+            using var response = await client.SendAsync(message, TestContext.Current.CancellationToken);
             response.EnsureSuccessStatusCode();
         }
         catch
@@ -669,9 +673,7 @@ public sealed class BasicTests
 
         WaitForActivityExport(exportedItems, 1);
 
-        Assert.Single(exportedItems);
-
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
 
         Assert.Equal(expectedMethod, activity.GetTagValue(SemanticConventions.AttributeHttpRequestMethod));
         Assert.Equal(expectedOriginalMethod, activity.GetTagValue(SemanticConventions.AttributeHttpRequestMethodOriginal));
@@ -687,8 +689,7 @@ public sealed class BasicTests
         var activityName = "TestMiddlewareActivity";
 
         // Arrange
-        using (var client = this.factory
-            .WithWebHostBuilder(builder =>
+        using (var client = this.CreateClient(builder =>
             {
                 builder.ConfigureTestServices(services =>
                 {
@@ -700,10 +701,9 @@ public sealed class BasicTests
                             .AddInMemoryExporter(exportedItems));
                 });
                 builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
-            })
-            .CreateClient())
+            }))
         {
-            using var response = await client.GetAsync(new Uri("/api/values/2", UriKind.Relative));
+            using var response = await client.GetAsync(new Uri("/api/values/2", UriKind.Relative), TestContext.Current.CancellationToken);
             response.EnsureSuccessStatusCode();
             WaitForActivityExport(exportedItems, 2);
         }
@@ -742,16 +742,14 @@ public sealed class BasicTests
         }
 
         // Arrange
-        using (var client = this.factory
-            .WithWebHostBuilder(builder =>
+        using (var client = this.CreateClient(builder =>
             {
                 builder.ConfigureTestServices(ConfigureTestServices);
                 builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
-            })
-            .CreateClient())
+            }))
         {
             // Act
-            using var response = await client.GetAsync(new Uri("/api/values", UriKind.Relative));
+            using var response = await client.GetAsync(new Uri("/api/values", UriKind.Relative), TestContext.Current.CancellationToken);
 
             // Assert
             response.EnsureSuccessStatusCode(); // Status Code 200-299
@@ -759,8 +757,7 @@ public sealed class BasicTests
             WaitForActivityExport(exportedItems, 1);
         }
 
-        Assert.Single(exportedItems);
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
 
         Assert.Equal("UserRegisteredActivitySource", activity.Source.Name);
     }
@@ -773,17 +770,15 @@ public sealed class BasicTests
         var exportedItems = new List<Activity>();
 
         // Arrange
-        using (var client = this.factory
-            .WithWebHostBuilder(builder =>
+        using (var client = this.CreateClient(builder =>
             {
                 builder.ConfigureTestServices(
                 (s) => this.ConfigureExceptionFilters(s, mode, ref exportedItems));
                 builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
-            })
-            .CreateClient())
+            }))
         {
             // Act
-            using var response = await client.GetAsync(new Uri("/api/error", UriKind.Relative));
+            using var response = await client.GetAsync(new Uri("/api/error", UriKind.Relative), TestContext.Current.CancellationToken);
 
             WaitForActivityExport(exportedItems, 1);
         }
@@ -830,17 +825,15 @@ public sealed class BasicTests
             .Build();
 
         // Arrange
-        using (var client = this.factory
-            .WithWebHostBuilder(builder =>
+        using (var client = this.CreateClient(builder =>
             {
                 builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
-            })
-            .CreateClient())
+            }))
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, "/api/values");
 
             // Act
-            using var response = await client.SendAsync(request);
+            using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
         }
 
         WaitForEventCount(() => numberofSubscribedEvents, 2);
@@ -899,19 +892,17 @@ public sealed class BasicTests
             .Build();
 
         // Arrange
-        using (var client = this.factory
-            .WithWebHostBuilder(builder =>
+        using (var client = this.CreateClient(builder =>
             {
                 builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
-            })
-            .CreateClient())
+            }))
         {
             try
             {
                 using var request = new HttpRequestMessage(HttpMethod.Get, "/api/error");
 
                 // Act
-                using var response = await client.SendAsync(request);
+                using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
             }
             catch
             {
@@ -985,17 +976,15 @@ public sealed class BasicTests
                     await ctx.Response.WriteAsync("handled");
                 })));
 
-        using (var client = this.factory
-            .WithWebHostBuilder(builder =>
+        using (var client = this.CreateClient(builder =>
             {
                 builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
-            })
-            .CreateClient())
+            }))
         {
             try
             {
                 using var request = new HttpRequestMessage(HttpMethod.Get, "/api/error");
-                using var response = await client.SendAsync(request);
+                using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
             }
             catch
             {
@@ -1037,8 +1026,8 @@ public sealed class BasicTests
         var spanId = ActivitySpanId.CreateRandom();
         request.Headers.Add("traceparent", $"00-{traceId}-{spanId}-00");
 
-        var response = await client.SendAsync(request);
-        var result = bool.Parse(await response.Content.ReadAsStringAsync());
+        var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+        var result = bool.Parse(await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
 
         Assert.True(response.IsSuccessStatusCode);
 
@@ -1093,16 +1082,14 @@ public sealed class BasicTests
             .AddInMemoryExporter(exportedItems)
             .Build();
 
-        using (var client = this.factory
-            .WithWebHostBuilder(builder =>
+        using (var client = this.CreateClient(builder =>
             {
                 builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
-            })
-            .CreateClient())
+            }))
         {
             try
             {
-                using var response = await client.GetAsync(new Uri(path, UriKind.Relative));
+                using var response = await client.GetAsync(new Uri(path, UriKind.Relative), TestContext.Current.CancellationToken);
             }
             catch (Exception)
             {
@@ -1112,8 +1099,7 @@ public sealed class BasicTests
             WaitForActivityExport(exportedItems, 1);
         }
 
-        Assert.Single(exportedItems);
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
 
         Assert.Equal(expectedUrlQuery, activity.GetTagValue(SemanticConventions.AttributeUrlQuery));
     }
@@ -1145,11 +1131,11 @@ public sealed class BasicTests
                     o.HttpMessageHandlerFactory = _ => server.Server.CreateHandler();
                     o.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.LongPolling;
                 }).Build();
-            await client.StartAsync();
+            await client.StartAsync(TestContext.Current.CancellationToken);
 
-            await client.SendAsync("Send", "text");
+            await client.SendAsync("Send", "text", TestContext.Current.CancellationToken);
 
-            await client.StopAsync();
+            await client.StopAsync(TestContext.Current.CancellationToken);
         }
 
         WaitForActivityExportToStabilize(exportedItems);
@@ -1200,11 +1186,11 @@ public sealed class BasicTests
                     o.HttpMessageHandlerFactory = _ => server.Server.CreateHandler();
                     o.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.LongPolling;
                 }).Build();
-            await client.StartAsync();
+            await client.StartAsync(TestContext.Current.CancellationToken);
 
-            await client.SendAsync("Send", "text");
+            await client.SendAsync("Send", "text", TestContext.Current.CancellationToken);
 
-            await client.StopAsync();
+            await client.StopAsync(TestContext.Current.CancellationToken);
         }
 
         WaitForActivityExportToStabilize(exportedItems);
@@ -1227,13 +1213,11 @@ public sealed class BasicTests
                 .Build();
         }
 
-        using (var client = this.factory
-            .WithWebHostBuilder(builder =>
+        using (var client = this.CreateClient(builder =>
             {
                 builder.ConfigureTestServices(ConfigureTestServices);
                 builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
-            })
-            .CreateClient())
+            }))
         {
             var fakeActivitySource = new ActivitySource("Microsoft.AspNetCore.Components");
             var activity = fakeActivitySource.CreateActivity("Microsoft.AspNetCore.Components.HandleEvent", ActivityKind.Internal, parentId: null, null, null);
@@ -1247,7 +1231,7 @@ public sealed class BasicTests
 
             try
             {
-                using var response = await client.GetAsync(new Uri("/api/values", UriKind.Relative));
+                using var response = await client.GetAsync(new Uri("/api/values", UriKind.Relative), TestContext.Current.CancellationToken);
             }
             catch (Exception)
             {
@@ -1276,13 +1260,11 @@ public sealed class BasicTests
                 .Build();
         }
 
-        using (var client = this.factory
-            .WithWebHostBuilder(builder =>
+        using (var client = this.CreateClient(builder =>
             {
                 builder.ConfigureTestServices(ConfigureTestServices);
                 builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
-            })
-            .CreateClient())
+            }))
         {
             var fakeActivitySource = new ActivitySource("Microsoft.AspNetCore.Components");
             var activity = fakeActivitySource.CreateActivity("Microsoft.AspNetCore.Components.HandleEvent", ActivityKind.Internal, parentId: null, null, null);
@@ -1296,7 +1278,7 @@ public sealed class BasicTests
 
             try
             {
-                using var response = await client.GetAsync(new Uri("/api/values", UriKind.Relative));
+                using var response = await client.GetAsync(new Uri("/api/values", UriKind.Relative), TestContext.Current.CancellationToken);
             }
             catch (Exception)
             {
@@ -1336,15 +1318,13 @@ public sealed class BasicTests
                 .Build();
         }
 
-        using (var client = this.factory
-            .WithWebHostBuilder(builder =>
+        using (var client = this.CreateClient(builder =>
             {
                 builder.ConfigureTestServices(ConfigureTestServices);
                 builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
-            })
-            .CreateClient())
+            }))
         {
-            using var response = await client.GetAsync(new Uri("/api/values", UriKind.Relative));
+            using var response = await client.GetAsync(new Uri("/api/values", UriKind.Relative), TestContext.Current.CancellationToken);
             response.EnsureSuccessStatusCode();
             WaitForActivityExport(exportedItems, 1);
         }
@@ -1355,7 +1335,16 @@ public sealed class BasicTests
     }
 
     public void Dispose()
-        => this.tracerProvider?.Dispose();
+    {
+        this.tracerProvider?.Dispose();
+
+        foreach (var derivedFactory in this.derivedFactories)
+        {
+            derivedFactory.Dispose();
+        }
+
+        this.derivedFactories.Clear();
+    }
 
     private static void WaitForActivityExport(List<Activity> exportedItems, int count)
         => Assert.True(
@@ -1423,15 +1412,21 @@ public sealed class BasicTests
 
     private static void AssertException(List<Activity> exportedItems)
     {
-        Assert.Single(exportedItems);
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
 
         var exMessage = "something's wrong!";
-        Assert.Single(activity.Events);
-        Assert.Equal("System.Exception", activity.Events.First().Tags.FirstOrDefault(t => t.Key == SemanticConventions.AttributeExceptionType).Value);
-        Assert.Equal(exMessage, activity.Events.First().Tags.FirstOrDefault(t => t.Key == SemanticConventions.AttributeExceptionMessage).Value);
+        var item = Assert.Single(activity.Events);
+        Assert.Equal("System.Exception", item.Tags.FirstOrDefault(t => t.Key == SemanticConventions.AttributeExceptionType).Value);
+        Assert.Equal(exMessage, item.Tags.FirstOrDefault(t => t.Key == SemanticConventions.AttributeExceptionMessage).Value);
 
         ValidateAspNetCoreActivity(activity, "/api/error");
+    }
+
+    private HttpClient CreateClient(Action<IWebHostBuilder> configureWebHost)
+    {
+        var derivedFactory = this.factory.WithWebHostBuilder(configureWebHost);
+        this.derivedFactories.Add(derivedFactory);
+        return derivedFactory.CreateClient();
     }
 
     private void ConfigureExceptionFilters(IServiceCollection services, int mode, ref List<Activity> exportedItems)
