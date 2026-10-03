@@ -1104,6 +1104,53 @@ public sealed class BasicTests
         Assert.Equal(expectedUrlQuery, activity.GetTagValue(SemanticConventions.AttributeUrlQuery));
     }
 
+    [Fact]
+    public async Task NewRootSpanIsStartedWhenEnabledViaConfiguration()
+    {
+        var exportedItems = new List<Activity>();
+        var traceId = ActivityTraceId.CreateRandom();
+        var spanId = ActivitySpanId.CreateRandom();
+
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?> { ["OTEL_DOTNET_EXPERIMENTAL_ASPNETCORE_ENABLE_NEW_ROOT_SPAN"] = "true" })
+            .Build();
+
+        // Arrange
+        using var traceprovider = Sdk.CreateTracerProviderBuilder()
+            .ConfigureServices(services => services.AddSingleton<IConfiguration>(configuration))
+            .AddAspNetCoreInstrumentation()
+            .AddInMemoryExporter(exportedItems)
+            .Build();
+
+        using (var client = this.CreateClient(builder =>
+            {
+                builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
+            }))
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, "/api/values");
+            request.Headers.Add("traceparent", $"00-{traceId}-{spanId}-01");
+
+            // Act
+            using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+            // Assert
+            response.EnsureSuccessStatusCode(); // Status Code 200-299
+
+            WaitForActivityExport(exportedItems, 1);
+        }
+
+        var activity = Assert.Single(exportedItems);
+
+        Assert.Null(activity.ParentId);
+        Assert.NotEqual(traceId, activity.TraceId);
+
+        var link = Assert.Single(activity.Links);
+        Assert.Equal(traceId, link.Context.TraceId);
+        Assert.Equal(spanId, link.Context.SpanId);
+
+        ValidateAspNetCoreActivity(activity, "/api/values");
+    }
+
 #if NET9_0_OR_GREATER
     [Fact]
     public async Task SignalRActivitiesAreListenedTo()

@@ -113,21 +113,24 @@ internal class HttpInListener : ListenerHandler
             return;
         }
 
-        string? path = null;
-
         // Tracks whether the instrumentation created a sibling Activity. When it does,
         // ASP.NET Core 11+ writes its native OpenTelemetry tags to the framework Activity
         // (which is no longer sampled) rather than to the exported sibling, so the
         // instrumentation must set those tags itself instead of deferring to the framework.
         var createdSibling = false;
+        var createdRoot = false;
 
         // Ensure context extraction irrespective of sampling decision
         var request = context.Request;
         var textMapPropagator = Propagators.DefaultTextMapPropagator;
+        PropagationContext ctx = default;
         if (textMapPropagator is not TraceContextPropagator)
         {
-            var ctx = textMapPropagator.Extract(default, request, HttpRequestHeaderValuesGetter);
+            ctx = textMapPropagator.Extract(default, request, HttpRequestHeaderValuesGetter);
             if (ctx.ActivityContext.IsValid()
+#if NET
+                && !this.options.EnableNewRootSpan
+#endif
                 && !((ctx.ActivityContext.TraceId == activity.TraceId)
                     && (ctx.ActivityContext.SpanId == activity.ParentSpanId)
                     && (ctx.ActivityContext.TraceState == activity.TraceStateString)))
@@ -179,6 +182,46 @@ internal class HttpInListener : ListenerHandler
             }
         }
 
+#if NET
+        if (this.options.EnableNewRootSpan && (activity.ParentId is not null || ctx.ActivityContext.IsValid()))
+        {
+            var linkContext = ctx.ActivityContext.IsValid()
+                ? ctx.ActivityContext
+                : ActivityContext.TryParse(activity.ParentId, activity.TraceStateString, activity.HasRemoteParent, out var parentContext) ? parentContext : default;
+
+            // A default parent context adopts Activity.Current, so it must be cleared to start a root.
+            Activity.Current = null;
+
+            var root = activity.Source.CreateActivity(
+                ActivityOperationName,
+                ActivityKind.Server,
+                default(ActivityContext),
+                this.GetRequestTags(request, createdSibling: true),
+                links: linkContext.IsValid() ? [new ActivityLink(linkContext)] : null);
+
+            if (root is null)
+            {
+                Activity.Current = activity;
+            }
+            else
+            {
+                foreach (var item in activity.Baggage.Reverse())
+                {
+                    root.AddBaggage(item.Key, item.Value);
+                }
+
+                root.SetCustomProperty(CreatedByInstrumentationPropertyName, CreatedByInstrumentationMarker);
+                root.SetCustomProperty(FrameworkActivityPropertyName, activity);
+                root.Start();
+
+                activity.IsAllDataRequested = false;
+                activity = root;
+                createdSibling = true;
+                createdRoot = true;
+            }
+        }
+#endif
+
         // enrich Activity from payload only if sampling decision
         // is favorable.
         if (activity.IsAllDataRequested)
@@ -225,50 +268,15 @@ internal class HttpInListener : ListenerHandler
                 TelemetryHelper.RequestDataHelper.SetActivityDisplayName(activity, request.Method);
             }
 
-            // ASP.NET Core sets http.request.method natively from .NET 10, so only set it ourselves when
-            // the framework will not, or when a custom set of known methods is in use (see above).
-            if (!Net10OrGreater || !this.nativeAspNetCoreOpenTelemetryEnabled || createdSibling || TelemetryHelper.RequestDataHelper.HasCustomKnownMethods)
+            // The root was created with these tags.
+            if (!createdRoot)
             {
-                TelemetryHelper.RequestDataHelper.SetHttpMethodTag(activity, request.Method);
-            }
+                var tags = this.GetRequestTags(request, createdSibling);
 
-            // When a sibling Activity was created the framework's native tags land on the
-            // (now unsampled) framework Activity, so set them here on the exported sibling.
-            if (!Net10OrGreater || !this.nativeAspNetCoreOpenTelemetryEnabled || createdSibling)
-            {
-                if (request.Host.HasValue)
+                // Indexed, as foreach over a TagList boxes its enumerator.
+                for (var i = 0; i < tags.Count; i++)
                 {
-                    activity.SetTag(SemanticConventions.AttributeServerAddress, request.Host.Host);
-
-                    if (request.Host.Port is { } port)
-                    {
-                        activity.SetTag(SemanticConventions.AttributeServerPort, PortTelemetryHelper.GetBoxedPort(port, cacheValue: true));
-                    }
-                }
-
-                if (request.Headers.TryGetValue("User-Agent", out var values))
-                {
-                    var userAgent = values.Count > 0 ? values[0] : null;
-                    if (!string.IsNullOrEmpty(userAgent))
-                    {
-                        activity.SetTag(SemanticConventions.AttributeUserAgentOriginal, userAgent);
-                    }
-                }
-
-                activity.SetTag(SemanticConventions.AttributeUrlScheme, request.Scheme);
-
-                SetUrlPathAttribute(request, activity);
-            }
-
-            if (request.QueryString.HasValue)
-            {
-                if (this.options.DisableUrlQueryRedaction)
-                {
-                    activity.SetTag(SemanticConventions.AttributeUrlQuery, request.QueryString.Value);
-                }
-                else
-                {
-                    activity.SetTag(SemanticConventions.AttributeUrlQuery, RedactionHelper.GetRedactedQueryString(request.QueryString.Value!));
+                    activity.SetTag(tags[i].Key, tags[i].Value);
                 }
             }
 
@@ -285,13 +293,6 @@ internal class HttpInListener : ListenerHandler
                     AspNetCoreInstrumentationEventSource.Log.EnrichmentException(nameof(HttpInListener), nameof(this.OnStartActivity), activity.OperationName, ex);
                 }
             }
-        }
-
-        void SetUrlPathAttribute(HttpRequest request, Activity activity)
-        {
-            // See the spec: https://github.com/open-telemetry/semantic-conventions/blob/v1.40.0/docs/http/http-spans.md
-            path ??= (request.PathBase.HasValue || request.Path.HasValue) ? (request.PathBase + request.Path).ToString() : "/";
-            activity.SetTag(SemanticConventions.AttributeUrlPath, path);
         }
     }
 
@@ -414,16 +415,12 @@ internal class HttpInListener : ListenerHandler
             // be stopped here.
             activity.Stop();
 
-            // After the activity.Stop() code, Activity.Current becomes null.
-            // If Asp.Net Core uses Activity.Current?.Stop() - it'll not stop the activity
-            // it created.
-            // Currently Asp.Net core does not use Activity.Current, instead it stores a
-            // reference to its activity, and calls .Stop on it.
-
-            // TODO: Should we still restore Activity.Current here?
-            // If yes, then we need to store the asp.net core activity inside
-            // the one created by the instrumentation.
-            // And retrieve it here, and set it to Current.
+#if NET
+            if (this.options.EnableNewRootSpan)
+            {
+                Activity.Current = activity.GetCustomProperty(FrameworkActivityPropertyName) as Activity;
+            }
+#endif
         }
     }
 
@@ -575,5 +572,62 @@ internal class HttpInListener : ListenerHandler
         // can't just look at the HTTP protocol version to attempt to shortcut the test.
         grpcMethod = GrpcTagHelper.GetGrpcMethodFromActivity(activity);
         return !string.IsNullOrEmpty(grpcMethod);
+    }
+
+    private TagList GetRequestTags(HttpRequest request, bool createdSibling)
+    {
+        var tags = default(TagList);
+
+        // When a sibling Activity was created the framework's native tags land on the
+        // (now unsampled) framework Activity, so set them here on the exported sibling.
+        var setNativeTags = !Net10OrGreater || !this.nativeAspNetCoreOpenTelemetryEnabled || createdSibling;
+
+        // ASP.NET Core sets http.request.method natively from .NET 10, so only set it ourselves when
+        // the framework will not, or when a custom set of known methods is in use.
+        if (setNativeTags || TelemetryHelper.RequestDataHelper.HasCustomKnownMethods)
+        {
+            TelemetryHelper.RequestDataHelper.SetHttpMethodTag(ref tags, request.Method);
+        }
+
+        if (setNativeTags)
+        {
+            if (request.Host.HasValue)
+            {
+                tags.Add(SemanticConventions.AttributeServerAddress, request.Host.Host);
+
+                if (request.Host.Port is { } port)
+                {
+                    tags.Add(SemanticConventions.AttributeServerPort, PortTelemetryHelper.GetBoxedPort(port, cacheValue: true));
+                }
+            }
+
+            if (request.Headers.TryGetValue("User-Agent", out var values))
+            {
+                var userAgent = values.Count > 0 ? values[0] : null;
+                if (!string.IsNullOrEmpty(userAgent))
+                {
+                    tags.Add(SemanticConventions.AttributeUserAgentOriginal, userAgent);
+                }
+            }
+
+            tags.Add(SemanticConventions.AttributeUrlScheme, request.Scheme);
+
+            // See the spec: https://github.com/open-telemetry/semantic-conventions/blob/v1.40.0/docs/http/http-spans.md
+            tags.Add(SemanticConventions.AttributeUrlPath, (request.PathBase.HasValue || request.Path.HasValue) ? (request.PathBase + request.Path).ToString() : "/");
+        }
+
+        if (request.QueryString.HasValue)
+        {
+            if (this.options.DisableUrlQueryRedaction)
+            {
+                tags.Add(SemanticConventions.AttributeUrlQuery, request.QueryString.Value);
+            }
+            else
+            {
+                tags.Add(SemanticConventions.AttributeUrlQuery, RedactionHelper.GetRedactedQueryString(request.QueryString.Value!));
+            }
+        }
+
+        return tags;
     }
 }
