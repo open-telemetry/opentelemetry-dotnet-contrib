@@ -6,8 +6,6 @@ using System.Net;
 #endif
 using System.Diagnostics;
 using System.Globalization;
-using System.Numerics;
-using System.Text;
 using OpenTelemetry.Context.Propagation;
 
 namespace OpenTelemetry.Extensions.AWS.Trace;
@@ -37,8 +35,16 @@ public class AWSXRayPropagator : TextMapPropagator
     private const char SampledValue = '1';
     private const char NotSampledValue = '0';
 
+    // The length of a header in the format "Root=1-{8 hex}-{24 hex};Parent={16 hex};Sampled={0|1}".
+    private const int TraceHeaderLength = 74;
+
+    private static readonly HashSet<string> AllFields = [AWSXRayTraceHeaderKey];
+
     /// <inheritdoc/>
-    public override ISet<string> Fields => new HashSet<string>() { AWSXRayTraceHeaderKey };
+    /// <remarks>
+    /// Callers should not modify the returned set.
+    /// </remarks>
+    public override ISet<string> Fields => AllFields;
 
     /// <inheritdoc/>
     public override PropagationContext Extract<T>(PropagationContext context, T carrier, Func<T, string, IEnumerable<string>?> getter)
@@ -130,20 +136,34 @@ public class AWSXRayPropagator : TextMapPropagator
         }
 #endif
 
-        var sb = new StringBuilder();
-        sb.Append(RootKey);
-        sb.Append(KeyValueDelimiter);
-        sb.Append(ToXRayTraceIdFormat(context.ActivityContext.TraceId.ToHexString()));
-        sb.Append(TraceHeaderDelimiter);
-        sb.Append(ParentKey);
-        sb.Append(KeyValueDelimiter);
-        sb.Append(context.ActivityContext.SpanId.ToHexString());
-        sb.Append(TraceHeaderDelimiter);
-        sb.Append(SampledKey);
-        sb.Append(KeyValueDelimiter);
-        sb.Append((context.ActivityContext.TraceFlags & ActivityTraceFlags.Recorded) != 0 ? SampledValue : NotSampledValue);
+        // The header always has the same length, so build it in a buffer on the stack.
+        var traceId = context.ActivityContext.TraceId.ToHexString().AsSpan();
+        Span<char> header = stackalloc char[TraceHeaderLength];
+        var length = 0;
 
-        setter(carrier, AWSXRayTraceHeaderKey, sb.ToString());
+        Append(header, ref length, RootKey.AsSpan());
+        header[length++] = KeyValueDelimiter;
+        header[length++] = Version;
+        header[length++] = TraceIdDelimiter;
+        Append(header, ref length, traceId.Slice(0, EpochHexDigits));
+        header[length++] = TraceIdDelimiter;
+        Append(header, ref length, traceId.Slice(EpochHexDigits));
+        header[length++] = TraceHeaderDelimiter;
+        Append(header, ref length, ParentKey.AsSpan());
+        header[length++] = KeyValueDelimiter;
+        Append(header, ref length, context.ActivityContext.SpanId.ToHexString().AsSpan());
+        header[length++] = TraceHeaderDelimiter;
+        Append(header, ref length, SampledKey.AsSpan());
+        header[length++] = KeyValueDelimiter;
+        header[length++] = (context.ActivityContext.TraceFlags & ActivityTraceFlags.Recorded) != 0 ? SampledValue : NotSampledValue;
+
+        setter(carrier, AWSXRayTraceHeaderKey, header.Slice(0, length).ToString());
+
+        static void Append(Span<char> destination, ref int position, ReadOnlySpan<char> value)
+        {
+            value.CopyTo(destination.Slice(position));
+            position += value.Length;
+        }
     }
 
     internal static bool TryParseXRayTraceHeader(string rawHeader, out ActivityContext activityContext)
@@ -152,7 +172,8 @@ public class AWSXRayPropagator : TextMapPropagator
         // rawHeader format: Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1
 
         activityContext = default;
-        ReadOnlySpan<char> traceId = default;
+        Span<char> traceIdBuffer = stackalloc char[EpochHexDigits + RandomNumberHexDigits];
+        scoped ReadOnlySpan<char> traceId = default;
         ReadOnlySpan<char> parentId = default;
         char traceOptions = default;
 
@@ -187,12 +208,12 @@ public class AWSXRayPropagator : TextMapPropagator
             var value = trimmedPart.Slice(equalsIndex + 1);
             if (trimmedPart.StartsWith(RootKey.AsSpan()))
             {
-                if (!TryParseOTFormatTraceId(value, out var otFormatTraceId))
+                if (!TryParseOTFormatTraceId(value, traceIdBuffer))
                 {
                     return false;
                 }
 
-                traceId = otFormatTraceId;
+                traceId = traceIdBuffer;
             }
             else if (trimmedPart.StartsWith(ParentKey.AsSpan()))
             {
@@ -228,10 +249,8 @@ public class AWSXRayPropagator : TextMapPropagator
         return true;
     }
 
-    internal static bool TryParseOTFormatTraceId(ReadOnlySpan<char> traceId, out ReadOnlySpan<char> otFormatTraceId)
+    internal static bool TryParseOTFormatTraceId(ReadOnlySpan<char> traceId, Span<char> otFormatTraceId)
     {
-        otFormatTraceId = default;
-
         if (traceId.IsEmpty || traceId.IsWhiteSpace())
         {
             return false;
@@ -259,28 +278,22 @@ public class AWSXRayPropagator : TextMapPropagator
             return false;
         }
 
-        var timestampString = timestamp.ToString();
-        var randomNumberString = randomNumber.ToString();
-        if (!int.TryParse(timestampString, NumberStyles.HexNumber, null, out _))
+        if (!IsHexNumber(timestamp) || !IsHexNumber(randomNumber))
         {
             return false;
         }
 
-        if (!BigInteger.TryParse(randomNumberString, NumberStyles.HexNumber, null, out _))
-        {
-            return false;
-        }
-
-        otFormatTraceId = (timestampString + randomNumberString).AsSpan();
+        timestamp.CopyTo(otFormatTraceId);
+        randomNumber.CopyTo(otFormatTraceId.Slice(EpochHexDigits));
 
         return true;
     }
 
-    internal static bool IsParentIdValid(ReadOnlySpan<char> parentId)
-    {
-        return !parentId.IsEmpty && !parentId.IsWhiteSpace() && parentId.Length == ParentIdHexDigits &&
-               long.TryParse(parentId.ToString(), NumberStyles.HexNumber, null, out _);
-    }
+    internal static bool IsParentIdValid(ReadOnlySpan<char> parentId) =>
+        !parentId.IsEmpty &&
+        !parentId.IsWhiteSpace() &&
+        parentId.Length == ParentIdHexDigits &&
+        IsHexNumber(parentId);
 
     internal static bool TryParseSampleDecision(ReadOnlySpan<char> sampleDecision, out char result)
     {
@@ -291,10 +304,12 @@ public class AWSXRayPropagator : TextMapPropagator
             return false;
         }
 
-        if (!char.TryParse(sampleDecision.ToString(), out var tempChar))
+        if (sampleDecision.Length != 1)
         {
             return false;
         }
+
+        var tempChar = sampleDecision[0];
 
         if (tempChar is not SampledValue and not NotSampledValue)
         {
@@ -306,16 +321,43 @@ public class AWSXRayPropagator : TextMapPropagator
         return true;
     }
 
-    internal static string ToXRayTraceIdFormat(string traceId)
+    /// <summary>
+    /// Determines whether the value is a hexadecimal number in the same way as parsing it with
+    /// <see cref="NumberStyles.HexNumber"/> (as previously done with <c>int.TryParse()</c>,
+    /// <c>long.TryParse()</c> and <c>BigInteger.TryParse()</c>), but without allocating. That is, one or
+    /// more hexadecimal digits of either case, optionally with leading and trailing whitespace.
+    /// </summary>
+    /// <param name="value">The value to check.</param>
+    /// <returns><see langword="true"/> if the value is a hexadecimal number; otherwise <see langword="false"/>.</returns>
+    private static bool IsHexNumber(ReadOnlySpan<char> value)
     {
-        var sb = new StringBuilder();
+        var index = 0;
 
-        sb.Append(Version);
-        sb.Append(TraceIdDelimiter);
-        sb.Append(traceId, 0, EpochHexDigits);
-        sb.Append(TraceIdDelimiter);
-        sb.Append(traceId, EpochHexDigits, traceId.Length - EpochHexDigits);
+        while (index < value.Length && IsWhiteSpace(value[index]))
+        {
+            index++;
+        }
 
-        return sb.ToString();
+        var digitsStart = index;
+
+        while (index < value.Length && char.IsAsciiHexDigit(value[index]))
+        {
+            index++;
+        }
+
+        if (index == digitsStart)
+        {
+            return false;
+        }
+
+        while (index < value.Length && IsWhiteSpace(value[index]))
+        {
+            index++;
+        }
+
+        return index == value.Length;
+
+        // The characters that number parsing treats as whitespace.
+        static bool IsWhiteSpace(char c) => c is ' ' or (>= '\t' and <= '\r');
     }
 }
