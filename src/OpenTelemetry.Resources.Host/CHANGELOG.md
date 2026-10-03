@@ -6,6 +6,11 @@
   `OTEL_DOTNET_EXPERIMENTAL_HOST_RESOURCE_ENABLE_CPU_INFO` is `true`.
   ([#5173](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5173))
 
+* Added `HostDetectorOptions` and an `AddHostDetector` overload that accepts it,
+  to enable `host.ip`, `host.mac` and `host.cpu.*` programmatically.
+  The environment variables remain the defaults and values set in code override them.
+  ([#5464](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5464))
+
 ## 1.19.1-beta.1
 
 Released 2026-Sep-21

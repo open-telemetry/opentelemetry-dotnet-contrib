@@ -22,9 +22,6 @@ namespace OpenTelemetry.Resources.Host;
 /// </summary>
 internal sealed class HostDetector : IResourceDetector
 {
-    internal const string EnableNetworkAddressesEnvVarName = "OTEL_DOTNET_EXPERIMENTAL_HOST_RESOURCE_ENABLE_NETWORK_ADDRESSES";
-    internal const string EnableCpuInfoEnvVarName = "OTEL_DOTNET_EXPERIMENTAL_HOST_RESOURCE_ENABLE_CPU_INFO";
-
     private const string WindowsCpuRegistryKey = @"HARDWARE\DESCRIPTION\System\CentralProcessor\0";
 
 #if !NETFRAMEWORK
@@ -56,18 +53,22 @@ internal sealed class HostDetector : IResourceDetector
     private readonly Func<string?> getMacOsMachineId;
 #endif
     private readonly Func<string?> getWindowsMachineId;
+    private readonly bool networkAddressesEnabled;
+    private readonly bool cpuInfoEnabled;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="HostDetector"/> class.
     /// </summary>
-    public HostDetector()
+    /// <param name="options">The options, or <see langword="null"/> to use the defaults.</param>
+    public HostDetector(HostDetectorOptions? options = null)
         : this(
 #if !NETFRAMEWORK
         RuntimeInformation.IsOSPlatform,
         GetFilePaths,
         GetMachineIdMacOs,
 #endif
-        GetMachineIdWindows)
+        GetMachineIdWindows,
+        options)
     {
     }
 
@@ -75,12 +76,14 @@ internal sealed class HostDetector : IResourceDetector
     public HostDetector(
         Func<IEnumerable<string>> getFilePaths,
         Func<string?> getMacOsMachineId,
-        Func<string?> getWindowsMachineId)
+        Func<string?> getWindowsMachineId,
+        HostDetectorOptions? options = null)
         : this(
             RuntimeInformation.IsOSPlatform,
             getFilePaths,
             getMacOsMachineId,
-            getWindowsMachineId)
+            getWindowsMachineId,
+            options)
     {
     }
 #endif
@@ -91,7 +94,8 @@ internal sealed class HostDetector : IResourceDetector
         Func<IEnumerable<string>> getFilePaths,
         Func<string?> getMacOsMachineId,
 #endif
-        Func<string?> getWindowsMachineId)
+        Func<string?> getWindowsMachineId,
+        HostDetectorOptions? options = null)
     {
 #if !NETFRAMEWORK
         Guard.ThrowIfNull(isOsPlatform);
@@ -106,6 +110,10 @@ internal sealed class HostDetector : IResourceDetector
         this.getMacOsMachineId = getMacOsMachineId;
 #endif
         this.getWindowsMachineId = getWindowsMachineId;
+
+        options ??= new HostDetectorOptions();
+        this.networkAddressesEnabled = options.EnableNetworkAddresses;
+        this.cpuInfoEnabled = options.EnableCpuInfo;
     }
 
 #if !NETFRAMEWORK
@@ -140,11 +148,9 @@ internal sealed class HostDetector : IResourceDetector
     {
         try
         {
-            var networkAddressesEnabled = IsNetworkAddressesEnabled();
-            var cpuInfoEnabled = IsCpuInfoEnabled();
             var capacity = MaxBaseAttributeCount
-                + (networkAddressesEnabled ? MaxNetworkAddressAttributeCount : 0)
-                + (cpuInfoEnabled ? MaxCpuInfoAttributeCount : 0);
+                + (this.networkAddressesEnabled ? MaxNetworkAddressAttributeCount : 0)
+                + (this.cpuInfoEnabled ? MaxCpuInfoAttributeCount : 0);
 
             var attributes = new List<KeyValuePair<string, object>>(capacity)
             {
@@ -169,12 +175,12 @@ internal sealed class HostDetector : IResourceDetector
 #error Architecture is available in .NET Framework 4.7.1+, enable it when we move to that as minimum supported version
 #endif
 
-            if (networkAddressesEnabled)
+            if (this.networkAddressesEnabled)
             {
                 AddNetworkAddresses(attributes);
             }
 
-            if (cpuInfoEnabled)
+            if (this.cpuInfoEnabled)
             {
                 AddCpuInfo(attributes);
             }
@@ -380,12 +386,6 @@ internal sealed class HostDetector : IResourceDetector
         yield return ETCVARDBUSMACHINEID;
     }
 #endif
-
-    private static bool IsNetworkAddressesEnabled() =>
-        bool.TryParse(Environment.GetEnvironmentVariable(EnableNetworkAddressesEnvVarName), out var enabled) && enabled;
-
-    private static bool IsCpuInfoEnabled() =>
-        bool.TryParse(Environment.GetEnvironmentVariable(EnableCpuInfoEnvVarName), out var enabled) && enabled;
 
     private static void AddNetworkAddresses(List<KeyValuePair<string, object>> attributes)
     {
