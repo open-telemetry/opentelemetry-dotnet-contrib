@@ -30,6 +30,24 @@ internal sealed class SqlEventSourceListener : EventListener
     internal const int BeginExecuteEventId = 1;
     internal const int EndExecuteEventId = 2;
 
+    /// <summary>
+    /// The keyword the BeginExecute and EndExecute events are written with.
+    /// </summary>
+    /// <remarks>
+    /// This is <c>Keywords.SqlClient</c> for "Microsoft-AdoNet-SystemData" (see the
+    /// <a href="https://github.com/microsoft/referencesource/blob/3b1eaf5203992df69de44c783a3eda37d3d4cd10/System.Data/System/Data/Common/SqlEventSource.cs#L39-L42">reference source</a>
+    /// and <a href="https://github.com/dotnet/SqlClient/blob/v1.1.0/src/Microsoft.Data.SqlClient/netfx/src/Microsoft/Data/SqlEventSource.cs#L35-L38">Microsoft.Data.SqlClient v1.1.0</a>)
+    /// and <c>Keywords.ExecutionTrace</c> for "Microsoft.Data.SqlClient.EventSource" (see
+    /// <a href="https://github.com/dotnet/SqlClient/blob/v2.0.0/src/Microsoft.Data.SqlClient/src/Microsoft/Data/SqlClient/SqlClientEventSource.cs#L147-L152">Microsoft.Data.SqlClient v2.0.0</a>),
+    /// both of which have the same value in every version.
+    /// <para/>
+    /// Only the events with this keyword are enabled, rather than all of them, as
+    /// Microsoft.Data.SqlClient writes many other trace events (for example for scopes,
+    /// connection pooling and SNI) which are not used, but would still be delivered to
+    /// (and allocate for) this listener for every command if they were enabled.
+    /// </remarks>
+    internal const EventKeywords ExecuteEventKeywords = (EventKeywords)1;
+
     private readonly ConcurrentDictionary<(EventSource EventSource, int ObjectId), PendingCommand> pendingCommands = new();
     private EventSource? adoNetEventSource;
     private EventSource? mdsEventSource;
@@ -54,12 +72,12 @@ internal sealed class SqlEventSourceListener : EventListener
         if (eventSource?.Name.StartsWith(AdoNetEventSourceName, StringComparison.Ordinal) == true)
         {
             this.adoNetEventSource = eventSource;
-            this.EnableEvents(eventSource, EventLevel.Informational, EventKeywords.All);
+            this.EnableEvents(eventSource, EventLevel.Informational, ExecuteEventKeywords);
         }
         else if (eventSource?.Name.StartsWith(MdsEventSourceName, StringComparison.Ordinal) == true)
         {
             this.mdsEventSource = eventSource;
-            this.EnableEvents(eventSource, EventLevel.Informational, EventKeywords.All);
+            this.EnableEvents(eventSource, EventLevel.Informational, ExecuteEventKeywords);
         }
 
         base.OnEventSourceCreated(eventSource);
@@ -107,7 +125,18 @@ internal sealed class SqlEventSourceListener : EventListener
         return (false, null, null);
     }
 
-    private static void RecordDuration(Activity? activity, EventWrittenEventArgs eventData, string? querySummary, long? beginTimestamp)
+    private static void AddErrorTags(EventWrittenEventArgs eventData, ref TagList tags)
+    {
+        var (hasError, errorNumber, exceptionType) = ExtractErrorFromEvent(eventData);
+
+        if (hasError && errorNumber != null && exceptionType != null)
+        {
+            tags.Add(SemanticConventions.AttributeDbResponseStatusCode, errorNumber);
+            tags.Add(SemanticConventions.AttributeErrorType, exceptionType);
+        }
+    }
+
+    private static void RecordDuration(Activity? activity, EventWrittenEventArgs eventData, in PendingCommand pendingCommand)
     {
         if (SqlClientInstrumentation.Instance.HandleManager.MetricHandles == 0)
         {
@@ -119,7 +148,7 @@ internal sealed class SqlEventSourceListener : EventListener
         {
             duration = activity.Duration.TotalSeconds;
         }
-        else if (beginTimestamp is { } begin)
+        else if (pendingCommand.BeginTimestamp is { } begin)
         {
             duration = SqlTelemetryHelper.CalculateDurationFromTimestamp(begin);
         }
@@ -131,30 +160,24 @@ internal sealed class SqlEventSourceListener : EventListener
             return;
         }
 
-        var tags = default(TagList);
+        TagList tags;
 
         if (activity != null && activity.IsAllDataRequested)
         {
+            tags = default;
             SqlTelemetryHelper.AddSharedTags(activity, ref tags);
         }
         else
         {
-            tags.Add(SemanticConventions.AttributeDbSystemName, SqlTelemetryHelper.MicrosoftSqlServerDbSystemName);
+            // Derive the same tags as a sampled command gets from its activity, so that the
+            // metric's attributes do not depend on the sampling decision.
+            tags = SqlTelemetryHelper.GetTagListFromConnectionInfo(pendingCommand.DataSource, pendingCommand.DatabaseName, out _);
 
-            var (hasError, errorNumber, exceptionType) = ExtractErrorFromEvent(eventData);
+            AddErrorTags(eventData, ref tags);
 
-            if (hasError)
+            if (!string.IsNullOrEmpty(pendingCommand.QuerySummary))
             {
-                if (errorNumber != null && exceptionType != null)
-                {
-                    tags.Add(SemanticConventions.AttributeDbResponseStatusCode, errorNumber);
-                    tags.Add(SemanticConventions.AttributeErrorType, exceptionType);
-                }
-            }
-
-            if (!string.IsNullOrEmpty(querySummary))
-            {
-                tags.Add(SemanticConventions.AttributeDbQuerySummary, querySummary);
+                tags.Add(SemanticConventions.AttributeDbQuerySummary, pendingCommand.QuerySummary);
             }
         }
 
@@ -193,6 +216,8 @@ internal sealed class SqlEventSourceListener : EventListener
 
         var correlationKey = (eventData.EventSource, ObjectId: (int)eventData.Payload[0]);
         _ = this.pendingCommands.TryRemove(correlationKey, out _);
+        var dataSource = (string)eventData.Payload[1];
+        var databaseName = (string)eventData.Payload[2];
         var commandText = (string)eventData.Payload[3];
         SqlStatementInfo sqlStatementInfo = default;
         if (!string.IsNullOrEmpty(commandText))
@@ -201,15 +226,14 @@ internal sealed class SqlEventSourceListener : EventListener
         }
 
         // Metrics-only fast path: if the ActivitySource has no listeners then StartActivity
-        // will always return null and no trace will be produced, so skip connection tag derivation.
+        // will always return null and no trace will be produced, so skip the connection tag
+        // derivation until the duration is recorded.
         if (!SqlTelemetryHelper.ActivitySource.HasListeners())
         {
-            this.pendingCommands[correlationKey] = new(Stopwatch.GetTimestamp(), sqlStatementInfo.DbQuerySummary);
+            this.pendingCommands[correlationKey] = new(Stopwatch.GetTimestamp(), sqlStatementInfo.DbQuerySummary, dataSource, databaseName);
             return;
         }
 
-        var dataSource = (string)eventData.Payload[1];
-        var databaseName = (string)eventData.Payload[2];
         var startTags = SqlTelemetryHelper.GetTagListFromConnectionInfo(dataSource, databaseName, out var activityName);
         if (!string.IsNullOrEmpty(commandText))
         {
@@ -227,15 +251,15 @@ internal sealed class SqlEventSourceListener : EventListener
             default(ActivityContext),
             startTags);
 
-        if (activity == null)
-        {
-            // There is no listener or it decided not to sample the current request.
-            this.pendingCommands[correlationKey] = new(Stopwatch.GetTimestamp(), sqlStatementInfo.DbQuerySummary);
-        }
-        else if (!string.IsNullOrEmpty(sqlStatementInfo.DbQuerySummary))
-        {
-            this.pendingCommands[correlationKey] = new(null, sqlStatementInfo.DbQuerySummary);
-        }
+        // If there is no activity because there is no listener or it decided not to sample the current
+        // request, the start time needs to be tracked to calculate the duration. Otherwise, the duration
+        // is taken from the activity, but the details of the command are still tracked in case the
+        // activity which is current when the command ends is not recorded.
+        this.pendingCommands[correlationKey] = new(
+            activity == null ? Stopwatch.GetTimestamp() : null,
+            sqlStatementInfo.DbQuerySummary,
+            dataSource,
+            databaseName);
     }
 
     private void OnEndExecute(EventWrittenEventArgs eventData)
@@ -254,13 +278,7 @@ internal sealed class SqlEventSourceListener : EventListener
         }
 
         var correlationKey = (eventData.EventSource, ObjectId: (int)eventData.Payload[0]);
-        string? querySummary = null;
-        long? beginTimestamp = null;
-        if (this.pendingCommands.TryRemove(correlationKey, out var pendingCommand))
-        {
-            querySummary = pendingCommand.QuerySummary;
-            beginTimestamp = pendingCommand.BeginTimestamp;
-        }
+        _ = this.pendingCommands.TryRemove(correlationKey, out var pendingCommand);
 
         var handleManager = SqlClientInstrumentation.Instance.HandleManager;
 
@@ -307,15 +325,19 @@ internal sealed class SqlEventSourceListener : EventListener
         {
             // If there's a SQL activity, stop it before recording the duration.
             sqlActivity?.Stop();
-            RecordDuration(traceActivity, eventData, querySummary, beginTimestamp);
+            RecordDuration(traceActivity, eventData, in pendingCommand);
         }
     }
 
-    private readonly struct PendingCommand(long? beginTimestamp, string? querySummary)
+    private readonly struct PendingCommand(long? beginTimestamp, string? querySummary, string? dataSource, string? databaseName)
     {
         public long? BeginTimestamp { get; } = beginTimestamp;
 
         public string? QuerySummary { get; } = querySummary;
+
+        public string? DataSource { get; } = dataSource;
+
+        public string? DatabaseName { get; } = databaseName;
     }
 }
 #endif

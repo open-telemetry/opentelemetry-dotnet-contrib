@@ -283,13 +283,13 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     if (activity == null)
                     {
                         SqlClientInstrumentationEventSource.Log.NullActivity(name);
-                        this.RecordDuration(null, payload);
+                        this.RecordDuration(null, payload, hasError: true);
                         return;
                     }
 
                     if (activity.Source != SqlTelemetryHelper.ActivitySource)
                     {
-                        this.RecordDuration(null, payload);
+                        this.RecordDuration(null, payload, hasError: true);
                         return;
                     }
 
@@ -558,7 +558,12 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
                 if (command.CommandType is CommandType.StoredProcedure)
                 {
-                    tags.Add(SemanticConventions.AttributeDbStoredProcedureName, command.CommandText);
+                    // Add the same tags as an activity for the command is created with.
+                    var ignored = string.Empty;
+                    DatabaseSemanticConventionHelper.AddTagsForSamplingAndUpdateActivityNameForStoredProcedure(
+                        ref tags,
+                        command.CommandText,
+                        ref ignored);
                 }
                 else if (command.CommandType is CommandType.Text)
                 {
