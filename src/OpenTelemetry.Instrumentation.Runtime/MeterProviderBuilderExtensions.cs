@@ -12,7 +12,11 @@ namespace OpenTelemetry.Metrics;
 public static class MeterProviderBuilderExtensions
 {
     private const string DotNetRuntimeMeterName = "System.Runtime";
-    private static readonly bool Net9OrGreater = Environment.Version.Major >= 9;
+#if NET9_0_OR_GREATER
+    private const bool Net9OrGreater = true;
+#else
+    private const bool Net9OrGreater = false;
+#endif
 
     /// <summary>
     /// Enables runtime instrumentation.
