@@ -4,7 +4,7 @@
 
 * Removed `OTEL_SEMCONV_STABILITY_OPT_IN` support. EF Core instrumentation now
   always emits the new database semantic conventions (v1.36.0).
-  ([#3073](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/3073))
+  ([#5474](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5474))
 
 * Fixed `db.query.summary` so that a delimited identifier containing an escaped
   closing bracket, such as `[Tab]]le]`, is captured whole instead of being
