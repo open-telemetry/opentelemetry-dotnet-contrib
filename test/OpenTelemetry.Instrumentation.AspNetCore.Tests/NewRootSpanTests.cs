@@ -321,6 +321,46 @@ public class NewRootSpanTests
     }
 
     [Fact]
+    public void NoSpanIsExportedWhenSamplerDropsRootSpan()
+    {
+        // Arrange
+        var exportedItems = new List<Activity>();
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSource(ActivitySourceName)
+            .SetSampler(new ParentBasedSampler(new AlwaysOffSampler()))
+            .AddInMemoryExporter(exportedItems)
+            .Build();
+        using var source = new ActivitySource(ActivitySourceName);
+
+        var traceId = ActivityTraceId.CreateRandom();
+        var spanId = ActivitySpanId.CreateRandom();
+        var context = CreateContext();
+        context.Request.Headers["traceparent"] = $"00-{traceId}-{spanId}-01";
+
+        var listener = CreateListener();
+        using var frameworkActivity = StartFrameworkActivity(source, new ActivityContext(traceId, spanId, ActivityTraceFlags.Recorded, isRemote: true));
+
+        // Act
+        listener.OnStartActivity(frameworkActivity, context);
+
+        var root = Activity.Current;
+
+        listener.OnStopActivity(Activity.Current!, context);
+        frameworkActivity.Stop();
+
+        // Assert
+        Assert.True(frameworkActivity.Recorded);
+
+        Assert.NotNull(root);
+        Assert.NotSame(frameworkActivity, root);
+        Assert.Null(root.ParentId);
+        Assert.NotEqual(traceId, root.TraceId);
+        Assert.False(root.Recorded);
+
+        Assert.Empty(exportedItems);
+    }
+
+    [Fact]
     public void ActivityCurrentIsRestoredToFrameworkActivityWhenRootSpanStops()
     {
         // Arrange
