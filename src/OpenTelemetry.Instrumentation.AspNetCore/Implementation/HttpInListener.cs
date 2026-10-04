@@ -181,7 +181,7 @@ internal class HttpInListener : ListenerHandler
                 Baggage.Current = baggage;
             }
         }
-give #if NET
+#if NET
         else if (this.options.EnableNewRootSpan)
         {
             // Extracted for the new root span only, Baggage.Current is left as it is.
