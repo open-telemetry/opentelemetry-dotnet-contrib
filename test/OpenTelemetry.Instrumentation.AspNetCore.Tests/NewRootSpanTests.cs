@@ -63,43 +63,57 @@ public class NewRootSpanTests
         }
     }
 
-    [Fact]
-    public void RootSpanIsNotParentedToContextExtractedByPropagator()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void RootSpanIsNotParentedToContextExtractedByPropagator(bool traceContextPropagatorOnly)
     {
-        // Arrange
-        var exportedItems = new List<Activity>();
-        using var tracerProvider = CreateTracerProvider(exportedItems);
-        using var source = new ActivitySource(ActivitySourceName);
+        try
+        {
+            if (traceContextPropagatorOnly)
+            {
+                Sdk.SetDefaultTextMapPropagator(new TraceContextPropagator());
+            }
 
-        var frameworkParent = new ActivityContext(ActivityTraceId.CreateRandom(), ActivitySpanId.CreateRandom(), ActivityTraceFlags.Recorded, isRemote: true);
-        var extractedTraceId = ActivityTraceId.CreateRandom();
-        var extractedSpanId = ActivitySpanId.CreateRandom();
-        var context = CreateContext();
-        context.Request.Headers["traceparent"] = $"00-{extractedTraceId}-{extractedSpanId}-01";
+            // Arrange
+            var exportedItems = new List<Activity>();
+            using var tracerProvider = CreateTracerProvider(exportedItems);
+            using var source = new ActivitySource(ActivitySourceName);
 
-        var listener = CreateListener();
-        using var frameworkActivity = StartFrameworkActivity(source, frameworkParent);
+            var frameworkParent = new ActivityContext(ActivityTraceId.CreateRandom(), ActivitySpanId.CreateRandom(), ActivityTraceFlags.Recorded, isRemote: true);
+            var extractedTraceId = ActivityTraceId.CreateRandom();
+            var extractedSpanId = ActivitySpanId.CreateRandom();
+            var context = CreateContext();
+            context.Request.Headers["traceparent"] = $"00-{extractedTraceId}-{extractedSpanId}-01";
 
-        // Act
-        listener.OnStartActivity(frameworkActivity, context);
-        listener.OnStopActivity(Activity.Current!, context);
+            var listener = CreateListener();
+            using var frameworkActivity = StartFrameworkActivity(source, frameworkParent);
 
-        var currentAfterStop = Activity.Current;
+            // Act
+            listener.OnStartActivity(frameworkActivity, context);
+            listener.OnStopActivity(Activity.Current!, context);
 
-        frameworkActivity.Stop();
+            var currentAfterStop = Activity.Current;
 
-        // Assert
-        var activity = Assert.Single(exportedItems);
+            frameworkActivity.Stop();
 
-        Assert.Null(activity.ParentId);
-        Assert.NotEqual(extractedTraceId, activity.TraceId);
-        Assert.NotEqual(frameworkParent.TraceId, activity.TraceId);
+            // Assert
+            var activity = Assert.Single(exportedItems);
 
-        var link = Assert.Single(activity.Links);
-        Assert.Equal(extractedTraceId, link.Context.TraceId);
-        Assert.Equal(extractedSpanId, link.Context.SpanId);
+            Assert.Null(activity.ParentId);
+            Assert.NotEqual(extractedTraceId, activity.TraceId);
+            Assert.NotEqual(frameworkParent.TraceId, activity.TraceId);
 
-        Assert.Same(frameworkActivity, currentAfterStop);
+            var link = Assert.Single(activity.Links);
+            Assert.Equal(extractedTraceId, link.Context.TraceId);
+            Assert.Equal(extractedSpanId, link.Context.SpanId);
+
+            Assert.Same(frameworkActivity, currentAfterStop);
+        }
+        finally
+        {
+            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([new TraceContextPropagator(), new BaggagePropagator()]));
+        }
     }
 
     [Fact]
@@ -195,8 +209,57 @@ public class NewRootSpanTests
         Assert.Equal(parent.SpanId, link.Context.SpanId);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void RootSpanIsStartedWhenOnlyPropagatorExtractsParent(bool traceContextPropagatorOnly)
+    {
+        try
+        {
+            if (traceContextPropagatorOnly)
+            {
+                Sdk.SetDefaultTextMapPropagator(new TraceContextPropagator());
+            }
+
+            // Arrange
+            var exportedItems = new List<Activity>();
+            using var tracerProvider = CreateTracerProvider(exportedItems);
+            using var source = new ActivitySource(ActivitySourceName);
+
+            var traceId = ActivityTraceId.CreateRandom();
+            var spanId = ActivitySpanId.CreateRandom();
+            var context = CreateContext();
+            context.Request.Headers["traceparent"] = $"00-{traceId}-{spanId}-01";
+
+            var listener = CreateListener();
+
+            using var frameworkActivity = StartFrameworkActivity(source);
+
+            // Act
+            listener.OnStartActivity(frameworkActivity, context);
+            listener.OnStopActivity(Activity.Current!, context);
+            frameworkActivity.Stop();
+
+            // Assert
+            var activity = Assert.Single(exportedItems);
+
+            Assert.Null(activity.ParentId);
+            Assert.NotEqual(traceId, activity.TraceId);
+
+            var link = Assert.Single(activity.Links);
+            Assert.Equal(traceId, link.Context.TraceId);
+            Assert.Equal(spanId, link.Context.SpanId);
+            Assert.Equal(ActivityTraceFlags.Recorded, link.Context.TraceFlags);
+            Assert.True(link.Context.IsRemote);
+        }
+        finally
+        {
+            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([new TraceContextPropagator(), new BaggagePropagator()]));
+        }
+    }
+
     [Fact]
-    public void RootSpanIsStartedWhenOnlyPropagatorExtractsParent()
+    public void RootSpanIsStartedWhenOnlyFrameworkExtractsParent()
     {
         // Arrange
         var exportedItems = new List<Activity>();
@@ -206,11 +269,9 @@ public class NewRootSpanTests
         var traceId = ActivityTraceId.CreateRandom();
         var spanId = ActivitySpanId.CreateRandom();
         var context = CreateContext();
-        context.Request.Headers["traceparent"] = $"00-{traceId}-{spanId}-01";
 
         var listener = CreateListener();
-
-        using var frameworkActivity = StartFrameworkActivity(source);
+        using var frameworkActivity = StartFrameworkActivity(source, new ActivityContext(traceId, spanId, ActivityTraceFlags.Recorded, isRemote: true));
 
         // Act
         listener.OnStartActivity(frameworkActivity, context);
@@ -323,6 +384,49 @@ public class NewRootSpanTests
         Assert.Null(root.ParentId);
         Assert.Equal("value1", baggage.GetBaggage("key1"));
         Assert.Equal("value2", root.GetBaggageItem("key2"));
+    }
+
+    [Fact]
+    public void AmbientBaggageIsKeptWhenPropagatorIsTraceContextPropagator()
+    {
+        try
+        {
+            Sdk.SetDefaultTextMapPropagator(new TraceContextPropagator());
+
+            // Arrange
+            var exportedItems = new List<Activity>();
+            using var tracerProvider = CreateTracerProvider(exportedItems);
+            using var source = new ActivitySource(ActivitySourceName);
+
+            var traceId = ActivityTraceId.CreateRandom();
+            var spanId = ActivitySpanId.CreateRandom();
+            var context = CreateContext();
+            context.Request.Headers["traceparent"] = $"00-{traceId}-{spanId}-01";
+
+            var listener = CreateListener();
+            using var frameworkActivity = StartFrameworkActivity(source, new ActivityContext(traceId, spanId, ActivityTraceFlags.Recorded, isRemote: true));
+
+            Baggage.SetBaggage("key1", "value1");
+
+            // Act
+            listener.OnStartActivity(frameworkActivity, context);
+
+            var root = Activity.Current;
+            var baggage = Baggage.Current;
+
+            listener.OnStopActivity(Activity.Current!, context);
+            frameworkActivity.Stop();
+
+            // Assert
+            Assert.NotNull(root);
+            Assert.Null(root.ParentId);
+            Assert.Equal("value1", baggage.GetBaggage("key1"));
+        }
+        finally
+        {
+            Baggage.Current = default;
+            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([new TraceContextPropagator(), new BaggagePropagator()]));
+        }
     }
 
     [Fact]
