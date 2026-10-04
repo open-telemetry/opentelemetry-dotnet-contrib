@@ -27,12 +27,12 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         this.Seed();
     }
 
-    public static TheoryData<string, string, string> DbSystemTestCases()
+    public static TheoryData<string, string> DbSystemTestCases()
     {
-        var testCases = new TheoryData<string, string, string>()
+        var testCases = new TheoryData<string, string>()
         {
-            { "Microsoft.EntityFrameworkCore.Cosmos", "cosmosdb", "azure.cosmosdb" },
-            { "MongoDB.EntityFrameworkCore", "mongodb", "mongodb" },
+            { "Microsoft.EntityFrameworkCore.Cosmos", "azure.cosmosdb" },
+            { "MongoDB.EntityFrameworkCore", "mongodb" },
         };
 
         // Couchbase
@@ -44,7 +44,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
 
         foreach (var name in names)
         {
-            testCases.Add(name, "couchbase", "couchbase");
+            testCases.Add(name, "couchbase");
         }
 
         // DB2
@@ -57,7 +57,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
 
         foreach (var name in names)
         {
-            testCases.Add(name, "db2", "ibm.db2");
+            testCases.Add(name, "ibm.db2");
         }
 
         // Firebird
@@ -69,7 +69,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
 
         foreach (var name in names)
         {
-            testCases.Add(name, "firebird", "firebirdsql");
+            testCases.Add(name, "firebirdsql");
         }
 
         // Microsoft SQL Server
@@ -81,7 +81,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
 
         foreach (var name in names)
         {
-            testCases.Add(name, "mssql", "microsoft.sql_server");
+            testCases.Add(name, "microsoft.sql_server");
         }
 
         // MySQL
@@ -97,7 +97,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
 
         foreach (var name in names)
         {
-            testCases.Add(name, "mysql", "mysql");
+            testCases.Add(name, "mysql");
         }
 
         // Oracle Database
@@ -111,7 +111,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
 
         foreach (var name in names)
         {
-            testCases.Add(name, "oracle", "oracle.db");
+            testCases.Add(name, "oracle.db");
         }
 
         // PostgreSQL
@@ -125,7 +125,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
 
         foreach (var name in names)
         {
-            testCases.Add(name, "postgresql", "postgresql");
+            testCases.Add(name, "postgresql");
         }
 
         // SQLite
@@ -138,7 +138,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
 
         foreach (var name in names)
         {
-            testCases.Add(name, "sqlite", "sqlite");
+            testCases.Add(name, "sqlite");
         }
 
         // Spanner
@@ -150,7 +150,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
 
         foreach (var name in names)
         {
-            testCases.Add(name, "spanner", "gcp.spanner");
+            testCases.Add(name, "gcp.spanner");
         }
 
         // Teradata
@@ -162,7 +162,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
 
         foreach (var name in names)
         {
-            testCases.Add(name, "teradata", "teradata");
+            testCases.Add(name, "teradata");
         }
 
         // Unknown providers
@@ -174,7 +174,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
 
         foreach (var name in names)
         {
-            testCases.Add(name, "other_sql", "other_sql");
+            testCases.Add(name, "other_sql");
         }
 
         return testCases;
@@ -264,11 +264,10 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
 
     [Theory]
     [MemberData(nameof(DbSystemTestCases))]
-    public void ShouldReturnCorrectAttributeValuesProviderOrCommandName(string name, string expectedDbSystem, string expectedDbSystemName)
+    public void ShouldReturnCorrectAttributeValuesProviderOrCommandName(string name, string expectedDbSystemName)
     {
-        (var actualDbSystem, var actualDbSystemName) = EntityFrameworkDiagnosticListener.GetDbSystemNames(name);
+        var actualDbSystemName = EntityFrameworkDiagnosticListener.GetDbSystemName(name);
 
-        Assert.Equal(expectedDbSystem, actualDbSystem);
         Assert.Equal(expectedDbSystemName, actualDbSystemName);
     }
 
@@ -314,13 +313,8 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         VerifyActivityData(activity);
     }
 
-    [Theory]
-    [InlineData(true, false)]
-    [InlineData(false, true)]
-    [InlineData(true, true)]
-    public void EntityFrameworkEnrichDisplayNameWithEnrichWithIDbCommand(
-        bool emitOldAttributes,
-        bool emitNewAttributes)
+    [Fact]
+    public void EntityFrameworkEnrichDisplayNameWithEnrichWithIDbCommand()
     {
         var exportedItems = new List<Activity>();
         var expectedDisplayName = "Text main";
@@ -333,10 +327,8 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
                       {
                           var stateDisplayName = $"{command.CommandType} main";
                           activity1.DisplayName = stateDisplayName;
-                          activity1.SetTag("db.name", stateDisplayName);
+                          activity1.SetTag(SemanticConventions.AttributeDbNamespace, stateDisplayName);
                       };
-                      options.EmitOldAttributes = emitOldAttributes;
-                      options.EmitNewAttributes = emitNewAttributes;
                   })
                   .Build())
         {
@@ -353,9 +345,8 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
 
         VerifyActivityData(
             activity,
-            altDisplayName: expectedDisplayName,
-            emitOldAttributes: emitOldAttributes,
-            emitNewAttributes: emitNewAttributes);
+            expectedDisplayName: expectedDisplayName,
+            expectedDbNamespace: expectedDisplayName);
     }
 
     [Fact]
@@ -382,7 +373,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
 
         var activity = Assert.Single(exportedItems);
 
-        VerifyActivityData(activity, isError: true);
+        VerifyActivityData(activity, isError: true, expectedDisplayName: "select no_table");
     }
 
     [Fact]
@@ -521,54 +512,28 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     private static void VerifyActivityData(
         Activity activity,
         bool isError = false,
-        string? altDisplayName = null,
-        bool emitOldAttributes = true,
-        bool emitNewAttributes = false)
+        string expectedDisplayName = "SELECT",
+        string expectedDbNamespace = "main")
     {
-        Assert.Equal(altDisplayName ?? "main", activity.DisplayName);
+        Assert.Equal(expectedDisplayName, activity.DisplayName);
         Assert.Equal(ActivityKind.Client, activity.Kind);
 
-        if (emitOldAttributes)
-        {
-            Assert.Equal("sqlite", activity.Tags.FirstOrDefault(t => t.Key == SemanticConventions.AttributeDbSystem).Value);
-        }
-
-        if (emitNewAttributes)
-        {
-            Assert.Equal("sqlite", activity.Tags.FirstOrDefault(t => t.Key == SemanticConventions.AttributeDbSystemName).Value);
-        }
+        Assert.Equal("sqlite", activity.Tags.FirstOrDefault(t => t.Key == SemanticConventions.AttributeDbSystemName).Value);
+        Assert.DoesNotContain(activity.Tags, t => t.Key == SemanticConventions.AttributeDbSystem);
 
         Assert.Equal("OpenTelemetry.Instrumentation.EntityFrameworkCore", activity.Source.Name);
         Assert.NotNull(activity.Source.Version);
         Assert.NotEmpty(activity.Source.Version);
 
-        if (emitNewAttributes && emitOldAttributes)
-        {
-            Assert.Null(activity.Source.TelemetrySchemaUrl);
-        }
-        else if (emitOldAttributes)
-        {
-            Assert.Equal("https://opentelemetry.io/schemas/1.24.0", activity.Source.TelemetrySchemaUrl);
-        }
-        else if (emitNewAttributes)
-        {
-            Assert.Equal("https://opentelemetry.io/schemas/1.36.0", activity.Source.TelemetrySchemaUrl);
-        }
+        Assert.Equal("https://opentelemetry.io/schemas/1.36.0", activity.Source.TelemetrySchemaUrl);
 
         // TBD: SqlLite not setting the DataSource so it doesn't get set.
         Assert.DoesNotContain(activity.Tags, t => t.Key == "peer.service");
         Assert.DoesNotContain(activity.Tags, t => t.Key == "server.address");
         Assert.DoesNotContain(activity.Tags, t => t.Key == "server.port");
 
-        if (emitOldAttributes)
-        {
-            Assert.Equal(altDisplayName ?? "main", activity.Tags.FirstOrDefault(t => t.Key == SemanticConventions.AttributeDbName).Value);
-        }
-
-        if (emitNewAttributes)
-        {
-            Assert.Equal("main", activity.Tags.FirstOrDefault(t => t.Key == SemanticConventions.AttributeDbNamespace).Value);
-        }
+        Assert.Equal(expectedDbNamespace, activity.Tags.FirstOrDefault(t => t.Key == SemanticConventions.AttributeDbNamespace).Value);
+        Assert.DoesNotContain(activity.Tags, t => t.Key == SemanticConventions.AttributeDbName);
 
         if (!isError)
         {

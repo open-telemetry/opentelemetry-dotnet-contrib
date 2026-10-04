@@ -19,13 +19,8 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     internal const string EntityFrameworkCoreCommandCanceled = "Microsoft.EntityFrameworkCore.Database.Command.CommandCanceled";
     internal const string EntityFrameworkCoreCommandError = "Microsoft.EntityFrameworkCore.Database.Command.CommandError";
 
-    internal static readonly Version SemanticConventionsVersion = new(1, 24, 0);
+    internal static readonly Version SemanticConventionsVersion = new(1, 36, 0);
     internal static readonly ActivitySource ActivitySource = ActivitySourceFactory.Create<EntityFrameworkDiagnosticListener>(SemanticConventionsVersion);
-
-    private static readonly Version SemanticConventionsVersionNew = new(1, 36, 0);
-    private static readonly ActivitySource ActivitySourceNew = ActivitySourceFactory.Create<EntityFrameworkDiagnosticListener>(SemanticConventionsVersionNew);
-
-    private static readonly ActivitySource ActivitySourceBoth = ActivitySourceFactory.Create<EntityFrameworkDiagnosticListener>(null);
 
     private static readonly string ActivityName = ActivitySource.Name + ".Execute";
 
@@ -54,18 +49,11 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     {
         var activity = Activity.Current;
 
-        var activitySource =
-            this.options.EmitNewAttributes && this.options.EmitOldAttributes ?
-            ActivitySourceBoth :
-            this.options.EmitNewAttributes ?
-            ActivitySourceNew :
-            ActivitySource;
-
         switch (name)
         {
             case EntityFrameworkCoreCommandCreated:
                 {
-                    activity = activitySource.StartActivity(ActivityName, ActivityKind.Client);
+                    activity = ActivitySource.StartActivity(ActivityName, ActivityKind.Client);
                     if (activity == null)
                     {
                         // There is no listener or it decided not to sample the current request.
@@ -100,7 +88,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                             providerOrCommandName = command.GetType().FullName;
                         }
 
-                        this.AddDbSystemNameTag(activity, providerOrCommandName);
+                        AddDbSystemNameTag(activity, providerOrCommandName);
 
                         var dataSource = (string)this.dataSourceFetcher.Fetch(connection);
                         if (!string.IsNullOrEmpty(dataSource))
@@ -110,16 +98,16 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                             var serverAddress = connectionDetails.ServerHostName ?? connectionDetails.ServerIpAddress;
                             if (!string.IsNullOrEmpty(serverAddress))
                             {
-                                this.AddTag(activity, ("peer.service", SemanticConventions.AttributeServerAddress), serverAddress);
+                                activity.AddTag(SemanticConventions.AttributeServerAddress, serverAddress);
 
-                                if (this.options.EmitNewAttributes && connectionDetails.BoxedPort is { } port)
+                                if (connectionDetails.BoxedPort is { } port)
                                 {
                                     activity.AddTag(SemanticConventions.AttributeServerPort, port);
                                 }
                             }
                         }
 
-                        this.AddTag(activity, (SemanticConventions.AttributeDbName, SemanticConventions.AttributeDbNamespace), database);
+                        activity.AddTag(SemanticConventions.AttributeDbNamespace, database);
                     }
                 }
 
@@ -133,7 +121,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                         return;
                     }
 
-                    if (activity.Source != activitySource)
+                    if (activity.Source != ActivitySource)
                     {
                         return;
                     }
@@ -167,7 +155,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                             return;
                         }
 
-                        if (this.options.EmitNewAttributes && this.options.SetDbQueryParameters)
+                        if (this.options.SetDbQueryParameters)
                         {
                             SqlParameterProcessor.AddQueryParameters(activity, command);
                         }
@@ -181,8 +169,8 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                     DatabaseSemanticConventionHelper.ApplyConventionsForStoredProcedure(
                                         activity,
                                         commandText,
-                                        this.options.EmitOldAttributes,
-                                        this.options.EmitNewAttributes);
+                                        emitOldAttributes: false,
+                                        emitNewAttributes: true);
                                     break;
 
                                 case CommandType.Text:
@@ -198,8 +186,8 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                     DatabaseSemanticConventionHelper.ApplyConventionsForQueryText(
                                         activity,
                                         commandText,
-                                        this.options.EmitOldAttributes,
-                                        this.options.EmitNewAttributes,
+                                        emitOldAttributes: false,
+                                        emitNewAttributes: true,
                                         sanitizeQuery,
                                         useBackslashEscapes);
                                     break;
@@ -235,7 +223,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                         return;
                     }
 
-                    if (activity.Source == activitySource)
+                    if (activity.Source == ActivitySource)
                     {
                         activity.Stop();
                     }
@@ -243,7 +231,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                     // For some reason this EF event comes before the SQLClient SqlMicrosoftAfterExecuteCommand event.
                     // EF span should not be parent of any other span except SQLClient, because of that it can be closed safely.
                     // Can result in a slightly strange timeline where the EF span finishes before its child SQLClient but based on EventSource's it is true.
-                    if (activity.Parent?.Source == activitySource)
+                    if (activity.Parent?.Source == ActivitySource)
                     {
                         activity.Parent.Stop();
                     }
@@ -259,7 +247,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                         return;
                     }
 
-                    if (activity.Source != activitySource)
+                    if (activity.Source != ActivitySource)
                     {
                         return;
                     }
@@ -291,63 +279,62 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     }
 
     /// <summary>
-    /// Gets the <c>db.system</c> and <c>db.system.name</c> values to use for the given provider or command name.
+    /// Gets the <c>db.system.name</c> value to use for the given provider or command name.
     /// </summary>
     /// <param name="providerOrCommandName">The provider or command name.</param>
     /// <returns>
-    /// A tuple containing the respective <c>db.system</c> and <c>db.system.name</c> values.
+    /// The <c>db.system.name</c> value.
     /// </returns>
-    internal static (string Old, string New) GetDbSystemNames(string? providerOrCommandName) =>
-        //// "${Attribute} has the following list of well-known values. If one of them applies, then the respective value MUST be used"
+    internal static string GetDbSystemName(string? providerOrCommandName) =>
         providerOrCommandName switch
         {
             //// These names are defined in the Semantic Conventions
             "Microsoft.Data.SqlClient.SqlCommand" or
             "Microsoft.EntityFrameworkCore.SqlServer"
-                => (DbSystems.Mssql, DbSystemNames.MicrosoftSqlServer),
+                => DbSystemNames.MicrosoftSqlServer,
             "Microsoft.EntityFrameworkCore.Cosmos"
-                => (DbSystems.Cosmosdb, DbSystemNames.AzureCosmosDb),
+                => DbSystemNames.AzureCosmosDb,
             "Devart.Data.SQLite.Entity.EFCore" or
             "Microsoft.Data.Sqlite.SqliteCommand" or
             "Microsoft.EntityFrameworkCore.Sqlite"
-                => (DbSystems.Sqlite, DbSystemNames.Sqlite),
+                => DbSystemNames.Sqlite,
             "Devart.Data.MySql.Entity.EFCore" or
             "Devart.Data.MySql.MySqlCommand" or
             "MySql.Data.EntityFrameworkCore" or
             "MySql.Data.MySqlClient.MySqlCommand" or
             "MySql.EntityFrameworkCore" or
             "Pomelo.EntityFrameworkCore.MySql"
-                => (DbSystems.Mysql, DbSystemNames.Mysql),
+                => DbSystemNames.Mysql,
             "Npgsql.EntityFrameworkCore.PostgreSQL" or
             "Npgsql.NpgsqlCommand" or
             "Devart.Data.PostgreSql.Entity.EFCore" or
             "Devart.Data.PostgreSql.PgSqlCommand"
-                => (DbSystems.Postgresql, DbSystemNames.Postgresql),
+                => DbSystemNames.Postgresql,
             "Oracle.EntityFrameworkCore" or
             "Oracle.ManagedDataAccess.Client.OracleCommand" or
             "Devart.Data.Oracle.Entity.EFCore" or
             "Devart.Data.Oracle.OracleCommand"
-                => (DbSystems.Oracle, DbSystemNames.OracleDb),
+                => DbSystemNames.OracleDb,
             "FirebirdSql.Data.FirebirdClient.FbCommand" or
             "FirebirdSql.EntityFrameworkCore.Firebird"
-                => (DbSystems.Firebird, DbSystemNames.Firebirdsql),
+                => DbSystemNames.Firebirdsql,
             "Google.Cloud.EntityFrameworkCore.Spanner" or
             "Google.Cloud.Spanner.Data.SpannerCommand"
-                => (DbSystems.Spanner, DbSystemNames.GcpSpanner),
+                => DbSystemNames.GcpSpanner,
             "Teradata.Client.Provider.TdCommand" or
             "Teradata.EntityFrameworkCore"
-                => (DbSystems.Teradata, DbSystemNames.Teradata),
+                => DbSystemNames.Teradata,
             "MongoDB.EntityFrameworkCore"
-                => (DbSystems.Mongodb, DbSystemNames.Mongodb),
+                => DbSystemNames.Mongodb,
             "Couchbase.EntityFrameworkCore" or
             "Couchbase.EntityFrameworkCore.Storage.Internal"
-                => (DbSystems.Couchbase, DbSystemNames.Couchbase),
+                => DbSystemNames.Couchbase,
             "IBM.EntityFrameworkCore" or
             "IBM.EntityFrameworkCore-lnx" or
             "IBM.EntityFrameworkCore-osx"
-                => (DbSystems.Db2, DbSystemNames.IbmDb2),
+                => DbSystemNames.IbmDb2,
             //// Otherwise use the fallback defined in the Semantic Conventions
-            _ => (DbSystems.OtherSql, DbSystemNames.OtherSql),
+            _ => DbSystemNames.OtherSql,
         };
 
     /// <summary>
@@ -359,7 +346,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     /// </returns>
     internal static bool IsSqlLikeProvider(string? providerOrCommandName)
     {
-        (_, var dbSystemName) = GetDbSystemNames(providerOrCommandName);
+        var dbSystemName = GetDbSystemName(providerOrCommandName);
 
         return dbSystemName switch
         {
@@ -388,37 +375,14 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
         // no way to detect the session SQL mode from the provider/command name alone,
         // so if an application has enabled NO_BACKSLASH_ESCAPES the sanitizer will still
         // treat '\' as an escape character for that connection.
-        (_, var dbSystemName) = GetDbSystemNames(providerOrCommandName);
+        var dbSystemName = GetDbSystemName(providerOrCommandName);
         return dbSystemName == DbSystemNames.Mysql;
     }
 
-    private void AddTag(Activity activity, (string Old, string New) attributes, string? value)
-        => this.AddTag(activity, attributes, (value, value));
-
-    private void AddTag(Activity activity, (string Old, string New) attributes, (string? Old, string? New) values)
+    private static void AddDbSystemNameTag(Activity activity, string? providerOrCommandName)
     {
-        if (this.options.EmitOldAttributes)
-        {
-            activity.AddTag(attributes.Old, values.Old);
-        }
-
-        if (this.options.EmitNewAttributes)
-        {
-            activity.AddTag(attributes.New, values.New);
-        }
-    }
-
-    private void AddDbSystemNameTag(Activity activity, string? providerOrCommandName)
-    {
-        var values = GetDbSystemNames(providerOrCommandName);
-
-        // Custom tag for backwards compatibility only
-        if (this.options.EmitOldAttributes && (values == (DbSystems.OtherSql, DbSystemNames.OtherSql)))
-        {
-            activity.AddTag("ef.provider", providerOrCommandName);
-        }
-
-        this.AddTag(activity, (SemanticConventions.AttributeDbSystem, SemanticConventions.AttributeDbSystemName), values);
+        var dbSystemName = GetDbSystemName(providerOrCommandName);
+        activity.AddTag(SemanticConventions.AttributeDbSystemName, dbSystemName);
     }
 
     // v1.36.0 database conventions:
@@ -440,26 +404,6 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
         public const string Mysql = "mysql";
         public const string OracleDb = "oracle.db";
         public const string Postgresql = "postgresql";
-        public const string Sqlite = "sqlite";
-        public const string Teradata = "teradata";
-    }
-
-    /// <summary>
-    /// Known (and used) values for the <c>db.system</c> attributes.
-    /// </summary>
-    private static class DbSystems
-    {
-        public const string OtherSql = "other_sql";
-        public const string Cosmosdb = "cosmosdb";
-        public const string Couchbase = "couchbase";
-        public const string Db2 = "db2";
-        public const string Firebird = "firebird";
-        public const string Mongodb = "mongodb";
-        public const string Mssql = "mssql";
-        public const string Mysql = "mysql";
-        public const string Oracle = "oracle";
-        public const string Postgresql = "postgresql";
-        public const string Spanner = "spanner";
         public const string Sqlite = "sqlite";
         public const string Teradata = "teradata";
     }

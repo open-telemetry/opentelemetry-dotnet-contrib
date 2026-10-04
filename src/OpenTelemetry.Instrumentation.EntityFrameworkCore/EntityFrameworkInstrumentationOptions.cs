@@ -4,7 +4,6 @@
 using System.Data;
 using System.Diagnostics;
 using Microsoft.Extensions.Configuration;
-using static OpenTelemetry.Internal.DatabaseSemanticConventionHelper;
 
 namespace OpenTelemetry.Instrumentation.EntityFrameworkCore;
 
@@ -23,10 +22,6 @@ public class EntityFrameworkInstrumentationOptions
 
     internal EntityFrameworkInstrumentationOptions(IConfiguration configuration)
     {
-        var databaseSemanticConvention = GetSemanticConventionOptIn(configuration);
-        this.EmitOldAttributes = databaseSemanticConvention.HasFlag(DatabaseSemanticConvention.Old);
-        this.EmitNewAttributes = databaseSemanticConvention.HasFlag(DatabaseSemanticConvention.New);
-
         if (configuration["OTEL_DOTNET_EXPERIMENTAL_EFCORE_ENABLE_TRACE_DB_QUERY_PARAMETERS"] is { Length: > 0 } value &&
             bool.TryParse(value, out var setDbQueryParameters))
         {
@@ -77,14 +72,4 @@ public class EntityFrameworkInstrumentationOptions
     /// </para>
     /// </remarks>
     internal bool SetDbQueryParameters { get; set; }
-
-    /// <summary>
-    /// Gets or sets a value indicating whether the old database attributes should be emitted.
-    /// </summary>
-    internal bool EmitOldAttributes { get; set; }
-
-    /// <summary>
-    /// Gets or sets a value indicating whether the new database attributes should be emitted.
-    /// </summary>
-    internal bool EmitNewAttributes { get; set; }
 }
