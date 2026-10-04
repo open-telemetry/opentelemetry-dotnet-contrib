@@ -10,6 +10,7 @@ using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.AspNetCore.Tests;
 
+[Collection("AspNetCore")]
 public class NewRootSpanTests
 {
     private static readonly string ActivitySourceName = typeof(NewRootSpanTests).FullName!;
