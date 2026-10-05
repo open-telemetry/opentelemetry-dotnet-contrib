@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* Added `AddSourcesFromConfiguration` and `AddMetersFromConfiguration` extension
+  methods on `TracerProviderBuilder` and `MeterProviderBuilder` to register
+  `ActivitySource` and `Meter` names from an `IConfigurationSection`.
+  ([#5191](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/5191))
+
 * `AutoFlushActivityProcessor` now logs a warning when
   `TracerProvider.ForceFlush` does not complete within
   its configured timeout.

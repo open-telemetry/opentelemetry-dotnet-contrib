@@ -32,3 +32,7 @@ static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddAutoFlushActivityP
 static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddBaggageActivityProcessor(this OpenTelemetry.Trace.TracerProviderBuilder! builder, System.Predicate<string!>! baggageKeyPredicate) -> OpenTelemetry.Trace.TracerProviderBuilder!
 static OpenTelemetry.Trace.W3CTraceState.Parse(string? tracestate) -> OpenTelemetry.Trace.W3CTraceState!
 static OpenTelemetry.Trace.W3CTraceState.TryParse(string? tracestate, out OpenTelemetry.Trace.W3CTraceState! state) -> bool
+OpenTelemetry.Trace.TracerProviderBuilderConfigurationExtensions
+static OpenTelemetry.Trace.TracerProviderBuilderConfigurationExtensions.AddSourcesFromConfiguration(this OpenTelemetry.Trace.TracerProviderBuilder! builder, Microsoft.Extensions.Configuration.IConfigurationSection! section) -> OpenTelemetry.Trace.TracerProviderBuilder!
+OpenTelemetry.Metrics.MeterProviderBuilderConfigurationExtensions
+static OpenTelemetry.Metrics.MeterProviderBuilderConfigurationExtensions.AddMetersFromConfiguration(this OpenTelemetry.Metrics.MeterProviderBuilder! builder, Microsoft.Extensions.Configuration.IConfigurationSection! section) -> OpenTelemetry.Metrics.MeterProviderBuilder!

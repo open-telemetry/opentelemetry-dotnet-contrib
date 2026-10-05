@@ -1,11 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using OpenTelemetry.Metrics;
-using Xunit;
 
 namespace OpenTelemetry.Extensions.Tests.Metrics;
 
