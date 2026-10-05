@@ -249,9 +249,10 @@ public static class AWSLambdaWrapper
         Guard.ThrowIfNull(context);
 
         var previousBaggage = Baggage.Current;
-        var activity = OnFunctionStart(input, context, parentContext);
+        Activity? activity = null;
         try
         {
+            activity = OnFunctionStart(input, context, parentContext);
             var result = handler(input, context);
             AWSLambdaHttpUtils.SetHttpTagsFromResult(AWSSemanticConventions, activity, result);
             return result;
@@ -264,11 +265,12 @@ public static class AWSLambdaWrapper
         }
         finally
         {
-            OnFunctionStop(activity, tracerProvider);
             if (Baggage.Current != previousBaggage)
             {
                 Baggage.Current = previousBaggage;
             }
+
+            OnFunctionStop(activity, tracerProvider);
         }
     }
 
@@ -282,9 +284,10 @@ public static class AWSLambdaWrapper
         Guard.ThrowIfNull(context);
 
         var previousBaggage = Baggage.Current;
-        var activity = OnFunctionStart(input, context, parentContext);
+        Activity? activity = null;
         try
         {
+            activity = OnFunctionStart(input, context, parentContext);
             var result = await handlerAsync(input, context).ConfigureAwait(false);
             AWSLambdaHttpUtils.SetHttpTagsFromResult(AWSSemanticConventions, activity, result);
             return result;
@@ -297,11 +300,12 @@ public static class AWSLambdaWrapper
         }
         finally
         {
-            OnFunctionStop(activity, tracerProvider);
             if (Baggage.Current != previousBaggage)
             {
                 Baggage.Current = previousBaggage;
             }
+
+            OnFunctionStop(activity, tracerProvider);
         }
     }
 

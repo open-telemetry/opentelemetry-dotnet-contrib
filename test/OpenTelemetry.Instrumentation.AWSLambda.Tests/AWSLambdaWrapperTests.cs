@@ -708,6 +708,46 @@ public class AWSLambdaWrapperTests : IDisposable
         Assert.Equal("value", observed);
     }
 
+    [Fact]
+    public void TraceSyncRestoresBaggageWhenActivityStartThrows()
+    {
+        var message = CreateSqsMessageWithBaggage("key1=value1");
+
+        using var listener = new ActivityListener
+        {
+            ShouldListenTo = source => source.Name == "OpenTelemetry.Instrumentation.AWSLambda",
+            Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
+            ActivityStarted = _ => throw new InvalidOperationException(),
+        };
+
+        ActivitySource.AddActivityListener(listener);
+
+        Assert.Throws<InvalidOperationException>(
+            () => AWSLambdaWrapper.Trace(null, this.sampleHandlers.SampleHandlerSyncSqsMessage, message, this.sampleLambdaContext));
+
+        Assert.Null(Baggage.GetBaggage("key1"));
+    }
+
+    [Fact]
+    public void TraceSyncRestoresBaggageWhenActivityStopThrows()
+    {
+        var message = CreateSqsMessageWithBaggage("key1=value1");
+
+        using var listener = new ActivityListener
+        {
+            ShouldListenTo = source => source.Name == "OpenTelemetry.Instrumentation.AWSLambda",
+            Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
+            ActivityStopped = _ => throw new InvalidOperationException(),
+        };
+
+        ActivitySource.AddActivityListener(listener);
+
+        Assert.Throws<InvalidOperationException>(
+            () => AWSLambdaWrapper.Trace(null, this.sampleHandlers.SampleHandlerSyncSqsMessage, message, this.sampleLambdaContext));
+
+        Assert.Null(Baggage.GetBaggage("key1"));
+    }
+
     private static SQSEvent.SQSMessage CreateSqsMessageWithBaggage(string baggage)
         => new()
         {
