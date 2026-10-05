@@ -77,7 +77,7 @@ internal class AWSLambdaUtils
         return activityContext;
     }
 
-    internal static (ActivityContext ParentContext, IEnumerable<ActivityLink>? Links) ExtractParentContext<TInput>(TInput input)
+    internal static (PropagationContext ParentContext, IEnumerable<ActivityLink>? Links) ExtractParentContext<TInput>(TInput input)
     {
         PropagationContext parentContext = default;
         IEnumerable<ActivityLink>? links = null;
@@ -108,7 +108,7 @@ internal class AWSLambdaUtils
                 break;
         }
 
-        return (parentContext.ActivityContext, links);
+        return (parentContext, links);
     }
 
     internal static string? GetAWSRegion()

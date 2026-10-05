@@ -170,7 +170,15 @@ public static class AWSLambdaWrapper
         IEnumerable<ActivityLink>? links = null;
         if (parentContext == default)
         {
-            (parentContext, links) = AWSLambdaUtils.ExtractParentContext(input);
+            var extracted = AWSLambdaUtils.ExtractParentContext(input);
+            parentContext = extracted.ParentContext.ActivityContext;
+            links = extracted.Links;
+
+            if (extracted.ParentContext.Baggage.Count > 0)
+            {
+                Baggage.Current = extracted.ParentContext.Baggage;
+            }
+
             if (parentContext == default && !DisableAwsXRayContextExtraction)
             {
                 parentContext = AWSLambdaUtils.GetXRayParentContext();
@@ -240,6 +248,7 @@ public static class AWSLambdaWrapper
     {
         Guard.ThrowIfNull(context);
 
+        var previousBaggage = Baggage.Current;
         var activity = OnFunctionStart(input, context, parentContext);
         try
         {
@@ -256,6 +265,7 @@ public static class AWSLambdaWrapper
         finally
         {
             OnFunctionStop(activity, tracerProvider);
+            Baggage.Current = previousBaggage;
         }
     }
 
@@ -268,6 +278,7 @@ public static class AWSLambdaWrapper
     {
         Guard.ThrowIfNull(context);
 
+        var previousBaggage = Baggage.Current;
         var activity = OnFunctionStart(input, context, parentContext);
         try
         {
@@ -284,6 +295,7 @@ public static class AWSLambdaWrapper
         finally
         {
             OnFunctionStop(activity, tracerProvider);
+            Baggage.Current = previousBaggage;
         }
     }
 

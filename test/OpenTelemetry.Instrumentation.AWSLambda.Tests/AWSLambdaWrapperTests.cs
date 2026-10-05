@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.SNSEvents;
 using Amazon.Lambda.SQSEvents;
@@ -578,6 +579,144 @@ public class AWSLambdaWrapperTests : IDisposable
         Assert.Equal("other", item.GetTagValue(ExpectedSemanticConventions.AttributeFaasTrigger));
         Assert.Null(item.GetTagValue("custom.attribute"));
     }
+
+    [Fact]
+    public void TraceSyncSqsMessageAppliesBaggageToCurrentContext()
+    {
+        var message = CreateSqsMessageWithBaggage("key1=value1,key2=value2");
+        string? key1 = null;
+        string? key2 = null;
+
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                   .AddAWSLambdaConfigurations()
+                   .Build()!)
+        {
+            AWSLambdaWrapper.Trace(
+                tracerProvider,
+                (SQSEvent.SQSMessage _, ILambdaContext _) =>
+                {
+                    key1 = Baggage.GetBaggage("key1");
+                    key2 = Baggage.GetBaggage("key2");
+                },
+                message,
+                this.sampleLambdaContext);
+        }
+
+        Assert.Equal("value1", key1);
+        Assert.Equal("value2", key2);
+    }
+
+    [Fact]
+    public async Task TraceAsyncSqsMessageAppliesBaggageToCurrentContext()
+    {
+        var message = CreateSqsMessageWithBaggage("key1=value1");
+        string? key1 = null;
+
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                   .AddAWSLambdaConfigurations()
+                   .Build()!)
+        {
+            await AWSLambdaWrapper.TraceAsync(
+                tracerProvider,
+                async (SQSEvent.SQSMessage _, ILambdaContext _) =>
+                {
+                    await Task.Yield();
+                    key1 = Baggage.GetBaggage("key1");
+                },
+                message,
+                this.sampleLambdaContext);
+        }
+
+        Assert.Equal("value1", key1);
+    }
+
+    [Fact]
+    public void TraceSyncApiGatewayRequestAppliesBaggageToCurrentContext()
+    {
+        var request = new APIGatewayProxyRequest
+        {
+            Headers = new Dictionary<string, string>
+            {
+                { "traceparent", $"00-{TraceId}-{CustomParentId}-01" },
+                { "baggage", "key1=value1" },
+            },
+        };
+        string? key1 = null;
+
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                   .AddAWSLambdaConfigurations()
+                   .Build()!)
+        {
+            AWSLambdaWrapper.Trace(
+                tracerProvider,
+                (APIGatewayProxyRequest _, ILambdaContext _) => key1 = Baggage.GetBaggage("key1"),
+                request,
+                this.sampleLambdaContext);
+        }
+
+        Assert.Equal("value1", key1);
+    }
+
+    [Fact]
+    public void TraceSyncRestoresPreviousBaggageAfterInvocation()
+    {
+        var message = CreateSqsMessageWithBaggage("key1=value1");
+        var previousBaggage = Baggage.Create(new Dictionary<string, string> { { "previous", "value" } });
+        Baggage.Current = previousBaggage;
+
+        try
+        {
+            using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .AddAWSLambdaConfigurations()
+                .Build()!;
+
+            AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncSqsMessage, message, this.sampleLambdaContext);
+
+            Assert.Equal(previousBaggage, Baggage.Current);
+            Assert.Null(Baggage.GetBaggage("key1"));
+        }
+        finally
+        {
+            Baggage.Current = default;
+        }
+    }
+
+    [Fact]
+    public void TraceSyncWithoutBaggageInInputLeavesCurrentBaggageUnchanged()
+    {
+        var previousBaggage = Baggage.Create(new Dictionary<string, string> { { "previous", "value" } });
+        Baggage.Current = previousBaggage;
+        string? observed = null;
+
+        try
+        {
+            using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .AddAWSLambdaConfigurations()
+                .Build()!;
+
+            AWSLambdaWrapper.Trace(
+                tracerProvider,
+                (string _, ILambdaContext _) => observed = Baggage.GetBaggage("previous"),
+                "TestStream",
+                this.sampleLambdaContext);
+        }
+        finally
+        {
+            Baggage.Current = default;
+        }
+
+        Assert.Equal("value", observed);
+    }
+
+    private static SQSEvent.SQSMessage CreateSqsMessageWithBaggage(string baggage)
+        => new()
+        {
+            MessageAttributes = new Dictionary<string, SQSEvent.MessageAttribute>
+            {
+                { "traceparent", new SQSEvent.MessageAttribute { StringValue = $"00-{TraceId}-{CustomParentId}-01" } },
+                { "baggage", new SQSEvent.MessageAttribute { StringValue = baggage } },
+            },
+        };
 
     private static ActivityContext CreateParentContext()
     {

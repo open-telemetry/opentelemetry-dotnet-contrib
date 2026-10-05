@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Fix baggage extracted from the incoming event not being applied to
+  `Baggage.Current`.
+  ([#NNNN](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/NNNN))
+
 ## 1.19.1
 
 Released 2026-Sep-21
