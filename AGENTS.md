@@ -20,7 +20,7 @@ dotnet test --no-build
 dotnet test test/OpenTelemetry.Instrumentation.AspNetCore.Tests/ --no-build
 
 # Run a filtered subset of tests
-dotnet test test/OpenTelemetry.Exporter.Geneva.Tests/ --no-build --filter "CategoryName=Geneva"
+dotnet test test/OpenTelemetry.Exporter.Geneva.Tests/ --no-build --filter "CategoryName=Geneva:user_events"
 
 # Pack NuGet packages
 dotnet pack --no-build
