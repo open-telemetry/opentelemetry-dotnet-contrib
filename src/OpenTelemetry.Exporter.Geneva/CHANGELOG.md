@@ -6,7 +6,7 @@
   connection string flag. When enabled, log records exported over a Unix domain
   socket are combined into fewer writes of up to 65,360 bytes, each containing
   only complete records.
-  ([#TBD](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TBD))
+  ([#5478](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5478))
 
 ## 1.19.1
 
