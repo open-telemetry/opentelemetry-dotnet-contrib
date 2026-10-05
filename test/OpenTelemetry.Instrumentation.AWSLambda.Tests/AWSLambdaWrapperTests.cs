@@ -593,7 +593,7 @@ public class AWSLambdaWrapperTests : IDisposable
         {
             AWSLambdaWrapper.Trace(
                 tracerProvider,
-                (SQSEvent.SQSMessage _, ILambdaContext _) =>
+                (_, _) =>
                 {
                     key1 = Baggage.GetBaggage("key1");
                     key2 = Baggage.GetBaggage("key2");
@@ -618,7 +618,7 @@ public class AWSLambdaWrapperTests : IDisposable
         {
             await AWSLambdaWrapper.TraceAsync(
                 tracerProvider,
-                async (SQSEvent.SQSMessage _, ILambdaContext _) =>
+                async (_, _) =>
                 {
                     await Task.Yield();
                     key1 = Baggage.GetBaggage("key1");
@@ -637,8 +637,8 @@ public class AWSLambdaWrapperTests : IDisposable
         {
             Headers = new Dictionary<string, string>
             {
-                { "traceparent", $"00-{TraceId}-{CustomParentId}-01" },
-                { "baggage", "key1=value1" },
+                ["traceparent"] = $"00-{TraceId}-{CustomParentId}-01",
+                ["baggage"] = "key1=value1",
             },
         };
         string? key1 = null;
@@ -649,7 +649,7 @@ public class AWSLambdaWrapperTests : IDisposable
         {
             AWSLambdaWrapper.Trace(
                 tracerProvider,
-                (APIGatewayProxyRequest _, ILambdaContext _) => key1 = Baggage.GetBaggage("key1"),
+                (_, _) => key1 = Baggage.GetBaggage("key1"),
                 request,
                 this.sampleLambdaContext);
         }
@@ -661,7 +661,7 @@ public class AWSLambdaWrapperTests : IDisposable
     public void TraceSyncRestoresPreviousBaggageAfterInvocation()
     {
         var message = CreateSqsMessageWithBaggage("key1=value1");
-        var previousBaggage = Baggage.Create(new Dictionary<string, string> { { "previous", "value" } });
+        var previousBaggage = Baggage.Create(new Dictionary<string, string> { ["previous"] = "value" });
         Baggage.Current = previousBaggage;
 
         try
@@ -684,7 +684,7 @@ public class AWSLambdaWrapperTests : IDisposable
     [Fact]
     public void TraceSyncWithoutBaggageInInputLeavesCurrentBaggageUnchanged()
     {
-        var previousBaggage = Baggage.Create(new Dictionary<string, string> { { "previous", "value" } });
+        var previousBaggage = Baggage.Create(new Dictionary<string, string> { ["previous"] = "value" });
         Baggage.Current = previousBaggage;
         string? observed = null;
 
@@ -696,7 +696,7 @@ public class AWSLambdaWrapperTests : IDisposable
 
             AWSLambdaWrapper.Trace(
                 tracerProvider,
-                (string _, ILambdaContext _) => observed = Baggage.GetBaggage("previous"),
+                (_, _) => observed = Baggage.GetBaggage("previous"),
                 "TestStream",
                 this.sampleLambdaContext);
         }
@@ -713,8 +713,8 @@ public class AWSLambdaWrapperTests : IDisposable
         {
             MessageAttributes = new Dictionary<string, SQSEvent.MessageAttribute>
             {
-                { "traceparent", new SQSEvent.MessageAttribute { StringValue = $"00-{TraceId}-{CustomParentId}-01" } },
-                { "baggage", new SQSEvent.MessageAttribute { StringValue = baggage } },
+                ["traceparent"] = new SQSEvent.MessageAttribute { StringValue = $"00-{TraceId}-{CustomParentId}-01" },
+                ["baggage"] = new SQSEvent.MessageAttribute { StringValue = baggage },
             },
         };
 

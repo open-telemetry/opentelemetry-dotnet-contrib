@@ -265,7 +265,10 @@ public static class AWSLambdaWrapper
         finally
         {
             OnFunctionStop(activity, tracerProvider);
-            Baggage.Current = previousBaggage;
+            if (Baggage.Current != previousBaggage)
+            {
+                Baggage.Current = previousBaggage;
+            }
         }
     }
 
@@ -295,7 +298,10 @@ public static class AWSLambdaWrapper
         finally
         {
             OnFunctionStop(activity, tracerProvider);
-            Baggage.Current = previousBaggage;
+            if (Baggage.Current != previousBaggage)
+            {
+                Baggage.Current = previousBaggage;
+            }
         }
     }
 
