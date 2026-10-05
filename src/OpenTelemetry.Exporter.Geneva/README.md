@@ -82,6 +82,34 @@ options.AddGenevaLogExporter(exporterOptions =>
 When enabled, the exporter automatically adds an `AFDCorrelationId` attribute to
 each log record if the value is present in `RuntimeContext`.
 
+#### Unix domain socket write batching
+
+On Linux, the log exporter writes each log record to the Unix domain socket with
+a separate call by default. An experimental feature flag is available to opt
+into combining the log records of each export batch into fewer, larger writes.
+
+To enable this feature, add `PrivatePreviewEnableUnixDomainSocketBatching=true`
+to your connection string:
+
+```csharp
+options.AddGenevaLogExporter(exporterOptions =>
+{
+    exporterOptions.ConnectionString = "Endpoint=unix:{UDS Path};PrivatePreviewEnableUnixDomainSocketBatching=true";
+});
+```
+
+When enabled:
+
+* Records are only combined within a single export batch. No additional
+  buffering, timers, or threads are introduced.
+* Each write contains only complete log records and is at most 65,360 bytes. A
+  record that does not fit into the remaining space starts the next write.
+* The bytes sent over the socket are identical to the bytes sent without the
+  flag; only the number of writes changes.
+
+The flag only applies to logs exported over a Unix domain socket
+(`Endpoint=unix:...`) and is ignored otherwise.
+
 ### Enable Traces
 
 This snippet shows how to configure the Geneva Exporter for Traces
