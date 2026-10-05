@@ -4,7 +4,7 @@
 
 * Fix baggage extracted from the incoming event not being applied to
   `Baggage.Current`.
-  ([#NNNN](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/NNNN))
+  ([#5479](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5479))
 
 ## 1.19.1
 
