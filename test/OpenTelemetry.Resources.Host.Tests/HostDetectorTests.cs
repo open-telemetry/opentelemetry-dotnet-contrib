@@ -374,11 +374,11 @@ public class HostDetectorTests
         Assert.True(resourceAttributes.ContainsKey("host.ip"));
         Assert.True(resourceAttributes.ContainsKey("host.mac"));
 
-        // host.cpu.model.name has a source on Windows, macOS and x86/x64 Linux, but not on Arm Linux.
-        var isArm = RuntimeInformation.ProcessArchitecture is Architecture.Arm or Architecture.Arm64;
+        // host.cpu.model.name has a source on Windows, macOS and x86/x64 Linux only.
+        var isX86 = RuntimeInformation.ProcessArchitecture is Architecture.X86 or Architecture.X64;
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
             RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ||
-            (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && !isArm))
+            (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && isX86))
         {
             Assert.True(
                 resourceAttributes.ContainsKey("host.cpu.model.name"),
