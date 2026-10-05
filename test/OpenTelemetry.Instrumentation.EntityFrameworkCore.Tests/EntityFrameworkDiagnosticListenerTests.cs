@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
+using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests;
@@ -578,6 +579,48 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
 
         Assert.Equal(parentActivity.SpanId, driverActivity.ParentSpanId);
         Assert.True(driverActivity.Recorded);
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task ShouldNotReportNullActivityWhenFilteredCommandHasNoParent(bool useAsync, bool commandFails)
+    {
+        var exportedItems = new List<Activity>();
+
+        using var eventListener = new InMemoryEventListener(EntityFrameworkInstrumentationEventSource.Log);
+
+        using (Sdk.CreateTracerProviderBuilder()
+                  .AddInMemoryExporter(exportedItems)
+                  .AddEntityFrameworkCoreInstrumentation(options => options.Filter = (_, _) => false)
+                  .Build())
+        {
+            Assert.Null(Activity.Current);
+
+            using var context = new ItemsContext(this.contextOptions);
+
+            if (commandFails)
+            {
+                var exception = useAsync
+                    ? await Record.ExceptionAsync(() => context.Database.ExecuteSqlRawAsync("select * from no_table", TestContext.Current.CancellationToken))
+                    : Record.Exception(() => context.Database.ExecuteSqlRaw("select * from no_table"));
+
+                Assert.IsType<SqliteException>(exception);
+            }
+            else
+            {
+                var query = context.Set<Item>().OrderBy(e => e.Name);
+                _ = useAsync ? await query.ToListAsync(TestContext.Current.CancellationToken) : query.ToList();
+            }
+        }
+
+        Assert.Empty(exportedItems);
+
+        // 6 = CommandIsFilteredOut, 2 = NullActivity
+        Assert.Contains(eventListener.Events, e => e.EventId == 6);
+        Assert.DoesNotContain(eventListener.Events, e => e.EventId == 2);
     }
 
     public void Dispose() => this.connection.Dispose();

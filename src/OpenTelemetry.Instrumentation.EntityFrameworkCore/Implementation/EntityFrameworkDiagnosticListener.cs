@@ -3,6 +3,7 @@
 
 using System.Data;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 using ActivitySourceFactory = OpenTelemetry.Trace.ActivitySourceFactory;
@@ -29,6 +30,8 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 
     private static readonly string ActivityName = ActivitySource.Name + ".Execute";
 
+    private static readonly object FilteredCommandMarker = new();
+
     private readonly PropertyFetcher<object> commandFetcher = new("Command");
     private readonly PropertyFetcher<object> connectionFetcher = new("Connection");
     private readonly PropertyFetcher<object> dbContextFetcher = new("Context");
@@ -39,6 +42,10 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     private readonly PropertyFetcher<CommandType> commandTypeFetcher = new("CommandType");
     private readonly PropertyFetcher<string> commandTextFetcher = new("CommandText");
     private readonly PropertyFetcher<Exception> exceptionFetcher = new("Exception");
+
+    // Commands whose activity was discarded by the filter. Weak keys, so entries for commands that
+    // complete under an ambient parent (and are never looked up) don't keep them alive.
+    private readonly ConditionalWeakTable<object, object> filteredCommands = new();
 
     private readonly EntityFrameworkInstrumentationOptions options;
 
@@ -154,14 +161,14 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                             if (command is IDbCommand typedCommand && this.options.Filter?.Invoke(providerName, typedCommand) == false)
                             {
                                 EntityFrameworkInstrumentationEventSource.Log.CommandIsFilteredOut(activity.OperationName);
-                                DiscardFilteredActivity(activity);
+                                this.DiscardFilteredActivity(activity, command);
                                 return;
                             }
                         }
                         catch (Exception ex)
                         {
                             EntityFrameworkInstrumentationEventSource.Log.CommandFilterException(ex);
-                            DiscardFilteredActivity(activity);
+                            this.DiscardFilteredActivity(activity, command);
                             return;
                         }
 
@@ -229,7 +236,11 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                 {
                     if (activity == null)
                     {
-                        EntityFrameworkInstrumentationEventSource.Log.NullActivity(name);
+                        if (!this.WasFilteredOut(payload))
+                        {
+                            EntityFrameworkInstrumentationEventSource.Log.NullActivity(name);
+                        }
+
                         return;
                     }
 
@@ -253,7 +264,11 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                 {
                     if (activity == null)
                     {
-                        EntityFrameworkInstrumentationEventSource.Log.NullActivity(name);
+                        if (!this.WasFilteredOut(payload))
+                        {
+                            EntityFrameworkInstrumentationEventSource.Log.NullActivity(name);
+                        }
+
                         return;
                     }
 
@@ -400,7 +415,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
         return dbSystemName == DbSystemNames.Mysql;
     }
 
-    private static void DiscardFilteredActivity(Activity activity)
+    private void DiscardFilteredActivity(Activity activity, object? command)
     {
         activity.IsAllDataRequested = false;
         activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
@@ -410,7 +425,18 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
         // ADO.NET provider such as Npgsql or SqlClient) would get a parent that is not recorded
         // and would be dropped by parent-based samplers.
         activity.Stop();
+
+        // Without an ambient parent, Activity.Current is now null when the command completes.
+        // Remember the command so the completion callbacks don't report that as a missing activity.
+        if (command != null)
+        {
+            this.filteredCommands.Remove(command);
+            this.filteredCommands.Add(command, FilteredCommandMarker);
+        }
     }
+
+    private bool WasFilteredOut(object? payload)
+        => this.commandFetcher.Fetch(payload) is { } command && this.filteredCommands.Remove(command);
 
     private void AddTag(Activity activity, (string Old, string New) attributes, string? value)
         => this.AddTag(activity, attributes, (value, value));
