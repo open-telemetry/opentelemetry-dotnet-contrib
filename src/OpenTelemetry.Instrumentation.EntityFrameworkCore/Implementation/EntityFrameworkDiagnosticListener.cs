@@ -154,16 +154,14 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                             if (command is IDbCommand typedCommand && this.options.Filter?.Invoke(providerName, typedCommand) == false)
                             {
                                 EntityFrameworkInstrumentationEventSource.Log.CommandIsFilteredOut(activity.OperationName);
-                                activity.IsAllDataRequested = false;
-                                activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
+                                DiscardFilteredActivity(activity);
                                 return;
                             }
                         }
                         catch (Exception ex)
                         {
                             EntityFrameworkInstrumentationEventSource.Log.CommandFilterException(ex);
-                            activity.IsAllDataRequested = false;
-                            activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
+                            DiscardFilteredActivity(activity);
                             return;
                         }
 
@@ -400,6 +398,18 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
         // treat '\' as an escape character for that connection.
         (_, var dbSystemName) = GetDbSystemNames(providerOrCommandName);
         return dbSystemName == DbSystemNames.Mysql;
+    }
+
+    private static void DiscardFilteredActivity(Activity activity)
+    {
+        activity.IsAllDataRequested = false;
+        activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
+
+        // Stop the activity now so that Activity.Current reverts to its parent. If it stayed
+        // current, spans started while the command executes (for example by an instrumented
+        // ADO.NET provider such as Npgsql or SqlClient) would get a parent that is not recorded
+        // and would be dropped by parent-based samplers.
+        activity.Stop();
     }
 
     private void AddTag(Activity activity, (string Old, string New) attributes, string? value)

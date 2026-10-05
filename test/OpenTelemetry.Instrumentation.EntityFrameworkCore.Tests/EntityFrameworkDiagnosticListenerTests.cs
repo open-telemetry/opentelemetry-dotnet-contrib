@@ -5,6 +5,7 @@ using System.Data.Common;
 using System.Diagnostics;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
 using OpenTelemetry.Trace;
@@ -534,6 +535,51 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         Assert.True(activity.ActivityTraceFlags.HasFlag(ActivityTraceFlags.Recorded));
     }
 
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task ShouldNotSuppressDownstreamSpansWhenCommandIsFilteredOut(bool filterThrows, bool useAsync)
+    {
+        var exportedItems = new List<Activity>();
+
+        using var parentSource = new ActivitySource("Test.Parent");
+        using var driverSource = new ActivitySource("Test.Driver");
+
+        using (Sdk.CreateTracerProviderBuilder()
+                  .AddSource(parentSource.Name, driverSource.Name)
+                  .AddInMemoryExporter(exportedItems)
+                  .AddEntityFrameworkCoreInstrumentation(options =>
+                      options.Filter = (_, _) => filterThrows ? throw new InvalidOperationException("Filter failed.") : false)
+                  .Build())
+        {
+            var contextOptions = new DbContextOptionsBuilder<ItemsContext>()
+                .UseSqlite(this.connection)
+                .AddInterceptors(new DriverSpanInterceptor(driverSource))
+                .Options;
+
+            using (var parent = parentSource.StartActivity("parent"))
+            {
+                Assert.NotNull(parent);
+
+                using var context = new ItemsContext(contextOptions);
+                var query = context.Set<Item>().OrderBy(e => e.Name);
+                _ = useAsync ? await query.ToListAsync(TestContext.Current.CancellationToken) : query.ToList();
+
+                Assert.Same(parent, Activity.Current);
+            }
+        }
+
+        Assert.DoesNotContain(exportedItems, a => a.Source.Name == EntityFrameworkDiagnosticListener.ActivitySource.Name);
+
+        var parentActivity = Assert.Single(exportedItems, a => a.Source.Name == parentSource.Name);
+        var driverActivity = Assert.Single(exportedItems, a => a.Source.Name == driverSource.Name);
+
+        Assert.Equal(parentActivity.SpanId, driverActivity.ParentSpanId);
+        Assert.True(driverActivity.Recorded);
+    }
+
     public void Dispose() => this.connection.Dispose();
 
     private static SqliteConnection CreateInMemoryDatabase()
@@ -624,5 +670,30 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         context.AddRange(one, two, three);
 
         context.SaveChanges();
+    }
+
+    /// <summary>
+    /// Starts a span while the command executes, like an instrumented ADO.NET provider (e.g. Npgsql) does.
+    /// </summary>
+    private sealed class DriverSpanInterceptor(ActivitySource activitySource) : DbCommandInterceptor
+    {
+        public override InterceptionResult<DbDataReader> ReaderExecuting(
+            DbCommand command,
+            CommandEventData eventData,
+            InterceptionResult<DbDataReader> result)
+        {
+            using var activity = activitySource.StartActivity("driver", ActivityKind.Client);
+            return base.ReaderExecuting(command, eventData, result);
+        }
+
+        public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(
+            DbCommand command,
+            CommandEventData eventData,
+            InterceptionResult<DbDataReader> result,
+            CancellationToken cancellationToken = default)
+        {
+            using var activity = activitySource.StartActivity("driver", ActivityKind.Client);
+            return base.ReaderExecutingAsync(command, eventData, result, cancellationToken);
+        }
     }
 }
