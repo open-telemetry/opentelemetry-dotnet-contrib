@@ -24,7 +24,7 @@ public class DependencyInjectionConfigTests
             .WithMetrics(builder =>
                 builder.AddEventCountersInstrumentation(name, configure: null));
 
-        var sp = services.BuildServiceProvider();
+        await using var sp = services.BuildServiceProvider();
 
         try
         {
@@ -41,8 +41,6 @@ public class DependencyInjectionConfigTests
             {
                 await hostedService.StopAsync(CancellationToken.None);
             }
-
-            await sp.DisposeAsync();
         }
     }
 
@@ -51,6 +49,7 @@ public class DependencyInjectionConfigTests
     {
         var diCallbackInvoked = false;
         var callbackInvoked = false;
+        int? observedIntervalInCallback = null;
 
         var services = new ServiceCollection();
 
@@ -65,10 +64,11 @@ public class DependencyInjectionConfigTests
                 builder.AddEventCountersInstrumentation(options =>
                 {
                     callbackInvoked = true;
+                    observedIntervalInCallback = options.RefreshIntervalSecs;
                     options.RefreshIntervalSecs = 5;
                 }));
 
-        var sp = services.BuildServiceProvider();
+        await using var sp = services.BuildServiceProvider();
 
         try
         {
@@ -79,6 +79,7 @@ public class DependencyInjectionConfigTests
 
             Assert.True(diCallbackInvoked);
             Assert.True(callbackInvoked);
+            Assert.Equal(2, observedIntervalInCallback);
         }
         finally
         {
@@ -86,8 +87,6 @@ public class DependencyInjectionConfigTests
             {
                 await hostedService.StopAsync(CancellationToken.None);
             }
-
-            await sp.DisposeAsync();
         }
     }
 
@@ -108,7 +107,7 @@ public class DependencyInjectionConfigTests
             .WithMetrics(builder =>
                 builder.AddEventCountersInstrumentation());
 
-        var sp = services.BuildServiceProvider();
+        await using var sp = services.BuildServiceProvider();
 
         try
         {
@@ -125,8 +124,6 @@ public class DependencyInjectionConfigTests
             {
                 await hostedService.StopAsync(CancellationToken.None);
             }
-
-            await sp.DisposeAsync();
         }
     }
 }
