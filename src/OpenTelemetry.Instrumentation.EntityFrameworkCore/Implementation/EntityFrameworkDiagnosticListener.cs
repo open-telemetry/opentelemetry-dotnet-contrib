@@ -43,8 +43,8 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     private readonly PropertyFetcher<string> commandTextFetcher = new("CommandText");
     private readonly PropertyFetcher<Exception> exceptionFetcher = new("Exception");
 
-    // Commands whose activity was discarded by the filter. Weak keys, so entries for commands that
-    // complete under an ambient parent (and are never looked up) don't keep them alive.
+    // Commands whose activity was discarded by the filter, removed again when the command completes.
+    // Weak keys, so a command that never raises a completion event isn't kept alive.
     private readonly ConditionalWeakTable<object, object> filteredCommands = new();
 
     private readonly EntityFrameworkInstrumentationOptions options;
@@ -234,13 +234,16 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
             case EntityFrameworkCoreCommandExecuted:
             case EntityFrameworkCoreCommandCanceled:
                 {
+                    // The activity of a filtered-out command was already stopped. Activity.Current is now
+                    // its parent (possibly null, or the activity of an outer EF command), so leave it alone.
+                    if (this.WasFilteredOut(payload))
+                    {
+                        return;
+                    }
+
                     if (activity == null)
                     {
-                        if (!this.WasFilteredOut(payload))
-                        {
-                            EntityFrameworkInstrumentationEventSource.Log.NullActivity(name);
-                        }
-
+                        EntityFrameworkInstrumentationEventSource.Log.NullActivity(name);
                         return;
                     }
 
@@ -262,13 +265,14 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 
             case EntityFrameworkCoreCommandError:
                 {
+                    if (this.WasFilteredOut(payload))
+                    {
+                        return;
+                    }
+
                     if (activity == null)
                     {
-                        if (!this.WasFilteredOut(payload))
-                        {
-                            EntityFrameworkInstrumentationEventSource.Log.NullActivity(name);
-                        }
-
+                        EntityFrameworkInstrumentationEventSource.Log.NullActivity(name);
                         return;
                     }
 
@@ -426,8 +430,9 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
         // and would be dropped by parent-based samplers.
         activity.Stop();
 
-        // Without an ambient parent, Activity.Current is now null when the command completes.
-        // Remember the command so the completion callbacks don't report that as a missing activity.
+        // When the command completes, Activity.Current is this activity's parent: null, an unrelated
+        // activity, or the activity of an outer EF command. Remember the command so the completion
+        // callbacks neither report a missing activity nor stop or fail that parent.
         if (command != null)
         {
             this.filteredCommands.Remove(command);
@@ -435,8 +440,11 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
         }
     }
 
+    // Commands are only marked when a filter is configured, so skip the lookup otherwise.
     private bool WasFilteredOut(object? payload)
-        => this.commandFetcher.Fetch(payload) is { } command && this.filteredCommands.Remove(command);
+        => this.options.Filter != null
+        && this.commandFetcher.Fetch(payload) is { } command
+        && this.filteredCommands.Remove(command);
 
     private void AddTag(Activity activity, (string Old, string New) attributes, string? value)
         => this.AddTag(activity, attributes, (value, value));
