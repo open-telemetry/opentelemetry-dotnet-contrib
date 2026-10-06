@@ -100,7 +100,15 @@ internal class InstrumentedRequestChannel : InstrumentedChannel<IRequestChannel>
         {
             var telemetryState = ClientChannelInstrumentation.BeforeSendRequest(message, ((IRequestChannel)this).RemoteAddress?.Uri);
             var asyncCallback = AsyncResultWithTelemetryState.GetAsyncCallback(callback, telemetryState);
-            result = new AsyncResultWithTelemetryState(beginRequestDelegate(asyncCallback, state), telemetryState);
+            try
+            {
+                result = new AsyncResultWithTelemetryState(beginRequestDelegate(asyncCallback, state), telemetryState);
+            }
+            catch (Exception ex)
+            {
+                ClientChannelInstrumentation.AfterRequestCompleted(null, telemetryState, ex);
+                throw;
+            }
         }
 
         var executionContext = ExecutionContext.Capture();

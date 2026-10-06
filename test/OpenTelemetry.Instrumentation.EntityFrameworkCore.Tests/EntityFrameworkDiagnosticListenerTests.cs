@@ -290,6 +290,33 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         Assert.Equal(expected, actual);
     }
 
+    [Theory]
+    [InlineData(EntityFrameworkDiagnosticListener.EntityFrameworkCoreCommandCreated, true)]
+    [InlineData(EntityFrameworkDiagnosticListener.EntityFrameworkCoreCommandExecuting, true)]
+    [InlineData(EntityFrameworkDiagnosticListener.EntityFrameworkCoreCommandExecuted, true)]
+    [InlineData(EntityFrameworkDiagnosticListener.EntityFrameworkCoreCommandCanceled, true)]
+    [InlineData(EntityFrameworkDiagnosticListener.EntityFrameworkCoreCommandError, true)]
+    [InlineData("Microsoft.EntityFrameworkCore.ChangeTracking.StartedTracking", false)]
+    [InlineData("Microsoft.EntityFrameworkCore.ChangeTracking.DetectChangesStarting", false)]
+    [InlineData("Microsoft.EntityFrameworkCore.Database.Command.DataReaderDisposing", false)]
+    [InlineData("Microsoft.EntityFrameworkCore.Database.Connection.ConnectionOpening", false)]
+    [InlineData("Microsoft.EntityFrameworkCore.Infrastructure.ContextInitialized", false)]
+    [InlineData("Microsoft.EntityFrameworkCore.Query.QueryCompilationStarting", false)]
+    public void SubscriptionIsOnlyEnabledForHandledEvents(string eventName, bool expected)
+    {
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddEntityFrameworkCoreInstrumentation()
+            .Build();
+
+        // The instrumentation subscribes to every diagnostic listener with the EF Core name.
+        using var listener = new DiagnosticListener(EntityFrameworkDiagnosticListener.DiagnosticSourceName);
+
+        // EF Core checks whether an event is enabled using the single-argument overload.
+        Assert.Equal(expected, listener.IsEnabled(eventName));
+        Assert.Equal(expected, listener.IsEnabled(eventName, null, null));
+        Assert.Equal(expected, EntityFrameworkDiagnosticListener.IsHandledEvent(eventName));
+    }
+
     [Fact]
     public void EntityFrameworkContextEventsInstrumentedTest()
     {

@@ -202,7 +202,7 @@ internal static class SqlProcessor
         char.IsLetter(c) || char.IsAsciiDigit(c) || c == UnderscoreChar || c == DotChar;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsValidTokenCharacter(ReadOnlySpan<char> sql, int currentPosition, int indexInToken, in ParseState state)
+    private static bool IsValidTokenCharacter(ReadOnlySpan<char> sql, int currentPosition, int indexInToken, ref ParseState state)
     {
         var currentChar = sql[currentPosition];
 
@@ -222,12 +222,29 @@ internal static class SqlProcessor
                 return false;
             }
 
+            if (indexInToken == 0)
+            {
+                state.PrecedingCloseSquareBrackets = 0;
+            }
+
             if (currentChar == CloseSquareBracketChar)
             {
+                // Whether this bracket opens an escape pair or closes one depends on how many
+                // brackets immediately precede it within the token. An even run means this
+                // bracket is the first of a potential pair, so the next character decides. An
+                // odd run means it completes a pair and the identifier continues past it,
+                // which is what makes [Tab]]le] a single identifier named Tab]le.
+                // The run length is carried in the parse state so each character is visited once.
+                if ((state.PrecedingCloseSquareBrackets++ & 1) == 1)
+                {
+                    return true;
+                }
+
                 var nextPosition = currentPosition + 1;
                 return nextPosition < sql.Length && sql[nextPosition] == CloseSquareBracketChar;
             }
 
+            state.PrecedingCloseSquareBrackets = 0;
             return true;
         }
 
@@ -521,7 +538,7 @@ internal static class SqlProcessor
         }
 
         // If we get this far, we have not matched a keyword, so we copy the token as-is.
-        if (IsValidTokenCharacter(sql, start, 0, state))
+        if (IsValidTokenCharacter(sql, start, 0, ref state))
         {
             // This first block handles identifiers (which start with a letter or underscore).
 
@@ -532,7 +549,7 @@ internal static class SqlProcessor
             {
                 position++;
 
-                if (!IsValidTokenCharacter(sql, i, position, state))
+                if (!IsValidTokenCharacter(sql, i, position, ref state))
                 {
                     break;
                 }
@@ -1221,6 +1238,9 @@ internal static class SqlProcessor
         // These track the start and end position of the previous (non-literal) token parsed.
         public int PreviousTokenStartPosition; // 4 bytes
         public int PreviousTokenEndPosition; // 4 bytes
+
+        // Number of consecutive closing square brackets seen so far within the current escaped identifier token.
+        public int PrecedingCloseSquareBrackets; // 4 bytes
 
         // NOTE: If the number of bool fields increases significantly, consider combining into a bitfield.
 
