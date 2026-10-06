@@ -49,8 +49,9 @@ Additionally, the above snippet sets up the OpenTelemetry Prometheus exporter, w
 requires adding the package
 [`OpenTelemetry.Exporter.Prometheus`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Prometheus.HttpListener/README.md)
 to the application.
-
-When using dependency injection (`Microsoft.Extensions.DependencyInjection`), EventCounters instrumentation can be registered using `AddOpenTelemetry().WithMetrics()`:
+When using dependency injection (`Microsoft.Extensions.DependencyInjection`),
+EventCounters instrumentation can be registered using
+`AddOpenTelemetry().WithMetrics()`:
 
 ```csharp
 services.AddOpenTelemetry()
@@ -61,7 +62,8 @@ services.AddOpenTelemetry()
         }));
 ```
 
-Options can also be bound to configuration via `services.Configure<EventCountersInstrumentationOptions>(Configuration.GetSection("..."))`.
+Options can also be bound to configuration via
+`services.Configure<EventCountersInstrumentationOptions>(...)`.
 
 ### Step 3: Create EventCounters
 
