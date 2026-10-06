@@ -150,7 +150,7 @@ public partial class HttpClientTests
 
 #if NET11_0_OR_GREATER
         // active_requests is observable and only reports while requests are in flight
-        expectedCount -= OperatingSystem.IsWindows() ? 1 : 2;
+        expectedCount -= 1;
 #endif
 
         Assert.Equal(expectedCount, requestMetrics.DistinctBy((p) => p.Name).Count());
