@@ -752,9 +752,6 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     }
 
     /// <summary>
-    /// Starts a span while the command executes, like an instrumented ADO.NET provider (e.g. Npgsql) does.
-    /// </summary>
-    /// <summary>
     /// Runs another (filtered) command while the outer command is executing, then records the state of <see cref="Activity.Current"/>.
     /// </summary>
     private sealed class NestedCommandInterceptor(DbContextOptions<ItemsContext> innerContextOptions, string innerCommandText) : DbCommandInterceptor
@@ -787,6 +784,9 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         }
     }
 
+    /// <summary>
+    /// Starts a span while the command executes, like an instrumented ADO.NET provider (e.g. Npgsql) does.
+    /// </summary>
     private sealed class DriverSpanInterceptor(ActivitySource activitySource) : DbCommandInterceptor
     {
         public override InterceptionResult<DbDataReader> ReaderExecuting(

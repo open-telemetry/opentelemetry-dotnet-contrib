@@ -433,17 +433,18 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
         // When the command completes, Activity.Current is this activity's parent: null, an unrelated
         // activity, or the activity of an outer EF command. Remember the command so the completion
         // callbacks neither report a missing activity nor stop or fail that parent.
-        if (command != null)
+        if (command != null && this.options.Filter != null)
         {
-            this.filteredCommands.Remove(command);
-            this.filteredCommands.Add(command, FilteredCommandMarker);
+            _ = this.filteredCommands.GetValue(command, static _ => FilteredCommandMarker);
         }
     }
 
     // Commands are only marked when a filter is configured, so skip the lookup otherwise.
+    // TryGetValue doesn't lock, so only commands that were actually filtered out pay for Remove.
     private bool WasFilteredOut(object? payload)
         => this.options.Filter != null
         && this.commandFetcher.Fetch(payload) is { } command
+        && this.filteredCommands.TryGetValue(command, out _)
         && this.filteredCommands.Remove(command);
 
     private void AddTag(Activity activity, (string Old, string New) attributes, string? value)
