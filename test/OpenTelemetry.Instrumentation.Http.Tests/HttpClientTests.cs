@@ -126,6 +126,11 @@ public partial class HttpClientTests
             request.Headers.Add("contextRequired", "false");
             request.Headers.Add("responseCode", (tc.ResponseCode == 0 ? 200 : tc.ResponseCode).ToString());
             await c.SendAsync(request, TestContext.Current.CancellationToken);
+
+#if NET11_0_OR_GREATER
+            // See https://github.com/dotnet/core/blob/v11.0.0-rc.1/release-notes/11.0/preview/rc1/libraries.md#http-metrics-are-observable-instruments.
+            meterProvider.ForceFlush(); // observable instruments are only read on collect
+#endif
         }
         catch (Exception)
         {
@@ -144,12 +149,11 @@ public partial class HttpClientTests
         var expectedCount = tc.ResponseExpected ? 6 : 4;
 
 #if NET11_0_OR_GREATER
-        // active_requests and open_connections require RecordObservableInstruments to be enabled in .NET 11
-        // See https://github.com/dotnet/core/blob/v11.0.0-rc.1/release-notes/11.0/preview/rc1/libraries.md#http-metrics-are-observable-instruments.
-        expectedCount -= tc.ResponseExpected ? 2 : 1;
+        // active_requests is observable and only reports while requests are in flight
+        expectedCount -= 1;
 #endif
 
-        Assert.Equal(expectedCount, requestMetrics.Length);
+        Assert.Equal(expectedCount, requestMetrics.DistinctBy((p) => p.Name).Count());
 
         static bool IsKnownMetric(Metric metric)
         {
