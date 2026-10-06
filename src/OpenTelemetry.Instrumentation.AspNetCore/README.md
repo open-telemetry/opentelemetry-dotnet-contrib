@@ -431,11 +431,14 @@ appBuilder.Services.AddOpenTelemetry()
 
 ## Starting new root spans
 
+> [!NOTE]
+> This feature is experimental.
+
 By default, when an incoming request carries trace context (for example a
 `traceparent` header), the server span becomes a child of the caller's span.
 This might not always be wanted, for example on public endpoints that receive
 requests from untrusted callers.
-Starting a new root span in these cases can be enabled by setting
+Starting a new root span in these cases can be enabled by setting the
 `OTEL_DOTNET_EXPERIMENTAL_ASPNETCORE_ENABLE_NEW_ROOT_SPAN` environment variable
 to `true`. The
 flag can be set as an environment variable or via `IConfiguration`, as shown for
@@ -446,8 +449,6 @@ traces can still be correlated. Incoming baggage is kept.
 `IHttpActivityFeature.Activity` still refers to the `Activity` created by
 ASP.NET Core, which is not exported, so use `Activity.Current` or the
 [Enrich](#enrich) callbacks to add tags to the exported span.
-
-This feature is experimental.
 
 ## Troubleshooting
 
