@@ -429,79 +429,25 @@ appBuilder.Services.AddOpenTelemetry()
  [experimental](https://github.com/open-telemetry/semantic-conventions/tree/main/docs/rpc#semantic-conventions-for-rpc)
  and hence the instrumentation only offers it as an experimental feature.
 
-## Experimental support for starting new root spans
+## Starting new root spans
 
 By default, when an incoming request carries trace context (for example a
 `traceparent` header), the server span becomes a child of the caller's span.
 This might not always be wanted, for example on public endpoints that receive
 requests from untrusted callers.
 Starting a new root span in these cases can be enabled by setting
-`OTEL_DOTNET_EXPERIMENTAL_ASPNETCORE_ENABLE_NEW_ROOT_SPAN` flag to `true`. The
-flag can be set as an environment variable or via IConfiguration, as shown for
-gRPC above. It is supported on .NET 8 and newer versions.
+`OTEL_DOTNET_EXPERIMENTAL_ASPNETCORE_ENABLE_NEW_ROOT_SPAN` environment variable
+to `true`. The
+flag can be set as an environment variable or via `IConfiguration`, as shown for
+gRPC above. It is supported on .NET 8 and later.
 
 When enabled, the new root span is linked to the caller's span, so the two
 traces can still be correlated. Incoming baggage is kept.
-`IHttpActivityFeature.Activity` still refers to the Activity created by
+`IHttpActivityFeature.Activity` still refers to the `Activity` created by
 ASP.NET Core, which is not exported, so use `Activity.Current` or the
 [Enrich](#enrich) callbacks to add tags to the exported span.
 
-Without the flag, a new root span needs both the propagator ASP.NET Core
-resolves from DI and the OpenTelemetry propagator to ignore the request:
-
-```csharp
-appBuilder.Services.AddSingleton<DistributedContextPropagator>(
-    new IgnoreRequestRuntimePropagator());
-
-Sdk.SetDefaultTextMapPropagator(new IgnoreRequestOtelPropagator(
-    new CompositeTextMapPropagator(
-        [new TraceContextPropagator(), new BaggagePropagator()])));
-
-sealed class IgnoreRequestRuntimePropagator : DistributedContextPropagator
-{
-    private readonly DistributedContextPropagator inner = CreateDefaultPropagator();
-
-    public override IReadOnlyCollection<string> Fields => this.inner.Fields;
-
-    public override IEnumerable<KeyValuePair<string, string?>>? ExtractBaggage(
-        object? carrier, PropagatorGetterCallback? getter)
-        => carrier is IHeaderDictionary ? null : this.inner.ExtractBaggage(carrier, getter);
-
-    public override void ExtractTraceIdAndState(
-        object? carrier, PropagatorGetterCallback? getter, out string? traceId, out string? traceState)
-    {
-        if (carrier is IHeaderDictionary)
-        {
-            traceId = null;
-            traceState = null;
-            return;
-        }
-
-        this.inner.ExtractTraceIdAndState(carrier, getter, out traceId, out traceState);
-    }
-
-    public override void Inject(Activity? activity, object? carrier, PropagatorSetterCallback? setter)
-        => this.inner.Inject(activity, carrier, setter);
-}
-
-sealed class IgnoreRequestOtelPropagator(TextMapPropagator inner) : TextMapPropagator
-{
-    public override ISet<string>? Fields => inner.Fields;
-
-    public override PropagationContext Extract<T>(
-        PropagationContext context, T carrier, Func<T, string, IEnumerable<string>?> getter)
-        => carrier is HttpRequest ? default : inner.Extract(context, carrier, getter);
-
-    public override void Inject<T>(
-        PropagationContext context, T carrier, Action<T, string, string> setter)
-        => inner.Inject(context, carrier, setter);
-}
-```
-
-Compared to the flag, this approach can be changed to decide per request,
-based on the request headers. It keeps `IHttpActivityFeature.Activity` as the
-exported span, with no second Activity. It also drops incoming baggage and adds
-no link to the caller's span context.
+This feature is experimental.
 
 ## Troubleshooting
 

@@ -283,7 +283,8 @@ internal class HttpInListener : ListenerHandler
                 // Indexed, as foreach over a TagList boxes its enumerator.
                 for (var i = 0; i < tags.Count; i++)
                 {
-                    activity.SetTag(tags[i].Key, tags[i].Value);
+                    var tag = tags[i];
+                    activity.SetTag(tag.Key, tag.Value);
                 }
             }
 
