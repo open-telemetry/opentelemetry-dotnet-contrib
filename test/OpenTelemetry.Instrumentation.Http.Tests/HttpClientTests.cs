@@ -125,7 +125,15 @@ public partial class HttpClientTests
 
             request.Headers.Add("contextRequired", "false");
             request.Headers.Add("responseCode", (tc.ResponseCode == 0 ? 200 : tc.ResponseCode).ToString());
-            await c.SendAsync(request, TestContext.Current.CancellationToken);
+
+            // Keep the response undisposed until after the metrics are collected so that the
+            // connection is still open: HttpListener on Linux closes the connection after
+            // some status codes (e.g. 400 and 503), while on Windows it is kept alive, which
+            // would otherwise change whether http.client.open_connections is reported.
+            using var response = await c.SendAsync(
+                request,
+                HttpCompletionOption.ResponseHeadersRead,
+                TestContext.Current.CancellationToken);
 
 #if NET11_0_OR_GREATER
             // See https://github.com/dotnet/core/blob/v11.0.0-rc.1/release-notes/11.0/preview/rc1/libraries.md#http-metrics-are-observable-instruments.
