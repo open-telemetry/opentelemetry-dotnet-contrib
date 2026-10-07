@@ -12,6 +12,11 @@ internal static class SqlProcessor
     private const int MaxSummaryLength = 255;
     private const int CacheCapacity = 1000;
 
+    // The minimum length of a statement for which the most recently sanitized statement is remembered
+    // per thread while the cache is not full. Below this length looking a statement up in the cache is
+    // about as cheap as maintaining the per-thread entry.
+    private const int LastStatementMinLength = 128;
+
     private const char SanitizationPlaceholder = '?';
     private const char SpaceChar = ' ';
     private const char CommaChar = ',';
@@ -99,6 +104,15 @@ internal static class SqlProcessor
     private static int approxCacheCount;
     private static int approxBackslashEscapeCacheCount;
 
+    // The most recent statement sanitized on the current thread. Instrumentations commonly sanitize the
+    // same command text instance more than once per command on the same thread (for example EF Core's
+    // CommandExecuting event followed by SqlClient's WriteCommandBefore event for the same DbCommand),
+    // so a reference-equality check lets the repeated call skip hashing the full text for the cache
+    // lookup (or re-sanitizing it entirely once the cache is full). This retains at most one statement
+    // (and its sanitized form) per thread until that thread sanitizes a different statement.
+    [ThreadStatic]
+    private static LastSanitizedStatement? lastSanitizedStatement;
+
     private enum SqlKeyword
     {
         Unknown,
@@ -168,6 +182,37 @@ internal static class SqlProcessor
         : GetSanitizedSql(sql, Cache, ref approxCacheCount, useBackslashEscapes: false);
 
     private static SqlStatementInfo GetSanitizedSql(
+        string sql,
+        ConcurrentDictionary<string, SqlStatementInfo> cache,
+        ref int approxCount,
+        bool useBackslashEscapes)
+    {
+        if (sql.Length < LastStatementMinLength && approxCount < CacheCapacity)
+        {
+            return GetOrAddCachedSql(sql, cache, ref approxCount, useBackslashEscapes);
+        }
+
+        // Strings are immutable, so the same instance sanitized
+        // with the same dialect always produces the same result.
+        var last = lastSanitizedStatement;
+        if (last != null &&
+            ReferenceEquals(sql, last.Sql) &&
+            useBackslashEscapes == last.UseBackslashEscapes)
+        {
+            return last.StatementInfo;
+        }
+
+        var sqlStatementInfo = GetOrAddCachedSql(sql, cache, ref approxCount, useBackslashEscapes);
+
+        last ??= lastSanitizedStatement = new();
+        last.Sql = sql;
+        last.UseBackslashEscapes = useBackslashEscapes;
+        last.StatementInfo = sqlStatementInfo;
+
+        return sqlStatementInfo;
+    }
+
+    private static SqlStatementInfo GetOrAddCachedSql(
         string sql,
         ConcurrentDictionary<string, SqlStatementInfo> cache,
         ref int approxCount,
@@ -1276,6 +1321,13 @@ internal static class SqlProcessor
         /// nothing further is appended to it.
         /// </summary>
         public readonly bool SummaryIsComplete => this.SummaryPosition >= MaxSummaryLength;
+    }
+
+    private sealed class LastSanitizedStatement
+    {
+        public string? Sql;
+        public bool UseBackslashEscapes;
+        public SqlStatementInfo StatementInfo;
     }
 
     private sealed class SqlKeywordInfo
