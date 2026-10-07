@@ -26,6 +26,12 @@ internal static class RedisProfilerEntryToActivityConverter
         "8", "9", "10", "11", "12", "13", "14", "15",
     ];
 
+    private static readonly object[] CachedBoxedDatabaseIndexes =
+    [
+        0, 1, 2, 3, 4, 5, 6, 7,
+        8, 9, 10, 11, 12, 13, 14, 15,
+    ];
+
     private static readonly Lazy<Func<object, (string?, string?)>> MessageDataGetter = new(() =>
     {
 #pragma warning disable IDE0370 // Suppression is unnecessary
@@ -127,11 +133,11 @@ internal static class RedisProfilerEntryToActivityConverter
             return null;
         }
 
-        var name = command.Command; // Example: SET;
-        if (string.IsNullOrEmpty(name))
-        {
-            name = StackExchangeRedisConnectionInstrumentation.ActivityName;
-        }
+        // StackExchange.Redis computes Command on every access (it formats the RedisCommand enum), so read it once.
+        var commandName = command.Command; // Example: SET;
+        var name = string.IsNullOrEmpty(commandName)
+            ? StackExchangeRedisConnectionInstrumentation.ActivityName
+            : commandName;
 
         var activitySource =
             options.EmitNewAttributes && options.EmitOldAttributes ?
@@ -192,10 +198,15 @@ internal static class RedisProfilerEntryToActivityConverter
 
             if (options.EmitOldAttributes)
             {
-                activity.SetTag(StackExchangeRedisConnectionInstrumentation.RedisDatabaseIndexKeyName, command.Db);
+                var db = command.Db;
+                var boxedDb = (uint)db < (uint)CachedBoxedDatabaseIndexes.Length
+                    ? CachedBoxedDatabaseIndexes[db]
+                    : db;
+
+                activity.SetTag(StackExchangeRedisConnectionInstrumentation.RedisDatabaseIndexKeyName, boxedDb);
 
                 // Example: "db.statement": SET;
-                var statement = verboseStatement ?? command.Command;
+                var statement = verboseStatement ?? commandName;
 
                 if (statement != null)
                 {
@@ -205,12 +216,12 @@ internal static class RedisProfilerEntryToActivityConverter
 
             if (options.EmitNewAttributes)
             {
-                var queryText = verboseStatement ?? command.Command;
+                var queryText = verboseStatement ?? commandName;
                 var db = command.Db;
                 var dbNamespace = (uint)db < (uint)CachedDatabaseNames.Length
                     ? CachedDatabaseNames[db]
                     : db.ToString(CultureInfo.InvariantCulture);
-                activity.SetTag(SemanticConventions.AttributeDbOperationName, command.Command);
+                activity.SetTag(SemanticConventions.AttributeDbOperationName, commandName);
                 activity.SetTag(SemanticConventions.AttributeDbNamespace, dbNamespace);
                 activity.SetTag(SemanticConventions.AttributeDbQueryText, queryText);
             }

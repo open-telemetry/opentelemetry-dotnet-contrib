@@ -103,39 +103,6 @@ internal sealed partial class ContainerDetector : IResourceDetector
     }
 
     /// <summary>
-    /// Gets the Container Id from the line after removing the prefix and suffix from the cgroupv1 format.
-    /// </summary>
-    /// <param name="line">line read from cgroup file.</param>
-    /// <returns>Container Id, Null if not found.</returns>
-    private static string? GetIdFromLineV1(string line)
-    {
-        // This cgroup output line should have the container id in it
-#if NET11_0_OR_GREATER
-        var lastSlashIndex = line.LastIndexOf('/', StringComparison.Ordinal);
-#else
-        var lastSlashIndex = line.LastIndexOf('/');
-#endif
-        if (lastSlashIndex < 0)
-        {
-            return null;
-        }
-
-        var lastSection = line.Substring(lastSlashIndex + 1);
-
-#if NET11_0_OR_GREATER
-        var startIndex = lastSection.LastIndexOf('-', StringComparison.Ordinal);
-        var endIndex = lastSection.LastIndexOf('.', StringComparison.Ordinal);
-#else
-        var startIndex = lastSection.LastIndexOf('-');
-        var endIndex = lastSection.LastIndexOf('.');
-#endif
-
-        var containerId = RemovePrefixAndSuffixIfNeeded(lastSection, startIndex, endIndex);
-
-        return string.IsNullOrEmpty(containerId) || !EncodingUtils.IsValidHexString(containerId) ? null : containerId;
-    }
-
-    /// <summary>
     /// Gets the Container Id from the line of the cgroupv2 format.
     /// </summary>
     /// <param name="line">line read from cgroup file.</param>
@@ -165,18 +132,6 @@ internal sealed partial class ContainerDetector : IResourceDetector
     private static Regex IdFromLineV2Regex() => IdFromLineV2RegexField;
 #endif
 
-    private static string RemovePrefixAndSuffixIfNeeded(string input, int startIndex, int endIndex)
-    {
-        startIndex = (startIndex == -1) ? 0 : startIndex + 1;
-
-        if (endIndex == -1)
-        {
-            endIndex = input.Length;
-        }
-
-        return input.Substring(startIndex, endIndex - startIndex);
-    }
-
     /// <summary>
     /// Extracts Container Id from path using the cgroupv1 format.
     /// </summary>
@@ -199,7 +154,7 @@ internal sealed partial class ContainerDetector : IResourceDetector
                 {
                     if (cgroupVersion == ParseMode.V1)
                     {
-                        containerId = GetIdFromLineV1(line);
+                        containerId = CgroupContainerIdParser.GetContainerId(line);
                     }
 #if NET
                     else if (cgroupVersion == ParseMode.V2 && line.Contains(Hostname, StringComparison.Ordinal))
