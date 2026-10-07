@@ -18,8 +18,6 @@
     <MSBuild Projects="@(PackProjects)" Targets="Pack" ContinueOnError="ErrorAndStop" />
   </Target>
 
-  <Target Name="VSTest">
-    <MSBuild Projects="@(TestProjects)" Targets="VSTest" ContinueOnError="ErrorAndStop" />
-  </Target>
+  <Import Project="$(MSBuildThisFileDirectory)build/Tests.targets" />
 
 </Project>
