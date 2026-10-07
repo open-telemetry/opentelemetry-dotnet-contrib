@@ -1,12 +1,14 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics.Metrics;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Metrics;
@@ -221,6 +223,114 @@ public class MetricTests(WebApplicationFactory<Program> factory)
             expectedErrorType,
             expectedStatusCode,
             expectedTagsCount: expectedErrorType == null ? 5 : 6);
+    }
+
+    [Theory]
+    [InlineData("/status/200", false, 200, null)]
+    [InlineData("/status/404", false, 404, null)]
+    [InlineData("/status/500", false, 500, "500")]
+    [InlineData("/status/503", false, 503, "503")]
+    [InlineData("/throw", false, null, "System.InvalidOperationException")]
+    [InlineData("/throw", true, 500, "System.InvalidOperationException")]
+    [InlineData("/status/200", true, 200, null)]
+    [InlineData("/status/502", true, 502, "502")]
+    public async Task RequestMetricHasErrorTypeWhenHostedWithDependencyInjection(
+        string path,
+        bool useExceptionHandler,
+        int? expectedStatusCode,
+        string? expectedErrorType)
+    {
+        var metricItems = new List<Metric>();
+
+        var builder = WebApplication.CreateBuilder();
+        builder.Logging.ClearProviders();
+        builder.WebHost.UseTestServer();
+
+        builder.Services
+            .AddOpenTelemetry()
+            .WithMetrics(builder => builder
+                .AddAspNetCoreInstrumentation()
+                .AddInMemoryExporter(metricItems));
+
+        using (var app = builder.Build())
+        {
+            if (useExceptionHandler)
+            {
+                app.UseExceptionHandler(handler => handler.Run(context =>
+                {
+                    context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                    return Task.CompletedTask;
+                }));
+            }
+
+            app.MapGet("/status/{code:int}", (int code) => Results.StatusCode(code));
+            app.MapGet("/throw", IResult () => throw new InvalidOperationException("Boom"));
+
+            await app.StartAsync(TestContext.Current.CancellationToken);
+
+            // TestServer returns the response to the client before the hosting layer
+            // records http.server.request.duration, so wait for the measurement to be
+            // recorded before stopping the host and disposing the MeterProvider.
+            // This listener is started after the host so that it is notified after
+            // the OpenTelemetry SDK's own listener has recorded the measurement.
+            var meterFactory = app.Services.GetRequiredService<IMeterFactory>();
+            var durationRecorded = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            using var listener = new MeterListener();
+            listener.InstrumentPublished = (instrument, listener) =>
+            {
+                if (instrument.Meter.Scope == meterFactory &&
+                    instrument.Meter.Name == "Microsoft.AspNetCore.Hosting" &&
+                    instrument.Name == "http.server.request.duration")
+                {
+                    listener.EnableMeasurementEvents(instrument);
+                }
+            };
+            listener.SetMeasurementEventCallback<double>((_, _, _, _) => durationRecorded.TrySetResult());
+            listener.Start();
+
+            using (var client = app.GetTestClient())
+            {
+                try
+                {
+                    using var response = await client.GetAsync(new Uri(path, UriKind.Relative), TestContext.Current.CancellationToken);
+                }
+                catch (InvalidOperationException)
+                {
+                    // TestServer rethrows unhandled exceptions to the client.
+                }
+            }
+
+            await durationRecorded.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+
+            await app.StopAsync(TestContext.Current.CancellationToken);
+        }
+
+        // Disposing the host disposes the MeterProvider, which exports the metrics.
+
+        var metric = Assert.Single(metricItems, item => item.Name == "http.server.request.duration");
+        var metricPoint = Assert.Single(GetMetricPoints(metric));
+
+        var tags = new Dictionary<string, object?>();
+        foreach (var tag in metricPoint.Tags)
+        {
+            tags.Add(tag.Key, tag.Value);
+        }
+
+        // TestServer does not set a 500 status code for unhandled exceptions like Kestrel does.
+        if (expectedStatusCode is { } statusCode)
+        {
+            Assert.Equal(statusCode, tags[SemanticConventions.AttributeHttpResponseStatusCode]);
+        }
+
+        if (expectedErrorType is null)
+        {
+            Assert.DoesNotContain(SemanticConventions.AttributeErrorType, tags.Keys);
+        }
+        else
+        {
+            Assert.Equal(expectedErrorType, tags[SemanticConventions.AttributeErrorType]);
+        }
     }
 
     [Theory]

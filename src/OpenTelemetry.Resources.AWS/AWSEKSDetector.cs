@@ -77,10 +77,10 @@ internal sealed class AWSEKSDetector : IResourceDetector
 
             while ((line = streamReader.ReadLine()) is not null)
             {
-                var trimmedLine = line.Trim();
-                if (trimmedLine.Length > 64)
+                var containerId = CgroupContainerIdParser.GetContainerId(line.Trim());
+                if (containerId != null)
                 {
-                    return trimmedLine.Substring(trimmedLine.Length - 64);
+                    return containerId;
                 }
             }
         }

@@ -42,11 +42,9 @@ benchmark[s] and stress test csprojs are also supported. -->
     <MSBuild Projects="@(PackProjects)" Targets="Pack" ContinueOnError="ErrorAndStop" />
   </Target>
 
-  <Target Name="VSTest">
-    <MSBuild Projects="@(TestProjects)" Targets="VSTest" ContinueOnError="ErrorAndStop" />
-  </Target>
+  <Import Project="$(RepoRoot)/build/Tests.targets" />
 
-  <Target Name="Validate" BeforeTargets="Build;Restore;Pack;VSTest">
+  <Target Name="Validate" BeforeTargets="Build;Restore;Pack;Test">
     <Error Condition="'$(BUILD_COMPONENT)' == ''" Text="BUILD_COMPONENT must be set for component builds" />
   </Target>
 
