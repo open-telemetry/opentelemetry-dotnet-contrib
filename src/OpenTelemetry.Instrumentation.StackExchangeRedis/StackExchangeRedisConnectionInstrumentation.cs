@@ -49,10 +49,6 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
         (ActivityTraceId TraceId, ActivitySpanId SpanId),
         (Activity Activity, ProfilingSession Session, Baggage Baggage)> Cache = new();
 
-    internal int CurrentDrainIntervalMilliseconds => Volatile.Read(ref this.currentDrainIntervalMilliseconds);
-
-    private const int MinDrainIntervalMilliseconds = 100;
-
     private readonly StackExchangeRedisInstrumentationOptions options;
     private readonly EventWaitHandle stopHandle = new(false, EventResetMode.ManualReset);
     private readonly EventWaitHandle workAvailableHandle = new(false, EventResetMode.AutoReset);
@@ -77,7 +73,7 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
         Guard.ThrowIfNull(connection);
 
         this.options = options ?? new StackExchangeRedisInstrumentationOptions();
-        this.minDrainIntervalMilliseconds = GetMinimumDrainIntervalMilliseconds((int)this.options.FlushInterval.TotalMilliseconds);
+        this.minDrainIntervalMilliseconds = RedisDrainInterval.GetMinimum((int)this.options.FlushInterval.TotalMilliseconds);
         this.currentDrainIntervalMilliseconds = this.minDrainIntervalMilliseconds;
         this.drainWaitHandles = [this.stopHandle, this.workAvailableHandle];
 
@@ -109,6 +105,8 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
 
         connection.RegisterProfiler(this.GetProfilerSessionsFactory());
     }
+
+    internal int CurrentDrainIntervalMilliseconds => Volatile.Read(ref this.currentDrainIntervalMilliseconds);
 
     /// <summary>
     /// Returns session for the Redis calls recording.
@@ -217,19 +215,13 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
             }
 
             var drainedCommands = this.Flush();
-            this.currentDrainIntervalMilliseconds = GetNextDrainIntervalMilliseconds(
+            this.currentDrainIntervalMilliseconds = RedisDrainInterval.GetNext(
                 this.currentDrainIntervalMilliseconds,
                 this.minDrainIntervalMilliseconds,
                 (int)this.options.FlushInterval.TotalMilliseconds,
                 drainedCommands: drainedCommands);
         }
     }
-
-    internal static int GetNextDrainIntervalMilliseconds(int current, int minimum, int maximum, bool drainedCommands)
-        => drainedCommands ? minimum : (int)Math.Min(current * 2L, maximum);
-
-    internal static int GetMinimumDrainIntervalMilliseconds(int flushIntervalMilliseconds)
-        => Math.Min(MinDrainIntervalMilliseconds, flushIntervalMilliseconds);
 
     private void SignalDrainIfBackedOff()
     {

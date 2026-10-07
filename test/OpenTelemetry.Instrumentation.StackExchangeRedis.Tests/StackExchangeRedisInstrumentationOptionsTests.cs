@@ -86,10 +86,10 @@ public class StackExchangeRedisInstrumentationOptionsTests
     [Fact]
     public void DrainInterval_EmptyPoll_DoublesUpToMaximum()
     {
-        Assert.Equal(200, StackExchangeRedisConnectionInstrumentation.GetNextDrainIntervalMilliseconds(100, 100, 1_000, drainedCommands: false));
-        Assert.Equal(400, StackExchangeRedisConnectionInstrumentation.GetNextDrainIntervalMilliseconds(200, 100, 1_000, drainedCommands: false));
-        Assert.Equal(1_000, StackExchangeRedisConnectionInstrumentation.GetNextDrainIntervalMilliseconds(800, 100, 1_000, drainedCommands: false));
-        Assert.Equal(1_000, StackExchangeRedisConnectionInstrumentation.GetNextDrainIntervalMilliseconds(1_000, 100, 1_000, drainedCommands: false));
+        Assert.Equal(200, RedisDrainInterval.GetNext(100, 100, 1_000, drainedCommands: false));
+        Assert.Equal(400, RedisDrainInterval.GetNext(200, 100, 1_000, drainedCommands: false));
+        Assert.Equal(1_000, RedisDrainInterval.GetNext(800, 100, 1_000, drainedCommands: false));
+        Assert.Equal(1_000, RedisDrainInterval.GetNext(1_000, 100, 1_000, drainedCommands: false));
     }
 
     [Fact]
@@ -97,14 +97,14 @@ public class StackExchangeRedisInstrumentationOptionsTests
     {
         var flushInterval = 25;
 
-        Assert.Equal(flushInterval, StackExchangeRedisConnectionInstrumentation.GetMinimumDrainIntervalMilliseconds(flushInterval));
-        Assert.Equal(flushInterval, StackExchangeRedisConnectionInstrumentation.GetNextDrainIntervalMilliseconds(flushInterval, flushInterval, flushInterval, drainedCommands: false));
-        Assert.Equal(flushInterval, StackExchangeRedisConnectionInstrumentation.GetNextDrainIntervalMilliseconds(flushInterval, flushInterval, flushInterval, drainedCommands: true));
+        Assert.Equal(flushInterval, RedisDrainInterval.GetMinimum(flushInterval));
+        Assert.Equal(flushInterval, RedisDrainInterval.GetNext(flushInterval, flushInterval, flushInterval, drainedCommands: false));
+        Assert.Equal(flushInterval, RedisDrainInterval.GetNext(flushInterval, flushInterval, flushInterval, drainedCommands: true));
     }
 
     [Fact]
     public void DrainInterval_FindingCommandsResetsToMinimum()
     {
-        Assert.Equal(100, StackExchangeRedisConnectionInstrumentation.GetNextDrainIntervalMilliseconds(800, 100, 1_000, drainedCommands: true));
+        Assert.Equal(100, RedisDrainInterval.GetNext(800, 100, 1_000, drainedCommands: true));
     }
 }
