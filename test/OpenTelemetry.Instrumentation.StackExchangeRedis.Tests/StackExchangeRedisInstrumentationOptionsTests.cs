@@ -82,4 +82,29 @@ public class StackExchangeRedisInstrumentationOptionsTests
 
         Assert.Equal(TimeSpan.FromMilliseconds(int.MaxValue), options.FlushInterval);
     }
+
+    [Fact]
+    public void DrainInterval_EmptyPoll_DoublesUpToMaximum()
+    {
+        Assert.Equal(200, StackExchangeRedisConnectionInstrumentation.GetNextDrainIntervalMilliseconds(100, 100, 1_000, drainedCommands: false));
+        Assert.Equal(400, StackExchangeRedisConnectionInstrumentation.GetNextDrainIntervalMilliseconds(200, 100, 1_000, drainedCommands: false));
+        Assert.Equal(1_000, StackExchangeRedisConnectionInstrumentation.GetNextDrainIntervalMilliseconds(800, 100, 1_000, drainedCommands: false));
+        Assert.Equal(1_000, StackExchangeRedisConnectionInstrumentation.GetNextDrainIntervalMilliseconds(1_000, 100, 1_000, drainedCommands: false));
+    }
+
+    [Fact]
+    public void DrainInterval_FlushBelowMinimum_UsesFlushIntervalAsMinimumAndMaximum()
+    {
+        var flushInterval = 25;
+
+        Assert.Equal(flushInterval, StackExchangeRedisConnectionInstrumentation.GetMinimumDrainIntervalMilliseconds(flushInterval));
+        Assert.Equal(flushInterval, StackExchangeRedisConnectionInstrumentation.GetNextDrainIntervalMilliseconds(flushInterval, flushInterval, flushInterval, drainedCommands: false));
+        Assert.Equal(flushInterval, StackExchangeRedisConnectionInstrumentation.GetNextDrainIntervalMilliseconds(flushInterval, flushInterval, flushInterval, drainedCommands: true));
+    }
+
+    [Fact]
+    public void DrainInterval_FindingCommandsResetsToMinimum()
+    {
+        Assert.Equal(100, StackExchangeRedisConnectionInstrumentation.GetNextDrainIntervalMilliseconds(800, 100, 1_000, drainedCommands: true));
+    }
 }
