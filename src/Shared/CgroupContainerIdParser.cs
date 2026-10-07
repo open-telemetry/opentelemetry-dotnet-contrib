@@ -18,7 +18,7 @@ internal static class CgroupContainerIdParser
     /// <returns>The container id, or <see langword="null"/> if the line does not contain one.</returns>
     public static string? GetContainerId(string line)
     {
-        var lastSlashIndex = line.LastIndexOf('/');
+        var lastSlashIndex = line.LastIndexOf('/', StringComparison.Ordinal);
         if (lastSlashIndex < 0)
         {
             return null;
@@ -27,7 +27,7 @@ internal static class CgroupContainerIdParser
         var lastSection = line.Substring(lastSlashIndex + 1);
 
         string containerId;
-        var colonIndex = lastSection.LastIndexOf(':');
+        var colonIndex = lastSection.LastIndexOf(':', StringComparison.Ordinal);
 
         if (colonIndex != -1)
         {
@@ -37,8 +37,8 @@ internal static class CgroupContainerIdParser
         }
         else
         {
-            var startIndex = lastSection.LastIndexOf('-');
-            var endIndex = lastSection.LastIndexOf('.');
+            var startIndex = lastSection.LastIndexOf('-', StringComparison.Ordinal);
+            var endIndex = lastSection.LastIndexOf('.', StringComparison.Ordinal);
 
             startIndex = (startIndex == -1) ? 0 : startIndex + 1;
 
@@ -72,4 +72,13 @@ internal static class CgroupContainerIdParser
 
         return true;
     }
+
+#if !NET11_0_OR_GREATER
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+    private static int LastIndexOf(this string str, char value, StringComparison comparisonType)
+    {
+        System.Diagnostics.Debug.Assert(comparisonType == StringComparison.Ordinal, "Only StringComparison.Ordinal is supported.");
+        return str.LastIndexOf(value);
+    }
+#endif
 }

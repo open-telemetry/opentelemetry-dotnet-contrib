@@ -131,7 +131,9 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
             (Activity Activity, ProfilingSession Session, Baggage Baggage) GetOrAddSession(
                 (ActivityTraceId TraceId, ActivitySpanId SpanId) cacheKey,
                 Activity parent)
-                => this.Cache.GetOrAdd(cacheKey, _ => (parent, new(), Baggage.Current));
+            {
+                return this.Cache.GetOrAdd(cacheKey, _ => (parent, new(), Baggage.Current));
+            }
         }
 #endif
 
