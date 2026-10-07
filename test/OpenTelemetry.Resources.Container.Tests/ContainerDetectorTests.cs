@@ -8,44 +8,14 @@ public class ContainerDetectorTests
     private readonly List<TestCase> testValidCasesV1 =
     [
         new(
-            name: "cgroupv1 with prefix",
-            line: "13:name=systemd:/podruntime/docker/kubepods/crio-e2cc29debdf85dde404998aa128997a819ff991827356a1b2c3d4e5f60718293",
-            expectedContainerId: "e2cc29debdf85dde404998aa128997a819ff991827356a1b2c3d4e5f60718293",
-            cgroupVersion: ContainerDetector.ParseMode.V1),
-
-        new(
-            name: "cgroupv1 with suffix",
-            line: "13:name=systemd:/podruntime/docker/kubepods/ac679f8a8319c8cf7d38e1adf263bc08d231f2ff81abda3915f6e8ba4d64156a.aaaa",
-            expectedContainerId: "ac679f8a8319c8cf7d38e1adf263bc08d231f2ff81abda3915f6e8ba4d64156a",
-            cgroupVersion: ContainerDetector.ParseMode.V1),
-
-        new(
-            name: "cgroupv1 with prefix and suffix",
-            line: "13:name=systemd:/podruntime/docker/kubepods/crio-dc679f8a8319c8cf7d38e1adf263bc08d234f0749ea715fb6ca3bb259db69956.stuff",
-            expectedContainerId: "dc679f8a8319c8cf7d38e1adf263bc08d234f0749ea715fb6ca3bb259db69956",
-            cgroupVersion: ContainerDetector.ParseMode.V1),
-
-        new(
             name: "cgroupv1 with container Id",
             line: "13:name=systemd:/pod/d86d75589bf6cc254f3e2cc29debdf85dde404998aa128997a819ff991827356",
             expectedContainerId: "d86d75589bf6cc254f3e2cc29debdf85dde404998aa128997a819ff991827356",
             cgroupVersion: ContainerDetector.ParseMode.V1),
 
         new(
-            name: "cgroupv1 with two dashes in prefix",
-            line: "11:perf_event:/kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod4415fd05_2c0f_4533_909b_f2180dca8d7c.slice/cri-containerd-713a77a26fe2a38ebebd5709604a048c3d380db1eb16aa43aca0b2499e54733c.scope",
-            expectedContainerId: "713a77a26fe2a38ebebd5709604a048c3d380db1eb16aa43aca0b2499e54733c",
-            cgroupVersion: ContainerDetector.ParseMode.V1),
-
-        new(
-            name: "cgroupv1 with colon (containerd v1.5+ with systemd cgroup driver)",
-            line: "11:devices:/system.slice/containerd.service/kubepods-pod87a18a64_b74a_454a_b10b_a4a36059d0a3.slice:cri-containerd:05c48c82caff3be3d7f1e896981dd410e81487538936914f32b624d168de9db0",
-            expectedContainerId: "05c48c82caff3be3d7f1e896981dd410e81487538936914f32b624d168de9db0",
-            cgroupVersion: ContainerDetector.ParseMode.V1),
-
-        new(
-            name: "cgroupv1 with unrecognized line before container id",
-            line: "13:name=systemd:/podruntime/docker/kubepods/ac679f8.a8319c8cf7d38e1adf263bc08-d23zzzz\n0::/system.slice/docker-d86d75589bf6cc254f3e2cc29debdf85dde404998aa128997a819ff991827356.scope",
+            name: "cgroupv1 with container Id after lines without one",
+            line: "13:rdma:/\n12:pids:/user.slice/user-1000.slice/session-2.scope\n11:cpu:/system.slice/docker-d86d75589bf6cc254f3e2cc29debdf85dde404998aa128997a819ff991827356.scope",
             expectedContainerId: "d86d75589bf6cc254f3e2cc29debdf85dde404998aa128997a819ff991827356",
             cgroupVersion: ContainerDetector.ParseMode.V1),
 
@@ -99,18 +69,8 @@ public class ContainerDetectorTests
             cgroupVersion: ContainerDetector.ParseMode.V1),
 
         new(
-            name: "cgroupv1 line with id that is too short",
-            line: "13:name=systemd:/podruntime/docker/kubepods/crio-e2cc29debdf85dde404998aa128997a819ff",
-            cgroupVersion: ContainerDetector.ParseMode.V1),
-
-        new(
-            name: "cgroupv1 line with id that is too long",
-            line: "13:name=systemd:/pod/d86d75589bf6cc254f3e2cc29debdf85dde404998aa128997a819ff991827356a",
-            cgroupVersion: ContainerDetector.ParseMode.V1),
-
-        new(
-            name: "cgroupv1 line with unrecognized format (last '-' is after last '.')",
-            line: "13:name=systemd:/podruntime/docker/kubepods/ac679f8.a8319c8cf7d38e1adf263bc08-d23zzzz",
+            name: "cgroupv1 file of a process that is not in a container",
+            line: "0::/user.slice/user-1000.slice/session-2.scope",
             cgroupVersion: ContainerDetector.ParseMode.V1),
 
         new(

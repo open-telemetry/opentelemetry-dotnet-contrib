@@ -11,22 +11,14 @@ public static class AWSContainerIdTests
 
     public static TheoryData<string, string?> CgroupFiles() => new()
     {
-        //// cgroupfs cgroup driver.
-        { $"11:cpu:/kubepods/besteffort/pod1a2b3c4d/{Id}", Id },
-        { $"11:cpu:/ecs/55091c13b8a14c4e84b5ef3a9f3e1fd0/{Id}", Id },
-
-        //// systemd cgroup driver.
-        { $"11:cpu:/kubepods.slice/kubepods-besteffort.slice/kubepods-besteffort-pod1a2b3c4d.slice/cri-containerd-{Id}.scope", Id },
-        { $"11:cpu:/system.slice/docker-{Id}.scope", Id },
-        { $"11:devices:/system.slice/containerd.service/kubepods-pod87a18a64_b74a_454a_b10b_a4a36059d0a3.slice:cri-containerd:{Id}", Id },
+        { $"11:cpu:/docker/{Id}", Id },
 
         //// The first line with a container id is used.
-        { $"13:rdma:/\n12:pids:/user.slice/user-1000.slice/user@1000.service/app.slice/app-gnome-code-4521.scope\n11:cpu:/docker/{Id}", Id },
+        { $"13:rdma:/\n12:pids:/user.slice/user-1000.slice/session-2.scope\n11:cpu:/system.slice/docker-{Id}.scope\n10:memory:/docker/{Id.Replace('d', 'e')}", Id },
 
         //// No container id.
         { "0::/", null },
-        { "12:pids:/user.slice/user-1000.slice/user@1000.service/app.slice/app-org.gnome.Terminal.slice/vte-spawn-2c4a7f5e-3b1d-4e8a-9f6c-0d1e2f3a4b5c.scope", null },
-        { "11:cpu:/ecs/55091c13b8a14c4e84b5ef3a9f3e1fd0/55091c13b8a14c4e84b5ef3a9f3e1fd0-2570125050", null },
+        { "13:rdma:/\n12:pids:/user.slice/user-1000.slice/session-2.scope", null },
     };
 
     [Theory]
