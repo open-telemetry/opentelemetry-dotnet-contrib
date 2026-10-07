@@ -1,1 +1,1 @@
-FROM mcr.microsoft.com/azuredataexplorer/kustainer-linux:latest@sha256:35d32f74d131e0d7afb11b8761dcfc92df612251dccb9d5aefbcf4ef638b782b
+FROM mcr.microsoft.com/azuredataexplorer/kustainer-linux:latest@sha256:3b7dfa39f88f4e5f0c0d5f3bcd7e36719006c92b8b0bb5bb1b829e2e6d6a4ff5
