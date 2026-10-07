@@ -49,10 +49,18 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
         (ActivityTraceId TraceId, ActivitySpanId SpanId),
         (Activity Activity, ProfilingSession Session, Baggage Baggage)> Cache = new();
 
+    internal int CurrentDrainIntervalMilliseconds => Volatile.Read(ref this.currentDrainIntervalMilliseconds);
+
+    private const int MinDrainIntervalMilliseconds = 100;
+
     private readonly StackExchangeRedisInstrumentationOptions options;
     private readonly EventWaitHandle stopHandle = new(false, EventResetMode.ManualReset);
+    private readonly EventWaitHandle workAvailableHandle = new(false, EventResetMode.AutoReset);
+    private readonly WaitHandle[] drainWaitHandles;
     private readonly Thread drainThread;
     private readonly ProfilingSession defaultSession = new();
+    private readonly int minDrainIntervalMilliseconds;
+    private int currentDrainIntervalMilliseconds;
     private int disposed;
 
     /// <summary>
@@ -69,6 +77,9 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
         Guard.ThrowIfNull(connection);
 
         this.options = options ?? new StackExchangeRedisInstrumentationOptions();
+        this.minDrainIntervalMilliseconds = GetMinimumDrainIntervalMilliseconds((int)this.options.FlushInterval.TotalMilliseconds);
+        this.currentDrainIntervalMilliseconds = this.minDrainIntervalMilliseconds;
+        this.drainWaitHandles = [this.stopHandle, this.workAvailableHandle];
 
         this.drainThread = new Thread(this.DrainEntries)
         {
@@ -115,6 +126,7 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
         // If no parent use the default session.
         if (parent == null || parent.IdFormat != ActivityIdFormat.W3C)
         {
+            this.SignalDrainIfBackedOff();
             return this.defaultSession;
         }
 
@@ -135,6 +147,7 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
         }
 #endif
 
+        this.SignalDrainIfBackedOff();
         return session.Session;
     };
 
@@ -152,13 +165,16 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
         this.Flush();
 
         this.stopHandle.Dispose();
+        this.workAvailableHandle.Dispose();
     }
 
-    internal void Flush()
+    internal bool Flush()
     {
+        var drainedCommands = false;
+
         // Commands with no parent Activity share defaultSession, so there is no single
         // caller to attribute baggage to.
-        RedisProfilerEntryToActivityConverter.DrainSession(null, this.defaultSession.FinishProfiling(), default, this.options);
+        drainedCommands |= RedisProfilerEntryToActivityConverter.DrainSession(null, this.defaultSession.FinishProfiling(), default, this.options);
 
         foreach (var entry in this.Cache)
         {
@@ -168,7 +184,7 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
             if (this.options.EnableEarlyCommandDrain || parentCompleted)
             {
                 var session = entry.Value.Session;
-                RedisProfilerEntryToActivityConverter.DrainSession(parent, session.FinishProfiling(), entry.Value.Baggage, this.options);
+                drainedCommands |= RedisProfilerEntryToActivityConverter.DrainSession(parent, session.FinishProfiling(), entry.Value.Baggage, this.options);
             }
 
             if (parentCompleted)
@@ -176,18 +192,60 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
                 this.Cache.TryRemove((entry.Key.TraceId, entry.Key.SpanId), out _);
             }
         }
+
+        return drainedCommands;
     }
 
     private void DrainEntries(object? state)
     {
         while (true)
         {
-            if (this.stopHandle.WaitOne(this.options.FlushInterval))
+            var waitResult = WaitHandle.WaitAny(this.drainWaitHandles, this.currentDrainIntervalMilliseconds);
+            if (waitResult == 0)
             {
                 break;
             }
 
-            this.Flush();
+            if (waitResult == 1)
+            {
+                // The profiler factory is called when a command starts, so a wake can
+                // arrive before the command is available. Poll again at the minimum
+                // interval instead of treating this wake as an empty timer tick.
+                this.currentDrainIntervalMilliseconds = this.minDrainIntervalMilliseconds;
+                this.Flush();
+                continue;
+            }
+
+            var drainedCommands = this.Flush();
+            this.currentDrainIntervalMilliseconds = GetNextDrainIntervalMilliseconds(
+                this.currentDrainIntervalMilliseconds,
+                this.minDrainIntervalMilliseconds,
+                (int)this.options.FlushInterval.TotalMilliseconds,
+                drainedCommands: drainedCommands);
+        }
+    }
+
+    internal static int GetNextDrainIntervalMilliseconds(int current, int minimum, int maximum, bool drainedCommands)
+        => drainedCommands ? minimum : (int)Math.Min(current * 2L, maximum);
+
+    internal static int GetMinimumDrainIntervalMilliseconds(int flushIntervalMilliseconds)
+        => Math.Min(MinDrainIntervalMilliseconds, flushIntervalMilliseconds);
+
+    private void SignalDrainIfBackedOff()
+    {
+        if (this.currentDrainIntervalMilliseconds <= this.minDrainIntervalMilliseconds)
+        {
+            return;
+        }
+
+        try
+        {
+            this.workAvailableHandle.Set();
+        }
+        catch (ObjectDisposedException)
+        {
+            // A profiler factory invocation can race with disposal after observing
+            // disposed == 0 above. The session is still returned safely.
         }
     }
 }
