@@ -1,4 +1,14 @@
 <Project>
   <Import Project="..\Directory.Build.targets" Condition="Exists('..\Directory.Build.targets')" />
   <Import Project="$(RepoRoot)\build\Common.targets" />
+
+  <!--
+    Microsoft.Testing.Extensions.Telemetry (a dependency of xunit.v3.mtp-v2) sends Application Insights
+    telemetry over HTTP from inside the test process. Those requests are observed by the HTTP instrumentation
+    under test (on .NET Framework via HttpWebRequest) and pollute the captured activities and metrics,
+    so opt out of the extension for all test projects.
+  -->
+  <ItemGroup Condition="'$(IsTestProject)' == 'true'">
+    <TestingPlatformBuilderHook Remove="98058041-B5B6-4A75-9834-58E6DF796A22" />
+  </ItemGroup>
 </Project>

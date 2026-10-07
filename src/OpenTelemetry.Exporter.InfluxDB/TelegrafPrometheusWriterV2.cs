@@ -29,7 +29,7 @@ internal sealed class TelegrafPrometheusWriterV2 : IMetricsWriter
                             .Tags(metric.MeterTags)
                             .Tags(resource?.Attributes)
                             .Timestamp(metricPoint.EndTime.UtcDateTime, WritePrecision.Ns);
-                        lineProtocol.Add(pointData.ToLineProtocol());
+                        pointData.WriteTo(lineProtocol, metric.Name);
                     }
 
                     break;
@@ -46,7 +46,7 @@ internal sealed class TelegrafPrometheusWriterV2 : IMetricsWriter
                             .Tags(metric.MeterTags)
                             .Tags(resource?.Attributes)
                             .Timestamp(metricPoint.EndTime.UtcDateTime, WritePrecision.Ns);
-                        lineProtocol.Add(pointData.ToLineProtocol());
+                        pointData.WriteTo(lineProtocol, metric.Name);
                     }
 
                     break;
@@ -63,7 +63,7 @@ internal sealed class TelegrafPrometheusWriterV2 : IMetricsWriter
                             .Tags(metric.MeterTags)
                             .Tags(resource?.Attributes)
                             .Timestamp(metricPoint.EndTime.UtcDateTime, WritePrecision.Ns);
-                        lineProtocol.Add(pointData.ToLineProtocol());
+                        pointData.WriteTo(lineProtocol, metric.Name);
                     }
 
                     break;
@@ -80,7 +80,7 @@ internal sealed class TelegrafPrometheusWriterV2 : IMetricsWriter
                             .Tags(metric.MeterTags)
                             .Tags(resource?.Attributes)
                             .Timestamp(metricPoint.EndTime.UtcDateTime, WritePrecision.Ns);
-                        lineProtocol.Add(pointData.ToLineProtocol());
+                        pointData.WriteTo(lineProtocol, metric.Name);
                     }
 
                     break;
@@ -97,7 +97,7 @@ internal sealed class TelegrafPrometheusWriterV2 : IMetricsWriter
                             .Tags(metric.MeterTags)
                             .Tags(resource?.Attributes)
                             .Timestamp(dataPoint.EndTime.UtcDateTime, WritePrecision.Ns);
-                        lineProtocol.Add(pointData.ToLineProtocol());
+                        pointData.WriteTo(lineProtocol, metric.Name);
                     }
 
                     break;
@@ -114,7 +114,7 @@ internal sealed class TelegrafPrometheusWriterV2 : IMetricsWriter
                             .Tags(metric.MeterTags)
                             .Tags(resource?.Attributes)
                             .Timestamp(dataPoint.EndTime.UtcDateTime, WritePrecision.Ns);
-                        lineProtocol.Add(pointData.ToLineProtocol());
+                        pointData.WriteTo(lineProtocol, metric.Name);
                     }
 
                     break;
@@ -141,7 +141,7 @@ internal sealed class TelegrafPrometheusWriterV2 : IMetricsWriter
                             .Field($"{metricName}_max", max);
                     }
 
-                    lineProtocol.Add(headPoint.ToLineProtocol());
+                    headPoint.WriteTo(lineProtocol, metric.Name);
 
                     long cumulativeCount = 0;
 
@@ -155,7 +155,7 @@ internal sealed class TelegrafPrometheusWriterV2 : IMetricsWriter
                         var bucketPoint = basePoint
                             .Tag("le", boundFieldKey)
                             .Field($"{metricName}_bucket", cumulativeCount);
-                        lineProtocol.Add(bucketPoint.ToLineProtocol());
+                        bucketPoint.WriteTo(lineProtocol, metric.Name);
                     }
                 }
 

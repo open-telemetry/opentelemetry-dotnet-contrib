@@ -61,6 +61,113 @@ public abstract class OpAmpPipeTests
     }
 
     [Fact]
+    public async Task OpAmpPipe_UsesServerAssignedInstanceUid()
+    {
+        using var transport = this.GetTransport();
+        var settings = new OpAmpClientSettings();
+        var processor = new FrameProcessor();
+        using var pipe = new OpAmpPipe(settings, processor, transport);
+        var newInstanceUid = ByteString.CopyFrom(Enumerable.Range(1, 16).Select(i => (byte)i).ToArray());
+        var serverFrame = new ServerToAgent
+        {
+            AgentIdentification = new AgentIdentification { NewInstanceUid = newInstanceUid },
+        }.ToByteArray();
+
+        AppendIdentification(pipe);
+        await transport.WaitForMessagesAsync(1);
+        transport.CompleteNextSend();
+        processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+
+        AppendHeartbeat(pipe);
+        await transport.WaitForMessagesAsync(2);
+        transport.CompleteNextSend();
+
+        Assert.NotEqual(newInstanceUid, transport.Messages[0].InstanceUid);
+        Assert.Equal(newInstanceUid, transport.Messages[1].InstanceUid);
+    }
+
+    [Fact]
+    public async Task OpAmpPipe_UsesServerAssignedInstanceUid_ForQueuedFrames()
+    {
+        const int customMessageCount = 3;
+
+        using var transport = this.GetTransport();
+        var settings = new OpAmpClientSettings();
+        var processor = new FrameProcessor();
+        using var pipe = new OpAmpPipe(settings, processor, transport);
+        var newInstanceUid = ByteString.CopyFrom(Enumerable.Range(1, 16).Select(i => (byte)i).ToArray());
+        var assignmentFrame = new ServerToAgent
+        {
+            AgentIdentification = new AgentIdentification { NewInstanceUid = newInstanceUid },
+        }.ToByteArray();
+        var serverFrame = new ServerToAgent().ToByteArray();
+
+        AppendIdentification(pipe);
+        await transport.WaitForMessagesAsync(1);
+
+        for (var i = 0; i < customMessageCount; i++)
+        {
+            AppendCustomMessage(pipe, i);
+        }
+
+        processor.OnServerFrame(new ReadOnlySequence<byte>(assignmentFrame));
+        transport.CompleteNextSend();
+        await transport.WaitForMessagesAsync(2);
+
+        for (var expectedMessageCount = 3;
+            expectedMessageCount <= customMessageCount + 1;
+            expectedMessageCount++)
+        {
+            transport.CompleteNextSend();
+            processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+            await transport.WaitForMessagesAsync(expectedMessageCount);
+        }
+
+        transport.CompleteNextSend();
+        processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+
+        var messages = transport.Messages;
+        Assert.Equal(customMessageCount + 1, messages.Count);
+        Assert.NotEqual(newInstanceUid, messages[0].InstanceUid);
+        Assert.All(messages.Skip(1), message =>
+        {
+            Assert.NotNull(message.CustomMessage);
+            Assert.Equal(newInstanceUid, message.InstanceUid);
+        });
+    }
+
+    [Theory]
+    [InlineData(3, "expected 16 bytes, received 3")]
+    [InlineData(16, "all bytes are zero")]
+    public async Task OpAmpPipe_IgnoresInvalidServerAssignedInstanceUid(int length, string reason)
+    {
+        using var eventListener = new InMemoryEventListener(OpAmpClientEventSource.Log, EventLevel.Verbose);
+        using var transport = this.GetTransport();
+        var settings = new OpAmpClientSettings();
+        var processor = new FrameProcessor();
+        using var pipe = new OpAmpPipe(settings, processor, transport);
+        var serverFrame = new ServerToAgent
+        {
+            AgentIdentification = new AgentIdentification { NewInstanceUid = ByteString.CopyFrom(new byte[length]) },
+        }.ToByteArray();
+
+        AppendIdentification(pipe);
+        await transport.WaitForMessagesAsync(1);
+        transport.CompleteNextSend();
+        processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+
+        AppendHeartbeat(pipe);
+        await transport.WaitForMessagesAsync(2);
+        transport.CompleteNextSend();
+
+        Assert.Equal(transport.Messages[0].InstanceUid, transport.Messages[1].InstanceUid);
+        Assert.Contains(
+            eventListener.Events,
+            e => e.EventName == nameof(OpAmpClientEventSource.InvalidInstanceUid)
+                && (string?)e.Payload![0] == reason);
+    }
+
+    [Fact]
     public async Task OpAmpPipe_PreservesAccumulatedCustomMessages()
     {
         const int customMessageCount = 3;

@@ -290,6 +290,16 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
         }
     }
 
+    internal static bool IsHandledEvent(string eventName) => eventName switch
+    {
+        EntityFrameworkCoreCommandCreated or
+        EntityFrameworkCoreCommandExecuting or
+        EntityFrameworkCoreCommandExecuted or
+        EntityFrameworkCoreCommandCanceled or
+        EntityFrameworkCoreCommandError => true,
+        _ => false,
+    };
+
     /// <summary>
     /// Gets the <c>db.system</c> and <c>db.system.name</c> values to use for the given provider or command name.
     /// </summary>
