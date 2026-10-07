@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+* Fixed attribute keys and values containing backslashes producing invalid
+  line protocol, which caused InfluxDB to reject the entire batch of metrics
+  being written.
+  ([#5430](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5430))
+
+* Data points that cannot be written because none of their values can be
+  represented in line protocol (NaN or infinite values) are now reported
+  through the `OpenTelemetry-Exporter-InfluxDB` event source instead of being
+  dropped silently.
+  ([#5430](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5430))
+
 ## 1.0.0-alpha.14
 
 Released 2026-Sep-21
