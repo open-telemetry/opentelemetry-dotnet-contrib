@@ -120,8 +120,9 @@ public class EventCountersMetricsTests
     {
         var ex = Assert.Throws<NotSupportedException>(() =>
         {
-            Sdk.CreateMeterProviderBuilder()
-               .AddEventCountersInstrumentation(options => options.AddEventSources("System.Runtime"));
+            using var meterProvider = Sdk.CreateMeterProviderBuilder()
+               .AddEventCountersInstrumentation(options => options.AddEventSources("System.Runtime"))
+               .Build();
         });
 
         Assert.Equal("Use the `OpenTelemetry.Instrumentation.Runtime` or `OpenTelemetry.Instrumentation.Process` instrumentations.", ex.Message);
