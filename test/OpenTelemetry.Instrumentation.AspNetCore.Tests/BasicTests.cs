@@ -1137,16 +1137,15 @@ public sealed class BasicTests
 
             await client.StopAsync(TestContext.Current.CancellationToken);
 
-            WaitForHubActivities(exportedItems, 3);
+            // OnDisconnectedAsync runs on the server after the client has stopped, so give it
+            // time to be exported before the server is disposed and can no longer export it.
+            WaitForActivityExportToStabilize(exportedItems);
         }
 
-        WaitForActivityExportToStabilize(exportedItems);
-
         var hubActivity = exportedItems
-            .Where(a => a.DisplayName.StartsWith("TestApp.AspNetCore.TestHub", StringComparison.InvariantCulture))
-            .ToArray();
+            .Where(a => a.DisplayName.StartsWith("TestApp.AspNetCore.TestHub", StringComparison.InvariantCulture));
 
-        Assert.Equal(3, hubActivity.Length);
+        Assert.Equal(3, hubActivity.Count());
         Assert.Collection(
             hubActivity,
             one =>
@@ -1378,26 +1377,6 @@ public sealed class BasicTests
             $"Actual: {getCount()} Expected: {count}");
 
 #if NET9_0_OR_GREATER
-    private static void WaitForHubActivities(List<Activity> exportedItems, int count)
-        => Assert.True(
-            SpinWait.SpinUntil(
-            () =>
-            {
-                Thread.Sleep(10);
-
-                try
-                {
-                    return exportedItems.Count(a => a.DisplayName.StartsWith("TestApp.AspNetCore.TestHub", StringComparison.InvariantCulture)) >= count;
-                }
-                catch (InvalidOperationException)
-                {
-                    // The list was modified by the exporter while enumerating; try again.
-                    return false;
-                }
-            },
-            TimeSpan.FromSeconds(10)),
-            $"Expected at least {count} SignalR hub activities.");
-
     private static void WaitForActivityExportToStabilize(List<Activity> exportedItems)
     {
         // The number of activities produced by the SignalR long-polling transport is
