@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using OpenTelemetry.Instrumentation.EventCounters;
 using OpenTelemetry.Internal;
 
@@ -12,21 +14,52 @@ namespace OpenTelemetry.Metrics;
 public static class MeterProviderBuilderExtensions
 {
     /// <summary>
-    /// Enables EventCounter instrumentation.
+    /// Enables EventCounters instrumentation.
+    /// </summary>
+    /// <param name="builder"><see cref="MeterProviderBuilder"/> being configured.</param>
+    /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
+    public static MeterProviderBuilder AddEventCountersInstrumentation(
+        this MeterProviderBuilder builder)
+        => AddEventCountersInstrumentation(builder, name: null, configure: null);
+
+    /// <summary>
+    /// Enables EventCounters instrumentation.
     /// </summary>
     /// <param name="builder"><see cref="MeterProviderBuilder"/> being configured.</param>
     /// <param name="configure">EventCounters instrumentation options.</param>
     /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
     public static MeterProviderBuilder AddEventCountersInstrumentation(
         this MeterProviderBuilder builder,
-        Action<EventCountersInstrumentationOptions>? configure = null)
+        Action<EventCountersInstrumentationOptions>? configure)
+        => AddEventCountersInstrumentation(builder, name: null, configure);
+
+    /// <summary>
+    /// Enables EventCounters instrumentation.
+    /// </summary>
+    /// <param name="builder"><see cref="MeterProviderBuilder"/> being configured.</param>
+    /// <param name="name">Optional name which is used when retrieving options.</param>
+    /// <param name="configure">Optional callback action for configuring <see cref="EventCountersInstrumentationOptions"/>.</param>
+    /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
+    public static MeterProviderBuilder AddEventCountersInstrumentation(
+        this MeterProviderBuilder builder,
+        string? name,
+        Action<EventCountersInstrumentationOptions>? configure)
     {
         Guard.ThrowIfNull(builder);
 
-        var options = new EventCountersInstrumentationOptions();
-        configure?.Invoke(options);
+        name ??= Options.DefaultName;
+
+        if (configure != null)
+        {
+            builder.ConfigureServices(services => services.Configure(name, configure));
+        }
 
         builder.AddMeter(EventCountersMetrics.MeterInstance.Name);
-        return builder.AddInstrumentation(() => new EventCountersMetrics(options));
+
+        return builder.AddInstrumentation(sp =>
+        {
+            var options = sp.GetRequiredService<IOptionsMonitor<EventCountersInstrumentationOptions>>().Get(name);
+            return new EventCountersMetrics(options);
+        });
     }
 }

@@ -124,7 +124,17 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
 #if NET
         var session = this.Cache.GetOrAdd(cacheKey, static (_, parent) => (parent, new(), Baggage.Current), parent);
 #else
-        var session = this.Cache.GetOrAdd(cacheKey, _ => (parent, new(), Baggage.Current));
+        if (!this.Cache.TryGetValue(cacheKey, out var session))
+        {
+            session = GetOrAddSession(cacheKey, parent);
+
+            (Activity Activity, ProfilingSession Session, Baggage Baggage) GetOrAddSession(
+                (ActivityTraceId TraceId, ActivitySpanId SpanId) cacheKey,
+                Activity parent)
+            {
+                return this.Cache.GetOrAdd(cacheKey, _ => (parent, new(), Baggage.Current));
+            }
+        }
 #endif
 
         return session.Session;

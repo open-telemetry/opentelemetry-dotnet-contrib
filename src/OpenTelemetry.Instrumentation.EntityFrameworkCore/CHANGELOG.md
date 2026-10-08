@@ -7,6 +7,12 @@
   truncated at the escape.
   ([#5237](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5237))
 
+* Fixed spans from instrumented ADO.NET providers (for example Npgsql or
+  SqlClient) being dropped when `Filter` excludes a command or throws. The
+  filtered-out activity is now stopped so that it no longer remains the
+  current, non-recorded parent while the command executes.
+  ([#5481](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5481))
+
 * Fixed exception messages being exported as the span status description.
   The `error.type` attribute is now set to the type of the exception instead.
   ([#5447](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5447))

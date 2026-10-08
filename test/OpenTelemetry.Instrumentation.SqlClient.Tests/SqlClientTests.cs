@@ -24,6 +24,29 @@ public class SqlClientTests
 {
     private const string TestConnectionString = "Data Source=(localdb)\\MSSQLLocalDB;Database=main;Encrypt=True;TrustServerCertificate=True";
 
+    private enum SamplingMode
+    {
+        /// <summary>
+        /// Commands are traced and sampled.
+        /// </summary>
+        Sampled,
+
+        /// <summary>
+        /// Commands are traced but not sampled, so an activity which is not recorded is created for them.
+        /// </summary>
+        NotRecorded,
+
+        /// <summary>
+        /// Commands are traced but not sampled, and their parent is not sampled, so no activity is created for them.
+        /// </summary>
+        NotSampled,
+
+        /// <summary>
+        /// Commands are not traced.
+        /// </summary>
+        MetricsOnly,
+    }
+
     public static IEnumerable<object[]> TestData => SqlClientTestCases.GetTestCases();
 
     [Fact]
@@ -404,6 +427,109 @@ public class SqlClientTests
         }
 
         Assert.Equal("select sys.databases", querySummary);
+    }
+
+    [Theory]
+    [InlineData(SqlClientLibrary.SystemDataSqlClient, CommandType.Text, false)]
+    [InlineData(SqlClientLibrary.SystemDataSqlClient, CommandType.Text, true)]
+    [InlineData(SqlClientLibrary.SystemDataSqlClient, CommandType.StoredProcedure, false)]
+    [InlineData(SqlClientLibrary.SystemDataSqlClient, CommandType.StoredProcedure, true)]
+    [InlineData(SqlClientLibrary.MicrosoftDataSqlClient, CommandType.Text, false)]
+    [InlineData(SqlClientLibrary.MicrosoftDataSqlClient, CommandType.Text, true)]
+    [InlineData(SqlClientLibrary.MicrosoftDataSqlClient, CommandType.StoredProcedure, false)]
+    [InlineData(SqlClientLibrary.MicrosoftDataSqlClient, CommandType.StoredProcedure, true)]
+    public void MetricTagsDoNotDependOnSamplingDecision(SqlClientLibrary library, CommandType commandType, bool error)
+    {
+        var commandText = commandType == CommandType.StoredProcedure ? "SP_GetOrders" : "select * from sys.databases";
+
+        var expected = GetMetricTags(library, commandType, commandText, error, SamplingMode.Sampled);
+
+        Assert.Equal(SqlTelemetryHelper.MicrosoftSqlServerDbSystemName, expected[SemanticConventions.AttributeDbSystemName]);
+#if NETFRAMEWORK
+        // The .NET Framework events are always written for the master database.
+        Assert.Equal("MSSQLLocalDB.master", expected[SemanticConventions.AttributeDbNamespace]);
+#else
+        Assert.Equal("MSSQLLocalDB.main", expected[SemanticConventions.AttributeDbNamespace]);
+#endif
+        Assert.Equal("(localdb)", expected[SemanticConventions.AttributeServerAddress]);
+        Assert.Equal(error, expected.ContainsKey(SemanticConventions.AttributeErrorType));
+
+        if (commandType == CommandType.Text)
+        {
+            Assert.Equal("select sys.databases", expected[SemanticConventions.AttributeDbQuerySummary]);
+        }
+
+#if !NETFRAMEWORK
+        if (commandType == CommandType.StoredProcedure)
+        {
+            Assert.Equal("EXECUTE", expected[SemanticConventions.AttributeDbOperationName]);
+            Assert.Equal(commandText, expected[SemanticConventions.AttributeDbStoredProcedureName]);
+            Assert.Equal($"EXECUTE {commandText}", expected[SemanticConventions.AttributeDbQuerySummary]);
+        }
+#endif
+
+        Assert.Equal(expected, GetMetricTags(library, commandType, commandText, error, SamplingMode.NotRecorded));
+        Assert.Equal(expected, GetMetricTags(library, commandType, commandText, error, SamplingMode.NotSampled));
+        Assert.Equal(expected, GetMetricTags(library, commandType, commandText, error, SamplingMode.MetricsOnly));
+    }
+
+    private static SortedDictionary<string, object?> GetMetricTags(
+        SqlClientLibrary library,
+        CommandType commandType,
+        string commandText,
+        bool error,
+        SamplingMode samplingMode)
+    {
+        var activities = new List<Activity>();
+        var metrics = new List<Metric>();
+
+        var tracerProviderBuilder = Sdk.CreateTracerProviderBuilder();
+
+        if (samplingMode != SamplingMode.MetricsOnly)
+        {
+            tracerProviderBuilder
+                .SetSampler(samplingMode == SamplingMode.Sampled ? new AlwaysOnSampler() : new AlwaysOffSampler())
+                .AddSqlClientInstrumentation()
+                .AddInMemoryExporter(activities);
+        }
+
+        using var tracerProvider = tracerProviderBuilder.Build();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(metrics)
+            .Build();
+
+        // A command which is not sampled is created as an activity which is not recorded if it is
+        // the root of a trace, and is not created at all if its local parent is not sampled.
+        using (var parent = samplingMode == SamplingMode.NotSampled
+            ? new Activity("parent").SetIdFormat(ActivityIdFormat.W3C).Start()
+            : null)
+        {
+            MockCommandExecutor.ExecuteCommand(TestConnectionString, commandType, commandText, error, library);
+        }
+
+        Assert.True(tracerProvider.ForceFlush());
+        Assert.True(meterProvider.ForceFlush());
+
+        Assert.Equal(samplingMode == SamplingMode.Sampled ? 1 : 0, activities.Count);
+
+        var metric = Assert.Single(metrics, m => m.Name == "db.client.operation.duration");
+        var metricPoints = new List<MetricPoint>();
+        foreach (var point in metric.GetMetricPoints())
+        {
+            metricPoints.Add(point);
+        }
+
+        var metricPoint = Assert.Single(metricPoints);
+        Assert.Equal(1, metricPoint.GetHistogramCount());
+
+        var tags = new SortedDictionary<string, object?>(StringComparer.Ordinal);
+        foreach (var tag in metricPoint.Tags)
+        {
+            tags.Add(tag.Key, tag.Value);
+        }
+
+        return tags;
     }
 
     private static void VerifyAttributes(SqlClientTestCase testCase, Activity activity, MetricPoint metricPoint)

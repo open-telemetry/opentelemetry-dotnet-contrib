@@ -639,6 +639,75 @@ public class SqlProcessorTests(ITestOutputHelper output)
     }
 
     [Theory]
+    [InlineData(0)]
+    [InlineData(20)]
+    public void GetSanitizedSql_SameInstanceSanitizedRepeatedly_ReturnsSameResult(int extraColumns)
+    {
+        var columns = GetColumnList(extraColumns);
+        var sql = $"SELECT {columns} FROM Orders WHERE CustomerName = 'secret-name' AND Id = 42";
+        var copy = new string(sql.ToCharArray());
+
+        var first = SqlProcessor.GetSanitizedSql(sql);
+        var second = SqlProcessor.GetSanitizedSql(sql);
+        var fromCopy = SqlProcessor.GetSanitizedSql(copy);
+
+        Assert.Equal($"SELECT {columns} FROM Orders WHERE CustomerName = ? AND Id = ?", first.SanitizedSql);
+        Assert.Equal("SELECT Orders", first.DbQuerySummary);
+        Assert.Equal(first.SanitizedSql, second.SanitizedSql);
+        Assert.Equal(first.DbQuerySummary, second.DbQuerySummary);
+        Assert.Equal(first.SanitizedSql, fromCopy.SanitizedSql);
+        Assert.Equal(first.DbQuerySummary, fromCopy.DbQuerySummary);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(20)]
+    public void GetSanitizedSql_SameInstanceWithDifferentDialects_RespectsDialect(int extraColumns)
+    {
+        var columns = GetColumnList(extraColumns);
+        var sql = $"SELECT {columns} FROM Users WHERE Name = \"secret-value\" AND Id = 1";
+
+        var defaultDialect = SqlProcessor.GetSanitizedSql(sql);
+        var backslashDialect = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes: true);
+        var defaultDialectAgain = SqlProcessor.GetSanitizedSql(sql);
+        var backslashDialectAgain = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes: true);
+
+        Assert.Equal($"SELECT {columns} FROM Users WHERE Name = \"secret-value\" AND Id = ?", defaultDialect.SanitizedSql);
+        Assert.Equal($"SELECT {columns} FROM Users WHERE Name = ? AND Id = ?", backslashDialect.SanitizedSql);
+        Assert.Equal(defaultDialect.SanitizedSql, defaultDialectAgain.SanitizedSql);
+        Assert.Equal(backslashDialect.SanitizedSql, backslashDialectAgain.SanitizedSql);
+    }
+
+    [Fact]
+    public void GetSanitizedSql_CacheFull_SameInstanceIsNotSanitizedAgain()
+    {
+        // Fill the statement cache so that statements not already in it are sanitized on every lookup.
+        for (var i = 0; i < 1000; i++)
+        {
+            SqlProcessor.GetSanitizedSql($"SELECT * FROM {nameof(this.GetSanitizedSql_CacheFull_SameInstanceIsNotSanitizedAgain)}{i}");
+        }
+
+        var sql = $"SELECT * FROM Orders WHERE Id = 42 AND Token = '{Guid.NewGuid()}'";
+        var copy = new string(sql.ToCharArray());
+
+        var first = SqlProcessor.GetSanitizedSql(sql);
+        var second = SqlProcessor.GetSanitizedSql(sql);
+        var fromCopy = SqlProcessor.GetSanitizedSql(copy);
+
+        Assert.Equal("SELECT * FROM Orders WHERE Id = ? AND Token = ?", first.SanitizedSql);
+        Assert.Equal("SELECT Orders", first.DbQuerySummary);
+
+        // The second lookup for the same instance on the same thread returns the previous result.
+        Assert.Same(first.SanitizedSql, second.SanitizedSql);
+        Assert.Same(first.DbQuerySummary, second.DbQuerySummary);
+
+        // A different instance with equal content is sanitized again and produces an equal result.
+        Assert.NotSame(first.SanitizedSql, fromCopy.SanitizedSql);
+        Assert.Equal(first.SanitizedSql, fromCopy.SanitizedSql);
+        Assert.Equal(first.DbQuerySummary, fromCopy.DbQuerySummary);
+    }
+
+    [Theory]
     [MemberData(nameof(TestData))]
     public void TestGetSanitizedSql(SqlProcessorTestCases.TestCase testCase)
     {
@@ -674,4 +743,11 @@ public class SqlProcessorTests(ITestOutputHelper output)
 #else
         => sql.Replace("Nom de l'enterprise", "NomEnterprise");
 #endif
+
+    /// <summary>
+    /// Gets a column list which makes a statement long enough for the most recently sanitized
+    /// statement to be remembered when <paramref name="extraColumns"/> is not zero.
+    /// </summary>
+    private static string GetColumnList(int extraColumns) =>
+        string.Join(", ", Enumerable.Range(0, extraColumns).Select(i => $"Column{i}").Prepend("Id"));
 }

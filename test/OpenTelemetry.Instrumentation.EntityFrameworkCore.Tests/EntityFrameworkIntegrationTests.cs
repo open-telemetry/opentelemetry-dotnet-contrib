@@ -408,6 +408,51 @@ public sealed class EntityFrameworkIntegrationTests :
         }
     }
 
+    [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task NpgsqlSpansAreExportedWhenNpgsqlProviderIsFilteredOut(bool withParent)
+    {
+        // Mirrors OpenTelemetry.AutoInstrumentation, which filters out the Npgsql
+        // EF Core provider when Npgsql's own tracing is enabled to avoid duplicate spans.
+        var activities = new List<Activity>();
+
+        using var parentSource = new ActivitySource("Test.Parent");
+
+        using (Sdk.CreateTracerProviderBuilder()
+            .AddSource(parentSource.Name, "Npgsql")
+            .AddInMemoryExporter(activities)
+            .AddEntityFrameworkCoreInstrumentation(options =>
+                options.Filter = (providerName, _) => providerName != PostgresProvider)
+            .Build())
+        {
+            var optionsBuilder = new DbContextOptionsBuilder<ItemsContext>();
+
+            this.ConfigureProvider(PostgresProvider, optionsBuilder);
+
+            await using var context = new ItemsContext(optionsBuilder.Options);
+            await context.Database.EnsureCreatedAsync();
+
+            // Clear activities from creating the database
+            activities.Clear();
+
+            using var parent = withParent ? parentSource.StartActivity("parent") : null;
+
+            _ = await context.Items.ToListAsync();
+        }
+
+        Assert.DoesNotContain(activities, activity => activity.Source.Name == ActivitySourceName);
+
+        var npgsqlActivities = activities.Where(activity => activity.Source.Name == "Npgsql").ToList();
+        Assert.NotEmpty(npgsqlActivities);
+
+        var expectedParentSpanId = withParent
+            ? Assert.Single(activities, activity => activity.Source.Name == parentSource.Name).SpanId
+            : default;
+
+        Assert.All(npgsqlActivities, activity => Assert.Equal(expectedParentSpanId, activity.ParentSpanId));
+    }
+
     private static object CreateParameter(string provider, string name, object value) => provider switch
     {
         SqliteProvider => new SqliteParameter(name, value),
