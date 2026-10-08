@@ -7,6 +7,12 @@
   truncated at the escape.
   ([#5237](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5237))
 
+* Fixed spans from instrumented ADO.NET providers (for example Npgsql or
+  SqlClient) being dropped when `Filter` excludes a command or throws. The
+  filtered-out activity is now stopped so that it no longer remains the
+  current, non-recorded parent while the command executes.
+  ([#5481](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5481))
+
 ## 1.19.1-beta.1
 
 Released 2026-Sep-24
