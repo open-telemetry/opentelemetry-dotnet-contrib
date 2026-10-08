@@ -10,6 +10,18 @@
   truncated at the escape.
   ([#5237](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5237))
 
+* Fixed `db.client.operation.duration` metrics on .NET having different
+  attributes depending on whether the command was sampled. When not sampled,
+  the `db.operation.name` and `db.query.summary` attributes were missing for
+  stored procedures, and the `error.type` and `db.response.status_code`
+  attributes were missing for commands which failed.
+  ([#5471](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5471))
+
+* Fixed `db.client.operation.duration` metrics on .NET Framework not including
+  the `db.namespace`, `server.address` and `server.port` attributes for commands
+  which are not sampled.
+  ([#5471](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5471))
+
 ## 1.19.0
 
 Released 2026-Sep-18

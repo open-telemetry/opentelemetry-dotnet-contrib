@@ -5,8 +5,10 @@ using System.Data.Common;
 using System.Diagnostics;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
+using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests;
@@ -534,6 +536,129 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         Assert.True(activity.ActivityTraceFlags.HasFlag(ActivityTraceFlags.Recorded));
     }
 
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task ShouldNotSuppressDownstreamSpansWhenCommandIsFilteredOut(bool filterThrows, bool useAsync)
+    {
+        var exportedItems = new List<Activity>();
+
+        using var parentSource = new ActivitySource("Test.Parent");
+        using var driverSource = new ActivitySource("Test.Driver");
+
+        using (Sdk.CreateTracerProviderBuilder()
+                  .AddSource(parentSource.Name, driverSource.Name)
+                  .AddInMemoryExporter(exportedItems)
+                  .AddEntityFrameworkCoreInstrumentation(options =>
+                      options.Filter = (_, _) => filterThrows ? throw new InvalidOperationException("Filter failed.") : false)
+                  .Build())
+        {
+            var contextOptions = new DbContextOptionsBuilder<ItemsContext>()
+                .UseSqlite(this.connection)
+                .AddInterceptors(new DriverSpanInterceptor(driverSource))
+                .Options;
+
+            using (var parent = parentSource.StartActivity("parent"))
+            {
+                Assert.NotNull(parent);
+
+                using var context = new ItemsContext(contextOptions);
+                var query = context.Set<Item>().OrderBy(e => e.Name);
+                _ = useAsync ? await query.ToListAsync(TestContext.Current.CancellationToken) : query.ToList();
+
+                Assert.Same(parent, Activity.Current);
+            }
+        }
+
+        Assert.DoesNotContain(exportedItems, a => a.Source.Name == EntityFrameworkDiagnosticListener.ActivitySource.Name);
+
+        var parentActivity = Assert.Single(exportedItems, a => a.Source.Name == parentSource.Name);
+        var driverActivity = Assert.Single(exportedItems, a => a.Source.Name == driverSource.Name);
+
+        Assert.Equal(parentActivity.SpanId, driverActivity.ParentSpanId);
+        Assert.True(driverActivity.Recorded);
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task ShouldNotReportNullActivityWhenFilteredCommandHasNoParent(bool useAsync, bool commandFails)
+    {
+        var exportedItems = new List<Activity>();
+
+        using var eventListener = new InMemoryEventListener(EntityFrameworkInstrumentationEventSource.Log);
+
+        using (Sdk.CreateTracerProviderBuilder()
+                  .AddInMemoryExporter(exportedItems)
+                  .AddEntityFrameworkCoreInstrumentation(options => options.Filter = (_, _) => false)
+                  .Build())
+        {
+            Assert.Null(Activity.Current);
+
+            using var context = new ItemsContext(this.contextOptions);
+
+            if (commandFails)
+            {
+                var exception = useAsync
+                    ? await Record.ExceptionAsync(() => context.Database.ExecuteSqlRawAsync("select * from no_table", TestContext.Current.CancellationToken))
+                    : Record.Exception(() => context.Database.ExecuteSqlRaw("select * from no_table"));
+
+                Assert.IsType<SqliteException>(exception);
+            }
+            else
+            {
+                var query = context.Set<Item>().OrderBy(e => e.Name);
+                _ = useAsync ? await query.ToListAsync(TestContext.Current.CancellationToken) : query.ToList();
+            }
+        }
+
+        Assert.Empty(exportedItems);
+
+        // 6 = CommandIsFilteredOut, 2 = NullActivity
+        Assert.Contains(eventListener.Events, e => e.EventId == 6);
+        Assert.DoesNotContain(eventListener.Events, e => e.EventId == 2);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ShouldNotStopOuterActivityWhenNestedCommandIsFilteredOut(bool innerCommandFails)
+    {
+        var exportedItems = new List<Activity>();
+
+        using (Sdk.CreateTracerProviderBuilder()
+                  .AddInMemoryExporter(exportedItems)
+                  .AddEntityFrameworkCoreInstrumentation(options =>
+                      options.Filter = (_, command) => !command.CommandText.Contains("filtered", StringComparison.Ordinal))
+                  .Build())
+        {
+            var innerCommandText = innerCommandFails
+                ? "select * from no_table /* filtered */"
+                : "select 1 /* filtered */";
+
+            var interceptor = new NestedCommandInterceptor(this.contextOptions, innerCommandText);
+
+            var contextOptions = new DbContextOptionsBuilder<ItemsContext>()
+                .UseSqlite(this.connection)
+                .AddInterceptors(interceptor)
+                .Options;
+
+            using var context = new ItemsContext(contextOptions);
+            _ = context.Set<Item>().OrderBy(e => e.Name).ToList();
+
+            // The outer command's activity must still be current and running once the inner command completed.
+            Assert.Equal(EntityFrameworkDiagnosticListener.ActivitySource.Name, interceptor.SourceAfterInnerCommand);
+            Assert.False(interceptor.StoppedAfterInnerCommand);
+        }
+
+        var activity = Assert.Single(exportedItems);
+        Assert.Equal(ActivityStatusCode.Unset, activity.Status);
+    }
+
     public void Dispose() => this.connection.Dispose();
 
     private static SqliteConnection CreateInMemoryDatabase()
@@ -624,5 +749,63 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         context.AddRange(one, two, three);
 
         context.SaveChanges();
+    }
+
+    /// <summary>
+    /// Runs another (filtered) command while the outer command is executing, then records the state of <see cref="Activity.Current"/>.
+    /// </summary>
+    private sealed class NestedCommandInterceptor(DbContextOptions<ItemsContext> innerContextOptions, string innerCommandText) : DbCommandInterceptor
+    {
+        public string? SourceAfterInnerCommand { get; private set; }
+
+        public bool? StoppedAfterInnerCommand { get; private set; }
+
+        public override InterceptionResult<DbDataReader> ReaderExecuting(
+            DbCommand command,
+            CommandEventData eventData,
+            InterceptionResult<DbDataReader> result)
+        {
+            using (var innerContext = new ItemsContext(innerContextOptions))
+            {
+                try
+                {
+                    innerContext.Database.ExecuteSqlRaw(innerCommandText);
+                }
+                catch (SqliteException)
+                {
+                    // Expected when the inner command is meant to fail
+                }
+            }
+
+            this.SourceAfterInnerCommand = Activity.Current?.Source.Name;
+            this.StoppedAfterInnerCommand = Activity.Current?.IsStopped;
+
+            return base.ReaderExecuting(command, eventData, result);
+        }
+    }
+
+    /// <summary>
+    /// Starts a span while the command executes, like an instrumented ADO.NET provider (e.g. Npgsql) does.
+    /// </summary>
+    private sealed class DriverSpanInterceptor(ActivitySource activitySource) : DbCommandInterceptor
+    {
+        public override InterceptionResult<DbDataReader> ReaderExecuting(
+            DbCommand command,
+            CommandEventData eventData,
+            InterceptionResult<DbDataReader> result)
+        {
+            using var activity = activitySource.StartActivity("driver", ActivityKind.Client);
+            return base.ReaderExecuting(command, eventData, result);
+        }
+
+        public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(
+            DbCommand command,
+            CommandEventData eventData,
+            InterceptionResult<DbDataReader> result,
+            CancellationToken cancellationToken = default)
+        {
+            using var activity = activitySource.StartActivity("driver", ActivityKind.Client);
+            return base.ReaderExecutingAsync(command, eventData, result, cancellationToken);
+        }
     }
 }
