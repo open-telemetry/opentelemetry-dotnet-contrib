@@ -17,6 +17,8 @@ internal sealed partial class AWSECSDetector : IResourceDetector
     private const string AWSECSMetadataURLKey = "ECS_CONTAINER_METADATA_URI";
     private const string AWSECSMetadataURLV4Key = "ECS_CONTAINER_METADATA_URI_V4";
 
+    private static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(2);
+
     private readonly AWSSemanticConventions semanticConventionBuilder;
 
     public AWSECSDetector(AWSSemanticConventions semanticConventionBuilder)
@@ -99,8 +101,8 @@ internal sealed partial class AWSECSDetector : IResourceDetector
         using var scope = SuppressInstrumentationScope.Begin();
         using var httpClientHandler = new HttpClientHandler();
 
-        var metadataV4ContainerResponse = ResourceDetectorUtils.SendOutRequest(metadataV4Url, HttpMethod.Get, null, httpClientHandler);
-        var metadataV4TaskResponse = ResourceDetectorUtils.SendOutRequest($"{metadataV4Url.TrimEnd('/')}/task", HttpMethod.Get, null, httpClientHandler);
+        var metadataV4ContainerResponse = ResourceDetectorUtils.SendOutRequest(metadataV4Url, HttpMethod.Get, null, RequestTimeout, httpClientHandler);
+        var metadataV4TaskResponse = ResourceDetectorUtils.SendOutRequest($"{metadataV4Url.TrimEnd('/')}/task", HttpMethod.Get, null, RequestTimeout, httpClientHandler);
 
         using var containerResponse = JsonDocument.Parse(metadataV4ContainerResponse);
         using var taskResponse = JsonDocument.Parse(metadataV4TaskResponse);
