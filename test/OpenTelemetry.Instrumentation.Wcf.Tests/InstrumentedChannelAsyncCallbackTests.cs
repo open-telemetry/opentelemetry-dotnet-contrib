@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using OpenTelemetry.Instrumentation.Wcf.Implementation;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Tests;
 
@@ -123,6 +124,42 @@ public class InstrumentedChannelAsyncCallbackTests
         Assert.NotNull(inner.LastBeginSendArgs);
         Assert.Null(inner.LastBeginSendArgs[1]);
         Assert.Same(state, inner.LastBeginSendArgs[2]);
+    }
+
+    [Fact]
+    public void BeginSend_OneWayStopsOnEndSend()
+    {
+        try
+        {
+            var stoppedActivities = new List<Activity>();
+            using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .AddInMemoryExporter(stoppedActivities)
+                .AddWcfInstrumentation()
+                .Build();
+
+            var inner = new RecordingDuplexChannel();
+            var channel = new InstrumentedDuplexChannel(inner, TimeSpan.FromSeconds(1));
+            var message = Message.CreateMessage(MessageVersion.Soap11, "urn:test");
+            message.Properties.Add(
+                TelemetryContextMessageProperty.Name,
+                new TelemetryContextMessageProperty(new Dictionary<string, ActionMetadata>
+                {
+                    ["urn:test"] = new ActionMetadata(contractName: null, operationName: "Test", isOneWay: true),
+                }));
+
+            var result = channel.BeginSend(message, callback: null, state: null);
+
+            Assert.Empty(stoppedActivities);
+
+            channel.EndSend(result);
+
+            var activity = Assert.Single(stoppedActivities);
+            Assert.Equal(ActivityStatusCode.Unset, activity.Status);
+        }
+        finally
+        {
+            WcfInstrumentationActivitySource.Options = null;
+        }
     }
 
     [Fact]
