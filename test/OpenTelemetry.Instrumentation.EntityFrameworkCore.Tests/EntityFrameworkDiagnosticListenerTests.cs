@@ -560,16 +560,14 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
                 .AddInterceptors(new DriverSpanInterceptor(driverSource))
                 .Options;
 
-            using (var parent = parentSource.StartActivity("parent"))
-            {
-                Assert.NotNull(parent);
+            using var parent = parentSource.StartActivity("parent");
+            Assert.NotNull(parent);
 
-                using var context = new ItemsContext(contextOptions);
-                var query = context.Set<Item>().OrderBy(e => e.Name);
-                _ = useAsync ? await query.ToListAsync(TestContext.Current.CancellationToken) : query.ToList();
+            using var context = new ItemsContext(contextOptions);
+            var query = context.Set<Item>().OrderBy(e => e.Name);
+            _ = useAsync ? await query.ToListAsync(TestContext.Current.CancellationToken) : [.. query];
 
-                Assert.Same(parent, Activity.Current);
-            }
+            Assert.Same(parent, Activity.Current);
         }
 
         Assert.DoesNotContain(exportedItems, a => a.Source.Name == EntityFrameworkDiagnosticListener.ActivitySource.Name);
@@ -612,7 +610,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             else
             {
                 var query = context.Set<Item>().OrderBy(e => e.Name);
-                _ = useAsync ? await query.ToListAsync(TestContext.Current.CancellationToken) : query.ToList();
+                _ = useAsync ? await query.ToListAsync(TestContext.Current.CancellationToken) : [.. query];
             }
         }
 
