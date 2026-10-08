@@ -11,7 +11,7 @@
 
 * Adaptively poll Redis profiling sessions, draining active sessions more
   frequently and backing off while idle.
-  ([#5496](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5496))
+  ([#5497](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5497))
 
 ## 1.19.0-beta.1
 
