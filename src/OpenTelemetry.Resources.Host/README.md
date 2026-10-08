@@ -66,7 +66,19 @@ your application is running:
 
 > [!NOTE]
 > Experimental features are off by default and are turned on through
-> environment variables. They may change or be removed in a future release.
+> environment variables or `HostDetectorOptions`. They may change or be
+> removed in a future release.
+
+The environment variables provide the default values of `HostDetectorOptions`,
+and values set in code override them:
+
+```csharp
+resource.AddHostDetector(options =>
+{
+    options.EnableNetworkAddresses = true;
+    options.EnableCpuInfo = true;
+});
+```
 
 ### Network addresses
 
@@ -74,7 +86,7 @@ your application is running:
 [opt-in](https://github.com/open-telemetry/semantic-conventions/blob/v1.44.0/docs/resource/host.md)
 attributes and identify the machine, so they are not emitted by default. Set
 `OTEL_DOTNET_EXPERIMENTAL_HOST_RESOURCE_ENABLE_NETWORK_ADDRESSES` to `true` to
-emit them.
+emit them, or set `HostDetectorOptions.EnableNetworkAddresses`.
 
 Both attributes are read from network interfaces that are up, skipping
 loopback interfaces, and duplicate values are left out. `host.mac` only
@@ -87,7 +99,7 @@ resource is built again.
 The following
 [opt-in](https://github.com/open-telemetry/semantic-conventions/blob/v1.44.0/docs/resource/host.md)
 attributes are not emitted by default. Set
-`OTEL_DOTNET_EXPERIMENTAL_HOST_RESOURCE_ENABLE_CPU_INFO` to `true` to emit them:
+`OTEL_DOTNET_EXPERIMENTAL_HOST_RESOURCE_ENABLE_CPU_INFO` to `true`, or set `HostDetectorOptions.EnableCpuInfo`, to emit them:
 
 - `host.cpu.cache.l2.size`,
 - `host.cpu.family`,

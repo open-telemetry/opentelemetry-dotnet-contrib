@@ -354,6 +354,73 @@ public class HostDetectorTests
     }
 
     [Theory]
+    [InlineData(null)]
+    [InlineData("false")]
+    public void TestHostOptionsEnableOverridesEnvironmentVariables(string? envValue)
+    {
+        using var networkAddressesEnvironment = EnvironmentVariableScope.Create(EnableNetworkAddressesEnvVarName, envValue);
+        using var cpuInfoEnvironment = EnvironmentVariableScope.Create(EnableCpuInfoEnvVarName, envValue);
+
+        var resource = ResourceBuilder.CreateEmpty()
+            .AddHostDetector(options =>
+            {
+                options.EnableNetworkAddresses = true;
+                options.EnableCpuInfo = true;
+            })
+            .Build();
+
+        var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
+
+        Assert.True(resourceAttributes.ContainsKey("host.ip"));
+        Assert.True(resourceAttributes.ContainsKey("host.mac"));
+
+        // host.cpu.model.name has a source on Windows, macOS and x86/x64 Linux only.
+        var isX86 = RuntimeInformation.ProcessArchitecture is Architecture.X86 or Architecture.X64;
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
+            RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ||
+            (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && isX86))
+        {
+            Assert.True(
+                resourceAttributes.ContainsKey("host.cpu.model.name"),
+                "host.cpu.model.name should be detected when EnableCpuInfo is set programmatically.");
+            Assert.NotEmpty(Assert.IsType<string>(resourceAttributes["host.cpu.model.name"]));
+        }
+    }
+
+    [Fact]
+    public void TestHostOptionsDisableOverridesEnvironmentVariables()
+    {
+        using var networkAddressesEnvironment = EnvironmentVariableScope.Create(EnableNetworkAddressesEnvVarName, "true");
+        using var cpuInfoEnvironment = EnvironmentVariableScope.Create(EnableCpuInfoEnvVarName, "true");
+
+        var resource = ResourceBuilder.CreateEmpty()
+            .AddHostDetector(options =>
+            {
+                options.EnableNetworkAddresses = false;
+                options.EnableCpuInfo = false;
+            })
+            .Build();
+
+        var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
+
+        Assert.False(resourceAttributes.ContainsKey("host.ip"));
+        Assert.False(resourceAttributes.ContainsKey("host.mac"));
+        Assert.DoesNotContain(resourceAttributes.Keys, key => key.StartsWith("host.cpu.", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void TestHostOptionsDefaultFromEnvironmentVariables()
+    {
+        using var networkAddressesEnvironment = EnvironmentVariableScope.Create(EnableNetworkAddressesEnvVarName, "true");
+        using var cpuInfoEnvironment = EnvironmentVariableScope.Create(EnableCpuInfoEnvVarName, null);
+
+        var options = new HostDetectorOptions();
+
+        Assert.True(options.EnableNetworkAddresses);
+        Assert.False(options.EnableCpuInfo);
+    }
+
+    [Theory]
     [InlineData(OperationalStatus.Up, NetworkInterfaceType.Ethernet, true)]
     [InlineData(OperationalStatus.Up, NetworkInterfaceType.Wireless80211, true)]
     [InlineData(OperationalStatus.Up, NetworkInterfaceType.Unknown, true)]
