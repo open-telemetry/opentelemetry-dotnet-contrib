@@ -282,7 +282,7 @@ internal static class RedisProfilerEntryToActivityConverter
         return activity;
     }
 
-    public static void DrainSession(
+    public static bool DrainSession(
         Activity? parentActivity,
         IEnumerable<IProfiledCommand> sessionCommands,
         Baggage baggage,
@@ -299,10 +299,14 @@ internal static class RedisProfilerEntryToActivityConverter
 
         try
         {
+            var drainedCommands = false;
             foreach (var command in sessionCommands)
             {
+                drainedCommands = true;
                 ProfilerCommandToActivity(parentActivity, command, options);
             }
+
+            return drainedCommands;
         }
         finally
         {

@@ -146,7 +146,9 @@ This instrumentation can be configured to change the default behavior by using
 ### Command buffering
 
 If `Enrich` and `Filter` are not configured, profiled commands are flushed
-every `FlushInterval` without waiting for the parent activity to complete.
+without waiting for the parent activity to complete. The instrumentation polls
+as often as every 100 ms when commands are available and gradually backs off to
+`FlushInterval` while idle.
 
 If either `Enrich` or `Filter` is configured, all commands are buffered until
 the parent activity completes. This can cause high memory usage for long-lived
@@ -155,9 +157,11 @@ or high-volume parent activities.
 ### FlushInterval
 
 StackExchange.Redis has its own internal profiler. OpenTelemetry converts each
-profiled command from the internal profiler to an Activity for collection. By
-default, this conversion process flushes profiled commands on a 10 second
-interval. The `FlushInterval` option can be used to adjust this interval.
+profiled command from the internal profiler to an Activity for collection. The
+drain process polls at intervals between 100 ms and `FlushInterval`, backing off
+when no commands are available and returning to the shortest interval when
+commands are found. By default, the maximum interval is 10 seconds. The
+`FlushInterval` option can be used to adjust this maximum.
 
 The following example shows how to use `FlushInterval`.
 

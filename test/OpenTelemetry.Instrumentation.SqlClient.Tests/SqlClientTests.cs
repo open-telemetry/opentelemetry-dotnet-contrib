@@ -696,7 +696,11 @@ public class SqlClientTests
         else
         {
             Assert.Equal(ActivityStatusCode.Error, activity.Status);
+#if NETFRAMEWORK
             Assert.NotNull(activity.StatusDescription);
+#else
+            Assert.Null(activity.StatusDescription);
+#endif
             var events = activity.Events.ToList();
             var @event = Assert.Single(events);
             Assert.Equal(SemanticConventions.AttributeExceptionEventName, @event.Name);

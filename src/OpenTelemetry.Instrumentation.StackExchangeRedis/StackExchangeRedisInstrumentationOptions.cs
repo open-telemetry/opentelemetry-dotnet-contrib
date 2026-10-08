@@ -33,7 +33,9 @@ public class StackExchangeRedisInstrumentationOptions
     }
 
     /// <summary>
-    /// Gets or sets the maximum time that should elapse between flushing the internal buffer of Redis profiling sessions and creating <see cref="Activity"/> objects. Default value: 00:00:10.
+    /// Gets or sets the maximum time that should elapse between polling Redis profiling sessions and creating <see cref="Activity"/> objects.
+    /// Polling backs off to this value when no commands are available and returns to a 100 ms interval when commands are found.
+    /// Default value: 00:00:10.
     /// </summary>
     /// <exception cref="ArgumentOutOfRangeException">
     /// Thrown when the value is less than one millisecond or exceeds <see cref="int.MaxValue"/> milliseconds.
