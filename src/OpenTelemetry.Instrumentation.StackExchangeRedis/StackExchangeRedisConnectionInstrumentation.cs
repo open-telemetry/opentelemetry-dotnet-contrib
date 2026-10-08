@@ -124,7 +124,7 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
         // If no parent use the default session.
         if (parent == null || parent.IdFormat != ActivityIdFormat.W3C)
         {
-            this.SignalDrainIfBackedOff();
+            RedisDrainInterval.SignalIfBackedOff(this.workAvailableHandle, this.currentDrainIntervalMilliseconds, this.minDrainIntervalMilliseconds);
             return this.defaultSession;
         }
 
@@ -145,7 +145,7 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
         }
 #endif
 
-        this.SignalDrainIfBackedOff();
+        RedisDrainInterval.SignalIfBackedOff(this.workAvailableHandle, this.currentDrainIntervalMilliseconds, this.minDrainIntervalMilliseconds);
         return session.Session;
     };
 
@@ -220,24 +220,6 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
                 this.minDrainIntervalMilliseconds,
                 (int)this.options.FlushInterval.TotalMilliseconds,
                 drainedCommands: drainedCommands);
-        }
-    }
-
-    private void SignalDrainIfBackedOff()
-    {
-        if (this.currentDrainIntervalMilliseconds <= this.minDrainIntervalMilliseconds)
-        {
-            return;
-        }
-
-        try
-        {
-            this.workAvailableHandle.Set();
-        }
-        catch (ObjectDisposedException)
-        {
-            // A profiler factory invocation can race with disposal after observing
-            // disposed == 0 above. The session is still returned safely.
         }
     }
 }

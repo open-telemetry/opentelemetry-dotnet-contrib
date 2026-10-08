@@ -107,4 +107,23 @@ public class StackExchangeRedisInstrumentationOptionsTests
     {
         Assert.Equal(100, RedisDrainInterval.GetNext(800, 100, 1_000, drainedCommands: true));
     }
+
+    [Fact]
+    public void DrainSignal_AtMinimumInterval_IsUnnecessary()
+    {
+        using var workAvailable = new EventWaitHandle(false, EventResetMode.AutoReset);
+
+        RedisDrainInterval.SignalIfBackedOff(workAvailable, currentInterval: 100, minimumInterval: 100);
+
+        Assert.False(workAvailable.WaitOne(0));
+    }
+
+    [Fact]
+    public void DrainSignal_AfterHandleDisposed_ExitsCleanly()
+    {
+        var workAvailable = new EventWaitHandle(false, EventResetMode.AutoReset);
+        workAvailable.Dispose();
+
+        RedisDrainInterval.SignalIfBackedOff(workAvailable, currentInterval: 200, minimumInterval: 100);
+    }
 }
