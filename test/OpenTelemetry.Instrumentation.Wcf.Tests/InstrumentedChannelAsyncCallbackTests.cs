@@ -163,6 +163,43 @@ public class InstrumentedChannelAsyncCallbackTests
     }
 
     [Fact]
+    public void EndSend_OneWayFailureMarksActivityAsError()
+    {
+        try
+        {
+            var stoppedActivities = new List<Activity>();
+            using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .AddInMemoryExporter(stoppedActivities)
+                .AddWcfInstrumentation()
+                .Build();
+
+            var inner = new RecordingDuplexChannel
+            {
+                EndSendException = new InvalidOperationException("EndSend failed."),
+            };
+            var channel = new InstrumentedDuplexChannel(inner, TimeSpan.FromSeconds(1));
+            var message = Message.CreateMessage(MessageVersion.Soap11, "urn:test");
+            message.Properties.Add(
+                TelemetryContextMessageProperty.Name,
+                new TelemetryContextMessageProperty(new Dictionary<string, ActionMetadata>
+                {
+                    ["urn:test"] = new ActionMetadata(contractName: null, operationName: "Test", isOneWay: true),
+                }));
+
+            var result = channel.BeginSend(message, callback: null, state: null);
+
+            Assert.Throws<InvalidOperationException>(() => channel.EndSend(result));
+
+            var activity = Assert.Single(stoppedActivities);
+            Assert.Equal(ActivityStatusCode.Error, activity.Status);
+        }
+        finally
+        {
+            WcfInstrumentationActivitySource.Options = null;
+        }
+    }
+
+    [Fact]
     public void Send_AllowsSuppressedExecutionContextFlow()
     {
         var inner = new RecordingDuplexChannel();
@@ -172,6 +209,17 @@ public class InstrumentedChannelAsyncCallbackTests
         {
             channel.Send(Message.CreateMessage(MessageVersion.Soap11, "urn:test"));
         }
+
+        Assert.True(inner.SendCalled);
+    }
+
+    [Fact]
+    public void Send_AllowsNullInnerRemoteAddress()
+    {
+        var inner = new RecordingDuplexChannel { ReturnNullRemoteAddress = true };
+        var channel = new InstrumentedDuplexChannel(inner, TimeSpan.FromSeconds(1));
+
+        channel.Send(Message.CreateMessage(MessageVersion.Soap11, "urn:test"));
 
         Assert.True(inner.SendCalled);
     }
@@ -359,11 +407,15 @@ public class InstrumentedChannelAsyncCallbackTests
 
         public object?[]? LastBeginSendArgs { get; private set; }
 
+        public Exception? EndSendException { get; init; }
+
+        public bool ReturnNullRemoteAddress { get; init; }
+
         public bool SendCalled { get; private set; }
 
         public EndpointAddress LocalAddress { get; } = new("net.tcp://localhost/Local");
 
-        public EndpointAddress RemoteAddress { get; } = new("net.tcp://localhost/Service");
+        public EndpointAddress RemoteAddress => this.ReturnNullRemoteAddress ? null! : new("net.tcp://localhost/Service");
 
         public Uri Via { get; } = new("net.tcp://localhost/Service");
 
@@ -391,6 +443,10 @@ public class InstrumentedChannelAsyncCallbackTests
 
         public void EndSend(IAsyncResult result)
         {
+            if (this.EndSendException != null)
+            {
+                throw this.EndSendException;
+            }
         }
 
         public Message Receive()
