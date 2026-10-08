@@ -45,7 +45,11 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 
     // Commands whose activity was discarded by the filter, removed again when the command completes.
     // Weak keys, so a command that never raises a completion event isn't kept alive.
+#if NET
     private readonly ConditionalWeakTable<object, object> filteredCommands = [];
+#else
+    private readonly ConditionalWeakTable<object, object> filteredCommands = new();
+#endif
 
     private readonly EntityFrameworkInstrumentationOptions options;
 
