@@ -56,6 +56,7 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
     private readonly Thread drainThread;
     private readonly ProfilingSession defaultSession = new();
     private readonly int minDrainIntervalMilliseconds;
+    private readonly int maxDrainIntervalMilliseconds;
     private int currentDrainIntervalMilliseconds;
     private int disposed;
 
@@ -73,7 +74,8 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
         Guard.ThrowIfNull(connection);
 
         this.options = options ?? new StackExchangeRedisInstrumentationOptions();
-        this.minDrainIntervalMilliseconds = RedisDrainInterval.GetMinimum((int)this.options.FlushInterval.TotalMilliseconds);
+        this.maxDrainIntervalMilliseconds = (int)this.options.FlushInterval.TotalMilliseconds;
+        this.minDrainIntervalMilliseconds = RedisDrainInterval.GetMinimum(this.maxDrainIntervalMilliseconds);
         this.currentDrainIntervalMilliseconds = this.minDrainIntervalMilliseconds;
         this.drainWaitHandles = [this.stopHandle, this.workAvailableHandle];
 
@@ -218,7 +220,7 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
             this.currentDrainIntervalMilliseconds = RedisDrainInterval.GetNext(
                 this.currentDrainIntervalMilliseconds,
                 this.minDrainIntervalMilliseconds,
-                (int)this.options.FlushInterval.TotalMilliseconds,
+                this.maxDrainIntervalMilliseconds,
                 drainedCommands: drainedCommands);
         }
     }

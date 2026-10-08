@@ -60,6 +60,7 @@ public class StackExchangeRedisInstrumentationOptionsTests
         };
 
         Assert.Equal(TimeSpan.FromMilliseconds(1), options.FlushInterval);
+        Assert.Equal(1, RedisDrainInterval.GetMinimum((int)options.FlushInterval.TotalMilliseconds));
     }
 
     [Fact]
@@ -90,6 +91,12 @@ public class StackExchangeRedisInstrumentationOptionsTests
         Assert.Equal(400, RedisDrainInterval.GetNext(200, 100, 1_000, drainedCommands: false));
         Assert.Equal(1_000, RedisDrainInterval.GetNext(800, 100, 1_000, drainedCommands: false));
         Assert.Equal(1_000, RedisDrainInterval.GetNext(1_000, 100, 1_000, drainedCommands: false));
+    }
+
+    [Fact]
+    public void DrainInterval_EmptyPoll_NearIntMaxValue_SaturatesAtMaximum()
+    {
+        Assert.Equal(int.MaxValue, RedisDrainInterval.GetNext((int.MaxValue / 2) + 1, 100, int.MaxValue, drainedCommands: false));
     }
 
     [Fact]
@@ -124,6 +131,6 @@ public class StackExchangeRedisInstrumentationOptionsTests
         var workAvailable = new EventWaitHandle(false, EventResetMode.AutoReset);
         workAvailable.Dispose();
 
-        RedisDrainInterval.SignalIfBackedOff(workAvailable, currentInterval: 200, minimumInterval: 100);
+        Assert.Null(Record.Exception(() => RedisDrainInterval.SignalIfBackedOff(workAvailable, currentInterval: 200, minimumInterval: 100)));
     }
 }
