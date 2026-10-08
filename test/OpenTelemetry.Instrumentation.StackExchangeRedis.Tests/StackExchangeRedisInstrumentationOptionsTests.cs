@@ -99,6 +99,13 @@ public class StackExchangeRedisInstrumentationOptionsTests
         Assert.Equal(int.MaxValue, RedisDrainInterval.GetNext((int.MaxValue / 2) + 1, 100, int.MaxValue, drainedCommands: false));
     }
 
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    [InlineData(int.MinValue)]
+    public void DrainInterval_FlushBelowOneMillisecond_ClampsMinimumToOne(int flushInterval)
+        => Assert.Equal(1, RedisDrainInterval.GetMinimum(flushInterval));
+
     [Fact]
     public void DrainInterval_FlushBelowMinimum_UsesFlushIntervalAsMinimumAndMaximum()
     {
@@ -111,9 +118,7 @@ public class StackExchangeRedisInstrumentationOptionsTests
 
     [Fact]
     public void DrainInterval_FindingCommandsResetsToMinimum()
-    {
-        Assert.Equal(100, RedisDrainInterval.GetNext(800, 100, 1_000, drainedCommands: true));
-    }
+        => Assert.Equal(100, RedisDrainInterval.GetNext(800, 100, 1_000, drainedCommands: true));
 
     [Fact]
     public void DrainSignal_AtMinimumInterval_IsUnnecessary()

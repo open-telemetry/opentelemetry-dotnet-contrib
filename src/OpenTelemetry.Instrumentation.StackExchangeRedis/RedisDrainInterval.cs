@@ -11,7 +11,7 @@ internal static class RedisDrainInterval
         => drainedCommands ? minimum : (int)Math.Min(current * 2L, maximum);
 
     internal static int GetMinimum(int flushIntervalMilliseconds)
-        => Math.Min(MinDrainIntervalMilliseconds, flushIntervalMilliseconds);
+        => Math.Max(1, Math.Min(MinDrainIntervalMilliseconds, flushIntervalMilliseconds));
 
     internal static void SignalIfBackedOff(EventWaitHandle workAvailableHandle, int currentInterval, int minimumInterval)
     {
