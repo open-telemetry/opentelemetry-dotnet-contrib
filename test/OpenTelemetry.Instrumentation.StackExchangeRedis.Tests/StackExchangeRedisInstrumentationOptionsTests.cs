@@ -95,9 +95,7 @@ public class StackExchangeRedisInstrumentationOptionsTests
 
     [Fact]
     public void DrainInterval_EmptyPoll_NearIntMaxValue_SaturatesAtMaximum()
-    {
-        Assert.Equal(int.MaxValue, RedisDrainInterval.GetNext((int.MaxValue / 2) + 1, 100, int.MaxValue, drainedCommands: false));
-    }
+        => Assert.Equal(int.MaxValue, RedisDrainInterval.GetNext((int.MaxValue / 2) + 1, 100, int.MaxValue, drainedCommands: false));
 
     [Theory]
     [InlineData(0)]
