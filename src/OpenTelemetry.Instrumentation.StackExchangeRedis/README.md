@@ -160,7 +160,8 @@ StackExchange.Redis has its own internal profiler. OpenTelemetry converts each
 profiled command from the internal profiler to an Activity for collection. The
 drain process polls at intervals between 100 ms and `FlushInterval`, backing off
 when no commands are available and returning to the shortest interval when
-commands are found. By default, the maximum interval is 10 seconds. The `FlushInterval` option can be used to adjust this maximum.
+commands are found. By default, the maximum interval is 10 seconds. The
+`FlushInterval` option can be used to adjust this maximum.
 
 The following example shows how to use `FlushInterval`.
 
