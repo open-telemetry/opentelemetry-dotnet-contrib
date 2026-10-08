@@ -1136,9 +1136,11 @@ public sealed class BasicTests
             await client.SendAsync("Send", "text", TestContext.Current.CancellationToken);
 
             await client.StopAsync(TestContext.Current.CancellationToken);
-        }
 
-        WaitForActivityExportToStabilize(exportedItems);
+            // OnDisconnectedAsync runs on the server after the client has stopped, so give it
+            // time to be exported before the server is disposed and can no longer export it.
+            WaitForActivityExportToStabilize(exportedItems);
+        }
 
         var hubActivity = exportedItems
             .Where(a => a.DisplayName.StartsWith("TestApp.AspNetCore.TestHub", StringComparison.InvariantCulture));

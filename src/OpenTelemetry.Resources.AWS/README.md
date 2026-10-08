@@ -64,6 +64,17 @@ log group ids, log stream names, log stream ids.
 - **AWSEKSDetector**: cloud provider, cloud platform, cluster name,
 container id.
 
+### Metadata request timeouts
+
+The EC2, ECS and EKS detectors request metadata over HTTP while the resource is
+built, which is usually while the application starts. To avoid blocking the
+application during startup, each request must complete within:
+
+- **AWSEC2Detector**: 1 second per request to the EC2 instance metadata service
+  (IMDS), the same default as the AWS SDKs.
+- **AWSECSDetector**: 2 seconds per request to the ECS task metadata endpoint.
+- **AWSEKSDetector**: 5 seconds per request to the Kubernetes API server.
+
 ## Semantic Conventions
 
 _For an overview on Semantic Conventions, see
