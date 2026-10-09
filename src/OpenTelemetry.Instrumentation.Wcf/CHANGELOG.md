@@ -6,8 +6,8 @@
   could leave activities running and downstream instrumentation suppressed.
   ([#5402](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5402))
 
-* Fixed outgoing one-way duplex calls being reported as timed-out errors instead of
-  completing telemetry when the send succeeds.
+* Fixed outgoing one-way duplex calls being reported as timed-out errors
+  instead of completing telemetry when the send succeeds.
   ([#5505](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5505))
 
 ## 1.19.1-beta.1
