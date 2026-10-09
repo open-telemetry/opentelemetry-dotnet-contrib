@@ -10,7 +10,13 @@ namespace OpenTelemetry.Instrumentation;
 internal static class SqlProcessor
 {
     private const int MaxSummaryLength = 255;
+    private const int MaxBracketedIdentifierLength = 128;
     private const int CacheCapacity = 1000;
+
+    // The minimum length of a statement for which the most recently sanitized statement is remembered
+    // per thread while the cache is not full. Below this length looking a statement up in the cache is
+    // about as cheap as maintaining the per-thread entry.
+    private const int LastStatementMinLength = 128;
 
     private const char SanitizationPlaceholder = '?';
     private const char SpaceChar = ' ';
@@ -23,8 +29,11 @@ internal static class SqlProcessor
     private const char ForwardSlashChar = '/';
     private const char SingleQuoteChar = '\'';
     private const char DoubleQuoteChar = '"';
+    private const char BacktickChar = '`';
     private const char BackslashChar = '\\';
     private const char DollarChar = '$';
+    private const char HashChar = '#';
+    private const char AtChar = '@';
     private const char AsteriskChar = '*';
     private const char UnderscoreChar = '_';
     private const char DotChar = '.';
@@ -32,6 +41,8 @@ internal static class SqlProcessor
     private const char CarriageReturnChar = '\r';
     private const char TabChar = '\t';
     private const char UnicodePrefixChar = 'N';
+
+    private const string ArrayKeyword = "ARRAY";
 
     private static readonly ConcurrentDictionary<string, SqlStatementInfo> Cache = new();
     private static readonly ConcurrentDictionary<string, SqlStatementInfo> BackslashEscapeCache = new();
@@ -42,8 +53,20 @@ internal static class SqlProcessor
 #endif
 
     // The characters which can start a construct that a ')' may legitimately appear inside
-    // (a string literal or a comment), plus ')' itself. Used to find the end of an IN clause.
-    private static readonly char[] InClauseScanChars = [CloseParenChar, SingleQuoteChar, DashChar, ForwardSlashChar];
+    // (a string literal, a quoted identifier or a comment), plus ')' itself. Used to find the
+    // end of an IN clause.
+    private static readonly char[] InClauseScanChars =
+    [
+        CloseParenChar,
+        SingleQuoteChar,
+        DoubleQuoteChar,
+        BacktickChar,
+        OpenSquareBracketChar,
+        DollarChar,
+        DashChar,
+        ForwardSlashChar,
+        HashChar,
+    ];
 
 #if NET
     private static readonly SearchValues<char> AsciiLetterSearchValues = SearchValues.Create("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
@@ -98,6 +121,15 @@ internal static class SqlProcessor
     // under high concurrency but this is acceptable for this scenario.
     private static int approxCacheCount;
     private static int approxBackslashEscapeCacheCount;
+
+    // The most recent statement sanitized on the current thread. Instrumentations commonly sanitize the
+    // same command text instance more than once per command on the same thread (for example EF Core's
+    // CommandExecuting event followed by SqlClient's WriteCommandBefore event for the same DbCommand),
+    // so a reference-equality check lets the repeated call skip hashing the full text for the cache
+    // lookup (or re-sanitizing it entirely once the cache is full). This retains at most one statement
+    // (and its sanitized form) per thread until that thread sanitizes a different statement.
+    [ThreadStatic]
+    private static LastSanitizedStatement? lastSanitizedStatement;
 
     private enum SqlKeyword
     {
@@ -156,8 +188,9 @@ internal static class SqlProcessor
     /// <param name="useBackslashEscapes">
     /// <see langword="true"/> if the source database is MySQL or MariaDB with their default SQL modes
     /// (<c>NO_BACKSLASH_ESCAPES</c> and <c>ANSI_QUOTES</c> disabled), in which case a backslash is
-    /// treated as a string-literal escape character and a double-quoted (<c>"..."</c>) value is treated
-    /// as a string literal rather than a quoted identifier; otherwise <see langword="false"/>.
+    /// treated as a string-literal escape character, a double-quoted (<c>"..."</c>) value is treated
+    /// as a string literal rather than a quoted identifier, <c>#</c> starts a comment and block
+    /// comments do not nest; otherwise <see langword="false"/>.
     /// </param>
     /// <returns>The sanitized SQL and query summary.</returns>
     public static SqlStatementInfo GetSanitizedSql(string? sql, bool useBackslashEscapes = false) =>
@@ -168,6 +201,37 @@ internal static class SqlProcessor
         : GetSanitizedSql(sql, Cache, ref approxCacheCount, useBackslashEscapes: false);
 
     private static SqlStatementInfo GetSanitizedSql(
+        string sql,
+        ConcurrentDictionary<string, SqlStatementInfo> cache,
+        ref int approxCount,
+        bool useBackslashEscapes)
+    {
+        if (sql.Length < LastStatementMinLength && approxCount < CacheCapacity)
+        {
+            return GetOrAddCachedSql(sql, cache, ref approxCount, useBackslashEscapes);
+        }
+
+        // Strings are immutable, so the same instance sanitized
+        // with the same dialect always produces the same result.
+        var last = lastSanitizedStatement;
+        if (last != null &&
+            ReferenceEquals(sql, last.Sql) &&
+            useBackslashEscapes == last.UseBackslashEscapes)
+        {
+            return last.StatementInfo;
+        }
+
+        var sqlStatementInfo = GetOrAddCachedSql(sql, cache, ref approxCount, useBackslashEscapes);
+
+        last ??= lastSanitizedStatement = new();
+        last.Sql = sql;
+        last.UseBackslashEscapes = useBackslashEscapes;
+        last.StatementInfo = sqlStatementInfo;
+
+        return sqlStatementInfo;
+    }
+
+    private static SqlStatementInfo GetOrAddCachedSql(
         string sql,
         ConcurrentDictionary<string, SqlStatementInfo> cache,
         ref int approxCount,
@@ -201,65 +265,22 @@ internal static class SqlProcessor
     private static bool IsUnescapedIdentifierChar(char c) =>
         char.IsLetter(c) || char.IsAsciiDigit(c) || c == UnderscoreChar || c == DotChar;
 
+    // Whether the character can be part of a word, such as an identifier, keyword or variable name.
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsValidTokenCharacter(ReadOnlySpan<char> sql, int currentPosition, int indexInToken, in ParseState state)
-    {
-        var currentChar = sql[currentPosition];
+    private static bool IsWordChar(char c) =>
+        char.IsLetterOrDigit(c) || c is UnderscoreChar or DollarChar or HashChar or AtChar;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsValidTokenCharacter(char currentChar, int indexInToken, in ParseState state)
+    {
         // If we are not capturing the next token as an identifier, we only accept unescaped identifier characters.
         if (!state.CaptureNextNonKeywordTokenAsIdentifier)
         {
             return IsUnescapedIdentifierChar(currentChar);
         }
 
-        if (state.InEscapedIdentifier)
-        {
-            // In escaped identifiers, all characters except null are valid.
-            // Double closing brackets (]]) are treated as an escaped bracket within the identifier.
-            // A single closing bracket ends the identifier.
-            if (currentChar == '\0')
-            {
-                return false;
-            }
-
-            if (currentChar == CloseSquareBracketChar)
-            {
-                var nextPosition = currentPosition + 1;
-                return nextPosition < sql.Length && sql[nextPosition] == CloseSquareBracketChar;
-            }
-
-            return true;
-        }
-
         // In unescaped identifiers, periods are invalid at the start but valid in the middle (for schema-qualified names).
         return (currentChar != DotChar || indexInToken != 0) && IsUnescapedIdentifierChar(currentChar);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool HasTerminatingEscapedIdentifier(ReadOnlySpan<char> sql, int start, ref ParseState state)
-    {
-        if (state.NoTerminatingEscapedIdentifierAhead)
-        {
-            return false;
-        }
-
-        for (var i = start + 1; i < sql.Length; i++)
-        {
-            if (sql[i] == CloseSquareBracketChar)
-            {
-                if (i + 1 < sql.Length && sql[i + 1] == CloseSquareBracketChar)
-                {
-                    i++;
-                }
-                else
-                {
-                    return true;
-                }
-            }
-        }
-
-        state.NoTerminatingEscapedIdentifierAhead = true;
-        return false;
     }
 
     private static SqlStatementInfo SanitizeSql(string sql, bool useBackslashEscapes)
@@ -282,22 +303,27 @@ internal static class SqlProcessor
 
         while (state.ParsePosition < sqlSpan.Length)
         {
-            if (SkipComment(sqlSpan, ref state))
+            // Most tokens are keywords or identifiers, and a token which starts with an ASCII letter
+            // cannot be a comment, a literal or whitespace, so those checks are skipped for it.
+            if (!char.IsAsciiLetter(sqlSpan[state.ParsePosition]))
             {
-                continue;
-            }
+                if (SkipComment(sqlSpan, ref state))
+                {
+                    continue;
+                }
 
-            if (SanitizeStringLiteral(sqlSpan, buffer, ref state) ||
-                SanitizeDollarQuotedLiteral(sqlSpan, buffer, ref state) ||
-                SanitizeHexLiteral(sqlSpan, buffer, ref state) ||
-                SanitizeNumericLiteral(sqlSpan, buffer, ref state))
-            {
-                continue;
-            }
+                if (SanitizeStringLiteral(sqlSpan, buffer, ref state) ||
+                    SanitizeDollarQuotedLiteral(sqlSpan, buffer, ref state) ||
+                    SanitizeHexLiteral(sqlSpan, buffer, ref state) ||
+                    SanitizeNumericLiteral(sqlSpan, buffer, ref state))
+                {
+                    continue;
+                }
 
-            if (ParseWhitespace(sqlSpan, buffer, ref state))
-            {
-                continue;
+                if (ParseWhitespace(sqlSpan, buffer, ref state))
+                {
+                    continue;
+                }
             }
 
             // Reaching the summary length limit must not change how the statement itself is
@@ -407,7 +433,7 @@ internal static class SqlProcessor
         // Quick first-character filter: only attempt keyword matching if the current char is an ASCII letter.
         // NOTE: We don't check CaptureNextNonKeywordTokenAsIdentifier here because we want to capture and handle keywords
         // first, before considering identifiers.
-        var mayBeKeyword = !state.InEscapedIdentifier && char.IsAsciiLetter(currentChar);
+        var mayBeKeyword = char.IsAsciiLetter(currentChar);
 
         if (mayBeKeyword)
         {
@@ -475,7 +501,7 @@ internal static class SqlProcessor
                 var matchedKeyword = true;
 
                 // Compare the potential keyword in a case-insensitive manner using indices instead of slicing.
-                for (var charPos = 1; charPos < keywordLength; charPos++)
+                for (var charPos = 0; charPos < keywordLength; charPos++)
                 {
                     // We know that sql[start..] is all ascii letters so this comparison is safe.
                     if ((sql[start + charPos] | 0x20) != keywordSpan[charPos])
@@ -513,6 +539,7 @@ internal static class SqlProcessor
                     state.ParsePosition += keywordLength;
                     state.PreviousTokenStartPosition = start;
                     state.PreviousTokenEndPosition = start + keywordLength;
+                    state.PreviousKeywordEndPosition = start + keywordLength;
 
                     // No further parsing needed for this token
                     return;
@@ -521,7 +548,7 @@ internal static class SqlProcessor
         }
 
         // If we get this far, we have not matched a keyword, so we copy the token as-is.
-        if (IsValidTokenCharacter(sql, start, 0, state))
+        if (IsValidTokenCharacter(currentChar, 0, state))
         {
             // This first block handles identifiers (which start with a letter or underscore).
 
@@ -532,7 +559,7 @@ internal static class SqlProcessor
             {
                 position++;
 
-                if (!IsValidTokenCharacter(sql, i, position, state))
+                if (!IsValidTokenCharacter(sql[i], position, state))
                 {
                     break;
                 }
@@ -597,49 +624,20 @@ internal static class SqlProcessor
         }
         else
         {
+            // Quoted identifiers (e.g. [Order Details]) are copied as a single token, so that any quote
+            // characters they contain are never mistaken for the start of a string literal.
+            if ((currentChar is OpenSquareBracketChar or DoubleQuoteChar or BacktickChar) &&
+                ParseQuotedIdentifier(sql, buffer, ref state))
+            {
+                return;
+            }
+
             // If we end up here, we copy a single-character token to the sanitized buffer.
-            // We also handle some special cases for tracking state.
 
-            // If we are currently in an escaped identifier, check for the closing bracket.
-            if (state.InEscapedIdentifier && currentChar is CloseSquareBracketChar)
-            {
-                state.InEscapedIdentifier = false;
-
-                if (!state.SummaryIsComplete)
-                {
-                    // Remove the space we added after the identifier in the summary buffer before we write the closing bracket.
-                    state.SummaryPosition--;
-
-                    AppendSummaryChar(CloseSquareBracketChar, ref state);
-
-                    var nextPos = state.ParsePosition + 1;
-                    if (nextPos >= sql.Length || sql[nextPos] != DotChar)
-                    {
-                        AppendSummaryChar(SpaceChar, ref state);
-                    }
-                    else
-                    {
-                        AppendSummaryChar(DotChar, ref state); // write the dot to summary
-                    }
-                }
-            }
-
-            // If we are in a FROM clause, we want to capture the next identifier following a comma or open square bracket.
+            // If we are in a FROM clause, we want to capture the next identifier following a comma or period.
             // Commas may occur when listing multiple tables in a FROM clause.
-            // Brackets may occur when using schema-qualified or delimited identifiers.
-            state.CaptureNextNonKeywordTokenAsIdentifier = state.InFromClause && (currentChar is CommaChar or OpenSquareBracketChar or DotChar);
-
-            if (state.CaptureNextNonKeywordTokenAsIdentifier
-                && currentChar is OpenSquareBracketChar
-                && HasTerminatingEscapedIdentifier(sql, state.ParsePosition, ref state))
-            {
-                state.InEscapedIdentifier = true;
-
-                if (!state.SummaryIsComplete)
-                {
-                    AppendSummaryChar(OpenSquareBracketChar, ref state);
-                }
-            }
+            // Periods may occur when using schema-qualified identifiers.
+            state.CaptureNextNonKeywordTokenAsIdentifier = state.InFromClause && (currentChar is CommaChar or DotChar);
 
             buffer[state.SanitizedPosition++] = currentChar;
             state.ParsePosition++;
@@ -665,6 +663,247 @@ internal static class SqlProcessor
 
             return true;
         }
+    }
+
+    private static bool ParseQuotedIdentifier(ReadOnlySpan<char> sql, Span<char> buffer, ref ParseState state)
+    {
+        var start = state.ParsePosition;
+        var end = FindQuotedIdentifierEnd(sql, start, ref state);
+
+        if (end < 0)
+        {
+            return false;
+        }
+
+        var length = end - start + 1;
+
+        // Redact the whole name after LOGIN or USER (e.g. CREATE LOGIN [DOMAIN\user]), keeping its
+        // delimiters. A double-quoted value which starts with a number is also redacted, because it is
+        // more likely to be a string literal (e.g. in GoogleSQL, or SQL Server with QUOTED_IDENTIFIER OFF)
+        // than an identifier. An empty name has nothing to redact, and the sanitized SQL must not be
+        // longer than the input.
+        if (length > 2 &&
+            (state.SanitizeNextNonKeywordToken ||
+             (sql[start] == DoubleQuoteChar && StartsWithNumber(sql.Slice(start + 1, length - 2).TrimStart()))))
+        {
+            buffer[state.SanitizedPosition++] = sql[start];
+            buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
+            buffer[state.SanitizedPosition++] = sql[end];
+        }
+        else
+        {
+            sql.Slice(start, length).CopyTo(buffer.Slice(state.SanitizedPosition));
+            state.SanitizedPosition += length;
+
+            // Only bracketed identifiers in a FROM clause are included in the summary, as they were
+            // before quoted identifiers were parsed as a single token.
+            if (state.InFromClause && sql[start] == OpenSquareBracketChar && !state.SummaryIsComplete)
+            {
+                AppendSummaryToken(sql.Slice(start, length), ref state);
+
+                // Add a period for a schema-qualified name, otherwise a space. A trailing space will be trimmed later.
+                var nextPosition = end + 1;
+                AppendSummaryChar(nextPosition < sql.Length && sql[nextPosition] == DotChar ? DotChar : SpaceChar, ref state);
+            }
+        }
+
+        state.ParsePosition = end + 1;
+        state.CaptureNextNonKeywordTokenAsIdentifier = false;
+        state.SanitizeNextNonKeywordToken = false;
+        state.PreviousTokenStartPosition = start;
+        state.PreviousTokenEndPosition = end + 1;
+
+        return true;
+    }
+
+    /// <summary>
+    /// Finds the end of the quoted identifier (<c>[...]</c>, <c>`...`</c>, or <c>"..."</c> unless the
+    /// dialect uses it for a string literal) which starts at <paramref name="start"/>.
+    /// </summary>
+    /// <returns>
+    /// The index of the closing delimiter, or -1 if there is no quoted identifier at <paramref name="start"/>,
+    /// in which case the delimiter is parsed as a single character and what follows is parsed as usual.
+    /// </returns>
+    private static int FindQuotedIdentifierEnd(ReadOnlySpan<char> sql, int start, ref ParseState state) => sql[start] switch
+    {
+        OpenSquareBracketChar => FindBracketedIdentifierEnd(sql, start, ref state),
+        BacktickChar => FindDelimitedIdentifierEnd(sql, start, BacktickChar, ref state.NoTerminatingBacktickQuotedIdentifierAhead),
+        DoubleQuoteChar when !state.UseBackslashEscapes => FindDelimitedIdentifierEnd(sql, start, DoubleQuoteChar, ref state.NoTerminatingDoubleQuotedIdentifierAhead),
+        _ => -1,
+    };
+
+    private static int FindDelimitedIdentifierEnd(ReadOnlySpan<char> sql, int start, char delimiter, ref bool noTerminatingIdentifierAhead)
+    {
+        if (noTerminatingIdentifierAhead)
+        {
+            return -1;
+        }
+
+        var i = start + 1;
+        while (i < sql.Length)
+        {
+            var delimiterIndex = sql.Slice(i).IndexOf(delimiter);
+            if (delimiterIndex < 0)
+            {
+                break;
+            }
+
+            i += delimiterIndex;
+
+            // A doubled delimiter ("" or ``) is an escaped delimiter within the identifier.
+            if (i + 1 < sql.Length && sql[i + 1] == delimiter)
+            {
+                i += 2;
+                continue;
+            }
+
+            return i;
+        }
+
+        // Avoid scanning to the end of the input again for any later delimiter.
+        noTerminatingIdentifierAhead = true;
+        return -1;
+    }
+
+    private static int FindBracketedIdentifierEnd(ReadOnlySpan<char> sql, int start, ref ParseState state)
+    {
+        // SQL Server limits identifiers to 128 characters, so the closing bracket must be within that length.
+        // Each escaped bracket (]]) is one character of the identifier, so extends the search by one.
+        var searchEnd = Math.Min(sql.Length, start + MaxBracketedIdentifierLength + 2);
+        var i = FindNextCloseSquareBracket(sql, start + 1, ref state);
+
+        if (i >= searchEnd || IsArraySubscriptOrConstructor(sql, start, in state))
+        {
+            return -1;
+        }
+
+        while (i < searchEnd)
+        {
+            // A doubled closing bracket (]]) is an escaped bracket within the identifier.
+            if (i + 1 < sql.Length && sql[i + 1] == CloseSquareBracketChar)
+            {
+                searchEnd = Math.Min(sql.Length, searchEnd + 1);
+                i = FindNextCloseSquareBracket(sql, i + 2, ref state);
+                continue;
+            }
+
+            // A name which is going to be redacted is always treated as an identifier, as none of it is copied.
+            return (state.SanitizeNextNonKeywordToken || IsBracketedIdentifier(sql.Slice(start + 1, i - start - 1))) ? i : -1;
+        }
+
+        return -1;
+
+        static bool IsBracketedIdentifier(ReadOnlySpan<char> content)
+        {
+            // Brackets can also delimit a list of values in some dialects (e.g. ['a', 'b'] or [1, 2] in
+            // DuckDB, ClickHouse and GoogleSQL). An odd number of quotes cannot all be part of string
+            // literals, so that content is an identifier (e.g. [Manager's Approval]), unless it starts
+            // with a quote, when the bracket which ends it is inside a string literal (e.g. ['a]b', 'c']).
+            // Content without quotes is an identifier unless it starts with a number (e.g. [1, 2]).
+            // Anything else is parsed as SQL, which redacts any literals and at worst over-redacts an
+            // identifier (e.g. [2024] or [It's Bob's]).
+            content = content.TrimStart();
+
+            if (content.IsEmpty)
+            {
+                return false;
+            }
+
+#if NET
+            var singleQuotes = content.Count(SingleQuoteChar);
+#else
+            var singleQuotes = 0;
+            foreach (var c in content)
+            {
+                if (c == SingleQuoteChar)
+                {
+                    singleQuotes++;
+                }
+            }
+#endif
+
+            return singleQuotes == 0
+                ? !StartsWithNumber(content)
+                : (singleQuotes & 1) == 1 && content[0] != SingleQuoteChar;
+        }
+    }
+
+    /// <summary>
+    /// Finds the first <c>]</c> at or after <paramref name="from"/>, or returns the length of the input if there is none.
+    /// </summary>
+    /// <remarks>
+    /// The result is cached, so that a run of brackets which do not start an identifier (e.g. <c>[[[[</c>) does not
+    /// search the same characters again. It is only reused for a position between the one it was found from and
+    /// the bracket it found, so it remains correct if a caller searches from an earlier position.
+    /// </remarks>
+    private static int FindNextCloseSquareBracket(ReadOnlySpan<char> sql, int from, ref ParseState state)
+    {
+        if (from < state.CloseSquareBracketSearchStart || from > state.NextCloseSquareBracket)
+        {
+            var index = from < sql.Length ? sql.Slice(from).IndexOf(CloseSquareBracketChar) : -1;
+            state.CloseSquareBracketSearchStart = from;
+            state.NextCloseSquareBracket = index < 0 ? sql.Length : from + index;
+        }
+
+        return state.NextCloseSquareBracket;
+    }
+
+    private static bool StartsWithNumber(ReadOnlySpan<char> value)
+    {
+        // Whether the value starts with a numeric literal (e.g. 2024, -1 or .5).
+        var i = !value.IsEmpty && (value[0] is '+' or DashChar) ? 1 : 0;
+
+        if (i < value.Length && value[i] == DotChar)
+        {
+            i++;
+        }
+
+        return i < value.Length && char.IsAsciiDigit(value[i]);
+    }
+
+    private static bool IsArraySubscriptOrConstructor(ReadOnlySpan<char> sql, int start, in ParseState state)
+    {
+        // A '[' which directly follows an expression is an array subscript (e.g. items[1], (items)[1] or
+        // "items"[1] in PostgreSQL), except after a keyword (e.g. FROM[Orders]). One which follows the
+        // ARRAY keyword is an array constructor (e.g. ARRAY['a', 'b'] or ARRAY ['a', 'b']).
+        if (start == 0)
+        {
+            return false;
+        }
+
+        var previousChar = sql[start - 1];
+
+        if (IsWordChar(previousChar))
+        {
+            return state.PreviousKeywordEndPosition != start;
+        }
+
+        if (previousChar is CloseParenChar or CloseSquareBracketChar or DoubleQuoteChar or BacktickChar)
+        {
+            return true;
+        }
+
+        var end = start;
+        while (end > 0 && sql[end - 1] is SpaceChar or TabChar or CarriageReturnChar or NewLineChar)
+        {
+            end--;
+        }
+
+        var keywordStart = end - ArrayKeyword.Length;
+        if (end == start || keywordStart < 0 || (keywordStart > 0 && IsWordChar(sql[keywordStart - 1])))
+        {
+            return false;
+        }
+
+        for (var i = 0; i < ArrayKeyword.Length; i++)
+        {
+            if ((sql[keywordStart + i] | 0x20) != (ArrayKeyword[i] | 0x20))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private static bool ParseWhitespace(ReadOnlySpan<char> sql, Span<char> buffer, ref ParseState state)
@@ -710,61 +949,101 @@ internal static class SqlProcessor
 
     private static bool SkipComment(ReadOnlySpan<char> sql, ref ParseState state)
     {
-        var i = state.ParsePosition;
-        var ch = sql[i];
-        var length = sql.Length;
+        var commentEnd = FindCommentEnd(sql, state.ParsePosition, state.UseBackslashEscapes);
 
-        var iPlusOne = i + 1;
-        var iPlusTwo = i + 2;
+        if (commentEnd < 0)
+        {
+            return false;
+        }
+
+        state.ParsePosition = commentEnd;
+        return true;
+    }
+
+    /// <summary>
+    /// Finds the end of the comment which starts at <paramref name="start"/>.
+    /// </summary>
+    /// <returns>
+    /// The index after a multi-line comment, the index of the line break which ends a single-line comment
+    /// (so that it is copied as whitespace), the length of the input if the comment is not terminated, or
+    /// -1 if there is no comment at <paramref name="start"/>.
+    /// </returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int FindCommentEnd(ReadOnlySpan<char> sql, int start, bool useBackslashEscapes)
+    {
+        var ch = sql[start];
+        var next = start + 1;
 
         // Scan past multi-line comment
-        if (ch == '/' && iPlusOne < length && sql[iPlusOne] == AsteriskChar)
+        if (ch == ForwardSlashChar && next < sql.Length && sql[next] == AsteriskChar)
         {
-            var remainingComment = sql.Slice(iPlusTwo);
-            var searchOffset = 0;
-            while (searchOffset < remainingComment.Length)
-            {
-                var asteriskIndex = remainingComment.Slice(searchOffset).IndexOf(AsteriskChar);
-                if (asteriskIndex < 0)
-                {
-                    break;
-                }
-
-                searchOffset += asteriskIndex;
-                if (searchOffset + 1 < remainingComment.Length && remainingComment[searchOffset + 1] == ForwardSlashChar)
-                {
-                    state.ParsePosition = iPlusTwo + searchOffset + 2;
-                    return true;
-                }
-
-                searchOffset++;
-            }
-
-            // Unterminated comment, consume to end
-            state.ParsePosition = length;
-            return true;
+            // SQL Server and PostgreSQL allow block comments to be nested, so a comment such as
+            // /* /* */ don't */ only ends at the second "*/". MySQL/MariaDB do not.
+            return FindMultiLineCommentEnd(sql, start, allowNesting: !useBackslashEscapes);
         }
 
-        // Scan past single-line comment
-        if (ch == DashChar && iPlusOne < length && sql[iPlusOne] == DashChar)
+        // Scan past single-line comment. MySQL/MariaDB also start one with '#', which is otherwise
+        // part of an identifier in the other dialects (e.g. a SQL Server #temp table).
+        if ((ch == DashChar && next < sql.Length && sql[next] == DashChar) || (ch == HashChar && useBackslashEscapes))
         {
 #if NET
-            var lineBreakIndex = sql.Slice(iPlusTwo).IndexOfAny(LineBreakSearchValues);
+            var lineBreakIndex = sql.Slice(next).IndexOfAny(LineBreakSearchValues);
 #else
-            var lineBreakIndex = sql.Slice(iPlusTwo).IndexOfAny(LineBreakChars);
+            var lineBreakIndex = sql.Slice(next).IndexOfAny(LineBreakChars);
 #endif
-            if (lineBreakIndex >= 0)
-            {
-                // Position at the newline so ParseWhitespace can copy it
-                state.ParsePosition = iPlusTwo + lineBreakIndex;
-                return true;
-            }
 
-            state.ParsePosition = length;
-            return true;
+            // Position at the newline so ParseWhitespace can copy it
+            return lineBreakIndex < 0 ? sql.Length : next + lineBreakIndex;
         }
 
-        return false;
+        return -1;
+    }
+
+    private static int FindMultiLineCommentEnd(ReadOnlySpan<char> sql, int start, bool allowNesting)
+    {
+        var depth = 1;
+        var i = start + 2;
+
+        while (i < sql.Length)
+        {
+            var index = allowNesting
+                ? sql.Slice(i).IndexOfAny(AsteriskChar, ForwardSlashChar)
+                : sql.Slice(i).IndexOf(AsteriskChar);
+
+            if (index < 0)
+            {
+                break;
+            }
+
+            i += index;
+
+            var next = i + 1;
+            if (next < sql.Length)
+            {
+                if (sql[i] == AsteriskChar && sql[next] == ForwardSlashChar)
+                {
+                    if (--depth == 0)
+                    {
+                        return i + 2;
+                    }
+
+                    i += 2;
+                    continue;
+                }
+
+                if (sql[i] == ForwardSlashChar && sql[next] == AsteriskChar)
+                {
+                    depth++;
+                    i += 2;
+                    continue;
+                }
+            }
+
+            i++;
+        }
+
+        // Unterminated comment, consume to end
+        return sql.Length;
     }
 
     private static bool SanitizeStringLiteral(ReadOnlySpan<char> sql, Span<char> buffer, ref ParseState state)
@@ -773,7 +1052,7 @@ internal static class SqlProcessor
         if (currentChar == SingleQuoteChar)
         {
             return TrySanitizeLiteralsForInClause(sql, buffer, ref state, state.ParsePosition) ||
-                   SanitizeQuotedLiteral(sql, buffer, ref state, SingleQuoteChar, allowUnicodePrefix: true);
+                   SanitizeQuotedLiteral(sql, buffer, ref state, SingleQuoteChar);
         }
 
         // MySQL/MariaDB (the same dialects for which useBackslashEscapes is set) also treat a
@@ -785,17 +1064,138 @@ internal static class SqlProcessor
         // verbatim (it is never recognized as an identifier or literal by any other check here).
         return currentChar == DoubleQuoteChar &&
                state.UseBackslashEscapes &&
-               SanitizeQuotedLiteral(sql, buffer, ref state, DoubleQuoteChar, allowUnicodePrefix: false);
+               SanitizeQuotedLiteral(sql, buffer, ref state, DoubleQuoteChar);
     }
 
-    private static bool SanitizeQuotedLiteral(ReadOnlySpan<char> sql, Span<char> buffer, ref ParseState state, char delimiter, bool allowUnicodePrefix)
+    private static bool SanitizeQuotedLiteral(ReadOnlySpan<char> sql, Span<char> buffer, ref ParseState state, char delimiter)
     {
-        // Is the string literal of the form `N'foo'` (i.e. a Unicode literal)?
-        // If so, we want to skip the Unicode prefix when sanitizing.
-        var isUnicode = allowUnicodePrefix && state.ParsePosition >= 1 && sql[state.ParsePosition - 1] is UnicodePrefixChar;
+        var prefixLength = 0;
+        var literalEnd = delimiter == SingleQuoteChar
+            ? FindStringLiteralEnd(sql, state.ParsePosition, state.UseBackslashEscapes, out prefixLength)
+            : FindQuotedLiteralEnd(sql, state.ParsePosition, delimiter, state.UseBackslashEscapes);
 
-        var literalStart = state.ParsePosition;
-        var searchPos = state.ParsePosition + 1;
+        if (literalEnd < 0)
+        {
+            state.ParsePosition = sql.Length;
+        }
+        else
+        {
+            // Skip a prefix of the literal (e.g. the N of the Unicode literal N'foo'), which has
+            // already been copied as a token, by overwriting it instead.
+            state.SanitizedPosition -= prefixLength;
+            state.ParsePosition = literalEnd + 1;
+        }
+
+        buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
+        return true;
+    }
+
+    /// <summary>
+    /// Finds the end of the single-quoted string literal whose opening quote is at <paramref name="quotePosition"/>.
+    /// </summary>
+    /// <param name="sql">The SQL statement.</param>
+    /// <param name="quotePosition">The position of the opening quote.</param>
+    /// <param name="useBackslashEscapes">Whether the dialect treats a backslash as an escape character.</param>
+    /// <param name="prefixLength">
+    /// The number of characters which precede the opening quote and are part of the literal
+    /// (e.g. the <c>N</c> of the Unicode literal <c>N'foo'</c>).
+    /// </param>
+    /// <returns>The index of the closing quote, or -1 if the literal is not terminated.</returns>
+    private static int FindStringLiteralEnd(ReadOnlySpan<char> sql, int quotePosition, bool useBackslashEscapes, out int prefixLength)
+    {
+        prefixLength = 0;
+
+        if (quotePosition == 0)
+        {
+            return FindQuotedLiteralEnd(sql, quotePosition, SingleQuoteChar, useBackslashEscapes);
+        }
+
+        var previousChar = sql[quotePosition - 1];
+
+        // These prefixes are only recognized when they are a separate token (so not the end of
+        // ELSE'a'), and not for MySQL/MariaDB, which do not support them.
+        if (!useBackslashEscapes)
+        {
+            // A PostgreSQL escape string (e.g. E'it\'s'), in which a backslash escapes a quote.
+            if (previousChar is 'E' or 'e' && IsSeparateToken(sql, quotePosition - 1))
+            {
+                prefixLength = 1;
+                return FindQuotedLiteralEnd(sql, quotePosition, SingleQuoteChar, useBackslashEscapes: true);
+            }
+
+            // An Oracle alternative quoting literal (e.g. q'[it's]', or nq'[it's]' for a national
+            // character literal), in which quotes are not escaped. The delimiter which follows the
+            // opening quote can be any character other than whitespace, and the literal ends at the
+            // first closing delimiter (']' for '[', '}' for '{', ')' for '(' and '>' for '<',
+            // otherwise the same character) which is followed by a quote.
+            if (previousChar is 'q' or 'Q' &&
+                quotePosition + 1 < sql.Length &&
+                sql[quotePosition + 1] is not (SpaceChar or TabChar or CarriageReturnChar or NewLineChar or SingleQuoteChar))
+            {
+                var prefixStart = quotePosition - 1;
+                if (prefixStart > 0 && sql[prefixStart - 1] is 'n' or 'N')
+                {
+                    prefixStart--;
+                }
+
+                if (IsSeparateToken(sql, prefixStart))
+                {
+                    prefixLength = quotePosition - prefixStart;
+                    return FindAlternativeQuotedLiteralEnd(sql, quotePosition);
+                }
+            }
+        }
+
+        if (previousChar is UnicodePrefixChar)
+        {
+            prefixLength = 1;
+        }
+
+        return FindQuotedLiteralEnd(sql, quotePosition, SingleQuoteChar, useBackslashEscapes);
+
+        static bool IsSeparateToken(ReadOnlySpan<char> sql, int position) =>
+            position == 0 || !IsWordChar(sql[position - 1]);
+    }
+
+    private static int FindAlternativeQuotedLiteralEnd(ReadOnlySpan<char> sql, int quotePosition)
+    {
+        var openingDelimiter = sql[quotePosition + 1];
+        var closingDelimiter = openingDelimiter switch
+        {
+            OpenSquareBracketChar => CloseSquareBracketChar,
+            OpenParenChar => CloseParenChar,
+            '{' => '}',
+            '<' => '>',
+            _ => openingDelimiter,
+        };
+
+        var i = quotePosition + 2;
+        while (i < sql.Length)
+        {
+            var delimiterIndex = sql.Slice(i).IndexOf(closingDelimiter);
+            if (delimiterIndex < 0)
+            {
+                break;
+            }
+
+            i += delimiterIndex + 1;
+
+            if (i < sql.Length && sql[i] == SingleQuoteChar)
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    /// <summary>
+    /// Finds the end of the quoted literal whose opening delimiter is at <paramref name="quotePosition"/>.
+    /// </summary>
+    /// <returns>The index of the closing delimiter, or -1 if the literal is not terminated.</returns>
+    private static int FindQuotedLiteralEnd(ReadOnlySpan<char> sql, int quotePosition, char delimiter, bool useBackslashEscapes)
+    {
+        var searchPos = quotePosition + 1;
         while (searchPos < sql.Length)
         {
             var quoteIndex = sql.Slice(searchPos).IndexOf(delimiter);
@@ -808,13 +1208,13 @@ internal static class SqlProcessor
 
             // Skip a backslash-escaped delimiter (\' or \"). MySQL/MariaDB (with the default
             // NO_BACKSLASH_ESCAPES disabled) treat a backslash as a string escape character in
-            // both single- and double-quoted literals, so a delimiter preceded by an odd number
-            // of backslashes does not terminate the literal. Without this a value such as
-            // 'a\'secret' would be incorrectly parsed and the trailing "secret" copied into the
-            // sanitized SQL verbatim. This is gated on the dialect because '\' is not an escape
-            // in the other engines, where treating it as one would instead cause a doubled-quote
-            // -escaped literal to be incorrectly parsed.
-            if (state.UseBackslashEscapes && IsBackslashEscaped(sql, searchPos, literalStart))
+            // both single- and double-quoted literals, as does PostgreSQL in an escape string
+            // (E'...'), so a delimiter preceded by an odd number of backslashes does not terminate
+            // the literal. Without this a value such as 'a\'secret' would be incorrectly parsed and
+            // the trailing "secret" copied into the sanitized SQL verbatim. This is gated on the
+            // dialect because '\' is not an escape in the other engines, where treating it as one
+            // would instead cause a doubled-quote-escaped literal to be incorrectly parsed.
+            if (useBackslashEscapes && IsBackslashEscaped(sql, searchPos, quotePosition))
             {
                 searchPos += 1;
                 continue;
@@ -828,20 +1228,10 @@ internal static class SqlProcessor
             }
 
             // Found terminating delimiter
-            if (isUnicode)
-            {
-                // Skip the Unicode prefix by overwriting the previous position instead
-                state.SanitizedPosition--;
-            }
-
-            state.ParsePosition = searchPos + 1;
-            buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
-            return true;
+            return searchPos;
         }
 
-        state.ParsePosition = sql.Length;
-        buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
-        return true;
+        return -1;
     }
 
     private static bool IsBackslashEscaped(ReadOnlySpan<char> sql, int quoteIndex, int literalStart)
@@ -857,10 +1247,32 @@ internal static class SqlProcessor
 
     private static bool SanitizeDollarQuotedLiteral(ReadOnlySpan<char> sql, Span<char> buffer, ref ParseState state)
     {
+        if (sql[state.ParsePosition] != DollarChar ||
+            !TryFindDollarQuotedLiteralEnd(sql, state.ParsePosition, out var literalEnd))
+        {
+            return false;
+        }
+
+        state.ParsePosition = literalEnd;
+        buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
+        return true;
+    }
+
+    /// <summary>
+    /// Finds the end of the dollar-quoted string literal which starts at <paramref name="start"/>, if any.
+    /// </summary>
+    /// <returns>
+    /// <see langword="true"/> if a dollar-quoted string literal starts at <paramref name="start"/>, in which
+    /// case <paramref name="literalEnd"/> is the index after it, or the length of the input if it is not
+    /// terminated; otherwise <see langword="false"/>.
+    /// </returns>
+    private static bool TryFindDollarQuotedLiteralEnd(ReadOnlySpan<char> sql, int start, out int literalEnd)
+    {
         // PostgreSQL dollar-quoted string: $tag$...$tag$ (the tag is optional, so $$...$$ is valid).
         // The body between the delimiters is a literal with no escaping, so it must be redacted.
         // This syntax is unambiguous across the SQL dialects handled here, so it is safe to apply.
-        var start = state.ParsePosition;
+        literalEnd = -1;
+
         if (sql[start] != DollarChar)
         {
             return false;
@@ -891,15 +1303,8 @@ internal static class SqlProcessor
         var bodyStart = tagEnd + 1;
 
         var closeOffset = sql.Slice(bodyStart).IndexOf(delimiter);
-        if (closeOffset < 0)
-        {
-            state.ParsePosition = sql.Length;
-            buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
-            return true;
-        }
 
-        state.ParsePosition = bodyStart + closeOffset + delimiter.Length;
-        buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
+        literalEnd = closeOffset < 0 ? sql.Length : bodyStart + closeOffset + delimiter.Length;
         return true;
 
         static bool IsDollarQuoteTagStartChar(char c)
@@ -1037,12 +1442,12 @@ internal static class SqlProcessor
                 return false;
             }
 
-            // The closing parenthesis has to be located with a literal- and comment-aware
-            // scan. A plain IndexOf(')') can match a ')' inside a value (for example
-            // "IN ('a)b', 'secret')"), which would leave the parser positioned in the middle of
-            // that literal. Every subsequent quote would then be mismatched and the remaining
-            // values would be copied into the sanitized SQL verbatim instead of being replaced.
-            if (TryFindEndOfInClause(sql, parsePosition, state.UseBackslashEscapes, out var closeParenIndex))
+            // The closing parenthesis has to be located with a scan which is aware of literals,
+            // quoted identifiers and comments. A plain IndexOf(')') can match a ')' inside a value
+            // (for example "IN ('a)b', 'secret')"), which would leave the parser positioned in the
+            // middle of that literal. Every subsequent quote would then be mismatched and the
+            // remaining values would be copied into the sanitized SQL verbatim instead of being replaced.
+            if (TryFindEndOfInClause(sql, parsePosition, in state, out var closeParenIndex))
             {
                 state.ParsePosition = closeParenIndex;
                 buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
@@ -1055,7 +1460,7 @@ internal static class SqlProcessor
 
     /// <summary>
     /// Finds the index of the parenthesis which closes an <c>IN (</c> clause, ignoring any
-    /// parenthesis which appears inside a string literal or a comment.
+    /// parenthesis which appears inside a string literal, a quoted identifier or a comment.
     /// </summary>
     /// <returns>
     /// <see langword="true"/> if a closing parenthesis was found, in which case
@@ -1063,8 +1468,12 @@ internal static class SqlProcessor
     /// <see langword="false"/> if the clause is not terminated, in which case the caller
     /// falls back to sanitizing each value individually.
     /// </returns>
-    private static bool TryFindEndOfInClause(ReadOnlySpan<char> sql, int start, bool useBackslashEscapes, out int closeParenIndex)
+    private static bool TryFindEndOfInClause(ReadOnlySpan<char> sql, int start, in ParseState state, out int closeParenIndex)
     {
+        // The list is scanned ahead of the parser, which continues from its start if it is not
+        // terminated, so anything the scan records about later positions (such as there being no
+        // closing delimiter ahead) is kept in a copy of the state rather than the parser's own.
+        var scanState = state;
         var length = sql.Length;
         var i = start;
 
@@ -1083,6 +1492,9 @@ internal static class SqlProcessor
 
             i += offset;
 
+            // Each construct is skipped using the same rules as the main parser, and a construct
+            // which is not terminated skips to the end of the input, so that no ')' within it is used.
+            int end;
             switch (sql[i])
             {
                 case CloseParenChar:
@@ -1090,105 +1502,37 @@ internal static class SqlProcessor
                     return true;
 
                 case SingleQuoteChar:
-                    i = SkipStringLiteral(sql, i, useBackslashEscapes);
+                    end = FindStringLiteralEnd(sql, i, state.UseBackslashEscapes, out _);
+                    i = end < 0 ? length : end + 1;
                     break;
 
-                case DashChar:
-                    i = i + 1 < length && sql[i + 1] == DashChar
-                        ? SkipSingleLineComment(sql, i)
-                        : i + 1;
+                case DoubleQuoteChar when state.UseBackslashEscapes:
+                    end = FindQuotedLiteralEnd(sql, i, DoubleQuoteChar, useBackslashEscapes: true);
+                    i = end < 0 ? length : end + 1;
                     break;
 
-                // ForwardSlashChar
+                case DoubleQuoteChar:
+                case BacktickChar:
+                case OpenSquareBracketChar:
+                    // A delimiter which does not start a quoted identifier is parsed as a single character.
+                    end = FindQuotedIdentifierEnd(sql, i, ref scanState);
+                    i = end < 0 ? i + 1 : end + 1;
+                    break;
+
+                case DollarChar:
+                    i = TryFindDollarQuotedLiteralEnd(sql, i, out end) ? end : i + 1;
+                    break;
+
+                // DashChar, ForwardSlashChar or HashChar
                 default:
-                    i = i + 1 < length && sql[i + 1] == AsteriskChar
-                        ? SkipMultiLineComment(sql, i)
-                        : i + 1;
+                    end = FindCommentEnd(sql, i, state.UseBackslashEscapes);
+                    i = end < 0 ? i + 1 : end;
                     break;
             }
         }
 
         closeParenIndex = -1;
         return false;
-
-        // Returns the index after the closing quote, or the end of the input if the
-        // literal is not terminated.
-        static int SkipStringLiteral(ReadOnlySpan<char> sql, int quotePosition, bool useBackslashEscapes)
-        {
-            var length = sql.Length;
-            var i = quotePosition + 1;
-
-            while (i < length)
-            {
-                var quoteIndex = sql.Slice(i).IndexOf(SingleQuoteChar);
-                if (quoteIndex < 0)
-                {
-                    break;
-                }
-
-                i += quoteIndex;
-
-                // A backslash-escaped quote (\') does not terminate the literal in dialects that use
-                // backslash escapes. See the note in SanitizeStringLiteral.
-                if (useBackslashEscapes && IsBackslashEscaped(sql, i, quotePosition))
-                {
-                    i += 1;
-                    continue;
-                }
-
-                // A doubled quote ('') is an escaped quote within the literal.
-                if (i + 1 < length && sql[i + 1] == SingleQuoteChar)
-                {
-                    i += 2;
-                    continue;
-                }
-
-                return i + 1;
-            }
-
-            return length;
-        }
-
-        // Returns the index of the line break which ends the comment, or the end of the
-        // input if there is none.
-        static int SkipSingleLineComment(ReadOnlySpan<char> sql, int dashPosition)
-        {
-#if NET
-            var lineBreakIndex = sql.Slice(dashPosition + 2).IndexOfAny(LineBreakSearchValues);
-#else
-            var lineBreakIndex = sql.Slice(dashPosition + 2).IndexOfAny(LineBreakChars);
-#endif
-
-            return lineBreakIndex < 0 ? sql.Length : dashPosition + 2 + lineBreakIndex;
-        }
-
-        // Returns the index after the closing "*/", or the end of the input if the comment
-        // is not terminated.
-        static int SkipMultiLineComment(ReadOnlySpan<char> sql, int slashPosition)
-        {
-            var length = sql.Length;
-            var i = slashPosition + 2;
-
-            while (i < length)
-            {
-                var asteriskIndex = sql.Slice(i).IndexOf(AsteriskChar);
-                if (asteriskIndex < 0)
-                {
-                    break;
-                }
-
-                i += asteriskIndex;
-
-                if (i + 1 < length && sql[i + 1] == ForwardSlashChar)
-                {
-                    return i + 2;
-                }
-
-                i++;
-            }
-
-            return length;
-        }
     }
 
     private ref struct ParseState
@@ -1222,6 +1566,13 @@ internal static class SqlProcessor
         public int PreviousTokenStartPosition; // 4 bytes
         public int PreviousTokenEndPosition; // 4 bytes
 
+        // This tracks the end position of the previous keyword matched by the parser.
+        public int PreviousKeywordEndPosition; // 4 bytes
+
+        // The first ']' found at or after CloseSquareBracketSearchStart, or the length of the input if there is none.
+        public int CloseSquareBracketSearchStart; // 4 bytes
+        public int NextCloseSquareBracket; // 4 bytes
+
         // NOTE: If the number of bool fields increases significantly, consider combining into a bitfield.
 
         public bool CaptureNextNonKeywordTokenAsIdentifier; // 1 byte
@@ -1230,19 +1581,20 @@ internal static class SqlProcessor
 
         /// <summary>
         /// Whether the source dialect treats a backslash as a string-literal escape character
-        /// (MySQL/MariaDB). Controls whether <c>\'</c> is recognized as an escaped quote.
+        /// (MySQL/MariaDB). Controls whether <c>\'</c> is recognized as an escaped quote, and the
+        /// other dialect differences described by <see cref="GetSanitizedSql(string?, bool)"/>.
         /// </summary>
         public bool UseBackslashEscapes; // 1 byte
 
         /// <summary>
-        /// Used to track if we are in an escaped identifier (e.g., "[table]").
+        /// Used to avoid repeatedly scanning to the end of malformed SQL after finding an unterminated double-quoted identifier.
         /// </summary>
-        public bool InEscapedIdentifier; // 1 byte
+        public bool NoTerminatingDoubleQuotedIdentifierAhead; // 1 byte
 
         /// <summary>
-        /// Used to avoid repeatedly scanning to the end of malformed SQL after finding an unterminated escaped identifier.
+        /// Used to avoid repeatedly scanning to the end of malformed SQL after finding an unterminated backtick-quoted identifier.
         /// </summary>
-        public bool NoTerminatingEscapedIdentifierAhead; // 1 byte
+        public bool NoTerminatingBacktickQuotedIdentifierAhead; // 1 byte
 
         /// <summary>
         /// Used to track if we are in a FROM clause for special handling of comma-separated table lists.
@@ -1256,6 +1608,13 @@ internal static class SqlProcessor
         /// nothing further is appended to it.
         /// </summary>
         public readonly bool SummaryIsComplete => this.SummaryPosition >= MaxSummaryLength;
+    }
+
+    private sealed class LastSanitizedStatement
+    {
+        public string? Sql;
+        public bool UseBackslashEscapes;
+        public SqlStatementInfo StatementInfo;
     }
 
     private sealed class SqlKeywordInfo

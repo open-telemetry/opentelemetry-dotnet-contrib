@@ -107,35 +107,45 @@ public class MockCommandExecutor
     [EventSource(Name = SqlEventSourceListener.AdoNetEventSourceName + "-FakeFriendly")]
     private class FakeBehavingAdoNetSqlEventSource : EventSource, IFakeBehavingSqlEventSource
     {
-        [Event(SqlEventSourceListener.BeginExecuteEventId)]
+        [Event(SqlEventSourceListener.BeginExecuteEventId, Keywords = Keywords.ExecutionTrace)]
         public void WriteBeginExecuteEvent(int objectId, string dataSource, string databaseName, string commandText)
             => this.WriteEvent(SqlEventSourceListener.BeginExecuteEventId, objectId, dataSource, databaseName, commandText);
 
-        [Event(SqlEventSourceListener.EndExecuteEventId)]
+        [Event(SqlEventSourceListener.EndExecuteEventId, Keywords = Keywords.ExecutionTrace)]
         public void WriteEndExecuteEvent(int objectId, int compositeState, int sqlExceptionNumber)
             => this.WriteEvent(SqlEventSourceListener.EndExecuteEventId, objectId, compositeState, sqlExceptionNumber);
+
+        public static class Keywords
+        {
+            public const EventKeywords ExecutionTrace = SqlEventSourceListener.ExecuteEventKeywords;
+        }
     }
 
     [EventSource(Name = SqlEventSourceListener.MdsEventSourceName + "-FakeFriendly")]
     private class FakeBehavingMdsSqlEventSource : EventSource, IFakeBehavingSqlEventSource
     {
-        [Event(SqlEventSourceListener.BeginExecuteEventId)]
+        [Event(SqlEventSourceListener.BeginExecuteEventId, Keywords = Keywords.ExecutionTrace)]
         public void WriteBeginExecuteEvent(int objectId, string dataSource, string databaseName, string commandText)
             => this.WriteEvent(SqlEventSourceListener.BeginExecuteEventId, objectId, dataSource, databaseName, commandText);
 
-        [Event(SqlEventSourceListener.EndExecuteEventId)]
+        [Event(SqlEventSourceListener.EndExecuteEventId, Keywords = Keywords.ExecutionTrace)]
         public void WriteEndExecuteEvent(int objectId, int compositeState, int sqlExceptionNumber)
             => this.WriteEvent(SqlEventSourceListener.EndExecuteEventId, objectId, compositeState, sqlExceptionNumber);
+
+        public static class Keywords
+        {
+            public const EventKeywords ExecutionTrace = SqlEventSourceListener.ExecuteEventKeywords;
+        }
     }
 
     [EventSource(Name = SqlEventSourceListener.AdoNetEventSourceName + "-FakeEvil")]
     private class FakeMisbehavingAdoNetSqlEventSource : EventSource, IFakeMisbehavingSqlEventSource
     {
-        [Event(SqlEventSourceListener.BeginExecuteEventId)]
+        [Event(SqlEventSourceListener.BeginExecuteEventId, Keywords = Keywords.ExecutionTrace)]
         public void WriteBeginExecuteEvent(string arg1)
             => this.WriteEvent(SqlEventSourceListener.BeginExecuteEventId, arg1);
 
-        [Event(SqlEventSourceListener.EndExecuteEventId)]
+        [Event(SqlEventSourceListener.EndExecuteEventId, Keywords = Keywords.ExecutionTrace)]
         public void WriteEndExecuteEvent(string arg1, string arg2, string arg3, string arg4)
             => this.WriteEvent(SqlEventSourceListener.EndExecuteEventId, arg1, arg2, arg3, arg4);
 
@@ -146,16 +156,21 @@ public class MockCommandExecutor
 
             this.WriteEvent(3, args);
         }
+
+        public static class Keywords
+        {
+            public const EventKeywords ExecutionTrace = SqlEventSourceListener.ExecuteEventKeywords;
+        }
     }
 
     [EventSource(Name = SqlEventSourceListener.MdsEventSourceName + "-FakeEvil")]
     private class FakeMisbehavingMdsSqlEventSource : EventSource, IFakeMisbehavingSqlEventSource
     {
-        [Event(SqlEventSourceListener.BeginExecuteEventId)]
+        [Event(SqlEventSourceListener.BeginExecuteEventId, Keywords = Keywords.ExecutionTrace)]
         public void WriteBeginExecuteEvent(string arg1)
             => this.WriteEvent(SqlEventSourceListener.BeginExecuteEventId, arg1);
 
-        [Event(SqlEventSourceListener.EndExecuteEventId)]
+        [Event(SqlEventSourceListener.EndExecuteEventId, Keywords = Keywords.ExecutionTrace)]
         public void WriteEndExecuteEvent(string arg1, string arg2, string arg3, string arg4)
             => this.WriteEvent(SqlEventSourceListener.EndExecuteEventId, arg1, arg2, arg3, arg4);
 
@@ -165,6 +180,11 @@ public class MockCommandExecutor
             object[]? args = null;
 
             this.WriteEvent(3, args);
+        }
+
+        public static class Keywords
+        {
+            public const EventKeywords ExecutionTrace = SqlEventSourceListener.ExecuteEventKeywords;
         }
     }
 }
