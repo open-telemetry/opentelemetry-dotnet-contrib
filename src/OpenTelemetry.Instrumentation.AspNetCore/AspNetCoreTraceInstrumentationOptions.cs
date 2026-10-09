@@ -38,6 +38,16 @@ public class AspNetCoreTraceInstrumentationOptions
         {
             this.DisableUrlQueryRedaction = disableUrlQueryRedaction;
         }
+
+#if NET
+        if (configuration.TryGetBoolValue(
+            AspNetCoreInstrumentationEventSource.Log,
+            "OTEL_DOTNET_EXPERIMENTAL_ASPNETCORE_ENABLE_NEW_ROOT_SPAN",
+            out var enableNewRootSpan))
+        {
+            this.EnableNewRootSpan = enableNewRootSpan;
+        }
+#endif
     }
 
     /// <summary>
@@ -128,4 +138,11 @@ public class AspNetCoreTraceInstrumentationOptions
     /// The redaction can be disabled by setting this property to <see langword="true" />.
     /// </remarks>
     internal bool DisableUrlQueryRedaction { get; set; }
+
+#if NET
+    /// <summary>
+    /// Gets or sets a value indicating whether a new root span is started for requests that arrive with a parent.
+    /// </summary>
+    internal bool EnableNewRootSpan { get; set; }
+#endif
 }

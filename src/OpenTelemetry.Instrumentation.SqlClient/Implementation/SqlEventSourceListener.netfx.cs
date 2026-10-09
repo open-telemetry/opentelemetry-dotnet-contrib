@@ -252,11 +252,12 @@ internal sealed class SqlEventSourceListener : EventListener
             startTags);
 
         // If there is no activity because there is no listener or it decided not to sample the current
-        // request, the start time needs to be tracked to calculate the duration. Otherwise, the duration
+        // request, or the activity was only started for another listener while only metrics are being
+        // collected, the start time needs to be tracked to calculate the duration. Otherwise, the duration
         // is taken from the activity, but the details of the command are still tracked in case the
         // activity which is current when the command ends is not recorded.
         this.pendingCommands[correlationKey] = new(
-            activity == null ? Stopwatch.GetTimestamp() : null,
+            activity == null || SqlClientInstrumentation.Instance.HandleManager.TracingHandles == 0 ? Stopwatch.GetTimestamp() : null,
             sqlStatementInfo.DbQuerySummary,
             dataSource,
             databaseName);
