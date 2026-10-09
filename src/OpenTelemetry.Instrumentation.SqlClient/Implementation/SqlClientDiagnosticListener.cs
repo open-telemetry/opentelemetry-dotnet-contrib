@@ -306,7 +306,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                                     activity.AddTag(SemanticConventions.AttributeDbResponseStatusCode, exceptionNumber.ToString(CultureInfo.InvariantCulture));
                                 }
 
-                                activity.SetStatus(ActivityStatusCode.Error, exception.Message);
+                                activity.SetStatus(ActivityStatusCode.Error);
 
                                 if (options.RecordException)
                                 {

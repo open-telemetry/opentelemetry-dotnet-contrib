@@ -658,6 +658,37 @@ public class StackExchangeRedisCallsInstrumentationTests(RedisXunitFixture fixtu
         Assert.DoesNotContain(cacheKey, instrumentation.Cache);
     }
 
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
+    public void BackedOffDrain_IsWokenByProfilerSessionSignal()
+    {
+        var connectionOptions = new ConfigurationOptions { AbortOnConnectFail = true };
+        connectionOptions.EndPoints.Add(this.connectionString);
+        using var connection = ConnectionMultiplexer.Connect(connectionOptions);
+        var db = connection.GetDatabase();
+        var exportedItems = new List<Activity>();
+        StackExchangeRedisInstrumentation? instrumentation = null;
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddInMemoryExporter(exportedItems)
+            .AddRedisInstrumentation(connection, options => options.FlushInterval = TimeSpan.FromSeconds(2))
+            .ConfigureRedisInstrumentation(value => instrumentation = value)
+            .Build();
+
+        Assert.NotNull(instrumentation);
+        var connectionInstrumentation = Assert.Single(instrumentation.InstrumentedConnections);
+        Assert.True(SpinWait.SpinUntil(
+            () => connectionInstrumentation.CurrentDrainIntervalMilliseconds == 2_000,
+            TimeSpan.FromSeconds(5)));
+
+        using var parent = new Activity("Parent")
+            .SetParentId(ActivityTraceId.CreateRandom(), ActivitySpanId.CreateRandom(), ActivityTraceFlags.Recorded)
+            .Start();
+        db.StringSet("backoff-wakeup-key", "v");
+
+        Assert.True(SpinWait.SpinUntil(() => exportedItems.Count > 0, TimeSpan.FromSeconds(5)));
+        Assert.Equal("SET", exportedItems[0].DisplayName);
+    }
+
     private static void VerifyOldActivityData(Activity activity, bool isSet, EndPoint endPoint, bool setCommandKey = false)
     {
         if (isSet)
