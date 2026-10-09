@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using System.Globalization;
 using Microsoft.Extensions.Configuration;
 
 #if NETFRAMEWORK
@@ -880,6 +881,67 @@ public partial class HttpClientTests : IDisposable
 
         var item = Assert.Single(exportedItems);
         Assert.Equal(activityStatus, item.Status);
+    }
+
+    [Theory]
+    [InlineData(200)]
+    [InlineData(500)]
+    [InlineData(600)]
+    public async Task HttpResponseStatusCodeIsRecordedAsInt32(int statusCode)
+    {
+        var activities = new List<Activity>();
+        var metrics = new List<Metric>();
+
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddHttpClientInstrumentation()
+            .AddInMemoryExporter(activities)
+            .Build())
+        using (var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddHttpClientInstrumentation()
+            .AddInMemoryExporter(metrics)
+            .Build())
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, this.uri);
+            request.Headers.Add("contextRequired", "false");
+            request.Headers.Add("responseCode", statusCode.ToString(CultureInfo.InvariantCulture));
+
+            using var client = new HttpClient();
+            using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+            Assert.Equal(statusCode, (int)response.StatusCode);
+        }
+
+        var activity = Assert.Single(activities);
+        var activityStatusCode = activity.GetTagItem(SemanticConventions.AttributeHttpResponseStatusCode);
+        Assert.Equal(statusCode, Assert.IsType<int>(activityStatusCode));
+        Assert.Equal("1.1", activity.GetTagItem(SemanticConventions.AttributeNetworkProtocolVersion));
+
+        if (statusCode == 500)
+        {
+            Assert.Equal(ActivityStatusCode.Error, activity.Status);
+            Assert.Equal("500", activity.GetTagItem(SemanticConventions.AttributeErrorType));
+        }
+        else
+        {
+            Assert.Equal(ActivityStatusCode.Unset, activity.Status);
+        }
+
+        var metric = Assert.Single(metrics, m => m.Name == "http.client.request.duration");
+        var metricStatusCodes = new List<object?>();
+
+        foreach (var point in metric.GetMetricPoints())
+        {
+            foreach (var tag in point.Tags)
+            {
+                if (tag.Key == SemanticConventions.AttributeHttpResponseStatusCode)
+                {
+                    metricStatusCodes.Add(tag.Value);
+                }
+            }
+        }
+
+        var metricStatusCode = Assert.Single(metricStatusCodes);
+        Assert.Equal(statusCode, Assert.IsType<int>(metricStatusCode));
     }
 
     [Fact]
