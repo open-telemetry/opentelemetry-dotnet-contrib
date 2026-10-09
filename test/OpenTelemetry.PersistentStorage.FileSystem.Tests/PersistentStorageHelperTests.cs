@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Globalization;
+using OpenTelemetry.Tests;
 
 namespace OpenTelemetry.PersistentStorage.FileSystem.Tests;
 
@@ -226,5 +227,42 @@ public class PersistentStorageHelperTests
         var result = PersistentStorageHelper.RemoveExpiredLease(leaseDeadline, "invalid-format.lock");
 
         Assert.False(result);
+    }
+
+    [Fact]
+    public void RemoveExpiredLease_WithoutLeaseDelimiterInDirectoryContainingAtSign_DoesNotMoveFileOutOfStorageDirectory()
+    {
+        using var root = new TemporaryDirectory();
+
+        var storage = Path.Combine(root.Path, "user@host", "traces");
+        Directory.CreateDirectory(storage);
+
+        var leaseFile = Path.Combine(storage, "invalid-format.lock");
+        File.WriteAllText(leaseFile, "lease");
+
+        var result = PersistentStorageHelper.RemoveExpiredLease(DateTime.UtcNow, leaseFile);
+
+        Assert.False(result);
+        Assert.True(File.Exists(leaseFile), "The lease file should have been left in place.");
+        Assert.False(File.Exists(Path.Combine(root.Path, "user")), "The lease file must not be moved outside the storage directory.");
+    }
+
+    [Fact]
+    public void RemoveExpiredLease_InDirectoryContainingAtSign_RestoresBlobInStorageDirectory()
+    {
+        using var root = new TemporaryDirectory();
+
+        var storage = Path.Combine(root.Path, "user@host", "traces");
+        Directory.CreateDirectory(storage);
+
+        var blobName = "2020-01-01T000000.0000000Z-0123456789abcdef0123456789abcdef.blob";
+        var leaseFile = Path.Combine(storage, $"{blobName}@2020-01-01T000500.0000000Z.lock");
+        File.WriteAllText(leaseFile, "lease");
+
+        var result = PersistentStorageHelper.RemoveExpiredLease(DateTime.UtcNow, leaseFile);
+
+        Assert.True(result);
+        Assert.False(File.Exists(leaseFile));
+        Assert.True(File.Exists(Path.Combine(storage, blobName)));
     }
 }
