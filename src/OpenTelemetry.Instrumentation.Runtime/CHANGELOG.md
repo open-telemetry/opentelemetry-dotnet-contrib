@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+* Fixed `AddRuntimeInstrumentation` so that whether the built-in `System.Runtime`
+  meter is used no longer depends on this assembly's own target framework or on
+  `Environment.Version`, neither of which reliably reflects whether the actually
+  loaded `System.Diagnostics.DiagnosticSource` assembly populates that meter.
+  The check now inspects that assembly's own `TargetFrameworkAttribute` directly.
+  Fixes a case where neither the built-in meter nor the fallback
+  `RuntimeMetrics` instrumentation emitted anything.
+  ([#4926](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/4926))
+
 * Updated OpenTelemetry core component version(s) to `1.19.1`.
   ([#5329](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5329))
 
