@@ -21,6 +21,9 @@ public class AspNetCoreBenchmarks
 {
     private static readonly Uri BaseAddress = new("/", UriKind.Relative);
 
+    // A Host header with a port and a query string, as typically received by a service.
+    private static readonly Uri ServiceAddressWithQuery = new("http://my-service.example.com:8080/?id=42&name=value");
+
     private readonly HelloRequest helloRequest = new();
     private HttpClient? httpClient;
     private Greeter.GreeterClient? grpcClient;
@@ -103,6 +106,13 @@ public class AspNetCoreBenchmarks
     public async Task HttpGet()
     {
         using var httpResponse = await this.httpClient!.GetAsync(BaseAddress).ConfigureAwait(false);
+        httpResponse.EnsureSuccessStatusCode();
+    }
+
+    [Benchmark]
+    public async Task HttpGetWithHostPortAndQuery()
+    {
+        using var httpResponse = await this.httpClient!.GetAsync(ServiceAddressWithQuery).ConfigureAwait(false);
         httpResponse.EnsureSuccessStatusCode();
     }
 

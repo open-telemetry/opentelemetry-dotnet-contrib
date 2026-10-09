@@ -220,29 +220,37 @@ internal class HttpInListener : ListenerHandler
             // must still be set here. It must also be set when the user supplied a custom set of known
             // methods via OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS, as the framework does not honour that
             // and the normalized method may differ. See https://github.com/dotnet/aspnetcore/issues/65873.
-            if (!Net11OrGreater || !this.nativeAspNetCoreOpenTelemetryEnabled || createdSibling || TelemetryHelper.RequestDataHelper.HasCustomKnownMethods)
-            {
-                TelemetryHelper.RequestDataHelper.SetActivityDisplayName(activity, request.Method);
-            }
+            var setDisplayName = !Net11OrGreater || !this.nativeAspNetCoreOpenTelemetryEnabled || createdSibling || TelemetryHelper.RequestDataHelper.HasCustomKnownMethods;
 
             // ASP.NET Core sets http.request.method natively from .NET 10, so only set it ourselves when
             // the framework will not, or when a custom set of known methods is in use (see above).
-            if (!Net10OrGreater || !this.nativeAspNetCoreOpenTelemetryEnabled || createdSibling || TelemetryHelper.RequestDataHelper.HasCustomKnownMethods)
+            var setHttpMethod = !Net10OrGreater || !this.nativeAspNetCoreOpenTelemetryEnabled || createdSibling || TelemetryHelper.RequestDataHelper.HasCustomKnownMethods;
+
+            // Whenever http.request.method is set the display name is also set, so normalize the method only once.
+            if (setHttpMethod)
             {
-                TelemetryHelper.RequestDataHelper.SetHttpMethodTag(activity, request.Method);
+                TelemetryHelper.RequestDataHelper.SetActivityDisplayNameAndHttpMethodTag(activity, request.Method);
+            }
+            else if (setDisplayName)
+            {
+                TelemetryHelper.RequestDataHelper.SetActivityDisplayName(activity, request.Method);
             }
 
             // When a sibling Activity was created the framework's native tags land on the
             // (now unsampled) framework Activity, so set them here on the exported sibling.
             if (!Net10OrGreater || !this.nativeAspNetCoreOpenTelemetryEnabled || createdSibling)
             {
-                if (request.Host.HasValue)
+                // Each access to HttpRequest.Host re-reads and re-parses the Host header, so only read it once
+                var host = request.Host;
+                if (host.HasValue)
                 {
-                    activity.SetTag(SemanticConventions.AttributeServerAddress, request.Host.Host);
+                    var server = ServerHostCache.Get(host);
 
-                    if (request.Host.Port is { } port)
+                    activity.SetTag(SemanticConventions.AttributeServerAddress, server.Address);
+
+                    if (server.Port is { } port)
                     {
-                        activity.SetTag(SemanticConventions.AttributeServerPort, PortTelemetryHelper.GetBoxedPort(port, cacheValue: true));
+                        activity.SetTag(SemanticConventions.AttributeServerPort, port);
                     }
                 }
 
