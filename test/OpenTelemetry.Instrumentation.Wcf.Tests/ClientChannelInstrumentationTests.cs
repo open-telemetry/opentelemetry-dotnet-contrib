@@ -83,7 +83,7 @@ public class ClientChannelInstrumentationTests
         using var activityScope = new ActivityScope();
         var activity = activityScope.Activity;
         var state = new RequestTelemetryState { Activity = activity };
-        var exception = new FaultException("Request failed.", new FaultCode("TestFault"));
+        var exception = new FaultException(new FaultReason("Request failed."), new FaultCode("TestFault"), "urn:fault");
 
         ClientChannelInstrumentation.AfterRequestCompleted(reply: null, state, exception);
 
@@ -97,7 +97,7 @@ public class ClientChannelInstrumentationTests
         using var activityScope = new ActivityScope(emitNewRpcAttributes: false, recordException: false);
         var activity = activityScope.Activity;
         var state = new RequestTelemetryState { Activity = activity };
-        var exception = new FaultException("Request failed.", new FaultCode("TestFault"));
+        var exception = new FaultException(new FaultReason("Request failed."), new FaultCode("TestFault"), "urn:fault");
 
         ClientChannelInstrumentation.AfterRequestCompleted(reply: null, state, exception);
 
@@ -139,7 +139,8 @@ public class ClientChannelInstrumentationTests
         var activity = activityScope.Activity;
         using var reply = Message.CreateMessage(
             MessageVersion.Soap11,
-            MessageFault.CreateFault(new FaultCode("TestFault"), "Request failed."),
+            new FaultCode("TestFault"),
+            "Request failed.",
             "urn:fault");
 
         ClientChannelInstrumentation.AfterRequestCompleted(reply, new RequestTelemetryState { Activity = activity });
