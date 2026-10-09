@@ -3,6 +3,7 @@
 
 using System.Data;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 using ActivitySourceFactory = OpenTelemetry.Trace.ActivitySourceFactory;
@@ -29,6 +30,8 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 
     private static readonly string ActivityName = ActivitySource.Name + ".Execute";
 
+    private static readonly object FilteredCommandMarker = new();
+
     private readonly PropertyFetcher<object> commandFetcher = new("Command");
     private readonly PropertyFetcher<object> connectionFetcher = new("Connection");
     private readonly PropertyFetcher<object> dbContextFetcher = new("Context");
@@ -39,6 +42,14 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     private readonly PropertyFetcher<CommandType> commandTypeFetcher = new("CommandType");
     private readonly PropertyFetcher<string> commandTextFetcher = new("CommandText");
     private readonly PropertyFetcher<Exception> exceptionFetcher = new("Exception");
+
+    // Commands whose activity was discarded by the filter, removed again when the command completes.
+    // Weak keys, so a command that never raises a completion event isn't kept alive.
+#if NET
+    private readonly ConditionalWeakTable<object, object> filteredCommands = [];
+#else
+    private readonly ConditionalWeakTable<object, object> filteredCommands = new();
+#endif
 
     private readonly EntityFrameworkInstrumentationOptions options;
 
@@ -154,16 +165,14 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                             if (command is IDbCommand typedCommand && this.options.Filter?.Invoke(providerName, typedCommand) == false)
                             {
                                 EntityFrameworkInstrumentationEventSource.Log.CommandIsFilteredOut(activity.OperationName);
-                                activity.IsAllDataRequested = false;
-                                activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
+                                this.DiscardFilteredActivity(activity, command);
                                 return;
                             }
                         }
                         catch (Exception ex)
                         {
                             EntityFrameworkInstrumentationEventSource.Log.CommandFilterException(ex);
-                            activity.IsAllDataRequested = false;
-                            activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
+                            this.DiscardFilteredActivity(activity, command);
                             return;
                         }
 
@@ -229,6 +238,13 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
             case EntityFrameworkCoreCommandExecuted:
             case EntityFrameworkCoreCommandCanceled:
                 {
+                    // The activity of a filtered-out command was already stopped. Activity.Current is now
+                    // its parent (possibly null, or the activity of an outer EF command), so leave it alone.
+                    if (this.WasFilteredOut(payload))
+                    {
+                        return;
+                    }
+
                     if (activity == null)
                     {
                         EntityFrameworkInstrumentationEventSource.Log.NullActivity(name);
@@ -253,6 +269,11 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 
             case EntityFrameworkCoreCommandError:
                 {
+                    if (this.WasFilteredOut(payload))
+                    {
+                        return;
+                    }
+
                     if (activity == null)
                     {
                         EntityFrameworkInstrumentationEventSource.Log.NullActivity(name);
@@ -268,9 +289,10 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                     {
                         if (activity.IsAllDataRequested)
                         {
-                            if (this.exceptionFetcher.Fetch(payload) is Exception exception)
+                            if (this.exceptionFetcher.Fetch(payload) is { } exception)
                             {
-                                activity.SetStatus(ActivityStatusCode.Error, exception.Message);
+                                activity.SetStatus(ActivityStatusCode.Error);
+                                activity.SetTag(SemanticConventions.AttributeErrorType, exception.GetType().FullName);
                             }
                             else
                             {
@@ -289,6 +311,16 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                 break;
         }
     }
+
+    internal static bool IsHandledEvent(string eventName) => eventName switch
+    {
+        EntityFrameworkCoreCommandCreated or
+        EntityFrameworkCoreCommandExecuting or
+        EntityFrameworkCoreCommandExecuted or
+        EntityFrameworkCoreCommandCanceled or
+        EntityFrameworkCoreCommandError => true,
+        _ => false,
+    };
 
     /// <summary>
     /// Gets the <c>db.system</c> and <c>db.system.name</c> values to use for the given provider or command name.
@@ -391,6 +423,34 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
         (_, var dbSystemName) = GetDbSystemNames(providerOrCommandName);
         return dbSystemName == DbSystemNames.Mysql;
     }
+
+    private void DiscardFilteredActivity(Activity activity, object? command)
+    {
+        activity.IsAllDataRequested = false;
+        activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
+
+        // Stop the activity now so that Activity.Current reverts to its parent. If it stayed
+        // current, spans started while the command executes (for example by an instrumented
+        // ADO.NET provider such as Npgsql or SqlClient) would get a parent that is not recorded
+        // and would be dropped by parent-based samplers.
+        activity.Stop();
+
+        // When the command completes, Activity.Current is this activity's parent: null, an unrelated
+        // activity, or the activity of an outer EF command. Remember the command so the completion
+        // callbacks neither report a missing activity nor stop or fail that parent.
+        if (command != null && this.options.Filter != null)
+        {
+            _ = this.filteredCommands.GetValue(command, static _ => FilteredCommandMarker);
+        }
+    }
+
+    // Commands are only marked when a filter is configured, so skip the lookup otherwise.
+    // TryGetValue doesn't lock, so only commands that were actually filtered out pay for Remove.
+    private bool WasFilteredOut(object? payload)
+        => this.options.Filter != null
+        && this.commandFetcher.Fetch(payload) is { } command
+        && this.filteredCommands.TryGetValue(command, out _)
+        && this.filteredCommands.Remove(command);
 
     private void AddTag(Activity activity, (string Old, string New) attributes, string? value)
         => this.AddTag(activity, attributes, (value, value));

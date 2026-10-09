@@ -5,6 +5,55 @@
 * Updated OpenTelemetry core component version(s) to `1.19.1`.
   ([#5329](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5329))
 
+* Fixed `db.query.summary` so that a delimited identifier containing an escaped
+  closing bracket, such as `[Tab]]le]`, is captured whole instead of being
+  truncated at the escape.
+  ([#5237](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5237))
+
+* Fixed `db.client.operation.duration` metrics on .NET having different
+  attributes depending on whether the command was sampled. When not sampled,
+  the `db.operation.name` and `db.query.summary` attributes were missing for
+  stored procedures, and the `error.type` and `db.response.status_code`
+  attributes were missing for commands which failed.
+  ([#5471](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5471))
+
+* Fixed `db.client.operation.duration` metrics on .NET Framework not including
+  the `db.namespace`, `server.address` and `server.port` attributes for commands
+  which are not sampled.
+  ([#5471](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5471))
+
+* Fixed exception messages being exported as the span status description on .NET.
+  The message is still recorded when `RecordException` is enabled.
+  ([#5447](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5447))
+
+* Fixed query sanitization so that literals are no longer left unsanitized in
+  `db.statement`, `db.query.text` and `db.query.summary` after a quote inside a
+  quoted identifier or inside an array in a `FROM` clause.
+  ([#5447](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5447))
+
+* Fixed query sanitization of nested block comments, PostgreSQL escape strings
+  (`E'...'`), Oracle alternative quoting (`q'[...]'`), MySQL/MariaDB `#`
+  comments, and of MySQL/MariaDB double-quoted strings, quoted identifiers and
+  dollar-quoted strings inside `IN (...)` lists.
+  ([#5447](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5447))
+
+* Fixed query sanitization so that the whole of a quoted login or user name
+  (for example `CREATE LOGIN [COMPANY\name]`) is redacted.
+  ([#5447](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5447))
+
+* Fixed `db.query.summary` treating a word which only differs from a keyword
+  by its first character (for example `Xrom`) as that keyword.
+  ([#5447](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5447))
+
+* Fixed the cache of parsed data sources growing without bound when many
+  distinct data sources are used.
+  ([#5447](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5447))
+
+* Fixed .NET Framework `db.client.operation.duration` metrics not being
+  recorded when only metrics are enabled and another `ActivityListener` samples
+  the command's activity.
+  ([#5447](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5447))
+
 ## 1.19.0
 
 Released 2026-Sep-18

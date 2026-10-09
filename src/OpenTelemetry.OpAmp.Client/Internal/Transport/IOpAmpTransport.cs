@@ -9,6 +9,7 @@ internal interface IOpAmpTransport
 {
     bool RequiresResponseBeforeNextSend { get; }
 
-    Task SendAsync<T>(T message, CancellationToken token)
+    // beforeSerialize is called with the message right before it is serialized.
+    Task SendAsync<T>(T message, CancellationToken token, Action<T>? beforeSerialize = null)
         where T : IMessage<T>;
 }

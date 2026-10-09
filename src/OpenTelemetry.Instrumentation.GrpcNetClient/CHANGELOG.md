@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+* **Breaking Change**: Context is now propagated regardless of
+  `SuppressDownstreamInstrumentation`. Without HttpClient instrumentation,
+  downstream spans are parented to the gRPC client span and baggage is
+  propagated. With HttpClient instrumentation and only `TraceContextPropagator`,
+  downstream spans are parented to the gRPC client span instead of the
+  HttpClient span.
+  ([#5327](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5327))
+
 ## 1.19.1-beta.1
 
 Released 2026-Sep-21
