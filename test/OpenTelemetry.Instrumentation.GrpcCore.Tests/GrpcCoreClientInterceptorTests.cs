@@ -470,7 +470,11 @@ public class GrpcCoreClientInterceptorTests(WeaverFixture weaver, ITestOutputHel
         if (validateErrorDescription)
         {
             Assert.NotNull(activity);
-            Assert.Contains("fubar", activity.StatusDescription);
+            Assert.Null(activity.StatusDescription);
+
+            var exceptionEvent = Assert.Single(activity.Events, e => e.Name == SemanticConventions.AttributeExceptionEventName);
+            var exceptionMessage = Assert.Single(exceptionEvent.Tags, t => t.Key == SemanticConventions.AttributeExceptionMessage);
+            Assert.Contains("fubar", (string?)exceptionMessage.Value, StringComparison.Ordinal);
         }
     }
 

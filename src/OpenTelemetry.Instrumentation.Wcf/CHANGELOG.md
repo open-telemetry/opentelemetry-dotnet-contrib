@@ -6,6 +6,10 @@
   could leave activities running and downstream instrumentation suppressed.
   ([#5402](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5402))
 
+* Fixed outgoing one-way duplex calls being reported as timed-out errors
+  instead of completing telemetry when the send succeeds.
+  ([#5505](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5505))
+
 * Prevented multiple server message inspectors from being added to the
   same WCF endpoint.
   ([#5506](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5506))
