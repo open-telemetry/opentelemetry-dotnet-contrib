@@ -4,6 +4,7 @@
 using System.Diagnostics.Tracing;
 using System.Net.WebSockets;
 using System.Text;
+using Google.Protobuf;
 using OpenTelemetry.OpAmp.Client.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Transport;
 using OpenTelemetry.OpAmp.Client.Internal.Transport.WebSocket;
@@ -64,6 +65,35 @@ public class WsTransportTest
 
         Assert.Single(clientReceivedFrames);
         Assert.StartsWith("This is a mock server frame for testing purposes.", receivedTextData);
+    }
+
+    [Fact]
+    public async Task WsTransport_CallsBeforeSerializeBeforeSendingTheMessage()
+    {
+        using var opAmpServer = new OpAmpFakeWebSocketServer(useSmallPackets: true);
+
+        using var mockListener = new MockListener();
+        var frameProcessor = new FrameProcessor();
+        frameProcessor.Subscribe(mockListener);
+
+        var settings = new OpAmpClientSettings
+        {
+            ConnectionType = ConnectionType.WebSocket,
+            ServerUrl = opAmpServer.Endpoint,
+        };
+        using var wsTransport = new WsTransport(settings, frameProcessor);
+        await wsTransport.StartAsync(CancellationToken.None);
+
+        var instanceUid = ByteString.CopyFrom([.. Enumerable.Range(1, 16).Select(i => (byte)i)]);
+        var mockFrame = FrameGenerator.GenerateMockAgentFrame();
+
+        await wsTransport.SendAsync(mockFrame.Frame, CancellationToken.None, message => message.InstanceUid = instanceUid);
+
+        mockListener.WaitForMessages(TimeSpan.FromSeconds(30));
+        await wsTransport.StopAsync(CancellationToken.None);
+
+        var frame = Assert.Single(opAmpServer.GetFrames());
+        Assert.Equal(instanceUid, frame.InstanceUid);
     }
 
     [Fact]

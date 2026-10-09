@@ -15,15 +15,18 @@
     <AnalysisLevel>latest-all</AnalysisLevel>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <CheckSdkVulnerabilities>true</CheckSdkVulnerabilities>
     <NuGetAudit>true</NuGetAudit>
     <NuGetAuditMode>all</NuGetAuditMode>
     <NuGetAuditLevel>low</NuGetAuditLevel>
+    <TestingPlatformShowTestsFailure>true</TestingPlatformShowTestsFailure>
   </PropertyGroup>
 
   <!-- Set properties to enable deterministic builds -->
   <PropertyGroup>
     <ContinuousIntegrationBuild>$([MSBuild]::ValueOrDefault('$(CI)', 'false'))</ContinuousIntegrationBuild>
     <Deterministic>$([MSBuild]::ValueOrDefault('$(Deterministic)', 'true'))</Deterministic>
+    <DeterministicTimestamp>$([MSBuild]::ValueOrDefault('$(DeterministicTimestamp)', 'true'))</DeterministicTimestamp>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(AssemblyIsCLSCompliant)' != '' ">

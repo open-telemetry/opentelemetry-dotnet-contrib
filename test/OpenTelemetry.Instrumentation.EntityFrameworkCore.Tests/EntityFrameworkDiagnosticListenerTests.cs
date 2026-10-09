@@ -5,8 +5,10 @@ using System.Data.Common;
 using System.Diagnostics;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
+using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests;
@@ -183,7 +185,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     public static TheoryData<string, bool> IsSqlLikeProviderTestCases()
     {
         // Get all the possible names and assume they are false
-        var values = DbSystemTestCases().ToDictionary((k) => (string)k.Data.Item1, (v) => false);
+        var values = DbSystemTestCases().ToDictionary((k) => k.Data.Item1, (v) => false);
 
         // Override specific entries to be true
         string[] supported =
@@ -235,7 +237,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
 
     public static TheoryData<string, bool> IsBackslashEscapeProviderTestCases()
     {
-        var values = DbSystemTestCases().ToDictionary((k) => (string)k.Data.Item1, (v) => false);
+        var values = DbSystemTestCases().ToDictionary((k) => k.Data.Item1, (v) => false);
 
         string[] backslashEscapeProviders =
         [
@@ -288,6 +290,33 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         var actual = EntityFrameworkDiagnosticListener.IsBackslashEscapeProvider(name);
 
         Assert.Equal(expected, actual);
+    }
+
+    [Theory]
+    [InlineData(EntityFrameworkDiagnosticListener.EntityFrameworkCoreCommandCreated, true)]
+    [InlineData(EntityFrameworkDiagnosticListener.EntityFrameworkCoreCommandExecuting, true)]
+    [InlineData(EntityFrameworkDiagnosticListener.EntityFrameworkCoreCommandExecuted, true)]
+    [InlineData(EntityFrameworkDiagnosticListener.EntityFrameworkCoreCommandCanceled, true)]
+    [InlineData(EntityFrameworkDiagnosticListener.EntityFrameworkCoreCommandError, true)]
+    [InlineData("Microsoft.EntityFrameworkCore.ChangeTracking.StartedTracking", false)]
+    [InlineData("Microsoft.EntityFrameworkCore.ChangeTracking.DetectChangesStarting", false)]
+    [InlineData("Microsoft.EntityFrameworkCore.Database.Command.DataReaderDisposing", false)]
+    [InlineData("Microsoft.EntityFrameworkCore.Database.Connection.ConnectionOpening", false)]
+    [InlineData("Microsoft.EntityFrameworkCore.Infrastructure.ContextInitialized", false)]
+    [InlineData("Microsoft.EntityFrameworkCore.Query.QueryCompilationStarting", false)]
+    public void SubscriptionIsOnlyEnabledForHandledEvents(string eventName, bool expected)
+    {
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddEntityFrameworkCoreInstrumentation()
+            .Build();
+
+        // The instrumentation subscribes to every diagnostic listener with the EF Core name.
+        using var listener = new DiagnosticListener(EntityFrameworkDiagnosticListener.DiagnosticSourceName);
+
+        // EF Core checks whether an event is enabled using the single-argument overload.
+        Assert.Equal(expected, listener.IsEnabled(eventName));
+        Assert.Equal(expected, listener.IsEnabled(eventName, null, null));
+        Assert.Equal(expected, EntityFrameworkDiagnosticListener.IsHandledEvent(eventName));
     }
 
     [Fact]
@@ -507,6 +536,127 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         Assert.True(activity.ActivityTraceFlags.HasFlag(ActivityTraceFlags.Recorded));
     }
 
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task ShouldNotSuppressDownstreamSpansWhenCommandIsFilteredOut(bool filterThrows, bool useAsync)
+    {
+        var exportedItems = new List<Activity>();
+
+        using var parentSource = new ActivitySource("Test.Parent");
+        using var driverSource = new ActivitySource("Test.Driver");
+
+        using (Sdk.CreateTracerProviderBuilder()
+                  .AddSource(parentSource.Name, driverSource.Name)
+                  .AddInMemoryExporter(exportedItems)
+                  .AddEntityFrameworkCoreInstrumentation(options =>
+                      options.Filter = (_, _) => filterThrows ? throw new InvalidOperationException("Filter failed.") : false)
+                  .Build())
+        {
+            var contextOptions = new DbContextOptionsBuilder<ItemsContext>()
+                .UseSqlite(this.connection)
+                .AddInterceptors(new DriverSpanInterceptor(driverSource))
+                .Options;
+
+            using var parent = parentSource.StartActivity("parent");
+            Assert.NotNull(parent);
+
+            using var context = new ItemsContext(contextOptions);
+            var query = context.Set<Item>().OrderBy(e => e.Name);
+            _ = useAsync ? await query.ToListAsync(TestContext.Current.CancellationToken) : [.. query];
+
+            Assert.Same(parent, Activity.Current);
+        }
+
+        Assert.DoesNotContain(exportedItems, a => a.Source.Name == EntityFrameworkDiagnosticListener.ActivitySource.Name);
+
+        var parentActivity = Assert.Single(exportedItems, a => a.Source.Name == parentSource.Name);
+        var driverActivity = Assert.Single(exportedItems, a => a.Source.Name == driverSource.Name);
+
+        Assert.Equal(parentActivity.SpanId, driverActivity.ParentSpanId);
+        Assert.True(driverActivity.Recorded);
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task ShouldNotReportNullActivityWhenFilteredCommandHasNoParent(bool useAsync, bool commandFails)
+    {
+        var exportedItems = new List<Activity>();
+
+        using var eventListener = new InMemoryEventListener(EntityFrameworkInstrumentationEventSource.Log);
+
+        using (Sdk.CreateTracerProviderBuilder()
+                  .AddInMemoryExporter(exportedItems)
+                  .AddEntityFrameworkCoreInstrumentation(options => options.Filter = (_, _) => false)
+                  .Build())
+        {
+            Assert.Null(Activity.Current);
+
+            using var context = new ItemsContext(this.contextOptions);
+
+            if (commandFails)
+            {
+                var exception = useAsync
+                    ? await Record.ExceptionAsync(() => context.Database.ExecuteSqlRawAsync("select * from no_table", TestContext.Current.CancellationToken))
+                    : Record.Exception(() => context.Database.ExecuteSqlRaw("select * from no_table"));
+
+                Assert.IsType<SqliteException>(exception);
+            }
+            else
+            {
+                var query = context.Set<Item>().OrderBy(e => e.Name);
+                _ = useAsync ? await query.ToListAsync(TestContext.Current.CancellationToken) : [.. query];
+            }
+        }
+
+        Assert.Empty(exportedItems);
+
+        // 6 = CommandIsFilteredOut, 2 = NullActivity
+        Assert.Contains(eventListener.Events, e => e.EventId == 6);
+        Assert.DoesNotContain(eventListener.Events, e => e.EventId == 2);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ShouldNotStopOuterActivityWhenNestedCommandIsFilteredOut(bool innerCommandFails)
+    {
+        var exportedItems = new List<Activity>();
+
+        using (Sdk.CreateTracerProviderBuilder()
+                  .AddInMemoryExporter(exportedItems)
+                  .AddEntityFrameworkCoreInstrumentation(options =>
+                      options.Filter = (_, command) => !command.CommandText.Contains("filtered", StringComparison.Ordinal))
+                  .Build())
+        {
+            var innerCommandText = innerCommandFails
+                ? "select * from no_table /* filtered */"
+                : "select 1 /* filtered */";
+
+            var interceptor = new NestedCommandInterceptor(this.contextOptions, innerCommandText);
+
+            var contextOptions = new DbContextOptionsBuilder<ItemsContext>()
+                .UseSqlite(this.connection)
+                .AddInterceptors(interceptor)
+                .Options;
+
+            using var context = new ItemsContext(contextOptions);
+            _ = context.Set<Item>().OrderBy(e => e.Name).ToList();
+
+            // The outer command's activity must still be current and running once the inner command completed.
+            Assert.Equal(EntityFrameworkDiagnosticListener.ActivitySource.Name, interceptor.SourceAfterInnerCommand);
+            Assert.False(interceptor.StoppedAfterInnerCommand);
+        }
+
+        var activity = Assert.Single(exportedItems);
+        Assert.Equal(ActivityStatusCode.Unset, activity.Status);
+    }
+
     public void Dispose() => this.connection.Dispose();
 
     private static SqliteConnection CreateInMemoryDatabase()
@@ -573,11 +723,13 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         if (!isError)
         {
             Assert.Equal(ActivityStatusCode.Unset, activity.Status);
+            Assert.Null(activity.GetTagValue(SemanticConventions.AttributeErrorType));
         }
         else
         {
             Assert.Equal(ActivityStatusCode.Error, activity.Status);
-            Assert.Equal("SQLite Error 1: 'no such table: no_table'.", activity.StatusDescription);
+            Assert.Null(activity.StatusDescription);
+            Assert.Equal(typeof(SqliteException).FullName, activity.GetTagValue(SemanticConventions.AttributeErrorType));
         }
     }
 
@@ -597,5 +749,63 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         context.AddRange(one, two, three);
 
         context.SaveChanges();
+    }
+
+    /// <summary>
+    /// Runs another (filtered) command while the outer command is executing, then records the state of <see cref="Activity.Current"/>.
+    /// </summary>
+    private sealed class NestedCommandInterceptor(DbContextOptions<ItemsContext> innerContextOptions, string innerCommandText) : DbCommandInterceptor
+    {
+        public string? SourceAfterInnerCommand { get; private set; }
+
+        public bool? StoppedAfterInnerCommand { get; private set; }
+
+        public override InterceptionResult<DbDataReader> ReaderExecuting(
+            DbCommand command,
+            CommandEventData eventData,
+            InterceptionResult<DbDataReader> result)
+        {
+            using (var innerContext = new ItemsContext(innerContextOptions))
+            {
+                try
+                {
+                    innerContext.Database.ExecuteSqlRaw(innerCommandText);
+                }
+                catch (SqliteException)
+                {
+                    // Expected when the inner command is meant to fail
+                }
+            }
+
+            this.SourceAfterInnerCommand = Activity.Current?.Source.Name;
+            this.StoppedAfterInnerCommand = Activity.Current?.IsStopped;
+
+            return base.ReaderExecuting(command, eventData, result);
+        }
+    }
+
+    /// <summary>
+    /// Starts a span while the command executes, like an instrumented ADO.NET provider (e.g. Npgsql) does.
+    /// </summary>
+    private sealed class DriverSpanInterceptor(ActivitySource activitySource) : DbCommandInterceptor
+    {
+        public override InterceptionResult<DbDataReader> ReaderExecuting(
+            DbCommand command,
+            CommandEventData eventData,
+            InterceptionResult<DbDataReader> result)
+        {
+            using var activity = activitySource.StartActivity("driver", ActivityKind.Client);
+            return base.ReaderExecuting(command, eventData, result);
+        }
+
+        public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(
+            DbCommand command,
+            CommandEventData eventData,
+            InterceptionResult<DbDataReader> result,
+            CancellationToken cancellationToken = default)
+        {
+            using var activity = activitySource.StartActivity("driver", ActivityKind.Client);
+            return base.ReaderExecutingAsync(command, eventData, result, cancellationToken);
+        }
     }
 }

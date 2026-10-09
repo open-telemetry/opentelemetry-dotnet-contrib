@@ -1,8 +1,10 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Buffers;
 using System.Diagnostics;
 using Google.Protobuf;
+using OpAmp.Proto.V1;
 using OpenTelemetry.OpAmp.Client.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Transport;
 using OpenTelemetry.OpAmp.Client.Settings;
@@ -43,6 +45,33 @@ public class OpAmpWsPipeTests : OpAmpPipeTests
         Assert.Equal(customMessageCount + 1, transport.SendCount);
     }
 
+    [Fact]
+    public void OpAmpPipe_UsesServerAssignedInstanceUid_AssignedWhileWaitingForTheSocket()
+    {
+        using var transport = new WaitingForSocketTransport();
+        var settings = new OpAmpClientSettings();
+        var processor = new FrameProcessor();
+        using var pipe = new OpAmpPipe(settings, processor, transport);
+        var newInstanceUid = ByteString.CopyFrom([.. Enumerable.Range(1, 16).Select(i => (byte)i)]);
+        var serverFrame = new ServerToAgent
+        {
+            AgentIdentification = new AgentIdentification { NewInstanceUid = newInstanceUid },
+        }.ToByteArray();
+
+        AppendIdentification(pipe);
+        Assert.True(
+            transport.WaitForSendStarted(TimeSpan.FromSeconds(5)),
+            "The send did not start within 5 seconds.");
+
+        processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+        transport.FreeSocket();
+
+        Assert.True(
+            transport.WaitForSent(TimeSpan.FromSeconds(5)),
+            "The message was not sent within 5 seconds.");
+        Assert.Equal(newInstanceUid, transport.SentInstanceUid);
+    }
+
     internal override MockControlledTransport GetTransport(Action? firstSendCallback = null) => new MockControlledWsTransport(firstSendCallback);
 
     private sealed class InlineCompletionTransport : IOpAmpTransport, IDisposable
@@ -70,7 +99,7 @@ public class OpAmpWsPipeTests : OpAmpPipeTests
             }
         }
 
-        public Task SendAsync<T>(T message, CancellationToken token)
+        public Task SendAsync<T>(T message, CancellationToken token, Action<T>? beforeSerialize = null)
             where T : IMessage<T>
         {
             if (Interlocked.Increment(ref this.sendCount) == 1)
@@ -94,5 +123,40 @@ public class OpAmpWsPipeTests : OpAmpPipeTests
         public void CompleteFirstSend() => this.firstSendCompletion.SetResult(true);
 
         public void Dispose() => this.firstSendStarted.Dispose();
+    }
+
+    private sealed class WaitingForSocketTransport : IOpAmpTransport, IDisposable
+    {
+        // Like WsTransmitter waiting for its send lock, a send waits for the socket before it serializes the message.
+        private readonly TaskCompletionSource<bool> socketFree = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly ManualResetEventSlim sendStarted = new();
+        private readonly ManualResetEventSlim sent = new();
+
+        public bool RequiresResponseBeforeNextSend => false;
+
+        public ByteString? SentInstanceUid { get; private set; }
+
+        public async Task SendAsync<T>(T message, CancellationToken token, Action<T>? beforeSerialize = null)
+            where T : IMessage<T>
+        {
+            this.sendStarted.Set();
+            await this.socketFree.Task.ConfigureAwait(false);
+
+            beforeSerialize?.Invoke(message);
+            this.SentInstanceUid = ((AgentToServer)(object)message).InstanceUid;
+            this.sent.Set();
+        }
+
+        public bool WaitForSendStarted(TimeSpan timeout) => this.sendStarted.Wait(timeout);
+
+        public bool WaitForSent(TimeSpan timeout) => this.sent.Wait(timeout);
+
+        public void FreeSocket() => this.socketFree.SetResult(true);
+
+        public void Dispose()
+        {
+            this.sendStarted.Dispose();
+            this.sent.Dispose();
+        }
     }
 }

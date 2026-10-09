@@ -9,6 +9,10 @@
   `EnrichActivityWithTimingEvents` is disabled.
   ([#5423](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5423))
 
+* Adaptively poll Redis profiling sessions, draining active sessions more
+  frequently and backing off while idle.
+  ([#5497](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5497))
+
 ## 1.19.0-beta.1
 
 Released 2026-Sep-18

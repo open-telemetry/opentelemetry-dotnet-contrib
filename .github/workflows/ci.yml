@@ -50,7 +50,7 @@ jobs:
           md: [ '**.md' ]
           pwsh: [ '**.ps1', '**.psm1', '**.psd1' ]
           yml: [ '**.yml', '**.yaml', '.yamllint' ]
-          build: ['build/**', '.github/**/*.yml', '!.github/workflows/package-*', '**/*.targets', '**/*.props', 'global.json']
+          build: ['build/**', '.github/**/*.yml', '!.github/workflows/package-*', '**/*.targets', '**/*.props', 'global.json', 'NuGet.config']
           github: ['.github/**/*']
           shared: ['src/Shared/**', 'test/Shared/**']
           contrib-shared-tests: ['test/OpenTelemetry.Contrib.Shared.Benchmarks/**', 'test/OpenTelemetry.Contrib.Shared.FuzzTests/**', 'test/OpenTelemetry.Contrib.Shared.Tests/**']
@@ -180,7 +180,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Exporter.Geneva]
       code-cov-name: Exporter.Geneva
-      test-case-filter: CategoryName=Geneva:user_events:metrics
+      test-case-filter: CategoryName=Geneva:user_events
       test-require-elevated: true
       pack: false
       trigger: ${{ github.event_name }}
