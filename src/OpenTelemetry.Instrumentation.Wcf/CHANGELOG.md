@@ -6,7 +6,8 @@
   could leave activities running and downstream instrumentation suppressed.
   ([#5402](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5402))
 
-* Prevented multiple server message inspectors from being added to the same WCF endpoint.
+* Prevented multiple server message inspectors from being added to the
+  same WCF endpoint.
   ([#5506](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5506))
 
 ## 1.19.1-beta.1
