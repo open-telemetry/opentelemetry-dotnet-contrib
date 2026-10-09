@@ -170,7 +170,15 @@ public static class AWSLambdaWrapper
         IEnumerable<ActivityLink>? links = null;
         if (parentContext == default)
         {
-            (parentContext, links) = AWSLambdaUtils.ExtractParentContext(input);
+            var extracted = AWSLambdaUtils.ExtractParentContext(input);
+            parentContext = extracted.ParentContext.ActivityContext;
+            links = extracted.Links;
+
+            if (extracted.ParentContext.Baggage.Count > 0)
+            {
+                Baggage.Current = extracted.ParentContext.Baggage;
+            }
+
             if (parentContext == default && !DisableAwsXRayContextExtraction)
             {
                 parentContext = AWSLambdaUtils.GetXRayParentContext();
@@ -240,9 +248,11 @@ public static class AWSLambdaWrapper
     {
         Guard.ThrowIfNull(context);
 
-        var activity = OnFunctionStart(input, context, parentContext);
+        var previousBaggage = Baggage.Current;
+        Activity? activity = null;
         try
         {
+            activity = OnFunctionStart(input, context, parentContext);
             var result = handler(input, context);
             AWSLambdaHttpUtils.SetHttpTagsFromResult(AWSSemanticConventions, activity, result);
             return result;
@@ -255,6 +265,11 @@ public static class AWSLambdaWrapper
         }
         finally
         {
+            if (Baggage.Current != previousBaggage)
+            {
+                Baggage.Current = previousBaggage;
+            }
+
             OnFunctionStop(activity, tracerProvider);
         }
     }
@@ -268,9 +283,11 @@ public static class AWSLambdaWrapper
     {
         Guard.ThrowIfNull(context);
 
-        var activity = OnFunctionStart(input, context, parentContext);
+        var previousBaggage = Baggage.Current;
+        Activity? activity = null;
         try
         {
+            activity = OnFunctionStart(input, context, parentContext);
             var result = await handlerAsync(input, context).ConfigureAwait(false);
             AWSLambdaHttpUtils.SetHttpTagsFromResult(AWSSemanticConventions, activity, result);
             return result;
@@ -283,6 +300,11 @@ public static class AWSLambdaWrapper
         }
         finally
         {
+            if (Baggage.Current != previousBaggage)
+            {
+                Baggage.Current = previousBaggage;
+            }
+
             OnFunctionStop(activity, tracerProvider);
         }
     }
