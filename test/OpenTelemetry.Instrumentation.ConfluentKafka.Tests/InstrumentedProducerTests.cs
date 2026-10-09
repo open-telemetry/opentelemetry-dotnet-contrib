@@ -7,8 +7,35 @@ using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.ConfluentKafka.Tests;
 
+[Collection(KafkaProducerStatisticsTestGroup.Name)]
 public class InstrumentedProducerTests
 {
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void DisposeRemovesClientMetricsEvenWhenNativeDisposeThrows(bool throws)
+    {
+        using var registration = new KafkaProducerMetricsRegistration();
+        var nativeProducer = new FakeProducer<string, string> { ThrowOnDispose = throws };
+        using var producer = new InstrumentedProducer<string, string>(
+            nativeProducer,
+            new ConfluentKafkaProducerInstrumentationOptions<string, string>(),
+            clientMetricsRegistration: registration);
+        registration.Update(KafkaProducerStatisticsTests.ReadFixture("active"));
+
+        if (throws)
+        {
+            Assert.Throws<InvalidOperationException>(producer.Dispose);
+            nativeProducer.ThrowOnDispose = false;
+        }
+        else
+        {
+            producer.Dispose();
+        }
+
+        Assert.Null(registration.Snapshot);
+    }
+
     [Fact]
     public async Task ProduceAsync_Topic_CreatesActivityWithCorrectTags()
     {
@@ -243,6 +270,8 @@ public class InstrumentedProducerTests
 
     private sealed class FakeProducer<TKey, TValue> : IProducer<TKey, TValue>
     {
+        public bool ThrowOnDispose { get; set; }
+
         public ArgumentException? ThrowArgumentException { get; set; }
 
         public Handle Handle => null!;
@@ -336,7 +365,10 @@ public class InstrumentedProducerTests
 
         public void Dispose()
         {
-            // No-op
+            if (this.ThrowOnDispose)
+            {
+                throw new InvalidOperationException("Native disposal failed.");
+            }
         }
     }
 }

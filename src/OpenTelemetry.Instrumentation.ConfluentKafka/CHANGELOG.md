@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Added opt-in, process-aggregated producer metrics from librdkafka statistics,
+  including transmitted records and bytes, buffer capacity, in-flight requests,
+  queue latency, and throttling.
+
 ## 0.3.0-alpha.1
 
 Released 2026-Aug-21

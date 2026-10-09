@@ -23,6 +23,18 @@ public sealed class InstrumentedProducerBuilder<TKey, TValue> : ProducerBuilder<
     {
     }
 
+    internal bool EnableClientMetrics
+    {
+        get => this.options.ClientMetrics;
+        set => this.options.ClientMetrics = value;
+    }
+
+    internal TimeSpan StatisticsInterval
+    {
+        get => this.options.StatisticsInterval;
+        set => this.options.StatisticsInterval = value;
+    }
+
     internal bool EnableMetrics
     {
         get => this.options.Metrics;
@@ -41,6 +53,35 @@ public sealed class InstrumentedProducerBuilder<TKey, TValue> : ProducerBuilder<
     /// <returns>an <see cref="IProducer{TKey,TValue}"/>.</returns>
     public override IProducer<TKey, TValue> Build()
     {
-        return new InstrumentedProducer<TKey, TValue>(base.Build(), this.options, ((ClientConfig)this.Config).BootstrapServers);
+        if (!this.options.ClientMetrics)
+        {
+            return new InstrumentedProducer<TKey, TValue>(base.Build(), this.options, ((ClientConfig)this.Config).BootstrapServers);
+        }
+
+        var config = this.Config.ToList();
+        if (!config.Any(pair => string.Equals(pair.Key, "statistics.interval.ms", StringComparison.Ordinal)))
+        {
+            config.Add(new KeyValuePair<string, string>(
+                "statistics.interval.ms",
+                ((int)this.options.StatisticsInterval.TotalMilliseconds).ToString(System.Globalization.CultureInfo.InvariantCulture)));
+            this.Config = config;
+        }
+
+        var userHandler = this.StatisticsHandler;
+        var registration = CreateMetricsRegistration();
+        try
+        {
+            this.StatisticsHandler = KafkaProducerStatisticsHandler.Create(registration.Update, userHandler);
+            var producer = new InstrumentedProducer<TKey, TValue>(base.Build(), this.options, ((ClientConfig)this.Config).BootstrapServers, registration);
+            registration = null;
+            return producer;
+        }
+        finally
+        {
+            this.StatisticsHandler = userHandler;
+            registration?.Dispose();
+        }
     }
+
+    private static KafkaProducerMetricsRegistration CreateMetricsRegistration() => new KafkaProducerMetricsRegistration();
 }
