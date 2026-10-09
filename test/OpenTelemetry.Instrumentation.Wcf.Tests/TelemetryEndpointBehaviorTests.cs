@@ -51,6 +51,7 @@ public class TelemetryEndpointBehaviorTests
 
         // Act
         var exception = Record.Exception(() => TelemetryEndpointBehavior.ApplyDispatchBehaviorToEndpoint(endpointDispatcher));
+        TelemetryEndpointBehavior.ApplyDispatchBehaviorToEndpoint(endpointDispatcher);
 
         // Assert
         Assert.Null(exception);
