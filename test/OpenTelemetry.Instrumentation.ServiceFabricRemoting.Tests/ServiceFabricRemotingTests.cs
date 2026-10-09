@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Fabric;
 using System.Text;
 using Microsoft.ServiceFabric.Actors;
+using Microsoft.ServiceFabric.Actors.Generator;
 using Microsoft.ServiceFabric.Actors.Runtime;
 using Microsoft.ServiceFabric.Services.Communication;
 using Microsoft.ServiceFabric.Services.Remoting.FabricTransport;
@@ -344,6 +345,190 @@ public class ServiceFabricRemotingTests
         Assert.IsType<CustomTestExceptionConvertorService>(Assert.Single(provider.GetServiceConvertors()!));
         Assert.IsType<CustomTestExceptionConvertorClient>(Assert.Single(provider.GetClientConvertors()!));
         Assert.Equal(7, provider.RemotingExceptionDepth);
+    }
+
+    [Fact]
+    public void ActorRemotingProviderRemotingSettings_LoadConfiguredTransportSettings()
+    {
+        lock (TransportSettingsLock)
+        {
+            var originalLoader = TraceContextEnrichedActorRemotingProviderAttribute.RemotingSettingsLoader;
+
+            try
+            {
+                TraceContextEnrichedActorRemotingProviderAttribute.RemotingSettingsLoader = () => new FabricTransportRemotingSettings
+                {
+                    MaxQueueSize = 35,
+                    ConnectTimeout = TimeSpan.FromMilliseconds(7),
+                    SecurityCredentials = new X509Credentials(),
+                };
+
+                var provider = new TraceContextEnrichedActorRemotingProviderAttribute
+                {
+                    MaxMessageSize = 17,
+                };
+
+                var actual = provider.GetRemotingSettings();
+
+                Assert.Equal(35, actual.MaxQueueSize);
+                Assert.Equal(CredentialType.X509, actual.SecurityCredentials.CredentialType);
+                Assert.Equal(TimeSpan.FromMilliseconds(7), actual.ConnectTimeout);
+                Assert.Equal(17, actual.MaxMessageSize);
+            }
+            finally
+            {
+                TraceContextEnrichedActorRemotingProviderAttribute.RemotingSettingsLoader = originalLoader;
+            }
+        }
+    }
+
+    [Fact]
+    public void ActorRemotingProviderRemotingSettings_UseDefaultsWhenTransportSettingsAreNotConfigured()
+    {
+        lock (TransportSettingsLock)
+        {
+            var originalLoader = TraceContextEnrichedActorRemotingProviderAttribute.RemotingSettingsLoader;
+
+            try
+            {
+                TraceContextEnrichedActorRemotingProviderAttribute.RemotingSettingsLoader = () => null;
+
+                var provider = new TraceContextEnrichedActorRemotingProviderAttribute
+                {
+                    MaxMessageSize = 17,
+                };
+
+                var actual = provider.GetRemotingSettings();
+
+                Assert.Equal(CredentialType.None, actual.SecurityCredentials.CredentialType);
+                Assert.Equal(17, actual.MaxMessageSize);
+            }
+            finally
+            {
+                TraceContextEnrichedActorRemotingProviderAttribute.RemotingSettingsLoader = originalLoader;
+            }
+        }
+    }
+
+    [Fact]
+    public void ActorRemotingProviderListenerSettings_PreferActorSpecificTransportSettings()
+    {
+        lock (TransportSettingsLock)
+        {
+            var originalLoader = TraceContextEnrichedActorRemotingProviderAttribute.ListenerSettingsLoader;
+            var actorSectionName = ActorNameFormat.GetFabricServiceTransportSettingsSectionName(typeof(MyTestActor));
+            var requestedSections = new List<string>();
+
+            try
+            {
+                TraceContextEnrichedActorRemotingProviderAttribute.ListenerSettingsLoader = (sectionName) =>
+                {
+                    requestedSections.Add(sectionName);
+
+                    return sectionName == actorSectionName
+                        ? new FabricTransportRemotingListenerSettings { MaxQueueSize = 35, SecurityCredentials = new X509Credentials() }
+                        : new FabricTransportRemotingListenerSettings { MaxQueueSize = 99 };
+                };
+
+                var provider = new TraceContextEnrichedActorRemotingProviderAttribute
+                {
+                    MaxMessageSize = 17,
+                };
+
+                var actual = provider.GetListenerSettings(typeof(MyTestActor));
+
+                Assert.Equal(35, actual.MaxQueueSize);
+                Assert.Equal(CredentialType.X509, actual.SecurityCredentials.CredentialType);
+                Assert.Equal(17, actual.MaxMessageSize);
+                Assert.Equal([actorSectionName], requestedSections);
+            }
+            finally
+            {
+                TraceContextEnrichedActorRemotingProviderAttribute.ListenerSettingsLoader = originalLoader;
+            }
+        }
+    }
+
+    [Fact]
+    public void ActorRemotingProviderListenerSettings_FallBackToSharedTransportSettings()
+    {
+        lock (TransportSettingsLock)
+        {
+            var originalLoader = TraceContextEnrichedActorRemotingProviderAttribute.ListenerSettingsLoader;
+            var actorSectionName = ActorNameFormat.GetFabricServiceTransportSettingsSectionName(typeof(MyTestActor));
+            var requestedSections = new List<string>();
+
+            try
+            {
+                TraceContextEnrichedActorRemotingProviderAttribute.ListenerSettingsLoader = (sectionName) =>
+                {
+                    requestedSections.Add(sectionName);
+
+                    return sectionName == "TransportSettings"
+                        ? new FabricTransportRemotingListenerSettings { MaxQueueSize = 35, RemotingExceptionDepth = 3, SecurityCredentials = new X509Credentials() }
+                        : null;
+                };
+
+                var provider = new TraceContextEnrichedActorRemotingProviderAttribute
+                {
+                    RemotingExceptionDepth = 5,
+                };
+
+                var actual = provider.GetListenerSettings(typeof(MyTestActor));
+
+                Assert.Equal(35, actual.MaxQueueSize);
+                Assert.Equal(CredentialType.X509, actual.SecurityCredentials.CredentialType);
+                Assert.Equal(5, actual.RemotingExceptionDepth);
+                Assert.Equal([actorSectionName, "TransportSettings"], requestedSections);
+            }
+            finally
+            {
+                TraceContextEnrichedActorRemotingProviderAttribute.ListenerSettingsLoader = originalLoader;
+            }
+        }
+    }
+
+    [Fact]
+    public void ActorRemotingProviderListenerSettings_UseDefaultsWhenNoTransportSettingsAreConfigured()
+    {
+        lock (TransportSettingsLock)
+        {
+            var originalLoader = TraceContextEnrichedActorRemotingProviderAttribute.ListenerSettingsLoader;
+
+            try
+            {
+                TraceContextEnrichedActorRemotingProviderAttribute.ListenerSettingsLoader = (_) => null;
+
+                var provider = new TraceContextEnrichedActorRemotingProviderAttribute
+                {
+                    MaxMessageSize = 17,
+                };
+
+                var actual = provider.GetListenerSettings(typeof(MyTestActor));
+
+                Assert.Equal(CredentialType.None, actual.SecurityCredentials.CredentialType);
+                Assert.Equal(17, actual.MaxMessageSize);
+            }
+            finally
+            {
+                TraceContextEnrichedActorRemotingProviderAttribute.ListenerSettingsLoader = originalLoader;
+            }
+        }
+    }
+
+    [Fact]
+    public void ActorRemotingProvider_DefaultSettingsLoadersTolerateMissingServiceFabricRuntime()
+    {
+        // Outside a Service Fabric node the native runtime is not available, so reading configuration fails. The
+        // default loaders must treat that as "not configured" rather than throwing from the provider.
+        lock (TransportSettingsLock)
+        {
+            var provider = new TraceContextEnrichedActorRemotingProviderAttribute();
+
+            Assert.Equal(CredentialType.None, provider.GetRemotingSettings().SecurityCredentials.CredentialType);
+            Assert.Equal(CredentialType.None, provider.GetListenerSettings(typeof(MyTestActor)).SecurityCredentials.CredentialType);
+            Assert.NotNull(provider.CreateServiceRemotingClientFactory(callbackMessageHandler: null));
+        }
     }
 
     private ServiceRemotingRequestMessageHeaderMock CreateServiceRemotingRequestMessageHeader(Type interfaceType, string methodName)
