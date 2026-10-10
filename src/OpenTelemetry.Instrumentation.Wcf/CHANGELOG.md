@@ -10,6 +10,10 @@
   instead of completing telemetry when the send succeeds.
   ([#5505](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5505))
 
+* Prevented multiple server message inspectors from being added to the
+  same WCF endpoint.
+  ([#5506](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5506))
+
 ## 1.19.1-beta.1
 
 Released 2026-Sep-21
