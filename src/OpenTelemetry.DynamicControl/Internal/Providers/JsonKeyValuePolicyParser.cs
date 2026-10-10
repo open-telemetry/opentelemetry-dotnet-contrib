@@ -117,7 +117,7 @@ internal static class JsonKeyValuePolicyParser
 
     private static List<PayloadEntry> CollectArrayEntries(in JsonElement root)
     {
-        List<PayloadEntry> entries = new(root.GetArrayLength());
+        List<PayloadEntry> entries = [with(root.GetArrayLength())];
         var index = 0;
 
         foreach (var element in root.EnumerateArray())
@@ -199,7 +199,7 @@ internal static class JsonKeyValuePolicyParser
 
         // The list here preserves first-seen order for the ignored keys.
         List<string> ignoredKeys = [];
-        HashSet<string> seenIgnoredKeys = new(StringComparer.Ordinal);
+        HashSet<string> seenIgnoredKeys = [with(StringComparer.Ordinal)];
         List<TelemetryPolicy> policies = [];
         List<PolicyPayloadRejection> rejections = [];
 
@@ -267,11 +267,11 @@ internal static class JsonKeyValuePolicyParser
                 continue;
             }
 
-            seen ??= new(StringComparer.Ordinal);
+            seen ??= [with(StringComparer.Ordinal)];
 
             if (!seen.Add(key))
             {
-                duplicates ??= new(StringComparer.Ordinal);
+                duplicates ??= [with(StringComparer.Ordinal)];
                 duplicates.Add(key);
             }
         }

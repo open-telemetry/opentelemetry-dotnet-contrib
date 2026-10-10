@@ -59,5 +59,5 @@ internal sealed class ConnectionStringParser
         }
     }
 
-    internal Dictionary<string, string> ParsedKeyValues { get; } = new(StringComparer.Ordinal);
+    internal Dictionary<string, string> ParsedKeyValues { get; } = [with(StringComparer.Ordinal)];
 }

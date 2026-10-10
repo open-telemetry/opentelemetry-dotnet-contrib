@@ -3,7 +3,9 @@
 
 #if !NETFRAMEWORK
 using System.Diagnostics;
+#if !NET11_0_OR_GREATER
 using System.Text;
+#endif
 #endif
 using System.Globalization;
 using System.Net;
@@ -124,9 +126,7 @@ internal sealed class HostDetector : IResourceDetector
             // The following architectures do not have a mapping in OTel spec: https://github.com/open-telemetry/semantic-conventions/blob/v1.39.0/docs/resource/host.md
             Architecture.Wasm => null,
             Architecture.LoongArch64 => null,
-#if NET10_0_OR_GREATER
             Architecture.RiscV64 => null,
-#endif
 #endif
             _ => null,
         };
@@ -693,6 +693,17 @@ internal sealed class HostDetector : IResourceDetector
                 RedirectStandardError = true,
             };
 
+#if NET11_0_OR_GREATER
+            var result = Process.RunAndCaptureText(startInfo, TimeSpan.FromMilliseconds(timeoutMilliseconds));
+
+            if (!string.IsNullOrEmpty(result.StandardError) || result.ExitStatus.Canceled || result.ExitStatus.ExitCode != 0)
+            {
+                HostResourceEventSource.Log.FailedToExtractResourceAttributes(nameof(HostDetector), result.StandardError);
+                return null;
+            }
+
+            return result.StandardOutput;
+#else
             var sb = new StringBuilder();
             using var process = Process.Start(startInfo);
             if (process != null)
@@ -720,6 +731,7 @@ internal sealed class HostDetector : IResourceDetector
             }
 
             return null;
+#endif
         }
         catch (Exception ex)
         {

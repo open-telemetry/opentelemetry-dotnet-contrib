@@ -40,7 +40,7 @@ internal sealed class WsReceiver : IDisposable
 
     public void Start(CancellationToken token = default)
     {
-#if NET8_0_OR_GREATER
+#if NET
         ObjectDisposedException.ThrowIf(this.disposed, this);
 #else
         if (this.disposed)

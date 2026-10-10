@@ -892,7 +892,7 @@ internal static class HttpWebRequestActivitySource
         public ArrayList Swap()
         {
             var old = this.list;
-            this.list = new(old.Capacity);
+            this.list = [with(old.Capacity)];
             return old;
         }
     }

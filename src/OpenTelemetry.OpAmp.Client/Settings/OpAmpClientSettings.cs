@@ -42,7 +42,7 @@ public sealed class OpAmpClientSettings
     /// communication. This property keeps the configured value.
     /// </remarks>
     public Guid InstanceUid { get; set; }
-#if NET9_0_OR_GREATER
+#if NET
         = Guid.CreateVersion7();
 #else
         = Guid.NewGuid();

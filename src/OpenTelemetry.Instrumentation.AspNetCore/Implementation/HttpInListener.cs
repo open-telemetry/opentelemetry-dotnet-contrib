@@ -203,7 +203,7 @@ internal class HttpInListener : ListenerHandler
                 ActivityOperationName,
                 ActivityKind.Server,
                 default(ActivityContext),
-                this.GetRequestTags(request, createdSibling: true),
+                this.GetRequestTags(request, activity: null, createdSibling: true),
                 links: linkContext.IsValid() ? [new ActivityLink(linkContext)] : null);
 
             if (root is null)
@@ -266,11 +266,10 @@ internal class HttpInListener : ListenerHandler
 
             // ASP.NET Core sets the route-based display name natively from .NET 11, so only set the
             // (method-based) display name ourselves when the framework will not. On earlier versions
-            // (and when a sibling Activity is created) the framework's display name is not used, so it
-            // must still be set here. It must also be set when the user supplied a custom set of known
-            // methods via OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS, as the framework does not honour that
-            // and the normalized method may differ. See https://github.com/dotnet/aspnetcore/issues/65873.
-            if (!Net11OrGreater || !this.nativeAspNetCoreOpenTelemetryEnabled || createdSibling || TelemetryHelper.RequestDataHelper.HasCustomKnownMethods)
+            // (and when a sibling Activity is created) the framework's display name is not used, so
+            // it must still be set here.
+            // TODO Verify this change once .NET 11 RC.2 is available
+            if (!Net11OrGreater || !this.nativeAspNetCoreOpenTelemetryEnabled || createdSibling)
             {
                 TelemetryHelper.RequestDataHelper.SetActivityDisplayName(activity, request.Method);
             }
@@ -278,7 +277,7 @@ internal class HttpInListener : ListenerHandler
             // The root was created with these tags.
             if (!createdRoot)
             {
-                var tags = this.GetRequestTags(request, createdSibling);
+                var tags = this.GetRequestTags(request, activity, createdSibling);
 
                 // Indexed, as foreach over a TagList boxes its enumerator.
                 for (var i = 0; i < tags.Count; i++)
@@ -582,7 +581,7 @@ internal class HttpInListener : ListenerHandler
         return !string.IsNullOrEmpty(grpcMethod);
     }
 
-    private TagList GetRequestTags(HttpRequest request, bool createdSibling)
+    private TagList GetRequestTags(HttpRequest request, Activity? activity, bool createdSibling)
     {
         var tags = default(TagList);
 
@@ -630,9 +629,11 @@ internal class HttpInListener : ListenerHandler
             {
                 tags.Add(SemanticConventions.AttributeUrlQuery, request.QueryString.Value);
             }
-            else
+            else if (!Net11OrGreater || !this.nativeAspNetCoreOpenTelemetryEnabled || createdSibling || activity?.GetTagValue(SemanticConventions.AttributeUrlQuery) is null)
             {
-                tags.Add(SemanticConventions.AttributeUrlQuery, RedactionHelper.GetRedactedQueryString(request.QueryString.Value!));
+                // ASP.NET Core 11+ sets http.url.query natively https://github.com/dotnet/aspnetcore/pull/68824
+                // TODO Verify this change once .NET 11 RC.2 is available - the last condition might have a perf overhead
+                tags.Add(SemanticConventions.AttributeUrlQuery, RedactionHelper.GetRedactedQueryString(request.QueryString.Value));
             }
         }
 

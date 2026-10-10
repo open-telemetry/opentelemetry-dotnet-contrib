@@ -356,11 +356,7 @@ public partial class HttpClientTests : IDisposable
     [InlineData("PATCH", "PATCH", null)]
     [InlineData("POST", "POST", null)]
     [InlineData("PUT", "PUT", null)]
-#if NET9_0
-    [InlineData("QUERY", "_OTHER", "QUERY")]
-#else
     [InlineData("QUERY", "QUERY", null)]
-#endif
     [InlineData("TRACE", "TRACE", null)]
     [InlineData("Delete", "DELETE", "Delete")]
 #if NETFRAMEWORK
@@ -418,8 +414,8 @@ public partial class HttpClientTests : IDisposable
 
         Assert.Equal(expectedMethod, activity.GetTagValue(SemanticConventions.AttributeHttpRequestMethod));
 
-#if NET9_0_OR_GREATER
-        if (expectedOriginalMethod is not null and not ("CUSTOM" or "QUERY"))
+#if NET
+        if (expectedOriginalMethod is not null and not "CUSTOM")
         {
             // HACK: THIS IS A HACK TO MAKE THE TEST PASS.
             // TODO: THIS CAN BE REMOVED AFTER RUNTIME PATCHES NET 10+.
@@ -613,8 +609,8 @@ public partial class HttpClientTests : IDisposable
         // Exception is thrown and collected as event
         Assert.True(exceptionThrown);
 
-#if NET10_0_OR_GREATER
-        // .NET 10 reports its own activity, but does not set the status description
+#if NET
+        // .NET reports its own activity, but does not set the status description
         Assert.Contains(exportedItems[0].Events, evt => evt.Name.Equals("exception"));
 #else
         Assert.Single(exportedItems[0].Events, evt => evt.Name.Equals("exception"));
@@ -744,7 +740,7 @@ public partial class HttpClientTests : IDisposable
 
         var expectedUrl = $"{this.uri}path{expectedUrlQuery}";
 
-#if NET9_0_OR_GREATER
+#if NET
         // In .NET 9+ URIs are redacted by default. We could disable it with the
         // System.Net.Http.DisableUriRedaction=true AppContext switch, but as that
         // is process-wide it affects other tests. Instead, we adjust our expectations

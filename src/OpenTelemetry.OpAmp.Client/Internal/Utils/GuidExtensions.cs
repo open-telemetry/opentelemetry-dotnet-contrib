@@ -9,7 +9,7 @@ internal static class GuidExtensions
 {
     public static byte[] ToBigEndianByteArray(this Guid guid)
     {
-#if NET8_0_OR_GREATER
+#if NET
         return guid.ToByteArray(bigEndian: true);
 #else
         var bytes = guid.ToByteArray();
@@ -20,7 +20,7 @@ internal static class GuidExtensions
 
     public static Guid FromBigEndianBytes(ReadOnlySpan<byte> bytes)
     {
-#if NET8_0_OR_GREATER
+#if NET
         return new Guid(bytes, bigEndian: true);
 #else
         var copy = bytes.ToArray();
