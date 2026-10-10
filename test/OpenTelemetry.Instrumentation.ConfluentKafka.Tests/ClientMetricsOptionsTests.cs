@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics.Metrics;
 using Confluent.Kafka;
 
 namespace OpenTelemetry.Instrumentation.ConfluentKafka.Tests;
@@ -35,7 +36,10 @@ public class ClientMetricsOptionsTests
     public void InvalidStatisticsIntervalsAreRejected(double milliseconds)
     {
         var options = new ConfluentKafkaInstrumentedProducerBuilderOptions();
-        var exception = Assert.Throws<ArgumentOutOfRangeException>(() => options.StatisticsInterval = TimeSpan.FromMilliseconds(milliseconds));
+
+        // .NET Framework rounds FromMilliseconds to whole milliseconds.
+        var interval = TimeSpan.FromTicks((long)(milliseconds * TimeSpan.TicksPerMillisecond));
+        var exception = Assert.Throws<ArgumentOutOfRangeException>(() => options.StatisticsInterval = interval);
         Assert.Equal("value", exception.ParamName);
     }
 
@@ -83,6 +87,67 @@ public class ClientMetricsOptionsTests
 
         Assert.Throws<InvalidOperationException>(() => builder.Build());
         Assert.Same(userHandler, builder.GetInternalStatisticsHandler());
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void BuildAcceptsEnumerableConfiguration(bool enableClientMetrics, bool explicitInterval)
+    {
+        var config = new List<KeyValuePair<string, string>>();
+        if (explicitInterval)
+        {
+            config.Add(new("statistics.interval.ms", "0"));
+        }
+
+        var builder = new ProducerBuilder<string, string>(config).AsInstrumentedProducerBuilder(
+            new ConfluentKafkaInstrumentedProducerBuilderOptions
+            {
+                EnableClientMetrics = enableClientMetrics,
+                StatisticsInterval = TimeSpan.FromSeconds(1),
+            });
+        builder.SetLogHandler((_, _) => { });
+
+        using var producer = builder.Build();
+        Assert.IsType<InstrumentedProducer<string, string>>(producer);
+        var actual = builder.GetInternalConfig()!.FirstOrDefault(pair => pair.Key == "statistics.interval.ms").Value;
+        var expected = explicitInterval ? "0" : enableClientMetrics ? "1000" : null;
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public async Task NativeStatisticsReachMetricsWithoutAConnectedBroker()
+    {
+        var observed = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        using var listener = new MeterListener();
+        listener.InstrumentPublished = (instrument, meterListener) =>
+        {
+            if (instrument.Meter.Name == ConfluentKafkaCommon.Meter.Name && instrument.Name == "kafka.producer.record_send_total")
+            {
+                meterListener.EnableMeasurementEvents(instrument);
+            }
+        };
+        listener.SetMeasurementEventCallback<long>((_, _, _, _) => observed.TrySetResult(true));
+        listener.Start();
+
+        var builder = new ProducerBuilder<string, string>(new ProducerConfig()).AsInstrumentedProducerBuilder(
+            new ConfluentKafkaInstrumentedProducerBuilderOptions
+            {
+                EnableClientMetrics = true,
+                StatisticsInterval = TimeSpan.FromMilliseconds(100),
+            });
+        builder.SetLogHandler((_, _) => { });
+        var callbacks = 0;
+        Action<IProducer<string, string>, string> userHandler = (_, _) => Interlocked.Increment(ref callbacks);
+        builder.SetStatisticsHandler(userHandler);
+
+        using var producer = builder.Build();
+        Assert.Same(userHandler, builder.GetInternalStatisticsHandler());
+        var completed = await Task.WhenAny(observed.Task, Task.Delay(TimeSpan.FromSeconds(10)));
+        Assert.Same(observed.Task, completed);
+        Assert.True(SpinWait.SpinUntil(() => Volatile.Read(ref callbacks) > 0, TimeSpan.FromSeconds(1)));
     }
 
     [Fact]

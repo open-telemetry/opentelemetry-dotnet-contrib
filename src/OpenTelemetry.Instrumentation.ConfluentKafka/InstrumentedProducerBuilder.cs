@@ -53,9 +53,10 @@ public sealed class InstrumentedProducerBuilder<TKey, TValue> : ProducerBuilder<
     /// <returns>an <see cref="IProducer{TKey,TValue}"/>.</returns>
     public override IProducer<TKey, TValue> Build()
     {
+        var bootstrapServers = this.Config.LastOrDefault(pair => string.Equals(pair.Key, "bootstrap.servers", StringComparison.Ordinal)).Value;
         if (!this.options.ClientMetrics)
         {
-            return new InstrumentedProducer<TKey, TValue>(base.Build(), this.options, ((ClientConfig)this.Config).BootstrapServers);
+            return new InstrumentedProducer<TKey, TValue>(base.Build(), this.options, bootstrapServers);
         }
 
         var config = this.Config.ToList();
@@ -71,17 +72,37 @@ public sealed class InstrumentedProducerBuilder<TKey, TValue> : ProducerBuilder<
         var registration = CreateMetricsRegistration();
         try
         {
-            this.StatisticsHandler = KafkaProducerStatisticsHandler.Create(registration.Update, userHandler);
-            var producer = new InstrumentedProducer<TKey, TValue>(base.Build(), this.options, ((ClientConfig)this.Config).BootstrapServers, registration);
+            var handler = KafkaProducerStatisticsHandler.Create(registration.Update, userHandler);
+            var producer = new InstrumentedProducer<TKey, TValue>(this.BuildNativeProducer(handler), this.options, bootstrapServers, registration);
             registration = null;
             return producer;
         }
         finally
         {
-            this.StatisticsHandler = userHandler;
             registration?.Dispose();
         }
     }
 
     private static KafkaProducerMetricsRegistration CreateMetricsRegistration() => new KafkaProducerMetricsRegistration();
+
+    private IProducer<TKey, TValue> BuildNativeProducer(Action<IProducer<TKey, TValue>, string> statisticsHandler)
+    {
+        // Confluent.Kafka callbacks read their builder's handlers dynamically. Each client needs its own builder.
+        var builder = new InstrumentedProducerBuilder<TKey, TValue>(this.Config)
+        {
+            LogHandler = this.LogHandler,
+            ErrorHandler = this.ErrorHandler,
+            StatisticsHandler = statisticsHandler,
+            OAuthBearerTokenRefreshHandler = this.OAuthBearerTokenRefreshHandler,
+            Partitioners = this.Partitioners,
+            DefaultPartitioner = this.DefaultPartitioner,
+            KeySerializer = this.KeySerializer,
+            ValueSerializer = this.ValueSerializer,
+            AsyncKeySerializer = this.AsyncKeySerializer,
+            AsyncValueSerializer = this.AsyncValueSerializer,
+        };
+        return builder.BuildNativeProducer();
+    }
+
+    private IProducer<TKey, TValue> BuildNativeProducer() => base.Build();
 }

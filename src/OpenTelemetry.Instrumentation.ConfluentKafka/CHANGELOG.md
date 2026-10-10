@@ -6,6 +6,9 @@
   including transmitted records and bytes, buffer capacity, in-flight requests,
   queue latency, and throttling.
 
+* Fixed producer construction with enumerable configuration and preserved
+  per-producer statistics callbacks when client metrics are enabled.
+
 ## 0.3.0-alpha.1
 
 Released 2026-Aug-21
