@@ -26,11 +26,7 @@ public class RequestDataHelperTests
     [InlineData("PATCH", "PATCH")]
     [InlineData("POST", "POST")]
     [InlineData("PUT", "PUT")]
-#if NET
-    [InlineData("QUERY", "_OTHER")]
-#else
     [InlineData("QUERY", "QUERY")]
-#endif
     [InlineData("TRACE", "TRACE")]
     [InlineData("get", "GET")]
     [InlineData("invalid", "_OTHER")]
