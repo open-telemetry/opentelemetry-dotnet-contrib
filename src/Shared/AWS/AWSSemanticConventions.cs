@@ -70,11 +70,22 @@ internal partial class AWSSemanticConventions
 
     private readonly AWSSemanticConventions_V1_28_0 semanticConventionVersion;
 
-    /// <inheritdoc cref="AttributeBuilderImpl"/>
-    public AttributeBuilderImpl AttributeBuilder { get; }
+    /// <summary>
+    /// Gets a new <see cref="AttributeBuilderImpl"/> to build a List of Attribute KeyValuePairs with.
+    /// <para/>
+    /// Each access returns a new builder, so the same instance of <see cref="AWSSemanticConventions"/>
+    /// can be used to build attributes concurrently (for example for concurrent AWS Lambda invocations).
+    /// Hold on to the returned builder until <see cref="AttributeBuilderImpl.Build"/> has been called.
+    /// </summary>
+    public AttributeBuilderImpl AttributeBuilder => new(this);
 
-    /// <inheritdoc cref="ParameterMappingBuilderImpl"/>
-    public ParameterMappingBuilderImpl ParameterMappingBuilder { get; }
+    /// <summary>
+    /// Gets a new <see cref="ParameterMappingBuilderImpl"/> to build a Dictionary of Attribute Names with.
+    /// <para/>
+    /// Each access returns a new builder. Hold on to the returned builder until
+    /// <see cref="ParameterMappingBuilderImpl.Build"/> has been called.
+    /// </summary>
+    public ParameterMappingBuilderImpl ParameterMappingBuilder => new(this);
 
     /// <inheritdoc cref="TagBuilderImpl"/>
     public TagBuilderImpl TagBuilder { get; }
@@ -97,8 +108,6 @@ internal partial class AWSSemanticConventions
     public AWSSemanticConventions(SemanticConventionVersion semanticConventionVersion = DefaultSemanticConventionVersion)
     {
         this.semanticConventionVersion = CreateSemanticConventionVersion(semanticConventionVersion);
-        this.AttributeBuilder = new(this);
-        this.ParameterMappingBuilder = new(this);
         this.TagBuilder = new(this);
         this.Version = GetVersion(semanticConventionVersion);
     }
@@ -109,7 +118,7 @@ internal partial class AWSSemanticConventions
     public class ParameterMappingBuilderImpl
     {
         private readonly AWSSemanticConventions awsSemanticConventions;
-        private Dictionary<string, string> state = [];
+        private readonly Dictionary<string, string> state = [];
 
         public ParameterMappingBuilderImpl(AWSSemanticConventions semanticConventions)
         {
@@ -118,14 +127,7 @@ internal partial class AWSSemanticConventions
 
         public void Add(string key, string value) => this.state.Add(key, value);
 
-        public IDictionary<string, string> Build()
-        {
-            var builtState = this.state;
-
-            this.state = [];
-
-            return builtState;
-        }
+        public IDictionary<string, string> Build() => this.state;
 
         #region Service Parameter Mapping
         /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSDynamoTableName"/>
@@ -181,10 +183,9 @@ internal partial class AWSSemanticConventions
     {
         private readonly AWSSemanticConventions awsSemanticConventions;
 
-        // Set initial capacity to prevent array resizing
-        // and prevent https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/265
-        // possible race condition when running from unit tests
-        private List<KeyValuePair<string, object>> state = [with(capacity: 16)];
+        // Set the initial capacity to prevent array resizing on the hot path: the function and the HTTP
+        // attributes built for every AWS Lambda invocation are at most 8 each.
+        private readonly List<KeyValuePair<string, object>> state = [with(capacity: 8)];
 
         public AttributeBuilderImpl(AWSSemanticConventions semanticConventions)
         {
@@ -193,14 +194,7 @@ internal partial class AWSSemanticConventions
 
         public void Add(string key, object value) => this.state.Add(new(key, value));
 
-        public List<KeyValuePair<string, object>> Build()
-        {
-            var builtState = this.state;
-
-            this.state = [];
-
-            return builtState;
-        }
+        public List<KeyValuePair<string, object>> Build() => this.state;
 
         #region Cloud Attributes
         /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeCloudAccountID"/>

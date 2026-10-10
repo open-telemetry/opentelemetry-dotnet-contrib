@@ -10,4 +10,6 @@ internal sealed class RequestTelemetryState
     public IDisposable? SuppressionScope { get; set; }
 
     public Activity? Activity { get; set; }
+
+    public bool IsOneWay { get; set; }
 }

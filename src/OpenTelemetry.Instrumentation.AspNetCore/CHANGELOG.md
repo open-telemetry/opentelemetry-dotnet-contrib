@@ -12,6 +12,11 @@
   application's service collection.
   ([#5458](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5458))
 
+* Added experimental `OTEL_DOTNET_EXPERIMENTAL_ASPNETCORE_ENABLE_NEW_ROOT_SPAN`
+  to start a new root span, linked to the incoming parent, for requests that
+  arrive with a parent. Available on .NET 8.0+.
+  ([#5466](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5466))
+
 ## 1.19.0
 
 Released 2026-Sep-18
