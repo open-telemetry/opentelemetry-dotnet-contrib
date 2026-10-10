@@ -98,6 +98,79 @@ The following metrics are produced:
   operations, when a consumer group ID is configured.
 [^4]: `error.type` is only included when an error occurs.
 
+### Native producer client metrics
+
+Native producer metrics are opt-in because librdkafka statistics generation and
+JSON parsing have a runtime cost. Enable them through the producer builder
+options, then register the instrumentation with a meter provider before building
+the producer:
+
+```csharp
+var instrumentedBuilder = producerBuilder.AsInstrumentedProducerBuilder(
+    new ConfluentKafkaInstrumentedProducerBuilderOptions
+    {
+        EnableClientMetrics = true,
+        StatisticsInterval = TimeSpan.FromSeconds(10),
+    });
+
+using var meterProvider = Sdk.CreateMeterProviderBuilder()
+    .AddKafkaProducerInstrumentation(instrumentedBuilder)
+    // Add an exporter here.
+    .Build();
+using var producer = instrumentedBuilder.Build();
+```
+
+`EnableClientMetrics` defaults to `false` and is independent of `EnableMetrics`
+(the existing application-operation metrics). `StatisticsInterval` defaults to
+ten seconds and accepts one to `Int32.MaxValue` milliseconds. Fractional
+milliseconds are truncated when configuring librdkafka. An explicitly configured
+`statistics.interval.ms` always takes precedence, including `0`, which disables
+statistics callbacks. An existing application statistics handler is preserved;
+instrumentation and handler failures are reported through EventSource without
+escaping into Kafka processing.
+
+The following names follow the Java Kafka client instrumentation. All eight
+metrics are **process aggregates across opted-in producers**, including producers
+connected to different clusters. They have no client, topic, partition, or broker
+attributes. Neither `client.id` nor librdkafka's generated handle name identifies
+a metric series. Existing `messaging.client.*` metrics are unchanged.
+
+| Name | Instrument type | Unit | librdkafka source |
+| --- | --- | --- | --- |
+| `kafka.producer.record_send_total` | Counter | `{record}` | Top-level `txmsgs` |
+| `kafka.producer.byte_total` | Counter | `By` | Top-level `txmsg_bytes` |
+| `kafka.producer.requests_in_flight` | Observable gauge | `{request}` | Sum of broker `waitresp_cnt` |
+| `kafka.producer.buffer_total_bytes` | Observable gauge | `By` | Sum of producer `msg_size_max` |
+| `kafka.producer.buffer_available_bytes` | Observable gauge | `By` | Sum of producer `max(0, msg_size_max - msg_size)` |
+| `kafka.producer.record_queue_time_avg` | Observable gauge | `ms` | Sample-weighted broker `int_latency.sum / cnt`, converted from microseconds |
+| `kafka.producer.produce_throttle_time_avg` | Observable gauge | `ms` | Sample-weighted broker `throttle.sum / cnt` (already milliseconds) |
+| `kafka.producer.produce_throttle_time_max` | Observable gauge | `ms` | Maximum sampled broker `throttle.max` |
+
+Transmitted records are native client transmissions, not application send
+attempts or guaranteed successful deliveries. Transmitted message bytes include
+message and batch framing, so they are not strictly equivalent to Java's record
+byte measurements. Client totals are used directly rather than counting topic or
+partition totals again. Bootstrap broker requests are included in process totals.
+
+Each producer records deltas from its own cumulative counters; the first snapshot
+contributes its total, and a decrease starts a new counter epoch. Duplicate
+`client.id` values do not require special handling. Disposing a producer removes
+its gauge observations without subtracting previously recorded counter values.
+A callback already accepted before disposal may finish recording its counters.
+Counter rates can be calculated by the metrics backend.
+
+Gauges use each producer's latest valid statistics snapshot. Timing averages are
+weighted by sample counts across brokers and producers, rather than averaging
+averages; these statistics windows are not necessarily synchronized. Empty timing
+windows (`cnt = 0`) produce no timing observation, while sampled zeroes are valid.
+Unknown JSON fields are ignored. Missing or invalid fields are unavailable, not
+zero; aggregates use the available contributions. Malformed JSON retains the
+previous snapshot until a valid update or producer disposal.
+
+Consumer, topic-, partition-, and broker-labelled metrics are deferred. Retry
+metrics are also deferred because librdkafka reports request retries rather than
+record retries. No rate gauges or per-client identity options are included.
+
 ## Runnable example
 
 A complete end-to-end sample that produces and consumes messages with
