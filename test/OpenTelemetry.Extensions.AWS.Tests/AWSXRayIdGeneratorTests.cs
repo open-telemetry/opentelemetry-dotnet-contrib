@@ -12,7 +12,7 @@ public class AWSXRayIdGeneratorTests
     [Fact]
     public void TestGenerateTraceIdForRootNode()
     {
-        var activity = new Activity("Test");
+        using var activity = new Activity("Test");
         var originalTraceId = activity.TraceId;
         var originalParentSpanId = activity.ParentSpanId;
         var originalTraceFlag = activity.ActivityTraceFlags;
@@ -31,7 +31,7 @@ public class AWSXRayIdGeneratorTests
     [Fact]
     public void TestGenerateTraceIdForNonRootNode()
     {
-        var activity = new Activity("Test");
+        using var activity = new Activity("Test");
         var traceId = ActivityTraceId.CreateFromString("12345678901234567890123456789012".AsSpan());
         var parentId = ActivitySpanId.CreateFromString("1234567890123456".AsSpan());
         activity.SetParentId(traceId, parentId, ActivityTraceFlags.Recorded);
@@ -49,7 +49,7 @@ public class AWSXRayIdGeneratorTests
     [Fact]
     public void TestGenerateTraceIdForNonRootNodeNotSampled()
     {
-        var activity = new Activity("Test");
+        using var activity = new Activity("Test");
         var traceId = ActivityTraceId.CreateFromString("12345678901234567890123456789012".AsSpan());
         var parentId = ActivitySpanId.CreateFromString("1234567890123456".AsSpan());
         activity.SetParentId(traceId, parentId, ActivityTraceFlags.None);

@@ -76,7 +76,10 @@ internal sealed class AutoFlushActivityProcessor : BaseProcessor<Activity>
         var shouldFlush = this.RunPredicate(data);
         if (shouldFlush)
         {
-            this.tracerProvider!.ForceFlush(this.timeoutMilliseconds);
+            if (!this.tracerProvider!.ForceFlush(this.timeoutMilliseconds))
+            {
+                OpenTelemetryExtensionsEventSource.Log.AutoFlushActivityProcessorForceFlushFailed(this.timeoutMilliseconds);
+            }
         }
     }
 

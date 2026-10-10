@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.IO.Compression;
 using System.Net;
 using System.Text;
+using Google.Protobuf;
 using OpenTelemetry.OpAmp.Client.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Transport;
 using OpenTelemetry.OpAmp.Client.Internal.Transport.Http;
@@ -125,7 +126,7 @@ public class PlainHttpTransportTests
 
     [Fact]
 #if NETFRAMEWORK
-    [SuppressMessage("Security", "CA5399:Enable HttpClient certificate revocation list check", Justification = "Causes PlatformNotSupportedException at runtime on net462")]
+    [SuppressMessage("Security", "CA5399:Enable HttpClient certificate revocation list check", Justification = "Causes PlatformNotSupportedException at runtime on .NET Framework")]
 #endif
     public async Task PlainHttpTransport_RejectsOversizedCompressedResponse()
     {
@@ -244,17 +245,21 @@ public class PlainHttpTransportTests
 
         var sendTask = httpTransport.SendAsync(mockFrame.Frame, CancellationToken.None);
 
-        Assert.True(thresholdReached.Wait(TimeSpan.FromSeconds(5)), "The server did not send enough bytes to exceed the transport limit.");
+        Assert.True(
+            thresholdReached.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken),
+            "The server did not send enough bytes to exceed the transport limit.");
 
         try
         {
             var timeout = TimeSpan.FromSeconds(2);
 
 #if NET
-            await Assert.ThrowsAsync<InvalidOperationException>(async () => await sendTask.WaitAsync(timeout));
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                async () => await sendTask.WaitAsync(timeout, TestContext.Current.CancellationToken));
 #else
             using var cts = new CancellationTokenSource(timeout);
-            var completedTask = await Task.WhenAny(sendTask, Task.Delay(timeout, cts.Token));
+            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, TestContext.Current.CancellationToken);
+            var completedTask = await Task.WhenAny(sendTask, Task.Delay(timeout, linkedCts.Token));
             Assert.Same(sendTask, completedTask);
 
             await Assert.ThrowsAsync<InvalidOperationException>(async () => await sendTask);
@@ -364,11 +369,9 @@ public class PlainHttpTransportTests
         // Arrange
         using var opAmpServer = new OpAmpFakeHttpServer(false);
 
-        var uuid = Guid.NewGuid();
         var settings = new OpAmpClientSettings
         {
             ServerUrl = opAmpServer.Endpoint,
-            InstanceUid = uuid,
         };
 
         using var mockListener = new MockListener();
@@ -376,13 +379,51 @@ public class PlainHttpTransportTests
         frameProcessor.Subscribe(mockListener);
 
         using var httpTransport = new PlainHttpTransport(settings, frameProcessor);
+        byte[] instanceUid =
+        [
+            0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
+            0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
+        ];
         var mockFrame = FrameGenerator.GenerateMockAgentFrame(false);
+        mockFrame.Frame.InstanceUid = ByteString.CopyFrom(instanceUid);
 
         // Act
         await httpTransport.SendAsync(mockFrame.Frame, CancellationToken.None);
 
         // Assert
         var serverReceivedHeaders = opAmpServer.GetHeaders();
-        Assert.Contains(serverReceivedHeaders, headers => headers["OpAMP-Instance-UID"] == uuid.ToString());
+        Assert.Contains(serverReceivedHeaders, headers => headers["OpAMP-Instance-UID"] == "01234567-89ab-cdef-0123-456789abcdef");
+    }
+
+    [Fact]
+    public async Task PlainHttpTransport_CallsBeforeSerializeBeforeSendingTheMessage()
+    {
+        using var opAmpServer = new OpAmpFakeHttpServer(false);
+
+        var settings = new OpAmpClientSettings
+        {
+            ServerUrl = opAmpServer.Endpoint,
+        };
+
+        using var mockListener = new MockListener();
+        var frameProcessor = new FrameProcessor();
+        frameProcessor.Subscribe(mockListener);
+
+        using var httpTransport = new PlainHttpTransport(settings, frameProcessor);
+        byte[] instanceUid =
+        [
+            0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
+            0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
+        ];
+        var mockFrame = FrameGenerator.GenerateMockAgentFrame(false);
+
+        await httpTransport.SendAsync(
+            mockFrame.Frame,
+            CancellationToken.None,
+            message => message.InstanceUid = ByteString.CopyFrom(instanceUid));
+
+        var frame = Assert.Single(opAmpServer.GetFrames());
+        Assert.Equal(instanceUid, frame.InstanceUid.ToByteArray());
+        Assert.Contains(opAmpServer.GetHeaders(), headers => headers["OpAMP-Instance-UID"] == "01234567-89ab-cdef-0123-456789abcdef");
     }
 }

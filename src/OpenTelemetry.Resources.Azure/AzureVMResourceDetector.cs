@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Resources.Azure;
@@ -33,6 +34,17 @@ internal sealed class AzureVMResourceDetector : IResourceDetector
     ];
 
     private static Resource? vmResource;
+    private static long lastFailedDetectionTimestamp;
+
+    /// <summary>
+    /// Gets or sets how long a failed detection is remembered for.
+    /// </summary>
+    /// <remarks>
+    /// Remembering a failure briefly stops the providers that are usually built together at startup from each waiting for
+    /// an unreachable metadata endpoint, while a transient failure does not prevent a provider built later from
+    /// detecting the resource.
+    /// </remarks>
+    internal static TimeSpan FailedDetectionCacheDuration { get; set; } = TimeSpan.FromMinutes(1);
 
     /// <inheritdoc/>
     public Resource Detect()
@@ -49,14 +61,19 @@ internal sealed class AzureVMResourceDetector : IResourceDetector
                 return vmResource;
             }
 
+            var lastFailedDetection = Volatile.Read(ref lastFailedDetectionTimestamp);
+            if (lastFailedDetection != 0 && Stopwatch.GetElapsedTime(lastFailedDetection) < FailedDetectionCacheDuration)
+            {
+                return Resource.Empty;
+            }
+
             // Prevents the HTTP operations from being instrumented.
             using var scope = SuppressInstrumentationScope.Begin();
 
             var vmMetaDataResponse = AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse();
             if (vmMetaDataResponse == null)
             {
-                vmResource = Resource.Empty;
-                return vmResource;
+                return RecordFailedDetection();
             }
 
             var attributeList = new List<KeyValuePair<string, object>>(
@@ -64,6 +81,18 @@ internal sealed class AzureVMResourceDetector : IResourceDetector
             foreach (var field in ExpectedAzureAmsFields)
             {
                 attributeList.Add(new(field, vmMetaDataResponse.GetValueForField(field)));
+            }
+
+            var resourceGroupName = vmMetaDataResponse.GetValueForField(ResourceAttributeConstants.AzureResourceGroupName);
+            if (resourceGroupName is { Length: > 0 })
+            {
+                attributeList.Add(new(ResourceAttributeConstants.AzureResourceGroupName, resourceGroupName));
+            }
+
+            var subscriptionId = vmMetaDataResponse.GetValueForField(ResourceSemanticConventions.AttributeCloudAccount);
+            if (subscriptionId is { Length: > 0 })
+            {
+                attributeList.Add(new(ResourceSemanticConventions.AttributeCloudAccount, subscriptionId));
             }
 
             foreach (var field in OmitWhenEmptyAzureAmsFields)
@@ -84,15 +113,25 @@ internal sealed class AzureVMResourceDetector : IResourceDetector
             vmResource = new Resource(
                 attributeList,
                 Internal.SchemaUrls.Get(AzureResourceBuilderExtensions.SemanticConventionsVersion));
+
+            return vmResource;
         }
         catch (Exception ex)
         {
             AzureResourcesEventSource.Log.FailedToDetectAzureVMResources(ex);
-            vmResource = Resource.Empty;
+            return RecordFailedDetection();
         }
-
-        return vmResource;
     }
 
-    internal static void ClearCachedResource() => vmResource = null;
+    internal static void ClearCachedResource()
+    {
+        vmResource = null;
+        Volatile.Write(ref lastFailedDetectionTimestamp, 0);
+    }
+
+    private static Resource RecordFailedDetection()
+    {
+        Volatile.Write(ref lastFailedDetectionTimestamp, Stopwatch.GetTimestamp());
+        return Resource.Empty;
+    }
 }

@@ -10,5 +10,8 @@ public sealed class SqlClientIntegrationTestsFixture : XunitContainerFixture<MsS
 {
     protected override string DockerfileName => "sqlserver.Dockerfile";
 
-    protected override MsSqlContainer CreateContainer() => new MsSqlBuilder(this.GetImage()).Build();
+    protected override MsSqlContainer CreateContainer() =>
+        new MsSqlBuilder(this.GetImage())
+            .WithCreateParameterModifier((p) => p.User = "root") // Avoid possible permissions issue: https://github.com/microsoft/aspire/issues/5055
+            .Build();
 }

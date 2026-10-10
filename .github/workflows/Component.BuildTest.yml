@@ -18,11 +18,11 @@ on:
         required: false
         type: string
       os-list:
-        default: '[ "windows-2025", "ubuntu-24.04" ]'
+        default: '[ "windows-2025", "ubuntu-26.04" ]'
         required: false
         type: string
       tfm-list:
-        default: '[ "net462", "net8.0", "net9.0", "net10.0" ]'
+        default: '[ "net472", "net8.0", "net9.0", "net10.0" ]'
         required: false
         type: string
       test-case-filter:
@@ -47,6 +47,13 @@ jobs:
   build-test:
     name: build-test
 
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION: 1
+      FORCE_COLOR: 3
+      NUGET_XMLDOC_MODE: skip
+      TERM: xterm
+
     strategy:
       fail-fast: ${{ inputs.trigger == 'merge_group' }}
       matrix:
@@ -54,11 +61,11 @@ jobs:
         version: ${{ fromJSON(inputs.tfm-list) }}
         exclude:
         # renovate: datasource=github-runners depType=github-runner
-        - os: ubuntu-24.04
-          version: net462
+        - os: ubuntu-26.04
+          version: net472
         # renovate: datasource=github-runners depType=github-runner
         - os: macos-26
-          version: net462
+          version: net472
 
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
@@ -114,9 +121,7 @@ jobs:
         }
 
         Write-Output "name=$artifactName" >> $env:GITHUB_OUTPUT
-
-        # Note: BUILD_COMPONENT envvar tells Component.proj what to build. Only
-        # used if $project ends up Component.proj.
+        Write-Output "build-component=$component" >> $env:GITHUB_OUTPUT
         Write-Output "BUILD_COMPONENT=$component" >> $env:GITHUB_ENV
 
     - name: Setup previous .NET runtimes
@@ -142,56 +147,30 @@ jobs:
 
     - name: dotnet test ${{ steps.resolve-project.outputs.title }}
       if: inputs.run-tests && (!inputs.test-require-elevated || matrix.os == 'windows-2025')
+      run: dotnet build ${env:PROJECT_PATH} -t:Test -p:Configuration=Release -p:TargetFramework=${env:TARGET_FRAMEWORK} "-p:TestFilter=${env:TEST_FILTER}"
       shell: pwsh
       timeout-minutes: 20
       env:
-        DISABLE_APP_DOMAIN: ${{ matrix.version == 'net462' && 'false' || 'true' }}
         PROJECT_PATH: ${{ steps.resolve-project.outputs.project }}
         TARGET_FRAMEWORK: ${{ matrix.version }}
         TEST_FILTER: ${{ inputs.test-case-filter }}
-      run: |
-        dotnet test ${env:PROJECT_PATH} `
-          --collect:"Code Coverage" `
-          --diag:"TestResults/diag/log.txt;tracelevel=info" `
-          --results-directory:TestResults `
-          --settings:"${env:GITHUB_WORKSPACE}/build/CodeCoverage.runsettings" `
-          --framework ${env:TARGET_FRAMEWORK} `
-          --configuration Release `
-          --no-restore `
-          --no-build `
-          --logger:"GitHubActions;report-warnings=false" `
-          --logger:"junit;LogFilePath=${env:GITHUB_WORKSPACE}/TestResults/junit.xml" `
-          --filter "${env:TEST_FILTER}" `
-          -- `
-          RunConfiguration.DisableAppDomain=${env:DISABLE_APP_DOMAIN} `
-          RunConfiguration.TestSessionTimeout=900000
 
     - name: dotnet test ${{ steps.resolve-project.outputs.title }} (elevated)
       if: inputs.run-tests && inputs.test-require-elevated && matrix.os != 'windows-2025'
       shell: pwsh
       timeout-minutes: 20
       env:
-        DISABLE_APP_DOMAIN: ${{ matrix.version == 'net462' && 'false' || 'true' }}
+        BUILD_COMPONENT: ${{ steps.resolve-project.outputs.build-component }}
         PROJECT_PATH: ${{ steps.resolve-project.outputs.project }}
         TARGET_FRAMEWORK: ${{ matrix.version }}
         TEST_FILTER: ${{ inputs.test-case-filter }}
       run: |
-        sudo -E dotnet test ${env:PROJECT_PATH} `
-          --collect:"Code Coverage" `
-          --diag:"TestResults/diag/log.txt;tracelevel=info" `
-          --results-directory:TestResults `
-          --settings:"${env:GITHUB_WORKSPACE}/build/CodeCoverage.runsettings" `
-          --framework ${env:TARGET_FRAMEWORK} `
-          --configuration Release `
-          --no-restore `
-          --no-build `
-          --logger:"GitHubActions;report-warnings=false" `
-          --logger:"junit;LogFilePath=${env:GITHUB_WORKSPACE}/TestResults/junit.xml" `
-          --filter "${env:TEST_FILTER}" `
-          -- `
-          RunConfiguration.DisableAppDomain=${env:DISABLE_APP_DOMAIN} `
-          RunConfiguration.TestSessionTimeout=900000
+        sudo "BUILD_COMPONENT=${env:BUILD_COMPONENT}" dotnet build ${env:PROJECT_PATH} -t:Test -p:Configuration=Release -p:TargetFramework=${env:TARGET_FRAMEWORK} "-p:TestFilter=${env:TEST_FILTER}"
+        $testExitCode = $LASTEXITCODE
         sudo chmod a+rw ./TestResults
+        if ($testExitCode -ne 0) {
+          exit $testExitCode
+        }
 
     - name: Upload hang dumps and test platform logs
       if: ${{ failure() || cancelled() }}
@@ -201,6 +180,7 @@ jobs:
         name: hang-dumps-${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}-${{ matrix.os }}-${{ matrix.version }}-attempt-${{ github.run_attempt }}
         retention-days: 7
         path: |
+          **/TestResults/**/*.log
           **/TestResults/**/*hangdump*.dmp
           **/TestResults/**/Sequence_*.xml
           **/TestResults/diag/*
@@ -213,17 +193,9 @@ jobs:
         PROJECT_PATH: ${{ steps.resolve-project.outputs.project }}
         SOURCE_DATE_EPOCH: ${{ steps.get-commit-timestamp.outputs.epoch }}
 
-    - name: Install dotnet-coverage
-      if: inputs.run-tests
-      run: dotnet tool install -g dotnet-coverage
-
-    - name: Merge test results
-      if: inputs.run-tests && hashFiles('./TestResults/**/*.coverage') != ''
-      run: dotnet-coverage merge -f cobertura -o ./TestResults/Cobertura.xml ./TestResults/**/*.coverage
-
     - name: Upload code coverage ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
-      if: inputs.run-tests && hashFiles('./TestResults/Cobertura.xml') != ''
-      uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+      if: inputs.run-tests && hashFiles('./TestResults/Cobertura-*.xml') != ''
+      uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
       continue-on-error: true # Note: Don't fail for upload failures
       timeout-minutes: 5
       env:
@@ -234,22 +206,22 @@ jobs:
       with:
         disable_search: true
         disable_telem: true
-        files: TestResults/Cobertura.xml
+        files: TestResults/Cobertura-*.xml
         env_vars: OS,TFM,FILTER
         flags: ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
         name: Code Coverage for ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }} on [${{ matrix.os }}.${{ matrix.version }}]
         codecov_yml_path: .github/codecov.yml
 
     - name: Upload test results ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
-      if: ${{ !cancelled() && inputs.run-tests && hashFiles('./TestResults/junit.xml') != '' }}
-      uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+      if: ${{ !cancelled() && inputs.run-tests && hashFiles('./TestResults/junit-*.xml') != '' }}
+      uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
       continue-on-error: true # Note: Don't fail for upload failures
       timeout-minutes: 5
       with:
         disable_search: true
         disable_telem: true
         env_vars: OS,TFM,FILTER
-        files: TestResults/junit.xml
+        files: TestResults/junit-*.xml
         flags: ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
         name: Test results for ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }} on [${{ matrix.os }}.${{ matrix.version }}]
         report_type: test_results
@@ -257,7 +229,7 @@ jobs:
 
     - name: Publish ${{ steps.resolve-project.outputs.name }} NuGet packages to Artifacts
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-      # Only publish packages from the first job, which should be net462 for Windows in most cases, which is preferred for .NET Framework support
+      # Only publish packages from the first job, which should be net472 for Windows in most cases, which is preferred for .NET Framework support
       if: matrix.os == 'windows-2025' && inputs.pack && strategy.job-index == 0
       with:
         name: ${{ steps.resolve-project.outputs.name }}-packages

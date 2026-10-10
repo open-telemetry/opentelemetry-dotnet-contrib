@@ -43,7 +43,7 @@ public class TestAWSClientMetricsInstrumentation
 #if NETFRAMEWORK
             s3.PutObject(putObjectRequest);
 #else
-            await s3.PutObjectAsync(putObjectRequest);
+            await s3.PutObjectAsync(putObjectRequest, TestContext.Current.CancellationToken);
 #endif
             meterProvider.ForceFlush();
         }
@@ -83,7 +83,7 @@ public class TestAWSClientMetricsInstrumentation
 #if NETFRAMEWORK
                 sns.CreateTopic(createTopicRequest);
 #else
-                await sns.CreateTopicAsync(createTopicRequest);
+                await sns.CreateTopicAsync(createTopicRequest, TestContext.Current.CancellationToken);
 #endif
             }
             catch (AmazonServiceException)
@@ -140,7 +140,7 @@ public class TestAWSClientMetricsInstrumentation
 #if NETFRAMEWORK
             sqs.CreateQueue(send_msg_req);
 #else
-            await sqs.CreateQueueAsync(send_msg_req);
+            await sqs.CreateQueueAsync(send_msg_req, TestContext.Current.CancellationToken);
 #endif
             meterProvider.ForceFlush();
         }
@@ -184,8 +184,7 @@ public class TestAWSClientMetricsInstrumentation
             metricPoints.Add(p);
         }
 
-        Assert.Single(metricPoints);
-        var metricPoint = metricPoints[0];
+        var metricPoint = Assert.Single(metricPoints);
 
         Assert.Equal(countAmount * 2, metricPoint.GetSumLong());
         Assert.Null(counterMetric.MeterTags);
@@ -253,8 +252,7 @@ public class TestAWSClientMetricsInstrumentation
             metricPoints.Add(p);
         }
 
-        Assert.Single(metricPoints);
-        var metricPoint = metricPoints[0];
+        var metricPoint = Assert.Single(metricPoints);
 
         Assert.Equal(countAmount * 2, metricPoint.GetSumLong());
 

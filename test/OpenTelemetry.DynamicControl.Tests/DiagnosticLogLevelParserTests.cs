@@ -114,7 +114,7 @@ public class DiagnosticLogLevelParserTests
     {
         foreach (var entry in AcceptedTokens)
         {
-            var token = (string)entry[0];
+            var token = entry.Data.Item1;
 
             Assert.True(DiagnosticLogLevelParser.TryParse(token, out var level));
             Assert.True(

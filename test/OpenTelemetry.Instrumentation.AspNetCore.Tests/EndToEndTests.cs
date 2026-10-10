@@ -57,7 +57,7 @@ public sealed class EndToEndTests
 
             client.DefaultRequestHeaders.UserAgent.Add(new("OpenTelemetry.Instrumentation.AspNetCore.Tests", "1.0"));
 
-            _ = await client.GetStringAsync(new Uri("/ping", UriKind.Relative));
+            _ = await client.GetStringAsync(new Uri("/ping", UriKind.Relative), TestContext.Current.CancellationToken);
 
             WaitForActivityExport(exportedItems, 1);
 

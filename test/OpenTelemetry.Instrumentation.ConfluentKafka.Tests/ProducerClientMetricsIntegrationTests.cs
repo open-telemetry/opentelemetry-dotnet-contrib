@@ -35,7 +35,7 @@ public class ProducerClientMetricsIntegrationTests(KafkaFixture fixture)
         var topic = $"otel-client-metrics-{Guid.NewGuid()}";
         for (var i = 0; i < MessageCount; i++)
         {
-            await producer.ProduceAsync(topic, new Message<string, string> { Value = "hello" });
+            await producer.ProduceAsync(topic, new Message<string, string> { Value = "hello" }, TestContext.Current.CancellationToken);
         }
 
         var deadline = DateTime.UtcNow.AddSeconds(20);
@@ -48,7 +48,7 @@ public class ProducerClientMetricsIntegrationTests(KafkaFixture fixture)
                 break;
             }
 
-            await Task.Delay(100);
+            await Task.Delay(100, TestContext.Current.CancellationToken);
         }
 
         Assert.True(Volatile.Read(ref callbacks) > 0);

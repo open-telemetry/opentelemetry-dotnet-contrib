@@ -87,6 +87,19 @@ which Google Cloud Platform environment an application is running in.
 | cloud.availability_zone | auto          |
 | cloud.region            | auto          |
 
+### Google Cloud Run Jobs
+
+| Attribute                    | Value         |
+| ---------------------------- | ------------- |
+| cloud.provider               | gcp           |
+| cloud.platform               | gcp_cloud_run |
+| cloud.account.id             | auto          |
+| cloud.availability_zone      | auto          |
+| cloud.region                 | auto          |
+| faas.name                    | auto          |
+| gcp.cloud_run.job.execution  | auto          |
+| gcp.cloud_run.job.task_index | auto          |
+
 ### Google Compute Engine
 
 | Attribute               | Value              |

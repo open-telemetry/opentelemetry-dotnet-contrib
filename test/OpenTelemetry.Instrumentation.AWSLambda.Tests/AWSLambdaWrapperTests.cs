@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using Amazon.Lambda.APIGatewayEvents;
+using Amazon.Lambda.ApplicationLoadBalancerEvents;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.SNSEvents;
 using Amazon.Lambda.SQSEvents;
@@ -408,6 +410,66 @@ public class AWSLambdaWrapperTests : IDisposable
     }
 
     [Fact]
+    public void TraceSyncApiGatewayProxyRequestSetsHttpTrigger()
+    {
+        var exportedItems = new List<Activity>();
+
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                   .AddAWSLambdaConfigurations(opt =>
+                   {
+                       opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
+                   .AddInMemoryExporter(exportedItems)
+                   .Build()!)
+        {
+            AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncApiGatewayProxyRequest, new APIGatewayProxyRequest(), this.sampleLambdaContext);
+        }
+
+        var item = Assert.Single(exportedItems);
+        Assert.Equal("http", item.GetTagValue(ExpectedSemanticConventions.AttributeFaasTrigger));
+    }
+
+    [Fact]
+    public void TraceSyncApiGatewayHttpApiV2ProxyRequestSetsHttpTrigger()
+    {
+        var exportedItems = new List<Activity>();
+
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                   .AddAWSLambdaConfigurations(opt =>
+                   {
+                       opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
+                   .AddInMemoryExporter(exportedItems)
+                   .Build()!)
+        {
+            AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncApiGatewayHttpApiV2ProxyRequest, new APIGatewayHttpApiV2ProxyRequest(), this.sampleLambdaContext);
+        }
+
+        var item = Assert.Single(exportedItems);
+        Assert.Equal("http", item.GetTagValue(ExpectedSemanticConventions.AttributeFaasTrigger));
+    }
+
+    [Fact]
+    public void TraceSyncApplicationLoadBalancerRequestSetsHttpTrigger()
+    {
+        var exportedItems = new List<Activity>();
+
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                   .AddAWSLambdaConfigurations(opt =>
+                   {
+                       opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
+                   .AddInMemoryExporter(exportedItems)
+                   .Build()!)
+        {
+            AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncApplicationLoadBalancerRequest, new ApplicationLoadBalancerRequest(), this.sampleLambdaContext);
+        }
+
+        var item = Assert.Single(exportedItems);
+        Assert.Equal("http", item.GetTagValue(ExpectedSemanticConventions.AttributeFaasTrigger));
+    }
+
+    [Fact]
     public void EnrichWithInputIsInvokedWithTheFunctionInputAndLambdaContext()
     {
         var exportedItems = new List<Activity>();
@@ -506,7 +568,7 @@ public class AWSLambdaWrapperTests : IDisposable
         {
             AWSLambdaWrapper.Trace(
                 tracerProvider,
-                (string _, ILambdaContext _) => handlerRan = true,
+                (_, _) => handlerRan = true,
                 "TestStream",
                 this.sampleLambdaContext);
         }
@@ -605,7 +667,7 @@ public class AWSLambdaWrapperTests : IDisposable
     private void AssertResourceAttributes(Resource? resource)
     {
         Assert.NotNull(resource);
-        Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
+        Assert.Null(resource.SchemaUrl);
 
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
         Assert.Equal("aws", resourceAttributes[ExpectedSemanticConventions.AttributeCloudProvider]);

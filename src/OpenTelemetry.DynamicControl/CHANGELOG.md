@@ -27,4 +27,19 @@
   new `PolicyChangeNotifier`/`PolicyChangeSubscription` pair.
   ([#5135](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5135))
 
+* Added an internal `JsonKeyValuePolicyParser` that decodes a complete JSON
+  policy payload into validated policy models.
+  ([#5213](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5213))
+
+* Added internal policy aggregation, which resolves the effective policy for
+  each policy key by provider priority with a deterministic tie-break between
+  equal priorities, and retains outranked policies with a superseded or
+  conflicting outcome.
+  ([#5235](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5235))
+
+* Added an internal `PolicyCoordinator` that periodically pulls the latest
+  policies from each configured provider, parses and validates them, and
+  applies the result to the policy store.
+  ([#5330](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5330))
+
 For more details, please refer to the [README](README.md).

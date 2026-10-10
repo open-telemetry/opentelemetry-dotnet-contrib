@@ -54,7 +54,10 @@ public class InstrumentedProducerTests
             };
             var instrumentedProducer = new InstrumentedProducer<string, string>(fakeProducer, options);
 
-            await instrumentedProducer.ProduceAsync("unit-test-topic", new Message<string, string> { Value = "hello" });
+            await instrumentedProducer.ProduceAsync(
+                "unit-test-topic",
+                new Message<string, string> { Value = "hello" },
+                TestContext.Current.CancellationToken);
 
             tracerProvider.ForceFlush();
         }
@@ -89,7 +92,8 @@ public class InstrumentedProducerTests
 
             await instrumentedProducer.ProduceAsync(
                 new TopicPartition("partition-topic", new Partition(3)),
-                new Message<string, string> { Key = "msg-key", Value = "hello" });
+                new Message<string, string> { Key = "msg-key", Value = "hello" },
+                TestContext.Current.CancellationToken);
 
             tracerProvider.ForceFlush();
         }
@@ -120,7 +124,8 @@ public class InstrumentedProducerTests
 
             await instrumentedProducer.ProduceAsync(
                 "empty-key-topic",
-                new Message<string, string> { Key = string.Empty, Value = "hello" });
+                new Message<string, string> { Key = string.Empty, Value = "hello" },
+                TestContext.Current.CancellationToken);
 
             tracerProvider.ForceFlush();
         }
@@ -147,7 +152,10 @@ public class InstrumentedProducerTests
             };
             var instrumentedProducer = new InstrumentedProducer<string, string>(fakeProducer, options);
 
-            await instrumentedProducer.ProduceAsync("tombstone-topic", new Message<string, string> { Key = "msg-key", Value = null! });
+            await instrumentedProducer.ProduceAsync(
+                "tombstone-topic",
+                new Message<string, string> { Key = "msg-key", Value = null! },
+                TestContext.Current.CancellationToken);
 
             tracerProvider.ForceFlush();
         }
@@ -174,7 +182,10 @@ public class InstrumentedProducerTests
             };
             var instrumentedProducer = new InstrumentedProducer<string, string>(fakeProducer, options);
 
-            await instrumentedProducer.ProduceAsync("disabled-traces-topic", new Message<string, string> { Value = "hello" });
+            await instrumentedProducer.ProduceAsync(
+                "disabled-traces-topic",
+                new Message<string, string> { Value = "hello" },
+                TestContext.Current.CancellationToken);
 
             tracerProvider.ForceFlush();
         }
@@ -204,7 +215,10 @@ public class InstrumentedProducerTests
             var instrumentedProducer = new InstrumentedProducer<string, string>(fakeProducer, options);
 
             await Assert.ThrowsAsync<ArgumentException>(
-                () => instrumentedProducer.ProduceAsync("error-topic", new Message<string, string> { Value = "hello" }));
+                () => instrumentedProducer.ProduceAsync(
+                        "error-topic",
+                        new Message<string, string> { Value = "hello" },
+                        TestContext.Current.CancellationToken));
 
             tracerProvider.ForceFlush();
         }
@@ -212,6 +226,7 @@ public class InstrumentedProducerTests
         var activity = activities.Single(a => a.DisplayName == "send error-topic");
 
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
+        Assert.Null(activity.StatusDescription);
 
         var errorType = activity.GetTagValue(SemanticConventions.AttributeErrorType)?.ToString();
         Assert.NotNull(errorType);
@@ -234,7 +249,7 @@ public class InstrumentedProducerTests
         var instrumentedProducer = new InstrumentedProducer<string, string>(fakeProducer, options);
 
         var message = new Message<string, string> { Value = "hello" };
-        await instrumentedProducer.ProduceAsync("header-inject-topic", message);
+        await instrumentedProducer.ProduceAsync("header-inject-topic", message, TestContext.Current.CancellationToken);
 
         // Trace context should have been injected into headers
         Assert.NotNull(message.Headers);

@@ -220,9 +220,13 @@ public class GenevaLogExporterAFDCorrelationTests
             logger.LogInformation("No correlation ID should be present");
             loggerFactory.Dispose();
 
-            Assert.Single(exportedData);
+            var data = Assert.Single(exportedData);
 
-            var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(exportedData[0], MessagePack.Resolvers.ContractlessStandardResolver.Options);
+            var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(
+                data,
+                MessagePack.Resolvers.ContractlessStandardResolver.Options,
+                TestContext.Current.CancellationToken);
+
             var signal = (fluentdData as object[])[0] as string;
             var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
             var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;
@@ -231,8 +235,8 @@ public class GenevaLogExporterAFDCorrelationTests
             Assert.False(mapping.ContainsKey("AFDCorrelationId"));
 
             // Verify the log record was processed successfully
-            Assert.Single(exportedItems);
-            Assert.Equal("No correlation ID should be present", exportedItems[0].Body);
+            var item = Assert.Single(exportedItems);
+            Assert.Equal("No correlation ID should be present", item.Body);
         }
         finally
         {
@@ -308,9 +312,13 @@ public class GenevaLogExporterAFDCorrelationTests
 #pragma warning restore CA1873// Avoid potentially expensive logging
             loggerFactory.Dispose();
 
-            Assert.Single(exportedData);
+            var data = Assert.Single(exportedData);
 
-            var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(exportedData[0], MessagePack.Resolvers.ContractlessStandardResolver.Options);
+            var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(
+                data,
+                MessagePack.Resolvers.ContractlessStandardResolver.Options,
+                TestContext.Current.CancellationToken);
+
             var signal = (fluentdData as object[])[0] as string;
             var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
             var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;

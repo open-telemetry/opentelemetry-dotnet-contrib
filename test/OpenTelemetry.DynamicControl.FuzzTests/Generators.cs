@@ -12,6 +12,10 @@ namespace OpenTelemetry.DynamicControl.FuzzTests;
 public static class Generators
 {
     private const int MaxObjectMembers = 4;
+    private const int MaxProviders = 6;
+
+    // One bit per policy in the pool the provider may supply.
+    private const int PolicyMaskValues = 8;
 
     // Includes known, unknown, and case-mismatched names; repeats exercise duplicate members.
     private static readonly string[] MemberNames = ["probability", "level", "future", "Probability"];
@@ -40,6 +44,33 @@ public static class Generators
         ArbMap.defaults.ArbFor<double>().Generator
             .Select(value => new NonNegativeFiniteDouble(Math.Abs(FuzzInput.ToFinite(value))))
             .ToArbitrary();
+
+    public static Arbitrary<FuzzedProviderSet> FuzzedProviderSetArbitrary()
+    {
+        var priorityGen = Gen.Frequency(
+            (1, Gen.Constant((int?)null)),
+            (2, Gen.Choose(0, 4).Select(priority => (int?)priority)));
+
+        var providerGen =
+            from kindSelector in ArbMap.defaults.ArbFor<byte>().Generator
+            from priority in priorityGen
+            from policyMask in Gen.Choose(0, PolicyMaskValues - 1)
+            from probability in ArbMap.defaults.ArbFor<double>().Generator
+            from logLevelSelector in ArbMap.defaults.ArbFor<byte>().Generator
+            select new FuzzedProvider(
+                kindSelector,
+                priority,
+                policyMask,
+                FuzzInput.ToProbability(probability),
+                logLevelSelector);
+
+        var gen =
+            from count in Gen.Choose(1, MaxProviders)
+            from providers in providerGen.ListOf(count)
+            select new FuzzedProviderSet([.. providers]);
+
+        return gen.ToArbitrary();
+    }
 
     public static Arbitrary<FuzzedJsonValue> FuzzedJsonValueArbitrary()
     {

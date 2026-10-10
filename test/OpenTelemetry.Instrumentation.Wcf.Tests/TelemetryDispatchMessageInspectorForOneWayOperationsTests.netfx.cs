@@ -149,7 +149,8 @@ public class TelemetryDispatchMessageInspectorForOneWayOperationsTests : IClassF
                 WcfInstrumentationActivitySource.SemanticConventionsVersionNew,
                 this.weaver,
                 this.output,
-                WcfTestHelpers.WeaverSuppressions);
+                WcfTestHelpers.WeaverSuppressions,
+                cancellationToken: TestContext.Current.CancellationToken);
         }
     }
 }

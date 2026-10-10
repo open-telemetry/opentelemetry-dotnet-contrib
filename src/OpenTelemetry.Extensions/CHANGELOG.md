@@ -2,6 +2,39 @@
 
 ## Unreleased
 
+* `AutoFlushActivityProcessor` now logs a warning when
+  `TracerProvider.ForceFlush` does not complete within
+  its configured timeout.
+  ([#2721](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/2721))
+
+* Fixed the log record processor added by `AddBaggageProcessor()` adding
+  baggage entries ahead of, and with the same keys as, the attributes of the
+  log record. Baggage can be set by callers, so an entry with the same key as
+  an attribute of the log record could shadow the application's value. The
+  log record's own attributes now come first and baggage entries whose keys
+  are already present are skipped.
+  ([#5431](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5431))
+
+* Added `W3CTraceState`, an immutable parsed view of a W3C `tracestate` header
+  exposing the get, add, update and delete operations the OpenTelemetry
+  [tracing API](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.60.0/specification/trace/api.md#tracestate)
+  specification defines, and preserving the valid members it did not generate.
+  ([#5115](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5115))
+
+## 1.19.1-beta.1
+
+Released 2026-Sep-21
+
+* Updated OpenTelemetry core component version(s) to `1.19.1`.
+  ([#5329](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5329))
+
+## 1.19.0-beta.1
+
+Released 2026-Sep-18
+
+* Updated OpenTelemetry core component version(s) to `1.19.0`.
+  ([#5240](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5240))
+
 ## 1.18.0-beta.1
 
 Released 2026-Aug-21

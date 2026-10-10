@@ -7,6 +7,7 @@ using System.Net.Security;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.ServiceModel;
+using System.ServiceModel.Channels;
 using System.ServiceModel.Security;
 using OpenTelemetry.Instrumentation.Wcf.Tests.Tools;
 using OpenTelemetry.Tests;
@@ -149,7 +150,8 @@ public class TelemetryBindingElementForTcpTests : IClassFixture<WeaverFixture>, 
                             WcfInstrumentationActivitySource.SemanticConventionsVersionNew,
                             this.weaver,
                             this.output,
-                            WcfTestHelpers.WeaverSuppressions);
+                            WcfTestHelpers.WeaverSuppressions,
+                            cancellationToken: TestContext.Current.CancellationToken);
                     }
                 }
                 else
@@ -200,6 +202,51 @@ public class TelemetryBindingElementForTcpTests : IClassFixture<WeaverFixture>, 
         }
 
         WcfTestHelpers.AssertActivitiesHaveCorrectParentage(stoppedActivities);
+    }
+
+    [Fact]
+    public void OneWayDuplexOutgoingRequestStopsAfterSend()
+    {
+        var stoppedActivities = new List<Activity>();
+        var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddInMemoryExporter(stoppedActivities)
+            .AddWcfInstrumentation()
+            .Build();
+
+        var binding = new NetTcpBinding(SecurityMode.None)
+        {
+            SendTimeout = TimeSpan.FromSeconds(5),
+        };
+        var serviceBaseUri = WcfTestHelpers.GetRandomBaseUri("net.tcp");
+        var serviceHost = new ServiceHost(new OneWayDuplexService(), serviceBaseUri);
+        serviceHost.AddServiceEndpoint(
+            typeof(IOneWayDuplexServiceContract),
+            binding,
+            "/Service");
+        serviceHost.Open();
+
+        var client = new OneWayDuplexClient(
+            new InstanceContext(new OneWayDuplexCallback()),
+            binding,
+            new EndpointAddress(new Uri(serviceBaseUri, "/Service")));
+        try
+        {
+            client.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());
+
+            client.ExecuteWithOneWay(new ServiceRequest(payload: "Hello Open Telemetry!"));
+
+            var activity = Assert.Single(stoppedActivities, activity => activity.Kind == ActivityKind.Client);
+            Assert.Equal(ActivityStatusCode.Unset, activity.Status);
+            Assert.DoesNotContain(activity.TagObjects, tag => tag.Key == SemanticConventions.AttributeErrorType);
+        }
+        finally
+        {
+            client.Abort();
+            serviceHost.Close();
+            tracerProvider?.Shutdown();
+            tracerProvider?.Dispose();
+            WcfInstrumentationActivitySource.Options = null;
+        }
     }
 
     [Fact]
@@ -270,8 +317,9 @@ public class TelemetryBindingElementForTcpTests : IClassFixture<WeaverFixture>, 
         {
             client.Endpoint.EndpointBehaviors.Add(new DownstreamInstrumentationEndpointBehavior());
             client.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());
-            DownstreamInstrumentationChannel.FailNextReceive();
-            await Assert.ThrowsAnyAsync<Exception>(() => client.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!")));
+            await ExecuteExpectingInjectedFailureAsync(
+                () => client.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!")),
+                stoppedActivities);
 
             for (var i = 0; i < 50; i++)
             {
@@ -280,7 +328,7 @@ public class TelemetryBindingElementForTcpTests : IClassFixture<WeaverFixture>, 
                     break;
                 }
 
-                await Task.Delay(100);
+                await Task.Delay(100, TestContext.Current.CancellationToken);
             }
 
             Assert.Single(stoppedActivities);
@@ -313,8 +361,9 @@ public class TelemetryBindingElementForTcpTests : IClassFixture<WeaverFixture>, 
             client.Endpoint.EndpointBehaviors.Add(new DownstreamInstrumentationEndpointBehavior());
             client.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());
             client.InnerChannel.OperationTimeout = TimeSpan.FromMilliseconds(1000);
-            DownstreamInstrumentationChannel.FailNextReceive();
-            await Assert.ThrowsAnyAsync<Exception>(() => client.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!")));
+            await ExecuteExpectingInjectedFailureAsync(
+                () => client.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!")),
+                stoppedActivities);
 
             var startedWaiting = DateTime.UtcNow;
             for (var i = 0; i < 200; i++)
@@ -324,7 +373,7 @@ public class TelemetryBindingElementForTcpTests : IClassFixture<WeaverFixture>, 
                     break;
                 }
 
-                await Task.Delay(100);
+                await Task.Delay(100, TestContext.Current.CancellationToken);
             }
 
             Assert.True(DateTime.UtcNow - startedWaiting < TimeSpan.FromSeconds(10));
@@ -384,6 +433,33 @@ public class TelemetryBindingElementForTcpTests : IClassFixture<WeaverFixture>, 
         Assert.Equal("http://opentelemetry.io/Service/ExecuteSynchronous", stoppedActivities[0].DisplayName);
     }
 
+    private static async Task ExecuteExpectingInjectedFailureAsync(Func<Task> operation, List<Activity> stoppedActivities)
+    {
+        const int maxAttempts = 3;
+
+        for (var attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+            stoppedActivities.Clear();
+            DownstreamInstrumentationChannel.FailNextReceive();
+
+            try
+            {
+                await operation();
+            }
+            catch (Exception)
+            {
+                return;
+            }
+
+            // The injected fault is a process-wide flag consumed by the next receive-family
+            // call on any channel. It can occasionally be stolen by a background receive left
+            // over from a previous test's channel teardown instead of by this call, in which
+            // case the operation above succeeds normally. Re-arm and retry rather than flake.
+        }
+
+        throw new InvalidOperationException($"Expected the downstream call to fail after {maxAttempts} attempts, but it always succeeded.");
+    }
+
     private static X509Certificate2 LoadCertificate()
     {
         // The certificate shouldn't ever need to be regenerated, but if it does
@@ -441,5 +517,32 @@ public class TelemetryBindingElementForTcpTests : IClassFixture<WeaverFixture>, 
 
         return serviceHost ?? throw new InvalidOperationException("ServiceHost could not be started.");
     }
+
+    [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
+    private sealed class OneWayDuplexService : IOneWayDuplexServiceContract
+    {
+        public void ExecuteWithOneWay(ServiceRequest request)
+        {
+        }
+    }
+
+    private sealed class OneWayDuplexCallback : IOneWayDuplexCallback
+    {
+        public void OnCallback()
+        {
+        }
+    }
+
+    private sealed class OneWayDuplexClient : DuplexClientBase<IOneWayDuplexServiceContract>, IOneWayDuplexServiceContract
+    {
+        public OneWayDuplexClient(InstanceContext callbackInstance, Binding binding, EndpointAddress remoteAddress)
+            : base(callbackInstance, binding, remoteAddress)
+        {
+        }
+
+        public void ExecuteWithOneWay(ServiceRequest request)
+            => this.Channel.ExecuteWithOneWay(request);
+    }
 }
+
 #endif

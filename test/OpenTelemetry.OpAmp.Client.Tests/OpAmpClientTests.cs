@@ -31,8 +31,8 @@ public class OpAmpClientTests
 
         Assert.Throws<ObjectDisposedException>(() => client.Subscribe(listener));
         Assert.Throws<ObjectDisposedException>(() => client.Unsubscribe(listener));
-        await Assert.ThrowsAsync<ObjectDisposedException>(() => client.StartAsync());
-        await Assert.ThrowsAsync<ObjectDisposedException>(() => client.StopAsync());
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => client.StartAsync(TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => client.StopAsync(TestContext.Current.CancellationToken));
         Assert.Throws<ObjectDisposedException>(() => client.SendEffectiveConfig([configFile]));
         Assert.Throws<ObjectDisposedException>(() => client.SendRemoteConfigStatus(remoteConfigStatus));
         Assert.Throws<ObjectDisposedException>(() => client.SendCustomCapabilities(["capability"]));
@@ -68,16 +68,17 @@ public class OpAmpClientTests
             o.Heartbeat.IsEnabled = false;
         });
 
-        await client.StartAsync();
+        await client.StartAsync(TestContext.Current.CancellationToken);
 
-        var disposeTask = Task.Run(client.Dispose);
+        var disposeTask = Task.Run(client.Dispose, TestContext.Current.CancellationToken);
         var timeout = TimeSpan.FromSeconds(5);
 
 #if NET
-        await disposeTask.WaitAsync(timeout);
+        await disposeTask.WaitAsync(timeout, TestContext.Current.CancellationToken);
 #else
         using var cts = new CancellationTokenSource(timeout);
-        var completedTask = await Task.WhenAny(disposeTask, Task.Delay(timeout, cts.Token));
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, TestContext.Current.CancellationToken);
+        var completedTask = await Task.WhenAny(disposeTask, Task.Delay(timeout, linkedCts.Token));
         Assert.Same(disposeTask, completedTask);
         await disposeTask;
 #endif
@@ -98,7 +99,7 @@ public class OpAmpClientTests
         });
         client.Subscribe(mockListener);
 
-        await client.StartAsync();
+        await client.StartAsync(TestContext.Current.CancellationToken);
 
         // We don't currently have a direct way to send a message from the client to the server to trigger a response, so
         // this depends on the heartbeat messages from the server to the client.
@@ -142,7 +143,7 @@ public class OpAmpClientTests
         Assert.Equal(2, mockListener.Messages.Count);
         Assert.Equal(3, serverFrames.Count);
 
-        await client.StopAsync();
+        await client.StopAsync(TestContext.Current.CancellationToken);
 
         static ulong GetCurrentTimeInNanoseconds()
         {
@@ -164,7 +165,7 @@ public class OpAmpClientTests
         });
         client.Subscribe(mockListener);
 
-        await client.StartAsync();
+        await client.StartAsync(TestContext.Current.CancellationToken);
 
         mockListener.WaitForMessages(TimeSpan.FromSeconds(2));
 
@@ -174,7 +175,7 @@ public class OpAmpClientTests
         Assert.Single(frames);
         Assert.Single(mockListener.Messages);
 
-        await client.StopAsync();
+        await client.StopAsync(TestContext.Current.CancellationToken);
     }
 
     [Theory]
@@ -194,8 +195,8 @@ public class OpAmpClientTests
         using var client = new OpAmpClient(configure);
         client.Subscribe(mockListener);
 
-        await client.StartAsync();
-        await client.StopAsync();
+        await client.StartAsync(TestContext.Current.CancellationToken);
+        await client.StopAsync(TestContext.Current.CancellationToken);
 
         var frames = opAmpServer.GetFrames();
 
@@ -232,9 +233,9 @@ public class OpAmpClientTests
         var configFile = new EffectiveConfigFile(configFileContents, "plain/text", "my-configuration-file.txt");
 
         // Act
-        await client.StartAsync();
+        await client.StartAsync(TestContext.Current.CancellationToken);
         Assert.Throws<InvalidOperationException>(() => client.SendEffectiveConfig([configFile]));
-        await client.StopAsync();
+        await client.StopAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -265,9 +266,9 @@ public class OpAmpClientTests
         var configFile = new EffectiveConfigFile(configFileContents, fileContentType, fileName);
 
         // Act
-        await client.StartAsync();
+        await client.StartAsync(TestContext.Current.CancellationToken);
         client.SendEffectiveConfig([configFile]);
-        await client.StopAsync();
+        await client.StopAsync(TestContext.Current.CancellationToken);
 
         // Assert received frames
         var frames = opAmpServer.GetFrames();
@@ -307,9 +308,9 @@ public class OpAmpClientTests
         var configFile = EffectiveConfigFile.CreateFromStream(stream, fileContentType, tempConfigFile.FileName, 512 * 1024);
 
         // Act
-        await client.StartAsync();
+        await client.StartAsync(TestContext.Current.CancellationToken);
         client.SendEffectiveConfig([configFile]);
-        await client.StopAsync();
+        await client.StopAsync(TestContext.Current.CancellationToken);
 
         // Assert received frames
         var frames = opAmpServer.GetFrames();
@@ -342,9 +343,9 @@ public class OpAmpClientTests
             o.RemoteConfiguration.ReportsRemoteConfigStatus = true;
         });
 
-        await client.StartAsync();
+        await client.StartAsync(TestContext.Current.CancellationToken);
         client.SendRemoteConfigStatus(new RemoteConfigStatusReport([1, 2, 3], RemoteConfigStatusCode.Failed, "apply failed"));
-        await client.StopAsync();
+        await client.StopAsync(TestContext.Current.CancellationToken);
 
         var frames = opAmpServer.GetFrames();
         Assert.Equal(3, frames.Count); // 3 frames: 1 identification, 2 remote config status, 3 disconnect
@@ -368,11 +369,11 @@ public class OpAmpClientTests
 
         var status = new RemoteConfigStatusReport([1, 2, 3], RemoteConfigStatusCode.Applied);
 
-        await client.StartAsync();
+        await client.StartAsync(TestContext.Current.CancellationToken);
         client.SendRemoteConfigStatus(status);
-        await client.FlushAsync();
+        await client.FlushAsync(TestContext.Current.CancellationToken);
         client.SendRemoteConfigStatus(status);
-        await client.StopAsync();
+        await client.StopAsync(TestContext.Current.CancellationToken);
 
         var frames = opAmpServer.GetFrames();
 
@@ -431,9 +432,9 @@ public class OpAmpClientTests
         string[] capabilities = ["custom-c1", "custom-c2", "custom-c3"];
 
         // Act
-        await client.StartAsync();
+        await client.StartAsync(TestContext.Current.CancellationToken);
         client.SendCustomCapabilities(capabilities);
-        await client.StopAsync();
+        await client.StopAsync(TestContext.Current.CancellationToken);
 
         // Assert received frames
         var frames = opAmpServer.GetFrames();
@@ -456,7 +457,7 @@ public class OpAmpClientTests
         });
 
         // Act
-        await client.StartAsync();
+        await client.StartAsync(TestContext.Current.CancellationToken);
         for (var i = 0; i < 3; i++)
         {
             client.SendCustomMessage(
@@ -465,7 +466,7 @@ public class OpAmpClientTests
                 Encoding.UTF8.GetBytes($"custom message contents {i}"));
         }
 
-        await client.StopAsync();
+        await client.StopAsync(TestContext.Current.CancellationToken);
 
         // Assert received frames
         var frames = opAmpServer.GetFrames();
@@ -512,9 +513,9 @@ public class OpAmpClientTests
         };
 
         // Act
-        await client.StartAsync();
+        await client.StartAsync(TestContext.Current.CancellationToken);
         client.SendFullStateReport(report);
-        await client.StopAsync();
+        await client.StopAsync(TestContext.Current.CancellationToken);
 
         // Assert received frames
         var frames = opAmpServer.GetFrames();

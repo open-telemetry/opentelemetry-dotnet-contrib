@@ -145,7 +145,7 @@ public class ClientMetricsOptionsTests
 
         using var producer = builder.Build();
         Assert.Same(userHandler, builder.GetInternalStatisticsHandler());
-        var completed = await Task.WhenAny(observed.Task, Task.Delay(TimeSpan.FromSeconds(10)));
+        var completed = await Task.WhenAny(observed.Task, Task.Delay(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken));
         Assert.Same(observed.Task, completed);
         Assert.True(SpinWait.SpinUntil(() => Volatile.Read(ref callbacks) > 0, TimeSpan.FromSeconds(1)));
     }

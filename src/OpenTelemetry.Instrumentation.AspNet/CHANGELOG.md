@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+* Updated OpenTelemetry core component version(s) to `1.19.1`.
+  ([#5329](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5329))
+
+* Fixed the messages of unhandled exceptions being exported as the span status
+  description. Exception messages are now only exported if the `RecordException`
+  option is enabled.
+  ([#5432](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5432))
+
+## 1.19.0
+
+Released 2026-Sep-18
+
+* Fixed incorrect `http.server.request.duration` metric values for requests that
+  cross between IIS native and managed modules.
+  ([#5206](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5206))
+
+* Updated OpenTelemetry core component version(s) to `1.19.0`.
+  ([#5240](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5240))
+
 ## 1.18.0
 
 Released 2026-Aug-21

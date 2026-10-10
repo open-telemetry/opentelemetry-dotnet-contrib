@@ -14,7 +14,7 @@ internal sealed class BaggageLogRecordProcessor : BaseProcessor<LogRecord>
         this.baggageKeyPredicate = baggageKeyPredicate ?? throw new ArgumentNullException(nameof(baggageKeyPredicate));
     }
 
-    public static Predicate<string> AllowAllBaggageKeys => (_) => true;
+    public static Predicate<string> AllowAllBaggageKeys => static (_) => true;
 
     public override void OnEnd(LogRecord data)
     {
@@ -22,25 +22,43 @@ internal sealed class BaggageLogRecordProcessor : BaseProcessor<LogRecord>
 
         if (data != null && baggage.Count > 0)
         {
-            var capacity = (data.Attributes?.Count ?? 0) + baggage.Count;
+            var recordAttributes = data.Attributes;
+            var capacity = (recordAttributes?.Count ?? 0) + baggage.Count;
             var attributes = new List<KeyValuePair<string, object?>>(capacity);
+
+            if (recordAttributes != null)
+            {
+                attributes.AddRange(recordAttributes);
+            }
 
             foreach (var entry in baggage)
             {
-                if (this.baggageKeyPredicate(entry.Key))
+                // Avoid overwriting existing attributes in the log record with baggage values
+                if (this.baggageKeyPredicate(entry.Key) && !ContainsKey(recordAttributes, entry.Key))
                 {
                     attributes.Add(new(entry.Key, entry.Value));
                 }
-            }
-
-            if (data.Attributes != null)
-            {
-                attributes.AddRange(data.Attributes);
             }
 
             data.Attributes = attributes;
         }
 
         base.OnEnd(data!);
+    }
+
+    private static bool ContainsKey(IReadOnlyList<KeyValuePair<string, object?>>? attributes, string key)
+    {
+        if (attributes != null)
+        {
+            for (var i = 0; i < attributes.Count; i++)
+            {
+                if (string.Equals(attributes[i].Key, key, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

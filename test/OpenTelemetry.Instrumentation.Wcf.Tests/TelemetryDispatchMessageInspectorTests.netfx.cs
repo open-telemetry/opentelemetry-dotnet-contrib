@@ -198,7 +198,8 @@ public class TelemetryDispatchMessageInspectorTests : IClassFixture<WeaverFixtur
                     WcfInstrumentationActivitySource.SemanticConventionsVersionNew,
                     this.weaver,
                     this.output,
-                    WcfTestHelpers.WeaverSuppressions);
+                    WcfTestHelpers.WeaverSuppressions,
+                    cancellationToken: TestContext.Current.CancellationToken);
             }
         }
         else

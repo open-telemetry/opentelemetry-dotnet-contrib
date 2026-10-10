@@ -10,6 +10,57 @@ namespace OpenTelemetry.Instrumentation.AspNet.Tests;
 
 public class HttpInMetricsListenerTests
 {
+    [Fact]
+    public async Task AspNetMetricDurationUsesContextWhenExecutionContextDoesNotFlow()
+    {
+        HttpContext.Current = RouteTestHelper.BuildHttpContext("http://localhost/", 0, null, "GET");
+
+        var exportedItems = new List<Metric>();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddAspNetInstrumentation()
+            .AddInMemoryExporter(exportedItems)
+            .Build();
+
+        var context = new HttpContextWrapper(HttpContext.Current);
+        var activity = ActivityHelper.StartAspNetActivity(
+            Propagators.DefaultTextMapPropagator,
+            context,
+            TelemetryHttpModule.Options.OnRequestStartedCallback);
+        Assert.Null(activity);
+
+        Task stopTask;
+
+        // IIS can lose context across managed/unmanaged boundaries,
+        // resetting AsyncLocal.
+        // Calling `SuppressFlow` simulates this to ensure we rely on
+        // HttpContext.Items instead of context being maintained.
+        using (ExecutionContext.SuppressFlow())
+        {
+            stopTask = Task.Run(
+                () => ActivityHelper.StopAspNetActivity(
+                    Propagators.DefaultTextMapPropagator,
+                    activity,
+                    context,
+                    TelemetryHttpModule.Options.OnRequestStoppedCallback),
+                TestContext.Current.CancellationToken);
+        }
+
+        await stopTask;
+        meterProvider.ForceFlush();
+
+        var metric = Assert.Single(exportedItems);
+        var metricPoints = new List<MetricPoint>();
+        foreach (var point in metric.GetMetricPoints())
+        {
+            metricPoints.Add(point);
+        }
+
+        var metricPoint = Assert.Single(metricPoints);
+
+        Assert.Equal(1L, metricPoint.GetHistogramCount());
+        Assert.InRange(metricPoint.GetHistogramSum(), 0, 60);
+    }
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
@@ -121,17 +172,15 @@ public class HttpInMetricsListenerTests
 
         meterProvider.ForceFlush();
 
-        Assert.Single(exportedItems);
+        var item = Assert.Single(exportedItems);
 
         var metricPoints = new List<MetricPoint>();
-        foreach (var p in exportedItems[0].GetMetricPoints())
+        foreach (var p in item.GetMetricPoints())
         {
             metricPoints.Add(p);
         }
 
-        Assert.Single(metricPoints);
-
-        var metricPoint = metricPoints[0];
+        var metricPoint = Assert.Single(metricPoints);
 
         var count = metricPoint.GetHistogramCount();
         var sum = metricPoint.GetHistogramSum();

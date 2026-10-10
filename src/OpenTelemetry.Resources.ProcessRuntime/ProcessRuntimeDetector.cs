@@ -13,7 +13,7 @@ namespace OpenTelemetry.Resources.ProcessRuntime;
 /// </summary>
 internal sealed class ProcessRuntimeDetector : IResourceDetector
 {
-    private static readonly Version SemanticConventionsVersion = new(1, 43, 0);
+    private static readonly Version SemanticConventionsVersion = new(1, 44, 0);
 
     /// <summary>
     /// Detects the resource attributes from .NET runtime.

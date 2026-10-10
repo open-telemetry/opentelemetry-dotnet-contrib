@@ -32,7 +32,7 @@ env:
 
 jobs:
   automation:
-    uses: ./.github/workflows/automation.yml
+    uses: $/.github/workflows/automation.yml
     permissions:
       contents: read
     secrets:
@@ -118,7 +118,8 @@ jobs:
         run: dotnet build ${env:PROJECT_PATH} --configuration Release --no-restore -p:"BuildNumber=${env:GITHUB_RUN_NUMBER}"
 
       - name: dotnet test ${{ steps.resolve-project.outputs.title }}
-        run: dotnet test ${env:PROJECT_PATH} --configuration Release --no-restore --no-build
+        run: dotnet build ${env:PROJECT_PATH} -t:Test -p:Configuration=Release
+        shell: pwsh
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
@@ -177,7 +178,7 @@ jobs:
             ./artifacts/package/release/OpenTelemetry*.*nupkg
 
       - name: Generate SBOM
-        uses: anchore/sbom-action@3ad7283483fc7af8ff2b4ea19663c2d5ca935e26 # v0.24.2
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
         with:
           output-file: ./artifacts/package/release/sbom.spdx.json
           path: ./artifacts/bin
@@ -320,7 +321,7 @@ jobs:
   publish-myget:
     name: Publish to MyGet
     needs: [build-pack, validate]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
 
     env:
       MYGET_TOKEN_EXISTS: ${{ secrets.MYGET_TOKEN != '' }}
@@ -370,7 +371,7 @@ jobs:
   publish-nuget:
     name: Publish to NuGet
     needs: [build-pack, validate]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     if: github.ref_type == 'tag'
 
     permissions:
@@ -427,7 +428,7 @@ jobs:
 
   post-build:
     name: Post build release tasks
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     if: needs.automation.outputs.enabled && github.event_name == 'push'
 
     needs:
@@ -497,7 +498,7 @@ jobs:
   wait-nuget:
     name: Wait for NuGet package publishing
     needs: [automation, build-pack, publish-nuget, post-build]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 60
     if: needs.post-build.outputs.pr-number != ''
 

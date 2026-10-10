@@ -27,7 +27,10 @@ namespace OpenTelemetry.Instrumentation.AspNetCore.Tests;
 public sealed class BasicTests
     : IClassFixture<WebApplicationFactory<Program>>, IDisposable
 {
+    private static readonly string ActivitySourceName = typeof(BasicTests).FullName!;
+
     private readonly WebApplicationFactory<Program> factory;
+    private readonly List<WebApplicationFactory<Program>> derivedFactories = [];
     private TracerProvider? tracerProvider;
 
     public BasicTests(WebApplicationFactory<Program> factory)
@@ -57,19 +60,17 @@ public sealed class BasicTests
         }
 
         // Arrange
-        using (var client = this.factory
-            .WithWebHostBuilder(builder =>
+        using (var client = this.CreateClient(builder =>
             {
                 builder.ConfigureTestServices(ConfigureTestServices);
                 if (disableLogging)
                 {
                     builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
                 }
-            })
-            .CreateClient())
+            }))
         {
             // Act
-            using var response = await client.GetAsync(new Uri("/api/values", UriKind.Relative));
+            using var response = await client.GetAsync(new Uri("/api/values", UriKind.Relative), TestContext.Current.CancellationToken);
 
             // Assert
             response.EnsureSuccessStatusCode(); // Status Code 200-299
@@ -77,8 +78,7 @@ public sealed class BasicTests
             WaitForActivityExport(exportedItems, 1);
         }
 
-        Assert.Single(exportedItems);
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
 
         Assert.Equal(200, activity.GetTagValue(SemanticConventions.AttributeHttpResponseStatusCode));
         Assert.Equal(ActivityStatusCode.Unset, activity.Status);
@@ -107,16 +107,14 @@ public sealed class BasicTests
         }
 
         // Arrange
-        using (var client = this.factory
-            .WithWebHostBuilder(builder =>
+        using (var client = this.CreateClient(builder =>
             {
                 builder.ConfigureTestServices(ConfigureTestServices);
                 builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
-            })
-            .CreateClient())
+            }))
         {
             // Act
-            using var response = await client.GetAsync(new Uri("/api/values", UriKind.Relative));
+            using var response = await client.GetAsync(new Uri("/api/values", UriKind.Relative), TestContext.Current.CancellationToken);
 
             // Assert
             response.EnsureSuccessStatusCode(); // Status Code 200-299
@@ -124,8 +122,7 @@ public sealed class BasicTests
             WaitForActivityExport(exportedItems, 1);
         }
 
-        Assert.Single(exportedItems);
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
 
         if (shouldEnrich)
         {
@@ -163,7 +160,7 @@ public sealed class BasicTests
             request.Headers.Add("traceparent", $"00-{expectedTraceId}-{expectedSpanId}-01");
 
             // Act
-            var response = await client.SendAsync(request);
+            var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
             // Assert
             response.EnsureSuccessStatusCode(); // Status Code 200-299
@@ -171,8 +168,7 @@ public sealed class BasicTests
             WaitForActivityExport(exportedItems, 1);
         }
 
-        Assert.Single(exportedItems);
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
 
         Assert.Equal("Microsoft.AspNetCore.Hosting.HttpRequestIn", activity.OperationName);
 
@@ -223,14 +219,13 @@ public sealed class BasicTests
                     }))
             {
                 using var client = testFactory.CreateClient();
-                using var response = await client.GetAsync(new Uri("/api/values/2", UriKind.Relative));
+                using var response = await client.GetAsync(new Uri("/api/values/2", UriKind.Relative), TestContext.Current.CancellationToken);
                 response.EnsureSuccessStatusCode(); // Status Code 200-299
 
                 WaitForActivityExport(exportedItems, 1);
             }
 
-            Assert.Single(exportedItems);
-            var activity = exportedItems[0];
+            var activity = Assert.Single(exportedItems);
 
             Assert.True(activity.Duration != TimeSpan.Zero);
 
@@ -269,8 +264,8 @@ public sealed class BasicTests
             using var client = testFactory.CreateClient();
 
             // Act
-            using var response1 = await client.GetAsync(new Uri("/api/values", UriKind.Relative));
-            using var response2 = await client.GetAsync(new Uri("/api/values/2", UriKind.Relative));
+            using var response1 = await client.GetAsync(new Uri("/api/values", UriKind.Relative), TestContext.Current.CancellationToken);
+            using var response2 = await client.GetAsync(new Uri("/api/values/2", UriKind.Relative), TestContext.Current.CancellationToken);
 
             // Assert
             response1.EnsureSuccessStatusCode(); // Status Code 200-299
@@ -279,8 +274,7 @@ public sealed class BasicTests
             WaitForActivityExport(exportedItems, 1);
         }
 
-        Assert.Single(exportedItems);
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
 
         ValidateAspNetCoreActivity(activity, "/api/values");
     }
@@ -316,8 +310,8 @@ public sealed class BasicTests
             // Act
             using (var inMemoryEventListener = new InMemoryEventListener(AspNetCoreInstrumentationEventSource.Log))
             {
-                using var response1 = await client.GetAsync(new Uri("/api/values", UriKind.Relative));
-                using var response2 = await client.GetAsync(new Uri("/api/values/2", UriKind.Relative));
+                using var response1 = await client.GetAsync(new Uri("/api/values", UriKind.Relative), TestContext.Current.CancellationToken);
+                using var response2 = await client.GetAsync(new Uri("/api/values/2", UriKind.Relative), TestContext.Current.CancellationToken);
 
                 response1.EnsureSuccessStatusCode(); // Status Code 200-299
                 response2.EnsureSuccessStatusCode(); // Status Code 200-299
@@ -330,8 +324,7 @@ public sealed class BasicTests
         // As InstrumentationFilter threw, we continue as if the
         // InstrumentationFilter did not exist.
 
-        Assert.Single(exportedItems);
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
         ValidateAspNetCoreActivity(activity, "/api/values");
     }
 
@@ -361,8 +354,9 @@ public sealed class BasicTests
 
             // Test TraceContext Propagation
             var request = new HttpRequestMessage(HttpMethod.Get, "/api/GetChildActivityTraceContext");
-            var response = await client.SendAsync(request);
-            var childActivityTraceContext = JsonSerializer.Deserialize<Dictionary<string, string>>(await response.Content.ReadAsStringAsync());
+            var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+            var childActivityTraceContext = JsonSerializer.Deserialize<Dictionary<string, string>>(
+                await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
 
             response.EnsureSuccessStatusCode();
 
@@ -374,8 +368,9 @@ public sealed class BasicTests
             // Test Baggage Context Propagation
             request = new HttpRequestMessage(HttpMethod.Get, "/api/GetChildActivityBaggageContext");
 
-            response = await client.SendAsync(request);
-            var childActivityBaggageContext = JsonSerializer.Deserialize<IReadOnlyDictionary<string, string>>(await response.Content.ReadAsStringAsync());
+            response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+            var childActivityBaggageContext = JsonSerializer.Deserialize<IReadOnlyDictionary<string, string>>(
+                await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
 
             response.EnsureSuccessStatusCode();
 
@@ -425,12 +420,13 @@ public sealed class BasicTests
 
             // Test TraceContext Propagation
             var request = new HttpRequestMessage(HttpMethod.Get, "/api/GetChildActivityTraceContext");
-            var response = await client.SendAsync(request);
+            var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
             // Ensure that filter was called
             Assert.True(isFilterCalled);
 
-            var childActivityTraceContext = JsonSerializer.Deserialize<Dictionary<string, string>>(await response.Content.ReadAsStringAsync());
+            var childActivityTraceContext = JsonSerializer.Deserialize<Dictionary<string, string>>(
+                await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
 
             response.EnsureSuccessStatusCode();
 
@@ -442,8 +438,9 @@ public sealed class BasicTests
             // Test Baggage Context Propagation
             request = new HttpRequestMessage(HttpMethod.Get, "/api/GetChildActivityBaggageContext");
 
-            response = await client.SendAsync(request);
-            var childActivityBaggageContext = JsonSerializer.Deserialize<IReadOnlyDictionary<string, string>>(await response.Content.ReadAsStringAsync());
+            response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+            var childActivityBaggageContext = JsonSerializer.Deserialize<IReadOnlyDictionary<string, string>>(
+                await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
 
             response.EnsureSuccessStatusCode();
 
@@ -496,20 +493,18 @@ public sealed class BasicTests
         }
 
         // Arrange
-        using (var client = this.factory
-            .WithWebHostBuilder(builder =>
+        using (var client = this.CreateClient(builder =>
             {
                 builder.ConfigureTestServices(ConfigureTestServices);
                 builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
-            })
-            .CreateClient())
+            }))
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, "/api/values");
 
             request.Headers.TryAddWithoutValidation("baggage", "TestKey1=123,TestKey2=456");
 
             // Act
-            using var response = await client.SendAsync(request);
+            using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
         }
 
         stopSignal.WaitOne(5000);
@@ -530,40 +525,55 @@ public sealed class BasicTests
         var filterCalled = false;
         var enrichWithHttpRequestCalled = false;
         var enrichWithHttpResponseCalled = false;
+        using var stopSignal = new EventWaitHandle(false, EventResetMode.ManualReset);
+
         void ConfigureTestServices(IServiceCollection services)
         {
+            var options = new AspNetCoreTraceInstrumentationOptions
+            {
+                Filter = (context) =>
+                {
+                    filterCalled = true;
+                    return true;
+                },
+                EnrichWithHttpRequest = (activity, request) =>
+                {
+                    enrichWithHttpRequestCalled = true;
+                },
+                EnrichWithHttpResponse = (activity, request) =>
+                {
+                    enrichWithHttpResponseCalled = true;
+                },
+            };
+
             this.tracerProvider = Sdk.CreateTracerProviderBuilder()
                 .SetSampler(new TestSampler(samplingDecision))
-                .AddAspNetCoreInstrumentation(options =>
-                {
-                    options.Filter = (context) =>
+                .AddAspNetCoreInstrumentation(
+                    new TestHttpInListener(options)
                     {
-                        filterCalled = true;
-                        return true;
-                    };
-                    options.EnrichWithHttpRequest = (activity, request) =>
-                    {
-                        enrichWithHttpRequestCalled = true;
-                    };
-                    options.EnrichWithHttpResponse = (activity, request) =>
-                    {
-                        enrichWithHttpResponseCalled = true;
-                    };
-                })
+                        OnEventWrittenCallback = (name, payload) =>
+                        {
+                            if (name == HttpInListener.OnStopEvent)
+                            {
+                                stopSignal.Set();
+                            }
+                        },
+                    })
                 .Build();
         }
 
         // Arrange
-        using var client = this.factory
-            .WithWebHostBuilder(builder =>
+        using (var client = this.CreateClient(builder =>
             {
                 builder.ConfigureTestServices(ConfigureTestServices);
                 builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
-            })
-            .CreateClient();
+            }))
+        {
+            // Act
+            using var response = await client.GetAsync(new Uri("/api/values", UriKind.Relative), TestContext.Current.CancellationToken);
+        }
 
-        // Act
-        using var response = await client.GetAsync(new Uri("/api/values", UriKind.Relative));
+        Assert.True(stopSignal.WaitOne(TimeSpan.FromSeconds(5)));
 
         // Assert
         Assert.Equal(shouldFilterBeCalled, filterCalled);
@@ -590,15 +600,13 @@ public sealed class BasicTests
         }
 
         // Arrange
-        using (var client = this.factory
-            .WithWebHostBuilder(builder =>
+        using (var client = this.CreateClient(builder =>
             {
                 builder.ConfigureTestServices(ConfigureTestServices);
                 builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
-            })
-            .CreateClient())
+            }))
         {
-            using var response = await client.GetAsync(new Uri("/api/values/2", UriKind.Relative));
+            using var response = await client.GetAsync(new Uri("/api/values/2", UriKind.Relative), TestContext.Current.CancellationToken);
             response.EnsureSuccessStatusCode();
             WaitForActivityExport(exportedItems, 2);
         }
@@ -644,13 +652,11 @@ public sealed class BasicTests
         }
 
         // Arrange
-        using var client = this.factory
-            .WithWebHostBuilder(builder =>
+        using var client = this.CreateClient(builder =>
             {
                 builder.ConfigureTestServices(ConfigureTestServices);
                 builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
-            })
-            .CreateClient();
+            });
 
         var message = new HttpRequestMessage
         {
@@ -659,7 +665,7 @@ public sealed class BasicTests
 
         try
         {
-            using var response = await client.SendAsync(message);
+            using var response = await client.SendAsync(message, TestContext.Current.CancellationToken);
             response.EnsureSuccessStatusCode();
         }
         catch
@@ -669,9 +675,7 @@ public sealed class BasicTests
 
         WaitForActivityExport(exportedItems, 1);
 
-        Assert.Single(exportedItems);
-
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
 
         Assert.Equal(expectedMethod, activity.GetTagValue(SemanticConventions.AttributeHttpRequestMethod));
         Assert.Equal(expectedOriginalMethod, activity.GetTagValue(SemanticConventions.AttributeHttpRequestMethodOriginal));
@@ -687,8 +691,7 @@ public sealed class BasicTests
         var activityName = "TestMiddlewareActivity";
 
         // Arrange
-        using (var client = this.factory
-            .WithWebHostBuilder(builder =>
+        using (var client = this.CreateClient(builder =>
             {
                 builder.ConfigureTestServices(services =>
                 {
@@ -700,10 +703,9 @@ public sealed class BasicTests
                             .AddInMemoryExporter(exportedItems));
                 });
                 builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
-            })
-            .CreateClient())
+            }))
         {
-            using var response = await client.GetAsync(new Uri("/api/values/2", UriKind.Relative));
+            using var response = await client.GetAsync(new Uri("/api/values/2", UriKind.Relative), TestContext.Current.CancellationToken);
             response.EnsureSuccessStatusCode();
             WaitForActivityExport(exportedItems, 2);
         }
@@ -742,16 +744,14 @@ public sealed class BasicTests
         }
 
         // Arrange
-        using (var client = this.factory
-            .WithWebHostBuilder(builder =>
+        using (var client = this.CreateClient(builder =>
             {
                 builder.ConfigureTestServices(ConfigureTestServices);
                 builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
-            })
-            .CreateClient())
+            }))
         {
             // Act
-            using var response = await client.GetAsync(new Uri("/api/values", UriKind.Relative));
+            using var response = await client.GetAsync(new Uri("/api/values", UriKind.Relative), TestContext.Current.CancellationToken);
 
             // Assert
             response.EnsureSuccessStatusCode(); // Status Code 200-299
@@ -759,8 +759,7 @@ public sealed class BasicTests
             WaitForActivityExport(exportedItems, 1);
         }
 
-        Assert.Single(exportedItems);
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
 
         Assert.Equal("UserRegisteredActivitySource", activity.Source.Name);
     }
@@ -773,17 +772,15 @@ public sealed class BasicTests
         var exportedItems = new List<Activity>();
 
         // Arrange
-        using (var client = this.factory
-            .WithWebHostBuilder(builder =>
+        using (var client = this.CreateClient(builder =>
             {
                 builder.ConfigureTestServices(
                 (s) => this.ConfigureExceptionFilters(s, mode, ref exportedItems));
                 builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
-            })
-            .CreateClient())
+            }))
         {
             // Act
-            using var response = await client.GetAsync(new Uri("/api/error", UriKind.Relative));
+            using var response = await client.GetAsync(new Uri("/api/error", UriKind.Relative), TestContext.Current.CancellationToken);
 
             WaitForActivityExport(exportedItems, 1);
         }
@@ -830,17 +827,15 @@ public sealed class BasicTests
             .Build();
 
         // Arrange
-        using (var client = this.factory
-            .WithWebHostBuilder(builder =>
+        using (var client = this.CreateClient(builder =>
             {
                 builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
-            })
-            .CreateClient())
+            }))
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, "/api/values");
 
             // Act
-            using var response = await client.SendAsync(request);
+            using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
         }
 
         WaitForEventCount(() => numberofSubscribedEvents, 2);
@@ -899,19 +894,17 @@ public sealed class BasicTests
             .Build();
 
         // Arrange
-        using (var client = this.factory
-            .WithWebHostBuilder(builder =>
+        using (var client = this.CreateClient(builder =>
             {
                 builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
-            })
-            .CreateClient())
+            }))
         {
             try
             {
                 using var request = new HttpRequestMessage(HttpMethod.Get, "/api/error");
 
                 // Act
-                using var response = await client.SendAsync(request);
+                using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
             }
             catch
             {
@@ -985,17 +978,15 @@ public sealed class BasicTests
                     await ctx.Response.WriteAsync("handled");
                 })));
 
-        using (var client = this.factory
-            .WithWebHostBuilder(builder =>
+        using (var client = this.CreateClient(builder =>
             {
                 builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
-            })
-            .CreateClient())
+            }))
         {
             try
             {
                 using var request = new HttpRequestMessage(HttpMethod.Get, "/api/error");
-                using var response = await client.SendAsync(request);
+                using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
             }
             catch
             {
@@ -1037,8 +1028,8 @@ public sealed class BasicTests
         var spanId = ActivitySpanId.CreateRandom();
         request.Headers.Add("traceparent", $"00-{traceId}-{spanId}-00");
 
-        var response = await client.SendAsync(request);
-        var result = bool.Parse(await response.Content.ReadAsStringAsync());
+        var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+        var result = bool.Parse(await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
 
         Assert.True(response.IsSuccessStatusCode);
 
@@ -1093,16 +1084,14 @@ public sealed class BasicTests
             .AddInMemoryExporter(exportedItems)
             .Build();
 
-        using (var client = this.factory
-            .WithWebHostBuilder(builder =>
+        using (var client = this.CreateClient(builder =>
             {
                 builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
-            })
-            .CreateClient())
+            }))
         {
             try
             {
-                using var response = await client.GetAsync(new Uri(path, UriKind.Relative));
+                using var response = await client.GetAsync(new Uri(path, UriKind.Relative), TestContext.Current.CancellationToken);
             }
             catch (Exception)
             {
@@ -1112,10 +1101,733 @@ public sealed class BasicTests
             WaitForActivityExport(exportedItems, 1);
         }
 
-        Assert.Single(exportedItems);
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
 
         Assert.Equal(expectedUrlQuery, activity.GetTagValue(SemanticConventions.AttributeUrlQuery));
+    }
+
+    [Fact]
+    public async Task NewRootSpanIsStartedWhenEnabledViaConfiguration()
+    {
+        var exportedItems = new List<Activity>();
+        var traceId = ActivityTraceId.CreateRandom();
+        var spanId = ActivitySpanId.CreateRandom();
+
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?> { ["OTEL_DOTNET_EXPERIMENTAL_ASPNETCORE_ENABLE_NEW_ROOT_SPAN"] = "true" })
+            .Build();
+
+        // Arrange
+        using var traceprovider = Sdk.CreateTracerProviderBuilder()
+            .ConfigureServices(services => services.AddSingleton<IConfiguration>(configuration))
+            .AddAspNetCoreInstrumentation()
+            .AddInMemoryExporter(exportedItems)
+            .Build();
+
+        using (var client = this.CreateClient(builder =>
+            {
+                builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
+            }))
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, "/api/values");
+            request.Headers.Add("traceparent", $"00-{traceId}-{spanId}-01");
+
+            // Act
+            using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+            // Assert
+            response.EnsureSuccessStatusCode();
+
+            WaitForActivityExport(exportedItems, 1);
+        }
+
+        var activity = Assert.Single(exportedItems);
+
+        Assert.Null(activity.ParentId);
+        Assert.NotEqual(traceId, activity.TraceId);
+
+        var link = Assert.Single(activity.Links);
+        Assert.Equal(traceId, link.Context.TraceId);
+        Assert.Equal(spanId, link.Context.SpanId);
+
+        ValidateAspNetCoreActivity(activity, "/api/values");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void RootSpanIsStartedWhenRequestHasRemoteParent(bool traceContextPropagatorOnly)
+    {
+        try
+        {
+            if (traceContextPropagatorOnly)
+            {
+                Sdk.SetDefaultTextMapPropagator(new TraceContextPropagator());
+            }
+
+            // Arrange
+            var exportedItems = new List<Activity>();
+            using var tracerProvider = CreateTracerProvider(exportedItems);
+            using var source = new ActivitySource(ActivitySourceName);
+
+            var traceId = ActivityTraceId.CreateRandom();
+            var spanId = ActivitySpanId.CreateRandom();
+            var context = CreateContext();
+            context.Request.Headers["traceparent"] = $"00-{traceId}-{spanId}-01";
+
+            var listener = CreateListener();
+            using var frameworkActivity = StartFrameworkActivity(source, new ActivityContext(traceId, spanId, ActivityTraceFlags.Recorded, isRemote: true));
+
+            // Act
+            listener.OnStartActivity(frameworkActivity, context);
+            listener.OnStopActivity(Activity.Current!, context);
+            frameworkActivity.Stop();
+
+            // Assert
+            var activity = Assert.Single(exportedItems);
+
+            Assert.Null(activity.ParentId);
+            Assert.NotEqual(traceId, activity.TraceId);
+            Assert.Equal(ActivityKind.Server, activity.Kind);
+
+            var link = Assert.Single(activity.Links);
+            Assert.Equal(traceId, link.Context.TraceId);
+            Assert.Equal(spanId, link.Context.SpanId);
+            Assert.Equal(ActivityTraceFlags.Recorded, link.Context.TraceFlags);
+            Assert.True(link.Context.IsRemote);
+        }
+        finally
+        {
+            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([new TraceContextPropagator(), new BaggagePropagator()]));
+        }
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void RootSpanIsNotParentedToContextExtractedByPropagator(bool traceContextPropagatorOnly)
+    {
+        try
+        {
+            if (traceContextPropagatorOnly)
+            {
+                Sdk.SetDefaultTextMapPropagator(new TraceContextPropagator());
+            }
+
+            // Arrange
+            var exportedItems = new List<Activity>();
+            using var tracerProvider = CreateTracerProvider(exportedItems);
+            using var source = new ActivitySource(ActivitySourceName);
+
+            var frameworkParent = new ActivityContext(ActivityTraceId.CreateRandom(), ActivitySpanId.CreateRandom(), ActivityTraceFlags.Recorded, isRemote: true);
+            var extractedTraceId = ActivityTraceId.CreateRandom();
+            var extractedSpanId = ActivitySpanId.CreateRandom();
+            var context = CreateContext();
+            context.Request.Headers["traceparent"] = $"00-{extractedTraceId}-{extractedSpanId}-01";
+
+            var listener = CreateListener();
+            using var frameworkActivity = StartFrameworkActivity(source, frameworkParent);
+
+            // Act
+            listener.OnStartActivity(frameworkActivity, context);
+            listener.OnStopActivity(Activity.Current!, context);
+
+            var currentAfterStop = Activity.Current;
+
+            frameworkActivity.Stop();
+
+            // Assert
+            var activity = Assert.Single(exportedItems);
+
+            Assert.Null(activity.ParentId);
+            Assert.NotEqual(extractedTraceId, activity.TraceId);
+            Assert.NotEqual(frameworkParent.TraceId, activity.TraceId);
+
+            var link = Assert.Single(activity.Links);
+            Assert.Equal(extractedTraceId, link.Context.TraceId);
+            Assert.Equal(extractedSpanId, link.Context.SpanId);
+
+            Assert.Same(frameworkActivity, currentAfterStop);
+        }
+        finally
+        {
+            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([new TraceContextPropagator(), new BaggagePropagator()]));
+        }
+    }
+
+    [Fact]
+    public void RootSpanDoesNotCarryIncomingTraceState()
+    {
+        // Arrange
+        var exportedItems = new List<Activity>();
+        using var tracerProvider = CreateTracerProvider(exportedItems);
+        using var source = new ActivitySource(ActivitySourceName);
+
+        var traceId = ActivityTraceId.CreateRandom();
+        var spanId = ActivitySpanId.CreateRandom();
+        var traceState = "rojo=1,congo=2";
+        var context = CreateContext();
+        context.Request.Headers["traceparent"] = $"00-{traceId}-{spanId}-01";
+        context.Request.Headers["tracestate"] = traceState;
+
+        var listener = CreateListener();
+        using var frameworkActivity = StartFrameworkActivity(source, new ActivityContext(traceId, spanId, ActivityTraceFlags.Recorded, traceState, isRemote: true));
+
+        // Act
+        listener.OnStartActivity(frameworkActivity, context);
+        listener.OnStopActivity(Activity.Current!, context);
+        frameworkActivity.Stop();
+
+        // Assert
+        var activity = Assert.Single(exportedItems);
+
+        Assert.Null(activity.ParentId);
+        Assert.Null(activity.TraceStateString);
+
+        var link = Assert.Single(activity.Links);
+        Assert.Equal(traceState, link.Context.TraceState);
+    }
+
+    [Fact]
+    public void NoRootSpanIsStartedWhenRequestHasNoParent()
+    {
+        // Arrange
+        var exportedItems = new List<Activity>();
+        using var tracerProvider = CreateTracerProvider(exportedItems);
+        using var source = new ActivitySource(ActivitySourceName);
+
+        var context = CreateContext();
+
+        var listener = CreateListener();
+        using var frameworkActivity = StartFrameworkActivity(source);
+
+        // Act
+        listener.OnStartActivity(frameworkActivity, context);
+
+        var current = Activity.Current;
+
+        listener.OnStopActivity(Activity.Current!, context);
+        frameworkActivity.Stop();
+
+        // Assert
+        Assert.Same(frameworkActivity, current);
+
+        var activity = Assert.Single(exportedItems);
+
+        Assert.Same(frameworkActivity, activity);
+        Assert.Empty(activity.Links);
+    }
+
+    [Fact]
+    public void RootSpanIsStartedWhenRequestHasLocalParent()
+    {
+        // Arrange
+        var exportedItems = new List<Activity>();
+        using var tracerProvider = CreateTracerProvider(exportedItems);
+        using var source = new ActivitySource(ActivitySourceName);
+
+        var context = CreateContext();
+
+        var listener = CreateListener();
+        using var parent = new Activity("parent") { ActivityTraceFlags = ActivityTraceFlags.Recorded }.Start();
+        using var frameworkActivity = StartFrameworkActivity(source);
+
+        // Act
+        listener.OnStartActivity(frameworkActivity, context);
+        listener.OnStopActivity(Activity.Current!, context);
+        frameworkActivity.Stop();
+
+        // Assert
+        var activity = Assert.Single(exportedItems);
+
+        Assert.Null(activity.ParentId);
+        Assert.NotEqual(parent.TraceId, activity.TraceId);
+
+        var link = Assert.Single(activity.Links);
+        Assert.Equal(parent.TraceId, link.Context.TraceId);
+        Assert.Equal(parent.SpanId, link.Context.SpanId);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void RootSpanIsStartedWhenOnlyPropagatorExtractsParent(bool traceContextPropagatorOnly)
+    {
+        try
+        {
+            if (traceContextPropagatorOnly)
+            {
+                Sdk.SetDefaultTextMapPropagator(new TraceContextPropagator());
+            }
+
+            // Arrange
+            var exportedItems = new List<Activity>();
+            using var tracerProvider = CreateTracerProvider(exportedItems);
+            using var source = new ActivitySource(ActivitySourceName);
+
+            var traceId = ActivityTraceId.CreateRandom();
+            var spanId = ActivitySpanId.CreateRandom();
+            var context = CreateContext();
+            context.Request.Headers["traceparent"] = $"00-{traceId}-{spanId}-01";
+
+            var listener = CreateListener();
+
+            using var frameworkActivity = StartFrameworkActivity(source);
+
+            // Act
+            listener.OnStartActivity(frameworkActivity, context);
+            listener.OnStopActivity(Activity.Current!, context);
+            frameworkActivity.Stop();
+
+            // Assert
+            var activity = Assert.Single(exportedItems);
+
+            Assert.Null(activity.ParentId);
+            Assert.NotEqual(traceId, activity.TraceId);
+
+            var link = Assert.Single(activity.Links);
+            Assert.Equal(traceId, link.Context.TraceId);
+            Assert.Equal(spanId, link.Context.SpanId);
+            Assert.Equal(ActivityTraceFlags.Recorded, link.Context.TraceFlags);
+            Assert.True(link.Context.IsRemote);
+        }
+        finally
+        {
+            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([new TraceContextPropagator(), new BaggagePropagator()]));
+        }
+    }
+
+    [Fact]
+    public void RootSpanIsStartedWhenOnlyFrameworkExtractsParent()
+    {
+        // Arrange
+        var exportedItems = new List<Activity>();
+        using var tracerProvider = CreateTracerProvider(exportedItems);
+        using var source = new ActivitySource(ActivitySourceName);
+
+        var traceId = ActivityTraceId.CreateRandom();
+        var spanId = ActivitySpanId.CreateRandom();
+        var context = CreateContext();
+
+        var listener = CreateListener();
+        using var frameworkActivity = StartFrameworkActivity(source, new ActivityContext(traceId, spanId, ActivityTraceFlags.Recorded, isRemote: true));
+
+        // Act
+        listener.OnStartActivity(frameworkActivity, context);
+        listener.OnStopActivity(Activity.Current!, context);
+        frameworkActivity.Stop();
+
+        // Assert
+        var activity = Assert.Single(exportedItems);
+
+        Assert.Null(activity.ParentId);
+        Assert.NotEqual(traceId, activity.TraceId);
+
+        var link = Assert.Single(activity.Links);
+        Assert.Equal(traceId, link.Context.TraceId);
+        Assert.Equal(spanId, link.Context.SpanId);
+        Assert.Equal(ActivityTraceFlags.Recorded, link.Context.TraceFlags);
+        Assert.True(link.Context.IsRemote);
+    }
+
+    [Fact]
+    public void RootSpanIsSampledAsRootWhenIncomingParentIsNotSampled()
+    {
+        // Arrange
+        var exportedItems = new List<Activity>();
+        using var tracerProvider = CreateTracerProvider(exportedItems);
+        using var source = new ActivitySource(ActivitySourceName);
+
+        var traceId = ActivityTraceId.CreateRandom();
+        var spanId = ActivitySpanId.CreateRandom();
+        var context = CreateContext();
+        context.Request.Headers["traceparent"] = $"00-{traceId}-{spanId}-00";
+
+        var listener = CreateListener();
+        using var frameworkActivity = StartFrameworkActivity(source, new ActivityContext(traceId, spanId, ActivityTraceFlags.None, isRemote: true));
+
+        // Act
+        listener.OnStartActivity(frameworkActivity, context);
+        listener.OnStopActivity(Activity.Current!, context);
+        frameworkActivity.Stop();
+
+        // Assert
+        var activity = Assert.Single(exportedItems);
+
+        Assert.Null(activity.ParentId);
+        Assert.True(activity.Recorded);
+    }
+
+    [Fact]
+    public void NoSpanIsExportedWhenSamplerDropsRootSpan()
+    {
+        // Arrange
+        var exportedItems = new List<Activity>();
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSource(ActivitySourceName)
+            .SetSampler(new ParentBasedSampler(new AlwaysOffSampler()))
+            .AddInMemoryExporter(exportedItems)
+            .Build();
+        using var source = new ActivitySource(ActivitySourceName);
+
+        var traceId = ActivityTraceId.CreateRandom();
+        var spanId = ActivitySpanId.CreateRandom();
+        var context = CreateContext();
+        context.Request.Headers["traceparent"] = $"00-{traceId}-{spanId}-01";
+
+        var listener = CreateListener();
+        using var frameworkActivity = StartFrameworkActivity(source, new ActivityContext(traceId, spanId, ActivityTraceFlags.Recorded, isRemote: true));
+
+        // Act
+        listener.OnStartActivity(frameworkActivity, context);
+
+        var root = Activity.Current;
+
+        listener.OnStopActivity(Activity.Current!, context);
+        frameworkActivity.Stop();
+
+        // Assert
+        Assert.True(frameworkActivity.Recorded);
+
+        Assert.NotNull(root);
+        Assert.NotSame(frameworkActivity, root);
+        Assert.Null(root.ParentId);
+        Assert.NotEqual(traceId, root.TraceId);
+        Assert.False(root.Recorded);
+
+        Assert.Empty(exportedItems);
+    }
+
+    [Fact]
+    public void ActivityCurrentIsRestoredToFrameworkActivityWhenRootSpanStops()
+    {
+        // Arrange
+        var exportedItems = new List<Activity>();
+        using var tracerProvider = CreateTracerProvider(exportedItems);
+        using var source = new ActivitySource(ActivitySourceName);
+
+        var traceId = ActivityTraceId.CreateRandom();
+        var spanId = ActivitySpanId.CreateRandom();
+        var context = CreateContext();
+        context.Request.Headers["traceparent"] = $"00-{traceId}-{spanId}-01";
+
+        var listener = CreateListener();
+        using var frameworkActivity = StartFrameworkActivity(source, new ActivityContext(traceId, spanId, ActivityTraceFlags.Recorded, isRemote: true));
+
+        // Act
+        listener.OnStartActivity(frameworkActivity, context);
+
+        var root = Activity.Current;
+
+        listener.OnStopActivity(Activity.Current!, context);
+
+        var currentAfterStop = Activity.Current;
+
+        frameworkActivity.Stop();
+
+        // Assert
+        Assert.NotNull(root);
+        Assert.Null(root.ParentId);
+        Assert.Same(frameworkActivity, currentAfterStop);
+    }
+
+    [Fact]
+    public void BaggageIsKeptWhenRootSpanIsStarted()
+    {
+        // Arrange
+        var exportedItems = new List<Activity>();
+        using var tracerProvider = CreateTracerProvider(exportedItems);
+        using var source = new ActivitySource(ActivitySourceName);
+
+        var traceId = ActivityTraceId.CreateRandom();
+        var spanId = ActivitySpanId.CreateRandom();
+        var context = CreateContext();
+        context.Request.Headers["traceparent"] = $"00-{traceId}-{spanId}-01";
+        context.Request.Headers["baggage"] = "key1=value1";
+
+        var listener = CreateListener();
+        using var frameworkActivity = StartFrameworkActivity(source, new ActivityContext(traceId, spanId, ActivityTraceFlags.Recorded, isRemote: true));
+        frameworkActivity.AddBaggage("key2", "value2");
+
+        // Act
+        listener.OnStartActivity(frameworkActivity, context);
+
+        var root = Activity.Current;
+        var baggage = Baggage.Current;
+
+        listener.OnStopActivity(Activity.Current!, context);
+        frameworkActivity.Stop();
+
+        // Assert
+        Assert.NotNull(root);
+        Assert.Null(root.ParentId);
+        Assert.Equal("value1", baggage.GetBaggage("key1"));
+        Assert.Equal("value2", root.GetBaggageItem("key2"));
+    }
+
+    [Fact]
+    public void AmbientBaggageIsKeptWhenPropagatorIsTraceContextPropagator()
+    {
+        try
+        {
+            Sdk.SetDefaultTextMapPropagator(new TraceContextPropagator());
+
+            // Arrange
+            var exportedItems = new List<Activity>();
+            using var tracerProvider = CreateTracerProvider(exportedItems);
+            using var source = new ActivitySource(ActivitySourceName);
+
+            var traceId = ActivityTraceId.CreateRandom();
+            var spanId = ActivitySpanId.CreateRandom();
+            var context = CreateContext();
+            context.Request.Headers["traceparent"] = $"00-{traceId}-{spanId}-01";
+
+            var listener = CreateListener();
+            using var frameworkActivity = StartFrameworkActivity(source, new ActivityContext(traceId, spanId, ActivityTraceFlags.Recorded, isRemote: true));
+
+            Baggage.SetBaggage("key1", "value1");
+
+            // Act
+            listener.OnStartActivity(frameworkActivity, context);
+
+            var root = Activity.Current;
+            var baggage = Baggage.Current;
+
+            listener.OnStopActivity(Activity.Current!, context);
+            frameworkActivity.Stop();
+
+            // Assert
+            Assert.NotNull(root);
+            Assert.Null(root.ParentId);
+            Assert.Equal("value1", baggage.GetBaggage("key1"));
+        }
+        finally
+        {
+            Baggage.Current = default;
+            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([new TraceContextPropagator(), new BaggagePropagator()]));
+        }
+    }
+
+    [Fact]
+    public void FilterIsAppliedToRootSpan()
+    {
+        // Arrange
+        var exportedItems = new List<Activity>();
+        using var tracerProvider = CreateTracerProvider(exportedItems);
+        using var source = new ActivitySource(ActivitySourceName);
+
+        var traceId = ActivityTraceId.CreateRandom();
+        var spanId = ActivitySpanId.CreateRandom();
+        var context = CreateContext();
+        context.Request.Headers["traceparent"] = $"00-{traceId}-{spanId}-01";
+
+        var listener = CreateListener(options => options.Filter = _ => false);
+        using var frameworkActivity = StartFrameworkActivity(source, new ActivityContext(traceId, spanId, ActivityTraceFlags.Recorded, isRemote: true));
+
+        // Act
+        listener.OnStartActivity(frameworkActivity, context);
+
+        var root = Activity.Current;
+
+        listener.OnStopActivity(Activity.Current!, context);
+        frameworkActivity.Stop();
+
+        // Assert
+        Assert.NotSame(frameworkActivity, root);
+        Assert.Empty(exportedItems);
+    }
+
+    [Fact]
+    public void EnrichWithHttpRequestReceivesRootSpan()
+    {
+        // Arrange
+        var exportedItems = new List<Activity>();
+        using var tracerProvider = CreateTracerProvider(exportedItems);
+        using var source = new ActivitySource(ActivitySourceName);
+
+        var traceId = ActivityTraceId.CreateRandom();
+        var spanId = ActivitySpanId.CreateRandom();
+        var context = CreateContext();
+        context.Request.Headers["traceparent"] = $"00-{traceId}-{spanId}-01";
+
+        Activity? enriched = null;
+        var listener = CreateListener(options => options.EnrichWithHttpRequest = (activity, request) => enriched = activity);
+        using var frameworkActivity = StartFrameworkActivity(source, new ActivityContext(traceId, spanId, ActivityTraceFlags.Recorded, isRemote: true));
+
+        // Act
+        listener.OnStartActivity(frameworkActivity, context);
+
+        var root = Activity.Current;
+
+        listener.OnStopActivity(Activity.Current!, context);
+        frameworkActivity.Stop();
+
+        // Assert
+        Assert.NotNull(enriched);
+        Assert.Same(root, enriched);
+        Assert.Null(enriched.ParentId);
+    }
+
+    [Fact]
+    public void RootSpanHasHttpTagsWhenAspNetCoreEmitsNativeTags()
+    {
+        const string SwitchName = "Microsoft.AspNetCore.Hosting.SuppressActivityOpenTelemetryData";
+
+        var wasConfigured = AppContext.TryGetSwitch(SwitchName, out var originalValue);
+        AppContext.SetSwitch(SwitchName, false);
+
+        try
+        {
+            // Arrange
+            var exportedItems = new List<Activity>();
+            using var tracerProvider = CreateTracerProvider(exportedItems);
+            using var source = new ActivitySource(ActivitySourceName);
+
+            var traceId = ActivityTraceId.CreateRandom();
+            var spanId = ActivitySpanId.CreateRandom();
+            var context = CreateContext();
+            context.Request.Headers["traceparent"] = $"00-{traceId}-{spanId}-01";
+
+            var listener = CreateListener();
+            using var frameworkActivity = StartFrameworkActivity(source, new ActivityContext(traceId, spanId, ActivityTraceFlags.Recorded, isRemote: true));
+
+            // Act
+            listener.OnStartActivity(frameworkActivity, context);
+            listener.OnStopActivity(Activity.Current!, context);
+            frameworkActivity.Stop();
+
+            // Assert
+            var activity = Assert.Single(exportedItems);
+
+            Assert.Null(activity.ParentId);
+            Assert.Equal("GET", activity.GetTagValue(SemanticConventions.AttributeHttpRequestMethod));
+            Assert.Equal("localhost", activity.GetTagValue(SemanticConventions.AttributeServerAddress));
+            Assert.Equal("http", activity.GetTagValue(SemanticConventions.AttributeUrlScheme));
+            Assert.Equal("/api/values", activity.GetTagValue(SemanticConventions.AttributeUrlPath));
+        }
+        finally
+        {
+            var resetValue = wasConfigured ? originalValue : Environment.Version.Major < 11;
+            AppContext.SetSwitch(SwitchName, resetValue);
+        }
+    }
+
+    [Fact]
+    public void RootSpanIsCreatedWithSamplingRelevantTags()
+    {
+        // Arrange
+        var sampler = new OpenTelemetry.Tests.TestSampler();
+        var exportedItems = new List<Activity>();
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSource(ActivitySourceName)
+            .SetSampler(sampler)
+            .AddInMemoryExporter(exportedItems)
+            .Build();
+        using var source = new ActivitySource(ActivitySourceName);
+
+        var traceId = ActivityTraceId.CreateRandom();
+        var spanId = ActivitySpanId.CreateRandom();
+        var userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0";
+        var context = CreateContext();
+        context.Request.Scheme = "https";
+        context.Request.Host = new HostString("example.com", 8080);
+        context.Request.Path = "/webshop/articles/4";
+        context.Request.QueryString = new QueryString("?s=1&t=2");
+        context.Request.Headers["User-Agent"] = userAgent;
+        context.Request.Headers["traceparent"] = $"00-{traceId}-{spanId}-01";
+
+        var listener = CreateListener();
+        using var frameworkActivity = StartFrameworkActivity(source, new ActivityContext(traceId, spanId, ActivityTraceFlags.Recorded, isRemote: true));
+
+        // Act
+        listener.OnStartActivity(frameworkActivity, context);
+
+        var root = Activity.Current;
+        var samplingParameters = sampler.LatestSamplingParameters;
+
+        listener.OnStopActivity(Activity.Current!, context);
+        frameworkActivity.Stop();
+
+        // Assert
+        Assert.NotNull(root);
+        Assert.Null(root.ParentId);
+        Assert.Equal(root.TraceId, samplingParameters.TraceId);
+        Assert.NotNull(samplingParameters.Tags);
+
+        var tags = samplingParameters.Tags.ToDictionary(tag => tag.Key, tag => tag.Value);
+
+        Assert.Equal("GET", Assert.Contains(SemanticConventions.AttributeHttpRequestMethod, tags));
+        Assert.Equal("/webshop/articles/4", Assert.Contains(SemanticConventions.AttributeUrlPath, tags));
+        Assert.Equal("https", Assert.Contains(SemanticConventions.AttributeUrlScheme, tags));
+        Assert.Equal("example.com", Assert.Contains(SemanticConventions.AttributeServerAddress, tags));
+        Assert.Equal(8080, Assert.Contains(SemanticConventions.AttributeServerPort, tags));
+        Assert.Equal("?s=Redacted&t=Redacted", Assert.Contains(SemanticConventions.AttributeUrlQuery, tags));
+        Assert.Equal(userAgent, Assert.Contains(SemanticConventions.AttributeUserAgentOriginal, tags));
+
+        var activity = Assert.Single(exportedItems);
+
+        foreach (var tag in tags)
+        {
+            Assert.Equal(tag.Value, activity.GetTagItem(tag.Key));
+        }
+    }
+
+    [Fact]
+    public void GrpcTagsAreCopiedToRootSpan()
+    {
+        // Arrange
+        var exportedItems = new List<Activity>();
+        using var tracerProvider = CreateTracerProvider(exportedItems);
+        using var source = new ActivitySource(ActivitySourceName);
+
+        var traceId = ActivityTraceId.CreateRandom();
+        var spanId = ActivitySpanId.CreateRandom();
+        var context = CreateContext();
+        context.Request.Headers["traceparent"] = $"00-{traceId}-{spanId}-01";
+
+        var listener = CreateListener();
+        using var frameworkActivity = StartFrameworkActivity(source, new ActivityContext(traceId, spanId, ActivityTraceFlags.Recorded, isRemote: true));
+
+        // Act
+        listener.OnStartActivity(frameworkActivity, context);
+        frameworkActivity.SetTag(GrpcTagHelper.GrpcMethodTagName, "/package.Service/Method");
+        listener.OnStopActivity(Activity.Current!, context);
+        frameworkActivity.Stop();
+
+        // Assert
+        var activity = Assert.Single(exportedItems);
+
+        Assert.Null(activity.ParentId);
+        Assert.Equal("/package.Service/Method", activity.GetTagValue(GrpcTagHelper.GrpcMethodTagName));
+    }
+
+    [Fact]
+    public void FrameworkActivityIsKeptWhenRootSpanIsNotCreated()
+    {
+        // Arrange
+        var exportedItems = new List<Activity>();
+        using var tracerProvider = CreateTracerProvider(exportedItems);
+        using var source = new ActivitySource(ActivitySourceName);
+
+        var traceId = ActivityTraceId.CreateRandom();
+        var spanId = ActivitySpanId.CreateRandom();
+        var context = CreateContext();
+        context.Request.Headers["traceparent"] = $"00-{traceId}-{spanId}-01";
+
+        var listener = CreateListener();
+        using var frameworkActivity = StartFrameworkActivity(source, new ActivityContext(traceId, spanId, ActivityTraceFlags.Recorded, isRemote: true));
+
+        Activity? current;
+
+        // Act
+        using (SuppressInstrumentationScope.Begin())
+        {
+            listener.OnStartActivity(frameworkActivity, context);
+            current = Activity.Current;
+        }
+
+        // Assert
+        Assert.Same(frameworkActivity, current);
     }
 
 #if NET9_0_OR_GREATER
@@ -1145,14 +1857,16 @@ public sealed class BasicTests
                     o.HttpMessageHandlerFactory = _ => server.Server.CreateHandler();
                     o.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.LongPolling;
                 }).Build();
-            await client.StartAsync();
+            await client.StartAsync(TestContext.Current.CancellationToken);
 
-            await client.SendAsync("Send", "text");
+            await client.SendAsync("Send", "text", TestContext.Current.CancellationToken);
 
-            await client.StopAsync();
+            await client.StopAsync(TestContext.Current.CancellationToken);
+
+            // OnDisconnectedAsync runs on the server after the client has stopped, so give it
+            // time to be exported before the server is disposed and can no longer export it.
+            WaitForActivityExportToStabilize(exportedItems);
         }
-
-        WaitForActivityExportToStabilize(exportedItems);
 
         var hubActivity = exportedItems
             .Where(a => a.DisplayName.StartsWith("TestApp.AspNetCore.TestHub", StringComparison.InvariantCulture));
@@ -1200,11 +1914,11 @@ public sealed class BasicTests
                     o.HttpMessageHandlerFactory = _ => server.Server.CreateHandler();
                     o.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.LongPolling;
                 }).Build();
-            await client.StartAsync();
+            await client.StartAsync(TestContext.Current.CancellationToken);
 
-            await client.SendAsync("Send", "text");
+            await client.SendAsync("Send", "text", TestContext.Current.CancellationToken);
 
-            await client.StopAsync();
+            await client.StopAsync(TestContext.Current.CancellationToken);
         }
 
         WaitForActivityExportToStabilize(exportedItems);
@@ -1227,13 +1941,11 @@ public sealed class BasicTests
                 .Build();
         }
 
-        using (var client = this.factory
-            .WithWebHostBuilder(builder =>
+        using (var client = this.CreateClient(builder =>
             {
                 builder.ConfigureTestServices(ConfigureTestServices);
                 builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
-            })
-            .CreateClient())
+            }))
         {
             var fakeActivitySource = new ActivitySource("Microsoft.AspNetCore.Components");
             var activity = fakeActivitySource.CreateActivity("Microsoft.AspNetCore.Components.HandleEvent", ActivityKind.Internal, parentId: null, null, null);
@@ -1247,7 +1959,7 @@ public sealed class BasicTests
 
             try
             {
-                using var response = await client.GetAsync(new Uri("/api/values", UriKind.Relative));
+                using var response = await client.GetAsync(new Uri("/api/values", UriKind.Relative), TestContext.Current.CancellationToken);
             }
             catch (Exception)
             {
@@ -1276,13 +1988,11 @@ public sealed class BasicTests
                 .Build();
         }
 
-        using (var client = this.factory
-            .WithWebHostBuilder(builder =>
+        using (var client = this.CreateClient(builder =>
             {
                 builder.ConfigureTestServices(ConfigureTestServices);
                 builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
-            })
-            .CreateClient())
+            }))
         {
             var fakeActivitySource = new ActivitySource("Microsoft.AspNetCore.Components");
             var activity = fakeActivitySource.CreateActivity("Microsoft.AspNetCore.Components.HandleEvent", ActivityKind.Internal, parentId: null, null, null);
@@ -1296,7 +2006,7 @@ public sealed class BasicTests
 
             try
             {
-                using var response = await client.GetAsync(new Uri("/api/values", UriKind.Relative));
+                using var response = await client.GetAsync(new Uri("/api/values", UriKind.Relative), TestContext.Current.CancellationToken);
             }
             catch (Exception)
             {
@@ -1336,15 +2046,13 @@ public sealed class BasicTests
                 .Build();
         }
 
-        using (var client = this.factory
-            .WithWebHostBuilder(builder =>
+        using (var client = this.CreateClient(builder =>
             {
                 builder.ConfigureTestServices(ConfigureTestServices);
                 builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
-            })
-            .CreateClient())
+            }))
         {
-            using var response = await client.GetAsync(new Uri("/api/values", UriKind.Relative));
+            using var response = await client.GetAsync(new Uri("/api/values", UriKind.Relative), TestContext.Current.CancellationToken);
             response.EnsureSuccessStatusCode();
             WaitForActivityExport(exportedItems, 1);
         }
@@ -1355,7 +2063,16 @@ public sealed class BasicTests
     }
 
     public void Dispose()
-        => this.tracerProvider?.Dispose();
+    {
+        this.tracerProvider?.Dispose();
+
+        foreach (var derivedFactory in this.derivedFactories)
+        {
+            derivedFactory.Dispose();
+        }
+
+        this.derivedFactories.Clear();
+    }
 
     private static void WaitForActivityExport(List<Activity> exportedItems, int count)
         => Assert.True(
@@ -1423,15 +2140,58 @@ public sealed class BasicTests
 
     private static void AssertException(List<Activity> exportedItems)
     {
-        Assert.Single(exportedItems);
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
 
         var exMessage = "something's wrong!";
-        Assert.Single(activity.Events);
-        Assert.Equal("System.Exception", activity.Events.First().Tags.FirstOrDefault(t => t.Key == SemanticConventions.AttributeExceptionType).Value);
-        Assert.Equal(exMessage, activity.Events.First().Tags.FirstOrDefault(t => t.Key == SemanticConventions.AttributeExceptionMessage).Value);
+        var item = Assert.Single(activity.Events);
+        Assert.Equal("System.Exception", item.Tags.FirstOrDefault(t => t.Key == SemanticConventions.AttributeExceptionType).Value);
+        Assert.Equal(exMessage, item.Tags.FirstOrDefault(t => t.Key == SemanticConventions.AttributeExceptionMessage).Value);
 
         ValidateAspNetCoreActivity(activity, "/api/error");
+    }
+
+    private static TracerProvider CreateTracerProvider(List<Activity> exportedItems) =>
+        Sdk.CreateTracerProviderBuilder()
+            .AddSource(ActivitySourceName)
+            .AddInMemoryExporter(exportedItems)
+            .Build();
+
+    private static HttpInListener CreateListener(Action<AspNetCoreTraceInstrumentationOptions>? configure = null)
+    {
+        var options = new AspNetCoreTraceInstrumentationOptions
+        {
+            EnableNewRootSpan = true,
+        };
+
+        configure?.Invoke(options);
+
+        return new(options);
+    }
+
+    private static Activity StartFrameworkActivity(ActivitySource source, ActivityContext parentContext = default)
+    {
+        var activity = source.CreateActivity(HttpInListener.ActivityOperationName, ActivityKind.Server, parentContext)!;
+        activity.Start();
+        return activity;
+    }
+
+    private static DefaultHttpContext CreateContext()
+    {
+        var context = new DefaultHttpContext();
+
+        context.Request.Method = "GET";
+        context.Request.Scheme = "http";
+        context.Request.Host = new HostString("localhost");
+        context.Request.Path = "/api/values";
+
+        return context;
+    }
+
+    private HttpClient CreateClient(Action<IWebHostBuilder> configureWebHost)
+    {
+        var derivedFactory = this.factory.WithWebHostBuilder(configureWebHost);
+        this.derivedFactories.Add(derivedFactory);
+        return derivedFactory.CreateClient();
     }
 
     private void ConfigureExceptionFilters(IServiceCollection services, int mode, ref List<Activity> exportedItems)

@@ -31,7 +31,7 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
                 .TryAddTraceEnricher<MyTraceEnricher2>())
             .Build();
 
-        await host.StartAsync();
+        await host.StartAsync(TestContext.Current.CancellationToken);
 
         var enrichers = host.Services.GetServices<TraceEnricher>().ToArray();
         Assert.NotNull(enrichers);
@@ -50,9 +50,9 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
             Assert.Equal(1, myTraceEnricher.TimesCalled);
             Assert.Equal(1, myTraceEnricher2.TimesCalled);
 
-            Assert.Single(exportedItems);
+            var item = Assert.Single(exportedItems);
 
-            var tagObjects = exportedItems[0].TagObjects;
+            var tagObjects = item.TagObjects;
             var tagObject1 = tagObjects.Where(tag => tag.Key == MyTraceEnricher.Key);
             Assert.Equal(1, tagObject1.Single().Value);
 
@@ -60,7 +60,7 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
             Assert.Equal(1, tagObject2.Single().Value);
         }
 
-        await host.StopAsync();
+        await host.StopAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -79,7 +79,7 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
                 .TryAddTraceEnricher(new MyTraceEnricher2()))
             .Build();
 
-        await host.StartAsync();
+        await host.StartAsync(TestContext.Current.CancellationToken);
 
         var enrichers = host.Services.GetServices<TraceEnricher>().ToArray();
         Assert.NotNull(enrichers);
@@ -91,9 +91,9 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
             Assert.NotNull(activity);
             activity.Stop();
 
-            Assert.Single(exportedItems);
+            var item = Assert.Single(exportedItems);
 
-            var tagObjects = exportedItems[0].TagObjects;
+            var tagObjects = item.TagObjects;
             var tagObject1 = tagObjects.Where(tag => tag.Key == MyTraceEnricher.Key);
             Assert.Equal(1, tagObject1.Single().Value);
 
@@ -101,7 +101,7 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
             Assert.Equal(1, tagObject2.Single().Value);
         }
 
-        await host.StopAsync();
+        await host.StopAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -125,7 +125,7 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
                 .AddTraceEnricher(bag => bag.Add(testKey2, testValue2)))
             .Build();
 
-        await host.StartAsync();
+        await host.StartAsync(TestContext.Current.CancellationToken);
 
         using var source = new ActivitySource(SourceName);
         using var activity = source.StartActivity(SourceName);
@@ -133,9 +133,9 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
         Assert.NotNull(activity);
         activity.Stop();
 
-        Assert.Single(exportedItems);
+        var item = Assert.Single(exportedItems);
 
-        var tagObjects = exportedItems[0].TagObjects;
+        var tagObjects = item.TagObjects;
         var tagObject1 = tagObjects.Where(tag => tag.Key == testKey1);
         Assert.Equal(testValue1, tagObject1.Single().Value);
 
@@ -159,7 +159,7 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
                 .AddTraceEnricher(sp => new MyTraceEnricher2()))
             .Build();
 
-        await host.StartAsync();
+        await host.StartAsync(TestContext.Current.CancellationToken);
 
         var enrichers = host.Services.GetServices<TraceEnricher>().ToArray();
         Assert.NotNull(enrichers);
@@ -171,9 +171,9 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
             Assert.NotNull(activity);
             activity.Stop();
 
-            Assert.Single(exportedItems);
+            var item = Assert.Single(exportedItems);
 
-            var tagObjects = exportedItems[0].TagObjects;
+            var tagObjects = item.TagObjects;
             var tagObject1 = tagObjects.Where(tag => tag.Key == MyTraceEnricher.Key);
             Assert.Equal(1, tagObject1.Single().Value);
 
@@ -181,7 +181,7 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
             Assert.Equal(1, tagObject2.Single().Value);
         }
 
-        await host.StopAsync();
+        await host.StopAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -204,7 +204,7 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
                 .AddTraceEnricher(bag => bag.Add(testKey, testValue)))
             .Build();
 
-        await host.StartAsync();
+        await host.StartAsync(TestContext.Current.CancellationToken);
 
         using var source = new ActivitySource(SourceName);
 
@@ -216,8 +216,8 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
         });
 
         Assert.Null(exception);
-        Assert.Single(exportedItems);
-        Assert.Equal(testValue, exportedItems[0].TagObjects.Single(tag => tag.Key == testKey).Value);
+        var item = Assert.Single(exportedItems);
+        Assert.Equal(testValue, item.TagObjects.Single(tag => tag.Key == testKey).Value);
 
         var loggedEvent = Assert.Single(eventListener.Events);
         var payload = loggedEvent.Payload!.Select(Assert.IsType<string>).ToArray();
@@ -225,7 +225,7 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
         Assert.Contains(payload, value => value.Contains(nameof(ThrowingEnrichmentAction), StringComparison.Ordinal));
         Assert.Contains(payload, value => value.Contains("boom", StringComparison.Ordinal));
 
-        await host.StopAsync();
+        await host.StopAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -246,7 +246,7 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
                 .TryAddTraceEnricher(trackingEnricher))
             .Build();
 
-        await host.StartAsync();
+        await host.StartAsync(TestContext.Current.CancellationToken);
 
         using var source = new ActivitySource(SourceName);
 
@@ -260,8 +260,8 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
         Assert.Null(exception);
         Assert.Equal(1, trackingEnricher.StartCalls);
         Assert.Equal(1, trackingEnricher.EndCalls);
-        Assert.Single(exportedItems);
-        Assert.Equal(TrackingTraceEnricher.EndValue, exportedItems[0].TagObjects.Single(tag => tag.Key == TrackingTraceEnricher.EndKey).Value);
+        var item = Assert.Single(exportedItems);
+        Assert.Equal(TrackingTraceEnricher.EndValue, item.TagObjects.Single(tag => tag.Key == TrackingTraceEnricher.EndKey).Value);
 
         var loggedEvent = Assert.Single(eventListener.Events);
         var payload = loggedEvent.Payload!.Select(Assert.IsType<string>).ToArray();
@@ -270,7 +270,7 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
         Assert.Contains("OnEnd", payload);
         Assert.Contains(payload, value => value.Contains("boom", StringComparison.Ordinal));
 
-        await host.StopAsync();
+        await host.StopAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -291,7 +291,7 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
                 .TryAddTraceEnricher(trackingEnricher))
             .Build();
 
-        await host.StartAsync();
+        await host.StartAsync(TestContext.Current.CancellationToken);
 
         using var source = new ActivitySource(SourceName);
 
@@ -305,8 +305,8 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
         Assert.Null(exception);
         Assert.Equal(1, trackingEnricher.StartCalls);
         Assert.Equal(1, trackingEnricher.EndCalls);
-        Assert.Single(exportedItems);
-        Assert.Equal(TrackingTraceEnricher.StartValue, exportedItems[0].TagObjects.Single(tag => tag.Key == TrackingTraceEnricher.StartKey).Value);
+        var item = Assert.Single(exportedItems);
+        Assert.Equal(TrackingTraceEnricher.StartValue, item.TagObjects.Single(tag => tag.Key == TrackingTraceEnricher.StartKey).Value);
 
         var loggedEvent = Assert.Single(eventListener.Events);
         var payload = loggedEvent.Payload!.Select(Assert.IsType<string>).ToArray();
@@ -315,7 +315,7 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
         Assert.Contains("OnStart", payload);
         Assert.Contains(payload, value => value.Contains("boom", StringComparison.Ordinal));
 
-        await host.StopAsync();
+        await host.StopAsync(TestContext.Current.CancellationToken);
     }
 
     private static void ThrowingEnrichmentAction(TraceEnrichmentBag bag)

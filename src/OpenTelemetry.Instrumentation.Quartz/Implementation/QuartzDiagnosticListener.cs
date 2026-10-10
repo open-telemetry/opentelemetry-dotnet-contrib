@@ -129,7 +129,7 @@ internal sealed class QuartzDiagnosticListener : ListenerHandler
                 activity.AddException(exc);
             }
 
-            activity.SetStatus(ActivityStatusCode.Error, exc.Message);
+            activity.SetStatus(ActivityStatusCode.Error);
 
             try
             {

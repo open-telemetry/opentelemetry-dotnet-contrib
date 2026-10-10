@@ -122,29 +122,33 @@ public class ProcessMetricsTests
 
         var tasks = new List<Task>()
         {
-            Task.Run(() =>
-            {
-                var meterProviderA = Sdk.CreateMeterProviderBuilder()
-                    .AddProcessInstrumentation()
-                    .AddInMemoryExporter(exportedItemsA)
-                    .Build();
+            Task.Run(
+                () =>
+                {
+                    var meterProviderA = Sdk.CreateMeterProviderBuilder()
+                        .AddProcessInstrumentation()
+                        .AddInMemoryExporter(exportedItemsA)
+                        .Build();
 
-                Thread.Sleep(3000); // increase the odds of 2 tasks overlaps
+                    Thread.Sleep(3000); // increase the odds of 2 tasks overlaps
 
-                meterProviderA.ForceFlush(MaxTimeToAllowForFlush);
-            }),
+                    meterProviderA.ForceFlush(MaxTimeToAllowForFlush);
+                },
+                TestContext.Current.CancellationToken),
 
-            Task.Run(() =>
-            {
-                var meterProviderB = Sdk.CreateMeterProviderBuilder()
-                    .AddProcessInstrumentation()
-                    .AddInMemoryExporter(exportedItemsB)
-                    .Build();
+            Task.Run(
+                () =>
+                {
+                    var meterProviderB = Sdk.CreateMeterProviderBuilder()
+                        .AddProcessInstrumentation()
+                        .AddInMemoryExporter(exportedItemsB)
+                        .Build();
 
-                Thread.Sleep(3000); // increase the odds of 2 tasks overlaps
+                    Thread.Sleep(3000); // increase the odds of 2 tasks overlaps
 
-                meterProviderB.ForceFlush(MaxTimeToAllowForFlush);
-            }),
+                    meterProviderB.ForceFlush(MaxTimeToAllowForFlush);
+                },
+                TestContext.Current.CancellationToken),
         };
 
         await Task.WhenAll(tasks);

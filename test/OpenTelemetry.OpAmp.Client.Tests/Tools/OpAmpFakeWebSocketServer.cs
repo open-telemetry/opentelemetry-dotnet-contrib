@@ -109,6 +109,19 @@ internal class OpAmpFakeWebSocketServer : IDisposable
     public bool TryGetClientCloseStatus(TimeSpan timeout, out WebSocketCloseStatus? closeStatus)
         => this.clientCloseStatuses.TryTake(out closeStatus, (int)timeout.TotalMilliseconds);
 
+    /// <summary>
+    /// Attempts to take the request headers captured for the next accepted connection,
+    /// blocking up to <paramref name="timeout"/>.
+    /// </summary>
+    /// <remarks>
+    /// The server records request headers from an async accept continuation that runs
+    /// independently of (and can complete after) the client's ConnectAsync/StartAsync
+    /// task. Use this instead of <see cref="GetRequestHeaders"/> immediately after
+    /// connecting to avoid racing that continuation.
+    /// </remarks>
+    public bool TryGetRequestHeaders(TimeSpan timeout, out NameValueCollection? headers)
+        => this.requestHeaders.TryTake(out headers, (int)timeout.TotalMilliseconds);
+
     public void Dispose()
     {
         this.cts.Cancel();

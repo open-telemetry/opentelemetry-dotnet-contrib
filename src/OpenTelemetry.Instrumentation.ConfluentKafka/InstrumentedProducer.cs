@@ -62,7 +62,7 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
         catch (ProduceException<TKey, TValue> produceException)
         {
             errorType = FormatProduceException(produceException);
-            activity?.SetStatus(ActivityStatusCode.Error, produceException.Message);
+            activity?.SetStatus(ActivityStatusCode.Error);
             activity?.SetTag(SemanticConventions.AttributeErrorType, errorType);
 
             throw;
@@ -70,7 +70,7 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
         catch (ArgumentException argumentException)
         {
             errorType = FormatArgumentException(argumentException);
-            activity?.SetStatus(ActivityStatusCode.Error, argumentException.Message);
+            activity?.SetStatus(ActivityStatusCode.Error);
             activity?.SetTag(SemanticConventions.AttributeErrorType, errorType);
 
             throw;
@@ -111,7 +111,7 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
         catch (ProduceException<TKey, TValue> produceException)
         {
             errorType = FormatProduceException(produceException);
-            activity?.SetStatus(ActivityStatusCode.Error, produceException.Message);
+            activity?.SetStatus(ActivityStatusCode.Error);
             activity?.SetTag(SemanticConventions.AttributeErrorType, errorType);
 
             throw;
@@ -119,7 +119,7 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
         catch (ArgumentException argumentException)
         {
             errorType = FormatArgumentException(argumentException);
-            activity?.SetStatus(ActivityStatusCode.Error, argumentException.Message);
+            activity?.SetStatus(ActivityStatusCode.Error);
             activity?.SetTag(SemanticConventions.AttributeErrorType, errorType);
 
             throw;
@@ -156,7 +156,7 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
         catch (ProduceException<TKey, TValue> produceException)
         {
             errorType = FormatProduceException(produceException);
-            activity?.SetStatus(ActivityStatusCode.Error, produceException.Message);
+            activity?.SetStatus(ActivityStatusCode.Error);
             activity?.SetTag(SemanticConventions.AttributeErrorType, errorType);
 
             throw;
@@ -164,7 +164,7 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
         catch (ArgumentException argumentException)
         {
             errorType = FormatArgumentException(argumentException);
-            activity?.SetStatus(ActivityStatusCode.Error, argumentException.Message);
+            activity?.SetStatus(ActivityStatusCode.Error);
             activity?.SetTag(SemanticConventions.AttributeErrorType, errorType);
 
             throw;
@@ -199,7 +199,7 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
         catch (ProduceException<TKey, TValue> produceException)
         {
             errorType = FormatProduceException(produceException);
-            activity?.SetStatus(ActivityStatusCode.Error, produceException.Message);
+            activity?.SetStatus(ActivityStatusCode.Error);
             activity?.SetTag(SemanticConventions.AttributeErrorType, errorType);
 
             throw;
@@ -207,7 +207,7 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
         catch (ArgumentException argumentException)
         {
             errorType = FormatArgumentException(argumentException);
-            activity?.SetStatus(ActivityStatusCode.Error, argumentException.Message);
+            activity?.SetStatus(ActivityStatusCode.Error);
             activity?.SetTag(SemanticConventions.AttributeErrorType, errorType);
 
             throw;

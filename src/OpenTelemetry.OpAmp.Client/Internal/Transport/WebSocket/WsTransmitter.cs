@@ -26,7 +26,7 @@ internal sealed class WsTransmitter
         this.sendLock = sendLock;
     }
 
-    public async Task SendAsync(IMessage message, CancellationToken token = default)
+    public async Task SendAsync(IMessage message, Action? beforeSerialize, CancellationToken token = default)
     {
         // Serialize with the close frames sent by WsTransport/WsReceiver. ClientWebSocket forbids
         // concurrent sends, and a fragmented message must not be interleaved with another frame.
@@ -35,6 +35,8 @@ internal sealed class WsTransmitter
 
         try
         {
+            beforeSerialize?.Invoke();
+
             var headerSize = OpAmpWsHeaderHelper.WriteHeader(new ArraySegment<byte>(this.buffer));
             var size = message.CalculateSize();
 

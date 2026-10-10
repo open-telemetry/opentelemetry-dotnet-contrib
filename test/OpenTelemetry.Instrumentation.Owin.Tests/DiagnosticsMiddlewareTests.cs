@@ -174,7 +174,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
 
         this.requestCompleteHandle.Reset();
 
-        using var response = await client.GetAsync(requestUri);
+        using var response = await client.GetAsync(requestUri, TestContext.Current.CancellationToken);
 
         /* Note: This code will continue executing as soon as the response
         is available but Owin could still be working. We need to wait until
@@ -291,6 +291,50 @@ public class DiagnosticsMiddlewareTests : IDisposable
     }
 
     [Fact]
+    public async Task BeginRequestThrowsAfterActivityStarted_ActivityIsStopped()
+    {
+        var startedCount = 0;
+        var stoppedCount = 0;
+
+        // Force OwinInstrumentationActivitySource's static ctor to run before AddActivityListener,
+        // so ShouldListenTo below doesn't reenter it mid-construction (which would see a not-yet-assigned
+        // ActivitySource field and NRE) if this is the first test in the process to touch this type.
+        var activitySourceName = OwinInstrumentationActivitySource.ActivitySource.Name;
+
+        using ActivityListener listener = new()
+        {
+            ShouldListenTo = source => source.Name == activitySourceName,
+            Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
+            ActivityStarted = _ => Interlocked.Increment(ref startedCount),
+            ActivityStopped = _ => Interlocked.Increment(ref stoppedCount),
+        };
+        ActivitySource.AddActivityListener(listener);
+
+        OwinInstrumentationActivitySource.Options = null;
+
+        try
+        {
+            OwinContext owinContext = new();
+            owinContext.Request.Method = "GET";
+            owinContext.Request.Scheme = "http";
+            owinContext.Request.Path = new("/test");
+            owinContext.Request.QueryString = QueryString.Empty;
+            owinContext.Request.Headers["Host"] = "example.com:not-a-port";
+
+            DiagnosticsMiddleware middleware = new(new DelegateMiddleware(_ => Task.CompletedTask));
+
+            await Assert.ThrowsAsync<UriFormatException>(() => middleware.Invoke(owinContext));
+
+            Assert.True(startedCount > 0);
+            Assert.Equal(startedCount, stoppedCount);
+        }
+        finally
+        {
+            OwinInstrumentationActivitySource.Options = null;
+        }
+    }
+
+    [Fact]
     public async Task NoListeners_FilterNotInvoked_MetricsRecorded()
     {
         var filterInvocationCount = 0;
@@ -312,7 +356,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
 
         using var client = new HttpClient();
         this.requestCompleteHandle.Reset();
-        using var response = await client.GetAsync(new Uri($"{this.serviceBaseUri}api/test"));
+        using var response = await client.GetAsync(new Uri($"{this.serviceBaseUri}api/test"), TestContext.Current.CancellationToken);
 
         Assert.True(this.requestCompleteHandle.WaitOne(3000));
         Assert.Equal(0, filterInvocationCount);
@@ -365,7 +409,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
 
             try
             {
-                using var response = await client.GetAsync(requestUri);
+                using var response = await client.GetAsync(requestUri, TestContext.Current.CancellationToken);
             }
             catch
             {
@@ -378,9 +422,8 @@ public class DiagnosticsMiddlewareTests : IDisposable
             Assert.True(this.requestCompleteHandle.WaitOne(3000));
 
             Assert.NotEmpty(stoppedActivities);
-            Assert.Single(stoppedActivities);
+            var activity = Assert.Single(stoppedActivities);
 
-            var activity = stoppedActivities[0];
             Assert.Equal("OpenTelemetry.Instrumentation.Owin.IncomingRequest", activity.OperationName);
 
             Assert.Equal(requestUri.Host, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeServerAddress).Value);
@@ -411,5 +454,15 @@ public class DiagnosticsMiddlewareTests : IDisposable
         }
 
         return metricPoints;
+    }
+
+    /// <summary>
+    /// A stand-in "next" middleware for tests that drive <see cref="DiagnosticsMiddleware"/>
+    /// directly and need to run arbitrary code at that point in the pipeline.
+    /// </summary>
+    private sealed class DelegateMiddleware(Func<IOwinContext, Task> invoke)
+        : OwinMiddleware(null)
+    {
+        public override Task Invoke(IOwinContext context) => invoke(context);
     }
 }

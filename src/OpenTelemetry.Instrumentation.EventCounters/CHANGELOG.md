@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+* Updated OpenTelemetry core component version(s) to `1.19.1`.
+  ([#5329](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5329))
+
+* Added dependency injection support for EventCounters instrumentation.
+  ([#5475](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5475))
+
+## 1.19.0-alpha.1
+
+Released 2026-Sep-18
+
+* Updated OpenTelemetry core component version(s) to `1.19.0`.
+  ([#5240](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5240))
+
 ## 1.18.0-alpha.1
 
 Released 2026-Aug-21

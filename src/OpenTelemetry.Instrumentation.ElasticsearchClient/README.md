@@ -2,14 +2,12 @@
 
 | Status | |
 | ------ | --- |
-| Stability | [Beta](../../README.md#beta) |
-| Code Owners | [@ejsmith](https://github.com/ejsmith) |
+| Stability | [Deprecated](../../README.md#deprecated) |
 
 ## NEST/Elasticsearch.Net
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.ElasticsearchClient)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.ElasticsearchClient)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.ElasticsearchClient)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.ElasticsearchClient)
-[![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Instrumentation.ElasticsearchClient)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Instrumentation.ElasticsearchClient)
 
 This is an [Instrumentation
 Library](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/glossary.md#instrumentation-library),
@@ -28,6 +26,12 @@ and hence, this package is a
 Until a [stable
 version](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/telemetry-stability.md)
 is released, there can be [breaking changes](./CHANGELOG.md).
+
+## Deprecated
+
+> [!IMPORTANT]
+> Development of this component has halted. No new package versions
+> are planned, and new issues will not be worked on.
 
 ## Steps to enable OpenTelemetry.Instrumentation.ElasticsearchClient
 

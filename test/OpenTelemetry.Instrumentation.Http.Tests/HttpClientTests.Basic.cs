@@ -147,11 +147,10 @@ public partial class HttpClientTests : IDisposable
             .Build())
         {
             using var c = new HttpClient();
-            await c.SendAsync(request);
+            await c.SendAsync(request, TestContext.Current.CancellationToken);
         }
 
-        Assert.Single(exportedItems);
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
 
         Assert.Equal(ActivityKind.Client, activity.Kind);
         Assert.Equal(parent.TraceId, activity.Context.TraceId);
@@ -166,11 +165,11 @@ public partial class HttpClientTests : IDisposable
 #else
         Assert.True(request.Headers.TryGetValues("traceparent", out var traceparents));
         Assert.True(request.Headers.TryGetValues("tracestate", out var tracestates));
-        Assert.Single(traceparents);
-        Assert.Single(tracestates);
+        var traceparent = Assert.Single(traceparents);
+        var tracestate = Assert.Single(tracestates);
 
-        Assert.Equal($"00-{activity.Context.TraceId}-{activity.Context.SpanId}-01", traceparents.Single());
-        Assert.Equal("k1=v1,k2=v2", tracestates.Single());
+        Assert.Equal($"00-{activity.Context.TraceId}-{activity.Context.SpanId}-01", traceparent);
+        Assert.Equal("k1=v1,k2=v2", tracestate);
 #endif
 
 #if NETFRAMEWORK
@@ -231,11 +230,10 @@ public partial class HttpClientTests : IDisposable
             .Build())
         {
             using var c = new HttpClient();
-            await c.SendAsync(request);
+            await c.SendAsync(request, TestContext.Current.CancellationToken);
         }
 
-        Assert.Single(exportedItems);
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
 
         Assert.Equal(ActivityKind.Client, activity.Kind);
         Assert.Equal(parent.TraceId, activity.Context.TraceId);
@@ -250,11 +248,11 @@ public partial class HttpClientTests : IDisposable
 #else
         Assert.True(request.Headers.TryGetValues("custom_traceParent", out var traceParents));
         Assert.True(request.Headers.TryGetValues("custom_traceState", out var traceStates));
-        Assert.Single(traceParents);
-        Assert.Single(traceStates);
+        var traceparent = Assert.Single(traceParents);
+        var tracestate = Assert.Single(traceStates);
 
-        Assert.Equal($"00/{activity.Context.TraceId}/{activity.Context.SpanId}/01", traceParents.Single());
-        Assert.Equal("k1=v1,k2=v2", traceStates.Single());
+        Assert.Equal($"00/{activity.Context.TraceId}/{activity.Context.SpanId}/01", traceparent);
+        Assert.Equal("k1=v1,k2=v2", tracestate);
 #endif
 
         Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator(
@@ -295,7 +293,7 @@ public partial class HttpClientTests : IDisposable
                 using var c = new HttpClient();
                 using (SuppressInstrumentationScope.Begin())
                 {
-                    await c.SendAsync(request);
+                    await c.SendAsync(request, TestContext.Current.CancellationToken);
                 }
             }
 
@@ -334,7 +332,7 @@ public partial class HttpClientTests : IDisposable
         using var clientHandler = new HttpClientHandler();
         using var retryHandler = new RepeatHandler(clientHandler, maxRetries);
         using var httpClient = new HttpClient(retryHandler);
-        await httpClient.SendAsync(request);
+        await httpClient.SendAsync(request, TestContext.Current.CancellationToken);
 
         // number of exported spans should be 3(maxRetries)
         Assert.Equal(maxRetries, exportedItems.Count);
@@ -400,16 +398,14 @@ public partial class HttpClientTests : IDisposable
 
         try
         {
-            await httpClient.SendAsync(request);
+            await httpClient.SendAsync(request, TestContext.Current.CancellationToken);
         }
         catch
         {
             // ignore error.
         }
 
-        Assert.Single(exportedItems);
-
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
 
         if (originalMethod.Equals(expectedMethod, StringComparison.OrdinalIgnoreCase))
         {
@@ -467,7 +463,7 @@ public partial class HttpClientTests : IDisposable
 
         try
         {
-            await httpClient.SendAsync(request);
+            await httpClient.SendAsync(request, TestContext.Current.CancellationToken);
         }
         catch
         {
@@ -486,8 +482,7 @@ public partial class HttpClientTests : IDisposable
             metricPoints.Add(p);
         }
 
-        Assert.Single(metricPoints);
-        var mp = metricPoints[0];
+        var mp = Assert.Single(metricPoints);
 
         // Inspect Metric Attributes
         var attributes = new Dictionary<string, object?>();
@@ -511,7 +506,7 @@ public partial class HttpClientTests : IDisposable
             .Build())
         {
             using var c = new HttpClient();
-            await c.GetAsync(new Uri($"{this.uri}redirect"));
+            await c.GetAsync(new Uri($"{this.uri}redirect"), TestContext.Current.CancellationToken);
         }
 
 #if NETFRAMEWORK
@@ -520,8 +515,8 @@ public partial class HttpClientTests : IDisposable
         // good way to produce two spans when redirecting that we have
         // found. For now, this is not supported.
 
-        Assert.Single(exportedItems);
-        Assert.Contains(exportedItems[0].TagObjects, t => t.Key == "http.response.status_code" && (int?)t.Value == 200);
+        var activity = Assert.Single(exportedItems);
+        Assert.Contains(activity.TagObjects, t => t.Key == "http.response.status_code" && (int?)t.Value == 200);
 #else
         Assert.Equal(2, exportedItems.Count);
         Assert.Contains(exportedItems[0].TagObjects, t => t.Key == "http.response.status_code" && (int?)t.Value == 302);
@@ -556,7 +551,7 @@ public partial class HttpClientTests : IDisposable
             .Build())
         {
             using var c = new HttpClient();
-            await c.GetAsync(this.uri);
+            await c.GetAsync(this.uri, TestContext.Current.CancellationToken);
         }
 
 #if NETFRAMEWORK
@@ -587,7 +582,7 @@ public partial class HttpClientTests : IDisposable
         {
             using var c = new HttpClient();
             using var inMemoryEventListener = new InMemoryEventListener(HttpInstrumentationEventSource.Log);
-            await c.GetAsync(this.uri);
+            await c.GetAsync(this.uri, TestContext.Current.CancellationToken);
             Assert.Single(inMemoryEventListener.Events, e => e.EventId == 4);
         }
 
@@ -608,7 +603,7 @@ public partial class HttpClientTests : IDisposable
         using var c = new HttpClient();
         try
         {
-            await c.GetAsync(new Uri("https://sdlfaldfjalkdfjlkajdflkajlsdjf.sdlkjafsdjfalfadslkf.com/"));
+            await c.GetAsync(new Uri("https://sdlfaldfjalkdfjlkajdflkajlsdjf.sdlkjafsdjfalfadslkf.com/"), TestContext.Current.CancellationToken);
         }
         catch
         {
@@ -640,7 +635,7 @@ public partial class HttpClientTests : IDisposable
         using var c = new HttpClient();
         try
         {
-            await c.GetAsync(new Uri($"{this.uri}500"));
+            await c.GetAsync(new Uri($"{this.uri}500"), TestContext.Current.CancellationToken);
         }
         catch
         {
@@ -671,7 +666,11 @@ public partial class HttpClientTests : IDisposable
         using var c = new HttpClient();
         try
         {
+#if NET
+            await c.GetStringAsync(new Uri($"{this.uri}500"), TestContext.Current.CancellationToken);
+#else
             await c.GetStringAsync(new Uri($"{this.uri}500"));
+#endif
         }
         catch
         {
@@ -731,14 +730,17 @@ public partial class HttpClientTests : IDisposable
         using var c = new HttpClient();
         try
         {
+#if NET
+            await c.GetStringAsync(new Uri($"{this.uri}path{urlQuery}"), TestContext.Current.CancellationToken);
+#else
             await c.GetStringAsync(new Uri($"{this.uri}path{urlQuery}"));
+#endif
         }
         catch
         {
         }
 
-        Assert.Single(exportedItems);
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
 
         var expectedUrl = $"{this.uri}path{expectedUrlQuery}";
 
@@ -803,7 +805,7 @@ public partial class HttpClientTests : IDisposable
             request.Method = new HttpMethod("GET");
 
             using var c = new HttpClient();
-            await c.SendAsync(request);
+            await c.SendAsync(request, TestContext.Current.CancellationToken);
 
             parent?.Stop();
 
@@ -865,7 +867,7 @@ public partial class HttpClientTests : IDisposable
             .Build();
         {
             using var c = new HttpClient();
-            await c.GetAsync(this.uri);
+            await c.GetAsync(this.uri, TestContext.Current.CancellationToken);
         }
 
 #if NETFRAMEWORK
@@ -917,7 +919,7 @@ public partial class HttpClientTests : IDisposable
             .Build())
         {
             using var client = new HttpClient();
-            await client.GetAsync(this.uri);
+            await client.GetAsync(this.uri, TestContext.Current.CancellationToken);
         }
 
         Assert.Equal(1, callCountDefault);

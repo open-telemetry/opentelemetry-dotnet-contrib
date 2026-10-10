@@ -1,14 +1,51 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using OpenTelemetry.Instrumentation.Wcf.Implementation;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Tests;
 
+[Collection("WCF")]
 public class InstrumentedChannelAsyncCallbackTests
 {
+    [Fact]
+    public void BeginRequest_CleansUpTelemetryWhenInnerBeginRequestThrows()
+    {
+        var stoppedActivities = new List<Activity>();
+        using var activityListener = new ActivityListener
+        {
+            ShouldListenTo = _ => true,
+            Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
+            ActivityStopped = stoppedActivities.Add,
+        };
+        ActivitySource.AddActivityListener(activityListener);
+
+        WcfInstrumentationActivitySource.Options = new WcfInstrumentationOptions();
+
+        try
+        {
+            var inner = new RecordingRequestChannel
+            {
+                BeginRequestException = new InvalidOperationException("BeginRequest failed."),
+            };
+            var channel = (IRequestChannel)new InstrumentedRequestChannel(inner);
+
+            using var message = Message.CreateMessage(MessageVersion.Soap11, "urn:test");
+            var exception = Assert.Throws<InvalidOperationException>(() => channel.BeginRequest(message, callback: null, state: null));
+
+            Assert.Same(inner.BeginRequestException, exception);
+            Assert.Equal(ActivityStatusCode.Error, Assert.Single(stoppedActivities).Status);
+        }
+        finally
+        {
+            WcfInstrumentationActivitySource.Options = null;
+        }
+    }
+
     [Fact]
     public void BeginRequest_AllowsNullAsyncCallback()
     {
@@ -90,6 +127,79 @@ public class InstrumentedChannelAsyncCallbackTests
     }
 
     [Fact]
+    public void BeginSend_OneWayStopsOnEndSend()
+    {
+        try
+        {
+            var stoppedActivities = new List<Activity>();
+            using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .AddInMemoryExporter(stoppedActivities)
+                .AddWcfInstrumentation()
+                .Build();
+
+            var inner = new RecordingDuplexChannel();
+            var channel = new InstrumentedDuplexChannel(inner, TimeSpan.FromSeconds(1));
+            var message = Message.CreateMessage(MessageVersion.Soap11, "urn:test");
+            message.Properties.Add(
+                TelemetryContextMessageProperty.Name,
+                new TelemetryContextMessageProperty(new Dictionary<string, ActionMetadata>
+                {
+                    ["urn:test"] = new ActionMetadata(contractName: null, operationName: "Test", isOneWay: true),
+                }));
+
+            var result = channel.BeginSend(message, callback: null, state: null);
+
+            Assert.Empty(stoppedActivities);
+
+            channel.EndSend(result);
+
+            var activity = Assert.Single(stoppedActivities);
+            Assert.Equal(ActivityStatusCode.Unset, activity.Status);
+        }
+        finally
+        {
+            WcfInstrumentationActivitySource.Options = null;
+        }
+    }
+
+    [Fact]
+    public void EndSend_OneWayFailureMarksActivityAsError()
+    {
+        try
+        {
+            var stoppedActivities = new List<Activity>();
+            using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .AddInMemoryExporter(stoppedActivities)
+                .AddWcfInstrumentation()
+                .Build();
+
+            var inner = new RecordingDuplexChannel
+            {
+                EndSendException = new InvalidOperationException("EndSend failed."),
+            };
+            var channel = new InstrumentedDuplexChannel(inner, TimeSpan.FromSeconds(1));
+            var message = Message.CreateMessage(MessageVersion.Soap11, "urn:test");
+            message.Properties.Add(
+                TelemetryContextMessageProperty.Name,
+                new TelemetryContextMessageProperty(new Dictionary<string, ActionMetadata>
+                {
+                    ["urn:test"] = new ActionMetadata(contractName: null, operationName: "Test", isOneWay: true),
+                }));
+
+            var result = channel.BeginSend(message, callback: null, state: null);
+
+            Assert.Throws<InvalidOperationException>(() => channel.EndSend(result));
+
+            var activity = Assert.Single(stoppedActivities);
+            Assert.Equal(ActivityStatusCode.Error, activity.Status);
+        }
+        finally
+        {
+            WcfInstrumentationActivitySource.Options = null;
+        }
+    }
+
+    [Fact]
     public void Send_AllowsSuppressedExecutionContextFlow()
     {
         var inner = new RecordingDuplexChannel();
@@ -99,6 +209,17 @@ public class InstrumentedChannelAsyncCallbackTests
         {
             channel.Send(Message.CreateMessage(MessageVersion.Soap11, "urn:test"));
         }
+
+        Assert.True(inner.SendCalled);
+    }
+
+    [Fact]
+    public void Send_AllowsNullInnerRemoteAddress()
+    {
+        var inner = new RecordingDuplexChannel { ReturnNullRemoteAddress = true };
+        var channel = new InstrumentedDuplexChannel(inner, TimeSpan.FromSeconds(1));
+
+        channel.Send(Message.CreateMessage(MessageVersion.Soap11, "urn:test"));
 
         Assert.True(inner.SendCalled);
     }
@@ -240,6 +361,8 @@ public class InstrumentedChannelAsyncCallbackTests
 
     private sealed class RecordingRequestChannel : RecordingChannel, IRequestChannel
     {
+        public Exception? BeginRequestException { get; init; }
+
         public object?[]? LastBeginRequestArgs { get; private set; }
 
         public EndpointAddress RemoteAddress { get; } = new("net.tcp://localhost/Service");
@@ -254,12 +377,22 @@ public class InstrumentedChannelAsyncCallbackTests
 
         public IAsyncResult BeginRequest(Message message, AsyncCallback callback, object state)
         {
+            if (this.BeginRequestException != null)
+            {
+                throw this.BeginRequestException;
+            }
+
             this.LastBeginRequestArgs = [message, callback, state];
             return new FakeAsyncResult(state);
         }
 
         public IAsyncResult BeginRequest(Message message, TimeSpan timeout, AsyncCallback callback, object state)
         {
+            if (this.BeginRequestException != null)
+            {
+                throw this.BeginRequestException;
+            }
+
             this.LastBeginRequestArgs = [message, timeout, callback, state];
             return new FakeAsyncResult(state);
         }
@@ -274,11 +407,15 @@ public class InstrumentedChannelAsyncCallbackTests
 
         public object?[]? LastBeginSendArgs { get; private set; }
 
+        public Exception? EndSendException { get; init; }
+
+        public bool ReturnNullRemoteAddress { get; init; }
+
         public bool SendCalled { get; private set; }
 
         public EndpointAddress LocalAddress { get; } = new("net.tcp://localhost/Local");
 
-        public EndpointAddress RemoteAddress { get; } = new("net.tcp://localhost/Service");
+        public EndpointAddress RemoteAddress => this.ReturnNullRemoteAddress ? null! : new("net.tcp://localhost/Service");
 
         public Uri Via { get; } = new("net.tcp://localhost/Service");
 
@@ -306,6 +443,10 @@ public class InstrumentedChannelAsyncCallbackTests
 
         public void EndSend(IAsyncResult result)
         {
+            if (this.EndSendException != null)
+            {
+                throw this.EndSendException;
+            }
         }
 
         public Message Receive()

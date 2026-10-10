@@ -71,7 +71,18 @@ internal static class JsonValueReader
 
         foreach (var candidate in value.EnumerateObject())
         {
-            if (!candidate.NameEquals(utf8MemberName))
+            bool matches;
+
+            try
+            {
+                matches = candidate.NameEquals(utf8MemberName);
+            }
+            catch (InvalidOperationException)
+            {
+                matches = false;
+            }
+
+            if (!matches)
             {
                 continue;
             }

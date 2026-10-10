@@ -1,17 +1,23 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Runtime.CompilerServices;
+
 namespace OpenTelemetry.Tests;
 
 /// <summary>
 /// This <see cref="TheoryAttribute" /> skips tests if the required Docker engine is not available.
 /// </summary>
-internal class EnabledOnDockerPlatformTheoryAttribute : TheoryAttribute
+internal sealed class EnabledOnDockerPlatformTheoryAttribute : TheoryAttribute
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="EnabledOnDockerPlatformTheoryAttribute" /> class.
     /// </summary>
-    public EnabledOnDockerPlatformTheoryAttribute(DockerPlatform dockerPlatform)
+    public EnabledOnDockerPlatformTheoryAttribute(
+        DockerPlatform dockerPlatform,
+        [CallerFilePath] string? sourceFilePath = null,
+        [CallerLineNumber] int sourceLineNumber = -1)
+        : base(sourceFilePath, sourceLineNumber)
     {
         if (!DockerHelper.IsAvailable(dockerPlatform))
         {

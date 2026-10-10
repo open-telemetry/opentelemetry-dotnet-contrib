@@ -4,6 +4,7 @@
 using System.Diagnostics.Tracing;
 using System.Net.WebSockets;
 using System.Text;
+using Google.Protobuf;
 using OpenTelemetry.OpAmp.Client.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Transport;
 using OpenTelemetry.OpAmp.Client.Internal.Transport.WebSocket;
@@ -59,11 +60,40 @@ public class WsTransportTest
             Encoding.UTF8.GetString([.. clientReceivedFrames.First().Data]);
 #endif
 
-        Assert.Single(serverReceivedFrames);
-        Assert.Equal(mockFrame.Uid, serverReceivedFrames.First().InstanceUid);
+        var frames = Assert.Single(serverReceivedFrames);
+        Assert.Equal(mockFrame.Uid, frames.InstanceUid);
 
         Assert.Single(clientReceivedFrames);
         Assert.StartsWith("This is a mock server frame for testing purposes.", receivedTextData);
+    }
+
+    [Fact]
+    public async Task WsTransport_CallsBeforeSerializeBeforeSendingTheMessage()
+    {
+        using var opAmpServer = new OpAmpFakeWebSocketServer(useSmallPackets: true);
+
+        using var mockListener = new MockListener();
+        var frameProcessor = new FrameProcessor();
+        frameProcessor.Subscribe(mockListener);
+
+        var settings = new OpAmpClientSettings
+        {
+            ConnectionType = ConnectionType.WebSocket,
+            ServerUrl = opAmpServer.Endpoint,
+        };
+        using var wsTransport = new WsTransport(settings, frameProcessor);
+        await wsTransport.StartAsync(CancellationToken.None);
+
+        var instanceUid = ByteString.CopyFrom([.. Enumerable.Range(1, 16).Select(i => (byte)i)]);
+        var mockFrame = FrameGenerator.GenerateMockAgentFrame();
+
+        await wsTransport.SendAsync(mockFrame.Frame, CancellationToken.None, message => message.InstanceUid = instanceUid);
+
+        mockListener.WaitForMessages(TimeSpan.FromSeconds(30));
+        await wsTransport.StopAsync(CancellationToken.None);
+
+        var frame = Assert.Single(opAmpServer.GetFrames());
+        Assert.Equal(instanceUid, frame.InstanceUid);
     }
 
     [Fact]
@@ -89,8 +119,8 @@ public class WsTransportTest
         await wsTransport.StartAsync(CancellationToken.None);
         await wsTransport.StopAsync(CancellationToken.None);
 
-        var requestHeaders = Assert.Single(opAmpServer.GetRequestHeaders());
-        Assert.Equal("ConfiguredByFactory", requestHeaders["X-Test-Header"]);
+        Assert.True(opAmpServer.TryGetRequestHeaders(TimeSpan.FromSeconds(5), out var requestHeaders));
+        Assert.Equal("ConfiguredByFactory", requestHeaders?["X-Test-Header"]);
     }
 
     [Fact]
@@ -118,7 +148,7 @@ public class WsTransportTest
 
         var timeout = TimeSpan.FromSeconds(5);
 
-        Assert.True(thresholdReached.Wait(timeout), "The server did not send enough bytes to exceed the transport limit.");
+        Assert.True(thresholdReached.Wait(timeout, TestContext.Current.CancellationToken), "The server did not send enough bytes to exceed the transport limit.");
         Assert.True(opAmpServer.TryGetClientCloseStatus(timeout, out var closeStatus));
         Assert.Equal(WebSocketCloseStatus.MessageTooBig, closeStatus);
     }
@@ -136,8 +166,8 @@ public class WsTransportTest
         frameProcessor.Subscribe(mockListener);
 
         using var wsTransport = CreateTransport(opAmpServer.Endpoint, frameProcessor);
-        await wsTransport.StartAsync(CancellationToken.None);
-        await wsTransport.SendAsync(FrameGenerator.GenerateMockAgentFrame().Frame, CancellationToken.None);
+        await wsTransport.StartAsync(TestContext.Current.CancellationToken);
+        await wsTransport.SendAsync(FrameGenerator.GenerateMockAgentFrame().Frame, TestContext.Current.CancellationToken);
 
         Assert.True(mockListener.TryWaitForMessage(TimeSpan.FromSeconds(5)), "The client did not receive the large fragmented response.");
 
@@ -399,7 +429,13 @@ public class WsTransportTest
             // Accept the TCP connection to prevent an immediate connection-refused, then do nothing
             // so the WebSocket handshake never completes. Dispose the accepted client promptly
             // to avoid unobserved-task noise when the listener stops.
-            acceptTask = tcpListener.AcceptTcpClientAsync().ContinueWith(
+            acceptTask =
+#if NET
+                tcpListener.AcceptTcpClientAsync(TestContext.Current.CancellationToken).AsTask()
+#else
+                tcpListener.AcceptTcpClientAsync()
+#endif
+                .ContinueWith(
                 t =>
                 {
                     if (t.Status == TaskStatus.RanToCompletion)
@@ -493,7 +529,7 @@ public class WsTransportTest
             var timeout = TimeSpan.FromSeconds(10);
 
 #if NET
-            await stopTask.WaitAsync(timeout);
+            await stopTask.WaitAsync(timeout, TestContext.Current.CancellationToken);
 #else
             using var cts = new CancellationTokenSource(timeout);
             var completedTask = await Task.WhenAny(stopTask, Task.Delay(timeout, cts.Token));
@@ -529,13 +565,13 @@ public class WsTransportTest
         var wsTransport = CreateTransport(opAmpServer.Endpoint, new FrameProcessor());
         await wsTransport.StartAsync(CancellationToken.None);
 
-        var disposeTask = Task.Run(wsTransport.Dispose);
+        var disposeTask = Task.Run(wsTransport.Dispose, TestContext.Current.CancellationToken);
         var timeout = TimeSpan.FromSeconds(10);
 
         try
         {
 #if NET
-            await disposeTask.WaitAsync(timeout);
+            await disposeTask.WaitAsync(timeout, TestContext.Current.CancellationToken);
 #else
             using var cts = new CancellationTokenSource(timeout);
             var completedTask = await Task.WhenAny(disposeTask, Task.Delay(timeout, cts.Token));
@@ -573,16 +609,16 @@ public class WsTransportTest
             });
 
         using var wsTransport = CreateTransport(opAmpServer.Endpoint, new FrameProcessor());
-        await wsTransport.StartAsync(CancellationToken.None);
-        await wsTransport.SendAsync(FrameGenerator.GenerateMockAgentFrame().Frame, CancellationToken.None);
-        Assert.True(requestSeen.Wait(timeout), "The server did not receive the client request.");
+        await wsTransport.StartAsync(TestContext.Current.CancellationToken);
+        await wsTransport.SendAsync(FrameGenerator.GenerateMockAgentFrame().Frame, TestContext.Current.CancellationToken);
+        Assert.True(requestSeen.Wait(timeout, TestContext.Current.CancellationToken), "The server did not receive the client request.");
 
-        var disposeTask = Task.Run(wsTransport.Dispose);
+        var disposeTask = Task.Run(wsTransport.Dispose, TestContext.Current.CancellationToken);
 
         try
         {
 #if NET
-            await disposeTask.WaitAsync(timeout);
+            await disposeTask.WaitAsync(timeout, TestContext.Current.CancellationToken);
 #else
             using var cts = new CancellationTokenSource(timeout);
             var completedTask = await Task.WhenAny(disposeTask, Task.Delay(timeout, cts.Token));
@@ -614,9 +650,9 @@ public class WsTransportTest
 
         try
         {
-            receiver.Start();
+            receiver.Start(TestContext.Current.CancellationToken);
 
-            Assert.Throws<InvalidOperationException>(() => receiver.Start());
+            Assert.Throws<InvalidOperationException>(() => receiver.Start(TestContext.Current.CancellationToken));
         }
         finally
         {

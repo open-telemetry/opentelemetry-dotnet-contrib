@@ -125,7 +125,15 @@ public partial class HttpClientTests
 
             request.Headers.Add("contextRequired", "false");
             request.Headers.Add("responseCode", (tc.ResponseCode == 0 ? 200 : tc.ResponseCode).ToString());
-            await c.SendAsync(request);
+
+            // Keep the response undisposed until after the metrics are collected so that the
+            // connection is still open: HttpListener on Linux closes the connection after
+            // some status codes (e.g. 400 and 503), while on Windows it is kept alive, which
+            // would otherwise change whether http.client.open_connections is reported.
+            using var response = await c.SendAsync(
+                request,
+                HttpCompletionOption.ResponseHeadersRead,
+                TestContext.Current.CancellationToken);
         }
         catch (Exception)
         {
@@ -137,17 +145,22 @@ public partial class HttpClientTests
         }
 
         var requestMetrics = metrics
-            .Where(metric => metric.Name is "http.client.request.duration" or "http.client.active_requests" or "http.client.request.time_in_queue" or "http.client.connection.duration" or "http.client.open_connections" or "dns.lookup.duration")
+            .Where(IsKnownMetric)
             .ToArray();
 
-        if (tc.ResponseExpected)
+        // http.client.connection.duration and http.client.open_connections will not be emitted.
+        var expectedCount = tc.ResponseExpected ? 6 : 4;
+
+        Assert.Equal(expectedCount, requestMetrics.DistinctBy((p) => p.Name).Count());
+
+        static bool IsKnownMetric(Metric metric)
         {
-            Assert.Equal(6, requestMetrics.Length);
-        }
-        else
-        {
-            // http.client.connection.duration and http.client.open_connections will not be emitted.
-            Assert.Equal(4, requestMetrics.Length);
+            return metric.Name is "http.client.request.duration" or
+                                  "http.client.active_requests" or
+                                  "http.client.open_connections" or
+                                  "http.client.request.time_in_queue" or
+                                  "http.client.connection.duration" or
+                                  "dns.lookup.duration";
         }
     }
 #endif
@@ -290,13 +303,22 @@ public partial class HttpClientTests
 
         var normalizedAttributesTestCase = tc.SpanAttributes.ToDictionary(x => x.Key, x => HttpTestData.NormalizeValues(x.Value, host, port));
 
+        // AddHttpClientInstrumentation() subscribes to the process-wide, statically-named
+        // "System.Net.Http" ActivitySource. If another test elsewhere in the process happens
+        // to make an HttpClient call around the same time, its activity can also be captured
+        // here. Restrict to activities for this test's own target host to avoid picking up
+        // unrelated, concurrently-captured activities.
+        var testActivities = activities
+            .Where(activity => string.Equals(activity.GetTagItem("server.address") as string, new Uri(testUrl).Host, StringComparison.Ordinal))
+            .ToList();
+
         if (!enableTracing)
         {
-            Assert.Empty(activities);
+            Assert.Empty(testActivities);
         }
         else
         {
-            var activity = Assert.Single(activities);
+            var activity = Assert.Single(testActivities);
 
             Assert.Equal(ActivityKind.Client, activity.Kind);
             Assert.Equal(tc.SpanName, activity.DisplayName);
@@ -404,14 +426,23 @@ public partial class HttpClientTests
             Assert.Equal("s", metric.Unit);
             Assert.Equal(MetricType.Histogram, metric.MetricType);
 
+            // As for activities, restrict to metric points for this test's own target host.
+            var testHost = new Uri(testUrl).Host;
             var metricPoints = new List<MetricPoint>();
             foreach (var p in metric.GetMetricPoints())
             {
-                metricPoints.Add(p);
+                foreach (var tag in p.Tags)
+                {
+                    if (tag.Key == SemanticConventions.AttributeServerAddress &&
+                        string.Equals(tag.Value as string, testHost, StringComparison.Ordinal))
+                    {
+                        metricPoints.Add(p);
+                        break;
+                    }
+                }
             }
 
-            Assert.Single(metricPoints);
-            var metricPoint = metricPoints[0];
+            var metricPoint = Assert.Single(metricPoints);
 
             var count = metricPoint.GetHistogramCount();
             var sum = metricPoint.GetHistogramSum();
@@ -420,7 +451,7 @@ public partial class HttpClientTests
 
             if (enableTracing)
             {
-                var activity = Assert.Single(activities);
+                var activity = Assert.Single(testActivities);
 #if !NET
                 Assert.Equal(activity.Duration.TotalSeconds, sum);
 #endif

@@ -120,8 +120,9 @@ public class EventCountersMetricsTests
     {
         var ex = Assert.Throws<NotSupportedException>(() =>
         {
-            Sdk.CreateMeterProviderBuilder()
-               .AddEventCountersInstrumentation(options => options.AddEventSources("System.Runtime"));
+            using var meterProvider = Sdk.CreateMeterProviderBuilder()
+               .AddEventCountersInstrumentation(options => options.AddEventSources("System.Runtime"))
+               .Build();
         });
 
         Assert.Equal("Use the `OpenTelemetry.Instrumentation.Runtime` or `OpenTelemetry.Instrumentation.Process` instrumentations.", ex.Message);
@@ -197,7 +198,7 @@ public class EventCountersMetricsTests
             // Act
             connections.Increment(1);
 
-            await Task.Delay(1800);
+            await Task.Delay(1800, TestContext.Current.CancellationToken);
             meterProvider.ForceFlush();
         }
 

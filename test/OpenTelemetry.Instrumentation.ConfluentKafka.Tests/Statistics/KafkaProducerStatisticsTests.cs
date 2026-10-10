@@ -224,14 +224,16 @@ public class KafkaProducerStatisticsTests
         using var registration = new KafkaProducerMetricsRegistration();
         var json = ReadFixture("active");
         await Task.WhenAll(
-            Task.Run(() =>
-            {
-                for (var i = 0; i < 1000; i++)
+            Task.Run(
+                () =>
                 {
-                    registration.Update(json);
-                }
-            }),
-            Task.Run(registration.Dispose));
+                    for (var i = 0; i < 1000; i++)
+                    {
+                        registration.Update(json);
+                    }
+                },
+                TestContext.Current.CancellationToken),
+            Task.Run(registration.Dispose, TestContext.Current.CancellationToken));
         listener.Collect();
         Assert.Null(registration.Snapshot);
         Assert.Null(listener.Gauge("kafka.producer.buffer_total_bytes"));

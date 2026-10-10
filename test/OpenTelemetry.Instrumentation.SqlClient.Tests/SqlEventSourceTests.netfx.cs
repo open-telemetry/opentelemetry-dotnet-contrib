@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using OpenTelemetry.Instrumentation.SqlClient.Implementation;
 using OpenTelemetry.Metrics;
+using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.SqlClient.Tests;
@@ -14,6 +15,8 @@ namespace OpenTelemetry.Instrumentation.SqlClient.Tests;
 [Collection("SqlClient")]
 public class SqlEventSourceTests
 {
+    private static readonly string[] ExpectedQuerySummaries = ["select first_table", "select second_table"];
+
     public static TheoryData<Type, CommandType, string, bool, int, bool, bool> EventSourceFakeTestCases()
     {
         /* netfx driver can't capture queries, only stored procedure names */
@@ -200,6 +203,237 @@ public class SqlEventSourceTests
         Assert.Empty(exportedItems);
     }
 
+    [Theory]
+    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource))]
+    [InlineData(typeof(FakeBehavingMdsSqlEventSource))]
+    public void InterleavedEventSourceCommandsUseObjectIdForMetricCorrelation(Type eventSourceType)
+    {
+        using var fakeSqlEventSource = (IFakeBehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
+
+        var metrics = new List<Metric>();
+        using var traceProvider = Sdk.CreateTracerProviderBuilder()
+            .SetSampler(new TestSampler
+            {
+                SamplingAction = _ => new SamplingResult(SamplingDecision.Drop),
+            })
+            .AddSqlClientInstrumentation()
+            .Build();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(metrics)
+            .Build();
+
+        var dataSource = "127.0.0.1\\instanceName,port";
+        fakeSqlEventSource.WriteBeginExecuteEvent(1, dataSource, "master", "select * from first_table");
+        fakeSqlEventSource.WriteBeginExecuteEvent(2, dataSource, "master", "select * from second_table");
+        fakeSqlEventSource.WriteEndExecuteEvent(1, compositeState: 1, sqlExceptionNumber: 0);
+        fakeSqlEventSource.WriteEndExecuteEvent(2, compositeState: 1, sqlExceptionNumber: 0);
+
+        Assert.True(meterProvider.ForceFlush());
+
+        var metric = Assert.Single(metrics, m => m.Name == "db.client.operation.duration");
+        var querySummaries = new List<string>();
+        foreach (var metricPoint in metric.GetMetricPoints())
+        {
+            foreach (var tag in metricPoint.Tags)
+            {
+                if (tag.Key == SemanticConventions.AttributeDbQuerySummary && tag.Value is string querySummary)
+                {
+                    querySummaries.Add(querySummary);
+                }
+            }
+        }
+
+        Assert.Equal(2, querySummaries.Count);
+        Assert.Contains("select first_table", querySummaries);
+        Assert.Contains("select second_table", querySummaries);
+    }
+
+    [Fact]
+    public void InterleavedEventSourceCommandsFromDifferentProvidersUseEventSourceAndObjectId()
+    {
+        var metrics = new List<Metric>();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(metrics)
+            .Build();
+
+        using var adoNetSqlEventSource = new FakeCrossProviderAdoNetSqlEventSource();
+        using var mdsSqlEventSource = new FakeCrossProviderMdsSqlEventSource();
+
+        const int objectId = 1;
+        var dataSource = "127.0.0.1\\instanceName,port";
+        adoNetSqlEventSource.WriteBeginExecuteEvent(objectId, dataSource, "master", "select * from first_table");
+        mdsSqlEventSource.WriteBeginExecuteEvent(objectId, dataSource, "master", "select * from second_table");
+        mdsSqlEventSource.WriteEndExecuteEvent(objectId, compositeState: 1, sqlExceptionNumber: 0);
+        adoNetSqlEventSource.WriteEndExecuteEvent(objectId, compositeState: 1, sqlExceptionNumber: 0);
+
+        Assert.True(meterProvider.ForceFlush());
+
+        var metric = Assert.Single(metrics, m => m.Name == "db.client.operation.duration");
+        var querySummaries = new List<string>();
+        foreach (var metricPoint in metric.GetMetricPoints())
+        {
+            foreach (var tag in metricPoint.Tags)
+            {
+                if (tag.Key == SemanticConventions.AttributeDbQuerySummary && tag.Value is string querySummary)
+                {
+                    querySummaries.Add(querySummary);
+                }
+            }
+        }
+
+        Assert.Equal(ExpectedQuerySummaries, querySummaries.OrderBy(value => value));
+    }
+
+    [Theory]
+    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource))]
+    [InlineData(typeof(FakeBehavingMdsSqlEventSource))]
+    public void EventSourceBeginWithEmptyCommandTextClearsPreviousQuerySummary(Type eventSourceType)
+    {
+        using var fakeSqlEventSource = (IFakeBehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
+
+        var metrics = new List<Metric>();
+        using var traceProvider = Sdk.CreateTracerProviderBuilder()
+            .SetSampler(new TestSampler
+            {
+                SamplingAction = _ => new SamplingResult(SamplingDecision.Drop),
+            })
+            .AddSqlClientInstrumentation()
+            .Build();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(metrics)
+            .Build();
+
+        var dataSource = "127.0.0.1\\instanceName,port";
+        fakeSqlEventSource.WriteBeginExecuteEvent(1, dataSource, "master", "select * from first_table");
+        fakeSqlEventSource.WriteBeginExecuteEvent(1, dataSource, "master", string.Empty);
+        fakeSqlEventSource.WriteEndExecuteEvent(1, compositeState: 1, sqlExceptionNumber: 0);
+
+        Assert.True(meterProvider.ForceFlush());
+
+        var metric = Assert.Single(metrics, m => m.Name == "db.client.operation.duration");
+        foreach (var metricPoint in metric.GetMetricPoints())
+        {
+            foreach (var tag in metricPoint.Tags)
+            {
+                Assert.NotEqual(SemanticConventions.AttributeDbQuerySummary, tag.Key);
+            }
+        }
+    }
+
+    [Theory]
+    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource))]
+    [InlineData(typeof(FakeBehavingMdsSqlEventSource))]
+    public void EventSourceEndWithoutBeginDoesNotRecordMetric(Type eventSourceType)
+    {
+        using var fakeSqlEventSource = (IFakeBehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
+
+        var metrics = new List<Metric>();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(metrics)
+            .Build();
+
+        fakeSqlEventSource.WriteEndExecuteEvent(1, compositeState: 1, sqlExceptionNumber: 0);
+
+        Assert.True(meterProvider.ForceFlush());
+        Assert.DoesNotContain(metrics, metric => metric.Name == "db.client.operation.duration");
+    }
+
+    [Theory]
+    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource))]
+    [InlineData(typeof(FakeBehavingMdsSqlEventSource))]
+    public void EventSourceMetricsOnlyRecordsDurationWhenActivityIsSampledByAnotherListener(Type eventSourceType)
+    {
+        using var fakeSqlEventSource = (IFakeBehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
+
+        var sourceName = typeof(SqlTelemetryHelper).Assembly.GetName().Name;
+
+        var activities = new List<Activity>();
+        using var listener = new ActivityListener
+        {
+            ActivityStarted = activities.Add,
+            Sample = (ref _) => ActivitySamplingResult.AllData,
+            ShouldListenTo = source => source.Name == sourceName,
+        };
+
+        ActivitySource.AddActivityListener(listener);
+
+        var metrics = new List<Metric>();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(metrics)
+            .Build();
+
+        var dataSource = "127.0.0.1\\instanceName,port";
+        var stopwatch = Stopwatch.StartNew();
+
+        fakeSqlEventSource.WriteBeginExecuteEvent(1, dataSource, "master", "select * from first_table");
+        fakeSqlEventSource.WriteEndExecuteEvent(1, compositeState: 1, sqlExceptionNumber: 0);
+
+        stopwatch.Stop();
+
+        Assert.True(meterProvider.ForceFlush());
+
+        var activity = Assert.Single(activities);
+        Assert.True(activity.IsStopped);
+
+        var metric = Assert.Single(metrics, m => m.Name == "db.client.operation.duration");
+
+        var metricPoints = new List<MetricPoint>();
+        foreach (var metricPoint in metric.GetMetricPoints())
+        {
+            metricPoints.Add(metricPoint);
+        }
+
+        var point = Assert.Single(metricPoints);
+        Assert.Equal(1, point.GetHistogramCount());
+        Assert.InRange(point.GetHistogramSum(), 0, stopwatch.Elapsed.TotalSeconds);
+
+        string? querySummary = null;
+        foreach (var tag in point.Tags)
+        {
+            if (tag.Key == SemanticConventions.AttributeDbQuerySummary)
+            {
+                querySummary = tag.Value as string;
+            }
+        }
+
+        Assert.Equal("select first_table", querySummary);
+    }
+
+    [Theory]
+    [InlineData(typeof(FakeOtherKeywordAdoNetSqlEventSource))]
+    [InlineData(typeof(FakeOtherKeywordMdsSqlEventSource))]
+    public void EventSourceEventsWithOtherKeywordsAreNotProcessed(Type eventSourceType)
+    {
+        using var fakeSqlEventSource = (IFakeBehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
+
+        var activities = new List<Activity>();
+        var metrics = new List<Metric>();
+
+        using var traceProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(activities)
+            .Build();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(metrics)
+            .Build();
+
+        var dataSource = "127.0.0.1\\instanceName,port";
+        fakeSqlEventSource.WriteBeginExecuteEvent(1, dataSource, "master", "select * from first_table");
+        fakeSqlEventSource.WriteEndExecuteEvent(1, compositeState: 1, sqlExceptionNumber: 0);
+
+        Assert.True(traceProvider.ForceFlush());
+        Assert.True(meterProvider.ForceFlush());
+
+        Assert.Empty(activities);
+        Assert.DoesNotContain(metrics, metric => metric.Name == "db.client.operation.duration");
+    }
+
     private static void VerifyActivityData(
         string commandText,
         bool isFailure,
@@ -263,35 +497,113 @@ public class SqlEventSourceTests
     [EventSource(Name = SqlEventSourceListener.AdoNetEventSourceName + "-FakeFriendly")]
     private class FakeBehavingAdoNetSqlEventSource : EventSource, IFakeBehavingSqlEventSource
     {
-        [Event(SqlEventSourceListener.BeginExecuteEventId)]
+        [Event(SqlEventSourceListener.BeginExecuteEventId, Keywords = Keywords.ExecutionTrace)]
         public void WriteBeginExecuteEvent(int objectId, string dataSource, string databaseName, string commandText)
             => this.WriteEvent(SqlEventSourceListener.BeginExecuteEventId, objectId, dataSource, databaseName, commandText);
 
-        [Event(SqlEventSourceListener.EndExecuteEventId)]
+        [Event(SqlEventSourceListener.EndExecuteEventId, Keywords = Keywords.ExecutionTrace)]
         public void WriteEndExecuteEvent(int objectId, int compositeState, int sqlExceptionNumber)
             => this.WriteEvent(SqlEventSourceListener.EndExecuteEventId, objectId, compositeState, sqlExceptionNumber);
+
+        public static class Keywords
+        {
+            public const EventKeywords ExecutionTrace = SqlEventSourceListener.ExecuteEventKeywords;
+        }
+    }
+
+    [EventSource(Name = SqlEventSourceListener.AdoNetEventSourceName + "-FakeCrossProviderAdoNet")]
+    private class FakeCrossProviderAdoNetSqlEventSource : EventSource, IFakeBehavingSqlEventSource
+    {
+        [Event(SqlEventSourceListener.BeginExecuteEventId, Keywords = Keywords.ExecutionTrace)]
+        public void WriteBeginExecuteEvent(int objectId, string dataSource, string databaseName, string commandText)
+            => this.WriteEvent(SqlEventSourceListener.BeginExecuteEventId, objectId, dataSource, databaseName, commandText);
+
+        [Event(SqlEventSourceListener.EndExecuteEventId, Keywords = Keywords.ExecutionTrace)]
+        public void WriteEndExecuteEvent(int objectId, int compositeState, int sqlExceptionNumber)
+            => this.WriteEvent(SqlEventSourceListener.EndExecuteEventId, objectId, compositeState, sqlExceptionNumber);
+
+        public static class Keywords
+        {
+            public const EventKeywords ExecutionTrace = SqlEventSourceListener.ExecuteEventKeywords;
+        }
     }
 
     [EventSource(Name = SqlEventSourceListener.MdsEventSourceName + "-FakeFriendly")]
     private class FakeBehavingMdsSqlEventSource : EventSource, IFakeBehavingSqlEventSource
     {
-        [Event(SqlEventSourceListener.BeginExecuteEventId)]
+        [Event(SqlEventSourceListener.BeginExecuteEventId, Keywords = Keywords.ExecutionTrace)]
         public void WriteBeginExecuteEvent(int objectId, string dataSource, string databaseName, string commandText)
             => this.WriteEvent(SqlEventSourceListener.BeginExecuteEventId, objectId, dataSource, databaseName, commandText);
 
-        [Event(SqlEventSourceListener.EndExecuteEventId)]
+        [Event(SqlEventSourceListener.EndExecuteEventId, Keywords = Keywords.ExecutionTrace)]
         public void WriteEndExecuteEvent(int objectId, int compositeState, int sqlExceptionNumber)
             => this.WriteEvent(SqlEventSourceListener.EndExecuteEventId, objectId, compositeState, sqlExceptionNumber);
+
+        public static class Keywords
+        {
+            public const EventKeywords ExecutionTrace = SqlEventSourceListener.ExecuteEventKeywords;
+        }
+    }
+
+    [EventSource(Name = SqlEventSourceListener.MdsEventSourceName + "-FakeCrossProviderMds")]
+    private class FakeCrossProviderMdsSqlEventSource : EventSource, IFakeBehavingSqlEventSource
+    {
+        [Event(SqlEventSourceListener.BeginExecuteEventId, Keywords = Keywords.ExecutionTrace)]
+        public void WriteBeginExecuteEvent(int objectId, string dataSource, string databaseName, string commandText)
+            => this.WriteEvent(SqlEventSourceListener.BeginExecuteEventId, objectId, dataSource, databaseName, commandText);
+
+        [Event(SqlEventSourceListener.EndExecuteEventId, Keywords = Keywords.ExecutionTrace)]
+        public void WriteEndExecuteEvent(int objectId, int compositeState, int sqlExceptionNumber)
+            => this.WriteEvent(SqlEventSourceListener.EndExecuteEventId, objectId, compositeState, sqlExceptionNumber);
+
+        public static class Keywords
+        {
+            public const EventKeywords ExecutionTrace = SqlEventSourceListener.ExecuteEventKeywords;
+        }
+    }
+
+    [EventSource(Name = SqlEventSourceListener.AdoNetEventSourceName + "-FakeOtherKeyword")]
+    private class FakeOtherKeywordAdoNetSqlEventSource : EventSource, IFakeBehavingSqlEventSource
+    {
+        [Event(SqlEventSourceListener.BeginExecuteEventId, Keywords = Keywords.Other)]
+        public void WriteBeginExecuteEvent(int objectId, string dataSource, string databaseName, string commandText)
+            => this.WriteEvent(SqlEventSourceListener.BeginExecuteEventId, objectId, dataSource, databaseName, commandText);
+
+        [Event(SqlEventSourceListener.EndExecuteEventId, Keywords = Keywords.Other)]
+        public void WriteEndExecuteEvent(int objectId, int compositeState, int sqlExceptionNumber)
+            => this.WriteEvent(SqlEventSourceListener.EndExecuteEventId, objectId, compositeState, sqlExceptionNumber);
+
+        public static class Keywords
+        {
+            public const EventKeywords Other = (EventKeywords)2;
+        }
+    }
+
+    [EventSource(Name = SqlEventSourceListener.MdsEventSourceName + "-FakeOtherKeyword")]
+    private class FakeOtherKeywordMdsSqlEventSource : EventSource, IFakeBehavingSqlEventSource
+    {
+        [Event(SqlEventSourceListener.BeginExecuteEventId, Keywords = Keywords.Other)]
+        public void WriteBeginExecuteEvent(int objectId, string dataSource, string databaseName, string commandText)
+            => this.WriteEvent(SqlEventSourceListener.BeginExecuteEventId, objectId, dataSource, databaseName, commandText);
+
+        [Event(SqlEventSourceListener.EndExecuteEventId, Keywords = Keywords.Other)]
+        public void WriteEndExecuteEvent(int objectId, int compositeState, int sqlExceptionNumber)
+            => this.WriteEvent(SqlEventSourceListener.EndExecuteEventId, objectId, compositeState, sqlExceptionNumber);
+
+        public static class Keywords
+        {
+            public const EventKeywords Other = (EventKeywords)2;
+        }
     }
 
     [EventSource(Name = SqlEventSourceListener.AdoNetEventSourceName + "-FakeEvil")]
     private class FakeMisbehavingAdoNetSqlEventSource : EventSource, IFakeMisbehavingSqlEventSource
     {
-        [Event(SqlEventSourceListener.BeginExecuteEventId)]
+        [Event(SqlEventSourceListener.BeginExecuteEventId, Keywords = Keywords.ExecutionTrace)]
         public void WriteBeginExecuteEvent(string arg1)
             => this.WriteEvent(SqlEventSourceListener.BeginExecuteEventId, arg1);
 
-        [Event(SqlEventSourceListener.EndExecuteEventId)]
+        [Event(SqlEventSourceListener.EndExecuteEventId, Keywords = Keywords.ExecutionTrace)]
         public void WriteEndExecuteEvent(string arg1, string arg2, string arg3, string arg4)
             => this.WriteEvent(SqlEventSourceListener.EndExecuteEventId, arg1, arg2, arg3, arg4);
 
@@ -302,16 +614,21 @@ public class SqlEventSourceTests
 
             this.WriteEvent(3, args);
         }
+
+        public static class Keywords
+        {
+            public const EventKeywords ExecutionTrace = SqlEventSourceListener.ExecuteEventKeywords;
+        }
     }
 
     [EventSource(Name = SqlEventSourceListener.MdsEventSourceName + "-FakeEvil")]
     private class FakeMisbehavingMdsSqlEventSource : EventSource, IFakeMisbehavingSqlEventSource
     {
-        [Event(SqlEventSourceListener.BeginExecuteEventId)]
+        [Event(SqlEventSourceListener.BeginExecuteEventId, Keywords = Keywords.ExecutionTrace)]
         public void WriteBeginExecuteEvent(string arg1)
             => this.WriteEvent(SqlEventSourceListener.BeginExecuteEventId, arg1);
 
-        [Event(SqlEventSourceListener.EndExecuteEventId)]
+        [Event(SqlEventSourceListener.EndExecuteEventId, Keywords = Keywords.ExecutionTrace)]
         public void WriteEndExecuteEvent(string arg1, string arg2, string arg3, string arg4)
             => this.WriteEvent(SqlEventSourceListener.EndExecuteEventId, arg1, arg2, arg3, arg4);
 
@@ -321,6 +638,11 @@ public class SqlEventSourceTests
             object[]? args = null;
 
             this.WriteEvent(3, args);
+        }
+
+        public static class Keywords
+        {
+            public const EventKeywords ExecutionTrace = SqlEventSourceListener.ExecuteEventKeywords;
         }
     }
 }

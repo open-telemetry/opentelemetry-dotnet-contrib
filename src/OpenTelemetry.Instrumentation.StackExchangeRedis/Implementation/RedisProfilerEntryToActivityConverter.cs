@@ -26,16 +26,57 @@ internal static class RedisProfilerEntryToActivityConverter
         "8", "9", "10", "11", "12", "13", "14", "15",
     ];
 
+    private static readonly object[] CachedBoxedDatabaseIndexes =
+    [
+        0, 1, 2, 3, 4, 5, 6, 7,
+        8, 9, 10, 11, 12, 13, 14, 15,
+    ];
+
     private static readonly Lazy<Func<object, (string?, string?)>> MessageDataGetter = new(() =>
     {
 #pragma warning disable IDE0370 // Suppression is unnecessary
         var profiledCommandType = Type.GetType("StackExchange.Redis.Profiling.ProfiledCommand, StackExchange.Redis", throwOnError: true)!;
-        var scriptMessageType = Type.GetType("StackExchange.Redis.RedisDatabase+ScriptEvalMessage, StackExchange.Redis", throwOnError: true)!;
+
+        // StackExchange.Redis 3.2.0 (StackExchange/StackExchange.Redis#3211) renamed the private,
+        // array-based message type behind ScriptEvaluate(string, RedisKey[], RedisValue[]) from
+        // "ScriptEvalMessage" to "ScriptEvaluateMessage" (its "script" field is unchanged), and
+        // reused the "ScriptEvalMessage" name for a new pooled-buffer type (field "_script") behind
+        // the new ScriptEvaluateResp* APIs. Both type names and both field names are resolved below
+        // so the script text is reported regardless of which StackExchange.Redis version is loaded.
+        var scriptEvalMessageType = Type.GetType("StackExchange.Redis.RedisDatabase+ScriptEvalMessage, StackExchange.Redis", throwOnError: false);
+        var scriptEvaluateMessageType = Type.GetType("StackExchange.Redis.RedisDatabase+ScriptEvaluateMessage, StackExchange.Redis", throwOnError: false);
 #pragma warning restore IDE0370 // Suppression is unnecessary
 
-        var messageDelegate = CreateFieldGetter<object>(profiledCommandType, "Message", BindingFlags.NonPublic | BindingFlags.Instance);
-        var scriptDelegate = CreateFieldGetter<string>(scriptMessageType, "script", BindingFlags.NonPublic | BindingFlags.Instance);
+        var bindingFlags = BindingFlags.NonPublic | BindingFlags.Instance;
+
+        var messageDelegate = CreateFieldGetter<object>(profiledCommandType, "Message", bindingFlags);
         var commandAndKeyFetcher = new PropertyFetcher<string>("CommandAndKey");
+
+        var scriptDelegatesByType = new Dictionary<Type, Func<object, string?>>();
+
+        if (scriptEvalMessageType != null)
+        {
+            var getter =
+                CreateFieldGetter<string>(scriptEvalMessageType, "script", bindingFlags) ??
+                CreateFieldGetter<string>(scriptEvalMessageType, "_script", bindingFlags);
+
+            if (getter != null)
+            {
+                scriptDelegatesByType[scriptEvalMessageType] = getter;
+            }
+        }
+
+        if (scriptEvaluateMessageType != null)
+        {
+            var getter =
+                CreateFieldGetter<string>(scriptEvaluateMessageType, "script", bindingFlags) ??
+                CreateFieldGetter<string>(scriptEvaluateMessageType, "_script", bindingFlags);
+
+            if (getter != null)
+            {
+                scriptDelegatesByType[scriptEvaluateMessageType] = getter;
+            }
+        }
 
         if (messageDelegate == null)
         {
@@ -55,11 +96,9 @@ internal static class RedisProfilerEntryToActivityConverter
                 return (null, null);
             }
 
-            string? script = null;
-            if (message.GetType() == scriptMessageType)
-            {
-                script = scriptDelegate?.Invoke(message);
-            }
+            var script = scriptDelegatesByType.TryGetValue(message.GetType(), out var scriptDelegate)
+                ? scriptDelegate(message)
+                : null;
 
             return GetCommandAndKey(commandAndKeyFetcher, message, out var value) ? (value, script) : (null, script);
 
@@ -94,11 +133,11 @@ internal static class RedisProfilerEntryToActivityConverter
             return null;
         }
 
-        var name = command.Command; // Example: SET;
-        if (string.IsNullOrEmpty(name))
-        {
-            name = StackExchangeRedisConnectionInstrumentation.ActivityName;
-        }
+        // StackExchange.Redis computes Command on every access (it formats the RedisCommand enum), so read it once.
+        var commandName = command.Command; // Example: SET;
+        var name = string.IsNullOrEmpty(commandName)
+            ? StackExchangeRedisConnectionInstrumentation.ActivityName
+            : commandName;
 
         var activitySource =
             options.EmitNewAttributes && options.EmitOldAttributes ?
@@ -159,10 +198,15 @@ internal static class RedisProfilerEntryToActivityConverter
 
             if (options.EmitOldAttributes)
             {
-                activity.SetTag(StackExchangeRedisConnectionInstrumentation.RedisDatabaseIndexKeyName, command.Db);
+                var db = command.Db;
+                var boxedDb = (uint)db < (uint)CachedBoxedDatabaseIndexes.Length
+                    ? CachedBoxedDatabaseIndexes[db]
+                    : db;
+
+                activity.SetTag(StackExchangeRedisConnectionInstrumentation.RedisDatabaseIndexKeyName, boxedDb);
 
                 // Example: "db.statement": SET;
-                var statement = verboseStatement ?? command.Command;
+                var statement = verboseStatement ?? commandName;
 
                 if (statement != null)
                 {
@@ -172,12 +216,12 @@ internal static class RedisProfilerEntryToActivityConverter
 
             if (options.EmitNewAttributes)
             {
-                var queryText = verboseStatement ?? command.Command;
+                var queryText = verboseStatement ?? commandName;
                 var db = command.Db;
                 var dbNamespace = (uint)db < (uint)CachedDatabaseNames.Length
                     ? CachedDatabaseNames[db]
                     : db.ToString(CultureInfo.InvariantCulture);
-                activity.SetTag(SemanticConventions.AttributeDbOperationName, command.Command);
+                activity.SetTag(SemanticConventions.AttributeDbOperationName, commandName);
                 activity.SetTag(SemanticConventions.AttributeDbNamespace, dbNamespace);
                 activity.SetTag(SemanticConventions.AttributeDbQueryText, queryText);
             }
@@ -212,15 +256,15 @@ internal static class RedisProfilerEntryToActivityConverter
             // command.RetransmissionOf;
             // command.RetransmissionReason;
 
-            var enqueued = command.CommandCreated.Add(command.CreationToEnqueued);
-            var send = enqueued.Add(command.EnqueuedToSending);
-            var response = send.Add(command.SentToResponse);
-
             if (options.EnrichActivityWithTimingEvents)
             {
-                activity.AddEvent(new ActivityEvent("Enqueued", enqueued));
-                activity.AddEvent(new ActivityEvent("Sent", send));
-                activity.AddEvent(new ActivityEvent("ResponseReceived", response));
+                var enqueued = command.CommandCreated.Add(command.CreationToEnqueued);
+                var send = enqueued.Add(command.EnqueuedToSending);
+                var response = send.Add(command.SentToResponse);
+
+                activity.AddEvent(new("Enqueued", enqueued));
+                activity.AddEvent(new("Sent", send));
+                activity.AddEvent(new("ResponseReceived", response));
             }
 
             try
@@ -238,7 +282,7 @@ internal static class RedisProfilerEntryToActivityConverter
         return activity;
     }
 
-    public static void DrainSession(
+    public static bool DrainSession(
         Activity? parentActivity,
         IEnumerable<IProfiledCommand> sessionCommands,
         Baggage baggage,
@@ -255,10 +299,14 @@ internal static class RedisProfilerEntryToActivityConverter
 
         try
         {
+            var drainedCommands = false;
             foreach (var command in sessionCommands)
             {
+                drainedCommands = true;
                 ProfilerCommandToActivity(parentActivity, command, options);
             }
+
+            return drainedCommands;
         }
         finally
         {

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
-    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net48;net472;net471;net47;net462</TargetFrameworks>
+    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net48;net472</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <NoWarn>$(NoWarn);SA1201;SA1202;SA1204;SA1311;SA1123</NoWarn>
   </PropertyGroup>
