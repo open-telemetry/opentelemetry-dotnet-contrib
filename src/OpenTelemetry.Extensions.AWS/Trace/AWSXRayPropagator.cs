@@ -38,7 +38,11 @@ public class AWSXRayPropagator : TextMapPropagator
     // The length of a header in the format "Root=1-{8 hex}-{24 hex};Parent={16 hex};Sampled={0|1}".
     private const int TraceHeaderLength = 74;
 
+#if NET
+    private static readonly System.Collections.Immutable.ImmutableHashSet<string> AllFields = [AWSXRayTraceHeaderKey];
+#else
     private static readonly HashSet<string> AllFields = [AWSXRayTraceHeaderKey];
+#endif
 
     /// <inheritdoc/>
     /// <remarks>
