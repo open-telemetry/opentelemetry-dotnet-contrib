@@ -82,6 +82,9 @@ internal sealed class ConnectionStringBuilder
     public bool PrivatePreviewEnableAFDCorrelationIdEnrichment => this.parts.TryGetValue(nameof(this.PrivatePreviewEnableAFDCorrelationIdEnrichment), out var value)
                 && string.Equals(bool.TrueString, value, StringComparison.OrdinalIgnoreCase);
 
+    public bool PrivatePreviewEnableUnixDomainSocketBatching => this.parts.TryGetValue(nameof(this.PrivatePreviewEnableUnixDomainSocketBatching), out var value)
+                && string.Equals(bool.TrueString, value, StringComparison.OrdinalIgnoreCase);
+
     public int PrivatePreviewLogMessagePackStringSizeLimit =>
         !this.parts.TryGetValue(nameof(this.PrivatePreviewLogMessagePackStringSizeLimit), out var value)
         ? MessagePackSerializer.DEFAULT_STRING_SIZE_LIMIT_CHAR_COUNT
