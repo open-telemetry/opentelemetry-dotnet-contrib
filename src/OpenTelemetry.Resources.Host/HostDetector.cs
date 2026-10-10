@@ -126,9 +126,7 @@ internal sealed class HostDetector : IResourceDetector
             // The following architectures do not have a mapping in OTel spec: https://github.com/open-telemetry/semantic-conventions/blob/v1.39.0/docs/resource/host.md
             Architecture.Wasm => null,
             Architecture.LoongArch64 => null,
-#if NET10_0_OR_GREATER
             Architecture.RiscV64 => null,
-#endif
 #endif
             _ => null,
         };

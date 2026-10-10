@@ -1978,7 +1978,7 @@ public sealed class BasicTests
         Assert.Empty(blazorActivity);
     }
 
-#if NET10_0_OR_GREATER
+#if NET
     [Fact]
     public async Task RazorComponentsActivitiesAreEnabledByDefault()
     {
@@ -2105,7 +2105,7 @@ public sealed class BasicTests
             TimeSpan.FromSeconds(5)),
             $"Actual: {getCount()} Expected: {count}");
 
-#if NET9_0_OR_GREATER
+#if NET
     private static void WaitForActivityExportToStabilize(List<Activity> exportedItems)
     {
         // The number of activities produced by the SignalR long-polling transport is

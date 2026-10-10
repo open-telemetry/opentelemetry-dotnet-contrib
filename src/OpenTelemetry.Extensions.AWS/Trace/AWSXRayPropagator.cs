@@ -358,6 +358,9 @@ public class AWSXRayPropagator : TextMapPropagator
         return index == value.Length;
 
         // The characters that number parsing treats as whitespace.
-        static bool IsWhiteSpace(char c) => c is ' ' or (>= '\t' and <= '\r');
+        static bool IsWhiteSpace(char c)
+        {
+            return c is ' ' or (>= '\t' and <= '\r');
+        }
     }
 }

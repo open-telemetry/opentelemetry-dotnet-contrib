@@ -633,7 +633,7 @@ internal class HttpInListener : ListenerHandler
             {
                 // ASP.NET Core 11+ sets http.url.query natively https://github.com/dotnet/aspnetcore/pull/68824
                 // TODO Verify this change once .NET 11 RC.2 is available - the last condition might have a perf overhead
-                tags.Add(SemanticConventions.AttributeUrlQuery, RedactionHelper.GetRedactedQueryString(request.QueryString.Value!));
+                tags.Add(SemanticConventions.AttributeUrlQuery, RedactionHelper.GetRedactedQueryString(request.QueryString.Value));
             }
         }
 

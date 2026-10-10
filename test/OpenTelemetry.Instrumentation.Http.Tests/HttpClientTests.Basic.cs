@@ -356,7 +356,7 @@ public partial class HttpClientTests : IDisposable
     [InlineData("PATCH", "PATCH", null)]
     [InlineData("POST", "POST", null)]
     [InlineData("PUT", "PUT", null)]
-#if NET9_0
+#if NET
     [InlineData("QUERY", "_OTHER", "QUERY")]
 #else
     [InlineData("QUERY", "QUERY", null)]
@@ -613,8 +613,8 @@ public partial class HttpClientTests : IDisposable
         // Exception is thrown and collected as event
         Assert.True(exceptionThrown);
 
-#if NET10_0_OR_GREATER
-        // .NET 10 reports its own activity, but does not set the status description
+#if NET
+        // .NET reports its own activity, but does not set the status description
         Assert.Contains(exportedItems[0].Events, evt => evt.Name.Equals("exception"));
 #else
         Assert.Single(exportedItems[0].Events, evt => evt.Name.Equals("exception"));
