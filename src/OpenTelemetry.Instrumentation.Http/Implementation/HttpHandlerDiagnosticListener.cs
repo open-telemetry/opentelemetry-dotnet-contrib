@@ -182,7 +182,8 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
                 return RuntimeContext.GetValue("otel.suppress_instrumentation") switch
                 {
                     null => false,
-                   // SDK versions before 1.5.0 store an int count.
+
+                    // SDK versions before 1.5.0 store an int count.
                     int count => count != 0,
                     _ => true,
                 };
