@@ -18,11 +18,11 @@ namespace OpenTelemetry.Instrumentation.AWS.Implementation;
 /// the outgoing request object so that it can work with the <see cref="IRequest"/>'s
 /// <see cref="IRequest.Headers"/>.
 /// </summary>
-internal class AWSPropagatorPipelineHandler : PipelineHandler
+internal sealed class AWSPropagatorPipelineHandler : PipelineHandler
 {
     private static readonly AWSXRayPropagator AwsPropagator = new();
 
-    private static readonly Action<IDictionary<string, string>, string, string> Setter = (carrier, name, value) =>
+    private static readonly Action<IDictionary<string, string>, string, string> Setter = static (carrier, name, value) =>
     {
         carrier[name] = value;
     };

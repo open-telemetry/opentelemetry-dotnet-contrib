@@ -209,6 +209,20 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
     }
 
     [Fact]
+    public void DrainSession_ReturnsWhetherItDrainedCommands()
+    {
+        var activity = new Activity("redis-profiler");
+        var options = new StackExchangeRedisInstrumentationOptions();
+
+        Assert.False(RedisProfilerEntryToActivityConverter.DrainSession(activity, [], default, options));
+        Assert.True(RedisProfilerEntryToActivityConverter.DrainSession(
+            activity,
+            [new TestProfiledCommand(DateTime.UtcNow)],
+            default,
+            options));
+    }
+
+    [Fact]
     public void DrainSession_RestoresPreviousBaggage()
     {
         var activity = new Activity("redis-profiler");

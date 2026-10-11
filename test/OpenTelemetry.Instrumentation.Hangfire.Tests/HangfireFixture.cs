@@ -5,6 +5,7 @@ using Hangfire;
 using Hangfire.MemoryStorage;
 using Hangfire.States;
 using Hangfire.Storage;
+using Hangfire.Storage.Monitoring;
 
 namespace OpenTelemetry.Instrumentation.Hangfire.Tests;
 
@@ -65,17 +66,9 @@ public class HangfireFixture : IDisposable
 
         bool Completed()
         {
-            var jobDetails = this.MonitoringApi.JobDetails(jobId);
+            var history = this.GetHistory(jobId);
 
-            if (jobDetails == null)
-            {
-                return false;
-            }
-
-            // Copy the history to an array to avoid exception if the collection is modified while iterating
-            var history = jobDetails.History.ToArray();
-
-            return history.Any(h => terminalStates.Contains(h.StateName));
+            return history != null && history.Any(h => terminalStates.Contains(h.StateName));
         }
     }
 
@@ -98,22 +91,34 @@ public class HangfireFixture : IDisposable
 
         bool InState()
         {
-            var jobDetails = this.MonitoringApi.JobDetails(jobId);
+            var history = this.GetHistory(jobId);
 
-            if (jobDetails == null)
-            {
-                return false;
-            }
-
-            // Copy the history to an array to avoid exception if the collection is modified while iterating
-            var history = jobDetails.History.ToArray();
-
-            return history.Any(h => h.StateName == targetState);
+            return history != null && history.Any(h => h.StateName == targetState);
         }
     }
 
     public void Dispose()
+        => this.Server.Dispose();
+
+    /// <summary>
+    /// Gets the state history of a job, or <see langword="null"/> if it is not (yet) available.
+    /// </summary>
+    /// <param name="jobId">The ID of the job.</param>
+    /// <returns>The state history, or <see langword="null"/> if the job was not found or could not be read.</returns>
+    private StateHistoryDto[]? GetHistory(string jobId)
     {
-        this.Server.Dispose();
+        try
+        {
+            // Hangfire.MemoryStorage's StateHistoryList is not thread-safe, and
+            // JobDetails() copies it without locking, so the copy can fail with
+            // an ArgumentException (or InvalidOperationException) if the server
+            // appends a state concurrently. Treat that as "not available yet" so
+            // the caller polls again; the next attempt sees a consistent history.
+            return this.MonitoringApi.JobDetails(jobId)?.History.ToArray();
+        }
+        catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
+        {
+            return null;
+        }
     }
 }

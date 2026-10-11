@@ -162,14 +162,15 @@ internal sealed class WsTransport : IOpAmpTransport, IDisposable
     /// <typeparam name="T">The protobuf message type to send.</typeparam>
     /// <param name="message">The message to serialize and transmit.</param>
     /// <param name="token">A cancellation token for the send operation.</param>
+    /// <param name="beforeSerialize">Called with the message once the socket is free, right before it is serialized.</param>
     /// <returns>A task that completes when the message has been serialized and written to the socket.</returns>
     /// <exception cref="ObjectDisposedException">Thrown when the transport has been disposed.</exception>
-    public Task SendAsync<T>(T message, CancellationToken token = default)
+    public Task SendAsync<T>(T message, CancellationToken token = default, Action<T>? beforeSerialize = null)
         where T : IMessage<T>
     {
         this.ThrowIfDisposed();
 
-        return this.transmitter.SendAsync(message, token);
+        return this.transmitter.SendAsync(message, beforeSerialize is null ? null : () => beforeSerialize(message), token);
     }
 
     public void Dispose()

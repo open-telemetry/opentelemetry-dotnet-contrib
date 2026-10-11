@@ -88,7 +88,8 @@ public class TelemetryEndpointBehavior : IEndpointBehavior
 
             actionMappings[clientOperation.Action] = new ActionMetadata(
                 contractName: $"{clientRuntime.ContractNamespace}{clientRuntime.ContractName}",
-                operationName: clientOperation.Name);
+                operationName: clientOperation.Name,
+                isOneWay: clientOperation.IsOneWay);
         }
 
         clientRuntime.ClientMessageInspectors.Add(new TelemetryClientMessageInspector(actionMappings));

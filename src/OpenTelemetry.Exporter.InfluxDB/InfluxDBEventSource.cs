@@ -19,7 +19,9 @@ internal sealed class InfluxDBEventSource : EventSource
 
     [Event(1, Message = "Failed to export metrics: '{0}'", Level = EventLevel.Error)]
     public void FailedToExport(string exception)
-    {
-        this.WriteEvent(1, exception);
-    }
+        => this.WriteEvent(1, exception);
+
+    [Event(2, Message = "Dropped a data point of metric '{0}' because none of its values can be written as line protocol.", Level = EventLevel.Warning)]
+    public void DataPointDropped(string metricName)
+        => this.WriteEvent(2, metricName);
 }

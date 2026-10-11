@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using Google.Protobuf;
 using OpAmp.Proto.V1;
 using OpenTelemetry.OpAmp.Client.Internal.Messages;
 using OpenTelemetry.OpAmp.Client.Internal.Transport;
@@ -13,13 +14,16 @@ namespace OpenTelemetry.OpAmp.Client.Internal;
 
 internal sealed class OpAmpPipe : IDisposable
 {
+    private static readonly byte[] EmptyInstanceUid = new byte[16];
+
     private readonly IOpAmpTransport transport;
     private readonly FrameProcessor processor;
     private readonly int maxPendingCustomMessages;
     private readonly int maxPendingCustomMessageBytes;
     private readonly Lock frameLock = new();
     private readonly CancellationTokenSource tokenSource = new();
-    private readonly ServerFrameHandler? frameHandler;
+    private readonly ServerFrameHandler frameHandler;
+    private readonly Action<AgentToServer> applyAssignedInstanceUid;
     private readonly FrameBuilder currentFrame;
     private readonly Queue<AgentToServer> pendingFrames = [];
 
@@ -28,6 +32,7 @@ internal sealed class OpAmpPipe : IDisposable
     private bool isStopped;
     private bool hasAccumulatedData;
     private long pendingCustomMessageBytes;
+    private ByteString? assignedInstanceUid;
     private Task? flushTask;
     private TaskCompletionSource<bool>? flushCompletion;
 
@@ -44,11 +49,9 @@ internal sealed class OpAmpPipe : IDisposable
         this.maxPendingCustomMessages = settings.MaxPendingCustomMessages;
         this.maxPendingCustomMessageBytes = settings.MaxPendingCustomMessageBytes;
 
-        if (transport.RequiresResponseBeforeNextSend)
-        {
-            this.frameHandler = new(this.OnServerFrameReceived);
-            this.processor.Subscribe(this.frameHandler);
-        }
+        this.frameHandler = new(this.OnServerFrameReceived);
+        this.processor.Subscribe(this.frameHandler);
+        this.applyAssignedInstanceUid = this.ApplyAssignedInstanceUid;
     }
 
     public async Task StartAsync(CancellationToken token = default)
@@ -169,10 +172,7 @@ internal sealed class OpAmpPipe : IDisposable
         this.tokenSource.Cancel();
         this.tokenSource.Dispose();
 
-        if (this.frameHandler != null)
-        {
-            this.processor.Unsubscribe(this.frameHandler);
-        }
+        this.processor.Unsubscribe(this.frameHandler);
 
         if (this.transport is IDisposable disposableTransport)
         {
@@ -304,7 +304,7 @@ internal sealed class OpAmpPipe : IDisposable
         {
             OpAmpClientEventSource.Log.SendingMessage();
 
-            await this.transport.SendAsync(message, token)
+            await this.transport.SendAsync(message, token, this.applyAssignedInstanceUid)
                 .ConfigureAwait(false);
 
             if (!this.transport.RequiresResponseBeforeNextSend)
@@ -322,10 +322,53 @@ internal sealed class OpAmpPipe : IDisposable
         }
     }
 
+    // The transport calls this right before it serializes the frame, so frames queued or
+    // waiting to be sent when the server assigned a new UID are still sent with it.
+    private void ApplyAssignedInstanceUid(AgentToServer message)
+    {
+        lock (this.frameLock)
+        {
+            if (this.assignedInstanceUid is { } instanceUid)
+            {
+                message.InstanceUid = instanceUid;
+            }
+        }
+    }
+
     private void OnServerFrameReceived(ServerToAgent message)
     {
-        this.ReleaseBusy();
-        this.TryFlush(this.tokenSource.Token);
+        // Handled here rather than by an AgentIdentificationMessage listener so the
+        // new UID is applied before the HTTP transport releases the next frame.
+        if (message.AgentIdentification is { } agentIdentification)
+        {
+            this.SetInstanceUid(agentIdentification.NewInstanceUid);
+        }
+
+        if (this.transport.RequiresResponseBeforeNextSend)
+        {
+            this.ReleaseBusy();
+            this.TryFlush(this.tokenSource.Token);
+        }
+    }
+
+    private void SetInstanceUid(ByteString instanceUid)
+    {
+        if (instanceUid.Length != 16)
+        {
+            OpAmpClientEventSource.Log.InvalidInstanceUid($"expected 16 bytes, received {instanceUid.Length}");
+            return;
+        }
+
+        if (instanceUid.Span.SequenceEqual(EmptyInstanceUid))
+        {
+            OpAmpClientEventSource.Log.InvalidInstanceUid("all bytes are zero");
+            return;
+        }
+
+        lock (this.frameLock)
+        {
+            this.assignedInstanceUid = instanceUid;
+        }
     }
 
     private void ReleaseBusy()

@@ -19,6 +19,8 @@ internal sealed class AWSEKSDetector : IResourceDetector
     private const string AWSClusterInfoUrl = "https://kubernetes.default.svc/api/v1/namespaces/amazon-cloudwatch/configmaps/cluster-info";
     private const string AWSAuthUrl = "https://kubernetes.default.svc/api/v1/namespaces/kube-system/configmaps/aws-auth";
 
+    private static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(5);
+
     private readonly AWSSemanticConventions semanticConventionBuilder;
 
     public AWSEKSDetector(AWSSemanticConventions semanticConventionBuilder)
@@ -75,10 +77,10 @@ internal sealed class AWSEKSDetector : IResourceDetector
 
             while ((line = streamReader.ReadLine()) is not null)
             {
-                var trimmedLine = line.Trim();
-                if (trimmedLine.Length > 64)
+                var containerId = CgroupContainerIdParser.GetContainerId(line.Trim());
+                if (containerId != null)
                 {
-                    return trimmedLine.Substring(trimmedLine.Length - 64);
+                    return containerId;
                 }
             }
         }
@@ -132,7 +134,7 @@ internal sealed class AWSEKSDetector : IResourceDetector
         try
         {
             using var scope = SuppressInstrumentationScope.Begin();
-            awsAuth = ResourceDetectorUtils.SendOutRequest(AWSAuthUrl, HttpMethod.Get, new KeyValuePair<string, string>("Authorization", credentials), httpClientHandler);
+            awsAuth = ResourceDetectorUtils.SendOutRequest(AWSAuthUrl, HttpMethod.Get, new KeyValuePair<string, string>("Authorization", credentials), RequestTimeout, httpClientHandler);
         }
         catch (Exception ex)
         {
@@ -145,7 +147,7 @@ internal sealed class AWSEKSDetector : IResourceDetector
     private static string GetEKSClusterInfo(string credentials, HttpClientHandler? httpClientHandler)
     {
         using var scope = SuppressInstrumentationScope.Begin();
-        return ResourceDetectorUtils.SendOutRequest(AWSClusterInfoUrl, HttpMethod.Get, new KeyValuePair<string, string>("Authorization", credentials), httpClientHandler);
+        return ResourceDetectorUtils.SendOutRequest(AWSClusterInfoUrl, HttpMethod.Get, new KeyValuePair<string, string>("Authorization", credentials), RequestTimeout, httpClientHandler);
     }
 }
 #endif

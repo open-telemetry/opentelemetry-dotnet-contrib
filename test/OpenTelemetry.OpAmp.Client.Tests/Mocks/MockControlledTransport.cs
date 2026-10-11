@@ -28,13 +28,15 @@ internal abstract class MockControlledTransport : IOpAmpTransport, IDisposable
 
     public abstract bool RequiresResponseBeforeNextSend { get; }
 
-    public Task SendAsync<T>(T message, CancellationToken token)
+    public Task SendAsync<T>(T message, CancellationToken token, Action<T>? beforeSerialize = null)
         where T : IMessage<T>
     {
         if (message is not AgentToServer agentToServer)
         {
             throw new InvalidOperationException("Unsupported message type. Only AgentToServer messages are supported.");
         }
+
+        beforeSerialize?.Invoke(message);
 
         var sendCompletion = CreateCompletionSource();
         Action? firstSendCallback;

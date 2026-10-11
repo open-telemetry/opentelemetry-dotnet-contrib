@@ -7,6 +7,8 @@ namespace OpenTelemetry.Resources.Azure;
 
 internal static class AzureVmMetaDataRequestor
 {
+    internal const int MaxResponseContentBufferSize = 4 * 1024 * 1024;
+
     private static readonly Uri AzureVmMetadataEndpointUri = new("http://169.254.169.254/metadata/instance/compute?api-version=2021-12-13&format=json");
 
     public static Func<AzureVmMetadataResponse?> GetAzureVmMetaDataResponse { get; internal set; } = GetAzureVmMetaDataResponseDefault;
@@ -16,7 +18,11 @@ internal static class AzureVmMetaDataRequestor
         var timeout = TimeSpan.FromSeconds(2);
 
         using var cts = new CancellationTokenSource(timeout);
-        using var httpClient = new HttpClient() { Timeout = timeout };
+        using var httpClient = new HttpClient()
+        {
+            MaxResponseContentBufferSize = MaxResponseContentBufferSize,
+            Timeout = timeout,
+        };
 
         return GetAzureVmMetaData(httpClient, cts.Token);
     }
@@ -31,11 +37,14 @@ internal static class AzureVmMetaDataRequestor
         httpRequestMessage.Method = HttpMethod.Get;
         httpRequestMessage.Headers.Add("Metadata", "True");
 
+        // The whole response is buffered while the request is sent so that the timeout and the cancellation token also
+        // cover reading the body. With ResponseHeadersRead they stop applying once the headers have been received, and
+        // an endpoint that then stalls would block the caller (and so the construction of the provider) indefinitely.
 #if NET
-        using var response = client.Send(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+        using var response = client.Send(httpRequestMessage, HttpCompletionOption.ResponseContentRead, cancellationToken);
 #else
 #pragma warning disable CA2025 // Do not pass 'IDisposable' instances into unawaited tasks
-        using var response = client.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false).GetAwaiter().GetResult();
+        using var response = client.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseContentRead, cancellationToken).ConfigureAwait(false).GetAwaiter().GetResult();
 #pragma warning restore CA2025 // Do not pass 'IDisposable' instances into unawaited tasks
 #endif
 
