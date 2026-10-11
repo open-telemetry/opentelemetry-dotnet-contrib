@@ -98,28 +98,39 @@ internal sealed class RequestDataHelper
         }
     }
 
-    public void SetActivityDisplayNameAndHttpMethodTag(Activity activity, string originalHttpMethod)
-    {
-        var normalizedHttpMethod = this.GetNormalizedHttpMethod(originalHttpMethod);
-
-        activity.DisplayName = normalizedHttpMethod == OtherHttpMethod ? "HTTP" : normalizedHttpMethod;
-        activity.SetTag(SemanticConventions.AttributeHttpRequestMethod, normalizedHttpMethod);
-
-        if (originalHttpMethod != normalizedHttpMethod)
-        {
-            activity.SetTag(SemanticConventions.AttributeHttpRequestMethodOriginal, originalHttpMethod);
-        }
-    }
-
     public void SetHttpMethodTag(ref TagList tags, string originalHttpMethod)
+        => this.SetHttpMethodTagAndGetDisplayName(ref tags, originalHttpMethod);
+
+    /// <summary>
+    /// Adds the <c>http.request.method</c> (and, if different, <c>http.request.method_original</c>)
+    /// tags for the specified HTTP method to <paramref name="tags"/> and returns the method-based
+    /// display name for a span, normalizing the HTTP method only once.
+    /// </summary>
+    /// <param name="tags">The tags to add the HTTP method tag(s) to.</param>
+    /// <param name="originalHttpMethod">The original HTTP method of the request.</param>
+    /// <returns>The display name to use for a span without a route.</returns>
+    public string SetHttpMethodTagAndGetDisplayName(ref TagList tags, string originalHttpMethod)
     {
+#if NET
+        var knownMethod = this.knownHttpMethods.TryGetValue(originalHttpMethod, out var method)
+            ? method
+            : this.otherHttpMethod;
+
+        var normalizedHttpMethod = knownMethod.Name;
+        var displayName = knownMethod.DisplayName;
+#else
         var normalizedHttpMethod = this.GetNormalizedHttpMethod(originalHttpMethod);
+        var displayName = normalizedHttpMethod == OtherHttpMethod ? "HTTP" : normalizedHttpMethod;
+#endif
+
         tags.Add(SemanticConventions.AttributeHttpRequestMethod, normalizedHttpMethod);
 
         if (originalHttpMethod != normalizedHttpMethod)
         {
             tags.Add(SemanticConventions.AttributeHttpRequestMethodOriginal, originalHttpMethod);
         }
+
+        return displayName;
     }
 
     public string GetNormalizedHttpMethod(string method)

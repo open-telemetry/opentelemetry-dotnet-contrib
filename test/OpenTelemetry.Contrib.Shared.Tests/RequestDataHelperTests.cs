@@ -183,25 +183,37 @@ public class RequestDataHelperTests
     [InlineData("get", "GET", "GET", "get")]
     [InlineData("CUSTOM", "HTTP", "_OTHER", "CUSTOM")]
     [InlineData("_OTHER", "HTTP", "_OTHER", null)]
-    public void SetActivityDisplayNameAndHttpMethodTagSetsExpectedValues(string method, string expectedDisplayName, string expectedMethod, string? expectedOriginalMethod)
+    public void SetHttpMethodTagAndGetDisplayNameSetsExpectedValues(string method, string expectedDisplayName, string expectedMethod, string? expectedOriginalMethod)
     {
         var requestHelper = new RequestDataHelper(configureByHttpKnownMethodsEnvironmentalVariable: false);
-        using var activity = new Activity("operation");
+        var tags = default(TagList);
 
-        requestHelper.SetActivityDisplayNameAndHttpMethodTag(activity, method);
+        var displayName = requestHelper.SetHttpMethodTagAndGetDisplayName(ref tags, method);
 
-        Assert.Equal(expectedDisplayName, activity.DisplayName);
-        Assert.Equal(expectedMethod, activity.GetTagItem(SemanticConventions.AttributeHttpRequestMethod));
-        Assert.Equal(expectedOriginalMethod, activity.GetTagItem(SemanticConventions.AttributeHttpRequestMethodOriginal));
+        Assert.Equal(expectedDisplayName, displayName);
+        Assert.Equal(expectedMethod, GetTag(tags, SemanticConventions.AttributeHttpRequestMethod));
+        Assert.Equal(expectedOriginalMethod, GetTag(tags, SemanticConventions.AttributeHttpRequestMethodOriginal));
 
-        // The combined method must be equivalent to setting the display name and the method tag separately.
+        // The combined method must be equivalent to getting the display name and setting the method tag separately.
         using var separate = new Activity("operation");
 
-        requestHelper.SetActivityDisplayName(separate, method);
         requestHelper.SetHttpMethodTag(separate, method);
 
-        Assert.Equal(separate.DisplayName, activity.DisplayName);
-        Assert.Equal(separate.TagObjects, activity.TagObjects);
+        Assert.Equal(requestHelper.GetActivityDisplayName(method), displayName);
+        Assert.Equal(separate.TagObjects, tags);
+
+        static object? GetTag(TagList tags, string key)
+        {
+            for (var i = 0; i < tags.Count; i++)
+            {
+                if (tags[i].Key == key)
+                {
+                    return tags[i].Value;
+                }
+            }
+
+            return null;
+        }
     }
 
 #if NET
