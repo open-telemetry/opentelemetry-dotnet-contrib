@@ -262,7 +262,7 @@ public partial class HttpClientTests : IDisposable
         ]));
     }
 
-    [Fact(Skip = "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1727")]
+    [Fact]
     public async Task RespectsSuppress()
     {
         try
@@ -312,6 +312,98 @@ public partial class HttpClientTests : IDisposable
             ]));
         }
     }
+
+#if NET
+    [Fact]
+    public async Task KeepsInjectedHeadersWhenDownstreamInstrumentationSuppressed()
+    {
+        try
+        {
+            var propagator = new CustomTextMapPropagator();
+            propagator.InjectValues.Add("custom_traceParent", context => $"00/{context.ActivityContext.TraceId}/{context.ActivityContext.SpanId}/01");
+
+            using var request = new HttpRequestMessage();
+            request.RequestUri = this.uri;
+            request.Method = new HttpMethod("GET");
+
+            using var parent = new Activity("parent")
+                .SetIdFormat(ActivityIdFormat.W3C)
+                .Start();
+            parent.ActivityTraceFlags = ActivityTraceFlags.Recorded;
+
+            Sdk.SetDefaultTextMapPropagator(propagator);
+
+            using (Sdk.CreateTracerProviderBuilder()
+                .AddHttpClientInstrumentation()
+                .Build())
+            {
+                using var c = new HttpClient();
+                request.Headers.Add("custom_traceParent", $"00/{parent.TraceId}/{parent.SpanId}/01");
+                using (SuppressInstrumentationScope.Begin())
+                {
+                    await c.SendAsync(request, TestContext.Current.CancellationToken);
+                }
+            }
+
+            var traceparent = Assert.Single(request.Headers.GetValues("custom_traceParent"));
+            Assert.Equal($"00/{parent.TraceId}/{parent.SpanId}/01", traceparent);
+        }
+        finally
+        {
+            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator(
+            [
+                new TraceContextPropagator(),
+                new BaggagePropagator(),
+            ]));
+        }
+    }
+
+    [Fact]
+    public async Task InjectsHeadersWhenAnotherListenerSamplesSuppressedRequest()
+    {
+        try
+        {
+            var propagator = new CustomTextMapPropagator();
+            propagator.InjectValues.Add("custom_traceParent", context => $"00/{context.ActivityContext.TraceId}/{context.ActivityContext.SpanId}/01");
+
+            using var request = new HttpRequestMessage();
+            request.RequestUri = this.uri;
+            request.Method = new HttpMethod("GET");
+
+            Sdk.SetDefaultTextMapPropagator(propagator);
+
+            // The SDK declines the activity in the scope.
+            // This listener samples it, so the runtime creates no fallback activity.
+            using var activityListener = new ActivityListener
+            {
+                ShouldListenTo = activitySource => activitySource.Name == "System.Net.Http",
+                Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
+            };
+            ActivitySource.AddActivityListener(activityListener);
+
+            using (Sdk.CreateTracerProviderBuilder()
+                .AddHttpClientInstrumentation()
+                .Build())
+            {
+                using var c = new HttpClient();
+                using (SuppressInstrumentationScope.Begin())
+                {
+                    await c.SendAsync(request, TestContext.Current.CancellationToken);
+                }
+            }
+
+            Assert.True(request.Headers.Contains("custom_traceParent"), "custom_traceParent was not injected.");
+        }
+        finally
+        {
+            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator(
+            [
+                new TraceContextPropagator(),
+                new BaggagePropagator(),
+            ]));
+        }
+    }
+#endif
 
     [Fact]
     public async Task ExportsSpansCreatedForRetries()

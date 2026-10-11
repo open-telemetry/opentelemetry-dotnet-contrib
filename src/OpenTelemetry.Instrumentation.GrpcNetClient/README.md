@@ -87,9 +87,8 @@ This instrumentation can be configured to change the default behavior by using
 ### SuppressDownstreamInstrumentation
 
 > [!CAUTION]
-> `SuppressDownstreamInstrumentation` no longer works when used in conjunction
-with the `OpenTelemetry.Instrumentation.Http` package version `1.6.0` and greater.
-This option may change or even be removed in a future release.
+> `SuppressDownstreamInstrumentation` does not work with versions `1.6.0` to
+> `1.19.0` of the `OpenTelemetry.Instrumentation.Http` package.
 
 This option prevents downstream instrumentation from being invoked.
 Grpc.Net.Client is built on top of HttpClient. When instrumentation for both
