@@ -455,3 +455,6 @@ test/**/BenchmarkResults/**
 # Ignore Verify received files
 *.received.*
 *.received/
+
+# Nightly builds of .NET
+.dotnet/
