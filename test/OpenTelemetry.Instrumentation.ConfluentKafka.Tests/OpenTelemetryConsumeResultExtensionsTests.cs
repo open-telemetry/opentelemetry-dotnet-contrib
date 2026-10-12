@@ -210,6 +210,224 @@ public class OpenTelemetryConsumeResultExtensionsTests
     }
 
     [Fact]
+    public async Task ConsumeAndProcessMessageAsync_UseCreationContextAsParent_ProcessActivityIsParentedOnCreationContext()
+    {
+        const string traceId = "0af7651916cd43dd8448eb211c80319c";
+        const string spanId = "b7ad6b7169203331";
+
+        var activities = new List<Activity>();
+
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                                        .AddSource(ConfluentKafkaCommon.ActivitySource.Name)
+                                        .AddInMemoryExporter(activities)
+                                        .Build())
+        {
+            var headers = new Headers
+            {
+                { "traceparent", Encoding.UTF8.GetBytes($"00-{traceId}-{spanId}-01") },
+            };
+
+            var consumer = BuildInstrumentedConsumer(
+                new ConsumeResult<string, string>
+                {
+                    Topic = "t",
+                    Message = new Message<string, string> { Value = "v", Headers = headers },
+                },
+                useCreationContextAsParent: true);
+
+            await consumer.ConsumeAndProcessMessageAsync(NoOpHandler);
+
+            tracerProvider.ForceFlush();
+        }
+
+        var processActivity = Assert.Single(activities, a => a.DisplayName == "process t");
+
+        // The process span is a child of the producer (creation) span context.
+        Assert.True(processActivity.ParentSpanId != default);
+        Assert.Equal(traceId, processActivity.TraceId.ToHexString());
+        Assert.Equal(spanId, processActivity.ParentSpanId.ToHexString());
+
+        // The creation context is still reported as a link.
+        Assert.Single(processActivity.Links, link =>
+            link.Context.TraceId.ToHexString() == traceId
+            && link.Context.SpanId.ToHexString() == spanId);
+    }
+
+    [Fact]
+    public async Task ConsumeAndProcessMessageAsync_UseCreationContextAsParent_NoAmbientContextNoExtraLinks()
+    {
+        const string traceId = "0af7651916cd43dd8448eb211c80319c";
+        const string spanId = "b7ad6b7169203331";
+
+        var activities = new List<Activity>();
+
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                                        .AddSource(ConfluentKafkaCommon.ActivitySource.Name)
+                                        .AddInMemoryExporter(activities)
+                                        .Build())
+        {
+            var headers = new Headers
+            {
+                { "traceparent", Encoding.UTF8.GetBytes($"00-{traceId}-{spanId}-01") },
+            };
+
+            var consumer = BuildInstrumentedConsumer(
+                new ConsumeResult<string, string>
+                {
+                    Topic = "t",
+                    Message = new Message<string, string> { Value = "v", Headers = headers },
+                },
+                useCreationContextAsParent: true);
+
+            await consumer.ConsumeAndProcessMessageAsync(NoOpHandler);
+
+            tracerProvider.ForceFlush();
+        }
+
+        var processActivity = Assert.Single(activities, a => a.DisplayName == "process t");
+
+        // No ambient context was active, so the only link is the creation context.
+        Assert.Single(processActivity.Links);
+    }
+
+    [Fact]
+    public async Task ConsumeAndProcessMessageAsync_UseCreationContextAsParent_WithoutCreationContext_UsesAmbientContextAsParent()
+    {
+        var activities = new List<Activity>();
+
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                                        .AddSource("test-ambient")
+                                        .AddSource(ConfluentKafkaCommon.ActivitySource.Name)
+                                        .AddInMemoryExporter(activities)
+                                        .Build())
+        {
+            var ambientSource = new ActivitySource("test-ambient");
+
+            using var ambient = ambientSource.StartActivity("ambient");
+            Assert.NotNull(ambient);
+
+            var consumer = BuildInstrumentedConsumer(
+                new ConsumeResult<string, string>
+                {
+                    Topic = "t",
+                    Message = new Message<string, string> { Value = "v" },
+                },
+                useCreationContextAsParent: true);
+
+            await consumer.ConsumeAndProcessMessageAsync(NoOpHandler);
+
+            tracerProvider.ForceFlush();
+        }
+
+        var processActivity = Assert.Single(activities, a => a.DisplayName == "process t");
+        var ambientActivity = Assert.Single(activities, a => a.DisplayName == "ambient");
+
+        // Without a creation context in the headers, the process span is parented
+        // on the ambient context instead of starting a new root span.
+        Assert.True(processActivity.ParentSpanId != default);
+        Assert.Equal(ambientActivity.TraceId, processActivity.TraceId);
+        Assert.Equal(ambientActivity.SpanId, processActivity.ParentSpanId);
+    }
+
+    [Fact]
+    public async Task ConsumeAndProcessMessageAsync_UseCreationContextAsParent_WithAmbientContext_AddsAmbientLink()
+    {
+        const string traceId = "0af7651916cd43dd8448eb211c80319c";
+        const string spanId = "b7ad6b7169203331";
+
+        var activities = new List<Activity>();
+
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                                        .AddSource("test-ambient")
+                                        .AddSource(ConfluentKafkaCommon.ActivitySource.Name)
+                                        .AddInMemoryExporter(activities)
+                                        .Build())
+        {
+            var ambientSource = new ActivitySource("test-ambient");
+
+            using var ambient = ambientSource.StartActivity("ambient");
+            Assert.NotNull(ambient);
+
+            var headers = new Headers
+            {
+                { "traceparent", Encoding.UTF8.GetBytes($"00-{traceId}-{spanId}-01") },
+            };
+
+            var consumer = BuildInstrumentedConsumer(
+                new ConsumeResult<string, string>
+                {
+                    Topic = "t",
+                    Message = new Message<string, string> { Value = "v", Headers = headers },
+                },
+                useCreationContextAsParent: true);
+
+            await consumer.ConsumeAndProcessMessageAsync(NoOpHandler);
+
+            tracerProvider.ForceFlush();
+        }
+
+        var processActivity = Assert.Single(activities, a => a.DisplayName == "process t");
+        var ambientActivity = Assert.Single(activities, a => a.DisplayName == "ambient");
+
+        // The process span is parented on the creation context.
+        Assert.Equal(traceId, processActivity.TraceId.ToHexString());
+        Assert.Equal(spanId, processActivity.ParentSpanId.ToHexString());
+
+        // Per the messaging semantic conventions, when the creation context is used
+        // as the parent and an ambient context is also active, the ambient context
+        // is added as an additional link alongside the creation context link.
+        Assert.Equal(2, processActivity.Links.Count());
+        Assert.Contains(processActivity.Links, link =>
+            link.Context.TraceId.ToHexString() == traceId
+            && link.Context.SpanId.ToHexString() == spanId);
+        Assert.Contains(processActivity.Links, link =>
+            link.Context.TraceId == ambientActivity.TraceId
+            && link.Context.SpanId == ambientActivity.SpanId);
+    }
+
+    [Fact]
+    public async Task ConsumeAndProcessMessageAsync_Default_UseCreationContextAsParentIsFalse_LinksOnly()
+    {
+        const string traceId = "0af7651916cd43dd8448eb211c80319c";
+        const string spanId = "b7ad6b7169203331";
+
+        var activities = new List<Activity>();
+
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                                        .AddSource(ConfluentKafkaCommon.ActivitySource.Name)
+                                        .AddInMemoryExporter(activities)
+                                        .Build())
+        {
+            var headers = new Headers
+            {
+                { "traceparent", Encoding.UTF8.GetBytes($"00-{traceId}-{spanId}-01") },
+            };
+
+            var consumer = BuildInstrumentedConsumer(
+                new ConsumeResult<string, string>
+                {
+                    Topic = "t",
+                    Message = new Message<string, string> { Value = "v", Headers = headers },
+                },
+                useCreationContextAsParent: false);
+
+            await consumer.ConsumeAndProcessMessageAsync(NoOpHandler);
+
+            tracerProvider.ForceFlush();
+        }
+
+        var processActivity = Assert.Single(activities, a => a.DisplayName == "process t");
+
+        // Default behavior: the process span is a root span and the creation
+        // context is only reported as a link.
+        Assert.Equal(default, processActivity.ParentSpanId);
+        Assert.NotEqual(traceId, processActivity.TraceId.ToHexString());
+        Assert.Single(processActivity.Links, link =>
+            link.Context.TraceId.ToHexString() == traceId
+            && link.Context.SpanId.ToHexString() == spanId);
+    }
+
+    [Fact]
     public async Task ConsumeAndProcessMessageAsync_TombstoneMessage_SetsTombstoneTag()
     {
         var activities = new List<Activity>();
@@ -237,13 +455,15 @@ public class OpenTelemetryConsumeResultExtensionsTests
     }
 
     private static InstrumentedConsumer<TKey, TValue> BuildInstrumentedConsumer<TKey, TValue>(
-        ConsumeResult<TKey, TValue>? consumeResult)
+        ConsumeResult<TKey, TValue>? consumeResult,
+        bool useCreationContextAsParent = false)
     {
         var fake = new FakeConsumer<TKey, TValue> { ConsumeResult = consumeResult };
         var options = new ConfluentKafkaConsumerInstrumentationOptions<TKey, TValue>
         {
             Traces = true,
             Metrics = false,
+            UseCreationContextAsParent = useCreationContextAsParent,
         };
 
         return new(fake, options) { GroupId = "test-group" };

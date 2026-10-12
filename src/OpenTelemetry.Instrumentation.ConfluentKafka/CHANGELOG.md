@@ -5,6 +5,13 @@
 * Updated OpenTelemetry core component version(s) to `1.19.1`.
   ([#5329](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5329))
 
+* Added the `UseCreationContextAsParent` option to
+  `ConfluentKafkaInstrumentedConsumerBuilderOptions`. When enabled, the
+  `process` span created by `ConsumeAndProcessMessageAsync` uses the message
+  creation context (extracted from the message headers) as its parent instead
+  of only linking to it, as allowed by the messaging semantic conventions.
+  ([#3995](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/3995))
+
 ## 0.3.0-alpha.2
 
 Released 2026-Sep-18
