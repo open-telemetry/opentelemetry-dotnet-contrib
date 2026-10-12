@@ -346,22 +346,13 @@ public static class WeaverTelemetryVerifier
             _ => null,
         };
 
-        if (code is null)
-        {
-            return null;
-        }
-
-        var status = new JsonObject
-        {
-            ["code"] = code,
-        };
-
-        if (!string.IsNullOrWhiteSpace(activity.StatusDescription))
-        {
-            status["message"] = activity.StatusDescription;
-        }
-
-        return status;
+        return code is not null
+            ? (JsonObject?)new JsonObject
+            {
+                ["code"] = code,
+                ["message"] = activity.StatusDescription ?? string.Empty,
+            }
+            : null;
     }
 
     private static JsonObject ToWeaverAttribute(string name, object? value)

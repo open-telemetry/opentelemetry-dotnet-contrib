@@ -59,6 +59,10 @@ internal class InstrumentedDuplexChannel : InstrumentedChannel<IDuplexChannel>, 
         try
         {
             this.Inner.EndSend(asyncResult.Inner);
+            if (asyncResult.TelemetryState.IsOneWay)
+            {
+                ClientChannelInstrumentation.AfterRequestCompleted(null, asyncResult.TelemetryState);
+            }
         }
         catch (Exception ex)
         {
@@ -155,23 +159,40 @@ internal class InstrumentedDuplexChannel : InstrumentedChannel<IDuplexChannel>, 
     private IAsyncResult SendInternal(Message message, TimeSpan timeout, Func<AsyncCallback?, object?, IAsyncResult> executeSend, AsyncCallback? callback, object? state)
     {
         IAsyncResult? result = null;
-        this.SendInternal(message, timeout, telemetryState =>
-        {
-            var asyncCallback = AsyncResultWithTelemetryState.GetAsyncCallback(callback, telemetryState);
-            result = new AsyncResultWithTelemetryState(executeSend(asyncCallback, state), telemetryState);
-        });
+        this.SendInternal(
+            message,
+            timeout,
+            telemetryState =>
+            {
+                var asyncCallback = AsyncResultWithTelemetryState.GetAsyncCallback(callback, telemetryState);
+                result = new AsyncResultWithTelemetryState(executeSend(asyncCallback, state), telemetryState);
+            },
+            completeOneWay: false);
         return result!;
     }
 
-    private void SendInternal(Message message, TimeSpan timeout, Action<RequestTelemetryState> executeSend)
+    private void SendInternal(
+        Message message,
+        TimeSpan timeout,
+        Action<RequestTelemetryState> executeSend,
+        bool completeOneWay = true)
     {
         RequestTelemetryState? telemetryState = null;
 
         void ExecuteInChildContext(object? unused)
         {
             telemetryState = ClientChannelInstrumentation.BeforeSendRequest(message, this.RemoteAddress?.Uri);
-            RequestTelemetryStateTracker.PushTelemetryState(message, telemetryState, timeout, OnTelemetryStateTimedOut);
+            if (!telemetryState.IsOneWay)
+            {
+                RequestTelemetryStateTracker.PushTelemetryState(message, telemetryState, timeout, OnTelemetryStateTimedOut);
+            }
+
             executeSend(telemetryState);
+
+            if (completeOneWay && telemetryState.IsOneWay)
+            {
+                ClientChannelInstrumentation.AfterRequestCompleted(null, telemetryState);
+            }
         }
 
         try

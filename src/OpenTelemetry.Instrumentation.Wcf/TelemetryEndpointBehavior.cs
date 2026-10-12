@@ -88,7 +88,8 @@ public class TelemetryEndpointBehavior : IEndpointBehavior
 
             actionMappings[clientOperation.Action] = new ActionMetadata(
                 contractName: $"{clientRuntime.ContractNamespace}{clientRuntime.ContractName}",
-                operationName: clientOperation.Name);
+                operationName: clientOperation.Name,
+                isOneWay: clientOperation.IsOneWay);
         }
 
         clientRuntime.ClientMessageInspectors.Add(new TelemetryClientMessageInspector(actionMappings));
@@ -97,6 +98,11 @@ public class TelemetryEndpointBehavior : IEndpointBehavior
 #if NETFRAMEWORK
     internal static void ApplyDispatchBehaviorToEndpoint(EndpointDispatcher endpointDispatcher)
     {
+        if (endpointDispatcher.DispatchRuntime.MessageInspectors.Any(mi => mi is TelemetryDispatchMessageInspector))
+        {
+            return;
+        }
+
         var actionMappings = new Dictionary<string, ActionMetadata>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var dispatchOperation in endpointDispatcher.DispatchRuntime.Operations)

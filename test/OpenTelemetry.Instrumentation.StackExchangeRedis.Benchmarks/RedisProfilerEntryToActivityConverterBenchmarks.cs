@@ -15,32 +15,47 @@ public class RedisProfilerEntryToActivityConverterBenchmarks
     private StackExchangeRedisInstrumentationOptions? options;
     private BenchmarkProfiledCommand? profiledCommand;
 
+    public enum SemanticConventionMode
+    {
+        Old,
+        New,
+        Both,
+    }
+
     [Params(false, true)]
     public bool EnrichActivityWithTimingEvents { get; set; }
 
     [Params(false, true)]
     public bool HasParentActivity { get; set; }
 
+    [Params(false, true)]
+    public bool CommandFromEnum { get; set; }
+
+    [Params(SemanticConventionMode.Old, SemanticConventionMode.New, SemanticConventionMode.Both)]
+    public SemanticConventionMode Attributes { get; set; }
+
     [GlobalSetup]
     public void GlobalSetup()
     {
+        var sourceName = StackExchangeRedisConnectionInstrumentation.ActivitySource.Name;
+
         this.activityListener = new ActivityListener()
         {
             Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
             SampleUsingParentId = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
-            ShouldListenTo = (source) => source.Name == StackExchangeRedisConnectionInstrumentation.ActivitySource.Name,
+            ShouldListenTo = (source) => source.Name == sourceName,
         };
 
         ActivitySource.AddActivityListener(this.activityListener);
 
         this.options = new StackExchangeRedisInstrumentationOptions()
         {
-            EmitNewAttributes = false,
-            EmitOldAttributes = true,
+            EmitNewAttributes = this.Attributes != SemanticConventionMode.Old,
+            EmitOldAttributes = this.Attributes != SemanticConventionMode.New,
             EnrichActivityWithTimingEvents = this.EnrichActivityWithTimingEvents,
         };
 
-        this.profiledCommand = BenchmarkProfiledCommand.Create(DateTime.UtcNow, index: 0);
+        this.profiledCommand = BenchmarkProfiledCommand.Create(DateTime.UtcNow, index: 0, this.CommandFromEnum);
 
         if (this.HasParentActivity)
         {
@@ -48,6 +63,11 @@ public class RedisProfilerEntryToActivityConverterBenchmarks
             this.parentActivity.SetIdFormat(ActivityIdFormat.W3C);
             this.parentActivity.Start();
             this.parentActivity.Stop();
+        }
+
+        if (this.ConvertCommand() == null)
+        {
+            throw new InvalidOperationException("The activity listener did not sample the instrumentation's activity.");
         }
     }
 

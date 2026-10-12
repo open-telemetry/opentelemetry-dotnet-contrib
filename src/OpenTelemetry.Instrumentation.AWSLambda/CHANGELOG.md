@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Fixed multiple invocations that start concurrently in a new execution
+  environment being recorded as `faas.coldstart` as `true`.
+  ([#5433](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5433))
+
 * Fix baggage extracted from the incoming event not being applied to
   `Baggage.Current`.
   ([#5479](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5479))

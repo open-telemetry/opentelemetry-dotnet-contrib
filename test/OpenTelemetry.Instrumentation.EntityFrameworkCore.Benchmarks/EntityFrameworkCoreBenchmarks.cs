@@ -62,6 +62,13 @@ public class EntityFrameworkCoreBenchmarks
         InstrumentationScenario.TracesWithFilter)]
     public InstrumentationScenario Scenario { get; set; }
 
+    /// <summary>
+    /// Gets or sets the number of rows returned by the query. Tracked queries raise
+    /// EF Core diagnostic events for every materialized entity.
+    /// </summary>
+    [Params(3, 100)]
+    public int Rows { get; set; }
+
     [GlobalSetup]
     public void Setup()
     {
@@ -76,9 +83,7 @@ public class EntityFrameworkCoreBenchmarks
         context.Database.EnsureCreated();
 
         context.Items.AddRange(
-            new() { Name = "Alpha" },
-            new() { Name = "Beta" },
-            new() { Name = "Gamma" });
+            Enumerable.Range(0, this.Rows).Select((i) => new BenchmarkItem() { Name = $"Item{i:D4}" }));
 
         context.SaveChanges();
 
@@ -115,5 +120,12 @@ public class EntityFrameworkCoreBenchmarks
     {
         using var context = new BenchmarkContext(this.contextOptions!);
         return context.Items.OrderBy((p) => p.Name).ToList().Count;
+    }
+
+    [Benchmark]
+    public int QueryNoTracking()
+    {
+        using var context = new BenchmarkContext(this.contextOptions!);
+        return context.Items.AsNoTracking().OrderBy((p) => p.Name).ToList().Count;
     }
 }

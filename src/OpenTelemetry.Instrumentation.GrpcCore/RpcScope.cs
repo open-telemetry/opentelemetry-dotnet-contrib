@@ -205,8 +205,7 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     /// </summary>
     /// <param name="statusCode">The status code.</param>
     /// <param name="markAsCompleted">If set to <c>true</c> [mark as completed].</param>
-    /// <param name="statusDescription">The status description to set when the span is marked as failed, if any.</param>
-    private void StopActivity(int statusCode, bool markAsCompleted = true, string? statusDescription = null)
+    private void StopActivity(int statusCode, bool markAsCompleted = true)
     {
         if ((markAsCompleted && !this.TryMarkAsCompleted()) || this.activity is null)
         {
@@ -226,7 +225,7 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
 
         if (spanStatus == ActivityStatusCode.Error)
         {
-            this.activity.SetStatus(spanStatus, statusDescription);
+            this.activity.SetStatus(spanStatus);
 
             // error.type is conditionally required when the operation failed; for gRPC it is set to
             // the status code name.
@@ -247,24 +246,18 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
             return;
         }
 
-        var grpcStatusCode = StatusCode.Unknown;
-        var description = exception.Message;
-
-        if (exception is RpcException rpcException)
-        {
-            grpcStatusCode = rpcException.StatusCode;
-            description = rpcException.Message;
-        }
+        var grpcStatusCode = exception is RpcException rpcException
+            ? rpcException.StatusCode
+            : StatusCode.Unknown;
 
         if (this.activity.IsAllDataRequested && this.recordException)
         {
             this.activity.AddException(exception);
         }
 
-        // Defer to StopActivity to apply the span-kind specific status rules. The status description
-        // is only used when the resolved span status is an error so that, for example, server spans
-        // do not report an error status for status codes the conventions consider successful.
-        this.StopActivity((int)grpcStatusCode, markAsCompleted: false, statusDescription: description);
+        // Defer to StopActivity to apply the span-kind specific status rules so that, for example,
+        // server spans do not report an error status for status codes the conventions consider successful.
+        this.StopActivity((int)grpcStatusCode, markAsCompleted: false);
     }
 
     /// <summary>

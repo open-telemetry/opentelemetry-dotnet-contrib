@@ -8,6 +8,9 @@ namespace OpenTelemetry.Instrumentation.Benchmarks;
 [MemoryDiagnoser(displayGenColumns: false)]
 public class SqlProcessorBenchmarks
 {
+    private string[] instances = [];
+    private int index;
+
     [Params(
          "SELECT * FROM Orders o, OrderDetails od",
          "SELECT order_date\nFROM   (SELECT *\nFROM   orders o\nJOIN customers c\nON o.customer_id = c.customer_id)",
@@ -20,6 +23,10 @@ public class SqlProcessorBenchmarks
          "SELECT Col1, Col2, Col3, Col4, Col5 FROM VeryLongTableName_Sales2024_Q4, Another_Very_Long_Table_Name_Inventory")]
     public string Sql { get; set; } = string.Empty;
 
+    [GlobalSetup]
+    public void Setup() =>
+        this.instances = [this.Sql, new string(this.Sql.ToCharArray())];
+
     [Benchmark]
-    public void GetSanitizedSql() => SqlProcessor.GetSanitizedSql(this.Sql);
+    public void GetSanitizedSql() => SqlProcessor.GetSanitizedSql(this.instances[this.index++ & 1]);
 }

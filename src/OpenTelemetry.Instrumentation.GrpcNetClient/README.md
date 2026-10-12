@@ -53,10 +53,11 @@ packages
 and
 [`OpenTelemetry.Instrumentation.Http`](../OpenTelemetry.Instrumentation.Http/README.md)
 to the application. As Grpc.Net.Client uses HttpClient underneath, it is
-recommended to enable HttpClient instrumentation as well to ensure proper
-context propagation. This would cause an activity being produced for both a gRPC
-call and its underlying HTTP call. This behavior can be
-[configured](#suppressdownstreaminstrumentation).
+recommended to enable HttpClient instrumentation as well. This would cause an
+activity being produced for both a gRPC call and its underlying HTTP call. This
+behavior can be [configured](#suppressdownstreaminstrumentation). See
+[Context propagation](#context-propagation) for how the downstream span is
+parented.
 
 ```csharp
 using OpenTelemetry.Trace;
@@ -93,10 +94,7 @@ This option may change or even be removed in a future release.
 This option prevents downstream instrumentation from being invoked.
 Grpc.Net.Client is built on top of HttpClient. When instrumentation for both
 libraries is enabled, `SuppressDownstreamInstrumentation` prevents the
-HttpClient instrumentation from generating an additional activity. Additionally,
-since HttpClient instrumentation is normally responsible for propagating context
-(ActivityContext and Baggage), Grpc.Net.Client instrumentation propagates
-context when `SuppressDownstreamInstrumentation` is enabled.
+HttpClient instrumentation from generating an additional activity.
 
 The following example shows how to use `SuppressDownstreamInstrumentation`.
 
@@ -107,6 +105,15 @@ using var tracerProvider = Sdk.CreateTracerProviderBuilder()
     .AddHttpClientInstrumentation()
     .Build();
 ```
+
+### Context propagation
+
+Grpc.Net.Client instrumentation propagates context (`ActivityContext` and
+`Baggage`) to downstream services using the configured propagator, so the
+downstream span is parented to the gRPC client span. When HttpClient
+instrumentation is also enabled, the downstream span is parented to the
+HttpClient span with the default propagator, and to the gRPC client span when
+the propagator is only `TraceContextPropagator`.
 
 ### Filter
 

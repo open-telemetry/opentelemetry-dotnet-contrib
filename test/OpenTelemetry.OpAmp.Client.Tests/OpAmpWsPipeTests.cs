@@ -52,7 +52,7 @@ public class OpAmpWsPipeTests : OpAmpPipeTests
         var settings = new OpAmpClientSettings();
         var processor = new FrameProcessor();
         using var pipe = new OpAmpPipe(settings, processor, transport);
-        var newInstanceUid = ByteString.CopyFrom(Enumerable.Range(1, 16).Select(i => (byte)i).ToArray());
+        var newInstanceUid = ByteString.CopyFrom([.. Enumerable.Range(1, 16).Select(i => (byte)i)]);
         var serverFrame = new ServerToAgent
         {
             AgentIdentification = new AgentIdentification { NewInstanceUid = newInstanceUid },

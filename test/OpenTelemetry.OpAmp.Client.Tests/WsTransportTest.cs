@@ -84,7 +84,7 @@ public class WsTransportTest
         using var wsTransport = new WsTransport(settings, frameProcessor);
         await wsTransport.StartAsync(CancellationToken.None);
 
-        var instanceUid = ByteString.CopyFrom(Enumerable.Range(1, 16).Select(i => (byte)i).ToArray());
+        var instanceUid = ByteString.CopyFrom([.. Enumerable.Range(1, 16).Select(i => (byte)i)]);
         var mockFrame = FrameGenerator.GenerateMockAgentFrame();
 
         await wsTransport.SendAsync(mockFrame.Frame, CancellationToken.None, message => message.InstanceUid = instanceUid);

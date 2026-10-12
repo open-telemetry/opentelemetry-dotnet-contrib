@@ -96,17 +96,7 @@ public class HttpInListenerTests
                     options.Filter = httpContext =>
                     {
                         Assert.True(Activity.Current!.IsAllDataRequested);
-                        if (string.IsNullOrEmpty(filter))
-                        {
-                            return true;
-                        }
-
-                        if (filter == "{ThrowException}")
-                        {
-                            throw new InvalidOperationException();
-                        }
-
-                        return httpContext.Request.Path != filter;
+                        return string.IsNullOrEmpty(filter) || (filter == "{ThrowException}" ? throw new InvalidOperationException() : httpContext.Request.Path != filter);
                     };
 
                     options.EnrichWithHttpRequest = (activity, request) =>
@@ -173,9 +163,7 @@ public class HttpInListenerTests
                 return;
             }
 
-            Assert.Single(exportedItems);
-
-            var span = exportedItems[0];
+            var span = Assert.Single(exportedItems);
 
             Assert.NotEqual(TimeSpan.Zero, span.Duration);
 
@@ -202,7 +190,10 @@ public class HttpInListenerTests
             {
                 var status = span.Status;
                 Assert.Equal(ActivityStatusCode.Error, span.Status);
-                Assert.Equal("Operation is not valid due to the current state of the object.", span.StatusDescription);
+                Assert.True(string.IsNullOrEmpty(span.StatusDescription));
+
+                var exceptionEvent = Assert.Single(span.Events);
+                Assert.Contains(exceptionEvent.Tags, tag => tag.Key == "exception.message" && (tag.Value as string) == new InvalidOperationException().Message);
             }
             else if (setStatusToErrorInEnrich)
             {

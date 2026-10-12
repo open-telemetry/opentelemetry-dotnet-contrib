@@ -119,7 +119,7 @@ public sealed class SqlClientIntegrationTests :
         {
 #if NET
             Assert.Equal(ActivityStatusCode.Error, activity.Status);
-            Assert.Equal("Divide by zero error encountered.", activity.StatusDescription);
+            Assert.Null(activity.StatusDescription);
             Assert.EndsWith("SqlException", activity.GetTagValue(SemanticConventions.AttributeErrorType) as string);
             Assert.Equal("8134", activity.GetTagValue(SemanticConventions.AttributeDbResponseStatusCode));
 #else
@@ -578,14 +578,17 @@ public sealed class SqlClientIntegrationTests :
         else
         {
             Assert.Equal(ActivityStatusCode.Error, activity.Status);
+#if NETFRAMEWORK
             Assert.NotNull(activity.StatusDescription);
+#else
+            Assert.Null(activity.StatusDescription);
+#endif
 
             if (recordException)
             {
                 var events = activity.Events.ToList();
-                Assert.Single(events);
-
-                Assert.Equal(SemanticConventions.AttributeExceptionEventName, events[0].Name);
+                var @event = Assert.Single(events);
+                Assert.Equal(SemanticConventions.AttributeExceptionEventName, @event.Name);
             }
             else
             {

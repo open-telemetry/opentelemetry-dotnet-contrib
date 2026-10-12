@@ -27,10 +27,12 @@ internal class AWSLambdaUtils
     private const string FunctionLogStreamName = "AWS_LAMBDA_LOG_STREAM_NAME";
     private const string AWSXRayLambdaTraceHeaderKey = "_X_AMZN_TRACE_ID";
 
-    private static readonly Func<IDictionary<string, string>, string, IEnumerable<string>> Getter = (headers, name) =>
+    private static readonly Func<IDictionary<string, string>, string, IEnumerable<string>> Getter = static (headers, name) =>
     {
         return headers.TryGetValue(name, out var value) ? [value] : [];
     };
+
+    private static readonly AWSXRayPropagator XrayPropagator = new();
 
     // Added volatile for abundance of caution because in theory, particular in using Lambda's Managed Instances,
     // during initial startup multiple invocations invoking GetXRayParentContext() at the same time before the first
@@ -242,15 +244,8 @@ internal class AWSLambdaUtils
         return faasId;
     }
 
-    private static string GetFaasTrigger<TInput>(TInput input)
-    {
-        if (IsHttpRequest(input))
-        {
-            return "http";
-        }
-
-        return IsPubSubRequest(input) ? "pubsub" : "other";
-    }
+    private static string GetFaasTrigger<TInput>(TInput input) =>
+        IsHttpRequest(input) ? "http" : IsPubSubRequest(input) ? "pubsub" : "other";
 
     private static bool IsHttpRequest<TInput>(TInput input) =>
         input is APIGatewayProxyRequest or APIGatewayHttpApiV2ProxyRequest or ApplicationLoadBalancerRequest;
@@ -260,14 +255,12 @@ internal class AWSLambdaUtils
 
     private static ActivityContext ParseXRayTraceHeader(string rawHeader)
     {
-        var xrayPropagator = new AWSXRayPropagator();
-
         var carrier = new Dictionary<string, string>()
         {
             { AWSXRayTraceHeaderKey, rawHeader },
         };
 
-        var propagationContext = xrayPropagator.Extract(default, carrier, Getter);
+        var propagationContext = XrayPropagator.Extract(default, carrier, Getter);
         return propagationContext.ActivityContext;
     }
 }

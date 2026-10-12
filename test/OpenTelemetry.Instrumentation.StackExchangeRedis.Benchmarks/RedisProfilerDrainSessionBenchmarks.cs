@@ -29,11 +29,13 @@ public class RedisProfilerDrainSessionBenchmarks
     [GlobalSetup]
     public void GlobalSetup()
     {
+        var sourceName = StackExchangeRedisConnectionInstrumentation.ActivitySource.Name;
+
         this.activityListener = new ActivityListener()
         {
             Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
             SampleUsingParentId = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
-            ShouldListenTo = (source) => source.Name == StackExchangeRedisConnectionInstrumentation.ActivitySource.Name,
+            ShouldListenTo = (source) => source.Name == sourceName,
         };
 
         ActivitySource.AddActivityListener(this.activityListener);
