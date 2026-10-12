@@ -216,7 +216,7 @@ public static class OpenTelemetryConsumeResultExtensions
             return [];
         }
 
-        // Semconv: when the creation context is the parent, also link the ambient context.
+        // when the creation context is the parent, also link the ambient context.
         if (useCreationContextAsParent
             && Activity.Current?.Context is { } ambientContext
             && ambientContext.IsValid()

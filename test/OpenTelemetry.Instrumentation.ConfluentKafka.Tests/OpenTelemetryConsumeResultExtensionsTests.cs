@@ -242,12 +242,10 @@ public class OpenTelemetryConsumeResultExtensionsTests
 
         var processActivity = Assert.Single(activities, a => a.DisplayName == "process t");
 
-        // The process span is a child of the producer (creation) span context.
         Assert.True(processActivity.ParentSpanId != default);
         Assert.Equal(traceId, processActivity.TraceId.ToHexString());
         Assert.Equal(spanId, processActivity.ParentSpanId.ToHexString());
 
-        // The creation context is still reported as a link.
         Assert.Single(processActivity.Links, link =>
             link.Context.TraceId.ToHexString() == traceId
             && link.Context.SpanId.ToHexString() == spanId);
@@ -286,7 +284,6 @@ public class OpenTelemetryConsumeResultExtensionsTests
 
         var processActivity = Assert.Single(activities, a => a.DisplayName == "process t");
 
-        // No ambient context was active, so the only link is the creation context.
         Assert.Single(processActivity.Links);
     }
 
@@ -322,8 +319,6 @@ public class OpenTelemetryConsumeResultExtensionsTests
         var processActivity = Assert.Single(activities, a => a.DisplayName == "process t");
         var ambientActivity = Assert.Single(activities, a => a.DisplayName == "ambient");
 
-        // Without a creation context in the headers, the process span is parented
-        // on the ambient context instead of starting a new root span.
         Assert.True(processActivity.ParentSpanId != default);
         Assert.Equal(ambientActivity.TraceId, processActivity.TraceId);
         Assert.Equal(ambientActivity.SpanId, processActivity.ParentSpanId);
@@ -369,13 +364,9 @@ public class OpenTelemetryConsumeResultExtensionsTests
         var processActivity = Assert.Single(activities, a => a.DisplayName == "process t");
         var ambientActivity = Assert.Single(activities, a => a.DisplayName == "ambient");
 
-        // The process span is parented on the creation context.
         Assert.Equal(traceId, processActivity.TraceId.ToHexString());
         Assert.Equal(spanId, processActivity.ParentSpanId.ToHexString());
 
-        // Per the messaging semantic conventions, when the creation context is used
-        // as the parent and an ambient context is also active, the ambient context
-        // is added as an additional link alongside the creation context link.
         Assert.Equal(2, processActivity.Links.Count());
         Assert.Contains(processActivity.Links, link =>
             link.Context.TraceId.ToHexString() == traceId
@@ -418,8 +409,6 @@ public class OpenTelemetryConsumeResultExtensionsTests
 
         var processActivity = Assert.Single(activities, a => a.DisplayName == "process t");
 
-        // Default behavior: the process span is a root span and the creation
-        // context is only reported as a link.
         Assert.Equal(default, processActivity.ParentSpanId);
         Assert.NotEqual(traceId, processActivity.TraceId.ToHexString());
         Assert.Single(processActivity.Links, link =>
