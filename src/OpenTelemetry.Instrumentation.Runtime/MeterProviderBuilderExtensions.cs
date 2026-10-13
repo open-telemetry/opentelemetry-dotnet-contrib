@@ -12,7 +12,9 @@ namespace OpenTelemetry.Metrics;
 public static class MeterProviderBuilderExtensions
 {
     private const string DotNetRuntimeMeterName = "System.Runtime";
+#if !NET9_0_OR_GREATER
     private static readonly bool Net9OrGreater = Environment.Version.Major >= 9;
+#endif
 
     /// <summary>
     /// Enables runtime instrumentation.
@@ -35,6 +37,9 @@ public static class MeterProviderBuilderExtensions
     {
         Guard.ThrowIfNull(builder);
 
+#if NET9_0_OR_GREATER
+        return builder.AddMeter(DotNetRuntimeMeterName);
+#else
         if (Net9OrGreater)
         {
             return builder.AddMeter(DotNetRuntimeMeterName);
@@ -45,5 +50,6 @@ public static class MeterProviderBuilderExtensions
 
         builder.AddMeter(RuntimeMetrics.MeterInstance.Name);
         return builder.AddInstrumentation(() => new RuntimeMetrics(options));
+#endif
     }
 }
