@@ -1862,7 +1862,10 @@ public sealed class BasicTests
                 }).Build();
             await client.StartAsync(TestContext.Current.CancellationToken);
 
-            await client.SendAsync("Send", "text", TestContext.Current.CancellationToken);
+            // SendAsync completes once the message is written to the transport, not once the server
+            // has processed it, so stopping straight afterwards can tear down the connection before
+            // the hub method (and its activity) runs. InvokeAsync waits for the server's completion.
+            await client.InvokeAsync("Send", "text", TestContext.Current.CancellationToken);
 
             await client.StopAsync(TestContext.Current.CancellationToken);
 
