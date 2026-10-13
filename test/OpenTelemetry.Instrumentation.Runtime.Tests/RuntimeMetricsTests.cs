@@ -205,6 +205,7 @@ public class RuntimeMetricsTests
     }
 #endif
 
+#if !NET9_0_OR_GREATER
     [Fact]
     public void ExceptionSubscriptionIsReferenceCounted()
     {
@@ -247,6 +248,7 @@ public class RuntimeMetricsTests
 
         Assert.Equal(0, RuntimeMetrics.ActiveRuntimeMetricsInstances);
     }
+#endif
 
     private static double GetValue(Metric metric)
     {
