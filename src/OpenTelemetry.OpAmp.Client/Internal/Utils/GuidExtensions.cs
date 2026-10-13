@@ -29,7 +29,7 @@ internal static class GuidExtensions
 #endif
     }
 
-#if !NET8_0_OR_GREATER
+#if !NET
     private static void SwapFieldByteOrder(byte[] bytes)
     {
         Array.Reverse(bytes, 0, 4);

@@ -91,11 +91,7 @@ public class RequestDataHelperTests
     [InlineData("TRACE", "/orders/{id}", "TRACE /orders/{id}")]
     [InlineData("PATCH", "/orders/{id}", "PATCH /orders/{id}")]
     [InlineData("CONNECT", "/orders/{id}", "CONNECT /orders/{id}")]
-#if NET9_0
-    [InlineData("QUERY", "/orders/{id}", "HTTP /orders/{id}")]
-#else
     [InlineData("QUERY", "/orders/{id}", "QUERY /orders/{id}")]
-#endif
     [InlineData("CUSTOM", "/orders/{id}", "HTTP /orders/{id}")]
     [InlineData("_OTHER", "/orders/{id}", "HTTP /orders/{id}")]
     [InlineData("HTTP", "/orders/{id}", "HTTP /orders/{id}")]
