@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if !NET9_0_OR_GREATER
+
 using System.Diagnostics.Metrics;
 using System.Runtime.ExceptionServices;
 #if NET
@@ -249,3 +251,5 @@ internal sealed class RuntimeMetrics : IDisposable
         return meter;
     }
 }
+
+#endif
