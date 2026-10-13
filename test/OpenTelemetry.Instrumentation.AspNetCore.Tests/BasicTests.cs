@@ -1073,7 +1073,7 @@ public sealed class BasicTests
     public async Task ValidateUrlQueryRedaction(string urlQuery, string expectedUrlQuery, bool disableQueryRedaction)
     {
 #if NET11_0_OR_GREATER
-        Assert.Skip("TODO Disabled while investigating refaction differences.");
+        Assert.Skip("TODO Disabled while investigating redaction differences.");
 #endif
 
         var exportedItems = new List<Activity>();
