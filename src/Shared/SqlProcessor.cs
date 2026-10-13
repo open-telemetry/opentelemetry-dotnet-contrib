@@ -1153,8 +1153,10 @@ internal static class SqlProcessor
 
         return FindQuotedLiteralEnd(sql, quotePosition, SingleQuoteChar, useBackslashEscapes);
 
-        static bool IsSeparateToken(ReadOnlySpan<char> sql, int position) =>
-            position == 0 || !IsWordChar(sql[position - 1]);
+        static bool IsSeparateToken(ReadOnlySpan<char> sql, int position)
+        {
+            return position == 0 || !IsWordChar(sql[position - 1]);
+        }
     }
 
     private static int FindAlternativeQuotedLiteralEnd(ReadOnlySpan<char> sql, int quotePosition)
