@@ -6,16 +6,27 @@ namespace OpenTelemetry.Extensions.Internal;
 
 internal sealed class RateLimiter
 {
-    private readonly Stopwatch stopwatch = Stopwatch.StartNew();
+    private readonly Func<long> getElapsedTicks;
     private readonly double creditsPerTick;
     private readonly long maxBalance; // max balance in ticks
     private long currentBalance; // last op ticks less remaining balance, using long directly with Interlocked for thread safety
 
     public RateLimiter(double creditsPerSecond, double maxBalance)
+        : this(creditsPerSecond, maxBalance, Stopwatch.StartNew())
     {
-        this.creditsPerTick = creditsPerSecond / Stopwatch.Frequency;
+    }
+
+    internal RateLimiter(double creditsPerSecond, double maxBalance, Func<long> getElapsedTicks, long ticksPerSecond)
+    {
+        this.getElapsedTicks = getElapsedTicks;
+        this.creditsPerTick = creditsPerSecond / ticksPerSecond;
         this.maxBalance = (long)(maxBalance / this.creditsPerTick);
-        this.currentBalance = this.stopwatch.ElapsedTicks - this.maxBalance;
+        this.currentBalance = this.getElapsedTicks() - this.maxBalance;
+    }
+
+    private RateLimiter(double creditsPerSecond, double maxBalance, Stopwatch stopwatch)
+        : this(creditsPerSecond, maxBalance, () => stopwatch.ElapsedTicks, Stopwatch.Frequency)
+    {
     }
 
     public bool TrySpend(double itemCost)
@@ -27,7 +38,7 @@ internal sealed class RateLimiter
         do
         {
             currentBalanceTicks = Interlocked.Read(ref this.currentBalance);
-            currentTicks = this.stopwatch.ElapsedTicks;
+            currentTicks = this.getElapsedTicks();
             var currentAvailableBalance = currentTicks - currentBalanceTicks;
             if (currentAvailableBalance > this.maxBalance)
             {

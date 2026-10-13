@@ -9,11 +9,15 @@ namespace OpenTelemetry.Instrumentation.StackExchangeRedis.Benchmarks;
 
 internal sealed class BenchmarkProfiledCommand : IProfiledCommand
 {
+    private readonly string command;
+    private readonly BenchmarkRedisCommand? enumCommand;
+
     public BenchmarkProfiledCommand(
         DateTime commandCreated,
         EndPoint endPoint,
         int db,
         string command,
+        bool commandFromEnum,
         TimeSpan creationToEnqueued,
         TimeSpan enqueuedToSending,
         TimeSpan sentToResponse,
@@ -22,7 +26,8 @@ internal sealed class BenchmarkProfiledCommand : IProfiledCommand
         this.CommandCreated = commandCreated;
         this.EndPoint = endPoint;
         this.Db = db;
-        this.Command = command;
+        this.command = command;
+        this.enumCommand = commandFromEnum ? Enum.Parse<BenchmarkRedisCommand>(command) : null;
         this.CreationToEnqueued = creationToEnqueued;
         this.EnqueuedToSending = enqueuedToSending;
         this.SentToResponse = sentToResponse;
@@ -33,7 +38,9 @@ internal sealed class BenchmarkProfiledCommand : IProfiledCommand
 
     public int Db { get; }
 
-    public string Command { get; }
+    // StackExchange.Redis' ProfiledCommand.Command formats the RedisCommand enum on every access
+    // (via Message.CommandString) rather than returning a stored string.
+    public string Command => this.enumCommand?.ToString() ?? this.command;
 
     public CommandFlags Flags => CommandFlags.None;
 
@@ -53,7 +60,7 @@ internal sealed class BenchmarkProfiledCommand : IProfiledCommand
 
     public RetransmissionReasonType? RetransmissionReason => null;
 
-    public static BenchmarkProfiledCommand Create(DateTime commandCreated, int index)
+    public static BenchmarkProfiledCommand Create(DateTime commandCreated, int index, bool commandFromEnum = false)
     {
         EndPoint endpoint = index % 2 == 0
             ? new IPEndPoint(IPAddress.Loopback, 6379)
@@ -64,6 +71,7 @@ internal sealed class BenchmarkProfiledCommand : IProfiledCommand
             endpoint,
             db: index % 16,
             command: index % 3 == 0 ? "GET" : "SET",
+            commandFromEnum: commandFromEnum,
             creationToEnqueued: TimeSpan.FromTicks(15 + index),
             enqueuedToSending: TimeSpan.FromTicks(20 + index),
             sentToResponse: TimeSpan.FromTicks(35 + index),

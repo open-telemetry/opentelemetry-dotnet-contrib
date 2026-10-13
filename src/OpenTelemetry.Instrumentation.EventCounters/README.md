@@ -50,6 +50,23 @@ requires adding the package
 [`OpenTelemetry.Exporter.Prometheus`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Prometheus.HttpListener/README.md)
 to the application.
 
+When using dependency injection (`Microsoft.Extensions.DependencyInjection`),
+EventCounters instrumentation can be registered using
+`AddOpenTelemetry().WithMetrics()`:
+
+```csharp
+services.AddOpenTelemetry()
+    .WithMetrics(builder => builder
+        .AddEventCountersInstrumentation(options =>
+        {
+            options.RefreshIntervalSecs = 1;
+            options.AddEventSources("MyEventSource");
+        }));
+```
+
+Options can also be bound to configuration via
+`services.Configure<EventCountersInstrumentationOptions>(...)`.
+
 ### Step 3: Create EventCounters
 
 Learn about [EventCounters in

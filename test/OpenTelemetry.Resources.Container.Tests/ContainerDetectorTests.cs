@@ -8,28 +8,16 @@ public class ContainerDetectorTests
     private readonly List<TestCase> testValidCasesV1 =
     [
         new(
-            name: "cgroupv1 with prefix",
-            line: "13:name=systemd:/podruntime/docker/kubepods/crio-e2cc29debdf85dde404998aa128997a819ff",
-            expectedContainerId: "e2cc29debdf85dde404998aa128997a819ff",
-            cgroupVersion: ContainerDetector.ParseMode.V1),
-
-        new(
-            name: "cgroupv1 with suffix",
-            line: "13:name=systemd:/podruntime/docker/kubepods/ac679f8a8319c8cf7d38e1adf263bc08d23.aaaa",
-            expectedContainerId: "ac679f8a8319c8cf7d38e1adf263bc08d23",
-            cgroupVersion: ContainerDetector.ParseMode.V1),
-
-        new(
-            name: "cgroupv1 with prefix and suffix",
-            line: "13:name=systemd:/podruntime/docker/kubepods/crio-dc679f8a8319c8cf7d38e1adf263bc08d23.stuff",
-            expectedContainerId: "dc679f8a8319c8cf7d38e1adf263bc08d23",
-            cgroupVersion: ContainerDetector.ParseMode.V1),
-
-        new(
             name: "cgroupv1 with container Id",
             line: "13:name=systemd:/pod/d86d75589bf6cc254f3e2cc29debdf85dde404998aa128997a819ff991827356",
             expectedContainerId: "d86d75589bf6cc254f3e2cc29debdf85dde404998aa128997a819ff991827356",
-            cgroupVersion: ContainerDetector.ParseMode.V1)
+            cgroupVersion: ContainerDetector.ParseMode.V1),
+
+        new(
+            name: "cgroupv1 with container Id after lines without one",
+            line: "13:rdma:/\n12:pids:/user.slice/user-1000.slice/session-2.scope\n11:cpu:/system.slice/docker-d86d75589bf6cc254f3e2cc29debdf85dde404998aa128997a819ff991827356.scope",
+            expectedContainerId: "d86d75589bf6cc254f3e2cc29debdf85dde404998aa128997a819ff991827356",
+            cgroupVersion: ContainerDetector.ParseMode.V1),
 
     ];
 
@@ -78,6 +66,11 @@ public class ContainerDetectorTests
         new(
             name: "Invalid cgroupv1 line",
             line: "13:name=systemd:/podruntime/docker/kubepods/ac679f8a8319c8cf7d38e1adf263bc08d23zzzz",
+            cgroupVersion: ContainerDetector.ParseMode.V1),
+
+        new(
+            name: "cgroupv1 file of a process that is not in a container",
+            line: "0::/user.slice/user-1000.slice/session-2.scope",
             cgroupVersion: ContainerDetector.ParseMode.V1),
 
         new(

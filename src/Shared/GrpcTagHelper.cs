@@ -44,8 +44,26 @@ internal static class GrpcTagHelper
             return;
         }
 
-        var trimmedMethod = grpcMethod.Trim('/');
+        SetTrimmedGrpcMethodAndDisplayName(activity, TrimGrpcMethod(grpcMethod));
+    }
 
+    /// <summary>
+    /// Trims the leading and trailing <c>/</c> characters from a gRPC method name (for example
+    /// <c>/greet.Greeter/SayHello</c> becomes <c>greet.Greeter/SayHello</c>).
+    /// </summary>
+    /// <param name="grpcMethod">The gRPC method name.</param>
+    /// <returns>The trimmed gRPC method name.</returns>
+    public static string TrimGrpcMethod(string grpcMethod)
+        => grpcMethod.Trim('/');
+
+    /// <summary>
+    /// Sets the <c>rpc.method</c> (and, if applicable, <c>rpc.method_original</c>) tags and the
+    /// display name of the activity, and removes the <c>grpc.method</c> tag.
+    /// </summary>
+    /// <param name="activity">The activity to update.</param>
+    /// <param name="trimmedMethod">The gRPC method name as returned by <see cref="TrimGrpcMethod"/>.</param>
+    public static void SetTrimmedGrpcMethodAndDisplayName(Activity activity, string trimmedMethod)
+    {
         if (string.Equals(trimmedMethod, GrpcMethodOther, StringComparison.Ordinal))
         {
             // The gRPC libraries use "other" when the method is not recognized. This maps to

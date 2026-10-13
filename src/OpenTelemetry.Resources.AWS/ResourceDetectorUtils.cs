@@ -17,6 +17,8 @@ namespace OpenTelemetry.Resources.AWS;
 /// </summary>
 internal static class ResourceDetectorUtils
 {
+    private const int MaxResponseSizeInBytes = 4 * 1024 * 1024;
+
 #if NETFRAMEWORK
     private static readonly JsonSerializerOptions JsonSerializerOptions = new(JsonSerializerDefaults.Web);
 #endif
@@ -25,6 +27,7 @@ internal static class ResourceDetectorUtils
         string url,
         HttpMethod method,
         KeyValuePair<string, string>? header,
+        TimeSpan timeout,
         HttpClientHandler? handler = null,
         CancellationToken cancellationToken = default)
     {
@@ -42,17 +45,24 @@ internal static class ResourceDetectorUtils
         var httpClient = handler == null ? new HttpClient() : new HttpClient(handler);
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
+        // Resources are detected while the application starts, so an endpoint that does not
+        // answer, or stops sending the response part-way through, must not hold it up for long.
+        // With ResponseContentRead the response body is read as part of the request, so the
+        // timeout covers reading it too, while the maximum buffer size caps the size of the body.
+        httpClient.Timeout = timeout;
+        httpClient.MaxResponseContentBufferSize = MaxResponseSizeInBytes;
+
 #if NET
-        using var response = httpClient.Send(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+        using var response = httpClient.Send(httpRequestMessage, HttpCompletionOption.ResponseContentRead, cancellationToken);
 #else
 #pragma warning disable CA2025 // Do not pass 'IDisposable' instances into unawaited tasks
-        using var response = httpClient.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false).GetAwaiter().GetResult();
+        using var response = httpClient.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseContentRead, cancellationToken).ConfigureAwait(false).GetAwaiter().GetResult();
 #pragma warning restore CA2025 // Do not pass 'IDisposable' instances into unawaited tasks
 #endif
 
         response.EnsureSuccessStatusCode();
 
-        return HttpClientHelpers.GetResponseBodyAsString(response, cancellationToken) ?? string.Empty;
+        return HttpClientHelpers.GetResponseBodyAsString(response, MaxResponseSizeInBytes, cancellationToken) ?? string.Empty;
     }
 
 #if NETFRAMEWORK

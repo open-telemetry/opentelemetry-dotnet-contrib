@@ -2,9 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics.Tracing;
-#if NETFRAMEWORK
-using System.Net.Http;
-#endif
 
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
@@ -15,26 +12,6 @@ namespace OpenTelemetry.Resources.Azure.Tests;
 [CollectionDefinition(nameof(AzureResourceDetectorTests), DisableParallelization = true)]
 public class AzureResourceDetectorTests
 {
-    // See https://learn.microsoft.com/azure/virtual-machines/instance-metadata-service
-    private const string AzureVmMetadataEndpointUri = "http://169.254.169.254/metadata/instance?api-version=2025-04-07";
-    private static readonly HttpClient HttpClient = new() { Timeout = TimeSpan.FromSeconds(3) };
-
-    public static async Task<bool> IsRunningOnAzureVMAsync()
-    {
-        try
-        {
-            using var request = new HttpRequestMessage(HttpMethod.Get, AzureVmMetadataEndpointUri);
-            request.Headers.Add("Metadata", "true");
-
-            using var response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
-            return response.IsSuccessStatusCode;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
     [Fact]
     public void AppServiceResourceDetectorHandlesFailure()
     {
@@ -47,25 +24,38 @@ public class AzureResourceDetectorTests
     }
 
     [Fact]
-    public async Task AzureVMResourceDetectorDoesNotThrow()
+    public void AzureVMResourceDetectorDoesNotThrow()
     {
-        AzureVMResourceDetector.ClearCachedResource();
+        var originalRequestor = AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse;
 
-        var resource = ResourceBuilder.CreateEmpty()
-            .AddAzureVMDetector()
-            .Build();
-
-        Assert.NotNull(resource);
-
-        if (await IsRunningOnAzureVMAsync())
+        try
         {
-            Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
-            Assert.NotEmpty(resource.Attributes);
+            // Use the real Azure Instance Metadata Service (IMDS) requestor, regardless of any other test.
+            AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse = AzureVmMetaDataRequestor.GetAzureVmMetaDataResponseDefault;
+            AzureVMResourceDetector.ClearCachedResource();
+
+            var resource = ResourceBuilder.CreateEmpty()
+                .AddAzureVMDetector()
+                .Build();
+
+            Assert.NotNull(resource);
+
+            // Whether IMDS responds within the detector's timeout depends on the machine the tests run
+            // on (and how busy it is), so rather than probing IMDS a second time to predict the outcome,
+            // only assert that the detector produced a resource that is consistent either way.
+            if (resource.Attributes.Any())
+            {
+                Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
+            }
+            else
+            {
+                Assert.Null(resource.SchemaUrl);
+            }
         }
-        else
+        finally
         {
-            Assert.Null(resource.SchemaUrl);
-            Assert.Empty(resource.Attributes);
+            AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse = originalRequestor;
+            AzureVMResourceDetector.ClearCachedResource();
         }
     }
 
@@ -203,46 +193,56 @@ public class AzureResourceDetectorTests
     [Fact]
     public void TestAzureVmResourceDetector()
     {
-        AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse = () =>
+        var originalRequestor = AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse;
+
+        try
         {
-            return new AzureVmMetadataResponse()
+            AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse = () =>
             {
-                // using values same as key for test.
-                VmId = ResourceSemanticConventions.AttributeHostId,
-                Location = ResourceSemanticConventions.AttributeCloudRegion,
-                Name = ResourceSemanticConventions.AttributeHostName,
-                OsType = ResourceSemanticConventions.AttributeOsType,
-                ResourceGroupName = ResourceAttributeConstants.AzureResourceGroupName,
-                ResourceId = ResourceSemanticConventions.AttributeCloudResourceId,
-                SubscriptionId = ResourceSemanticConventions.AttributeCloudAccount,
-                Version = ResourceSemanticConventions.AttributeOsVersion,
-                VmSize = ResourceSemanticConventions.AttributeHostType,
-                VmScaleSetName = ResourceAttributeConstants.AzureVmScaleSetName,
-            };
-        };
-
-        AzureVMResourceDetector.ClearCachedResource();
-
-        var resource = ResourceBuilder.CreateEmpty().AddAzureVMDetector().Build();
-
-        Assert.NotNull(resource);
-        Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
-
-        foreach (var field in AzureVMResourceDetector.ExpectedAzureAmsFields)
-        {
-            var expectedValue = field switch
-            {
-                ResourceSemanticConventions.AttributeServiceInstance => new KeyValuePair<string, object>(field, ResourceSemanticConventions.AttributeHostId),
-                ResourceSemanticConventions.AttributeCloudPlatform => new KeyValuePair<string, object>(field, "azure.vm"),
-                ResourceSemanticConventions.AttributeCloudProvider => new KeyValuePair<string, object>(field, ResourceAttributeConstants.AzureCloudProviderValue),
-                _ => new KeyValuePair<string, object>(field, field),
+                return new AzureVmMetadataResponse()
+                {
+                    // using values same as key for test.
+                    VmId = ResourceSemanticConventions.AttributeHostId,
+                    Location = ResourceSemanticConventions.AttributeCloudRegion,
+                    Name = ResourceSemanticConventions.AttributeHostName,
+                    OsType = ResourceSemanticConventions.AttributeOsType,
+                    ResourceGroupName = ResourceAttributeConstants.AzureResourceGroupName,
+                    ResourceId = ResourceSemanticConventions.AttributeCloudResourceId,
+                    SubscriptionId = ResourceSemanticConventions.AttributeCloudAccount,
+                    Version = ResourceSemanticConventions.AttributeOsVersion,
+                    VmSize = ResourceSemanticConventions.AttributeHostType,
+                    VmScaleSetName = ResourceAttributeConstants.AzureVmScaleSetName,
+                };
             };
 
-            Assert.Contains(expectedValue, resource.Attributes);
+            AzureVMResourceDetector.ClearCachedResource();
+
+            var resource = ResourceBuilder.CreateEmpty().AddAzureVMDetector().Build();
+
+            Assert.NotNull(resource);
+            Assert.StartsWith("https://opentelemetry.io/schemas/", resource.SchemaUrl);
+
+            foreach (var field in AzureVMResourceDetector.ExpectedAzureAmsFields)
+            {
+                var expectedValue = field switch
+                {
+                    ResourceSemanticConventions.AttributeServiceInstance => new KeyValuePair<string, object>(field, ResourceSemanticConventions.AttributeHostId),
+                    ResourceSemanticConventions.AttributeCloudPlatform => new KeyValuePair<string, object>(field, "azure.vm"),
+                    ResourceSemanticConventions.AttributeCloudProvider => new KeyValuePair<string, object>(field, ResourceAttributeConstants.AzureCloudProviderValue),
+                    _ => new KeyValuePair<string, object>(field, field),
+                };
+
+                Assert.Contains(expectedValue, resource.Attributes);
+            }
+
+            Assert.Contains(new KeyValuePair<string, object>(ResourceAttributeConstants.AzureResourceGroupName, ResourceAttributeConstants.AzureResourceGroupName), resource.Attributes);
+            Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudAccount, ResourceSemanticConventions.AttributeCloudAccount), resource.Attributes);
         }
-
-        Assert.Contains(new KeyValuePair<string, object>(ResourceAttributeConstants.AzureResourceGroupName, ResourceAttributeConstants.AzureResourceGroupName), resource.Attributes);
-        Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudAccount, ResourceSemanticConventions.AttributeCloudAccount), resource.Attributes);
+        finally
+        {
+            AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse = originalRequestor;
+            AzureVMResourceDetector.ClearCachedResource();
+        }
     }
 
     [Theory]

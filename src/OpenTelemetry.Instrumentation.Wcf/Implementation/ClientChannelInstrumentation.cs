@@ -76,6 +76,7 @@ internal static class ClientChannelInstrumentation
         {
             SuppressionScope = suppressionScope,
             Activity = activity,
+            IsOneWay = actionMetadata.IsOneWay,
         };
     }
 
@@ -84,56 +85,74 @@ internal static class ClientChannelInstrumentation
         Guard.ThrowIfNull(state);
         state.SuppressionScope?.Dispose();
 
-        if (state.Activity is Activity activity)
+        if (state.Activity is not Activity activity)
+        {
+            return;
+        }
+
+        if (activity.IsAllDataRequested)
         {
             var options = WcfInstrumentationActivitySource.Options;
 
-            if (activity.IsAllDataRequested)
+            if (exception is FaultException fault && options?.EmitNewRpcAttributes is true)
             {
-                if (exception is FaultException fault && options?.EmitNewRpcAttributes is true)
+                activity.SetTag(SemanticConventions.AttributeRpcResponseStatusCode, fault.Code.Name);
+            }
+
+            if (IsErrorResponse(exception, reply, state.IsOneWay))
+            {
+                activity.SetStatus(ActivityStatusCode.Error);
+
+                if (options?.EmitNewRpcAttributes is true)
                 {
-                    activity.SetTag(SemanticConventions.AttributeRpcResponseStatusCode, fault.Code.Name);
+                    // error.type is conditionally required when the operation has failed.
+                    // See https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/rpc/rpc-spans.md
+                    var errorType = (exception as FaultException)?.Code.Name
+                        ?? exception?.GetType().FullName
+                        ?? WcfInstrumentationConstants.ErrorTypeOther;
+                    activity.SetTag(SemanticConventions.AttributeErrorType, errorType);
                 }
 
-                if (reply == null || reply.IsFault)
+                if (options?.RecordException == true && exception != null)
                 {
-                    activity.SetStatus(ActivityStatusCode.Error);
-
-                    if (options?.EmitNewRpcAttributes is true)
-                    {
-                        // error.type is conditionally required when the operation has failed.
-                        // See https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/rpc/rpc-spans.md
-                        var errorType = (exception as FaultException)?.Code.Name
-                            ?? exception?.GetType().FullName
-                            ?? WcfInstrumentationConstants.ErrorTypeOther;
-                        activity.SetTag(SemanticConventions.AttributeErrorType, errorType);
-                    }
-
-                    if (options?.RecordException == true && exception != null)
-                    {
-                        activity.AddException(exception);
-                    }
-                }
-
-                if (reply != null)
-                {
-                    activity.SetTag(WcfInstrumentationConstants.AttributeSoapReplyAction, reply.Headers.Action);
-
-                    if (options?.Enrich is { } enrich)
-                    {
-                        try
-                        {
-                            enrich(activity, WcfEnrichEventNames.AfterReceiveReply, reply);
-                        }
-                        catch (Exception ex)
-                        {
-                            WcfInstrumentationEventSource.Log.EnrichmentException(ex);
-                        }
-                    }
+                    activity.AddException(exception);
                 }
             }
 
-            activity.Stop();
+            if (reply != null)
+            {
+                activity.SetTag(WcfInstrumentationConstants.AttributeSoapReplyAction, reply.Headers.Action);
+
+                if (options?.Enrich is { } enrich)
+                {
+                    try
+                    {
+                        enrich(activity, WcfEnrichEventNames.AfterReceiveReply, reply);
+                    }
+                    catch (Exception ex)
+                    {
+                        WcfInstrumentationEventSource.Log.EnrichmentException(ex);
+                    }
+                }
+            }
+        }
+
+        activity.Stop();
+
+        static bool IsErrorResponse(Exception? exception, Message? reply, bool isOneWay)
+        {
+            if (exception != null)
+            {
+                return true;
+            }
+
+            if (reply != null)
+            {
+                return reply.IsFault;
+            }
+
+            // Two-way calls without a reply or exception are treated as errors
+            return !isOneWay;
         }
     }
 

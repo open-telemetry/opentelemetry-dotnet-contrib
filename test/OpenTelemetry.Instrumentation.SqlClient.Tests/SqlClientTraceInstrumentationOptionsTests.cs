@@ -140,17 +140,22 @@ public class SqlClientTraceInstrumentationOptionsTests
 
         Assert.Equal(ActivityStatusCode.Error, activities[0].Status);
         Assert.Equal(ActivityStatusCode.Error, activities[1].Status);
-        Assert.NotNull(activities[0].StatusDescription);
-        Assert.NotNull(activities[1].StatusDescription);
+
+        Assert.Null(activities[0].StatusDescription);
+        Assert.Null(activities[1].StatusDescription);
 
         if (recordException)
         {
             var events0 = activities[0].Events.ToList();
             var events1 = activities[1].Events.ToList();
-            Assert.Single(events0);
-            Assert.Single(events1);
-            Assert.Equal(SemanticConventions.AttributeExceptionEventName, events0[0].Name);
-            Assert.Equal(SemanticConventions.AttributeExceptionEventName, events1[0].Name);
+
+            var event0 = Assert.Single(events0);
+            var event1 = Assert.Single(events1);
+
+            Assert.Equal(SemanticConventions.AttributeExceptionEventName, event0.Name);
+            Assert.Equal(SemanticConventions.AttributeExceptionEventName, event1.Name);
+            Assert.Contains(event0.Tags, tag => tag.Key == SemanticConventions.AttributeExceptionMessage && (string?)tag.Value == "Boom!");
+            Assert.Contains(event1.Tags, tag => tag.Key == SemanticConventions.AttributeExceptionMessage && (string?)tag.Value == "Boom!");
         }
         else
         {
@@ -208,9 +213,9 @@ public class SqlClientTraceInstrumentationOptionsTests
                 return cmd is not SqlCommand command || command.CommandText == "select 2";
             });
 
-        Assert.Single(activities);
-        Assert.True(activities[0].IsAllDataRequested);
-        Assert.True(activities[0].ActivityTraceFlags.HasFlag(ActivityTraceFlags.Recorded));
+        var activity = Assert.Single(activities);
+        Assert.True(activity.IsAllDataRequested);
+        Assert.True(activity.ActivityTraceFlags.HasFlag(ActivityTraceFlags.Recorded));
     }
 
     [Fact]

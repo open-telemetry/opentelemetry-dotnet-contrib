@@ -61,6 +61,7 @@ internal static class TestWebSocketServer
         private readonly Task listenerTask;
         private readonly HttpListener listener;
         private readonly TaskCompletionSource<bool> initialized = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private volatile bool disposing;
 
         public RunningServer(Func<HttpListenerContext, WebSocket, Task> handler, string host, int port)
         {
@@ -78,6 +79,8 @@ internal static class TestWebSocketServer
 
         public void Dispose()
         {
+            this.disposing = true;
+
             try
             {
                 this.listener.Close();
@@ -112,10 +115,26 @@ internal static class TestWebSocketServer
 
             while (true)
             {
+                HttpListenerContext ctx;
+
                 try
                 {
-                    var ctx = await this.listener.GetContextAsync().ConfigureAwait(false);
+                    ctx = await this.listener.GetContextAsync().ConfigureAwait(false);
+                }
+                catch (HttpListenerException) when (this.disposing)
+                {
+                    // When a pending GetContextAsync races Close() during disposal other
+                    // error codes can be surfaced and IsListening cannot be relied upon
+                    // to have been updated yet, so treat any HttpListenerException as shutdown.
+                    break;
+                }
+                catch (Exception ex) when (this.IsListenerShutdownException(ex))
+                {
+                    break;
+                }
 
+                try
+                {
                     if (ctx.Request.IsWebSocketRequest)
                     {
                         var wsContext = await ctx.AcceptWebSocketAsync(null).ConfigureAwait(false);

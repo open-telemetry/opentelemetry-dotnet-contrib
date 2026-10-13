@@ -7,6 +7,7 @@ using System.Net.Security;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.ServiceModel;
+using System.ServiceModel.Channels;
 using System.ServiceModel.Security;
 using OpenTelemetry.Instrumentation.Wcf.Tests.Tools;
 using OpenTelemetry.Tests;
@@ -201,6 +202,51 @@ public class TelemetryBindingElementForTcpTests : IClassFixture<WeaverFixture>, 
         }
 
         WcfTestHelpers.AssertActivitiesHaveCorrectParentage(stoppedActivities);
+    }
+
+    [Fact]
+    public void OneWayDuplexOutgoingRequestStopsAfterSend()
+    {
+        var stoppedActivities = new List<Activity>();
+        var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddInMemoryExporter(stoppedActivities)
+            .AddWcfInstrumentation()
+            .Build();
+
+        var binding = new NetTcpBinding(SecurityMode.None)
+        {
+            SendTimeout = TimeSpan.FromSeconds(5),
+        };
+        var serviceBaseUri = WcfTestHelpers.GetRandomBaseUri("net.tcp");
+        var serviceHost = new ServiceHost(new OneWayDuplexService(), serviceBaseUri);
+        serviceHost.AddServiceEndpoint(
+            typeof(IOneWayDuplexServiceContract),
+            binding,
+            "/Service");
+        serviceHost.Open();
+
+        var client = new OneWayDuplexClient(
+            new InstanceContext(new OneWayDuplexCallback()),
+            binding,
+            new EndpointAddress(new Uri(serviceBaseUri, "/Service")));
+        try
+        {
+            client.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());
+
+            client.ExecuteWithOneWay(new ServiceRequest(payload: "Hello Open Telemetry!"));
+
+            var activity = Assert.Single(stoppedActivities, activity => activity.Kind == ActivityKind.Client);
+            Assert.Equal(ActivityStatusCode.Unset, activity.Status);
+            Assert.DoesNotContain(activity.TagObjects, tag => tag.Key == SemanticConventions.AttributeErrorType);
+        }
+        finally
+        {
+            client.Abort();
+            serviceHost.Close();
+            tracerProvider?.Shutdown();
+            tracerProvider?.Dispose();
+            WcfInstrumentationActivitySource.Options = null;
+        }
     }
 
     [Fact]
@@ -471,5 +517,32 @@ public class TelemetryBindingElementForTcpTests : IClassFixture<WeaverFixture>, 
 
         return serviceHost ?? throw new InvalidOperationException("ServiceHost could not be started.");
     }
+
+    [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
+    private sealed class OneWayDuplexService : IOneWayDuplexServiceContract
+    {
+        public void ExecuteWithOneWay(ServiceRequest request)
+        {
+        }
+    }
+
+    private sealed class OneWayDuplexCallback : IOneWayDuplexCallback
+    {
+        public void OnCallback()
+        {
+        }
+    }
+
+    private sealed class OneWayDuplexClient : DuplexClientBase<IOneWayDuplexServiceContract>, IOneWayDuplexServiceContract
+    {
+        public OneWayDuplexClient(InstanceContext callbackInstance, Binding binding, EndpointAddress remoteAddress)
+            : base(callbackInstance, binding, remoteAddress)
+        {
+        }
+
+        public void ExecuteWithOneWay(ServiceRequest request)
+            => this.Channel.ExecuteWithOneWay(request);
+    }
 }
+
 #endif

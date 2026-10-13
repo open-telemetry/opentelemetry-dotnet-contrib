@@ -21,7 +21,7 @@ internal sealed class FrameBuilder : IFrameBuilder
     public FrameBuilder(OpAmpClientSettings settings)
     {
         this.settings = settings;
-        this.instanceUid = ByteString.CopyFrom(this.settings.InstanceUid.ToByteArray());
+        this.instanceUid = ByteString.CopyFrom(this.settings.InstanceUid.ToBigEndianByteArray());
         this.currentMessage = this.NextBaseMessage();
     }
 

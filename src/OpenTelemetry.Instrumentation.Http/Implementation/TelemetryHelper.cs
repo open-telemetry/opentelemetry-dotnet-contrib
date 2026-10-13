@@ -13,13 +13,13 @@ internal static class TelemetryHelper
     public static object GetBoxedStatusCode(HttpStatusCode statusCode)
     {
         var intStatusCode = (int)statusCode;
-        return intStatusCode is >= 100 and < 600 ? BoxedStatusCodes[intStatusCode - 100].Item1 : statusCode;
+        return intStatusCode is >= 100 and < 600 ? BoxedStatusCodes[intStatusCode - 100].Item1 : intStatusCode;
     }
 
     public static string GetStatusCodeString(HttpStatusCode statusCode)
     {
         var intStatusCode = (int)statusCode;
-        return intStatusCode is >= 100 and < 600 ? BoxedStatusCodes[intStatusCode - 100].Item2 : statusCode.ToString();
+        return intStatusCode is >= 100 and < 600 ? BoxedStatusCodes[intStatusCode - 100].Item2 : intStatusCode.ToString(CultureInfo.InvariantCulture);
     }
 
     private static (object, string)[] InitializeBoxedStatusCodes()

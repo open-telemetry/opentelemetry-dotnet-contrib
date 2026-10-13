@@ -22,7 +22,7 @@ public static class AWSLambdaWrapper
 
     private static readonly Lazy<ActivitySource> AWSLambdaActivitySource = new(CreateActivitySource);
 
-    private static bool isColdStart = true;
+    private static int isColdStart = 1;
 
     /// <summary>
     /// Gets or sets a value indicating whether AWS X-Ray propagation should be ignored. Default value is false.
@@ -177,9 +177,11 @@ public static class AWSLambdaWrapper
             }
         }
 
-        // No parallel invocation of the same lambda handler expected.
-        var functionTags = new AWSLambdaUtils(AWSSemanticConventions).GetFunctionTags(input, context, isColdStart);
-        isColdStart = false;
+        // With Lambda Managed Instances an execution environment can process several invocations at the
+        // same time, so only one of them may claim the cold start (the flag is read first so that it is not
+        // written on every invocation), and each gets builders of its own from AWSSemanticConventions.
+        var coldStart = Volatile.Read(ref isColdStart) == 1 && Interlocked.Exchange(ref isColdStart, 0) == 1;
+        var functionTags = new AWSLambdaUtils(AWSSemanticConventions).GetFunctionTags(input, context, coldStart);
         var httpTags = AWSLambdaHttpUtils.GetHttpTags(AWSSemanticConventions, input, DisableUrlQueryRedaction);
 
         // We assume that functionTags and httpTags have no intersection.
@@ -203,7 +205,7 @@ public static class AWSLambdaWrapper
     }
 
     // Use only for testing.
-    internal static void ResetColdStart() => isColdStart = true;
+    internal static void ResetColdStart() => Volatile.Write(ref isColdStart, 1);
 
     internal static bool IsUrlQueryRedactionDisabledFromEnvironment() =>
         bool.TryParse(
