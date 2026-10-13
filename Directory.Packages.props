@@ -16,6 +16,7 @@
   </PropertyGroup>
 
   <ItemGroup Label="OpenTelemetry packages">
+    <PackageVersion Include="Microsoft.AspNetCore.SignalR.Common" Version="9.0.21" />
     <PackageVersion Include="OpenTelemetry" Version="[$(OpenTelemetryCoreLatestVersion),2.0)" />
     <PackageVersion Include="OpenTelemetry.Api" Version="[$(OpenTelemetryCoreLatestVersion),2.0)" />
     <PackageVersion Include="OpenTelemetry.Api.ProviderBuilderExtensions" Version="[$(OpenTelemetryCoreLatestVersion),2.0)" />
