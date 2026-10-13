@@ -45,6 +45,10 @@
     <PackageReference Include="OpenTelemetry.Api.ProviderBuilderExtensions" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="$(AssemblyName).Benchmarks" PublicKey="$(StrongNamePublicKey)" />
+  </ItemGroup>
+
   <ItemGroup Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETStandard'">
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" VersionOverride="[2.1.1,6.0)" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Features" VersionOverride="[2.1.1,6.0)" />
