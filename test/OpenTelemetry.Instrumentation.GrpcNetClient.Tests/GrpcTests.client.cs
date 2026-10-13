@@ -517,7 +517,7 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
         Assert.Equal("OK", grpcSpan4.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
     }
 
-    [Fact(Skip = "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1727")]
+    [Fact]
     public void GrpcPropagatesContextWithSuppressInstrumentationOptionSetToTrue()
     {
         try
@@ -557,6 +557,8 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
                 using var channel = GrpcChannel.ForAddress(this.server.Address);
                 var client = new Greeter.GreeterClient(channel);
                 _ = client.SayHello(new HelloRequest(), cancellationToken: TestContext.Current.CancellationToken);
+
+                WaitForExporterToReceiveItems(exportedItems, 2);
             }
 
             var serverActivity = exportedItems.Single(activity => activity.OperationName == OperationNameHttpRequestIn);

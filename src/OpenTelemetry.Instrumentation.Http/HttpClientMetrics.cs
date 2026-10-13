@@ -10,16 +10,10 @@ namespace OpenTelemetry.Instrumentation.Http;
 /// </summary>
 internal sealed class HttpClientMetrics : IDisposable
 {
-    private static readonly HashSet<string> ExcludedDiagnosticSourceEvents =
-    [
-        "System.Net.Http.Request",
-        "System.Net.Http.Response"
-    ];
-
     private readonly DiagnosticSourceSubscriber diagnosticSourceSubscriber;
 
     private readonly Func<string, object?, object?, bool> isEnabled = static (activityName, _, _)
-        => !ExcludedDiagnosticSourceEvents.Contains(activityName);
+        => activityName is not ("System.Net.Http.Request" or "System.Net.Http.Response");
 
     /// <summary>
     /// Initializes a new instance of the <see cref="HttpClientMetrics"/> class.

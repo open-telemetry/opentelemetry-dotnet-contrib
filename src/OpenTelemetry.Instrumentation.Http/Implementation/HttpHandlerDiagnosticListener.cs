@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 #if NETFRAMEWORK
 using System.Net.Http;
 #endif
+using OpenTelemetry.Context;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
@@ -22,6 +23,8 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
     // https://github.com/dotnet/runtime/blob/7d034ddbbbe1f2f40c264b323b3ed3d6b3d45e9a/src/libraries/System.Net.Http/src/System/Net/Http/DiagnosticsHandler.cs#L19
     internal const string ActivitySourceName = "OpenTelemetry.Instrumentation.Http.HttpClient";
 
+    internal const string OnStopEvent = "System.Net.Http.HttpRequestOut.Stop";
+
     internal static readonly bool IsNet7OrGreater = Environment.Version.Major >= 7;
     internal static readonly bool IsNet9OrGreater = Environment.Version.Major >= 9;
     internal static readonly bool IsNet10OrGreater = Environment.Version.Major >= 10;
@@ -29,7 +32,6 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
     internal static readonly ActivitySource ActivitySource = ActivitySourceFactory.Create(typeof(HttpHandlerDiagnosticListener), HttpClientInstrumentation.SemanticConventionsVersion, name: ActivitySourceName);
 
     private const string OnStartEvent = "System.Net.Http.HttpRequestOut.Start";
-    private const string OnStopEvent = "System.Net.Http.HttpRequestOut.Stop";
     private const string OnUnhandledExceptionEvent = "System.Net.Http.Exception";
 
     private static readonly PropertyFetcher<HttpRequestMessage> StartRequestFetcher = new("Request");
@@ -85,20 +87,21 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
             return;
         }
 
-        // Propagate context irrespective of sampling decision
-        var textMapPropagator = Propagators.DefaultTextMapPropagator;
-        if (textMapPropagator is not TraceContextPropagator)
-        {
-            textMapPropagator.Inject(new PropagationContext(activity.Context, Baggage.Current), request, HttpRequestMessageContextPropagation.HeaderValueSetter);
-        }
-
         // For .NET 7.0 or higher versions, activity is created using an activity source.
         // However the framework will fallback to creating an activity if the sampler's decision
         // is to drop and there is an active diagnostic listener. To prevent processing such activities
         // we first check the source name to confirm if it was created using activity source or not.
-        if (IsNet7OrGreater && string.IsNullOrEmpty(activity.Source.Name))
+        var isFallbackActivity = IsNet7OrGreater && string.IsNullOrEmpty(activity.Source.Name);
+        if (isFallbackActivity)
         {
             activity.IsAllDataRequested = false;
+        }
+
+        // Propagate context irrespective of sampling decision
+        var textMapPropagator = Propagators.DefaultTextMapPropagator;
+        if (textMapPropagator is not TraceContextPropagator && !(isFallbackActivity && IsInstrumentationSuppressed()))
+        {
+            textMapPropagator.Inject(new PropagationContext(activity.Context, Baggage.Current), request, HttpRequestMessageContextPropagation.HeaderValueSetter);
         }
 
         // Enrich Activity from the payload only if the sampling decision is favorable.
@@ -169,6 +172,28 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
         static bool TryFetchRequest(object? payload, [NotNullWhen(true)] out HttpRequestMessage? request)
         {
             return StartRequestFetcher.TryFetch(payload, out request) && request != null;
+        }
+
+        // There is no SDK reference, suppression slot is read by name.
+        // see https://github.com/open-telemetry/opentelemetry-dotnet/blob/5fbeba3a3d8bbd4f4235170ddeb6329fe0b8b86e/src/OpenTelemetry/SuppressInstrumentationScope.cs#L18
+        static bool IsInstrumentationSuppressed()
+        {
+            try
+            {
+                return RuntimeContext.GetValue("otel.suppress_instrumentation") switch
+                {
+                    null => false,
+
+                    // SDK versions before 1.5.0 store an int count.
+                    int count => count != 0,
+                    _ => true,
+                };
+            }
+            catch (ArgumentException)
+            {
+                // No SDK registered the slot.
+                return false;
+            }
         }
     }
 
