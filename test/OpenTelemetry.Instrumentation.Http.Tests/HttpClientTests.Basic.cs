@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using System.Globalization;
 using Microsoft.Extensions.Configuration;
 
 #if NETFRAMEWORK
@@ -262,7 +263,7 @@ public partial class HttpClientTests : IDisposable
         ]));
     }
 
-    [Fact(Skip = "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1727")]
+    [Fact]
     public async Task RespectsSuppress()
     {
         try
@@ -312,6 +313,98 @@ public partial class HttpClientTests : IDisposable
             ]));
         }
     }
+
+#if NET
+    [Fact]
+    public async Task KeepsInjectedHeadersWhenDownstreamInstrumentationSuppressed()
+    {
+        try
+        {
+            var propagator = new CustomTextMapPropagator();
+            propagator.InjectValues.Add("custom_traceParent", context => $"00/{context.ActivityContext.TraceId}/{context.ActivityContext.SpanId}/01");
+
+            using var request = new HttpRequestMessage();
+            request.RequestUri = this.uri;
+            request.Method = new HttpMethod("GET");
+
+            using var parent = new Activity("parent")
+                .SetIdFormat(ActivityIdFormat.W3C)
+                .Start();
+            parent.ActivityTraceFlags = ActivityTraceFlags.Recorded;
+
+            Sdk.SetDefaultTextMapPropagator(propagator);
+
+            using (Sdk.CreateTracerProviderBuilder()
+                .AddHttpClientInstrumentation()
+                .Build())
+            {
+                using var c = new HttpClient();
+                request.Headers.Add("custom_traceParent", $"00/{parent.TraceId}/{parent.SpanId}/01");
+                using (SuppressInstrumentationScope.Begin())
+                {
+                    await c.SendAsync(request, TestContext.Current.CancellationToken);
+                }
+            }
+
+            var traceparent = Assert.Single(request.Headers.GetValues("custom_traceParent"));
+            Assert.Equal($"00/{parent.TraceId}/{parent.SpanId}/01", traceparent);
+        }
+        finally
+        {
+            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator(
+            [
+                new TraceContextPropagator(),
+                new BaggagePropagator(),
+            ]));
+        }
+    }
+
+    [Fact]
+    public async Task InjectsHeadersWhenAnotherListenerSamplesSuppressedRequest()
+    {
+        try
+        {
+            var propagator = new CustomTextMapPropagator();
+            propagator.InjectValues.Add("custom_traceParent", context => $"00/{context.ActivityContext.TraceId}/{context.ActivityContext.SpanId}/01");
+
+            using var request = new HttpRequestMessage();
+            request.RequestUri = this.uri;
+            request.Method = new HttpMethod("GET");
+
+            Sdk.SetDefaultTextMapPropagator(propagator);
+
+            // The SDK declines the activity in the scope.
+            // This listener samples it, so the runtime creates no fallback activity.
+            using var activityListener = new ActivityListener
+            {
+                ShouldListenTo = activitySource => activitySource.Name == "System.Net.Http",
+                Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
+            };
+            ActivitySource.AddActivityListener(activityListener);
+
+            using (Sdk.CreateTracerProviderBuilder()
+                .AddHttpClientInstrumentation()
+                .Build())
+            {
+                using var c = new HttpClient();
+                using (SuppressInstrumentationScope.Begin())
+                {
+                    await c.SendAsync(request, TestContext.Current.CancellationToken);
+                }
+            }
+
+            Assert.True(request.Headers.Contains("custom_traceParent"), "custom_traceParent was not injected.");
+        }
+        finally
+        {
+            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator(
+            [
+                new TraceContextPropagator(),
+                new BaggagePropagator(),
+            ]));
+        }
+    }
+#endif
 
     [Fact]
     public async Task ExportsSpansCreatedForRetries()
@@ -880,6 +973,67 @@ public partial class HttpClientTests : IDisposable
 
         var item = Assert.Single(exportedItems);
         Assert.Equal(activityStatus, item.Status);
+    }
+
+    [Theory]
+    [InlineData(200)]
+    [InlineData(500)]
+    [InlineData(600)]
+    public async Task HttpResponseStatusCodeIsRecordedAsInt32(int statusCode)
+    {
+        var activities = new List<Activity>();
+        var metrics = new List<Metric>();
+
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddHttpClientInstrumentation()
+            .AddInMemoryExporter(activities)
+            .Build())
+        using (var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddHttpClientInstrumentation()
+            .AddInMemoryExporter(metrics)
+            .Build())
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, this.uri);
+            request.Headers.Add("contextRequired", "false");
+            request.Headers.Add("responseCode", statusCode.ToString(CultureInfo.InvariantCulture));
+
+            using var client = new HttpClient();
+            using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+            Assert.Equal(statusCode, (int)response.StatusCode);
+        }
+
+        var activity = Assert.Single(activities);
+        var activityStatusCode = activity.GetTagItem(SemanticConventions.AttributeHttpResponseStatusCode);
+        Assert.Equal(statusCode, Assert.IsType<int>(activityStatusCode));
+        Assert.Equal("1.1", activity.GetTagItem(SemanticConventions.AttributeNetworkProtocolVersion));
+
+        if (statusCode == 500)
+        {
+            Assert.Equal(ActivityStatusCode.Error, activity.Status);
+            Assert.Equal("500", activity.GetTagItem(SemanticConventions.AttributeErrorType));
+        }
+        else
+        {
+            Assert.Equal(ActivityStatusCode.Unset, activity.Status);
+        }
+
+        var metric = Assert.Single(metrics, m => m.Name == "http.client.request.duration");
+        var metricStatusCodes = new List<object?>();
+
+        foreach (var point in metric.GetMetricPoints())
+        {
+            foreach (var tag in point.Tags)
+            {
+                if (tag.Key == SemanticConventions.AttributeHttpResponseStatusCode)
+                {
+                    metricStatusCodes.Add(tag.Value);
+                }
+            }
+        }
+
+        var metricStatusCode = Assert.Single(metricStatusCodes);
+        Assert.Equal(statusCode, Assert.IsType<int>(metricStatusCode));
     }
 
     [Fact]

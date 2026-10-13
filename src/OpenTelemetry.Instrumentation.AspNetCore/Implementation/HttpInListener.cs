@@ -120,6 +120,9 @@ internal class HttpInListener : ListenerHandler
         var createdSibling = false;
         var createdRoot = false;
 
+        // The method-based display name, when the HTTP method was normalized while collecting the request tags.
+        string? displayName = null;
+
         // Ensure context extraction irrespective of sampling decision
         var request = context.Request;
         var textMapPropagator = Propagators.DefaultTextMapPropagator;
@@ -203,7 +206,7 @@ internal class HttpInListener : ListenerHandler
                 ActivityOperationName,
                 ActivityKind.Server,
                 default(ActivityContext),
-                this.GetRequestTags(request, createdSibling: true),
+                this.GetRequestTags(request, createdSibling: true, out displayName),
                 links: linkContext.IsValid() ? [new ActivityLink(linkContext)] : null);
 
             if (root is null)
@@ -264,21 +267,10 @@ internal class HttpInListener : ListenerHandler
                 ActivityInstrumentationHelper.SetKindProperty(activity, ActivityKind.Server);
             }
 
-            // ASP.NET Core sets the route-based display name natively from .NET 11, so only set the
-            // (method-based) display name ourselves when the framework will not. On earlier versions
-            // (and when a sibling Activity is created) the framework's display name is not used, so it
-            // must still be set here. It must also be set when the user supplied a custom set of known
-            // methods via OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS, as the framework does not honour that
-            // and the normalized method may differ. See https://github.com/dotnet/aspnetcore/issues/65873.
-            if (!Net11OrGreater || !this.nativeAspNetCoreOpenTelemetryEnabled || createdSibling || TelemetryHelper.RequestDataHelper.HasCustomKnownMethods)
-            {
-                TelemetryHelper.RequestDataHelper.SetActivityDisplayName(activity, request.Method);
-            }
-
             // The root was created with these tags.
             if (!createdRoot)
             {
-                var tags = this.GetRequestTags(request, createdSibling);
+                var tags = this.GetRequestTags(request, createdSibling, out displayName);
 
                 // Indexed, as foreach over a TagList boxes its enumerator.
                 for (var i = 0; i < tags.Count; i++)
@@ -286,6 +278,23 @@ internal class HttpInListener : ListenerHandler
                     var tag = tags[i];
                     activity.SetTag(tag.Key, tag.Value);
                 }
+            }
+
+            // ASP.NET Core sets the route-based display name natively from .NET 11, so only set the
+            // (method-based) display name ourselves when the framework will not. On earlier versions
+            // (and when a sibling Activity is created) the framework's display name is not used, so it
+            // must still be set here. It must also be set when the user supplied a custom set of known
+            // methods via OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS, as the framework does not honour that
+            // and the normalized method may differ. See https://github.com/dotnet/aspnetcore/issues/65873.
+            // Whenever http.request.method is set the display name is also set, so when the method was
+            // normalized to set the tag the display name derived from it is reused rather than normalizing again.
+            if (displayName is not null)
+            {
+                activity.DisplayName = displayName;
+            }
+            else if (!Net11OrGreater || !this.nativeAspNetCoreOpenTelemetryEnabled || createdSibling || TelemetryHelper.RequestDataHelper.HasCustomKnownMethods)
+            {
+                TelemetryHelper.RequestDataHelper.SetActivityDisplayName(activity, request.Method);
             }
 
             activity.SetTag(SemanticConventions.AttributeNetworkProtocolVersion, RequestDataHelper.GetHttpProtocolVersion(request.Protocol));
@@ -582,9 +591,20 @@ internal class HttpInListener : ListenerHandler
         return !string.IsNullOrEmpty(grpcMethod);
     }
 
-    private TagList GetRequestTags(HttpRequest request, bool createdSibling)
+    /// <summary>
+    /// Gets the tags to set on the server span for the specified request.
+    /// </summary>
+    /// <param name="request">The incoming request.</param>
+    /// <param name="createdSibling">Whether the instrumentation created a sibling <see cref="Activity"/>.</param>
+    /// <param name="displayName">
+    /// When this method returns, contains the method-based display name for the span if the
+    /// <c>http.request.method</c> tag was added; otherwise, <see langword="null"/>.
+    /// </param>
+    /// <returns>The tags to set on the span.</returns>
+    private TagList GetRequestTags(HttpRequest request, bool createdSibling, out string? displayName)
     {
         var tags = default(TagList);
+        displayName = null;
 
         // When a sibling Activity was created the framework's native tags land on the
         // (now unsampled) framework Activity, so set them here on the exported sibling.
@@ -592,20 +612,25 @@ internal class HttpInListener : ListenerHandler
 
         // ASP.NET Core sets http.request.method natively from .NET 10, so only set it ourselves when
         // the framework will not, or when a custom set of known methods is in use.
+        // Whenever http.request.method is set the display name is also set, so normalize the method only once.
         if (setNativeTags || TelemetryHelper.RequestDataHelper.HasCustomKnownMethods)
         {
-            TelemetryHelper.RequestDataHelper.SetHttpMethodTag(ref tags, request.Method);
+            displayName = TelemetryHelper.RequestDataHelper.SetHttpMethodTagAndGetDisplayName(ref tags, request.Method);
         }
 
         if (setNativeTags)
         {
-            if (request.Host.HasValue)
+            // Each access to HttpRequest.Host re-reads and re-parses the Host header, so only read it once
+            var host = request.Host;
+            if (host.HasValue)
             {
-                tags.Add(SemanticConventions.AttributeServerAddress, request.Host.Host);
+                var server = ServerHostCache.Get(host);
 
-                if (request.Host.Port is { } port)
+                tags.Add(SemanticConventions.AttributeServerAddress, server.Address);
+
+                if (server.Port is { } port)
                 {
-                    tags.Add(SemanticConventions.AttributeServerPort, PortTelemetryHelper.GetBoxedPort(port, cacheValue: true));
+                    tags.Add(SemanticConventions.AttributeServerPort, port);
                 }
             }
 
