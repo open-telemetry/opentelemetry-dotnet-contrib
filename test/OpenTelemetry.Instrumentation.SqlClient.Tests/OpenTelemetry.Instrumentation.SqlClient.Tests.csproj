@@ -27,6 +27,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.SqlClient" />
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" />
     <PackageReference Include="Testcontainers" />
     <PackageReference Include="Testcontainers.MsSql" />
   </ItemGroup>
