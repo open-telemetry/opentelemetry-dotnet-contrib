@@ -242,7 +242,7 @@ public class OpenTelemetryConsumeResultExtensionsTests
 
         var processActivity = Assert.Single(activities, a => a.DisplayName == "process t");
 
-        Assert.True(processActivity.ParentSpanId != default);
+        Assert.NotEqual(default, processActivity.ParentSpanId);
         Assert.Equal(traceId, processActivity.TraceId.ToHexString());
         Assert.Equal(spanId, processActivity.ParentSpanId.ToHexString());
 
@@ -319,7 +319,7 @@ public class OpenTelemetryConsumeResultExtensionsTests
         var processActivity = Assert.Single(activities, a => a.DisplayName == "process t");
         var ambientActivity = Assert.Single(activities, a => a.DisplayName == "ambient");
 
-        Assert.True(processActivity.ParentSpanId != default);
+        Assert.NotEqual(default, processActivity.ParentSpanId);
         Assert.Equal(ambientActivity.TraceId, processActivity.TraceId);
         Assert.Equal(ambientActivity.SpanId, processActivity.ParentSpanId);
     }

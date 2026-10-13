@@ -23,17 +23,7 @@ public sealed class ConfluentKafkaInstrumentedConsumerBuilderOptions
     /// Gets or sets a value indicating whether the <c>process</c> span created when
     /// processing a message with <c>ConsumeAndProcessMessageAsync</c>
     /// should use the message creation context (extracted from the message headers) as its
-    /// parent instead of only linking to it. This is an opt-in behavior for single-message
-    /// scenarios, as allowed by the messaging semantic conventions, which achieves a direct
-    /// parent-child relationship between producer and consumer spans.
-    /// When enabled, if message processing happens in the scope of another valid ambient
-    /// context, the ambient context is added as a link on the <c>process</c> span to
-    /// preserve the correlation between message processing and that context. If no
-    /// (valid) creation context was extracted from the message headers, the <c>process</c>
-    /// span is parented on that ambient context instead of being started as a new root span.
-    /// The default value is <see langword="false" /> (the message creation context is
-    /// used only as a span link, and the <c>process</c> span starts as a new root span
-    /// when no creation context is present).
+    /// parent instead of only linking to it. The default value is <see langword="false" />.
     /// </summary>
     public bool UseCreationContextAsParent { get; set; }
 }

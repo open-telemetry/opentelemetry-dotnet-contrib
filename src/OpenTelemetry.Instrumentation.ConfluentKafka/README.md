@@ -84,9 +84,8 @@ By default, the `process` span created by
 (message creation) context extracted from the message headers. That context
 is reported only as a span link, so the consumer span is part of a separate
 trace and the correlation with the producer trace is established through the
-link. This is the default behavior recommended by the messaging semantic
-conventions
-(`messaging-spans.md` in the semantic-conventions repository).
+link. This is the default behavior recommended by the [messaging semantic
+conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.44.0/docs/messaging/messaging-spans.md).
 
 If you prefer a direct parent-child relationship between the producer and
 consumer spans (that is, you want the `process` span to share the producer
