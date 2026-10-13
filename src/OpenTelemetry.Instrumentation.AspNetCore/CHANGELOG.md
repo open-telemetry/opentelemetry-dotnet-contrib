@@ -17,6 +17,12 @@
   arrive with a parent. Available on .NET 8.0+.
   ([#5466](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5466))
 
+* Improved performance of incoming request instrumentation by reducing the
+  cost of filtering diagnostic events, caching the parsed `server.address` and
+  `server.port` values for recently seen `Host` header values and making
+  route-based span display name lookups cheaper.
+  ([#5467](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5467))
+
 ## 1.19.0
 
 Released 2026-Sep-18
