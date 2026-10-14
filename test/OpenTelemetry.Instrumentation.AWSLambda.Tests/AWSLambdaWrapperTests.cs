@@ -777,7 +777,7 @@ public class AWSLambdaWrapperTests : IDisposable
         using var listener = new ActivityListener
         {
             ShouldListenTo = source => source.Name == "OpenTelemetry.Instrumentation.AWSLambda",
-            Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
+            Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
             ActivityStarted = _ => throw new InvalidOperationException(),
         };
 
@@ -797,7 +797,7 @@ public class AWSLambdaWrapperTests : IDisposable
         using var listener = new ActivityListener
         {
             ShouldListenTo = source => source.Name == "OpenTelemetry.Instrumentation.AWSLambda",
-            Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
+            Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
             ActivityStopped = _ => throw new InvalidOperationException(),
         };
 
