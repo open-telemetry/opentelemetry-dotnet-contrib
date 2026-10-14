@@ -26,7 +26,11 @@ internal static class ServerHostCache
     /// </returns>
     public static Entry Get(HostString host)
     {
+#if NET
         var value = host.Value!;
+#else
+        var value = host.Value;
+#endif
         var entries = Entries;
 
         for (var i = 0; i < entries.Length; i++)
