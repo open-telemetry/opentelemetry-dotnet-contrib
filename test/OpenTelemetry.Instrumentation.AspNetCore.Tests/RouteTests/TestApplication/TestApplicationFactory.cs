@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 
 namespace RouteTests.TestApplication;
@@ -139,21 +138,15 @@ internal class TestApplicationFactory
     private static WebApplication CreateRazorPagesApplication()
     {
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions { ContentRootPath = ContentRootPath });
-        builder.Logging.ClearProviders();
 
-#pragma warning disable ASPDEPR003 // Type or member is obsolete
-        builder.Services
-            .AddRazorPages()
-            .AddRazorRuntimeCompilation(options =>
-            {
-                options.FileProviders.Add(new PhysicalFileProvider(ContentRootPath));
-            })
-            .AddApplicationPart(typeof(RoutingTests).Assembly);
-#pragma warning restore ASPDEPR003 // Type or member is obsolete
+        builder.Logging.ClearProviders();
+        builder.Services.AddRazorPages();
 
         var app = builder.Build();
+
         app.Urls.Clear();
         app.Urls.Add("http://[::1]:0");
+
         app.UseStaticFiles();
         app.UseRouting();
         app.MapRazorPages();
