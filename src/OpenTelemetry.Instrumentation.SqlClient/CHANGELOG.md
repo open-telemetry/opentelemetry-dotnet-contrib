@@ -54,6 +54,12 @@
   the command's activity.
   ([#5447](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5447))
 
+* **Breaking Change** Dropped support for `net8.0` and `net9.0`.
+  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+
+* Add support for .NET 11.0.
+  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+
 ## 1.19.0
 
 Released 2026-Sep-18

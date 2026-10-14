@@ -6,6 +6,12 @@
   `OTEL_DOTNET_EXPERIMENTAL_HOST_RESOURCE_ENABLE_CPU_INFO` is `true`.
   ([#5173](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5173))
 
+* **Breaking Change** Dropped support for `net8.0` and `net9.0`.
+  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+
+* Add support for .NET 11.0.
+  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+
 ## 1.19.1-beta.1
 
 Released 2026-Sep-21
