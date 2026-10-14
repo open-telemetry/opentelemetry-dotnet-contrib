@@ -174,7 +174,7 @@ jobs:
 
     - name: Upload hang dumps and test platform logs
       if: ${{ failure() || cancelled() }}
-      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       with:
         if-no-files-found: ignore
         name: hang-dumps-${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}-${{ matrix.os }}-${{ matrix.version }}-attempt-${{ github.run_attempt }}
@@ -228,7 +228,7 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
 
     - name: Publish ${{ steps.resolve-project.outputs.name }} NuGet packages to Artifacts
-      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       # Only publish packages from the first job, which should be net472 for Windows in most cases, which is preferred for .NET Framework support
       if: matrix.os == 'windows-2025' && inputs.pack && strategy.job-index == 0
       with:
