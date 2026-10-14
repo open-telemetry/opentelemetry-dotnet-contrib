@@ -68,8 +68,24 @@ internal class RulesCache : IDisposable
             }
 
             List<SamplingRuleApplier> newRuleAppliers = [];
+            HashSet<string> newRuleNames = [];
             foreach (var rule in newRules)
             {
+                // Skip rules that cannot be applied, rather than failing the whole update.
+                if (SamplingRuleApplier.ValidateRule(rule) is { } reason)
+                {
+                    // RuleName may be null here, which EventSource writes as an empty string.
+                    AWSSamplerEventSource.Log.InvalidSamplingRule(rule.RuleName, reason);
+                    continue;
+                }
+
+                // Rule names identify the appliers, so keep only the first (highest priority) rule of a name.
+                if (!newRuleNames.Add(rule.RuleName))
+                {
+                    AWSSamplerEventSource.Log.InvalidSamplingRule(rule.RuleName, "Another rule has the same RuleName.");
+                    continue;
+                }
+
                 // If the ruleApplier already exists in the current list of appliers, then we reuse it.
                 var ruleApplier = existingAppliers.TryGetValue(rule.RuleName, out var currentApplier)
                     ? currentApplier
