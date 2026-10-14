@@ -27,10 +27,8 @@
 
   <ItemGroup Condition="'$(IsTestProject)' == 'true'">
     <PackageReference Include="GitHubActionsTestLogger" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
-    <PackageReference Include="Microsoft.Testing.Platform" Condition="'$(EnableMSTestRunner)' != 'true'" ExcludeAssets="build;buildMultiTargeting;buildTransitive" />
-    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Testing.Platform" />
     <PackageReference Include="xunit.v3.mtp-v2" />
   </ItemGroup>
 
