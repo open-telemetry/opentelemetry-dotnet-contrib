@@ -11,10 +11,14 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
-    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" />
     <PackageReference Include="Testcontainers.MsSql" />
     <PackageReference Include="Testcontainers.MySql" />
     <PackageReference Include="Testcontainers.PostgreSql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Security.Cryptography.Pkcs" VersionOverride="10.0.13" />
+    <PackageReference Include="System.Security.Cryptography.Xml" VersionOverride="10.0.13" />
   </ItemGroup>
 
   <ItemGroup>
