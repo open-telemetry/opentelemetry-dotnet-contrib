@@ -206,7 +206,7 @@ internal class HttpInListener : ListenerHandler
                 ActivityOperationName,
                 ActivityKind.Server,
                 default(ActivityContext),
-                this.GetRequestTags(request, activity: null, createdSibling: true, out displayName),
+                this.GetRequestTags(request, createdSibling: true, out displayName),
                 links: linkContext.IsValid() ? [new ActivityLink(linkContext)] : null);
 
             if (root is null)
@@ -270,7 +270,7 @@ internal class HttpInListener : ListenerHandler
             // The root was created with these tags.
             if (!createdRoot)
             {
-                var tags = this.GetRequestTags(request, activity, createdSibling, out displayName);
+                var tags = this.GetRequestTags(request, createdSibling, out displayName);
 
                 // Indexed, as foreach over a TagList boxes its enumerator.
                 for (var i = 0; i < tags.Count; i++)
@@ -288,7 +288,6 @@ internal class HttpInListener : ListenerHandler
             // and the normalized method may differ. See https://github.com/dotnet/aspnetcore/issues/65873.
             // Whenever http.request.method is set the display name is also set, so when the method was
             // normalized to set the tag the display name derived from it is reused rather than normalizing again.
-            // TODO Verify this change once .NET 11 RC.2 is available
             if (displayName is not null)
             {
                 activity.DisplayName = displayName;
@@ -596,14 +595,13 @@ internal class HttpInListener : ListenerHandler
     /// Gets the tags to set on the server span for the specified request.
     /// </summary>
     /// <param name="request">The incoming request.</param>
-    /// <param name="activity">The <see cref="Activity"/> for the request, if any.</param>
     /// <param name="createdSibling">Whether the instrumentation created a sibling <see cref="Activity"/>.</param>
     /// <param name="displayName">
     /// When this method returns, contains the method-based display name for the span if the
     /// <c>http.request.method</c> tag was added; otherwise, <see langword="null"/>.
     /// </param>
     /// <returns>The tags to set on the span.</returns>
-    private TagList GetRequestTags(HttpRequest request, Activity? activity, bool createdSibling, out string? displayName)
+    private TagList GetRequestTags(HttpRequest request, bool createdSibling, out string? displayName)
     {
         var tags = default(TagList);
         displayName = null;
@@ -657,10 +655,10 @@ internal class HttpInListener : ListenerHandler
             {
                 tags.Add(SemanticConventions.AttributeUrlQuery, request.QueryString.Value);
             }
-            else if (!Net11OrGreater || !this.nativeAspNetCoreOpenTelemetryEnabled || createdSibling || activity?.GetTagValue(SemanticConventions.AttributeUrlQuery) is null)
+            else
             {
-                // ASP.NET Core 11+ sets http.url.query natively https://github.com/dotnet/aspnetcore/pull/68824
-                // TODO Verify this change once .NET 11 RC.2 is available - the last condition might have a perf overhead
+                // ASP.NET Core 11+ sets http.url.query natively (https://github.com/dotnet/aspnetcore/pull/68824)
+                // but what it redacts is narrower in scope, so overwrite it for backwards compatibility.
                 tags.Add(SemanticConventions.AttributeUrlQuery, RedactionHelper.GetRedactedQueryString(request.QueryString.Value));
             }
         }
