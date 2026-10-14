@@ -83,7 +83,7 @@
       "enabled": false
     },
     {
-      "matchDepNames": ["Npgsql.EntityFrameworkCore.PostgreSQL", "Pomelo.EntityFrameworkCore.MySql"],
+      "matchDepNames": ["Npgsql.EntityFrameworkCore.PostgreSQL"],
       "description": ["Disable major version updates for packages that depend on specific EFCore versions"],
       "matchUpdateTypes": ["major"],
       "enabled": false
