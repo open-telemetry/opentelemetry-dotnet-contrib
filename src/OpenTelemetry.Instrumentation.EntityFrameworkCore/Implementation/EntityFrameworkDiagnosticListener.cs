@@ -52,6 +52,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 #endif
 
     private readonly EntityFrameworkInstrumentationOptions options;
+    private readonly EntityFrameworkQueryTextProcessor queryTextProcessor = new();
 
     public EntityFrameworkDiagnosticListener(string sourceName, EntityFrameworkInstrumentationOptions? options)
         : base(sourceName)
@@ -195,22 +196,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                     break;
 
                                 case CommandType.Text:
-                                    // Only SQL-like providers support sanitization as we are not
-                                    // able to sanitize arbitrary commands for other query dialects.
-                                    var sanitizeQuery = IsSqlLikeProvider(providerName);
-
-                                    // MySQL/MariaDB treat a backslash as a string-literal escape
-                                    // character by default, which the sanitizer must honor to avoid
-                                    // leaking literal content into the query text.
-                                    var useBackslashEscapes = IsBackslashEscapeProvider(providerName);
-
-                                    DatabaseSemanticConventionHelper.ApplyConventionsForQueryText(
-                                        activity,
-                                        commandText,
-                                        this.options.EmitOldAttributes,
-                                        this.options.EmitNewAttributes,
-                                        sanitizeQuery,
-                                        useBackslashEscapes);
+                                    this.queryTextProcessor.Apply(activity, commandText, providerName, this.options.EmitOldAttributes, this.options.EmitNewAttributes);
                                     break;
 
                                 case CommandType.TableDirect:
@@ -329,101 +315,6 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     /// <returns>
     /// A tuple containing the respective <c>db.system</c> and <c>db.system.name</c> values.
     /// </returns>
-    internal static (string Old, string New) GetDbSystemNames(string? providerOrCommandName) =>
-        //// "${Attribute} has the following list of well-known values. If one of them applies, then the respective value MUST be used"
-        providerOrCommandName switch
-        {
-            //// These names are defined in the Semantic Conventions
-            "Microsoft.Data.SqlClient.SqlCommand" or
-            "Microsoft.EntityFrameworkCore.SqlServer"
-                => (DbSystems.Mssql, DbSystemNames.MicrosoftSqlServer),
-            "Microsoft.EntityFrameworkCore.Cosmos"
-                => (DbSystems.Cosmosdb, DbSystemNames.AzureCosmosDb),
-            "Devart.Data.SQLite.Entity.EFCore" or
-            "Microsoft.Data.Sqlite.SqliteCommand" or
-            "Microsoft.EntityFrameworkCore.Sqlite"
-                => (DbSystems.Sqlite, DbSystemNames.Sqlite),
-            "Devart.Data.MySql.Entity.EFCore" or
-            "Devart.Data.MySql.MySqlCommand" or
-            "MySql.Data.EntityFrameworkCore" or
-            "MySql.Data.MySqlClient.MySqlCommand" or
-            "MySql.EntityFrameworkCore" or
-            "Pomelo.EntityFrameworkCore.MySql"
-                => (DbSystems.Mysql, DbSystemNames.Mysql),
-            "Npgsql.EntityFrameworkCore.PostgreSQL" or
-            "Npgsql.NpgsqlCommand" or
-            "Devart.Data.PostgreSql.Entity.EFCore" or
-            "Devart.Data.PostgreSql.PgSqlCommand"
-                => (DbSystems.Postgresql, DbSystemNames.Postgresql),
-            "Oracle.EntityFrameworkCore" or
-            "Oracle.ManagedDataAccess.Client.OracleCommand" or
-            "Devart.Data.Oracle.Entity.EFCore" or
-            "Devart.Data.Oracle.OracleCommand"
-                => (DbSystems.Oracle, DbSystemNames.OracleDb),
-            "FirebirdSql.Data.FirebirdClient.FbCommand" or
-            "FirebirdSql.EntityFrameworkCore.Firebird"
-                => (DbSystems.Firebird, DbSystemNames.Firebirdsql),
-            "Google.Cloud.EntityFrameworkCore.Spanner" or
-            "Google.Cloud.Spanner.Data.SpannerCommand"
-                => (DbSystems.Spanner, DbSystemNames.GcpSpanner),
-            "Teradata.Client.Provider.TdCommand" or
-            "Teradata.EntityFrameworkCore"
-                => (DbSystems.Teradata, DbSystemNames.Teradata),
-            "MongoDB.EntityFrameworkCore"
-                => (DbSystems.Mongodb, DbSystemNames.Mongodb),
-            "Couchbase.EntityFrameworkCore" or
-            "Couchbase.EntityFrameworkCore.Storage.Internal"
-                => (DbSystems.Couchbase, DbSystemNames.Couchbase),
-            "IBM.EntityFrameworkCore" or
-            "IBM.EntityFrameworkCore-lnx" or
-            "IBM.EntityFrameworkCore-osx"
-                => (DbSystems.Db2, DbSystemNames.IbmDb2),
-            //// Otherwise use the fallback defined in the Semantic Conventions
-            _ => (DbSystems.OtherSql, DbSystemNames.OtherSql),
-        };
-
-    /// <summary>
-    /// Returns whether the given provider or command name is SQL-like.
-    /// </summary>
-    /// <param name="providerOrCommandName">The provider or command name.</param>
-    /// <returns>
-    /// <see langword="true"/> if the provider or command name is SQL-like; otherwise, <see langword="false"/>.
-    /// </returns>
-    internal static bool IsSqlLikeProvider(string? providerOrCommandName)
-    {
-        (_, var dbSystemName) = GetDbSystemNames(providerOrCommandName);
-
-        return dbSystemName switch
-        {
-            DbSystemNames.Firebirdsql or
-            DbSystemNames.GcpSpanner or
-            DbSystemNames.IbmDb2 or
-            DbSystemNames.MicrosoftSqlServer or
-            DbSystemNames.Mysql or
-            DbSystemNames.OracleDb or
-            DbSystemNames.Postgresql or
-            DbSystemNames.Sqlite or
-            DbSystemNames.Teradata
-              => true,
-            _ => false,
-        };
-    }
-
-    internal static bool IsBackslashEscapeProvider(string? providerOrCommandName)
-    {
-        // MySQL and MariaDB (which use the MySQL providers) treat a backslash as a
-        // string-literal escape character unless the NO_BACKSLASH_ESCAPES SQL mode
-        // is enabled. The other supported engines follow the SQL standard where
-        // only a doubled quote ('') escapes a quote.
-        //
-        // This assumes the default (NO_BACKSLASH_ESCAPES disabled) behaviour: there is
-        // no way to detect the session SQL mode from the provider/command name alone,
-        // so if an application has enabled NO_BACKSLASH_ESCAPES the sanitizer will still
-        // treat '\' as an escape character for that connection.
-        (_, var dbSystemName) = GetDbSystemNames(providerOrCommandName);
-        return dbSystemName == DbSystemNames.Mysql;
-    }
-
     private void DiscardFilteredActivity(Activity activity, object? command)
     {
         activity.IsAllDataRequested = false;
@@ -470,57 +361,13 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 
     private void AddDbSystemNameTag(Activity activity, string? providerOrCommandName)
     {
-        var values = GetDbSystemNames(providerOrCommandName);
+        var values = EntityFrameworkProviderInfo.GetDbSystemNames(providerOrCommandName);
 
         // Custom tag for backwards compatibility only
-        if (this.options.EmitOldAttributes && (values == (DbSystems.OtherSql, DbSystemNames.OtherSql)))
+        if (this.options.EmitOldAttributes && values == ("other_sql", "other_sql"))
         {
             activity.AddTag("ef.provider", providerOrCommandName);
         }
 
         this.AddTag(activity, (SemanticConventions.AttributeDbSystem, SemanticConventions.AttributeDbSystemName), values);
     }
-
-    // v1.36.0 database conventions:
-    // https://github.com/open-telemetry/semantic-conventions/tree/v1.36.0/docs/database
-
-    /// <summary>
-    /// Known (and used) values for the <c>db.system.name</c> attributes.
-    /// </summary>
-    private static class DbSystemNames
-    {
-        public const string OtherSql = "other_sql";
-        public const string AzureCosmosDb = "azure.cosmosdb";
-        public const string Couchbase = "couchbase";
-        public const string Firebirdsql = "firebirdsql";
-        public const string GcpSpanner = "gcp.spanner";
-        public const string IbmDb2 = "ibm.db2";
-        public const string MicrosoftSqlServer = "microsoft.sql_server";
-        public const string Mongodb = "mongodb";
-        public const string Mysql = "mysql";
-        public const string OracleDb = "oracle.db";
-        public const string Postgresql = "postgresql";
-        public const string Sqlite = "sqlite";
-        public const string Teradata = "teradata";
-    }
-
-    /// <summary>
-    /// Known (and used) values for the <c>db.system</c> attributes.
-    /// </summary>
-    private static class DbSystems
-    {
-        public const string OtherSql = "other_sql";
-        public const string Cosmosdb = "cosmosdb";
-        public const string Couchbase = "couchbase";
-        public const string Db2 = "db2";
-        public const string Firebird = "firebird";
-        public const string Mongodb = "mongodb";
-        public const string Mssql = "mssql";
-        public const string Mysql = "mysql";
-        public const string Oracle = "oracle";
-        public const string Postgresql = "postgresql";
-        public const string Spanner = "spanner";
-        public const string Sqlite = "sqlite";
-        public const string Teradata = "teradata";
-    }
-}
