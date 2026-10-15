@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.20.0-beta.1
+
+Released 2026-Oct-15
+
 * Fixed `container.id` being reported for processes that are not running in a
   container on hosts that use systemd.
   ([#5454](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5454))
