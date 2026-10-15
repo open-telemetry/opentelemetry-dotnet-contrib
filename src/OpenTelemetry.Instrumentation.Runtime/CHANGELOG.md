@@ -5,6 +5,11 @@
 * Updated OpenTelemetry core component version(s) to `1.19.1`.
   ([#5329](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5329))
 
+* Marked `RuntimeInstrumentationOptions` and the `AddRuntimeInstrumentation`
+  overload accepting configuration as obsolete because runtime instrumentation
+  does not support configuration. Use `AddRuntimeInstrumentation()` instead.
+  ([#5540](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5540))
+
 ## 1.19.0
 
 Released 2026-Sep-18
