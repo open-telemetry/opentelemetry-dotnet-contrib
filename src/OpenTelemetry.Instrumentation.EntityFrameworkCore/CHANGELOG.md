@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.20.0-beta.1
+
+Released 2026-Oct-15
+
 * Fixed `db.query.summary` so that a delimited identifier containing an escaped
   closing bracket, such as `[Tab]]le]`, is captured whole instead of being
   truncated at the escape.
