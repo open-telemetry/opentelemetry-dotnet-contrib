@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.20.0
+
+Released 2026-Oct-15
+
 * Fixed an issue where the `HttpClient` instrumentation injected context on
   .NET 8.0+ for a suppressed request that no listener sampled. The
   `SuppressDownstreamInstrumentation` options of the gRPC client and WCF
