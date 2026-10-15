@@ -369,4 +369,4 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
         }
 
         this.AddTag(activity, (SemanticConventions.AttributeDbSystem, SemanticConventions.AttributeDbSystemName), values);
-    }
+    }}
