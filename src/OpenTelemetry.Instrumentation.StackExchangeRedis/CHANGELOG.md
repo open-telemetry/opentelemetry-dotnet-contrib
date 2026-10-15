@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.20.0-beta.1
+
+Released 2026-Oct-15
+
 * Skip calculating timing-event timestamps when
   `EnrichActivityWithTimingEvents` is disabled.
   ([#5423](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5423))
