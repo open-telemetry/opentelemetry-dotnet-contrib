@@ -4,7 +4,8 @@
 namespace OpenTelemetry.Instrumentation.EntityFrameworkCore;
 
 /// <summary>
-/// Describes the result of sanitizing database command text.
+/// Describes the result of a
+/// <see cref="EntityFrameworkInstrumentationOptions.QueryTextSanitizer"/> function.
 /// </summary>
 /// <remarks>
 /// Use <see cref="NotSanitized"/> to emit the original command text unchanged,
@@ -12,7 +13,7 @@ namespace OpenTelemetry.Instrumentation.EntityFrameworkCore;
 /// <see cref="Sanitized(string, string?)"/> to emit sanitized query text.
 /// </remarks>
 #pragma warning disable CA1815 // Override equals and operator equals on value types
-internal readonly struct DbQueryTextSanitizationResult
+public readonly struct DbQueryTextSanitizationResult
 #pragma warning restore CA1815 // Override equals and operator equals on value types
 {
     private DbQueryTextSanitizationResult(bool isSanitized, bool suppressQueryText, string? queryText, string? querySummary)

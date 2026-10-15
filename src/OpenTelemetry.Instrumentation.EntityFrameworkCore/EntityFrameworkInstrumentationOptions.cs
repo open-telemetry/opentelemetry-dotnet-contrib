@@ -4,6 +4,7 @@
 using System.Data;
 using System.Diagnostics;
 using Microsoft.Extensions.Configuration;
+using OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
 using static OpenTelemetry.Internal.DatabaseSemanticConventionHelper;
 
 namespace OpenTelemetry.Instrumentation.EntityFrameworkCore;
@@ -32,6 +33,8 @@ public class EntityFrameworkInstrumentationOptions
         {
             this.SetDbQueryParameters = setDbQueryParameters;
         }
+
+        this.QueryTextSanitizer = EntityFrameworkQueryTextProcessor.SanitizeQueryText;
     }
 
     /// <summary>
@@ -63,6 +66,30 @@ public class EntityFrameworkInstrumentationOptions
     /// </list>
     /// </remarks>
     public Func<string?, IDbCommand, bool>? Filter { get; set; }
+
+    /// <summary>
+    /// Gets or sets a function that sanitizes command text before it is emitted as the
+    /// <c>db.statement</c> or <c>db.query.text</c> tag.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The function receives a <see cref="DbQueryTextSanitizationContext"/> and is called only
+    /// for commands whose <see cref="IDbCommand.CommandType"/> is <see cref="CommandType.Text"/>.
+    /// Its return value controls whether the original, sanitized, or no query text is emitted;
+    /// see <see cref="DbQueryTextSanitizationResult"/>.
+    /// </para>
+    /// <para>
+    /// By default, SQL-like queries are sanitized by replacing literal values with <c>?</c>;
+    /// other query dialects are emitted unchanged. The default function is assigned before the
+    /// configuration callback runs, so it can be captured and wrapped.
+    /// </para>
+    /// <para>
+    /// If the function throws, query text is omitted and the rest of the command telemetry is
+    /// collected. Setting this property to <see langword="null"/> disables sanitization and
+    /// emits raw query text, which may contain sensitive data.
+    /// </para>
+    /// </remarks>
+    public DbQueryTextSanitizer? QueryTextSanitizer { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether or not the <see cref="EntityFrameworkInstrumentation"/>

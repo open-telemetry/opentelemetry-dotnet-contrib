@@ -38,6 +38,15 @@ internal sealed class EntityFrameworkInstrumentationEventSource : EventSource
         }
     }
 
+    [NonEvent]
+    public void QueryTextSanitizerException(Exception ex)
+    {
+        if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
+        {
+            this.QueryTextSanitizerException(ex.ToInvariantString());
+        }
+    }
+
     [Event(1, Message = "Unknown error processing event '{1}' from handler '{0}', Exception: {2}", Level = EventLevel.Error)]
     public void UnknownErrorProcessingEvent(string handlerName, string eventName, string ex)
     {
@@ -75,5 +84,11 @@ internal sealed class EntityFrameworkInstrumentationEventSource : EventSource
     public void CommandFilterException(string exception)
     {
         this.WriteEvent(7, exception);
+    }
+
+    [Event(8, Message = "Query text sanitizer threw exception. Query text will not be collected. Exception {0}.", Level = EventLevel.Error)]
+    public void QueryTextSanitizerException(string exception)
+    {
+        this.WriteEvent(8, exception);
     }
 }
