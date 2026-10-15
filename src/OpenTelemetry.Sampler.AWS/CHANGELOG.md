@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.1.0-alpha.16
+
+Released 2026-Oct-15
+
 * Fixed a bug where a transient failure fetching sampling rules from the
   X-Ray daemon/collector (e.g. a network error or an unparsable response)
   would wipe out the previously cached rules instead of being ignored. This
