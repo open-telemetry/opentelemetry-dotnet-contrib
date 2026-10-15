@@ -241,6 +241,21 @@ public class ConnectionStringBuilderTests
     }
 
     [Fact]
+    public void ConnectionStringBuilder_PrivatePreviewEnableUnixDomainSocketBatching_No_Default_Value()
+    {
+        var builder = new ConnectionStringBuilder("Endpoint=unix:/var/run/default_fluent.socket");
+        Assert.False(builder.PrivatePreviewEnableUnixDomainSocketBatching);
+        builder = new ConnectionStringBuilder("Endpoint=unix:/var/run/default_fluent.socket;PrivatePreviewEnableUnixDomainSocketBatching=true");
+        Assert.True(builder.PrivatePreviewEnableUnixDomainSocketBatching);
+        builder = new ConnectionStringBuilder("PrivatePreviewEnableUnixDomainSocketBatching=tRue");
+        Assert.True(builder.PrivatePreviewEnableUnixDomainSocketBatching);
+        builder = new ConnectionStringBuilder("PrivatePreviewEnableUnixDomainSocketBatching=false");
+        Assert.False(builder.PrivatePreviewEnableUnixDomainSocketBatching);
+        builder = new ConnectionStringBuilder("PrivatePreviewEnableUnixDomainSocketBatching=1");
+        Assert.False(builder.PrivatePreviewEnableUnixDomainSocketBatching);
+    }
+
+    [Fact]
     public void ConnectionStringBuilder_EnableOtlpProtobufEncoding_No_Default_Value()
     {
         var builder = new ConnectionStringBuilder("key1=value1");

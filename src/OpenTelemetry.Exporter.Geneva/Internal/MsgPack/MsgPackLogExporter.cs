@@ -30,6 +30,8 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
     ];
 
     private readonly ThreadLocal<byte[]> buffer = new();
+    private readonly ThreadLocal<byte[]> batchBuffer = new();
+    private readonly bool isUnixDomainSocketBatchingEnabled;
     private readonly bool shouldExportEventName;
     private readonly TableNameSerializer tableNameSerializer;
 
@@ -88,6 +90,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
                 var unixDomainSocketPath = connectionStringBuilder.ParseUnixDomainSocketPath();
                 this.dataTransport = new UnixDomainSocketDataTransport(unixDomainSocketPath);
+                this.isUnixDomainSocketBatchingEnabled = connectionStringBuilder.PrivatePreviewEnableUnixDomainSocketBatching;
                 break;
             case TransportProtocol.Tcp:
             case TransportProtocol.Udp:
@@ -159,6 +162,11 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
     public ExportResult Export(in Batch<LogRecord> batch)
     {
+        if (this.isUnixDomainSocketBatchingEnabled)
+        {
+            return this.ExportWithBatchedWrites(in batch);
+        }
+
         var result = ExportResult.Success;
 
         foreach (var logRecord in batch)
@@ -197,6 +205,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             (this.dataTransport as IDisposable)?.Dispose();
             this.serializationData.Dispose();
             this.buffer.Dispose();
+            this.batchBuffer.Dispose();
         }
         catch (Exception ex)
         {
@@ -665,6 +674,75 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         => value is string stringValue
             ? MessagePackSerializer.SerializeUnicodeString(buffer, cursor, stringValue, this.stringFieldSizeLimitCharCount)
             : MessagePackSerializer.Serialize(buffer, cursor, value);
+
+    private ExportResult ExportWithBatchedWrites(in Batch<LogRecord> batch)
+    {
+        var result = ExportResult.Success;
+
+        var batchBuffer = this.batchBuffer.Value;
+        if (batchBuffer == null)
+        {
+            batchBuffer = new byte[BUFFER_SIZE];
+            this.batchBuffer.Value = batchBuffer;
+        }
+
+        var batchBufferCount = 0;
+
+        foreach (var logRecord in batch)
+        {
+            try
+            {
+                var data = this.SerializeLogRecord(logRecord);
+
+                this.DataTransportListener?.Invoke(data);
+
+                // Only whole serialized records are buffered. When the next record does not fit,
+                // the records already buffered are written first so a record is never split.
+                if (batchBufferCount > 0 && batchBufferCount + data.Count > batchBuffer.Length)
+                {
+                    if (!this.TrySendBatchBuffer(batchBuffer, batchBufferCount))
+                    {
+                        result = ExportResult.Failure;
+                    }
+
+                    batchBufferCount = 0;
+                }
+
+#pragma warning disable IDE0370 // Suppression is unnecessary
+                Buffer.BlockCopy(data.Array!, data.Offset, batchBuffer, batchBufferCount, data.Count);
+#pragma warning restore IDE0370 // Suppression is unnecessary
+                batchBufferCount += data.Count;
+            }
+            catch (Exception ex)
+            {
+                ExporterEventSource.Log.FailedToSendLogData(ex); // TODO: preallocate exception or no exception
+                result = ExportResult.Failure;
+            }
+        }
+
+        if (batchBufferCount > 0 && !this.TrySendBatchBuffer(batchBuffer, batchBufferCount))
+        {
+            result = ExportResult.Failure;
+        }
+
+        ExporterEventSource.Log.ExportCompleted(nameof(MsgPackLogExporter));
+
+        return result;
+    }
+
+    private bool TrySendBatchBuffer(byte[] batchBuffer, int count)
+    {
+        try
+        {
+            this.dataTransport.Send(batchBuffer, count);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            ExporterEventSource.Log.FailedToSendLogData(ex); // TODO: preallocate exception or no exception
+            return false;
+        }
+    }
 
     private sealed class SerializationDataForScopes
     {
