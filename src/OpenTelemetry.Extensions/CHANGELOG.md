@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.20.0-beta.1
+
+Released 2026-Oct-15
+
 * `AutoFlushActivityProcessor` now logs a warning when
   `TracerProvider.ForceFlush` does not complete within
   its configured timeout.
