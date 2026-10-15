@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.0-alpha.15
+
+Released 2026-Oct-15
+
 * Fixed attribute keys and values containing backslashes producing invalid
   line protocol, which caused InfluxDB to reject the entire batch of metrics
   being written.
