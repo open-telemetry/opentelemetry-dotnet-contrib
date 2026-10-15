@@ -17,8 +17,22 @@ public static class HostResourceBuilderExtensions
     /// <param name="builder">The <see cref="ResourceBuilder"/> being configured.</param>
     /// <returns>The instance of <see cref="ResourceBuilder"/> being configured.</returns>
     public static ResourceBuilder AddHostDetector(this ResourceBuilder builder)
+        => AddHostDetector(builder, configure: null);
+
+    /// <summary>
+    /// Enables host resource detector.
+    /// </summary>
+    /// <param name="builder">The <see cref="ResourceBuilder"/> being configured.</param>
+    /// <param name="configure">Callback to configure <see cref="HostDetectorOptions"/>.
+    /// Values set here override the ones read from environment variables.</param>
+    /// <returns>The instance of <see cref="ResourceBuilder"/> being configured.</returns>
+    public static ResourceBuilder AddHostDetector(this ResourceBuilder builder, Action<HostDetectorOptions>? configure)
     {
         Guard.ThrowIfNull(builder);
-        return builder.AddDetector(new HostDetector());
+
+        var options = new HostDetectorOptions();
+        configure?.Invoke(options);
+
+        return builder.AddDetector(new HostDetector(options));
     }
 }
