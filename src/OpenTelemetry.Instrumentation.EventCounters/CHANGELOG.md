@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.20.0-alpha.1
+
+Released 2026-Oct-15
+
 * Added dependency injection support for EventCounters instrumentation.
   ([#5475](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5475))
 
