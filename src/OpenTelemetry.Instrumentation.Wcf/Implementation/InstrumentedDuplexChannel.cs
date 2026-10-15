@@ -59,13 +59,15 @@ internal class InstrumentedDuplexChannel : InstrumentedChannel<IDuplexChannel>, 
         try
         {
             this.Inner.EndSend(asyncResult.Inner);
-            if (asyncResult.TelemetryState.IsOneWay)
+            asyncResult.TelemetryState.DisposeSuppressionScope();
+            if (asyncResult.TelemetryState.IsOneWay || !asyncResult.TelemetryState.IsTracked)
             {
                 ClientChannelInstrumentation.AfterRequestCompleted(null, asyncResult.TelemetryState);
             }
         }
         catch (Exception ex)
         {
+            RequestTelemetryStateTracker.RemoveTelemetryState(asyncResult.TelemetryState);
             ClientChannelInstrumentation.AfterRequestCompleted(null, asyncResult.TelemetryState, ex);
             throw;
         }
@@ -74,15 +76,13 @@ internal class InstrumentedDuplexChannel : InstrumentedChannel<IDuplexChannel>, 
     public Message Receive()
     {
         var message = this.Inner.Receive();
-        HandleReceivedMessage(message);
-        return message;
+        return HandleReceivedMessage(message);
     }
 
     public Message Receive(TimeSpan timeout)
     {
         var message = this.Inner.Receive(timeout);
-        HandleReceivedMessage(message);
-        return message;
+        return HandleReceivedMessage(message);
     }
 
     public IAsyncResult BeginReceive(AsyncCallback? callback, object? state)
@@ -107,7 +107,7 @@ internal class InstrumentedDuplexChannel : InstrumentedChannel<IDuplexChannel>, 
     public bool TryReceive(TimeSpan timeout, out Message message)
     {
         var returnValue = this.Inner.TryReceive(timeout, out message);
-        HandleReceivedMessage(message);
+        message = HandleReceivedMessage(message);
         return returnValue;
     }
 
@@ -121,7 +121,7 @@ internal class InstrumentedDuplexChannel : InstrumentedChannel<IDuplexChannel>, 
         Guard.ThrowIfNull(result);
 
         var returnValue = this.Inner.EndTryReceive(result, out message);
-        HandleReceivedMessage(message);
+        message = HandleReceivedMessage(message);
         return returnValue;
     }
 
@@ -142,13 +142,15 @@ internal class InstrumentedDuplexChannel : InstrumentedChannel<IDuplexChannel>, 
         return this.Inner.EndWaitForMessage(result);
     }
 
-    private static void HandleReceivedMessage(Message message)
+    private static Message HandleReceivedMessage(Message message)
     {
         var telemetryState = RequestTelemetryStateTracker.PopTelemetryState(message);
         if (telemetryState != null)
         {
-            ClientChannelInstrumentation.AfterRequestCompleted(message, telemetryState);
+            return ClientChannelInstrumentation.AfterRequestCompleted(message, telemetryState)!;
         }
+
+        return message;
     }
 
     private static void OnTelemetryStateTimedOut(RequestTelemetryState telemetryState)
@@ -184,12 +186,16 @@ internal class InstrumentedDuplexChannel : InstrumentedChannel<IDuplexChannel>, 
             telemetryState = ClientChannelInstrumentation.BeforeSendRequest(message, this.RemoteAddress?.Uri);
             if (!telemetryState.IsOneWay)
             {
-                RequestTelemetryStateTracker.PushTelemetryState(message, telemetryState, timeout, OnTelemetryStateTimedOut);
+                telemetryState.IsTracked = RequestTelemetryStateTracker.PushTelemetryState(message, telemetryState, timeout, OnTelemetryStateTimedOut);
             }
 
             executeSend(telemetryState);
+            if (completeOneWay)
+            {
+                telemetryState.DisposeSuppressionScope();
+            }
 
-            if (completeOneWay && telemetryState.IsOneWay)
+            if (completeOneWay && (telemetryState.IsOneWay || !telemetryState.IsTracked))
             {
                 ClientChannelInstrumentation.AfterRequestCompleted(null, telemetryState);
             }
@@ -209,6 +215,11 @@ internal class InstrumentedDuplexChannel : InstrumentedChannel<IDuplexChannel>, 
         }
         catch (Exception ex)
         {
+            if (telemetryState != null)
+            {
+                RequestTelemetryStateTracker.RemoveTelemetryState(telemetryState);
+            }
+
             ClientChannelInstrumentation.AfterRequestCompleted(null, telemetryState, ex);
             throw;
         }
