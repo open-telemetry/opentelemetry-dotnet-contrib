@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.20.0-beta.1
+
+Released 2026-Oct-15
+
 * **Breaking Change**: Context is now propagated regardless of
   `SuppressDownstreamInstrumentation`. Without HttpClient instrumentation,
   downstream spans are parented to the gRPC client span and baggage is
