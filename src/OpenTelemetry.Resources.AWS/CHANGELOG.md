@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.20.0
+
+Released 2026-Oct-15
+
 * Fixed `AWSECSDetector` and `AWSEKSDetector` reporting an incorrect
   `container.id` when the systemd cgroup driver is used.
   ([#5454](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5454))
