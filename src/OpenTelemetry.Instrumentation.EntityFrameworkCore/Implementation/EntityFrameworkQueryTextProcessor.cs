@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Data;
 using System.Diagnostics;
 using OpenTelemetry.Internal;
 
@@ -11,9 +12,17 @@ namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
 /// </summary>
 internal static class EntityFrameworkQueryTextProcessor
 {
-    public static void Apply(Activity activity, string? commandText, string? providerName, bool emitOldAttributes, bool emitNewAttributes)
+    public static void Apply(
+        Activity activity,
+        object? command,
+        string? commandText,
+        string? providerName,
+        EntityFrameworkInstrumentationOptions options)
     {
-        var result = SanitizeQueryText(new DbQueryTextSanitizationContext(providerName, commandText, null));
+        if (!TrySanitizeQueryText(command, commandText, providerName, options, out var result))
+        {
+            return;
+        }
 
         if (result.SuppressQueryText)
         {
@@ -26,16 +35,16 @@ internal static class EntityFrameworkQueryTextProcessor
                 activity,
                 result.QueryText ?? string.Empty,
                 result.QuerySummary,
-                emitOldAttributes,
-                emitNewAttributes);
+                options.EmitOldAttributes,
+                options.EmitNewAttributes);
             return;
         }
 
         DatabaseSemanticConventionHelper.ApplyConventionsForQueryText(
             activity,
             commandText,
-            emitOldAttributes,
-            emitNewAttributes,
+            options.EmitOldAttributes,
+            options.EmitNewAttributes,
             sanitizeQuery: false);
     }
 
@@ -50,5 +59,28 @@ internal static class EntityFrameworkQueryTextProcessor
         var sqlStatementInfo = SqlProcessor.GetSanitizedSql(context.QueryText, useBackslashEscapes);
 
         return DbQueryTextSanitizationResult.Sanitized(sqlStatementInfo.SanitizedSql, sqlStatementInfo.DbQuerySummary);
+    }
+
+    private static bool TrySanitizeQueryText(
+        object? command,
+        string? commandText,
+        string? providerName,
+        EntityFrameworkInstrumentationOptions options,
+        out DbQueryTextSanitizationResult result)
+    {
+        try
+        {
+            result = options.QueryTextSanitizer?.Invoke(new DbQueryTextSanitizationContext(
+                providerName,
+                commandText,
+                command as IDbCommand)) ?? DbQueryTextSanitizationResult.NotSanitized;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            EntityFrameworkInstrumentationEventSource.Log.QueryTextSanitizerException(ex);
+            result = default;
+            return false;
+        }
     }
 }

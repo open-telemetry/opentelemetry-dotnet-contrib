@@ -6,10 +6,11 @@ using System.Data;
 namespace OpenTelemetry.Instrumentation.EntityFrameworkCore;
 
 /// <summary>
-/// Contains information about a database command to sanitize.
+/// Contains information about the command passed to a
+/// <see cref="EntityFrameworkInstrumentationOptions.QueryTextSanitizer"/> function.
 /// </summary>
 #pragma warning disable CA1815 // Override equals and operator equals on value types
-internal readonly struct DbQueryTextSanitizationContext
+public readonly struct DbQueryTextSanitizationContext
 #pragma warning restore CA1815 // Override equals and operator equals on value types
 {
     internal DbQueryTextSanitizationContext(

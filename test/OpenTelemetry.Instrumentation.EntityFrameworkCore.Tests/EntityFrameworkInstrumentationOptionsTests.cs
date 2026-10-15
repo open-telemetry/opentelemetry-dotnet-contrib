@@ -62,6 +62,15 @@ public class EntityFrameworkInstrumentationOptionsTests
     }
 
     [Fact]
+    public void ShouldAssignQueryTextSanitizerByDefault()
+    {
+        var configuration = new ConfigurationBuilder().Build();
+        var options = new EntityFrameworkInstrumentationOptions(configuration);
+
+        Assert.NotNull(options.QueryTextSanitizer);
+    }
+
+    [Fact]
     public void SanitizedResultShouldExposeSuppliedQueryTextAndSummary()
     {
         var result = DbQueryTextSanitizationResult.Sanitized("[redacted]", "SELECT Items");

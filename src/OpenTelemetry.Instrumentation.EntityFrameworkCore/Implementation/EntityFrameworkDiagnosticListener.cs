@@ -195,7 +195,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                     break;
 
                                 case CommandType.Text:
-                                    EntityFrameworkQueryTextProcessor.Apply(activity, commandText, providerName, this.options.EmitOldAttributes, this.options.EmitNewAttributes);
+                                    EntityFrameworkQueryTextProcessor.Apply(activity, command, commandText, providerName, this.options);
                                     break;
 
                                 case CommandType.TableDirect:
