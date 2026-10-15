@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.20.0
+
+Released 2026-Oct-15
+
 * Fixed the messages of unhandled exceptions being exported as the span status
   description. Exception messages are now only exported if the `RecordException`
   option is enabled.
