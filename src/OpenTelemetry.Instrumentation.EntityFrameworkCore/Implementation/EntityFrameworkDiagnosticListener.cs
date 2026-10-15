@@ -307,13 +307,6 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
         _ => false,
     };
 
-    /// <summary>
-    /// Gets the <c>db.system</c> and <c>db.system.name</c> values to use for the given provider or command name.
-    /// </summary>
-    /// <param name="providerOrCommandName">The provider or command name.</param>
-    /// <returns>
-    /// A tuple containing the respective <c>db.system</c> and <c>db.system.name</c> values.
-    /// </returns>
     private void DiscardFilteredActivity(Activity activity, object? command)
     {
         activity.IsAllDataRequested = false;
