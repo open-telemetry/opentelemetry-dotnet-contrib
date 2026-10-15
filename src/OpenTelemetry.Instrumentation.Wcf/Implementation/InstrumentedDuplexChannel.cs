@@ -147,7 +147,7 @@ internal class InstrumentedDuplexChannel : InstrumentedChannel<IDuplexChannel>, 
         var telemetryState = RequestTelemetryStateTracker.PopTelemetryState(message);
         if (telemetryState != null)
         {
-            return ClientChannelInstrumentation.AfterRequestCompleted(message, telemetryState)!;
+            ClientChannelInstrumentation.AfterRequestCompleted(message, telemetryState);
         }
 
         return message;
