@@ -28,6 +28,9 @@
 * Requests to the sampling endpoint now time out after 10 seconds.
   ([#5455](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5455))
 
+* Updated OpenTelemetry core component version(s) to `1.20.0`.
+  ([#5541](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5541))
+
 ## 0.1.0-alpha.15
 
 Released 2026-Sep-21
