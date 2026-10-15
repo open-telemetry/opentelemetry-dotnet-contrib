@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.20.0-beta.1
+
+Released 2026-Oct-15
+
 * Added the `host.cpu.*` resource attributes, emitted when
   `OTEL_DOTNET_EXPERIMENTAL_HOST_RESOURCE_ENABLE_CPU_INFO` is `true`.
   ([#5173](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5173))
