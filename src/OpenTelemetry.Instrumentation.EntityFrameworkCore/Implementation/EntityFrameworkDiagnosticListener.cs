@@ -52,7 +52,6 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 #endif
 
     private readonly EntityFrameworkInstrumentationOptions options;
-    private readonly EntityFrameworkQueryTextProcessor queryTextProcessor = new();
 
     public EntityFrameworkDiagnosticListener(string sourceName, EntityFrameworkInstrumentationOptions? options)
         : base(sourceName)
@@ -196,7 +195,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                     break;
 
                                 case CommandType.Text:
-                                    this.queryTextProcessor.Apply(activity, commandText, providerName, this.options.EmitOldAttributes, this.options.EmitNewAttributes);
+                                    EntityFrameworkQueryTextProcessor.Apply(activity, commandText, providerName, this.options.EmitOldAttributes, this.options.EmitNewAttributes);
                                     break;
 
                                 case CommandType.TableDirect:

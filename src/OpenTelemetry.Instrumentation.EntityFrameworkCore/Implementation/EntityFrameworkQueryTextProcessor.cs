@@ -9,9 +9,9 @@ namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
 /// <summary>
 /// Applies Entity Framework Core query text sanitization and database attributes.
 /// </summary>
-internal sealed class EntityFrameworkQueryTextProcessor
+internal static class EntityFrameworkQueryTextProcessor
 {
-    public void Apply(Activity activity, string? commandText, string? providerName, bool emitOldAttributes, bool emitNewAttributes)
+    public static void Apply(Activity activity, string? commandText, string? providerName, bool emitOldAttributes, bool emitNewAttributes)
     {
         // Only SQL-like providers support sanitization because arbitrary query dialects cannot be sanitized reliably.
         var sanitizeQuery = EntityFrameworkProviderInfo.IsSqlLikeProvider(providerName);
