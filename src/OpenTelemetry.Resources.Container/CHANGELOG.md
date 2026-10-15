@@ -2,15 +2,22 @@
 
 ## Unreleased
 
-* Fixed `container.id` being reported for processes that are not running in a
-  container on hosts that use systemd.
-  ([#5454](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5454))
-
 * **Breaking Change** Dropped support for `net8.0` and `net9.0`.
   ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
 
 * Add support for .NET 11.0.
   ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+
+## 1.20.0-beta.1
+
+Released 2026-Oct-15
+
+* Fixed `container.id` being reported for processes that are not running in a
+  container on hosts that use systemd.
+  ([#5454](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5454))
+
+* Updated OpenTelemetry core component version(s) to `1.20.0`.
+  ([#5541](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5541))
 
 ## 1.19.1-beta.1
 

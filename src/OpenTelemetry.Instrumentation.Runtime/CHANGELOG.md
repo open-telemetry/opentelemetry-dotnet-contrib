@@ -2,8 +2,17 @@
 
 ## Unreleased
 
-* Updated OpenTelemetry core component version(s) to `1.19.1`.
-  ([#5329](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5329))
+## 1.20.0
+
+Released 2026-Oct-15
+
+* Marked `RuntimeInstrumentationOptions` and the `AddRuntimeInstrumentation`
+  overload accepting configuration as obsolete because runtime instrumentation
+  does not support configuration. Use `AddRuntimeInstrumentation()` instead.
+  ([#5540](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5540))
+
+* Updated OpenTelemetry core component version(s) to `1.20.0`.
+  ([#5541](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5541))
 
 * **Breaking Change** Dropped support for `net8.0` and `net9.0`.
   ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))

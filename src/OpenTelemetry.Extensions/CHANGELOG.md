@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+* **Breaking Change** Dropped support for `net8.0` and `net9.0`.
+  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+
+* Add support for .NET 11.0.
+  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+
+## 1.20.0-beta.1
+
+Released 2026-Oct-15
+
 * `AutoFlushActivityProcessor` now logs a warning when
   `TracerProvider.ForceFlush` does not complete within
   its configured timeout.
@@ -21,11 +31,8 @@
   specification defines, and preserving the valid members it did not generate.
   ([#5115](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5115))
 
-* **Breaking Change** Dropped support for `net8.0` and `net9.0`.
-  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
-
-* Add support for .NET 11.0.
-  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+* Updated OpenTelemetry core component version(s) to `1.20.0`.
+  ([#5541](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5541))
 
 ## 1.19.1-beta.1
 

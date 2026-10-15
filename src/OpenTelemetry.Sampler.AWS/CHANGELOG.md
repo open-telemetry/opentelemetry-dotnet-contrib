@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+* **Breaking Change** Dropped support for `net8.0` and `net9.0`.
+  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+
+* Add support for .NET 11.0.
+  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+
+## 0.1.0-alpha.16
+
+Released 2026-Oct-15
+
 * Fixed a bug where a transient failure fetching sampling rules from the
   X-Ray daemon/collector (e.g. a network error or an unparsable response)
   would wipe out the previously cached rules instead of being ignored. This
@@ -28,11 +38,8 @@
 * Requests to the sampling endpoint now time out after 10 seconds.
   ([#5455](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5455))
 
-* **Breaking Change** Dropped support for `net8.0` and `net9.0`.
-  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
-
-* Add support for .NET 11.0.
-  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+* Updated OpenTelemetry core component version(s) to `1.20.0`.
+  ([#5541](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5541))
 
 ## 0.1.0-alpha.15
 

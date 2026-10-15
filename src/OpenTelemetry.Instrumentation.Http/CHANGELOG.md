@@ -2,8 +2,15 @@
 
 ## Unreleased
 
-* Updated OpenTelemetry core component version(s) to `1.19.1`.
-  ([#5329](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5329))
+* **Breaking Change** Dropped support for `net8.0` and `net9.0`.
+  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+
+* Add support for .NET 11.0.
+  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+
+## 1.20.0
+
+Released 2026-Oct-15
 
 * Fixed an issue where the `HttpClient` instrumentation injected context on
   .NET 8.0+ for a suppressed request that no listener sampled. The
@@ -11,11 +18,8 @@
   instrumentations benefit from this fix.
   ([#5509](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5509))
 
-* **Breaking Change** Dropped support for `net8.0` and `net9.0`.
-  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
-
-* Add support for .NET 11.0.
-  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+* Updated OpenTelemetry core component version(s) to `1.20.0`.
+  ([#5541](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5541))
 
 ## 1.19.0
 

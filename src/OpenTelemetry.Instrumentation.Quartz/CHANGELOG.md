@@ -2,18 +2,22 @@
 
 ## Unreleased
 
-* Updated OpenTelemetry core component version(s) to `1.19.1`.
-  ([#5329](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5329))
-
-* Fixed failed jobs exporting the exception message as the span status description.
-  The message is now only recorded when `RecordException` is enabled.
-  ([#5449](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5449))
-
 * **Breaking Change** Dropped support for `net8.0` and `net9.0`.
   ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
 
 * Add support for .NET 11.0.
   ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+
+## 1.20.0-beta.1
+
+Released 2026-Oct-15
+
+* Fixed failed jobs exporting the exception message as the span status description.
+  The message is now only recorded when `RecordException` is enabled.
+  ([#5449](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5449))
+
+* Updated OpenTelemetry core component version(s) to `1.20.0`.
+  ([#5541](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5541))
 
 ## 1.19.0-beta.1
 

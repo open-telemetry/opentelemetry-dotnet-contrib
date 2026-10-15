@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+* **Breaking Change** Dropped support for `net8.0` and `net9.0`.
+  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+
+* Add support for .NET 11.0.
+  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+
+## 1.20.0-beta.1
+
+Released 2026-Oct-15
+
 * **Breaking Change**: Context is now propagated regardless of
   `SuppressDownstreamInstrumentation`. Without HttpClient instrumentation,
   downstream spans are parented to the gRPC client span and baggage is
@@ -10,11 +20,8 @@
   HttpClient span.
   ([#5327](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5327))
 
-* **Breaking Change** Dropped support for `net8.0` and `net9.0`.
-  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
-
-* Add support for .NET 11.0.
-  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+* Updated OpenTelemetry core component version(s) to `1.20.0`.
+  ([#5541](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5541))
 
 ## 1.19.1-beta.1
 

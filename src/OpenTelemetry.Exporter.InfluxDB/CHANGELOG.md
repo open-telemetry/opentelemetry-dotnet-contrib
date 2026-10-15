@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+* **Breaking Change** Dropped support for `net8.0` and `net9.0`.
+  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+
+* Add support for .NET 11.0.
+  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+
+## 1.0.0-alpha.15
+
+Released 2026-Oct-15
+
 * Fixed attribute keys and values containing backslashes producing invalid
   line protocol, which caused InfluxDB to reject the entire batch of metrics
   being written.
@@ -13,11 +23,8 @@
   dropped silently.
   ([#5430](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5430))
 
-* **Breaking Change** Dropped support for `net8.0` and `net9.0`.
-  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
-
-* Add support for .NET 11.0.
-  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+* Updated OpenTelemetry core component version(s) to `1.20.0`.
+  ([#5541](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5541))
 
 ## 1.0.0-alpha.14
 
