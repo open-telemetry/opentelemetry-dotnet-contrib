@@ -83,6 +83,21 @@ internal static class DatabaseSemanticConventionHelper
             querySummary = sqlStatementInfo.DbQuerySummary;
         }
 
+        ApplyConventionsForSanitizedQueryText(
+            activity,
+            queryText,
+            querySummary,
+            emitOldAttributes,
+            emitNewAttributes);
+    }
+
+    public static void ApplyConventionsForSanitizedQueryText(
+        Activity activity,
+        string queryText,
+        string? querySummary,
+        bool emitOldAttributes,
+        bool emitNewAttributes)
+    {
         if (emitOldAttributes)
         {
             activity.SetTag(SemanticConventions.AttributeDbStatement, queryText);
