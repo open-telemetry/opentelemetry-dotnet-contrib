@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Fixed a deadlock when an `EventSource` is created on another thread while
+  the meter provider is being built or disposed.
+  ([#5639](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5639))
+
 ## 1.20.0-alpha.1
 
 Released 2026-Oct-15
