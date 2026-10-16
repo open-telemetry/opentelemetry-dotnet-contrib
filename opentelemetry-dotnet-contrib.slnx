@@ -310,6 +310,7 @@
   </Folder>
   <Folder Name="/test/Shared/">
     <File Path="test/Shared/ConsoleCommand.cs" />
+    <File Path="test/Shared/CultureSwitcher.cs" />
     <File Path="test/Shared/CustomTextMapPropagator.cs" />
     <File Path="test/Shared/EnabledOnDockerPlatformTheoryAttribute.cs" />
     <File Path="test/Shared/EnvironmentVariableScope.cs" />
@@ -319,6 +320,7 @@
     <File Path="test/Shared/PlatformHelpers.cs" />
     <File Path="test/Shared/SkipUnlessEnvVarFoundFactAttribute.cs" />
     <File Path="test/Shared/SkipUnlessEnvVarFoundTheoryAttribute.cs" />
+    <File Path="test/Shared/TemporaryDirectory.cs" />
     <File Path="test/Shared/TestActivityExportProcessor.cs" />
     <File Path="test/Shared/TestActivityProcessor.cs" />
     <File Path="test/Shared/TestEventListener.cs" />
