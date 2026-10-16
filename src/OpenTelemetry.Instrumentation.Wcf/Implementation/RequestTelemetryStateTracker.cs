@@ -10,7 +10,7 @@ internal static class RequestTelemetryStateTracker
     private static readonly Dictionary<string, Entry> OutstandingRequestStates = [];
     private static readonly SortedSet<EntryTimeoutProperties> TimeoutQueue = [];
     private static readonly Lock Sync = new();
-    private static readonly Timer Timer = new(OnTimer);
+    private static readonly Timer Timer = CreateTimer();
     private static long currentTimerDueAt = Timeout.Infinite;
 
     public static bool PushTelemetryState(Message request, RequestTelemetryState telemetryState, TimeSpan timeout, Action<RequestTelemetryState> timeoutCallback)
@@ -70,6 +70,17 @@ internal static class RequestTelemetryStateTracker
             }
 
             return entry?.State;
+        }
+    }
+
+    private static Timer CreateTimer()
+    {
+        // Prevent the timer from inheriting the caller's ambient tracing/instrumentation
+        // suppression scope. Without this, timed-out activities would execute with
+        // instrumentation suppressed and fail to be exported to telemetry.
+        using (ExecutionContext.SuppressFlow())
+        {
+            return new Timer(OnTimer);
         }
     }
 
