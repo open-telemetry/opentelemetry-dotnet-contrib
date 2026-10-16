@@ -281,14 +281,6 @@ public class EventCountersMetricsTests
     [Fact]
     public void NoDeadlockWhenEventSourceIsCreatedWhileMeterProviderIsBuilt()
     {
-        // Regression test for https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/5638.
-        // One thread builds the meter provider while another thread creates new EventSources.
-        // Building the provider enables the configured source. Creating a source makes the runtime
-        // call OnEventSourceCreated while it holds its global EventListener lock. If the
-        // instrumentation calls EnableEvents while it holds its own lock, the two threads take the
-        // two locks in opposite orders and deadlock.
-        // The race does not hit on every iteration on every machine. An iteration that does not
-        // deadlock takes milliseconds, so many iterations cost little.
         const int Iterations = 500;
         var timeout = TimeSpan.FromSeconds(10);
 
@@ -349,8 +341,7 @@ public class EventCountersMetricsTests
             var completed = buildThread.Join(timeout) && createThread.Join(timeout);
             if (!completed)
             {
-                // A thread blocked on a lock can be interrupted. This breaks the deadlock, so the
-                // runtime's global EventListener lock is free again for the rest of the test run.
+                // Interrupting the deadlocked threads releases the runtime's EventListener lock.
                 buildThread.Interrupt();
                 createThread.Interrupt();
                 _ = buildThread.Join(timeout);
@@ -371,12 +362,107 @@ public class EventCountersMetricsTests
             {
                 if (iteration == Iterations)
                 {
-                    // The configured source must still be enabled. A fix that never enables it would not deadlock either.
                     var metric = AwaitExport(meterProvider, exportedItems, expectedInstrumentName: "ec.deadlock-target.poll-c");
                     Assert.NotNull(metric);
                     Assert.Equal(42, GetActualValue(metric));
                 }
             }
+        }
+    }
+
+    [Fact]
+    public void NoDeadlockWhenEventSourceIsCreatedWhileMeterProviderIsDisposed()
+    {
+        const int Iterations = 2000;
+        const int MaxSourcesPerIteration = 1000;
+        var timeout = TimeSpan.FromSeconds(10);
+
+        using EventSource target = new("dispose-race-target");
+
+        for (var iteration = 1; iteration <= Iterations; iteration++)
+        {
+            // Two live EventSources cannot share a name.
+            var lateNames = Enumerable.Range(0, MaxSourcesPerIteration)
+                                      .Select(n => $"dispose-race-{iteration}-{n}")
+                                      .ToArray();
+
+            var meterProvider = Sdk.CreateMeterProviderBuilder()
+                                   .AddEventCountersInstrumentation(options =>
+                                   {
+                                       options.AddEventSources(target.Name);
+                                       options.AddEventSources(lateNames);
+                                   })
+                                   .Build();
+
+            Assert.True(target.IsEnabled(), $"The target source was not enabled in iteration {iteration}.");
+
+            Exception? disposeException = null;
+            Exception? createException = null;
+            List<EventSource> createdSources = [];
+            var disposing = true;
+            using Barrier start = new(2);
+
+            var disposeThread = new Thread(() =>
+            {
+                try
+                {
+                    start.SignalAndWait();
+                    meterProvider.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    disposeException = ex;
+                }
+                finally
+                {
+                    Volatile.Write(ref disposing, false);
+                }
+            });
+
+            var createThread = new Thread(() =>
+            {
+                try
+                {
+                    start.SignalAndWait();
+                    var n = 0;
+                    do
+                    {
+                        createdSources.Add(new EventSource(lateNames[n++]));
+                    }
+                    while (Volatile.Read(ref disposing) && n < lateNames.Length);
+                }
+                catch (Exception ex)
+                {
+                    createException = ex;
+                }
+            });
+
+            disposeThread.Start();
+            createThread.Start();
+
+            var completed = disposeThread.Join(timeout) && createThread.Join(timeout);
+            if (!completed)
+            {
+                // Interrupting the deadlocked threads releases the runtime's EventListener lock.
+                disposeThread.Interrupt();
+                createThread.Interrupt();
+                _ = disposeThread.Join(timeout);
+                _ = createThread.Join(timeout);
+            }
+
+            var enabledAfterDispose = createdSources.Where(s => s.IsEnabled()).Select(s => s.Name).ToList();
+            var targetEnabledAfterDispose = target.IsEnabled();
+
+            foreach (var createdSource in createdSources)
+            {
+                createdSource.Dispose();
+            }
+
+            Assert.True(completed, $"Deadlock: disposing the meter provider did not finish within {timeout} in iteration {iteration}.");
+            Assert.Null(disposeException);
+            Assert.Null(createException);
+            Assert.False(targetEnabledAfterDispose, $"The target source was still enabled after Dispose in iteration {iteration}.");
+            Assert.Empty(enabledAfterDispose);
         }
     }
 
