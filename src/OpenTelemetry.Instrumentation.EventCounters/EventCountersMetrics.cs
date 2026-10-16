@@ -17,6 +17,15 @@ internal sealed class EventCountersMetrics : EventListener
     private const int MaxInstrumentNameLength = 63;
 
     private readonly EventCountersInstrumentationOptions options;
+
+    // Locking protocol: preInitEventSources is the lock for options, preInitEventSources,
+    // enabledEventSources and isDisposed. EnableEvents and DisableEvents must NEVER be called
+    // while this lock is held. They take the runtime's global EventListener lock, and the
+    // runtime holds that global lock while it calls OnEventSourceCreated, which takes this
+    // lock. Taking the two locks in opposite orders deadlocks:
+    // https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/5638.
+    // So the code decides what to enable or disable inside this lock, and calls the runtime
+    // after it is released.
     private readonly List<EventSource> preInitEventSources = [];
     private readonly List<EventSource> enabledEventSources = [];
     private readonly ConcurrentDictionary<(string, string), Instrument> instruments = new();
@@ -39,6 +48,8 @@ internal sealed class EventCountersMetrics : EventListener
     /// <param name="options">The options to define the metrics.</param>
     public EventCountersMetrics(EventCountersInstrumentationOptions options)
     {
+        List<EventSource> eventSourcesToEnable = [];
+
         lock (this.preInitEventSources)
         {
             this.options = options;
@@ -47,12 +58,17 @@ internal sealed class EventCountersMetrics : EventListener
             {
                 if (this.options.ShouldListenToSource(eventSource.Name))
                 {
-                    this.EnableEvents(eventSource);
+                    eventSourcesToEnable.Add(eventSource);
                     this.enabledEventSources.Add(eventSource);
                 }
             }
 
             this.preInitEventSources.Clear();
+        }
+
+        foreach (var eventSource in eventSourcesToEnable)
+        {
+            this.EnableEvents(eventSource);
         }
     }
 
@@ -61,23 +77,31 @@ internal sealed class EventCountersMetrics : EventListener
     /// <inheritdoc />
     public override void Dispose()
     {
-        if (!this.isDisposed)
-        {
-            lock (this.preInitEventSources)
-            {
-                if (!this.isDisposed)
-                {
-                    foreach (var eventSource in this.enabledEventSources)
-                    {
-                        this.DisableEvents(eventSource);
-                    }
+        EventSource[]? eventSourcesToDisable = null;
 
-                    this.isDisposed = true;
-                }
+        lock (this.preInitEventSources)
+        {
+            if (!this.isDisposed)
+            {
+                // No source is added to enabledEventSources after isDisposed is set.
+                eventSourcesToDisable = [.. this.enabledEventSources];
+                this.enabledEventSources.Clear();
+                this.isDisposed = true;
+            }
+        }
+
+        if (eventSourcesToDisable != null)
+        {
+            // A source enabled by OnEventSourceCreated on another thread is in this list, but its
+            // EnableEvents call may not have finished yet. DisableEvents still runs after it,
+            // because both calls need the runtime's global EventListener lock, and that thread
+            // holds it for the whole OnEventSourceCreated call.
+            foreach (var eventSource in eventSourcesToDisable)
+            {
+                this.DisableEvents(eventSource);
             }
 
             // DO NOT clear the ConcurrentDictionary instances as some other thread executing the OnEventWritten callback might be using them
-            this.enabledEventSources.Clear();
             this.options.ClearEventSources();
         }
 
@@ -87,6 +111,9 @@ internal sealed class EventCountersMetrics : EventListener
     /// <inheritdoc />
     protected override void OnEventSourceCreated(EventSource eventSource)
     {
+        // The base EventListener constructor calls this for every existing source before the
+        // constructor body of this class has set options. Those sources wait in
+        // preInitEventSources, and the constructor enables them.
         lock (this.preInitEventSources)
         {
             if (this.isDisposed)
@@ -97,13 +124,18 @@ internal sealed class EventCountersMetrics : EventListener
             if (this.options == null)
             {
                 this.preInitEventSources.Add(eventSource);
+                return;
             }
-            else if (this.options.ShouldListenToSource(eventSource.Name))
+
+            if (!this.options.ShouldListenToSource(eventSource.Name))
             {
-                this.EnableEvents(eventSource);
-                this.enabledEventSources.Add(eventSource);
+                return;
             }
+
+            this.enabledEventSources.Add(eventSource);
         }
+
+        this.EnableEvents(eventSource);
     }
 
     /// <inheritdoc />
