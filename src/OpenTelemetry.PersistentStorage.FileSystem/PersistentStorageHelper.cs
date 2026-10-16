@@ -59,9 +59,9 @@ internal static class PersistentStorageHelper
                 var fileName = Path.GetFileName(filePath);
 
 #if NET11_0_OR_GREATER
-                var atSignIndex = filePath.LastIndexOf('@', StringComparison.Ordinal);
+                var atSignIndex = fileName.LastIndexOf('@', StringComparison.Ordinal);
 #else
-                var atSignIndex = filePath.LastIndexOf('@');
+                var atSignIndex = fileName.LastIndexOf('@');
 #endif
 
                 if (atSignIndex == -1)
