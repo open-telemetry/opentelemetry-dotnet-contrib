@@ -357,7 +357,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 
         // Custom tag for backwards compatibility only
         if (this.options.EmitOldAttributes &&
-            values == (EntityFrameworkProviderInfo.DbSystems.OtherSql, EntityFrameworkProviderInfo.DbSystemNames.OtherSql))
+            values == (DbSystems.OtherSql, DbSystemNames.OtherSql))
         {
             activity.AddTag("ef.provider", providerOrCommandName);
         }
