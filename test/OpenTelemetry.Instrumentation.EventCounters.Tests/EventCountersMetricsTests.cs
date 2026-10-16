@@ -252,6 +252,106 @@ public class EventCountersMetricsTests
         Assert.DoesNotContain(metrics, m => m.Name.Contains("other-source-not-configured", StringComparison.Ordinal));
     }
 
+    [Fact]
+    public void NoDeadlockWhenEventSourceIsCreatedWhileMeterProviderIsBuilt()
+    {
+        // Regression test for https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/5638.
+        // One thread builds the meter provider while another thread creates new EventSources.
+        // Building the provider enables the configured source. Creating a source makes the runtime
+        // call OnEventSourceCreated while it holds its global EventListener lock. If the
+        // instrumentation calls EnableEvents while it holds its own lock, the two threads take the
+        // two locks in opposite orders and deadlock.
+        const int Iterations = 5;
+        var timeout = TimeSpan.FromSeconds(10);
+
+        List<Metric> exportedItems = [];
+        using EventSource source = new("deadlock-target");
+        using PollingCounter pollCounter = new("poll-c", source, () => 42);
+
+        for (var iteration = 1; iteration <= Iterations; iteration++)
+        {
+            MeterProvider? meterProvider = null;
+            Exception? buildException = null;
+            Exception? createException = null;
+            List<EventSource> createdSources = [];
+            var building = true;
+            using Barrier start = new(2);
+
+            var buildThread = new Thread(() =>
+            {
+                try
+                {
+                    start.SignalAndWait();
+                    meterProvider = Sdk.CreateMeterProviderBuilder()
+                                       .AddEventCountersInstrumentation(options => options.AddEventSources(source.Name))
+                                       .AddInMemoryExporter(exportedItems)
+                                       .Build();
+                }
+                catch (Exception ex)
+                {
+                    buildException = ex;
+                }
+                finally
+                {
+                    Volatile.Write(ref building, false);
+                }
+            });
+
+            var createThread = new Thread(() =>
+            {
+                try
+                {
+                    start.SignalAndWait();
+                    var n = 0;
+                    do
+                    {
+                        createdSources.Add(new EventSource($"deadlock-other-{iteration}-{n++}"));
+                    }
+                    while (Volatile.Read(ref building));
+                }
+                catch (Exception ex)
+                {
+                    createException = ex;
+                }
+            });
+
+            buildThread.Start();
+            createThread.Start();
+
+            var completed = buildThread.Join(timeout) && createThread.Join(timeout);
+            if (!completed)
+            {
+                // A thread blocked on a lock can be interrupted. This breaks the deadlock, so the
+                // runtime's global EventListener lock is free again for the rest of the test run.
+                buildThread.Interrupt();
+                createThread.Interrupt();
+                _ = buildThread.Join(timeout);
+                _ = createThread.Join(timeout);
+            }
+
+            foreach (var createdSource in createdSources)
+            {
+                createdSource.Dispose();
+            }
+
+            Assert.True(completed, $"Deadlock: building the meter provider did not finish within {timeout} in iteration {iteration}.");
+            Assert.Null(buildException);
+            Assert.Null(createException);
+            Assert.NotNull(meterProvider);
+
+            using (meterProvider)
+            {
+                if (iteration == Iterations)
+                {
+                    // The configured source must still be enabled. A fix that never enables it would not deadlock either.
+                    var metric = AwaitExport(meterProvider, exportedItems, expectedInstrumentName: "ec.deadlock-target.poll-c");
+                    Assert.NotNull(metric);
+                    Assert.Equal(42, GetActualValue(metric));
+                }
+            }
+        }
+    }
+
     private static double GetActualValue(Metric metric)
     {
         double sum = 0;
