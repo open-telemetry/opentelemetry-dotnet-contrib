@@ -99,38 +99,4 @@ internal static class EntityFrameworkProviderInfo
         (_, var dbSystemName) = GetDbSystemNames(providerOrCommandName);
         return dbSystemName == DbSystemNames.Mysql;
     }
-
-    internal static class DbSystemNames
-    {
-        public const string OtherSql = "other_sql";
-        public const string AzureCosmosDb = "azure.cosmosdb";
-        public const string Couchbase = "couchbase";
-        public const string Firebirdsql = "firebirdsql";
-        public const string GcpSpanner = "gcp.spanner";
-        public const string IbmDb2 = "ibm.db2";
-        public const string MicrosoftSqlServer = "microsoft.sql_server";
-        public const string Mongodb = "mongodb";
-        public const string Mysql = "mysql";
-        public const string OracleDb = "oracle.db";
-        public const string Postgresql = "postgresql";
-        public const string Sqlite = "sqlite";
-        public const string Teradata = "teradata";
-    }
-
-    internal static class DbSystems
-    {
-        public const string OtherSql = "other_sql";
-        public const string Cosmosdb = "cosmosdb";
-        public const string Couchbase = "couchbase";
-        public const string Db2 = "db2";
-        public const string Firebird = "firebird";
-        public const string Mongodb = "mongodb";
-        public const string Mssql = "mssql";
-        public const string Mysql = "mysql";
-        public const string Oracle = "oracle";
-        public const string Postgresql = "postgresql";
-        public const string Spanner = "spanner";
-        public const string Sqlite = "sqlite";
-        public const string Teradata = "teradata";
-    }
 }
