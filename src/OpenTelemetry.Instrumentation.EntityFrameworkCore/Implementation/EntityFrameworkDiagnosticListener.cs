@@ -356,7 +356,8 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
         var values = EntityFrameworkProviderInfo.GetDbSystemNames(providerOrCommandName);
 
         // Custom tag for backwards compatibility only
-        if (this.options.EmitOldAttributes && values == ("other_sql", "other_sql"))
+        if (this.options.EmitOldAttributes &&
+            values == (EntityFrameworkProviderInfo.DbSystems.OtherSql, EntityFrameworkProviderInfo.DbSystemNames.OtherSql))
         {
             activity.AddTag("ef.provider", providerOrCommandName);
         }

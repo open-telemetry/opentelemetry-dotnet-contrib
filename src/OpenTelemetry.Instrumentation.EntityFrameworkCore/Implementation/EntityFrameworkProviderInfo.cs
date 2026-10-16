@@ -100,7 +100,7 @@ internal static class EntityFrameworkProviderInfo
         return dbSystemName == DbSystemNames.Mysql;
     }
 
-    private static class DbSystemNames
+    internal static class DbSystemNames
     {
         public const string OtherSql = "other_sql";
         public const string AzureCosmosDb = "azure.cosmosdb";
@@ -117,7 +117,7 @@ internal static class EntityFrameworkProviderInfo
         public const string Teradata = "teradata";
     }
 
-    private static class DbSystems
+    internal static class DbSystems
     {
         public const string OtherSql = "other_sql";
         public const string Cosmosdb = "cosmosdb";
