@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.1.2
+
+Released 2026-Oct-16
+
 * Fixed `FileBlobProvider` deleting or renaming files with a `.blob`, `.tmp`
   or `.lock` extension that it did not create when its storage directory is
   shared with other files. Only files named the way `FileBlobProvider` names
