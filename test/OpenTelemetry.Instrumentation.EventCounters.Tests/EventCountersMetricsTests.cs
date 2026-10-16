@@ -261,7 +261,9 @@ public class EventCountersMetricsTests
         // call OnEventSourceCreated while it holds its global EventListener lock. If the
         // instrumentation calls EnableEvents while it holds its own lock, the two threads take the
         // two locks in opposite orders and deadlock.
-        const int Iterations = 5;
+        // The race does not hit on every iteration on every machine. An iteration that does not
+        // deadlock takes milliseconds, so many iterations cost little.
+        const int Iterations = 500;
         var timeout = TimeSpan.FromSeconds(10);
 
         List<Metric> exportedItems = [];
