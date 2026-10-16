@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.1.2
+
+Released 2026-Oct-16
+
 ## 1.1.1
 
 Released 2026-Jul-17

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.20.0
+
+Released 2026-Oct-15
+
 * Fixed `error.type` not being set to the response status code on server spans
   and on the `http.server.request.duration` metric when a request completes
   with a 5xx status code without an unhandled exception. For ASP.NET Core 8.0-10.0

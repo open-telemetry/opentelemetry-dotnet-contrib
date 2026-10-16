@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.20.0
+
+Released 2026-Oct-15
+
 * Marked `RuntimeInstrumentationOptions` and the `AddRuntimeInstrumentation`
   overload accepting configuration as obsolete because runtime instrumentation
   does not support configuration. Use `AddRuntimeInstrumentation()` instead.
