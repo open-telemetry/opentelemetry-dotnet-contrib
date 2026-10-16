@@ -25,12 +25,8 @@ internal sealed class RequestTelemetryState
     public string? MessageId { get; set; }
 
     public void DisposeSuppressionScope()
-    {
-        Interlocked.Exchange(ref this.suppressionScope, null)?.Dispose();
-    }
+        => Interlocked.Exchange(ref this.suppressionScope, null)?.Dispose();
 
     public bool TryMarkCompleted()
-    {
-        return Interlocked.Exchange(ref this.isCompleted, 1) == 0;
-    }
+        => Interlocked.Exchange(ref this.isCompleted, 1) == 0;
 }
