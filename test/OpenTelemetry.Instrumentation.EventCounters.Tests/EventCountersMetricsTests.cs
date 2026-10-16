@@ -116,6 +116,32 @@ public class EventCountersMetricsTests
     }
 
     [Fact]
+    public void EventSourceCreatedAfterMeterProviderIsBuilt()
+    {
+        // Arrange
+        List<Metric> metricItems = [];
+
+        Metric? metric;
+
+        using (var meterProvider = Sdk.CreateMeterProviderBuilder()
+                                      .AddEventCountersInstrumentation(options => options.AddEventSources("late-source"))
+                                      .AddInMemoryExporter(metricItems)
+                                      .Build())
+        {
+            // Act
+            using EventSource source = new("late-source");
+            using PollingCounter pollCounter = new("poll-c", source, () => 7);
+
+            metric = AwaitExport(meterProvider, metricItems, expectedInstrumentName: "ec.late-source.poll-c");
+        }
+
+        // Assert
+        Assert.NotNull(metric);
+        Assert.Equal(MetricType.DoubleGauge, metric.MetricType);
+        Assert.Equal(7, GetActualValue(metric));
+    }
+
+    [Fact]
     public void ThrowExceptionForUnsupportedEventSources()
     {
         var ex = Assert.Throws<NotSupportedException>(() =>
