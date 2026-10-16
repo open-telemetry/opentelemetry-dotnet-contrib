@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Runtime.InteropServices;
 using ServiceFabric.Mocks;
 
 namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests;
@@ -8,6 +9,8 @@ namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests;
 [Collection(ServiceFabricRemotingCollectionDefinition.Name)]
 public class RemotingProviderAttributeTests
 {
+    private const string NativeRuntimeRequiredMessage = "Creating a Service Fabric remoting listener requires the native Service Fabric runtime, which is only available on Windows.";
+
     [Fact]
     public void ServiceRemotingProvider_CreatesAV2Listener()
     {
@@ -21,6 +24,8 @@ public class RemotingProviderAttributeTests
     [Fact]
     public void ServiceRemotingProvider_ListenerFactoryCreatesAListener()
     {
+        Assert.SkipUnless(RuntimeInformation.IsOSPlatform(OSPlatform.Windows), NativeRuntimeRequiredMessage);
+
         var provider = new TraceContextEnrichedServiceRemotingProviderAttribute();
         var serviceContext = MockStatefulServiceContextFactory.Default;
         var reliableStateManager = new MockReliableStateManager();
@@ -55,6 +60,8 @@ public class RemotingProviderAttributeTests
     [Fact]
     public void ActorRemotingProvider_ListenerFactoryCreatesAListener()
     {
+        Assert.SkipUnless(RuntimeInformation.IsOSPlatform(OSPlatform.Windows), NativeRuntimeRequiredMessage);
+
         var provider = new TraceContextEnrichedActorRemotingProviderAttribute();
         var actorService = MockActorServiceFactory.CreateActorServiceForActor<MyTestActor>();
         var listenerFactory = Assert.Single(provider.CreateServiceRemotingListeners()).Value;
