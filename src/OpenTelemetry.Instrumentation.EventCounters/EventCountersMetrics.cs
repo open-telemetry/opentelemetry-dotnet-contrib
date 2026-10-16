@@ -17,6 +17,9 @@ internal sealed class EventCountersMetrics : EventListener
     private const int MaxInstrumentNameLength = 63;
 
     private readonly EventCountersInstrumentationOptions options;
+
+    // Do not call EnableEvents or DisableEvents while holding this lock to prevent a deadlock:
+    // https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/5638.
     private readonly List<EventSource> preInitEventSources = [];
     private readonly List<EventSource> enabledEventSources = [];
     private readonly ConcurrentDictionary<(string, string), Instrument> instruments = new();
@@ -39,6 +42,8 @@ internal sealed class EventCountersMetrics : EventListener
     /// <param name="options">The options to define the metrics.</param>
     public EventCountersMetrics(EventCountersInstrumentationOptions options)
     {
+        List<EventSource> eventSourcesToEnable = [];
+
         lock (this.preInitEventSources)
         {
             this.options = options;
@@ -47,12 +52,17 @@ internal sealed class EventCountersMetrics : EventListener
             {
                 if (this.options.ShouldListenToSource(eventSource.Name))
                 {
-                    this.EnableEvents(eventSource);
+                    eventSourcesToEnable.Add(eventSource);
                     this.enabledEventSources.Add(eventSource);
                 }
             }
 
             this.preInitEventSources.Clear();
+        }
+
+        foreach (var eventSource in eventSourcesToEnable)
+        {
+            this.EnableEvents(eventSource);
         }
     }
 
@@ -61,23 +71,26 @@ internal sealed class EventCountersMetrics : EventListener
     /// <inheritdoc />
     public override void Dispose()
     {
-        if (!this.isDisposed)
-        {
-            lock (this.preInitEventSources)
-            {
-                if (!this.isDisposed)
-                {
-                    foreach (var eventSource in this.enabledEventSources)
-                    {
-                        this.DisableEvents(eventSource);
-                    }
+        EventSource[]? eventSourcesToDisable = null;
 
-                    this.isDisposed = true;
-                }
+        lock (this.preInitEventSources)
+        {
+            if (!this.isDisposed)
+            {
+                eventSourcesToDisable = [.. this.enabledEventSources];
+                this.enabledEventSources.Clear();
+                this.isDisposed = true;
+            }
+        }
+
+        if (eventSourcesToDisable != null)
+        {
+            foreach (var eventSource in eventSourcesToDisable)
+            {
+                this.DisableEvents(eventSource);
             }
 
             // DO NOT clear the ConcurrentDictionary instances as some other thread executing the OnEventWritten callback might be using them
-            this.enabledEventSources.Clear();
             this.options.ClearEventSources();
         }
 
@@ -97,13 +110,18 @@ internal sealed class EventCountersMetrics : EventListener
             if (this.options == null)
             {
                 this.preInitEventSources.Add(eventSource);
+                return;
             }
-            else if (this.options.ShouldListenToSource(eventSource.Name))
+
+            if (!this.options.ShouldListenToSource(eventSource.Name))
             {
-                this.EnableEvents(eventSource);
-                this.enabledEventSources.Add(eventSource);
+                return;
             }
+
+            this.enabledEventSources.Add(eventSource);
         }
+
+        this.EnableEvents(eventSource);
     }
 
     /// <inheritdoc />

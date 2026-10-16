@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## 1.20.0-beta.2
+
+Released 2026-Oct-16
+
+* Fixed `TraceContextEnrichedActorRemotingProviderAttribute` ignoring the
+  `TransportSettings` configuration section. Actor remoting clients now load their
+  settings from `TransportSettings`, and actor remoting listeners fall back to
+  `TransportSettings` when no actor-specific section is configured, matching the
+  behaviour of Service Fabric's `FabricTransportActorRemotingProviderAttribute`.
+  ([#5450](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5450))
+
 ## 1.20.0-beta.1
 
 Released 2026-Oct-15
