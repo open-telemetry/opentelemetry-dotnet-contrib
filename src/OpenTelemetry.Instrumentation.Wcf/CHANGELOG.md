@@ -17,6 +17,10 @@
 * Updated OpenTelemetry core component version(s) to `1.20.0`.
   ([#5541](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5541))
 
+* Fixed duplex request cleanup to release instrumentation suppression and clear
+  stale telemetry state after completion or failure.
+  ([#5632](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5632))
+
 ## 1.19.1-beta.1
 
 Released 2026-Sep-21
