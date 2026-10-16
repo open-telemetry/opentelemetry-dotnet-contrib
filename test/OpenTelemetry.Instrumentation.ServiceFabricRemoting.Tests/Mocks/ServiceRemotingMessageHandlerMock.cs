@@ -8,14 +8,22 @@ namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests;
 
 internal class ServiceRemotingMessageHandlerMock : IServiceRemotingMessageHandler
 {
-    private readonly Func<IServiceRemotingRequestMessage, Task<IServiceRemotingResponseMessage>> requestResponseHandler;
     private readonly IServiceRemotingMessageBodyFactory messageBodyFactory;
 
-    public ServiceRemotingMessageHandlerMock(Func<IServiceRemotingRequestMessage, Task<IServiceRemotingResponseMessage>> requestResponseHandler, IServiceRemotingMessageBodyFactory messageBodyFactory)
+    public ServiceRemotingMessageHandlerMock(IServiceRemotingMessageBodyFactory messageBodyFactory)
     {
-        this.requestResponseHandler = requestResponseHandler;
         this.messageBodyFactory = messageBodyFactory;
     }
+
+    /// <summary>
+    /// Gets or sets the response to return from <see cref="HandleRequestResponseAsync"/>.
+    /// </summary>
+    public IServiceRemotingResponseMessage? ResponseMessage { get; set; }
+
+    /// <summary>
+    /// Gets or sets the exception to throw from <see cref="HandleRequestResponseAsync"/> instead of returning <see cref="ResponseMessage"/>.
+    /// </summary>
+    public Exception? Exception { get; set; }
 
     public IServiceRemotingRequestMessage? LastOneWayMessage { get; private set; }
 
@@ -23,5 +31,8 @@ internal class ServiceRemotingMessageHandlerMock : IServiceRemotingMessageHandle
 
     public void HandleOneWayMessage(IServiceRemotingRequestMessage requestMessage) => this.LastOneWayMessage = requestMessage;
 
-    public Task<IServiceRemotingResponseMessage> HandleRequestResponseAsync(IServiceRemotingRequestContext requestContext, IServiceRemotingRequestMessage requestMessage) => this.requestResponseHandler(requestMessage);
+    public Task<IServiceRemotingResponseMessage> HandleRequestResponseAsync(IServiceRemotingRequestContext requestContext, IServiceRemotingRequestMessage requestMessage)
+        => this.Exception != null
+            ? Task.FromException<IServiceRemotingResponseMessage>(this.Exception)
+            : Task.FromResult(this.ResponseMessage!);
 }

@@ -7,8 +7,8 @@ namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests;
 
 internal sealed class DisposableServiceRemotingMessageHandlerMock : ServiceRemotingMessageHandlerMock, IDisposable
 {
-    public DisposableServiceRemotingMessageHandlerMock(Func<IServiceRemotingRequestMessage, Task<IServiceRemotingResponseMessage>> requestResponseHandler, IServiceRemotingMessageBodyFactory messageBodyFactory)
-        : base(requestResponseHandler, messageBodyFactory)
+    public DisposableServiceRemotingMessageHandlerMock(IServiceRemotingMessageBodyFactory messageBodyFactory)
+        : base(messageBodyFactory)
     {
     }
 

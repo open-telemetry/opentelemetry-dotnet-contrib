@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-using Microsoft.ServiceFabric.Services.Remoting.V2;
 using OpenTelemetry.Trace;
 using ServiceFabric.Mocks.RemotingV2;
 
@@ -13,13 +12,6 @@ public class ServiceRemotingMessageDispatcherAdapterTests
 {
     private const string MethodName = "MyMethod";
 
-    private static readonly Func<IServiceRemotingRequestMessage, Task<IServiceRemotingResponseMessage>> SuccessfulHandler = _ =>
-    {
-        var responseMessage = new MockServiceRemotingResponseMessage();
-
-        return Task.FromResult<IServiceRemotingResponseMessage>(responseMessage);
-    };
-
     [Fact]
     public void Constructor_ThrowsWhenTheDispatcherIsNull()
         => Assert.Throws<ArgumentNullException>(() => new ServiceRemotingMessageDispatcherAdapter(dispatcher: null!));
@@ -28,7 +20,7 @@ public class ServiceRemotingMessageDispatcherAdapterTests
     public void GetRemotingMessageBodyFactory_ReturnsTheInnerDispatcherMessageBodyFactory()
     {
         var messageBodyFactory = new MockServiceRemotingMessageBodyFactory();
-        var innerDispatcher = new ServiceRemotingMessageHandlerMock(SuccessfulHandler, messageBodyFactory);
+        var innerDispatcher = new ServiceRemotingMessageHandlerMock(messageBodyFactory);
         var dispatcherAdapter = new ServiceRemotingMessageDispatcherAdapter(innerDispatcher);
 
         Assert.Same(messageBodyFactory, dispatcherAdapter.GetRemotingMessageBodyFactory());
@@ -37,7 +29,7 @@ public class ServiceRemotingMessageDispatcherAdapterTests
     [Fact]
     public void HandleOneWayMessage_IsForwardedToTheInnerDispatcher()
     {
-        var innerDispatcher = CreateInnerDispatcher(SuccessfulHandler);
+        var innerDispatcher = CreateInnerDispatcher();
         var dispatcherAdapter = new ServiceRemotingMessageDispatcherAdapter(innerDispatcher);
         var requestMessage = CreateRequestMessage(MethodName);
 
@@ -49,7 +41,7 @@ public class ServiceRemotingMessageDispatcherAdapterTests
     [Fact]
     public async Task HandleRequestResponseAsync_ThrowsWhenTheRequestIsNull()
     {
-        var innerDispatcher = CreateInnerDispatcher(SuccessfulHandler);
+        var innerDispatcher = CreateInnerDispatcher();
         var dispatcherAdapter = new ServiceRemotingMessageDispatcherAdapter(innerDispatcher);
         var requestContext = new FabricTransportServiceRemotingRequestContextMock();
 
@@ -62,7 +54,8 @@ public class ServiceRemotingMessageDispatcherAdapterTests
         var exportedActivities = new List<Activity>();
         using var provider = CreateTracerProvider(exportedActivities, options => options.Filter = _ => false);
         var expectedResponse = new MockServiceRemotingResponseMessage();
-        var innerDispatcher = CreateInnerDispatcher(_ => Task.FromResult<IServiceRemotingResponseMessage>(expectedResponse));
+        var innerDispatcher = CreateInnerDispatcher();
+        innerDispatcher.ResponseMessage = expectedResponse;
         var dispatcherAdapter = new ServiceRemotingMessageDispatcherAdapter(innerDispatcher);
         var requestContext = new FabricTransportServiceRemotingRequestContextMock();
         var requestMessage = CreateRequestMessage(MethodName);
@@ -78,7 +71,7 @@ public class ServiceRemotingMessageDispatcherAdapterTests
     {
         var exportedActivities = new List<Activity>();
         using var provider = CreateTracerProvider(exportedActivities, options => { });
-        var innerDispatcher = CreateInnerDispatcher(SuccessfulHandler);
+        var innerDispatcher = CreateInnerDispatcher();
         var dispatcherAdapter = new ServiceRemotingMessageDispatcherAdapter(innerDispatcher);
         var requestContext = new FabricTransportServiceRemotingRequestContextMock();
         var requestMessage = CreateRequestMessage(methodName: null);
@@ -98,7 +91,8 @@ public class ServiceRemotingMessageDispatcherAdapterTests
         var exportedActivities = new List<Activity>();
         using var provider = CreateTracerProvider(exportedActivities, options => options.AddExceptionAtServer = addExceptionAtServer);
         var exception = new InvalidOperationException("Request failed");
-        var innerDispatcher = CreateInnerDispatcher(_ => Task.FromException<IServiceRemotingResponseMessage>(exception));
+        var innerDispatcher = CreateInnerDispatcher();
+        innerDispatcher.Exception = exception;
         var dispatcherAdapter = new ServiceRemotingMessageDispatcherAdapter(innerDispatcher);
         var requestContext = new FabricTransportServiceRemotingRequestContextMock();
         var requestMessage = CreateRequestMessage(MethodName);
@@ -116,7 +110,7 @@ public class ServiceRemotingMessageDispatcherAdapterTests
     public void Dispose_DisposesTheInnerDispatcherWhenItIsDisposable()
     {
         var messageBodyFactory = new MockServiceRemotingMessageBodyFactory();
-        var innerDispatcher = new DisposableServiceRemotingMessageHandlerMock(SuccessfulHandler, messageBodyFactory);
+        var innerDispatcher = new DisposableServiceRemotingMessageHandlerMock(messageBodyFactory);
         var dispatcherAdapter = new ServiceRemotingMessageDispatcherAdapter(innerDispatcher);
 
         dispatcherAdapter.Dispose();
@@ -127,7 +121,7 @@ public class ServiceRemotingMessageDispatcherAdapterTests
     [Fact]
     public void Dispose_IgnoresInnerDispatchersThatAreNotDisposable()
     {
-        var innerDispatcher = CreateInnerDispatcher(SuccessfulHandler);
+        var innerDispatcher = CreateInnerDispatcher();
         var dispatcherAdapter = new ServiceRemotingMessageDispatcherAdapter(innerDispatcher);
 
         var exception = Record.Exception(dispatcherAdapter.Dispose);
@@ -141,11 +135,12 @@ public class ServiceRemotingMessageDispatcherAdapterTests
             .AddInMemoryExporter(exportedActivities)
             .Build();
 
-    private static ServiceRemotingMessageHandlerMock CreateInnerDispatcher(Func<IServiceRemotingRequestMessage, Task<IServiceRemotingResponseMessage>> requestResponseHandler)
+    private static ServiceRemotingMessageHandlerMock CreateInnerDispatcher()
     {
         var messageBodyFactory = new MockServiceRemotingMessageBodyFactory();
+        var responseMessage = new MockServiceRemotingResponseMessage();
 
-        return new ServiceRemotingMessageHandlerMock(requestResponseHandler, messageBodyFactory);
+        return new ServiceRemotingMessageHandlerMock(messageBodyFactory) { ResponseMessage = responseMessage };
     }
 
     private static ServiceRemotingRequestMessageMock CreateRequestMessage(string? methodName)
