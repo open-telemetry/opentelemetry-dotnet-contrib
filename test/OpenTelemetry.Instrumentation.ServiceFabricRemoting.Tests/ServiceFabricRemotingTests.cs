@@ -21,6 +21,7 @@ using RuntimeExceptionConvertor = Microsoft.ServiceFabric.Services.Remoting.V2.R
 
 namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests;
 
+[Collection(ServiceFabricRemotingCollectionDefinition.Name)]
 public class ServiceFabricRemotingTests
 {
     private const string ValueToSend = "SomeValue";
