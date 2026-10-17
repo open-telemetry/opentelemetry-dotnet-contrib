@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Fixed server spans for incoming requests without trace context so that they
+  start a new trace instead of using `Activity.Current` as their parent.
+  ([#5646](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5646))
+
 ## 1.20.0-beta.1
 
 Released 2026-Oct-15

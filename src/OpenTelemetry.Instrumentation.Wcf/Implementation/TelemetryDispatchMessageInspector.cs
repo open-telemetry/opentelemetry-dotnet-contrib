@@ -64,6 +64,12 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
                 operationName: action);
         }
 
+        if (!ctx.ActivityContext.IsValid())
+        {
+            // The request has no trace context. Clear Activity.Current so that StartActivity does not use it as the parent.
+            Activity.Current = null;
+        }
+
         // Add RPC and network tags at span creation time so that they are available for sampling decisions.
         // See https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/rpc/rpc-spans.md.
         var activitySource = WcfInstrumentationActivitySource.Get(options);
