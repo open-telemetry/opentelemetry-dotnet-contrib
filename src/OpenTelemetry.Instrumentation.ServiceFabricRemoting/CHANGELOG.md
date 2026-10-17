@@ -7,7 +7,7 @@
   `TraceContextEnrichedActorRemotingProviderAttribute`, so that derived attributes
   can customize Service Fabric transport settings that the attributes do not
   expose, such as the exception serialization technique.
-  ([#NNNN](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/NNNN))
+  ([#5645](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5645))
 
 ## 1.20.0-beta.2
 
