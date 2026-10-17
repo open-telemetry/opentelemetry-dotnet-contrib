@@ -40,9 +40,9 @@ internal sealed partial class EventNameManager
     }
 
     // Note: These caches are exposed for unit tests.
-    internal Hashtable EventNamespaceCache { get; } = new(StringComparer.OrdinalIgnoreCase);
+    internal Hashtable EventNamespaceCache { get; } = [with(StringComparer.OrdinalIgnoreCase)];
 
-    internal Hashtable EventFullNameCache { get; } = new(StringComparer.OrdinalIgnoreCase);
+    internal Hashtable EventFullNameCache { get; } = [with(StringComparer.OrdinalIgnoreCase)];
 
     public static bool IsEventNamespaceValid(string eventNamespace)
         => EventNamespaceValidationRegex().IsMatch(eventNamespace);
@@ -204,7 +204,7 @@ internal sealed partial class EventNameManager
                 eventNameCacheForNamespace = (eventNamespaceCache[eventNamespace] as Hashtable)!;
                 if (eventNameCacheForNamespace == null)
                 {
-                    eventNameCacheForNamespace = new Hashtable(StringComparer.OrdinalIgnoreCase);
+                    eventNameCacheForNamespace = [with(StringComparer.OrdinalIgnoreCase)];
                     eventNamespaceCache[eventNamespace] = eventNameCacheForNamespace;
                 }
             }

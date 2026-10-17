@@ -155,9 +155,7 @@ public class HostDetectorTests
             Architecture.Arm => "arm32",
             Architecture.Armv6 => "arm32",
             Architecture.LoongArch64 => null,
-#if NET10_0_OR_GREATER
             Architecture.RiscV64 => null,
-#endif
             Architecture.Ppc64le => "ppc64",
             Architecture.Wasm => null,
             Architecture.X64 => "amd64",

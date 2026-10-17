@@ -3,7 +3,9 @@
 
 #if !NETFRAMEWORK
 using System.Diagnostics;
+#if !NET11_0_OR_GREATER
 using System.Text;
+#endif
 #endif
 using System.Globalization;
 using System.Net;
@@ -124,9 +126,7 @@ internal sealed class HostDetector : IResourceDetector
             // The following architectures do not have a mapping in OTel spec: https://github.com/open-telemetry/semantic-conventions/blob/v1.39.0/docs/resource/host.md
             Architecture.Wasm => null,
             Architecture.LoongArch64 => null,
-#if NET10_0_OR_GREATER
             Architecture.RiscV64 => null,
-#endif
 #endif
             _ => null,
         };
@@ -310,12 +310,7 @@ internal sealed class HostDetector : IResourceDetector
         }
 
         // Checked before the multiply, which would otherwise wrap into an in-range value.
-        if (size > int.MaxValue / multiplier)
-        {
-            return null;
-        }
-
-        return (int)(size * multiplier);
+        return size > int.MaxValue / multiplier ? null : (int)(size * multiplier);
     }
 
     internal static void AddCpuInfoWindows(List<KeyValuePair<string, object>> attributes, Func<string, string?>? getRegistryValue, Func<int?> getL2CacheSize)
@@ -433,11 +428,12 @@ internal sealed class HostDetector : IResourceDetector
         }
     }
 
+#if NETFRAMEWORK
+    private static void AddCpuInfo(List<KeyValuePair<string, object>> attributes)
+        => AddCpuInfoWindows(attributes);
+#else
     private static void AddCpuInfo(List<KeyValuePair<string, object>> attributes)
     {
-#if NETFRAMEWORK
-        AddCpuInfoWindows(attributes);
-#else
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             AddCpuInfoWindows(attributes);
@@ -450,8 +446,8 @@ internal sealed class HostDetector : IResourceDetector
         {
             AddCpuInfoMacOs(attributes);
         }
-#endif
     }
+#endif
 
 #if NET
     [SupportedOSPlatform("windows")]
@@ -627,6 +623,26 @@ internal sealed class HostDetector : IResourceDetector
             startInfo.ArgumentList.Add(MacOsCacheSizeKey);
 #endif
 
+#if NET11_0_OR_GREATER
+            try
+            {
+                // A key the machine does not have is reported on stderr while the keys it does have
+                // are still written to stdout, so stderr and the exit code are not read as a failure here.
+                var result = Process.RunAndCaptureText(startInfo, TimeSpan.FromMilliseconds(timeoutMilliseconds));
+
+                if (result.ExitStatus.Canceled)
+                {
+                    HostResourceEventSource.Log.ProcessTimeout($"Process did not exit within {timeoutMilliseconds} ms");
+                    return null;
+                }
+
+                return result.StandardOutput;
+            }
+            catch (Exception ex)
+            {
+                HostResourceEventSource.Log.ResourceAttributesExtractException(nameof(HostDetector), ex);
+            }
+#else
             using var process = Process.Start(startInfo);
             if (process != null)
             {
@@ -651,6 +667,7 @@ internal sealed class HostDetector : IResourceDetector
                 // have are still written to stdout, so stderr is not read as a failure here.
                 return process.StandardOutput.ReadToEnd();
             }
+#endif
         }
         catch (Exception ex)
         {
@@ -693,6 +710,17 @@ internal sealed class HostDetector : IResourceDetector
                 RedirectStandardError = true,
             };
 
+#if NET11_0_OR_GREATER
+            var result = Process.RunAndCaptureText(startInfo, TimeSpan.FromMilliseconds(timeoutMilliseconds));
+
+            if (!string.IsNullOrEmpty(result.StandardError) || result.ExitStatus.Canceled || result.ExitStatus.ExitCode != 0)
+            {
+                HostResourceEventSource.Log.FailedToExtractResourceAttributes(nameof(HostDetector), result.StandardError);
+                return null;
+            }
+
+            return result.StandardOutput;
+#else
             var sb = new StringBuilder();
             using var process = Process.Start(startInfo);
             if (process != null)
@@ -720,6 +748,7 @@ internal sealed class HostDetector : IResourceDetector
             }
 
             return null;
+#endif
         }
         catch (Exception ex)
         {
@@ -789,10 +818,12 @@ internal sealed class HostDetector : IResourceDetector
     {
         internal const int RelationCache = 2;
 
+#pragma warning disable SYSLIB1054 // Use 'LibraryImportAttribute' instead of 'DllImportAttribute' to generate P/Invoke marshalling code at compile time
         [DllImport("kernel32.dll", SetLastError = true)]
         [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         [return: MarshalAs(UnmanagedType.Bool)]
         internal static extern bool GetLogicalProcessorInformation(IntPtr buffer, ref uint returnLength);
+#pragma warning restore SYSLIB1054 // Use 'LibraryImportAttribute' instead of 'DllImportAttribute' to generate P/Invoke marshalling code at compile time
 
         [StructLayout(LayoutKind.Sequential)]
         internal struct CacheDescriptor

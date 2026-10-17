@@ -1,26 +1,26 @@
 <!-- markdownlint-disable MD022 MD024 MD031 MD033 -->
 
-# Test results for ASP.NET Core 9
+# Test results for ASP.NET Core 11
 
 ## Tracing
 
 | http.route | App | Test Name |
 | - | - | - |
-| :broken_heart: | ConventionalRouting | [Root path](#activity__conventionalrouting-root-path) |
-| :broken_heart: | ConventionalRouting | [Non-default action with route parameter and query string](#activity__conventionalrouting-non-default-action-with-route-parameter-and-query-string) |
-| :broken_heart: | ConventionalRouting | [Non-default action with query string](#activity__conventionalrouting-non-default-action-with-query-string) |
+| :green_heart: | ConventionalRouting | [Root path](#activity__conventionalrouting-root-path) |
+| :green_heart: | ConventionalRouting | [Non-default action with route parameter and query string](#activity__conventionalrouting-non-default-action-with-route-parameter-and-query-string) |
+| :green_heart: | ConventionalRouting | [Non-default action with query string](#activity__conventionalrouting-non-default-action-with-query-string) |
 | :green_heart: | ConventionalRouting | [Not Found (404)](#activity__conventionalrouting-not-found-404) |
 | :green_heart: | ConventionalRouting | [Route template with parameter constraint](#activity__conventionalrouting-route-template-with-parameter-constraint) |
 | :green_heart: | ConventionalRouting | [Path that does not match parameter constraint](#activity__conventionalrouting-path-that-does-not-match-parameter-constraint) |
 | :broken_heart: | ConventionalRouting | [Area using `area:exists`, default controller/action](#activity__conventionalrouting-area-using-areaexists-default-controlleraction) |
 | :broken_heart: | ConventionalRouting | [Area using `area:exists`, non-default action](#activity__conventionalrouting-area-using-areaexists-non-default-action) |
-| :broken_heart: | ConventionalRouting | [Area w/o `area:exists`, default controller/action](#activity__conventionalrouting-area-wo-areaexists-default-controlleraction) |
+| :green_heart: | ConventionalRouting | [Area w/o `area:exists`, default controller/action](#activity__conventionalrouting-area-wo-areaexists-default-controlleraction) |
 | :green_heart: | AttributeRouting | [Default action](#activity__attributerouting-default-action) |
 | :green_heart: | AttributeRouting | [Action without parameter](#activity__attributerouting-action-without-parameter) |
 | :green_heart: | AttributeRouting | [Action with parameter](#activity__attributerouting-action-with-parameter) |
 | :green_heart: | AttributeRouting | [Action with parameter before action name in template](#activity__attributerouting-action-with-parameter-before-action-name-in-template) |
 | :green_heart: | AttributeRouting | [Action invoked resulting in 400 Bad Request](#activity__attributerouting-action-invoked-resulting-in-400-bad-request) |
-| :green_heart: | RazorPages | [Root path](#activity__razorpages-root-path) |
+| :broken_heart: | RazorPages | [Root path](#activity__razorpages-root-path) |
 | :broken_heart: | RazorPages | [Index page](#activity__razorpages-index-page) |
 | :broken_heart: | RazorPages | [Throws exception](#activity__razorpages-throws-exception) |
 | :green_heart: | RazorPages | [Static content](#activity__razorpages-static-content) |
@@ -34,21 +34,21 @@
 
 | http.route | App | Test Name |
 | - | - | - |
-| :broken_heart: | ConventionalRouting | [Root path](#metrics__conventionalrouting-root-path) |
-| :broken_heart: | ConventionalRouting | [Non-default action with route parameter and query string](#metrics__conventionalrouting-non-default-action-with-route-parameter-and-query-string) |
-| :broken_heart: | ConventionalRouting | [Non-default action with query string](#metrics__conventionalrouting-non-default-action-with-query-string) |
+| :green_heart: | ConventionalRouting | [Root path](#metrics__conventionalrouting-root-path) |
+| :green_heart: | ConventionalRouting | [Non-default action with route parameter and query string](#metrics__conventionalrouting-non-default-action-with-route-parameter-and-query-string) |
+| :green_heart: | ConventionalRouting | [Non-default action with query string](#metrics__conventionalrouting-non-default-action-with-query-string) |
 | :green_heart: | ConventionalRouting | [Not Found (404)](#metrics__conventionalrouting-not-found-404) |
 | :green_heart: | ConventionalRouting | [Route template with parameter constraint](#metrics__conventionalrouting-route-template-with-parameter-constraint) |
 | :green_heart: | ConventionalRouting | [Path that does not match parameter constraint](#metrics__conventionalrouting-path-that-does-not-match-parameter-constraint) |
 | :broken_heart: | ConventionalRouting | [Area using `area:exists`, default controller/action](#metrics__conventionalrouting-area-using-areaexists-default-controlleraction) |
 | :broken_heart: | ConventionalRouting | [Area using `area:exists`, non-default action](#metrics__conventionalrouting-area-using-areaexists-non-default-action) |
-| :broken_heart: | ConventionalRouting | [Area w/o `area:exists`, default controller/action](#metrics__conventionalrouting-area-wo-areaexists-default-controlleraction) |
+| :green_heart: | ConventionalRouting | [Area w/o `area:exists`, default controller/action](#metrics__conventionalrouting-area-wo-areaexists-default-controlleraction) |
 | :green_heart: | AttributeRouting | [Default action](#metrics__attributerouting-default-action) |
 | :green_heart: | AttributeRouting | [Action without parameter](#metrics__attributerouting-action-without-parameter) |
 | :green_heart: | AttributeRouting | [Action with parameter](#metrics__attributerouting-action-with-parameter) |
 | :green_heart: | AttributeRouting | [Action with parameter before action name in template](#metrics__attributerouting-action-with-parameter-before-action-name-in-template) |
 | :green_heart: | AttributeRouting | [Action invoked resulting in 400 Bad Request](#metrics__attributerouting-action-invoked-resulting-in-400-bad-request) |
-| :green_heart: | RazorPages | [Root path](#metrics__razorpages-root-path) |
+| :broken_heart: | RazorPages | [Root path](#metrics__razorpages-root-path) |
 | :broken_heart: | RazorPages | [Index page](#metrics__razorpages-index-page) |
 | :broken_heart: | RazorPages | [Throws exception](#metrics__razorpages-throws-exception) |
 | :green_heart: | RazorPages | [Static content](#metrics__razorpages-static-content) |
@@ -65,14 +65,14 @@
 
 ```json
 {
-  "ActivityDisplayName": "GET {controller=ConventionalRoute}/{action=Default}/{id?}",
-  "ActivityHttpRoute": "{controller=ConventionalRoute}/{action=Default}/{id?}",
+  "ActivityDisplayName": "GET ConventionalRoute/Default/{id?}",
+  "ActivityHttpRoute": "ConventionalRoute/Default/{id?}",
   "IdealHttpRoute": "ConventionalRoute/Default/{id?}",
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/",
     "RoutePattern.RawText": "{controller=ConventionalRoute}/{action=Default}/{id?}",
-    "IRouteDiagnosticsMetadata.Route": "{controller=ConventionalRoute}/{action=Default}/{id?}",
+    "IRouteDiagnosticsMetadata.Route": "ConventionalRoute/Default/{id?}",
     "HttpContext.GetRouteData()": {
       "controller": "ConventionalRoute",
       "action": "Default"
@@ -94,14 +94,14 @@
 
 ```json
 {
-  "ActivityDisplayName": "GET {controller=ConventionalRoute}/{action=Default}/{id?}",
-  "ActivityHttpRoute": "{controller=ConventionalRoute}/{action=Default}/{id?}",
+  "ActivityDisplayName": "GET ConventionalRoute/ActionWithStringParameter/{id?}",
+  "ActivityHttpRoute": "ConventionalRoute/ActionWithStringParameter/{id?}",
   "IdealHttpRoute": "ConventionalRoute/ActionWithStringParameter/{id?}",
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/ConventionalRoute/ActionWithStringParameter/2?num=3",
     "RoutePattern.RawText": "{controller=ConventionalRoute}/{action=Default}/{id?}",
-    "IRouteDiagnosticsMetadata.Route": "{controller=ConventionalRoute}/{action=Default}/{id?}",
+    "IRouteDiagnosticsMetadata.Route": "ConventionalRoute/ActionWithStringParameter/{id?}",
     "HttpContext.GetRouteData()": {
       "controller": "ConventionalRoute",
       "action": "ActionWithStringParameter",
@@ -127,14 +127,14 @@
 
 ```json
 {
-  "ActivityDisplayName": "GET {controller=ConventionalRoute}/{action=Default}/{id?}",
-  "ActivityHttpRoute": "{controller=ConventionalRoute}/{action=Default}/{id?}",
+  "ActivityDisplayName": "GET ConventionalRoute/ActionWithStringParameter/{id?}",
+  "ActivityHttpRoute": "ConventionalRoute/ActionWithStringParameter/{id?}",
   "IdealHttpRoute": "ConventionalRoute/ActionWithStringParameter/{id?}",
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/ConventionalRoute/ActionWithStringParameter?num=3",
     "RoutePattern.RawText": "{controller=ConventionalRoute}/{action=Default}/{id?}",
-    "IRouteDiagnosticsMetadata.Route": "{controller=ConventionalRoute}/{action=Default}/{id?}",
+    "IRouteDiagnosticsMetadata.Route": "ConventionalRoute/ActionWithStringParameter/{id?}",
     "HttpContext.GetRouteData()": {
       "controller": "ConventionalRoute",
       "action": "ActionWithStringParameter"
@@ -229,14 +229,14 @@
 
 ```json
 {
-  "ActivityDisplayName": "GET {area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
-  "ActivityHttpRoute": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
+  "ActivityDisplayName": "GET MyArea/ControllerForMyArea/Default/{id?}",
+  "ActivityHttpRoute": "MyArea/ControllerForMyArea/Default/{id?}",
   "IdealHttpRoute": "{area:exists}/ControllerForMyArea/Default/{id?}",
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/MyArea",
     "RoutePattern.RawText": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
-    "IRouteDiagnosticsMetadata.Route": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
+    "IRouteDiagnosticsMetadata.Route": "MyArea/ControllerForMyArea/Default/{id?}",
     "HttpContext.GetRouteData()": {
       "controller": "ControllerForMyArea",
       "action": "Default",
@@ -259,14 +259,14 @@
 
 ```json
 {
-  "ActivityDisplayName": "GET {area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
-  "ActivityHttpRoute": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
+  "ActivityDisplayName": "GET MyArea/ControllerForMyArea/NonDefault/{id?}",
+  "ActivityHttpRoute": "MyArea/ControllerForMyArea/NonDefault/{id?}",
   "IdealHttpRoute": "{area:exists}/ControllerForMyArea/NonDefault/{id?}",
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/MyArea/ControllerForMyArea/NonDefault",
     "RoutePattern.RawText": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
-    "IRouteDiagnosticsMetadata.Route": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
+    "IRouteDiagnosticsMetadata.Route": "MyArea/ControllerForMyArea/NonDefault/{id?}",
     "HttpContext.GetRouteData()": {
       "controller": "ControllerForMyArea",
       "area": "MyArea",
@@ -289,14 +289,14 @@
 
 ```json
 {
-  "ActivityDisplayName": "GET SomePrefix/{controller=AnotherArea}/{action=Index}/{id?}",
-  "ActivityHttpRoute": "SomePrefix/{controller=AnotherArea}/{action=Index}/{id?}",
+  "ActivityDisplayName": "GET SomePrefix/AnotherArea/Index/{id?}",
+  "ActivityHttpRoute": "SomePrefix/AnotherArea/Index/{id?}",
   "IdealHttpRoute": "SomePrefix/AnotherArea/Index/{id?}",
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/SomePrefix",
     "RoutePattern.RawText": "SomePrefix/{controller=AnotherArea}/{action=Index}/{id?}",
-    "IRouteDiagnosticsMetadata.Route": "SomePrefix/{controller=AnotherArea}/{action=Index}/{id?}",
+    "IRouteDiagnosticsMetadata.Route": "SomePrefix/AnotherArea/Index/{id?}",
     "HttpContext.GetRouteData()": {
       "area": "AnotherArea",
       "controller": "AnotherArea",
@@ -473,14 +473,14 @@
 
 ```json
 {
-  "ActivityDisplayName": "GET /Index",
-  "ActivityHttpRoute": "/Index",
-  "IdealHttpRoute": "/Index",
+  "ActivityDisplayName": "GET /",
+  "ActivityHttpRoute": "/",
+  "IdealHttpRoute": null,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/",
     "RoutePattern.RawText": "",
-    "IRouteDiagnosticsMetadata.Route": "",
+    "IRouteDiagnosticsMetadata.Route": "/",
     "HttpContext.GetRouteData()": {
       "page": "/Index"
     },
@@ -672,13 +672,13 @@
 
 ```json
 {
-  "MetricHttpRoute": "{controller=ConventionalRoute}/{action=Default}/{id?}",
+  "MetricHttpRoute": "ConventionalRoute/Default/{id?}",
   "IdealHttpRoute": "ConventionalRoute/Default/{id?}",
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/",
     "RoutePattern.RawText": "{controller=ConventionalRoute}/{action=Default}/{id?}",
-    "IRouteDiagnosticsMetadata.Route": "{controller=ConventionalRoute}/{action=Default}/{id?}",
+    "IRouteDiagnosticsMetadata.Route": "ConventionalRoute/Default/{id?}",
     "HttpContext.GetRouteData()": {
       "controller": "ConventionalRoute",
       "action": "Default"
@@ -700,13 +700,13 @@
 
 ```json
 {
-  "MetricHttpRoute": "{controller=ConventionalRoute}/{action=Default}/{id?}",
+  "MetricHttpRoute": "ConventionalRoute/ActionWithStringParameter/{id?}",
   "IdealHttpRoute": "ConventionalRoute/ActionWithStringParameter/{id?}",
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/ConventionalRoute/ActionWithStringParameter/2?num=3",
     "RoutePattern.RawText": "{controller=ConventionalRoute}/{action=Default}/{id?}",
-    "IRouteDiagnosticsMetadata.Route": "{controller=ConventionalRoute}/{action=Default}/{id?}",
+    "IRouteDiagnosticsMetadata.Route": "ConventionalRoute/ActionWithStringParameter/{id?}",
     "HttpContext.GetRouteData()": {
       "controller": "ConventionalRoute",
       "action": "ActionWithStringParameter",
@@ -732,13 +732,13 @@
 
 ```json
 {
-  "MetricHttpRoute": "{controller=ConventionalRoute}/{action=Default}/{id?}",
+  "MetricHttpRoute": "ConventionalRoute/ActionWithStringParameter/{id?}",
   "IdealHttpRoute": "ConventionalRoute/ActionWithStringParameter/{id?}",
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/ConventionalRoute/ActionWithStringParameter?num=3",
     "RoutePattern.RawText": "{controller=ConventionalRoute}/{action=Default}/{id?}",
-    "IRouteDiagnosticsMetadata.Route": "{controller=ConventionalRoute}/{action=Default}/{id?}",
+    "IRouteDiagnosticsMetadata.Route": "ConventionalRoute/ActionWithStringParameter/{id?}",
     "HttpContext.GetRouteData()": {
       "controller": "ConventionalRoute",
       "action": "ActionWithStringParameter"
@@ -830,13 +830,13 @@
 
 ```json
 {
-  "MetricHttpRoute": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
+  "MetricHttpRoute": "MyArea/ControllerForMyArea/Default/{id?}",
   "IdealHttpRoute": "{area:exists}/ControllerForMyArea/Default/{id?}",
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/MyArea",
     "RoutePattern.RawText": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
-    "IRouteDiagnosticsMetadata.Route": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
+    "IRouteDiagnosticsMetadata.Route": "MyArea/ControllerForMyArea/Default/{id?}",
     "HttpContext.GetRouteData()": {
       "controller": "ControllerForMyArea",
       "action": "Default",
@@ -859,13 +859,13 @@
 
 ```json
 {
-  "MetricHttpRoute": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
+  "MetricHttpRoute": "MyArea/ControllerForMyArea/NonDefault/{id?}",
   "IdealHttpRoute": "{area:exists}/ControllerForMyArea/NonDefault/{id?}",
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/MyArea/ControllerForMyArea/NonDefault",
     "RoutePattern.RawText": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
-    "IRouteDiagnosticsMetadata.Route": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
+    "IRouteDiagnosticsMetadata.Route": "MyArea/ControllerForMyArea/NonDefault/{id?}",
     "HttpContext.GetRouteData()": {
       "controller": "ControllerForMyArea",
       "area": "MyArea",
@@ -888,13 +888,13 @@
 
 ```json
 {
-  "MetricHttpRoute": "SomePrefix/{controller=AnotherArea}/{action=Index}/{id?}",
+  "MetricHttpRoute": "SomePrefix/AnotherArea/Index/{id?}",
   "IdealHttpRoute": "SomePrefix/AnotherArea/Index/{id?}",
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/SomePrefix",
     "RoutePattern.RawText": "SomePrefix/{controller=AnotherArea}/{action=Index}/{id?}",
-    "IRouteDiagnosticsMetadata.Route": "SomePrefix/{controller=AnotherArea}/{action=Index}/{id?}",
+    "IRouteDiagnosticsMetadata.Route": "SomePrefix/AnotherArea/Index/{id?}",
     "HttpContext.GetRouteData()": {
       "area": "AnotherArea",
       "controller": "AnotherArea",
@@ -1066,13 +1066,13 @@
 
 ```json
 {
-  "MetricHttpRoute": "",
-  "IdealHttpRoute": "/Index",
+  "MetricHttpRoute": "/",
+  "IdealHttpRoute": null,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/",
     "RoutePattern.RawText": "",
-    "IRouteDiagnosticsMetadata.Route": "",
+    "IRouteDiagnosticsMetadata.Route": "/",
     "HttpContext.GetRouteData()": {
       "page": "/Index"
     },

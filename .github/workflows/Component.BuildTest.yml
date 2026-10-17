@@ -22,7 +22,7 @@ on:
         required: false
         type: string
       tfm-list:
-        default: '[ "net472", "net8.0", "net9.0", "net10.0" ]'
+        default: '[ "net472", "net10.0", "net11.0" ]'
         required: false
         type: string
       test-case-filter:
@@ -165,7 +165,7 @@ jobs:
         TARGET_FRAMEWORK: ${{ matrix.version }}
         TEST_FILTER: ${{ inputs.test-case-filter }}
       run: |
-        sudo "BUILD_COMPONENT=${env:BUILD_COMPONENT}" dotnet build ${env:PROJECT_PATH} -t:Test -p:Configuration=Release -p:TargetFramework=${env:TARGET_FRAMEWORK} "-p:TestFilter=${env:TEST_FILTER}"
+        sudo env -u XDG_RUNTIME_DIR "BUILD_COMPONENT=${env:BUILD_COMPONENT}" dotnet build ${env:PROJECT_PATH} -t:Test -p:Configuration=Release -p:TargetFramework=${env:TARGET_FRAMEWORK} "-p:TestFilter=${env:TEST_FILTER}"
         $testExitCode = $LASTEXITCODE
         sudo chmod a+rw ./TestResults
         if ($testExitCode -ne 0) {

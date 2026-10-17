@@ -9,7 +9,7 @@ To run the benchmarks in this project, follow these steps:
 - Run the benchmarks using the command:
 
   ```txt
-  dotnet run -c Release -f net10.0 -- --filter *SqlProcessorBenchmark*
+  dotnet run -c Release -f net11.0 -- --filter *SqlProcessorBenchmark*
   ```
 
 - Return the `CacheCapacity` field in `SqlProcessor` to its original value.
