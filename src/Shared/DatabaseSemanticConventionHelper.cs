@@ -107,7 +107,7 @@ internal static class DatabaseSemanticConventionHelper
         {
             activity.SetTag(SemanticConventions.AttributeDbQueryText, queryText);
 
-            if (!string.IsNullOrEmpty(querySummary))
+            if (querySummary is { Length: > 0 })
             {
                 activity.SetTag(SemanticConventions.AttributeDbQuerySummary, querySummary);
                 activity.DisplayName = querySummary;
