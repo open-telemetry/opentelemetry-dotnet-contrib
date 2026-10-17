@@ -77,6 +77,46 @@ steps:
 This will set up OpenTelemetry instrumentation for Confluent.Kafka producers
 and consumers, allowing you to collect and export telemetry data.
 
+## Correlating consumer spans with producer traces
+
+By default, the `process` span created by
+`ConsumeAndProcessMessageAsync` is not parented on the producer
+(message creation) context extracted from the message headers. That context
+is reported only as a span link, so the consumer span is part of a separate
+trace and the correlation with the producer trace is established through the
+link. This is the default behavior recommended by the [messaging semantic
+conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.44.0/docs/messaging/messaging-spans.md).
+
+If you prefer a direct parent-child relationship between the producer and
+consumer spans (that is, you want the `process` span to share the producer
+trace ID), you can opt in by setting `UseCreationContextAsParent` to `true`
+when creating the instrumented consumer builder. When the option is enabled,
+the `process` span is parented on the creation context and the creation
+context is still reported as a span link. If message processing happens in
+the scope of another active span (for example, an HTTP server span) and no
+valid creation context was extracted from the message headers, the `process`
+span is parented on that ambient span instead of being started as a new root
+span:
+
+```csharp
+var consumerBuilder = new ConsumerBuilder<string, string>(consumerConfig);
+
+var telemetryOptions = new ConfluentKafkaInstrumentedConsumerBuilderOptions
+{
+    EnableTraces = true,
+    UseCreationContextAsParent = true,
+};
+
+var instrumentedConsumerBuilder = consumerBuilder.AsInstrumentedConsumerBuilder(telemetryOptions);
+```
+
+> [!NOTE]
+> This option only affects the `process` span created by
+> `ConsumeAndProcessMessageAsync`. The `poll` span is **always** started as a
+> new root span (it is never parented on the creation context, regardless of
+> this option). If a valid creation context was extracted from the message
+> headers, the `poll` span reports it as a span link.
+
 ## Metrics
 
 The instrumentation is implemented based on the [messaging metrics semantic
