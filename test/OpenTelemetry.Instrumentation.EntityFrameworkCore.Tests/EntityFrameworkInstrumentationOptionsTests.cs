@@ -60,4 +60,37 @@ public class EntityFrameworkInstrumentationOptionsTests
         var options = new EntityFrameworkInstrumentationOptions(configuration);
         Assert.Equal(expected, options.SetDbQueryParameters);
     }
+
+    [Fact]
+    public void SanitizedResultShouldExposeSuppliedQueryTextAndSummary()
+    {
+        var result = DbQueryTextSanitizationResult.Sanitized("[redacted]", "SELECT Items");
+
+        Assert.True(result.IsSanitized);
+        Assert.False(result.SuppressQueryText);
+        Assert.Equal("[redacted]", result.QueryText);
+        Assert.Equal("SELECT Items", result.QuerySummary);
+    }
+
+    [Fact]
+    public void NotSanitizedResultShouldRequestRawQueryText()
+    {
+        var result = DbQueryTextSanitizationResult.NotSanitized;
+
+        Assert.False(result.IsSanitized);
+        Assert.False(result.SuppressQueryText);
+        Assert.Null(result.QueryText);
+        Assert.Null(result.QuerySummary);
+    }
+
+    [Fact]
+    public void SuppressResultShouldRequestNoQueryText()
+    {
+        var result = DbQueryTextSanitizationResult.Suppress;
+
+        Assert.False(result.IsSanitized);
+        Assert.True(result.SuppressQueryText);
+        Assert.Null(result.QueryText);
+        Assert.Null(result.QuerySummary);
+    }
 }
