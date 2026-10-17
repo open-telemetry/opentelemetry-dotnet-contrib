@@ -1,6 +1,7 @@
 .*
 **/.DS_Store
 **/.dockerignore
+**/.dotnet
 **/.env
 **/.gitignore
 **/.project
@@ -16,10 +17,12 @@
 **/docker-compose*
 **/compose*
 **/Dockerfile*
+**/artifacts
 **/node_modules
 **/npm-debug.log
 **/obj
 LICENSE
 README.md
+!.github/renovate.json
 !.editorconfig
 !.packages/
