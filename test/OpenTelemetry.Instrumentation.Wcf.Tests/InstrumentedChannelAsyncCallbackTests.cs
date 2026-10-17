@@ -4,6 +4,7 @@
 using System.Diagnostics;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
+using System.Xml;
 using OpenTelemetry.Instrumentation.Wcf.Implementation;
 using OpenTelemetry.Trace;
 
@@ -192,6 +193,109 @@ public class InstrumentedChannelAsyncCallbackTests
 
             var activity = Assert.Single(stoppedActivities);
             Assert.Equal(ActivityStatusCode.Error, activity.Status);
+        }
+        finally
+        {
+            WcfInstrumentationActivitySource.Options = null;
+        }
+    }
+
+    [Fact]
+    public void EndSendWithoutMessageIdCompletesTelemetryAndReleasesSuppressionScope()
+    {
+        var stoppedActivities = new List<Activity>();
+        using var activityListener = new ActivityListener
+        {
+            ShouldListenTo = _ => true,
+            Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
+            ActivityStopped = stoppedActivities.Add,
+        };
+        ActivitySource.AddActivityListener(activityListener);
+        WcfInstrumentationActivitySource.Options = new WcfInstrumentationOptions { SuppressDownstreamInstrumentation = true };
+
+        try
+        {
+            var channel = new InstrumentedDuplexChannel(new RecordingDuplexChannel(), TimeSpan.FromSeconds(1));
+            using var message = Message.CreateMessage(MessageVersion.Soap11, "urn:test");
+            var result = channel.BeginSend(message, callback: null, state: null);
+            var telemetryState = ((AsyncResultWithTelemetryState)result).TelemetryState;
+
+            channel.EndSend(result);
+
+            Assert.Null(telemetryState.SuppressionScope);
+            Assert.Equal(ActivityStatusCode.Error, Assert.Single(stoppedActivities).Status);
+        }
+        finally
+        {
+            WcfInstrumentationActivitySource.Options = null;
+        }
+    }
+
+    [Fact]
+    public void EndSendReleasesSuppressionScopeBeforeCorrelatedReplyArrives()
+    {
+        var messageId = new UniqueId(Guid.NewGuid());
+        var stoppedActivities = new List<Activity>();
+        using var activityListener = new ActivityListener
+        {
+            ShouldListenTo = _ => true,
+            Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
+            ActivityStopped = stoppedActivities.Add,
+        };
+        ActivitySource.AddActivityListener(activityListener);
+        WcfInstrumentationActivitySource.Options = new WcfInstrumentationOptions { SuppressDownstreamInstrumentation = true };
+
+        try
+        {
+            var channel = new InstrumentedDuplexChannel(new RecordingDuplexChannel(), TimeSpan.FromHours(1));
+            using var request = Message.CreateMessage(MessageVersion.Soap12WSAddressing10, "urn:request");
+            request.Headers.MessageId = messageId;
+            var result = channel.BeginSend(request, callback: null, state: null);
+            var telemetryState = ((AsyncResultWithTelemetryState)result).TelemetryState;
+            var activity = Assert.IsType<Activity>(telemetryState.Activity);
+
+            channel.EndSend(result);
+
+            Assert.Null(telemetryState.SuppressionScope);
+            Assert.False(activity.IsStopped);
+
+            using var reply = Message.CreateMessage(MessageVersion.Soap12WSAddressing10, "urn:reply");
+            reply.Headers.RelatesTo = messageId;
+            var receivedState = RequestTelemetryStateTracker.PopTelemetryState(reply);
+            Assert.Same(telemetryState, receivedState);
+            ClientChannelInstrumentation.AfterRequestCompleted(reply, receivedState);
+
+            Assert.True(activity.IsStopped);
+            Assert.Single(stoppedActivities);
+        }
+        finally
+        {
+            WcfInstrumentationActivitySource.Options = null;
+        }
+    }
+
+    [Fact]
+    public void EndSendFailureRemovesOutstandingTelemetryState()
+    {
+        var messageId = new UniqueId(Guid.NewGuid());
+        var inner = new RecordingDuplexChannel
+        {
+            EndSendException = new InvalidOperationException("EndSend failed."),
+        };
+        var channel = new InstrumentedDuplexChannel(inner, TimeSpan.FromHours(1));
+        using var message = Message.CreateMessage(MessageVersion.Soap12WSAddressing10, "urn:test");
+        message.Headers.MessageId = messageId;
+        WcfInstrumentationActivitySource.Options = new WcfInstrumentationOptions();
+
+        try
+        {
+            var result = channel.BeginSend(message, callback: null, state: null);
+
+            Assert.Throws<InvalidOperationException>(() => channel.EndSend(result));
+
+            using var reply = Message.CreateMessage(MessageVersion.Soap12WSAddressing10, "urn:reply");
+            reply.Headers.RelatesTo = messageId;
+            Assert.Null(RequestTelemetryStateTracker.PopTelemetryState(reply));
         }
         finally
         {

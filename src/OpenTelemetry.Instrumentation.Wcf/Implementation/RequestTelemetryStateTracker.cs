@@ -10,30 +10,53 @@ internal static class RequestTelemetryStateTracker
     private static readonly Dictionary<string, Entry> OutstandingRequestStates = [];
     private static readonly SortedSet<EntryTimeoutProperties> TimeoutQueue = [];
     private static readonly Lock Sync = new();
-    private static readonly Timer Timer = new(OnTimer);
+    private static readonly Timer Timer = CreateTimer();
     private static long currentTimerDueAt = Timeout.Infinite;
 
-    public static void PushTelemetryState(Message request, RequestTelemetryState telemetryState, TimeSpan timeout, Action<RequestTelemetryState> timeoutCallback)
+    public static bool PushTelemetryState(Message request, RequestTelemetryState telemetryState, TimeSpan timeout, Action<RequestTelemetryState> timeoutCallback)
     {
         var messageId = request?.Headers.MessageId?.ToString();
-        if (messageId != null)
+        if (messageId == null)
         {
-            var expiresAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + (long)timeout.TotalMilliseconds;
-            var timeoutProps = new EntryTimeoutProperties(messageId, expiresAt, timeoutCallback);
-            var entry = new Entry(telemetryState, timeoutProps);
-            lock (Sync)
-            {
-                OutstandingRequestStates.Add(messageId, entry);
-                TimeoutQueue.Add(timeoutProps);
-                SetTimerEarlierIfNeeded(expiresAt);
-            }
+            return false;
         }
+
+        var expiresAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + (long)timeout.TotalMilliseconds;
+        var timeoutProps = new EntryTimeoutProperties(messageId, expiresAt, timeoutCallback);
+        var entry = new Entry(telemetryState, timeoutProps);
+        lock (Sync)
+        {
+            OutstandingRequestStates.Add(messageId, entry);
+            TimeoutQueue.Add(timeoutProps);
+            telemetryState.MessageId = messageId;
+            SetTimerEarlierIfNeeded(expiresAt);
+        }
+
+        return true;
     }
 
     public static RequestTelemetryState? PopTelemetryState(Message reply)
     {
         var relatesTo = reply?.Headers.RelatesTo?.ToString();
         return relatesTo == null ? null : PopTelemetryState(relatesTo);
+    }
+
+    public static void RemoveTelemetryState(RequestTelemetryState telemetryState)
+    {
+        var messageId = telemetryState.MessageId;
+        if (messageId == null)
+        {
+            return;
+        }
+
+        lock (Sync)
+        {
+            if (OutstandingRequestStates.TryGetValue(messageId, out var entry) && ReferenceEquals(entry.State, telemetryState))
+            {
+                OutstandingRequestStates.Remove(messageId);
+                TimeoutQueue.Remove(entry.TimeoutProperties);
+            }
+        }
     }
 
     private static RequestTelemetryState? PopTelemetryState(string messageId)
@@ -47,6 +70,17 @@ internal static class RequestTelemetryStateTracker
             }
 
             return entry?.State;
+        }
+    }
+
+    private static Timer CreateTimer()
+    {
+        // Prevent the timer from inheriting the caller's ambient tracing/instrumentation
+        // suppression scope. Without this, timed-out activities would execute with
+        // instrumentation suppressed and fail to be exported to telemetry.
+        using (ExecutionContext.SuppressFlow())
+        {
+            return new Timer(OnTimer);
         }
     }
 
