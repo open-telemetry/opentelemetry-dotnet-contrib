@@ -659,6 +659,38 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
 
     public void Dispose() => this.connection.Dispose();
 
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public void ShouldPreserveDefaultQueryTextSanitization(bool emitOldAttributes, bool emitNewAttributes)
+    {
+        var activity = this.ExecuteCommand(
+            "select * from Items where Name = 'ItemOne'",
+            emitOldAttributes,
+            emitNewAttributes,
+            configure: null);
+
+        const string ExpectedQueryText = "select * from Items where Name = ?";
+
+        if (emitOldAttributes)
+        {
+            Assert.Equal(ExpectedQueryText, activity.GetTagValue(SemanticConventions.AttributeDbStatement));
+        }
+
+        if (emitNewAttributes)
+        {
+            Assert.Equal(ExpectedQueryText, activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
+            Assert.Equal("select Items", activity.GetTagValue(SemanticConventions.AttributeDbQuerySummary));
+            Assert.Equal("select Items", activity.DisplayName);
+        }
+        else
+        {
+            Assert.DoesNotContain(activity.TagObjects, tag => tag.Key == SemanticConventions.AttributeDbQuerySummary);
+            Assert.Equal("main", activity.DisplayName);
+        }
+    }
+
     private static SqliteConnection CreateInMemoryDatabase()
     {
         var connection = new SqliteConnection("Filename=:memory:");
@@ -731,6 +763,31 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             Assert.Null(activity.StatusDescription);
             Assert.Equal(typeof(SqliteException).FullName, activity.GetTagValue(SemanticConventions.AttributeErrorType));
         }
+    }
+
+    private Activity ExecuteCommand(
+        string commandText,
+        bool emitOldAttributes,
+        bool emitNewAttributes,
+        Action<EntityFrameworkInstrumentationOptions>? configure)
+    {
+        var exportedItems = new List<Activity>();
+
+        using (Sdk.CreateTracerProviderBuilder()
+                  .AddInMemoryExporter(exportedItems)
+                  .AddEntityFrameworkCoreInstrumentation(options =>
+                  {
+                      configure?.Invoke(options);
+                      options.EmitOldAttributes = emitOldAttributes;
+                      options.EmitNewAttributes = emitNewAttributes;
+                  })
+                  .Build())
+        {
+            using var context = new ItemsContext(this.contextOptions);
+            context.Database.ExecuteSqlRaw(commandText);
+        }
+
+        return Assert.Single(exportedItems);
     }
 
     private void Seed()
