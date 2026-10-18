@@ -35,7 +35,6 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETFramework'">
-    <PackageReference Include="System.Text.Json" />
     <Reference Include="System.Net.Http" />
   </ItemGroup>
 
