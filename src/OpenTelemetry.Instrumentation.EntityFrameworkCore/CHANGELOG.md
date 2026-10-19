@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.20.0-beta.1
+
+Released 2026-Oct-15
+
 * Fixed `db.query.summary` so that a delimited identifier containing an escaped
   closing bracket, such as `[Tab]]le]`, is captured whole instead of being
   truncated at the escape.
@@ -39,6 +43,9 @@
 * Fixed the cache of parsed data sources growing without bound when many
   distinct data sources are used.
   ([#5447](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5447))
+
+* Updated OpenTelemetry core component version(s) to `1.20.0`.
+  ([#5541](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5541))
 
 ## 1.19.1-beta.1
 

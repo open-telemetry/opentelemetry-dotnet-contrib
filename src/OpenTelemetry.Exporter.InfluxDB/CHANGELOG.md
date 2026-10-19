@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.0-alpha.15
+
+Released 2026-Oct-15
+
 * Fixed attribute keys and values containing backslashes producing invalid
   line protocol, which caused InfluxDB to reject the entire batch of metrics
   being written.
@@ -12,6 +16,9 @@
   through the `OpenTelemetry-Exporter-InfluxDB` event source instead of being
   dropped silently.
   ([#5430](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5430))
+
+* Updated OpenTelemetry core component version(s) to `1.20.0`.
+  ([#5541](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5541))
 
 ## 1.0.0-alpha.14
 

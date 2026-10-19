@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.8.0-alpha.1
+
+Released 2026-Oct-15
+
 * **Breaking Change**: Send `InstanceUid` in RFC 9562 (big-endian) byte
   order. Previously the first three fields were sent little-endian, so the
   bytes on the wire did not match the GUID's string form. A server that

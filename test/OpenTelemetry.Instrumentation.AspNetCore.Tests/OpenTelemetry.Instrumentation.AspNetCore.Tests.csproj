@@ -1,13 +1,13 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
+    <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
     <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
     <Description>Unit test project for OpenTelemetry ASP.NET Core instrumentation.</Description>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing"/>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
     <PackageReference Include="Microsoft.AspNetCore.TestHost" />
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" />
@@ -36,6 +36,10 @@
     <Compile Include="$(RepoRoot)\test\Shared\WeaverSpecificationTests.cs" Link="Includes\WeaverSpecificationTests.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\WeaverTelemetryVerifier.cs" Link="Includes\WeaverTelemetryVerifier.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\XunitContainerFixture{T}.cs" Link="Includes\XunitContainerFixture{T}.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="RouteTests\TestApplication\Pages\**\*.cshtml" Link="Pages\%(Filename)%(Extension)" />
   </ItemGroup>
 
   <ItemGroup>

@@ -2,8 +2,9 @@
 
 ## Unreleased
 
-* Updated OpenTelemetry core component version(s) to `1.19.1`.
-  ([#5329](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5329))
+## 1.20.0-beta.1
+
+Released 2026-Oct-15
 
 * Skip calculating timing-event timestamps when
   `EnrichActivityWithTimingEvents` is disabled.
@@ -12,6 +13,9 @@
 * Adaptively poll Redis profiling sessions, draining active sessions more
   frequently and backing off while idle.
   ([#5497](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5497))
+
+* Updated OpenTelemetry core component version(s) to `1.20.0`.
+  ([#5541](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5541))
 
 ## 1.19.0-beta.1
 
