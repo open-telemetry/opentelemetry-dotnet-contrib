@@ -381,7 +381,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
         {
             List<Activity> stoppedActivities = [];
 
-            var builder = Sdk.CreateTracerProviderBuilder()
+            using var tracerProvider = Sdk.CreateTracerProviderBuilder()
                 .ConfigureServices(services =>
                 {
                     if (disableQueryRedactionUsingConfiguration)

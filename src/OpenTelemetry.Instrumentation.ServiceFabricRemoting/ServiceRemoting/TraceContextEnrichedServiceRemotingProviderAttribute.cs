@@ -21,10 +21,11 @@ namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting;
 /// </summary>
 /// <remarks>
 /// This type is not sealed so that applications can derive from it to register custom exception convertors by
-/// overriding <see cref="GetServiceExceptionConvertors"/> and <see cref="GetClientExceptionConvertors"/>.
+/// overriding <see cref="GetServiceExceptionConvertors"/> and <see cref="GetClientExceptionConvertors"/>, and to
+/// customize the transport settings by overriding <see cref="ConfigureListenerSettings"/> and <see cref="ConfigureClientSettings"/>.
 /// </remarks>
 [AttributeUsage(AttributeTargets.Assembly)]
-[SuppressMessage("Performance", "CA1813:Avoid unsealed attributes", Justification = "The attribute is designed to be derived from, so that applications can register custom exception convertors.")]
+[SuppressMessage("Performance", "CA1813:Avoid unsealed attributes", Justification = "The attribute is designed to be derived from, so that applications can register custom exception convertors and customize the transport settings.")]
 public class TraceContextEnrichedServiceRemotingProviderAttribute : FabricTransportServiceRemotingProviderAttribute
 {
     private const string DefaultV2listenerName = "V2Listener";
@@ -112,6 +113,8 @@ public class TraceContextEnrichedServiceRemotingProviderAttribute : FabricTransp
         settings.KeepAliveTimeout = this.GetAndValidateKeepAliveTimeout(settings.KeepAliveTimeout);
         settings.RemotingExceptionDepth = this.GetRemotingExceptionDepth(settings.RemotingExceptionDepth);
 
+        this.ConfigureListenerSettings(settings);
+
         return settings;
     }
 
@@ -124,7 +127,35 @@ public class TraceContextEnrichedServiceRemotingProviderAttribute : FabricTransp
         settings.KeepAliveTimeout = this.GetAndValidateKeepAliveTimeout(settings.KeepAliveTimeout);
         settings.ConnectTimeout = this.GetConnectTimeout(settings.ConnectTimeout);
 
+        this.ConfigureClientSettings(settings);
+
         return settings;
+    }
+
+    /// <summary>
+    /// Configures the settings of the remoting listener. Override this method to change settings that are not exposed
+    /// by the attribute, such as <see cref="FabricTransportRemotingListenerSettings.ExceptionSerializationTechnique"/>.
+    /// </summary>
+    /// <remarks>
+    /// This method is called after the settings have been loaded from the <c>TransportSettings</c> configuration section
+    /// and the values set on the attribute have been applied, so any value set here takes precedence.
+    /// </remarks>
+    /// <param name="settings">The settings that will be used to create the listener.</param>
+    protected virtual void ConfigureListenerSettings(FabricTransportRemotingListenerSettings settings)
+    {
+    }
+
+    /// <summary>
+    /// Configures the settings of the remoting client factory. Override this method to change settings that are not
+    /// exposed by the attribute, such as <see cref="FabricTransportRemotingSettings.ExceptionDeserializationTechnique"/>.
+    /// </summary>
+    /// <remarks>
+    /// This method is called after the settings have been loaded from the <c>TransportSettings</c> configuration section
+    /// and the values set on the attribute have been applied, so any value set here takes precedence.
+    /// </remarks>
+    /// <param name="settings">The settings that will be used to create the client factory.</param>
+    protected virtual void ConfigureClientSettings(FabricTransportRemotingSettings settings)
+    {
     }
 
     /// <summary>
