@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+* Updated OpenTelemetry core component version(s) to `1.20.1`.
+  ([#5651](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5651))
+
+## 0.1.0-alpha.16
+
+Released 2026-Oct-15
+
 * Fixed a bug where a transient failure fetching sampling rules from the
   X-Ray daemon/collector (e.g. a network error or an unparsable response)
   would wipe out the previously cached rules instead of being ignored. This
@@ -14,6 +21,22 @@
   when a rule applier had never received a sampling target and the clock's
   "now" landed exactly on that applier's initial snapshot time.
   ([#5424](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5424))
+
+* The globs of sampling rules (such as a `URLPath` of `/health*`) must now match
+  the whole attribute value instead of matching wherever they occur in the value.
+  ([#5455](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5455))
+
+* Fixed the rule and target pollers stopping indefinitely after a response they
+  could not apply. Invalid rules and targets are now skipped and logged, only the
+  first of several rules with the same `RuleName` is used, the `Interval` of a target
+  is limited to 5 minutes, and the next poll is scheduled even if a poll fails.
+  ([#5455](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5455))
+
+* Requests to the sampling endpoint now time out after 10 seconds.
+  ([#5455](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5455))
+
+* Updated OpenTelemetry core component version(s) to `1.20.0`.
+  ([#5541](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5541))
 
 ## 0.1.0-alpha.15
 

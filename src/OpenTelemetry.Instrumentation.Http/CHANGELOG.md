@@ -2,8 +2,21 @@
 
 ## Unreleased
 
-* Updated OpenTelemetry core component version(s) to `1.19.1`.
-  ([#5329](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5329))
+* Updated OpenTelemetry core component version(s) to `1.20.1`.
+  ([#5651](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5651))
+
+## 1.20.0
+
+Released 2026-Oct-15
+
+* Fixed an issue where the `HttpClient` instrumentation injected context on
+  .NET 8.0+ for a suppressed request that no listener sampled. The
+  `SuppressDownstreamInstrumentation` options of the gRPC client and WCF
+  instrumentations benefit from this fix.
+  ([#5509](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5509))
+
+* Updated OpenTelemetry core component version(s) to `1.20.0`.
+  ([#5541](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5541))
 
 ## 1.19.0
 

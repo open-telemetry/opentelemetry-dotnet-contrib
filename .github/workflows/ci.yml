@@ -72,7 +72,7 @@ jobs:
           instrumentation-entityframeworkcore: ['*/OpenTelemetry.Instrumentation.EntityFrameworkCore*/**', '*/OpenTelemetry.Instrumentation.SqlClient/**', '!**/*.md']
           instrumentation-eventcounters: ['*/OpenTelemetry.Instrumentation.EventCounters*/**', 'examples/event-counters/**', '!**/*.md']
           instrumentation-grpccore: ['*/OpenTelemetry.Instrumentation.GrpcCore*/**', '!**/*.md']
-          instrumentation-grpcnetclient: ['*/OpenTelemetry.Instrumentation.GrpcNetClient*/**', '!**/*.md']
+          instrumentation-grpcnetclient: ['*/OpenTelemetry.Instrumentation.GrpcNetClient*/**', '*/OpenTelemetry.Instrumentation.Http/**', '!**/*.md']
           instrumentation-hangfire: ['*/OpenTelemetry.Instrumentation.Hangfire*/**', '!**/*.md']
           instrumentation-http: ['*/OpenTelemetry.Instrumentation.Http*/**', '!**/*.md']
           instrumentation-kusto: ['*/OpenTelemetry.Instrumentation.Kusto*/**', '!**/*.md']

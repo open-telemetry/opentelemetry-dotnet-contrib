@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+* Updated OpenTelemetry core component version(s) to `1.20.1`.
+  ([#5651](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5651))
+
+## 1.20.0-beta.1
+
+Released 2026-Oct-15
+
 * Fixed the Azure VM resource detector's two second timeout not applying to
   reading the body of the response from the Azure Instance Metadata Service.
   ([#5453](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5453))
@@ -11,6 +18,9 @@
   failure no longer prevents providers built later from detecting the Azure VM
   resource attributes.
   ([#5453](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5453))
+
+* Updated OpenTelemetry core component version(s) to `1.20.0`.
+  ([#5541](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5541))
 
 ## 1.19.1-beta.2
 

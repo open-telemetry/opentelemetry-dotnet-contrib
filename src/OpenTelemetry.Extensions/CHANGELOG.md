@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+* Updated OpenTelemetry core component version(s) to `1.20.1`.
+  ([#5651](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5651))
+
+## 1.20.0-beta.1
+
+Released 2026-Oct-15
+
 * `AutoFlushActivityProcessor` now logs a warning when
   `TracerProvider.ForceFlush` does not complete within
   its configured timeout.
@@ -20,6 +27,9 @@
   [tracing API](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.60.0/specification/trace/api.md#tracestate)
   specification defines, and preserving the valid members it did not generate.
   ([#5115](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5115))
+
+* Updated OpenTelemetry core component version(s) to `1.20.0`.
+  ([#5541](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5541))
 
 ## 1.19.1-beta.1
 

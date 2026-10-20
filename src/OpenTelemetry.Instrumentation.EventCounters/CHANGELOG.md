@@ -2,11 +2,26 @@
 
 ## Unreleased
 
-* Updated OpenTelemetry core component version(s) to `1.19.1`.
-  ([#5329](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5329))
+* Updated OpenTelemetry core component version(s) to `1.20.1`.
+  ([#5651](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5651))
+
+## 1.20.0-alpha.2
+
+Released 2026-Oct-16
+
+* Fixed a deadlock when an `EventSource` is created on another thread while
+  the meter provider is being built or disposed.
+  ([#5639](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5639))
+
+## 1.20.0-alpha.1
+
+Released 2026-Oct-15
 
 * Added dependency injection support for EventCounters instrumentation.
   ([#5475](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5475))
+
+* Updated OpenTelemetry core component version(s) to `1.20.0`.
+  ([#5541](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5541))
 
 ## 1.19.0-alpha.1
 

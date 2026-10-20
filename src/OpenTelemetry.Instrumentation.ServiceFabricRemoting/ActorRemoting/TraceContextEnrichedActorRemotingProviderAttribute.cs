@@ -22,10 +22,11 @@ namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting;
 /// </summary>
 /// <remarks>
 /// This type is not sealed so that applications can derive from it to register custom exception convertors by
-/// overriding <see cref="GetServiceExceptionConvertors"/> and <see cref="GetClientExceptionConvertors"/>.
+/// overriding <see cref="GetServiceExceptionConvertors"/> and <see cref="GetClientExceptionConvertors"/>, and to
+/// customize the transport settings by overriding <see cref="ConfigureListenerSettings"/> and <see cref="ConfigureClientSettings"/>.
 /// </remarks>
 [AttributeUsage(AttributeTargets.Assembly)]
-[SuppressMessage("Performance", "CA1813:Avoid unsealed attributes", Justification = "The attribute is designed to be derived from, so that applications can register custom exception convertors.")]
+[SuppressMessage("Performance", "CA1813:Avoid unsealed attributes", Justification = "The attribute is designed to be derived from, so that applications can register custom exception convertors and customize the transport settings.")]
 public class TraceContextEnrichedActorRemotingProviderAttribute : FabricTransportActorRemotingProviderAttribute
 {
     private const string DefaultV2listenerName = "V2Listener";
@@ -45,6 +46,10 @@ public class TraceContextEnrichedActorRemotingProviderAttribute : FabricTranspor
     /// </summary>
     public int RemotingExceptionDepth { get; set; }
 
+    internal static Func<FabricTransportRemotingSettings?> RemotingSettingsLoader { get; set; } = LoadRemotingSettings;
+
+    internal static Func<string, FabricTransportRemotingListenerSettings?> ListenerSettingsLoader { get; set; } = LoadListenerSettings;
+
     /// <summary>
     ///     Creates a service remoting listener for remoting the actor interfaces.
     /// </summary>.
@@ -59,7 +64,7 @@ public class TraceContextEnrichedActorRemotingProviderAttribute : FabricTranspor
             {
                 var actorServiceRemotingDispatcher = new ActorServiceRemotingDispatcher(actorService, serviceRemotingRequestMessageBodyFactory: null);
                 var dispatcherAdapter = new ServiceRemotingMessageDispatcherAdapter(actorServiceRemotingDispatcher);
-                var listenerSettings = this.InitializeListenerSettings(actorService);
+                var listenerSettings = this.GetListenerSettings(actorService.ActorTypeInformation.ImplementationType);
 
                 return new FabricTransportActorServiceRemotingListener(
                     actorService,
@@ -81,11 +86,7 @@ public class TraceContextEnrichedActorRemotingProviderAttribute : FabricTranspor
     /// <returns> An <see cref="IServiceRemotingClientFactory"/>.</returns>
     public override IServiceRemotingClientFactory CreateServiceRemotingClientFactory(IServiceRemotingCallbackMessageHandler? callbackMessageHandler)
     {
-        var settings = new FabricTransportRemotingSettings();
-        settings.MaxMessageSize = this.GetAndValidateMaxMessageSize(settings.MaxMessageSize);
-        settings.OperationTimeout = this.GetAndValidateOperationTimeout(settings.OperationTimeout);
-        settings.KeepAliveTimeout = this.GetAndValidateKeepAliveTimeout(settings.KeepAliveTimeout);
-        settings.ConnectTimeout = this.GetConnectTimeout(settings.ConnectTimeout);
+        var settings = this.GetRemotingSettings();
 
         var fabricTransportActorRemotingClientFactory = new FabricTransportActorRemotingClientFactory(
             settings,
@@ -97,6 +98,69 @@ public class TraceContextEnrichedActorRemotingProviderAttribute : FabricTranspor
             exceptionConvertors: this.GetClientExceptionConvertors());
 
         return new TraceContextEnrichedServiceRemotingClientFactoryAdapter(fabricTransportActorRemotingClientFactory);
+    }
+
+    internal FabricTransportRemotingListenerSettings GetListenerSettings(Type actorImplementationType)
+    {
+        // Mirror Service Fabric's own FabricTransportActorRemotingProviderAttribute: use the actor-specific section if it
+        // exists, then the shared TransportSettings section, and only then the defaults, so that the transport security
+        // credentials configured for the application are never silently dropped.
+        var sectionName = ActorNameFormat.GetFabricServiceTransportSettingsSectionName(actorImplementationType);
+
+        var settings =
+            ListenerSettingsLoader(sectionName) ??
+            ListenerSettingsLoader(ServiceFabricRemotingUtils.DefaultTransportSettingsSectionName) ??
+            new FabricTransportRemotingListenerSettings();
+
+        settings.MaxMessageSize = this.GetAndValidateMaxMessageSize(settings.MaxMessageSize);
+        settings.OperationTimeout = this.GetAndValidateOperationTimeout(settings.OperationTimeout);
+        settings.KeepAliveTimeout = this.GetAndValidateKeepAliveTimeout(settings.KeepAliveTimeout);
+        settings.RemotingExceptionDepth = this.GetRemotingExceptionDepth(settings.RemotingExceptionDepth);
+
+        this.ConfigureListenerSettings(settings);
+
+        return settings;
+    }
+
+    internal FabricTransportRemotingSettings GetRemotingSettings()
+    {
+        // Like Service Fabric's own provider, the client uses the shared TransportSettings section when it exists.
+        var settings = RemotingSettingsLoader() ?? new FabricTransportRemotingSettings();
+
+        settings.MaxMessageSize = this.GetAndValidateMaxMessageSize(settings.MaxMessageSize);
+        settings.OperationTimeout = this.GetAndValidateOperationTimeout(settings.OperationTimeout);
+        settings.KeepAliveTimeout = this.GetAndValidateKeepAliveTimeout(settings.KeepAliveTimeout);
+        settings.ConnectTimeout = this.GetConnectTimeout(settings.ConnectTimeout);
+
+        this.ConfigureClientSettings(settings);
+
+        return settings;
+    }
+
+    /// <summary>
+    /// Configures the settings of the actor remoting listener. Override this method to change settings that are not
+    /// exposed by the attribute, such as <see cref="FabricTransportRemotingListenerSettings.ExceptionSerializationTechnique"/>.
+    /// </summary>
+    /// <remarks>
+    /// This method is called after the settings have been loaded from the actor-specific or <c>TransportSettings</c>
+    /// configuration section and the values set on the attribute have been applied, so any value set here takes precedence.
+    /// </remarks>
+    /// <param name="settings">The settings that will be used to create the listener.</param>
+    protected virtual void ConfigureListenerSettings(FabricTransportRemotingListenerSettings settings)
+    {
+    }
+
+    /// <summary>
+    /// Configures the settings of the actor remoting client factory. Override this method to change settings that are
+    /// not exposed by the attribute, such as <see cref="FabricTransportRemotingSettings.ExceptionDeserializationTechnique"/>.
+    /// </summary>
+    /// <remarks>
+    /// This method is called after the settings have been loaded from the <c>TransportSettings</c> configuration section
+    /// and the values set on the attribute have been applied, so any value set here takes precedence.
+    /// </remarks>
+    /// <param name="settings">The settings that will be used to create the client factory.</param>
+    protected virtual void ConfigureClientSettings(FabricTransportRemotingSettings settings)
+    {
     }
 
     /// <summary>
@@ -119,30 +183,17 @@ public class TraceContextEnrichedActorRemotingProviderAttribute : FabricTranspor
     /// <returns>The exception convertors to register with the client factory, or <see langword="null"/> to register none.</returns>
     protected virtual IEnumerable<ClientExceptionConvertor>? GetClientExceptionConvertors() => null;
 
-    private static FabricTransportRemotingListenerSettings GetActorListenerSettings(ActorService actorService)
-    {
-        var sectionName = ActorNameFormat.GetFabricServiceTransportSettingsSectionName(actorService.ActorTypeInformation.ImplementationType);
+    private static FabricTransportRemotingSettings? LoadRemotingSettings() =>
+        ServiceFabricRemotingUtils.TryLoadTransportSettings(() =>
+            FabricTransportRemotingSettings.TryLoadFrom(ServiceFabricRemotingUtils.DefaultTransportSettingsSectionName, out var settings, filepath: null, configPackageName: null)
+                ? settings
+                : null);
 
-        var succeeded = FabricTransportRemotingListenerSettings.TryLoadFrom(sectionName, out var listenerSettings);
-        if (!succeeded)
-        {
-            listenerSettings = new FabricTransportRemotingListenerSettings();
-        }
-
-        return listenerSettings;
-    }
-
-    private FabricTransportRemotingListenerSettings InitializeListenerSettings(ActorService actorService)
-    {
-        var listenerSettings = GetActorListenerSettings(actorService);
-
-        listenerSettings.MaxMessageSize = this.GetAndValidateMaxMessageSize(listenerSettings.MaxMessageSize);
-        listenerSettings.OperationTimeout = this.GetAndValidateOperationTimeout(listenerSettings.OperationTimeout);
-        listenerSettings.KeepAliveTimeout = this.GetAndValidateKeepAliveTimeout(listenerSettings.KeepAliveTimeout);
-        listenerSettings.RemotingExceptionDepth = this.GetRemotingExceptionDepth(listenerSettings.RemotingExceptionDepth);
-
-        return listenerSettings;
-    }
+    private static FabricTransportRemotingListenerSettings? LoadListenerSettings(string sectionName) =>
+        ServiceFabricRemotingUtils.TryLoadTransportSettings(() =>
+            FabricTransportRemotingListenerSettings.TryLoadFrom(sectionName, out var settings, configPackageName: null)
+                ? settings
+                : null);
 
     private long GetAndValidateMaxMessageSize(long maxMessageSizeDefault)
         => (this.MaxMessageSize > 0) ? this.MaxMessageSize : maxMessageSizeDefault;

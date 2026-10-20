@@ -6,7 +6,6 @@ using System.Diagnostics;
 using Microsoft.Data.SqlClient;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using MySqlConnector;
 using Npgsql;
 using OpenTelemetry.Instrumentation.SqlClient.Tests;
 using OpenTelemetry.Tests;
@@ -16,30 +15,25 @@ namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests;
 
 [Trait("CategoryName", "SqlIntegrationTests")]
 public sealed class EntityFrameworkIntegrationTests :
-    IClassFixture<MySqlIntegrationTestsFixture>,
     IClassFixture<PostgresIntegrationTestsFixture>,
     IClassFixture<SqlClientIntegrationTestsFixture>
 {
-    private const string MySqlProvider = "Pomelo.EntityFrameworkCore.MySql";
     private const string PostgresProvider = "Npgsql.EntityFrameworkCore.PostgreSQL";
     private const string SqliteProvider = "Microsoft.EntityFrameworkCore.Sqlite";
     private const string SqlServerProvider = "Microsoft.EntityFrameworkCore.SqlServer";
 
     private const string ActivitySourceName = "OpenTelemetry.Instrumentation.EntityFrameworkCore";
 
-    private readonly MySqlIntegrationTestsFixture mySqlFixture;
     private readonly PostgresIntegrationTestsFixture postgresFixture;
     private readonly SqlClientIntegrationTestsFixture sqlServerFixture;
 
     private readonly ITestOutputHelper outputHelper;
 
     public EntityFrameworkIntegrationTests(
-        MySqlIntegrationTestsFixture mySqlFixture,
         PostgresIntegrationTestsFixture postgresFixture,
         SqlClientIntegrationTestsFixture fixture,
         ITestOutputHelper outputHelper)
     {
-        this.mySqlFixture = mySqlFixture;
         this.postgresFixture = postgresFixture;
         this.sqlServerFixture = fixture;
         this.outputHelper = outputHelper;
@@ -49,8 +43,6 @@ public sealed class EntityFrameworkIntegrationTests :
     {
         (string, Type, bool, string, string)[] providers =
         [
-            (MySqlProvider, typeof(MySqlCommand), false, "mysql", "test"),
-            (MySqlProvider, typeof(MySqlCommand), true, "mysql", "test"),
             (PostgresProvider, typeof(NpgsqlCommand), false, "postgresql", "postgres"),
             (PostgresProvider, typeof(NpgsqlCommand), true, "postgresql", "postgres"),
             (SqliteProvider, typeof(SqliteCommand), false, "sqlite", "main"),
@@ -82,7 +74,6 @@ public sealed class EntityFrameworkIntegrationTests :
     {
         (string, Type, string, string)[] providers =
         [
-            (MySqlProvider, typeof(MySqlCommand), "mysql", "test"),
             (PostgresProvider, typeof(NpgsqlCommand), "postgresql", "postgres"),
             (SqliteProvider, typeof(SqliteCommand), "sqlite", "main"),
             (SqlServerProvider, typeof(SqlCommand), "mssql", "master"),
@@ -107,7 +98,6 @@ public sealed class EntityFrameworkIntegrationTests :
     {
         string[] providers =
         [
-            MySqlProvider,
             PostgresProvider,
             SqliteProvider,
             SqlServerProvider,
@@ -512,11 +502,6 @@ public sealed class EntityFrameworkIntegrationTests :
 
         switch (provider)
         {
-            case MySqlProvider:
-                var connectionString = this.mySqlFixture.TypedContainer.GetConnectionString();
-                builder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
-                break;
-
             case PostgresProvider:
                 builder.UseNpgsql(this.postgresFixture.TypedContainer.GetConnectionString());
                 break;

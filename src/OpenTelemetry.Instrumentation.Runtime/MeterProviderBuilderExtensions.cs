@@ -12,7 +12,9 @@ namespace OpenTelemetry.Metrics;
 public static class MeterProviderBuilderExtensions
 {
     private const string DotNetRuntimeMeterName = "System.Runtime";
+#if !NET9_0_OR_GREATER
     private static readonly bool Net9OrGreater = Environment.Version.Major >= 9;
+#endif
 
     /// <summary>
     /// Enables runtime instrumentation.
@@ -20,8 +22,22 @@ public static class MeterProviderBuilderExtensions
     /// <param name="builder"><see cref="MeterProviderBuilder"/> being configured.</param>
     /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
     public static MeterProviderBuilder AddRuntimeInstrumentation(
-        this MeterProviderBuilder builder) =>
-        AddRuntimeInstrumentation(builder, configure: null);
+        this MeterProviderBuilder builder)
+    {
+        Guard.ThrowIfNull(builder);
+
+#if NET9_0_OR_GREATER
+        return builder.AddMeter(DotNetRuntimeMeterName);
+#else
+        if (Net9OrGreater)
+        {
+            return builder.AddMeter(DotNetRuntimeMeterName);
+        }
+
+        builder.AddMeter(RuntimeMetrics.MeterInstance.Name);
+        return builder.AddInstrumentation(static () => new RuntimeMetrics());
+#endif
+    }
 
     /// <summary>
     /// Enables runtime instrumentation.
@@ -29,21 +45,9 @@ public static class MeterProviderBuilderExtensions
     /// <param name="builder"><see cref="MeterProviderBuilder"/> being configured.</param>
     /// <param name="configure">Runtime metrics options.</param>
     /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
+    [Obsolete("Runtime instrumentation does not support configuration. Use AddRuntimeInstrumentation() instead. Configure call is skipped.")]
     public static MeterProviderBuilder AddRuntimeInstrumentation(
         this MeterProviderBuilder builder,
-        Action<RuntimeInstrumentationOptions>? configure)
-    {
-        Guard.ThrowIfNull(builder);
-
-        if (Net9OrGreater)
-        {
-            return builder.AddMeter(DotNetRuntimeMeterName);
-        }
-
-        var options = new RuntimeInstrumentationOptions();
-        configure?.Invoke(options);
-
-        builder.AddMeter(RuntimeMetrics.MeterInstance.Name);
-        return builder.AddInstrumentation(() => new RuntimeMetrics(options));
-    }
+        Action<RuntimeInstrumentationOptions>? configure) =>
+        builder.AddRuntimeInstrumentation();
 }

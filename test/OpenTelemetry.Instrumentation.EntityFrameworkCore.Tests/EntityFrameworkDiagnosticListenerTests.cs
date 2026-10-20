@@ -268,7 +268,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     [MemberData(nameof(DbSystemTestCases))]
     public void ShouldReturnCorrectAttributeValuesProviderOrCommandName(string name, string expectedDbSystem, string expectedDbSystemName)
     {
-        (var actualDbSystem, var actualDbSystemName) = EntityFrameworkDiagnosticListener.GetDbSystemNames(name);
+        (var actualDbSystem, var actualDbSystemName) = EntityFrameworkProviderInfo.GetDbSystemNames(name);
 
         Assert.Equal(expectedDbSystem, actualDbSystem);
         Assert.Equal(expectedDbSystemName, actualDbSystemName);
@@ -278,7 +278,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     [MemberData(nameof(IsSqlLikeProviderTestCases))]
     public void ShouldReturnCorrectValueForSqlLikeProviderOrCommandName(string name, bool expected)
     {
-        var actual = EntityFrameworkDiagnosticListener.IsSqlLikeProvider(name);
+        var actual = EntityFrameworkProviderInfo.IsSqlLikeProvider(name);
 
         Assert.Equal(expected, actual);
     }
@@ -287,7 +287,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     [MemberData(nameof(IsBackslashEscapeProviderTestCases))]
     public void ShouldReturnCorrectValueForBackslashEscapeProviderOrCommandName(string name, bool expected)
     {
-        var actual = EntityFrameworkDiagnosticListener.IsBackslashEscapeProvider(name);
+        var actual = EntityFrameworkProviderInfo.IsBackslashEscapeProvider(name);
 
         Assert.Equal(expected, actual);
     }

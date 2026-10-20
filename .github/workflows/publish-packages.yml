@@ -118,7 +118,7 @@ jobs:
         run: dotnet build ${env:PROJECT_PATH} --configuration Release --no-restore -p:"BuildNumber=${env:GITHUB_RUN_NUMBER}"
 
       - name: dotnet test ${{ steps.resolve-project.outputs.title }}
-        run: dotnet build ${env:PROJECT_PATH} -t:Test -p:Configuration=Release
+        run: dotnet build ${env:PROJECT_PATH} -t:Test -p:Configuration=Release --no-restore -p:NoBuild=true
         shell: pwsh
 
       - name: Install Cosign
@@ -193,7 +193,7 @@ jobs:
 
       - name: Publish Artifacts
         id: upload-artifacts
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ github.ref_name }}-packages
           path: ./artifacts/package/release
@@ -229,7 +229,7 @@ jobs:
           dotnet tool install --global Meziantou.Framework.NuGetPackageValidation.Tool --version ${env:MEZIANTOU_VALIDATE_NUGET_PACKAGE_VERSION} --allow-roll-forward
 
       - name: Download Artifacts
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           artifact-ids: ${{ needs.build-pack.outputs.artifact-id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -337,7 +337,7 @@ jobs:
           dotnet-version: ${{ needs.build-pack.outputs.dotnet-sdk-version }}
 
       - name: Download Artifacts
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           artifact-ids: ${{ needs.build-pack.outputs.artifact-id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -386,7 +386,7 @@ jobs:
           dotnet-version: ${{ needs.build-pack.outputs.dotnet-sdk-version }}
 
       - name: Download Artifacts
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           artifact-ids: ${{ needs.build-pack.outputs.artifact-id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -457,7 +457,7 @@ jobs:
           token: ${{ steps.otelbot-token.outputs.token }}
 
       - name: Download Artifacts
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           artifact-ids: ${{ needs.build-pack.outputs.artifact-id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -521,7 +521,7 @@ jobs:
 
       - name: Download NuGet packages
         id: download-packages
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           artifact-ids: ${{ needs.build-pack.outputs.artifact-id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}

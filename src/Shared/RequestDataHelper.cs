@@ -12,6 +12,11 @@ namespace OpenTelemetry.Internal;
 
 internal sealed class RequestDataHelper
 {
+#if NET
+    // The maximum number of display names to cache for each HTTP method. Beyond this, display names are created without being cached.
+    internal const int MaxCachedDisplayNames = 1000;
+#endif
+
     private const string KnownHttpMethodsEnvironmentVariable = "OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS";
 
     // The value "_OTHER" is used for non-standard HTTP methods.
@@ -86,6 +91,11 @@ internal sealed class RequestDataHelper
     /// framework values must not do so.
     /// </remarks>
     public bool HasCustomKnownMethods { get; }
+
+#if NET
+    internal int CachedDisplayNameCount
+        => this.knownHttpMethods.Values.Sum(static m => m.CachedDisplayNameCount) + this.otherHttpMethod.CachedDisplayNameCount;
+#endif
 
     public void SetHttpMethodTag(Activity activity, string originalHttpMethod)
     {
@@ -189,10 +199,12 @@ internal sealed class RequestDataHelper
     private sealed class KnownHttpMethod
     {
         // Caches the display name for each route requested with this (normalized) HTTP method.
-        // The number of entries is bounded by the number of routes in the app. The cache is
-        // keyed by the route alone and created on first use, as many instances (e.g. those used
-        // for HTTP clients, which have no routes) are never used with a route.
+        // The number of entries should be bounded by the number of routes in the app, but the size
+        // of the cache is also limited (per HTTP method) in case a caller supplies a route derived
+        // from the request. The cache is keyed by the route alone and created on first use, as many
+        // instances (e.g. those used for HTTP clients, which have no routes) are never used with a route.
         private ConcurrentDictionary<string, string>? routeDisplayNames;
+        private int routeDisplayNamesCount;
 
         public KnownHttpMethod(string name)
         {
@@ -210,10 +222,32 @@ internal sealed class RequestDataHelper
         /// </summary>
         public string DisplayName { get; }
 
+        public int CachedDisplayNameCount => this.routeDisplayNames?.Count ?? 0;
+
         public string GetDisplayName(string httpRoute)
         {
             var cache = this.routeDisplayNames ?? LazyInitializer.EnsureInitialized(ref this.routeDisplayNames, static () => new());
-            return cache.GetOrAdd(httpRoute, static (route, prefix) => $"{prefix} {route}", this.DisplayName);
+
+            if (cache.TryGetValue(httpRoute, out var displayName))
+            {
+                return displayName;
+            }
+
+            displayName = $"{this.DisplayName} {httpRoute}";
+
+            // Track the count separately to avoid the cost of ConcurrentDictionary.Count. A slot is
+            // reserved before adding so that concurrent cache misses cannot exceed the limit, and the
+            // reservation is released if the cache is full or another thread added the same key first.
+            if (Volatile.Read(ref this.routeDisplayNamesCount) < MaxCachedDisplayNames)
+            {
+                if (Interlocked.Increment(ref this.routeDisplayNamesCount) > MaxCachedDisplayNames ||
+                    !cache.TryAdd(httpRoute, displayName))
+                {
+                    Interlocked.Decrement(ref this.routeDisplayNamesCount);
+                }
+            }
+
+            return displayName;
         }
     }
 #endif

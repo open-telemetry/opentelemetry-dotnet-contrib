@@ -3,6 +3,9 @@
   <PropertyGroup>
     <RepoRoot Condition="'$(RepoRoot)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..'))</RepoRoot>
     <TestResultsDirectory Condition="'$(TestResultsDirectory)' == ''">$(RepoRoot)\TestResults</TestResultsDirectory>
+    <_TestDiagnosticsDirectory>$([System.IO.Path]::Combine('$(TestResultsDirectory)', 'diag'))</_TestDiagnosticsDirectory>
+    <_DotNetHostPath Condition="'$(DOTNET_HOST_PATH)' != ''">$(DOTNET_HOST_PATH)</_DotNetHostPath>
+    <_DotNetHostPath Condition="'$(_DotNetHostPath)' == ''">dotnet</_DotNetHostPath>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TestFilter)' != ''">
@@ -38,14 +41,31 @@
               Condition="'$(TargetFramework)' != '' AND '@(_SkippedTestProjects)' != ''" />
 
     <!--
-      %(_SupportedTestProjects.Filename) below triggers MSBuild task
-      batching - one MSBuild task invocation per project - so each test project
-      in a multi-test-project component gets its own report/coverage filename,
-      rather than trying to write to the same one file.
+      Note: Set NoBuild=true to run the tests against the existing build output
+      (the equivalent of the no-build option of dotnet test). The publish
+      workflow relies on this so that the assemblies which are tested, signed
+      and packed are the ones compiled with $(BuildNumber), rather than being
+      rebuilt without it.
     -->
     <MSBuild Projects="@(_SupportedTestProjects)"
-      Targets="Build;InvokeTestingPlatform"
-      Properties="TestingPlatformCommandLineArguments=%22--results-directory:$(TestResultsDirectory)%22 --diagnostic %22--diagnostic-output-directory:$(TestResultsDirectory)\diag%22 --report-github --report-github-summary-include-passed false --report-xunit-junit --report-xunit-junit-filename %22junit-%(_SupportedTestProjects.Filename).xml%22 --coverage --coverage-output-format cobertura --coverage-output %22Cobertura-%(_SupportedTestProjects.Filename).xml%22 $(_TestFilterArgument)"
+      Targets="Build"
+      ContinueOnError="ErrorAndStop"
+      Condition="'$(TargetFramework)' != '' AND '@(_SupportedTestProjects)' != '' AND '$(NoBuild)' != 'true'" />
+
+    <!--
+      Tests are run with `dotnet test` (the Microsoft.Testing.Platform runner
+      configured in global.json) rather than the InvokeTestingPlatform MSBuild
+      target. Driving the tests through MSBuild is not the supported way to run
+      Microsoft.Testing.Platform tests with the .NET 10 SDK, and it fails with
+      Microsoft.Testing.Platform.MSBuild 2.5.1 whenever an out-of-process
+      extension such as code coverage is enabled.
+
+      %(_SupportedTestProjects.Identity) below triggers MSBuild task batching -
+      one invocation per project - so each test project in a
+      multi-test-project component gets its own report/coverage filename,
+      rather than trying to write to the same one file.
+    -->
+    <Exec Command="&quot;$(_DotNetHostPath)&quot; test --project &quot;%(_SupportedTestProjects.Identity)&quot; --framework $(TargetFramework) --configuration $(Configuration) --no-build --results-directory &quot;$(TestResultsDirectory)&quot; --diagnostic --diagnostic-output-directory &quot;$(_TestDiagnosticsDirectory)&quot; --report-github --report-github-summary-include-passed false --report-xunit-junit --report-xunit-junit-filename &quot;junit-%(_SupportedTestProjects.Filename).xml&quot; --coverage --coverage-output-format cobertura --coverage-output &quot;Cobertura-%(_SupportedTestProjects.Filename).xml&quot; $(_TestFilterArgument)"
       ContinueOnError="ErrorAndStop"
       Condition="'$(TargetFramework)' != '' AND '@(_SupportedTestProjects)' != ''" />
   </Target>

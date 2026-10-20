@@ -11,6 +11,10 @@ namespace OpenTelemetry.Sampler.AWS;
 
 internal class AWSXRaySamplerClient : IDisposable
 {
+    private const int MaxResponseSizeInBytes = 1024 * 1024;
+
+    private static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(10);
+
     private readonly string getSamplingRulesEndpoint;
     private readonly string getSamplingTargetsEndpoint;
 
@@ -21,7 +25,11 @@ internal class AWSXRaySamplerClient : IDisposable
     {
         this.getSamplingRulesEndpoint = host + "/GetSamplingRules";
         this.getSamplingTargetsEndpoint = host + "/SamplingTargets";
-        this.httpClient = new HttpClient();
+        this.httpClient = new HttpClient
+        {
+            MaxResponseContentBufferSize = MaxResponseSizeInBytes,
+            Timeout = RequestTimeout,
+        };
     }
 
     public async Task<List<SamplingRule>?> GetSamplingRules(CancellationToken cancellationToken = default)
@@ -53,7 +61,7 @@ internal class AWSXRaySamplerClient : IDisposable
                 {
                     foreach (var samplingRuleRecord in getSamplingRulesResponse.SamplingRuleRecords)
                     {
-                        if (samplingRuleRecord.SamplingRule is not null)
+                        if (samplingRuleRecord?.SamplingRule is not null)
                         {
                             samplingRules.Add(samplingRuleRecord.SamplingRule);
                         }
@@ -140,16 +148,9 @@ internal class AWSXRaySamplerClient : IDisposable
 
     private async Task<string> DoRequestAsync(string endpoint, HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        // 1 MB is well above any legitimate X-Ray sampling rules/targets
-        // response while still protecting against unbounded reads.
-        const int MaxResponseSizeInBytes = 1024 * 1024;
-
         try
         {
-            // Use ResponseHeadersRead so the response body is streamed rather
-            // than buffered entirely in memory. The body is then read with
-            // HttpClientHelpers, which enforces the response size cap.
-            using var response = await this.httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+            using var response = await this.httpClient.SendAsync(request, HttpCompletionOption.ResponseContentRead, cancellationToken).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode)
             {
                 AWSSamplerEventSource.Log.FailedToGetSuccessResponse(endpoint, response.StatusCode.ToString());

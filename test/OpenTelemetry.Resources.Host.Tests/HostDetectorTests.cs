@@ -153,7 +153,6 @@ public class HostDetectorTests
         var expectedArch = RuntimeInformation.ProcessArchitecture switch
         {
             Architecture.Arm => "arm32",
-#if NET
             Architecture.Armv6 => "arm32",
             Architecture.LoongArch64 => null,
 #if NET10_0_OR_GREATER
@@ -161,7 +160,6 @@ public class HostDetectorTests
 #endif
             Architecture.Ppc64le => "ppc64",
             Architecture.Wasm => null,
-#endif
             Architecture.X64 => "amd64",
 #pragma warning disable CA1308 // Normalize strings to uppercase
             _ => RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant(),

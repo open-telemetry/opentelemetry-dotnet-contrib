@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if !NET9_0_OR_GREATER
+
 using System.Diagnostics.Metrics;
 using System.Runtime.ExceptionServices;
 #if NET
@@ -36,13 +38,10 @@ internal sealed class RuntimeMetrics : IDisposable
 
     private bool disposed;
 
-#pragma warning disable SA1313
     /// <summary>
     /// Initializes a new instance of the <see cref="RuntimeMetrics"/> class.
     /// </summary>
-    /// <param name="_1">The options to define the metrics.</param>
-    public RuntimeMetrics(RuntimeInstrumentationOptions _1)
-#pragma warning restore SA1313
+    public RuntimeMetrics()
     {
         lock (ExceptionSubscriptionSync)
         {
@@ -249,3 +248,5 @@ internal sealed class RuntimeMetrics : IDisposable
         return meter;
     }
 }
+
+#endif
