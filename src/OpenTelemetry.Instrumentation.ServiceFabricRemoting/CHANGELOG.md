@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.20.0-beta.3
+
+Released 2026-Oct-20
+
 * Added the `ConfigureListenerSettings` and `ConfigureClientSettings` virtual
   methods to `TraceContextEnrichedServiceRemotingProviderAttribute` and
   `TraceContextEnrichedActorRemotingProviderAttribute`, so that derived attributes
