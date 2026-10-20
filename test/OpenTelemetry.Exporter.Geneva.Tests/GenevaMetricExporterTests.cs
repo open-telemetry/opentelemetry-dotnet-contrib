@@ -1112,9 +1112,9 @@ public class GenevaMetricExporterTests
         }
         else if (metricType is MetricType.DoubleSum or MetricType.DoubleGauge)
         {
-            var metricDataValue = metricType == MetricType.DoubleSum ?
-                metricPoint.GetSumDouble() :
-                metricPoint.GetGaugeLastValueDouble();
+            var metricDataValue = metricType == MetricType.DoubleSum
+                ? metricPoint.GetSumDouble()
+                : metricPoint.GetGaugeLastValueDouble();
             var metricData = new MetricData { DoubleValue = metricDataValue };
             var bodyLength = exporter.SerializeMetricWithTLV(
                 MetricEventType.DoubleMetric,
@@ -1141,9 +1141,9 @@ public class GenevaMetricExporterTests
         }
         else if (metricType is MetricType.LongSumNonMonotonic or MetricType.DoubleSumNonMonotonic)
         {
-            var metricDataValue = metricType == MetricType.LongSumNonMonotonic ?
-                Convert.ToDouble(metricPoint.GetSumLong()) :
-                Convert.ToDouble(metricPoint.GetSumDouble());
+            var metricDataValue = metricType == MetricType.LongSumNonMonotonic
+                ? Convert.ToDouble(metricPoint.GetSumLong())
+                : Convert.ToDouble(metricPoint.GetSumDouble());
             var metricData = new MetricData { DoubleValue = metricDataValue };
             var bodyLength = exporter.SerializeMetricWithTLV(
                 MetricEventType.DoubleMetric,
@@ -1435,9 +1435,9 @@ public class GenevaMetricExporterTests
         }
         else if (metricType is MetricType.DoubleSum or MetricType.DoubleGauge)
         {
-            var metricDataValue = metricType == MetricType.DoubleSum ?
-                metricPoint.GetSumDouble() :
-                metricPoint.GetGaugeLastValueDouble();
+            var metricDataValue = metricType == MetricType.DoubleSum
+                ? metricPoint.GetSumDouble()
+                : metricPoint.GetGaugeLastValueDouble();
             var metricData = new MetricData { DoubleValue = metricDataValue };
             _ = exporter.SerializeMetricWithTLV(
                 MetricEventType.DoubleMetric,
@@ -1457,9 +1457,9 @@ public class GenevaMetricExporterTests
         }
         else if (metricType is MetricType.LongSumNonMonotonic or MetricType.DoubleSumNonMonotonic)
         {
-            var metricDataValue = metricType == MetricType.LongSumNonMonotonic ?
-                Convert.ToDouble(metricPoint.GetSumLong()) :
-                Convert.ToDouble(metricPoint.GetSumDouble());
+            var metricDataValue = metricType == MetricType.LongSumNonMonotonic
+                ? Convert.ToDouble(metricPoint.GetSumLong())
+                : Convert.ToDouble(metricPoint.GetSumDouble());
             var metricData = new MetricData { DoubleValue = metricDataValue };
             _ = exporter.SerializeMetricWithTLV(
                 MetricEventType.DoubleMetric,

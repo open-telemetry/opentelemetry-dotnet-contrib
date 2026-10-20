@@ -74,19 +74,21 @@ internal class AWSMessagingUtils
     }
 
     internal static PropagationContext ExtractParentContext(SNSEvent.SNSRecord? record)
-        => (record?.Sns?.MessageAttributes != null) ?
-            Propagators.DefaultTextMapPropagator.Extract(default, record.Sns.MessageAttributes, SnsMessageAttributeGetter) :
-            default;
+        => (record?.Sns?.MessageAttributes != null)
+            ? Propagators.DefaultTextMapPropagator.Extract(default, record.Sns.MessageAttributes, SnsMessageAttributeGetter)
+            : default;
 
     internal static PropagationContext ExtractParentContext(SNSEvent.SNSMessage? message)
-        => (message?.MessageAttributes != null) ?
-            Propagators.DefaultTextMapPropagator.Extract(default, message.MessageAttributes, SnsMessageAttributeGetter) :
-            default;
+        => (message?.MessageAttributes != null)
+            ? Propagators.DefaultTextMapPropagator.Extract(default, message.MessageAttributes, SnsMessageAttributeGetter)
+            : default;
 
     private static IEnumerable<string>? SqsMessageAttributeGetter(IDictionary<string, SQSEvent.MessageAttribute> attributes, string attributeName)
-        => !attributes.TryGetValue(attributeName, out var attribute) ? null :
-            attribute?.StringValue != null ? new[] { attribute.StringValue } :
-            attribute?.StringListValues;
+        => !attributes.TryGetValue(attributeName, out var attribute)
+            ? null
+            : attribute?.StringValue != null
+                ? new[] { attribute.StringValue }
+                : attribute?.StringListValues;
 
     private static IEnumerable<string>? SnsMessageAttributeGetter(IDictionary<string, SNSEvent.MessageAttribute> attributes, string attributeName)
         => !attributes.TryGetValue(attributeName, out var attribute)

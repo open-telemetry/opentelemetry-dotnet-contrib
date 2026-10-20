@@ -23,9 +23,9 @@ internal class AWSTracingPipelineCustomizer : IRuntimePipelineCustomizer
 
     string IRuntimePipelineCustomizer.UniqueName => UniqueName;
 
-    public void Customize(Type serviceClientType, RuntimePipeline pipeline)
+    public void Customize(Type type, RuntimePipeline pipeline)
     {
-        if (!typeof(AmazonServiceClient).IsAssignableFrom(serviceClientType))
+        if (!typeof(AmazonServiceClient).IsAssignableFrom(type))
         {
             return;
         }

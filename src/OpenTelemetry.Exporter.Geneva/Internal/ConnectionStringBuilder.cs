@@ -84,16 +84,16 @@ internal sealed class ConnectionStringBuilder
 
     public int PrivatePreviewLogMessagePackStringSizeLimit =>
         !this.parts.TryGetValue(nameof(this.PrivatePreviewLogMessagePackStringSizeLimit), out var value)
-        ? MessagePackSerializer.DEFAULT_STRING_SIZE_LIMIT_CHAR_COUNT
-        : !int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var sizeLimit)
-        ? throw new ArgumentException(
-            $"{nameof(this.PrivatePreviewLogMessagePackStringSizeLimit)} is malformed.",
-            nameof(this.PrivatePreviewLogMessagePackStringSizeLimit))
-        : sizeLimit is <= 0 or > MsgPackLogExporter.BUFFER_SIZE
-        ? throw new ArgumentOutOfRangeException(
-            nameof(this.PrivatePreviewLogMessagePackStringSizeLimit),
-            $"{nameof(this.PrivatePreviewLogMessagePackStringSizeLimit)} should be greater than zero and less than or equal to {MsgPackLogExporter.BUFFER_SIZE} characters.")
-        : sizeLimit;
+            ? MessagePackSerializer.DEFAULT_STRING_SIZE_LIMIT_CHAR_COUNT
+            : !int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var sizeLimit)
+                ? throw new ArgumentException(
+                    $"{nameof(this.PrivatePreviewLogMessagePackStringSizeLimit)} is malformed.",
+                    nameof(this.PrivatePreviewLogMessagePackStringSizeLimit))
+                : sizeLimit is <= 0 or > MsgPackLogExporter.BUFFER_SIZE
+                    ? throw new ArgumentOutOfRangeException(
+                        nameof(this.PrivatePreviewLogMessagePackStringSizeLimit),
+                        $"{nameof(this.PrivatePreviewLogMessagePackStringSizeLimit)} should be greater than zero and less than or equal to {MsgPackLogExporter.BUFFER_SIZE} characters.")
+                    : sizeLimit;
 
     public string Endpoint
     {

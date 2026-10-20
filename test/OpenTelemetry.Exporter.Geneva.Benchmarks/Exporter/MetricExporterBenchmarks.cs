@@ -96,7 +96,7 @@ public class MetricExporterBenchmarks
     private byte[]? buffer;
 
     private static readonly Random randomForHistogram = new(); // Use the same seed for all the benchmarks to have the same data exported
-    private static readonly string[] dimensionValues = ["DimVal1", "DimVal2", "DimVal3", "DimVal4", "DimVal5", "DimVal6", "DimVal7", "DimVal8", "DimVal9", "DimVal10"
+    private static readonly string[] dimensionValues = ["DimVal1", "DimVal2", "DimVal3", "DimVal4", "DimVal5", "DimVal6", "DimVal7", "DimVal8", "DimVal9", "DimVal10",
     ];
 
     [GlobalSetup]

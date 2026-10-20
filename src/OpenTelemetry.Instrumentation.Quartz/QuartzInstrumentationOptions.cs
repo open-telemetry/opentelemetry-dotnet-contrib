@@ -16,7 +16,7 @@ public class QuartzInstrumentationOptions
     private static readonly IEnumerable<string> DefaultTracedOperations =
     [
         OperationName.Job.Execute,
-        OperationName.Job.Veto
+        OperationName.Job.Veto,
     ];
 
     /// <summary>

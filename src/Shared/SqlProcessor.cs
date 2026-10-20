@@ -79,7 +79,7 @@ internal static class SqlProcessor
     // This is used when determining if the previous token is a keyword in order to identify the end of a comma separated FROM clause.
     // NOTE: These are ordered so that more likely keywords appear first to shorten the comparison loop.
     private static readonly string[] FromClauseReservedKeywords = [
-        "WHERE", "BY", "AS", "JOIN", "WITH", "CROSS", "HAVING", "WINDOW", "LIMIT", "OFFSET", "TABLESAMPLE", "PIVOT", "UNPIVOT"
+        "WHERE", "BY", "AS", "JOIN", "WITH", "CROSS", "HAVING", "WINDOW", "LIMIT", "OFFSET", "TABLESAMPLE", "PIVOT", "UNPIVOT",
     ];
 
     private static readonly int MaxFromClauseReservedKeywordLength = FromClauseReservedKeywords.Max(k => k.Length);
@@ -195,10 +195,10 @@ internal static class SqlProcessor
     /// <returns>The sanitized SQL and query summary.</returns>
     public static SqlStatementInfo GetSanitizedSql(string? sql, bool useBackslashEscapes = false) =>
         sql == null
-        ? default
-        : useBackslashEscapes
-        ? GetSanitizedSql(sql, BackslashEscapeCache, ref approxBackslashEscapeCacheCount, useBackslashEscapes: true)
-        : GetSanitizedSql(sql, Cache, ref approxCacheCount, useBackslashEscapes: false);
+            ? default
+            : useBackslashEscapes
+                ? GetSanitizedSql(sql, BackslashEscapeCache, ref approxBackslashEscapeCacheCount, useBackslashEscapes: true)
+                : GetSanitizedSql(sql, Cache, ref approxCacheCount, useBackslashEscapes: false);
 
     private static SqlStatementInfo GetSanitizedSql(
         string sql,

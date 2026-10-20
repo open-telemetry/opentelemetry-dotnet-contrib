@@ -21,7 +21,7 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
         this.options = options;
     }
 
-    public void OnPerforming(PerformingContext performingContext)
+    public void OnPerforming(PerformingContext filterContext)
     {
         // Short-circuit if nobody is listening
         if (!HangfireInstrumentation.ActivitySource.HasListeners())
@@ -29,9 +29,9 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
             return;
         }
 
-        performingContext.Items[HangfireInstrumentationConstants.PreviousBaggageKey] = Baggage.Current;
+        filterContext.Items[HangfireInstrumentationConstants.PreviousBaggageKey] = Baggage.Current;
 
-        var activityContextData = performingContext.GetJobParameter<Dictionary<string, string>>(HangfireInstrumentationConstants.ActivityContextKey);
+        var activityContextData = filterContext.GetJobParameter<Dictionary<string, string>>(HangfireInstrumentationConstants.ActivityContextKey);
         ActivityContext parentContext = default;
         Baggage.Current = default;
 
@@ -49,13 +49,13 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
         {
             var displayNameFunc = this.options.DisplayNameFunc ?? HangfireInstrumentation.DefaultDisplayNameFunc;
 
-            activity.DisplayName = displayNameFunc(performingContext.BackgroundJob);
+            activity.DisplayName = displayNameFunc(filterContext.BackgroundJob);
 
             if (activity.IsAllDataRequested)
             {
                 try
                 {
-                    if (this.options.Filter?.Invoke(performingContext.BackgroundJob) == false)
+                    if (this.options.Filter?.Invoke(filterContext.BackgroundJob) == false)
                     {
                         SuppressAndDisposeActivity(activity);
                         return;
@@ -67,26 +67,26 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
                     return;
                 }
 
-                activity.SetTag(HangfireInstrumentationConstants.JobIdTag, performingContext.BackgroundJob.Id);
-                activity.SetTag(HangfireInstrumentationConstants.JobCreatedAtTag, performingContext.BackgroundJob.CreatedAt.ToString("O"));
+                activity.SetTag(HangfireInstrumentationConstants.JobIdTag, filterContext.BackgroundJob.Id);
+                activity.SetTag(HangfireInstrumentationConstants.JobCreatedAtTag, filterContext.BackgroundJob.CreatedAt.ToString("O"));
             }
 
-            performingContext.Items.Add(HangfireInstrumentationConstants.ActivityKey, activity);
+            filterContext.Items.Add(HangfireInstrumentationConstants.ActivityKey, activity);
         }
     }
 
-    public void OnPerformed(PerformedContext performedContext)
+    public void OnPerformed(PerformedContext filterContext)
     {
-        var shouldRestoreBaggage = performedContext.Items.TryGetValue(HangfireInstrumentationConstants.PreviousBaggageKey, out var previousBaggage);
+        var shouldRestoreBaggage = filterContext.Items.TryGetValue(HangfireInstrumentationConstants.PreviousBaggageKey, out var previousBaggage);
 
         try
         {
-            if (performedContext.Items.TryGetValue(HangfireInstrumentationConstants.ActivityKey, out var value)
+            if (filterContext.Items.TryGetValue(HangfireInstrumentationConstants.ActivityKey, out var value)
                 && value is Activity activity)
             {
-                if (performedContext.Exception != null)
+                if (filterContext.Exception != null)
                 {
-                    this.SetStatusAndRecordException(activity, performedContext.Exception);
+                    this.SetStatusAndRecordException(activity, filterContext.Exception);
                 }
 
                 activity.Dispose();
@@ -101,7 +101,7 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
         }
     }
 
-    public void OnCreating(CreatingContext creatingContext)
+    public void OnCreating(CreatingContext filterContext)
     {
         // Short-circuit if nobody is listening
         if (!HangfireInstrumentation.ActivitySource.HasListeners())
@@ -117,7 +117,7 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
 
         var activityContextData = new Dictionary<string, string>();
         Propagators.DefaultTextMapPropagator.Inject(new PropagationContext(activity.Context, Baggage.Current), activityContextData, InjectActivityProperties);
-        creatingContext.SetJobParameter(HangfireInstrumentationConstants.ActivityContextKey, activityContextData);
+        filterContext.SetJobParameter(HangfireInstrumentationConstants.ActivityContextKey, activityContextData);
     }
 
     public void OnCreated(CreatedContext filterContext)

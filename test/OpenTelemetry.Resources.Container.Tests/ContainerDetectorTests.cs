@@ -57,7 +57,7 @@ public class ContainerDetectorTests
             name: "cgroupv2 with podman mountinfo",
             line: "1096 1088 0:104 /containers/overlay-containers/1a2de27e7157106568f7e081e42a8c14858c02bd9df30d6e352b298178b46809/userdata/hostname /etc/hostname rw,nosuid,nodev,relatime - tmpfs tmpfs rw,size=813800k,nr_inodes=203450,mode=700,uid=1000,gid=1000",
             expectedContainerId: "1a2de27e7157106568f7e081e42a8c14858c02bd9df30d6e352b298178b46809",
-            cgroupVersion: ContainerDetector.ParseMode.V2)
+            cgroupVersion: ContainerDetector.ParseMode.V2),
 
     ];
 
@@ -76,7 +76,7 @@ public class ContainerDetectorTests
         new(
             name: "Invalid hex cgroupv2 line (contains a z)",
             line: "13:name=systemd:/var/lib/containerd/io.containerd.grpc.v1.cri/sandboxes/fb5916a02feca96bdeecd8e062df9e5e51d6617c8214b5e1f3fz9320f4402ae6/hostname",
-            cgroupVersion: ContainerDetector.ParseMode.V2)
+            cgroupVersion: ContainerDetector.ParseMode.V2),
 
     ];
 
