@@ -118,7 +118,7 @@ jobs:
         run: dotnet build ${env:PROJECT_PATH} --configuration Release --no-restore -p:"BuildNumber=${env:GITHUB_RUN_NUMBER}"
 
       - name: dotnet test ${{ steps.resolve-project.outputs.title }}
-        run: dotnet build ${env:PROJECT_PATH} -t:Test -p:Configuration=Release
+        run: dotnet build ${env:PROJECT_PATH} -t:Test -p:Configuration=Release --no-restore -p:NoBuild=true
         shell: pwsh
 
       - name: Install Cosign

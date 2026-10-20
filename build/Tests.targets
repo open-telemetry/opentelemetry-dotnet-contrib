@@ -40,10 +40,17 @@
               Text="Skipping test execution for '%(_SkippedTestProjects.Identity)' because it does not contain the '$(TargetFramework)' target."
               Condition="'$(TargetFramework)' != '' AND '@(_SkippedTestProjects)' != ''" />
 
+    <!--
+      Note: Set NoBuild=true to run the tests against the existing build output
+      (the equivalent of the no-build option of dotnet test). The publish
+      workflow relies on this so that the assemblies which are tested, signed
+      and packed are the ones compiled with $(BuildNumber), rather than being
+      rebuilt without it.
+    -->
     <MSBuild Projects="@(_SupportedTestProjects)"
       Targets="Build"
       ContinueOnError="ErrorAndStop"
-      Condition="'$(TargetFramework)' != '' AND '@(_SupportedTestProjects)' != ''" />
+      Condition="'$(TargetFramework)' != '' AND '@(_SupportedTestProjects)' != '' AND '$(NoBuild)' != 'true'" />
 
     <!--
       Tests are run with `dotnet test` (the Microsoft.Testing.Platform runner
