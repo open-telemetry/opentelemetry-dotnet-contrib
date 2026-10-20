@@ -4,6 +4,9 @@
 #if NETFRAMEWORK
 using System.Diagnostics;
 using System.ServiceModel;
+using System.ServiceModel.Channels;
+using OpenTelemetry.Context.Propagation;
+using OpenTelemetry.Instrumentation.Wcf.Implementation;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 
@@ -421,6 +424,106 @@ public class TelemetryDispatchMessageInspectorTests : IClassFixture<WeaverFixtur
         Assert.Empty(startedActivities);
         Assert.Empty(stoppedActivities);
         Assert.Empty(recordedExceptions);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task IncomingRequestWithoutTraceContextStartsNewTrace(bool stopCurrentActivity)
+    {
+        using var activityListener = new ActivityListener
+        {
+            ShouldListenTo = _ => true,
+            Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
+        };
+
+        ActivitySource.AddActivityListener(activityListener);
+
+        var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddWcfInstrumentation()
+            .Build();
+
+        var client = new ServiceClient(
+            new NetTcpBinding(),
+            new EndpointAddress(new Uri(this.serviceBaseUri, "/Service")));
+
+        using var currentActivity = new Activity("test").Start();
+        if (stopCurrentActivity)
+        {
+            // Stopping in another execution context leaves the stopped activity current here,
+            // as when a WCF operation completes on another thread.
+            await Task.Run(currentActivity.Stop, TestContext.Current.CancellationToken);
+        }
+
+        Activity? activity;
+        try
+        {
+            var request = Message.CreateMessage(MessageVersion.Soap11, "urn:test");
+            activity = new TelemetryDispatchMessageInspector(new Dictionary<string, ActionMetadata>())
+                .AfterReceiveRequest(ref request, client.InnerChannel, instanceContext: null!) as Activity;
+        }
+        finally
+        {
+            client.AbortOrClose();
+            tracerProvider.Shutdown();
+            tracerProvider.Dispose();
+
+            WcfInstrumentationActivitySource.Options = null;
+        }
+
+        Assert.NotNull(activity);
+        Assert.Null(activity.ParentId);
+        Assert.NotEqual(currentActivity.TraceId, activity.TraceId);
+    }
+
+    [Fact]
+    public void IncomingRequestWithTraceContextDoesNotClearCurrentActivity()
+    {
+        using var activityListener = new ActivityListener
+        {
+            ShouldListenTo = _ => true,
+            Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
+        };
+
+        ActivitySource.AddActivityListener(activityListener);
+
+        var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddWcfInstrumentation()
+            .Build();
+
+        var client = new ServiceClient(
+            new NetTcpBinding(),
+            new EndpointAddress(new Uri(this.serviceBaseUri, "/Service")));
+
+        using var currentActivity = new Activity("test").Start();
+        var parentContext = new ActivityContext(ActivityTraceId.CreateRandom(), ActivitySpanId.CreateRandom(), ActivityTraceFlags.Recorded);
+
+        Activity? activity;
+        try
+        {
+            var request = Message.CreateMessage(MessageVersion.Soap11, "urn:test");
+            Propagators.DefaultTextMapPropagator.Inject(
+                new PropagationContext(parentContext, default),
+                request,
+                WcfInstrumentationActivitySource.MessageHeaderValueSetter);
+
+            activity = new TelemetryDispatchMessageInspector(new Dictionary<string, ActionMetadata>())
+                .AfterReceiveRequest(ref request, client.InnerChannel, instanceContext: null!) as Activity;
+            activity?.Stop();
+        }
+        finally
+        {
+            client.AbortOrClose();
+            tracerProvider.Shutdown();
+            tracerProvider.Dispose();
+
+            WcfInstrumentationActivitySource.Options = null;
+        }
+
+        Assert.NotNull(activity);
+        Assert.Equal(parentContext.SpanId, activity.ParentSpanId);
+        Assert.Equal(parentContext.TraceId, activity.TraceId);
+        Assert.Same(currentActivity, Activity.Current);
     }
 }
 
