@@ -9,6 +9,9 @@
   expose, such as the exception serialization technique.
   ([#5645](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5645))
 
+* Updated OpenTelemetry core component version(s) to `1.20.1`.
+  ([#5651](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5651))
+
 ## 1.20.0-beta.2
 
 Released 2026-Oct-16
