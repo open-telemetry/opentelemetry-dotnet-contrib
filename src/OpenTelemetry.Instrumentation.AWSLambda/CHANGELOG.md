@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+* **Breaking Change** Dropped support for `net8.0` and `net9.0`.
+  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+
+* Add support for .NET 11.0.
+  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+
 ## 1.20.1
 
 Released 2026-Oct-20
@@ -17,12 +23,6 @@ Released 2026-Oct-15
 * Fix baggage extracted from the incoming event not being applied to
   `Baggage.Current`.
   ([#5479](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5479))
-
-* **Breaking Change** Dropped support for `net8.0` and `net9.0`.
-  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
-
-* Add support for .NET 11.0.
-  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
 
 ## 1.19.1
 
