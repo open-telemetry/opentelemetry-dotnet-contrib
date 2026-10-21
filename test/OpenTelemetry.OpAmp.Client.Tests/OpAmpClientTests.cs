@@ -105,7 +105,7 @@ public class OpAmpClientTests
         // this depends on the heartbeat messages from the server to the client.
 
         // Wait for the initial identification message response
-        mockListener.WaitForMessages(TimeSpan.FromSeconds(1));
+        await mockListener.WaitForMessagesAsync(1);
 
         Assert.Single(mockListener.Messages);
 
@@ -118,7 +118,7 @@ public class OpAmpClientTests
         });
 
         // Wait for the heartbeat response
-        mockListener.WaitForMessages(TimeSpan.FromSeconds(1));
+        await mockListener.WaitForMessagesAsync(2);
 
         Assert.Equal(2, mockListener.Messages.Count);
 
@@ -132,9 +132,12 @@ public class OpAmpClientTests
             Status = "OK",
         });
 
-        // Listener was unsubscribed; wait briefly to let the server process the frame,
-        // but do not assert a message arrives.
-        mockListener.TryWaitForMessage(TimeSpan.FromSeconds(1));
+        // The HTTP transport only completes a flush once the server has responded,
+        // so the server has received the frame by the time this returns.
+        await client.FlushAsync(TestContext.Current.CancellationToken);
+
+        // Listener was unsubscribed, so no further message should arrive.
+        Assert.False(await mockListener.TryWaitForMessagesAsync(3, TimeSpan.FromMilliseconds(500)));
 
         var serverFrames = opAmpServer.GetFrames();
 
@@ -167,7 +170,7 @@ public class OpAmpClientTests
 
         await client.StartAsync(TestContext.Current.CancellationToken);
 
-        mockListener.WaitForMessages(TimeSpan.FromSeconds(2));
+        await mockListener.WaitForMessagesAsync(1);
 
         var frames = opAmpServer.GetFrames();
 
