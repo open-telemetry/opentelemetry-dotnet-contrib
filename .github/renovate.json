@@ -98,6 +98,11 @@
       "description": ["Avoid multiple kustainer updates in one day"],
       "matchPackageNames": ["mcr.microsoft.com/azuredataexplorer/kustainer-linux"],
       "schedule": ["* 8-12 * * 3"]
+    },
+    {
+      "matchDepNames": ["StyleCop.Analyzers"],
+      "description": ["Allow prerelease versions of StyleCop.Analyzers"],
+      "ignoreUnstable": false
     }
   ],
   "schedule": ["* 8-17 * * 3"],
