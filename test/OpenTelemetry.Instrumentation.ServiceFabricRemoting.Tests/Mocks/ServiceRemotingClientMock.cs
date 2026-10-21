@@ -25,9 +25,9 @@ internal class ServiceRemotingClientMock : IServiceRemotingClient
     /// <summary>
     /// The RequestResponseAsync method reads the headers from the request and injects them into the response, using OpenTelemetry's TextMapPropagator.
     /// </summary>
-    public Task<IServiceRemotingResponseMessage> RequestResponseAsync(IServiceRemotingRequestMessage requestMessage)
+    public Task<IServiceRemotingResponseMessage> RequestResponseAsync(IServiceRemotingRequestMessage requestRequestMessage)
     {
-        var requestMessageHeader = requestMessage.GetHeader();
+        var requestMessageHeader = requestRequestMessage.GetHeader();
         var propagationContext = Propagators.DefaultTextMapPropagator.Extract(default, requestMessageHeader, ServiceFabricRemotingUtils.ExtractTraceContextFromRequestMessageHeader);
 
         var responseMessage = new MockServiceRemotingResponseMessage()

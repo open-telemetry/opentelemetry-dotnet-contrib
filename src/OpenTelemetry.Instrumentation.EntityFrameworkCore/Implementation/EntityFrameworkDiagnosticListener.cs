@@ -66,10 +66,8 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
         var activity = Activity.Current;
 
         var activitySource =
-            this.options.EmitNewAttributes && this.options.EmitOldAttributes ?
-            ActivitySourceBoth :
-            this.options.EmitNewAttributes ?
-            ActivitySourceNew :
+            this.options.EmitNewAttributes && this.options.EmitOldAttributes ? ActivitySourceBoth :
+            this.options.EmitNewAttributes ? ActivitySourceNew :
             ActivitySource;
 
         switch (name)

@@ -335,8 +335,8 @@ internal static class HttpWebRequestActivitySource
                     var responseCopy = reflection.HttpWebResponseCtor(
                     [
                         reflection.UriAccessor(response), reflection.VerbAccessor(response), reflection.CoreResponseDataAccessor(response), reflection.MediaTypeAccessor(response),
-                            reflection.UsesProxySemanticsAccessor(response), DecompressionMethods.None,
-                            reflection.IsWebSocketResponseAccessor(response), reflection.ConnectionGroupNameAccessor(response)
+                        reflection.UsesProxySemanticsAccessor(response), DecompressionMethods.None,
+                        reflection.IsWebSocketResponseAccessor(response), reflection.ConnectionGroupNameAccessor(response),
                     ]);
 
                     if (activity != null)
@@ -704,8 +704,8 @@ internal static class HttpWebRequestActivitySource
         public override bool ContainsKey(object key)
             => this.table.ContainsKey(key);
 
-        public override bool ContainsValue(object key)
-            => this.table.ContainsValue(key);
+        public override bool ContainsValue(object value)
+            => this.table.ContainsValue(value);
 
         public override void CopyTo(Array array, int arrayIndex)
             => this.table.CopyTo(array, arrayIndex);
@@ -817,8 +817,8 @@ internal static class HttpWebRequestActivitySource
         public override void CopyTo(Array array)
             => this.list.CopyTo(array);
 
-        public override void CopyTo(Array array, int index)
-            => this.list.CopyTo(array, index);
+        public override void CopyTo(Array array, int arrayIndex)
+            => this.list.CopyTo(array, arrayIndex);
 
         public override void CopyTo(int index, Array array, int arrayIndex, int count)
             => this.list.CopyTo(index, array, arrayIndex, count);
@@ -853,8 +853,8 @@ internal static class HttpWebRequestActivitySource
         public override int LastIndexOf(object value, int startIndex, int count)
             => this.list.LastIndexOf(value, startIndex, count);
 
-        public override void Remove(object value)
-            => this.list.Remove(value);
+        public override void Remove(object obj)
+            => this.list.Remove(obj);
 
         public override void RemoveAt(int index)
             => this.list.RemoveAt(index);

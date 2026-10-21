@@ -7,14 +7,6 @@ using OpenTelemetry.Internal;
 namespace OpenTelemetry.Exporter.OneCollector;
 
 /// <summary>
-/// Defines a callback delegate for handling payload transmitted events in the
-/// <see cref="OneCollectorExporter{T}"/> class.
-/// </summary>
-/// <param name="args">Arguments.</param>
-public delegate void OneCollectorExporterPayloadTransmittedCallbackAction(
-    in OneCollectorExporterPayloadTransmittedCallbackArguments args);
-
-/// <summary>
 /// Contains arguments for the <see cref="OneCollectorExporterPayloadTransmittedCallbackAction"/>
 /// callback delegate.
 /// </summary>

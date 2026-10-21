@@ -84,7 +84,7 @@ internal class AWSServiceHelper
         "PrepareAgent",
         "UpdateAgentActionGroup",
         "UpdateAgentAlias",
-        "UpdateAgent"
+        "UpdateAgent",
     ];
 
     internal static List<string> BedrockAgentKnowledgeBaseOps { get; } =
@@ -96,14 +96,14 @@ internal class AWSServiceHelper
         "GetAgentKnowledgeBase",
         "GetKnowledgeBase",
         "ListDataSources",
-        "UpdateAgentKnowledgeBase"
+        "UpdateAgentKnowledgeBase",
     ];
 
     internal static List<string> BedrockAgentDataSourceOps { get; } =
     [
         "DeleteDataSource",
         "GetDataSource",
-        "UpdateDataSource"
+        "UpdateDataSource",
     ];
 
     internal static IReadOnlyDictionary<string, string> OperationNameToResourceMap { get; } = BuildOperationNameToResourceMap();

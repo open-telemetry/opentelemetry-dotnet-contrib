@@ -100,9 +100,11 @@ public class TelemetryPolicyContractTests
         Assert.False(second!.Equals(first), "Policies with identical content should not be equal. Identity is by reference");
     }
 
-    private static List<Type> GetPolicyTypes()
-        => [.. typeof(TelemetryPolicy).Assembly
+    private static List<Type> GetPolicyTypes() =>
+    [
+        .. typeof(TelemetryPolicy).Assembly
             .GetTypes()
             .Where(typeof(TelemetryPolicy).IsAssignableFrom)
-            .OrderBy(t => t.FullName, StringComparer.Ordinal)];
+            .OrderBy(t => t.FullName, StringComparer.Ordinal),
+    ];
 }

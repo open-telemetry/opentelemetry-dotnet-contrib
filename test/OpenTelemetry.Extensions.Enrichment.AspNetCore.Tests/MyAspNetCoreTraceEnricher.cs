@@ -16,14 +16,14 @@ internal sealed class MyAspNetCoreTraceEnricher : AspNetCoreTraceEnricher
     public int ExceptionCalls { get; private set; }
 
     public override void EnrichWithHttpRequest(
-        in TraceEnrichmentBag enrichmentBag,
-        HttpRequest request) => enrichmentBag.Add(Key + ".request", ++this.RequestCalls);
+        in TraceEnrichmentBag bag,
+        HttpRequest request) => bag.Add(Key + ".request", ++this.RequestCalls);
 
     public override void EnrichWithHttpResponse(
-        in TraceEnrichmentBag enrichmentBag,
-        HttpResponse response) => enrichmentBag.Add(Key + ".response", ++this.ResponseCalls);
+        in TraceEnrichmentBag bag,
+        HttpResponse response) => bag.Add(Key + ".response", ++this.ResponseCalls);
 
     public override void EnrichWithException(
-        in TraceEnrichmentBag enrichmentBag,
-        Exception exception) => enrichmentBag.Add(Key + ".exception", ++this.ExceptionCalls);
+        in TraceEnrichmentBag bag,
+        Exception exception) => bag.Add(Key + ".exception", ++this.ExceptionCalls);
 }

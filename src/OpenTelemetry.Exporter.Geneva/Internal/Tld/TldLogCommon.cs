@@ -23,7 +23,7 @@ internal abstract class TldLogCommon : IDisposable
 
     protected static readonly string[] LogLevels =
     [
-        "Trace", "Debug", "Information", "Warning", "Error", "Critical", "None"
+        "Trace", "Debug", "Information", "Warning", "Error", "Critical", "None",
     ];
 
     protected readonly ThreadLocal<SerializationDataForScopes> serializationData = new(); // This is used for Scopes

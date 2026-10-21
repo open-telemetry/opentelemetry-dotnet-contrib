@@ -338,8 +338,7 @@ public class OneCollectorIntegrationTests
         {
             using var document = JsonDocument.Parse(requestPayload);
 
-            return document.RootElement.TryGetProperty("ext", out var extensions)
-                && extensions.TryGetProperty("ex", out _)
+            return document.RootElement.TryGetProperty("ext", out var extensions) && extensions.TryGetProperty("ex", out _)
                 ? 400
                 : 200;
         }
