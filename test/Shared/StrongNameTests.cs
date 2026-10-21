@@ -1,6 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Globalization;
+using System.Reflection;
+
 namespace OpenTelemetry.Tests;
 
 // The tests can only be strong named if they only depend on assemblies that are strong named,
@@ -8,6 +11,11 @@ namespace OpenTelemetry.Tests;
 
 public static class StrongNameTests
 {
+    private const string BuildNumberEnvironmentVariable = "EXPECTED_BUILD_NUMBER";
+
+    public static bool HasExpectedBuildNumber =>
+        !string.IsNullOrEmpty(Environment.GetEnvironmentVariable(BuildNumberEnvironmentVariable));
+
     // If this test fails and the test project needs to opt-out of strong naming, then add a
     // <SkipStrongNameValidation>true</SkipStrongNameValidation> property to the tests' project file.
 
@@ -42,5 +50,46 @@ public static class StrongNameTests
 #if NET
         Assert.Equal("7BD6737FE5B67E3C", Convert.ToHexString(actual));
 #endif
+    }
+
+    [Fact(
+        SkipUnless = nameof(HasExpectedBuildNumber),
+        Skip = $"The {BuildNumberEnvironmentVariable} environment variable is not set.")]
+    public static void Library_Has_Expected_Build_Number()
+    {
+        // Arrange
+        var expected = int.Parse(
+            Environment.GetEnvironmentVariable(BuildNumberEnvironmentVariable)!,
+            NumberStyles.None,
+            CultureInfo.InvariantCulture);
+
+        var testAssembly = typeof(StrongNameTests).Assembly;
+        var libraryName = testAssembly.GetName().Name!;
+
+        foreach (var suffix in new[] { ".Tests", ".FuzzTests" })
+        {
+            if (libraryName.EndsWith(suffix, StringComparison.Ordinal))
+            {
+                libraryName = libraryName.Substring(0, libraryName.Length - suffix.Length);
+                break;
+            }
+        }
+
+        var reference = testAssembly
+            .GetReferencedAssemblies()
+            .FirstOrDefault((p) => p.Name == libraryName);
+
+        if (reference is null)
+        {
+            Assert.Skip($"The test assembly does not reference {libraryName}.");
+        }
+
+        // Act
+        var actual = Assembly.Load(reference).GetName().Version;
+
+        // Assert
+        Assert.NotEqual(0, expected);
+        Assert.NotNull(actual);
+        Assert.Equal(expected, actual.Revision);
     }
 }
