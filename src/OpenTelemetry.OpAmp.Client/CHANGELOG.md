@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.8.0-alpha.2
+
+Released 2026-Oct-21
+
 ## 0.8.0-alpha.1
 
 Released 2026-Oct-15
