@@ -9,7 +9,7 @@ internal sealed class MyService : IMyService
     [
         "Blocked",
         "No blockers",
-        "Out of office"
+        "Out of office",
     ];
 
     /// <summary>

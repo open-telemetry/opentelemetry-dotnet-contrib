@@ -41,13 +41,13 @@ internal sealed class HangfirePendingDurationFilterAttribute : JobFilterAttribut
         }
     }
 
-    public void OnPerforming(PerformingContext performingContext)
+    public void OnPerforming(PerformingContext filterContext)
     {
         try
         {
             // Retrieve the EnqueuedAt timestamp that was stored when the job was enqueued
-            var enqueuedAtStr = performingContext.Connection.GetJobParameter(
-                performingContext.BackgroundJob.Id,
+            var enqueuedAtStr = filterContext.Connection.GetJobParameter(
+                filterContext.BackgroundJob.Id,
                 EnqueuedAtParameter);
 
             if (!string.IsNullOrEmpty(enqueuedAtStr))
@@ -57,7 +57,7 @@ internal sealed class HangfirePendingDurationFilterAttribute : JobFilterAttribut
 
                 // Record workflow.execution.duration with state="pending"
                 var tags = HangfireTagBuilder.BuildExecutionTags(
-                    performingContext.BackgroundJob,
+                    filterContext.BackgroundJob,
                     exception: null,
                     workflowState: WorkflowAttributes.WorkflowStateValues.Pending);
                 HangfireMetrics.ExecutionDuration.Record(pendingDuration, tags);
@@ -69,7 +69,7 @@ internal sealed class HangfirePendingDurationFilterAttribute : JobFilterAttribut
         }
     }
 
-    public void OnPerformed(PerformedContext performedContext)
+    public void OnPerformed(PerformedContext filterContext)
     {
         // No-op: This filter only handles pending state duration in OnPerforming
     }

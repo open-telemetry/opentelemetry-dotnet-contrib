@@ -297,12 +297,14 @@ internal sealed class HostDetector : IResourceDetector
         // The sources disagree on units: Windows and macOS report bytes, /proc/cpuinfo reports
         // "1024 KB" and sysfs "1024K".
         var unit = normalized.Substring(digits).TrimStart();
-        var multiplier = unit.Length == 0 ? 1 : char.ToUpperInvariant(unit[0]) switch
-        {
-            'K' => 1024,
-            'M' => 1024 * 1024,
-            _ => 0,
-        };
+        var multiplier = unit.Length == 0
+            ? 1
+            : char.ToUpperInvariant(unit[0]) switch
+            {
+                'K' => 1024,
+                'M' => 1024 * 1024,
+                _ => 0,
+            };
 
         if (multiplier == 0)
         {
@@ -477,12 +479,12 @@ internal sealed class HostDetector : IResourceDetector
 
     private static int? GetL2CacheSizeWindows()
     {
-        var buffer = IntPtr.Zero;
+        nint buffer = 0;
 
         try
         {
             uint length = 0;
-            _ = NativeMethods.GetLogicalProcessorInformation(IntPtr.Zero, ref length);
+            _ = NativeMethods.GetLogicalProcessorInformation(0, ref length);
             if (length == 0)
             {
                 return null;
@@ -497,7 +499,7 @@ internal sealed class HostDetector : IResourceDetector
             var entrySize = Marshal.SizeOf<NativeMethods.SystemLogicalProcessorInformation>();
             for (var offset = 0; offset + entrySize <= length; offset += entrySize)
             {
-                var entry = Marshal.PtrToStructure<NativeMethods.SystemLogicalProcessorInformation>(IntPtr.Add(buffer, offset));
+                var entry = Marshal.PtrToStructure<NativeMethods.SystemLogicalProcessorInformation>(buffer + offset);
 
                 // The registry carries no cache value, and this API states the level rather
                 // than leaving it to be inferred.
@@ -513,7 +515,7 @@ internal sealed class HostDetector : IResourceDetector
         }
         finally
         {
-            if (buffer != IntPtr.Zero)
+            if (buffer != 0)
             {
                 Marshal.FreeHGlobal(buffer);
             }
@@ -758,7 +760,8 @@ internal sealed class HostDetector : IResourceDetector
 #else
         this.isOsPlatform(OSPlatform.Windows) ? this.getWindowsMachineId() :
         this.isOsPlatform(OSPlatform.Linux) ? this.GetMachineIdLinux() :
-        this.isOsPlatform(OSPlatform.OSX) ? ParseMacOsOutput(this.getMacOsMachineId()) : null;
+        this.isOsPlatform(OSPlatform.OSX) ? ParseMacOsOutput(this.getMacOsMachineId()) :
+        null;
 #endif
 
 #if !NETFRAMEWORK
@@ -792,7 +795,7 @@ internal sealed class HostDetector : IResourceDetector
         [DllImport("kernel32.dll", SetLastError = true)]
         [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool GetLogicalProcessorInformation(IntPtr buffer, ref uint returnLength);
+        internal static extern bool GetLogicalProcessorInformation(nint buffer, ref uint returnLength);
 
         [StructLayout(LayoutKind.Sequential)]
         internal struct CacheDescriptor
@@ -822,7 +825,7 @@ internal sealed class HostDetector : IResourceDetector
         [StructLayout(LayoutKind.Sequential)]
         internal struct SystemLogicalProcessorInformation
         {
-            internal UIntPtr ProcessorMask;
+            internal nuint ProcessorMask;
             internal int Relationship;
             internal ProcessorInformationUnion Data;
         }

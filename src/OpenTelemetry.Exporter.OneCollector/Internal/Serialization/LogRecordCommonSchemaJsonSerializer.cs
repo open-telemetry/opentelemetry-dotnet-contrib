@@ -32,12 +32,12 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
         JsonEncodedText.Encode("Warning"),
         JsonEncodedText.Encode("Error"),
         JsonEncodedText.Encode("Critical"),
-        JsonEncodedText.Encode("Trace") // Note: This is the "None" bucket.
+        JsonEncodedText.Encode("Trace"), // Note: This is the "None" bucket.
     ];
 
     private static readonly int[] LogLevelToSeverityNumberMappings =
     [
-        1, 5, 9, 13, 17, 21, 1
+        1, 5, 9, 13, 17, 21, 1,
     ];
 
     private static readonly Action<LogRecordScope, CommonSchemaJsonSerializationState> SerializeScopeItemToJson = (scope, serializationState) =>

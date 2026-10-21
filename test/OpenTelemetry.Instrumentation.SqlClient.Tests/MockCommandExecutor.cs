@@ -16,11 +16,13 @@ public class MockCommandExecutor
 
     public static void ExecuteCommand(string connectionString, CommandType commandType, string commandText, bool error, SqlClientLibrary library, long? selectRows = null, long? iduRows = null)
     {
-        var statistics = error ? null : new Dictionary<string, object>
-        {
-            ["SelectRows"] = selectRows ?? 0L,
-            ["IduRows"] = iduRows ?? 0L,
-        };
+        var statistics = error
+            ? null
+            : new Dictionary<string, object>
+            {
+                ["SelectRows"] = selectRows ?? 0L,
+                ["IduRows"] = iduRows ?? 0L,
+            };
         ExecuteCommand(connectionString, commandType, commandText, error, library, statistics);
     }
 

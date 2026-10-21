@@ -12,15 +12,15 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
 /// </summary>
 internal sealed class HangfireMetricsErrorFilterAttribute : JobFilterAttribute, IServerFilter
 {
-    public void OnPerforming(PerformingContext performingContext)
+    public void OnPerforming(PerformingContext filterContext)
     {
     }
 
-    public void OnPerformed(PerformedContext performedContext)
+    public void OnPerformed(PerformedContext filterContext)
     {
-        if (performedContext.Exception != null)
+        if (filterContext.Exception != null)
         {
-            var errorTags = HangfireTagBuilder.BuildErrorTags(performedContext);
+            var errorTags = HangfireTagBuilder.BuildErrorTags(filterContext);
 
             HangfireMetrics.ExecutionErrors.Add(1, errorTags);
         }
