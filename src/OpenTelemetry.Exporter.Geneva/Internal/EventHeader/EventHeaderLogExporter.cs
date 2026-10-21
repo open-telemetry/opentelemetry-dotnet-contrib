@@ -119,14 +119,14 @@ internal class EventHeaderLogExporter : TldLogCommon, IDisposable
         // price = 100
         // TODO: 2. Structured with strongly typed logging.
 
-        var categoryName = logRecord.CategoryName ?? this.defaultEventName;
+        var categoryName = logRecord.CategoryName ?? this.DefaultEventName;
 
         // If user configured explicit TableName, use it.
-        if (this.tableMappings?.TryGetValue(categoryName, out var eventName) != true)
+        if (this.TableMappings?.TryGetValue(categoryName, out var eventName) != true)
         {
-            if (!this.shouldPassThruTableMappings)
+            if (!this.ShouldPassThruTableMappings)
             {
-                eventName = this.defaultEventName;
+                eventName = this.DefaultEventName;
             }
             else
             {
@@ -148,7 +148,7 @@ internal class EventHeaderLogExporter : TldLogCommon, IDisposable
             eb.AddRawFields(this.repeatedPartAFields.Value);
         }
 
-        var partAFieldsCount = this.partAFieldsCount;
+        var partAFieldsCount = this.PartAFieldsCount;
 
         // Part A - dt extension
         if (logRecord.TraceId != default)
@@ -176,7 +176,7 @@ internal class EventHeaderLogExporter : TldLogCommon, IDisposable
             eb.AddString16("ext_ex_msg", logRecord.Exception.Message);
             partAFieldsCount++;
 
-            if (this.exceptionStackExportMode == ExceptionStackExportMode.ExportAsString)
+            if (this.ExceptionStackExportMode == ExceptionStackExportMode.ExportAsString)
             {
                 // The current approach relies on the existing trim
                 // capabilities which trims string in excess of STRING_SIZE_LIMIT_CHAR_COUNT
@@ -194,7 +194,7 @@ internal class EventHeaderLogExporter : TldLogCommon, IDisposable
                 eb.AddString16("ext_ex_stack", exceptionStack);
                 partAFieldsCount++;
             }
-            else if (this.exceptionStackExportMode == ExceptionStackExportMode.ExportAsStackTraceString)
+            else if (this.ExceptionStackExportMode == ExceptionStackExportMode.ExportAsStackTraceString)
             {
                 var stackTrace = logRecord.Exception.StackTrace;
                 if (stackTrace != null)
@@ -257,7 +257,7 @@ internal class EventHeaderLogExporter : TldLogCommon, IDisposable
                 bodyPopulated = true;
                 continue;
             }
-            else if (this.customFields == null || this.customFields.Contains(entry.Key))
+            else if (this.CustomFields == null || this.CustomFields.Contains(entry.Key))
             {
                 // TODO: the above null check can be optimized and avoided inside foreach.
                 if (entry.Value != null)
@@ -310,7 +310,7 @@ internal class EventHeaderLogExporter : TldLogCommon, IDisposable
         // Part C
 
         // Prepare state for scopes
-        var dataForScopes = this.serializationData.Value ??= new();
+        var dataForScopes = this.SerializationData.Value ??= new();
 
         dataForScopes.HasEnvProperties = hasEnvProperties;
         dataForScopes.PartCFieldsCountFromState = partCFieldsCountFromState;
@@ -351,8 +351,8 @@ internal class EventHeaderLogExporter : TldLogCommon, IDisposable
     private static void OnProcessScopeForIndividualColumns(LogRecordScope scope, EventHeaderLogExporter state)
         => OnProcessScopeForIndividualColumns(
             scope,
-            state.serializationData.Value!,
-            state.customFields);
+            state.SerializationData.Value!,
+            state.CustomFields);
 }
 
 #endif
