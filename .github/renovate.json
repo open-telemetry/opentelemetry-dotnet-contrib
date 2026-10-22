@@ -89,12 +89,6 @@
       "enabled": false
     },
     {
-      "matchDepNames": ["xunit"],
-      "description": ["Disable major version updates for xunit"],
-      "matchUpdateTypes": ["major"],
-      "enabled": false
-    },
-    {
       "description": ["Avoid multiple kustainer updates in one day"],
       "matchPackageNames": ["mcr.microsoft.com/azuredataexplorer/kustainer-linux"],
       "schedule": ["* 8-12 * * 3"]
