@@ -501,10 +501,9 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
     }
 
     private long? TakeBeginTimestamp(object? payload) =>
-        TryFetchOperationId(this.operationIdFetcher, payload, out var operationId)
-            && this.beginTimestamps.TryRemove(operationId, out var timestamp)
-                ? timestamp
-                : null;
+        TryFetchOperationId(this.operationIdFetcher, payload, out var operationId) && this.beginTimestamps.TryRemove(operationId, out var timestamp)
+            ? timestamp
+            : null;
 
     private void RecordDuration(Activity? activity, object? payload, bool hasError = false)
     {

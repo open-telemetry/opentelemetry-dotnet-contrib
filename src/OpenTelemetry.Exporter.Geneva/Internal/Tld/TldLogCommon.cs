@@ -26,18 +26,18 @@ internal abstract class TldLogCommon : IDisposable
         "Trace", "Debug", "Information", "Warning", "Error", "Critical", "None",
     ];
 
-    protected readonly ThreadLocal<SerializationDataForScopes> serializationData = new(); // This is used for Scopes
-    protected readonly byte partAFieldsCount = 1; // At least one field: time
-    protected readonly bool shouldPassThruTableMappings;
-    protected readonly string defaultEventName = "Log";
+    protected readonly ThreadLocal<SerializationDataForScopes> SerializationData = new(); // This is used for Scopes
+    protected readonly byte PartAFieldsCount = 1; // At least one field: time
+    protected readonly bool ShouldPassThruTableMappings;
+    protected readonly string DefaultEventName = "Log";
 #if NET
-    protected readonly FrozenSet<string>? customFields;
-    protected readonly FrozenDictionary<string, string>? tableMappings;
+    protected readonly FrozenSet<string>? CustomFields;
+    protected readonly FrozenDictionary<string, string>? TableMappings;
 #else
-    protected readonly HashSet<string>? customFields;
-    protected readonly Dictionary<string, string>? tableMappings;
+    protected readonly HashSet<string>? CustomFields;
+    protected readonly Dictionary<string, string>? TableMappings;
 #endif
-    protected readonly ExceptionStackExportMode exceptionStackExportMode;
+    protected readonly ExceptionStackExportMode ExceptionStackExportMode;
 
 #if NET
     private static readonly SearchValues<char> AlphanumericChars = SearchValues.Create(
@@ -55,7 +55,7 @@ internal abstract class TldLogCommon : IDisposable
 
     protected TldLogCommon(GenevaExporterOptions options)
     {
-        this.exceptionStackExportMode = options.ExceptionStackExportMode;
+        this.ExceptionStackExportMode = options.ExceptionStackExportMode;
 
         // TODO: Validate mappings for reserved tablenames etc.
         if (options.TableNameMappings != null)
@@ -67,11 +67,11 @@ internal abstract class TldLogCommon : IDisposable
                 {
                     if (kv.Value == "*")
                     {
-                        this.shouldPassThruTableMappings = true;
+                        this.ShouldPassThruTableMappings = true;
                     }
                     else
                     {
-                        this.defaultEventName = kv.Value;
+                        this.DefaultEventName = kv.Value;
                     }
                 }
                 else
@@ -80,7 +80,7 @@ internal abstract class TldLogCommon : IDisposable
                 }
             }
 
-            this.tableMappings = tempTableMappings
+            this.TableMappings = tempTableMappings
 #if NET
                 .ToFrozenDictionary(StringComparer.Ordinal);
 #else
@@ -98,16 +98,16 @@ internal abstract class TldLogCommon : IDisposable
             }
 
 #if NET
-            this.customFields = customFields.ToFrozenSet(StringComparer.Ordinal);
+            this.CustomFields = customFields.ToFrozenSet(StringComparer.Ordinal);
 #else
-            this.customFields = customFields;
+            this.CustomFields = customFields;
 #endif
         }
 
         if (options.PrepopulatedFields != null)
         {
             var prePopulatedFieldsCount = (byte)(options.PrepopulatedFields.Count - 1); // PrepopulatedFields option has the key ".ver" added to it which is not needed for TLD
-            this.partAFieldsCount += prePopulatedFieldsCount;
+            this.PartAFieldsCount += prePopulatedFieldsCount;
         }
     }
 
@@ -219,7 +219,7 @@ internal abstract class TldLogCommon : IDisposable
             try
             {
                 // DO NOT Dispose eventBuilder, keyValuePairs, and partCFields as they are static
-                this.serializationData?.Dispose();
+                this.SerializationData?.Dispose();
             }
             catch (Exception ex)
             {
