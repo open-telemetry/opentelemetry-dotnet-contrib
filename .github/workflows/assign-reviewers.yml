@@ -4,6 +4,7 @@ on:
   # made from forked repositories. If pull_request is used in these cases,
   # the github token will not have sufficient permission to update the PR.
   pull_request_target: # zizmor: ignore[dangerous-triggers] No user code is executed
+    types: [opened, synchronize, reopened, ready_for_review]
 
 permissions:
   contents: read
