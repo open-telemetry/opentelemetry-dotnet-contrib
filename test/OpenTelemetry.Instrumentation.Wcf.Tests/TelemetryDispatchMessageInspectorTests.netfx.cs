@@ -27,14 +27,13 @@ public class TelemetryDispatchMessageInspectorTests : IClassFixture<WeaverFixtur
         this.output = outputHelper;
         this.weaver = weaver;
 
-        var random = new Random();
         var retryCount = 5;
         ServiceHost? createdHost = null;
         while (retryCount > 0)
         {
             try
             {
-                this.serviceBaseUri = new Uri($"net.tcp://localhost:{random.Next(2000, 5000)}/");
+                this.serviceBaseUri = new Uri($"net.tcp://localhost:{TcpPortProvider.GetOpenPort()}/");
                 createdHost = new ServiceHost(new Service(), this.serviceBaseUri);
                 var endpoint = createdHost.AddServiceEndpoint(
                     typeof(IServiceContract),
