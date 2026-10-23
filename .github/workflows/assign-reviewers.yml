@@ -4,6 +4,7 @@ on:
   # made from forked repositories. If pull_request is used in these cases,
   # the github token will not have sufficient permission to update the PR.
   pull_request_target: # zizmor: ignore[dangerous-triggers] No user code is executed
+    types: [opened, synchronize, reopened, ready_for_review]
 
 permissions:
   contents: read
@@ -18,7 +19,7 @@ jobs:
     permissions:
       contents: read # To read the .github/component_owners.yml file
       pull-requests: write # Required for assigning reviewers to PRs
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-slim
     steps:
       - name: Assign reviewers based on .github/component_owners.yml
         uses: dyladan/component-owners@7ff2b343629407c4dbe1c28ae66f55f723543d2b # v0.2.0
