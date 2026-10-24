@@ -35,28 +35,38 @@ internal sealed class HttpInListener : IDisposable
         TelemetryHttpModule.Options.OnExceptionCallback -= this.OnException;
     }
 
+    private static void StoreMetricStartTimestamp(HttpContextBase context, long metricStartTimestamp)
+    {
+        if (metricStartTimestamp != 0)
+        {
+            context.Items[MetricStartTimestampHttpContextItemsKey] = metricStartTimestamp;
+        }
+    }
+
     private void RecordDuration(Activity? activity, HttpContextBase context, HttpRequestBase request, HttpResponseBase response, string? routeTemplate = null)
     {
-        var metricStartTimestamp = context.Items[MetricStartTimestampHttpContextItemsKey];
-        context.Items.Remove(MetricStartTimestampHttpContextItemsKey);
-
-        if (AspNetInstrumentation.Instance.HandleManager.MetricHandles == 0)
-        {
-            return;
-        }
-
         double duration;
         if (activity is not null)
         {
+            if (AspNetInstrumentation.Instance.HandleManager.MetricHandles == 0)
+            {
+                return;
+            }
+
             duration = activity.Duration.TotalSeconds;
-        }
-        else if (metricStartTimestamp is long beginTimestamp)
-        {
-            duration = Stopwatch.GetElapsedTime(beginTimestamp).TotalSeconds;
         }
         else
         {
-            return;
+            // The start timestamp is only stored when no activity was created for the request.
+            var metricStartTimestamp = context.Items[MetricStartTimestampHttpContextItemsKey];
+            context.Items.Remove(MetricStartTimestampHttpContextItemsKey);
+
+            if (AspNetInstrumentation.Instance.HandleManager.MetricHandles == 0 || metricStartTimestamp is not long beginTimestamp)
+            {
+                return;
+            }
+
+            duration = Stopwatch.GetElapsedTime(beginTimestamp).TotalSeconds;
         }
 
         var options = AspNetInstrumentation.Instance.MetricOptions;
@@ -122,13 +132,14 @@ internal sealed class HttpInListener : IDisposable
     {
         context.Items[StopInstrumentationCallbackContextKey] = this.onStopActivityCallback;
 
-        if (AspNetInstrumentation.Instance.HandleManager.MetricHandles > 0)
-        {
-            context.Items[MetricStartTimestampHttpContextItemsKey] = Stopwatch.GetTimestamp();
-        }
+        // When an activity is created its duration is used for the metric, so the start timestamp
+        // is only boxed and stored in the HttpContext when there is no activity to provide it.
+        var handleManager = AspNetInstrumentation.Instance.HandleManager;
+        var metricStartTimestamp = handleManager.MetricHandles > 0 ? Stopwatch.GetTimestamp() : 0L;
 
-        if (AspNetInstrumentation.Instance.HandleManager.TracingHandles == 0)
+        if (handleManager.TracingHandles == 0)
         {
+            StoreMetricStartTimestamp(context, metricStartTimestamp);
             return null;
         }
 
@@ -168,6 +179,7 @@ internal sealed class HttpInListener : IDisposable
         if (activity == null)
         {
             AspNetInstrumentationEventSource.Log.NullActivity(nameof(this.StartActivity));
+            StoreMetricStartTimestamp(context, metricStartTimestamp);
             return null;
         }
 
