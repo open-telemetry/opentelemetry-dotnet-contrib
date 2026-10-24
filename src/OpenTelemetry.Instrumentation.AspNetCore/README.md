@@ -382,6 +382,10 @@ This instrumentation automatically sets Activity Status to Error if an unhandled
 exception is thrown. Additionally, `RecordException` feature may be turned on,
 to store the exception to the Activity itself as ActivityEvent.
 
+`RecordException` and `EnrichWithException` do not apply to an exception that
+`UseExceptionHandler` handles, with or without an `IExceptionHandler`. They
+still apply when the developer exception page shows the exception.
+
 ## Activity duration and http.server.request.duration metric calculation
 
 `Activity.Duration` and `http.server.request.duration` values represents the
