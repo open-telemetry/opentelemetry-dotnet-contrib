@@ -64,7 +64,7 @@ internal sealed class HttpInListener : IDisposable
         var tags = new TagList
         {
             { SemanticConventions.AttributeUrlScheme, url.Scheme },
-            { SemanticConventions.AttributeHttpResponseStatusCode, response.StatusCode },
+            { SemanticConventions.AttributeHttpResponseStatusCode, TelemetryHelper.GetBoxedStatusCode(response.StatusCode) },
         };
 
         if (context.Items[ErrorTypeHttpContextItemsKey] is string errorType)
@@ -240,7 +240,7 @@ internal sealed class HttpInListener : IDisposable
 
         if (activity.IsAllDataRequested)
         {
-            activity.SetTag(SemanticConventions.AttributeHttpResponseStatusCode, response.StatusCode);
+            activity.SetTag(SemanticConventions.AttributeHttpResponseStatusCode, TelemetryHelper.GetBoxedStatusCode(response.StatusCode));
 
             if (activity.Status == ActivityStatusCode.Unset)
             {
