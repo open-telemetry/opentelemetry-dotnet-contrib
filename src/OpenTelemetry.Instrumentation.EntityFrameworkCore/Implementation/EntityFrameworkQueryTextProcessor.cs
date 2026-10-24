@@ -28,15 +28,16 @@ internal static class EntityFrameworkQueryTextProcessor
                 result.QuerySummary,
                 emitOldAttributes,
                 emitNewAttributes);
-            return;
         }
-
-        DatabaseSemanticConventionHelper.ApplyConventionsForQueryText(
-            activity,
-            commandText,
-            emitOldAttributes,
-            emitNewAttributes,
-            sanitizeQuery: false);
+        else
+        {
+            DatabaseSemanticConventionHelper.ApplyConventionsForQueryText(
+                activity,
+                commandText,
+                emitOldAttributes,
+                emitNewAttributes,
+                sanitizeQuery: false);
+        }
     }
 
     internal static DbQueryTextSanitizationResult SanitizeQueryText(DbQueryTextSanitizationContext context)
