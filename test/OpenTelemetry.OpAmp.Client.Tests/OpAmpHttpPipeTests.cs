@@ -27,14 +27,16 @@ public class OpAmpHttpPipeTests : OpAmpPipeTests
             },
         }.ToByteArray();
 
-        using var transport = this.GetTransport(
-            () => processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame)));
+        using var transport = this.GetTransport();
         var settings = new OpAmpClientSettings();
         using var pipe = new OpAmpPipe(settings, processor, transport);
 
         processor.Subscribe(new AppendHeartbeatAndThrowListener(pipe));
 
         AppendIdentification(pipe);
+        await transport.WaitForMessagesAsync(1);
+        transport.CompleteNextSend(
+            () => processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame)));
         await transport.WaitForMessagesAsync(2);
 
         AppendHeartbeat(pipe);
@@ -78,12 +80,7 @@ public class OpAmpHttpPipeTests : OpAmpPipeTests
         await Assert.ThrowsAsync<TimeoutException>(
             () => transport.WaitForMessagesAsync(3, TimeSpan.FromMilliseconds(250)));
 
-        transport.CompleteNextSend(
-            () => processor.OnServerFrame(new ReadOnlySequence<byte>(emptyResponse)));
-
-        await transport.WaitForMessagesAsync(3);
         Assert.False(flushTask.IsCompleted);
-
         transport.CompleteNextSend(
             () => processor.OnServerFrame(new ReadOnlySequence<byte>(emptyResponse)));
 
@@ -100,10 +97,11 @@ public class OpAmpHttpPipeTests : OpAmpPipeTests
 #endif
 
         var messages = transport.Messages.ToArray();
-        Assert.Equal([1UL, 2UL, 3UL], [.. messages.Select(m => m.SequenceNum)]);
+
+        // Both heartbeat updates accumulate until response dispatch finishes and share one frame.
+        Assert.Equal([1UL, 2UL], [.. messages.Select(m => m.SequenceNum)]);
         Assert.NotNull(messages[0].AgentDescription);
         Assert.NotNull(messages[1].Health);
-        Assert.NotNull(messages[2].Health);
     }
 
     internal override MockControlledTransport GetTransport(Action? firstSendCallback = null) => new MockControlledHttpTransport(firstSendCallback);
