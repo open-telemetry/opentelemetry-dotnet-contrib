@@ -80,7 +80,7 @@ public class RuntimeMetricsTests
         meterProvider.ForceFlush(MaxTimeToAllowForFlush);
         Assert.True(exportedItems.Count > 1);
 
-#if NET9_0_OR_GREATER
+#if NET
         var assembliesCountMetric = exportedItems.FirstOrDefault(i => i.Name == "dotnet.assembly.count");
         Assert.NotNull(assembliesCountMetric);
 
@@ -110,7 +110,7 @@ public class RuntimeMetricsTests
 
         meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
-#if NET9_0_OR_GREATER
+#if NET
         // We don't need to test all metrics here as those are tested in the runtime.
         // This is sufficient to validate that the runtime metrics are enabled.
         var gcCountMetric = exportedItems.FirstOrDefault(i => i.Name == "dotnet.gc.collections");
@@ -124,24 +124,6 @@ public class RuntimeMetricsTests
 
         var totalObjectsSize = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.objects.size");
         Assert.NotNull(totalObjectsSize);
-#endif
-
-#if NET8_0
-
-        var gcAllocationSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.allocations.size");
-        Assert.NotNull(gcAllocationSizeMetric);
-
-        var gcCommittedMemorySizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.committed_memory.size");
-        Assert.NotNull(gcCommittedMemorySizeMetric);
-
-        var gcHeapSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.heap.size");
-        Assert.NotNull(gcHeapSizeMetric);
-
-        var gcHeapFragmentationSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.heap.fragmentation.size");
-        Assert.NotNull(gcHeapFragmentationSizeMetric);
-
-        var gcDurationMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.duration");
-        Assert.NotNull(gcDurationMetric);
 #endif
     }
 
@@ -157,7 +139,7 @@ public class RuntimeMetricsTests
 
         meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
-#if NET9_0_OR_GREATER
+#if NET
         var jitCompiledSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "dotnet.jit.compiled_il.size");
         Assert.NotNull(jitCompiledSizeMetric);
 
@@ -199,7 +181,7 @@ public class RuntimeMetricsTests
 
         meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
-#if NET9_0_OR_GREATER
+#if NET
         // We don't need to test all metrics here as those are tested in the runtime.
         // This is sufficient to validate that the runtime metrics are enabled.
         var lockContentionCountMetric = exportedItems.FirstOrDefault(i => i.Name == "dotnet.monitor.lock_contentions");
@@ -254,7 +236,7 @@ public class RuntimeMetricsTests
     }
 #endif
 
-#if !NET9_0_OR_GREATER
+#if !NET
     [Fact]
     public void ExceptionSubscriptionFollowsProviderLifetime()
     {

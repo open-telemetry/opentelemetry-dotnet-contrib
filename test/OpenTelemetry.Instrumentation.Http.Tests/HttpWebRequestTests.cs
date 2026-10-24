@@ -106,7 +106,7 @@ public partial class HttpWebRequestTests
                 Assert.Fail($"Tag {tag.Key} was not found in test data.");
             }
 
-#if NET9_0_OR_GREATER
+#if NET
             // TODO: NEED TO REVIEW THE SPEC
             // NET 9+ does not record the URL Fragment Identifier.
             if (value.EndsWith("#fragment", StringComparison.Ordinal))
@@ -139,8 +139,8 @@ public partial class HttpWebRequestTests
 
         if (tc.RecordException.HasValue && tc.RecordException.Value)
         {
-#if NET10_0_OR_GREATER
-            // .NET 10 reports its own activity, but does not set the status description
+#if NET
+            // .NET reports its own activity, but does not set the status description
             Assert.Contains(activity.Events, evt => evt.Name.Equals("exception"));
 #else
             Assert.Single(activity.Events, evt => evt.Name.Equals("exception"));

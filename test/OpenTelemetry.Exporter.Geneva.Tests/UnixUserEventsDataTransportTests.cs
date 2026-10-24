@@ -24,7 +24,7 @@ public class UnixUserEventsDataTransportTests
      *     these tests do).
      *
      *  Command:
-     *    sudo dotnet test --configuration Debug --framework net10.0 --filter CategoryName=Geneva:user_events
+     *    sudo dotnet test --configuration Debug --framework net11.0 --filter CategoryName=Geneva:user_events
      *
      * How these tests work:
      *

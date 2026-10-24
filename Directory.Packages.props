@@ -45,8 +45,8 @@
   -->
   <ItemGroup Label="Production .NET packages">
     <PackageVersion Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="5.6.0" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="[10.0.0,)" />
-    <PackageVersion Include="Microsoft.Extensions.Options" Version="[10.0.0,)" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="[11.0.0-rc.2.26504.105,)" />
+    <PackageVersion Include="Microsoft.Extensions.Options" Version="[11.0.0-rc.2.26504.105,)" />
     <PackageVersion Include="Microsoft.Owin" Version="[4.2.2,)" />
     <PackageVersion Include="Microsoft.Win32.Registry" Version="[5.0.0,)" />
     <PackageVersion Include="System.Collections.Immutable" Version="[8.0.0,)" />
@@ -59,20 +59,16 @@
     <PackageVersion Include="System.Security.Cryptography.Xml" Version="[4.7.1,)" />
     <PackageVersion Include="System.ServiceModel.Primitives" Version="[4.7.0,)" />
     <PackageVersion Include="System.Text.Encodings.Web" Version="[4.7.2,)" />
-    <PackageVersion Include="System.Text.Json" Version="[8.0.5,)" />
+    <PackageVersion Include="System.Text.Json" Version="[10.0.0,)" />
   </ItemGroup>
   <!-- Version overrides for specific netX.0 TFMs -->
-  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
-    <PackageVersion Update="Microsoft.Extensions.Configuration" Version="[8.0.0,)" />
-    <PackageVersion Update="Microsoft.Extensions.Options" Version="[8.0.0,)" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
-    <PackageVersion Update="Microsoft.Extensions.Configuration" Version="[9.0.0,)" />
-    <PackageVersion Update="Microsoft.Extensions.Options" Version="[9.0.0,)" />
-  </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
     <PackageVersion Update="Microsoft.Extensions.Configuration" Version="[10.0.0,)" />
     <PackageVersion Update="Microsoft.Extensions.Options" Version="[10.0.0,)" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net11.0'">
+    <PackageVersion Update="Microsoft.Extensions.Configuration" Version="[11.0.0-rc.2.26504.105,)" />
+    <PackageVersion Update="Microsoft.Extensions.Options" Version="[11.0.0-rc.2.26504.105,)" />
   </ItemGroup>
 
   <ItemGroup Label="Production other packages">
@@ -120,15 +116,15 @@
     <PackageVersion Include="Microsoft.AspNet.WebApi.OwinSelfHost" Version="5.3.0" />
     <PackageVersion Include="Microsoft.AspNet.WebApi.WebHost" Version="5.3.0" />
     <PackageVersion Include="Microsoft.AspNet.WebPages" Version="3.3.0" />
-    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.32" />
-    <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.32" />
-    <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="8.0.32" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.13" />
     <PackageVersion Include="Microsoft.Azure.Kusto.Data" Version="14.2.4" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="7.1.1" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.32" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.32" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="8.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.13" />
     <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.12.0" />
     <PackageVersion Include="Microsoft.Testing.Platform" Version="2.5.1" />
     <PackageVersion Include="Microsoft.VisualStudio.DiagnosticsHub.BenchmarkDotNetDiagnosers" Version="18.7.37220.1" />
@@ -138,15 +134,14 @@
     <PackageVersion Include="NEST" Version="7.9.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageVersion Include="Newtonsoft.Json.Schema" Version="4.0.2" />
-    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
     <PackageVersion Include="ServiceFabric.Mocks" Version="8.1.3" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.3.0" />
     <PackageVersion Include="System.Reactive.Core" Version="6.1.0" />
     <PackageVersion Include="System.Reflection.DispatchProxy" Version="4.8.2" />
     <PackageVersion Include="System.Runtime.CompilerServices.Unsafe" Version="6.1.2" />
-    <!-- These WCF dependencies are pinned until we drop support for net8.0 and net9.0 -->
-    <PackageVersion Include="System.ServiceModel.Http" Version="[8.1.2,)" />
-    <PackageVersion Include="System.ServiceModel.NetTcp" Version="[8.1.2,)" />
+    <PackageVersion Include="System.ServiceModel.Http" Version="10.0.652802" />
+    <PackageVersion Include="System.ServiceModel.NetTcp" Version="10.0.652802" />
     <PackageVersion Include="Testcontainers" Version="4.16.0" />
     <PackageVersion Include="Testcontainers.Cassandra" Version="4.16.0" />
     <PackageVersion Include="Testcontainers.Kafka" Version="4.16.0" />
@@ -158,15 +153,10 @@
     <PackageVersion Include="Verify.XunitV3" Version="[32.0.1,)" />
     <PackageVersion Include="xunit.v3.mtp-v2" Version="4.0.2" />
   </ItemGroup>
-  <ItemGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net9.0'))" Label="Non-production packages, such as for examples and tests, for .NET 9">
-    <PackageVersion Update="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.21" />
-    <PackageVersion Update="Microsoft.AspNetCore.SignalR.Client" Version="9.0.21" />
-    <PackageVersion Update="Microsoft.AspNetCore.TestHost" Version="9.0.21" />
-  </ItemGroup>
-  <ItemGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0'))" Label="Non-production packages, such as for examples and tests, for .NET 10">
-    <PackageVersion Update="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.13" />
-    <PackageVersion Update="Microsoft.AspNetCore.SignalR.Client" Version="10.0.13" />
-    <PackageVersion Update="Microsoft.AspNetCore.TestHost" Version="10.0.13" />
+  <ItemGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net11.0'))" Label="Non-production packages, such as for examples and tests, for .NET 11">
+    <PackageVersion Update="Microsoft.AspNetCore.Mvc.Testing" Version="11.0.0-rc.2.26504.105" />
+    <PackageVersion Update="Microsoft.AspNetCore.SignalR.Client" Version="11.0.0-rc.2.26504.105" />
+    <PackageVersion Update="Microsoft.AspNetCore.TestHost" Version="11.0.0-rc.2.26504.105" />
   </ItemGroup>
 
 </Project>
