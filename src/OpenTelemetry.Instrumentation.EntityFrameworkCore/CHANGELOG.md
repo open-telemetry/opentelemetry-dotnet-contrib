@@ -42,7 +42,8 @@
 
 * Added `QueryTextSanitizer` to `EntityFrameworkInstrumentationOptions` to allow
   the query text emitted as the `db.statement` and `db.query.text` attributes to
-  be customized.
+  be customized. Query text sanitization contexts and results support value
+  equality.
   ([#5631](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5631))
 
 ## 1.19.1-beta.1

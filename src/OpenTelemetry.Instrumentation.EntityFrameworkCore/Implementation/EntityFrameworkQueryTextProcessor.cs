@@ -19,12 +19,7 @@ internal static class EntityFrameworkQueryTextProcessor
         string? providerName,
         EntityFrameworkInstrumentationOptions options)
     {
-        if (!TrySanitizeQueryText(command, commandText, providerName, options, out var result))
-        {
-            return;
-        }
-
-        if (result.SuppressQueryText)
+        if (!TrySanitizeQueryText(command, commandText, providerName, options, out var result) || result.SuppressQueryText)
         {
             return;
         }
@@ -37,15 +32,16 @@ internal static class EntityFrameworkQueryTextProcessor
                 result.QuerySummary,
                 options.EmitOldAttributes,
                 options.EmitNewAttributes);
-            return;
         }
-
-        DatabaseSemanticConventionHelper.ApplyConventionsForQueryText(
-            activity,
-            commandText,
-            options.EmitOldAttributes,
-            options.EmitNewAttributes,
-            sanitizeQuery: false);
+        else
+        {
+            DatabaseSemanticConventionHelper.ApplyConventionsForQueryText(
+                activity,
+                commandText,
+                options.EmitOldAttributes,
+                options.EmitNewAttributes,
+                sanitizeQuery: false);
+        }
     }
 
     internal static DbQueryTextSanitizationResult SanitizeQueryText(DbQueryTextSanitizationContext context)
