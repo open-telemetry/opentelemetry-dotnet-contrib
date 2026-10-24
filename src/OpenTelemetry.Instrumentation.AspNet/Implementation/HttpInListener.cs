@@ -35,7 +35,7 @@ internal sealed class HttpInListener : IDisposable
         TelemetryHttpModule.Options.OnExceptionCallback -= this.OnException;
     }
 
-    private void RecordDuration(Activity? activity, HttpContextBase context, string? routeTemplate = null)
+    private void RecordDuration(Activity? activity, HttpContextBase context, HttpRequestBase request, HttpResponseBase response, string? routeTemplate = null)
     {
         var metricStartTimestamp = context.Items[MetricStartTimestampHttpContextItemsKey];
         context.Items.Remove(MetricStartTimestampHttpContextItemsKey);
@@ -60,12 +60,11 @@ internal sealed class HttpInListener : IDisposable
         }
 
         var options = AspNetInstrumentation.Instance.MetricOptions;
-        var request = context.Request;
         var url = request.Url;
         var tags = new TagList
         {
             { SemanticConventions.AttributeUrlScheme, url.Scheme },
-            { SemanticConventions.AttributeHttpResponseStatusCode, context.Response.StatusCode },
+            { SemanticConventions.AttributeHttpResponseStatusCode, response.StatusCode },
         };
 
         if (context.Items[ErrorTypeHttpContextItemsKey] is string errorType)
@@ -145,7 +144,7 @@ internal sealed class HttpInListener : IDisposable
         tags.Add(SemanticConventions.AttributeServerPort, PortTelemetryHelper.GetBoxedPort(url.Port, cacheValue: true));
         tags.Add(SemanticConventions.AttributeUrlScheme, url.Scheme);
 
-        if (context.Request.Unvalidated?.Path is string path)
+        if (request.Unvalidated?.Path is string path)
         {
             tags.Add(SemanticConventions.AttributeUrlPath, path);
         }
@@ -219,16 +218,20 @@ internal sealed class HttpInListener : IDisposable
 
     private void OnStopActivity(Activity? activity, HttpContextBase context)
     {
+        // HttpContextBase.Request and HttpContextBase.Response allocate a new wrapper on each access, so read them once.
+        var request = context.Request;
+        var response = context.Response;
+
         if (AspNetInstrumentation.Instance.HandleManager.TracingHandles == 0)
         {
-            this.RecordDuration(activity, context);
+            this.RecordDuration(activity, context, request, response);
             return;
         }
 
         if (activity == null)
         {
             AspNetInstrumentationEventSource.Log.NullActivity(nameof(this.OnStopActivity));
-            this.RecordDuration(activity, context);
+            this.RecordDuration(activity, context, request, response);
             return;
         }
 
@@ -237,8 +240,6 @@ internal sealed class HttpInListener : IDisposable
 
         if (activity.IsAllDataRequested)
         {
-            var response = context.Response;
-
             activity.SetTag(SemanticConventions.AttributeHttpResponseStatusCode, response.StatusCode);
 
             if (activity.Status == ActivityStatusCode.Unset)
@@ -246,12 +247,12 @@ internal sealed class HttpInListener : IDisposable
                 activity.SetStatus(SpanHelper.ResolveActivityStatusForHttpStatusCode(activity.Kind, response.StatusCode));
             }
 
-            template = this.routeHelper.GetRouteTemplate(context.Request);
+            template = this.routeHelper.GetRouteTemplate(request);
 
             if (!string.IsNullOrEmpty(template))
             {
                 // Override the name that was previously set to the normalized HTTP method/HTTP
-                this.requestDataHelper.SetActivityDisplayName(activity, context.Request.HttpMethod, template);
+                this.requestDataHelper.SetActivityDisplayName(activity, request.HttpMethod, template);
                 activity.SetTag(SemanticConventions.AttributeHttpRoute, template);
             }
 
@@ -265,7 +266,7 @@ internal sealed class HttpInListener : IDisposable
             }
         }
 
-        this.RecordDuration(activity, context, template);
+        this.RecordDuration(activity, context, request, response, template);
     }
 
     private void OnException(Activity? activity, HttpContextBase context, Exception exception)
