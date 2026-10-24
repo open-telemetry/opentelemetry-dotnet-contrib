@@ -140,10 +140,8 @@ internal static class RedisProfilerEntryToActivityConverter
             : commandName;
 
         var activitySource =
-            options.EmitNewAttributes && options.EmitOldAttributes ?
-            StackExchangeRedisConnectionInstrumentation.ActivitySourceBoth :
-            options.EmitNewAttributes ?
-            StackExchangeRedisConnectionInstrumentation.ActivitySourceNew :
+            options.EmitNewAttributes && options.EmitOldAttributes ? StackExchangeRedisConnectionInstrumentation.ActivitySourceBoth :
+            options.EmitNewAttributes ? StackExchangeRedisConnectionInstrumentation.ActivitySourceNew :
             StackExchangeRedisConnectionInstrumentation.ActivitySource;
 
         var creationTags =

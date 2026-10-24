@@ -16,9 +16,9 @@ internal sealed class TraceEnrichmentProcessor : BaseProcessor<Activity>
         this.traceEnrichers = [.. traceEnrichers];
     }
 
-    public override void OnStart(Activity activity)
+    public override void OnStart(Activity data)
     {
-        var bag = new TraceEnrichmentBag(activity);
+        var bag = new TraceEnrichmentBag(data);
 
         foreach (var enricher in this.traceEnrichers)
         {
@@ -33,9 +33,9 @@ internal sealed class TraceEnrichmentProcessor : BaseProcessor<Activity>
         }
     }
 
-    public override void OnEnd(Activity activity)
+    public override void OnEnd(Activity data)
     {
-        var bag = new TraceEnrichmentBag(activity);
+        var bag = new TraceEnrichmentBag(data);
 
         foreach (var enricher in this.traceEnrichers)
         {

@@ -13,7 +13,6 @@
     <PackageReference Include="Hangfire.MemoryStorage" />
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
-    <PackageReference Include="System.Text.Json" Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETFramework'"/>
   </ItemGroup>
 
   <ItemGroup>

@@ -10,6 +10,7 @@ using Microsoft.Owin;
 using Microsoft.Owin.Hosting;
 using OpenTelemetry.Instrumentation.Owin.Implementation;
 using OpenTelemetry.Metrics;
+using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using Owin;
 
@@ -23,22 +24,21 @@ public class DiagnosticsMiddlewareTests : IDisposable
 
     public DiagnosticsMiddlewareTests()
     {
-        var random = new Random();
         var retryCount = 5;
         do
         {
-            this.serviceBaseUri = new Uri($"http://localhost:{random.Next(2000, 5000)}/");
+            this.serviceBaseUri = new Uri($"http://localhost:{TcpPortProvider.GetOpenPort()}/");
             try
             {
                 this.listener = WebApp.Start(
                     this.serviceBaseUri.ToString(),
                     appBuilder =>
                     {
-                        appBuilder.Use((context, next) =>
+                        appBuilder.Use(async (context, next) =>
                         {
                             try
                             {
-                                return next();
+                                await next();
                             }
                             finally
                             {
@@ -82,6 +82,8 @@ public class DiagnosticsMiddlewareTests : IDisposable
         {
             throw new InvalidOperationException("HttpListener could not be started.");
         }
+
+        TestContext.Current.TestOutputHelper?.WriteLine($"Listening on {this.serviceBaseUri}");
     }
 
     public void Dispose()
@@ -381,7 +383,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
         {
             List<Activity> stoppedActivities = [];
 
-            var builder = Sdk.CreateTracerProviderBuilder()
+            using var tracerProvider = Sdk.CreateTracerProviderBuilder()
                 .ConfigureServices(services =>
                 {
                     if (disableQueryRedactionUsingConfiguration)

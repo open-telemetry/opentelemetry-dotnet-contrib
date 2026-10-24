@@ -49,9 +49,9 @@ internal sealed class DiagnosticSourceSubscriber : IDisposable, IObserver<Diagno
         {
             var handler = this.handlerFactory(value.Name);
             var listener = new DiagnosticSourceListener(handler, this.logUnknownException);
-            var subscription = this.isEnabledFilter == null ?
-                value.Subscribe(listener) :
-                value.Subscribe(listener, this.isEnabledFilter);
+            var subscription = this.isEnabledFilter == null
+                ? value.Subscribe(listener)
+                : value.Subscribe(listener, this.isEnabledFilter);
 
             lock (this.listenerSubscriptions)
             {

@@ -31,12 +31,12 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
 
     internal static readonly IEnumerable<KeyValuePair<string, object?>> OldCreationTags =
     [
-        new(SemanticConventions.AttributeDbSystem, "redis")
+        new(SemanticConventions.AttributeDbSystem, "redis"),
     ];
 
     internal static readonly IEnumerable<KeyValuePair<string, object?>> NewCreationTags =
     [
-        new(SemanticConventions.AttributeDbSystemName, "redis")
+        new(SemanticConventions.AttributeDbSystemName, "redis"),
     ];
 
     internal static readonly IEnumerable<KeyValuePair<string, object?>> BothCreationTags =

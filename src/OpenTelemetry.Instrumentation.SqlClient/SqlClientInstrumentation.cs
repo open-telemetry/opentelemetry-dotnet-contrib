@@ -24,7 +24,7 @@ internal sealed class SqlClientInstrumentation : IDisposable
         "System.Data.SqlClient.WriteCommandAfter",
         "Microsoft.Data.SqlClient.WriteCommandAfter",
         "System.Data.SqlClient.WriteCommandError",
-        "Microsoft.Data.SqlClient.WriteCommandError"
+        "Microsoft.Data.SqlClient.WriteCommandError",
     ];
 #endif
 

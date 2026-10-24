@@ -194,7 +194,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
         var scopeProvider = new ScopeProvider(
             [
                 new KeyValuePair<string, object?>("scope1Key1", "scope1Value1"),
-                new KeyValuePair<string, object?>("scope1Key2", "scope1Value2")
+                new KeyValuePair<string, object?>("scope1Key2", "scope1Value2"),
             ],
             [new KeyValuePair<string, object?>("scope2Key1", "scope2Value1")]);
 
@@ -213,7 +213,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
             logRecord.Attributes =
             [
                 new KeyValuePair<string, object?>("stateKey1", "stateValue1"),
-                new KeyValuePair<string, object?>("stateKey2", "stateValue2")
+                new KeyValuePair<string, object?>("stateKey2", "stateValue2"),
             ];
         });
 

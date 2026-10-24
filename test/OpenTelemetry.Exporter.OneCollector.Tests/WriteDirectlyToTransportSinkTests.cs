@@ -115,7 +115,7 @@ public class WriteDirectlyToTransportSinkTests
         items =
         [
             "item4",
-            "item5"
+            "item5",
         ];
 
         numberOfRecordsWritten = sink.Write(Resource.Empty, new(items, items.Length));

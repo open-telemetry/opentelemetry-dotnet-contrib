@@ -25,7 +25,7 @@ internal sealed class ThrowingServiceRemotingClientMock : IServiceRemotingClient
 
     public ResolvedServiceEndpoint? Endpoint { get; set; }
 
-    public Task<IServiceRemotingResponseMessage> RequestResponseAsync(IServiceRemotingRequestMessage requestMessage) => Task.FromException<IServiceRemotingResponseMessage>(this.exception);
+    public Task<IServiceRemotingResponseMessage> RequestResponseAsync(IServiceRemotingRequestMessage requestRequestMessage) => Task.FromException<IServiceRemotingResponseMessage>(this.exception);
 
     public void SendOneWay(IServiceRemotingRequestMessage requestMessage) => throw this.exception;
 }
