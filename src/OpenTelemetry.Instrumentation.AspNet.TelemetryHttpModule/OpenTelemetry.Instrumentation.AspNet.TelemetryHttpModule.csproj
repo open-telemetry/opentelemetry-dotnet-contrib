@@ -35,6 +35,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="OpenTelemetry.Instrumentation.AspNet.Benchmarks" PublicKey="$(StrongNamePublicKey)" />
     <InternalsVisibleTo Include="OpenTelemetry.Instrumentation.AspNet.Tests" PublicKey="$(StrongNamePublicKey)" />
   </ItemGroup>
 
