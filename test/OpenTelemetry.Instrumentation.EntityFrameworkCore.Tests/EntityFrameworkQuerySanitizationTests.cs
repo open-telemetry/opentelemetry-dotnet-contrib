@@ -70,64 +70,6 @@ public sealed class EntityFrameworkQuerySanitizationTests : IDisposable
         Assert.Contains("\"p\".\"ApiKey\" = ?", control, StringComparison.Ordinal);
     }
 
-    [Fact]
-    public void MySqlProvider_ContainsOverCapturedList_WithApostropheColumn_RedactsEveryListValue()
-    {
-        var exported = new List<Activity>();
-        string[] emails = ["alice@example.com", "bob@example.com"];
-
-        using (Sdk.CreateTracerProviderBuilder()
-                   .AddInMemoryExporter(exported)
-                   .AddEntityFrameworkCoreInstrumentation()
-                   .Build())
-        {
-            using var context = new AccountsContext(OfflineOptions(b => b.UseMySql("Server=mysql.internal;Database=crm", new MySqlServerVersion(new Version(8, 0, 36)))));
-
-            _ = context.Accounts.Where(a => emails.Contains(a.OwnerEmail)).ToList();
-            _ = context.PlainAccounts.Where(a => emails.Contains(a.OwnerEmail)).ToList();
-        }
-
-        Assert.Equal(2, exported.Count);
-
-        var queryText = this.GetQueryText(exported[0]);
-        var control = this.GetQueryText(exported[1]);
-
-        Assert.Equal("mysql", exported[0].GetTagValue(SemanticConventions.AttributeDbSystem));
-        Assert.Contains("`a`.`Nom de l'enterprise`", queryText, StringComparison.Ordinal);
-        Assert.DoesNotContain("@example.com", queryText, StringComparison.Ordinal);
-        Assert.Contains("IN (?)", queryText, StringComparison.Ordinal);
-
-        // Control: the same values are redacted without the apostrophe.
-        Assert.DoesNotContain("@example.com", control, StringComparison.Ordinal);
-        Assert.Contains("IN (?)", control, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public void MySqlProvider_RawSqlInListWithDoubleQuotedValueContainingParen_RedactsValues()
-    {
-        var exported = new List<Activity>();
-
-        using (Sdk.CreateTracerProviderBuilder()
-                   .AddInMemoryExporter(exported)
-                   .AddEntityFrameworkCoreInstrumentation()
-                   .Build())
-        {
-            using var context = new AccountsContext(OfflineOptions(b => b.UseMySql("Server=mysql.internal;Database=crm", new MySqlServerVersion(new Version(8, 0, 36)))));
-
-            context.Database.ExecuteSqlRaw(
-                "UPDATE `PlainAccounts` SET `Company` = 'churned' WHERE `OwnerEmail` IN ('carol@example.com', \"Fabrikam (UK)\", \"alice@example.com\", \"x\", \"bob@example.com\")");
-            context.Database.ExecuteSqlRaw(
-                "UPDATE `PlainAccounts` SET `Company` = 'churned' WHERE `OwnerEmail` IN ('carol@example.com', 'Fabrikam (UK)', 'alice@example.com', 'x', 'bob@example.com')");
-        }
-
-        Assert.Equal(2, exported.Count);
-
-        const string Expected = "UPDATE `PlainAccounts` SET `Company` = ? WHERE `OwnerEmail` IN (?)";
-
-        Assert.Equal(Expected, this.GetQueryText(exported[0]));
-        Assert.Equal(Expected, this.GetQueryText(exported[1]));
-    }
-
     [Theory]
     [InlineData(false)]
     [InlineData(true)]

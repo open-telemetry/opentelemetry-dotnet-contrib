@@ -12,6 +12,12 @@ namespace OpenTelemetry.Instrumentation.EntityFrameworkCore;
 /// </summary>
 public readonly struct DbQueryTextSanitizationContext : IEquatable<DbQueryTextSanitizationContext>
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DbQueryTextSanitizationContext"/> struct.
+    /// </summary>
+    /// <param name="providerName">The database provider name.</param>
+    /// <param name="queryText">The unsanitized command text.</param>
+    /// <param name="command">The database command.</param>
     internal DbQueryTextSanitizationContext(string? providerName, string? queryText, IDbCommand? command)
     {
         this.ProviderName = providerName;

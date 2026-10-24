@@ -10,6 +10,55 @@ public class RuntimeMetricsTests
     private const int MaxTimeToAllowForFlush = 10000;
 
     [Fact]
+    public void AddRuntimeInstrumentationThrowsOnNullBuilder()
+    {
+        MeterProviderBuilder builder = null!;
+        var exception = Assert.Throws<ArgumentNullException>(() => builder.AddRuntimeInstrumentation());
+
+        Assert.Equal("builder", exception.ParamName);
+    }
+
+    [Fact]
+    [Obsolete("Tests the obsolete configuration overload.")]
+    public void AddRuntimeInstrumentationWithConfigureThrowsOnNullBuilder()
+    {
+        MeterProviderBuilder builder = null!;
+        var configureCalled = false;
+        var exception = Assert.Throws<ArgumentNullException>(() =>
+            builder.AddRuntimeInstrumentation(_ => configureCalled = true));
+
+        Assert.Equal("builder", exception.ParamName);
+        Assert.False(configureCalled);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    [Obsolete("Tests the obsolete configuration overload.")]
+    public void RuntimeMetricsAreCapturedWithConfigure(bool hasConfigure)
+    {
+        var configureCalls = 0;
+        Action<RuntimeInstrumentationOptions>? configure = hasConfigure ? _ => configureCalls++ : null;
+        var builder = Sdk.CreateMeterProviderBuilder();
+
+        Assert.Same(builder, builder.AddRuntimeInstrumentation(configure));
+        Assert.Equal(0, configureCalls);
+
+        var exportedItems = new List<Metric>();
+        using var meterProvider = builder
+            .AddInMemoryExporter(exportedItems)
+            .Build();
+
+        Assert.True(meterProvider.ForceFlush(MaxTimeToAllowForFlush));
+
+#if NET9_0_OR_GREATER
+        Assert.Contains(exportedItems, metric => metric.Name == "dotnet.assembly.count");
+#else
+        Assert.Contains(exportedItems, metric => metric.Name == "process.runtime.dotnet.assemblies.count");
+#endif
+    }
+
+    [Fact]
     public void RuntimeMetricsAreCaptured()
     {
         var exportedItems = new List<Metric>();
@@ -207,12 +256,35 @@ public class RuntimeMetricsTests
 
 #if !NET9_0_OR_GREATER
     [Fact]
+    public void ExceptionSubscriptionFollowsProviderLifetime()
+    {
+        Assert.Equal(0, RuntimeMetrics.ActiveRuntimeMetricsInstances);
+
+        var builder = Sdk.CreateMeterProviderBuilder().AddRuntimeInstrumentation();
+        Assert.Equal(0, RuntimeMetrics.ActiveRuntimeMetricsInstances);
+
+        using (var first = builder.Build())
+        {
+            Assert.Equal(1, RuntimeMetrics.ActiveRuntimeMetricsInstances);
+
+            using (var second = Sdk.CreateMeterProviderBuilder().AddRuntimeInstrumentation().Build())
+            {
+                Assert.Equal(2, RuntimeMetrics.ActiveRuntimeMetricsInstances);
+            }
+
+            Assert.Equal(1, RuntimeMetrics.ActiveRuntimeMetricsInstances);
+        }
+
+        Assert.Equal(0, RuntimeMetrics.ActiveRuntimeMetricsInstances);
+    }
+
+    [Fact]
     public void ExceptionSubscriptionIsReferenceCounted()
     {
         Assert.Equal(0, RuntimeMetrics.ActiveRuntimeMetricsInstances);
 
-        var first = new RuntimeMetrics(new RuntimeInstrumentationOptions());
-        var second = new RuntimeMetrics(new RuntimeInstrumentationOptions());
+        var first = new RuntimeMetrics();
+        var second = new RuntimeMetrics();
 
         try
         {
@@ -233,7 +305,7 @@ public class RuntimeMetricsTests
     {
         Assert.Equal(0, RuntimeMetrics.ActiveRuntimeMetricsInstances);
 
-        var instrumentation = new RuntimeMetrics(new RuntimeInstrumentationOptions());
+        var instrumentation = new RuntimeMetrics();
         Assert.Equal(1, RuntimeMetrics.ActiveRuntimeMetricsInstances);
 
         instrumentation.Dispose();
@@ -241,7 +313,7 @@ public class RuntimeMetricsTests
 
         Assert.Equal(0, RuntimeMetrics.ActiveRuntimeMetricsInstances);
 
-        using (var recreatedInstrumentation = new RuntimeMetrics(new RuntimeInstrumentationOptions()))
+        using (var recreatedInstrumentation = new RuntimeMetrics())
         {
             Assert.Equal(1, RuntimeMetrics.ActiveRuntimeMetricsInstances);
         }

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.20.0
+
+Released 2026-Oct-15
+
 * Fixed `AWSECSDetector` and `AWSEKSDetector` reporting an incorrect
   `container.id` when the systemd cgroup driver is used.
   ([#5454](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5454))
@@ -10,6 +14,9 @@
   `AWSEKSDetector` make while the resource is built, including reading the
   response, now time out after 1, 2 and 5 seconds respectively.
   ([#5452](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5452))
+
+* Updated OpenTelemetry core component version(s) to `1.20.0`.
+  ([#5541](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5541))
 
 ## 1.19.1
 

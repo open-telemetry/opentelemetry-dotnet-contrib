@@ -1,9 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Text;
-using System.Text.RegularExpressions;
-
 namespace OpenTelemetry.Sampler.AWS;
 
 internal static class Matcher
@@ -16,8 +13,6 @@ internal static class Matcher
         { "aws_elastic_beanstalk", "AWS::ElasticBeanstalk::Environment" },
         { "aws_lambda", "AWS::Lambda::Function" },
     };
-
-    private static readonly TimeSpan RegexTimeout = TimeSpan.FromSeconds(1);
 
     public static bool WildcardMatch(string? text, string? globPattern)
     {
@@ -36,20 +31,13 @@ internal static class Matcher
             return text.Length == 0;
         }
 
-        // It is faster to check if we need a regex comparison than
-        // always doing a regex comparison, even where we may not need it.
+        // As in the X-Ray sampler of OpenTelemetry Java, a pattern with wildcards is matched
+        // case-sensitively, while a pattern without wildcards is compared case-insensitively.
         foreach (var c in globPattern)
         {
             if (c is '*' or '?')
             {
-                try
-                {
-                    return Regex.IsMatch(text, ToRegexPattern(globPattern), RegexOptions.None, RegexTimeout);
-                }
-                catch (RegexMatchTimeoutException)
-                {
-                    return false;
-                }
+                return GlobMatch(text, globPattern);
             }
         }
 
@@ -89,45 +77,57 @@ internal static class Matcher
         return matchedCount == ruleAttributes.Count;
     }
 
-    private static string ToRegexPattern(string globPattern)
+    private static bool GlobMatch(string text, string globPattern)
     {
-        var tokenStart = -1;
-        var patternBuilder = new StringBuilder();
+        // Matches the whole text against a glob pattern in which '*' matches any sequence of characters
+        // (including none) and '?' matches any single character. Only the most recent '*' is ever
+        // backtracked to, so the time taken is at most proportional to text.Length * globPattern.Length
+        // whatever the input, and no memory is allocated.
+        var textIndex = 0;
+        var patternIndex = 0;
 
-        for (var i = 0; i < globPattern.Length; i++)
+        // The position of the most recent '*' in the pattern, and of the text it was matched at.
+        var starIndex = -1;
+        var starTextIndex = 0;
+
+        while (textIndex < text.Length)
         {
-            var c = globPattern[i];
-            if (c is '*' or '?')
+            if (patternIndex < globPattern.Length)
             {
-                if (tokenStart != -1)
-                {
-                    patternBuilder.Append(Regex.Escape(globPattern.Substring(tokenStart, i - tokenStart)));
-                    tokenStart = -1;
-                }
+                var c = globPattern[patternIndex];
 
                 if (c == '*')
                 {
-                    patternBuilder.Append(".*");
+                    // Let the '*' match nothing for now.
+                    starIndex = patternIndex++;
+                    starTextIndex = textIndex;
+                    continue;
                 }
-                else
+
+                if (c == '?' || c == text[textIndex])
                 {
-                    patternBuilder.Append('.');
+                    patternIndex++;
+                    textIndex++;
+                    continue;
                 }
             }
-            else
+
+            if (starIndex < 0)
             {
-                if (tokenStart == -1)
-                {
-                    tokenStart = i;
-                }
+                return false;
             }
+
+            // Let the most recent '*' match one more character and try the rest of the pattern again.
+            patternIndex = starIndex + 1;
+            textIndex = ++starTextIndex;
         }
 
-        if (tokenStart != -1)
+        // All of the text has been matched, so the rest of the pattern matches only if it is all '*'.
+        while (patternIndex < globPattern.Length && globPattern[patternIndex] == '*')
         {
-            patternBuilder.Append(Regex.Escape(globPattern.Substring(tokenStart)));
+            patternIndex++;
         }
 
-        return patternBuilder.ToString();
+        return patternIndex == globPattern.Length;
     }
 }

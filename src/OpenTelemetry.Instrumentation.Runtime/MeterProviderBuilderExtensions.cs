@@ -22,18 +22,7 @@ public static class MeterProviderBuilderExtensions
     /// <param name="builder"><see cref="MeterProviderBuilder"/> being configured.</param>
     /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
     public static MeterProviderBuilder AddRuntimeInstrumentation(
-        this MeterProviderBuilder builder) =>
-        AddRuntimeInstrumentation(builder, configure: null);
-
-    /// <summary>
-    /// Enables runtime instrumentation.
-    /// </summary>
-    /// <param name="builder"><see cref="MeterProviderBuilder"/> being configured.</param>
-    /// <param name="configure">Runtime metrics options.</param>
-    /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
-    public static MeterProviderBuilder AddRuntimeInstrumentation(
-        this MeterProviderBuilder builder,
-        Action<RuntimeInstrumentationOptions>? configure)
+        this MeterProviderBuilder builder)
     {
         Guard.ThrowIfNull(builder);
 
@@ -45,11 +34,20 @@ public static class MeterProviderBuilderExtensions
             return builder.AddMeter(DotNetRuntimeMeterName);
         }
 
-        var options = new RuntimeInstrumentationOptions();
-        configure?.Invoke(options);
-
         builder.AddMeter(RuntimeMetrics.MeterInstance.Name);
-        return builder.AddInstrumentation(() => new RuntimeMetrics(options));
+        return builder.AddInstrumentation(static () => new RuntimeMetrics());
 #endif
     }
+
+    /// <summary>
+    /// Enables runtime instrumentation.
+    /// </summary>
+    /// <param name="builder"><see cref="MeterProviderBuilder"/> being configured.</param>
+    /// <param name="configure">Runtime metrics options.</param>
+    /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
+    [Obsolete("Runtime instrumentation does not support configuration. Use AddRuntimeInstrumentation() instead. Configure call is skipped.")]
+    public static MeterProviderBuilder AddRuntimeInstrumentation(
+        this MeterProviderBuilder builder,
+        Action<RuntimeInstrumentationOptions>? configure) =>
+        builder.AddRuntimeInstrumentation();
 }

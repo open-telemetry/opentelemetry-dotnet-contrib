@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.20.0-beta.1
+
+Released 2026-Oct-15
+
 * **Breaking Change**: Context is now propagated regardless of
   `SuppressDownstreamInstrumentation`. Without HttpClient instrumentation,
   downstream spans are parented to the gRPC client span and baggage is
@@ -9,6 +13,9 @@
   downstream spans are parented to the gRPC client span instead of the
   HttpClient span.
   ([#5327](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5327))
+
+* Updated OpenTelemetry core component version(s) to `1.20.0`.
+  ([#5541](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5541))
 
 ## 1.19.1-beta.1
 
