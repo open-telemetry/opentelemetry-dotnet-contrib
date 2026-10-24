@@ -9,6 +9,9 @@ namespace OpenTelemetry.Instrumentation.EntityFrameworkCore;
 /// <summary>
 /// Contains information about a database command to sanitize.
 /// </summary>
+/// <param name="providerName">The database provider name.</param>
+/// <param name="queryText">The unsanitized command text.</param>
+/// <param name="command">The database command.</param>
 internal readonly struct DbQueryTextSanitizationContext(string? providerName, string? queryText, IDbCommand? command)
     : IEquatable<DbQueryTextSanitizationContext>
 {
