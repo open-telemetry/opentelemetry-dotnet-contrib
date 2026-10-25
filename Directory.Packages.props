@@ -45,8 +45,8 @@
   -->
   <ItemGroup Label="Production .NET packages">
     <PackageVersion Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="5.6.0" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="[11.0.0-rc.2.26504.105,)" />
-    <PackageVersion Include="Microsoft.Extensions.Options" Version="[11.0.0-rc.2.26504.105,)" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="[11.0.0-rc.3.26522.148,)" />
+    <PackageVersion Include="Microsoft.Extensions.Options" Version="[11.0.0-rc.3.26522.148,)" />
     <PackageVersion Include="Microsoft.Owin" Version="[4.2.2,)" />
     <PackageVersion Include="Microsoft.Win32.Registry" Version="[5.0.0,)" />
     <PackageVersion Include="System.Collections.Immutable" Version="[8.0.0,)" />
@@ -67,8 +67,8 @@
     <PackageVersion Update="Microsoft.Extensions.Options" Version="[10.0.0,)" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net11.0'">
-    <PackageVersion Update="Microsoft.Extensions.Configuration" Version="[11.0.0-rc.2.26504.105,)" />
-    <PackageVersion Update="Microsoft.Extensions.Options" Version="[11.0.0-rc.2.26504.105,)" />
+    <PackageVersion Update="Microsoft.Extensions.Configuration" Version="[11.0.0-rc.3.26522.148,)" />
+    <PackageVersion Update="Microsoft.Extensions.Options" Version="[11.0.0-rc.3.26522.148,)" />
   </ItemGroup>
 
   <ItemGroup Label="Production other packages">
@@ -154,9 +154,9 @@
     <PackageVersion Include="xunit.v3.mtp-v2" Version="4.0.2" />
   </ItemGroup>
   <ItemGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net11.0'))" Label="Non-production packages, such as for examples and tests, for .NET 11">
-    <PackageVersion Update="Microsoft.AspNetCore.Mvc.Testing" Version="11.0.0-rc.2.26504.105" />
-    <PackageVersion Update="Microsoft.AspNetCore.SignalR.Client" Version="11.0.0-rc.2.26504.105" />
-    <PackageVersion Update="Microsoft.AspNetCore.TestHost" Version="11.0.0-rc.2.26504.105" />
+    <PackageVersion Update="Microsoft.AspNetCore.Mvc.Testing" Version="11.0.0-rc.3.26522.148" />
+    <PackageVersion Update="Microsoft.AspNetCore.SignalR.Client" Version="11.0.0-rc.3.26522.148" />
+    <PackageVersion Update="Microsoft.AspNetCore.TestHost" Version="11.0.0-rc.3.26522.148" />
   </ItemGroup>
 
 </Project>
