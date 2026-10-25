@@ -169,6 +169,11 @@ flags:
     paths:
       - src/OpenTelemetry.Instrumentation.SqlClient
 
+  unittests-Instrumentation.SshNet:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Instrumentation.SshNet
+
   unittests-Instrumentation.StackExchangeRedis:
     carryforward: true
     paths:

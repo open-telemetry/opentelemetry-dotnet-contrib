@@ -83,6 +83,7 @@ jobs:
           instrumentation-runtime: ['*/OpenTelemetry.Instrumentation.Runtime*/**', 'examples/runtime-instrumentation/**', '!**/*.md']
           instrumentation-servicefabricremoting: ['*/OpenTelemetry.Instrumentation.ServiceFabricRemoting*/**', '!**/*.md']
           instrumentation-sqlclient: ['*/OpenTelemetry.Instrumentation.SqlClient*/**', '!**/*.md']
+          instrumentation-sshnet: ['*/OpenTelemetry.Instrumentation.SshNet*/**', '!**/*.md']
           instrumentation-stackexchangeredis: ['*/OpenTelemetry.Instrumentation.StackExchangeRedis*/**', 'examples/redis/**', '!**/*.md']
           instrumentation-wcf: ['*/OpenTelemetry.Instrumentation.Wcf*/**', 'examples/wcf/**', '!**/*.md']
           opamp-client: ['*/OpenTelemetry.OpAmp.Client*/**', '!**/*.md']
@@ -488,6 +489,18 @@ jobs:
       code-cov-name: Instrumentation.SqlClient
       trigger: ${{ github.event_name }}
 
+  build-test-instrumentation-sshnet:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'instrumentation-sshnet')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: Component[OpenTelemetry.Instrumentation.SshNet]
+      code-cov-name: Instrumentation.SshNet
+      trigger: ${{ github.event_name }}
+
   build-test-instrumentation-stackexchangeredis:
     needs: detect-changes
     if: |
@@ -751,6 +764,7 @@ jobs:
       build-test-instrumentation-runtime,
       build-test-instrumentation-servicefabricremoting,
       build-test-instrumentation-sqlclient,
+      build-test-instrumentation-sshnet,
       build-test-instrumentation-stackexchangeredis,
       build-test-instrumentation-wcf,
       build-test-opamp-client,
