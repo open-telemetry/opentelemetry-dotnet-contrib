@@ -220,20 +220,27 @@ internal class AWSLambdaHttpUtils
             return (null, null);
         }
 
-#pragma warning disable CA1861 // Prefer 'static readonly' fields over constant array arguments if the called method is called repeatedly and is not mutating the passed array
-        var hostAndPort = hostHeader.Split([':'], 2);
-#pragma warning restore CA1861 // Prefer 'static readonly' fields over constant array arguments if the called method is called repeatedly and is not mutating the passed array
-        if (hostAndPort.Length > 1)
+        // Find the delimiter rather than splitting the header to avoid allocating an array
+#if NET
+        var delimiterIndex = hostHeader.IndexOf(':', StringComparison.Ordinal);
+#else
+        var delimiterIndex = hostHeader.IndexOf(':');
+#endif
+        if (delimiterIndex < 0)
         {
-            var host = hostAndPort[0];
-            return int.TryParse(hostAndPort[1], NumberStyles.None, CultureInfo.InvariantCulture, out var port)
-                ? (host, port)
-                : (host, null);
+            return (hostHeader, GetDefaultPort(httpScheme));
         }
-        else
-        {
-            return (hostAndPort[0], GetDefaultPort(httpScheme));
-        }
+
+        var host = hostHeader.Substring(0, delimiterIndex);
+#if NET
+        var portValue = hostHeader.AsSpan(delimiterIndex + 1);
+#else
+        var portValue = hostHeader.Substring(delimiterIndex + 1);
+#endif
+
+        return int.TryParse(portValue, NumberStyles.None, CultureInfo.InvariantCulture, out var port)
+            ? (host, port)
+            : (host, null);
     }
 
     private static int? GetDefaultPort(string? httpScheme) =>
