@@ -220,12 +220,23 @@ internal class AWSLambdaHttpUtils
             return (null, null);
         }
 
+        // An IPv6 address is enclosed in brackets (e.g. "[::1]:8080") and contains colons
+        // itself, so only look for the port delimiter after the closing bracket.
+        var searchStart = 0;
+        if (hostHeader.Length > 0 && hostHeader[0] == '[')
+        {
+            var closingBracketIndex = hostHeader.IndexOf(']', 1);
+            if (closingBracketIndex < 0)
+            {
+                // The IPv6 address is malformed, so do not try to find a port
+                return (hostHeader, null);
+            }
+
+            searchStart = closingBracketIndex + 1;
+        }
+
         // Find the delimiter rather than splitting the header to avoid allocating an array
-#if NET
-        var delimiterIndex = hostHeader.IndexOf(':', StringComparison.Ordinal);
-#else
-        var delimiterIndex = hostHeader.IndexOf(':');
-#endif
+        var delimiterIndex = hostHeader.IndexOf(':', searchStart);
         if (delimiterIndex < 0)
         {
             return (hostHeader, GetDefaultPort(httpScheme));
