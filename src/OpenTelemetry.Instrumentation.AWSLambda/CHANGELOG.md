@@ -4,7 +4,7 @@
 
 * Fix `server.address` and `server.port` not being recorded correctly for HTTP
   requests with an IPv6 address in the `Host` header (e.g. `[::1]:8080`).
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#5788](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5788))
 
 ## 1.20.1
 
