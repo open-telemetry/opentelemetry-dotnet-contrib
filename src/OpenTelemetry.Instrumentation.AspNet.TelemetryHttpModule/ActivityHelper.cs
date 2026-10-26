@@ -62,12 +62,7 @@ internal static class ActivityHelper
         Activity? activity = null;
         try
         {
-            var baggage = propagationContext.Baggage;
-            if (baggage.Count > 0 || Baggage.Current.Count > 0)
-            {
-                Baggage.Current = baggage;
-            }
-
+            Baggage.Current = propagationContext.Baggage;
             activity = onRequestStartedCallback?.Invoke(context, propagationContext.ActivityContext);
         }
         catch (Exception callbackEx)

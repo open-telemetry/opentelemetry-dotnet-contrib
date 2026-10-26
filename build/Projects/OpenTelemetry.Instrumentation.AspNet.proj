@@ -8,6 +8,7 @@
   <ItemGroup>
     <SolutionProjects Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule\OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.csproj" />
     <SolutionProjects Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.AspNet\OpenTelemetry.Instrumentation.AspNet.csproj" />
+    <SolutionProjects Include="$(RepoRoot)\test\OpenTelemetry.Instrumentation.AspNet.Benchmarks\OpenTelemetry.Instrumentation.AspNet.Benchmarks.csproj" />
     <SolutionProjects Include="$(RepoRoot)\test\OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.Tests\OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.Tests.csproj" />
     <SolutionProjects Include="$(RepoRoot)\test\OpenTelemetry.Instrumentation.AspNet.Tests\OpenTelemetry.Instrumentation.AspNet.Tests.csproj" />
     <SolutionProjects Include="$(RepoRoot)\examples\AspNet\**\*.csproj" />
