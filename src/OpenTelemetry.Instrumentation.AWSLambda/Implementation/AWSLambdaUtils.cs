@@ -182,6 +182,42 @@ internal class AWSLambdaUtils
         return headerValue != null ? new[] { headerValue } : null;
     }
 
+    internal static string? GetAccountId(string? functionArn)
+    {
+        if (string.IsNullOrEmpty(functionArn))
+        {
+            return null;
+        }
+
+        // The fifth item of function arn: https://github.com/open-telemetry/opentelemetry-specification/blob/86aeab1e0a7e6c67be09c7f15ff25063ee6d2b5c/specification/trace/semantic_conventions/instrumentation/aws-lambda.md#all-triggers
+        // Function arn format - arn:aws:lambda:<region>:<account-id>:function:<function-name>
+        var start = IndexOfArnDelimiter(functionArn!, 4);
+        if (start < 0)
+        {
+            return null;
+        }
+
+        start++;
+        var end = functionArn!.IndexOf(':', start);
+
+        return end < 0 ? functionArn.Substring(start) : functionArn.Substring(start, end - start);
+    }
+
+    internal static string? GetFaasId(string? functionArn)
+    {
+        if (string.IsNullOrEmpty(functionArn))
+        {
+            return null;
+        }
+
+        // According to faas.id description https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/instrumentation/aws-lambda.md#all-triggers
+        // the 8th part of arn (function version or alias, see https://docs.aws.amazon.com/lambda/latest/dg/lambda-api-permissions-ref.html)
+        // should not be included into faas.id
+        var index = IndexOfArnDelimiter(functionArn!, 7);
+
+        return index < 0 ? functionArn : functionArn!.Substring(0, index);
+    }
+
     internal IEnumerable<KeyValuePair<string, object>> GetFunctionTags<TInput>(TInput input, ILambdaContext context, bool isColdStart)
     {
         var functionArn = context.InvokedFunctionArn;
@@ -205,43 +241,26 @@ internal class AWSLambdaUtils
     private static string? GetHeaderValue(APIGatewayHttpApiV2ProxyRequest request, string name) =>
         request.Headers?.GetValueByKeyIgnoringCase(name);
 
-    private static string? GetAccountId(string? functionArn)
+    /// <summary>
+    /// Returns the index of the specified occurrence of the ARN delimiter without splitting the ARN.
+    /// </summary>
+    /// <param name="functionArn">The ARN to search.</param>
+    /// <param name="occurrence">The one-based occurrence of the delimiter to find.</param>
+    /// <returns>The index of the delimiter, or -1 if the ARN has fewer delimiters.</returns>
+    private static int IndexOfArnDelimiter(string functionArn, int occurrence)
     {
-        if (string.IsNullOrEmpty(functionArn))
+        var index = -1;
+
+        for (var i = 0; i < occurrence; i++)
         {
-            return null;
+            index = functionArn.IndexOf(':', index + 1);
+            if (index < 0)
+            {
+                break;
+            }
         }
 
-        // The fifth item of function arn: https://github.com/open-telemetry/opentelemetry-specification/blob/86aeab1e0a7e6c67be09c7f15ff25063ee6d2b5c/specification/trace/semantic_conventions/instrumentation/aws-lambda.md#all-triggers
-        // Function arn format - arn:aws:lambda:<region>:<account-id>:function:<function-name>
-
-#pragma warning disable IDE0370 // Suppression is unnecessary
-        var items = functionArn!.Split(':');
-#pragma warning restore IDE0370 // Suppression is unnecessary
-        return items.Length >= 5 ? items[4] : null;
-    }
-
-    private static string? GetFaasId(string? functionArn)
-    {
-        if (string.IsNullOrEmpty(functionArn))
-        {
-            return null;
-        }
-
-        var faasId = functionArn;
-
-        // According to faas.id description https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/instrumentation/aws-lambda.md#all-triggers
-        // the 8th part of arn (function version or alias, see https://docs.aws.amazon.com/lambda/latest/dg/lambda-api-permissions-ref.html)
-        // should not be included into faas.id
-#pragma warning disable IDE0370 // Suppression is unnecessary
-        var items = functionArn!.Split(':');
-#pragma warning restore IDE0370 // Suppression is unnecessary
-        if (items.Length >= 8)
-        {
-            faasId = string.Join(":", items.Take(7));
-        }
-
-        return faasId;
+        return index;
     }
 
     private static string GetFaasTrigger<TInput>(TInput input) =>
