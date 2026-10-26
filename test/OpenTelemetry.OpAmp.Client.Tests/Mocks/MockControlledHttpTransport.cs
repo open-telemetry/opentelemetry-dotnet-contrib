@@ -9,6 +9,4 @@ internal sealed class MockControlledHttpTransport : MockControlledTransport
         : base(firstSendCallback)
     {
     }
-
-    public override bool RequiresResponseBeforeNextSend => true;
 }
