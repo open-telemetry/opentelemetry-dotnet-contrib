@@ -27,9 +27,9 @@ internal class AWSLambdaUtils
     private const string FunctionLogStreamName = "AWS_LAMBDA_LOG_STREAM_NAME";
     private const string AWSXRayLambdaTraceHeaderKey = "_X_AMZN_TRACE_ID";
 
-    private static readonly Func<IDictionary<string, string>, string, IEnumerable<string>> Getter = static (headers, name) =>
+    private static readonly Func<string, string, IEnumerable<string>> Getter = static (rawHeader, name) =>
     {
-        return headers.TryGetValue(name, out var value) ? [value] : [];
+        return string.Equals(name, AWSXRayTraceHeaderKey, StringComparison.Ordinal) ? [rawHeader] : [];
     };
 
     private static readonly AWSXRayPropagator XrayPropagator = new();
@@ -274,12 +274,7 @@ internal class AWSLambdaUtils
 
     private static ActivityContext ParseXRayTraceHeader(string rawHeader)
     {
-        var carrier = new Dictionary<string, string>()
-        {
-            { AWSXRayTraceHeaderKey, rawHeader },
-        };
-
-        var propagationContext = XrayPropagator.Extract(default, carrier, Getter);
+        var propagationContext = XrayPropagator.Extract(default, rawHeader, Getter);
         return propagationContext.ActivityContext;
     }
 }
