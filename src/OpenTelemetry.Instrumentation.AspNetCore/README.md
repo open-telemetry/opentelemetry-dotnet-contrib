@@ -300,6 +300,21 @@ instrumentation. OpenTelemetry has a concept of a
 [Sampler](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#sampling),
 and the `Filter` option does the filtering *after* the Sampler is invoked.
 
+When the `Filter` returns `false`, the default sampler also drops the child
+spans of the request. To drop only the request span,
+clear its flags in `EnrichWithHttpResponse` instead:
+
+```csharp
+options.EnrichWithHttpResponse = (activity, response) =>
+{
+    if (response.HttpContext.Items.ContainsKey("drop-span"))
+    {
+        activity.IsAllDataRequested = false;
+        activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
+    }
+};
+```
+
 #### Enrich
 
 This instrumentation library provides `EnrichWithHttpRequest`,

@@ -8,6 +8,14 @@
 * Add support for .NET 11.0.
   ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
 
+## 0.9.0-alpha.1
+
+Released 2026-Oct-26
+
+* Preserve HTTP server response callback order by waiting for response dispatch
+  to finish before sending the next queued request.
+  ([#5775](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5775))
+
 ## 0.8.0-alpha.2
 
 Released 2026-Oct-21
