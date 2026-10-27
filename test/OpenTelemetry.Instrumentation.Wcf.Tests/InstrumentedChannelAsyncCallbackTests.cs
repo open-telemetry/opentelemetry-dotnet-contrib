@@ -4,6 +4,7 @@
 using System.Diagnostics;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
+using System.Xml;
 using OpenTelemetry.Instrumentation.Wcf.Implementation;
 using OpenTelemetry.Trace;
 
@@ -200,6 +201,158 @@ public class InstrumentedChannelAsyncCallbackTests
     }
 
     [Fact]
+    public void EndSend_TwoWayFailureDoesNotCompleteTelemetryTwiceForLateReply()
+    {
+        var enrichEvents = new List<string>();
+        try
+        {
+            var stoppedActivities = new List<Activity>();
+            using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .AddInMemoryExporter(stoppedActivities)
+                .AddWcfInstrumentation()
+                .Build();
+
+            WcfInstrumentationActivitySource.Options = new WcfInstrumentationOptions
+            {
+                Enrich = (_, eventName, _) => enrichEvents.Add(eventName),
+            };
+
+            var inner = new RecordingDuplexChannel
+            {
+                EndSendException = new TimeoutException("EndSend failed."),
+            };
+            var channel = new InstrumentedDuplexChannel(inner, TimeSpan.FromSeconds(30));
+
+            using var request = CreateTwoWayRequest();
+            var result = channel.BeginSend(request, callback: null, state: null);
+
+            Assert.Throws<TimeoutException>(() => channel.EndSend(result));
+            Assert.Equal(ActivityStatusCode.Error, Assert.Single(stoppedActivities).Status);
+
+            // The server processed the request anyway and its reply arrives after EndSend failed.
+            inner.ReceiveMessage = CreateReply(request.Headers.MessageId!);
+            using var reply = channel.Receive();
+
+            Assert.Same(inner.ReceiveMessage, reply);
+            Assert.DoesNotContain(WcfEnrichEventNames.AfterReceiveReply, enrichEvents);
+        }
+        finally
+        {
+            WcfInstrumentationActivitySource.Options = null;
+        }
+    }
+
+    [Fact]
+    public void Send_TwoWayFailureDoesNotCompleteTelemetryTwiceForLateReply()
+    {
+        var enrichEvents = new List<string>();
+        try
+        {
+            var stoppedActivities = new List<Activity>();
+            using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .AddInMemoryExporter(stoppedActivities)
+                .AddWcfInstrumentation()
+                .Build();
+
+            WcfInstrumentationActivitySource.Options = new WcfInstrumentationOptions
+            {
+                Enrich = (_, eventName, _) => enrichEvents.Add(eventName),
+            };
+
+            var inner = new RecordingDuplexChannel
+            {
+                SendException = new TimeoutException("Send failed."),
+            };
+            var channel = new InstrumentedDuplexChannel(inner, TimeSpan.FromSeconds(30));
+
+            using var request = CreateTwoWayRequest();
+
+            Assert.Throws<TimeoutException>(() => channel.Send(request));
+            Assert.Equal(ActivityStatusCode.Error, Assert.Single(stoppedActivities).Status);
+
+            // The server processed the request anyway and its reply arrives after Send failed.
+            inner.ReceiveMessage = CreateReply(request.Headers.MessageId!);
+            using var reply = channel.Receive();
+
+            Assert.Same(inner.ReceiveMessage, reply);
+            Assert.DoesNotContain(WcfEnrichEventNames.AfterReceiveReply, enrichEvents);
+        }
+        finally
+        {
+            WcfInstrumentationActivitySource.Options = null;
+        }
+    }
+
+    [Fact]
+    public void Send_TwoWayFailureRemovesTrackedTelemetryState()
+    {
+        try
+        {
+            using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .AddInMemoryExporter(new List<Activity>())
+                .AddWcfInstrumentation()
+                .Build();
+
+            var inner = new RecordingDuplexChannel
+            {
+                SendException = new TimeoutException("Send failed."),
+            };
+            var channel = new InstrumentedDuplexChannel(inner, TimeSpan.FromSeconds(30));
+
+            using var request = CreateTwoWayRequest();
+
+            Assert.Throws<TimeoutException>(() => channel.Send(request));
+
+            // The state must not be kept until the telemetry timeout fires.
+            Assert.Null(RequestTelemetryStateTracker.PopTelemetryState(CreateReply(request.Headers.MessageId!)));
+        }
+        finally
+        {
+            WcfInstrumentationActivitySource.Options = null;
+        }
+    }
+
+    [Fact]
+    public void Send_TwoWaySuccessCompletesTelemetryWhenReplyArrives()
+    {
+        var enrichEvents = new List<string>();
+        try
+        {
+            var stoppedActivities = new List<Activity>();
+            using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .AddInMemoryExporter(stoppedActivities)
+                .AddWcfInstrumentation()
+                .Build();
+
+            WcfInstrumentationActivitySource.Options = new WcfInstrumentationOptions
+            {
+                Enrich = (_, eventName, _) => enrichEvents.Add(eventName),
+            };
+
+            var inner = new RecordingDuplexChannel();
+            var channel = new InstrumentedDuplexChannel(inner, TimeSpan.FromSeconds(30));
+
+            using var request = CreateTwoWayRequest();
+
+            channel.Send(request);
+
+            Assert.Empty(stoppedActivities);
+
+            inner.ReceiveMessage = CreateReply(request.Headers.MessageId!);
+            using var reply = channel.Receive();
+
+            Assert.Single(stoppedActivities);
+            Assert.Equal(
+                [WcfEnrichEventNames.BeforeSendRequest, WcfEnrichEventNames.AfterReceiveReply],
+                enrichEvents);
+        }
+        finally
+        {
+            WcfInstrumentationActivitySource.Options = null;
+        }
+    }
+
+    [Fact]
     public void Send_AllowsSuppressedExecutionContextFlow()
     {
         var inner = new RecordingDuplexChannel();
@@ -237,6 +390,28 @@ public class InstrumentedChannelAsyncCallbackTests
         Assert.NotNull(inner.LastBeginReceiveArgs);
         Assert.Null(inner.LastBeginReceiveArgs[0]);
         Assert.Same(state, inner.LastBeginReceiveArgs[1]);
+    }
+
+    // WCF's RequestReplyCorrelator assigns a MessageId to outgoing request messages before they
+    // reach the channel, which is what allows the reply to be correlated with the request.
+    private static Message CreateTwoWayRequest()
+    {
+        var message = Message.CreateMessage(MessageVersion.Soap11WSAddressing10, "urn:test");
+        message.Headers.MessageId = new UniqueId(Guid.NewGuid());
+        message.Properties.Add(
+            TelemetryContextMessageProperty.Name,
+            new TelemetryContextMessageProperty(new Dictionary<string, ActionMetadata>
+            {
+                ["urn:test"] = new ActionMetadata(contractName: null, operationName: "Test", isOneWay: false),
+            }));
+        return message;
+    }
+
+    private static Message CreateReply(UniqueId relatesTo)
+    {
+        var reply = Message.CreateMessage(MessageVersion.Soap11WSAddressing10, "urn:reply");
+        reply.Headers.RelatesTo = relatesTo;
+        return reply;
     }
 
     private sealed class FakeAsyncResult : IAsyncResult
@@ -409,6 +584,10 @@ public class InstrumentedChannelAsyncCallbackTests
 
         public Exception? EndSendException { get; init; }
 
+        public Exception? SendException { get; init; }
+
+        public Message? ReceiveMessage { get; set; }
+
         public bool ReturnNullRemoteAddress { get; init; }
 
         public bool SendCalled { get; private set; }
@@ -422,11 +601,19 @@ public class InstrumentedChannelAsyncCallbackTests
         public void Send(Message message)
         {
             this.SendCalled = true;
+            if (this.SendException != null)
+            {
+                throw this.SendException;
+            }
         }
 
         public void Send(Message message, TimeSpan timeout)
         {
             this.SendCalled = true;
+            if (this.SendException != null)
+            {
+                throw this.SendException;
+            }
         }
 
         public IAsyncResult BeginSend(Message message, AsyncCallback callback, object state)
@@ -450,10 +637,10 @@ public class InstrumentedChannelAsyncCallbackTests
         }
 
         public Message Receive()
-            => Message.CreateMessage(MessageVersion.Soap11, "urn:reply");
+            => this.ReceiveMessage ?? Message.CreateMessage(MessageVersion.Soap11, "urn:reply");
 
         public Message Receive(TimeSpan timeout)
-            => Message.CreateMessage(MessageVersion.Soap11, "urn:reply");
+            => this.ReceiveMessage ?? Message.CreateMessage(MessageVersion.Soap11, "urn:reply");
 
         public IAsyncResult BeginReceive(AsyncCallback callback, object state)
         {
