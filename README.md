@@ -128,6 +128,27 @@ on how to become a
 and
 [**Maintainer**](https://github.com/open-telemetry/community/blob/master/community-membership.md#maintainer).
 
+## Supported .NET versions
+
+Packages shipped from this repository generally support all the officially
+supported versions of [.NET](https://dotnet.microsoft.com/download/dotnet) and
+[.NET Framework](https://dotnet.microsoft.com/download/dotnet-framework) (an
+older Windows-based .NET implementation), except `.NET Framework 3.5`.
+Any exceptions to this are noted in the individual `README.md`
+files.
+
+## Supported Versions
+
+The OTel project provides community support only for the last overall minor
+version: bug fixes are released either as part of the next minor version or as
+an on-demand patch version. Independent of which version is next, all patch
+versions are cumulative, meaning that they represent the state of our `main`
+branch at the moment of the release. For instance, if the latest version is
+1.20.1, bug fixes are released either as part of 1.21.0 or 1.20.2.
+
+See [Supported Versions](https://github.com/open-telemetry/sig-security/blob/main/security-response.md#supported-versions)
+for more information.
+
 ## Releases
 
 For details about upcoming planned releases see:
