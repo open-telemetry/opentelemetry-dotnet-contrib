@@ -37,11 +37,7 @@ public class ConsistentProbabilitySamplerBenchmarks
 
         // A child whose parent sets the W3C "random" trace flag (0x2) but no explicit rv, so the
         // randomness is taken from the TraceId.
-#if NET11_0_OR_GREATER
         var flags = ActivityTraceFlags.Recorded | ActivityTraceFlags.RandomTraceId;
-#else
-        var flags = ActivityTraceFlags.Recorded | (ActivityTraceFlags)0x2;
-#endif
 
         this.randomTraceId = CreateParameters(
             new ActivityContext(traceId, spanId, flags),

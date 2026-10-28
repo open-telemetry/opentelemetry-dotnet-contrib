@@ -102,11 +102,7 @@ public static class ConsistentProbabilityFuzzTests
         var flags = ActivityTraceFlags.None;
         if (mode == 1)
         {
-#if NET11_0_OR_GREATER
             flags |= ActivityTraceFlags.RandomTraceId;
-#else
-            flags |= (ActivityTraceFlags)0x2;
-#endif
         }
 
         if (recorded)
@@ -157,11 +153,7 @@ public static class ConsistentProbabilityFuzzTests
 
         if (randomFlag)
         {
-#if NET11_0_OR_GREATER
             flags |= ActivityTraceFlags.RandomTraceId;
-#else
-            flags |= (ActivityTraceFlags)0x2;
-#endif
         }
 
         if (recorded)
