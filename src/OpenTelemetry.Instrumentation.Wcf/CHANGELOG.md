@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* Fixed an issue where a late reply or the telemetry timeout for a failed
+  outgoing duplex request could stop the client activity a second time and
+  record reply data on it.
+  ([#5791](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5791))
+
 ## 1.20.1-beta.1
 
 Released 2026-Oct-21
