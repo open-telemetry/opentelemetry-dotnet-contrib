@@ -220,20 +220,38 @@ internal class AWSLambdaHttpUtils
             return (null, null);
         }
 
-#pragma warning disable CA1861 // Prefer 'static readonly' fields over constant array arguments if the called method is called repeatedly and is not mutating the passed array
-        var hostAndPort = hostHeader.Split([':'], 2);
-#pragma warning restore CA1861 // Prefer 'static readonly' fields over constant array arguments if the called method is called repeatedly and is not mutating the passed array
-        if (hostAndPort.Length > 1)
+        // An IPv6 address is enclosed in brackets (e.g. "[::1]:8080") and contains colons
+        // itself, so only look for the port delimiter after the closing bracket.
+        var searchStart = 0;
+        if (hostHeader.Length > 0 && hostHeader[0] == '[')
         {
-            var host = hostAndPort[0];
-            return int.TryParse(hostAndPort[1], NumberStyles.None, CultureInfo.InvariantCulture, out var port)
-                ? (host, port)
-                : (host, null);
+            var closingBracketIndex = hostHeader.IndexOf(']', 1);
+            if (closingBracketIndex < 0)
+            {
+                // The IPv6 address is malformed, so do not try to find a port
+                return (hostHeader, null);
+            }
+
+            searchStart = closingBracketIndex + 1;
         }
-        else
+
+        // Find the delimiter rather than splitting the header to avoid allocating an array
+        var delimiterIndex = hostHeader.IndexOf(':', searchStart);
+        if (delimiterIndex < 0)
         {
-            return (hostAndPort[0], GetDefaultPort(httpScheme));
+            return (hostHeader, GetDefaultPort(httpScheme));
         }
+
+        var host = hostHeader.Substring(0, delimiterIndex);
+#if NET
+        var portValue = hostHeader.AsSpan(delimiterIndex + 1);
+#else
+        var portValue = hostHeader.Substring(delimiterIndex + 1);
+#endif
+
+        return int.TryParse(portValue, NumberStyles.None, CultureInfo.InvariantCulture, out var port)
+            ? (host, port)
+            : (host, null);
     }
 
     private static int? GetDefaultPort(string? httpScheme) =>
