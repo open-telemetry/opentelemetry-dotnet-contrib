@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* Added `EnrichWithBackgroundJob` and `CustomStateMappings` to
+  `HangfireMetricsInstrumentationOptions`. Use them to add custom attributes to
+  the metrics and to count jobs in custom Hangfire states.
+  ([#5810](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5810))
+
 ## 1.20.1-beta.1
 
 Released 2026-Oct-21
