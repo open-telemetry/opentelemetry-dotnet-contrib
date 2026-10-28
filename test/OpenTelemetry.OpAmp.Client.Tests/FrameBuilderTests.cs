@@ -44,6 +44,38 @@ public class FrameBuilderTests
     }
 
     [Fact]
+    public void FrameBuilder_UsesCurrentCapabilities()
+    {
+        var settings = new OpAmpClientSettings();
+        settings.Heartbeat.IsEnabled = false;
+        var frameBuilder = new FrameBuilder(settings);
+
+        var frame1 = frameBuilder.Build();
+
+        settings.Heartbeat.IsEnabled = true;
+        settings.RemoteConfiguration.AcceptsRemoteConfig = true;
+        settings.RemoteConfiguration.ReportsRemoteConfigStatus = true;
+        settings.EffectiveConfigurationReporting.EnableReporting = true;
+
+        var frame2 = frameBuilder.Build();
+
+        settings.Heartbeat.IsEnabled = false;
+        settings.RemoteConfiguration.AcceptsRemoteConfig = false;
+        settings.RemoteConfiguration.ReportsRemoteConfigStatus = false;
+        settings.EffectiveConfigurationReporting.EnableReporting = false;
+
+        var frame3 = frameBuilder.Build();
+
+        Assert.Equal((ulong)AgentCapabilities.ReportsStatus, frame1.Capabilities);
+        Assert.Equal(
+            (ulong)(AgentCapabilities.ReportsStatus | AgentCapabilities.ReportsHeartbeat | AgentCapabilities.ReportsHealth
+                | AgentCapabilities.AcceptsRemoteConfig | AgentCapabilities.ReportsRemoteConfig
+                | AgentCapabilities.ReportsEffectiveConfig),
+            frame2.Capabilities);
+        Assert.Equal((ulong)AgentCapabilities.ReportsStatus, frame3.Capabilities);
+    }
+
+    [Fact]
     public void FrameBuilder_InstanceUid_IsBigEndian()
     {
         var settings = new OpAmpClientSettings

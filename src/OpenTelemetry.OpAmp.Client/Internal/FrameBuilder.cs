@@ -104,37 +104,6 @@ internal sealed class FrameBuilder : IFrameBuilder
         return this;
     }
 
-    IFrameBuilder IFrameBuilder.AddCapabilities()
-    {
-        // TODO: Update the actual capabilities when features are implemented.
-
-        var capabilities = AgentCapabilities.ReportsStatus;
-
-        if (this.settings.Heartbeat.IsEnabled)
-        {
-            capabilities |= AgentCapabilities.ReportsHeartbeat | AgentCapabilities.ReportsHealth;
-        }
-
-        if (this.settings.RemoteConfiguration.AcceptsRemoteConfig)
-        {
-            capabilities |= AgentCapabilities.AcceptsRemoteConfig;
-        }
-
-        if (this.settings.RemoteConfiguration.ReportsRemoteConfigStatus)
-        {
-            capabilities |= AgentCapabilities.ReportsRemoteConfig;
-        }
-
-        if (this.settings.EffectiveConfigurationReporting.EnableReporting)
-        {
-            capabilities |= AgentCapabilities.ReportsEffectiveConfig;
-        }
-
-        this.currentMessage.Capabilities = (ulong)capabilities;
-
-        return this;
-    }
-
     IFrameBuilder IFrameBuilder.AddCustomCapabilities(IEnumerable<string> capabilities)
     {
         this.currentMessage.CustomCapabilities = new CustomCapabilities();
@@ -194,10 +163,41 @@ internal sealed class FrameBuilder : IFrameBuilder
 
     public AgentToServer Build()
     {
+        // OpAMP requires capabilities in every AgentToServer message, even when unchanged.
         var message = this.currentMessage;
+        message.Capabilities = (ulong)this.GetCapabilities();
         this.currentMessage = this.NextBaseMessage();
 
         return message;
+    }
+
+    private AgentCapabilities GetCapabilities()
+    {
+        // TODO: Update the actual capabilities when features are implemented.
+
+        var capabilities = AgentCapabilities.ReportsStatus;
+
+        if (this.settings.Heartbeat.IsEnabled)
+        {
+            capabilities |= AgentCapabilities.ReportsHeartbeat | AgentCapabilities.ReportsHealth;
+        }
+
+        if (this.settings.RemoteConfiguration.AcceptsRemoteConfig)
+        {
+            capabilities |= AgentCapabilities.AcceptsRemoteConfig;
+        }
+
+        if (this.settings.RemoteConfiguration.ReportsRemoteConfigStatus)
+        {
+            capabilities |= AgentCapabilities.ReportsRemoteConfig;
+        }
+
+        if (this.settings.EffectiveConfigurationReporting.EnableReporting)
+        {
+            capabilities |= AgentCapabilities.ReportsEffectiveConfig;
+        }
+
+        return capabilities;
     }
 
     private AgentToServer NextBaseMessage()

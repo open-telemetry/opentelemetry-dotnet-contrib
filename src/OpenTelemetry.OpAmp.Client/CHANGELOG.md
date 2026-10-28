@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Include the configured agent capabilities in every message sent to the server.
+  ([#NNNN](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/NNNN))
+
 ## 0.9.0-alpha.1
 
 Released 2026-Oct-26
