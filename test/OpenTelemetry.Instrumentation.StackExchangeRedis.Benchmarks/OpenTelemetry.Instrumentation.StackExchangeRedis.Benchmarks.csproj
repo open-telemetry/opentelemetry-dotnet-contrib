@@ -9,7 +9,7 @@
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" />
     <PackageReference Include="OpenTelemetry" />
-    <PackageReference Include="StackExchange.Redis" VersionOverride="3.4.5" />
+    <PackageReference Include="StackExchange.Redis" VersionOverride="3.4.20" />
     <PackageReference Include="Testcontainers.Redis" />
   </ItemGroup>
 
