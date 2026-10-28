@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+* Fixed `AddXRayTraceId()` and `AddXRayTraceIdWithSampler()` not replacing
+  trace IDs when targeting .NET Framework or .NET Standard. The X-Ray ID
+  generator now uses `Activity.TraceIdGenerator` on all target frameworks.
+  As a result, `AWSXRayIdGenerator.ReplaceTraceId()` is now public on all
+  target frameworks, and `AddXRayTraceIdWithSampler()` and
+  `AWSXRayIdGenerator.ReplaceTraceId(Sampler)` are now obsolete on all
+  target frameworks.
+  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+
 ## 1.20.2
 
 Released 2026-Oct-28
