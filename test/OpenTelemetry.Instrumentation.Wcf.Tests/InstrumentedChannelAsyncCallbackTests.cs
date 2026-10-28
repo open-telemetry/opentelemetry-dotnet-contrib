@@ -243,6 +243,83 @@ public class InstrumentedChannelAsyncCallbackTests
     }
 
     [Fact]
+    public void EndSend_DoesNotCompleteTelemetryTwiceWhenReplyArrivesBeforeSendFailure()
+    {
+        var enrichEvents = new List<string>();
+        try
+        {
+            var stoppedActivities = new List<Activity>();
+            using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .AddInMemoryExporter(stoppedActivities)
+                .AddWcfInstrumentation()
+                .Build();
+
+            WcfInstrumentationActivitySource.Options = new WcfInstrumentationOptions
+            {
+                Enrich = (_, eventName, _) => enrichEvents.Add(eventName),
+            };
+
+            var inner = new RecordingDuplexChannel
+            {
+                EndSendException = new TimeoutException("EndSend failed."),
+            };
+            var channel = new InstrumentedDuplexChannel(inner, TimeSpan.FromSeconds(30));
+
+            using var request = CreateTwoWayRequest();
+            var result = channel.BeginSend(request, callback: null, state: null);
+
+            // The reply completes the request before the send failure is reported to the caller.
+            inner.ReceiveMessage = CreateReply(request.Headers.MessageId!);
+            using var reply = channel.Receive();
+
+            Assert.Single(stoppedActivities);
+
+            Assert.Throws<TimeoutException>(() => channel.EndSend(result));
+
+            var activity = Assert.Single(stoppedActivities);
+            Assert.Equal(ActivityStatusCode.Unset, activity.Status);
+            Assert.Equal(
+                [WcfEnrichEventNames.BeforeSendRequest, WcfEnrichEventNames.AfterReceiveReply],
+                enrichEvents);
+        }
+        finally
+        {
+            WcfInstrumentationActivitySource.Options = null;
+        }
+    }
+
+    [Fact]
+    public void Send_TwoWayFailureWithoutMessageIdMarksActivityAsError()
+    {
+        try
+        {
+            var stoppedActivities = new List<Activity>();
+            using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .AddInMemoryExporter(stoppedActivities)
+                .AddWcfInstrumentation()
+                .Build();
+
+            var inner = new RecordingDuplexChannel
+            {
+                SendException = new TimeoutException("Send failed."),
+            };
+            var channel = new InstrumentedDuplexChannel(inner, TimeSpan.FromSeconds(30));
+
+            // Without a MessageId no reply can be correlated, so the request is not tracked.
+            using var message = Message.CreateMessage(MessageVersion.Soap11, "urn:test");
+            Assert.Null(message.Headers.MessageId);
+
+            Assert.Throws<TimeoutException>(() => channel.Send(message));
+
+            Assert.Equal(ActivityStatusCode.Error, Assert.Single(stoppedActivities).Status);
+        }
+        finally
+        {
+            WcfInstrumentationActivitySource.Options = null;
+        }
+    }
+
+    [Fact]
     public void Send_TwoWayFailureDoesNotCompleteTelemetryTwiceForLateReply()
     {
         var enrichEvents = new List<string>();
