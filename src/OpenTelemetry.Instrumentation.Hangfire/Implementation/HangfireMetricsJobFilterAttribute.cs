@@ -4,6 +4,7 @@
 using System.Diagnostics;
 using Hangfire.Common;
 using Hangfire.Server;
+using OpenTelemetry.Metrics;
 
 namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
 
@@ -13,6 +14,15 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
 internal sealed class HangfireMetricsJobFilterAttribute : JobFilterAttribute, IServerFilter
 {
     private const string StopwatchKey = "OpenTelemetry.Metrics.Stopwatch";
+
+    private readonly HangfireMetricsInstrumentationOptions options;
+
+#pragma warning disable CA1019 // Define accessors for attribute arguments
+    public HangfireMetricsJobFilterAttribute(HangfireMetricsInstrumentationOptions options)
+#pragma warning restore CA1019 // Define accessors for attribute arguments
+    {
+        this.options = options;
+    }
 
     public void OnPerforming(PerformingContext filterContext)
     {
@@ -41,7 +51,7 @@ internal sealed class HangfireMetricsJobFilterAttribute : JobFilterAttribute, IS
             backgroundJob,
             filterContext.Exception);
 
-        HangfireMetrics.ExecutionOutcome.Add(1, countTags);
+        HangfireMetrics.ExecutionOutcome.Add(1, HangfireTagBuilder.Enrich(countTags, backgroundJob, this.options));
 
         // Record execution duration (with state="executing" to differentiate from pending phase)
         if (filterContext.Items.TryGetValue(StopwatchKey, out var stopwatchObj) && stopwatchObj is Stopwatch stopwatch)
@@ -54,7 +64,7 @@ internal sealed class HangfireMetricsJobFilterAttribute : JobFilterAttribute, IS
                 filterContext.Exception,
                 workflowState: WorkflowAttributes.WorkflowStateValues.Executing);
 
-            HangfireMetrics.ExecutionDuration.Record(duration, durationTags);
+            HangfireMetrics.ExecutionDuration.Record(duration, HangfireTagBuilder.Enrich(durationTags, backgroundJob, this.options));
         }
 
         // Record workflow-level metrics (includes trigger type)
@@ -63,6 +73,6 @@ internal sealed class HangfireMetricsJobFilterAttribute : JobFilterAttribute, IS
             filterContext.Exception,
             recurringJobId);
 
-        HangfireMetrics.WorkflowOutcome.Add(1, workflowTags);
+        HangfireMetrics.WorkflowOutcome.Add(1, HangfireTagBuilder.Enrich(workflowTags, backgroundJob, this.options));
     }
 }

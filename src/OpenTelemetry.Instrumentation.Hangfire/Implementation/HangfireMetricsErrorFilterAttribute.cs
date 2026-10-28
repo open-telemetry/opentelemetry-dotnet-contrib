@@ -3,6 +3,7 @@
 
 using Hangfire.Common;
 using Hangfire.Server;
+using OpenTelemetry.Metrics;
 
 namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
 
@@ -12,6 +13,15 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
 /// </summary>
 internal sealed class HangfireMetricsErrorFilterAttribute : JobFilterAttribute, IServerFilter
 {
+    private readonly HangfireMetricsInstrumentationOptions options;
+
+#pragma warning disable CA1019 // Define accessors for attribute arguments
+    public HangfireMetricsErrorFilterAttribute(HangfireMetricsInstrumentationOptions options)
+#pragma warning restore CA1019 // Define accessors for attribute arguments
+    {
+        this.options = options;
+    }
+
     public void OnPerforming(PerformingContext filterContext)
     {
     }
@@ -22,7 +32,7 @@ internal sealed class HangfireMetricsErrorFilterAttribute : JobFilterAttribute, 
         {
             var errorTags = HangfireTagBuilder.BuildErrorTags(filterContext);
 
-            HangfireMetrics.ExecutionErrors.Add(1, errorTags);
+            HangfireMetrics.ExecutionErrors.Add(1, HangfireTagBuilder.Enrich(errorTags, filterContext.BackgroundJob, this.options));
         }
     }
 }

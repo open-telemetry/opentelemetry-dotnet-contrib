@@ -18,3 +18,9 @@ OpenTelemetry.Metrics.HangfireMetricsInstrumentationOptions.RecordQueueLatency.s
 static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddHangfireInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder! builder) -> OpenTelemetry.Trace.TracerProviderBuilder!
 static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddHangfireInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder! builder, string? name, System.Action<OpenTelemetry.Trace.HangfireInstrumentationOptions!>? configure) -> OpenTelemetry.Trace.TracerProviderBuilder!
 static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddHangfireInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder! builder, System.Action<OpenTelemetry.Trace.HangfireInstrumentationOptions!>? configure) -> OpenTelemetry.Trace.TracerProviderBuilder!
+OpenTelemetry.Metrics.HangfireMetricsInstrumentationOptions.CustomStateMappings.get -> System.Collections.Generic.IReadOnlyDictionary<string!, string!>?
+OpenTelemetry.Metrics.HangfireMetricsInstrumentationOptions.CustomStateMappings.set -> void
+OpenTelemetry.Metrics.HangfireMetricsInstrumentationOptions.EnrichWithBackgroundJob.get -> OpenTelemetry.Metrics.HangfireMetricsInstrumentationOptions.EnrichWithBackgroundJobAction?
+OpenTelemetry.Metrics.HangfireMetricsInstrumentationOptions.EnrichWithBackgroundJob.set -> void
+OpenTelemetry.Metrics.HangfireMetricsInstrumentationOptions.EnrichWithBackgroundJobAction
+virtual OpenTelemetry.Metrics.HangfireMetricsInstrumentationOptions.EnrichWithBackgroundJobAction.Invoke(Hangfire.BackgroundJob! backgroundJob, ref System.Diagnostics.TagList tags) -> void
