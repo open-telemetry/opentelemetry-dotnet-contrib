@@ -12,14 +12,18 @@ namespace OpenTelemetry.Metrics;
 /// </summary>
 public sealed class HangfireMetricsInstrumentationOptions
 {
-    private IReadOnlyDictionary<string, string>? customStateMappings;
+    private static readonly HashSet<string> BuiltInStates = new(StringComparer.Ordinal)
+    {
+        AwaitingState.StateName,
+        DeletedState.StateName,
+        EnqueuedState.StateName,
+        FailedState.StateName,
+        ProcessingState.StateName,
+        ScheduledState.StateName,
+        SucceededState.StateName,
+    };
 
-    /// <summary>
-    /// Delegate for enrichment of recorded metric with additional tags.
-    /// </summary>
-    /// <param name="backgroundJob"><see cref="BackgroundJob"/>: the Hangfire background job.</param>
-    /// <param name="tags"><see cref="TagList"/>: List of current tags. You can add additional tags to this list.</param>
-    public delegate void EnrichWithBackgroundJobAction(BackgroundJob backgroundJob, ref TagList tags);
+    private IReadOnlyDictionary<string, string>? customStateMappings;
 
     /// <summary>
     /// Gets or sets a value indicating whether to record the pending state duration in metrics.
@@ -36,7 +40,7 @@ public sealed class HangfireMetricsInstrumentationOptions
     /// <summary>
     /// Gets or sets a delegate to enrich a recorded metric with additional custom tags.
     /// </summary>
-    public EnrichWithBackgroundJobAction? EnrichWithBackgroundJob { get; set; }
+    public Func<BackgroundJob, TagList>? EnrichWithBackgroundJob { get; set; }
 
     /// <summary>
     /// Gets or sets mappings from custom Hangfire state names to built-in Hangfire state names.
@@ -52,27 +56,16 @@ public sealed class HangfireMetricsInstrumentationOptions
                 return;
             }
 
-            string[] builtInStates =
-            [
-                AwaitingState.StateName,
-                DeletedState.StateName,
-                EnqueuedState.StateName,
-                FailedState.StateName,
-                ProcessingState.StateName,
-                ScheduledState.StateName,
-                SucceededState.StateName,
-            ];
-
             var copy = new Dictionary<string, string>(value.Count, StringComparer.Ordinal);
 
             foreach (var entry in value)
             {
-                if (string.IsNullOrWhiteSpace(entry.Key) || builtInStates.Contains(entry.Key))
+                if (string.IsNullOrWhiteSpace(entry.Key) || BuiltInStates.Contains(entry.Key))
                 {
                     throw new ArgumentException($"The custom state name '{entry.Key}' was null, empty, white-space or a built-in Hangfire state name.", nameof(value));
                 }
 
-                if (!builtInStates.Contains(entry.Value))
+                if (!BuiltInStates.Contains(entry.Value))
                 {
                     throw new ArgumentException($"The state name '{entry.Value}' mapped from custom state '{entry.Key}' is not a built-in Hangfire state name.", nameof(value));
                 }

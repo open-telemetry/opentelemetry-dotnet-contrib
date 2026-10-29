@@ -277,8 +277,10 @@ attributes.
 var meterProvider = Sdk.CreateMeterProviderBuilder()
     .AddHangfireInstrumentation(options =>
     {
-        options.EnrichWithBackgroundJob = (BackgroundJob job, ref TagList tags) =>
-            tags.Add("myapp.job.assembly", job.Job?.Type.Assembly.GetName().Name);
+        options.EnrichWithBackgroundJob = job => new TagList
+        {
+            { "myapp.job.assembly", job.Job?.Type.Assembly.GetName().Name },
+        };
     })
     .AddConsoleExporter()
     .Build();

@@ -547,7 +547,7 @@ public class HangfireMetricsTests : IClassFixture<HangfireFixture>
             .AddHangfireInstrumentation(options =>
             {
                 options.RecordQueueLatency = true;
-                options.EnrichWithBackgroundJob = (BackgroundJob backgroundJob, ref TagList tags) => tags.Add(JobIdTagKey, backgroundJob.Id);
+                options.EnrichWithBackgroundJob = backgroundJob => new TagList { { JobIdTagKey, backgroundJob.Id } };
             })
             .AddInMemoryExporter(exportedItems)
             .Build();
@@ -591,18 +591,10 @@ public class HangfireMetricsTests : IClassFixture<HangfireFixture>
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddHangfireInstrumentation(options =>
             {
-                options.EnrichWithBackgroundJob = (BackgroundJob backgroundJob, ref TagList tags) =>
+                options.EnrichWithBackgroundJob = backgroundJob => new TagList
                 {
-                    for (var i = 0; i < tags.Count; i++)
-                    {
-                        if (tags[i].Key == WorkflowAttributes.AttributeWorkflowPlatformName)
-                        {
-                            tags[i] = new(WorkflowAttributes.AttributeWorkflowPlatformName, "override");
-                        }
-                    }
-
-                    tags.Add(WorkflowAttributes.AttributeWorkflowPlatformName, "override");
-                    tags.Add(JobIdTagKey, backgroundJob.Id);
+                    { WorkflowAttributes.AttributeWorkflowPlatformName, "override" },
+                    { JobIdTagKey, backgroundJob.Id },
                 };
             })
             .AddInMemoryExporter(exportedItems)
@@ -647,10 +639,9 @@ public class HangfireMetricsTests : IClassFixture<HangfireFixture>
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddHangfireInstrumentation(options =>
             {
-                options.EnrichWithBackgroundJob = (BackgroundJob backgroundJob, ref TagList tags) =>
+                options.EnrichWithBackgroundJob = _ =>
                 {
                     Interlocked.Increment(ref invocations);
-                    tags.Add(JobIdTagKey, backgroundJob.Id);
                     throw new InvalidOperationException("Enrich throws exception");
                 };
             })
@@ -676,7 +667,6 @@ public class HangfireMetricsTests : IClassFixture<HangfireFixture>
 
         var successPoints = workflowOutcomeMetric!.ToMetricPointList().HavingTag(WorkflowAttributes.AttributeWorkflowResult, WorkflowAttributes.WorkflowResultValues.Success).ToList();
         Assert.NotEmpty(successPoints);
-        Assert.All(successPoints, point => AssertUtils.AssertHasNoTag(point, JobIdTagKey));
 
         Assert.Contains(
             listener.Events,
@@ -692,7 +682,7 @@ public class HangfireMetricsTests : IClassFixture<HangfireFixture>
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddHangfireInstrumentation(options =>
             {
-                options.EnrichWithBackgroundJob = (BackgroundJob backgroundJob, ref TagList tags) => tags.Add(JobIdTagKey, backgroundJob.Id);
+                options.EnrichWithBackgroundJob = backgroundJob => new TagList { { JobIdTagKey, backgroundJob.Id } };
             })
             .AddInMemoryExporter(exportedItems)
             .Build();
@@ -722,9 +712,9 @@ public class HangfireMetricsTests : IClassFixture<HangfireFixture>
         var exportedItems = new List<Metric>();
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .ConfigureServices(services => services
-                .AddSingleton<HangfireMetricsInstrumentationOptions.EnrichWithBackgroundJobAction>((BackgroundJob backgroundJob, ref TagList tags) => tags.Add(JobIdTagKey, backgroundJob.Id))
+                .AddSingleton<Func<BackgroundJob, TagList>>(backgroundJob => new TagList { { JobIdTagKey, backgroundJob.Id } })
                 .AddOptions<HangfireMetricsInstrumentationOptions>(name)
-                .Configure<HangfireMetricsInstrumentationOptions.EnrichWithBackgroundJobAction>((options, enrich) => options.EnrichWithBackgroundJob = enrich))
+                .Configure<Func<BackgroundJob, TagList>>((options, enrich) => options.EnrichWithBackgroundJob = enrich))
             .AddHangfireInstrumentation(name, configure: null)
             .AddInMemoryExporter(exportedItems)
             .Build();

@@ -214,11 +214,11 @@ internal static class HangfireTagBuilder
             return tags;
         }
 
-        var enrichedTags = tags;
+        TagList enrichedTags;
 
         try
         {
-            enrich(backgroundJob, ref enrichedTags);
+            enrichedTags = enrich(backgroundJob);
         }
         catch (Exception ex)
         {
