@@ -173,8 +173,6 @@ internal sealed class FrameBuilder : IFrameBuilder
 
     private AgentCapabilities GetCapabilities()
     {
-        // TODO: Update the actual capabilities when features are implemented.
-
         var capabilities = AgentCapabilities.ReportsStatus;
 
         if (this.settings.Heartbeat.IsEnabled)

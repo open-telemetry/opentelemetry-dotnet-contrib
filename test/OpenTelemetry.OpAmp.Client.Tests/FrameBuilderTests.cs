@@ -66,12 +66,15 @@ public class FrameBuilderTests
 
         var frame3 = frameBuilder.Build();
 
+        var expectedCapabilities = AgentCapabilities.ReportsStatus
+            | AgentCapabilities.ReportsHeartbeat
+            | AgentCapabilities.ReportsHealth
+            | AgentCapabilities.AcceptsRemoteConfig
+            | AgentCapabilities.ReportsRemoteConfig
+            | AgentCapabilities.ReportsEffectiveConfig;
+
         Assert.Equal((ulong)AgentCapabilities.ReportsStatus, frame1.Capabilities);
-        Assert.Equal(
-            (ulong)(AgentCapabilities.ReportsStatus | AgentCapabilities.ReportsHeartbeat | AgentCapabilities.ReportsHealth
-                | AgentCapabilities.AcceptsRemoteConfig | AgentCapabilities.ReportsRemoteConfig
-                | AgentCapabilities.ReportsEffectiveConfig),
-            frame2.Capabilities);
+        Assert.Equal((ulong)expectedCapabilities, frame2.Capabilities);
         Assert.Equal((ulong)AgentCapabilities.ReportsStatus, frame3.Capabilities);
     }
 
