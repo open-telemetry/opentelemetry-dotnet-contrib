@@ -12,23 +12,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  check-api-key:
-    name: Check FOSSA API key availability
-    if: github.repository_owner == 'open-telemetry' && github.event.repository.fork == false
-    runs-on: ubuntu-slim
-    outputs:
-      enabled: ${{ steps.evaluate.outputs.enabled }}
-    steps:
-      - name: Check API key
-        id: evaluate
-        env:
-          IS_ENABLED: ${{ secrets.FOSSA_API_KEY != '' }}
-        run: echo "enabled=$IS_ENABLED" >> "$GITHUB_OUTPUT"
-
   fossa:
     name: Run FOSSA scan
-    needs: check-api-key
-    if: needs.check-api-key.outputs.enabled == 'true'
     permissions:
       contents: read
     uses: open-telemetry/shared-workflows/.github/workflows/fossa.yml@efc55838c9769c5476e0a5cf7183a8c5b4ae70a5 # v0.24.0
