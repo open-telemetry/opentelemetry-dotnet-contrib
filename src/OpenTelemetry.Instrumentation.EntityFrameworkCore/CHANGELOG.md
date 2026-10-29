@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+* Fixed `db.query.summary` so that a delimited identifier, such as `[Orders]` or
+  `[dbo].[Orders]`, is captured wherever an undelimited identifier would be
+  (for example after `INSERT INTO`, `EXEC`, `CREATE TABLE` or a `JOIN` which
+  follows an `ON` clause), instead of only in a `FROM` clause.
+  ([#NNNN](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/NNNN))
+
 ## 1.20.1-beta.1
 
 Released 2026-Oct-21
