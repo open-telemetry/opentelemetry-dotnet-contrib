@@ -43,7 +43,7 @@ internal sealed class HttpInListener : IDisposable
         }
     }
 
-    private void RecordDuration(Activity? activity, HttpContextBase context, HttpRequestBase request, HttpResponseBase response, string? routeTemplate = null)
+    private void RecordDuration(Activity? activity, HttpContextBase context, HttpRequestBase? request = null, HttpResponseBase? response = null, string? routeTemplate = null)
     {
         double duration;
         if (activity is not null)
@@ -68,6 +68,10 @@ internal sealed class HttpInListener : IDisposable
 
             duration = Stopwatch.GetElapsedTime(beginTimestamp).TotalSeconds;
         }
+
+        // The wrappers are only read once it is known the duration will be recorded, as reading them allocates.
+        request ??= context.Request;
+        response ??= context.Response;
 
         var options = AspNetInstrumentation.Instance.MetricOptions;
         var url = request.Url;
@@ -230,28 +234,30 @@ internal sealed class HttpInListener : IDisposable
 
     private void OnStopActivity(Activity? activity, HttpContextBase context)
     {
-        // HttpContextBase.Request and HttpContextBase.Response allocate a new wrapper on each access, so read them once.
-        var request = context.Request;
-        var response = context.Response;
-
         if (AspNetInstrumentation.Instance.HandleManager.TracingHandles == 0)
         {
-            this.RecordDuration(activity, context, request, response);
+            this.RecordDuration(activity, context);
             return;
         }
 
         if (activity == null)
         {
             AspNetInstrumentationEventSource.Log.NullActivity(nameof(this.OnStopActivity));
-            this.RecordDuration(activity, context, request, response);
+            this.RecordDuration(activity, context);
             return;
         }
 
         var options = AspNetInstrumentation.Instance.TraceOptions;
         string? template = null;
+        HttpRequestBase? request = null;
+        HttpResponseBase? response = null;
 
         if (activity.IsAllDataRequested)
         {
+            // HttpContextBase.Request and HttpContextBase.Response allocate a new wrapper on each access, so read them once.
+            request = context.Request;
+            response = context.Response;
+
             activity.SetTag(SemanticConventions.AttributeHttpResponseStatusCode, TelemetryHelper.GetBoxedStatusCode(response.StatusCode));
 
             if (activity.Status == ActivityStatusCode.Unset)

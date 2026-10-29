@@ -40,9 +40,14 @@ public class AspNetInstrumentationBenchmarks
         /// Instrumentation is enabled only for Metrics.
         /// </summary>
         Metrics = 2,
+
+        /// <summary>
+        /// Instrumentation is enabled only for Traces, but no requests are sampled.
+        /// </summary>
+        UnsampledTraces = 4,
     }
 
-    [Params(EnableInstrumentationOption.None, EnableInstrumentationOption.Traces, EnableInstrumentationOption.Metrics, EnableInstrumentationOption.Traces | EnableInstrumentationOption.Metrics)]
+    [Params(EnableInstrumentationOption.None, EnableInstrumentationOption.Traces, EnableInstrumentationOption.Metrics, EnableInstrumentationOption.Traces | EnableInstrumentationOption.Metrics, EnableInstrumentationOption.UnsampledTraces)]
     public EnableInstrumentationOption EnableInstrumentation { get; set; }
 
     [GlobalSetup]
@@ -78,6 +83,13 @@ public class AspNetInstrumentationBenchmarks
         {
             this.tracerProvider = Sdk.CreateTracerProviderBuilder()
                 .AddAspNetInstrumentation()
+                .Build();
+        }
+        else if (this.EnableInstrumentation.HasFlag(EnableInstrumentationOption.UnsampledTraces))
+        {
+            this.tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .AddAspNetInstrumentation()
+                .SetSampler(new AlwaysOffSampler())
                 .Build();
         }
 
