@@ -85,7 +85,5 @@ internal static class MessageBuilderHelper
         OpAmpClientEventSource.Log.QueueingFullStateReportMessage();
     }
 
-    private static void AppendIdentificationCore(IFrameBuilder fb) => fb
-            .AddAgentDescription()
-            .AddCapabilities();
+    private static void AppendIdentificationCore(IFrameBuilder fb) => fb.AddAgentDescription();
 }

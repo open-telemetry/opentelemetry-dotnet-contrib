@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Include the configured agent capabilities in every message sent to the server.
+  ([#5812](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5812))
+
 ## 0.9.0-alpha.1
 
 Released 2026-Oct-26
