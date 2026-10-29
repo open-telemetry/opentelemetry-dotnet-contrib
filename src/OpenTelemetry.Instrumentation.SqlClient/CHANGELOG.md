@@ -6,7 +6,7 @@
   `[dbo].[Orders]`, is captured wherever an undelimited identifier would be
   (for example after `INSERT INTO`, `EXEC`, `CREATE TABLE` or a `JOIN` which
   follows an `ON` clause), instead of only in a `FROM` clause.
-  ([#NNNN](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/NNNN))
+  ([#5816](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5816))
 
 ## 1.20.1
 
