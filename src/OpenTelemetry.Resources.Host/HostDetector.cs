@@ -3,7 +3,9 @@
 
 #if !NETFRAMEWORK
 using System.Diagnostics;
+#if !NET11_0_OR_GREATER
 using System.Text;
+#endif
 #endif
 using System.Globalization;
 using System.Net;
@@ -312,12 +314,7 @@ internal sealed class HostDetector : IResourceDetector
         }
 
         // Checked before the multiply, which would otherwise wrap into an in-range value.
-        if (size > int.MaxValue / multiplier)
-        {
-            return null;
-        }
-
-        return (int)(size * multiplier);
+        return size > int.MaxValue / multiplier ? null : (int)(size * multiplier);
     }
 
     internal static void AddCpuInfoWindows(List<KeyValuePair<string, object>> attributes, Func<string, string?>? getRegistryValue, Func<int?> getL2CacheSize)
@@ -435,11 +432,12 @@ internal sealed class HostDetector : IResourceDetector
         }
     }
 
+#if NETFRAMEWORK
+    private static void AddCpuInfo(List<KeyValuePair<string, object>> attributes)
+        => AddCpuInfoWindows(attributes);
+#else
     private static void AddCpuInfo(List<KeyValuePair<string, object>> attributes)
     {
-#if NETFRAMEWORK
-        AddCpuInfoWindows(attributes);
-#else
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             AddCpuInfoWindows(attributes);
@@ -452,8 +450,8 @@ internal sealed class HostDetector : IResourceDetector
         {
             AddCpuInfoMacOs(attributes);
         }
-#endif
     }
+#endif
 
 #if NET
     [SupportedOSPlatform("windows")]
@@ -792,10 +790,12 @@ internal sealed class HostDetector : IResourceDetector
     {
         internal const int RelationCache = 2;
 
+#pragma warning disable SYSLIB1054 // Use 'LibraryImportAttribute' instead of 'DllImportAttribute' to generate P/Invoke marshalling code at compile time
         [DllImport("kernel32.dll", SetLastError = true)]
         [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         [return: MarshalAs(UnmanagedType.Bool)]
         internal static extern bool GetLogicalProcessorInformation(nint buffer, ref uint returnLength);
+#pragma warning restore SYSLIB1054 // Use 'LibraryImportAttribute' instead of 'DllImportAttribute' to generate P/Invoke marshalling code at compile time
 
         [StructLayout(LayoutKind.Sequential)]
         internal struct CacheDescriptor
