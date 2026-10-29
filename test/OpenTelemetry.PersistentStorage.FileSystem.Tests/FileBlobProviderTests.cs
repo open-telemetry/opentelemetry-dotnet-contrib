@@ -252,7 +252,7 @@ public class FileBlobProviderTests
         var path = Path.Combine(root.Path, "traces");
         using var provider = new FileBlobProvider(path);
 
-        Assert.True(provider.TryCreateBlob(new byte[] { 1, 2, 3 }.AsSpan(), out var blob));
+        Assert.True(provider.TryCreateBlob([1, 2, 3], out var blob));
 
         var blobPath = Assert.IsType<FileBlob>(blob).FullPath;
 

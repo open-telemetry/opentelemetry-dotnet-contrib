@@ -82,14 +82,7 @@ internal sealed class TruncatingStringBuilder : IDisposable
     }
 
     public override string ToString()
-    {
-        if (this.buffer == null || this.position == 0)
-        {
-            return string.Empty;
-        }
-
-        return new string(this.buffer, 0, this.position);
-    }
+        => this.buffer == null || this.position == 0 ? string.Empty : new string(this.buffer, 0, this.position);
 
     public void Dispose()
     {

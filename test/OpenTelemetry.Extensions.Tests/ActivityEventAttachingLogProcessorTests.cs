@@ -105,7 +105,9 @@ public sealed class ActivityEventAttachingLogProcessorTests : IDisposable
             Assert.NotNull(tags);
 
             Assert.Equal("OpenTelemetry.Extensions.Tests.ActivityEventAttachingLogProcessorTests", tags[nameof(LogRecord.CategoryName)]);
+#pragma warning disable CS0618 // Type or member is obsolete
             Assert.Equal(LogLevel.Information, tags[nameof(LogRecord.LogLevel)]);
+#pragma warning restore CS0618 // Type or member is obsolete
 
             if (eventId != 0)
             {

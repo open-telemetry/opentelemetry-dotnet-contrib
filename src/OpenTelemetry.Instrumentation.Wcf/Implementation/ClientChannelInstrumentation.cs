@@ -83,6 +83,14 @@ internal static class ClientChannelInstrumentation
     public static void AfterRequestCompleted(Message? reply, RequestTelemetryState? state, Exception? exception = null)
     {
         Guard.ThrowIfNull(state);
+
+        // Request completion can be attempted more than once, e.g. when a duplex send fails but a
+        // late reply for the same request is received, or when the request times out.
+        if (!state.TryMarkCompleted())
+        {
+            return;
+        }
+
         state.SuppressionScope?.Dispose();
 
         if (state.Activity is not Activity activity)
