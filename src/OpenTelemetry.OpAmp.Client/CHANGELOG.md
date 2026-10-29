@@ -3,7 +3,7 @@
 ## Unreleased
 
 * Include the configured agent capabilities in every message sent to the server.
-  ([#NNNN](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/NNNN))
+  ([#5812](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5812))
 
 ## 0.9.0-alpha.1
 
