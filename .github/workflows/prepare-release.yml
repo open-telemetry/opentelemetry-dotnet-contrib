@@ -36,6 +36,7 @@ on:
         - OpenTelemetry.Instrumentation.Runtime
         - OpenTelemetry.Instrumentation.ServiceFabricRemoting
         - OpenTelemetry.Instrumentation.SqlClient
+        - OpenTelemetry.Instrumentation.SshNet
         - OpenTelemetry.Instrumentation.StackExchangeRedis
         - OpenTelemetry.Instrumentation.Wcf
         - OpenTelemetry.OpAmp.Client

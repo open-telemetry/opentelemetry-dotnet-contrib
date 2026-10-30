@@ -159,6 +159,8 @@ repository:
         comment: OpenTelemetry.Instrumentation.ServiceFabricRemoting NuGet package distributed from NuGet.org.
       - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.SqlClient
         comment: OpenTelemetry.Instrumentation.SqlClient NuGet package distributed from NuGet.org.
+      - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.SshNet
+        comment: OpenTelemetry.Instrumentation.SshNet NuGet package distributed from NuGet.org.
       - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.StackExchangeRedis
         comment: OpenTelemetry.Instrumentation.StackExchangeRedis NuGet package distributed from NuGet.org.
       - uri: https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Wcf

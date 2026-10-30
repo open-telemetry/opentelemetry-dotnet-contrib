@@ -64,6 +64,8 @@ components:
     - xiang17
   src/OpenTelemetry.Instrumentation.ServiceFabricRemoting/:
     - sablancoleis
+  src/OpenTelemetry.Instrumentation.SshNet/:
+    - YoussefElshemi
   src/OpenTelemetry.OpAmp.Client/:
     - RassK
     - stevejgordon
@@ -164,6 +166,8 @@ components:
     - xiang17
   test/OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests/:
     - sablancoleis
+  test/OpenTelemetry.Instrumentation.SshNet.Tests/:
+    - YoussefElshemi
   test/OpenTelemetry.OpAmp.Client.Tests/:
     - RassK
     - stevejgordon

@@ -1,0 +1,17 @@
+OpenTelemetry.Instrumentation.SshNet.SshNetClientExtensions
+OpenTelemetry.Instrumentation.SshNet.SshNetInstrumentationOptions
+OpenTelemetry.Instrumentation.SshNet.SshNetInstrumentationOptions.RecordCommandText.get -> bool
+OpenTelemetry.Instrumentation.SshNet.SshNetInstrumentationOptions.RecordCommandText.set -> void
+OpenTelemetry.Instrumentation.SshNet.SshNetInstrumentationOptions.RecordException.get -> bool
+OpenTelemetry.Instrumentation.SshNet.SshNetInstrumentationOptions.RecordException.set -> void
+OpenTelemetry.Instrumentation.SshNet.SshNetInstrumentationOptions.RecordFilePath.get -> bool
+OpenTelemetry.Instrumentation.SshNet.SshNetInstrumentationOptions.RecordFilePath.set -> void
+OpenTelemetry.Instrumentation.SshNet.SshNetInstrumentationOptions.SshNetInstrumentationOptions() -> void
+OpenTelemetry.Metrics.MeterProviderBuilderExtensions
+OpenTelemetry.Trace.TracerProviderBuilderExtensions
+static OpenTelemetry.Instrumentation.SshNet.SshNetClientExtensions.WithOpenTelemetry(this Renci.SshNet.ISftpClient! client) -> Renci.SshNet.ISftpClient!
+static OpenTelemetry.Instrumentation.SshNet.SshNetClientExtensions.WithOpenTelemetry(this Renci.SshNet.ISftpClient! client, System.Action<OpenTelemetry.Instrumentation.SshNet.SshNetInstrumentationOptions!>? configure) -> Renci.SshNet.ISftpClient!
+static OpenTelemetry.Instrumentation.SshNet.SshNetClientExtensions.WithOpenTelemetry(this Renci.SshNet.ISshClient! client) -> Renci.SshNet.ISshClient!
+static OpenTelemetry.Instrumentation.SshNet.SshNetClientExtensions.WithOpenTelemetry(this Renci.SshNet.ISshClient! client, System.Action<OpenTelemetry.Instrumentation.SshNet.SshNetInstrumentationOptions!>? configure) -> Renci.SshNet.ISshClient!
+static OpenTelemetry.Metrics.MeterProviderBuilderExtensions.AddSshNetInstrumentation(this OpenTelemetry.Metrics.MeterProviderBuilder! builder) -> OpenTelemetry.Metrics.MeterProviderBuilder!
+static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddSshNetInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder! builder) -> OpenTelemetry.Trace.TracerProviderBuilder!

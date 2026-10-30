@@ -164,6 +164,7 @@
     <Project Path="src/OpenTelemetry.Instrumentation.Runtime/OpenTelemetry.Instrumentation.Runtime.csproj" />
     <Project Path="src/OpenTelemetry.Instrumentation.ServiceFabricRemoting/OpenTelemetry.Instrumentation.ServiceFabricRemoting.csproj" />
     <Project Path="src/OpenTelemetry.Instrumentation.SqlClient/OpenTelemetry.Instrumentation.SqlClient.csproj" />
+    <Project Path="src/OpenTelemetry.Instrumentation.SshNet/OpenTelemetry.Instrumentation.SshNet.csproj" />
     <Project Path="src/OpenTelemetry.Instrumentation.StackExchangeRedis/OpenTelemetry.Instrumentation.StackExchangeRedis.csproj" />
     <Project Path="src/OpenTelemetry.Instrumentation.Wcf/OpenTelemetry.Instrumentation.Wcf.csproj" />
     <Project Path="src/OpenTelemetry.OpAmp.Client/OpenTelemetry.OpAmp.Client.csproj" />
@@ -293,6 +294,7 @@
     <Project Path="test/OpenTelemetry.Instrumentation.Runtime.Tests/OpenTelemetry.Instrumentation.Runtime.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests/OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.SqlClient.Tests/OpenTelemetry.Instrumentation.SqlClient.Tests.csproj" />
+    <Project Path="test/OpenTelemetry.Instrumentation.SshNet.Tests/OpenTelemetry.Instrumentation.SshNet.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.StackExchangeRedis.Benchmarks/OpenTelemetry.Instrumentation.StackExchangeRedis.Benchmarks.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.StackExchangeRedis.Tests/OpenTelemetry.Instrumentation.StackExchangeRedis.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.Wcf.Tests/OpenTelemetry.Instrumentation.Wcf.Tests.csproj" />
