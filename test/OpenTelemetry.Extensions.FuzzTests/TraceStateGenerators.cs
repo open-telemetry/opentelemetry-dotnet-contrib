@@ -16,13 +16,13 @@ public static class TraceStateGenerators
     // A mixture of things that break the key grammar.
     private static readonly string[] BadKeys =
     [
-        string.Empty, "A", "aB", "a b", "a=b", "a,b", "_a", "-a", "aé", "a\tb", "a.b", " ", "UPPER",
+        string.Empty, "A", "aB", "a b", "a=b", "a,b", "_a", "-a", "a\u00e9", "a\tb", "a.b", " ", "UPPER",
     ];
 
     // A mixture of things that break the value grammar.
     private static readonly string[] BadValues =
     [
-        string.Empty, " ", "a ", "a,b", "a=b", "=", ",", "é", "a\tb", "a\nb", "a\u007fb", "éé",
+        string.Empty, " ", "a ", "a,b", "a=b", "=", ",", "\u00e9", "a\tb", "a\nb", "a\u007fb", "\u00e9\u00e9",
     ];
 
     public static Arbitrary<TraceStateText> TraceStateTextArbitrary()
