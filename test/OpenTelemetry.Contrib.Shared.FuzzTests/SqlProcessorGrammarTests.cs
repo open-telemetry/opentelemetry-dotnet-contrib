@@ -17,7 +17,9 @@ public static class SqlProcessorGrammarTests
 
     private static readonly string[] PathologicalPieces =
     [
-        "[", "'", "\"", "`", "(", ")", "IN (", "IN ('a', ", "/*", "-- ", "$a$", "FROM a,", "SELECT (", "SELECT [", "ARRAY[", "'a''", "$$", "\\'", "/* /*", "WHERE a = (", "N'", "[a]]", "0x", "1e", "--'",
+        "[", "'", "\"", "`", "(", ")", "IN (", "IN ('a', ", "/*", "-- ",
+        "$a$", "FROM a,", "SELECT (", "SELECT [", "ARRAY[", "'a''", "$$",
+        "\\'", "/* /*", "WHERE a = (", "N'", "[a]]", "0x", "1e", "--'",
     ];
 
     [Property(MaxTest = MaxValue, Arbitrary = [typeof(SqlGenerators)])]
