@@ -296,6 +296,78 @@ public class AWSXRayPropagatorTests
         Assert.Equal(default, this.awsXRayPropagator.Extract(default, carrier, Getter));
     }
 
+    [Theory]
+    [InlineData("Root=1-5759E988-BD862E3FE1BE46A994272793;Parent=53995c3f42cd8ad8;Sampled=1")]
+    [InlineData("Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995C3F42CD8AD8;Sampled=1")]
+    [InlineData("Root=1-5759e988-bd862E3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1")]
+    [InlineData("Root=1- 759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1")]
+    [InlineData("Root=1-5759e988-bd862e3fe1be46a99427279 ;Parent=53995c3f42cd8ad8;Sampled=1")]
+    [InlineData("Root=1-5759e98 -bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1")]
+    [InlineData("Root=1-        -bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1")]
+    [InlineData("Root=1-5759e988-bd862e3fe1be46a994272793;Parent=                ;Sampled=1")]
+    [InlineData("Root=1-5759e988-bd862e3fe1be46a994272793;Parent= 3995c3f42cd8ad8;Sampled=1")]
+    [InlineData("Root=1-5759e98g-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1")]
+    [InlineData("Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8adg;Sampled=1")]
+    public void TestTryParseXRayTraceHeaderWithIdsThatAreNotValidDoesNotThrow(string header)
+    {
+        // A header which is not valid is reported by the result of parsing it, rather than by an exception,
+        // as the header comes from the caller of the service and so may be anything.
+        var exception = Record.Exception(() => AWSXRayPropagator.TryParseXRayTraceHeader(header, out _));
+
+        Assert.Null(exception);
+        Assert.False(AWSXRayPropagator.TryParseXRayTraceHeader(header, out var activityContext));
+        Assert.Equal(default, activityContext);
+    }
+
+    [Fact]
+    public void TestTryParseXRayTraceHeaderAcceptsOnlyLowerCaseHexadecimalDigitsInIdentifiers()
+    {
+        // Every character is tried as the first and as the last character of the random part of the trace
+        // identifier and of the parent identifier, and only those of a hexadecimal number in lower case are valid.
+        for (var i = 0; i <= char.MaxValue; i++)
+        {
+            var c = (char)i;
+            var expected = c is (>= '0' and <= '9') or (>= 'a' and <= 'f');
+
+            AssertExtractIsValid(expected, c, $"Root=1-5759e988-{c}d862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1");
+            AssertExtractIsValid(expected, c, $"Root=1-5759e988-bd862e3fe1be46a99427279{c};Parent=53995c3f42cd8ad8;Sampled=1");
+            AssertExtractIsValid(expected, c, $"Root=1-5759e988-bd862e3fe1be46a994272793;Parent={c}3995c3f42cd8ad8;Sampled=1");
+            AssertExtractIsValid(expected, c, $"Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad{c};Sampled=1");
+        }
+    }
+
+    [Theory]
+    [InlineData("Root2=1-00000000-000000000000000000000000")]
+    [InlineData("RootX=garbage")]
+    [InlineData("Parent2=")]
+    [InlineData("Parent2=zzzzzzzzzzzzzzzz")]
+    [InlineData("Parentage=ffffffffffffffff")]
+    [InlineData("Sampled_=0")]
+    [InlineData("SampledBy=0")]
+    [InlineData("Samples=1")]
+    public void TestExtractTraceHeaderIgnoresFieldsWithANameWhichStartsWithTheNameOfAnotherField(string field)
+    {
+        var traceId = ActivityTraceId.CreateFromString(TraceId.AsSpan());
+        var parentId = ActivitySpanId.CreateFromString(ParentId.AsSpan());
+        var activityContext = new ActivityContext(traceId, parentId, ActivityTraceFlags.Recorded, isRemote: true);
+        var expected = new PropagationContext(activityContext, default);
+
+        foreach (var header in new[]
+        {
+            $"{field};Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1",
+            $"Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1;{field}",
+            $"Root=1-5759e988-bd862e3fe1be46a994272793;{field};Parent=53995c3f42cd8ad8;Sampled=1",
+        })
+        {
+            var carrier = new Dictionary<string, string>()
+            {
+                { AWSXRayTraceHeaderKey, header },
+            };
+
+            Assert.Equal(expected, this.awsXRayPropagator.Extract(default, carrier, Getter));
+        }
+    }
+
     [Fact]
     public void TestExtractTraceHeaderWithDuplicateKeysUsesLastValues()
     {
@@ -333,5 +405,16 @@ public class AWSXRayPropagatorTests
 
             Assert.Equal(new PropagationContext(expected, default), this.awsXRayPropagator.Extract(default, carrier, Getter));
         }
+    }
+
+    private static void AssertExtractIsValid(bool expected, char c, string header)
+    {
+        // Parsing is called directly, as extracting the context catches the exception which is thrown if an
+        // identifier which is not valid is used, and so cannot tell a header which is rejected from one which is not.
+        var actual = false;
+        var exception = Record.Exception(() => actual = AWSXRayPropagator.TryParseXRayTraceHeader(header, out _));
+
+        Assert.True(exception is null, $"The header {header} threw {exception?.GetType().Name} for the character U+{(int)c:X4}.");
+        Assert.True(expected == actual, $"The header {header} should {(expected ? string.Empty : "not ")}be valid for the character U+{(int)c:X4}.");
     }
 }

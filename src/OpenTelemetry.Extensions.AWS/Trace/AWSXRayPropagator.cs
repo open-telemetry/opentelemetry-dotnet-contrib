@@ -1,11 +1,13 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if NET
+using System.Buffers;
+#endif
 #if NETFRAMEWORK
 using System.Net;
 #endif
 using System.Diagnostics;
-using System.Globalization;
 using OpenTelemetry.Context.Propagation;
 
 namespace OpenTelemetry.Extensions.AWS.Trace;
@@ -37,6 +39,10 @@ public class AWSXRayPropagator : TextMapPropagator
 
     // The length of a header in the format "Root=1-{8 hex}-{24 hex};Parent={16 hex};Sampled={0|1}".
     private const int TraceHeaderLength = 74;
+
+#if NET
+    private static readonly SearchValues<char> LowerCaseHexDigits = SearchValues.Create("0123456789abcdef");
+#endif
 
 #if NET
     private static readonly System.Collections.Immutable.ImmutableHashSet<string> AllFields = [AWSXRayTraceHeaderKey];
@@ -209,8 +215,11 @@ public class AWSXRayPropagator : TextMapPropagator
                 return false;
             }
 
+            // A key is only the one which is read if it is the whole of the name, so that another
+            // field whose name starts with it (e.g. Parent2) is not mistaken for it.
+            var key = trimmedPart.Slice(0, equalsIndex);
             var value = trimmedPart.Slice(equalsIndex + 1);
-            if (trimmedPart.StartsWith(RootKey.AsSpan()))
+            if (key.SequenceEqual(RootKey.AsSpan()))
             {
                 if (!TryParseOTFormatTraceId(value, traceIdBuffer))
                 {
@@ -219,7 +228,7 @@ public class AWSXRayPropagator : TextMapPropagator
 
                 traceId = traceIdBuffer;
             }
-            else if (trimmedPart.StartsWith(ParentKey.AsSpan()))
+            else if (key.SequenceEqual(ParentKey.AsSpan()))
             {
                 if (!IsParentIdValid(value))
                 {
@@ -228,7 +237,7 @@ public class AWSXRayPropagator : TextMapPropagator
 
                 parentId = value;
             }
-            else if (trimmedPart.StartsWith(SampledKey.AsSpan()))
+            else if (key.SequenceEqual(SampledKey.AsSpan()))
             {
                 if (!TryParseSampleDecision(value, out var sampleDecision))
                 {
@@ -326,45 +335,41 @@ public class AWSXRayPropagator : TextMapPropagator
     }
 
     /// <summary>
-    /// Determines whether the value is a hexadecimal number in the same way as parsing it with
-    /// <see cref="NumberStyles.HexNumber"/> (as previously done with <c>int.TryParse()</c>,
-    /// <c>long.TryParse()</c> and <c>BigInteger.TryParse()</c>), but without allocating. That is, one or
-    /// more hexadecimal digits of either case, optionally with leading and trailing whitespace.
+    /// Determines whether the value is a hexadecimal number which can be used as an identifier. That is, one or more
+    /// lower case hexadecimal digits and nothing else, as <see cref="ActivityTraceId.CreateFromString"/> and
+    /// <see cref="ActivitySpanId.CreateFromString"/> accept only that, and throw for anything else, such as a value
+    /// with upper case digits or with whitespace around it.
     /// </summary>
     /// <param name="value">The value to check.</param>
     /// <returns><see langword="true"/> if the value is a hexadecimal number; otherwise <see langword="false"/>.</returns>
     private static bool IsHexNumber(ReadOnlySpan<char> value)
     {
-        var index = 0;
-
-        while (index < value.Length && IsWhiteSpace(value[index]))
-        {
-            index++;
-        }
-
-        var digitsStart = index;
-
-        while (index < value.Length && char.IsAsciiHexDigit(value[index]))
-        {
-            index++;
-        }
-
-        if (index == digitsStart)
+        if (value.IsEmpty)
         {
             return false;
         }
 
-        while (index < value.Length && IsWhiteSpace(value[index]))
+#if NET
+        return value.IndexOfAnyExcept(LowerCaseHexDigits) < 0;
+#else
+        // Digits and lower case letters have the bit of the case set and upper case letters do not, so
+        // looking at whether each character is a hexadecimal digit and keeping the bit which is set in all
+        // of them costs the same as looking at whether each is a hexadecimal digit alone. Identifiers are
+        // random, so a branch which depends on whether a digit is a number or a letter cannot be predicted,
+        // which makes checking for each of the two ranges of lower case digits much slower.
+        var caseBit = 0x20;
+
+        foreach (var c in value)
         {
-            index++;
+            if (!char.IsAsciiHexDigit(c))
+            {
+                return false;
+            }
+
+            caseBit &= c;
         }
 
-        return index == value.Length;
-
-        // The characters that number parsing treats as whitespace.
-        static bool IsWhiteSpace(char c)
-        {
-            return c is ' ' or (>= '\t' and <= '\r');
-        }
+        return caseBit != 0;
+#endif
     }
 }

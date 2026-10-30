@@ -9,6 +9,7 @@
     <SolutionProjects Include="$(RepoRoot)\src\OpenTelemetry.Extensions.AWS\OpenTelemetry.Extensions.AWS.csproj" />
     <SolutionProjects Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.AWS\OpenTelemetry.Instrumentation.AWS.csproj" />
     <SolutionProjects Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.AWSLambda\OpenTelemetry.Instrumentation.AWSLambda.csproj" />
+    <SolutionProjects Include="$(RepoRoot)\test\OpenTelemetry.Extensions.AWS.FuzzTests\OpenTelemetry.Extensions.AWS.FuzzTests.csproj" />
     <SolutionProjects Include="$(RepoRoot)\test\OpenTelemetry.Extensions.AWS.Tests\OpenTelemetry.Extensions.AWS.Tests.csproj" />
     <SolutionProjects Include="$(RepoRoot)\test\OpenTelemetry.Instrumentation.AWS.Tests\OpenTelemetry.Instrumentation.AWS.Tests.csproj" />
     <SolutionProjects Include="$(RepoRoot)\test\OpenTelemetry.Instrumentation.AWSLambda.Tests\OpenTelemetry.Instrumentation.AWSLambda.Tests.csproj" />
@@ -17,6 +18,7 @@
     <PackProjects Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.AWS\OpenTelemetry.Instrumentation.AWS.csproj" />
     <PackProjects Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.AWSLambda\OpenTelemetry.Instrumentation.AWSLambda.csproj" />
 
+    <TestProjects Include="$(RepoRoot)\test\OpenTelemetry.Extensions.AWS.FuzzTests\OpenTelemetry.Extensions.AWS.FuzzTests.csproj" />
     <TestProjects Include="$(RepoRoot)\test\OpenTelemetry.Extensions.AWS.Tests\OpenTelemetry.Extensions.AWS.Tests.csproj" />
     <TestProjects Include="$(RepoRoot)\test\OpenTelemetry.Instrumentation.AWS.Tests\OpenTelemetry.Instrumentation.AWS.Tests.csproj" />
     <TestProjects Include="$(RepoRoot)\test\OpenTelemetry.Instrumentation.AWSLambda.Tests\OpenTelemetry.Instrumentation.AWSLambda.Tests.csproj" />
