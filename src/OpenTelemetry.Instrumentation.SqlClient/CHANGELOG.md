@@ -8,6 +8,19 @@
   follows an `ON` clause), instead of only in a `FROM` clause.
   ([#5816](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5816))
 
+* Fixed `db.query.summary` so that a multi-part name which mixes undelimited
+  and delimited parts, such as `dbo.[Orders]`, or which has whitespace around
+  a period, such as `dbo . Orders` or `[dbo] . [Orders]`, is captured whole,
+  and so that a trailing period is no longer left in the summary when no
+  further part of the name follows it. As the summary is used to name the
+  span, the names of affected spans change.
+  ([#5822](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5822))
+
+* Fixed `db.query.summary` so that the table name is included for a
+  `TRUNCATE` statement, with or without `TABLE`, for example
+  `TRUNCATE TABLE Orders` rather than `TRUNCATE TABLE`.
+  ([#5822](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5822))
+
 ## 1.20.1
 
 Released 2026-Oct-21

@@ -568,6 +568,7 @@ internal static class SqlProcessor
             }
 
             var length = i - start;
+            var captureNextPartOfName = false;
             if (length > 0)
             {
                 // Special handling: if we are in a FROM clause, check if this identifier is a reserved keyword
@@ -609,15 +610,26 @@ internal static class SqlProcessor
                 // Optionally copy to summary buffer.
                 if (state.CaptureNextNonKeywordTokenAsIdentifier && !state.SummaryIsComplete)
                 {
-                    AppendSummaryToken(sql.Slice(start, length), ref state);
+                    // A period at the end of the identifier (e.g. dbo.) is only included if another part of the name follows.
+                    var endsWithDot = sql[i - 1] == DotChar;
+                    AppendSummaryToken(sql.Slice(start, endsWithDot ? length - 1 : length), ref state);
 
-                    // Add a space after the identifier. The trailing space will be trimmed later.
-                    AppendSummaryChar(SpaceChar, ref state);
+                    if (endsWithDot ? IsNamePart(sql, SkipWhitespace(sql, i)) : IsNamePartFollowing(sql, i))
+                    {
+                        // The name continues (e.g. dbo.[Orders] or dbo . Orders), so capture the next part as well.
+                        AppendSummaryChar(DotChar, ref state);
+                        captureNextPartOfName = true;
+                    }
+                    else
+                    {
+                        // Add a space after the identifier. The trailing space will be trimmed later.
+                        AppendSummaryChar(SpaceChar, ref state);
+                    }
                 }
             }
 
             state.ParsePosition = i;
-            state.CaptureNextNonKeywordTokenAsIdentifier = false;
+            state.CaptureNextNonKeywordTokenAsIdentifier = captureNextPartOfName;
             state.SanitizeNextNonKeywordToken = false;
             state.PreviousTokenStartPosition = start;
             state.PreviousTokenEndPosition = i;
@@ -710,7 +722,7 @@ internal static class SqlProcessor
 
                 // Add a period for a schema-qualified name, otherwise a space. A trailing space will be trimmed later.
                 var nextPosition = end + 1;
-                if (nextPosition < sql.Length && sql[nextPosition] == DotChar)
+                if (IsNamePartFollowing(sql, nextPosition))
                 {
                     AppendSummaryChar(DotChar, ref state);
 
@@ -731,6 +743,33 @@ internal static class SqlProcessor
         state.PreviousTokenEndPosition = end + 1;
 
         return true;
+    }
+
+    // Whether the position, ignoring any whitespace, is a period followed by another part of a multi-part name
+    // which can be captured (e.g. the [Orders] in [dbo] . [Orders]). A period which is not followed by one is
+    // left out of the summary.
+    private static bool IsNamePartFollowing(ReadOnlySpan<char> sql, int position)
+    {
+        position = SkipWhitespace(sql, position);
+
+        return position < sql.Length &&
+            sql[position] == DotChar &&
+            IsNamePart(sql, SkipWhitespace(sql, position + 1));
+    }
+
+    // Whether the position is the start of a part of a name which can be captured.
+    private static bool IsNamePart(ReadOnlySpan<char> sql, int position) =>
+        position < sql.Length &&
+        (sql[position] is OpenSquareBracketChar or UnderscoreChar || char.IsLetter(sql[position]));
+
+    private static int SkipWhitespace(ReadOnlySpan<char> sql, int position)
+    {
+        while (position < sql.Length && sql[position] is SpaceChar or TabChar or CarriageReturnChar or NewLineChar)
+        {
+            position++;
+        }
+
+        return position;
     }
 
     /// <summary>
@@ -1864,7 +1903,8 @@ internal static class SqlProcessor
             SqlKeyword.Login or SqlKeyword.User => false,
             SqlKeyword.Statistics => state.FirstSummaryKeyword is SqlKeyword.Update,
             SqlKeyword.Trigger => state.FirstSummaryKeyword is SqlKeyword.Create or SqlKeyword.Alter or SqlKeyword.Drop or SqlKeyword.Disable or SqlKeyword.Enable,
-            SqlKeyword.Truncate => state.FirstSummaryKeyword is SqlKeyword.Table,
+            SqlKeyword.Truncate => state.FirstSummaryKeyword is SqlKeyword.Truncate,
+            SqlKeyword.Table => state.FirstSummaryKeyword is SqlKeyword.Create or SqlKeyword.Alter or SqlKeyword.Drop or SqlKeyword.Truncate,
             SqlKeyword.Database or
             SqlKeyword.Function or
             SqlKeyword.Index or
@@ -1872,7 +1912,6 @@ internal static class SqlProcessor
             SqlKeyword.Role or
             SqlKeyword.Schema or
             SqlKeyword.Sequence or
-            SqlKeyword.Table or
             SqlKeyword.View => state.FirstSummaryKeyword is SqlKeyword.Create or SqlKeyword.Alter or SqlKeyword.Drop,
             _ => false,
         };
