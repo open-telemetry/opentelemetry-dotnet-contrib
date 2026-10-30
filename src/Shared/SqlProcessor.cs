@@ -52,6 +52,7 @@ internal static class SqlProcessor
     private static readonly char[] LineBreakChars = [CarriageReturnChar, NewLineChar];
 #endif
 
+#if NET
     // The characters which can start a construct that a ')' may legitimately appear inside
     // (a string literal, a quoted identifier or a comment), plus ')' itself. Used to find the
     // end of an IN clause.
@@ -68,7 +69,6 @@ internal static class SqlProcessor
         HashChar,
     ];
 
-#if NET
     private static readonly SearchValues<char> AsciiLetterSearchValues = SearchValues.Create("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
     private static readonly SearchValues<char> LineBreakSearchValues = SearchValues.Create("\n\r");
     private static readonly SearchValues<char> WhitespaceSearchValues = SearchValues.Create(WhitespaceChars);
@@ -814,14 +814,14 @@ internal static class SqlProcessor
         {
             // Brackets can also delimit a list of values in some dialects (e.g. ['a', 'b'] or [1, 2] in
             // DuckDB, ClickHouse and GoogleSQL). An odd number of quotes cannot all be part of string
-            // literals, so that content is an identifier (e.g. [Manager's Approval]), unless it starts
-            // with a quote, when the bracket which ends it is inside a string literal (e.g. ['a]b', 'c']).
-            // Content without quotes is an identifier unless it starts with a number (e.g. [1, 2]).
-            // Anything else is parsed as SQL, which redacts any literals and at worst over-redacts an
-            // identifier (e.g. [2024] or [It's Bob's]).
+            // literals, so that content is an identifier (e.g. [Manager's Approval]), unless it starts with
+            // a quote, a prefixed string or a number, when the bracket which ends it is inside a string
+            // literal (e.g. ['a]b', 'c'], [E'a]b', 'c'] or [1, 'a]b']). Content without quotes is an
+            // identifier unless it starts with a number (e.g. [1, 2]). Anything else is parsed as SQL,
+            // which redacts any literals and at worst over-redacts an identifier (e.g. [2024] or [It's Bob's]).
             content = content.TrimStart();
 
-            if (content.IsEmpty)
+            if (content.IsEmpty || StartsWithValueOrComment(content))
             {
                 return false;
             }
@@ -839,9 +839,211 @@ internal static class SqlProcessor
             }
 #endif
 
+            // The content is also an identifier if a comment in it would contain the closing bracket, which is not
+            // valid for a list of values, unless the content has a value which would be copied if it were an identifier.
+            // The first bracket which is found can be in a comment which ends later in a list (e.g. ['a' /* ] */, 'b']).
             return singleQuotes == 0
                 ? !StartsWithNumber(content)
-                : (singleQuotes & 1) == 1 && content[0] != SingleQuoteChar;
+                : content[0] != SingleQuoteChar &&
+                  !StartsWithNumberLiteral(content) &&
+                  (((singleQuotes & 1) == 1 && !StartsWithPrefixedString(content)) ||
+                   (CommentContainsClosingBracket(content) && !ContainsValue(content)));
+        }
+
+        static bool StartsWithValueOrComment(ReadOnlySpan<char> content)
+        {
+            // A comment at the start of the content is not part of a name, and neither is a string in dollar quotes
+            // (e.g. [$$a$$, $$b$$] or [$tag$a$tag$]), which is a value. The first bracket which is found can be in
+            // the comment (e.g. [ /* ] */ 'a']), or can be after the string with the value in it.
+            if (content.Length >= 2 &&
+                ((content[0] == ForwardSlashChar && content[1] == AsteriskChar) || (content[0] == DashChar && content[1] == DashChar)))
+            {
+                return true;
+            }
+
+            if (content[0] != DollarChar)
+            {
+                return false;
+            }
+
+            // The tag is optional, and is letters, digits and underscores, which do not start with a digit.
+            var tagEnd = 1;
+            if (tagEnd < content.Length && (char.IsAsciiLetter(content[tagEnd]) || content[tagEnd] == UnderscoreChar))
+            {
+                tagEnd++;
+                while (tagEnd < content.Length && (char.IsAsciiLetterOrDigit(content[tagEnd]) || content[tagEnd] == UnderscoreChar))
+                {
+                    tagEnd++;
+                }
+            }
+
+            return tagEnd < content.Length && content[tagEnd] == DollarChar;
+        }
+
+        static bool StartsWithNumberLiteral(ReadOnlySpan<char> content)
+        {
+            // A number (e.g. 1234, -1.5, 1e5 or 0x1F) that ends where the content does, or at a character which is not part
+            // of a word, which tells it from a name that starts with a number (e.g. [1st Manager's Requests]). The first
+            // bracket which is found can be in a string after the number (e.g. [1, 'a]b']).
+            var i = content[0] is '+' or DashChar ? 1 : 0;
+
+            if (i < content.Length && content[i] == DotChar)
+            {
+                i++;
+            }
+
+            if (i >= content.Length || !char.IsAsciiDigit(content[i]))
+            {
+                return false;
+            }
+
+            while (i < content.Length && (char.IsAsciiHexDigit(content[i]) || content[i] is DotChar or 'x' or 'X'))
+            {
+                i++;
+            }
+
+            return i == content.Length || !IsWordChar(content[i]);
+        }
+
+        static bool StartsWithPrefixedString(ReadOnlySpan<char> content)
+        {
+            // A string with a prefix (e.g. E'a', N'a', B'1' or X'1F'), where the first bracket which is found can be in the string.
+            return content.Length >= 2 && content[1] == SingleQuoteChar && content[0] is 'E' or 'e' or 'N' or 'n' or 'B' or 'b' or 'X' or 'x';
+        }
+
+        static bool ContainsValue(ReadOnlySpan<char> content)
+        {
+            // Whether the content has a string literal which is not empty, or a number. An identifier such as
+            // [Orders''--] has quotes, but only ones which are empty, while a list of values has the values.
+            for (var i = 0; i < content.Length; i++)
+            {
+                var c = content[i];
+
+                if (c == SingleQuoteChar)
+                {
+                    // A quote which follows a word is part of a name (e.g. [Orders''--]), unless the word is the prefix of a literal (e.g. N'a').
+                    if (i > 0 &&
+                        IsWordChar(content[i - 1]) &&
+                        !(content[i - 1] is 'E' or 'e' or 'N' or 'n' or 'B' or 'b' or 'X' or 'x' && (i == 1 || !IsWordChar(content[i - 2]))))
+                    {
+                        while (i + 1 < content.Length && content[i + 1] == SingleQuoteChar)
+                        {
+                            i++;
+                        }
+
+                        continue;
+                    }
+
+                    var start = i + 1;
+                    var end = start;
+
+                    while (end < content.Length)
+                    {
+                        if (content[end] == SingleQuoteChar)
+                        {
+                            // A doubled quote is a quote in the literal.
+                            if (end + 1 < content.Length && content[end + 1] == SingleQuoteChar)
+                            {
+                                end += 2;
+                                continue;
+                            }
+
+                            break;
+                        }
+
+                        end++;
+                    }
+
+                    if (end > start)
+                    {
+                        return true;
+                    }
+
+                    i = end;
+                }
+                else if (c is DashChar or ForwardSlashChar && i + 1 < content.Length)
+                {
+                    // Anything in a comment (e.g. [Orders/*'']) is not a value.
+                    if (c == DashChar && content[i + 1] == DashChar)
+                    {
+                        var lineEnd = content.Slice(i).IndexOf(NewLineChar);
+                        i = lineEnd < 0 ? content.Length : i + lineEnd;
+                    }
+                    else if (c == ForwardSlashChar && content[i + 1] == AsteriskChar)
+                    {
+                        var blockEnd = content.Slice(i + 2).IndexOf("*/".AsSpan());
+                        i = blockEnd < 0 ? content.Length : i + 2 + blockEnd + 1;
+                    }
+                }
+                else if (char.IsAsciiDigit(c) && (i == 0 || !IsWordChar(content[i - 1])))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        static bool CommentContainsClosingBracket(ReadOnlySpan<char> content)
+        {
+            // A list of values has to end with its closing bracket, so a comment which has not ended by the
+            // time the content does would contain it, which is not valid. The content must therefore be an
+            // identifier (e.g. [Orders''--] or [Orders''/*]), which otherwise would be parsed as SQL with
+            // the rest of the statement, including any literal in it, swallowed by the comment.
+            // A comment starts with two dashes or a slash and an asterisk, so content which has no dash and
+            // no slash cannot contain one, which is much cheaper to find than looking at each character.
+            if (content.IndexOfAny(DashChar, ForwardSlashChar) < 0)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < content.Length; i++)
+            {
+                var c = content[i];
+
+                if (c == SingleQuoteChar)
+                {
+                    // Skip a string literal, in which a comment marker is only text.
+                    for (i++; i < content.Length; i++)
+                    {
+                        if (content[i] != SingleQuoteChar)
+                        {
+                            continue;
+                        }
+
+                        if (i + 1 < content.Length && content[i + 1] == SingleQuoteChar)
+                        {
+                            i++;
+                            continue;
+                        }
+
+                        break;
+                    }
+                }
+                else if (c == DashChar && i + 1 < content.Length && content[i + 1] == DashChar)
+                {
+                    // A line comment ends at the end of the line, if the line does end within the content.
+                    var lineEnd = content.Slice(i + 2).IndexOfAny(CarriageReturnChar, NewLineChar);
+                    if (lineEnd < 0)
+                    {
+                        return true;
+                    }
+
+                    i += 2 + lineEnd;
+                }
+                else if (c == ForwardSlashChar && i + 1 < content.Length && content[i + 1] == AsteriskChar)
+                {
+                    var commentEnd = content.Slice(i + 2).IndexOf("*/".AsSpan(), StringComparison.Ordinal);
+                    if (commentEnd < 0)
+                    {
+                        return true;
+                    }
+
+                    i += 2 + commentEnd + 1;
+                }
+            }
+
+            return false;
         }
     }
 
@@ -1466,11 +1668,24 @@ internal static class SqlProcessor
             // (for example "IN ('a)b', 'secret')"), which would leave the parser positioned in the
             // middle of that literal. Every subsequent quote would then be mismatched and the
             // remaining values would be copied into the sanitized SQL verbatim instead of being replaced.
+            // A scan which found no closing parenthesis has looked at everything up to the end of the input, so
+            // any later list is within the same text and would not find one either. Without remembering that, a
+            // statement with many lists which are not terminated would scan to the end of the input for each of them.
+            if (state.InClauseEndNotFoundFrom != 0 && parsePosition + 1 >= state.InClauseEndNotFoundFrom)
+            {
+                return false;
+            }
+
             if (TryFindEndOfInClause(sql, parsePosition, in state, out var closeParenIndex))
             {
                 state.ParsePosition = closeParenIndex;
                 buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
                 return true;
+            }
+
+            if (state.InClauseEndNotFoundFrom == 0)
+            {
+                state.InClauseEndNotFoundFrom = parsePosition + 1;
             }
         }
 
@@ -1501,7 +1716,7 @@ internal static class SqlProcessor
 #if NET
             var offset = sql.Slice(i).IndexOfAny(InClauseScanSearchValues);
 #else
-            var offset = sql.Slice(i).IndexOfAny(InClauseScanChars);
+            var offset = IndexOfInClauseScanChar(sql.Slice(i));
 #endif
 
             if (offset < 0)
@@ -1554,6 +1769,31 @@ internal static class SqlProcessor
         return false;
     }
 
+#if !NET
+    /// <summary>
+    /// Finds the first character which can start a construct that a <c>)</c> may legitimately appear inside, or which is
+    /// <c>)</c> itself (see <see cref="TryFindEndOfInClause"/>).
+    /// </summary>
+    /// <remarks>
+    /// This is not <c>IndexOfAny</c> as that searches the whole of the span once for each value on .NET Framework, so for
+    /// a value which does not occur it takes time in proportion to the length of the span rather than to the distance to the
+    /// first match, and calling it for each of a number of literals in a long statement takes time which grows with its square.
+    /// </remarks>
+    private static int IndexOfInClauseScanChar(ReadOnlySpan<char> span)
+    {
+        for (var i = 0; i < span.Length; i++)
+        {
+            if (span[i] is CloseParenChar or SingleQuoteChar or DoubleQuoteChar or BacktickChar or OpenSquareBracketChar
+                or DollarChar or DashChar or ForwardSlashChar or HashChar)
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+#endif
+
     private ref struct ParseState
     {
         // ParseState intentionally uses public fields (not properties):
@@ -1591,6 +1831,9 @@ internal static class SqlProcessor
         // The first ']' found at or after CloseSquareBracketSearchStart, or the length of the input if there is none.
         public int CloseSquareBracketSearchStart; // 4 bytes
         public int NextCloseSquareBracket; // 4 bytes
+
+        // One more than the position from which the end of an IN clause was searched for and not found, or zero if there was no such search.
+        public int InClauseEndNotFoundFrom; // 4 bytes
 
         // NOTE: If the number of bool fields increases significantly, consider combining into a bitfield.
 

@@ -12,6 +12,21 @@
   command's activity.
   ([#5821](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5821))
 
+* Fixed a bracketed identifier which contains quotes and a comment marker, such
+  as `[Orders''--]`, being parsed as SQL, which truncated the sanitized query
+  text and left a literal after it unsanitized if it was on a later line.
+  ([#5827](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5827))
+
+* Fixed the time taken to sanitize a statement when it contains many `IN (` lists
+  which are not terminated.
+  ([#5827](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5827))
+
+* Fixed literals in a list of values in brackets (e.g. `['a', 'b']`) being left
+  unsanitized if the list starts with a string in dollar quotes, a string with a
+  prefix, a number or a comment, or has a comment which contains a closing
+  bracket.
+  ([#5827](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5827))
+
 ## 1.20.1-beta.1
 
 Released 2026-Oct-21
