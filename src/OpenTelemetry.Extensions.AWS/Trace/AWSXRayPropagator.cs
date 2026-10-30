@@ -208,8 +208,11 @@ public class AWSXRayPropagator : TextMapPropagator
                 return false;
             }
 
+            // A key is only the one which is read if it is the whole of the name, so that another
+            // field whose name starts with it (e.g. Parent2) is not mistaken for it.
+            var key = trimmedPart.Slice(0, equalsIndex);
             var value = trimmedPart.Slice(equalsIndex + 1);
-            if (trimmedPart.StartsWith(RootKey.AsSpan()))
+            if (key.SequenceEqual(RootKey.AsSpan()))
             {
                 if (!TryParseOTFormatTraceId(value, traceIdBuffer))
                 {
@@ -218,7 +221,7 @@ public class AWSXRayPropagator : TextMapPropagator
 
                 traceId = traceIdBuffer;
             }
-            else if (trimmedPart.StartsWith(ParentKey.AsSpan()))
+            else if (key.SequenceEqual(ParentKey.AsSpan()))
             {
                 if (!IsParentIdValid(value))
                 {
@@ -227,7 +230,7 @@ public class AWSXRayPropagator : TextMapPropagator
 
                 parentId = value;
             }
-            else if (trimmedPart.StartsWith(SampledKey.AsSpan()))
+            else if (key.SequenceEqual(SampledKey.AsSpan()))
             {
                 if (!TryParseSampleDecision(value, out var sampleDecision))
                 {

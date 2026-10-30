@@ -6,6 +6,10 @@
   `X-Amzn-Trace-Id` header with upper case or padded hexadecimal identifiers.
   ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
 
+* Fixed `AWSXRayPropagator` using the value of a field of the `X-Amzn-Trace-Id`
+  header whose name only starts with `Root`, `Parent` or `Sampled`.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 1.20.2
 
 Released 2026-Oct-28

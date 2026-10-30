@@ -319,6 +319,38 @@ public class AWSXRayPropagatorTests
         Assert.Equal(default, activityContext);
     }
 
+    [Theory]
+    [InlineData("Root2=1-00000000-000000000000000000000000")]
+    [InlineData("RootX=garbage")]
+    [InlineData("Parent2=")]
+    [InlineData("Parent2=zzzzzzzzzzzzzzzz")]
+    [InlineData("Parentage=ffffffffffffffff")]
+    [InlineData("Sampled_=0")]
+    [InlineData("SampledBy=0")]
+    [InlineData("Samples=1")]
+    public void TestExtractTraceHeaderIgnoresFieldsWithANameWhichStartsWithTheNameOfAnotherField(string field)
+    {
+        var traceId = ActivityTraceId.CreateFromString(TraceId.AsSpan());
+        var parentId = ActivitySpanId.CreateFromString(ParentId.AsSpan());
+        var activityContext = new ActivityContext(traceId, parentId, ActivityTraceFlags.Recorded, isRemote: true);
+        var expected = new PropagationContext(activityContext, default);
+
+        foreach (var header in new[]
+        {
+            $"{field};Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1",
+            $"Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1;{field}",
+            $"Root=1-5759e988-bd862e3fe1be46a994272793;{field};Parent=53995c3f42cd8ad8;Sampled=1",
+        })
+        {
+            var carrier = new Dictionary<string, string>()
+            {
+                { AWSXRayTraceHeaderKey, header },
+            };
+
+            Assert.Equal(expected, this.awsXRayPropagator.Extract(default, carrier, Getter));
+        }
+    }
+
     [Fact]
     public void TestExtractTraceHeaderWithDuplicateKeysUsesLastValues()
     {
