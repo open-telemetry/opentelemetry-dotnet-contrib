@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* No longer throw and catch an exception in `AWSXRayPropagator` for an
+  `X-Amzn-Trace-Id` header with upper case or padded hexadecimal identifiers.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 1.20.2
 
 Released 2026-Oct-28

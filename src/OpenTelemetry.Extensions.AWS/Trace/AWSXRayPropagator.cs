@@ -5,7 +5,6 @@
 using System.Net;
 #endif
 using System.Diagnostics;
-using System.Globalization;
 using OpenTelemetry.Context.Propagation;
 
 namespace OpenTelemetry.Extensions.AWS.Trace;
@@ -326,45 +325,28 @@ public class AWSXRayPropagator : TextMapPropagator
     }
 
     /// <summary>
-    /// Determines whether the value is a hexadecimal number in the same way as parsing it with
-    /// <see cref="NumberStyles.HexNumber"/> (as previously done with <c>int.TryParse()</c>,
-    /// <c>long.TryParse()</c> and <c>BigInteger.TryParse()</c>), but without allocating. That is, one or
-    /// more hexadecimal digits of either case, optionally with leading and trailing whitespace.
+    /// Determines whether the value is a hexadecimal number which can be used as an identifier. That is, one or more
+    /// lower case hexadecimal digits and nothing else, as <see cref="ActivityTraceId.CreateFromString"/> and
+    /// <see cref="ActivitySpanId.CreateFromString"/> accept only that, and throw for anything else, such as a value
+    /// with upper case digits or with whitespace around it.
     /// </summary>
     /// <param name="value">The value to check.</param>
     /// <returns><see langword="true"/> if the value is a hexadecimal number; otherwise <see langword="false"/>.</returns>
     private static bool IsHexNumber(ReadOnlySpan<char> value)
     {
-        var index = 0;
-
-        while (index < value.Length && IsWhiteSpace(value[index]))
-        {
-            index++;
-        }
-
-        var digitsStart = index;
-
-        while (index < value.Length && char.IsAsciiHexDigit(value[index]))
-        {
-            index++;
-        }
-
-        if (index == digitsStart)
+        if (value.IsEmpty)
         {
             return false;
         }
 
-        while (index < value.Length && IsWhiteSpace(value[index]))
+        foreach (var c in value)
         {
-            index++;
+            if (!char.IsAsciiHexDigitLower(c))
+            {
+                return false;
+            }
         }
 
-        return index == value.Length;
-
-        // The characters that number parsing treats as whitespace.
-        static bool IsWhiteSpace(char c)
-        {
-            return c is ' ' or (>= '\t' and <= '\r');
-        }
+        return true;
     }
 }

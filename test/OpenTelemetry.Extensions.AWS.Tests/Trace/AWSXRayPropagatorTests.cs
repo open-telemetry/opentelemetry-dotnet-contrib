@@ -296,6 +296,29 @@ public class AWSXRayPropagatorTests
         Assert.Equal(default, this.awsXRayPropagator.Extract(default, carrier, Getter));
     }
 
+    [Theory]
+    [InlineData("Root=1-5759E988-BD862E3FE1BE46A994272793;Parent=53995c3f42cd8ad8;Sampled=1")]
+    [InlineData("Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995C3F42CD8AD8;Sampled=1")]
+    [InlineData("Root=1-5759e988-bd862E3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1")]
+    [InlineData("Root=1- 759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1")]
+    [InlineData("Root=1-5759e988-bd862e3fe1be46a99427279 ;Parent=53995c3f42cd8ad8;Sampled=1")]
+    [InlineData("Root=1-5759e98 -bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1")]
+    [InlineData("Root=1-        -bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1")]
+    [InlineData("Root=1-5759e988-bd862e3fe1be46a994272793;Parent=                ;Sampled=1")]
+    [InlineData("Root=1-5759e988-bd862e3fe1be46a994272793;Parent= 3995c3f42cd8ad8;Sampled=1")]
+    [InlineData("Root=1-5759e98g-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1")]
+    [InlineData("Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8adg;Sampled=1")]
+    public void TestTryParseXRayTraceHeaderWithIdsThatAreNotValidDoesNotThrow(string header)
+    {
+        // A header which is not valid is reported by the result of parsing it, rather than by an exception,
+        // as the header comes from the caller of the service and so may be anything.
+        var exception = Record.Exception(() => AWSXRayPropagator.TryParseXRayTraceHeader(header, out _));
+
+        Assert.Null(exception);
+        Assert.False(AWSXRayPropagator.TryParseXRayTraceHeader(header, out var activityContext));
+        Assert.Equal(default, activityContext);
+    }
+
     [Fact]
     public void TestExtractTraceHeaderWithDuplicateKeysUsesLastValues()
     {
