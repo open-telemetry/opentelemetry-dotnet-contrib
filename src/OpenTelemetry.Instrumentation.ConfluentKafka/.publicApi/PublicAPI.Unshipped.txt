@@ -4,6 +4,8 @@ Confluent.Kafka.ConfluentKafkaInstrumentedConsumerBuilderOptions.EnableMetrics.g
 Confluent.Kafka.ConfluentKafkaInstrumentedConsumerBuilderOptions.EnableMetrics.set -> void
 Confluent.Kafka.ConfluentKafkaInstrumentedConsumerBuilderOptions.EnableTraces.get -> bool
 Confluent.Kafka.ConfluentKafkaInstrumentedConsumerBuilderOptions.EnableTraces.set -> void
+Confluent.Kafka.ConfluentKafkaInstrumentedConsumerBuilderOptions.UseCreationContextAsParent.get -> bool
+Confluent.Kafka.ConfluentKafkaInstrumentedConsumerBuilderOptions.UseCreationContextAsParent.set -> void
 Confluent.Kafka.ConfluentKafkaInstrumentedProducerBuilderOptions
 Confluent.Kafka.ConfluentKafkaInstrumentedProducerBuilderOptions.ConfluentKafkaInstrumentedProducerBuilderOptions() -> void
 Confluent.Kafka.ConfluentKafkaInstrumentedProducerBuilderOptions.EnableMetrics.get -> bool
