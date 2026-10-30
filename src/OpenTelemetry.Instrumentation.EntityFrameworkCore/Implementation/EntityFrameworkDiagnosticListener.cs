@@ -30,7 +30,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 
     private static readonly string ActivityName = ActivitySource.Name + ".Execute";
 
-    private static readonly object FilteredCommandMarker = new();
+    private static readonly object IgnoredCommandMarker = new();
 
     private readonly PropertyFetcher<object> commandFetcher = new("Command");
     private readonly PropertyFetcher<object> connectionFetcher = new("Connection");
@@ -43,15 +43,15 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     private readonly PropertyFetcher<string> commandTextFetcher = new("CommandText");
     private readonly PropertyFetcher<Exception> exceptionFetcher = new("Exception");
 
-    // Commands whose activity was discarded by the filter, removed again when the command completes.
+    private readonly EntityFrameworkInstrumentationOptions options;
+
+    // Commands without an activity, removed again when the command completes.
     // Weak keys, so a command that never raises a completion event isn't kept alive.
 #if NET
-    private readonly ConditionalWeakTable<object, object> filteredCommands = [];
+    private readonly ConditionalWeakTable<object, object> ignoredCommands = [];
 #else
-    private readonly ConditionalWeakTable<object, object> filteredCommands = new();
+    private readonly ConditionalWeakTable<object, object> ignoredCommands = new();
 #endif
-
-    private readonly EntityFrameworkInstrumentationOptions options;
 
     public EntityFrameworkDiagnosticListener(string sourceName, EntityFrameworkInstrumentationOptions? options)
         : base(sourceName)
@@ -78,6 +78,13 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                     if (activity == null)
                     {
                         // There is no listener or it decided not to sample the current request.
+                        // This also happens when instrumentation is suppressed. Later callbacks must
+                        // not enrich or stop an outer command's activity that is still current.
+                        if (this.commandFetcher.Fetch(payload) is { } ignoredCommand)
+                        {
+                            this.IgnoreCommand(ignoredCommand);
+                        }
+
                         return;
                     }
 
@@ -136,6 +143,11 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 
             case EntityFrameworkCoreCommandExecuting:
                 {
+                    if (this.IsCommandIgnored(payload))
+                    {
+                        return;
+                    }
+
                     if (activity == null)
                     {
                         EntityFrameworkInstrumentationEventSource.Log.NullActivity(name);
@@ -221,9 +233,8 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
             case EntityFrameworkCoreCommandExecuted:
             case EntityFrameworkCoreCommandCanceled:
                 {
-                    // The activity of a filtered-out command was already stopped. Activity.Current is now
-                    // its parent (possibly null, or the activity of an outer EF command), so leave it alone.
-                    if (this.WasFilteredOut(payload))
+                    // This command has no activity. Activity.Current may belong to an outer EF command.
+                    if (this.IsCommandIgnored(payload, remove: true))
                     {
                         return;
                     }
@@ -252,7 +263,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 
             case EntityFrameworkCoreCommandError:
                 {
-                    if (this.WasFilteredOut(payload))
+                    if (this.IsCommandIgnored(payload, remove: true))
                     {
                         return;
                     }
@@ -319,19 +330,20 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
         // When the command completes, Activity.Current is this activity's parent: null, an unrelated
         // activity, or the activity of an outer EF command. Remember the command so the completion
         // callbacks neither report a missing activity nor stop or fail that parent.
-        if (command != null && this.options.Filter != null)
+        if (command != null)
         {
-            _ = this.filteredCommands.GetValue(command, static _ => FilteredCommandMarker);
+            this.IgnoreCommand(command);
         }
     }
 
-    // Commands are only marked when a filter is configured, so skip the lookup otherwise.
-    // TryGetValue doesn't lock, so only commands that were actually filtered out pay for Remove.
-    private bool WasFilteredOut(object? payload)
-        => this.options.Filter != null
-        && this.commandFetcher.Fetch(payload) is { } command
-        && this.filteredCommands.TryGetValue(command, out _)
-        && this.filteredCommands.Remove(command);
+    private void IgnoreCommand(object command)
+        => _ = this.ignoredCommands.GetValue(command, static _ => IgnoredCommandMarker);
+
+    // Keep markers through CommandExecuting and remove them when the command completes.
+    private bool IsCommandIgnored(object? payload, bool remove = false)
+        => this.commandFetcher.Fetch(payload) is { } command
+        && this.ignoredCommands.TryGetValue(command, out _)
+        && (!remove || this.ignoredCommands.Remove(command));
 
     private void AddTag(Activity activity, (string Old, string New) attributes, string? value)
         => this.AddTag(activity, attributes, (value, value));

@@ -8,6 +8,10 @@
   follows an `ON` clause), instead of only in a `FROM` clause.
   ([#5816](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5816))
 
+* Fixed suppressed or unsampled nested commands enriching or stopping an outer
+  command's activity.
+  ([#5821](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5821))
+
 ## 1.20.1-beta.1
 
 Released 2026-Oct-21

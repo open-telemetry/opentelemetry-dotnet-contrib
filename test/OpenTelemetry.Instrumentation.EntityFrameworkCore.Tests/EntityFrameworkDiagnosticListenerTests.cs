@@ -344,6 +344,66 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     }
 
     [Theory]
+    [InlineData(false, false, false)]
+    [InlineData(false, false, true)]
+    [InlineData(false, true, false)]
+    [InlineData(false, true, true)]
+    [InlineData(true, false, false)]
+    [InlineData(true, false, true)]
+    [InlineData(true, true, false)]
+    [InlineData(true, true, true)]
+    public async Task ShouldNotCollectTelemetryWhenInstrumentationIsSuppressed(
+        bool useAsync,
+        bool commandFails,
+        bool hasParent)
+    {
+        var exportedItems = new List<Activity>();
+        var enrichmentCount = 0;
+
+        using var parent = hasParent ? new Activity("parent").SetIdFormat(ActivityIdFormat.W3C).Start() : null;
+        if (parent != null)
+        {
+            parent.ActivityTraceFlags = ActivityTraceFlags.Recorded;
+        }
+
+        using (Sdk.CreateTracerProviderBuilder()
+                  .AddInMemoryExporter(exportedItems)
+                  .AddEntityFrameworkCoreInstrumentation(options =>
+                      options.EnrichWithIDbCommand = (_, _) => enrichmentCount++)
+                  .Build())
+        {
+            using var context = new ItemsContext(this.contextOptions);
+
+            using (SuppressInstrumentationScope.Begin())
+            {
+                if (commandFails)
+                {
+                    var exception = useAsync
+                        ? await Record.ExceptionAsync(() => context.Database.ExecuteSqlRawAsync("select * from no_table", TestContext.Current.CancellationToken))
+                        : Record.Exception(() => context.Database.ExecuteSqlRaw("select * from no_table"));
+
+                    Assert.IsType<SqliteException>(exception);
+                }
+                else
+                {
+                    var query = context.Set<Item>().OrderBy(e => e.Name);
+                    _ = useAsync ? await query.ToListAsync(TestContext.Current.CancellationToken) : [.. query];
+                }
+            }
+
+            Assert.Empty(exportedItems);
+            Assert.Equal(0, enrichmentCount);
+            Assert.Same(parent, Activity.Current);
+
+            _ = context.Set<Item>().OrderBy(e => e.Name).ToList();
+            Assert.Equal(1, enrichmentCount);
+            Assert.Same(parent, Activity.Current);
+        }
+
+        VerifyActivityData(Assert.Single(exportedItems));
+    }
+
+    [Theory]
     [InlineData(true, false)]
     [InlineData(false, true)]
     [InlineData(true, true)]
@@ -657,6 +717,42 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         Assert.Equal(ActivityStatusCode.Unset, activity.Status);
     }
 
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void ShouldNotStopOuterActivityWhenNestedCommandHasNoActivity(bool innerCommandFails, bool suppressInnerCommand)
+    {
+        var exportedItems = new List<Activity>();
+        var enrichmentCount = 0;
+
+        using (Sdk.CreateTracerProviderBuilder()
+                  .SetSampler(new ParentBasedSampler(new AlwaysOnSampler(), localParentSampled: new AlwaysOffSampler()))
+                  .AddInMemoryExporter(exportedItems)
+                  .AddEntityFrameworkCoreInstrumentation(options =>
+                      options.EnrichWithIDbCommand = (_, _) => enrichmentCount++)
+                  .Build())
+        {
+            var innerCommandText = innerCommandFails ? "select * from no_table" : "select 1";
+            var interceptor = new NestedCommandInterceptor(this.contextOptions, innerCommandText, suppressInnerCommand);
+
+            var contextOptions = new DbContextOptionsBuilder<ItemsContext>()
+                .UseSqlite(this.connection)
+                .AddInterceptors(interceptor)
+                .Options;
+
+            using var context = new ItemsContext(contextOptions);
+            _ = context.Set<Item>().OrderBy(e => e.Name).ToList();
+
+            Assert.Equal(EntityFrameworkDiagnosticListener.ActivitySource.Name, interceptor.SourceAfterInnerCommand);
+            Assert.False(interceptor.StoppedAfterInnerCommand);
+            Assert.Equal(1, enrichmentCount);
+        }
+
+        VerifyActivityData(Assert.Single(exportedItems));
+    }
+
     public void Dispose() => this.connection.Dispose();
 
     private static SqliteConnection CreateInMemoryDatabase()
@@ -752,9 +848,12 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     }
 
     /// <summary>
-    /// Runs another (filtered) command while the outer command is executing, then records the state of <see cref="Activity.Current"/>.
+    /// Runs another command while the outer command is executing, then records the state of <see cref="Activity.Current"/>.
     /// </summary>
-    private sealed class NestedCommandInterceptor(DbContextOptions<ItemsContext> innerContextOptions, string innerCommandText) : DbCommandInterceptor
+    private sealed class NestedCommandInterceptor(
+        DbContextOptions<ItemsContext> innerContextOptions,
+        string innerCommandText,
+        bool suppressInnerCommand = false) : DbCommandInterceptor
     {
         public string? SourceAfterInnerCommand { get; private set; }
 
@@ -765,6 +864,8 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             CommandEventData eventData,
             InterceptionResult<DbDataReader> result)
         {
+            using var suppressionScope = SuppressInstrumentationScope.Begin(suppressInnerCommand);
+
             using (var innerContext = new ItemsContext(innerContextOptions))
             {
                 try
