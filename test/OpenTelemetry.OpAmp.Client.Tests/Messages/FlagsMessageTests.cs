@@ -21,4 +21,19 @@ public class FlagsMessageTests
         // Assert
         Assert.Equal(expectedCommands, flagsMessage.Flags);
     }
+
+    [Theory]
+    [InlineData(1UL)]
+    [InlineData(1UL << 31)]
+    [InlineData(1UL << 32)]
+    [InlineData(1UL << 63)]
+    [InlineData(ulong.MaxValue)]
+    internal void Constructor_WithFlagsWiderThan32Bits_PreservesEveryBit(ulong flags)
+    {
+        // Act
+        var flagsMessage = new FlagsMessage(flags);
+
+        // Assert
+        Assert.Equal(flags, (ulong)flagsMessage.Flags);
+    }
 }

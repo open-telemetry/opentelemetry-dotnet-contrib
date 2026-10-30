@@ -11,7 +11,13 @@ namespace OpenTelemetry.OpAmp.Client.Messages;
 public class ServerCapabilitiesMessage : OpAmpMessage
 {
     internal ServerCapabilitiesMessage(OpAmpProto.ServerCapabilities capabilities)
+        : this((ulong)capabilities)
     {
+    }
+
+    internal ServerCapabilitiesMessage(ulong capabilities)
+    {
+        // The capabilities are 64 bits wide on the wire, which is wider than the enum which defines the known ones.
         this.Capabilities = (ServerSentCapabilities)capabilities;
     }
 
