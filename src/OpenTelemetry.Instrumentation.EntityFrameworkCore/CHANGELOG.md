@@ -4,7 +4,7 @@
 
 * Fixed suppressed or unsampled nested commands enriching or stopping an outer
   command's activity.
-  ([#NNNN](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/NNNN))
+  ([#5821](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5821))
 
 ## 1.20.1-beta.1
 
