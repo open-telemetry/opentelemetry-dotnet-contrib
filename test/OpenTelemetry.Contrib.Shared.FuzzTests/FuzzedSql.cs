@@ -118,7 +118,7 @@ public sealed class FuzzedSql(int seed)
 
         private string Conditions() => this.List(1, 3, this.Condition, () => $"{this.Ws()}{(structure.Next(2) == 0 ? "AND" : "OR")}{this.Ws()}");
 
-        private string Condition() => structure.Next(10) switch
+        private string Condition() => structure.Next(12) switch
         {
             0 => $"{this.Identifier()}{this.Operator()}{this.Literal()}",
             1 => $"{this.Identifier()}{this.Ws()}IN{this.Ws()}({this.List(1, 4, this.Literal)})",
@@ -129,7 +129,25 @@ public sealed class FuzzedSql(int seed)
             6 => $"({this.Identifier()}{this.Operator()}{this.Literal()})",
             7 => $"NOT{this.Ws()}{this.Identifier()}{this.Operator()}{this.Literal()}",
             8 => $"{this.Identifier()}{this.Ws()}IN{this.Ws()}(SELECT{this.Ws()}{this.Identifier()}{this.Ws()}FROM{this.Ws()}{this.Identifier()}{this.Ws()}WHERE{this.Ws()}{this.Identifier()}{this.Operator()}{this.Literal()})",
+            10 when !backslash => $"{this.Identifier()}{this.Operator()}{this.ArrayOfValues()}",
+            11 when !backslash => $"{this.Identifier()}{this.Ws()}IN{this.Ws()}UNNEST({this.ArrayOfValues()})",
             _ => $"{this.Identifier()}{this.Ws()}IN{this.Ws()}({this.List(2, 6, this.Literal)}){this.Ws()}OR{this.Ws()}{this.Identifier()}{this.Operator()}{this.Literal()}",
+        };
+
+        private string ArrayOfValues()
+        {
+            // A list of values in brackets, which some dialects have (e.g. GoogleSQL and DuckDB). It has comments between
+            // its values which have a closing bracket as text, which is then the first one which is found.
+            var items = this.List(1, 4, this.Literal, () => this.ArrayWs() + "," + this.ArrayWs());
+
+            return "[" + this.ArrayWs() + items + this.ArrayWs() + "]";
+        }
+
+        private string ArrayWs() => structure.Next(3) switch
+        {
+            0 => $" /* {this.Secret()} ] {this.Body("block")} */ ",
+            1 => $" -- {this.Secret()} ] {this.Body("line")}\n",
+            _ => this.Ws(),
         };
 
         private string Operator() => structure.Next(3) switch

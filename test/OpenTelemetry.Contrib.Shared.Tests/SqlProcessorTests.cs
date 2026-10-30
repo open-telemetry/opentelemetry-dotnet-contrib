@@ -456,6 +456,8 @@ public class SqlProcessorTests(ITestOutputHelper output)
     [InlineData("UPDATE [Orders/*''] SET c = 'secret-name'", "UPDATE [Orders/*''] SET c = ?")]
     [InlineData("SELECT * FROM t WHERE [Orders''/*] = 'secret-name'", "SELECT * FROM t WHERE [Orders''/*] = ?")]
     [InlineData("SELECT * FROM [Orders''--] WHERE c = 'secret-name'", "SELECT * FROM [Orders''--] WHERE c = ?")]
+    [InlineData("SELECT * FROM t WHERE [Orders''''--] = 'secret-name'", "SELECT * FROM t WHERE [Orders''''--] = ?")]
+    [InlineData("SELECT * FROM t WHERE [Orders/*''''] = 'secret-name'", "SELECT * FROM t WHERE [Orders/*''''] = ?")]
     [InlineData("SELECT fn([a--'']), 'secret-name'", "SELECT fn([a--'']), ?")]
     [InlineData("SELECT * FROM t WHERE fn([a].[b--'']) = $$\nsecret-name$$", "SELECT * FROM t WHERE fn([a].[b--'']) = ?")]
     [InlineData("SELECT * FROM t WHERE [b''--] = 'x\nsecret-name'", "SELECT * FROM t WHERE [b''--] = ?")]
@@ -486,6 +488,53 @@ public class SqlProcessorTests(ITestOutputHelper output)
         this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
 
         Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData("SELECT * FROM UNNEST(['secret-name' /* ] note */, 'other'])", "SELECT * FROM UNNEST([? , ?])")]
+    [InlineData("SELECT * FROM UNNEST(['secret-name' -- ] note\n, 'other'])", "SELECT * FROM UNNEST([? \n, ?])")]
+    [InlineData("SELECT * FROM UNNEST([Email, 'secret-name' /* ] note */, 'other'])", "SELECT * FROM UNNEST([Email, ? , ?])")]
+    [InlineData("SELECT * FROM UNNEST([N'secret-name' /* ] note */, 'other'])", "SELECT * FROM UNNEST([? , ?])")]
+    [InlineData("SELECT * FROM UNNEST(['a', 'secret-name' /* ] note */])", "SELECT * FROM UNNEST([?, ? ])")]
+    [InlineData("SELECT * FROM t WHERE c = ['secret-name' /* ] note */, 'other']", "SELECT * FROM t WHERE c = [? , ?]")]
+    [InlineData("SELECT * FROM UNNEST([1234 /* ] note */, 5678])", "SELECT * FROM UNNEST([? , ?])")]
+    [InlineData("SELECT * FROM UNNEST([1234 -- ] note\n, 5678])", "SELECT * FROM UNNEST([? \n, ?])")]
+    public void GetSanitizedSql_ListOfValuesWithCommentContainingClosingBracket_SanitizesEveryValue(string sql, string expected)
+    {
+        // The first closing bracket of a list is in a comment, which ends later in the list, so the content up to that
+        // bracket has a comment which is not ended. That is not an identifier with a comment marker in its name, as
+        // the content has values, which must not be copied as an identifier would be.
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.DoesNotContain("1234", sqlStatementInfo.SanitizedSql);
+        Assert.DoesNotContain("other", sqlStatementInfo.SanitizedSql);
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData("SELECT * FROM t WHERE c = [$$secret-name$$]", "SELECT * FROM t WHERE c = [?]")]
+    [InlineData("SELECT * FROM t WHERE c = [$$secret-name$$, $$other$$]", "SELECT * FROM t WHERE c = [?, ?]")]
+    [InlineData("SELECT * FROM t WHERE c = [$tag$secret-name$tag$]", "SELECT * FROM t WHERE c = [?]")]
+    [InlineData("SELECT * FROM t WHERE c = [E'secret-name]x', 'other']", "SELECT * FROM t WHERE c = [?, ?]")]
+    [InlineData("SELECT * FROM t WHERE c = [N'secret-name]x', 'other']", "SELECT * FROM t WHERE c = [?, ?]")]
+    [InlineData("SELECT * FROM t WHERE c = [1234, 'secret-name]x', 'other']", "SELECT * FROM t WHERE c = [?, ?, ?]")]
+    [InlineData("SELECT * FROM t WHERE c = [ /* ] note */ 'secret-name', 'other']", "SELECT * FROM t WHERE c = [  ?, ?]")]
+    [InlineData("SELECT * FROM t WHERE c = [ -- ] note\n 'secret-name', 'other']", "SELECT * FROM t WHERE c = [ \n ?, ?]")]
+    public void GetSanitizedSql_ListOfValuesWhichStartsWithStringOrCommentAndHasClosingBracketInIt_SanitizesEveryValue(string sql, string expected)
+    {
+        // The first closing bracket of a list can be in its first string (which is not delimited by single quotes
+        // or has a prefix), or in a comment before its first value, so the content up to it is not a name.
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.DoesNotContain("1234", sqlStatementInfo.SanitizedSql);
+        Assert.DoesNotContain("other", sqlStatementInfo.SanitizedSql);
         Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
     }
 

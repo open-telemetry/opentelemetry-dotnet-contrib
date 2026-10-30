@@ -17,6 +17,12 @@
   which are not terminated.
   ([#5827](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5827))
 
+* Fixed literals in a list of values in brackets (e.g. `['a', 'b']`) being left
+  unsanitized if the list starts with a string in dollar quotes, a string with a
+  prefix, a number or a comment, or has a comment which contains a closing
+  bracket.
+  ([#5827](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5827))
+
 ## 1.20.1
 
 Released 2026-Oct-21

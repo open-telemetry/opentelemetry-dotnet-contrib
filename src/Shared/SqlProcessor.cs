@@ -814,14 +814,14 @@ internal static class SqlProcessor
         {
             // Brackets can also delimit a list of values in some dialects (e.g. ['a', 'b'] or [1, 2] in
             // DuckDB, ClickHouse and GoogleSQL). An odd number of quotes cannot all be part of string
-            // literals, so that content is an identifier (e.g. [Manager's Approval]), unless it starts
-            // with a quote, when the bracket which ends it is inside a string literal (e.g. ['a]b', 'c']).
-            // Content without quotes is an identifier unless it starts with a number (e.g. [1, 2]).
-            // Anything else is parsed as SQL, which redacts any literals and at worst over-redacts an
-            // identifier (e.g. [2024] or [It's Bob's]).
+            // literals, so that content is an identifier (e.g. [Manager's Approval]), unless it starts with
+            // a quote, a prefixed string or a number, when the bracket which ends it is inside a string
+            // literal (e.g. ['a]b', 'c'], [E'a]b', 'c'] or [1, 'a]b']). Content without quotes is an
+            // identifier unless it starts with a number (e.g. [1, 2]). Anything else is parsed as SQL,
+            // which redacts any literals and at worst over-redacts an identifier (e.g. [2024] or [It's Bob's]).
             content = content.TrimStart();
 
-            if (content.IsEmpty)
+            if (content.IsEmpty || StartsWithValueOrComment(content))
             {
                 return false;
             }
@@ -839,9 +839,149 @@ internal static class SqlProcessor
             }
 #endif
 
+            // The content is also an identifier if a comment in it would contain the closing bracket, which is not
+            // valid for a list of values, unless the content has a value which would be copied if it were an identifier.
+            // The first bracket which is found can be in a comment which ends later in a list (e.g. ['a' /* ] */, 'b']).
             return singleQuotes == 0
-                ? !StartsWithNumber(content) || CommentContainsClosingBracket(content)
-                : ((singleQuotes & 1) == 1 && content[0] != SingleQuoteChar) || CommentContainsClosingBracket(content);
+                ? !StartsWithNumber(content)
+                : content[0] != SingleQuoteChar &&
+                  !StartsWithNumberLiteral(content) &&
+                  (((singleQuotes & 1) == 1 && !StartsWithPrefixedString(content)) ||
+                   (CommentContainsClosingBracket(content) && !ContainsValue(content)));
+        }
+
+        static bool StartsWithValueOrComment(ReadOnlySpan<char> content)
+        {
+            // A comment at the start of the content is not part of a name, and neither is a string in dollar quotes
+            // (e.g. [$$a$$, $$b$$] or [$tag$a$tag$]), which is a value. The first bracket which is found can be in
+            // the comment (e.g. [ /* ] */ 'a']), or can be after the string with the value in it.
+            if (content.Length >= 2 &&
+                ((content[0] == ForwardSlashChar && content[1] == AsteriskChar) || (content[0] == DashChar && content[1] == DashChar)))
+            {
+                return true;
+            }
+
+            if (content[0] != DollarChar)
+            {
+                return false;
+            }
+
+            // The tag is optional, and is letters, digits and underscores, which do not start with a digit.
+            var tagEnd = 1;
+            if (tagEnd < content.Length && (char.IsAsciiLetter(content[tagEnd]) || content[tagEnd] == UnderscoreChar))
+            {
+                tagEnd++;
+                while (tagEnd < content.Length && (char.IsAsciiLetterOrDigit(content[tagEnd]) || content[tagEnd] == UnderscoreChar))
+                {
+                    tagEnd++;
+                }
+            }
+
+            return tagEnd < content.Length && content[tagEnd] == DollarChar;
+        }
+
+        static bool StartsWithNumberLiteral(ReadOnlySpan<char> content)
+        {
+            // A number (e.g. 1234, -1.5, 1e5 or 0x1F) that ends where the content does, or at a character which is not part
+            // of a word, which tells it from a name that starts with a number (e.g. [1st Manager's Requests]). The first
+            // bracket which is found can be in a string after the number (e.g. [1, 'a]b']).
+            var i = content[0] is '+' or DashChar ? 1 : 0;
+
+            if (i < content.Length && content[i] == DotChar)
+            {
+                i++;
+            }
+
+            if (i >= content.Length || !char.IsAsciiDigit(content[i]))
+            {
+                return false;
+            }
+
+            while (i < content.Length && (char.IsAsciiHexDigit(content[i]) || content[i] is DotChar or 'x' or 'X'))
+            {
+                i++;
+            }
+
+            return i == content.Length || !IsWordChar(content[i]);
+        }
+
+        static bool StartsWithPrefixedString(ReadOnlySpan<char> content)
+        {
+            // A string with a prefix (e.g. E'a', N'a', B'1' or X'1F'), where the first bracket which is found can be in the string.
+            return content.Length >= 2 && content[1] == SingleQuoteChar && content[0] is 'E' or 'e' or 'N' or 'n' or 'B' or 'b' or 'X' or 'x';
+        }
+
+        static bool ContainsValue(ReadOnlySpan<char> content)
+        {
+            // Whether the content has a string literal which is not empty, or a number. An identifier such as
+            // [Orders''--] has quotes, but only ones which are empty, while a list of values has the values.
+            for (var i = 0; i < content.Length; i++)
+            {
+                var c = content[i];
+
+                if (c == SingleQuoteChar)
+                {
+                    // A quote which follows a word is part of a name (e.g. [Orders''--]), unless the word is the prefix of a literal (e.g. N'a').
+                    if (i > 0 &&
+                        IsWordChar(content[i - 1]) &&
+                        !(content[i - 1] is 'E' or 'e' or 'N' or 'n' or 'B' or 'b' or 'X' or 'x' && (i == 1 || !IsWordChar(content[i - 2]))))
+                    {
+                        while (i + 1 < content.Length && content[i + 1] == SingleQuoteChar)
+                        {
+                            i++;
+                        }
+
+                        continue;
+                    }
+
+                    var start = i + 1;
+                    var end = start;
+
+                    while (end < content.Length)
+                    {
+                        if (content[end] == SingleQuoteChar)
+                        {
+                            // A doubled quote is a quote in the literal.
+                            if (end + 1 < content.Length && content[end + 1] == SingleQuoteChar)
+                            {
+                                end += 2;
+                                continue;
+                            }
+
+                            break;
+                        }
+
+                        end++;
+                    }
+
+                    if (end > start)
+                    {
+                        return true;
+                    }
+
+                    i = end;
+                }
+                else if (c is DashChar or ForwardSlashChar && i + 1 < content.Length)
+                {
+                    // Anything in a comment (e.g. [Orders/*'']) is not a value.
+                    if (c == DashChar && content[i + 1] == DashChar)
+                    {
+                        var lineEnd = content.Slice(i).IndexOf(NewLineChar);
+                        i = lineEnd < 0 ? content.Length : i + lineEnd;
+                    }
+                    else if (c == ForwardSlashChar && content[i + 1] == AsteriskChar)
+                    {
+                        var blockEnd = content.Slice(i + 2).IndexOf("*/".AsSpan());
+                        i = blockEnd < 0 ? content.Length : i + 2 + blockEnd + 1;
+                    }
+                }
+                else if (char.IsAsciiDigit(c) && (i == 0 || !IsWordChar(content[i - 1])))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         static bool CommentContainsClosingBracket(ReadOnlySpan<char> content)
