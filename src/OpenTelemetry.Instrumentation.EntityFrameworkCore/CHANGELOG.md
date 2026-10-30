@@ -8,6 +8,10 @@
   follows an `ON` clause), instead of only in a `FROM` clause.
   ([#5816](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5816))
 
+* Fixed suppressed or unsampled nested commands enriching or stopping an outer
+  command's activity.
+  ([#5821](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5821))
+
 * Fixed `db.query.summary` so that a multi-part name which mixes undelimited
   and delimited parts, such as `dbo.[Orders]`, or which has whitespace around
   a period, such as `dbo . Orders` or `[dbo] . [Orders]`, is captured whole,
