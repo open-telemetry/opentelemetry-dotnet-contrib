@@ -47,7 +47,11 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 
     // Commands without an activity, removed again when the command completes.
     // Weak keys, so a command that never raises a completion event isn't kept alive.
-    private ConditionalWeakTable<object, object>? ignoredCommands;
+#if NET
+    private readonly ConditionalWeakTable<object, object> ignoredCommands = [];
+#else
+    private readonly ConditionalWeakTable<object, object> ignoredCommands = new();
+#endif
 
     public EntityFrameworkDiagnosticListener(string sourceName, EntityFrameworkInstrumentationOptions? options)
         : base(sourceName)
@@ -333,16 +337,13 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     }
 
     private void IgnoreCommand(object command)
-        => _ = LazyInitializer.EnsureInitialized(ref this.ignoredCommands)!
-            .GetValue(command, static _ => IgnoredCommandMarker);
+        => _ = this.ignoredCommands.GetValue(command, static _ => IgnoredCommandMarker);
 
-    // Allocate the table only when a command is ignored. TryGetValue doesn't lock, so only
-    // ignored commands pay for Remove, and completion callbacks release their markers.
+    // Keep markers through CommandExecuting and remove them when the command completes.
     private bool IsCommandIgnored(object? payload, bool remove = false)
-        => Volatile.Read(ref this.ignoredCommands) is { } ignoredCommands
-        && this.commandFetcher.Fetch(payload) is { } command
-        && ignoredCommands.TryGetValue(command, out _)
-        && (!remove || ignoredCommands.Remove(command));
+        => this.commandFetcher.Fetch(payload) is { } command
+        && this.ignoredCommands.TryGetValue(command, out _)
+        && (!remove || this.ignoredCommands.Remove(command));
 
     private void AddTag(Activity activity, (string Old, string New) attributes, string? value)
         => this.AddTag(activity, attributes, (value, value));
