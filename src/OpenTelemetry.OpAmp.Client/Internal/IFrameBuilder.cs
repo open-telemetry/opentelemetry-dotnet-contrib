@@ -14,8 +14,6 @@ internal interface IFrameBuilder
 
     IFrameBuilder AddAgentDisconnect();
 
-    IFrameBuilder AddCapabilities();
-
     IFrameBuilder AddCustomCapabilities(IEnumerable<string> capabilities);
 
     IFrameBuilder AddEffectiveConfig(IEnumerable<EffectiveConfigFile> files);
