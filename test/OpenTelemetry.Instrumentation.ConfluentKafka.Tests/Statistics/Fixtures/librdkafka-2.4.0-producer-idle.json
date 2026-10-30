@@ -1,0 +1,18 @@
+{
+  "name": "rdkafka#producer-2",
+  "client_id": "rdkafka",
+  "type": "producer",
+  "ts": 1000000,
+  "txmsgs": 0,
+  "txmsg_bytes": 0,
+  "msg_size": 0,
+  "msg_size_max": 1000,
+  "brokers": {
+    "broker-1": {
+      "nodeid": 1,
+      "waitresp_cnt": 0,
+      "int_latency": { "sum": 0, "avg": 0, "cnt": 0 },
+      "throttle": { "sum": 0, "avg": 0, "max": 0, "cnt": 0 }
+    }
+  }
+}

@@ -6,10 +6,14 @@ Confluent.Kafka.ConfluentKafkaInstrumentedConsumerBuilderOptions.EnableTraces.ge
 Confluent.Kafka.ConfluentKafkaInstrumentedConsumerBuilderOptions.EnableTraces.set -> void
 Confluent.Kafka.ConfluentKafkaInstrumentedProducerBuilderOptions
 Confluent.Kafka.ConfluentKafkaInstrumentedProducerBuilderOptions.ConfluentKafkaInstrumentedProducerBuilderOptions() -> void
+Confluent.Kafka.ConfluentKafkaInstrumentedProducerBuilderOptions.EnableClientMetrics.get -> bool
+Confluent.Kafka.ConfluentKafkaInstrumentedProducerBuilderOptions.EnableClientMetrics.set -> void
 Confluent.Kafka.ConfluentKafkaInstrumentedProducerBuilderOptions.EnableMetrics.get -> bool
 Confluent.Kafka.ConfluentKafkaInstrumentedProducerBuilderOptions.EnableMetrics.set -> void
 Confluent.Kafka.ConfluentKafkaInstrumentedProducerBuilderOptions.EnableTraces.get -> bool
 Confluent.Kafka.ConfluentKafkaInstrumentedProducerBuilderOptions.EnableTraces.set -> void
+Confluent.Kafka.ConfluentKafkaInstrumentedProducerBuilderOptions.StatisticsInterval.get -> System.TimeSpan
+Confluent.Kafka.ConfluentKafkaInstrumentedProducerBuilderOptions.StatisticsInterval.set -> void
 Confluent.Kafka.InstrumentedConsumerBuilder<TKey, TValue>
 Confluent.Kafka.InstrumentedConsumerBuilder<TKey, TValue>.InstrumentedConsumerBuilder(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, string!>>! config) -> void
 Confluent.Kafka.InstrumentedProducerBuilder<TKey, TValue>
