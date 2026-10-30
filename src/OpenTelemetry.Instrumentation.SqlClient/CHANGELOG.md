@@ -11,11 +11,11 @@
 * Fixed a bracketed identifier which contains quotes and a comment marker, such
   as `[Orders''--]`, being parsed as SQL, which truncated the sanitized query
   text and left a literal after it unsanitized if it was on a later line.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#5827](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5827))
 
 * Fixed the time taken to sanitize a statement when it contains many `IN (` lists
   which are not terminated.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#5827](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5827))
 
 ## 1.20.1
 
