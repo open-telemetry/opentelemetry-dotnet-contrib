@@ -636,8 +636,11 @@ internal static class SqlProcessor
 
             // If we are in a FROM clause, we want to capture the next identifier following a comma or period.
             // Commas may occur when listing multiple tables in a FROM clause.
-            // Periods may occur when using schema-qualified identifiers.
-            state.CaptureNextNonKeywordTokenAsIdentifier = state.InFromClause && (currentChar is CommaChar or DotChar);
+            // Periods may occur when using schema-qualified identifiers, which are also captured
+            // outside a FROM clause when the part before the period was captured (e.g. INSERT INTO [dbo].[Orders]).
+            state.CaptureNextNonKeywordTokenAsIdentifier =
+                (state.InFromClause && (currentChar is CommaChar or DotChar)) ||
+                (state.CaptureNextNonKeywordTokenAsIdentifier && currentChar == DotChar);
 
             buffer[state.SanitizedPosition++] = currentChar;
             state.ParsePosition++;
@@ -676,6 +679,7 @@ internal static class SqlProcessor
         }
 
         var length = end - start + 1;
+        var captureNextPartOfName = false;
 
         // Redact the whole name after LOGIN or USER (e.g. CREATE LOGIN [DOMAIN\user]), keeping its
         // delimiters. A double-quoted value which starts with a number is also redacted, because it is
@@ -695,20 +699,33 @@ internal static class SqlProcessor
             sql.Slice(start, length).CopyTo(buffer.Slice(state.SanitizedPosition));
             state.SanitizedPosition += length;
 
-            // Only bracketed identifiers in a FROM clause are included in the summary, as they were
-            // before quoted identifiers were parsed as a single token.
-            if (state.InFromClause && sql[start] == OpenSquareBracketChar && !state.SummaryIsComplete)
+            // Only bracketed identifiers are included in the summary, as they were before quoted
+            // identifiers were parsed as a single token. They are included wherever an unquoted
+            // identifier would be (e.g. after INTO or EXEC), as well as anywhere in a FROM clause.
+            if ((state.InFromClause || state.CaptureNextNonKeywordTokenAsIdentifier) &&
+                sql[start] == OpenSquareBracketChar &&
+                !state.SummaryIsComplete)
             {
                 AppendSummaryToken(sql.Slice(start, length), ref state);
 
                 // Add a period for a schema-qualified name, otherwise a space. A trailing space will be trimmed later.
                 var nextPosition = end + 1;
-                AppendSummaryChar(nextPosition < sql.Length && sql[nextPosition] == DotChar ? DotChar : SpaceChar, ref state);
+                if (nextPosition < sql.Length && sql[nextPosition] == DotChar)
+                {
+                    AppendSummaryChar(DotChar, ref state);
+
+                    // Capture the next part of the name (e.g. [Orders] in [dbo].[Orders]) after the period.
+                    captureNextPartOfName = true;
+                }
+                else
+                {
+                    AppendSummaryChar(SpaceChar, ref state);
+                }
             }
         }
 
         state.ParsePosition = end + 1;
-        state.CaptureNextNonKeywordTokenAsIdentifier = false;
+        state.CaptureNextNonKeywordTokenAsIdentifier = captureNextPartOfName;
         state.SanitizeNextNonKeywordToken = false;
         state.PreviousTokenStartPosition = start;
         state.PreviousTokenEndPosition = end + 1;
