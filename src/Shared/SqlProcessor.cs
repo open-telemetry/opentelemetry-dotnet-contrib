@@ -610,11 +610,14 @@ internal static class SqlProcessor
                 // Optionally copy to summary buffer.
                 if (state.CaptureNextNonKeywordTokenAsIdentifier && !state.SummaryIsComplete)
                 {
-                    AppendSummaryToken(sql.Slice(start, length), ref state);
+                    // A period at the end of the identifier (e.g. dbo.) is only included if another part of the name follows.
+                    var endsWithDot = sql[i - 1] == DotChar;
+                    AppendSummaryToken(sql.Slice(start, endsWithDot ? length - 1 : length), ref state);
 
-                    if (sql[i - 1] == DotChar && IsDelimitedNamePartFollowing(sql, i))
+                    if (endsWithDot ? IsNamePart(sql, SkipWhitespace(sql, i)) : IsNamePartFollowing(sql, i))
                     {
-                        // The name continues with a delimited part (e.g. dbo.[Orders]), so capture it as well.
+                        // The name continues (e.g. dbo.[Orders] or dbo . Orders), so capture the next part as well.
+                        AppendSummaryChar(DotChar, ref state);
                         captureNextPartOfName = true;
                     }
                     else
@@ -748,24 +751,16 @@ internal static class SqlProcessor
     private static bool IsNamePartFollowing(ReadOnlySpan<char> sql, int position)
     {
         position = SkipWhitespace(sql, position);
-        if (position >= sql.Length || sql[position] != DotChar)
-        {
-            return false;
-        }
-
-        position = SkipWhitespace(sql, position + 1);
 
         return position < sql.Length &&
-            (sql[position] is OpenSquareBracketChar or UnderscoreChar || char.IsLetter(sql[position]));
+            sql[position] == DotChar &&
+            IsNamePart(sql, SkipWhitespace(sql, position + 1));
     }
 
-    // Whether the position, ignoring any whitespace, is the start of a delimited part of a multi-part name.
-    private static bool IsDelimitedNamePartFollowing(ReadOnlySpan<char> sql, int position)
-    {
-        position = SkipWhitespace(sql, position);
-
-        return position < sql.Length && sql[position] == OpenSquareBracketChar;
-    }
+    // Whether the position is the start of a part of a name which can be captured.
+    private static bool IsNamePart(ReadOnlySpan<char> sql, int position) =>
+        position < sql.Length &&
+        (sql[position] is OpenSquareBracketChar or UnderscoreChar || char.IsLetter(sql[position]));
 
     private static int SkipWhitespace(ReadOnlySpan<char> sql, int position)
     {
@@ -1908,6 +1903,7 @@ internal static class SqlProcessor
             SqlKeyword.Login or SqlKeyword.User => false,
             SqlKeyword.Statistics => state.FirstSummaryKeyword is SqlKeyword.Update,
             SqlKeyword.Trigger => state.FirstSummaryKeyword is SqlKeyword.Create or SqlKeyword.Alter or SqlKeyword.Drop or SqlKeyword.Disable or SqlKeyword.Enable,
+            SqlKeyword.Truncate => state.FirstSummaryKeyword is SqlKeyword.Truncate,
             SqlKeyword.Table => state.FirstSummaryKeyword is SqlKeyword.Create or SqlKeyword.Alter or SqlKeyword.Drop or SqlKeyword.Truncate,
             SqlKeyword.Database or
             SqlKeyword.Function or

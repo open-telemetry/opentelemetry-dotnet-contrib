@@ -1702,5 +1702,122 @@
       ],
       "db.query.summary": "SELECT [dbo].[Orders]"
     }
+  },
+  {
+    "name": "insert_into_unquoted_identifier_with_whitespace_around_period",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "INSERT INTO dbo . Orders VALUES (@p0)"
+    },
+    "expected": {
+      "db.query.text": [
+        "INSERT INTO dbo . Orders VALUES (@p0)"
+      ],
+      "db.query.summary": "INSERT dbo.Orders"
+    }
+  },
+  {
+    "name": "insert_into_unquoted_then_delimited_identifier_with_whitespace_before_period",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "INSERT INTO dbo . [Orders] VALUES (@p0)"
+    },
+    "expected": {
+      "db.query.text": [
+        "INSERT INTO dbo . [Orders] VALUES (@p0)"
+      ],
+      "db.query.summary": "INSERT dbo.[Orders]"
+    }
+  },
+  {
+    "name": "insert_into_unquoted_identifier_with_whitespace_after_period",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "INSERT INTO dbo. Orders VALUES (@p0)"
+    },
+    "expected": {
+      "db.query.text": [
+        "INSERT INTO dbo. Orders VALUES (@p0)"
+      ],
+      "db.query.summary": "INSERT dbo.Orders"
+    }
+  },
+  {
+    "name": "insert_into_unquoted_then_double_quoted_identifier",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "INSERT INTO dbo.\"Orders\" VALUES (@p0)"
+    },
+    "expected": {
+      "db.query.text": [
+        "INSERT INTO dbo.\"Orders\" VALUES (@p0)"
+      ],
+      "db.query.summary": "INSERT dbo"
+    }
+  },
+  {
+    "name": "truncate_without_table",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "TRUNCATE Orders"
+    },
+    "expected": {
+      "db.query.text": [
+        "TRUNCATE Orders"
+      ],
+      "db.query.summary": "TRUNCATE Orders"
+    }
+  },
+  {
+    "name": "truncate_without_table_schema_qualified",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "TRUNCATE public.orders"
+    },
+    "expected": {
+      "db.query.text": [
+        "TRUNCATE public.orders"
+      ],
+      "db.query.summary": "TRUNCATE public.orders"
+    }
+  },
+  {
+    "name": "truncate_without_table_delimited_identifier",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "TRUNCATE [dbo].[Orders]"
+    },
+    "expected": {
+      "db.query.text": [
+        "TRUNCATE [dbo].[Orders]"
+      ],
+      "db.query.summary": "TRUNCATE [dbo].[Orders]"
+    }
+  },
+  {
+    "name": "select_truncate_function",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "SELECT TRUNCATE (Price, @p0) FROM Orders"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT TRUNCATE (Price, @p0) FROM Orders"
+      ],
+      "db.query.summary": "SELECT Orders"
+    }
+  },
+  {
+    "name": "select_truncate_column",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "SELECT Id FROM Orders ORDER BY truncate DESC"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT Id FROM Orders ORDER BY truncate DESC"
+      ],
+      "db.query.summary": "SELECT Orders"
+    }
   }
 ]
