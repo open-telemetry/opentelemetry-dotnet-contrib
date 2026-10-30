@@ -1,17 +1,22 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics;
 using Hangfire;
 using Hangfire.States;
+using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Instrumentation.Hangfire.Implementation;
 using OpenTelemetry.Instrumentation.Hangfire.Tests.Utils;
 using OpenTelemetry.Metrics;
+using OpenTelemetry.Tests;
 
 namespace OpenTelemetry.Instrumentation.Hangfire.Tests;
 
 [Collection("Hangfire")]
 public class HangfireMetricsTests : IClassFixture<HangfireFixture>
 {
+    private const string JobIdTagKey = "test.job.id";
+
     private readonly HangfireFixture hangfireFixture;
 
     public HangfireMetricsTests(HangfireFixture hangfireFixture)
@@ -531,5 +536,310 @@ public class HangfireMetricsTests : IClassFixture<HangfireFixture>
         // Verify workflow.status uses trigger.type=api for fire-and-forget
         var apiTriggerPoint = workflowPoints.FindFirstWithTag(WorkflowAttributes.AttributeWorkflowTriggerType, WorkflowAttributes.WorkflowTriggerTypeValues.Api);
         Assert.NotNull(apiTriggerPoint);
+    }
+
+    [Fact]
+    public async Task Should_Apply_EnrichWithBackgroundJob_To_All_Metrics()
+    {
+        // Arrange
+        var exportedItems = new List<Metric>();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddHangfireInstrumentation(options =>
+            {
+                options.RecordQueueLatency = true;
+                options.EnrichWithBackgroundJob = backgroundJob => new TagList { { JobIdTagKey, backgroundJob.Id } };
+            })
+            .AddInMemoryExporter(exportedItems)
+            .Build();
+
+        // Act
+        var jobId = BackgroundJob.Enqueue<TestJob>(x => x.ThrowException());
+        await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
+
+        meterProvider.ForceFlush();
+
+        // Assert
+        string[] metricNames =
+        [
+            WorkflowMetricNames.ExecutionOutcome,
+            WorkflowMetricNames.ExecutionDuration,
+            WorkflowMetricNames.ExecutionStatus,
+            WorkflowMetricNames.ExecutionErrors,
+            WorkflowMetricNames.WorkflowOutcome,
+            WorkflowMetricNames.WorkflowStatus,
+        ];
+
+        foreach (var metricName in metricNames)
+        {
+            var metric = exportedItems.GetMetric(metricName);
+            AssertUtils.AssertHasMetricPoints(metric);
+            Assert.NotEmpty(metric!.ToMetricPointList().HavingTag(JobIdTagKey, jobId));
+        }
+
+        var pendingDurationPoints = exportedItems.GetMetric(WorkflowMetricNames.ExecutionDuration)!
+            .ToMetricPointList()
+            .HavingTag(WorkflowAttributes.AttributeWorkflowExecutionState, WorkflowAttributes.WorkflowStateValues.Pending)
+            .HavingTag(JobIdTagKey, jobId);
+        Assert.NotEmpty(pendingDurationPoints);
+    }
+
+    [Fact]
+    public async Task Should_Not_Replace_Instrumentation_Tags_With_EnrichWithBackgroundJob()
+    {
+        // Arrange
+        var exportedItems = new List<Metric>();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddHangfireInstrumentation(options =>
+            {
+                options.EnrichWithBackgroundJob = backgroundJob => new TagList
+                {
+                    { WorkflowAttributes.AttributeWorkflowPlatformName, "override" },
+                    { JobIdTagKey, backgroundJob.Id },
+                };
+            })
+            .AddInMemoryExporter(exportedItems)
+            .Build();
+
+        // Act
+        var jobId = BackgroundJob.Enqueue<TestJob>(x => x.Execute());
+        await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
+
+        meterProvider.ForceFlush();
+
+        // Assert
+        var enrichedPoints = exportedItems
+            .SelectMany(metric => metric.ToMetricPointList())
+            .HavingTag(JobIdTagKey, jobId)
+            .ToList();
+
+        Assert.NotEmpty(enrichedPoints);
+
+        foreach (var point in enrichedPoints)
+        {
+            var platformNames = new List<object?>();
+            foreach (var tag in point.Tags)
+            {
+                if (tag.Key == WorkflowAttributes.AttributeWorkflowPlatformName)
+                {
+                    platformNames.Add(tag.Value);
+                }
+            }
+
+            Assert.Equal([WorkflowAttributes.WorkflowPlatformNameValues.Hangfire], platformNames);
+        }
+    }
+
+    [Fact]
+    public async Task Should_Record_Metrics_When_EnrichWithBackgroundJob_Throws()
+    {
+        // Arrange
+        var invocations = 0;
+        var exportedItems = new List<Metric>();
+        using var listener = new InMemoryEventListener(HangfireInstrumentationEventSource.Log);
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddHangfireInstrumentation(options =>
+            {
+                options.EnrichWithBackgroundJob = _ =>
+                {
+                    Interlocked.Increment(ref invocations);
+                    throw new InvalidOperationException("Enrich throws exception");
+                };
+            })
+            .AddInMemoryExporter(exportedItems)
+            .Build();
+
+        // Act
+        var jobId = BackgroundJob.Enqueue<TestJob>(x => x.Execute());
+        await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
+
+        meterProvider.ForceFlush();
+
+        // Assert
+        Assert.True(Volatile.Read(ref invocations) > 0, "The enricher was not invoked.");
+
+        using (var connection = JobStorage.Current.GetConnection())
+        {
+            Assert.Equal(SucceededState.StateName, connection.GetJobData(jobId)?.State);
+        }
+
+        var workflowOutcomeMetric = exportedItems.GetMetric(WorkflowMetricNames.WorkflowOutcome);
+        AssertUtils.AssertHasMetricPoints(workflowOutcomeMetric);
+
+        var successPoints = workflowOutcomeMetric!.ToMetricPointList().HavingTag(WorkflowAttributes.AttributeWorkflowResult, WorkflowAttributes.WorkflowResultValues.Success).ToList();
+        Assert.NotEmpty(successPoints);
+
+        Assert.Contains(
+            listener.Events,
+            e => e.EventName == nameof(HangfireInstrumentationEventSource.EnrichmentException) &&
+                e.Payload!.OfType<string>().Any(value => value.Contains("Enrich throws exception", StringComparison.Ordinal)));
+    }
+
+    [Fact]
+    public async Task Should_Apply_EnrichWithBackgroundJob_To_Both_Sides_Of_State_Change()
+    {
+        // Arrange
+        var exportedItems = new List<Metric>();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddHangfireInstrumentation(options =>
+            {
+                options.EnrichWithBackgroundJob = backgroundJob => new TagList { { JobIdTagKey, backgroundJob.Id } };
+            })
+            .AddInMemoryExporter(exportedItems)
+            .Build();
+
+        // Act
+        var jobId = BackgroundJob.Enqueue<TestJob>(x => x.Execute());
+        await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
+
+        meterProvider.ForceFlush();
+
+        // Assert
+        var workflowPoints = exportedItems.GetMetric(WorkflowMetricNames.WorkflowStatus)!.ToMetricPointList().HavingTag(JobIdTagKey, jobId).ToList();
+        var executionPoints = exportedItems.GetMetric(WorkflowMetricNames.ExecutionStatus)!.ToMetricPointList().HavingTag(JobIdTagKey, jobId).ToList();
+
+        Assert.NotEmpty(workflowPoints);
+        Assert.NotEmpty(executionPoints);
+        Assert.All(workflowPoints, point => Assert.Equal(0, point.GetSumLong()));
+        Assert.All(executionPoints, point => Assert.Equal(0, point.GetSumLong()));
+    }
+
+    [Fact]
+    public async Task Should_Apply_EnrichWithBackgroundJob_From_Named_Options_Configured_With_DI()
+    {
+        // Arrange
+        const string name = "CustomName";
+
+        var exportedItems = new List<Metric>();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .ConfigureServices(services => services
+                .AddSingleton<Func<BackgroundJob, TagList>>(backgroundJob => new TagList { { JobIdTagKey, backgroundJob.Id } })
+                .AddOptions<HangfireMetricsInstrumentationOptions>(name)
+                .Configure<Func<BackgroundJob, TagList>>((options, enrich) => options.EnrichWithBackgroundJob = enrich))
+            .AddHangfireInstrumentation(name, configure: null)
+            .AddInMemoryExporter(exportedItems)
+            .Build();
+
+        // Act
+        var jobId = BackgroundJob.Enqueue<TestJob>(x => x.Execute());
+        await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
+
+        meterProvider.ForceFlush();
+
+        // Assert
+        var executionOutcomeMetric = exportedItems.GetMetric(WorkflowMetricNames.ExecutionOutcome);
+        AssertUtils.AssertHasMetricPoints(executionOutcomeMetric);
+        Assert.NotEmpty(executionOutcomeMetric!.ToMetricPointList().HavingTag(JobIdTagKey, jobId));
+    }
+
+    [Theory]
+    [InlineData("Scheduled", 1, 0, 0, 0)]
+    [InlineData("Enqueued", 1, 0, 1, 0)]
+    [InlineData("Processing", 0, 1, 0, 1)]
+    [InlineData("Succeeded", 0, 0, 0, 0)]
+    public async Task Should_Record_Custom_State_As_Mapped_BuiltIn_State(
+        string mappedState,
+        long workflowPending,
+        long workflowExecuting,
+        long executionPending,
+        long executionExecuting)
+    {
+        // Arrange
+        var exportedItems = new List<Metric>();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddHangfireInstrumentation(options =>
+            {
+                options.CustomStateMappings = new Dictionary<string, string>
+                {
+                    [CustomTestState.StateName] = mappedState,
+                };
+            })
+            .AddInMemoryExporter(exportedItems)
+            .Build();
+
+        var client = new BackgroundJobClient();
+
+        // Act
+        var jobId = client.Schedule<TestJob>(x => x.Execute(), TimeSpan.FromHours(1));
+        Assert.True(client.ChangeState(jobId, new CustomTestState(), ScheduledState.StateName));
+
+        meterProvider.ForceFlush();
+
+        // Assert
+        Assert.Equal(workflowPending, Sum(WorkflowMetricNames.WorkflowStatus, WorkflowAttributes.AttributeWorkflowState, WorkflowAttributes.WorkflowStateValues.Pending));
+        Assert.Equal(workflowExecuting, Sum(WorkflowMetricNames.WorkflowStatus, WorkflowAttributes.AttributeWorkflowState, WorkflowAttributes.WorkflowStateValues.Executing));
+        Assert.Equal(executionPending, Sum(WorkflowMetricNames.ExecutionStatus, WorkflowAttributes.AttributeWorkflowExecutionState, WorkflowAttributes.WorkflowStateValues.Pending));
+        Assert.Equal(executionExecuting, Sum(WorkflowMetricNames.ExecutionStatus, WorkflowAttributes.AttributeWorkflowExecutionState, WorkflowAttributes.WorkflowStateValues.Executing));
+
+        // Act
+        exportedItems.Clear();
+        Assert.True(client.ChangeState(jobId, new EnqueuedState(), CustomTestState.StateName));
+        await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
+
+        meterProvider.ForceFlush();
+
+        // Assert
+        Assert.Equal(0, Sum(WorkflowMetricNames.WorkflowStatus, WorkflowAttributes.AttributeWorkflowState, WorkflowAttributes.WorkflowStateValues.Pending));
+        Assert.Equal(0, Sum(WorkflowMetricNames.WorkflowStatus, WorkflowAttributes.AttributeWorkflowState, WorkflowAttributes.WorkflowStateValues.Executing));
+        Assert.Equal(0, Sum(WorkflowMetricNames.ExecutionStatus, WorkflowAttributes.AttributeWorkflowExecutionState, WorkflowAttributes.WorkflowStateValues.Pending));
+        Assert.Equal(0, Sum(WorkflowMetricNames.ExecutionStatus, WorkflowAttributes.AttributeWorkflowExecutionState, WorkflowAttributes.WorkflowStateValues.Executing));
+
+        long Sum(string metricName, string stateTagKey, string state) =>
+            exportedItems.GetMetric(metricName)?.ToMetricPointList().HavingTag(stateTagKey, state).Sum(point => point.GetSumLong()) ?? 0;
+    }
+
+    [Theory]
+    [InlineData("", "Enqueued")]
+    [InlineData(" ", "Enqueued")]
+    [InlineData("Scheduled", "Enqueued")]
+    [InlineData("Custom", "Unknown")]
+    [InlineData("Custom", null)]
+    public void CustomStateMappings_Should_Throw_For_Invalid_Mapping(string customState, string? mappedState)
+    {
+        var options = new HangfireMetricsInstrumentationOptions();
+        var mappings = new Dictionary<string, string>
+        {
+            [customState] = mappedState!,
+        };
+
+        Assert.Throws<ArgumentException>("value", () => options.CustomStateMappings = mappings);
+    }
+
+    [Fact]
+    public void CustomStateMappings_Should_Store_Ordinal_Copy_On_Set()
+    {
+        var mappings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            [CustomTestState.StateName] = ScheduledState.StateName,
+        };
+
+        var options = new HangfireMetricsInstrumentationOptions
+        {
+            CustomStateMappings = mappings,
+        };
+
+        mappings["Other"] = EnqueuedState.StateName;
+        mappings[CustomTestState.StateName] = EnqueuedState.StateName;
+
+        Assert.NotNull(options.CustomStateMappings);
+        Assert.NotSame(mappings, options.CustomStateMappings);
+        Assert.Equal(ScheduledState.StateName, options.CustomStateMappings[CustomTestState.StateName]);
+        Assert.False(options.CustomStateMappings.ContainsKey("Other"));
+        Assert.True(options.CustomStateMappings.ContainsKey(CustomTestState.StateName));
+        Assert.False(options.CustomStateMappings.ContainsKey(CustomTestState.StateName.ToUpperInvariant()));
+    }
+
+    private sealed class CustomTestState : IState
+    {
+        public const string StateName = "Custom";
+
+        public string Name => StateName;
+
+        public string? Reason => null;
+
+        public bool IsFinal => false;
+
+        public bool IgnoreJobLoadException => false;
+
+        public Dictionary<string, string> SerializeData() => [];
     }
 }

@@ -4,6 +4,7 @@
 using Hangfire.Common;
 using Hangfire.States;
 using Hangfire.Storage;
+using OpenTelemetry.Metrics;
 
 namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
 
@@ -12,6 +13,15 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
 /// </summary>
 internal sealed class HangfireMetricsStateFilter : JobFilterAttribute, IApplyStateFilter
 {
+    private readonly HangfireMetricsInstrumentationOptions options;
+
+#pragma warning disable CA1019 // Define accessors for attribute arguments
+    public HangfireMetricsStateFilter(HangfireMetricsInstrumentationOptions options)
+#pragma warning restore CA1019 // Define accessors for attribute arguments
+    {
+        this.options = options;
+    }
+
     private enum StateTransitionDirection
     {
         Applied,
@@ -20,14 +30,14 @@ internal sealed class HangfireMetricsStateFilter : JobFilterAttribute, IApplySta
 
     public void OnStateApplied(ApplyStateContext context, IWriteOnlyTransaction transaction)
     {
-        RecordWorkflowStateChange(context, StateTransitionDirection.Applied);
-        RecordExecutionStateChange(context, StateTransitionDirection.Applied);
+        this.RecordWorkflowStateChange(context, StateTransitionDirection.Applied);
+        this.RecordExecutionStateChange(context, StateTransitionDirection.Applied);
     }
 
     public void OnStateUnapplied(ApplyStateContext context, IWriteOnlyTransaction transaction)
     {
-        RecordWorkflowStateChange(context, StateTransitionDirection.Unapplied);
-        RecordExecutionStateChange(context, StateTransitionDirection.Unapplied);
+        this.RecordWorkflowStateChange(context, StateTransitionDirection.Unapplied);
+        this.RecordExecutionStateChange(context, StateTransitionDirection.Unapplied);
     }
 
     private static string? GetErrorTypeFromNewState(IState state)
@@ -86,12 +96,12 @@ internal sealed class HangfireMetricsStateFilter : JobFilterAttribute, IApplySta
         }
     }
 
-    private static void RecordWorkflowStateChange(
+    private void RecordWorkflowStateChange(
         ApplyStateContext context,
         StateTransitionDirection direction)
     {
-        var oldState = HangfireStateMapper.MapWorkflowState(context.OldStateName);
-        var newState = HangfireStateMapper.MapWorkflowState(context.NewState.Name);
+        var oldState = HangfireStateMapper.MapWorkflowState(this.MapCustomState(context.OldStateName));
+        var newState = HangfireStateMapper.MapWorkflowState(this.MapCustomState(context.NewState.Name));
 
         // Determine which state to record based on transition direction
         var stateToRecord = direction == StateTransitionDirection.Applied ? newState : oldState;
@@ -114,15 +124,15 @@ internal sealed class HangfireMetricsStateFilter : JobFilterAttribute, IApplySta
             errorType);
 
         var delta = direction == StateTransitionDirection.Applied ? 1 : -1;
-        HangfireMetrics.WorkflowStatus.Add(delta, tags);
+        HangfireMetrics.WorkflowStatus.Add(delta, HangfireTagBuilder.Enrich(tags, context.BackgroundJob, this.options));
     }
 
-    private static void RecordExecutionStateChange(
+    private void RecordExecutionStateChange(
         ApplyStateContext context,
         StateTransitionDirection direction)
     {
-        var oldState = HangfireStateMapper.MapExecutionState(context.OldStateName);
-        var newState = HangfireStateMapper.MapExecutionState(context.NewState.Name);
+        var oldState = HangfireStateMapper.MapExecutionState(this.MapCustomState(context.OldStateName));
+        var newState = HangfireStateMapper.MapExecutionState(this.MapCustomState(context.NewState.Name));
 
         // Determine which state to record based on transition direction
         var stateToRecord = direction == StateTransitionDirection.Applied ? newState : oldState;
@@ -143,6 +153,11 @@ internal sealed class HangfireMetricsStateFilter : JobFilterAttribute, IApplySta
             errorType);
 
         var delta = direction == StateTransitionDirection.Applied ? 1 : -1;
-        HangfireMetrics.ExecutionStatus.Add(delta, tags);
+        HangfireMetrics.ExecutionStatus.Add(delta, HangfireTagBuilder.Enrich(tags, context.BackgroundJob, this.options));
     }
+
+    private string? MapCustomState(string? stateName) =>
+        stateName != null && this.options.CustomStateMappings?.TryGetValue(stateName, out var builtInState) == true
+            ? builtInState
+            : stateName;
 }
