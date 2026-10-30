@@ -840,8 +840,63 @@ internal static class SqlProcessor
 #endif
 
             return singleQuotes == 0
-                ? !StartsWithNumber(content)
-                : (singleQuotes & 1) == 1 && content[0] != SingleQuoteChar;
+                ? !StartsWithNumber(content) || CommentContainsClosingBracket(content)
+                : ((singleQuotes & 1) == 1 && content[0] != SingleQuoteChar) || CommentContainsClosingBracket(content);
+        }
+
+        static bool CommentContainsClosingBracket(ReadOnlySpan<char> content)
+        {
+            // A list of values has to end with its closing bracket, so a comment which has not ended by the
+            // time the content does would contain it, which is not valid. The content must therefore be an
+            // identifier (e.g. [Orders''--] or [Orders''/*]), which otherwise would be parsed as SQL with
+            // the rest of the statement, including any literal in it, swallowed by the comment.
+            for (var i = 0; i < content.Length; i++)
+            {
+                var c = content[i];
+
+                if (c == SingleQuoteChar)
+                {
+                    // Skip a string literal, in which a comment marker is only text.
+                    for (i++; i < content.Length; i++)
+                    {
+                        if (content[i] != SingleQuoteChar)
+                        {
+                            continue;
+                        }
+
+                        if (i + 1 < content.Length && content[i + 1] == SingleQuoteChar)
+                        {
+                            i++;
+                            continue;
+                        }
+
+                        break;
+                    }
+                }
+                else if (c == DashChar && i + 1 < content.Length && content[i + 1] == DashChar)
+                {
+                    // A line comment ends at the end of the line, if the line does end within the content.
+                    var lineEnd = content.Slice(i + 2).IndexOfAny(CarriageReturnChar, NewLineChar);
+                    if (lineEnd < 0)
+                    {
+                        return true;
+                    }
+
+                    i += 2 + lineEnd;
+                }
+                else if (c == ForwardSlashChar && i + 1 < content.Length && content[i + 1] == AsteriskChar)
+                {
+                    var commentEnd = content.Slice(i + 2).IndexOf("*/".AsSpan(), StringComparison.Ordinal);
+                    if (commentEnd < 0)
+                    {
+                        return true;
+                    }
+
+                    i += 2 + commentEnd + 1;
+                }
+            }
+
+            return false;
         }
     }
 

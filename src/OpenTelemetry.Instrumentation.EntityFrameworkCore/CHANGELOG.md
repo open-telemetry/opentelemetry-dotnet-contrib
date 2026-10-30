@@ -12,6 +12,11 @@
   command's activity.
   ([#5821](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5821))
 
+* Fixed a bracketed identifier which contains quotes and a comment marker, such
+  as `[Orders''--]`, being parsed as SQL, which truncated the sanitized query
+  text and left a literal after it unsanitized if it was on a later line.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 1.20.1-beta.1
 
 Released 2026-Oct-21

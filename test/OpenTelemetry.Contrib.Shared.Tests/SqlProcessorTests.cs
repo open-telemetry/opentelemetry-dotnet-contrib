@@ -449,6 +449,45 @@ public class SqlProcessorTests(ITestOutputHelper output)
     }
 
     [Theory]
+    [InlineData("UPDATE [Orders''/*] SET c = 'secret-name'", "UPDATE [Orders''/*] SET c = ?")]
+    [InlineData("UPDATE [Orders''--] SET c = 'secret-name'", "UPDATE [Orders''--] SET c = ?")]
+    [InlineData("UPDATE [Orders/*''] SET c = 'secret-name'", "UPDATE [Orders/*''] SET c = ?")]
+    [InlineData("SELECT * FROM t WHERE [Orders''/*] = 'secret-name'", "SELECT * FROM t WHERE [Orders''/*] = ?")]
+    [InlineData("SELECT * FROM [Orders''--] WHERE c = 'secret-name'", "SELECT * FROM [Orders''--] WHERE c = ?")]
+    [InlineData("SELECT fn([a--'']), 'secret-name'", "SELECT fn([a--'']), ?")]
+    [InlineData("SELECT * FROM t WHERE fn([a].[b--'']) = $$\nsecret-name$$", "SELECT * FROM t WHERE fn([a].[b--'']) = ?")]
+    [InlineData("SELECT * FROM t WHERE [b''--] = 'x\nsecret-name'", "SELECT * FROM t WHERE [b''--] = ?")]
+    public void GetSanitizedSql_BracketedIdentifierContainingQuotesAndCommentMarker_IsNotParsedAsComment(string sql, string expected)
+    {
+        // A comment marker in a bracketed identifier is part of the name, and the quotes in it must not make it be
+        // parsed as SQL, as then the comment would swallow the end of the name and the rest of the statement,
+        // which left a literal on a later line (or a later literal which the swallowed text started) unsanitized.
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData("SELECT * FROM UNNEST([Email, 'secret-name' /* note */, 'secret-name'])", "SELECT * FROM UNNEST([Email, ? , ?])")]
+    [InlineData("SELECT * FROM UNNEST(['secret-name' -- note\n, 'secret-name'])", "SELECT * FROM UNNEST([? \n, ?])")]
+    [InlineData("SELECT * FROM UNNEST(['a--b', 'secret-name'])", "SELECT * FROM UNNEST([?, ?])")]
+    [InlineData("SELECT * FROM UNNEST(['a/*b', 'secret-name'])", "SELECT * FROM UNNEST([?, ?])")]
+    public void GetSanitizedSql_ListOfValuesContainingTerminatedCommentOrCommentMarkerInLiteral_IsParsedAsSql(string sql, string expected)
+    {
+        // A list of values is still parsed as SQL if a comment in it ends within the list, or if the comment
+        // marker is text in one of its literals, as neither of those would contain the closing bracket.
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
     [InlineData("SELECT * FROM t WHERE c = \"12345\"", "SELECT * FROM t WHERE c = \"?\"")]
     [InlineData("SELECT * FROM t WHERE c = \"078-05-1120\" AND d = 'secret-name'", "SELECT * FROM t WHERE c = \"?\" AND d = ?")]
     [InlineData("SELECT * FROM t WHERE c = \" +44 20 7946 0958\"", "SELECT * FROM t WHERE c = \"?\"")]
