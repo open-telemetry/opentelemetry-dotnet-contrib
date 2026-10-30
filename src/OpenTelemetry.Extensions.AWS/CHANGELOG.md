@@ -4,11 +4,11 @@
 
 * No longer throw and catch an exception in `AWSXRayPropagator` for an
   `X-Amzn-Trace-Id` header with upper case or padded hexadecimal identifiers.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#5825](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5825))
 
 * Fixed `AWSXRayPropagator` using the value of a field of the `X-Amzn-Trace-Id`
   header whose name only starts with `Root`, `Parent` or `Sampled`.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#5825](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5825))
 
 ## 1.20.2
 
