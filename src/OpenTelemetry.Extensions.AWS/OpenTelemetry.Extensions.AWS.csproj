@@ -22,4 +22,8 @@
     <Compile Include="$(RepoRoot)\src\Shared\Lock.cs" Link="Includes\Lock.cs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="OpenTelemetry.Extensions.AWS.FuzzTests" PublicKey="$(StrongNamePublicKey)" />
+  </ItemGroup>
+
 </Project>
