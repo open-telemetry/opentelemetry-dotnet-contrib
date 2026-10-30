@@ -319,6 +319,23 @@ public class AWSXRayPropagatorTests
         Assert.Equal(default, activityContext);
     }
 
+    [Fact]
+    public void TestTryParseXRayTraceHeaderAcceptsOnlyLowerCaseHexadecimalDigitsInIdentifiers()
+    {
+        // Every character is tried as the first and as the last character of the random part of the trace
+        // identifier and of the parent identifier, and only those of a hexadecimal number in lower case are valid.
+        for (var i = 0; i <= char.MaxValue; i++)
+        {
+            var c = (char)i;
+            var expected = c is (>= '0' and <= '9') or (>= 'a' and <= 'f');
+
+            AssertExtractIsValid(expected, c, $"Root=1-5759e988-{c}d862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1");
+            AssertExtractIsValid(expected, c, $"Root=1-5759e988-bd862e3fe1be46a99427279{c};Parent=53995c3f42cd8ad8;Sampled=1");
+            AssertExtractIsValid(expected, c, $"Root=1-5759e988-bd862e3fe1be46a994272793;Parent={c}3995c3f42cd8ad8;Sampled=1");
+            AssertExtractIsValid(expected, c, $"Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad{c};Sampled=1");
+        }
+    }
+
     [Theory]
     [InlineData("Root2=1-00000000-000000000000000000000000")]
     [InlineData("RootX=garbage")]
@@ -388,5 +405,16 @@ public class AWSXRayPropagatorTests
 
             Assert.Equal(new PropagationContext(expected, default), this.awsXRayPropagator.Extract(default, carrier, Getter));
         }
+    }
+
+    private static void AssertExtractIsValid(bool expected, char c, string header)
+    {
+        // Parsing is called directly, as extracting the context catches the exception which is thrown if an
+        // identifier which is not valid is used, and so cannot tell a header which is rejected from one which is not.
+        var actual = false;
+        var exception = Record.Exception(() => actual = AWSXRayPropagator.TryParseXRayTraceHeader(header, out _));
+
+        Assert.True(exception is null, $"The header {header} threw {exception?.GetType().Name} for the character U+{(int)c:X4}.");
+        Assert.True(expected == actual, $"The header {header} should {(expected ? string.Empty : "not ")}be valid for the character U+{(int)c:X4}.");
     }
 }

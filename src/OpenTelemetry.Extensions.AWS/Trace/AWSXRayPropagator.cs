@@ -1,6 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if NET
+using System.Buffers;
+#endif
 #if NETFRAMEWORK
 using System.Net;
 #endif
@@ -36,6 +39,10 @@ public class AWSXRayPropagator : TextMapPropagator
 
     // The length of a header in the format "Root=1-{8 hex}-{24 hex};Parent={16 hex};Sampled={0|1}".
     private const int TraceHeaderLength = 74;
+
+#if NET
+    private static readonly SearchValues<char> LowerCaseHexDigits = SearchValues.Create("0123456789abcdef");
+#endif
 
 #if NET
     private static readonly System.Collections.Immutable.ImmutableHashSet<string> AllFields = [AWSXRayTraceHeaderKey];
@@ -342,14 +349,27 @@ public class AWSXRayPropagator : TextMapPropagator
             return false;
         }
 
+#if NET
+        return value.IndexOfAnyExcept(LowerCaseHexDigits) < 0;
+#else
+        // Digits and lower case letters have the bit of the case set and upper case letters do not, so
+        // looking at whether each character is a hexadecimal digit and keeping the bit which is set in all
+        // of them costs the same as looking at whether each is a hexadecimal digit alone. Identifiers are
+        // random, so a branch which depends on whether a digit is a number or a letter cannot be predicted,
+        // which makes checking for each of the two ranges of lower case digits much slower.
+        var caseBit = 0x20;
+
         foreach (var c in value)
         {
-            if (!char.IsAsciiHexDigitLower(c))
+            if (!char.IsAsciiHexDigit(c))
             {
                 return false;
             }
+
+            caseBit &= c;
         }
 
-        return true;
+        return caseBit != 0;
+#endif
     }
 }
