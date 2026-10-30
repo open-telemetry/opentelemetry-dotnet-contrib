@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+* Fixed `db.query.summary` so that a delimited identifier, such as `[Orders]` or
+  `[dbo].[Orders]`, is captured wherever an undelimited identifier would be
+  (for example after `INSERT INTO`, `EXEC`, `CREATE TABLE` or a `JOIN` which
+  follows an `ON` clause), instead of only in a `FROM` clause.
+  ([#5816](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5816))
+
+* Fixed suppressed or unsampled nested commands enriching or stopping an outer
+  command's activity.
+  ([#5821](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5821))
+
 * **Breaking Change** Dropped support for `net8.0` and `net9.0`.
   ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
 
