@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Fixed suppressed or unsampled nested commands enriching or stopping an outer
+  command's activity.
+  ([#NNNN](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/NNNN))
+
 ## 1.20.1-beta.1
 
 Released 2026-Oct-21
