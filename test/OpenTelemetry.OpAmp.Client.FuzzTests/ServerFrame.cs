@@ -11,7 +11,7 @@ namespace OpenTelemetry.OpAmp.Client.FuzzTests;
 /// </summary>
 public sealed class ServerFrame
 {
-    private static readonly string[] TextFragments = ["a", "b", "config", ".yaml", "/", " ", "é", "日本", "\U0001F600", "\0", "text/yaml"];
+    private static readonly string[] TextFragments = ["a", "b", "config", ".yaml", "/", " ", "\u00e9", "\u65e5\u672c", "\U0001F600", "\0", "text/yaml"];
 
     public ServerFrame(int seed)
     {
