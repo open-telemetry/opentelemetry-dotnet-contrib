@@ -37,7 +37,7 @@ public sealed class FuzzedSql(int seed)
     {
         private static readonly string[] BodyFragments =
         [
-            "abc", " ", ")", "(", ",", "--", "/*", "*/", ";", "[", "]", "\"", "`", "$$", "''", "\\", "@x", " IN (", " OR 1=1 -- ", "\n", "%", "é", "#",
+            "abc", " ", ")", "(", ",", "--", "/*", "*/", ";", "[", "]", "\"", "`", "$$", "''", "\\", "@x", " IN (", " OR 1=1 -- ", "\n", "%", "\u00e9", "#",
         ];
 
         private static readonly string[] IdentifierFragments = ["a", "b b", "'", "(", ")", ",", "--", "/*", "-", ".", "x", "''"];

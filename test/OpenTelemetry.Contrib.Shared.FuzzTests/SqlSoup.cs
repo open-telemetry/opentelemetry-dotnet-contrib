@@ -12,7 +12,7 @@ public sealed class SqlSoup
     private static readonly string[] Pieces =
     [
         "'", "''", "\"", "`", "[", "]", "(", ")", ",", ";", "-", "--", "/", "*", "/*", "*/", "\\", "$", "$$", "$a$", "@", "#", "?", "=", ".", "%", ":",
-        "N'", "E'", "X'", "0x", "0xFF", "1", "42", "-1", "1.5", "1e5", " ", "  ", "\n", "\r\n", "\t", "a", "b1", "_", "é", "\ud83d", "\0",
+        "N'", "E'", "X'", "0x", "0xFF", "1", "42", "-1", "1.5", "1e5", " ", "  ", "\n", "\r\n", "\t", "a", "b1", "_", "\u00e9", "\ud83d", "\0",
         "SELECT ", "INSERT INTO ", "UPDATE ", "DELETE FROM ", "FROM ", "WHERE ", "IN ", "IN (", "AS ", "JOIN ", "VALUES ", "SET ", "AND ", "OR ", "ARRAY[", "ARRAY ", "CREATE LOGIN ", "CREATE USER ", "EXEC ",
     ];
 
