@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
+    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkVersionForTests)</TargetFrameworks>
+    <Description>Fuzz test project for OpenTelemetry OpAMP Client.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.OpAmp.Client\OpenTelemetry.OpAmp.Client.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETFramework'">
+    <PackageReference Include="System.Memory" VersionOverride="4.6.3" />
+  </ItemGroup>
+
+</Project>
