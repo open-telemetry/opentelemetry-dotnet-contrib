@@ -17,6 +17,10 @@
   text and left a literal after it unsanitized if it was on a later line.
   ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
 
+* Fixed the time taken to sanitize a statement when it contains many `IN (` lists
+  which are not terminated.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 1.20.1-beta.1
 
 Released 2026-Oct-21

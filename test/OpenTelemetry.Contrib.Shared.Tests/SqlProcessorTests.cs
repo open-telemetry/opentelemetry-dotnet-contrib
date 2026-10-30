@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics;
+
 namespace OpenTelemetry.Instrumentation.Tests;
 
 public class SqlProcessorTests(ITestOutputHelper output)
@@ -485,6 +487,48 @@ public class SqlProcessorTests(ITestOutputHelper output)
 
         Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
         Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData(
+        "SELECT * FROM t WHERE a IN ('secret-name', 'secret-name' AND b IN ('secret-name', 'secret-name'",
+        "SELECT * FROM t WHERE a IN (?, ? AND b IN (?, ?")]
+    [InlineData(
+        "SELECT * FROM t WHERE a IN ('secret-name' IN ('secret-name' IN ('secret-name'",
+        "SELECT * FROM t WHERE a IN (? IN (? IN (?")]
+    [InlineData(
+        "SELECT * FROM t WHERE a IN ('secret-name', b IN (1, 2 AND c IN ('secret-name') AND d IN ('secret-name'",
+        "SELECT * FROM t WHERE a IN (?) AND d IN (?")]
+    [InlineData(
+        "SELECT * FROM t WHERE a IN ('secret-name' AND b IN ('secret-name', 'secret-name')",
+        "SELECT * FROM t WHERE a IN (?)")]
+    public void GetSanitizedSql_InClauseWhichIsNotTerminated_SanitizesEachValue(string sql, string expected)
+    {
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Fact]
+    public void GetSanitizedSql_ManyInClausesWhichAreNotTerminated_DoesNotTakeTimeWhichGrowsWithTheSquareOfTheLength()
+    {
+        // Looking for the end of each list of values would read to the end of the statement each time when there is none,
+        // which for a statement of this length is tens of billions of steps, rather than the few milliseconds it takes
+        // when it is only looked for once.
+        const string Value = "secret-name";
+        var sql = "SELECT * FROM t WHERE " + string.Concat(Enumerable.Repeat($"IN ('{Value}', ", 40_000));
+
+        var stopwatch = Stopwatch.StartNew();
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+        stopwatch.Stop();
+
+        Assert.DoesNotContain(Value, sqlStatementInfo.SanitizedSql);
+        Assert.True(
+            stopwatch.Elapsed < TimeSpan.FromSeconds(5),
+            $"Sanitizing {sql.Length:N0} characters took {stopwatch.Elapsed}.");
     }
 
     [Theory]

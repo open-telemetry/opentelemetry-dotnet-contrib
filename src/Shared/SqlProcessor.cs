@@ -52,6 +52,7 @@ internal static class SqlProcessor
     private static readonly char[] LineBreakChars = [CarriageReturnChar, NewLineChar];
 #endif
 
+#if NET
     // The characters which can start a construct that a ')' may legitimately appear inside
     // (a string literal, a quoted identifier or a comment), plus ')' itself. Used to find the
     // end of an IN clause.
@@ -68,7 +69,6 @@ internal static class SqlProcessor
         HashChar,
     ];
 
-#if NET
     private static readonly SearchValues<char> AsciiLetterSearchValues = SearchValues.Create("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
     private static readonly SearchValues<char> LineBreakSearchValues = SearchValues.Create("\n\r");
     private static readonly SearchValues<char> WhitespaceSearchValues = SearchValues.Create(WhitespaceChars);
@@ -1521,11 +1521,24 @@ internal static class SqlProcessor
             // (for example "IN ('a)b', 'secret')"), which would leave the parser positioned in the
             // middle of that literal. Every subsequent quote would then be mismatched and the
             // remaining values would be copied into the sanitized SQL verbatim instead of being replaced.
+            // A scan which found no closing parenthesis has looked at everything up to the end of the input, so
+            // any later list is within the same text and would not find one either. Without remembering that, a
+            // statement with many lists which are not terminated would scan to the end of the input for each of them.
+            if (state.InClauseEndNotFoundFrom != 0 && parsePosition + 1 >= state.InClauseEndNotFoundFrom)
+            {
+                return false;
+            }
+
             if (TryFindEndOfInClause(sql, parsePosition, in state, out var closeParenIndex))
             {
                 state.ParsePosition = closeParenIndex;
                 buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
                 return true;
+            }
+
+            if (state.InClauseEndNotFoundFrom == 0)
+            {
+                state.InClauseEndNotFoundFrom = parsePosition + 1;
             }
         }
 
@@ -1556,7 +1569,7 @@ internal static class SqlProcessor
 #if NET
             var offset = sql.Slice(i).IndexOfAny(InClauseScanSearchValues);
 #else
-            var offset = sql.Slice(i).IndexOfAny(InClauseScanChars);
+            var offset = IndexOfInClauseScanChar(sql.Slice(i));
 #endif
 
             if (offset < 0)
@@ -1609,6 +1622,31 @@ internal static class SqlProcessor
         return false;
     }
 
+#if !NET
+    /// <summary>
+    /// Finds the first character which can start a construct that a <c>)</c> may legitimately appear inside, or which is
+    /// <c>)</c> itself (see <see cref="TryFindEndOfInClause"/>).
+    /// </summary>
+    /// <remarks>
+    /// This is not <c>IndexOfAny</c> as that searches the whole of the span once for each value on .NET Framework, so for
+    /// a value which does not occur it takes time in proportion to the length of the span rather than to the distance to the
+    /// first match, and calling it for each of a number of literals in a long statement takes time which grows with its square.
+    /// </remarks>
+    private static int IndexOfInClauseScanChar(ReadOnlySpan<char> span)
+    {
+        for (var i = 0; i < span.Length; i++)
+        {
+            if (span[i] is CloseParenChar or SingleQuoteChar or DoubleQuoteChar or BacktickChar or OpenSquareBracketChar
+                or DollarChar or DashChar or ForwardSlashChar or HashChar)
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+#endif
+
     private ref struct ParseState
     {
         // ParseState intentionally uses public fields (not properties):
@@ -1646,6 +1684,9 @@ internal static class SqlProcessor
         // The first ']' found at or after CloseSquareBracketSearchStart, or the length of the input if there is none.
         public int CloseSquareBracketSearchStart; // 4 bytes
         public int NextCloseSquareBracket; // 4 bytes
+
+        // One more than the position from which the end of an IN clause was searched for and not found, or zero if there was no such search.
+        public int InClauseEndNotFoundFrom; // 4 bytes
 
         // NOTE: If the number of bool fields increases significantly, consider combining into a bitfield.
 
