@@ -568,6 +568,7 @@ internal static class SqlProcessor
             }
 
             var length = i - start;
+            var captureNextPartOfName = false;
             if (length > 0)
             {
                 // Special handling: if we are in a FROM clause, check if this identifier is a reserved keyword
@@ -611,13 +612,21 @@ internal static class SqlProcessor
                 {
                     AppendSummaryToken(sql.Slice(start, length), ref state);
 
-                    // Add a space after the identifier. The trailing space will be trimmed later.
-                    AppendSummaryChar(SpaceChar, ref state);
+                    if (sql[i - 1] == DotChar && i < sql.Length && sql[i] == OpenSquareBracketChar)
+                    {
+                        // The name continues with a delimited part (e.g. dbo.[Orders]), so capture it as well.
+                        captureNextPartOfName = true;
+                    }
+                    else
+                    {
+                        // Add a space after the identifier. The trailing space will be trimmed later.
+                        AppendSummaryChar(SpaceChar, ref state);
+                    }
                 }
             }
 
             state.ParsePosition = i;
-            state.CaptureNextNonKeywordTokenAsIdentifier = false;
+            state.CaptureNextNonKeywordTokenAsIdentifier = captureNextPartOfName;
             state.SanitizeNextNonKeywordToken = false;
             state.PreviousTokenStartPosition = start;
             state.PreviousTokenEndPosition = i;
@@ -710,7 +719,7 @@ internal static class SqlProcessor
 
                 // Add a period for a schema-qualified name, otherwise a space. A trailing space will be trimmed later.
                 var nextPosition = end + 1;
-                if (nextPosition < sql.Length && sql[nextPosition] == DotChar)
+                if (IsNamePartFollowing(sql, nextPosition))
                 {
                     AppendSummaryChar(DotChar, ref state);
 
@@ -732,6 +741,13 @@ internal static class SqlProcessor
 
         return true;
     }
+
+    // Whether a period at the position is followed by another part of a multi-part name which can be captured
+    // (e.g. the [Orders] in [dbo].[Orders]). A period which is not followed by one is left out of the summary.
+    private static bool IsNamePartFollowing(ReadOnlySpan<char> sql, int dotPosition) =>
+        dotPosition + 1 < sql.Length &&
+        sql[dotPosition] == DotChar &&
+        (sql[dotPosition + 1] is OpenSquareBracketChar or UnderscoreChar || char.IsLetter(sql[dotPosition + 1]));
 
     /// <summary>
     /// Finds the end of the quoted identifier (<c>[...]</c>, <c>`...`</c>, or <c>"..."</c> unless the

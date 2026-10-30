@@ -1546,5 +1546,83 @@
       ],
       "db.query.summary": "SELECT [A] [B] [C]"
     }
+  },
+  {
+    "name": "insert_into_unquoted_then_delimited_identifier",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "INSERT INTO dbo.[Orders] VALUES (@p0)"
+    },
+    "expected": {
+      "db.query.text": [
+        "INSERT INTO dbo.[Orders] VALUES (@p0)"
+      ],
+      "db.query.summary": "INSERT dbo.[Orders]"
+    }
+  },
+  {
+    "name": "insert_into_delimited_then_unquoted_identifier",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "INSERT INTO [dbo].Orders VALUES (@p0)"
+    },
+    "expected": {
+      "db.query.text": [
+        "INSERT INTO [dbo].Orders VALUES (@p0)"
+      ],
+      "db.query.summary": "INSERT [dbo].Orders"
+    }
+  },
+  {
+    "name": "insert_into_delimited_then_double_quoted_identifier",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "INSERT INTO [dbo].\"Orders\" VALUES (@p0)"
+    },
+    "expected": {
+      "db.query.text": [
+        "INSERT INTO [dbo].\"Orders\" VALUES (@p0)"
+      ],
+      "db.query.summary": "INSERT [dbo]"
+    }
+  },
+  {
+    "name": "insert_into_four_part_delimited_identifier",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "INSERT INTO [Server].[Database].[dbo].[Orders] VALUES (@p0)"
+    },
+    "expected": {
+      "db.query.text": [
+        "INSERT INTO [Server].[Database].[dbo].[Orders] VALUES (@p0)"
+      ],
+      "db.query.summary": "INSERT [Server].[Database].[dbo].[Orders]"
+    }
+  },
+  {
+    "name": "from_unquoted_then_delimited_identifier",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "SELECT * FROM dbo.[Orders]"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT * FROM dbo.[Orders]"
+      ],
+      "db.query.summary": "SELECT dbo.[Orders]"
+    }
+  },
+  {
+    "name": "from_delimited_then_double_quoted_identifier",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "SELECT * FROM [dbo].\"Orders\""
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT * FROM [dbo].\"Orders\""
+      ],
+      "db.query.summary": "SELECT [dbo]"
+    }
   }
 ]

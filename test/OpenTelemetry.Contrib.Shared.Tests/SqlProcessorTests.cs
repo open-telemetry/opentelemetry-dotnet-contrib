@@ -638,6 +638,17 @@ public class SqlProcessorTests(ITestOutputHelper output)
         Assert.EndsWith(expected, fullSummary.SanitizedSql, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void GetSanitizedSql_DelimitedNameExceedingSummaryLengthLimit_OmitsPartialName()
+    {
+        var sql = $"INSERT INTO [{LongCapturedIdentifier}].[Orders] VALUES (@p0)";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        Assert.Equal(sql, sqlStatementInfo.SanitizedSql);
+        Assert.Equal("INSERT", sqlStatementInfo.DbQuerySummary);
+    }
+
     [Theory]
     [InlineData(0)]
     [InlineData(20)]
