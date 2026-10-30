@@ -26,4 +26,19 @@ public class ServerCapabilitiesMessageTests
         // Assert
         Assert.Equal(expectedCommands, flagsMessage.Capabilities);
     }
+
+    [Theory]
+    [InlineData(1UL)]
+    [InlineData(1UL << 31)]
+    [InlineData(1UL << 32)]
+    [InlineData(1UL << 63)]
+    [InlineData(ulong.MaxValue)]
+    internal void Constructor_WithCapabilitiesWiderThan32Bits_PreservesEveryBit(ulong capabilities)
+    {
+        // Act
+        var message = new ServerCapabilitiesMessage(capabilities);
+
+        // Assert
+        Assert.Equal(capabilities, (ulong)message.Capabilities);
+    }
 }
