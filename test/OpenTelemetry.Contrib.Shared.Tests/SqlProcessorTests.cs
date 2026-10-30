@@ -490,6 +490,24 @@ public class SqlProcessorTests(ITestOutputHelper output)
     }
 
     [Theory]
+    [InlineData("SELECT * FROM UNNEST(['a-b', 'secret-name'])", "SELECT * FROM UNNEST([?, ?])")]
+    [InlineData("SELECT * FROM UNNEST(['a/b', 'secret-name'])", "SELECT * FROM UNNEST([?, ?])")]
+    [InlineData("SELECT * FROM UNNEST([Email/Name, 'secret-name'])", "SELECT * FROM UNNEST([Email/Name, ?])")]
+    [InlineData("SELECT * FROM t WHERE [a-b] = 'secret-name'", "SELECT * FROM t WHERE [a-b] = ?")]
+    [InlineData("SELECT * FROM t WHERE [a/b] = 'secret-name'", "SELECT * FROM t WHERE [a/b] = ?")]
+    public void GetSanitizedSql_BracketedContentWithDashOrSlashWhichIsNotComment_IsNotTreatedAsComment(string sql, string expected)
+    {
+        // A dash or a slash on its own does not start a comment, so it does not make the content of a
+        // bracket be an identifier, or a list of values be parsed as anything other than SQL.
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
     [InlineData(
         "SELECT * FROM t WHERE a IN ('secret-name', 'secret-name' AND b IN ('secret-name', 'secret-name'",
         "SELECT * FROM t WHERE a IN (?, ? AND b IN (?, ?")]

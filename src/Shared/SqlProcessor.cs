@@ -850,6 +850,13 @@ internal static class SqlProcessor
             // time the content does would contain it, which is not valid. The content must therefore be an
             // identifier (e.g. [Orders''--] or [Orders''/*]), which otherwise would be parsed as SQL with
             // the rest of the statement, including any literal in it, swallowed by the comment.
+            // A comment starts with two dashes or a slash and an asterisk, so content which has no dash and
+            // no slash cannot contain one, which is much cheaper to find than looking at each character.
+            if (content.IndexOfAny(DashChar, ForwardSlashChar) < 0)
+            {
+                return false;
+            }
+
             for (var i = 0; i < content.Length; i++)
             {
                 var c = content[i];
