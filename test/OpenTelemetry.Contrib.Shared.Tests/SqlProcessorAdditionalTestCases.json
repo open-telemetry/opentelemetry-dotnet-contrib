@@ -1271,7 +1271,7 @@
       "db.query.text": [
         "TRUNCATE TABLE HumanResources.JobCandidate;"
       ],
-      "db.query.summary": "TRUNCATE TABLE"
+      "db.query.summary": "TRUNCATE TABLE HumanResources.JobCandidate"
     }
   },
   {
@@ -1623,6 +1623,84 @@
         "SELECT * FROM [dbo].\"Orders\""
       ],
       "db.query.summary": "SELECT [dbo]"
+    }
+  },
+  {
+    "name": "truncate_table_delimited_identifier",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "TRUNCATE TABLE [dbo].[Orders]"
+    },
+    "expected": {
+      "db.query.text": [
+        "TRUNCATE TABLE [dbo].[Orders]"
+      ],
+      "db.query.summary": "TRUNCATE TABLE [dbo].[Orders]"
+    }
+  },
+  {
+    "name": "insert_into_delimited_identifier_with_whitespace_around_period",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "INSERT INTO [dbo] . [Orders] VALUES (@p0)"
+    },
+    "expected": {
+      "db.query.text": [
+        "INSERT INTO [dbo] . [Orders] VALUES (@p0)"
+      ],
+      "db.query.summary": "INSERT [dbo].[Orders]"
+    }
+  },
+  {
+    "name": "insert_into_delimited_identifier_with_newline_around_period",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "INSERT INTO [dbo]\n\t.\n\t[Orders] VALUES (@p0)"
+    },
+    "expected": {
+      "db.query.text": [
+        "INSERT INTO [dbo]\n\t.\n\t[Orders] VALUES (@p0)"
+      ],
+      "db.query.summary": "INSERT [dbo].[Orders]"
+    }
+  },
+  {
+    "name": "insert_into_unquoted_then_delimited_identifier_with_whitespace",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "INSERT INTO dbo. [Orders] VALUES (@p0)"
+    },
+    "expected": {
+      "db.query.text": [
+        "INSERT INTO dbo. [Orders] VALUES (@p0)"
+      ],
+      "db.query.summary": "INSERT dbo.[Orders]"
+    }
+  },
+  {
+    "name": "insert_into_delimited_then_double_quoted_identifier_with_whitespace",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "INSERT INTO [dbo] . \"Orders\" VALUES (@p0)"
+    },
+    "expected": {
+      "db.query.text": [
+        "INSERT INTO [dbo] . \"Orders\" VALUES (@p0)"
+      ],
+      "db.query.summary": "INSERT [dbo]"
+    }
+  },
+  {
+    "name": "from_delimited_identifier_with_whitespace_around_period",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "SELECT * FROM [dbo] . [Orders]"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT * FROM [dbo] . [Orders]"
+      ],
+      "db.query.summary": "SELECT [dbo].[Orders]"
     }
   }
 ]

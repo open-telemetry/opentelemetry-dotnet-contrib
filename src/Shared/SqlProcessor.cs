@@ -612,7 +612,7 @@ internal static class SqlProcessor
                 {
                     AppendSummaryToken(sql.Slice(start, length), ref state);
 
-                    if (sql[i - 1] == DotChar && i < sql.Length && sql[i] == OpenSquareBracketChar)
+                    if (sql[i - 1] == DotChar && IsDelimitedNamePartFollowing(sql, i))
                     {
                         // The name continues with a delimited part (e.g. dbo.[Orders]), so capture it as well.
                         captureNextPartOfName = true;
@@ -742,12 +742,40 @@ internal static class SqlProcessor
         return true;
     }
 
-    // Whether a period at the position is followed by another part of a multi-part name which can be captured
-    // (e.g. the [Orders] in [dbo].[Orders]). A period which is not followed by one is left out of the summary.
-    private static bool IsNamePartFollowing(ReadOnlySpan<char> sql, int dotPosition) =>
-        dotPosition + 1 < sql.Length &&
-        sql[dotPosition] == DotChar &&
-        (sql[dotPosition + 1] is OpenSquareBracketChar or UnderscoreChar || char.IsLetter(sql[dotPosition + 1]));
+    // Whether the position, ignoring any whitespace, is a period followed by another part of a multi-part name
+    // which can be captured (e.g. the [Orders] in [dbo] . [Orders]). A period which is not followed by one is
+    // left out of the summary.
+    private static bool IsNamePartFollowing(ReadOnlySpan<char> sql, int position)
+    {
+        position = SkipWhitespace(sql, position);
+        if (position >= sql.Length || sql[position] != DotChar)
+        {
+            return false;
+        }
+
+        position = SkipWhitespace(sql, position + 1);
+
+        return position < sql.Length &&
+            (sql[position] is OpenSquareBracketChar or UnderscoreChar || char.IsLetter(sql[position]));
+    }
+
+    // Whether the position, ignoring any whitespace, is the start of a delimited part of a multi-part name.
+    private static bool IsDelimitedNamePartFollowing(ReadOnlySpan<char> sql, int position)
+    {
+        position = SkipWhitespace(sql, position);
+
+        return position < sql.Length && sql[position] == OpenSquareBracketChar;
+    }
+
+    private static int SkipWhitespace(ReadOnlySpan<char> sql, int position)
+    {
+        while (position < sql.Length && sql[position] is SpaceChar or TabChar or CarriageReturnChar or NewLineChar)
+        {
+            position++;
+        }
+
+        return position;
+    }
 
     /// <summary>
     /// Finds the end of the quoted identifier (<c>[...]</c>, <c>`...`</c>, or <c>"..."</c> unless the
@@ -1880,7 +1908,7 @@ internal static class SqlProcessor
             SqlKeyword.Login or SqlKeyword.User => false,
             SqlKeyword.Statistics => state.FirstSummaryKeyword is SqlKeyword.Update,
             SqlKeyword.Trigger => state.FirstSummaryKeyword is SqlKeyword.Create or SqlKeyword.Alter or SqlKeyword.Drop or SqlKeyword.Disable or SqlKeyword.Enable,
-            SqlKeyword.Truncate => state.FirstSummaryKeyword is SqlKeyword.Table,
+            SqlKeyword.Table => state.FirstSummaryKeyword is SqlKeyword.Create or SqlKeyword.Alter or SqlKeyword.Drop or SqlKeyword.Truncate,
             SqlKeyword.Database or
             SqlKeyword.Function or
             SqlKeyword.Index or
@@ -1888,7 +1916,6 @@ internal static class SqlProcessor
             SqlKeyword.Role or
             SqlKeyword.Schema or
             SqlKeyword.Sequence or
-            SqlKeyword.Table or
             SqlKeyword.View => state.FirstSummaryKeyword is SqlKeyword.Create or SqlKeyword.Alter or SqlKeyword.Drop,
             _ => false,
         };
