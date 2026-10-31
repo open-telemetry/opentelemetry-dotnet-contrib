@@ -546,7 +546,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
             {
             }
 
-            var expectedTraceParent = $"00-{parent.TraceId}-{parent.SpanId}-00";
+            var expectedTraceParent = $"00-{parent.TraceId}-{parent.SpanId}-02";
             var requests = this.traceparentHeaders.ToArray();
             Assert.Equal(2, requests.Length);
             Assert.All(requests, values =>

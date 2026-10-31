@@ -277,7 +277,7 @@ public sealed class OpAmpClient : IDisposable
 
     private void ThrowIfDisposed()
     {
-#if NET8_0_OR_GREATER
+#if NET
         ObjectDisposedException.ThrowIf(this.disposed, this);
 #else
         if (this.disposed)
