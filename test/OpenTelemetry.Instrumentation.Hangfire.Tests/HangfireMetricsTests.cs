@@ -736,6 +736,7 @@ public class HangfireMetricsTests : IClassFixture<HangfireFixture>
     [InlineData("Enqueued", 1, 0, 1, 0)]
     [InlineData("Processing", 0, 1, 0, 1)]
     [InlineData("Succeeded", 0, 0, 0, 0)]
+    [InlineData("Unknown", 0, 0, 0, 0)]
     public async Task Should_Record_Custom_State_As_Mapped_BuiltIn_State(
         string mappedState,
         long workflowPending,
@@ -791,14 +792,12 @@ public class HangfireMetricsTests : IClassFixture<HangfireFixture>
     [InlineData("", "Enqueued")]
     [InlineData(" ", "Enqueued")]
     [InlineData("Scheduled", "Enqueued")]
-    [InlineData("Custom", "Unknown")]
-    [InlineData("Custom", null)]
-    public void CustomStateMappings_Should_Throw_For_Invalid_Mapping(string customState, string? mappedState)
+    public void CustomStateMappings_Should_Throw_For_Invalid_Mapping(string customState, string mappedState)
     {
         var options = new HangfireMetricsInstrumentationOptions();
         var mappings = new Dictionary<string, string>
         {
-            [customState] = mappedState!,
+            [customState] = mappedState,
         };
 
         Assert.Throws<ArgumentException>("value", () => options.CustomStateMappings = mappings);

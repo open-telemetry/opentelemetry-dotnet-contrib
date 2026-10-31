@@ -65,11 +65,6 @@ public sealed class HangfireMetricsInstrumentationOptions
                     throw new ArgumentException($"The custom state name '{entry.Key}' was null, empty, white-space or a built-in Hangfire state name.", nameof(value));
                 }
 
-                if (!BuiltInStates.Contains(entry.Value))
-                {
-                    throw new ArgumentException($"The state name '{entry.Value}' mapped from custom state '{entry.Key}' is not a built-in Hangfire state name.", nameof(value));
-                }
-
                 copy[entry.Key] = entry.Value;
             }
 
