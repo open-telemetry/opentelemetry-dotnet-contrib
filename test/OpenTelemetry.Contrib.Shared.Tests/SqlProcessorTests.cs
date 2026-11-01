@@ -587,23 +587,61 @@ public class SqlProcessorTests(ITestOutputHelper output)
         Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
     }
 
-    [Fact]
-    public void GetSanitizedSql_BracketWhichCouldStartListAndLimitOnLookaheadIsReached_DoesNotExposeLiteralWhichFollows()
+    [Theory]
+    [InlineData("SELECT * FROM t WHERE c = [N'Souza] AND d = '", "secret-name'", "SELECT * FROM t WHERE c = [?")]
+    [InlineData("SELECT * FROM t WHERE c = [E'head]", "secret-name']", "SELECT * FROM t WHERE c = [?")]
+    [InlineData("SELECT * FROM t WHERE c = [1, 'head]", "secret-name', 'other']", "SELECT * FROM t WHERE c = [?")]
+    public void GetSanitizedSql_BracketWhichCouldStartListAndLimitOnLookaheadIsReached_DoesNotExposeAnythingWhichFollows(string prefix, string suffix, string expected)
     {
         // The bracket could be a name or a list of values, and where the closing bracket of a list would be is further
-        // away than is read, so the content is redacted rather than guessed, so its quote does not start a string which
-        // takes in the opening quote of the literal which follows it.
-        var sql = "SELECT * FROM t WHERE c = [N'Souza] AND d = '" + new string('x', 17_000) + "secret-name'";
+        // away than is read, so it is not known where it ends, as that could be in a string. Redacting only the bracket
+        // would parse what follows from inside that string, so the rest of the statement is redacted instead.
+        var sql = prefix + new string('x', 17_000) + suffix;
 
         var stopwatch = Stopwatch.StartNew();
         var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
         stopwatch.Stop();
 
         Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
-        Assert.Equal("SELECT * FROM t WHERE c = [?] AND d = ?", sqlStatementInfo.SanitizedSql);
+        Assert.DoesNotContain("other", sqlStatementInfo.SanitizedSql);
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
         Assert.True(
             stopwatch.Elapsed < TimeSpan.FromSeconds(5),
             $"Sanitizing {sql.Length:N0} characters took {stopwatch.Elapsed}.");
+    }
+
+    [Theory]
+    [InlineData("SELECT * FROM t WHERE c = -- from\n ['secret-name']")]
+    [InlineData("SELECT * FROM t WHERE c = -- from\r\n ['secret-name']")]
+    [InlineData("SELECT * FROM t WHERE c = -- from\r ['secret-name']")]
+    [InlineData("SELECT * FROM t WHERE c = /* from */ ['secret-name']")]
+    [InlineData("SELECT * FROM t WHERE c IN -- update\n ['secret-name']")]
+    [InlineData("SELECT * FROM t WHERE c = 'from' ['secret-name']")]
+    [InlineData("SELECT * FROM t WHERE c = -- from\n [Email, 'secret-name']")]
+    public void GetSanitizedSql_ListOfValuesAfterKeywordInCommentOrLiteral_IsNotParsedAsName(string sql)
+    {
+        // A word before the bracket in a comment or string is not a keyword, so the bracket is not where a name is expected.
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData("SELECT * FROM t WHERE c = [Email, fn($$secret-name$$) /* '' ] note */, 'other']")]
+    [InlineData("SELECT * FROM t WHERE c = [Email, fn(a, $$secret-name$$) /* ] note */, 'other']")]
+    [InlineData("SELECT * FROM t WHERE c = [Email, 1 + $$secret-name$$ /* '' ] note */, 'other']")]
+    [InlineData("SELECT * FROM t WHERE c = [Email, ($$secret-name$$) /* ] note */, 'other']")]
+    public void GetSanitizedSql_DollarQuotedValueInItemExpression_IsSanitized(string sql)
+    {
+        // A string in dollar quotes can follow an opening parenthesis or an operator in an item of a list, as well as a comma.
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.DoesNotContain("other", sqlStatementInfo.SanitizedSql);
     }
 
     [Theory]

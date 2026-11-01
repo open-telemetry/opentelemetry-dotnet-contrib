@@ -704,6 +704,21 @@ internal static class SqlProcessor
             return false;
         }
 
+        if (state.RedactRemainder)
+        {
+            // Whether the bracket is a name or a list of values was not able to be worked out, so there is no way to tell
+            // where it ends. Everything which follows could be in a string, so the rest of the statement is redacted.
+            buffer[state.SanitizedPosition++] = sql[start];
+            buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
+            state.RedactRemainder = false;
+            state.ParsePosition = sql.Length;
+            state.CaptureNextNonKeywordTokenAsIdentifier = false;
+            state.SanitizeNextNonKeywordToken = false;
+            state.PreviousTokenStartPosition = start;
+            state.PreviousTokenEndPosition = sql.Length;
+            return true;
+        }
+
         var length = end - start + 1;
         var captureNextPartOfName = false;
 
@@ -838,11 +853,11 @@ internal static class SqlProcessor
                 return i;
             }
 
-            if (IsBracketedIdentifier(sql, start + 1, i - start - 1, state.UseBackslashEscapes, ref state.BracketLookaheadLength, out var redact))
+            if (IsBracketedIdentifier(sql, start + 1, i - start - 1, state.UseBackslashEscapes, ref state.BracketLookaheadLength, out var unresolved))
             {
-                // If it is not known what the content is, none of it is copied, so that the quotes in it cannot be
-                // parsed as the start of a string, which would take in the quote of a literal which follows it.
-                state.SanitizeNextNonKeywordToken |= redact;
+                // If it is not known what the content is, where it ends is not known either, as the bracket could be in a
+                // string. Any of the rest of the statement could be part of it, so none of it is copied.
+                state.RedactRemainder = unresolved;
                 return i;
             }
 
@@ -858,23 +873,24 @@ internal static class SqlProcessor
                 return true;
             }
 
-            // The word before the bracket is one which is followed by the name of something (e.g. FROM, UPDATE or INTO).
-            // The text is looked at rather than the keywords which have been parsed, as not all of these are parsed as ones.
-            var wordEnd = start;
-            while (wordEnd > 0 && char.IsWhiteSpace(sql[wordEnd - 1]))
-            {
-                wordEnd--;
-            }
+            // The previous token is a word which is followed by the name of something (e.g. FROM, UPDATE or INTO), with only
+            // whitespace between it and the bracket. A comment, a literal or any other character is not part of a token which
+            // is the previous one, so a word in a comment (e.g. -- from) is never mistaken for the one before the bracket.
+            // The tokens which have been parsed are used, as not all of these words are parsed as keywords (e.g. FROM after DELETE).
+            var wordStart = state.PreviousTokenStartPosition;
+            var wordEnd = state.PreviousTokenEndPosition;
 
-            var wordStart = wordEnd;
-            while (wordStart > 0 && char.IsAsciiLetter(sql[wordStart - 1]))
-            {
-                wordStart--;
-            }
-
-            if (wordStart == wordEnd || (wordStart > 0 && IsWordChar(sql[wordStart - 1])))
+            if (wordEnd <= wordStart || wordEnd > start)
             {
                 return false;
+            }
+
+            for (var i = wordEnd; i < start; i++)
+            {
+                if (!char.IsWhiteSpace(sql[i]))
+                {
+                    return false;
+                }
             }
 
             var word = sql.Slice(wordStart, wordEnd - wordStart);
@@ -890,9 +906,9 @@ internal static class SqlProcessor
             return false;
         }
 
-        static bool IsBracketedIdentifier(ReadOnlySpan<char> sql, int contentStart, int contentLength, bool useBackslashEscapes, ref int lookaheadLength, out bool redact)
+        static bool IsBracketedIdentifier(ReadOnlySpan<char> sql, int contentStart, int contentLength, bool useBackslashEscapes, ref int lookaheadLength, out bool unresolved)
         {
-            redact = false;
+            unresolved = false;
 
             // Brackets can also delimit a list of values in some dialects (e.g. ['a', 'b'] or [1, 2] in
             // DuckDB, ClickHouse and GoogleSQL). An odd number of quotes cannot all be part of string
@@ -935,7 +951,7 @@ internal static class SqlProcessor
                 var hasClosingBracket = HasClosingBracketOutsideLiteralsAndComments(sql, contentStart, useBackslashEscapes, ref lookaheadLength);
 
                 // If the limit on how much is read is reached, it is not known if it is a name or a list of values.
-                redact = hasClosingBracket is null;
+                unresolved = hasClosingBracket is null;
                 return hasClosingBracket != true;
             }
 
@@ -956,9 +972,10 @@ internal static class SqlProcessor
 
         static bool ContainsDollarQuotedString(ReadOnlySpan<char> content)
         {
-            // A string in dollar quotes is a value when it is the first item of a list, or follows a comma, with any comments
-            // before it skipped. A dollar sign anywhere else is part of a name (e.g. [Price $$x$$ O'Brien], [Orders'$$],
-            // [Orders--$$] or [Price$USD$]), so that the text which follows it is not parsed as a string or a comment.
+            // A string in dollar quotes is a value when it starts the content, or follows a comma, an opening parenthesis or an
+            // operator (e.g. [Email, fn($$a$$)]), with any comments before it skipped. A dollar sign which follows a word, a
+            // quote or a closing parenthesis is part of a name (e.g. [Price $$x$$ O'Brien], [Orders'$$] or [Price$USD$]),
+            // so that the text which follows it is not parsed as a string or a comment.
             var previous = '\0';
 
             for (var i = 0; i < content.Length; i++)
@@ -992,7 +1009,10 @@ internal static class SqlProcessor
                 }
                 else
                 {
-                    if (c == DollarChar && previous is '\0' or CommaChar && TryFindDollarQuotedLiteralEnd(content, i, out _))
+                    if (c == DollarChar &&
+                        !IsWordChar(previous) &&
+                        previous is not (SingleQuoteChar or DoubleQuoteChar or BacktickChar or DollarChar or CloseParenChar) &&
+                        TryFindDollarQuotedLiteralEnd(content, i, out _))
                     {
                         return true;
                     }
@@ -2026,6 +2046,9 @@ internal static class SqlProcessor
         // NOTE: If the number of bool fields increases significantly, consider combining into a bitfield.
 
         public bool CaptureNextNonKeywordTokenAsIdentifier; // 1 byte
+
+        // Set while finding the end of a bracket which could be a name or a list of values, if which could not be worked out.
+        public bool RedactRemainder; // 1 byte
 
         public bool SanitizeNextNonKeywordToken; // 1 byte
 
