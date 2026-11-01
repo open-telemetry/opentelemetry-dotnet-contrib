@@ -348,6 +348,13 @@ internal static class SqlProcessor
             var indexOfLastWhitespace = summary.Slice(0, MaxSummaryLength).LastIndexOfAny(WhitespaceChars);
 #endif
 
+            // If the whitespace is within the last name captured (e.g. [Order Details]), the name is incomplete
+            // and is removed whole instead of being cut in half.
+            if (indexOfLastWhitespace > state.LastNameStartPosition && indexOfLastWhitespace < state.LastNameEndPosition)
+            {
+                indexOfLastWhitespace = state.LastNameStartPosition;
+            }
+
             summary = summary.Slice(0, indexOfLastWhitespace >= 0 ? indexOfLastWhitespace : MaxSummaryLength);
         }
 
@@ -409,6 +416,23 @@ internal static class SqlProcessor
         value.CopyTo(state.SummaryBuffer.Slice(state.SummaryPosition));
 
         state.SummaryPosition += value.Length;
+    }
+
+    // Appends a part of a name, recording where the whole (possibly multi-part) name starts and ends in the summary.
+    // A part which follows a period (which is only added when another part of the name is to be captured) continues
+    // the name, otherwise it starts a new one. This allows an incomplete name, or one which was cut short by the maximum
+    // summary length, to be removed whole, as a delimited identifier (e.g. [Order Details]) can contain whitespace.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void AppendSummaryNamePart(ReadOnlySpan<char> value, ref ParseState state)
+    {
+        if (state.SummaryPosition == 0 || state.SummaryBuffer[state.SummaryPosition - 1] != DotChar)
+        {
+            state.LastNameStartPosition = state.SummaryPosition;
+        }
+
+        AppendSummaryToken(value, ref state);
+
+        state.LastNameEndPosition = state.SummaryPosition;
     }
 
     private static void EnsureSummaryCapacity(int requiredCapacity, ref ParseState state)
@@ -625,7 +649,7 @@ internal static class SqlProcessor
                 {
                     // A period at the end of the identifier (e.g. dbo.) is only included if another part of the name follows.
                     var endsWithDot = sql[i - 1] == DotChar;
-                    AppendSummaryToken(sql.Slice(start, endsWithDot ? length - 1 : length), ref state);
+                    AppendSummaryNamePart(sql.Slice(start, endsWithDot ? length - 1 : length), ref state);
 
                     var periodCount = endsWithDot
                         ? (IsNamePart(sql, SkipWhitespaceAndComments(sql, i, state.UseBackslashEscapes)) ? 1 : 0)
@@ -741,7 +765,7 @@ internal static class SqlProcessor
                 sql[start] == OpenSquareBracketChar &&
                 !state.SummaryIsComplete)
             {
-                AppendSummaryToken(sql.Slice(start, length), ref state);
+                AppendSummaryNamePart(sql.Slice(start, length), ref state);
 
                 // Add a period for a schema-qualified name, otherwise a space. A trailing space will be trimmed later.
                 var periodCount = GetFollowingPeriodCount(sql, end + 1, state.UseBackslashEscapes);
@@ -1681,6 +1705,10 @@ internal static class SqlProcessor
 
         // This tracks the end position of the previous keyword matched by the parser.
         public int PreviousKeywordEndPosition; // 4 bytes
+
+        // These track where the last name (which may have several parts) captured in the summary starts and ends.
+        public int LastNameStartPosition; // 4 bytes
+        public int LastNameEndPosition; // 4 bytes
 
         // The first ']' found at or after CloseSquareBracketSearchStart, or the length of the input if there is none.
         public int CloseSquareBracketSearchStart; // 4 bytes

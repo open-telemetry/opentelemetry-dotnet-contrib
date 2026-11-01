@@ -638,11 +638,14 @@ public class SqlProcessorTests(ITestOutputHelper output)
         Assert.EndsWith(expected, fullSummary.SanitizedSql, StringComparison.Ordinal);
     }
 
-    [Fact]
-    public void GetSanitizedSql_DelimitedNameExceedingSummaryLengthLimit_OmitsPartialName()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void GetSanitizedSql_DelimitedNameExceedingSummaryLengthLimit_OmitsPartialName(bool firstContainsSpace)
     {
         // Each part is a valid (<= 128 character) delimited identifier, but the whole name does not fit in the summary.
-        var sql = $"INSERT INTO [{new string('A', 100)}].[{new string('B', 100)}].[{new string('C', 100)}] VALUES (@p0)";
+        var first = firstContainsSpace ? $"{new string('A', 50)} {new string('A', 49)}" : new string('A', 100);
+        var sql = $"INSERT INTO [{first}].[{new string('B', 100)}].[{new string('C', 100)}] VALUES (@p0)";
 
         var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
 
@@ -678,13 +681,17 @@ public class SqlProcessorTests(ITestOutputHelper output)
     }
 
     [Theory]
-    [InlineData(false, 120, 126)]
-    [InlineData(true, 120, 122)]
-    public void GetSanitizedSql_MultiPartNameEndingAtSummaryLengthLimit_OmitsPartialName(bool delimited, int firstLength, int secondLength)
+    [InlineData(false, 120, 126, false)]
+    [InlineData(true, 120, 122, false)]
+    [InlineData(true, 120, 122, true)]
+    public void GetSanitizedSql_MultiPartNameEndingAtSummaryLengthLimit_OmitsPartialName(bool delimited, int firstLength, int secondLength, bool firstContainsSpace)
     {
         // The summary is exactly 255 characters once the period after the second part has been added,
         // so the last part is not captured and the incomplete name must not be left in the summary.
-        var first = new string('A', firstLength);
+        // A delimited name can contain whitespace, which must not be mistaken for the end of the name.
+        var first = firstContainsSpace
+            ? $"{new string('A', firstLength / 2)} {new string('A', (firstLength / 2) - 1)}"
+            : new string('A', firstLength);
         var second = new string('B', secondLength);
         var name = delimited ? $"[{first}].[{second}].[Orders]" : $"{first}.{second}.[Orders]";
         var sql = $"INSERT INTO {name} VALUES (@p0)";
