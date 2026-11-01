@@ -51,28 +51,6 @@ internal static class SqlProcessor
     private static readonly ConcurrentDictionary<string, SqlStatementInfo> Cache = new();
     private static readonly ConcurrentDictionary<string, SqlStatementInfo> BackslashEscapeCache = new();
 
-    // The words which are followed by the name of something, so are not followed by a list of values.
-    private static readonly string[] NameKeywords =
-    [
-        "from",
-        "into",
-        "join",
-        "update",
-        "delete",
-        "table",
-        "truncate",
-        "exec",
-        "execute",
-        "procedure",
-        "function",
-        "view",
-        "database",
-        "schema",
-        "sequence",
-        "trigger",
-        "index",
-    ];
-
     private static readonly char[] WhitespaceChars = [SpaceChar, TabChar, CarriageReturnChar, NewLineChar];
 #if !NET
     private static readonly char[] LineBreakChars = [CarriageReturnChar, NewLineChar];
@@ -96,6 +74,7 @@ internal static class SqlProcessor
     ];
 
     private static readonly SearchValues<char> AsciiLetterSearchValues = SearchValues.Create("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
+    private static readonly SearchValues<char> QuoteDollarOrCommentSearchValues = SearchValues.Create("'$-/");
     private static readonly SearchValues<char> LineBreakSearchValues = SearchValues.Create("\n\r");
     private static readonly SearchValues<char> WhitespaceSearchValues = SearchValues.Create(WhitespaceChars);
     private static readonly SearchValues<char> InClauseScanSearchValues = SearchValues.Create(InClauseScanChars);
@@ -893,17 +872,7 @@ internal static class SqlProcessor
                 }
             }
 
-            var word = sql.Slice(wordStart, wordEnd - wordStart);
-
-            foreach (var keyword in NameKeywords)
-            {
-                if (word.Equals(keyword.AsSpan(), StringComparison.OrdinalIgnoreCase))
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return IsNameKeyword(sql.Slice(wordStart, wordEnd - wordStart));
         }
 
         static bool IsBracketedIdentifier(ReadOnlySpan<char> sql, int contentStart, int contentLength, bool useBackslashEscapes, ref int lookaheadLength, out bool unresolved)
@@ -921,7 +890,26 @@ internal static class SqlProcessor
 
             // A string in dollar quotes (e.g. [$$a$$, $$b$$] or [Email, $tag$a$tag$]) is a value, which would be copied
             // if the content were an identifier. The first bracket which is found can be in a comment which follows it.
-            if (content.IsEmpty || ContainsDollarQuotedString(content))
+            if (content.IsEmpty)
+            {
+                return false;
+            }
+
+            // Content which starts with a quote is never an identifier (a string in dollar quotes in it is a value too), as
+            // the bracket which ends it can be inside a string literal (e.g. ['a]b', 'c']), so none of the checks are needed.
+            if (content[0] == SingleQuoteChar)
+            {
+                return false;
+            }
+
+            // Content with no quote, dollar sign or comment marker in it (e.g. [Orders] or [o].[Id]) is a name unless it starts
+            // with a number, so none of the checks which follow are needed, and most brackets are of this kind.
+            if (!HasQuoteDollarOrCommentChar(content))
+            {
+                return !StartsWithNumber(content);
+            }
+
+            if (ContainsDollarQuotedString(content))
             {
                 return false;
             }
@@ -972,6 +960,12 @@ internal static class SqlProcessor
 
         static bool ContainsDollarQuotedString(ReadOnlySpan<char> content)
         {
+            // Most content has no dollar sign, which is much cheaper to find than looking at each character.
+            if (content.IndexOf(DollarChar) < 0)
+            {
+                return false;
+            }
+
             // A string in dollar quotes is a value when it starts the content, or follows a comma, an opening parenthesis or an
             // operator (e.g. [Email, fn($$a$$)]), with any comments before it skipped. A dollar sign which follows a word, a
             // quote or a closing parenthesis is part of a name (e.g. [Price $$x$$ O'Brien], [Orders'$$] or [Price$USD$]),
@@ -1270,6 +1264,58 @@ internal static class SqlProcessor
         }
 
         return state.NextCloseSquareBracket;
+    }
+
+    private static bool IsNameKeyword(ReadOnlySpan<char> word)
+    {
+        // The words which are followed by the name of something, so are not followed by a list of values.
+        // They are found by length and first letter, as most of the words which come before a bracket are none of them.
+        if (word.IsEmpty)
+        {
+            return false;
+        }
+
+        var keyword = (word.Length, word[0] | 0x20) switch
+        {
+            (4, 'f') => "from",
+            (4, 'i') => "into",
+            (4, 'j') => "join",
+            (4, 'v') => "view",
+            (4, 'e') => "exec",
+            (5, 't') => "table",
+            (5, 'i') => "index",
+            (6, 'u') => "update",
+            (6, 'd') => "delete",
+            (6, 's') => "schema",
+            (7, 'e') => "execute",
+            (7, 't') => "trigger",
+            (8, 't') => "truncate",
+            (8, 'f') => "function",
+            (8, 'd') => "database",
+            (8, 's') => "sequence",
+            (9, 'p') => "procedure",
+            _ => null,
+        };
+
+        return keyword is not null && word.Equals(keyword.AsSpan(), StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool HasQuoteDollarOrCommentChar(ReadOnlySpan<char> content)
+    {
+        // Whether the content has any character which a quote, a dollar quoted string or a comment starts with.
+#if NET
+        return content.IndexOfAny(QuoteDollarOrCommentSearchValues) >= 0;
+#else
+        foreach (var c in content)
+        {
+            if (c is SingleQuoteChar or DollarChar or DashChar or ForwardSlashChar)
+            {
+                return true;
+            }
+        }
+
+        return false;
+#endif
     }
 
     private static bool StartsWithNumber(ReadOnlySpan<char> value)
