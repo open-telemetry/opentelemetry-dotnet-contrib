@@ -13,4 +13,7 @@ public static class OpAmpGenerators
 
     public static Arbitrary<DamagedFrame> DamagedFrameArbitrary() =>
         Gen.Choose(0, int.MaxValue).Select(seed => new DamagedFrame(seed)).ToArbitrary();
+
+    public static Arbitrary<FuzzValue> FuzzValueArbitrary() =>
+        Gen.Choose(0, int.MaxValue).Select(seed => new FuzzValue(seed)).ToArbitrary();
 }

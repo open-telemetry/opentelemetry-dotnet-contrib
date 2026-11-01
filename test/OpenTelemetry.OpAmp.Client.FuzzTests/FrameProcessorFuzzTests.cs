@@ -41,10 +41,10 @@ public static class FrameProcessorFuzzTests
         recorder.AssertDispatched(frame.Message);
     }
 
-    [Property(MaxTest = MaxTest)]
-    public static void OnServerFrame_Preserves_Every_Bit_Of_The_Flags_And_Capabilities(uint high, uint low, byte shift, bool swap, int splitSeed)
+    [Property(MaxTest = MaxTest, Arbitrary = [typeof(OpAmpGenerators)])]
+    public static void OnServerFrame_Preserves_Every_Bit_Of_The_Flags_And_Capabilities(FuzzValue fuzz, bool swap, int splitSeed)
     {
-        var value = FuzzValue.UInt64(high, low, shift);
+        var value = fuzz.Value;
         var flags = swap ? value : ~value;
         var capabilities = swap ? ~value : value;
 
@@ -59,9 +59,9 @@ public static class FrameProcessorFuzzTests
     }
 
     [Property(MaxTest = MaxTest, Arbitrary = [typeof(OpAmpGenerators)])]
-    public static void OnServerFrame_Rejects_A_WebSocket_Message_With_Any_Other_Header(ServerFrame frame, uint high, uint low, byte shift, int splitSeed)
+    public static void OnServerFrame_Rejects_A_WebSocket_Message_With_Any_Other_Header(ServerFrame frame, FuzzValue fuzz, int splitSeed)
     {
-        var header = FuzzValue.UInt64(high, low, shift);
+        var header = fuzz.Value;
 
         if (header == 0)
         {

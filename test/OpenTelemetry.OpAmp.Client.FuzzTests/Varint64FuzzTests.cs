@@ -15,10 +15,10 @@ public static class Varint64FuzzTests
 {
     private const int MaxTest = 1_000;
 
-    [Property(MaxTest = MaxTest)]
-    public static void Encode_Matches_The_Protobuf_Encoding(uint high, uint low, byte shift)
+    [Property(MaxTest = MaxTest, Arbitrary = [typeof(OpAmpGenerators)])]
+    public static void Encode_Matches_The_Protobuf_Encoding(FuzzValue fuzz)
     {
-        var value = FuzzValue.UInt64(high, low, shift);
+        var value = fuzz.Value;
         using var stream = new MemoryStream();
 
         using (var output = new CodedOutputStream(stream, leaveOpen: true))
@@ -29,10 +29,10 @@ public static class Varint64FuzzTests
         Assert.Equal(stream.ToArray(), Varint64.Encode(value));
     }
 
-    [Property(MaxTest = MaxTest)]
-    public static void Encode_Then_TryDecode_Round_Trips_Whatever_The_Segmentation(uint high, uint low, byte shift, int seed)
+    [Property(MaxTest = MaxTest, Arbitrary = [typeof(OpAmpGenerators)])]
+    public static void Encode_Then_TryDecode_Round_Trips_Whatever_The_Segmentation(FuzzValue fuzz, int seed)
     {
-        var value = FuzzValue.UInt64(high, low, shift);
+        var value = fuzz.Value;
         var encoded = Varint64.Encode(value);
 
         var decoded = Varint64.TryDecode(TestSegment.Split(encoded, seed), out var bytesRead, out var result, out var errorMessage);
@@ -116,7 +116,8 @@ public static class Varint64FuzzTests
     [Property(MaxTest = MaxTest)]
     public static void WriteHeader_Writes_A_Header_Which_Is_Verified(byte[] padding, int seed)
     {
-        var buffer = new byte[OpAmpWsHeaderHelper.MaxHeaderLength + padding.Length];
+        // The valid header is zero, so start from a value which is not to see that it is written.
+        var buffer = Enumerable.Repeat(byte.MaxValue, OpAmpWsHeaderHelper.MaxHeaderLength + padding.Length).ToArray();
 
         var written = OpAmpWsHeaderHelper.WriteHeader(new ArraySegment<byte>(buffer, 0, buffer.Length));
 
@@ -124,6 +125,8 @@ public static class Varint64FuzzTests
 
         Assert.True(verified, errorMessage);
         Assert.Equal(written, headerSize);
+        Assert.Equal(new byte[written], buffer.Take(written).ToArray());
+        Assert.All(buffer.Skip(written), b => Assert.Equal(byte.MaxValue, b));
     }
 
     private static (bool Ok, ulong Value, int Read) Reference(byte[] data)
