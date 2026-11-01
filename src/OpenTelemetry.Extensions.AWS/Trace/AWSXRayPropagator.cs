@@ -296,6 +296,12 @@ public class AWSXRayPropagator : TextMapPropagator
             return false;
         }
 
+        // An identifier of all zeros is not valid, and ActivityTraceId.CreateFromString throws for it.
+        if (IsAllZeros(timestamp) && IsAllZeros(randomNumber))
+        {
+            return false;
+        }
+
         timestamp.CopyTo(otFormatTraceId);
         randomNumber.CopyTo(otFormatTraceId.Slice(EpochHexDigits));
 
@@ -306,7 +312,8 @@ public class AWSXRayPropagator : TextMapPropagator
         !parentId.IsEmpty &&
         !parentId.IsWhiteSpace() &&
         parentId.Length == ParentIdHexDigits &&
-        IsHexNumber(parentId);
+        IsHexNumber(parentId) &&
+        !IsAllZeros(parentId);
 
     internal static bool TryParseSampleDecision(ReadOnlySpan<char> sampleDecision, out char result)
     {
@@ -330,6 +337,19 @@ public class AWSXRayPropagator : TextMapPropagator
         }
 
         result = tempChar;
+
+        return true;
+    }
+
+    private static bool IsAllZeros(ReadOnlySpan<char> value)
+    {
+        foreach (var c in value)
+        {
+            if (c != '0')
+            {
+                return false;
+            }
+        }
 
         return true;
     }

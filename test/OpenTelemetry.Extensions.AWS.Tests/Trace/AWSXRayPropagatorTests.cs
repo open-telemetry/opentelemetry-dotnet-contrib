@@ -308,6 +308,8 @@ public class AWSXRayPropagatorTests
     [InlineData("Root=1-5759e988-bd862e3fe1be46a994272793;Parent= 3995c3f42cd8ad8;Sampled=1")]
     [InlineData("Root=1-5759e98g-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1")]
     [InlineData("Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8adg;Sampled=1")]
+    [InlineData("Root=1-00000000-000000000000000000000000;Parent=53995c3f42cd8ad8;Sampled=1")]
+    [InlineData("Root=1-5759e988-bd862e3fe1be46a994272793;Parent=0000000000000000;Sampled=1")]
     public void TestTryParseXRayTraceHeaderWithIdsThatAreNotValidDoesNotThrow(string header)
     {
         // A header which is not valid is reported by the result of parsing it, rather than by an exception,

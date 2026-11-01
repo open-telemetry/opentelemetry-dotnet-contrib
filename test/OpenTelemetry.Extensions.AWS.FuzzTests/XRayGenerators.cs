@@ -52,8 +52,8 @@ public static class XRayGenerators
             sampled);
 
     private static Gen<XRayHeaderCase> MutatedHeader() =>
-        from trace in Hex(32)
-        from span in Hex(16)
+        from trace in HexOrZeros(32)
+        from span in HexOrZeros(16)
         from sampled in Gen.Elements("0", "1", "?", "2", string.Empty, "01", " 1", "1 ")
         from rootMutation in Gen.Choose(0, 11)
         from parentMutation in Gen.Choose(0, 11)
@@ -84,6 +84,9 @@ public static class XRayGenerators
 
     private static Gen<string> Hex(int length) =>
         Gen.Elements(HexDigits).ListOf(length).Select(chars => new string([.. chars]));
+
+    private static Gen<string> HexOrZeros(int length) =>
+        Gen.Frequency((7, Hex(length)), (1, Gen.Constant(new string('0', length))));
 
     private static bool NonZero(string hex) => hex.Any(c => c != '0');
 
