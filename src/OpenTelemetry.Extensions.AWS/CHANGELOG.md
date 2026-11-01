@@ -9,7 +9,7 @@
   target frameworks, and `AddXRayTraceIdWithSampler()` and
   `AWSXRayIdGenerator.ReplaceTraceId(Sampler)` are now obsolete on all
   target frameworks.
-  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+  ([#5809](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5809))
 
 ## 1.20.2
 
