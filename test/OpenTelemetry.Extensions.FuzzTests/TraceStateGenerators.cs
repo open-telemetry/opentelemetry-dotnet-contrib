@@ -31,6 +31,8 @@ public static class TraceStateGenerators
             (10, ValidMember().Select(m => $"{m.Key}={m.Value}")),
             (2, from key in Gen.Elements(BadKeys) from value in ValidValue() select $"{key}={value}"),
             (2, from key in ValidKey() from value in Gen.Elements(BadValues) select $"{key}={value}"),
+            (2, from key in ValidKey() from value in ValueWithAsciiCharacter() select $"{key}={value}"),
+            (2, from key in KeyWithAsciiCharacter() from value in ValidValue() select $"{key}={value}"),
             (1, ValidKey()),
             (1, Gen.Constant(string.Empty)),
             (1, Gen.Constant("=")),
@@ -66,6 +68,8 @@ public static class TraceStateGenerators
             (6, ValidMember()),
             (2, from key in Gen.Elements(BadKeys) from value in ValidValue() select new TraceStateMember(key, value)),
             (2, from key in ValidKey() from value in Gen.Elements(BadValues) select new TraceStateMember(key, value)),
+            (2, from key in ValidKey() from value in ValueWithAsciiCharacter() select new TraceStateMember(key, value)),
+            (2, from key in KeyWithAsciiCharacter() from value in ValidValue() select new TraceStateMember(key, value)),
             (1, from value in ValidValue() select new TraceStateMember(new string('a', 256), value)),
             (1, from value in ValidValue() select new TraceStateMember(new string('a', 257), value)),
             (1, from key in ValidKey() select new TraceStateMember(key, new string('v', 256))),
@@ -84,6 +88,21 @@ public static class TraceStateGenerators
         from length in Gen.Choose(0, 6)
         from rest in Gen.Elements(KeyCharacters).ListOf(length)
         select first + new string([.. rest]);
+
+    // A valid key with one character from the whole ASCII range, controls such as NUL and DEL included,
+    // put somewhere in it. The character may well keep it valid, so whether it does is left to the test.
+    private static Gen<string> KeyWithAsciiCharacter() =>
+        from key in ValidKey()
+        from ch in Gen.Choose(0, 0x7F)
+        from index in Gen.Choose(0, key.Length)
+        select key.Insert(index, ((char)ch).ToString());
+
+    // A valid value with one character from the whole ASCII range put somewhere in it.
+    private static Gen<string> ValueWithAsciiCharacter() =>
+        from value in ValidValue()
+        from ch in Gen.Choose(0, 0x7F)
+        from index in Gen.Choose(0, value.Length)
+        select value.Insert(index, ((char)ch).ToString());
 
     private static Gen<string> ValidValue() =>
         from length in Gen.Choose(0, 6)

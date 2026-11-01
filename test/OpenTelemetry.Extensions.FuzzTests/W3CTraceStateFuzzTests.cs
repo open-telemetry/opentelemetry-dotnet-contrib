@@ -29,6 +29,13 @@ public static class W3CTraceStateFuzzTests
 
         Assert.Equal(parsed.ToString(), state.ToString());
 
+        // Parse and TryParse share their implementation, so also check them against the reference
+        // independently of it, where a null header is the same as an empty one.
+        var (expectedMembers, expectedIsValid) = Reference(input ?? string.Empty);
+
+        Assert.Equal(Serialize(expectedMembers), state.ToString());
+        Assert.Equal(expectedIsValid, isValid);
+
         // A header which is entirely valid is read back as it was written.
         if (isValid && input is { Length: > 0 } && input.IndexOfAny([' ', '\t', ',']) < 0)
         {
