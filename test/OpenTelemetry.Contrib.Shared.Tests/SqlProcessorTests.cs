@@ -461,6 +461,8 @@ public class SqlProcessorTests(ITestOutputHelper output)
     [InlineData("SELECT fn([a--'']), 'secret-name'", "SELECT fn([a--'']), ?")]
     [InlineData("SELECT * FROM t WHERE fn([a].[b--'']) = $$\nsecret-name$$", "SELECT * FROM t WHERE fn([a].[b--'']) = ?")]
     [InlineData("SELECT * FROM t WHERE [b''--] = 'x\nsecret-name'", "SELECT * FROM t WHERE [b''--] = ?")]
+    [InlineData("SELECT * FROM t WHERE [name)''/*] = 'secret-name'", "SELECT * FROM t WHERE [name)''/*] = ?")]
+    [InlineData("SELECT * FROM t WHERE [name:''--] = 'x\nsecret-name'", "SELECT * FROM t WHERE [name:''--] = ?")]
     public void GetSanitizedSql_BracketedIdentifierContainingQuotesAndCommentMarker_IsNotParsedAsComment(string sql, string expected)
     {
         // A comment marker in a bracketed identifier is part of the name, and the quotes in it must not make it be
@@ -500,6 +502,11 @@ public class SqlProcessorTests(ITestOutputHelper output)
     [InlineData("SELECT * FROM t WHERE c = ['secret-name' /* ] note */, 'other']", "SELECT * FROM t WHERE c = [? , ?]")]
     [InlineData("SELECT * FROM UNNEST([1234 /* ] note */, 5678])", "SELECT * FROM UNNEST([? , ?])")]
     [InlineData("SELECT * FROM UNNEST([1234 -- ] note\n, 5678])", "SELECT * FROM UNNEST([? \n, ?])")]
+    [InlineData("SELECT * FROM UNNEST([Email, $$secret-name$$ /* '' ] note */, 'other'])", "SELECT * FROM UNNEST([Email, ? , ?])")]
+    [InlineData("SELECT * FROM UNNEST([Email, $$secret-name$$ /* ] note */, $$other$$])", "SELECT * FROM UNNEST([Email, ? , ?])")]
+    [InlineData("SELECT * FROM UNNEST([Email, $$secret-name$$])", "SELECT * FROM UNNEST([Email, ?])")]
+    [InlineData("SELECT * FROM UNNEST([Email -- note\r, 'secret-name' /* ] note */, 'other'])", "SELECT * FROM UNNEST([Email \r, ? , ?])")]
+    [InlineData("SELECT * FROM UNNEST([Email -- note\r, 'secret-name' -- ] note\r, 'other'])", "SELECT * FROM UNNEST([Email \r, ? \r, ?])")]
     public void GetSanitizedSql_ListOfValuesWithCommentContainingClosingBracket_SanitizesEveryValue(string sql, string expected)
     {
         // The first closing bracket of a list is in a comment, which ends later in the list, so the content up to that
@@ -512,6 +519,27 @@ public class SqlProcessorTests(ITestOutputHelper output)
         Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
         Assert.DoesNotContain("1234", sqlStatementInfo.SanitizedSql);
         Assert.DoesNotContain("other", sqlStatementInfo.SanitizedSql);
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData("SELECT * FROM [N'Souza] WHERE c = 'secret-name'", "SELECT * FROM [N'Souza] WHERE c = ?")]
+    [InlineData("SELECT * FROM [2024's Reports] WHERE c = 'secret-name'", "SELECT * FROM [2024's Reports] WHERE c = ?")]
+    [InlineData("SELECT * FROM [2024, O'Brien] WHERE c = 'secret-name'", "SELECT * FROM [2024, O'Brien] WHERE c = ?")]
+    [InlineData("SELECT * FROM [--Orders] WHERE c = 'x\nsecret-name'", "SELECT * FROM [--Orders] WHERE c = ?")]
+    [InlineData("SELECT * FROM [/*Orders] WHERE c = 'secret-name'", "SELECT * FROM [/*Orders] WHERE c = ?")]
+    [InlineData("SELECT * FROM [/*Orders] WHERE c = 'secret-name' /* x */", "SELECT * FROM [/*Orders] WHERE c = ? ")]
+    [InlineData("SELECT * FROM [E'Souza] WHERE c = 'secret-name'", "SELECT * FROM [E'Souza] WHERE c = ?")]
+    public void GetSanitizedSql_BracketedIdentifierWhichStartsLikeValueOrComment_IsCopiedAndLaterLiteralsAreSanitized(string sql, string expected)
+    {
+        // A name can start with a comment marker, a number or a string prefix, which a list of values can also do, but
+        // a list ends with a closing bracket which is not in a string or comment, which these do not have. Treating
+        // them as lists would make the quote in the name start a string, which would take in the next literal's quote.
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
         Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
     }
 
@@ -577,6 +605,27 @@ public class SqlProcessorTests(ITestOutputHelper output)
 
         Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
         Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData("[--a]\n")]
+    [InlineData("[/*a]\n*/")]
+    [InlineData("[N'a]")]
+    [InlineData("[2024's]")]
+    public void GetSanitizedSql_ManyBracketsWhichCouldStartAListOfValues_DoesNotTakeTimeWhichGrowsWithTheSquareOfTheLength(string bracketed)
+    {
+        // Looking for the bracket which would end a list of values reads on from each bracket which could start one, and
+        // for a comment which ends at the end of a line it does not find one, so without a limit on the total read it would
+        // read to the end of the statement each time, which for a statement of this length is billions of steps.
+        var sql = "SELECT * FROM t WHERE x = " + string.Concat(Enumerable.Repeat(bracketed, 40_000)) + " AND y = 'secret-name'";
+
+        var stopwatch = Stopwatch.StartNew();
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+        stopwatch.Stop();
+
+        Assert.True(
+            stopwatch.Elapsed < TimeSpan.FromSeconds(5),
+            $"Sanitizing {sql.Length:N0} characters took {stopwatch.Elapsed}.");
     }
 
     [Fact]

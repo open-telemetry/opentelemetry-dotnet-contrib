@@ -11,6 +11,10 @@ internal static class SqlProcessor
 {
     private const int MaxSummaryLength = 255;
     private const int MaxBracketedIdentifierLength = 128;
+
+    // The most characters which are read in total, looking for the bracket which ends a list of values, so that
+    // many brackets which could start one (e.g. [--a] or [N'a]) do not each read to the end of the statement.
+    private const int MaxBracketLookaheadLength = 16 * 1024;
     private const int CacheCapacity = 1000;
 
     // The minimum length of a statement for which the most recently sanitized statement is remembered
@@ -805,23 +809,25 @@ internal static class SqlProcessor
             }
 
             // A name which is going to be redacted is always treated as an identifier, as none of it is copied.
-            return (state.SanitizeNextNonKeywordToken || IsBracketedIdentifier(sql.Slice(start + 1, i - start - 1))) ? i : -1;
+            return (state.SanitizeNextNonKeywordToken || IsBracketedIdentifier(sql, start + 1, i - start - 1, state.UseBackslashEscapes, ref state.BracketLookaheadLength)) ? i : -1;
         }
 
         return -1;
 
-        static bool IsBracketedIdentifier(ReadOnlySpan<char> content)
+        static bool IsBracketedIdentifier(ReadOnlySpan<char> sql, int contentStart, int contentLength, bool useBackslashEscapes, ref int lookaheadLength)
         {
             // Brackets can also delimit a list of values in some dialects (e.g. ['a', 'b'] or [1, 2] in
             // DuckDB, ClickHouse and GoogleSQL). An odd number of quotes cannot all be part of string
             // literals, so that content is an identifier (e.g. [Manager's Approval]), unless it starts with
-            // a quote, a prefixed string or a number, when the bracket which ends it is inside a string
-            // literal (e.g. ['a]b', 'c'], [E'a]b', 'c'] or [1, 'a]b']). Content without quotes is an
-            // identifier unless it starts with a number (e.g. [1, 2]). Anything else is parsed as SQL,
-            // which redacts any literals and at worst over-redacts an identifier (e.g. [2024] or [It's Bob's]).
-            content = content.TrimStart();
+            // a quote, when the bracket which ends it is inside a string literal (e.g. ['a]b', 'c']).
+            // Content without quotes is an identifier unless it starts with a number (e.g. [1, 2]).
+            // Anything else is parsed as SQL, which redacts any literals and at worst over-redacts an
+            // identifier (e.g. [2024] or [It's Bob's]).
+            var content = sql.Slice(contentStart, contentLength).TrimStart();
 
-            if (content.IsEmpty || StartsWithValueOrComment(content))
+            // A string in dollar quotes (e.g. [$$a$$, $$b$$] or [Email, $tag$a$tag$]) is a value, which would be copied
+            // if the content were an identifier. The first bracket which is found can be in a comment which follows it.
+            if (content.IsEmpty || ContainsDollarQuotedString(content))
             {
                 return false;
             }
@@ -839,45 +845,111 @@ internal static class SqlProcessor
             }
 #endif
 
+            // Content which starts with a comment, a prefixed string (e.g. E'a', N'a', B'1' or X'1F') or a number which has
+            // quotes after it could be the start of a name (e.g. [--Orders], [N'Souza] or [2024's Reports]), or it could
+            // be the start of a list in which the first bracket which is found is in the comment or string (e.g. [ /* ] */ 'a'],
+            // [E'a]b', 'c'] or [1, 'a]b']). The bracket which ends a list is the first one which is not in a comment or
+            // string, so it is a list if there is one, and otherwise the rest of the SQL is not part of the content.
+            if (StartsWithComment(content) ||
+                (singleQuotes > 0 && StartsWithNumberLiteral(content)) ||
+                ((singleQuotes & 1) == 1 && StartsWithPrefixedString(content)))
+            {
+                return !HasClosingBracketOutsideLiteralsAndComments(sql, contentStart, useBackslashEscapes, ref lookaheadLength);
+            }
+
             // The content is also an identifier if a comment in it would contain the closing bracket, which is not
             // valid for a list of values, unless the content has a value which would be copied if it were an identifier.
             // The first bracket which is found can be in a comment which ends later in a list (e.g. ['a' /* ] */, 'b']).
             return singleQuotes == 0
                 ? !StartsWithNumber(content)
                 : content[0] != SingleQuoteChar &&
-                  !StartsWithNumberLiteral(content) &&
-                  (((singleQuotes & 1) == 1 && !StartsWithPrefixedString(content)) ||
-                   (CommentContainsClosingBracket(content) && !ContainsValue(content)));
+                  ((singleQuotes & 1) == 1 || (CommentContainsClosingBracket(content) && !ContainsValue(content)));
         }
 
-        static bool StartsWithValueOrComment(ReadOnlySpan<char> content)
+        static bool StartsWithComment(ReadOnlySpan<char> content)
         {
-            // A comment at the start of the content is not part of a name, and neither is a string in dollar quotes
-            // (e.g. [$$a$$, $$b$$] or [$tag$a$tag$]), which is a value. The first bracket which is found can be in
-            // the comment (e.g. [ /* ] */ 'a']), or can be after the string with the value in it.
-            if (content.Length >= 2 &&
-                ((content[0] == ForwardSlashChar && content[1] == AsteriskChar) || (content[0] == DashChar && content[1] == DashChar)))
-            {
-                return true;
-            }
+            return content.Length >= 2 &&
+                ((content[0] == ForwardSlashChar && content[1] == AsteriskChar) || (content[0] == DashChar && content[1] == DashChar));
+        }
 
-            if (content[0] != DollarChar)
-            {
-                return false;
-            }
+        static bool ContainsDollarQuotedString(ReadOnlySpan<char> content)
+        {
+            // A dollar sign which follows a word is part of a name (e.g. [Price$USD$]), not the start of a string.
+            var i = content.IndexOf(DollarChar);
 
-            // The tag is optional, and is letters, digits and underscores, which do not start with a digit.
-            var tagEnd = 1;
-            if (tagEnd < content.Length && (char.IsAsciiLetter(content[tagEnd]) || content[tagEnd] == UnderscoreChar))
+            while (i >= 0 && i < content.Length)
             {
-                tagEnd++;
-                while (tagEnd < content.Length && (char.IsAsciiLetterOrDigit(content[tagEnd]) || content[tagEnd] == UnderscoreChar))
+                if ((i == 0 || !IsWordChar(content[i - 1])) && TryFindDollarQuotedLiteralEnd(content, i, out _))
                 {
-                    tagEnd++;
+                    return true;
                 }
+
+                var next = content.Slice(i + 1).IndexOf(DollarChar);
+                i = next < 0 ? -1 : i + 1 + next;
             }
 
-            return tagEnd < content.Length && content[tagEnd] == DollarChar;
+            return false;
+        }
+
+        static bool HasClosingBracketOutsideLiteralsAndComments(ReadOnlySpan<char> sql, int start, bool useBackslashEscapes, ref int lookaheadLength)
+        {
+            // Reading the rest of the statement for each bracket could take time which grows with the square of its length,
+            // so there is a limit on the total number of characters read. If it is reached it is not known whether there is
+            // a bracket, so the content is treated as a list, which is parsed as SQL to redact any literals in it.
+            var limit = Math.Min(sql.Length, start + Math.Max(MaxBracketLookaheadLength - lookaheadLength, 0));
+            var i = start;
+            var found = false;
+
+            for (; i < limit; i++)
+            {
+                int end;
+
+                switch (sql[i])
+                {
+                    case CloseSquareBracketChar:
+                        found = true;
+                        break;
+
+                    case SingleQuoteChar:
+                        end = FindStringLiteralEnd(sql, i, useBackslashEscapes, out _);
+                        if (end < 0)
+                        {
+                            // The string is not terminated, so nothing after it can be outside a string.
+                            lookaheadLength += sql.Length - start;
+                            return false;
+                        }
+
+                        i = end;
+                        continue;
+
+                    case DashChar:
+                    case ForwardSlashChar:
+                    case HashChar:
+                        end = FindCommentEnd(sql, i, useBackslashEscapes);
+                        if (end > i)
+                        {
+                            i = end - 1;
+                        }
+
+                        continue;
+
+                    case DollarChar:
+                        if (TryFindDollarQuotedLiteralEnd(sql, i, out end))
+                        {
+                            i = end - 1;
+                        }
+
+                        continue;
+
+                    default:
+                        continue;
+                }
+
+                break;
+            }
+
+            lookaheadLength += Math.Min(i, sql.Length) - start;
+            return found || (limit < sql.Length && i >= limit);
         }
 
         static bool StartsWithNumberLiteral(ReadOnlySpan<char> content)
@@ -966,7 +1038,7 @@ internal static class SqlProcessor
                     // Anything in a comment (e.g. [Orders/*'']) is not a value.
                     if (c == DashChar && content[i + 1] == DashChar)
                     {
-                        var lineEnd = content.Slice(i).IndexOf(NewLineChar);
+                        var lineEnd = content.Slice(i).IndexOfAny(CarriageReturnChar, NewLineChar);
                         i = lineEnd < 0 ? content.Length : i + lineEnd;
                     }
                     else if (c == ForwardSlashChar && content[i + 1] == AsteriskChar)
@@ -1834,6 +1906,9 @@ internal static class SqlProcessor
 
         // One more than the position from which the end of an IN clause was searched for and not found, or zero if there was no such search.
         public int InClauseEndNotFoundFrom; // 4 bytes
+
+        // The number of characters which have been read in total looking for the bracket which ends a list of values.
+        public int BracketLookaheadLength; // 4 bytes
 
         // NOTE: If the number of bool fields increases significantly, consider combining into a bitfield.
 
