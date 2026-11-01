@@ -641,7 +641,53 @@ public class SqlProcessorTests(ITestOutputHelper output)
     [Fact]
     public void GetSanitizedSql_DelimitedNameExceedingSummaryLengthLimit_OmitsPartialName()
     {
-        var sql = $"INSERT INTO [{LongCapturedIdentifier}].[Orders] VALUES (@p0)";
+        // Each part is a valid (<= 128 character) delimited identifier, but the whole name does not fit in the summary.
+        var sql = $"INSERT INTO [{new string('A', 100)}].[{new string('B', 100)}].[{new string('C', 100)}] VALUES (@p0)";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        Assert.Equal(sql, sqlStatementInfo.SanitizedSql);
+        Assert.Equal("INSERT", sqlStatementInfo.DbQuerySummary);
+    }
+
+    [Theory]
+    [InlineData("[dbo].", "INSERT [dbo]")]
+    [InlineData("[Archive]..", "INSERT [Archive]")]
+    public void GetSanitizedSql_DelimitedNamePartTooLong_OmitsTrailingPeriod(string qualifier, string expectedSummary)
+    {
+        // A delimited identifier is limited to 128 characters, so the last part of the name is not captured.
+        var sql = $"INSERT INTO {qualifier}[{new string('A', 200)}] VALUES (@p0)";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        Assert.Equal(sql, sqlStatementInfo.SanitizedSql);
+        Assert.Equal(expectedSummary, sqlStatementInfo.DbQuerySummary);
+    }
+
+    [Theory]
+    [InlineData(true, "INSERT [dbo].[Orders]")]
+    [InlineData(false, "INSERT [dbo]")]
+    public void GetSanitizedSql_HashCommentAfterPeriod_IsOnlySkippedForBackslashEscapeDialects(bool useBackslashEscapes, string expectedSummary)
+    {
+        // A # starts a comment in MySQL and MariaDB, but is not part of a name in other dialects.
+        var sql = "INSERT INTO [dbo]. # comment\n[Orders] VALUES (@p0)";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes);
+
+        Assert.Equal(expectedSummary, sqlStatementInfo.DbQuerySummary);
+    }
+
+    [Theory]
+    [InlineData(false, 120, 126)]
+    [InlineData(true, 120, 122)]
+    public void GetSanitizedSql_MultiPartNameEndingAtSummaryLengthLimit_OmitsPartialName(bool delimited, int firstLength, int secondLength)
+    {
+        // The summary is exactly 255 characters once the period after the second part has been added,
+        // so the last part is not captured and the incomplete name must not be left in the summary.
+        var first = new string('A', firstLength);
+        var second = new string('B', secondLength);
+        var name = delimited ? $"[{first}].[{second}].[Orders]" : $"{first}.{second}.[Orders]";
+        var sql = $"INSERT INTO {name} VALUES (@p0)";
 
         var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
 

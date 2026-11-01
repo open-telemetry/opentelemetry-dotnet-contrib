@@ -336,7 +336,11 @@ internal static class SqlProcessor
 
         // If we have exceeded the max length for the summary, find the index of the last whitespace
         // and trim the summary to that position. This avoids truncating within an operation name or target.
-        if (state.SummaryPosition > MaxSummaryLength)
+        // A summary which is exactly the maximum length but ends with a period has stopped part way through
+        // a multi-part name (e.g. dbo.), as the period is only added when another part of the name follows,
+        // so the incomplete name is trimmed in the same way.
+        if (state.SummaryPosition > MaxSummaryLength ||
+            (state.SummaryPosition == MaxSummaryLength && summary[MaxSummaryLength - 1] == DotChar))
         {
 #if NET
             var indexOfLastWhitespace = summary.Slice(0, MaxSummaryLength).LastIndexOfAny(WhitespaceSearchValues);
@@ -357,6 +361,15 @@ internal static class SqlProcessor
             if (lastChar is SpaceChar or TabChar or NewLineChar or CarriageReturnChar)
             {
                 summaryLength -= 1;
+            }
+            else
+            {
+                // A period is added when another part of a multi-part name is expected, so if that part was not
+                // captured (e.g. the name was too long to be a delimited identifier) it is left at the end.
+                while (summaryLength > 0 && summary[summaryLength - 1] == DotChar)
+                {
+                    summaryLength -= 1;
+                }
             }
         }
 
@@ -614,10 +627,20 @@ internal static class SqlProcessor
                     var endsWithDot = sql[i - 1] == DotChar;
                     AppendSummaryToken(sql.Slice(start, endsWithDot ? length - 1 : length), ref state);
 
-                    if (endsWithDot ? IsNamePart(sql, SkipWhitespace(sql, i)) : IsNamePartFollowing(sql, i))
+                    var periodCount = endsWithDot
+                        ? (IsNamePart(sql, SkipWhitespaceAndComments(sql, i, state.UseBackslashEscapes)) ? 1 : 0)
+                        : GetFollowingPeriodCount(sql, i, state.UseBackslashEscapes);
+
+                    if (periodCount > 0)
                     {
                         // The name continues (e.g. dbo.[Orders] or dbo . Orders), so capture the next part as well.
                         AppendSummaryChar(DotChar, ref state);
+
+                        if (periodCount > 1)
+                        {
+                            AppendSummaryChar(DotChar, ref state);
+                        }
+
                         captureNextPartOfName = true;
                     }
                     else
@@ -721,10 +744,16 @@ internal static class SqlProcessor
                 AppendSummaryToken(sql.Slice(start, length), ref state);
 
                 // Add a period for a schema-qualified name, otherwise a space. A trailing space will be trimmed later.
-                var nextPosition = end + 1;
-                if (IsNamePartFollowing(sql, nextPosition))
+                var periodCount = GetFollowingPeriodCount(sql, end + 1, state.UseBackslashEscapes);
+                if (periodCount > 0)
                 {
                     AppendSummaryChar(DotChar, ref state);
+
+                    // An omitted part of the name (e.g. [Archive]..[Orders]) is kept in the summary.
+                    if (periodCount > 1)
+                    {
+                        AppendSummaryChar(DotChar, ref state);
+                    }
 
                     // Capture the next part of the name (e.g. [Orders] in [dbo].[Orders]) after the period.
                     captureNextPartOfName = true;
@@ -745,16 +774,29 @@ internal static class SqlProcessor
         return true;
     }
 
-    // Whether the position, ignoring any whitespace, is a period followed by another part of a multi-part name
-    // which can be captured (e.g. the [Orders] in [dbo] . [Orders]). A period which is not followed by one is
-    // left out of the summary.
-    private static bool IsNamePartFollowing(ReadOnlySpan<char> sql, int position)
+    // The number of periods at the position, ignoring any whitespace and comments, if they are followed by another
+    // part of a multi-part name which can be captured (e.g. the [Orders] in [dbo] . [Orders] or [dbo]./* c */[Orders]).
+    // Two periods are an omitted part of the name (e.g. [Archive]..[Orders]). Periods which are not followed by a part
+    // of the name are left out of the summary, in which case zero is returned.
+    private static int GetFollowingPeriodCount(ReadOnlySpan<char> sql, int position, bool useBackslashEscapes)
     {
-        position = SkipWhitespace(sql, position);
+        position = SkipWhitespaceAndComments(sql, position, useBackslashEscapes);
 
-        return position < sql.Length &&
-            sql[position] == DotChar &&
-            IsNamePart(sql, SkipWhitespace(sql, position + 1));
+        if (position >= sql.Length || sql[position] != DotChar)
+        {
+            return 0;
+        }
+
+        var periodCount = 1;
+        position = SkipWhitespaceAndComments(sql, position + 1, useBackslashEscapes);
+
+        if (position < sql.Length && sql[position] == DotChar)
+        {
+            periodCount++;
+            position = SkipWhitespaceAndComments(sql, position + 1, useBackslashEscapes);
+        }
+
+        return IsNamePart(sql, position) ? periodCount : 0;
     }
 
     // Whether the position is the start of a part of a name which can be captured.
@@ -762,11 +804,24 @@ internal static class SqlProcessor
         position < sql.Length &&
         (sql[position] is OpenSquareBracketChar or UnderscoreChar || char.IsLetter(sql[position]));
 
-    private static int SkipWhitespace(ReadOnlySpan<char> sql, int position)
+    private static int SkipWhitespaceAndComments(ReadOnlySpan<char> sql, int position, bool useBackslashEscapes)
     {
-        while (position < sql.Length && sql[position] is SpaceChar or TabChar or CarriageReturnChar or NewLineChar)
+        while (position < sql.Length)
         {
-            position++;
+            if (sql[position] is SpaceChar or TabChar or CarriageReturnChar or NewLineChar)
+            {
+                position++;
+                continue;
+            }
+
+            var commentEnd = FindCommentEnd(sql, position, useBackslashEscapes);
+
+            if (commentEnd < 0)
+            {
+                break;
+            }
+
+            position = commentEnd;
         }
 
         return position;

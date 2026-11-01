@@ -1819,5 +1819,83 @@
       ],
       "db.query.summary": "SELECT Orders"
     }
+  },
+  {
+    "name": "insert_into_delimited_identifier_omitted_schema",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "INSERT INTO [Archive]..[Orders] VALUES (@p0)"
+    },
+    "expected": {
+      "db.query.text": [
+        "INSERT INTO [Archive]..[Orders] VALUES (@p0)"
+      ],
+      "db.query.summary": "INSERT [Archive]..[Orders]"
+    }
+  },
+  {
+    "name": "insert_into_delimited_identifier_with_comment_after_period",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "INSERT INTO [dbo]./* routing */[Orders] VALUES (@p0)"
+    },
+    "expected": {
+      "db.query.text": [
+        "INSERT INTO [dbo].[Orders] VALUES (@p0)"
+      ],
+      "db.query.summary": "INSERT [dbo].[Orders]"
+    }
+  },
+  {
+    "name": "insert_into_delimited_identifier_with_comment_before_period",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "INSERT INTO [dbo] /* a */ . /* b */ [Orders] VALUES (@p0)"
+    },
+    "expected": {
+      "db.query.text": [
+        "INSERT INTO [dbo]  .  [Orders] VALUES (@p0)"
+      ],
+      "db.query.summary": "INSERT [dbo].[Orders]"
+    }
+  },
+  {
+    "name": "insert_into_undelimited_identifier_omitted_schema_then_delimited",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "INSERT INTO Archive..[Orders] VALUES (@p0)"
+    },
+    "expected": {
+      "db.query.text": [
+        "INSERT INTO Archive..[Orders] VALUES (@p0)"
+      ],
+      "db.query.summary": "INSERT Archive..[Orders]"
+    }
+  },
+  {
+    "name": "insert_into_undelimited_identifier_with_comment_after_period",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "INSERT INTO dbo./* routing */[Orders] VALUES (@p0)"
+    },
+    "expected": {
+      "db.query.text": [
+        "INSERT INTO dbo.[Orders] VALUES (@p0)"
+      ],
+      "db.query.summary": "INSERT dbo.[Orders]"
+    }
+  },
+  {
+    "name": "insert_into_delimited_identifier_with_single_line_comment_after_period",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "INSERT INTO [dbo]. -- schema\n[Orders] VALUES (@p0)"
+    },
+    "expected": {
+      "db.query.text": [
+        "INSERT INTO [dbo]. \n[Orders] VALUES (@p0)"
+      ],
+      "db.query.summary": "INSERT [dbo].[Orders]"
+    }
   }
 ]
