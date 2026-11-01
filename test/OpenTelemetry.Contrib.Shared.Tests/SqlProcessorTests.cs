@@ -544,6 +544,69 @@ public class SqlProcessorTests(ITestOutputHelper output)
     }
 
     [Theory]
+    [InlineData("SELECT * FROM [N'Souza] WHERE c = 'secret-name]suffix'", "SELECT * FROM [N'Souza] WHERE c = ?")]
+    [InlineData("SELECT * FROM [--Orders] WHERE c = 'a]\nsecret-name'", "SELECT * FROM [--Orders] WHERE c = ?")]
+    [InlineData("SELECT * FROM [/*Orders] WHERE c = 'a]\nsecret-name'", "SELECT * FROM [/*Orders] WHERE c = ?")]
+    [InlineData("SELECT * FROM [Price $$x$$ O'Brien] WHERE c = 'secret-name'", "SELECT * FROM [Price $$x$$ O'Brien] WHERE c = ?")]
+    [InlineData("SELECT * FROM [dbo].[N'Souza] WHERE c = 'secret-name]suffix'", "SELECT * FROM [dbo].[N'Souza] WHERE c = ?")]
+    [InlineData("SELECT * FROM t, [N'Souza] WHERE c = 'secret-name]suffix'", "SELECT * FROM t, [N'Souza] WHERE c = ?")]
+    [InlineData("SELECT * FROM t JOIN [2024's Reports] ON 1 = 1 WHERE c = 'secret-name]suffix'", "SELECT * FROM t JOIN [2024's Reports] ON ? = ? WHERE c = ?")]
+    [InlineData("DELETE FROM [N'Souza] WHERE c = 'secret-name]suffix'", "DELETE FROM [N'Souza] WHERE c = ?")]
+    [InlineData("UPDATE [N'Souza] SET c = 'secret-name]suffix'", "UPDATE [N'Souza] SET c = ?")]
+    [InlineData("INSERT INTO [N'Souza] (c) VALUES ('secret-name]suffix')", "INSERT INTO [N'Souza] (c) VALUES (?)")]
+    public void GetSanitizedSql_BracketedNameWhereANameIsExpected_IsCopiedWithoutUsingTheSqlAfterIt(string sql, string expected)
+    {
+        // A bracket after FROM, UPDATE, INTO and the like is a name, never a list of values, so it ends at its first
+        // closing bracket. Looking at the SQL after it to guess would mistake a bracket in a later literal for its end.
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData("SELECT * FROM t WHERE [Price $$x$$ O'Brien] = 'secret-name'", "SELECT * FROM t WHERE [Price $$x$$ O'Brien] = ?")]
+    [InlineData("SELECT [Price $$x$$ O'Brien] FROM t WHERE c = 'secret-name'", "SELECT [Price $$x$$ O'Brien] FROM t WHERE c = ?")]
+    [InlineData("SELECT * FROM t WHERE [Orders'$$] = 'secret-name'", "SELECT * FROM t WHERE [Orders'$$] = ?")]
+    [InlineData("SELECT * FROM t WHERE [Orders--$$] = 'x\nsecret-name'", "SELECT * FROM t WHERE [Orders--$$] = ?")]
+    [InlineData("SELECT * FROM t WHERE [Price$USD$] = 'secret-name'", "SELECT * FROM t WHERE [Price$USD$] = ?")]
+    [InlineData("SELECT * FROM UNNEST([Email, -- note\n $$secret-name$$ /* ] note */, $$other$$])", "SELECT * FROM UNNEST([Email, \n ? , ?])")]
+    [InlineData("SELECT * FROM UNNEST([Email, /* note */ $$secret-name$$ /* ] note */, $$other$$])", "SELECT * FROM UNNEST([Email,  ? , ?])")]
+    public void GetSanitizedSql_DollarSignsInBracketedNameWhichIsNotAfterKeyword_AreNotParsedAsString(string sql, string expected)
+    {
+        // A dollar-quoted string is a value only when it starts a list or follows a comma, as elsewhere
+        // the dollar signs are part of a name, which must not make its quotes or comment markers be parsed.
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.DoesNotContain("other", sqlStatementInfo.SanitizedSql);
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Fact]
+    public void GetSanitizedSql_BracketWhichCouldStartListAndLimitOnLookaheadIsReached_DoesNotExposeLiteralWhichFollows()
+    {
+        // The bracket could be a name or a list of values, and where the closing bracket of a list would be is further
+        // away than is read, so the content is redacted rather than guessed, so its quote does not start a string which
+        // takes in the opening quote of the literal which follows it.
+        var sql = "SELECT * FROM t WHERE c = [N'Souza] AND d = '" + new string('x', 17_000) + "secret-name'";
+
+        var stopwatch = Stopwatch.StartNew();
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+        stopwatch.Stop();
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.Equal("SELECT * FROM t WHERE c = [?] AND d = ?", sqlStatementInfo.SanitizedSql);
+        Assert.True(
+            stopwatch.Elapsed < TimeSpan.FromSeconds(5),
+            $"Sanitizing {sql.Length:N0} characters took {stopwatch.Elapsed}.");
+    }
+
+    [Theory]
     [InlineData("SELECT * FROM t WHERE c = [$$secret-name$$]", "SELECT * FROM t WHERE c = [?]")]
     [InlineData("SELECT * FROM t WHERE c = [$$secret-name$$, $$other$$]", "SELECT * FROM t WHERE c = [?, ?]")]
     [InlineData("SELECT * FROM t WHERE c = [$tag$secret-name$tag$]", "SELECT * FROM t WHERE c = [?]")]
