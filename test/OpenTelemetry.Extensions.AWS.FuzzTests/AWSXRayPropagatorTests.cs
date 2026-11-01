@@ -104,9 +104,14 @@ public static class AWSXRayPropagatorTests
         var trace = extracted.ActivityContext.TraceId.ToHexString();
         var sampled = extracted.ActivityContext.TraceFlags.HasFlag(ActivityTraceFlags.Recorded) ? '1' : '0';
 
-        Assert.Contains($"Root=1-{trace.Substring(0, 8)}-{trace.Substring(8)}", header, StringComparison.Ordinal);
-        Assert.Contains($"Parent={extracted.ActivityContext.SpanId.ToHexString()}", header, StringComparison.Ordinal);
-        Assert.Contains($"Sampled={sampled}", header, StringComparison.Ordinal);
+        // Each is compared with the whole of a field, rather than looking for it anywhere in the header, as
+        // otherwise "Sampled=01" would be taken as "Sampled=0", and an over-long identifier would be taken
+        // as the identifier it starts with.
+        var fields = header!.Split(';').Select(field => field.Trim()).ToArray();
+
+        Assert.Contains($"Root=1-{trace.Substring(0, 8)}-{trace.Substring(8)}", fields);
+        Assert.Contains($"Parent={extracted.ActivityContext.SpanId.ToHexString()}", fields);
+        Assert.Contains($"Sampled={sampled}", fields);
     }
 
     private static byte[] Pad(byte[] bytes, int length)
