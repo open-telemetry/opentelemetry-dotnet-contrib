@@ -132,13 +132,13 @@ internal sealed class FrameProcessor
         if (message.Capabilities is var capabilities and not 0 &&
             this.TryGetListeners<ServerCapabilitiesMessage>(out var capabilitiesListeners))
         {
-            Dispatch(new ServerCapabilitiesMessage((ServerCapabilities)capabilities), capabilitiesListeners);
+            Dispatch(new ServerCapabilitiesMessage(capabilities), capabilitiesListeners);
         }
 
         if (message.Flags is var flags and not 0 &&
             this.TryGetListeners<FlagsMessage>(out var flagsListeners))
         {
-            Dispatch(new FlagsMessage((ServerToAgentFlags)flags), flagsListeners);
+            Dispatch(new FlagsMessage(flags), flagsListeners);
         }
 
         if (message.AgentIdentification is { } agentIdentification &&
