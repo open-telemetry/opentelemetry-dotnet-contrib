@@ -16,7 +16,7 @@ telemetry about process behavior.
 
 The process metric instruments being implemented are following OpenTelemetry
 [metrics semantic
-conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.43.0/docs/system/process-metrics.md).
+conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/system/process-metrics.md).
 
 ## Steps to enable OpenTelemetry.Instrumentation.Process
 

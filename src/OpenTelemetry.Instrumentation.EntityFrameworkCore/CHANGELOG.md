@@ -27,6 +27,11 @@
   bracket.
   ([#5827](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5827))
 
+* Updated the Semantic Conventions version used for the database semantic
+  conventions emitted when `OTEL_SEMCONV_STABILITY_OPT_IN` includes `database`
+  or `database/dup` to `1.45.0`.
+  ([#5833](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5833))
+
 ## 1.20.1-beta.1
 
 Released 2026-Oct-21

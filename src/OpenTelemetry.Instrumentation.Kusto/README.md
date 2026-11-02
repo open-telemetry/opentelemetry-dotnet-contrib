@@ -79,7 +79,7 @@ public class Program
 ##### List of metrics produced
 
 The instrumentation is implemented based on [metrics semantic
-conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.40.0/docs/db/database-metrics.md).
+conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/db/database-metrics.md).
 Currently, the instrumentation supports the following metric:
 
 | Name | Instrument Type | Unit | Description | Attributes |
@@ -242,5 +242,5 @@ set to `"Get active users"`.
 
 * [OpenTelemetry Project](https://opentelemetry.io/)
 * [Azure Data Explorer (Kusto)](https://docs.microsoft.com/azure/data-explorer/)
-* [OpenTelemetry semantic conventions for database spans](https://github.com/open-telemetry/semantic-conventions/blob/v1.40.0/docs/db/database-spans.md)
-* [OpenTelemetry semantic conventions for database metrics](https://github.com/open-telemetry/semantic-conventions/blob/v1.40.0/docs/db/database-metrics.md)
+* [OpenTelemetry semantic conventions for database spans](https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/db/database-spans.md)
+* [OpenTelemetry semantic conventions for database metrics](https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/db/database-metrics.md)
