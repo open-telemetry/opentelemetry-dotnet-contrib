@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.9.0-alpha.3
+
+Released 2026-Nov-02
+
 * Fixed the flags and the capabilities sent by the server being truncated to
   32 bits.
   ([#5823](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5823))
