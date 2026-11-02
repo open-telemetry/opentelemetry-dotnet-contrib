@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics;
+
 namespace OpenTelemetry.Instrumentation.Tests;
 
 public class SqlProcessorTests(ITestOutputHelper output)
@@ -446,6 +448,304 @@ public class SqlProcessorTests(ITestOutputHelper output)
 
         Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
         Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData("UPDATE [Orders''/*] SET c = 'secret-name'", "UPDATE [Orders''/*] SET c = ?")]
+    [InlineData("UPDATE [Orders''--] SET c = 'secret-name'", "UPDATE [Orders''--] SET c = ?")]
+    [InlineData("UPDATE [Orders/*''] SET c = 'secret-name'", "UPDATE [Orders/*''] SET c = ?")]
+    [InlineData("SELECT * FROM t WHERE [Orders''/*] = 'secret-name'", "SELECT * FROM t WHERE [Orders''/*] = ?")]
+    [InlineData("SELECT * FROM [Orders''--] WHERE c = 'secret-name'", "SELECT * FROM [Orders''--] WHERE c = ?")]
+    [InlineData("SELECT * FROM t WHERE [Orders''''--] = 'secret-name'", "SELECT * FROM t WHERE [Orders''''--] = ?")]
+    [InlineData("SELECT * FROM t WHERE [Orders/*''''] = 'secret-name'", "SELECT * FROM t WHERE [Orders/*''''] = ?")]
+    [InlineData("SELECT fn([a--'']), 'secret-name'", "SELECT fn([a--'']), ?")]
+    [InlineData("SELECT * FROM t WHERE fn([a].[b--'']) = $$\nsecret-name$$", "SELECT * FROM t WHERE fn([a].[b--'']) = ?")]
+    [InlineData("SELECT * FROM t WHERE [b''--] = 'x\nsecret-name'", "SELECT * FROM t WHERE [b''--] = ?")]
+    [InlineData("SELECT * FROM t WHERE [name)''/*] = 'secret-name'", "SELECT * FROM t WHERE [name)''/*] = ?")]
+    [InlineData("SELECT * FROM t WHERE [name:''--] = 'x\nsecret-name'", "SELECT * FROM t WHERE [name:''--] = ?")]
+    public void GetSanitizedSql_BracketedIdentifierContainingQuotesAndCommentMarker_IsNotParsedAsComment(string sql, string expected)
+    {
+        // A comment marker in a bracketed identifier is part of the name, and the quotes in it must not make it be
+        // parsed as SQL, as then the comment would swallow the end of the name and the rest of the statement,
+        // which left a literal on a later line (or a later literal which the swallowed text started) unsanitized.
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData("SELECT * FROM UNNEST([Email, 'secret-name' /* note */, 'secret-name'])", "SELECT * FROM UNNEST([Email, ? , ?])")]
+    [InlineData("SELECT * FROM UNNEST(['secret-name' -- note\n, 'secret-name'])", "SELECT * FROM UNNEST([? \n, ?])")]
+    [InlineData("SELECT * FROM UNNEST(['a--b', 'secret-name'])", "SELECT * FROM UNNEST([?, ?])")]
+    [InlineData("SELECT * FROM UNNEST(['a/*b', 'secret-name'])", "SELECT * FROM UNNEST([?, ?])")]
+    public void GetSanitizedSql_ListOfValuesContainingTerminatedCommentOrCommentMarkerInLiteral_IsParsedAsSql(string sql, string expected)
+    {
+        // A list of values is still parsed as SQL if a comment in it ends within the list, or if the comment
+        // marker is text in one of its literals, as neither of those would contain the closing bracket.
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData("SELECT * FROM UNNEST(['secret-name' /* ] note */, 'other'])", "SELECT * FROM UNNEST([? , ?])")]
+    [InlineData("SELECT * FROM UNNEST(['secret-name' -- ] note\n, 'other'])", "SELECT * FROM UNNEST([? \n, ?])")]
+    [InlineData("SELECT * FROM UNNEST([Email, 'secret-name' /* ] note */, 'other'])", "SELECT * FROM UNNEST([Email, ? , ?])")]
+    [InlineData("SELECT * FROM UNNEST([N'secret-name' /* ] note */, 'other'])", "SELECT * FROM UNNEST([? , ?])")]
+    [InlineData("SELECT * FROM UNNEST(['a', 'secret-name' /* ] note */])", "SELECT * FROM UNNEST([?, ? ])")]
+    [InlineData("SELECT * FROM t WHERE c = ['secret-name' /* ] note */, 'other']", "SELECT * FROM t WHERE c = [? , ?]")]
+    [InlineData("SELECT * FROM UNNEST([1234 /* ] note */, 5678])", "SELECT * FROM UNNEST([? , ?])")]
+    [InlineData("SELECT * FROM UNNEST([1234 -- ] note\n, 5678])", "SELECT * FROM UNNEST([? \n, ?])")]
+    [InlineData("SELECT * FROM UNNEST([Email, $$secret-name$$ /* '' ] note */, 'other'])", "SELECT * FROM UNNEST([Email, ? , ?])")]
+    [InlineData("SELECT * FROM UNNEST([Email, $$secret-name$$ /* ] note */, $$other$$])", "SELECT * FROM UNNEST([Email, ? , ?])")]
+    [InlineData("SELECT * FROM UNNEST([Email, $$secret-name$$])", "SELECT * FROM UNNEST([Email, ?])")]
+    [InlineData("SELECT * FROM UNNEST([Email -- note\r, 'secret-name' /* ] note */, 'other'])", "SELECT * FROM UNNEST([Email \r, ? , ?])")]
+    [InlineData("SELECT * FROM UNNEST([Email -- note\r, 'secret-name' -- ] note\r, 'other'])", "SELECT * FROM UNNEST([Email \r, ? \r, ?])")]
+    public void GetSanitizedSql_ListOfValuesWithCommentContainingClosingBracket_SanitizesEveryValue(string sql, string expected)
+    {
+        // The first closing bracket of a list is in a comment, which ends later in the list, so the content up to that
+        // bracket has a comment which is not ended. That is not an identifier with a comment marker in its name, as
+        // the content has values, which must not be copied as an identifier would be.
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.DoesNotContain("1234", sqlStatementInfo.SanitizedSql);
+        Assert.DoesNotContain("other", sqlStatementInfo.SanitizedSql);
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData("SELECT * FROM [N'Souza] WHERE c = 'secret-name'", "SELECT * FROM [N'Souza] WHERE c = ?")]
+    [InlineData("SELECT * FROM [2024's Reports] WHERE c = 'secret-name'", "SELECT * FROM [2024's Reports] WHERE c = ?")]
+    [InlineData("SELECT * FROM [2024, O'Brien] WHERE c = 'secret-name'", "SELECT * FROM [2024, O'Brien] WHERE c = ?")]
+    [InlineData("SELECT * FROM [--Orders] WHERE c = 'x\nsecret-name'", "SELECT * FROM [--Orders] WHERE c = ?")]
+    [InlineData("SELECT * FROM [/*Orders] WHERE c = 'secret-name'", "SELECT * FROM [/*Orders] WHERE c = ?")]
+    [InlineData("SELECT * FROM [/*Orders] WHERE c = 'secret-name' /* x */", "SELECT * FROM [/*Orders] WHERE c = ? ")]
+    [InlineData("SELECT * FROM [E'Souza] WHERE c = 'secret-name'", "SELECT * FROM [E'Souza] WHERE c = ?")]
+    public void GetSanitizedSql_BracketedIdentifierWhichStartsLikeValueOrComment_IsCopiedAndLaterLiteralsAreSanitized(string sql, string expected)
+    {
+        // A name can start with a comment marker, a number or a string prefix, which a list of values can also do, but
+        // a list ends with a closing bracket which is not in a string or comment, which these do not have. Treating
+        // them as lists would make the quote in the name start a string, which would take in the next literal's quote.
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData("SELECT * FROM [N'Souza] WHERE c = 'secret-name]suffix'", "SELECT * FROM [N'Souza] WHERE c = ?")]
+    [InlineData("SELECT * FROM [--Orders] WHERE c = 'a]\nsecret-name'", "SELECT * FROM [--Orders] WHERE c = ?")]
+    [InlineData("SELECT * FROM [/*Orders] WHERE c = 'a]\nsecret-name'", "SELECT * FROM [/*Orders] WHERE c = ?")]
+    [InlineData("SELECT * FROM [Price $$x$$ O'Brien] WHERE c = 'secret-name'", "SELECT * FROM [Price $$x$$ O'Brien] WHERE c = ?")]
+    [InlineData("SELECT * FROM [dbo].[N'Souza] WHERE c = 'secret-name]suffix'", "SELECT * FROM [dbo].[N'Souza] WHERE c = ?")]
+    [InlineData("SELECT * FROM t, [N'Souza] WHERE c = 'secret-name]suffix'", "SELECT * FROM t, [N'Souza] WHERE c = ?")]
+    [InlineData("SELECT * FROM t JOIN [2024's Reports] ON 1 = 1 WHERE c = 'secret-name]suffix'", "SELECT * FROM t JOIN [2024's Reports] ON ? = ? WHERE c = ?")]
+    [InlineData("DELETE FROM [N'Souza] WHERE c = 'secret-name]suffix'", "DELETE FROM [N'Souza] WHERE c = ?")]
+    [InlineData("UPDATE [N'Souza] SET c = 'secret-name]suffix'", "UPDATE [N'Souza] SET c = ?")]
+    [InlineData("INSERT INTO [N'Souza] (c) VALUES ('secret-name]suffix')", "INSERT INTO [N'Souza] (c) VALUES (?)")]
+    public void GetSanitizedSql_BracketedNameWhereANameIsExpected_IsCopiedWithoutUsingTheSqlAfterIt(string sql, string expected)
+    {
+        // A bracket after FROM, UPDATE, INTO and the like is a name, never a list of values, so it ends at its first
+        // closing bracket. Looking at the SQL after it to guess would mistake a bracket in a later literal for its end.
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData("SELECT * FROM t WHERE [Price $$x$$ O'Brien] = 'secret-name'", "SELECT * FROM t WHERE [Price $$x$$ O'Brien] = ?")]
+    [InlineData("SELECT [Price $$x$$ O'Brien] FROM t WHERE c = 'secret-name'", "SELECT [Price $$x$$ O'Brien] FROM t WHERE c = ?")]
+    [InlineData("SELECT * FROM t WHERE [Orders'$$] = 'secret-name'", "SELECT * FROM t WHERE [Orders'$$] = ?")]
+    [InlineData("SELECT * FROM t WHERE [Orders--$$] = 'x\nsecret-name'", "SELECT * FROM t WHERE [Orders--$$] = ?")]
+    [InlineData("SELECT * FROM t WHERE [Price$USD$] = 'secret-name'", "SELECT * FROM t WHERE [Price$USD$] = ?")]
+    [InlineData("SELECT * FROM UNNEST([Email, -- note\n $$secret-name$$ /* ] note */, $$other$$])", "SELECT * FROM UNNEST([Email, \n ? , ?])")]
+    [InlineData("SELECT * FROM UNNEST([Email, /* note */ $$secret-name$$ /* ] note */, $$other$$])", "SELECT * FROM UNNEST([Email,  ? , ?])")]
+    public void GetSanitizedSql_DollarSignsInBracketedNameWhichIsNotAfterKeyword_AreNotParsedAsString(string sql, string expected)
+    {
+        // A dollar-quoted string is a value only when it starts a list or follows a comma, as elsewhere
+        // the dollar signs are part of a name, which must not make its quotes or comment markers be parsed.
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.DoesNotContain("other", sqlStatementInfo.SanitizedSql);
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData("SELECT * FROM t WHERE c = [N'Souza] AND d = '", "secret-name'", "SELECT * FROM t WHERE c = [?")]
+    [InlineData("SELECT * FROM t WHERE c = [E'head]", "secret-name']", "SELECT * FROM t WHERE c = [?")]
+    [InlineData("SELECT * FROM t WHERE c = [1, 'head]", "secret-name', 'other']", "SELECT * FROM t WHERE c = [?")]
+    public void GetSanitizedSql_BracketWhichCouldStartListAndLimitOnLookaheadIsReached_DoesNotExposeAnythingWhichFollows(string prefix, string suffix, string expected)
+    {
+        // The bracket could be a name or a list of values, and where the closing bracket of a list would be is further
+        // away than is read, so it is not known where it ends, as that could be in a string. Redacting only the bracket
+        // would parse what follows from inside that string, so the rest of the statement is redacted instead.
+        var sql = prefix + new string('x', 17_000) + suffix;
+
+        var stopwatch = Stopwatch.StartNew();
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+        stopwatch.Stop();
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.DoesNotContain("other", sqlStatementInfo.SanitizedSql);
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+        Assert.True(
+            stopwatch.Elapsed < TimeSpan.FromSeconds(5),
+            $"Sanitizing {sql.Length:N0} characters took {stopwatch.Elapsed}.");
+    }
+
+    [Theory]
+    [InlineData("SELECT * FROM t WHERE c = -- from\n ['secret-name']")]
+    [InlineData("SELECT * FROM t WHERE c = -- from\r\n ['secret-name']")]
+    [InlineData("SELECT * FROM t WHERE c = -- from\r ['secret-name']")]
+    [InlineData("SELECT * FROM t WHERE c = /* from */ ['secret-name']")]
+    [InlineData("SELECT * FROM t WHERE c IN -- update\n ['secret-name']")]
+    [InlineData("SELECT * FROM t WHERE c = 'from' ['secret-name']")]
+    [InlineData("SELECT * FROM t WHERE c = -- from\n [Email, 'secret-name']")]
+    public void GetSanitizedSql_ListOfValuesAfterKeywordInCommentOrLiteral_IsNotParsedAsName(string sql)
+    {
+        // A word before the bracket in a comment or string is not a keyword, so the bracket is not where a name is expected.
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData("SELECT * FROM t WHERE c = [Email, fn($$secret-name$$) /* '' ] note */, 'other']")]
+    [InlineData("SELECT * FROM t WHERE c = [Email, fn(a, $$secret-name$$) /* ] note */, 'other']")]
+    [InlineData("SELECT * FROM t WHERE c = [Email, 1 + $$secret-name$$ /* '' ] note */, 'other']")]
+    [InlineData("SELECT * FROM t WHERE c = [Email, ($$secret-name$$) /* ] note */, 'other']")]
+    public void GetSanitizedSql_DollarQuotedValueInItemExpression_IsSanitized(string sql)
+    {
+        // A string in dollar quotes can follow an opening parenthesis or an operator in an item of a list, as well as a comma.
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.DoesNotContain("other", sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData("SELECT * FROM t WHERE c = [$$secret-name$$]", "SELECT * FROM t WHERE c = [?]")]
+    [InlineData("SELECT * FROM t WHERE c = [$$secret-name$$, $$other$$]", "SELECT * FROM t WHERE c = [?, ?]")]
+    [InlineData("SELECT * FROM t WHERE c = [$tag$secret-name$tag$]", "SELECT * FROM t WHERE c = [?]")]
+    [InlineData("SELECT * FROM t WHERE c = [E'secret-name]x', 'other']", "SELECT * FROM t WHERE c = [?, ?]")]
+    [InlineData("SELECT * FROM t WHERE c = [N'secret-name]x', 'other']", "SELECT * FROM t WHERE c = [?, ?]")]
+    [InlineData("SELECT * FROM t WHERE c = [1234, 'secret-name]x', 'other']", "SELECT * FROM t WHERE c = [?, ?, ?]")]
+    [InlineData("SELECT * FROM t WHERE c = [ /* ] note */ 'secret-name', 'other']", "SELECT * FROM t WHERE c = [  ?, ?]")]
+    [InlineData("SELECT * FROM t WHERE c = [ -- ] note\n 'secret-name', 'other']", "SELECT * FROM t WHERE c = [ \n ?, ?]")]
+    public void GetSanitizedSql_ListOfValuesWhichStartsWithStringOrCommentAndHasClosingBracketInIt_SanitizesEveryValue(string sql, string expected)
+    {
+        // The first closing bracket of a list can be in its first string (which is not delimited by single quotes
+        // or has a prefix), or in a comment before its first value, so the content up to it is not a name.
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.DoesNotContain("1234", sqlStatementInfo.SanitizedSql);
+        Assert.DoesNotContain("other", sqlStatementInfo.SanitizedSql);
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData("SELECT * FROM UNNEST(['a-b', 'secret-name'])", "SELECT * FROM UNNEST([?, ?])")]
+    [InlineData("SELECT * FROM UNNEST(['a/b', 'secret-name'])", "SELECT * FROM UNNEST([?, ?])")]
+    [InlineData("SELECT * FROM UNNEST([Email/Name, 'secret-name'])", "SELECT * FROM UNNEST([Email/Name, ?])")]
+    [InlineData("SELECT * FROM t WHERE [a-b] = 'secret-name'", "SELECT * FROM t WHERE [a-b] = ?")]
+    [InlineData("SELECT * FROM t WHERE [a/b] = 'secret-name'", "SELECT * FROM t WHERE [a/b] = ?")]
+    public void GetSanitizedSql_BracketedContentWithDashOrSlashWhichIsNotComment_IsNotTreatedAsComment(string sql, string expected)
+    {
+        // A dash or a slash on its own does not start a comment, so it does not make the content of a
+        // bracket be an identifier, or a list of values be parsed as anything other than SQL.
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData(
+        "SELECT * FROM t WHERE a IN ('secret-name', 'secret-name' AND b IN ('secret-name', 'secret-name'",
+        "SELECT * FROM t WHERE a IN (?, ? AND b IN (?, ?")]
+    [InlineData(
+        "SELECT * FROM t WHERE a IN ('secret-name' IN ('secret-name' IN ('secret-name'",
+        "SELECT * FROM t WHERE a IN (? IN (? IN (?")]
+    [InlineData(
+        "SELECT * FROM t WHERE a IN ('secret-name', b IN (1, 2 AND c IN ('secret-name') AND d IN ('secret-name'",
+        "SELECT * FROM t WHERE a IN (?) AND d IN (?")]
+    [InlineData(
+        "SELECT * FROM t WHERE a IN ('secret-name' AND b IN ('secret-name', 'secret-name')",
+        "SELECT * FROM t WHERE a IN (?)")]
+    public void GetSanitizedSql_InClauseWhichIsNotTerminated_SanitizesEachValue(string sql, string expected)
+    {
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData("[--a]\n")]
+    [InlineData("[/*a]\n*/")]
+    [InlineData("[N'a]")]
+    [InlineData("[2024's]")]
+    public void GetSanitizedSql_ManyBracketsWhichCouldStartAListOfValues_DoesNotTakeTimeWhichGrowsWithTheSquareOfTheLength(string bracketed)
+    {
+        // Looking for the bracket which would end a list of values reads on from each bracket which could start one, and
+        // for a comment which ends at the end of a line it does not find one, so without a limit on the total read it would
+        // read to the end of the statement each time, which for a statement of this length is billions of steps.
+        var sql = "SELECT * FROM t WHERE x = " + string.Concat(Enumerable.Repeat(bracketed, 40_000)) + " AND y = 'secret-name'";
+
+        var stopwatch = Stopwatch.StartNew();
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+        stopwatch.Stop();
+
+        Assert.True(
+            stopwatch.Elapsed < TimeSpan.FromSeconds(5),
+            $"Sanitizing {sql.Length:N0} characters took {stopwatch.Elapsed}.");
+    }
+
+    [Fact]
+    public void GetSanitizedSql_ManyInClausesWhichAreNotTerminated_DoesNotTakeTimeWhichGrowsWithTheSquareOfTheLength()
+    {
+        // Looking for the end of each list of values would read to the end of the statement each time when there is none,
+        // which for a statement of this length is tens of billions of steps, rather than the few milliseconds it takes
+        // when it is only looked for once.
+        const string Value = "secret-name";
+        var sql = "SELECT * FROM t WHERE " + string.Concat(Enumerable.Repeat($"IN ('{Value}', ", 40_000));
+
+        var stopwatch = Stopwatch.StartNew();
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+        stopwatch.Stop();
+
+        Assert.DoesNotContain(Value, sqlStatementInfo.SanitizedSql);
+        Assert.True(
+            stopwatch.Elapsed < TimeSpan.FromSeconds(5),
+            $"Sanitizing {sql.Length:N0} characters took {stopwatch.Elapsed}.");
     }
 
     [Theory]

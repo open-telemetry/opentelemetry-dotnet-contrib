@@ -296,6 +296,7 @@
     <Project Path="test/OpenTelemetry.Instrumentation.StackExchangeRedis.Benchmarks/OpenTelemetry.Instrumentation.StackExchangeRedis.Benchmarks.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.StackExchangeRedis.Tests/OpenTelemetry.Instrumentation.StackExchangeRedis.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.Wcf.Tests/OpenTelemetry.Instrumentation.Wcf.Tests.csproj" />
+    <Project Path="test/OpenTelemetry.OpAmp.Client.FuzzTests/OpenTelemetry.OpAmp.Client.FuzzTests.csproj" />
     <Project Path="test/OpenTelemetry.OpAmp.Client.Tests/OpenTelemetry.OpAmp.Client.Tests.csproj" />
     <Project Path="test/OpenTelemetry.PersistentStorage.Abstractions.Tests/OpenTelemetry.PersistentStorage.Abstractions.Tests.csproj" />
     <Project Path="test/OpenTelemetry.PersistentStorage.FileSystem.Tests/OpenTelemetry.PersistentStorage.FileSystem.Tests.csproj" />
