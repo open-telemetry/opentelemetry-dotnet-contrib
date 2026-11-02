@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Fixed the flags and the capabilities sent by the server being truncated to
+  32 bits.
+  ([#5823](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5823))
+
 * **Breaking Change** Dropped support for `net8.0` and `net9.0`.
   ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
 
