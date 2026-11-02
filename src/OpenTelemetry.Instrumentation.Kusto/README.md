@@ -84,11 +84,13 @@ Currently, the instrumentation supports the following metric:
 
 | Name | Instrument Type | Unit | Description | Attributes |
 | --- | --- | --- | --- | --- |
-| `db.client.operation.duration` | Histogram | `s` | Duration of database client operations. | `db.system.name`, `db.operation.name`, `db.namespace`, `db.query.summary`[^1], `db.query.text`[^2], `server.address`, `server.port`, `error.type`[^3] |
+| `db.client.operation.duration` | Histogram | `s` | Duration of database client operations. | `db.system.name`, `db.operation.name`, `db.namespace`, `db.query.summary`[^1], `db.query.text`[^2], `server.address`, `server.port`[^4], `error.type`[^3] |
 
 [^1]: `db.query.summary` is only included when `RecordQuerySummary` is enabled
 [^2]: `db.query.text` is only included when `RecordQueryText` is enabled
 [^3]: `error.type` is only included when an error occurs
+[^4]: `server.port` is only included when it is not the default port for the
+    scheme of the cluster URI (for example, `443` for `https`)
 
 ## Advanced configuration
 
