@@ -56,9 +56,15 @@ public static class UrlAttributes
     ///   <li><a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_sigv-authentication-methods.html"><c>X-Amz-Signature</c></a></li>
     ///   <li><a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_sigv-authentication-methods.html"><c>X-Amz-Credential</c></a></li>
     ///   <li><a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_sigv-authentication-methods.html"><c>X-Amz-Security-Token</c></a></li>
+    ///   <li><a href="https://docs.aws.amazon.com/AmazonS3/latest/developerguide/RESTAuthentication.html#RESTAuthenticationQueryStringAuth"><c>AWSAccessKeyId</c></a></li>
+    ///   <li><a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-creating-signed-url-canned-policy.html"><c>Signature</c></a></li>
     ///   <li><a href="https://learn.microsoft.com/azure/storage/common/storage-sas-overview#sas-token"><c>sig</c></a></li>
     ///   <li><a href="https://cloud.google.com/storage/docs/access-control/signed-urls"><c>X-Goog-Signature</c></a></li>
     /// </ul>
+    /// <p>
+    /// Several of these keys are used by more than one service or signing scheme. Each link
+    /// points to one representative usage rather than an exhaustive list, and does not narrow
+    /// the scope of the key to the linked service or signing scheme.
     /// <p>
     /// This list is subject to change over time.
     /// <p>
@@ -111,9 +117,15 @@ public static class UrlAttributes
     ///   <li><a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_sigv-authentication-methods.html"><c>X-Amz-Signature</c></a></li>
     ///   <li><a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_sigv-authentication-methods.html"><c>X-Amz-Credential</c></a></li>
     ///   <li><a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_sigv-authentication-methods.html"><c>X-Amz-Security-Token</c></a></li>
+    ///   <li><a href="https://docs.aws.amazon.com/AmazonS3/latest/developerguide/RESTAuthentication.html#RESTAuthenticationQueryStringAuth"><c>AWSAccessKeyId</c></a></li>
+    ///   <li><a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-creating-signed-url-canned-policy.html"><c>Signature</c></a></li>
     ///   <li><a href="https://learn.microsoft.com/azure/storage/common/storage-sas-overview#sas-token"><c>sig</c></a></li>
     ///   <li><a href="https://cloud.google.com/storage/docs/access-control/signed-urls"><c>X-Goog-Signature</c></a></li>
     /// </ul>
+    /// <p>
+    /// Several of these keys are used by more than one service or signing scheme. Each link
+    /// points to one representative usage rather than an exhaustive list, and does not narrow
+    /// the scope of the key to the linked service or signing scheme.
     /// <p>
     /// This list is subject to change over time.
     /// <p>
