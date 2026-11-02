@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+* BREAKING: Update latest AWS Semantic Conventions to 1.45.0
+  (`SemanticConventionVersion.V1_45_0`). SNS and SQS spans now use
+  `messaging.system.name` instead of `messaging.system`, and SQS spans use the
+  value `aws.sqs` instead of `aws_sqs`.
+  ([#5832](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5832))
+
 ## 1.20.2
 
 Released 2026-Oct-28

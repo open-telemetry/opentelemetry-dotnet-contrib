@@ -750,6 +750,50 @@ public class TestAWSClientInstrumentation : IDisposable
         Assert.Equal(extendedRequestId, Utils.GetTagValue(awssdk_activity, "aws.extended_request_id"));
     }
 
+    [Theory]
+    [InlineData(SemanticConventionVersion.V1_28_0, null, null)]
+    [InlineData(SemanticConventionVersion.V1_29_0, null, null)]
+    [InlineData(SemanticConventionVersion.V1_40_0, "messaging.system", "aws_sqs")]
+    [InlineData(SemanticConventionVersion.V1_45_0, "messaging.system.name", "aws.sqs")]
+    [InlineData(SemanticConventionVersion.Latest, "messaging.system.name", "aws.sqs")]
+#if NETFRAMEWORK
+    public void TestSQSMessagingSystemAttributeForSemanticConventionVersion(SemanticConventionVersion version, string? expectedKey, string? expectedValue)
+#else
+    public async Task TestSQSMessagingSystemAttributeForSemanticConventionVersion(SemanticConventionVersion version, string? expectedKey, string? expectedValue)
+#endif
+    {
+        var exportedItems = new List<Activity>();
+        var requestId = "fakerequ-esti-dfak-ereq-uestidfakere";
+        var extendedRequestId = "wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .SetSampler(new AlwaysOnSampler())
+                   .AddAWSInstrumentation(o => o.SemanticConventionVersion = version)
+                   .AddInMemoryExporter(exportedItems)
+                   .Build())
+        {
+            var sqs = new AmazonSQSClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+            CustomResponses.SetResponse(sqs, """{ "MessageId": "567910cd-659e-55d4-bc19-f29d9g3b2378" }""", requestId, extendedRequestId, true);
+            var request = new SendMessageRequest
+            {
+                QueueUrl = "https://sqs.us-east-1.amazonaws.com/123456789/MyTestQueue",
+                MessageBody = "Hello from OT",
+            };
+#if NETFRAMEWORK
+            sqs.SendMessage(request);
+#else
+            await sqs.SendMessageAsync(request, TestContext.Current.CancellationToken);
+#endif
+        }
+
+        var activity = Assert.Single(exportedItems, e => e.DisplayName == "SQS.SendMessage");
+
+        // The messaging attributes are only emitted from 1.40.0 onwards, and only the name
+        // defined by the selected version of the semantic conventions should be emitted.
+        Assert.Equal(expectedKey == "messaging.system" ? expectedValue : null, Utils.GetTagValue(activity, "messaging.system"));
+        Assert.Equal(expectedKey == "messaging.system.name" ? expectedValue : null, Utils.GetTagValue(activity, "messaging.system.name"));
+    }
+
     [Fact]
     public async Task SuppressDownstreamInstrumentation_RestoresSuppressionScope()
     {
@@ -814,7 +858,7 @@ public class TestAWSClientInstrumentation : IDisposable
         Assert.Equal("SendMessage", Utils.GetTagValue(sqs_activity, "messaging.operation.name"));
         Assert.Equal("send", Utils.GetTagValue(sqs_activity, "messaging.operation.type"));
         Assert.Equal("sqs.us-east-1.amazonaws.com", Utils.GetTagValue(sqs_activity, "server.address"));
-        Assert.Equal("aws_sqs", Utils.GetTagValue(sqs_activity, "messaging.system"));
+        Assert.Equal("aws.sqs", Utils.GetTagValue(sqs_activity, "messaging.system.name"));
     }
 
     private void ValidateSnsActivityTags(Activity sns_activity)
@@ -828,7 +872,7 @@ public class TestAWSClientInstrumentation : IDisposable
         Assert.Equal("567910cd-659e-55d4-bc19-f29d9g3b2378", Utils.GetTagValue(sns_activity, "messaging.message.id"));
         Assert.Equal("Publish", Utils.GetTagValue(sns_activity, "messaging.operation.name"));
         Assert.Equal("send", Utils.GetTagValue(sns_activity, "messaging.operation.type"));
-        Assert.Equal("aws.sns", Utils.GetTagValue(sns_activity, "messaging.system"));
+        Assert.Equal("aws.sns", Utils.GetTagValue(sns_activity, "messaging.system.name"));
     }
 
     private void ValidateBedrockActivityTags(Activity bedrock_activity)

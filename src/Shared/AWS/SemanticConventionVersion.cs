@@ -99,4 +99,13 @@ public enum SemanticConventionVersion
     /// This version contains conventions marked Experimental and may change in future versions.
     /// </summary>
     V1_40_0 = 3,
+
+    /// <summary>
+    /// Pin to the specific state of all Semantic Conventions as of the 1.45.0
+    /// release. See:
+    /// https://github.com/open-telemetry/semantic-conventions/releases/tag/v1.45.0.
+    /// <para />
+    /// This version contains conventions marked Experimental and may change in future versions.
+    /// </summary>
+    V1_45_0 = 4,
 }

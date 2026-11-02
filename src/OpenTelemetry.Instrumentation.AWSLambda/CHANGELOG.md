@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* BREAKING: Update latest AWS Semantic Conventions to 1.45.0
+  (`SemanticConventionVersion.V1_45_0`). Spans now use `faas.invocation.id`
+  instead of `faas.invocation_id`.
+  ([#5832](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5832))
+
 ## 1.20.2
 
 Released 2026-Oct-28

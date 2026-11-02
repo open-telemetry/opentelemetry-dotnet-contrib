@@ -659,6 +659,9 @@ internal partial class AWSSemanticConventions
         /// <summary>
         /// The messaging system as identified by the client instrumentation.
         /// </summary>
+        /// <remarks>
+        /// MessagingAttributes.AttributeMessagingSystemName
+        /// </remarks>
         public virtual string AttributeMessagingSystem => string.Empty;
 
         #endregion
