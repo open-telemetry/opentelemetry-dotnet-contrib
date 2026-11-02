@@ -7,6 +7,11 @@
   the metrics and to count jobs in custom Hangfire states.
   ([#5810](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5810))
 
+* Fixed `workflow.execution.duration` for the `executing` state. It included the
+  time of other measurements of this instrumentation, for example the database
+  query that `RecordQueueLatency` adds.
+  ([#5810](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5810))
+
 ## 1.20.1-beta.1
 
 Released 2026-Oct-21

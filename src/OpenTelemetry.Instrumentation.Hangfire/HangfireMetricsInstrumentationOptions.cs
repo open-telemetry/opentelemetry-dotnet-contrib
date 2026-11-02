@@ -4,6 +4,7 @@
 using System.Diagnostics;
 using Hangfire;
 using Hangfire.States;
+using OpenTelemetry.Instrumentation.Hangfire.Implementation;
 
 namespace OpenTelemetry.Metrics;
 
@@ -63,6 +64,11 @@ public sealed class HangfireMetricsInstrumentationOptions
                 if (string.IsNullOrWhiteSpace(entry.Key) || BuiltInStates.Contains(entry.Key))
                 {
                     throw new ArgumentException($"The custom state name '{entry.Key}' was null, empty, white-space or a built-in Hangfire state name.", nameof(value));
+                }
+
+                if (!BuiltInStates.Contains(entry.Value))
+                {
+                    HangfireInstrumentationEventSource.Log.UnknownMappedState(entry.Key, entry.Value);
                 }
 
                 copy[entry.Key] = entry.Value;

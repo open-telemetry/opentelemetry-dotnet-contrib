@@ -46,13 +46,6 @@ internal sealed class HangfireMetricsJobFilterAttribute : JobFilterAttribute, IS
 
         var backgroundJob = filterContext.BackgroundJob;
 
-        // Record execution outcome (without state attribute per semantic conventions)
-        var countTags = HangfireTagBuilder.BuildExecutionCountTags(
-            backgroundJob,
-            filterContext.Exception);
-
-        HangfireMetrics.ExecutionOutcome.Add(1, HangfireTagBuilder.Enrich(countTags, backgroundJob, this.options));
-
         // Record execution duration (with state="executing" to differentiate from pending phase)
         if (filterContext.Items.TryGetValue(StopwatchKey, out var stopwatchObj) && stopwatchObj is Stopwatch stopwatch)
         {
@@ -66,6 +59,13 @@ internal sealed class HangfireMetricsJobFilterAttribute : JobFilterAttribute, IS
 
             HangfireMetrics.ExecutionDuration.Record(duration, HangfireTagBuilder.Enrich(durationTags, backgroundJob, this.options));
         }
+
+        // Record execution outcome (without state attribute per semantic conventions)
+        var countTags = HangfireTagBuilder.BuildExecutionCountTags(
+            backgroundJob,
+            filterContext.Exception);
+
+        HangfireMetrics.ExecutionOutcome.Add(1, HangfireTagBuilder.Enrich(countTags, backgroundJob, this.options));
 
         // Record workflow-level metrics (includes trigger type)
         var workflowTags = HangfireTagBuilder.BuildWorkflowTags(

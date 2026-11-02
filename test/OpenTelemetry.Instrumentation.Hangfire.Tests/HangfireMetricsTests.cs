@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using System.Diagnostics.Tracing;
 using Hangfire;
 using Hangfire.States;
 using Microsoft.Extensions.DependencyInjection;
@@ -732,6 +733,50 @@ public class HangfireMetricsTests : IClassFixture<HangfireFixture>
     }
 
     [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public async Task Should_Not_Include_EnrichWithBackgroundJob_In_Execution_Duration(bool recordQueueLatency, bool failJob)
+    {
+        // Arrange
+        var enrichDelay = TimeSpan.FromMilliseconds(200);
+        var exportedItems = new List<Metric>();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddHangfireInstrumentation(options =>
+            {
+                options.RecordQueueLatency = recordQueueLatency;
+                options.EnrichWithBackgroundJob = backgroundJob =>
+                {
+                    Thread.Sleep(enrichDelay);
+                    return new TagList { { JobIdTagKey, backgroundJob.Id } };
+                };
+            })
+            .AddInMemoryExporter(exportedItems)
+            .Build();
+
+        // Act
+        var jobId = failJob
+            ? BackgroundJob.Enqueue<TestJob>(x => x.ThrowException())
+            : BackgroundJob.Enqueue<TestJob>(x => x.Execute());
+        await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
+
+        meterProvider.ForceFlush();
+
+        // Assert
+        var durationMetric = exportedItems.GetMetric(WorkflowMetricNames.ExecutionDuration);
+        AssertUtils.AssertHasMetricPoints(durationMetric);
+
+        var executingPoints = durationMetric!.ToMetricPointList()
+            .HavingTag(WorkflowAttributes.AttributeWorkflowExecutionState, WorkflowAttributes.WorkflowStateValues.Executing)
+            .HavingTag(JobIdTagKey, jobId)
+            .ToList();
+        Assert.NotEmpty(executingPoints);
+
+        var sum = executingPoints.Sum(point => point.GetHistogramSum());
+        Assert.True(sum < enrichDelay.TotalSeconds, $"Expected executing duration < {enrichDelay.TotalSeconds}s, got {sum}s");
+    }
+
+    [Theory]
     [InlineData("Scheduled", 1, 0, 0, 0)]
     [InlineData("Enqueued", 1, 0, 1, 0)]
     [InlineData("Processing", 0, 1, 0, 1)]
@@ -825,6 +870,26 @@ public class HangfireMetricsTests : IClassFixture<HangfireFixture>
         Assert.False(options.CustomStateMappings.ContainsKey("Other"));
         Assert.True(options.CustomStateMappings.ContainsKey(CustomTestState.StateName));
         Assert.False(options.CustomStateMappings.ContainsKey(CustomTestState.StateName.ToUpperInvariant()));
+    }
+
+    [Fact]
+    public void CustomStateMappings_Should_Log_Warning_For_Unknown_Mapped_State()
+    {
+        using var listener = new InMemoryEventListener(HangfireInstrumentationEventSource.Log);
+
+        var options = new HangfireMetricsInstrumentationOptions();
+        var mappings = new Dictionary<string, string>
+        {
+            [CustomTestState.StateName] = "Unknown",
+        };
+
+        options.CustomStateMappings = mappings;
+
+        Assert.Contains(
+            listener.Events,
+            e => e.Level == EventLevel.Warning &&
+                e.Payload!.OfType<string>().Any(value => value.Contains(CustomTestState.StateName, StringComparison.Ordinal)) &&
+                e.Payload!.OfType<string>().Any(value => value.Contains("Unknown", StringComparison.Ordinal)));
     }
 
     private sealed class CustomTestState : IState

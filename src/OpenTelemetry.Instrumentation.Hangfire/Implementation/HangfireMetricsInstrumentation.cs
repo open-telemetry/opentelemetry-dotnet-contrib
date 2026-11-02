@@ -15,7 +15,6 @@ internal sealed class HangfireMetricsInstrumentation : IDisposable
 
     public HangfireMetricsInstrumentation(HangfireMetricsInstrumentationOptions options)
     {
-        this.AddFilter(new HangfireMetricsJobFilterAttribute(options));
         this.AddFilter(new HangfireMetricsStateFilter(options));
         this.AddFilter(new HangfireMetricsErrorFilterAttribute(options));
 
@@ -24,6 +23,9 @@ internal sealed class HangfireMetricsInstrumentation : IDisposable
         {
             this.AddFilter(new HangfirePendingDurationFilterAttribute(options));
         }
+
+        // Added last so that its stopwatch excludes the work of the other metrics filters
+        this.AddFilter(new HangfireMetricsJobFilterAttribute(options));
     }
 
     public void Dispose()
