@@ -215,6 +215,7 @@ internal static class EventSourceTestHelper
     private sealed class CapturingEventListener : EventListener
     {
         private readonly EventSource eventSource;
+        private readonly int threadId = Environment.CurrentManagedThreadId;
 
         public CapturingEventListener(EventSource eventSource)
         {
@@ -232,7 +233,7 @@ internal static class EventSourceTestHelper
 
         protected override void OnEventWritten(EventWrittenEventArgs eventData)
         {
-            if (eventData.EventSource == this.eventSource)
+            if (eventData.EventSource == this.eventSource && Environment.CurrentManagedThreadId == this.threadId)
             {
                 this.Events.Add(eventData);
             }
