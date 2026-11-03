@@ -112,10 +112,10 @@ var instrumentedConsumerBuilder = consumerBuilder.AsInstrumentedConsumerBuilder(
 
 > [!NOTE]
 > This option only affects the `process` span created by
-> `ConsumeAndProcessMessageAsync`. The `poll` span is **always** started as a
-> new root span (it is never parented on the creation context, regardless of
-> this option). If a valid creation context was extracted from the message
-> headers, the `poll` span reports it as a span link.
+> `ConsumeAndProcessMessageAsync`. The `poll` span uses the ambient activity
+> as its parent when one is available; otherwise, it starts a new trace.
+> If a valid message creation context is extracted from the message headers,
+> the `poll` span records it as a span link.
 
 ## Metrics
 
