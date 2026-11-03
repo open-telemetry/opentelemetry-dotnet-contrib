@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Fixed the attributes of a sampling rule being matched incorrectly when a span
+  has more than one tag with the same key.
+  ([#5824](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5824))
+
 * **Breaking Change** Dropped support for `net8.0` and `net9.0`.
   ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
 

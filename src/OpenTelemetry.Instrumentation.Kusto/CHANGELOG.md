@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+* Updated Semantic Conventions version to `1.45.0`.
+  ([#5833](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5833))
+
+* **Breaking change**: The `server.port` attribute is no longer recorded when the
+  port is the default port for the scheme of the cluster URI (for example `443`
+  for `https`), to follow the v1.45.0 database semantic conventions.
+  ([#5833](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5833))
+
 * **Breaking Change** Dropped support for `net8.0` and `net9.0`.
   ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
 

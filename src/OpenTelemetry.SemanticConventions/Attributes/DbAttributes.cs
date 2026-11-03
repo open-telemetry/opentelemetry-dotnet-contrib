@@ -57,7 +57,7 @@ public static class DbAttributes
     public const string AttributeDbCassandraTable = "db.cassandra.table";
 
     /// <summary>
-    /// The name of the connection pool; unique within the instrumented application. In case the connection pool implementation doesn't provide a name, instrumentation SHOULD use a combination of parameters that would make the name unique, for example, combining attributes <c>server.address</c>, <c>server.port</c>, and <c>db.namespace</c>, formatted as <c>server.address:server.port/db.namespace</c>. Instrumentations that generate connection pool name following different patterns SHOULD document it.
+    /// The name of the connection pool. If the connection pool does not have a name, instrumentation SHOULD use <c>db.namespace</c>; otherwise <c>server.address</c>, with <c>server.port</c> appended using <c>:</c> if set. When appending a port to an IPv6 address, instrumentation MUST enclose the address in square brackets. If <c>server.address</c> is not available, instrumentation SHOULD use <c>db.system.name</c>; otherwise the connection pool library name.
     /// </summary>
     public const string AttributeDbClientConnectionPoolName = "db.client.connection.pool.name";
 
@@ -89,8 +89,9 @@ public static class DbAttributes
     /// when the database system supports query text with multiple collections
     /// in non-batch operations.
     /// <p>
-    /// For batch operations, if the individual operations are known to have the same
-    /// collection name then that collection name SHOULD be used.
+    /// For batch operations, if the individual operations would all have the same
+    /// <c>db.collection.name</c> when executed as non-batch operations,
+    /// then that collection name SHOULD be used.
     /// </remarks>
     public const string AttributeDbCollectionName = "db.collection.name";
 
@@ -267,9 +268,10 @@ public static class DbAttributes
     /// If spaces can occur in the operation name, multiple consecutive spaces
     /// SHOULD be normalized to a single space.
     /// <p>
-    /// For batch operations, if the individual operations are known to have the same operation name
-    /// then that operation name SHOULD be used prepended by <c>BATCH </c>,
-    /// otherwise <c>db.operation.name</c> SHOULD be <c>BATCH</c> or some other database
+    /// For batch operations, if the individual operations would all have the same
+    /// <c>db.operation.name</c> when executed as non-batch operations,
+    /// then that operation name SHOULD be used prepended by <c>BATCH </c>.
+    /// Otherwise, <c>db.operation.name</c> SHOULD be <c>BATCH</c> or some other database
     /// system specific term if more applicable.
     /// </remarks>
     public const string AttributeDbOperationName = "db.operation.name";
@@ -330,9 +332,10 @@ public static class DbAttributes
     /// <a href="/docs/db/database-spans.md#generating-a-summary-of-the-query">Generating query summary</a>
     /// section.
     /// <p>
-    /// For batch operations, if the individual operations are known to have the same query summary
-    /// then that query summary SHOULD be used prepended by <c>BATCH </c>,
-    /// otherwise <c>db.query.summary</c> SHOULD be <c>BATCH</c> or some other database
+    /// For batch operations, if the individual operations would all have the same
+    /// <c>db.query.summary</c> when executed as non-batch operations,
+    /// then that query summary SHOULD be used prepended by <c>BATCH </c>.
+    /// Otherwise, <c>db.query.summary</c> SHOULD be <c>BATCH</c> or some other database
     /// system specific term if more applicable.
     /// </remarks>
     public const string AttributeDbQuerySummary = "db.query.summary";
@@ -342,7 +345,7 @@ public static class DbAttributes
     /// </summary>
     /// <remarks>
     /// For sanitization see <a href="/docs/db/database-spans.md#sanitization-of-dbquerytext">Sanitization of <c>db.query.text</c></a>.
-    /// For batch operations, if the individual operations are known to have the same query text then that query text SHOULD be used, otherwise all of the individual query texts SHOULD be concatenated with separator <c>; </c> or some other database system specific separator if more applicable.
+    /// For batch operations, if the individual operations would all have the same <c>db.query.text</c> when executed as non-batch operations, then that query text SHOULD be used. Otherwise, all of the individual query texts SHOULD be concatenated with separator <c>; </c> or some other database system specific separator if more applicable.
     /// Parameterized query text SHOULD NOT be sanitized. Even though parameterized query text can potentially have sensitive data, by using a parameterized query the user is giving a strong signal that any sensitive data will be passed as parameter values, and the benefit to observability of capturing the static part of the query text by default outweighs the risk.
     /// </remarks>
     public const string AttributeDbQueryText = "db.query.text";
@@ -363,6 +366,7 @@ public static class DbAttributes
     /// </summary>
     /// <remarks>
     /// The status code returned by the database. Usually it represents an error code, but may also represent partial success, warning, or differentiate between various types of successful outcomes.
+    /// The value MAY use a standardized string representation of a numeric status code, if one exists, instead of the numeric code. The value MAY be a synthetic status provided by the client library rather than returned by the remote service.
     /// Semantic conventions for individual database systems SHOULD document what <c>db.response.status_code</c> means in the context of that system.
     /// </remarks>
     public const string AttributeDbResponseStatusCode = "db.response.status_code";
@@ -386,8 +390,9 @@ public static class DbAttributes
     /// It is RECOMMENDED to capture the value as provided by the application
     /// without attempting to do any case normalization.
     /// <p>
-    /// For batch operations, if the individual operations are known to have the same
-    /// stored procedure name then that stored procedure name SHOULD be used.
+    /// For batch operations, if the individual operations would all have the same
+    /// <c>db.stored_procedure.name</c> when executed as non-batch operations,
+    /// then that stored procedure name SHOULD be used.
     /// </remarks>
     public const string AttributeDbStoredProcedureName = "db.stored_procedure.name";
 
@@ -1030,7 +1035,7 @@ public static class DbAttributes
         public const string Hsqldb = "hsqldb";
 
         /// <summary>
-        /// <a href="https://www.ibm.com/db2">IBM Db2</a>.
+        /// <a href="https://www.ibm.com/products/db2">IBM Db2</a>.
         /// </summary>
         public const string IbmDb2 = "ibm.db2";
 

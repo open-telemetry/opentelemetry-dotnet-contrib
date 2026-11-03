@@ -14,7 +14,7 @@ internal sealed class AspNetInstrumentation : IDisposable
 {
     public static readonly AspNetInstrumentation Instance = new();
 
-    public static readonly Version SemanticConventionsVersion = new(1, 36, 0);
+    public static readonly Version SemanticConventionsVersion = new(1, 45, 0);
     public static readonly ActivitySource ActivitySource = Trace.ActivitySourceFactory.Create<AspNetInstrumentation>(SemanticConventionsVersion);
     public static readonly Meter Meter = Metrics.MeterFactory.Create<AspNetInstrumentation>(SemanticConventionsVersion);
 

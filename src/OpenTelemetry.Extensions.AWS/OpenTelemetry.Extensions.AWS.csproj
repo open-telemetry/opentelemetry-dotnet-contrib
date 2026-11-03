@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageValidationBaselineVersion>1.20.2</PackageValidationBaselineVersion>
+    <PackageValidationBaselineVersion>1.20.3</PackageValidationBaselineVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,6 +19,10 @@
     <Compile Include="$(RepoRoot)\src\Shared\CharExtensions.cs" Link="Includes\CharExtensions.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\ExceptionExtensions.cs" Link="Includes\ExceptionExtensions.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="OpenTelemetry.Extensions.AWS.FuzzTests" PublicKey="$(StrongNamePublicKey)" />
   </ItemGroup>
 
 </Project>

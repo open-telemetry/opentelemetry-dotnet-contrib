@@ -258,6 +258,7 @@
     <Project Path="test/OpenTelemetry.Exporter.InfluxDB.Tests/OpenTelemetry.Exporter.InfluxDB.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Exporter.OneCollector.Benchmarks/OpenTelemetry.Exporter.OneCollector.Benchmarks.csproj" />
     <Project Path="test/OpenTelemetry.Exporter.OneCollector.Tests/OpenTelemetry.Exporter.OneCollector.Tests.csproj" />
+    <Project Path="test/OpenTelemetry.Extensions.AWS.FuzzTests/OpenTelemetry.Extensions.AWS.FuzzTests.csproj" />
     <Project Path="test/OpenTelemetry.Extensions.AWS.Tests/OpenTelemetry.Extensions.AWS.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Extensions.Benchmarks/OpenTelemetry.Extensions.Benchmarks.csproj" />
     <Project Path="test/OpenTelemetry.Extensions.Enrichment.AspNetCore.Tests/OpenTelemetry.Extensions.Enrichment.AspNetCore.Tests.csproj" />
@@ -307,6 +308,7 @@
     <Project Path="test/OpenTelemetry.Resources.OperatingSystem.Tests/OpenTelemetry.Resources.OperatingSystem.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Resources.Process.Tests/OpenTelemetry.Resources.Process.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Resources.ProcessRuntime.Tests/OpenTelemetry.Resources.ProcessRuntime.Tests.csproj" />
+    <Project Path="test/OpenTelemetry.Sampler.AWS.FuzzTests/OpenTelemetry.Sampler.AWS.FuzzTests.csproj" />
     <Project Path="test/OpenTelemetry.Sampler.AWS.Tests/OpenTelemetry.Sampler.AWS.Tests.csproj" />
     <Project Path="test/TestApp.AspNetCore/TestApp.AspNetCore.csproj" />
   </Folder>

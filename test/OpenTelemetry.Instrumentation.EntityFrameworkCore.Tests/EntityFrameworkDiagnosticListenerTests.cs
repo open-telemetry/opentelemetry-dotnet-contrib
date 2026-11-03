@@ -798,7 +798,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         }
         else if (emitNewAttributes)
         {
-            Assert.Equal("https://opentelemetry.io/schemas/1.36.0", activity.Source.TelemetrySchemaUrl);
+            Assert.Equal("https://opentelemetry.io/schemas/1.45.0", activity.Source.TelemetrySchemaUrl);
         }
 
         // TBD: SqlLite not setting the DataSource so it doesn't get set.
