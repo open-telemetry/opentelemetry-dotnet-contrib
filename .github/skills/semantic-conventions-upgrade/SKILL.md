@@ -219,32 +219,51 @@ instead of deciding silently.
 ### Compatibility strategy for behavior changes
 
 Changing emitted telemetry is a breaking change for dashboards, alerts and
-sampling rules. Choose the strategy by package stability:
+sampling rules. Choose the strategy from the migration guidance for the
+convention area and the component's existing compatibility contract, not from
+package stability alone:
 
-- **Stable packages:** never change the default output. Use the
-  `OTEL_SEMCONV_STABILITY_OPT_IN` dual-emit pattern:
-  - Database: `DatabaseSemanticConventionHelper` (`database`, `database/dup`).
-  - RPC: `RpcSemanticConventionHelper` (`rpc`, `rpc/dup`).
-  - Link the shared helper (`src/Shared`) rather than copying it, and add the
-    option properties (`EmitOldAttributes`/`EmitNewAttributes` style) that the
-    other libraries use.
-  - Create **separate versioned scopes**: old (previous version), new (target
-    version) and "both" (schema URL `null`, because the output matches no
-    single schema), e.g. `ActivitySourceFactory.Create<T>(null)`. Pick the scope
-    per mode.
-  - In `dup` mode, a key that exists in both shapes with conflicting values
-    (RPC's `rpc.method`) needs a documented winner. Prefer the new value and
-    document the compromise.
-  - Only bump the declared version of the **new** path when the library is in
-    old-by-default mode; the old path's version stays put (EntityFrameworkCore
-    bumped only the database opt-in path).
-- **Pre-release (alpha/beta) packages:** a hard cutover is acceptable
-  (ConfluentKafka). Mark it `**Breaking change**` in the CHANGELOG and describe
-  every rename.
-- **New selectable version enums (AWS):** add the new member
-  (`V1_45_0`), make `Latest` resolve to it, update the public API files, and
-  **do not change the default**. Derive the new conventions class from the
-  previous one and override only what changed.
+1. **Read the area's migration notice** at the target tag (for example
+   `docs/db/README.md`, `docs/rpc/README.md`). Check whether it defines an
+   `OTEL_SEMCONV_STABILITY_OPT_IN` value, what the default must be, and when
+   the variable applies (the RPC notice limits it to the migration from
+   experimental conventions to their initial stable version).
+2. **Read the component's existing contract:** its README, CHANGELOG, options
+   and any helper it already uses. Keep opt-ins it already ships; do not
+   remove or reinterpret them.
+3. Then pick the matching case:
+   - **Experimental to initial stable, where the notice defines opt-in
+     values** (currently `database` and `rpc`): keep the default output and
+     use the dual-emit pattern.
+     - Database: `DatabaseSemanticConventionHelper` (`database`,
+       `database/dup`).
+     - RPC: `RpcSemanticConventionHelper` (`rpc`, `rpc/dup`).
+     - Link the shared helper (`src/Shared`) rather than copying it, and add
+       the option properties (`EmitOldAttributes`/`EmitNewAttributes` style)
+       that the other libraries use.
+     - Create **separate versioned scopes**: old (previous version), new
+       (target version) and "both" (schema URL `null`, because the output
+       matches no single schema), e.g. `ActivitySourceFactory.Create<T>(null)`.
+       Pick the scope per mode.
+     - In `dup` mode, a key that exists in both shapes with conflicting values
+       (RPC's `rpc.method`) needs a documented winner. Prefer the new value
+       and document the compromise.
+     - Only bump the declared version of the **new** path when the library is
+       in old-by-default mode; the old path's version stays put
+       (EntityFrameworkCore bumped only the database opt-in path).
+   - **The component already ships an opt-in contract** (stable or
+     pre-release): extend that contract. Do not replace it with a hard
+     cutover.
+   - **The area is already stable, or no opt-in value is defined for it** (for
+     example HTTP, or messaging, which is still experimental): do not invent a
+     new opt-in variable. Follow the notice. A pre-release package with no
+     existing contract may do a hard cutover (ConfluentKafka); mark it
+     `**Breaking change**` in the CHANGELOG, describe every rename, and
+     confirm the approach with the user.
+   - **New selectable version enums (AWS):** add the new member (`V1_45_0`),
+     make `Latest` resolve to it, update the public API files, and **do not
+     change the default**. Derive the new conventions class from the previous
+     one and override only what changed.
 
 ### Components to leave out of a bump
 
@@ -351,11 +370,22 @@ included") with the reason, for example:
 
 ## Step 7: Documentation and CHANGELOG
 
-- **README:** update every `semantic-conventions/blob/v<version>/...` link to
-  the new tag (permalinks to tags, never `main`, per `REVIEW.md`), including
-  links that were already stale. Update attribute and metric tables and any
-  footnotes describing conditional behavior. Describe the opt-in environment
-  variable values the library understands, where relevant.
+- **README:** update the `semantic-conventions/blob/v<version>/...` links that
+  document what the component itself now emits, using tag permalinks (never
+  `main`, per `REVIEW.md`). Classify each link first:
+  - *Migrated path* (what the component emits at the new version): update to
+    the new tag, including links that were already stale.
+  - *Legacy path* (old default or old `OTEL_SEMCONV_STABILITY_OPT_IN` mode):
+    keep the tag matching the version that path declares.
+  - *Runtime- or framework-owned telemetry* (for example native HttpClient or
+    ASP.NET Core instrumentation): link the version the runtime implements,
+    not the version the library declares.
+  - *Historical references* (migration notes, comparisons with older
+    versions): leave unchanged.
+
+  Update attribute and metric tables and any footnotes describing conditional
+  behavior, and describe the opt-in environment variable values the library
+  understands, where relevant.
 - **CHANGELOG** in every affected component, under `## Unreleased`, new entries
   at the *end*, sentence case, ending in a period, with the PR link. Do not add
   a version header. Use the established wording for a plain bump:
@@ -442,15 +472,18 @@ Before declaring the work done, confirm each of these:
       only attribute names.
 - [ ] Data that cannot be sourced honestly is omitted, with the user's
       agreement, rather than guessed.
-- [ ] Stable packages keep default output unchanged and use opt-in dual-emit;
-      pre-release packages document their breaking changes.
+- [ ] The compatibility approach follows the area's migration notice and the
+      component's existing opt-in contract (no new opt-ins invented, none
+      dropped); any hard cutover is limited to pre-release packages without
+      such a contract and is documented as breaking.
 - [ ] The declared version is only bumped where the behavior matches; skipped
       components are listed with reasons.
 - [ ] Generated constant *values* were diffed, not just names.
 - [ ] Tests cover each opt-in mode, schema URLs, attribute types and absence of
       attributes; Weaver tests use the declared version constant.
-- [ ] README links (all of them) and tables, CHANGELOG entries (every affected
-      component, at the end of `Unreleased`) and public API files are updated.
+- [ ] README links for the migrated path and tables, CHANGELOG entries (every
+      affected component, at the end of `Unreleased`) and public API files are
+      updated; legacy, runtime-owned and historical links were left alone.
 - [ ] Build (all TFMs), tests, `dotnet format` and `markdownlint` outcomes are
       reported, with anything not run called out.
 - [ ] PR description follows the template, discloses AI usage, and lists the
