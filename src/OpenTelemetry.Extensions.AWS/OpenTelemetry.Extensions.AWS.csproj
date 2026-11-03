@@ -21,4 +21,8 @@
     <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="OpenTelemetry.Extensions.AWS.FuzzTests" PublicKey="$(StrongNamePublicKey)" />
+  </ItemGroup>
+
 </Project>
