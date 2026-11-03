@@ -477,6 +477,9 @@ internal partial class AWSSemanticConventions
 
         #region Messaging
 
+        public Activity? SetTagAttributeMessagingBatchMessageCount(Activity? activity, int value)
+            => this.awsSemanticConventions.SetTag(activity, x => x.AttributeMessagingBatchMessageCount, value);
+
         public Activity? SetTagAttributeMessagingDestinationName(Activity? activity, string value)
             => this.awsSemanticConventions.SetTag(activity, x => x.AttributeMessagingDestinationName, value);
 

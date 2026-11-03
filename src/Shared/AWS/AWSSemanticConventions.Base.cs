@@ -637,6 +637,14 @@ internal partial class AWSSemanticConventions
         #region MESSAGING Attributes
 
         /// <summary>
+        /// The number of messages sent, received, or processed in the scope of the batching operation.
+        /// </summary>
+        /// <remarks>
+        /// MessagingAttributes.AttributeMessagingBatchMessageCount
+        /// </remarks>
+        public virtual string AttributeMessagingBatchMessageCount => string.Empty;
+
+        /// <summary>
         /// The message destination name.
         /// </summary>
         public virtual string AttributeMessagingDestinationName => string.Empty;

@@ -8,10 +8,18 @@ using OpenTelemetry.AWS;
 
 namespace OpenTelemetry.Instrumentation.AWS.Implementation.Tracing;
 
-internal sealed class AWSTracerProvider(SemanticConventionVersion version) : TracerProvider
+internal sealed class AWSTracerProvider : TracerProvider
 {
     private readonly ConcurrentDictionary<string, ActivitySource> activitySources = new();
-    private readonly Version semanticConventionVersion = AWSSemanticConventions.GetVersion(version);
+    private readonly Version semanticConventionVersion;
+    private readonly bool useProducerKindForMessageSend;
+
+    public AWSTracerProvider(SemanticConventionVersion version)
+    {
+        // Since v1.44.0 the semantic conventions for AWS SNS and AWS SQS describe sending a message as a producer span.
+        this.semanticConventionVersion = AWSSemanticConventions.GetVersion(version);
+        this.useProducerKindForMessageSend = this.semanticConventionVersion >= new Version(1, 44, 0);
+    }
 
     public override Tracer GetTracer(string scope)
     {
@@ -25,7 +33,7 @@ internal sealed class AWSTracerProvider(SemanticConventionVersion version) : Tra
 #endif
         }
 
-        return new AWSTracer(activitySource);
+        return new AWSTracer(activitySource, this.useProducerKindForMessageSend);
     }
 
     private static ActivitySource CreateActivitySource(string name, Version version)

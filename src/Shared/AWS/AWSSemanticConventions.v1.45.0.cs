@@ -25,6 +25,7 @@ internal partial class AWSSemanticConventions
         public override string AttributeFaasExecution => "faas.invocation.id";
 
         // MESSAGING Attributes
+        public override string AttributeMessagingBatchMessageCount => "messaging.batch.message_count";
         public override string AttributeMessagingSystem => "messaging.system.name";
     }
 }
