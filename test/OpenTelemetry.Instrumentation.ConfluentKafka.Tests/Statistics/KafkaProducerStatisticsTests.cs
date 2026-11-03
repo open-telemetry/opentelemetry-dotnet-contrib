@@ -242,6 +242,59 @@ public class KafkaProducerStatisticsTests
         Assert.Equal(total, listener.Total("kafka.producer.record_send_total"));
     }
 
+    [Fact]
+    public async Task CountersCatchUpAfterQueueOverflow()
+    {
+        using var listener = new MetricsListener();
+        using var registration = new KafkaProducerMetricsRegistration();
+        using var release = new ManualResetEventSlim();
+        var started = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var processed = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var caughtUp = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        const string First = "{\"type\":\"producer\",\"ts\":1,\"txmsgs\":10}";
+        const string Second = "{\"type\":\"producer\",\"ts\":2,\"txmsgs\":20}";
+        const string Dropped = "{\"type\":\"producer\",\"ts\":3,\"txmsgs\":30}";
+        const string Latest = "{\"type\":\"producer\",\"ts\":4,\"txmsgs\":40}";
+        Action<string> update = json =>
+        {
+            if (json == First)
+            {
+                started.TrySetResult(true);
+                release.Wait(TestContext.Current.CancellationToken);
+            }
+
+            registration.Update(json);
+            if (json == Second)
+            {
+                processed.TrySetResult(true);
+            }
+            else if (json == Latest)
+            {
+                caughtUp.TrySetResult(true);
+            }
+        };
+        using var processor = new KafkaProducerStatisticsProcessor(update, capacity: 1);
+
+        try
+        {
+            Assert.True(processor.TryEnqueue(First));
+            await KafkaProducerStatisticsProcessorTests.WaitForAsync(started.Task);
+            Assert.True(processor.TryEnqueue(Second));
+            Assert.False(processor.TryEnqueue(Dropped));
+            release.Set();
+            await KafkaProducerStatisticsProcessorTests.WaitForAsync(processed.Task);
+            Assert.True(processor.TryEnqueue(Latest));
+            await KafkaProducerStatisticsProcessorTests.WaitForAsync(caughtUp.Task);
+            Assert.Equal(40, listener.Total("kafka.producer.record_send_total"));
+        }
+        finally
+        {
+            release.Set();
+            processor.Dispose();
+            await KafkaProducerStatisticsProcessorTests.WaitForAsync(processor.Completion);
+        }
+    }
+
     internal static string ReadFixture(string state) => File.ReadAllText(
         Path.Combine(AppContext.BaseDirectory, "Statistics", "Fixtures", $"librdkafka-2.4.0-producer-{state}.json"));
 

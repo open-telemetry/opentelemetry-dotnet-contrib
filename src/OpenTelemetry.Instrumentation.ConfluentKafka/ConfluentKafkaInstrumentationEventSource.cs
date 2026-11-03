@@ -12,6 +12,13 @@ internal sealed class ConfluentKafkaInstrumentationEventSource : EventSource
 
     private const int EventIdFailedToFetchClusterId = 1;
     private const int EventIdStatisticsHandlerFailed = 2;
+    private const int EventIdStatisticsQueueFull = 3;
+
+    [Event(EventIdStatisticsQueueFull, Message = "Kafka producer statistics queue is full. The new statistics payload was dropped.", Level = EventLevel.Warning)]
+    public void StatisticsQueueFull()
+    {
+        this.WriteEvent(EventIdStatisticsQueueFull);
+    }
 
     [NonEvent]
     public void StatisticsHandlerFailed(Exception ex)

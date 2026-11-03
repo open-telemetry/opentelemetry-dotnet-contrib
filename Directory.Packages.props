@@ -60,6 +60,7 @@
     <PackageVersion Include="System.ServiceModel.Primitives" Version="[4.7.0,)" />
     <PackageVersion Include="System.Text.Encodings.Web" Version="[4.7.2,)" />
     <PackageVersion Include="System.Text.Json" Version="[8.0.5,)" />
+    <PackageVersion Include="System.Threading.Channels" Version="[8.0.0,)" />
   </ItemGroup>
   <!-- Version overrides for specific netX.0 TFMs -->
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">

@@ -9,14 +9,20 @@ internal sealed class KafkaProducerMetricsRegistration : IDisposable
 {
     private static readonly State DisposedState = new(null, 0, 0);
 
+    private readonly KafkaProducerStatisticsProcessor processor;
     private State state = new(null, 0, 0);
 
     public KafkaProducerMetricsRegistration()
     {
+        this.processor = new KafkaProducerStatisticsProcessor(this.Update);
         KafkaProducerMetrics.Register(this);
     }
 
     public KafkaProducerStatistics? Snapshot => Volatile.Read(ref this.state).Snapshot;
+
+    public Task Completion => this.processor.Completion;
+
+    public void Enqueue(string json) => this.processor.TryEnqueue(json);
 
     public void Update(string json)
     {
@@ -44,6 +50,7 @@ internal sealed class KafkaProducerMetricsRegistration : IDisposable
     public void Dispose()
     {
         Interlocked.Exchange(ref this.state, DisposedState);
+        this.processor.Dispose();
         KafkaProducerMetrics.Unregister(this);
     }
 

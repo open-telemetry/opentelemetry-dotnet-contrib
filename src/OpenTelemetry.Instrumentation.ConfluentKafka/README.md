@@ -129,6 +129,23 @@ statistics callbacks. An existing application statistics handler is preserved;
 instrumentation and handler failures are reported through EventSource without
 escaping into Kafka processing.
 
+Statistics JSON is processed asynchronously using a bounded channel, adapting
+the approach from [Aspire's Kafka integration][aspire-kafka-metrics]. Each opted-in
+producer owns one background reader and a queue of up to 16 pending payloads;
+no application host or hosted service is required. The instrumentation callback
+only attempts to enqueue the payload, then invokes the application's statistics
+handler on the original callback thread without waiting for metrics processing.
+Applications must still avoid blocking their own handler.
+
+If the queue is full, the new payload is dropped and an EventSource warning is
+reported without logging its contents. A later cumulative snapshot can recover
+counter increments unless the native counter resets or the producer is disposed
+before that snapshot is processed. Dropped timing windows cannot be recovered.
+Metric observations may lag the native callback while accepted payloads are
+processed in order.
+
+[aspire-kafka-metrics]: https://github.com/dotnet/aspire/tree/020bf8c8c58f879abd0beb92517454332429e21b/src/Components/Aspire.Confluent.Kafka
+
 The following names follow the Java Kafka client instrumentation. All eight
 metrics are **process aggregates across opted-in producers**, including producers
 connected to different clusters. They have no client, topic, partition, or broker
@@ -156,8 +173,10 @@ Each producer records deltas from its own cumulative counters; the first snapsho
 contributes its total, and a decrease starts a new counter epoch. Duplicate
 `client.id` values do not require special handling. Disposing a producer removes
 its gauge observations without subtracting previously recorded counter values.
-A callback already accepted before disposal may finish recording its counters.
-Counter rates can be calculated by the metrics backend.
+Disposal closes the queue and discards pending payloads without waiting for the
+background reader. An update already being processed may finish recording its
+counters, but cannot restore disposed gauge observations. Counter rates can be
+calculated by the metrics backend.
 
 Gauges use each producer's latest valid statistics snapshot. Timing averages are
 weighted by sample counts across brokers and producers, rather than averaging

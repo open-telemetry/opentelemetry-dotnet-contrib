@@ -72,7 +72,7 @@ public sealed class InstrumentedProducerBuilder<TKey, TValue> : ProducerBuilder<
         var registration = CreateMetricsRegistration();
         try
         {
-            var handler = KafkaProducerStatisticsHandler.Create(registration.Update, userHandler);
+            var handler = KafkaProducerStatisticsHandler.Create(registration.Enqueue, userHandler);
             var producer = new InstrumentedProducer<TKey, TValue>(this.BuildNativeProducer(handler), this.options, bootstrapServers, registration);
             registration = null;
             return producer;
