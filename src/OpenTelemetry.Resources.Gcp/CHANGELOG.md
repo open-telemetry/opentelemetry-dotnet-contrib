@@ -7,7 +7,7 @@
 
 * Add the `gcp.gce.instance.name` resource attribute when running on Google
   Compute Engine.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#5838](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5838))
 
 ## 1.0.0-alpha.9
 
