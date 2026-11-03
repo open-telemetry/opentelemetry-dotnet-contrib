@@ -23,6 +23,22 @@ public static class ServiceAttributes
     public const string AttributeServiceCriticality = "service.criticality";
 
     /// <summary>
+    /// Identifier of the cost center associated with the service instance.
+    /// </summary>
+    /// <remarks>
+    /// The cost center identifier enables tracking and attribution of service resource costs to organizational units, billing accounts, or teams. It is typically a string identifier such as a billing account ID, cost allocation code, or internal accounting ID.
+    /// </remarks>
+    public const string AttributeServiceInstanceCostCenterId = "service.instance.cost_center.id";
+
+    /// <summary>
+    /// Name of the cost center associated with the service instance.
+    /// </summary>
+    /// <remarks>
+    /// A human-readable name of the cost center, department, or organizational unit responsible for the service instance costs.
+    /// </remarks>
+    public const string AttributeServiceInstanceCostCenterName = "service.instance.cost_center.name";
+
+    /// <summary>
     /// The string ID of the service instance.
     /// </summary>
     /// <remarks>
@@ -75,11 +91,13 @@ public static class ServiceAttributes
     /// <summary>
     /// Logical name of the service on the other side of the connection. SHOULD be equal to the actual <a href="/docs/resource/README.md#service"><c>service.name</c></a> resource attribute of the remote service if any.
     /// </summary>
+    [Obsolete("Use <c>server.service.name</c> on the client side or <c>client.service.name</c> on the server side.")]
     public const string AttributeServicePeerName = "service.peer.name";
 
     /// <summary>
     /// Logical namespace of the service on the other side of the connection. SHOULD be equal to the actual <a href="/docs/resource/README.md#service"><c>service.namespace</c></a> resource attribute of the remote service if any.
     /// </summary>
+    [Obsolete("Use <c>server.service.namespace</c> on the client side or <c>client.service.namespace</c> on the server side.")]
     public const string AttributeServicePeerNamespace = "service.peer.namespace";
 
     /// <summary>

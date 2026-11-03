@@ -13,7 +13,7 @@ namespace OpenTelemetry.Resources.Gcp;
 /// </summary>
 internal sealed class GcpResourceDetector : IResourceDetector
 {
-    private static readonly Version SemanticConventionsVersion = new(1, 44, 0);
+    private static readonly Version SemanticConventionsVersion = new(1, 45, 0);
 
     /// <inheritdoc/>
     public Resource Detect()

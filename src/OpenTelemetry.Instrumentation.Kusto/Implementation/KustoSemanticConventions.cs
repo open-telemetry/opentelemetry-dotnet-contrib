@@ -15,5 +15,5 @@ internal static class KustoSemanticConventions
     /// The version of the OpenTelemetry semantic conventions the instrumentation targets. Shared by the
     /// activity source and the meter so the traces and metrics schemas cannot drift apart.
     /// </summary>
-    public static readonly Version SemanticConventionsVersion = new(1, 40, 0);
+    public static readonly Version SemanticConventionsVersion = new(1, 45, 0);
 }

@@ -23,6 +23,9 @@
   bracket.
   ([#5827](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5827))
 
+* Updated Semantic Conventions version to `1.45.0`.
+  ([#5833](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5833))
+
 * Fixed `db.query.summary` so that a multi-part name which mixes undelimited
   and delimited parts, such as `dbo.[Orders]`, or which has whitespace around
   a period, such as `dbo . Orders` or `[dbo] . [Orders]`, is captured whole,

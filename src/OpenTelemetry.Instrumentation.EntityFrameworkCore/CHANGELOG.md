@@ -27,6 +27,11 @@
   bracket.
   ([#5827](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5827))
 
+* Updated the Semantic Conventions version used for the database semantic
+  conventions emitted when `OTEL_SEMCONV_STABILITY_OPT_IN` includes `database`
+  or `database/dup` to `1.45.0`.
+  ([#5833](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5833))
+
 * Fixed `db.query.summary` so that a multi-part name which mixes undelimited
   and delimited parts, such as `dbo.[Orders]`, or which has whitespace around
   a period, such as `dbo . Orders` or `[dbo] . [Orders]`, is captured whole,

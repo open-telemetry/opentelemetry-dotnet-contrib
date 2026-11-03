@@ -23,6 +23,7 @@ public static class EnduserAttributes
     /// [!Warning]
     /// This field contains sensitive (PII) information.</blockquote>
     /// </remarks>
+    [Obsolete("Moved to the OpenTelemetry Client-Side semantic conventions repository (https://github.com/open-telemetry/semantic-conventions-client-side).")]
     public const string AttributeEnduserId = "enduser.id";
 
     /// <summary>
@@ -34,6 +35,7 @@ public static class EnduserAttributes
     /// [!Warning]
     /// This field contains sensitive (linkable PII) information.</blockquote>
     /// </remarks>
+    [Obsolete("Moved to the OpenTelemetry Client-Side semantic conventions repository (https://github.com/open-telemetry/semantic-conventions-client-side).")]
     public const string AttributeEnduserPseudoId = "enduser.pseudo.id";
 
     /// <summary>
