@@ -30,8 +30,9 @@ interpret the data.
 > verified or changed, never a first step and never a no-op.
 
 Per `REVIEW.md`, the instrumentation scope must carry both a `Version` and a
-`SchemaUrl`, and these must be updated when the supported semantic convention
-version changes.
+`SchemaUrl`. When the supported semantic convention version changes, update the
+`SchemaUrl` (via the declared constant); the scope `Version` stays the
+package's own version.
 
 ## Step 0: Classify the change
 
@@ -166,8 +167,13 @@ Do not stop at attribute renames. Previous upgrades turned up each of these:
   conventions changed meaning (the configured address, with the contacted node
   moving to `network.peer.*`), which an unchanged attribute name would hide.
 - **Newly required or recommended attributes** the component can now provide.
-- **Deprecations** that the component still emits, which are fine under an
-  older declared version but not under the new one.
+- **Deprecations** of attributes the component emits. Deprecation alone does
+  not make an attribute invalid at the target version: check the target
+  area's requirement level and migration notice. For example, the AWS SDK
+  span conventions at v1.45.0 still mark the deprecated `rpc.system` as
+  `Required` and `rpc.service` as `Recommended`. Replace an attribute only
+  when the area's conventions no longer require or recommend it, or the notice
+  says to; otherwise keep it and note the decision in the per-version table.
 
 ## Step 3: Inventory what the component actually emits
 
@@ -233,8 +239,9 @@ package stability alone:
    remove or reinterpret them.
 3. Then pick the matching case:
    - **Experimental to initial stable, where the notice defines opt-in
-     values** (currently `database` and `rpc`): keep the default output and
-     use the dual-emit pattern.
+     values** (`database`, `rpc`, and `messaging` for components that still
+     emit v1.24.0 or earlier conventions): keep the default output and use the
+     dual-emit pattern.
      - Database: `DatabaseSemanticConventionHelper` (`database`,
        `database/dup`).
      - RPC: `RpcSemanticConventionHelper` (`rpc`, `rpc/dup`).
@@ -254,12 +261,14 @@ package stability alone:
    - **The component already ships an opt-in contract** (stable or
      pre-release): extend that contract. Do not replace it with a hard
      cutover.
-   - **The area is already stable, or no opt-in value is defined for it** (for
-     example HTTP, or messaging, which is still experimental): do not invent a
-     new opt-in variable. Follow the notice. A pre-release package with no
-     existing contract may do a hard cutover (ConfluentKafka); mark it
-     `**Breaking change**` in the CHANGELOG, describe every rename, and
+   - **Messaging components already past v1.24.0, or any area with no
+     defined opt-in value:** the notice's starting-version condition does not
+     apply, so do not invent a new opt-in variable. Follow the notice. A
+     pre-release package with no existing contract may do a hard cutover; mark
+     it `**Breaking change**` in the CHANGELOG, describe every rename, and
      confirm the approach with the user.
+   - **The area is already stable** (for example HTTP): no new opt-in; follow
+     the notice for any remaining migration.
    - **New selectable version enums (AWS):** add the new member (`V1_45_0`),
      make `Latest` resolve to it, update the public API files, and **do not
      change the default**. Derive the new conventions class from the previous
@@ -300,7 +309,7 @@ included") with the reason, for example:
 6. **Recommended and Opt-in attributes.** Only add new Public API surface for
    attributes that are recommended or opt-in according to the semantic conventions
    when explicitly asked to do so by the user.
-6. **Do not hand-edit generated files.**
+7. **Do not hand-edit generated files.**
 
 ### Gotchas to check for in the implementation
 
@@ -333,9 +342,11 @@ included") with the reason, for example:
 
 ## Step 6: Tests
 
-1. **Schema URL assertions.** Tests that assert the schema URL or scope version
-   must be updated to the constants (or the new literal) for each mode. For
-   dual-emit, assert the schema URL for old, new and both modes.
+1. **Schema URL assertions.** Tests that assert the schema URL must be updated
+   to the constants (or the new literal) for each mode. For dual-emit, assert
+   the schema URL for old, new and both modes. Do not change scope `Version`
+   expectations: the factories set it from the package version, not the
+   semantic conventions version.
 2. **Attribute and metric assertions per mode.** For opt-in libraries,
    parameterise tests over the modes (Old/New/Dupe) rather than testing only
    the mode you changed. Assert the *absence* of attributes that must not be
