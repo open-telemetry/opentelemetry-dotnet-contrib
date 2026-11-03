@@ -56,25 +56,29 @@ internal static class Matcher
             return false;
         }
 
-        var matchedCount = 0;
-
-        foreach (var tag in tags)
+        // Every attribute of the rule must be matched by a tag. A tag key may be repeated, so it is the
+        // attributes of the rule which are counted rather than the tags which match one of them.
+        foreach (var attribute in ruleAttributes)
         {
-            var textToMatch = tag.Value?.ToString();
-            ruleAttributes.TryGetValue(tag.Key, out var globPattern);
+            var matched = false;
 
-            if (globPattern == null)
+            foreach (var tag in tags)
             {
-                continue;
+                if (ruleAttributes.Comparer.Equals(tag.Key, attribute.Key) &&
+                    WildcardMatch(tag.Value?.ToString(), attribute.Value))
+                {
+                    matched = true;
+                    break;
+                }
             }
 
-            if (WildcardMatch(textToMatch, globPattern))
+            if (!matched)
             {
-                matchedCount++;
+                return false;
             }
         }
 
-        return matchedCount == ruleAttributes.Count;
+        return true;
     }
 
     private static bool GlobMatch(string text, string globPattern)

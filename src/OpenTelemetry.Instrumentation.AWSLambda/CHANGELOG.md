@@ -7,6 +7,10 @@
   instead of `faas.invocation_id`.
   ([#5832](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5832))
 
+## 1.20.3
+
+Released 2026-Nov-03
+
 ## 1.20.2
 
 Released 2026-Oct-28
