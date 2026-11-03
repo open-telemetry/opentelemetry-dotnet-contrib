@@ -15,6 +15,7 @@ using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using Amazon.Runtime;
 using Amazon.Runtime.Internal;
+using Amazon.Runtime.Telemetry;
 using Amazon.SimpleNotificationService;
 using Amazon.SQS;
 using Amazon.SQS.Model;
@@ -973,6 +974,119 @@ public class TestAWSClientInstrumentation : IDisposable
             Assert.Equal("PublishBatch", Utils.GetTagValue(activity, "messaging.operation.name"));
             Assert.Equal("send", Utils.GetTagValue(activity, "messaging.operation.type"));
             Assert.Equal("MyTestTopic", Utils.GetTagValue(activity, "messaging.destination.name"));
+        }
+    }
+
+    [Theory]
+    [InlineData(true, SemanticConventionVersion.V1_40_0)]
+    [InlineData(false, SemanticConventionVersion.V1_40_0)]
+    [InlineData(true, SemanticConventionVersion.V1_45_0)]
+    [InlineData(false, SemanticConventionVersion.V1_45_0)]
+    [InlineData(true, SemanticConventionVersion.Latest)]
+    [InlineData(false, SemanticConventionVersion.Latest)]
+#if NETFRAMEWORK
+    public void TestMessageSendWithCreationContext(bool isSqs, SemanticConventionVersion version)
+#else
+    public async Task TestMessageSendWithCreationContext(bool isSqs, SemanticConventionVersion version)
+#endif
+    {
+        const string TraceParent = "00-5759e988bd862e3fe1be46a994272793-53995c3f42cd8ad8-01";
+        const string TraceState = "key=value";
+        const string RequestId = "fakerequ-esti-dfak-ereq-uestidfakere";
+        var exportedItems = new List<Activity>();
+        var sampledKinds = new List<ActivityKind>();
+        using var parent = new Activity("parent").Start();
+        using var listener = new ActivityListener
+        {
+            ShouldListenTo = source => source.Name.StartsWith(TelemetryConstants.TelemetryScopePrefix, StringComparison.Ordinal),
+            Sample = (ref ActivityCreationOptions<ActivityContext> options) =>
+            {
+                if (options.Name == (isSqs ? "SQS.SendMessage" : "SNS.Publish"))
+                {
+                    sampledKinds.Add(options.Kind);
+                }
+
+                return ActivitySamplingResult.None;
+            },
+        };
+        ActivitySource.AddActivityListener(listener);
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .SetSampler(new AlwaysOnSampler())
+                   .AddAWSInstrumentation(o => o.SemanticConventionVersion = version)
+                   .AddInMemoryExporter(exportedItems)
+                   .Build())
+        {
+            if (isSqs)
+            {
+                using var sqs = new AmazonSQSClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+                CustomResponses.SetResponse(sqs, """{ "MessageId": "567910cd-659e-55d4-bc19-f29d9g3b2378" }""", RequestId, "extended-request-id", true);
+                var request = new SendMessageRequest
+                {
+                    QueueUrl = "https://sqs.us-east-1.amazonaws.com/123456789/MyTestQueue",
+                    MessageBody = "Hello from OT",
+                    MessageAttributes = new Dictionary<string, MessageAttributeValue>
+                    {
+                        ["traceparent"] = new() { DataType = "String", StringValue = TraceParent },
+                        ["tracestate"] = new() { DataType = "String", StringValue = TraceState },
+                    },
+                };
+#if NETFRAMEWORK
+                sqs.SendMessage(request);
+#else
+                await sqs.SendMessageAsync(request, TestContext.Current.CancellationToken);
+#endif
+                Assert.Equal(TraceParent, request.MessageAttributes["traceparent"].StringValue);
+                Assert.Equal(TraceState, request.MessageAttributes["tracestate"].StringValue);
+            }
+            else
+            {
+                using var sns = new AmazonSimpleNotificationServiceClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+                CustomResponses.SetResponse(
+                    sns,
+                    """
+                    <PublishResponse xmlns="https://sns.amazonaws.com/doc/2010-03-31/">
+                      <PublishResult><MessageId>567910cd-659e-55d4-bc19-f29d9g3b2378</MessageId></PublishResult>
+                      <ResponseMetadata><RequestId>fakerequ-esti-dfak-ereq-uestidfakere</RequestId></ResponseMetadata>
+                    </PublishResponse>
+                    """,
+                    RequestId,
+                    "extended-request-id",
+                    true);
+                var request = new Amazon.SimpleNotificationService.Model.PublishRequest
+                {
+                    TopicArn = "arn:aws:sns:us-east-1:123456789:MyTestTopic",
+                    Message = "Hello from OT",
+                    MessageAttributes = new Dictionary<string, Amazon.SimpleNotificationService.Model.MessageAttributeValue>
+                    {
+                        ["traceparent"] = new() { DataType = "String", StringValue = TraceParent },
+                        ["tracestate"] = new() { DataType = "String", StringValue = TraceState },
+                    },
+                };
+#if NETFRAMEWORK
+                sns.Publish(request);
+#else
+                await sns.PublishAsync(request, TestContext.Current.CancellationToken);
+#endif
+                Assert.Equal(TraceParent, request.MessageAttributes["traceparent"].StringValue);
+                Assert.Equal(TraceState, request.MessageAttributes["tracestate"].StringValue);
+            }
+
+            Assert.Same(parent, Activity.Current);
+        }
+
+        var activity = Assert.Single(exportedItems, item => item.DisplayName == (isSqs ? "SQS.SendMessage" : "SNS.Publish"));
+        this.ValidateAWSActivity(activity, parent);
+        Assert.Equal(ActivityKind.Client, Assert.Single(sampledKinds));
+
+        if (version == SemanticConventionVersion.V1_40_0)
+        {
+            Assert.Empty(activity.Links);
+        }
+        else
+        {
+            Assert.True(ActivityContext.TryParse(TraceParent, TraceState, isRemote: true, out var creationContext));
+            Assert.Equal(creationContext, Assert.Single(activity.Links).Context);
         }
     }
 

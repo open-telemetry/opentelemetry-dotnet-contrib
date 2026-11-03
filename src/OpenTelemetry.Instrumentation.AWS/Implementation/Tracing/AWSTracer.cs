@@ -19,7 +19,7 @@ internal sealed class AWSTracer : Tracer
     /// <param name="activitySource">The ActivitySource used for creating and tracking the activities.</param>
     /// <param name="useProducerKindForMessageSend">
     /// Whether spans for sending a single message to AWS SNS or AWS SQS are created with <see cref="ActivityKind.Producer"/>
-    /// rather than <see cref="ActivityKind.Client"/>, as described by the semantic conventions for AWS SNS and AWS SQS since v1.44.0.
+    /// when no message creation context already exists, as described by the semantic conventions for AWS SNS and AWS SQS since v1.44.0.
     /// </param>
     public AWSTracer(ActivitySource activitySource, bool useProducerKindForMessageSend = false)
     {
@@ -40,14 +40,24 @@ internal sealed class AWSTracer : Tracer
 
         var tags = initialAttributes != null ? new ActivityTagsCollection(initialAttributes.AllAttributes) : null;
         var activityKind = ConvertToActivityKind(spanKind);
+        ActivityLink[]? links = null;
 
         if (this.useProducerKindForMessageSend && activityKind == ActivityKind.Client && IsMessageSend(name))
         {
-            activityKind = ActivityKind.Producer;
+            var creationContext = AWSMessageContextPipelineHandler.CreationContext;
+            if (creationContext != default)
+            {
+                // A separate creation context is preserved in the message; this span describes only its transport.
+                links = [new ActivityLink(creationContext)];
+            }
+            else
+            {
+                activityKind = ActivityKind.Producer;
+            }
         }
 
         var parentActivityContext = ConvertToActivityContext(parentContext);
-        var activity = this.activitySource.StartActivity(name, activityKind, parentActivityContext, tags);
+        var activity = this.activitySource.StartActivity(name, activityKind, parentActivityContext, tags, links);
 
         return new AWSTraceSpan(activity);
     }
