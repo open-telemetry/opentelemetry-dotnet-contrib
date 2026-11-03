@@ -50,7 +50,7 @@ public class TraceContextEnrichedServiceRemotingClientAdapterTests
         var innerClient = CreateInnerClient();
         var clientAdapter = new TraceContextEnrichedServiceRemotingClientAdapter(innerClient);
 
-        await Assert.ThrowsAsync<ArgumentNullException>(() => clientAdapter.RequestResponseAsync(requestMessage: null!));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => clientAdapter.RequestResponseAsync(requestRequestMessage: null!));
     }
 
     [Fact]

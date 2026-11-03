@@ -15,7 +15,7 @@ public class WeatherForecastController : ApiController
 {
     private static readonly string[] Summaries =
     [
-        "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
+        "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching",
     ];
 
     [HttpGet] // For testing traditional routing. Ex: https://localhost:XXXX/api/weatherforecast
@@ -112,10 +112,13 @@ public class WeatherForecastController : ApiController
     private static WeatherForecast[] GetWeatherForecast()
     {
         var rng = new Random();
-        return [.. Enumerable.Range(1, 5).Select(index => new WeatherForecast(
-            date: DateTime.Now.AddDays(index),
-            temperatureC: rng.Next(-20, 55),
-            summary: Summaries[rng.Next(Summaries.Length)]))];
+        return
+        [
+            .. Enumerable.Range(1, 5).Select(index => new WeatherForecast(
+                date: DateTime.Now.AddDays(index),
+                temperatureC: rng.Next(-20, 55),
+                summary: Summaries[rng.Next(Summaries.Length)])),
+        ];
     }
 
     // Test successful dependency collection via HttpClient.

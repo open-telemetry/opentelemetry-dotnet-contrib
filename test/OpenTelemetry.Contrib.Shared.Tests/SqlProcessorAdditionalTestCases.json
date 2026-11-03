@@ -1455,5 +1455,96 @@
       ],
       "db.query.summary": "SELECT [A]]B] [C]]D]"
     }
+  },
+  {
+    "name": "insert_into_delimited_identifier",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "INSERT INTO [Orders] VALUES (@p0)"
+    },
+    "expected": {
+      "db.query.text": [
+        "INSERT INTO [Orders] VALUES (@p0)"
+      ],
+      "db.query.summary": "INSERT [Orders]"
+    }
+  },
+  {
+    "name": "insert_into_delimited_identifier_with_schema_and_columns",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "INSERT INTO [dbo].[Orders] ([Id], [Name]) VALUES (@p0, @p1)"
+    },
+    "expected": {
+      "db.query.text": [
+        "INSERT INTO [dbo].[Orders] ([Id], [Name]) VALUES (@p0, @p1)"
+      ],
+      "db.query.summary": "INSERT [dbo].[Orders]"
+    }
+  },
+  {
+    "name": "insert_into_delimited_identifier_from_select",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "INSERT INTO [Archive] SELECT * FROM [Orders]"
+    },
+    "expected": {
+      "db.query.text": [
+        "INSERT INTO [Archive] SELECT * FROM [Orders]"
+      ],
+      "db.query.summary": "INSERT [Archive] SELECT [Orders]"
+    }
+  },
+  {
+    "name": "exec_delimited_identifier_with_schema",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "EXEC [dbo].[GetOrders] @p0"
+    },
+    "expected": {
+      "db.query.text": [
+        "EXEC [dbo].[GetOrders] @p0"
+      ],
+      "db.query.summary": "EXEC [dbo].[GetOrders]"
+    }
+  },
+  {
+    "name": "create_table_delimited_identifier",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "CREATE TABLE [Orders] ([Id] int)"
+    },
+    "expected": {
+      "db.query.text": [
+        "CREATE TABLE [Orders] ([Id] int)"
+      ],
+      "db.query.summary": "CREATE TABLE [Orders]"
+    }
+  },
+  {
+    "name": "drop_table_if_exists_delimited_identifier_with_schema",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "DROP TABLE IF EXISTS [dbo].[Orders]"
+    },
+    "expected": {
+      "db.query.text": [
+        "DROP TABLE IF EXISTS [dbo].[Orders]"
+      ],
+      "db.query.summary": "DROP TABLE [dbo].[Orders]"
+    }
+  },
+  {
+    "name": "join_after_on_delimited_identifiers",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "SELECT * FROM [A] JOIN [B] ON [A].[Id] = [B].[Id] JOIN [C] ON [B].[Id] = [C].[Id]"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT * FROM [A] JOIN [B] ON [A].[Id] = [B].[Id] JOIN [C] ON [B].[Id] = [C].[Id]"
+      ],
+      "db.query.summary": "SELECT [A] [B] [C]"
+    }
   }
 ]

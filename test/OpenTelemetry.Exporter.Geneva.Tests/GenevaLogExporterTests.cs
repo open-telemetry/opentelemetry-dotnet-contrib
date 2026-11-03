@@ -433,7 +433,7 @@ public class GenevaLogExporterTests
             var resourceBuilder = ResourceBuilder.CreateEmpty().AddAttributes([
                 new KeyValuePair<string, object>("resourceAttr", "from resource"),
                 new KeyValuePair<string, object>("service.name", "BusyWorker"),
-                new KeyValuePair<string, object>("service.instanceId", "CY1SCH030021417")
+                new KeyValuePair<string, object>("service.instanceId", "CY1SCH030021417"),
             ]);
 
             using var exporter = new GenevaLogExporter(exporterOptions);
@@ -557,7 +557,7 @@ public class GenevaLogExporterTests
             var resourceBuilder = ResourceBuilder.CreateEmpty().AddAttributes([
                 new KeyValuePair<string, object>("resourceAttr", "from resource"),
                 new KeyValuePair<string, object>("service.name", "BusyWorker"),
-                new KeyValuePair<string, object>("service.instanceId", "CY1SCH030021417")
+                new KeyValuePair<string, object>("service.instanceId", "CY1SCH030021417"),
             ]);
 
             using var exporter = new GenevaLogExporter(exporterOptions);
@@ -718,7 +718,7 @@ public class GenevaLogExporterTests
             var resource = ResourceBuilder.CreateEmpty().AddAttributes([
                 new KeyValuePair<string, object>("resourceAttr", "from resource"),
                 new KeyValuePair<string, object>("service.name", "BusyWorker"),
-                new KeyValuePair<string, object>("service.instanceId", "CY1SCH030021417")])
+                new KeyValuePair<string, object>("service.instanceId", "CY1SCH030021417"),])
                 .Build();
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -877,10 +877,9 @@ public class GenevaLogExporterTests
                 {
                     ["cloud.role"] = "cloud.role from prepopulated",
                 },
-                ConnectionString =
-                    RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
-                    "EtwSession=OpenTelemetry" :
-                    "Endpoint=unix:" + path,
+                ConnectionString = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                    ? "EtwSession=OpenTelemetry"
+                    : "Endpoint=unix:" + path,
             };
 
             using var exporter = new GenevaLogExporter(exporterOptions);
@@ -936,10 +935,9 @@ public class GenevaLogExporterTests
                 {
                     // no prepopulated fields
                 },
-                ConnectionString =
-                    RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
-                    "EtwSession=OpenTelemetry" :
-                    "Endpoint=unix:" + path,
+                ConnectionString = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                    ? "EtwSession=OpenTelemetry"
+                    : "Endpoint=unix:" + path,
             };
 
             using var exporter = new GenevaLogExporter(exporterOptions);
@@ -2171,5 +2169,7 @@ public class GenevaLogExporterTests
     }
 
     // A custom exception class with non-ASCII character in the type name
+#pragma warning disable SA1317 // Identifiers should only contain Latin letters
     private class CustomException\u0418 : Exception;
+#pragma warning restore SA1317 // Identifiers should only contain Latin letters
 }

@@ -32,8 +32,6 @@ internal sealed class PlainHttpTransport : IOpAmpTransport, IDisposable
         this.httpClient = settings.HttpClientFactory();
     }
 
-    public bool RequiresResponseBeforeNextSend => true;
-
     public async Task SendAsync<T>(T message, CancellationToken token, Action<T>? beforeSerialize = null)
         where T : IMessage<T>
     {

@@ -108,14 +108,14 @@ internal sealed class TldLogExporter : TldLogCommon, IDisposable
         // price = 100
         // TODO: 2. Structured with strongly typed logging.
 
-        var categoryName = logRecord.CategoryName ?? this.defaultEventName;
+        var categoryName = logRecord.CategoryName ?? this.DefaultEventName;
 
         // If user configured explicit TableName, use it.
-        if (this.tableMappings?.TryGetValue(categoryName, out var eventName) != true)
+        if (this.TableMappings?.TryGetValue(categoryName, out var eventName) != true)
         {
-            if (!this.shouldPassThruTableMappings)
+            if (!this.ShouldPassThruTableMappings)
             {
-                eventName = this.defaultEventName;
+                eventName = this.DefaultEventName;
             }
             else
             {
@@ -130,14 +130,14 @@ internal sealed class TldLogExporter : TldLogCommon, IDisposable
         eb.Reset(eventName!);
         eb.AddUInt16("__csver__", 1024, EventOutType.Hex);
 
-        var partAFieldsCountPatch = eb.AddStruct("PartA", this.partAFieldsCount);
+        var partAFieldsCountPatch = eb.AddStruct("PartA", this.PartAFieldsCount);
         eb.AddFileTime("time", timestamp);
         if (this.repeatedPartAFields != null)
         {
             eb.AppendRawFields(this.repeatedPartAFields);
         }
 
-        var partAFieldsCount = this.partAFieldsCount;
+        var partAFieldsCount = this.PartAFieldsCount;
 
         // Part A - dt extension
         if (logRecord.TraceId != default)
@@ -165,7 +165,7 @@ internal sealed class TldLogExporter : TldLogCommon, IDisposable
 
             partAFieldsCount += 2;
 
-            if (this.exceptionStackExportMode == ExceptionStackExportMode.ExportAsString)
+            if (this.ExceptionStackExportMode == ExceptionStackExportMode.ExportAsString)
             {
                 // The current approach relies on the existing trim
                 // capabilities which trims string in excess of STRING_SIZE_LIMIT_CHAR_COUNT
@@ -178,7 +178,7 @@ internal sealed class TldLogExporter : TldLogCommon, IDisposable
                 eb.AddCountedAnsiString("ext_ex_stack", exceptionStack, Encoding.UTF8, 0, Math.Min(exceptionStack.Length, TldExporter.StringLengthLimit));
                 partAFieldsCount++;
             }
-            else if (this.exceptionStackExportMode == ExceptionStackExportMode.ExportAsStackTraceString)
+            else if (this.ExceptionStackExportMode == ExceptionStackExportMode.ExportAsStackTraceString)
             {
                 var stackTrace = logRecord.Exception.StackTrace;
                 if (stackTrace != null)
@@ -237,7 +237,7 @@ internal sealed class TldLogExporter : TldLogCommon, IDisposable
                 bodyPopulated = true;
                 continue;
             }
-            else if (this.customFields == null || this.customFields.Contains(entry.Key))
+            else if (this.CustomFields == null || this.CustomFields.Contains(entry.Key))
             {
                 // TODO: the above null check can be optimized and avoided inside foreach.
                 if (entry.Value != null)
@@ -290,7 +290,7 @@ internal sealed class TldLogExporter : TldLogCommon, IDisposable
         // Part C
 
         // Prepare state for scopes
-        var dataForScopes = this.serializationData.Value ??= new();
+        var dataForScopes = this.SerializationData.Value ??= new();
 
         dataForScopes.HasEnvProperties = hasEnvProperties;
         dataForScopes.PartCFieldsCountFromState = partCFieldsCountFromState;
@@ -356,7 +356,7 @@ internal sealed class TldLogExporter : TldLogCommon, IDisposable
     private static void OnProcessScopeForIndividualColumns(LogRecordScope scope, TldLogExporter state)
         => OnProcessScopeForIndividualColumns(
             scope,
-            state.serializationData.Value!,
-            state.customFields);
+            state.SerializationData.Value!,
+            state.CustomFields);
 #pragma warning restore IDE0370 // Suppression is unnecessary
 }

@@ -94,36 +94,42 @@ public static class MessagingAttributes
     public const string AttributeMessagingEventhubsConsumerGroup = "messaging.eventhubs.consumer.group";
 
     /// <summary>
-    /// The UTC epoch seconds at which the message has been accepted and stored in the entity.
+    /// Deprecated, use <c>azure.eventhubs.message.enqueued_time</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>azure.eventhubs.message.enqueued_time</c>.")]
     public const string AttributeMessagingEventhubsMessageEnqueuedTime = "messaging.eventhubs.message.enqueued_time";
 
     /// <summary>
-    /// The ack deadline in seconds set for the modify ack deadline request.
+    /// Deprecated, use <c>gcp.pubsub.message.ack_deadline</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>gcp.pubsub.message.ack_deadline</c>.")]
     public const string AttributeMessagingGcpPubsubMessageAckDeadline = "messaging.gcp_pubsub.message.ack_deadline";
 
     /// <summary>
-    /// The ack ID for a given message.
+    /// Deprecated, use <c>gcp.pubsub.message.ack_id</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>gcp.pubsub.message.ack_id</c>.")]
     public const string AttributeMessagingGcpPubsubMessageAckId = "messaging.gcp_pubsub.message.ack_id";
 
     /// <summary>
-    /// The delivery attempt for a given message.
+    /// Deprecated, use <c>gcp.pubsub.message.delivery_attempt</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>gcp.pubsub.message.delivery_attempt</c>.")]
     public const string AttributeMessagingGcpPubsubMessageDeliveryAttempt = "messaging.gcp_pubsub.message.delivery_attempt";
 
     /// <summary>
-    /// The ordering key for a given message. If the attribute is not present, the message does not have an ordering key.
+    /// Deprecated, use <c>gcp.pubsub.message.ordering_key</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>gcp.pubsub.message.ordering_key</c>.")]
     public const string AttributeMessagingGcpPubsubMessageOrderingKey = "messaging.gcp_pubsub.message.ordering_key";
 
     /// <summary>
-    /// The Kafka cluster ID, obtained from the broker metadata exposed through the Kafka client (or AdminClient) API.
+    /// Deprecated, use <c>kafka.cluster.id</c> instead.
     /// </summary>
     /// <remarks>
     /// The cluster ID is a unique identifier reported by the Kafka broker. It identifies the cluster independently of the individual brokers the client is configured to connect to, and remains stable even if broker hostnames, IP addresses, or ports change.
     /// </remarks>
+    [Obsolete("Replaced by <c>kafka.cluster.id</c>.")]
     public const string AttributeMessagingKafkaClusterId = "messaging.kafka.cluster.id";
 
     /// <summary>
@@ -139,27 +145,30 @@ public static class MessagingAttributes
     public const string AttributeMessagingKafkaDestinationPartition = "messaging.kafka.destination.partition";
 
     /// <summary>
-    /// Message keys in Kafka are used for grouping alike messages to ensure they're processed on the same partition. They differ from <c>messaging.message.id</c> in that they're not unique. If the key is <c>null</c>, the attribute MUST NOT be set.
+    /// Deprecated, use <c>kafka.message.key</c> instead.
     /// </summary>
     /// <remarks>
     /// If the key type is not string, it's string representation has to be supplied for the attribute. If the key has no unambiguous, canonical string form, don't include its value.
     /// </remarks>
+    [Obsolete("Replaced by <c>kafka.message.key</c>.")]
     public const string AttributeMessagingKafkaMessageKey = "messaging.kafka.message.key";
 
     /// <summary>
-    /// Deprecated, use <c>messaging.kafka.offset</c> instead.
+    /// Deprecated, use <c>kafka.offset</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>messaging.kafka.offset</c>.")]
+    [Obsolete("Replaced by <c>kafka.offset</c>.")]
     public const string AttributeMessagingKafkaMessageOffset = "messaging.kafka.message.offset";
 
     /// <summary>
-    /// A boolean that is true if the message is a tombstone.
+    /// Deprecated, use <c>kafka.message.tombstone</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>kafka.message.tombstone</c>.")]
     public const string AttributeMessagingKafkaMessageTombstone = "messaging.kafka.message.tombstone";
 
     /// <summary>
-    /// The offset of a record in the corresponding Kafka partition.
+    /// Deprecated, use <c>kafka.offset</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>kafka.offset</c>.")]
     public const string AttributeMessagingKafkaOffset = "messaging.kafka.offset";
 
     /// <summary>
@@ -210,13 +219,15 @@ public static class MessagingAttributes
     public const string AttributeMessagingOperationType = "messaging.operation.type";
 
     /// <summary>
-    /// RabbitMQ message routing key.
+    /// Deprecated, use <c>rabbitmq.destination.routing_key</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>rabbitmq.destination.routing_key</c>.")]
     public const string AttributeMessagingRabbitmqDestinationRoutingKey = "messaging.rabbitmq.destination.routing_key";
 
     /// <summary>
-    /// RabbitMQ message delivery tag.
+    /// Deprecated, use <c>rabbitmq.message.delivery_tag</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>rabbitmq.message.delivery_tag</c>.")]
     public const string AttributeMessagingRabbitmqMessageDeliveryTag = "messaging.rabbitmq.message.delivery_tag";
 
     /// <summary>
@@ -226,43 +237,51 @@ public static class MessagingAttributes
     public const string AttributeMessagingRocketmqClientGroup = "messaging.rocketmq.client_group";
 
     /// <summary>
-    /// Model of message consumption. This only applies to consumer spans.
+    /// Deprecated, use <c>rocketmq.consumption_model</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>rocketmq.consumption_model</c>.")]
     public const string AttributeMessagingRocketmqConsumptionModel = "messaging.rocketmq.consumption_model";
 
     /// <summary>
-    /// The delay time level for delay message, which determines the message delay time.
+    /// Deprecated, use <c>rocketmq.message.delay_time_level</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>rocketmq.message.delay_time_level</c>.")]
     public const string AttributeMessagingRocketmqMessageDelayTimeLevel = "messaging.rocketmq.message.delay_time_level";
 
     /// <summary>
-    /// The timestamp in milliseconds that the delay message is expected to be delivered to consumer.
+    /// Deprecated, use <c>rocketmq.message.delivery_timestamp</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>rocketmq.message.delivery_timestamp</c>.")]
     public const string AttributeMessagingRocketmqMessageDeliveryTimestamp = "messaging.rocketmq.message.delivery_timestamp";
 
     /// <summary>
-    /// It is essential for FIFO message. Messages that belong to the same message group are always processed one by one within the same consumer group.
+    /// Deprecated, use <c>rocketmq.message.group</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>rocketmq.message.group</c>.")]
     public const string AttributeMessagingRocketmqMessageGroup = "messaging.rocketmq.message.group";
 
     /// <summary>
-    /// Key(s) of message, another way to mark message besides message ID.
+    /// Deprecated, use <c>rocketmq.message.keys</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>rocketmq.message.keys</c>.")]
     public const string AttributeMessagingRocketmqMessageKeys = "messaging.rocketmq.message.keys";
 
     /// <summary>
-    /// The secondary classifier of message besides topic.
+    /// Deprecated, use <c>rocketmq.message.tag</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>rocketmq.message.tag</c>.")]
     public const string AttributeMessagingRocketmqMessageTag = "messaging.rocketmq.message.tag";
 
     /// <summary>
-    /// Type of message.
+    /// Deprecated, use <c>rocketmq.message.type</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>rocketmq.message.type</c>.")]
     public const string AttributeMessagingRocketmqMessageType = "messaging.rocketmq.message.type";
 
     /// <summary>
-    /// Namespace of RocketMQ resources, resources in different namespaces are individual.
+    /// Deprecated, use <c>rocketmq.namespace</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>rocketmq.namespace</c>.")]
     public const string AttributeMessagingRocketmqNamespace = "messaging.rocketmq.namespace";
 
     /// <summary>
@@ -272,27 +291,52 @@ public static class MessagingAttributes
     public const string AttributeMessagingServicebusDestinationSubscriptionName = "messaging.servicebus.destination.subscription_name";
 
     /// <summary>
-    /// Describes the <a href="https://learn.microsoft.com/azure/service-bus-messaging/message-transfers-locks-settlement#peeklock">settlement type</a>.
+    /// Deprecated, use <c>azure.servicebus.disposition_status</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>azure.servicebus.disposition_status</c>.")]
     public const string AttributeMessagingServicebusDispositionStatus = "messaging.servicebus.disposition_status";
 
     /// <summary>
-    /// Number of deliveries that have been attempted for this message.
+    /// Deprecated, use <c>azure.servicebus.message.delivery_count</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>azure.servicebus.message.delivery_count</c>.")]
     public const string AttributeMessagingServicebusMessageDeliveryCount = "messaging.servicebus.message.delivery_count";
 
     /// <summary>
-    /// The UTC epoch seconds at which the message has been accepted and stored in the entity.
+    /// Deprecated, use <c>azure.servicebus.message.enqueued_time</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>azure.servicebus.message.enqueued_time</c>.")]
     public const string AttributeMessagingServicebusMessageEnqueuedTime = "messaging.servicebus.message.enqueued_time";
+
+    /// <summary>
+    /// Deprecated, use <c>messaging.system.name</c> instead.
+    /// </summary>
+    /// <remarks>
+    /// The actual messaging system may differ from the one known by the client.
+    /// For example, when using Kafka client libraries to communicate with Azure Event Hubs, the <c>messaging.system</c>
+    /// is set to <c>kafka</c> based on the instrumentation's best knowledge.
+    /// <p>
+    /// When migrating to <c>messaging.system.name</c>, update the following values:
+    /// <ul>
+    ///   <li><c>aws_sqs</c> to <c>aws.sqs</c></li>
+    ///   <li><c>eventgrid</c> to <c>azure.eventgrid</c></li>
+    ///   <li><c>eventhubs</c> to <c>azure.eventhubs</c></li>
+    ///   <li><c>servicebus</c> to <c>azure.servicebus</c></li>
+    ///   <li><c>gcp_pubsub</c> to <c>gcp.pubsub</c></li>
+    /// </ul>
+    /// <p>
+    /// All other values are unchanged.
+    /// </remarks>
+    [Obsolete("Replaced by <c>messaging.system.name</c>.")]
+    public const string AttributeMessagingSystem = "messaging.system";
 
     /// <summary>
     /// The messaging system as identified by the client instrumentation.
     /// </summary>
     /// <remarks>
-    /// The actual messaging system may differ from the one known by the client. For example, when using Kafka client libraries to communicate with Azure Event Hubs, the <c>messaging.system</c> is set to <c>kafka</c> based on the instrumentation's best knowledge.
+    /// The actual messaging system may differ from the one known by the client. For example, when using Kafka client libraries to communicate with Azure Event Hubs, the <c>messaging.system.name</c> is set to <c>kafka</c> based on the instrumentation's best knowledge.
     /// </remarks>
-    public const string AttributeMessagingSystem = "messaging.system";
+    public const string AttributeMessagingSystemName = "messaging.system.name";
 
     /// <summary>
     /// A string identifying the type of the messaging operation.
@@ -338,8 +382,9 @@ public static class MessagingAttributes
     }
 
     /// <summary>
-    /// Model of message consumption. This only applies to consumer spans.
+    /// Deprecated, use <c>rocketmq.consumption_model</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>rocketmq.consumption_model</c>.")]
     public static class MessagingRocketmqConsumptionModelValues
     {
         /// <summary>
@@ -354,8 +399,9 @@ public static class MessagingAttributes
     }
 
     /// <summary>
-    /// Type of message.
+    /// Deprecated, use <c>rocketmq.message.type</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>rocketmq.message.type</c>.")]
     public static class MessagingRocketmqMessageTypeValues
     {
         /// <summary>
@@ -380,8 +426,9 @@ public static class MessagingAttributes
     }
 
     /// <summary>
-    /// Describes the <a href="https://learn.microsoft.com/azure/service-bus-messaging/message-transfers-locks-settlement#peeklock">settlement type</a>.
+    /// Deprecated, use <c>azure.servicebus.disposition_status</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>azure.servicebus.disposition_status</c>.")]
     public static class MessagingServicebusDispositionStatusValues
     {
         /// <summary>
@@ -406,8 +453,9 @@ public static class MessagingAttributes
     }
 
     /// <summary>
-    /// The messaging system as identified by the client instrumentation.
+    /// Deprecated, use <c>messaging.system.name</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>messaging.system.name</c>.")]
     public static class MessagingSystemValues
     {
         /// <summary>
@@ -444,6 +492,72 @@ public static class MessagingAttributes
         /// Google Cloud Pub/Sub.
         /// </summary>
         public const string GcpPubsub = "gcp_pubsub";
+
+        /// <summary>
+        /// Java Message Service.
+        /// </summary>
+        public const string Jms = "jms";
+
+        /// <summary>
+        /// Apache Kafka.
+        /// </summary>
+        public const string Kafka = "kafka";
+
+        /// <summary>
+        /// RabbitMQ.
+        /// </summary>
+        public const string Rabbitmq = "rabbitmq";
+
+        /// <summary>
+        /// Apache RocketMQ.
+        /// </summary>
+        public const string Rocketmq = "rocketmq";
+
+        /// <summary>
+        /// Apache Pulsar.
+        /// </summary>
+        public const string Pulsar = "pulsar";
+    }
+
+    /// <summary>
+    /// The messaging system as identified by the client instrumentation.
+    /// </summary>
+    public static class MessagingSystemNameValues
+    {
+        /// <summary>
+        /// Apache ActiveMQ.
+        /// </summary>
+        public const string Activemq = "activemq";
+
+        /// <summary>
+        /// Amazon Simple Notification Service (SNS).
+        /// </summary>
+        public const string AwsSns = "aws.sns";
+
+        /// <summary>
+        /// Amazon Simple Queue Service (SQS).
+        /// </summary>
+        public const string AwsSqs = "aws.sqs";
+
+        /// <summary>
+        /// Azure Event Grid.
+        /// </summary>
+        public const string AzureEventgrid = "azure.eventgrid";
+
+        /// <summary>
+        /// Azure Event Hubs.
+        /// </summary>
+        public const string AzureEventhubs = "azure.eventhubs";
+
+        /// <summary>
+        /// Azure Service Bus.
+        /// </summary>
+        public const string AzureServicebus = "azure.servicebus";
+
+        /// <summary>
+        /// Google Cloud Pub/Sub.
+        /// </summary>
+        public const string GcpPubsub = "gcp.pubsub";
 
         /// <summary>
         /// Java Message Service.

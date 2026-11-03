@@ -28,7 +28,7 @@ internal sealed class HangfireInstrumentation
     /// <summary>
     /// The activity source.
     /// </summary>
-    internal static readonly ActivitySource ActivitySource = ActivitySourceFactory.Create<HangfireInstrumentation>(null); // These traces are not in the Semantic Conventions
+    internal static readonly ActivitySource ActivitySource = Trace.ActivitySourceFactory.Create<HangfireInstrumentation>(null); // These traces are not in the Semantic Conventions
 
     /// <summary>
     /// The default display name delegate.

@@ -26,7 +26,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
     private static readonly Action<LogRecordScope, MsgPackLogExporter> ProcessScopeForEnvPropertiesAction = OnProcessScopeForEnvProperties;
     private static readonly string[] LogLevels =
     [
-        "Trace", "Debug", "Information", "Warning", "Error", "Critical", "None"
+        "Trace", "Debug", "Information", "Warning", "Error", "Critical", "None",
     ];
 
     private readonly ThreadLocal<byte[]> buffer = new();

@@ -30,11 +30,11 @@ internal sealed class InstrumentedChannelFactory<TChannel> : InstrumentedChannel
         return typeof(TChannel) == typeof(IRequestChannel)
             ? (TChannel)(IRequestChannel)new InstrumentedRequestChannel((IRequestChannel)innerChannel)
             : typeof(TChannel) == typeof(IRequestSessionChannel)
-            ? (TChannel)(IRequestSessionChannel)new InstrumentedRequestSessionChannel((IRequestSessionChannel)innerChannel)
-            : typeof(TChannel) == typeof(IDuplexChannel)
-            ? (TChannel)(IDuplexChannel)new InstrumentedDuplexChannel((IDuplexChannel)innerChannel, this.binding.SendTimeout)
-            : typeof(TChannel) == typeof(IDuplexSessionChannel)
-            ? (TChannel)(IDuplexSessionChannel)new InstrumentedDuplexSessionChannel((IDuplexSessionChannel)innerChannel, this.binding.SendTimeout)
-            : throw new NotImplementedException();
+                ? (TChannel)(IRequestSessionChannel)new InstrumentedRequestSessionChannel((IRequestSessionChannel)innerChannel)
+                : typeof(TChannel) == typeof(IDuplexChannel)
+                    ? (TChannel)(IDuplexChannel)new InstrumentedDuplexChannel((IDuplexChannel)innerChannel, this.binding.SendTimeout)
+                    : typeof(TChannel) == typeof(IDuplexSessionChannel)
+                        ? (TChannel)(IDuplexSessionChannel)new InstrumentedDuplexSessionChannel((IDuplexSessionChannel)innerChannel, this.binding.SendTimeout)
+                        : throw new NotImplementedException();
     }
 }

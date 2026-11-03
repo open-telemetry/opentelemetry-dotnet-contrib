@@ -26,8 +26,6 @@ internal abstract class MockControlledTransport : IOpAmpTransport, IDisposable
 
     public ReadOnlyCollection<AgentToServer> Messages => this.messages.ToList().AsReadOnly();
 
-    public abstract bool RequiresResponseBeforeNextSend { get; }
-
     public Task SendAsync<T>(T message, CancellationToken token, Action<T>? beforeSerialize = null)
         where T : IMessage<T>
     {

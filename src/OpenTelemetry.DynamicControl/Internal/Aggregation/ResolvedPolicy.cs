@@ -10,6 +10,10 @@ namespace OpenTelemetry.DynamicControl.Internal.Aggregation;
 /// <summary>
 /// The effective policy for one policy key, together with the policies it outranks.
 /// </summary>
+/// <param name="key">The key this resolution describes.</param>
+/// <param name="policy">The effective policy for <paramref name="key"/>.</param>
+/// <param name="provider">The registration identity of the provider that supplied <paramref name="policy"/>.</param>
+/// <param name="outrankedPolicies">The retained but outranked policies for <paramref name="key"/>, in precedence order.</param>
 internal sealed class ResolvedPolicy(
     PolicyKey key,
     TelemetryPolicy policy,

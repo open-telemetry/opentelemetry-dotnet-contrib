@@ -67,8 +67,7 @@ internal sealed class LogLevelPolicyReader : PolicyReader
             : PolicyReadResult.Reject(PolicyRejectionReason.SchemaMismatch, shapeError);
 
     private PolicyReadResult ReadLevelValue(in JsonElement value) =>
-        JsonValueReader.TryGetText(value, out var text)
-            && DiagnosticLogLevelParser.TryParse(text, out var level)
+        JsonValueReader.TryGetText(value, out var text) && DiagnosticLogLevelParser.TryParse(text, out var level)
             ? this.CreatePolicy(level)
             : PolicyReadResult.Reject(
                 PolicyRejectionReason.InvalidValue,

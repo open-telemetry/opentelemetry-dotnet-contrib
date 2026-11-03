@@ -3,18 +3,11 @@
 
 using System.Net;
 using System.Net.WebSockets;
-#if !NETFRAMEWORK
-using System.Security.Cryptography;
-#endif
 
 namespace OpenTelemetry.Tests;
 
 internal static class TestWebSocketServer
 {
-#if !NET
-    private static readonly Random GlobalRandom = new();
-#endif
-
     public static IDisposable RunServer(Func<WebSocket, Task> handler, out string host, out int port)
     {
         return RunServer((_, socket) => handler(socket), out host, out port);
@@ -31,13 +24,7 @@ internal static class TestWebSocketServer
         {
             try
             {
-#if NET
-                port = RandomNumberGenerator.GetInt32(2000, 5000);
-#else
-#pragma warning disable CA5394 // Do not use insecure randomness
-                port = GlobalRandom.Next(2000, 5000);
-#pragma warning restore CA5394 // Do not use insecure randomness
-#endif
+                port = TcpPortProvider.GetOpenPort();
                 server = new RunningServer(handler, host, port);
                 server.Start();
                 break;

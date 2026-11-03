@@ -66,6 +66,7 @@ internal class InstrumentedDuplexChannel : InstrumentedChannel<IDuplexChannel>, 
         }
         catch (Exception ex)
         {
+            RequestTelemetryStateTracker.RemoveTelemetryState(asyncResult.TelemetryState);
             ClientChannelInstrumentation.AfterRequestCompleted(null, asyncResult.TelemetryState, ex);
             throw;
         }
@@ -209,6 +210,7 @@ internal class InstrumentedDuplexChannel : InstrumentedChannel<IDuplexChannel>, 
         }
         catch (Exception ex)
         {
+            RequestTelemetryStateTracker.RemoveTelemetryState(telemetryState);
             ClientChannelInstrumentation.AfterRequestCompleted(null, telemetryState, ex);
             throw;
         }

@@ -24,8 +24,7 @@ internal class Utils
         string.IsNullOrEmpty(originalString)
             ? string.Empty
             : originalString.EndsWith(suffix, StringComparison.Ordinal)
-                ?
-                originalString.Substring(0, originalString.Length - suffix.Length)
+                ? originalString.Substring(0, originalString.Length - suffix.Length)
                 : originalString;
 
     /// <summary>
@@ -40,7 +39,9 @@ internal class Utils
         => RemovePrefix(RemovePrefix(serviceName, "Amazon"), ".");
 
     private static string RemovePrefix(string originalString, string prefix) =>
-        string.IsNullOrEmpty(originalString) ? string.Empty :
-            originalString.StartsWith(prefix, StringComparison.Ordinal) ? originalString.Substring(prefix.Length) :
-            originalString;
+        string.IsNullOrEmpty(originalString)
+            ? string.Empty
+            : originalString.StartsWith(prefix, StringComparison.Ordinal)
+                ? originalString.Substring(prefix.Length)
+                : originalString;
 }

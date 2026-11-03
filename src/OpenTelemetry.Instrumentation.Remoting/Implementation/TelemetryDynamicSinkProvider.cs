@@ -5,7 +5,6 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.Remoting.Contexts;
 using Microsoft.Extensions.Options;
-using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.Remoting.Implementation;
 
@@ -20,7 +19,7 @@ internal sealed class TelemetryDynamicSinkProvider : IDynamicProperty, IContribu
     internal const int MaxCachedServiceNames = 1024;
     internal static readonly Version SemanticConventionsVersion = new(1, 40, 0);
 
-    private readonly ActivitySource activitySource = ActivitySourceFactory.Create<TelemetryDynamicSinkProvider>(SemanticConventionsVersion);
+    private readonly ActivitySource activitySource = Trace.ActivitySourceFactory.Create<TelemetryDynamicSinkProvider>(SemanticConventionsVersion);
     private readonly ConcurrentDictionary<string, string> serviceNameCache = new();
     private readonly IDisposable? optionsChangeRegistration;
     private int approximateServiceNameCacheCount;

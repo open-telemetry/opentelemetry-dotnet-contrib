@@ -42,18 +42,18 @@ internal class TraceContextEnrichedServiceRemotingClientAdapter : IServiceRemoti
         set => this.InnerClient.Endpoint = value;
     }
 
-    public async Task<IServiceRemotingResponseMessage> RequestResponseAsync(IServiceRemotingRequestMessage requestMessage)
+    public async Task<IServiceRemotingResponseMessage> RequestResponseAsync(IServiceRemotingRequestMessage requestRequestMessage)
     {
-        Guard.ThrowIfNull(requestMessage);
+        Guard.ThrowIfNull(requestRequestMessage);
 
-        if (ServiceFabricRemotingActivitySource.Options?.Filter?.Invoke(requestMessage) == false)
+        if (ServiceFabricRemotingActivitySource.Options?.Filter?.Invoke(requestRequestMessage) == false)
         {
             // If we filter out the request we don't need to process anything related to the activity
-            return await this.InnerClient.RequestResponseAsync(requestMessage).ConfigureAwait(false);
+            return await this.InnerClient.RequestResponseAsync(requestRequestMessage).ConfigureAwait(false);
         }
         else
         {
-            var requestMessageHeader = requestMessage.GetHeader();
+            var requestMessageHeader = requestRequestMessage.GetHeader();
             Guard.ThrowIfNull(requestMessageHeader, "requestMessage.GetHeader()");
 
             var activityName = requestMessageHeader.MethodName ?? ServiceFabricRemotingActivitySource.OutgoingRequestActivityName;
@@ -66,7 +66,7 @@ internal class TraceContextEnrichedServiceRemotingClientAdapter : IServiceRemoti
             {
                 try
                 {
-                    ServiceFabricRemotingActivitySource.Options?.EnrichAtClientFromRequest?.Invoke(activity, requestMessage);
+                    ServiceFabricRemotingActivitySource.Options?.EnrichAtClientFromRequest?.Invoke(activity, requestRequestMessage);
                 }
                 catch (Exception)
                 {
@@ -86,7 +86,7 @@ internal class TraceContextEnrichedServiceRemotingClientAdapter : IServiceRemoti
 
             try
             {
-                var responseMessage = await this.InnerClient.RequestResponseAsync(requestMessage).ConfigureAwait(false);
+                var responseMessage = await this.InnerClient.RequestResponseAsync(requestRequestMessage).ConfigureAwait(false);
 
                 if (activity != null)
                 {

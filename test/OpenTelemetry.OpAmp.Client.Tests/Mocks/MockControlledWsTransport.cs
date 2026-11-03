@@ -9,6 +9,4 @@ internal class MockControlledWsTransport : MockControlledTransport
         : base(firstSendCallback)
     {
     }
-
-    public override bool RequiresResponseBeforeNextSend => false;
 }

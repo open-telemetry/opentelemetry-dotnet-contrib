@@ -31,7 +31,7 @@ public class TelemetryHttpModuleTest
                 {
                     stepCalled = true;
                     activityInStep = Activity.Current;
-                }
+                },
             ]);
 
         Assert.True(stepCalled);

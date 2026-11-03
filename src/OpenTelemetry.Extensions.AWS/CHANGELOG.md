@@ -2,6 +2,32 @@
 
 ## Unreleased
 
+## 1.20.3
+
+Released 2026-Nov-03
+
+* Fixed `AddXRayTraceId()` and `AddXRayTraceIdWithSampler()` not replacing
+  trace IDs when targeting .NET Framework or .NET Standard. The X-Ray ID
+  generator now uses `Activity.TraceIdGenerator` on all target frameworks.
+  As a result, `AWSXRayIdGenerator.ReplaceTraceId()` is now public on all
+  target frameworks, and `AddXRayTraceIdWithSampler()` and
+  `AWSXRayIdGenerator.ReplaceTraceId(Sampler)` are now obsolete on all
+  target frameworks.
+  ([#5809](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5809))
+
+* No longer throw and catch an exception in `AWSXRayPropagator` for an
+  `X-Amzn-Trace-Id` header with upper case or padded hexadecimal identifiers,
+  or with a trace or parent identifier of all zeros.
+  ([#5825](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5825))
+
+* Fixed `AWSXRayPropagator` using the value of a field of the `X-Amzn-Trace-Id`
+  header whose name only starts with `Root`, `Parent` or `Sampled`.
+  ([#5825](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5825))
+
+## 1.20.2
+
+Released 2026-Oct-28
+
 ## 1.20.1
 
 Released 2026-Oct-20

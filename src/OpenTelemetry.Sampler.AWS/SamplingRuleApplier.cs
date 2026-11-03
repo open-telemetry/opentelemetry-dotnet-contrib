@@ -253,8 +253,9 @@ internal class SamplingRuleApplier
         var cloudPlatform = (string)resource.Attributes.FirstOrDefault(kvp =>
             string.Equals(kvp.Key, "cloud.platform", StringComparison.Ordinal)).Value;
 
-        return cloudPlatform == null ? string.Empty :
-            Matcher.XRayCloudPlatform.TryGetValue(cloudPlatform, out var value) ? value : string.Empty;
+        return cloudPlatform == null
+            ? string.Empty
+            : Matcher.XRayCloudPlatform.TryGetValue(cloudPlatform, out var value) ? value : string.Empty;
     }
 
     private static string GetArn(in SamplingParameters samplingParameters, Resource resource)

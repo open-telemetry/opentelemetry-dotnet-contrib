@@ -297,9 +297,9 @@ internal sealed class SqlEventSourceListener : EventListener
 
         // If we're only collecting metrics, then we don't want to modify the activity
         var traceActivity =
-            handleManager.TracingHandles == 0 && handleManager.MetricHandles != 0 ?
-            null :
-            sqlActivity;
+            handleManager.TracingHandles == 0 && handleManager.MetricHandles != 0
+                ? null
+                : sqlActivity;
 
         try
         {

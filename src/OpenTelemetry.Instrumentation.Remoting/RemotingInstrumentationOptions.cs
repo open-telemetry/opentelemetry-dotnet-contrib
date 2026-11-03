@@ -33,7 +33,7 @@ public class RemotingInstrumentationOptions
     /// </summary>
     public TextMapPropagator Propagator { get; set; } = new CompositeTextMapPropagator([
         new TraceContextPropagator(),
-        new BaggagePropagator()
+        new BaggagePropagator(),
     ]);
 
     /// <summary>

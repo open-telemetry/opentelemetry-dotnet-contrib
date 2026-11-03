@@ -29,12 +29,12 @@ internal sealed class MetricWindowsEventTracingDataTransport : EventSource, IMet
 #if NET
     [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2026:RequiresUnreferencedCode", Justification = "WriteEventCore is safe when eventData object is a primitive type, which it is in this case.")]
 #endif
-    public unsafe void Send(MetricEventType eventType, byte[] data, int size)
+    public unsafe void Send(MetricEventType eventType, byte[] body, int size)
     {
         var eventDataPtr = stackalloc EventData[1];
-        fixed (byte* bufferPtr = data)
+        fixed (byte* bufferPtr = body)
         {
-            eventDataPtr[0].DataPointer = (IntPtr)bufferPtr + this.fixedPayloadEndIndex;
+            eventDataPtr[0].DataPointer = (nint)bufferPtr + this.fixedPayloadEndIndex;
             eventDataPtr[0].Size = size;
             this.WriteEventCore((int)eventType, 1, eventDataPtr);
         }
@@ -44,16 +44,16 @@ internal sealed class MetricWindowsEventTracingDataTransport : EventSource, IMet
 #if NET
     [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2026:RequiresUnreferencedCode", Justification = "WriteEventCore is safe when eventData object is a primitive type, which it is in this case.")]
 #endif
-    public unsafe void SendOtlpProtobufEvent(byte[] data, int size)
+    public unsafe void SendOtlpProtobufEvent(byte[] body, int size)
     {
         if (this.IsEnabled())
         {
             var descr = stackalloc EventData[1];
-            if (data != null && data.Length != 0)
+            if (body != null && body.Length != 0)
             {
-                fixed (byte* blob = data)
+                fixed (byte* blob = body)
                 {
-                    descr[0].DataPointer = (IntPtr)blob;
+                    descr[0].DataPointer = (nint)blob;
                     descr[0].Size = size;
                     this.WriteEventCore(OtlpProtobufMetricEventId, 1, descr);
                 }

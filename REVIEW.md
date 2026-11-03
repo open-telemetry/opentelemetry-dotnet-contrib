@@ -25,7 +25,7 @@ CHANGELOG updates are one of the most frequently corrected review items.
   workflow updates, documentation-only fixes, test changes, etc.).
 - If a single PR modifies multiple components, each affected component's
   `CHANGELOG.md` needs its own entry with the same PR link.
-- "Breaking change" entries should be prefixed with `**Breaking Change**:`.
+- "Breaking change" entries should be prefixed with `**Breaking Change**`.
 
 ## NuGet Package References
 

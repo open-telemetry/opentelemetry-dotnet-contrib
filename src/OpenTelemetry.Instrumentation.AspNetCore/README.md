@@ -300,6 +300,21 @@ instrumentation. OpenTelemetry has a concept of a
 [Sampler](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#sampling),
 and the `Filter` option does the filtering *after* the Sampler is invoked.
 
+When the `Filter` returns `false`, the default sampler also drops the child
+spans of the request. To drop only the request span,
+clear its flags in `EnrichWithHttpResponse` instead:
+
+```csharp
+options.EnrichWithHttpResponse = (activity, response) =>
+{
+    if (response.HttpContext.Items.ContainsKey("drop-span"))
+    {
+        activity.IsAllDataRequested = false;
+        activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
+    }
+};
+```
+
 #### Enrich
 
 This instrumentation library provides `EnrichWithHttpRequest`,
@@ -381,6 +396,10 @@ the library you can do so as follows:
 This instrumentation automatically sets Activity Status to Error if an unhandled
 exception is thrown. Additionally, `RecordException` feature may be turned on,
 to store the exception to the Activity itself as ActivityEvent.
+
+`RecordException` and `EnrichWithException` do not apply to an exception that
+`UseExceptionHandler` handles, with or without an `IExceptionHandler`. They
+still apply when the developer exception page shows the exception.
 
 ## Activity duration and http.server.request.duration metric calculation
 

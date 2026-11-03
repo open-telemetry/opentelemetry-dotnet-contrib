@@ -42,13 +42,15 @@ internal class LineProtocolParser
             })
             .ToDictionary(x => x.Key, x => x.Value);
 
-    private static List<KeyValuePair<string, string>> ParseTags(IEnumerable<string> tagParts)
-        => [.. tagParts
+    private static List<KeyValuePair<string, string>> ParseTags(IEnumerable<string> tagParts) =>
+    [
+        .. tagParts
             .Select(tagPart =>
             {
                 var kv = tagPart.Split('=');
                 return new KeyValuePair<string, string>(kv[0], kv[1]);
-            })];
+            }),
+    ];
 
     private static object ParseFieldValue(string fieldValue)
     {

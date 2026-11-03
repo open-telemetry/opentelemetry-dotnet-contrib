@@ -7,7 +7,7 @@ namespace OpenTelemetry.Instrumentation.Owin.Implementation;
 
 internal static class OwinInstrumentationMetrics
 {
-    internal static readonly Version SemanticConventionsVersion = new(1, 41, 0);
+    internal static readonly Version SemanticConventionsVersion = new(1, 45, 0);
     internal static readonly Meter Meter = Metrics.MeterFactory.Create(typeof(OwinInstrumentationMetrics), SemanticConventionsVersion);
     internal static readonly Histogram<double> HttpServerDuration = Meter.CreateHistogram(
         "http.server.request.duration",

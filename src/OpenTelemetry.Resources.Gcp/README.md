@@ -108,6 +108,7 @@ which Google Cloud Platform environment an application is running in.
 | cloud.platform          | gcp_compute_engine |
 | cloud.account.id        | auto               |
 | cloud.availability_zone | auto               |
+| gcp.gce.instance.name   | auto               |
 | host.id                 | auto               |
 | host.image.name         | auto               |
 | host.type               | auto               |

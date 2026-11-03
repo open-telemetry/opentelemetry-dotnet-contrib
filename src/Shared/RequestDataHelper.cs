@@ -34,8 +34,9 @@ internal sealed class RequestDataHelper
 
     public RequestDataHelper(bool configureByHttpKnownMethodsEnvironmentalVariable)
     {
-        var suppliedKnownMethods = configureByHttpKnownMethodsEnvironmentalVariable ? Environment.GetEnvironmentVariable(KnownHttpMethodsEnvironmentVariable)
-            ?.Split(SplitChars, StringSplitOptions.RemoveEmptyEntries) : null;
+        var suppliedKnownMethods = configureByHttpKnownMethodsEnvironmentalVariable
+            ? Environment.GetEnvironmentVariable(KnownHttpMethodsEnvironmentVariable)?.Split(SplitChars, StringSplitOptions.RemoveEmptyEntries)
+            : null;
 
         Dictionary<string, string> knownMethodSet;
 

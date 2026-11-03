@@ -68,9 +68,69 @@ public static class NetworkAttributes
     public const string AttributeNetworkLocalAddress = "network.local.address";
 
     /// <summary>
+    /// The <a href="https://www.iana.org/assignments/as-numbers/as-numbers.xhtml">Autonomous System Number (ASN)</a> associated with the local IP address.
+    /// </summary>
+    /// <remarks>
+    /// This attribute SHOULD only be set when the local address is an IP address and the ASN is available from routing, enrichment, or lookup data. The value SHOULD be represented as an integer without the <c>AS</c> prefix.
+    /// </remarks>
+    public const string AttributeNetworkLocalAsNumber = "network.local.as.number";
+
+    /// <summary>
+    /// The name of the organization associated with the autonomous system of the local IP address.
+    /// </summary>
+    /// <remarks>
+    /// This attribute SHOULD only be set when <c>network.local.as.number</c> is set and the organization name is available. The value SHOULD be the organization name as provided by the lookup or enrichment source, not the AS name or short code.
+    /// </remarks>
+    public const string AttributeNetworkLocalAsOrganization = "network.local.as.organization";
+
+    /// <summary>
+    /// Local Media Access Control (MAC) address of the network connection.
+    /// </summary>
+    /// <remarks>
+    /// MAC addresses MUST be represented in <a href="https://standards.ieee.org/wp-content/uploads/import/documents/tutorials/eui.pdf">IEEE RA hexadecimal form</a>:
+    /// as hyphen-separated octets in uppercase hexadecimal form from most to least significant.
+    /// <blockquote>
+    /// [!WARNING]
+    /// <p>
+    /// This attribute may contain sensitive (PII) information.</blockquote>
+    /// </remarks>
+    public const string AttributeNetworkLocalMacAddress = "network.local.mac.address";
+
+    /// <summary>
     /// Local port number of the network connection.
     /// </summary>
     public const string AttributeNetworkLocalPort = "network.local.port";
+
+    /// <summary>
+    /// The IP prefix associated with the local IP address, in CIDR notation.
+    /// </summary>
+    /// <remarks>
+    /// <blockquote>
+    /// [!WARNING]
+    /// <p>
+    /// This attribute may contain sensitive (PII) information. A <c>/32</c> IPv4 prefix
+    /// or <c>/128</c> IPv6 prefix preserves the complete endpoint IP address.
+    /// Using CIDR notation does not guarantee that the data is anonymous.</blockquote>
+    /// <p>
+    /// The value MUST be an IPv4 or IPv6 network prefix in CIDR notation, as defined in
+    /// <a href="https://www.rfc-editor.org/rfc/rfc4632.html">RFC 4632</a> for IPv4 and
+    /// <a href="https://www.rfc-editor.org/rfc/rfc4291.html#section-2.3">RFC 4291</a> for IPv6.
+    /// IPv4 prefixes MUST use a dotted-decimal address followed by <c>/</c> and a decimal
+    /// prefix length from 0 to 32. IPv6 prefixes MUST use the canonical address text
+    /// representation defined in <a href="https://www.rfc-editor.org/rfc/rfc5952.html">RFC 5952</a>,
+    /// followed by <c>/</c> and a decimal prefix length from 0 to 128. All host bits in
+    /// the address MUST be set to zero. The value MUST NOT contain a domain name,
+    /// UNIX domain socket name, or IPv6 zone identifier.
+    /// <p>
+    /// Instrumentation or Collector receivers that populate this attribute MUST
+    /// convert native representations, such as an address and subnet mask or an
+    /// address and prefix length, to equivalent CIDR notation before emitting it.
+    /// <p>
+    /// This attribute MAY be set whether or not <c>network.local.address</c> is set. If
+    /// <c>network.local.address</c> is also set to an IP address, it MUST use the same IP version
+    /// and be contained in this prefix.
+    /// </remarks>
+    public const string AttributeNetworkLocalPrefix = "network.local.prefix";
 
     /// <summary>
     /// Peer address of the network connection - IP address or UNIX domain socket name.
@@ -78,9 +138,69 @@ public static class NetworkAttributes
     public const string AttributeNetworkPeerAddress = "network.peer.address";
 
     /// <summary>
+    /// The <a href="https://www.iana.org/assignments/as-numbers/as-numbers.xhtml">Autonomous System Number (ASN)</a> associated with the peer IP address.
+    /// </summary>
+    /// <remarks>
+    /// This attribute SHOULD only be set when the peer address is an IP address and the ASN is available from routing, enrichment, or lookup data. The value SHOULD be represented as an integer without the <c>AS</c> prefix.
+    /// </remarks>
+    public const string AttributeNetworkPeerAsNumber = "network.peer.as.number";
+
+    /// <summary>
+    /// The name of the organization associated with the autonomous system of the peer IP address.
+    /// </summary>
+    /// <remarks>
+    /// This attribute SHOULD only be set when <c>network.peer.as.number</c> is set and the organization name is available. The value SHOULD be the organization name as provided by the lookup or enrichment source, not the AS name or short code.
+    /// </remarks>
+    public const string AttributeNetworkPeerAsOrganization = "network.peer.as.organization";
+
+    /// <summary>
+    /// Peer Media Access Control (MAC) address of the network connection.
+    /// </summary>
+    /// <remarks>
+    /// MAC addresses MUST be represented in <a href="https://standards.ieee.org/wp-content/uploads/import/documents/tutorials/eui.pdf">IEEE RA hexadecimal form</a>:
+    /// as hyphen-separated octets in uppercase hexadecimal form from most to least significant.
+    /// <blockquote>
+    /// [!WARNING]
+    /// <p>
+    /// This attribute may contain sensitive (PII) information.</blockquote>
+    /// </remarks>
+    public const string AttributeNetworkPeerMacAddress = "network.peer.mac.address";
+
+    /// <summary>
     /// Peer port number of the network connection.
     /// </summary>
     public const string AttributeNetworkPeerPort = "network.peer.port";
+
+    /// <summary>
+    /// The IP prefix associated with the peer IP address, in CIDR notation.
+    /// </summary>
+    /// <remarks>
+    /// <blockquote>
+    /// [!WARNING]
+    /// <p>
+    /// This attribute may contain sensitive (PII) information. A <c>/32</c> IPv4 prefix
+    /// or <c>/128</c> IPv6 prefix preserves the complete endpoint IP address.
+    /// Using CIDR notation does not guarantee that the data is anonymous.</blockquote>
+    /// <p>
+    /// The value MUST be an IPv4 or IPv6 network prefix in CIDR notation, as defined in
+    /// <a href="https://www.rfc-editor.org/rfc/rfc4632.html">RFC 4632</a> for IPv4 and
+    /// <a href="https://www.rfc-editor.org/rfc/rfc4291.html#section-2.3">RFC 4291</a> for IPv6.
+    /// IPv4 prefixes MUST use a dotted-decimal address followed by <c>/</c> and a decimal
+    /// prefix length from 0 to 32. IPv6 prefixes MUST use the canonical address text
+    /// representation defined in <a href="https://www.rfc-editor.org/rfc/rfc5952.html">RFC 5952</a>,
+    /// followed by <c>/</c> and a decimal prefix length from 0 to 128. All host bits in
+    /// the address MUST be set to zero. The value MUST NOT contain a domain name,
+    /// UNIX domain socket name, or IPv6 zone identifier.
+    /// <p>
+    /// Instrumentation or Collector receivers that populate this attribute MUST
+    /// convert native representations, such as an address and subnet mask or an
+    /// address and prefix length, to equivalent CIDR notation before emitting it.
+    /// <p>
+    /// This attribute MAY be set whether or not <c>network.peer.address</c> is set. If
+    /// <c>network.peer.address</c> is also set to an IP address, it MUST use the same IP version
+    /// and be contained in this prefix.
+    /// </remarks>
+    public const string AttributeNetworkPeerPrefix = "network.peer.prefix";
 
     /// <summary>
     /// <a href="https://wikipedia.org/wiki/Application_layer">OSI application layer</a> or non-OSI equivalent.

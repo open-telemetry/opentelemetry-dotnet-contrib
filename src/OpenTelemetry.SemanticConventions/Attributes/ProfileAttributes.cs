@@ -88,5 +88,10 @@ public static class ProfileAttributes
         /// <a href="https://en.wikipedia.org/wiki/LuaJIT">LuaJIT</a>.
         /// </summary>
         public const string Luajit = "luajit";
+
+        /// <summary>
+        /// <a href="https://wikipedia.org/wiki/CUDA">CUDA</a>.
+        /// </summary>
+        public const string Cuda = "cuda";
     }
 }

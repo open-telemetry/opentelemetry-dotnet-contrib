@@ -99,6 +99,61 @@ public class TestMatcher
     }
 
     [Fact]
+    public void TestAttributeMatchingDoesNotCountARepeatedTagKeyMoreThanOnce()
+    {
+        // The rule needs both attributes, but only one of them is present, even though it is present twice.
+        var tags = new List<KeyValuePair<string, object?>>
+        {
+            new("dog", "bark"),
+            new("dog", "woof"),
+        };
+
+        var ruleAttributes = new Dictionary<string, string>
+        {
+            { "dog", "*" },
+            { "cow", "*" },
+        };
+
+        Assert.False(Matcher.AttributeMatch(tags, ruleAttributes));
+    }
+
+    [Fact]
+    public void TestAttributeMatchingWithRepeatedTagKeysThatMatchEveryRuleAttribute()
+    {
+        // Each attribute of the rule is matched, which is not changed by the tag which matches one of them being repeated.
+        var tags = new List<KeyValuePair<string, object?>>
+        {
+            new("dog", "bark"),
+            new("dog", "bark"),
+            new("cat", "meow"),
+            new("cow", "mooo"),
+            new("cow", "mooo"),
+            new("cow", "mooo"),
+        };
+
+        var ruleAttributes = new Dictionary<string, string>
+        {
+            { "dog", "bar?" },
+            { "cow", "mooo" },
+        };
+
+        Assert.True(Matcher.AttributeMatch(tags, ruleAttributes));
+    }
+
+    [Fact]
+    public void TestAttributeMatchingWithARepeatedTagKeyOfWhichOneValueMatches()
+    {
+        var tags = new List<KeyValuePair<string, object?>>
+        {
+            new("dog", "woof"),
+            new("dog", "bark"),
+        };
+
+        Assert.True(Matcher.AttributeMatch(tags, new Dictionary<string, string> { { "dog", "bar?" } }));
+        Assert.False(Matcher.AttributeMatch(tags, new Dictionary<string, string> { { "dog", "meow" } }));
+    }
+
+    [Fact]
     public void TestAttributeMatchingWithoutSpanTags()
     {
         var ruleAttributes = new Dictionary<string, string>

@@ -47,7 +47,9 @@ dotnet add package OpenTelemetry.Instrumentation.Hangfire --prerelease
 
 ### Step 3: Enable Hangfire Instrumentation at application startup
 
-Hangfire instrumentation must be enabled at application startup.
+Hangfire instrumentation must be enabled at application startup. Call
+`AddHangfireInstrumentation()` on the `TracerProviderBuilder` in both the
+process that creates jobs and the Hangfire server.
 
 The following example demonstrates adding Hangfire instrumentation to a
 console application. This example also sets up the OpenTelemetry Console
