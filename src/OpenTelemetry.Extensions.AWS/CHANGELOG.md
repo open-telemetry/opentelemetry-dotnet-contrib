@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.20.3
+
+Released 2026-Nov-03
+
 * Fixed `AddXRayTraceId()` and `AddXRayTraceIdWithSampler()` not replacing
   trace IDs when targeting .NET Framework or .NET Standard. The X-Ray ID
   generator now uses `Activity.TraceIdGenerator` on all target frameworks.
