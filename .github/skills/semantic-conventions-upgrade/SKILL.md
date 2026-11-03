@@ -227,7 +227,17 @@ instead of deciding silently.
 Changing emitted telemetry is a breaking change for dashboards, alerts and
 sampling rules. Choose the strategy from the migration guidance for the
 convention area and the component's existing compatibility contract, not from
-package stability alone:
+package stability alone.
+
+Each area's notice only applies to components that emit conventions at or
+before a starting version, and that version differs per area. Read it from the
+notice at the target tag instead of assuming one. At v1.45.0:
+
+| Area | Opt-in values | Notice applies to components emitting |
+| --- | --- | --- |
+| Database | `database`, `database/dup` | v1.24.0 or prior |
+| RPC | `rpc`, `rpc/dup` | v1.37.0 or prior |
+| Messaging | `messaging`, `messaging/dup` | v1.24.0 or prior |
 
 1. **Read the area's migration notice** at the target tag (for example
    `docs/db/README.md`, `docs/rpc/README.md`). Check whether it defines an
@@ -238,13 +248,12 @@ package stability alone:
    and any helper it already uses. Keep opt-ins it already ships; do not
    remove or reinterpret them.
 3. Then pick the matching case:
-   - **Experimental to initial stable, where the notice defines opt-in
-     values** (`database`, `rpc`, and `messaging` for components that still
-     emit v1.24.0 or earlier conventions): keep the default output and use the
-     dual-emit pattern.
-     - Database: `DatabaseSemanticConventionHelper` (`database`,
-       `database/dup`).
-     - RPC: `RpcSemanticConventionHelper` (`rpc`, `rpc/dup`).
+   - **Experimental to initial stable, where the notice defines opt-in values
+     and the component is at or before the notice's starting version:** keep
+     the default output and use the dual-emit pattern.
+     - Database: `DatabaseSemanticConventionHelper`.
+     - RPC: `RpcSemanticConventionHelper`.
+     - Messaging: no shared helper exists yet; model one on the two above.
      - Link the shared helper (`src/Shared`) rather than copying it, and add
        the option properties (`EmitOldAttributes`/`EmitNewAttributes` style)
        that the other libraries use.
@@ -261,12 +270,12 @@ package stability alone:
    - **The component already ships an opt-in contract** (stable or
      pre-release): extend that contract. Do not replace it with a hard
      cutover.
-   - **Messaging components already past v1.24.0, or any area with no
-     defined opt-in value:** the notice's starting-version condition does not
-     apply, so do not invent a new opt-in variable. Follow the notice. A
-     pre-release package with no existing contract may do a hard cutover; mark
-     it `**Breaking change**` in the CHANGELOG, describe every rename, and
-     confirm the approach with the user.
+   - **The component is past the notice's starting version, or the area
+     defines no opt-in value:** the notice does not apply, so do not invent a
+     new opt-in variable. Follow the notice. A pre-release package with no
+     existing contract may do a hard cutover; mark it `**Breaking change**` in
+     the CHANGELOG, describe every rename, and confirm the approach with the
+     user.
    - **The area is already stable** (for example HTTP): no new opt-in; follow
      the notice for any remaining migration.
    - **New selectable version enums (AWS):** add the new member (`V1_45_0`),
