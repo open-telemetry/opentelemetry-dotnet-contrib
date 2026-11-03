@@ -18,6 +18,7 @@ internal static class RequestTelemetryStateTracker
         var messageId = request?.Headers.MessageId?.ToString();
         if (messageId != null)
         {
+            telemetryState.MessageId = messageId;
             var expiresAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + (long)timeout.TotalMilliseconds;
             var timeoutProps = new EntryTimeoutProperties(messageId, expiresAt, timeoutCallback);
             var entry = new Entry(telemetryState, timeoutProps);
@@ -34,6 +35,27 @@ internal static class RequestTelemetryStateTracker
     {
         var relatesTo = reply?.Headers.RelatesTo?.ToString();
         return relatesTo == null ? null : PopTelemetryState(relatesTo);
+    }
+
+    public static void RemoveTelemetryState(RequestTelemetryState? telemetryState)
+    {
+        var messageId = telemetryState?.MessageId;
+        if (messageId == null)
+        {
+            return;
+        }
+
+        lock (Sync)
+        {
+            // Only remove the entry if it still belongs to this state: a reply may have popped it
+            // already, and a later request could reuse the id.
+            if (OutstandingRequestStates.TryGetValue(messageId, out var entry)
+                && ReferenceEquals(entry.State, telemetryState))
+            {
+                OutstandingRequestStates.Remove(messageId);
+                TimeoutQueue.Remove(entry.TimeoutProperties);
+            }
+        }
     }
 
     private static RequestTelemetryState? PopTelemetryState(string messageId)

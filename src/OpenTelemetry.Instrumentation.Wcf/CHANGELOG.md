@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+* Fixed an issue where a late reply or the telemetry timeout for a failed
+  outgoing duplex request could stop the client activity a second time and
+  record reply data on it.
+  ([#5791](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5791))
+
+## 1.20.1-beta.1
+
+Released 2026-Oct-21
+
+* Updated OpenTelemetry core component version(s) to `1.20.1`.
+  ([#5651](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5651))
+
+* Fixed server spans for incoming requests without trace context so that they
+  start a new trace instead of using `Activity.Current` as their parent.
+  ([#5646](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5646))
+
 ## 1.20.0-beta.1
 
 Released 2026-Oct-15

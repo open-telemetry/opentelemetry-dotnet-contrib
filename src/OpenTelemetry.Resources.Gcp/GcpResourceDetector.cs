@@ -61,7 +61,7 @@ internal sealed class GcpResourceDetector : IResourceDetector
             new(ResourceSemanticConventions.AttributeHostId, platform.GkeDetails.InstanceId),
             new(ResourceSemanticConventions.AttributeK8sCluster, platform.GkeDetails.ClusterName),
             new(ResourceSemanticConventions.AttributeK8sNamespace, platform.GkeDetails.NamespaceId),
-            new(ResourceSemanticConventions.AttributeK8sPod, platform.GkeDetails.HostName)
+            new(ResourceSemanticConventions.AttributeK8sPod, platform.GkeDetails.HostName),
         ];
 
         return attributeList;
@@ -77,7 +77,7 @@ internal sealed class GcpResourceDetector : IResourceDetector
             new(ResourceSemanticConventions.AttributeCloudPlatform, ResourceAttributeConstants.GcpCloudRunPlatformValue),
             new(ResourceSemanticConventions.AttributeCloudRegion, platform.CloudRunDetails.Region),
             new(ResourceSemanticConventions.AttributeFaasName, platform.CloudRunDetails.ServiceName),
-            new(ResourceSemanticConventions.AttributeFaasVersion, platform.CloudRunDetails.RevisionName)
+            new(ResourceSemanticConventions.AttributeFaasVersion, platform.CloudRunDetails.RevisionName),
         ];
 
         // For faas.instance, use the GCE instance ID from the metadata service
@@ -139,7 +139,7 @@ internal sealed class GcpResourceDetector : IResourceDetector
         [
             new(ResourceSemanticConventions.AttributeCloudProvider, ResourceAttributeConstants.GcpCloudProviderValue),
             new(ResourceSemanticConventions.AttributeCloudAccount, platform.ProjectId),
-            new(ResourceSemanticConventions.AttributeCloudPlatform, ResourceAttributeConstants.GcpGaePlatformValue)
+            new(ResourceSemanticConventions.AttributeCloudPlatform, ResourceAttributeConstants.GcpGaePlatformValue),
         ];
         return attributeList;
     }
@@ -149,7 +149,7 @@ internal sealed class GcpResourceDetector : IResourceDetector
         List<KeyValuePair<string, object>> attributeList =
         [
             new(ResourceSemanticConventions.AttributeCloudProvider, ResourceAttributeConstants.GcpCloudProviderValue),
-            new(ResourceSemanticConventions.AttributeCloudAccount, platform.ProjectId)
+            new(ResourceSemanticConventions.AttributeCloudAccount, platform.ProjectId),
         ];
 
         if (platform.GceDetails is { } details)

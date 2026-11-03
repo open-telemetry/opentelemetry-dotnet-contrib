@@ -84,8 +84,6 @@ public class OpAmpWsPipeTests : OpAmpPipeTests
         private int minimumStackDepth = int.MaxValue;
         private int sendCount;
 
-        public bool RequiresResponseBeforeNextSend => false;
-
         public int SendCount => Volatile.Read(ref this.sendCount);
 
         public int StackDepthGrowth
@@ -131,8 +129,6 @@ public class OpAmpWsPipeTests : OpAmpPipeTests
         private readonly TaskCompletionSource<bool> socketFree = new(TaskCreationOptions.RunContinuationsAsynchronously);
         private readonly ManualResetEventSlim sendStarted = new();
         private readonly ManualResetEventSlim sent = new();
-
-        public bool RequiresResponseBeforeNextSend => false;
 
         public ByteString? SentInstanceUid { get; private set; }
 

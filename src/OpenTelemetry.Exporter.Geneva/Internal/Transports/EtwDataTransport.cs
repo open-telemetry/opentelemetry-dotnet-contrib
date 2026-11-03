@@ -67,7 +67,7 @@ internal sealed class EtwDataTransport : IDataTransport, IDisposable
             var dataDesc = stackalloc EventData[1];
             fixed (byte* ptr = data)
             {
-                dataDesc[0].DataPointer = (IntPtr)ptr;
+                dataDesc[0].DataPointer = (nint)ptr;
                 dataDesc[0].Size = size;
                 this.WriteEventCore(eventId, 1, dataDesc);
             }

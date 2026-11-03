@@ -141,6 +141,53 @@ public class ActivityHelperTest : IDisposable
     }
 
     [Fact]
+    public async Task Can_Restore_Baggage_Added_After_Request_Start()
+    {
+        this.EnableListener();
+
+        var propagator = new CompositeTextMapPropagator([new TraceContextPropagator(), new BaggagePropagator()]);
+        var context = HttpContextHelper.GetFakeHttpContextBase();
+
+        Task requestTask;
+
+        // Start the request on an execution context with no ambient baggage, as is the case for requests in IIS
+        using (ExecutionContext.SuppressFlow())
+        {
+            requestTask = Task.Run(
+                async () =>
+                {
+                    using var rootActivity = ActivityHelper.StartAspNetActivity(propagator, context, this.StartTestActivity);
+
+                    Assert.NotNull(rootActivity);
+
+                    Baggage.SetBaggage("tenant", "request-tenant");
+
+                    Task restoreTask;
+                    using (ExecutionContext.SuppressFlow())
+                    {
+                        restoreTask = Task.Run(
+                            () =>
+                            {
+                                Assert.Null(Activity.Current);
+                                Assert.Equal(0, Baggage.Current.Count);
+
+                                ActivityHelper.RestoreContextIfNeeded(context);
+
+                                Assert.Same(Activity.Current, rootActivity);
+                                Assert.Equal("request-tenant", Baggage.Current.GetBaggage("tenant"));
+                            },
+                            TestContext.Current.CancellationToken);
+                    }
+
+                    await restoreTask;
+                },
+                TestContext.Current.CancellationToken);
+        }
+
+        await requestTask;
+    }
+
+    [Fact]
     public void Can_Stop_Lost_Activity()
     {
         this.EnableListener(a =>

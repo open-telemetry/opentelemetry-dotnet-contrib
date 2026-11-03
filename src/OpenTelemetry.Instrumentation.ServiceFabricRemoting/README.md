@@ -249,6 +249,47 @@ If the original exception has several levels of inner exceptions, use
    [assembly: MyRemotingProvider(RemotingExceptionDepth = 5)]
 ```
 
+### Customizing the transport settings
+
+The provider attributes load the transport settings from the `TransportSettings`
+configuration section and then apply the values set on the attribute, such as
+`MaxMessageSize`. To change a setting that the attributes do not expose, derive
+from the attribute and override `ConfigureListenerSettings` and
+`ConfigureClientSettings`. These methods are called last, just before the
+listener and client factory are created, so the values they set take precedence.
+
+For example, during a rolling upgrade from Service Fabric SDK 7 to a later SDK,
+services can keep sending exceptions with `BinaryFormatter` and clients can keep
+falling back to it, so that services and clients on either SDK version can still
+read each other's exceptions:
+
+```csharp
+    public sealed class MyRemotingProviderAttribute : TraceContextEnrichedServiceRemotingProviderAttribute
+    {
+        protected override void ConfigureListenerSettings(FabricTransportRemotingListenerSettings settings)
+        {
+            settings.ExceptionSerializationTechnique = FabricTransportRemotingListenerSettings.ExceptionSerialization.BinaryFormatter;
+        }
+
+        protected override void ConfigureClientSettings(FabricTransportRemotingSettings settings)
+        {
+            settings.ExceptionDeserializationTechnique = FabricTransportRemotingSettings.ExceptionDeserialization.Fallback;
+        }
+    }
+```
+
+`BinaryFormatter` is insecure and is not available by default from .NET 9
+onwards, so only use it as a temporary measure. Service Fabric SDK 8 also marks
+`ExceptionSerializationTechnique` and `ExceptionDeserializationTechnique` as
+obsolete, so setting them produces a `CS0618` warning. See the
+[BinaryFormatter migration guide](https://learn.microsoft.com/dotnet/standard/serialization/binaryformatter-migration-guide/)
+and the
+[Remoting V1 deprecation strategy](https://github.com/microsoft/service-fabric/blob/master/release_notes/Deprecated/RemotingV1.md).
+
+The same pattern applies to
+`TraceContextEnrichedActorRemotingProviderAttribute`, and the overrides can be
+combined with the exception convertor overrides in the same derived attribute.
+
 ### Composing the adapters manually
 
 The provider attributes are a convenience that build the Service Fabric listener

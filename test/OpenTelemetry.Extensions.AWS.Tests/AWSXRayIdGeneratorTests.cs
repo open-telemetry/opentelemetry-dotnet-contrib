@@ -100,11 +100,7 @@ public class AWSXRayIdGeneratorTests
         }
     }
 
-#if NETFRAMEWORK
-    [Fact(Skip = "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1615")]
-#else
     [Fact]
-#endif
     public void AddXRayTraceId_WithActivitySource_SetsXRayCompatibleTraceIdWithoutExceptions()
     {
         Exception? exception = null;

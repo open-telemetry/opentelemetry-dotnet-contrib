@@ -33,26 +33,26 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
     }
 
     /// <inheritdoc />
-    public override async Task Invoke(IOwinContext owinContext)
+    public override async Task Invoke(IOwinContext context)
     {
         long startTimestamp = -1;
 
         try
         {
-            BeginRequest(owinContext);
+            BeginRequest(context);
 
             if (OwinInstrumentationMetrics.HttpServerDuration.Enabled &&
-                !owinContext.Environment.ContainsKey(ContextKey))
+                !context.Environment.ContainsKey(ContextKey))
             {
                 startTimestamp = Stopwatch.GetTimestamp();
             }
 
-            await this.Next.Invoke(owinContext).ConfigureAwait(false);
-            RequestEnd(owinContext, null, startTimestamp);
+            await this.Next.Invoke(context).ConfigureAwait(false);
+            RequestEnd(context, null, startTimestamp);
         }
         catch (Exception ex)
         {
-            RequestEnd(owinContext, ex, startTimestamp);
+            RequestEnd(context, ex, startTimestamp);
             throw;
         }
     }

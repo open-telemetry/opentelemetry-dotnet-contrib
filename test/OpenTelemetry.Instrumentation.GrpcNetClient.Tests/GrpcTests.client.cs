@@ -531,7 +531,7 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
 
             Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([
                 new TraceContextPropagator(),
-                propagator
+                propagator,
             ]));
 
             using (Sdk.CreateTracerProviderBuilder()
@@ -575,7 +575,7 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
         {
             Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([
                 new TraceContextPropagator(),
-                new BaggagePropagator()
+                new BaggagePropagator(),
             ]));
         }
     }
@@ -596,7 +596,7 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
 
             Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([
                 new TraceContextPropagator(),
-                propagator
+                propagator,
             ]));
 
             using (Sdk.CreateTracerProviderBuilder()
@@ -635,7 +635,7 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
         {
             Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([
                 new TraceContextPropagator(),
-                new BaggagePropagator()
+                new BaggagePropagator(),
             ]));
         }
     }
@@ -678,7 +678,7 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
         {
             Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([
                 new TraceContextPropagator(),
-                new BaggagePropagator()
+                new BaggagePropagator(),
             ]));
         }
     }
@@ -728,7 +728,7 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
 
             Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([
                 new TraceContextPropagator(),
-                propagator
+                propagator,
             ]));
 
             using (Sdk.CreateTracerProviderBuilder()
@@ -755,7 +755,7 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
         {
             Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([
                 new TraceContextPropagator(),
-                new BaggagePropagator()
+                new BaggagePropagator(),
             ]));
         }
     }
@@ -800,15 +800,15 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
 
     private sealed class CancelledGrpcCallStatusProcessor : BaseProcessor<Activity>
     {
-        public override void OnEnd(Activity activity)
+        public override void OnEnd(Activity data)
         {
             // The application knows a CANCELLED result is the result of a deliberate
             // cancellation rather than a failure, so the error signal is cleared while
             // leaving the rpc.response.status_code attribute in place.
-            if ((activity.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode) as string) == "CANCELLED")
+            if ((data.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode) as string) == "CANCELLED")
             {
-                activity.SetStatus(ActivityStatusCode.Unset);
-                activity.SetTag(SemanticConventions.AttributeErrorType, null);
+                data.SetStatus(ActivityStatusCode.Unset);
+                data.SetTag(SemanticConventions.AttributeErrorType, null);
             }
         }
     }

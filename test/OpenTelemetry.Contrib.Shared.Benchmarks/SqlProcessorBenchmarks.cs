@@ -15,6 +15,7 @@ public class SqlProcessorBenchmarks
          "SELECT * FROM Orders o, OrderDetails od",
          "SELECT order_date\nFROM   (SELECT *\nFROM   orders o\nJOIN customers c\nON o.customer_id = c.customer_id)",
          "INSERT INTO Orders(Id, Name, Bin, Rate) VALUES(1, 'abc''def', 0xFF, 1.23e-5)",
+         "INSERT INTO [dbo].[Orders] ([Id], [Name]) VALUES (@p0, @p1)",
          "UPDATE Orders SET Name = 'foo' WHERE Id = 42",
          "DELETE FROM Orders WHERE Id = 42",
          "CREATE UNIQUE CLUSTERED INDEX IX_Orders_Id ON Orders(Id)",

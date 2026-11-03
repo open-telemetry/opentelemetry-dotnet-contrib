@@ -32,12 +32,12 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
         JsonEncodedText.Encode("Warning"),
         JsonEncodedText.Encode("Error"),
         JsonEncodedText.Encode("Critical"),
-        JsonEncodedText.Encode("Trace") // Note: This is the "None" bucket.
+        JsonEncodedText.Encode("Trace"), // Note: This is the "None" bucket.
     ];
 
     private static readonly int[] LogLevelToSeverityNumberMappings =
     [
-        1, 5, 9, 13, 17, 21, 1
+        1, 5, 9, 13, 17, 21, 1,
     ];
 
     private static readonly Action<LogRecordScope, CommonSchemaJsonSerializationState> SerializeScopeItemToJson = (scope, serializationState) =>
@@ -142,14 +142,10 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
 #endif
         }
 
-#if EXPOSE_EXPERIMENTAL_FEATURES
 #pragma warning disable CS0618 // Type or member is obsolete
         // TODO: Update to use LogRecord.Severity
         var logLevel = (int)item.LogLevel;
 #pragma warning restore CS0618 // Type or member is obsolete
-#else
-        var logLevel = (int)item.LogLevel;
-#endif
         writer.WriteString(SeverityTextProperty, LogLevelToSeverityTextMappings[logLevel]);
         writer.WriteNumber(SeverityNumberProperty, LogLevelToSeverityNumberMappings[logLevel]);
 

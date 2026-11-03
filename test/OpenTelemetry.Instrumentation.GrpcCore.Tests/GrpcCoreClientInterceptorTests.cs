@@ -452,7 +452,7 @@ public class GrpcCoreClientInterceptorTests(WeaverFixture weaver, ITestOutputHel
                 new ClientTracingInterceptor(interceptorOptions),
                 [
                     new(FoobarService.RequestHeaderFailWithStatusCode, statusCode.ToString()),
-                    new(FoobarService.RequestHeaderErrorDescription, "fubar")
+                    new(FoobarService.RequestHeaderErrorDescription, "fubar"),
                 ]);
 
             await Assert.ThrowsAsync<RpcException>(() => clientRequestFunc(client, null));

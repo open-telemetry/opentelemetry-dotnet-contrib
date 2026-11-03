@@ -306,18 +306,16 @@ internal sealed class OpAmpPipe : IDisposable
 
             await this.transport.SendAsync(message, token, this.applyAssignedInstanceUid)
                 .ConfigureAwait(false);
-
-            if (!this.transport.RequiresResponseBeforeNextSend)
-            {
-                this.ReleaseBusy();
-                this.TryFlush(token);
-            }
         }
         catch (Exception ex)
         {
-            this.ReleaseBusy();
-
             OpAmpClientEventSource.Log.SendMessageException(ex);
+        }
+        finally
+        {
+            // HTTP sends include synchronous response dispatch. Keep the slot busy until
+            // every listener has returned so later responses cannot overtake this one.
+            this.ReleaseBusy();
             this.TryFlush(token);
         }
     }
@@ -338,16 +336,10 @@ internal sealed class OpAmpPipe : IDisposable
     private void OnServerFrameReceived(ServerToAgent message)
     {
         // Handled here rather than by an AgentIdentificationMessage listener so the
-        // new UID is applied before the HTTP transport releases the next frame.
+        // new UID is applied before any field listener can queue another frame.
         if (message.AgentIdentification is { } agentIdentification)
         {
             this.SetInstanceUid(agentIdentification.NewInstanceUid);
-        }
-
-        if (this.transport.RequiresResponseBeforeNextSend)
-        {
-            this.ReleaseBusy();
-            this.TryFlush(this.tokenSource.Token);
         }
     }
 

@@ -14,19 +14,19 @@ internal sealed class HangfireMetricsJobFilterAttribute : JobFilterAttribute, IS
 {
     private const string StopwatchKey = "OpenTelemetry.Metrics.Stopwatch";
 
-    public void OnPerforming(PerformingContext performingContext)
+    public void OnPerforming(PerformingContext filterContext)
     {
-        performingContext.Items[StopwatchKey] = Stopwatch.StartNew();
+        filterContext.Items[StopwatchKey] = Stopwatch.StartNew();
     }
 
-    public void OnPerformed(PerformedContext performedContext)
+    public void OnPerformed(PerformedContext filterContext)
     {
         // Get recurring job ID if this job was triggered by a recurring job
         string? recurringJobId = null;
         try
         {
-            recurringJobId = performedContext.Connection.GetJobParameter(
-                performedContext.BackgroundJob.Id,
+            recurringJobId = filterContext.Connection.GetJobParameter(
+                filterContext.BackgroundJob.Id,
                 "RecurringJobId");
         }
         catch
@@ -34,24 +34,24 @@ internal sealed class HangfireMetricsJobFilterAttribute : JobFilterAttribute, IS
             // If we can't get the recurring job ID, treat it as a non-recurring job
         }
 
-        var backgroundJob = performedContext.BackgroundJob;
+        var backgroundJob = filterContext.BackgroundJob;
 
         // Record execution outcome (without state attribute per semantic conventions)
         var countTags = HangfireTagBuilder.BuildExecutionCountTags(
             backgroundJob,
-            performedContext.Exception);
+            filterContext.Exception);
 
         HangfireMetrics.ExecutionOutcome.Add(1, countTags);
 
         // Record execution duration (with state="executing" to differentiate from pending phase)
-        if (performedContext.Items.TryGetValue(StopwatchKey, out var stopwatchObj) && stopwatchObj is Stopwatch stopwatch)
+        if (filterContext.Items.TryGetValue(StopwatchKey, out var stopwatchObj) && stopwatchObj is Stopwatch stopwatch)
         {
             stopwatch.Stop();
             var duration = stopwatch.Elapsed.TotalSeconds;
 
             var durationTags = HangfireTagBuilder.BuildExecutionTags(
                 backgroundJob,
-                performedContext.Exception,
+                filterContext.Exception,
                 workflowState: WorkflowAttributes.WorkflowStateValues.Executing);
 
             HangfireMetrics.ExecutionDuration.Record(duration, durationTags);
@@ -60,7 +60,7 @@ internal sealed class HangfireMetricsJobFilterAttribute : JobFilterAttribute, IS
         // Record workflow-level metrics (includes trigger type)
         var workflowTags = HangfireTagBuilder.BuildWorkflowTags(
             backgroundJob,
-            performedContext.Exception,
+            filterContext.Exception,
             recurringJobId);
 
         HangfireMetrics.WorkflowOutcome.Add(1, workflowTags);

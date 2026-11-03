@@ -35,37 +35,50 @@ internal sealed class HttpInListener : IDisposable
         TelemetryHttpModule.Options.OnExceptionCallback -= this.OnException;
     }
 
-    private void RecordDuration(Activity? activity, HttpContextBase context, string? routeTemplate = null)
+    private static void StoreMetricStartTimestamp(HttpContextBase context, long metricStartTimestamp)
     {
-        var metricStartTimestamp = context.Items[MetricStartTimestampHttpContextItemsKey];
-        context.Items.Remove(MetricStartTimestampHttpContextItemsKey);
-
-        if (AspNetInstrumentation.Instance.HandleManager.MetricHandles == 0)
+        if (metricStartTimestamp != 0)
         {
-            return;
+            context.Items[MetricStartTimestampHttpContextItemsKey] = metricStartTimestamp;
         }
+    }
 
+    private void RecordDuration(Activity? activity, HttpContextBase context, HttpRequestBase? request = null, HttpResponseBase? response = null, string? routeTemplate = null)
+    {
         double duration;
         if (activity is not null)
         {
+            if (AspNetInstrumentation.Instance.HandleManager.MetricHandles == 0)
+            {
+                return;
+            }
+
             duration = activity.Duration.TotalSeconds;
-        }
-        else if (metricStartTimestamp is long beginTimestamp)
-        {
-            duration = Stopwatch.GetElapsedTime(beginTimestamp).TotalSeconds;
         }
         else
         {
-            return;
+            // The start timestamp is only stored when no activity was created for the request.
+            var metricStartTimestamp = context.Items[MetricStartTimestampHttpContextItemsKey];
+            context.Items.Remove(MetricStartTimestampHttpContextItemsKey);
+
+            if (AspNetInstrumentation.Instance.HandleManager.MetricHandles == 0 || metricStartTimestamp is not long beginTimestamp)
+            {
+                return;
+            }
+
+            duration = Stopwatch.GetElapsedTime(beginTimestamp).TotalSeconds;
         }
 
+        // The wrappers are only read once it is known the duration will be recorded, as reading them allocates.
+        request ??= context.Request;
+        response ??= context.Response;
+
         var options = AspNetInstrumentation.Instance.MetricOptions;
-        var request = context.Request;
         var url = request.Url;
         var tags = new TagList
         {
             { SemanticConventions.AttributeUrlScheme, url.Scheme },
-            { SemanticConventions.AttributeHttpResponseStatusCode, context.Response.StatusCode },
+            { SemanticConventions.AttributeHttpResponseStatusCode, TelemetryHelper.GetBoxedStatusCode(response.StatusCode) },
         };
 
         if (context.Items[ErrorTypeHttpContextItemsKey] is string errorType)
@@ -123,13 +136,14 @@ internal sealed class HttpInListener : IDisposable
     {
         context.Items[StopInstrumentationCallbackContextKey] = this.onStopActivityCallback;
 
-        if (AspNetInstrumentation.Instance.HandleManager.MetricHandles > 0)
-        {
-            context.Items[MetricStartTimestampHttpContextItemsKey] = Stopwatch.GetTimestamp();
-        }
+        // When an activity is created its duration is used for the metric, so the start timestamp
+        // is only boxed and stored in the HttpContext when there is no activity to provide it.
+        var handleManager = AspNetInstrumentation.Instance.HandleManager;
+        var metricStartTimestamp = handleManager.MetricHandles > 0 ? Stopwatch.GetTimestamp() : 0L;
 
-        if (AspNetInstrumentation.Instance.HandleManager.TracingHandles == 0)
+        if (handleManager.TracingHandles == 0)
         {
+            StoreMetricStartTimestamp(context, metricStartTimestamp);
             return null;
         }
 
@@ -145,7 +159,7 @@ internal sealed class HttpInListener : IDisposable
         tags.Add(SemanticConventions.AttributeServerPort, PortTelemetryHelper.GetBoxedPort(url.Port, cacheValue: true));
         tags.Add(SemanticConventions.AttributeUrlScheme, url.Scheme);
 
-        if (context.Request.Unvalidated?.Path is string path)
+        if (request.Unvalidated?.Path is string path)
         {
             tags.Add(SemanticConventions.AttributeUrlPath, path);
         }
@@ -169,6 +183,7 @@ internal sealed class HttpInListener : IDisposable
         if (activity == null)
         {
             AspNetInstrumentationEventSource.Log.NullActivity(nameof(this.StartActivity));
+            StoreMetricStartTimestamp(context, metricStartTimestamp);
             return null;
         }
 
@@ -234,24 +249,28 @@ internal sealed class HttpInListener : IDisposable
 
         var options = AspNetInstrumentation.Instance.TraceOptions;
         string? template = null;
+        HttpRequestBase? request = null;
+        HttpResponseBase? response = null;
 
         if (activity.IsAllDataRequested)
         {
-            var response = context.Response;
+            // HttpContextBase.Request and HttpContextBase.Response allocate a new wrapper on each access, so read them once.
+            request = context.Request;
+            response = context.Response;
 
-            activity.SetTag(SemanticConventions.AttributeHttpResponseStatusCode, response.StatusCode);
+            activity.SetTag(SemanticConventions.AttributeHttpResponseStatusCode, TelemetryHelper.GetBoxedStatusCode(response.StatusCode));
 
             if (activity.Status == ActivityStatusCode.Unset)
             {
                 activity.SetStatus(SpanHelper.ResolveActivityStatusForHttpStatusCode(activity.Kind, response.StatusCode));
             }
 
-            template = this.routeHelper.GetRouteTemplate(context.Request);
+            template = this.routeHelper.GetRouteTemplate(request);
 
             if (!string.IsNullOrEmpty(template))
             {
                 // Override the name that was previously set to the normalized HTTP method/HTTP
-                this.requestDataHelper.SetActivityDisplayName(activity, context.Request.HttpMethod, template);
+                this.requestDataHelper.SetActivityDisplayName(activity, request.HttpMethod, template);
                 activity.SetTag(SemanticConventions.AttributeHttpRoute, template);
             }
 
@@ -265,7 +284,7 @@ internal sealed class HttpInListener : IDisposable
             }
         }
 
-        this.RecordDuration(activity, context, template);
+        this.RecordDuration(activity, context, request, response, template);
     }
 
     private void OnException(Activity? activity, HttpContextBase context, Exception exception)

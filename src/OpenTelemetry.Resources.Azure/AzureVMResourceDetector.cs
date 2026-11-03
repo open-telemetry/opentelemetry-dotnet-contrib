@@ -23,14 +23,14 @@ internal sealed class AzureVMResourceDetector : IResourceDetector
         ResourceSemanticConventions.AttributeHostType,
         ResourceSemanticConventions.AttributeOsType,
         ResourceSemanticConventions.AttributeOsVersion,
-        ResourceSemanticConventions.AttributeServiceInstance
+        ResourceSemanticConventions.AttributeServiceInstance,
     ];
 
     private static readonly IReadOnlyCollection<string> OmitWhenEmptyAzureAmsFields =
     [
         ResourceSemanticConventions.AttributeHostImageId,
         ResourceSemanticConventions.AttributeHostImageName,
-        ResourceSemanticConventions.AttributeHostImageVersion
+        ResourceSemanticConventions.AttributeHostImageVersion,
     ];
 
     private static Resource? vmResource;

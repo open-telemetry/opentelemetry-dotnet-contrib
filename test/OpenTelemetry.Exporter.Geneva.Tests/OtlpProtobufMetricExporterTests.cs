@@ -45,7 +45,7 @@ public abstract class OtlpProtobufMetricExporterTests
         "stringValueUnicodeKey",
         "uintKey",
         "ulongKey",
-        "ushortKey"
+        "ushortKey",
     ];
 
     private readonly TagList exemplarTagList;

@@ -110,13 +110,11 @@ internal sealed partial class EventNameManager
             ref eventNamespace!,
             ref eventName!);
 
-        var originalEventNamespaceBlob = !string.IsNullOrEmpty(originalEventNamespace)
-                                         && originalEventNamespace != eventNamespace
+        var originalEventNamespaceBlob = !string.IsNullOrEmpty(originalEventNamespace) && originalEventNamespace != eventNamespace
             ? BuildEventFullName(string.Empty, originalEventNamespace!)
             : null;
 
-        var originalEventNameBlob = !string.IsNullOrEmpty(originalEventName)
-                                    && originalEventName != eventName
+        var originalEventNameBlob = !string.IsNullOrEmpty(originalEventName) && originalEventName != eventName
             ? BuildEventFullName(string.Empty, originalEventName!)
             : null;
 

@@ -24,6 +24,7 @@ public static class V8jsAttributes
     /// </summary>
     /// <remarks>
     /// Value can be retrieved from value <c>space_name</c> of <a href="https://nodejs.org/api/v8.html#v8getheapspacestatistics"><c>v8.getHeapSpaceStatistics()</c></a>.
+    /// The set of reported spaces depends on the V8 version the runtime embeds.
     /// </remarks>
     public const string AttributeV8jsHeapSpaceName = "v8js.heap.space.name";
 
@@ -87,6 +88,51 @@ public static class V8jsAttributes
         /// Large object memory space.
         /// </summary>
         public const string LargeObjectSpace = "large_object_space";
+
+        /// <summary>
+        /// Read-only memory space, holding immutable objects created at startup.
+        /// </summary>
+        public const string ReadOnlySpace = "read_only_space";
+
+        /// <summary>
+        /// Memory space for objects shared across isolates (e.g. shared strings and structs).
+        /// </summary>
+        public const string SharedSpace = "shared_space";
+
+        /// <summary>
+        /// Memory space for trusted objects kept outside the V8 sandbox (e.g. bytecode).
+        /// </summary>
+        public const string TrustedSpace = "trusted_space";
+
+        /// <summary>
+        /// Shared variant of the trusted memory space.
+        /// </summary>
+        public const string SharedTrustedSpace = "shared_trusted_space";
+
+        /// <summary>
+        /// Large object space for young-generation objects.
+        /// </summary>
+        public const string NewLargeObjectSpace = "new_large_object_space";
+
+        /// <summary>
+        /// Large object space for code objects.
+        /// </summary>
+        public const string CodeLargeObjectSpace = "code_large_object_space";
+
+        /// <summary>
+        /// Large object space for shared objects.
+        /// </summary>
+        public const string SharedLargeObjectSpace = "shared_large_object_space";
+
+        /// <summary>
+        /// Large object space for shared trusted objects.
+        /// </summary>
+        public const string SharedTrustedLargeObjectSpace = "shared_trusted_large_object_space";
+
+        /// <summary>
+        /// Large object space for trusted objects.
+        /// </summary>
+        public const string TrustedLargeObjectSpace = "trusted_large_object_space";
     }
 
     /// <summary>

@@ -405,6 +405,21 @@ public class AWSLambdaHttpUtilsTests
     [InlineData(null, "localhost", "localhost", null)]
     [InlineData("http", "localhost", "localhost", 80)]
     [InlineData("https", "localhost", "localhost", 443)]
+    [InlineData("https", "localhost:", "localhost", null)]
+    [InlineData("https", "localhost:8443", "localhost", 8443)]
+    [InlineData(null, "localhost:80:90", "localhost", null)]
+    [InlineData(null, "localhost: 80", "localhost", null)]
+    [InlineData(null, "localhost:+80", "localhost", null)]
+    [InlineData(null, ":8080", "", 8080)]
+    [InlineData(null, "[::1]", "[::1]", null)]
+    [InlineData("http", "[::1]", "[::1]", 80)]
+    [InlineData("https", "[::1]", "[::1]", 443)]
+    [InlineData(null, "[::1]:8080", "[::1]", 8080)]
+    [InlineData("https", "[::1]:8080", "[::1]", 8080)]
+    [InlineData(null, "[2001:db8::1]:8443", "[2001:db8::1]", 8443)]
+    [InlineData(null, "[::1]:", "[::1]", null)]
+    [InlineData(null, "[::1]:abc", "[::1]", null)]
+    [InlineData("https", "[::1", "[::1", null)]
     public void GetHostAndPort_HostHeader_ReturnsCorrectHostAndPort(string? httpSchema, string? hostHeader, string? expectedHost, int? expectedPort)
     {
         (var host, var port) = AWSLambdaHttpUtils.GetHostAndPort(httpSchema, hostHeader);

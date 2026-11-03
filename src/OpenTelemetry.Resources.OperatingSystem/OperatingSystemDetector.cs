@@ -22,13 +22,13 @@ internal sealed class OperatingSystemDetector : IResourceDetector
     private static readonly string[] DefaultEtcOsReleasePaths =
     [
         "/etc/os-release",
-        "/usr/lib/os-release"
+        "/usr/lib/os-release",
     ];
 
     private static readonly string[] DefaultPlistFilePaths =
     [
         "/System/Library/CoreServices/SystemVersion.plist",
-        "/System/Library/CoreServices/ServerVersion.plist"
+        "/System/Library/CoreServices/ServerVersion.plist",
     ];
 #endif
 
@@ -138,8 +138,9 @@ internal sealed class OperatingSystemDetector : IResourceDetector
         OperatingSystemsValues.Windows;
 #else
         RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? OperatingSystemsValues.Windows :
-            RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? OperatingSystemsValues.Linux :
-            RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? OperatingSystemsValues.Darwin : null;
+        RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? OperatingSystemsValues.Linux :
+        RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? OperatingSystemsValues.Darwin :
+        null;
 #endif
 
     private static string GetOSDescription() =>

@@ -1,9 +1,11 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics.Metrics;
 using System.Reflection;
 using System.Text;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
 using RouteTests.TestApplication;
 
 namespace RouteTests;
@@ -54,7 +56,30 @@ public class RoutingTestFixture : IAsyncLifetime
         var app = this.apps[scenario];
         var baseUrl = app.Urls.First();
         var url = $"{baseUrl}{path}";
-        await HttpClient.GetAsync(new Uri(url));
+
+        // Hosting records http.server.request.duration after the response has been sent, so the
+        // client can observe the response before the measurement is recorded. Wait for it so that a
+        // test does not collect metrics while the measurement is still being recorded. The listener
+        // is started after any MeterProvider created by the test so that it is notified after the SDK.
+        var meterFactory = app.Services.GetRequiredService<IMeterFactory>();
+        var durationRecorded = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        using var listener = new MeterListener();
+        listener.InstrumentPublished = (instrument, listener) =>
+        {
+            if (instrument.Meter.Scope == meterFactory &&
+                instrument.Meter.Name == "Microsoft.AspNetCore.Hosting" &&
+                instrument.Name == "http.server.request.duration")
+            {
+                listener.EnableMeasurementEvents(instrument);
+            }
+        };
+        listener.SetMeasurementEventCallback<double>((_, _, _, _) => durationRecorded.TrySetResult());
+        listener.Start();
+
+        using var response = await HttpClient.GetAsync(new Uri(url));
+
+        await durationRecorded.Task.WaitAsync(TimeSpan.FromSeconds(10));
     }
 
     internal void AddActivityTestResult(ActivityRoutingTestResult result)

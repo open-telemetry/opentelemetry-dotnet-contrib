@@ -117,10 +117,7 @@ internal static class ActivityHelper
             InvokeRequestStoppedCallback(aspNetActivity, context, onRequestStoppedInstrumentationCallback, "OnInstrumentationStopped");
             context.Items[ContextKey] = null;
 
-            if (textMapPropagator is not TraceContextPropagator)
-            {
-                Baggage.Current = default;
-            }
+            ClearBaggage(textMapPropagator);
 
             return;
         }
@@ -144,10 +141,7 @@ internal static class ActivityHelper
         aspNetActivity.Stop();
         AspNetTelemetryEventSource.Log.ActivityStopped(aspNetActivity);
 
-        if (textMapPropagator is not TraceContextPropagator)
-        {
-            Baggage.Current = default;
-        }
+        ClearBaggage(textMapPropagator);
 
         if (currentActivity != aspNetActivity)
         {
@@ -196,6 +190,15 @@ internal static class ActivityHelper
             }
 
             AspNetTelemetryEventSource.Log.ActivityRestored(contextHolder.Activity);
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void ClearBaggage(TextMapPropagator textMapPropagator)
+    {
+        if (textMapPropagator is not TraceContextPropagator && Baggage.Current.Count > 0)
+        {
+            Baggage.Current = default;
         }
     }
 

@@ -516,6 +516,19 @@ internal partial class AWSSemanticConventions
                 typeof(SemanticConventionVersion)),
     };
 
+    /// <summary>
+    /// Determines whether the value is <see langword="null"/> or formats as an empty string, without
+    /// formatting strings or primitive values (such as <see cref="bool"/> and <see cref="long"/>), which
+    /// are never empty when formatted.
+    /// </summary>
+    private static bool IsNullOrEmpty(object? value) => value switch
+    {
+        null => true,
+        string text => text.Length == 0,
+        _ when value.GetType().IsPrimitive => false,
+        _ => string.IsNullOrEmpty(value.ToString()),
+    };
+
     private AttributeBuilderImpl Add(AttributeBuilderImpl attributes, Func<AWSSemanticConventionsBase, string> attributeNameFunc, Func<AWSSemanticConventionsBase, string> valueFunc) =>
         this.Add(attributes, attributeNameFunc, valueFunc(this.semanticConventionVersion));
 
@@ -525,7 +538,7 @@ internal partial class AWSSemanticConventions
 
         // if attributeName is empty or there is no value, exit
         if (string.IsNullOrEmpty(attributeName) ||
-           (string.IsNullOrEmpty(value?.ToString()) && !addIfEmpty))
+           (!addIfEmpty && IsNullOrEmpty(value)))
         {
             return attributes;
         }

@@ -8,9 +8,9 @@ using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Trace;
 
-/// <summary>
-/// Extension methods to simplify registering of dependency instrumentation.
-/// </summary>
+/// <content>
+/// Contains the extension methods to simplify registering of Kafka producer instrumentation.
+/// </content>
 public static partial class TracerProviderBuilderExtensions
 {
     /// <summary>

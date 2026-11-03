@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.GrpcCore;
 
@@ -19,5 +18,5 @@ internal static class GrpcCoreInstrumentation
     /// <summary>
     /// Gets the activity source for the instrumentation.
     /// </summary>
-    internal static readonly ActivitySource ActivitySource = ActivitySourceFactory.Create(typeof(GrpcCoreInstrumentation), SemanticConventionsVersion);
+    internal static readonly ActivitySource ActivitySource = Trace.ActivitySourceFactory.Create(typeof(GrpcCoreInstrumentation), SemanticConventionsVersion);
 }

@@ -112,7 +112,7 @@ public class LogRecordCommonSchemaJsonHttpPostBenchmarks
             [
                 new KeyValuePair<string, object?>("userId", 18),
                 new KeyValuePair<string, object?>("greeting", "hello world"),
-                new KeyValuePair<string, object?>("{OriginalFormat}", "Structured logging {userId} {greeting}")
+                new KeyValuePair<string, object?>("{OriginalFormat}", "Structured logging {userId} {greeting}"),
             ];
 
             if (index % 3 == 0)
@@ -120,7 +120,7 @@ public class LogRecordCommonSchemaJsonHttpPostBenchmarks
                 var scopeProvider = new ScopeProvider(
                     [
                         new KeyValuePair<string, object?>("scope1Key1", "scope1Value1"),
-                        new KeyValuePair<string, object?>("scope1Key2", "scope1Value2")
+                        new KeyValuePair<string, object?>("scope1Key2", "scope1Value2"),
                     ],
                     [new KeyValuePair<string, object?>("scope2Key1", "scope2Value1")]);
 
