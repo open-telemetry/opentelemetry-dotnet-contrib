@@ -79,16 +79,18 @@ public class Program
 ##### List of metrics produced
 
 The instrumentation is implemented based on [metrics semantic
-conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.40.0/docs/db/database-metrics.md).
+conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/db/database-metrics.md).
 Currently, the instrumentation supports the following metric:
 
 | Name | Instrument Type | Unit | Description | Attributes |
 | --- | --- | --- | --- | --- |
-| `db.client.operation.duration` | Histogram | `s` | Duration of database client operations. | `db.system.name`, `db.operation.name`, `db.namespace`, `db.query.summary`[^1], `db.query.text`[^2], `server.address`, `server.port`, `error.type`[^3] |
+| `db.client.operation.duration` | Histogram | `s` | Duration of database client operations. | `db.system.name`, `db.operation.name`, `db.namespace`, `db.query.summary`[^1], `db.query.text`[^2], `server.address`, `server.port`[^4], `error.type`[^3] |
 
 [^1]: `db.query.summary` is only included when `RecordQuerySummary` is enabled
 [^2]: `db.query.text` is only included when `RecordQueryText` is enabled
 [^3]: `error.type` is only included when an error occurs
+[^4]: `server.port` is only included when it is not the default port for the
+    scheme of the cluster URI (for example, `443` for `https`)
 
 ## Advanced configuration
 
@@ -242,5 +244,5 @@ set to `"Get active users"`.
 
 * [OpenTelemetry Project](https://opentelemetry.io/)
 * [Azure Data Explorer (Kusto)](https://docs.microsoft.com/azure/data-explorer/)
-* [OpenTelemetry semantic conventions for database spans](https://github.com/open-telemetry/semantic-conventions/blob/v1.40.0/docs/db/database-spans.md)
-* [OpenTelemetry semantic conventions for database metrics](https://github.com/open-telemetry/semantic-conventions/blob/v1.40.0/docs/db/database-metrics.md)
+* [OpenTelemetry semantic conventions for database spans](https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/db/database-spans.md)
+* [OpenTelemetry semantic conventions for database metrics](https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/db/database-metrics.md)

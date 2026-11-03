@@ -10,7 +10,7 @@ namespace OpenTelemetry.Instrumentation.Http;
 /// </summary>
 internal sealed class HttpClientInstrumentation : IDisposable
 {
-    internal static readonly Version SemanticConventionsVersion = new(1, 41, 0);
+    internal static readonly Version SemanticConventionsVersion = new(1, 45, 0);
 
     // The names of the events written by DiagnosticsHandler that the instrumentation does not use.
     // https://github.com/dotnet/runtime/blob/v10.0.0/src/libraries/System.Net.Http/src/System/Net/Http/DiagnosticsHandlerLoggingStrings.cs
