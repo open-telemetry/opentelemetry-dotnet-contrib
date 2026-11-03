@@ -11,4 +11,8 @@ public class EventSourceTests
     [Fact]
     public void EventSourceTests_GrpcInstrumentationEventSource() =>
         EventSourceTestHelper.ValidateEventSourceIds<GrpcInstrumentationEventSource>();
+
+    [Fact]
+    public void EventSourceTests_GrpcInstrumentationEventSource_WritesEvents() =>
+        EventSourceTestHelper.ExerciseEventSource<GrpcInstrumentationEventSource>();
 }

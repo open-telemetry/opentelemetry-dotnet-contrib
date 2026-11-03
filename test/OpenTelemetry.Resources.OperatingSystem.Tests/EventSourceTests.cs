@@ -10,4 +10,8 @@ public class EventSourceTests
     [Fact]
     public void EventSourceTests_OperatingSystemResourcesEventSource() =>
         EventSourceTestHelper.ValidateEventSourceIds<OperatingSystemResourcesEventSource>();
+
+    [Fact]
+    public void EventSourceTests_OperatingSystemResourcesEventSource_WritesEvents() =>
+        EventSourceTestHelper.ExerciseEventSource<OperatingSystemResourcesEventSource>();
 }
