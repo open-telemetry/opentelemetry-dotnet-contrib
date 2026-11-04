@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #if NETFRAMEWORK
+using System.Collections.Concurrent;
 using System.Data;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
@@ -383,6 +384,38 @@ public class SqlEventSourceTests
 
         Assert.True(tracerProvider.ForceFlush());
         Assert.Single(activities);
+    }
+
+    [Fact]
+    public void AbandonedCommandsAreNotRemovedIfTheirIdHasBeenReused()
+    {
+        using var eventSource = new FakeBehavingMdsSqlEventSource();
+
+        var pendingCommands = new ConcurrentDictionary<(EventSource EventSource, int ObjectId), SqlEventSourceListener.PendingCommand>();
+
+        var abandoned = (eventSource, 1);
+        var other = (eventSource, 2);
+
+        using var abandonedActivity = new Activity("abandoned");
+        using var otherActivity = new Activity("other");
+        using var reusedActivity = new Activity("reused");
+
+        pendingCommands[abandoned] = new(null, null, null, null, abandonedActivity);
+        pendingCommands[other] = new(null, null, null, null, otherActivity);
+
+        var snapshot = pendingCommands.ToArray();
+
+        // The abandoned command ends, and its id is reused by a new execution, after the snapshot is taken.
+        Assert.True(pendingCommands.TryRemove(abandoned, out _));
+        var reused = new SqlEventSourceListener.PendingCommand(null, null, null, null, reusedActivity);
+        pendingCommands[abandoned] = reused;
+
+        SqlEventSourceListener.RemoveCommands(pendingCommands, snapshot, snapshot.Length);
+
+        // The command which is unchanged is removed, but the one which reused the id is not.
+        Assert.False(pendingCommands.ContainsKey(other));
+        Assert.True(pendingCommands.TryGetValue(abandoned, out var remaining));
+        Assert.Same(reusedActivity, remaining.Activity);
     }
 
     [Fact]

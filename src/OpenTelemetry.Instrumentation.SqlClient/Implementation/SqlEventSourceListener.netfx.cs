@@ -77,6 +77,21 @@ internal sealed class SqlEventSourceListener : EventListener
         base.Dispose();
     }
 
+    internal static void RemoveCommands(
+        ConcurrentDictionary<(EventSource EventSource, int ObjectId), PendingCommand> pendingCommands,
+        KeyValuePair<(EventSource EventSource, int ObjectId), PendingCommand>[] commands,
+        int count)
+    {
+        // Only remove an entry if it is still the one which was observed. Its id may have been
+        // reused by a newer execution since, which must keep its entry so that it can end.
+        var collection = (ICollection<KeyValuePair<(EventSource EventSource, int ObjectId), PendingCommand>>)pendingCommands;
+
+        for (var i = 0; i < count; i++)
+        {
+            _ = collection.Remove(commands[i]);
+        }
+    }
+
     protected override void OnEventSourceCreated(EventSource eventSource)
     {
         if (eventSource?.Name.StartsWith(AdoNetEventSourceName, StringComparison.Ordinal) == true)
@@ -315,10 +330,7 @@ internal sealed class SqlEventSourceListener : EventListener
 
         Array.Sort(commands, static (x, y) => x.Value.StartedAt.CompareTo(y.Value.StartedAt));
 
-        for (var i = 0; i < commands.Length - (MaxPendingCommands / 2); i++)
-        {
-            _ = this.pendingCommands.TryRemove(commands[i].Key, out _);
-        }
+        RemoveCommands(this.pendingCommands, commands, commands.Length - (MaxPendingCommands / 2));
     }
 
     private void OnEndExecute(EventWrittenEventArgs eventData)
@@ -396,7 +408,8 @@ internal sealed class SqlEventSourceListener : EventListener
         }
     }
 
-    private readonly struct PendingCommand(long? beginTimestamp, string? querySummary, string? dataSource, string? databaseName, Activity? activity)
+    internal readonly struct PendingCommand(long? beginTimestamp, string? querySummary, string? dataSource, string? databaseName, Activity? activity)
+        : IEquatable<PendingCommand>
     {
         public long? BeginTimestamp { get; } = beginTimestamp;
 
@@ -409,6 +422,15 @@ internal sealed class SqlEventSourceListener : EventListener
         public Activity? Activity { get; } = activity;
 
         public long StartedAt { get; } = Stopwatch.GetTimestamp();
+
+        public bool Equals(PendingCommand other) =>
+            this.StartedAt == other.StartedAt && ReferenceEquals(this.Activity, other.Activity);
+
+        public override bool Equals(object? obj) =>
+            obj is PendingCommand other && this.Equals(other);
+
+        public override int GetHashCode() =>
+            unchecked((this.StartedAt.GetHashCode() * 397) ^ (this.Activity?.GetHashCode() ?? 0));
     }
 }
 #endif
