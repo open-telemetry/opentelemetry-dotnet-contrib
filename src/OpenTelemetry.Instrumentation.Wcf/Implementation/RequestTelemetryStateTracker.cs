@@ -7,8 +7,13 @@ namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 
 internal static class RequestTelemetryStateTracker
 {
+    // Largest due time Timer.Change accepts (uint.MaxValue - 1 ms, about 49 days). A request can expire
+    // later than that (e.g. an infinite WCF timeout); the timer then fires early and OnTimer re-arms it.
+    private const long MaxTimerDueIn = 0xFFFFFFFE;
+
     private static readonly Dictionary<string, Entry> OutstandingRequestStates = [];
     private static readonly SortedSet<EntryTimeoutProperties> TimeoutQueue = [];
+    private static readonly Dictionary<object, HashSet<string>> RequestsByOwner = [];
     private static readonly Lock Sync = new();
     private static readonly Timer Timer = new(OnTimer);
     private static long currentTimerDueAt = Timeout.Infinite;
@@ -26,6 +31,7 @@ internal static class RequestTelemetryStateTracker
             {
                 OutstandingRequestStates.Add(messageId, entry);
                 TimeoutQueue.Add(timeoutProps);
+                AddToOwnerIndex(messageId, telemetryState.Owner);
                 SetTimerEarlierIfNeeded(expiresAt);
             }
         }
@@ -35,6 +41,31 @@ internal static class RequestTelemetryStateTracker
     {
         var relatesTo = reply?.Headers.RelatesTo?.ToString();
         return relatesTo == null ? null : PopTelemetryState(relatesTo);
+    }
+
+    public static List<RequestTelemetryState> RemoveTelemetryStates(object owner)
+    {
+        var removed = new List<RequestTelemetryState>();
+
+        lock (Sync)
+        {
+            // Only the requests of this owner are visited, regardless of how many are outstanding overall.
+            if (RequestsByOwner.TryGetValue(owner, out var messageIds))
+            {
+                RequestsByOwner.Remove(owner);
+
+                foreach (var messageId in messageIds)
+                {
+                    var entry = OutstandingRequestStates[messageId];
+
+                    OutstandingRequestStates.Remove(messageId);
+                    TimeoutQueue.Remove(entry.TimeoutProperties);
+                    removed.Add(entry.State);
+                }
+            }
+        }
+
+        return removed;
     }
 
     public static void RemoveTelemetryState(RequestTelemetryState? telemetryState)
@@ -52,8 +83,7 @@ internal static class RequestTelemetryStateTracker
             if (OutstandingRequestStates.TryGetValue(messageId, out var entry)
                 && ReferenceEquals(entry.State, telemetryState))
             {
-                OutstandingRequestStates.Remove(messageId);
-                TimeoutQueue.Remove(entry.TimeoutProperties);
+                RemoveEntry(messageId, entry);
             }
         }
     }
@@ -64,8 +94,7 @@ internal static class RequestTelemetryStateTracker
         {
             if (OutstandingRequestStates.TryGetValue(messageId, out var entry))
             {
-                OutstandingRequestStates.Remove(messageId);
-                TimeoutQueue.Remove(entry.TimeoutProperties);
+                RemoveEntry(messageId, entry);
             }
 
             return entry?.State;
@@ -73,6 +102,18 @@ internal static class RequestTelemetryStateTracker
     }
 
     private static void OnTimer(object? state)
+    {
+        try
+        {
+            OnTimerCore();
+        }
+        catch (Exception ex)
+        {
+            WcfInstrumentationEventSource.Log.TelemetryTimeoutException(ex);
+        }
+    }
+
+    private static void OnTimerCore()
     {
         List<Tuple<EntryTimeoutProperties, Entry>>? timedOutEntries = null;
         lock (Sync)
@@ -96,8 +137,7 @@ internal static class RequestTelemetryStateTracker
 
             foreach (var entry in timedOutEntries ?? Enumerable.Empty<Tuple<EntryTimeoutProperties, Entry>>())
             {
-                OutstandingRequestStates.Remove(entry.Item1.MessageId);
-                TimeoutQueue.Remove(entry.Item1);
+                RemoveEntry(entry.Item1.MessageId, entry.Item2);
             }
 
             // when there's no more outstanding requests we set time timer to infinite, effectively disabling it until another request arrives
@@ -105,7 +145,52 @@ internal static class RequestTelemetryStateTracker
             SetTimer(nextExpiry);
         }
 
-        timedOutEntries?.ForEach(entry => entry.Item1.TimeoutCallback(entry.Item2.State));
+        if (timedOutEntries != null)
+        {
+            foreach (var entry in timedOutEntries)
+            {
+                try
+                {
+                    entry.Item1.TimeoutCallback(entry.Item2.State);
+                }
+                catch (Exception ex)
+                {
+                    // A failing callback must not prevent the remaining requests from being completed.
+                    WcfInstrumentationEventSource.Log.TelemetryTimeoutException(ex);
+                }
+            }
+        }
+    }
+
+    private static void AddToOwnerIndex(string messageId, object? owner)
+    {
+        if (owner == null)
+        {
+            return;
+        }
+
+        if (!RequestsByOwner.TryGetValue(owner, out var messageIds))
+        {
+            RequestsByOwner[owner] = messageIds = [];
+        }
+
+        messageIds.Add(messageId);
+    }
+
+    private static void RemoveEntry(string messageId, Entry entry)
+    {
+        OutstandingRequestStates.Remove(messageId);
+        TimeoutQueue.Remove(entry.TimeoutProperties);
+
+        var owner = entry.State.Owner;
+        if (owner != null && RequestsByOwner.TryGetValue(owner, out var messageIds))
+        {
+            messageIds.Remove(messageId);
+            if (messageIds.Count == 0)
+            {
+                RequestsByOwner.Remove(owner);
+            }
+        }
     }
 
     private static void SetTimerEarlierIfNeeded(long dueAt)
@@ -127,6 +212,7 @@ internal static class RequestTelemetryStateTracker
         {
             var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             dueIn = Math.Max(0, dueAt - now) + 50; // add 50ms here because the timer is not precise and often fires just a bit early
+            dueIn = Math.Min(dueIn, MaxTimerDueIn);
         }
 
         Timer.Change(dueIn, Timeout.Infinite);

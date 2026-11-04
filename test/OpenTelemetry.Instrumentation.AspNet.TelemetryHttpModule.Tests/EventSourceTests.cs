@@ -10,4 +10,8 @@ public class EventSourceTests
     [Fact]
     public void EventSourceTests_AspNetTelemetryEventSource() =>
         EventSourceTestHelper.ValidateEventSourceIds<AspNetTelemetryEventSource>();
+
+    [Fact]
+    public void EventSourceTests_AspNetTelemetryEventSource_WritesEvents() =>
+        EventSourceTestHelper.ExerciseEventSource<AspNetTelemetryEventSource>();
 }

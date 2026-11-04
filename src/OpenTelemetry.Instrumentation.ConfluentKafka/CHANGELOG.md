@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* Fixed unbounded memory use caused by long string message keys being recorded
+  in full in the `messaging.kafka.message.key` span attribute. Keys longer than
+  256 characters are now truncated.
+  ([#5859](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5859))
+
 * Added the `UseCreationContextAsParent` option to
   `ConfluentKafkaInstrumentedConsumerBuilderOptions`. When enabled, the
   `process` span created by `ConsumeAndProcessMessageAsync` uses the message
