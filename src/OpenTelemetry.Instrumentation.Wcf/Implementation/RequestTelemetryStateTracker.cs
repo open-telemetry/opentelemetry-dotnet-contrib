@@ -13,6 +13,7 @@ internal static class RequestTelemetryStateTracker
 
     private static readonly Dictionary<string, Entry> OutstandingRequestStates = [];
     private static readonly SortedSet<EntryTimeoutProperties> TimeoutQueue = [];
+    private static readonly Dictionary<object, HashSet<string>> RequestsByOwner = [];
     private static readonly Lock Sync = new();
     private static readonly Timer Timer = new(OnTimer);
     private static long currentTimerDueAt = Timeout.Infinite;
@@ -30,6 +31,7 @@ internal static class RequestTelemetryStateTracker
             {
                 OutstandingRequestStates.Add(messageId, entry);
                 TimeoutQueue.Add(timeoutProps);
+                AddToOwnerIndex(messageId, telemetryState.Owner);
                 SetTimerEarlierIfNeeded(expiresAt);
             }
         }
@@ -47,23 +49,19 @@ internal static class RequestTelemetryStateTracker
 
         lock (Sync)
         {
-            List<string>? messageIds = null;
-            foreach (var pair in OutstandingRequestStates)
+            // Only the requests of this owner are visited, regardless of how many are outstanding overall.
+            if (RequestsByOwner.TryGetValue(owner, out var messageIds))
             {
-                if (ReferenceEquals(pair.Value.State.Owner, owner))
+                RequestsByOwner.Remove(owner);
+
+                foreach (var messageId in messageIds)
                 {
-                    messageIds ??= [];
-                    messageIds.Add(pair.Key);
+                    var entry = OutstandingRequestStates[messageId];
+
+                    OutstandingRequestStates.Remove(messageId);
+                    TimeoutQueue.Remove(entry.TimeoutProperties);
+                    removed.Add(entry.State);
                 }
-            }
-
-            foreach (var messageId in messageIds ?? Enumerable.Empty<string>())
-            {
-                var entry = OutstandingRequestStates[messageId];
-
-                OutstandingRequestStates.Remove(messageId);
-                TimeoutQueue.Remove(entry.TimeoutProperties);
-                removed.Add(entry.State);
             }
         }
 
@@ -85,8 +83,7 @@ internal static class RequestTelemetryStateTracker
             if (OutstandingRequestStates.TryGetValue(messageId, out var entry)
                 && ReferenceEquals(entry.State, telemetryState))
             {
-                OutstandingRequestStates.Remove(messageId);
-                TimeoutQueue.Remove(entry.TimeoutProperties);
+                RemoveEntry(messageId, entry);
             }
         }
     }
@@ -97,8 +94,7 @@ internal static class RequestTelemetryStateTracker
         {
             if (OutstandingRequestStates.TryGetValue(messageId, out var entry))
             {
-                OutstandingRequestStates.Remove(messageId);
-                TimeoutQueue.Remove(entry.TimeoutProperties);
+                RemoveEntry(messageId, entry);
             }
 
             return entry?.State;
@@ -141,8 +137,7 @@ internal static class RequestTelemetryStateTracker
 
             foreach (var entry in timedOutEntries ?? Enumerable.Empty<Tuple<EntryTimeoutProperties, Entry>>())
             {
-                OutstandingRequestStates.Remove(entry.Item1.MessageId);
-                TimeoutQueue.Remove(entry.Item1);
+                RemoveEntry(entry.Item1.MessageId, entry.Item2);
             }
 
             // when there's no more outstanding requests we set time timer to infinite, effectively disabling it until another request arrives
@@ -163,6 +158,37 @@ internal static class RequestTelemetryStateTracker
                     // A failing callback must not prevent the remaining requests from being completed.
                     WcfInstrumentationEventSource.Log.TelemetryTimeoutException(ex);
                 }
+            }
+        }
+    }
+
+    private static void AddToOwnerIndex(string messageId, object? owner)
+    {
+        if (owner == null)
+        {
+            return;
+        }
+
+        if (!RequestsByOwner.TryGetValue(owner, out var messageIds))
+        {
+            RequestsByOwner[owner] = messageIds = [];
+        }
+
+        messageIds.Add(messageId);
+    }
+
+    private static void RemoveEntry(string messageId, Entry entry)
+    {
+        OutstandingRequestStates.Remove(messageId);
+        TimeoutQueue.Remove(entry.TimeoutProperties);
+
+        var owner = entry.State.Owner;
+        if (owner != null && RequestsByOwner.TryGetValue(owner, out var messageIds))
+        {
+            messageIds.Remove(messageId);
+            if (messageIds.Count == 0)
+            {
+                RequestsByOwner.Remove(owner);
             }
         }
     }

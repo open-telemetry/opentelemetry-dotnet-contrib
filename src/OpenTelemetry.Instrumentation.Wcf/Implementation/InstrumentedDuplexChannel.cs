@@ -68,6 +68,10 @@ internal class InstrumentedDuplexChannel : InstrumentedChannel<IDuplexChannel>, 
             {
                 ClientChannelInstrumentation.AfterRequestCompleted(null, asyncResult.TelemetryState);
             }
+            else
+            {
+                OnSendCompleted(asyncResult.TelemetryState);
+            }
         }
         catch (Exception ex)
         {
@@ -162,19 +166,63 @@ internal class InstrumentedDuplexChannel : InstrumentedChannel<IDuplexChannel>, 
         ClientChannelInstrumentation.AfterRequestCompleted(null, telemetryState);
     }
 
+    private static void RunInIsolatedContext(Action action)
+    {
+        // Completing a request stops its activity and ends its instrumentation suppression scope, which
+        // change the ambient context. That must not leak into the thread that closed or faulted the
+        // channel, or that called EndSend, as its own Activity.Current would be replaced.
+        var executionContext = ExecutionContext.Capture();
+        if (executionContext == null)
+        {
+            action();
+        }
+        else
+        {
+            ExecutionContext.Run(executionContext, static state => ((Action)state!)(), action);
+        }
+    }
+
+    private static void CompleteWithoutReply(RequestTelemetryState telemetryState)
+    {
+        try
+        {
+            OnTelemetryStateTimedOut(telemetryState);
+        }
+        catch (Exception ex)
+        {
+            WcfInstrumentationEventSource.Log.TelemetryTimeoutException(ex);
+        }
+    }
+
+    private static void OnSendCompleted(RequestTelemetryState telemetryState)
+    {
+        // The channel went away while sending, so no reply will arrive for this request.
+        if (telemetryState.MarkSendCompleted())
+        {
+            RunInIsolatedContext(() => CompleteWithoutReply(telemetryState));
+        }
+    }
+
     private void OnChannelClosedOrFaulted(object? sender, EventArgs e)
     {
-        foreach (var telemetryState in RequestTelemetryStateTracker.RemoveTelemetryStates(this))
+        var telemetryStates = RequestTelemetryStateTracker.RemoveTelemetryStates(this);
+        if (telemetryStates.Count == 0)
         {
-            try
-            {
-                OnTelemetryStateTimedOut(telemetryState);
-            }
-            catch (Exception ex)
-            {
-                WcfInstrumentationEventSource.Log.TelemetryTimeoutException(ex);
-            }
+            return;
         }
+
+        RunInIsolatedContext(() =>
+        {
+            foreach (var telemetryState in telemetryStates)
+            {
+                // A channel typically faults before the failed send throws. Leave those requests to the
+                // send's failure path, which knows the exception, and complete them here only if it succeeds.
+                if (!telemetryState.TryDeferCompletionWhileSending())
+                {
+                    CompleteWithoutReply(telemetryState);
+                }
+            }
+        });
     }
 
     private IAsyncResult SendInternal(Message message, TimeSpan timeout, Func<AsyncCallback?, object?, IAsyncResult> executeSend, AsyncCallback? callback, object? state)
@@ -211,9 +259,17 @@ internal class InstrumentedDuplexChannel : InstrumentedChannel<IDuplexChannel>, 
 
             executeSend(telemetryState);
 
-            if (completeOneWay && telemetryState.IsOneWay)
+            if (completeOneWay)
             {
-                ClientChannelInstrumentation.AfterRequestCompleted(null, telemetryState);
+                // A synchronous send has finished. An asynchronous one finishes in EndSend.
+                if (telemetryState.IsOneWay)
+                {
+                    ClientChannelInstrumentation.AfterRequestCompleted(null, telemetryState);
+                }
+                else
+                {
+                    OnSendCompleted(telemetryState);
+                }
             }
         }
 
