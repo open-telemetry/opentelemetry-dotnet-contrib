@@ -888,7 +888,8 @@ public class HttpWebRequestActivitySourceTests : IDisposable
     /// A queued request can be started by another thread before the caller's Begin* has returned and so
     /// before its context has been captured. The context of that other thread must not be used for the
     /// request, the thread must not wait for the caller (it holds the connection lock the caller may be
-    /// waiting for), and the ambient context of the thread must be left as it was found.
+    /// waiting for), and the ambient context of the thread must be left as it was found. When the request
+    /// completes in the context of its caller, the original callback must still see the caller's activity.
     /// </summary>
     [Fact]
     public async Task TestRequestWithoutCapturedContextDoesNotUseContextOfCurrentThread()
@@ -908,7 +909,9 @@ public class HttpWebRequestActivitySourceTests : IDisposable
             const BindingFlags NonPublicInstance = BindingFlags.NonPublic | BindingFlags.Instance;
             var request = (HttpWebRequest)WebRequest.Create(new Uri(this.BuildRequestUrl()));
             var resultType = typeof(ServicePoint).Assembly.GetType("System.Net.ContextAwareResult", throwOnError: true)!;
-            var result = Activator.CreateInstance(resultType, NonPublicInstance, null, [false, true, request, null, null], null)!;
+            Activity? activityObservedByCallback = null;
+            AsyncCallback originalCallback = _ => activityObservedByCallback = Activity.Current;
+            var result = Activator.CreateInstance(resultType, NonPublicInstance, null, [false, true, request, null, originalCallback], null)!;
             typeof(HttpWebRequest).GetField("_WriteAResult", NonPublicInstance)!.SetValue(request, result);
             var postingLock = resultType.GetMethod("StartPostingAsyncOp", NonPublicInstance, null, Type.EmptyTypes, null)!.Invoke(result, null)!;
 
@@ -962,6 +965,28 @@ public class HttpWebRequestActivitySourceTests : IDisposable
                 Assert.Contains(clientActivity.TraceId.ToHexString(), traceparent);
                 Assert.DoesNotContain(unrelatedActivity.TraceId.ToHexString(), traceparent);
                 Assert.Null(request.Headers["baggage"]);
+
+                // The framework completes the request in the context captured for its caller. The span of the
+                // request has no parent, but the original callback must still see the activity of the caller.
+                var lazyAsyncResultType = typeof(ServicePoint).Assembly.GetType("System.Net.LazyAsyncResult", throwOnError: true)!;
+                var completion = Task.Run(() =>
+                {
+                    using var caller = new Activity("caller")
+                        .SetIdFormat(ActivityIdFormat.W3C)
+                        .Start();
+
+                    lazyAsyncResultType.GetField("m_Result", NonPublicInstance)!.SetValue(result, new WebException("failed"));
+                    var wrapper = (AsyncCallback)lazyAsyncResultType.GetField("m_AsyncCallback", NonPublicInstance)!.GetValue(result)!;
+                    wrapper((IAsyncResult)result);
+
+                    return (Caller: caller, Current: Activity.Current);
+                });
+
+                var (callerActivity, currentAfterCompletion) = await completion;
+
+                Assert.Single(eventRecords.Records, rec => rec.Key == "Stop");
+                Assert.Same(callerActivity, activityObservedByCallback);
+                Assert.Same(callerActivity, currentAfterCompletion);
             }
             finally
             {

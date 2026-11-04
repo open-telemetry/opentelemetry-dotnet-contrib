@@ -363,6 +363,9 @@ internal static class HttpWebRequestActivitySource
         Version? protocolVersion = null;
         var activityStatus = ActivityStatusCode.Unset;
 
+        // The activity of the context this is completing in, which is the one the original callback will see.
+        var completionActivity = Activity.Current;
+
         // Activity may be null if we are not tracing in these cases:
         // 1. No listeners
         // 2. Request was filtered out
@@ -479,6 +482,14 @@ internal static class HttpWebRequestActivitySource
         }
 
         activity?.Stop();
+
+        if (activity is { Parent: null } && completionActivity is { IsStopped: false } && completionActivity != activity)
+        {
+            // Stopping an activity with no parent clears Activity.Current. That is the case when the activity
+            // was started without the context of its caller (see ProcessRequestWithoutAmbientContext), so put
+            // back the activity the completion is running under rather than hide it from the original callback.
+            Activity.Current = completionActivity;
+        }
 
         if (HttpClientRequestDuration.Enabled)
         {
