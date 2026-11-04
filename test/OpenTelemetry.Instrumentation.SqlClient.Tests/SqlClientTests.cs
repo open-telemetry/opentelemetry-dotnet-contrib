@@ -285,7 +285,7 @@ public class SqlClientTests
                     Timestamp = (long?)1000000L,
                 });
 
-            Assert.Equal(1, listener.PendingBeginTimestampCount);
+            Assert.Equal(1, listener.PendingCommandCount);
         }
 
         listener.OnEventWritten(
@@ -298,7 +298,7 @@ public class SqlClientTests
                 Timestamp = 2000000L,
             });
 
-        Assert.Equal(0, listener.PendingBeginTimestampCount);
+        Assert.Equal(0, listener.PendingCommandCount);
     }
 
     [Fact]
@@ -330,57 +330,76 @@ public class SqlClientTests
     [InlineData(SqlClientLibrary.MicrosoftDataSqlClient)]
     public void MetricUsesDatabaseOfConnectionWhenCommandStarted(SqlClientLibrary library)
     {
-        var activities = new List<Activity>();
-        var metrics = new List<Metric>();
+        foreach (var samplingMode in Enum.GetValues<SamplingMode>())
+        {
+            var activities = new List<Activity>();
+            var metrics = new List<Metric>();
 
-        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .SetSampler(new AlwaysOnSampler())
-            .AddSqlClientInstrumentation()
-            .AddInMemoryExporter(activities)
-            .Build();
+            var tracerProviderBuilder = Sdk.CreateTracerProviderBuilder();
 
-        using var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddSqlClientInstrumentation()
-            .AddInMemoryExporter(metrics)
-            .Build();
-
-        // A connection which breaks while a command executes is closed before the error is
-        // reported, after which its database is that of its connection string, not the one
-        // the command was executed against.
-        var connection = new ChangingDatabaseDbConnection("orders");
-
-        MockCommandExecutor.ExecuteCommand(
-            new FakeDbCommand
+            if (samplingMode != SamplingMode.MetricsOnly)
             {
-                CommandType = CommandType.StoredProcedure,
-                CommandText = "SP_GetOrders",
-                Connection = connection,
-            },
-            library,
-            statistics: null,
-            afterBeforeCommand: () => connection.CurrentDatabase = "master");
+                tracerProviderBuilder
+                    .SetSampler(samplingMode == SamplingMode.Sampled ? new AlwaysOnSampler() : new AlwaysOffSampler())
+                    .AddSqlClientInstrumentation()
+                    .AddInMemoryExporter(activities);
+            }
 
-        Assert.True(tracerProvider.ForceFlush());
-        Assert.True(meterProvider.ForceFlush());
+            using var tracerProvider = tracerProviderBuilder.Build();
+            using var meterProvider = Sdk.CreateMeterProviderBuilder()
+                .AddSqlClientInstrumentation()
+                .AddInMemoryExporter(metrics)
+                .Build();
 
-        var activity = Assert.Single(activities);
-        Assert.Equal("orders", activity.GetTagValue(SemanticConventions.AttributeDbNamespace));
+            // A connection which breaks while a command executes is closed before the error is
+            // reported, after which its database is that of its connection string, not the one
+            // the command was executed against.
+            var connection = new ChangingDatabaseDbConnection("orders");
 
-        var metric = Assert.Single(metrics, m => m.Name == "db.client.operation.duration");
-        var metricPoints = new List<MetricPoint>();
-        foreach (var point in metric.GetMetricPoints())
-        {
-            metricPoints.Add(point);
+            using (samplingMode == SamplingMode.NotSampled
+                ? new Activity("parent").SetIdFormat(ActivityIdFormat.W3C).Start()
+                : null)
+            {
+                MockCommandExecutor.ExecuteCommand(
+                    new FakeDbCommand
+                    {
+                        CommandType = CommandType.StoredProcedure,
+                        CommandText = "SP_GetOrders",
+                        Connection = connection,
+                    },
+                    library,
+                    statistics: null,
+                    afterBeforeCommand: () => connection.CurrentDatabase = "master");
+            }
+
+            Assert.True(tracerProvider.ForceFlush());
+            Assert.True(meterProvider.ForceFlush());
+
+            Assert.Equal(samplingMode == SamplingMode.Sampled ? 1 : 0, activities.Count);
+
+            if (samplingMode == SamplingMode.Sampled)
+            {
+                Assert.Equal("orders", Assert.Single(activities).GetTagValue(SemanticConventions.AttributeDbNamespace));
+            }
+
+            var metric = Assert.Single(metrics, m => m.Name == "db.client.operation.duration");
+            var metricPoints = new List<MetricPoint>();
+            foreach (var point in metric.GetMetricPoints())
+            {
+                metricPoints.Add(point);
+            }
+
+            var metricPoint = Assert.Single(metricPoints);
+            var tags = new Dictionary<string, object?>();
+            foreach (var tag in metricPoint.Tags)
+            {
+                tags.Add(tag.Key, tag.Value);
+            }
+
+            Assert.True(
+                tags.TryGetValue(SemanticConventions.AttributeDbNamespace, out var dbNamespace) && "orders".Equals(dbNamespace),
+                $"Unexpected db.namespace '{dbNamespace}' for {samplingMode}.");
         }
-
-        var metricPoint = Assert.Single(metricPoints);
-        var tags = new Dictionary<string, object?>();
-        foreach (var tag in metricPoint.Tags)
-        {
-            tags.Add(tag.Key, tag.Value);
-        }
-
-        Assert.Equal("orders", tags[SemanticConventions.AttributeDbNamespace]);
     }
 #endif
 
