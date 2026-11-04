@@ -370,6 +370,113 @@ public class DiagnosticsMiddlewareTests : IDisposable
     }
 
     [Theory]
+    [InlineData("GET", "GET", false)]
+    [InlineData("GET", "GET", true)]
+    [InlineData("CUSTOM", "_OTHER", false)]
+    [InlineData("CUSTOM", "_OTHER", true)]
+    public async Task MetricsRecordedWithNormalizedMethodOnly(string requestMethod, string expectedMethod, bool instrumentTraces)
+    {
+        List<Activity> stoppedActivities = [];
+        using var tracerProvider = instrumentTraces
+            ? Sdk.CreateTracerProviderBuilder()
+                .AddInMemoryExporter(stoppedActivities)
+                .AddOwinInstrumentation()
+                .Build()
+            : null;
+
+        List<Metric> exportedMetrics = [];
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddInMemoryExporter(exportedMetrics)
+            .AddOwinInstrumentation()
+            .Build();
+
+        using var client = new HttpClient();
+        using var request = new HttpRequestMessage(new HttpMethod(requestMethod), new Uri($"{this.serviceBaseUri}api/test"));
+        this.requestCompleteHandle.Reset();
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        Assert.True(this.requestCompleteHandle.WaitOne(3000));
+
+        tracerProvider?.Dispose();
+        meterProvider.Dispose();
+
+        var metric = Assert.Single(exportedMetrics);
+        Assert.Equal("http.server.request.duration", metric.Name);
+        var metricPoint = Assert.Single(this.GetMetricPoints(metric));
+        Assert.Equal(1, metricPoint.GetHistogramCount());
+
+        // The original method must not become a metric dimension: its value is
+        // chosen by the client and would allow an unbounded number of series.
+        var tags = new Dictionary<string, object?>();
+        foreach (var tag in metricPoint.Tags)
+        {
+            tags[tag.Key] = tag.Value;
+        }
+
+        Assert.Equal(expectedMethod, tags[SemanticConventions.AttributeHttpRequestMethod]);
+        Assert.DoesNotContain(SemanticConventions.AttributeHttpRequestMethodOriginal, tags.Keys);
+
+        if (instrumentTraces)
+        {
+            // The original method is still recorded on the span.
+            var activity = Assert.Single(stoppedActivities);
+            Assert.Equal(expectedMethod, activity.GetTagItem(SemanticConventions.AttributeHttpRequestMethod));
+            Assert.Equal(
+                expectedMethod == "_OTHER" ? requestMethod : null,
+                activity.GetTagItem(SemanticConventions.AttributeHttpRequestMethodOriginal));
+        }
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task MetricsForDistinctNonStandardMethodsShareOneSeries(bool instrumentTraces)
+    {
+        string[] methods = ["CUSTOM1", "CUSTOM2", "Custom1", "X-OTHER"];
+
+        using var tracerProvider = instrumentTraces
+            ? Sdk.CreateTracerProviderBuilder()
+                .AddOwinInstrumentation()
+                .Build()
+            : null;
+
+        List<Metric> exportedMetrics = [];
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddInMemoryExporter(exportedMetrics)
+            .AddOwinInstrumentation()
+            .Build();
+
+        using var client = new HttpClient();
+
+        foreach (var method in methods)
+        {
+            using var request = new HttpRequestMessage(new HttpMethod(method), new Uri($"{this.serviceBaseUri}api/test"));
+            this.requestCompleteHandle.Reset();
+            using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+            Assert.True(this.requestCompleteHandle.WaitOne(3000));
+        }
+
+        tracerProvider?.Dispose();
+        meterProvider.Dispose();
+
+        // Client-chosen methods must collapse into a single series
+        // rather than creating one series per distinct value.
+        var metric = Assert.Single(exportedMetrics);
+        var metricPoint = Assert.Single(this.GetMetricPoints(metric));
+        Assert.Equal(methods.Length, metricPoint.GetHistogramCount());
+
+        var tags = new Dictionary<string, object?>();
+        foreach (var tag in metricPoint.Tags)
+        {
+            tags[tag.Key] = tag.Value;
+        }
+
+        Assert.Equal("_OTHER", tags[SemanticConventions.AttributeHttpRequestMethod]);
+        Assert.DoesNotContain(SemanticConventions.AttributeHttpRequestMethodOriginal, tags.Keys);
+    }
+
+    [Theory]
     [InlineData("path?a=b&c=d", "path?a=Redacted&c=Redacted", false, false)]
     [InlineData("path?a=b&c=d", "path?a=b&c=d", true, false)]
     [InlineData("path?a=b&c=d", "path?a=b&c=d", false, true)]
