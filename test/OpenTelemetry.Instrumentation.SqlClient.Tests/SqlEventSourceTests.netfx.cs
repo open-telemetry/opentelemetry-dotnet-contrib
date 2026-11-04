@@ -249,6 +249,45 @@ public class SqlEventSourceTests
         Assert.Contains("select second_table", querySummaries);
     }
 
+    [Theory]
+    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource))]
+    [InlineData(typeof(FakeBehavingMdsSqlEventSource))]
+    public async Task CallerActivityIsRestoredWhenCommandEndsOnAnotherExecutionContext(Type eventSourceType)
+    {
+        using var fakeSqlEventSource = (IFakeBehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
+
+        var activities = new List<Activity>();
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        Assert.Null(Activity.Current);
+
+        const int Commands = 3;
+
+        for (var i = 0; i < Commands; i++)
+        {
+            var objectId = i + 1;
+
+            // The event which ends an asynchronous command may be written on a copy of the execution context
+            // of the caller, so the activity cannot restore the caller's current activity when it stops.
+            fakeSqlEventSource.WriteBeginExecuteEvent(objectId, "127.0.0.1", "master", "select 1");
+
+            Assert.Null(Activity.Current);
+
+            await Task.Run(() => fakeSqlEventSource.WriteEndExecuteEvent(objectId, compositeState: 1, sqlExceptionNumber: 0), TestContext.Current.CancellationToken);
+
+            Assert.Null(Activity.Current);
+        }
+
+        Assert.True(tracerProvider.ForceFlush());
+
+        Assert.Equal(Commands, activities.Count);
+        Assert.All(activities, x => Assert.True(x.IsStopped));
+        Assert.All(activities, x => Assert.Equal(default, x.ParentSpanId));
+    }
+
     [Fact]
     public void InterleavedEventSourceCommandsFromDifferentProvidersUseEventSourceAndObjectId()
     {

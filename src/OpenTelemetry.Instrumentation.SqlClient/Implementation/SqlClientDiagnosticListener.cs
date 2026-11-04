@@ -49,6 +49,19 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
     private readonly PropertyFetcher<string> operationFetcher = new("Operation");
     private readonly ConcurrentDictionary<Guid, long> beginTimestamps = new();
 
+    // The activity of each command which is executing. The completion events of an asynchronous command
+    // are written on a copy of the execution context of the caller, so the activity cannot be found again
+    // through Activity.Current. Keyed weakly so the activity of a command which never writes a completion
+    // event (for example if it was cancelled before it started) does not keep the command alive.
+#if NET
+    private readonly ConditionalWeakTable<IDbCommand, Activity> activities = [];
+#else
+    private readonly ConditionalWeakTable<IDbCommand, Activity> activities = new();
+#endif
+
+    // Set once an activity has been tracked, so that nothing needs to be looked up before then.
+    private volatile bool hasTrackedActivities;
+
     public SqlClientDiagnosticListener(string sourceName)
         : base(sourceName)
     {
@@ -70,11 +83,27 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                 _ = this.TakeBeginTimestamp(payload);
             }
 
+            // Likewise release the activity of the command. One which is executing is stopped, and one left by
+            // an execution which never completed is cleared so that a command which is executed again does not
+            // pick it up if the instrumentation is enabled again before it completes.
+            if (this.hasTrackedActivities)
+            {
+                if (IsCompletionEvent(name))
+                {
+                    _ = TryFetchCommand(this.commandFetcher, payload, out var completedCommand);
+                    this.TakeActivity(completedCommand)?.Stop();
+                }
+                else if (name is SqlDataBeforeExecuteCommand or SqlMicrosoftBeforeExecuteCommand)
+                {
+                    _ = TryFetchCommand(this.commandFetcher, payload, out var startedCommand);
+                    _ = this.TakeActivity(startedCommand);
+                }
+            }
+
             return;
         }
 
         var options = SqlClientInstrumentation.Instance.GetTracingOptions();
-        var activity = Activity.Current;
         switch (name)
         {
             case SqlDataBeforeExecuteCommand:
@@ -94,6 +123,14 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                         return;
                     }
 #endif
+
+                    // An execution which never completed (for example one with a token which was already
+                    // cancelled) leaves its activity associated with the command, which a command that is
+                    // executed again must not pick up when it completes, so it is cleared first.
+                    if (this.hasTrackedActivities)
+                    {
+                        _ = this.activities.Remove(command);
+                    }
 
                     // Metrics-only fast path: if the ActivitySource has no listeners then StartActivity
                     // will always return null and no trace will be produced. Skip the (relatively
@@ -136,7 +173,9 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                             break;
                     }
 
-                    activity = SqlTelemetryHelper.ActivitySource.StartActivity(
+                    var callerActivity = Activity.Current;
+
+                    var activity = SqlTelemetryHelper.ActivitySource.StartActivity(
                         activityName,
                         ActivityKind.Client,
                         default(ActivityContext),
@@ -148,6 +187,16 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                         this.RecordBeginTimestamp(payload);
                         return;
                     }
+
+                    // The event which completes an asynchronous command is written on a copy of the
+                    // execution context of the caller, so stopping the activity there cannot restore the
+                    // caller's current activity. Restore it here instead, otherwise the caller is left with
+                    // the activity of the command as its current activity and every command it goes on to
+                    // execute becomes a child of the previous one. The activity is found again by command.
+                    Activity.Current = callerActivity;
+
+                    this.activities.Add(command, activity);
+                    this.hasTrackedActivities = true;
 
                     // Snapshot the connection's cumulative returned row count before the command
                     // executes so that the after-handler can compute the per-command delta. The
@@ -235,14 +284,9 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     }
 #endif
 
-                    if (activity == null)
-                    {
-                        SqlClientInstrumentationEventSource.Log.NullActivity(name);
-                        this.RecordDuration(null, payload);
-                        return;
-                    }
+                    var activity = this.TakeActivity(command);
 
-                    if (activity.Source != SqlTelemetryHelper.ActivitySource)
+                    if (activity == null)
                     {
                         this.RecordDuration(null, payload);
                         return;
@@ -280,14 +324,9 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     }
 #endif
 
-                    if (activity == null)
-                    {
-                        SqlClientInstrumentationEventSource.Log.NullActivity(name);
-                        this.RecordDuration(null, payload, hasError: true);
-                        return;
-                    }
+                    var activity = this.TakeActivity(command);
 
-                    if (activity.Source != SqlTelemetryHelper.ActivitySource)
+                    if (activity == null)
                     {
                         this.RecordDuration(null, payload, hasError: true);
                         return;
@@ -489,6 +528,15 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
     // baseline is subtracted to obtain the number of rows returned by this command.
     private static long? GetReturnedRowsDelta(long baseline, IDictionary statistics)
         => statistics["SelectRows"] is long selectRows ? selectRows - baseline : null;
+
+    private static bool IsCompletionEvent(string name) =>
+        name is SqlDataAfterExecuteCommand or SqlMicrosoftAfterExecuteCommand
+            or SqlDataWriteCommandError or SqlMicrosoftWriteCommandError;
+
+    private Activity? TakeActivity(IDbCommand? command) =>
+        command != null && this.activities.TryGetValue(command, out var activity) && this.activities.Remove(command)
+            ? activity
+            : null;
 
     private void RecordBeginTimestamp(object? payload)
     {

@@ -26,6 +26,15 @@
 * Updated Semantic Conventions version to `1.45.0`.
   ([#5833](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5833))
 
+* Fixed the activity of a command executed asynchronously (for example with
+  `ExecuteNonQueryAsync()`) being left as `Activity.Current` after the command
+  completed, which made every later command executed by the same method a child
+  of it and retained them all for as long as the method ran. The activity of a
+  command is no longer `Activity.Current` while the command executes or while
+  `Filter` and `EnrichWithSqlCommand` run, so use the `activity` argument of
+  `EnrichWithSqlCommand` instead.
+  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+
 ## 1.20.1
 
 Released 2026-Oct-21

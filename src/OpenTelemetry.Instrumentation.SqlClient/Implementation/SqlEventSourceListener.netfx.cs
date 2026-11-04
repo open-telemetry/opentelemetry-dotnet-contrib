@@ -230,7 +230,7 @@ internal sealed class SqlEventSourceListener : EventListener
         // derivation until the duration is recorded.
         if (!SqlTelemetryHelper.ActivitySource.HasListeners())
         {
-            this.pendingCommands[correlationKey] = new(Stopwatch.GetTimestamp(), sqlStatementInfo.DbQuerySummary, dataSource, databaseName);
+            this.pendingCommands[correlationKey] = new(Stopwatch.GetTimestamp(), sqlStatementInfo.DbQuerySummary, dataSource, databaseName, null);
             return;
         }
 
@@ -245,22 +245,35 @@ internal sealed class SqlEventSourceListener : EventListener
             }
         }
 
+        var callerActivity = Activity.Current;
+
         var activity = SqlTelemetryHelper.ActivitySource.StartActivity(
             activityName,
             ActivityKind.Client,
             default(ActivityContext),
             startTags);
 
+        // The event which ends an asynchronous command may be written on a copy of the execution context
+        // of the caller, so stopping the activity there cannot restore the caller's current activity.
+        // Restore it here instead, otherwise the caller is left with the activity of the command as its
+        // current activity and every command it goes on to execute becomes a child of the previous one.
+        // The activity is found again through the pending command.
+        if (activity != null)
+        {
+            Activity.Current = callerActivity;
+        }
+
         // If there is no activity because there is no listener or it decided not to sample the current
         // request, or the activity was only started for another listener while only metrics are being
         // collected, the start time needs to be tracked to calculate the duration. Otherwise, the duration
         // is taken from the activity, but the details of the command are still tracked in case the
-        // activity which is current when the command ends is not recorded.
+        // activity is not recorded.
         this.pendingCommands[correlationKey] = new(
             activity == null || SqlClientInstrumentation.Instance.HandleManager.TracingHandles == 0 ? Stopwatch.GetTimestamp() : null,
             sqlStatementInfo.DbQuerySummary,
             dataSource,
-            databaseName);
+            databaseName,
+            activity);
     }
 
     private void OnEndExecute(EventWrittenEventArgs eventData)
@@ -285,15 +298,15 @@ internal sealed class SqlEventSourceListener : EventListener
 
         if (handleManager.TracingHandles == 0 && handleManager.MetricHandles == 0)
         {
+            // The instrumentation was disabled while the command was executing.
+            pendingCommand.Activity?.Stop();
             return;
         }
-
-        var currentActivity = Activity.Current;
 
         // Ensure any activity that may exist due to ActivitySource.AddActivityListener()
         // is stopped regardless of whether we're doing metrics and/or tracing.
         // See https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/3033.
-        var sqlActivity = currentActivity?.Source == SqlTelemetryHelper.ActivitySource ? currentActivity : null;
+        var sqlActivity = pendingCommand.Activity;
 
         // If we're only collecting metrics, then we don't want to modify the activity
         var traceActivity =
@@ -330,7 +343,7 @@ internal sealed class SqlEventSourceListener : EventListener
         }
     }
 
-    private readonly struct PendingCommand(long? beginTimestamp, string? querySummary, string? dataSource, string? databaseName)
+    private readonly struct PendingCommand(long? beginTimestamp, string? querySummary, string? dataSource, string? databaseName, Activity? activity)
     {
         public long? BeginTimestamp { get; } = beginTimestamp;
 
@@ -339,6 +352,8 @@ internal sealed class SqlEventSourceListener : EventListener
         public string? DataSource { get; } = dataSource;
 
         public string? DatabaseName { get; } = databaseName;
+
+        public Activity? Activity { get; } = activity;
     }
 }
 #endif
