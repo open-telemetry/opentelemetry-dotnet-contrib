@@ -10,7 +10,7 @@
   cookies. A redirect response is now treated as a failed poll, so deployments
   that rely on a redirect in front of the sampling endpoint must configure the
   final URL via `SetEndpoint`.
-  ([#NNNN](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/NNNN))
+  ([#5856](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5856))
 
 ## 0.1.0-alpha.17
 
