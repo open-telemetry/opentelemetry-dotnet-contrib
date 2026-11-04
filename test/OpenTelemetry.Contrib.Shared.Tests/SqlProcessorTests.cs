@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace OpenTelemetry.Instrumentation.Tests;
 
@@ -976,6 +977,69 @@ public class SqlProcessorTests(ITestOutputHelper output)
         Assert.Equal($"SELECT {columns} FROM Users WHERE Name = ? AND Id = ?", backslashDialect.SanitizedSql);
         Assert.Equal(defaultDialect.SanitizedSql, defaultDialectAgain.SanitizedSql);
         Assert.Equal(backslashDialect.SanitizedSql, backslashDialectAgain.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void GetSanitizedSql_StatementLongerThanCacheLimit_IsNotCached(bool useBackslashEscapes)
+    {
+        var sql = $"INSERT INTO Notes (Body) VALUES ('{new string('x', 16 * 1024)}')";
+        var copy = new string(sql.ToCharArray());
+
+        var first = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes);
+        var second = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes);
+        var fromCopy = SqlProcessor.GetSanitizedSql(copy, useBackslashEscapes);
+
+        Assert.Equal("INSERT INTO Notes (Body) VALUES (?)", first.SanitizedSql);
+        Assert.Equal("INSERT Notes", first.DbQuerySummary);
+
+        Assert.NotSame(first.SanitizedSql, second.SanitizedSql);
+        Assert.NotSame(first.SanitizedSql, fromCopy.SanitizedSql);
+        Assert.Equal(first.SanitizedSql, second.SanitizedSql);
+        Assert.Equal(first.SanitizedSql, fromCopy.SanitizedSql);
+        Assert.Equal(first.DbQuerySummary, second.DbQuerySummary);
+        Assert.Equal(first.DbQuerySummary, fromCopy.DbQuerySummary);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void GetSanitizedSql_StatementLongerThanCacheLimit_IsNotRetained(bool useBackslashEscapes)
+    {
+        var reference = SanitizeLongStatement(useBackslashEscapes);
+
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+
+        Assert.False(reference.TryGetTarget(out _));
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        static WeakReference<string> SanitizeLongStatement(bool useBackslashEscapes)
+        {
+            var sql = $"INSERT INTO Notes (Body) VALUES ('{new string('x', 16 * 1024)}')";
+            SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes);
+            return new WeakReference<string>(sql);
+        }
+    }
+
+    [Theory]
+    [InlineData(8192, true)]
+    [InlineData(8193, false)]
+    public void GetSanitizedSql_StatementAtCacheLimit_IsCachedOnlyIfNotLonger(int length, bool expectedCached)
+    {
+        var prefix = $"SELECT * FROM Orders WHERE Token = '{Guid.NewGuid()}' AND Note = '";
+        var sql = prefix + new string('x', length - prefix.Length - 1) + "'";
+        var copy = new string(sql.ToCharArray());
+
+        Assert.Equal(length, sql.Length);
+
+        var first = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes: true);
+        var fromCopy = SqlProcessor.GetSanitizedSql(copy, useBackslashEscapes: true);
+
+        Assert.Equal("SELECT * FROM Orders WHERE Token = ? AND Note = ?", first.SanitizedSql);
+        Assert.Equal(expectedCached, ReferenceEquals(first.SanitizedSql, fromCopy.SanitizedSql));
     }
 
     [Fact]

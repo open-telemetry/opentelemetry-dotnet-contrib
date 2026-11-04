@@ -32,6 +32,11 @@
   or `database/dup` to `1.45.0`.
   ([#5833](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5833))
 
+* Fixed the cache of sanitized SQL statements retaining statements of any
+  length for the lifetime of the process. Statements longer than 8192
+  characters are no longer cached.
+  ([#NNNN](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/NNNN))
+
 ## 1.20.1-beta.1
 
 Released 2026-Oct-21
