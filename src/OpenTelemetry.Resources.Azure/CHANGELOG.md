@@ -5,6 +5,11 @@
 * Updated Semantic Conventions version to `1.45.0`.
   ([#5833](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5833))
 
+* The Azure VM resource detector no longer follows HTTP redirects returned by
+  the Azure Instance Metadata Service endpoint. A redirect response is now
+  treated as a failed detection.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 1.20.1-beta.1
 
 Released 2026-Oct-21
