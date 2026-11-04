@@ -188,6 +188,59 @@ public class BaggageActivityProcessorTests
     }
 
     [Fact]
+    public void BaggageActivityProcessor_DoesNotReplaceTagsWithNullValues()
+    {
+        var sourceName = GetTestMethodName();
+
+        using var provider = Sdk.CreateTracerProviderBuilder()
+            .AddBaggageActivityProcessor(BaggageActivityProcessor.AllowAllBaggageKeys)
+            .AddSource(sourceName)
+            .Build();
+
+        Baggage.SetBaggage("null_key", "baggage_value");
+        Baggage.SetBaggage("duplicate_key", "baggage_value");
+        Baggage.SetBaggage("other_key", "other_value");
+
+        using var source = new ActivitySource(sourceName);
+        using var activity = source.StartActivity("name", ActivityKind.Server);
+        Assert.NotNull(activity);
+
+        activity.AddTag("null_key", null);
+        activity.AddTag("duplicate_key", null);
+        activity.AddTag("duplicate_key", "tag_value");
+        activity.Stop();
+
+        Assert.Equal(
+            [new("null_key", null), new("duplicate_key", null), new("duplicate_key", "tag_value"), new("other_key", "other_value")],
+            activity.TagObjects);
+    }
+
+    [Fact]
+    public void BaggageActivityProcessor_MultipleInstancesWithDifferentPredicatesEachAddTheirBaggage()
+    {
+        var sourceName = GetTestMethodName();
+
+        using var provider = Sdk.CreateTracerProviderBuilder()
+            .AddBaggageActivityProcessor(key => key.StartsWith("first", StringComparison.Ordinal))
+            .AddBaggageActivityProcessor(key => key.StartsWith("second", StringComparison.Ordinal))
+            .AddSource(sourceName)
+            .Build();
+
+        Baggage.SetBaggage("first_key", "first_value");
+        Baggage.SetBaggage("second_key", "second_value");
+        Baggage.SetBaggage("third_key", "third_value");
+
+        using var source = new ActivitySource(sourceName);
+        using var activity = source.StartActivity("name", ActivityKind.Server);
+        Assert.NotNull(activity);
+        activity.Stop();
+
+        Assert.Equal(2, activity.TagObjects.Count());
+        Assert.Contains(activity.TagObjects, kv => kv.Key == "first_key" && (string?)kv.Value == "first_value");
+        Assert.Contains(activity.TagObjects, kv => kv.Key == "second_key" && (string?)kv.Value == "second_value");
+    }
+
+    [Fact]
     public void BaggageActivityProcessor_DoesNotDisplaceTagsWhenAttributeLimitIsReached()
     {
         var sourceName = GetTestMethodName();

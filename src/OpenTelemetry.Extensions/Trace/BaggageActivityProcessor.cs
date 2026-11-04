@@ -16,8 +16,9 @@ namespace OpenTelemetry.Trace;
 /// </summary>
 public sealed class BaggageActivityProcessor : BaseProcessor<Activity>
 {
-    private const string BaggagePropertyName = "OpenTelemetry.Extensions.BaggageActivityProcessor.Baggage";
+    private static int instanceCount;
 
+    private readonly string baggagePropertyName;
     private readonly Predicate<string> baggageKeyPredicate;
 
     /// <summary>
@@ -27,6 +28,10 @@ public sealed class BaggageActivityProcessor : BaseProcessor<Activity>
     internal BaggageActivityProcessor(Predicate<string> baggageKeyPredicate)
     {
         this.baggageKeyPredicate = baggageKeyPredicate ?? throw new ArgumentNullException(nameof(baggageKeyPredicate));
+
+        // Each instance uses its own property so that multiple instances
+        // (e.g. with different predicates) do not consume each other's baggage.
+        this.baggagePropertyName = $"OpenTelemetry.Extensions.BaggageActivityProcessor.Baggage.{Interlocked.Increment(ref instanceCount)}";
     }
 
     /// <summary>
@@ -45,25 +50,39 @@ public sealed class BaggageActivityProcessor : BaseProcessor<Activity>
 
         if (data != null && baggage.Count > 0)
         {
-            data.SetCustomProperty(BaggagePropertyName, baggage);
+            data.SetCustomProperty(this.baggagePropertyName, baggage);
         }
     }
 
     /// <inheritdoc />
     public override void OnEnd(Activity data)
     {
-        if (data?.GetCustomProperty(BaggagePropertyName) is Baggage baggage)
+        if (data?.GetCustomProperty(this.baggagePropertyName) is Baggage baggage)
         {
-            data.SetCustomProperty(BaggagePropertyName, null);
+            data.SetCustomProperty(this.baggagePropertyName, null);
 
             foreach (var entry in baggage)
             {
                 // Avoid overwriting existing tags on the activity with baggage values
-                if (this.baggageKeyPredicate(entry.Key) && data.GetTagItem(entry.Key) == null)
+                if (this.baggageKeyPredicate(entry.Key) && !HasTag(data, entry.Key))
                 {
                     data.SetTag(entry.Key, entry.Value);
                 }
             }
         }
+    }
+
+    private static bool HasTag(Activity activity, string key)
+    {
+        // GetTagItem cannot distinguish a missing tag from one with a null value
+        foreach (var tag in activity.EnumerateTagObjects())
+        {
+            if (string.Equals(tag.Key, key, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
