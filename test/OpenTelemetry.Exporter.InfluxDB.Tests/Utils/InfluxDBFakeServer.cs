@@ -11,6 +11,7 @@ namespace OpenTelemetry.Exporter.InfluxDB.Tests.Utils;
 internal class InfluxDBFakeServer : IDisposable
 {
     private const int ErrorNetNameDeleted = 64;
+    private const int ErrorConnectionAborted = 1236;
 
     private static readonly char[] SplitChars = Environment.NewLine.ToCharArray();
     private readonly IDisposable httpServer;
@@ -42,22 +43,22 @@ internal class InfluxDBFakeServer : IDisposable
 
                 context.Response.StatusCode = (int)statusCode;
                 var responseBody = this.ResponseBody;
-                if (responseBody is not null)
+                try
                 {
-                    context.Response.ContentLength64 = responseBody.Length;
-                    try
+                    if (responseBody is not null)
                     {
+                        context.Response.ContentLength64 = responseBody.Length;
                         context.Response.OutputStream.Write(responseBody, 0, responseBody.Length);
                     }
-                    catch (HttpListenerException ex) when (ex.ErrorCode == ErrorNetNameDeleted)
-                    {
-                        // The client can close the connection after rejecting an oversized response.
-                        context.Response.Abort();
-                        return;
-                    }
-                }
 
-                context.Response.Close();
+                    context.Response.Close();
+                }
+                catch (HttpListenerException ex) when (
+                    ex.ErrorCode is ErrorNetNameDeleted or ErrorConnectionAborted)
+                {
+                    // The client can close the connection after rejecting an oversized response.
+                    context.Response.Abort();
+                }
             },
             out var baseAddress);
         this.Endpoint = baseAddress;
