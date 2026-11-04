@@ -592,6 +592,28 @@ public class InfluxDBMetricsExporterTests
         AssertUtils.HasField("counter", 100L, dataPoint.Fields);
     }
 
+    [Theory]
+    [InlineData(1024 * 1024, true)]
+    [InlineData((1024 * 1024) + 1, false)]
+    public void ExportLimitsBufferedWriteResponse(int responseBodySize, bool expectedSuccess)
+    {
+        using var influxServer = new InfluxDBFakeServer { ResponseBody = new byte[responseBodySize] };
+        using var meter = new Meter("MyMeter", "0.0.1");
+        using var provider = Sdk.CreateMeterProviderBuilder()
+            .AddMeter(meter.Name)
+            .ConfigureDefaultTestResource()
+            .AddInfluxDBMetricsExporter(options =>
+            {
+                options.WithDefaultTestConfiguration();
+                options.Endpoint = influxServer.Endpoint;
+            })
+            .Build();
+
+        meter.CreateCounter<int>("test-counter").Add(100);
+
+        Assert.Equal(expectedSuccess, provider.ForceFlush());
+    }
+
     private static void AssertTags(PointData dataPoint)
     {
         Assert.Equal(9, dataPoint.Tags.Count);
