@@ -10,14 +10,16 @@ namespace OpenTelemetry.Instrumentation.AWS.Implementation.Tracing;
 internal sealed class AWSTraceSpan : TraceSpan
 {
     private readonly Activity? activity;
+    private readonly bool recordException;
 
-    public AWSTraceSpan(Activity? activity)
+    public AWSTraceSpan(Activity? activity, bool recordException)
     {
         this.activity = activity;
+        this.recordException = recordException;
         this.Name = activity?.DisplayName;
     }
 
-    internal static AWSTraceSpan Noop { get; } = new(null);
+    internal static AWSTraceSpan Noop { get; } = new(null, recordException: false);
 
     public override void EmitEvent(string name, Attributes? attributes = null)
     {
@@ -33,6 +35,16 @@ internal sealed class AWSTraceSpan : TraceSpan
     public override void SetAttribute(string key, object value)
     {
         if (this.activity == null || !this.activity.IsAllDataRequested)
+        {
+            return;
+        }
+
+        // The AWS SDK also copies the message and stack trace of the exception
+        // of a failed call into span attributes. As these may contain
+        // sensitive values quoted back by the service, only keep them when opted in.
+        if (!this.recordException &&
+            (string.Equals(key, TelemetryConstants.ExceptionMessageAttributeKey, StringComparison.Ordinal) ||
+             string.Equals(key, TelemetryConstants.ExceptionStackTraceAttributeKey, StringComparison.Ordinal)))
         {
             return;
         }
@@ -58,10 +70,13 @@ internal sealed class AWSTraceSpan : TraceSpan
             return;
         }
 
-        var tags = attributes != null ? new TagList(attributes.AllAttributes.ToArray()) : default;
+        if (this.recordException)
+        {
+            var tags = attributes != null ? new TagList(attributes.AllAttributes.ToArray()) : default;
+            this.activity.AddException(exception, tags);
+        }
 
-        this.activity.AddException(exception, tags);
-        this.activity.SetStatus(ActivityStatusCode.Error, exception.Message);
+        this.activity.SetStatus(ActivityStatusCode.Error);
     }
 
     public override void End()

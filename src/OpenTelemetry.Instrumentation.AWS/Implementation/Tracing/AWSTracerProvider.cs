@@ -8,7 +8,7 @@ using OpenTelemetry.AWS;
 
 namespace OpenTelemetry.Instrumentation.AWS.Implementation.Tracing;
 
-internal sealed class AWSTracerProvider(SemanticConventionVersion version) : TracerProvider
+internal sealed class AWSTracerProvider(SemanticConventionVersion version, bool recordException) : TracerProvider
 {
     private readonly ConcurrentDictionary<string, ActivitySource> activitySources = new();
     private readonly Version semanticConventionVersion = AWSSemanticConventions.GetVersion(version);
@@ -25,7 +25,7 @@ internal sealed class AWSTracerProvider(SemanticConventionVersion version) : Tra
 #endif
         }
 
-        return new AWSTracer(activitySource);
+        return new AWSTracer(activitySource, recordException);
     }
 
     private static ActivitySource CreateActivitySource(string name, Version version)

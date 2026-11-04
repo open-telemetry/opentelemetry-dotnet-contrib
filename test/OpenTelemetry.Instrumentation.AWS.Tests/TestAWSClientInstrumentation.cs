@@ -127,11 +127,13 @@ public class TestAWSClientInstrumentation : IDisposable
         Assert.Equal(extendedRequestId, Utils.GetTagValue(awssdk_activity, "aws.extended_request_id"));
     }
 
-    [Fact]
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
 #if NETFRAMEWORK
-    public void TestDDBScanUnsuccessful()
+    public void TestDDBScanUnsuccessful(bool recordException)
 #else
-    public async Task TestDDBScanUnsuccessful()
+    public async Task TestDDBScanUnsuccessful(bool recordException)
 #endif
     {
         var exportedItems = new List<Activity>();
@@ -145,6 +147,7 @@ public class TestAWSClientInstrumentation : IDisposable
                    .AddAWSInstrumentation(o =>
                    {
                        o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                       o.RecordException = recordException;
                    })
                    .AddInMemoryExporter(exportedItems)
                    .Build())
@@ -186,8 +189,20 @@ public class TestAWSClientInstrumentation : IDisposable
 
         Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
         Assert.Equal(ActivityStatusCode.Error, awssdk_activity.Status);
-        Assert.Equal("Exception of type 'Amazon.Runtime.AmazonServiceException' was thrown.", awssdk_activity.StatusDescription);
-        Assert.Equal("exception", awssdk_activity.Events.First().Name);
+        Assert.Null(awssdk_activity.StatusDescription);
+
+        if (recordException)
+        {
+            Assert.Equal("exception", awssdk_activity.Events.First().Name);
+            Assert.Equal("Exception of type 'Amazon.Runtime.AmazonServiceException' was thrown.", Utils.GetTagValue(awssdk_activity, "exception.message"));
+            Assert.NotNull(Utils.GetTagValue(awssdk_activity, "exception.stacktrace"));
+        }
+        else
+        {
+            Assert.DoesNotContain(awssdk_activity.Events, e => e.Name == "exception");
+            Assert.Null(Utils.GetTagValue(awssdk_activity, "exception.message"));
+            Assert.Null(Utils.GetTagValue(awssdk_activity, "exception.stacktrace"));
+        }
     }
 
     [Fact]

@@ -10,15 +10,18 @@ namespace OpenTelemetry.Instrumentation.AWS.Implementation.Tracing;
 internal sealed class AWSTracer : Tracer
 {
     private readonly ActivitySource activitySource;
+    private readonly bool recordException;
     private int disposed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AWSTracer"/> class.
     /// </summary>
     /// <param name="activitySource">The ActivitySource used for creating and tracking the activities.</param>
-    public AWSTracer(ActivitySource activitySource)
+    /// <param name="recordException">Whether the exception of a failed call is recorded on the span.</param>
+    public AWSTracer(ActivitySource activitySource, bool recordException)
     {
         this.activitySource = activitySource ?? throw new ArgumentNullException(nameof(activitySource));
+        this.recordException = recordException;
     }
 
     public override TraceSpan CreateSpan(
@@ -38,7 +41,7 @@ internal sealed class AWSTracer : Tracer
         var parentActivityContext = ConvertToActivityContext(parentContext);
         var activity = this.activitySource.StartActivity(name, activityKind, parentActivityContext, tags);
 
-        return new AWSTraceSpan(activity);
+        return new AWSTraceSpan(activity, this.recordException);
     }
 
     protected override void Dispose(bool disposing)

@@ -40,7 +40,7 @@ public static class TracerProviderBuilderExtensions
 
         _ = new AWSClientsInstrumentation(awsClientOptions);
 
-        AWSConfigs.TelemetryProvider.RegisterTracerProvider(new AWSTracerProvider(awsClientOptions.SemanticConventionVersion));
+        AWSConfigs.TelemetryProvider.RegisterTracerProvider(new AWSTracerProvider(awsClientOptions.SemanticConventionVersion, awsClientOptions.RecordException));
         builder.AddSource($"{TelemetryConstants.TelemetryScopePrefix}.*");
 
         return builder;
