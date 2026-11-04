@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Fixed `ServerTracingInterceptor` applying the baggage received with one RPC
+  to other RPCs.
+  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+
 ## 1.0.0-beta.18
 
 Released 2026-Oct-21
