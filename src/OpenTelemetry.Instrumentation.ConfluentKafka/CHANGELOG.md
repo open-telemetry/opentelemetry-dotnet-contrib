@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* Fixed unbounded memory use caused by long string message keys being recorded
+  in full in the `messaging.kafka.message.key` span attribute. Keys longer than
+  256 characters are now truncated.
+  ([#NNNN](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/NNNN))
+
 ## 0.3.0-alpha.4
 
 Released 2026-Oct-21
