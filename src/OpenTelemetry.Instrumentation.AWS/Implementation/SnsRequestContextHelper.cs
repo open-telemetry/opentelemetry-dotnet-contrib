@@ -20,32 +20,54 @@ internal class SnsRequestContextHelper
             return;
         }
 
-        if (originalRequest.MessageAttributes == null)
+        var existing = originalRequest.MessageAttributes;
+
+        // Never write into the dictionary assigned by the application: it may be shared between
+        // requests (or threads), and anything left in it would be sent again with later messages.
+        var messageAttributes = new Dictionary<string, MessageAttributeValue>((existing?.Count ?? 0) + attributes.Count, existing?.Comparer);
+        if (existing != null)
         {
-            originalRequest.MessageAttributes = new Dictionary<string, MessageAttributeValue>(attributes.Count);
-        }
-        else
-        {
-            foreach (var key in attributes.Keys)
+            foreach (var attribute in existing)
             {
-                if (originalRequest.MessageAttributes.ContainsKey(key))
+                // Values injected by an earlier send of the same request object are replaced with the current context.
+                if (attribute.Value is not InjectedMessageAttributeValue)
                 {
-                    // If at least one attribute is already present in the request then we skip the injection.
-                    return;
+                    messageAttributes.Add(attribute.Key, attribute.Value);
                 }
             }
+        }
 
-            var attributesCount = originalRequest.MessageAttributes.Count;
-            if (attributes.Count + attributesCount > MaxMessageAttributes)
+        if (CanInject(messageAttributes, attributes))
+        {
+            foreach (var param in attributes)
             {
-                // TODO: add logging (event source).
-                return;
+                messageAttributes[param.Key] = new InjectedMessageAttributeValue { DataType = "String", StringValue = param.Value };
+            }
+        }
+        else if (messageAttributes.Count == (existing?.Count ?? 0))
+        {
+            // Nothing to inject and nothing stale to remove.
+            return;
+        }
+
+        originalRequest.MessageAttributes = messageAttributes;
+    }
+
+    private static bool CanInject(Dictionary<string, MessageAttributeValue> messageAttributes, IReadOnlyDictionary<string, string> attributes)
+    {
+        foreach (var key in attributes.Keys)
+        {
+            if (messageAttributes.ContainsKey(key))
+            {
+                // If at least one attribute is already present in the request then we skip the injection.
+                return false;
             }
         }
 
-        foreach (var param in attributes)
-        {
-            originalRequest.MessageAttributes[param.Key] = new MessageAttributeValue { DataType = "String", StringValue = param.Value };
-        }
+        // TODO: add logging (event source) when the limit is exceeded.
+        return attributes.Count + messageAttributes.Count <= MaxMessageAttributes;
     }
+
+    // Marks values added by the instrumentation so they can be told apart from application-supplied attributes.
+    private sealed class InjectedMessageAttributeValue : MessageAttributeValue;
 }
