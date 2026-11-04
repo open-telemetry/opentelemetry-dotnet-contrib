@@ -78,7 +78,7 @@ internal readonly struct DbQueryTextSanitizationResult : IEquatable<DbQueryTextS
     /// <param name="queryText">The sanitized query text to emit.</param>
     /// <param name="querySummary">The query summary to emit as <c>db.query.summary</c>.</param>
     /// <returns>The <see cref="DbQueryTextSanitizationResult"/>.</returns>
-    public static DbQueryTextSanitizationResult Sanitized(string queryText, string? querySummary = null)
+    public static DbQueryTextSanitizationResult Sanitized(string? queryText, string? querySummary = null)
         => new(isSanitized: true, suppressQueryText: false, queryText, querySummary);
 
     /// <inheritdoc/>

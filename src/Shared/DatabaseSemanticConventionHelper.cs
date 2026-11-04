@@ -93,11 +93,16 @@ internal static class DatabaseSemanticConventionHelper
 
     public static void ApplyConventionsForSanitizedQueryText(
         Activity activity,
-        string queryText,
+        string? queryText,
         string? querySummary,
         bool emitOldAttributes,
         bool emitNewAttributes)
     {
+        if (queryText is null)
+        {
+            return;
+        }
+
         if (emitOldAttributes)
         {
             activity.SetTag(SemanticConventions.AttributeDbStatement, queryText);

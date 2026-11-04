@@ -4,6 +4,7 @@
 using System.Diagnostics;
 using Microsoft.Data.Sqlite;
 using OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests;
 
@@ -28,6 +29,27 @@ public class DbQueryTextSanitizationTests
         var tag = Assert.Single(activity.TagObjects);
         Assert.Equal("existing", tag.Key);
         Assert.Equal("value", tag.Value);
+        Assert.Equal("original", activity.DisplayName);
+    }
+
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public void NullQueryTextDoesNotEmitQueryAttributes(bool emitOldAttributes, bool emitNewAttributes)
+    {
+        using var activity = new Activity("original").Start();
+
+        EntityFrameworkQueryTextProcessor.Apply(
+            activity,
+            commandText: null,
+            providerName: "Microsoft.EntityFrameworkCore.Sqlite",
+            emitOldAttributes,
+            emitNewAttributes);
+
+        Assert.DoesNotContain(activity.TagObjects, tag => tag.Key == SemanticConventions.AttributeDbStatement);
+        Assert.DoesNotContain(activity.TagObjects, tag => tag.Key == SemanticConventions.AttributeDbQueryText);
+        Assert.DoesNotContain(activity.TagObjects, tag => tag.Key == SemanticConventions.AttributeDbQuerySummary);
         Assert.Equal("original", activity.DisplayName);
     }
 

@@ -29,7 +29,7 @@ internal static class EntityFrameworkQueryTextProcessor
         {
             DatabaseSemanticConventionHelper.ApplyConventionsForSanitizedQueryText(
                 activity,
-                result.QueryText ?? string.Empty,
+                result.QueryText,
                 result.QuerySummary,
                 emitOldAttributes,
                 emitNewAttributes);
