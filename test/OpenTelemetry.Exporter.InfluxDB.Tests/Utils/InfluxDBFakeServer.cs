@@ -39,6 +39,13 @@ internal class InfluxDBFakeServer : IDisposable
                 }
 
                 context.Response.StatusCode = (int)statusCode;
+                var responseBody = this.ResponseBody;
+                if (responseBody is not null)
+                {
+                    context.Response.ContentLength64 = responseBody.Length;
+                    context.Response.OutputStream.Write(responseBody, 0, responseBody.Length);
+                }
+
                 context.Response.Close();
             },
             out var baseAddress);
@@ -58,6 +65,8 @@ internal class InfluxDBFakeServer : IDisposable
         get => (HttpStatusCode)this.responseStatusCode;
         set => this.responseStatusCode = (int)value;
     }
+
+    public byte[]? ResponseBody { get; set; }
 
     public void Dispose()
         => this.httpServer.Dispose();
