@@ -8,7 +8,7 @@
 * The Azure VM resource detector no longer follows HTTP redirects returned by
   the Azure Instance Metadata Service endpoint. A redirect response is now
   treated as a failed detection.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#5843](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5843))
 
 ## 1.20.1-beta.1
 
