@@ -175,7 +175,11 @@ public class GrpcCoreServerInterceptorTests(WeaverFixture weaver, ITestOutputHel
         {
             for (var i = 0; i < messageCount; i++)
             {
+#if NET
                 await call.RequestStream.WriteAsync(FoobarService.DefaultRequestMessage, CancellationToken.None);
+#else
+                await call.RequestStream.WriteAsync(FoobarService.DefaultRequestMessage);
+#endif
             }
 
             await call.RequestStream.CompleteAsync();
