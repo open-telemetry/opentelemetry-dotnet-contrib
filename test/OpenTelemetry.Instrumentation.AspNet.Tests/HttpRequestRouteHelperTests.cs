@@ -108,7 +108,7 @@ public class HttpRequestRouteHelperTests
 
         // MVC and WebAPI resolve the names ignoring case, so these requests succeed too.
         var templates = new HashSet<string?>();
-        foreach (var (controller, action) in new[] { ("HOME", "INDEX"), ("hOmE", "iNdEx"), ("home", "index"), ("Home", "Index") })
+        foreach (var (controller, action) in new[] { ("HOME", "INDEX"), ("HOME", "index"), ("home", "INDEX"), ("home", "index"), ("Home", "Index") })
         {
             templates.Add(routeHelper.GetRouteTemplate(CreateConventionalRequest(controller, action, "1"), isSuccessful: true));
         }
