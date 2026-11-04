@@ -394,7 +394,8 @@ public class InstrumentedChannelAsyncCallbackTests
     {
         try
         {
-            var stoppedActivities = new List<Activity>();
+            // The telemetry timer exports the first activity on another thread while this one polls for it.
+            var stoppedActivities = new SynchronizedCollection<Activity>();
             using var tracerProvider = Sdk.CreateTracerProviderBuilder()
                 .AddInMemoryExporter(stoppedActivities)
                 .AddWcfInstrumentation()
