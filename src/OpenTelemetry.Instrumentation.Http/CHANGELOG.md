@@ -5,6 +5,11 @@
 * Updated Semantic Conventions version to `1.45.0`.
   ([#5833](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5833))
 
+* Fixed an issue on .NET Framework where an asynchronous `HttpWebRequest`
+  (including `HttpClient`) that waited for a free connection could be sent with
+  the trace context and baggage of another request.
+  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+
 ## 1.20.1
 
 Released 2026-Oct-21

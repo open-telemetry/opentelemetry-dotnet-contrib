@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using OpenTelemetry.Instrumentation.Http.Implementation;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Tests;
@@ -18,6 +19,8 @@ public class HttpWebRequestActivitySourceTests : IDisposable
 {
     private static bool validateBaggage;
     private readonly ConcurrentQueue<string[]?> traceparentHeaders = new();
+    private readonly ConcurrentQueue<string?> baggageHeaders = new();
+    private readonly ManualResetEventSlim releaseHeldResponses = new();
     private readonly IDisposable testServer;
     private readonly Uri uri;
 
@@ -56,6 +59,13 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         void ProcessServerRequest(HttpListenerContext context)
         {
             this.traceparentHeaders.Enqueue(context.Request.Headers.GetValues("traceparent"));
+            this.baggageHeaders.Enqueue(context.Request.Headers["baggage"]);
+
+            if (context.Request.QueryString["hold"] != null)
+            {
+                // Keep the connection busy until the test lets the response go.
+                this.releaseHeldResponses.Wait();
+            }
 
             var redirects = context.Request.QueryString["redirects"];
             if (!string.IsNullOrWhiteSpace(redirects) && int.TryParse(redirects, out var parsedRedirects) && parsedRedirects > 0)
@@ -94,7 +104,11 @@ public class HttpWebRequestActivitySourceTests : IDisposable
     }
 
     public void Dispose()
-        => this.testServer.Dispose();
+    {
+        this.releaseHeldResponses.Set();
+        this.testServer.Dispose();
+        this.releaseHeldResponses.Dispose();
+    }
 
     /// <summary>
     /// A simple test to make sure the Http Diagnostic Source is added into the list of DiagnosticListeners.
@@ -806,6 +820,66 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         }
     }
 
+    [Fact]
+    public async Task TestQueuedRequestUsesContextOfItsOwnCaller()
+    {
+        var originalOptions = HttpWebRequestActivitySource.TracingOptions;
+        try
+        {
+            // The options used by the other tests verify the headers of every request against a single caller.
+            HttpWebRequestActivitySource.TracingOptions = new HttpClientTraceInstrumentationOptions
+            {
+                DisableUrlQueryRedaction = true,
+            };
+
+            using var eventRecords = new ActivitySourceRecorder();
+
+            // A single connection: the second request has to wait until the first response has been read.
+            ServicePointManager.FindServicePoint(new Uri(this.BuildRequestUrl())).ConnectionLimit = 1;
+
+            var firstRequest = Task.Run(() => this.SendRequestWithOwnContextAsync("first", this.BuildRequestUrl(queryString: "q=first&hold=1")));
+            while (this.traceparentHeaders.IsEmpty && !firstRequest.IsCompleted)
+            {
+                await Task.Delay(10, TestContext.Current.CancellationToken);
+            }
+
+            var secondRequest = Task.Run(() => this.SendRequestWithOwnContextAsync("second", this.BuildRequestUrl(queryString: "q=second")));
+
+            // Give the second request time to be queued behind the first one before the server answers.
+            await Task.Delay(500, TestContext.Current.CancellationToken);
+            this.releaseHeldResponses.Set();
+
+            var parents = await Task.WhenAll(firstRequest, secondRequest);
+            var firstParent = parents[0];
+            var secondParent = parents[1];
+            Assert.NotEqual(firstParent.TraceId, secondParent.TraceId);
+
+            Assert.Equal(2, eventRecords.Records.Count(rec => rec.Key == "Start"));
+            Assert.Equal(2, eventRecords.Records.Count(rec => rec.Key == "Stop"));
+
+            var secondActivity = Assert.Single(
+                eventRecords.Records,
+                rec => rec.Key == "Start" && ((string?)rec.Value.GetTagValue(SemanticConventions.AttributeUrlFull))?.Contains("q=second") == true).Value;
+            Assert.Equal(secondParent.TraceId, secondActivity.TraceId);
+            Assert.Equal(secondParent.SpanId, secondActivity.ParentSpanId);
+
+            // The server received the held request first, then the queued one.
+            Assert.True(this.traceparentHeaders.TryDequeue(out var firstTraceparent));
+            Assert.True(this.traceparentHeaders.TryDequeue(out var secondTraceparent));
+            Assert.Contains(firstParent.TraceId.ToHexString(), Assert.Single(firstTraceparent!));
+            Assert.Contains(secondParent.TraceId.ToHexString(), Assert.Single(secondTraceparent!));
+
+            Assert.True(this.baggageHeaders.TryDequeue(out var firstBaggage));
+            Assert.True(this.baggageHeaders.TryDequeue(out var secondBaggage));
+            Assert.Equal("k=first", firstBaggage);
+            Assert.Equal("k=second", secondBaggage);
+        }
+        finally
+        {
+            HttpWebRequestActivitySource.TracingOptions = originalOptions;
+        }
+    }
+
     private static Activity AssertFirstEventWasStart(ActivitySourceRecorder eventRecords)
     {
         Assert.True(eventRecords.Records.TryDequeue(out var startEvent));
@@ -855,6 +929,39 @@ public class HttpWebRequestActivitySourceTests : IDisposable
 
     private string BuildRequestUrl(bool useHttps = false, string path = "echo", string? queryString = null)
         => $"{(useHttps ? "https" : "http")}://{this.uri.Host}:{this.uri.Port}/{path}{(string.IsNullOrWhiteSpace(queryString) ? string.Empty : $"?{queryString}")}";
+
+    /// <summary>
+    /// Sends a POST under a parent activity and baggage of its own and returns the parent.
+    /// </summary>
+    private async Task<Activity> SendRequestWithOwnContextAsync(string name, string url)
+    {
+        var parent = new Activity(name)
+            .SetIdFormat(ActivityIdFormat.W3C)
+            .Start();
+
+        Baggage.SetBaggage("k", name);
+
+        // A request with a body is never pipelined, so it waits when the connection is busy.
+        var body = Encoding.UTF8.GetBytes("hello world");
+        var webRequest = (HttpWebRequest)WebRequest.Create(new Uri(url));
+        webRequest.Method = "POST";
+        webRequest.ContentLength = body.Length;
+
+        using (var stream = await webRequest.GetRequestStreamAsync())
+        {
+            await stream.WriteAsync(body, 0, body.Length);
+        }
+
+        using (var webResponse = (HttpWebResponse)await webRequest.GetResponseAsync())
+        using (var reader = new StreamReader(webResponse.GetResponseStream()))
+        {
+            await reader.ReadToEndAsync();
+        }
+
+        parent.Stop();
+
+        return parent;
+    }
 
     private void CleanUpActivity()
     {
