@@ -95,6 +95,41 @@ public class AWSEKSDetectorTests
     }
 
     [Fact]
+    public void TestGetEKSCredentialsWithMissingFile()
+    {
+        var eksCredentials = AWSEKSDetector.GetEKSCredentials("SampleMetadataFiles/does-not-exist");
+
+        Assert.Null(eksCredentials);
+    }
+
+    [Fact]
+    public void TestGetEKSContainerIdWithMissingFile()
+    {
+        var eksContainerId = AWSEKSDetector.GetEKSContainerId("SampleMetadataFiles/does-not-exist");
+
+        Assert.Null(eksContainerId);
+    }
+
+    [Fact]
+    public void TestGetEKSContainerIdWithNoContainerId()
+    {
+        var path = Path.GetTempFileName();
+
+        try
+        {
+            File.WriteAllLines(path, ["12:memory:/", "11:cpu:/"]);
+
+            var eksContainerId = AWSEKSDetector.GetEKSContainerId(path);
+
+            Assert.Null(eksContainerId);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
     public void TestDeserializeResponse()
     {
         var awsEKSClusterInformation = "{\"kind\": \"ConfigMap\", \"apiVersion\": \"v1\", \"metadata\": {\"name\": \"cluster-info\", \"namespace\": \"amazon-cloudwatch\", \"selfLink\": \"/api/v1/namespaces/amazon-cloudwatch/configmaps/cluster-info\", \"uid\": \"0734438c-48f4-45c3-b06d-b6f16f7f0e1e\", \"resourceVersion\": \"25911\", \"creationTimestamp\": \"2021-07-23T18:41:56Z\", \"annotations\": {\"kubectl.kubernetes.io/last-applied-configuration\": \"{\\\"apiVersion\\\":\\\"v1\\\",\\\"data\\\":{\\\"cluster.name\\\":\\\"Test\\\",\\\"logs.region\\\":\\\"us-west-2\\\"},\\\"kind\\\":\\\"ConfigMap\\\",\\\"metadata\\\":{\\\"annotations\\\":{},\\\"name\\\":\\\"cluster-info\\\",\\\"namespace\\\":\\\"amazon-cloudwatch\\\"}}\\n\"}}, \"data\": {\"cluster.name\": \"Test\", \"logs.region\": \"us-west-2\"}}";
