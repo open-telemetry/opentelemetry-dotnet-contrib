@@ -91,7 +91,11 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                 if (IsCompletionEvent(name))
                 {
                     _ = TryFetchCommand(this.commandFetcher, payload, out var completedCommand);
-                    this.TakeActivity(completedCommand)?.Stop();
+
+                    if (this.TakeActivity(completedCommand) is { } completedActivity)
+                    {
+                        SqlTelemetryHelper.StopActivity(completedActivity);
+                    }
                 }
                 else if (name is SqlDataBeforeExecuteCommand or SqlMicrosoftBeforeExecuteCommand)
                 {
@@ -305,7 +309,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                         }
                     }
 
-                    activity.Stop();
+                    SqlTelemetryHelper.StopActivity(activity);
                     this.RecordDuration(activity, payload);
                 }
 
@@ -360,7 +364,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     }
                     finally
                     {
-                        activity.Stop();
+                        SqlTelemetryHelper.StopActivity(activity);
                         this.RecordDuration(activity, payload, hasError: true);
                     }
                 }

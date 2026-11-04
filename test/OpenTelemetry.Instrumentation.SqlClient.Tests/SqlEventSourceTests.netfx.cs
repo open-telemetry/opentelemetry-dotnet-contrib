@@ -288,6 +288,103 @@ public class SqlEventSourceTests
         Assert.All(activities, x => Assert.Equal(default, x.ParentSpanId));
     }
 
+    [Theory]
+    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource))]
+    [InlineData(typeof(FakeBehavingMdsSqlEventSource))]
+    public void CurrentActivityOfEndIsNotChangedWhenCommandEnds(Type eventSourceType)
+    {
+        using var fakeSqlEventSource = (IFakeBehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
+
+        var activities = new List<Activity>();
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        using var caller = new Activity("caller").SetIdFormat(ActivityIdFormat.W3C).Start();
+        caller.ActivityTraceFlags = ActivityTraceFlags.Recorded;
+
+        fakeSqlEventSource.WriteBeginExecuteEvent(1, "127.0.0.1", "master", "select 1");
+
+        // The command ends on an execution context which has a different current activity to the caller.
+        using var other = new Activity("other").SetIdFormat(ActivityIdFormat.W3C).Start();
+
+        fakeSqlEventSource.WriteEndExecuteEvent(1, compositeState: 1, sqlExceptionNumber: 0);
+
+        Assert.Equal(other, Activity.Current);
+
+        Assert.True(tracerProvider.ForceFlush());
+
+        var activity = Assert.Single(activities);
+        Assert.True(activity.IsStopped);
+        Assert.Equal(caller.SpanId, activity.ParentSpanId);
+    }
+
+    [Theory]
+    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource))]
+    [InlineData(typeof(FakeBehavingMdsSqlEventSource))]
+    public void ActivityOfCommandWhichNeverEndedIsNotUsedWhenItIsExecutedWhileInstrumentationIsDisabled(Type eventSourceType)
+    {
+        using var fakeSqlEventSource = (IFakeBehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
+
+        using (Sdk.CreateTracerProviderBuilder().AddSqlClientInstrumentation().Build())
+        {
+            // The first execution never ends.
+            fakeSqlEventSource.WriteBeginExecuteEvent(1, "127.0.0.1", "master", "select 1");
+        }
+
+        // The command is executed again while the instrumentation is disabled.
+        fakeSqlEventSource.WriteBeginExecuteEvent(1, "127.0.0.1", "master", "select 1");
+
+        // The instrumentation is enabled again before the command ends, under a parent which is not sampled.
+        var activities = new List<Activity>();
+        using var parent = new Activity("parent").SetIdFormat(ActivityIdFormat.W3C).Start();
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        fakeSqlEventSource.WriteEndExecuteEvent(1, compositeState: 1, sqlExceptionNumber: 0);
+
+        Assert.True(tracerProvider.ForceFlush());
+
+        Assert.Empty(activities);
+        Assert.Equal(parent, Activity.Current);
+    }
+
+    [Theory]
+    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource))]
+    [InlineData(typeof(FakeBehavingMdsSqlEventSource))]
+    public void CommandsWhichNeverEndAreNotRetainedWithoutLimit(Type eventSourceType)
+    {
+        using var fakeSqlEventSource = (IFakeBehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
+
+        var activities = new List<Activity>();
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        // None of these commands end, so more of them are started than can be executing at the same time.
+        var last = SqlEventSourceListener.MaxPendingCommands * 2;
+
+        for (var objectId = 1; objectId <= last; objectId++)
+        {
+            fakeSqlEventSource.WriteBeginExecuteEvent(objectId, "127.0.0.1", "master", "select 1");
+        }
+
+        // The oldest command is no longer tracked, but the newest one still is.
+        fakeSqlEventSource.WriteEndExecuteEvent(1, compositeState: 1, sqlExceptionNumber: 0);
+
+        Assert.True(tracerProvider.ForceFlush());
+        Assert.Empty(activities);
+
+        fakeSqlEventSource.WriteEndExecuteEvent(last, compositeState: 1, sqlExceptionNumber: 0);
+
+        Assert.True(tracerProvider.ForceFlush());
+        Assert.Single(activities);
+    }
+
     [Fact]
     public void InterleavedEventSourceCommandsFromDifferentProvidersUseEventSourceAndObjectId()
     {

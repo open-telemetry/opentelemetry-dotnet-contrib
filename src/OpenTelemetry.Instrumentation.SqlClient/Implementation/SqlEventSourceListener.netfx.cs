@@ -31,6 +31,15 @@ internal sealed class SqlEventSourceListener : EventListener
     internal const int EndExecuteEventId = 2;
 
     /// <summary>
+    /// The number of commands which are executing above which the oldest ones are assumed to have been abandoned.
+    /// </summary>
+    /// <remarks>
+    /// Not every execution which writes a BeginExecute event writes an EndExecute event (for example when it is
+    /// abandoned after validating the connection fails), and the only correlation with the command is an id.
+    /// </remarks>
+    internal const int MaxPendingCommands = 10_000;
+
+    /// <summary>
     /// The keyword the BeginExecute and EndExecute events are written with.
     /// </summary>
     /// <remarks>
@@ -51,6 +60,7 @@ internal sealed class SqlEventSourceListener : EventListener
     private readonly ConcurrentDictionary<(EventSource EventSource, int ObjectId), PendingCommand> pendingCommands = new();
     private EventSource? adoNetEventSource;
     private EventSource? mdsEventSource;
+    private int beginCount;
 
     public override void Dispose()
     {
@@ -205,6 +215,13 @@ internal sealed class SqlEventSourceListener : EventListener
         if (SqlClientInstrumentation.Instance.HandleManager.TracingHandles == 0
             && SqlClientInstrumentation.Instance.HandleManager.MetricHandles == 0)
         {
+            // Clear the command of an execution which never ended, so that it is not used for this one if the
+            // instrumentation is enabled again before this one ends.
+            if (eventData.Payload.Count > 0 && eventData.Payload[0] is int disabledObjectId)
+            {
+                _ = this.pendingCommands.TryRemove((eventData.EventSource, disabledObjectId), out _);
+            }
+
             return;
         }
 
@@ -230,7 +247,7 @@ internal sealed class SqlEventSourceListener : EventListener
         // derivation until the duration is recorded.
         if (!SqlTelemetryHelper.ActivitySource.HasListeners())
         {
-            this.pendingCommands[correlationKey] = new(Stopwatch.GetTimestamp(), sqlStatementInfo.DbQuerySummary, dataSource, databaseName, null);
+            this.AddPendingCommand(correlationKey, new(Stopwatch.GetTimestamp(), sqlStatementInfo.DbQuerySummary, dataSource, databaseName, null));
             return;
         }
 
@@ -268,12 +285,40 @@ internal sealed class SqlEventSourceListener : EventListener
         // collected, the start time needs to be tracked to calculate the duration. Otherwise, the duration
         // is taken from the activity, but the details of the command are still tracked in case the
         // activity is not recorded.
-        this.pendingCommands[correlationKey] = new(
-            activity == null || SqlClientInstrumentation.Instance.HandleManager.TracingHandles == 0 ? Stopwatch.GetTimestamp() : null,
-            sqlStatementInfo.DbQuerySummary,
-            dataSource,
-            databaseName,
-            activity);
+        this.AddPendingCommand(
+            correlationKey,
+            new(
+                activity == null || SqlClientInstrumentation.Instance.HandleManager.TracingHandles == 0 ? Stopwatch.GetTimestamp() : null,
+                sqlStatementInfo.DbQuerySummary,
+                dataSource,
+                databaseName,
+                activity));
+    }
+
+    private void AddPendingCommand((EventSource EventSource, int ObjectId) correlationKey, in PendingCommand pendingCommand)
+    {
+        this.pendingCommands[correlationKey] = pendingCommand;
+
+        // Checking how many commands are pending is relatively expensive, so only do it occasionally.
+        if ((Interlocked.Increment(ref this.beginCount) & 0x3FF) == 0 && this.pendingCommands.Count > MaxPendingCommands)
+        {
+            this.RemoveAbandonedCommands();
+        }
+    }
+
+    private void RemoveAbandonedCommands()
+    {
+        // Commands which are still executing are far fewer than the limit, so those which began
+        // longest ago are the ones which will never end. Their activities are not stopped, as the
+        // commands did not complete.
+        var commands = this.pendingCommands.ToArray();
+
+        Array.Sort(commands, static (x, y) => x.Value.StartedAt.CompareTo(y.Value.StartedAt));
+
+        for (var i = 0; i < commands.Length - (MaxPendingCommands / 2); i++)
+        {
+            _ = this.pendingCommands.TryRemove(commands[i].Key, out _);
+        }
     }
 
     private void OnEndExecute(EventWrittenEventArgs eventData)
@@ -299,7 +344,11 @@ internal sealed class SqlEventSourceListener : EventListener
         if (handleManager.TracingHandles == 0 && handleManager.MetricHandles == 0)
         {
             // The instrumentation was disabled while the command was executing.
-            pendingCommand.Activity?.Stop();
+            if (pendingCommand.Activity is { } abandonedActivity)
+            {
+                SqlTelemetryHelper.StopActivity(abandonedActivity);
+            }
+
             return;
         }
 
@@ -338,7 +387,11 @@ internal sealed class SqlEventSourceListener : EventListener
         finally
         {
             // If there's a SQL activity, stop it before recording the duration.
-            sqlActivity?.Stop();
+            if (sqlActivity != null)
+            {
+                SqlTelemetryHelper.StopActivity(sqlActivity);
+            }
+
             RecordDuration(traceActivity, eventData, in pendingCommand);
         }
     }
@@ -354,6 +407,8 @@ internal sealed class SqlEventSourceListener : EventListener
         public string? DatabaseName { get; } = databaseName;
 
         public Activity? Activity { get; } = activity;
+
+        public long StartedAt { get; } = Stopwatch.GetTimestamp();
     }
 }
 #endif

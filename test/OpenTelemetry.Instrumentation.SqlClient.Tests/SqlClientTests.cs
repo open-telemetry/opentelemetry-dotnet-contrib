@@ -511,6 +511,83 @@ public class SqlClientTests
         Assert.Empty(activities);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void CurrentActivityOfCompletionIsNotChangedWhenCommandCompletes(bool error)
+    {
+        var activities = new List<Activity>();
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        using var listener = new DiagnosticListener(SqlClientInstrumentation.SqlClientDiagnosticListenerName);
+
+        var command = new FakeDbCommand
+        {
+            CommandType = CommandType.StoredProcedure,
+            CommandText = "SP_GetOrders",
+            Connection = new FakeDbConnection(),
+        };
+
+        var operationId = Guid.NewGuid();
+
+        using var caller = new Activity("caller").SetIdFormat(ActivityIdFormat.W3C).Start();
+        caller.ActivityTraceFlags = ActivityTraceFlags.Recorded;
+
+        listener.Write(
+            SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand,
+            new
+            {
+                OperationId = operationId,
+                Operation = "InternalExecuteNonQueryAsync",
+                Command = command,
+                Timestamp = (long?)1000000L,
+            });
+
+        // The command completes on an execution context which has a different current activity to the caller.
+        using var other = new Activity("other").SetIdFormat(ActivityIdFormat.W3C).Start();
+
+        Assert.Equal(other, Activity.Current);
+
+        if (error)
+        {
+            listener.Write(
+                SqlClientDiagnosticListener.SqlMicrosoftWriteCommandError,
+                new
+                {
+                    OperationId = operationId,
+                    Operation = "InternalExecuteNonQueryAsync",
+                    Command = command,
+                    Exception = new InvalidOperationException("Boom!"),
+                    Timestamp = 2000000L,
+                });
+        }
+        else
+        {
+            listener.Write(
+                SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand,
+                new
+                {
+                    OperationId = operationId,
+                    Operation = "CleanupAfterExecuteNonQueryAsync",
+                    Command = command,
+                    Statistics = (IDictionary?)null,
+                    Timestamp = 2000000L,
+                });
+        }
+
+        Assert.Equal(other, Activity.Current);
+
+        tracerProvider.ForceFlush();
+
+        var activity = Assert.Single(activities);
+        Assert.True(activity.IsStopped);
+        Assert.Equal(caller.SpanId, activity.ParentSpanId);
+    }
+
     [Fact]
     public void ActivityOfCommandWhichNeverCompletedIsNotUsedWhenItIsExecutedAgain()
     {
@@ -682,6 +759,9 @@ public class SqlClientTests
         var activity = Assert.Single(started);
         Assert.False(activity.IsStopped);
 
+        // The command completes on an execution context which has a different current activity.
+        using var other = new Activity("other").SetIdFormat(ActivityIdFormat.W3C).Start();
+
         listener.Write(
             SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand,
             new
@@ -694,6 +774,7 @@ public class SqlClientTests
             });
 
         Assert.True(activity.IsStopped);
+        Assert.Equal(other, Activity.Current);
     }
 #endif
 
