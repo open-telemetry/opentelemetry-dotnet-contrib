@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.20.1-beta.2
+
+Released 2026-Nov-04
+
 * Fixed an issue where a late reply or the telemetry timeout for a failed
   outgoing duplex request could stop the client activity a second time and
   record reply data on it.
