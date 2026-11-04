@@ -126,8 +126,108 @@ public class BaggageActivityProcessorTests
         Assert.Contains(activity.Tags, kv => kv.Key == "another_key" && kv.Value == "another_value");
     }
 
+    [Fact]
+    public void BaggageActivityProcessor_AddsBaggageAfterTagsSetWhileRunning()
+    {
+        var sourceName = GetTestMethodName();
+
+        using var provider = Sdk.CreateTracerProviderBuilder()
+            .AddBaggageActivityProcessor(BaggageActivityProcessor.AllowAllBaggageKeys)
+            .AddSource(sourceName)
+            .Build();
+
+        Baggage.SetBaggage("key", "baggage_value");
+        Baggage.SetBaggage("other_key", "other_value");
+
+        using var source = new ActivitySource(sourceName);
+        using var activity = source.StartActivity("name", ActivityKind.Server);
+        Assert.NotNull(activity);
+
+        // Baggage which becomes current after the activity started is not added.
+        Baggage.SetBaggage("late_key", "late_value");
+
+        activity.SetTag("tag", "tag_value");
+        activity.SetTag("key", "tag_value");
+
+        // Baggage is not added while the activity is running.
+        Assert.Null(activity.GetTagItem("other_key"));
+
+        activity.Stop();
+
+        // The tags set by the application come first and are not overwritten by baggage.
+        Assert.Equal(
+            [new("tag", "tag_value"), new("key", "tag_value"), new("other_key", "other_value")],
+            activity.TagObjects);
+    }
+
+    [Fact]
+    public void BaggageActivityProcessor_DoesNotReplaceTagsActivityWasCreatedWith()
+    {
+        var sourceName = GetTestMethodName();
+
+        using var provider = Sdk.CreateTracerProviderBuilder()
+            .AddBaggageActivityProcessor(BaggageActivityProcessor.AllowAllBaggageKeys)
+            .AddSource(sourceName)
+            .Build();
+
+        Baggage.SetBaggage("tenant", "attacker");
+        Baggage.SetBaggage("other_key", "other_value");
+
+        using var source = new ActivitySource(sourceName);
+        using var activity = source.StartActivity(
+            "name",
+            ActivityKind.Internal,
+            default(ActivityContext),
+            [new("tenant", "contoso")]);
+        Assert.NotNull(activity);
+        activity.Stop();
+
+        Assert.Equal(
+            [new("tenant", "contoso"), new("other_key", "other_value")],
+            activity.TagObjects);
+    }
+
+    [Fact]
+    public void BaggageActivityProcessor_DoesNotDisplaceTagsWhenAttributeLimitIsReached()
+    {
+        var sourceName = GetTestMethodName();
+        var exported = new List<KeyValuePair<string, object?>>();
+
+        using var provider = Sdk.CreateTracerProviderBuilder()
+            .AddBaggageActivityProcessor(key => key.StartsWith("my-key", StringComparison.Ordinal))
+            .AddSource(sourceName)
+            .AddProcessor(new TagSnapshotProcessor(exported))
+            .Build();
+
+        for (var i = 0; i < 128; i++)
+        {
+            Baggage.SetBaggage($"my-key{i}", "1");
+        }
+
+        using var source = new ActivitySource(sourceName);
+        using var activity = source.StartActivity("name", ActivityKind.Server);
+        Assert.NotNull(activity);
+        activity.SetTag("enduser.id", "mallory");
+        activity.SetTag("order.id", "17");
+        activity.Stop();
+
+        // An exporter which keeps only the first 128 tags still sees the tags set by the application.
+        var firstTags = exported.Take(128).ToList();
+        Assert.Contains(firstTags, kv => kv.Key == "enduser.id" && (string?)kv.Value == "mallory");
+        Assert.Contains(firstTags, kv => kv.Key == "order.id" && (string?)kv.Value == "17");
+        Assert.Equal(130, exported.Count);
+    }
+
     private static string GetTestMethodName([CallerMemberName] string callingMethodName = "")
     {
         return callingMethodName;
+    }
+
+    private sealed class TagSnapshotProcessor(List<KeyValuePair<string, object?>> tags) : BaseProcessor<Activity>
+    {
+        public override void OnEnd(Activity data)
+        {
+            tags.AddRange(data.TagObjects);
+        }
     }
 }

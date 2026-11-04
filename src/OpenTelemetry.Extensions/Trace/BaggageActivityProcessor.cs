@@ -6,10 +6,18 @@ using System.Diagnostics;
 namespace OpenTelemetry.Trace;
 
 /// <summary>
-/// Activity processor that adds <see cref="Baggage"/> fields to every new activity.
+/// Activity processor that adds the <see cref="Baggage"/> fields which are
+/// current when an activity starts to the activity as tags when it ends.
+/// <para/>
+/// Baggage can be set by callers, so it is added behind the tags set by the
+/// application and by instrumentation, and never replaces a tag with the same
+/// key. This processor must be added before any exporting processor so that the
+/// baggage tags are present when the activity is exported.
 /// </summary>
 public sealed class BaggageActivityProcessor : BaseProcessor<Activity>
 {
+    private const string BaggagePropertyName = "OpenTelemetry.Extensions.BaggageActivityProcessor.Baggage";
+
     private readonly Predicate<string> baggageKeyPredicate;
 
     /// <summary>
@@ -29,11 +37,32 @@ public sealed class BaggageActivityProcessor : BaseProcessor<Activity>
     /// <inheritdoc />
     public override void OnStart(Activity data)
     {
-        foreach (var entry in Baggage.Current)
+        // Baggage can be set by callers, so it is only captured here and is added
+        // to the activity when it ends, behind the tags set by the application and
+        // by instrumentation. This stops it from displacing those tags when an
+        // exporter applies the span attribute count limit.
+        var baggage = Baggage.Current;
+
+        if (data != null && baggage.Count > 0)
         {
-            if (this.baggageKeyPredicate(entry.Key))
+            data.SetCustomProperty(BaggagePropertyName, baggage);
+        }
+    }
+
+    /// <inheritdoc />
+    public override void OnEnd(Activity data)
+    {
+        if (data?.GetCustomProperty(BaggagePropertyName) is Baggage baggage)
+        {
+            data.SetCustomProperty(BaggagePropertyName, null);
+
+            foreach (var entry in baggage)
             {
-                data?.SetTag(entry.Key, entry.Value);
+                // Avoid overwriting existing tags on the activity with baggage values
+                if (this.baggageKeyPredicate(entry.Key) && data.GetTagItem(entry.Key) == null)
+                {
+                    data.SetTag(entry.Key, entry.Value);
+                }
             }
         }
     }
