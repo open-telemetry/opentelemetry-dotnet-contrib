@@ -23,6 +23,11 @@
   aborted or faulted. They are now completed when the channel goes away.
   ([#5841](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5841))
 
+* Fixed an issue where outgoing requests that share an
+  `HttpRequestMessageProperty` instance leaked `traceparent`, `tracestate` and
+  `baggage` HTTP headers from one call to later calls.
+  ([#5860](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5860))
+
 ## 1.20.1-beta.1
 
 Released 2026-Oct-21
