@@ -9,7 +9,7 @@
   quote sensitive values from the request. The event and attributes are now
   only recorded when the new `AWSClientInstrumentationOptions.RecordException`
   option is set to `true`.
-  ([#NNNN](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/NNNN))
+  ([#5862](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5862))
 
 ## 1.20.3
 
