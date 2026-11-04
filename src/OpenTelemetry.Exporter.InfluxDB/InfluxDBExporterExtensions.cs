@@ -58,7 +58,12 @@ public static class InfluxDBExporterExtensions
             if (!influxDbClientOptions.VerifySsl)
             {
 #pragma warning disable CA5359 // Preserve an explicitly disabled InfluxDB endpoint certificate check.
+#if NET
+                httpClientHandler.ServerCertificateCustomValidationCallback =
+                    HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+#else
                 httpClientHandler.ServerCertificateCustomValidationCallback = (_, _, _, _) => true;
+#endif
 #pragma warning restore CA5359
             }
 
