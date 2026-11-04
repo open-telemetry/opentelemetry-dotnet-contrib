@@ -28,7 +28,7 @@
 
 * Fixed a memory leak on .NET Framework when a command executed asynchronously
   fails before it is sent. Upgrade to apply the fix.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#5872](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5872))
 
 ## 1.20.1
 
