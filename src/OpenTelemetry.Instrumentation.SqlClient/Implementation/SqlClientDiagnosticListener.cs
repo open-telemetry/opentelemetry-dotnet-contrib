@@ -614,7 +614,14 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
         SqlTelemetryHelper.DbClientOperationDuration.Record(duration, tags);
     }
 
-    private readonly record struct PendingCommand(long BeginTimestamp, string? DataSource, string? DatabaseName);
+    private readonly struct PendingCommand(long beginTimestamp, string? dataSource, string? databaseName)
+    {
+        public long BeginTimestamp { get; } = beginTimestamp;
+
+        public string? DataSource { get; } = dataSource;
+
+        public string? DatabaseName { get; } = databaseName;
+    }
 
     private sealed class ConnectionSnapshot(string? dataSource, string? databaseName)
     {
