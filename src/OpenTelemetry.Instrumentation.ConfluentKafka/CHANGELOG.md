@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.4.0-alpha.1
+
+Released 2026-Nov-04
+
 * Fixed unbounded memory use caused by long string message keys being recorded
   in full in the `messaging.kafka.message.key` span attribute. Keys longer than
   256 characters are now truncated.
