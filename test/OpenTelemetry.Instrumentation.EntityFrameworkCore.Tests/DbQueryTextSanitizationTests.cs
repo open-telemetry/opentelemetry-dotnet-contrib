@@ -1,12 +1,36 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics;
 using Microsoft.Data.Sqlite;
+using OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
 
 namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests;
 
 public class DbQueryTextSanitizationTests
 {
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public void SuppressedResultDoesNotEmitQueryText(bool emitOldAttributes, bool emitNewAttributes)
+    {
+        using var activity = new Activity("original").Start();
+        activity.SetTag("existing", "value");
+
+        EntityFrameworkQueryTextProcessor.ApplyResult(
+            activity,
+            "SELECT 'secret'",
+            DbQueryTextSanitizationResult.Suppress,
+            emitOldAttributes,
+            emitNewAttributes);
+
+        var tag = Assert.Single(activity.TagObjects);
+        Assert.Equal("existing", tag.Key);
+        Assert.Equal("value", tag.Value);
+        Assert.Equal("original", activity.DisplayName);
+    }
+
     [Theory]
     [InlineData(null, null)]
     [InlineData("provider", null)]

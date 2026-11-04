@@ -15,6 +15,11 @@ internal static class EntityFrameworkQueryTextProcessor
     {
         var result = SanitizeQueryText(new DbQueryTextSanitizationContext(providerName, commandText, null));
 
+        ApplyResult(activity, commandText, result, emitOldAttributes, emitNewAttributes);
+    }
+
+    internal static void ApplyResult(Activity activity, string? commandText, DbQueryTextSanitizationResult result, bool emitOldAttributes, bool emitNewAttributes)
+    {
         if (result.SuppressQueryText)
         {
             return;
