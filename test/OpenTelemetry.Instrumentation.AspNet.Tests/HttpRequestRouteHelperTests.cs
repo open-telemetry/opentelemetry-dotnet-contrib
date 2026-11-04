@@ -136,6 +136,54 @@ public class HttpRequestRouteHelperTests
         Assert.Equal("{controller}/{action}/{id}", routeHelper.GetRouteTemplate(CreateConventionalRequest("late", "Index", "1"), isSuccessful: true));
     }
 
+    [Fact]
+    public async Task GetRouteTemplate_LimitsTheNumberOfRouteValuesThatAreUsedWhenRequestsAreConcurrent()
+    {
+        const int Threads = 16;
+        const int RequestsPerThread = HttpRequestRouteHelper.MaxResolvedTemplates;
+
+        for (var attempt = 0; attempt < 20; attempt++)
+        {
+            var routeHelper = new HttpRequestRouteHelper();
+            var results = new string?[Threads * RequestsPerThread];
+
+            // Release all of the threads at once so that they race to add names while the limit is reached.
+            using var start = new ManualResetEventSlim(initialState: false);
+            var tasks = new Task[Threads];
+            for (var t = 0; t < Threads; t++)
+            {
+                var thread = t;
+                tasks[t] = Task.Factory.StartNew(
+                    () =>
+                    {
+                        start.Wait();
+                        for (var i = 0; i < RequestsPerThread; i++)
+                        {
+                            var index = (thread * RequestsPerThread) + i;
+                            results[index] = routeHelper.GetRouteTemplate(CreateConventionalRequest($"c{index}", "Index", "1"), isSuccessful: true);
+                        }
+                    },
+                    TestContext.Current.CancellationToken,
+                    TaskCreationOptions.LongRunning,
+                    TaskScheduler.Default);
+            }
+
+            start.Set();
+            await Task.WhenAll(tasks);
+
+            var used = results.Where(r => r is not "{controller}/{action}/{id}").ToList();
+
+            Assert.Equal(HttpRequestRouteHelper.MaxResolvedTemplates, used.Count);
+            Assert.Equal(HttpRequestRouteHelper.MaxResolvedTemplates, used.Distinct().Count());
+
+            // Every name that was used is remembered, and no others.
+            var remembered = Enumerable.Range(0, results.Length)
+                .Count(i => routeHelper.GetRouteTemplate(CreateConventionalRequest($"c{i}", "Index", "1"), isSuccessful: false) is not "{controller}/{action}/{id}");
+
+            Assert.Equal(HttpRequestRouteHelper.MaxResolvedTemplates, remembered);
+        }
+    }
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]

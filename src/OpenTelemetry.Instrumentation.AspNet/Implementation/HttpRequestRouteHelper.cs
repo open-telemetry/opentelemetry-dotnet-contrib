@@ -18,8 +18,7 @@ internal sealed class HttpRequestRouteHelper
     /// The maximum number of distinct templates with <c>{controller}</c> and/or <c>{action}</c>
     /// replaced by a route value that are remembered. It is deliberately below the default
     /// per-metric cardinality limit of the OpenTelemetry SDK, although the number of series is
-    /// also multiplied by the request method, status code and so on. The limit is approximate
-    /// because the check and the addition are not atomic.
+    /// also multiplied by the request method, status code and so on.
     /// </summary>
     internal const int MaxResolvedTemplates = 512;
 
@@ -30,6 +29,10 @@ internal sealed class HttpRequestRouteHelper
     // actually served. The key is compared ignoring case because MVC and WebAPI resolve controller and action
     // names that way, so the first spelling seen is the one that is reported for all of them.
     private readonly ConcurrentDictionary<string, string> resolvedTemplates = new(StringComparer.OrdinalIgnoreCase);
+
+    // Serializes the additions to resolvedTemplates so that the limit is exact. Lookups do not take the lock.
+    private readonly object resolvedTemplatesLock = new();
+    private int resolvedTemplatesCount;
 
     /// <summary>
     /// Extracts the route template from the <see cref="HttpRequest"/>.
@@ -186,10 +189,24 @@ internal sealed class HttpRequestRouteHelper
             return resolved;
         }
 
-        if (isSuccessful && this.resolvedTemplates.Count < MaxResolvedTemplates)
+        if (isSuccessful && Volatile.Read(ref this.resolvedTemplatesCount) < MaxResolvedTemplates)
         {
-            // The count check is not atomic so the limit can be exceeded by a few entries under concurrency.
-            return this.resolvedTemplates.GetOrAdd(template, template);
+            lock (this.resolvedTemplatesLock)
+            {
+                // Check again as the template could have been added, or the limit reached, while waiting for the lock.
+                if (this.resolvedTemplates.TryGetValue(template, out resolved))
+                {
+                    return resolved;
+                }
+
+                var count = this.resolvedTemplatesCount;
+                if (count < MaxResolvedTemplates)
+                {
+                    this.resolvedTemplates[template] = template;
+                    Volatile.Write(ref this.resolvedTemplatesCount, count + 1);
+                    return template;
+                }
+            }
         }
 
         // The names have not been proven to exist, so they must not be used. Report the template itself.
