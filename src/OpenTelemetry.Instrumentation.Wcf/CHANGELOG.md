@@ -10,7 +10,7 @@
 * Fixed an issue where outgoing requests that share an
   `HttpRequestMessageProperty` instance leaked `traceparent`, `tracestate` and
   `baggage` HTTP headers from one call to later calls.
-  ([#NNNN](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/NNNN))
+  ([#5860](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5860))
 
 ## 1.20.1-beta.1
 
