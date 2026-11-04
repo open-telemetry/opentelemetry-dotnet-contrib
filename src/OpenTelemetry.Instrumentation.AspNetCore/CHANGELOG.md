@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+* Fixed `http.route` and the span name being set to text taken from the request
+  path when the `page` route value is populated from a route parameter of an
+  endpoint that has no route template (such as `MapFallbackToController`,
+  `MapDynamicControllerRoute` or `IRouter`-based routing). The `page` route value
+  is now only used as a fallback for Razor Pages endpoints with an empty route
+  template.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
+* Routes longer than 256 characters are no longer added to the cache of span
+  display names, so that a route derived from the request cannot cause an
+  arbitrary amount of memory to be retained for the lifetime of the process.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 1.20.1
 
 Released 2026-Oct-21
