@@ -6,7 +6,7 @@
   the trace context and baggage of the first send. The instrumentation no longer
   modifies the application's `MessageAttributes` dictionary, and the request's
   `MessageAttributes` is now a different instance after a send.
-  ([#NNNN](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/NNNN))
+  ([#5867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5867))
 
 ## 1.20.3
 
