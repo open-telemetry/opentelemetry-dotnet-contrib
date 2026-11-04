@@ -8,7 +8,7 @@
 * **Breaking Change**: The `http.server.request.duration` metric no longer
   includes the `http.request.method_original` tag, and records only the
   normalized `http.request.method`.
-  ([#NNNN](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/NNNN))
+  ([#5880](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5880))
 
 ## 1.20.1-beta.1
 
