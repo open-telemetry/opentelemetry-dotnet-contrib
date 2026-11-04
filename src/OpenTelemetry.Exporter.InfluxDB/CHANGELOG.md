@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.0-alpha.17
+
+Released 2026-Nov-04
+
 * Fixed invalid line protocol produced by certain metric tag keys and values.
   ([#5842](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5842))
 
