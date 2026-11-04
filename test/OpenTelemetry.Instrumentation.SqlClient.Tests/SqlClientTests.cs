@@ -82,58 +82,6 @@ public class SqlClientTests
         Assert.Equal(expectedPort, tags.FirstOrDefault(x => x.Key == SemanticConventions.AttributeServerPort).Value);
     }
 
-    [Fact]
-    public void AddSharedTagsAddsEachSharedTagAtMostOnce()
-    {
-        var activity = new Activity("test");
-
-        activity.AddTag(SemanticConventions.AttributeDbSystemName, SqlTelemetryHelper.MicrosoftSqlServerDbSystemName);
-        activity.AddTag(SemanticConventions.AttributeDbNamespace, "main");
-        activity.AddTag(SemanticConventions.AttributeDbQueryText, "SELECT * FROM Orders");
-        activity.AddTag(SemanticConventions.AttributeServerAddress, "localhost");
-        activity.AddTag(SemanticConventions.AttributeServerPort, 1433);
-        activity.AddTag(SemanticConventions.AttributeErrorType, null);
-
-        // Duplicate keys, as can happen if enrichment uses Activity.AddTag()
-        // for a tag which the instrumentation has already added itself.
-        activity.AddTag(SemanticConventions.AttributeDbNamespace, "other-database");
-        activity.AddTag(SemanticConventions.AttributeServerAddress, "other-host");
-
-        TagList tags = default;
-
-        SqlTelemetryHelper.AddSharedTags(activity, ref tags);
-
-        Assert.Equal(
-            [
-                new(SemanticConventions.AttributeDbSystemName, SqlTelemetryHelper.MicrosoftSqlServerDbSystemName),
-                new(SemanticConventions.AttributeDbNamespace, "main"),
-                new(SemanticConventions.AttributeServerAddress, "localhost"),
-                new KeyValuePair<string, object?>(SemanticConventions.AttributeServerPort, 1433),
-            ],
-            tags);
-    }
-
-    [Fact]
-    public void AddSharedTagsAddsAllSharedTags()
-    {
-        var activity = new Activity("test");
-
-        foreach (var name in SqlTelemetryHelper.SharedTagNames)
-        {
-            activity.AddTag(name, name);
-        }
-
-        activity.AddTag(SemanticConventions.AttributeDbQueryText, "SELECT * FROM Orders");
-
-        TagList tags = default;
-
-        SqlTelemetryHelper.AddSharedTags(activity, ref tags);
-
-        Assert.Equal(
-            SqlTelemetryHelper.SharedTagNames.Select(name => new KeyValuePair<string, object?>(name, name)),
-            tags);
-    }
-
     [Theory]
     [InlineData("localhost", "main")]
     [InlineData("localhost\\instanceName", "instanceName.main")]
@@ -376,6 +324,64 @@ public class SqlClientTests
 
         Assert.Empty(metrics);
     }
+
+    [Theory]
+    [InlineData(SqlClientLibrary.SystemDataSqlClient)]
+    [InlineData(SqlClientLibrary.MicrosoftDataSqlClient)]
+    public void MetricUsesDatabaseOfConnectionWhenCommandStarted(SqlClientLibrary library)
+    {
+        var activities = new List<Activity>();
+        var metrics = new List<Metric>();
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .SetSampler(new AlwaysOnSampler())
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(metrics)
+            .Build();
+
+        // A connection which breaks while a command executes is closed before the error is
+        // reported, after which its database is that of its connection string, not the one
+        // the command was executed against.
+        var connection = new ChangingDatabaseDbConnection("orders");
+
+        MockCommandExecutor.ExecuteCommand(
+            new FakeDbCommand
+            {
+                CommandType = CommandType.StoredProcedure,
+                CommandText = "SP_GetOrders",
+                Connection = connection,
+            },
+            library,
+            statistics: null,
+            afterBeforeCommand: () => connection.CurrentDatabase = "master");
+
+        Assert.True(tracerProvider.ForceFlush());
+        Assert.True(meterProvider.ForceFlush());
+
+        var activity = Assert.Single(activities);
+        Assert.Equal("orders", activity.GetTagValue(SemanticConventions.AttributeDbNamespace));
+
+        var metric = Assert.Single(metrics, m => m.Name == "db.client.operation.duration");
+        var metricPoints = new List<MetricPoint>();
+        foreach (var point in metric.GetMetricPoints())
+        {
+            metricPoints.Add(point);
+        }
+
+        var metricPoint = Assert.Single(metricPoints);
+        var tags = new Dictionary<string, object?>();
+        foreach (var tag in metricPoint.Tags)
+        {
+            tags.Add(tag.Key, tag.Value);
+        }
+
+        Assert.Equal("orders", tags[SemanticConventions.AttributeDbNamespace]);
+    }
 #endif
 
     [Theory]
@@ -473,12 +479,59 @@ public class SqlClientTests
         Assert.Equal(expected, GetMetricTags(library, commandType, commandText, error, SamplingMode.MetricsOnly));
     }
 
+    [Theory]
+    [InlineData(SqlClientLibrary.SystemDataSqlClient, CommandType.Text, false)]
+    [InlineData(SqlClientLibrary.SystemDataSqlClient, CommandType.Text, true)]
+    [InlineData(SqlClientLibrary.SystemDataSqlClient, CommandType.StoredProcedure, false)]
+    [InlineData(SqlClientLibrary.SystemDataSqlClient, CommandType.StoredProcedure, true)]
+    [InlineData(SqlClientLibrary.MicrosoftDataSqlClient, CommandType.Text, false)]
+    [InlineData(SqlClientLibrary.MicrosoftDataSqlClient, CommandType.Text, true)]
+    [InlineData(SqlClientLibrary.MicrosoftDataSqlClient, CommandType.StoredProcedure, false)]
+    [InlineData(SqlClientLibrary.MicrosoftDataSqlClient, CommandType.StoredProcedure, true)]
+    public void MetricTagsDoNotIncludeTagsSetOnActivityByOthers(SqlClientLibrary library, CommandType commandType, bool error)
+    {
+        var commandText = commandType == CommandType.StoredProcedure ? "SP_GetOrders" : "select * from sys.databases";
+
+        var expected = GetMetricTags(library, commandType, commandText, error, SamplingMode.MetricsOnly);
+
+        // Simulates something other than the instrumentation, such as BaggageActivityProcessor
+        // copying the baggage of an incoming request, setting tags on the command's activity,
+        // either when it starts (so they replace or precede the tags of the instrumentation) or
+        // by the time it ends. None of them can be allowed to become dimensions of the metric.
+        static void SetTags(Activity activity)
+        {
+            foreach (var name in new[]
+            {
+                SemanticConventions.AttributeDbSystem,
+                SemanticConventions.AttributeDbSystemName,
+                SemanticConventions.AttributeDbNamespace,
+                SemanticConventions.AttributeDbOperationName,
+                SemanticConventions.AttributeDbStoredProcedureName,
+                SemanticConventions.AttributeDbQuerySummary,
+                SemanticConventions.AttributeDbResponseStatusCode,
+                SemanticConventions.AttributeErrorType,
+                SemanticConventions.AttributeServerAddress,
+                SemanticConventions.AttributeServerPort,
+            })
+            {
+                activity.SetTag(name, "caller-supplied-" + name);
+            }
+        }
+
+        var actual = GetMetricTags(library, commandType, commandText, error, SamplingMode.Sampled, SetTags);
+
+        Assert.Equal(expected, actual);
+        Assert.DoesNotContain(actual.Values, value => value is string text && text.StartsWith("caller-supplied-", StringComparison.Ordinal));
+        Assert.DoesNotContain(SemanticConventions.AttributeDbSystem, actual.Keys);
+    }
+
     private static SortedDictionary<string, object?> GetMetricTags(
         SqlClientLibrary library,
         CommandType commandType,
         string commandText,
         bool error,
-        SamplingMode samplingMode)
+        SamplingMode samplingMode,
+        Action<Activity>? setActivityTags = null)
     {
         var activities = new List<Activity>();
         var metrics = new List<Metric>();
@@ -490,6 +543,7 @@ public class SqlClientTests
             tracerProviderBuilder
                 .SetSampler(samplingMode == SamplingMode.Sampled ? new AlwaysOnSampler() : new AlwaysOffSampler())
                 .AddSqlClientInstrumentation()
+                .AddProcessor(new TestActivityProcessor(onStart: setActivityTags ?? (_ => { }), onEnd: setActivityTags ?? (_ => { })))
                 .AddInMemoryExporter(activities);
         }
 
@@ -729,4 +783,13 @@ public class SqlClientTests
         VerifySamplingParameters(testCase, sampler.LatestSamplingParameters);
         VerifyAttributes(testCase, activity, metricPoint);
     }
+
+#if !NETFRAMEWORK
+    private sealed class ChangingDatabaseDbConnection(string database) : FakeDbConnection
+    {
+        public string CurrentDatabase { get; set; } = database;
+
+        public override string Database => this.CurrentDatabase;
+    }
+#endif
 }

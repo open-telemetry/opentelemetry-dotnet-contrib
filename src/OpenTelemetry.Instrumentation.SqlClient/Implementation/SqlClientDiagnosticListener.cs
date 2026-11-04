@@ -38,6 +38,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 #endif
 
     private const string ReturnedRowsBaselinePropertyName = "otel.sqlclient.returned_rows_baseline";
+    private const string ConnectionSnapshotPropertyName = "otel.sqlclient.connection_snapshot";
 
     private static ConcurrentDictionary<Type, Func<IDbConnection, IDictionary?>?>? retrieveStatisticsCache;
 
@@ -148,6 +149,12 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                         this.RecordBeginTimestamp(payload);
                         return;
                     }
+
+                    // Snapshot the connection details before the command executes. A connection which
+                    // breaks while the command executes is closed before the error event is written,
+                    // after which its Database reverts to the initial catalog of its connection string
+                    // rather than the database the command was executed against.
+                    activity.SetCustomProperty(ConnectionSnapshotPropertyName, new ConnectionSnapshot(dataSource, databaseName));
 
                     // Snapshot the connection's cumulative returned row count before the command
                     // executes so that the after-handler can compute the per-command delta. The
@@ -533,17 +540,28 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
         var tags = default(TagList);
 
-        if (activity != null && activity.IsAllDataRequested)
-        {
-            SqlTelemetryHelper.AddSharedTags(activity, ref tags);
-        }
-        else if (payload != null)
+        // The tags are always derived from the command, and never read back from the activity. The tags
+        // of an activity can also be set by processors (for example from baggage) and by enrichment, which
+        // must not be able to change the dimensions of the metric. The tags derived here are the same as
+        // the ones the activity is created with, so they do not depend on the sampling decision.
+        if (payload != null)
         {
             if (TryFetchCommand(this.commandFetcher, payload, out var command))
             {
-                var connection = command.Connection;
-                var databaseName = connection?.Database;
-                var dataSource = (connection as DbConnection)?.DataSource;
+                string? databaseName;
+                string? dataSource;
+
+                if (activity?.GetCustomProperty(ConnectionSnapshotPropertyName) is ConnectionSnapshot snapshot)
+                {
+                    dataSource = snapshot.DataSource;
+                    databaseName = snapshot.DatabaseName;
+                }
+                else
+                {
+                    var connection = command.Connection;
+                    databaseName = connection?.Database;
+                    dataSource = (connection as DbConnection)?.DataSource;
+                }
 
                 var connectionTags = SqlTelemetryHelper.GetTagListFromConnectionInfo(
                     dataSource,
@@ -589,6 +607,13 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
         }
 
         SqlTelemetryHelper.DbClientOperationDuration.Record(duration, tags);
+    }
+
+    private sealed class ConnectionSnapshot(string? dataSource, string? databaseName)
+    {
+        public string? DataSource { get; } = dataSource;
+
+        public string? DatabaseName { get; } = databaseName;
     }
 }
 #endif
