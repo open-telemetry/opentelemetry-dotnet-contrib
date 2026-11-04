@@ -4,7 +4,7 @@
 
 * Fixed baggage and an unstopped `Activity` being left behind when an
   `EndRequest` handler that runs after `TelemetryHttpModule` throws.
-  ([#NNNN](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/NNNN))
+  ([#5868](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5868))
 
 ## 1.20.2
 
