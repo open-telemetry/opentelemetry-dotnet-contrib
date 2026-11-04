@@ -485,9 +485,13 @@ public class InstrumentedChannelAsyncCallbackTests
     }
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void Send_TwoWayDoesNotChangeAmbientContextOfThreadThatClosesChannel(bool suppressFlow)
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task Send_TwoWayDoesNotChangeAmbientContextWhenCompletingWithoutReply(
+        bool suppressFlow,
+        bool completeOnEndSend)
     {
         try
         {
@@ -499,11 +503,36 @@ public class InstrumentedChannelAsyncCallbackTests
 
             WcfInstrumentationActivitySource.Options = new WcfInstrumentationOptions { SuppressDownstreamInstrumentation = true };
 
+            var callerState = new object();
+            var ambientState = new AsyncLocal<object?> { Value = callerState };
+            bool? callbackFlowSuppressed = null;
+            Task<object?>? callbackTask = null;
+            using var activityListener = new ActivityListener
+            {
+                ShouldListenTo = source => source.Name == WcfInstrumentationActivitySource.ActivitySource.Name,
+                ActivityStopped = _ =>
+                {
+                    callbackFlowSuppressed = ExecutionContext.IsFlowSuppressed();
+                    callbackTask = Task.Run<object?>(() => ambientState.Value);
+                },
+            };
+            ActivitySource.AddActivityListener(activityListener);
+
             var inner = new RecordingDuplexChannel();
             var channel = new InstrumentedDuplexChannel(inner, TimeSpan.FromSeconds(30));
 
             using var request = CreateTwoWayRequest();
-            channel.Send(request);
+            IAsyncResult? result = null;
+            if (completeOnEndSend)
+            {
+                result = channel.BeginSend(request, callback: null, state: null);
+                inner.RaiseClosed();
+                Assert.Empty(stoppedActivities);
+            }
+            else
+            {
+                channel.Send(request);
+            }
 
             using var current = new Activity("Current").Start();
             using var suppression = SuppressInstrumentationScope.Begin();
@@ -512,12 +541,20 @@ public class InstrumentedChannelAsyncCallbackTests
             AsyncFlowControl? flowControl = suppressFlow ? ExecutionContext.SuppressFlow() : null;
             try
             {
-                inner.RaiseClosed();
+                if (completeOnEndSend)
+                {
+                    channel.EndSend(result!);
+                }
+                else
+                {
+                    inner.RaiseClosed();
+                }
 
                 Assert.Single(stoppedActivities);
 
                 // Completing the request must not replace the current activity or end the caller's suppression.
                 Assert.Same(current, Activity.Current);
+                Assert.Same(callerState, ambientState.Value);
                 Assert.True(Sdk.SuppressInstrumentation);
                 Assert.Equal(suppressFlow, ExecutionContext.IsFlowSuppressed());
             }
@@ -525,6 +562,14 @@ public class InstrumentedChannelAsyncCallbackTests
             {
                 flowControl?.Undo();
             }
+
+            Assert.NotNull(callbackTask);
+            var completed = await Task.WhenAny(
+                callbackTask,
+                Task.Delay(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken));
+            Assert.Same(callbackTask, completed);
+            Assert.Same(suppressFlow ? null : callerState, await callbackTask);
+            Assert.Equal(suppressFlow, callbackFlowSuppressed);
         }
         finally
         {

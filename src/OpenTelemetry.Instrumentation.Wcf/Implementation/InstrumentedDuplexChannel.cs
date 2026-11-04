@@ -173,8 +173,8 @@ internal class InstrumentedDuplexChannel : InstrumentedChannel<IDuplexChannel>, 
         // channel, or that called EndSend, as its own Activity.Current would be replaced.
         //
         // Capture() returns null while the flow of the execution context is suppressed, so the flow is
-        // restored for the duration of the call and suppressed again afterwards, leaving the caller's
-        // AsyncFlowControl valid.
+        // restored to capture a child context. Reapply suppression inside that context so callbacks cannot
+        // flow the caller's AsyncLocal values into queued work, then restore the caller's suppression afterwards.
         var flowWasSuppressed = ExecutionContext.IsFlowSuppressed();
         if (flowWasSuppressed)
         {
@@ -187,6 +187,17 @@ internal class InstrumentedDuplexChannel : InstrumentedChannel<IDuplexChannel>, 
             if (executionContext == null)
             {
                 action();
+            }
+            else if (flowWasSuppressed)
+            {
+                ExecutionContext.Run(
+                    executionContext,
+                    static state =>
+                    {
+                        using var flowControl = ExecutionContext.SuppressFlow();
+                        ((Action)state!)();
+                    },
+                    action);
             }
             else
             {
