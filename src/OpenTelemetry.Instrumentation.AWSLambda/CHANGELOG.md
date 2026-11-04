@@ -8,7 +8,7 @@
   `AWSLambdaInstrumentationOptions.RecordException` option to `true` to record
   `exception` events. The exception type is now recorded in the `error.type`
   attribute.
-  ([#NNNN](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/NNNN))
+  ([#5877](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5877))
 
 ## 1.20.3
 
