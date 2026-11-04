@@ -35,7 +35,7 @@
 * Fixed the cache of sanitized SQL statements retaining statements of any
   length for the lifetime of the process. Statements longer than 8192
   characters are no longer cached.
-  ([#NNNN](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/NNNN))
+  ([#5869](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5869))
 
 ## 1.20.1-beta.1
 
