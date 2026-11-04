@@ -33,7 +33,7 @@
   command is no longer `Activity.Current` while the command executes or while
   `Filter` and `EnrichWithSqlCommand` run, so use the `activity` argument of
   `EnrichWithSqlCommand` instead.
-  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+  ([#5866](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5866))
 
 ## 1.20.1
 
