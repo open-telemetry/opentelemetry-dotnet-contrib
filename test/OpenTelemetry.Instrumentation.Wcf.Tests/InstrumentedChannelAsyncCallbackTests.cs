@@ -483,28 +483,52 @@ public class InstrumentedChannelAsyncCallbackTests
         }
     }
 
-    [Fact]
-    public void Send_TwoWayDoesNotChangeCurrentActivityOfThreadThatClosesChannel()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Send_TwoWayDoesNotChangeAmbientContextOfThreadThatClosesChannel(bool suppressFlow)
     {
-        var stoppedActivities = new List<Activity>();
-        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddInMemoryExporter(stoppedActivities)
-            .AddWcfInstrumentation()
-            .Build();
+        try
+        {
+            var stoppedActivities = new List<Activity>();
+            using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .AddInMemoryExporter(stoppedActivities)
+                .AddWcfInstrumentation()
+                .Build();
 
-        var inner = new RecordingDuplexChannel();
-        var channel = new InstrumentedDuplexChannel(inner, TimeSpan.FromSeconds(30));
+            WcfInstrumentationActivitySource.Options = new WcfInstrumentationOptions { SuppressDownstreamInstrumentation = true };
 
-        using var request = CreateTwoWayRequest();
-        channel.Send(request);
+            var inner = new RecordingDuplexChannel();
+            var channel = new InstrumentedDuplexChannel(inner, TimeSpan.FromSeconds(30));
 
-        using var current = new Activity("Current").Start();
-        Assert.Same(current, Activity.Current);
+            using var request = CreateTwoWayRequest();
+            channel.Send(request);
 
-        inner.RaiseClosed();
+            using var current = new Activity("Current").Start();
+            using var suppression = SuppressInstrumentationScope.Begin();
+            Assert.Same(current, Activity.Current);
 
-        Assert.Single(stoppedActivities);
-        Assert.Same(current, Activity.Current);
+            AsyncFlowControl? flowControl = suppressFlow ? ExecutionContext.SuppressFlow() : null;
+            try
+            {
+                inner.RaiseClosed();
+
+                Assert.Single(stoppedActivities);
+
+                // Completing the request must not replace the current activity or end the caller's suppression.
+                Assert.Same(current, Activity.Current);
+                Assert.True(Sdk.SuppressInstrumentation);
+                Assert.Equal(suppressFlow, ExecutionContext.IsFlowSuppressed());
+            }
+            finally
+            {
+                flowControl?.Undo();
+            }
+        }
+        finally
+        {
+            WcfInstrumentationActivitySource.Options = null;
+        }
     }
 
     [Fact]

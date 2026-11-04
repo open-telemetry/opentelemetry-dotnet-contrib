@@ -171,14 +171,34 @@ internal class InstrumentedDuplexChannel : InstrumentedChannel<IDuplexChannel>, 
         // Completing a request stops its activity and ends its instrumentation suppression scope, which
         // change the ambient context. That must not leak into the thread that closed or faulted the
         // channel, or that called EndSend, as its own Activity.Current would be replaced.
-        var executionContext = ExecutionContext.Capture();
-        if (executionContext == null)
+        //
+        // Capture() returns null while the flow of the execution context is suppressed, so the flow is
+        // restored for the duration of the call and suppressed again afterwards, leaving the caller's
+        // AsyncFlowControl valid.
+        var flowWasSuppressed = ExecutionContext.IsFlowSuppressed();
+        if (flowWasSuppressed)
         {
-            action();
+            ExecutionContext.RestoreFlow();
         }
-        else
+
+        try
         {
-            ExecutionContext.Run(executionContext, static state => ((Action)state!)(), action);
+            var executionContext = ExecutionContext.Capture();
+            if (executionContext == null)
+            {
+                action();
+            }
+            else
+            {
+                ExecutionContext.Run(executionContext, static state => ((Action)state!)(), action);
+            }
+        }
+        finally
+        {
+            if (flowWasSuppressed)
+            {
+                _ = ExecutionContext.SuppressFlow();
+            }
         }
     }
 
