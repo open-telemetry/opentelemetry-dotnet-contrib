@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Fixed unbounded memory growth on streaming calls when `RecordMessageEvents`
+  is enabled. At most 128 message events are now recorded per call.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 1.0.0-beta.18
 
 Released 2026-Oct-21
