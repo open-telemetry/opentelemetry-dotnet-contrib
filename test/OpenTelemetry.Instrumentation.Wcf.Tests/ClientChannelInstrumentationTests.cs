@@ -182,82 +182,87 @@ public class ClientChannelInstrumentationTests
         }
     }
 
-    [Fact]
-    public void BeforeSendRequestDoesNotLeakHeadersIntoSharedHttpRequestMessageProperty()
+    [Theory]
+    [InlineData(ActivitySamplingResult.AllDataAndRecorded, false)]
+    [InlineData(ActivitySamplingResult.PropagationData, false)]
+    [InlineData(ActivitySamplingResult.None, false)]
+    [InlineData(ActivitySamplingResult.AllDataAndRecorded, true)]
+    public void BeforeSendRequestDoesNotLeakHeadersIntoSharedHttpRequestMessageProperty(
+        ActivitySamplingResult secondSamplingResult,
+        bool filterSecondRequest)
     {
+        var samplingResult = ActivitySamplingResult.AllDataAndRecorded;
         using var activityListener = new ActivityListener
         {
             ShouldListenTo = _ => true,
-            Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
+            Sample = (ref _) => samplingResult,
         };
         ActivitySource.AddActivityListener(activityListener);
 
-        WcfInstrumentationActivitySource.Options = new WcfInstrumentationOptions { SuppressDownstreamInstrumentation = true };
-
+        var originalOptions = WcfInstrumentationActivitySource.Options;
+        var originalActivity = Activity.Current;
+        var originalBaggage = Baggage.Current;
         var originalPropagator = Propagators.DefaultTextMapPropagator;
+        var options = new WcfInstrumentationOptions { SuppressDownstreamInstrumentation = true };
+        WcfInstrumentationActivitySource.Options = options;
+        Activity.Current = null;
+        Baggage.Current = default;
         Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([new TraceContextPropagator(), new BaggagePropagator()]));
 
         try
         {
-            // An application-owned property attached to every call.
             var shared = new HttpRequestMessageProperty { Method = "PUT", QueryString = "a=b", SuppressEntityBody = true };
             shared.Headers["X-Api-Key"] = "secret";
 
-            // First call carries baggage.
             using (var first = Message.CreateMessage(MessageVersion.Soap11, "urn:first"))
             {
                 first.Properties[HttpRequestMessageProperty.Name] = shared;
-
-                var previous = Baggage.Current;
+                using var parent = new Activity("incoming").SetIdFormat(ActivityIdFormat.W3C).Start();
+                parent.TraceStateString = "vendor=mallory";
                 Baggage.Current = Baggage.SetBaggage("tenant", "mallory");
-                RequestTelemetryState state;
-                try
-                {
-                    state = ClientChannelInstrumentation.BeforeSendRequest(first, null);
-                }
-                finally
-                {
-                    Baggage.Current = previous;
-                }
 
-                state.Activity?.Stop();
-                state.SuppressionScope?.Dispose();
+                var state = ClientChannelInstrumentation.BeforeSendRequest(first, null);
+                ClientChannelInstrumentation.AfterRequestCompleted(null, state);
 
+                Assert.NotNull(state.Activity);
                 var sent = Assert.IsType<HttpRequestMessageProperty>(first.Properties[HttpRequestMessageProperty.Name]);
                 Assert.NotSame(shared, sent);
                 Assert.Equal("tenant=mallory", sent.Headers["baggage"]);
-                Assert.NotNull(sent.Headers["traceparent"]);
+                Assert.Equal("vendor=mallory", sent.Headers["tracestate"]);
+                Assert.Equal(state.Activity.Id, sent.Headers["traceparent"]);
                 Assert.Equal("secret", sent.Headers["X-Api-Key"]);
                 Assert.Equal("PUT", sent.Method);
                 Assert.Equal("a=b", sent.QueryString);
                 Assert.True(sent.SuppressEntityBody);
             }
 
-            // The application's own property must be untouched.
             Assert.Equal(["X-Api-Key"], shared.Headers.AllKeys);
+            Baggage.Current = default;
+            samplingResult = secondSamplingResult;
+            options.OutgoingRequestFilter = _ => !filterSecondRequest;
 
-            // A second call without baggage must not see anything from the first.
-            using (var second = Message.CreateMessage(MessageVersion.Soap11, "urn:second"))
-            {
-                second.Properties[HttpRequestMessageProperty.Name] = shared;
+            using var second = Message.CreateMessage(MessageVersion.Soap11, "urn:second");
+            second.Properties[HttpRequestMessageProperty.Name] = shared;
+            var secondState = ClientChannelInstrumentation.BeforeSendRequest(second, null);
+            ClientChannelInstrumentation.AfterRequestCompleted(null, secondState);
 
-                var state = ClientChannelInstrumentation.BeforeSendRequest(second, null);
-                state.Activity?.Stop();
-                state.SuppressionScope?.Dispose();
-
-                var sent = Assert.IsType<HttpRequestMessageProperty>(second.Properties[HttpRequestMessageProperty.Name]);
-                Assert.NotSame(shared, sent);
-                Assert.Null(sent.Headers["baggage"]);
-                Assert.Null(sent.Headers["tracestate"]);
-                Assert.Equal("secret", sent.Headers["X-Api-Key"]);
-            }
-
+            var expectActivity = secondSamplingResult != ActivitySamplingResult.None && !filterSecondRequest;
+            var secondSent = Assert.IsType<HttpRequestMessageProperty>(second.Properties[HttpRequestMessageProperty.Name]);
+            Assert.Equal(expectActivity, secondState.Activity is not null);
+            Assert.Equal(secondState.Activity?.Id, secondSent.Headers["traceparent"]);
+            Assert.Equal(!expectActivity, ReferenceEquals(shared, secondSent));
+            Assert.Null(secondSent.Headers["baggage"]);
+            Assert.Null(secondSent.Headers["tracestate"]);
+            Assert.Equal("secret", secondSent.Headers["X-Api-Key"]);
             Assert.Equal(["X-Api-Key"], shared.Headers.AllKeys);
+            Assert.False(Sdk.SuppressInstrumentation);
         }
         finally
         {
             Sdk.SetDefaultTextMapPropagator(originalPropagator);
-            WcfInstrumentationActivitySource.Options = null;
+            WcfInstrumentationActivitySource.Options = originalOptions;
+            Baggage.Current = originalBaggage;
+            Activity.Current = originalActivity;
         }
     }
 
