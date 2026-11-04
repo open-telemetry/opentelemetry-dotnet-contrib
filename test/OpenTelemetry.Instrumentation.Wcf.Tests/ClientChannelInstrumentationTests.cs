@@ -4,6 +4,7 @@
 using System.Diagnostics;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
+using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Instrumentation.Wcf.Implementation;
 using OpenTelemetry.Trace;
 
@@ -179,6 +180,109 @@ public class ClientChannelInstrumentationTests
         {
             WcfInstrumentationActivitySource.Options = null;
         }
+    }
+
+    [Fact]
+    public void BeforeSendRequestDoesNotLeakHeadersIntoSharedHttpRequestMessageProperty()
+    {
+        using var activityListener = new ActivityListener
+        {
+            ShouldListenTo = _ => true,
+            Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
+        };
+        ActivitySource.AddActivityListener(activityListener);
+
+        WcfInstrumentationActivitySource.Options = new WcfInstrumentationOptions { SuppressDownstreamInstrumentation = true };
+
+        var originalPropagator = Propagators.DefaultTextMapPropagator;
+        Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([new TraceContextPropagator(), new BaggagePropagator()]));
+
+        try
+        {
+            // An application-owned property attached to every call.
+            var shared = new HttpRequestMessageProperty { Method = "PUT", QueryString = "a=b", SuppressEntityBody = true };
+            shared.Headers["X-Api-Key"] = "secret";
+
+            // First call carries baggage.
+            using (var first = Message.CreateMessage(MessageVersion.Soap11, "urn:first"))
+            {
+                first.Properties[HttpRequestMessageProperty.Name] = shared;
+
+                var previous = Baggage.Current;
+                Baggage.Current = Baggage.SetBaggage("tenant", "mallory");
+                RequestTelemetryState state;
+                try
+                {
+                    state = ClientChannelInstrumentation.BeforeSendRequest(first, null);
+                }
+                finally
+                {
+                    Baggage.Current = previous;
+                }
+
+                state.Activity?.Stop();
+                state.SuppressionScope?.Dispose();
+
+                var sent = Assert.IsType<HttpRequestMessageProperty>(first.Properties[HttpRequestMessageProperty.Name]);
+                Assert.NotSame(shared, sent);
+                Assert.Equal("tenant=mallory", sent.Headers["baggage"]);
+                Assert.NotNull(sent.Headers["traceparent"]);
+                Assert.Equal("secret", sent.Headers["X-Api-Key"]);
+                Assert.Equal("PUT", sent.Method);
+                Assert.Equal("a=b", sent.QueryString);
+                Assert.True(sent.SuppressEntityBody);
+            }
+
+            // The application's own property must be untouched.
+            Assert.Equal(["X-Api-Key"], shared.Headers.AllKeys);
+
+            // A second call without baggage must not see anything from the first.
+            using (var second = Message.CreateMessage(MessageVersion.Soap11, "urn:second"))
+            {
+                second.Properties[HttpRequestMessageProperty.Name] = shared;
+
+                var state = ClientChannelInstrumentation.BeforeSendRequest(second, null);
+                state.Activity?.Stop();
+                state.SuppressionScope?.Dispose();
+
+                var sent = Assert.IsType<HttpRequestMessageProperty>(second.Properties[HttpRequestMessageProperty.Name]);
+                Assert.NotSame(shared, sent);
+                Assert.Null(sent.Headers["baggage"]);
+                Assert.Null(sent.Headers["tracestate"]);
+                Assert.Equal("secret", sent.Headers["X-Api-Key"]);
+            }
+
+            Assert.Equal(["X-Api-Key"], shared.Headers.AllKeys);
+        }
+        finally
+        {
+            Sdk.SetDefaultTextMapPropagator(originalPropagator);
+            WcfInstrumentationActivitySource.Options = null;
+        }
+    }
+
+    [Fact]
+    public void CreateCopyPreservesRawHeaderValues()
+    {
+        const string digest = "Digest username=\"a\\\", b\", realm=\"r\", nonce=\"n\"";
+
+        var original = new HttpRequestMessageProperty();
+        original.Headers["Authorization"] = digest;
+        original.Headers.Add("Accept", "text/xml");
+        original.Headers.Add("Accept", "application/json");
+        original.Headers["X-Quoted"] = "\"a, b\", c";
+
+        var copy = Assert.IsType<HttpRequestMessageProperty>(HttpRequestMessagePropertyWrapper.CreateCopy(original));
+
+        Assert.NotSame(original, copy);
+        Assert.NotSame(original.Headers, copy.Headers);
+        Assert.Equal(original.Headers.AllKeys, copy.Headers.AllKeys);
+        foreach (var key in original.Headers.AllKeys)
+        {
+            Assert.Equal(original.Headers[key], copy.Headers[key]);
+        }
+
+        Assert.Equal(digest, copy.Headers["Authorization"]);
     }
 
     private sealed class ActivityScope : IDisposable
