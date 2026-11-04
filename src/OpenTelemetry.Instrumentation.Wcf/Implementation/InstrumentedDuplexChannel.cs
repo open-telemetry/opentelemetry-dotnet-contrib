@@ -15,6 +15,11 @@ internal class InstrumentedDuplexChannel : InstrumentedChannel<IDuplexChannel>, 
         : base(inner)
     {
         this.telemetryTimeout = telemetryTimeout;
+
+        // Replies are only delivered through this channel, so once it is closed, aborted or faulted
+        // the requests still waiting for one will never complete and must not be tracked any longer.
+        inner.Closed += this.OnChannelClosedOrFaulted;
+        inner.Faulted += this.OnChannelClosedOrFaulted;
     }
 
     public EndpointAddress LocalAddress => this.Inner.LocalAddress;
@@ -157,6 +162,21 @@ internal class InstrumentedDuplexChannel : InstrumentedChannel<IDuplexChannel>, 
         ClientChannelInstrumentation.AfterRequestCompleted(null, telemetryState);
     }
 
+    private void OnChannelClosedOrFaulted(object? sender, EventArgs e)
+    {
+        foreach (var telemetryState in RequestTelemetryStateTracker.RemoveTelemetryStates(this))
+        {
+            try
+            {
+                OnTelemetryStateTimedOut(telemetryState);
+            }
+            catch (Exception ex)
+            {
+                WcfInstrumentationEventSource.Log.TelemetryTimeoutException(ex);
+            }
+        }
+    }
+
     private IAsyncResult SendInternal(Message message, TimeSpan timeout, Func<AsyncCallback?, object?, IAsyncResult> executeSend, AsyncCallback? callback, object? state)
     {
         IAsyncResult? result = null;
@@ -185,6 +205,7 @@ internal class InstrumentedDuplexChannel : InstrumentedChannel<IDuplexChannel>, 
             telemetryState = ClientChannelInstrumentation.BeforeSendRequest(message, this.RemoteAddress?.Uri);
             if (!telemetryState.IsOneWay)
             {
+                telemetryState.Owner = this;
                 RequestTelemetryStateTracker.PushTelemetryState(message, telemetryState, timeout, OnTelemetryStateTimedOut);
             }
 

@@ -17,5 +17,10 @@ internal sealed class RequestTelemetryState
 
     public string? MessageId { get; set; }
 
+    /// <summary>
+    /// Gets or sets the object (the channel) that sent the request, used to release its outstanding requests when it closes.
+    /// </summary>
+    public object? Owner { get; set; }
+
     public bool TryMarkCompleted() => Interlocked.Exchange(ref this.completed, 1) == 0;
 }

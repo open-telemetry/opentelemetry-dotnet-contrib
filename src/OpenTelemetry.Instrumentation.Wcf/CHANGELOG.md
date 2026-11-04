@@ -7,6 +7,22 @@
   record reply data on it.
   ([#5791](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5791))
 
+* Fixed an `ArgumentOutOfRangeException` from the telemetry timeout timer,
+  which could terminate the process, for outgoing duplex requests with a send
+  timeout longer than about 49 days, such as `TimeSpan.MaxValue`.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
+* Fixed exceptions thrown while completing timed out outgoing duplex requests
+  escaping the timeout timer's thread, where they could terminate the process.
+  They are now reported through the `OpenTelemetry-Instrumentation-Wcf` event
+  source.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
+* Fixed outgoing duplex requests that never received a reply, and their
+  activities, being tracked indefinitely when their channel was closed,
+  aborted or faulted. They are now completed when the channel goes away.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 1.20.1-beta.1
 
 Released 2026-Oct-21

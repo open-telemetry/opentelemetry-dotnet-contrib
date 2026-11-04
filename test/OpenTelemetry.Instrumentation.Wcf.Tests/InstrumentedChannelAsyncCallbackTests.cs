@@ -390,6 +390,126 @@ public class InstrumentedChannelAsyncCallbackTests
     }
 
     [Fact]
+    public async Task Send_TwoWayWithInfiniteTimeoutStaysTrackedWhenTelemetryTimerFires()
+    {
+        try
+        {
+            var stoppedActivities = new List<Activity>();
+            using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .AddInMemoryExporter(stoppedActivities)
+                .AddWcfInstrumentation()
+                .Build();
+
+            var inner = new RecordingDuplexChannel();
+            var channel = new InstrumentedDuplexChannel(inner, TimeSpan.MaxValue);
+
+            // WCF uses TimeSpan.MaxValue to disable a timeout; it is far beyond what Timer.Change accepts.
+            using var request = CreateTwoWayRequest();
+            channel.Send(request);
+
+            // Makes the telemetry timer fire while the infinite-timeout request is still outstanding.
+            using var timingOutRequest = CreateTwoWayRequest();
+            channel.Send(timingOutRequest, TimeSpan.FromMilliseconds(100));
+
+            for (var i = 0; i < 50 && stoppedActivities.Count == 0; i++)
+            {
+                await Task.Delay(100, TestContext.Current.CancellationToken);
+            }
+
+            Assert.Single(stoppedActivities);
+            Assert.Equal(ActivityStatusCode.Error, stoppedActivities[0].Status);
+
+            inner.ReceiveMessage = CreateReply(request.Headers.MessageId!);
+            using var reply = channel.Receive();
+
+            Assert.Equal(2, stoppedActivities.Count);
+            Assert.Equal(ActivityStatusCode.Unset, stoppedActivities[1].Status);
+        }
+        finally
+        {
+            WcfInstrumentationActivitySource.Options = null;
+        }
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Send_TwoWayCompletesAndReleasesOutstandingRequestsWhenChannelClosesOrFaults(bool fault)
+    {
+        try
+        {
+            var stoppedActivities = new List<Activity>();
+            using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .AddInMemoryExporter(stoppedActivities)
+                .AddWcfInstrumentation()
+                .Build();
+
+            var inner = new RecordingDuplexChannel();
+            var channel = new InstrumentedDuplexChannel(inner, TimeSpan.MaxValue);
+            var otherInner = new RecordingDuplexChannel();
+            var otherChannel = new InstrumentedDuplexChannel(otherInner, TimeSpan.MaxValue);
+
+            using var request = CreateTwoWayRequest();
+            channel.Send(request);
+
+            using var otherRequest = CreateTwoWayRequest();
+            otherChannel.Send(otherRequest);
+
+            Assert.Empty(stoppedActivities);
+
+            if (fault)
+            {
+                inner.RaiseFaulted();
+            }
+            else
+            {
+                inner.RaiseClosed();
+            }
+
+            // Only the requests of the channel that went away are completed, as errors.
+            Assert.Equal(ActivityStatusCode.Error, Assert.Single(stoppedActivities).Status);
+            Assert.Null(RequestTelemetryStateTracker.PopTelemetryState(CreateReply(request.Headers.MessageId!)));
+
+            // The other channel's request is still tracked and completes when its reply arrives.
+            otherInner.ReceiveMessage = CreateReply(otherRequest.Headers.MessageId!);
+            using var reply = otherChannel.Receive();
+
+            Assert.Equal(2, stoppedActivities.Count);
+            Assert.Equal(ActivityStatusCode.Unset, stoppedActivities[1].Status);
+        }
+        finally
+        {
+            WcfInstrumentationActivitySource.Options = null;
+        }
+    }
+
+    [Fact]
+    public async Task TimeoutCallbackExceptionsDoNotEscapeTheTimerThread()
+    {
+        var invoked = 0;
+        var allInvoked = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        void OnTimedOut(RequestTelemetryState state)
+        {
+            if (Interlocked.Increment(ref invoked) == 2)
+            {
+                allInvoked.TrySetResult(true);
+            }
+
+            throw new InvalidOperationException("Callback failed.");
+        }
+
+        using var request1 = CreateTwoWayRequest();
+        using var request2 = CreateTwoWayRequest();
+
+        RequestTelemetryStateTracker.PushTelemetryState(request1, new RequestTelemetryState(), TimeSpan.FromMilliseconds(50), OnTimedOut);
+        RequestTelemetryStateTracker.PushTelemetryState(request2, new RequestTelemetryState(), TimeSpan.FromMilliseconds(50), OnTimedOut);
+
+        var completed = await Task.WhenAny(allInvoked.Task, Task.Delay(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken));
+        Assert.Same(allInvoked.Task, completed);
+    }
+
+    [Fact]
     public void Send_TwoWaySuccessCompletesTelemetryWhenReplyArrives()
     {
         var enrichEvents = new List<string>();
@@ -509,15 +629,13 @@ public class InstrumentedChannelAsyncCallbackTests
 
     private abstract class RecordingChannel : IChannel
     {
+        private EventHandler? closed;
+        private EventHandler? faulted;
+
         event EventHandler ICommunicationObject.Closed
         {
-            add
-            {
-            }
-
-            remove
-            {
-            }
+            add => this.closed += value;
+            remove => this.closed -= value;
         }
 
         event EventHandler ICommunicationObject.Closing
@@ -533,13 +651,8 @@ public class InstrumentedChannelAsyncCallbackTests
 
         event EventHandler ICommunicationObject.Faulted
         {
-            add
-            {
-            }
-
-            remove
-            {
-            }
+            add => this.faulted += value;
+            remove => this.faulted -= value;
         }
 
         event EventHandler ICommunicationObject.Opened
@@ -569,6 +682,10 @@ public class InstrumentedChannelAsyncCallbackTests
         public virtual T? GetProperty<T>()
             where T : class
             => default;
+
+        public void RaiseClosed() => this.closed?.Invoke(this, EventArgs.Empty);
+
+        public void RaiseFaulted() => this.faulted?.Invoke(this, EventArgs.Empty);
 
         public void Abort()
         {

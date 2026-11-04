@@ -7,6 +7,10 @@ namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 
 internal static class RequestTelemetryStateTracker
 {
+    // Largest due time Timer.Change accepts (uint.MaxValue - 1 ms, about 49 days). A request can expire
+    // later than that (e.g. an infinite WCF timeout); the timer then fires early and OnTimer re-arms it.
+    private const long MaxTimerDueIn = 0xFFFFFFFE;
+
     private static readonly Dictionary<string, Entry> OutstandingRequestStates = [];
     private static readonly SortedSet<EntryTimeoutProperties> TimeoutQueue = [];
     private static readonly Lock Sync = new();
@@ -35,6 +39,35 @@ internal static class RequestTelemetryStateTracker
     {
         var relatesTo = reply?.Headers.RelatesTo?.ToString();
         return relatesTo == null ? null : PopTelemetryState(relatesTo);
+    }
+
+    public static List<RequestTelemetryState> RemoveTelemetryStates(object owner)
+    {
+        var removed = new List<RequestTelemetryState>();
+
+        lock (Sync)
+        {
+            List<string>? messageIds = null;
+            foreach (var pair in OutstandingRequestStates)
+            {
+                if (ReferenceEquals(pair.Value.State.Owner, owner))
+                {
+                    messageIds ??= [];
+                    messageIds.Add(pair.Key);
+                }
+            }
+
+            foreach (var messageId in messageIds ?? Enumerable.Empty<string>())
+            {
+                var entry = OutstandingRequestStates[messageId];
+
+                OutstandingRequestStates.Remove(messageId);
+                TimeoutQueue.Remove(entry.TimeoutProperties);
+                removed.Add(entry.State);
+            }
+        }
+
+        return removed;
     }
 
     public static void RemoveTelemetryState(RequestTelemetryState? telemetryState)
@@ -74,6 +107,18 @@ internal static class RequestTelemetryStateTracker
 
     private static void OnTimer(object? state)
     {
+        try
+        {
+            OnTimerCore();
+        }
+        catch (Exception ex)
+        {
+            WcfInstrumentationEventSource.Log.TelemetryTimeoutException(ex);
+        }
+    }
+
+    private static void OnTimerCore()
+    {
         List<Tuple<EntryTimeoutProperties, Entry>>? timedOutEntries = null;
         lock (Sync)
         {
@@ -105,7 +150,21 @@ internal static class RequestTelemetryStateTracker
             SetTimer(nextExpiry);
         }
 
-        timedOutEntries?.ForEach(entry => entry.Item1.TimeoutCallback(entry.Item2.State));
+        if (timedOutEntries != null)
+        {
+            foreach (var entry in timedOutEntries)
+            {
+                try
+                {
+                    entry.Item1.TimeoutCallback(entry.Item2.State);
+                }
+                catch (Exception ex)
+                {
+                    // A failing callback must not prevent the remaining requests from being completed.
+                    WcfInstrumentationEventSource.Log.TelemetryTimeoutException(ex);
+                }
+            }
+        }
     }
 
     private static void SetTimerEarlierIfNeeded(long dueAt)
@@ -127,6 +186,7 @@ internal static class RequestTelemetryStateTracker
         {
             var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             dueIn = Math.Max(0, dueAt - now) + 50; // add 50ms here because the timer is not precise and often fires just a bit early
+            dueIn = Math.Min(dueIn, MaxTimerDueIn);
         }
 
         Timer.Change(dueIn, Timeout.Infinite);
