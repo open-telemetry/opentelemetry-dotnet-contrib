@@ -13,6 +13,8 @@ internal class SqsRequestContextHelper
     // https://docs.aws.amazon.com/sns/latest/dg/sns-message-attributes.html
     private const int MaxMessageAttributes = 10;
 
+    // Adds the specified propagation attributes to the request, replacing any added by an earlier send
+    // of the same request. An empty set of attributes only removes attributes added by an earlier send.
     internal static void AddAttributes(IRequestContext context, IReadOnlyDictionary<string, string> attributes)
     {
         if (context.OriginalRequest is not SendMessageRequest originalRequest)
@@ -29,19 +31,20 @@ internal class SqsRequestContextHelper
         {
             foreach (var attribute in existing)
             {
-                // Values injected by an earlier send of the same request object are replaced with the current context.
-                if (attribute.Value is not InjectedMessageAttributeValue)
+                // Values injected by an earlier send of the same request object are replaced with the current context,
+                // unless the application has changed them since, in which case they are treated as the application's own.
+                if (attribute.Value is not InjectedMessageAttributeValue { IsUnchanged: true })
                 {
                     messageAttributes.Add(attribute.Key, attribute.Value);
                 }
             }
         }
 
-        if (CanInject(messageAttributes, attributes))
+        if (attributes.Count > 0 && CanInject(messageAttributes, attributes))
         {
             foreach (var param in attributes)
             {
-                messageAttributes[param.Key] = new InjectedMessageAttributeValue { DataType = "String", StringValue = param.Value };
+                messageAttributes[param.Key] = new InjectedMessageAttributeValue(param.Value);
             }
         }
         else if (messageAttributes.Count == (existing?.Count ?? 0))
@@ -69,5 +72,19 @@ internal class SqsRequestContextHelper
     }
 
     // Marks values added by the instrumentation so they can be told apart from application-supplied attributes.
-    private sealed class InjectedMessageAttributeValue : MessageAttributeValue;
+    private sealed class InjectedMessageAttributeValue : MessageAttributeValue
+    {
+        private readonly string injectedValue;
+
+        public InjectedMessageAttributeValue(string value)
+        {
+            this.DataType = "String";
+            this.StringValue = value;
+            this.injectedValue = value;
+        }
+
+        public bool IsUnchanged =>
+            string.Equals(this.DataType, "String", StringComparison.Ordinal) &&
+            string.Equals(this.StringValue, this.injectedValue, StringComparison.Ordinal);
+    }
 }

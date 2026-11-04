@@ -16,6 +16,7 @@ public class RequestContextHelperTests
     private const string TraceId = "5759e988bd862e3fe1be46a994272793";
     private const string ParentId = "53995c3f42cd8ad8";
     private const string OtherParentId = "a1b2c3d4e5f60718";
+    private const string ApplicationParentId = "0102030405060708";
     private const string TraceState = "key1=value1,key2=value2";
 
     public RequestContextHelperTests()
@@ -307,6 +308,102 @@ public class RequestContextHelperTests
 
         Assert.Single(request.MessageAttributes);
         Assert.Equal("application-value", request.MessageAttributes["traceparent"].StringValue);
+    }
+
+    [Fact]
+    public void SQS_AddAttributes_RequestSentTwiceWithoutContext_InjectedAttributesRemoved()
+    {
+        var request = new SQS.SendMessageRequest
+        {
+            MessageAttributes = new Dictionary<string, SQS.MessageAttributeValue>
+            {
+                ["event-type"] = new() { DataType = "String", StringValue = "order-created" },
+            },
+        };
+
+        SqsRequestContextHelper.AddAttributes(new TestRequestContext(request, new TestRequest()), AWSMessagingUtils.InjectIntoDictionary(CreatePropagationContext()));
+        SqsRequestContextHelper.AddAttributes(new TestRequestContext(request, new TestRequest()), new Dictionary<string, string>());
+
+        Assert.Single(request.MessageAttributes);
+        Assert.Equal("order-created", request.MessageAttributes["event-type"].StringValue);
+    }
+
+    [Fact]
+    public void SQS_AddAttributes_NoContextAndNothingInjected_RequestNotModified()
+    {
+        var attributes = new Dictionary<string, SQS.MessageAttributeValue>
+        {
+            ["event-type"] = new() { DataType = "String", StringValue = "order-created" },
+        };
+
+        var request = new SQS.SendMessageRequest { MessageAttributes = attributes };
+
+        SqsRequestContextHelper.AddAttributes(new TestRequestContext(request, new TestRequest()), new Dictionary<string, string>());
+
+        Assert.Same(attributes, request.MessageAttributes);
+    }
+
+    [Fact]
+    public void SQS_AddAttributes_InjectedValueChangedByApplication_ApplicationValuePreserved()
+    {
+        var request = new SQS.SendMessageRequest();
+
+        SqsRequestContextHelper.AddAttributes(new TestRequestContext(request, new TestRequest()), AWSMessagingUtils.InjectIntoDictionary(CreatePropagationContext(ParentId)));
+
+        var applicationValue = $"00-{TraceId}-{ApplicationParentId}-01";
+        request.MessageAttributes["traceparent"].StringValue = applicationValue;
+
+        SqsRequestContextHelper.AddAttributes(new TestRequestContext(request, new TestRequest()), AWSMessagingUtils.InjectIntoDictionary(CreatePropagationContext(OtherParentId)));
+
+        Assert.Equal(applicationValue, request.MessageAttributes["traceparent"].StringValue);
+    }
+
+    [Fact]
+    public void SNS_AddAttributes_RequestSentTwiceWithoutContext_InjectedAttributesRemoved()
+    {
+        var request = new SNS.PublishRequest
+        {
+            MessageAttributes = new Dictionary<string, SNS.MessageAttributeValue>
+            {
+                ["event-type"] = new() { DataType = "String", StringValue = "order-created" },
+            },
+        };
+
+        SnsRequestContextHelper.AddAttributes(new TestRequestContext(request, new TestRequest()), AWSMessagingUtils.InjectIntoDictionary(CreatePropagationContext()));
+        SnsRequestContextHelper.AddAttributes(new TestRequestContext(request, new TestRequest()), new Dictionary<string, string>());
+
+        Assert.Single(request.MessageAttributes);
+        Assert.Equal("order-created", request.MessageAttributes["event-type"].StringValue);
+    }
+
+    [Fact]
+    public void SNS_AddAttributes_NoContextAndNothingInjected_RequestNotModified()
+    {
+        var attributes = new Dictionary<string, SNS.MessageAttributeValue>
+        {
+            ["event-type"] = new() { DataType = "String", StringValue = "order-created" },
+        };
+
+        var request = new SNS.PublishRequest { MessageAttributes = attributes };
+
+        SnsRequestContextHelper.AddAttributes(new TestRequestContext(request, new TestRequest()), new Dictionary<string, string>());
+
+        Assert.Same(attributes, request.MessageAttributes);
+    }
+
+    [Fact]
+    public void SNS_AddAttributes_InjectedValueChangedByApplication_ApplicationValuePreserved()
+    {
+        var request = new SNS.PublishRequest();
+
+        SnsRequestContextHelper.AddAttributes(new TestRequestContext(request, new TestRequest()), AWSMessagingUtils.InjectIntoDictionary(CreatePropagationContext(ParentId)));
+
+        var applicationValue = $"00-{TraceId}-{ApplicationParentId}-01";
+        request.MessageAttributes["traceparent"].StringValue = applicationValue;
+
+        SnsRequestContextHelper.AddAttributes(new TestRequestContext(request, new TestRequest()), AWSMessagingUtils.InjectIntoDictionary(CreatePropagationContext(OtherParentId)));
+
+        Assert.Equal(applicationValue, request.MessageAttributes["traceparent"].StringValue);
     }
 
     private static PropagationContext CreatePropagationContext(string parentSpanId = ParentId)

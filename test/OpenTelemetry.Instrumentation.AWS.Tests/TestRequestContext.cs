@@ -51,7 +51,7 @@ internal class TestRequestContext(AmazonWebServiceRequest originalRequest, IRequ
 
     public MonitoringAPICallEvent CSMCallEvent { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-    public IServiceMetadata ServiceMetaData => throw new NotImplementedException();
+    public IServiceMetadata ServiceMetaData { get; } = new TestServiceMetadata();
 
     public bool CSMEnabled => throw new NotImplementedException();
 
