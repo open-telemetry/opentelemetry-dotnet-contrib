@@ -66,6 +66,69 @@ internal static class HttpWebRequestActivitySource
 
     internal static HttpClientTraceInstrumentationOptions TracingOptions { get; set; } = new();
 
+    /// <summary>
+    /// Processes a request that was just added to <c>Connection.m_WriteList</c> using the
+    /// ambient context (<see cref="Activity.Current"/> and <see cref="Baggage.Current"/>)
+    /// of its own caller.
+    /// <para/>
+    /// A request that has to wait for a free connection is added to the list later by the
+    /// thread that released the connection, typically while it reads the response of an
+    /// unrelated request, so the ambient context of the current thread cannot be trusted.
+    /// </summary>
+    /// <param name="request">The request that was added to the write list.</param>
+    internal static void ProcessRequestInCallerContext(HttpWebRequest request)
+    {
+        var reflection = Reflection;
+
+        // Requests issued with the blocking GetRequestStream()/GetResponse() have no captured
+        // context, so the ambient context of the current thread is all that is available.
+        var asyncResult = reflection is null
+            ? null
+            : reflection.WriteAResultAccessor(request) ?? reflection.ReadAResultAccessor(request);
+
+        if (reflection is null || asyncResult is null || !reflection.IsContextAwareResultChecker(asyncResult))
+        {
+            ProcessRequest(request);
+            return;
+        }
+
+        // Set by Begin* of the caller once it has returned control to the caller.
+        var capturedContext = reflection.ContextAccessor(asyncResult);
+        if (capturedContext is null)
+        {
+            // Begin* is still running. If this is the thread running it, it is the caller's
+            // thread. The lock must not be waited for: this thread holds the connection lock,
+            // which the caller's thread may be waiting for while it holds this one.
+            var postingLock = reflection.PostingLockAccessor(asyncResult);
+            if (postingLock is null || Monitor.IsEntered(postingLock))
+            {
+                ProcessRequest(request);
+            }
+            else
+            {
+                ProcessRequestWithoutAmbientContext(request);
+            }
+
+            return;
+        }
+
+        ExecutionContext callerContext;
+        try
+        {
+            // As for ContextAwareResult.ContextCopy, the captured
+            // context can only be applied once, so run on a copy.
+            callerContext = capturedContext.CreateCopy();
+        }
+        catch (InvalidOperationException)
+        {
+            // The result completed concurrently and its completion already applied the context.
+            ProcessRequestWithoutAmbientContext(request);
+            return;
+        }
+
+        ExecutionContext.Run(callerContext, static state => ProcessRequest((HttpWebRequest)state!), request);
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void AddRequestTagsAndInstrumentRequest(HttpWebRequest request, Activity activity)
     {
@@ -230,69 +293,6 @@ internal static class HttpWebRequestActivitySource
         {
             AddRequestTagsAndInstrumentRequest(request, activity);
         }
-    }
-
-    /// <summary>
-    /// Processes a request that was just added to <c>Connection.m_WriteList</c> using the
-    /// ambient context (<see cref="Activity.Current"/> and <see cref="Baggage.Current"/>)
-    /// of its own caller.
-    /// <para/>
-    /// A request that has to wait for a free connection is added to the list later by the
-    /// thread that released the connection, typically while it reads the response of an
-    /// unrelated request, so the ambient context of the current thread cannot be trusted.
-    /// </summary>
-    /// <param name="request">The request that was added to the write list.</param>
-    private static void ProcessRequestInCallerContext(HttpWebRequest request)
-    {
-        var reflection = Reflection;
-
-        // Requests issued with the blocking GetRequestStream()/GetResponse() have no captured
-        // context, so the ambient context of the current thread is all that is available.
-        var asyncResult = reflection is null
-            ? null
-            : reflection.WriteAResultAccessor(request) ?? reflection.ReadAResultAccessor(request);
-
-        if (reflection is null || asyncResult is null || !reflection.IsContextAwareResultChecker(asyncResult))
-        {
-            ProcessRequest(request);
-            return;
-        }
-
-        // Set by Begin* of the caller once it has returned control to the caller.
-        var capturedContext = reflection.ContextAccessor(asyncResult);
-        if (capturedContext is null)
-        {
-            // Begin* is still running. If this is the thread running it, it is the caller's
-            // thread. The lock must not be waited for: this thread holds the connection lock,
-            // which the caller's thread may be waiting for while it holds this one.
-            var postingLock = reflection.PostingLockAccessor(asyncResult);
-            if (postingLock is null || Monitor.IsEntered(postingLock))
-            {
-                ProcessRequest(request);
-            }
-            else
-            {
-                ProcessRequestWithoutAmbientContext(request);
-            }
-
-            return;
-        }
-
-        ExecutionContext callerContext;
-        try
-        {
-            // As for ContextAwareResult.ContextCopy, the captured
-            // context can only be applied once, so run on a copy.
-            callerContext = capturedContext.CreateCopy();
-        }
-        catch (InvalidOperationException)
-        {
-            // The result completed concurrently and its completion already applied the context.
-            ProcessRequestWithoutAmbientContext(request);
-            return;
-        }
-
-        ExecutionContext.Run(callerContext, static state => ProcessRequest((HttpWebRequest)state!), request);
     }
 
     private static void ProcessRequestWithoutAmbientContext(HttpWebRequest request)

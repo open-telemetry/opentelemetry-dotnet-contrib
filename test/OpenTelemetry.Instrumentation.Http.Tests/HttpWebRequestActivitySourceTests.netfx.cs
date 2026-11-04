@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
+using System.Reflection;
 using System.Text;
 using OpenTelemetry.Instrumentation.Http.Implementation;
 using OpenTelemetry.Metrics;
@@ -837,16 +838,19 @@ public class HttpWebRequestActivitySourceTests : IDisposable
             // A single connection: the second request has to wait until the first response has been read.
             ServicePointManager.FindServicePoint(new Uri(this.BuildRequestUrl())).ConnectionLimit = 1;
 
-            var firstRequest = Task.Run(() => this.SendRequestWithOwnContextAsync("first", this.BuildRequestUrl(queryString: "q=first&hold=1")));
-            while (this.traceparentHeaders.IsEmpty && !firstRequest.IsCompleted)
-            {
-                await Task.Delay(10, TestContext.Current.CancellationToken);
-            }
+            // The helpers are called directly (not via Task.Run) so that the call that submits each request
+            // has returned before the next step: the changes they make to the ambient context do not leak
+            // into this method as they are undone when the first await in the helper yields.
+            var firstRequest = this.SendRequestWithOwnContextAsync("first", this.BuildRequestUrl(queryString: "q=first&hold=1"));
+            var secondRequest = this.SendRequestWithOwnContextAsync("second", this.BuildRequestUrl(queryString: "q=second"));
 
-            var secondRequest = Task.Run(() => this.SendRequestWithOwnContextAsync("second", this.BuildRequestUrl(queryString: "q=second")));
+            // The first request holds the only connection until the server answers, so the second request
+            // cannot complete GetRequestStreamAsync(), and so cannot complete at all, until it is released.
+            Assert.False(secondRequest.IsCompleted);
+            Assert.True(await WaitForAsync(() => !this.traceparentHeaders.IsEmpty), "The server did not receive the first request.");
+            Assert.False(secondRequest.IsCompleted);
+            Assert.Single(this.traceparentHeaders);
 
-            // Give the second request time to be queued behind the first one before the server answers.
-            await Task.Delay(500, TestContext.Current.CancellationToken);
             this.releaseHeldResponses.Set();
 
             var parents = await Task.WhenAll(firstRequest, secondRequest);
@@ -873,6 +877,97 @@ public class HttpWebRequestActivitySourceTests : IDisposable
             Assert.True(this.baggageHeaders.TryDequeue(out var secondBaggage));
             Assert.Equal("k=first", firstBaggage);
             Assert.Equal("k=second", secondBaggage);
+        }
+        finally
+        {
+            HttpWebRequestActivitySource.TracingOptions = originalOptions;
+        }
+    }
+
+    /// <summary>
+    /// A queued request can be started by another thread before the caller's Begin* has returned and so
+    /// before its context has been captured. The context of that other thread must not be used for the
+    /// request, the thread must not wait for the caller (it holds the connection lock the caller may be
+    /// waiting for), and the ambient context of the thread must be left as it was found.
+    /// </summary>
+    [Fact]
+    public async Task TestRequestWithoutCapturedContextDoesNotUseContextOfCurrentThread()
+    {
+        var originalOptions = HttpWebRequestActivitySource.TracingOptions;
+        try
+        {
+            HttpWebRequestActivitySource.TracingOptions = new HttpClientTraceInstrumentationOptions
+            {
+                DisableUrlQueryRedaction = true,
+            };
+
+            using var eventRecords = new ActivitySourceRecorder();
+
+            // Make the request look like it is still being posted by Begin* on another thread:
+            // it has a ContextAwareResult that has not captured a context and whose posting lock is held.
+            const BindingFlags NonPublicInstance = BindingFlags.NonPublic | BindingFlags.Instance;
+            var request = (HttpWebRequest)WebRequest.Create(new Uri(this.BuildRequestUrl()));
+            var resultType = typeof(ServicePoint).Assembly.GetType("System.Net.ContextAwareResult", throwOnError: true)!;
+            var result = Activator.CreateInstance(resultType, NonPublicInstance, null, [false, true, request, null, null], null)!;
+            typeof(HttpWebRequest).GetField("_WriteAResult", NonPublicInstance)!.SetValue(request, result);
+            var postingLock = resultType.GetMethod("StartPostingAsyncOp", NonPublicInstance, null, Type.EmptyTypes, null)!.Invoke(result, null)!;
+
+            using var lockHeld = new ManualResetEventSlim();
+            using var releaseLock = new ManualResetEventSlim();
+            var lockHolder = Task.Factory.StartNew(
+                () =>
+                {
+                    lock (postingLock)
+                    {
+                        lockHeld.Set();
+                        releaseLock.Wait();
+                    }
+                },
+                TaskCreationOptions.LongRunning);
+
+            try
+            {
+                Assert.True(lockHeld.Wait(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken));
+
+                var scenario = Task.Run(() =>
+                {
+                    using var unrelated = new Activity("unrelated")
+                        .SetIdFormat(ActivityIdFormat.W3C)
+                        .Start();
+
+                    Baggage.SetBaggage("k", "unrelated");
+
+                    HttpWebRequestActivitySource.ProcessRequestInCallerContext(request);
+
+                    return (Unrelated: unrelated, Current: Activity.Current, Baggage: Baggage.Current.GetBaggage("k"));
+                });
+
+                // If the thread waited for the posting lock, the request would not be processed until it is released.
+                var completed = await Task.WhenAny(scenario, Task.Delay(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken));
+                Assert.Same(scenario, completed);
+
+                var (unrelatedActivity, currentActivity, currentBaggage) = await scenario;
+
+                // The ambient context of the thread is as it was found.
+                Assert.Same(unrelatedActivity, currentActivity);
+                Assert.Equal("unrelated", currentBaggage);
+
+                // The request is traced as if it had no parent, and nothing of the unrelated context was propagated.
+                var clientActivity = Assert.Single(eventRecords.Records, rec => rec.Key == "Start").Value;
+                Assert.Null(clientActivity.ParentId);
+                Assert.NotEqual(unrelatedActivity.TraceId, clientActivity.TraceId);
+
+                var traceparent = request.Headers["traceparent"];
+                Assert.NotNull(traceparent);
+                Assert.Contains(clientActivity.TraceId.ToHexString(), traceparent);
+                Assert.DoesNotContain(unrelatedActivity.TraceId.ToHexString(), traceparent);
+                Assert.Null(request.Headers["baggage"]);
+            }
+            finally
+            {
+                releaseLock.Set();
+                await lockHolder;
+            }
         }
         finally
         {
@@ -925,6 +1020,22 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         Assert.Contains("key=value", baggage);
         Assert.Contains("bad%2Fkey=value", baggage);
         Assert.Contains("goodkey=bad%2Fvalue", baggage);
+    }
+
+    private static async Task<bool> WaitForAsync(Func<bool> condition)
+    {
+        var deadline = DateTime.UtcNow.AddSeconds(30);
+        while (!condition())
+        {
+            if (DateTime.UtcNow > deadline)
+            {
+                return false;
+            }
+
+            await Task.Delay(10, TestContext.Current.CancellationToken);
+        }
+
+        return true;
     }
 
     private string BuildRequestUrl(bool useHttps = false, string path = "echo", string? queryString = null)
