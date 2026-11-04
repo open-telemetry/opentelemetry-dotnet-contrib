@@ -272,6 +272,21 @@ this.meterProvider = Sdk.CreateMeterProviderBuilder()
     .Build();
 ```
 
+## Route template (`http.route`)
+
+For routes that contain `{controller}` and/or `{action}` tokens (conventional
+MVC and WebAPI routing) the instrumentation reports the controller and action in
+`http.route`, for example `Home/Index/{id}`, so that different controllers can
+be told apart. System.Web routing takes these values from the URL before it is
+known whether such a controller or action exists, so they are only substituted
+into the template once a request using them has completed successfully (status
+code below 400 and no unhandled error). Until then, and for requests that do not
+resolve to a controller and action (for example a `404`), the template is
+reported as it is defined, for example `{controller}/{action}/{id}`. This keeps
+the cardinality of `http.route` bounded when a client requests URLs that do not
+exist. At most 512 distinct controller and action combinations are substituted,
+and they are matched ignoring case.
+
 ## References
 
 * [ASP.NET](https://dotnet.microsoft.com/apps/aspnet)
