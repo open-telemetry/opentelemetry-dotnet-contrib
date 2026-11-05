@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+* Fixed the pending message byte limit not counting state reports queued together
+  with custom messages, which allowed pending frames to retain more memory than
+  the configured limit.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
+* **Breaking change:** Renamed `OpAmpClientSettings.MaxPendingCustomMessageBytes`
+  to `MaxPendingMessageBytes` to reflect that the limit also counts state reports
+  queued with custom messages.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 0.9.0-alpha.3
 
 Released 2026-Nov-02

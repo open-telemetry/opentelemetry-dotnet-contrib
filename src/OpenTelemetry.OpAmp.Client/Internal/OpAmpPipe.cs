@@ -19,19 +19,19 @@ internal sealed class OpAmpPipe : IDisposable
     private readonly IOpAmpTransport transport;
     private readonly FrameProcessor processor;
     private readonly int maxPendingCustomMessages;
-    private readonly int maxPendingCustomMessageBytes;
+    private readonly int maxPendingMessageBytes;
     private readonly Lock frameLock = new();
     private readonly CancellationTokenSource tokenSource = new();
     private readonly ServerFrameHandler frameHandler;
     private readonly Action<AgentToServer> applyAssignedInstanceUid;
     private readonly FrameBuilder currentFrame;
-    private readonly Queue<AgentToServer> pendingFrames = [];
+    private readonly Queue<PendingFrame> pendingFrames = [];
 
     private bool isBusy;
     private bool isDisposed;
     private bool isStopped;
     private bool hasAccumulatedData;
-    private long pendingCustomMessageBytes;
+    private long pendingMessageBytes;
     private ByteString? assignedInstanceUid;
     private Task? flushTask;
     private TaskCompletionSource<bool>? flushCompletion;
@@ -47,7 +47,7 @@ internal sealed class OpAmpPipe : IDisposable
         this.transport = transport;
         this.currentFrame = new FrameBuilder(settings);
         this.maxPendingCustomMessages = settings.MaxPendingCustomMessages;
-        this.maxPendingCustomMessageBytes = settings.MaxPendingCustomMessageBytes;
+        this.maxPendingMessageBytes = settings.MaxPendingMessageBytes;
 
         this.frameHandler = new(this.OnServerFrameReceived);
         this.processor.Subscribe(this.frameHandler);
@@ -131,20 +131,31 @@ internal sealed class OpAmpPipe : IDisposable
             if (this.pendingFrames.Count >= this.maxPendingCustomMessages)
             {
                 throw new InvalidOperationException(
-                    $"The custom message queue has reached its limit of {this.maxPendingCustomMessages} pending messages.");
+                    $"The pending message queue has reached its limit of {this.maxPendingCustomMessages} messages.");
             }
 
-            if (data.Length > this.maxPendingCustomMessageBytes - this.pendingCustomMessageBytes)
+            // Accumulated state reports are sent in the same frame, so they count towards the byte
+            // limit. The size is measured before the builder is modified so a rejected message
+            // leaves those reports intact.
+            var availableBytes = this.maxPendingMessageBytes - this.pendingMessageBytes;
+            var frameBytes = (long)data.Length;
+
+            // Only measure the accumulated reports when the payload alone fits.
+            if (frameBytes <= availableBytes && this.hasAccumulatedData)
+            {
+                frameBytes += this.currentFrame.CalculateSize();
+            }
+
+            if (frameBytes > availableBytes)
             {
                 throw new InvalidOperationException(
-                    $"The custom message queue would exceed its limit of " +
-                    $"{this.maxPendingCustomMessageBytes} pending payload bytes.");
+                    $"The pending message queue would exceed its limit of {this.maxPendingMessageBytes} bytes.");
             }
 
             MessageBuilderHelper.AppendCustomMessage(this.currentFrame, capability, type, data);
 
-            this.pendingFrames.Enqueue(this.currentFrame.Build());
-            this.pendingCustomMessageBytes += data.Length;
+            this.pendingFrames.Enqueue(new PendingFrame(this.currentFrame.Build(), frameBytes));
+            this.pendingMessageBytes += frameBytes;
             this.hasAccumulatedData = false;
         }
 
@@ -165,7 +176,7 @@ internal sealed class OpAmpPipe : IDisposable
 
             this.isDisposed = true;
             this.pendingFrames.Clear();
-            this.pendingCustomMessageBytes = 0;
+            this.pendingMessageBytes = 0;
             this.TryCompleteFlushLocked();
         }
 
@@ -270,8 +281,9 @@ internal sealed class OpAmpPipe : IDisposable
         AgentToServer message;
         if (this.pendingFrames.Count > 0)
         {
-            message = this.pendingFrames.Dequeue();
-            this.pendingCustomMessageBytes -= message.CustomMessage.Data.Length;
+            var pending = this.pendingFrames.Dequeue();
+            message = pending.Message;
+            this.pendingMessageBytes -= pending.Bytes;
         }
         else
         {
@@ -369,6 +381,14 @@ internal sealed class OpAmpPipe : IDisposable
         {
             this.isBusy = false;
         }
+    }
+
+    // A queued frame and the bytes it counts towards MaxPendingMessageBytes.
+    private readonly struct PendingFrame(AgentToServer message, long bytes)
+    {
+        public AgentToServer Message { get; } = message;
+
+        public long Bytes { get; } = bytes;
     }
 
     private sealed class ServerFrameHandler : IOpAmpListener<ServerToAgentMessage>

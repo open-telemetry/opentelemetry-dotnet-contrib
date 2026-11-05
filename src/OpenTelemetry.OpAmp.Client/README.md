@@ -97,11 +97,15 @@ supported by the client. Use `SendCustomMessage()` to send a typed payload
 for one of those capabilities.
 
 By default, the client retains up to 2,048 custom messages with up to 64 MiB of
-aggregate payload data while another message is being sent. Configure these
-limits with `OpAmpClientSettings.MaxPendingCustomMessages` and
-`OpAmpClientSettings.MaxPendingCustomMessageBytes`. `SendCustomMessage()` throws
-`InvalidOperationException` when either queue limit would be exceeded. Await
-`FlushAsync()` before retrying the rejected message.
+aggregate data while another message is being sent. The byte limit counts custom
+message payloads and any state reports (for example the effective configuration)
+sent with them. Configure these limits with
+`OpAmpClientSettings.MaxPendingCustomMessages` and
+`OpAmpClientSettings.MaxPendingMessageBytes`. `SendCustomMessage()` throws
+`InvalidOperationException` when either limit would be exceeded; a rejected
+message leaves any pending reports intact. Await `FlushAsync()` before retrying
+the rejected message. The byte limit is approximate and is not a strict bound on
+memory use.
 
 Server-provided custom capabilities and custom messages are exposed through
 `CustomCapabilitiesMessage` and `CustomMessageMessage` subscriptions.
