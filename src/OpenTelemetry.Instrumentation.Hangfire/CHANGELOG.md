@@ -4,7 +4,7 @@
 
 * Fixed baggage from a job being visible to work started by other jobs
   performed on the same worker.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#5886](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5886))
 
 ## 1.20.1-beta.1
 
