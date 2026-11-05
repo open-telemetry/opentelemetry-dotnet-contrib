@@ -14,7 +14,7 @@
   some queries. Table names are now identified from the query syntax, so
   `db.query.summary` may differ for some queries (for example, column names
   are no longer included).
-  ([#NNNN](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/NNNN))
+  ([#5912](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5912))
 
 ## 0.1.0-alpha.7
 
