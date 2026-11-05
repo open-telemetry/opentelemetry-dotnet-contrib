@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Fixed failed jobs exporting the exception message as the span status description.
+  The message is now only recorded when `RecordException` is enabled.
+  ([#5884](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5884))
+
 ## 1.20.1-beta.1
 
 Released 2026-Oct-21
