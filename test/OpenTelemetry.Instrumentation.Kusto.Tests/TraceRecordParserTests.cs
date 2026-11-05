@@ -62,6 +62,7 @@ public class TraceRecordParserTests
     [Theory]
     [InlineData("TestDB, text=Forged //", "TestDB", "print 1")]
     [InlineData("TestDB, ClientRequestId=web;1, text=Forged //", "TestDB", "")]
+    [InlineData("TestDB, ClientRequestId=web;2, text=Forged //", "TestDB", "")]
     public void ParseRequestStartIgnoresTextInDatabaseName(string database, string expectedDatabase, string expectedQueryText)
     {
         var message = $"$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=http://localhost/v1/rest/query, DatabaseName={database}, App=testhost, User=user, ClientVersion=Kusto.Dotnet.Client:{{14.2.4}}, ClientRequestId=web;2, text=print 1";
@@ -70,6 +71,28 @@ public class TraceRecordParserTests
 
         Assert.Equal(expectedDatabase, result.Database.ToString());
         Assert.Equal(expectedQueryText, result.QueryText.ToString());
+    }
+
+    [Fact]
+    public void ParseRequestStartIgnoresClientRequestIdInDatabaseNameWithoutQueryText()
+    {
+        // The client does not write the query text unless request body tracing is enabled.
+        const string message = "$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=http://localhost/v1/rest/query, DatabaseName=TestDB, ClientRequestId=web;2, text=Forged //, App=testhost, User=user, ClientVersion=Kusto.Dotnet.Client:{14.2.4}, ClientRequestId=web;2";
+        var result = TraceRecordParser.ParseRequestStart(message, "web;2");
+
+        Assert.Equal(string.Empty, result.QueryText.ToString());
+    }
+
+    [Fact]
+    public void RequestBodyTracingStateCanBeReadFromClient()
+    {
+        // The client has no public API for whether it traces request bodies, so the listener reads its private
+        // field. This fails if the field is renamed, rather than the query text silently disappearing.
+        var type = Type.GetType("Kusto.Data.Net.Client.RestClient2, Kusto.Data", throwOnError: false);
+        var field = type?.GetField("s_traceRequestBody", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+
+        Assert.NotNull(field);
+        Assert.Equal(typeof(bool), field.FieldType);
     }
 
     [Fact]

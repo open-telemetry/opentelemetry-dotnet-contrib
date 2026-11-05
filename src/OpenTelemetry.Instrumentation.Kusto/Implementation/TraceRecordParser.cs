@@ -90,7 +90,34 @@ internal class TraceRecordParser
             remaining = remaining.SliceAfter(")");
         }
 
-        return remaining.StartsWith(TextField) ? remaining.Slice(TextField.Length) : [];
+        if (!remaining.StartsWith(TextField))
+        {
+            return [];
+        }
+
+        // The database name is also written unescaped, ahead of the client request id, so it could contain what
+        // looks like the client request id field. If the same field appears again in what was taken to be the
+        // query text, it is ambiguous which one is genuine, so return nothing.
+        var text = remaining.Slice(TextField.Length);
+        return ContainsClientRequestIdField(text, clientRequestId) ? [] : text;
+    }
+
+    private static bool ContainsClientRequestIdField(ReadOnlySpan<char> span, ReadOnlySpan<char> clientRequestId)
+    {
+        const string Field = ", ClientRequestId=";
+
+        int index;
+        while ((index = span.IndexOf(Field)) >= 0)
+        {
+            span = span.Slice(index + Field.Length);
+
+            if (span.StartsWith(clientRequestId))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static ReadOnlySpan<char> ExtractValueBetween(ReadOnlySpan<char> haystack, ReadOnlySpan<char> needle, bool newlineOnly = false)

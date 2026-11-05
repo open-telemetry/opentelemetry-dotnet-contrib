@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
@@ -18,6 +19,10 @@ namespace OpenTelemetry.Instrumentation.Kusto.Implementation;
 /// </remarks>
 internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
 {
+    private static readonly Lazy<FieldInfo?> TraceRequestBodyField = new(() =>
+        Type.GetType("Kusto.Data.Net.Client.RestClient2, Kusto.Data", throwOnError: false)?
+            .GetField("s_traceRequestBody", BindingFlags.NonPublic | BindingFlags.Static));
+
     // record.Activity (the Kusto-side activity object) is a stable reference across the start, exception, and
     // complete callbacks for a single operation, and the client releases it once the operation finishes. Keying a
     // ConditionalWeakTable on it lets an operation that never reports completion be evicted automatically when the
@@ -86,8 +91,29 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
         }
     }
 
-    private static bool IsRequestBodyTraced() =>
-        string.Equals(Environment.GetEnvironmentVariable("KUSTO_DATA_TRACE_REQUEST_BODY"), "1", StringComparison.Ordinal);
+    /// <summary>
+    /// Gets a value indicating whether the Kusto client writes the query text to its request trace messages.
+    /// </summary>
+    /// <returns>
+    /// <see langword="true"/> if the client is known to trace the request body; otherwise <see langword="false"/>,
+    /// including when that cannot be determined.
+    /// </returns>
+    /// <remarks>
+    /// The client reads the <c>KUSTO_DATA_TRACE_REQUEST_BODY</c> environment variable once and caches the result,
+    /// so the current value of the variable does not say whether request bodies are being traced. The client's
+    /// cached value is read instead. There is no public API for it, so if it cannot be found, the answer is "no".
+    /// </remarks>
+    internal static bool IsRequestBodyTraced()
+    {
+        try
+        {
+            return TraceRequestBodyField.Value?.GetValue(null) is true;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
 
     private static double GetElapsedTime(long begin) => Stopwatch.GetElapsedTime(begin).TotalSeconds;
 
