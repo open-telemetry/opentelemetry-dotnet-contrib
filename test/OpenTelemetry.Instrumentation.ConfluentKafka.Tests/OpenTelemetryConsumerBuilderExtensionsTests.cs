@@ -162,11 +162,15 @@ public class OpenTelemetryConsumerBuilderExtensionsTests
     }
 
     [Theory]
-    [InlineData(false, false)]
-    [InlineData(false, true)]
-    [InlineData(true, false)]
-    [InlineData(true, true)]
-    public void ShouldSetTracingPropertiesIfOptionsIsDefined(bool enableMetrics, bool enableTraces)
+    [InlineData(false, false, false)]
+    [InlineData(false, true, false)]
+    [InlineData(true, false, false)]
+    [InlineData(true, true, false)]
+    [InlineData(false, false, true)]
+    [InlineData(false, true, true)]
+    [InlineData(true, false, true)]
+    [InlineData(true, true, true)]
+    public void ShouldSetTracingPropertiesIfOptionsIsDefined(bool enableMetrics, bool enableTraces, bool useCreationContextAsParent)
     {
         // Arrange
         var config = new List<KeyValuePair<string, string>>
@@ -180,6 +184,7 @@ public class OpenTelemetryConsumerBuilderExtensionsTests
         {
             EnableMetrics = enableMetrics,
             EnableTraces = enableTraces,
+            UseCreationContextAsParent = useCreationContextAsParent,
         };
 
         // Act
@@ -188,6 +193,7 @@ public class OpenTelemetryConsumerBuilderExtensionsTests
         // Assert
         Assert.Equal(enableMetrics, instrumentedConsumerBuilder.EnableMetrics);
         Assert.Equal(enableTraces, instrumentedConsumerBuilder.EnableTraces);
+        Assert.Equal(useCreationContextAsParent, instrumentedConsumerBuilder.UseCreationContextAsParent);
     }
 
     [Fact]

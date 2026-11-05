@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Net;
 using InfluxDB.Client;
 using OpenTelemetry.Exporter.InfluxDB;
 using OpenTelemetry.Trace;
@@ -12,6 +13,8 @@ namespace OpenTelemetry.Metrics;
 /// </summary>
 public static class InfluxDBExporterExtensions
 {
+    private const int MaxResponseContentBufferSize = 1024 * 1024;
+
     /// <summary>
     /// Adds InfluxDB exporter to the TracerProvider.
     /// </summary>
@@ -41,13 +44,55 @@ public static class InfluxDBExporterExtensions
                 influxDbClientOptions.Token = options.Token;
             }
 
-            var influxDbClient = new InfluxDBClient(influxDbClientOptions);
-            var metricsWriter = CreateMetricsWriter(options.MetricsSchema);
-            var exporter = new InfluxDBMetricsExporter(metricsWriter, influxDbClient);
-            return new PeriodicExportingMetricReader(exporter, options.MetricExportIntervalMilliseconds)
+            // InfluxDB.Client does not configure or dispose a supplied HttpClient. Match
+            // its RestSharp handler settings while bounding buffered write responses.
+#pragma warning disable CA5399 // Match RestSharp's existing certificate revocation behavior on all target frameworks.
+            var httpClientHandler = new HttpClientHandler
             {
-                TemporalityPreference = MetricReaderTemporalityPreference.Cumulative,
+                AllowAutoRedirect = influxDbClientOptions.AllowHttpRedirects,
+                UseCookies = false,
+                AutomaticDecompression = DecompressionMethods.None,
             };
+#pragma warning restore CA5399
+
+            if (!influxDbClientOptions.VerifySsl)
+            {
+#pragma warning disable CA5359 // Preserve an explicitly disabled InfluxDB endpoint certificate check.
+#if NET
+                httpClientHandler.ServerCertificateCustomValidationCallback =
+                    HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+#else
+                httpClientHandler.ServerCertificateCustomValidationCallback = (_, _, _, _) => true;
+#endif
+#pragma warning restore CA5359
+            }
+
+#pragma warning disable CA5400 // Match RestSharp's existing certificate revocation behavior on all target frameworks.
+            var httpClient = new HttpClient(httpClientHandler)
+            {
+                MaxResponseContentBufferSize = MaxResponseContentBufferSize,
+                Timeout = Timeout.InfiniteTimeSpan,
+            };
+#pragma warning restore CA5400
+
+            InfluxDBClient? influxDbClient = null;
+            try
+            {
+                influxDbClientOptions.HttpClient = httpClient;
+                influxDbClient = new InfluxDBClient(influxDbClientOptions);
+                var metricsWriter = CreateMetricsWriter(options.MetricsSchema);
+                var exporter = new InfluxDBMetricsExporter(metricsWriter, influxDbClient, httpClient);
+                return new PeriodicExportingMetricReader(exporter, options.MetricExportIntervalMilliseconds)
+                {
+                    TemporalityPreference = MetricReaderTemporalityPreference.Cumulative,
+                };
+            }
+            catch
+            {
+                influxDbClient?.Dispose();
+                httpClient.Dispose();
+                throw;
+            }
         });
         return builder;
     }

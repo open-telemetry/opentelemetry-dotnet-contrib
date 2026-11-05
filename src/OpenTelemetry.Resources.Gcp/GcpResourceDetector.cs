@@ -13,7 +13,7 @@ namespace OpenTelemetry.Resources.Gcp;
 /// </summary>
 internal sealed class GcpResourceDetector : IResourceDetector
 {
-    private static readonly Version SemanticConventionsVersion = new(1, 44, 0);
+    private static readonly Version SemanticConventionsVersion = new(1, 45, 0);
 
     /// <inheritdoc/>
     public Resource Detect()
@@ -198,6 +198,15 @@ internal sealed class GcpResourceDetector : IResourceDetector
                 {
                     attributeList.Add(new(ResourceSemanticConventions.AttributeHostImageName, imageName));
                 }
+            }
+
+            // The name of the instance, which is the identifying attribute of the gcp.gce.instance entity.
+            // https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/resource/cloud-provider/gcp/gce.md
+            if (instance.TryGetProperty("name", out var nameElement)
+                && nameElement.ValueKind == JsonValueKind.String
+                && nameElement.GetString() is { Length: > 0 } name)
+            {
+                attributeList.Add(new(ResourceAttributeConstants.AttributeGcpGceInstanceName, name));
             }
         }
         catch (JsonException ex)

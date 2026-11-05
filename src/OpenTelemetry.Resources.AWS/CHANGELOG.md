@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* `AWSEC2Detector`, `AWSECSDetector` and `AWSEKSDetector` no longer follow HTTP
+  redirects when requesting metadata. A redirect response is now treated as a
+  failed request.
+  ([#5878](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5878))
+
 ## 1.20.1
 
 Released 2026-Oct-21

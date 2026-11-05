@@ -5,6 +5,7 @@ using System.Diagnostics;
 using Hangfire.Client;
 using Hangfire.Common;
 using Hangfire.Server;
+using OpenTelemetry.Context;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Trace;
 
@@ -29,9 +30,17 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
             return;
         }
 
-        filterContext.Items[HangfireInstrumentationConstants.PreviousBaggageKey] = Baggage.Current;
-
+        // Read first: if this throws, OnPerformed is not called, so the baggage must not have been changed yet.
         var activityContextData = filterContext.GetJobParameter<Dictionary<string, string>>(HangfireInstrumentationConstants.ActivityContextKey);
+
+        // Assigning Baggage.Current writes into the holder already present in the execution context, which
+        // on a long-lived Hangfire worker thread is shared with work started by earlier jobs. Detach the
+        // holder so the assignments below create one for this job only, and put it back in OnPerformed.
+        // Reading Baggage.Current first ensures the baggage slot is registered.
+        _ = Baggage.Current;
+        filterContext.Items[HangfireInstrumentationConstants.PreviousBaggageKey] = RuntimeContext.GetValue(HangfireInstrumentationConstants.BaggageSlotName);
+        RuntimeContext.SetValue(HangfireInstrumentationConstants.BaggageSlotName, null);
+
         ActivityContext parentContext = default;
         Baggage.Current = default;
 
@@ -96,7 +105,7 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
         {
             if (shouldRestoreBaggage)
             {
-                Baggage.Current = previousBaggage is Baggage baggage ? baggage : default;
+                RuntimeContext.SetValue(HangfireInstrumentationConstants.BaggageSlotName, previousBaggage);
             }
         }
     }
@@ -143,7 +152,7 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
 
     private void SetStatusAndRecordException(Activity activity, Exception exception)
     {
-        activity.SetStatus(ActivityStatusCode.Error, exception.Message);
+        activity.SetStatus(ActivityStatusCode.Error);
 
         if (this.options.RecordException)
         {

@@ -16,6 +16,22 @@
 
   ([#5831](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5831))
 
+## 0.4.0-alpha.1
+
+Released 2026-Nov-04
+
+* Fixed unbounded memory use caused by long string message keys being recorded
+  in full in the `messaging.kafka.message.key` span attribute. Keys longer than
+  256 characters are now truncated.
+  ([#5859](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5859))
+
+* Added the `UseCreationContextAsParent` option to
+  `ConfluentKafkaInstrumentedConsumerBuilderOptions`. When enabled, the
+  `process` span created by `ConsumeAndProcessMessageAsync` uses the message
+  creation context (extracted from the message headers) as its parent instead
+  of only linking to it, as allowed by the messaging semantic conventions.
+  ([#5510](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5510))
+
 ## 0.3.0-alpha.4
 
 Released 2026-Oct-21

@@ -15,27 +15,27 @@ namespace OpenTelemetry.SemanticConventions;
 public static class LogAttributes
 {
     /// <summary>
-    /// The basename of the file.
+    /// The basename of the file to which the log record was emitted.
     /// </summary>
     public const string AttributeLogFileName = "log.file.name";
 
     /// <summary>
-    /// The basename of the file, with symlinks resolved.
+    /// The basename of the file to which the log record was emitted, with symlinks resolved.
     /// </summary>
     public const string AttributeLogFileNameResolved = "log.file.name_resolved";
 
     /// <summary>
-    /// The full path to the file.
+    /// The full path to the file to which the log record was emitted.
     /// </summary>
     public const string AttributeLogFilePath = "log.file.path";
 
     /// <summary>
-    /// The full path to the file, with symlinks resolved.
+    /// The full path to the file to which the log record was emitted, with symlinks resolved.
     /// </summary>
     public const string AttributeLogFilePathResolved = "log.file.path_resolved";
 
     /// <summary>
-    /// The stream associated with the log. See below for a list of well-known values.
+    /// The stream the log record was emitted to.
     /// </summary>
     public const string AttributeLogIostream = "log.iostream";
 
@@ -57,7 +57,7 @@ public static class LogAttributes
     public const string AttributeLogRecordUid = "log.record.uid";
 
     /// <summary>
-    /// The stream associated with the log. See below for a list of well-known values.
+    /// The stream the log record was emitted to.
     /// </summary>
     public static class LogIostreamValues
     {

@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #if NETFRAMEWORK
-using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using OpenTelemetry.Trace;
@@ -48,9 +47,32 @@ internal sealed class SqlEventSourceListener : EventListener
     /// </remarks>
     internal const EventKeywords ExecuteEventKeywords = (EventKeywords)1;
 
-    private readonly ConcurrentDictionary<(EventSource EventSource, int ObjectId), PendingCommand> pendingCommands = new();
+    /// <summary>
+    /// The maximum number of commands tracked between their BeginExecute and EndExecute events.
+    /// </summary>
+    /// <remarks>
+    /// SqlClient does not write EndExecute for an asynchronous execution which fails before the
+    /// command is sent (for example because a parameter value cannot be converted, or the
+    /// connection is not open), and the events only identify the command by an id which is never
+    /// reused, so without a limit such commands would be tracked for the lifetime of the listener.
+    /// </remarks>
+    internal const int MaxPendingCommands = 10_000;
+
+    private readonly Dictionary<(EventSource EventSource, int ObjectId), PendingCommand> pendingCommands = [];
+    private readonly Lock pendingCommandsLock = new();
     private EventSource? adoNetEventSource;
     private EventSource? mdsEventSource;
+
+    internal int PendingCommandCount
+    {
+        get
+        {
+            lock (this.pendingCommandsLock)
+            {
+                return this.pendingCommands.Count;
+            }
+        }
+    }
 
     public override void Dispose()
     {
@@ -160,25 +182,17 @@ internal sealed class SqlEventSourceListener : EventListener
             return;
         }
 
-        TagList tags;
+        // The tags are always derived from the command, and never read back from the activity. The tags
+        // of an activity can also be set by processors (for example from baggage) and by enrichment, which
+        // must not be able to change the dimensions of the metric. The tags derived here are the same as
+        // the ones the activity is created with, so they do not depend on the sampling decision.
+        var tags = SqlTelemetryHelper.GetTagListFromConnectionInfo(pendingCommand.DataSource, pendingCommand.DatabaseName, out _);
 
-        if (activity != null && activity.IsAllDataRequested)
+        AddErrorTags(eventData, ref tags);
+
+        if (!string.IsNullOrEmpty(pendingCommand.QuerySummary))
         {
-            tags = default;
-            SqlTelemetryHelper.AddSharedTags(activity, ref tags);
-        }
-        else
-        {
-            // Derive the same tags as a sampled command gets from its activity, so that the
-            // metric's attributes do not depend on the sampling decision.
-            tags = SqlTelemetryHelper.GetTagListFromConnectionInfo(pendingCommand.DataSource, pendingCommand.DatabaseName, out _);
-
-            AddErrorTags(eventData, ref tags);
-
-            if (!string.IsNullOrEmpty(pendingCommand.QuerySummary))
-            {
-                tags.Add(SemanticConventions.AttributeDbQuerySummary, pendingCommand.QuerySummary);
-            }
+            tags.Add(SemanticConventions.AttributeDbQuerySummary, pendingCommand.QuerySummary);
         }
 
         SqlTelemetryHelper.DbClientOperationDuration.Record(duration, tags);
@@ -205,6 +219,13 @@ internal sealed class SqlEventSourceListener : EventListener
         if (SqlClientInstrumentation.Instance.HandleManager.TracingHandles == 0
             && SqlClientInstrumentation.Instance.HandleManager.MetricHandles == 0)
         {
+            // Clear the command of an execution which never ended, so that it is not used for this one if the
+            // instrumentation is enabled again before this one ends.
+            if (eventData.Payload.Count > 0 && eventData.Payload[0] is int disabledObjectId)
+            {
+                _ = this.TryRemovePendingCommand((eventData.EventSource, disabledObjectId), out _);
+            }
+
             return;
         }
 
@@ -215,7 +236,7 @@ internal sealed class SqlEventSourceListener : EventListener
         }
 
         var correlationKey = (eventData.EventSource, ObjectId: (int)eventData.Payload[0]);
-        _ = this.pendingCommands.TryRemove(correlationKey, out _);
+        _ = this.TryRemovePendingCommand(correlationKey, out _);
         var dataSource = (string)eventData.Payload[1];
         var databaseName = (string)eventData.Payload[2];
         var commandText = (string)eventData.Payload[3];
@@ -230,7 +251,7 @@ internal sealed class SqlEventSourceListener : EventListener
         // derivation until the duration is recorded.
         if (!SqlTelemetryHelper.ActivitySource.HasListeners())
         {
-            this.pendingCommands[correlationKey] = new(Stopwatch.GetTimestamp(), sqlStatementInfo.DbQuerySummary, dataSource, databaseName);
+            this.AddPendingCommand(correlationKey, new(Stopwatch.GetTimestamp(), sqlStatementInfo.DbQuerySummary, dataSource, databaseName, null));
             return;
         }
 
@@ -245,22 +266,37 @@ internal sealed class SqlEventSourceListener : EventListener
             }
         }
 
+        var callerActivity = Activity.Current;
+
         var activity = SqlTelemetryHelper.ActivitySource.StartActivity(
             activityName,
             ActivityKind.Client,
             default(ActivityContext),
             startTags);
 
+        // The event which ends an asynchronous command may be written on a copy of the execution context
+        // of the caller, so stopping the activity there cannot restore the caller's current activity.
+        // Restore it here instead, otherwise the caller is left with the activity of the command as its
+        // current activity and every command it goes on to execute becomes a child of the previous one.
+        // The activity is found again through the pending command.
+        if (activity != null)
+        {
+            Activity.Current = callerActivity;
+        }
+
         // If there is no activity because there is no listener or it decided not to sample the current
         // request, or the activity was only started for another listener while only metrics are being
         // collected, the start time needs to be tracked to calculate the duration. Otherwise, the duration
         // is taken from the activity, but the details of the command are still tracked in case the
-        // activity which is current when the command ends is not recorded.
-        this.pendingCommands[correlationKey] = new(
-            activity == null || SqlClientInstrumentation.Instance.HandleManager.TracingHandles == 0 ? Stopwatch.GetTimestamp() : null,
-            sqlStatementInfo.DbQuerySummary,
-            dataSource,
-            databaseName);
+        // activity is not recorded.
+        this.AddPendingCommand(
+            correlationKey,
+            new(
+                activity == null || SqlClientInstrumentation.Instance.HandleManager.TracingHandles == 0 ? Stopwatch.GetTimestamp() : null,
+                sqlStatementInfo.DbQuerySummary,
+                dataSource,
+                databaseName,
+                activity));
     }
 
     private void OnEndExecute(EventWrittenEventArgs eventData)
@@ -279,21 +315,25 @@ internal sealed class SqlEventSourceListener : EventListener
         }
 
         var correlationKey = (eventData.EventSource, ObjectId: (int)eventData.Payload[0]);
-        _ = this.pendingCommands.TryRemove(correlationKey, out var pendingCommand);
+        _ = this.TryRemovePendingCommand(correlationKey, out var pendingCommand);
 
         var handleManager = SqlClientInstrumentation.Instance.HandleManager;
 
         if (handleManager.TracingHandles == 0 && handleManager.MetricHandles == 0)
         {
+            // The instrumentation was disabled while the command was executing.
+            if (pendingCommand.Activity is { } abandonedActivity)
+            {
+                SqlTelemetryHelper.StopActivity(abandonedActivity);
+            }
+
             return;
         }
-
-        var currentActivity = Activity.Current;
 
         // Ensure any activity that may exist due to ActivitySource.AddActivityListener()
         // is stopped regardless of whether we're doing metrics and/or tracing.
         // See https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/3033.
-        var sqlActivity = currentActivity?.Source == SqlTelemetryHelper.ActivitySource ? currentActivity : null;
+        var sqlActivity = pendingCommand.Activity;
 
         // If we're only collecting metrics, then we don't want to modify the activity
         var traceActivity =
@@ -325,12 +365,47 @@ internal sealed class SqlEventSourceListener : EventListener
         finally
         {
             // If there's a SQL activity, stop it before recording the duration.
-            sqlActivity?.Stop();
+            if (sqlActivity != null)
+            {
+                SqlTelemetryHelper.StopActivity(sqlActivity);
+            }
+
             RecordDuration(traceActivity, eventData, in pendingCommand);
         }
     }
 
-    private readonly struct PendingCommand(long? beginTimestamp, string? querySummary, string? dataSource, string? databaseName)
+    private void AddPendingCommand((EventSource EventSource, int ObjectId) correlationKey, in PendingCommand pendingCommand)
+    {
+        lock (this.pendingCommandsLock)
+        {
+            // The commands which are really executing are limited by the number of connections, so when
+            // the limit is reached nearly all of the entries belong to commands which will never end. They
+            // cannot be told apart, so all of them are dropped: a command which is still executing
+            // loses its activity and duration measurement for this execution.
+            if (this.pendingCommands.Count >= MaxPendingCommands)
+            {
+                this.pendingCommands.Clear();
+            }
+
+            this.pendingCommands[correlationKey] = pendingCommand;
+        }
+    }
+
+    private bool TryRemovePendingCommand((EventSource EventSource, int ObjectId) correlationKey, out PendingCommand pendingCommand)
+    {
+        lock (this.pendingCommandsLock)
+        {
+            if (this.pendingCommands.TryGetValue(correlationKey, out pendingCommand))
+            {
+                _ = this.pendingCommands.Remove(correlationKey);
+                return true;
+            }
+
+            return false;
+        }
+    }
+
+    private readonly struct PendingCommand(long? beginTimestamp, string? querySummary, string? dataSource, string? databaseName, Activity? activity)
     {
         public long? BeginTimestamp { get; } = beginTimestamp;
 
@@ -339,6 +414,8 @@ internal sealed class SqlEventSourceListener : EventListener
         public string? DataSource { get; } = dataSource;
 
         public string? DatabaseName { get; } = databaseName;
+
+        public Activity? Activity { get; } = activity;
     }
 }
 #endif

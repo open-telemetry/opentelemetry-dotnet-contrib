@@ -26,7 +26,7 @@ public class MockCommandExecutor
         ExecuteCommand(connectionString, commandType, commandText, error, library, statistics);
     }
 
-    public static void ExecuteCommand(IDbCommand command, SqlClientLibrary library, IDictionary? statistics)
+    public static void ExecuteCommand(IDbCommand command, SqlClientLibrary library, IDictionary? statistics, Action? afterBeforeCommand = null)
     {
         using var fakeSqlClientDiagnosticSource = new FakeSqlClientDiagnosticSource();
 
@@ -49,6 +49,8 @@ public class MockCommandExecutor
                 Command = command,
                 Timestamp = (long?)1000000L,
             });
+
+        afterBeforeCommand?.Invoke();
 
         fakeSqlClientDiagnosticSource.Write(
             afterCommand,

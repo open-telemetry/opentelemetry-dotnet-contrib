@@ -140,7 +140,7 @@ public static class AwsAttributes
     public const string AttributeAwsEcsClusterArn = "aws.ecs.cluster.arn";
 
     /// <summary>
-    /// The Amazon Resource Name (ARN) of an <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ECS_instances.html">ECS container instance</a>.
+    /// The Amazon Resource Name (ARN) of an <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-metadata-endpoint-v4-response.html">ECS container</a>.
     /// </summary>
     public const string AttributeAwsEcsContainerArn = "aws.ecs.container.arn";
 

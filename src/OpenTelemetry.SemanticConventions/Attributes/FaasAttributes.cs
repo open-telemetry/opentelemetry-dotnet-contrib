@@ -57,7 +57,12 @@ public static class FaasAttributes
     /// <summary>
     /// The invocation ID of the current function invocation.
     /// </summary>
-    public const string AttributeFaasInvocationId = "faas.invocation_id";
+    public const string AttributeFaasInvocationId = "faas.invocation.id";
+
+    /// <summary>
+    /// A string containing the function invocation time in the <a href="https://www.iso.org/iso-8601-date-and-time-format.html">ISO 8601</a> format expressed in <a href="https://www.w3.org/TR/NOTE-datetime">UTC</a>.
+    /// </summary>
+    public const string AttributeFaasInvocationStartTime = "faas.invocation.start_time";
 
     /// <summary>
     /// The name of the invoked function.
@@ -118,6 +123,7 @@ public static class FaasAttributes
     /// <summary>
     /// A string containing the function invocation time in the <a href="https://www.iso.org/iso-8601-date-and-time-format.html">ISO 8601</a> format expressed in <a href="https://www.w3.org/TR/NOTE-datetime">UTC</a>.
     /// </summary>
+    [Obsolete("Replaced by <c>faas.invocation.start_time</c>.")]
     public const string AttributeFaasTime = "faas.time";
 
     /// <summary>

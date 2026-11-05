@@ -106,7 +106,7 @@ public static class OpenTelemetryConsumeResultExtensions
             return consumeResult;
         }
 
-        var processActivity = StartProcessActivity(TryExtractPropagationContext(consumeResult, out var propagationContext) ? propagationContext : default, consumeResult.TopicPartitionOffset, consumeResult.Message.Key, consumeResult.Message.Value is null, instrumentedConsumer.Name, instrumentedConsumer.GroupId!, instrumentedConsumer.ClusterIdTask);
+        var processActivity = StartProcessActivity(TryExtractPropagationContext(consumeResult, out var propagationContext) ? propagationContext : default, consumeResult.TopicPartitionOffset, consumeResult.Message.Key, consumeResult.Message.Value is null, instrumentedConsumer.Name, instrumentedConsumer.GroupId!, instrumentedConsumer.ClusterIdTask, instrumentedConsumer.UseCreationContextAsParent);
 
         try
         {
@@ -129,17 +129,13 @@ public static class OpenTelemetryConsumeResultExtensions
     internal static PropagationContext ExtractPropagationContext(Headers? headers)
         => Propagators.DefaultTextMapPropagator.Extract(default, headers, ExtractTraceContext);
 
-    private static Activity? StartProcessActivity<TKey>(PropagationContext propagationContext, TopicPartitionOffset? topicPartitionOffset, TKey? key, bool isTombstone, string clientId, string groupId, Task<string?>? clusterIdTask)
+    private static Activity? StartProcessActivity<TKey>(PropagationContext propagationContext, TopicPartitionOffset? topicPartitionOffset, TKey? key, bool isTombstone, string clientId, string groupId, Task<string?>? clusterIdTask, bool useCreationContextAsParent)
     {
 #pragma warning disable IDE0370 // Suppression is unnecessary
         var spanName = string.IsNullOrEmpty(topicPartitionOffset?.Topic)
             ? ConfluentKafkaCommon.ProcessOperationName
             : string.Concat(ConfluentKafkaCommon.ProcessOperationName, " ", topicPartitionOffset!.Topic);
 #pragma warning restore IDE0370 // Suppression is unnecessary
-
-        ActivityLink[] activityLinks = propagationContext != default && propagationContext.ActivityContext.IsValid()
-            ? [new ActivityLink(propagationContext.ActivityContext)]
-            : [];
 
         // Provide the attributes that can influence sampling decisions at span creation time
         var initialTags = new TagList
@@ -168,9 +164,9 @@ public static class OpenTelemetryConsumeResultExtensions
         var activity = ConfluentKafkaCommon.ActivitySource.StartActivity(
             spanName,
             kind: ActivityKind.Consumer,
-            parentContext: default,
+            parentContext: ResolveParentContext(propagationContext, useCreationContextAsParent),
             tags: initialTags,
-            links: activityLinks);
+            links: BuildProcessActivityLinks(propagationContext, useCreationContextAsParent));
 
         if (activity?.IsAllDataRequested == true)
         {
@@ -195,6 +191,41 @@ public static class OpenTelemetryConsumeResultExtensions
         }
 
         return activity;
+    }
+
+    private static ActivityContext ResolveParentContext(PropagationContext propagationContext, bool useCreationContextAsParent)
+    {
+        if (!useCreationContextAsParent)
+        {
+            return default;
+        }
+
+        if (propagationContext != default && propagationContext.ActivityContext.IsValid())
+        {
+            return propagationContext.ActivityContext;
+        }
+
+        // No valid creation context: fall back to the ambient context instead of a root span.
+        return Activity.Current?.Context ?? default;
+    }
+
+    private static ActivityLink[] BuildProcessActivityLinks(PropagationContext propagationContext, bool useCreationContextAsParent)
+    {
+        if (propagationContext == default || !propagationContext.ActivityContext.IsValid())
+        {
+            return [];
+        }
+
+        // When the creation context is the parent, also link the ambient context
+        if (useCreationContextAsParent
+            && Activity.Current?.Context is { } ambientContext
+            && ambientContext.IsValid()
+            && ambientContext != propagationContext.ActivityContext)
+        {
+            return [new ActivityLink(propagationContext.ActivityContext), new ActivityLink(ambientContext)];
+        }
+
+        return [new ActivityLink(propagationContext.ActivityContext)];
     }
 
     private static IEnumerable<string> ExtractTraceContext(Headers? headers, string value)
