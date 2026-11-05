@@ -218,8 +218,10 @@ internal static class SqlProcessor
         Sqlite = BracketsDelimitIdentifiersOnly | NonNestedComments,
     }
 
-    // The words which are looked for around the names of logins and users, and the passwords which are not literals.
-    // Each word is found once, and the words before it are remembered, instead of being compared with text again.
+    /// <summary>
+    /// The words which are looked for around the names of logins and users, and the passwords which are not literals.
+    /// Each word is found once, and the words before it are remembered, instead of being compared with text again.
+    /// </summary>
     private enum SqlWord : byte
     {
         // Any other word, or a token which is not a word (e.g. a quoted identifier).
@@ -277,6 +279,43 @@ internal static class SqlProcessor
         CreateOrReplace,
         AccountName,
         Password,
+    }
+
+    /// <summary>
+    /// What the next token is expected to be, which is set by the token or the character before it. A name or a password
+    /// which is redacted is more important than a name which is only captured for the summary, which are not both expected.
+    /// </summary>
+    private enum PendingToken : byte
+    {
+        // Nothing in particular.
+        None = 0,
+
+        // The next part of a name which is in the summary (e.g. the Orders of FROM dbo.Orders).
+        SummaryName,
+
+        // The name of a login or user, which is redacted.
+        AccountName,
+
+        // A password which is not a literal, which is redacted.
+        Password,
+    }
+
+    /// <summary>
+    /// The kinds of statement which the parser is in, until it ends with a semicolon or another statement starts.
+    /// </summary>
+    [Flags]
+    private enum StatementContext : byte
+    {
+        None = 0,
+
+        // The statement creates, alters or drops a login or user, so it has more of their names (e.g. FOR LOGIN name).
+        LoginOrUser = 1,
+
+        // The statement drops a login or user, so it can list more than one of them (e.g. DROP USER name, name).
+        DropLoginOrUser = 2,
+
+        // The statement is ALTER TABLE, in which ALTER and DROP can be followed by the name of a column.
+        AlterTable = 4,
     }
 
     private enum SqlKeyword
@@ -458,7 +497,8 @@ internal static class SqlProcessor
     private static bool IsValidTokenCharacter(char currentChar, int indexInToken, in ParseState state)
     {
         // If we are not capturing the next token as an identifier, we only accept unescaped identifier characters.
-        if (!state.CaptureNextNonKeywordTokenAsIdentifier)
+        // The name of a login or user is the same, so that a period before it does not use it up (e.g. .[name]).
+        if (state.Pending is not (PendingToken.SummaryName or PendingToken.AccountName))
         {
             return IsUnescapedIdentifierChar(currentChar);
         }
@@ -497,7 +537,7 @@ internal static class SqlProcessor
                 }
 
                 // A password which is a word can start with a digit, which is otherwise the start of a number.
-                if (state.SanitizeNextTokenAsPassword && ParsePassword(sqlSpan, buffer, ref state))
+                if (state.NextIsPassword && ParsePassword(sqlSpan, buffer, ref state))
                 {
                     continue;
                 }
@@ -517,15 +557,15 @@ internal static class SqlProcessor
                     // (e.g. REPLACE old_password). What the literal was is remembered, as it is between the words around it.
                     var literalWord = SqlWord.Other;
 
-                    if (state.SanitizeNextNonKeywordToken && sqlSpan[literalStart] is SingleQuoteChar or DoubleQuoteChar)
+                    if (state.NextIsAccountName && sqlSpan[literalStart] is SingleQuoteChar or DoubleQuoteChar)
                     {
                         literalWord = SqlWord.AccountName;
-                        state.SanitizeNextNonKeywordToken = false;
+                        state.Pending = PendingToken.None;
                     }
-                    else if (state.SanitizeNextTokenAsPassword)
+                    else if (state.NextIsPassword)
                     {
                         literalWord = SqlWord.Password;
-                        state.SanitizeNextTokenAsPassword = false;
+                        state.Pending = PendingToken.None;
                     }
 
                     PushWord(literalWord, ref state);
@@ -682,13 +722,13 @@ internal static class SqlProcessor
 
         // The word which is the password in a statement such as ALTER USER ... IDENTIFIED BY password is not a literal,
         // so it is not otherwise sanitized, and it must not be parsed as a keyword (e.g. Select1) or be split (e.g. a#b).
-        if (state.SanitizeNextTokenAsPassword && ParsePassword(sql, buffer, ref state))
+        if (state.NextIsPassword && ParsePassword(sql, buffer, ref state))
         {
             return;
         }
 
         // Quick first-character filter: only attempt keyword matching if the current char is an ASCII letter.
-        // NOTE: We don't check CaptureNextNonKeywordTokenAsIdentifier here because we want to capture and handle keywords
+        // NOTE: We don't check whether a name is the next token here because we want to capture and handle keywords
         // first, before considering identifiers.
         var mayBeKeyword = char.IsAsciiLetter(currentChar);
 
@@ -749,7 +789,7 @@ internal static class SqlProcessor
             {
                 keywordsToCheck = default;
             }
-            else if (state.SanitizeNextNonKeywordToken &&
+            else if (state.NextIsAccountName &&
                      !IsConditionalClauseWord(ClassifyWord(sql.Slice(start, asciiLetterLength)), sql, start + asciiLetterLength, in state))
             {
                 // The name of a login or user is next, which is not a keyword (e.g. ALTER USER if IDENTIFIED BY password).
@@ -802,15 +842,12 @@ internal static class SqlProcessor
                         state.PreviousSummaryKeyword = potentialKeywordInfo.SqlKeyword;
                     }
 
-                    state.CaptureNextNonKeywordTokenAsIdentifier = SqlKeywordInfo.CaptureNextTokenInSummary(in state, potentialKeywordInfo.SqlKeyword);
-                    state.SanitizeNextNonKeywordToken = ObserveWord(
-                        sql,
-                        start + keywordLength,
-                        ClassifyWord(sql.Slice(start, keywordLength)),
-                        state.SanitizeNextNonKeywordToken,
-                        ref state);
+                    state.Pending = ChoosePending(
+                        ObserveWord(sql, start + keywordLength, ClassifyWord(sql.Slice(start, keywordLength)), ref state),
+                        SqlKeywordInfo.CaptureNextTokenInSummary(in state, potentialKeywordInfo.SqlKeyword),
+                        in state);
 
-                    state.InFromClause = potentialKeywordInfo.SqlKeyword == SqlKeyword.From || (state.PreviousParsedKeyword?.SqlKeyword == SqlKeyword.From && state.CaptureNextNonKeywordTokenAsIdentifier);
+                    state.InFromClause = potentialKeywordInfo.SqlKeyword == SqlKeyword.From || (state.PreviousParsedKeyword?.SqlKeyword == SqlKeyword.From && state.NextIsSummaryName);
                     state.PreviousParsedKeyword = potentialKeywordInfo;
                     state.ParsePosition += keywordLength;
                     state.PreviousTokenStartPosition = start;
@@ -847,7 +884,7 @@ internal static class SqlProcessor
 
             // The whole name of a login or user is redacted, which can have characters which are not part of an
             // identifier elsewhere (e.g. acct$alice, or alice@host).
-            if (state.SanitizeNextNonKeywordToken && i > start && !IsConditionalClauseWord(word, sql, i, in state))
+            if (state.NextIsAccountName && i > start && !IsConditionalClauseWord(word, sql, i, in state))
             {
                 var nameEnd = i;
                 while (i < sql.Length && IsWordChar(sql[i], state.Dialect))
@@ -893,7 +930,7 @@ internal static class SqlProcessor
                 }
 
                 // IF [NOT] EXISTS can come between LOGIN or USER and its name (e.g. DROP USER IF EXISTS name).
-                redactsName = state.SanitizeNextNonKeywordToken && !IsConditionalClauseWord(word, sql, i, in state);
+                redactsName = state.NextIsAccountName && !IsConditionalClauseWord(word, sql, i, in state);
 
                 if (redactsName)
                 {
@@ -907,7 +944,7 @@ internal static class SqlProcessor
 
                 // Keep identifier context even after summary collection stops, so quotes in later name parts
                 // are not mistaken for the start of a string literal.
-                if (state.CaptureNextNonKeywordTokenAsIdentifier)
+                if (state.NextIsSummaryName)
                 {
                     // A period at the end of the identifier (e.g. dbo.) is only included if another part of the name follows.
                     var endsWithDot = sql[i - 1] == DotChar;
@@ -939,8 +976,7 @@ internal static class SqlProcessor
             }
 
             state.ParsePosition = i;
-            state.CaptureNextNonKeywordTokenAsIdentifier = captureNextPartOfName;
-            state.SanitizeNextNonKeywordToken = ObserveWord(sql, i, redactsName ? SqlWord.AccountName : word, state.SanitizeNextNonKeywordToken, ref state);
+            state.Pending = ChoosePending(ObserveWord(sql, i, redactsName ? SqlWord.AccountName : word, ref state), captureNextPartOfName, in state);
             state.PreviousTokenStartPosition = start;
             state.PreviousTokenEndPosition = i;
         }
@@ -960,14 +996,20 @@ internal static class SqlProcessor
             // Commas may occur when listing multiple tables in a FROM clause.
             // Periods may occur when using schema-qualified identifiers, which are also captured
             // outside a FROM clause when the part before the period was captured (e.g. INSERT INTO [dbo].[Orders]).
-            state.CaptureNextNonKeywordTokenAsIdentifier =
+            var capturesNextName =
                 (state.InFromClause && (currentChar is CommaChar or DotChar)) ||
-                (state.CaptureNextNonKeywordTokenAsIdentifier && currentChar == DotChar);
+                (state.NextIsSummaryName && currentChar == DotChar);
 
             // A password is the next token, unless this is the start of a quoted one which is not terminated.
-            if (currentChar is not (DoubleQuoteChar or BacktickChar or OpenSquareBracketChar))
+            if (state.NextIsPassword && currentChar is not (DoubleQuoteChar or BacktickChar or OpenSquareBracketChar))
             {
-                state.SanitizeNextTokenAsPassword = false;
+                state.Pending = PendingToken.None;
+            }
+
+            // The name of a login or user, or a password, is still the next token, which a name for the summary is not.
+            if (!state.NextIsAccountName && !state.NextIsPassword)
+            {
+                state.Pending = capturesNextName ? PendingToken.SummaryName : PendingToken.None;
             }
 
             if (state.InLoginOrUserStatement)
@@ -977,7 +1019,7 @@ internal static class SqlProcessor
 
             if (currentChar == SemicolonChar)
             {
-                state.InAlterTable = false;
+                state.Statement = StatementContext.None;
             }
 
             // Punctuation is between the words around it, which are then not next to each other (e.g. alter, user).
@@ -1157,16 +1199,34 @@ internal static class SqlProcessor
             SqlWord.Restrict;
     }
 
+    // Chooses what the next token is expected to be: what the word before says (a name or a password to redact), or else a password
+    // which is still expected after the prefix of its literal (e.g. the N of N'password'), or else a name for the summary.
+    private static PendingToken ChoosePending(PendingToken fromWord, bool capturesSummaryName, in ParseState state)
+    {
+        if (fromWord != PendingToken.None)
+        {
+            return fromWord;
+        }
+
+        if (state.NextIsPassword)
+        {
+            return PendingToken.Password;
+        }
+
+        return capturesSummaryName ? PendingToken.SummaryName : PendingToken.None;
+    }
+
     // Looks at a word which has been parsed, with the words before it, for the names of logins and users and for the
-    // passwords which are not literals. Returns whether what follows is the name of a login or user, which is:
+    // passwords which are not literals. Returns what is expected next, which is the name of a login or user if it is:
     // - LOGIN or USER after CREATE [OR REPLACE], ALTER or DROP (e.g. DROP USER name), unless it is the name of a column in ALTER TABLE.
     // - LOGIN after FOR, FROM or WITH in such a statement (e.g. CREATE USER name FOR LOGIN name).
     // - TO after RENAME in such a statement (e.g. ALTER USER name RENAME TO name).
-    // The word which follows is a password after IDENTIFIED BY, and after REPLACE if it follows a password, unless it is a literal,
+    // It is a password after IDENTIFIED BY, and after REPLACE if it follows a password, unless it is a literal,
     // which is sanitized as one. The passwords of MySQL and MariaDB are always literals, and a word which follows IDENTIFIED BY
     // is a modifier (e.g. RANDOM PASSWORD).
-    private static bool ObserveWord(ReadOnlySpan<char> sql, int end, SqlWord word, bool pendingName, ref ParseState state)
+    private static PendingToken ObserveWord(ReadOnlySpan<char> sql, int end, SqlWord word, ref ParseState state)
     {
+        var pendingName = state.NextIsAccountName;
         var previous = state.PreviousWord;
         var previousPrevious = state.PreviousPreviousWord;
 
@@ -1180,25 +1240,29 @@ internal static class SqlProcessor
         // The name of a login or user which has been redacted does not start anything.
         if (word == SqlWord.AccountName)
         {
-            return false;
+            return PendingToken.None;
         }
 
         // IF [NOT] EXISTS can come between LOGIN or USER and its name (e.g. DROP USER IF EXISTS name).
         if (pendingName && IsIfNotOrExists(word))
         {
-            return true;
+            return PendingToken.AccountName;
         }
 
         // Another statement starts, which does not have the names of the statement which precedes it.
-        if ((state.InLoginOrUserStatement || state.InAlterTable) && !pendingName && IsStatementStart(word))
+        if (state.Statement != StatementContext.None && !pendingName && IsStatementStart(word))
         {
             EndStatementContext(word, ref state);
         }
 
         if (word == SqlWord.Table)
         {
-            state.InAlterTable |= previous == SqlWord.Alter;
-            return false;
+            if (previous == SqlWord.Alter)
+            {
+                state.Statement |= StatementContext.AlterTable;
+            }
+
+            return PendingToken.None;
         }
 
         if (!state.UseBackslashEscapes)
@@ -1206,15 +1270,19 @@ internal static class SqlProcessor
             if ((word == SqlWord.By && previous == SqlWord.Identified) ||
                 (word == SqlWord.Replace && previous == SqlWord.Password))
             {
-                state.SanitizeNextTokenAsPassword = true;
-                return false;
+                return PendingToken.Password;
             }
         }
 
         switch (word)
         {
             case SqlWord.To:
-                return state.InLoginOrUserStatement && previous == SqlWord.Rename;
+                if (state.InLoginOrUserStatement && previous == SqlWord.Rename)
+                {
+                    return PendingToken.AccountName;
+                }
+
+                return PendingToken.None;
 
             case SqlWord.User:
             case SqlWord.Login:
@@ -1223,31 +1291,37 @@ internal static class SqlProcessor
                 if (previous is SqlWord.Create or SqlWord.CreateOrReplace ||
                     ((isDrop || previous == SqlWord.Alter) && !(state.InAlterTable && IsColumnOperation(sql, end, state.Dialect))))
                 {
-                    state.InLoginOrUserStatement = true;
-                    state.InDropLoginOrUserStatement |= isDrop;
-                    return true;
+                    state.Statement |= StatementContext.LoginOrUser;
+
+                    if (isDrop)
+                    {
+                        state.Statement |= StatementContext.DropLoginOrUser;
+                    }
+
+                    return PendingToken.AccountName;
                 }
 
-                return word == SqlWord.Login &&
-                       state.InLoginOrUserStatement &&
-                       previous is SqlWord.For or SqlWord.From or SqlWord.With;
+                if (word == SqlWord.Login &&
+                    state.InLoginOrUserStatement &&
+                    previous is SqlWord.For or SqlWord.From or SqlWord.With)
+                {
+                    return PendingToken.AccountName;
+                }
+
+                return PendingToken.None;
 
             default:
-                return false;
+                return PendingToken.None;
         }
     }
 
     // The statement ends when another statement starts, which is not always marked with a semicolon.
     private static void EndStatementContext(SqlWord word, ref ParseState state)
     {
-        state.InLoginOrUserStatement = false;
-        state.InDropLoginOrUserStatement = false;
-
         // ALTER and DROP are also clauses of ALTER TABLE.
-        if (word is not (SqlWord.Alter or SqlWord.Drop))
-        {
-            state.InAlterTable = false;
-        }
+        state.Statement = word is SqlWord.Alter or SqlWord.Drop
+            ? state.Statement & StatementContext.AlterTable
+            : StatementContext.None;
     }
 
     // Updates the statement which creates, alters or drops a login or user for a character which is a token on its own.
@@ -1257,18 +1331,28 @@ internal static class SqlProcessor
         {
             case EqualsChar:
                 // NAME = new_name and LOGIN = login_name (e.g. ALTER LOGIN name WITH NAME = new_name)
-                state.SanitizeNextNonKeywordToken |= state.PreviousWord is SqlWord.Name or SqlWord.Login;
+                if (state.PreviousWord is SqlWord.Name or SqlWord.Login)
+                {
+                    state.Pending = PendingToken.AccountName;
+                }
+
                 break;
 
             case CommaChar:
                 // DROP USER name, name, but not a comma which is not after a name (e.g. in a statement which follows)
-                state.SanitizeNextNonKeywordToken |= state.InDropLoginOrUserStatement && state.PreviousWord == SqlWord.AccountName;
+                if (state.InDropLoginOrUserStatement && state.PreviousWord == SqlWord.AccountName)
+                {
+                    state.Pending = PendingToken.AccountName;
+                }
+
                 break;
 
             case SemicolonChar:
-                state.InLoginOrUserStatement = false;
-                state.InDropLoginOrUserStatement = false;
-                state.SanitizeNextNonKeywordToken = false;
+                if (state.NextIsAccountName)
+                {
+                    state.Pending = PendingToken.None;
+                }
+
                 break;
 
             default:
@@ -1320,9 +1404,7 @@ internal static class SqlProcessor
         PushWord(isValues ? SqlWord.Other : SqlWord.Password, ref state);
 
         state.ParsePosition = end;
-        state.CaptureNextNonKeywordTokenAsIdentifier = false;
-        state.SanitizeNextNonKeywordToken = false;
-        state.SanitizeNextTokenAsPassword = false;
+        state.Pending = PendingToken.None;
         state.PreviousTokenStartPosition = start;
         state.PreviousTokenEndPosition = end;
 
@@ -1347,9 +1429,7 @@ internal static class SqlProcessor
             buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
             state.RedactRemainder = false;
             state.ParsePosition = sql.Length;
-            state.CaptureNextNonKeywordTokenAsIdentifier = false;
-            state.SanitizeNextNonKeywordToken = false;
-            state.SanitizeNextTokenAsPassword = false;
+            state.Pending = PendingToken.None;
             state.PreviousTokenStartPosition = start;
             state.PreviousTokenEndPosition = sql.Length;
             PushWord(SqlWord.Other, ref state);
@@ -1366,19 +1446,18 @@ internal static class SqlProcessor
         // GoogleSQL, or SQL Server with QUOTED_IDENTIFIER OFF) than an identifier. An empty name has
         // nothing to redact, and the sanitized SQL must not be longer than the input.
         if (length > 2 &&
-            (state.SanitizeNextNonKeywordToken ||
-             state.SanitizeNextTokenAsPassword ||
+            (state.Pending is PendingToken.AccountName or PendingToken.Password ||
              (sql[start] == DoubleQuoteChar && StartsWithNumber(sql.Slice(start + 1, length - 2).TrimStart()))))
         {
             buffer[state.SanitizedPosition++] = sql[start];
             buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
             buffer[state.SanitizedPosition++] = sql[end];
 
-            if (state.SanitizeNextNonKeywordToken)
+            if (state.NextIsAccountName)
             {
                 word = SqlWord.AccountName;
             }
-            else if (state.SanitizeNextTokenAsPassword)
+            else if (state.NextIsPassword)
             {
                 word = SqlWord.Password;
             }
@@ -1391,7 +1470,7 @@ internal static class SqlProcessor
             // Only bracketed identifiers are included in the summary, as they were before quoted
             // identifiers were parsed as a single token. They are included wherever an unquoted
             // identifier would be (e.g. after INTO or EXEC), as well as anywhere in a FROM clause.
-            if ((state.InFromClause || state.CaptureNextNonKeywordTokenAsIdentifier) &&
+            if ((state.InFromClause || state.NextIsSummaryName) &&
                 sql[start] == OpenSquareBracketChar)
             {
                 // Name classification must continue independently of the summary length limit.
@@ -1419,9 +1498,7 @@ internal static class SqlProcessor
         }
 
         state.ParsePosition = end + 1;
-        state.CaptureNextNonKeywordTokenAsIdentifier = captureNextPartOfName;
-        state.SanitizeNextNonKeywordToken = false;
-        state.SanitizeNextTokenAsPassword = false;
+        state.Pending = captureNextPartOfName ? PendingToken.SummaryName : PendingToken.None;
         state.PreviousTokenStartPosition = start;
         state.PreviousTokenEndPosition = end + 1;
         PushWord(word, ref state);
@@ -1574,7 +1651,7 @@ internal static class SqlProcessor
             // A name which is going to be redacted is always treated as an identifier, as none of it is copied. A bracket
             // where a name is expected (e.g. after FROM) cannot be a list of values, so it is always a name, which ends at
             // the first closing bracket, rather than the content of it and the SQL after it being used to guess what it is.
-            if (state.SanitizeNextNonKeywordToken || state.BracketsDelimitIdentifiersOnly || IsNameExpected(sql, start, in state))
+            if (state.NextIsAccountName || state.BracketsDelimitIdentifiersOnly || IsNameExpected(sql, start, in state))
             {
                 return i;
             }
@@ -1594,7 +1671,7 @@ internal static class SqlProcessor
 
         static bool IsNameExpected(ReadOnlySpan<char> sql, int start, in ParseState state)
         {
-            if (state.CaptureNextNonKeywordTokenAsIdentifier)
+            if (state.NextIsSummaryName)
             {
                 return true;
             }
@@ -2927,24 +3004,14 @@ internal static class SqlProcessor
 
         // NOTE: If the number of bool fields increases significantly, consider combining into a bitfield.
 
-        public bool CaptureNextNonKeywordTokenAsIdentifier; // 1 byte
-
         // Set while finding the end of a bracket which could be a name or a list of values, if which could not be worked out.
         public bool RedactRemainder; // 1 byte
 
-        public bool SanitizeNextNonKeywordToken; // 1 byte
+        // What the next token is expected to be.
+        public PendingToken Pending; // 1 byte (enum, underlying byte)
 
-        // Set after a word such as IDENTIFIED BY, which is followed by a password which is not a literal.
-        public bool SanitizeNextTokenAsPassword; // 1 byte
-
-        // Set from the name of a login or user which is redacted until the end of the statement, so that its other names are too.
-        public bool InLoginOrUserStatement; // 1 byte
-
-        // Set if the statement which drops a login or user can list more than one of them.
-        public bool InDropLoginOrUserStatement; // 1 byte
-
-        // Set from ALTER TABLE until the end of the statement, in which ALTER and DROP can be followed by the name of a column.
-        public bool InAlterTable; // 1 byte
+        // The kinds of statement which the parser is in.
+        public StatementContext Statement; // 1 byte (enum, underlying byte)
 
         /// <summary>
         /// The dialect of the source database.
@@ -2977,6 +3044,18 @@ internal static class SqlProcessor
         public readonly bool UseTripleQuotedLiterals => Has(this.Dialect, SqlDialect.TripleQuotedLiterals);
 
         public readonly bool BracketsDelimitIdentifiersOnly => Has(this.Dialect, SqlDialect.BracketsDelimitIdentifiersOnly);
+
+        public readonly bool NextIsSummaryName => this.Pending == PendingToken.SummaryName;
+
+        public readonly bool NextIsAccountName => this.Pending == PendingToken.AccountName;
+
+        public readonly bool NextIsPassword => this.Pending == PendingToken.Password;
+
+        public readonly bool InLoginOrUserStatement => (this.Statement & StatementContext.LoginOrUser) != 0;
+
+        public readonly bool InDropLoginOrUserStatement => (this.Statement & StatementContext.DropLoginOrUser) != 0;
+
+        public readonly bool InAlterTable => (this.Statement & StatementContext.AlterTable) != 0;
 
         public readonly bool SummaryIsComplete => this.SummaryPosition >= MaxSummaryLength;
     }

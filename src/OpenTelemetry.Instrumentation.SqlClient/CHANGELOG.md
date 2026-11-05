@@ -76,6 +76,11 @@
   keyword and query sanitization of a login or user name which starts with one.
   ([#DDDD](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/DDDD))
 
+* Fixed `db.query.summary` containing the word which follows the name of a
+  login or user, such as `IDENTIFIED`, in a statement which follows another
+  statement.
+  ([#DDDD](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/DDDD))
+
 ## 1.20.1
 
 Released 2026-Oct-21
