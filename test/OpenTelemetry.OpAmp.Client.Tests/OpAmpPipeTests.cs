@@ -7,6 +7,7 @@ using Google.Protobuf;
 using OpAmp.Proto.V1;
 using OpenTelemetry.OpAmp.Client.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Services.Heartbeat;
+using OpenTelemetry.OpAmp.Client.Messages;
 using OpenTelemetry.OpAmp.Client.Settings;
 using OpenTelemetry.OpAmp.Client.Tests.Mocks;
 using OpenTelemetry.OpAmp.Client.Tests.Tools;
@@ -257,13 +258,13 @@ public abstract class OpAmpPipeTests
     public async Task OpAmpPipe_RejectsCustomMessagesBeyondQueuePayloadByteLimit()
     {
         const int payloadSize = 4;
-        const int maxPendingCustomMessageBytes = 8;
-        const int messagesAtLimit = maxPendingCustomMessageBytes / payloadSize;
+        const int maxPendingMessageBytes = 8;
+        const int messagesAtLimit = maxPendingMessageBytes / payloadSize;
 
         using var transport = this.GetTransport();
         var settings = new OpAmpClientSettings
         {
-            MaxPendingCustomMessageBytes = maxPendingCustomMessageBytes,
+            MaxPendingMessageBytes = maxPendingMessageBytes,
         };
         var processor = new FrameProcessor();
         using var pipe = new OpAmpPipe(settings, processor, transport);
@@ -280,7 +281,7 @@ public abstract class OpAmpPipeTests
 
         var fullQueueException = Assert.Throws<InvalidOperationException>(
             () => AppendCustomMessage(pipe, messagesAtLimit, new byte[1]));
-        Assert.Contains(maxPendingCustomMessageBytes.ToString(), fullQueueException.Message);
+        Assert.Contains(maxPendingMessageBytes.ToString(), fullQueueException.Message);
         Assert.Single(transport.Messages);
 
         transport.CompleteNextSend();
@@ -295,6 +296,123 @@ public abstract class OpAmpPipeTests
         AppendCustomMessage(pipe, messagesAtLimit + 1, payload);
         Assert.Throws<InvalidOperationException>(
             () => AppendCustomMessage(pipe, messagesAtLimit + 2, new byte[1]));
+    }
+
+    [Fact]
+    public async Task OpAmpPipe_CountsAccumulatedReportsAgainstPendingByteLimit_AndKeepsThemWhenRejected()
+    {
+        const int configSize = 2048;
+        const int maxPendingMessageBytes = 1024;
+
+        using var transport = this.GetTransport();
+
+        var settings = new OpAmpClientSettings
+        {
+            MaxPendingMessageBytes = maxPendingMessageBytes,
+        };
+
+        var processor = new FrameProcessor();
+        using var pipe = new OpAmpPipe(settings, processor, transport);
+        var serverFrame = new ServerToAgent().ToByteArray();
+
+        AppendIdentification(pipe);
+        await transport.WaitForMessagesAsync(1);
+
+        // The send is blocked, so the report accumulates. The custom message has an empty
+        // payload, but the frame it would queue carries the whole report.
+        AppendEffectiveConfig(pipe, configSize);
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => AppendCustomMessage(pipe, 0, ReadOnlyMemory<byte>.Empty));
+        Assert.Contains(maxPendingMessageBytes.ToString(), exception.Message);
+
+        // The rejected message must not have consumed the unsent report.
+        transport.CompleteNextSend();
+        processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+        await transport.WaitForMessagesAsync(2);
+
+        var message = transport.Messages[1];
+        Assert.NotNull(message.EffectiveConfig);
+        Assert.Equal(
+            configSize,
+            message.EffectiveConfig.ConfigMap.ConfigMap["config"].Body.Length);
+        Assert.Null(message.CustomMessage);
+    }
+
+    [Fact]
+    public async Task OpAmpPipe_CountsPartiallyAppendedReportAgainstPendingByteLimit_WhenAppendMessageThrows()
+    {
+        const int configSize = 2048;
+        const int maxPendingMessageBytes = 1024;
+
+        using var transport = this.GetTransport();
+
+        var settings = new OpAmpClientSettings
+        {
+            MaxPendingMessageBytes = maxPendingMessageBytes,
+        };
+
+        var processor = new FrameProcessor();
+        using var pipe = new OpAmpPipe(settings, processor, transport);
+
+        AppendIdentification(pipe);
+        await transport.WaitForMessagesAsync(1);
+
+        // The callback adds a report to the frame and then throws, as a failing
+        // custom-capability enumeration would. The report stays in the builder.
+        var appendConfig = MessageBuilderHelper.AppendEffectiveConfig(
+            [new EffectiveConfigFile(new byte[configSize], "text/plain", "config")]);
+        Assert.Throws<InvalidOperationException>(
+            () => pipe.AppendMessage(frame =>
+            {
+                appendConfig(frame);
+                throw new InvalidOperationException("Simulated failure after partial append.");
+            }));
+
+        // The retained report must be charged to the limit even though the payload is empty.
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => AppendCustomMessage(pipe, 0, ReadOnlyMemory<byte>.Empty));
+        Assert.Contains(maxPendingMessageBytes.ToString(), exception.Message);
+    }
+
+    [Fact]
+    public async Task OpAmpPipe_FreesPendingByteLimitCapacityForWholeFrame_WhenFrameIsDequeued()
+    {
+        const int configSize = 2048;
+        const int maxPendingMessageBytes = 3000; // Fits one config + custom frame, not two.
+
+        using var transport = this.GetTransport();
+        var settings = new OpAmpClientSettings
+        {
+            MaxPendingMessageBytes = maxPendingMessageBytes,
+        };
+        var processor = new FrameProcessor();
+        using var pipe = new OpAmpPipe(settings, processor, transport);
+        var serverFrame = new ServerToAgent().ToByteArray();
+
+        AppendIdentification(pipe);
+        await transport.WaitForMessagesAsync(1);
+
+        AppendEffectiveConfig(pipe, configSize);
+        AppendCustomMessage(pipe, 0, ReadOnlyMemory<byte>.Empty);
+
+        AppendEffectiveConfig(pipe, configSize);
+        Assert.Throws<InvalidOperationException>(
+            () => AppendCustomMessage(pipe, 1, ReadOnlyMemory<byte>.Empty));
+
+        // Dequeueing the first frame must free all pending bytes counted for it, including the report.
+        transport.CompleteNextSend();
+        processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+        await transport.WaitForMessagesAsync(2);
+
+        Assert.NotNull(transport.Messages[1].EffectiveConfig);
+        Assert.NotNull(transport.Messages[1].CustomMessage);
+
+        // The report left unsent by the rejection fits now and is sent with the next custom message.
+        AppendCustomMessage(pipe, 2, ReadOnlyMemory<byte>.Empty);
+
+        AppendEffectiveConfig(pipe, configSize);
+        Assert.Throws<InvalidOperationException>(
+            () => AppendCustomMessage(pipe, 3, ReadOnlyMemory<byte>.Empty));
     }
 
     [Fact]
@@ -695,6 +813,10 @@ public abstract class OpAmpPipeTests
 
     internal static void AppendHeartbeat(OpAmpPipe pipe)
         => pipe.AppendMessage(MessageBuilderHelper.AppendHeartbeat(CreateHealthReport()));
+
+    internal static void AppendEffectiveConfig(OpAmpPipe pipe, int size)
+        => pipe.AppendMessage(MessageBuilderHelper.AppendEffectiveConfig(
+            [new EffectiveConfigFile(new byte[size], "text/plain", "config")]));
 
     internal static void AppendCustomMessage(OpAmpPipe pipe, int index)
         => pipe.AppendCustomMessage(

@@ -7,6 +7,16 @@
   delay its completion.
   ([#5882](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5882))
 
+* Fixed the pending message byte limit not counting state reports queued together
+  with custom messages, which allowed pending frames to retain more memory than
+  the configured limit.
+  ([#5881](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5881))
+
+* **Breaking change:** Renamed `OpAmpClientSettings.MaxPendingCustomMessageBytes`
+  to `MaxPendingMessageBytes` to reflect that the limit also counts state reports
+  queued with custom messages.
+  ([#5881](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5881))
+
 * Fix WebSocket transport startup blocking when the server sends messages
   immediately after the handshake.
   ([#5883](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5883))

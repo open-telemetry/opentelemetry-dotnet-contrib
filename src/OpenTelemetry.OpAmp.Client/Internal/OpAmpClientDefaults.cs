@@ -6,5 +6,5 @@ namespace OpenTelemetry.OpAmp.Client.Internal;
 internal static class OpAmpClientDefaults
 {
     internal const int MaxPendingCustomMessages = 2048;
-    internal const int MaxPendingCustomMessageBytes = 64 * 1024 * 1024;
+    internal const int MaxPendingMessageBytes = 64 * 1024 * 1024;
 }
