@@ -41,14 +41,14 @@ public class TracingTests(KafkaFixture fixture)
         Assert.Contains(activities, activity => activity.DisplayName == "send " + topic);
         var activity = Assert.Single(activities);
         Assert.Equal(ActivityKind.Producer, activity.Kind);
-        Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
+        Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystemName));
         Assert.Equal("send", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationName));
         Assert.Equal("send", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationType));
         Assert.Equal(topic, activity.GetTagValue("messaging.destination.name"));
 
         // The cluster ID is fetched in the background and is not awaited on the produce path,
         // so it may not have completed by the time this (first) span is created.
-        var clusterId = activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaClusterId) as string;
+        var clusterId = activity.GetTagValue(SemanticConventions.AttributeKafkaClusterId) as string;
         Assert.True(clusterId is null || clusterId.Length > 0, $"Expected the cluster ID tag to be absent or non-empty, but got '{clusterId}'.");
     }
 
@@ -78,7 +78,7 @@ public class TracingTests(KafkaFixture fixture)
 
         Assert.Contains(activities, activity => activity.DisplayName == "send " + topic);
         var activity = Assert.Single(activities);
-        Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
+        Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystemName));
         Assert.Equal("send", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationName));
         Assert.Equal("send", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationType));
         Assert.Equal(topic, activity.GetTagValue("messaging.destination.name"));
@@ -111,7 +111,7 @@ public class TracingTests(KafkaFixture fixture)
 
         Assert.Contains(activities, activity => activity.DisplayName == "send " + topic);
         var activity = Assert.Single(activities);
-        Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
+        Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystemName));
         Assert.Equal("send", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationName));
         Assert.Equal("send", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationType));
         Assert.Equal(topic, activity.GetTagValue("messaging.destination.name"));
@@ -143,7 +143,7 @@ public class TracingTests(KafkaFixture fixture)
 
         Assert.Contains(activities, activity => activity.DisplayName == "send " + topic);
         var activity = Assert.Single(activities);
-        Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
+        Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystemName));
         Assert.Equal("send", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationName));
         Assert.Equal("send", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationType));
         Assert.Equal(topic, activity.GetTagValue("messaging.destination.name"));
@@ -193,17 +193,17 @@ public class TracingTests(KafkaFixture fixture)
         Assert.Contains(activities, activity => activity.DisplayName == "poll " + topic);
         var activity = Assert.Single(activities);
         Assert.Equal(ActivityKind.Client, activity.Kind);
-        Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
+        Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystemName));
         Assert.Equal("poll", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationName));
         Assert.Equal("receive", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationType));
         Assert.Equal(topic, activity.GetTagValue("messaging.destination.name"));
         Assert.Equal("0", activity.GetTagValue("messaging.destination.partition.id"));
-        Assert.Equal(0L, activity.GetTagValue("messaging.kafka.offset"));
+        Assert.Equal(0L, activity.GetTagValue("kafka.offset"));
         Assert.Equal("test-consumer-group", activity.GetTagValue("messaging.consumer.group.name"));
 
         // The cluster ID is fetched in the background and is not awaited on the consume path,
         // so it may not have completed by the time this (first) span is created.
-        var clusterId = activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaClusterId) as string;
+        var clusterId = activity.GetTagValue(SemanticConventions.AttributeKafkaClusterId) as string;
         Assert.True(clusterId is null || clusterId.Length > 0, $"Expected the cluster ID tag to be absent or non-empty, but got '{clusterId}'.");
     }
 
@@ -249,12 +249,12 @@ public class TracingTests(KafkaFixture fixture)
 
         Assert.Contains(activities, activity => activity.DisplayName == "poll " + topic);
         var activity = Assert.Single(activities);
-        Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
+        Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystemName));
         Assert.Equal("poll", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationName));
         Assert.Equal("receive", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationType));
         Assert.Equal(topic, activity.GetTagValue("messaging.destination.name"));
         Assert.Equal("0", activity.GetTagValue("messaging.destination.partition.id"));
-        Assert.Equal(0L, activity.GetTagValue("messaging.kafka.offset"));
+        Assert.Equal(0L, activity.GetTagValue("kafka.offset"));
         Assert.Equal("test-consumer-group", activity.GetTagValue("messaging.consumer.group.name"));
     }
 
@@ -300,12 +300,12 @@ public class TracingTests(KafkaFixture fixture)
 
         Assert.Contains(activities, activity => activity.DisplayName == "poll " + topic);
         var activity = Assert.Single(activities);
-        Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
+        Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystemName));
         Assert.Equal("poll", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationName));
         Assert.Equal("receive", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationType));
         Assert.Equal(topic, activity.GetTagValue("messaging.destination.name"));
         Assert.Equal("0", activity.GetTagValue("messaging.destination.partition.id"));
-        Assert.Equal(0L, activity.GetTagValue("messaging.kafka.offset"));
+        Assert.Equal(0L, activity.GetTagValue("kafka.offset"));
         Assert.Equal("test-consumer-group", activity.GetTagValue("messaging.consumer.group.name"));
     }
 
@@ -352,17 +352,17 @@ public class TracingTests(KafkaFixture fixture)
         var processActivity = Assert.Single(activities, activity => activity.DisplayName == "process " + topic);
 
         Assert.Equal(ActivityKind.Consumer, processActivity.Kind);
-        Assert.Equal("kafka", processActivity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
+        Assert.Equal("kafka", processActivity.GetTagValue(SemanticConventions.AttributeMessagingSystemName));
         Assert.Equal("process", processActivity.GetTagValue(SemanticConventions.AttributeMessagingOperationName));
         Assert.Equal("process", processActivity.GetTagValue(SemanticConventions.AttributeMessagingOperationType));
         Assert.Equal(topic, processActivity.GetTagValue("messaging.destination.name"));
         Assert.Equal("0", processActivity.GetTagValue("messaging.destination.partition.id"));
-        Assert.Equal(0L, processActivity.GetTagValue("messaging.kafka.offset"));
+        Assert.Equal(0L, processActivity.GetTagValue("kafka.offset"));
         Assert.Equal("test-consumer-group", processActivity.GetTagValue("messaging.consumer.group.name"));
 
         // The cluster ID is fetched in the background and is not awaited on the consume path,
         // so it may not have completed by the time this (first) span is created.
-        var clusterId = processActivity.GetTagValue(SemanticConventions.AttributeMessagingKafkaClusterId) as string;
+        var clusterId = processActivity.GetTagValue(SemanticConventions.AttributeKafkaClusterId) as string;
         Assert.True(clusterId is null || clusterId.Length > 0, $"Expected the cluster ID tag to be absent or non-empty, but got '{clusterId}'.");
 
         static ValueTask NoOpAsync(

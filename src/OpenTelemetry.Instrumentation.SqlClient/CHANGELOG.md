@@ -44,6 +44,24 @@
   characters are no longer cached.
   ([#5869](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5869))
 
+* The attributes of the `db.client.operation.duration` metric are no longer
+  affected by tags set on the command's activity by processors or by
+  `EnrichWithSqlCommand`.
+  ([#5865](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5865))
+
+* Fixed a memory leak on .NET Framework when a command executed asynchronously
+  fails before it is sent. Upgrade to apply the fix.
+  ([#5872](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5872))
+
+* Fixed the activity of a command executed asynchronously (for example with
+  `ExecuteNonQueryAsync()`) being left as `Activity.Current` after the command
+  completed, which made every later command executed by the same method a child
+  of it and retained them all for as long as the method ran. The activity of a
+  command is no longer `Activity.Current` while the command executes or while
+  `Filter` and `EnrichWithSqlCommand` run, so use the `activity` argument of
+  `EnrichWithSqlCommand` instead.
+  ([#5866](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5866))
+
 ## 1.20.1
 
 Released 2026-Oct-21
