@@ -1897,5 +1897,44 @@
       ],
       "db.query.summary": "INSERT [dbo].[Orders]"
     }
+  },
+  {
+    "name": "insert_into_delimited_identifier_omitted_database_and_schema",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "INSERT INTO [Server]...[Orders] VALUES (@p0)"
+    },
+    "expected": {
+      "db.query.text": [
+        "INSERT INTO [Server]...[Orders] VALUES (@p0)"
+      ],
+      "db.query.summary": "INSERT [Server]...[Orders]"
+    }
+  },
+  {
+    "name": "insert_into_delimited_identifier_omitted_database_and_schema_with_comments",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "INSERT INTO [Server]./* database */./* schema */.['Orders] VALUES ('customer@example.com')"
+    },
+    "expected": {
+      "db.query.text": [
+        "INSERT INTO [Server]...['Orders] VALUES (?)"
+      ],
+      "db.query.summary": "INSERT [Server]...['Orders]"
+    }
+  },
+  {
+    "name": "insert_into_undelimited_identifier_omitted_database_and_schema_with_comments",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "INSERT INTO Server /* qualifier */ ./* database */./* schema */.['Orders] VALUES ('customer@example.com')"
+    },
+    "expected": {
+      "db.query.text": [
+        "INSERT INTO Server  ...['Orders] VALUES (?)"
+      ],
+      "db.query.summary": "INSERT Server...['Orders]"
+    }
   }
 ]

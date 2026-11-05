@@ -939,6 +939,55 @@ public class SqlProcessorTests(ITestOutputHelper output)
     }
 
     [Theory]
+    [InlineData("[Server]...['Orders]", "INSERT [Server]...['Orders]")]
+    [InlineData("[Server] . . . ['Orders]", "INSERT [Server]...['Orders]")]
+    [InlineData("Server...['Orders]", "INSERT Server...['Orders]")]
+    [InlineData("Server . . . ['Orders]", "INSERT Server...['Orders]")]
+    [InlineData("[Server]..['Orders]", "INSERT [Server]..['Orders]")]
+    [InlineData("[Server].[Database]..['Orders]", "INSERT [Server].[Database]..['Orders]")]
+    [InlineData("[Server]....['Orders]", "INSERT [Server]....['Orders]")]
+    [InlineData("Server . . . . ['Orders]", "INSERT Server....['Orders]")]
+    public void GetSanitizedSql_OmittedNamePartsAndQuoteInIdentifier_SanitizesFollowingLiteral(string target, string expectedSummary)
+    {
+        var sql = $"INSERT INTO {target} VALUES ('customer@example.com')";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        Assert.Equal($"INSERT INTO {target} VALUES (?)", sqlStatementInfo.SanitizedSql);
+        Assert.Equal(expectedSummary, sqlStatementInfo.DbQuerySummary);
+    }
+
+    [Theory]
+    [InlineData("[Server]...['Orders]")]
+    [InlineData("Server...['Orders]")]
+    [InlineData("[Server].dbo.['Orders]")]
+    [InlineData("Server . dbo . ['Orders]")]
+    [InlineData("[Server].[Database].[dbo].['Orders]")]
+    public void GetSanitizedSql_MultiPartNameAfterSummaryLengthLimit_SanitizesFollowingLiteral(string target)
+    {
+        var firstName = new string('A', 128);
+        var secondName = new string('B', 128);
+        var prefix = $"INSERT INTO dbo.[{firstName}] VALUES (1); INSERT INTO dbo.[{secondName}] VALUES (2); ";
+        var expectedPrefix = $"INSERT INTO dbo.[{firstName}] VALUES (?); INSERT INTO dbo.[{secondName}] VALUES (?); ";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql($"{prefix}INSERT INTO {target} VALUES ('customer@example.com')");
+
+        Assert.Equal($"{expectedPrefix}INSERT INTO {target} VALUES (?)", sqlStatementInfo.SanitizedSql);
+        Assert.Equal($"INSERT dbo.[{firstName}]", sqlStatementInfo.DbQuerySummary);
+    }
+
+    [Fact]
+    public void GetSanitizedSql_LongPeriodRun_SanitizesFollowingLiteralAndLimitsSummary()
+    {
+        var target = $"[Server]{new string('.', 10_000)}['Orders]";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql($"INSERT INTO {target} VALUES ('customer@example.com')");
+
+        Assert.Equal($"INSERT INTO {target} VALUES (?)", sqlStatementInfo.SanitizedSql);
+        Assert.Equal("INSERT", sqlStatementInfo.DbQuerySummary);
+    }
+
+    [Theory]
     [InlineData(false)]
     [InlineData(true)]
     public void GetSanitizedSql_DelimitedNameExceedingSummaryLengthLimit_OmitsPartialName(bool firstContainsSpace)
