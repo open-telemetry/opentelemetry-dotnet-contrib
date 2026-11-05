@@ -5,7 +5,7 @@ using System.Buffers;
 using System.Net.WebSockets;
 using OpenTelemetry.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Utils;
-using SWebSocket = System.Net.WebSockets.WebSocket;
+using SystemNetWebSocket = System.Net.WebSockets.WebSocket;
 
 namespace OpenTelemetry.OpAmp.Client.Internal.Transport.WebSocket;
 
@@ -17,7 +17,7 @@ internal sealed class WsReceiver : IDisposable
     private const int RentalBufferSize = 4 * 1024; // 4 KB
     private const int ReceiveBufferSize = 8 * 1024; // 8 KB
 
-    private readonly SWebSocket ws;
+    private readonly SystemNetWebSocket ws;
     private readonly FrameProcessor processor;
     private readonly SemaphoreSlim sendLock;
     private readonly CancellationTokenSource disposeTokenSource = new();
@@ -28,7 +28,7 @@ internal sealed class WsReceiver : IDisposable
     private Task? receiveTask;
     private bool disposed;
 
-    public WsReceiver(SWebSocket ws, FrameProcessor processor, SemaphoreSlim sendLock)
+    public WsReceiver(SystemNetWebSocket ws, FrameProcessor processor, SemaphoreSlim sendLock)
     {
         Guard.ThrowIfNull(ws, nameof(ws));
         Guard.ThrowIfNull(processor, nameof(processor));
