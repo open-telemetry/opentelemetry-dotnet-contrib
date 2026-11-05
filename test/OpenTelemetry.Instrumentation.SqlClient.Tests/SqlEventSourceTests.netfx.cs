@@ -355,17 +355,23 @@ public class SqlEventSourceTests
     [Theory]
     [InlineData(typeof(FakeBehavingAdoNetSqlEventSource))]
     [InlineData(typeof(FakeBehavingMdsSqlEventSource))]
-    public void CommandsWhichNeverEndAreNotRetainedWithoutLimit(Type eventSourceType)
+    public void PendingCommandLimitDropsOldExecutionsAndRecordsNewOnes(Type eventSourceType)
     {
         using var fakeSqlEventSource = (IFakeBehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
 
         var activities = new List<Activity>();
+        var metrics = new List<Metric>();
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddSqlClientInstrumentation()
             .AddInMemoryExporter(activities)
             .Build();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(metrics)
+            .Build();
 
-        // None of these commands end, so more of them are started than can be executing at the same time.
+        // An unmatched begin may belong to an abandoned command or one which is still executing.
+        // Exceed the pending-command limit before either the oldest or newest command completes.
         var last = SqlEventSourceListener.MaxPendingCommands * 2;
 
         for (var objectId = 1; objectId <= last; objectId++)
@@ -373,16 +379,28 @@ public class SqlEventSourceTests
             fakeSqlEventSource.WriteBeginExecuteEvent(objectId, "127.0.0.1", "master", "select 1");
         }
 
-        // The oldest command is no longer tracked, but the newest one still is.
+        // The oldest command was dropped during a capacity reset, even though it eventually completes.
         fakeSqlEventSource.WriteEndExecuteEvent(1, compositeState: 1, sqlExceptionNumber: 0);
 
         Assert.True(tracerProvider.ForceFlush());
+        Assert.True(meterProvider.ForceFlush());
         Assert.Empty(activities);
+        Assert.Empty(metrics);
 
         fakeSqlEventSource.WriteEndExecuteEvent(last, compositeState: 1, sqlExceptionNumber: 0);
 
         Assert.True(tracerProvider.ForceFlush());
-        Assert.Single(activities);
+        Assert.True(meterProvider.ForceFlush());
+        Assert.True(Assert.Single(activities).IsStopped);
+
+        var metric = Assert.Single(metrics, m => m.Name == "db.client.operation.duration");
+        var metricPoints = new List<MetricPoint>();
+        foreach (var point in metric.GetMetricPoints())
+        {
+            metricPoints.Add(point);
+        }
+
+        Assert.Equal(1, Assert.Single(metricPoints).GetHistogramCount());
     }
 
     [Theory]
