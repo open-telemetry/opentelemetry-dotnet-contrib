@@ -1132,6 +1132,53 @@ public class SqlProcessorTests(ITestOutputHelper output)
     }
 
     [Theory]
+    [InlineData("/* served on GET /notes/* */ SELECT * FROM Notes WHERE Tag = '*/' AND TenantKey = 'secret-name'", " SELECT * FROM Notes WHERE Tag = ? AND TenantKey = ?")]
+    [InlineData("/* a /* b */ SELECT * FROM Notes WHERE Tag = '*/' AND TenantKey = 'secret-name'", " SELECT * FROM Notes WHERE Tag = ? AND TenantKey = ?")]
+    [InlineData("SELECT * FROM Notes /* a /* b */ WHERE TenantKey = 'secret-name'", "SELECT * FROM Notes  WHERE TenantKey = ?")]
+    [InlineData("SELECT * FROM Notes WHERE Id IN (1, /* a /* b */ 'secret-name', 2)", "SELECT * FROM Notes WHERE Id IN (?)")]
+    [InlineData("SELECT * FROM dbo. /* a /* b */ Notes WHERE TenantKey = 'secret-name'", "SELECT * FROM dbo.  Notes WHERE TenantKey = ?")]
+    public void GetSanitizedSql_BlockCommentsWhichDoNotNest_EndAtFirstCommentEnd(string sql, string expected)
+    {
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, allowNestedComments: false);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Fact]
+    public void GetSanitizedSql_BlockCommentsWhichNest_EndAtMatchingCommentEnd()
+    {
+        var sql = "/* a /* b */ don't */ SELECT * FROM Notes WHERE TenantKey = 'secret-name'";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+        var explicitlyNested = SqlProcessor.GetSanitizedSql(sql, allowNestedComments: true);
+
+        Assert.Equal(" SELECT * FROM Notes WHERE TenantKey = ?", sqlStatementInfo.SanitizedSql);
+        Assert.Equal(sqlStatementInfo.SanitizedSql, explicitlyNested.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(20)]
+    public void GetSanitizedSql_SameInstanceWithDifferentCommentNesting_RespectsDialect(int extraColumns)
+    {
+        var columns = GetColumnList(extraColumns);
+        var sql = $"/* a /* b */ SELECT {columns} FROM Users WHERE Name = '*/' AND Key = 'secret-name'";
+
+        var nested = SqlProcessor.GetSanitizedSql(sql, allowNestedComments: true);
+        var notNested = SqlProcessor.GetSanitizedSql(sql, allowNestedComments: false);
+        var nestedAgain = SqlProcessor.GetSanitizedSql(sql, allowNestedComments: true);
+        var notNestedAgain = SqlProcessor.GetSanitizedSql(sql, allowNestedComments: false);
+
+        Assert.Equal($" SELECT {columns} FROM Users WHERE Name = ? AND Key = ?", notNested.SanitizedSql);
+        Assert.NotEqual(notNested.SanitizedSql, nested.SanitizedSql);
+        Assert.Equal(nested.SanitizedSql, nestedAgain.SanitizedSql);
+        Assert.Equal(notNested.SanitizedSql, notNestedAgain.SanitizedSql);
+    }
+
+    [Theory]
     [InlineData(0)]
     [InlineData(20)]
     public void GetSanitizedSql_SameInstanceWithTripleQuotedLiteralDialect_RespectsDialect(int extraColumns)

@@ -116,6 +116,54 @@ public sealed class EntityFrameworkQuerySanitizationTests : IDisposable
         Assert.DoesNotContain("@example.com", exported[1].DisplayName, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void SqliteProvider_SlashAsteriskInBlockComment_DoesNotAffectLaterLiterals()
+    {
+        var exported = new List<Activity>();
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .AddInMemoryExporter(exported)
+                   .AddEntityFrameworkCoreInstrumentation()
+                   .Build())
+        {
+            using var context = new AccountsContext(OfflineOptions(b => b.UseSqlite("Data Source=:memory:")));
+
+            // SQLite ends a block comment at the first */, so the comment ends before SELECT.
+            context.Database.ExecuteSqlRaw(
+                "/* served on GET /notes/* */ UPDATE Accounts SET Note = '*/ ends nothing' WHERE ApiKey = 'sk_test_hunter-two'");
+        }
+
+        var activity = Assert.Single(exported);
+        var queryText = this.GetQueryText(activity);
+
+        Assert.DoesNotContain("hunter-two", queryText, StringComparison.Ordinal);
+        Assert.Equal("UPDATE Accounts SET Note = ? WHERE ApiKey = ?", queryText.Trim());
+    }
+
+    [Fact]
+    public void PostgresProvider_NestedBlockComment_IsSkippedAsAWhole()
+    {
+        var exported = new List<Activity>();
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .AddInMemoryExporter(exported)
+                   .AddEntityFrameworkCoreInstrumentation()
+                   .Build())
+        {
+            using var context = new AccountsContext(OfflineOptions(b => b.UseNpgsql("Host=pg.internal;Database=crm")));
+
+            // PostgreSQL nests block comments, so the apostrophe is part of the comment.
+            context.Database.ExecuteSqlRaw(
+                "/* a /* b */ don't */ UPDATE Accounts SET Note = 'x' WHERE ApiKey = 'sk_test_hunter-two'");
+        }
+
+        var activity = Assert.Single(exported);
+        var queryText = this.GetQueryText(activity);
+
+        Assert.DoesNotContain("hunter-two", queryText, StringComparison.Ordinal);
+        Assert.Equal("UPDATE Accounts SET Note = ? WHERE ApiKey = ?", queryText.Trim());
+    }
+
     [Theory]
     [InlineData("UPDATE Cases SET Note = '''The customer's recovery code is hunter-two''' WHERE CaseId = 4711", "UPDATE Cases SET Note = ? WHERE CaseId = ?")]
     [InlineData("UPDATE Customers SET LastName = 'O\\'Brien', AccessCode = 'hunter-two' WHERE CustomerId = 7", "UPDATE Customers SET LastName = ?, AccessCode = ? WHERE CustomerId = ?")]

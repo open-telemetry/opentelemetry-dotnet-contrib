@@ -266,6 +266,39 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         return testCases;
     }
 
+    public static TheoryData<string, bool> IsNestedCommentProviderTestCases()
+    {
+        var values = DbSystemTestCases().ToDictionary((k) => k.Data.Item1, (v) => false);
+
+        string[] nestedCommentProviders =
+        [
+            "Devart.Data.PostgreSql.Entity.EFCore",
+            "Devart.Data.PostgreSql.PgSqlCommand",
+            "IBM.EntityFrameworkCore",
+            "IBM.EntityFrameworkCore-lnx",
+            "IBM.EntityFrameworkCore-osx",
+            "Microsoft.EntityFrameworkCore.SqlServer",
+            "Microsoft.Data.SqlClient.SqlCommand",
+            "Npgsql.EntityFrameworkCore.PostgreSQL",
+            "Npgsql.NpgsqlCommand",
+        ];
+
+        foreach (var name in nestedCommentProviders)
+        {
+            Assert.True(values.ContainsKey(name), $"'{name}' is not a known provider name.");
+            values[name] = true;
+        }
+
+        var testCases = new TheoryData<string, bool>();
+
+        foreach ((var name, var expected) in values)
+        {
+            testCases.Add(name, expected);
+        }
+
+        return testCases;
+    }
+
     public static TheoryData<string, bool> IsTripleQuotedLiteralProviderTestCases()
     {
         var values = DbSystemTestCases().ToDictionary((k) => k.Data.Item1, (v) => false);
@@ -315,6 +348,15 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     public void ShouldReturnCorrectValueForBackslashEscapeProviderOrCommandName(string name, bool expected)
     {
         var actual = EntityFrameworkProviderInfo.IsBackslashEscapeProvider(name);
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Theory]
+    [MemberData(nameof(IsNestedCommentProviderTestCases))]
+    public void ShouldReturnCorrectValueForNestedCommentProviderOrCommandName(string name, bool expected)
+    {
+        var actual = EntityFrameworkProviderInfo.IsNestedCommentProvider(name);
 
         Assert.Equal(expected, actual);
     }

@@ -115,4 +115,20 @@ internal static class EntityFrameworkProviderInfo
         (_, var dbSystemName) = GetDbSystemNames(providerOrCommandName);
         return dbSystemName == DbSystemNames.GcpSpanner;
     }
+
+    /// <summary>
+    /// Returns whether the provider allows block comments to be nested.
+    /// </summary>
+    /// <param name="providerOrCommandName">The provider or command name.</param>
+    /// <returns><see langword="true"/> for SQL Server, PostgreSQL and Db2 providers; otherwise, <see langword="false"/>.</returns>
+    public static bool IsNestedCommentProvider(string? providerOrCommandName)
+    {
+        // In these databases a comment such as /* /* */ text */ only ends at the second */. In the others
+        // (e.g. SQLite, Oracle, Firebird, Teradata and MySQL) a block comment ends at the first */.
+        (_, var dbSystemName) = GetDbSystemNames(providerOrCommandName);
+        return dbSystemName is
+            DbSystemNames.IbmDb2 or
+            DbSystemNames.MicrosoftSqlServer or
+            DbSystemNames.Postgresql;
+    }
 }

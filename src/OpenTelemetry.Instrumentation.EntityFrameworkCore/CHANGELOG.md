@@ -56,6 +56,11 @@
   `db.query.text`.
   ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
 
+* Fixed query sanitization for providers whose database does not nest block
+  comments, such as SQLite and Oracle, so that a `/*` inside a block comment no
+  longer affects how the rest of the statement is sanitized.
+  ([#YYYY](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/YYYY))
+
 ## 1.20.1-beta.1
 
 Released 2026-Oct-21
