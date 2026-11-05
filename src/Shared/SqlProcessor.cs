@@ -900,6 +900,15 @@ internal static partial class SqlProcessor
                 var nameEnd = i;
                 while (i < sql.Length && IsWordChar(sql[i], state.Dialect))
                 {
+                    // MySQL quotes the host separately from the user (e.g. alice@`host`), so it is left to be the next token.
+                    if (sql[i] == AtChar &&
+                        state.Dialect == SqlDialect.MySql &&
+                        i + 1 < sql.Length &&
+                        sql[i + 1] is SingleQuoteChar or DoubleQuoteChar or BacktickChar)
+                    {
+                        break;
+                    }
+
                     i++;
                 }
 

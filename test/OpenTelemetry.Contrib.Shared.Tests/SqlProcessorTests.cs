@@ -1531,6 +1531,9 @@ public class SqlProcessorTests(ITestOutputHelper output)
     [InlineData("CREATE USER alice DEFAULT ROLE reporter, reader", "CREATE USER ? DEFAULT ROLE reporter, reader")]
     [InlineData("ALTER USER alice IDENTIFIED BY 'first'; SELECT name, email FROM contacts", "ALTER USER ? IDENTIFIED BY ?; SELECT name, email FROM contacts")]
     [InlineData("ALTER TABLE t RENAME COLUMN user TO customer", "ALTER TABLE t RENAME COLUMN user TO customer")]
+    [InlineData("CREATE USER alice@`private_host` IDENTIFIED BY 'pw'", "CREATE USER ?@`?` IDENTIFIED BY ?")]
+    [InlineData("CREATE USER alice@'private_host' IDENTIFIED BY 'pw'", "CREATE USER ?@? IDENTIFIED BY ?")]
+    [InlineData("CREATE USER alice@`h1` IDENTIFIED BY 'pw', bob@`h2` IDENTIFIED BY 'pw'", "CREATE USER ?@`?` IDENTIFIED BY ?, ?@`?` IDENTIFIED BY ?")]
     public void GetSanitizedSql_MySqlAccountLists_AreRedactedWithoutAffectingOtherLists(string sql, string expected)
     {
         var result = GetSanitizedSql(sql, SqlDialect.MySql);
