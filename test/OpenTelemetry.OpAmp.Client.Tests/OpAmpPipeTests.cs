@@ -7,6 +7,7 @@ using Google.Protobuf;
 using OpAmp.Proto.V1;
 using OpenTelemetry.OpAmp.Client.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Services.Heartbeat;
+using OpenTelemetry.OpAmp.Client.Messages;
 using OpenTelemetry.OpAmp.Client.Settings;
 using OpenTelemetry.OpAmp.Client.Tests.Mocks;
 using OpenTelemetry.OpAmp.Client.Tests.Tools;
@@ -257,13 +258,13 @@ public abstract class OpAmpPipeTests
     public async Task OpAmpPipe_RejectsCustomMessagesBeyondQueuePayloadByteLimit()
     {
         const int payloadSize = 4;
-        const int maxPendingCustomMessageBytes = 8;
-        const int messagesAtLimit = maxPendingCustomMessageBytes / payloadSize;
+        const int maxPendingMessageBytes = 8;
+        const int messagesAtLimit = maxPendingMessageBytes / payloadSize;
 
         using var transport = this.GetTransport();
         var settings = new OpAmpClientSettings
         {
-            MaxPendingCustomMessageBytes = maxPendingCustomMessageBytes,
+            MaxPendingMessageBytes = maxPendingMessageBytes,
         };
         var processor = new FrameProcessor();
         using var pipe = new OpAmpPipe(settings, processor, transport);
@@ -280,7 +281,7 @@ public abstract class OpAmpPipeTests
 
         var fullQueueException = Assert.Throws<InvalidOperationException>(
             () => AppendCustomMessage(pipe, messagesAtLimit, new byte[1]));
-        Assert.Contains(maxPendingCustomMessageBytes.ToString(), fullQueueException.Message);
+        Assert.Contains(maxPendingMessageBytes.ToString(), fullQueueException.Message);
         Assert.Single(transport.Messages);
 
         transport.CompleteNextSend();
@@ -295,6 +296,326 @@ public abstract class OpAmpPipeTests
         AppendCustomMessage(pipe, messagesAtLimit + 1, payload);
         Assert.Throws<InvalidOperationException>(
             () => AppendCustomMessage(pipe, messagesAtLimit + 2, new byte[1]));
+    }
+
+    [Fact]
+    public async Task OpAmpPipe_CountsAccumulatedReportsAgainstPendingByteLimit_AndKeepsThemWhenRejected()
+    {
+        const int configSize = 2048;
+        const int maxPendingMessageBytes = 1024;
+
+        using var transport = this.GetTransport();
+
+        var settings = new OpAmpClientSettings
+        {
+            MaxPendingMessageBytes = maxPendingMessageBytes,
+        };
+
+        var processor = new FrameProcessor();
+        using var pipe = new OpAmpPipe(settings, processor, transport);
+        var serverFrame = new ServerToAgent().ToByteArray();
+
+        AppendIdentification(pipe);
+        await transport.WaitForMessagesAsync(1);
+
+        // The send is blocked, so the report accumulates. The custom message has an empty
+        // payload, but the frame it would queue carries the whole report.
+        AppendEffectiveConfig(pipe, configSize);
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => AppendCustomMessage(pipe, 0, ReadOnlyMemory<byte>.Empty));
+        Assert.Contains(maxPendingMessageBytes.ToString(), exception.Message);
+
+        // The rejected message must not have consumed the unsent report.
+        transport.CompleteNextSend();
+        processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+        await transport.WaitForMessagesAsync(2);
+
+        var message = transport.Messages[1];
+        Assert.NotNull(message.EffectiveConfig);
+        Assert.Equal(
+            configSize,
+            message.EffectiveConfig.ConfigMap.ConfigMap["config"].Body.Length);
+        Assert.Null(message.CustomMessage);
+    }
+
+    [Fact]
+    public async Task OpAmpPipe_CountsPartiallyAppendedReportAgainstPendingByteLimit_WhenAppendMessageThrows()
+    {
+        const int configSize = 2048;
+        const int maxPendingMessageBytes = 1024;
+
+        using var transport = this.GetTransport();
+
+        var settings = new OpAmpClientSettings
+        {
+            MaxPendingMessageBytes = maxPendingMessageBytes,
+        };
+
+        var processor = new FrameProcessor();
+        using var pipe = new OpAmpPipe(settings, processor, transport);
+
+        AppendIdentification(pipe);
+        await transport.WaitForMessagesAsync(1);
+
+        // The callback adds a report to the frame and then throws, as a failing
+        // custom-capability enumeration would. The report stays in the builder.
+        var appendConfig = MessageBuilderHelper.AppendEffectiveConfig(
+            [new EffectiveConfigFile(new byte[configSize], "text/plain", "config")]);
+        Assert.Throws<InvalidOperationException>(
+            () => pipe.AppendMessage(frame =>
+            {
+                appendConfig(frame);
+                throw new InvalidOperationException("Simulated failure after partial append.");
+            }));
+
+        // The retained report must be charged to the limit even though the payload is empty.
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => AppendCustomMessage(pipe, 0, ReadOnlyMemory<byte>.Empty));
+        Assert.Contains(maxPendingMessageBytes.ToString(), exception.Message);
+    }
+
+    [Fact]
+    public async Task OpAmpPipe_FreesPendingByteLimitCapacityForWholeFrame_WhenFrameIsDequeued()
+    {
+        const int configSize = 2048;
+        const int maxPendingMessageBytes = 3000; // Fits one config + custom frame, not two.
+
+        using var transport = this.GetTransport();
+        var settings = new OpAmpClientSettings
+        {
+            MaxPendingMessageBytes = maxPendingMessageBytes,
+        };
+        var processor = new FrameProcessor();
+        using var pipe = new OpAmpPipe(settings, processor, transport);
+        var serverFrame = new ServerToAgent().ToByteArray();
+
+        AppendIdentification(pipe);
+        await transport.WaitForMessagesAsync(1);
+
+        AppendEffectiveConfig(pipe, configSize);
+        AppendCustomMessage(pipe, 0, ReadOnlyMemory<byte>.Empty);
+
+        AppendEffectiveConfig(pipe, configSize);
+        Assert.Throws<InvalidOperationException>(
+            () => AppendCustomMessage(pipe, 1, ReadOnlyMemory<byte>.Empty));
+
+        // Dequeueing the first frame must free all pending bytes counted for it, including the report.
+        transport.CompleteNextSend();
+        processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+        await transport.WaitForMessagesAsync(2);
+
+        Assert.NotNull(transport.Messages[1].EffectiveConfig);
+        Assert.NotNull(transport.Messages[1].CustomMessage);
+
+        // The report left unsent by the rejection fits now and is sent with the next custom message.
+        AppendCustomMessage(pipe, 2, ReadOnlyMemory<byte>.Empty);
+
+        AppendEffectiveConfig(pipe, configSize);
+        Assert.Throws<InvalidOperationException>(
+            () => AppendCustomMessage(pipe, 3, ReadOnlyMemory<byte>.Empty));
+    }
+
+    [Fact]
+    public async Task OpAmpPipe_FlushAsync_DoesNotWaitForDataAppendedAfterTheCall()
+    {
+        using var transport = this.GetTransport();
+        var processor = new FrameProcessor();
+        using var pipe = new OpAmpPipe(new OpAmpClientSettings(), processor, transport);
+        var serverFrame = new ServerToAgent().ToByteArray();
+
+        AppendIdentification(pipe);
+        await transport.WaitForMessagesAsync(1);
+
+        var flushTask = pipe.FlushAsync(TestContext.Current.CancellationToken);
+        Assert.False(flushTask.IsCompleted, "Flush task should not be completed immediately after calling FlushAsync.");
+
+        // A heartbeat arriving while the original send is still in flight.
+        AppendHeartbeat(pipe);
+
+        transport.CompleteNextSend();
+        processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+
+        await CompleteWithinTimeoutAsync(flushTask);
+
+        // The heartbeat send was started, but its completion was not required.
+        await transport.WaitForMessagesAsync(2);
+        Assert.NotNull(transport.Messages.ToArray()[1].Health);
+        transport.CompleteNextSend();
+    }
+
+    [Fact]
+    public async Task OpAmpPipe_FlushAsync_WaitsForDataAccumulatedBeforeTheCall()
+    {
+        using var transport = this.GetTransport();
+        var processor = new FrameProcessor();
+        using var pipe = new OpAmpPipe(new OpAmpClientSettings(), processor, transport);
+        var serverFrame = new ServerToAgent().ToByteArray();
+
+        AppendIdentification(pipe);
+        await transport.WaitForMessagesAsync(1);
+        AppendHeartbeat(pipe); // accumulated while busy
+
+        var flushTask = pipe.FlushAsync(TestContext.Current.CancellationToken);
+
+        transport.CompleteNextSend();
+        processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+        await transport.WaitForMessagesAsync(2);
+        Assert.False(flushTask.IsCompleted, "Flush task should not be completed immediately after calling FlushAsync for accumulated data.");
+
+        transport.CompleteNextSend();
+        processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+        await CompleteWithinTimeoutAsync(flushTask);
+    }
+
+    [Fact]
+    public async Task OpAmpPipe_FlushAsync_WaitsForQueuedCustomFramesButNotLaterOnes()
+    {
+        using var transport = this.GetTransport();
+        var processor = new FrameProcessor();
+        using var pipe = new OpAmpPipe(new OpAmpClientSettings(), processor, transport);
+        var serverFrame = new ServerToAgent().ToByteArray();
+
+        AppendIdentification(pipe);
+        await transport.WaitForMessagesAsync(1);
+        AppendCustomMessage(pipe, 0);
+
+        var flushTask = pipe.FlushAsync(TestContext.Current.CancellationToken);
+        AppendCustomMessage(pipe, 1); // queued after the flush call
+
+        transport.CompleteNextSend();
+        processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+        await transport.WaitForMessagesAsync(2);
+        Assert.False(flushTask.IsCompleted, "Flush task should not be completed immediately after calling FlushAsync for queued custom frames.");
+
+        transport.CompleteNextSend();
+        processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+
+        await CompleteWithinTimeoutAsync(flushTask);
+        await transport.WaitForMessagesAsync(3);
+        transport.CompleteNextSend();
+    }
+
+    [Fact]
+    public async Task OpAmpPipe_FlushAsync_WaitsForAccumulatedDataBuiltIntoALaterCustomFrame()
+    {
+        using var transport = this.GetTransport();
+        var processor = new FrameProcessor();
+        using var pipe = new OpAmpPipe(new OpAmpClientSettings(), processor, transport);
+        var serverFrame = new ServerToAgent().ToByteArray();
+
+        AppendIdentification(pipe);
+        await transport.WaitForMessagesAsync(1);
+        AppendCustomMessage(pipe, 0);
+        AppendHeartbeat(pipe);
+
+        var flushTask = pipe.FlushAsync(TestContext.Current.CancellationToken);
+
+        // The accumulated heartbeat becomes part of a custom frame built after the flush call.
+        AppendCustomMessage(pipe, 1);
+        AppendCustomMessage(pipe, 2);
+
+        for (var expectedMessageCount = 2; expectedMessageCount <= 3; expectedMessageCount++)
+        {
+            transport.CompleteNextSend();
+            processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+            await transport.WaitForMessagesAsync(expectedMessageCount);
+            Assert.False(flushTask.IsCompleted, "Flush must wait for the frame containing the accumulated heartbeat.");
+        }
+
+        var heartbeatFrame = transport.Messages[2];
+        Assert.NotNull(heartbeatFrame.Health);
+        Assert.Equal("type-1", heartbeatFrame.CustomMessage.Type);
+
+        transport.CompleteNextSend();
+        processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+        await CompleteWithinTimeoutAsync(flushTask);
+
+        await transport.WaitForMessagesAsync(4);
+        Assert.Equal("type-2", transport.Messages[3].CustomMessage.Type);
+        transport.CompleteNextSend();
+    }
+
+    [Fact]
+    public async Task OpAmpPipe_FlushAsync_OverlappingCallsCompleteAtTheirOwnTargets()
+    {
+        using var transport = this.GetTransport();
+        var processor = new FrameProcessor();
+        using var pipe = new OpAmpPipe(new OpAmpClientSettings(), processor, transport);
+        var serverFrame = new ServerToAgent().ToByteArray();
+
+        AppendIdentification(pipe);
+        await transport.WaitForMessagesAsync(1);
+
+        var first = pipe.FlushAsync(TestContext.Current.CancellationToken);
+        AppendCustomMessage(pipe, 0);
+        var second = pipe.FlushAsync(TestContext.Current.CancellationToken);
+
+        transport.CompleteNextSend();
+        processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+        await CompleteWithinTimeoutAsync(first);
+        Assert.False(second.IsCompleted, "Second flush task should not be completed immediately after calling FlushAsync for queued custom frames.");
+
+        await transport.WaitForMessagesAsync(2);
+        transport.CompleteNextSend();
+        processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+        await CompleteWithinTimeoutAsync(second);
+    }
+
+    [Fact]
+    public async Task OpAmpPipe_FlushAsync_CompletesWhenTargetSendFails()
+    {
+        using var transport = this.GetTransport();
+        using var pipe = new OpAmpPipe(new OpAmpClientSettings(), new FrameProcessor(), transport);
+
+        AppendIdentification(pipe);
+        await transport.WaitForMessagesAsync(1);
+
+        var flushTask = pipe.FlushAsync(TestContext.Current.CancellationToken);
+        transport.FaultNextSend(new InvalidOperationException("send failed"));
+
+        await CompleteWithinTimeoutAsync(flushTask);
+    }
+
+    [Fact]
+    public async Task OpAmpPipe_FlushAsync_CanBeCancelledAndLaterFlushStillCompletes()
+    {
+        using var transport = this.GetTransport();
+        var processor = new FrameProcessor();
+        using var pipe = new OpAmpPipe(new OpAmpClientSettings(), processor, transport);
+        var serverFrame = new ServerToAgent().ToByteArray();
+
+        AppendIdentification(pipe);
+        await transport.WaitForMessagesAsync(1);
+
+        for (var i = 0; i < 10; i++)
+        {
+            using var cts = new CancellationTokenSource();
+            var cancelled = pipe.FlushAsync(cts.Token);
+            cts.Cancel();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => cancelled);
+        }
+
+        var flushTask = pipe.FlushAsync(TestContext.Current.CancellationToken);
+        transport.CompleteNextSend();
+        processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+        await CompleteWithinTimeoutAsync(flushTask);
+    }
+
+    [Fact]
+    public async Task OpAmpPipe_FlushAsync_CompletesWhenPipeIsDisposed()
+    {
+        using var transport = this.GetTransport();
+        var pipe = new OpAmpPipe(new OpAmpClientSettings(), new FrameProcessor(), transport);
+
+        AppendIdentification(pipe);
+        await transport.WaitForMessagesAsync(1);
+
+        var flushTask = pipe.FlushAsync(TestContext.Current.CancellationToken);
+        Assert.False(flushTask.IsCompleted, "Flush task should not be completed immediately after calling FlushAsync before disposing the pipe.");
+
+        pipe.Dispose();
+
+        await CompleteWithinTimeoutAsync(flushTask);
     }
 
     [Fact]
@@ -493,6 +814,10 @@ public abstract class OpAmpPipeTests
     internal static void AppendHeartbeat(OpAmpPipe pipe)
         => pipe.AppendMessage(MessageBuilderHelper.AppendHeartbeat(CreateHealthReport()));
 
+    internal static void AppendEffectiveConfig(OpAmpPipe pipe, int size)
+        => pipe.AppendMessage(MessageBuilderHelper.AppendEffectiveConfig(
+            [new EffectiveConfigFile(new byte[size], "text/plain", "config")]));
+
     internal static void AppendCustomMessage(OpAmpPipe pipe, int index)
         => pipe.AppendCustomMessage(
             $"capability-{index}",
@@ -504,6 +829,13 @@ public abstract class OpAmpPipeTests
             $"capability-{index}",
             $"type-{index}",
             payload);
+
+    internal static async Task CompleteWithinTimeoutAsync(Task task)
+    {
+        var completed = await Task.WhenAny(task, Task.Delay(TimeSpan.FromSeconds(5)));
+        Assert.Same(task, completed);
+        await task;
+    }
 
     internal abstract MockControlledTransport GetTransport(Action? firstSendCallback = null);
 

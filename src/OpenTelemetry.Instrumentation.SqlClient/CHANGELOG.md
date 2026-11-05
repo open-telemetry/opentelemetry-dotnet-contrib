@@ -53,6 +53,15 @@
   fails before it is sent. Upgrade to apply the fix.
   ([#5872](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5872))
 
+* Fixed the activity of a command executed asynchronously (for example with
+  `ExecuteNonQueryAsync()`) being left as `Activity.Current` after the command
+  completed, which made every later command executed by the same method a child
+  of it and retained them all for as long as the method ran. The activity of a
+  command is no longer `Activity.Current` while the command executes or while
+  `Filter` and `EnrichWithSqlCommand` run, so use the `activity` argument of
+  `EnrichWithSqlCommand` instead.
+  ([#5866](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5866))
+
 * Fixed query sanitization so that a password which is not a string literal,
   such as the one in an `IDENTIFIED BY` clause, is replaced with `?`.
   ([#ZZZZ](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/ZZZZ))

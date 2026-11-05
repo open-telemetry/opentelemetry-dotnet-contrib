@@ -148,6 +148,107 @@ public class GrpcCoreServerInterceptorTests(WeaverFixture weaver, ITestOutputHel
     }
 
     /// <summary>
+    /// Validates that baggage extracted from the request headers is only
+    /// visible to the RPC it was sent with and does not overwrite the baggage
+    /// of the execution context the RPC was started in, which is shared by
+    /// every RPC when a baggage holder exists there.
+    /// </summary>
+    /// <returns>A task.</returns>
+    [Fact]
+    public async Task UnaryServerHandlerDoesNotWriteExtractedBaggageIntoInheritedBaggageHolder()
+    {
+        // Start-up code which sets and clears baggage leaves an empty baggage
+        // holder behind in the execution context the RPCs are started in.
+        Baggage.SetBaggage("warm-up", "true");
+        Baggage.ClearBaggage();
+
+        var testTags = new TestActivityTags();
+        var interceptorOptions = new ServerTracingInterceptorOptions
+        {
+            Propagator = new BaggagePropagator(),
+            AdditionalTags = testTags.Tags,
+        };
+
+        var interceptor = new ServerTracingInterceptor(interceptorOptions);
+        using var activityListener = new InterceptorActivityListener(testTags);
+
+        string? tenantSeenByHandler = null;
+        var response = await interceptor.UnaryServerHandler(
+            FoobarService.DefaultRequestMessage,
+            new TestServerCallContext([new Metadata.Entry("baggage", "tenant=from-the-caller")]),
+            (request, context) =>
+            {
+                tenantSeenByHandler = Baggage.GetBaggage("tenant");
+                return Task.FromResult(FoobarService.DefaultResponseMessage);
+            });
+
+        Assert.Same(FoobarService.DefaultResponseMessage, response);
+        Assert.NotNull(activityListener.Activity);
+        Assert.Equal("from-the-caller", tenantSeenByHandler);
+        Assert.Null(Baggage.GetBaggage("tenant"));
+    }
+
+    /// <summary>
+    /// Validates that baggage sent with one RPC is not visible to an RPC that
+    /// is already in flight, or to RPCs that start afterwards, when a baggage
+    /// holder exists in the execution context the RPCs are started in.
+    /// </summary>
+    /// <returns>A task.</returns>
+    [Fact]
+    public async Task UnaryServerHandlerDoesNotShareBaggageBetweenRpcs()
+    {
+        Baggage.SetBaggage("warm-up", "true");
+        Baggage.ClearBaggage();
+
+        var testTags = new TestActivityTags();
+        var interceptor = new ServerTracingInterceptor(new ServerTracingInterceptorOptions
+        {
+            Propagator = new BaggagePropagator(),
+            AdditionalTags = testTags.Tags,
+        });
+
+        using var activityListener = new InterceptorActivityListener(testTags);
+
+        string? tenantSeenByLaterRpc = null;
+        string? tenantSeenByInFlightRpcBefore = null;
+        string? tenantSeenByInFlightRpcAfter = null;
+        var release = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        // An RPC without baggage that is still running while the others are handled.
+        var inFlight = interceptor.UnaryServerHandler(
+            FoobarService.DefaultRequestMessage,
+            new TestServerCallContext([]),
+            async (request, context) =>
+            {
+                tenantSeenByInFlightRpcBefore = Baggage.GetBaggage("tenant");
+                await release.Task;
+                tenantSeenByInFlightRpcAfter = Baggage.GetBaggage("tenant");
+                return FoobarService.DefaultResponseMessage;
+            });
+
+        await interceptor.UnaryServerHandler(
+            FoobarService.DefaultRequestMessage,
+            new TestServerCallContext([new Metadata.Entry("baggage", "tenant=attacker")]),
+            (request, context) => Task.FromResult(FoobarService.DefaultResponseMessage));
+
+        await interceptor.UnaryServerHandler(
+            FoobarService.DefaultRequestMessage,
+            new TestServerCallContext([new Metadata.Entry("baggage", "tenant=customer")]),
+            (request, context) =>
+            {
+                tenantSeenByLaterRpc = Baggage.GetBaggage("tenant");
+                return Task.FromResult(FoobarService.DefaultResponseMessage);
+            });
+
+        release.SetResult(true);
+        await inFlight;
+
+        Assert.Null(tenantSeenByInFlightRpcBefore);
+        Assert.Null(tenantSeenByInFlightRpcAfter);
+        Assert.Equal("customer", tenantSeenByLaterRpc);
+    }
+
+    /// <summary>
     /// Validates that the number of message events recorded for a streaming call
     /// is bounded, regardless of how many messages the client sends.
     /// </summary>

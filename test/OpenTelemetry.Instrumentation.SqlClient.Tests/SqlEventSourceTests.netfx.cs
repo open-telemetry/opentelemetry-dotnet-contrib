@@ -249,6 +249,187 @@ public class SqlEventSourceTests
         Assert.Contains("select second_table", querySummaries);
     }
 
+    [Theory]
+    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource))]
+    [InlineData(typeof(FakeBehavingMdsSqlEventSource))]
+    public async Task CallerActivityIsRestoredWhenCommandEndsOnAnotherExecutionContext(Type eventSourceType)
+    {
+        using var fakeSqlEventSource = (IFakeBehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
+
+        var activities = new List<Activity>();
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        Assert.Null(Activity.Current);
+
+        const int Commands = 3;
+
+        for (var i = 0; i < Commands; i++)
+        {
+            var objectId = i + 1;
+
+            // The event which ends an asynchronous command may be written on a copy of the execution context
+            // of the caller, so the activity cannot restore the caller's current activity when it stops.
+            fakeSqlEventSource.WriteBeginExecuteEvent(objectId, "127.0.0.1", "master", "select 1");
+
+            Assert.Null(Activity.Current);
+
+            await Task.Run(() => fakeSqlEventSource.WriteEndExecuteEvent(objectId, compositeState: 1, sqlExceptionNumber: 0), TestContext.Current.CancellationToken);
+
+            Assert.Null(Activity.Current);
+        }
+
+        Assert.True(tracerProvider.ForceFlush());
+
+        Assert.Equal(Commands, activities.Count);
+        Assert.All(activities, x => Assert.True(x.IsStopped));
+        Assert.All(activities, x => Assert.Equal(default, x.ParentSpanId));
+    }
+
+    [Theory]
+    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource))]
+    [InlineData(typeof(FakeBehavingMdsSqlEventSource))]
+    public void CurrentActivityOfEndIsNotChangedWhenCommandEnds(Type eventSourceType)
+    {
+        using var fakeSqlEventSource = (IFakeBehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
+
+        var activities = new List<Activity>();
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        using var caller = new Activity("caller").SetIdFormat(ActivityIdFormat.W3C).Start();
+        caller.ActivityTraceFlags = ActivityTraceFlags.Recorded;
+
+        fakeSqlEventSource.WriteBeginExecuteEvent(1, "127.0.0.1", "master", "select 1");
+
+        // The command ends on an execution context which has a different current activity to the caller.
+        using var other = new Activity("other").SetIdFormat(ActivityIdFormat.W3C).Start();
+
+        fakeSqlEventSource.WriteEndExecuteEvent(1, compositeState: 1, sqlExceptionNumber: 0);
+
+        Assert.Equal(other, Activity.Current);
+
+        Assert.True(tracerProvider.ForceFlush());
+
+        var activity = Assert.Single(activities);
+        Assert.True(activity.IsStopped);
+        Assert.Equal(caller.SpanId, activity.ParentSpanId);
+    }
+
+    [Theory]
+    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource))]
+    [InlineData(typeof(FakeBehavingMdsSqlEventSource))]
+    public void ActivityOfCommandWhichNeverEndedIsNotUsedWhenItIsExecutedWhileInstrumentationIsDisabled(Type eventSourceType)
+    {
+        using var fakeSqlEventSource = (IFakeBehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
+
+        using (Sdk.CreateTracerProviderBuilder().AddSqlClientInstrumentation().Build())
+        {
+            // The first execution never ends.
+            fakeSqlEventSource.WriteBeginExecuteEvent(1, "127.0.0.1", "master", "select 1");
+        }
+
+        // The command is executed again while the instrumentation is disabled.
+        fakeSqlEventSource.WriteBeginExecuteEvent(1, "127.0.0.1", "master", "select 1");
+
+        // The instrumentation is enabled again before the command ends, under a parent which is not sampled.
+        var activities = new List<Activity>();
+        using var parent = new Activity("parent").SetIdFormat(ActivityIdFormat.W3C).Start();
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        fakeSqlEventSource.WriteEndExecuteEvent(1, compositeState: 1, sqlExceptionNumber: 0);
+
+        Assert.True(tracerProvider.ForceFlush());
+
+        Assert.Empty(activities);
+        Assert.Equal(parent, Activity.Current);
+    }
+
+    [Theory]
+    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource))]
+    [InlineData(typeof(FakeBehavingMdsSqlEventSource))]
+    public void PendingCommandLimitDropsOldExecutionsAndRecordsNewOnes(Type eventSourceType)
+    {
+        using var fakeSqlEventSource = (IFakeBehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
+
+        var activities = new List<Activity>();
+        var metrics = new List<Metric>();
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(activities)
+            .Build();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(metrics)
+            .Build();
+
+        // An unmatched begin may belong to an abandoned command or one which is still executing.
+        // Exceed the pending-command limit before either the oldest or newest command completes.
+        var last = SqlEventSourceListener.MaxPendingCommands * 2;
+
+        for (var objectId = 1; objectId <= last; objectId++)
+        {
+            fakeSqlEventSource.WriteBeginExecuteEvent(objectId, "127.0.0.1", "master", "select 1");
+        }
+
+        // The oldest command was dropped during a capacity reset, even though it eventually completes.
+        fakeSqlEventSource.WriteEndExecuteEvent(1, compositeState: 1, sqlExceptionNumber: 0);
+
+        Assert.True(tracerProvider.ForceFlush());
+        Assert.True(meterProvider.ForceFlush());
+        Assert.Empty(activities);
+        Assert.Empty(metrics);
+
+        fakeSqlEventSource.WriteEndExecuteEvent(last, compositeState: 1, sqlExceptionNumber: 0);
+
+        Assert.True(tracerProvider.ForceFlush());
+        Assert.True(meterProvider.ForceFlush());
+        Assert.True(Assert.Single(activities).IsStopped);
+
+        var metric = Assert.Single(metrics, m => m.Name == "db.client.operation.duration");
+        var metricPoints = new List<MetricPoint>();
+        foreach (var point in metric.GetMetricPoints())
+        {
+            metricPoints.Add(point);
+        }
+
+        Assert.Equal(1, Assert.Single(metricPoints).GetHistogramCount());
+    }
+
+    [Theory]
+    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource))]
+    [InlineData(typeof(FakeBehavingMdsSqlEventSource))]
+    public void CommandReusedAfterCapacityResetKeepsItsNewActivity(Type eventSourceType)
+    {
+        using var eventSource = (IFakeBehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
+        var activities = new List<Activity>();
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        // Fill the pending-command cache and force its capacity reset before reusing an id.
+        for (var objectId = 1; objectId <= SqlEventSourceListener.MaxPendingCommands + 1; objectId++)
+        {
+            eventSource.WriteBeginExecuteEvent(objectId, "127.0.0.1", "master", "select * from abandoned_command");
+        }
+
+        eventSource.WriteBeginExecuteEvent(1, "127.0.0.1", "master", "select * from reused_command");
+        eventSource.WriteEndExecuteEvent(1, compositeState: 1, sqlExceptionNumber: 0);
+
+        Assert.True(tracerProvider.ForceFlush());
+        var activity = Assert.Single(activities);
+        Assert.True(activity.IsStopped);
+        Assert.Equal("select reused_command", activity.GetTagValue(SemanticConventions.AttributeDbQuerySummary));
+    }
+
     [Fact]
     public void InterleavedEventSourceCommandsFromDifferentProvidersUseEventSourceAndObjectId()
     {

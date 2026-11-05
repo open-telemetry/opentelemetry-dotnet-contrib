@@ -17,10 +17,11 @@ namespace OpenTelemetry.OpAmp.Client.Settings;
 public sealed class OpAmpClientSettings
 {
     private static readonly Func<ClientWebSocket> DefaultClientWebSocketFactory = static () => new();
-    private static readonly Func<HttpClient> DefaultHttpClientFactory = static () => new();
 
+    private Func<ClientWebSocket>? clientWebSocketFactory;
+    private Func<HttpClient>? defaultHttpClientFactory;
     private int maxPendingCustomMessages = OpAmpClientDefaults.MaxPendingCustomMessages;
-    private int maxPendingCustomMessageBytes = OpAmpClientDefaults.MaxPendingCustomMessageBytes;
+    private int maxPendingMessageBytes = OpAmpClientDefaults.MaxPendingMessageBytes;
 
     /// <summary>
     /// Gets or sets the unique identifier for the current client instance.
@@ -88,6 +89,24 @@ public sealed class OpAmpClientSettings
     }
 
     /// <summary>
+    /// Gets or sets a value indicating whether the default HTTP and WebSocket clients
+    /// follow HTTP redirects. The default is <see langword="false"/>.
+    /// </summary>
+    /// <remarks>
+    /// <list type="bullet">
+    /// <item>When <see langword="true"/>, the server can choose the destination the
+    /// client connects to. Enable it only for servers you trust, over validated TLS.</item>
+    /// <item>This only applies to the default clients. It has no effect on a client
+    /// returned by <see cref="HttpClientFactory"/> or <see cref="ClientWebSocketFactory"/>,
+    /// which own their redirect behavior.</item>
+    /// <item>For WebSocket connections, redirects can only be disabled on .NET 10 or
+    /// later. On .NET Framework and .NET Standard 2.0 targets running on .NET
+    /// Framework, WebSocket redirects are followed regardless of this setting.</item>
+    /// </list>
+    /// </remarks>
+    public bool AllowRedirects { get; set; }
+
+    /// <summary>
     /// Gets or sets the maximum number of custom messages that may wait to be sent.
     /// The default is <c>2,048</c>.
     /// </summary>
@@ -105,20 +124,24 @@ public sealed class OpAmpClientSettings
     }
 
     /// <summary>
-    /// Gets or sets the maximum aggregate size, in bytes, of the <c>Data</c>
-    /// payloads of custom messages that may wait to be sent. The default is
+    /// Gets or sets the maximum aggregate size, in bytes, of the custom messages
+    /// waiting to be sent, including any state reports sent with them. The default is
     /// 64 MiB (<c>67,108,864</c> bytes).
     /// </summary>
+    /// <remarks>
+    /// This is an approximate limit rather than a strict bound on memory use. It does
+    /// not include the message currently being sent or protocol overhead.
+    /// </remarks>
     /// <exception cref="ArgumentOutOfRangeException">
     /// Thrown when the value is less than <c>1</c>.
     /// </exception>
-    public int MaxPendingCustomMessageBytes
+    public int MaxPendingMessageBytes
     {
-        get => this.maxPendingCustomMessageBytes;
+        get => this.maxPendingMessageBytes;
         set
         {
             Guard.ThrowIfOutOfRange(value, min: 1);
-            this.maxPendingCustomMessageBytes = value;
+            this.maxPendingMessageBytes = value;
         }
     }
 
@@ -158,15 +181,21 @@ public sealed class OpAmpClientSettings
     /// client.</item>
     /// <item>Available <see cref="ClientWebSocket.Options"/>
     /// configuration varies by target framework.</item>
+    /// <item>When not explicitly set, the default client follows HTTP
+    /// redirects during the WebSocket handshake only when <see
+    /// cref="AllowRedirects"/> is <see langword="true"/> (on .NET 10 and later).
+    /// A client returned by a custom factory owns its redirect behavior, which
+    /// follows redirects by default; <see cref="AllowRedirects"/> does not
+    /// apply to it.</item>
     /// </list>
     /// </remarks>
     public Func<ClientWebSocket> ClientWebSocketFactory
     {
-        get => field ?? DefaultClientWebSocketFactory;
+        get => this.clientWebSocketFactory ?? DefaultClientWebSocketFactory;
         set
         {
             Guard.ThrowIfNull(value);
-            field = value;
+            this.clientWebSocketFactory = value;
         }
     }
 
@@ -185,16 +214,28 @@ public sealed class OpAmpClientSettings
     /// <item>The returned instance is owned and disposed by the OpAmp
     /// client.</item>
     /// <item>When not explicitly set, a default <see
-    /// cref="HttpClient"/> instance is created.</item>
+    /// cref="HttpClient"/> instance is created that follows HTTP redirects
+    /// only when <see cref="AllowRedirects"/> is <see langword="true"/>.</item>
+    /// <item>A client returned by a custom factory owns its redirect
+    /// behavior; <see cref="AllowRedirects"/> does not apply to it.</item>
     /// </list>
     /// </remarks>
     public Func<HttpClient> HttpClientFactory
     {
-        get => field ?? DefaultHttpClientFactory;
+        get => field ?? (this.defaultHttpClientFactory ??= this.CreateDefaultHttpClient);
         set
         {
             Guard.ThrowIfNull(value);
             field = value;
         }
     }
+
+    // The WebSocket transport applies AllowRedirects only when the default factory is in use.
+    internal bool UsesDefaultClientWebSocketFactory => this.clientWebSocketFactory is null;
+
+    // CA2000: HttpClient owns and disposes the handler.
+    // CA5399: the handler's default certificate revocation checking is intentionally left unchanged.
+#pragma warning disable CA5399, CA2000
+    private HttpClient CreateDefaultHttpClient() => new(new HttpClientHandler { AllowAutoRedirect = this.AllowRedirects });
+#pragma warning restore CA5399, CA2000
 }

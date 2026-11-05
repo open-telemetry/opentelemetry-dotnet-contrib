@@ -730,7 +730,9 @@ public class SqlClientTraceInstrumentationOptionsTests
         var inner = activities.Single(x => (x.GetTagValue(SemanticConventions.AttributeDbQueryText) as string) == innerCommand.CommandText);
         var outer = activities.Single(x => (x.GetTagValue(SemanticConventions.AttributeDbQueryText) as string) == outerCommand.CommandText);
 
-        Assert.Equal(inner.ParentSpanId, outer.SpanId);
+        // The activity of a command is not the current activity while the command executes.
+        Assert.Equal(default, inner.ParentSpanId);
+        Assert.Equal(default, outer.ParentSpanId);
         Assert.Equal(7L, inner.GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
         Assert.Equal(20L, outer.GetTagValue(SemanticConventions.AttributeDbResponseReturnedRows));
     }
