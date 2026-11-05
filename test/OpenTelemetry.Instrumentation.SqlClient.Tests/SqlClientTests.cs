@@ -661,10 +661,11 @@ public class SqlClientTests
     public void ActivityIsStoppedWhenInstrumentationIsDisabledWhileCommandExecutes()
     {
         var started = new List<Activity>();
+        var sqlActivitySource = SqlTelemetryHelper.ActivitySource;
 
         using var activityListener = new ActivityListener
         {
-            ShouldListenTo = source => source == SqlTelemetryHelper.ActivitySource,
+            ShouldListenTo = source => source == sqlActivitySource,
             Sample = (ref _) => ActivitySamplingResult.AllData,
             ActivityStarted = started.Add,
         };
