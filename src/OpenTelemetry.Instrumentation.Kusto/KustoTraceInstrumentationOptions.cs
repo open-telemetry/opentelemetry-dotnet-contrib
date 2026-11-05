@@ -29,7 +29,7 @@ public sealed class KustoTraceInstrumentationOptions
     /// Default is <see langword="false"/>.
     /// </summary>
     /// <remarks>
-    /// https://github.com/open-telemetry/semantic-conventions/blob/main/docs/exceptions/exceptions-spans.md.
+    /// https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/exceptions/exceptions-spans.md.
     /// <para/>
     /// The exception message returned by the cluster can contain parts of the query text, such as literal values,
     /// which are not sanitized. Only enable this option if exposing such values in telemetry is acceptable.
