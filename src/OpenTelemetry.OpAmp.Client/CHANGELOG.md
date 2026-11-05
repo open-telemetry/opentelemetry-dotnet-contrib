@@ -17,6 +17,10 @@
   queued with custom messages.
   ([#5881](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5881))
 
+* Fix WebSocket transport startup blocking when the server sends messages
+  immediately after the handshake.
+  ([#5883](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5883))
+
 * **Breaking Change**: The default HTTP client and the default WebSocket
   client no longer follow HTTP redirects. A redirect response now fails the
   request or connection instead of being followed. To restore redirects, set

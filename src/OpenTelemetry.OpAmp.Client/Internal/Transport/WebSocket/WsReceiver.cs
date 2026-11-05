@@ -5,6 +5,7 @@ using System.Buffers;
 using System.Net.WebSockets;
 using OpenTelemetry.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Utils;
+using SystemNetWebSocket = System.Net.WebSockets.WebSocket;
 
 namespace OpenTelemetry.OpAmp.Client.Internal.Transport.WebSocket;
 
@@ -16,7 +17,7 @@ internal sealed class WsReceiver : IDisposable
     private const int RentalBufferSize = 4 * 1024; // 4 KB
     private const int ReceiveBufferSize = 8 * 1024; // 8 KB
 
-    private readonly ClientWebSocket ws;
+    private readonly SystemNetWebSocket ws;
     private readonly FrameProcessor processor;
     private readonly SemaphoreSlim sendLock;
     private readonly CancellationTokenSource disposeTokenSource = new();
@@ -27,7 +28,7 @@ internal sealed class WsReceiver : IDisposable
     private Task? receiveTask;
     private bool disposed;
 
-    public WsReceiver(ClientWebSocket ws, FrameProcessor processor, SemaphoreSlim sendLock)
+    public WsReceiver(SystemNetWebSocket ws, FrameProcessor processor, SemaphoreSlim sendLock)
     {
         Guard.ThrowIfNull(ws, nameof(ws));
         Guard.ThrowIfNull(processor, nameof(processor));
@@ -55,7 +56,14 @@ internal sealed class WsReceiver : IDisposable
         }
 
         this.linkedReceiveTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token, this.disposeTokenSource.Token);
-        this.receiveTask = this.ReceiveLoopAsync(this.linkedReceiveTokenSource.Token);
+
+        // Always dispatch to the thread pool. Invoked directly, the loop would run on the caller's
+        // thread until a receive has to wait for data, which a server that keeps sending can postpone
+        // indefinitely, so Start (and WsTransport.StartAsync) would never return.
+        var receiveToken = this.linkedReceiveTokenSource.Token;
+        this.receiveTask = Task.Run(
+            () => this.ReceiveLoopAsync(receiveToken),
+            CancellationToken.None);
     }
 
     /// <summary>
