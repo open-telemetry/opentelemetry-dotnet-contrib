@@ -103,10 +103,9 @@ internal static class EntityFrameworkProviderInfo
             DbSystemNames.MicrosoftSqlServer => SqlProcessor.SqlDialect.SqlServer,
             DbSystemNames.Sqlite => SqlProcessor.SqlDialect.Sqlite,
 
-            // A block comment ends at the first */ in these databases, unlike PostgreSQL and Db2 in which they nest.
-            DbSystemNames.OracleDb or
-            DbSystemNames.Firebirdsql or
-            DbSystemNames.Teradata => SqlProcessor.SqlDialect.NonNestedComments,
+            DbSystemNames.OracleDb => SqlProcessor.SqlDialect.Oracle,
+            DbSystemNames.Firebirdsql => SqlProcessor.SqlDialect.Firebird,
+            DbSystemNames.Teradata => SqlProcessor.SqlDialect.Teradata,
             _ => SqlProcessor.SqlDialect.Default,
         };
     }

@@ -62,9 +62,12 @@ internal static partial class SqlProcessor
         Identified,
         By,
         Values,
+        PasswordKeyword,
+        Modify,
 
-        // Not words, but what a token was: the CREATE OR REPLACE, the name of a login or user which was redacted, and
-        // a password which was redacted.
+        // Not words, but what a token was: the CREATE OR REPLACE, the name of a login or user which was redacted, a
+        // password which was redacted, and the semicolon which ends a statement (as does the start of the text).
+        StatementEnd,
         CreateOrReplace,
         AccountName,
         Password,
@@ -143,6 +146,7 @@ internal static partial class SqlProcessor
             (6, 'b') => Match(word, "backup", SqlWord.Backup),
             (6, 'c') => Match(word, "create", SqlWord.Create),
             (6, 'd') => Match(word, "delete", SqlWord.Delete),
+            (6, 'm') => Match(word, "modify", SqlWord.Modify),
             (6, 'e') => Match(word, "exists", SqlWord.Exists),
             (6, 'i') => Match(word, "insert", SqlWord.Insert),
             (6, 'r') => Match(word, "rename", SqlWord.Rename, "revoke", SqlWord.Revoke),
@@ -152,6 +156,7 @@ internal static partial class SqlProcessor
             (7, 'c') => Match(word, "collate", SqlWord.Collate, "cascade", SqlWord.Cascade),
             (7, 'e') => Match(word, "execute", SqlWord.Execute),
             (7, 'r') => Match(word, "replace", SqlWord.Replace, "restore", SqlWord.Restore),
+            (8, 'p') => Match(word, "password", SqlWord.PasswordKeyword),
             (8, 'r') => Match(word, "restrict", SqlWord.Restrict),
             (8, 't') => Match(word, "truncate", SqlWord.Truncate),
             (10, 'i') => Match(word, "identified", SqlWord.Identified),
@@ -222,6 +227,13 @@ internal static partial class SqlProcessor
         state.PreviousWord = word;
     }
 
+    private static bool IsFollowedByEquals(ReadOnlySpan<char> sql, int position, SqlDialect dialect)
+    {
+        position = SkipWhitespaceAndComments(sql, position, dialect);
+
+        return position < sql.Length && sql[position] == EqualsChar;
+    }
+
     // Whether the LOGIN or USER which ends at the position, after ALTER or DROP, is the name of a column
     // (e.g. ALTER TABLE t ALTER login TYPE text or ALTER TABLE t DROP login, ADD c int), as it is followed by what follows
     // a column, instead of by the name of a login or user.
@@ -275,6 +287,8 @@ internal static partial class SqlProcessor
     // Looks at a word which has been parsed, with the words before it, for the names of logins and users and for the
     // passwords which are not literals. Returns what is expected next, which is the name of a login or user if it is:
     // - LOGIN or USER after CREATE [OR REPLACE], ALTER or DROP (e.g. DROP USER name), unless it is the name of a column in ALTER TABLE.
+    //   It is also after MODIFY (Teradata) which starts a statement, as it is not in other places (e.g. a column in
+    //   SELECT modify user FROM t, or ALTER TABLE t MODIFY user int).
     // - LOGIN after FOR, FROM or WITH in such a statement (e.g. CREATE USER name FOR LOGIN name).
     // - TO after RENAME in such a statement (e.g. ALTER USER name RENAME TO name).
     // It is a password after IDENTIFIED BY, and after REPLACE if it follows a password, unless it is a literal,
@@ -321,10 +335,12 @@ internal static partial class SqlProcessor
             return PendingToken.None;
         }
 
-        if (!state.UseBackslashEscapes)
+        if (!Has(state.Dialect, SqlDialect.NoBareWordPasswords))
         {
+            // The password of IDENTIFIED BY password, of REPLACE old_password after it, and of PASSWORD = password (Teradata).
             if ((word == SqlWord.By && previous == SqlWord.Identified) ||
-                (word == SqlWord.Replace && previous == SqlWord.Password))
+                (word == SqlWord.Replace && previous == SqlWord.Password) ||
+                (word == SqlWord.PasswordKeyword && state.InLoginOrUserStatement && IsFollowedByEquals(sql, end, state.Dialect)))
             {
                 return PendingToken.Password;
             }
@@ -345,6 +361,7 @@ internal static partial class SqlProcessor
                 var isDrop = previous == SqlWord.Drop;
 
                 if (previous is SqlWord.Create or SqlWord.CreateOrReplace ||
+                    (previous == SqlWord.Modify && previousPrevious == SqlWord.StatementEnd) ||
                     ((isDrop || previous == SqlWord.Alter) && !(state.InAlterTable && IsColumnOperation(sql, end, state.Dialect))))
                 {
                     state.Statement |= StatementContext.LoginOrUser;
@@ -423,8 +440,10 @@ internal static partial class SqlProcessor
     {
         var start = state.ParsePosition;
 
-        // A variable is not a password.
-        if (!IsWordChar(sql[start]) || sql[start] == AtChar)
+        // A variable is not a password, nor is a string in dollar quotes (e.g. $$password$$), which is a literal.
+        if (!IsWordChar(sql[start]) ||
+            sql[start] == AtChar ||
+            TryFindDollarQuotedLiteralEnd(sql, start, state.Dialect, out _))
         {
             return false;
         }

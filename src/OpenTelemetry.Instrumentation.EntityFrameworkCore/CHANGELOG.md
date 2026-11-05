@@ -89,6 +89,21 @@
   statement.
   ([#DDDD](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/DDDD))
 
+* Fixed query sanitization for Oracle, Firebird and Teradata so that `$$`, such
+  as in the conditional compilation directive `$$DEBUG` of Oracle, is not taken
+  for the start of a string in dollar quotes, which hid the rest of the
+  statement.
+  ([#EEEE](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/EEEE))
+
+* Fixed query sanitization for SQLite so that `]]` in an identifier in brackets
+  does not escape the closing bracket.
+  ([#EEEE](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/EEEE))
+
+* Fixed query sanitization so that a password which is a word after
+  `PASSWORD =`, such as in Teradata (including `MODIFY USER`), is replaced with
+  `?`.
+  ([#EEEE](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/EEEE))
+
 ## 1.20.1-beta.1
 
 Released 2026-Oct-21

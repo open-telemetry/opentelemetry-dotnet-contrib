@@ -1267,6 +1267,7 @@ public class SqlProcessorTests(ITestOutputHelper output)
     [InlineData("SELECT from_date, user_id FROM t WHERE a = 'x'", "SELECT from_date, user_id FROM t WHERE a = ?", "SELECT t")]
     [InlineData("SELECT alter, user FROM t WHERE x = 'secret-name'", "SELECT alter, user FROM t WHERE x = ?", "SELECT t")]
     [InlineData("SELECT create, login FROM t", "SELECT create, login FROM t", "SELECT t")]
+    [InlineData("SELECT modify user FROM Orders", "SELECT modify user FROM Orders", "SELECT Orders")]
     [InlineData("SELECT 'x' user, a FROM t", "SELECT ? user, a FROM t", "SELECT t")]
     [InlineData("ALTER USER u IDENTIFIED BY 'secret-pw'; REPLACE INTO t VALUES (1)", "ALTER USER ? IDENTIFIED BY ?; REPLACE INTO t VALUES (?)", "ALTER USER")]
     [InlineData("CREATE USER u IDENTIFIED BY secret_pw; REPLACE INTO t VALUES (1)", "CREATE USER ? IDENTIFIED BY ?; REPLACE INTO t VALUES (?)", "CREATE USER")]
@@ -1478,6 +1479,152 @@ public class SqlProcessorTests(ITestOutputHelper output)
         this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
 
         Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData("BEGIN $IF $$DEBUG $THEN dbms_output.put_line('secret-name'); $END END;", "BEGIN $IF $$DEBUG $THEN dbms_output.put_line(?); $END END;")]
+    [InlineData("SELECT $$PLSQL_UNIT, 'secret-name' FROM dual", "SELECT $$PLSQL_UNIT, ? FROM dual")]
+    [InlineData("SELECT $$a$$, 'secret-name' FROM dual", "SELECT $$a$$, ? FROM dual")]
+    public void GetSanitizedSql_DollarSignsWithOracleDialect_AreNotStringsInDollarQuotes(string sql, string expected)
+    {
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, SqlDialect.Oracle);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData("CREATE USER u AS PASSWORD = $$tdsecret$$, PERM = 5", "CREATE USER ? AS PASSWORD = ?, PERM = ?")]
+    [InlineData("SELECT $$a, 'secret-name' FROM t", "SELECT $$a, ? FROM t")]
+    [InlineData("SELECT e'a\\' , 'secret-name' FROM t", "SELECT e? , ? FROM t")]
+    public void GetSanitizedSql_DollarSignsAndPrefixesWithTeradataDialect_AreNotStrings(string sql, string expected)
+    {
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, SqlDialect.Teradata);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("tdsecret", sqlStatementInfo.SanitizedSql);
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Fact]
+    public void GetSanitizedSql_StringInDollarQuotesWithDefaultDialect_IsSanitized()
+    {
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql("SELECT $$secret-name$$ FROM t");
+
+        Assert.Equal("SELECT ? FROM t", sqlStatementInfo.SanitizedSql);
+    }
+
+    [Fact]
+    public void GetSanitizedSql_EscapedBracketWithSqliteDialect_EndsAtTheFirstBracket()
+    {
+        // SQLite does not escape a closing bracket with another, so [x] is the identifier, and the literal which follows is one.
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql("SELECT [x]] , 'secret-name' , [y] FROM t", SqlDialect.Sqlite);
+
+        Assert.Equal("SELECT [x]] , ? , [y] FROM t", sqlStatementInfo.SanitizedSql);
+    }
+
+    [Fact]
+    public void GetSanitizedSql_EscapedBracketWithSqlServerDialect_IsPartOfTheIdentifier()
+    {
+        // SQL Server escapes a closing bracket with another, so the identifier goes on to the last bracket.
+        var sql = "SELECT [x]] , 'secret-name' , [y] FROM t";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, SqlDialect.SqlServer);
+
+        Assert.Equal(sql, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData("CREATE USER u AS PERM = 1000, PASSWORD = TdSecret_1", "CREATE USER ? AS PERM = ?, PASSWORD = ?")]
+    [InlineData("ALTER USER u AS PASSWORD = 1abc", "ALTER USER ? AS PASSWORD = ?")]
+    [InlineData("alter user u as Password = TdSecret_1", "alter user ? as Password = ?")]
+    [InlineData("CREATE USER u AS PASSWORD /* c */ = TdSecret_1", "CREATE USER ? AS PASSWORD  = ?")]
+    [InlineData("ALTER USER alice SET service. password = $body$token:secret-pw$body$", "ALTER USER ? SET service. password = ?")]
+    [InlineData("ALTER USER u IDENTIFIED BY $$secret-pw$$", "ALTER USER ? IDENTIFIED BY ?")]
+    [InlineData("ALTER USER u IDENTIFIED BY $$secret-pw$$ REPLACE $x$old:secret-pw$x$", "ALTER USER ? IDENTIFIED BY ? REPLACE ?")]
+    [InlineData("CREATE USER u AS PASSWORD = $$secret-pw$$, PERM = 5", "CREATE USER ? AS PASSWORD = ?, PERM = ?")]
+    [InlineData("CREATE USER u IDENTIFIED BY Tr0ub$4dor#", "CREATE USER ? IDENTIFIED BY ?")]
+    [InlineData("CREATE LOGIN u WITH PASSWORD = 'secret-pw' MUST_CHANGE, CHECK_EXPIRATION = ON", "CREATE LOGIN ? WITH PASSWORD = ? MUST_CHANGE, CHECK_EXPIRATION = ON")]
+    public void GetSanitizedSql_PasswordAfterEqualsSign_IsSanitized(string sql, string expected)
+    {
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-pw", sqlStatementInfo.SanitizedSql);
+        Assert.DoesNotContain("TdSecret_1", sqlStatementInfo.SanitizedSql);
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData("MODIFY USER u AS PASSWORD = TdSecret_1", "MODIFY USER ? AS PASSWORD = ?")]
+    [InlineData("modify user u as perm = 1000, password = TdSecret_1", "modify user ? as perm = ?, password = ?")]
+    [InlineData("SELECT 1; MODIFY USER u AS PASSWORD = TdSecret_1", "SELECT ?; MODIFY USER ? AS PASSWORD = ?")]
+    public void GetSanitizedSql_ModifyUserPassword_IsSanitized(string sql, string expected)
+    {
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        Assert.DoesNotContain("TdSecret_1", sqlStatementInfo.SanitizedSql);
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Fact]
+    public void GetSanitizedSql_AllDialects_AreInAll()
+    {
+#if NET
+        var dialects = Enum.GetValues<SqlDialect>();
+#else
+        var dialects = Enum.GetValues(typeof(SqlDialect)).Cast<SqlDialect>();
+#endif
+
+        foreach (var dialect in dialects)
+        {
+            Assert.Equal(dialect, dialect & SqlDialect.All);
+        }
+    }
+
+    [Theory]
+    [InlineData("ALTER TABLE t MODIFY user int", "ALTER TABLE t MODIFY user int")]
+    [InlineData("SELECT modify user FROM Orders", "SELECT modify user FROM Orders")]
+    [InlineData("SELECT a, modify user FROM Orders", "SELECT a, modify user FROM Orders")]
+    [InlineData("SELECT 1 modify user FROM Orders", "SELECT ? modify user FROM Orders")]
+    [InlineData("ALTER TABLE t ADD c int, MODIFY user VARCHAR(10)", "ALTER TABLE t ADD c int, MODIFY user VARCHAR(?)")]
+    [InlineData("ALTER DATABASE sales MODIFY NAME = archive", "ALTER DATABASE sales MODIFY NAME = archive")]
+    [InlineData("IDENTIFIED BY = x", "IDENTIFIED BY = x")]
+    [InlineData("CREATE USER u IDENTIFIED BY = x", "CREATE USER ? IDENTIFIED BY = x")]
+    public void GetSanitizedSql_ModifyOrEqualsWhichIsNotForAnAccount_IsNotChanged(string sql, string expected)
+    {
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData("CREATE USER u WITHOUT LOGIN\nSELECT Password = Hash FROM Users", "CREATE USER ? WITHOUT LOGIN\nSELECT Password = Hash FROM Users")]
+    [InlineData("CREATE USER u WITH PASSWORD = @pw", "CREATE USER ? WITH PASSWORD = @pw")]
+    [InlineData("ALTER USER u PASSWORD EXPIRE", "ALTER USER ? PASSWORD EXPIRE")]
+    [InlineData("SELECT * FROM users WHERE password = hash", "SELECT * FROM users WHERE password = hash")]
+    [InlineData("UPDATE users SET password = hash WHERE id = 1", "UPDATE users SET password = hash WHERE id = ?")]
+    public void GetSanitizedSql_PasswordAfterEqualsSignWhichIsNotOne_IsNotChanged(string sql, string expected)
+    {
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData("CREATE USER u AS PASSWORD = TdSecret_1", "CREATE USER ? AS PASSWORD = TdSecret_1")]
+    [InlineData("SET PASSWORD = PASSWORD('secret-pw')", "SET PASSWORD = PASSWORD(?)")]
+    [InlineData("ALTER USER u IDENTIFIED BY 'secret-pw'", "ALTER USER ? IDENTIFIED BY ?")]
+    public void GetSanitizedSql_PasswordWithMySqlDialect_IsOnlySanitizedIfItIsALiteral(string sql, string expected)
+    {
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, SqlDialect.MySql);
+
+        Assert.DoesNotContain("secret-pw", sqlStatementInfo.SanitizedSql);
         Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
     }
 

@@ -81,6 +81,10 @@
   statement.
   ([#DDDD](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/DDDD))
 
+* Fixed query sanitization so that a password which is a word after
+  `PASSWORD =` is replaced with `?`.
+  ([#EEEE](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/EEEE))
+
 ## 1.20.1
 
 Released 2026-Oct-21

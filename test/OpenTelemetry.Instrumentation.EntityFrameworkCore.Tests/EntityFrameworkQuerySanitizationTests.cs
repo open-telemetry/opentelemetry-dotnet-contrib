@@ -174,6 +174,39 @@ public sealed class EntityFrameworkQuerySanitizationTests : IDisposable
         Assert.Equal(expected, queryText);
     }
 
+    [Theory]
+    [InlineData("BEGIN $IF $$DEBUG $THEN dbms_output.put_line('hunter-two'); $END END;", "BEGIN $IF $$DEBUG $THEN dbms_output.put_line(?); $END END;")]
+    public void OracleProvider_ConditionalCompilationDirective_IsNotAStringInDollarQuotes(string commandText, string expected)
+    {
+        var exported = new List<Activity>();
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .AddInMemoryExporter(exported)
+                   .AddEntityFrameworkCoreInstrumentation()
+                   .Build())
+        {
+            // The Oracle provider is not referenced, so the SQLite provider reports its name instead.
+            RenamedSqliteDatabaseProvider.NameOverride = "Oracle.EntityFrameworkCore";
+
+            using var context = new AccountsContext(OfflineOptions(b =>
+            {
+                b.UseSqlite("Data Source=:memory:");
+#pragma warning disable EF1001 // Internal EF Core API usage.
+                b.ReplaceService<IDatabaseProvider, DatabaseProvider<SqliteOptionsExtension>, RenamedSqliteDatabaseProvider>();
+#pragma warning restore EF1001 // Internal EF Core API usage.
+            }));
+
+            context.Database.ExecuteSqlRaw(commandText);
+        }
+
+        var activity = Assert.Single(exported);
+        var queryText = this.GetQueryText(activity);
+
+        Assert.Equal("oracle", activity.GetTagValue(SemanticConventions.AttributeDbSystem));
+        Assert.DoesNotContain("hunter-two", queryText, StringComparison.Ordinal);
+        Assert.Equal(expected, queryText);
+    }
+
     [Fact]
     public void SqliteProvider_SlashAsteriskInBlockComment_DoesNotAffectLaterLiterals()
     {

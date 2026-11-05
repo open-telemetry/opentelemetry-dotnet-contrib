@@ -196,7 +196,9 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
                 "gcp.spanner" => SqlProcessor.SqlDialect.GoogleSql,
                 "microsoft.sql_server" => SqlProcessor.SqlDialect.SqlServer,
                 "sqlite" => SqlProcessor.SqlDialect.Sqlite,
-                "oracle.db" or "firebirdsql" or "teradata" => SqlProcessor.SqlDialect.NonNestedComments,
+                "oracle.db" => SqlProcessor.SqlDialect.Oracle,
+                "firebirdsql" => SqlProcessor.SqlDialect.Firebird,
+                "teradata" => SqlProcessor.SqlDialect.Teradata,
                 _ => SqlProcessor.SqlDialect.Default,
             };
 

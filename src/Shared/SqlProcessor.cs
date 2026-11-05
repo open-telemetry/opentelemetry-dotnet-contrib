@@ -18,7 +18,7 @@ internal static partial class SqlProcessor
     private const int CacheCapacity = 1000;
 
     // The number of combinations of the values of SqlDialect, which is one more than the one which has all of them.
-    private const int DialectCount = (int)(SqlDialect.BackslashEscapes | SqlDialect.TripleQuotedLiterals | SqlDialect.NonNestedComments | SqlDialect.BracketsDelimitIdentifiersOnly) + 1;
+    private const int DialectCount = (int)SqlDialect.All + 1;
 
     // The maximum length of a statement which is cached.
     private const int MaxCachedStatementLength = 8192;
@@ -56,8 +56,9 @@ internal static partial class SqlProcessor
 
     private const string ArrayKeyword = "ARRAY";
 
-    // The sanitized statements of each dialect, which are the index of the cache.
-    private static readonly ConcurrentDictionary<string, SqlStatementInfo>[] Caches = CreateCaches();
+    // The sanitized statements of each dialect, which are the index of the cache. A cache is created when it is first used, as
+    // there are many combinations of the dialects but a process uses few of them.
+    private static readonly ConcurrentDictionary<string, SqlStatementInfo>?[] Caches = new ConcurrentDictionary<string, SqlStatementInfo>?[DialectCount];
 
     private static readonly char[] WhitespaceChars = [SpaceChar, TabChar, CarriageReturnChar, NewLineChar];
 #if !NET
@@ -161,8 +162,11 @@ internal static partial class SqlProcessor
     /// The differences between the dialects of SQL which are sanitized. A statement is cached per combination of them.
     /// <para/>
     /// The default is the dialect of PostgreSQL and Db2, and of the databases which are not known: block comments nest,
-    /// a double-quoted value is an identifier, and <c>[...]</c> can be an identifier, a list of values or the subscript
-    /// of an array.
+    /// a double-quoted value is an identifier, <c>[...]</c> can be an identifier, a list of values or the subscript of an
+    /// array, and the words around a string with a prefix (e.g. <c>E'...'</c> or <c>q'[...]'</c>), a string in dollar quotes
+    /// and a password which is a word are all recognized. Each flag is a difference from it, and the dialects of the
+    /// databases which are known have the combinations of them which they need, so a preset is used rather than a flag on
+    /// its own (e.g. <see cref="BackslashEscapes"/> does not make comments end at the first <c>*/</c>, as MySQL does).
     /// </summary>
     [Flags]
     internal enum SqlDialect
@@ -173,34 +177,60 @@ internal static partial class SqlProcessor
         Default = 0,
 
         /// <summary>
-        /// A backslash is a string-literal escape character (e.g. <c>'it\'s'</c>), a double-quoted (<c>"..."</c>) value is
-        /// a string literal rather than a quoted identifier, and <c>#</c> starts a comment (MySQL, MariaDB and GoogleSQL
-        /// with their default SQL modes).
+        /// A backslash is a string-literal escape character (e.g. <c>'it\'s'</c>).
         /// </summary>
         BackslashEscapes = 1,
 
         /// <summary>
-        /// <c>'''...'''</c> and <c>"""..."""</c> are also string literals, in which a quote does not have to be escaped
-        /// (GoogleSQL). GoogleSQL also has the rules of <see cref="BackslashEscapes"/>.
+        /// A double-quoted (<c>"..."</c>) value is a string literal rather than a quoted identifier.
         /// </summary>
-        TripleQuotedLiterals = 2,
+        DoubleQuotedStrings = 2,
 
         /// <summary>
-        /// A block comment ends at the first <c>*/</c>, instead of being allowed to nest (e.g. SQLite and Oracle).
-        /// Block comments never nest for <see cref="BackslashEscapes"/>.
+        /// <c>#</c> starts a comment.
         /// </summary>
-        NonNestedComments = 4,
+        HashComments = 4,
+
+        /// <summary>
+        /// <c>'''...'''</c> and <c>"""..."""</c> are also string literals, in which a quote does not have to be escaped.
+        /// </summary>
+        TripleQuotedLiterals = 8,
+
+        /// <summary>
+        /// A block comment ends at the first <c>*/</c>, instead of being allowed to nest.
+        /// </summary>
+        NonNestedComments = 16,
 
         /// <summary>
         /// <c>[...]</c> always delimits an identifier (even if it has an apostrophe, such as <c>['Tis]</c>), so that it is never
         /// a list of values or the subscript of an array as in some other dialects (e.g. <c>['a', 'b']</c> or <c>items[1]</c>).
         /// </summary>
-        BracketsDelimitIdentifiersOnly = 8,
+        BracketsDelimitIdentifiersOnly = 32,
+
+        /// <summary>
+        /// A closing bracket in an identifier in <c>[...]</c> is not escaped by another one (<c>]]</c>).
+        /// </summary>
+        NoBracketEscape = 64,
+
+        /// <summary>
+        /// There are no strings in dollar quotes, so that <c>$$</c> is not the start of one (e.g. <c>$$DEBUG</c> of Oracle).
+        /// </summary>
+        NoDollarQuotedStrings = 128,
+
+        /// <summary>
+        /// There are no strings with the prefixes of PostgreSQL (<c>E'...'</c>) and Oracle (<c>q'[...]'</c>).
+        /// </summary>
+        NoStringPrefixes = 256,
+
+        /// <summary>
+        /// A password is always a literal, so that a word which follows <c>IDENTIFIED BY</c> or <c>PASSWORD =</c> is not one.
+        /// </summary>
+        NoBareWordPasswords = 512,
 
         /// <summary>
         /// MySQL and MariaDB.
         /// </summary>
-        MySql = BackslashEscapes | NonNestedComments,
+        MySql = BackslashEscapes | DoubleQuotedStrings | HashComments | NonNestedComments | NoStringPrefixes | NoBareWordPasswords,
 
         /// <summary>
         /// GoogleSQL (Spanner).
@@ -215,7 +245,36 @@ internal static partial class SqlProcessor
         /// <summary>
         /// SQLite.
         /// </summary>
-        Sqlite = BracketsDelimitIdentifiersOnly | NonNestedComments,
+        Sqlite = BracketsDelimitIdentifiersOnly | NonNestedComments | NoBracketEscape,
+
+        /// <summary>
+        /// Oracle.
+        /// </summary>
+        Oracle = NonNestedComments | NoDollarQuotedStrings,
+
+        /// <summary>
+        /// Teradata, which has no strings in dollar quotes, nor the prefixes of PostgreSQL and Oracle.
+        /// </summary>
+        Teradata = NonNestedComments | NoDollarQuotedStrings | NoStringPrefixes,
+
+        /// <summary>
+        /// Firebird, which is the same as Teradata in this.
+        /// </summary>
+        Firebird = Teradata,
+
+        /// <summary>
+        /// All of the flags, which is the largest value a dialect has.
+        /// </summary>
+        All = BackslashEscapes |
+              DoubleQuotedStrings |
+              HashComments |
+              TripleQuotedLiterals |
+              NonNestedComments |
+              BracketsDelimitIdentifiersOnly |
+              NoBracketEscape |
+              NoDollarQuotedStrings |
+              NoStringPrefixes |
+              NoBareWordPasswords,
     }
 
     private enum SqlKeyword
@@ -282,17 +341,6 @@ internal static partial class SqlProcessor
             return default;
         }
 
-        // GoogleSQL has the rules of MySQL and MariaDB, and neither nest block comments.
-        if (Has(dialect, SqlDialect.TripleQuotedLiterals))
-        {
-            dialect |= SqlDialect.BackslashEscapes;
-        }
-
-        if (Has(dialect, SqlDialect.BackslashEscapes))
-        {
-            dialect |= SqlDialect.NonNestedComments;
-        }
-
         return SanitizeUsingCache(sql, dialect);
     }
 
@@ -300,16 +348,18 @@ internal static partial class SqlProcessor
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool Has(SqlDialect dialect, SqlDialect flag) => (dialect & flag) != 0;
 
-    private static ConcurrentDictionary<string, SqlStatementInfo>[] CreateCaches()
+    private static ConcurrentDictionary<string, SqlStatementInfo> GetCache(SqlDialect dialect)
     {
-        var caches = new ConcurrentDictionary<string, SqlStatementInfo>[DialectCount];
+        var cache = Caches[(int)dialect];
 
-        for (var i = 0; i < caches.Length; i++)
+        if (cache != null)
         {
-            caches[i] = new();
+            return cache;
         }
 
-        return caches;
+        var created = new ConcurrentDictionary<string, SqlStatementInfo>();
+
+        return Interlocked.CompareExchange(ref Caches[(int)dialect], created, null) ?? created;
     }
 
     private static SqlStatementInfo SanitizeUsingCache(string sql, SqlDialect dialect)
@@ -348,7 +398,7 @@ internal static partial class SqlProcessor
 
     private static SqlStatementInfo GetOrAddCachedSql(string sql, SqlDialect dialect)
     {
-        var cache = Caches[(int)dialect];
+        var cache = GetCache(dialect);
 
         if (cache.TryGetValue(sql, out var sqlStatementInfo))
         {
@@ -386,7 +436,7 @@ internal static partial class SqlProcessor
     // Whether the character can be part of a word in the dialect, in which # starts a comment in MySQL, MariaDB and GoogleSQL.
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsWordChar(char c, SqlDialect dialect) =>
-        IsWordChar(c) && !(c == HashChar && Has(dialect, SqlDialect.BackslashEscapes));
+        IsWordChar(c) && !(c == HashChar && Has(dialect, SqlDialect.HashComments));
 
     // Whether the character goes on with a word which has letters before it, so that they are not a whole word.
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -421,6 +471,9 @@ internal static partial class SqlProcessor
 
         ParseState state = default;
         state.Dialect = dialect;
+
+        // The start of the text is where a statement starts, as it is after a semicolon.
+        state.PreviousWord = SqlWord.StatementEnd;
 
         // Precompute the summary buffer slice once and carry it via state to avoid repeated Span.Slice calls.
         state.SummaryBuffer = buffer.Slice(rentedBuffer.Length / 2);
@@ -900,8 +953,11 @@ internal static partial class SqlProcessor
                 (state.InFromClause && (currentChar is CommaChar or DotChar)) ||
                 (state.NextIsSummaryName && currentChar == DotChar);
 
-            // A password is the next token, unless this is the start of a quoted one which is not terminated.
-            if (state.NextIsPassword && currentChar is not (DoubleQuoteChar or BacktickChar or OpenSquareBracketChar))
+            // A password is the next token, unless this is the start of a quoted one which is not terminated,
+            // or the equals sign of PASSWORD = password.
+            if (state.NextIsPassword &&
+                currentChar is not (DoubleQuoteChar or BacktickChar or OpenSquareBracketChar) &&
+                !(currentChar == EqualsChar && state.PreviousWord == SqlWord.PasswordKeyword))
             {
                 state.Pending = PendingToken.None;
             }
@@ -923,7 +979,7 @@ internal static partial class SqlProcessor
             }
 
             // Punctuation is between the words around it, which are then not next to each other (e.g. alter, user).
-            PushWord(SqlWord.Other, ref state);
+            PushWord(currentChar == SemicolonChar ? SqlWord.StatementEnd : SqlWord.Other, ref state);
 
             buffer[state.SanitizedPosition++] = currentChar;
             state.ParsePosition++;
@@ -1113,7 +1169,7 @@ internal static partial class SqlProcessor
     {
         OpenSquareBracketChar when !state.UseTripleQuotedLiterals => FindBracketedIdentifierEnd(sql, start, ref state),
         BacktickChar => FindDelimitedIdentifierEnd(sql, start, BacktickChar, ref state.NoTerminatingBacktickQuotedIdentifierAhead),
-        DoubleQuoteChar when !state.UseBackslashEscapes => FindDelimitedIdentifierEnd(sql, start, DoubleQuoteChar, ref state.NoTerminatingDoubleQuotedIdentifierAhead),
+        DoubleQuoteChar when !Has(state.Dialect, SqlDialect.DoubleQuotedStrings) => FindDelimitedIdentifierEnd(sql, start, DoubleQuoteChar, ref state.NoTerminatingDoubleQuotedIdentifierAhead),
         _ => -1,
     };
 
@@ -1180,8 +1236,8 @@ internal static partial class SqlProcessor
 
         while (i < searchEnd)
         {
-            // A doubled closing bracket (]]) is an escaped bracket within the identifier.
-            if (i + 1 < sql.Length && sql[i + 1] == CloseSquareBracketChar)
+            // A doubled closing bracket (]]) is an escaped bracket within the identifier, but not in SQLite.
+            if (i + 1 < sql.Length && sql[i + 1] == CloseSquareBracketChar && !Has(state.Dialect, SqlDialect.NoBracketEscape))
             {
                 searchEnd = Math.Min(sql.Length, searchEnd + 1);
                 i = FindNextCloseSquareBracket(sql, i + 2, ref state);
@@ -1273,7 +1329,7 @@ internal static partial class SqlProcessor
                 return !StartsWithNumber(content);
             }
 
-            if (ContainsDollarQuotedString(content))
+            if (ContainsDollarQuotedString(content, dialect))
             {
                 return false;
             }
@@ -1322,7 +1378,7 @@ internal static partial class SqlProcessor
                 ((content[0] == ForwardSlashChar && content[1] == AsteriskChar) || (content[0] == DashChar && content[1] == DashChar));
         }
 
-        static bool ContainsDollarQuotedString(ReadOnlySpan<char> content)
+        static bool ContainsDollarQuotedString(ReadOnlySpan<char> content, SqlDialect dialect)
         {
             // Most content has no dollar sign, which is much cheaper to find than looking at each character.
             if (content.IndexOf(DollarChar) < 0)
@@ -1370,7 +1426,7 @@ internal static partial class SqlProcessor
                     if (c == DollarChar &&
                         !IsWordChar(previous) &&
                         previous is not (SingleQuoteChar or DoubleQuoteChar or BacktickChar or DollarChar or CloseParenChar) &&
-                        TryFindDollarQuotedLiteralEnd(content, i, out _))
+                        TryFindDollarQuotedLiteralEnd(content, i, dialect, out _))
                     {
                         return true;
                     }
@@ -1425,7 +1481,7 @@ internal static partial class SqlProcessor
                         continue;
 
                     case DollarChar:
-                        if (TryFindDollarQuotedLiteralEnd(sql, i, out end))
+                        if (TryFindDollarQuotedLiteralEnd(sql, i, dialect, out end))
                         {
                             i = end - 1;
                         }
@@ -1815,12 +1871,12 @@ internal static partial class SqlProcessor
             // /* /* */ don't */ only ends at the second "*/". MySQL/MariaDB, SQLite, Oracle and others do not,
             // so the comment would end at the first "*/", and treating it as still open would read the
             // literals which follow it as part of the comment, or as if they were outside of it.
-            return FindMultiLineCommentEnd(sql, start, allowNesting: !Has(dialect, SqlDialect.NonNestedComments | SqlDialect.BackslashEscapes));
+            return FindMultiLineCommentEnd(sql, start, allowNesting: !Has(dialect, SqlDialect.NonNestedComments));
         }
 
         // Scan past single-line comment. MySQL/MariaDB also start one with '#', which is otherwise
         // part of an identifier in the other dialects (e.g. a SQL Server #temp table).
-        if ((ch == DashChar && next < sql.Length && sql[next] == DashChar) || (ch == HashChar && Has(dialect, SqlDialect.BackslashEscapes)))
+        if ((ch == DashChar && next < sql.Length && sql[next] == DashChar) || (ch == HashChar && Has(dialect, SqlDialect.HashComments)))
         {
 #if NET
             var lineBreakIndex = sql.Slice(next).IndexOfAny(LineBreakSearchValues);
@@ -1891,7 +1947,7 @@ internal static partial class SqlProcessor
                    SanitizeQuotedLiteral(sql, buffer, ref state, SingleQuoteChar);
         }
 
-        // MySQL/MariaDB and GoogleSQL (the same dialects for which BackslashEscapes is set) also treat a
+        // MySQL/MariaDB and GoogleSQL (the same dialects for which DoubleQuotedStrings is set) also treat a
         // double-quoted value as a string literal unless the ANSI_QUOTES sql_mode is enabled.
         // The other dialects supported here use '"' exclusively to delimit a quoted identifier
         // (e.g. "columnName"), so this must remain gated on the dialect flag: otherwise a quoted
@@ -1899,7 +1955,7 @@ internal static partial class SqlProcessor
         // conversely a MySQL/MariaDB double-quoted literal would leak into the sanitized SQL
         // verbatim (it is never recognized as an identifier or literal by any other check here).
         return currentChar == DoubleQuoteChar &&
-               state.UseBackslashEscapes &&
+               Has(state.Dialect, SqlDialect.DoubleQuotedStrings) &&
                SanitizeQuotedLiteral(sql, buffer, ref state, DoubleQuoteChar);
     }
 
@@ -1950,7 +2006,7 @@ internal static partial class SqlProcessor
 
         // These prefixes are only recognized when they are a separate token (so not the end of
         // ELSE'a'), and not for MySQL/MariaDB, which do not support them.
-        if (!Has(dialect, SqlDialect.BackslashEscapes))
+        if (!Has(dialect, SqlDialect.NoStringPrefixes))
         {
             // A PostgreSQL escape string (e.g. E'it\'s'), in which a backslash escapes a quote.
             if (previousChar is 'E' or 'e' && IsSeparateToken(sql, quotePosition - 1))
@@ -2132,7 +2188,7 @@ internal static partial class SqlProcessor
     {
         // A string in dollar quotes which directly follows a literal (e.g. $$a$$$$b$$) is not part of a name.
         if (sql[state.ParsePosition] != DollarChar ||
-            !TryFindDollarQuotedLiteralEnd(sql, state.ParsePosition, out var literalEnd, ignoreLookBehind: state.ParsePosition == state.LastLiteralEnd))
+            !TryFindDollarQuotedLiteralEnd(sql, state.ParsePosition, state.Dialect, out var literalEnd, ignoreLookBehind: state.ParsePosition == state.LastLiteralEnd))
         {
             return false;
         }
@@ -2147,6 +2203,7 @@ internal static partial class SqlProcessor
     /// </summary>
     /// <param name="sql">The SQL statement.</param>
     /// <param name="start">The position of the opening dollar sign.</param>
+    /// <param name="dialect">The dialect of the source database.</param>
     /// <param name="literalEnd">The index after the literal, if there is one.</param>
     /// <param name="ignoreLookBehind">
     /// <see langword="true"/> if the character before <paramref name="start"/> is known to be the end of a literal,
@@ -2157,13 +2214,13 @@ internal static partial class SqlProcessor
     /// case <paramref name="literalEnd"/> is the index after it, or the length of the input if it is not
     /// terminated; otherwise <see langword="false"/>.
     /// </returns>
-    private static bool TryFindDollarQuotedLiteralEnd(ReadOnlySpan<char> sql, int start, out int literalEnd, bool ignoreLookBehind = false)
+    private static bool TryFindDollarQuotedLiteralEnd(ReadOnlySpan<char> sql, int start, SqlDialect dialect, out int literalEnd, bool ignoreLookBehind = false)
     {
         // PostgreSQL dollar-quoted string: $tag$...$tag$ (the tag is optional, so $$...$$ is valid).
         // The body between the delimiters is a literal with no escaping, so it must be redacted.
         literalEnd = -1;
 
-        if (sql[start] != DollarChar)
+        if (sql[start] != DollarChar || Has(dialect, SqlDialect.NoDollarQuotedStrings))
         {
             return false;
         }
@@ -2424,7 +2481,7 @@ internal static partial class SqlProcessor
                     literalEnd = i;
                     break;
 
-                case DoubleQuoteChar when state.UseBackslashEscapes:
+                case DoubleQuoteChar when Has(state.Dialect, SqlDialect.DoubleQuotedStrings):
                     end = FindQuotedLiteralEnd(sql, i, DoubleQuoteChar, state.Dialect);
                     i = end < 0 ? length : end + 1;
                     literalEnd = i;
@@ -2448,7 +2505,7 @@ internal static partial class SqlProcessor
                     break;
 
                 case DollarChar:
-                    i = TryFindDollarQuotedLiteralEnd(sql, i, out end, ignoreLookBehind: i == literalEnd) ? end : i + 1;
+                    i = TryFindDollarQuotedLiteralEnd(sql, i, state.Dialect, out end, ignoreLookBehind: i == literalEnd) ? end : i + 1;
                     literalEnd = i;
                     break;
 
@@ -2575,12 +2632,6 @@ internal static partial class SqlProcessor
         /// </summary>
         public bool InFromClause; // 1 byte
 
-        /// <summary>
-        /// Gets a value indicating whether the summary has reached its maximum length, after which
-        /// nothing further is appended to it.
-        /// </summary>
-        public readonly bool UseBackslashEscapes => Has(this.Dialect, SqlDialect.BackslashEscapes);
-
         public readonly bool UseTripleQuotedLiterals => Has(this.Dialect, SqlDialect.TripleQuotedLiterals);
 
         public readonly bool BracketsDelimitIdentifiersOnly => Has(this.Dialect, SqlDialect.BracketsDelimitIdentifiersOnly);
@@ -2597,6 +2648,10 @@ internal static partial class SqlProcessor
 
         public readonly bool InAlterTable => (this.Statement & StatementContext.AlterTable) != 0;
 
+        /// <summary>
+        /// Gets a value indicating whether the summary has reached its maximum length, after which
+        /// nothing further is appended to it.
+        /// </summary>
         public readonly bool SummaryIsComplete => this.SummaryPosition >= MaxSummaryLength;
     }
 
