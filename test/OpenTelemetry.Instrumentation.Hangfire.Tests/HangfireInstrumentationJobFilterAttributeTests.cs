@@ -420,6 +420,160 @@ public class HangfireInstrumentationJobFilterAttributeTests
         }
     }
 
+    [Fact]
+    public void OnPerforming_Should_Not_Share_Baggage_With_Work_Left_Over_From_A_Previous_Job()
+    {
+        using var listener = CreateHangfireActivityListener();
+        var storage = new MemoryStorage();
+        using var connection = storage.GetConnection();
+
+        var filter = new HangfireInstrumentationJobFilterAttribute(new HangfireInstrumentationOptions());
+        var originalPropagator = Propagators.DefaultTextMapPropagator;
+        Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([new TraceContextPropagator(), new BaggagePropagator()]));
+
+        try
+        {
+            var firstJob = CreatePerformingContext(storage, connection);
+            SetJobBaggage(connection, firstJob, "first-value");
+            filter.OnPerforming(firstJob);
+
+            // Work started by the first job that is still running when the next job is performed
+            var leftOverContext = ExecutionContext.Capture()!;
+            filter.OnPerformed(new PerformedContext(firstJob, null, false, null));
+
+            var secondJob = CreatePerformingContext(storage, connection);
+            SetJobBaggage(connection, secondJob, "second-value");
+            filter.OnPerforming(secondJob);
+
+            string? leftOverBaggage = null;
+            ExecutionContext.Run(leftOverContext, _ => leftOverBaggage = Baggage.Current.GetBaggage("job-key"), null);
+
+            Assert.Equal("second-value", Baggage.Current.GetBaggage("job-key"));
+            Assert.Equal("first-value", leftOverBaggage);
+
+            filter.OnPerformed(new PerformedContext(secondJob, null, false, null));
+        }
+        finally
+        {
+            Baggage.Current = default;
+            Sdk.SetDefaultTextMapPropagator(originalPropagator);
+        }
+
+        static void SetJobBaggage(IStorageConnection connection, PerformingContext performingContext, string baggageValue)
+        {
+            var activityContextData = new Dictionary<string, string>();
+            Propagators.DefaultTextMapPropagator.Inject(
+                new PropagationContext(
+                    new ActivityContext(ActivityTraceId.CreateRandom(), ActivitySpanId.CreateRandom(), ActivityTraceFlags.Recorded),
+                    Baggage.Create(new Dictionary<string, string>
+                    {
+                        ["job-key"] = baggageValue,
+                    })),
+                activityContextData,
+                static (jobParams, key, value) => jobParams[key] = value);
+            connection.SetJobParameter(
+                performingContext.BackgroundJob.Id,
+                HangfireInstrumentationConstants.ActivityContextKey,
+                JsonSerializer.Serialize(activityContextData));
+        }
+    }
+
+    [Fact]
+    public void OnPerforming_Should_Not_Expose_Job_Baggage_To_Context_Captured_Before_The_Job()
+    {
+        using var listener = CreateHangfireActivityListener();
+        var storage = new MemoryStorage();
+        using var connection = storage.GetConnection();
+
+        var filter = new HangfireInstrumentationJobFilterAttribute(new HangfireInstrumentationOptions());
+        var performingContext = CreatePerformingContext(storage, connection);
+        var originalPropagator = Propagators.DefaultTextMapPropagator;
+
+        Baggage.Current = Baggage.Create(new Dictionary<string, string>
+        {
+            ["previous-key"] = "previous-value",
+        });
+        Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([new TraceContextPropagator(), new BaggagePropagator()]));
+
+        var activityContextData = new Dictionary<string, string>();
+        Propagators.DefaultTextMapPropagator.Inject(
+            new PropagationContext(
+                new ActivityContext(ActivityTraceId.CreateRandom(), ActivitySpanId.CreateRandom(), ActivityTraceFlags.Recorded),
+                Baggage.Create(new Dictionary<string, string>
+                {
+                    ["job-key"] = "job-value",
+                })),
+            activityContextData,
+            static (jobParams, key, value) => jobParams[key] = value);
+        connection.SetJobParameter(
+            performingContext.BackgroundJob.Id,
+            HangfireInstrumentationConstants.ActivityContextKey,
+            JsonSerializer.Serialize(activityContextData));
+
+        try
+        {
+            // Work that captured the worker's context before the job started
+            var earlierContext = ExecutionContext.Capture()!;
+
+            filter.OnPerforming(performingContext);
+
+            string? previousValue = null;
+            string? jobValue = null;
+            ExecutionContext.Run(
+                earlierContext,
+                _ =>
+                {
+                    previousValue = Baggage.Current.GetBaggage("previous-key");
+                    jobValue = Baggage.Current.GetBaggage("job-key");
+                },
+                null);
+
+            Assert.Equal("previous-value", previousValue);
+            Assert.Null(jobValue);
+
+            filter.OnPerformed(new PerformedContext(performingContext, null, false, null));
+
+            Assert.Equal("previous-value", Baggage.Current.GetBaggage("previous-key"));
+            Assert.Null(Baggage.Current.GetBaggage("job-key"));
+        }
+        finally
+        {
+            Baggage.Current = default;
+            Sdk.SetDefaultTextMapPropagator(originalPropagator);
+        }
+    }
+
+    [Fact]
+    public void OnPerforming_Should_Not_Change_Baggage_When_Reading_Job_Parameters_Fails()
+    {
+        using var listener = CreateHangfireActivityListener();
+        var storage = new MemoryStorage();
+        using var connection = storage.GetConnection();
+
+        var filter = new HangfireInstrumentationJobFilterAttribute(new HangfireInstrumentationOptions());
+        var performingContext = CreatePerformingContext(storage, connection);
+        Baggage.Current = Baggage.Create(new Dictionary<string, string>
+        {
+            ["previous-key"] = "previous-value",
+        });
+
+        connection.SetJobParameter(
+            performingContext.BackgroundJob.Id,
+            HangfireInstrumentationConstants.ActivityContextKey,
+            "{ not valid json");
+
+        try
+        {
+            Assert.ThrowsAny<Exception>(() => filter.OnPerforming(performingContext));
+
+            Assert.Equal("previous-value", Baggage.Current.GetBaggage("previous-key"));
+        }
+        finally
+        {
+            Baggage.Current = default;
+        }
+    }
+
     private static ActivityListener CreateHangfireActivityListener()
     {
         var listener = new ActivityListener
