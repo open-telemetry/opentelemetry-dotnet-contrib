@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.10.0-alpha.1
+
+Released 2026-Nov-05
+
 * Fixed `OpAmpClient.FlushAsync()` potentially waiting indefinitely when new
   messages kept being queued. Messages queued after a flush starts no longer
   delay its completion.
