@@ -152,7 +152,7 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
 
     private void SetStatusAndRecordException(Activity activity, Exception exception)
     {
-        activity.SetStatus(ActivityStatusCode.Error, exception.Message);
+        activity.SetStatus(ActivityStatusCode.Error);
 
         if (this.options.RecordException)
         {
