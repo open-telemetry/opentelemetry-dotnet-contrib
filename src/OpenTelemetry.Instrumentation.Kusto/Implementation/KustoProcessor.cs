@@ -8,7 +8,6 @@ using System.Collections.Frozen;
 using System.Runtime.CompilerServices;
 using Kusto.Language;
 using Kusto.Language.Editor;
-using Kusto.Language.Symbols;
 using Kusto.Language.Syntax;
 
 namespace OpenTelemetry.Instrumentation.Kusto.Implementation;
@@ -18,7 +17,7 @@ namespace OpenTelemetry.Instrumentation.Kusto.Implementation;
 /// </summary>
 internal static class KustoProcessor
 {
-    // Because we're not doing full semantic analysis for queries, we can reuse the default global state (which includes all built-in functions and types)
+    // Because we're not doing semantic analysis for queries, we can reuse the default global state (which includes all built-in functions and types)
     private static readonly GlobalState KustoParserGlobalState = GlobalState.Default.WithCache();
 
     private enum ReplacementKind
@@ -56,18 +55,17 @@ internal static class KustoProcessor
         string? summarized = null;
         string? sanitized = null;
 
-        KustoCode? code = null;
+        // Both summarization and sanitization work on the syntax tree alone, so the query is parsed once.
+        // Deliberately not ParseAndAnalyze: binding computes the result schema of every operator, and the
+        // size of that schema (hence the time and memory spent) can grow exponentially with the length of
+        // the query (e.g. a chain of self-joins), which is not acceptable on the client's request path.
+        var code = KustoCode.Parse(query, KustoParserGlobalState);
 
-        // Note that order matters here as summarization requires semantic analysis to find potential table references,
-        // but we want to avoid parsing twice if both are requested.
         if (shouldSummarize)
         {
-            code = KustoCode.ParseAndAnalyze(query, KustoParserGlobalState);
-
             // A query with syntax errors can't be confidently classified, and the summarizer would otherwise
             // echo unrecognized tokens verbatim, producing a high-cardinality summary of arbitrary (possibly
-            // sensitive) input. Omit the summary in that case. Semantic diagnostics (e.g. unresolved table
-            // names) are expected because we parse without schema, so only syntax diagnostics disqualify it.
+            // sensitive) input. Omit the summary in that case.
             if (code.GetSyntaxDiagnostics().Count == 0)
             {
                 summarized = Summarize(code);
@@ -76,7 +74,6 @@ internal static class KustoProcessor
 
         if (shouldSanitize)
         {
-            code ??= KustoCode.Parse(query, KustoParserGlobalState);
             if (TrySanitize(code, out var sanitizedText))
             {
                 sanitized = sanitizedText;
@@ -284,6 +281,13 @@ internal static class KustoProcessor
     {
         private readonly TruncatingStringBuilder builder = new();
 
+        // Names the query binds itself that can stand in for a table: let statements, function parameters and
+        // 'as' aliases. A reference to one of these is not a table reference even when it sits in a table
+        // position. Columns are deliberately not tracked, as they do not shadow tables in a table position.
+        // The innermost scope is last: the query itself, then each function body, then each statement ('as'
+        // aliases are only visible within the statement that declares them).
+        private readonly List<HashSet<string>> scopes = [[]];
+
         public override void VisitPipeExpression(PipeExpression node)
         {
             // Pipe chains nest through the left expression and bypass DefaultVisit, so guard here too.
@@ -297,16 +301,57 @@ internal static class KustoProcessor
             node.Operator.Accept(this);
         }
 
+        public override void VisitLetStatement(LetStatement node)
+        {
+            // A let statement is not recursive, so its name is only bound once its expression has been visited.
+            node.Expression.Accept(this);
+            this.Declare(node.Name);
+        }
+
+        public override void VisitFunctionDeclaration(FunctionDeclaration node)
+        {
+            this.scopes.Add([]);
+            try
+            {
+                // Declares the parameters, then visits the body.
+                this.VisitChildren(node);
+            }
+            finally
+            {
+                this.scopes.RemoveAt(this.scopes.Count - 1);
+            }
+        }
+
+        public override void VisitFunctionParameter(FunctionParameter node) => this.Declare(node.NameAndType.Name);
+
+        public override void VisitExpressionStatement(ExpressionStatement node)
+        {
+            this.scopes.Add([]);
+            try
+            {
+                this.VisitChildren(node);
+            }
+            finally
+            {
+                this.scopes.RemoveAt(this.scopes.Count - 1);
+            }
+        }
+
+        public override void VisitNameDeclaration(NameDeclaration node)
+        {
+            if (node.Parent is AsOperator)
+            {
+                this.Declare(node);
+            }
+        }
+
         public override void VisitNameReference(NameReference node)
         {
-            if (node.ResultType is TableSymbol ts)
+            // The query is parsed without semantic analysis, so a name is classified
+            // by where it appears rather than by what it resolves to.
+            if (IsTableReference(node, out var qualified) && (qualified || !this.IsDeclared(node.SimpleName)))
             {
-                this.builder.Append(ts.Name);
-                this.builder.Append(' ');
-            }
-            else if (node.ResultType is ErrorSymbol)
-            {
-                this.builder.Append(node.ToString(IncludeTrivia.SingleLine));
+                this.builder.Append(node.SimpleName);
                 this.builder.Append(' ');
             }
         }
@@ -354,6 +399,58 @@ internal static class KustoProcessor
             {
                 this.VisitChildren(node);
             }
+        }
+
+        private static bool IsTableReference(NameReference node, out bool qualified)
+        {
+            // A name is taken as a table reference when it is the source of a query, a pipe, a function body or
+            // a materialize(), or an operand of join, lookup, union, find or entity_group, optionally qualified
+            // (database('db').Table) and/or parenthesized. A qualified name can never refer to a binding made
+            // by the query itself.
+            SyntaxNode expression = node;
+            var parent = node.Parent;
+            qualified = false;
+            if (parent is PathExpression path && path.Selector == node)
+            {
+                qualified = true;
+                expression = path;
+                parent = path.Parent;
+            }
+
+            while (parent is ParenthesizedExpression)
+            {
+                expression = parent;
+                parent = parent.Parent;
+            }
+
+            if (parent is SeparatedElement)
+            {
+                // Element of a comma-separated list: SeparatedElement -> SyntaxList -> owning node.
+                return parent.Parent?.Parent is UnionOperator or FindInClause or EntityGroup;
+            }
+
+            return parent switch
+            {
+                PipeExpression pipe => pipe.Expression == expression,
+                ExpressionStatement or LetStatement or JoinOperator or LookupOperator
+                    or FunctionBody or MaterializeExpression or PartitionQuery => true,
+                _ => false,
+            };
+        }
+
+        private void Declare(NameDeclaration name) => this.scopes[this.scopes.Count - 1].Add(name.SimpleName);
+
+        private bool IsDeclared(string name)
+        {
+            foreach (var scope in this.scopes)
+            {
+                if (scope.Contains(name))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void VisitQueryOperator(QueryOperator node)

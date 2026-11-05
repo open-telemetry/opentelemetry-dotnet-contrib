@@ -10,6 +10,12 @@
   for `https`), to follow the v1.45.0 database semantic conventions.
   ([#5833](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5833))
 
+* Fixed `db.query.summary` generation consuming excessive CPU and memory for
+  some queries. Table names are now identified from the query syntax, so
+  `db.query.summary` may differ for some queries (for example, column names
+  are no longer included).
+  ([#NNNN](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/NNNN))
+
 ## 0.1.0-alpha.7
 
 Released 2026-Oct-21

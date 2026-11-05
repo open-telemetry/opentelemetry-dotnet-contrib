@@ -408,12 +408,91 @@ public class KustoQueryParserTests
         },
 
         // Materialized view
-        // NOTE: Ideally the summarizer would strip "Condition", but in this context it is ambiguous with a table reference. Given the prevalence of this type of query,
-        // codifying the behavior for now. If this becomes a problem we can revisit.
         {
             "database('*').materialized_view('ViewName') | where Condition == 'Value'",
-            "materialized_view('ViewName') | where Condition",
+            "materialized_view('ViewName') | where",
             "database(?).materialized_view(?) | where Condition == ?"
+        },
+
+        // Tabular let statements and 'as' aliases: the declared names are not table references. The summary
+        // must not depend on the result schema either, which doubles at every step of these self-join chains.
+        {
+            "let v0 = datatable(a:long)[]; let v1 = v0 | join v0 on a; let v2 = v1 | join v1 on a; v2 | join (StormEvents) on a",
+            "datatable | join | join | join StormEvents",
+            "let v0 = datatable(a:long)[]; let v1 = v0 | join v0 on a; let v2 = v1 | join v1 on a; v2 | join (StormEvents) on a"
+        },
+        {
+            "StormEvents | project a = 1 | as t0 | join t0 on a | as t1 | join t1 on a",
+            "StormEvents | project | as | join | as | join",
+            "StormEvents | project a = ? | as t0 | join t0 on a | as t1 | join t1 on a"
+        },
+        {
+            "let x = StormEvents; x | take 5",
+            "StormEvents | take",
+            "let x = StormEvents; x | take ?"
+        },
+
+        // Only let statements, function parameters and 'as' aliases shadow a table: a column that happens to
+        // share its name with a table does not.
+        {
+            "StormEvents | extend OtherEvents = 1 | union OtherEvents",
+            "StormEvents | extend | union OtherEvents",
+            "StormEvents | extend OtherEvents = ? | union OtherEvents"
+        },
+        {
+            "StormEvents | union withsource=Source OtherEvents",
+            "StormEvents | union OtherEvents",
+            "StormEvents | union withsource=Source OtherEvents"
+        },
+
+        // Bindings are scoped: a let in a function body is not visible after it, an 'as' alias is only visible
+        // within its statement, and a qualified name never refers to a binding.
+        {
+            "let f = () { let inner = Source; inner | take 1 }; f() | join (inner) on k",
+            "Source | take | join inner",
+            "let f = () { let inner = Source; inner | take ? }; f() | join (inner) on k"
+        },
+        {
+            "StormEvents | as z | count; z | count",
+            "StormEvents | as | count z | count",
+            "StormEvents | as z | count; z | count"
+        },
+        {
+            "let x = 1; database('db').x | count",
+            "x | count",
+            "let x = ?; database(?).x | count"
+        },
+        {
+            "let StormEvents = StormEvents | take 1; StormEvents | count",
+            "StormEvents | take | count",
+            "let StormEvents = StormEvents | take ?; StormEvents | count"
+        },
+
+        // Table sources inside other tabular constructs.
+        {
+            "let t = materialize(StormEvents); t",
+            "StormEvents",
+            "let t = materialize(StormEvents); t"
+        },
+        {
+            "let f = () { StormEvents }; f()",
+            "StormEvents",
+            "let f = () { StormEvents }; f()"
+        },
+        {
+            "let v = view() { StormEvents | take 1 }; v",
+            "StormEvents | take",
+            "let v = view() { StormEvents | take ? }; v"
+        },
+        {
+            "let g = entity_group [StormEvents, OtherEvents]; union g",
+            "StormEvents OtherEvents union",
+            "let g = entity_group [StormEvents, OtherEvents]; union g"
+        },
+        {
+            "StormEvents | partition by State { OtherEvents }",
+            "StormEvents | partition OtherEvents",
+            "StormEvents | partition by State { OtherEvents }"
         },
 
         // Long query - tests 255 character truncation
@@ -423,6 +502,27 @@ public class KustoQueryParserTests
             "StormEvents | where State == ? | extend NewColumn1 = ? | extend NewColumn2 = ? | extend NewColumn3 = ? | extend NewColumn4 = ? | extend NewColumn5 = ? | extend NewColumn6 = ? | extend NewColumn7 = ? | extend NewColumn8 = ? | extend NewColumn9 = ? | extend NewColumn10 = ? | extend NewColumn11 = ? | extend NewColumn12 = ? | extend NewColumn13 = ? | extend NewColumn14 = ? | extend NewColumn15 = ? | extend NewColumn16 = ? | extend NewColumn17 = ? | extend NewColumn18 = ? | extend NewColumn19 = ? | extend NewColumn20 = ? | extend NewColumn21 = ? | extend NewColumn22 = ? | extend NewColumn23 = ? | extend NewColumn24 = ? | extend NewColumn25 = ? | extend NewColumn26 = ? | extend NewColumn27 = ?"
         },
     };
+
+    [Fact]
+    public void Process_SelfJoinChain_DoesNotPerformSemanticAnalysis()
+    {
+        const int Steps = 40;
+        var query = new System.Text.StringBuilder("let v0 = datatable(a:long)[];");
+        for (var i = 1; i <= Steps; i++)
+        {
+            query.Append("let v").Append(i).Append(" = v").Append(i - 1).Append(" | join v").Append(i - 1).Append(" on a;");
+        }
+
+        query.Append('v').Append(Steps);
+
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+        var info = KustoProcessor.Process(shouldSummarize: true, shouldSanitize: true, query.ToString());
+        stopwatch.Stop();
+
+        Assert.StartsWith("datatable | join", info.Summarized, StringComparison.Ordinal);
+        Assert.NotNull(info.Sanitized);
+        Assert.True(stopwatch.Elapsed < TimeSpan.FromSeconds(5), $"Processing took {stopwatch.Elapsed}.");
+    }
 
     [Theory]
     [MemberData(nameof(QuerySummaryTestCases))]
