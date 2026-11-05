@@ -1071,7 +1071,7 @@ public class SqlProcessorTests(ITestOutputHelper output)
     [InlineData("SELECT 1dollars", "SELECT ?dollars")]
     [InlineData("SELECT 1_name", "SELECT ?_name")]
     [InlineData("SELECT 1__000", "SELECT ?__000")]
-    [InlineData("SELECT 0bject", "SELECT ?bject")]
+    [InlineData("SELECT 0bank", "SELECT ?bank")]
     [InlineData("SELECT 0octopus", "SELECT ?octopus")]
     [InlineData("SELECT 0xABC_tail", "SELECT ?_tail")]
     public void GetSanitizedSql_WordFollowingNumericPrefix_IsPreserved(string sql, string expected)

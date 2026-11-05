@@ -2379,7 +2379,7 @@ internal static partial class SqlProcessor
         }
 
         // Hexadecimal prefixes were already recognized without digits. For a new binary or octal prefix,
-        // require a digit so that a word such as 0bject is not consumed as a numeric literal.
+        // require a digit so that a word such as 0bank is not consumed as a numeric literal.
         if (numberBase != 16 &&
             (i + 2 >= length ||
              !(IsBaseDigit(sql[i + 2], numberBase) ||
