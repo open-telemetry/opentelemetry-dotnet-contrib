@@ -688,7 +688,7 @@ public class WsTransportTest
         Assert.Equal("ClientWebSocketFactory returned null. The factory must return a new, unconnected ClientWebSocket instance.", exception.Message);
     }
 
- #if NET
+#if NET
     [Theory]
     [InlineData(false, false, false)] // default client blocks redirects
     [InlineData(true, false, true)] // default client follows redirects when allowed
