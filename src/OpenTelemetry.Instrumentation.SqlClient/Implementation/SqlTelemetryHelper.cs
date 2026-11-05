@@ -69,6 +69,27 @@ internal sealed class SqlTelemetryHelper
         return tags;
     }
 
+    /// <summary>
+    /// Stops the activity of a command without changing the current activity of the execution context
+    /// which the command completes on.
+    /// </summary>
+    /// <param name="activity">The activity of the command.</param>
+    public static void StopActivity(Activity activity)
+    {
+        // Stopping an activity sets the current activity to its parent, which is not necessarily the
+        // current activity of the execution context which the command completes on.
+        var current = Activity.Current;
+
+        try
+        {
+            activity.Stop();
+        }
+        finally
+        {
+            Activity.Current = current;
+        }
+    }
+
     internal static double CalculateDurationFromTimestamp(long begin)
         => Stopwatch.GetElapsedTime(begin).TotalSeconds;
 }
