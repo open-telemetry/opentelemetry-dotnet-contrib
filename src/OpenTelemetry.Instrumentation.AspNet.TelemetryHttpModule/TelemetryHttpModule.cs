@@ -18,6 +18,9 @@ public class TelemetryHttpModule : IHttpModule
     // ServerVariable set on every request if URL module is registered in HttpModule pipeline.
     private const string UrlRewriteModuleVersion = "IIS_UrlRewriteModule";
 
+    // HttpContext item set once this module has handled EndRequest for the request.
+    private const string EndRequestHandledContextKey = "__AspnetOpenTelemetryInstrumentationEndRequestHandled__";
+
     private static readonly MethodInfo? OnExecuteRequestStepMethodInfo = typeof(HttpApplication).GetMethod("OnExecuteRequestStep");
 
     /// <summary>
@@ -72,6 +75,7 @@ public class TelemetryHttpModule : IHttpModule
         var trackActivity = true;
 
         var context = new HttpContextWrapper(((HttpApplication)sender).Context);
+        context.Items[EndRequestHandledContextKey] = true;
 
         if (!ActivityHelper.HasStarted(context, out var aspNetActivity))
         {
@@ -110,6 +114,15 @@ public class TelemetryHttpModule : IHttpModule
         {
             if (!ActivityHelper.HasStarted(context, out var aspNetActivity))
             {
+                if (context.Items[EndRequestHandledContextKey] is true)
+                {
+                    // The error was raised by an EndRequest handler that ran after this module's one.
+                    // The activity has already been stopped and nothing would stop one started here,
+                    // so only notify listeners about the exception without starting new telemetry.
+                    ActivityHelper.WriteActivityException(null, context, exception, Options.OnExceptionCallback);
+                    return;
+                }
+
                 aspNetActivity = ActivityHelper.StartAspNetActivity(Options.TextMapPropagator, context, Options.OnRequestStartedCallback);
             }
 

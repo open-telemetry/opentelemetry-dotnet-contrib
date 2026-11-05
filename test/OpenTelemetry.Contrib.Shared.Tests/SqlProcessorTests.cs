@@ -940,6 +940,119 @@ public class SqlProcessorTests(ITestOutputHelper output)
     }
 
     [Theory]
+    [InlineData("[Server]...['Orders]", "INSERT [Server]...['Orders]")]
+    [InlineData("[Server] . . . ['Orders]", "INSERT [Server]...['Orders]")]
+    [InlineData("Server...['Orders]", "INSERT Server...['Orders]")]
+    [InlineData("Server . . . ['Orders]", "INSERT Server...['Orders]")]
+    [InlineData("[Server]..['Orders]", "INSERT [Server]..['Orders]")]
+    [InlineData("[Server].[Database]..['Orders]", "INSERT [Server].[Database]..['Orders]")]
+    [InlineData("[Server]....['Orders]", "INSERT [Server]....['Orders]")]
+    [InlineData("Server . . . . ['Orders]", "INSERT Server....['Orders]")]
+    public void GetSanitizedSql_OmittedNamePartsAndQuoteInIdentifier_SanitizesFollowingLiteral(string target, string expectedSummary)
+    {
+        var sql = $"INSERT INTO {target} VALUES ('customer@example.com')";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        Assert.Equal($"INSERT INTO {target} VALUES (?)", sqlStatementInfo.SanitizedSql);
+        Assert.Equal(expectedSummary, sqlStatementInfo.DbQuerySummary);
+    }
+
+    [Theory]
+    [InlineData("[Server]...['Orders]")]
+    [InlineData("Server...['Orders]")]
+    [InlineData("[Server].dbo.['Orders]")]
+    [InlineData("Server . dbo . ['Orders]")]
+    [InlineData("[Server].[Database].[dbo].['Orders]")]
+    public void GetSanitizedSql_MultiPartNameAfterSummaryLengthLimit_SanitizesFollowingLiteral(string target)
+    {
+        var firstName = new string('A', 128);
+        var secondName = new string('B', 128);
+        var prefix = $"INSERT INTO dbo.[{firstName}] VALUES (1); INSERT INTO dbo.[{secondName}] VALUES (2); ";
+        var expectedPrefix = $"INSERT INTO dbo.[{firstName}] VALUES (?); INSERT INTO dbo.[{secondName}] VALUES (?); ";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql($"{prefix}INSERT INTO {target} VALUES ('customer@example.com')");
+
+        Assert.Equal($"{expectedPrefix}INSERT INTO {target} VALUES (?)", sqlStatementInfo.SanitizedSql);
+        Assert.Equal($"INSERT dbo.[{firstName}]", sqlStatementInfo.DbQuerySummary);
+    }
+
+    [Fact]
+    public void GetSanitizedSql_LongPeriodRun_SanitizesFollowingLiteralAndLimitsSummary()
+    {
+        var target = $"[Server]{new string('.', 10_000)}['Orders]";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql($"INSERT INTO {target} VALUES ('customer@example.com')");
+
+        Assert.Equal($"INSERT INTO {target} VALUES (?)", sqlStatementInfo.SanitizedSql);
+        Assert.Equal("INSERT", sqlStatementInfo.DbQuerySummary);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void GetSanitizedSql_DelimitedNameExceedingSummaryLengthLimit_OmitsPartialName(bool firstContainsSpace)
+    {
+        // Each part is a valid (<= 128 character) delimited identifier, but the whole name does not fit in the summary.
+        var first = firstContainsSpace ? $"{new string('A', 50)} {new string('A', 49)}" : new string('A', 100);
+        var sql = $"INSERT INTO [{first}].[{new string('B', 100)}].[{new string('C', 100)}] VALUES (@p0)";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        Assert.Equal(sql, sqlStatementInfo.SanitizedSql);
+        Assert.Equal("INSERT", sqlStatementInfo.DbQuerySummary);
+    }
+
+    [Theory]
+    [InlineData("[dbo].", "INSERT [dbo]")]
+    [InlineData("[Archive]..", "INSERT [Archive]")]
+    public void GetSanitizedSql_DelimitedNamePartTooLong_OmitsTrailingPeriod(string qualifier, string expectedSummary)
+    {
+        // A delimited identifier is limited to 128 characters, so the last part of the name is not captured.
+        var sql = $"INSERT INTO {qualifier}[{new string('A', 200)}] VALUES (@p0)";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        Assert.Equal(sql, sqlStatementInfo.SanitizedSql);
+        Assert.Equal(expectedSummary, sqlStatementInfo.DbQuerySummary);
+    }
+
+    [Theory]
+    [InlineData(true, "INSERT [dbo].[Orders]")]
+    [InlineData(false, "INSERT [dbo]")]
+    public void GetSanitizedSql_HashCommentAfterPeriod_IsOnlySkippedForBackslashEscapeDialects(bool useBackslashEscapes, string expectedSummary)
+    {
+        // A # starts a comment in MySQL and MariaDB, but is not part of a name in other dialects.
+        var sql = "INSERT INTO [dbo]. # comment\n[Orders] VALUES (@p0)";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes);
+
+        Assert.Equal(expectedSummary, sqlStatementInfo.DbQuerySummary);
+    }
+
+    [Theory]
+    [InlineData(false, 120, 126, false)]
+    [InlineData(true, 120, 122, false)]
+    [InlineData(true, 120, 122, true)]
+    public void GetSanitizedSql_MultiPartNameEndingAtSummaryLengthLimit_OmitsPartialName(bool delimited, int firstLength, int secondLength, bool firstContainsSpace)
+    {
+        // The summary is exactly 255 characters once the period after the second part has been added,
+        // so the last part is not captured and the incomplete name must not be left in the summary.
+        // A delimited name can contain whitespace, which must not be mistaken for the end of the name.
+        var first = firstContainsSpace
+            ? $"{new string('A', firstLength / 2)} {new string('A', (firstLength / 2) - 1)}"
+            : new string('A', firstLength);
+        var second = new string('B', secondLength);
+        var name = delimited ? $"[{first}].[{second}].[Orders]" : $"{first}.{second}.[Orders]";
+        var sql = $"INSERT INTO {name} VALUES (@p0)";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        Assert.Equal(sql, sqlStatementInfo.SanitizedSql);
+        Assert.Equal("INSERT", sqlStatementInfo.DbQuerySummary);
+    }
+
+    [Theory]
     [InlineData(0)]
     [InlineData(20)]
     public void GetSanitizedSql_SameInstanceSanitizedRepeatedly_ReturnsSameResult(int extraColumns)
