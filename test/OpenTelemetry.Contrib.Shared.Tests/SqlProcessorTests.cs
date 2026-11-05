@@ -1483,6 +1483,23 @@ public class SqlProcessorTests(ITestOutputHelper output)
     }
 
     [Theory]
+    [InlineData("SELECT $\u00e9$secret-name$\u00e9$", "SELECT ?")]
+    [InlineData("SELECT $t\u00e4g$secret-name$t\u00e4g$", "SELECT ?")]
+    [InlineData("SELECT $\U0001D49C$secret-name$\U0001D49C$", "SELECT ?")]
+    [InlineData("SELECT $a\u0301$secret-name$a\u0301$", "SELECT ?")]
+    [InlineData("SELECT $\u00e9$secret-name", "SELECT ?")]
+    [InlineData("SELECT * FROM t WHERE a IN ($\u00e9$secret-name$\u00e9$, 'x')", "SELECT * FROM t WHERE a IN (?, ?)")]
+    [InlineData("SELECT a\u0301$tag$ FROM t WHERE a = '$tag$' AND b = 'secret-name'", "SELECT a\u0301$tag$ FROM t WHERE a = ? AND b = ?")]
+    public void GetSanitizedSql_UnicodeDollarQuoteTags_AreRecognized(string sql, string expected)
+    {
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.DbQuerySummary);
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
     [InlineData("BEGIN $IF $$DEBUG $THEN dbms_output.put_line('secret-name'); $END END;", "BEGIN $IF $$DEBUG $THEN dbms_output.put_line(?); $END END;")]
     [InlineData("SELECT $$PLSQL_UNIT, 'secret-name' FROM dual", "SELECT $$PLSQL_UNIT, ? FROM dual")]
     [InlineData("SELECT $$a$$, 'secret-name' FROM dual", "SELECT $$a$$, ? FROM dual")]

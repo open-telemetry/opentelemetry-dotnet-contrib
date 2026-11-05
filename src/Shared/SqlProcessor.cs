@@ -2258,10 +2258,11 @@ internal static partial class SqlProcessor
         // so it does not open a dollar-quoted string. Treating it as one would skip to the next occurrence of the
         // same delimiter, which may be inside a string literal, after which literals would be read as code.
         // Other characters can precede a dollar-quoted string, as '@' and '#' are operators in PostgreSQL.
-        // A surrogate is part of a letter which is not in the basic plane, which PostgreSQL also allows in a name.
+        // PostgreSQL allows non-ASCII characters in unquoted identifiers and dollar-quote tags, including
+        // combining marks and supplementary characters, so the same rules must be used on both sides.
         if (!ignoreLookBehind &&
             start > 0 &&
-            (char.IsLetterOrDigit(sql[start - 1]) || char.IsSurrogate(sql[start - 1]) || sql[start - 1] is UnderscoreChar or DollarChar))
+            (IsDollarQuoteTagChar(sql[start - 1]) || sql[start - 1] == DollarChar))
         {
             return false;
         }
@@ -2297,12 +2298,12 @@ internal static partial class SqlProcessor
 
         static bool IsDollarQuoteTagStartChar(char c)
         {
-            return char.IsAsciiLetter(c) || c == UnderscoreChar;
+            return char.IsAsciiLetter(c) || c == UnderscoreChar || c >= '\u0080';
         }
 
         static bool IsDollarQuoteTagChar(char c)
         {
-            return char.IsAsciiLetterOrDigit(c) || c == UnderscoreChar;
+            return IsDollarQuoteTagStartChar(c) || char.IsAsciiDigit(c);
         }
     }
 

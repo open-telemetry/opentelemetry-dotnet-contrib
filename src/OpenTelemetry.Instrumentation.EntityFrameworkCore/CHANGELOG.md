@@ -50,58 +50,30 @@
   characters are no longer cached.
   ([#5869](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5869))
 
-* Fixed query sanitization for the Cloud Spanner provider so that GoogleSQL
-  triple-quoted (`'''...'''`), double-quoted and backslash-escaped string
-  literals, and `#` comments, are redacted from `db.statement` and
-  `db.query.text`.
+* Fixed provider-specific query sanitization for Cloud Spanner (GoogleSQL)
+  literals and comments, SQL Server and SQLite bracketed identifiers, and
+  databases whose block comments do not nest.
   ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
 
-* Fixed query sanitization for providers whose database does not nest block
-  comments, such as SQLite and Oracle, so that a `/*` inside a block comment no
-  longer affects how the rest of the statement is sanitized.
+* Fixed redaction of login and user names in additional `CREATE`, `ALTER` and
+  `DROP` statement positions.
   ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
 
-* Fixed query sanitization so that a password which is not a string literal,
-  such as the one in the Oracle `IDENTIFIED BY` clause, is replaced with `?`.
+* Fixed redaction of Oracle passwords in `IDENTIFIED BY` and `REPLACE`
+  clauses, including unquoted and double-quoted values, and Teradata
+  `PASSWORD =` values.
   ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
 
-* Fixed query sanitization so that a `$` in an identifier is no longer treated as
-  the start of a string in dollar quotes.
+* Fixed `db.query.summary` for identifiers beginning with SQL keywords and
+  login or user statements in multi-statement commands.
   ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
 
-* Fixed query sanitization so that the names of logins and users are replaced
-  with `?` wherever they appear in a `CREATE`, `ALTER` or `DROP` statement,
-  such as after `FOR LOGIN` or `WITH NAME =`, and when the statement follows
-  another statement.
+* Fixed PostgreSQL query sanitization for dollar signs in identifiers and
+  dollar-quoted literals with non-ASCII tags.
   ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
 
-* Fixed query sanitization so that a bracketed identifier which contains an
-  apostrophe no longer causes the string literals which follow it to be left
-  unsanitized for SQL Server and SQLite.
-  ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
-
-* Fixed `db.query.summary` containing part of an identifier which starts with a
-  keyword and query sanitization of a login or user name which starts with one.
-  ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
-
-* Fixed `db.query.summary` containing the word which follows the name of a
-  login or user, such as `IDENTIFIED`, in a statement which follows another
-  statement.
-  ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
-
-* Fixed query sanitization for Oracle, Firebird and Teradata so that `$$`, such
-  as in the conditional compilation directive `$$DEBUG` of Oracle, is not taken
-  for the start of a string in dollar quotes, which hid the rest of the
-  statement.
-  ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
-
-* Fixed query sanitization for SQLite so that `]]` in an identifier in brackets
-  does not escape the closing bracket.
-  ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
-
-* Fixed query sanitization so that a password which is a word after
-  `PASSWORD =`, such as in Teradata (including `MODIFY USER`), is replaced with
-  `?`.
+* Fixed query sanitization so that Oracle conditional compilation directives
+  are not mistaken for dollar-quoted literals.
   ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
 
 ## 1.20.1-beta.1
