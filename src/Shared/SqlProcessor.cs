@@ -17,6 +17,9 @@ internal static class SqlProcessor
     private const int MaxBracketLookaheadLength = 16 * 1024;
     private const int CacheCapacity = 1000;
 
+    // The maximum length of a statement which is cached.
+    private const int MaxCachedStatementLength = 8192;
+
     // The minimum length of a statement for which the most recently sanitized statement is remembered
     // per thread while the cache is not full. Below this length looking a statement up in the cache is
     // about as cheap as maintaining the per-thread entry.
@@ -132,7 +135,8 @@ internal static class SqlProcessor
     // CommandExecuting event followed by SqlClient's WriteCommandBefore event for the same DbCommand),
     // so a reference-equality check lets the repeated call skip hashing the full text for the cache
     // lookup (or re-sanitizing it entirely once the cache is full). This retains at most one statement
-    // (and its sanitized form) per thread until that thread sanitizes a different statement.
+    // (and its sanitized form) per thread until that thread sanitizes a different statement. Statements
+    // longer than MaxCachedStatementLength are not remembered, so the memory retained is bounded.
     [ThreadStatic]
     private static LastSanitizedStatement? lastSanitizedStatement;
 
@@ -187,7 +191,8 @@ internal static class SqlProcessor
 
     /// <summary>
     /// Sanitizes a SQL statement by replacing its literal values with placeholders and computes the
-    /// corresponding <c>db.query.summary</c>. Results are cached per statement and dialect.
+    /// corresponding <c>db.query.summary</c>. Results are cached per statement and dialect,
+    /// unless the statement is too long to be cached.
     /// </summary>
     /// <param name="sql">The SQL statement to sanitize.</param>
     /// <param name="useBackslashEscapes">
@@ -211,6 +216,13 @@ internal static class SqlProcessor
         ref int approxCount,
         bool useBackslashEscapes)
     {
+        // Statements above the length limit are neither cached nor remembered for the thread,
+        // so that the memory retained does not depend on the length of the statements executed.
+        if (sql.Length > MaxCachedStatementLength)
+        {
+            return SanitizeSql(sql, useBackslashEscapes);
+        }
+
         if (sql.Length < LastStatementMinLength && approxCount < CacheCapacity)
         {
             return GetOrAddCachedSql(sql, cache, ref approxCount, useBackslashEscapes);

@@ -39,6 +39,11 @@
   `TRUNCATE TABLE Orders` rather than `TRUNCATE TABLE`.
   ([#5822](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5822))
 
+* Fixed the cache of sanitized SQL statements retaining statements of any
+  length for the lifetime of the process. Statements longer than 8192
+  characters are no longer cached.
+  ([#5869](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5869))
+
 ## 1.20.1
 
 Released 2026-Oct-21
