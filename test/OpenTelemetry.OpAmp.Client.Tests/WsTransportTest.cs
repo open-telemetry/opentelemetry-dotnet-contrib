@@ -594,46 +594,51 @@ public class WsTransportTest
         }
     }
 
-    [Fact]
-    public async Task WsTransport_StartAsyncReturnsWhenServerSendsImmediatelyAndListenerBlocks()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void WsReceiver_StartDoesNotReceiveSynchronouslyAvailableStreamOnCallingThread(bool malformed)
     {
-        var timeout = TimeSpan.FromSeconds(5);
-        using var listener = new BlockingCustomMessageListener();
-        var frame = FrameGenerator.GenerateMockServerFrame(addHeader: true);
-        var initialFrameSent = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        const int frameCount = 10;
 
-        using var opAmpServer = new OpAmpFakeWebSocketServer(
-            async (socket, token) =>
-            {
-                await socket.SendAsync(frame.Frame, WebSocketMessageType.Binary, true, token).ConfigureAwait(false);
-                initialFrameSent.TrySetResult(true);
-            });
-
+        // OpAMP header 0, followed by either ReportFullState flags or truncated protobuf.
+        byte[] payload = malformed ? [0x00, 0xff] : [0x00, 0x30, 0x01];
+        using var socket = new SynchronousReceiveWebSocket(new ArraySegment<byte>(payload), frameCount);
+        using var sendLock = new SemaphoreSlim(1, 1);
+        var listener = new RecordingFlagsMessageListener();
         var frameProcessor = new FrameProcessor();
         frameProcessor.Subscribe(listener);
-        var wsTransport = CreateTransport(opAmpServer.Endpoint, frameProcessor);
+        using var receiver = new WsReceiver(socket, frameProcessor, sendLock);
+        var token = TestContext.Current.CancellationToken;
+        Exception? startException = null;
 
-        try
+        // A dedicated thread cannot also execute the queued receive loop. Using a test runner
+        // or thread-pool thread here could reuse that thread after Start returns.
+        var startThread = new Thread(() =>
         {
-            var startTask = wsTransport.StartAsync(TestContext.Current.CancellationToken);
+            try
+            {
+                receiver.Start(token);
+            }
+            catch (Exception ex)
+            {
+                startException = ex;
+            }
+        });
 
-            var sentTask = await Task.WhenAny(initialFrameSent.Task, Task.Delay(timeout, TestContext.Current.CancellationToken));
-            Assert.Same(initialFrameSent.Task, sentTask);
+        startThread.Start();
+        startThread.Join();
+        Assert.Null(startException);
 
-            // The receive loop must not run inline on StartAsync's continuation. The listener
-            // blocks after receiving this unsolicited frame, while startup still completes.
-            var startCompleted = await Task.WhenAny(startTask, Task.Delay(timeout, TestContext.Current.CancellationToken));
-            Assert.Same(startTask, startCompleted);
-            await startTask;
+        // Wait for every receive before disposing, including when malformed frames never reach
+        // the listener. Dispose then joins the loop so the final frame finishes processing.
+        socket.FramesReceived.Wait(token);
+        receiver.Dispose();
 
-            var listenerEntered = await Task.WhenAny(listener.MessageReceived, Task.Delay(timeout, TestContext.Current.CancellationToken));
-            Assert.Same(listener.MessageReceived, listenerEntered);
-        }
-        finally
-        {
-            listener.Release();
-            wsTransport.Dispose();
-        }
+        Assert.Equal(frameCount, socket.ReceiveCount);
+        Assert.NotNull(socket.ReceiveThread);
+        Assert.NotSame(startThread, socket.ReceiveThread);
+        Assert.Equal(malformed ? 0 : frameCount, listener.MessageCount);
     }
 
     [Fact]
@@ -766,21 +771,13 @@ public class WsTransportTest
         new(segment.Array, segment.Offset + offset, count);
 #endif
 
-    private sealed class BlockingCustomMessageListener : IOpAmpListener<CustomMessageMessage>, IDisposable
+    private sealed class RecordingFlagsMessageListener : IOpAmpListener<FlagsMessage>
     {
-        private readonly ManualResetEventSlim release = new();
-        private readonly TaskCompletionSource<bool> messageReceived = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public int MessageCount { get; private set; }
 
-        public Task MessageReceived => this.messageReceived.Task;
-
-        public void Release() => this.release.Set();
-
-        public void HandleMessage(CustomMessageMessage message)
+        public void HandleMessage(FlagsMessage message)
         {
-            this.messageReceived.TrySetResult(true);
-            this.release.Wait();
+            this.MessageCount++;
         }
-
-        public void Dispose() => this.release.Dispose();
     }
 }

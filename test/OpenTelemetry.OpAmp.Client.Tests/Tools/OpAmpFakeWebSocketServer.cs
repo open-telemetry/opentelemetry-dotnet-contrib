@@ -29,23 +29,11 @@ internal class OpAmpFakeWebSocketServer : IDisposable
     }
 
     public OpAmpFakeWebSocketServer(Func<AgentToServer, WebSocket, CancellationToken, Task> responseHandler)
-        : this(null, responseHandler)
-    {
-    }
-
-    public OpAmpFakeWebSocketServer(
-        Func<WebSocket, CancellationToken, Task>? connectedHandler,
-        Func<AgentToServer, WebSocket, CancellationToken, Task>? responseHandler = null)
     {
         this.httpServer = TestWebSocketServer.RunServer(
             async (context, socket) =>
             {
                 this.requestHeaders.Add(context.Request.Headers);
-
-                if (connectedHandler != null)
-                {
-                    await connectedHandler(socket, this.cts.Token).ConfigureAwait(false);
-                }
 
                 var buffer = new byte[8 * 1024];
                 using var ms = new MemoryStream();
@@ -74,10 +62,7 @@ internal class OpAmpFakeWebSocketServer : IDisposable
                             var frame = ProcessReceive(ms);
                             this.frames.Add(frame);
 
-                            if (responseHandler != null)
-                            {
-                                await responseHandler(frame, socket, this.cts.Token).ConfigureAwait(false);
-                            }
+                            await responseHandler(frame, socket, this.cts.Token).ConfigureAwait(false);
                         }
                     }
                 }
