@@ -160,25 +160,17 @@ internal sealed class SqlEventSourceListener : EventListener
             return;
         }
 
-        TagList tags;
+        // The tags are always derived from the command, and never read back from the activity. The tags
+        // of an activity can also be set by processors (for example from baggage) and by enrichment, which
+        // must not be able to change the dimensions of the metric. The tags derived here are the same as
+        // the ones the activity is created with, so they do not depend on the sampling decision.
+        var tags = SqlTelemetryHelper.GetTagListFromConnectionInfo(pendingCommand.DataSource, pendingCommand.DatabaseName, out _);
 
-        if (activity != null && activity.IsAllDataRequested)
+        AddErrorTags(eventData, ref tags);
+
+        if (!string.IsNullOrEmpty(pendingCommand.QuerySummary))
         {
-            tags = default;
-            SqlTelemetryHelper.AddSharedTags(activity, ref tags);
-        }
-        else
-        {
-            // Derive the same tags as a sampled command gets from its activity, so that the
-            // metric's attributes do not depend on the sampling decision.
-            tags = SqlTelemetryHelper.GetTagListFromConnectionInfo(pendingCommand.DataSource, pendingCommand.DatabaseName, out _);
-
-            AddErrorTags(eventData, ref tags);
-
-            if (!string.IsNullOrEmpty(pendingCommand.QuerySummary))
-            {
-                tags.Add(SemanticConventions.AttributeDbQuerySummary, pendingCommand.QuerySummary);
-            }
+            tags.Add(SemanticConventions.AttributeDbQuerySummary, pendingCommand.QuerySummary);
         }
 
         SqlTelemetryHelper.DbClientOperationDuration.Record(duration, tags);

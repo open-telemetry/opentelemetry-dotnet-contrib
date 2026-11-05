@@ -44,6 +44,11 @@
   characters are no longer cached.
   ([#5869](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5869))
 
+* The attributes of the `db.client.operation.duration` metric are no longer
+  affected by tags set on the command's activity by processors or by
+  `EnrichWithSqlCommand`.
+  ([#5865](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5865))
+
 ## 1.20.1
 
 Released 2026-Oct-21
