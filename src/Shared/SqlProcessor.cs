@@ -11,7 +11,14 @@ internal static class SqlProcessor
 {
     private const int MaxSummaryLength = 255;
     private const int MaxBracketedIdentifierLength = 128;
+
+    // The most characters which are read in total, looking for the bracket which ends a list of values, so that
+    // many brackets which could start one (e.g. [--a] or [N'a]) do not each read to the end of the statement.
+    private const int MaxBracketLookaheadLength = 16 * 1024;
     private const int CacheCapacity = 1000;
+
+    // The maximum length of a statement which is cached.
+    private const int MaxCachedStatementLength = 8192;
 
     // The minimum length of a statement for which the most recently sanitized statement is remembered
     // per thread while the cache is not full. Below this length looking a statement up in the cache is
@@ -52,6 +59,7 @@ internal static class SqlProcessor
     private static readonly char[] LineBreakChars = [CarriageReturnChar, NewLineChar];
 #endif
 
+#if NET
     // The characters which can start a construct that a ')' may legitimately appear inside
     // (a string literal, a quoted identifier or a comment), plus ')' itself. Used to find the
     // end of an IN clause.
@@ -68,8 +76,8 @@ internal static class SqlProcessor
         HashChar,
     ];
 
-#if NET
     private static readonly SearchValues<char> AsciiLetterSearchValues = SearchValues.Create("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
+    private static readonly SearchValues<char> QuoteDollarOrCommentSearchValues = SearchValues.Create("'$-/");
     private static readonly SearchValues<char> LineBreakSearchValues = SearchValues.Create("\n\r");
     private static readonly SearchValues<char> WhitespaceSearchValues = SearchValues.Create(WhitespaceChars);
     private static readonly SearchValues<char> InClauseScanSearchValues = SearchValues.Create(InClauseScanChars);
@@ -127,7 +135,8 @@ internal static class SqlProcessor
     // CommandExecuting event followed by SqlClient's WriteCommandBefore event for the same DbCommand),
     // so a reference-equality check lets the repeated call skip hashing the full text for the cache
     // lookup (or re-sanitizing it entirely once the cache is full). This retains at most one statement
-    // (and its sanitized form) per thread until that thread sanitizes a different statement.
+    // (and its sanitized form) per thread until that thread sanitizes a different statement. Statements
+    // longer than MaxCachedStatementLength are not remembered, so the memory retained is bounded.
     [ThreadStatic]
     private static LastSanitizedStatement? lastSanitizedStatement;
 
@@ -182,7 +191,8 @@ internal static class SqlProcessor
 
     /// <summary>
     /// Sanitizes a SQL statement by replacing its literal values with placeholders and computes the
-    /// corresponding <c>db.query.summary</c>. Results are cached per statement and dialect.
+    /// corresponding <c>db.query.summary</c>. Results are cached per statement and dialect,
+    /// unless the statement is too long to be cached.
     /// </summary>
     /// <param name="sql">The SQL statement to sanitize.</param>
     /// <param name="useBackslashEscapes">
@@ -206,6 +216,13 @@ internal static class SqlProcessor
         ref int approxCount,
         bool useBackslashEscapes)
     {
+        // Statements above the length limit are neither cached nor remembered for the thread,
+        // so that the memory retained does not depend on the length of the statements executed.
+        if (sql.Length > MaxCachedStatementLength)
+        {
+            return SanitizeSql(sql, useBackslashEscapes);
+        }
+
         if (sql.Length < LastStatementMinLength && approxCount < CacheCapacity)
         {
             return GetOrAddCachedSql(sql, cache, ref approxCount, useBackslashEscapes);
@@ -336,13 +353,24 @@ internal static class SqlProcessor
 
         // If we have exceeded the max length for the summary, find the index of the last whitespace
         // and trim the summary to that position. This avoids truncating within an operation name or target.
-        if (state.SummaryPosition > MaxSummaryLength)
+        // A summary which is exactly the maximum length but ends with a period has stopped part way through
+        // a multi-part name (e.g. dbo.), as the period is only added when another part of the name follows,
+        // so the incomplete name is trimmed in the same way.
+        if (state.SummaryPosition > MaxSummaryLength ||
+            (state.SummaryPosition == MaxSummaryLength && summary[MaxSummaryLength - 1] == DotChar))
         {
 #if NET
             var indexOfLastWhitespace = summary.Slice(0, MaxSummaryLength).LastIndexOfAny(WhitespaceSearchValues);
 #else
             var indexOfLastWhitespace = summary.Slice(0, MaxSummaryLength).LastIndexOfAny(WhitespaceChars);
 #endif
+
+            // If the whitespace is within the last name captured (e.g. [Order Details]), the name is incomplete
+            // and is removed whole instead of being cut in half.
+            if (indexOfLastWhitespace > state.LastNameStartPosition && indexOfLastWhitespace < state.LastNameEndPosition)
+            {
+                indexOfLastWhitespace = state.LastNameStartPosition;
+            }
 
             summary = summary.Slice(0, indexOfLastWhitespace >= 0 ? indexOfLastWhitespace : MaxSummaryLength);
         }
@@ -357,6 +385,15 @@ internal static class SqlProcessor
             if (lastChar is SpaceChar or TabChar or NewLineChar or CarriageReturnChar)
             {
                 summaryLength -= 1;
+            }
+            else
+            {
+                // A period is added when another part of a multi-part name is expected, so if that part was not
+                // captured (e.g. the name was too long to be a delimited identifier) it is left at the end.
+                while (summaryLength > 0 && summary[summaryLength - 1] == DotChar)
+                {
+                    summaryLength -= 1;
+                }
             }
         }
 
@@ -396,6 +433,23 @@ internal static class SqlProcessor
         value.CopyTo(state.SummaryBuffer.Slice(state.SummaryPosition));
 
         state.SummaryPosition += value.Length;
+    }
+
+    // Appends a part of a name, recording where the whole (possibly multi-part) name starts and ends in the summary.
+    // A part which follows a period (which is only added when another part of the name is to be captured) continues
+    // the name, otherwise it starts a new one. This allows an incomplete name, or one which was cut short by the maximum
+    // summary length, to be removed whole, as a delimited identifier (e.g. [Order Details]) can contain whitespace.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void AppendSummaryNamePart(ReadOnlySpan<char> value, ref ParseState state)
+    {
+        if (state.SummaryPosition == 0 || state.SummaryBuffer[state.SummaryPosition - 1] != DotChar)
+        {
+            state.LastNameStartPosition = state.SummaryPosition;
+        }
+
+        AppendSummaryToken(value, ref state);
+
+        state.LastNameEndPosition = state.SummaryPosition;
     }
 
     private static void EnsureSummaryCapacity(int requiredCapacity, ref ParseState state)
@@ -568,6 +622,7 @@ internal static class SqlProcessor
             }
 
             var length = i - start;
+            var captureNextPartOfName = false;
             if (length > 0)
             {
                 // Special handling: if we are in a FROM clause, check if this identifier is a reserved keyword
@@ -606,18 +661,40 @@ internal static class SqlProcessor
                     state.SanitizedPosition += length;
                 }
 
-                // Optionally copy to summary buffer.
-                if (state.CaptureNextNonKeywordTokenAsIdentifier && !state.SummaryIsComplete)
+                // Keep identifier context even after summary collection stops, so quotes in later name parts
+                // are not mistaken for the start of a string literal.
+                if (state.CaptureNextNonKeywordTokenAsIdentifier)
                 {
-                    AppendSummaryToken(sql.Slice(start, length), ref state);
+                    // A period at the end of the identifier (e.g. dbo.) is only included if another part of the name follows.
+                    var endsWithDot = sql[i - 1] == DotChar;
+                    var periodCount = endsWithDot
+                        ? (IsNamePart(sql, SkipWhitespaceAndComments(sql, i, state.UseBackslashEscapes)) ? 1 : 0)
+                        : GetFollowingPeriodCount(sql, i, state.UseBackslashEscapes);
+                    captureNextPartOfName = periodCount > 0;
 
-                    // Add a space after the identifier. The trailing space will be trimmed later.
-                    AppendSummaryChar(SpaceChar, ref state);
+                    if (!state.SummaryIsComplete)
+                    {
+                        AppendSummaryNamePart(sql.Slice(start, endsWithDot ? length - 1 : length), ref state);
+
+                        if (captureNextPartOfName)
+                        {
+                            // Keep one separator beyond the limit so an unfinished name is removed when trimming.
+                            for (var period = 0; period < periodCount && state.SummaryPosition <= MaxSummaryLength; period++)
+                            {
+                                AppendSummaryChar(DotChar, ref state);
+                            }
+                        }
+                        else
+                        {
+                            // Add a space after the identifier. The trailing space will be trimmed later.
+                            AppendSummaryChar(SpaceChar, ref state);
+                        }
+                    }
                 }
             }
 
             state.ParsePosition = i;
-            state.CaptureNextNonKeywordTokenAsIdentifier = false;
+            state.CaptureNextNonKeywordTokenAsIdentifier = captureNextPartOfName;
             state.SanitizeNextNonKeywordToken = false;
             state.PreviousTokenStartPosition = start;
             state.PreviousTokenEndPosition = i;
@@ -636,8 +713,11 @@ internal static class SqlProcessor
 
             // If we are in a FROM clause, we want to capture the next identifier following a comma or period.
             // Commas may occur when listing multiple tables in a FROM clause.
-            // Periods may occur when using schema-qualified identifiers.
-            state.CaptureNextNonKeywordTokenAsIdentifier = state.InFromClause && (currentChar is CommaChar or DotChar);
+            // Periods may occur when using schema-qualified identifiers, which are also captured
+            // outside a FROM clause when the part before the period was captured (e.g. INSERT INTO [dbo].[Orders]).
+            state.CaptureNextNonKeywordTokenAsIdentifier =
+                (state.InFromClause && (currentChar is CommaChar or DotChar)) ||
+                (state.CaptureNextNonKeywordTokenAsIdentifier && currentChar == DotChar);
 
             buffer[state.SanitizedPosition++] = currentChar;
             state.ParsePosition++;
@@ -675,7 +755,23 @@ internal static class SqlProcessor
             return false;
         }
 
+        if (state.RedactRemainder)
+        {
+            // Whether the bracket is a name or a list of values was not able to be worked out, so there is no way to tell
+            // where it ends. Everything which follows could be in a string, so the rest of the statement is redacted.
+            buffer[state.SanitizedPosition++] = sql[start];
+            buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
+            state.RedactRemainder = false;
+            state.ParsePosition = sql.Length;
+            state.CaptureNextNonKeywordTokenAsIdentifier = false;
+            state.SanitizeNextNonKeywordToken = false;
+            state.PreviousTokenStartPosition = start;
+            state.PreviousTokenEndPosition = sql.Length;
+            return true;
+        }
+
         var length = end - start + 1;
+        var captureNextPartOfName = false;
 
         // Redact the whole name after LOGIN or USER (e.g. CREATE LOGIN [DOMAIN\user]), keeping its
         // delimiters. A double-quoted value which starts with a number is also redacted, because it is
@@ -695,25 +791,97 @@ internal static class SqlProcessor
             sql.Slice(start, length).CopyTo(buffer.Slice(state.SanitizedPosition));
             state.SanitizedPosition += length;
 
-            // Only bracketed identifiers in a FROM clause are included in the summary, as they were
-            // before quoted identifiers were parsed as a single token.
-            if (state.InFromClause && sql[start] == OpenSquareBracketChar && !state.SummaryIsComplete)
+            // Only bracketed identifiers are included in the summary, as they were before quoted
+            // identifiers were parsed as a single token. They are included wherever an unquoted
+            // identifier would be (e.g. after INTO or EXEC), as well as anywhere in a FROM clause.
+            if ((state.InFromClause || state.CaptureNextNonKeywordTokenAsIdentifier) &&
+                sql[start] == OpenSquareBracketChar)
             {
-                AppendSummaryToken(sql.Slice(start, length), ref state);
+                // Name classification must continue independently of the summary length limit.
+                var periodCount = GetFollowingPeriodCount(sql, end + 1, state.UseBackslashEscapes);
+                captureNextPartOfName = periodCount > 0;
 
-                // Add a period for a schema-qualified name, otherwise a space. A trailing space will be trimmed later.
-                var nextPosition = end + 1;
-                AppendSummaryChar(nextPosition < sql.Length && sql[nextPosition] == DotChar ? DotChar : SpaceChar, ref state);
+                if (!state.SummaryIsComplete)
+                {
+                    AppendSummaryNamePart(sql.Slice(start, length), ref state);
+
+                    if (captureNextPartOfName)
+                    {
+                        // Preserve omitted name parts, with one separator beyond the limit for incomplete-name trimming.
+                        for (var period = 0; period < periodCount && state.SummaryPosition <= MaxSummaryLength; period++)
+                        {
+                            AppendSummaryChar(DotChar, ref state);
+                        }
+                    }
+                    else
+                    {
+                        AppendSummaryChar(SpaceChar, ref state);
+                    }
+                }
             }
         }
 
         state.ParsePosition = end + 1;
-        state.CaptureNextNonKeywordTokenAsIdentifier = false;
+        state.CaptureNextNonKeywordTokenAsIdentifier = captureNextPartOfName;
         state.SanitizeNextNonKeywordToken = false;
         state.PreviousTokenStartPosition = start;
         state.PreviousTokenEndPosition = end + 1;
 
         return true;
+    }
+
+    // The number of periods at the position, ignoring any whitespace and comments, if they are followed by another
+    // part of a multi-part name which can be captured (e.g. the [Orders] in [dbo] . [Orders] or [dbo]./* c */[Orders]).
+    // Consecutive periods allow omitted database and schema parts (e.g. [Server]...[Orders]). Longer runs in malformed
+    // queries must also preserve identifier context so later literals are sanitized. Periods which are not followed
+    // by a part of the name are left out of the summary, in which case zero is returned.
+    private static int GetFollowingPeriodCount(ReadOnlySpan<char> sql, int position, bool useBackslashEscapes)
+    {
+        position = SkipWhitespaceAndComments(sql, position, useBackslashEscapes);
+
+        if (position >= sql.Length || sql[position] != DotChar)
+        {
+            return 0;
+        }
+
+        var periodCount = 1;
+        position = SkipWhitespaceAndComments(sql, position + 1, useBackslashEscapes);
+
+        while (position < sql.Length && sql[position] == DotChar)
+        {
+            periodCount++;
+            position = SkipWhitespaceAndComments(sql, position + 1, useBackslashEscapes);
+        }
+
+        return IsNamePart(sql, position) ? periodCount : 0;
+    }
+
+    // Whether the position is the start of a part of a name which can be captured.
+    private static bool IsNamePart(ReadOnlySpan<char> sql, int position) =>
+        position < sql.Length &&
+        (sql[position] is OpenSquareBracketChar or UnderscoreChar || char.IsLetter(sql[position]));
+
+    private static int SkipWhitespaceAndComments(ReadOnlySpan<char> sql, int position, bool useBackslashEscapes)
+    {
+        while (position < sql.Length)
+        {
+            if (sql[position] is SpaceChar or TabChar or CarriageReturnChar or NewLineChar)
+            {
+                position++;
+                continue;
+            }
+
+            var commentEnd = FindCommentEnd(sql, position, useBackslashEscapes);
+
+            if (commentEnd < 0)
+            {
+                break;
+            }
+
+            position = commentEnd;
+        }
+
+        return position;
     }
 
     /// <summary>
@@ -787,24 +955,92 @@ internal static class SqlProcessor
                 continue;
             }
 
-            // A name which is going to be redacted is always treated as an identifier, as none of it is copied.
-            return (state.SanitizeNextNonKeywordToken || IsBracketedIdentifier(sql.Slice(start + 1, i - start - 1))) ? i : -1;
+            // A name which is going to be redacted is always treated as an identifier, as none of it is copied. A bracket
+            // where a name is expected (e.g. after FROM) cannot be a list of values, so it is always a name, which ends at
+            // the first closing bracket, rather than the content of it and the SQL after it being used to guess what it is.
+            if (state.SanitizeNextNonKeywordToken || IsNameExpected(sql, start, in state))
+            {
+                return i;
+            }
+
+            if (IsBracketedIdentifier(sql, start + 1, i - start - 1, state.UseBackslashEscapes, ref state.BracketLookaheadLength, out var unresolved))
+            {
+                // If it is not known what the content is, where it ends is not known either, as the bracket could be in a
+                // string. Any of the rest of the statement could be part of it, so none of it is copied.
+                state.RedactRemainder = unresolved;
+                return i;
+            }
+
+            return -1;
         }
 
         return -1;
 
-        static bool IsBracketedIdentifier(ReadOnlySpan<char> content)
+        static bool IsNameExpected(ReadOnlySpan<char> sql, int start, in ParseState state)
         {
+            if (state.CaptureNextNonKeywordTokenAsIdentifier)
+            {
+                return true;
+            }
+
+            // The previous token is a word which is followed by the name of something (e.g. FROM, UPDATE or INTO), with only
+            // whitespace between it and the bracket. A comment, a literal or any other character is not part of a token which
+            // is the previous one, so a word in a comment (e.g. -- from) is never mistaken for the one before the bracket.
+            // The tokens which have been parsed are used, as not all of these words are parsed as keywords (e.g. FROM after DELETE).
+            var wordStart = state.PreviousTokenStartPosition;
+            var wordEnd = state.PreviousTokenEndPosition;
+
+            if (wordEnd <= wordStart || wordEnd > start)
+            {
+                return false;
+            }
+
+            for (var i = wordEnd; i < start; i++)
+            {
+                if (!char.IsWhiteSpace(sql[i]))
+                {
+                    return false;
+                }
+            }
+
+            return IsNameKeyword(sql.Slice(wordStart, wordEnd - wordStart));
+        }
+
+        static bool IsBracketedIdentifier(ReadOnlySpan<char> sql, int contentStart, int contentLength, bool useBackslashEscapes, ref int lookaheadLength, out bool unresolved)
+        {
+            unresolved = false;
+
             // Brackets can also delimit a list of values in some dialects (e.g. ['a', 'b'] or [1, 2] in
             // DuckDB, ClickHouse and GoogleSQL). An odd number of quotes cannot all be part of string
-            // literals, so that content is an identifier (e.g. [Manager's Approval]), unless it starts
-            // with a quote, when the bracket which ends it is inside a string literal (e.g. ['a]b', 'c']).
+            // literals, so that content is an identifier (e.g. [Manager's Approval]), unless it starts with
+            // a quote, when the bracket which ends it is inside a string literal (e.g. ['a]b', 'c']).
             // Content without quotes is an identifier unless it starts with a number (e.g. [1, 2]).
             // Anything else is parsed as SQL, which redacts any literals and at worst over-redacts an
             // identifier (e.g. [2024] or [It's Bob's]).
-            content = content.TrimStart();
+            var content = sql.Slice(contentStart, contentLength).TrimStart();
 
+            // A string in dollar quotes (e.g. [$$a$$, $$b$$] or [Email, $tag$a$tag$]) is a value, which would be copied
+            // if the content were an identifier. The first bracket which is found can be in a comment which follows it.
             if (content.IsEmpty)
+            {
+                return false;
+            }
+
+            // Content which starts with a quote is never an identifier (a string in dollar quotes in it is a value too), as
+            // the bracket which ends it can be inside a string literal (e.g. ['a]b', 'c']), so none of the checks are needed.
+            if (content[0] == SingleQuoteChar)
+            {
+                return false;
+            }
+
+            // Content with no quote, dollar sign or comment marker in it (e.g. [Orders] or [o].[Id]) is a name unless it starts
+            // with a number, so none of the checks which follow are needed, and most brackets are of this kind.
+            if (!HasQuoteDollarOrCommentChar(content))
+            {
+                return !StartsWithNumber(content);
+            }
+
+            if (ContainsDollarQuotedString(content))
             {
                 return false;
             }
@@ -822,9 +1058,322 @@ internal static class SqlProcessor
             }
 #endif
 
+            // Content which starts with a comment, a prefixed string (e.g. E'a', N'a', B'1' or X'1F') or a number which has
+            // quotes after it could be the start of a name (e.g. [--Orders], [N'Souza] or [2024's Reports]), or it could
+            // be the start of a list in which the first bracket which is found is in the comment or string (e.g. [ /* ] */ 'a'],
+            // [E'a]b', 'c'] or [1, 'a]b']). The bracket which ends a list is the first one which is not in a comment or
+            // string, so it is a list if there is one, and otherwise the rest of the SQL is not part of the content.
+            if (StartsWithComment(content) ||
+                (singleQuotes > 0 && StartsWithNumberLiteral(content)) ||
+                ((singleQuotes & 1) == 1 && StartsWithPrefixedString(content)))
+            {
+                var hasClosingBracket = HasClosingBracketOutsideLiteralsAndComments(sql, contentStart, useBackslashEscapes, ref lookaheadLength);
+
+                // If the limit on how much is read is reached, it is not known if it is a name or a list of values.
+                unresolved = hasClosingBracket is null;
+                return hasClosingBracket != true;
+            }
+
+            // The content is also an identifier if a comment in it would contain the closing bracket, which is not
+            // valid for a list of values, unless the content has a value which would be copied if it were an identifier.
+            // The first bracket which is found can be in a comment which ends later in a list (e.g. ['a' /* ] */, 'b']).
             return singleQuotes == 0
                 ? !StartsWithNumber(content)
-                : (singleQuotes & 1) == 1 && content[0] != SingleQuoteChar;
+                : content[0] != SingleQuoteChar &&
+                  ((singleQuotes & 1) == 1 || (CommentContainsClosingBracket(content) && !ContainsValue(content)));
+        }
+
+        static bool StartsWithComment(ReadOnlySpan<char> content)
+        {
+            return content.Length >= 2 &&
+                ((content[0] == ForwardSlashChar && content[1] == AsteriskChar) || (content[0] == DashChar && content[1] == DashChar));
+        }
+
+        static bool ContainsDollarQuotedString(ReadOnlySpan<char> content)
+        {
+            // Most content has no dollar sign, which is much cheaper to find than looking at each character.
+            if (content.IndexOf(DollarChar) < 0)
+            {
+                return false;
+            }
+
+            // A string in dollar quotes is a value when it starts the content, or follows a comma, an opening parenthesis or an
+            // operator (e.g. [Email, fn($$a$$)]), with any comments before it skipped. A dollar sign which follows a word, a
+            // quote or a closing parenthesis is part of a name (e.g. [Price $$x$$ O'Brien], [Orders'$$] or [Price$USD$]),
+            // so that the text which follows it is not parsed as a string or a comment.
+            var previous = '\0';
+
+            for (var i = 0; i < content.Length; i++)
+            {
+                var c = content[i];
+
+                if (char.IsWhiteSpace(c))
+                {
+                    continue;
+                }
+
+                if (c == DashChar && i + 1 < content.Length && content[i + 1] == DashChar)
+                {
+                    var lineEnd = content.Slice(i + 2).IndexOfAny(CarriageReturnChar, NewLineChar);
+                    if (lineEnd < 0)
+                    {
+                        return false;
+                    }
+
+                    i += 2 + lineEnd;
+                }
+                else if (c == ForwardSlashChar && i + 1 < content.Length && content[i + 1] == AsteriskChar)
+                {
+                    var commentEnd = content.Slice(i + 2).IndexOf("*/".AsSpan(), StringComparison.Ordinal);
+                    if (commentEnd < 0)
+                    {
+                        return false;
+                    }
+
+                    i += 2 + commentEnd + 1;
+                }
+                else
+                {
+                    if (c == DollarChar &&
+                        !IsWordChar(previous) &&
+                        previous is not (SingleQuoteChar or DoubleQuoteChar or BacktickChar or DollarChar or CloseParenChar) &&
+                        TryFindDollarQuotedLiteralEnd(content, i, out _))
+                    {
+                        return true;
+                    }
+
+                    previous = c;
+                }
+            }
+
+            return false;
+        }
+
+        static bool? HasClosingBracketOutsideLiteralsAndComments(ReadOnlySpan<char> sql, int start, bool useBackslashEscapes, ref int lookaheadLength)
+        {
+            // Reading the rest of the statement for each bracket could take time which grows with the square of its length,
+            // so there is a limit on the total number of characters read. If it is reached it is not known whether there is
+            // a bracket, which is the result of null.
+            var limit = Math.Min(sql.Length, start + Math.Max(MaxBracketLookaheadLength - lookaheadLength, 0));
+            var i = start;
+            var found = false;
+
+            for (; i < limit; i++)
+            {
+                int end;
+
+                switch (sql[i])
+                {
+                    case CloseSquareBracketChar:
+                        found = true;
+                        break;
+
+                    case SingleQuoteChar:
+                        end = FindStringLiteralEnd(sql, i, useBackslashEscapes, out _);
+                        if (end < 0)
+                        {
+                            // The string is not terminated, so nothing after it can be outside a string.
+                            lookaheadLength += sql.Length - start;
+                            return false;
+                        }
+
+                        i = end;
+                        continue;
+
+                    case DashChar:
+                    case ForwardSlashChar:
+                    case HashChar:
+                        end = FindCommentEnd(sql, i, useBackslashEscapes);
+                        if (end > i)
+                        {
+                            i = end - 1;
+                        }
+
+                        continue;
+
+                    case DollarChar:
+                        if (TryFindDollarQuotedLiteralEnd(sql, i, out end))
+                        {
+                            i = end - 1;
+                        }
+
+                        continue;
+
+                    default:
+                        continue;
+                }
+
+                break;
+            }
+
+            lookaheadLength += Math.Min(i, sql.Length) - start;
+            return found ? true : (limit < sql.Length && i >= limit) ? null : false;
+        }
+
+        static bool StartsWithNumberLiteral(ReadOnlySpan<char> content)
+        {
+            // A number (e.g. 1234, -1.5, 1e5 or 0x1F) that ends where the content does, or at a character which is not part
+            // of a word, which tells it from a name that starts with a number (e.g. [1st Manager's Requests]). The first
+            // bracket which is found can be in a string after the number (e.g. [1, 'a]b']).
+            var i = content[0] is '+' or DashChar ? 1 : 0;
+
+            if (i < content.Length && content[i] == DotChar)
+            {
+                i++;
+            }
+
+            if (i >= content.Length || !char.IsAsciiDigit(content[i]))
+            {
+                return false;
+            }
+
+            while (i < content.Length && (char.IsAsciiHexDigit(content[i]) || content[i] is DotChar or 'x' or 'X'))
+            {
+                i++;
+            }
+
+            return i == content.Length || !IsWordChar(content[i]);
+        }
+
+        static bool StartsWithPrefixedString(ReadOnlySpan<char> content)
+        {
+            // A string with a prefix (e.g. E'a', N'a', B'1' or X'1F'), where the first bracket which is found can be in the string.
+            return content.Length >= 2 && content[1] == SingleQuoteChar && content[0] is 'E' or 'e' or 'N' or 'n' or 'B' or 'b' or 'X' or 'x';
+        }
+
+        static bool ContainsValue(ReadOnlySpan<char> content)
+        {
+            // Whether the content has a string literal which is not empty, or a number. An identifier such as
+            // [Orders''--] has quotes, but only ones which are empty, while a list of values has the values.
+            for (var i = 0; i < content.Length; i++)
+            {
+                var c = content[i];
+
+                if (c == SingleQuoteChar)
+                {
+                    // A quote which follows a word is part of a name (e.g. [Orders''--]), unless the word is the prefix of a literal (e.g. N'a').
+                    if (i > 0 &&
+                        IsWordChar(content[i - 1]) &&
+                        !(content[i - 1] is 'E' or 'e' or 'N' or 'n' or 'B' or 'b' or 'X' or 'x' && (i == 1 || !IsWordChar(content[i - 2]))))
+                    {
+                        while (i + 1 < content.Length && content[i + 1] == SingleQuoteChar)
+                        {
+                            i++;
+                        }
+
+                        continue;
+                    }
+
+                    var start = i + 1;
+                    var end = start;
+
+                    while (end < content.Length)
+                    {
+                        if (content[end] == SingleQuoteChar)
+                        {
+                            // A doubled quote is a quote in the literal.
+                            if (end + 1 < content.Length && content[end + 1] == SingleQuoteChar)
+                            {
+                                end += 2;
+                                continue;
+                            }
+
+                            break;
+                        }
+
+                        end++;
+                    }
+
+                    if (end > start)
+                    {
+                        return true;
+                    }
+
+                    i = end;
+                }
+                else if (c is DashChar or ForwardSlashChar && i + 1 < content.Length)
+                {
+                    // Anything in a comment (e.g. [Orders/*'']) is not a value.
+                    if (c == DashChar && content[i + 1] == DashChar)
+                    {
+                        var lineEnd = content.Slice(i).IndexOfAny(CarriageReturnChar, NewLineChar);
+                        i = lineEnd < 0 ? content.Length : i + lineEnd;
+                    }
+                    else if (c == ForwardSlashChar && content[i + 1] == AsteriskChar)
+                    {
+                        var blockEnd = content.Slice(i + 2).IndexOf("*/".AsSpan());
+                        i = blockEnd < 0 ? content.Length : i + 2 + blockEnd + 1;
+                    }
+                }
+                else if (char.IsAsciiDigit(c) && (i == 0 || !IsWordChar(content[i - 1])))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        static bool CommentContainsClosingBracket(ReadOnlySpan<char> content)
+        {
+            // A list of values has to end with its closing bracket, so a comment which has not ended by the
+            // time the content does would contain it, which is not valid. The content must therefore be an
+            // identifier (e.g. [Orders''--] or [Orders''/*]), which otherwise would be parsed as SQL with
+            // the rest of the statement, including any literal in it, swallowed by the comment.
+            // A comment starts with two dashes or a slash and an asterisk, so content which has no dash and
+            // no slash cannot contain one, which is much cheaper to find than looking at each character.
+            if (content.IndexOfAny(DashChar, ForwardSlashChar) < 0)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < content.Length; i++)
+            {
+                var c = content[i];
+
+                if (c == SingleQuoteChar)
+                {
+                    // Skip a string literal, in which a comment marker is only text.
+                    for (i++; i < content.Length; i++)
+                    {
+                        if (content[i] != SingleQuoteChar)
+                        {
+                            continue;
+                        }
+
+                        if (i + 1 < content.Length && content[i + 1] == SingleQuoteChar)
+                        {
+                            i++;
+                            continue;
+                        }
+
+                        break;
+                    }
+                }
+                else if (c == DashChar && i + 1 < content.Length && content[i + 1] == DashChar)
+                {
+                    // A line comment ends at the end of the line, if the line does end within the content.
+                    var lineEnd = content.Slice(i + 2).IndexOfAny(CarriageReturnChar, NewLineChar);
+                    if (lineEnd < 0)
+                    {
+                        return true;
+                    }
+
+                    i += 2 + lineEnd;
+                }
+                else if (c == ForwardSlashChar && i + 1 < content.Length && content[i + 1] == AsteriskChar)
+                {
+                    var commentEnd = content.Slice(i + 2).IndexOf("*/".AsSpan(), StringComparison.Ordinal);
+                    if (commentEnd < 0)
+                    {
+                        return true;
+                    }
+
+                    i += 2 + commentEnd + 1;
+                }
+            }
+
+            return false;
         }
     }
 
@@ -846,6 +1395,58 @@ internal static class SqlProcessor
         }
 
         return state.NextCloseSquareBracket;
+    }
+
+    private static bool IsNameKeyword(ReadOnlySpan<char> word)
+    {
+        // The words which are followed by the name of something, so are not followed by a list of values.
+        // They are found by length and first letter, as most of the words which come before a bracket are none of them.
+        if (word.IsEmpty)
+        {
+            return false;
+        }
+
+        var keyword = (word.Length, word[0] | 0x20) switch
+        {
+            (4, 'f') => "from",
+            (4, 'i') => "into",
+            (4, 'j') => "join",
+            (4, 'v') => "view",
+            (4, 'e') => "exec",
+            (5, 't') => "table",
+            (5, 'i') => "index",
+            (6, 'u') => "update",
+            (6, 'd') => "delete",
+            (6, 's') => "schema",
+            (7, 'e') => "execute",
+            (7, 't') => "trigger",
+            (8, 't') => "truncate",
+            (8, 'f') => "function",
+            (8, 'd') => "database",
+            (8, 's') => "sequence",
+            (9, 'p') => "procedure",
+            _ => null,
+        };
+
+        return keyword is not null && word.Equals(keyword.AsSpan(), StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool HasQuoteDollarOrCommentChar(ReadOnlySpan<char> content)
+    {
+        // Whether the content has any character which a quote, a dollar quoted string or a comment starts with.
+#if NET
+        return content.IndexOfAny(QuoteDollarOrCommentSearchValues) >= 0;
+#else
+        foreach (var c in content)
+        {
+            if (c is SingleQuoteChar or DollarChar or DashChar or ForwardSlashChar)
+            {
+                return true;
+            }
+        }
+
+        return false;
+#endif
     }
 
     private static bool StartsWithNumber(ReadOnlySpan<char> value)
@@ -1449,11 +2050,24 @@ internal static class SqlProcessor
             // (for example "IN ('a)b', 'secret')"), which would leave the parser positioned in the
             // middle of that literal. Every subsequent quote would then be mismatched and the
             // remaining values would be copied into the sanitized SQL verbatim instead of being replaced.
+            // A scan which found no closing parenthesis has looked at everything up to the end of the input, so
+            // any later list is within the same text and would not find one either. Without remembering that, a
+            // statement with many lists which are not terminated would scan to the end of the input for each of them.
+            if (state.InClauseEndNotFoundFrom != 0 && parsePosition + 1 >= state.InClauseEndNotFoundFrom)
+            {
+                return false;
+            }
+
             if (TryFindEndOfInClause(sql, parsePosition, in state, out var closeParenIndex))
             {
                 state.ParsePosition = closeParenIndex;
                 buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
                 return true;
+            }
+
+            if (state.InClauseEndNotFoundFrom == 0)
+            {
+                state.InClauseEndNotFoundFrom = parsePosition + 1;
             }
         }
 
@@ -1484,7 +2098,7 @@ internal static class SqlProcessor
 #if NET
             var offset = sql.Slice(i).IndexOfAny(InClauseScanSearchValues);
 #else
-            var offset = sql.Slice(i).IndexOfAny(InClauseScanChars);
+            var offset = IndexOfInClauseScanChar(sql.Slice(i));
 #endif
 
             if (offset < 0)
@@ -1537,6 +2151,31 @@ internal static class SqlProcessor
         return false;
     }
 
+#if !NET
+    /// <summary>
+    /// Finds the first character which can start a construct that a <c>)</c> may legitimately appear inside, or which is
+    /// <c>)</c> itself (see <see cref="TryFindEndOfInClause"/>).
+    /// </summary>
+    /// <remarks>
+    /// This is not <c>IndexOfAny</c> as that searches the whole of the span once for each value on .NET Framework, so for
+    /// a value which does not occur it takes time in proportion to the length of the span rather than to the distance to the
+    /// first match, and calling it for each of a number of literals in a long statement takes time which grows with its square.
+    /// </remarks>
+    private static int IndexOfInClauseScanChar(ReadOnlySpan<char> span)
+    {
+        for (var i = 0; i < span.Length; i++)
+        {
+            if (span[i] is CloseParenChar or SingleQuoteChar or DoubleQuoteChar or BacktickChar or OpenSquareBracketChar
+                or DollarChar or DashChar or ForwardSlashChar or HashChar)
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+#endif
+
     private ref struct ParseState
     {
         // ParseState intentionally uses public fields (not properties):
@@ -1571,13 +2210,26 @@ internal static class SqlProcessor
         // This tracks the end position of the previous keyword matched by the parser.
         public int PreviousKeywordEndPosition; // 4 bytes
 
+        // These track where the last name (which may have several parts) captured in the summary starts and ends.
+        public int LastNameStartPosition; // 4 bytes
+        public int LastNameEndPosition; // 4 bytes
+
         // The first ']' found at or after CloseSquareBracketSearchStart, or the length of the input if there is none.
         public int CloseSquareBracketSearchStart; // 4 bytes
         public int NextCloseSquareBracket; // 4 bytes
 
+        // One more than the position from which the end of an IN clause was searched for and not found, or zero if there was no such search.
+        public int InClauseEndNotFoundFrom; // 4 bytes
+
+        // The number of characters which have been read in total looking for the bracket which ends a list of values.
+        public int BracketLookaheadLength; // 4 bytes
+
         // NOTE: If the number of bool fields increases significantly, consider combining into a bitfield.
 
         public bool CaptureNextNonKeywordTokenAsIdentifier; // 1 byte
+
+        // Set while finding the end of a bracket which could be a name or a list of values, if which could not be worked out.
+        public bool RedactRemainder; // 1 byte
 
         public bool SanitizeNextNonKeywordToken; // 1 byte
 
@@ -1847,7 +2499,8 @@ internal static class SqlProcessor
             SqlKeyword.Login or SqlKeyword.User => false,
             SqlKeyword.Statistics => state.FirstSummaryKeyword is SqlKeyword.Update,
             SqlKeyword.Trigger => state.FirstSummaryKeyword is SqlKeyword.Create or SqlKeyword.Alter or SqlKeyword.Drop or SqlKeyword.Disable or SqlKeyword.Enable,
-            SqlKeyword.Truncate => state.FirstSummaryKeyword is SqlKeyword.Table,
+            SqlKeyword.Truncate => state.FirstSummaryKeyword is SqlKeyword.Truncate,
+            SqlKeyword.Table => state.FirstSummaryKeyword is SqlKeyword.Create or SqlKeyword.Alter or SqlKeyword.Drop or SqlKeyword.Truncate,
             SqlKeyword.Database or
             SqlKeyword.Function or
             SqlKeyword.Index or
@@ -1855,7 +2508,6 @@ internal static class SqlProcessor
             SqlKeyword.Role or
             SqlKeyword.Schema or
             SqlKeyword.Sequence or
-            SqlKeyword.Table or
             SqlKeyword.View => state.FirstSummaryKeyword is SqlKeyword.Create or SqlKeyword.Alter or SqlKeyword.Drop,
             _ => false,
         };

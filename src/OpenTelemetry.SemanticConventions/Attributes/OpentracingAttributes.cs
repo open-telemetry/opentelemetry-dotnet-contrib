@@ -20,11 +20,13 @@ public static class OpentracingAttributes
     /// <remarks>
     /// The causal relationship between a child Span and a parent Span.
     /// </remarks>
+    [Obsolete("OpenTracing compatibility requirements are deprecated in OpenTelemetry Specification (https://opentelemetry.io/docs/specs/otel/compatibility/opentracing/).")]
     public const string AttributeOpentracingRefType = "opentracing.ref_type";
 
     /// <summary>
     /// Parent-child Reference type.
     /// </summary>
+    [Obsolete("OpenTracing compatibility requirements are deprecated in OpenTelemetry Specification (https://opentelemetry.io/docs/specs/otel/compatibility/opentracing/).")]
     public static class OpentracingRefTypeValues
     {
         /// <summary>

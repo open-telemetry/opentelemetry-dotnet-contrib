@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+* Fixed failed jobs exporting the exception message as the span status description.
+  The message is now only recorded when `RecordException` is enabled.
+  ([#5884](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5884))
+
+* Fixed baggage from a job being visible to work started by other jobs
+  performed on the same worker.
+  ([#5886](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5886))
+
 * Added `EnrichWithBackgroundJob` and `CustomStateMappings` to
   `HangfireMetricsInstrumentationOptions`. Use them to add custom attributes to
   the metrics and to count jobs in custom Hangfire states.

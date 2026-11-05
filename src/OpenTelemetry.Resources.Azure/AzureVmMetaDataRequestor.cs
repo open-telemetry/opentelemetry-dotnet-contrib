@@ -18,7 +18,11 @@ internal static class AzureVmMetaDataRequestor
         var timeout = TimeSpan.FromSeconds(2);
 
         using var cts = new CancellationTokenSource(timeout);
-        using var httpClient = new HttpClient()
+        using var handler = new HttpClientHandler { AllowAutoRedirect = false };
+
+#pragma warning disable CA5399 // HttpClient is created without enabling CheckCertificateRevocationList
+        using var httpClient = new HttpClient(handler, disposeHandler: false)
+#pragma warning restore CA5399 // HttpClient is created without enabling CheckCertificateRevocationList
         {
             MaxResponseContentBufferSize = MaxResponseContentBufferSize,
             Timeout = timeout,

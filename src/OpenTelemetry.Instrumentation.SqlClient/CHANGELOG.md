@@ -2,6 +2,66 @@
 
 ## Unreleased
 
+* Fixed `db.query.summary` so that a delimited identifier, such as `[Orders]` or
+  `[dbo].[Orders]`, is captured wherever an undelimited identifier would be
+  (for example after `INSERT INTO`, `EXEC`, `CREATE TABLE` or a `JOIN` which
+  follows an `ON` clause), instead of only in a `FROM` clause.
+  ([#5816](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5816))
+
+* Fixed a bracketed identifier which contains quotes and a comment marker, such
+  as `[Orders''--]`, being parsed as SQL, which truncated the sanitized query
+  text and left a literal after it unsanitized if it was on a later line.
+  ([#5827](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5827))
+
+* Fixed the time taken to sanitize a statement when it contains many `IN (` lists
+  which are not terminated.
+  ([#5827](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5827))
+
+* Fixed literals in a list of values in brackets (e.g. `['a', 'b']`) being left
+  unsanitized if the list starts with a string in dollar quotes, a string with a
+  prefix, a number or a comment, or has a comment which contains a closing
+  bracket.
+  ([#5827](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5827))
+
+* Updated Semantic Conventions version to `1.45.0`.
+  ([#5833](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5833))
+
+* Fixed `db.query.summary` so that a multi-part name which mixes undelimited
+  and delimited parts, such as `dbo.[Orders]`, or which has whitespace around
+  a period, such as `dbo . Orders` or `[dbo] . [Orders]`, is captured whole,
+  and so that a trailing period is no longer left in the summary when no
+  further part of the name follows it. As the summary is used to name the
+  span, the names of affected spans change.
+  ([#5822](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5822))
+
+* Fixed `db.query.summary` so that the table name is included for a
+  `TRUNCATE` statement, with or without `TABLE`, for example
+  `TRUNCATE TABLE Orders` rather than `TRUNCATE TABLE`.
+  ([#5822](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5822))
+
+* Fixed the cache of sanitized SQL statements retaining statements of any
+  length for the lifetime of the process. Statements longer than 8192
+  characters are no longer cached.
+  ([#5869](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5869))
+
+* The attributes of the `db.client.operation.duration` metric are no longer
+  affected by tags set on the command's activity by processors or by
+  `EnrichWithSqlCommand`.
+  ([#5865](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5865))
+
+* Fixed a memory leak on .NET Framework when a command executed asynchronously
+  fails before it is sent. Upgrade to apply the fix.
+  ([#5872](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5872))
+
+* Fixed the activity of a command executed asynchronously (for example with
+  `ExecuteNonQueryAsync()`) being left as `Activity.Current` after the command
+  completed, which made every later command executed by the same method a child
+  of it and retained them all for as long as the method ran. The activity of a
+  command is no longer `Activity.Current` while the command executes or while
+  `Filter` and `EnrichWithSqlCommand` run, so use the `activity` argument of
+  `EnrichWithSqlCommand` instead.
+  ([#5866](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5866))
+
 ## 1.20.1
 
 Released 2026-Oct-21

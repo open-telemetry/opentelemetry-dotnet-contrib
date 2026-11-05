@@ -38,6 +38,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 #endif
 
     private const string ReturnedRowsBaselinePropertyName = "otel.sqlclient.returned_rows_baseline";
+    private const string ConnectionSnapshotPropertyName = "otel.sqlclient.connection_snapshot";
 
     private static ConcurrentDictionary<Type, Func<IDbConnection, IDictionary?>?>? retrieveStatisticsCache;
 
@@ -47,7 +48,20 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
     private readonly PropertyFetcher<IDictionary> statisticsFetcher = new("Statistics");
     private readonly PropertyFetcher<Guid> operationIdFetcher = new("OperationId");
     private readonly PropertyFetcher<string> operationFetcher = new("Operation");
-    private readonly ConcurrentDictionary<Guid, long> beginTimestamps = new();
+    private readonly ConcurrentDictionary<Guid, PendingCommand> pendingCommands = new();
+
+    // The activity of each command which is executing. The completion events of an asynchronous command
+    // are written on a copy of the execution context of the caller, so the activity cannot be found again
+    // through Activity.Current. Keyed weakly so the activity of a command which never writes a completion
+    // event (for example if it was cancelled before it started) does not keep the command alive.
+#if NET
+    private readonly ConditionalWeakTable<IDbCommand, Activity> activities = [];
+#else
+    private readonly ConditionalWeakTable<IDbCommand, Activity> activities = new();
+#endif
+
+    // Set once an activity has been tracked, so that nothing needs to be looked up before then.
+    private volatile bool hasTrackedActivities;
 
     public SqlClientDiagnosticListener(string sourceName)
         : base(sourceName)
@@ -56,7 +70,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
     public override bool SupportsNullActivity => true;
 
-    internal int PendingBeginTimestampCount => this.beginTimestamps.Count;
+    internal int PendingCommandCount => this.pendingCommands.Count;
 
     public override void OnEventWritten(string name, object? payload)
     {
@@ -65,16 +79,36 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
         {
             // The instrumentation may have been disabled part way through a command's
             // execution, so make sure any timestamp entry is cleaned up.
-            if (!this.beginTimestamps.IsEmpty)
+            if (!this.pendingCommands.IsEmpty)
             {
-                _ = this.TakeBeginTimestamp(payload);
+                _ = this.TakePendingCommand(payload);
+            }
+
+            // Likewise release the activity of the command. One which is executing is stopped, and one left by
+            // an execution which never completed is cleared so that a command which is executed again does not
+            // pick it up if the instrumentation is enabled again before it completes.
+            if (this.hasTrackedActivities)
+            {
+                if (IsCompletionEvent(name))
+                {
+                    _ = TryFetchCommand(this.commandFetcher, payload, out var completedCommand);
+
+                    if (this.TakeActivity(completedCommand) is { } completedActivity)
+                    {
+                        SqlTelemetryHelper.StopActivity(completedActivity);
+                    }
+                }
+                else if (name is SqlDataBeforeExecuteCommand or SqlMicrosoftBeforeExecuteCommand)
+                {
+                    _ = TryFetchCommand(this.commandFetcher, payload, out var startedCommand);
+                    _ = this.TakeActivity(startedCommand);
+                }
             }
 
             return;
         }
 
         var options = SqlClientInstrumentation.Instance.GetTracingOptions();
-        var activity = Activity.Current;
         switch (name)
         {
             case SqlDataBeforeExecuteCommand:
@@ -95,20 +129,32 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     }
 #endif
 
-                    // Metrics-only fast path: if the ActivitySource has no listeners then StartActivity
-                    // will always return null and no trace will be produced. Skip the (relatively
-                    // expensive) connection tag derivation, query sanitization, filtering and enrichment
-                    // entirely and only capture the start timestamp needed to compute the metric duration
-                    // in the matching WriteCommandAfter/WriteCommandError event.
-                    if (!SqlTelemetryHelper.ActivitySource.HasListeners())
+                    // An execution which never completed (for example one with a token which was already
+                    // cancelled) leaves its activity associated with the command, which a command that is
+                    // executed again must not pick up when it completes, so it is cleared first.
+                    if (this.hasTrackedActivities)
                     {
-                        this.RecordBeginTimestamp(payload);
-                        return;
+                        _ = this.activities.Remove(command);
                     }
 
+                    // Snapshot the connection details before the command executes. A connection which
+                    // breaks while the command executes is closed before the error event is written,
+                    // after which its Database reverts to the initial catalog of its connection string
+                    // rather than the database the command was executed against.
                     var connection = command.Connection;
                     var databaseName = connection?.Database;
                     var dataSource = (connection as DbConnection)?.DataSource;
+
+                    // Metrics-only fast path: if the ActivitySource has no listeners then StartActivity
+                    // will always return null and no trace will be produced. Skip the (relatively
+                    // expensive) connection tag derivation, query sanitization, filtering and enrichment
+                    // entirely and only capture the start timestamp needed to compute the metric duration,
+                    // and the connection details, for the matching WriteCommandAfter/WriteCommandError event.
+                    if (!SqlTelemetryHelper.ActivitySource.HasListeners())
+                    {
+                        this.RecordPendingCommand(payload, dataSource, databaseName);
+                        return;
+                    }
 
                     var startTags = SqlTelemetryHelper.GetTagListFromConnectionInfo(dataSource, databaseName, out var activityName);
 
@@ -136,7 +182,9 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                             break;
                     }
 
-                    activity = SqlTelemetryHelper.ActivitySource.StartActivity(
+                    var callerActivity = Activity.Current;
+
+                    var activity = SqlTelemetryHelper.ActivitySource.StartActivity(
                         activityName,
                         ActivityKind.Client,
                         default(ActivityContext),
@@ -145,9 +193,21 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     if (activity == null)
                     {
                         // There is no listener or it decided not to sample the current request.
-                        this.RecordBeginTimestamp(payload);
+                        this.RecordPendingCommand(payload, dataSource, databaseName);
                         return;
                     }
+
+                    // The event which completes an asynchronous command is written on a copy of the
+                    // execution context of the caller, so stopping the activity there cannot restore the
+                    // caller's current activity. Restore it here instead, otherwise the caller is left with
+                    // the activity of the command as its current activity and every command it goes on to
+                    // execute becomes a child of the previous one. The activity is found again by command.
+                    Activity.Current = callerActivity;
+
+                    this.activities.Add(command, activity);
+                    this.hasTrackedActivities = true;
+
+                    activity.SetCustomProperty(ConnectionSnapshotPropertyName, new ConnectionSnapshot(dataSource, databaseName));
 
                     // Snapshot the connection's cumulative returned row count before the command
                     // executes so that the after-handler can compute the per-command delta. The
@@ -235,14 +295,9 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     }
 #endif
 
-                    if (activity == null)
-                    {
-                        SqlClientInstrumentationEventSource.Log.NullActivity(name);
-                        this.RecordDuration(null, payload);
-                        return;
-                    }
+                    var activity = this.TakeActivity(command);
 
-                    if (activity.Source != SqlTelemetryHelper.ActivitySource)
+                    if (activity == null)
                     {
                         this.RecordDuration(null, payload);
                         return;
@@ -261,7 +316,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                         }
                     }
 
-                    activity.Stop();
+                    SqlTelemetryHelper.StopActivity(activity);
                     this.RecordDuration(activity, payload);
                 }
 
@@ -280,14 +335,9 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     }
 #endif
 
-                    if (activity == null)
-                    {
-                        SqlClientInstrumentationEventSource.Log.NullActivity(name);
-                        this.RecordDuration(null, payload, hasError: true);
-                        return;
-                    }
+                    var activity = this.TakeActivity(command);
 
-                    if (activity.Source != SqlTelemetryHelper.ActivitySource)
+                    if (activity == null)
                     {
                         this.RecordDuration(null, payload, hasError: true);
                         return;
@@ -321,7 +371,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     }
                     finally
                     {
-                        activity.Stop();
+                        SqlTelemetryHelper.StopActivity(activity);
                         this.RecordDuration(activity, payload, hasError: true);
                     }
                 }
@@ -490,24 +540,33 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
     private static long? GetReturnedRowsDelta(long baseline, IDictionary statistics)
         => statistics["SelectRows"] is long selectRows ? selectRows - baseline : null;
 
-    private void RecordBeginTimestamp(object? payload)
+    private static bool IsCompletionEvent(string name) =>
+        name is SqlDataAfterExecuteCommand or SqlMicrosoftAfterExecuteCommand
+            or SqlDataWriteCommandError or SqlMicrosoftWriteCommandError;
+
+    private Activity? TakeActivity(IDbCommand? command) =>
+        command != null && this.activities.TryGetValue(command, out var activity) && this.activities.Remove(command)
+            ? activity
+            : null;
+
+    private void RecordPendingCommand(object? payload, string? dataSource, string? databaseName)
     {
         if (TryFetchOperationId(this.operationIdFetcher, payload, out var operationId))
         {
-            this.beginTimestamps[operationId] = Stopwatch.GetTimestamp();
+            this.pendingCommands[operationId] = new(Stopwatch.GetTimestamp(), dataSource, databaseName);
         }
     }
 
-    private long? TakeBeginTimestamp(object? payload) =>
-        TryFetchOperationId(this.operationIdFetcher, payload, out var operationId) && this.beginTimestamps.TryRemove(operationId, out var timestamp)
-            ? timestamp
+    private PendingCommand? TakePendingCommand(object? payload) =>
+        TryFetchOperationId(this.operationIdFetcher, payload, out var operationId) && this.pendingCommands.TryRemove(operationId, out var pendingCommand)
+            ? pendingCommand
             : null;
 
     private void RecordDuration(Activity? activity, object? payload, bool hasError = false)
     {
-        // The pending start timestamp is always consumed, even when metrics are disabled, so that
+        // The pending command is always consumed, even when metrics are disabled, so that
         // entries cannot accumulate for the lifetime of the listener.
-        var beginTimestamp = this.TakeBeginTimestamp(payload);
+        var pendingCommand = this.TakePendingCommand(payload);
 
         if (SqlClientInstrumentation.Instance.HandleManager.MetricHandles == 0)
         {
@@ -519,9 +578,9 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
         {
             duration = activity.Duration.TotalSeconds;
         }
-        else if (beginTimestamp is { } begin)
+        else if (pendingCommand is { } pending)
         {
-            duration = SqlTelemetryHelper.CalculateDurationFromTimestamp(begin);
+            duration = SqlTelemetryHelper.CalculateDurationFromTimestamp(pending.BeginTimestamp);
         }
         else
         {
@@ -533,17 +592,33 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
         var tags = default(TagList);
 
-        if (activity != null && activity.IsAllDataRequested)
-        {
-            SqlTelemetryHelper.AddSharedTags(activity, ref tags);
-        }
-        else if (payload != null)
+        // The tags are always derived from the command, and never read back from the activity. The tags
+        // of an activity can also be set by processors (for example from baggage) and by enrichment, which
+        // must not be able to change the dimensions of the metric. The tags derived here are the same as
+        // the ones the activity is created with, so they do not depend on the sampling decision.
+        if (payload != null)
         {
             if (TryFetchCommand(this.commandFetcher, payload, out var command))
             {
-                var connection = command.Connection;
-                var databaseName = connection?.Database;
-                var dataSource = (connection as DbConnection)?.DataSource;
+                string? databaseName;
+                string? dataSource;
+
+                if (activity?.GetCustomProperty(ConnectionSnapshotPropertyName) is ConnectionSnapshot snapshot)
+                {
+                    dataSource = snapshot.DataSource;
+                    databaseName = snapshot.DatabaseName;
+                }
+                else if (pendingCommand is { } pending)
+                {
+                    dataSource = pending.DataSource;
+                    databaseName = pending.DatabaseName;
+                }
+                else
+                {
+                    var connection = command.Connection;
+                    databaseName = connection?.Database;
+                    dataSource = (connection as DbConnection)?.DataSource;
+                }
 
                 var connectionTags = SqlTelemetryHelper.GetTagListFromConnectionInfo(
                     dataSource,
@@ -589,6 +664,22 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
         }
 
         SqlTelemetryHelper.DbClientOperationDuration.Record(duration, tags);
+    }
+
+    private readonly struct PendingCommand(long beginTimestamp, string? dataSource, string? databaseName)
+    {
+        public long BeginTimestamp { get; } = beginTimestamp;
+
+        public string? DataSource { get; } = dataSource;
+
+        public string? DatabaseName { get; } = databaseName;
+    }
+
+    private sealed class ConnectionSnapshot(string? dataSource, string? databaseName)
+    {
+        public string? DataSource { get; } = dataSource;
+
+        public string? DatabaseName { get; } = databaseName;
     }
 }
 #endif

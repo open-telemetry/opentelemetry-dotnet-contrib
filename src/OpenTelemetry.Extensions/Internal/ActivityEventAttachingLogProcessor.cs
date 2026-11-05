@@ -53,7 +53,9 @@ internal sealed class ActivityEventAttachingLogProcessor : BaseProcessor<LogReco
             var tags = new ActivityTagsCollection
             {
                 { nameof(data.CategoryName), data.CategoryName },
+#pragma warning disable CS0618 // Type or member is obsolete
                 { nameof(data.LogLevel), data.LogLevel },
+#pragma warning restore CS0618 // Type or member is obsolete
             };
 
             if (data.EventId != 0)

@@ -24,23 +24,13 @@ public static class TracerProviderBuilderExtensions
         return builder;
     }
 
-#if NET
     /// <summary>
     /// Replace the trace id of root activity.
     /// </summary>
     /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
     /// <param name="sampler">Unused. (See deprecation message.)</param>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/>.</returns>
-    [Obsolete($"When targeting .NET 6.0 or later, the X-Ray ID generator does not need to update the sampling decision. Use ${nameof(AddXRayTraceId)} instead.")]
-#else
-    /// <summary>
-    /// 1. Replace the trace id of root activity.
-    /// 2. Update the sampling decision for root activity when it's created through ActivitySource.StartActivity().
-    /// </summary>
-    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
-    /// <param name="sampler"><see cref="Sampler"/> being used.</param>
-    /// <returns>The instance of <see cref="TracerProviderBuilder"/>.</returns>
-#endif
+    [Obsolete($"The X-Ray ID generator does not need to update the sampling decision. Use {nameof(AddXRayTraceId)} instead.")]
     public static TracerProviderBuilder AddXRayTraceIdWithSampler(this TracerProviderBuilder builder, Sampler sampler)
     {
         Guard.ThrowIfNull(builder);

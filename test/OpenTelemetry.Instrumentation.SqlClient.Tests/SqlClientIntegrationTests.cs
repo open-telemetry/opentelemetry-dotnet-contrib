@@ -284,12 +284,6 @@ public sealed class SqlClientIntegrationTests :
 
         var textActivity = Assert.Single(activities);
 
-        // The stopped activity is left as Activity.Current by the async command, which would
-        // make the stored procedure a child of it. Clear it so the two commands belong to
-        // unrelated traces, which is the case where the stale value attributes the stored
-        // procedure to the wrong trace.
-        Activity.Current = null;
-
         var (connectionId, contextInfo) = await ReadSessionStateAsync(sqlConnection);
 
         // Assert
@@ -476,7 +470,11 @@ public sealed class SqlClientIntegrationTests :
         using var sqlCommand = new SqlCommand("WAITFOR DELAY '00:00:00.300'", sqlConnection);
 
         // Act
+        var stopwatch = Stopwatch.StartNew();
+
         await sqlCommand.ExecuteNonQueryAsync();
+
+        stopwatch.Stop();
 
         meterProvider.ForceFlush();
 
@@ -494,9 +492,16 @@ public sealed class SqlClientIntegrationTests :
         Assert.Equal(1, point.GetHistogramCount());
 
         // The command was deliberately made slow so that a duration derived from the wrong start
-        // timestamp (or from the process start) is distinguishable from the real one.
+        // timestamp (or from the process start) is distinguishable from the real one. How long the
+        // server waits is not guaranteed (a 300 ms WAITFOR DELAY has been seen to return after
+        // about 125 ms), so the duration is compared with the time the caller measured instead.
+        // The before and after events are both raised within the call, so the duration cannot be
+        // longer than the call took, which a start timestamp from earlier would make it, and it
+        // is most of that time, which a start timestamp from later would not.
         var duration = point.GetHistogramSum();
-        Assert.InRange(duration, 0.2d, 60d);
+        var elapsed = stopwatch.Elapsed.TotalSeconds;
+
+        Assert.InRange(duration, elapsed * 0.5d, elapsed);
     }
 
     [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]

@@ -18,8 +18,14 @@ public class InfluxDBMetricsExporterTests
     static InfluxDBMetricsExporterTests()
 #pragma warning restore CA1810 // Initialize reference type static fields inline
     {
-        var sdkVersion = typeof(Sdk).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version;
-        OpenTelemetrySdkVersion = sdkVersion != null ? Version.Parse(sdkVersion).ToString(3) : "0.0.0";
+        var sdkVersion = typeof(Sdk).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+
+        if (sdkVersion?.IndexOf('+') is int plusIndex && plusIndex > 0)
+        {
+            sdkVersion = sdkVersion.Substring(0, plusIndex);
+        }
+
+        OpenTelemetrySdkVersion = sdkVersion ?? "0.0.0";
     }
 
     [Theory]
@@ -584,6 +590,28 @@ public class InfluxDBMetricsExporterTests
         var dataPoint = influxServer.ReadPoint();
         Assert.Equal("test-counter", dataPoint.Measurement);
         AssertUtils.HasField("counter", 100L, dataPoint.Fields);
+    }
+
+    [Theory]
+    [InlineData(1024 * 1024, true)]
+    [InlineData((1024 * 1024) + 1, false)]
+    public void ExportLimitsBufferedWriteResponse(int responseBodySize, bool expectedSuccess)
+    {
+        using var influxServer = new InfluxDBFakeServer { ResponseBody = new byte[responseBodySize] };
+        using var meter = new Meter("MyMeter", "0.0.1");
+        using var provider = Sdk.CreateMeterProviderBuilder()
+            .AddMeter(meter.Name)
+            .ConfigureDefaultTestResource()
+            .AddInfluxDBMetricsExporter(options =>
+            {
+                options.WithDefaultTestConfiguration();
+                options.Endpoint = influxServer.Endpoint;
+            })
+            .Build();
+
+        meter.CreateCounter<int>("test-counter").Add(100);
+
+        Assert.Equal(expectedSuccess, provider.ForceFlush());
     }
 
     private static void AssertTags(PointData dataPoint)

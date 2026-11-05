@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+* Fixed `OpAmpClient.FlushAsync()` potentially waiting indefinitely when new
+  messages kept being queued. Messages queued after a flush starts no longer
+  delay its completion.
+  ([#5882](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5882))
+
+## 0.9.0-alpha.3
+
+Released 2026-Nov-02
+
+* Fixed the flags and the capabilities sent by the server being truncated to
+  32 bits.
+  ([#5823](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5823))
+
+## 0.9.0-alpha.2
+
+Released 2026-Oct-29
+
+* Include the configured agent capabilities in every message sent to the server.
+  ([#5812](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5812))
+
 ## 0.9.0-alpha.1
 
 Released 2026-Oct-26

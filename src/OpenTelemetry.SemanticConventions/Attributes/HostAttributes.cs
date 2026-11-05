@@ -53,8 +53,70 @@ public static class HostAttributes
     public const string AttributeHostCpuVendorId = "host.cpu.vendor.id";
 
     /// <summary>
-    /// Unique host ID. For Cloud, this must be the instance_id assigned by the cloud provider. For non-containerized systems, this should be the <c>machine-id</c>. See the table below for the sources to use to determine the <c>machine-id</c> based on operating system.
+    /// Unique host ID, determined by the first matching source in the priority order.
     /// </summary>
+    /// <remarks>
+    /// SHOULD be determined using the first available source from the following priority tiers:
+    /// <ol>
+    ///   <li>Known cloud vendors - cloud instance ID</li>
+    ///   <li>Known VM vendors - provider VM ID</li>
+    ///   <li>OS-dependent machine ID</li>
+    ///   <li>User-provided value</li>
+    /// </ol>
+    /// <p>
+    /// The value SHOULD conform to the following properties:
+    /// <ul>
+    ///   <li><strong>Unique</strong> within a given context;</li>
+    ///   <li><strong><a href="https://opentelemetry.io/docs/specs/otel/entities/data-model/#repeatable-identity">Repeatable</a></strong> - multiple observers on the same host come up with the same value;</li>
+    ///   <li><strong>Persistent</strong> - survives host restarts and software updates.</li>
+    /// </ul>
+    /// <p>
+    /// <strong>Collecting <c>host.id</c> From Known Environments:</strong> When <c>host.id</c> is derived from a
+    /// cloud vendor instance ID, the resource SHOULD also carry the corresponding
+    /// <c>cloud.provider</c> and <c>cloud.platform</c> attributes so that the source of the <c>host.id</c>
+    /// value can be unambiguously determined.
+    /// <p>
+    /// The following cloud environments are currently recognized:
+    /// <p>
+    /// | Environment | <c>host.id</c> source | <c>cloud.provider</c> | <c>cloud.platform</c> |
+    /// | --- | --- | --- | --- |
+    /// | AWS EC2 | EC2 instance ID | <c>aws</c> | <c>aws_ec2</c> |
+    /// | AWS EKS (node) | EC2 instance ID | <c>aws</c> | <c>aws_eks</c> |
+    /// | Azure VM | <c>vmId</c> | <c>azure</c> | <c>azure.vm</c> |
+    /// | GCP Compute Engine | GCE instance ID | <c>gcp</c> | <c>gcp_compute_engine</c> |
+    /// | GCP GKE (node) | GCE instance ID | <c>gcp</c> | <c>gcp_kubernetes_engine</c> |
+    /// <p>
+    /// The listed <c>cloud.provider</c>/<c>cloud.platform</c> values are for example only. Refer to the
+    /// <a href="/docs/registry/attributes/cloud.md"><c>cloud</c></a> attribute definitions for the relevant set of values.
+    /// <p>
+    /// <strong>Non-privileged Machine ID Lookup:</strong> When collecting <c>host.id</c> for non-containerized
+    /// systems, non-privileged lookups of the machine ID are preferred. SDK detector
+    /// implementations MUST use the sources listed below to obtain the machine ID.
+    /// <p>
+    /// | OS | Primary | Fallback |
+    /// | --- | --- | --- |
+    /// | Linux | contents of <c>/etc/machine-id</c> | contents of <c>/var/lib/dbus/machine-id</c> |
+    /// | BSD | contents of <c>/etc/hostid</c> | output of <c>/bin/kenv -q smbios.system.uuid</c> |
+    /// | macOS | <c>IOPlatformUUID</c> line from the output of <c>/usr/sbin/ioreg -rd1 -c "IOPlatformExpertDevice"</c> | - |
+    /// | Windows | <c>MachineGuid</c> from registry <c>HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Cryptography</c> | - |
+    /// <p>
+    /// <strong>Privileged Machine ID Lookup:</strong> The <c>host.id</c> can be looked up using privileged
+    /// sources. For example, Linux systems can use the output of <c>dmidecode -t system</c>,
+    /// <c>dmidecode -t baseboard</c>,
+    /// <c>dmidecode -t chassis</c>, or read the corresponding data from the filesystem
+    /// (e.g. <c>cat /sys/devices/virtual/dmi/id/product_id</c>,
+    /// <c>cat /sys/devices/virtual/dmi/id/product_uuid</c>, etc), however, SDK resource
+    /// detector implementations MUST NOT collect <c>host.id</c> from privileged sources. If
+    /// privileged lookup of <c>host.id</c> is required, the value SHOULD be injected via the
+    /// <c>OTEL_RESOURCE_ATTRIBUTES</c> environment variable.
+    /// <p>
+    /// <strong>Collecting <c>host.id</c> From User Configuration:</strong> If none of the above sources yields
+    /// a non-empty value, the implementation MAY be unable to determine <c>host.id</c>
+    /// automatically and SHOULD omit the attribute.
+    /// In that case, the <c>host.id</c> can only be provided through user configuration
+    /// or other available manual options. Users SHOULD ensure that the <c>host.id</c> value
+    /// conforms to the properties stated above.
+    /// </remarks>
     public const string AttributeHostId = "host.id";
 
     /// <summary>

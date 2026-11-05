@@ -10,4 +10,8 @@ public class EventSourceTests
     [Fact]
     public void EventSourceTests_PersistentStorageAbstractionsEventSource() =>
         EventSourceTestHelper.ValidateEventSourceIds<PersistentStorageAbstractionsEventSource>();
+
+    [Fact]
+    public void EventSourceTests_PersistentStorageAbstractionsEventSource_WritesEvents() =>
+        EventSourceTestHelper.ExerciseEventSource<PersistentStorageAbstractionsEventSource>();
 }

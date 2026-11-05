@@ -39,6 +39,8 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
 
     internal Task<string?>? ClusterIdTask => this.clusterIdTask;
 
+    internal bool UseCreationContextAsParent => this.options.UseCreationContextAsParent;
+
     public void Dispose()
         => this.consumer.Dispose();
 

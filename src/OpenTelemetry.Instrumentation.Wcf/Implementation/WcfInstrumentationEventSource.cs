@@ -77,6 +77,21 @@ internal sealed class WcfInstrumentationEventSource : EventSource
         this.WriteEvent(EventIds.AspNetReflectionFailedToBind, exception);
     }
 
+    [NonEvent]
+    public void TelemetryTimeoutException(Exception exception)
+    {
+        if (this.IsEnabled(EventLevel.Error, (EventKeywords)(-1)))
+        {
+            this.TelemetryTimeoutException(exception.ToInvariantString());
+        }
+    }
+
+    [Event(EventIds.TelemetryTimeoutException, Message = "Handling the timeout of outstanding requests threw an exception. Exception {0}.", Level = EventLevel.Error)]
+    public void TelemetryTimeoutException(string exception)
+    {
+        this.WriteEvent(EventIds.TelemetryTimeoutException, exception);
+    }
+
     private class EventIds
     {
         public const int RequestIsFilteredOut = 1;
@@ -84,5 +99,6 @@ internal sealed class WcfInstrumentationEventSource : EventSource
         public const int EnrichmentException = 3;
         public const int HttpServiceModelReflectionFailedToBind = 4;
         public const int AspNetReflectionFailedToBind = 5;
+        public const int TelemetryTimeoutException = 6;
     }
 }

@@ -142,14 +142,10 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
 #endif
         }
 
-#if EXPOSE_EXPERIMENTAL_FEATURES
 #pragma warning disable CS0618 // Type or member is obsolete
         // TODO: Update to use LogRecord.Severity
         var logLevel = (int)item.LogLevel;
 #pragma warning restore CS0618 // Type or member is obsolete
-#else
-        var logLevel = (int)item.LogLevel;
-#endif
         writer.WriteString(SeverityTextProperty, LogLevelToSeverityTextMappings[logLevel]);
         writer.WriteNumber(SeverityNumberProperty, LogLevelToSeverityNumberMappings[logLevel]);
 
