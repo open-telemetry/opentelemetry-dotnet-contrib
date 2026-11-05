@@ -271,9 +271,53 @@ public class BaggageActivityProcessorTests
         Assert.Equal(130, exported.Count);
     }
 
+    [Fact]
+    public void BaggageActivityProcessor_AddedAfterEnrichingProcessorAndBeforeExporter_DoesNotDisplaceEnrichedTags()
+    {
+        var sourceName = GetTestMethodName();
+        var exported = new List<KeyValuePair<string, object?>>();
+
+        using var provider = Sdk.CreateTracerProviderBuilder()
+            .AddSource(sourceName)
+            .AddProcessor(new OnEndTagProcessor(("enriched.one", "1"), ("enriched.two", "2")))
+            .AddBaggageActivityProcessor(key => key.StartsWith("my-key", StringComparison.Ordinal))
+            .AddProcessor(new TagSnapshotProcessor(exported))
+            .Build();
+
+        for (var i = 0; i < 128; i++)
+        {
+            Baggage.SetBaggage($"my-key{i}", "1");
+        }
+
+        using var source = new ActivitySource(sourceName);
+        using var activity = source.StartActivity("name", ActivityKind.Server);
+        Assert.NotNull(activity);
+        activity.SetTag("app.tag", "value");
+        activity.Stop();
+
+        // An exporter which keeps only the first 128 tags still sees the tags
+        // set by the application and those added by the processor before baggage.
+        var firstTags = exported.Take(128).ToList();
+        Assert.Contains(firstTags, kv => kv.Key == "app.tag" && (string?)kv.Value == "value");
+        Assert.Contains(firstTags, kv => kv.Key == "enriched.one" && (string?)kv.Value == "1");
+        Assert.Contains(firstTags, kv => kv.Key == "enriched.two" && (string?)kv.Value == "2");
+        Assert.Equal(131, exported.Count);
+    }
+
     private static string GetTestMethodName([CallerMemberName] string callingMethodName = "")
     {
         return callingMethodName;
+    }
+
+    private sealed class OnEndTagProcessor(params (string Key, string Value)[] tags) : BaseProcessor<Activity>
+    {
+        public override void OnEnd(Activity data)
+        {
+            foreach (var (key, value) in tags)
+            {
+                data.SetTag(key, value);
+            }
+        }
     }
 
     private sealed class TagSnapshotProcessor(List<KeyValuePair<string, object?>> tags) : BaseProcessor<Activity>

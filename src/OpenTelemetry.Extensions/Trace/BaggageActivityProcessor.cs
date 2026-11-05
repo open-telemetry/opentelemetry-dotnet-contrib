@@ -9,10 +9,16 @@ namespace OpenTelemetry.Trace;
 /// Activity processor that adds the <see cref="Baggage"/> fields which are
 /// current when an activity starts to the activity as tags when it ends.
 /// <para/>
-/// Baggage can be set by callers, so it is added behind the tags set by the
-/// application and by instrumentation, and never replaces a tag with the same
-/// key. This processor must be added before any exporting processor so that the
-/// baggage tags are present when the activity is exported.
+/// Baggage can be set by callers, so it is added behind the tags set while the
+/// activity is running (by the application and by instrumentation), and never
+/// replaces a tag with the same key.
+/// <para/>
+/// Processors run in the order they are added, so the order matters: processors
+/// which add tags to an activity when it ends must be added before this
+/// processor, and this processor must be added before any exporting processor,
+/// i.e. enrichers, then baggage, then exporters. Tags added by a processor which
+/// runs after this one are placed behind the baggage tags, and so can be dropped
+/// by an exporter which applies a limit to the number of tags.
 /// </summary>
 public sealed class BaggageActivityProcessor : BaseProcessor<Activity>
 {
