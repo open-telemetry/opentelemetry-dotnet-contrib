@@ -142,7 +142,7 @@ public static class OpenTelemetryConsumeResultExtensions
         {
             { SemanticConventions.AttributeMessagingOperationName, ConfluentKafkaCommon.ProcessOperationName },
             { SemanticConventions.AttributeMessagingOperationType, ConfluentKafkaCommon.ProcessOperationType },
-            { SemanticConventions.AttributeMessagingSystem, ConfluentKafkaCommon.KafkaMessagingSystem },
+            { SemanticConventions.AttributeMessagingSystemName, ConfluentKafkaCommon.KafkaMessagingSystem },
         };
 
         if (groupId is { Length: > 0 })
@@ -171,22 +171,22 @@ public static class OpenTelemetryConsumeResultExtensions
         if (activity?.IsAllDataRequested == true)
         {
             activity.SetTag(SemanticConventions.AttributeMessagingClientId, clientId);
-            activity.SetTag(SemanticConventions.AttributeMessagingKafkaOffset, topicPartitionOffset?.Offset.Value);
+            activity.SetTag(SemanticConventions.AttributeKafkaOffset, topicPartitionOffset?.Offset.Value);
 
             if (ConfluentKafkaCommon.FormatMessageKey(key) is { } messageKey)
             {
-                activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageKey, messageKey);
+                activity.SetTag(SemanticConventions.AttributeKafkaMessageKey, messageKey);
             }
 
             if (isTombstone)
             {
-                activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageTombstone, true);
+                activity.SetTag(SemanticConventions.AttributeKafkaMessageTombstone, true);
             }
 
             if (clusterIdTask?.Status == TaskStatus.RanToCompletion
                 && clusterIdTask.Result is { Length: > 0 } clusterId)
             {
-                activity.SetTag(SemanticConventions.AttributeMessagingKafkaClusterId, clusterId);
+                activity.SetTag(SemanticConventions.AttributeKafkaClusterId, clusterId);
             }
         }
 

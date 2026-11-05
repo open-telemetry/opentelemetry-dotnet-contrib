@@ -21,7 +21,7 @@ public sealed class OpAmpClientSettings
     private Func<ClientWebSocket>? clientWebSocketFactory;
     private Func<HttpClient>? defaultHttpClientFactory;
     private int maxPendingCustomMessages = OpAmpClientDefaults.MaxPendingCustomMessages;
-    private int maxPendingCustomMessageBytes = OpAmpClientDefaults.MaxPendingCustomMessageBytes;
+    private int maxPendingMessageBytes = OpAmpClientDefaults.MaxPendingMessageBytes;
 
     /// <summary>
     /// Gets or sets the unique identifier for the current client instance.
@@ -124,20 +124,24 @@ public sealed class OpAmpClientSettings
     }
 
     /// <summary>
-    /// Gets or sets the maximum aggregate size, in bytes, of the <c>Data</c>
-    /// payloads of custom messages that may wait to be sent. The default is
+    /// Gets or sets the maximum aggregate size, in bytes, of the custom messages
+    /// waiting to be sent, including any state reports sent with them. The default is
     /// 64 MiB (<c>67,108,864</c> bytes).
     /// </summary>
+    /// <remarks>
+    /// This is an approximate limit rather than a strict bound on memory use. It does
+    /// not include the message currently being sent or protocol overhead.
+    /// </remarks>
     /// <exception cref="ArgumentOutOfRangeException">
     /// Thrown when the value is less than <c>1</c>.
     /// </exception>
-    public int MaxPendingCustomMessageBytes
+    public int MaxPendingMessageBytes
     {
-        get => this.maxPendingCustomMessageBytes;
+        get => this.maxPendingMessageBytes;
         set
         {
             Guard.ThrowIfOutOfRange(value, min: 1);
-            this.maxPendingCustomMessageBytes = value;
+            this.maxPendingMessageBytes = value;
         }
     }
 

@@ -14,7 +14,7 @@ internal class FakeDbConnection : IDbConnection
 
     public int ConnectionTimeout => 0;
 
-    public string Database => "master";
+    public virtual string Database => "master";
 
     public ConnectionState State => ConnectionState.Closed;
 
