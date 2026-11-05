@@ -290,6 +290,43 @@ public sealed class EntityFrameworkQuerySanitizationTests : IDisposable
         Assert.Equal(expected, queryText);
     }
 
+    [Theory]
+    [InlineData("Npgsql.EntityFrameworkCore.PostgreSQL", "SELECT $t\u00e4g$secret-name$t\u00e4g$", "SELECT ?")]
+    [InlineData("Npgsql.EntityFrameworkCore.PostgreSQL", "CREATE USER a\u0301lice WITH PASSWORD 'secret-name'", "CREATE USER ? WITH PASSWORD ?")]
+    [InlineData("Npgsql.EntityFrameworkCore.PostgreSQL", "SELECT 0b101010, 0o173, 1_000_000", "SELECT ?, ?, ?")]
+    [InlineData("Pomelo.EntityFrameworkCore.MySql", "CREATE USER alice IDENTIFIED BY 'secret-name', bob IDENTIFIED BY 'other'", "CREATE USER ? IDENTIFIED BY ?, ? IDENTIFIED BY ?")]
+    [InlineData("Pomelo.EntityFrameworkCore.MySql", "SELECT $$col FROM t WHERE a = '$$' AND b = 'secret-name'", "SELECT $$col FROM t WHERE a = ? AND b = ?")]
+    [InlineData("Oracle.EntityFrameworkCore", "ALTER USER alice IDENTIFIED BY p\u0301assword", "ALTER USER ? IDENTIFIED BY ?")]
+    [InlineData("Google.Cloud.EntityFrameworkCore.Spanner", "SELECT `a\\`b` FROM t WHERE a = '`' AND b = 'secret-name'", "SELECT `a\\`b` FROM t WHERE a = ? AND b = ?")]
+    [InlineData("Microsoft.EntityFrameworkCore.Sqlite", "SELECT $tag$col FROM t WHERE a = '$tag$' AND b = 'secret-name'", "SELECT $tag$col FROM t WHERE a = ? AND b = ?")]
+    public void ProviderDialect_RedactsExtendedLiteralAndAccountForms(string providerName, string sql, string expected)
+    {
+        var exported = new List<Activity>();
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .AddInMemoryExporter(exported)
+                   .AddEntityFrameworkCoreInstrumentation()
+                   .Build())
+        {
+            RenamedSqliteDatabaseProvider.NameOverride = providerName;
+
+            using var context = new AccountsContext(OfflineOptions(b =>
+            {
+                b.UseSqlite("Data Source=:memory:");
+#pragma warning disable EF1001 // Internal EF Core API usage.
+                b.ReplaceService<IDatabaseProvider, DatabaseProvider<SqliteOptionsExtension>, RenamedSqliteDatabaseProvider>();
+#pragma warning restore EF1001 // Internal EF Core API usage.
+            }));
+
+            context.Database.ExecuteSqlRaw(sql);
+        }
+
+        var activity = Assert.Single(exported);
+        Assert.Equal(expected, this.GetQueryText(activity));
+        Assert.DoesNotContain("secret-name", activity.DisplayName, StringComparison.Ordinal);
+        Assert.DoesNotContain("secret-name", activity.GetTagValue(SemanticConventions.AttributeDbQuerySummary)?.ToString() ?? string.Empty, StringComparison.Ordinal);
+    }
+
     private static AccountsContext CreateSqliteContext(SqliteConnection connection, bool renameProvider = false)
     {
         var builder = new DbContextOptionsBuilder<AccountsContext>().UseSqlite(connection);

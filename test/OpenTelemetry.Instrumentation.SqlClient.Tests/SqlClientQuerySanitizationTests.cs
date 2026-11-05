@@ -131,6 +131,27 @@ public class SqlClientQuerySanitizationTests(ITestOutputHelper output)
         }
     }
 
+    [Theory]
+    [InlineData("SELECT * FROM #$tag$col WHERE a = '$tag$' AND b = 'secret-name'", "SELECT * FROM #$tag$col WHERE a = ? AND b = ?")]
+    [InlineData("SELECT @$tag$col FROM t WHERE a = '$tag$' AND b = 'secret-name'", "SELECT @$tag$col FROM t WHERE a = ? AND b = ?")]
+    public void SqlServerDialect_RedactsLiteralsAfterDollarPrefixedNames(string sql, string expected)
+    {
+        var activities = new List<Activity>();
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        Execute(sql);
+        tracerProvider.ForceFlush();
+
+        var activity = Assert.Single(activities);
+        Assert.Equal(expected, activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
+        Assert.DoesNotContain("secret-name", activity.DisplayName, StringComparison.Ordinal);
+        Assert.DoesNotContain("secret-name", activity.GetTagValue(SemanticConventions.AttributeDbQuerySummary)?.ToString() ?? string.Empty, StringComparison.Ordinal);
+    }
+
     private static string Statement(string columnName, string customer)
         => $"SELECT [a].[Id], [a].[{columnName}] FROM [Accounts] AS [a] WHERE [a].[Note] = N'Refund from {customer} approved'";
 
