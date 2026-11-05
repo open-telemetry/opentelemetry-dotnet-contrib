@@ -17,6 +17,10 @@
   queued with custom messages.
   ([#5881](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5881))
 
+* Fix WebSocket transport startup blocking when the server sends messages
+  immediately after the handshake.
+  ([#5883](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5883))
+
 ## 0.9.0-alpha.3
 
 Released 2026-Nov-02

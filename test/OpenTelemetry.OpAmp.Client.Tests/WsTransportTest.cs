@@ -8,6 +8,8 @@ using Google.Protobuf;
 using OpenTelemetry.OpAmp.Client.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Transport;
 using OpenTelemetry.OpAmp.Client.Internal.Transport.WebSocket;
+using OpenTelemetry.OpAmp.Client.Listeners;
+using OpenTelemetry.OpAmp.Client.Messages;
 using OpenTelemetry.OpAmp.Client.Settings;
 using OpenTelemetry.OpAmp.Client.Tests.Mocks;
 using OpenTelemetry.OpAmp.Client.Tests.Tools;
@@ -592,6 +594,53 @@ public class WsTransportTest
         }
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void WsReceiver_StartDoesNotReceiveSynchronouslyAvailableStreamOnCallingThread(bool malformed)
+    {
+        const int frameCount = 10;
+
+        // OpAMP header 0, followed by either ReportFullState flags or truncated protobuf.
+        byte[] payload = malformed ? [0x00, 0xff] : [0x00, 0x30, 0x01];
+        using var socket = new SynchronousReceiveWebSocket(new ArraySegment<byte>(payload), frameCount);
+        using var sendLock = new SemaphoreSlim(1, 1);
+        var listener = new RecordingFlagsMessageListener();
+        var frameProcessor = new FrameProcessor();
+        frameProcessor.Subscribe(listener);
+        using var receiver = new WsReceiver(socket, frameProcessor, sendLock);
+        var token = TestContext.Current.CancellationToken;
+        Exception? startException = null;
+
+        // A dedicated thread cannot also execute the queued receive loop. Using a test runner
+        // or thread-pool thread here could reuse that thread after Start returns.
+        var startThread = new Thread(() =>
+        {
+            try
+            {
+                receiver.Start(token);
+            }
+            catch (Exception ex)
+            {
+                startException = ex;
+            }
+        });
+
+        startThread.Start();
+        startThread.Join();
+        Assert.Null(startException);
+
+        // Wait for every receive before disposing, including when malformed frames never reach
+        // the listener. Dispose then joins the loop so the final frame finishes processing.
+        socket.FramesReceived.Wait(token);
+        receiver.Dispose();
+
+        Assert.Equal(frameCount, socket.ReceiveCount);
+        Assert.NotNull(socket.ReceiveThread);
+        Assert.NotSame(startThread, socket.ReceiveThread);
+        Assert.Equal(malformed ? 0 : frameCount, listener.MessageCount);
+    }
+
     [Fact]
     public async Task WsTransport_DisposeCompletesWithoutStopAfterOutstandingSend()
     {
@@ -721,4 +770,14 @@ public class WsTransportTest
 #else
         new(segment.Array, segment.Offset + offset, count);
 #endif
+
+    private sealed class RecordingFlagsMessageListener : IOpAmpListener<FlagsMessage>
+    {
+        public int MessageCount { get; private set; }
+
+        public void HandleMessage(FlagsMessage message)
+        {
+            this.MessageCount++;
+        }
+    }
 }
