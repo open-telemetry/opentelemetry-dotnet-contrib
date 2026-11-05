@@ -57,8 +57,8 @@
   such as the one in an `IDENTIFIED BY` clause, is replaced with `?`.
   ([#ZZZZ](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/ZZZZ))
 
-* Fixed query sanitization so that a `$` in an identifier, such as `price$gbp$`,
-  is no longer treated as the start of a string in dollar quotes.
+* Fixed query sanitization so that a `$` in an identifier is no longer treated as
+  the start of a string in dollar quotes.
   ([#AAAA](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/AAAA))
 
 * Fixed query sanitization so that the names of logins and users are replaced
@@ -68,9 +68,13 @@
   ([#BBBB](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/BBBB))
 
 * Fixed query sanitization so that a bracketed identifier which contains an
-  apostrophe, such as `['Tis the season]` or `WHERE[Mother's Maiden Name]`,
-  no longer causes the string literals which follow it to be left unsanitized.
+  apostrophe no longer causes the string literals which follow it to be left
+  unsanitized.
   ([#CCCC](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/CCCC))
+
+* Fixed `db.query.summary` containing part of an identifier which starts with a
+  keyword and query sanitization of a login or user name which starts with one.
+  ([#DDDD](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/DDDD))
 
 ## 1.20.1
 
