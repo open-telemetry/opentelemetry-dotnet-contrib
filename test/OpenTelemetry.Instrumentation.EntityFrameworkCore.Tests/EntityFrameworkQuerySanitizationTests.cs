@@ -116,6 +116,40 @@ public sealed class EntityFrameworkQuerySanitizationTests : IDisposable
         Assert.DoesNotContain("@example.com", exported[1].DisplayName, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData("ALTER USER app_reader IDENTIFIED BY Tr0ub4dor3xQ9", "ALTER USER ? IDENTIFIED BY ?")]
+    [InlineData("CREATE USER app_writer IDENTIFIED BY \"P@ss#w0rd!Zk7\" DEFAULT TABLESPACE users", "CREATE USER ? IDENTIFIED BY \"?\" DEFAULT TABLESPACE users")]
+    [InlineData("ALTER USER app_reader IDENTIFIED BY NewPw_2026 REPLACE OldPw_2025", "ALTER USER ? IDENTIFIED BY ? REPLACE ?")]
+    public void OracleProvider_PasswordWhichIsNotALiteral_IsRedactedFromQueryText(string commandText, string expected)
+    {
+        var exported = new List<Activity>();
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .AddInMemoryExporter(exported)
+                   .AddEntityFrameworkCoreInstrumentation()
+                   .Build())
+        {
+            // The Oracle provider is not referenced, so the SQLite provider reports its name instead.
+            RenamedSqliteDatabaseProvider.NameOverride = "Oracle.EntityFrameworkCore";
+
+            using var context = new AccountsContext(OfflineOptions(b =>
+            {
+                b.UseSqlite("Data Source=:memory:");
+#pragma warning disable EF1001 // Internal EF Core API usage.
+                b.ReplaceService<IDatabaseProvider, DatabaseProvider<SqliteOptionsExtension>, RenamedSqliteDatabaseProvider>();
+#pragma warning restore EF1001 // Internal EF Core API usage.
+            }));
+
+            context.Database.ExecuteSqlRaw(commandText);
+        }
+
+        var activity = Assert.Single(exported);
+        var queryText = this.GetQueryText(activity);
+
+        Assert.Equal("oracle", activity.GetTagValue(SemanticConventions.AttributeDbSystem));
+        Assert.Equal(expected, queryText);
+    }
+
     [Fact]
     public void SqliteProvider_SlashAsteriskInBlockComment_DoesNotAffectLaterLiterals()
     {

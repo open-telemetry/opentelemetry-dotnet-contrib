@@ -51,6 +51,12 @@ internal static class SqlProcessor
 
     private const string ArrayKeyword = "ARRAY";
 
+    // The words around a password which is not a literal, which are compared ignoring case (e.g. IDENTIFIED BY password).
+    private const string IdentifiedWord = "identified";
+    private const string ByWord = "by";
+    private const string ReplaceWord = "replace";
+    private const string ValuesWord = "values";
+
     private static readonly ConcurrentDictionary<string, SqlStatementInfo> Cache = new();
     private static readonly ConcurrentDictionary<string, SqlStatementInfo> BackslashEscapeCache = new();
     private static readonly ConcurrentDictionary<string, SqlStatementInfo> TripleQuotedLiteralCache = new();
@@ -359,11 +365,25 @@ internal static class SqlProcessor
                     continue;
                 }
 
+                // A password which is a word can start with a digit, which is otherwise the start of a number.
+                if (state.SanitizeNextTokenAsPassword && ParsePassword(sqlSpan, buffer, ref state))
+                {
+                    continue;
+                }
+
                 if (SanitizeStringLiteral(sqlSpan, buffer, ref state) ||
                     SanitizeDollarQuotedLiteral(sqlSpan, buffer, ref state) ||
                     SanitizeHexLiteral(sqlSpan, buffer, ref state) ||
                     SanitizeNumericLiteral(sqlSpan, buffer, ref state))
                 {
+                    // A password which is a literal has been sanitized, so the token which follows it is not one,
+                    // unless it is the word which precedes the password which is replaced (e.g. REPLACE old_password).
+                    if (state.SanitizeNextTokenAsPassword)
+                    {
+                        state.SanitizeNextTokenAsPassword = false;
+                        state.PasswordEndPosition = state.ParsePosition;
+                    }
+
                     continue;
                 }
 
@@ -514,6 +534,13 @@ internal static class SqlProcessor
         var start = state.ParsePosition;
         var currentChar = sql[start];
 
+        // The word which is the password in a statement such as ALTER USER ... IDENTIFIED BY password is not a literal,
+        // so it is not otherwise sanitized, and it must not be parsed as a keyword (e.g. Select1) or be split (e.g. a#b).
+        if (state.SanitizeNextTokenAsPassword && ParsePassword(sql, buffer, ref state))
+        {
+            return;
+        }
+
         // Quick first-character filter: only attempt keyword matching if the current char is an ASCII letter.
         // NOTE: We don't check CaptureNextNonKeywordTokenAsIdentifier here because we want to capture and handle keywords
         // first, before considering identifiers.
@@ -618,6 +645,7 @@ internal static class SqlProcessor
 
                     state.CaptureNextNonKeywordTokenAsIdentifier = SqlKeywordInfo.CaptureNextTokenInSummary(in state, potentialKeywordInfo.SqlKeyword);
                     state.SanitizeNextNonKeywordToken = SqlKeywordInfo.SanitizeNextToken(in state, potentialKeywordInfo.SqlKeyword);
+
                     state.InFromClause = potentialKeywordInfo.SqlKeyword == SqlKeyword.From || (state.PreviousParsedKeyword?.SqlKeyword == SqlKeyword.From && state.CaptureNextNonKeywordTokenAsIdentifier);
                     state.PreviousParsedKeyword = potentialKeywordInfo;
                     state.ParsePosition += keywordLength;
@@ -723,6 +751,12 @@ internal static class SqlProcessor
                 }
             }
 
+            // The previous token has not been updated yet, as the words which precede a password are not keywords.
+            if (length == ByWord.Length || length == ReplaceWord.Length)
+            {
+                SanitizeNextTokenAsPasswordIfPrecedesPassword(sql, start, length, ref state);
+            }
+
             state.ParsePosition = i;
             state.CaptureNextNonKeywordTokenAsIdentifier = captureNextPartOfName;
             state.SanitizeNextNonKeywordToken = false;
@@ -748,6 +782,12 @@ internal static class SqlProcessor
             state.CaptureNextNonKeywordTokenAsIdentifier =
                 (state.InFromClause && (currentChar is CommaChar or DotChar)) ||
                 (state.CaptureNextNonKeywordTokenAsIdentifier && currentChar == DotChar);
+
+            // A password is the next token, unless this is the start of a quoted one which is not terminated.
+            if (currentChar is not (DoubleQuoteChar or BacktickChar or OpenSquareBracketChar))
+            {
+                state.SanitizeNextTokenAsPassword = false;
+            }
 
             buffer[state.SanitizedPosition++] = currentChar;
             state.ParsePosition++;
@@ -775,6 +815,98 @@ internal static class SqlProcessor
         }
     }
 
+    // Redacts the word which is a password (e.g. the Tr0ub4dor of IDENTIFIED BY Tr0ub4dor), which can contain
+    // the characters of an unquoted Oracle password ($ and #) as well as letters, digits and underscores.
+    // Returns false if the token is not a word, in which case it is parsed as usual (e.g. as a quoted identifier).
+    private static bool ParsePassword(ReadOnlySpan<char> sql, Span<char> buffer, ref ParseState state)
+    {
+        var start = state.ParsePosition;
+
+        // A variable is not a password.
+        if (!IsWordChar(sql[start]) || sql[start] == AtChar)
+        {
+            return false;
+        }
+
+        var end = start + 1;
+        while (end < sql.Length && IsWordChar(sql[end]) && sql[end] != AtChar)
+        {
+            end++;
+        }
+
+        // A word directly followed by a quote is the prefix of a literal (e.g. N'password'), which is sanitized as one.
+        if (end < sql.Length && sql[end] == SingleQuoteChar)
+        {
+            return false;
+        }
+
+        // IDENTIFIED BY VALUES 'hash' is followed by the hash of a password, which is a literal.
+        if (end - start == ValuesWord.Length &&
+            sql.Slice(start, ValuesWord.Length).Equals(ValuesWord.AsSpan(), StringComparison.OrdinalIgnoreCase) &&
+            SkipWhitespaceAndComments(sql, end, state.UseBackslashEscapes, state.AllowNestedComments) is var next &&
+            next < sql.Length &&
+            sql[next] == SingleQuoteChar)
+        {
+            sql.Slice(start, ValuesWord.Length).CopyTo(buffer.Slice(state.SanitizedPosition));
+            state.SanitizedPosition += ValuesWord.Length;
+        }
+        else
+        {
+            buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
+            state.PasswordEndPosition = end;
+        }
+
+        state.ParsePosition = end;
+        state.CaptureNextNonKeywordTokenAsIdentifier = false;
+        state.SanitizeNextNonKeywordToken = false;
+        state.SanitizeNextTokenAsPassword = false;
+        state.PreviousTokenStartPosition = start;
+        state.PreviousTokenEndPosition = end;
+
+        return true;
+    }
+
+    // Whether the word at the position is one which is followed by a password:
+    // - BY in IDENTIFIED BY (Oracle and MySQL), e.g. CREATE USER name IDENTIFIED BY password.
+    // - REPLACE after the password of ALTER USER (Oracle), which is followed by the password which is replaced.
+    // If the password is a literal (e.g. IDENTIFIED BY 'password'), it is sanitized as one. The passwords of MySQL
+    // and MariaDB are always literals, and a word which follows IDENTIFIED BY is a modifier (e.g. RANDOM PASSWORD).
+    private static void SanitizeNextTokenAsPasswordIfPrecedesPassword(ReadOnlySpan<char> sql, int start, int length, ref ParseState state)
+    {
+        if (state.UseBackslashEscapes)
+        {
+            return;
+        }
+
+        var word = sql.Slice(start, length);
+
+        if (length == ByWord.Length)
+        {
+            // The previous token is the one which precedes BY, as it has not been updated for BY yet.
+            var previousLength = state.PreviousTokenEndPosition - state.PreviousTokenStartPosition;
+
+            if (word.Equals(ByWord.AsSpan(), StringComparison.OrdinalIgnoreCase) &&
+                previousLength == IdentifiedWord.Length &&
+                sql.Slice(state.PreviousTokenStartPosition, previousLength).Equals(IdentifiedWord.AsSpan(), StringComparison.OrdinalIgnoreCase))
+            {
+                state.SanitizeNextTokenAsPassword = true;
+            }
+        }
+        else if (state.PasswordEndPosition > 0 &&
+                 word.Equals(ReplaceWord.AsSpan(), StringComparison.OrdinalIgnoreCase))
+        {
+            // Only the first such word after a password can follow it, so it is not looked for again,
+            // which would otherwise read the same comments again for each of them.
+            var passwordEnd = state.PasswordEndPosition;
+            state.PasswordEndPosition = 0;
+
+            if (SkipWhitespaceAndComments(sql, passwordEnd, state.UseBackslashEscapes, state.AllowNestedComments) == start)
+            {
+                state.SanitizeNextTokenAsPassword = true;
+            }
+        }
+    }
+
     private static bool ParseQuotedIdentifier(ReadOnlySpan<char> sql, Span<char> buffer, ref ParseState state)
     {
         var start = state.ParsePosition;
@@ -795,6 +927,7 @@ internal static class SqlProcessor
             state.ParsePosition = sql.Length;
             state.CaptureNextNonKeywordTokenAsIdentifier = false;
             state.SanitizeNextNonKeywordToken = false;
+            state.SanitizeNextTokenAsPassword = false;
             state.PreviousTokenStartPosition = start;
             state.PreviousTokenEndPosition = sql.Length;
             return true;
@@ -803,18 +936,24 @@ internal static class SqlProcessor
         var length = end - start + 1;
         var captureNextPartOfName = false;
 
-        // Redact the whole name after LOGIN or USER (e.g. CREATE LOGIN [DOMAIN\user]), keeping its
-        // delimiters. A double-quoted value which starts with a number is also redacted, because it is
-        // more likely to be a string literal (e.g. in GoogleSQL, or SQL Server with QUOTED_IDENTIFIER OFF)
-        // than an identifier. An empty name has nothing to redact, and the sanitized SQL must not be
-        // longer than the input.
+        // Redact the whole name after LOGIN or USER (e.g. CREATE LOGIN [DOMAIN\user]), or a password
+        // (e.g. IDENTIFIED BY "pass word"), keeping its delimiters. A double-quoted value which starts
+        // with a number is also redacted, because it is more likely to be a string literal (e.g. in
+        // GoogleSQL, or SQL Server with QUOTED_IDENTIFIER OFF) than an identifier. An empty name has
+        // nothing to redact, and the sanitized SQL must not be longer than the input.
         if (length > 2 &&
             (state.SanitizeNextNonKeywordToken ||
+             state.SanitizeNextTokenAsPassword ||
              (sql[start] == DoubleQuoteChar && StartsWithNumber(sql.Slice(start + 1, length - 2).TrimStart()))))
         {
             buffer[state.SanitizedPosition++] = sql[start];
             buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
             buffer[state.SanitizedPosition++] = sql[end];
+
+            if (state.SanitizeNextTokenAsPassword)
+            {
+                state.PasswordEndPosition = end + 1;
+            }
         }
         else
         {
@@ -854,6 +993,7 @@ internal static class SqlProcessor
         state.ParsePosition = end + 1;
         state.CaptureNextNonKeywordTokenAsIdentifier = captureNextPartOfName;
         state.SanitizeNextNonKeywordToken = false;
+        state.SanitizeNextTokenAsPassword = false;
         state.PreviousTokenStartPosition = start;
         state.PreviousTokenEndPosition = end + 1;
 
@@ -2303,6 +2443,9 @@ internal static class SqlProcessor
         // The number of characters which have been read in total looking for the bracket which ends a list of values.
         public int BracketLookaheadLength; // 4 bytes
 
+        // The position after the most recent password which was sanitized, or zero if there was none.
+        public int PasswordEndPosition; // 4 bytes
+
         // NOTE: If the number of bool fields increases significantly, consider combining into a bitfield.
 
         public bool CaptureNextNonKeywordTokenAsIdentifier; // 1 byte
@@ -2311,6 +2454,9 @@ internal static class SqlProcessor
         public bool RedactRemainder; // 1 byte
 
         public bool SanitizeNextNonKeywordToken; // 1 byte
+
+        // Set after a word such as IDENTIFIED BY, which is followed by a password which is not a literal.
+        public bool SanitizeNextTokenAsPassword; // 1 byte
 
         /// <summary>
         /// Whether the source dialect treats a backslash as a string-literal escape character

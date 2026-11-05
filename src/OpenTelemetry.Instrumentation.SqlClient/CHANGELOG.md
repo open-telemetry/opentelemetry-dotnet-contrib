@@ -53,6 +53,10 @@
   fails before it is sent. Upgrade to apply the fix.
   ([#5872](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5872))
 
+* Fixed query sanitization so that a password which is not a string literal,
+  such as the one in an `IDENTIFIED BY` clause, is replaced with `?`.
+  ([#ZZZZ](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/ZZZZ))
+
 ## 1.20.1
 
 Released 2026-Oct-21

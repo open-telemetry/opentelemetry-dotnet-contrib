@@ -61,6 +61,10 @@
   longer affects how the rest of the statement is sanitized.
   ([#YYYY](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/YYYY))
 
+* Fixed query sanitization so that a password which is not a string literal,
+  such as the one in the Oracle `IDENTIFIED BY` clause, is replaced with `?`.
+  ([#ZZZZ](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/ZZZZ))
+
 ## 1.20.1-beta.1
 
 Released 2026-Oct-21

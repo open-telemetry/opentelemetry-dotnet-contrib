@@ -1132,6 +1132,95 @@ public class SqlProcessorTests(ITestOutputHelper output)
     }
 
     [Theory]
+    [InlineData("ALTER USER app_reader IDENTIFIED BY Tr0ub4dor3xQ9", "ALTER USER ? IDENTIFIED BY ?")]
+    [InlineData("ALTER USER app_reader identified by Tr0ub4dor3xQ9", "ALTER USER ? identified by ?")]
+    [InlineData("CREATE USER app_writer IDENTIFIED BY \"P@ss#w0rd!Zk7\" DEFAULT TABLESPACE users", "CREATE USER ? IDENTIFIED BY \"?\" DEFAULT TABLESPACE users")]
+    [InlineData("ALTER USER app_reader IDENTIFIED BY NewPw_2026 REPLACE OldPw_2025", "ALTER USER ? IDENTIFIED BY ? REPLACE ?")]
+    [InlineData("ALTER USER app_reader IDENTIFIED BY \"New Pw\" /* c */ REPLACE \"Old Pw\"", "ALTER USER ? IDENTIFIED BY \"?\"  REPLACE \"?\"")]
+    [InlineData("CREATE DATABASE LINK sales_link CONNECT TO remote_user IDENTIFIED BY LinkPw_9x USING 'sales_tns'", "CREATE DATABASE LINK sales_link CONNECT TO remote_user IDENTIFIED BY ? USING ?")]
+    [InlineData("CREATE ROLE dw_manager IDENTIFIED BY RolePw_1", "CREATE ROLE dw_manager IDENTIFIED BY ?")]
+    [InlineData("GRANT CONNECT TO new_user IDENTIFIED BY GrantPw_1", "GRANT CONNECT TO new_user IDENTIFIED BY ?")]
+    [InlineData("SET ROLE dw_manager IDENTIFIED BY RolePw_1", "SET ROLE dw_manager IDENTIFIED BY ?")]
+    [InlineData("ALTER USER u IDENTIFIED BY Secret#Winter$1", "ALTER USER ? IDENTIFIED BY ?")]
+    [InlineData("ALTER USER u IDENTIFIED BY Select1 DEFAULT ROLE ALL", "ALTER USER ? IDENTIFIED BY ? DEFAULT ROLE ALL")]
+    [InlineData("ALTER USER u IDENTIFIED BY If_9", "ALTER USER ? IDENTIFIED BY ?")]
+    [InlineData("CREATE USER u IDENTIFIED BY VALUES 'S:0123456789ABCDEF'", "CREATE USER ? IDENTIFIED BY VALUES ?")]
+    [InlineData("CREATE USER u IDENTIFIED BY Values", "CREATE USER ? IDENTIFIED BY ?")]
+    [InlineData("CREATE USER u IDENTIFIED BY 1pw DEFAULT TABLESPACE users", "CREATE USER ? IDENTIFIED BY ? DEFAULT TABLESPACE users")]
+    [InlineData("ALTER USER u IDENTIFIED BY N'new-secret' REPLACE old_secret", "ALTER USER ? IDENTIFIED BY ? REPLACE ?")]
+    [InlineData("CREATE USER u IDENTIFIED BY nq'[secret-pw]' DEFAULT TABLESPACE users", "CREATE USER ? IDENTIFIED BY ? DEFAULT TABLESPACE users")]
+    [InlineData("CREATE USER u IDENTIFIED BY \"abc", "CREATE USER ? IDENTIFIED BY \"?")]
+    [InlineData("ALTER USER u IDENTIFIED BY tiger; SELECT REPLACE(name, 'a', 'b') FROM t", "ALTER USER ? IDENTIFIED BY ?; SELECT REPLACE(name, ?, ?) FROM t")]
+    [InlineData("ALTER USER u IDENTIFIED BY 'new-secret' REPLACE old_secret", "ALTER USER ? IDENTIFIED BY ? REPLACE ?")]
+    [InlineData("CREATE USER u IDENTIFIED BY pw PASSWORD EXPIRE", "CREATE USER ? IDENTIFIED BY ? PASSWORD EXPIRE")]
+    public void GetSanitizedSql_PasswordWhichIsNotALiteral_IsSanitized(string sql, string expected)
+    {
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData("CREATE USER u IDENTIFIED BY 'secret-pw' REQUIRE SSL", "CREATE USER ? IDENTIFIED BY ? REQUIRE SSL")]
+    [InlineData("CREATE USER u IDENTIFIED BY \"secret-pw\" REQUIRE SSL", "CREATE USER ? IDENTIFIED BY ? REQUIRE SSL")]
+    [InlineData("ALTER USER u IDENTIFIED BY 'new-pw' REPLACE 'old-pw'", "ALTER USER ? IDENTIFIED BY ? REPLACE ?")]
+    public void GetSanitizedSql_PasswordWhichIsALiteralWithBackslashDialect_IsSanitized(string sql, string expected)
+    {
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes: true);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("-pw", sqlStatementInfo.SanitizedSql);
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData("CREATE USER u IDENTIFIED BY RANDOM PASSWORD", "CREATE USER ? IDENTIFIED BY RANDOM PASSWORD")]
+    [InlineData("CREATE USER u IDENTIFIED BY PASSWORD 'secret-hash'", "CREATE USER ? IDENTIFIED BY PASSWORD ?")]
+    [InlineData("CREATE USER u IDENTIFIED BY RANDOM#don't\nPASSWORD COMMENT 'secret-name'", "CREATE USER ? IDENTIFIED BY RANDOM\nPASSWORD COMMENT ?")]
+    public void GetSanitizedSql_PasswordModifierWithBackslashDialect_IsNotChanged(string sql, string expected)
+    {
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes: true);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-", sqlStatementInfo.SanitizedSql);
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Fact]
+    public void GetSanitizedSql_ManyReplaceWordsAfterPassword_CompletesInBoundedTime()
+    {
+        var sql = "ALTER USER u IDENTIFIED BY pw" + string.Concat(Enumerable.Repeat(" /*c*/", 40_000)) + " ; " + string.Concat(Enumerable.Repeat("SELECT REPLACE(a, 'b', 'c') /*c*/ ", 40_000));
+
+        var stopwatch = Stopwatch.StartNew();
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+        stopwatch.Stop();
+
+        Assert.StartsWith("ALTER USER ? IDENTIFIED BY ?", sqlStatementInfo.SanitizedSql, StringComparison.Ordinal);
+        Assert.True(stopwatch.Elapsed < TimeSpan.FromSeconds(10), $"Took {stopwatch.Elapsed}.");
+    }
+
+    [Theory]
+    [InlineData("CREATE USER u IDENTIFIED EXTERNALLY", "CREATE USER ? IDENTIFIED EXTERNALLY")]
+    [InlineData("SELECT a FROM t GROUP BY b", "SELECT a FROM t GROUP BY b")]
+    [InlineData("SELECT a FROM t ORDER BY b", "SELECT a FROM t ORDER BY b")]
+    [InlineData("SELECT Password FROM Users WHERE Password = Hash", "SELECT Password FROM Users WHERE Password = Hash")]
+    [InlineData("CREATE USER u WITH PASSWORD = @pw", "CREATE USER ? WITH PASSWORD = @pw")]
+    [InlineData("CREATE LOGIN u WITH PASSWORD = @pw", "CREATE LOGIN ? WITH PASSWORD = @pw")]
+    [InlineData("CREATE USER u WITH PASSWORD = 'secret-pw'", "CREATE USER ? WITH PASSWORD = ?")]
+    public void GetSanitizedSql_NotAPassword_IsNotChanged(string sql, string expected)
+    {
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
     [InlineData("/* served on GET /notes/* */ SELECT * FROM Notes WHERE Tag = '*/' AND TenantKey = 'secret-name'", " SELECT * FROM Notes WHERE Tag = ? AND TenantKey = ?")]
     [InlineData("/* a /* b */ SELECT * FROM Notes WHERE Tag = '*/' AND TenantKey = 'secret-name'", " SELECT * FROM Notes WHERE Tag = ? AND TenantKey = ?")]
     [InlineData("SELECT * FROM Notes /* a /* b */ WHERE TenantKey = 'secret-name'", "SELECT * FROM Notes  WHERE TenantKey = ?")]
