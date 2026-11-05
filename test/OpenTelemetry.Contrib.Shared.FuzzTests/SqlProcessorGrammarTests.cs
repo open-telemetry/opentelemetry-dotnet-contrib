@@ -82,11 +82,11 @@ public static class SqlProcessorGrammarTests
     }
 
     [Property(MaxTest = MaxValue, Arbitrary = [typeof(SqlGenerators)])]
-    public static void GetSanitizedSql_Mixed_Up_SQL_Does_Not_Throw_And_Respects_The_Summary_Limit(SqlSoup soup, bool useBackslashEscapes)
+    public static void GetSanitizedSql_Mixed_Up_SQL_Does_Not_Throw_And_Respects_The_Summary_Limit(SqlSoup soup, bool useBackslashEscapes, bool bracketsDelimitIdentifiersOnly)
     {
         SqlStatementInfo actual = default;
 
-        var exception = Record.Exception(() => actual = SqlProcessor.GetSanitizedSql(soup.Text, useBackslashEscapes));
+        var exception = Record.Exception(() => actual = SqlProcessor.GetSanitizedSql(soup.Text, useBackslashEscapes, bracketsDelimitIdentifiersOnly: bracketsDelimitIdentifiersOnly));
 
         Assert.True(exception is null, $"{exception?.GetType().Name}: {exception?.Message} for {soup}");
         Assert.NotNull(actual.SanitizedSql);
@@ -95,7 +95,7 @@ public static class SqlProcessorGrammarTests
     }
 
     [Property(MaxTest = 40)]
-    public static void GetSanitizedSql_Completes_In_Bounded_Time_For_Pathological_Input(byte selector, bool useBackslashEscapes, byte lengthSelector)
+    public static void GetSanitizedSql_Completes_In_Bounded_Time_For_Pathological_Input(byte selector, bool useBackslashEscapes, byte lengthSelector, bool bracketsDelimitIdentifiersOnly)
     {
         // Each piece is the start of something which may or may not end later, so a sanitizer which looks ahead for the end of
         // each one without remembering it has not been found takes time which grows with the square of the length.
@@ -104,7 +104,7 @@ public static class SqlProcessorGrammarTests
         var sql = "SELECT * FROM t WHERE " + string.Concat(Enumerable.Repeat(piece, repeats));
 
         var stopwatch = Stopwatch.StartNew();
-        var actual = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes);
+        var actual = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes, bracketsDelimitIdentifiersOnly: bracketsDelimitIdentifiersOnly);
         stopwatch.Stop();
 
         Assert.NotNull(actual.SanitizedSql);

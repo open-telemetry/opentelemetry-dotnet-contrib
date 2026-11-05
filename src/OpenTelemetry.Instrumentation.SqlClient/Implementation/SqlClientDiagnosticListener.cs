@@ -133,7 +133,8 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                             DatabaseSemanticConventionHelper.AddTagsForSamplingAndUpdateActivityNameForQueryText(
                                 ref startTags,
                                 commandText,
-                                ref activityName);
+                                ref activityName,
+                                bracketsDelimitIdentifiersOnly: true);
                             break;
 
                         case CommandType.TableDirect:
@@ -589,7 +590,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                 }
                 else if (command.CommandType is CommandType.Text)
                 {
-                    var querySummary = SqlProcessor.GetSanitizedSql(command.CommandText).DbQuerySummary;
+                    var querySummary = SqlProcessor.GetSanitizedSql(command.CommandText, bracketsDelimitIdentifiersOnly: true).DbQuerySummary;
                     if (!string.IsNullOrEmpty(querySummary))
                     {
                         tags.Add(SemanticConventions.AttributeDbQuerySummary, querySummary);

@@ -1316,6 +1316,95 @@ public class SqlProcessorTests(ITestOutputHelper output)
     }
 
     [Theory]
+    [InlineData("SELECT Id, Name AS ['Tis the season] FROM Accounts WHERE ApiKey = 'secret-name'", "SELECT Id, Name AS ['Tis the season] FROM Accounts WHERE ApiKey = ?")]
+    [InlineData("SELECT Total AS ['24 revenue] FROM Invoices WHERE Customer = 'Contoso Ltd' AND Ssn = 'secret-name'", "SELECT Total AS ['24 revenue] FROM Invoices WHERE Customer = ? AND Ssn = ?")]
+    [InlineData("UPDATE Accounts SET Verified = 1 WHERE[Mother's Maiden Name] = 'secret-name' AND Email = 'bob@example.com'", "UPDATE Accounts SET Verified = ? WHERE[Mother's Maiden Name] = ? AND Email = ?")]
+    [InlineData("DELETE FROM[O'Brien] WHERE [Owner] = 'secret-name'", "DELETE FROM[O'Brien] WHERE [Owner] = ?")]
+    [InlineData("SELECT x INTO[Bob's Backup] FROM t WHERE y = 'secret-name'", "SELECT x INTO[Bob's Backup] FROM t WHERE y = ?")]
+    [InlineData("SELECT TOP 5[Bob's col] FROM t WHERE y = 'secret-name'", "SELECT TOP ?[Bob's col] FROM t WHERE y = ?")]
+    [InlineData("SELECT * FROM t PIVOT (SUM(x) FOR y IN (['90s], [2000s])) p WHERE owner = 'secret-name'", "SELECT * FROM t PIVOT (SUM(x) FOR y IN (['90s], [2000s])) p WHERE owner = ?")]
+    [InlineData("SELECT * FROM [a].['s Name] WHERE owner = 'secret-name'", "SELECT * FROM [a].['s Name] WHERE owner = ?")]
+    [InlineData("SELECT [ 'x] FROM t WHERE a = 'secret-name'", "SELECT [ 'x] FROM t WHERE a = ?")]
+    [InlineData("SELECT [a]]'b] FROM t WHERE a = 'secret-name'", "SELECT [a]]'b] FROM t WHERE a = ?")]
+    [InlineData("SELECT [2024] FROM t WHERE a = 'secret-name'", "SELECT [2024] FROM t WHERE a = ?")]
+    public void GetSanitizedSql_BracketsDelimitIdentifiersOnly_BracketIsIdentifier(string sql, string expected)
+    {
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, bracketsDelimitIdentifiersOnly: true);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Fact]
+    public void GetSanitizedSql_BracketsDelimitIdentifiersOnlyWithNameLongerThanLimit_RedactsRemainder()
+    {
+        // SQL Server limits an identifier to 128 characters, but SQLite does not, so it is not known where this one ends.
+        var sql = $"SELECT ['{new string('a', 200)}] FROM t WHERE a = 'secret-name'";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, bracketsDelimitIdentifiersOnly: true);
+
+        Assert.Equal("SELECT [?", sqlStatementInfo.SanitizedSql);
+    }
+
+    [Fact]
+    public void GetSanitizedSql_BracketsDelimitIdentifiersOnlyWithNameLongerThanLimitInInClause_RedactsRemainder()
+    {
+        var name = $"['{new string('a', 130)}]] ) ']";
+        var sql = $"SELECT x FROM t WHERE y IN ('v', {name}) AND z = 'secret-name'";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, bracketsDelimitIdentifiersOnly: true);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+    }
+
+    [Fact]
+    public void GetSanitizedSql_BracketsDelimitIdentifiersOnlyWithNameLongerThanLimitWithoutApostrophe_BracketIsIdentifier()
+    {
+        // SQLite does not limit the length of an identifier, and there is no string literal in this one.
+        var name = $"[{new string('a', 200)}]";
+        var sql = $"SELECT {name} FROM Accounts WHERE ApiKey = 'secret-name'";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, bracketsDelimitIdentifiersOnly: true);
+
+        Assert.Equal($"SELECT {name} FROM Accounts WHERE ApiKey = ?", sqlStatementInfo.SanitizedSql);
+        Assert.Equal($"SELECT Accounts", sqlStatementInfo.DbQuerySummary);
+    }
+
+    [Fact]
+    public void GetSanitizedSql_BracketsDelimitIdentifiersOnlyWithNameAtLimit_BracketIsIdentifier()
+    {
+        var name = $"['{new string('a', 100)}]";
+        var sql = $"SELECT {name} FROM t WHERE a = 'secret-name'";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, bracketsDelimitIdentifiersOnly: true);
+
+        Assert.Equal($"SELECT {name} FROM t WHERE a = ?", sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(20)]
+    public void GetSanitizedSql_SameInstanceWithBracketsDelimitIdentifiersOnly_RespectsDialect(int extraColumns)
+    {
+        var columns = GetColumnList(extraColumns);
+        var sql = $"SELECT {columns}, ['Tis the season] FROM t WHERE a = 'secret-name'";
+
+        var identifiersOnly = SqlProcessor.GetSanitizedSql(sql, bracketsDelimitIdentifiersOnly: true);
+        var defaultDialect = SqlProcessor.GetSanitizedSql(sql);
+        var identifiersOnlyAgain = SqlProcessor.GetSanitizedSql(sql, bracketsDelimitIdentifiersOnly: true);
+        var defaultDialectAgain = SqlProcessor.GetSanitizedSql(sql);
+
+        Assert.Equal($"SELECT {columns}, ['Tis the season] FROM t WHERE a = ?", identifiersOnly.SanitizedSql);
+        Assert.NotEqual(identifiersOnly.SanitizedSql, defaultDialect.SanitizedSql);
+        Assert.Equal(identifiersOnly.SanitizedSql, identifiersOnlyAgain.SanitizedSql);
+        Assert.Equal(defaultDialect.SanitizedSql, defaultDialectAgain.SanitizedSql);
+    }
+
+    [Theory]
     [InlineData("SELECT price$gbp$ AS Value FROM accounts WHERE owner = 'mallory$gbp$' AND tenant_key = 'secret-name'", "SELECT price$gbp$ AS Value FROM accounts WHERE owner = ? AND tenant_key = ?")]
     [InlineData("SELECT price$$ AS Value FROM accounts WHERE owner = 'mallory$$' AND tenant_key = 'secret-name'", "SELECT price$$ AS Value FROM accounts WHERE owner = ? AND tenant_key = ?")]
     [InlineData("INSERT INTO notes (owner, cost$gbp$, note) VALUES ('mallory', 1, 'x$gbp$'), ('alice', 2, 'secret-name 4111')", "INSERT INTO notes (owner, cost$gbp$, note) VALUES (?, ?, ?), (?, ?, ?)")]

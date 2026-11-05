@@ -55,7 +55,8 @@ internal static class EntityFrameworkQueryTextProcessor
         var useBackslashEscapes = EntityFrameworkProviderInfo.IsBackslashEscapeProvider(context.ProviderName);
         var useTripleQuotedLiterals = EntityFrameworkProviderInfo.IsTripleQuotedLiteralProvider(context.ProviderName);
         var allowNestedComments = EntityFrameworkProviderInfo.IsNestedCommentProvider(context.ProviderName);
-        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(context.QueryText, useBackslashEscapes, useTripleQuotedLiterals, allowNestedComments);
+        var bracketsDelimitIdentifiersOnly = EntityFrameworkProviderInfo.IsBracketedIdentifierProvider(context.ProviderName);
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(context.QueryText, useBackslashEscapes, useTripleQuotedLiterals, allowNestedComments, bracketsDelimitIdentifiersOnly);
 
         return DbQueryTextSanitizationResult.Sanitized(sqlStatementInfo.SanitizedSql, sqlStatementInfo.DbQuerySummary);
     }

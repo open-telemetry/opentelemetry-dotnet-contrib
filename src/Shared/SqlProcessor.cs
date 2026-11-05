@@ -17,6 +17,9 @@ internal static class SqlProcessor
     private const int MaxBracketLookaheadLength = 16 * 1024;
     private const int CacheCapacity = 1000;
 
+    // The number of combinations of the values of SqlDialect, which is one more than the one which has all of them.
+    private const int DialectCount = (int)(SqlDialect.BackslashEscapes | SqlDialect.TripleQuotedLiterals | SqlDialect.NonNestedComments | SqlDialect.BracketsDelimitIdentifiersOnly) + 1;
+
     // The maximum length of a statement which is cached.
     private const int MaxCachedStatementLength = 8192;
 
@@ -114,10 +117,8 @@ internal static class SqlProcessor
         "restore",
     ];
 
-    private static readonly ConcurrentDictionary<string, SqlStatementInfo> Cache = new();
-    private static readonly ConcurrentDictionary<string, SqlStatementInfo> BackslashEscapeCache = new();
-    private static readonly ConcurrentDictionary<string, SqlStatementInfo> TripleQuotedLiteralCache = new();
-    private static readonly ConcurrentDictionary<string, SqlStatementInfo> NonNestedCommentCache = new();
+    // The sanitized statements of each dialect, which are the index of the cache.
+    private static readonly ConcurrentDictionary<string, SqlStatementInfo>[] Caches = CreateCaches();
 
     private static readonly char[] WhitespaceChars = [SpaceChar, TabChar, CarriageReturnChar, NewLineChar];
 #if !NET
@@ -205,10 +206,7 @@ internal static class SqlProcessor
     // Maintain our own approximate count to avoid ConcurrentDictionary.Count on hot path.
     // We only increment on successful TryAdd. This may result in a slightly oversized cache
     // under high concurrency but this is acceptable for this scenario.
-    private static int approxCacheCount;
-    private static int approxBackslashEscapeCacheCount;
-    private static int approxTripleQuotedLiteralCacheCount;
-    private static int approxNonNestedCommentCacheCount;
+    private static readonly int[] ApproxCacheCounts = new int[DialectCount];
 
     // The most recent statement sanitized on the current thread. Instrumentations commonly sanitize the
     // same command text instance more than once per command on the same thread (for example EF Core's
@@ -219,6 +217,17 @@ internal static class SqlProcessor
     // longer than MaxCachedStatementLength are not remembered, so the memory retained is bounded.
     [ThreadStatic]
     private static LastSanitizedStatement? lastSanitizedStatement;
+
+    // The differences between the dialects of SQL which are sanitized. A statement is cached per combination of them.
+    [Flags]
+    private enum SqlDialect
+    {
+        Default = 0,
+        BackslashEscapes = 1,
+        TripleQuotedLiterals = 2,
+        NonNestedComments = 4,
+        BracketsDelimitIdentifiersOnly = 8,
+    }
 
     private enum SqlKeyword
     {
@@ -294,36 +303,73 @@ internal static class SqlProcessor
     /// <c>*/</c>; <see langword="false"/> if a block comment ends at the first <c>*/</c> (e.g. SQLite and Oracle).
     /// Block comments never nest for the dialects described by <paramref name="useBackslashEscapes"/>.
     /// </param>
+    /// <param name="bracketsDelimitIdentifiersOnly">
+    /// <see langword="true"/> if the source database is SQL Server or SQLite, in which <c>[...]</c> always delimits
+    /// an identifier (even if it has an apostrophe, such as <c>['Tis]</c>), so that it is never a list of values
+    /// or the subscript of an array as in some other dialects (e.g. <c>['a', 'b']</c> or <c>items[1]</c>);
+    /// otherwise <see langword="false"/>.
+    /// </param>
     /// <returns>The sanitized SQL and query summary.</returns>
-    public static SqlStatementInfo GetSanitizedSql(string? sql, bool useBackslashEscapes = false, bool useTripleQuotedLiterals = false, bool allowNestedComments = true) =>
-        sql == null
-            ? default
-            : useTripleQuotedLiterals
-                ? GetSanitizedSql(sql, TripleQuotedLiteralCache, ref approxTripleQuotedLiteralCacheCount, useBackslashEscapes: true, useTripleQuotedLiterals: true, allowNestedComments: false)
-                : useBackslashEscapes
-                    ? GetSanitizedSql(sql, BackslashEscapeCache, ref approxBackslashEscapeCacheCount, useBackslashEscapes: true, useTripleQuotedLiterals: false, allowNestedComments: false)
-                    : allowNestedComments
-                        ? GetSanitizedSql(sql, Cache, ref approxCacheCount, useBackslashEscapes: false, useTripleQuotedLiterals: false, allowNestedComments: true)
-                        : GetSanitizedSql(sql, NonNestedCommentCache, ref approxNonNestedCommentCacheCount, useBackslashEscapes: false, useTripleQuotedLiterals: false, allowNestedComments: false);
+    public static SqlStatementInfo GetSanitizedSql(
+        string? sql,
+        bool useBackslashEscapes = false,
+        bool useTripleQuotedLiterals = false,
+        bool allowNestedComments = true,
+        bool bracketsDelimitIdentifiersOnly = false)
+    {
+        if (sql == null)
+        {
+            return default;
+        }
 
-    private static SqlStatementInfo GetSanitizedSql(
-        string sql,
-        ConcurrentDictionary<string, SqlStatementInfo> cache,
-        ref int approxCount,
-        bool useBackslashEscapes,
-        bool useTripleQuotedLiterals,
-        bool allowNestedComments)
+        var dialect = SqlDialect.Default;
+
+        // GoogleSQL has the rules of MySQL and MariaDB which useBackslashEscapes is for, and neither nest block comments.
+        if (useTripleQuotedLiterals)
+        {
+            dialect |= SqlDialect.TripleQuotedLiterals | SqlDialect.BackslashEscapes | SqlDialect.NonNestedComments;
+        }
+        else if (useBackslashEscapes)
+        {
+            dialect |= SqlDialect.BackslashEscapes | SqlDialect.NonNestedComments;
+        }
+        else if (!allowNestedComments)
+        {
+            dialect |= SqlDialect.NonNestedComments;
+        }
+
+        if (bracketsDelimitIdentifiersOnly)
+        {
+            dialect |= SqlDialect.BracketsDelimitIdentifiersOnly;
+        }
+
+        return GetSanitizedSql(sql, dialect);
+    }
+
+    private static ConcurrentDictionary<string, SqlStatementInfo>[] CreateCaches()
+    {
+        var caches = new ConcurrentDictionary<string, SqlStatementInfo>[DialectCount];
+
+        for (var i = 0; i < caches.Length; i++)
+        {
+            caches[i] = new();
+        }
+
+        return caches;
+    }
+
+    private static SqlStatementInfo GetSanitizedSql(string sql, SqlDialect dialect)
     {
         // Statements above the length limit are neither cached nor remembered for the thread,
         // so that the memory retained does not depend on the length of the statements executed.
         if (sql.Length > MaxCachedStatementLength)
         {
-            return SanitizeSql(sql, useBackslashEscapes, useTripleQuotedLiterals, allowNestedComments);
+            return SanitizeSql(sql, dialect);
         }
 
-        if (sql.Length < LastStatementMinLength && approxCount < CacheCapacity)
+        if (sql.Length < LastStatementMinLength && ApproxCacheCounts[(int)dialect] < CacheCapacity)
         {
-            return GetOrAddCachedSql(sql, cache, ref approxCount, useBackslashEscapes, useTripleQuotedLiterals, allowNestedComments);
+            return GetOrAddCachedSql(sql, dialect);
         }
 
         // Strings are immutable, so the same instance sanitized
@@ -331,42 +377,34 @@ internal static class SqlProcessor
         var last = lastSanitizedStatement;
         if (last != null &&
             ReferenceEquals(sql, last.Sql) &&
-            useBackslashEscapes == last.UseBackslashEscapes &&
-            useTripleQuotedLiterals == last.UseTripleQuotedLiterals &&
-            allowNestedComments == last.AllowNestedComments)
+            dialect == last.Dialect)
         {
             return last.StatementInfo;
         }
 
-        var sqlStatementInfo = GetOrAddCachedSql(sql, cache, ref approxCount, useBackslashEscapes, useTripleQuotedLiterals, allowNestedComments);
+        var sqlStatementInfo = GetOrAddCachedSql(sql, dialect);
 
         last ??= lastSanitizedStatement = new();
         last.Sql = sql;
-        last.UseBackslashEscapes = useBackslashEscapes;
-        last.UseTripleQuotedLiterals = useTripleQuotedLiterals;
-        last.AllowNestedComments = allowNestedComments;
+        last.Dialect = dialect;
         last.StatementInfo = sqlStatementInfo;
 
         return sqlStatementInfo;
     }
 
-    private static SqlStatementInfo GetOrAddCachedSql(
-        string sql,
-        ConcurrentDictionary<string, SqlStatementInfo> cache,
-        ref int approxCount,
-        bool useBackslashEscapes,
-        bool useTripleQuotedLiterals,
-        bool allowNestedComments)
+    private static SqlStatementInfo GetOrAddCachedSql(string sql, SqlDialect dialect)
     {
+        var cache = Caches[(int)dialect];
+
         if (cache.TryGetValue(sql, out var sqlStatementInfo))
         {
             return sqlStatementInfo;
         }
 
-        sqlStatementInfo = SanitizeSql(sql, useBackslashEscapes, useTripleQuotedLiterals, allowNestedComments);
+        sqlStatementInfo = SanitizeSql(sql, dialect);
 
         // Fast-path capacity check using our own approximate count to avoid ConcurrentDictionary.Count cost.
-        if (Volatile.Read(ref approxCount) >= CacheCapacity)
+        if (Volatile.Read(ref ApproxCacheCounts[(int)dialect]) >= CacheCapacity)
         {
             return sqlStatementInfo;
         }
@@ -374,7 +412,7 @@ internal static class SqlProcessor
         // Attempt to add when under capacity. Increment our count only on successful add.
         if (cache.TryAdd(sql, sqlStatementInfo))
         {
-            Interlocked.Increment(ref approxCount);
+            Interlocked.Increment(ref ApproxCacheCounts[(int)dialect]);
             return sqlStatementInfo;
         }
 
@@ -404,7 +442,7 @@ internal static class SqlProcessor
         return (currentChar != DotChar || indexInToken != 0) && IsUnescapedIdentifierChar(currentChar);
     }
 
-    private static SqlStatementInfo SanitizeSql(string sql, bool useBackslashEscapes, bool useTripleQuotedLiterals, bool allowNestedComments)
+    private static SqlStatementInfo SanitizeSql(string sql, SqlDialect dialect)
     {
         var sqlSpan = sql.AsSpan();
 
@@ -417,9 +455,10 @@ internal static class SqlProcessor
         var buffer = rentedBuffer.AsSpan();
 
         ParseState state = default;
-        state.UseBackslashEscapes = useBackslashEscapes;
-        state.UseTripleQuotedLiterals = useTripleQuotedLiterals;
-        state.AllowNestedComments = allowNestedComments;
+        state.UseBackslashEscapes = (dialect & SqlDialect.BackslashEscapes) != 0;
+        state.UseTripleQuotedLiterals = (dialect & SqlDialect.TripleQuotedLiterals) != 0;
+        state.AllowNestedComments = (dialect & SqlDialect.NonNestedComments) == 0;
+        state.BracketsDelimitIdentifiersOnly = (dialect & SqlDialect.BracketsDelimitIdentifiersOnly) != 0;
 
         // Precompute the summary buffer slice once and carry it via state to avoid repeated Span.Slice calls.
         state.SummaryBuffer = buffer.Slice(rentedBuffer.Length / 2);
@@ -1422,7 +1461,23 @@ internal static class SqlProcessor
         var searchEnd = Math.Min(sql.Length, start + MaxBracketedIdentifierLength + 2);
         var i = FindNextCloseSquareBracket(sql, start + 1, ref state);
 
-        if (i >= searchEnd || IsArraySubscriptOrConstructor(sql, start, in state))
+        if (i >= searchEnd)
+        {
+            // SQLite has no limit to the length of an identifier, so a closing bracket which is further away could end one
+            // if brackets only delimit identifiers. It is one if what is in it has no apostrophe, as that has no string
+            // literal in it. If it has, where it ends is not known, as the bracket could be in a string. Any of the rest of
+            // the statement could be part of it, so none of it is copied.
+            if (state.BracketsDelimitIdentifiersOnly && i < sql.Length)
+            {
+                state.RedactRemainder = sql.Slice(start + 1, i - start - 1).IndexOf(SingleQuoteChar) >= 0;
+                return i;
+            }
+
+            return -1;
+        }
+
+        // A bracket is never a subscript or the start of a list of values if the dialect only uses it for identifiers.
+        if (!state.BracketsDelimitIdentifiersOnly && IsArraySubscriptOrConstructor(sql, start, in state))
         {
             return -1;
         }
@@ -1440,7 +1495,7 @@ internal static class SqlProcessor
             // A name which is going to be redacted is always treated as an identifier, as none of it is copied. A bracket
             // where a name is expected (e.g. after FROM) cannot be a list of values, so it is always a name, which ends at
             // the first closing bracket, rather than the content of it and the SQL after it being used to guess what it is.
-            if (state.SanitizeNextNonKeywordToken || IsNameExpected(sql, start, in state))
+            if (state.SanitizeNextNonKeywordToken || state.BracketsDelimitIdentifiersOnly || IsNameExpected(sql, start, in state))
             {
                 return i;
             }
@@ -2685,6 +2740,15 @@ internal static class SqlProcessor
                 case OpenSquareBracketChar:
                     // A delimiter which does not start a quoted identifier is parsed as a single character.
                     end = FindQuotedIdentifierEnd(sql, i, ref scanState);
+
+                    // It is not known where an identifier ends if the rest of the statement is to be redacted (as the main
+                    // parser does), so no closing parenthesis can be relied on, which is what is searched for.
+                    if (scanState.RedactRemainder)
+                    {
+                        closeParenIndex = -1;
+                        return false;
+                    }
+
                     i = end < 0 ? i + 1 : end + 1;
                     break;
 
@@ -2811,7 +2875,7 @@ internal static class SqlProcessor
         /// <summary>
         /// Whether the source dialect treats a backslash as a string-literal escape character
         /// (MySQL/MariaDB and GoogleSQL). Controls whether <c>\'</c> is recognized as an escaped quote, and the
-        /// other dialect differences described by <see cref="GetSanitizedSql(string?, bool, bool, bool)"/>.
+        /// other dialect differences described by <see cref="GetSanitizedSql(string?, bool, bool, bool, bool)"/>.
         /// </summary>
         public bool UseBackslashEscapes; // 1 byte
 
@@ -2824,6 +2888,11 @@ internal static class SqlProcessor
         /// Whether the source dialect allows block comments to be nested (SQL Server, PostgreSQL and Db2).
         /// </summary>
         public bool AllowNestedComments; // 1 byte
+
+        /// <summary>
+        /// Whether the source dialect only uses <c>[...]</c> to delimit an identifier (SQL Server and SQLite).
+        /// </summary>
+        public bool BracketsDelimitIdentifiersOnly; // 1 byte
 
         /// <summary>
         /// Used to avoid repeatedly scanning to the end of malformed SQL after finding an unterminated double-quoted identifier.
@@ -2852,9 +2921,7 @@ internal static class SqlProcessor
     private sealed class LastSanitizedStatement
     {
         public string? Sql;
-        public bool UseBackslashEscapes;
-        public bool UseTripleQuotedLiterals;
-        public bool AllowNestedComments;
+        public SqlDialect Dialect;
         public SqlStatementInfo StatementInfo;
     }
 

@@ -117,6 +117,21 @@ internal static class EntityFrameworkProviderInfo
     }
 
     /// <summary>
+    /// Returns whether the provider only uses square brackets to delimit identifiers.
+    /// </summary>
+    /// <param name="providerOrCommandName">The provider or command name.</param>
+    /// <returns><see langword="true"/> for SQL Server and SQLite providers; otherwise, <see langword="false"/>.</returns>
+    public static bool IsBracketedIdentifierProvider(string? providerOrCommandName)
+    {
+        // In these databases [...] always delimits an identifier, which can have any character in it (e.g. [Mother's Name]).
+        // In other dialects it can be a list of values (e.g. ['a', 'b']) or the subscript of an array (e.g. items[1]).
+        (_, var dbSystemName) = GetDbSystemNames(providerOrCommandName);
+        return dbSystemName is
+            DbSystemNames.MicrosoftSqlServer or
+            DbSystemNames.Sqlite;
+    }
+
+    /// <summary>
     /// Returns whether the provider allows block comments to be nested.
     /// </summary>
     /// <param name="providerOrCommandName">The provider or command name.</param>

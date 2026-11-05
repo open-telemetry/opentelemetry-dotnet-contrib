@@ -99,6 +99,38 @@ public class SqlClientQuerySanitizationTests(ITestOutputHelper output)
         Assert.Equal("SELECT [Accounts]", Assert.Single(summaries));
     }
 
+    [Fact]
+    public void LeadingApostropheInBracketedColumn_DoesNotLeakLiteralsIntoQueryTextOrSpanName()
+    {
+        var activities = new List<Activity>();
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        foreach (var customer in Customers)
+        {
+            Execute(Statement("'Tis the season", customer));
+        }
+
+        tracerProvider.ForceFlush();
+
+        Assert.Equal(Customers.Length, activities.Count);
+
+        for (var i = 0; i < Customers.Length; i++)
+        {
+            var activity = activities[i];
+            var queryText = (string)activity.GetTagValue(SemanticConventions.AttributeDbQueryText)!;
+
+            this.output.WriteLine($"name='{activity.DisplayName}' db.query.text='{queryText}'");
+
+            Assert.DoesNotContain(Customers[i], queryText, StringComparison.Ordinal);
+            Assert.Equal("SELECT [a].[Id], [a].['Tis the season] FROM [Accounts] AS [a] WHERE [a].[Note] = ?", queryText);
+            Assert.Equal("SELECT [Accounts]", activity.DisplayName);
+        }
+    }
+
     private static string Statement(string columnName, string customer)
         => $"SELECT [a].[Id], [a].[{columnName}] FROM [Accounts] AS [a] WHERE [a].[Note] = N'Refund from {customer} approved'";
 

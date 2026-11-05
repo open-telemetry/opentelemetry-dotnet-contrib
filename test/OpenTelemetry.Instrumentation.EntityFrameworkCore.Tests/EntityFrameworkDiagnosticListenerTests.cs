@@ -299,6 +299,34 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         return testCases;
     }
 
+    public static TheoryData<string, bool> IsBracketedIdentifierProviderTestCases()
+    {
+        var values = DbSystemTestCases().ToDictionary((k) => k.Data.Item1, (v) => false);
+
+        string[] bracketedIdentifierProviders =
+        [
+            "Microsoft.Data.SqlClient.SqlCommand",
+            "Microsoft.EntityFrameworkCore.SqlServer",
+            "Devart.Data.SQLite.Entity.EFCore",
+            "Microsoft.Data.Sqlite.SqliteCommand",
+            "Microsoft.EntityFrameworkCore.Sqlite",
+        ];
+
+        foreach (var name in bracketedIdentifierProviders)
+        {
+            values[name] = true;
+        }
+
+        var testCases = new TheoryData<string, bool>();
+
+        foreach ((var name, var expected) in values)
+        {
+            testCases.Add(name, expected);
+        }
+
+        return testCases;
+    }
+
     public static TheoryData<string, bool> IsTripleQuotedLiteralProviderTestCases()
     {
         var values = DbSystemTestCases().ToDictionary((k) => k.Data.Item1, (v) => false);
@@ -357,6 +385,15 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     public void ShouldReturnCorrectValueForNestedCommentProviderOrCommandName(string name, bool expected)
     {
         var actual = EntityFrameworkProviderInfo.IsNestedCommentProvider(name);
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Theory]
+    [MemberData(nameof(IsBracketedIdentifierProviderTestCases))]
+    public void ShouldReturnCorrectValueForBracketedIdentifierProviderOrCommandName(string name, bool expected)
+    {
+        var actual = EntityFrameworkProviderInfo.IsBracketedIdentifierProvider(name);
 
         Assert.Equal(expected, actual);
     }

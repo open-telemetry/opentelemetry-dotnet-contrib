@@ -67,6 +67,11 @@
   another statement.
   ([#BBBB](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/BBBB))
 
+* Fixed query sanitization so that a bracketed identifier which contains an
+  apostrophe, such as `['Tis the season]` or `WHERE[Mother's Maiden Name]`,
+  no longer causes the string literals which follow it to be left unsanitized.
+  ([#CCCC](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/CCCC))
+
 ## 1.20.1
 
 Released 2026-Oct-21

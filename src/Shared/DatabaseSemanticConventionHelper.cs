@@ -124,14 +124,15 @@ internal static class DatabaseSemanticConventionHelper
         ref TagList tagList,
         string? commandText,
         ref string activityName,
-        bool sanitizeQuery = true)
+        bool sanitizeQuery = true,
+        bool bracketsDelimitIdentifiersOnly = false)
     {
         var queryText = commandText ?? string.Empty;
         var querySummary = string.Empty;
 
         if (sanitizeQuery)
         {
-            var sqlStatementInfo = SqlProcessor.GetSanitizedSql(commandText);
+            var sqlStatementInfo = SqlProcessor.GetSanitizedSql(commandText, bracketsDelimitIdentifiersOnly: bracketsDelimitIdentifiersOnly);
             queryText = sqlStatementInfo.SanitizedSql;
             querySummary = sqlStatementInfo.DbQuerySummary;
         }

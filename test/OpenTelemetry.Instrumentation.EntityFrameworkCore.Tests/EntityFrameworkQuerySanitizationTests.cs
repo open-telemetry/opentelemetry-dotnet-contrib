@@ -150,6 +150,30 @@ public sealed class EntityFrameworkQuerySanitizationTests : IDisposable
         Assert.Equal(expected, queryText);
     }
 
+    [Theory]
+    [InlineData("SELECT Id, Name AS ['Tis the season] FROM Accounts WHERE ApiKey = 'sk_test_hunter-two'", "SELECT Id, Name AS ['Tis the season] FROM Accounts WHERE ApiKey = ?")]
+    [InlineData("UPDATE Accounts SET Verified = 1 WHERE[Mother's Maiden Name] = 'hunter-two'", "UPDATE Accounts SET Verified = ? WHERE[Mother's Maiden Name] = ?")]
+    public void SqliteProvider_BracketedIdentifierWithApostrophe_IsNotParsedAsSql(string commandText, string expected)
+    {
+        var exported = new List<Activity>();
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .AddInMemoryExporter(exported)
+                   .AddEntityFrameworkCoreInstrumentation()
+                   .Build())
+        {
+            using var context = new AccountsContext(OfflineOptions(b => b.UseSqlite("Data Source=:memory:")));
+
+            context.Database.ExecuteSqlRaw(commandText);
+        }
+
+        var activity = Assert.Single(exported);
+        var queryText = this.GetQueryText(activity);
+
+        Assert.DoesNotContain("hunter-two", queryText, StringComparison.Ordinal);
+        Assert.Equal(expected, queryText);
+    }
+
     [Fact]
     public void SqliteProvider_SlashAsteriskInBlockComment_DoesNotAffectLaterLiterals()
     {
