@@ -51,8 +51,8 @@
   ([#5869](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5869))
 
 * Fixed provider-specific query sanitization for Cloud Spanner (GoogleSQL)
-  literals and comments, SQL Server and SQLite bracketed identifiers, and
-  databases whose block comments do not nest.
+  literals, comments and escaped backtick identifiers, SQL Server and SQLite
+  bracketed identifiers, and databases whose block comments do not nest.
   ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
 
 * Fixed redaction of login and user names in additional `CREATE`, `ALTER` and

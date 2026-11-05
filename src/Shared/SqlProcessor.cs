@@ -232,6 +232,11 @@ internal static partial class SqlProcessor
         NoBareWordPasswords = 512,
 
         /// <summary>
+        /// A backslash escapes a backtick within a quoted identifier.
+        /// </summary>
+        BackslashEscapedIdentifiers = 1024,
+
+        /// <summary>
         /// MySQL and MariaDB.
         /// </summary>
         MySql = BackslashEscapes | DoubleQuotedStrings | HashComments | NonNestedComments | NoStringPrefixes | NoBareWordPasswords,
@@ -239,7 +244,7 @@ internal static partial class SqlProcessor
         /// <summary>
         /// GoogleSQL (Spanner).
         /// </summary>
-        GoogleSql = TripleQuotedLiterals | MySql,
+        GoogleSql = TripleQuotedLiterals | BackslashEscapedIdentifiers | MySql,
 
         /// <summary>
         /// SQL Server.
@@ -278,7 +283,8 @@ internal static partial class SqlProcessor
               NoBracketEscape |
               NoDollarQuotedStrings |
               NoStringPrefixes |
-              NoBareWordPasswords,
+              NoBareWordPasswords |
+              BackslashEscapedIdentifiers,
     }
 
     private enum SqlKeyword
@@ -1196,12 +1202,12 @@ internal static partial class SqlProcessor
     private static int FindQuotedIdentifierEnd(ReadOnlySpan<char> sql, int start, ref ParseState state) => sql[start] switch
     {
         OpenSquareBracketChar when !state.UseTripleQuotedLiterals => FindBracketedIdentifierEnd(sql, start, ref state),
-        BacktickChar => FindDelimitedIdentifierEnd(sql, start, BacktickChar, ref state.NoTerminatingBacktickQuotedIdentifierAhead),
-        DoubleQuoteChar when !Has(state.Dialect, SqlDialect.DoubleQuotedStrings) => FindDelimitedIdentifierEnd(sql, start, DoubleQuoteChar, ref state.NoTerminatingDoubleQuotedIdentifierAhead),
+        BacktickChar => FindDelimitedIdentifierEnd(sql, start, BacktickChar, Has(state.Dialect, SqlDialect.BackslashEscapedIdentifiers), ref state.NoTerminatingBacktickQuotedIdentifierAhead),
+        DoubleQuoteChar when !Has(state.Dialect, SqlDialect.DoubleQuotedStrings) => FindDelimitedIdentifierEnd(sql, start, DoubleQuoteChar, false, ref state.NoTerminatingDoubleQuotedIdentifierAhead),
         _ => -1,
     };
 
-    private static int FindDelimitedIdentifierEnd(ReadOnlySpan<char> sql, int start, char delimiter, ref bool noTerminatingIdentifierAhead)
+    private static int FindDelimitedIdentifierEnd(ReadOnlySpan<char> sql, int start, char delimiter, bool backslashEscapes, ref bool noTerminatingIdentifierAhead)
     {
         if (noTerminatingIdentifierAhead)
         {
@@ -1218,6 +1224,14 @@ internal static partial class SqlProcessor
             }
 
             i += delimiterIndex;
+
+            // GoogleSQL identifiers use the same backslash escapes as string literals. MySQL
+            // identifiers only escape a backtick by doubling it, even when string escapes are enabled.
+            if (backslashEscapes && IsBackslashEscaped(sql, i, start))
+            {
+                i++;
+                continue;
+            }
 
             // A doubled delimiter ("" or ``) is an escaped delimiter within the identifier.
             if (i + 1 < sql.Length && sql[i + 1] == delimiter)

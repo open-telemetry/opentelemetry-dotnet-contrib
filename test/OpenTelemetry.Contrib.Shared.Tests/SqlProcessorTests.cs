@@ -394,6 +394,31 @@ public class SqlProcessorTests(ITestOutputHelper output)
         Assert.Equal(WithoutApostrophe(expected), control.SanitizedSql);
     }
 
+    [Theory]
+    [InlineData("SELECT `a\\`b` FROM t WHERE a = '`' AND b = 'secret-name'", "SELECT `a\\`b` FROM t WHERE a = ? AND b = ?")]
+    [InlineData("SELECT `a\\\\\\`b` FROM t WHERE a = '`' AND b = 'secret-name'", "SELECT `a\\\\\\`b` FROM t WHERE a = ? AND b = ?")]
+    [InlineData("SELECT `a\\`b\\`c` FROM t WHERE a = '`' AND b = 'secret-name'", "SELECT `a\\`b\\`c` FROM t WHERE a = ? AND b = ?")]
+    [InlineData("SELECT * FROM t WHERE a IN ('x', `a\\`)b`) AND b = '`' AND c = 'secret-name'", "SELECT * FROM t WHERE a IN (?) AND b = ? AND c = ?")]
+    [InlineData("SELECT `a\\\\` FROM t WHERE a = '`' AND b = 'secret-name'", "SELECT `a\\\\` FROM t WHERE a = ? AND b = ?")]
+    public void GetSanitizedSql_GoogleSqlEscapedIdentifiers_DoNotChangeLiteralBoundaries(string sql, string expected)
+    {
+        var result = GetSanitizedSql(sql, SqlDialect.GoogleSql);
+
+        Assert.Equal(expected, result.SanitizedSql);
+        Assert.DoesNotContain("secret-name", result.SanitizedSql, StringComparison.Ordinal);
+        Assert.DoesNotContain("secret-name", result.DbQuerySummary, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GetSanitizedSql_MySqlBackslashes_DoNotEscapeIdentifierDelimiters()
+    {
+        const string sql = "SELECT `a\\` FROM t WHERE a = 'secret-name'";
+
+        var result = GetSanitizedSql(sql, SqlDialect.MySql);
+
+        Assert.Equal("SELECT `a\\` FROM t WHERE a = ?", result.SanitizedSql);
+    }
+
     [Fact]
     public void GetSanitizedSql_QuoteInQuotedIdentifier_DoesNotChangeQuerySummary()
     {
