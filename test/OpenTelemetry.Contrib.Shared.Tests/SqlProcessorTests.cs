@@ -1463,6 +1463,8 @@ public class SqlProcessorTests(ITestOutputHelper output)
     [InlineData("CREATE USER U&\"d\\0061t\\+000061\" WITH PASSWORD 'secret-password'", "CREATE USER U&\"?\" WITH PASSWORD ?")]
     [InlineData("ALTER USER alice RENAME TO u&\"d!0061ta\" UESCAPE '!'", "ALTER USER ? RENAME TO u&\"?\" UESCAPE ?")]
     [InlineData("DROP USER U&\"d\\0061ta\", bob", "DROP USER U&\"?\", ?")]
+    [InlineData("DROP USER U&\"d!0061ta\" UESCAPE '!', bob", "DROP USER U&\"?\" UESCAPE ?, ?")]
+    [InlineData("DROP USER U&\"a\" UESCAPE '!', U&\"b\" UESCAPE '!', bob", "DROP USER U&\"?\" UESCAPE ?, U&\"?\" UESCAPE ?, ?")]
     public void GetSanitizedSql_PostgreSqlUnicodeAccountNames_AreRedactedAsWholeTokens(string sql, string expected)
     {
         var result = GetSanitizedSql(sql);

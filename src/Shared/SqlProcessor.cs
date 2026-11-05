@@ -558,6 +558,12 @@ internal static partial class SqlProcessor
                         literalWord = SqlWord.Password;
                         state.Pending = PendingToken.None;
                     }
+                    else if (state.PreviousWord == SqlWord.Uescape)
+                    {
+                        // The escape character of a name (e.g. the ! of U&"d!0061ta" UESCAPE '!') is part of it, so that
+                        // the comma after it still separates the name from the next one in DROP USER.
+                        literalWord = SqlWord.AccountName;
+                    }
 
                     if (state.TracksAccounts)
                     {

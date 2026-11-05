@@ -68,6 +68,7 @@ internal static partial class SqlProcessor
         Modify,
         Default,
         Role,
+        Uescape,
 
         // Not words, but what a token was: the CREATE OR REPLACE, the name of a login or user which was redacted, a
         // password which was redacted, and the semicolon which ends a statement (as does the start of the text).
@@ -168,6 +169,7 @@ internal static partial class SqlProcessor
             (7, 'd') => Match(word, "default", SqlWord.Default),
             (7, 'e') => Match(word, "execute", SqlWord.Execute),
             (7, 'r') => Match(word, "replace", SqlWord.Replace, "restore", SqlWord.Restore),
+            (7, 'u') => Match(word, "uescape", SqlWord.Uescape),
             (8, 'p') => Match(word, "password", SqlWord.PasswordKeyword),
             (8, 'r') => Match(word, "restrict", SqlWord.Restrict),
             (8, 't') => Match(word, "truncate", SqlWord.Truncate),
