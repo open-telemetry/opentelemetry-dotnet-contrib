@@ -103,6 +103,22 @@ public sealed class AzureVmMetadataRequestTests
     }
 
     [Fact]
+    public async Task ImdsRedirectIsNotFollowed()
+    {
+        using var endpoint = new FakeImdsEndpoint(FakeImdsEndpoint.ResponseMode.Redirect);
+        using var scope = RouteProductionRequestorTo(endpoint);
+
+        var build = BuildResourceOnDedicatedThread();
+
+        Assert.True(await CompletesWithinAsync(build, GenerousWait), "Build() did not complete for a redirected IMDS response.");
+
+        var resource = await build;
+
+        Assert.Equal(1, endpoint.RequestCount);
+        Assert.Empty(resource.Attributes);
+    }
+
+    [Fact]
     public void FailedDetectionIsRememberedBriefly()
     {
         var calls = DetectAfterTransientFailure(failedDetectionCacheDuration: TimeSpan.FromHours(1), out var second);
@@ -217,6 +233,7 @@ public sealed class AzureVmMetadataRequestTests
         private readonly TaskCompletionSource<bool> headersSent = new(TaskCreationOptions.RunContinuationsAsynchronously);
         private readonly List<TcpClient> clients = [];
         private readonly Thread acceptThread;
+        private int requestCount;
 
         public FakeImdsEndpoint(ResponseMode mode)
         {
@@ -237,6 +254,9 @@ public sealed class AzureVmMetadataRequestTests
 
             /// <summary>Send the status line, headers and the first body byte, then stall.</summary>
             HeadersThenStall,
+
+            /// <summary>Answer the first request with a redirect and any later request with a valid IMDS response.</summary>
+            Redirect,
         }
 
         public int Port { get; }
@@ -246,6 +266,8 @@ public sealed class AzureVmMetadataRequestTests
         public Task HeadersSent => this.headersSent.Task;
 
         public string? RequestHead { get; private set; }
+
+        public int RequestCount => Volatile.Read(ref this.requestCount);
 
         public void Release() => this.release.Set();
 
@@ -336,6 +358,7 @@ public sealed class AzureVmMetadataRequestTests
             var stream = client.GetStream();
 
             this.RequestHead = ReadRequestHead(stream);
+            var requestNumber = Interlocked.Increment(ref this.requestCount);
             this.requestReceived.TrySetResult(true);
 
             switch (this.mode)
@@ -349,6 +372,19 @@ public sealed class AzureVmMetadataRequestTests
                         "\r\n" +
                         MetadataJson;
                     Write(stream, completeResponse);
+                    break;
+
+                case ResponseMode.Redirect:
+                    // The test routes requests through this endpoint as a proxy, so a followed redirect comes back here.
+                    var redirectResponse = requestNumber == 1
+                        ? $"HTTP/1.1 302 Found\r\nLocation: http://127.0.0.1:{this.Port}/redirected\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
+                        : "HTTP/1.1 200 OK\r\n" +
+                          "Content-Type: application/json; charset=utf-8\r\n" +
+                          $"Content-Length: {Encoding.UTF8.GetByteCount(MetadataJson)}\r\n" +
+                          "Connection: close\r\n" +
+                          "\r\n" +
+                          MetadataJson;
+                    Write(stream, redirectResponse);
                     break;
 
                 case ResponseMode.StallBeforeHeaders:

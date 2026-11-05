@@ -6,6 +6,12 @@
   has more than one tag with the same key.
   ([#5824](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5824))
 
+* The sampling endpoint client no longer follows HTTP redirects or retains
+  cookies. A redirect response is now treated as a failed poll, so deployments
+  that rely on a redirect in front of the sampling endpoint must configure the
+  final URL via `SetEndpoint`.
+  ([#5856](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5856))
+
 ## 0.1.0-alpha.17
 
 Released 2026-Oct-21
