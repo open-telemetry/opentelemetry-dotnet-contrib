@@ -40,8 +40,7 @@ internal static class EntityFrameworkQueryTextProcessor
                 activity,
                 commandText,
                 emitOldAttributes,
-                emitNewAttributes,
-                sanitizeQuery: false);
+                emitNewAttributes);
         }
     }
 
@@ -52,11 +51,7 @@ internal static class EntityFrameworkQueryTextProcessor
             return DbQueryTextSanitizationResult.NotSanitized;
         }
 
-        var useBackslashEscapes = EntityFrameworkProviderInfo.IsBackslashEscapeProvider(context.ProviderName);
-        var useTripleQuotedLiterals = EntityFrameworkProviderInfo.IsTripleQuotedLiteralProvider(context.ProviderName);
-        var allowNestedComments = EntityFrameworkProviderInfo.IsNestedCommentProvider(context.ProviderName);
-        var bracketsDelimitIdentifiersOnly = EntityFrameworkProviderInfo.IsBracketedIdentifierProvider(context.ProviderName);
-        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(context.QueryText, useBackslashEscapes, useTripleQuotedLiterals, allowNestedComments, bracketsDelimitIdentifiersOnly);
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(context.QueryText, EntityFrameworkProviderInfo.GetSqlDialect(context.ProviderName));
 
         return DbQueryTextSanitizationResult.Sanitized(sqlStatementInfo.SanitizedSql, sqlStatementInfo.DbQuerySummary);
     }

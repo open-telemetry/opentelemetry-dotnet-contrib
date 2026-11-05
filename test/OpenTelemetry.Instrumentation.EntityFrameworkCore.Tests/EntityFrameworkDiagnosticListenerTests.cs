@@ -182,6 +182,30 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         return testCases;
     }
 
+    public static TheoryData<string, int> GetSqlDialectTestCases()
+    {
+        var testCases = new TheoryData<string, int>();
+
+        foreach (var testCase in DbSystemTestCases())
+        {
+            var (name, _, dbSystemName) = testCase.Data;
+
+            var dialect = dbSystemName switch
+            {
+                "mysql" => SqlProcessor.SqlDialect.MySql,
+                "gcp.spanner" => SqlProcessor.SqlDialect.GoogleSql,
+                "microsoft.sql_server" => SqlProcessor.SqlDialect.SqlServer,
+                "sqlite" => SqlProcessor.SqlDialect.Sqlite,
+                "oracle.db" or "firebirdsql" or "teradata" => SqlProcessor.SqlDialect.NonNestedComments,
+                _ => SqlProcessor.SqlDialect.Default,
+            };
+
+            testCases.Add(name, (int)dialect);
+        }
+
+        return testCases;
+    }
+
     public static TheoryData<string, bool> IsSqlLikeProviderTestCases()
     {
         // Get all the possible names and assume they are false
@@ -235,123 +259,6 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         return testCases;
     }
 
-    public static TheoryData<string, bool> IsBackslashEscapeProviderTestCases()
-    {
-        var values = DbSystemTestCases().ToDictionary((k) => k.Data.Item1, (v) => false);
-
-        string[] backslashEscapeProviders =
-        [
-            "Devart.Data.MySql.Entity.EFCore",
-            "Devart.Data.MySql.MySqlCommand",
-            "MySql.Data.EntityFrameworkCore",
-            "MySql.Data.MySqlClient.MySqlCommand",
-            "MySql.EntityFrameworkCore",
-            "Pomelo.EntityFrameworkCore.MySql",
-            "Google.Cloud.EntityFrameworkCore.Spanner",
-            "Google.Cloud.Spanner.Data.SpannerCommand",
-        ];
-
-        foreach (var name in backslashEscapeProviders)
-        {
-            values[name] = true;
-        }
-
-        var testCases = new TheoryData<string, bool>();
-
-        foreach ((var name, var expected) in values)
-        {
-            testCases.Add(name, expected);
-        }
-
-        return testCases;
-    }
-
-    public static TheoryData<string, bool> IsNestedCommentProviderTestCases()
-    {
-        var values = DbSystemTestCases().ToDictionary((k) => k.Data.Item1, (v) => false);
-
-        string[] nestedCommentProviders =
-        [
-            "Devart.Data.PostgreSql.Entity.EFCore",
-            "Devart.Data.PostgreSql.PgSqlCommand",
-            "IBM.EntityFrameworkCore",
-            "IBM.EntityFrameworkCore-lnx",
-            "IBM.EntityFrameworkCore-osx",
-            "Microsoft.EntityFrameworkCore.SqlServer",
-            "Microsoft.Data.SqlClient.SqlCommand",
-            "Npgsql.EntityFrameworkCore.PostgreSQL",
-            "Npgsql.NpgsqlCommand",
-        ];
-
-        foreach (var name in nestedCommentProviders)
-        {
-            Assert.True(values.ContainsKey(name), $"'{name}' is not a known provider name.");
-            values[name] = true;
-        }
-
-        var testCases = new TheoryData<string, bool>();
-
-        foreach ((var name, var expected) in values)
-        {
-            testCases.Add(name, expected);
-        }
-
-        return testCases;
-    }
-
-    public static TheoryData<string, bool> IsBracketedIdentifierProviderTestCases()
-    {
-        var values = DbSystemTestCases().ToDictionary((k) => k.Data.Item1, (v) => false);
-
-        string[] bracketedIdentifierProviders =
-        [
-            "Microsoft.Data.SqlClient.SqlCommand",
-            "Microsoft.EntityFrameworkCore.SqlServer",
-            "Devart.Data.SQLite.Entity.EFCore",
-            "Microsoft.Data.Sqlite.SqliteCommand",
-            "Microsoft.EntityFrameworkCore.Sqlite",
-        ];
-
-        foreach (var name in bracketedIdentifierProviders)
-        {
-            values[name] = true;
-        }
-
-        var testCases = new TheoryData<string, bool>();
-
-        foreach ((var name, var expected) in values)
-        {
-            testCases.Add(name, expected);
-        }
-
-        return testCases;
-    }
-
-    public static TheoryData<string, bool> IsTripleQuotedLiteralProviderTestCases()
-    {
-        var values = DbSystemTestCases().ToDictionary((k) => k.Data.Item1, (v) => false);
-
-        string[] tripleQuotedLiteralProviders =
-        [
-            "Google.Cloud.EntityFrameworkCore.Spanner",
-            "Google.Cloud.Spanner.Data.SpannerCommand",
-        ];
-
-        foreach (var name in tripleQuotedLiteralProviders)
-        {
-            values[name] = true;
-        }
-
-        var testCases = new TheoryData<string, bool>();
-
-        foreach ((var name, var expected) in values)
-        {
-            testCases.Add(name, expected);
-        }
-
-        return testCases;
-    }
-
     [Theory]
     [MemberData(nameof(DbSystemTestCases))]
     public void ShouldReturnCorrectAttributeValuesProviderOrCommandName(string name, string expectedDbSystem, string expectedDbSystemName)
@@ -363,46 +270,19 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     }
 
     [Theory]
+    [MemberData(nameof(GetSqlDialectTestCases))]
+    public void ShouldReturnCorrectSqlDialectForProviderOrCommandName(string name, int expected)
+    {
+        var actual = EntityFrameworkProviderInfo.GetSqlDialect(name);
+
+        Assert.Equal((SqlProcessor.SqlDialect)expected, actual);
+    }
+
+    [Theory]
     [MemberData(nameof(IsSqlLikeProviderTestCases))]
     public void ShouldReturnCorrectValueForSqlLikeProviderOrCommandName(string name, bool expected)
     {
         var actual = EntityFrameworkProviderInfo.IsSqlLikeProvider(name);
-
-        Assert.Equal(expected, actual);
-    }
-
-    [Theory]
-    [MemberData(nameof(IsBackslashEscapeProviderTestCases))]
-    public void ShouldReturnCorrectValueForBackslashEscapeProviderOrCommandName(string name, bool expected)
-    {
-        var actual = EntityFrameworkProviderInfo.IsBackslashEscapeProvider(name);
-
-        Assert.Equal(expected, actual);
-    }
-
-    [Theory]
-    [MemberData(nameof(IsNestedCommentProviderTestCases))]
-    public void ShouldReturnCorrectValueForNestedCommentProviderOrCommandName(string name, bool expected)
-    {
-        var actual = EntityFrameworkProviderInfo.IsNestedCommentProvider(name);
-
-        Assert.Equal(expected, actual);
-    }
-
-    [Theory]
-    [MemberData(nameof(IsBracketedIdentifierProviderTestCases))]
-    public void ShouldReturnCorrectValueForBracketedIdentifierProviderOrCommandName(string name, bool expected)
-    {
-        var actual = EntityFrameworkProviderInfo.IsBracketedIdentifierProvider(name);
-
-        Assert.Equal(expected, actual);
-    }
-
-    [Theory]
-    [MemberData(nameof(IsTripleQuotedLiteralProviderTestCases))]
-    public void ShouldReturnCorrectValueForTripleQuotedLiteralProviderOrCommandName(string name, bool expected)
-    {
-        var actual = EntityFrameworkProviderInfo.IsTripleQuotedLiteralProvider(name);
 
         Assert.Equal(expected, actual);
     }

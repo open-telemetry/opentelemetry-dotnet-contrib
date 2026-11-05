@@ -88,62 +88,26 @@ internal static class EntityFrameworkProviderInfo
     }
 
     /// <summary>
-    /// Returns whether the provider uses backslash escapes in SQL string literals by default.
+    /// Gets the dialect of SQL which the provider uses, for the sanitization of query text.
     /// </summary>
     /// <param name="providerOrCommandName">The provider or command name.</param>
-    /// <returns><see langword="true"/> for MySQL and Spanner providers; otherwise, <see langword="false"/>.</returns>
-    public static bool IsBackslashEscapeProvider(string? providerOrCommandName)
+    /// <returns>The dialect of the provider.</returns>
+    public static SqlProcessor.SqlDialect GetSqlDialect(string? providerOrCommandName)
     {
-        // MySQL and MariaDB (which use the MySQL providers) treat a backslash as a
-        // string-literal escape character unless the NO_BACKSLASH_ESCAPES SQL mode is enabled.
-        // GoogleSQL (Spanner) does too, and like MySQL treats a double-quoted value as a
-        // string literal and # as the start of a comment.
         (_, var dbSystemName) = GetDbSystemNames(providerOrCommandName);
-        return dbSystemName is DbSystemNames.Mysql or DbSystemNames.GcpSpanner;
-    }
 
-    /// <summary>
-    /// Returns whether the provider supports triple-quoted SQL string literals.
-    /// </summary>
-    /// <param name="providerOrCommandName">The provider or command name.</param>
-    /// <returns><see langword="true"/> for Spanner providers; otherwise, <see langword="false"/>.</returns>
-    public static bool IsTripleQuotedLiteralProvider(string? providerOrCommandName)
-    {
-        // GoogleSQL (Spanner) has triple-quoted string literals ('''...''' and """..."""), in which
-        // a quote does not have to be escaped. In the other dialects ''' is a quote followed by an
-        // escaped quote, so this must not be applied to them.
-        (_, var dbSystemName) = GetDbSystemNames(providerOrCommandName);
-        return dbSystemName == DbSystemNames.GcpSpanner;
-    }
+        return dbSystemName switch
+        {
+            DbSystemNames.Mysql => SqlProcessor.SqlDialect.MySql,
+            DbSystemNames.GcpSpanner => SqlProcessor.SqlDialect.GoogleSql,
+            DbSystemNames.MicrosoftSqlServer => SqlProcessor.SqlDialect.SqlServer,
+            DbSystemNames.Sqlite => SqlProcessor.SqlDialect.Sqlite,
 
-    /// <summary>
-    /// Returns whether the provider only uses square brackets to delimit identifiers.
-    /// </summary>
-    /// <param name="providerOrCommandName">The provider or command name.</param>
-    /// <returns><see langword="true"/> for SQL Server and SQLite providers; otherwise, <see langword="false"/>.</returns>
-    public static bool IsBracketedIdentifierProvider(string? providerOrCommandName)
-    {
-        // In these databases [...] always delimits an identifier, which can have any character in it (e.g. [Mother's Name]).
-        // In other dialects it can be a list of values (e.g. ['a', 'b']) or the subscript of an array (e.g. items[1]).
-        (_, var dbSystemName) = GetDbSystemNames(providerOrCommandName);
-        return dbSystemName is
-            DbSystemNames.MicrosoftSqlServer or
-            DbSystemNames.Sqlite;
-    }
-
-    /// <summary>
-    /// Returns whether the provider allows block comments to be nested.
-    /// </summary>
-    /// <param name="providerOrCommandName">The provider or command name.</param>
-    /// <returns><see langword="true"/> for SQL Server, PostgreSQL and Db2 providers; otherwise, <see langword="false"/>.</returns>
-    public static bool IsNestedCommentProvider(string? providerOrCommandName)
-    {
-        // In these databases a comment such as /* /* */ text */ only ends at the second */. In the others
-        // (e.g. SQLite, Oracle, Firebird, Teradata and MySQL) a block comment ends at the first */.
-        (_, var dbSystemName) = GetDbSystemNames(providerOrCommandName);
-        return dbSystemName is
-            DbSystemNames.IbmDb2 or
-            DbSystemNames.MicrosoftSqlServer or
-            DbSystemNames.Postgresql;
+            // A block comment ends at the first */ in these databases, unlike PostgreSQL and Db2 in which they nest.
+            DbSystemNames.OracleDb or
+            DbSystemNames.Firebirdsql or
+            DbSystemNames.Teradata => SqlProcessor.SqlDialect.NonNestedComments,
+            _ => SqlProcessor.SqlDialect.Default,
+        };
     }
 }

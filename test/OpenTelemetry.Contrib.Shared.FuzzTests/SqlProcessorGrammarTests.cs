@@ -3,6 +3,7 @@
 
 using System.Diagnostics;
 using FsCheck.Xunit;
+using static OpenTelemetry.Instrumentation.SqlProcessor;
 
 namespace OpenTelemetry.Instrumentation;
 
@@ -27,7 +28,7 @@ public static class SqlProcessorGrammarTests
     {
         var (sql, secrets) = statement.Render(contentSeed);
 
-        var actual = SqlProcessor.GetSanitizedSql(sql, statement.UseBackslashEscapes);
+        var actual = SqlProcessor.GetSanitizedSql(sql, ToDialect(statement.UseBackslashEscapes));
 
         Assert.NotNull(actual.SanitizedSql);
         Assert.NotNull(actual.DbQuerySummary);
@@ -52,8 +53,8 @@ public static class SqlProcessorGrammarTests
         var (first, _) = statement.Render(firstContentSeed);
         var (second, _) = statement.Render(secondContentSeed);
 
-        var firstActual = SqlProcessor.GetSanitizedSql(first, statement.UseBackslashEscapes);
-        var secondActual = SqlProcessor.GetSanitizedSql(second, statement.UseBackslashEscapes);
+        var firstActual = SqlProcessor.GetSanitizedSql(first, ToDialect(statement.UseBackslashEscapes));
+        var secondActual = SqlProcessor.GetSanitizedSql(second, ToDialect(statement.UseBackslashEscapes));
 
         var description = $"{Environment.NewLine}First: {first}{Environment.NewLine}Second: {second}";
 
@@ -72,10 +73,10 @@ public static class SqlProcessorGrammarTests
         // The two dialects are cached apart, so asking for one must not change the result for the other.
         var (sql, _) = statement.Render(contentSeed);
 
-        var other = SqlProcessor.GetSanitizedSql(sql, !statement.UseBackslashEscapes);
-        var first = SqlProcessor.GetSanitizedSql(sql, statement.UseBackslashEscapes);
-        var again = SqlProcessor.GetSanitizedSql(sql, statement.UseBackslashEscapes);
-        var otherAgain = SqlProcessor.GetSanitizedSql(sql, !statement.UseBackslashEscapes);
+        var other = SqlProcessor.GetSanitizedSql(sql, ToDialect(!statement.UseBackslashEscapes));
+        var first = SqlProcessor.GetSanitizedSql(sql, ToDialect(statement.UseBackslashEscapes));
+        var again = SqlProcessor.GetSanitizedSql(sql, ToDialect(statement.UseBackslashEscapes));
+        var otherAgain = SqlProcessor.GetSanitizedSql(sql, ToDialect(!statement.UseBackslashEscapes));
 
         Assert.Equal(first, again);
         Assert.Equal(other, otherAgain);
@@ -86,7 +87,7 @@ public static class SqlProcessorGrammarTests
     {
         SqlStatementInfo actual = default;
 
-        var exception = Record.Exception(() => actual = SqlProcessor.GetSanitizedSql(soup.Text, useBackslashEscapes, bracketsDelimitIdentifiersOnly: bracketsDelimitIdentifiersOnly));
+        var exception = Record.Exception(() => actual = SqlProcessor.GetSanitizedSql(soup.Text, ToDialect(useBackslashEscapes, bracketsDelimitIdentifiersOnly)));
 
         Assert.True(exception is null, $"{exception?.GetType().Name}: {exception?.Message} for {soup}");
         Assert.NotNull(actual.SanitizedSql);
@@ -104,7 +105,7 @@ public static class SqlProcessorGrammarTests
         var sql = "SELECT * FROM t WHERE " + string.Concat(Enumerable.Repeat(piece, repeats));
 
         var stopwatch = Stopwatch.StartNew();
-        var actual = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes, bracketsDelimitIdentifiersOnly: bracketsDelimitIdentifiersOnly);
+        var actual = SqlProcessor.GetSanitizedSql(sql, ToDialect(useBackslashEscapes, bracketsDelimitIdentifiersOnly));
         stopwatch.Stop();
 
         Assert.NotNull(actual.SanitizedSql);
@@ -112,6 +113,10 @@ public static class SqlProcessorGrammarTests
             stopwatch.Elapsed < TimeSpan.FromSeconds(10),
             $"Took {stopwatch.Elapsed} for {repeats:N0} repeats of {piece}, which is {sql.Length:N0} characters.");
     }
+
+    private static SqlDialect ToDialect(bool useBackslashEscapes, bool bracketsDelimitIdentifiersOnly = false) =>
+        (useBackslashEscapes ? SqlDialect.MySql : SqlDialect.Default) |
+        (bracketsDelimitIdentifiersOnly ? SqlDialect.BracketsDelimitIdentifiersOnly : SqlDialect.Default);
 
     private static bool Contains(string text, string value) =>
 #if NET

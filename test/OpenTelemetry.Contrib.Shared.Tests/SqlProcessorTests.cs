@@ -3,6 +3,7 @@
 
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using static OpenTelemetry.Instrumentation.SqlProcessor;
 
 namespace OpenTelemetry.Instrumentation.Tests;
 
@@ -96,7 +97,7 @@ public class SqlProcessorTests(ITestOutputHelper output)
     [InlineData("SELECT * FROM Users WHERE Name IN (1, 2 # don't )\n, 'secret-name')")]
     public void GetSanitizedSql_InClauseLiteralOrCommentContainingCloseParenWithBackslashDialect_SanitizesAllLiterals(string sql)
     {
-        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes: true);
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, SqlDialect.MySql);
 
         this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
 
@@ -105,7 +106,7 @@ public class SqlProcessorTests(ITestOutputHelper output)
         Assert.Equal("SELECT Users", sqlStatementInfo.DbQuerySummary);
 
         // Control: the same values quoted with single quotes are also sanitized.
-        var control = SqlProcessor.GetSanitizedSql(sql.Replace('"', '\''), useBackslashEscapes: true);
+        var control = SqlProcessor.GetSanitizedSql(sql.Replace('"', '\''), SqlDialect.MySql);
         Assert.Equal("SELECT * FROM Users WHERE Name IN (?)", control.SanitizedSql);
     }
 
@@ -152,7 +153,7 @@ public class SqlProcessorTests(ITestOutputHelper output)
     {
         var sql = "SELECT * FROM Users WHERE Password = 'a\\'secret-name'";
 
-        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes: true);
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, SqlDialect.MySql);
 
         this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
 
@@ -165,7 +166,7 @@ public class SqlProcessorTests(ITestOutputHelper output)
     {
         var sql = "SELECT * FROM Users WHERE Name IN ('a\\'secret-name', 'b')";
 
-        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes: true);
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, SqlDialect.MySql);
 
         this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
 
@@ -180,7 +181,7 @@ public class SqlProcessorTests(ITestOutputHelper output)
     {
         var sql = "SELECT * FROM Users WHERE Password = 'a''secret-name'";
 
-        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes);
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, ToDialect(useBackslashEscapes));
 
         Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
         Assert.Equal("SELECT * FROM Users WHERE Password = ?", sqlStatementInfo.SanitizedSql);
@@ -191,7 +192,7 @@ public class SqlProcessorTests(ITestOutputHelper output)
     {
         var sql = "SELECT * FROM Users WHERE Password = 'a\\''secret-name'";
 
-        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes: false);
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, SqlDialect.Default);
 
         this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
 
@@ -264,7 +265,7 @@ public class SqlProcessorTests(ITestOutputHelper output)
     {
         var sql = "SELECT * FROM Users WHERE Name = \"secret-value\" AND Id = 1";
 
-        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes: true);
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, SqlDialect.MySql);
 
         this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
 
@@ -277,7 +278,7 @@ public class SqlProcessorTests(ITestOutputHelper output)
     {
         var sql = "SELECT * FROM Users WHERE Name = \"a\"\"secret-value\"";
 
-        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes: true);
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, SqlDialect.MySql);
 
         this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
 
@@ -290,7 +291,7 @@ public class SqlProcessorTests(ITestOutputHelper output)
     {
         var sql = "SELECT * FROM Users WHERE Name = \"a\\\"secret-value\"";
 
-        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes: true);
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, SqlDialect.MySql);
 
         this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
 
@@ -313,7 +314,7 @@ public class SqlProcessorTests(ITestOutputHelper output)
     [InlineData("SELECT a # don't\nFROM t WHERE k = 'secret-name'", "SELECT a \nFROM t WHERE k = ?")]
     public void GetSanitizedSql_TripleQuotedLiteralDialect_SanitizesLiteral(string sql, string expected)
     {
-        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes: true, useTripleQuotedLiterals: true);
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, SqlDialect.GoogleSql);
 
         this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
 
@@ -329,7 +330,7 @@ public class SqlProcessorTests(ITestOutputHelper output)
         // In the other dialects '''' is a literal containing a single quote, so the literal which follows is a separate one.
         var sql = "SELECT * FROM Users WHERE Nickname = '''' AND Password = 'secret-name'";
 
-        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes);
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, ToDialect(useBackslashEscapes));
 
         this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
 
@@ -342,7 +343,7 @@ public class SqlProcessorTests(ITestOutputHelper output)
     {
         var sql = "SELECT * FROM Users WHERE Name = \"secret-value";
 
-        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes: true);
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, SqlDialect.MySql);
 
         this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
 
@@ -380,7 +381,7 @@ public class SqlProcessorTests(ITestOutputHelper output)
         "SELECT [a].[Nom de l'enterprise] FROM [Accounts] AS [a] WHERE [a].[Token] = ? AND [a].[Nom de l'enterprise] = ?")]
     public void GetSanitizedSql_QuoteInQuotedIdentifier_SanitizesLiterals(string sql, bool useBackslashEscapes, string expected)
     {
-        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes);
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, ToDialect(useBackslashEscapes));
 
         this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
 
@@ -389,7 +390,7 @@ public class SqlProcessorTests(ITestOutputHelper output)
         Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
 
         // Control: the same statement without a quote in the identifier.
-        var control = SqlProcessor.GetSanitizedSql(WithoutApostrophe(sql), useBackslashEscapes);
+        var control = SqlProcessor.GetSanitizedSql(WithoutApostrophe(sql), ToDialect(useBackslashEscapes));
         Assert.Equal(WithoutApostrophe(expected), control.SanitizedSql);
     }
 
@@ -818,7 +819,7 @@ public class SqlProcessorTests(ITestOutputHelper output)
     [InlineData("SELECT * FROM users # don't cache\nWHERE api_key = 'secret-name'", true, "SELECT * FROM users \nWHERE api_key = ?")]
     public void GetSanitizedSql_DialectSpecificLiteralOrComment_SanitizesFollowingLiteral(string sql, bool useBackslashEscapes, string expected)
     {
-        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes);
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, ToDialect(useBackslashEscapes));
 
         this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
 
@@ -836,7 +837,7 @@ public class SqlProcessorTests(ITestOutputHelper output)
     {
         // '#' only starts a comment for MySQL/MariaDB, whose block comments do not nest, and a
         // backslash only escapes a quote in an escape string when the E is a separate token.
-        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes);
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, ToDialect(useBackslashEscapes));
 
         this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
 
@@ -1064,7 +1065,7 @@ public class SqlProcessorTests(ITestOutputHelper output)
         // A # starts a comment in MySQL and MariaDB, but is not part of a name in other dialects.
         var sql = "INSERT INTO [dbo]. # comment\n[Orders] VALUES (@p0)";
 
-        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes);
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, ToDialect(useBackslashEscapes));
 
         Assert.Equal(expectedSummary, sqlStatementInfo.DbQuerySummary);
     }
@@ -1121,9 +1122,9 @@ public class SqlProcessorTests(ITestOutputHelper output)
         var sql = $"SELECT {columns} FROM Users WHERE Name = \"secret-value\" AND Id = 1";
 
         var defaultDialect = SqlProcessor.GetSanitizedSql(sql);
-        var backslashDialect = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes: true);
+        var backslashDialect = SqlProcessor.GetSanitizedSql(sql, SqlDialect.MySql);
         var defaultDialectAgain = SqlProcessor.GetSanitizedSql(sql);
-        var backslashDialectAgain = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes: true);
+        var backslashDialectAgain = SqlProcessor.GetSanitizedSql(sql, SqlDialect.MySql);
 
         Assert.Equal($"SELECT {columns} FROM Users WHERE Name = \"secret-value\" AND Id = ?", defaultDialect.SanitizedSql);
         Assert.Equal($"SELECT {columns} FROM Users WHERE Name = ? AND Id = ?", backslashDialect.SanitizedSql);
@@ -1168,7 +1169,7 @@ public class SqlProcessorTests(ITestOutputHelper output)
     [InlineData("ALTER USER u IDENTIFIED BY 'new-pw' REPLACE 'old-pw'", "ALTER USER ? IDENTIFIED BY ? REPLACE ?")]
     public void GetSanitizedSql_PasswordWhichIsALiteralWithBackslashDialect_IsSanitized(string sql, string expected)
     {
-        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes: true);
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, SqlDialect.MySql);
 
         this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
 
@@ -1264,7 +1265,7 @@ public class SqlProcessorTests(ITestOutputHelper output)
     [InlineData("DROP USER alice, 'bob'; SELECT col FROM t", "DROP USER ?, ?; SELECT col FROM t")]
     public void GetSanitizedSql_LoginOrUserNamesWithBackslashDialect_AreSanitized(string sql, string expected)
     {
-        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes: true);
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, SqlDialect.MySql);
 
         this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
 
@@ -1277,7 +1278,7 @@ public class SqlProcessorTests(ITestOutputHelper output)
     [InlineData("CREATE USER u IDENTIFIED BY RANDOM#don't\nPASSWORD COMMENT 'secret-name'", "CREATE USER ? IDENTIFIED BY RANDOM\nPASSWORD COMMENT ?")]
     public void GetSanitizedSql_PasswordModifierWithBackslashDialect_IsNotChanged(string sql, string expected)
     {
-        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes: true);
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, SqlDialect.MySql);
 
         this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
 
@@ -1329,7 +1330,7 @@ public class SqlProcessorTests(ITestOutputHelper output)
     [InlineData("SELECT [2024] FROM t WHERE a = 'secret-name'", "SELECT [2024] FROM t WHERE a = ?")]
     public void GetSanitizedSql_BracketsDelimitIdentifiersOnly_BracketIsIdentifier(string sql, string expected)
     {
-        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, bracketsDelimitIdentifiersOnly: true);
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, SqlDialect.SqlServer);
 
         this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
 
@@ -1343,7 +1344,7 @@ public class SqlProcessorTests(ITestOutputHelper output)
         // SQL Server limits an identifier to 128 characters, but SQLite does not, so it is not known where this one ends.
         var sql = $"SELECT ['{new string('a', 200)}] FROM t WHERE a = 'secret-name'";
 
-        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, bracketsDelimitIdentifiersOnly: true);
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, SqlDialect.SqlServer);
 
         Assert.Equal("SELECT [?", sqlStatementInfo.SanitizedSql);
     }
@@ -1354,7 +1355,7 @@ public class SqlProcessorTests(ITestOutputHelper output)
         var name = $"['{new string('a', 130)}]] ) ']";
         var sql = $"SELECT x FROM t WHERE y IN ('v', {name}) AND z = 'secret-name'";
 
-        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, bracketsDelimitIdentifiersOnly: true);
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, SqlDialect.SqlServer);
 
         this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
 
@@ -1368,7 +1369,7 @@ public class SqlProcessorTests(ITestOutputHelper output)
         var name = $"[{new string('a', 200)}]";
         var sql = $"SELECT {name} FROM Accounts WHERE ApiKey = 'secret-name'";
 
-        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, bracketsDelimitIdentifiersOnly: true);
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, SqlDialect.SqlServer);
 
         Assert.Equal($"SELECT {name} FROM Accounts WHERE ApiKey = ?", sqlStatementInfo.SanitizedSql);
         Assert.Equal($"SELECT Accounts", sqlStatementInfo.DbQuerySummary);
@@ -1380,7 +1381,7 @@ public class SqlProcessorTests(ITestOutputHelper output)
         var name = $"['{new string('a', 100)}]";
         var sql = $"SELECT {name} FROM t WHERE a = 'secret-name'";
 
-        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, bracketsDelimitIdentifiersOnly: true);
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, SqlDialect.SqlServer);
 
         Assert.Equal($"SELECT {name} FROM t WHERE a = ?", sqlStatementInfo.SanitizedSql);
     }
@@ -1393,9 +1394,9 @@ public class SqlProcessorTests(ITestOutputHelper output)
         var columns = GetColumnList(extraColumns);
         var sql = $"SELECT {columns}, ['Tis the season] FROM t WHERE a = 'secret-name'";
 
-        var identifiersOnly = SqlProcessor.GetSanitizedSql(sql, bracketsDelimitIdentifiersOnly: true);
+        var identifiersOnly = SqlProcessor.GetSanitizedSql(sql, SqlDialect.SqlServer);
         var defaultDialect = SqlProcessor.GetSanitizedSql(sql);
-        var identifiersOnlyAgain = SqlProcessor.GetSanitizedSql(sql, bracketsDelimitIdentifiersOnly: true);
+        var identifiersOnlyAgain = SqlProcessor.GetSanitizedSql(sql, SqlDialect.SqlServer);
         var defaultDialectAgain = SqlProcessor.GetSanitizedSql(sql);
 
         Assert.Equal($"SELECT {columns}, ['Tis the season] FROM t WHERE a = ?", identifiersOnly.SanitizedSql);
@@ -1456,7 +1457,7 @@ public class SqlProcessorTests(ITestOutputHelper output)
     [InlineData("SELECT * FROM dbo. /* a /* b */ Notes WHERE TenantKey = 'secret-name'", "SELECT * FROM dbo.  Notes WHERE TenantKey = ?")]
     public void GetSanitizedSql_BlockCommentsWhichDoNotNest_EndAtFirstCommentEnd(string sql, string expected)
     {
-        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, allowNestedComments: false);
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, SqlDialect.NonNestedComments);
 
         this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
 
@@ -1470,7 +1471,7 @@ public class SqlProcessorTests(ITestOutputHelper output)
         var sql = "/* a /* b */ don't */ SELECT * FROM Notes WHERE TenantKey = 'secret-name'";
 
         var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
-        var explicitlyNested = SqlProcessor.GetSanitizedSql(sql, allowNestedComments: true);
+        var explicitlyNested = SqlProcessor.GetSanitizedSql(sql, SqlDialect.Default);
 
         Assert.Equal(" SELECT * FROM Notes WHERE TenantKey = ?", sqlStatementInfo.SanitizedSql);
         Assert.Equal(sqlStatementInfo.SanitizedSql, explicitlyNested.SanitizedSql);
@@ -1484,10 +1485,10 @@ public class SqlProcessorTests(ITestOutputHelper output)
         var columns = GetColumnList(extraColumns);
         var sql = $"/* a /* b */ SELECT {columns} FROM Users WHERE Name = '*/' AND Key = 'secret-name'";
 
-        var nested = SqlProcessor.GetSanitizedSql(sql, allowNestedComments: true);
-        var notNested = SqlProcessor.GetSanitizedSql(sql, allowNestedComments: false);
-        var nestedAgain = SqlProcessor.GetSanitizedSql(sql, allowNestedComments: true);
-        var notNestedAgain = SqlProcessor.GetSanitizedSql(sql, allowNestedComments: false);
+        var nested = SqlProcessor.GetSanitizedSql(sql, SqlDialect.Default);
+        var notNested = SqlProcessor.GetSanitizedSql(sql, SqlDialect.NonNestedComments);
+        var nestedAgain = SqlProcessor.GetSanitizedSql(sql, SqlDialect.Default);
+        var notNestedAgain = SqlProcessor.GetSanitizedSql(sql, SqlDialect.NonNestedComments);
 
         Assert.Equal($" SELECT {columns} FROM Users WHERE Name = ? AND Key = ?", notNested.SanitizedSql);
         Assert.NotEqual(notNested.SanitizedSql, nested.SanitizedSql);
@@ -1503,10 +1504,10 @@ public class SqlProcessorTests(ITestOutputHelper output)
         var columns = GetColumnList(extraColumns);
         var sql = $"SELECT {columns} FROM Users WHERE Name = '''it's secret-name''' AND Id = 1";
 
-        var backslashDialect = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes: true);
-        var tripleQuotedDialect = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes: true, useTripleQuotedLiterals: true);
-        var backslashDialectAgain = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes: true);
-        var tripleQuotedDialectAgain = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes: true, useTripleQuotedLiterals: true);
+        var backslashDialect = SqlProcessor.GetSanitizedSql(sql, SqlDialect.MySql);
+        var tripleQuotedDialect = SqlProcessor.GetSanitizedSql(sql, SqlDialect.GoogleSql);
+        var backslashDialectAgain = SqlProcessor.GetSanitizedSql(sql, SqlDialect.MySql);
+        var tripleQuotedDialectAgain = SqlProcessor.GetSanitizedSql(sql, SqlDialect.GoogleSql);
 
         Assert.Equal($"SELECT {columns} FROM Users WHERE Name = ?s secret-name?", backslashDialect.SanitizedSql);
         Assert.Equal($"SELECT {columns} FROM Users WHERE Name = ? AND Id = ?", tripleQuotedDialect.SanitizedSql);
@@ -1522,9 +1523,9 @@ public class SqlProcessorTests(ITestOutputHelper output)
         var sql = $"INSERT INTO Notes (Body) VALUES ('{new string('x', 16 * 1024)}')";
         var copy = new string(sql.ToCharArray());
 
-        var first = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes);
-        var second = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes);
-        var fromCopy = SqlProcessor.GetSanitizedSql(copy, useBackslashEscapes);
+        var first = SqlProcessor.GetSanitizedSql(sql, ToDialect(useBackslashEscapes));
+        var second = SqlProcessor.GetSanitizedSql(sql, ToDialect(useBackslashEscapes));
+        var fromCopy = SqlProcessor.GetSanitizedSql(copy, ToDialect(useBackslashEscapes));
 
         Assert.Equal("INSERT INTO Notes (Body) VALUES (?)", first.SanitizedSql);
         Assert.Equal("INSERT Notes", first.DbQuerySummary);
@@ -1554,7 +1555,7 @@ public class SqlProcessorTests(ITestOutputHelper output)
         static WeakReference<string> SanitizeLongStatement(bool useBackslashEscapes)
         {
             var sql = $"INSERT INTO Notes (Body) VALUES ('{new string('x', 16 * 1024)}')";
-            SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes);
+            SqlProcessor.GetSanitizedSql(sql, ToDialect(useBackslashEscapes));
             return new WeakReference<string>(sql);
         }
     }
@@ -1570,8 +1571,8 @@ public class SqlProcessorTests(ITestOutputHelper output)
 
         Assert.Equal(length, sql.Length);
 
-        var first = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes: true);
-        var fromCopy = SqlProcessor.GetSanitizedSql(copy, useBackslashEscapes: true);
+        var first = SqlProcessor.GetSanitizedSql(sql, SqlDialect.MySql);
+        var fromCopy = SqlProcessor.GetSanitizedSql(copy, SqlDialect.MySql);
 
         Assert.Equal("SELECT * FROM Orders WHERE Token = ? AND Note = ?", first.SanitizedSql);
         Assert.Equal(expectedCached, ReferenceEquals(first.SanitizedSql, fromCopy.SanitizedSql));
@@ -1649,4 +1650,6 @@ public class SqlProcessorTests(ITestOutputHelper output)
     /// </summary>
     private static string GetColumnList(int extraColumns) =>
         string.Join(", ", Enumerable.Range(0, extraColumns).Select(i => $"Column{i}").Prepend("Id"));
+
+    private static SqlDialect ToDialect(bool useBackslashEscapes) => useBackslashEscapes ? SqlDialect.MySql : SqlDialect.Default;
 }
