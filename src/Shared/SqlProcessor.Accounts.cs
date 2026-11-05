@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Runtime.CompilerServices;
+
 namespace OpenTelemetry.Instrumentation;
 
 // The sanitization of the names of logins and users, and of the passwords which are not literals, which is the part
@@ -294,6 +296,24 @@ internal static partial class SqlProcessor
     // It is a password after IDENTIFIED BY, and after REPLACE if it follows a password, unless it is a literal,
     // which is sanitized as one. The passwords of MySQL and MariaDB are always literals, and a word which follows IDENTIFIED BY
     // is a modifier (e.g. RANDOM PASSWORD).
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static PendingToken Observe(ReadOnlySpan<char> sql, int end, SqlWord word, ref ParseState state)
+    {
+        // Most words are not looked for, and only need to be remembered as the word before the next one.
+        if (!state.TracksAccounts)
+        {
+            return PendingToken.None;
+        }
+
+        if (word == SqlWord.Other)
+        {
+            PushWord(SqlWord.Other, ref state);
+            return PendingToken.None;
+        }
+
+        return ObserveWord(sql, end, word, ref state);
+    }
+
     private static PendingToken ObserveWord(ReadOnlySpan<char> sql, int end, SqlWord word, ref ParseState state)
     {
         var pendingName = state.NextIsAccountName;

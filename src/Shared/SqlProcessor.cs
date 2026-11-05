@@ -89,6 +89,10 @@ internal static partial class SqlProcessor
     private static readonly SearchValues<char> InClauseScanSearchValues = SearchValues.Create(InClauseScanChars);
 #endif
 
+#if NET9_0_OR_GREATER
+    private static readonly SearchValues<string> AccountWords = SearchValues.Create(["user", "login", "identified", "password"], StringComparison.OrdinalIgnoreCase);
+#endif
+
     // This is not an exhaustive list but covers the majority of common reserved SQL keywords that may follow a FROM clause.
     // This is used when determining if the previous token is a keyword in order to identify the end of a comma separated FROM clause.
     // NOTE: These are ordered so that more likely keywords appear first to shorten the comparison loop.
@@ -457,6 +461,19 @@ internal static partial class SqlProcessor
         return (currentChar != DotChar || indexInToken != 0) && IsUnescapedIdentifierChar(currentChar);
     }
 
+    // Whether the statement has a word which the names of logins and users, and the passwords which are words, follow
+    // (e.g. CREATE USER name IDENTIFIED BY password). Without any of them there is nothing to find, so the words
+    // around them are not looked at. The words can be part of longer ones (e.g. Users), which is not a problem.
+    private static bool MayHaveAccounts(ReadOnlySpan<char> sql) =>
+#if NET9_0_OR_GREATER
+        sql.ContainsAny(AccountWords);
+#else
+        sql.IndexOf("user".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0 ||
+        sql.IndexOf("login".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0 ||
+        sql.IndexOf("identified".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0 ||
+        sql.IndexOf("password".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0;
+#endif
+
     private static SqlStatementInfo SanitizeSql(string sql, SqlDialect dialect)
     {
         var sqlSpan = sql.AsSpan();
@@ -474,6 +491,8 @@ internal static partial class SqlProcessor
 
         // The start of the text is where a statement starts, as it is after a semicolon.
         state.PreviousWord = SqlWord.StatementEnd;
+
+        state.TracksAccounts = MayHaveAccounts(sqlSpan);
 
         // Precompute the summary buffer slice once and carry it via state to avoid repeated Span.Slice calls.
         state.SummaryBuffer = buffer.Slice(rentedBuffer.Length / 2);
@@ -521,7 +540,10 @@ internal static partial class SqlProcessor
                         state.Pending = PendingToken.None;
                     }
 
-                    PushWord(literalWord, ref state);
+                    if (state.TracksAccounts)
+                    {
+                        PushWord(literalWord, ref state);
+                    }
 
                     continue;
                 }
@@ -738,11 +760,7 @@ internal static partial class SqlProcessor
 
             // A word which goes on after its letters (e.g. if123 or from_date) is an identifier, not a keyword which is followed by
             // something else, which would split the name of a login or user and put what follows it in the summary.
-            if (start + asciiLetterLength < sql.Length && IsWordContinuation(sql[start + asciiLetterLength]))
-            {
-                keywordsToCheck = default;
-            }
-            else if (state.NextIsAccountName &&
+            if (state.TracksAccounts && state.NextIsAccountName &&
                      !IsConditionalClauseWord(ClassifyWord(sql.Slice(start, asciiLetterLength)), sql, start + asciiLetterLength, in state))
             {
                 // The name of a login or user is next, which is not a keyword (e.g. ALTER USER if IDENTIFIED BY password).
@@ -776,6 +794,13 @@ internal static partial class SqlProcessor
 
                 if (matchedKeyword)
                 {
+                    // A word which goes on after its letters (e.g. if123 or from_date) is an identifier, not a keyword which is followed by
+                    // something else, which would split the name of a login or user and put what follows it in the summary.
+                    if (start + keywordLength < sql.Length && IsWordContinuation(sql[start + keywordLength]))
+                    {
+                        break;
+                    }
+
                     sql.Slice(start, keywordLength).CopyTo(buffer.Slice(state.SanitizedPosition));
                     state.SanitizedPosition += keywordLength;
 
@@ -796,7 +821,7 @@ internal static partial class SqlProcessor
                     }
 
                     state.Pending = ChoosePending(
-                        ObserveWord(sql, start + keywordLength, ClassifyWord(sql.Slice(start, keywordLength)), ref state),
+                        Observe(sql, start + keywordLength, potentialKeywordInfo.Word, ref state),
                         SqlKeywordInfo.CaptureNextTokenInSummary(in state, potentialKeywordInfo.SqlKeyword),
                         in state);
 
@@ -833,7 +858,7 @@ internal static partial class SqlProcessor
                 i++;
             }
 
-            var word = i > start ? ClassifyWord(sql.Slice(start, i - start)) : SqlWord.Other;
+            var word = state.TracksAccounts && i > start ? ClassifyWord(sql.Slice(start, i - start)) : SqlWord.Other;
 
             // The whole name of a login or user is redacted, which can have characters which are not part of an
             // identifier elsewhere (e.g. acct$alice, or alice@host).
@@ -929,7 +954,7 @@ internal static partial class SqlProcessor
             }
 
             state.ParsePosition = i;
-            state.Pending = ChoosePending(ObserveWord(sql, i, redactsName ? SqlWord.AccountName : word, ref state), captureNextPartOfName, in state);
+            state.Pending = ChoosePending(Observe(sql, i, redactsName ? SqlWord.AccountName : word, ref state), captureNextPartOfName, in state);
             state.PreviousTokenStartPosition = start;
             state.PreviousTokenEndPosition = i;
         }
@@ -968,18 +993,21 @@ internal static partial class SqlProcessor
                 state.Pending = capturesNextName ? PendingToken.SummaryName : PendingToken.None;
             }
 
-            if (state.InLoginOrUserStatement)
+            if (state.TracksAccounts && state.InLoginOrUserStatement)
             {
                 ParseLoginOrUserStatementCharacter(currentChar, ref state);
             }
 
-            if (currentChar == SemicolonChar)
+            if (state.TracksAccounts && currentChar == SemicolonChar)
             {
                 state.Statement = StatementContext.None;
             }
 
             // Punctuation is between the words around it, which are then not next to each other (e.g. alter, user).
-            PushWord(currentChar == SemicolonChar ? SqlWord.StatementEnd : SqlWord.Other, ref state);
+            if (state.TracksAccounts)
+            {
+                PushWord(currentChar == SemicolonChar ? SqlWord.StatementEnd : SqlWord.Other, ref state);
+            }
 
             buffer[state.SanitizedPosition++] = currentChar;
             state.ParsePosition++;
@@ -2567,6 +2595,7 @@ internal static partial class SqlProcessor
         public SqlKeyword FirstSummaryKeyword; // 4 bytes (enum, underlying int)
         public SqlKeyword PreviousSummaryKeyword; // 4 bytes (enum, underlying int)
         public SqlWord PreviousWord; // 1 byte (enum, underlying byte)
+        public bool TracksAccounts;
         public SqlWord PreviousPreviousWord; // 1 byte (enum, underlying byte)
 
         // These track the current parse position in the input SQL and the current write position
@@ -2784,6 +2813,7 @@ internal static partial class SqlProcessor
         {
             this.KeywordText = keyword;
             this.SqlKeyword = sqlKeyword;
+            this.Word = ClassifyWord(keyword);
             this.captureInSummaryWhenPrevious = captureInSummaryWhenPrevious;
             this.FollowedByKeywords = [];
         }
@@ -2875,6 +2905,8 @@ internal static partial class SqlProcessor
         public string KeywordText { get; }
 
         public SqlKeyword SqlKeyword { get; }
+
+        public SqlWord Word { get; }
 
         public SqlKeywordInfo[] FollowedByKeywords { get; private set; }
 
