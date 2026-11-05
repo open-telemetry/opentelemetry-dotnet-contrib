@@ -53,7 +53,8 @@ internal static class EntityFrameworkQueryTextProcessor
         }
 
         var useBackslashEscapes = EntityFrameworkProviderInfo.IsBackslashEscapeProvider(context.ProviderName);
-        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(context.QueryText, useBackslashEscapes);
+        var useTripleQuotedLiterals = EntityFrameworkProviderInfo.IsTripleQuotedLiteralProvider(context.ProviderName);
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(context.QueryText, useBackslashEscapes, useTripleQuotedLiterals);
 
         return DbQueryTextSanitizationResult.Sanitized(sqlStatementInfo.SanitizedSql, sqlStatementInfo.DbQuerySummary);
     }

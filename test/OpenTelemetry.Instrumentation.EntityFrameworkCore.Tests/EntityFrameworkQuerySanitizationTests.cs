@@ -116,6 +116,41 @@ public sealed class EntityFrameworkQuerySanitizationTests : IDisposable
         Assert.DoesNotContain("@example.com", exported[1].DisplayName, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData("UPDATE Cases SET Note = '''The customer's recovery code is hunter-two''' WHERE CaseId = 4711", "UPDATE Cases SET Note = ? WHERE CaseId = ?")]
+    [InlineData("UPDATE Customers SET LastName = 'O\\'Brien', AccessCode = 'hunter-two' WHERE CustomerId = 7", "UPDATE Customers SET LastName = ?, AccessCode = ? WHERE CustomerId = ?")]
+    [InlineData("SELECT * FROM Customers WHERE Email = \"hunter-two@example.com\"", "SELECT * FROM Customers WHERE Email = ?")]
+    public void SpannerProvider_GoogleSqlStringLiterals_AreRedactedFromQueryText(string commandText, string expected)
+    {
+        var exported = new List<Activity>();
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .AddInMemoryExporter(exported)
+                   .AddEntityFrameworkCoreInstrumentation()
+                   .Build())
+        {
+            // The Spanner provider is not referenced, so the SQLite provider reports its name instead.
+            RenamedSqliteDatabaseProvider.NameOverride = "Google.Cloud.EntityFrameworkCore.Spanner";
+
+            using var context = new AccountsContext(OfflineOptions(b =>
+            {
+                b.UseSqlite("Data Source=:memory:");
+#pragma warning disable EF1001 // Internal EF Core API usage.
+                b.ReplaceService<IDatabaseProvider, DatabaseProvider<SqliteOptionsExtension>, RenamedSqliteDatabaseProvider>();
+#pragma warning restore EF1001 // Internal EF Core API usage.
+            }));
+
+            context.Database.ExecuteSqlRaw(commandText);
+        }
+
+        var activity = Assert.Single(exported);
+        var queryText = this.GetQueryText(activity);
+
+        Assert.Equal("spanner", activity.GetTagValue(SemanticConventions.AttributeDbSystem));
+        Assert.DoesNotContain("hunter-two", queryText, StringComparison.Ordinal);
+        Assert.Equal(expected, queryText);
+    }
+
     private static AccountsContext CreateSqliteContext(SqliteConnection connection, bool renameProvider = false)
     {
         var builder = new DbContextOptionsBuilder<AccountsContext>().UseSqlite(connection);

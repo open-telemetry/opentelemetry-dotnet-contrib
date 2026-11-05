@@ -50,6 +50,12 @@
   characters are no longer cached.
   ([#5869](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5869))
 
+* Fixed query sanitization for the Cloud Spanner provider so that GoogleSQL
+  triple-quoted (`'''...'''`), double-quoted and backslash-escaped string
+  literals, and `#` comments, are redacted from `db.statement` and
+  `db.query.text`.
+  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+
 ## 1.20.1-beta.1
 
 Released 2026-Oct-21

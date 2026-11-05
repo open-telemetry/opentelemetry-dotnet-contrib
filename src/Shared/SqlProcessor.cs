@@ -53,6 +53,7 @@ internal static class SqlProcessor
 
     private static readonly ConcurrentDictionary<string, SqlStatementInfo> Cache = new();
     private static readonly ConcurrentDictionary<string, SqlStatementInfo> BackslashEscapeCache = new();
+    private static readonly ConcurrentDictionary<string, SqlStatementInfo> TripleQuotedLiteralCache = new();
 
     private static readonly char[] WhitespaceChars = [SpaceChar, TabChar, CarriageReturnChar, NewLineChar];
 #if !NET
@@ -129,6 +130,7 @@ internal static class SqlProcessor
     // under high concurrency but this is acceptable for this scenario.
     private static int approxCacheCount;
     private static int approxBackslashEscapeCacheCount;
+    private static int approxTripleQuotedLiteralCacheCount;
 
     // The most recent statement sanitized on the current thread. Instrumentations commonly sanitize the
     // same command text instance more than once per command on the same thread (for example EF Core's
@@ -196,36 +198,45 @@ internal static class SqlProcessor
     /// </summary>
     /// <param name="sql">The SQL statement to sanitize.</param>
     /// <param name="useBackslashEscapes">
-    /// <see langword="true"/> if the source database is MySQL or MariaDB with their default SQL modes
+    /// <see langword="true"/> if the source database is MySQL or MariaDB with their default SQL modes, or GoogleSQL
     /// (<c>NO_BACKSLASH_ESCAPES</c> and <c>ANSI_QUOTES</c> disabled), in which case a backslash is
     /// treated as a string-literal escape character, a double-quoted (<c>"..."</c>) value is treated
     /// as a string literal rather than a quoted identifier, <c>#</c> starts a comment and block
     /// comments do not nest; otherwise <see langword="false"/>.
     /// </param>
+    /// <param name="useTripleQuotedLiterals">
+    /// <see langword="true"/> if the source database uses GoogleSQL (e.g. Spanner), in which case
+    /// <c>'''...'''</c> and <c>"""..."""</c> are also string literals, in which a quote does not have to
+    /// be escaped. GoogleSQL has the other rules described for <paramref name="useBackslashEscapes"/> too,
+    /// so this implies <paramref name="useBackslashEscapes"/>; otherwise <see langword="false"/>.
+    /// </param>
     /// <returns>The sanitized SQL and query summary.</returns>
-    public static SqlStatementInfo GetSanitizedSql(string? sql, bool useBackslashEscapes = false) =>
+    public static SqlStatementInfo GetSanitizedSql(string? sql, bool useBackslashEscapes = false, bool useTripleQuotedLiterals = false) =>
         sql == null
             ? default
-            : useBackslashEscapes
-                ? GetSanitizedSql(sql, BackslashEscapeCache, ref approxBackslashEscapeCacheCount, useBackslashEscapes: true)
-                : GetSanitizedSql(sql, Cache, ref approxCacheCount, useBackslashEscapes: false);
+            : useTripleQuotedLiterals
+                ? GetSanitizedSql(sql, TripleQuotedLiteralCache, ref approxTripleQuotedLiteralCacheCount, useBackslashEscapes: true, useTripleQuotedLiterals: true)
+                : useBackslashEscapes
+                    ? GetSanitizedSql(sql, BackslashEscapeCache, ref approxBackslashEscapeCacheCount, useBackslashEscapes: true, useTripleQuotedLiterals: false)
+                    : GetSanitizedSql(sql, Cache, ref approxCacheCount, useBackslashEscapes: false, useTripleQuotedLiterals: false);
 
     private static SqlStatementInfo GetSanitizedSql(
         string sql,
         ConcurrentDictionary<string, SqlStatementInfo> cache,
         ref int approxCount,
-        bool useBackslashEscapes)
+        bool useBackslashEscapes,
+        bool useTripleQuotedLiterals)
     {
         // Statements above the length limit are neither cached nor remembered for the thread,
         // so that the memory retained does not depend on the length of the statements executed.
         if (sql.Length > MaxCachedStatementLength)
         {
-            return SanitizeSql(sql, useBackslashEscapes);
+            return SanitizeSql(sql, useBackslashEscapes, useTripleQuotedLiterals);
         }
 
         if (sql.Length < LastStatementMinLength && approxCount < CacheCapacity)
         {
-            return GetOrAddCachedSql(sql, cache, ref approxCount, useBackslashEscapes);
+            return GetOrAddCachedSql(sql, cache, ref approxCount, useBackslashEscapes, useTripleQuotedLiterals);
         }
 
         // Strings are immutable, so the same instance sanitized
@@ -233,16 +244,18 @@ internal static class SqlProcessor
         var last = lastSanitizedStatement;
         if (last != null &&
             ReferenceEquals(sql, last.Sql) &&
-            useBackslashEscapes == last.UseBackslashEscapes)
+            useBackslashEscapes == last.UseBackslashEscapes &&
+            useTripleQuotedLiterals == last.UseTripleQuotedLiterals)
         {
             return last.StatementInfo;
         }
 
-        var sqlStatementInfo = GetOrAddCachedSql(sql, cache, ref approxCount, useBackslashEscapes);
+        var sqlStatementInfo = GetOrAddCachedSql(sql, cache, ref approxCount, useBackslashEscapes, useTripleQuotedLiterals);
 
         last ??= lastSanitizedStatement = new();
         last.Sql = sql;
         last.UseBackslashEscapes = useBackslashEscapes;
+        last.UseTripleQuotedLiterals = useTripleQuotedLiterals;
         last.StatementInfo = sqlStatementInfo;
 
         return sqlStatementInfo;
@@ -252,14 +265,15 @@ internal static class SqlProcessor
         string sql,
         ConcurrentDictionary<string, SqlStatementInfo> cache,
         ref int approxCount,
-        bool useBackslashEscapes)
+        bool useBackslashEscapes,
+        bool useTripleQuotedLiterals)
     {
         if (cache.TryGetValue(sql, out var sqlStatementInfo))
         {
             return sqlStatementInfo;
         }
 
-        sqlStatementInfo = SanitizeSql(sql, useBackslashEscapes);
+        sqlStatementInfo = SanitizeSql(sql, useBackslashEscapes, useTripleQuotedLiterals);
 
         // Fast-path capacity check using our own approximate count to avoid ConcurrentDictionary.Count cost.
         if (Volatile.Read(ref approxCount) >= CacheCapacity)
@@ -300,7 +314,7 @@ internal static class SqlProcessor
         return (currentChar != DotChar || indexInToken != 0) && IsUnescapedIdentifierChar(currentChar);
     }
 
-    private static SqlStatementInfo SanitizeSql(string sql, bool useBackslashEscapes)
+    private static SqlStatementInfo SanitizeSql(string sql, bool useBackslashEscapes, bool useTripleQuotedLiterals)
     {
         var sqlSpan = sql.AsSpan();
 
@@ -314,6 +328,7 @@ internal static class SqlProcessor
 
         ParseState state = default;
         state.UseBackslashEscapes = useBackslashEscapes;
+        state.UseTripleQuotedLiterals = useTripleQuotedLiterals;
 
         // Precompute the summary buffer slice once and carry it via state to avoid repeated Span.Slice calls.
         state.SummaryBuffer = buffer.Slice(rentedBuffer.Length / 2);
@@ -886,7 +901,8 @@ internal static class SqlProcessor
 
     /// <summary>
     /// Finds the end of the quoted identifier (<c>[...]</c>, <c>`...`</c>, or <c>"..."</c> unless the
-    /// dialect uses it for a string literal) which starts at <paramref name="start"/>.
+    /// dialect uses it for a string literal) which starts at <paramref name="start"/>. GoogleSQL has no
+    /// <c>[...]</c> identifiers, so there <c>[...]</c> is a list of values, which can contain <c>"..."</c> strings.
     /// </summary>
     /// <returns>
     /// The index of the closing delimiter, or -1 if there is no quoted identifier at <paramref name="start"/>,
@@ -894,7 +910,7 @@ internal static class SqlProcessor
     /// </returns>
     private static int FindQuotedIdentifierEnd(ReadOnlySpan<char> sql, int start, ref ParseState state) => sql[start] switch
     {
-        OpenSquareBracketChar => FindBracketedIdentifierEnd(sql, start, ref state),
+        OpenSquareBracketChar when !state.UseTripleQuotedLiterals => FindBracketedIdentifierEnd(sql, start, ref state),
         BacktickChar => FindDelimitedIdentifierEnd(sql, start, BacktickChar, ref state.NoTerminatingBacktickQuotedIdentifierAhead),
         DoubleQuoteChar when !state.UseBackslashEscapes => FindDelimitedIdentifierEnd(sql, start, DoubleQuoteChar, ref state.NoTerminatingDoubleQuotedIdentifierAhead),
         _ => -1,
@@ -1169,7 +1185,7 @@ internal static class SqlProcessor
                         break;
 
                     case SingleQuoteChar:
-                        end = FindStringLiteralEnd(sql, i, useBackslashEscapes, out _);
+                        end = FindStringLiteralEnd(sql, i, useBackslashEscapes, useTripleQuotedLiterals: false, out _);
                         if (end < 0)
                         {
                             // The string is not terminated, so nothing after it can be outside a string.
@@ -1656,7 +1672,7 @@ internal static class SqlProcessor
                    SanitizeQuotedLiteral(sql, buffer, ref state, SingleQuoteChar);
         }
 
-        // MySQL/MariaDB (the same dialects for which useBackslashEscapes is set) also treat a
+        // MySQL/MariaDB and GoogleSQL (the same dialects for which useBackslashEscapes is set) also treat a
         // double-quoted value as a string literal unless the ANSI_QUOTES sql_mode is enabled.
         // The other dialects supported here use '"' exclusively to delimit a quoted identifier
         // (e.g. "columnName"), so this must remain gated on the dialect flag: otherwise a quoted
@@ -1672,8 +1688,8 @@ internal static class SqlProcessor
     {
         var prefixLength = 0;
         var literalEnd = delimiter == SingleQuoteChar
-            ? FindStringLiteralEnd(sql, state.ParsePosition, state.UseBackslashEscapes, out prefixLength)
-            : FindQuotedLiteralEnd(sql, state.ParsePosition, delimiter, state.UseBackslashEscapes);
+            ? FindStringLiteralEnd(sql, state.ParsePosition, state.UseBackslashEscapes, state.UseTripleQuotedLiterals, out prefixLength)
+            : FindQuotedLiteralEnd(sql, state.ParsePosition, delimiter, state.UseBackslashEscapes, state.UseTripleQuotedLiterals);
 
         if (literalEnd < 0)
         {
@@ -1697,18 +1713,19 @@ internal static class SqlProcessor
     /// <param name="sql">The SQL statement.</param>
     /// <param name="quotePosition">The position of the opening quote.</param>
     /// <param name="useBackslashEscapes">Whether the dialect treats a backslash as an escape character.</param>
+    /// <param name="useTripleQuotedLiterals">Whether the dialect has triple-quoted string literals.</param>
     /// <param name="prefixLength">
     /// The number of characters which precede the opening quote and are part of the literal
     /// (e.g. the <c>N</c> of the Unicode literal <c>N'foo'</c>).
     /// </param>
     /// <returns>The index of the closing quote, or -1 if the literal is not terminated.</returns>
-    private static int FindStringLiteralEnd(ReadOnlySpan<char> sql, int quotePosition, bool useBackslashEscapes, out int prefixLength)
+    private static int FindStringLiteralEnd(ReadOnlySpan<char> sql, int quotePosition, bool useBackslashEscapes, bool useTripleQuotedLiterals, out int prefixLength)
     {
         prefixLength = 0;
 
         if (quotePosition == 0)
         {
-            return FindQuotedLiteralEnd(sql, quotePosition, SingleQuoteChar, useBackslashEscapes);
+            return FindQuotedLiteralEnd(sql, quotePosition, SingleQuoteChar, useBackslashEscapes, useTripleQuotedLiterals);
         }
 
         var previousChar = sql[quotePosition - 1];
@@ -1721,7 +1738,7 @@ internal static class SqlProcessor
             if (previousChar is 'E' or 'e' && IsSeparateToken(sql, quotePosition - 1))
             {
                 prefixLength = 1;
-                return FindQuotedLiteralEnd(sql, quotePosition, SingleQuoteChar, useBackslashEscapes: true);
+                return FindQuotedLiteralEnd(sql, quotePosition, SingleQuoteChar, useBackslashEscapes: true, useTripleQuotedLiterals: false);
             }
 
             // An Oracle alternative quoting literal (e.g. q'[it's]', or nq'[it's]' for a national
@@ -1752,7 +1769,7 @@ internal static class SqlProcessor
             prefixLength = 1;
         }
 
-        return FindQuotedLiteralEnd(sql, quotePosition, SingleQuoteChar, useBackslashEscapes);
+        return FindQuotedLiteralEnd(sql, quotePosition, SingleQuoteChar, useBackslashEscapes, useTripleQuotedLiterals);
 
         static bool IsSeparateToken(ReadOnlySpan<char> sql, int position)
         {
@@ -1796,8 +1813,21 @@ internal static class SqlProcessor
     /// Finds the end of the quoted literal whose opening delimiter is at <paramref name="quotePosition"/>.
     /// </summary>
     /// <returns>The index of the closing delimiter, or -1 if the literal is not terminated.</returns>
-    private static int FindQuotedLiteralEnd(ReadOnlySpan<char> sql, int quotePosition, char delimiter, bool useBackslashEscapes)
+    private static int FindQuotedLiteralEnd(ReadOnlySpan<char> sql, int quotePosition, char delimiter, bool useBackslashEscapes, bool useTripleQuotedLiterals)
     {
+        // GoogleSQL also has triple-quoted literals ('''...''' and """..."""), in which a quote does not
+        // have to be escaped (e.g. '''it's'''). Reading the opening quotes as a quote followed by an escaped
+        // quote would end the literal at the first quote inside it, and the rest of the value would be copied
+        // into the sanitized SQL verbatim. This is gated on the dialect because in the other dialects ''' is
+        // the start of a literal whose first character is an escaped quote.
+        if (useTripleQuotedLiterals &&
+            quotePosition + 2 < sql.Length &&
+            sql[quotePosition + 1] == delimiter &&
+            sql[quotePosition + 2] == delimiter)
+        {
+            return FindTripleQuotedLiteralEnd(sql, quotePosition, delimiter, useBackslashEscapes);
+        }
+
         var searchPos = quotePosition + 1;
         while (searchPos < sql.Length)
         {
@@ -1832,6 +1862,38 @@ internal static class SqlProcessor
 
             // Found terminating delimiter
             return searchPos;
+        }
+
+        return -1;
+    }
+
+    /// <summary>
+    /// Finds the end of the triple-quoted literal whose opening delimiters start at <paramref name="quotePosition"/>,
+    /// which is the next three delimiters in a row of which the first is not escaped.
+    /// </summary>
+    /// <returns>The index of the last closing delimiter, or -1 if the literal is not terminated.</returns>
+    private static int FindTripleQuotedLiteralEnd(ReadOnlySpan<char> sql, int quotePosition, char delimiter, bool useBackslashEscapes)
+    {
+        var searchPos = quotePosition + 3;
+        while (searchPos < sql.Length)
+        {
+            var quoteIndex = sql.Slice(searchPos).IndexOf(delimiter);
+            if (quoteIndex < 0)
+            {
+                break;
+            }
+
+            searchPos += quoteIndex;
+
+            if (searchPos + 2 < sql.Length &&
+                sql[searchPos + 1] == delimiter &&
+                sql[searchPos + 2] == delimiter &&
+                !(useBackslashEscapes && IsBackslashEscaped(sql, searchPos, quotePosition)))
+            {
+                return searchPos + 2;
+            }
+
+            searchPos += 1;
         }
 
         return -1;
@@ -2118,12 +2180,12 @@ internal static class SqlProcessor
                     return true;
 
                 case SingleQuoteChar:
-                    end = FindStringLiteralEnd(sql, i, state.UseBackslashEscapes, out _);
+                    end = FindStringLiteralEnd(sql, i, state.UseBackslashEscapes, state.UseTripleQuotedLiterals, out _);
                     i = end < 0 ? length : end + 1;
                     break;
 
                 case DoubleQuoteChar when state.UseBackslashEscapes:
-                    end = FindQuotedLiteralEnd(sql, i, DoubleQuoteChar, useBackslashEscapes: true);
+                    end = FindQuotedLiteralEnd(sql, i, DoubleQuoteChar, useBackslashEscapes: true, state.UseTripleQuotedLiterals);
                     i = end < 0 ? length : end + 1;
                     break;
 
@@ -2235,10 +2297,15 @@ internal static class SqlProcessor
 
         /// <summary>
         /// Whether the source dialect treats a backslash as a string-literal escape character
-        /// (MySQL/MariaDB). Controls whether <c>\'</c> is recognized as an escaped quote, and the
-        /// other dialect differences described by <see cref="GetSanitizedSql(string?, bool)"/>.
+        /// (MySQL/MariaDB and GoogleSQL). Controls whether <c>\'</c> is recognized as an escaped quote, and the
+        /// other dialect differences described by <see cref="GetSanitizedSql(string?, bool, bool)"/>.
         /// </summary>
         public bool UseBackslashEscapes; // 1 byte
+
+        /// <summary>
+        /// Whether the source dialect has triple-quoted string literals (GoogleSQL).
+        /// </summary>
+        public bool UseTripleQuotedLiterals; // 1 byte
 
         /// <summary>
         /// Used to avoid repeatedly scanning to the end of malformed SQL after finding an unterminated double-quoted identifier.
@@ -2268,6 +2335,7 @@ internal static class SqlProcessor
     {
         public string? Sql;
         public bool UseBackslashEscapes;
+        public bool UseTripleQuotedLiterals;
         public SqlStatementInfo StatementInfo;
     }
 

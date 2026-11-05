@@ -247,9 +247,36 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             "MySql.Data.MySqlClient.MySqlCommand",
             "MySql.EntityFrameworkCore",
             "Pomelo.EntityFrameworkCore.MySql",
+            "Google.Cloud.EntityFrameworkCore.Spanner",
+            "Google.Cloud.Spanner.Data.SpannerCommand",
         ];
 
         foreach (var name in backslashEscapeProviders)
+        {
+            values[name] = true;
+        }
+
+        var testCases = new TheoryData<string, bool>();
+
+        foreach ((var name, var expected) in values)
+        {
+            testCases.Add(name, expected);
+        }
+
+        return testCases;
+    }
+
+    public static TheoryData<string, bool> IsTripleQuotedLiteralProviderTestCases()
+    {
+        var values = DbSystemTestCases().ToDictionary((k) => k.Data.Item1, (v) => false);
+
+        string[] tripleQuotedLiteralProviders =
+        [
+            "Google.Cloud.EntityFrameworkCore.Spanner",
+            "Google.Cloud.Spanner.Data.SpannerCommand",
+        ];
+
+        foreach (var name in tripleQuotedLiteralProviders)
         {
             values[name] = true;
         }
@@ -288,6 +315,15 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     public void ShouldReturnCorrectValueForBackslashEscapeProviderOrCommandName(string name, bool expected)
     {
         var actual = EntityFrameworkProviderInfo.IsBackslashEscapeProvider(name);
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Theory]
+    [MemberData(nameof(IsTripleQuotedLiteralProviderTestCases))]
+    public void ShouldReturnCorrectValueForTripleQuotedLiteralProviderOrCommandName(string name, bool expected)
+    {
+        var actual = EntityFrameworkProviderInfo.IsTripleQuotedLiteralProvider(name);
 
         Assert.Equal(expected, actual);
     }

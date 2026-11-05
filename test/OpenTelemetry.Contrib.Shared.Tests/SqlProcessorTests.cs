@@ -298,6 +298,45 @@ public class SqlProcessorTests(ITestOutputHelper output)
         Assert.Equal("SELECT * FROM Users WHERE Name = ?", sqlStatementInfo.SanitizedSql);
     }
 
+    [Theory]
+    [InlineData("UPDATE Cases SET Note = '''The customer's code is secret-name''' WHERE CaseId = 4711", "UPDATE Cases SET Note = ? WHERE CaseId = ?")]
+    [InlineData("UPDATE Cases SET Note = '''He said 'my code is secret-name' today''' WHERE CaseId = 4711", "UPDATE Cases SET Note = ? WHERE CaseId = ?")]
+    [InlineData("UPDATE Cases SET Note = '''The customer's call''', Owner = 'secret-name' WHERE CaseId = 4711", "UPDATE Cases SET Note = ?, Owner = ? WHERE CaseId = ?")]
+    [InlineData("UPDATE Cases SET Note = \"\"\"{\"name\": \"secret-name\"}\"\"\" WHERE CaseId = 4711", "UPDATE Cases SET Note = ? WHERE CaseId = ?")]
+    [InlineData("UPDATE Cases SET Note = '''it\\'''s secret-name''' WHERE CaseId = 4711", "UPDATE Cases SET Note = ? WHERE CaseId = ?")]
+    [InlineData("UPDATE Cases SET Note = '''a\nsecret-name''' WHERE CaseId = 4711", "UPDATE Cases SET Note = ? WHERE CaseId = ?")]
+    [InlineData("UPDATE Cases SET Note = '''''' WHERE Note IN ('''it's)''', 'secret-name')", "UPDATE Cases SET Note = ? WHERE Note IN (?)")]
+    [InlineData("UPDATE Cases SET Note = '''it's secret-name WHERE CaseId = 4711", "UPDATE Cases SET Note = ?")]
+    [InlineData("UPDATE Customers SET LastName = 'O\\'Brien', AccessCode = 'secret-name' WHERE CustomerId = 7", "UPDATE Customers SET LastName = ?, AccessCode = ? WHERE CustomerId = ?")]
+    [InlineData("SELECT * FROM Customers WHERE Email = \"secret-name@example.com\"", "SELECT * FROM Customers WHERE Email = ?")]
+    [InlineData("SELECT * FROM Customers WHERE Name = \"secret-name\" AND Tag IN UNNEST([\"secret-tag\", \"x\"])", "SELECT * FROM Customers WHERE Name = ? AND Tag IN UNNEST([?, ?])")]
+    [InlineData("SELECT a # don't\nFROM t WHERE k = 'secret-name'", "SELECT a \nFROM t WHERE k = ?")]
+    public void GetSanitizedSql_TripleQuotedLiteralDialect_SanitizesLiteral(string sql, string expected)
+    {
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes: true, useTripleQuotedLiterals: true);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-", sqlStatementInfo.SanitizedSql);
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void GetSanitizedSql_TripleQuoteWithoutTripleQuotedLiteralDialect_IsEscapedQuote(bool useBackslashEscapes)
+    {
+        // In the other dialects '''' is a literal containing a single quote, so the literal which follows is a separate one.
+        var sql = "SELECT * FROM Users WHERE Nickname = '''' AND Password = 'secret-name'";
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.Equal("SELECT * FROM Users WHERE Nickname = ? AND Password = ?", sqlStatementInfo.SanitizedSql);
+    }
+
     [Fact]
     public void GetSanitizedSql_UnterminatedDoubleQuotedStringWithBackslashDialect_SanitizesLiteral()
     {
@@ -1090,6 +1129,25 @@ public class SqlProcessorTests(ITestOutputHelper output)
         Assert.Equal($"SELECT {columns} FROM Users WHERE Name = ? AND Id = ?", backslashDialect.SanitizedSql);
         Assert.Equal(defaultDialect.SanitizedSql, defaultDialectAgain.SanitizedSql);
         Assert.Equal(backslashDialect.SanitizedSql, backslashDialectAgain.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(20)]
+    public void GetSanitizedSql_SameInstanceWithTripleQuotedLiteralDialect_RespectsDialect(int extraColumns)
+    {
+        var columns = GetColumnList(extraColumns);
+        var sql = $"SELECT {columns} FROM Users WHERE Name = '''it's secret-name''' AND Id = 1";
+
+        var backslashDialect = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes: true);
+        var tripleQuotedDialect = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes: true, useTripleQuotedLiterals: true);
+        var backslashDialectAgain = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes: true);
+        var tripleQuotedDialectAgain = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes: true, useTripleQuotedLiterals: true);
+
+        Assert.Equal($"SELECT {columns} FROM Users WHERE Name = ?s secret-name?", backslashDialect.SanitizedSql);
+        Assert.Equal($"SELECT {columns} FROM Users WHERE Name = ? AND Id = ?", tripleQuotedDialect.SanitizedSql);
+        Assert.Equal(backslashDialect.SanitizedSql, backslashDialectAgain.SanitizedSql);
+        Assert.Equal(tripleQuotedDialect.SanitizedSql, tripleQuotedDialectAgain.SanitizedSql);
     }
 
     [Theory]

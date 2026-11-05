@@ -91,12 +91,28 @@ internal static class EntityFrameworkProviderInfo
     /// Returns whether the provider uses backslash escapes in SQL string literals by default.
     /// </summary>
     /// <param name="providerOrCommandName">The provider or command name.</param>
-    /// <returns><see langword="true"/> for MySQL providers; otherwise, <see langword="false"/>.</returns>
+    /// <returns><see langword="true"/> for MySQL and Spanner providers; otherwise, <see langword="false"/>.</returns>
     public static bool IsBackslashEscapeProvider(string? providerOrCommandName)
     {
         // MySQL and MariaDB (which use the MySQL providers) treat a backslash as a
         // string-literal escape character unless the NO_BACKSLASH_ESCAPES SQL mode is enabled.
+        // GoogleSQL (Spanner) does too, and like MySQL treats a double-quoted value as a
+        // string literal and # as the start of a comment.
         (_, var dbSystemName) = GetDbSystemNames(providerOrCommandName);
-        return dbSystemName == DbSystemNames.Mysql;
+        return dbSystemName is DbSystemNames.Mysql or DbSystemNames.GcpSpanner;
+    }
+
+    /// <summary>
+    /// Returns whether the provider supports triple-quoted SQL string literals.
+    /// </summary>
+    /// <param name="providerOrCommandName">The provider or command name.</param>
+    /// <returns><see langword="true"/> for Spanner providers; otherwise, <see langword="false"/>.</returns>
+    public static bool IsTripleQuotedLiteralProvider(string? providerOrCommandName)
+    {
+        // GoogleSQL (Spanner) has triple-quoted string literals ('''...''' and """..."""), in which
+        // a quote does not have to be escaped. In the other dialects ''' is a quote followed by an
+        // escaped quote, so this must not be applied to them.
+        (_, var dbSystemName) = GetDbSystemNames(providerOrCommandName);
+        return dbSystemName == DbSystemNames.GcpSpanner;
     }
 }
