@@ -72,7 +72,7 @@
   ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
 
 * Fixed query sanitization after bracketed identifiers containing apostrophes
-  and after dollar signs in identifiers.
+  and after dollar signs in identifiers, temporary table names and variables.
   ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
 
 * Fixed query sanitization of hexadecimal literals preceded by a unary plus.

@@ -74,8 +74,9 @@
   dollar-quoted literals with non-ASCII tags.
   ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
 
-* Fixed query sanitization so that Oracle conditional compilation directives
-  are not mistaken for dollar-quoted literals.
+* Fixed query sanitization so that dollar-prefixed identifiers and parameters
+  in MySQL, SQL Server and SQLite, and Oracle conditional compilation
+  directives, are not mistaken for dollar-quoted literals.
   ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
 
 * Fixed query sanitization of PostgreSQL binary/octal literals and digit

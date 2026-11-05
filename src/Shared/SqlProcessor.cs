@@ -239,7 +239,7 @@ internal static partial class SqlProcessor
         /// <summary>
         /// MySQL and MariaDB.
         /// </summary>
-        MySql = BackslashEscapes | DoubleQuotedStrings | HashComments | NonNestedComments | NoStringPrefixes | NoBareWordPasswords,
+        MySql = BackslashEscapes | DoubleQuotedStrings | HashComments | NonNestedComments | NoDollarQuotedStrings | NoStringPrefixes | NoBareWordPasswords,
 
         /// <summary>
         /// GoogleSQL (Spanner).
@@ -249,12 +249,12 @@ internal static partial class SqlProcessor
         /// <summary>
         /// SQL Server.
         /// </summary>
-        SqlServer = BracketsDelimitIdentifiersOnly,
+        SqlServer = BracketsDelimitIdentifiersOnly | NoDollarQuotedStrings,
 
         /// <summary>
         /// SQLite.
         /// </summary>
-        Sqlite = BracketsDelimitIdentifiersOnly | NonNestedComments | NoBracketEscape,
+        Sqlite = BracketsDelimitIdentifiersOnly | NonNestedComments | NoBracketEscape | NoDollarQuotedStrings,
 
         /// <summary>
         /// Oracle.

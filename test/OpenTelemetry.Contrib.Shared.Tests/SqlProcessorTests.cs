@@ -1663,6 +1663,26 @@ public class SqlProcessorTests(ITestOutputHelper output)
     }
 
     [Theory]
+    [InlineData((int)SqlDialect.MySql, "SELECT $$col FROM t WHERE a = '$$' AND b = 'secret-name'", "SELECT $$col FROM t WHERE a = ? AND b = ?")]
+    [InlineData((int)SqlDialect.MySql, "SELECT $tag$col FROM t WHERE a = '$tag$' AND b = 'secret-name'", "SELECT $tag$col FROM t WHERE a = ? AND b = ?")]
+    [InlineData((int)SqlDialect.MySql, "SELECT $\u00e9$col FROM t WHERE a = '$\u00e9$' AND b = 'secret-name'", "SELECT $\u00e9$col FROM t WHERE a = ? AND b = ?")]
+    [InlineData((int)SqlDialect.SqlServer, "SELECT @$tag$col FROM t WHERE a = '$tag$' AND b = 'secret-name'", "SELECT @$tag$col FROM t WHERE a = ? AND b = ?")]
+    [InlineData((int)SqlDialect.SqlServer, "SELECT * FROM #$tag$col WHERE a = '$tag$' AND b = 'secret-name'", "SELECT * FROM #$tag$col WHERE a = ? AND b = ?")]
+    [InlineData((int)SqlDialect.Sqlite, "SELECT $tag$col, '$tag$', 'secret-name'", "SELECT $tag$col, ?, ?")]
+    [InlineData((int)SqlDialect.Sqlite, "SELECT :$tag$col, '$tag$', 'secret-name'", "SELECT :$tag$col, ?, ?")]
+    [InlineData((int)SqlDialect.Sqlite, "SELECT @$tag$col, '$tag$', 'secret-name'", "SELECT @$tag$col, ?, ?")]
+    [InlineData((int)SqlDialect.MySql, "SELECT * FROM t WHERE a IN ('x', $tag$col) AND b = '$tag$' AND c = 'secret-name'", "SELECT * FROM t WHERE a IN (?) AND b = ? AND c = ?")]
+    [InlineData((int)SqlDialect.Default, "SELECT $tag$secret-name$tag$", "SELECT ?")]
+    public void GetSanitizedSql_DollarSigns_AreParsedAccordingToTheSourceDialect(int dialect, string sql, string expected)
+    {
+        var result = GetSanitizedSql(sql, (SqlDialect)dialect);
+
+        Assert.Equal(expected, result.SanitizedSql);
+        Assert.DoesNotContain("secret-name", result.SanitizedSql, StringComparison.Ordinal);
+        Assert.DoesNotContain("secret-name", result.DbQuerySummary, StringComparison.Ordinal);
+    }
+
+    [Theory]
     [InlineData("BEGIN $IF $$DEBUG $THEN dbms_output.put_line('secret-name'); $END END;", "BEGIN $IF $$DEBUG $THEN dbms_output.put_line(?); $END END;")]
     [InlineData("SELECT $$PLSQL_UNIT, 'secret-name' FROM dual", "SELECT $$PLSQL_UNIT, ? FROM dual")]
     [InlineData("SELECT $$a$$, 'secret-name' FROM dual", "SELECT $$a$$, ? FROM dual")]
