@@ -284,8 +284,8 @@ internal static class KustoProcessor
         // Names the query binds itself that can stand in for a table: let statements, function parameters and
         // 'as' aliases. A reference to one of these is not a table reference even when it sits in a table
         // position. Columns are deliberately not tracked, as they do not shadow tables in a table position.
-        // The innermost scope is last: the query itself, then each function body, then each statement ('as'
-        // aliases are only visible within the statement that declares them).
+        // The innermost scope is last: the query itself, then each function body. An 'as' alias stays visible
+        // to the rest of the enclosing query or function body, including later statements.
         private readonly List<HashSet<string>> scopes = [[]];
 
         public override void VisitPipeExpression(PipeExpression node)
@@ -323,19 +323,6 @@ internal static class KustoProcessor
         }
 
         public override void VisitFunctionParameter(FunctionParameter node) => this.Declare(node.NameAndType.Name);
-
-        public override void VisitExpressionStatement(ExpressionStatement node)
-        {
-            this.scopes.Add([]);
-            try
-            {
-                this.VisitChildren(node);
-            }
-            finally
-            {
-                this.scopes.RemoveAt(this.scopes.Count - 1);
-            }
-        }
 
         public override void VisitNameDeclaration(NameDeclaration node)
         {

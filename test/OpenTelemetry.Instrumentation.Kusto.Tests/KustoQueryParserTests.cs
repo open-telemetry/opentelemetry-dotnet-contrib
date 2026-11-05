@@ -445,8 +445,8 @@ public class KustoQueryParserTests
             "StormEvents | union withsource=Source OtherEvents"
         },
 
-        // Bindings are scoped: a let in a function body is not visible after it, an 'as' alias is only visible
-        // within its statement, and a qualified name never refers to a binding.
+        // Bindings are scoped: a let or 'as' alias in a function body is not visible after it, an 'as' alias in
+        // the query is visible to later statements, and a qualified name never refers to a binding.
         {
             "let f = () { let inner = Source; inner | take 1 }; f() | join (inner) on k",
             "Source | take | join inner",
@@ -454,8 +454,13 @@ public class KustoQueryParserTests
         },
         {
             "StormEvents | as z | count; z | count",
-            "StormEvents | as | count z | count",
+            "StormEvents | as | count | count",
             "StormEvents | as z | count; z | count"
+        },
+        {
+            "let f = () { StormEvents | as z | count }; f(); z | count",
+            "StormEvents | as | count z | count",
+            "let f = () { StormEvents | as z | count }; f(); z | count"
         },
         {
             "let x = 1; database('db').x | count",
