@@ -1899,6 +1899,23 @@ public class SqlProcessorTests(ITestOutputHelper output)
     }
 
     [Theory]
+    [InlineData("ALTER TABLE t ADD c int\nALTER USER type WITH NAME = bob", "ALTER TABLE t ADD c int\nALTER USER ? WITH NAME = ?")]
+    [InlineData("ALTER TABLE t ADD c int\nALTER USER type RENAME TO bob", "ALTER TABLE t ADD c int\nALTER USER ? RENAME TO ?")]
+    [InlineData("ALTER TABLE t ADD c int\nALTER USER type IDENTIFIED BY pw1", "ALTER TABLE t ADD c int\nALTER USER ? IDENTIFIED BY ?")]
+    [InlineData("ALTER TABLE t ADD c int\nALTER LOGIN set WITH PASSWORD = 'pw'", "ALTER TABLE t ADD c int\nALTER LOGIN ? WITH PASSWORD = ?")]
+    [InlineData("ALTER TABLE t ADD c int\nDROP USER type, bob", "ALTER TABLE t ADD c int\nDROP USER ?, ?")]
+    [InlineData("ALTER TABLE t ALTER user TYPE text", "ALTER TABLE t ALTER user TYPE text")]
+    [InlineData("ALTER TABLE t ALTER login SET DEFAULT 1", "ALTER TABLE t ALTER login SET DEFAULT ?")]
+    [InlineData("ALTER TABLE t DROP user CASCADE", "ALTER TABLE t DROP user CASCADE")]
+    [InlineData("ALTER TABLE t DROP user, ADD c int", "ALTER TABLE t DROP user, ADD c int")]
+    public void GetSanitizedSql_AccountStatementWhichFollowsAlterTable_IsSanitizedAndColumnsAreNot(string sql, string expected)
+    {
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
     [InlineData("ALTER TABLE t MODIFY user int", "ALTER TABLE t MODIFY user int")]
     [InlineData("SELECT modify user FROM Orders", "SELECT modify user FROM Orders")]
     [InlineData("SELECT a, modify user FROM Orders", "SELECT a, modify user FROM Orders")]

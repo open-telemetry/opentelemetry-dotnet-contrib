@@ -251,7 +251,7 @@ internal static partial class SqlProcessor
     // Whether the LOGIN or USER which ends at the position, after ALTER or DROP, is the name of a column
     // (e.g. ALTER TABLE t ALTER login TYPE text or ALTER TABLE t DROP login, ADD c int), as it is followed by what follows
     // a column, instead of by the name of a login or user.
-    private static bool IsColumnOperation(ReadOnlySpan<char> sql, int position, SqlDialect dialect)
+    private static bool IsColumnOperation(ReadOnlySpan<char> sql, int position, SqlDialect dialect, bool isDrop)
     {
         position = SkipWhitespaceAndComments(sql, position, dialect);
 
@@ -268,17 +268,38 @@ internal static partial class SqlProcessor
 
         var word = ClassifyWord(sql.Slice(position, end - position));
 
-        return word is
-            SqlWord.Alter or
-            SqlWord.Drop or
-            SqlWord.Type or
-            SqlWord.Set or
-            SqlWord.Add or
-            SqlWord.Reset or
-            SqlWord.Collate or
-            SqlWord.Using or
-            SqlWord.Cascade or
-            SqlWord.Restrict;
+        // The name of a column which is dropped can only be followed by CASCADE or RESTRICT, or by another clause.
+        var followsColumn = isDrop
+            ? word is SqlWord.Alter or SqlWord.Drop or SqlWord.Cascade or SqlWord.Restrict
+            : word is
+                SqlWord.Alter or
+                SqlWord.Drop or
+                SqlWord.Type or
+                SqlWord.Set or
+                SqlWord.Add or
+                SqlWord.Reset or
+                SqlWord.Collate or
+                SqlWord.Using or
+                SqlWord.Cascade or
+                SqlWord.Restrict;
+
+        if (!followsColumn)
+        {
+            return false;
+        }
+
+        // The name of a login or user can be one of those words (e.g. ALTER USER type WITH NAME = name, which is a statement
+        // after ALTER TABLE t ADD c int and not a clause of it), when it is followed by what follows the name of a login or
+        // user, which is never what follows a column.
+        var next = SkipWhitespaceAndComments(sql, end, dialect);
+        var nextEnd = next;
+        while (nextEnd < sql.Length && IsWordChar(sql[nextEnd], dialect))
+        {
+            nextEnd++;
+        }
+
+        return ClassifyWord(sql.Slice(next, nextEnd - next)) is not
+            (SqlWord.With or SqlWord.Rename or SqlWord.Identified or SqlWord.PasswordKeyword);
     }
 
     // Chooses what the next token is expected to be: what the word before says (a name or a password to redact), or else a password
@@ -404,7 +425,7 @@ internal static partial class SqlProcessor
 
                 if (previous is SqlWord.Create or SqlWord.CreateOrReplace ||
                     (previous == SqlWord.Modify && previousPrevious == SqlWord.StatementEnd) ||
-                    ((isDrop || previous == SqlWord.Alter) && !(state.InAlterTable && IsColumnOperation(sql, end, state.Dialect))) ||
+                    ((isDrop || previous == SqlWord.Alter) && !(state.InAlterTable && IsColumnOperation(sql, end, state.Dialect, isDrop))) ||
                     (word == SqlWord.User && previous == SqlWord.Rename && state.Dialect == SqlDialect.MySql))
                 {
                     state.Statement |= StatementContext.LoginOrUser;
