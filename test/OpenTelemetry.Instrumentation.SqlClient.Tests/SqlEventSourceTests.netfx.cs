@@ -405,6 +405,81 @@ public class SqlEventSourceTests
     }
 
     [Theory]
+    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource))]
+    [InlineData(typeof(FakeBehavingMdsSqlEventSource))]
+    public void EventSourceBeginWithoutEndIsNotTrackedIndefinitely(Type eventSourceType)
+    {
+        using var fakeSqlEventSource = (IFakeBehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
+        using var listener = new SqlEventSourceListener();
+
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .Build();
+
+        // SqlClient writes no EndExecute for an asynchronous command which fails before it is sent.
+        var dataSource = "127.0.0.1\\instanceName,port";
+        var lastObjectId = 2 * SqlEventSourceListener.MaxPendingCommands;
+        for (var objectId = 1; objectId <= lastObjectId; objectId++)
+        {
+            fakeSqlEventSource.WriteBeginExecuteEvent(objectId, dataSource, "master", "select * from first_table");
+        }
+
+        var pendingCommandCount = listener.PendingCommandCount;
+        Assert.InRange(pendingCommandCount, 1, SqlEventSourceListener.MaxPendingCommands);
+
+        // The command which began last is still tracked.
+        fakeSqlEventSource.WriteEndExecuteEvent(lastObjectId, compositeState: 1, sqlExceptionNumber: 0);
+
+        Assert.Equal(pendingCommandCount - 1, listener.PendingCommandCount);
+    }
+
+    [Theory]
+    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource))]
+    [InlineData(typeof(FakeBehavingMdsSqlEventSource))]
+    public void EventSourceBeginWithoutEndIsBoundedWhenWrittenConcurrently(Type eventSourceType)
+    {
+        using var fakeSqlEventSource = (IFakeBehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
+        using var listener = new SqlEventSourceListener();
+
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .Build();
+
+        var dataSource = "127.0.0.1\\instanceName,port";
+        var threads = 4;
+        var commandsPerThread = SqlEventSourceListener.MaxPendingCommands;
+
+        // Each thread tracks enough commands to roll the limit over several times, some of which end.
+        Parallel.For(
+            0,
+            threads,
+            new ParallelOptions { MaxDegreeOfParallelism = threads },
+            thread =>
+            {
+                for (var i = 0; i < commandsPerThread; i++)
+                {
+                    var objectId = (thread * commandsPerThread) + i + 1;
+                    fakeSqlEventSource.WriteBeginExecuteEvent(objectId, dataSource, "master", "select * from first_table");
+
+                    if (i % 2 == 0)
+                    {
+                        fakeSqlEventSource.WriteEndExecuteEvent(objectId, compositeState: 1, sqlExceptionNumber: 0);
+                    }
+                }
+            });
+
+        Assert.InRange(listener.PendingCommandCount, 0, SqlEventSourceListener.MaxPendingCommands);
+
+        // Ending every command leaves nothing tracked, so no entry was left behind uncounted.
+        for (var objectId = 1; objectId <= threads * commandsPerThread; objectId++)
+        {
+            fakeSqlEventSource.WriteEndExecuteEvent(objectId, compositeState: 1, sqlExceptionNumber: 0);
+        }
+
+        Assert.Equal(0, listener.PendingCommandCount);
+    }
+
+    [Theory]
     [InlineData(typeof(FakeOtherKeywordAdoNetSqlEventSource))]
     [InlineData(typeof(FakeOtherKeywordMdsSqlEventSource))]
     public void EventSourceEventsWithOtherKeywordsAreNotProcessed(Type eventSourceType)

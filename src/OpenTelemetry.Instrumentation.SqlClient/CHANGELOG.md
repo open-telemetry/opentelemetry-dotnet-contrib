@@ -49,6 +49,10 @@
   `EnrichWithSqlCommand`.
   ([#5865](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5865))
 
+* Fixed a memory leak on .NET Framework when a command executed asynchronously
+  fails before it is sent. Upgrade to apply the fix.
+  ([#5872](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5872))
+
 ## 1.20.1
 
 Released 2026-Oct-21
