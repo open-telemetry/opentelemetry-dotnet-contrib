@@ -64,35 +64,35 @@
 
 * Fixed query sanitization so that a password which is not a string literal,
   such as the one in an `IDENTIFIED BY` clause, is replaced with `?`.
-  ([#ZZZZ](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/ZZZZ))
+  ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
 
 * Fixed query sanitization so that a `$` in an identifier is no longer treated as
   the start of a string in dollar quotes.
-  ([#AAAA](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/AAAA))
+  ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
 
 * Fixed query sanitization so that the names of logins and users are replaced
   with `?` wherever they appear in a `CREATE`, `ALTER` or `DROP` statement,
   such as after `FOR LOGIN` or `WITH NAME =`, and when the statement follows
   another statement.
-  ([#BBBB](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/BBBB))
+  ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
 
 * Fixed query sanitization so that a bracketed identifier which contains an
   apostrophe no longer causes the string literals which follow it to be left
   unsanitized.
-  ([#CCCC](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/CCCC))
+  ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
 
 * Fixed `db.query.summary` containing part of an identifier which starts with a
   keyword and query sanitization of a login or user name which starts with one.
-  ([#DDDD](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/DDDD))
+  ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
 
 * Fixed `db.query.summary` containing the word which follows the name of a
   login or user, such as `IDENTIFIED`, in a statement which follows another
   statement.
-  ([#DDDD](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/DDDD))
+  ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
 
 * Fixed query sanitization so that a password which is a word after
   `PASSWORD =` is replaced with `?`.
-  ([#EEEE](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/EEEE))
+  ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
 
 ## 1.20.1
 
