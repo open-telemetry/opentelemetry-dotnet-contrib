@@ -906,11 +906,9 @@ internal static partial class SqlProcessor
                 var nameEnd = i;
                 while (i < sql.Length && IsWordChar(sql[i], state.Dialect))
                 {
-                    // MySQL quotes the host separately from the user (e.g. alice@`host`), so it is left to be the next token.
-                    if (sql[i] == AtChar &&
-                        state.Dialect == SqlDialect.MySql &&
-                        i + 1 < sql.Length &&
-                        sql[i + 1] is SingleQuoteChar or DoubleQuoteChar or BacktickChar)
+                    // MySQL can quote the host separately from the user (e.g. alice@`host`), and have whitespace or comments
+                    // before it, so it is left to be the next token, which is the next name to sanitize.
+                    if (sql[i] == AtChar && state.Dialect == SqlDialect.MySql && HasSeparateHost(sql, i))
                     {
                         break;
                     }
@@ -2655,6 +2653,15 @@ internal static partial class SqlProcessor
 
         closeParenIndex = -1;
         return false;
+    }
+
+    // Whether the host which follows the @ at the position is quoted, or is separated from it by whitespace or comments
+    // (e.g. alice@`host` or alice@ /* host of the user */ host), so it is not part of the name before it.
+    private static bool HasSeparateHost(ReadOnlySpan<char> sql, int at)
+    {
+        var next = SkipWhitespaceAndComments(sql, at + 1, SqlDialect.MySql);
+
+        return next != at + 1 || (next < sql.Length && sql[next] is SingleQuoteChar or DoubleQuoteChar or BacktickChar);
     }
 
     // Whether a number (e.g. 1, 1.5e3, 1_000 or 0x1F) ends at the position, so that what follows it, which is not part of it,

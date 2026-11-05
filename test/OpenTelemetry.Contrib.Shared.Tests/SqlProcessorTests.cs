@@ -1536,6 +1536,12 @@ public class SqlProcessorTests(ITestOutputHelper output)
     [InlineData("CREATE USER alice@`private_host` IDENTIFIED BY 'pw'", "CREATE USER ?@`?` IDENTIFIED BY ?")]
     [InlineData("CREATE USER alice@'private_host' IDENTIFIED BY 'pw'", "CREATE USER ?@? IDENTIFIED BY ?")]
     [InlineData("CREATE USER alice@`h1` IDENTIFIED BY 'pw', bob@`h2` IDENTIFIED BY 'pw'", "CREATE USER ?@`?` IDENTIFIED BY ?, ?@`?` IDENTIFIED BY ?")]
+    [InlineData("CREATE USER alice@ `private_host` IDENTIFIED BY 'pw'", "CREATE USER ?@ `?` IDENTIFIED BY ?")]
+    [InlineData("CREATE USER alice@ /* c */ `private_host` IDENTIFIED BY 'pw'", "CREATE USER ?@  `?` IDENTIFIED BY ?")]
+    [InlineData("CREATE USER alice@\n`private_host` IDENTIFIED BY 'pw'", "CREATE USER ?@\n`?` IDENTIFIED BY ?")]
+    [InlineData("CREATE USER alice@ private_host IDENTIFIED BY 'pw'", "CREATE USER ?@ ? IDENTIFIED BY ?")]
+    [InlineData("CREATE USER 'alice'@ 'private_host' IDENTIFIED BY 'pw'", "CREATE USER ?@ ? IDENTIFIED BY ?")]
+    [InlineData("SELECT @a, @b FROM t WHERE c = @d", "SELECT @a, @b FROM t WHERE c = @d")]
     public void GetSanitizedSql_MySqlAccountLists_AreRedactedWithoutAffectingOtherLists(string sql, string expected)
     {
         var result = GetSanitizedSql(sql, SqlDialect.MySql);
