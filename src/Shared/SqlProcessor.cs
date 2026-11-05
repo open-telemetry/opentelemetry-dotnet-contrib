@@ -531,7 +531,7 @@ internal static partial class SqlProcessor
 
                 if (SanitizeStringLiteral(sqlSpan, buffer, ref state) ||
                     SanitizeDollarQuotedLiteral(sqlSpan, buffer, ref state) ||
-                    SanitizeHexLiteral(sqlSpan, buffer, ref state) ||
+                    SanitizeBasePrefixedLiteral(sqlSpan, buffer, ref state) ||
                     SanitizeNumericLiteral(sqlSpan, buffer, ref state))
                 {
                     state.LastLiteralEnd = state.ParsePosition;
@@ -2342,39 +2342,68 @@ internal static partial class SqlProcessor
         }
     }
 
-    private static bool SanitizeHexLiteral(ReadOnlySpan<char> sql, Span<char> buffer, ref ParseState state)
+    private static bool SanitizeBasePrefixedLiteral(ReadOnlySpan<char> sql, Span<char> buffer, ref ParseState state)
     {
         var i = state.ParsePosition;
-        var ch = sql[i];
         var length = sql.Length;
-        var iPlusOne = i + 1;
 
-        if (ch == '0' && iPlusOne < length && (sql[iPlusOne] == 'x' || sql[iPlusOne] == 'X'))
+        if ((sql[i] is '-' or '+') && i + 1 < length && sql[i + 1] == '0')
         {
-            if (TrySanitizeLiteralsForInClause(sql, buffer, ref state, i))
-            {
-                return true;
-            }
+            i++;
+        }
 
-            for (i += 2; i < length; ++i)
-            {
-                ch = sql[i];
-                if (char.IsAsciiHexDigit(ch))
-                {
-                    continue;
-                }
+        if (sql[i] != '0' || i + 1 >= length)
+        {
+            return false;
+        }
 
-                i -= 1;
-                break;
-            }
+        var numberBase = (sql[i + 1] | 0x20) switch
+        {
+            'x' => 16,
+            'b' => 2,
+            'o' => 8,
+            _ => 0,
+        };
 
-            state.ParsePosition = ++i;
+        if (numberBase == 0)
+        {
+            return false;
+        }
 
-            buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
+        // Hexadecimal prefixes were already recognized without digits. For a new binary or octal prefix,
+        // require a digit so that a word such as 0bject is not consumed as a numeric literal.
+        if (numberBase != 16 &&
+            (i + 2 >= length ||
+             !(IsBaseDigit(sql[i + 2], numberBase) ||
+               (sql[i + 2] == UnderscoreChar && i + 3 < length && IsBaseDigit(sql[i + 3], numberBase)))))
+        {
+            return false;
+        }
+
+        if (TrySanitizeLiteralsForInClause(sql, buffer, ref state, i))
+        {
             return true;
         }
 
-        return false;
+        for (i += 2; i < length; i++)
+        {
+            if (!IsBaseDigit(sql[i], numberBase) &&
+                !(sql[i] == UnderscoreChar && i + 1 < length && IsBaseDigit(sql[i + 1], numberBase)))
+            {
+                break;
+            }
+        }
+
+        state.ParsePosition = i;
+        buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
+        return true;
+
+        static bool IsBaseDigit(char value, int numberBase) => numberBase switch
+        {
+            2 => value is '0' or '1',
+            8 => value is >= '0' and <= '7',
+            _ => char.IsAsciiHexDigit(value),
+        };
     }
 
     private static bool SanitizeNumericLiteral(ReadOnlySpan<char> sql, Span<char> buffer, ref ParseState state)
@@ -2412,7 +2441,9 @@ internal static partial class SqlProcessor
             for (i += 1; i < length; ++i)
             {
                 currentChar = sql[i];
-                if (char.IsAsciiDigit(currentChar))
+                if (char.IsAsciiDigit(currentChar) ||
+                    (currentChar == UnderscoreChar && i + 1 < length &&
+                     char.IsAsciiDigit(sql[i - 1]) && char.IsAsciiDigit(sql[i + 1])))
                 {
                     continue;
                 }
@@ -2433,6 +2464,14 @@ internal static partial class SqlProcessor
 
                     exponentMatched = true;
                     continue;
+                }
+
+                // Oracle appends F or D to a floating-point literal. Only consume the suffix at the end
+                // of its token, so an adjacent word is not partially consumed as a type suffix.
+                if ((currentChar is 'f' or 'F' or 'd' or 'D') &&
+                    (i + 1 >= length || !IsWordChar(sql[i + 1])))
+                {
+                    break;
                 }
 
                 i -= 1;

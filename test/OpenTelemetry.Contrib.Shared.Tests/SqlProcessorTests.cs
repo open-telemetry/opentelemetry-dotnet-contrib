@@ -942,6 +942,90 @@ public class SqlProcessorTests(ITestOutputHelper output)
     }
 
     [Theory]
+    [InlineData("0b101010101")]
+    [InlineData("0B101010101")]
+    [InlineData("0o173")]
+    [InlineData("0O173")]
+    [InlineData("0xABC_DEF")]
+    [InlineData("0X_ABC_DEF")]
+    [InlineData("0b_1010_1010")]
+    [InlineData("0o_173_001")]
+    [InlineData("-0xDEADBEEF")]
+    [InlineData("+0XDEADBEEF")]
+    [InlineData("-0b101010101")]
+    [InlineData("+0o173")]
+    [InlineData("1_000_000")]
+    [InlineData("1_234.567_890")]
+    [InlineData(".123_456")]
+    [InlineData("-1_234.567_890")]
+    [InlineData("1_234e+1_000")]
+    [InlineData("1.234e-1_000")]
+    [InlineData("1.25f")]
+    [InlineData("1.25F")]
+    [InlineData("1.25d")]
+    [InlineData("1.25D")]
+    [InlineData("-1.25e+10f")]
+    [InlineData("+.25D")]
+    public void GetSanitizedSql_NumericLiteral_IsEntirelySanitized(string literal)
+    {
+        var statement = GetSanitizedSql($"SELECT {literal} FROM t");
+
+        Assert.Equal("SELECT ? FROM t", statement.SanitizedSql);
+        Assert.Equal("SELECT t", statement.DbQuerySummary);
+    }
+
+    [Theory]
+    [InlineData((int)SqlDialect.MySql, "0b101010101")]
+    [InlineData((int)SqlDialect.Default, "0o173")]
+    [InlineData((int)SqlDialect.Sqlite, "1_000_000")]
+    [InlineData((int)SqlDialect.Oracle, "1.25f")]
+    [InlineData((int)SqlDialect.Oracle, "1.25D")]
+    public void GetSanitizedSql_NumericLiteralInExpression_IsEntirelySanitized(int dialect, string literal)
+    {
+        var statement = GetSanitizedSql($"SELECT * FROM t WHERE x = {literal} AND y = 'secret'", (SqlDialect)dialect);
+
+        Assert.Equal("SELECT * FROM t WHERE x = ? AND y = ?", statement.SanitizedSql);
+        Assert.Equal("SELECT t", statement.DbQuerySummary);
+    }
+
+    [Theory]
+    [InlineData("SELECT 0b1010, 0o173, 0xABC_DEF, 1_000_000, 1.25f FROM t", "SELECT ?, ?, ?, ?, ? FROM t")]
+    [InlineData("INSERT INTO t VALUES (-0xDEADBEEF, +0b1010, .123_456)", "INSERT INTO t VALUES (?, ?, ?)")]
+    [InlineData("SELECT * FROM t WHERE x IN (0b1010, 0o173, 1.25d)", "SELECT * FROM t WHERE x IN (?)")]
+    [InlineData("SELECT * FROM t WHERE x IN (0b1010) AND y = 0xABC_DEF", "SELECT * FROM t WHERE x IN (?) AND y = ?")]
+    public void GetSanitizedSql_MultipleNumericLiterals_AreEntirelySanitized(string sql, string expected)
+    {
+        var statement = GetSanitizedSql(sql);
+
+        Assert.Equal(expected, statement.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData("SELECT value_123, value0xABC, value0b101, value0o173 FROM t")]
+    [InlineData("SELECT 1 FROM t AS df")]
+    public void GetSanitizedSql_NumericTextInIdentifiers_IsPreserved(string sql)
+    {
+        var statement = GetSanitizedSql(sql);
+
+        Assert.Equal(sql.Replace("SELECT 1", "SELECT ?"), statement.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData("SELECT 1foo", "SELECT ?foo")]
+    [InlineData("SELECT 1dollars", "SELECT ?dollars")]
+    [InlineData("SELECT 1_name", "SELECT ?_name")]
+    [InlineData("SELECT 1__000", "SELECT ?__000")]
+    [InlineData("SELECT 0bject", "SELECT ?bject")]
+    [InlineData("SELECT 0octopus", "SELECT ?octopus")]
+    [InlineData("SELECT 0xABC_tail", "SELECT ?_tail")]
+    public void GetSanitizedSql_WordFollowingNumericPrefix_IsPreserved(string sql, string expected)
+    {
+        var statement = GetSanitizedSql(sql);
+
+        Assert.Equal(expected, statement.SanitizedSql);
+    }
+
+    [Theory]
     [InlineData("WHERE SocialSecurityNumber=123456789", "123456789")]
     [InlineData("WHERE SocialSecurityNumber = 123456789", "123456789")]
     [InlineData("WHERE ApiToken=0xDEADBEEF", "DEADBEEF")]

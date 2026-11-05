@@ -78,6 +78,12 @@
   are not mistaken for dollar-quoted literals.
   ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
 
+* Fixed query sanitization of PostgreSQL binary/octal literals and digit
+  separators, MySQL binary literals, SQLite digit separators, Oracle
+  floating-point suffixes, and hexadecimal literals with supported unary
+  operators.
+  ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
+
 ## 1.20.1-beta.1
 
 Released 2026-Oct-21
