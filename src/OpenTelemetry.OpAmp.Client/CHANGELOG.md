@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+* **Breaking Change**: The default HTTP client and the default WebSocket
+  client no longer follow HTTP redirects. A redirect response now fails the
+  request or connection instead of being followed. To restore redirects, set
+  the new `OpAmpClientSettings.AllowRedirects` to `true`; it does not apply to
+  clients returned by `HttpClientFactory` or `ClientWebSocketFactory`.
+  WebSocket redirects cannot be disabled on .NET Framework and
+  .NET Standard 2.0 targets.
+  ([#5885](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5885))
+
 ## 0.9.0-alpha.3
 
 Released 2026-Nov-02
