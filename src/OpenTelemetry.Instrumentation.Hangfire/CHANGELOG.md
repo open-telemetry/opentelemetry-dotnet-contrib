@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Fixed baggage from a job being visible to work started by other jobs
+  performed on the same worker.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 1.20.1-beta.1
 
 Released 2026-Oct-21
