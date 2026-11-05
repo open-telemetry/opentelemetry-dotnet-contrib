@@ -737,6 +737,51 @@ public class WsTransportTest
         Assert.Equal("ClientWebSocketFactory returned null. The factory must return a new, unconnected ClientWebSocket instance.", exception.Message);
     }
 
+#if NET
+    [Theory]
+    [InlineData(false, false, false)] // default client blocks redirects
+    [InlineData(true, false, true)] // default client follows redirects when allowed
+    [InlineData(false, true, true)] // custom factory owns redirect behavior
+    public async Task WebSocket_Redirect(bool allowRedirects, bool customFactory, bool expectFollowed)
+    {
+        using var targetReached = new ManualResetEventSlim();
+        using var target = TestWebSocketServer.RunServer(
+            (WebSocket _) =>
+            {
+                targetReached.Set();
+                return Task.CompletedTask;
+            },
+            out var targetHost,
+            out var targetPort);
+        using var redirector = RunRedirector(new Uri($"http://{targetHost}:{targetPort}/"), out var redirectorUri);
+
+        var settings = new OpAmpClientSettings
+        {
+            ConnectionType = ConnectionType.WebSocket,
+            ServerUrl = new UriBuilder(redirectorUri) { Scheme = "ws" }.Uri,
+            AllowRedirects = allowRedirects,
+        };
+        if (customFactory)
+        {
+            settings.ClientWebSocketFactory = () => new ClientWebSocket();
+        }
+
+        using var transport = new WsTransport(settings, new FrameProcessor());
+
+        if (expectFollowed)
+        {
+            await transport.StartAsync(TestContext.Current.CancellationToken);
+            Assert.True(targetReached.Wait(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken), "Target server was not reached.");
+        }
+        else
+        {
+            // The handshake fails on the redirect response, so the target is never contacted.
+            await Assert.ThrowsAsync<WebSocketException>(() => transport.StartAsync(TestContext.Current.CancellationToken));
+            Assert.False(targetReached.IsSet);
+        }
+    }
+#endif
+
     private static WsTransport CreateTransport(Uri endpoint, FrameProcessor frameProcessor)
     {
         var settings = new OpAmpClientSettings
@@ -770,6 +815,16 @@ public class WsTransportTest
 #else
         new(segment.Array, segment.Offset + offset, count);
 #endif
+
+    private static IDisposable RunRedirector(Uri location, out Uri address)
+        => TestHttpServer.RunServer(
+            ctx =>
+            {
+                ctx.Response.StatusCode = 307;
+                ctx.Response.RedirectLocation = location.ToString();
+                ctx.Response.Close();
+            },
+            out address);
 
     private sealed class RecordingFlagsMessageListener : IOpAmpListener<FlagsMessage>
     {

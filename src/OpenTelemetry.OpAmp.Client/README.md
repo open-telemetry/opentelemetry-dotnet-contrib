@@ -55,6 +55,15 @@ with `ConnectionType` and `ServerUrl`; use `HttpClientFactory` or
 `ClientWebSocketFactory` when the underlying client needs custom headers,
 handlers, certificates, proxy settings, or other transport-specific options.
 
+### Redirects
+
+HTTP redirects are not followed by default, for both HTTP polling and the
+WebSocket handshake; a redirect response is treated as a failure. Set
+`AllowRedirects = true` to follow them, only for servers you trust over validated
+TLS. Clients returned from `HttpClientFactory` or `ClientWebSocketFactory`
+control their own redirect behavior, and WebSocket redirects cannot be disabled
+in the `net462` and `netstandard2.0` builds.
+
 Each client instance has an `InstanceUid` and may report identifying and
 non-identifying resource attributes through `Identification`. Attribute values
 may be strings, integers, doubles, booleans, or collections of those types.

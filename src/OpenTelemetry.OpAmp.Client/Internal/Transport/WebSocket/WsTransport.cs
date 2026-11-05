@@ -19,6 +19,9 @@ internal sealed class WsTransport : IOpAmpTransport, IDisposable
 
     private readonly Uri uri;
     private readonly ClientWebSocket webSocket;
+#if NET
+    private readonly HttpMessageInvoker? connectInvoker;
+#endif
     private readonly WsReceiver receiver;
     private readonly WsTransmitter transmitter;
     private readonly SemaphoreSlim sendLock = new(1, 1);
@@ -44,6 +47,20 @@ internal sealed class WsTransport : IOpAmpTransport, IDisposable
 
         var webSocket = settings.ClientWebSocketFactory()
             ?? throw new InvalidOperationException("ClientWebSocketFactory returned null. The factory must return a new, unconnected ClientWebSocket instance.");
+
+#if NET
+        // Only the default client is restricted: a custom invoker is incompatible with options
+        // set on a custom ClientWebSocket (e.g. proxy, certificates), so custom factories own
+        // their redirect behavior.
+        if (!settings.AllowRedirects && settings.UsesDefaultClientWebSocketFactory)
+        {
+#pragma warning disable CA2000 // The handler is owned and disposed by the invoker (disposeHandler: true).
+            this.connectInvoker = new HttpMessageInvoker(
+                new SocketsHttpHandler { AllowAutoRedirect = false, UseCookies = false },
+                disposeHandler: true);
+#pragma warning restore CA2000
+        }
+#endif
 
         this.uri = settings.ServerUrl;
         this.webSocket = webSocket;
@@ -88,9 +105,20 @@ internal sealed class WsTransport : IOpAmpTransport, IDisposable
 
         try
         {
-            await this.webSocket
-                .ConnectAsync(this.uri, token)
-                .ConfigureAwait(false);
+#if NET
+            if (this.connectInvoker is not null)
+            {
+                await this.webSocket
+                    .ConnectAsync(this.uri, this.connectInvoker, token)
+                    .ConfigureAwait(false);
+            }
+            else
+#endif
+            {
+                await this.webSocket
+                    .ConnectAsync(this.uri, token)
+                    .ConfigureAwait(false);
+            }
 
             // Do not forward token: it scopes only the connect handshake. The receive loop
             // is long-lived and exits on socket close (e.g., graceful shutdown) or disposal.
@@ -196,6 +224,9 @@ internal sealed class WsTransport : IOpAmpTransport, IDisposable
         finally
         {
             this.webSocket.Dispose();
+#if NET
+            this.connectInvoker?.Dispose();
+#endif
             this.sendLock.Dispose();
         }
     }

@@ -110,6 +110,8 @@ OpenTelemetry.OpAmp.Client.Settings.IdentificationSettings.IdentificationSetting
 OpenTelemetry.OpAmp.Client.Settings.IdentificationSettings.IdentifyingResources.get -> System.Collections.Generic.Dictionary<string!, OpenTelemetry.OpAmp.Client.Settings.AnyValueUnion>!
 OpenTelemetry.OpAmp.Client.Settings.IdentificationSettings.NonIdentifyingResources.get -> System.Collections.Generic.Dictionary<string!, OpenTelemetry.OpAmp.Client.Settings.AnyValueUnion>!
 OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings
+OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.AllowRedirects.get -> bool
+OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.AllowRedirects.set -> void
 OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.ConnectionType.get -> OpenTelemetry.OpAmp.Client.Settings.ConnectionType
 OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.ConnectionType.set -> void
 OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.EffectiveConfigurationReporting.get -> OpenTelemetry.OpAmp.Client.Settings.EffectiveConfigSettings!
