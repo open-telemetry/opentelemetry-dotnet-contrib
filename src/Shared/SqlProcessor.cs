@@ -17,6 +17,9 @@ internal static class SqlProcessor
     private const int MaxBracketLookaheadLength = 16 * 1024;
     private const int CacheCapacity = 1000;
 
+    // The maximum length of a statement which is cached.
+    private const int MaxCachedStatementLength = 8192;
+
     // The minimum length of a statement for which the most recently sanitized statement is remembered
     // per thread while the cache is not full. Below this length looking a statement up in the cache is
     // about as cheap as maintaining the per-thread entry.
@@ -132,7 +135,8 @@ internal static class SqlProcessor
     // CommandExecuting event followed by SqlClient's WriteCommandBefore event for the same DbCommand),
     // so a reference-equality check lets the repeated call skip hashing the full text for the cache
     // lookup (or re-sanitizing it entirely once the cache is full). This retains at most one statement
-    // (and its sanitized form) per thread until that thread sanitizes a different statement.
+    // (and its sanitized form) per thread until that thread sanitizes a different statement. Statements
+    // longer than MaxCachedStatementLength are not remembered, so the memory retained is bounded.
     [ThreadStatic]
     private static LastSanitizedStatement? lastSanitizedStatement;
 
@@ -187,7 +191,8 @@ internal static class SqlProcessor
 
     /// <summary>
     /// Sanitizes a SQL statement by replacing its literal values with placeholders and computes the
-    /// corresponding <c>db.query.summary</c>. Results are cached per statement and dialect.
+    /// corresponding <c>db.query.summary</c>. Results are cached per statement and dialect,
+    /// unless the statement is too long to be cached.
     /// </summary>
     /// <param name="sql">The SQL statement to sanitize.</param>
     /// <param name="useBackslashEscapes">
@@ -211,6 +216,13 @@ internal static class SqlProcessor
         ref int approxCount,
         bool useBackslashEscapes)
     {
+        // Statements above the length limit are neither cached nor remembered for the thread,
+        // so that the memory retained does not depend on the length of the statements executed.
+        if (sql.Length > MaxCachedStatementLength)
+        {
+            return SanitizeSql(sql, useBackslashEscapes);
+        }
+
         if (sql.Length < LastStatementMinLength && approxCount < CacheCapacity)
         {
             return GetOrAddCachedSql(sql, cache, ref approxCount, useBackslashEscapes);
@@ -341,13 +353,24 @@ internal static class SqlProcessor
 
         // If we have exceeded the max length for the summary, find the index of the last whitespace
         // and trim the summary to that position. This avoids truncating within an operation name or target.
-        if (state.SummaryPosition > MaxSummaryLength)
+        // A summary which is exactly the maximum length but ends with a period has stopped part way through
+        // a multi-part name (e.g. dbo.), as the period is only added when another part of the name follows,
+        // so the incomplete name is trimmed in the same way.
+        if (state.SummaryPosition > MaxSummaryLength ||
+            (state.SummaryPosition == MaxSummaryLength && summary[MaxSummaryLength - 1] == DotChar))
         {
 #if NET
             var indexOfLastWhitespace = summary.Slice(0, MaxSummaryLength).LastIndexOfAny(WhitespaceSearchValues);
 #else
             var indexOfLastWhitespace = summary.Slice(0, MaxSummaryLength).LastIndexOfAny(WhitespaceChars);
 #endif
+
+            // If the whitespace is within the last name captured (e.g. [Order Details]), the name is incomplete
+            // and is removed whole instead of being cut in half.
+            if (indexOfLastWhitespace > state.LastNameStartPosition && indexOfLastWhitespace < state.LastNameEndPosition)
+            {
+                indexOfLastWhitespace = state.LastNameStartPosition;
+            }
 
             summary = summary.Slice(0, indexOfLastWhitespace >= 0 ? indexOfLastWhitespace : MaxSummaryLength);
         }
@@ -362,6 +385,15 @@ internal static class SqlProcessor
             if (lastChar is SpaceChar or TabChar or NewLineChar or CarriageReturnChar)
             {
                 summaryLength -= 1;
+            }
+            else
+            {
+                // A period is added when another part of a multi-part name is expected, so if that part was not
+                // captured (e.g. the name was too long to be a delimited identifier) it is left at the end.
+                while (summaryLength > 0 && summary[summaryLength - 1] == DotChar)
+                {
+                    summaryLength -= 1;
+                }
             }
         }
 
@@ -401,6 +433,23 @@ internal static class SqlProcessor
         value.CopyTo(state.SummaryBuffer.Slice(state.SummaryPosition));
 
         state.SummaryPosition += value.Length;
+    }
+
+    // Appends a part of a name, recording where the whole (possibly multi-part) name starts and ends in the summary.
+    // A part which follows a period (which is only added when another part of the name is to be captured) continues
+    // the name, otherwise it starts a new one. This allows an incomplete name, or one which was cut short by the maximum
+    // summary length, to be removed whole, as a delimited identifier (e.g. [Order Details]) can contain whitespace.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void AppendSummaryNamePart(ReadOnlySpan<char> value, ref ParseState state)
+    {
+        if (state.SummaryPosition == 0 || state.SummaryBuffer[state.SummaryPosition - 1] != DotChar)
+        {
+            state.LastNameStartPosition = state.SummaryPosition;
+        }
+
+        AppendSummaryToken(value, ref state);
+
+        state.LastNameEndPosition = state.SummaryPosition;
     }
 
     private static void EnsureSummaryCapacity(int requiredCapacity, ref ParseState state)
@@ -573,6 +622,7 @@ internal static class SqlProcessor
             }
 
             var length = i - start;
+            var captureNextPartOfName = false;
             if (length > 0)
             {
                 // Special handling: if we are in a FROM clause, check if this identifier is a reserved keyword
@@ -611,18 +661,40 @@ internal static class SqlProcessor
                     state.SanitizedPosition += length;
                 }
 
-                // Optionally copy to summary buffer.
-                if (state.CaptureNextNonKeywordTokenAsIdentifier && !state.SummaryIsComplete)
+                // Keep identifier context even after summary collection stops, so quotes in later name parts
+                // are not mistaken for the start of a string literal.
+                if (state.CaptureNextNonKeywordTokenAsIdentifier)
                 {
-                    AppendSummaryToken(sql.Slice(start, length), ref state);
+                    // A period at the end of the identifier (e.g. dbo.) is only included if another part of the name follows.
+                    var endsWithDot = sql[i - 1] == DotChar;
+                    var periodCount = endsWithDot
+                        ? (IsNamePart(sql, SkipWhitespaceAndComments(sql, i, state.UseBackslashEscapes)) ? 1 : 0)
+                        : GetFollowingPeriodCount(sql, i, state.UseBackslashEscapes);
+                    captureNextPartOfName = periodCount > 0;
 
-                    // Add a space after the identifier. The trailing space will be trimmed later.
-                    AppendSummaryChar(SpaceChar, ref state);
+                    if (!state.SummaryIsComplete)
+                    {
+                        AppendSummaryNamePart(sql.Slice(start, endsWithDot ? length - 1 : length), ref state);
+
+                        if (captureNextPartOfName)
+                        {
+                            // Keep one separator beyond the limit so an unfinished name is removed when trimming.
+                            for (var period = 0; period < periodCount && state.SummaryPosition <= MaxSummaryLength; period++)
+                            {
+                                AppendSummaryChar(DotChar, ref state);
+                            }
+                        }
+                        else
+                        {
+                            // Add a space after the identifier. The trailing space will be trimmed later.
+                            AppendSummaryChar(SpaceChar, ref state);
+                        }
+                    }
                 }
             }
 
             state.ParsePosition = i;
-            state.CaptureNextNonKeywordTokenAsIdentifier = false;
+            state.CaptureNextNonKeywordTokenAsIdentifier = captureNextPartOfName;
             state.SanitizeNextNonKeywordToken = false;
             state.PreviousTokenStartPosition = start;
             state.PreviousTokenEndPosition = i;
@@ -723,23 +795,28 @@ internal static class SqlProcessor
             // identifiers were parsed as a single token. They are included wherever an unquoted
             // identifier would be (e.g. after INTO or EXEC), as well as anywhere in a FROM clause.
             if ((state.InFromClause || state.CaptureNextNonKeywordTokenAsIdentifier) &&
-                sql[start] == OpenSquareBracketChar &&
-                !state.SummaryIsComplete)
+                sql[start] == OpenSquareBracketChar)
             {
-                AppendSummaryToken(sql.Slice(start, length), ref state);
+                // Name classification must continue independently of the summary length limit.
+                var periodCount = GetFollowingPeriodCount(sql, end + 1, state.UseBackslashEscapes);
+                captureNextPartOfName = periodCount > 0;
 
-                // Add a period for a schema-qualified name, otherwise a space. A trailing space will be trimmed later.
-                var nextPosition = end + 1;
-                if (nextPosition < sql.Length && sql[nextPosition] == DotChar)
+                if (!state.SummaryIsComplete)
                 {
-                    AppendSummaryChar(DotChar, ref state);
+                    AppendSummaryNamePart(sql.Slice(start, length), ref state);
 
-                    // Capture the next part of the name (e.g. [Orders] in [dbo].[Orders]) after the period.
-                    captureNextPartOfName = true;
-                }
-                else
-                {
-                    AppendSummaryChar(SpaceChar, ref state);
+                    if (captureNextPartOfName)
+                    {
+                        // Preserve omitted name parts, with one separator beyond the limit for incomplete-name trimming.
+                        for (var period = 0; period < periodCount && state.SummaryPosition <= MaxSummaryLength; period++)
+                        {
+                            AppendSummaryChar(DotChar, ref state);
+                        }
+                    }
+                    else
+                    {
+                        AppendSummaryChar(SpaceChar, ref state);
+                    }
                 }
             }
         }
@@ -751,6 +828,60 @@ internal static class SqlProcessor
         state.PreviousTokenEndPosition = end + 1;
 
         return true;
+    }
+
+    // The number of periods at the position, ignoring any whitespace and comments, if they are followed by another
+    // part of a multi-part name which can be captured (e.g. the [Orders] in [dbo] . [Orders] or [dbo]./* c */[Orders]).
+    // Consecutive periods allow omitted database and schema parts (e.g. [Server]...[Orders]). Longer runs in malformed
+    // queries must also preserve identifier context so later literals are sanitized. Periods which are not followed
+    // by a part of the name are left out of the summary, in which case zero is returned.
+    private static int GetFollowingPeriodCount(ReadOnlySpan<char> sql, int position, bool useBackslashEscapes)
+    {
+        position = SkipWhitespaceAndComments(sql, position, useBackslashEscapes);
+
+        if (position >= sql.Length || sql[position] != DotChar)
+        {
+            return 0;
+        }
+
+        var periodCount = 1;
+        position = SkipWhitespaceAndComments(sql, position + 1, useBackslashEscapes);
+
+        while (position < sql.Length && sql[position] == DotChar)
+        {
+            periodCount++;
+            position = SkipWhitespaceAndComments(sql, position + 1, useBackslashEscapes);
+        }
+
+        return IsNamePart(sql, position) ? periodCount : 0;
+    }
+
+    // Whether the position is the start of a part of a name which can be captured.
+    private static bool IsNamePart(ReadOnlySpan<char> sql, int position) =>
+        position < sql.Length &&
+        (sql[position] is OpenSquareBracketChar or UnderscoreChar || char.IsLetter(sql[position]));
+
+    private static int SkipWhitespaceAndComments(ReadOnlySpan<char> sql, int position, bool useBackslashEscapes)
+    {
+        while (position < sql.Length)
+        {
+            if (sql[position] is SpaceChar or TabChar or CarriageReturnChar or NewLineChar)
+            {
+                position++;
+                continue;
+            }
+
+            var commentEnd = FindCommentEnd(sql, position, useBackslashEscapes);
+
+            if (commentEnd < 0)
+            {
+                break;
+            }
+
+            position = commentEnd;
+        }
+
+        return position;
     }
 
     /// <summary>
@@ -2079,6 +2210,10 @@ internal static class SqlProcessor
         // This tracks the end position of the previous keyword matched by the parser.
         public int PreviousKeywordEndPosition; // 4 bytes
 
+        // These track where the last name (which may have several parts) captured in the summary starts and ends.
+        public int LastNameStartPosition; // 4 bytes
+        public int LastNameEndPosition; // 4 bytes
+
         // The first ']' found at or after CloseSquareBracketSearchStart, or the length of the input if there is none.
         public int CloseSquareBracketSearchStart; // 4 bytes
         public int NextCloseSquareBracket; // 4 bytes
@@ -2364,7 +2499,8 @@ internal static class SqlProcessor
             SqlKeyword.Login or SqlKeyword.User => false,
             SqlKeyword.Statistics => state.FirstSummaryKeyword is SqlKeyword.Update,
             SqlKeyword.Trigger => state.FirstSummaryKeyword is SqlKeyword.Create or SqlKeyword.Alter or SqlKeyword.Drop or SqlKeyword.Disable or SqlKeyword.Enable,
-            SqlKeyword.Truncate => state.FirstSummaryKeyword is SqlKeyword.Table,
+            SqlKeyword.Truncate => state.FirstSummaryKeyword is SqlKeyword.Truncate,
+            SqlKeyword.Table => state.FirstSummaryKeyword is SqlKeyword.Create or SqlKeyword.Alter or SqlKeyword.Drop or SqlKeyword.Truncate,
             SqlKeyword.Database or
             SqlKeyword.Function or
             SqlKeyword.Index or
@@ -2372,7 +2508,6 @@ internal static class SqlProcessor
             SqlKeyword.Role or
             SqlKeyword.Schema or
             SqlKeyword.Sequence or
-            SqlKeyword.Table or
             SqlKeyword.View => state.FirstSummaryKeyword is SqlKeyword.Create or SqlKeyword.Alter or SqlKeyword.Drop,
             _ => false,
         };

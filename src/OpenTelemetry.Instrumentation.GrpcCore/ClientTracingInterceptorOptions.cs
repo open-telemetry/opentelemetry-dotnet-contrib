@@ -12,6 +12,8 @@ public class ClientTracingInterceptorOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether or not to record individual message events.
+    /// <para/>
+    /// At most 128 message events are recorded for each call; any further messages are not recorded.
     /// </summary>
     public bool RecordMessageEvents { get; set; }
 

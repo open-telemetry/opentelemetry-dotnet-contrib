@@ -86,6 +86,8 @@ Enable `EffectiveConfigurationReporting.EnableReporting` when the client should
 report its current effective configuration to the server. Use
 `SendEffectiveConfig()` with one or more `EffectiveConfigFile` values. Call
 `FlushAsync()` when the queued report must be sent before continuing.
+`FlushAsync()` waits only for messages pending when it is called; messages
+queued afterwards (for example heartbeats) do not extend it.
 
 `EffectiveConfigFile` can be created from in-memory content or from a bounded
 stream using `CreateFromStream()` or `CreateFromStreamAsync()`.

@@ -166,7 +166,7 @@ public class MeteringTests(KafkaFixture fixture)
                             operationType = tag.Value?.ToString();
                             break;
 
-                        case SemanticConventions.AttributeMessagingSystem:
+                        case SemanticConventions.AttributeMessagingSystemName:
                             system = tag.Value?.ToString();
                             break;
 

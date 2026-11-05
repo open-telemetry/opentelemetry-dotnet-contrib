@@ -27,6 +27,10 @@ internal sealed class OpAmpPipe : IDisposable
     private readonly FrameBuilder currentFrame;
     private readonly Queue<PendingFrame> pendingFrames = [];
 
+    // Flush waiters ordered by target. Targets are captured under frameLock from a monotonic counter,
+    // so appending keeps the list sorted.
+    private readonly LinkedList<FlushWaiter> flushWaiters = new();
+
     private bool isBusy;
     private bool isDisposed;
     private bool isStopped;
@@ -34,7 +38,8 @@ internal sealed class OpAmpPipe : IDisposable
     private long pendingMessageBytes;
     private ByteString? assignedInstanceUid;
     private Task? flushTask;
-    private TaskCompletionSource<bool>? flushCompletion;
+    private long framesBuilt;
+    private long framesCompleted;
 
     public OpAmpPipe(OpAmpClientSettings settings, FrameProcessor processor)
         : this(settings, processor, ConstructTransport(settings, processor))
@@ -157,6 +162,7 @@ internal sealed class OpAmpPipe : IDisposable
             MessageBuilderHelper.AppendCustomMessage(this.currentFrame, capability, type, data);
 
             this.pendingFrames.Enqueue(new PendingFrame(this.currentFrame.Build(), frameBytes));
+            this.framesBuilt++;
             this.pendingMessageBytes += frameBytes;
             this.hasAccumulatedData = false;
         }
@@ -179,7 +185,7 @@ internal sealed class OpAmpPipe : IDisposable
             this.isDisposed = true;
             this.pendingFrames.Clear();
             this.pendingMessageBytes = 0;
-            this.TryCompleteFlushLocked();
+            this.CompleteFlushWaitersLocked();
         }
 
         this.tokenSource.Cancel();
@@ -200,9 +206,11 @@ internal sealed class OpAmpPipe : IDisposable
         _ => throw new NotSupportedException("Unsupported transport type"),
     };
 
-    private static async Task WaitForFlushAsync(Task flushTask, CancellationToken token)
+    private async Task WaitForFlushAsync(LinkedListNode<FlushWaiter> waiterNode, CancellationToken token)
     {
-        if (flushTask.IsCompleted || !token.CanBeCanceled)
+        var flushTask = waiterNode.Value.Completion.Task;
+
+        if (!token.CanBeCanceled)
         {
             await flushTask.ConfigureAwait(false);
             return;
@@ -215,6 +223,15 @@ internal sealed class OpAmpPipe : IDisposable
 
         if (await Task.WhenAny(flushTask, cancellationCompletion.Task).ConfigureAwait(false) == cancellationCompletion.Task)
         {
+            // Do not leave abandoned waiters queued behind a stalled send.
+            lock (this.frameLock)
+            {
+                if (waiterNode.List is not null)
+                {
+                    this.flushWaiters.Remove(waiterNode);
+                }
+            }
+
             token.ThrowIfCancellationRequested();
         }
 
@@ -239,15 +256,19 @@ internal sealed class OpAmpPipe : IDisposable
                 return Task.CompletedTask;
             }
 
+            // Snapshot: everything built so far plus the frame that will carry accumulated data.
+            // Data appended after this point does not extend this flush.
+            var targetFrameCount = this.framesBuilt + (this.hasAccumulatedData ? 1 : 0);
+
             this.TryStartFlushLocked(token);
 
-            if (this.IsFlushCompleteLocked())
+            if (this.isDisposed || this.framesCompleted >= targetFrameCount)
             {
                 return Task.CompletedTask;
             }
 
-            this.flushCompletion ??= new(TaskCreationOptions.RunContinuationsAsynchronously);
-            return WaitForFlushAsync(this.flushCompletion.Task, token);
+            var waiterNode = this.flushWaiters.AddLast(new FlushWaiter(targetFrameCount));
+            return this.WaitForFlushAsync(waiterNode, token);
         }
     }
 
@@ -256,15 +277,12 @@ internal sealed class OpAmpPipe : IDisposable
         lock (this.frameLock)
         {
             this.TryStartFlushLocked(token);
-            this.TryCompleteFlushLocked();
+            this.CompleteFlushWaitersLocked();
         }
     }
 
     private bool HasDataToSendLocked()
         => this.hasAccumulatedData || this.pendingFrames.Count > 0;
-
-    private bool IsFlushCompleteLocked()
-        => this.isDisposed || (!this.HasDataToSendLocked() && !this.isBusy);
 
     private Task? TryStartFlushLocked(CancellationToken token)
     {
@@ -290,6 +308,7 @@ internal sealed class OpAmpPipe : IDisposable
         else
         {
             message = this.currentFrame.Build();
+            this.framesBuilt++;
             this.hasAccumulatedData = false;
         }
 
@@ -303,12 +322,13 @@ internal sealed class OpAmpPipe : IDisposable
         return this.flushTask;
     }
 
-    private void TryCompleteFlushLocked()
+    private void CompleteFlushWaitersLocked()
     {
-        if (this.IsFlushCompleteLocked())
+        while (this.flushWaiters.First is { } first &&
+            (this.isDisposed || first.Value.Target <= this.framesCompleted))
         {
-            this.flushCompletion?.TrySetResult(true);
-            this.flushCompletion = null;
+            this.flushWaiters.RemoveFirst();
+            first.Value.Completion.TrySetResult(true);
         }
     }
 
@@ -382,6 +402,7 @@ internal sealed class OpAmpPipe : IDisposable
         lock (this.frameLock)
         {
             this.isBusy = false;
+            this.framesCompleted++;
         }
     }
 
@@ -391,6 +412,18 @@ internal sealed class OpAmpPipe : IDisposable
         public AgentToServer Message { get; } = message;
 
         public long Bytes { get; } = bytes;
+    }
+
+    private readonly struct FlushWaiter
+    {
+        public FlushWaiter(long target)
+        {
+            this.Target = target;
+        }
+
+        public long Target { get; }
+
+        public TaskCompletionSource<bool> Completion { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
     }
 
     private sealed class ServerFrameHandler : IOpAmpListener<ServerToAgentMessage>

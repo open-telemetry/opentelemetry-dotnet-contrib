@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* Fixed `OpAmpClient.FlushAsync()` potentially waiting indefinitely when new
+  messages kept being queued. Messages queued after a flush starts no longer
+  delay its completion.
+  ([#5882](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5882))
+
 * Fixed the pending message byte limit not counting state reports queued together
   with custom messages, which allowed pending frames to retain more memory than
   the configured limit.
