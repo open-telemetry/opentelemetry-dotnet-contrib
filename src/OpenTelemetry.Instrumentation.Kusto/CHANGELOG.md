@@ -10,6 +10,10 @@
   for `https`), to follow the v1.45.0 database semantic conventions.
   ([#5833](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5833))
 
+* Fixed a client request id or database name containing `text=` being able to
+  bypass `db.query.text` sanitization and set `db.query.summary`.
+  ([#NNNN](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/NNNN))
+
 ## 0.1.0-alpha.7
 
 Released 2026-Oct-21

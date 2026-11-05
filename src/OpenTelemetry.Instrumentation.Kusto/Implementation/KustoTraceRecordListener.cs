@@ -86,6 +86,9 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
         }
     }
 
+    private static bool IsRequestBodyTraced() =>
+        string.Equals(Environment.GetEnvironmentVariable("KUSTO_DATA_TRACE_REQUEST_BODY"), "1", StringComparison.Ordinal);
+
     private static double GetElapsedTime(long begin) => Stopwatch.GetElapsedTime(begin).TotalSeconds;
 
     private bool ShouldComputeTags(Activity? activity) =>
@@ -155,7 +158,13 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
             context.AddMeterTag(SemanticConventions.AttributeDbSystemName, KustoSemanticConventions.DbSystemNameValue);
             context.AddMeterTag(SemanticConventions.AttributeDbOperationName, operationName);
 
-            var result = TraceRecordParser.ParseRequestStart(record.Message.AsSpan());
+            // A sub-activity (a query run within an existing Kusto activity) reports the client request id of its
+            // parent, which may not be the one the client wrote to the message when the request overrides it.
+            var kustoActivity = record.Activity;
+            var clientRequestIdKnown = kustoActivity.SubActivityId == kustoActivity.ActivityId;
+            var result = clientRequestIdKnown
+                ? TraceRecordParser.ParseRequestStart(record.Message.AsSpan(), kustoActivity.ClientRequestId.AsSpan())
+                : TraceRecordParser.ParseRequestStart(record.Message.AsSpan(), [], IsRequestBodyTraced());
 
             if (!string.IsNullOrEmpty(result.ServerAddress))
             {

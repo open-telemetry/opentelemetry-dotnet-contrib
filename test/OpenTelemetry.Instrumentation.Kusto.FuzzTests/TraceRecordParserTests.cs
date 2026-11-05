@@ -16,7 +16,7 @@ public static class TraceRecordParserTests
     {
         // The parser returns a ref struct, which cannot cross a lambda boundary, so it is called directly;
         // an exception escaping the call fails the property.
-        var parsed = TraceRecordParser.ParseRequestStart(input.Get.AsSpan());
+        var parsed = TraceRecordParser.ParseRequestStart(input.Get.AsSpan(), input.Get.AsSpan());
 
         _ = parsed.QueryText.Length;
     }
@@ -34,11 +34,37 @@ public static class TraceRecordParserTests
     {
         // text= is documented to be the last field, so everything after it is the query text verbatim.
         var query = input.Get.Replace("\r", " ").Replace("\n", " ");
-        var message = $"$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=https://cluster.kusto.windows.net/, DatabaseName=NetDefaultDB, text={query}";
+        var message = $"$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=https://cluster.kusto.windows.net/, DatabaseName=NetDefaultDB, ClientRequestId=KD2RunQuery;1, text={query}";
 
-        var parsed = TraceRecordParser.ParseRequestStart(message.AsSpan());
+        var parsed = TraceRecordParser.ParseRequestStart(message.AsSpan(), "KD2RunQuery;1".AsSpan());
 
         Assert.Equal(query, parsed.QueryText.ToString());
+    }
+
+    [Property(MaxTest = MaxTest)]
+    public static void ParseRequestStart_Query_Text_Is_Not_Taken_From_Client_Request_Id(NonEmptyString input)
+    {
+        // The client request id is written unescaped ahead of the query text; whatever it contains
+        // (including ", text="), the query text is the field that follows it.
+        var clientRequestId = input.Get;
+        var message = $"$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=https://cluster.kusto.windows.net/, DatabaseName=NetDefaultDB, ClientRequestId={clientRequestId}, text=StormEvents | take 10";
+
+        var parsed = TraceRecordParser.ParseRequestStart(message.AsSpan(), clientRequestId.AsSpan());
+
+        Assert.Equal("StormEvents | take 10", parsed.QueryText.ToString());
+    }
+
+    [Property(MaxTest = MaxTest)]
+    public static void ParseRequestStart_Unknown_Client_Request_Id_Never_Returns_Caller_Text(NonEmptyString input)
+    {
+        // Without the client request id the query text is either the real query or nothing,
+        // whatever the caller-supplied client request id contains.
+        var message = $"$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=https://cluster.kusto.windows.net/, DatabaseName=NetDefaultDB, ClientRequestId={input.Get}, text=StormEvents | take 10";
+
+        var parsed = TraceRecordParser.ParseRequestStart(message.AsSpan(), [], requestBodyTraced: true);
+
+        var queryText = parsed.QueryText.ToString();
+        Assert.True(queryText.Length == 0 || queryText == "StormEvents | take 10");
     }
 
     [Property(MaxTest = MaxTest)]
@@ -52,7 +78,7 @@ public static class TraceRecordParserTests
 
         var message = $"$$HTTPREQUEST[RestClient2]: DatabaseName={database}, text=StormEvents | take 10";
 
-        var parsed = TraceRecordParser.ParseRequestStart(message.AsSpan());
+        var parsed = TraceRecordParser.ParseRequestStart(message.AsSpan(), []);
 
         Assert.Equal(database, parsed.Database.ToString());
     }

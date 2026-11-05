@@ -18,15 +18,25 @@ internal class TraceRecordParser
     private static readonly char[] Delimiters = [',', '\n'];
 #endif
 
-    public static ParsedRequestStart ParseRequestStart(ReadOnlySpan<char> message)
+    /// <summary>
+    /// Parses the message the Kusto client writes when it starts an HTTP request.
+    /// </summary>
+    /// <param name="message">The trace message.</param>
+    /// <param name="clientRequestId">
+    /// The client request id written to the message, if it is known. When it is empty, the id is not known and the
+    /// query text is only returned if it can be located without it.
+    /// </param>
+    /// <param name="requestBodyTraced">
+    /// Whether the client is known to write the query text to the message. Only used when
+    /// <paramref name="clientRequestId"/> is empty.
+    /// </param>
+    /// <returns>The parsed message.</returns>
+    public static ParsedRequestStart ParseRequestStart(ReadOnlySpan<char> message, ReadOnlySpan<char> clientRequestId, bool requestBodyTraced = false)
     {
         var uri = ExtractValueBetween(message, "Uri=").ToString();
         _ = Uri.TryCreate(uri, UriKind.Absolute, out var parsed);
         var database = ExtractValueBetween(message, "DatabaseName=");
-
-        // Query text may have embedded delimiters, however it is always the last field in the message
-        // so we can just take everything after "text="
-        var queryText = message.SliceAfter("text=");
+        var queryText = ExtractQueryText(message, clientRequestId, requestBodyTraced);
 
         // The port is only recorded when it is not the default port for the scheme.
         var port = parsed is { IsDefaultPort: false } ? parsed.Port : (int?)null;
@@ -39,6 +49,48 @@ internal class TraceRecordParser
         var errorMessage = ExtractValueBetween(message, "ErrorMessage=", newlineOnly: true);
         var errorType = ExtractValueBetween(message, "Exception object created: ", newlineOnly: true);
         return new ParsedException(errorMessage, errorType);
+    }
+
+    private static ReadOnlySpan<char> ExtractQueryText(ReadOnlySpan<char> message, ReadOnlySpan<char> clientRequestId, bool requestBodyTraced)
+    {
+        const string TextField = ", text=";
+
+        // Query text may have embedded delimiters, however it is always the last field in the message.
+        // The fields written before it (DatabaseName, ClientRequestId) are not escaped and may be supplied by
+        // callers of the application, so they may contain "text=" themselves. Rather than searching for it, step
+        // over the ClientRequestId field, whose value is known, and only accept the query text if the "text="
+        // field immediately follows it. If the message does not have that shape, no query text is returned.
+        var remaining = message.SliceAfter(", ClientRequestId=");
+
+        if (clientRequestId.IsEmpty)
+        {
+            // The id is not known (the client request id may be overridden within an existing Kusto activity), so
+            // the "text=" field can only be trusted if there is no other candidate. If the client request id or
+            // the query itself contains ", text=" it is ambiguous which one starts the query, so return nothing.
+            // Without the query text in the message, any ", text=" present must have been supplied by the caller.
+            if (!requestBodyTraced)
+            {
+                return [];
+            }
+
+            var queryText = remaining.SliceAfter(TextField);
+            return queryText.Contains(TextField, StringComparison.Ordinal) ? [] : queryText;
+        }
+
+        if (!remaining.StartsWith(clientRequestId))
+        {
+            return [];
+        }
+
+        remaining = remaining.Slice(clientRequestId.Length);
+
+        // The client may write the IP addresses of the server between the ClientRequestId and text fields.
+        if (remaining.StartsWith(", IpAddresses=("))
+        {
+            remaining = remaining.SliceAfter(")");
+        }
+
+        return remaining.StartsWith(TextField) ? remaining.Slice(TextField.Length) : [];
     }
 
     private static ReadOnlySpan<char> ExtractValueBetween(ReadOnlySpan<char> haystack, ReadOnlySpan<char> needle, bool newlineOnly = false)

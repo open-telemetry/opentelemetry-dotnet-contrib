@@ -4,6 +4,7 @@
 using System.Data;
 using System.Diagnostics;
 using System.Text;
+using Kusto.Cloud.Platform.Communication;
 using Kusto.Data.Common;
 using Kusto.Data.Net.Client;
 using OpenTelemetry.Instrumentation.Kusto.Implementation;
@@ -339,6 +340,50 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
 
         // Verify the display name was set to the custom summary
         Assert.Equal(summary, activity.DisplayName);
+    }
+
+    [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
+    [InlineData("inner;2", "print number=?", true)]
+    [InlineData("outer;2", "print number=?", true)]
+    [InlineData("x, text=Forged //", null, false)]
+    public void QueryTextWhenClientRequestIdDiffersFromEnclosingActivity(string clientRequestId, string? expectedQueryText, bool expectSummary)
+    {
+        // Arrange
+        var activities = new List<Activity>();
+
+        var kcsb = this.fixture.ConnectionStringBuilder;
+
+        // Dispose the provider before asserting so all telemetry is flushed first.
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddInMemoryExporter(activities)
+            .AddKustoInstrumentation(options =>
+            {
+                options.RecordQueryText = true;
+                options.RecordQuerySummary = true;
+            })
+            .Build())
+        {
+            using var queryProvider = KustoClientFactory.CreateCslQueryProvider(kcsb);
+
+            var crp = new ClientRequestProperties()
+            {
+                ClientRequestId = clientRequestId,
+            };
+
+            // Act - Within an existing Kusto activity the client reports the client request id of
+            // that activity, but writes the one from the request properties into the trace message.
+            using (global::Kusto.Cloud.Platform.Utils.MonitoredActivity.CreateAndPush(new EvictionTimerActivityType(), "outer;1"))
+            {
+                using var reader = queryProvider.ExecuteQuery("NetDefaultDB", "print number=42", crp);
+                reader.Consume();
+            }
+        }
+
+        // Assert
+        var activity = Assert.Single(activities, a => a.Source == KustoActivitySource.ActivitySource);
+
+        Assert.Equal(expectedQueryText, activity.GetTagItem(SemanticConventions.AttributeDbQueryText));
+        Assert.Equal(expectSummary, activity.GetTagItem(SemanticConventions.AttributeDbQuerySummary) is not null);
     }
 
     private static dynamic FilterActivities(IEnumerable<Activity> activities) =>
