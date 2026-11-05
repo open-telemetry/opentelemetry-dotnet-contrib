@@ -4,14 +4,15 @@
 namespace OpenTelemetry.Instrumentation.EntityFrameworkCore;
 
 /// <summary>
-/// Describes the result of sanitizing database command text.
+/// Describes the result of a
+/// <see cref="EntityFrameworkInstrumentationOptions.QueryTextSanitizer"/> function.
 /// </summary>
 /// <remarks>
 /// Use <see cref="NotSanitized"/> to emit the original command text unchanged,
 /// <see cref="Suppress"/> to avoid emitting query text, or
 /// <see cref="Sanitized(string, string?)"/> to emit sanitized query text.
 /// </remarks>
-internal readonly struct DbQueryTextSanitizationResult : IEquatable<DbQueryTextSanitizationResult>
+public readonly struct DbQueryTextSanitizationResult : IEquatable<DbQueryTextSanitizationResult>
 {
     private DbQueryTextSanitizationResult(bool isSanitized, bool suppressQueryText, string? queryText, string? querySummary)
     {
@@ -78,7 +79,7 @@ internal readonly struct DbQueryTextSanitizationResult : IEquatable<DbQueryTextS
     /// <param name="queryText">The sanitized query text to emit.</param>
     /// <param name="querySummary">The query summary to emit as <c>db.query.summary</c>.</param>
     /// <returns>The <see cref="DbQueryTextSanitizationResult"/>.</returns>
-    public static DbQueryTextSanitizationResult Sanitized(string? queryText, string? querySummary = null)
+    public static DbQueryTextSanitizationResult Sanitized(string queryText, string? querySummary = null)
         => new(isSanitized: true, suppressQueryText: false, queryText, querySummary);
 
     /// <inheritdoc/>

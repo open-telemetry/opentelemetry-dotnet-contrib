@@ -7,26 +7,36 @@ using System.Runtime.CompilerServices;
 namespace OpenTelemetry.Instrumentation.EntityFrameworkCore;
 
 /// <summary>
-/// Contains information about a database command to sanitize.
+/// Contains information about the command passed to a
+/// <see cref="EntityFrameworkInstrumentationOptions.QueryTextSanitizer"/> function.
 /// </summary>
-/// <param name="providerName">The database provider name.</param>
-/// <param name="queryText">The unsanitized command text.</param>
-/// <param name="command">The database command.</param>
-internal readonly struct DbQueryTextSanitizationContext(string? providerName, string? queryText, IDbCommand? command)
-    : IEquatable<DbQueryTextSanitizationContext>
+public readonly struct DbQueryTextSanitizationContext : IEquatable<DbQueryTextSanitizationContext>
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DbQueryTextSanitizationContext"/> struct.
+    /// </summary>
+    /// <param name="providerName">The database provider name.</param>
+    /// <param name="queryText">The unsanitized command text.</param>
+    /// <param name="command">The database command.</param>
+    internal DbQueryTextSanitizationContext(string? providerName, string? queryText, IDbCommand? command)
+    {
+        this.ProviderName = providerName;
+        this.QueryText = queryText;
+        this.Command = command;
+    }
+
     /// <summary>
     /// Gets the name of the Entity Framework Core database provider executing the query.
     /// </summary>
     /// <remarks>
     /// This value is <see langword="null"/> if the provider name could not be determined.
     /// </remarks>
-    public string? ProviderName { get; } = providerName;
+    public string? ProviderName { get; }
 
     /// <summary>
     /// Gets the unsanitized text of the command being executed.
     /// </summary>
-    public string? QueryText { get; } = queryText;
+    public string? QueryText { get; }
 
     /// <summary>
     /// Gets the command being executed, from which additional information can be extracted.
@@ -35,7 +45,7 @@ internal readonly struct DbQueryTextSanitizationContext(string? providerName, st
     /// This value is <see langword="null"/> if the command is not executed through an
     /// <see cref="IDbCommand"/>.
     /// </remarks>
-    public IDbCommand? Command { get; } = command;
+    public IDbCommand? Command { get; }
 
     /// <summary>
     /// Determines whether two <see cref="DbQueryTextSanitizationContext"/> instances are equal.
