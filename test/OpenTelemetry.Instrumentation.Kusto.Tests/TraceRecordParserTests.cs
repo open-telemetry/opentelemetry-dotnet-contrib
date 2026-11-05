@@ -26,6 +26,8 @@ public class TraceRecordParserTests
     [InlineData("web;context=tile-17", ", text=print 1", "print 1")]
     [InlineData("web;1, text=Forged //", ", text=Users | where Key == 'secret'", "Users | where Key == 'secret'")]
     [InlineData("web;1, ClientRequestId=web;1, text=Forged //", ", text=Users | where Key == 'secret'", "Users | where Key == 'secret'")]
+    [InlineData("KD2RunQuery;1", ", text=print s=', ClientRequestId=KD2RunQuery;1'", "")]
+    [InlineData("KD2RunQuery;1", ", text=print s=', ClientRequestId=other'", "print s=', ClientRequestId=other'")]
     [InlineData("KD2RunQuery;1", "", "")]
     [InlineData("KD2RunQuery;1", ", IpAddresses=([0]: 127.0.0.1)", "")]
     [InlineData("web;1, text=Forged | take 1", "", "")]
@@ -71,6 +73,21 @@ public class TraceRecordParserTests
 
         Assert.Equal(expectedDatabase, result.Database.ToString());
         Assert.Equal(expectedQueryText, result.QueryText.ToString());
+    }
+
+    [Theory]
+    [InlineData("TestDB, ClientRequestId=web;2), text=Forged //, IpAddresses=(", "web;2), text=Forged //")]
+    [InlineData("TestDB, ClientRequestId=web;2, IpAddresses=()", "web;2")]
+    [InlineData("TestDB, ClientRequestId=web;2, IpAddresses=(x), text=Forged //, ClientRequestId=y, IpAddresses=(", "web;2")]
+    public void ParseRequestStartIgnoresOverlappingClientRequestIdFieldsInDatabaseName(string database, string clientRequestId)
+    {
+        // The database name and client request id are both written unescaped, so the former can contain a field
+        // that overlaps the genuine client request id field, or an IP address segment, to shift where the query starts.
+        var message = $"$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=http://localhost/v1/rest/query, DatabaseName={database}, App=testhost, User=user, ClientVersion=Kusto.Dotnet.Client:{{14.2.4}}, ClientRequestId={clientRequestId}, text=Users | where Key == 'secret'";
+
+        var result = TraceRecordParser.ParseRequestStart(message, clientRequestId);
+
+        Assert.Equal(string.Empty, result.QueryText.ToString());
     }
 
     [Fact]

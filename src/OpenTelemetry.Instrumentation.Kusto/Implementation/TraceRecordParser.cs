@@ -82,6 +82,16 @@ internal class TraceRecordParser
             return [];
         }
 
+        // The database name is also written unescaped, ahead of the client request id, so it could contain what
+        // looks like the client request id field (including one that overlaps the genuine field), or the query
+        // could. The genuine field always follows, so if the same field appears again anywhere after the one found
+        // it is ambiguous which one is genuine, so return nothing. This is checked before stepping over the id or
+        // the IP addresses, as those steps could otherwise consume the genuine field.
+        if (ContainsClientRequestIdField(remaining, clientRequestId))
+        {
+            return [];
+        }
+
         remaining = remaining.Slice(clientRequestId.Length);
 
         // The client may write the IP addresses of the server between the ClientRequestId and text fields.
@@ -90,16 +100,7 @@ internal class TraceRecordParser
             remaining = remaining.SliceAfter(")");
         }
 
-        if (!remaining.StartsWith(TextField))
-        {
-            return [];
-        }
-
-        // The database name is also written unescaped, ahead of the client request id, so it could contain what
-        // looks like the client request id field. If the same field appears again in what was taken to be the
-        // query text, it is ambiguous which one is genuine, so return nothing.
-        var text = remaining.Slice(TextField.Length);
-        return ContainsClientRequestIdField(text, clientRequestId) ? [] : text;
+        return remaining.StartsWith(TextField) ? remaining.Slice(TextField.Length) : [];
     }
 
     private static bool ContainsClientRequestIdField(ReadOnlySpan<char> span, ReadOnlySpan<char> clientRequestId)

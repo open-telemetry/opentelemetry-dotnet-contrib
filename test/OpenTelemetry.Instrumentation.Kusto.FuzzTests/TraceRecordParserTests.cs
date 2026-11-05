@@ -38,7 +38,10 @@ public static class TraceRecordParserTests
 
         var parsed = TraceRecordParser.ParseRequestStart(message.AsSpan(), "KD2RunQuery;1".AsSpan());
 
-        Assert.Equal(query, parsed.QueryText.ToString());
+        // A query that contains the client request id field is ambiguous, so no query text is returned for it.
+        var expected = query.Contains(", ClientRequestId=KD2RunQuery;1", StringComparison.Ordinal) ? string.Empty : query;
+
+        Assert.Equal(expected, parsed.QueryText.ToString());
     }
 
     [Property(MaxTest = MaxTest)]
