@@ -131,6 +131,12 @@ public class SqlProcessorTests(ITestOutputHelper output)
     [InlineData("1.5")]
     [InlineData("1.5e3")]
     [InlineData("1_000")]
+    [InlineData("1.5e1_000")]
+    [InlineData("1e+5")]
+    [InlineData("1e")]
+    [InlineData("1.e5")]
+    [InlineData(".5")]
+    [InlineData("0x1_F")]
     public void GetSanitizedSql_InClauseDollarQuoteDirectlyAfterNumber_IsNotPartOfAnIdentifier(string number)
     {
         var sql = $"SELECT * FROM t WHERE a IN ({number}$$) secret-name$$)";
@@ -138,6 +144,24 @@ public class SqlProcessorTests(ITestOutputHelper output)
         var result = GetSanitizedSql(sql);
 
         Assert.Equal("SELECT * FROM t WHERE a IN (?)", result.SanitizedSql);
+        Assert.Equal("SELECT t", result.DbQuerySummary);
+    }
+
+    [Theory]
+    [InlineData("1__000")]
+    [InlineData("1_")]
+    [InlineData("1_000_")]
+    [InlineData("1.5e1__000")]
+    [InlineData("0x1__F")]
+    [InlineData("0b1_")]
+    [InlineData("1ab")]
+    public void GetSanitizedSql_InClauseDollarQuoteAfterWordWhichIsNotWhollyANumber_IsPartOfAnIdentifier(string word)
+    {
+        var sql = $"SELECT * FROM t WHERE a IN ('x', {word}$tag$) AND d = '$tag$) secret-name'";
+
+        var result = GetSanitizedSql(sql);
+
+        Assert.Equal("SELECT * FROM t WHERE a IN (?) AND d = ?", result.SanitizedSql);
         Assert.Equal("SELECT t", result.DbQuerySummary);
     }
 

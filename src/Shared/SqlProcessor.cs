@@ -2365,7 +2365,29 @@ internal static partial class SqlProcessor
 
     private static bool SanitizeBasePrefixedLiteral(ReadOnlySpan<char> sql, Span<char> buffer, ref ParseState state)
     {
-        var i = state.ParsePosition;
+        if (!TryFindBasePrefixedLiteralEnd(sql, state.ParsePosition, out var prefixIndex, out var end))
+        {
+            return false;
+        }
+
+        if (TrySanitizeLiteralsForInClause(sql, buffer, ref state, prefixIndex))
+        {
+            return true;
+        }
+
+        state.ParsePosition = end;
+        buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
+        return true;
+    }
+
+    // Finds the end of a number with a base prefix (e.g. 0x1F, 0b101 or 0o173), which is at the position or after its sign.
+    // This is how the parser finds the number, so it is also used to find where one ends when scanning ahead of it.
+    private static bool TryFindBasePrefixedLiteralEnd(ReadOnlySpan<char> sql, int start, out int prefixIndex, out int end)
+    {
+        prefixIndex = -1;
+        end = -1;
+
+        var i = start;
         var length = sql.Length;
 
         if ((sql[i] is '-' or '+') && i + 1 < length && sql[i + 1] == '0')
@@ -2401,10 +2423,7 @@ internal static partial class SqlProcessor
             return false;
         }
 
-        if (TrySanitizeLiteralsForInClause(sql, buffer, ref state, i))
-        {
-            return true;
-        }
+        prefixIndex = i;
 
         for (i += 2; i < length; i++)
         {
@@ -2415,8 +2434,7 @@ internal static partial class SqlProcessor
             }
         }
 
-        state.ParsePosition = i;
-        buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
+        end = i;
         return true;
 
         static bool IsBaseDigit(char value, int numberBase) => numberBase switch
@@ -2458,54 +2476,62 @@ internal static partial class SqlProcessor
                 return true;
             }
 
-            var exponentMatched = false;
-            for (i += 1; i < length; ++i)
-            {
-                currentChar = sql[i];
-                if (char.IsAsciiDigit(currentChar) ||
-                    (currentChar == UnderscoreChar && i + 1 < length &&
-                     char.IsAsciiDigit(sql[i - 1]) && char.IsAsciiDigit(sql[i + 1])))
-                {
-                    continue;
-                }
-
-                if (!periodMatched && currentChar == '.')
-                {
-                    periodMatched = true;
-                    continue;
-                }
-
-                if (!exponentMatched && (currentChar == 'e' || currentChar == 'E'))
-                {
-                    // Scan past sign in exponent
-                    if (i + 1 < length && (sql[i + 1] == '-' || sql[i + 1] == '+'))
-                    {
-                        i += 1;
-                    }
-
-                    exponentMatched = true;
-                    continue;
-                }
-
-                // Oracle appends F or D to a floating-point literal. Only consume the suffix at the end
-                // of its token, so an adjacent word is not partially consumed as a type suffix.
-                if ((currentChar is 'f' or 'F' or 'd' or 'D') &&
-                    (i + 1 >= length || !IsWordChar(sql[i + 1])))
-                {
-                    break;
-                }
-
-                i -= 1;
-                break;
-            }
-
-            state.ParsePosition = ++i;
+            state.ParsePosition = FindNumericLiteralEnd(sql, i, periodMatched);
 
             buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
             return true;
         }
 
         return false;
+    }
+
+    // Finds the end of a number from its first digit, with a decimal point already found if it started with one.
+    // This is how the parser finds the number, so it is also used to find where one ends when scanning ahead of it.
+    private static int FindNumericLiteralEnd(ReadOnlySpan<char> sql, int firstDigit, bool periodMatched)
+    {
+        var length = sql.Length;
+        var exponentMatched = false;
+
+        for (var i = firstDigit + 1; i < length; ++i)
+        {
+            var currentChar = sql[i];
+            if (char.IsAsciiDigit(currentChar) ||
+                (currentChar == UnderscoreChar && i + 1 < length &&
+                 char.IsAsciiDigit(sql[i - 1]) && char.IsAsciiDigit(sql[i + 1])))
+            {
+                continue;
+            }
+
+            if (!periodMatched && currentChar == '.')
+            {
+                periodMatched = true;
+                continue;
+            }
+
+            if (!exponentMatched && (currentChar == 'e' || currentChar == 'E'))
+            {
+                // Scan past sign in exponent
+                if (i + 1 < length && (sql[i + 1] == '-' || sql[i + 1] == '+'))
+                {
+                    i += 1;
+                }
+
+                exponentMatched = true;
+                continue;
+            }
+
+            // Oracle appends F or D to a floating-point literal. Only consume the suffix at the end
+            // of its token, so an adjacent word is not partially consumed as a type suffix.
+            if ((currentChar is 'f' or 'F' or 'd' or 'D') &&
+                (i + 1 >= length || !IsWordChar(sql[i + 1])))
+            {
+                return i + 1;
+            }
+
+            return i;
+        }
+
+        return length;
     }
 
     private static bool TrySanitizeLiteralsForInClause(ReadOnlySpan<char> sql, Span<char> buffer, ref ParseState state, int parsePosition)
@@ -2677,74 +2703,28 @@ internal static partial class SqlProcessor
             start--;
         }
 
-        // A word which starts with a letter (e.g. a1), or which follows a character of a word (e.g. $1), is an identifier.
-        if (start == end ||
-            !(char.IsAsciiDigit(sql[start]) || (sql[start] == DotChar && start + 1 < end && char.IsAsciiDigit(sql[start + 1]))) ||
-            (start > 0 && IsWordChar(sql[start - 1])))
+        // A word which follows a character of a word (e.g. $1) is an identifier, as is one which starts with a letter (e.g. a1).
+        if (start == end || (start > 0 && IsWordChar(sql[start - 1])))
         {
             return false;
         }
 
-        var number = sql.Slice(start, end - start);
-
-        if (number.Length > 2 && number[0] == '0' && (number[1] | 0x20) is 'x' or 'b' or 'o')
+        // The number is found in the same way as the parser finds it, so that what is directly after it is only taken
+        // for a literal when the parser does (e.g. not after the second separator of 1__000, or the last of 1_).
+        if (TryFindBasePrefixedLiteralEnd(sql, start, out _, out var baseEnd))
         {
-            var numberBase = (number[1] | 0x20) switch
-            {
-                'x' => 16,
-                'b' => 2,
-                _ => 8,
-            };
-
-            for (var i = 2; i < number.Length; i++)
-            {
-                var digit = number[i];
-                if (!(digit == UnderscoreChar ||
-                      numberBase switch
-                      {
-                          2 => digit is '0' or '1',
-                          8 => digit is >= '0' and <= '7',
-                          _ => char.IsAsciiHexDigit(digit),
-                      }))
-                {
-                    return false;
-                }
-            }
-
-            return true;
+            return baseEnd == end;
         }
 
-        var position = 0;
-        while (position < number.Length && (char.IsAsciiDigit(number[position]) || number[position] == UnderscoreChar))
+        if (char.IsAsciiDigit(sql[start]))
         {
-            position++;
+            return FindNumericLiteralEnd(sql, start, periodMatched: false) == end;
         }
 
-        if (position < number.Length && number[position] == DotChar)
-        {
-            position++;
-            while (position < number.Length && (char.IsAsciiDigit(number[position]) || number[position] == UnderscoreChar))
-            {
-                position++;
-            }
-        }
-
-        // The main parser takes the exponent as it is, with or without digits after it.
-        if (position < number.Length && (number[position] | 0x20) == 'e')
-        {
-            position++;
-            if (position < number.Length && number[position] is '+' or '-')
-            {
-                position++;
-            }
-
-            while (position < number.Length && char.IsAsciiDigit(number[position]))
-            {
-                position++;
-            }
-        }
-
-        return position == number.Length;
+        return sql[start] == DotChar &&
+               start + 1 < end &&
+               char.IsAsciiDigit(sql[start + 1]) &&
+               FindNumericLiteralEnd(sql, start + 1, periodMatched: true) == end;
     }
 
 #if !NET
