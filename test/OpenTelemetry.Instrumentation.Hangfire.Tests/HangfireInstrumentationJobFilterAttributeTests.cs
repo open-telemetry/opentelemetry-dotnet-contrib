@@ -75,7 +75,35 @@ public class HangfireInstrumentationJobFilterAttributeTests
         Assert.Contains("JOB TestJob.ThrowException", activity.DisplayName);
         Assert.Equal(ActivityKind.Internal, activity.Kind);
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
-        Assert.Contains("An exception occurred during performance of the job.", activity.StatusDescription);
+        Assert.Null(activity.StatusDescription);
+        Assert.Empty(activity.Events);
+    }
+
+    [Fact]
+    public async Task Should_Not_Set_Status_Description_When_Job_Scope_Disposal_Failed()
+    {
+        // Arrange
+        var exportedItems = new List<Activity>();
+
+        string jobId;
+
+        using (var provider = Sdk.CreateTracerProviderBuilder()
+                                 .AddHangfireInstrumentation()
+                                 .AddInMemoryExporter(exportedItems)
+                                 .Build())
+        {
+            // Act
+            jobId = BackgroundJob.Enqueue<TestJobWithDisposeException>(x => x.Execute());
+            await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
+
+            provider.ForceFlush();
+        }
+
+        // Assert
+        var activity = Assert.Single(exportedItems, i => (i.GetTagItem("job.id") as string) == jobId);
+
+        Assert.Equal(ActivityStatusCode.Error, activity.Status);
+        Assert.Null(activity.StatusDescription);
         Assert.Empty(activity.Events);
     }
 
@@ -105,8 +133,12 @@ public class HangfireInstrumentationJobFilterAttributeTests
         Assert.Contains("JOB TestJob.ThrowException", activity.DisplayName);
         Assert.Equal(ActivityKind.Internal, activity.Kind);
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
-        Assert.Contains("An exception occurred during performance of the job.", activity.StatusDescription);
-        Assert.Single(activity.Events, evt => evt.Name == "exception");
+        Assert.Null(activity.StatusDescription);
+
+        var exceptionEvent = Assert.Single(activity.Events, evt => evt.Name == "exception");
+        Assert.Contains(
+            exceptionEvent.Tags,
+            tag => tag.Key == "exception.message" && (tag.Value as string) == "An exception occurred during performance of the job.");
     }
 
     [Fact]
@@ -135,7 +167,7 @@ public class HangfireInstrumentationJobFilterAttributeTests
         Assert.Contains("JOB TestJob.ThrowException", activity.DisplayName);
         Assert.Equal(ActivityKind.Internal, activity.Kind);
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
-        Assert.Contains("An exception occurred during performance of the job.", activity.StatusDescription);
+        Assert.Null(activity.StatusDescription);
         Assert.Empty(activity.Events);
     }
 
