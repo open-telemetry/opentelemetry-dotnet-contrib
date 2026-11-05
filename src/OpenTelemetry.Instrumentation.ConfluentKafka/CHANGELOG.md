@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.5.0-alpha.1
+
+Released 2026-Nov-05
+
 * **Breaking change**: Updated the traces and metrics emitted by the Kafka
   producer and consumer to follow the
   [v1.45.0 messaging semantic conventions](https://github.com/open-telemetry/semantic-conventions/tree/v1.45.0/docs/messaging).
