@@ -298,6 +298,209 @@ public abstract class OpAmpPipeTests
     }
 
     [Fact]
+    public async Task OpAmpPipe_FlushAsync_DoesNotWaitForDataAppendedAfterTheCall()
+    {
+        using var transport = this.GetTransport();
+        var processor = new FrameProcessor();
+        using var pipe = new OpAmpPipe(new OpAmpClientSettings(), processor, transport);
+        var serverFrame = new ServerToAgent().ToByteArray();
+
+        AppendIdentification(pipe);
+        await transport.WaitForMessagesAsync(1);
+
+        var flushTask = pipe.FlushAsync(TestContext.Current.CancellationToken);
+        Assert.False(flushTask.IsCompleted, "Flush task should not be completed immediately after calling FlushAsync.");
+
+        // A heartbeat arriving while the original send is still in flight.
+        AppendHeartbeat(pipe);
+
+        transport.CompleteNextSend();
+        processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+
+        await CompleteWithinTimeoutAsync(flushTask);
+
+        // The heartbeat send was started, but its completion was not required.
+        await transport.WaitForMessagesAsync(2);
+        Assert.NotNull(transport.Messages.ToArray()[1].Health);
+        transport.CompleteNextSend();
+    }
+
+    [Fact]
+    public async Task OpAmpPipe_FlushAsync_WaitsForDataAccumulatedBeforeTheCall()
+    {
+        using var transport = this.GetTransport();
+        var processor = new FrameProcessor();
+        using var pipe = new OpAmpPipe(new OpAmpClientSettings(), processor, transport);
+        var serverFrame = new ServerToAgent().ToByteArray();
+
+        AppendIdentification(pipe);
+        await transport.WaitForMessagesAsync(1);
+        AppendHeartbeat(pipe); // accumulated while busy
+
+        var flushTask = pipe.FlushAsync(TestContext.Current.CancellationToken);
+
+        transport.CompleteNextSend();
+        processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+        await transport.WaitForMessagesAsync(2);
+        Assert.False(flushTask.IsCompleted, "Flush task should not be completed immediately after calling FlushAsync for accumulated data.");
+
+        transport.CompleteNextSend();
+        processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+        await CompleteWithinTimeoutAsync(flushTask);
+    }
+
+    [Fact]
+    public async Task OpAmpPipe_FlushAsync_WaitsForQueuedCustomFramesButNotLaterOnes()
+    {
+        using var transport = this.GetTransport();
+        var processor = new FrameProcessor();
+        using var pipe = new OpAmpPipe(new OpAmpClientSettings(), processor, transport);
+        var serverFrame = new ServerToAgent().ToByteArray();
+
+        AppendIdentification(pipe);
+        await transport.WaitForMessagesAsync(1);
+        AppendCustomMessage(pipe, 0);
+
+        var flushTask = pipe.FlushAsync(TestContext.Current.CancellationToken);
+        AppendCustomMessage(pipe, 1); // queued after the flush call
+
+        transport.CompleteNextSend();
+        processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+        await transport.WaitForMessagesAsync(2);
+        Assert.False(flushTask.IsCompleted, "Flush task should not be completed immediately after calling FlushAsync for queued custom frames.");
+
+        transport.CompleteNextSend();
+        processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+
+        await CompleteWithinTimeoutAsync(flushTask);
+        await transport.WaitForMessagesAsync(3);
+        transport.CompleteNextSend();
+    }
+
+    [Fact]
+    public async Task OpAmpPipe_FlushAsync_WaitsForAccumulatedDataBuiltIntoALaterCustomFrame()
+    {
+        using var transport = this.GetTransport();
+        var processor = new FrameProcessor();
+        using var pipe = new OpAmpPipe(new OpAmpClientSettings(), processor, transport);
+        var serverFrame = new ServerToAgent().ToByteArray();
+
+        AppendIdentification(pipe);
+        await transport.WaitForMessagesAsync(1);
+        AppendCustomMessage(pipe, 0);
+        AppendHeartbeat(pipe);
+
+        var flushTask = pipe.FlushAsync(TestContext.Current.CancellationToken);
+
+        // The accumulated heartbeat becomes part of a custom frame built after the flush call.
+        AppendCustomMessage(pipe, 1);
+        AppendCustomMessage(pipe, 2);
+
+        for (var expectedMessageCount = 2; expectedMessageCount <= 3; expectedMessageCount++)
+        {
+            transport.CompleteNextSend();
+            processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+            await transport.WaitForMessagesAsync(expectedMessageCount);
+            Assert.False(flushTask.IsCompleted, "Flush must wait for the frame containing the accumulated heartbeat.");
+        }
+
+        var heartbeatFrame = transport.Messages[2];
+        Assert.NotNull(heartbeatFrame.Health);
+        Assert.Equal("type-1", heartbeatFrame.CustomMessage.Type);
+
+        transport.CompleteNextSend();
+        processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+        await CompleteWithinTimeoutAsync(flushTask);
+
+        await transport.WaitForMessagesAsync(4);
+        Assert.Equal("type-2", transport.Messages[3].CustomMessage.Type);
+        transport.CompleteNextSend();
+    }
+
+    [Fact]
+    public async Task OpAmpPipe_FlushAsync_OverlappingCallsCompleteAtTheirOwnTargets()
+    {
+        using var transport = this.GetTransport();
+        var processor = new FrameProcessor();
+        using var pipe = new OpAmpPipe(new OpAmpClientSettings(), processor, transport);
+        var serverFrame = new ServerToAgent().ToByteArray();
+
+        AppendIdentification(pipe);
+        await transport.WaitForMessagesAsync(1);
+
+        var first = pipe.FlushAsync(TestContext.Current.CancellationToken);
+        AppendCustomMessage(pipe, 0);
+        var second = pipe.FlushAsync(TestContext.Current.CancellationToken);
+
+        transport.CompleteNextSend();
+        processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+        await CompleteWithinTimeoutAsync(first);
+        Assert.False(second.IsCompleted, "Second flush task should not be completed immediately after calling FlushAsync for queued custom frames.");
+
+        await transport.WaitForMessagesAsync(2);
+        transport.CompleteNextSend();
+        processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+        await CompleteWithinTimeoutAsync(second);
+    }
+
+    [Fact]
+    public async Task OpAmpPipe_FlushAsync_CompletesWhenTargetSendFails()
+    {
+        using var transport = this.GetTransport();
+        using var pipe = new OpAmpPipe(new OpAmpClientSettings(), new FrameProcessor(), transport);
+
+        AppendIdentification(pipe);
+        await transport.WaitForMessagesAsync(1);
+
+        var flushTask = pipe.FlushAsync(TestContext.Current.CancellationToken);
+        transport.FaultNextSend(new InvalidOperationException("send failed"));
+
+        await CompleteWithinTimeoutAsync(flushTask);
+    }
+
+    [Fact]
+    public async Task OpAmpPipe_FlushAsync_CanBeCancelledAndLaterFlushStillCompletes()
+    {
+        using var transport = this.GetTransport();
+        var processor = new FrameProcessor();
+        using var pipe = new OpAmpPipe(new OpAmpClientSettings(), processor, transport);
+        var serverFrame = new ServerToAgent().ToByteArray();
+
+        AppendIdentification(pipe);
+        await transport.WaitForMessagesAsync(1);
+
+        for (var i = 0; i < 10; i++)
+        {
+            using var cts = new CancellationTokenSource();
+            var cancelled = pipe.FlushAsync(cts.Token);
+            cts.Cancel();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => cancelled);
+        }
+
+        var flushTask = pipe.FlushAsync(TestContext.Current.CancellationToken);
+        transport.CompleteNextSend();
+        processor.OnServerFrame(new ReadOnlySequence<byte>(serverFrame));
+        await CompleteWithinTimeoutAsync(flushTask);
+    }
+
+    [Fact]
+    public async Task OpAmpPipe_FlushAsync_CompletesWhenPipeIsDisposed()
+    {
+        using var transport = this.GetTransport();
+        var pipe = new OpAmpPipe(new OpAmpClientSettings(), new FrameProcessor(), transport);
+
+        AppendIdentification(pipe);
+        await transport.WaitForMessagesAsync(1);
+
+        var flushTask = pipe.FlushAsync(TestContext.Current.CancellationToken);
+        Assert.False(flushTask.IsCompleted, "Flush task should not be completed immediately after calling FlushAsync before disposing the pipe.");
+
+        pipe.Dispose();
+
+        await CompleteWithinTimeoutAsync(flushTask);
+    }
+
+    [Fact]
     public async Task OpAmpPipe_FlushAsyncCompletes_WhenNoMessagesArePending()
     {
         using var transport = this.GetTransport();
@@ -504,6 +707,13 @@ public abstract class OpAmpPipeTests
             $"capability-{index}",
             $"type-{index}",
             payload);
+
+    internal static async Task CompleteWithinTimeoutAsync(Task task)
+    {
+        var completed = await Task.WhenAny(task, Task.Delay(TimeSpan.FromSeconds(5)));
+        Assert.Same(task, completed);
+        await task;
+    }
 
     internal abstract MockControlledTransport GetTransport(Action? firstSendCallback = null);
 
