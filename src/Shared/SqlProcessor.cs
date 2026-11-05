@@ -441,7 +441,7 @@ internal static partial class SqlProcessor
     // Whether the character can be part of a word, such as an identifier, keyword or variable name.
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsWordChar(char c) =>
-        char.IsLetterOrDigit(c) || c is UnderscoreChar or DollarChar or HashChar or AtChar;
+        char.IsAsciiLetterOrDigit(c) || c >= '\u0080' || c is UnderscoreChar or DollarChar or HashChar or AtChar;
 
     // Whether the character can be part of a word in the dialect, in which # starts a comment in MySQL, MariaDB and GoogleSQL.
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -456,6 +456,13 @@ internal static partial class SqlProcessor
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsValidTokenCharacter(char currentChar, int indexInToken, in ParseState state)
     {
+        // PostgreSQL allows any non-ASCII character in an unquoted account name, including
+        // combining marks and surrogate pairs, so a name must not be split at those characters.
+        if (state.NextIsAccountName && currentChar >= '\u0080')
+        {
+            return true;
+        }
+
         // If we are not capturing the next token as an identifier, we only accept unescaped identifier characters.
         // The name of a login or user is the same, so that a period before it does not use it up (e.g. .[name]).
         if (state.Pending is not (PendingToken.SummaryName or PendingToken.AccountName))
@@ -700,6 +707,20 @@ internal static partial class SqlProcessor
     {
         var start = state.ParsePosition;
         var currentChar = sql[start];
+
+        // U&"..." is one Unicode-escaped PostgreSQL identifier. Keep its prefix without
+        // consuming it as the account name so the quoted part is redacted on the next iteration.
+        if (state.NextIsAccountName &&
+            currentChar is 'U' or 'u' &&
+            start + 2 < sql.Length &&
+            sql[start + 1] == '&' &&
+            sql[start + 2] == DoubleQuoteChar)
+        {
+            sql.Slice(start, 2).CopyTo(buffer.Slice(state.SanitizedPosition));
+            state.SanitizedPosition += 2;
+            state.ParsePosition += 2;
+            return;
+        }
 
         // The word which is the password in a statement such as ALTER USER ... IDENTIFIED BY password is not a literal,
         // so it is not otherwise sanitized, and it must not be parsed as a keyword (e.g. Select1) or be split (e.g. a#b).

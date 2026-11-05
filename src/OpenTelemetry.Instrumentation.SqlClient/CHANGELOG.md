@@ -64,7 +64,7 @@
 
 * Fixed redaction of login and user names in additional `CREATE`, `ALTER` and
   `DROP` statement positions, including references after `FOR LOGIN` and
-  `WITH NAME =`.
+  `WITH NAME =`, and names containing combining marks.
   ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
 
 * Fixed `db.query.summary` for identifiers beginning with SQL keywords and

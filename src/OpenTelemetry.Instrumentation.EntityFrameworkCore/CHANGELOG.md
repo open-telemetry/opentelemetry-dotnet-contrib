@@ -57,12 +57,13 @@
 
 * Fixed redaction of login and user names in additional `CREATE`, `ALTER` and
   `DROP` statement positions, MySQL account lists and `RENAME USER`
-  statements.
+  statements, including additional Unicode account-name forms and PostgreSQL
+  Unicode-escaped identifiers.
   ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
 
 * Fixed redaction of Oracle passwords in `IDENTIFIED BY` and `REPLACE`
-  clauses, including unquoted and double-quoted values, and Teradata
-  `PASSWORD =` values.
+  clauses, including unquoted and double-quoted values and non-ASCII
+  characters, and Teradata `PASSWORD =` values.
   ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
 
 * Fixed `db.query.summary` for identifiers beginning with SQL keywords and

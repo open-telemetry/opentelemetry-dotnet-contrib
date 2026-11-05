@@ -1197,6 +1197,16 @@ public class SqlProcessorTests(ITestOutputHelper output)
     }
 
     [Theory]
+    [InlineData("ALTER USER a\u0301lice IDENTIFIED BY p\u0301assword", "ALTER USER ? IDENTIFIED BY ?")]
+    [InlineData("ALTER USER alice IDENTIFIED BY p\u0301assword REPLACE o\u0301ldpassword", "ALTER USER ? IDENTIFIED BY ? REPLACE ?")]
+    public void GetSanitizedSql_OracleUnicodePasswords_AreRedactedAsWholeTokens(string sql, string expected)
+    {
+        var result = GetSanitizedSql(sql, SqlDialect.Oracle);
+
+        Assert.Equal(expected, result.SanitizedSql);
+    }
+
+    [Theory]
     [InlineData("CREATE USER u IDENTIFIED BY 'secret-pw' REQUIRE SSL", "CREATE USER ? IDENTIFIED BY ? REQUIRE SSL")]
     [InlineData("CREATE USER u IDENTIFIED BY \"secret-pw\" REQUIRE SSL", "CREATE USER ? IDENTIFIED BY ? REQUIRE SSL")]
     [InlineData("ALTER USER u IDENTIFIED BY 'new-pw' REPLACE 'old-pw'", "ALTER USER ? IDENTIFIED BY ? REPLACE ?")]
@@ -1285,6 +1295,25 @@ public class SqlProcessorTests(ITestOutputHelper output)
         this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
 
         Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData("CREATE USER a\u0301lice WITH PASSWORD 'secret-password'", "CREATE USER ? WITH PASSWORD ?")]
+    [InlineData("CREATE USER \U0001D49Clice WITH PASSWORD 'secret-password'", "CREATE USER ? WITH PASSWORD ?")]
+    [InlineData("ALTER USER a\u0301lice RENAME TO b\u0301ob", "ALTER USER ? RENAME TO ?")]
+    [InlineData("DROP USER \U0001D49Clice, b\u0301ob", "DROP USER ?, ?")]
+    [InlineData("CREATE USER U&\"d\\0061t\\+000061\" WITH PASSWORD 'secret-password'", "CREATE USER U&\"?\" WITH PASSWORD ?")]
+    [InlineData("ALTER USER alice RENAME TO u&\"d!0061ta\" UESCAPE '!'", "ALTER USER ? RENAME TO u&\"?\" UESCAPE ?")]
+    [InlineData("DROP USER U&\"d\\0061ta\", bob", "DROP USER U&\"?\", ?")]
+    public void GetSanitizedSql_PostgreSqlUnicodeAccountNames_AreRedactedAsWholeTokens(string sql, string expected)
+    {
+        var result = GetSanitizedSql(sql);
+
+        Assert.Equal(expected, result.SanitizedSql);
+        Assert.DoesNotContain("lice", result.DbQuerySummary, StringComparison.Ordinal);
+        Assert.DoesNotContain("0061", result.DbQuerySummary, StringComparison.Ordinal);
+        Assert.DoesNotContain("\u0301", result.DbQuerySummary, StringComparison.Ordinal);
+        Assert.DoesNotContain("\U0001D49C", result.DbQuerySummary, StringComparison.Ordinal);
     }
 
     [Theory]
