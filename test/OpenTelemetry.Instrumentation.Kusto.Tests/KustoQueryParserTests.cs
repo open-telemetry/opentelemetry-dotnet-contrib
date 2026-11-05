@@ -458,6 +458,21 @@ public class KustoQueryParserTests
             "StormEvents | as z | count; z | count"
         },
         {
+            "StormEvents | join (OtherEvents | as z) on a | count; z | count",
+            "StormEvents | join OtherEvents | as | count | count",
+            "StormEvents | join (OtherEvents | as z) on a | count; z | count"
+        },
+        {
+            "StormEvents | partition by State { OtherEvents | as z }; z | count",
+            "StormEvents | partition OtherEvents | as z | count",
+            "StormEvents | partition by State { OtherEvents | as z }; z | count"
+        },
+        {
+            "StormEvents | partition by State (take 1 | as z); z | count",
+            "StormEvents | partition take | as z | count",
+            "StormEvents | partition by State (take ? | as z); z | count"
+        },
+        {
             "let f = () { StormEvents | as z | count }; f(); z | count",
             "StormEvents | as | count z | count",
             "let f = () { StormEvents | as z | count }; f(); z | count"

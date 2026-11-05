@@ -284,8 +284,9 @@ internal static class KustoProcessor
         // Names the query binds itself that can stand in for a table: let statements, function parameters and
         // 'as' aliases. A reference to one of these is not a table reference even when it sits in a table
         // position. Columns are deliberately not tracked, as they do not shadow tables in a table position.
-        // The innermost scope is last: the query itself, then each function body. An 'as' alias stays visible
-        // to the rest of the enclosing query or function body, including later statements.
+        // The innermost scope is last: the query itself, then each function body and partition operand. An 'as'
+        // alias stays visible to the rest of the enclosing scope, including later statements and the subqueries
+        // of operators such as join and union.
         private readonly List<HashSet<string>> scopes = [[]];
 
         public override void VisitPipeExpression(PipeExpression node)
@@ -308,19 +309,12 @@ internal static class KustoProcessor
             this.Declare(node.Name);
         }
 
-        public override void VisitFunctionDeclaration(FunctionDeclaration node)
-        {
-            this.scopes.Add([]);
-            try
-            {
-                // Declares the parameters, then visits the body.
-                this.VisitChildren(node);
-            }
-            finally
-            {
-                this.scopes.RemoveAt(this.scopes.Count - 1);
-            }
-        }
+        // Declares the parameters, then visits the body.
+        public override void VisitFunctionDeclaration(FunctionDeclaration node) => this.VisitScoped(node);
+
+        public override void VisitPartitionQuery(PartitionQuery node) => this.VisitScoped(node);
+
+        public override void VisitPartitionSubquery(PartitionSubquery node) => this.VisitScoped(node);
 
         public override void VisitFunctionParameter(FunctionParameter node) => this.Declare(node.NameAndType.Name);
 
@@ -423,6 +417,19 @@ internal static class KustoProcessor
                     or FunctionBody or MaterializeExpression or PartitionQuery => true,
                 _ => false,
             };
+        }
+
+        private void VisitScoped(SyntaxNode node)
+        {
+            this.scopes.Add([]);
+            try
+            {
+                this.VisitChildren(node);
+            }
+            finally
+            {
+                this.scopes.RemoveAt(this.scopes.Count - 1);
+            }
         }
 
         private void Declare(NameDeclaration name) => this.scopes[this.scopes.Count - 1].Add(name.SimpleName);
