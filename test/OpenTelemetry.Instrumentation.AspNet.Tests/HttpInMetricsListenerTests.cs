@@ -3,6 +3,7 @@
 
 using System.Web;
 using OpenTelemetry.Context.Propagation;
+using OpenTelemetry.Instrumentation.AspNet.Implementation;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 
@@ -122,7 +123,7 @@ public class HttpInMetricsListenerTests
     [InlineData("http://localhost/api/Values/5", 2, "api/{controller}/{id}", null, "http", "localhost", "api/Values/{id}", 80, 201)]
     [InlineData("http://localhost/api/Values/5", 3, "api/{controller}/{id}", null, "http", "localhost", "api/Values/{id}", 80, 200)]
     [InlineData("http://localhost/api/Values/5", 4, "api/Values/{id}", null, "http", "localhost", "api/Values/{id}", 80, 200)]
-    [InlineData("http://localhost/api/Values/5", 1, "api/{controller}/{id}", null, "http", "localhost", "api/Values/{id}", 80, 500)]
+    [InlineData("http://localhost/api/Unserved/5", 1, "api/{controller}/{id}", null, "http", "localhost", "api/{controller}/{id}", 80, 500)] // The route values are not trusted until a request is served successfully.
     [InlineData("http://localhost/api/Values/Details", 3, "api/{controller}/{actionName}", null, "http", "localhost", "api/Values/{actionName}", 80, 200)]
     [InlineData("http://localhost:8080/api/Values/5", 0, null, null, "http", "localhost", null, 8080, 200)]
     [InlineData("http://localhost:8080/api/Values/5", 1, "api/{controller}/{id}", null, "http", "localhost", "api/Values/{id}", 8080, 200)]
@@ -258,6 +259,124 @@ public class HttpInMetricsListenerTests
             }
 
             Assert.Fail($"Expected tag with key {tagName} not found.");
+        }
+    }
+
+    [Fact]
+    public void AspNetMetricRouteDoesNotContainControllerAndActionThatDoNotExist()
+    {
+        var exportedItems = new List<Metric>();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddAspNetInstrumentation()
+            .AddInMemoryExporter(exportedItems)
+            .Build();
+
+        // The instrumentation, and so the set of names it has seen, is shared by all tests, so the names here are unique to this test.
+        // System.Web routing binds the controller and action from the URL before it is known whether they exist.
+        for (var i = 0; i < 100; i++)
+        {
+            Send($"http://localhost/x{i}/y{i}/1", 404);
+        }
+
+        // An error before the controller is known to exist does not make its name trusted.
+        Send("http://localhost/Widgets/Show/1", 500);
+
+        // The names of controllers and actions that were served are used, whatever the outcome or casing.
+        Send("http://localhost/Gadgets/List/1", 200);
+        Send("http://localhost/Gadgets/List/2", 500);
+        Send("http://localhost/gAdGeTs/lIsT/3", 200);
+        Send("http://localhost/Gadgets/Missing/4", 404);
+
+        meterProvider.ForceFlush();
+
+        var metric = Assert.Single(exportedItems);
+        var routes = new Dictionary<string, long>();
+        foreach (var point in metric.GetMetricPoints())
+        {
+            string? route = null;
+            foreach (var tag in point.Tags)
+            {
+                if (tag.Key == "http.route")
+                {
+                    route = (string?)tag.Value;
+                }
+            }
+
+            Assert.NotNull(route);
+            routes[route] = routes.TryGetValue(route, out var count) ? count + point.GetHistogramCount() : point.GetHistogramCount();
+        }
+
+        Assert.Equal(2, routes.Count);
+        Assert.Equal(100 + 1 + 1, routes["{controller}/{action}/{id}"]);
+        Assert.Equal(3, routes["Gadgets/List/{id}"]);
+
+        static void Send(string url, int statusCode)
+        {
+            HttpContext.Current = RouteTestHelper.BuildHttpContext(url, 1, "{controller}/{action}/{id}", "GET");
+            HttpContext.Current.Response.StatusCode = statusCode;
+
+            var activity = ActivityHelper.StartAspNetActivity(Propagators.DefaultTextMapPropagator, new HttpContextWrapper(HttpContext.Current), TelemetryHttpModule.Options.OnRequestStartedCallback);
+            ActivityHelper.StopAspNetActivity(Propagators.DefaultTextMapPropagator, activity, new HttpContextWrapper(HttpContext.Current), TelemetryHttpModule.Options.OnRequestStoppedCallback);
+        }
+    }
+
+    [Fact]
+    public void AspNetMetricRouteDoesNotTrustControllerAndActionOfRequestsThatHadAnExceptionWhoseErrorWasCleared()
+    {
+        var exportedItems = new List<Metric>();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddAspNetInstrumentation()
+            .AddInMemoryExporter(exportedItems)
+            .Build();
+
+        // The instrumentation sees the exception when it is raised. The application then handles it, for example in
+        // Application_Error by clearing the error and redirecting to an error page, so by the end of the request
+        // HttpContext.Error is null and the status code is not an error. This is more requests than names are remembered for.
+        for (var i = 0; i < HttpRequestRouteHelper.MaxResolvedTemplates + 100; i++)
+        {
+            Send($"http://localhost/missing{i}/page{i}/1", 302, new HttpException(404, "Not found"));
+        }
+
+        // Names that exist are still used afterwards.
+        Send("http://localhost/Basket/View/1", 200, exception: null);
+        Send("http://localhost/Basket/View/2", 200, exception: null);
+
+        meterProvider.ForceFlush();
+
+        var metric = Assert.Single(exportedItems);
+        var routes = new Dictionary<string, long>();
+        foreach (var point in metric.GetMetricPoints())
+        {
+            string? route = null;
+            foreach (var tag in point.Tags)
+            {
+                if (tag.Key == "http.route")
+                {
+                    route = (string?)tag.Value;
+                }
+            }
+
+            Assert.NotNull(route);
+            routes[route] = routes.TryGetValue(route, out var count) ? count + point.GetHistogramCount() : point.GetHistogramCount();
+        }
+
+        Assert.Equal(2, routes.Count);
+        Assert.Equal(HttpRequestRouteHelper.MaxResolvedTemplates + 100, routes["{controller}/{action}/{id}"]);
+        Assert.Equal(2, routes["Basket/View/{id}"]);
+
+        static void Send(string url, int statusCode, Exception? exception)
+        {
+            HttpContext.Current = RouteTestHelper.BuildHttpContext(url, 1, "{controller}/{action}/{id}", "GET");
+            var context = new HttpContextWrapper(HttpContext.Current);
+
+            var activity = ActivityHelper.StartAspNetActivity(Propagators.DefaultTextMapPropagator, context, TelemetryHttpModule.Options.OnRequestStartedCallback);
+            if (exception is not null)
+            {
+                ActivityHelper.WriteActivityException(activity, context, exception, TelemetryHttpModule.Options.OnExceptionCallback);
+            }
+
+            HttpContext.Current.Response.StatusCode = statusCode;
+            ActivityHelper.StopAspNetActivity(Propagators.DefaultTextMapPropagator, activity, context, TelemetryHttpModule.Options.OnRequestStoppedCallback);
         }
     }
 }

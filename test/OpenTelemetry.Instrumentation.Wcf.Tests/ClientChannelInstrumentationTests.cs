@@ -4,6 +4,7 @@
 using System.Diagnostics;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
+using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Instrumentation.Wcf.Implementation;
 using OpenTelemetry.Trace;
 
@@ -179,6 +180,114 @@ public class ClientChannelInstrumentationTests
         {
             WcfInstrumentationActivitySource.Options = null;
         }
+    }
+
+    [Theory]
+    [InlineData(ActivitySamplingResult.AllDataAndRecorded, false)]
+    [InlineData(ActivitySamplingResult.PropagationData, false)]
+    [InlineData(ActivitySamplingResult.None, false)]
+    [InlineData(ActivitySamplingResult.AllDataAndRecorded, true)]
+    public void BeforeSendRequestDoesNotLeakHeadersIntoSharedHttpRequestMessageProperty(
+        ActivitySamplingResult secondSamplingResult,
+        bool filterSecondRequest)
+    {
+        var samplingResult = ActivitySamplingResult.AllDataAndRecorded;
+        using var activityListener = new ActivityListener
+        {
+            ShouldListenTo = _ => true,
+            Sample = (ref _) => samplingResult,
+        };
+        ActivitySource.AddActivityListener(activityListener);
+
+        var originalOptions = WcfInstrumentationActivitySource.Options;
+        var originalActivity = Activity.Current;
+        var originalBaggage = Baggage.Current;
+        var originalPropagator = Propagators.DefaultTextMapPropagator;
+        var options = new WcfInstrumentationOptions { SuppressDownstreamInstrumentation = true };
+        WcfInstrumentationActivitySource.Options = options;
+        Activity.Current = null;
+        Baggage.Current = default;
+        Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([new TraceContextPropagator(), new BaggagePropagator()]));
+
+        try
+        {
+            var shared = new HttpRequestMessageProperty { Method = "PUT", QueryString = "a=b", SuppressEntityBody = true };
+            shared.Headers["X-Api-Key"] = "secret";
+
+            using (var first = Message.CreateMessage(MessageVersion.Soap11, "urn:first"))
+            {
+                first.Properties[HttpRequestMessageProperty.Name] = shared;
+                using var parent = new Activity("incoming").SetIdFormat(ActivityIdFormat.W3C).Start();
+                parent.TraceStateString = "vendor=mallory";
+                Baggage.Current = Baggage.SetBaggage("tenant", "mallory");
+
+                var state = ClientChannelInstrumentation.BeforeSendRequest(first, null);
+                ClientChannelInstrumentation.AfterRequestCompleted(null, state);
+
+                Assert.NotNull(state.Activity);
+                var sent = Assert.IsType<HttpRequestMessageProperty>(first.Properties[HttpRequestMessageProperty.Name]);
+                Assert.NotSame(shared, sent);
+                Assert.Equal("tenant=mallory", sent.Headers["baggage"]);
+                Assert.Equal("vendor=mallory", sent.Headers["tracestate"]);
+                Assert.Equal(state.Activity.Id, sent.Headers["traceparent"]);
+                Assert.Equal("secret", sent.Headers["X-Api-Key"]);
+                Assert.Equal("PUT", sent.Method);
+                Assert.Equal("a=b", sent.QueryString);
+                Assert.True(sent.SuppressEntityBody);
+            }
+
+            Assert.Equal(["X-Api-Key"], shared.Headers.AllKeys);
+            Baggage.Current = default;
+            samplingResult = secondSamplingResult;
+            options.OutgoingRequestFilter = _ => !filterSecondRequest;
+
+            using var second = Message.CreateMessage(MessageVersion.Soap11, "urn:second");
+            second.Properties[HttpRequestMessageProperty.Name] = shared;
+            var secondState = ClientChannelInstrumentation.BeforeSendRequest(second, null);
+            ClientChannelInstrumentation.AfterRequestCompleted(null, secondState);
+
+            var expectActivity = secondSamplingResult != ActivitySamplingResult.None && !filterSecondRequest;
+            var secondSent = Assert.IsType<HttpRequestMessageProperty>(second.Properties[HttpRequestMessageProperty.Name]);
+            Assert.Equal(expectActivity, secondState.Activity is not null);
+            Assert.Equal(secondState.Activity?.Id, secondSent.Headers["traceparent"]);
+            Assert.Equal(!expectActivity, ReferenceEquals(shared, secondSent));
+            Assert.Null(secondSent.Headers["baggage"]);
+            Assert.Null(secondSent.Headers["tracestate"]);
+            Assert.Equal("secret", secondSent.Headers["X-Api-Key"]);
+            Assert.Equal(["X-Api-Key"], shared.Headers.AllKeys);
+            Assert.False(Sdk.SuppressInstrumentation);
+        }
+        finally
+        {
+            Sdk.SetDefaultTextMapPropagator(originalPropagator);
+            WcfInstrumentationActivitySource.Options = originalOptions;
+            Baggage.Current = originalBaggage;
+            Activity.Current = originalActivity;
+        }
+    }
+
+    [Fact]
+    public void CreateCopyPreservesRawHeaderValues()
+    {
+        const string digest = "Digest username=\"a\\\", b\", realm=\"r\", nonce=\"n\"";
+
+        var original = new HttpRequestMessageProperty();
+        original.Headers["Authorization"] = digest;
+        original.Headers.Add("Accept", "text/xml");
+        original.Headers.Add("Accept", "application/json");
+        original.Headers["X-Quoted"] = "\"a, b\", c";
+
+        var copy = Assert.IsType<HttpRequestMessageProperty>(HttpRequestMessagePropertyWrapper.CreateCopy(original));
+
+        Assert.NotSame(original, copy);
+        Assert.NotSame(original.Headers, copy.Headers);
+        Assert.Equal(original.Headers.AllKeys, copy.Headers.AllKeys);
+        foreach (var key in original.Headers.AllKeys)
+        {
+            Assert.Equal(original.Headers[key], copy.Headers[key]);
+        }
+
+        Assert.Equal(digest, copy.Headers["Authorization"]);
     }
 
     private sealed class ActivityScope : IDisposable

@@ -31,6 +31,7 @@ public static class OpenTelemetryConsumerBuilderExtensions
         {
             instrumentedConsumerBuilder.EnableMetrics = options.EnableMetrics;
             instrumentedConsumerBuilder.EnableTraces = options.EnableTraces;
+            instrumentedConsumerBuilder.UseCreationContextAsParent = options.UseCreationContextAsParent;
         }
 
         return instrumentedConsumerBuilder;
