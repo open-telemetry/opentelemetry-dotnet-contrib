@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #if NETFRAMEWORK
-using System.Collections.Concurrent;
 using System.Data;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
@@ -386,36 +385,31 @@ public class SqlEventSourceTests
         Assert.Single(activities);
     }
 
-    [Fact]
-    public void AbandonedCommandsAreNotRemovedIfTheirIdHasBeenReused()
+    [Theory]
+    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource))]
+    [InlineData(typeof(FakeBehavingMdsSqlEventSource))]
+    public void CommandReusedAfterCapacityResetKeepsItsNewActivity(Type eventSourceType)
     {
-        using var eventSource = new FakeBehavingMdsSqlEventSource();
+        using var eventSource = (IFakeBehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
+        var activities = new List<Activity>();
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(activities)
+            .Build();
 
-        var pendingCommands = new ConcurrentDictionary<(EventSource EventSource, int ObjectId), SqlEventSourceListener.PendingCommand>();
+        // Fill the pending-command cache and force its capacity reset before reusing an id.
+        for (var objectId = 1; objectId <= SqlEventSourceListener.MaxPendingCommands + 1; objectId++)
+        {
+            eventSource.WriteBeginExecuteEvent(objectId, "127.0.0.1", "master", "select * from abandoned_command");
+        }
 
-        var abandoned = (eventSource, 1);
-        var other = (eventSource, 2);
+        eventSource.WriteBeginExecuteEvent(1, "127.0.0.1", "master", "select * from reused_command");
+        eventSource.WriteEndExecuteEvent(1, compositeState: 1, sqlExceptionNumber: 0);
 
-        using var abandonedActivity = new Activity("abandoned");
-        using var otherActivity = new Activity("other");
-        using var reusedActivity = new Activity("reused");
-
-        pendingCommands[abandoned] = new(null, null, null, null, abandonedActivity);
-        pendingCommands[other] = new(null, null, null, null, otherActivity);
-
-        var snapshot = pendingCommands.ToArray();
-
-        // The abandoned command ends, and its id is reused by a new execution, after the snapshot is taken.
-        Assert.True(pendingCommands.TryRemove(abandoned, out _));
-        var reused = new SqlEventSourceListener.PendingCommand(null, null, null, null, reusedActivity);
-        pendingCommands[abandoned] = reused;
-
-        SqlEventSourceListener.RemoveCommands(pendingCommands, snapshot, snapshot.Length);
-
-        // The command which is unchanged is removed, but the one which reused the id is not.
-        Assert.False(pendingCommands.ContainsKey(other));
-        Assert.True(pendingCommands.TryGetValue(abandoned, out var remaining));
-        Assert.Same(reusedActivity, remaining.Activity);
+        Assert.True(tracerProvider.ForceFlush());
+        var activity = Assert.Single(activities);
+        Assert.True(activity.IsStopped);
+        Assert.Equal("select reused_command", activity.GetTagValue(SemanticConventions.AttributeDbQuerySummary));
     }
 
     [Fact]
@@ -571,6 +565,81 @@ public class SqlEventSourceTests
         }
 
         Assert.Equal("select first_table", querySummary);
+    }
+
+    [Theory]
+    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource))]
+    [InlineData(typeof(FakeBehavingMdsSqlEventSource))]
+    public void EventSourceBeginWithoutEndIsNotTrackedIndefinitely(Type eventSourceType)
+    {
+        using var fakeSqlEventSource = (IFakeBehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
+        using var listener = new SqlEventSourceListener();
+
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .Build();
+
+        // SqlClient writes no EndExecute for an asynchronous command which fails before it is sent.
+        var dataSource = "127.0.0.1\\instanceName,port";
+        var lastObjectId = 2 * SqlEventSourceListener.MaxPendingCommands;
+        for (var objectId = 1; objectId <= lastObjectId; objectId++)
+        {
+            fakeSqlEventSource.WriteBeginExecuteEvent(objectId, dataSource, "master", "select * from first_table");
+        }
+
+        var pendingCommandCount = listener.PendingCommandCount;
+        Assert.InRange(pendingCommandCount, 1, SqlEventSourceListener.MaxPendingCommands);
+
+        // The command which began last is still tracked.
+        fakeSqlEventSource.WriteEndExecuteEvent(lastObjectId, compositeState: 1, sqlExceptionNumber: 0);
+
+        Assert.Equal(pendingCommandCount - 1, listener.PendingCommandCount);
+    }
+
+    [Theory]
+    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource))]
+    [InlineData(typeof(FakeBehavingMdsSqlEventSource))]
+    public void EventSourceBeginWithoutEndIsBoundedWhenWrittenConcurrently(Type eventSourceType)
+    {
+        using var fakeSqlEventSource = (IFakeBehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
+        using var listener = new SqlEventSourceListener();
+
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .Build();
+
+        var dataSource = "127.0.0.1\\instanceName,port";
+        var threads = 4;
+        var commandsPerThread = SqlEventSourceListener.MaxPendingCommands;
+
+        // Each thread tracks enough commands to roll the limit over several times, some of which end.
+        Parallel.For(
+            0,
+            threads,
+            new ParallelOptions { MaxDegreeOfParallelism = threads },
+            thread =>
+            {
+                for (var i = 0; i < commandsPerThread; i++)
+                {
+                    var objectId = (thread * commandsPerThread) + i + 1;
+                    fakeSqlEventSource.WriteBeginExecuteEvent(objectId, dataSource, "master", "select * from first_table");
+
+                    if (i % 2 == 0)
+                    {
+                        fakeSqlEventSource.WriteEndExecuteEvent(objectId, compositeState: 1, sqlExceptionNumber: 0);
+                    }
+                }
+            });
+
+        Assert.InRange(listener.PendingCommandCount, 0, SqlEventSourceListener.MaxPendingCommands);
+
+        // Ending every command leaves nothing tracked, so no entry was left behind uncounted.
+        for (var objectId = 1; objectId <= threads * commandsPerThread; objectId++)
+        {
+            fakeSqlEventSource.WriteEndExecuteEvent(objectId, compositeState: 1, sqlExceptionNumber: 0);
+        }
+
+        Assert.Equal(0, listener.PendingCommandCount);
     }
 
     [Theory]

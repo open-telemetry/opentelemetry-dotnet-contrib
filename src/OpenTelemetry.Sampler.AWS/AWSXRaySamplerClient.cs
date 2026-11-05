@@ -25,11 +25,21 @@ internal class AWSXRaySamplerClient : IDisposable
     {
         this.getSamplingRulesEndpoint = host + "/GetSamplingRules";
         this.getSamplingTargetsEndpoint = host + "/SamplingTargets";
-        this.httpClient = new HttpClient
+
+#pragma warning disable CA2000 // Dispose objects before losing scope - ownership is passed to HttpClient (disposeHandler: true)
+#pragma warning disable CA5399 // HttpClient is created without enabling CheckCertificateRevocationList - behavior is unchanged from the default handler
+        var handler = new HttpClientHandler
+        {
+            AllowAutoRedirect = false,
+            UseCookies = false,
+        };
+        this.httpClient = new HttpClient(handler, disposeHandler: true)
         {
             MaxResponseContentBufferSize = MaxResponseSizeInBytes,
             Timeout = RequestTimeout,
         };
+#pragma warning restore CA5399
+#pragma warning restore CA2000
     }
 
     public async Task<List<SamplingRule>?> GetSamplingRules(CancellationToken cancellationToken = default)

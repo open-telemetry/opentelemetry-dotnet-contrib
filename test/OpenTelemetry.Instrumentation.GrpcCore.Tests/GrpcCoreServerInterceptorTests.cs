@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics.Tracing;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using OpenTelemetry.Context.Propagation;
@@ -144,6 +145,63 @@ public class GrpcCoreServerInterceptorTests(WeaverFixture weaver, ITestOutputHel
         {
             await server.ShutdownAsync();
         }
+    }
+
+    /// <summary>
+    /// Validates that the number of message events recorded for a streaming call
+    /// is bounded, regardless of how many messages the client sends.
+    /// </summary>
+    /// <returns>A task.</returns>
+    [Fact]
+    public async Task ClientStreamingServerHandlerLimitsRecordedMessageEvents()
+    {
+        var testTags = new TestActivityTags();
+        var interceptorOptions = new ServerTracingInterceptorOptions
+        {
+            Propagator = new TraceContextPropagator(),
+            RecordMessageEvents = true,
+            AdditionalTags = testTags.Tags,
+        };
+
+        using var server = FoobarService.Start(new ServerTracingInterceptor(interceptorOptions));
+        using var activityListener = new InterceptorActivityListener(testTags);
+
+        using var eventListener = new InMemoryEventListener(GrpcCoreInstrumentationEventSource.Log, EventLevel.Warning);
+
+        var client = FoobarService.ConstructRpcClient(server.Target);
+        var messageCount = RpcScope<FoobarRequest, FoobarResponse>.MaxMessageEvents * 2;
+
+        using (var call = client.ClientStreaming(cancellationToken: TestContext.Current.CancellationToken))
+        {
+            for (var i = 0; i < messageCount; i++)
+            {
+#if NET
+                await call.RequestStream.WriteAsync(FoobarService.DefaultRequestMessage, CancellationToken.None);
+#else
+                await call.RequestStream.WriteAsync(FoobarService.DefaultRequestMessage);
+#endif
+            }
+
+            await call.RequestStream.CompleteAsync();
+            _ = await call.ResponseAsync;
+        }
+
+        var activity = activityListener.Activity;
+
+        GrpcCoreClientInterceptorTests.ValidateCommonActivityTags(activity, FoobarService.ClientStreamingMethod);
+
+        // Only the first MaxMessageEvents messages are recorded, the rest are dropped.
+        Assert.NotNull(activity);
+        Assert.Equal(RpcScope<FoobarRequest, FoobarResponse>.MaxMessageEvents, activity.Events.Count());
+        Assert.All(activity.Events, e => Assert.Equal(nameof(FoobarRequest), e.Name));
+
+        // A single warning is logged however many messages are dropped. The event source is
+        // shared, so ignore warnings logged for other calls by tests running in parallel.
+        var logged = Assert.Single(
+            eventListener.Events,
+            e => e.EventId == 1 && ((string?)e.Payload?[0])?.EndsWith(FoobarService.ClientStreamingMethod, StringComparison.Ordinal) == true);
+        Assert.Equal(EventLevel.Warning, logged.Level);
+        Assert.Equal(RpcScope<FoobarRequest, FoobarResponse>.MaxMessageEvents, (int)logged.Payload![1]!);
     }
 
     /// <summary>

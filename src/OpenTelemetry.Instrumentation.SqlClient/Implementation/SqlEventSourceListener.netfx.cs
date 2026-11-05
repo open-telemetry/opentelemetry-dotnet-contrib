@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #if NETFRAMEWORK
-using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using OpenTelemetry.Trace;
@@ -31,15 +30,6 @@ internal sealed class SqlEventSourceListener : EventListener
     internal const int EndExecuteEventId = 2;
 
     /// <summary>
-    /// The number of commands which are executing above which the oldest ones are assumed to have been abandoned.
-    /// </summary>
-    /// <remarks>
-    /// Not every execution which writes a BeginExecute event writes an EndExecute event (for example when it is
-    /// abandoned after validating the connection fails), and the only correlation with the command is an id.
-    /// </remarks>
-    internal const int MaxPendingCommands = 10_000;
-
-    /// <summary>
     /// The keyword the BeginExecute and EndExecute events are written with.
     /// </summary>
     /// <remarks>
@@ -57,10 +47,32 @@ internal sealed class SqlEventSourceListener : EventListener
     /// </remarks>
     internal const EventKeywords ExecuteEventKeywords = (EventKeywords)1;
 
-    private readonly ConcurrentDictionary<(EventSource EventSource, int ObjectId), PendingCommand> pendingCommands = new();
+    /// <summary>
+    /// The maximum number of commands tracked between their BeginExecute and EndExecute events.
+    /// </summary>
+    /// <remarks>
+    /// SqlClient does not write EndExecute for an asynchronous execution which fails before the
+    /// command is sent (for example because a parameter value cannot be converted, or the
+    /// connection is not open), and the events only identify the command by an id which is never
+    /// reused, so without a limit such commands would be tracked for the lifetime of the listener.
+    /// </remarks>
+    internal const int MaxPendingCommands = 10_000;
+
+    private readonly Dictionary<(EventSource EventSource, int ObjectId), PendingCommand> pendingCommands = [];
+    private readonly Lock pendingCommandsLock = new();
     private EventSource? adoNetEventSource;
     private EventSource? mdsEventSource;
-    private int beginCount;
+
+    internal int PendingCommandCount
+    {
+        get
+        {
+            lock (this.pendingCommandsLock)
+            {
+                return this.pendingCommands.Count;
+            }
+        }
+    }
 
     public override void Dispose()
     {
@@ -75,21 +87,6 @@ internal sealed class SqlEventSourceListener : EventListener
         }
 
         base.Dispose();
-    }
-
-    internal static void RemoveCommands(
-        ConcurrentDictionary<(EventSource EventSource, int ObjectId), PendingCommand> pendingCommands,
-        KeyValuePair<(EventSource EventSource, int ObjectId), PendingCommand>[] commands,
-        int count)
-    {
-        // Only remove an entry if it is still the one which was observed. Its id may have been
-        // reused by a newer execution since, which must keep its entry so that it can end.
-        var collection = (ICollection<KeyValuePair<(EventSource EventSource, int ObjectId), PendingCommand>>)pendingCommands;
-
-        for (var i = 0; i < count; i++)
-        {
-            _ = collection.Remove(commands[i]);
-        }
     }
 
     protected override void OnEventSourceCreated(EventSource eventSource)
@@ -185,25 +182,17 @@ internal sealed class SqlEventSourceListener : EventListener
             return;
         }
 
-        TagList tags;
+        // The tags are always derived from the command, and never read back from the activity. The tags
+        // of an activity can also be set by processors (for example from baggage) and by enrichment, which
+        // must not be able to change the dimensions of the metric. The tags derived here are the same as
+        // the ones the activity is created with, so they do not depend on the sampling decision.
+        var tags = SqlTelemetryHelper.GetTagListFromConnectionInfo(pendingCommand.DataSource, pendingCommand.DatabaseName, out _);
 
-        if (activity != null && activity.IsAllDataRequested)
+        AddErrorTags(eventData, ref tags);
+
+        if (!string.IsNullOrEmpty(pendingCommand.QuerySummary))
         {
-            tags = default;
-            SqlTelemetryHelper.AddSharedTags(activity, ref tags);
-        }
-        else
-        {
-            // Derive the same tags as a sampled command gets from its activity, so that the
-            // metric's attributes do not depend on the sampling decision.
-            tags = SqlTelemetryHelper.GetTagListFromConnectionInfo(pendingCommand.DataSource, pendingCommand.DatabaseName, out _);
-
-            AddErrorTags(eventData, ref tags);
-
-            if (!string.IsNullOrEmpty(pendingCommand.QuerySummary))
-            {
-                tags.Add(SemanticConventions.AttributeDbQuerySummary, pendingCommand.QuerySummary);
-            }
+            tags.Add(SemanticConventions.AttributeDbQuerySummary, pendingCommand.QuerySummary);
         }
 
         SqlTelemetryHelper.DbClientOperationDuration.Record(duration, tags);
@@ -234,7 +223,7 @@ internal sealed class SqlEventSourceListener : EventListener
             // instrumentation is enabled again before this one ends.
             if (eventData.Payload.Count > 0 && eventData.Payload[0] is int disabledObjectId)
             {
-                _ = this.pendingCommands.TryRemove((eventData.EventSource, disabledObjectId), out _);
+                _ = this.TryRemovePendingCommand((eventData.EventSource, disabledObjectId), out _);
             }
 
             return;
@@ -247,7 +236,7 @@ internal sealed class SqlEventSourceListener : EventListener
         }
 
         var correlationKey = (eventData.EventSource, ObjectId: (int)eventData.Payload[0]);
-        _ = this.pendingCommands.TryRemove(correlationKey, out _);
+        _ = this.TryRemovePendingCommand(correlationKey, out _);
         var dataSource = (string)eventData.Payload[1];
         var databaseName = (string)eventData.Payload[2];
         var commandText = (string)eventData.Payload[3];
@@ -310,29 +299,6 @@ internal sealed class SqlEventSourceListener : EventListener
                 activity));
     }
 
-    private void AddPendingCommand((EventSource EventSource, int ObjectId) correlationKey, in PendingCommand pendingCommand)
-    {
-        this.pendingCommands[correlationKey] = pendingCommand;
-
-        // Checking how many commands are pending is relatively expensive, so only do it occasionally.
-        if ((Interlocked.Increment(ref this.beginCount) & 0x3FF) == 0 && this.pendingCommands.Count > MaxPendingCommands)
-        {
-            this.RemoveAbandonedCommands();
-        }
-    }
-
-    private void RemoveAbandonedCommands()
-    {
-        // Commands which are still executing are far fewer than the limit, so those which began
-        // longest ago are the ones which will never end. Their activities are not stopped, as the
-        // commands did not complete.
-        var commands = this.pendingCommands.ToArray();
-
-        Array.Sort(commands, static (x, y) => x.Value.StartedAt.CompareTo(y.Value.StartedAt));
-
-        RemoveCommands(this.pendingCommands, commands, commands.Length - (MaxPendingCommands / 2));
-    }
-
     private void OnEndExecute(EventWrittenEventArgs eventData)
     {
         /*
@@ -349,7 +315,7 @@ internal sealed class SqlEventSourceListener : EventListener
         }
 
         var correlationKey = (eventData.EventSource, ObjectId: (int)eventData.Payload[0]);
-        _ = this.pendingCommands.TryRemove(correlationKey, out var pendingCommand);
+        _ = this.TryRemovePendingCommand(correlationKey, out var pendingCommand);
 
         var handleManager = SqlClientInstrumentation.Instance.HandleManager;
 
@@ -408,8 +374,38 @@ internal sealed class SqlEventSourceListener : EventListener
         }
     }
 
-    internal readonly struct PendingCommand(long? beginTimestamp, string? querySummary, string? dataSource, string? databaseName, Activity? activity)
-        : IEquatable<PendingCommand>
+    private void AddPendingCommand((EventSource EventSource, int ObjectId) correlationKey, in PendingCommand pendingCommand)
+    {
+        lock (this.pendingCommandsLock)
+        {
+            // The commands which are really executing are limited by the number of connections, so when
+            // the limit is reached nearly all of the entries belong to commands which will never end. They
+            // cannot be told apart, so all of them are dropped: a command which is still executing
+            // loses its activity and duration measurement for this execution.
+            if (this.pendingCommands.Count >= MaxPendingCommands)
+            {
+                this.pendingCommands.Clear();
+            }
+
+            this.pendingCommands[correlationKey] = pendingCommand;
+        }
+    }
+
+    private bool TryRemovePendingCommand((EventSource EventSource, int ObjectId) correlationKey, out PendingCommand pendingCommand)
+    {
+        lock (this.pendingCommandsLock)
+        {
+            if (this.pendingCommands.TryGetValue(correlationKey, out pendingCommand))
+            {
+                _ = this.pendingCommands.Remove(correlationKey);
+                return true;
+            }
+
+            return false;
+        }
+    }
+
+    private readonly struct PendingCommand(long? beginTimestamp, string? querySummary, string? dataSource, string? databaseName, Activity? activity)
     {
         public long? BeginTimestamp { get; } = beginTimestamp;
 
@@ -420,17 +416,6 @@ internal sealed class SqlEventSourceListener : EventListener
         public string? DatabaseName { get; } = databaseName;
 
         public Activity? Activity { get; } = activity;
-
-        public long StartedAt { get; } = Stopwatch.GetTimestamp();
-
-        public bool Equals(PendingCommand other) =>
-            this.StartedAt == other.StartedAt && ReferenceEquals(this.Activity, other.Activity);
-
-        public override bool Equals(object? obj) =>
-            obj is PendingCommand other && this.Equals(other);
-
-        public override int GetHashCode() =>
-            unchecked((this.StartedAt.GetHashCode() * 397) ^ (this.Activity?.GetHashCode() ?? 0));
     }
 }
 #endif
