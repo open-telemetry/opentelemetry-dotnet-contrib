@@ -286,6 +286,16 @@ var meterProvider = Sdk.CreateMeterProviderBuilder()
     .Build();
 ```
 
+The instrumentation calls the delegate many times for each job, also when the
+job changes state. Make the delegate fast, with no I/O. Return only
+low-cardinality values. Do not return the job ID or the job arguments.
+
+`workflow.status` and `workflow.execution.status` add 1 when a job enters a
+state and subtract 1 when the job leaves it. These two calls can run on
+different servers. Thus use only data from the job in the delegate, not the
+machine name, the current time or other environment values. Otherwise these
+metrics can fail to return to 0.
+
 To get the delegate from a service, configure the options through DI:
 
 ```csharp

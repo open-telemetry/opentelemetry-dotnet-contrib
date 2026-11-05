@@ -736,6 +736,7 @@ public class HangfireMetricsTests : IClassFixture<HangfireFixture>
     [InlineData(false, false)]
     [InlineData(true, false)]
     [InlineData(false, true)]
+    [InlineData(true, true)]
     public async Task Should_Not_Include_EnrichWithBackgroundJob_In_Execution_Duration(bool recordQueueLatency, bool failJob)
     {
         // Arrange
