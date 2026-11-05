@@ -82,58 +82,6 @@ public class SqlClientTests
         Assert.Equal(expectedPort, tags.FirstOrDefault(x => x.Key == SemanticConventions.AttributeServerPort).Value);
     }
 
-    [Fact]
-    public void AddSharedTagsAddsEachSharedTagAtMostOnce()
-    {
-        var activity = new Activity("test");
-
-        activity.AddTag(SemanticConventions.AttributeDbSystemName, SqlTelemetryHelper.MicrosoftSqlServerDbSystemName);
-        activity.AddTag(SemanticConventions.AttributeDbNamespace, "main");
-        activity.AddTag(SemanticConventions.AttributeDbQueryText, "SELECT * FROM Orders");
-        activity.AddTag(SemanticConventions.AttributeServerAddress, "localhost");
-        activity.AddTag(SemanticConventions.AttributeServerPort, 1433);
-        activity.AddTag(SemanticConventions.AttributeErrorType, null);
-
-        // Duplicate keys, as can happen if enrichment uses Activity.AddTag()
-        // for a tag which the instrumentation has already added itself.
-        activity.AddTag(SemanticConventions.AttributeDbNamespace, "other-database");
-        activity.AddTag(SemanticConventions.AttributeServerAddress, "other-host");
-
-        TagList tags = default;
-
-        SqlTelemetryHelper.AddSharedTags(activity, ref tags);
-
-        Assert.Equal(
-            [
-                new(SemanticConventions.AttributeDbSystemName, SqlTelemetryHelper.MicrosoftSqlServerDbSystemName),
-                new(SemanticConventions.AttributeDbNamespace, "main"),
-                new(SemanticConventions.AttributeServerAddress, "localhost"),
-                new KeyValuePair<string, object?>(SemanticConventions.AttributeServerPort, 1433),
-            ],
-            tags);
-    }
-
-    [Fact]
-    public void AddSharedTagsAddsAllSharedTags()
-    {
-        var activity = new Activity("test");
-
-        foreach (var name in SqlTelemetryHelper.SharedTagNames)
-        {
-            activity.AddTag(name, name);
-        }
-
-        activity.AddTag(SemanticConventions.AttributeDbQueryText, "SELECT * FROM Orders");
-
-        TagList tags = default;
-
-        SqlTelemetryHelper.AddSharedTags(activity, ref tags);
-
-        Assert.Equal(
-            SqlTelemetryHelper.SharedTagNames.Select(name => new KeyValuePair<string, object?>(name, name)),
-            tags);
-    }
-
     [Theory]
     [InlineData("localhost", "main")]
     [InlineData("localhost\\instanceName", "instanceName.main")]
@@ -337,7 +285,7 @@ public class SqlClientTests
                     Timestamp = (long?)1000000L,
                 });
 
-            Assert.Equal(1, listener.PendingBeginTimestampCount);
+            Assert.Equal(1, listener.PendingCommandCount);
         }
 
         listener.OnEventWritten(
@@ -350,7 +298,7 @@ public class SqlClientTests
                 Timestamp = 2000000L,
             });
 
-        Assert.Equal(0, listener.PendingBeginTimestampCount);
+        Assert.Equal(0, listener.PendingCommandCount);
     }
 
     [Fact]
@@ -375,6 +323,484 @@ public class SqlClientTests
         meterProvider.ForceFlush();
 
         Assert.Empty(metrics);
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task CallerActivityIsRestoredWhenAsynchronousCommandCompletesOnAnotherExecutionContext(bool hasCallerActivity, bool error)
+    {
+        var activities = new List<Activity>();
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        using var listener = new DiagnosticListener(SqlClientInstrumentation.SqlClientDiagnosticListenerName);
+
+        // The caller is sampled, so the activities of the commands are recorded.
+        using var callerActivity = hasCallerActivity
+            ? new Activity("caller").SetIdFormat(ActivityIdFormat.W3C).Start()
+            : null;
+
+        callerActivity?.ActivityTraceFlags = ActivityTraceFlags.Recorded;
+
+        Assert.Equal(callerActivity, Activity.Current);
+
+        const int Commands = 3;
+
+        for (var i = 0; i < Commands; i++)
+        {
+            var command = new FakeDbCommand
+            {
+                CommandType = CommandType.StoredProcedure,
+                CommandText = "SP_GetOrders",
+                Connection = new FakeDbConnection(),
+            };
+
+            var operationId = Guid.NewGuid();
+
+            // SqlClient writes the event which starts an asynchronous command on the execution context of the
+            // caller, and the event which completes it from a continuation, on a copy of that context.
+            listener.Write(
+                SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand,
+                new
+                {
+                    OperationId = operationId,
+                    Operation = "InternalExecuteNonQueryAsync",
+                    Command = command,
+                    Timestamp = (long?)1000000L,
+                });
+
+            Assert.Equal(callerActivity, Activity.Current);
+
+            void WriteCompletionEvent()
+            {
+                if (error)
+                {
+                    listener.Write(
+                        SqlClientDiagnosticListener.SqlMicrosoftWriteCommandError,
+                        new
+                        {
+                            OperationId = operationId,
+                            Operation = "InternalExecuteNonQueryAsync",
+                            Command = command,
+                            Exception = new InvalidOperationException("Boom!"),
+                            Timestamp = 2000000L,
+                        });
+                }
+                else
+                {
+                    listener.Write(
+                        SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand,
+                        new
+                        {
+                            OperationId = operationId,
+                            Operation = "CleanupAfterExecuteNonQueryAsync",
+                            Command = command,
+                            Statistics = (IDictionary?)null,
+                            Timestamp = 2000000L,
+                        });
+                }
+            }
+
+            await Task.Run(WriteCompletionEvent, TestContext.Current.CancellationToken);
+
+            Assert.Equal(callerActivity, Activity.Current);
+        }
+
+        tracerProvider.ForceFlush();
+
+        Assert.Equal(Commands, activities.Count);
+        Assert.All(activities, x => Assert.True(x.IsStopped));
+        Assert.All(activities, x => Assert.Equal(callerActivity?.SpanId ?? default, x.ParentSpanId));
+        Assert.All(activities, x => Assert.Equal(error ? ActivityStatusCode.Error : ActivityStatusCode.Unset, x.Status));
+    }
+
+    [Fact]
+    public void CallerActivityIsRestoredWhenCommandNeverCompletes()
+    {
+        var activities = new List<Activity>();
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        using var listener = new DiagnosticListener(SqlClientInstrumentation.SqlClientDiagnosticListenerName);
+
+        // A command executed with a token which is already cancelled writes the event which starts it, but never
+        // the event which completes it.
+        for (var i = 0; i < 3; i++)
+        {
+            listener.Write(
+                SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand,
+                new
+                {
+                    OperationId = Guid.NewGuid(),
+                    Operation = "InternalExecuteNonQueryAsync",
+                    Command = new FakeDbCommand
+                    {
+                        CommandType = CommandType.StoredProcedure,
+                        CommandText = "SP_GetOrders",
+                        Connection = new FakeDbConnection(),
+                    },
+                    Timestamp = (long?)1000000L,
+                });
+
+            Assert.Null(Activity.Current);
+        }
+
+        tracerProvider.ForceFlush();
+
+        Assert.Empty(activities);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void CurrentActivityOfCompletionIsNotChangedWhenCommandCompletes(bool error)
+    {
+        var activities = new List<Activity>();
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        using var listener = new DiagnosticListener(SqlClientInstrumentation.SqlClientDiagnosticListenerName);
+
+        var command = new FakeDbCommand
+        {
+            CommandType = CommandType.StoredProcedure,
+            CommandText = "SP_GetOrders",
+            Connection = new FakeDbConnection(),
+        };
+
+        var operationId = Guid.NewGuid();
+
+        using var caller = new Activity("caller").SetIdFormat(ActivityIdFormat.W3C).Start();
+        caller.ActivityTraceFlags = ActivityTraceFlags.Recorded;
+
+        listener.Write(
+            SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand,
+            new
+            {
+                OperationId = operationId,
+                Operation = "InternalExecuteNonQueryAsync",
+                Command = command,
+                Timestamp = (long?)1000000L,
+            });
+
+        // The command completes on an execution context which has a different current activity to the caller.
+        using var other = new Activity("other").SetIdFormat(ActivityIdFormat.W3C).Start();
+
+        Assert.Equal(other, Activity.Current);
+
+        if (error)
+        {
+            listener.Write(
+                SqlClientDiagnosticListener.SqlMicrosoftWriteCommandError,
+                new
+                {
+                    OperationId = operationId,
+                    Operation = "InternalExecuteNonQueryAsync",
+                    Command = command,
+                    Exception = new InvalidOperationException("Boom!"),
+                    Timestamp = 2000000L,
+                });
+        }
+        else
+        {
+            listener.Write(
+                SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand,
+                new
+                {
+                    OperationId = operationId,
+                    Operation = "CleanupAfterExecuteNonQueryAsync",
+                    Command = command,
+                    Statistics = (IDictionary?)null,
+                    Timestamp = 2000000L,
+                });
+        }
+
+        Assert.Equal(other, Activity.Current);
+
+        tracerProvider.ForceFlush();
+
+        var activity = Assert.Single(activities);
+        Assert.True(activity.IsStopped);
+        Assert.Equal(caller.SpanId, activity.ParentSpanId);
+    }
+
+    [Fact]
+    public void ActivityOfCommandWhichNeverCompletedIsNotUsedWhenItIsExecutedAgain()
+    {
+        var activities = new List<Activity>();
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        using var listener = new DiagnosticListener(SqlClientInstrumentation.SqlClientDiagnosticListenerName);
+
+        var command = new FakeDbCommand
+        {
+            CommandType = CommandType.StoredProcedure,
+            CommandText = "SP_GetOrders",
+            Connection = new FakeDbConnection(),
+        };
+
+        // The first execution is cancelled before it starts, so it never completes.
+        listener.Write(
+            SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand,
+            new
+            {
+                OperationId = Guid.NewGuid(),
+                Operation = "InternalExecuteNonQueryAsync",
+                Command = command,
+                Timestamp = (long?)1000000L,
+            });
+
+        // The same command is then executed again under a parent which is not sampled, so no activity is created.
+        using var parent = new Activity("parent").SetIdFormat(ActivityIdFormat.W3C).Start();
+
+        var operationId = Guid.NewGuid();
+
+        listener.Write(
+            SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand,
+            new
+            {
+                OperationId = operationId,
+                Operation = "InternalExecuteNonQueryAsync",
+                Command = command,
+                Timestamp = (long?)1000000L,
+            });
+
+        listener.Write(
+            SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand,
+            new
+            {
+                OperationId = operationId,
+                Operation = "CleanupAfterExecuteNonQueryAsync",
+                Command = command,
+                Statistics = (IDictionary?)null,
+                Timestamp = 2000000L,
+            });
+
+        tracerProvider.ForceFlush();
+
+        Assert.Empty(activities);
+        Assert.Equal(parent, Activity.Current);
+    }
+
+    [Fact]
+    public void ActivityOfCommandWhichNeverCompletedIsNotUsedWhenItIsExecutedWhileInstrumentationIsDisabled()
+    {
+        var activities = new List<Activity>();
+
+        using var listener = new DiagnosticListener(SqlClientInstrumentation.SqlClientDiagnosticListenerName);
+
+        var command = new FakeDbCommand
+        {
+            CommandType = CommandType.StoredProcedure,
+            CommandText = "SP_GetOrders",
+            Connection = new FakeDbConnection(),
+        };
+
+        void WriteBefore(Guid operationId) =>
+            listener.Write(
+                SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand,
+                new
+                {
+                    OperationId = operationId,
+                    Operation = "InternalExecuteNonQueryAsync",
+                    Command = command,
+                    Timestamp = (long?)1000000L,
+                });
+
+        using (Sdk.CreateTracerProviderBuilder().AddSqlClientInstrumentation().Build())
+        {
+            // The first execution is cancelled before it starts, so it never completes.
+            WriteBefore(Guid.NewGuid());
+        }
+
+        // The command is executed again while the instrumentation is disabled.
+        WriteBefore(Guid.NewGuid());
+
+        // The instrumentation is enabled again before the command completes, under a parent which is not sampled.
+        using var parent = new Activity("parent").SetIdFormat(ActivityIdFormat.W3C).Start();
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        listener.Write(
+            SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand,
+            new
+            {
+                OperationId = Guid.NewGuid(),
+                Operation = "CleanupAfterExecuteNonQueryAsync",
+                Command = command,
+                Statistics = (IDictionary?)null,
+                Timestamp = 2000000L,
+            });
+
+        tracerProvider.ForceFlush();
+
+        Assert.Empty(activities);
+        Assert.Equal(parent, Activity.Current);
+    }
+
+    [Fact]
+    public void ActivityIsStoppedWhenInstrumentationIsDisabledWhileCommandExecutes()
+    {
+        var started = new List<Activity>();
+        var sqlActivitySource = SqlTelemetryHelper.ActivitySource;
+
+        using var activityListener = new ActivityListener
+        {
+            ShouldListenTo = source => source == sqlActivitySource,
+            Sample = (ref _) => ActivitySamplingResult.AllData,
+            ActivityStarted = started.Add,
+        };
+
+        ActivitySource.AddActivityListener(activityListener);
+
+        using var listener = new DiagnosticListener(SqlClientInstrumentation.SqlClientDiagnosticListenerName);
+
+        var command = new FakeDbCommand
+        {
+            CommandType = CommandType.StoredProcedure,
+            CommandText = "SP_GetOrders",
+            Connection = new FakeDbConnection(),
+        };
+
+        var operationId = Guid.NewGuid();
+
+        var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .Build();
+
+        try
+        {
+            listener.Write(
+                SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand,
+                new
+                {
+                    OperationId = operationId,
+                    Operation = "InternalExecuteNonQueryAsync",
+                    Command = command,
+                    Timestamp = (long?)1000000L,
+                });
+        }
+        finally
+        {
+            // The last provider is disposed while the command is executing.
+            tracerProvider.Dispose();
+        }
+
+        var activity = Assert.Single(started);
+        Assert.False(activity.IsStopped);
+
+        // The command completes on an execution context which has a different current activity.
+        using var other = new Activity("other").SetIdFormat(ActivityIdFormat.W3C).Start();
+
+        listener.Write(
+            SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand,
+            new
+            {
+                OperationId = operationId,
+                Operation = "CleanupAfterExecuteNonQueryAsync",
+                Command = command,
+                Statistics = (IDictionary?)null,
+                Timestamp = 2000000L,
+            });
+
+        Assert.True(activity.IsStopped);
+        Assert.Equal(other, Activity.Current);
+    }
+
+    [Theory]
+    [InlineData(SqlClientLibrary.SystemDataSqlClient)]
+    [InlineData(SqlClientLibrary.MicrosoftDataSqlClient)]
+    public void MetricUsesDatabaseOfConnectionWhenCommandStarted(SqlClientLibrary library)
+    {
+        foreach (var samplingMode in Enum.GetValues<SamplingMode>())
+        {
+            var activities = new List<Activity>();
+            var metrics = new List<Metric>();
+
+            var tracerProviderBuilder = Sdk.CreateTracerProviderBuilder();
+
+            if (samplingMode != SamplingMode.MetricsOnly)
+            {
+                tracerProviderBuilder
+                    .SetSampler(samplingMode == SamplingMode.Sampled ? new AlwaysOnSampler() : new AlwaysOffSampler())
+                    .AddSqlClientInstrumentation()
+                    .AddInMemoryExporter(activities);
+            }
+
+            using var tracerProvider = tracerProviderBuilder.Build();
+            using var meterProvider = Sdk.CreateMeterProviderBuilder()
+                .AddSqlClientInstrumentation()
+                .AddInMemoryExporter(metrics)
+                .Build();
+
+            // A connection which breaks while a command executes is closed before the error is
+            // reported, after which its database is that of its connection string, not the one
+            // the command was executed against.
+            var connection = new ChangingDatabaseDbConnection("orders");
+
+            using (samplingMode == SamplingMode.NotSampled
+                ? new Activity("parent").SetIdFormat(ActivityIdFormat.W3C).Start()
+                : null)
+            {
+                MockCommandExecutor.ExecuteCommand(
+                    new FakeDbCommand
+                    {
+                        CommandType = CommandType.StoredProcedure,
+                        CommandText = "SP_GetOrders",
+                        Connection = connection,
+                    },
+                    library,
+                    statistics: null,
+                    afterBeforeCommand: () => connection.CurrentDatabase = "master");
+            }
+
+            Assert.True(tracerProvider.ForceFlush());
+            Assert.True(meterProvider.ForceFlush());
+
+            Assert.Equal(samplingMode == SamplingMode.Sampled ? 1 : 0, activities.Count);
+
+            if (samplingMode == SamplingMode.Sampled)
+            {
+                Assert.Equal("orders", Assert.Single(activities).GetTagValue(SemanticConventions.AttributeDbNamespace));
+            }
+
+            var metric = Assert.Single(metrics, m => m.Name == "db.client.operation.duration");
+            var metricPoints = new List<MetricPoint>();
+            foreach (var point in metric.GetMetricPoints())
+            {
+                metricPoints.Add(point);
+            }
+
+            var metricPoint = Assert.Single(metricPoints);
+            var tags = new Dictionary<string, object?>();
+            foreach (var tag in metricPoint.Tags)
+            {
+                tags.Add(tag.Key, tag.Value);
+            }
+
+            Assert.True(
+                tags.TryGetValue(SemanticConventions.AttributeDbNamespace, out var dbNamespace) && "orders".Equals(dbNamespace),
+                $"Unexpected db.namespace '{dbNamespace}' for {samplingMode}.");
+        }
     }
 #endif
 
@@ -473,12 +899,59 @@ public class SqlClientTests
         Assert.Equal(expected, GetMetricTags(library, commandType, commandText, error, SamplingMode.MetricsOnly));
     }
 
+    [Theory]
+    [InlineData(SqlClientLibrary.SystemDataSqlClient, CommandType.Text, false)]
+    [InlineData(SqlClientLibrary.SystemDataSqlClient, CommandType.Text, true)]
+    [InlineData(SqlClientLibrary.SystemDataSqlClient, CommandType.StoredProcedure, false)]
+    [InlineData(SqlClientLibrary.SystemDataSqlClient, CommandType.StoredProcedure, true)]
+    [InlineData(SqlClientLibrary.MicrosoftDataSqlClient, CommandType.Text, false)]
+    [InlineData(SqlClientLibrary.MicrosoftDataSqlClient, CommandType.Text, true)]
+    [InlineData(SqlClientLibrary.MicrosoftDataSqlClient, CommandType.StoredProcedure, false)]
+    [InlineData(SqlClientLibrary.MicrosoftDataSqlClient, CommandType.StoredProcedure, true)]
+    public void MetricTagsDoNotIncludeTagsSetOnActivityByOthers(SqlClientLibrary library, CommandType commandType, bool error)
+    {
+        var commandText = commandType == CommandType.StoredProcedure ? "SP_GetOrders" : "select * from sys.databases";
+
+        var expected = GetMetricTags(library, commandType, commandText, error, SamplingMode.MetricsOnly);
+
+        // Simulates something other than the instrumentation, such as BaggageActivityProcessor
+        // copying the baggage of an incoming request, setting tags on the command's activity,
+        // either when it starts (so they replace or precede the tags of the instrumentation) or
+        // by the time it ends. None of them can be allowed to become dimensions of the metric.
+        static void SetTags(Activity activity)
+        {
+            foreach (var name in new[]
+            {
+                SemanticConventions.AttributeDbSystem,
+                SemanticConventions.AttributeDbSystemName,
+                SemanticConventions.AttributeDbNamespace,
+                SemanticConventions.AttributeDbOperationName,
+                SemanticConventions.AttributeDbStoredProcedureName,
+                SemanticConventions.AttributeDbQuerySummary,
+                SemanticConventions.AttributeDbResponseStatusCode,
+                SemanticConventions.AttributeErrorType,
+                SemanticConventions.AttributeServerAddress,
+                SemanticConventions.AttributeServerPort,
+            })
+            {
+                activity.SetTag(name, "caller-supplied-" + name);
+            }
+        }
+
+        var actual = GetMetricTags(library, commandType, commandText, error, SamplingMode.Sampled, SetTags);
+
+        Assert.Equal(expected, actual);
+        Assert.DoesNotContain(actual.Values, value => value is string text && text.StartsWith("caller-supplied-", StringComparison.Ordinal));
+        Assert.DoesNotContain(SemanticConventions.AttributeDbSystem, actual.Keys);
+    }
+
     private static SortedDictionary<string, object?> GetMetricTags(
         SqlClientLibrary library,
         CommandType commandType,
         string commandText,
         bool error,
-        SamplingMode samplingMode)
+        SamplingMode samplingMode,
+        Action<Activity>? setActivityTags = null)
     {
         var activities = new List<Activity>();
         var metrics = new List<Metric>();
@@ -490,6 +963,7 @@ public class SqlClientTests
             tracerProviderBuilder
                 .SetSampler(samplingMode == SamplingMode.Sampled ? new AlwaysOnSampler() : new AlwaysOffSampler())
                 .AddSqlClientInstrumentation()
+                .AddProcessor(new TestActivityProcessor(onStart: setActivityTags ?? (_ => { }), onEnd: setActivityTags ?? (_ => { })))
                 .AddInMemoryExporter(activities);
         }
 
@@ -729,4 +1203,13 @@ public class SqlClientTests
         VerifySamplingParameters(testCase, sampler.LatestSamplingParameters);
         VerifyAttributes(testCase, activity, metricPoint);
     }
+
+#if !NETFRAMEWORK
+    private sealed class ChangingDatabaseDbConnection(string database) : FakeDbConnection
+    {
+        public string CurrentDatabase { get; set; } = database;
+
+        public override string Database => this.CurrentDatabase;
+    }
+#endif
 }

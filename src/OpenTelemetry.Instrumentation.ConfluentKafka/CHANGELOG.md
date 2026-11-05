@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+## 0.5.0-alpha.1
+
+Released 2026-Nov-05
+
+* **Breaking change**: Updated the traces and metrics emitted by the Kafka
+  producer and consumer to follow the
+  [v1.45.0 messaging semantic conventions](https://github.com/open-telemetry/semantic-conventions/tree/v1.45.0/docs/messaging).
+  The following attributes were renamed:
+
+  * `messaging.system.name` (replacing `messaging.system`), on both spans and
+    metrics
+  * `kafka.offset` (replacing `messaging.kafka.offset`)
+  * `kafka.message.key` (replacing `messaging.kafka.message.key`)
+  * `kafka.message.tombstone` (replacing `messaging.kafka.message.tombstone`)
+  * `kafka.cluster.id` (replacing `messaging.kafka.cluster.id`)
+
+  ([#5831](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5831))
+
 ## 0.4.0-alpha.1
 
 Released 2026-Nov-04

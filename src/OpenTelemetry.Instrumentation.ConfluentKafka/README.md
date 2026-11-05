@@ -120,14 +120,14 @@ var instrumentedConsumerBuilder = consumerBuilder.AsInstrumentedConsumerBuilder(
 ## Metrics
 
 The instrumentation is implemented based on the [messaging metrics semantic
-conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.44.0/docs/messaging/messaging-metrics.md).
+conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/messaging/messaging-metrics.md).
 The following metrics are produced:
 
 | Name | Instrument Type | Unit | Description | Attributes |
 | --- | --- | --- | --- | --- |
-| `messaging.client.operation.duration` | Histogram | `s` | Duration of messaging operation initiated by a producer or consumer client. | `messaging.operation.name`, `messaging.operation.type`, `messaging.system`, `messaging.destination.name`[^1], `messaging.destination.partition.id`[^2], `messaging.consumer.group.name`[^3], `error.type`[^4] |
-| `messaging.client.sent.messages` | Counter | `{message}` | Number of messages producer attempted to send to the broker. | `messaging.operation.name`, `messaging.operation.type`, `messaging.system`, `messaging.destination.name`, `messaging.destination.partition.id`[^2], `error.type`[^4] |
-| `messaging.client.consumed.messages` | Counter | `{message}` | Number of messages that were delivered to the application. | `messaging.operation.name`, `messaging.operation.type`, `messaging.system`, `messaging.destination.name`[^1], `messaging.destination.partition.id`[^2], `messaging.consumer.group.name`[^3], `error.type`[^4] |
+| `messaging.client.operation.duration` | Histogram | `s` | Duration of messaging operation initiated by a producer or consumer client. | `messaging.operation.name`, `messaging.operation.type`, `messaging.system.name`, `messaging.destination.name`[^1], `messaging.destination.partition.id`[^2], `messaging.consumer.group.name`[^3], `error.type`[^4] |
+| `messaging.client.sent.messages` | Counter | `{message}` | Number of messages producer attempted to send to the broker. | `messaging.operation.name`, `messaging.operation.type`, `messaging.system.name`, `messaging.destination.name`, `messaging.destination.partition.id`[^2], `error.type`[^4] |
+| `messaging.client.consumed.messages` | Counter | `{message}` | Number of messages that were delivered to the application. | `messaging.operation.name`, `messaging.operation.type`, `messaging.system.name`, `messaging.destination.name`[^1], `messaging.destination.partition.id`[^2], `messaging.consumer.group.name`[^3], `error.type`[^4] |
 
 [^1]: `messaging.destination.name` is only included for consumer operations
   when the topic partition is known (for example, it is omitted after a

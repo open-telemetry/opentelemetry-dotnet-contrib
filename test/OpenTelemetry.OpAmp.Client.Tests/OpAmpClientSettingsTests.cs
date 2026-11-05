@@ -13,7 +13,7 @@ public class OpAmpClientSettingsTests
         var settings = new OpAmpClientSettings();
 
         Assert.Equal(2048, settings.MaxPendingCustomMessages);
-        Assert.Equal(64 * 1024 * 1024, settings.MaxPendingCustomMessageBytes);
+        Assert.Equal(64 * 1024 * 1024, settings.MaxPendingMessageBytes);
     }
 
     [Theory]
@@ -31,12 +31,16 @@ public class OpAmpClientSettingsTests
     [Theory]
     [InlineData(-1)]
     [InlineData(0)]
-    public void MaxPendingCustomMessageBytes_RejectsNonPositiveValue(int value)
+    public void MaxPendingMessageBytes_RejectsNonPositiveValue(int value)
     {
         var settings = new OpAmpClientSettings();
 
         Assert.Throws<ArgumentOutOfRangeException>(
             nameof(value),
-            () => settings.MaxPendingCustomMessageBytes = value);
+            () => settings.MaxPendingMessageBytes = value);
     }
+
+    [Fact]
+    public void AllowRedirects_DefaultsToFalse()
+        => Assert.False(new OpAmpClientSettings().AllowRedirects, "AllowRedirects should default to false");
 }
