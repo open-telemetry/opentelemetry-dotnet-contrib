@@ -376,6 +376,8 @@ internal static class SqlProcessor
                     SanitizeHexLiteral(sqlSpan, buffer, ref state) ||
                     SanitizeNumericLiteral(sqlSpan, buffer, ref state))
                 {
+                    state.LastLiteralEnd = state.ParsePosition;
+
                     // A password which is a literal has been sanitized, so the token which follows it is not one,
                     // unless it is the word which precedes the password which is replaced (e.g. REPLACE old_password).
                     if (state.SanitizeNextTokenAsPassword)
@@ -2069,8 +2071,9 @@ internal static class SqlProcessor
 
     private static bool SanitizeDollarQuotedLiteral(ReadOnlySpan<char> sql, Span<char> buffer, ref ParseState state)
     {
+        // A string in dollar quotes which directly follows a literal (e.g. $$a$$$$b$$) is not part of a name.
         if (sql[state.ParsePosition] != DollarChar ||
-            !TryFindDollarQuotedLiteralEnd(sql, state.ParsePosition, out var literalEnd))
+            !TryFindDollarQuotedLiteralEnd(sql, state.ParsePosition, out var literalEnd, ignoreLookBehind: state.ParsePosition == state.LastLiteralEnd))
         {
             return false;
         }
@@ -2083,19 +2086,38 @@ internal static class SqlProcessor
     /// <summary>
     /// Finds the end of the dollar-quoted string literal which starts at <paramref name="start"/>, if any.
     /// </summary>
+    /// <param name="sql">The SQL statement.</param>
+    /// <param name="start">The position of the opening dollar sign.</param>
+    /// <param name="literalEnd">The index after the literal, if there is one.</param>
+    /// <param name="ignoreLookBehind">
+    /// <see langword="true"/> if the character before <paramref name="start"/> is known to be the end of a literal,
+    /// and so is not part of the name of an identifier or variable.
+    /// </param>
     /// <returns>
     /// <see langword="true"/> if a dollar-quoted string literal starts at <paramref name="start"/>, in which
     /// case <paramref name="literalEnd"/> is the index after it, or the length of the input if it is not
     /// terminated; otherwise <see langword="false"/>.
     /// </returns>
-    private static bool TryFindDollarQuotedLiteralEnd(ReadOnlySpan<char> sql, int start, out int literalEnd)
+    private static bool TryFindDollarQuotedLiteralEnd(ReadOnlySpan<char> sql, int start, out int literalEnd, bool ignoreLookBehind = false)
     {
         // PostgreSQL dollar-quoted string: $tag$...$tag$ (the tag is optional, so $$...$$ is valid).
         // The body between the delimiters is a literal with no escaping, so it must be redacted.
-        // This syntax is unambiguous across the SQL dialects handled here, so it is safe to apply.
         literalEnd = -1;
 
         if (sql[start] != DollarChar)
+        {
+            return false;
+        }
+
+        // A '$' which directly follows a letter, a digit, an underscore or another '$' is part of an identifier
+        // or variable name (e.g. price$gbp$ or DR$idx$I), in PostgreSQL as well as in the other dialects handled here,
+        // so it does not open a dollar-quoted string. Treating it as one would skip to the next occurrence of the
+        // same delimiter, which may be inside a string literal, after which literals would be read as code.
+        // Other characters can precede a dollar-quoted string, as '@' and '#' are operators in PostgreSQL.
+        // A surrogate is part of a letter which is not in the basic plane, which PostgreSQL also allows in a name.
+        if (!ignoreLookBehind &&
+            start > 0 &&
+            (char.IsLetterOrDigit(sql[start - 1]) || char.IsSurrogate(sql[start - 1]) || sql[start - 1] is UnderscoreChar or DollarChar))
         {
             return false;
         }
@@ -2311,6 +2333,7 @@ internal static class SqlProcessor
         var scanState = state;
         var length = sql.Length;
         var i = start;
+        var literalEnd = -1;
 
         while (i < length)
         {
@@ -2339,11 +2362,13 @@ internal static class SqlProcessor
                 case SingleQuoteChar:
                     end = FindStringLiteralEnd(sql, i, state.UseBackslashEscapes, state.UseTripleQuotedLiterals, out _);
                     i = end < 0 ? length : end + 1;
+                    literalEnd = i;
                     break;
 
                 case DoubleQuoteChar when state.UseBackslashEscapes:
                     end = FindQuotedLiteralEnd(sql, i, DoubleQuoteChar, useBackslashEscapes: true, state.UseTripleQuotedLiterals);
                     i = end < 0 ? length : end + 1;
+                    literalEnd = i;
                     break;
 
                 case DoubleQuoteChar:
@@ -2355,7 +2380,8 @@ internal static class SqlProcessor
                     break;
 
                 case DollarChar:
-                    i = TryFindDollarQuotedLiteralEnd(sql, i, out end) ? end : i + 1;
+                    i = TryFindDollarQuotedLiteralEnd(sql, i, out end, ignoreLookBehind: i == literalEnd) ? end : i + 1;
+                    literalEnd = i;
                     break;
 
                 // DashChar, ForwardSlashChar or HashChar
@@ -2445,6 +2471,9 @@ internal static class SqlProcessor
 
         // The position after the most recent password which was sanitized, or zero if there was none.
         public int PasswordEndPosition; // 4 bytes
+
+        // The position after the most recent literal which was sanitized in the main loop, or zero if there was none.
+        public int LastLiteralEnd; // 4 bytes
 
         // NOTE: If the number of bool fields increases significantly, consider combining into a bitfield.
 

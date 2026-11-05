@@ -1221,6 +1221,50 @@ public class SqlProcessorTests(ITestOutputHelper output)
     }
 
     [Theory]
+    [InlineData("SELECT price$gbp$ AS Value FROM accounts WHERE owner = 'mallory$gbp$' AND tenant_key = 'secret-name'", "SELECT price$gbp$ AS Value FROM accounts WHERE owner = ? AND tenant_key = ?")]
+    [InlineData("SELECT price$$ AS Value FROM accounts WHERE owner = 'mallory$$' AND tenant_key = 'secret-name'", "SELECT price$$ AS Value FROM accounts WHERE owner = ? AND tenant_key = ?")]
+    [InlineData("INSERT INTO notes (owner, cost$gbp$, note) VALUES ('mallory', 1, 'x$gbp$'), ('alice', 2, 'secret-name 4111')", "INSERT INTO notes (owner, cost$gbp$, note) VALUES (?, ?, ?), (?, ?, ?)")]
+    [InlineData("SELECT * FROM t WHERE a IN ('x', b$$c) AND d = '$$' AND e = 'secret-name'", "SELECT * FROM t WHERE a IN (?) AND d = ? AND e = ?")]
+    [InlineData("SELECT DR$idx$I FROM t WHERE a = '$idx$' AND b = 'secret-name'", "SELECT DR$idx$I FROM t WHERE a = ? AND b = ?")]
+    [InlineData("SELECT col1$gbp$ FROM t WHERE a = '$gbp$' AND b = 'secret-name'", "SELECT col1$gbp$ FROM t WHERE a = ? AND b = ?")]
+    [InlineData("SELECT fee_$gbp$ FROM t WHERE a = '$gbp$' AND b = 'secret-name'", "SELECT fee_$gbp$ FROM t WHERE a = ? AND b = ?")]
+    [InlineData("SELECT \U0001D49C$gbp$ FROM t WHERE a = '$gbp$' AND b = 'secret-name'", "SELECT \U0001D49C$gbp$ FROM t WHERE a = ? AND b = ?")]
+    [InlineData("SELECT [Price$gbp$] FROM t WHERE a = '$gbp$' AND b = 'secret-name'", "SELECT [Price$gbp$] FROM t WHERE a = ? AND b = ?")]
+    public void GetSanitizedSql_DollarSignInIdentifier_IsNotDollarQuote(string sql, string expected)
+    {
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData("SELECT $$secret-name$$", "SELECT ?")]
+    [InlineData("SELECT * FROM t WHERE a = $$secret-name$$ AND b = 1", "SELECT * FROM t WHERE a = ? AND b = ?")]
+    [InlineData("SELECT fn($$secret-name$$, $tag$secret-name$tag$)", "SELECT fn(?, ?)")]
+    [InlineData("SELECT * FROM t WHERE a IN ($$secret-name$$, 'x')", "SELECT * FROM t WHERE a IN (?, ?)")]
+    [InlineData("SELECT * FROM t WHERE tsv@@$$secret-name$$", "SELECT * FROM t WHERE tsv@@?")]
+    [InlineData("SELECT $$a$$$$secret-name$$", "SELECT ??")]
+    [InlineData("SELECT $t$a$t$$t$secret-name$t$", "SELECT ??")]
+    [InlineData("SELECT * FROM t WHERE a IN ($$a$$$$secret-name$$, 'x') AND b = 'y'", "SELECT * FROM t WHERE a IN (??, ?) AND b = ?")]
+    [InlineData("SELECT * FROM t WHERE a = 0x1F$$secret-name$$", "SELECT * FROM t WHERE a = ??")]
+    [InlineData("SELECT * FROM t WHERE a = 1$$secret-name$$", "SELECT * FROM t WHERE a = ??")]
+    [InlineData("SELECT * FROM t WHERE a = 'x'$$secret-name$$", "SELECT * FROM t WHERE a = ??")]
+    [InlineData("SELECT * FROM t WHERE arr<@$$secret-name$$", "SELECT * FROM t WHERE arr<@?")]
+    [InlineData("SELECT * FROM t WHERE flags#$$secret-name$$", "SELECT * FROM t WHERE flags#?")]
+    public void GetSanitizedSql_DollarQuotedString_IsSanitized(string sql, string expected)
+    {
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
     [InlineData("/* served on GET /notes/* */ SELECT * FROM Notes WHERE Tag = '*/' AND TenantKey = 'secret-name'", " SELECT * FROM Notes WHERE Tag = ? AND TenantKey = ?")]
     [InlineData("/* a /* b */ SELECT * FROM Notes WHERE Tag = '*/' AND TenantKey = 'secret-name'", " SELECT * FROM Notes WHERE Tag = ? AND TenantKey = ?")]
     [InlineData("SELECT * FROM Notes /* a /* b */ WHERE TenantKey = 'secret-name'", "SELECT * FROM Notes  WHERE TenantKey = ?")]

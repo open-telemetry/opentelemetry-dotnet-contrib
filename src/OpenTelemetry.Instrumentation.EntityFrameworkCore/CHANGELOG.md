@@ -65,6 +65,10 @@
   such as the one in the Oracle `IDENTIFIED BY` clause, is replaced with `?`.
   ([#ZZZZ](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/ZZZZ))
 
+* Fixed query sanitization so that a `$` in an identifier, such as `price$gbp$`,
+  is no longer treated as the start of a string in dollar quotes.
+  ([#AAAA](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/AAAA))
+
 ## 1.20.1-beta.1
 
 Released 2026-Oct-21
