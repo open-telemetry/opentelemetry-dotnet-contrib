@@ -266,6 +266,66 @@ to `workflow.execution.state="executing"` for actual execution time.
 > Add `using OpenTelemetry.Metrics;` to access
 > `HangfireMetricsInstrumentationOptions`.
 
+#### EnrichWithBackgroundJob
+
+Use `EnrichWithBackgroundJob` to add custom attributes to each metric that
+this instrumentation records. The instrumentation calls the delegate after it
+adds its own attributes. The delegate cannot replace or remove those
+attributes.
+
+```csharp
+var meterProvider = Sdk.CreateMeterProviderBuilder()
+    .AddHangfireInstrumentation(options =>
+    {
+        options.EnrichWithBackgroundJob = job => new TagList
+        {
+            { "myapp.job.assembly", job.Job?.Type.Assembly.GetName().Name },
+        };
+    })
+    .AddConsoleExporter()
+    .Build();
+```
+
+The instrumentation calls the delegate many times for each job, also when the
+job changes state. It is recommended to keep the delegate fast and to avoid
+I/O in it. Return only low-cardinality values. Do not return the job ID or the
+job arguments.
+
+`workflow.status` and `workflow.execution.status` add 1 when a job enters a
+state and subtract 1 when the job leaves it. These two calls can run on
+different servers. Thus use only data from the job in the delegate, not the
+machine name, the current time or other environment values. Otherwise these
+metrics can fail to return to 0.
+
+To get the delegate from a service, configure the options through DI:
+
+```csharp
+builder.Services.AddOptions<HangfireMetricsInstrumentationOptions>()
+    .Configure<IMyJobTagger>((options, tagger) =>
+        options.EnrichWithBackgroundJob = tagger.Enrich);
+```
+
+#### CustomStateMappings
+
+Use `CustomStateMappings` to count jobs in a custom Hangfire state as jobs in
+a built-in state.
+
+```csharp
+var meterProvider = Sdk.CreateMeterProviderBuilder()
+    .AddHangfireInstrumentation(options =>
+    {
+        options.CustomStateMappings = new Dictionary<string, string>
+        {
+            ["Parked"] = ScheduledState.StateName,
+        };
+    })
+    .AddConsoleExporter()
+    .Build();
+```
+
+The metrics do not count a custom state that maps to `Succeeded`, `Failed` or
+`Deleted`. Map each final custom state to one of these states.
+
 ### Available Metrics
 
 The following metrics are emitted by this instrumentation:
@@ -356,12 +416,12 @@ The number of actively running tasks grouped by task and the current state.
 
 **Attributes:**
 
-| Attribute                  | Type   | Description                            | Requirement Level         | Values                              |
-| -------------------------- | ------ | -------------------------------------- | ------------------------- | ----------------------------------- |
-| `workflow.task.name`       | string | Name of the task (Hangfire job method) | Required                  | e.g., `MyJob.Execute`               |
-| `workflow.execution.state` | string | Current state of the execution         | Required                  | `pending`, `executing`, `completed` |
-| `workflow.platform.name`   | string | The workflow platform being used       | Recommended               | `hangfire`                          |
-| `error.type`               | string | The type of error that occurred        | Conditionally Required[1] | Exception type name                 |
+| Attribute                  | Type   | Description                            | Requirement Level         | Values                 |
+| -------------------------- | ------ | -------------------------------------- | ------------------------- | ---------------------- |
+| `workflow.task.name`       | string | Name of the task (Hangfire job method) | Required                  | e.g., `MyJob.Execute`  |
+| `workflow.execution.state` | string | Current state of the execution         | Required                  | `pending`, `executing` |
+| `workflow.platform.name`   | string | The workflow platform being used       | Recommended               | `hangfire`             |
+| `error.type`               | string | The type of error that occurred        | Conditionally Required[1] | Exception type name    |
 
 [1]: Required if and only if the task execution failed.
 
@@ -369,11 +429,11 @@ The number of actively running tasks grouped by task and the current state.
 
 Hangfire job states are mapped to workflow semantic convention states as follows:
 
-| Hangfire State                | Workflow State |
-| ----------------------------- | -------------- |
-| Scheduled, Enqueued, Awaiting | `pending`      |
-| Processing                    | `executing`    |
-| Succeeded, Failed, Deleted    | `completed`    |
+| Hangfire State                        | Workflow State |
+| ------------------------------------- | -------------- |
+| Enqueued, Awaiting                    | `pending`      |
+| Processing                            | `executing`    |
+| Scheduled, Succeeded, Failed, Deleted | not counted    |
 
 #### workflow.execution.errors
 
@@ -428,13 +488,13 @@ The number of actively running workflows grouped by definition and the current s
 
 **Attributes:**
 
-| Attribute                  | Type   | Description                                 | Requirement Level         | Values                              |
-| -------------------------- | ------ | ------------------------------------------- | ------------------------- | ----------------------------------- |
-| `workflow.definition.name` | string | Name of the workflow (Hangfire job method)  | Required                  | e.g., `MyJob.Execute`               |
-| `workflow.state`           | string | Current state of the workflow               | Required                  | `pending`, `executing`, `completed` |
-| `workflow.trigger.type`    | string | Type of trigger that initiated the workflow | Required                  | `api`, `cron`, `schedule`           |
-| `workflow.platform.name`   | string | The workflow platform being used            | Recommended               | `hangfire`                          |
-| `error.type`               | string | The type of error that occurred             | Conditionally Required[1] | Exception type name                 |
+| Attribute                  | Type   | Description                                 | Requirement Level         | Values                    |
+| -------------------------- | ------ | ------------------------------------------- | ------------------------- | ------------------------- |
+| `workflow.definition.name` | string | Name of the workflow (Hangfire job method)  | Required                  | e.g., `MyJob.Execute`     |
+| `workflow.state`           | string | Current state of the workflow               | Required                  | `pending`, `executing`    |
+| `workflow.trigger.type`    | string | Type of trigger that initiated the workflow | Required                  | `api`, `cron`, `schedule` |
+| `workflow.platform.name`   | string | The workflow platform being used            | Recommended               | `hangfire`                |
+| `error.type`               | string | The type of error that occurred             | Conditionally Required[1] | Exception type name       |
 
 [1]: Required if and only if the workflow execution failed.
 
@@ -448,7 +508,7 @@ Hangfire job states are mapped to workflow semantic convention states as follows
 | Enqueued, Awaiting (from cron)       | `pending`      | `cron`                          |
 | Enqueued, Awaiting (fire-and-forget) | `pending`      | `api`                           |
 | Processing                           | `executing`    | (inherited from previous state) |
-| Succeeded, Failed, Deleted           | `completed`    | (inherited from previous state) |
+| Succeeded, Failed, Deleted           | not counted    | -                               |
 
 > [!IMPORTANT]
 > **Difference between `workflow.status` and `workflow.execution.status`:**
