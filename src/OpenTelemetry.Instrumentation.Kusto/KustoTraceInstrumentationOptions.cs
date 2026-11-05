@@ -24,6 +24,19 @@ public sealed class KustoTraceInstrumentationOptions
     public bool RecordQuerySummary { get; set; } = true;
 
     /// <summary>
+    /// Gets or sets a value indicating whether the exception details returned by the cluster will be recorded
+    /// as an <c>exception</c> <see cref="ActivityEvent"/> or not.
+    /// Default is <see langword="false"/>.
+    /// </summary>
+    /// <remarks>
+    /// https://github.com/open-telemetry/semantic-conventions/blob/main/docs/exceptions/exceptions-spans.md.
+    /// <para/>
+    /// The exception message returned by the cluster can contain parts of the query text, such as literal values,
+    /// which are not sanitized. Only enable this option if exposing such values in telemetry is acceptable.
+    /// </remarks>
+    public bool RecordException { get; set; }
+
+    /// <summary>
     /// Gets or sets an action to enrich the Activity with additional information from the TraceRecord.
     /// </summary>
     /// <remarks>
