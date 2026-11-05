@@ -55,7 +55,14 @@ internal sealed class WsReceiver : IDisposable
         }
 
         this.linkedReceiveTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token, this.disposeTokenSource.Token);
-        this.receiveTask = this.ReceiveLoopAsync(this.linkedReceiveTokenSource.Token);
+
+        // Always dispatch to the thread pool. Invoked directly, the loop would run on the caller's
+        // thread until a receive has to wait for data, which a server that keeps sending can postpone
+        // indefinitely, so Start (and WsTransport.StartAsync) would never return.
+        var receiveToken = this.linkedReceiveTokenSource.Token;
+        this.receiveTask = Task.Run(
+            () => this.ReceiveLoopAsync(receiveToken),
+            CancellationToken.None);
     }
 
     /// <summary>
