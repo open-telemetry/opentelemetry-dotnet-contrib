@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* Fixed `OpAmpClient.FlushAsync()` potentially waiting indefinitely when new
+  messages kept being queued. Messages queued after a flush starts no longer
+  delay its completion.
+  ([#5882](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5882))
+
 ## 0.9.0-alpha.3
 
 Released 2026-Nov-02
