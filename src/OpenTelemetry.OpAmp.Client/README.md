@@ -57,33 +57,12 @@ handlers, certificates, proxy settings, or other transport-specific options.
 
 ### Redirects
 
-The client does not follow HTTP redirects by default. A redirect response to an
-OpAMP request (HTTP) or to the WebSocket handshake is treated as a failure, so a
-server, or anyone able to tamper with an unprotected connection, cannot steer the
-client to another destination.
-
-To allow redirects, set `AllowRedirects`. This lets the server choose where the
-client connects, so enable it only for servers you trust, over validated TLS:
-
-```csharp
-opts.AllowRedirects = true;
-```
-
-`AllowRedirects` applies to the default HTTP and WebSocket clients. A client
-returned from `HttpClientFactory` or `ClientWebSocketFactory` owns its redirect
-behavior (clients created with default settings, including from
-`IHttpClientFactory`, follow redirects); the application is responsible for its
-redirect policy.
-
-Limitation: `AllowRedirects = false` cannot disable WebSocket redirects when
-the application runs on .NET Framework (including the `net462` and
-`netstandard2.0` builds), because `ClientWebSocket` offers no way to disable
-them there. HTTP redirects are disabled on all targets.
-
-TLS does not protect against a compromised OpAMP server. Use a validated
-`https://` or `wss://` `ServerUrl`, do not disable certificate validation, and
-where appropriate restrict the application's outbound destinations at the
-network level.
+HTTP redirects are not followed by default, for both HTTP polling and the
+WebSocket handshake; a redirect response is treated as a failure. Set
+`AllowRedirects = true` to follow them, only for servers you trust over validated
+TLS. Clients returned from `HttpClientFactory` or `ClientWebSocketFactory`
+control their own redirect behavior, and WebSocket redirects cannot be disabled
+in the `net462` and `netstandard2.0` builds.
 
 Each client instance has an `InstanceUid` and may report identifying and
 non-identifying resource attributes through `Identification`. Attribute values

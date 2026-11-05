@@ -39,4 +39,8 @@ public class OpAmpClientSettingsTests
             nameof(value),
             () => settings.MaxPendingMessageBytes = value);
     }
+
+    [Fact]
+    public void AllowRedirects_DefaultsToFalse()
+        => Assert.False(new OpAmpClientSettings().AllowRedirects, "AllowRedirects should default to false");
 }
