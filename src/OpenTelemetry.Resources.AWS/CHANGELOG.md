@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.20.2
+
+Released 2026-Nov-05
+
 * `AWSEC2Detector`, `AWSECSDetector` and `AWSEKSDetector` no longer follow HTTP
   redirects when requesting metadata. A redirect response is now treated as a
   failed request.
