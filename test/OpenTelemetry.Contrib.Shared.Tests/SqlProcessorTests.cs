@@ -1306,6 +1306,31 @@ public class SqlProcessorTests(ITestOutputHelper output)
     }
 
     [Theory]
+    [InlineData("CREATE USER alice IDENTIFIED BY 'first', bob IDENTIFIED BY 'second'", "CREATE USER ? IDENTIFIED BY ?, ? IDENTIFIED BY ?")]
+    [InlineData("CREATE USER 'alice'@'localhost' IDENTIFIED BY 'first', bob@localhost IDENTIFIED BY 'second'", "CREATE USER ?@? IDENTIFIED BY ?, ? IDENTIFIED BY ?")]
+    [InlineData("ALTER USER alice IDENTIFIED BY 'first', bob IDENTIFIED BY 'second'", "ALTER USER ? IDENTIFIED BY ?, ? IDENTIFIED BY ?")]
+    [InlineData("ALTER USER 'alice'@localhost IDENTIFIED BY 'first'", "ALTER USER ?@? IDENTIFIED BY ?")]
+    [InlineData("DROP USER 'alice'@localhost, 'bob'@localhost", "DROP USER ?@?, ?@?")]
+    [InlineData("CREATE USER IF NOT EXISTS alice, bob, carol", "CREATE USER IF NOT EXISTS ?, ?, ?")]
+    [InlineData("CREATE USER alice WITH MAX_QUERIES_PER_HOUR 10, bob WITH MAX_QUERIES_PER_HOUR 20", "CREATE USER ? WITH MAX_QUERIES_PER_HOUR ?, ? WITH MAX_QUERIES_PER_HOUR ?")]
+    [InlineData("RENAME USER alice TO bob, carol TO dave", "RENAME USER ? TO ?, ? TO ?")]
+    [InlineData("RENAME USER 'alice'@'localhost' TO bob@localhost, carol TO 'dave'", "RENAME USER ?@? TO ?, ? TO ?")]
+    [InlineData("CREATE USER alice, /* next account */ bob; SELECT name, email FROM contacts", "CREATE USER ?,  ?; SELECT name, email FROM contacts")]
+    [InlineData("CREATE USER alice DEFAULT ROLE reporter, reader", "CREATE USER ? DEFAULT ROLE reporter, reader")]
+    [InlineData("ALTER USER alice IDENTIFIED BY 'first'; SELECT name, email FROM contacts", "ALTER USER ? IDENTIFIED BY ?; SELECT name, email FROM contacts")]
+    [InlineData("ALTER TABLE t RENAME COLUMN user TO customer", "ALTER TABLE t RENAME COLUMN user TO customer")]
+    public void GetSanitizedSql_MySqlAccountLists_AreRedactedWithoutAffectingOtherLists(string sql, string expected)
+    {
+        var result = GetSanitizedSql(sql, SqlDialect.MySql);
+
+        Assert.Equal(expected, result.SanitizedSql);
+        Assert.DoesNotContain("alice", result.DbQuerySummary, StringComparison.Ordinal);
+        Assert.DoesNotContain("bob", result.DbQuerySummary, StringComparison.Ordinal);
+        Assert.DoesNotContain("carol", result.DbQuerySummary, StringComparison.Ordinal);
+        Assert.DoesNotContain("dave", result.DbQuerySummary, StringComparison.Ordinal);
+    }
+
+    [Theory]
     [InlineData("CREATE USER u IDENTIFIED BY RANDOM PASSWORD", "CREATE USER ? IDENTIFIED BY RANDOM PASSWORD")]
     [InlineData("CREATE USER u IDENTIFIED BY PASSWORD 'secret-hash'", "CREATE USER ? IDENTIFIED BY PASSWORD ?")]
     [InlineData("CREATE USER u IDENTIFIED BY RANDOM#don't\nPASSWORD COMMENT 'secret-name'", "CREATE USER ? IDENTIFIED BY RANDOM\nPASSWORD COMMENT ?")]

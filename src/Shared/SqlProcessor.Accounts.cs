@@ -66,6 +66,8 @@ internal static partial class SqlProcessor
         Values,
         PasswordKeyword,
         Modify,
+        Default,
+        Role,
 
         // Not words, but what a token was: the CREATE OR REPLACE, the name of a login or user which was redacted, a
         // password which was redacted, and the semicolon which ends a statement (as does the start of the text).
@@ -110,6 +112,12 @@ internal static partial class SqlProcessor
 
         // The statement is ALTER TABLE, in which ALTER and DROP can be followed by the name of a column.
         AlterTable = 4,
+
+        // MySQL CREATE, ALTER and RENAME USER can have a comma-separated list of accounts.
+        AccountList = 8,
+
+        // RENAME USER uses TO between each old and new account name.
+        RenameUser = 16,
     }
 
     // Finds which of the words which are looked for a word is, by its length and first letter as most words are none of them.
@@ -135,6 +143,7 @@ internal static partial class SqlProcessor
             (4, 'e') => Match(word, "exec", SqlWord.Exec),
             (4, 'f') => Match(word, "from", SqlWord.From),
             (4, 'n') => Match(word, "name", SqlWord.Name),
+            (4, 'r') => Match(word, "role", SqlWord.Role),
             (4, 't') => Match(word, "type", SqlWord.Type),
             (4, 'u') => Match(word, "user", SqlWord.User),
             (4, 'w') => Match(word, "with", SqlWord.With),
@@ -156,6 +165,7 @@ internal static partial class SqlProcessor
             (6, 'u') => Match(word, "update", SqlWord.Update),
             (6, 'v') => Match(word, "values", SqlWord.Values),
             (7, 'c') => Match(word, "collate", SqlWord.Collate, "cascade", SqlWord.Cascade),
+            (7, 'd') => Match(word, "default", SqlWord.Default),
             (7, 'e') => Match(word, "execute", SqlWord.Execute),
             (7, 'r') => Match(word, "replace", SqlWord.Replace, "restore", SqlWord.Restore),
             (8, 'p') => Match(word, "password", SqlWord.PasswordKeyword),
@@ -368,8 +378,18 @@ internal static partial class SqlProcessor
 
         switch (word)
         {
+            case SqlWord.Role:
+                // DEFAULT ROLE ends MySQL's account list; its commas separate role names.
+                if (previous == SqlWord.Default)
+                {
+                    state.Statement &= ~StatementContext.AccountList;
+                }
+
+                return PendingToken.None;
+
             case SqlWord.To:
-                if (state.InLoginOrUserStatement && previous == SqlWord.Rename)
+                if (state.InLoginOrUserStatement &&
+                    (previous == SqlWord.Rename || (state.Statement & StatementContext.RenameUser) != 0))
                 {
                     return PendingToken.AccountName;
                 }
@@ -382,9 +402,20 @@ internal static partial class SqlProcessor
 
                 if (previous is SqlWord.Create or SqlWord.CreateOrReplace ||
                     (previous == SqlWord.Modify && previousPrevious == SqlWord.StatementEnd) ||
-                    ((isDrop || previous == SqlWord.Alter) && !(state.InAlterTable && IsColumnOperation(sql, end, state.Dialect))))
+                    ((isDrop || previous == SqlWord.Alter) && !(state.InAlterTable && IsColumnOperation(sql, end, state.Dialect))) ||
+                    (word == SqlWord.User && previous == SqlWord.Rename && state.Dialect == SqlDialect.MySql))
                 {
                     state.Statement |= StatementContext.LoginOrUser;
+
+                    if (state.Dialect == SqlDialect.MySql)
+                    {
+                        state.Statement |= StatementContext.AccountList;
+
+                        if (previous == SqlWord.Rename)
+                        {
+                            state.Statement |= StatementContext.RenameUser;
+                        }
+                    }
 
                     if (isDrop)
                     {
@@ -422,6 +453,15 @@ internal static partial class SqlProcessor
     {
         switch (currentChar)
         {
+            case AtChar:
+                // MySQL account names can quote the user separately from a bare host.
+                if (state.Dialect == SqlDialect.MySql && state.PreviousWord == SqlWord.AccountName)
+                {
+                    state.Pending = PendingToken.AccountName;
+                }
+
+                break;
+
             case EqualsChar:
                 // NAME = new_name and LOGIN = login_name (e.g. ALTER LOGIN name WITH NAME = new_name)
                 if (state.PreviousWord is SqlWord.Name or SqlWord.Login)
@@ -432,8 +472,10 @@ internal static partial class SqlProcessor
                 break;
 
             case CommaChar:
-                // DROP USER name, name, but not a comma which is not after a name (e.g. in a statement which follows)
-                if (state.InDropLoginOrUserStatement && state.PreviousWord == SqlWord.AccountName)
+                // MySQL account definitions can have authentication/options before the next account.
+                // In other dialects only DROP USER lists accounts directly after a name.
+                if ((state.Statement & StatementContext.AccountList) != 0 ||
+                    (state.InDropLoginOrUserStatement && state.PreviousWord == SqlWord.AccountName))
                 {
                     state.Pending = PendingToken.AccountName;
                 }
