@@ -339,6 +339,42 @@ public abstract class OpAmpPipeTests
     }
 
     [Fact]
+    public async Task OpAmpPipe_CountsPartiallyAppendedReportAgainstPendingByteLimit_WhenAppendMessageThrows()
+    {
+        const int configSize = 2048;
+        const int maxPendingMessageBytes = 1024;
+
+        using var transport = this.GetTransport();
+
+        var settings = new OpAmpClientSettings
+        {
+            MaxPendingMessageBytes = maxPendingMessageBytes,
+        };
+
+        var processor = new FrameProcessor();
+        using var pipe = new OpAmpPipe(settings, processor, transport);
+
+        AppendIdentification(pipe);
+        await transport.WaitForMessagesAsync(1);
+
+        // The callback adds a report to the frame and then throws, as a failing
+        // custom-capability enumeration would. The report stays in the builder.
+        var appendConfig = MessageBuilderHelper.AppendEffectiveConfig(
+            [new EffectiveConfigFile(new byte[configSize], "text/plain", "config")]);
+        Assert.Throws<InvalidOperationException>(
+            () => pipe.AppendMessage(frame =>
+            {
+                appendConfig(frame);
+                throw new InvalidOperationException("Simulated failure after partial append.");
+            }));
+
+        // The retained report must be charged to the limit even though the payload is empty.
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => AppendCustomMessage(pipe, 0, ReadOnlyMemory<byte>.Empty));
+        Assert.Contains(maxPendingMessageBytes.ToString(), exception.Message);
+    }
+
+    [Fact]
     public async Task OpAmpPipe_FreesPendingByteLimitCapacityForWholeFrame_WhenFrameIsDequeued()
     {
         const int configSize = 2048;

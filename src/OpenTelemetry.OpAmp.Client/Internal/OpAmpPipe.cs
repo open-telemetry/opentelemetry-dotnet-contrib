@@ -112,8 +112,10 @@ internal sealed class OpAmpPipe : IDisposable
                 return; // Discard any new messages
             }
 
-            messageRequest(this.currentFrame);
+            // Mark before invoking: the callback may partially modify the builder and then throw,
+            // and any retained data must still be counted against the byte limit.
             this.hasAccumulatedData = true;
+            messageRequest(this.currentFrame);
         }
 
         this.TryFlush(this.tokenSource.Token);
