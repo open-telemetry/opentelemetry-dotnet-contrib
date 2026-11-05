@@ -226,7 +226,8 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
         {
             var tagList = default(TagList);
 
-            RequestDataHelper.SetHttpMethodTag(ref tagList, owinContext.Request.Method);
+            var normalizedMethod = RequestDataHelper.GetNormalizedHttpMethod(owinContext.Request.Method);
+            tagList.Add(SemanticConventions.AttributeHttpRequestMethod, normalizedMethod);
 
             tagList.Add(SemanticConventions.AttributeUrlScheme, owinContext.Request.Scheme);
             tagList.Add(SemanticConventions.AttributeHttpResponseStatusCode, owinContext.Response.StatusCode);

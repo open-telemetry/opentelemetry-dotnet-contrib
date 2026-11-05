@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* Fixed `OpAmpClient.FlushAsync()` potentially waiting indefinitely when new
+  messages kept being queued. Messages queued after a flush starts no longer
+  delay its completion.
+  ([#5882](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5882))
+
 * Fix WebSocket transport startup blocking when the server sends messages
   immediately after the handshake.
   ([#5883](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5883))
