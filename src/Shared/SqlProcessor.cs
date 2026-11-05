@@ -2616,8 +2616,18 @@ internal static partial class SqlProcessor
                     break;
 
                 case DollarChar:
-                    i = TryFindDollarQuotedLiteralEnd(sql, i, state.Dialect, out end, ignoreLookBehind: i == literalEnd) ? end : i + 1;
-                    literalEnd = i;
+                    if (TryFindDollarQuotedLiteralEnd(sql, i, state.Dialect, out end, ignoreLookBehind: i == literalEnd))
+                    {
+                        i = end;
+                        literalEnd = i;
+                    }
+                    else
+                    {
+                        // A rejected dollar sign is part of an identifier, not the end of a literal.
+                        // The next dollar sign must still check its preceding identifier character.
+                        i++;
+                    }
+
                     break;
 
                 // DashChar, ForwardSlashChar or HashChar

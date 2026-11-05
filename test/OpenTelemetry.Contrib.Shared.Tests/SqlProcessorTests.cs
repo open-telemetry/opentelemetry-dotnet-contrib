@@ -92,6 +92,62 @@ public class SqlProcessorTests(ITestOutputHelper output)
     }
 
     [Theory]
+    [InlineData("b$$tag$", "$tag$")]
+    [InlineData("b$prefix$$tag$", "$tag$")]
+    [InlineData("b$$$", "$$")]
+    [InlineData("b$$$$", "$$")]
+    [InlineData("b$$\u00e9$", "$\u00e9$")]
+    [InlineData("b\u0301$$tag$", "$tag$")]
+    public void GetSanitizedSql_InClauseIdentifierWithRejectedDollarQuote_DoesNotChangeLiteralBoundaries(string identifier, string delimiter)
+    {
+        var sql = $"SELECT * FROM t WHERE a IN ('x', {identifier}) AND d = '{delimiter}) secret-name'";
+
+        var result = GetSanitizedSql(sql);
+
+        Assert.Equal("SELECT * FROM t WHERE a IN (?) AND d = ?", result.SanitizedSql);
+        Assert.Equal("SELECT t", result.DbQuerySummary);
+    }
+
+    [Theory]
+    [InlineData("1")]
+    [InlineData("0x1F")]
+    [InlineData("0b101")]
+    [InlineData("0o173")]
+    public void GetSanitizedSql_InClauseNumericFirstValue_DoesNotChangeFailedDollarQuoteBoundaries(string firstValue)
+    {
+        var sql = $"SELECT * FROM t WHERE a IN ({firstValue}, b$$tag$) AND d = '$tag$) secret-name'";
+
+        var result = GetSanitizedSql(sql);
+
+        Assert.Equal("SELECT * FROM t WHERE a IN (?) AND d = ?", result.SanitizedSql);
+        Assert.Equal("SELECT t", result.DbQuerySummary);
+    }
+
+    [Fact]
+    public void GetSanitizedSql_RejectedDollarQuoteInUnterminatedInClause_DoesNotFindParenthesisInLiteral()
+    {
+        const string Sql = "SELECT * FROM t WHERE a IN ('x', b$$tag$ AND d = '$tag$) secret-name'";
+
+        var result = GetSanitizedSql(Sql);
+
+        Assert.Equal("SELECT * FROM t WHERE a IN (?, b$$tag$ AND d = ?", result.SanitizedSql);
+        Assert.Equal("SELECT t", result.DbQuerySummary);
+    }
+
+    [Theory]
+    [InlineData("SELECT * FROM t WHERE a IN ('x', $$a$$$$secret-name$$)")]
+    [InlineData("SELECT * FROM t WHERE a IN ('x', 'a'$$secret-name$$)")]
+    [InlineData("SELECT * FROM t WHERE a IN ('x', flags#$$) secret-name$$)")]
+    [InlineData("SELECT * FROM t WHERE a IN ('x', b$$9$tag$) AND d = '$tag$) secret-name'")]
+    public void GetSanitizedSql_InClauseGenuineLiteralsAndInvalidTags_KeepTheirBoundaries(string sql)
+    {
+        var result = GetSanitizedSql(sql);
+
+        Assert.DoesNotContain("secret-name", result.SanitizedSql, StringComparison.Ordinal);
+        Assert.Equal("SELECT t", result.DbQuerySummary);
+    }
+
+    [Theory]
     [InlineData("SELECT * FROM Users WHERE Name IN ('carol@example.com', \"Fabrikam (UK)\", \"alice@example.com\", \"x\", \"secret-name\")")]
     [InlineData("SELECT * FROM Users WHERE Name IN ('a', \"b\\\")c\", 'secret-name')")]
     [InlineData("SELECT * FROM Users WHERE Name IN (1, 2 # don't )\n, 'secret-name')")]
