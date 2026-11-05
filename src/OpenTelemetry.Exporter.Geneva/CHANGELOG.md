@@ -8,7 +8,7 @@
   to be malformed. Such values are now exported as their decimal string
   representation, and an attribute that fails to serialize is now dropped
   cleanly and reported through the exporter's `EventSource`.
-  ([#5914](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/5914))
+  ([#5915](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5915))
 
 ## 1.20.1
 
