@@ -1177,6 +1177,101 @@ public class SqlProcessorTests(ITestOutputHelper output)
     }
 
     [Theory]
+    [InlineData("CREATE USER [alice@contoso.com] FOR LOGIN [alice@contoso.com]", "CREATE USER [?] FOR LOGIN [?]")]
+    [InlineData("CREATE USER alice FROM LOGIN alice", "CREATE USER ? FROM LOGIN ?")]
+    [InlineData("create user alice from login alice with default_schema = [dbo]", "create user ? from login ? with default_schema = [dbo]")]
+    [InlineData("IF EXISTS (SELECT 1 FROM sys.database_principals WHERE name = N'alice@contoso.com') DROP USER [alice@contoso.com]", "IF EXISTS (SELECT ? FROM sys.database_principals WHERE name = ?) DROP USER [?]")]
+    [InlineData("IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = N'alice') CREATE LOGIN [alice] WITH PASSWORD = N'Pa55w0rd!'", "IF NOT EXISTS (SELECT ? FROM sys.server_principals WHERE name = ?) CREATE LOGIN [?] WITH PASSWORD = ?")]
+    [InlineData("CREATE LOGIN [alice] WITH PASSWORD = N'Pa55w0rd!'; CREATE USER [alice] FOR LOGIN [alice]", "CREATE LOGIN [?] WITH PASSWORD = ?; CREATE USER [?] FOR LOGIN [?]")]
+    [InlineData("DROP USER [alice]; DROP LOGIN [alice]", "DROP USER [?]; DROP LOGIN [?]")]
+    [InlineData("SELECT 1; CREATE LOGIN alice WITH PASSWORD = 'Pa55w0rd!'", "SELECT ?; CREATE LOGIN ? WITH PASSWORD = ?")]
+    [InlineData("INSERT INTO audit VALUES (1); DROP LOGIN [alice]", "INSERT INTO audit VALUES (?); DROP LOGIN [?]")]
+    [InlineData("SELECT 1; DROP USER IF EXISTS alice", "SELECT ?; DROP USER IF EXISTS ?")]
+    [InlineData("ALTER LOGIN [alice] WITH NAME = [bob]", "ALTER LOGIN [?] WITH NAME = [?]")]
+    [InlineData("ALTER USER [alice] WITH NAME = [bob], LOGIN = [carol]", "ALTER USER [?] WITH NAME = [?], LOGIN = [?]")]
+    [InlineData("ALTER USER alice WITH LOGIN = alice", "ALTER USER ? WITH LOGIN = ?")]
+    [InlineData("ALTER USER alice RENAME TO bob", "ALTER USER ? RENAME TO ?")]
+    [InlineData("DROP USER alice, bob", "DROP USER ?, ?")]
+    [InlineData("SELECT 1; DROP USER alice, bob; SELECT a, b FROM t", "SELECT ?; DROP USER ?, ?; SELECT a, b FROM t")]
+    [InlineData("IF EXISTS (SELECT 1 FROM sys.server_principals WHERE name = N'alice') ALTER LOGIN [alice] WITH NAME = [bob]", "IF EXISTS (SELECT ? FROM sys.server_principals WHERE name = ?) ALTER LOGIN [?] WITH NAME = [?]")]
+    [InlineData("ALTER TABLE t ADD c int\nALTER USER alice WITH NAME = bob", "ALTER TABLE t ADD c int\nALTER USER ? WITH NAME = ?")]
+    [InlineData("DROP USER alice,\n bob , [carol]", "DROP USER ?,\n ? , [?]")]
+    public void GetSanitizedSql_LoginOrUserNames_AreSanitized(string sql, string expected)
+    {
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData("DROP USER alice\nSELECT a, b FROM t", "DROP USER ?\nSELECT a, b FROM t")]
+    [InlineData("ALTER TABLE accounts ALTER login TYPE text", "ALTER TABLE accounts ALTER login TYPE text")]
+    [InlineData("ALTER USER type RENAME TO bob", "ALTER USER ? RENAME TO ?")]
+    [InlineData("CREATE USER 1alice IDENTIFIED BY 'x'", "CREATE USER ?? IDENTIFIED BY ?")]
+    [InlineData("DROP USER 'alice', bob", "DROP USER ?, ?")]
+    [InlineData("DROP USER alice, 'bob', carol", "DROP USER ?, ?, ?")]
+    [InlineData("DROP USER alice@host, bob@host", "DROP USER ?, ?")]
+    [InlineData("CREATE USER db_reader FOR LOGIN acct$alice", "CREATE USER ? FOR LOGIN ?")]
+    [InlineData("SELECT 1; CREATE OR REPLACE USER alice IDENTIFIED BY 'x'", "SELECT ?; CREATE OR REPLACE USER ? IDENTIFIED BY ?")]
+    [InlineData("ALTER TABLE t ADD c int\nALTER LOGIN [alice] WITH NAME = [bob]", "ALTER TABLE t ADD c int\nALTER LOGIN [?] WITH NAME = [?]")]
+    [InlineData("SELECT 1; ALTER TABLE accounts ALTER login TYPE text", "SELECT ?; ALTER TABLE accounts ALTER login TYPE text")]
+    [InlineData("ALTER TABLE accounts ALTER login SET DEFAULT 'x'", "ALTER TABLE accounts ALTER login SET DEFAULT ?")]
+    [InlineData("ALTER TABLE accounts DROP login, email", "ALTER TABLE accounts DROP login, email")]
+    [InlineData("ALTER TABLE accounts DROP login CASCADE", "ALTER TABLE accounts DROP login CASCADE")]
+    [InlineData("ALTER TABLE accounts DROP COLUMN login", "ALTER TABLE accounts DROP COLUMN login")]
+    [InlineData("CREATE USER alice WITHOUT LOGIN\nALTER DATABASE sales MODIFY NAME = archive", "CREATE USER ? WITHOUT LOGIN\nALTER DATABASE sales MODIFY NAME = archive")]
+    [InlineData("DROP USER alice, 'bob'; SELECT col FROM t", "DROP USER ?, ?; SELECT col FROM t")]
+    [InlineData("DROP USER 'bob'\nSELECT col FROM t", "DROP USER ?\nSELECT col FROM t")]
+    [InlineData("ALTER TABLE t ALTER COLUMN login TYPE text; ALTER USER alice WITH LOGIN = bob", "ALTER TABLE t ALTER COLUMN login TYPE text; ALTER USER ? WITH LOGIN = ?")]
+    [InlineData("CREATE LOGIN alice WITH PASSWORD = 'x', DEFAULT_DATABASE = sales", "CREATE LOGIN ? WITH PASSWORD = ?, DEFAULT_DATABASE = sales")]
+    [InlineData("ALTER DATABASE sales MODIFY NAME = archive", "ALTER DATABASE sales MODIFY NAME = archive")]
+    [InlineData("ALTER TABLE sales RENAME TO archive", "ALTER TABLE sales RENAME TO archive")]
+    [InlineData("ALTER USER alice SET search_path TO sales", "ALTER USER ? SET search_path TO sales")]
+    [InlineData("UPDATE t SET name = bob, login = carol WHERE id = 1", "UPDATE t SET name = bob, login = carol WHERE id = ?")]
+    [InlineData("SELECT * FROM login WHERE user = 'alice'", "SELECT * FROM login WHERE user = ?")]
+    [InlineData("CREATE USER [alice] WITHOUT LOGIN; SELECT * FROM login WHERE id = 1", "CREATE USER [?] WITHOUT LOGIN; SELECT * FROM login WHERE id = ?")]
+    public void GetSanitizedSql_NotLoginOrUserName_IsNotSanitized(string sql, string expected)
+    {
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
+    [InlineData("SELECT * FROM accounts; DROP USER alice, bob", "SELECT * FROM accounts; DROP USER ?, ?", "SELECT accounts")]
+    [InlineData("DROP USER alice, 'bob', carol", "DROP USER ?, ?, ?", "DROP USER")]
+    [InlineData("CREATE USER db_reader FOR LOGIN acct$alice", "CREATE USER ? FOR LOGIN ?", "CREATE USER")]
+    [InlineData("SELECT 1; CREATE OR REPLACE USER alice IDENTIFIED BY 'x'", "SELECT ?; CREATE OR REPLACE USER ? IDENTIFIED BY ?", "SELECT")]
+    [InlineData("IF EXISTS (SELECT 1 FROM sys.database_principals WHERE name = N'alice') DROP USER [alice]", "IF EXISTS (SELECT ? FROM sys.database_principals WHERE name = ?) DROP USER [?]", "SELECT sys.database_principals")]
+    public void GetSanitizedSql_LoginOrUserNames_AreNotInSummary(string sql, string expectedSql, string expectedSummary)
+    {
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.Equal(expectedSql, sqlStatementInfo.SanitizedSql);
+        Assert.Equal(expectedSummary, sqlStatementInfo.DbQuerySummary);
+    }
+
+    [Theory]
+    [InlineData("CREATE USER [alice@contoso.com] FOR LOGIN [alice@contoso.com]", "CREATE USER [?] FOR LOGIN [?]")]
+    [InlineData("ALTER USER alice RENAME TO bob", "ALTER USER ? RENAME TO ?")]
+    [InlineData("DROP USER alice, bob", "DROP USER ?, ?")]
+    [InlineData("DROP USER alice, 'bob'; SELECT col FROM t", "DROP USER ?, ?; SELECT col FROM t")]
+    public void GetSanitizedSql_LoginOrUserNamesWithBackslashDialect_AreSanitized(string sql, string expected)
+    {
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql, useBackslashEscapes: true);
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+
+        Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Theory]
     [InlineData("CREATE USER u IDENTIFIED BY RANDOM PASSWORD", "CREATE USER ? IDENTIFIED BY RANDOM PASSWORD")]
     [InlineData("CREATE USER u IDENTIFIED BY PASSWORD 'secret-hash'", "CREATE USER ? IDENTIFIED BY PASSWORD ?")]
     [InlineData("CREATE USER u IDENTIFIED BY RANDOM#don't\nPASSWORD COMMENT 'secret-name'", "CREATE USER ? IDENTIFIED BY RANDOM\nPASSWORD COMMENT ?")]

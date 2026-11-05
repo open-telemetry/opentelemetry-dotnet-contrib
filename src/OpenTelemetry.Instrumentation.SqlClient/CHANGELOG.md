@@ -61,6 +61,12 @@
   is no longer treated as the start of a string in dollar quotes.
   ([#AAAA](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/AAAA))
 
+* Fixed query sanitization so that the names of logins and users are replaced
+  with `?` wherever they appear in a `CREATE`, `ALTER` or `DROP` statement,
+  such as after `FOR LOGIN` or `WITH NAME =`, and when the statement follows
+  another statement.
+  ([#BBBB](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/BBBB))
+
 ## 1.20.1
 
 Released 2026-Oct-21
