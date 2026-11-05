@@ -2616,7 +2616,7 @@ internal static partial class SqlProcessor
                     break;
 
                 case DollarChar:
-                    if (TryFindDollarQuotedLiteralEnd(sql, i, state.Dialect, out end, ignoreLookBehind: i == literalEnd))
+                    if (TryFindDollarQuotedLiteralEnd(sql, i, state.Dialect, out end, ignoreLookBehind: i == literalEnd || EndsWithNumericLiteral(sql, i)))
                     {
                         i = end;
                         literalEnd = i;
@@ -2640,6 +2640,89 @@ internal static partial class SqlProcessor
 
         closeParenIndex = -1;
         return false;
+    }
+
+    // Whether a number (e.g. 1, 1.5e3, 1_000 or 0x1F) ends at the position, so that what follows it, which is not part of it,
+    // is not part of an identifier, as it is not in the main parser (e.g. the dollar quote of 1$$ text $$).
+    private static bool EndsWithNumericLiteral(ReadOnlySpan<char> sql, int end)
+    {
+        var start = end;
+        while (start > 0 &&
+               (char.IsAsciiLetterOrDigit(sql[start - 1]) ||
+                sql[start - 1] is UnderscoreChar or DotChar ||
+                (sql[start - 1] is '+' or '-' && start > 1 && (sql[start - 2] | 0x20) == 'e')))
+        {
+            start--;
+        }
+
+        // A word which starts with a letter (e.g. a1), or which follows a character of a word (e.g. $1), is an identifier.
+        if (start == end ||
+            !(char.IsAsciiDigit(sql[start]) || (sql[start] == DotChar && start + 1 < end && char.IsAsciiDigit(sql[start + 1]))) ||
+            (start > 0 && IsWordChar(sql[start - 1])))
+        {
+            return false;
+        }
+
+        var number = sql.Slice(start, end - start);
+
+        if (number.Length > 2 && number[0] == '0' && (number[1] | 0x20) is 'x' or 'b' or 'o')
+        {
+            var numberBase = (number[1] | 0x20) switch
+            {
+                'x' => 16,
+                'b' => 2,
+                _ => 8,
+            };
+
+            for (var i = 2; i < number.Length; i++)
+            {
+                var digit = number[i];
+                if (!(digit == UnderscoreChar ||
+                      numberBase switch
+                      {
+                          2 => digit is '0' or '1',
+                          8 => digit is >= '0' and <= '7',
+                          _ => char.IsAsciiHexDigit(digit),
+                      }))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        var position = 0;
+        while (position < number.Length && (char.IsAsciiDigit(number[position]) || number[position] == UnderscoreChar))
+        {
+            position++;
+        }
+
+        if (position < number.Length && number[position] == DotChar)
+        {
+            position++;
+            while (position < number.Length && (char.IsAsciiDigit(number[position]) || number[position] == UnderscoreChar))
+            {
+                position++;
+            }
+        }
+
+        // The main parser takes the exponent as it is, with or without digits after it.
+        if (position < number.Length && (number[position] | 0x20) == 'e')
+        {
+            position++;
+            if (position < number.Length && number[position] is '+' or '-')
+            {
+                position++;
+            }
+
+            while (position < number.Length && char.IsAsciiDigit(number[position]))
+            {
+                position++;
+            }
+        }
+
+        return position == number.Length;
     }
 
 #if !NET

@@ -123,6 +123,24 @@ public class SqlProcessorTests(ITestOutputHelper output)
         Assert.Equal("SELECT t", result.DbQuerySummary);
     }
 
+    [Theory]
+    [InlineData("1")]
+    [InlineData("0x1F")]
+    [InlineData("0b101")]
+    [InlineData("0o173")]
+    [InlineData("1.5")]
+    [InlineData("1.5e3")]
+    [InlineData("1_000")]
+    public void GetSanitizedSql_InClauseDollarQuoteDirectlyAfterNumber_IsNotPartOfAnIdentifier(string number)
+    {
+        var sql = $"SELECT * FROM t WHERE a IN ({number}$$) secret-name$$)";
+
+        var result = GetSanitizedSql(sql);
+
+        Assert.Equal("SELECT * FROM t WHERE a IN (?)", result.SanitizedSql);
+        Assert.Equal("SELECT t", result.DbQuerySummary);
+    }
+
     [Fact]
     public void GetSanitizedSql_RejectedDollarQuoteInUnterminatedInClause_DoesNotFindParenthesisInLiteral()
     {
