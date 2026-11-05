@@ -159,7 +159,7 @@ being executed and should return:
 * `DbQueryTextSanitizationResult.Suppress` to avoid emitting query text.
 * `DbQueryTextSanitizationResult.Sanitized(queryText, querySummary)` to emit
   sanitized query text, optionally along with a
-  [`db.query.summary`](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/db/database-spans.md#span-definition).
+  [`db.query.summary`](https://github.com/open-telemetry/semantic-conventions/blob/fb30ca17193b551473b1f43c315482918ab6987c/docs/db/database-spans.md#span-definition).
 
 The function is only called for commands whose `CommandType` is
 `CommandType.Text`. If it throws an exception, the query text is not emitted,
