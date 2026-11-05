@@ -287,8 +287,9 @@ var meterProvider = Sdk.CreateMeterProviderBuilder()
 ```
 
 The instrumentation calls the delegate many times for each job, also when the
-job changes state. Make the delegate fast, with no I/O. Return only
-low-cardinality values. Do not return the job ID or the job arguments.
+job changes state. It is recommended to keep the delegate fast and to avoid
+I/O in it. Return only low-cardinality values. Do not return the job ID or the
+job arguments.
 
 `workflow.status` and `workflow.execution.status` add 1 when a job enters a
 state and subtract 1 when the job leaves it. These two calls can run on
