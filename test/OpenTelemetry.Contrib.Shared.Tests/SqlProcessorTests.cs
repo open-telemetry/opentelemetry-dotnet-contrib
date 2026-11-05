@@ -1710,6 +1710,38 @@ public class SqlProcessorTests(ITestOutputHelper output)
         Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
     }
 
+    [Theory]
+    [InlineData("SELECT q'{customer's secret-name}' FROM RDB$DATABASE", "SELECT ? FROM RDB$DATABASE")]
+    [InlineData("SELECT Q'[customer's secret-name]' FROM RDB$DATABASE", "SELECT ? FROM RDB$DATABASE")]
+    [InlineData("SELECT q'(customer's secret-name)' FROM RDB$DATABASE", "SELECT ? FROM RDB$DATABASE")]
+    [InlineData("SELECT q'<customer's secret-name>' FROM RDB$DATABASE", "SELECT ? FROM RDB$DATABASE")]
+    [InlineData("SELECT q'!customer's secret-name!' FROM RDB$DATABASE", "SELECT ? FROM RDB$DATABASE")]
+    [InlineData("SELECT q' customer's secret-name ' FROM RDB$DATABASE", "SELECT ? FROM RDB$DATABASE")]
+    [InlineData("SELECT q'\tcustomer's secret-name\t' FROM RDB$DATABASE", "SELECT ? FROM RDB$DATABASE")]
+    [InlineData("SELECT q'\ncustomer's secret-name\n' FROM RDB$DATABASE", "SELECT ? FROM RDB$DATABASE")]
+    [InlineData("SELECT q'\rcustomer's secret-name\r' FROM RDB$DATABASE", "SELECT ? FROM RDB$DATABASE")]
+    [InlineData("SELECT q''customer's secret-name'' FROM RDB$DATABASE", "SELECT ? FROM RDB$DATABASE")]
+    [InlineData("SELECT * FROM t WHERE a IN ('x', q'[customer's ) secret-name]') AND b = 'other-secret'", "SELECT * FROM t WHERE a IN (?) AND b = ?")]
+    [InlineData("SELECT * FROM t WHERE a IN ('x', q' customer's ) secret-name ') AND b = 'other-secret'", "SELECT * FROM t WHERE a IN (?) AND b = ?")]
+    public void GetSanitizedSql_AlternativeQuotedStringsWithFirebirdDialect_AreSanitized(string sql, string expected)
+    {
+        var result = GetSanitizedSql(sql, SqlDialect.Firebird);
+
+        Assert.Equal(expected, result.SanitizedSql);
+        Assert.DoesNotContain("secret-name", result.DbQuerySummary, StringComparison.Ordinal);
+        Assert.DoesNotContain("other-secret", result.DbQuerySummary, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GetSanitizedSql_AlternativeQuotedStringsWithOracleDialect_AreSanitized()
+    {
+        const string sql = "SELECT q'{customer's secret-name}' FROM dual";
+
+        var result = GetSanitizedSql(sql, SqlDialect.Oracle);
+
+        Assert.Equal("SELECT ? FROM dual", result.SanitizedSql);
+    }
+
     [Fact]
     public void GetSanitizedSql_StringInDollarQuotesWithDefaultDialect_IsSanitized()
     {
@@ -1842,6 +1874,16 @@ public class SqlProcessorTests(ITestOutputHelper output)
 
         Assert.DoesNotContain("secret-name", sqlStatementInfo.SanitizedSql);
         Assert.Equal(expected, sqlStatementInfo.SanitizedSql);
+    }
+
+    [Fact]
+    public void GetSanitizedSql_BlockCommentsWithFirebirdDialect_EndAtTheFirstClosingDelimiter()
+    {
+        const string sql = "SELECT /* outer /* inner */ 'secret-name' FROM RDB$DATABASE";
+
+        var result = GetSanitizedSql(sql, SqlDialect.Firebird);
+
+        Assert.Equal("SELECT  ? FROM RDB$DATABASE", result.SanitizedSql);
     }
 
     [Fact]

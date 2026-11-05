@@ -237,6 +237,11 @@ internal static partial class SqlProcessor
         BackslashEscapedIdentifiers = 1024,
 
         /// <summary>
+        /// An alternative quoted string can use whitespace or an apostrophe as its delimiter.
+        /// </summary>
+        UnrestrictedAlternativeQuoteDelimiters = 2048,
+
+        /// <summary>
         /// MySQL and MariaDB.
         /// </summary>
         MySql = BackslashEscapes | DoubleQuotedStrings | HashComments | NonNestedComments | NoDollarQuotedStrings | NoStringPrefixes | NoBareWordPasswords,
@@ -267,9 +272,9 @@ internal static partial class SqlProcessor
         Teradata = NonNestedComments | NoDollarQuotedStrings | NoStringPrefixes,
 
         /// <summary>
-        /// Firebird, which is the same as Teradata in this.
+        /// Firebird, which supports alternative quoted strings, but has no dollar-quoted strings or nested comments.
         /// </summary>
-        Firebird = Teradata,
+        Firebird = Oracle | UnrestrictedAlternativeQuoteDelimiters,
 
         /// <summary>
         /// All of the flags, which is the largest value a dialect has.
@@ -284,7 +289,8 @@ internal static partial class SqlProcessor
               NoDollarQuotedStrings |
               NoStringPrefixes |
               NoBareWordPasswords |
-              BackslashEscapedIdentifiers,
+              BackslashEscapedIdentifiers |
+              UnrestrictedAlternativeQuoteDelimiters,
     }
 
     private enum SqlKeyword
@@ -2080,12 +2086,14 @@ internal static partial class SqlProcessor
 
             // An Oracle alternative quoting literal (e.g. q'[it's]', or nq'[it's]' for a national
             // character literal), in which quotes are not escaped. The delimiter which follows the
-            // opening quote can be any character other than whitespace, and the literal ends at the
+            // opening quote can be any character other than whitespace or an apostrophe in Oracle,
+            // while Firebird also allows those delimiters. The literal ends at the
             // first closing delimiter (']' for '[', '}' for '{', ')' for '(' and '>' for '<',
             // otherwise the same character) which is followed by a quote.
             if (previousChar is 'q' or 'Q' &&
                 quotePosition + 1 < sql.Length &&
-                sql[quotePosition + 1] is not (SpaceChar or TabChar or CarriageReturnChar or NewLineChar or SingleQuoteChar))
+                (Has(dialect, SqlDialect.UnrestrictedAlternativeQuoteDelimiters) ||
+                 sql[quotePosition + 1] is not (SpaceChar or TabChar or CarriageReturnChar or NewLineChar or SingleQuoteChar)))
             {
                 var prefixStart = quotePosition - 1;
                 if (prefixStart > 0 && sql[prefixStart - 1] is 'n' or 'N')
