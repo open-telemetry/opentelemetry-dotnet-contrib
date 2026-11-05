@@ -35,6 +35,12 @@ public sealed class InstrumentedConsumerBuilder<TKey, TValue> : ConsumerBuilder<
         set => this.options.Traces = value;
     }
 
+    internal bool UseCreationContextAsParent
+    {
+        get => this.options.UseCreationContextAsParent;
+        set => this.options.UseCreationContextAsParent = value;
+    }
+
     /// <summary>
     /// Build a new IConsumer instance.
     /// </summary>

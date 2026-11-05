@@ -17,6 +17,9 @@ internal sealed class ResourceAttributeConstants
     internal const string AttributeGcpCloudRunJobExecution = "gcp.cloud_run.job.execution";
     internal const string AttributeGcpCloudRunJobTaskIndex = "gcp.cloud_run.job.task_index";
 
+    // https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/resource/cloud-provider/gcp/gce.md
+    internal const string AttributeGcpGceInstanceName = "gcp.gce.instance.name";
+
     // Environment variables set by Cloud Run for job executions
     // https://cloud.google.com/run/docs/container-contract#jobs-env-vars
     internal const string CloudRunExecutionEnvVar = "CLOUD_RUN_EXECUTION";
