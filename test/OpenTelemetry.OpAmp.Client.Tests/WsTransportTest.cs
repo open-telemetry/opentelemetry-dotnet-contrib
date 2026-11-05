@@ -8,6 +8,8 @@ using Google.Protobuf;
 using OpenTelemetry.OpAmp.Client.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Transport;
 using OpenTelemetry.OpAmp.Client.Internal.Transport.WebSocket;
+using OpenTelemetry.OpAmp.Client.Listeners;
+using OpenTelemetry.OpAmp.Client.Messages;
 using OpenTelemetry.OpAmp.Client.Settings;
 using OpenTelemetry.OpAmp.Client.Tests.Mocks;
 using OpenTelemetry.OpAmp.Client.Tests.Tools;
@@ -593,6 +595,48 @@ public class WsTransportTest
     }
 
     [Fact]
+    public async Task WsTransport_StartAsyncReturnsWhenServerSendsImmediatelyAndListenerBlocks()
+    {
+        var timeout = TimeSpan.FromSeconds(5);
+        using var listener = new BlockingCustomMessageListener();
+        var frame = FrameGenerator.GenerateMockServerFrame(addHeader: true);
+        var initialFrameSent = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        using var opAmpServer = new OpAmpFakeWebSocketServer(
+            async (socket, token) =>
+            {
+                await socket.SendAsync(frame.Frame, WebSocketMessageType.Binary, true, token).ConfigureAwait(false);
+                initialFrameSent.TrySetResult(true);
+            });
+
+        var frameProcessor = new FrameProcessor();
+        frameProcessor.Subscribe(listener);
+        var wsTransport = CreateTransport(opAmpServer.Endpoint, frameProcessor);
+
+        try
+        {
+            var startTask = wsTransport.StartAsync(TestContext.Current.CancellationToken);
+
+            var sentTask = await Task.WhenAny(initialFrameSent.Task, Task.Delay(timeout, TestContext.Current.CancellationToken));
+            Assert.Same(initialFrameSent.Task, sentTask);
+
+            // The receive loop must not run inline on StartAsync's continuation. The listener
+            // blocks after receiving this unsolicited frame, while startup still completes.
+            var startCompleted = await Task.WhenAny(startTask, Task.Delay(timeout, TestContext.Current.CancellationToken));
+            Assert.Same(startTask, startCompleted);
+            await startTask;
+
+            var listenerEntered = await Task.WhenAny(listener.MessageReceived, Task.Delay(timeout, TestContext.Current.CancellationToken));
+            Assert.Same(listener.MessageReceived, listenerEntered);
+        }
+        finally
+        {
+            listener.Release();
+            wsTransport.Dispose();
+        }
+    }
+
+    [Fact]
     public async Task WsTransport_DisposeCompletesWithoutStopAfterOutstandingSend()
     {
         var timeout = TimeSpan.FromSeconds(10);
@@ -721,4 +765,22 @@ public class WsTransportTest
 #else
         new(segment.Array, segment.Offset + offset, count);
 #endif
+
+    private sealed class BlockingCustomMessageListener : IOpAmpListener<CustomMessageMessage>, IDisposable
+    {
+        private readonly ManualResetEventSlim release = new();
+        private readonly TaskCompletionSource<bool> messageReceived = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public Task MessageReceived => this.messageReceived.Task;
+
+        public void Release() => this.release.Set();
+
+        public void HandleMessage(CustomMessageMessage message)
+        {
+            this.messageReceived.TrySetResult(true);
+            this.release.Wait();
+        }
+
+        public void Dispose() => this.release.Dispose();
+    }
 }
