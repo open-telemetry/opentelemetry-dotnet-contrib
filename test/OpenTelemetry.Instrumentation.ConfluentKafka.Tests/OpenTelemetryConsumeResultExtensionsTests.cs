@@ -203,10 +203,10 @@ public class OpenTelemetryConsumeResultExtensionsTests
         var processActivity = Assert.Single(activities, a => a.DisplayName == "process process-topic");
 
         Assert.Equal(ActivityKind.Consumer, processActivity.Kind);
-        Assert.Equal("kafka", processActivity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
+        Assert.Equal("kafka", processActivity.GetTagValue(SemanticConventions.AttributeMessagingSystemName));
         Assert.Equal("process", processActivity.GetTagValue(SemanticConventions.AttributeMessagingOperationName));
         Assert.Equal("process", processActivity.GetTagValue(SemanticConventions.AttributeMessagingOperationType));
-        Assert.Null(processActivity.GetTagValue(SemanticConventions.AttributeMessagingKafkaMessageTombstone));
+        Assert.Null(processActivity.GetTagValue(SemanticConventions.AttributeKafkaMessageTombstone));
     }
 
     [Fact]
@@ -440,7 +440,7 @@ public class OpenTelemetryConsumeResultExtensionsTests
         }
 
         var processActivity = Assert.Single(activities, a => a.DisplayName == "process tombstone-topic");
-        Assert.Equal(true, processActivity.GetTagValue(SemanticConventions.AttributeMessagingKafkaMessageTombstone));
+        Assert.Equal(true, processActivity.GetTagValue(SemanticConventions.AttributeKafkaMessageTombstone));
     }
 
     private static InstrumentedConsumer<TKey, TValue> BuildInstrumentedConsumer<TKey, TValue>(
