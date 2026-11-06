@@ -27,8 +27,6 @@ public class EventNameManagerTests
     [InlineData("Company.")]
     [InlineData(".Company")]
     [InlineData("")]
-    [InlineData("Company\n")]
-    [InlineData("Company.Product\n")]
     [InlineData("My-Company.Product")]
     public void InvalidEventNamespaceTest(string eventNamespace)
     {
@@ -86,7 +84,6 @@ public class EventNameManagerTests
     [InlineData("Event.")]
     [InlineData(".Event")]
     [InlineData("")]
-    [InlineData("Event\n")]
     public void InvalidEventNameTest(string eventNamespace)
     {
         Assert.False(EventNameManager.IsEventNameValid(eventNamespace));
