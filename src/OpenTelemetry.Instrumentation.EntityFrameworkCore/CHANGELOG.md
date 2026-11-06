@@ -91,6 +91,11 @@
   escaped brackets extend an identifier beyond its 128-character limit.
   ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
 
+* Fixed MySQL and MariaDB query sanitization so that adjacent minus signs
+  are not mistaken for a comment without following whitespace, and a lone
+  carriage return does not end a line comment.
+  ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
+
 ## 1.20.1-beta.1
 
 Released 2026-Oct-21

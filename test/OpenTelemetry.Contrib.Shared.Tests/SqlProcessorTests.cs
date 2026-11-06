@@ -2052,6 +2052,46 @@ public class SqlProcessorTests(ITestOutputHelper output)
         Assert.Equal("SELECT  ? FROM RDB$DATABASE", result.SanitizedSql);
     }
 
+    [Theory]
+    [InlineData((int)SqlDialect.MySql, "SELECT 1--1 AS n, 'prefix\nsecret-name' AS secret", "SELECT ?-? AS n, ? AS secret")]
+    [InlineData((int)SqlDialect.MySql, "SELECT 1--1 AS n, \"prefix\nsecret-name\" AS secret", "SELECT ?-? AS n, ? AS secret")]
+    [InlineData((int)SqlDialect.MySql, "SELECT 1---1, 'prefix\nsecret-name'", "SELECT ?--?, ?")]
+    [InlineData((int)SqlDialect.MySql, "SELECT * FROM t WHERE id IN (1--1, 'prefix\nsecret-name') AND x = 'tail'", "SELECT * FROM t WHERE id IN (?) AND x = ?")]
+    [InlineData((int)SqlDialect.MySql, "SELECT 1-- secret-name\rstill-secret-name\n, 'tail'", "SELECT ?\n, ?")]
+    [InlineData((int)SqlDialect.MySql, "SELECT 1--\tsecret-name\rstill-secret-name\n, 'tail'", "SELECT ?\n, ?")]
+    [InlineData((int)SqlDialect.MySql, "SELECT 1 #secret-name\rstill-secret-name\n, 'tail'", "SELECT ? \n, ?")]
+    [InlineData((int)SqlDialect.MySql, "SELECT 1--\rsecret-name", "SELECT ?")]
+    [InlineData((int)SqlDialect.MySql, "SELECT 1#secret-name\rstill-secret-name", "SELECT ?")]
+    [InlineData((int)SqlDialect.MySql, "SELECT 1--", "SELECT ?")]
+    [InlineData((int)SqlDialect.GoogleSql, "SELECT 1--secret-name\r, 'tail'", "SELECT ?\r, ?")]
+    [InlineData((int)SqlDialect.GoogleSql, "SELECT 1#secret-name\r, 'tail'", "SELECT ?\r, ?")]
+    [InlineData((int)SqlDialect.Default, "SELECT 1--secret-name\r, 'tail'", "SELECT ?\r, ?")]
+    public void GetSanitizedSql_LineComments_RespectSourceDialect(int dialect, string sql, string expected)
+    {
+        var result = GetSanitizedSql(sql, (SqlDialect)dialect);
+
+        Assert.Equal(expected, result.SanitizedSql);
+        Assert.DoesNotContain("secret-name", result.SanitizedSql, StringComparison.Ordinal);
+        Assert.DoesNotContain("secret-name", result.DbQuerySummary, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(20)]
+    public void GetSanitizedSql_MySqlAndGoogleSqlLineComments_HaveSeparateCaches(int extraColumns)
+    {
+        var columns = GetColumnList(extraColumns);
+        var sql = $"SELECT {columns} -- hidden\r, 'secret-name'";
+
+        var mysql = GetSanitizedSql(sql, SqlDialect.MySql);
+        var googleSql = GetSanitizedSql(sql, SqlDialect.GoogleSql);
+
+        Assert.Equal($"SELECT {columns} ", mysql.SanitizedSql);
+        Assert.Equal($"SELECT {columns} \r, ?", googleSql.SanitizedSql);
+        Assert.Equal(mysql, GetSanitizedSql(sql, SqlDialect.MySql));
+        Assert.Equal(googleSql, GetSanitizedSql(sql, SqlDialect.GoogleSql));
+    }
+
     [Fact]
     public void GetSanitizedSql_BlockCommentsWhichNest_EndAtMatchingCommentEnd()
     {

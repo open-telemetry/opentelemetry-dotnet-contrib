@@ -242,14 +242,21 @@ internal static partial class SqlProcessor
         UnrestrictedAlternativeQuoteDelimiters = 2048,
 
         /// <summary>
+        /// Line comments follow MySQL rules: <c>--</c> requires following whitespace or a control character,
+        /// and only a line feed terminates a line comment.
+        /// </summary>
+        MySqlLineComments = 4096,
+
+        /// <summary>
         /// MySQL and MariaDB.
         /// </summary>
-        MySql = BackslashEscapes | DoubleQuotedStrings | HashComments | NonNestedComments | NoDollarQuotedStrings | NoStringPrefixes | NoBareWordPasswords,
+        MySql = BackslashEscapes | DoubleQuotedStrings | HashComments | NonNestedComments |
+                NoDollarQuotedStrings | NoStringPrefixes | NoBareWordPasswords | MySqlLineComments,
 
         /// <summary>
         /// GoogleSQL (Spanner).
         /// </summary>
-        GoogleSql = TripleQuotedLiterals | BackslashEscapedIdentifiers | MySql,
+        GoogleSql = TripleQuotedLiterals | BackslashEscapedIdentifiers | (MySql & ~MySqlLineComments),
 
         /// <summary>
         /// SQL Server.
@@ -290,7 +297,8 @@ internal static partial class SqlProcessor
               NoStringPrefixes |
               NoBareWordPasswords |
               BackslashEscapedIdentifiers |
-              UnrestrictedAlternativeQuoteDelimiters,
+              UnrestrictedAlternativeQuoteDelimiters |
+              MySqlLineComments,
     }
 
     private enum SqlKeyword
@@ -1447,7 +1455,7 @@ internal static partial class SqlProcessor
             // be the start of a list in which the first bracket which is found is in the comment or string (e.g. [ /* ] */ 'a'],
             // [E'a]b', 'c'] or [1, 'a]b']). The bracket which ends a list is the first one which is not in a comment or
             // string, so it is a list if there is one, and otherwise the rest of the SQL is not part of the content.
-            if (StartsWithComment(content) ||
+            if (StartsWithComment(content, dialect) ||
                 (singleQuotes > 0 && StartsWithNumberLiteral(content)) ||
                 ((singleQuotes & 1) == 1 && StartsWithPrefixedString(content)))
             {
@@ -1464,13 +1472,13 @@ internal static partial class SqlProcessor
             return singleQuotes == 0
                 ? !StartsWithNumber(content)
                 : content[0] != SingleQuoteChar &&
-                  ((singleQuotes & 1) == 1 || (CommentContainsClosingBracket(content) && !ContainsValue(content)));
+                  ((singleQuotes & 1) == 1 || (CommentContainsClosingBracket(content, dialect) && !ContainsValue(content, dialect)));
         }
 
-        static bool StartsWithComment(ReadOnlySpan<char> content)
+        static bool StartsWithComment(ReadOnlySpan<char> content, SqlDialect dialect)
         {
             return content.Length >= 2 &&
-                ((content[0] == ForwardSlashChar && content[1] == AsteriskChar) || (content[0] == DashChar && content[1] == DashChar));
+                ((content[0] == ForwardSlashChar && content[1] == AsteriskChar) || IsDashCommentStart(content, 0, dialect));
         }
 
         static bool ContainsDollarQuotedString(ReadOnlySpan<char> content, SqlDialect dialect)
@@ -1496,15 +1504,15 @@ internal static partial class SqlProcessor
                     continue;
                 }
 
-                if (c == DashChar && i + 1 < content.Length && content[i + 1] == DashChar)
+                if (IsDashCommentStart(content, i, dialect))
                 {
-                    var lineEnd = content.Slice(i + 2).IndexOfAny(CarriageReturnChar, NewLineChar);
-                    if (lineEnd < 0)
+                    var lineEnd = FindLineCommentEnd(content, i, dialect);
+                    if (lineEnd == content.Length)
                     {
                         return false;
                     }
 
-                    i += 2 + lineEnd;
+                    i = lineEnd;
                 }
                 else if (c == ForwardSlashChar && i + 1 < content.Length && content[i + 1] == AsteriskChar)
                 {
@@ -1625,7 +1633,7 @@ internal static partial class SqlProcessor
             return content.Length >= 2 && content[1] == SingleQuoteChar && content[0] is 'E' or 'e' or 'N' or 'n' or 'B' or 'b' or 'X' or 'x';
         }
 
-        static bool ContainsValue(ReadOnlySpan<char> content)
+        static bool ContainsValue(ReadOnlySpan<char> content, SqlDialect dialect)
         {
             // Whether the content has a string literal which is not empty, or a number. An identifier such as
             // [Orders''--] has quotes, but only ones which are empty, while a list of values has the values.
@@ -1678,10 +1686,9 @@ internal static partial class SqlProcessor
                 else if (c is DashChar or ForwardSlashChar && i + 1 < content.Length)
                 {
                     // Anything in a comment (e.g. [Orders/*'']) is not a value.
-                    if (c == DashChar && content[i + 1] == DashChar)
+                    if (IsDashCommentStart(content, i, dialect))
                     {
-                        var lineEnd = content.Slice(i).IndexOfAny(CarriageReturnChar, NewLineChar);
-                        i = lineEnd < 0 ? content.Length : i + lineEnd;
+                        i = FindLineCommentEnd(content, i, dialect);
                     }
                     else if (c == ForwardSlashChar && content[i + 1] == AsteriskChar)
                     {
@@ -1698,7 +1705,7 @@ internal static partial class SqlProcessor
             return false;
         }
 
-        static bool CommentContainsClosingBracket(ReadOnlySpan<char> content)
+        static bool CommentContainsClosingBracket(ReadOnlySpan<char> content, SqlDialect dialect)
         {
             // A list of values has to end with its closing bracket, so a comment which has not ended by the
             // time the content does would contain it, which is not valid. The content must therefore be an
@@ -1734,16 +1741,16 @@ internal static partial class SqlProcessor
                         break;
                     }
                 }
-                else if (c == DashChar && i + 1 < content.Length && content[i + 1] == DashChar)
+                else if (IsDashCommentStart(content, i, dialect))
                 {
                     // A line comment ends at the end of the line, if the line does end within the content.
-                    var lineEnd = content.Slice(i + 2).IndexOfAny(CarriageReturnChar, NewLineChar);
-                    if (lineEnd < 0)
+                    var lineEnd = FindLineCommentEnd(content, i, dialect);
+                    if (lineEnd == content.Length)
                     {
                         return true;
                     }
 
-                    i += 2 + lineEnd;
+                    i = lineEnd;
                 }
                 else if (c == ForwardSlashChar && i + 1 < content.Length && content[i + 1] == AsteriskChar)
                 {
@@ -1971,19 +1978,34 @@ internal static partial class SqlProcessor
 
         // Scan past single-line comment. MySQL/MariaDB also start one with '#', which is otherwise
         // part of an identifier in the other dialects (e.g. a SQL Server #temp table).
-        if ((ch == DashChar && next < sql.Length && sql[next] == DashChar) || (ch == HashChar && Has(dialect, SqlDialect.HashComments)))
+        if (IsDashCommentStart(sql, start, dialect) || (ch == HashChar && Has(dialect, SqlDialect.HashComments)))
         {
-#if NET
-            var lineBreakIndex = sql.Slice(next).IndexOfAny(LineBreakSearchValues);
-#else
-            var lineBreakIndex = sql.Slice(next).IndexOfAny(LineBreakChars);
-#endif
-
-            // Position at the newline so ParseWhitespace can copy it
-            return lineBreakIndex < 0 ? sql.Length : next + lineBreakIndex;
+            return FindLineCommentEnd(sql, start, dialect);
         }
 
         return -1;
+    }
+
+    private static bool IsDashCommentStart(ReadOnlySpan<char> sql, int start, SqlDialect dialect)
+    {
+        return sql[start] == DashChar && start + 1 < sql.Length && sql[start + 1] == DashChar &&
+            (!Has(dialect, SqlDialect.MySqlLineComments) || start + 2 == sql.Length ||
+             sql[start + 2] <= SpaceChar || sql[start + 2] == '\u007f');
+    }
+
+    private static int FindLineCommentEnd(ReadOnlySpan<char> sql, int start, SqlDialect dialect)
+    {
+        var next = start + 1;
+        var lineBreakIndex = Has(dialect, SqlDialect.MySqlLineComments)
+            ? sql.Slice(next).IndexOf(NewLineChar)
+#if NET
+            : sql.Slice(next).IndexOfAny(LineBreakSearchValues);
+#else
+            : sql.Slice(next).IndexOfAny(LineBreakChars);
+#endif
+
+        // Position at the newline so ParseWhitespace can copy it.
+        return lineBreakIndex < 0 ? sql.Length : next + lineBreakIndex;
     }
 
     private static int FindMultiLineCommentEnd(ReadOnlySpan<char> sql, int start, bool allowNesting)
