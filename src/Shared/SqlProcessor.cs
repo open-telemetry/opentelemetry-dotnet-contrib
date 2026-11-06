@@ -561,8 +561,9 @@ internal static partial class SqlProcessor
                     else if (state.PreviousWord == SqlWord.Uescape)
                     {
                         // The escape character of a name (e.g. the ! of U&"d!0061ta" UESCAPE '!') is part of it, so that
-                        // the comma after it still separates the name from the next one in DROP USER.
-                        literalWord = SqlWord.AccountName;
+                        // the comma after it still separates the name from the next one in DROP USER. Keep the clause
+                        // through subsequent literal chunks, which PostgreSQL concatenates across a newline.
+                        literalWord = SqlWord.Uescape;
                     }
 
                     if (state.TracksAccounts)

@@ -1488,6 +1488,12 @@ public class SqlProcessorTests(ITestOutputHelper output)
     [InlineData("ALTER USER alice RENAME TO u&\"d!0061ta\" UESCAPE '!'", "ALTER USER ? RENAME TO u&\"?\" UESCAPE ?")]
     [InlineData("DROP USER U&\"d\\0061ta\", bob", "DROP USER U&\"?\", ?")]
     [InlineData("DROP USER U&\"d!0061ta\" UESCAPE '!', bob", "DROP USER U&\"?\" UESCAPE ?, ?")]
+    [InlineData("DROP USER U&\"d!0061ta\" UESCAPE E'!', bob", "DROP USER U&\"?\" UESCAPE ?, ?")]
+    [InlineData("DROP USER U&\"d!0061ta\" UESCAPE E'\\x21', bob", "DROP USER U&\"?\" UESCAPE ?, ?")]
+    [InlineData("DROP USER U&\"d!0061ta\" UESCAPE ''\n'!', bob", "DROP USER U&\"?\" UESCAPE ?\n?, ?")]
+    [InlineData("DROP USER U&\"d!0061ta\" UESCAPE E''\n'!', bob", "DROP USER U&\"?\" UESCAPE ?\n?, ?")]
+    [InlineData("DROP USER U&\"d!0061ta\" UESCAPE E'' /* escape */\n'!', bob", "DROP USER U&\"?\" UESCAPE ? \n?, ?")]
+    [InlineData("DROP USER U&\"d!0061ta\" UESCAPE $escape$!$escape$, bob", "DROP USER U&\"?\" UESCAPE ?, ?")]
     [InlineData("DROP USER U&\"a\" UESCAPE '!', U&\"b\" UESCAPE '!', bob", "DROP USER U&\"?\" UESCAPE ?, U&\"?\" UESCAPE ?, ?")]
     public void GetSanitizedSql_PostgreSqlUnicodeAccountNames_AreRedactedAsWholeTokens(string sql, string expected)
     {

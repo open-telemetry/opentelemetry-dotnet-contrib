@@ -59,7 +59,7 @@
 * Fixed redaction of login and user names in additional `CREATE`, `ALTER` and
   `DROP` statement positions, MySQL account lists and `RENAME USER`
   statements, including additional Unicode account-name forms and PostgreSQL
-  Unicode-escaped identifiers.
+  Unicode-escaped identifiers and their `UESCAPE` clauses.
   ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
 
 * Fixed redaction of Oracle passwords in `IDENTIFIED BY` and `REPLACE`

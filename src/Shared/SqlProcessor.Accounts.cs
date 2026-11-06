@@ -340,7 +340,12 @@ internal static partial class SqlProcessor
 
         if (word == SqlWord.Other)
         {
-            PushWord(SqlWord.Other, ref state);
+            // A string prefix (e.g. E of UESCAPE E'!') is part of the escape clause, not another word after it.
+            if (state.PreviousWord != SqlWord.Uescape || end >= sql.Length || sql[end] != SingleQuoteChar)
+            {
+                PushWord(SqlWord.Other, ref state);
+            }
+
             return PendingToken.None;
         }
 
@@ -498,7 +503,7 @@ internal static partial class SqlProcessor
                 // MySQL account definitions can have authentication/options before the next account.
                 // In other dialects only DROP USER lists accounts directly after a name.
                 if ((state.Statement & StatementContext.AccountList) != 0 ||
-                    (state.InDropLoginOrUserStatement && state.PreviousWord == SqlWord.AccountName))
+                    (state.InDropLoginOrUserStatement && state.PreviousWord is SqlWord.AccountName or SqlWord.Uescape))
                 {
                     state.Pending = PendingToken.AccountName;
                 }
