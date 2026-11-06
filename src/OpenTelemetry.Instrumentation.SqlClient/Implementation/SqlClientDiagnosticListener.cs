@@ -407,11 +407,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
             ActivityTraceFlags.None => "00",
             ActivityTraceFlags.Recorded => "01",
             (ActivityTraceFlags)2 => "02",
-#if NET11_0_OR_GREATER
             ActivityTraceFlags.Recorded | ActivityTraceFlags.RandomTraceId => "03",
-#else
-            ActivityTraceFlags.Recorded | (ActivityTraceFlags)2 => "03",
-#endif
             _ => Fallback((byte)flags),
         };
 

@@ -51,7 +51,7 @@ public class RuntimeMetricsTests
 
         Assert.True(meterProvider.ForceFlush(MaxTimeToAllowForFlush));
 
-#if NET9_0_OR_GREATER
+#if NET
         Assert.Contains(exportedItems, metric => metric.Name == "dotnet.assembly.count");
 #else
         Assert.Contains(exportedItems, metric => metric.Name == "process.runtime.dotnet.assemblies.count");
