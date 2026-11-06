@@ -8,9 +8,10 @@
   written to the JSON payload without encoding. Names containing quotes,
   backslashes, control characters, or non-ASCII characters produced malformed
   or invalid UTF-8 JSON, and names longer than 126 characters caused the whole
-  batch to fail to export. Also fixed an issue where an original event name
+  batch to fail to export. Event namespace and event name validation no longer
+  accepts a trailing newline. Also fixed an issue where an original event name
   could be attached to unrelated log records which resolved to the default
-  event name.
+  event name, or to records whose original name differed only by case.
   ([#5916](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5916))
 
 ## 1.20.1

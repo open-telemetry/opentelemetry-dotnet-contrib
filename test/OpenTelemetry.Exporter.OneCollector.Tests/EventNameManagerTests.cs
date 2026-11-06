@@ -46,6 +46,8 @@ public class EventNameManagerTests
     [InlineData("Company.")]
     [InlineData(".Company")]
     [InlineData("")]
+    [InlineData("Company\n")]
+    [InlineData("Company.Product\n")]
     public void InvalidEventNamespaceTest(string eventNamespace)
     {
         Assert.False(EventNameManager.IsEventNamespaceValid(eventNamespace));
@@ -67,6 +69,7 @@ public class EventNameManagerTests
     [InlineData("Event.")]
     [InlineData(".Event")]
     [InlineData("")]
+    [InlineData("Event\n")]
     public void InvalidEventNameTest(string eventNamespace)
     {
         Assert.False(EventNameManager.IsEventNameValid(eventNamespace));
@@ -279,6 +282,62 @@ public class EventNameManagerTests
         var invalidAgain = eventNameManager.ResolveEventFullName("MyNamespace", "Invalid event name");
 
         Assert.Same(invalid, invalidAgain);
+    }
+
+    [Fact]
+    public void OriginalEventNameCaseVariantsPreservedTest()
+    {
+        var eventNameManager = BuildEventNameManagerWithDefaultOptions();
+
+        var first = eventNameManager.ResolveEventFullName("MyNamespace", "Invalid Event");
+        var second = eventNameManager.ResolveEventFullName("MyNamespace", "Invalid event");
+        var firstAgain = eventNameManager.ResolveEventFullName("MyNamespace", "Invalid Event");
+        var secondAgain = eventNameManager.ResolveEventFullName("MyNamespace", "Invalid event");
+
+        Assert.Equal("Invalid Event", ReadJsonString(first.OriginalEventName));
+        Assert.Equal("Invalid event", ReadJsonString(second.OriginalEventName));
+        Assert.Same(first, firstAgain);
+        Assert.Equal("Invalid event", ReadJsonString(secondAgain.OriginalEventName));
+    }
+
+    [Fact]
+    public void OriginalEventNamespaceCaseVariantsPreservedTest()
+    {
+        var eventNameManager = BuildEventNameManagerWithDefaultOptions();
+
+        var first = eventNameManager.ResolveEventFullName("R\u00e9sum\u00e9.Service", "MyEvent");
+        var second = eventNameManager.ResolveEventFullName("R\u00e9sum\u00e9.SERVICE", "MyEvent");
+
+        Assert.Equal("R\u00e9sum\u00e9.Service", ReadJsonString(first.OriginalEventNamespace));
+        Assert.Equal("R\u00e9sum\u00e9.SERVICE", ReadJsonString(second.OriginalEventNamespace));
+        Assert.Same(first, eventNameManager.ResolveEventFullName("R\u00e9sum\u00e9.Service", "MyEvent"));
+    }
+
+    [Fact]
+    public void MappedOriginalEventNamespaceCaseVariantsPreservedTest()
+    {
+        var eventNameManager = BuildEventNameManagerWithEventFullNameMappings(
+        [
+            new("*", "DefaultLogs"),
+        ]);
+
+        var first = eventNameManager.ResolveEventFullName("MyCompany.Orders", null);
+        var second = eventNameManager.ResolveEventFullName("MyCompany.ORDERS", null);
+
+        Assert.Equal("MyCompany.Orders", ReadJsonString(first.OriginalEventNamespace));
+        Assert.Equal("MyCompany.ORDERS", ReadJsonString(second.OriginalEventNamespace));
+        Assert.Same(first, eventNameManager.ResolveEventFullName("MyCompany.Orders", null));
+    }
+
+    [Fact]
+    public void ValidEventNameCaseVariantsStillShareCacheEntryTest()
+    {
+        var eventNameManager = BuildEventNameManagerWithDefaultOptions();
+
+        var first = eventNameManager.ResolveEventFullName("MyNamespace", "MyEvent");
+        var second = eventNameManager.ResolveEventFullName("mynamespace", "myevent");
+
+        Assert.Same(first, second);
     }
 
     private static string? ReadJsonString(byte[]? jsonValue)

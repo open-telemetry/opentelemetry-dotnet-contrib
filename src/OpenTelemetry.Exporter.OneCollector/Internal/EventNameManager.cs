@@ -106,7 +106,8 @@ internal sealed partial class EventNameManager
         // lookup is captured to make sure the result is cached under the same key.
         var eventNameCacheKey = eventName!;
 
-        if (eventNameCache[eventNameCacheKey] is ResolvedEventFullName cachedEventFullName)
+        if (eventNameCache[eventNameCacheKey] is ResolvedEventFullName cachedEventFullName
+            && cachedEventFullName.IsMatch(originalEventNamespace, originalEventName))
         {
             return cachedEventFullName;
         }
@@ -115,21 +116,21 @@ internal sealed partial class EventNameManager
             ref eventNamespace!,
             ref eventName!);
 
-        var originalEventNamespaceBlob = !string.IsNullOrEmpty(originalEventNamespace) && originalEventNamespace != eventNamespace
-            ? BuildJsonStringValue(originalEventNamespace!)
-            : null;
-
-        var originalEventNameBlob = !string.IsNullOrEmpty(originalEventName) && originalEventName != eventName
-            ? BuildJsonStringValue(originalEventName!)
-            : null;
+        var preserveOriginalEventNamespace = !string.IsNullOrEmpty(originalEventNamespace) && originalEventNamespace != eventNamespace;
+        var preserveOriginalEventName = !string.IsNullOrEmpty(originalEventName) && originalEventName != eventName;
 
         var resolvedEventFullName = new ResolvedEventFullName(
             eventFullNameBlob,
-            originalEventNamespaceBlob,
-            originalEventNameBlob);
+            preserveOriginalEventNamespace ? BuildJsonStringValue(originalEventNamespace!) : null,
+            preserveOriginalEventName ? BuildJsonStringValue(originalEventName!) : null,
+            preserveOriginalEventNamespace ? originalEventNamespace : null,
+            preserveOriginalEventName ? originalEventName : null);
 
         lock (eventNameCache)
         {
+            // Note: The caches are case-insensitive. When a different casing of a
+            // name which has its original value preserved is already cached the
+            // result is returned without being cached.
             if (eventNameCache[eventNameCacheKey] is null)
             {
                 eventNameCache[eventNameCacheKey] = resolvedEventFullName;
@@ -139,18 +140,19 @@ internal sealed partial class EventNameManager
         return resolvedEventFullName;
     }
 
+    // Note: \z is used instead of $ so a trailing newline is not accepted.
 #if NET
-    [GeneratedRegex(@"^[A-Za-z](?:\.?[A-Za-z0-9]+?)*$")]
+    [GeneratedRegex(@"^[A-Za-z](?:\.?[A-Za-z0-9]+?)*\z")]
     private static partial Regex EventNamespaceValidationRegex();
 
-    [GeneratedRegex(@"^[A-Za-z][A-Za-z0-9]*$")]
+    [GeneratedRegex(@"^[A-Za-z][A-Za-z0-9]*\z")]
 
     private static partial Regex EventNameValidationRegex();
 #else
 
 #pragma warning disable SA1201 // A field should not follow a method
-    private static readonly Regex EventNamespaceValidationRegexField = new(@"^[A-Za-z](?:\.?[A-Za-z0-9]+?)*$", RegexOptions.Compiled);
-    private static readonly Regex EventNameValidationRegexField = new(@"^[A-Za-z][A-Za-z0-9]*$", RegexOptions.Compiled);
+    private static readonly Regex EventNamespaceValidationRegexField = new(@"^[A-Za-z](?:\.?[A-Za-z0-9]+?)*\z", RegexOptions.Compiled);
+    private static readonly Regex EventNameValidationRegexField = new(@"^[A-Za-z][A-Za-z0-9]*\z", RegexOptions.Compiled);
 #pragma warning restore SA1201 // A field should not follow a method
 
     private static Regex EventNamespaceValidationRegex() => EventNamespaceValidationRegexField;
@@ -337,14 +339,21 @@ internal sealed partial class EventNameManager
 
     internal sealed class ResolvedEventFullName
     {
+        private readonly string? originalEventNamespaceValue;
+        private readonly string? originalEventNameValue;
+
         public ResolvedEventFullName(
             byte[] eventFullName,
             byte[]? originalEventNamespace,
-            byte[]? originalEventName)
+            byte[]? originalEventName,
+            string? originalEventNamespaceValue = null,
+            string? originalEventNameValue = null)
         {
             this.EventFullName = eventFullName;
             this.OriginalEventNamespace = originalEventNamespace;
             this.OriginalEventName = originalEventName;
+            this.originalEventNamespaceValue = originalEventNamespaceValue;
+            this.originalEventNameValue = originalEventNameValue;
         }
 
         public byte[] EventFullName { get; }
@@ -352,5 +361,11 @@ internal sealed partial class EventNameManager
         public byte[]? OriginalEventNamespace { get; }
 
         public byte[]? OriginalEventName { get; }
+
+        // Note: Validated names are cached case-insensitively. Preserved
+        // original values are exported as-is so they must match exactly.
+        public bool IsMatch(string? eventNamespace, string? eventName)
+            => (this.OriginalEventNamespace == null || string.Equals(this.originalEventNamespaceValue, eventNamespace, StringComparison.Ordinal))
+            && (this.OriginalEventName == null || string.Equals(this.originalEventNameValue, eventName, StringComparison.Ordinal));
     }
 }

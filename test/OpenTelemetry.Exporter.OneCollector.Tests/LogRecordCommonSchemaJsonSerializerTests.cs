@@ -108,6 +108,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
     [InlineData("X\"}}\n{\"ver\":\"4.0\",\"name\":\"Other.Event\",\"data\":{\"injected\":1,\"by\":\"")]
     [InlineData("R\u00e9sum\u00e9 clicked")]
     [InlineData("Checkout button clicked !!! with a long description that is well over one hundred and twenty eight characters in total length")]
+    [InlineData("Event\n")]
     public void InvalidEventNameJsonTest(string eventName)
     {
         var json = GetLogRecordJson(1, (index, logRecord) =>
@@ -125,6 +126,26 @@ public class LogRecordCommonSchemaJsonSerializerTests
         Assert.Equal("MyClass.Company.Name", document.RootElement.GetProperty("name").GetString());
         Assert.Equal(eventName, document.RootElement.GetProperty("data").GetProperty("name").GetString());
         Assert.Equal("Trace", document.RootElement.GetProperty("data").GetProperty("severityText").GetString());
+    }
+
+    [Theory]
+    [InlineData("MyClass.Company\n")]
+    [InlineData("R\u00e9sum\u00e9.Service")]
+    [InlineData("MyClass.Company\"}}\n{\"ver\":\"4.0\"")]
+    public void InvalidCategoryNameJsonTest(string categoryName)
+    {
+        var json = GetLogRecordJson(1, (index, logRecord) =>
+        {
+            logRecord.CategoryName = categoryName;
+            logRecord.EventId = new(0, "MyEvent");
+        });
+
+        var line = Assert.Single(json.Split(['\n'], StringSplitOptions.RemoveEmptyEntries));
+
+        using var document = JsonDocument.Parse(line);
+
+        Assert.Equal("Namespace.MyEvent", document.RootElement.GetProperty("name").GetString());
+        Assert.Equal(categoryName, document.RootElement.GetProperty("data").GetProperty("namespace").GetString());
     }
 
     [Fact]
