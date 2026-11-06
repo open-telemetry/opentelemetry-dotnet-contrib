@@ -1797,6 +1797,11 @@ public class SqlProcessorTests(ITestOutputHelper output)
     [InlineData("SELECT $\u00e9$secret-name", "SELECT ?")]
     [InlineData("SELECT * FROM t WHERE a IN ($\u00e9$secret-name$\u00e9$, 'x')", "SELECT * FROM t WHERE a IN (?, ?)")]
     [InlineData("SELECT a\u0301$tag$ FROM t WHERE a = '$tag$' AND b = 'secret-name'", "SELECT a\u0301$tag$ FROM t WHERE a = ? AND b = ?")]
+    [InlineData("SELECT \U0001D4991$tag$ FROM t WHERE x = '$tag$) secret-name'", "SELECT \U0001D4991$tag$ FROM t WHERE x = ?")]
+    [InlineData("SELECT \u03011$tag$ FROM t WHERE x = '$tag$) secret-name'", "SELECT \u03011$tag$ FROM t WHERE x = ?")]
+    [InlineData("SELECT \u00b21$tag$ FROM t WHERE x = '$tag$) secret-name'", "SELECT \u00b21$tag$ FROM t WHERE x = ?")]
+    [InlineData("SELECT * FROM t WHERE x = \U0001D4991$tag$ AND y = '$tag$) secret-name'", "SELECT * FROM t WHERE x = \U0001D4991$tag$ AND y = ?")]
+    [InlineData("SELECT * FROM t WHERE x = a\u03011$tag$ AND y = '$tag$) secret-name'", "SELECT * FROM t WHERE x = a\u03011$tag$ AND y = ?")]
     public void GetSanitizedSql_UnicodeDollarQuoteTags_AreRecognized(string sql, string expected)
     {
         var sqlStatementInfo = SqlProcessor.GetSanitizedSql(sql);

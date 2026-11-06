@@ -71,8 +71,9 @@
   login or user statements in multi-statement commands.
   ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
 
-* Fixed PostgreSQL query sanitization for dollar signs in identifiers and
-  dollar-quoted literals with non-ASCII tags.
+* Fixed PostgreSQL query sanitization for dollar signs in identifiers,
+  including combining marks and supplementary characters before digits,
+  and dollar-quoted literals with non-ASCII tags.
   ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
 
 * Fixed query sanitization so that dollar-prefixed identifiers and parameters

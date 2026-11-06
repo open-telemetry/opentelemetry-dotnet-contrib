@@ -462,9 +462,10 @@ internal static partial class SqlProcessor
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsValidTokenCharacter(char currentChar, int indexInToken, in ParseState state)
     {
-        // PostgreSQL allows any non-ASCII character in an unquoted account name, including
-        // combining marks and surrogate pairs, so a name must not be split at those characters.
-        if (state.NextIsAccountName && currentChar >= '\u0080')
+        // PostgreSQL permits any non-ASCII character in an identifier. Splitting one before a digit would turn
+        // that digit into a literal and incorrectly allow a following dollar sign to start a dollar-quoted string.
+        if (currentChar >= '\u0080' &&
+            (state.NextIsAccountName || !Has(state.Dialect, SqlDialect.NoDollarQuotedStrings)))
         {
             return true;
         }
