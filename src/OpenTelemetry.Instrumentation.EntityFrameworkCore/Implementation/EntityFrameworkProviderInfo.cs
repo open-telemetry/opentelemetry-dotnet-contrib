@@ -88,15 +88,25 @@ internal static class EntityFrameworkProviderInfo
     }
 
     /// <summary>
-    /// Returns whether the provider uses backslash escapes in SQL string literals by default.
+    /// Gets the dialect of SQL which the provider uses, for the sanitization of query text.
     /// </summary>
     /// <param name="providerOrCommandName">The provider or command name.</param>
-    /// <returns><see langword="true"/> for MySQL providers; otherwise, <see langword="false"/>.</returns>
-    public static bool IsBackslashEscapeProvider(string? providerOrCommandName)
+    /// <returns>The dialect of the provider.</returns>
+    public static SqlProcessor.SqlDialect GetSqlDialect(string? providerOrCommandName)
     {
-        // MySQL and MariaDB (which use the MySQL providers) treat a backslash as a
-        // string-literal escape character unless the NO_BACKSLASH_ESCAPES SQL mode is enabled.
         (_, var dbSystemName) = GetDbSystemNames(providerOrCommandName);
-        return dbSystemName == DbSystemNames.Mysql;
+
+        return dbSystemName switch
+        {
+            DbSystemNames.Mysql => SqlProcessor.SqlDialect.MySql,
+            DbSystemNames.GcpSpanner => SqlProcessor.SqlDialect.GoogleSql,
+            DbSystemNames.MicrosoftSqlServer => SqlProcessor.SqlDialect.SqlServer,
+            DbSystemNames.Sqlite => SqlProcessor.SqlDialect.Sqlite,
+
+            DbSystemNames.OracleDb => SqlProcessor.SqlDialect.Oracle,
+            DbSystemNames.Firebirdsql => SqlProcessor.SqlDialect.Firebird,
+            DbSystemNames.Teradata => SqlProcessor.SqlDialect.Teradata,
+            _ => SqlProcessor.SqlDialect.Default,
+        };
     }
 }

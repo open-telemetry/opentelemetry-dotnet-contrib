@@ -15,6 +15,11 @@ internal sealed class RequestDataHelper
 #if NET
     // The maximum number of display names to cache for each HTTP method. Beyond this, display names are created without being cached.
     internal const int MaxCachedDisplayNames = 1000;
+
+    // The maximum length of a route for which the display name is cached. Routes are normally templates
+    // defined by the application, so are short. A route longer than this is likely derived from the request,
+    // so is not cached to avoid retaining an arbitrary amount of memory for the lifetime of the process.
+    internal const int MaxCachedRouteLength = 256;
 #endif
 
     private const string KnownHttpMethodsEnvironmentVariable = "OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS";
@@ -227,6 +232,11 @@ internal sealed class RequestDataHelper
 
         public string GetDisplayName(string httpRoute)
         {
+            if (httpRoute.Length > MaxCachedRouteLength)
+            {
+                return $"{this.DisplayName} {httpRoute}";
+            }
+
             var cache = this.routeDisplayNames ?? LazyInitializer.EnsureInitialized(ref this.routeDisplayNames, static () => new());
 
             if (cache.TryGetValue(httpRoute, out var displayName))
