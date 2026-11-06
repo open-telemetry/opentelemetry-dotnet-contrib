@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Collections.Frozen;
 #endif
 using System.Runtime.CompilerServices;
+using System.Text;
 using Kusto.Language;
 using Kusto.Language.Editor;
 using Kusto.Language.Symbols;
@@ -20,12 +21,6 @@ internal static class KustoProcessor
 {
     // Because we're not doing full semantic analysis for queries, we can reuse the default global state (which includes all built-in functions and types)
     private static readonly GlobalState KustoParserGlobalState = GlobalState.Default.WithCache();
-
-    private enum ReplacementKind
-    {
-        Placeholder,
-        Remove,
-    }
 
     /// <summary>
     /// Processes the specified Kusto query and optionally generates a summary and/or a sanitized version based on the
@@ -117,15 +112,27 @@ internal static class KustoProcessor
         }
 
         // Literals were found; omit the query text if the redactions cannot all be applied rather than
-        // emitting it unsanitized.
-        var text = new EditString(code.Text);
-        if (!text.CanApplyAll(edits))
+        // emitting it unsanitized. The visitor collects the edits in document order without overlap, so they
+        // are applied in a single pass here. EditString.ApplyAll is not used because it merges touching edits
+        // with List.RemoveAt, which is quadratic in the number of edits.
+        var text = code.Text;
+        var builder = new StringBuilder(text.Length);
+        var position = 0;
+        foreach (var edit in edits)
         {
-            sanitized = null;
-            return false;
+            if (edit.Start < position || edit.Start + edit.DeleteLength > text.Length)
+            {
+                sanitized = null;
+                return false;
+            }
+
+            builder.Append(text, position, edit.Start - position);
+            builder.Append(edit.InsertText);
+            position = edit.Start + edit.DeleteLength;
         }
 
-        sanitized = text.ApplyAll(edits);
+        builder.Append(text, position, text.Length - position);
+        sanitized = builder.ToString();
         return true;
     }
 
@@ -146,8 +153,6 @@ internal static class KustoProcessor
     }
 
     private static TextEdit CreatePlaceholder(SyntaxElement node) => TextEdit.Replacement(node.TextStart, node.Width, "?");
-
-    private static TextEdit CreateRemoval(SyntaxElement node) => TextEdit.Deletion(node.TextStart, node.Width);
 
     /// <summary>
     /// Visitor that traverses the KQL looking for literal values to replace with the PLACEHOLDER value.
@@ -190,9 +195,11 @@ internal static class KustoProcessor
         {
             // Only strip the sign when it applies to a literal (e.g. -5 -> ?). For a non-literal operand
             // (e.g. -Column) removing the operator would change the meaning of the query in the sanitized text.
+            // The sign and the literal are redacted together as a single edit.
             if (node.Expression is { IsLiteral: true })
             {
-                this.edits.Add(CreateRemoval(node.Operator));
+                this.edits.Add(CreatePlaceholder(node));
+                return;
             }
 
             base.VisitPrefixUnaryExpression(node);
@@ -300,6 +307,11 @@ internal static class KustoProcessor
 
             node.Expression.Accept(this);
 
+            if (this.builder.IsTruncated)
+            {
+                return;
+            }
+
             this.builder.Append(node.Bar.Text);
             this.builder.Append(' ');
 
@@ -308,6 +320,12 @@ internal static class KustoProcessor
 
         public override void VisitNameReference(NameReference node)
         {
+            // Once the summary is full nothing more can be appended, so skip the (potentially expensive) rendering.
+            if (this.builder.IsTruncated)
+            {
+                return;
+            }
+
             if (node.ResultType is TableSymbol ts)
             {
                 this.builder.Append(ts.Name);
@@ -322,7 +340,8 @@ internal static class KustoProcessor
 
         public override void VisitFunctionCallExpression(FunctionCallExpression node)
         {
-            if (node.Name.SimpleName == "materialized_view")
+            // Once the summary is full nothing more can be appended, so skip the (potentially expensive) rendering.
+            if (!this.builder.IsTruncated && node.Name.SimpleName == "materialized_view")
             {
                 this.builder.Append(node.ToString(IncludeTrivia.SingleLine));
                 this.builder.Append(' ');
@@ -353,6 +372,11 @@ internal static class KustoProcessor
         protected override void DefaultVisit(SyntaxNode node)
         {
             // Guard the recursive descent: deeply nested queries would otherwise overflow the stack.
+            if (this.builder.IsTruncated)
+            {
+                return;
+            }
+
             RuntimeHelpers.EnsureSufficientExecutionStack();
 
             if (node is QueryOperator qo)
@@ -382,7 +406,8 @@ internal static class KustoProcessor
         {
             if (node != null)
             {
-                for (var i = 0; i < node.ChildCount; i++)
+                // Stop walking as soon as the summary is full: nothing further can be appended.
+                for (var i = 0; i < node.ChildCount && !this.builder.IsTruncated; i++)
                 {
                     if (node.GetChild(i) is SyntaxNode child)
                     {

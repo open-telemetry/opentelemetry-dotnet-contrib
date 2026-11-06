@@ -10,6 +10,14 @@
   for `https`), to follow the v1.45.0 database semantic conventions.
   ([#5833](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5833))
 
+* Fixed query text sanitization taking quadratic time for queries with many
+  signed numeric literals when `RecordQueryText` is enabled.
+  ([#5937](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5937))
+
+* Fixed excessive CPU usage when generating `db.query.summary` for queries
+  containing a very large number of `materialized_view()` calls.
+  ([#5938](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5938))
+
 * Fixed literal values not being sanitized in `db.query.text` for control
   commands the Kusto grammar does not recognize (such as `.list blobs`).
   ([#5936](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5936))
