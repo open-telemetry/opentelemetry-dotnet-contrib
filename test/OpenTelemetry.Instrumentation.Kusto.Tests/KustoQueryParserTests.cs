@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics;
 using OpenTelemetry.Instrumentation.Kusto.Implementation;
 
 namespace OpenTelemetry.Instrumentation.Kusto.Tests;
@@ -432,5 +433,24 @@ public class KustoQueryParserTests
 
         Assert.Equal(expectedSummary, info.Summarized);
         Assert.Equal(expectedSanitizedQuery, info.Sanitized);
+    }
+
+    [Fact]
+    public void GenerateQuerySummary_ManyMaterializedViewCallsAfterTruncation_CompletesInReasonableTime()
+    {
+        // A long list followed by many materialized_view() calls: the summary is full after a handful of calls,
+        // so the remaining calls must not be rendered, as rendering each one is proportional to its position.
+        const int Length = 800_000;
+        var query = "Events | where Id in (1" + string.Concat(Enumerable.Repeat(",1", Length / 4)) + string.Concat(Enumerable.Repeat(",materialized_view()", Length / 40)) + ")";
+
+        var stopwatch = Stopwatch.StartNew();
+        var info = KustoProcessor.Process(shouldSummarize: true, shouldSanitize: false, query);
+        stopwatch.Stop();
+
+        // The summary holds as many whole calls as fit within the 255 character limit.
+        Assert.Equal("Events | where " + string.Concat(Enumerable.Repeat("materialized_view() ", 12)).TrimEnd(), info.Summarized);
+
+        // Without the fix this takes at least tens of seconds, with it the cost is dominated by parsing (~1 second).
+        Assert.True(stopwatch.Elapsed < TimeSpan.FromSeconds(15), $"Summarizing took {stopwatch.Elapsed}.");
     }
 }

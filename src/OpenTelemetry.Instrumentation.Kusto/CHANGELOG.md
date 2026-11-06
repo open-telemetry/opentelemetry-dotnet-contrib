@@ -10,6 +10,10 @@
   for `https`), to follow the v1.45.0 database semantic conventions.
   ([#5833](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5833))
 
+* Fixed excessive CPU usage when generating `db.query.summary` for queries
+  containing a very large number of `materialized_view()` calls.
+  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+
 ## 0.1.0-alpha.7
 
 Released 2026-Oct-21
