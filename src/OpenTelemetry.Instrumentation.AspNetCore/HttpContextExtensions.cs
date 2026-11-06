@@ -21,7 +21,12 @@ internal static class HttpContextExtensions
         var endpoint = GetOriginalEndpoint(context);
         var route = endpoint?.Metadata.GetMetadata<IRouteDiagnosticsMetadata>()?.Route;
 
-        if (string.IsNullOrEmpty(route))
+        // Only an empty template qualifies. It has no route parameters, so "page" can only be the
+        // constant page name that the Razor Pages endpoint carries. When there is no template (null),
+        // such as for fallback and dynamic controller routes or IRouter-based routing, "page" may be
+        // a route parameter holding text taken from the request path, which must never be used as
+        // the route as it is unbounded in both length and cardinality.
+        if (route is { Length: 0 })
         {
             // For Razor Pages, the route template may be empty (e.g., for the Index page mapped to root "/").
             // Fall back to the "page" route value which contains the page name (e.g., "/Index").

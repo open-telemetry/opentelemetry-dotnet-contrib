@@ -10,6 +10,14 @@
   for `https`), to follow the v1.45.0 database semantic conventions.
   ([#5833](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5833))
 
+* Fixed query text sanitization taking quadratic time for queries with many
+  signed numeric literals when `RecordQueryText` is enabled.
+  ([#5937](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5937))
+
+* Fixed excessive CPU usage when generating `db.query.summary` for queries
+  containing a very large number of `materialized_view()` calls.
+  ([#5938](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5938))
+
 * Fixed a client request id or database name containing `text=` being able to
   bypass `db.query.text` sanitization and set `db.query.summary`.
   ([#5913](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5913))
