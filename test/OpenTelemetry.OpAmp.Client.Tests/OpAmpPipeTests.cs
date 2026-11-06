@@ -832,7 +832,7 @@ public abstract class OpAmpPipeTests
 
     internal static async Task CompleteWithinTimeoutAsync(Task task)
     {
-        var completed = await Task.WhenAny(task, Task.Delay(TimeSpan.FromSeconds(5)));
+        var completed = await Task.WhenAny(task, Task.Delay(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
         Assert.Same(task, completed);
         await task;
     }
