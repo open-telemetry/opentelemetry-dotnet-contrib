@@ -503,6 +503,17 @@ public class KustoQueryParserTests
             "StormEvents | join OtherEvents",
             "StormEvents | join (database(?).OtherEvents) on a"
         },
+        // The columns a scan declares extend its input schema, they are not bindings that can shadow a table.
+        {
+            "StormEvents | scan declare (OtherEvents:long = 0) with (step s: true;) | union OtherEvents",
+            "StormEvents | scan | union OtherEvents",
+            "StormEvents | scan declare (OtherEvents:long = ?) with (step s: ?;) | union OtherEvents"
+        },
+        {
+            "declare query_parameters (OtherEvents:long = 0); StormEvents | union OtherEvents",
+            "StormEvents | union",
+            "declare query_parameters (OtherEvents:long = 0); StormEvents | union OtherEvents"
+        },
         {
             "let StormEvents = StormEvents | take 1; StormEvents | count",
             "StormEvents | take | count",

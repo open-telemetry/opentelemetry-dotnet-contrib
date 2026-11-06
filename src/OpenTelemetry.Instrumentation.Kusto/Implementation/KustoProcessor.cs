@@ -316,7 +316,15 @@ internal static class KustoProcessor
 
         public override void VisitPartitionSubquery(PartitionSubquery node) => this.VisitScoped(node);
 
-        public override void VisitFunctionParameter(FunctionParameter node) => this.Declare(node.NameAndType.Name);
+        public override void VisitFunctionParameter(FunctionParameter node)
+        {
+            // FunctionParameter -> SeparatedElement -> SyntaxList -> owning node. The declarations of a scan
+            // operator share this syntax, but they are columns added to the input schema, not parameters.
+            if (node.Parent?.Parent?.Parent is not ScanDeclareClause)
+            {
+                this.Declare(node.NameAndType.Name);
+            }
+        }
 
         public override void VisitNameDeclaration(NameDeclaration node)
         {
