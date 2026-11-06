@@ -12,7 +12,7 @@
 
 * Fixed literal values not being sanitized in `db.query.text` for control
   commands the Kusto grammar does not recognize (such as `.list blobs`).
-  ([#NNNN](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/NNNN))
+  ([#5936](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5936))
 
 ## 0.1.0-alpha.7
 
