@@ -8,6 +8,7 @@ using KustoUtils = Kusto.Cloud.Platform.Utils;
 
 namespace OpenTelemetry.Instrumentation.Kusto.Tests;
 
+[Collection(KustoActivitySourceCollectionDefinition.Name)]
 public class KustoTraceRecordListenerTests
 {
     private const string QueryActivityType = "KD.RestClient.ExecuteQuery";

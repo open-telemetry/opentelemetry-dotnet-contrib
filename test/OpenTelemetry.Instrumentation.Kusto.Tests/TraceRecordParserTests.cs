@@ -90,6 +90,22 @@ public class TraceRecordParserTests
         Assert.Equal(string.Empty, result.QueryText.ToString());
     }
 
+    [Theory]
+    [InlineData(1)]
+    [InlineData(100)]
+    [InlineData(10_000)]
+    public void ParseRequestStartWithRepeatedClientRequestIdFieldsIsBounded(int repetitions)
+    {
+        var clientRequestId = string.Concat(Enumerable.Repeat(", ClientRequestId=", repetitions)) + "!";
+        var query = new string('q', clientRequestId.Length);
+        var message = $"$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=http://localhost/v1/rest/query, DatabaseName=TestDB, App=testhost, User=user, ClientVersion=Kusto.Dotnet.Client:{{14.2.4}}, ClientRequestId={clientRequestId}, text={query}";
+
+        var result = TraceRecordParser.ParseRequestStart(message, clientRequestId);
+
+        // A single copy is not ambiguous; larger numbers exhaust the comparison budget and fail closed.
+        Assert.Equal(repetitions == 1 ? query : string.Empty, result.QueryText.ToString());
+    }
+
     [Fact]
     public void ParseRequestStartIgnoresClientRequestIdInDatabaseNameWithoutQueryText()
     {

@@ -107,12 +107,34 @@ internal class TraceRecordParser
     {
         const string Field = ", ClientRequestId=";
 
+        // The client request id is caller controlled, so it can be made of repeated copies of the field name, which
+        // makes every candidate match a long prefix of the id before it fails. Comparing each candidate in full would
+        // then take time proportional to the product of the lengths of the id and the message. Bound the total number
+        // of characters compared to the length of the message, and treat the message as ambiguous when it is
+        // exceeded. Messages that are not crafted to cause this have few candidates that mismatch quickly.
+        var budget = span.Length;
+
         int index;
         while ((index = span.IndexOf(Field)) >= 0)
         {
             span = span.Slice(index + Field.Length);
 
-            if (span.StartsWith(clientRequestId))
+            var length = Math.Min(span.Length, clientRequestId.Length);
+            var matched = 0;
+
+            while (matched < length && span[matched] == clientRequestId[matched])
+            {
+                matched++;
+            }
+
+            if (matched == clientRequestId.Length)
+            {
+                return true;
+            }
+
+            budget -= matched + 1;
+
+            if (budget < 0)
             {
                 return true;
             }
