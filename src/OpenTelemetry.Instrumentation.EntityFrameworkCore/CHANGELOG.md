@@ -50,6 +50,57 @@
   characters are no longer cached.
   ([#5869](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5869))
 
+* Fixed provider-specific query sanitization for Cloud Spanner (GoogleSQL)
+  literals, comments and escaped backtick identifiers, Firebird `q'...'`
+  literals using whitespace or apostrophe delimiters, SQL Server and SQLite
+  bracketed identifiers, and databases whose block comments do not nest.
+  ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
+
+* Fixed redaction of login and user names in additional `CREATE`, `ALTER` and
+  `DROP` statement positions, MySQL account lists and `RENAME USER`
+  statements, including additional Unicode account-name forms and PostgreSQL
+  Unicode-escaped identifiers and their `UESCAPE` clauses.
+  ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
+
+* Fixed redaction of Oracle passwords in `IDENTIFIED BY` and `REPLACE`
+  clauses, including unquoted and double-quoted values and non-ASCII
+  characters, and Teradata `PASSWORD =` values.
+  ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
+
+* Fixed `db.query.summary` for identifiers beginning with SQL keywords and
+  login or user statements in multi-statement commands.
+  ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
+
+* Fixed PostgreSQL query sanitization for dollar signs in identifiers,
+  including combining marks and supplementary characters before digits,
+  and dollar-quoted literals with non-ASCII tags.
+  ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
+
+* Fixed query sanitization so that dollar-prefixed identifiers and parameters
+  in MySQL, SQL Server and SQLite, and Oracle conditional compilation
+  directives, are not mistaken for dollar-quoted literals.
+  ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
+
+* Fixed query sanitization of PostgreSQL binary/octal literals and digit
+  separators, MySQL binary literals, SQLite digit separators, Oracle
+  floating-point suffixes, and hexadecimal literals with supported unary
+  operators.
+  ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
+
+* Fixed literals being left unsanitized in malformed SQL Server queries when
+  escaped brackets extend an identifier beyond its 128-character limit.
+  ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
+
+* Fixed MySQL and MariaDB query sanitization so that adjacent minus signs
+  are not mistaken for a comment without following whitespace, and a lone
+  carriage return does not end a line comment.
+  ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
+
+* Fixed literals inside MySQL and MariaDB executable comments being left
+  unsanitized. The remainder of a query after `/*!` or `/*M!` is now omitted
+  because its boundary depends on the server version.
+  ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
+
 ## 1.20.1-beta.1
 
 Released 2026-Oct-21

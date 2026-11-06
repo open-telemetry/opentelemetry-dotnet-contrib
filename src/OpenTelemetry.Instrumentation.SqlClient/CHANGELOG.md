@@ -67,6 +67,26 @@
   activity.
   ([#5924](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5924))
 
+* Fixed redaction of login and user names in additional `CREATE`, `ALTER` and
+  `DROP` statement positions, including references after `FOR LOGIN` and
+  `WITH NAME =`, and names containing combining marks.
+  ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
+
+* Fixed `db.query.summary` for identifiers beginning with SQL keywords and
+  login or user statements in multi-statement commands.
+  ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
+
+* Fixed query sanitization after bracketed identifiers containing apostrophes
+  and after dollar signs in identifiers, temporary table names and variables.
+  ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
+
+* Fixed query sanitization of hexadecimal literals preceded by a unary plus.
+  ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
+
+* Fixed literals being left unsanitized in malformed SQL Server queries when
+  escaped brackets extend an identifier beyond its 128-character limit.
+  ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
+
 ## 1.20.1
 
 Released 2026-Oct-21
