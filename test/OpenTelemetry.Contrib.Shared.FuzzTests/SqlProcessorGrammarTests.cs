@@ -15,6 +15,27 @@ public static class SqlProcessorGrammarTests
 {
     private const int MaxValue = 1_000;
     private const int MaxSummaryLength = 255;
+    private const string FirstLiteralMarker = "private_literal_alpha";
+    private const string SecondLiteralMarker = "private_literal_beta";
+    private const string TailLiteralMarker = "private_tail_literal";
+
+    private static readonly SqlDialect[] DialectPresets =
+    [
+        SqlDialect.Default,
+        SqlDialect.MySql,
+        SqlDialect.GoogleSql,
+        SqlDialect.SqlServer,
+        SqlDialect.Sqlite,
+        SqlDialect.Oracle,
+        SqlDialect.Firebird,
+        SqlDialect.Teradata,
+    ];
+
+    private static readonly string[] LiteralPieces =
+    [
+        "'", "\"", "`", "\\", "\n", "\r", "(", ")", "[", "]", "/*", "*/",
+        "--", "#", "$probe$", "''", ",", ";", "!", " ", "FROM user",
+    ];
 
     private static readonly string[] PathologicalPieces =
     [
@@ -67,6 +88,43 @@ public static class SqlProcessorGrammarTests
             $"The summary differs.{description}{Environment.NewLine}First summary: {firstActual.DbQuerySummary}{Environment.NewLine}Second summary: {secondActual.DbQuerySummary}");
     }
 
+    [Property(MaxTest = MaxValue)]
+    public static void GetSanitizedSql_All_Dialect_Presets_Keep_Literal_Content_Private(int firstContentSeed, int secondContentSeed, byte contextSelector)
+    {
+        // Every case exercises every preset. Changing only a literal's contents must leave both outputs unchanged,
+        // even when those contents resemble comments, identifiers or the end of an IN list.
+        var firstContent = RenderLiteralContent(firstContentSeed) + FirstLiteralMarker;
+        var secondContent = RenderLiteralContent(secondContentSeed) + SecondLiteralMarker;
+
+        foreach (var dialect in DialectPresets)
+        {
+            foreach (var renderLiteral in LiteralRenderers(dialect))
+            {
+                var tailLiteral = renderLiteral(TailLiteralMarker);
+                var firstSql = PlaceLiteral(renderLiteral(firstContent), tailLiteral, dialect, contextSelector);
+                var secondSql = PlaceLiteral(renderLiteral(secondContent), tailLiteral, dialect, contextSelector);
+                var first = SqlProcessor.GetSanitizedSql(firstSql, dialect);
+                var second = SqlProcessor.GetSanitizedSql(secondSql, dialect);
+                var description = $"Dialect: {dialect}{Environment.NewLine}First: {firstSql}{Environment.NewLine}Second: {secondSql}";
+
+                Assert.True(
+                    string.Equals(first.SanitizedSql, second.SanitizedSql, StringComparison.Ordinal),
+                    $"The sanitized SQL depends on literal content.{Environment.NewLine}{description}{Environment.NewLine}First sanitized: {first.SanitizedSql}{Environment.NewLine}Second sanitized: {second.SanitizedSql}");
+                Assert.True(
+                    string.Equals(first.DbQuerySummary, second.DbQuerySummary, StringComparison.Ordinal),
+                    $"The summary depends on literal content.{Environment.NewLine}{description}{Environment.NewLine}First summary: {first.DbQuerySummary}{Environment.NewLine}Second summary: {second.DbQuerySummary}");
+
+                foreach (var marker in new[] { FirstLiteralMarker, SecondLiteralMarker, TailLiteralMarker })
+                {
+                    Assert.False(
+                        Contains(first.SanitizedSql, marker) || Contains(second.SanitizedSql, marker) ||
+                        Contains(first.DbQuerySummary, marker) || Contains(second.DbQuerySummary, marker),
+                        $"A literal marker was revealed.{Environment.NewLine}{description}");
+                }
+            }
+        }
+    }
+
     [Property(MaxTest = MaxValue, Arbitrary = [typeof(SqlGenerators)])]
     public static void GetSanitizedSql_Is_Stable_Whatever_The_Dialect_Is_Requested_First(FuzzedSql statement, int contentSeed)
     {
@@ -112,6 +170,92 @@ public static class SqlProcessorGrammarTests
         Assert.True(
             stopwatch.Elapsed < TimeSpan.FromSeconds(10),
             $"Took {stopwatch.Elapsed} for {repeats:N0} repeats of {piece}, which is {sql.Length:N0} characters.");
+    }
+
+    private static string RenderLiteralContent(int seed)
+    {
+        var random = new Random(seed);
+        return string.Concat(Enumerable.Range(0, 8).Select(_ => LiteralPieces[random.Next(LiteralPieces.Length)]));
+    }
+
+    private static string PlaceLiteral(string literal, string tailLiteral, SqlDialect dialect, byte contextSelector)
+    {
+        // In MySQL this is subtraction followed by unary negation, not the start of a comment.
+        var arithmetic = dialect == SqlDialect.MySql ? "1--1, " : string.Empty;
+        return (contextSelector % 4) switch
+        {
+            0 => $"SELECT {arithmetic}{literal} AS value FROM items WHERE id = 7",
+            1 => $"SELECT * FROM items WHERE value IN ({literal}, {tailLiteral}) AND id = 7",
+            2 => $"INSERT INTO items VALUES ({literal}, 7)",
+            _ => $"SELECT * FROM (SELECT {literal} AS value FROM items) nested WHERE value = {tailLiteral}",
+        };
+    }
+
+    private static IEnumerable<Func<string, string>> LiteralRenderers(SqlDialect dialect)
+    {
+        if (dialect == SqlDialect.GoogleSql)
+        {
+            // Quoted GoogleSQL literals cannot contain actual line breaks; triple-quoted literals can.
+            yield return static content => QuoteLiteral(content, '\'', backslashEscapes: true, multiline: false);
+            yield return static content => QuoteLiteral(content, '"', backslashEscapes: true, multiline: false);
+            yield return static content => TripleQuotedLiteral(content, '\'');
+            yield return static content => TripleQuotedLiteral(content, '"');
+            yield return static content => "r" + QuoteLiteral(content, '\'', backslashEscapes: true, multiline: false);
+            yield return static content => "rb" + TripleQuotedLiteral(content, '\'');
+            yield return static content => "BR" + QuoteLiteral(content, '"', backslashEscapes: true, multiline: false);
+            yield return static content => "b" + TripleQuotedLiteral(content, '"');
+        }
+        else if (dialect == SqlDialect.MySql)
+        {
+            yield return static content => QuoteLiteral(content, '\'', backslashEscapes: true);
+            yield return static content => QuoteLiteral(content, '"', backslashEscapes: true);
+        }
+        else
+        {
+            yield return static content => QuoteLiteral(content, '\'');
+        }
+
+        if (dialect == SqlDialect.Default)
+        {
+            yield return static content => "E" + QuoteLiteral(content, '\'', backslashEscapes: true);
+            yield return static content => "$probe$" + content.Replace("$probe$", "$ probe$") + "$probe$";
+        }
+        else if (dialect is SqlDialect.Oracle or SqlDialect.Firebird)
+        {
+            yield return static content => "q'!" + content.Replace("!'", "! '") + "!'";
+
+            if (dialect == SqlDialect.Oracle)
+            {
+                yield return static content => "nq'!" + content.Replace("!'", "! '") + "!'";
+            }
+        }
+        else if (dialect == SqlDialect.SqlServer)
+        {
+            yield return static content => "N" + QuoteLiteral(content, '\'');
+        }
+    }
+
+    private static string QuoteLiteral(string content, char delimiter, bool backslashEscapes = false, bool multiline = true)
+    {
+        if (backslashEscapes)
+        {
+            content = content.Replace("\\", "\\\\");
+        }
+
+        if (!multiline)
+        {
+            content = content.Replace("\r", "\\r").Replace("\n", "\\n");
+        }
+
+        var quote = delimiter.ToString();
+        return quote + content.Replace(quote, backslashEscapes ? "\\" + quote : quote + quote) + quote;
+    }
+
+    private static string TripleQuotedLiteral(string content, char delimiter)
+    {
+        var quotes = new string(delimiter, 3);
+        var escapedQuotes = "\\" + delimiter + "\\" + delimiter + "\\" + delimiter;
+        return quotes + content.Replace("\\", "\\\\").Replace(quotes, escapedQuotes) + quotes;
     }
 
     private static SqlDialect ToDialect(bool useBackslashEscapes, bool bracketsDelimitIdentifiersOnly = false) =>

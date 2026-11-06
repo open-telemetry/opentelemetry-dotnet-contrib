@@ -1908,6 +1908,47 @@ public class SqlProcessorTests(ITestOutputHelper output)
         Assert.Equal("SELECT [x]] , ? , [y] FROM t", sqlStatementInfo.SanitizedSql);
     }
 
+    [Theory]
+    [InlineData(
+        (int)SqlDialect.Default,
+        "SELECT G'a]secret-name', GX'00410042', UX'00410042', BX'DEADBEEF' FROM SYSIBM.SYSDUMMY1",
+        "SELECT G?, GX?, UX?, BX? FROM SYSIBM.SYSDUMMY1")]
+    [InlineData((int)SqlDialect.Default, "VALUES ARRAY[G'a]secret-name', G'b']", "VALUES ARRAY[G?, G?]")]
+    [InlineData(
+        (int)SqlDialect.Default,
+        "/* outer /* inner */ don't */ SELECT 'secret-name' FROM SYSIBM.SYSDUMMY1",
+        " SELECT ? FROM SYSIBM.SYSDUMMY1")]
+    [InlineData(
+        (int)SqlDialect.GoogleSql,
+        "SELECT [r'a]secret-name', r'b'], rb'''bytes' secret-name''', b'bytes'",
+        "SELECT [r?, r?], rb?, b?")]
+    [InlineData(
+        (int)SqlDialect.GoogleSql,
+        "SELECT r'raw\\w' \"secret-name\" '''literal's secret-name'''",
+        "SELECT r? ? ?")]
+    [InlineData(
+        (int)SqlDialect.GoogleSql,
+        "SELECT [b\"secret-name\", BR'''bytes's secret-name''']",
+        "SELECT [b?, BR?]")]
+    [InlineData(
+        (int)SqlDialect.Firebird,
+        "CREATE OR ALTER USER private_user PASSWORD q'{secret-name}' FIRSTNAME 'private-firstname'",
+        "CREATE OR ALTER USER ? PASSWORD ? FIRSTNAME ?")]
+    [InlineData(
+        (int)SqlDialect.Teradata,
+        "MODIFY USER private_user AS PASSWORD = \"punctuated!secret-name\"",
+        "MODIFY USER ? AS PASSWORD = \"?\"")]
+    [InlineData((int)SqlDialect.Oracle, "SELECT nq'[customer's secret-name]' FROM dual", "SELECT ? FROM dual")]
+    public void GetSanitizedSql_AdditionalDialectForms_SanitizeValues(int dialect, string sql, string expected)
+    {
+        // Db2 uses the default preset, including graphic/binary literals and nested comments.
+        var result = GetSanitizedSql(sql, (SqlDialect)dialect);
+
+        Assert.Equal(expected, result.SanitizedSql);
+        Assert.DoesNotContain("secret-name", result.SanitizedSql, StringComparison.Ordinal);
+        Assert.DoesNotContain("secret-name", result.DbQuerySummary, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void GetSanitizedSql_EscapedBracketWithSqlServerDialect_IsPartOfTheIdentifier()
     {
