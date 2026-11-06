@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.20.2
+
+Released 2026-Nov-06
+
 * Fixed `db.query.summary` so that a delimited identifier, such as `[Orders]` or
   `[dbo].[Orders]`, is captured wherever an undelimited identifier would be
   (for example after `INSERT INTO`, `EXEC`, `CREATE TABLE` or a `JOIN` which
