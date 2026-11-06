@@ -242,21 +242,21 @@ internal static partial class SqlProcessor
         UnrestrictedAlternativeQuoteDelimiters = 2048,
 
         /// <summary>
-        /// Line comments follow MySQL rules: <c>--</c> requires following whitespace or a control character,
-        /// and only a line feed terminates a line comment.
+        /// Comments follow MySQL rules: <c>--</c> requires following whitespace or a control character,
+        /// only a line feed terminates a line comment, and executable comments have version-dependent boundaries.
         /// </summary>
-        MySqlLineComments = 4096,
+        MySqlComments = 4096,
 
         /// <summary>
         /// MySQL and MariaDB.
         /// </summary>
         MySql = BackslashEscapes | DoubleQuotedStrings | HashComments | NonNestedComments |
-                NoDollarQuotedStrings | NoStringPrefixes | NoBareWordPasswords | MySqlLineComments,
+                NoDollarQuotedStrings | NoStringPrefixes | NoBareWordPasswords | MySqlComments,
 
         /// <summary>
         /// GoogleSQL (Spanner).
         /// </summary>
-        GoogleSql = TripleQuotedLiterals | BackslashEscapedIdentifiers | (MySql & ~MySqlLineComments),
+        GoogleSql = TripleQuotedLiterals | BackslashEscapedIdentifiers | (MySql & ~MySqlComments),
 
         /// <summary>
         /// SQL Server.
@@ -298,7 +298,7 @@ internal static partial class SqlProcessor
               NoBareWordPasswords |
               BackslashEscapedIdentifiers |
               UnrestrictedAlternativeQuoteDelimiters |
-              MySqlLineComments,
+              MySqlComments,
     }
 
     private enum SqlKeyword
@@ -1969,6 +1969,16 @@ internal static partial class SqlProcessor
         // Scan past multi-line comment
         if (ch == ForwardSlashChar && next < sql.Length && sql[next] == AsteriskChar)
         {
+            // MySQL/MariaDB execute /*! ... */ and /*M! ... */ depending on the server and its version.
+            // A closing marker inside a literal then need not end the comment. Neither that version nor
+            // whether the body is executable is known here, so its boundary cannot safely be inferred.
+            if (Has(dialect, SqlDialect.MySqlComments) && start + 2 < sql.Length &&
+                (sql[start + 2] == '!' ||
+                 (start + 3 < sql.Length && sql[start + 2] == 'M' && sql[start + 3] == '!')))
+            {
+                return sql.Length;
+            }
+
             // SQL Server, PostgreSQL and Db2 allow block comments to be nested, so a comment such as
             // /* /* */ don't */ only ends at the second "*/". MySQL/MariaDB, SQLite, Oracle and others do not,
             // so the comment would end at the first "*/", and treating it as still open would read the
@@ -1989,14 +1999,14 @@ internal static partial class SqlProcessor
     private static bool IsDashCommentStart(ReadOnlySpan<char> sql, int start, SqlDialect dialect)
     {
         return sql[start] == DashChar && start + 1 < sql.Length && sql[start + 1] == DashChar &&
-            (!Has(dialect, SqlDialect.MySqlLineComments) || start + 2 == sql.Length ||
+            (!Has(dialect, SqlDialect.MySqlComments) || start + 2 == sql.Length ||
              sql[start + 2] <= SpaceChar || sql[start + 2] == '\u007f');
     }
 
     private static int FindLineCommentEnd(ReadOnlySpan<char> sql, int start, SqlDialect dialect)
     {
         var next = start + 1;
-        var lineBreakIndex = Has(dialect, SqlDialect.MySqlLineComments)
+        var lineBreakIndex = Has(dialect, SqlDialect.MySqlComments)
             ? sql.Slice(next).IndexOf(NewLineChar)
 #if NET
             : sql.Slice(next).IndexOfAny(LineBreakSearchValues);

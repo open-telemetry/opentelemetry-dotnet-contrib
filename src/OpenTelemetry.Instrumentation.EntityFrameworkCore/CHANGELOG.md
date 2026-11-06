@@ -96,6 +96,11 @@
   carriage return does not end a line comment.
   ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
 
+* Fixed literals inside MySQL and MariaDB executable comments being left
+  unsanitized. The remainder of a query after `/*!` or `/*M!` is now omitted
+  because its boundary depends on the server version.
+  ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
+
 ## 1.20.1-beta.1
 
 Released 2026-Oct-21

@@ -2133,6 +2133,28 @@ public class SqlProcessorTests(ITestOutputHelper output)
         Assert.Equal(googleSql, GetSanitizedSql(sql, SqlDialect.GoogleSql));
     }
 
+    [Theory]
+    [InlineData((int)SqlDialect.MySql, "SELECT /*! '*/secret-name' */", "SELECT ")]
+    [InlineData((int)SqlDialect.MySql, "SELECT /*!80000 '*/secret-name' */", "SELECT ")]
+    [InlineData((int)SqlDialect.MySql, "SELECT /*!99999 '*/secret-name' */", "SELECT ")]
+    [InlineData((int)SqlDialect.MySql, "SELECT 1 IN (/*!80000 '*/secret-name' */)", "SELECT ? IN (")]
+    [InlineData((int)SqlDialect.MySql, "/*!80000 SET @value = '*/secret-name' */; SELECT 'other-secret'", "")]
+    [InlineData((int)SqlDialect.MySql, "SELECT /*M! '*/secret-name' */", "SELECT ")]
+    [InlineData((int)SqlDialect.MySql, "SELECT /*M!100100 '*/secret-name' */", "SELECT ")]
+    [InlineData((int)SqlDialect.MySql, "SELECT /*! STRAIGHT_JOIN */ value FROM t WHERE x = 'secret-name'", "SELECT ")]
+    [InlineData((int)SqlDialect.MySql, "SELECT /* ! ordinary comment */ 'secret-name'", "SELECT  ?")]
+    [InlineData((int)SqlDialect.MySql, "SELECT /*M ! ordinary comment */ 'secret-name'", "SELECT  ?")]
+    [InlineData((int)SqlDialect.GoogleSql, "SELECT /*! 1 + 2 */ 'secret-name'", "SELECT  ?")]
+    [InlineData((int)SqlDialect.Default, "SELECT /*! 1 + 2 */ 'secret-name'", "SELECT  ?")]
+    public void GetSanitizedSql_ExecutableComments_RedactAmbiguousRemainder(int dialect, string sql, string expected)
+    {
+        var result = GetSanitizedSql(sql, (SqlDialect)dialect);
+
+        Assert.Equal(expected, result.SanitizedSql);
+        Assert.DoesNotContain("secret-name", result.DbQuerySummary, StringComparison.Ordinal);
+        Assert.DoesNotContain("other-secret", result.DbQuerySummary, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void GetSanitizedSql_BlockCommentsWhichNest_EndAtMatchingCommentEnd()
     {
