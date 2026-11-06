@@ -80,10 +80,17 @@ public sealed class OpAmpClient : IDisposable
     }
 
     /// <summary>
-    /// Flushes queued OpAMP client messages to the server.
+    /// Flushes the OpAMP client messages that are queued or in flight when this method is called.
     /// </summary>
+    /// <remarks>
+    /// Waits for pending send attempts to finish, unless the client is disposed.
+    /// For HTTP, this includes processing the corresponding responses. For WebSocket,
+    /// it does not wait for server responses. Successful completion does not guarantee delivery.
+    /// <para/>
+    /// Messages queued after this method is called do not extend the flush.
+    /// </remarks>
     /// <param name="token">Cancellation token.</param>
-    /// <returns>A task that completes when the pipe has no queued data or active flush.</returns>
+    /// <returns>A task that represents the asynchronous flush operation.</returns>
     /// <exception cref="ObjectDisposedException">Thrown if the client has already been disposed.</exception>
     public async Task FlushAsync(CancellationToken token = default)
     {

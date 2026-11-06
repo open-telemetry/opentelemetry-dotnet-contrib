@@ -1091,6 +1091,112 @@ public class TestAWSClientInstrumentation : IDisposable
     }
 
     [Fact]
+#if NETFRAMEWORK
+    public void TestSQSSendMessageReusedRequestWithoutActivity_ContextNotResent()
+#else
+    public async Task TestSQSSendMessageReusedRequestWithoutActivity_ContextNotResent()
+#endif
+    {
+        var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddAWSInstrumentation()
+            .Build();
+
+        var sqs = new AmazonSQSClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+        CustomResponses.SetResponse(sqs, """{ "MessageId": "567910cd-659e-55d4-bc19-f29d9g3b2378" }""", "fakerequ-esti-dfak-ereq-uestidfakere", "extended", true);
+
+        var request = new SendMessageRequest
+        {
+            QueueUrl = "https://sqs.us-east-1.amazonaws.com/123456789/MyTestQueue",
+            MessageBody = "Hello from OT",
+            MessageAttributes = new Dictionary<string, MessageAttributeValue>
+            {
+                ["Custom"] = new() { StringValue = "Value", DataType = "String" },
+            },
+        };
+
+#if NETFRAMEWORK
+        sqs.SendMessage(request);
+#else
+        await sqs.SendMessageAsync(request, TestContext.Current.CancellationToken);
+#endif
+
+        Assert.Contains("traceparent", request.MessageAttributes.Keys);
+
+        // The client keeps its instrumented pipeline, but there is no longer any current activity.
+        tracerProvider.Dispose();
+        Assert.Null(Activity.Current);
+
+#if NETFRAMEWORK
+        sqs.SendMessage(request);
+#else
+        await sqs.SendMessageAsync(request, TestContext.Current.CancellationToken);
+#endif
+
+        Assert.Single(request.MessageAttributes);
+        Assert.Contains("Custom", request.MessageAttributes.Keys);
+    }
+
+    [Fact]
+#if NETFRAMEWORK
+    public void TestSNSPublishReusedRequestWithoutActivity_ContextNotResent()
+#else
+    public async Task TestSNSPublishReusedRequestWithoutActivity_ContextNotResent()
+#endif
+    {
+        var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddAWSInstrumentation()
+            .Build();
+
+        var sns = new AmazonSimpleNotificationServiceClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+        CustomResponses.SetResponse(
+            sns,
+            """
+            <PublishResponse xmlns="https://sns.amazonaws.com/doc/2010-03-31/">
+              <PublishResult>
+                <MessageId>567910cd-659e-55d4-bc19-f29d9g3b2378</MessageId>
+              </PublishResult>
+              <ResponseMetadata>
+                <RequestId>fakerequ-esti-dfak-ereq-uestidfakere</RequestId>
+              </ResponseMetadata>
+            </PublishResponse>
+            """,
+            "fakerequ-esti-dfak-ereq-uestidfakere",
+            "extended",
+            true);
+
+        var request = new Amazon.SimpleNotificationService.Model.PublishRequest
+        {
+            TopicArn = "arn:aws:sns:us-east-1:123456789:MyTestTopic",
+            Message = "Hello from OT",
+            MessageAttributes = new Dictionary<string, Amazon.SimpleNotificationService.Model.MessageAttributeValue>
+            {
+                ["Custom"] = new() { StringValue = "Value", DataType = "String" },
+            },
+        };
+
+#if NETFRAMEWORK
+        sns.Publish(request);
+#else
+        await sns.PublishAsync(request, TestContext.Current.CancellationToken);
+#endif
+
+        Assert.Contains("traceparent", request.MessageAttributes.Keys);
+
+        // The client keeps its instrumented pipeline, but there is no longer any current activity.
+        tracerProvider.Dispose();
+        Assert.Null(Activity.Current);
+
+#if NETFRAMEWORK
+        sns.Publish(request);
+#else
+        await sns.PublishAsync(request, TestContext.Current.CancellationToken);
+#endif
+
+        Assert.Single(request.MessageAttributes);
+        Assert.Contains("Custom", request.MessageAttributes.Keys);
+    }
+
+    [Fact]
     public async Task SuppressDownstreamInstrumentation_RestoresSuppressionScope()
     {
         Assert.False(Sdk.SuppressInstrumentation);
@@ -1106,10 +1212,14 @@ public class TestAWSClientInstrumentation : IDisposable
                 InnerHandler = new SuppressionAssertPipelineHandler(),
             };
 
-            handler.InvokeSync(null!);
+            var executionContext = new Amazon.Runtime.Internal.ExecutionContext(
+                new TestRequestContext(new SendMessageRequest(), new TestRequest()),
+                null);
+
+            handler.InvokeSync(executionContext);
             Assert.False(Sdk.SuppressInstrumentation);
 
-            await handler.InvokeAsync<AmazonWebServiceResponse>(null!);
+            await handler.InvokeAsync<AmazonWebServiceResponse>(executionContext);
             Assert.False(Sdk.SuppressInstrumentation);
         }
         finally

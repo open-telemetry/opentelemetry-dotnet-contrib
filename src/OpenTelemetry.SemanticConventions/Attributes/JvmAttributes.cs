@@ -23,6 +23,32 @@ public static class JvmAttributes
     public const string AttributeJvmBufferPoolName = "jvm.buffer.pool.name";
 
     /// <summary>
+    /// Name of the executor.
+    /// </summary>
+    /// <remarks>
+    /// The executor name SHOULD be low-cardinality. If <c>jvm.executor.owner.name</c> is present, the combination of <c>jvm.executor.owner.name</c> and <c>jvm.executor.name</c> SHOULD be unique within the instrumented application; otherwise, <c>jvm.executor.name</c> SHOULD be unique when an executor-specific name is available. If the executor implementation does not provide an explicit name, instrumentation SHOULD derive a name from available implementation-specific metadata, such as a normalized worker thread name. If no executor-specific name or metadata is available, instrumentation MAY use <c>unknown</c>. The <c>unknown</c> value does not identify an executor, and metrics from multiple executors using this value MAY be aggregated. Users requiring per-executor metric series SHOULD configure a distinct name through the executor's <c>ThreadFactory</c>. Instrumentations SHOULD document how the name is derived and how users can configure it. Once metric series registration for an executor has started, <c>jvm.executor.name</c> and <c>jvm.executor.owner.name</c> MUST remain stable for the lifetime of that registration. Instrumentations SHOULD determine these attributes before the first worker is registered. Instrumentations MUST NOT re-register cumulative metrics under a new attribute set or replay prior cumulative values under new attributes.
+    /// </remarks>
+    public const string AttributeJvmExecutorName = "jvm.executor.name";
+
+    /// <summary>
+    /// Name of the logical component that owns the executor.
+    /// </summary>
+    /// <remarks>
+    /// The executor owner name SHOULD be a low-cardinality identifier for the component that creates and configures the executor. It is neither the executor implementation type nor an OpenTelemetry instrumentation scope.
+    /// </remarks>
+    public const string AttributeJvmExecutorOwnerName = "jvm.executor.owner.name";
+
+    /// <summary>
+    /// State of an executor thread.
+    /// </summary>
+    public const string AttributeJvmExecutorThreadState = "jvm.executor.thread.state";
+
+    /// <summary>
+    /// The fully qualified class name of the executor implementation.
+    /// </summary>
+    public const string AttributeJvmExecutorType = "jvm.executor.type";
+
+    /// <summary>
     /// Name of the garbage collector action.
     /// </summary>
     /// <remarks>
@@ -68,6 +94,22 @@ public static class JvmAttributes
     /// State of the thread.
     /// </summary>
     public const string AttributeJvmThreadState = "jvm.thread.state";
+
+    /// <summary>
+    /// State of an executor thread.
+    /// </summary>
+    public static class JvmExecutorThreadStateValues
+    {
+        /// <summary>
+        /// The thread is currently executing a task.
+        /// </summary>
+        public const string Active = "active";
+
+        /// <summary>
+        /// The thread currently exists but is not executing a task.
+        /// </summary>
+        public const string Idle = "idle";
+    }
 
     /// <summary>
     /// The type of memory.

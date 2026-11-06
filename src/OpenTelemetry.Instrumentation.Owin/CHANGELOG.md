@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## 1.20.2-beta.1
+
+Released 2026-Nov-05
+
+* Updated Semantic Conventions version to `1.45.0`.
+  ([#5833](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5833))
+
+* **Breaking Change**: The `http.server.request.duration` metric no longer
+  includes the `http.request.method_original` tag, and records only the
+  normalized `http.request.method`.
+  ([#5880](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5880))
+
 ## 1.20.1-beta.1
 
 Released 2026-Oct-21

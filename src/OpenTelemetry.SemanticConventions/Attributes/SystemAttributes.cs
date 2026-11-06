@@ -27,9 +27,15 @@ public static class SystemAttributes
     public const string AttributeSystemCpuState = "system.cpu.state";
 
     /// <summary>
-    /// The device identifier.
+    /// Deprecated, use <c>system.device.name</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>system.device.name</c>.")]
     public const string AttributeSystemDevice = "system.device";
+
+    /// <summary>
+    /// The OS level identifier for a device, such as disk, partition or network interface.
+    /// </summary>
+    public const string AttributeSystemDeviceName = "system.device.name";
 
     /// <summary>
     /// The filesystem mode.
@@ -247,8 +253,14 @@ public static class SystemAttributes
         public const string Used = "used";
 
         /// <summary>
+        /// An estimate of how much memory is available for starting new applications, without causing swapping.
+        /// </summary>
+        public const string Available = "available";
+
+        /// <summary>
         /// free.
         /// </summary>
+        [Obsolete("Removed, report memory usage with the <c>used</c> and <c>available</c> states instead.")]
         public const string Free = "free";
 
         /// <summary>
@@ -260,11 +272,13 @@ public static class SystemAttributes
         /// <summary>
         /// buffers.
         /// </summary>
+        [Obsolete("Removed, report memory usage with the <c>used</c> and <c>available</c> states instead.")]
         public const string Buffers = "buffers";
 
         /// <summary>
         /// cached.
         /// </summary>
+        [Obsolete("Removed, report memory usage with the <c>used</c> and <c>available</c> states instead.")]
         public const string Cached = "cached";
     }
 

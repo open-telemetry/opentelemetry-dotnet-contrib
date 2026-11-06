@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+## 1.20.3
+
+Released 2026-Nov-05
+
+* Updated Semantic Conventions version to `1.45.0`.
+  ([#5833](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5833))
+
+* Fixed `http.route` and the span name containing the `controller` and `action`
+  values from the request URL for conventional MVC and WebAPI routes. The names
+  are now only used once a request for them has completed successfully, otherwise
+  the `{controller}` and `{action}` tokens of the route template are reported.
+  ([#5858](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5858))
+
 ## 1.20.2
 
 Released 2026-Oct-30

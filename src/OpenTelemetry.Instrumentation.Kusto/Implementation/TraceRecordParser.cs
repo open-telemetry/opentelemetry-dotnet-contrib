@@ -28,7 +28,10 @@ internal class TraceRecordParser
         // so we can just take everything after "text="
         var queryText = message.SliceAfter("text=");
 
-        return new ParsedRequestStart(parsed?.DnsSafeHost, parsed?.Port, database, queryText);
+        // The port is only recorded when it is not the default port for the scheme.
+        var port = parsed is { IsDefaultPort: false } ? parsed.Port : (int?)null;
+
+        return new ParsedRequestStart(parsed?.DnsSafeHost, port, database, queryText);
     }
 
     public static ParsedException ParseException(ReadOnlySpan<char> message)

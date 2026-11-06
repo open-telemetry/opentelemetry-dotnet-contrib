@@ -168,6 +168,26 @@ public static class GcpAttributes
     public const string AttributeGcpGceInstanceGroupManagerZone = "gcp.gce.instance_group_manager.zone";
 
     /// <summary>
+    /// The ack deadline in seconds set for the modify ack deadline request.
+    /// </summary>
+    public const string AttributeGcpPubsubMessageAckDeadline = "gcp.pubsub.message.ack_deadline";
+
+    /// <summary>
+    /// The ack ID for a given message.
+    /// </summary>
+    public const string AttributeGcpPubsubMessageAckId = "gcp.pubsub.message.ack_id";
+
+    /// <summary>
+    /// The delivery attempt for a given message.
+    /// </summary>
+    public const string AttributeGcpPubsubMessageDeliveryAttempt = "gcp.pubsub.message.delivery_attempt";
+
+    /// <summary>
+    /// The ordering key for a given message. If the attribute is not present, the message does not have an ordering key.
+    /// </summary>
+    public const string AttributeGcpPubsubMessageOrderingKey = "gcp.pubsub.message.ordering_key";
+
+    /// <summary>
     /// Criticality of a service indicates its importance to the business.
     /// </summary>
     public static class GcpApphubServiceCriticalityTypeValues

@@ -39,6 +39,8 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
 
     internal Task<string?>? ClusterIdTask => this.clusterIdTask;
 
+    internal bool UseCreationContextAsParent => this.options.UseCreationContextAsParent;
+
     public void Dispose()
         => this.consumer.Dispose();
 
@@ -238,7 +240,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
                 SemanticConventions.AttributeMessagingOperationType,
                 ConfluentKafkaCommon.ReceiveOperationType),
             new KeyValuePair<string, object?>(
-                SemanticConventions.AttributeMessagingSystem,
+                SemanticConventions.AttributeMessagingSystemName,
                 ConfluentKafkaCommon.KafkaMessagingSystem),
         };
 
@@ -356,7 +358,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         {
             { SemanticConventions.AttributeMessagingOperationName, ConfluentKafkaCommon.PollOperationName },
             { SemanticConventions.AttributeMessagingOperationType, ConfluentKafkaCommon.ReceiveOperationType },
-            { SemanticConventions.AttributeMessagingSystem, ConfluentKafkaCommon.KafkaMessagingSystem },
+            { SemanticConventions.AttributeMessagingSystemName, ConfluentKafkaCommon.KafkaMessagingSystem },
         };
 
         if (this.GroupId is { Length: > 0 } groupId)
@@ -388,22 +390,22 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         if (activity?.IsAllDataRequested == true)
         {
             activity.SetTag(SemanticConventions.AttributeMessagingClientId, this.Name);
-            activity.SetTag(SemanticConventions.AttributeMessagingKafkaOffset, topicPartitionOffset?.Offset.Value);
+            activity.SetTag(SemanticConventions.AttributeKafkaOffset, topicPartitionOffset?.Offset.Value);
 
             if (ConfluentKafkaCommon.FormatMessageKey(key) is { } messageKey)
             {
-                activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageKey, messageKey);
+                activity.SetTag(SemanticConventions.AttributeKafkaMessageKey, messageKey);
             }
 
             if (isTombstone)
             {
-                activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageTombstone, true);
+                activity.SetTag(SemanticConventions.AttributeKafkaMessageTombstone, true);
             }
 
             if (this.clusterIdTask?.Status == TaskStatus.RanToCompletion
                 && this.clusterIdTask.Result is { Length: > 0 } clusterId)
             {
-                activity.SetTag(SemanticConventions.AttributeMessagingKafkaClusterId, clusterId);
+                activity.SetTag(SemanticConventions.AttributeKafkaClusterId, clusterId);
             }
         }
 

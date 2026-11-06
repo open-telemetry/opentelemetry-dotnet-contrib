@@ -10,12 +10,14 @@ internal sealed class InfluxDBMetricsExporter : BaseExporter<Metric>
 {
     private readonly IMetricsWriter writer;
     private readonly InfluxDBClient influxDbClient;
+    private readonly HttpClient httpClient;
     private readonly WriteApiAsync writeApiAsync;
 
-    public InfluxDBMetricsExporter(IMetricsWriter writer, InfluxDBClient influxDbClient)
+    public InfluxDBMetricsExporter(IMetricsWriter writer, InfluxDBClient influxDbClient, HttpClient httpClient)
     {
         this.writer = writer;
         this.influxDbClient = influxDbClient;
+        this.httpClient = httpClient;
         this.writeApiAsync = influxDbClient.GetWriteApiAsync();
     }
 
@@ -47,7 +49,14 @@ internal sealed class InfluxDBMetricsExporter : BaseExporter<Metric>
     {
         if (disposing)
         {
-            this.influxDbClient.Dispose();
+            try
+            {
+                this.influxDbClient.Dispose();
+            }
+            finally
+            {
+                this.httpClient.Dispose();
+            }
         }
 
         base.Dispose(disposing);

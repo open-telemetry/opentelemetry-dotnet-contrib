@@ -15,45 +15,45 @@ namespace OpenTelemetry.SemanticConventions;
 public static class RpcAttributes
 {
     /// <summary>
-    /// Deprecated, use <c>rpc.response.status_code</c> attribute instead.
+    /// Deprecated, use <c>rpc.status_code</c> attribute instead.
     /// </summary>
-    [Obsolete("Replaced by <c>rpc.response.status_code</c>.")]
+    [Obsolete("Replaced by <c>rpc.status_code</c>.")]
     public const string AttributeRpcConnectRpcErrorCode = "rpc.connect_rpc.error_code";
 
     /// <summary>
-    /// Deprecated, use <c>rpc.request.metadata</c> instead.
+    /// Deprecated, use <c>rpc.request.header</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>rpc.request.metadata</c>.")]
+    [Obsolete("Replaced by <c>rpc.request.header</c>.")]
     public const string AttributeRpcConnectRpcRequestMetadataTemplate = "rpc.connect_rpc.request.metadata";
 
     /// <summary>
-    /// Deprecated, use <c>rpc.response.metadata</c> instead.
+    /// Deprecated, use <c>rpc.response.header</c> and <c>rpc.response.trailer</c>.
     /// </summary>
-    [Obsolete("Replaced by <c>rpc.response.metadata</c>.")]
+    [Obsolete("Split to <c>rpc.response.header</c> for metadata sent before the response payload and <c>rpc.response.trailer</c> for metadata sent after it.")]
     public const string AttributeRpcConnectRpcResponseMetadataTemplate = "rpc.connect_rpc.response.metadata";
 
     /// <summary>
-    /// Deprecated, use <c>rpc.request.metadata</c> instead.
+    /// Deprecated, use <c>rpc.request.header</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>rpc.request.metadata</c>.")]
+    [Obsolete("Replaced by <c>rpc.request.header</c>.")]
     public const string AttributeRpcGrpcRequestMetadataTemplate = "rpc.grpc.request.metadata";
 
     /// <summary>
-    /// Deprecated, use <c>rpc.response.metadata</c> instead.
+    /// Deprecated, use <c>rpc.response.header</c> and <c>rpc.response.trailer</c>.
     /// </summary>
-    [Obsolete("Replaced by <c>rpc.response.metadata</c>.")]
+    [Obsolete("Split to <c>rpc.response.header</c> for metadata sent before the response payload and <c>rpc.response.trailer</c> for metadata sent after it.")]
     public const string AttributeRpcGrpcResponseMetadataTemplate = "rpc.grpc.response.metadata";
 
     /// <summary>
-    /// Deprecated, use string representation on the <c>rpc.response.status_code</c> attribute instead.
+    /// Deprecated, use string representation on the <c>rpc.status_code</c> attribute instead.
     /// </summary>
-    [Obsolete("Use string representation of the gRPC status code on the <c>rpc.response.status_code</c> attribute.")]
+    [Obsolete("Use string representation of the gRPC status code on the <c>rpc.status_code</c> attribute.")]
     public const string AttributeRpcGrpcStatusCode = "rpc.grpc.status_code";
 
     /// <summary>
-    /// Deprecated, use string representation on the <c>rpc.response.status_code</c> attribute instead.
+    /// Deprecated, use string representation on the <c>rpc.status_code</c> attribute instead.
     /// </summary>
-    [Obsolete("Use string representation of the error code on the <c>rpc.response.status_code</c> attribute.")]
+    [Obsolete("Use string representation of the error code on the <c>rpc.status_code</c> attribute.")]
     public const string AttributeRpcJsonrpcErrorCode = "rpc.jsonrpc.error_code";
 
     /// <summary>
@@ -135,43 +135,95 @@ public static class RpcAttributes
     public const string AttributeRpcMethodOriginal = "rpc.method_original";
 
     /// <summary>
-    /// RPC request metadata, <c><key></c> being the normalized RPC metadata key (lowercase), the value being the metadata values.
+    /// RPC request headers or metadata, <c><key></c> being the normalized header name (lowercase), the value being the header values.
     /// </summary>
     /// <remarks>
-    /// Instrumentations SHOULD require an explicit configuration of which metadata values are to be captured.
-    /// Including all request metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information.
+    /// Instrumentations SHOULD require an explicit configuration of which headers are to be captured.
+    /// Including all request headers can be a security risk - explicit configuration helps avoid leaking sensitive information.
     /// <p>
-    /// For example, a property <c>my-custom-key</c> with value <c>["1.2.3.4", "1.2.3.5"]</c> SHOULD be recorded as
-    /// <c>rpc.request.metadata.my-custom-key</c> attribute with value <c>["1.2.3.4", "1.2.3.5"]</c>.
+    /// For example, a header <c>my-custom-key</c> with value <c>["1.2.3.4", "1.2.3.5"]</c> SHOULD be recorded as
+    /// the <c>rpc.request.header.my-custom-key</c> attribute with value <c>["1.2.3.4", "1.2.3.5"]</c>
+    /// <p>
+    /// The attribute value MUST consist of either multiple header values as an array of
+    /// strings or a single-item array containing a possibly comma-concatenated string,
+    /// depending on the way the RPC library provides access to headers.
+    /// <p>
+    /// Values that the RPC system exposes as binary data, or that are otherwise not valid
+    /// UTF-8 strings, SHOULD be base64-encoded when recorded.
     /// </remarks>
+    public const string AttributeRpcRequestHeaderTemplate = "rpc.request.header";
+
+    /// <summary>
+    /// Deprecated, use <c>rpc.request.header</c> instead.
+    /// </summary>
+    [Obsolete("Replaced by <c>rpc.request.header</c>.")]
     public const string AttributeRpcRequestMetadataTemplate = "rpc.request.metadata";
 
     /// <summary>
-    /// RPC response metadata, <c><key></c> being the normalized RPC metadata key (lowercase), the value being the metadata values.
+    /// RPC response headers or metadata sent before the response payload, <c><key></c> being the normalized header name (lowercase), the value being the header values.
     /// </summary>
     /// <remarks>
-    /// Instrumentations SHOULD require an explicit configuration of which metadata values are to be captured.
-    /// Including all response metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information.
+    /// Instrumentations SHOULD require an explicit configuration of which headers are to be captured.
+    /// Including all response headers can be a security risk - explicit configuration helps avoid leaking sensitive information.
     /// <p>
-    /// For example, a property <c>my-custom-key</c> with value <c>["attribute_value"]</c> SHOULD be recorded as
-    /// the <c>rpc.response.metadata.my-custom-key</c> attribute with value <c>["attribute_value"]</c>.
+    /// For example, a header <c>my-custom-key</c> with value <c>["attribute_value"]</c> SHOULD be recorded as
+    /// the <c>rpc.response.header.my-custom-key</c> attribute with value <c>["attribute_value"]</c>
+    /// <p>
+    /// The attribute value MUST consist of either multiple header values as an array of
+    /// strings or a single-item array containing a possibly comma-concatenated string,
+    /// depending on the way the RPC library provides access to headers.
+    /// <p>
+    /// Values that the RPC system exposes as binary data, or that are otherwise not valid
+    /// UTF-8 strings, SHOULD be base64-encoded when recorded.
     /// </remarks>
+    public const string AttributeRpcResponseHeaderTemplate = "rpc.response.header";
+
+    /// <summary>
+    /// Deprecated, use <c>rpc.response.header</c> and <c>rpc.response.trailer</c>.
+    /// </summary>
+    [Obsolete("Split to <c>rpc.response.header</c> for metadata sent before the response payload and <c>rpc.response.trailer</c> for metadata sent after it.")]
     public const string AttributeRpcResponseMetadataTemplate = "rpc.response.metadata";
 
     /// <summary>
-    /// Status code of the RPC returned by the RPC server or generated by the client.
+    /// Deprecated, use <c>rpc.status_code</c> instead.
+    /// </summary>
+    [Obsolete("Replaced by <c>rpc.status_code</c>.")]
+    public const string AttributeRpcResponseStatusCode = "rpc.response.status_code";
+
+    /// <summary>
+    /// RPC response trailers or metadata sent after the response payload, <c><key></c> being the normalized trailer name (lowercase), the value being the trailer values.
     /// </summary>
     /// <remarks>
-    /// Usually it represents an error code, but may also represent partial success, warning, or differentiate between various types of successful outcomes.
-    /// Semantic conventions for individual RPC frameworks SHOULD document what <c>rpc.response.status_code</c> means in the context of that system and which values are considered to represent errors.
+    /// Instrumentations SHOULD require an explicit configuration of which trailers are to be captured.
+    /// Including all response trailers can be a security risk - explicit configuration helps avoid leaking sensitive information.
+    /// <p>
+    /// For example, a trailer <c>my-custom-key</c> with value <c>["attribute_value"]</c> SHOULD be recorded as
+    /// the <c>rpc.response.trailer.my-custom-key</c> attribute with value <c>["attribute_value"]</c>
+    /// <p>
+    /// The attribute value MUST consist of either multiple trailer values as an array of
+    /// strings or a single-item array containing a possibly comma-concatenated string,
+    /// depending on the way the RPC library provides access to trailers.
+    /// <p>
+    /// Values that the RPC system exposes as binary data, or that are otherwise not valid
+    /// UTF-8 strings, SHOULD be base64-encoded when recorded.
     /// </remarks>
-    public const string AttributeRpcResponseStatusCode = "rpc.response.status_code";
+    public const string AttributeRpcResponseTrailerTemplate = "rpc.response.trailer";
 
     /// <summary>
     /// Deprecated, use fully-qualified <c>rpc.method</c> instead.
     /// </summary>
     [Obsolete("Value should be included in <c>rpc.method</c> which is expected to be a fully-qualified name.")]
     public const string AttributeRpcService = "rpc.service";
+
+    /// <summary>
+    /// Status code of the RPC returned by the RPC server or generated by the client.
+    /// </summary>
+    /// <remarks>
+    /// Usually it represents an error code, but may also represent partial success, warning, or differentiate between various types of successful outcomes.
+    /// The value MAY use a standardized string representation of a numeric status code, if one exists, instead of the numeric code. The value MAY be a synthetic status provided by the client library rather than returned by the remote service.
+    /// Semantic conventions for individual RPC frameworks SHOULD document what <c>rpc.status_code</c> means in the context of that system and which values are considered to represent errors.
+    /// </remarks>
+    public const string AttributeRpcStatusCode = "rpc.status_code";
 
     /// <summary>
     /// Deprecated, use <c>rpc.system.name</c> attribute instead.
@@ -188,9 +240,9 @@ public static class RpcAttributes
     public const string AttributeRpcSystemName = "rpc.system.name";
 
     /// <summary>
-    /// Deprecated, use <c>rpc.response.status_code</c> attribute instead.
+    /// Deprecated, use <c>rpc.status_code</c> attribute instead.
     /// </summary>
-    [Obsolete("Replaced by <c>rpc.response.status_code</c>.")]
+    [Obsolete("Replaced by <c>rpc.status_code</c>.")]
     public static class RpcConnectRpcErrorCodeValues
     {
         /// <summary>
@@ -275,9 +327,9 @@ public static class RpcAttributes
     }
 
     /// <summary>
-    /// Deprecated, use string representation on the <c>rpc.response.status_code</c> attribute instead.
+    /// Deprecated, use string representation on the <c>rpc.status_code</c> attribute instead.
     /// </summary>
-    [Obsolete("Use string representation of the gRPC status code on the <c>rpc.response.status_code</c> attribute.")]
+    [Obsolete("Use string representation of the gRPC status code on the <c>rpc.status_code</c> attribute.")]
     public static class RpcGrpcStatusCodeValues
     {
         /// <summary>

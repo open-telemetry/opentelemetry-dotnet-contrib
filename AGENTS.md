@@ -212,3 +212,6 @@ Agent skills for common tasks in this repository are in [`.github/skills`](.gith
   code change against this repository's conventions.
 - [`performance-benchmark`](.github/skills/performance-benchmark/SKILL.md) - write
   and run BenchmarkDotNet benchmarks to validate the performance impact of a change.
+- [`semantic-conventions-upgrade`](.github/skills/semantic-conventions-upgrade/SKILL.md)
+  - upgrade the semantic conventions version a component targets, or bump
+  the generated `OpenTelemetry.SemanticConventions` package.

@@ -15,8 +15,11 @@ namespace OpenTelemetry.SemanticConventions;
 public static class CpuAttributes
 {
     /// <summary>
-    /// The logical CPU number [0..n-1].
+    /// The identifier of a logical execution target (CPU) as seen by the operating system, in the range [0..n-1].
     /// </summary>
+    /// <remarks>
+    /// On systems with simultaneous multithreading (SMT) enabled — such as Intel Hyper-Threading or AMD SMT — this value will usually differ from the physical core number, because each core presents multiple logical CPUs for the system to use.
+    /// </remarks>
     public const string AttributeCpuLogicalNumber = "cpu.logical_number";
 
     /// <summary>

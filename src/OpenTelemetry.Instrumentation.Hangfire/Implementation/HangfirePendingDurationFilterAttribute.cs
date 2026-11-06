@@ -4,6 +4,7 @@
 using Hangfire.Common;
 using Hangfire.Server;
 using Hangfire.States;
+using OpenTelemetry.Metrics;
 using DateTime = System.DateTime;
 
 namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
@@ -19,6 +20,15 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
 internal sealed class HangfirePendingDurationFilterAttribute : JobFilterAttribute, IServerFilter, IElectStateFilter
 {
     private const string EnqueuedAtParameter = "opentelemetry_enqueued_at";
+
+    private readonly HangfireMetricsInstrumentationOptions options;
+
+#pragma warning disable CA1019 // Define accessors for attribute arguments
+    public HangfirePendingDurationFilterAttribute(HangfireMetricsInstrumentationOptions options)
+#pragma warning restore CA1019 // Define accessors for attribute arguments
+    {
+        this.options = options;
+    }
 
     public void OnStateElection(ElectStateContext context)
     {
@@ -60,7 +70,7 @@ internal sealed class HangfirePendingDurationFilterAttribute : JobFilterAttribut
                     filterContext.BackgroundJob,
                     exception: null,
                     workflowState: WorkflowAttributes.WorkflowStateValues.Pending);
-                HangfireMetrics.ExecutionDuration.Record(pendingDuration, tags);
+                HangfireMetrics.ExecutionDuration.Record(pendingDuration, HangfireTagBuilder.Enrich(tags, filterContext.BackgroundJob, this.options));
             }
         }
         catch

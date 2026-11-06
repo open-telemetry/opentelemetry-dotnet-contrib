@@ -15,12 +15,14 @@ namespace OpenTelemetry.SemanticConventions;
 public static class ZosAttributes
 {
     /// <summary>
-    /// The System Management Facility (SMF) Identifier uniquely identified a z/OS system within a SYSPLEX or mainframe environment and is used for system and performance analysis.
+    /// The System Management Facility (SMF) identifier that uniquely identifies a z/OS system within a sysplex or mainframe environment and is used for system and performance analysis.
     /// </summary>
+    [Obsolete("Moved to the OpenTelemetry Mainframe semantic conventions repository (https://github.com/open-telemetry/semantic-conventions-mainframe).")]
     public const string AttributeZosSmfId = "zos.smf.id";
 
     /// <summary>
-    /// The name of the SYSPLEX to which the z/OS system belongs too.
+    /// The name of the sysplex to which the z/OS system belongs.
     /// </summary>
+    [Obsolete("Moved to the OpenTelemetry Mainframe semantic conventions repository (https://github.com/open-telemetry/semantic-conventions-mainframe).")]
     public const string AttributeZosSysplexName = "zos.sysplex.name";
 }

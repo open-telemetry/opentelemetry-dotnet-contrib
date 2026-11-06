@@ -10,7 +10,7 @@
 [![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Resources.Host)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Resources.Host)
 
 > [!IMPORTANT]
-> Resources detected by this packages are defined by [experimental semantic convention](https://github.com/open-telemetry/semantic-conventions/blob/v1.44.0/docs/resource/host.md).
+> Resources detected by this packages are defined by [experimental semantic convention](https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/resource/host.md).
 > These resources can be changed without prior notification.
 
 ## Getting Started
@@ -71,7 +71,7 @@ your application is running:
 ### Network addresses
 
 `host.ip` and `host.mac` are
-[opt-in](https://github.com/open-telemetry/semantic-conventions/blob/v1.44.0/docs/resource/host.md)
+[opt-in](https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/resource/host.md)
 attributes and identify the machine, so they are not emitted by default. Set
 `OTEL_DOTNET_EXPERIMENTAL_HOST_RESOURCE_ENABLE_NETWORK_ADDRESSES` to `true` to
 emit them.
@@ -85,7 +85,7 @@ resource is built again.
 ### CPU information
 
 The following
-[opt-in](https://github.com/open-telemetry/semantic-conventions/blob/v1.44.0/docs/resource/host.md)
+[opt-in](https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/resource/host.md)
 attributes are not emitted by default. Set
 `OTEL_DOTNET_EXPERIMENTAL_HOST_RESOURCE_ENABLE_CPU_INFO` to `true` to emit them:
 

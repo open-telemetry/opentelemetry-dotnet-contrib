@@ -11,4 +11,8 @@ public class EventSourceTests
     [Fact]
     public void EventSourceTests_HttpInstrumentationEventSource() =>
         EventSourceTestHelper.ValidateEventSourceIds<HttpInstrumentationEventSource>();
+
+    [Fact]
+    public void EventSourceTests_HttpInstrumentationEventSource_WritesEvents() =>
+        EventSourceTestHelper.ExerciseEventSource<HttpInstrumentationEventSource>();
 }

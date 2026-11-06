@@ -23,7 +23,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     internal static readonly Version SemanticConventionsVersion = new(1, 24, 0);
     internal static readonly ActivitySource ActivitySource = ActivitySourceFactory.Create<EntityFrameworkDiagnosticListener>(SemanticConventionsVersion);
 
-    private static readonly Version SemanticConventionsVersionNew = new(1, 36, 0);
+    private static readonly Version SemanticConventionsVersionNew = new(1, 45, 0);
     private static readonly ActivitySource ActivitySourceNew = ActivitySourceFactory.Create<EntityFrameworkDiagnosticListener>(SemanticConventionsVersionNew);
 
     private static readonly ActivitySource ActivitySourceBoth = ActivitySourceFactory.Create<EntityFrameworkDiagnosticListener>(null);

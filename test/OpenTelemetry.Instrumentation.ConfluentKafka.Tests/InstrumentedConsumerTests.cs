@@ -36,16 +36,16 @@ public class InstrumentedConsumerTests
 
         var activity = activities.Single(a => a.DisplayName == "poll consume-topic");
         Assert.Equal(ActivityKind.Client, activity.Kind);
-        Assert.Equal("https://opentelemetry.io/schemas/1.44.0", activity.Source.TelemetrySchemaUrl);
-        Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
+        Assert.Equal("https://opentelemetry.io/schemas/1.45.0", activity.Source.TelemetrySchemaUrl);
+        Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystemName));
         Assert.Equal("poll", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationName));
         Assert.Equal("receive", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationType));
         Assert.Equal("consume-topic", activity.GetTagValue(SemanticConventions.AttributeMessagingDestinationName));
         Assert.Equal("1", activity.GetTagValue(SemanticConventions.AttributeMessagingDestinationPartitionId));
-        Assert.Equal(42L, activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaOffset));
+        Assert.Equal(42L, activity.GetTagValue(SemanticConventions.AttributeKafkaOffset));
         Assert.Equal("test-group", activity.GetTagValue(SemanticConventions.AttributeMessagingConsumerGroupName));
-        Assert.Equal("msg-key", activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaMessageKey));
-        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaMessageTombstone));
+        Assert.Equal("msg-key", activity.GetTagValue(SemanticConventions.AttributeKafkaMessageKey));
+        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeKafkaMessageTombstone));
     }
 
     [Fact]
@@ -72,7 +72,7 @@ public class InstrumentedConsumerTests
         }
 
         var activity = activities.Single(a => a.DisplayName == "poll tombstone-topic");
-        Assert.Equal(true, activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaMessageTombstone));
+        Assert.Equal(true, activity.GetTagValue(SemanticConventions.AttributeKafkaMessageTombstone));
     }
 
     [Fact]
@@ -200,7 +200,7 @@ public class InstrumentedConsumerTests
         Assert.Equal(ActivityKind.Client, activity.Kind);
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
         Assert.Null(activity.StatusDescription);
-        Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
+        Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystemName));
         Assert.Equal("fake-consumer-1", activity.GetTagValue(SemanticConventions.AttributeMessagingClientId));
         Assert.Equal("test-group", activity.GetTagValue(SemanticConventions.AttributeMessagingConsumerGroupName));
         Assert.Equal("poll", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationName));
@@ -208,8 +208,8 @@ public class InstrumentedConsumerTests
         Assert.Equal(exception.Error.Code.ToString(), activity.GetTagValue(SemanticConventions.AttributeErrorType));
         Assert.Null(activity.GetTagValue(SemanticConventions.AttributeMessagingDestinationName));
         Assert.Null(activity.GetTagValue(SemanticConventions.AttributeMessagingDestinationPartitionId));
-        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaOffset));
-        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaMessageKey));
+        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeKafkaOffset));
+        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeKafkaMessageKey));
     }
 
     [Fact]
@@ -244,7 +244,7 @@ public class InstrumentedConsumerTests
         Assert.NotNull(activity);
         Assert.Equal(ActivityKind.Client, activity.Kind);
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
-        Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
+        Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystemName));
         Assert.Equal("fake-consumer-1", activity.GetTagValue(SemanticConventions.AttributeMessagingClientId));
         Assert.Equal("test-group", activity.GetTagValue(SemanticConventions.AttributeMessagingConsumerGroupName));
         Assert.Equal("poll", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationName));
@@ -252,8 +252,8 @@ public class InstrumentedConsumerTests
         Assert.Equal(exception.Error.Code.ToString(), activity.GetTagValue(SemanticConventions.AttributeErrorType));
         Assert.Equal("error-topic", activity.GetTagValue(SemanticConventions.AttributeMessagingDestinationName));
         Assert.Equal("2", activity.GetTagValue(SemanticConventions.AttributeMessagingDestinationPartitionId));
-        Assert.Equal(100L, activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaOffset));
-        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaMessageKey));
+        Assert.Equal(100L, activity.GetTagValue(SemanticConventions.AttributeKafkaOffset));
+        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeKafkaMessageKey));
     }
 
     [Fact]
@@ -292,7 +292,7 @@ public class InstrumentedConsumerTests
         Assert.NotNull(activity);
         Assert.Equal(ActivityKind.Client, activity.Kind);
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
-        Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
+        Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystemName));
         Assert.Equal("fake-consumer-1", activity.GetTagValue(SemanticConventions.AttributeMessagingClientId));
         Assert.Equal("test-group", activity.GetTagValue(SemanticConventions.AttributeMessagingConsumerGroupName));
         Assert.Equal("poll", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationName));
@@ -300,8 +300,8 @@ public class InstrumentedConsumerTests
         Assert.Equal(exception.Error.Code.ToString(), activity.GetTagValue(SemanticConventions.AttributeErrorType));
         Assert.Equal("error-topic-no-headers", activity.GetTagValue(SemanticConventions.AttributeMessagingDestinationName));
         Assert.Equal("3", activity.GetTagValue(SemanticConventions.AttributeMessagingDestinationPartitionId));
-        Assert.Equal(150L, activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaOffset));
-        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaMessageKey));
+        Assert.Equal(150L, activity.GetTagValue(SemanticConventions.AttributeKafkaOffset));
+        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeKafkaMessageKey));
     }
 
     [Fact]
@@ -350,7 +350,7 @@ public class InstrumentedConsumerTests
         Assert.Equal("0af7651916cd43dd8448eb211c80319c", activity.Links.First().Context.TraceId.ToHexString());
         Assert.Equal(ActivityKind.Client, activity.Kind);
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
-        Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
+        Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystemName));
         Assert.Equal("fake-consumer-1", activity.GetTagValue(SemanticConventions.AttributeMessagingClientId));
         Assert.Equal("test-group", activity.GetTagValue(SemanticConventions.AttributeMessagingConsumerGroupName));
         Assert.Equal("poll", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationName));
@@ -358,8 +358,8 @@ public class InstrumentedConsumerTests
         Assert.Equal(exception.Error.Code.ToString(), activity.GetTagValue(SemanticConventions.AttributeErrorType));
         Assert.Equal("error-topic-with-headers", activity.GetTagValue(SemanticConventions.AttributeMessagingDestinationName));
         Assert.Equal("5", activity.GetTagValue(SemanticConventions.AttributeMessagingDestinationPartitionId));
-        Assert.Equal(200L, activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaOffset));
-        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaMessageKey));
+        Assert.Equal(200L, activity.GetTagValue(SemanticConventions.AttributeKafkaOffset));
+        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeKafkaMessageKey));
     }
 
     [Fact]
@@ -710,7 +710,7 @@ public class InstrumentedConsumerTests
                 messagingOperationFound = true;
             }
 
-            if (tag.Key == SemanticConventions.AttributeMessagingSystem)
+            if (tag.Key == SemanticConventions.AttributeMessagingSystemName)
             {
                 Assert.Equal(expectedMessagingSystem, tag.Value?.ToString());
                 messagingSystemFound = true;

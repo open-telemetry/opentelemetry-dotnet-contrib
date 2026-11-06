@@ -2,10 +2,35 @@
 
 ## Unreleased
 
+## 1.20.1-beta.2
+
+Released 2026-Nov-04
+
 * Fixed an issue where a late reply or the telemetry timeout for a failed
   outgoing duplex request could stop the client activity a second time and
   record reply data on it.
   ([#5791](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5791))
+
+* Fixed an `ArgumentOutOfRangeException` from the telemetry timeout timer,
+  which could terminate the process, for outgoing duplex requests with a send
+  timeout longer than about 49 days, such as `TimeSpan.MaxValue`.
+  ([#5841](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5841))
+
+* Fixed exceptions thrown while completing timed out outgoing duplex requests
+  escaping the timeout timer's thread, where they could terminate the process.
+  They are now reported through the `OpenTelemetry-Instrumentation-Wcf` event
+  source.
+  ([#5841](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5841))
+
+* Fixed outgoing duplex requests that never received a reply, and their
+  activities, being tracked indefinitely when their channel was closed,
+  aborted or faulted. They are now completed when the channel goes away.
+  ([#5841](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5841))
+
+* Fixed an issue where outgoing requests that share an
+  `HttpRequestMessageProperty` instance leaked `traceparent`, `tracestate` and
+  `baggage` HTTP headers from one call to later calls.
+  ([#5860](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5860))
 
 ## 1.20.1-beta.1
 

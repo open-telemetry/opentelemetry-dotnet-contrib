@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+* Fixed SQS and SNS `MessageAttributes` that are reused across sends carrying
+  the trace context and baggage of the first send. The instrumentation no longer
+  modifies the application's `MessageAttributes` dictionary, and the request's
+  `MessageAttributes` is now a different instance after a send.
+  ([#5867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5867))
+
 * **Breaking Change**: Update latest AWS Semantic Conventions to 1.45.0
   (`SemanticConventionVersion.V1_45_0`). SNS and SQS spans now use
   `messaging.system.name` instead of `messaging.system`, and SQS spans use the

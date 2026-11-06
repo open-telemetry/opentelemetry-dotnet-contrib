@@ -173,6 +173,15 @@
     "expectedHttpRoute": ""
   },
   {
+    "name": "Fallback route with a page route parameter",
+    "testApplicationScenario": "FallbackRouting",
+    "httpMethod": "GET",
+    "path": "/Fallback/text/chosen/by/the/caller",
+    "expectedStatusCode": 200,
+    "currentHttpRoute": "",
+    "expectedHttpRoute": "Fallback/{*page}"
+  },
+  {
     "name": "Action without parameter",
     "testApplicationScenario": "MinimalApi",
     "httpMethod": "GET",

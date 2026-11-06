@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## 1.0.0-alpha.17
+
+Released 2026-Nov-04
+
+* Fixed invalid line protocol produced by certain metric tag keys and values.
+  ([#5842](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5842))
+
+* Limited HTTP write responses buffered by the InfluxDB exporter to 1 MiB.
+  Larger responses cause the export to fail.
+  ([#5861](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5861))
+
 ## 1.0.0-alpha.16
 
 Released 2026-Oct-21

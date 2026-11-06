@@ -39,7 +39,7 @@ internal sealed class HostDetector : IResourceDetector
     private const int MaxNetworkAddressAttributeCount = 2;
     private const int MaxCpuInfoAttributeCount = 6;
 
-    private static readonly Version SemanticConventionsVersion = new(1, 44, 0);
+    private static readonly Version SemanticConventionsVersion = new(1, 45, 0);
 
 #if !NETFRAMEWORK
     // The sysctl arguments are built from this map, so an attribute can never read a key the
