@@ -19,6 +19,9 @@ namespace OpenTelemetry.Instrumentation.Kusto.Implementation;
 /// </remarks>
 internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
 {
+    private const string QueryActivityType = "KD.RestClient.ExecuteQuery";
+    private const string ControlCommandActivityType = "KD.RestClient.ExecuteControlCommand";
+
     private static readonly Lazy<FieldInfo?> TraceRequestBodyField = new(() =>
         Type.GetType("Kusto.Data.Net.Client.RestClient2, Kusto.Data", throwOnError: false)?
             .GetField("s_traceRequestBody", BindingFlags.NonPublic | BindingFlags.Static));
@@ -52,6 +55,11 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
     public override string Name { get; } = nameof(KustoTraceRecordListener);
 
     public override bool IsThreadSafe => true;
+
+    /// <summary>
+    /// Gets or sets a delegate that reports whether the Kusto client writes the query text to its trace messages.
+    /// </summary>
+    internal Func<bool> RequestBodyTraced { get; set; } = IsRequestBodyTraced;
 
     public override void Flush()
     {
@@ -114,6 +122,24 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
             return false;
         }
     }
+
+    /// <summary>
+    /// Gets a value indicating whether the Kusto client sends a request body, and so can write the query text to
+    /// the request trace message, for an operation of the specified type.
+    /// </summary>
+    /// <param name="activityType">The Kusto activity type of the operation.</param>
+    /// <returns>
+    /// <see langword="true"/> if the client can write the query text for the operation; otherwise <see langword="false"/>.
+    /// </returns>
+    /// <remarks>
+    /// The client only writes the <c>text=</c> field when request body tracing is enabled and the request has a
+    /// body to trace. Only queries and control commands do: stream ingestion, queued ingestion and the like send
+    /// their payload another way, so their messages have no <c>text=</c> field and any occurrence of it in the
+    /// message was supplied by the caller (e.g. via the client request id).
+    /// </remarks>
+    internal static bool HasRequestBody(string? activityType) =>
+        string.Equals(activityType, QueryActivityType, StringComparison.Ordinal) ||
+        string.Equals(activityType, ControlCommandActivityType, StringComparison.Ordinal);
 
     private static double GetElapsedTime(long begin) => Stopwatch.GetElapsedTime(begin).TotalSeconds;
 
@@ -190,7 +216,7 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
             var clientRequestIdKnown = kustoActivity.SubActivityId == kustoActivity.ActivityId;
             var result = clientRequestIdKnown
                 ? TraceRecordParser.ParseRequestStart(record.Message.AsSpan(), kustoActivity.ClientRequestId.AsSpan())
-                : TraceRecordParser.ParseRequestStart(record.Message.AsSpan(), [], IsRequestBodyTraced());
+                : TraceRecordParser.ParseRequestStart(record.Message.AsSpan(), [], this.RequestBodyTraced() && HasRequestBody(operationName));
 
             if (!string.IsNullOrEmpty(result.ServerAddress))
             {
