@@ -514,6 +514,22 @@ public class KustoQueryParserTests
             "StormEvents | union",
             "declare query_parameters (OtherEvents:long = 0); StormEvents | union OtherEvents"
         },
+        // Bindings made in a macro-expand body or a pattern body are not visible after it.
+        {
+            "macro-expand entity_group [StormEvents, OtherEvents] as X (let z = X; z | count); z | count",
+            "macro-expand StormEvents OtherEvents X | count z | count",
+            "macro-expand entity_group [StormEvents, OtherEvents] as X (let z = X; z | count); z | count"
+        },
+        {
+            "declare pattern P = (arg:string) { ('x') = { let z = StormEvents; z | count }; }; z | count",
+            "StormEvents | count z | count",
+            "declare pattern P = (arg:string) { (?) = { let z = StormEvents; z | count }; }; z | count"
+        },
+        {
+            "let z = StormEvents; macro-expand entity_group [OtherEvents] as X (z | count); z | count",
+            "StormEvents macro-expand OtherEvents | count | count",
+            "let z = StormEvents; macro-expand entity_group [OtherEvents] as X (z | count); z | count"
+        },
         {
             "let StormEvents = StormEvents | take 1; StormEvents | count",
             "StormEvents | take | count",

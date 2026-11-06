@@ -316,6 +316,25 @@ internal static class KustoProcessor
 
         public override void VisitPartitionSubquery(PartitionSubquery node) => this.VisitScoped(node);
 
+        // Each match of a pattern has its own body, whose statements are not visible outside it.
+        public override void VisitPatternMatch(PatternMatch node) => this.VisitScoped(node);
+
+        public override void VisitMacroExpandOperator(MacroExpandOperator node)
+        {
+            // The statements in the body are not visible after it. This is an operator, so it is also summarized.
+            RuntimeHelpers.EnsureSufficientExecutionStack();
+
+            this.scopes.Add([]);
+            try
+            {
+                this.VisitQueryOperator(node);
+            }
+            finally
+            {
+                this.scopes.RemoveAt(this.scopes.Count - 1);
+            }
+        }
+
         public override void VisitFunctionParameter(FunctionParameter node)
         {
             // FunctionParameter -> SeparatedElement -> SyntaxList -> owning node. The declarations of a scan
