@@ -102,12 +102,14 @@ internal sealed partial class EventNameManager
 
         var eventNameCache = this.GetEventNameCacheForEventNamespace(eventNamespace!);
 
-        // Note: ResolveEventNameRare may replace eventName so the key used for the
-        // lookup is captured to make sure the result is cached under the same key.
+        // Note: ResolveEventNameRare may replace eventNamespace and eventName so
+        // the values used for the lookup are captured to make sure the result is
+        // cached under the same key and can be compared on later lookups.
+        var lookupEventNamespace = eventNamespace!;
         var eventNameCacheKey = eventName!;
 
         if (eventNameCache[eventNameCacheKey] is ResolvedEventFullName cachedEventFullName
-            && cachedEventFullName.IsMatch(originalEventNamespace, originalEventName))
+            && cachedEventFullName.IsMatch(lookupEventNamespace, eventNameCacheKey))
         {
             return cachedEventFullName;
         }
@@ -119,18 +121,24 @@ internal sealed partial class EventNameManager
         var preserveOriginalEventNamespace = !string.IsNullOrEmpty(originalEventNamespace) && originalEventNamespace != eventNamespace;
         var preserveOriginalEventName = !string.IsNullOrEmpty(originalEventName) && originalEventName != eventName;
 
+        // Note: The caches are case-insensitive. When a mapping or a default
+        // replaced the namespace or name, the result (including which original
+        // values are preserved) depends on the exact casing, so the entry is only
+        // reused for an exact match. Otherwise case variants share the entry.
+        var requiresExactMatch = !string.Equals(lookupEventNamespace, eventNamespace, StringComparison.Ordinal)
+            || !string.Equals(eventNameCacheKey, eventName, StringComparison.Ordinal);
+
         var resolvedEventFullName = new ResolvedEventFullName(
             eventFullNameBlob,
             preserveOriginalEventNamespace ? BuildJsonStringValue(originalEventNamespace!) : null,
             preserveOriginalEventName ? BuildJsonStringValue(originalEventName!) : null,
-            preserveOriginalEventNamespace ? originalEventNamespace : null,
-            preserveOriginalEventName ? originalEventName : null);
+            requiresExactMatch ? lookupEventNamespace : null,
+            requiresExactMatch ? eventNameCacheKey : null);
 
         lock (eventNameCache)
         {
-            // Note: The caches are case-insensitive. When a different casing of a
-            // name which has its original value preserved is already cached the
-            // result is returned without being cached.
+            // Note: When a different casing which requires an exact match is
+            // already cached the result is returned without being cached.
             if (eventNameCache[eventNameCacheKey] is null)
             {
                 eventNameCache[eventNameCacheKey] = resolvedEventFullName;
@@ -339,21 +347,21 @@ internal sealed partial class EventNameManager
 
     internal sealed class ResolvedEventFullName
     {
-        private readonly string? originalEventNamespaceValue;
-        private readonly string? originalEventNameValue;
+        private readonly string? exactMatchEventNamespace;
+        private readonly string? exactMatchEventName;
 
         public ResolvedEventFullName(
             byte[] eventFullName,
             byte[]? originalEventNamespace,
             byte[]? originalEventName,
-            string? originalEventNamespaceValue = null,
-            string? originalEventNameValue = null)
+            string? exactMatchEventNamespace = null,
+            string? exactMatchEventName = null)
         {
             this.EventFullName = eventFullName;
             this.OriginalEventNamespace = originalEventNamespace;
             this.OriginalEventName = originalEventName;
-            this.originalEventNamespaceValue = originalEventNamespaceValue;
-            this.originalEventNameValue = originalEventNameValue;
+            this.exactMatchEventNamespace = exactMatchEventNamespace;
+            this.exactMatchEventName = exactMatchEventName;
         }
 
         public byte[] EventFullName { get; }
@@ -362,10 +370,9 @@ internal sealed partial class EventNameManager
 
         public byte[]? OriginalEventName { get; }
 
-        // Note: Validated names are cached case-insensitively. Preserved
-        // original values are exported as-is so they must match exactly.
-        public bool IsMatch(string? eventNamespace, string? eventName)
-            => (this.OriginalEventNamespace == null || string.Equals(this.originalEventNamespaceValue, eventNamespace, StringComparison.Ordinal))
-            && (this.OriginalEventName == null || string.Equals(this.originalEventNameValue, eventName, StringComparison.Ordinal));
+        public bool IsMatch(string eventNamespace, string eventName)
+            => (this.exactMatchEventNamespace == null && this.exactMatchEventName == null)
+            || (string.Equals(this.exactMatchEventNamespace, eventNamespace, StringComparison.Ordinal)
+                && string.Equals(this.exactMatchEventName, eventName, StringComparison.Ordinal));
     }
 }

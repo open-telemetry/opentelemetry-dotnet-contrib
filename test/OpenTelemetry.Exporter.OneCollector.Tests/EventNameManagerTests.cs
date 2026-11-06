@@ -340,6 +340,48 @@ public class EventNameManagerTests
         Assert.Same(first, second);
     }
 
+    [Theory]
+    [InlineData(null)]
+    [InlineData("MyCompany.Orders.Mapped")]
+    [InlineData("DefaultLogs")]
+    [InlineData("*")]
+    public void WarmCacheMatchesColdCacheForPreservedOriginalsTest(string? defaultMapping)
+    {
+        (string EventNamespace, string EventName)[] inputs =
+        [
+            ("MyCompany.Orders", "Event"),
+            ("MyCompany.ORDERS", "Event"),
+            ("MyCompany.Orders", "EVENT"),
+            ("MyCompany.Orders", "Mapped"),
+            ("MyNamespace", "Invalid Event"),
+            ("MyNamespace", "Invalid event"),
+            ("R\u00e9sum\u00e9.Service", "MyEvent"),
+            ("R\u00e9sum\u00e9.SERVICE", "MyEvent"),
+            ("MyCompany.Orders", "Event"),
+            ("MyNamespace", "Invalid Event"),
+        ];
+
+        var warmEventNameManager = Build();
+
+        foreach (var (eventNamespace, eventName) in inputs)
+        {
+            var warm = warmEventNameManager.ResolveEventFullName(eventNamespace, eventName);
+            var cold = Build().ResolveEventFullName(eventNamespace, eventName);
+
+            Assert.Equal(cold.OriginalEventNamespace, warm.OriginalEventNamespace);
+            Assert.Equal(cold.OriginalEventName, warm.OriginalEventName);
+
+            if (warm.OriginalEventNamespace != null || warm.OriginalEventName != null)
+            {
+                Assert.Equal(cold.EventFullName, warm.EventFullName);
+            }
+        }
+
+        EventNameManager Build() => defaultMapping == null
+            ? BuildEventNameManagerWithDefaultOptions()
+            : BuildEventNameManagerWithEventFullNameMappings([new("*", defaultMapping!)]);
+    }
+
     private static string? ReadJsonString(byte[]? jsonValue)
     {
         Assert.NotNull(jsonValue);
