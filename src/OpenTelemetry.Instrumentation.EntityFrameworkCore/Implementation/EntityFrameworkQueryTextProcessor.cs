@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Data;
 using System.Diagnostics;
 using OpenTelemetry.Internal;
 
@@ -11,7 +12,22 @@ namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
 /// </summary>
 internal static class EntityFrameworkQueryTextProcessor
 {
-    public static void Apply(Activity activity, string? commandText, string? providerName, bool emitOldAttributes, bool emitNewAttributes)
+    public static void Apply(
+        Activity activity,
+        object? command,
+        string? commandText,
+        string? providerName,
+        EntityFrameworkInstrumentationOptions options)
+    {
+        if (!TrySanitizeQueryText(command, commandText, providerName, options, out var result))
+        {
+            return;
+        }
+
+        ApplyResult(activity, commandText, result, options.EmitOldAttributes, options.EmitNewAttributes);
+    }
+
+    internal static void Apply(Activity activity, string? commandText, string? providerName, bool emitOldAttributes, bool emitNewAttributes)
     {
         var result = SanitizeQueryText(new DbQueryTextSanitizationContext(providerName, commandText, null));
 
@@ -20,7 +36,7 @@ internal static class EntityFrameworkQueryTextProcessor
 
     internal static void ApplyResult(Activity activity, string? commandText, DbQueryTextSanitizationResult result, bool emitOldAttributes, bool emitNewAttributes)
     {
-        if (result.SuppressQueryText)
+        if (result.SuppressQueryText || (!result.IsSanitized && commandText is null))
         {
             return;
         }
@@ -47,6 +63,11 @@ internal static class EntityFrameworkQueryTextProcessor
 
     internal static DbQueryTextSanitizationResult SanitizeQueryText(DbQueryTextSanitizationContext context)
     {
+        if (context.QueryText is null)
+        {
+            return DbQueryTextSanitizationResult.NotSanitized;
+        }
+
         if (!EntityFrameworkProviderInfo.IsSqlLikeProvider(context.ProviderName))
         {
             return DbQueryTextSanitizationResult.NotSanitized;
@@ -56,5 +77,28 @@ internal static class EntityFrameworkQueryTextProcessor
         var sqlStatementInfo = SqlProcessor.GetSanitizedSql(context.QueryText, useBackslashEscapes);
 
         return DbQueryTextSanitizationResult.Sanitized(sqlStatementInfo.SanitizedSql, sqlStatementInfo.DbQuerySummary);
+    }
+
+    private static bool TrySanitizeQueryText(
+        object? command,
+        string? commandText,
+        string? providerName,
+        EntityFrameworkInstrumentationOptions options,
+        out DbQueryTextSanitizationResult result)
+    {
+        try
+        {
+            result = options.QueryTextSanitizer?.Invoke(new DbQueryTextSanitizationContext(
+                providerName,
+                commandText,
+                command as IDbCommand)) ?? DbQueryTextSanitizationResult.NotSanitized;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            EntityFrameworkInstrumentationEventSource.Log.QueryTextSanitizerException(ex);
+            result = default;
+            return false;
+        }
     }
 }
