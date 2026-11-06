@@ -65,7 +65,7 @@
 * Fixed a memory leak on .NET when a command executed asynchronously is
   started with a `CancellationToken` that is already cancelled and has no
   activity.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#5924](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5924))
 
 ## 1.20.1
 
