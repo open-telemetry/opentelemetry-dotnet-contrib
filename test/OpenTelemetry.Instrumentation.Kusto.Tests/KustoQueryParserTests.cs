@@ -489,6 +489,7 @@ public class KustoQueryParserTests
             "x | count",
             "let x = ?; database(?).x | count"
         },
+
         // Member access on a scalar is not a qualified table name, so the property name is not summarized.
         {
             "let d = dynamic({\"customer_123\": 1}); let x = d.customer_123; print x",
@@ -510,6 +511,7 @@ public class KustoQueryParserTests
             "StormEvents | join OtherEvents",
             "StormEvents | join (database(?).OtherEvents) on a"
         },
+
         // The columns a scan declares extend its input schema, they are not bindings that can shadow a table.
         {
             "StormEvents | scan declare (OtherEvents:long = 0) with (step s: true;) | union OtherEvents",
@@ -521,6 +523,7 @@ public class KustoQueryParserTests
             "StormEvents | union",
             "declare query_parameters (OtherEvents:long = 0); StormEvents | union OtherEvents"
         },
+
         // Bindings made in a macro-expand body or a pattern body are not visible after it.
         {
             "macro-expand entity_group [StormEvents, OtherEvents] as X (let z = X; z | count); z | count",
