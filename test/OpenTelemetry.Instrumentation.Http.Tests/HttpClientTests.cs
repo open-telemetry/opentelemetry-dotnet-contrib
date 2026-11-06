@@ -134,6 +134,11 @@ public partial class HttpClientTests
                 request,
                 HttpCompletionOption.ResponseHeadersRead,
                 TestContext.Current.CancellationToken);
+
+#if NET11_0_OR_GREATER
+            // See https://github.com/dotnet/core/blob/v11.0.0-rc.1/release-notes/11.0/preview/rc1/libraries.md#http-metrics-are-observable-instruments.
+            meterProvider.ForceFlush(); // observable instruments are only read on collect
+#endif
         }
         catch (Exception)
         {
@@ -150,6 +155,11 @@ public partial class HttpClientTests
 
         // http.client.connection.duration and http.client.open_connections will not be emitted.
         var expectedCount = tc.ResponseExpected ? 6 : 4;
+
+#if NET11_0_OR_GREATER
+        // active_requests is observable and only reports while requests are in flight
+        expectedCount -= 1;
+#endif
 
         Assert.Equal(expectedCount, requestMetrics.DistinctBy((p) => p.Name).Count());
 
@@ -201,8 +211,8 @@ public partial class HttpClientTests
 
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
 
-#if NET10_0_OR_GREATER
-        // .NET 10 reports its own activity, but does not set the status description
+#if NET
+        // .NET reports its own activity, but does not set the status description
         var @event = Assert.Single(activity.Events);
         Assert.Equal("exception", @event.Name);
         Assert.Contains(@event.Tags, kvp => kvp.Key == "exception.type" && kvp.Value?.ToString() == "System.Threading.Tasks.TaskCanceledException");
@@ -357,9 +367,9 @@ public partial class HttpClientTests
             Assert.Contains(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeServerAddress && kvp.Value?.ToString() == normalizedAttributesTestCase[SemanticConventions.AttributeServerAddress]);
             Assert.Contains(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeServerPort && kvp.Value?.ToString() == normalizedAttributesTestCase[SemanticConventions.AttributeServerPort]);
 
-#if NET9_0_OR_GREATER
+#if NET
             // HACK: THIS IS A HACK TO MAKE THE TEST PASS.
-            // TODO: THIS CAN BE REMOVED AFTER RUNTIME PATCHES NET 9+.
+            // TODO: THIS CAN BE REMOVED AFTER RUNTIME PATCHES NET 10+.
             // Currently Runtime is not following the OTel Spec for Http Spans: https://github.com/open-telemetry/semantic-conventions/blob/main/docs/http/http-spans.md#http-client
             // Currently the URL Fragment Identifier (#fragment) isn't being recorded.
             // Tracking issue: https://github.com/dotnet/runtime/issues/109847
@@ -403,8 +413,8 @@ public partial class HttpClientTests
 
             if (tc.RecordException.HasValue && tc.RecordException.Value)
             {
-#if NET10_0_OR_GREATER
-                // .NET 10 reports its own activity too
+#if NET
+                // .NET reports its own activity too
                 Assert.Contains(activity.Events, evt => evt.Name.Equals("exception"));
 #else
                 Assert.Single(activity.Events, evt => evt.Name.Equals("exception"));

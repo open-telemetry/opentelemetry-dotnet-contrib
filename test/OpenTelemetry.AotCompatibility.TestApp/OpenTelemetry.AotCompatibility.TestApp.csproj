@@ -9,6 +9,11 @@
     <SelfContained>true</SelfContained>
   </PropertyGroup>
 
+  <!-- HACK Workaround for https://github.com/dotnet/sdk/issues/56618 -->
+  <PropertyGroup>
+    <UseOptimizedPublish>false</UseOptimizedPublish>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Include="$(RepoRoot)\src\Shared\PropertyFetcher.cs" Link="Includes\PropertyFetcher.cs" />
   </ItemGroup>
