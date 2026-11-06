@@ -393,6 +393,14 @@ internal static class KustoProcessor
             qualified = false;
             if (parent is PathExpression path && path.Selector == node)
             {
+                // The same syntax is used to access a member of a scalar (a property of a dynamic value,
+                // for example), which is never a table name, so only a path that starts with database() or
+                // cluster() can be a qualified table reference.
+                if (!IsEntityQualifier(path.Expression))
+                {
+                    return false;
+                }
+
                 qualified = true;
                 expression = path;
                 parent = path.Parent;
@@ -418,6 +426,14 @@ internal static class KustoProcessor
                 _ => false,
             };
         }
+
+        private static bool IsEntityQualifier(Expression expression) => expression switch
+        {
+            FunctionCallExpression call => call.Name.SimpleName is "database" or "cluster",
+            ParenthesizedExpression parenthesized => IsEntityQualifier(parenthesized.Expression),
+            PathExpression { Selector: FunctionCallExpression call } path => IsEntityQualifier(call) && IsEntityQualifier(path.Expression),
+            _ => false,
+        };
 
         private void VisitScoped(SyntaxNode node)
         {

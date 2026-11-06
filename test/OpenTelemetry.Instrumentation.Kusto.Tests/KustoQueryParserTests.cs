@@ -482,6 +482,27 @@ public class KustoQueryParserTests
             "x | count",
             "let x = ?; database(?).x | count"
         },
+        // Member access on a scalar is not a qualified table name, so the property name is not summarized.
+        {
+            "let d = dynamic({\"customer_123\": 1}); let x = d.customer_123; print x",
+            "print",
+            "let d = ?; let x = d.customer_123; print x"
+        },
+        {
+            "let d = dynamic({\"a\": {\"b\": 1}}); d.a.b | count",
+            "| count",
+            "let d = ?; d.a.b | count"
+        },
+        {
+            "cluster('c').database('db').StormEvents | count",
+            "StormEvents | count",
+            "cluster(?).database(?).StormEvents | count"
+        },
+        {
+            "StormEvents | join (database('db').OtherEvents) on a",
+            "StormEvents | join OtherEvents",
+            "StormEvents | join (database(?).OtherEvents) on a"
+        },
         {
             "let StormEvents = StormEvents | take 1; StormEvents | count",
             "StormEvents | take | count",
