@@ -318,9 +318,6 @@ public class SqlClientTests
             // the cancellation token is already cancelled when the command starts.
             var reference = WriteBeforeEventWithoutCompletion(listener);
 
-            Assert.True(reference.IsAlive);
-            Assert.Equal(1, listener.PendingCommandCount);
-
             for (var i = 0; i < 10 && reference.IsAlive; i++)
             {
                 GC.Collect();
@@ -350,7 +347,12 @@ public class SqlClientTests
                     Timestamp = (long?)1000000L,
                 });
 
-            return new WeakReference(command);
+            // The command is only kept alive by this method, so the entry cannot be collected before this check
+            Assert.Equal(1, listener.PendingCommandCount);
+
+            var reference = new WeakReference(command);
+            GC.KeepAlive(command);
+            return reference;
         }
     }
 
@@ -382,6 +384,11 @@ public class SqlClientTests
 
         Assert.Equal(1, listener.PendingCommandCount);
 
+        // The delay is long enough that the duration of the second execution
+        // is distinguishable from one measured from the start of the first.
+        var delay = TimeSpan.FromMilliseconds(500);
+        Thread.Sleep(delay);
+
         var operationId = Guid.NewGuid();
 
         listener.OnEventWritten(
@@ -398,7 +405,21 @@ public class SqlClientTests
 
         meterProvider.ForceFlush();
 
-        Assert.Single(metrics);
+        var metric = Assert.Single(metrics);
+
+        var metricPoints = new List<MetricPoint>();
+        foreach (var p in metric.GetMetricPoints())
+        {
+            metricPoints.Add(p);
+        }
+
+        var metricPoint = Assert.Single(metricPoints);
+
+        Assert.Equal(1, metricPoint.GetHistogramCount());
+
+        // Half the delay is used as the threshold to keep the assertion robust on slow machines.
+        var duration = metricPoint.GetHistogramSum();
+        Assert.True(duration < delay.TotalSeconds / 2, $"Duration {duration}s should not include the {delay.TotalSeconds}s that elapsed before the second execution started.");
     }
 #endif
 
