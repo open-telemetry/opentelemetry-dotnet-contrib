@@ -62,6 +62,11 @@
   `EnrichWithSqlCommand` instead.
   ([#5866](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5866))
 
+* Fixed a memory leak on .NET when a command executed asynchronously is
+  started with a `CancellationToken` that is already cancelled and has no
+  activity.
+  ([#5924](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5924))
+
 * Fixed redaction of login and user names in additional `CREATE`, `ALTER` and
   `DROP` statement positions, including references after `FOR LOGIN` and
   `WITH NAME =`, and names containing combining marks.
