@@ -10,6 +10,10 @@
   for `https`), to follow the v1.45.0 database semantic conventions.
   ([#5833](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5833))
 
+* Fixed query text sanitization taking quadratic time for queries with many
+  signed numeric literals when `RecordQueryText` is enabled.
+  ([#NNNN](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/NNNN))
+
 ## 0.1.0-alpha.7
 
 Released 2026-Oct-21

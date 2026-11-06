@@ -253,6 +253,12 @@ public class KustoQueryParserTests
             "StormEvents | where Value == ?"
         },
         {
+            // A signed literal is redacted as a whole, whether or not whitespace separates the sign from the value.
+            "StormEvents | where Offset in (-1, - 2, +3, -4.5, -6d)",
+            "StormEvents | where",
+            "StormEvents | where Offset in (?, ?, ?, ?, ?)"
+        },
+        {
             // A unary operator on a non-literal operand must be preserved: only literals are redacted, so
             // stripping the sign here would change the query's meaning in the sanitized text.
             "StormEvents | where Value == -DeathsDirect",
