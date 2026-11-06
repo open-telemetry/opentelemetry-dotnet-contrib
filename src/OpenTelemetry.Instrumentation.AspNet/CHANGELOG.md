@@ -13,6 +13,7 @@ Released 2026-Nov-05
   values from the request URL for conventional MVC and WebAPI routes. The names
   are now only used once a request for them has completed successfully, otherwise
   the `{controller}` and `{action}` tokens of the route template are reported.
+  Resolves [GHSA-6xq4-gr25-qg2x](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/security/advisories/GHSA-6xq4-gr25-qg2x).
   ([#5858](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5858))
 
 ## 1.20.2
