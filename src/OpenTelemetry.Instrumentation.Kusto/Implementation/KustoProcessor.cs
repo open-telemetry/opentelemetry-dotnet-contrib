@@ -298,6 +298,11 @@ internal static class KustoProcessor
 
             node.Expression.Accept(this);
 
+            if (this.builder.IsTruncated)
+            {
+                return;
+            }
+
             this.builder.Append(node.Bar.Text);
             this.builder.Append(' ');
 
@@ -306,6 +311,12 @@ internal static class KustoProcessor
 
         public override void VisitNameReference(NameReference node)
         {
+            // Once the summary is full nothing more can be appended, so skip the (potentially expensive) rendering.
+            if (this.builder.IsTruncated)
+            {
+                return;
+            }
+
             if (node.ResultType is TableSymbol ts)
             {
                 this.builder.Append(ts.Name);
@@ -320,7 +331,8 @@ internal static class KustoProcessor
 
         public override void VisitFunctionCallExpression(FunctionCallExpression node)
         {
-            if (node.Name.SimpleName == "materialized_view")
+            // Once the summary is full nothing more can be appended, so skip the (potentially expensive) rendering.
+            if (!this.builder.IsTruncated && node.Name.SimpleName == "materialized_view")
             {
                 this.builder.Append(node.ToString(IncludeTrivia.SingleLine));
                 this.builder.Append(' ');
@@ -351,6 +363,11 @@ internal static class KustoProcessor
         protected override void DefaultVisit(SyntaxNode node)
         {
             // Guard the recursive descent: deeply nested queries would otherwise overflow the stack.
+            if (this.builder.IsTruncated)
+            {
+                return;
+            }
+
             RuntimeHelpers.EnsureSufficientExecutionStack();
 
             if (node is QueryOperator qo)
@@ -380,7 +397,8 @@ internal static class KustoProcessor
         {
             if (node != null)
             {
-                for (var i = 0; i < node.ChildCount; i++)
+                // Stop walking as soon as the summary is full: nothing further can be appended.
+                for (var i = 0; i < node.ChildCount && !this.builder.IsTruncated; i++)
                 {
                     if (node.GetChild(i) is SyntaxNode child)
                     {

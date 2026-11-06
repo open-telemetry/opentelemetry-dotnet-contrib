@@ -14,6 +14,10 @@
   signed numeric literals when `RecordQueryText` is enabled.
   ([#5937](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5937))
 
+* Fixed excessive CPU usage when generating `db.query.summary` for queries
+  containing a very large number of `materialized_view()` calls.
+  ([#5938](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5938))
+
 ## 0.1.0-alpha.7
 
 Released 2026-Oct-21
