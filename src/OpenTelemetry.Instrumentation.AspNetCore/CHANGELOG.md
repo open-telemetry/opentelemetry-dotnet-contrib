@@ -8,12 +8,12 @@
   `MapDynamicControllerRoute` or `IRouter`-based routing). The `page` route value
   is now only used as a fallback for Razor Pages endpoints with an empty route
   template.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#5929](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5929))
 
 * Routes longer than 256 characters are no longer added to the cache of span
   display names, so that a route derived from the request cannot cause an
   arbitrary amount of memory to be retained for the lifetime of the process.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#5929](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5929))
 
 ## 1.20.1
 
