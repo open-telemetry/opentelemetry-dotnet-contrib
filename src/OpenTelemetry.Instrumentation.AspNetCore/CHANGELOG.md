@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.20.2
+
+Released 2026-Nov-06
+
 * Fixed `http.route` and the span name being set to text taken from the request
   path when the `page` route value is populated from a route parameter of an
   endpoint that has no route template (such as `MapFallbackToController`,
