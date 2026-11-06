@@ -78,35 +78,28 @@ public static class OpenTelemetryConsumeResultExtensions
     {
 #if NET
         ArgumentNullException.ThrowIfNull(consumer);
+        ArgumentNullException.ThrowIfNull(handler);
 #else
         if (consumer == null)
         {
             throw new ArgumentNullException(nameof(consumer));
         }
-#endif
 
-        if (consumer is not InstrumentedConsumer<TKey, TValue> instrumentedConsumer)
-        {
-            throw new ArgumentException("Invalid consumer type.", nameof(consumer));
-        }
-
-#if NET
-        ArgumentNullException.ThrowIfNull(handler);
-#else
         if (handler == null)
         {
             throw new ArgumentNullException(nameof(handler));
         }
 #endif
 
-        var consumeResult = instrumentedConsumer.Consume(cancellationToken);
+        var consumeResult = consumer.Consume(cancellationToken);
 
         if (consumeResult?.Message == null || consumeResult.IsPartitionEOF)
         {
             return consumeResult;
         }
 
-        var processActivity = StartProcessActivity(TryExtractPropagationContext(consumeResult, out var propagationContext) ? propagationContext : default, consumeResult.TopicPartitionOffset, consumeResult.Message.Key, consumeResult.Message.Value is null, instrumentedConsumer.Name, instrumentedConsumer.GroupId!, instrumentedConsumer.ClusterIdTask, instrumentedConsumer.UseCreationContextAsParent);
+        var instrumentedConsumer = consumer as InstrumentedConsumer<TKey, TValue>;
+        var processActivity = StartProcessActivity(TryExtractPropagationContext(consumeResult, out var propagationContext) ? propagationContext : default, consumeResult.TopicPartitionOffset, consumeResult.Message.Key, consumeResult.Message.Value is null, consumer.Name, instrumentedConsumer?.GroupId, instrumentedConsumer?.ClusterIdTask, instrumentedConsumer?.UseCreationContextAsParent ?? false);
 
         try
         {
@@ -129,7 +122,7 @@ public static class OpenTelemetryConsumeResultExtensions
     internal static PropagationContext ExtractPropagationContext(Headers? headers)
         => Propagators.DefaultTextMapPropagator.Extract(default, headers, ExtractTraceContext);
 
-    private static Activity? StartProcessActivity<TKey>(PropagationContext propagationContext, TopicPartitionOffset? topicPartitionOffset, TKey? key, bool isTombstone, string clientId, string groupId, Task<string?>? clusterIdTask, bool useCreationContextAsParent)
+    private static Activity? StartProcessActivity<TKey>(PropagationContext propagationContext, TopicPartitionOffset? topicPartitionOffset, TKey? key, bool isTombstone, string? clientId, string? groupId, Task<string?>? clusterIdTask, bool useCreationContextAsParent)
     {
 #pragma warning disable IDE0370 // Suppression is unnecessary
         var spanName = string.IsNullOrEmpty(topicPartitionOffset?.Topic)
@@ -170,7 +163,11 @@ public static class OpenTelemetryConsumeResultExtensions
 
         if (activity?.IsAllDataRequested == true)
         {
-            activity.SetTag(SemanticConventions.AttributeMessagingClientId, clientId);
+            if (clientId is { Length: > 0 })
+            {
+                activity.SetTag(SemanticConventions.AttributeMessagingClientId, clientId);
+            }
+
             activity.SetTag(SemanticConventions.AttributeKafkaOffset, topicPartitionOffset?.Offset.Value);
 
             if (ConfluentKafkaCommon.FormatMessageKey(key) is { } messageKey)
