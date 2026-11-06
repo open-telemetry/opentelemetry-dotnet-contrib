@@ -1,12 +1,14 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if !NETFRAMEWORK
+#if NET
 using System.Collections;
 #endif
 using System.Data;
 using System.Diagnostics;
+#if NET
 using System.Runtime.CompilerServices;
+#endif
 using OpenTelemetry.Instrumentation.SqlClient.Implementation;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Tests;
