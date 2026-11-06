@@ -12,7 +12,7 @@
 
 * Fixed query text sanitization taking quadratic time for queries with many
   signed numeric literals when `RecordQueryText` is enabled.
-  ([#NNNN](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/NNNN))
+  ([#5937](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5937))
 
 ## 0.1.0-alpha.7
 
