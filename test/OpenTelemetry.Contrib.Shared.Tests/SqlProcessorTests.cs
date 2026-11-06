@@ -137,6 +137,13 @@ public class SqlProcessorTests(ITestOutputHelper output)
     [InlineData("1.e5")]
     [InlineData(".5")]
     [InlineData("0x1_F")]
+    [InlineData(".1.2")]
+    [InlineData("1.2.3")]
+    [InlineData("1..5")]
+    [InlineData("1.2.3.4")]
+    [InlineData("0x1F.5")]
+    [InlineData("1e+5.6")]
+    [InlineData("1_000.2_000.3")]
     public void GetSanitizedSql_InClauseDollarQuoteDirectlyAfterNumber_IsNotPartOfAnIdentifier(string number)
     {
         var sql = $"SELECT * FROM t WHERE a IN ({number}$$) secret-name$$)";

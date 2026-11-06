@@ -2710,22 +2710,31 @@ internal static partial class SqlProcessor
             return false;
         }
 
-        // The number is found in the same way as the parser finds it, so that what is directly after it is only taken
-        // for a literal when the parser does (e.g. not after the second separator of 1__000, or the last of 1_).
-        if (TryFindBasePrefixedLiteralEnd(sql, start, out _, out var baseEnd))
+        // The parser can find several adjacent numbers in malformed SQL (e.g. 1.2 followed by .3), which is still
+        // recorded before rejection. Follow each token, stopping if a word starts instead (e.g. the suffix of 1__000).
+        while (start < end)
         {
-            return baseEnd == end;
+            if (!TryFindBasePrefixedLiteralEnd(sql, start, out _, out var tokenEnd))
+            {
+                var periodMatched = sql[start] == DotChar;
+                var firstDigit = periodMatched ? start + 1 : start;
+                if (firstDigit >= end || !char.IsAsciiDigit(sql[firstDigit]))
+                {
+                    return false;
+                }
+
+                tokenEnd = FindNumericLiteralEnd(sql, firstDigit, periodMatched);
+            }
+
+            if (tokenEnd >= end)
+            {
+                return tokenEnd == end;
+            }
+
+            start = tokenEnd;
         }
 
-        if (char.IsAsciiDigit(sql[start]))
-        {
-            return FindNumericLiteralEnd(sql, start, periodMatched: false) == end;
-        }
-
-        return sql[start] == DotChar &&
-               start + 1 < end &&
-               char.IsAsciiDigit(sql[start + 1]) &&
-               FindNumericLiteralEnd(sql, start + 1, periodMatched: true) == end;
+        return false;
     }
 
 #if !NET
